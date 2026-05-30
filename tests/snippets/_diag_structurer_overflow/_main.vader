@@ -1,0 +1,49 @@
+// _diag_structurer_overflow — Vader CFG→bytecode structurer infinite recursion.
+//
+// `vader/midir/emit.vader::emit_range` ↔ `emit_block_contents` recurse without
+// terminating on this control-flow shape, overflowing the stack (SIGSEGV) when
+// the NATIVE Vader compiler emits bytecode for it. The TS reference compiler
+// (`src/midir/emit.ts`) handles the same CFG fine — so this is a Vader-side
+// structurer bug, not a divergence. Skip-listed in parity (BYTECODE_DIVERGENT)
+// until the structurer is fixed ; remove the skip entry once it emits cleanly.
+//
+// Minimal reliable trigger (all three pieces are required — dropping any one
+// makes the crash disappear) :
+//   1. a `match` over a union (emits an `unreachable` non-exhaustive fallback
+//      arm + a merge block both arms reach),
+//   2. two levels of nested `if` after the match,
+//   3. a `for x in <array>` loop (the ArrayIterator `.next()`/`Yield` CFG, not
+//      a range loop) whose body has a `continue`.
+// The structurer re-emits the post-match continuation per branch instead of
+// once at the merge ; the second emission re-enters the already-wrapped inner
+// loop header without an active loop scope, so its back-edges never resolve to
+// a `continue` and the recursion never bottoms out.
+
+module "snippet"
+
+Pair :: struct { a: i32 }
+Wrap :: struct { b: i32 }
+U :: Pair | Wrap
+
+run :: fn(u: U, gate1: bool, gate2: bool) -> i32 {
+    items :: [1, 2, 3]
+    base := 0
+    match u {
+        is Pair as p -> { base = p.a }
+        is Wrap as w -> { base = w.b }
+    }
+    n := base
+    if gate1 {
+        if gate2 {
+            for it in items {
+                if it == 2 { continue }
+                n = n + 1
+            }
+        }
+    }
+    return n
+}
+
+main :: fn() -> i32 {
+    return run(Pair { .a = 5 }, true, true)
+}

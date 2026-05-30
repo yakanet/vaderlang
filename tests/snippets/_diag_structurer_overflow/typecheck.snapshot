@@ -1,0 +1,33 @@
+# Typecheck
+
+## tests/snippets/_diag_structurer_overflow
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Pair                 :: Pair
+  FnDecl         run                  :: fn(Pair | Wrap, bool, bool) -> i32
+  ConstDecl      U                    :: type
+  StructDecl     Wrap                 :: Wrap
+  expr 29:14    SeqLitExpr     :: i32[]
+  expr 31:11    IdentExpr      :: Pair | Wrap
+  expr 31:5     MatchExpr      :: void
+  expr 32:27    IdentExpr      :: i32
+  expr 32:34    FieldExpr      :: i32
+  expr 32:34    IdentExpr      :: Pair
+  expr 33:27    IdentExpr      :: i32
+  expr 33:34    FieldExpr      :: i32
+  expr 33:34    IdentExpr      :: Wrap
+  expr 35:10    IdentExpr      :: i32
+  expr 36:5     IfExpr         :: void
+  expr 36:8     IdentExpr      :: bool
+  expr 37:12    IdentExpr      :: bool
+  expr 37:9     IfExpr         :: void
+  expr 38:23    IdentExpr      :: i32[]
+  expr 39:17    IfExpr         :: void
+  expr 39:20    BinaryExpr     :: bool
+  expr 39:20    IdentExpr      :: i32
+  expr 40:17    IdentExpr      :: i32
+  expr 40:21    BinaryExpr     :: i32
+  expr 40:21    IdentExpr      :: i32
+  expr 44:12    IdentExpr      :: i32
+  expr 48:12    CallExpr       :: i32
+  expr 48:12    IdentExpr      :: fn(Pair | Wrap, bool, bool) -> i32
+  expr 48:16    StructLitExpr  :: Pair

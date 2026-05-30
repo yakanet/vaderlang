@@ -1,0 +1,124 @@
+# Lower
+
+## snippet
+  struct snippet$Pair { a: i32 }
+  struct snippet$Wrap { b: i32 }
+  fn snippet$run(u: Pair | Wrap, gate1: bool, gate2: bool) -> i32
+    let items: i32[] =
+      array :i32[]
+        int(1) :i32
+        int(2) :i32
+        int(3) :i32
+    let base: i32 = int(0) :i32
+    block :void
+      let __scrut_0: Pair | Wrap = u :Pair | Wrap
+      ~>
+        if :void
+          cond:
+            is Pair :bool
+              __scrut_0 :Pair | Wrap
+          then:
+            let p: Pair =
+              cast → Pair
+                __scrut_0 :Pair | Wrap
+            ~>
+              block :void
+                assign
+                  target:
+                    base :i32
+                  value:
+                    .a :i32
+                      p :Pair
+          else:
+            ~>
+              if :void
+                cond:
+                  is Wrap :bool
+                    __scrut_0 :Pair | Wrap
+                then:
+                  let w: Wrap =
+                    cast → Wrap
+                      __scrut_0 :Pair | Wrap
+                  ~>
+                    block :void
+                      assign
+                        target:
+                          base :i32
+                        value:
+                          .b :i32
+                            w :Wrap
+                else:
+                  ~>
+                    unreachable("non-exhaustive match (T3013 should have caught this)") :void
+    let n: i32 = base :i32
+    if :void
+      cond:
+        gate1 :bool
+      then:
+        if :void
+          cond:
+            gate2 :bool
+          then:
+            block :void
+              let __for_arr_1: i32[] = items :i32[]
+              let __for_len_2: usize =
+                LoweredArrayLen
+              let __for_i_3: usize = int(0) :usize
+              loop while (<…>)
+                let it: i32 =
+                  index :i32
+                    on:
+                      __for_arr_1 :i32[]
+                    ix:
+                      __for_i_3 :usize
+                if :void
+                  cond:
+                    eq :bool
+                      l:
+                        it :i32
+                      r:
+                        int(2) :i32
+                  then:
+                    block :void
+                      assign
+                        target:
+                          __for_i_3 :usize
+                        value:
+                          add :usize
+                            l:
+                              __for_i_3 :usize
+                            r:
+                              int(1) :usize
+                      continue
+                assign
+                  target:
+                    n :i32
+                  value:
+                    add :i32
+                      l:
+                        n :i32
+                      r:
+                        int(1) :i32
+                assign
+                  target:
+                    __for_i_3 :usize
+                  value:
+                    add :usize
+                      l:
+                        __for_i_3 :usize
+                      r:
+                        int(1) :usize
+    return n :i32
+  fn snippet$main() -> i32
+    return
+      call :i32
+        callee:
+          run :fn(Pair | Wrap, bool, bool) -> i32
+        arg0:
+          Pair {
+            a: int(5) :i32
+          }
+        arg1:
+          true
+        arg2:
+          true
