@@ -554,22 +554,34 @@ surface_stdlib_impl_externs :: fn(
     if impl_decl.for_type is GenericInstExpr { return out }
     self_type :: lower_for_type(impl_decl, typed)
     for member in impl_decl.members {
-        if !(member.body is null) { continue }
         if member.type_params.len() > usize(0) { continue }
         mangled :: impl_member_mangled(impl_decl, member, typed, module_decls)
-        // Only surface members an actual call referenced — surfacing every
-        // stdlib impl member would intern unused signature types and shift
-        // the type table for unrelated snippets.
+        // Only emit members an actual call referenced — emitting every stdlib
+        // impl member would intern unused signature types and shift the type
+        // table for unrelated snippets.
         if !project_ctx.referenced_impl_mangles.contains(mangled) { continue }
+        // Dedupe against the generic-impl materialiser (and re-entrant calls).
+        dedupe_key :: "surfaced::${mangled}"
+        if project_ctx.materialized_impl_keys.contains(dedupe_key) { continue }
+        project_ctx.materialized_impl_keys.add(dedupe_key)
         types :: make_entry_types(typed, new_substitution())
         params :: build_impl_member_params(member, self_type, types, typed, project_ctx)
         return_type :: return_type_of(member, types)
         entry :: synth_impl_entry(member, typed, mangled)
+        // Bodyless (`@intrinsic`) → extern import (Vader VM dispatches via
+        // host.vader). With-body (e.g. `i32 implements Hash -> u64(self)`) →
+        // materialise the real fn so a devirtualised concrete call resolves
+        // directly instead of dropping / surfacing as an unbound host import.
+        body_lowered :: if member.body is null {
+            null
+        } else {
+            lower_fn_body(member, typed, project_ctx, entry, new_substitution(), return_type)
+        }
         out.push(LoweredFnDecl {
             .mangled     = mangled,
             .params      = params,
             .return_type = return_type,
-            .body        = null,
+            .body        = body_lowered,
             .origin      = entry,
         })
     }
@@ -2131,7 +2143,7 @@ materialize_impl_for_instance :: fn(
     // erasure can then collapse to a single C-emit body. Mangled name
     // keeps the concrete args suffix (`__i32`) so identity tags stay
     // distinct.
-    subst :: build_impl_any_subst(impl_decl, impl_typed)
+    subst :: build_impl_mixed_subst(impl_decl, impl_typed, inst.args)
     // A concrete-instantiation impl (`Wrapper<i32> implements …`) has no
     // type params, so the substitution is empty — keep the concrete
     // instance args (self stays `Wrapper<i32>`). Only a genuinely
@@ -2141,7 +2153,7 @@ materialize_impl_for_instance :: fn(
     if is_empty_substitution(subst) {
         for a in inst.args { erased_args.push(a) }
     } else {
-        for a in inst.args { erased_args.push(any_leaves_of(a)) }
+        for a in inst.args { erased_args.push(keep_primitive_or_erase(a)) }
     }
     self_struct :: StructType { .symbol = inst.symbol, .args = erased_args }
     self_type: Type = self_struct
@@ -2156,7 +2168,7 @@ materialize_impl_for_instance :: fn(
     // would leak inner shape (`MutableMap<_, _[]>` → `at__Any__Any__`) and
     // diverge from a sibling instance's `at__Any__Any`, breaking the
     // single-body dedupe.
-    suffix :: if is_empty_substitution(subst) { args_suffix(erased_args) } else { flat_any_suffix(inst.args.len()) }
+    suffix :: if is_empty_substitution(subst) { args_suffix(erased_args) } else { mixed_any_suffix(inst.args) }
     types :: make_entry_types(impl_typed, subst)
     impl_key_prefix :: impl_decl.span.hash()
     for member in impl_decl.members {
@@ -2164,7 +2176,7 @@ materialize_impl_for_instance :: fn(
         // (impl_decl, member) collapses to one emission. The first
         // instance wins ; the call sites land on the survivor via the
         // trait virtual-dispatch in bytecode emit.
-        dedupe_key :: "${impl_key_prefix}::${member.name}"
+        dedupe_key :: "${impl_key_prefix}::${member.name}${suffix}"
         if project_ctx.materialized_impl_keys.contains(dedupe_key) { continue }
         project_ctx.materialized_impl_keys.add(dedupe_key)
         params :: build_impl_member_params(member, self_type, types, impl_typed, project_ctx)
@@ -2371,16 +2383,6 @@ build_impl_subst :: fn(
 /// struct's `T` into the impl's scope without giving it a fresh
 /// symbol id ; matching by `(name, kind=TypeParam)` catches it
 /// regardless of whose `defined_at` the use sites carry.
-build_impl_any_subst :: fn(
-    impl_decl: ImplDecl, impl_typed: TypedProgram,
-) -> Substitution {
-    subst :: new_substitution()
-    names :: collect_impl_type_param_names(impl_decl)
-    map_type_params_by_name(subst, impl_typed.resolved.symbols, names)
-    map_type_params_by_name(subst, impl_typed.resolved.idents.values(), names)
-    return subst
-}
-
 collect_impl_type_param_names :: fn(impl_decl: ImplDecl) -> string[] {
     names: string[] = []
     for tp in impl_decl.type_params { names.push(tp.name) }
@@ -2396,16 +2398,44 @@ collect_impl_type_param_names :: fn(impl_decl: ImplDecl) -> string[] {
     return names
 }
 
-map_type_params_by_name :: fn(subst: Substitution, scope: Symbol[], names: string[]) -> void {
+/// Mixed substitution : map each impl type param to its concrete instance arg
+/// WHEN primitive (so the materialised body sees `K = i32` and primitive trait
+/// dispatch devirtualises), else to `Any`. `names[i]` corresponds to `args[i]`.
+map_type_params_mixed :: fn(subst: Substitution, scope: Symbol[], names: string[], args: Type[]) -> void {
     for s in scope {
         if i32(s.kind) != i32(SymbolKind.TypeParam) { continue }
-        for nm in names {
-            if s.name == nm {
-                subst.type_params[s.id] = TY_ANY
+        idx: i32 = -1
+        for i in 0..<names.len() {
+            if s.name == names[i] {
+                idx = i32(i)
                 break
             }
         }
+        if idx < 0 { continue }
+        target: Type = TY_ANY
+        if usize(idx) < args.len() {
+            arg :: args[usize(idx)]
+            if arg is PrimitiveType { target = arg }
+        }
+        subst.type_params[s.id] = target
     }
+}
+
+/// Variant of `build_impl_any_subst` keeping PRIMITIVE type args concrete.
+build_impl_mixed_subst :: fn(
+    impl_decl: ImplDecl, impl_typed: TypedProgram, args: Type[],
+) -> Substitution {
+    subst :: new_substitution()
+    names :: collect_impl_type_param_names(impl_decl)
+    map_type_params_mixed(subst, impl_typed.resolved.symbols, names, args)
+    map_type_params_mixed(subst, impl_typed.resolved.idents.values(), names, args)
+    return subst
+}
+
+/// Erase a type arg for the impl-member self-type, but KEEP primitives concrete.
+keep_primitive_or_erase :: fn(t: Type) -> Type {
+    if t is PrimitiveType { return t }
+    return any_leaves_of(t)
 }
 
 type_expr_simple_name :: fn(e: TypeExpr) -> string {
@@ -2455,23 +2485,26 @@ args_suffix :: fn(args: Type[]) -> string {
     return sb.to_string()
 }
 
-/// Erasure suffix for a GENERIC impl member : one bare `__Any` per type
-/// argument, ignoring the args' inner structure. A structure-preserving
-/// `args_suffix(any_leaves_of(...))` is unstable across instances — e.g.
-/// `MutableMap<i32, i32[]>` erases its value to `Any[]` whose
-/// `mangle_type_arg` renders `Any__` (the `[]` sanitises to `__`), so it
-/// mangles `at__Any__Any__` while `MutableMap<string, string>` mangles
-/// `at__Any__Any`. The impl-member dedupe (keyed by impl + member, not
-/// args) emits ONE body, so every call site must agree on its name ;
-/// flattening to `__Any` × arity makes that name a stable function of the
-/// type-param count alone. Used by both the call site
-/// (`find_impl_member_for`) and the definition (`materialize_impl_for_instance`).
-/// @param arity  the impl's type-argument count.
-/// @return       `"__Any"` repeated `arity` times (empty when arity is 0).
-export flat_any_suffix :: fn(arity: usize) -> string {
+/// Erasure suffix for a GENERIC impl member. KEEPS primitive type args concrete
+/// (so a primitive-keyed instance devirtualises its trait dispatch — `i32.eq`
+/// instead of a `virtual.call` thunk) and flattens every non-primitive arg to a
+/// bare `__Any`. The flatten avoids the inner-shape leak a structure-preserving
+/// `args_suffix(any_leaves_of(...))` would cause — e.g. `MutableMap<Any, Any[]>`
+/// → `at__Any__Any__` diverging from a sibling's `at__Any__Any`. All three
+/// suffix sites (`materialize_impl_for_instance`, `find_impl_member_for`,
+/// `lower_for_in`) MUST call this with the same `args` so each call name
+/// reconciles with the single materialised body (the dedupe keys on the suffix).
+/// @param args  the impl's concrete type arguments.
+/// @return      `"__<prim>"` per primitive arg, `"__Any"` per other arg.
+export mixed_any_suffix :: fn(args: Type[]) -> string {
     sb := new_builder()
-    for _ in 0..<arity {
-        sb.append("__Any")
+    for a in args {
+        if a is PrimitiveType as p {
+            sb.append("__")
+            sb.append(p.name)
+        } else {
+            sb.append("__Any")
+        }
     }
     return sb.to_string()
 }

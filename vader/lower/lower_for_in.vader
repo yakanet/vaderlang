@@ -327,7 +327,7 @@ build_step_call :: fn(
         // emits for the materialised `next` body. Concrete-instantiation
         // iterators keep the concrete suffix.
         suffix :: if struct_iter_impl_is_generic(ctx, st.symbol.name) {
-            flat_any_suffix(st.args.len())
+            mixed_any_suffix(st.args)
         } else {
             args_suffix(st.args)
         }

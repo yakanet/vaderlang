@@ -789,6 +789,29 @@ try_lower_virtual_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Low
                 }
             }
         }
+        // Concrete primitive receiver with a bounded-trait method : a generic
+        // instance concretised on a primitive K (e.g. `key.equals(other)` in
+        // `MutableMap<i32,_>`). `Equals` is `@intrinsic` on primitives, so
+        // devirtualise straight to the comparison primop instead of a
+        // `virtual.call` / thunk. Other trait methods (Hash / Comparable have
+        // materialised bodies) fall through to the UFCS direct-call path.
+        if type_of(receiver) is PrimitiveType {
+            tname_opt :: ctx.typed.bounded_dispatch_trait[field_expr.id]
+            if tname_opt is string as tname {
+                // `equals` is `@intrinsic` on primitives ; `not_equals` is the
+                // trait default `!self.equals(...)`, which on a primitive is
+                // exactly `!=` — both reduce to a comparison primop here.
+                if tname == "Equals" && call.args.len() > usize(0) {
+                    if field_expr.field == "equals" || field_expr.field == "not_equals" {
+                        cmp_op :: if field_expr.field == "equals" { LoweredBinaryOp.Eq } else { LoweredBinaryOp.Neq }
+                        return LoweredBinary {
+                            .span = call.span, .type = type, .op = cmp_op,
+                            .left = receiver, .right = lower_expr(ctx, call.args[0].value),
+                        }
+                    }
+                }
+            }
+        }
     }
     return null
 }
@@ -1491,7 +1514,7 @@ find_impl_member_for :: fn(ctx: FnLowerCtx, target_type: Type, method_name: stri
                     // `flat_any_suffix`). Concrete-instantiation impls keep
                     // their concrete args.
                     if entry.is_generic {
-                        flat_any_suffix(s.args.len())
+                        mixed_any_suffix(s.args)
                     } else {
                         args_suffix(s.args)
                     }
@@ -1499,8 +1522,9 @@ find_impl_member_for :: fn(ctx: FnLowerCtx, target_type: Type, method_name: stri
                 _ -> ""
             }
             mangled :: "${mangle_module_id(entry.module)}$${target_name}$${decl.trait_name}$${m.name}${recv_suffix}"
-            // Record the call so the post-lowering intrinsic-surfacing pass
-            // surfaces ONLY referenced stdlib impl members as imports (GATE B).
+            // Record the call so the post-lowering pass surfaces referenced
+            // stdlib impl members : bodyless (`@intrinsic`) → import ; with-body
+            // (e.g. `i32 implements Hash -> u64(self)`) → materialised real fn.
             ctx.project.referenced_impl_mangles.add(mangled)
             return UfcsMember {
                 .symbol = Symbol {
