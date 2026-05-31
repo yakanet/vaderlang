@@ -998,11 +998,13 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
             }
             is Convert -> {
                 if frame.sp == 0 {
-                    return Trap { .message = "convert on empty stack at pc=${frame.pc}" }
+                    return Trap { .message = "convert on empty stack at pc=${frame.pc} in '${body.name}'" }
                 }
                 v :: frame.stack[frame.sp - 1]
                 converted :: convert_value(v, instr.target, frame.pc)
-                if converted is Trap { return converted }
+                if converted is Trap {
+                    return Trap { .message = "${converted.message} (got ${describe_value_tag(v)}) in '${body.name}'" }
+                }
                 frame.stack[frame.sp - 1] = converted
                 frame.pc = frame.pc + 1
             }
