@@ -155,6 +155,13 @@ detect_is_narrow :: fn(
             sym :: typed.resolved.idents[ident_side.span.hash()]
             if sym is null { return null }
             base :: type_of_symbol(sym, typed)
+            // Never narrow an unresolved binding — mirrors the field-chain
+            // guard in `resolve_field_chain_static` (narrow.vader). A
+            // premature imported-body walk (settle pass 0, before the
+            // module's imports are wired) resolves `m[k]`-bound locals to
+            // `?` ; recording a `?` narrowing here poisons every later
+            // reference (it survives into the authoritative re-walk).
+            if base is UnresolvedType { return null }
             null_ty :: mk_primitive("null")
             non_null :: subtract_type(base, null_ty)
             if i32(cond.op) == i32(AST.BinaryOp.Eq) {
@@ -190,6 +197,9 @@ detect_is_narrow :: fn(
     sym :: typed.resolved.idents[cond.left.span.hash()]
     if sym is null { return null }
     base :: type_of_symbol(sym, typed)
+    // Same guard as the ident-vs-null path above: don't narrow an
+    // unresolved binding.
+    if base is UnresolvedType { return null }
     narrowed :: type_from_expr(cond.right, typed.resolved, diags)
     // `if x is T as a { … }` — write the bind's type into `local_types`
     // so `IdentExpr` lookups inside the then-block resolve `a` to T.

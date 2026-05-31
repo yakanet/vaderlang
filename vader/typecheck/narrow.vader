@@ -14,6 +14,7 @@
 
 module "vader/typecheck"
 
+import "std/collections" { remove }
 import "vader/types" { Type }
 AST :: import "vader/parser"
 
@@ -26,15 +27,22 @@ export push_narrow :: fn(typed: TypedProgram, sym_id: i32, narrowed: Type) -> Ty
 }
 
 /// Restore the prior narrowing for `sym_id`. Pair with `push_narrow`.
-/// When `prev` is null the slot is overwritten with the binding's
-/// static type ; downstream `narrow_for_binding` then falls back to
-/// the static type. (MutableMap has no remove() ; we treat the
-/// "absent" state as "matches static" by convention.)
+/// When `prev` is null the slot is *removed* so a later
+/// `narrow_for_binding` falls back to the binding's then-current static
+/// type. Removing (not overwriting with a captured `static_ty`) is what
+/// keeps narrowing scope-local : a stale type captured by an earlier
+/// walk — e.g. the premature imported-body walk in
+/// `settle_external_expr_bodied_returns`, which runs before a module's
+/// imports are wired and so sees `?` for `m[k]`-bound locals — must not
+/// outlive its scope and poison the authoritative re-walk. (`static_ty`
+/// is retained in the signature for symmetry with the restore machinery
+/// that threads it through `IsNarrow` / `DivergentNarrow`.)
 export pop_narrow :: fn(typed: TypedProgram, sym_id: i32, prev: Type | null, static_ty: Type) -> void {
-    match prev {
-        is null -> { typed.narrowed_bindings[sym_id] = static_ty }
-        _ -> { typed.narrowed_bindings[sym_id] = prev }
+    if prev == null {
+        typed.narrowed_bindings.remove(sym_id)
+        return
     }
+    typed.narrowed_bindings[sym_id] = prev
 }
 
 /// Look up the current narrowed type for `sym_id`, falling back to
@@ -147,14 +155,15 @@ export push_field_narrow :: fn(typed: TypedProgram, key: string, narrowed: Type)
 }
 
 /// Restore the prior narrowing for `key`. Pair with `push_field_narrow`.
-/// When `prev` is null the slot is overwritten with the field's static
-/// type so subsequent `narrow_for_field` lookups fall through to the
-/// declared field type. (`MutableMap` has no remove().)
+/// When `prev` is null the slot is *removed* so subsequent
+/// `narrow_for_field` lookups fall through to the field's then-current
+/// static type. See `pop_narrow` for why removal (not overwrite) matters.
 export pop_field_narrow :: fn(typed: TypedProgram, key: string, prev: Type | null, static_ty: Type) -> void {
-    match prev {
-        is null -> { typed.narrowed_fields[key] = static_ty }
-        _ -> { typed.narrowed_fields[key] = prev }
+    if prev == null {
+        typed.narrowed_fields.remove(key)
+        return
     }
+    typed.narrowed_fields[key] = prev
 }
 
 /// Look up the current narrowed type for `key`, falling back to
