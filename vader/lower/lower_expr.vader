@@ -3508,27 +3508,36 @@ try_lower_index_set_assign :: fn(ctx: FnLowerCtx, assign_stmt: AssignStmt) -> Lo
     match target {
         is IndexExpr as idx -> {
             target_type :: ctx.types.expr_type(idx.target)
-            entry :: find_impl_for(ctx.project, target_type, "IndexSet")
-            if entry is null { return null }
-            // Build `set_at(target, index, value)` direct call.
-            receiver :: lower_expr(ctx, idx.target)
-            index :: lower_expr(ctx, idx.index)
-            value :: lower_expr(ctx, assign_stmt.value)
-            set_at_symbol :: synth_set_at_symbol(ctx)
-            args: LoweredExpr[] = []
-            args.push(receiver)
-            args.push(index)
-            args.push(value)
-            return LoweredExprStmt {
-                .span = assign_stmt.span,
-                .expr = LoweredCall {
-                    .span = assign_stmt.span, .type = TY_VOID,
-                    .callee = LoweredIdent {
-                        .span = assign_stmt.span, .type = TY_VOID, .symbol = set_at_symbol,
+            // Resolve `set_at` through the canonical impl-member path so the
+            // callee carries the SAME mangle the materialiser emits (and that
+            // DCE indexes). The old `synth_set_at_symbol` minted a bare
+            // `set_at` symbol that no fn-table slot matched, so the call was
+            // silently dropped and `m[k] = v` became a no-op (the value leaked
+            // onto the stack). Mirrors lower_index's `find_impl_member_for(…,
+            // "at")` on the read side.
+            member :: find_impl_member_for(ctx, target_type, "set_at")
+            if member is null { return null }
+            if member is UfcsMember as found {
+                // Build `set_at(target, index, value)` direct call.
+                receiver :: lower_expr(ctx, idx.target)
+                index :: lower_expr(ctx, idx.index)
+                value :: lower_expr(ctx, assign_stmt.value)
+                args: LoweredExpr[] = []
+                args.push(receiver)
+                args.push(index)
+                args.push(value)
+                return LoweredExprStmt {
+                    .span = assign_stmt.span,
+                    .expr = LoweredCall {
+                        .span = assign_stmt.span, .type = TY_VOID,
+                        .callee = LoweredIdent {
+                            .span = assign_stmt.span, .type = TY_VOID, .symbol = found.symbol,
+                        },
+                        .args = args,
                     },
-                    .args = args,
-                },
+                }
             }
+            return null
         }
         _ -> { return null }
     }
