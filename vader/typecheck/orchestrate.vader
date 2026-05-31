@@ -175,17 +175,26 @@ export check_project_with_bodies :: fn(
     // signatures in non-first files get declared too (was the source of
     // `?` types on multi-file modules).
     declare_module(merge_module_program(entry_loaded.module.files).decls, entry_rm, entry_typed, project.factory, diags)
+    // For every imported module, prepopulate its `namespace_member_types`
+    // (mirroring the entry's prepop above) BEFORE its own `declare_module`.
+    // The whole-program lowerer lowers imported bodies too, so a signature
+    // whose param/return is a namespace-qualified imported type
+    // (`d: p.TraitDecl`) must resolve here — otherwise `type_from_expr` reads
+    // an empty table and the param degrades to `?` (→ field-gets drop to
+    // `Drop;Return` in emit). prepop needs `import_targets` (= wire_targets) ;
+    // the later body-check loop re-sets it idempotently. Each module's prepop
+    // is self-contained (reads the target's exports from `collected.symbols` +
+    // `alias_types`, not from any module's `declare_module`), so interleaving
+    // prepop with declare is safe.
     for id in project.modules.keys() {
         if id == project.entry { continue }
         other :: project.modules[id]
         if other is null { continue }
         other_typed :: per_module[id]
-        match other_typed {
-            is null -> {}
-            _ -> {
-                declare_module(merge_module_program(other.module.files).decls, other_typed.resolved, other_typed, project.factory, diags)
-            }
-        }
+        if other_typed is null { continue }
+        other_typed.import_targets = wire_targets
+        prepopulate_namespace_member_types(other_typed, project, per_module)
+        declare_module(merge_module_program(other.module.files).decls, other_typed.resolved, other_typed, project.factory, diags)
     }
     // Cross-module struct visibility — see `broadcast_struct_decls`.
     broadcast_struct_decls(per_module)
@@ -248,9 +257,10 @@ export check_project_with_bodies :: fn(
         if other is null { continue }
         other_typed :: per_module[id]
         if other_typed is null { continue }
-        other_typed.import_targets = wire_targets
+        // `import_targets` and `namespace_member_types` were both set for this
+        // module before its `declare_module` (the loop above, mirroring the
+        // entry) and persist — no need to re-set / rebuild them here.
         populate_resolver_imports(other_typed)
-        prepopulate_namespace_member_types(other_typed, project, per_module)
         populate_external_types(other_typed, project, per_module)
         populate_imported_fn_overloads(other_typed, per_module)
         merge_external_impl_methods(other_typed, project, per_module)
@@ -1251,11 +1261,11 @@ build_namespace_exports :: fn(
 /// type position resolve correctly. The full `namespace_exports`
 /// table (built later from `decl_types`) is only used for
 /// value-position field access via `field.vader::try_namespace_field`.
-/// Scope : only the entry module's namespace imports are populated.
-/// Non-entry modules don't currently need cross-module namespace
-/// resolution in type position — they reach trait/struct symbols via
-/// their own `imports_to` + `alias_types` for direct (non-namespace)
-/// imports.
+/// Called for the entry AND for every imported module (each before its own
+/// `declare_module`) — the whole-program lowerer lowers imported bodies too,
+/// so their fn signatures can reference `P.Decl` namespace-qualified types
+/// that must resolve here instead of degrading to `?`. Plain (non-namespace)
+/// imports still resolve via `imports_to` + `alias_types` and don't need this.
 prepopulate_namespace_member_types :: fn(
     entry_typed: TypedProgram, project: LoadedProject,
     per_module: MutableMap<string, TypedProgram>,
