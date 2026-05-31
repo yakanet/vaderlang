@@ -42,6 +42,24 @@ pick_overload :: fn(
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     if !(c.callee is AST.IdentExpr) { return initial }
+    // A call through a LOCAL binding (param / local / pattern binding) invokes a
+    // fn-VALUE that SHADOWS any same-named free-fn overloads. It must not be
+    // overload-resolved — and crucially its callee type must NOT be patched
+    // with a global overload's signature : `compare(a, b)` over a
+    // `compare: fn(T, T) -> bool` PARAM would otherwise pick up an imported
+    // free `compare` overload and overwrite `expr_types[callee]` with that
+    // foreign fn-type (seen self-hosting : std/sort's comparator call picking
+    // up vader_comptime's `compare`, breaking the later `call.indirect`). Only
+    // a bare free-fn reference (Fn kind) carries overloads worth resolving.
+    callee_sym :: typed.resolved.idents[c.callee.span.hash()]
+    if callee_sym is Symbol as cs {
+        match cs.kind {
+            .Param   -> { return initial }
+            .Local   -> { return initial }
+            .Binding -> { return initial }
+            _        -> {}
+        }
+    }
     name :: c.callee.name
     candidates :: collect_overload_candidates(name, typed)
     if candidates.len() < 2 { return initial }
