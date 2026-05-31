@@ -36,7 +36,8 @@ import "vader/types" {
     TypeParamType, ArrayType, TupleType, TypeMetaType, AnyType, SelfType, NeverType,
     TY_BOOL, TY_VOID, TY_NEVER, TY_UNRESOLVED, TY_TYPE, mk_primitive,
 }
-import "vader/typecheck" { default_if_free, equals_type, is_assignable, lookup_struct_trait_args }
+import "vader/typecheck" { default_if_free, equals_type, type_list_equals, is_assignable, lookup_struct_trait_args }
+import "vader/typecheck" { TypedProgram }
 import "vader/comptime" {
     ComptimeValue, IntValue, FloatValue, BoolValue, CharValue, StringValue,
     NullValue, VoidValue, ArrayValue, StructValue, TypeValue,
@@ -788,17 +789,78 @@ lower_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
 // callee ident (TS `calleeSym !== resolverSym`,
 // `src/lower/passes/expr.ts:101`). The typer flagged these in
 // `overload_result_callees` ; rebuild the lowered ident with the
-// result type. Non-flagged callees keep their fn-type display.
+// result type AND re-point its symbol at the picked overload.
+//
+// The resolver binds an overloaded ident to the PRIMARY (first-declared)
+// overload ; `pick_overload` then patches the callee's expr-type to the
+// chosen overload and sets the flag, but leaves the resolver SYMBOL on the
+// primary. Without re-pointing it the emitter mangles the call to the
+// primary body — e.g. `min(usize, usize)` would call the `min(f64, f64)`
+// body, which the VM traps as `f64.lt expected f64, got i32`. Re-pointing
+// also drives `register_nongeneric_stdlib_fn` (back in `lower_call`) to
+// materialise the picked overload's body.
 retype_overload_callee :: fn(
     ctx: FnLowerCtx, callee_ast: Expr, lowered: LoweredExpr, result_type: Type,
 ) -> LoweredExpr {
     if callee_ast is IdentExpr as id {
         if ctx.typed.overload_result_callees[id.id] is null { return lowered }
         if lowered is LoweredIdent as li {
-            return LoweredIdent { .span = li.span, .type = result_type, .symbol = li.symbol }
+            symbol := li.symbol
+            // The picked overload's signature is the callee ident's patched
+            // type. Match it back to a Symbol so the emitted call resolves
+            // to the right body.
+            if li.type is FnType as picked {
+                found :: find_picked_overload_symbol(ctx, id.name, picked)
+                if found != null { symbol = found }
+            }
+            return LoweredIdent { .span = li.span, .type = result_type, .symbol = symbol }
         }
     }
     return lowered
+}
+
+// Find the overload SYMBOL whose param list matches `picked` — the FnType
+// `pick_overload` selected for an overloaded direct call. Mirror of TS
+// `directCallOverloads` (the chosen Symbol). Matches on PARAMS only :
+// imported overloads' return types are frequently unsettled (`?`) at lower
+// time, but param lists are always concrete (straight from the decl
+// signature) and uniquely identify an overload (the resolver rejects two
+// overloads with identical params). The module being lowered is tried first,
+// then the cross-module scan mirrors `find_free_fn_ufcs` — every loaded
+// module's bucket carries the candidates.
+//
+// @param name    the callee identifier name.
+// @param picked  the overload FnType typecheck selected.
+// @return        the matching overload Symbol, or null when none matches —
+//                the caller then keeps the resolver primary.
+find_picked_overload_symbol :: fn(ctx: FnLowerCtx, name: string, picked: FnType) -> Symbol | null {
+    local :: match_overload_in_bucket(ctx.typed, name, picked)
+    if local != null { return local }
+    for module_id in ctx.project.evaluated.modules.keys() {
+        program :: ctx.project.evaluated.modules[module_id]
+        if program is null { continue }
+        if program is EvaluatedProgram as ep {
+            found :: match_overload_in_bucket(ep.typed, name, picked)
+            if found != null { return found }
+        }
+    }
+    return null
+}
+
+// The overload symbol in `typed`'s `fn_overloads[name]` bucket whose declared
+// param list matches `picked` (return type ignored — see caller). Null when
+// the bucket is absent or no overload matches.
+match_overload_in_bucket :: fn(typed: TypedProgram, name: string, picked: FnType) -> Symbol | null {
+    bucket :: typed.resolved.fn_overloads[name]
+    if bucket is Symbol[] as syms {
+        for sym in syms {
+            dt :: typed.decl_types[sym.id]
+            if dt is FnType as ft {
+                if type_list_equals(ft.params, picked.params) { return sym }
+            }
+        }
+    }
+    return null
 }
 
 param_types_of :: fn(callee_type: Type) -> Type[] {

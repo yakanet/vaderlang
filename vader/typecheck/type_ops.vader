@@ -80,7 +80,10 @@ nominal_eq :: fn(a_id: i32, a_args: Type[], b_id: i32, b_args: Type[]) -> bool {
     return type_list_equals(a_args, b_args)
 }
 
-type_list_equals :: fn(a: Type[], b: Type[]) -> bool {
+/// Element-wise structural equality of two type lists (params, tuple
+/// elements, union variants). Companion to `equals_type` — same per-element
+/// `equals_type` comparison, length-checked first.
+export type_list_equals :: fn(a: Type[], b: Type[]) -> bool {
     if a.len() != b.len() { return false }
     for i in 0..<a.len() {
         if !equals_type(a[i], b[i]) { return false }

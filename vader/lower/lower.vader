@@ -1276,6 +1276,32 @@ find_nongeneric_fn_decl_by_name :: fn(decls: Decl[], name: string) -> FnDecl | n
     return null
 }
 
+// The non-generic FnDecl that DEFINED `fn_sym`. For an overloaded name
+// (`min :: fn(f64, f64) ; min :: fn(usize, usize)`) the resolver minted a
+// distinct symbol per decl with `defined_at` = the decl's `name_span` ; match
+// on that span so the right overload is materialised. A name-only lookup
+// would always pick the first declared overload and the call site (re-pointed
+// to a sibling overload by `retype_overload_callee`) would resolve to the
+// wrong body — or drop entirely. Falls back to name when the symbol carries
+// no span.
+find_nongeneric_fn_decl_for_symbol :: fn(decls: Decl[], fn_sym: Symbol) -> FnDecl | null {
+    match fn_sym.defined_at {
+        is null -> { return find_nongeneric_fn_decl_by_name(decls, fn_sym.name) }
+        is Span as want -> {
+            for d in decls {
+                if d is FnDecl as f {
+                    if f.name != fn_sym.name { continue }
+                    if f.type_params.len() != usize(0) { continue }
+                    if f.name_span.hash() == want.hash() { return f }
+                }
+            }
+            // Span miss (e.g. a re-pointed symbol whose span originated in a
+            // different per-module parse) : fall back to the name lookup.
+            return find_nongeneric_fn_decl_by_name(decls, fn_sym.name)
+        }
+    }
+}
+
 // Materialise the non-generic stdlib free fns harvested at call sites
 // (`register_nongeneric_stdlib_fn`). Each is lowered once via the normal
 // `lower_fn_decl` path — with-body fns land as real fns, `@extern` ones
@@ -1299,7 +1325,7 @@ materialize_nongeneric_stdlib_fns :: fn(
         if module_loaded is null { continue }
         if module_typed is TypedProgram as mt {
             if module_loaded is LoadedModule as ml {
-                fn_decl :: find_nongeneric_fn_decl_by_name(module_decls(ml), fn_sym.name)
+                fn_decl :: find_nongeneric_fn_decl_for_symbol(module_decls(ml), fn_sym)
                 if fn_decl is FnDecl as fd {
                     // Bodyless externs are surfaced up front in
                     // `lower_project`'s stdlib branch — skip to avoid a
