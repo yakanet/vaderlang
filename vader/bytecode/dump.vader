@@ -31,6 +31,7 @@ import "vader/vm" {
     Block, Loop, Branch, BranchIf, BoolNot,
     ArrayNew, ArrayLen, ArrayPush, ArrayGet, ArraySet, ArraySlice,
     DataConst, TypeConst, TypeCheck, RefCast, Convert, ConvertTarget,
+    IntToChar, CharToInt, RefEq, RefNe, DeferPush, DeferPopExec,
     MakeClosure, CallIndirect, VirtualCall, CallImport,
     BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish,
     SizeOfType, FnRef,
@@ -46,7 +47,8 @@ import "vader/vm" {
     F64Add, F64Sub, F64Mul, F64Div, F64Neg,
     F64Eq, F64Ne, F64Lt, F64Le, F64Gt, F64Ge,
     BoolEq, BoolNe, BoolAnd, BoolOr,
-    CharEq, CharNe, StringEq, StringNe, StringConcat, StringSliceCodepoints,
+    CharEq, CharNe, CharLt, CharLe, CharGt, CharGe,
+    StringEq, StringNe, StringConcat, StringSliceCodepoints,
 }
 
 /// Render a `BytecodeModule` as a `.virt`-style text dump. The
@@ -354,7 +356,7 @@ write_body_with_scopes :: fn(sb: StringBuilder, body: Op[], jump_table: i32[]) -
             continue
         }
         write_indent(sb, depth)
-        sb.append(format_op(op))
+        write_op(sb, op)
         sb.append_char('\n')
     }
 }
@@ -437,131 +439,150 @@ convert_target_name :: fn(t: ConvertTarget) -> string = match t {
     .Char -> "char"
 }
 
-format_op :: fn(op: Op) -> string = match op {
-    is I32Const as c            -> "i32.const ${c.value}"
-    is I64Const as c            -> "i64.const ${c.value}"
-    is F64Const as c            -> "f64.const ${c.value}"
-    is BoolConst as c           -> "bool.const ${c.value}"
-    is CharConst as c           -> "char.const ${u32(c.value)}"
-    is NullConst                -> "null.const"
-    is StringConst as s         -> "string.const ${s.index}"
-    is LocalGet as l            -> "local.get ${l.slot}"
-    is LocalSet as l            -> "local.set ${l.slot}"
-    is LocalTee as l            -> "local.tee ${l.slot}"
-    is LocalField as l          -> "local.field ${l.slot} ${l.type_id} ${l.field_index}"
-    is Return                   -> "return"
-    is ReturnLit as r           -> "return.lit ${format_const_op(r.value)}"
-    is Drop                     -> "drop"
-    is Call as c                -> "call ${c.function_index}"
-    is CallImport as c          -> "call.import ${c.index}"
-    is CallIndirect as c        -> "call.indirect ${c.type_id}"
-    is VirtualCall as v         -> "virtual.call ${v.parameter_count} ${v.vtable_key}"
-    is FnRef as f               -> "fn.ref ${f.function_index} ${f.type_id}"
-    is MakeClosure as m         -> "make_closure ${m.function_index} ${m.env_type_id}"
-    is If                       -> "if"
-    is Else                     -> "else"
-    is End                      -> "end"
-    is Block                    -> "block"
-    is Loop                     -> "loop"
-    is Branch                   -> "br"
-    is BranchIf                 -> "br_if"
-    is BoolNot                  -> "bool.not"
-    is StructNew as s           -> if s.stack { "struct.new_stack ${s.type_id}" } else { "struct.new ${s.type_id}" }
-    is StructGet as s           -> "struct.get ${s.type_id} ${s.field_index}"
-    is StructSet as s           -> if s.stack { "struct.set_stack ${s.type_id} ${s.field_index}" } else { "struct.set ${s.type_id} ${s.field_index}" }
-    is ArrayNew as a            -> "array.new ${a.type_id} ${a.length}"
-    is ArrayLen                 -> "array.len"
-    is ArrayPush as a           -> "array.push ${a.type_id}"
-    is ArrayGet as a            -> "array.get ${a.type_id}"
-    is ArraySet as a            -> "array.set ${a.type_id}"
-    is ArraySlice as a          -> "array.slice ${a.type_id}"
-    is DataConst as d           -> "data.const ${d.pool_index} ${d.type_id}"
-    is TypeConst as t           -> "type.const ${t.type_id}"
-    is TypeCheck as t           -> "type_check ${t.type_id}"
-    is RefCast as r             -> "ref.cast ${r.type_id}"
-    is Convert as c             -> "${c.from_name}.to_${convert_target_name(c.target)}"
-    is BuilderNew               -> "intrinsic builder.new"
-    is BuilderAppendStr         -> "intrinsic builder.append_str"
-    is BuilderAppendDisplay     -> "intrinsic builder.append_display"
-    is BuilderFinish            -> "intrinsic builder.finish"
-    is SizeOfType               -> "intrinsic size_of.type"
-    is I32Add                   -> "i32.add"
-    is I32Sub                   -> "i32.sub"
-    is I32Mul                   -> "i32.mul"
-    is I32Div                   -> "i32.div"
-    is I32Mod                   -> "i32.rem"
-    is I32Neg                   -> "i32.neg"
-    is I32BitNot                -> "i32.bitnot"
-    is I32BitAnd                -> "i32.bitand"
-    is I32BitOr                 -> "i32.bitor"
-    is I32BitXor                -> "i32.bitxor"
-    is I32Shl                   -> "i32.shl"
-    is I32Shr                   -> "i32.shr"
-    is I32ShrU                  -> "u32.shr"
-    is I32Eq                    -> "i32.eq"
-    is I32Ne                    -> "i32.ne"
-    is I32Lt                    -> "i32.lt"
-    is I32Le                    -> "i32.le"
-    is I32Gt                    -> "i32.gt"
-    is I32Ge                    -> "i32.ge"
-    is I64Add                   -> "i64.add"
-    is I64Sub                   -> "i64.sub"
-    is I64Mul                   -> "i64.mul"
-    is I64Div                   -> "i64.div"
-    is I64Mod                   -> "i64.rem"
-    is I64Neg                   -> "i64.neg"
-    is I64BitAnd                -> "i64.bitand"
-    is I64BitOr                 -> "i64.bitor"
-    is I64BitXor                -> "i64.bitxor"
-    is I64BitNot                -> "i64.bitnot"
-    is I64Shl                   -> "i64.shl"
-    is I64Shr                   -> "i64.shr"
-    is I64ShrU                  -> "u64.shr"
-    is I64Eq                    -> "i64.eq"
-    is I64Ne                    -> "i64.ne"
-    is I64Lt                    -> "i64.lt"
-    is I64Le                    -> "i64.le"
-    is I64Gt                    -> "i64.gt"
-    is I64Ge                    -> "i64.ge"
-    is U32Div                   -> "u32.div"
-    is U32Mod                   -> "u32.rem"
-    is U32Lt                    -> "u32.lt"
-    is U32Le                    -> "u32.le"
-    is U32Gt                    -> "u32.gt"
-    is U32Ge                    -> "u32.ge"
-    is U64Div                   -> "u64.div"
-    is U64Mod                   -> "u64.rem"
-    is U64Lt                    -> "u64.lt"
-    is U64Le                    -> "u64.le"
-    is U64Gt                    -> "u64.gt"
-    is U64Ge                    -> "u64.ge"
-    is F64Add                   -> "f64.add"
-    is F64Sub                   -> "f64.sub"
-    is F64Mul                   -> "f64.mul"
-    is F64Div                   -> "f64.div"
-    is F64Neg                   -> "f64.neg"
-    is F64Eq                    -> "f64.eq"
-    is F64Ne                    -> "f64.ne"
-    is F64Lt                    -> "f64.lt"
-    is F64Le                    -> "f64.le"
-    is F64Gt                    -> "f64.gt"
-    is F64Ge                    -> "f64.ge"
-    is BoolEq                   -> "bool.eq"
-    is BoolNe                   -> "bool.ne"
-    is BoolAnd                  -> "bool.and"
-    is BoolOr                   -> "bool.or"
-    is CharEq                   -> "char.eq"
-    is CharNe                   -> "char.ne"
-    is StringEq                 -> "string.eq"
-    is StringNe                 -> "string.ne"
-    is StringConcat             -> "string.concat"
-    is StringSliceCodepoints    -> "string.slice_codepoints"
-    _                           -> "<op>"
+// Append an op's `.virt` mnemonic to `out` (no scope labels — control-flow
+// ops render bare here ; callers that need labels handle those themselves
+// and delegate the rest). A STATEMENT match, not a value-returning one : a
+// value match desugars to nested if-expressions whose per-arm result is
+// teed up through an `if_res` chain, which makes a 128-arm exhaustive match
+// compile ~3.5x larger. Appending in place sidesteps that entirely while
+// staying exhaustive (a new op with no arm trips T3013 — no `_` wildcard).
+// The single canonical op→text table, shared by `dump_bytecode` and
+// `text.vader::write_op_line`.
+write_op :: fn(out: StringBuilder, op: Op) -> void {
+    match op {
+        is I32Const as c            -> out.append("i32.const ${c.value}")
+        is I64Const as c            -> out.append("i64.const ${c.value}")
+        is F64Const as c            -> out.append("f64.const ${c.value}")
+        is BoolConst as c           -> out.append("bool.const ${c.value}")
+        is CharConst as c           -> out.append("char.const ${u32(c.value)}")
+        is NullConst                -> out.append("null.const")
+        is StringConst as s         -> out.append("string.const ${s.index}")
+        is LocalGet as l            -> out.append("local.get ${l.slot}")
+        is LocalSet as l            -> out.append("local.set ${l.slot}")
+        is LocalTee as l            -> out.append("local.tee ${l.slot}")
+        is LocalField as l          -> out.append("local.field ${l.slot} ${l.type_id} ${l.field_index}")
+        is Return                   -> out.append("return")
+        is ReturnLit as r           -> out.append("return.lit ${format_const_op(r.value)}")
+        is Drop                     -> out.append("drop")
+        is Call as c                -> out.append("call ${c.function_index}")
+        is CallImport as c          -> out.append("call.import ${c.index}")
+        is CallIndirect as c        -> out.append("call.indirect ${c.type_id}")
+        is VirtualCall as v         -> out.append("virtual.call ${v.parameter_count} ${v.vtable_key}")
+        is FnRef as f               -> out.append("fn.ref ${f.function_index} ${f.type_id}")
+        is MakeClosure as m         -> out.append("make_closure ${m.function_index} ${m.env_type_id}")
+        is If                       -> out.append("if")
+        is Else                     -> out.append("else")
+        is End                      -> out.append("end")
+        is Block                    -> out.append("block")
+        is Loop                     -> out.append("loop")
+        is Branch                   -> out.append("br")
+        is BranchIf                 -> out.append("br_if")
+        is BoolNot                  -> out.append("bool.not")
+        is StructNew as s           -> if s.stack { out.append("struct.new_stack ${s.type_id}") } else { out.append("struct.new ${s.type_id}") }
+        is StructGet as s           -> out.append("struct.get ${s.type_id} ${s.field_index}")
+        is StructSet as s           -> if s.stack { out.append("struct.set_stack ${s.type_id} ${s.field_index}") } else { out.append("struct.set ${s.type_id} ${s.field_index}") }
+        is ArrayNew as a            -> out.append("array.new ${a.type_id} ${a.length}")
+        is ArrayLen                 -> out.append("array.len")
+        is ArrayPush as a           -> out.append("array.push ${a.type_id}")
+        is ArrayGet as a            -> out.append("array.get ${a.type_id}")
+        is ArraySet as a            -> out.append("array.set ${a.type_id}")
+        is ArraySlice as a          -> out.append("array.slice ${a.type_id}")
+        is DataConst as d           -> out.append("data.const ${d.pool_index} ${d.type_id}")
+        is TypeConst as t           -> out.append("type.const ${t.type_id}")
+        is TypeCheck as t           -> out.append("type_check ${t.type_id}")
+        is RefCast as r             -> out.append("ref.cast ${r.type_id}")
+        is Convert as c             -> out.append("${c.from_name}.to_${convert_target_name(c.target)}")
+        is BuilderNew               -> out.append("intrinsic builder.new")
+        is BuilderAppendStr         -> out.append("intrinsic builder.append_str")
+        is BuilderAppendDisplay     -> out.append("intrinsic builder.append_display")
+        is BuilderFinish            -> out.append("intrinsic builder.finish")
+        is SizeOfType               -> out.append("intrinsic size_of.type")
+        is I32Add                   -> out.append("i32.add")
+        is I32Sub                   -> out.append("i32.sub")
+        is I32Mul                   -> out.append("i32.mul")
+        is I32Div                   -> out.append("i32.div")
+        is I32Mod                   -> out.append("i32.rem")
+        is I32Neg                   -> out.append("i32.neg")
+        is I32BitNot                -> out.append("i32.bitnot")
+        is I32BitAnd                -> out.append("i32.bitand")
+        is I32BitOr                 -> out.append("i32.bitor")
+        is I32BitXor                -> out.append("i32.bitxor")
+        is I32Shl                   -> out.append("i32.shl")
+        is I32Shr                   -> out.append("i32.shr")
+        is I32ShrU                  -> out.append("u32.shr")
+        is I32Eq                    -> out.append("i32.eq")
+        is I32Ne                    -> out.append("i32.ne")
+        is I32Lt                    -> out.append("i32.lt")
+        is I32Le                    -> out.append("i32.le")
+        is I32Gt                    -> out.append("i32.gt")
+        is I32Ge                    -> out.append("i32.ge")
+        is I64Add                   -> out.append("i64.add")
+        is I64Sub                   -> out.append("i64.sub")
+        is I64Mul                   -> out.append("i64.mul")
+        is I64Div                   -> out.append("i64.div")
+        is I64Mod                   -> out.append("i64.rem")
+        is I64Neg                   -> out.append("i64.neg")
+        is I64BitAnd                -> out.append("i64.bitand")
+        is I64BitOr                 -> out.append("i64.bitor")
+        is I64BitXor                -> out.append("i64.bitxor")
+        is I64BitNot                -> out.append("i64.bitnot")
+        is I64Shl                   -> out.append("i64.shl")
+        is I64Shr                   -> out.append("i64.shr")
+        is I64ShrU                  -> out.append("u64.shr")
+        is I64Eq                    -> out.append("i64.eq")
+        is I64Ne                    -> out.append("i64.ne")
+        is I64Lt                    -> out.append("i64.lt")
+        is I64Le                    -> out.append("i64.le")
+        is I64Gt                    -> out.append("i64.gt")
+        is I64Ge                    -> out.append("i64.ge")
+        is U32Div                   -> out.append("u32.div")
+        is U32Mod                   -> out.append("u32.rem")
+        is U32Lt                    -> out.append("u32.lt")
+        is U32Le                    -> out.append("u32.le")
+        is U32Gt                    -> out.append("u32.gt")
+        is U32Ge                    -> out.append("u32.ge")
+        is U64Div                   -> out.append("u64.div")
+        is U64Mod                   -> out.append("u64.rem")
+        is U64Lt                    -> out.append("u64.lt")
+        is U64Le                    -> out.append("u64.le")
+        is U64Gt                    -> out.append("u64.gt")
+        is U64Ge                    -> out.append("u64.ge")
+        is F64Add                   -> out.append("f64.add")
+        is F64Sub                   -> out.append("f64.sub")
+        is F64Mul                   -> out.append("f64.mul")
+        is F64Div                   -> out.append("f64.div")
+        is F64Neg                   -> out.append("f64.neg")
+        is F64Eq                    -> out.append("f64.eq")
+        is F64Ne                    -> out.append("f64.ne")
+        is F64Lt                    -> out.append("f64.lt")
+        is F64Le                    -> out.append("f64.le")
+        is F64Gt                    -> out.append("f64.gt")
+        is F64Ge                    -> out.append("f64.ge")
+        is BoolEq                   -> out.append("bool.eq")
+        is BoolNe                   -> out.append("bool.ne")
+        is BoolAnd                  -> out.append("bool.and")
+        is BoolOr                   -> out.append("bool.or")
+        is CharEq                   -> out.append("char.eq")
+        is CharNe                   -> out.append("char.ne")
+        is CharLt                   -> out.append("char.lt")
+        is CharLe                   -> out.append("char.le")
+        is CharGt                   -> out.append("char.gt")
+        is CharGe                   -> out.append("char.ge")
+        is StringEq                 -> out.append("string.eq")
+        is StringNe                 -> out.append("string.ne")
+        is StringConcat             -> out.append("string.concat")
+        is StringSliceCodepoints    -> out.append("string.slice_codepoints")
+        is IntToChar                -> out.append("i32.to_char")
+        is CharToInt                -> out.append("char.to_i32")
+        is RefEq                    -> out.append("ref.eq")
+        is RefNe                    -> out.append("ref.ne")
+        is DeferPush                -> out.append("defer.push")
+        is DeferPopExec as d        -> out.append("defer.pop_exec ${d.count}")
+    }
 }
 
 /// Render a `ConstOp` in its native text form (e.g. `i32.const 42`).
-/// Shared with `format_op`'s ReturnLit arm — keep these spellings in
-/// sync with `vader/bytecode/text.vader::write_const_op_text`.
+/// Used by `write_op`'s standalone const arms + its `ReturnLit` inner op.
 format_const_op :: fn(c: ConstOp) -> string = match c {
     is I32Const    as v -> "i32.const ${v.value}"
     is I64Const    as v -> "i64.const ${v.value}"

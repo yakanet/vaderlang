@@ -322,7 +322,7 @@ write_function_virt :: fn(out: StringBuilder, function: op.BytecodeFunction, fn_
     pc: usize = 0
     for pc < function.ops.len() {
         out.append("  ")
-        write_op_line(out, function.ops[pc], function.jump_table, labels, pc)
+        write_op_line(out, function.ops[pc], labels, pc)
         out.append("\n")
         pc += 1
     }
@@ -490,183 +490,20 @@ top_non_loop_label :: fn(labels: string[], is_loop: bool[], sp: usize) -> string
     return ""
 }
 
-write_op_line :: fn(out: StringBuilder, v: op.Op, jump_table: i32[], labels: ScopeLabels, pc: usize) -> void {
-    // Long `if v is X { return }` chains exhaust the typechecker's
-    // variant narrowing — past ~80 hits the residual type collapses to
-    // a single variant and the next `is` check is flagged "can never
-    // match". A single `match` over the union avoids the chain and is
-    // exhaustiveness-checked.
+write_op_line :: fn(out: StringBuilder, v: op.Op, labels: ScopeLabels, pc: usize) -> void {
+    // Control-flow ops carry per-pc scope labels (resolved from `labels`),
+    // so they render here. Every other op delegates to the single
+    // exhaustive op→text renderer `write_op` (dump.vader, same module) —
+    // the canonical mnemonic table both the `.virt` writer and the
+    // `--stage=bytecode` dump share. A new op without a `write_op` arm
+    // trips T3013 there (its match is exhaustive, no wildcard).
     match v {
-        is op.Block         -> out.append("block ${labels.open_label[pc]} void")
-        is op.Loop          -> out.append("loop ${labels.open_label[pc]} void")
-        is op.If            -> out.append("if ${labels.open_label[pc]} void")
-        is op.Else          -> out.append("else")
-        is op.End           -> out.append("end ${labels.close_label[pc]}")
-        is op.Branch        -> out.append("br ${labels.branch_label[pc]}")
-        is op.BranchIf      -> out.append("br_if ${labels.branch_label[pc]}")
-        is op.Return        -> out.append("return")
-        is op.ReturnLit as c -> out.append("return.lit ${write_const_op_text(c.value)}")
-
-        is op.I32Const as c    -> out.append(write_const_op_text(c))
-        is op.I64Const as c    -> out.append(write_const_op_text(c))
-        is op.F64Const as c    -> out.append(write_const_op_text(c))
-        is op.BoolConst as c   -> out.append(write_const_op_text(c))
-        is op.CharConst as c   -> out.append(write_const_op_text(c))
-        is op.StringConst as c -> out.append(write_const_op_text(c))
-        is op.NullConst as c   -> out.append(write_const_op_text(c))
-
-        is op.LocalGet as c -> out.append("local.get ${c.slot}")
-        is op.LocalSet as c -> out.append("local.set ${c.slot}")
-        is op.LocalTee as c -> out.append("local.tee ${c.slot}")
-
-        is op.Call         as c -> out.append("call ${c.function_index}")
-        is op.CallImport   as c -> out.append("call.import ${c.index}")
-        is op.CallIndirect as c -> out.append("call.indirect ${c.type_id}")
-        is op.VirtualCall  as c -> out.append("virtual.call ${c.parameter_count} ${c.vtable_key}")
-        is op.FnRef        as c -> out.append("fn.ref ${c.function_index} ${c.type_id}")
-        is op.MakeClosure  as c -> out.append("make_closure ${c.function_index} ${c.env_type_id}")
-
-        is op.StructNew as c -> if c.stack { out.append("struct.new_stack ${c.type_id}") } else { out.append("struct.new ${c.type_id}") }
-        is op.StructGet as c -> out.append("struct.get ${c.type_id} ${c.field_index}")
-        is op.StructSet as c -> if c.stack { out.append("struct.set_stack ${c.type_id} ${c.field_index}") } else { out.append("struct.set ${c.type_id} ${c.field_index}") }
-        is op.LocalField as c -> out.append("local.field ${c.slot} ${c.type_id} ${c.field_index}")
-
-        is op.ArrayNew   as c -> out.append("array.new ${c.type_id} ${c.length}")
-        is op.ArrayPush  as c -> out.append("array.push ${c.type_id}")
-        is op.ArrayGet   as c -> out.append("array.get ${c.type_id}")
-        is op.ArraySet   as c -> out.append("array.set ${c.type_id}")
-        is op.ArrayLen        -> out.append("array.len")
-        is op.ArraySlice as c -> out.append("array.slice ${c.type_id}")
-        is op.DataConst  as c -> out.append("data.const ${c.pool_index} ${c.type_id}")
-
-        is op.RefCast    as c -> out.append("ref.cast ${c.type_id}")
-        is op.TypeCheck  as c -> out.append("type_check ${c.type_id}")
-        is op.TypeConst  as c -> out.append("type.const ${c.type_id}")
-        is op.DeferPush          -> out.append("defer.push")
-        is op.DeferPopExec as c  -> out.append("defer.pop_exec ${c.count}")
-        is op.Convert    as c -> out.append(convert_text(c))
-        is op.IntToChar       -> out.append("i32.to_char")
-        is op.CharToInt       -> out.append("char.to_i32")
-
-        is op.BuilderNew            -> out.append("intrinsic builder.new")
-        is op.BuilderAppendStr      -> out.append("intrinsic builder.append_str")
-        is op.BuilderAppendDisplay  -> out.append("intrinsic builder.append_display")
-        is op.BuilderFinish         -> out.append("intrinsic builder.finish")
-        is op.SizeOfType            -> out.append("intrinsic size_of.type")
-
-        is op.Drop -> out.append("drop")
-
-        is op.I32Add    -> out.append("i32.add")
-        is op.I32Sub    -> out.append("i32.sub")
-        is op.I32Mul    -> out.append("i32.mul")
-        is op.I32Div    -> out.append("i32.div")
-        is op.I32Mod    -> out.append("i32.rem")
-        is op.I32Neg    -> out.append("i32.neg")
-        is op.I32Eq     -> out.append("i32.eq")
-        is op.I32Ne     -> out.append("i32.ne")
-        is op.I32Lt     -> out.append("i32.lt")
-        is op.I32Le     -> out.append("i32.le")
-        is op.I32Gt     -> out.append("i32.gt")
-        is op.I32Ge     -> out.append("i32.ge")
-        is op.I32BitNot -> out.append("i32.bitnot")
-        is op.I32BitAnd -> out.append("i32.bitand")
-        is op.I32BitOr  -> out.append("i32.bitor")
-        is op.I32BitXor -> out.append("i32.bitxor")
-        is op.I32Shl    -> out.append("i32.shl")
-        is op.I32Shr    -> out.append("i32.shr")
-        is op.I32ShrU   -> out.append("u32.shr")
-
-        is op.U32Div -> out.append("u32.div")
-        is op.U32Mod -> out.append("u32.rem")
-        is op.U32Lt  -> out.append("u32.lt")
-        is op.U32Le  -> out.append("u32.le")
-        is op.U32Gt  -> out.append("u32.gt")
-        is op.U32Ge  -> out.append("u32.ge")
-
-        is op.I64Add    -> out.append("i64.add")
-        is op.I64Sub    -> out.append("i64.sub")
-        is op.I64Mul    -> out.append("i64.mul")
-        is op.I64Div    -> out.append("i64.div")
-        is op.I64Mod    -> out.append("i64.rem")
-        is op.I64Neg    -> out.append("i64.neg")
-        is op.I64Eq     -> out.append("i64.eq")
-        is op.I64Ne     -> out.append("i64.ne")
-        is op.I64Lt     -> out.append("i64.lt")
-        is op.I64Le     -> out.append("i64.le")
-        is op.I64Gt     -> out.append("i64.gt")
-        is op.I64Ge     -> out.append("i64.ge")
-        is op.I64Shl    -> out.append("i64.shl")
-        is op.I64Shr    -> out.append("i64.shr")
-        is op.I64ShrU   -> out.append("u64.shr")
-        is op.I64BitAnd -> out.append("i64.bitand")
-        is op.I64BitOr  -> out.append("i64.bitor")
-        is op.I64BitXor -> out.append("i64.bitxor")
-        is op.I64BitNot -> out.append("i64.bitnot")
-
-        is op.U64Div -> out.append("u64.div")
-        is op.U64Mod -> out.append("u64.rem")
-        is op.U64Lt  -> out.append("u64.lt")
-        is op.U64Le  -> out.append("u64.le")
-        is op.U64Gt  -> out.append("u64.gt")
-        is op.U64Ge  -> out.append("u64.ge")
-
-        is op.F64Add -> out.append("f64.add")
-        is op.F64Sub -> out.append("f64.sub")
-        is op.F64Mul -> out.append("f64.mul")
-        is op.F64Div -> out.append("f64.div")
-        is op.F64Neg -> out.append("f64.neg")
-        is op.F64Eq  -> out.append("f64.eq")
-        is op.F64Ne  -> out.append("f64.ne")
-        is op.F64Lt  -> out.append("f64.lt")
-        is op.F64Le  -> out.append("f64.le")
-        is op.F64Gt  -> out.append("f64.gt")
-        is op.F64Ge  -> out.append("f64.ge")
-
-        is op.BoolEq  -> out.append("bool.eq")
-        is op.BoolNe  -> out.append("bool.ne")
-        is op.BoolAnd -> out.append("bool.and")
-        is op.BoolOr  -> out.append("bool.or")
-        is op.BoolNot -> out.append("bool.not")
-
-        is op.CharEq -> out.append("char.eq")
-        is op.CharNe -> out.append("char.ne")
-        is op.CharLt -> out.append("char.lt")
-        is op.CharLe -> out.append("char.le")
-        is op.CharGt -> out.append("char.gt")
-        is op.CharGe -> out.append("char.ge")
-
-        is op.StringEq               -> out.append("string.eq")
-        is op.StringNe               -> out.append("string.ne")
-        is op.StringConcat           -> out.append("string.concat")
-        is op.StringSliceCodepoints  -> out.append("string.slice_codepoints")
-
-        is op.RefEq -> out.append("ref.eq")
-        is op.RefNe -> out.append("ref.ne")
+        is op.Block    -> out.append("block ${labels.open_label[pc]} void")
+        is op.Loop     -> out.append("loop ${labels.open_label[pc]} void")
+        is op.If       -> out.append("if ${labels.open_label[pc]} void")
+        is op.End      -> out.append("end ${labels.close_label[pc]}")
+        is op.Branch   -> out.append("br ${labels.branch_label[pc]}")
+        is op.BranchIf -> out.append("br_if ${labels.branch_label[pc]}")
+        _              -> write_op(out, v)
     }
-}
-
-convert_text :: fn(c: op.Convert) -> string {
-    to_name :: match c.target {
-        .I32  -> "i32"
-        .I64  -> "i64"
-        .F64  -> "f64"
-        .Char -> "char"
-    }
-    return "${c.from_name}.to_${to_name}"
-}
-
-/// Render a `ConstOp` in its native text form (e.g. `i32.const 42`,
-/// `bool.const true`, `string.const 0`, `null.const`). Shared by the
-/// standalone const-op arms and the inner-op rendering of `ReturnLit`.
-///
-/// @param c  the const op to render.
-/// @return   the textual representation, without the trailing newline.
-write_const_op_text :: fn(c: op.ConstOp) -> string = match c {
-    is op.I32Const    as v -> "i32.const ${v.value}"
-    is op.I64Const    as v -> "i64.const ${v.value}"
-    is op.F64Const    as v -> "f64.const ${v.value}"
-    is op.BoolConst   as v -> "bool.const ${v.value}"
-    is op.CharConst   as v -> "char.const ${u32(v.value)}"
-    is op.StringConst as v -> "string.const ${v.index}"
-    is op.NullConst        -> "null.const"
 }
