@@ -231,6 +231,37 @@ export check_project_with_bodies :: fn(
     }
     walk_bodies(merge_module_program(entry_loaded.module.files).decls, entry_typed, diags)
 
+    // Body-check every imported module too, so the lowerer sees the
+    // expression types of imported fn bodies. The whole-program lowerer
+    // (vader/lower) lowers EVERY module's bodies to emit their bytecode ;
+    // without per-module body types, imported bodies degrade — e.g. `m[k]`
+    // Index resolution misses (target_type unresolved) and the emitter
+    // drops the call. Each import needs its OWN external types wired first
+    // (the entry-only setup above doesn't reach them), so we replay the
+    // same setup chain parameterised on each module's typed program.
+    // Diagnostics route to a throwaway sink : the user-facing surface stays
+    // entry-only (the resolver-diag forwarding below is likewise
+    // entry-scoped). Mirrors TS, which body-checks imports.
+    for id in project.modules.keys() {
+        if id == project.entry { continue }
+        other :: project.modules[id]
+        if other is null { continue }
+        other_typed :: per_module[id]
+        if other_typed is null { continue }
+        other_typed.import_targets = wire_targets
+        populate_resolver_imports(other_typed)
+        prepopulate_namespace_member_types(other_typed, project, per_module)
+        populate_external_types(other_typed, project, per_module)
+        populate_imported_fn_overloads(other_typed, per_module)
+        merge_external_impl_methods(other_typed, project, per_module)
+        other_decls :: merge_module_program(other.module.files).decls
+        if has_expr_bodied_fn(other_decls) {
+            walk_bodies(other_decls, other_typed, diag_sink())
+            reset_expr_tables(other_typed)
+        }
+        walk_bodies(other_decls, other_typed, diag_sink())
+    }
+
     // Forward resolver-side R-codes (unresolved-ident, reserved-name, …)
     // so the CLI's `# Diagnostics` block surfaces them next to T-codes.
     for d in entry_typed.resolved.diags { diags.push(d) }
