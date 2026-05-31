@@ -11,6 +11,7 @@
   @comptime  pi                   = 3.141592653589793_f64
 
 ## stdlib/std/regex
+  @comptime  SLOT_UNSET           = -1_usize
 
 ## stdlib/std/string
 

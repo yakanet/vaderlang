@@ -237,6 +237,15 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
         if s is Trap { return s }
         return HostOk { .value = I32Val { .value = fnv1a31_low(s.value) } }
     }
+    // `@intrinsic string implements Equals` — structural string compare.
+    // Reached when map key lookups dispatch `key.equals(other)` virtually
+    // (the virtual.call intrinsic fallback in exec.vader rebuilds this mangle).
+    if info.mangled == r"std_core$string$Equals$equals" {
+        return host_str_pair_to_bool(stack, arg_base, at_pc, "equals", (a, b) -> a == b)
+    }
+    if info.mangled == r"std_core$string$Equals$not_equals" {
+        return host_str_pair_to_bool(stack, arg_base, at_pc, "not_equals", (a, b) -> a != b)
+    }
     // `<width> implements Display.to_string` for every primitive — the
     // VM emits the SPEC §9 canonical form via `display_value`. Width
     // doesn't matter at runtime (every integer collapses to `I32Val`),

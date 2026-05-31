@@ -3,6 +3,7 @@
 ## stdlib/std/abort
 
 ## stdlib/std/collections
+  @comptime  BUCKET_COUNT         = 16_usize
 
 ## stdlib/std/core
 

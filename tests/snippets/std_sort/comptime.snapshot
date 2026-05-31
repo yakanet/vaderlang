@@ -13,6 +13,7 @@
   @comptime  pi                   = 3.141592653589793_f64
 
 ## stdlib/std/sort
+  @comptime  INSERTION_CUTOFF     = 16_usize
 
 ## stdlib/std/string
 

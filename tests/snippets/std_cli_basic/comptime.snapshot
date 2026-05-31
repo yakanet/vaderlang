@@ -5,6 +5,7 @@
 ## stdlib/std/cli
 
 ## stdlib/std/collections
+  @comptime  BUCKET_COUNT         = 16_usize
 
 ## stdlib/std/core
 

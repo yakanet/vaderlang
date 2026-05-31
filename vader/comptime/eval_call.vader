@@ -32,6 +32,19 @@ export evaluate_call_expr :: fn(
         return vm_required(expr.span, "CallExpr (non-ident callee)")
     }
     callee :: expr.callee
+    // Primitive integer cast written as a call (`usize(16)`, `i32(n)`): the
+    // "callee" is a primitive type name, not a fn, so the FnDecl lookup below
+    // would bail and the const never bakes (e.g. `BUCKET_COUNT :: usize(16)`
+    // → bucket_index's `h % BUCKET_COUNT` drops). Int→int casts preserve the
+    // comptime value, so fold by passing the argument's IntValue through.
+    if callee is AST.IdentExpr as cid {
+        if expr.args.len() == usize(1) && is_primitive_int_name(cid.name) {
+            arg_result :: evaluate_expr(expr.args[0].value, context)
+            if arg_result.value is null { return arg_result }
+            av :: arg_result.value
+            if av is IntValue as iv { return ok(IntValue { .value = iv.value, .type_name = cid.name }) }
+        }
+    }
     callee_sym :: context.typed.resolved.idents[callee.span.hash()]
     if callee_sym is null {
         return vm_required(expr.span, "CallExpr (callee unresolved)")
@@ -60,6 +73,22 @@ export evaluate_call_expr :: fn(
     }
     call_context :: ComptimeContext { .typed = context.typed, .bindings = bindings }
     return evaluate_fn_body(fn_decl, call_context, expr.span)
+}
+
+// True for the 10 integer primitive type names — the ones that appear as a
+// cast callee (`usize(16)`) over an integer comptime value.
+is_primitive_int_name :: fn(name: string) -> bool {
+    if name == "i8"    { return true }
+    if name == "i16"   { return true }
+    if name == "i32"   { return true }
+    if name == "i64"   { return true }
+    if name == "isize" { return true }
+    if name == "u8"    { return true }
+    if name == "u16"   { return true }
+    if name == "u32"   { return true }
+    if name == "u64"   { return true }
+    if name == "usize" { return true }
+    return false
 }
 
 evaluate_fn_body :: fn(
