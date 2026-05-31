@@ -121,9 +121,12 @@ write_strings_virt :: fn(out: StringBuilder, strings: string[]) -> void {
     }
 }
 
-/// JSON-style quoting — wraps in `"..."` with `\\`, `\"`, `\n`, `\r`,
-/// `\t` escaped. Mirrors the encoding `parser.parse_string_decl` reads
-/// (via `decode_escapes`).
+/// JSON-style quoting — wraps in `"..."`, escaping `\\`, `\"`, `\n`, `\r`,
+/// `\t` and NUL (`\0`). Every other byte — including multi-byte UTF-8 — is
+/// copied verbatim so the round-trip is byte-exact. The escape set matches
+/// `std/string::decode_escapes` (the decoder `parser.parse_string_decl`
+/// reads back through), which understands exactly `\n \t \r \" \\ \0` and is
+/// byte-transparent for the rest — it has no `\u` / `\x` form.
 export quote_string :: fn(value: string) -> string {
     out :: new_builder()
     out.append("\"")
@@ -136,14 +139,15 @@ export quote_string :: fn(value: string) -> string {
         else if b == b'\n' { out.append("\\n") }
         else if b == b'\r' { out.append("\\r") }
         else if b == b'\t' { out.append("\\t") }
+        else if b == 0     { out.append("\\0") }
         else {
-            // Append the raw byte. `string_builder.append` takes a string,
-            // so we go through a single-byte string built from the
-            // codepoint. ASCII-only is the common case ; multi-byte UTF-8
-            // bytes are appended one-by-one so the resulting JSON-style
-            // escape sequence is still valid (the bytes recombine on
-            // parse since `decode_escapes` is byte-transparent).
-            out.append("${char(u32(b))}")
+            // Copy the raw byte verbatim. `byte_slice(i, i + 1)` yields the
+            // single source byte unchanged ; `char(u32(b))` would instead
+            // promote the byte to a codepoint and re-encode it as UTF-8,
+            // double-encoding any byte ≥ 0x80 (so every non-ASCII character
+            // turned into mojibake). `decode_escapes` copies it back
+            // byte-transparently — mirror its own verbatim-append path.
+            out.append(value.byte_slice(i, i + usize(1)))
         }
         i += 1
     }
