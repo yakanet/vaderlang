@@ -831,7 +831,7 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                 }
                 indirect_arity :: fn_type_decl.parameter_type_ids.len()
                 if frame.sp < 1 + indirect_arity {
-                    return Trap { .message = "call.indirect needs ${indirect_arity} arg(s) + fn-ref but stack has ${frame.sp} at pc=${frame.pc}" }
+                    return Trap { .message = "call.indirect needs ${indirect_arity} arg(s) + fn-ref but stack has ${frame.sp} at pc=${frame.pc} in '${body.name}'" }
                 }
                 fn_unwrap :: read_fn(frame.stack[frame.sp - 1], frame.pc, "call.indirect receiver")
                 if fn_unwrap is Trap { return fn_unwrap }
