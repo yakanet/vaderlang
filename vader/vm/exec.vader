@@ -29,6 +29,7 @@ module "vader/vm"
 
 import "std/io" { read_file, eprintln }
 import "std/string_builder" { StringBuilder }
+import "std/string" { index_of, byte_slice, byte_len }
 
 // Mangled host-import names. Lifted to module-scope so the dispatch
 // chain reads as identifier comparisons rather than raw-string
@@ -568,6 +569,29 @@ apply_cmp_binop :: fn(frame: Frame, top: usize, frames: Frame[], op_label: strin
 /// @param parameter_count  the entry fn's declared parameter count.
 /// @param host_argv        forwarded CLI argv, or empty for the synthetic path.
 /// @return                 the `Value[]` to seed the main frame's slots.
+/// Primitive kind ("string" / "char" / "i32" / …) of `module.types[type_id]`,
+/// or "" when the slot isn't a primitive. Used by the virtual.call intrinsic
+/// fallback to rebuild a host mangle.
+primitive_kind_at :: fn(module: Module, type_id: i32) -> string {
+    if type_id < 0 || usize(type_id) >= module.types.len() { return "" }
+    t :: module.types[usize(type_id)]
+    if t is PrimitiveType as p { return p.kind }
+    return ""
+}
+
+/// Rebuild the host import mangle for an `@intrinsic` primitive impl member
+/// from the receiver kind + a `"Trait.method"` vtable key — e.g.
+/// `("string", "Hash.hash")` → `"std_core$string$Hash$hash"`. Returns "" when
+/// the kind is empty or the key has no `.`.
+intrinsic_host_mangle :: fn(kind: string, vtable_key: string) -> string {
+    if kind == "" { return "" }
+    dot :: vtable_key.index_of('.', 0)
+    if dot < 0 { return "" }
+    trait_name :: vtable_key.byte_slice(0, usize(dot))
+    method :: vtable_key.byte_slice(usize(dot) + 1, vtable_key.byte_len())
+    return "std_core$${kind}$${trait_name}$${method}"
+}
+
 build_main_args :: fn(parameter_count: usize, host_argv: string[], string_array_type_id: i32) -> Value[] {
     out: Value[] = []
     if parameter_count != 1 { return out }
@@ -743,6 +767,37 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                 }
                 callee_fn :: lookup_vtable(module.vtables, instr.vtable_key, receiver_type_id)
                 if callee_fn < 0 {
+                    // Intrinsic primitive impl fallback : an `@intrinsic`
+                    // impl member on a primitive (e.g. `string implements
+                    // Hash`) is host-provided and may carry no vtable row in
+                    // a Vader-emitted module (the lowerer surfaces it as an
+                    // import only when a DIRECT call references it ; virtual
+                    // dispatch doesn't). Reconstruct the host mangle
+                    // `std_core$<kind>$<Trait>$<method>` from the receiver's
+                    // primitive kind + the vtable key and route through the
+                    // host dispatcher, which already implements these.
+                    recv_kind :: primitive_kind_at(module, receiver_type_id)
+                    host_mangle :: intrinsic_host_mangle(recv_kind, instr.vtable_key)
+                    if recv_kind != "" && host_mangle != "" {
+                        shift2 := receiver_top
+                        for shift2 > arg_base {
+                            frame.stack[shift2] = frame.stack[shift2 - 1]
+                            shift2 -= 1
+                        }
+                        frame.stack[arg_base] = receiver
+                        synth_info :: ImportInfo {
+                            .name = "", .mangled = host_mangle,
+                            .parameter_count = usize(instr.parameter_count),
+                            .has_return = true,
+                        }
+                        host_outcome :: dispatch_import(synth_info, frame.stack, arg_base, gc_state, frame.pc, string_array_type_id)
+                        if host_outcome is Trap { return host_outcome }
+                        if host_outcome is HostOk as hok {
+                            frame.stack[arg_base] = hok.value
+                            frames[top] = with_sp_pc(frame, arg_base + 1, frame.pc + 1)
+                            continue
+                        }
+                    }
                     return Trap { .message = "virtual.call '${instr.vtable_key}' : no impl for type ${receiver_type_id} at pc=${frame.pc}" }
                 }
                 index_check :: validate_fn_index(callee_fn, module, frame.pc, "virtual.call '${instr.vtable_key}'")

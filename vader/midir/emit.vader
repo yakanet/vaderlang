@@ -84,6 +84,47 @@ reserve_cfg_function :: fn(cfg_fn: CFGFunction, ctx: EmitterCtx) -> void {
     ctx.function_index_by_mangle[cfg_fn.mangled] = function_index
 }
 
+/// Synthesise a forwarding wrapper fn for every `@intrinsic` impl-member
+/// import referenced by a vtable entry, so `virtual.call` dispatch lands on a
+/// real fn index. The wrapper loads its params and forwards to the host import
+/// via `CallImport`. Registered under the member's mangle so
+/// `resolve_vtable_fn_index` (mangle-first) finds it.
+synthesise_cfg_intrinsic_wrappers :: fn(cfg: CFGProject, ctx: EmitterCtx) -> void {
+    referenced :: MutableMap<string, bool> { .buckets = [], .size = 0 }
+    for e in cfg.vtable_entries { referenced[e.fn_symbol.name] = true }
+    import_count :: i32(ctx.imports.len())
+    i: i32 = 0
+    for i < import_count {
+        imp :: ctx.imports[usize(i)]
+        import_index :: i
+        i += 1
+        if imp.is_extern { continue }
+        if referenced[imp.mangled_name] == null { continue }
+        // Already a real fn under this mangle — nothing to wrap.
+        if ctx.function_index_by_mangle[imp.mangled_name] is i32 { continue }
+        body: Op[] = []
+        for p in 0..<imp.signature.params.len() { body.push(LocalGet { .slot = i32(p) }) }
+        body.push(CallImport { .index = import_index })
+        body.push(Return {})
+        debug: (DebugPos | null)[] = []
+        for _d in 0..<body.len() { debug.push(null) }
+        jump_table: i32[] = []
+        for _j in 0..<body.len() { jump_table.push(i32(-1)) }
+        no_locals: BcLocal[] = []
+        fn_index :: i32(ctx.functions.len())
+        ctx.functions.push(BcFunction {
+            .name       = "${imp.mangled_name}_vt",
+            .is_main    = false,
+            .signature  = imp.signature,
+            .locals     = no_locals,
+            .body       = body,
+            .debug      = debug,
+            .jump_table = jump_table,
+        })
+        ctx.function_index_by_mangle[imp.mangled_name] = fn_index
+    }
+}
+
 reserve_cfg_extern :: fn(ext: CFGExternDecl, ctx: EmitterCtx) -> void {
     signature :: build_cfg_signature(ext.params, ext.return_type, ctx)
     import_index :: i32(ctx.imports.len())
@@ -192,6 +233,15 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
         for ext in m.externs { reserve_cfg_extern(ext, ctx) }
         for s in m.struct_decls { reserve_cfg_struct(s, ctx) }
     }
+
+    // Pass 1.5 — synthesise wrapper fns for `@intrinsic` impl-member imports
+    // that a vtable entry references. A `virtual.call` dispatches through the
+    // vtable to a real fn index, but an intrinsic impl member (e.g. `string
+    // implements Hash`) is only surfaced as an import — without a wrapper,
+    // `resolve_vtable_fn_index` misses and the row is silently dropped, so the
+    // VM traps "no impl for type N". The wrapper forwards to the host import
+    // via `CallImport`. Mirror of vader/bytecode/emit.vader::synthesise_intrinsic_wrappers.
+    synthesise_cfg_intrinsic_wrappers(cfg, ctx)
 
     // Pre-translate CFG string indices into bytecode pool indices.
     string_index_map: i32[] = []
