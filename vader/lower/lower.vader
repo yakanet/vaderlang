@@ -1086,7 +1086,7 @@ materialize_generic_fn_instances :: fn(
             is PendingFnInstance as p -> { collected.push(p) }
         }
     }
-    // Erasure-dedupe : every instance of a (non-`@specialize`) free
+    // Erasure-dedupe : every instance of a NON-trait-dispatching free
     // generic fn erases to the same Any-typed body, so collapse a fn's
     // group to a single decl keyed by `fn_symbol.id`, keeping the first
     // by sort order (`outer<i32>` + `outer<string>` -> one `outer__i32`).
@@ -1094,9 +1094,24 @@ materialize_generic_fn_instances :: fn(
     // representative (`src/comptime/erasure-dedupe.ts`). Impl-member
     // instances never reach `fn_instances` (they route through the mono
     // / vtable path), so this only collapses free generic fns.
+    //
+    // A trait-dispatching free generic fn (GATE A : `dispatches`, built
+    // CONCRETE per instance) does NOT erase — `get__string` and `get__i32`
+    // are distinct bodies dispatching `key.hash()` / `key.equals()` on the
+    // concrete key, and their call sites target the per-key mangle.
+    // Collapsing them to the first-sorted `__i32__` instance routes every
+    // non-i32-keyed map's `at`/`set_at` into `i32$Hash$hash` → a string key
+    // hits `i32.to_i64` and traps. They are already deduped by full `key`
+    // in the build loop above (`processed[key]`) and carry a NULL
+    // `origin.symbol` (set in `build_fn_instance_decl`), so the body-emit
+    // pass indexes them by mangle — exactly like materialised impl members.
     sorted_pending :: sort(collected, pending_fn_instance_less)
     emitted_fns: MutableMap<i32, bool> = MutableMap<i32, bool> { .buckets = [], .size = 0 }
     for p in sorted_pending {
+        if p.dispatches {
+            push_to_module(project, p.module_id, p.decl)
+            continue
+        }
         if emitted_fns[p.fn_symbol_id] != null { continue }
         emitted_fns[p.fn_symbol_id] = true
         push_to_module(project, p.module_id, p.decl)
@@ -1110,6 +1125,12 @@ PendingFnInstance :: struct {
     module_id:    string
     key:          string
     fn_symbol_id: i32
+    /// True when the source generic fn trait-dispatches on a type param
+    /// (GATE A → concretised per instance via `build_fn_concrete_subst`).
+    /// Such instances skip the `fn_symbol_id` erasure-dedupe: each per-key
+    /// body (`get__string` vs `get__i32`) is a distinct concrete fn whose
+    /// call sites target the per-key mangle.
+    dispatches:   bool
     decl:         LoweredFnDecl
 }
 
@@ -1191,12 +1212,23 @@ build_fn_instance_decl :: fn(
     }
     return_type :: substitute(return_type_of(fn_decl, types), subst)
     entry_decl: Decl = fn_decl
+    // A trait-dispatching (GATE A, per-instance-concrete) free generic fn
+    // carries a NULL origin symbol so the bytecode body-emit indexes it by
+    // MANGLE, not by the shared source-fn symbol id. Every per-key instance
+    // (`get__string`, `get__i32`, …) reuses the one `get` symbol ; keeping a
+    // non-null symbol makes `reserve_cfg_function` overwrite a single
+    // `function_index_by_symbol_id` slot, so all instances but the last
+    // ship with an EMPTY body. Mirrors `materialize_impl_for_instance`,
+    // which sets `.symbol = null` on impl members for the same reason.
+    // Erased (non-dispatching) instances keep the symbol — they collapse to
+    // one decl per symbol id via the erasure-dedupe below.
+    entry_symbol: Symbol | null = if dispatches { null } else { inst.fn_symbol }
     entry :: MonoEntry {
         .id             = i32(0),
         .is_main        = false,
         .mangled        = inst.mangled,
         .decl           = entry_decl,
-        .symbol         = inst.fn_symbol,
+        .symbol         = entry_symbol,
         .subst          = subst,
         .type_arguments = inst.type_args,
         .module         = owner_typed,
@@ -1206,6 +1238,7 @@ build_fn_instance_decl :: fn(
         .module_id    = owner_module_id,
         .key          = key,
         .fn_symbol_id = inst.fn_symbol.id,
+        .dispatches   = dispatches,
         .decl         = LoweredFnDecl {
             .mangled     = inst.mangled,
             .params      = params,
