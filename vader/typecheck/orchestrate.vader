@@ -1188,27 +1188,36 @@ populate_core_symbols :: fn(
     core_loaded :: project.modules[core_id]
     if core_loaded is null { return }
     core_typed :: per_module[core_id]
+    // EXPERIMENT (complete fix): seed core symbols into EVERY module's typed
+    // program, not just the entry.
+    populate_core_symbols_into(entry_typed, core_loaded, core_typed)
+    for id in per_module.keys() {
+        other :: per_module[id]
+        if other == null { continue }
+        if other.resolved.path != entry_typed.resolved.path {
+            populate_core_symbols_into(other, core_loaded, core_typed)
+        }
+    }
+}
+
+populate_core_symbols_into :: fn(
+    typed: TypedProgram, core_loaded: LoadedModule, core_typed: TypedProgram | null,
+) -> void {
     for name in core_loaded.collected.symbols.keys() {
         sym :: core_loaded.collected.symbols[name]
-        if sym is null { continue }
-        entry_typed.core_symbols[name] = sym
+        if sym == null { continue }
+        typed.core_symbols[name] = sym
         // Mirror into the resolver's `core_symbols` table so
         // `type_from_expr` can fall back to it for bare names
         // referencing core types (Error, Range, …).
-        entry_typed.resolved.core_symbols[name] = sym
+        typed.resolved.core_symbols[name] = sym
         // Also surface the type into `external_types` so a future
         // reference to a core symbol (e.g. via `mk_struct(Range, ...)`)
         // returns the concrete declared type.
-        match core_typed {
-            is null -> {}
-            _ -> {
-                t :: core_typed.decl_types[sym.id]
-                match t {
-                    is null -> {}
-                    _ -> { entry_typed.external_types[sym.id] = t }
-                }
-            }
-        }
+        if core_typed == null { continue }
+        t :: core_typed.decl_types[sym.id]
+        if t == null { continue }
+        typed.external_types[sym.id] = t
     }
 }
 

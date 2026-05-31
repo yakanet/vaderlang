@@ -37,23 +37,13 @@ export infer_range :: fn(
     } else {
         check_expr_fn(e.upper, element, typed, diags)
     }
-    // `typed.core_symbols` is only seeded for the entry module ; imported
-    // modules (body-walked since the phase-(a) reorg) keep `Range` in their
-    // resolver-side `resolved.core_symbols` (preload_core_symbols runs per
-    // module). Fall back to it so a RangeExpr inside a materialised stdlib
-    // body (e.g. `c in 'a'..='z'` in vader_lexer$is_alpha) infers
-    // `Range<char>` instead of `?` — otherwise the `in` call drops at lower.
+    // `core_symbols` is now seeded into EVERY body-walked module's typed
+    // program (populate_core_symbols), so an imported / materialised-stdlib
+    // RangeExpr (`c in 'a'..='z'` in vader_lexer$is_alpha) resolves `Range`
+    // here instead of inferring `?`.
     range_sym :: typed.core_symbols["Range"]
-    match range_sym {
-        is Symbol as rs -> { return mk_struct(rs, [element]) }
-        is null -> {
-            fallback :: typed.resolved.core_symbols["Range"]
-            match fallback {
-                is null -> { return TY_UNRESOLVED }
-                is Symbol as fs -> { return mk_struct(fs, [element]) }
-            }
-        }
-    }
+    if range_sym == null { return TY_UNRESOLVED }
+    return mk_struct(range_sym, [element])
 }
 
 pick_bound_or_default :: fn(t: Type) -> Type {
