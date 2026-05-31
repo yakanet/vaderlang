@@ -42,7 +42,7 @@ import "vader/vm" {
     F64Add, F64Sub, F64Mul, F64Div, F64Neg,
     F64Eq, F64Ne, F64Lt, F64Le, F64Gt, F64Ge,
     BoolEq, BoolNe, BoolAnd, BoolOr, BoolNot,
-    CharEq, StringEq, StringConcat,
+    CharEq, CharNe, StringEq, StringNe, StringConcat,
 }
 
 /// Pick the bytecode op for a `LoweredBinaryOp` over operands of class
@@ -178,6 +178,8 @@ cmp_eq :: fn(lhs: ValType) -> Op {
 
 cmp_ne :: fn(lhs: ValType) -> Op {
     if lhs == ValType.Bool   { return BoolNe {} }
+    if lhs == ValType.Char   { return CharNe {} }
+    if lhs == ValType.String { return StringNe {} }
     if is_float_val(lhs)     { return F64Ne {} }
     if is_64_bit_int_val(lhs) { return I64Ne {} }
     return I32Ne {}
