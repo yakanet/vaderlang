@@ -3230,11 +3230,11 @@
   expr 171:31   IdentExpr      :: StringBuilder
   expr 171:51   IdentExpr      :: ConstDecl
   expr 171:54   IdentExpr      :: i32
-  expr 1720:14  RangeExpr      :: ?
+  expr 1720:14  RangeExpr      :: Range<usize>
   expr 1720:18  IdentExpr      :: usize
   expr 1721:20  IdentExpr      :: (AssignStmt | BreakStmt | ContinueStmt | DeferStmt | ExprStmt | ForStmt | LetStmt | ReturnStmt)[]
   expr 1721:20  IndexExpr      :: AssignStmt | BreakStmt | ContinueStmt | DeferStmt | ExprStmt | ForStmt | LetStmt | ReturnStmt
-  expr 1721:24  IdentExpr      :: ?
+  expr 1721:24  IdentExpr      :: usize
   expr 1721:9   CallExpr       :: void
   expr 1721:9   FieldExpr      :: fn(AssignStmt | BreakStmt | ContinueStmt | DeferStmt | ExprStmt | ForStmt | LetStmt | ReturnStmt) -> void
   expr 1721:9   IdentExpr      :: (AssignStmt | BreakStmt | ContinueStmt | DeferStmt | ExprStmt | ForStmt | LetStmt | ReturnStmt)[]
@@ -9058,7 +9058,7 @@
   expr 423:41   IdentExpr      :: EnumVariantPattern
   expr 423:42   BinaryExpr     :: bool
   expr 423:42   IdentExpr      :: char
-  expr 423:47   RangeExpr      :: ?
+  expr 423:47   RangeExpr      :: Range<char>
   expr 423:48   CallExpr       :: usize
   expr 423:48   FieldExpr      :: fn() -> usize
   expr 423:48   IdentExpr      :: NodeIdFactory
@@ -9071,7 +9071,7 @@
   expr 425:45   BinaryExpr     :: bool
   expr 425:45   BinaryExpr     :: bool
   expr 425:45   IdentExpr      :: char
-  expr 425:50   RangeExpr      :: ?
+  expr 425:50   RangeExpr      :: Range<char>
   expr 425:63   CallExpr       :: bool
   expr 425:63   FieldExpr      :: fn() -> bool
   expr 425:63   IdentExpr      :: char

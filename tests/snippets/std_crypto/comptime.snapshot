@@ -38,6 +38,8 @@
   Yield<T>
   Yield<T>
   Yield<T>
+  Range<char>
+  Range<i32>
   Range<T>
   Range<T>
   Range<T>
