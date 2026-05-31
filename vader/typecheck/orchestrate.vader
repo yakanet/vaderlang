@@ -194,6 +194,14 @@ export check_project_with_bodies :: fn(
         if other_typed is null { continue }
         other_typed.import_targets = wire_targets
         prepopulate_namespace_member_types(other_typed, project, per_module)
+        // Merge cross-module alias/union types into this import too (the entry
+        // got this at top via `merge_external_alias_types`). A signature param
+        // typed by an imported union/alias (`got: Type`, `sh: Shape`) resolves
+        // via `resolved.alias_types`, which only holds the module's OWN aliases
+        // until merged — without this, the param degrades to `?` (→ field-gets
+        // and `is T as a` binds collapse). `register_aliases` already ran for
+        // every module above, so all sources are available.
+        merge_external_alias_types(other_typed, per_module)
         declare_module(merge_module_program(other.module.files).decls, other_typed.resolved, other_typed, project.factory, diags)
     }
     // Cross-module struct visibility — see `broadcast_struct_decls`.
