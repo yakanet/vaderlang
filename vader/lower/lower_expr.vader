@@ -1485,10 +1485,13 @@ find_impl_member_for :: fn(ctx: FnLowerCtx, target_type: Type, method_name: stri
             // (`string implements Display`) have no args → empty suffix.
             recv_suffix :: match target_type {
                 is StructType as s -> {
+                    // Generic impl : structure-free `__Any` × arity so the
+                    // call-site name matches the single deduped body
+                    // regardless of the receiver's concrete args (see
+                    // `flat_any_suffix`). Concrete-instantiation impls keep
+                    // their concrete args.
                     if entry.is_generic {
-                        erased: Type[] = []
-                        for a in s.args { erased.push(any_leaves_of(a)) }
-                        args_suffix(erased)
+                        flat_any_suffix(s.args.len())
                     } else {
                         args_suffix(s.args)
                     }

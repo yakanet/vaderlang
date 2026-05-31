@@ -2151,8 +2151,12 @@ materialize_impl_for_instance :: fn(
     // site resolve to one name. `find_impl_member_for` / `lower_for_in`
     // erase the receiver args the same way (gated on `ImplEntry.is_generic`).
     // Concrete-instantiation impls keep `erased_args == inst.args`, so their
-    // suffix stays concrete.
-    suffix :: args_suffix(erased_args)
+    // suffix stays concrete. Generic impls use the STRUCTURE-FREE
+    // `flat_any_suffix` (one `__Any` per arg) — `args_suffix(erased_args)`
+    // would leak inner shape (`MutableMap<_, _[]>` → `at__Any__Any__`) and
+    // diverge from a sibling instance's `at__Any__Any`, breaking the
+    // single-body dedupe.
+    suffix :: if is_empty_substitution(subst) { args_suffix(erased_args) } else { flat_any_suffix(inst.args.len()) }
     types :: make_entry_types(impl_typed, subst)
     impl_key_prefix :: impl_decl.span.hash()
     for member in impl_decl.members {
@@ -2447,6 +2451,27 @@ args_suffix :: fn(args: Type[]) -> string {
     for a in args {
         sb.append("__")
         sb.append(mangle_type_arg(a))
+    }
+    return sb.to_string()
+}
+
+/// Erasure suffix for a GENERIC impl member : one bare `__Any` per type
+/// argument, ignoring the args' inner structure. A structure-preserving
+/// `args_suffix(any_leaves_of(...))` is unstable across instances — e.g.
+/// `MutableMap<i32, i32[]>` erases its value to `Any[]` whose
+/// `mangle_type_arg` renders `Any__` (the `[]` sanitises to `__`), so it
+/// mangles `at__Any__Any__` while `MutableMap<string, string>` mangles
+/// `at__Any__Any`. The impl-member dedupe (keyed by impl + member, not
+/// args) emits ONE body, so every call site must agree on its name ;
+/// flattening to `__Any` × arity makes that name a stable function of the
+/// type-param count alone. Used by both the call site
+/// (`find_impl_member_for`) and the definition (`materialize_impl_for_instance`).
+/// @param arity  the impl's type-argument count.
+/// @return       `"__Any"` repeated `arity` times (empty when arity is 0).
+export flat_any_suffix :: fn(arity: usize) -> string {
+    sb := new_builder()
+    for _ in 0..<arity {
+        sb.append("__Any")
     }
     return sb.to_string()
 }
