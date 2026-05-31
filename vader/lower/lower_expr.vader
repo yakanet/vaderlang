@@ -49,6 +49,7 @@ import "vader/resolver" { ImportTargetTable, SymbolTarget }
 import "vader/parser" { ConstDecl, ImplDecl, StructDecl }
 import "vader/typecheck" { substitute_by_name }
 import "vader/typecheck" { substitute }
+import "vader/typecheck" { new_substitution }
 import "vader/types" { display_type, STRUCT_FIELD }
 import "vader/types" { STRUCT_ARRAY_ITERATOR }
 
@@ -199,10 +200,7 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
             // outer symbols don't have a local slot — read them off the
             // env-struct param via `env.cap_N`.
             via_env :: try_route_through_env(ctx, resolved, ident.span, type)
-            match via_env {
-                is null -> {}
-                _ -> { return via_env }
-            }
+            if via_env != null { return via_env }
             // Local captured by an inner lambda : the slot stores a cell
             // ref, the value lives behind a `LoweredCellGet`. Mirror of
             // `lowerIdent`'s captured-symbol path in `expr.ts:559-561`.
@@ -224,13 +222,20 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
             // import-binding symbols when the resolver chained the
             // ident to the original const symbol via aliasing.
             baked :: lookup_const_baked_value(ctx, resolved)
-            match baked {
-                is null -> {}
-                _ -> {
-                    if is_scalar_comptime(baked) {
-                        return comptime_value_to_lowered(baked, type, ident.span)
-                    }
+            if baked == null {
+                // Bake missed. For a Const symbol this is most often an
+                // imported-module const (the comptime bake is entry-only) —
+                // recover by lowering the const decl's value at the use site
+                // instead of leaving a bare const ident the CFG builder can't
+                // resolve. Gate on Const kind here so the common baked-miss —
+                // every local / param read — skips try_fold_unbaked_const's
+                // module lookups entirely.
+                if i32(resolved.kind) == i32(SymbolKind.Const) {
+                    unbaked :: try_fold_unbaked_const(ctx, resolved, type)
+                    if unbaked != null { return unbaked }
                 }
+            } else if is_scalar_comptime(baked) {
+                return comptime_value_to_lowered(baked, type, ident.span)
             }
             // Match-arm narrowing : the slot stores the declared union
             // (e.g. `Error | string`), the typed-AST narrows this use to a
@@ -284,6 +289,62 @@ lookup_const_baked_value :: fn(ctx: FnLowerCtx, symbol: Symbol) -> ComptimeValue
     // so this lookup is O(1) instead of walking every loaded module's
     // `comptime_decls` map per call (this fn fires on every IdentExpr).
     return ctx.project.comptime_value_by_symbol_id[symbol.id]
+}
+
+// Fold a reference to an UNBAKED module-level const to its value. The
+// comptime const-bake runs entry-only (`populate_comptime_value_index` reads
+// `evaluated.modules[*].comptime_decls`), so a const declared in an IMPORTED
+// module — e.g. `MANIFEST_FILENAME :: "vader.json"` referenced from its own
+// module's `find_manifest_root` — never lands in `comptime_value_by_symbol_id`.
+// The scalar-const fold in `lower_ident` then misses and the bare const ident
+// reaches `midir/build.vader::build_ident`, which has no const case → it emits
+// `unreachable`, truncating the function. Recover by lowering the const decl's
+// value directly via `lower_const_value` (whose own bake-miss path lowers the
+// RHS), keyed off the const's OWNING module so cross-module refs work too.
+// Caller gates on `resolved.kind == Const` (the hot-path read of every
+// local / param shouldn't pay the module lookups below). Returns null when the
+// decl can't be located or its RHS isn't foldable (caller keeps its path).
+try_fold_unbaked_const :: fn(ctx: FnLowerCtx, resolved: Symbol, type: Type) -> LoweredExpr | null {
+    owner_loaded :: ctx.project.loaded.modules[resolved.module]
+    if owner_loaded is null { return null }
+    owner_typed :: ctx.project.evaluated.typed.modules[resolved.module]
+    if owner_typed is null { return null }
+    const_decl :: find_const_decl_by_name(module_decls(owner_loaded), resolved.name)
+    if const_decl is null { return null }
+    // Only fold a LITERAL-RHS const. A computed RHS (`B + 1`) may depend on
+    // other unbaked consts, so folding it here would (a) bypass comptime
+    // cycle detection — a `@comptime A :: B + 1 ; B :: A + 1` must still
+    // surface C4009 — and (b) risk recursion through this same path. Those
+    // consts keep their existing route ; the comptime evaluator owns their
+    // value and diagnostics. A literal RHS has neither hazard and matches the
+    // scalar-only shape of the baked-value fold above.
+    if !is_scalar_literal_expr(const_decl.value) { return null }
+    entry :: stub_entry(const_decl, owner_typed)
+    fn_ctx :: new_fn_lower_ctx(ctx.project, entry, owner_typed, new_substitution(), type, null)
+    return lower_const_value(const_decl, owner_typed, ctx.project, fn_ctx, type)
+}
+
+find_const_decl_by_name :: fn(decls: Decl[], name: string) -> ConstDecl | null {
+    for d in decls {
+        if d is ConstDecl as cd {
+            if cd.name == name { return cd }
+        }
+    }
+    return null
+}
+
+// True when `e` is a scalar literal (int / float / bool / null / char /
+// string). Gates `try_fold_unbaked_const` to RHS shapes that fold without
+// touching other consts. Shape predicate (`_ -> false`), mirroring
+// `fmt/printer.vader::is_bitor_chain` — a non-literal Expr is correctly false.
+is_scalar_literal_expr :: fn(e: Expr) -> bool = match e {
+    is IntLitExpr    -> true
+    is FloatLitExpr  -> true
+    is BoolLitExpr   -> true
+    is NullLitExpr   -> true
+    is CharLitExpr   -> true
+    is StringLitExpr -> true
+    _                -> false
 }
 
 /// Materialise a `ComptimeValue` as a `LoweredExpr` literal. Compound
