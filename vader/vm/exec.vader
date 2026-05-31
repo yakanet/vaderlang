@@ -125,9 +125,8 @@ validate_fn_index :: fn(function_index: i32, module: Module, at_pc: i32, op_labe
 /// frame stack overflows. Shared by `Call` (`env = null`) and
 /// `CallIndirect` (`env` from the popped `FnVal`).
 ///
-/// @param frame           current top frame (mutated via `frames[top]`).
-/// @param top             index of `frame` in `frames`.
-/// @param frames          the frame stack (mutated in place).
+/// @param frame           current top frame, mutated in place (sp / pc advanced).
+/// @param frames          the frame stack (the callee frame is pushed here).
 /// @param frame_count     1-element cursor — `[0]` is the logical top.
 /// @param callee          the callee's `BytecodeFunction`.
 /// @param function_index  module-level index of the callee.
@@ -135,9 +134,10 @@ validate_fn_index :: fn(function_index: i32, module: Module, at_pc: i32, op_labe
 /// @param env             closure env for the callee, or `null`.
 /// @return                `null` on success ; `Trap` on frame-stack overflow.
 /// @error                 `frame_count[0] > MAX_FRAME_DEPTH` after push.
-dispatch_call_into :: fn(frame: Frame, top: usize, frames: Frame[], frame_count: usize[], callee: BytecodeFunction, function_index: i32, arg_base: usize, env: Value | null) -> Trap | null {
+dispatch_call_into :: fn(frame: Frame, frames: Frame[], frame_count: usize[], callee: BytecodeFunction, function_index: i32, arg_base: usize, env: Value | null) -> Trap | null {
     callee_frame :: build_callee_frame(function_index, callee, frame.stack, arg_base, env)
-    frames[top] = with_sp_pc(frame, arg_base, frame.pc + 1)
+    frame.sp = arg_base
+    frame.pc = frame.pc + 1
     push_frame(frames, frame_count, callee_frame)
     if frame_count[0] > usize(MAX_FRAME_DEPTH) {
         return Trap { .message = "call stack overflow (depth > ${MAX_FRAME_DEPTH}) at function '${callee.name}'" }
@@ -188,28 +188,6 @@ build_callee_frame :: fn(function_index: i32, callee: BytecodeFunction, args_sou
         .pc             = 0,
         .defers         = [],
         .defer_count    = usize(0),
-    }
-}
-
-/// Return a copy of `frame` with `sp` / `pc` updated. The slots and
-/// stack arrays are shared (Vader arrays are reference-typed), so
-/// mutations through `frame.stack[...]` / `frame.slots[...]` are
-/// visible after the write-back.
-///
-/// @param frame  the frame to update.
-/// @param sp     new value stack cursor.
-/// @param pc     new program counter (next op index).
-/// @return       a fresh `Frame` carrying the new sp/pc, with the same
-///               slots / stack array references.
-with_sp_pc :: fn(frame: Frame, sp: usize, pc: i32) -> Frame {
-    return Frame {
-        .function_index = frame.function_index,
-        .slots          = frame.slots,
-        .stack          = frame.stack,
-        .sp             = sp,
-        .pc             = pc,
-        .defers         = frame.defers,
-        .defer_count    = frame.defer_count,
     }
 }
 
@@ -272,7 +250,7 @@ finalise_return :: fn(return_value: Value, has_value: bool, at_pc: i32, frames: 
         new_top :: frame_count[0] - 1
         caller :: frames[new_top]
         push_value(caller.stack, caller.sp, return_value)
-        frames[new_top] = with_sp_pc(caller, caller.sp + 1, caller.pc)
+        caller.sp = caller.sp + 1
     }
     return null
 }
@@ -282,20 +260,19 @@ finalise_return :: fn(return_value: Value, has_value: bool, at_pc: i32, frames: 
 /// advances pc + sp.
 ///
 /// @param frame      current top frame.
-/// @param top        index of `frame` within `frames` (for the write-back).
-/// @param frames     the frame stack (mutated via `frames[top] = ...`).
 /// @param op_label   short label used in the Trap message on type mismatch.
 /// @param apply         the i32 binary op to apply to (left, right).
 /// @return           `null` on success, or a `Trap` if either operand
 ///                   isn't an i32 (caller surfaces it).
 /// @error            type mismatch on the left or right operand.
-apply_arith_binop :: fn(frame: Frame, top: usize, frames: Frame[], op_label: string, apply: fn(i32, i32) -> i32) -> Trap | null {
+apply_arith_binop :: fn(frame: Frame, op_label: string, apply: fn(i32, i32) -> i32) -> Trap | null {
     left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, op_label)
     right :: read_i32(frame.stack[frame.sp - 1], frame.pc, op_label)
     if left  is Trap { return left  }
     if right is Trap { return right }
     frame.stack[frame.sp - 2] = I32Val { .value = apply(left.value, right.value) }
-    frames[top] = with_sp_pc(frame, frame.sp - 1, frame.pc + 1)
+    frame.sp = frame.sp - 1
+    frame.pc = frame.pc + 1
     return null
 }
 
@@ -303,36 +280,33 @@ apply_arith_binop :: fn(frame: Frame, top: usize, frames: Frame[], op_label: str
 /// `f64.<arith>` arm.
 ///
 /// @param frame      current top frame.
-/// @param top        index of `frame` within `frames` (for the write-back).
-/// @param frames     the frame stack.
 /// @param op_label   trap label.
 /// @param apply         the f64 binary op to apply.
 /// @return           `null` on success, `Trap` on type mismatch.
 /// @error            either operand isn't an `F64Val`.
-apply_f64_binop :: fn(frame: Frame, top: usize, frames: Frame[], op_label: string, apply: fn(f64, f64) -> f64) -> Trap | null {
+apply_f64_binop :: fn(frame: Frame, op_label: string, apply: fn(f64, f64) -> f64) -> Trap | null {
     left  :: read_f64(frame.stack[frame.sp - 2], frame.pc, op_label)
     right :: read_f64(frame.stack[frame.sp - 1], frame.pc, op_label)
     if left  is Trap { return left  }
     if right is Trap { return right }
     frame.stack[frame.sp - 2] = F64Val { .value = apply(left.value, right.value) }
-    frames[top] = with_sp_pc(frame, frame.sp - 1, frame.pc + 1)
+    frame.sp = frame.sp - 1
+    frame.pc = frame.pc + 1
     return null
 }
 
 /// Pop one f64, apply `op`, push as F64Val. Used by `F64Neg`.
 ///
 /// @param frame      current top frame.
-/// @param top        index of `frame` within `frames`.
-/// @param frames     the frame stack.
 /// @param op_label   trap label.
 /// @param apply         the f64 unary op to apply.
 /// @return           `null` on success, `Trap` on type mismatch.
 /// @error            the operand isn't an `F64Val`.
-apply_f64_unop :: fn(frame: Frame, top: usize, frames: Frame[], op_label: string, apply: fn(f64) -> f64) -> Trap | null {
+apply_f64_unop :: fn(frame: Frame, op_label: string, apply: fn(f64) -> f64) -> Trap | null {
     operand :: read_f64(frame.stack[frame.sp - 1], frame.pc, op_label)
     if operand is Trap { return operand }
     frame.stack[frame.sp - 1] = F64Val { .value = apply(operand.value) }
-    frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
+    frame.pc = frame.pc + 1
     return null
 }
 
@@ -340,19 +314,18 @@ apply_f64_unop :: fn(frame: Frame, top: usize, frames: Frame[], op_label: string
 /// by every `f64.<cmp>` arm.
 ///
 /// @param frame      current top frame.
-/// @param top        index of `frame` within `frames`.
-/// @param frames     the frame stack.
 /// @param op_label   trap label.
 /// @param cmp        the f64 comparator to apply.
 /// @return           `null` on success, `Trap` on type mismatch.
 /// @error            either operand isn't an `F64Val`.
-apply_f64_cmp :: fn(frame: Frame, top: usize, frames: Frame[], op_label: string, cmp: fn(f64, f64) -> bool) -> Trap | null {
+apply_f64_cmp :: fn(frame: Frame, op_label: string, cmp: fn(f64, f64) -> bool) -> Trap | null {
     left  :: read_f64(frame.stack[frame.sp - 2], frame.pc, op_label)
     right :: read_f64(frame.stack[frame.sp - 1], frame.pc, op_label)
     if left  is Trap { return left  }
     if right is Trap { return right }
     frame.stack[frame.sp - 2] = BoolVal { .value = cmp(left.value, right.value) }
-    frames[top] = with_sp_pc(frame, frame.sp - 1, frame.pc + 1)
+    frame.sp = frame.sp - 1
+    frame.pc = frame.pc + 1
     return null
 }
 
@@ -376,39 +349,42 @@ read_i64 :: fn(v: Value, at_pc: i32, label: string) -> I64Val | Trap {
 
 /// Apply an i64 binary op (Add / Sub / Mul) on top-of-stack. Pops two
 /// i64 operands, pushes an `I64Val` carrying `apply(left, right)`.
-apply_i64_binop :: fn(frame: Frame, top: usize, frames: Frame[], op_label: string, apply: fn(i64, i64) -> i64) -> Trap | null {
+apply_i64_binop :: fn(frame: Frame, op_label: string, apply: fn(i64, i64) -> i64) -> Trap | null {
     left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, op_label)
     right :: read_i64(frame.stack[frame.sp - 1], frame.pc, op_label)
     if left  is Trap { return left  }
     if right is Trap { return right }
     frame.stack[frame.sp - 2] = I64Val { .value = apply(left.value, right.value) }
-    frames[top] = with_sp_pc(frame, frame.sp - 1, frame.pc + 1)
+    frame.sp = frame.sp - 1
+    frame.pc = frame.pc + 1
     return null
 }
 
 /// Apply an i64 comparison (eq / ne / lt / le / gt / ge) on top-of-stack.
 /// Pops two i64 operands, pushes a `BoolVal`.
-apply_i64_cmp :: fn(frame: Frame, top: usize, frames: Frame[], op_label: string, cmp: fn(i64, i64) -> bool) -> Trap | null {
+apply_i64_cmp :: fn(frame: Frame, op_label: string, cmp: fn(i64, i64) -> bool) -> Trap | null {
     left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, op_label)
     right :: read_i64(frame.stack[frame.sp - 1], frame.pc, op_label)
     if left  is Trap { return left  }
     if right is Trap { return right }
     frame.stack[frame.sp - 2] = BoolVal { .value = cmp(left.value, right.value) }
-    frames[top] = with_sp_pc(frame, frame.sp - 1, frame.pc + 1)
+    frame.sp = frame.sp - 1
+    frame.pc = frame.pc + 1
     return null
 }
 
 /// Apply an i64 div / mod op. Same shape as `apply_i64_binop` but traps
 /// on a zero divisor before invoking `apply`. Mirrors
 /// `apply_div_mod_binop` for the i32 family.
-apply_i64_div_mod :: fn(frame: Frame, top: usize, frames: Frame[], op_label: string, apply: fn(i64, i64) -> i64) -> Trap | null {
+apply_i64_div_mod :: fn(frame: Frame, op_label: string, apply: fn(i64, i64) -> i64) -> Trap | null {
     left  :: read_i64(frame.stack[frame.sp - 2], frame.pc, op_label)
     right :: read_i64(frame.stack[frame.sp - 1], frame.pc, op_label)
     if left  is Trap { return left  }
     if right is Trap { return right }
     if right.value == i64(0) { return Trap { .message = "${op_label} by zero at pc=${frame.pc}" } }
     frame.stack[frame.sp - 2] = I64Val { .value = apply(left.value, right.value) }
-    frames[top] = with_sp_pc(frame, frame.sp - 1, frame.pc + 1)
+    frame.sp = frame.sp - 1
+    frame.pc = frame.pc + 1
     return null
 }
 
@@ -419,18 +395,16 @@ apply_i64_div_mod :: fn(frame: Frame, top: usize, frames: Frame[], op_label: str
 /// `Op` variant, so trap diagnostics lose the originating width.
 ///
 /// @param frame      current top frame.
-/// @param top        index of `frame` within `frames` (for the write-back).
-/// @param frames     the frame stack (mutated via `frames[top] = ...`).
 /// @param op_label   short label used in the Trap message on type mismatch.
 /// @param apply         the i32 unary op to apply.
 /// @return           `null` on success, or a `Trap` if the operand isn't
 ///                   an i32 (caller surfaces it).
 /// @error            type mismatch on the operand.
-apply_arith_unop :: fn(frame: Frame, top: usize, frames: Frame[], op_label: string, apply: fn(i32) -> i32) -> Trap | null {
+apply_arith_unop :: fn(frame: Frame, op_label: string, apply: fn(i32) -> i32) -> Trap | null {
     operand :: read_i32(frame.stack[frame.sp - 1], frame.pc, op_label)
     if operand is Trap { return operand }
     frame.stack[frame.sp - 1] = I32Val { .value = apply(operand.value) }
-    frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
+    frame.pc = frame.pc + 1
     return null
 }
 
@@ -438,17 +412,15 @@ apply_arith_unop :: fn(frame: Frame, top: usize, frames: Frame[], op_label: stri
 /// `I64BitNot`.
 ///
 /// @param frame      current top frame.
-/// @param top        index of `frame` within `frames`.
-/// @param frames     the frame stack (mutated via `frames[top] = ...`).
 /// @param op_label   short label used in the Trap message on type mismatch.
 /// @param apply      the i64 unary op to apply.
 /// @return           `null` on success, or a `Trap` on operand type mismatch.
 /// @error            the operand isn't an i64-shaped value.
-apply_i64_unop :: fn(frame: Frame, top: usize, frames: Frame[], op_label: string, apply: fn(i64) -> i64) -> Trap | null {
+apply_i64_unop :: fn(frame: Frame, op_label: string, apply: fn(i64) -> i64) -> Trap | null {
     operand :: read_i64(frame.stack[frame.sp - 1], frame.pc, op_label)
     if operand is Trap { return operand }
     frame.stack[frame.sp - 1] = I64Val { .value = apply(operand.value) }
-    frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
+    frame.pc = frame.pc + 1
     return null
 }
 
@@ -457,21 +429,20 @@ apply_i64_unop :: fn(frame: Frame, top: usize, frames: Frame[], op_label: string
 /// surfaces a labelled Trap rather than a host-level abort.
 ///
 /// @param frame      current top frame.
-/// @param top        index of `frame` within `frames`.
-/// @param frames     the frame stack (mutated via `frames[top] = ...`).
 /// @param op_label   short label used in Trap messages.
 /// @param apply         the i32 binary op (`div` or `mod`).
 /// @return           `null` on success, or a `Trap` on type mismatch /
 ///                   division by zero.
 /// @error            type mismatch ; right operand equal to zero.
-apply_div_mod_binop :: fn(frame: Frame, top: usize, frames: Frame[], op_label: string, apply: fn(i32, i32) -> i32) -> Trap | null {
+apply_div_mod_binop :: fn(frame: Frame, op_label: string, apply: fn(i32, i32) -> i32) -> Trap | null {
     left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, op_label)
     right :: read_i32(frame.stack[frame.sp - 1], frame.pc, op_label)
     if left  is Trap { return left  }
     if right is Trap { return right }
     if right.value == 0 { return Trap { .message = "${op_label} by zero at pc=${frame.pc}" } }
     frame.stack[frame.sp - 2] = I32Val { .value = apply(left.value, right.value) }
-    frames[top] = with_sp_pc(frame, frame.sp - 1, frame.pc + 1)
+    frame.sp = frame.sp - 1
+    frame.pc = frame.pc + 1
     return null
 }
 
@@ -479,19 +450,18 @@ apply_div_mod_binop :: fn(frame: Frame, top: usize, frames: Frame[], op_label: s
 /// Pops two `BoolVal`s, runs `op`, pushes a `BoolVal`.
 ///
 /// @param frame      current top frame.
-/// @param top        index of `frame` in `frames`.
-/// @param frames     the frame stack.
 /// @param op_label   short label used in mismatch Traps.
 /// @param apply         the boolean binary op.
 /// @return           `null` on success, or a `Trap` on operand type mismatch.
 /// @error            either operand isn't a `BoolVal`.
-apply_bool_binop :: fn(frame: Frame, top: usize, frames: Frame[], op_label: string, apply: fn(bool, bool) -> bool) -> Trap | null {
+apply_bool_binop :: fn(frame: Frame, op_label: string, apply: fn(bool, bool) -> bool) -> Trap | null {
     left  :: read_bool(frame.stack[frame.sp - 2], frame.pc, op_label)
     right :: read_bool(frame.stack[frame.sp - 1], frame.pc, op_label)
     if left  is Trap { return left  }
     if right is Trap { return right }
     frame.stack[frame.sp - 2] = BoolVal { .value = apply(left.value, right.value) }
-    frames[top] = with_sp_pc(frame, frame.sp - 1, frame.pc + 1)
+    frame.sp = frame.sp - 1
+    frame.pc = frame.pc + 1
     return null
 }
 
@@ -499,19 +469,18 @@ apply_bool_binop :: fn(frame: Frame, top: usize, frames: Frame[], op_label: stri
 /// runs `cmp`, pushes a `BoolVal`.
 ///
 /// @param frame      current top frame.
-/// @param top        index of `frame` in `frames`.
-/// @param frames     the frame stack.
 /// @param op_label   short label used in mismatch Traps.
 /// @param cmp        the char comparison predicate.
 /// @return           `null` on success, or a `Trap` on operand type mismatch.
 /// @error            either operand isn't a `CharVal`.
-apply_char_cmp :: fn(frame: Frame, top: usize, frames: Frame[], op_label: string, cmp: fn(char, char) -> bool) -> Trap | null {
+apply_char_cmp :: fn(frame: Frame, op_label: string, cmp: fn(char, char) -> bool) -> Trap | null {
     left  :: read_char(frame.stack[frame.sp - 2], frame.pc, op_label)
     right :: read_char(frame.stack[frame.sp - 1], frame.pc, op_label)
     if left  is Trap { return left  }
     if right is Trap { return right }
     frame.stack[frame.sp - 2] = BoolVal { .value = cmp(left.value, right.value) }
-    frames[top] = with_sp_pc(frame, frame.sp - 1, frame.pc + 1)
+    frame.sp = frame.sp - 1
+    frame.pc = frame.pc + 1
     return null
 }
 
@@ -519,20 +488,19 @@ apply_char_cmp :: fn(frame: Frame, top: usize, frames: Frame[], op_label: string
 /// `cmp(left, right)`. Used by `string.eq` / `string.ne`.
 ///
 /// @param frame      current top frame.
-/// @param top        index of `frame` within `frames` (for the write-back).
-/// @param frames     the frame stack (mutated via `frames[top] = ...`).
 /// @param op_label   short label used in the Trap message on type mismatch.
 /// @param cmp        the string comparator to apply.
 /// @return           `null` on success, or a `Trap` if either operand
 ///                   isn't a string.
 /// @error            type mismatch on the left or right operand.
-apply_string_cmp :: fn(frame: Frame, top: usize, frames: Frame[], op_label: string, cmp: fn(string, string) -> bool) -> Trap | null {
+apply_string_cmp :: fn(frame: Frame, op_label: string, cmp: fn(string, string) -> bool) -> Trap | null {
     left  :: read_string(frame.stack[frame.sp - 2], frame.pc, op_label)
     right :: read_string(frame.stack[frame.sp - 1], frame.pc, op_label)
     if left  is Trap { return left  }
     if right is Trap { return right }
     frame.stack[frame.sp - 2] = BoolVal { .value = cmp(left.value, right.value) }
-    frames[top] = with_sp_pc(frame, frame.sp - 1, frame.pc + 1)
+    frame.sp = frame.sp - 1
+    frame.pc = frame.pc + 1
     return null
 }
 
@@ -543,19 +511,18 @@ apply_string_cmp :: fn(frame: Frame, top: usize, frames: Frame[], op_label: stri
 /// with bool still flows through `if` / `br_if`.
 ///
 /// @param frame      current top frame.
-/// @param top        index of `frame` within `frames`.
-/// @param frames     the frame stack (mutated via `frames[top] = ...`).
 /// @param op_label   short label used in the Trap message on type mismatch.
 /// @param cmp        the i32 comparison predicate.
 /// @return           `null` on success, or a `Trap` on type mismatch.
 /// @error            type mismatch on either operand.
-apply_cmp_binop :: fn(frame: Frame, top: usize, frames: Frame[], op_label: string, cmp: fn(i32, i32) -> bool) -> Trap | null {
+apply_cmp_binop :: fn(frame: Frame, op_label: string, cmp: fn(i32, i32) -> bool) -> Trap | null {
     left  :: read_i32(frame.stack[frame.sp - 2], frame.pc, op_label)
     right :: read_i32(frame.stack[frame.sp - 1], frame.pc, op_label)
     if left  is Trap { return left  }
     if right is Trap { return right }
     frame.stack[frame.sp - 2] = BoolVal { .value = cmp(left.value, right.value) }
-    frames[top] = with_sp_pc(frame, frame.sp - 1, frame.pc + 1)
+    frame.sp = frame.sp - 1
+    frame.pc = frame.pc + 1
     return null
 }
 
@@ -647,11 +614,36 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
     main_frame :: build_callee_frame(module.main_index, main_function, main_args, 0, null)
     push_frame(frames, frame_count, main_frame)
 
+    // Hoist the per-frame fetches out of the per-op hot path. `frame` / `body`
+    // / `op_count` change only when the active frame changes — i.e. on a call
+    // (push, top grows) or a return / fall-off (pop, top shrinks). The loop
+    // reloads them solely when `top` differs from the last-loaded `cur_top`,
+    // saving three array reads (`frames[top]`, `module.functions[…]`,
+    // `body.ops.len()`) on every other op. `frame` stays a tracked GC root
+    // across iterations, so a collection that relocates the Frame keeps the
+    // cached reference valid (the `frames` slot is updated in lock-step).
+    //
+    // INVARIANT this caching depends on: an op arm must NEVER replace
+    // `frames[top]` with a fresh Frame object while `top` is unchanged —
+    // doing so would leave the cached `frame` aliasing the old object. Every
+    // arm therefore mutates `frame` IN PLACE (`frame.sp` / `frame.pc` / …)
+    // rather than rebuilding-and-storing. Reassigning the frame stack is only
+    // legal via `push_frame` / `pop_frame` (which change `top` → trigger a
+    // reload here).
+    init_top :: frame_count[0] - 1
+    frame := frames[init_top]
+    body := module.functions[usize(frame.function_index)]
+    op_count := body.ops.len()
+    cur_top := init_top
+
     for frame_count[0] > 0 {
         top :: frame_count[0] - 1
-        frame :: frames[top]
-        body :: module.functions[usize(frame.function_index)]
-        op_count :: body.ops.len()
+        if top != cur_top {
+            frame = frames[top]
+            body = module.functions[usize(frame.function_index)]
+            op_count = body.ops.len()
+            cur_top = top
+        }
 
         // Fell off the end of the body without an explicit `return`.
         // Treat like `return` with no value on the stack — pops the
@@ -666,14 +658,16 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
         match instr {
             is I32Const -> {
                 push_value(frame.stack, frame.sp, I32Val { .value = instr.value })
-                frames[top] = with_sp_pc(frame, frame.sp + 1, frame.pc + 1)
+                frame.sp = frame.sp + 1
+                frame.pc = frame.pc + 1
             }
             is LocalGet -> {
                 if instr.slot < 0 || usize(instr.slot) >= frame.slots.len() {
                     return Trap { .message = "local.get slot ${instr.slot} out of range at pc=${frame.pc} in '${body.name}'" }
                 }
                 push_value(frame.stack, frame.sp, frame.slots[instr.slot])
-                frames[top] = with_sp_pc(frame, frame.sp + 1, frame.pc + 1)
+                frame.sp = frame.sp + 1
+                frame.pc = frame.pc + 1
             }
             is LocalSet -> {
                 if frame.sp == 0 {
@@ -683,7 +677,8 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                     return Trap { .message = "local.set slot ${instr.slot} out of range at pc=${frame.pc} in '${body.name}'" }
                 }
                 frame.slots[instr.slot] = frame.stack[frame.sp - 1]
-                frames[top] = with_sp_pc(frame, frame.sp - 1, frame.pc + 1)
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is LocalTee -> {
                 if frame.sp == 0 {
@@ -693,14 +688,15 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                     return Trap { .message = "local.tee slot ${instr.slot} out of range at pc=${frame.pc} in '${body.name}'" }
                 }
                 frame.slots[instr.slot] = frame.stack[frame.sp - 1]
-                frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
+                frame.pc = frame.pc + 1
             }
             is StringConst -> {
                 if instr.index < 0 || usize(instr.index) >= module.strings.len() {
                     return Trap { .message = "string.const index ${instr.index} out of range at pc=${frame.pc}" }
                 }
                 push_value(frame.stack, frame.sp, StringVal { .value = module.strings[instr.index] })
-                frames[top] = with_sp_pc(frame, frame.sp + 1, frame.pc + 1)
+                frame.sp = frame.sp + 1
+                frame.pc = frame.pc + 1
             }
             is CallImport -> {
                 if instr.index < 0 || usize(instr.index) >= module.imports.len() {
@@ -720,7 +716,8 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                     push_value(frame.stack, new_sp, dispatch_outcome.value)
                     new_sp += 1
                 }
-                frames[top] = with_sp_pc(frame, new_sp, frame.pc + 1)
+                frame.sp = new_sp
+                frame.pc = frame.pc + 1
             }
             is Call -> {
                 index_check :: validate_fn_index(instr.function_index, module, frame.pc, "call")
@@ -730,14 +727,15 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                     return Trap { .message = "call to '${callee.name}' needs ${callee.parameter_count} arg(s) but stack has ${frame.sp} at pc=${frame.pc}" }
                 }
                 arg_base :: frame.sp - callee.parameter_count
-                dispatched :: dispatch_call_into(frame, top, frames, frame_count, callee, instr.function_index, arg_base, null)
+                dispatched :: dispatch_call_into(frame, frames, frame_count, callee, instr.function_index, arg_base, null)
                 if dispatched is Trap { return dispatched }
             }
             is FnRef -> {
                 index_check :: validate_fn_index(instr.function_index, module, frame.pc, "fn.ref")
                 if index_check is Trap { return index_check }
                 push_value(frame.stack, frame.sp, FnVal { .function_index = instr.function_index, .env = null })
-                frames[top] = with_sp_pc(frame, frame.sp + 1, frame.pc + 1)
+                frame.sp = frame.sp + 1
+                frame.pc = frame.pc + 1
             }
             is MakeClosure -> {
                 index_check :: validate_fn_index(instr.function_index, module, frame.pc, "make_closure")
@@ -747,7 +745,7 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                 }
                 env_value :: frame.stack[frame.sp - 1]
                 frame.stack[frame.sp - 1] = FnVal { .function_index = instr.function_index, .env = env_value }
-                frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
+                frame.pc = frame.pc + 1
             }
             is VirtualCall -> {
                 if frame.sp < usize(instr.parameter_count) {
@@ -794,7 +792,8 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                         if host_outcome is Trap { return host_outcome }
                         if host_outcome is HostOk as hok {
                             frame.stack[arg_base] = hok.value
-                            frames[top] = with_sp_pc(frame, arg_base + 1, frame.pc + 1)
+                            frame.sp = arg_base + 1
+                            frame.pc = frame.pc + 1
                             continue
                         }
                     }
@@ -814,7 +813,7 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                     shift_index -= 1
                 }
                 frame.stack[arg_base] = receiver
-                dispatched :: dispatch_call_into(frame, top, frames, frame_count, callee, callee_fn, arg_base, null)
+                dispatched :: dispatch_call_into(frame, frames, frame_count, callee, callee_fn, arg_base, null)
                 if dispatched is Trap { return dispatched }
             }
             is CallIndirect -> {
@@ -845,13 +844,12 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                     return Trap { .message = "call.indirect arity mismatch at pc=${frame.pc}: caller supplied ${expected_callee_arity}${if env_present { " (incl. env)" } else { "" }} but '${callee.name}' declares ${callee.parameter_count} param(s)" }
                 }
                 arg_base :: frame.sp - 1 - indirect_arity
-                dispatched :: dispatch_call_into(frame, top, frames, frame_count, callee, fn_unwrap.function_index, arg_base, fn_unwrap.env)
+                dispatched :: dispatch_call_into(frame, frames, frame_count, callee, fn_unwrap.function_index, arg_base, fn_unwrap.env)
                 if dispatched is Trap { return dispatched }
             }
             is StructNew -> {
                 outcome :: build_struct(module, instr.type_id, frame)
                 if outcome is Trap { return outcome }
-                frames[top] = outcome
             }
             is StructGet -> {
                 if frame.sp == 0 {
@@ -860,7 +858,7 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                 field_value :: read_struct_field(frame.stack[frame.sp - 1], instr.field_index, frame.pc, "struct.get")
                 if field_value is Trap { return field_value }
                 frame.stack[frame.sp - 1] = field_value
-                frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
+                frame.pc = frame.pc + 1
             }
             is StructSet -> {
                 if frame.sp < 2 {
@@ -872,7 +870,8 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                     return Trap { .message = "struct.set field ${instr.field_index} out of range (struct has ${struct_unwrap.fields.len()} fields) at pc=${frame.pc}" }
                 }
                 struct_unwrap.fields[usize(instr.field_index)] = frame.stack[frame.sp - 1]
-                frames[top] = with_sp_pc(frame, frame.sp - 2, frame.pc + 1)
+                frame.sp = frame.sp - 2
+                frame.pc = frame.pc + 1
             }
             is LocalField -> {
                 if instr.slot < 0 || usize(instr.slot) >= frame.slots.len() {
@@ -881,12 +880,12 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                 field_value :: read_struct_field(frame.slots[instr.slot], instr.field_index, frame.pc, "local.field")
                 if field_value is Trap { return field_value }
                 push_value(frame.stack, frame.sp, field_value)
-                frames[top] = with_sp_pc(frame, frame.sp + 1, frame.pc + 1)
+                frame.sp = frame.sp + 1
+                frame.pc = frame.pc + 1
             }
             is ArrayNew -> {
                 outcome :: build_array(instr.type_id, instr.length, frame)
                 if outcome is Trap { return outcome }
-                frames[top] = outcome
             }
             is ArrayPush -> {
                 if frame.sp < 2 {
@@ -909,7 +908,8 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                 }
                 array_unwrap.elements.push(frame.stack[frame.sp - 1])
                 array_unwrap.length = array_unwrap.length + usize(1)
-                frames[top] = with_sp_pc(frame, frame.sp - 2, frame.pc + 1)
+                frame.sp = frame.sp - 2
+                frame.pc = frame.pc + 1
             }
             is ArrayGet -> {
                 if frame.sp < 2 {
@@ -923,7 +923,8 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                     return Trap { .message = "array.get index ${index_unwrap.value} out of bounds (len=${array_unwrap.length}) at pc=${frame.pc}" }
                 }
                 frame.stack[frame.sp - 2] = array_unwrap.elements[array_unwrap.offset + usize(index_unwrap.value)]
-                frames[top] = with_sp_pc(frame, frame.sp - 1, frame.pc + 1)
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is ArraySet -> {
                 if frame.sp < 3 {
@@ -941,7 +942,8 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                 // materializing a fresh array (via push-detach today ;
                 // `arr[r].clone()` once T[] Clone lands).
                 array_unwrap.elements[array_unwrap.offset + usize(index_unwrap.value)] = frame.stack[frame.sp - 1]
-                frames[top] = with_sp_pc(frame, frame.sp - 3, frame.pc + 1)
+                frame.sp = frame.sp - 3
+                frame.pc = frame.pc + 1
             }
             is ArrayLen -> {
                 if frame.sp == 0 {
@@ -950,7 +952,7 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                 array_unwrap :: read_array(frame.stack[frame.sp - 1], frame.pc, "array.len receiver")
                 if array_unwrap is Trap { return array_unwrap }
                 frame.stack[frame.sp - 1] = I32Val { .value = i32(array_unwrap.length) }
-                frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
+                frame.pc = frame.pc + 1
             }
             is ArraySlice -> {
                 if frame.sp < 3 {
@@ -976,7 +978,8 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                     .offset   = array_unwrap.offset + lo_clamped,
                     .length   = hi_clamped - lo_clamped,
                 }
-                frames[top] = with_sp_pc(frame, frame.sp - 2, frame.pc + 1)
+                frame.sp = frame.sp - 2
+                frame.pc = frame.pc + 1
             }
             is DataConst -> {
                 if instr.pool_index < 0 || usize(instr.pool_index) >= module.data_pool.len() {
@@ -987,10 +990,11 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                 // the pool entry's `elements` ; mirrors `.rodata` sharing in
                 // the native runtime.
                 push_value(frame.stack, frame.sp, ArrayVal { .type_id = instr.type_id, .elements = entry.elements, .offset = usize(0), .length = entry.elements.len() })
-                frames[top] = with_sp_pc(frame, frame.sp + 1, frame.pc + 1)
+                frame.sp = frame.sp + 1
+                frame.pc = frame.pc + 1
             }
             is RefCast -> {
-                frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
+                frame.pc = frame.pc + 1
             }
             is Convert -> {
                 if frame.sp == 0 {
@@ -1000,11 +1004,12 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                 converted :: convert_value(v, instr.target, frame.pc)
                 if converted is Trap { return converted }
                 frame.stack[frame.sp - 1] = converted
-                frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
+                frame.pc = frame.pc + 1
             }
             is BuilderNew -> {
                 push_value(frame.stack, frame.sp, BuilderVal { .parts = [] })
-                frames[top] = with_sp_pc(frame, frame.sp + 1, frame.pc + 1)
+                frame.sp = frame.sp + 1
+                frame.pc = frame.pc + 1
             }
             is BuilderAppendStr -> {
                 if frame.sp < 2 {
@@ -1015,7 +1020,8 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                 builder_unwrap :: read_builder(frame.stack[frame.sp - 2], frame.pc, "intrinsic builder.append_str receiver")
                 if builder_unwrap is Trap { return builder_unwrap }
                 builder_unwrap.parts.push(str_unwrap.value)
-                frames[top] = with_sp_pc(frame, frame.sp - 2, frame.pc + 1)
+                frame.sp = frame.sp - 2
+                frame.pc = frame.pc + 1
             }
             is BuilderAppendDisplay -> {
                 if frame.sp < 2 {
@@ -1024,7 +1030,8 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                 builder_unwrap :: read_builder(frame.stack[frame.sp - 2], frame.pc, "intrinsic builder.append_display receiver")
                 if builder_unwrap is Trap { return builder_unwrap }
                 builder_unwrap.parts.push(display_value(frame.stack[frame.sp - 1]))
-                frames[top] = with_sp_pc(frame, frame.sp - 2, frame.pc + 1)
+                frame.sp = frame.sp - 2
+                frame.pc = frame.pc + 1
             }
             is BuilderFinish -> {
                 if frame.sp == 0 {
@@ -1038,7 +1045,7 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                 // intermediate copy.
                 flushing :: StringBuilder { .parts = builder_unwrap.parts }
                 frame.stack[frame.sp - 1] = StringVal { .value = "${flushing}" }
-                frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
+                frame.pc = frame.pc + 1
             }
             is SizeOfType -> {
                 if frame.sp == 0 {
@@ -1054,78 +1061,78 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                 }
                 size :: size_of_bc_type(module.types[usize(type_id)])
                 frame.stack[frame.sp - 1] = I64Val { .value = i64(size) }
-                frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
+                frame.pc = frame.pc + 1
             }
             is I32Add -> {
-                outcome :: apply_arith_binop(frame, top, frames, "i32.add", (a, b) -> a + b)
+                outcome :: apply_arith_binop(frame, "i32.add", (a, b) -> a + b)
                 if outcome is Trap { return outcome }
             }
             is I32Sub -> {
-                outcome :: apply_arith_binop(frame, top, frames, "i32.sub", (a, b) -> a - b)
+                outcome :: apply_arith_binop(frame, "i32.sub", (a, b) -> a - b)
                 if outcome is Trap { return outcome }
             }
             is I32Mul -> {
-                outcome :: apply_arith_binop(frame, top, frames, "i32.mul", (a, b) -> a * b)
+                outcome :: apply_arith_binop(frame, "i32.mul", (a, b) -> a * b)
                 if outcome is Trap { return outcome }
             }
             is I32Div -> {
-                outcome :: apply_div_mod_binop(frame, top, frames, "i32.div", (a, b) -> a / b)
+                outcome :: apply_div_mod_binop(frame, "i32.div", (a, b) -> a / b)
                 if outcome is Trap { return outcome }
             }
             is I32Mod -> {
-                outcome :: apply_div_mod_binop(frame, top, frames, "i32.mod", (a, b) -> a % b)
+                outcome :: apply_div_mod_binop(frame, "i32.mod", (a, b) -> a % b)
                 if outcome is Trap { return outcome }
             }
             is I32Eq -> {
-                outcome :: apply_cmp_binop(frame, top, frames, "i32.eq", (a, b) -> a == b)
+                outcome :: apply_cmp_binop(frame, "i32.eq", (a, b) -> a == b)
                 if outcome is Trap { return outcome }
             }
             is I32Ne -> {
-                outcome :: apply_cmp_binop(frame, top, frames, "i32.ne", (a, b) -> a != b)
+                outcome :: apply_cmp_binop(frame, "i32.ne", (a, b) -> a != b)
                 if outcome is Trap { return outcome }
             }
             is I32Lt -> {
-                outcome :: apply_cmp_binop(frame, top, frames, "i32.lt", (a, b) -> a < b)
+                outcome :: apply_cmp_binop(frame, "i32.lt", (a, b) -> a < b)
                 if outcome is Trap { return outcome }
             }
             is I32Le -> {
-                outcome :: apply_cmp_binop(frame, top, frames, "i32.le", (a, b) -> a <= b)
+                outcome :: apply_cmp_binop(frame, "i32.le", (a, b) -> a <= b)
                 if outcome is Trap { return outcome }
             }
             is I32Gt -> {
-                outcome :: apply_cmp_binop(frame, top, frames, "i32.gt", (a, b) -> a > b)
+                outcome :: apply_cmp_binop(frame, "i32.gt", (a, b) -> a > b)
                 if outcome is Trap { return outcome }
             }
             is I32Ge -> {
-                outcome :: apply_cmp_binop(frame, top, frames, "i32.ge", (a, b) -> a >= b)
+                outcome :: apply_cmp_binop(frame, "i32.ge", (a, b) -> a >= b)
                 if outcome is Trap { return outcome }
             }
             is I32Neg -> {
-                outcome :: apply_arith_unop(frame, top, frames, "i32.neg", (a) -> -a)
+                outcome :: apply_arith_unop(frame, "i32.neg", (a) -> -a)
                 if outcome is Trap { return outcome }
             }
             is I32BitNot -> {
-                outcome :: apply_arith_unop(frame, top, frames, "i32.bitnot", (a) -> ~a)
+                outcome :: apply_arith_unop(frame, "i32.bitnot", (a) -> ~a)
                 if outcome is Trap { return outcome }
             }
             is I32BitAnd -> {
-                outcome :: apply_arith_binop(frame, top, frames, "i32.bitand", (a, b) -> a & b)
+                outcome :: apply_arith_binop(frame, "i32.bitand", (a, b) -> a & b)
                 if outcome is Trap { return outcome }
             }
             is I32BitOr -> {
-                outcome :: apply_arith_binop(frame, top, frames, "i32.bitor", (a, b) -> a | b)
+                outcome :: apply_arith_binop(frame, "i32.bitor", (a, b) -> a | b)
                 if outcome is Trap { return outcome }
             }
             is I32BitXor -> {
-                outcome :: apply_arith_binop(frame, top, frames, "i32.bitxor", (a, b) -> a ^ b)
+                outcome :: apply_arith_binop(frame, "i32.bitxor", (a, b) -> a ^ b)
                 if outcome is Trap { return outcome }
             }
             is I32Shl -> {
-                outcome :: apply_arith_binop(frame, top, frames, "i32.shl", (a, b) -> a << b)
+                outcome :: apply_arith_binop(frame, "i32.shl", (a, b) -> a << b)
                 if outcome is Trap { return outcome }
             }
             is I32Shr -> {
-                outcome :: apply_arith_binop(frame, top, frames, "i32.shr", (a, b) -> a >> b)
+                outcome :: apply_arith_binop(frame, "i32.shr", (a, b) -> a >> b)
                 if outcome is Trap { return outcome }
             }
             is I32ShrU -> {
@@ -1133,7 +1140,7 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                 // shift so the sign bit isn't replicated, then reinterpret
                 // the result back as i32. Mirrors `>>>` in JS / `>>` on
                 // unsigned C types.
-                outcome :: apply_arith_binop(frame, top, frames, "u32.shr", (a, b) -> i32(u32(a) >> u32(b)))
+                outcome :: apply_arith_binop(frame, "u32.shr", (a, b) -> i32(u32(a) >> u32(b)))
                 if outcome is Trap { return outcome }
             }
             // Unsigned 32-bit divide / modulo / compare. The i32-tagged
@@ -1141,212 +1148,217 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
             // so the result respects unsigned semantics (zero-fill, no
             // sign-extension) before re-tagging back to i32.
             is U32Div -> {
-                outcome :: apply_div_mod_binop(frame, top, frames, "u32.div", (a, b) -> i32(u32(a) / u32(b)))
+                outcome :: apply_div_mod_binop(frame, "u32.div", (a, b) -> i32(u32(a) / u32(b)))
                 if outcome is Trap { return outcome }
             }
             is U32Mod -> {
-                outcome :: apply_div_mod_binop(frame, top, frames, "u32.rem", (a, b) -> i32(u32(a) % u32(b)))
+                outcome :: apply_div_mod_binop(frame, "u32.rem", (a, b) -> i32(u32(a) % u32(b)))
                 if outcome is Trap { return outcome }
             }
             is U32Lt -> {
-                outcome :: apply_cmp_binop(frame, top, frames, "u32.lt", (a, b) -> u32(a) < u32(b))
+                outcome :: apply_cmp_binop(frame, "u32.lt", (a, b) -> u32(a) < u32(b))
                 if outcome is Trap { return outcome }
             }
             is U32Le -> {
-                outcome :: apply_cmp_binop(frame, top, frames, "u32.le", (a, b) -> u32(a) <= u32(b))
+                outcome :: apply_cmp_binop(frame, "u32.le", (a, b) -> u32(a) <= u32(b))
                 if outcome is Trap { return outcome }
             }
             is U32Gt -> {
-                outcome :: apply_cmp_binop(frame, top, frames, "u32.gt", (a, b) -> u32(a) > u32(b))
+                outcome :: apply_cmp_binop(frame, "u32.gt", (a, b) -> u32(a) > u32(b))
                 if outcome is Trap { return outcome }
             }
             is U32Ge -> {
-                outcome :: apply_cmp_binop(frame, top, frames, "u32.ge", (a, b) -> u32(a) >= u32(b))
+                outcome :: apply_cmp_binop(frame, "u32.ge", (a, b) -> u32(a) >= u32(b))
                 if outcome is Trap { return outcome }
             }
             is F64Const -> {
                 push_value(frame.stack, frame.sp, F64Val { .value = instr.value })
-                frames[top] = with_sp_pc(frame, frame.sp + 1, frame.pc + 1)
+                frame.sp = frame.sp + 1
+                frame.pc = frame.pc + 1
             }
             is I64Const -> {
                 push_value(frame.stack, frame.sp, I64Val { .value = instr.value })
-                frames[top] = with_sp_pc(frame, frame.sp + 1, frame.pc + 1)
+                frame.sp = frame.sp + 1
+                frame.pc = frame.pc + 1
             }
             is I64Add -> {
-                outcome :: apply_i64_binop(frame, top, frames, "i64.add", (a, b) -> a + b)
+                outcome :: apply_i64_binop(frame, "i64.add", (a, b) -> a + b)
                 if outcome is Trap { return outcome }
             }
             is I64Sub -> {
-                outcome :: apply_i64_binop(frame, top, frames, "i64.sub", (a, b) -> a - b)
+                outcome :: apply_i64_binop(frame, "i64.sub", (a, b) -> a - b)
                 if outcome is Trap { return outcome }
             }
             is I64Mul -> {
-                outcome :: apply_i64_binop(frame, top, frames, "i64.mul", (a, b) -> a * b)
+                outcome :: apply_i64_binop(frame, "i64.mul", (a, b) -> a * b)
                 if outcome is Trap { return outcome }
             }
             is I64Div -> {
-                outcome :: apply_i64_div_mod(frame, top, frames, "i64.div", (a, b) -> a / b)
+                outcome :: apply_i64_div_mod(frame, "i64.div", (a, b) -> a / b)
                 if outcome is Trap { return outcome }
             }
             is I64Mod -> {
-                outcome :: apply_i64_div_mod(frame, top, frames, "i64.rem", (a, b) -> a % b)
+                outcome :: apply_i64_div_mod(frame, "i64.rem", (a, b) -> a % b)
                 if outcome is Trap { return outcome }
             }
             is I64Neg -> {
-                outcome :: apply_i64_unop(frame, top, frames, "i64.neg", (a) -> -a)
+                outcome :: apply_i64_unop(frame, "i64.neg", (a) -> -a)
                 if outcome is Trap { return outcome }
             }
             is I64Eq -> {
-                outcome :: apply_i64_cmp(frame, top, frames, "i64.eq", (a, b) -> a == b)
+                outcome :: apply_i64_cmp(frame, "i64.eq", (a, b) -> a == b)
                 if outcome is Trap { return outcome }
             }
             is I64Ne -> {
-                outcome :: apply_i64_cmp(frame, top, frames, "i64.ne", (a, b) -> a != b)
+                outcome :: apply_i64_cmp(frame, "i64.ne", (a, b) -> a != b)
                 if outcome is Trap { return outcome }
             }
             is I64Lt -> {
-                outcome :: apply_i64_cmp(frame, top, frames, "i64.lt", (a, b) -> a < b)
+                outcome :: apply_i64_cmp(frame, "i64.lt", (a, b) -> a < b)
                 if outcome is Trap { return outcome }
             }
             is I64Le -> {
-                outcome :: apply_i64_cmp(frame, top, frames, "i64.le", (a, b) -> a <= b)
+                outcome :: apply_i64_cmp(frame, "i64.le", (a, b) -> a <= b)
                 if outcome is Trap { return outcome }
             }
             is I64Gt -> {
-                outcome :: apply_i64_cmp(frame, top, frames, "i64.gt", (a, b) -> a > b)
+                outcome :: apply_i64_cmp(frame, "i64.gt", (a, b) -> a > b)
                 if outcome is Trap { return outcome }
             }
             is I64Ge -> {
-                outcome :: apply_i64_cmp(frame, top, frames, "i64.ge", (a, b) -> a >= b)
+                outcome :: apply_i64_cmp(frame, "i64.ge", (a, b) -> a >= b)
                 if outcome is Trap { return outcome }
             }
             // Unsigned 64-bit divide / modulo / compare. Same pattern as
             // the U32* family but for `I64Val`-tagged operands carrying
             // a u64 bit pattern.
             is U64Div -> {
-                outcome :: apply_i64_div_mod(frame, top, frames, "u64.div", (a, b) -> i64(u64(a) / u64(b)))
+                outcome :: apply_i64_div_mod(frame, "u64.div", (a, b) -> i64(u64(a) / u64(b)))
                 if outcome is Trap { return outcome }
             }
             is U64Mod -> {
-                outcome :: apply_i64_div_mod(frame, top, frames, "u64.rem", (a, b) -> i64(u64(a) % u64(b)))
+                outcome :: apply_i64_div_mod(frame, "u64.rem", (a, b) -> i64(u64(a) % u64(b)))
                 if outcome is Trap { return outcome }
             }
             is U64Lt -> {
-                outcome :: apply_i64_cmp(frame, top, frames, "u64.lt", (a, b) -> u64(a) < u64(b))
+                outcome :: apply_i64_cmp(frame, "u64.lt", (a, b) -> u64(a) < u64(b))
                 if outcome is Trap { return outcome }
             }
             is U64Le -> {
-                outcome :: apply_i64_cmp(frame, top, frames, "u64.le", (a, b) -> u64(a) <= u64(b))
+                outcome :: apply_i64_cmp(frame, "u64.le", (a, b) -> u64(a) <= u64(b))
                 if outcome is Trap { return outcome }
             }
             is U64Gt -> {
-                outcome :: apply_i64_cmp(frame, top, frames, "u64.gt", (a, b) -> u64(a) > u64(b))
+                outcome :: apply_i64_cmp(frame, "u64.gt", (a, b) -> u64(a) > u64(b))
                 if outcome is Trap { return outcome }
             }
             is U64Ge -> {
-                outcome :: apply_i64_cmp(frame, top, frames, "u64.ge", (a, b) -> u64(a) >= u64(b))
+                outcome :: apply_i64_cmp(frame, "u64.ge", (a, b) -> u64(a) >= u64(b))
                 if outcome is Trap { return outcome }
             }
             // 64-bit bitwise / shift. The apply closure stays i64-typed so
             // wide operands keep their high bits.
             is I64BitAnd -> {
-                outcome :: apply_i64_binop(frame, top, frames, "i64.bitand", (a, b) -> a & b)
+                outcome :: apply_i64_binop(frame, "i64.bitand", (a, b) -> a & b)
                 if outcome is Trap { return outcome }
             }
             is I64BitOr -> {
-                outcome :: apply_i64_binop(frame, top, frames, "i64.bitor", (a, b) -> a | b)
+                outcome :: apply_i64_binop(frame, "i64.bitor", (a, b) -> a | b)
                 if outcome is Trap { return outcome }
             }
             is I64BitXor -> {
-                outcome :: apply_i64_binop(frame, top, frames, "i64.bitxor", (a, b) -> a ^ b)
+                outcome :: apply_i64_binop(frame, "i64.bitxor", (a, b) -> a ^ b)
                 if outcome is Trap { return outcome }
             }
             is I64BitNot -> {
-                outcome :: apply_i64_unop(frame, top, frames, "i64.bitnot", (a) -> ~a)
+                outcome :: apply_i64_unop(frame, "i64.bitnot", (a) -> ~a)
                 if outcome is Trap { return outcome }
             }
             is I64Shl -> {
-                outcome :: apply_i64_binop(frame, top, frames, "i64.shl", (a, b) -> a << b)
+                outcome :: apply_i64_binop(frame, "i64.shl", (a, b) -> a << b)
                 if outcome is Trap { return outcome }
             }
             is I64Shr -> {
-                outcome :: apply_i64_binop(frame, top, frames, "i64.shr", (a, b) -> a >> b)
+                outcome :: apply_i64_binop(frame, "i64.shr", (a, b) -> a >> b)
                 if outcome is Trap { return outcome }
             }
             is I64ShrU -> {
-                outcome :: apply_i64_binop(frame, top, frames, "u64.shr", (a, b) -> i64(u64(a) >> u64(b)))
+                outcome :: apply_i64_binop(frame, "u64.shr", (a, b) -> i64(u64(a) >> u64(b)))
                 if outcome is Trap { return outcome }
             }
             is F64Add -> {
-                outcome :: apply_f64_binop(frame, top, frames, "f64.add", (a, b) -> a + b)
+                outcome :: apply_f64_binop(frame, "f64.add", (a, b) -> a + b)
                 if outcome is Trap { return outcome }
             }
             is F64Sub -> {
-                outcome :: apply_f64_binop(frame, top, frames, "f64.sub", (a, b) -> a - b)
+                outcome :: apply_f64_binop(frame, "f64.sub", (a, b) -> a - b)
                 if outcome is Trap { return outcome }
             }
             is F64Mul -> {
-                outcome :: apply_f64_binop(frame, top, frames, "f64.mul", (a, b) -> a * b)
+                outcome :: apply_f64_binop(frame, "f64.mul", (a, b) -> a * b)
                 if outcome is Trap { return outcome }
             }
             is F64Div -> {
-                outcome :: apply_f64_binop(frame, top, frames, "f64.div", (a, b) -> a / b)
+                outcome :: apply_f64_binop(frame, "f64.div", (a, b) -> a / b)
                 if outcome is Trap { return outcome }
             }
             is F64Neg -> {
-                outcome :: apply_f64_unop(frame, top, frames, "f64.neg", (a) -> -a)
+                outcome :: apply_f64_unop(frame, "f64.neg", (a) -> -a)
                 if outcome is Trap { return outcome }
             }
             is F64Eq -> {
-                outcome :: apply_f64_cmp(frame, top, frames, "f64.eq", (a, b) -> a == b)
+                outcome :: apply_f64_cmp(frame, "f64.eq", (a, b) -> a == b)
                 if outcome is Trap { return outcome }
             }
             is F64Ne -> {
-                outcome :: apply_f64_cmp(frame, top, frames, "f64.ne", (a, b) -> a != b)
+                outcome :: apply_f64_cmp(frame, "f64.ne", (a, b) -> a != b)
                 if outcome is Trap { return outcome }
             }
             is F64Lt -> {
-                outcome :: apply_f64_cmp(frame, top, frames, "f64.lt", (a, b) -> a < b)
+                outcome :: apply_f64_cmp(frame, "f64.lt", (a, b) -> a < b)
                 if outcome is Trap { return outcome }
             }
             is F64Le -> {
-                outcome :: apply_f64_cmp(frame, top, frames, "f64.le", (a, b) -> a <= b)
+                outcome :: apply_f64_cmp(frame, "f64.le", (a, b) -> a <= b)
                 if outcome is Trap { return outcome }
             }
             is F64Gt -> {
-                outcome :: apply_f64_cmp(frame, top, frames, "f64.gt", (a, b) -> a > b)
+                outcome :: apply_f64_cmp(frame, "f64.gt", (a, b) -> a > b)
                 if outcome is Trap { return outcome }
             }
             is F64Ge -> {
-                outcome :: apply_f64_cmp(frame, top, frames, "f64.ge", (a, b) -> a >= b)
+                outcome :: apply_f64_cmp(frame, "f64.ge", (a, b) -> a >= b)
                 if outcome is Trap { return outcome }
             }
             is NullConst -> {
                 push_value(frame.stack, frame.sp, NullVal {})
-                frames[top] = with_sp_pc(frame, frame.sp + 1, frame.pc + 1)
+                frame.sp = frame.sp + 1
+                frame.pc = frame.pc + 1
             }
             is BoolConst -> {
                 push_value(frame.stack, frame.sp, BoolVal { .value = instr.value })
-                frames[top] = with_sp_pc(frame, frame.sp + 1, frame.pc + 1)
+                frame.sp = frame.sp + 1
+                frame.pc = frame.pc + 1
             }
             is CharConst -> {
                 push_value(frame.stack, frame.sp, CharVal { .value = instr.value })
-                frames[top] = with_sp_pc(frame, frame.sp + 1, frame.pc + 1)
+                frame.sp = frame.sp + 1
+                frame.pc = frame.pc + 1
             }
             is BoolEq -> {
-                outcome :: apply_bool_binop(frame, top, frames, "bool.eq", (a, b) -> a == b)
+                outcome :: apply_bool_binop(frame, "bool.eq", (a, b) -> a == b)
                 if outcome is Trap { return outcome }
             }
             is BoolNe -> {
-                outcome :: apply_bool_binop(frame, top, frames, "bool.ne", (a, b) -> a != b)
+                outcome :: apply_bool_binop(frame, "bool.ne", (a, b) -> a != b)
                 if outcome is Trap { return outcome }
             }
             is BoolAnd -> {
-                outcome :: apply_bool_binop(frame, top, frames, "bool.and", (a, b) -> a && b)
+                outcome :: apply_bool_binop(frame, "bool.and", (a, b) -> a && b)
                 if outcome is Trap { return outcome }
             }
             is BoolOr -> {
-                outcome :: apply_bool_binop(frame, top, frames, "bool.or", (a, b) -> a || b)
+                outcome :: apply_bool_binop(frame, "bool.or", (a, b) -> a || b)
                 if outcome is Trap { return outcome }
             }
             is BoolNot -> {
@@ -1354,38 +1366,38 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                 operand :: read_bool(frame.stack[frame.sp - 1], frame.pc, "bool.not")
                 if operand is Trap { return operand }
                 frame.stack[frame.sp - 1] = BoolVal { .value = !operand.value }
-                frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
+                frame.pc = frame.pc + 1
             }
             is CharEq -> {
-                outcome :: apply_char_cmp(frame, top, frames, "char.eq", (a, b) -> a == b)
+                outcome :: apply_char_cmp(frame, "char.eq", (a, b) -> a == b)
                 if outcome is Trap { return outcome }
             }
             is CharNe -> {
-                outcome :: apply_char_cmp(frame, top, frames, "char.ne", (a, b) -> a != b)
+                outcome :: apply_char_cmp(frame, "char.ne", (a, b) -> a != b)
                 if outcome is Trap { return outcome }
             }
             is CharLt -> {
-                outcome :: apply_char_cmp(frame, top, frames, "char.lt", (a, b) -> a < b)
+                outcome :: apply_char_cmp(frame, "char.lt", (a, b) -> a < b)
                 if outcome is Trap { return outcome }
             }
             is CharLe -> {
-                outcome :: apply_char_cmp(frame, top, frames, "char.le", (a, b) -> a <= b)
+                outcome :: apply_char_cmp(frame, "char.le", (a, b) -> a <= b)
                 if outcome is Trap { return outcome }
             }
             is CharGt -> {
-                outcome :: apply_char_cmp(frame, top, frames, "char.gt", (a, b) -> a > b)
+                outcome :: apply_char_cmp(frame, "char.gt", (a, b) -> a > b)
                 if outcome is Trap { return outcome }
             }
             is CharGe -> {
-                outcome :: apply_char_cmp(frame, top, frames, "char.ge", (a, b) -> a >= b)
+                outcome :: apply_char_cmp(frame, "char.ge", (a, b) -> a >= b)
                 if outcome is Trap { return outcome }
             }
             is StringEq -> {
-                outcome :: apply_string_cmp(frame, top, frames, "string.eq", (a, b) -> a == b)
+                outcome :: apply_string_cmp(frame, "string.eq", (a, b) -> a == b)
                 if outcome is Trap { return outcome }
             }
             is StringNe -> {
-                outcome :: apply_string_cmp(frame, top, frames, "string.ne", (a, b) -> a != b)
+                outcome :: apply_string_cmp(frame, "string.ne", (a, b) -> a != b)
                 if outcome is Trap { return outcome }
             }
             is IntToChar -> {
@@ -1393,14 +1405,14 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                 source :: read_i32(frame.stack[frame.sp - 1], frame.pc, "<int>.to_char")
                 if source is Trap { return source }
                 frame.stack[frame.sp - 1] = CharVal { .value = char(u32(source.value)) }
-                frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
+                frame.pc = frame.pc + 1
             }
             is CharToInt -> {
                 if frame.sp == 0 { return Trap { .message = "char.to_<int> on empty stack at pc=${frame.pc}" } }
                 source :: read_char(frame.stack[frame.sp - 1], frame.pc, "char.to_<int>")
                 if source is Trap { return source }
                 frame.stack[frame.sp - 1] = I32Val { .value = i32(u32(source.value)) }
-                frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
+                frame.pc = frame.pc + 1
             }
             is StringConcat -> {
                 if frame.sp < 2 { return Trap { .message = "string.concat needs 2 strings on stack at pc=${frame.pc}" } }
@@ -1409,7 +1421,8 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                 if left  is Trap { return left  }
                 if right is Trap { return right }
                 frame.stack[frame.sp - 2] = StringVal { .value = "${left.value}${right.value}" }
-                frames[top] = with_sp_pc(frame, frame.sp - 1, frame.pc + 1)
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is StringSliceCodepoints -> {
                 if frame.sp < 3 { return Trap { .message = "string.slice_codepoints needs string + lo + hi on stack at pc=${frame.pc}" } }
@@ -1442,25 +1455,29 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                 if seen <= hi_cp { byte_hi = n_bytes }
                 if byte_hi < byte_lo { byte_hi = byte_lo }
                 frame.stack[frame.sp - 3] = StringVal { .value = s.byte_slice(byte_lo, byte_hi) }
-                frames[top] = with_sp_pc(frame, frame.sp - 2, frame.pc + 1)
+                frame.sp = frame.sp - 2
+                frame.pc = frame.pc + 1
             }
             is RefEq -> {
                 if frame.sp < 2 { return Trap { .message = "ref.eq needs 2 values on stack at pc=${frame.pc}" } }
                 outcome :: value_ref_eq(frame.stack[frame.sp - 2], frame.stack[frame.sp - 1], frame.pc, "ref.eq")
                 if outcome is Trap { return outcome }
                 frame.stack[frame.sp - 2] = BoolVal { .value = outcome }
-                frames[top] = with_sp_pc(frame, frame.sp - 1, frame.pc + 1)
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is RefNe -> {
                 if frame.sp < 2 { return Trap { .message = "ref.ne needs 2 values on stack at pc=${frame.pc}" } }
                 outcome :: value_ref_eq(frame.stack[frame.sp - 2], frame.stack[frame.sp - 1], frame.pc, "ref.ne")
                 if outcome is Trap { return outcome }
                 frame.stack[frame.sp - 2] = BoolVal { .value = !outcome }
-                frames[top] = with_sp_pc(frame, frame.sp - 1, frame.pc + 1)
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is Drop -> {
                 if frame.sp == 0 { return Trap { .message = "drop on empty stack at pc=${frame.pc}" } }
-                frames[top] = with_sp_pc(frame, frame.sp - 1, frame.pc + 1)
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is TypeCheck -> {
                 if frame.sp == 0 { return Trap { .message = "type_check on empty stack at pc=${frame.pc}" } }
@@ -1469,14 +1486,15 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                 }
                 matched :: type_matches(module, frame.stack[frame.sp - 1], instr.type_id)
                 frame.stack[frame.sp - 1] = BoolVal { .value = matched }
-                frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
+                frame.pc = frame.pc + 1
             }
             is TypeConst -> {
                 if instr.type_id < 0 || usize(instr.type_id) >= module.types.len() {
                     return Trap { .message = "type.const type ${instr.type_id} out of range at pc=${frame.pc}" }
                 }
                 push_value(frame.stack, frame.sp, TypeVal { .type_id = instr.type_id })
-                frames[top] = with_sp_pc(frame, frame.sp + 1, frame.pc + 1)
+                frame.sp = frame.sp + 1
+                frame.pc = frame.pc + 1
             }
             is DeferPush -> {
                 if frame.sp == 0 {
@@ -1484,42 +1502,32 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                 }
                 closure :: frame.stack[frame.sp - 1]
                 push_value(frame.defers, frame.defer_count, closure)
-                frames[top] = Frame {
-                    .function_index = frame.function_index,
-                    .slots          = frame.slots,
-                    .stack          = frame.stack,
-                    .sp             = frame.sp - 1,
-                    .pc             = frame.pc + 1,
-                    .defers         = frame.defers,
-                    .defer_count    = frame.defer_count + usize(1),
-                }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
+                frame.defer_count = frame.defer_count + usize(1)
             }
             is DeferPopExec as instr -> {
                 if instr.count <= 0 {
-                    frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1)
+                    frame.pc = frame.pc + 1
                     continue
                 }
                 pop_n :: usize(instr.count)
                 if frame.defer_count < pop_n {
                     return Trap { .message = "defer.pop_exec underflow (count=${instr.count}, have=${frame.defer_count}) at pc=${frame.pc}" }
                 }
-                new_defer_count :: frame.defer_count - pop_n
-                // Advance the caller frame's pc and shrink its defer-list
-                // BEFORE pushing the callees — the dispatch loop will run
-                // them in LIFO and then resume the caller at pc+1.
-                frames[top] = Frame {
-                    .function_index = frame.function_index,
-                    .slots          = frame.slots,
-                    .stack          = frame.stack,
-                    .sp             = frame.sp,
-                    .pc             = frame.pc + 1,
-                    .defers         = frame.defers,
-                    .defer_count    = new_defer_count,
-                }
+                old_defer_count :: frame.defer_count
+                new_defer_count :: old_defer_count - pop_n
+                // Shrink the caller's defer-list in place now ; its pc is
+                // advanced AFTER the drain (below) so trap messages still
+                // report the defer.pop_exec pc. The dispatch loop runs the
+                // pushed callees in LIFO and then resumes the caller at pc+1.
+                frame.defer_count = new_defer_count
                 // Push N callee frames in oldest-first order so the most
                 // recently pushed defer (top of frame stack) executes first.
+                // Bound on the captured `old_defer_count` — `frame.defer_count`
+                // has already been shrunk to `new_defer_count` above.
                 drain_index := new_defer_count
-                for drain_index < frame.defer_count {
+                for drain_index < old_defer_count {
                     closure_val :: frame.defers[drain_index]
                     fn_unwrap :: read_fn(closure_val, frame.pc, "defer.pop_exec entry")
                     if fn_unwrap is Trap { return fn_unwrap }
@@ -1536,22 +1544,25 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                     }
                     drain_index += usize(1)
                 }
+                frame.pc = frame.pc + 1
             }
-            is Block -> { frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1) }
-            is Loop  -> { frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1) }
+            is Block -> { frame.pc = frame.pc + 1 }
+            is Loop  -> { frame.pc = frame.pc + 1 }
             is If -> {
                 if frame.sp == 0 { return Trap { .message = "if on empty stack at pc=${frame.pc} in '${body.name}'" } }
                 cond :: read_truthy(frame.stack[frame.sp - 1], frame.pc, "if condition")
                 if cond is Trap { return cond }
                 new_sp :: frame.sp - 1
                 if cond {
-                    frames[top] = with_sp_pc(frame, new_sp, frame.pc + 1)
+                    frame.sp = new_sp
+                    frame.pc = frame.pc + 1
                 } else {
                     target :: body.jump_table[frame.pc]
                     if target < 0 {
                         return Trap { .message = "if has no jump target at pc=${frame.pc} (bad bytecode)" }
                     }
-                    frames[top] = with_sp_pc(frame, new_sp, target)
+                    frame.sp = new_sp
+                    frame.pc = target
                 }
             }
             is Else -> {
@@ -1559,15 +1570,15 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                 if target < 0 {
                     return Trap { .message = "else has no jump target at pc=${frame.pc} (bad bytecode)" }
                 }
-                frames[top] = with_sp_pc(frame, frame.sp, target)
+                frame.pc = target
             }
-            is End -> { frames[top] = with_sp_pc(frame, frame.sp, frame.pc + 1) }
+            is End -> { frame.pc = frame.pc + 1 }
             is Branch -> {
                 target :: body.jump_table[frame.pc]
                 if target < 0 {
                     return Trap { .message = "br has no jump target at pc=${frame.pc} (bad bytecode)" }
                 }
-                frames[top] = with_sp_pc(frame, frame.sp, target)
+                frame.pc = target
             }
             is BranchIf -> {
                 if frame.sp == 0 { return Trap { .message = "br_if on empty stack at pc=${frame.pc} in '${body.name}'" } }
@@ -1579,9 +1590,11 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                     if target < 0 {
                         return Trap { .message = "br_if has no jump target at pc=${frame.pc} (bad bytecode)" }
                     }
-                    frames[top] = with_sp_pc(frame, new_sp, target)
+                    frame.sp = new_sp
+                    frame.pc = target
                 } else {
-                    frames[top] = with_sp_pc(frame, new_sp, frame.pc + 1)
+                    frame.sp = new_sp
+                    frame.pc = frame.pc + 1
                 }
             }
             is Return -> {
@@ -1611,11 +1624,10 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
 ///                 validated against `ArrayType` (the bytecode pipeline
 ///                 already guarantees consistency).
 /// @param length   initial element count to consume from the stack.
-/// @param frame    current top frame.
-/// @return         a fresh `Frame` (sp/pc advanced) on success, or a
-///                 `Trap` if the stack is too short.
+/// @param frame    current top frame, mutated in place (sp/pc advanced).
+/// @return         `null` on success, or a `Trap` if the stack is too short.
 /// @error          stack underflow when `frame.sp < length`.
-build_array :: fn(type_id: i32, length: i32, frame: Frame) -> Frame | Trap {
+build_array :: fn(type_id: i32, length: i32, frame: Frame) -> Trap | null {
     if length < 0 {
         return Trap { .message = "array.new length ${length} is negative at pc=${frame.pc}" }
     }
@@ -1632,7 +1644,9 @@ build_array :: fn(type_id: i32, length: i32, frame: Frame) -> Frame | Trap {
     }
     new_array :: ArrayVal { .type_id = type_id, .elements = elements, .offset = usize(0), .length = elements.len() }
     push_value(frame.stack, arg_base, new_array)
-    return with_sp_pc(frame, arg_base + 1, frame.pc + 1)
+    frame.sp = arg_base + 1
+    frame.pc = frame.pc + 1
+    return null
 }
 
 /// Body of the `StructNew` arm — the .virt text format emits two
@@ -1643,13 +1657,12 @@ build_array :: fn(type_id: i32, length: i32, frame: Frame) -> Frame | Trap {
 ///
 /// @param module   the running module (used to look up `types`).
 /// @param type_id  the struct type's ordinal in `module.types`.
-/// @param frame    current top frame.
-/// @return         a fresh `Frame` (sp / pc advanced) on success, or a
-///                 `Trap` describing the failure.
+/// @param frame    current top frame, mutated in place (sp / pc advanced).
+/// @return         `null` on success, or a `Trap` describing the failure.
 /// @error          `type_id` out of range ; type-table entry isn't a
 ///                 `StructType` ; stack carries fewer than `field_count`
 ///                 values.
-build_struct :: fn(module: Module, type_id: i32, frame: Frame) -> Frame | Trap {
+build_struct :: fn(module: Module, type_id: i32, frame: Frame) -> Trap | null {
     if type_id < 0 || usize(type_id) >= module.types.len() {
         return Trap { .message = "struct.new type ${type_id} out of range at pc=${frame.pc}" }
     }
@@ -1670,7 +1683,9 @@ build_struct :: fn(module: Module, type_id: i32, frame: Frame) -> Frame | Trap {
     }
     new_struct :: StructVal { .type_id = type_id, .fields = fields }
     push_value(frame.stack, arg_base, new_struct)
-    return with_sp_pc(frame, arg_base + 1, frame.pc + 1)
+    frame.sp = arg_base + 1
+    frame.pc = frame.pc + 1
+    return null
 }
 
 // ---- entry --------------------------------------------------------------
