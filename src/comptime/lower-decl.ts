@@ -203,11 +203,13 @@ function newLowerProjectCtx(input: CompileInput): LowerProjectCtx {
   let coreSymbols: ReadonlyMap<string, Symbol> | null = null;
   let iterSymbols: ReadonlyMap<string, Symbol> | null = null;
   let collectionsSymbols: ReadonlyMap<string, Symbol> | null = null;
+  let stringSymbols: ReadonlyMap<string, Symbol> | null = null;
   for (const program of input.project.modules.values()) {
     const path = program.resolved.module.displayPath;
     if (path === "std/core") coreSymbols = program.resolved.module.symbols;
     else if (path === "std/iter") iterSymbols = program.resolved.module.symbols;
     else if (path === "std/collections") collectionsSymbols = program.resolved.module.symbols;
+    else if (path === "std/string") stringSymbols = program.resolved.module.symbols;
   }
   const mono: MonoProject = {
     entries: [], lookupByInstance: new Map(),
@@ -222,6 +224,7 @@ function newLowerProjectCtx(input: CompileInput): LowerProjectCtx {
     coreSymbols,
     iterSymbols,
     collectionsSymbols,
+    stringSymbols,
     closures: { capturedSymbols: new Set(), lambdaCaptures: new Map(), deferCaptures: new Map() },
     synthDecls: [],
     nextSyntheticId: 1,

@@ -1,0 +1,17 @@
+module "snippet"
+
+import "std/io" { println }
+import "std/string" { bytes }
+
+main :: fn() -> i32 {
+    // Inline form : `s.bytes().len()` folds to the O(1) byte_len primitive
+    // (no borrowed-view header allocated just to read the length).
+    println("inline=${"abc".bytes().len()}")
+
+    // Held view : `bs.len()` reads the view's header — NOT folded (the view
+    // is a real value here).
+    bs :: "hello".bytes()
+    println("held=${bs.len()} first=${bs[0]}")
+
+    return 0
+}

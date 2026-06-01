@@ -1,0 +1,81 @@
+# Lower
+
+## snippet
+  fn snippet$main() -> i32
+    call :void
+      callee:
+        println :void
+      arg0:
+        call :string
+          callee:
+            from_utf8 :string
+          arg0:
+            call :const u8[]
+              callee:
+                bytes :const u8[]
+              arg0:
+                "vader" :string
+    call :void
+      callee:
+        println :void
+      arg0:
+        call :string
+          callee:
+            from_utf8 :string
+          arg0:
+            call :const u8[]
+              callee:
+                bytes :const u8[]
+              arg0:
+                "héllo café 你好" :string
+    call :void
+      callee:
+        println :void
+      arg0:
+        call :string
+          callee:
+            from_utf8 :string
+          arg0:
+            slice :const u8[]
+              on:
+                call :const u8[]
+                  callee:
+                    bytes :const u8[]
+                  arg0:
+                    "abcde" :string
+              lo:
+                cast → usize
+                  int(1) :usize
+              hi:
+                cast → usize
+                  int(4) :usize
+    let e: string =
+      call :string
+        callee:
+          from_utf8 :string
+        arg0:
+          call :const u8[]
+            callee:
+              bytes :const u8[]
+            arg0:
+              "" :string
+    call :void
+      callee:
+        println :void
+      arg0:
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0 :?
+            "[" :string
+          @builder.append_display <for string> :void
+            __sb_0 :?
+            e :string
+          @builder.append_str :void
+            __sb_0 :?
+            "]" :string
+          ~>
+            @builder.finish :string
+              __sb_0 :?
+    return int(0) :i32

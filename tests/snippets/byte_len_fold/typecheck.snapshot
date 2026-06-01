@@ -1,0 +1,23 @@
+# Typecheck
+
+## tests/snippets/byte_len_fold
+  FnDecl         main                 :: fn() -> i32
+  expr 13:11    CallExpr       :: const u8[]
+  expr 13:11    FieldExpr      :: fn() -> const u8[]
+  expr 13:11    StringLitExpr  :: string
+  expr 14:13    StringLitExpr  :: string
+  expr 14:21    CallExpr       :: usize
+  expr 14:21    FieldExpr      :: fn() -> usize
+  expr 14:21    IdentExpr      :: const u8[]
+  expr 14:39    IdentExpr      :: const u8[]
+  expr 14:39    IndexExpr      :: u8
+  expr 14:5     CallExpr       :: void
+  expr 14:5     IdentExpr      :: fn(T) -> void
+  expr 9:13     StringLitExpr  :: string
+  expr 9:23     CallExpr       :: const u8[]
+  expr 9:23     CallExpr       :: usize
+  expr 9:23     FieldExpr      :: fn() -> const u8[]
+  expr 9:23     FieldExpr      :: fn() -> usize
+  expr 9:23     StringLitExpr  :: string
+  expr 9:5      CallExpr       :: void
+  expr 9:5      IdentExpr      :: fn(T) -> void

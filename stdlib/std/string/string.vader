@@ -126,6 +126,76 @@ export byte_decode_at :: fn(s: string, i: usize) -> char {
 ///           view of the interned bytes on native, a fresh copy on the VM.
 export bytes :: fn(s: string) -> const u8[]
 
+/// Decode the UTF-8 codepoint at byte offset `i` of a byte view. The byte
+/// counterpart to `byte_decode_at` — operates on a `const u8[]` (typically
+/// `s.bytes()`) instead of a string, so byte-cursor consumers can hold the
+/// view once and decode off it. A continuation byte at `i` decodes as
+/// `U+FFFD` ; a truncated multi-byte sequence decodes as `U+0000`.
+///
+/// @param bs  the byte view (e.g. `s.bytes()`).
+/// @param i   byte offset of a UTF-8 leading byte. Traps if `i >= bs.len()`.
+export decode_char_at :: fn(bs: const u8[], i: usize) -> char {
+    n :: bs.len()
+    b :: bs[i]
+    if b < u8(0x80) { return char(u32(b)) }
+    // Continuation byte as leader : invalid UTF-8.
+    if b < u8(0xC0) { return char(u32(0xFFFD)) }
+    rem :: n - i
+    if b < u8(0xE0) {
+        if rem < usize(2) { return char(u32(0)) }
+        b1 :: bs[i + usize(1)]
+        return char(((u32(b) & u32(0x1F)) << u32(6)) + (u32(b1) & u32(0x3F)))
+    }
+    if b < u8(0xF0) {
+        if rem < usize(3) { return char(u32(0)) }
+        b1 :: bs[i + usize(1)]
+        b2 :: bs[i + usize(2)]
+        return char(((u32(b) & u32(0x0F)) << u32(12)) + ((u32(b1) & u32(0x3F)) << u32(6)) + (u32(b2) & u32(0x3F)))
+    }
+    if rem < usize(4) { return char(u32(0)) }
+    b1 :: bs[i + usize(1)]
+    b2 :: bs[i + usize(2)]
+    b3 :: bs[i + usize(3)]
+    return char(((u32(b) & u32(0x07)) << u32(18)) + ((u32(b1) & u32(0x3F)) << u32(12)) + ((u32(b2) & u32(0x3F)) << u32(6)) + (u32(b3) & u32(0x3F)))
+}
+
+/// Decode the UTF-8 sequence at byte offset `i` of a byte view into a
+/// codepoint and its encoded byte length. Byte counterpart to
+/// `decode_codepoint` — advance the caller's cursor by the returned `n`.
+///
+/// @param bs  the byte view (e.g. `s.bytes()`).
+/// @param i   byte offset of a UTF-8 leading byte.
+/// @return    `[codepoint, byte_length]`.
+export decode_codepoint_at :: fn(bs: const u8[], i: usize) -> [char, usize] {
+    c :: decode_char_at(bs, i)
+    return [c, codepoint_byte_len(c)]
+}
+
+/// Rebuild a `string` from the UTF-8 bytes of a `const u8[]` — the inverse
+/// of `bytes()`. Use it to turn a byte-view slice back into a string :
+/// `s.bytes()[lo..<hi].from_utf8()` is the byte-indexed substring (what the
+/// old `byte_slice` produced). Infallible : the bytes are interpreted as
+/// UTF-8 ; valid input round-trips exactly, malformed sequences decode to
+/// `U+FFFD` / `U+0000` (same contract as `decode_char_at`).
+///
+/// Pure Vader — decodes codepoint-by-codepoint into a `StringBuilder`, O(n)
+/// in `bs.len()`. (A zero-copy O(1) path exists only via a runtime
+/// primitive ; see `.claude/plans/et-pareil-pour-byte-at-byte-slice-*.md`.)
+///
+/// @param bs  the UTF-8 bytes to materialise (typically a `bytes()` slice).
+/// @return    a fresh string with those bytes.
+export from_utf8 :: fn(bs: const u8[]) -> string {
+    sb :: new_builder()
+    i: usize = 0
+    n :: bs.len()
+    for i < n {
+        [c, width] :: bs.decode_codepoint_at(i)
+        sb.append_char(c)
+        i += width
+    }
+    return sb.to_string()
+}
+
 /// Iterator yielding Unicode codepoints — one per UTF-8 sequence,
 /// regardless of whether the codepoint is encoded in 1, 2, 3, or 4
 /// bytes. The cursor moves in bytes ; `length` is the byte length of the

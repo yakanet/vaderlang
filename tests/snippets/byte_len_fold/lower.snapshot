@@ -1,0 +1,65 @@
+# Lower
+
+## snippet
+  fn snippet$main() -> i32
+    call :void
+      callee:
+        println :void
+      arg0:
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0 :?
+            "inline=" :string
+          @builder.append_str :void
+            __sb_0 :?
+            call :string
+              callee:
+                to_string :string
+              arg0:
+                call :usize
+                  callee:
+                    byte_len :fn(string) -> usize
+                  arg0:
+                    "abc" :string
+          ~>
+            @builder.finish :string
+              __sb_0 :?
+    let bs: const u8[] =
+      call :const u8[]
+        callee:
+          bytes :const u8[]
+        arg0:
+          "hello" :string
+    call :void
+      callee:
+        println :void
+      arg0:
+        block :string
+          let __sb_1: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_1 :?
+            "held=" :string
+          @builder.append_str :void
+            __sb_1 :?
+            call :string
+              callee:
+                to_string :string
+              arg0:
+                LoweredArrayLen
+          @builder.append_str :void
+            __sb_1 :?
+            " first=" :string
+          @builder.append_display <for u8> :void
+            __sb_1 :?
+            index :u8
+              on:
+                bs :const u8[]
+              ix:
+                int(0) :i32
+          ~>
+            @builder.finish :string
+              __sb_1 :?
+    return int(0) :i32

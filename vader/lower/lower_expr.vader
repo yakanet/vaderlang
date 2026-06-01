@@ -34,7 +34,7 @@ import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/types" {
     Type, FnType, PrimitiveType, FreeIntType, FreeFloatType, UnionType, TraitType,
     TypeParamType, ArrayType, TupleType, TypeMetaType, AnyType, SelfType, NeverType,
-    TY_BOOL, TY_VOID, TY_NEVER, TY_UNRESOLVED, TY_TYPE, mk_primitive, is_primitive_name,
+    TY_BOOL, TY_VOID, TY_NEVER, TY_UNRESOLVED, TY_TYPE, mk_primitive, mk_fn, is_primitive_name,
 }
 import "vader/typecheck" { default_if_free, equals_type, type_list_equals, is_assignable, lookup_struct_trait_args }
 import "vader/typecheck" { TypedProgram }
@@ -1903,6 +1903,43 @@ synth_namespace_member :: fn(ctx: FnLowerCtx, name: string, type: Type) -> Symbo
 }
 
 
+// `s.bytes().len()` → `byte_len(s)`. Returns the rewritten call when
+// `target` is a direct `std/string::bytes` call (a bound view is a
+// `LoweredIdent` and doesn't match), else null so the caller falls back to
+// `LoweredArrayLen`. The internal `byte_len` host fn is resolved from
+// std/string's symbol table.
+fold_bytes_len :: fn(ctx: FnLowerCtx, target: LoweredExpr, span: Span) -> LoweredExpr | null {
+    // Cheap structural gate first — short-circuits the vast majority of
+    // `.len()` sites (plain arrays) before touching the symbol table.
+    if target is LoweredCall as lc {
+        if lc.callee is LoweredIdent as ci {
+            if lc.args.len() == usize(1) {
+                strs :: ctx.project.string_symbols
+                if strs == null { return null }
+                bytes_sym :: strs["bytes"]
+                byte_len_sym :: strs["byte_len"]
+                if bytes_sym == null { return null }
+                if byte_len_sym == null { return null }
+                // The call site may carry an import-binding symbol ; resolve
+                // it to the canonical std/string `bytes` before comparing.
+                resolved_callee :: follow_import_binding(ctx, ci.symbol)
+                if resolved_callee.id == bytes_sym.id {
+                    return LoweredCall {
+                        .span = span, .type = mk_primitive("usize"),
+                        .callee = LoweredIdent {
+                            .span = span,
+                            .type = mk_fn([mk_primitive("string")], mk_primitive("usize")),
+                            .symbol = byte_len_sym,
+                        },
+                        .args = [lc.args[0]],
+                    }
+                }
+            }
+        }
+    }
+    return null
+}
+
 // Detect `arr.push(x)` / `arr.len()` and emit the dedicated op. Returns
 // null when the receiver isn't an array or the field isn't a recognised
 // array intrinsic — caller falls back to the generic call path.
@@ -1914,9 +1951,17 @@ try_lower_array_op :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowered
             match target_type {
                 is ArrayType -> {
                     if field_expr.field == "len" && call.args.len() == usize(0) {
+                        len_target :: lower_expr(ctx, field_expr.target)
+                        // `s.bytes().len()` → `byte_len(s)` : fold the inline
+                        // form to the O(1) host primitive so it doesn't alloc a
+                        // borrowed-view header just to read the length. Held
+                        // views (`bs.len()`) have a `LoweredIdent` target and
+                        // don't match.
+                        folded :: fold_bytes_len(ctx, len_target, call.span)
+                        if folded != null { return folded }
                         return LoweredArrayLen {
                             .span = call.span, .type = mk_primitive("usize"),
-                            .target = lower_expr(ctx, field_expr.target),
+                            .target = len_target,
                         }
                     }
                     if field_expr.field == "push" && call.args.len() == usize(1) {

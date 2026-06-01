@@ -91,6 +91,11 @@ export LowerProjectCtx :: struct {
     /// `MutableMap` / `MutableSet` inline path never fires).
     collections_symbols: MutableMap<string, Symbol> | null
 
+    /// `name -> Symbol` from `std/string`. Lets the `s.bytes().len()`
+    /// peephole resolve the internal `byte_len` host fn (the O(1) fold
+    /// target). Null when the project doesn't import `std/string`.
+    string_symbols:      MutableMap<string, Symbol> | null
+
     /// Per-trait `Symbol | null` cache — populated lazily on first
     /// `find_core_trait` hit. `null` means "looked up and not found".
     core_trait_cache:    MutableMap<string, Symbol | null>
@@ -202,6 +207,7 @@ export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedPr
         .core_symbols        = MutableMap<string, Symbol> { .buckets = [], .size = 0 },
         .iter_symbols        = null,
         .collections_symbols = null,
+        .string_symbols      = null,
         .core_trait_cache    = MutableMap<string, Symbol | null> { .buckets = [], .size = 0 },
         .comptime_value_by_symbol_id = MutableMap<i32, ComptimeValue> { .buckets = [], .size = 0 },
         .local_symbol_indices = MutableMap<string, MutableMap<u64, Symbol>> { .buckets = [], .size = 0 },

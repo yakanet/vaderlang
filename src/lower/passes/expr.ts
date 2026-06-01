@@ -7,7 +7,7 @@ import { isIfIsBinding, staticStringValue, unreachableTypeExprInValuePosition } 
 import type { Symbol } from "../../resolver/symbol.ts";
 import { declOf, sourceStructDecl } from "../../resolver/symbol.ts";
 import type { Type } from "../../typecheck/types.ts";
-import { CORE_STRUCTS, CORE_TRAITS, TY, alignOfType, canonicalArgsKey, defaultIfFree, displayType, equalsType, fieldCountOfType, isPrimitive, kindStringOfType, sizeOfType, substitute, variantCountOfType } from "../../typecheck/types.ts";
+import { CORE_STRUCTS, CORE_TRAITS, TY, alignOfType, canonicalArgsKey, defaultIfFree, displayType, equalsType, fieldCountOfType, isPrimitive, kindStringOfType, mkFn, sizeOfType, substitute, variantCountOfType } from "../../typecheck/types.ts";
 import { primitiveFromName } from "../../typecheck/passes/type-expr.ts";
 import { buildStructSubst } from "../../typecheck/ctx.ts";
 import type { Substitution } from "../../typecheck/types.ts";
@@ -164,9 +164,14 @@ function lowerExprInner(ctx: FnLowerCtx, expr: A.Expr): LoweredExpr {
         switch (fr?.kind) {
           case "array-op":
             if (fr.op === "len") {
-              return {
+              const lenTarget = lowerExpr(ctx, expr.callee.target);
+              // `s.bytes().len()` → `byte_len(s)` : fold the inline form to the
+              // O(1) host primitive so it doesn't allocate a borrowed-view
+              // header just to read the length. Held views (`bs.len()`) have a
+              // `LoweredIdent` target and don't match.
+              return foldBytesLen(ctx, lenTarget, expr.span) ?? {
                 kind: "LoweredArrayLen", span: expr.span, type: TY.usize,
-                target: lowerExpr(ctx, expr.callee.target),
+                target: lenTarget,
               };
             }
             return {
@@ -922,6 +927,26 @@ function isPureLiteral(e: LoweredExpr): boolean {
     default:
       return false;
   }
+}
+
+/** Fold `<s>.bytes().len()` → `byte_len(<s>)`. `target` is the lowered
+ *  receiver of `.len()` ; it matches only when it is a direct call to
+ *  `std/string::bytes` (not a bound view — those are a `LoweredIdent`). The
+ *  internal `byte_len` host fn is resolved from std/string's symbol table.
+ *  Returns null when it doesn't apply, so the caller falls back to
+ *  `LoweredArrayLen`. */
+function foldBytesLen(ctx: FnLowerCtx, target: LoweredExpr, span: Span): LoweredExpr | null {
+  if (target.kind !== "LoweredCall" || target.callee.kind !== "LoweredIdent") return null;
+  if (target.args.length !== 1) return null;
+  const strSyms = ctx.project.stringSymbols;
+  if (strSyms === null || target.callee.symbol !== strSyms.get("bytes")) return null;
+  const byteLen = strSyms.get("byte_len");
+  if (byteLen === undefined || byteLen.kind !== "fn") return null;
+  return {
+    kind: "LoweredCall", span, type: TY.usize,
+    callee: { kind: "LoweredIdent", span, type: mkFn([TY.string], TY.usize), symbol: byteLen },
+    args: [target.args[0]!],
+  };
 }
 
 function lowerInOp(ctx: FnLowerCtx, expr: A.BinaryExpr): LoweredExpr {

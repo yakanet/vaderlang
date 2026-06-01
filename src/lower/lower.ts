@@ -31,6 +31,7 @@ import { inlineConsts } from "./passes/inline-consts.ts";
 const STD_CORE_PATH = "std/core";
 const STD_ITER_PATH = "std/iter";
 const STD_COLLECTIONS_PATH = "std/collections";
+const STD_STRING_PATH = "std/string";
 
 export function lowerProject(
   evaluated: EvaluatedProject,
@@ -42,11 +43,13 @@ export function lowerProject(
   let coreSymbols: ReadonlyMap<string, Symbol> | null = null;
   let iterSymbols: ReadonlyMap<string, Symbol> | null = null;
   let collectionsSymbols: ReadonlyMap<string, Symbol> | null = null;
+  let stringSymbols: ReadonlyMap<string, Symbol> | null = null;
   for (const program of evaluated.typed.modules.values()) {
     const path = program.resolved.module.displayPath;
     if (path === STD_CORE_PATH) coreSymbols = program.resolved.module.symbols;
     else if (path === STD_ITER_PATH) iterSymbols = program.resolved.module.symbols;
     else if (path === STD_COLLECTIONS_PATH) collectionsSymbols = program.resolved.module.symbols;
+    else if (path === STD_STRING_PATH) stringSymbols = program.resolved.module.symbols;
   }
   const ctx: LowerProjectCtx = {
     evaluated, mono, impls,
@@ -54,6 +57,7 @@ export function lowerProject(
     coreSymbols,
     iterSymbols,
     collectionsSymbols,
+    stringSymbols,
     closures: closures ?? analyzeClosures(evaluated.typed),
     synthDecls: [],
     nextSyntheticId: 1,

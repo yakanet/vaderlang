@@ -34,6 +34,10 @@ export interface LowerProjectCtx {
    *  and confirm the source struct name. Null when the project doesn't
    *  import std/collections (inlining never fires in that case). */
   readonly collectionsSymbols: ReadonlyMap<string, Symbol> | null;
+  /** std/string's symbol table — lets the `s.bytes().len()` peephole resolve
+   *  the internal `byte_len` host fn (the O(1) fold target) without a header
+   *  alloc. Null when the project doesn't import std/string (no fold fires). */
+  readonly stringSymbols: ReadonlyMap<string, Symbol> | null;
   /** Free-variable analysis output. Lets the lowerer detect captured locals
    *  and rewrite their declarations / reads / writes through closure cells. */
   readonly closures: ClosureAnalysis;

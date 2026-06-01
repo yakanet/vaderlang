@@ -302,6 +302,27 @@ populate_core_symbols :: fn(typed: TypedProject, project_ctx: LowerProjectCtx) -
                 coll_table[entry.name] = entry
             }
         }
+        // `std/string`'s top-level symbols : copy under `string_symbols`
+        // so the `s.bytes().len()` peephole resolves the internal
+        // `byte_len` host fn (the O(1) fold target). Keyed on the logical
+        // display path (exact) to avoid matching `std/string_builder`.
+        if module_typed.resolved.display_path == "std/string" {
+            string_table :: ensure_string_table(project_ctx)
+            for entry in module_typed.resolved.symbols {
+                string_table[entry.name] = entry
+            }
+        }
+    }
+}
+
+ensure_string_table :: fn(project_ctx: LowerProjectCtx) -> MutableMap<string, Symbol> {
+    match project_ctx.string_symbols {
+        is null -> {
+            table :: MutableMap<string, Symbol> { .buckets = [], .size = 0 }
+            project_ctx.string_symbols = table
+            return table
+        }
+        is MutableMap<string, Symbol> as existing -> { return existing }
     }
 }
 
