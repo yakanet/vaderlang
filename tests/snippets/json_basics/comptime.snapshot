@@ -30,19 +30,19 @@
 ## tests/snippets/json_basics
 
 ## generic instances
-  MapIterator<T, U>
-  MapIterator<T, U>
-  MapIterator<T, U>
-  FilterIterator<T>
-  FilterIterator<T>
-  FilterIterator<T>
-  TakeIterator<T>
-  TakeIterator<T>
-  TakeIterator<T>
-  SkipIterator<T>
-  SkipIterator<T>
-  SkipIterator<T>
   Into<Target>
+  MapIterator<T, U>
+  MapIterator<T, U>
+  MapIterator<T, U>
+  FilterIterator<T>
+  FilterIterator<T>
+  FilterIterator<T>
+  TakeIterator<T>
+  TakeIterator<T>
+  TakeIterator<T>
+  SkipIterator<T>
+  SkipIterator<T>
+  SkipIterator<T>
   Entry<string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString>
   Entry<K, V>
   Entry<K, V>
@@ -124,8 +124,8 @@
   Yield<T>
   Yield<T>
   Yield<T>
-  Yield<U>
   Yield<T>
+  Yield<U>
   Yield<T>
   Yield<T>
   Range<char>

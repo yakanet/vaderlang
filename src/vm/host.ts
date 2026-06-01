@@ -205,26 +205,11 @@ export function stdStringBindings(): Record<string, HostFn> {
       const end   = Math.min(bytes.length, indexArg(args, 2));
       return str(UTF8_DEC.decode(bytes.slice(start, end)));
     },
-    std_string$contains:    (args) => bool(stringArg(args, 0).includes(stringArg(args, 1))),
-    std_string$starts_with: (args) => bool(stringArg(args, 0).startsWith(stringArg(args, 1))),
-    std_string$ends_with:   (args) => bool(stringArg(args, 0).endsWith(stringArg(args, 1))),
-    std_string$trim:        (args) => str(stringArg(args, 0).trim()),
-    std_string$to_upper:    (args) => str(stringArg(args, 0).toUpperCase()),
-    std_string$to_lower:    (args) => str(stringArg(args, 0).toLowerCase()),
     std_string$byte_at: (args) => {
       const bytes = UTF8_ENC.encode(stringArg(args, 0));
       const i = indexArg(args, 1);
       if (i < 0 || i >= bytes.length) return num("u8", 0);
       return num("u8", bytes[i]!);
-    },
-    // Decode the UTF-8 codepoint at byte offset `i`. Mirrors C
-    // `vader_string_char_at`. Lets parsers keep a byte cursor while
-    // comparing against ASCII char literals.
-    std_string$byte_decode_at: (args) => {
-      const bytes = UTF8_ENC.encode(stringArg(args, 0));
-      const i = indexArg(args, 1);
-      if (i < 0 || i >= bytes.length) return ch(0);
-      return ch(UTF8_DEC.decode(bytes.subarray(i, i + 4)).codePointAt(0) ?? 0);
     },
     // `string implements Index(usize, char)` is `@intrinsic`-impl in std/core,
     // so the host provides the body under the impl-method mangled name.
@@ -241,19 +226,6 @@ export function stdStringBindings(): Record<string, HostFn> {
         cp++;
       }
       return ch(0);
-    },
-    std_string$split: (args) => {
-      const s = stringArg(args, 0);
-      const sep = stringArg(args, 1);
-      const parts = s.split(sep);
-      const elements = parts.map(p => str(p));
-      return { tag: "array" as const, typeIndex: 0, elements, offset: 0, length: elements.length };
-    },
-    std_string$parse_int:   (args) => {
-      const s = stringArg(args, 0);
-      const n = Number(s);
-      if (s.trim() === "" || !Number.isInteger(n)) return err(`invalid integer: "${s}"`);
-      return num("i32", n | 0);
     },
     std_string$parse_float: (args) => {
       const s = stringArg(args, 0);

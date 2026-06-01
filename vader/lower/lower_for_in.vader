@@ -322,16 +322,28 @@ build_step_call :: fn(
     method_next :: "next"
     next_name := method_next
     if iter_type is StructType as st {
-        // Erase the receiver args (`__Any`) when the struct's Iterator impl
-        // is generic, matching the suffix `materialize_impl_for_instance`
-        // emits for the materialised `next` body. Concrete-instantiation
-        // iterators keep the concrete suffix.
-        suffix :: if struct_iter_impl_is_generic(ctx, st.symbol.name) {
-            mixed_any_suffix(st.args)
-        } else {
-            args_suffix(st.args)
+        // Resolve the struct's Iterator impl entry. The materialised `next`
+        // member is registered under the impl's OWNING module (GATE B1) — not
+        // the caller's — so a cross-module iterator (e.g. `std/string`'s
+        // `StringChars`, used from any module via `for c in s`) resolves to
+        // the same mangle `surface_stdlib_impl_externs` / the generic
+        // materialiser emits. Generic impls erase instance args to `__Any` ;
+        // concrete-instantiation iterators keep the concrete suffix. Mirror of
+        // `find_impl_member_for`.
+        owning_module := mangle_module_id(ctx.typed.resolved.display_path)
+        is_gen := false
+        for entry in ctx.project.impls.all {
+            if entry.decl.trait_name != TRAIT_ITERATOR { continue }
+            if impl_targets_name(entry.decl.for_type, st.symbol.name) {
+                owning_module = mangle_module_id(entry.module)
+                is_gen = entry.is_generic
+            }
         }
-        next_name = "${mangle_module_id(ctx.typed.resolved.display_path)}$${st.symbol.name}$${TRAIT_ITERATOR}$${method_next}${suffix}"
+        suffix :: if is_gen { mixed_any_suffix(st.args) } else { args_suffix(st.args) }
+        next_name = "${owning_module}$${st.symbol.name}$${TRAIT_ITERATOR}$${method_next}${suffix}"
+        // Record the call so the post-lowering pass materialises the (with-body)
+        // stdlib impl member instead of dropping the call to the panic fallback.
+        ctx.project.referenced_impl_mangles.add(next_name)
     }
     next_symbol :: synth_next_symbol(ctx, next_name)
     args: LoweredExpr[] = []
@@ -343,27 +355,6 @@ build_step_call :: fn(
         },
         .args = args,
     }
-}
-
-// True when `struct_name`'s `Iterator` impl references a type parameter
-// (`Range<T>` / `ArrayIterator<T>` / `Repeat<T>`). Drives the same
-// arg-erasure the materialiser applies to the `next` body's mangle so
-// both sides agree on the instance name. Mirror of `ImplEntry.is_generic`.
-struct_iter_impl_is_generic :: fn(ctx: FnLowerCtx, struct_name: string) -> bool {
-    for entry in ctx.project.impls.all {
-        if entry.decl.trait_name != TRAIT_ITERATOR { continue }
-        match entry.decl.for_type {
-            is AST.IdentExpr as id -> { if id.name == struct_name { return entry.is_generic } }
-            is AST.GenericInstExpr as gi -> {
-                match gi.callee {
-                    is AST.IdentExpr as cid -> { if cid.name == struct_name { return entry.is_generic } }
-                    _ -> {}
-                }
-            }
-            _ -> {}
-        }
-    }
-    return false
 }
 
 synth_next_symbol :: fn(ctx: FnLowerCtx, name: string) -> Symbol {

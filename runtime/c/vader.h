@@ -694,14 +694,7 @@ vader_string_t vader_spawn_last_stderr(void);
 
 size_t         vader_string_byte_len(vader_string_t s);
 vader_string_t vader_string_slice(vader_string_t s, size_t start, size_t end);
-vader_bool_t   vader_string_contains(vader_string_t s, vader_string_t sub);
-vader_bool_t   vader_string_starts_with(vader_string_t s, vader_string_t prefix);
-vader_bool_t   vader_string_ends_with(vader_string_t s, vader_string_t suffix);
-vader_string_t vader_string_trim(vader_string_t s);
-vader_string_t vader_string_to_upper(vader_string_t s);
-vader_string_t vader_string_to_lower(vader_string_t s);
-/* parse_int / parse_float return a box: ok_tag on success, err_tag on failure. */
-vader_box_t    vader_string_parse_int(vader_string_t s, uint32_t ok_tag, uint32_t err_tag);
+/* parse_float returns a box: ok_tag on success, err_tag on failure. */
 vader_box_t    vader_string_parse_float(vader_string_t s, uint32_t ok_tag, uint32_t err_tag);
 vader_char_t   vader_string_char_at(vader_string_t s, size_t i);
 vader_u8_t     vader_string_byte_at(vader_string_t s, size_t i);
@@ -712,8 +705,6 @@ vader_char_t   vader_string_codepoint_at(vader_string_t s, size_t cp_index);
 vader_string_t vader_string_slice_codepoints(vader_string_t s, size_t cp_lo, size_t cp_hi);
 vader_u64_t    vader_string_hash(vader_string_t s);
 vader_string_t vader_string_concat_all(vader_array_t* parts);
-vader_array_t* vader_string_split(vader_string_t s, vader_string_t sep,
-                                  uint32_t arr_type, uint32_t str_type);
 
 /* Process-level argv plumbing — emitted `main` calls this to materialise its
  * `[string]` argument from the host argv. */

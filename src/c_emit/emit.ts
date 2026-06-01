@@ -16,17 +16,23 @@
 //   tag-aware ones (read_file, read_line, write_file) receive the BcType
 //   indices for the `string` and `Error` variants resolved per module.
 
-import type {BytecodeModule, BcFunction, BcImport, BcSignature} from "../bytecode/module.ts";
-import type { Op } from "../bytecode/ops.ts";
-import type { ArrayKind, BcDataEntry, BcStruct, BcType, ValType } from "../bytecode/types.ts";
-import { arrayKindIndex, arrayKindOf, inlineVariantPayload, nullableRefVariant, sizeOfBcType } from "../bytecode/types.ts";
+import type {BcImport, BytecodeModule} from "../bytecode/module.ts";
+import type {ArrayKind, BcDataEntry, BcStruct, ValType} from "../bytecode/types.ts";
+import {arrayKindIndex, inlineVariantPayload, nullableRefVariant, sizeOfBcType} from "../bytecode/types.ts";
 
 import {
-  boxExpr, cTypeFor, cTypeForSignatureSlot, cTypeForVal, cTypeForValBare, emitFunctions,
-  isRefVal, signatureFor, unboxExpr, valTypeOfBcType, zeroInit,
+  boxExpr,
+  cTypeFor,
+  cTypeForSignatureSlot,
+  cTypeForVal,
+  cTypeForValBare,
+  emitFunctions,
+  signatureFor,
+  unboxExpr,
+  valTypeOfBcType,
 } from "./body.ts";
-import { emitVtableDispatchers, emitVtableForwardDecls } from "./ops.ts";
-import { emitVtables } from "./emit-vtable.ts";
+import {emitVtableDispatchers, emitVtableForwardDecls} from "./ops.ts";
+import {emitVtables} from "./emit-vtable.ts";
 
 export interface EmitOptions {
   /** When true (the user passed `--release`), skip `#line` directives — the
@@ -870,12 +876,6 @@ function importShim(ctx: EmitCtx, imp: BcImport, idx: number): string | null {
 
     case "std_string$byte_len":    return `${head} { return vader_string_byte_len(a0); }`;
     case "std_string$byte_slice":  return `${head} { return vader_string_slice(a0, a1, a2); }`;
-    case "std_string$contains":    return `${head} { return vader_string_contains(a0, a1); }`;
-    case "std_string$starts_with": return `${head} { return vader_string_starts_with(a0, a1); }`;
-    case "std_string$ends_with":   return `${head} { return vader_string_ends_with(a0, a1); }`;
-    case "std_string$trim":        return `${head} { return vader_string_trim(a0); }`;
-    case "std_string$to_upper":    return `${head} { return vader_string_to_upper(a0); }`;
-    case "std_string$to_lower":    return `${head} { return vader_string_to_lower(a0); }`;
     // `string implements Index(usize, char)` is `@intrinsic`-impl in std/core ;
     // the host provides the body under the impl-method mangled name.
     // Indexes by codepoint ; for byte access use `byte_at` / `byte_decode_at`.
@@ -883,17 +883,6 @@ function importShim(ctx: EmitCtx, imp: BcImport, idx: number): string | null {
       return `${head} { return vader_string_codepoint_at(a0, a1); }`;
     case "std_string$byte_at":
       return `${head} { return vader_string_byte_at(a0, a1); }`;
-    case "std_string$byte_decode_at":
-      return `${head} { return vader_string_char_at(a0, a1); }`;
-    case "std_string$split": {
-      const strIdx = ctx.stringTagIndex;
-      if (strIdx < 0) return `${head} { vader_trap("split: no string type"); }`;
-      const arrIdx = ctx.module.types.findIndex(t => t.kind === "array" && t.element === strIdx);
-      if (arrIdx < 0) return `${head} { vader_trap("split: no [string] type"); }`;
-      return `${head} { return vader_box_obj(${arrIdx}u, vader_string_split(a0, a1, ${arrIdx}u, ${strIdx}u)); }`;
-    }
-    case "std_string$parse_int":
-      return `${head} { return vader_string_parse_int(a0, ${primTagOrTrap(ctx, "i32")}, ${tagOrTrap(ctx, "error")}); }`;
     case "std_string$parse_float":
       return `${head} { return vader_string_parse_float(a0, ${primTagOrTrap(ctx, "f64")}, ${tagOrTrap(ctx, "error")}); }`;
     case "std_core$string$Hash$hash":

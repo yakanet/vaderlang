@@ -149,6 +149,12 @@ export LowerProjectCtx :: struct {
     /// dedup ; `_order` preserves discovery order for a deterministic dump.
     nongeneric_stdlib_fns:   MutableMap<i32, bool>
     nongeneric_stdlib_order: Symbol[]
+    /// Resume cursor into `nongeneric_stdlib_order` for
+    /// `materialize_nongeneric_stdlib_fns`. Persisted so the
+    /// materialise↔surface fixpoint loop drains newly-harvested fns
+    /// (e.g. `decode_codepoint` pulled in by a surfaced `StringChars.next`)
+    /// without re-lowering earlier entries.
+    nongeneric_stdlib_cursor: usize
 
     /// Erasure-dedupe of impl-member emissions — keyed by
     /// `"<impl-decl-span>::<member-name>"`. The first instance of a
@@ -205,6 +211,7 @@ export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedPr
         .fn_instances_order  = [],
         .nongeneric_stdlib_fns   = MutableMap<i32, bool> { .buckets = [], .size = 0 },
         .nongeneric_stdlib_order = [],
+        .nongeneric_stdlib_cursor = usize(0),
         .materialized_impl_keys = MutableSet<string> {
             .inner = MutableMap<string, bool> { .buckets = [], .size = usize(0) },
         },

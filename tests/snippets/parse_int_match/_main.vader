@@ -1,7 +1,7 @@
 module "snippet"
 
 import "std/io" { println }
-import "std/string" { parse_int, parse_float }
+import "std/string" { parse_int, parse_float, ParseError }
 
 // Regression: parse_int / parse_float used to box their success with the
 // `string` type's BcType index, so `match r { is i32 -> ... }` would never
@@ -10,11 +10,11 @@ import "std/string" { parse_int, parse_float }
 main :: fn() -> i32 {
     match parse_int("42") {
         is i32 -> println("int ok")
-        is Error -> println("int err")
+        is ParseError -> println("int err")
     }
     match parse_int("nope") {
         is i32 -> println("int ok")
-        is Error -> println("int err")
+        is ParseError -> println("int err")
     }
     match parse_float("3.14") {
         is f64 -> println("float ok")

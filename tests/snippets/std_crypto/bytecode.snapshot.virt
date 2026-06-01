@@ -731,7 +731,7 @@ fn 7 std_crypto$sha256 (string) -> string
               local.get 72
               u32.add
               local.set 73
-              data.const 0 26
+              data.const 0 25
               local.get 64
               array.get 11
               local.set 74
@@ -1370,7 +1370,7 @@ fn 9 std_crypto$md5 (string) -> string
               local.get 38
               u32.add
               local.set 51
-              data.const 2 26
+              data.const 2 25
               local.get 37
               array.get 11
               local.set 52
@@ -1394,7 +1394,7 @@ fn 9 std_crypto$md5 (string) -> string
               local.set 36
               local.get 34
               local.set 35
-              data.const 1 26
+              data.const 1 25
               local.get 37
               array.get 11
               local.set 56

@@ -34,17 +34,36 @@ export is_empty :: fn(s: string) = s.byte_len() == 0
 /// @param end    byte offset just past the last char (exclusive).
 export byte_slice :: fn(s: string, start: usize, end: usize) -> string
 
-/// True iff `sub` appears anywhere in `s`. Byte-wise scan. Module-
-/// private — external callers go through `sub in s` (Contains trait
-/// impl below) or UFCS `s.contains(sub)`. The decl stays here so the
-/// trait impl body can delegate to the runtime intrinsic.
-contains :: fn(s: string, sub: string) -> bool
+/// True iff `sub` appears anywhere in `s`. Byte-wise scan. Module-private —
+/// callers go through `sub in s` (Contains impl below) or UFCS
+/// `s.contains(sub)`. Named distinctly from the trait method (`contains`) to
+/// avoid shadowing it inside the impl body.
+byte_contains :: fn(s: string, sub: string) -> bool {
+    // Empty `sub` → `byte_find` returns `from` (0), so `>= 0` holds.
+    return byte_find(s, sub, usize(0)) >= isize(0)
+}
 
 /// True iff `s` starts with `prefix`. Byte-wise comparison.
-export starts_with :: fn(s: string, prefix: string) -> bool
+export starts_with :: fn(s: string, prefix: string) -> bool {
+    pl :: prefix.byte_len()
+    if pl > s.byte_len() { return false }
+    for i in 0..<pl {
+        if s.byte_at(i) != prefix.byte_at(i) { return false }
+    }
+    return true
+}
 
 /// True iff `s` ends with `suffix`. Byte-wise comparison.
-export ends_with :: fn(s: string, suffix: string) -> bool
+export ends_with :: fn(s: string, suffix: string) -> bool {
+    sl :: suffix.byte_len()
+    n  :: s.byte_len()
+    if sl > n { return false }
+    off :: n - sl
+    for i in 0..<sl {
+        if s.byte_at(off + i) != suffix.byte_at(i) { return false }
+    }
+    return true
+}
 
 /// Raw byte at offset `i`. Useful for ASCII fast paths and binary-format
 /// scanning (BOM detection, magic bytes). For UTF-8-aware iteration use
@@ -58,7 +77,31 @@ export byte_at :: fn(s: string, i: usize) -> u8
 /// a byte cursor (lexers, JSON parsers, LSP transport) and need the
 /// decoded character to compare against ASCII literals.
 /// @param i  byte offset. Traps if `i >= s.byte_len()`.
-export byte_decode_at :: fn(s: string, i: usize) -> char
+export byte_decode_at :: fn(s: string, i: usize) -> char {
+    n :: s.byte_len()
+    // `byte_at(i)` traps when `i >= n` — matches the host contract.
+    b :: s.byte_at(i)
+    if b < u8(0x80) { return char(u32(b)) }
+    // Continuation byte as leader : invalid UTF-8.
+    if b < u8(0xC0) { return char(u32(0xFFFD)) }
+    rem :: n - i
+    if b < u8(0xE0) {
+        if rem < usize(2) { return char(u32(0)) }
+        b1 :: s.byte_at(i + usize(1))
+        return char(((u32(b) & u32(0x1F)) << u32(6)) + (u32(b1) & u32(0x3F)))
+    }
+    if b < u8(0xF0) {
+        if rem < usize(3) { return char(u32(0)) }
+        b1 :: s.byte_at(i + usize(1))
+        b2 :: s.byte_at(i + usize(2))
+        return char(((u32(b) & u32(0x0F)) << u32(12)) + ((u32(b1) & u32(0x3F)) << u32(6)) + (u32(b2) & u32(0x3F)))
+    }
+    if rem < usize(4) { return char(u32(0)) }
+    b1 :: s.byte_at(i + usize(1))
+    b2 :: s.byte_at(i + usize(2))
+    b3 :: s.byte_at(i + usize(3))
+    return char(((u32(b) & u32(0x07)) << u32(18)) + ((u32(b1) & u32(0x3F)) << u32(12)) + ((u32(b2) & u32(0x3F)) << u32(6)) + (u32(b3) & u32(0x3F)))
+}
 
 /// Snapshot the UTF-8 byte sequence as `u8[]`. Use for ASCII data,
 /// binary protocols carried in strings, byte-level digests, or random
@@ -131,12 +174,13 @@ string implements Into<Iterator<char>> {
 }
 
 /// Lets `sub in s` desugar to `s.contains(sub)`. The Contains trait
-/// (std/core) is what the `in` operator dispatches through ; without
-/// this impl `in` on string falls back to "language feature unsupported"
-/// at the lower stage. The trait method body delegates to the free
-/// `contains` fn above (a byte-wise scan implemented by the runtime).
+/// (std/core) is what the `in` operator dispatches through ; without this
+/// impl `in` on string falls back to "language feature unsupported" at the
+/// lower stage. The method delegates to the module-private `byte_contains`
+/// (a byte-wise scan) — pure Vader, resolved on the self-host VM since the
+/// for-in/impl-member materialisation gap (GATE B1) was fixed.
 string implements Contains<string> {
-    contains :: fn(self, sub: string) -> bool { return contains(self, sub) }
+    contains :: fn(self, sub: string) -> bool { return byte_contains(self, sub) }
 }
 
 /// Decode the UTF-8 sequence at byte offset `i` into a codepoint and its
@@ -225,6 +269,34 @@ to_lower_byte :: fn(c: u8) -> u8 {
     return c
 }
 
+// ASCII whitespace byte (space, tab, LF, CR) — the byte-level counterpart of
+// `is_white_char`, used by the trim family.
+is_white_byte :: fn(b: u8) = b == u8(0x20) || b == u8(0x09) || b == u8(0x0A) || b == u8(0x0D)
+
+// True iff the `m` bytes of `sub` match `s` starting at byte offset `off`.
+bytes_match_at :: fn(s: string, off: usize, sub: string, m: usize) -> bool {
+    for j in 0..<m {
+        if s.byte_at(off + j) != sub.byte_at(j) { return false }
+    }
+    return true
+}
+
+// Byte-wise substring search — first offset >= `from` where `sub` occurs in
+// `s`, or `-1`. Empty `sub` matches at `from`. Powers `contains` and `split`.
+byte_find :: fn(s: string, sub: string, from: usize) -> isize {
+    n :: s.byte_len()
+    m :: sub.byte_len()
+    if m == usize(0) { return isize(from) }
+    if m > n { return -1 }
+    last :: n - m
+    i := from
+    for i <= last {
+        if bytes_match_at(s, i, sub, m) { return isize(i) }
+        i = i + usize(1)
+    }
+    return -1
+}
+
 /// Byte offset of the *last* occurrence of `c` in `s` at or after
 /// `min_index`. Walks codepoint-by-codepoint (UTF-8 safe — the byte
 /// cursor advances by each codepoint's encoded width), tracking the
@@ -274,21 +346,122 @@ export index_of :: fn(s: string, c: char, from: usize) -> isize {
 /// runs and at the ends). For predicate-based splitting see
 /// `split_where`.
 /// @param s    source string.
-/// @param sep  separator (matched byte-wise). Empty `sep` is undefined.
+/// @param sep  separator (matched byte-wise). Empty `sep` yields one
+///             single-byte segment per byte of `s`.
 /// @return     array of segments ; never empty (at minimum, `[""]`).
-export split :: fn(s: string, sep: string) -> string[]
+export split :: fn(s: string, sep: string) -> string[] {
+    out: string[] = []
+    n :: s.byte_len()
+    m :: sep.byte_len()
+    if m == usize(0) {
+        i := usize(0)
+        for i < n {
+            out.push(s.byte_slice(i, i + usize(1)))
+            i = i + usize(1)
+        }
+        return out
+    }
+    start := usize(0)
+    found := byte_find(s, sep, start)
+    for found >= isize(0) {
+        fpos :: usize(found)
+        out.push(s.byte_slice(start, fpos))
+        start = fpos + m
+        found = byte_find(s, sep, start)
+    }
+    out.push(s.byte_slice(start, n))
+    return out
+}
 
 /// Strip leading and trailing ASCII whitespace (`' '`, `'\t'`, `'\n'`,
 /// `'\r'`). Unicode whitespace is not recognised in MVP.
-export trim :: fn(s: string) -> string
+export trim :: fn(s: string) -> string {
+    n :: s.byte_len()
+    lo := usize(0)
+    for lo < n && is_white_byte(s.byte_at(lo)) { lo = lo + usize(1) }
+    hi := n
+    for hi > lo && is_white_byte(s.byte_at(hi - usize(1))) { hi = hi - usize(1) }
+    return s.byte_slice(lo, hi)
+}
 
-/// ASCII-uppercase every letter (`a..z` → `A..Z`). Non-ASCII bytes pass
-/// through unchanged.
-export to_upper :: fn(s: string) -> string
+/// Strip leading ASCII whitespace (`' '`, `'\t'`, `'\n'`, `'\r'`) only ;
+/// trailing whitespace is preserved. See `trim` for both ends.
+/// @param s  source string.
+/// @return   `s` with its leading whitespace removed.
+export left_trim :: fn(s: string) -> string {
+    n :: s.byte_len()
+    lo := usize(0)
+    for lo < n && is_white_byte(s.byte_at(lo)) { lo = lo + usize(1) }
+    return s.byte_slice(lo, n)
+}
 
-/// ASCII-lowercase every letter (`A..Z` → `a..z`). Non-ASCII bytes pass
-/// through unchanged.
-export to_lower :: fn(s: string) -> string
+/// Strip trailing ASCII whitespace (`' '`, `'\t'`, `'\n'`, `'\r'`) only ;
+/// leading whitespace is preserved. See `trim` for both ends.
+/// @param s  source string.
+/// @return   `s` with its trailing whitespace removed.
+export right_trim :: fn(s: string) -> string {
+    n :: s.byte_len()
+    hi := n
+    for hi > usize(0) && is_white_byte(s.byte_at(hi - usize(1))) { hi = hi - usize(1) }
+    return s.byte_slice(usize(0), hi)
+}
+
+// Codepoint-level uppercase over ASCII + the Latin-1 Supplement letters
+// (`a..z`, `à..ö`, `ø..þ`, `ÿ`). `×`/`÷` (0xD7/0xF7) are excluded by the range
+// gaps ; `ß` has no single-codepoint uppercase and passes through. Scripts
+// beyond Latin-1 pass through unchanged — no full Unicode case tables.
+to_upper_cp :: fn(cp: u32) -> u32 {
+    if cp >= u32(0x61) && cp <= u32(0x7A) { return cp - u32(0x20) }   // a-z
+    if cp >= u32(0xE0) && cp <= u32(0xF6) { return cp - u32(0x20) }   // à-ö
+    if cp >= u32(0xF8) && cp <= u32(0xFE) { return cp - u32(0x20) }   // ø-þ
+    if cp == u32(0xFF)                    { return u32(0x178) }       // ÿ → Ÿ
+    return cp
+}
+
+// Codepoint-level lowercase, the inverse of `to_upper_cp`.
+to_lower_cp :: fn(cp: u32) -> u32 {
+    if cp >= u32(0x41) && cp <= u32(0x5A) { return cp + u32(0x20) }   // A-Z
+    if cp >= u32(0xC0) && cp <= u32(0xD6) { return cp + u32(0x20) }   // À-Ö
+    if cp >= u32(0xD8) && cp <= u32(0xDE) { return cp + u32(0x20) }   // Ø-Þ
+    if cp == u32(0x178)                   { return u32(0xFF) }        // Ÿ → ÿ
+    return cp
+}
+
+/// Uppercase `s` over ASCII and the Latin-1 Supplement (`a..z`, `à..þ`, `ÿ`).
+/// UTF-8 aware — walks codepoints via a byte cursor (no `chars()` iterator),
+/// re-emitting an unchanged codepoint's raw bytes and only re-encoding the
+/// remapped ones. Codepoints outside those ranges (incl. `ß`, non-Latin
+/// scripts) pass through unchanged ; no full Unicode case tables.
+export to_upper :: fn(s: string) -> string {
+    sb :: new_builder()
+    n  :: s.byte_len()
+    i := usize(0)
+    for i < n {
+        [c, w] :: s.decode_codepoint(i)
+        up :: to_upper_cp(u32(c))
+        if up == u32(c) { sb.append(s.byte_slice(i, i + w)) } else { sb.append_char(char(up)) }
+        i = i + w
+    }
+    return sb.to_string()
+}
+
+/// Lowercase `s` over ASCII and the Latin-1 Supplement (`A..Z`, `À..Þ`, `Ÿ`).
+/// UTF-8 aware — walks codepoints via a byte cursor (no `chars()` iterator),
+/// re-emitting an unchanged codepoint's raw bytes and only re-encoding the
+/// remapped ones. Codepoints outside those ranges pass through unchanged ;
+/// no full Unicode case tables.
+export to_lower :: fn(s: string) -> string {
+    sb :: new_builder()
+    n  :: s.byte_len()
+    i := usize(0)
+    for i < n {
+        [c, w] :: s.decode_codepoint(i)
+        lo :: to_lower_cp(u32(c))
+        if lo == u32(c) { sb.append(s.byte_slice(i, i + w)) } else { sb.append_char(char(lo)) }
+        i = i + w
+    }
+    return sb.to_string()
+}
 
 /// Error raised by `parse_int` / `parse_float` on malformed input.
 export ParseError :: struct {
@@ -301,10 +474,43 @@ ParseError implements Error {
 
 /// Parse `s` as a base-10 `i32`. No prefix, no underscores, no leading
 /// `+` sign ; a leading `-` is accepted.
+///
+/// Returns the explicit union `i32 | ParseError` rather than the `i32!`
+/// sugar : callers match the concrete `is ParseError` (a plain field read)
+/// instead of `is Error`. The existential `Error`-trait dispatch on a
+/// stdlib error value mis-executes on the self-host VM ; the concrete-type
+/// match sidesteps it.
 /// @param s   the digits-only input.
-/// @return    the parsed integer.
+/// @return    the parsed integer, or `ParseError` on failure.
 /// @error     `ParseError` on empty input, malformed digit, or overflow.
-export parse_int :: fn(s: string) -> i32!
+export parse_int :: fn(s: string) -> i32 | ParseError {
+    n :: s.byte_len()
+    if n == usize(0) { return ParseError { .msg = "parse_int: empty string" } }
+    i := usize(0)
+    neg := false
+    if s.byte_at(usize(0)) == b'-' {
+        neg = true
+        i = usize(1)
+    }
+    if i >= n { return ParseError { .msg = "parse_int: no digits" } }
+    // Accumulate in i64 so i32 overflow is detectable before truncation.
+    acc: i64 = 0
+    for i < n {
+        b :: s.byte_at(i)
+        if b < b'0' || b > b'9' {
+            return ParseError { .msg = "parse_int: invalid digit" }
+        }
+        acc = acc * i64(10) + i64(b - b'0')
+        if neg {
+            if acc > i64(2147483647) + i64(1) { return ParseError { .msg = "parse_int: overflow" } }
+        } else {
+            if acc > i64(2147483647) { return ParseError { .msg = "parse_int: overflow" } }
+        }
+        i = i + usize(1)
+    }
+    if neg { return i32(-acc) }
+    return i32(acc)
+}
 
 /// Parse `s` as an `f64`. Accepts mantissa + optional exponent.
 /// @param s   the float input.
@@ -535,22 +741,89 @@ import "std/testing" { assert, assert_eq, assert_close }
     assert_eq(to_upper(""), "")
 }
 
+@test test_case_utf8 :: fn() -> void {
+    // Latin-1 Supplement letters fold both ways.
+    assert_eq(to_upper("héllo"), "HÉLLO")
+    assert_eq(to_lower("HÉLLO"), "héllo")
+    assert_eq(to_upper("àéîõü ç"), "ÀÉÎÕÜ Ç")
+    assert_eq(to_lower("ÀÉÎÕÜ Ç"), "àéîõü ç")
+    // ß has no single-codepoint uppercase → unchanged ; CJK passes through.
+    assert_eq(to_upper("ß"), "ß")
+    assert_eq(to_upper("你好"), "你好")
+}
+
 @test test_parse_int_ok :: fn() -> void {
     match parse_int("42") {
-        is i32 as v -> assert_eq(v, 42)
-        is Error -> assert(false, "expected ok i32")
+        is i32 as v       -> assert_eq(v, 42)
+        is ParseError     -> assert(false, "expected ok i32")
     }
     match parse_int("-7") {
-        is i32 as v -> assert_eq(v, -7)
-        is Error -> assert(false, "expected ok i32")
+        is i32 as v       -> assert_eq(v, -7)
+        is ParseError     -> assert(false, "expected ok i32")
     }
 }
 
 @test test_parse_int_err :: fn() -> void {
     match parse_int("abc") {
-        is i32 -> assert(false, "expected err on abc")
-        is Error -> {}
+        is i32        -> assert(false, "expected err on abc")
+        is ParseError -> {}
     }
+}
+
+@test test_parse_int_bounds :: fn() -> void {
+    match parse_int("2147483647") {
+        is i32 as v   -> assert_eq(v, 2147483647)
+        is ParseError -> assert(false, "max i32 should parse")
+    }
+    match parse_int("-2147483647") {
+        is i32 as v   -> assert_eq(v, -2147483647)
+        is ParseError -> assert(false, "negative should parse")
+    }
+    // i32::MIN parses (value not compared — the literal would overflow i32).
+    match parse_int("-2147483648") {
+        is i32        -> {}
+        is ParseError -> assert(false, "min i32 should parse")
+    }
+    match parse_int("9999999999") {
+        is i32        -> assert(false, "overflow should error")
+        is ParseError -> {}
+    }
+}
+
+@test test_left_right_trim :: fn() -> void {
+    assert_eq(left_trim("  hi  "), "hi  ")
+    assert_eq(right_trim("  hi  "), "  hi")
+    assert_eq(left_trim("x"), "x")
+    assert_eq(right_trim("x"), "x")
+    assert_eq(left_trim("   "), "")
+    assert_eq(right_trim("\t\nhi"), "\t\nhi")
+}
+
+@test test_byte_decode_at :: fn() -> void {
+    // "héllo" = h C3 A9 l l o : offset 1 is the lead byte of 'é'.
+    assert_eq(byte_decode_at("héllo", usize(0)), 'h')
+    assert_eq(byte_decode_at("héllo", usize(1)), 'é')
+    // Offset 2 lands on a continuation byte → U+FFFD.
+    assert_eq(byte_decode_at("héllo", usize(2)), char(u32(0xFFFD)))
+}
+
+@test test_split_edge :: fn() -> void {
+    // Empty input → a single empty segment.
+    parts_empty :: split("", ",")
+    assert_eq(parts_empty.len(), usize(1))
+    assert_eq(parts_empty[0], "")
+    // Consecutive separators preserve empty segments.
+    parts_mid :: split("a,,b", ",")
+    assert_eq(parts_mid.len(), usize(3))
+    assert_eq(parts_mid[1], "")
+    // Empty separator → one segment per byte.
+    parts_bytes :: split("abc", "")
+    assert_eq(parts_bytes.len(), usize(3))
+    assert_eq(parts_bytes[0], "a")
+    // Multi-char separator.
+    parts_multi :: split("a::b::c", "::")
+    assert_eq(parts_multi.len(), usize(3))
+    assert_eq(parts_multi[2], "c")
 }
 
 @test test_parse_float :: fn() -> void {

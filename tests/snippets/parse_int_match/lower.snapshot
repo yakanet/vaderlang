@@ -3,17 +3,17 @@
 ## snippet
   fn snippet$main() -> i32
     block :void
-      let __scrut_0: Error | i32 =
-        call :Error | i32
+      let __scrut_0: i32 | ParseError =
+        call :i32 | ParseError
           callee:
-            parse_int :fn(string) -> Error | i32
+            parse_int :fn(string) -> i32 | ParseError
           arg0:
             "42" :string
       ~>
         if :void
           cond:
             is i32 :bool
-              __scrut_0 :Error | i32
+              __scrut_0 :i32 | ParseError
           then:
             ~>
               call :void
@@ -25,8 +25,8 @@
             ~>
               if :void
                 cond:
-                  is Error :bool
-                    __scrut_0 :Error | i32
+                  is ParseError :bool
+                    __scrut_0 :i32 | ParseError
                 then:
                   ~>
                     call :void
@@ -38,17 +38,17 @@
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
     block :void
-      let __scrut_1: Error | i32 =
-        call :Error | i32
+      let __scrut_1: i32 | ParseError =
+        call :i32 | ParseError
           callee:
-            parse_int :fn(string) -> Error | i32
+            parse_int :fn(string) -> i32 | ParseError
           arg0:
             "nope" :string
       ~>
         if :void
           cond:
             is i32 :bool
-              __scrut_1 :Error | i32
+              __scrut_1 :i32 | ParseError
           then:
             ~>
               call :void
@@ -60,8 +60,8 @@
             ~>
               if :void
                 cond:
-                  is Error :bool
-                    __scrut_1 :Error | i32
+                  is ParseError :bool
+                    __scrut_1 :i32 | ParseError
                 then:
                   ~>
                     call :void

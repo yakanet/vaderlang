@@ -1587,81 +1587,6 @@ vader_char_t vader_string_codepoint_at(vader_string_t s, size_t cp_index) {
     return vader_string_char_at(s, byte_off);
 }
 
-vader_bool_t vader_string_contains(vader_string_t s, vader_string_t sub) {
-    size_t subl = vader_atom_len(sub);
-    if (subl == 0) return true;
-    size_t sl = vader_atom_len(s);
-    if (subl > sl) return false;
-    const char* sd   = vader_atom_data(s);
-    const char* subd = vader_atom_data(sub);
-    for (size_t i = 0; i + subl <= sl; i++) {
-        if (memcmp(sd + i, subd, subl) == 0) return true;
-    }
-    return false;
-}
-
-vader_bool_t vader_string_starts_with(vader_string_t s, vader_string_t prefix) {
-    const vader_atom_entry_t* es = vader_atom_entry(s);
-    const vader_atom_entry_t* ep = vader_atom_entry(prefix);
-    if (ep->len > es->len) return false;
-    return memcmp(es->data, ep->data, ep->len) == 0;
-}
-
-vader_bool_t vader_string_ends_with(vader_string_t s, vader_string_t suffix) {
-    const vader_atom_entry_t* es = vader_atom_entry(s);
-    const vader_atom_entry_t* ef = vader_atom_entry(suffix);
-    if (ef->len > es->len) return false;
-    return memcmp(es->data + (es->len - ef->len), ef->data, ef->len) == 0;
-}
-
-vader_string_t vader_string_trim(vader_string_t s) {
-    const vader_atom_entry_t* e = vader_atom_entry(s);
-    const char* d   = e->data;
-    size_t initial_n = e->len;
-    size_t n  = initial_n;
-    size_t lo = 0;
-    while (lo < n && isspace((unsigned char) d[lo]))    { lo++; }
-    while (n > lo && isspace((unsigned char) d[n - 1])) { n--; }
-    if (n == lo) return VADER_ATOM_EMPTY;
-    if (lo == 0 && n == initial_n) return s;
-    return vader_atom_slice(s, lo, n - lo);
-}
-
-vader_string_t vader_string_to_upper(vader_string_t s) {
-    size_t n = vader_atom_len(s);
-    if (n == 0) return VADER_ATOM_EMPTY;
-    const char* sd = vader_atom_data(s);
-    char* buf = (char*) malloc(n + 1u);
-    if (buf == NULL) vader_trap("vader_string_to_upper: malloc failed");
-    for (size_t i = 0; i < n; i++) buf[i] = (char) toupper((unsigned char) sd[i]);
-    return vader_atom_intern_take(buf, n);
-}
-
-vader_string_t vader_string_to_lower(vader_string_t s) {
-    size_t n = vader_atom_len(s);
-    if (n == 0) return VADER_ATOM_EMPTY;
-    const char* sd = vader_atom_data(s);
-    char* buf = (char*) malloc(n + 1u);
-    if (buf == NULL) vader_trap("vader_string_to_lower: malloc failed");
-    for (size_t i = 0; i < n; i++) buf[i] = (char) tolower((unsigned char) sd[i]);
-    return vader_atom_intern_take(buf, n);
-}
-
-vader_box_t vader_string_parse_int(vader_string_t s, uint32_t ok_tag, uint32_t err_tag) {
-    /* `vader_atom_to_cstr` returns a NUL-term view ; for owner atoms
-     * it's a pointer into the atom table (no allocation), for slice
-     * atoms a heap dup that we must pair with `vader_atom_cstr_free`. */
-    const char* p = vader_atom_to_cstr(s);
-    char* end;
-    long v = strtol(p, &end, 10);
-    int ok = (end != p && *end == '\0');
-    vader_atom_cstr_free(p);
-    if (!ok) {
-        return vader_box_string(err_tag, vader_string_new("invalid integer", 15));
-    }
-    return vader_box_i32(ok_tag, (vader_i32_t) v);
-}
-
 vader_box_t vader_string_parse_float(vader_string_t s, uint32_t ok_tag, uint32_t err_tag) {
     const char* p = vader_atom_to_cstr(s);
     char* end;
@@ -1718,43 +1643,6 @@ vader_array_t* vader_runtime_argv(int argc, char** argv, uint32_t arr_type, uint
         size_t len = strlen(a);
         vader_array_push((vader_array_t*) arr_box.payload.obj,
                          vader_box_string(str_type, vader_string_new(a, len)));
-    }
-    vader_array_t* result = (vader_array_t*) arr_box.payload.obj;
-    VADER_GC_POP();
-    return result;
-}
-
-vader_array_t* vader_string_split(vader_string_t s, vader_string_t sep,
-                                  uint32_t arr_type, uint32_t str_type) {
-    vader_box_t arr_box = vader_box_obj(arr_type, vader_array_new(arr_type, 0, VADER_ARRAY_KIND_BOXED, str_type));
-    VADER_GC_PUSH1(arr_box);
-    const char* sdata = vader_atom_data(s);
-    size_t      slen  = vader_atom_len(s);
-    const char* sepd  = vader_atom_data(sep);
-    size_t      sepl  = vader_atom_len(sep);
-    if (sepl == 0) {
-        for (size_t i = 0; i < slen; i++) {
-            vader_array_push((vader_array_t*) arr_box.payload.obj,
-                             vader_box_string(str_type, vader_string_new(sdata + i, 1)));
-        }
-    } else {
-        const char* p   = sdata;
-        const char* end = sdata + slen;
-        for (;;) {
-            const char* found = NULL;
-            if (sepl == 1) {
-                found = (const char*)memchr(p, (unsigned char)sepd[0], (size_t)(end - p));
-            } else {
-                for (const char* q = p; q + sepl <= end; q++) {
-                    if (memcmp(q, sepd, sepl) == 0) { found = q; break; }
-                }
-            }
-            size_t piece_len = found ? (size_t)(found - p) : (size_t)(end - p);
-            vader_array_push((vader_array_t*) arr_box.payload.obj,
-                             vader_box_string(str_type, vader_string_new(p, piece_len)));
-            if (found == NULL) break;
-            p = found + sepl;
-        }
     }
     vader_array_t* result = (vader_array_t*) arr_box.payload.obj;
     VADER_GC_POP();

@@ -12,26 +12,16 @@ module "vader/vm"
 
 import "std/io" { read_file, write_file, exists, is_dir, read_dir, print, eprint }
 import "std/process" { spawn_run, spawn_last_stdout, spawn_last_stderr }
-import "std/numbers" { parse_int_in_base }
 import "std/math" { sqrt, pow, floor, ceil, round }
 import "std/time" { monotonic_ns, now_unix_ms }
 import "std/string_builder" { new_builder, append }
-import "std/string" { byte_len, byte_at, byte_slice, starts_with, ends_with, trim, to_upper, to_lower, index_of, last_index_of, decode_codepoint, split }
+import "std/string" { byte_len, byte_at, byte_slice, trim, index_of, last_index_of, decode_codepoint }
 
 /// Outcome of a successful host call. `value` is unused when the import
 /// has `has_return == false` — the exec checks the import's signature
 /// before pushing.
 export HostCallResult :: HostOk | Trap
 export HostOk :: struct { value: Value }
-
-/// Pop one string from the caller stack, run `apply`, wrap the result
-/// back into a `StringVal`. Used by every `(string) -> string` host
-/// (`trim` / `to_upper` / `to_lower` …).
-host_str_to_str :: fn(stack: Value[], arg_base: usize, at_pc: i32, label: string, apply: fn(string) -> string) -> HostCallResult {
-    s :: read_string(stack[arg_base], at_pc, label)
-    if s is Trap { return s }
-    return HostOk { .value = StringVal { .value = apply(s.value) } }
-}
 
 /// Pop two strings, run a binary predicate, wrap as `BoolVal`. Used
 /// by `starts_with` / `ends_with` / `contains`.
@@ -145,9 +135,6 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
         if s is Trap { return s }
         return HostOk { .value = I32Val { .value = i32(s.value.byte_len()) } }
     }
-    if info.mangled == r"std_string$starts_with" { return host_str_pair_to_bool(stack, arg_base, at_pc, "starts_with", (a, b) -> a.starts_with(b)) }
-    if info.mangled == r"std_string$ends_with"   { return host_str_pair_to_bool(stack, arg_base, at_pc, "ends_with",   (a, b) -> a.ends_with(b)) }
-    if info.mangled == r"std_string$contains"    { return host_str_pair_to_bool(stack, arg_base, at_pc, "contains",    (a, b) -> a.contains(b)) }
     if info.mangled == r"std_string$byte_slice" {
         s     :: read_string(stack[arg_base    ], at_pc, "byte_slice receiver")
         start :: read_i32   (stack[arg_base + 1], at_pc, "byte_slice start")
@@ -157,24 +144,12 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
         if end   is Trap { return end }
         return HostOk { .value = StringVal { .value = s.value.byte_slice(usize(start.value), usize(end.value)) } }
     }
-    if info.mangled == r"std_string$trim"     { return host_str_to_str(stack, arg_base, at_pc, "trim",     (s) -> s.trim()) }
-    if info.mangled == r"std_string$to_upper" { return host_str_to_str(stack, arg_base, at_pc, "to_upper", (s) -> s.to_upper()) }
-    if info.mangled == r"std_string$to_lower" { return host_str_to_str(stack, arg_base, at_pc, "to_lower", (s) -> s.to_lower()) }
     if info.mangled == r"std_string$byte_at" {
         s :: read_string(stack[arg_base    ], at_pc, "byte_at receiver")
         i :: read_i32   (stack[arg_base + 1], at_pc, "byte_at index")
         if s is Trap { return s }
         if i is Trap { return i }
         return HostOk { .value = I32Val { .value = i32(s.value.byte_at(usize(i.value))) } }
-    }
-    if info.mangled == r"std_string$byte_decode_at" {
-        s :: read_string(stack[arg_base    ], at_pc, "byte_decode_at receiver")
-        i :: read_i32   (stack[arg_base + 1], at_pc, "byte_decode_at index")
-        if s is Trap { return s }
-        if i is Trap { return i }
-        // Decode the UTF-8 codepoint that starts at byte offset `i`.
-        [cp, _w] :: s.value.decode_codepoint(usize(i.value))
-        return HostOk { .value = CharVal { .value = cp } }
     }
     if info.mangled == r"std_string$index_of" {
         s    :: read_string(stack[arg_base    ], at_pc, "index_of receiver")
@@ -189,14 +164,6 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
         sv :: read_struct(stack[arg_base], at_pc, "StringBuilder.to_string receiver")
         if sv is Trap { return sv }
         return stringbuilder_to_string(sv, at_pc)
-    }
-    if info.mangled == r"std_string$split" {
-        s   :: read_string(stack[arg_base    ], at_pc, "split receiver")
-        sep :: read_string(stack[arg_base + 1], at_pc, "split sep")
-        if s   is Trap { return s }
-        if sep is Trap { return sep }
-        parts :: s.value.split(sep.value)
-        return HostOk { .value = string_array_to_value(parts, string_array_type_id) }
     }
     if info.mangled == r"std_core$string$Index$at" {
         s :: read_string(stack[arg_base    ], at_pc, "string[] receiver")
@@ -270,16 +237,6 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
             }
         }
         return HostOk { .value = StringVal { .value = display_value(stack[arg_base]) } }
-    }
-    // ---- std/string extras -----------------------------------------------
-    if info.mangled == r"std_string$parse_int" {
-        s :: read_string(stack[arg_base], at_pc, "parse_int")
-        if s is Trap { return s }
-        trimmed :: s.value.trim()
-        if trimmed.byte_len() == 0 { return HostOk { .value = ErrorVal { .message = "parse_int: empty string" } } }
-        parsed :: parse_int_in_base(trimmed, 10)
-        if parsed is Error { return HostOk { .value = ErrorVal { .message = "parse_int: invalid integer '${trimmed}'" } } }
-        return HostOk { .value = I32Val { .value = i32(parsed) } }
     }
     // ---- std/runtime collection counters ---------------------------------
     // The Vader VM has no GC arena ; the snippet tests just need the

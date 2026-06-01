@@ -14,7 +14,7 @@
 module "vader/lsp"
 
 import "std/io" { read_stdin, print, eprintln }
-import "std/string" { byte_len, byte_decode_at, starts_with, byte_slice, parse_int }
+import "std/string" { byte_len, byte_decode_at, starts_with, byte_slice, parse_int, ParseError }
 import "std/string_builder" { new_builder, append }
 
 export TransportError :: struct {
@@ -64,7 +64,7 @@ export read_frame :: fn() -> string! {
                                     trimmed :: trim_ascii(raw)
                                     parsed :: trimmed.parse_int()
                                     match parsed {
-                                        is Error -> { return TransportError { .msg = "malformed Content-Length: ${trimmed}" } }
+                                        is ParseError -> { return TransportError { .msg = "malformed Content-Length: ${trimmed}" } }
                                         is i32 as n -> { content_length = isize(n) }
                                     }
                                 }

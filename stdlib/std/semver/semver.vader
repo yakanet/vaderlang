@@ -240,7 +240,12 @@ parse_numeric_id :: fn(s: string) -> i32! {
     }
     match parse_int(s) {
         is i32 as v -> { return v }
-        is Error    -> { return ParseError { .msg = "numeric identifier overflow" } }
+        // `parse_int` now returns the concrete `i32 | ParseError` (std/string).
+        // semver defines its OWN `ParseError` and there's no module aliasing,
+        // so it can't name std/string's variant — match the failure with `_`
+        // until the duplicated `ParseError` types are consolidated (see TODO
+        // "Remove the `T!` error-union sugar").
+        _           -> { return ParseError { .msg = "numeric identifier overflow" } }
     }
 }
 
@@ -332,10 +337,12 @@ compare_id :: fn(a: string, b: string) -> i32 {
                         if va > vb { return  1 }
                         return 0
                     }
-                    is Error -> {}
+                    // See note in `parse_numeric_id` : `_` matches the concrete
+                    // `ParseError` std/string returns (semver can't name it).
+                    _ -> {}
                 }
             }
-            is Error -> {}
+            _ -> {}
         }
         // Fallback : length then lex (both all-digit).
         na :: a.byte_len()

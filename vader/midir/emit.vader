@@ -20,6 +20,7 @@
 module "vader/midir"
 
 import "std/collections" { MutableMap, MutableSet, remove }
+import "std/abort" { panic }
 import "vader/diagnostics" { Span }
 import "vader/types" { Type, PrimitiveType, mk_struct }
 import "vader/lower" { VtableEntry as LoweredVtableEntry }
@@ -922,8 +923,14 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
                     if imp_mangle_opt is i32 as imp_m {
                         push_emit(ctx, CallImport { .index = imp_m }, c.span)
                     } else {
-                        push_emit(ctx, Return {}, c.span)
-                        return
+                        // No resolution path for the callee. Previously this
+                        // emitted a bare `Return` — which silently dropped the
+                        // call and returned whatever was on the stack (e.g. a
+                        // for-in over a cross-module Iterator impl returned the
+                        // iterator struct itself). Fail loudly instead: an
+                        // unresolved callee is a materialisation gap (GATE B1),
+                        // not something to paper over at runtime.
+                        panic("midir/emit: unresolved callee '${c.callee.name}' (id=${c.callee.id}) — impl-member/for-in materialisation gap (GATE B1)")
                     }
                 }
             }
@@ -959,8 +966,10 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
             type_index :: intern_type(fr.type, ctx.project)
             push_emit(ctx, FnRef { .function_index = fn_idx, .type_id = type_index }, fr.span)
         } else {
-            push_emit(ctx, Return {}, fr.span)
-            return
+            // Same materialisation-gap class as the InstrCall fallback above —
+            // a fn used as a value (FnRef) whose target was never materialised.
+            // Fail loud rather than silently returning an unresolved fn pointer.
+            panic("midir/emit: unresolved fn-ref '${fr.fn_symbol.name}' (id=${fr.fn_symbol.id}) — fn-as-value materialisation gap (GATE B1)")
         }
         emit_result(ctx, pos, fr.dst, fr.span)
         return
@@ -1183,8 +1192,9 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         if fn_idx_opt is i32 as fn_idx {
             push_emit(ctx, MakeClosure { .function_index = fn_idx, .env_type_id = closure_type_id }, mc.span)
         } else {
-            push_emit(ctx, Return {}, mc.span)
-            return
+            // Materialisation gap (GATE B1) — a closure over a fn that was never
+            // materialised. Fail loud, consistent with the InstrCall/FnRef paths.
+            panic("midir/emit: unresolved closure fn '${mc.fn_symbol.name}' (id=${mc.fn_symbol.id}) — make-closure materialisation gap (GATE B1)")
         }
         emit_result(ctx, pos, mc.dst, mc.span)
         return

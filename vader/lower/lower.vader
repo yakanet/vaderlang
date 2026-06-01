@@ -134,14 +134,29 @@ export lower_project :: fn(
     // (`append`, `byte_len`, `new_builder`, …). Runs after generic
     // instances since both share the harvest ; its own bodies may
     // harvest further non-generic stdlib fns (cursor-iterated).
-    materialize_nongeneric_stdlib_fns(loaded, typed, project_ctx, project, diags)
-    // Surface the stdlib intrinsic impl members actually referenced by a
-    // concrete `recv.method()` call (GATE B) as bodyless externs → imports,
-    // so the call resolves to a `CallImport` the Vader VM dispatches via
-    // `host.vader`. Runs AFTER all body + instance lowering so
-    // `referenced_impl_mangles` is fully populated ; surfaces only referenced
-    // members so unrelated snippets don't gain unused imports / shifted types.
-    surface_referenced_intrinsic_externs(loaded, typed, project_ctx, project)
+    // Fixpoint : materialising a stdlib free-fn body can harvest impl-member
+    // calls (→ `referenced_impl_mangles`), and surfacing a stdlib impl-member
+    // body (e.g. `StringChars.Iterator.next`) can harvest further stdlib free
+    // fns (→ `nongeneric_stdlib_order`, e.g. `decode_codepoint`). Loop the two
+    // until neither queue grows. `materialize_nongeneric_stdlib_fns` resumes
+    // from a persistent cursor (no re-lowering) ; `surface_*` dedupes via
+    // `materialized_impl_keys`, so re-running is idempotent. Surfaces only
+    // referenced members so unrelated snippets don't gain unused imports.
+    prev_fns := usize(0)
+    prev_impls := usize(0)
+    draining := true
+    for draining {
+        materialize_nongeneric_stdlib_fns(loaded, typed, project_ctx, project, diags)
+        surface_referenced_intrinsic_externs(loaded, typed, project_ctx, project)
+        cur_fns :: project_ctx.nongeneric_stdlib_order.len()
+        cur_impls :: project_ctx.referenced_impl_mangles.inner.size
+        if cur_fns == prev_fns && cur_impls == prev_impls {
+            draining = false
+        } else {
+            prev_fns = cur_fns
+            prev_impls = cur_impls
+        }
+    }
     // Representative "any-args" structs come AFTER fn instances —
     // matches TS' emission order so generic_brackets etc. byte-match.
     materialize_representatives(loaded, typed, project_ctx, project, rep_seen)
@@ -1315,10 +1330,12 @@ materialize_nongeneric_stdlib_fns :: fn(
 ) -> void {
     // Cursor over a growing array : lowering one stdlib body can harvest
     // further non-generic stdlib fns it calls, appending mid-loop.
-    i: usize = 0
-    for i < project_ctx.nongeneric_stdlib_order.len() {
-        fn_sym :: project_ctx.nongeneric_stdlib_order[i]
-        i += usize(1)
+    // Resume from a persisted cursor : the materialise↔surface fixpoint loop
+    // re-enters this fn after surfacing harvests further free fns, and we must
+    // not re-lower the entries already emitted on an earlier pass.
+    for project_ctx.nongeneric_stdlib_cursor < project_ctx.nongeneric_stdlib_order.len() {
+        fn_sym :: project_ctx.nongeneric_stdlib_order[project_ctx.nongeneric_stdlib_cursor]
+        project_ctx.nongeneric_stdlib_cursor += usize(1)
         module_typed :: typed.modules[fn_sym.module]
         if module_typed is null { continue }
         module_loaded :: loaded.modules[fn_sym.module]

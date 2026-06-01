@@ -33,6 +33,10 @@
           {
             "name": "parse_float",
             "alias": null
+          },
+          {
+            "name": "ParseError",
+            "alias": null
           }
         ]
       },
@@ -117,7 +121,7 @@
                     "kind": "IsPattern",
                     "type": {
                       "kind": "IdentExpr",
-                      "name": "Error"
+                      "name": "ParseError"
                     },
                     "inner": null,
                     "bindAs": null
@@ -215,7 +219,7 @@
                     "kind": "IsPattern",
                     "type": {
                       "kind": "IdentExpr",
-                      "name": "Error"
+                      "name": "ParseError"
                     },
                     "inner": null,
                     "bindAs": null
