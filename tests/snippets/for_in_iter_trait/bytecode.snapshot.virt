@@ -52,8 +52,8 @@ type 49 union 0,37
 type 50 fn (8) -> 4
 type 51 ref Iterator
 type 52 fn (3) -> 4
-type 53 struct std_string$StringChars { s:5,cursor:6,length:6 }
-type 54 struct __Tuple_60 { _0:3,_1:6 }
+type 53 struct __Tuple_59 { _0:3,_1:6 }
+type 54 struct std_string$StringChars { bytes:45,cursor:6,length:6 }
 type 55 struct std_string_builder$StringBuilder { parts:44 }
 type 56 union 30,0
 type 57 ref Range
@@ -66,8 +66,7 @@ string 4 "\n"
 import 0 to_string std_core$usize$Display$to_string (usize) -> string
 import 1 to_string std_core$string$Display$to_string (string) -> string
 import 2 write std_io$write (i32,string) -> void
-import 3 byte_len std_string$byte_len (string) -> usize
-import 4 byte_at std_string$byte_at (string,usize) -> u8
+import 3 bytes std_string$bytes (string) -> ref
 impl 18 Contains
 impl 18 Iterator
 impl 21 Iterator
@@ -80,7 +79,7 @@ impl 38 Contains
 impl 38 Iterator
 impl 47 Iterator
 impl 48 Iterator
-impl 53 Iterator
+impl 54 Iterator
 impl 55 Display
 vtable Comparable.gt 2 12
 vtable Comparable.gt 3 36
@@ -114,7 +113,7 @@ vtable Iterator.next 34 55
 vtable Iterator.next 38 49
 vtable Iterator.next 47 57
 vtable Iterator.next 48 58
-vtable Iterator.next 53 62
+vtable Iterator.next 54 63
 vtable Iterator.next 57 49
 vtable Iterator.next 58 49
 vtable Step.step 2 40
@@ -171,7 +170,7 @@ fn 2 snippet$count_ls (string) -> usize
   local $call_1 ref
   local $fn_ref_2 ref
   local.get 0
-  call 63
+  call 64
   local.set 1
   fn.ref 1 52
   local.set 2
@@ -1355,7 +1354,7 @@ fn 60 std_iter$std_iter$filter__char (ref,ref) -> ref
   return
 end
 
-fn 61 std_string$byte_decode_at (string,usize) -> char
+fn 61 std_string$decode_char_at (ref,usize) -> char
   local n usize
   local b u8
   local $add_30 usize
@@ -1365,11 +1364,12 @@ fn 61 std_string$byte_decode_at (string,usize) -> char
   local b2 u8
   local b3 u8
   local.get 0
-  call.import 3
+  array.len
   local.set 2
   local.get 0
   local.get 1
-  call.import 4
+  array.get 45
+  ref.cast 14
   local.set 3
   local.get 3
   i32.const 128
@@ -1415,7 +1415,8 @@ fn 61 std_string$byte_decode_at (string,usize) -> char
     local.set 4
     local.get 0
     local.get 4
-    call.import 4
+    array.get 45
+    ref.cast 14
     local.set 5
     local.get 3
     u8.to_u32
@@ -1465,7 +1466,8 @@ fn 61 std_string$byte_decode_at (string,usize) -> char
     local.set 4
     local.get 0
     local.get 4
-    call.import 4
+    array.get 45
+    ref.cast 14
     local.set 5
     local.get 1
     i64.const 2
@@ -1474,7 +1476,8 @@ fn 61 std_string$byte_decode_at (string,usize) -> char
     local.set 4
     local.get 0
     local.get 4
-    call.import 4
+    array.get 45
+    ref.cast 14
     local.set 8
     local.get 3
     u8.to_u32
@@ -1536,7 +1539,8 @@ fn 61 std_string$byte_decode_at (string,usize) -> char
   local.set 2
   local.get 0
   local.get 2
-  call.import 4
+  array.get 45
+  ref.cast 14
   local.set 5
   local.get 1
   i64.const 2
@@ -1545,7 +1549,8 @@ fn 61 std_string$byte_decode_at (string,usize) -> char
   local.set 2
   local.get 0
   local.get 2
-  call.import 4
+  array.get 45
+  ref.cast 14
   local.set 8
   local.get 1
   i64.const 3
@@ -1554,7 +1559,8 @@ fn 61 std_string$byte_decode_at (string,usize) -> char
   local.set 2
   local.get 0
   local.get 2
-  call.import 4
+  array.get 45
+  ref.cast 14
   local.set 9
   local.get 3
   u8.to_u32
@@ -1618,67 +1624,7 @@ fn 61 std_string$byte_decode_at (string,usize) -> char
   return
 end
 
-fn 62 std_string$StringChars$Iterator$next (ref) -> ref
-  local $field_1 usize
-  local $field_2 usize
-  local $field_5 string
-  local __tup_0 ref
-  local c char
-  local.field 0 53 1
-  ref.cast 6
-  local.set 1
-  local.field 0 53 2
-  ref.cast 6
-  local.set 2
-  local.get 1
-  local.get 2
-  usize.ge
-  if $L0 void
-    return.lit null.const
-  end $L0
-  local.field 0 53 0
-  ref.cast 5
-  local.set 3
-  local.field 0 53 1
-  ref.cast 6
-  local.set 1
-  local.get 3
-  local.get 1
-  call 64
-  local.set 4
-  local.field 4 54 0
-  ref.cast 3
-  local.set 5
-  local.field 4 54 1
-  ref.cast 6
-  local.set 1
-  local.field 0 53 1
-  ref.cast 6
-  local.get 1
-  usize.add
-  local.set 1
-  local.get 0
-  local.get 1
-  struct.set 53 1
-  local.get 5
-  struct.new 37
-  return
-end
-
-fn 63 std_string$chars (string) -> ref
-  local $call_3 usize
-  local.get 0
-  call.import 3
-  local.set 1
-  local.get 0
-  i64.const 0
-  i64.to_usize
-  local.get 1
-  struct.new 53
-  return
-end
-
-fn 64 std_string$decode_codepoint (string,usize) -> ref
+fn 62 std_string$decode_codepoint_at (ref,usize) -> ref
   local c char
   local $call_4 usize
   local.get 0
@@ -1689,6 +1635,68 @@ fn 64 std_string$decode_codepoint (string,usize) -> ref
   local.set 3
   local.get 2
   local.get 3
+  struct.new 53
+  return
+end
+
+fn 63 std_string$StringChars$Iterator$next (ref) -> ref
+  local $field_1 usize
+  local $field_2 usize
+  local $field_5 ref
+  local c char
+  local.field 0 54 1
+  ref.cast 6
+  local.set 1
+  local.field 0 54 2
+  ref.cast 6
+  local.set 2
+  local.get 1
+  local.get 2
+  usize.ge
+  if $L0 void
+    return.lit null.const
+  end $L0
+  local.field 0 54 0
+  local.set 3
+  local.field 0 54 1
+  ref.cast 6
+  local.set 1
+  local.get 3
+  local.get 1
+  call 62
+  local.set 3
+  local.field 3 53 0
+  ref.cast 3
+  local.set 4
+  local.field 3 53 1
+  ref.cast 6
+  local.set 1
+  local.field 0 54 1
+  ref.cast 6
+  local.get 1
+  usize.add
+  local.set 1
+  local.get 0
+  local.get 1
+  struct.set 54 1
+  local.get 4
+  struct.new 37
+  return
+end
+
+fn 64 std_string$chars (string) -> ref
+  local bs ref
+  local $len_5 usize
+  local.get 0
+  call.import 3
+  local.set 1
+  local.get 1
+  array.len
+  local.set 2
+  local.get 1
+  i64.const 0
+  i64.to_usize
+  local.get 2
   struct.new 54
   return
 end

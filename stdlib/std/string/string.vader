@@ -22,7 +22,7 @@ export byte_len :: fn(s: string) -> usize
 /// True for the empty string. Equivalent to `s.byte_len() == 0` but
 /// reads cleanly at call sites — emptiness is the same in byte and
 /// codepoint views.
-export is_empty :: fn(s: string) = s.byte_len() == 0
+export is_empty :: fn(s: string) = s.bytes().len() == 0
 
 /// Substring `[start, end)` — exclusive upper bound, byte-indexed.
 /// `start` and `end` should land on UTF-8 leading bytes ; landing mid-
@@ -45,22 +45,26 @@ byte_contains :: fn(s: string, sub: string) -> bool {
 
 /// True iff `s` starts with `prefix`. Byte-wise comparison.
 export starts_with :: fn(s: string, prefix: string) -> bool {
-    pl :: prefix.byte_len()
-    if pl > s.byte_len() { return false }
+    sb :: s.bytes()
+    pb :: prefix.bytes()
+    pl :: pb.len()
+    if pl > sb.len() { return false }
     for i in 0..<pl {
-        if s.byte_at(i) != prefix.byte_at(i) { return false }
+        if sb[i] != pb[i] { return false }
     }
     return true
 }
 
 /// True iff `s` ends with `suffix`. Byte-wise comparison.
 export ends_with :: fn(s: string, suffix: string) -> bool {
-    sl :: suffix.byte_len()
-    n  :: s.byte_len()
+    sb :: s.bytes()
+    fb :: suffix.bytes()
+    sl :: fb.len()
+    n  :: sb.len()
     if sl > n { return false }
     off :: n - sl
     for i in 0..<sl {
-        if s.byte_at(off + i) != suffix.byte_at(i) { return false }
+        if sb[off + i] != fb[i] { return false }
     }
     return true
 }
@@ -77,31 +81,7 @@ export byte_at :: fn(s: string, i: usize) -> u8
 /// a byte cursor (lexers, JSON parsers, LSP transport) and need the
 /// decoded character to compare against ASCII literals.
 /// @param i  byte offset. Traps if `i >= s.byte_len()`.
-export byte_decode_at :: fn(s: string, i: usize) -> char {
-    n :: s.byte_len()
-    // `byte_at(i)` traps when `i >= n` — matches the host contract.
-    b :: s.byte_at(i)
-    if b < u8(0x80) { return char(u32(b)) }
-    // Continuation byte as leader : invalid UTF-8.
-    if b < u8(0xC0) { return char(u32(0xFFFD)) }
-    rem :: n - i
-    if b < u8(0xE0) {
-        if rem < usize(2) { return char(u32(0)) }
-        b1 :: s.byte_at(i + usize(1))
-        return char(((u32(b) & u32(0x1F)) << u32(6)) + (u32(b1) & u32(0x3F)))
-    }
-    if b < u8(0xF0) {
-        if rem < usize(3) { return char(u32(0)) }
-        b1 :: s.byte_at(i + usize(1))
-        b2 :: s.byte_at(i + usize(2))
-        return char(((u32(b) & u32(0x0F)) << u32(12)) + ((u32(b1) & u32(0x3F)) << u32(6)) + (u32(b2) & u32(0x3F)))
-    }
-    if rem < usize(4) { return char(u32(0)) }
-    b1 :: s.byte_at(i + usize(1))
-    b2 :: s.byte_at(i + usize(2))
-    b3 :: s.byte_at(i + usize(3))
-    return char(((u32(b) & u32(0x07)) << u32(18)) + ((u32(b1) & u32(0x3F)) << u32(12)) + ((u32(b2) & u32(0x3F)) << u32(6)) + (u32(b3) & u32(0x3F)))
-}
+export byte_decode_at :: fn(s: string, i: usize) -> char = decode_char_at(s.bytes(), i)
 
 /// View the UTF-8 byte sequence as `const u8[]`. Use for ASCII data,
 /// binary protocols carried in strings, byte-level digests, or random
@@ -201,7 +181,12 @@ export from_utf8 :: fn(bs: const u8[]) -> string {
 /// bytes. The cursor moves in bytes ; `length` is the byte length of the
 /// source string, captured at construction so `step` doesn't recompute it.
 export StringChars :: struct {
-    s:      string
+    /// Byte view captured once at construction — `next` decodes a codepoint per
+    /// step off this held view (one view alloc per loop, not one per codepoint).
+    /// A borrowed view self-roots its owner atom through the GC (the array header
+    /// carries the owner id ; `vader_atom_mark_heap` keeps it alive), so no
+    /// separate string handle is needed.
+    bytes:  const u8[]
     cursor: usize
     length: usize
 }
@@ -211,7 +196,7 @@ StringChars implements Iterator<char> {
         if (self.cursor >= self.length) {
             return null
         }
-        [c, width] :: self.s.decode_codepoint(self.cursor)
+        [c, width] :: self.bytes.decode_codepoint_at(self.cursor)
         self.cursor = self.cursor + width
         return Yield<char> { .value = c }
     }
@@ -229,14 +214,16 @@ StringChars implements Iterator<char> {
 /// @param s  source string.
 /// @return   a `StringChars` iterator over its codepoints.
 export chars :: fn(s: string) -> StringChars {
-    return StringChars { .s = s, .cursor = usize(0), .length = s.byte_len() }
+    bs :: s.bytes()
+    return StringChars { .bytes = bs, .cursor = usize(0), .length = bs.len() }
 }
 
 // `for c in s` desugars to `for c in s.into()` via this impl — codepoints
 // are the default unit. Byte iteration stays opt-in via `s.bytes()`.
 string implements Into<Iterator<char>> {
     into :: fn(self) -> Iterator<char> {
-        return StringChars { .s = self, .cursor = usize(0), .length = self.byte_len() }
+        bs :: self.bytes()
+        return StringChars { .bytes = bs, .cursor = usize(0), .length = bs.len() }
     }
 }
 
@@ -268,10 +255,7 @@ string implements Contains<string> {
 /// @param s  source string.
 /// @param i  byte offset of a UTF-8 leading byte.
 /// @return   `[codepoint, byte_length]`.
-export decode_codepoint :: fn(s: string, i: usize) -> [char, usize] {
-    c :: s.byte_decode_at(i)
-    return [c, codepoint_byte_len(c)]
-}
+export decode_codepoint :: fn(s: string, i: usize) -> [char, usize] = decode_codepoint_at(s.bytes(), i)
 
 /// Count the Unicode codepoints in `s` — the codepoint counterpart to
 /// `byte_len()`. Walks the UTF-8 byte sequence directly via leading-
@@ -295,8 +279,8 @@ export len :: fn(s: string) = s.chars().count()
 /// @param b  right string.
 /// @return   `true` iff `a` strictly precedes `b` ; equal strings → `false`.
 export compare_ascending :: fn(a: string, b: string) -> bool {
-    la :: a.byte_len()
-    lb :: b.byte_len()
+    la :: a.bytes().len()
+    lb :: b.bytes().len()
     n :: min(la, lb)
     for i in 0..<n {
         ca :: a[i]
@@ -311,20 +295,22 @@ export compare_ascending :: fn(a: string, b: string) -> bool {
 /// JavaScript's default `String.localeCompare()` ordering for the
 /// ASCII subset (case-folded comparison ; ties broken by code point).
 export compare_ascending_ci :: fn(a: string, b: string) -> bool {
-    la :: a.byte_len()
-    lb :: b.byte_len()
+    ab :: a.bytes()
+    bb :: b.bytes()
+    la :: ab.len()
+    lb :: bb.len()
     n :: min(la, lb)
     for i in 0..<n {
-        ca :: to_lower_byte(a.byte_at(i))
-        cb :: to_lower_byte(b.byte_at(i))
+        ca :: to_lower_byte(ab[i])
+        cb :: to_lower_byte(bb[i])
         if ca < cb { return true }
         if ca > cb { return false }
     }
     if la != lb { return la < lb }
     // Equal folded — break ties by raw bytes so the order stays total.
     for i in 0..<n {
-        ra :: a.byte_at(i)
-        rb :: b.byte_at(i)
+        ra :: ab[i]
+        rb :: bb[i]
         if ra < rb { return true }
         if ra > rb { return false }
     }
@@ -340,10 +326,11 @@ to_lower_byte :: fn(c: u8) -> u8 {
 // `is_white_char`, used by the trim family.
 is_white_byte :: fn(b: u8) = b == u8(0x20) || b == u8(0x09) || b == u8(0x0A) || b == u8(0x0D)
 
-// True iff the `m` bytes of `sub` match `s` starting at byte offset `off`.
-bytes_match_at :: fn(s: string, off: usize, sub: string, m: usize) -> bool {
+// True iff the `m` bytes of `subb` match `sb` starting at byte offset `off`.
+// Takes byte views (not strings) so the caller holds them once across the scan.
+bytes_match_at :: fn(sb: const u8[], off: usize, subb: const u8[], m: usize) -> bool {
     for j in 0..<m {
-        if s.byte_at(off + j) != sub.byte_at(j) { return false }
+        if sb[off + j] != subb[j] { return false }
     }
     return true
 }
@@ -351,14 +338,16 @@ bytes_match_at :: fn(s: string, off: usize, sub: string, m: usize) -> bool {
 // Byte-wise substring search — first offset >= `from` where `sub` occurs in
 // `s`, or `-1`. Empty `sub` matches at `from`. Powers `contains` and `split`.
 byte_find :: fn(s: string, sub: string, from: usize) -> isize {
-    n :: s.byte_len()
-    m :: sub.byte_len()
+    sb :: s.bytes()
+    subb :: sub.bytes()
+    n :: sb.len()
+    m :: subb.len()
     if m == usize(0) { return isize(from) }
     if m > n { return -1 }
     last :: n - m
     i := from
     for i <= last {
-        if bytes_match_at(s, i, sub, m) { return isize(i) }
+        if bytes_match_at(sb, i, subb, m) { return isize(i) }
         i = i + usize(1)
     }
     return -1
@@ -377,11 +366,12 @@ byte_find :: fn(s: string, sub: string, from: usize) -> isize {
 ///                   accept every position.
 /// @return           byte offset of the latest match, or `-1` if absent.
 export last_index_of :: fn(s: string, c: char, min_index: isize) -> isize {
-    n :: s.byte_len()
+    sb :: s.bytes()
+    n :: sb.len()
     last: isize = -1
     i: usize = 0
     for i < n {
-        [cp, width] :: s.decode_codepoint(i)
+        [cp, width] :: sb.decode_codepoint_at(i)
         if isize(i) >= min_index && cp == c { last = isize(i) }
         i += width
     }
@@ -398,10 +388,11 @@ export last_index_of :: fn(s: string, c: char, min_index: isize) -> isize {
 /// @param from  earliest leading-byte position considered.
 /// @return      byte offset of the match, or `-1` if absent.
 export index_of :: fn(s: string, c: char, from: usize) -> isize {
-    n :: s.byte_len()
+    sb :: s.bytes()
+    n :: sb.len()
     i := from
     for i < n {
-        [cp, width] :: s.decode_codepoint(i)
+        [cp, width] :: sb.decode_codepoint_at(i)
         if cp == c { return isize(i) }
         i += width
     }
@@ -418,12 +409,13 @@ export index_of :: fn(s: string, c: char, from: usize) -> isize {
 /// @return     array of segments ; never empty (at minimum, `[""]`).
 export split :: fn(s: string, sep: string) -> string[] {
     out: string[] = []
-    n :: s.byte_len()
-    m :: sep.byte_len()
+    sb :: s.bytes()
+    n :: sb.len()
+    m :: sep.bytes().len()
     if m == usize(0) {
         i := usize(0)
         for i < n {
-            out.push(s.byte_slice(i, i + usize(1)))
+            out.push(sb[i..<i + usize(1)].from_utf8())
             i = i + usize(1)
         }
         return out
@@ -432,23 +424,24 @@ export split :: fn(s: string, sep: string) -> string[] {
     found := byte_find(s, sep, start)
     for found >= isize(0) {
         fpos :: usize(found)
-        out.push(s.byte_slice(start, fpos))
+        out.push(sb[start..<fpos].from_utf8())
         start = fpos + m
         found = byte_find(s, sep, start)
     }
-    out.push(s.byte_slice(start, n))
+    out.push(sb[start..<n].from_utf8())
     return out
 }
 
 /// Strip leading and trailing ASCII whitespace (`' '`, `'\t'`, `'\n'`,
 /// `'\r'`). Unicode whitespace is not recognised in MVP.
 export trim :: fn(s: string) -> string {
-    n :: s.byte_len()
+    sb :: s.bytes()
+    n :: sb.len()
     lo := usize(0)
-    for lo < n && is_white_byte(s.byte_at(lo)) { lo = lo + usize(1) }
+    for lo < n && is_white_byte(sb[lo]) { lo = lo + usize(1) }
     hi := n
-    for hi > lo && is_white_byte(s.byte_at(hi - usize(1))) { hi = hi - usize(1) }
-    return s.byte_slice(lo, hi)
+    for hi > lo && is_white_byte(sb[hi - usize(1)]) { hi = hi - usize(1) }
+    return sb[lo..<hi].from_utf8()
 }
 
 /// Strip leading ASCII whitespace (`' '`, `'\t'`, `'\n'`, `'\r'`) only ;
@@ -456,10 +449,11 @@ export trim :: fn(s: string) -> string {
 /// @param s  source string.
 /// @return   `s` with its leading whitespace removed.
 export left_trim :: fn(s: string) -> string {
-    n :: s.byte_len()
+    sb :: s.bytes()
+    n :: sb.len()
     lo := usize(0)
-    for lo < n && is_white_byte(s.byte_at(lo)) { lo = lo + usize(1) }
-    return s.byte_slice(lo, n)
+    for lo < n && is_white_byte(sb[lo]) { lo = lo + usize(1) }
+    return sb[lo..<n].from_utf8()
 }
 
 /// Strip trailing ASCII whitespace (`' '`, `'\t'`, `'\n'`, `'\r'`) only ;
@@ -467,10 +461,10 @@ export left_trim :: fn(s: string) -> string {
 /// @param s  source string.
 /// @return   `s` with its trailing whitespace removed.
 export right_trim :: fn(s: string) -> string {
-    n :: s.byte_len()
-    hi := n
-    for hi > usize(0) && is_white_byte(s.byte_at(hi - usize(1))) { hi = hi - usize(1) }
-    return s.byte_slice(usize(0), hi)
+    sb :: s.bytes()
+    hi := sb.len()
+    for hi > usize(0) && is_white_byte(sb[hi - usize(1)]) { hi = hi - usize(1) }
+    return sb[usize(0)..<hi].from_utf8()
 }
 
 // Codepoint-level uppercase over ASCII + the Latin-1 Supplement letters
@@ -501,12 +495,14 @@ to_lower_cp :: fn(cp: u32) -> u32 {
 /// scripts) pass through unchanged ; no full Unicode case tables.
 export to_upper :: fn(s: string) -> string {
     sb :: new_builder()
-    n  :: s.byte_len()
+    bs :: s.bytes()
+    n  :: bs.len()
     i := usize(0)
     for i < n {
-        [c, w] :: s.decode_codepoint(i)
-        up :: to_upper_cp(u32(c))
-        if up == u32(c) { sb.append(s.byte_slice(i, i + w)) } else { sb.append_char(char(up)) }
+        [c, w] :: bs.decode_codepoint_at(i)
+        // Re-emitting an unchanged codepoint via `append_char` reproduces its
+        // canonical UTF-8 bytes — identical to slicing them back out.
+        sb.append_char(char(to_upper_cp(u32(c))))
         i = i + w
     }
     return sb.to_string()
@@ -519,12 +515,13 @@ export to_upper :: fn(s: string) -> string {
 /// no full Unicode case tables.
 export to_lower :: fn(s: string) -> string {
     sb :: new_builder()
-    n  :: s.byte_len()
+    bs :: s.bytes()
+    n  :: bs.len()
     i := usize(0)
     for i < n {
-        [c, w] :: s.decode_codepoint(i)
-        lo :: to_lower_cp(u32(c))
-        if lo == u32(c) { sb.append(s.byte_slice(i, i + w)) } else { sb.append_char(char(lo)) }
+        [c, w] :: bs.decode_codepoint_at(i)
+        // See `to_upper` — `append_char` re-emits the canonical bytes.
+        sb.append_char(char(to_lower_cp(u32(c))))
         i = i + w
     }
     return sb.to_string()
@@ -551,11 +548,12 @@ ParseError implements Error {
 /// @return    the parsed integer, or `ParseError` on failure.
 /// @error     `ParseError` on empty input, malformed digit, or overflow.
 export parse_int :: fn(s: string) -> i32 | ParseError {
-    n :: s.byte_len()
+    bs :: s.bytes()
+    n :: bs.len()
     if n == usize(0) { return ParseError { .msg = "parse_int: empty string" } }
     i := usize(0)
     neg := false
-    if s.byte_at(usize(0)) == b'-' {
+    if bs[usize(0)] == b'-' {
         neg = true
         i = usize(1)
     }
@@ -563,7 +561,7 @@ export parse_int :: fn(s: string) -> i32 | ParseError {
     // Accumulate in i64 so i32 overflow is detectable before truncation.
     acc: i64 = 0
     for i < n {
-        b :: s.byte_at(i)
+        b :: bs[i]
         if b < b'0' || b > b'9' {
             return ParseError { .msg = "parse_int: invalid digit" }
         }
@@ -597,7 +595,7 @@ export parse_float :: fn(s: string) -> f64 | Error
 /// @param width  target byte length.
 /// @param fill   pad character (ASCII recommended).
 export pad_start :: fn(s: string, width: usize, fill: char) -> string {
-    n := s.byte_len()
+    n :: s.bytes().len()
     if n >= width {
         return s
     }
@@ -614,7 +612,7 @@ export pad_start :: fn(s: string, width: usize, fill: char) -> string {
 /// Pad `s` on the RIGHT with copies of `fill` until its byte length
 /// reaches `width`. Symmetric with `pad_start`.
 export pad_end :: fn(s: string, width: usize, fill: char) -> string {
-    n := s.byte_len()
+    n :: s.bytes().len()
     if n >= width {
         return s
     }
@@ -652,7 +650,8 @@ export is_alnum :: fn(c: char) = c.is_alpha() || c.is_digit()
 /// Trims at most one occurrence.
 export trim_suffix :: fn(s: string, suffix: string) -> string {
     if s.ends_with(suffix) {
-        return s.byte_slice(0, s.byte_len() - suffix.byte_len())
+        bs :: s.bytes()
+        return bs[0..<bs.len() - suffix.bytes().len()].from_utf8()
     }
     return s
 }
@@ -661,7 +660,8 @@ export trim_suffix :: fn(s: string, suffix: string) -> string {
 /// Trims at most one occurrence.
 export trim_prefix :: fn(s: string, prefix: string) -> string {
     if s.starts_with(prefix) {
-        return s.byte_slice(prefix.byte_len(), s.byte_len())
+        bs :: s.bytes()
+        return bs[prefix.bytes().len()..<bs.len()].from_utf8()
     }
     return s
 }
@@ -685,28 +685,38 @@ export trim_prefix :: fn(s: string, prefix: string) -> string {
 export decode_escapes :: fn(body: string) -> string {
     if !body.contains("\\") { return body }
     out :: new_builder()
-    n :: body.byte_len()
+    bs :: body.bytes()
+    n :: bs.len()
     i: usize = 0
     for i < n {
-        b :: body.byte_at(i)
+        b :: bs[i]
         if b != b'\\' {
-            out.append(body.byte_slice(i, i + usize(1)))
-            i += usize(1)
+            // Not a backslash — copy the whole codepoint (it may be multibyte ;
+            // a per-byte slice would split a UTF-8 sequence).
+            [c, w] :: bs.decode_codepoint_at(i)
+            out.append_char(c)
+            i += w
             continue
         }
         if i + usize(1) >= n {
-            out.append(body.byte_slice(i, i + usize(1)))
+            out.append("\\")
             i += usize(1)
             continue
         }
-        next :: body.byte_at(i + usize(1))
+        next :: bs[i + usize(1)]
         if      next == b'n'  { out.append("\n") }
         else if next == b't'  { out.append("\t") }
         else if next == b'r'  { out.append("\r") }
         else if next == b'"'  { out.append("\"") }
         else if next == b'\\' { out.append("\\") }
         else if next == b'0'  { out.append("\0") }
-        else                     { out.append(body.byte_slice(i + usize(1), i + usize(2))) }
+        else {
+            // Unknown escape — drop the backslash, copy the following codepoint.
+            [c, w] :: bs.decode_codepoint_at(i + usize(1))
+            out.append_char(c)
+            i += usize(1) + w
+            continue
+        }
         i += usize(2)
     }
     return out.to_string()

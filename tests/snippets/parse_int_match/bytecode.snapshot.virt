@@ -3,15 +3,15 @@ type 0 primitive null
 type 1 primitive i32
 type 2 primitive string
 type 3 primitive u8
-type 4 primitive usize
-type 5 primitive f64
-type 6 primitive void
-type 7 ref Error
-type 8 array 2
-type 9 union 1,10
-type 10 struct std_string$ParseError { msg:2 }
-type 11 union 7,5
-type 12 struct std_string_builder$StringBuilder { parts:8 }
+type 4 primitive f64
+type 5 primitive void
+type 6 ref Error
+type 7 array 2
+type 8 union 1,9
+type 9 struct std_string$ParseError { msg:2 }
+type 10 array 3
+type 11 union 6,4
+type 12 struct std_string_builder$StringBuilder { parts:7 }
 string 0 "42"
 string 1 "int ok"
 string 2 "int err"
@@ -26,10 +26,9 @@ string 10 "parse_int: invalid digit"
 string 11 "parse_int: overflow"
 import 0 to_string std_core$string$Display$to_string (string) -> string
 import 1 write std_io$write (i32,string) -> void
-import 2 byte_len std_string$byte_len (string) -> usize
-import 3 byte_at std_string$byte_at (string,usize) -> u8
-import 4 parse_float std_string$parse_float (string) -> ref
-impl 10 Error
+import 2 bytes std_string$bytes (string) -> ref
+import 3 parse_float std_string$parse_float (string) -> ref
+impl 9 Error
 impl 12 Display
 export main 0
 
@@ -53,23 +52,23 @@ fn 0 snippet$main () -> i32
       string.const 1
       call 1
       string.const 4
-      call.import 4
+      call.import 3
       local.tee 2
-      type_check 5
+      type_check 4
       if $L2 void
         string.const 5
         call 1
         string.const 3
-        call.import 4
+        call.import 3
         local.tee 3
-        type_check 5
+        type_check 4
         if $L3 void
           string.const 5
           call 1
           return.lit i32.const 0
         end $L3
         local.get 3
-        type_check 7
+        type_check 6
         if $L4 void
           string.const 6
           call 1
@@ -78,21 +77,21 @@ fn 0 snippet$main () -> i32
         unreachable
       end $L2
       local.get 2
-      type_check 7
+      type_check 6
       if $L5 void
         string.const 6
         call 1
         string.const 3
-        call.import 4
+        call.import 3
         local.tee 3
-        type_check 5
+        type_check 4
         if $L6 void
           string.const 5
           call 1
           return.lit i32.const 0
         end $L6
         local.get 3
-        type_check 7
+        type_check 6
         if $L7 void
           string.const 6
           call 1
@@ -103,28 +102,28 @@ fn 0 snippet$main () -> i32
       unreachable
     end $L1
     local.get 1
-    type_check 10
+    type_check 9
     if $L8 void
       string.const 2
       call 1
       string.const 4
-      call.import 4
+      call.import 3
       local.tee 2
-      type_check 5
+      type_check 4
       if $L9 void
         string.const 5
         call 1
         string.const 3
-        call.import 4
+        call.import 3
         local.tee 3
-        type_check 5
+        type_check 4
         if $L10 void
           string.const 5
           call 1
           return.lit i32.const 0
         end $L10
         local.get 3
-        type_check 7
+        type_check 6
         if $L11 void
           string.const 6
           call 1
@@ -133,21 +132,21 @@ fn 0 snippet$main () -> i32
         unreachable
       end $L9
       local.get 2
-      type_check 7
+      type_check 6
       if $L12 void
         string.const 6
         call 1
         string.const 3
-        call.import 4
+        call.import 3
         local.tee 3
-        type_check 5
+        type_check 4
         if $L13 void
           string.const 5
           call 1
           return.lit i32.const 0
         end $L13
         local.get 3
-        type_check 7
+        type_check 6
         if $L14 void
           string.const 6
           call 1
@@ -160,7 +159,7 @@ fn 0 snippet$main () -> i32
     unreachable
   end $L0
   local.get 0
-  type_check 10
+  type_check 9
   if $L15 void
     string.const 2
     call 1
@@ -172,23 +171,23 @@ fn 0 snippet$main () -> i32
       string.const 1
       call 1
       string.const 4
-      call.import 4
+      call.import 3
       local.tee 2
-      type_check 5
+      type_check 4
       if $L17 void
         string.const 5
         call 1
         string.const 3
-        call.import 4
+        call.import 3
         local.tee 3
-        type_check 5
+        type_check 4
         if $L18 void
           string.const 5
           call 1
           return.lit i32.const 0
         end $L18
         local.get 3
-        type_check 7
+        type_check 6
         if $L19 void
           string.const 6
           call 1
@@ -197,21 +196,21 @@ fn 0 snippet$main () -> i32
         unreachable
       end $L17
       local.get 2
-      type_check 7
+      type_check 6
       if $L20 void
         string.const 6
         call 1
         string.const 3
-        call.import 4
+        call.import 3
         local.tee 3
-        type_check 5
+        type_check 4
         if $L21 void
           string.const 5
           call 1
           return.lit i32.const 0
         end $L21
         local.get 3
-        type_check 7
+        type_check 6
         if $L22 void
           string.const 6
           call 1
@@ -222,28 +221,28 @@ fn 0 snippet$main () -> i32
       unreachable
     end $L16
     local.get 1
-    type_check 10
+    type_check 9
     if $L23 void
       string.const 2
       call 1
       string.const 4
-      call.import 4
+      call.import 3
       local.tee 2
-      type_check 5
+      type_check 4
       if $L24 void
         string.const 5
         call 1
         string.const 3
-        call.import 4
+        call.import 3
         local.tee 3
-        type_check 5
+        type_check 4
         if $L25 void
           string.const 5
           call 1
           return.lit i32.const 0
         end $L25
         local.get 3
-        type_check 7
+        type_check 6
         if $L26 void
           string.const 6
           call 1
@@ -252,21 +251,21 @@ fn 0 snippet$main () -> i32
         unreachable
       end $L24
       local.get 2
-      type_check 7
+      type_check 6
       if $L27 void
         string.const 6
         call 1
         string.const 3
-        call.import 4
+        call.import 3
         local.tee 3
-        type_check 5
+        type_check 4
         if $L28 void
           string.const 5
           call 1
           return.lit i32.const 0
         end $L28
         local.get 3
-        type_check 7
+        type_check 6
         if $L29 void
           string.const 6
           call 1
@@ -296,149 +295,154 @@ fn 1 std_io$std_io$println__string (string) -> void
 end
 
 fn 2 std_string$parse_int (string) -> ref
+  local bs ref
   local n usize
   local i usize
   local neg bool
-  local $call_15 u8
+  local $idx_17 u8
   local acc i64
   local or_res bool
-  local $mul_39 i64
-  local $cast_42 i64
-  local $add_48 i64
-  local $cast_58 usize
+  local $mul_41 i64
+  local $cast_44 i64
+  local $add_50 i64
+  local $cast_60 usize
   local.get 0
   call.import 2
-  local.set 1
-  local.get 1
+  local.tee 1
+  array.len
+  local.set 2
+  local.get 2
   i64.const 0
   i64.to_usize
   usize.eq
   if $L0 void
     string.const 8
-    struct.new 10
+    struct.new 9
     return
   end $L0
   i64.const 0
-  local.set 2
-  bool.const false
   local.set 3
-  local.get 0
+  bool.const false
+  local.set 4
+  local.get 1
   i64.const 0
   i64.to_usize
-  call.import 3
-  local.set 4
-  local.get 4
+  array.get 10
+  ref.cast 3
+  local.set 5
+  local.get 5
   i32.const 45
   i32.to_u8
   u8.eq
   if $L1 void
     bool.const true
-    local.set 3
+    local.set 4
     i64.const 1
-    local.set 2
+    local.set 3
   else
   end $L1
+  local.get 3
   local.get 2
-  local.get 1
   usize.ge
   if $L2 void
     string.const 9
-    struct.new 10
+    struct.new 9
     return
   end $L2
   i64.const 0
-  local.set 5
+  local.set 6
   block $L3 void
     loop $L4 void
+      local.get 3
       local.get 2
-      local.get 1
       usize.lt
       if $L5 void
-        local.get 0
-        local.get 2
-        call.import 3
-        local.set 4
-        local.get 4
+        local.get 1
+        local.get 3
+        array.get 10
+        ref.cast 3
+        local.set 5
+        local.get 5
         i32.const 48
         i32.to_u8
         u8.lt
         if $L6 void
           bool.const true
-          local.set 6
+          local.set 7
         else
-          local.get 4
+          local.get 5
           i32.const 57
           i32.to_u8
           u8.gt
-          local.set 6
+          local.set 7
         end $L6
-        local.get 6
+        local.get 7
         if $L7 void
           string.const 10
-          struct.new 10
+          struct.new 9
           return
         end $L7
-        local.get 5
+        local.get 6
         i64.const 10
         i64.mul
-        local.set 7
-        local.get 4
+        local.set 8
+        local.get 5
         i32.const 48
         i32.to_u8
         u8.sub
         u8.to_i64
-        local.set 8
-        local.get 7
+        local.set 9
         local.get 8
+        local.get 9
         i64.add
-        local.set 5
-        local.get 3
+        local.set 6
+        local.get 4
         if $L8 void
           i64.const 2147483648
-          local.set 9
-          local.get 5
-          local.get 9
+          local.set 10
+          local.get 6
+          local.get 10
           i64.gt
           if $L9 void
             string.const 11
-            struct.new 10
+            struct.new 9
             return
           end $L9
           i64.const 1
-          local.set 10
-          local.get 2
-          local.get 10
+          local.set 11
+          local.get 3
+          local.get 11
           usize.add
-          local.set 2
+          local.set 3
           br $L4
         end $L8
-        local.get 5
+        local.get 6
         i64.const 2147483647
         i64.gt
         if $L10 void
           string.const 11
-          struct.new 10
+          struct.new 9
           return
         end $L10
         i64.const 1
-        local.set 10
-        local.get 2
-        local.get 10
+        local.set 11
+        local.get 3
+        local.get 11
         usize.add
-        local.set 2
+        local.set 3
         br $L4
       else
       end $L5
     end $L4
   end $L3
-  local.get 3
+  local.get 4
   if $L11 void
-    local.get 5
+    local.get 6
     i64.neg
     i64.to_i32
     return
   end $L11
-  local.get 5
+  local.get 6
   i64.to_i32
   return
 end
