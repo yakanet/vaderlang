@@ -24,9 +24,11 @@
   expr 22:9     IdentExpr      :: i32
   expr 24:13    StringLitExpr  :: string
   expr 24:27    IdentExpr      :: i32
+  expr 24:38    CallExpr       :: const u8[]
   expr 24:38    CallExpr       :: usize
-  expr 24:38    IdentExpr      :: fn(string) -> usize
-  expr 24:47    StringLitExpr  :: string
+  expr 24:38    FieldExpr      :: fn() -> const u8[]
+  expr 24:38    FieldExpr      :: fn() -> usize
+  expr 24:38    StringLitExpr  :: string
   expr 24:5     CallExpr       :: void
   expr 24:5     IdentExpr      :: fn(T) -> void
   expr 27:13    StringLitExpr  :: string

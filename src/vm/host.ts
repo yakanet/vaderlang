@@ -207,20 +207,9 @@ function fnv1a64(s: string): bigint {
 
 export function stdStringBindings(): Record<string, HostFn> {
   return {
+    // Internal fold target (`s.bytes().len()` lowers to this); the public
+    // byte_len export was removed but the fold still resolves the symbol.
     std_string$byte_len:    (args) => i64("usize", BigInt(UTF8_ENC.encode(stringArg(args, 0)).length)),
-    std_string$byte_slice:  (args) => {
-      const s = stringArg(args, 0);
-      const bytes = UTF8_ENC.encode(s);
-      const start = Math.max(0, indexArg(args, 1));
-      const end   = Math.min(bytes.length, indexArg(args, 2));
-      return str(UTF8_DEC.decode(bytes.slice(start, end)));
-    },
-    std_string$byte_at: (args) => {
-      const bytes = UTF8_ENC.encode(stringArg(args, 0));
-      const i = indexArg(args, 1);
-      if (i < 0 || i >= bytes.length) return num("u8", 0);
-      return num("u8", bytes[i]!);
-    },
     // `bytes()` is a zero-copy `const u8[]` view on the native target ; the
     // VM has no raw byte buffer to alias (every slot is a boxed Value), so it
     // materialises a copy. Same observable values. The array carries the

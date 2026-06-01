@@ -10,29 +10,17 @@ import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 import "std/math" { min }
 import "std/utf8" { codepoint_byte_len }
 
-/// Length in bytes. The string API is intentionally byte-indexed
-/// (`byte_slice`, `byte_at`, `byte_decode_at`, `contains` all operate
-/// on byte offsets ; `s[i]` and `s[r]` from `std/core` are the
-/// codepoint-indexed forms) — naming this `byte_len` forces the
-/// reader to acknowledge the byte/codepoint
-/// distinction and pick `len()` deliberately if they want the
-/// codepoint count.
-export byte_len :: fn(s: string) -> usize
+// Length in bytes. Module-internal (NOT exported) — callers write
+// `s.bytes().len()`, which the lowerer folds to an O(1) call of this host fn
+// (see `src/lower/passes/fold-byte-len.ts` / `vader/lower/fold_byte_len.vader`).
+// Kept as a bodyless host decl so the fold has a target; DCE roots it
+// unconditionally as a bodyless host fn.
+byte_len :: fn(s: string) -> usize
 
 /// True for the empty string. Equivalent to `s.byte_len() == 0` but
 /// reads cleanly at call sites — emptiness is the same in byte and
 /// codepoint views.
 export is_empty :: fn(s: string) = s.bytes().len() == 0
-
-/// Substring `[start, end)` — exclusive upper bound, byte-indexed.
-/// `start` and `end` should land on UTF-8 leading bytes ; landing mid-
-/// codepoint produces a malformed-UTF-8 slice. The counterpart to the
-/// codepoint-indexed `s[r]` syntax ; pick this when your offsets came
-/// from a byte cursor (lexer / parser / JSON / `index_of`).
-/// @param s      source string.
-/// @param start  byte offset of the first char (inclusive).
-/// @param end    byte offset just past the last char (exclusive).
-export byte_slice :: fn(s: string, start: usize, end: usize) -> string
 
 /// True iff `sub` appears anywhere in `s`. Byte-wise scan. Module-private —
 /// callers go through `sub in s` (Contains impl below) or UFCS
@@ -68,11 +56,6 @@ export ends_with :: fn(s: string, suffix: string) -> bool {
     }
     return true
 }
-
-/// Raw byte at offset `i`. Useful for ASCII fast paths and binary-format
-/// scanning (BOM detection, magic bytes). For UTF-8-aware iteration use
-/// `chars()`.
-export byte_at :: fn(s: string, i: usize) -> u8
 
 /// Decode the UTF-8 codepoint at byte offset `i`. The byte boundary
 /// matters : a continuation byte at `i` decodes as `U+FFFD` ; a
@@ -812,11 +795,6 @@ import "std/testing" { assert, assert_eq, assert_close }
     assert_eq(sl[2], u8(100))
 }
 
-@test test_byte_slice :: fn() -> void {
-    assert_eq(byte_slice("hello", usize(0), usize(5)), "hello")
-    assert_eq(byte_slice("hello", usize(1), usize(4)), "ell")
-    assert_eq(byte_slice("hello", usize(0), usize(0)), "")
-}
 
 @test test_contains :: fn() -> void {
     assert("world" in "hello world", "contains world")

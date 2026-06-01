@@ -1,7 +1,7 @@
 module "snippet"
 
 import "std/io" { println }
-import "std/string" { bytes, byte_at, byte_len }
+import "std/string" { bytes }
 
 main :: fn() -> i32 {
     // ASCII path : each codepoint is one byte, sum == codepoint sum.
@@ -21,16 +21,17 @@ main :: fn() -> i32 {
     // Pinpoint access (BOM detection style — first 3 bytes of a BOM-prefixed
     // string match 0xEF 0xBB 0xBF).
     bom :: "\u{FEFF}data"
+    bb :: bom.bytes()
     println("-- bom --")
-    println("b0=${bom.byte_at(0)} b1=${bom.byte_at(1)} b2=${bom.byte_at(2)}")
-    println("after bom: ${bom.byte_at(3)}=${"d".byte_at(0)}")
+    println("b0=${bb[0]} b1=${bb[1]} b2=${bb[2]}")
+    println("after bom: ${bb[3]}=${"d".bytes()[0]}")
 
     // Empty string : zero iterations.
     println("-- empty --")
     for b in "".bytes() {
         println("never")
     }
-    println("done bytes=${byte_len("")}")
+    println("done bytes=${"".bytes().len()}")
 
     // bytes() returns const u8[], so the array supports random access and
     // .len() like any other array. On native this is a zero-copy view over

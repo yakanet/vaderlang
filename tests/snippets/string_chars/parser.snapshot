@@ -31,7 +31,7 @@
             "alias": null
           },
           {
-            "name": "byte_len",
+            "name": "bytes",
             "alias": null
           }
         ]
@@ -311,24 +311,27 @@
                         "expr": {
                           "kind": "CallExpr",
                           "callee": {
-                            "kind": "IdentExpr",
-                            "name": "byte_len"
-                          },
-                          "args": [
-                            {
-                              "name": null,
-                              "value": {
-                                "kind": "StringLitExpr",
-                                "parts": [
-                                  {
-                                    "kind": "text",
-                                    "value": "héllo"
-                                  }
-                                ]
+                            "kind": "FieldExpr",
+                            "target": {
+                              "kind": "CallExpr",
+                              "callee": {
+                                "kind": "FieldExpr",
+                                "target": {
+                                  "kind": "StringLitExpr",
+                                  "parts": [
+                                    {
+                                      "kind": "text",
+                                      "value": "héllo"
+                                    }
+                                  ]
+                                },
+                                "field": "bytes"
                               },
-                              "spread": false
-                            }
-                          ]
+                              "args": []
+                            },
+                            "field": "len"
+                          },
+                          "args": []
                         }
                       }
                     ]

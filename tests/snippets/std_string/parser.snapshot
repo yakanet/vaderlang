@@ -27,7 +27,11 @@
         "kind": "destructure",
         "names": [
           {
-            "name": "byte_len",
+            "name": "bytes",
+            "alias": null
+          },
+          {
+            "name": "as_string",
             "alias": null
           },
           {
@@ -48,10 +52,6 @@
           },
           {
             "name": "ends_with",
-            "alias": null
-          },
-          {
-            "name": "byte_slice",
             "alias": null
           },
           {
@@ -112,19 +112,22 @@
                         "expr": {
                           "kind": "CallExpr",
                           "callee": {
-                            "kind": "IdentExpr",
-                            "name": "byte_len"
-                          },
-                          "args": [
-                            {
-                              "name": null,
-                              "value": {
-                                "kind": "IdentExpr",
-                                "name": "s"
+                            "kind": "FieldExpr",
+                            "target": {
+                              "kind": "CallExpr",
+                              "callee": {
+                                "kind": "FieldExpr",
+                                "target": {
+                                  "kind": "IdentExpr",
+                                  "name": "s"
+                                },
+                                "field": "bytes"
                               },
-                              "spread": false
-                            }
-                          ]
+                              "args": []
+                            },
+                            "field": "len"
+                          },
+                          "args": []
                         }
                       }
                     ]
@@ -409,36 +412,42 @@
                     "callee": {
                       "kind": "FieldExpr",
                       "target": {
-                        "kind": "StringLitExpr",
-                        "parts": [
-                          {
-                            "kind": "text",
-                            "value": "hello world"
+                        "kind": "IndexExpr",
+                        "target": {
+                          "kind": "CallExpr",
+                          "callee": {
+                            "kind": "FieldExpr",
+                            "target": {
+                              "kind": "StringLitExpr",
+                              "parts": [
+                                {
+                                  "kind": "text",
+                                  "value": "hello world"
+                                }
+                              ]
+                            },
+                            "field": "bytes"
+                          },
+                          "args": []
+                        },
+                        "index": {
+                          "kind": "RangeExpr",
+                          "inclusive": false,
+                          "lower": {
+                            "kind": "IntLitExpr",
+                            "value": "6n",
+                            "suffix": null
+                          },
+                          "upper": {
+                            "kind": "IntLitExpr",
+                            "value": "11n",
+                            "suffix": null
                           }
-                        ]
+                        }
                       },
-                      "field": "byte_slice"
+                      "field": "as_string"
                     },
-                    "args": [
-                      {
-                        "name": null,
-                        "value": {
-                          "kind": "IntLitExpr",
-                          "value": "6n",
-                          "suffix": null
-                        },
-                        "spread": false
-                      },
-                      {
-                        "name": null,
-                        "value": {
-                          "kind": "IntLitExpr",
-                          "value": "11n",
-                          "suffix": null
-                        },
-                        "spread": false
-                      }
-                    ]
+                    "args": []
                   },
                   "spread": false
                 }

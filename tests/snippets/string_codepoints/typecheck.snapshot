@@ -6,42 +6,52 @@
   expr 10:26    CallExpr       :: usize
   expr 10:26    IdentExpr      :: fn(string) -> usize
   expr 10:30    StringLitExpr  :: string
+  expr 10:48    CallExpr       :: const u8[]
   expr 10:48    CallExpr       :: usize
-  expr 10:48    IdentExpr      :: fn(string) -> usize
+  expr 10:48    FieldExpr      :: fn() -> const u8[]
+  expr 10:48    FieldExpr      :: fn() -> usize
+  expr 10:48    StringLitExpr  :: string
   expr 10:5     CallExpr       :: void
   expr 10:5     IdentExpr      :: fn(T) -> void
-  expr 10:57    StringLitExpr  :: string
   expr 11:13    StringLitExpr  :: string
   expr 11:26    CallExpr       :: usize
   expr 11:26    IdentExpr      :: fn(string) -> usize
   expr 11:30    StringLitExpr  :: string
+  expr 11:47    CallExpr       :: const u8[]
   expr 11:47    CallExpr       :: usize
-  expr 11:47    IdentExpr      :: fn(string) -> usize
+  expr 11:47    FieldExpr      :: fn() -> const u8[]
+  expr 11:47    FieldExpr      :: fn() -> usize
+  expr 11:47    StringLitExpr  :: string
   expr 11:5     CallExpr       :: void
   expr 11:5     IdentExpr      :: fn(T) -> void
-  expr 11:56    StringLitExpr  :: string
   expr 12:13    StringLitExpr  :: string
   expr 12:26    CallExpr       :: usize
   expr 12:26    IdentExpr      :: fn(string) -> usize
   expr 12:30    StringLitExpr  :: string
   expr 12:5     CallExpr       :: void
   expr 12:5     IdentExpr      :: fn(T) -> void
+  expr 12:54    CallExpr       :: const u8[]
   expr 12:54    CallExpr       :: usize
-  expr 12:54    IdentExpr      :: fn(string) -> usize
-  expr 12:63    StringLitExpr  :: string
+  expr 12:54    FieldExpr      :: fn() -> const u8[]
+  expr 12:54    FieldExpr      :: fn() -> usize
+  expr 12:54    StringLitExpr  :: string
   expr 13:13    StringLitExpr  :: string
   expr 13:26    CallExpr       :: usize
   expr 13:26    IdentExpr      :: fn(string) -> usize
   expr 13:30    StringLitExpr  :: string
+  expr 13:43    CallExpr       :: const u8[]
   expr 13:43    CallExpr       :: usize
-  expr 13:43    IdentExpr      :: fn(string) -> usize
+  expr 13:43    FieldExpr      :: fn() -> const u8[]
+  expr 13:43    FieldExpr      :: fn() -> usize
+  expr 13:43    StringLitExpr  :: string
   expr 13:5     CallExpr       :: void
   expr 13:5     IdentExpr      :: fn(T) -> void
-  expr 13:52    StringLitExpr  :: string
   expr 17:10    StringLitExpr  :: string
+  expr 18:10    CallExpr       :: const u8[]
   expr 18:10    CallExpr       :: usize
-  expr 18:10    IdentExpr      :: fn(string) -> usize
-  expr 18:19    IdentExpr      :: string
+  expr 18:10    FieldExpr      :: fn() -> const u8[]
+  expr 18:10    FieldExpr      :: fn() -> usize
+  expr 18:10    IdentExpr      :: string
   expr 20:13    IdentExpr      :: usize
   expr 20:9     BinaryExpr     :: bool
   expr 20:9     IdentExpr      :: usize
@@ -83,8 +93,10 @@
   expr 9:26     CallExpr       :: usize
   expr 9:26     IdentExpr      :: fn(string) -> usize
   expr 9:30     StringLitExpr  :: string
+  expr 9:48     CallExpr       :: const u8[]
   expr 9:48     CallExpr       :: usize
-  expr 9:48     IdentExpr      :: fn(string) -> usize
+  expr 9:48     FieldExpr      :: fn() -> const u8[]
+  expr 9:48     FieldExpr      :: fn() -> usize
+  expr 9:48     StringLitExpr  :: string
   expr 9:5      CallExpr       :: void
   expr 9:5      IdentExpr      :: fn(T) -> void
-  expr 9:57     StringLitExpr  :: string

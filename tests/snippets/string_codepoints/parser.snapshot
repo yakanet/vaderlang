@@ -27,7 +27,7 @@
         "kind": "destructure",
         "names": [
           {
-            "name": "byte_len",
+            "name": "bytes",
             "alias": null
           },
           {
@@ -121,24 +121,27 @@
                         "expr": {
                           "kind": "CallExpr",
                           "callee": {
-                            "kind": "IdentExpr",
-                            "name": "byte_len"
-                          },
-                          "args": [
-                            {
-                              "name": null,
-                              "value": {
-                                "kind": "StringLitExpr",
-                                "parts": [
-                                  {
-                                    "kind": "text",
-                                    "value": "vader"
-                                  }
-                                ]
+                            "kind": "FieldExpr",
+                            "target": {
+                              "kind": "CallExpr",
+                              "callee": {
+                                "kind": "FieldExpr",
+                                "target": {
+                                  "kind": "StringLitExpr",
+                                  "parts": [
+                                    {
+                                      "kind": "text",
+                                      "value": "vader"
+                                    }
+                                  ]
+                                },
+                                "field": "bytes"
                               },
-                              "spread": false
-                            }
-                          ]
+                              "args": []
+                            },
+                            "field": "len"
+                          },
+                          "args": []
                         }
                       }
                     ]
@@ -200,24 +203,27 @@
                         "expr": {
                           "kind": "CallExpr",
                           "callee": {
-                            "kind": "IdentExpr",
-                            "name": "byte_len"
-                          },
-                          "args": [
-                            {
-                              "name": null,
-                              "value": {
-                                "kind": "StringLitExpr",
-                                "parts": [
-                                  {
-                                    "kind": "text",
-                                    "value": "héllo"
-                                  }
-                                ]
+                            "kind": "FieldExpr",
+                            "target": {
+                              "kind": "CallExpr",
+                              "callee": {
+                                "kind": "FieldExpr",
+                                "target": {
+                                  "kind": "StringLitExpr",
+                                  "parts": [
+                                    {
+                                      "kind": "text",
+                                      "value": "héllo"
+                                    }
+                                  ]
+                                },
+                                "field": "bytes"
                               },
-                              "spread": false
-                            }
-                          ]
+                              "args": []
+                            },
+                            "field": "len"
+                          },
+                          "args": []
                         }
                       }
                     ]
@@ -279,24 +285,27 @@
                         "expr": {
                           "kind": "CallExpr",
                           "callee": {
-                            "kind": "IdentExpr",
-                            "name": "byte_len"
-                          },
-                          "args": [
-                            {
-                              "name": null,
-                              "value": {
-                                "kind": "StringLitExpr",
-                                "parts": [
-                                  {
-                                    "kind": "text",
-                                    "value": "你好嗎？"
-                                  }
-                                ]
+                            "kind": "FieldExpr",
+                            "target": {
+                              "kind": "CallExpr",
+                              "callee": {
+                                "kind": "FieldExpr",
+                                "target": {
+                                  "kind": "StringLitExpr",
+                                  "parts": [
+                                    {
+                                      "kind": "text",
+                                      "value": "你好嗎？"
+                                    }
+                                  ]
+                                },
+                                "field": "bytes"
                               },
-                              "spread": false
-                            }
-                          ]
+                              "args": []
+                            },
+                            "field": "len"
+                          },
+                          "args": []
                         }
                       }
                     ]
@@ -358,24 +367,27 @@
                         "expr": {
                           "kind": "CallExpr",
                           "callee": {
-                            "kind": "IdentExpr",
-                            "name": "byte_len"
-                          },
-                          "args": [
-                            {
-                              "name": null,
-                              "value": {
-                                "kind": "StringLitExpr",
-                                "parts": [
-                                  {
-                                    "kind": "text",
-                                    "value": "a😀b"
-                                  }
-                                ]
+                            "kind": "FieldExpr",
+                            "target": {
+                              "kind": "CallExpr",
+                              "callee": {
+                                "kind": "FieldExpr",
+                                "target": {
+                                  "kind": "StringLitExpr",
+                                  "parts": [
+                                    {
+                                      "kind": "text",
+                                      "value": "a😀b"
+                                    }
+                                  ]
+                                },
+                                "field": "bytes"
                               },
-                              "spread": false
-                            }
-                          ]
+                              "args": []
+                            },
+                            "field": "len"
+                          },
+                          "args": []
                         }
                       }
                     ]
@@ -432,19 +444,22 @@
                         "expr": {
                           "kind": "CallExpr",
                           "callee": {
-                            "kind": "IdentExpr",
-                            "name": "byte_len"
-                          },
-                          "args": [
-                            {
-                              "name": null,
-                              "value": {
-                                "kind": "StringLitExpr",
-                                "parts": []
+                            "kind": "FieldExpr",
+                            "target": {
+                              "kind": "CallExpr",
+                              "callee": {
+                                "kind": "FieldExpr",
+                                "target": {
+                                  "kind": "StringLitExpr",
+                                  "parts": []
+                                },
+                                "field": "bytes"
                               },
-                              "spread": false
-                            }
-                          ]
+                              "args": []
+                            },
+                            "field": "len"
+                          },
+                          "args": []
                         }
                       }
                     ]
@@ -483,19 +498,22 @@
             "value": {
               "kind": "CallExpr",
               "callee": {
-                "kind": "IdentExpr",
-                "name": "byte_len"
-              },
-              "args": [
-                {
-                  "name": null,
-                  "value": {
-                    "kind": "IdentExpr",
-                    "name": "s"
+                "kind": "FieldExpr",
+                "target": {
+                  "kind": "CallExpr",
+                  "callee": {
+                    "kind": "FieldExpr",
+                    "target": {
+                      "kind": "IdentExpr",
+                      "name": "s"
+                    },
+                    "field": "bytes"
                   },
-                  "spread": false
-                }
-              ]
+                  "args": []
+                },
+                "field": "len"
+              },
+              "args": []
             }
           },
           {

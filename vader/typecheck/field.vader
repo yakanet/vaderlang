@@ -392,7 +392,6 @@ array_method_type :: fn(name: string, arr: ArrayType) -> Type | null {
 primitive_method_type :: fn(prim: string, name: string) -> Type | null {
     if prim == "string" {
         if name == "len"         { return mk_fn([], mk_primitive("usize")) }
-        if name == "byte_len"    { return mk_fn([], mk_primitive("usize")) }
         if name == "is_empty"    { return mk_fn([], mk_primitive("bool")) }
         if name == "starts_with" { return mk_fn([mk_primitive("string")], mk_primitive("bool")) }
         if name == "ends_with"   { return mk_fn([mk_primitive("string")], mk_primitive("bool")) }
@@ -402,7 +401,6 @@ primitive_method_type :: fn(prim: string, name: string) -> Type | null {
         if name == "trim"        { return mk_fn([], mk_primitive("string")) }
         if name == "trim_start"  { return mk_fn([], mk_primitive("string")) }
         if name == "trim_end"    { return mk_fn([], mk_primitive("string")) }
-        if name == "byte_at"     { return mk_fn([mk_primitive("usize")], mk_primitive("u8")) }
         if name == "slice"       { return mk_fn([mk_primitive("usize"), mk_primitive("usize")], mk_primitive("string")) }
         if name == "split"       { return mk_fn([mk_primitive("string")], mk_array(mk_primitive("string"), false)) }
         if name == "replace"     { return mk_fn([mk_primitive("string"), mk_primitive("string")], mk_primitive("string")) }

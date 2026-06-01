@@ -9,8 +9,8 @@
 // table belongs next to the enum it indexes, and the dump is a primitive
 // other front-ends (LSP, formatter, future tools) will want to reuse.
 
-// `lexer.vader` (same module) already imports `byte_len, byte_slice`
-// from std/string and the StringBuilder surface ; we only need the
+// `lexer.vader` (same module) already imports the `bytes`/`as_string`
+// std/string surface and the StringBuilder surface ; we only need the
 // extras here.
 module "vader/lexer"
 

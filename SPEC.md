@@ -518,11 +518,11 @@ The `Target(value)` syntax doubles as the explicit coercion surface. Numeric and
 
 - Internals: **fat value** `(ptr: rawptr, len: u32)` — 16 bytes copied on assignment, no shared reference.
 - Immutable. Concatenation allocates.
-- `byte_len()` returns the number of UTF-8 **bytes**. `len()` returns the number of Unicode codepoints (allocation-free walk via leading-byte widths). The byte vs. codepoint distinction is forced into the name : callers pick `byte_len()` for byte arithmetic and `len()` for codepoint arithmetic.
+- `len()` returns the number of Unicode codepoints (allocation-free walk via leading-byte widths). For the **byte** length, take a view and ask its length : `s.bytes().len()` — written inline like that, the lowerer folds it to an O(1) byte-length primitive (no view materialised). Byte vs. codepoint is thus explicit at the call site : `len()` for codepoint arithmetic, `s.bytes().len()` for byte arithmetic.
 - `chars()` returns an iterator of `char` (`StringChars implements Iterator[char]`) ; pair with `for c in s.chars()` for a true Unicode loop.
 - `bytes()` returns the UTF-8 byte sequence as `const u8[]` ; for ad-hoc byte processing (binary protocols carried in strings, ASCII fast paths, BOM detection). On the native target it is a **zero-copy view** aliasing the string's interned bytes (it allocates only a small array header, not the byte storage) ; the `const` is what keeps that view sound — writes are rejected at compile time (T3042) since the shared bytes are immutable. On the VM the bytes are **copied** into a materialised array (VM arrays box every slot and cannot alias a raw byte buffer) — same observable values, just not zero-copy. Iteration works through `for b in s.bytes()` via the built-in array iterator. Strings are deliberately **not** `Iterable` — there's no canonical "default" between bytes and codepoints, so `for x in s` is a compile error and the caller picks `s.bytes()` or `s.chars()` explicitly.
-- `is_empty()` — sugar for `byte_len() == 0` (codepoint count and byte count agree on emptiness).
-- **Subscript** `s[i]` returns the Unicode codepoint at *codepoint* index `i` (via `string implements Index[usize, char]` in `std/core`). Walking from the start is O(i) ; pair `chars()` with `for c in s.chars()` for O(n) iteration. For byte-cursor access, `byte_at(i) -> u8` returns the raw byte and `byte_decode_at(i) -> char` decodes the UTF-8 codepoint starting at byte offset `i` (used by lexers, JSON parsers, LSP transport). There is no `IndexSet` impl ; strings are immutable.
+- `is_empty()` — sugar for `s.bytes().len() == 0` (codepoint count and byte count agree on emptiness).
+- **Subscript** `s[i]` returns the Unicode codepoint at *codepoint* index `i` (via `string implements Index[usize, char]` in `std/core`). Walking from the start is O(i) ; pair `chars()` with `for c in s.chars()` for O(n) iteration. For byte-cursor access, take a view with `s.bytes()` (a `const u8[]`) and index it — `s.bytes()[i] -> u8` for the raw byte, `s.bytes()[lo..<hi].as_string()` to slice a byte range back into a string (the inverse of `bytes()`, O(1) on the borrowed view). `byte_decode_at(i) -> char` decodes the UTF-8 codepoint starting at byte offset `i` (used by lexers, JSON parsers, LSP transport ; byte-view consumers that hold the view call `decode_codepoint_at(bs, i)` instead). There is no `IndexSet` impl ; strings are immutable.
 - Literals stored in the binary's data section.
 
 ### Arrays
@@ -1108,7 +1108,7 @@ Tutu  implements Toto[i32, i64] -> i64(self + other)
 // Block form — multi-statement body.
 string implements Hash {
     h: u64 = 14695981039346656037
-    n: usize = self.byte_len()
+    n: usize = self.bytes().len()
     i: usize = 0
     for i < n {
         h = (h ^ u64(self[i])) * 1099511628211
@@ -1394,7 +1394,7 @@ plus(2, 3)
 `a.f(b)` is desugared to `f(a, b)` at compile time. There are **no methods** in Vader, only free functions + UFCS.
 
 UFCS dispatch works against three shapes of receiver–first-param relation, ranked weakest-wins-only-on-tie :
-1. **Concrete match** : the receiver's static type is assignable to the first param. `s.byte_len()` where `byte_len :: fn(s: string) -> usize`.
+1. **Concrete match** : the receiver's static type is assignable to the first param. `s.starts_with(p)` where `starts_with :: fn(s: string, prefix: string) -> bool`.
 2. **Symbolic match** : the receiver and the first param share a struct/trait symbol but differ in their type-args (e.g. `MutableList[i32]` against `fn[T](self: MutableList[T])`). The generic-fn-dispatch path closes over the type-args at the call site.
 3. **Trait-typed first param** : when the first param has trait type `Trait[T]` and the receiver implements that trait, UFCS dispatches to it. `source.chars().filter(is_bf_char)` resolves through `std/iter.filter :: fn[T](it: Iterator[T], pred) -> T[]` because `StringChars` implements `Iterator[char]`. Trait-typeparam unification happens through `unifyTraitParamWithConcrete`.
 4. **Union receivers** : `value.method()` on a union-typed `value` falls through to free-fn UFCS when no variant carries a struct field by that name. The first-param type can be the *union itself* (`fn read_i32(v: Value, …)`) — receiver and param match directly.
@@ -1785,8 +1785,8 @@ Module identity is **not** derived from the filesystem. The filesystem is the st
 ```vader
 import "std/string"                              // pure namespace import
 str :: import "std/string"                       // named namespace import
-import "std/string" { byte_len }                 // destructured import
-str :: import "std/string" { byte_len, byte_slice }   // scoped namespace import
+import "std/string" { trim }                     // destructured import
+str :: import "std/string" { bytes, as_string }  // scoped namespace import
 ```
 
 A namespace import always names its binding explicitly (`name :: import "..."`) — there is no implicit last-segment binding and no `as` suffix. The destructure form (`import "..." { a, b }`) pulls names into the importing module's top-level scope. The combined form (`name :: import "..." { a, b, c }`) is **scoped** : only the listed names are reachable through `name.X` ; the rest of the target module is hidden, and the listed names are NOT also pulled into top-level scope.
@@ -2194,9 +2194,7 @@ Width-based helpers (`pad_start`, `pad_end`) measure bytes, not codepoints.
 
 ```vader
 // Core access (intrinsics — no body in Vader).
-byte_len    :: fn(s: string) -> usize                  // UTF-8 bytes ; pair with len() for codepoints
-is_empty    :: fn(s: string) -> bool                   // sugar for byte_len() == 0
-byte_slice  :: fn(s: string, start: usize, end: usize) -> string  // byte-indexed substring ; for codepoint slicing use `s[r]`
+is_empty    :: fn(s: string) -> bool                   // sugar for s.bytes().len() == 0
 contains    :: fn(s: string, sub: string) -> bool
 starts_with :: fn(s: string, prefix: string) -> bool
 ends_with   :: fn(s: string, suffix: string) -> bool
@@ -2215,10 +2213,11 @@ len              :: fn(s: string) -> usize                      // codepoint cou
 chars            :: fn(s: string) -> StringChars                // StringChars implements Iterator[char]
 decode_codepoint :: fn(s: string, i: usize) -> [char, usize]    // (codepoint, byte width)
 
-// Byte walkers (raw UTF-8 — for ASCII / binary protocols / BOM detection).
-byte_at        :: fn(s: string, i: usize) -> u8
+// Byte access (raw UTF-8 — for ASCII / binary protocols / BOM detection).
+bytes          :: fn(s: string) -> const u8[]                   // UTF-8 bytes ; zero-copy borrowed view on native, materialised copy on the VM
+as_string      :: fn(bs: const u8[]) -> string                  // inverse of bytes() ; `s.bytes()[lo..<hi].as_string()` is the byte-indexed substring (O(1) on the borrowed view)
 byte_decode_at :: fn(s: string, i: usize) -> char               // decode UTF-8 codepoint at byte offset (for byte-cursor parsers)
-bytes          :: fn(s: string) -> u8[]                         // fresh u8[] copy of the UTF-8 bytes
+decode_codepoint_at :: fn(bs: const u8[], i: usize) -> [char, usize]  // byte-view codepoint decode ; advance a held-view cursor by the returned width
 
 // Indexing helpers. `min_index` / `from` and the result use `isize` so the
 // `-1`-on-miss sentinel stays expressible without a `usize | null`.

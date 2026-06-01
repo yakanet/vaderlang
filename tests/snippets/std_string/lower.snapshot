@@ -114,13 +114,21 @@
       arg0:
         call :string
           callee:
-            byte_slice :string
+            as_string :string
           arg0:
-            "hello world" :string
-          arg1:
-            int(6) :usize
-          arg2:
-            int(11) :usize
+            slice :const u8[]
+              on:
+                call :const u8[]
+                  callee:
+                    bytes :const u8[]
+                  arg0:
+                    "hello world" :string
+              lo:
+                cast → usize
+                  int(6) :i32
+              hi:
+                cast → usize
+                  int(11) :i32
     call :void
       callee:
         println :void

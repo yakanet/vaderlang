@@ -111,6 +111,12 @@
               r:
                 int(1) :usize
     let bom: string = "﻿data" :string
+    let bb: const u8[] =
+      call :const u8[]
+        callee:
+          bytes :const u8[]
+        arg0:
+          bom :string
     call :void
       callee:
         println :void
@@ -128,37 +134,31 @@
             "b0=" :string
           @builder.append_display <for u8> :void
             __sb_8 :?
-            call :u8
-              callee:
-                byte_at :u8
-              arg0:
-                bom :string
-              arg1:
-                int(0) :usize
+            index :u8
+              on:
+                bb :const u8[]
+              ix:
+                int(0) :i32
           @builder.append_str :void
             __sb_8 :?
             " b1=" :string
           @builder.append_display <for u8> :void
             __sb_8 :?
-            call :u8
-              callee:
-                byte_at :u8
-              arg0:
-                bom :string
-              arg1:
-                int(1) :usize
+            index :u8
+              on:
+                bb :const u8[]
+              ix:
+                int(1) :i32
           @builder.append_str :void
             __sb_8 :?
             " b2=" :string
           @builder.append_display <for u8> :void
             __sb_8 :?
-            call :u8
-              callee:
-                byte_at :u8
-              arg0:
-                bom :string
-              arg1:
-                int(2) :usize
+            index :u8
+              on:
+                bb :const u8[]
+              ix:
+                int(2) :i32
           ~>
             @builder.finish :string
               __sb_8 :?
@@ -174,25 +174,25 @@
             "after bom: " :string
           @builder.append_display <for u8> :void
             __sb_9 :?
-            call :u8
-              callee:
-                byte_at :u8
-              arg0:
-                bom :string
-              arg1:
-                int(3) :usize
+            index :u8
+              on:
+                bb :const u8[]
+              ix:
+                int(3) :i32
           @builder.append_str :void
             __sb_9 :?
             "=" :string
           @builder.append_display <for u8> :void
             __sb_9 :?
-            call :u8
-              callee:
-                byte_at :u8
-              arg0:
-                "d" :string
-              arg1:
-                int(0) :usize
+            index :u8
+              on:
+                call :const u8[]
+                  callee:
+                    bytes :const u8[]
+                  arg0:
+                    "d" :string
+              ix:
+                int(0) :i32
           ~>
             @builder.finish :string
               __sb_9 :?

@@ -874,15 +874,14 @@ function importShim(ctx: EmitCtx, imp: BcImport, idx: number): string | null {
     case "std_io$read_stdin":
       return `${head} { return vader_read_stdin(a0, ${tagOrTrap(ctx, "string")}, ${tagOrTrap(ctx, "error")}); }`;
 
+    // Internal fold target (`s.bytes().len()` lowers to this). Kept though the
+    // public byte_len export was removed — the fold resolves it by symbol.
     case "std_string$byte_len":    return `${head} { return vader_string_byte_len(a0); }`;
-    case "std_string$byte_slice":  return `${head} { return vader_string_slice(a0, a1, a2); }`;
     // `string implements Index(usize, char)` is `@intrinsic`-impl in std/core ;
     // the host provides the body under the impl-method mangled name.
-    // Indexes by codepoint ; for byte access use `byte_at` / `byte_decode_at`.
+    // Indexes by codepoint ; for byte access use `bytes()`.
     case "std_core$string$Index$at":
       return `${head} { return vader_string_codepoint_at(a0, a1); }`;
-    case "std_string$byte_at":
-      return `${head} { return vader_string_byte_at(a0, a1); }`;
     case "std_string$bytes": {
       // Zero-copy `const u8[]` view aliasing the string's interned bytes.
       // `const u8[]` and `u8[]` intern to the same BcType (immutability is a

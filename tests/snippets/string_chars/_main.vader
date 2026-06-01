@@ -1,7 +1,7 @@
 module "snippet"
 
 import "std/io" { println }
-import "std/string" { chars, byte_len }
+import "std/string" { chars, bytes }
 
 main :: fn() -> i32 {
     // ASCII path : 5 codepoints, 5 bytes.
@@ -21,7 +21,7 @@ main :: fn() -> i32 {
     for c in "héllo".chars() {
         n = n + 1
     }
-    println("codepoints=${n} bytes=${byte_len("héllo")}")
+    println("codepoints=${n} bytes=${"héllo".bytes().len()}")
 
     // Empty string : zero iterations.
     println("-- empty --")
