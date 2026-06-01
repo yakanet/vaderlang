@@ -10,7 +10,7 @@
 
 module "std/json"
 
-import "std/string" { byte_at, byte_decode_at, byte_len, byte_slice, parse_float, pad_start, is_digit, is_white_char, chars }
+import "std/string" { bytes, from_utf8, decode_char_at, parse_float, pad_start, is_digit, is_white_char, chars }
 import "std/iter" { zip }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char, append_repeated }
 import "std/collections" { MutableMap, len, keys, values }
@@ -61,12 +61,14 @@ JsonError implements Error {
 
 Parser :: struct {
     src: string
+    // Byte view of `src`, held once so the scan never re-fetches it.
+    bytes: const u8[]
     pos: usize
     eof: usize
 }
 
 new_parser :: fn(s: string) -> Parser {
-    return Parser { .src = s, .pos = 0, .eof = s.byte_len() }
+    return Parser { .src = s, .bytes = s.bytes(), .pos = 0, .eof = s.bytes().len() }
 }
 
 at_end :: fn(p: Parser) -> bool {
@@ -77,7 +79,7 @@ peek_byte :: fn(p: Parser) -> char {
     if p.pos >= p.eof {
         return '\0'
     }
-    return p.src.byte_decode_at(p.pos)
+    return p.bytes.decode_char_at(p.pos)
 }
 
 advance :: fn(p: Parser) -> void {
@@ -110,13 +112,14 @@ expect_byte :: fn(p: Parser, expected: char) -> JsonError | null {
 }
 
 match_keyword :: fn(p: Parser, kw: string) -> bool {
-    n := kw.byte_len()
+    kb :: kw.bytes()
+    n :: kb.len()
     if p.pos + n > p.eof {
         return false
     }
     // Byte-level keyword match (JSON keywords `true`/`false`/`null` are ASCII).
     for i in 0..<n {
-        if p.src.byte_at(p.pos + i) != kw.byte_at(i) {
+        if p.bytes[p.pos + i] != kb[i] {
             return false
         }
     }
@@ -207,7 +210,7 @@ parse_number :: fn(p: Parser) -> JsonNumber | JsonError {
             advance(p)
         }
     }
-    raw := p.src.byte_slice(start, p.pos)
+    raw := p.bytes[start..<p.pos].from_utf8()
     parsed := raw.parse_float()
     match parsed {
         is f64 -> {
@@ -235,14 +238,14 @@ parse_string :: fn(p: Parser) -> string | JsonError {
     start :: p.pos
     scan: usize = p.pos
     for scan < p.eof {
-        b :: p.src.byte_at(scan)
+        b :: p.bytes[scan]
         if b == b'"' {
             p.pos = scan + usize(1)
-            return p.src.byte_slice(start, scan)
+            return p.bytes[start..<scan].from_utf8()
         }
         if b == b'\\' {
             sb :: new_builder()
-            sb.append(p.src.byte_slice(start, scan))
+            sb.append(p.bytes[start..<scan].from_utf8())
             p.pos = scan
             return parse_string_with_escapes(p, sb)
         }
@@ -300,7 +303,7 @@ parse_string_with_escapes :: fn(p: Parser, sb: StringBuilder) -> string | JsonEr
                 cp := 0
                 k: usize = 0
                 for k < 4 {
-                    d := hex_digit_value(p.src.byte_decode_at(p.pos + k))
+                    d := hex_digit_value(p.bytes.decode_char_at(p.pos + k))
                     if d < 0 {
                         return fail(p, "invalid hex digit in \\u escape")
                     }
