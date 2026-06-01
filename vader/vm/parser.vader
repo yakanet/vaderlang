@@ -46,8 +46,8 @@ ParserState :: struct {
 
 /// Strip a trailing `; ...` comment (the .virt format glues a source-
 /// span annotation after every op). The semicolon never appears inside
-/// an op payload today, so a first-occurrence split is correct. Uses
-/// `index_of` + `byte_slice` to avoid allocating a segment array per line.
+/// an op payload today, so a first-occurrence split is correct. Walks a
+/// held `bytes()` view + slices to avoid allocating a segment array per line.
 ///
 /// @param line  one full line of the .virt source.
 /// @return      the line with its trailing comment removed, also trimmed
@@ -1046,7 +1046,7 @@ parse_op_line :: fn(cleaned: string, head: string) -> Op | null {
             suffix :: head.bytes()[usize(dot) + 1..<head.bytes().len()].as_string()
 
             if suffix == "const" && is_int {
-                value_off :: head.bytes().len() + usize(1)
+                value_off :: head.bytes().len() + 1
                 if value_off >= cleaned.bytes().len() { return null }
                 return parse_int_const_text(cleaned.bytes()[value_off..<cleaned.bytes().len()].as_string().trim())
             }
@@ -1323,8 +1323,8 @@ parse_int_after_prefix :: fn(line: string, prefix: string) -> i32 | null {
 /// @return         the `Convert` op carrying the target tag.
 parse_convert :: fn(cleaned: string) -> Op {
     dot :: cleaned.index_of('.', 0)
-    prefix :: cleaned.bytes()[usize(0)..<usize(dot)].as_string()
-    suffix :: cleaned.bytes()[usize(dot) + 1 + usize(3)..<cleaned.bytes().len()].as_string()
+    prefix :: cleaned.bytes()[0..<usize(dot)].as_string()
+    suffix :: cleaned.bytes()[usize(dot) + 1 + 3..<cleaned.bytes().len()].as_string()
     return Convert { .from_name = prefix, .target = convert_target_of(suffix) }
 }
 

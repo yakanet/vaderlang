@@ -90,7 +90,7 @@ parse_inner :: fn(args: string[], specs: FlagSpec[], strict: bool) -> ParsedArgs
         // a `--name=a=b` value would surface as `parts.len() > 2`, which
         // we collapse by rejoining at MVP scope-out.
         ab :: a.bytes()
-        rest :: ab[usize(2)..<ab.len()].as_string()
+        rest :: ab[2..<ab.len()].as_string()
         parts :: rest.split("=")
         name :: parts[0]
         has_value :: parts.len() >= 2

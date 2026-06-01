@@ -1544,16 +1544,16 @@ fn 18 std_time$parse_iso8601 (string) -> ref
   local minutes i64
   local seconds_part i64
   local ms_part i64
-  local $len_113 usize
+  local $len_112 usize
   local and_res bool
-  local $idx_116 u8
-  local $len_128 usize
+  local $idx_115 u8
+  local $len_126 usize
   local and_res bool
   local and_res bool
-  local $idx_137 u8
-  local $mul_143 i64
-  local $idx_144 u8
-  local $cast_147 i64
+  local $idx_135 u8
+  local $mul_141 i64
+  local $idx_142 u8
+  local $cast_145 i64
   local.get 0
   call.import 4
   local.tee 1

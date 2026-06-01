@@ -1357,10 +1357,10 @@ end
 fn 61 std_string$decode_char_at (ref,usize) -> char
   local n usize
   local b u8
-  local $add_30 usize
+  local $add_28 usize
   local b1 u8
-  local $cast_33 u32
-  local $cast_40 u32
+  local $cast_31 u32
+  local $cast_38 u32
   local b2 u8
   local b3 u8
   local.get 0

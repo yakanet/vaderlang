@@ -83,23 +83,23 @@ export sha256 :: fn(input: string) -> string {
         block_offset :: block_idx * usize(64)
         w: u32[] = []
         i: usize = 0
-        for i < usize(16) {
-            b0 :: u32(msg[block_offset + i * usize(4) + usize(0)])
-            b1 :: u32(msg[block_offset + i * usize(4) + usize(1)])
-            b2 :: u32(msg[block_offset + i * usize(4) + usize(2)])
-            b3 :: u32(msg[block_offset + i * usize(4) + usize(3)])
+        for i < 16 {
+            b0 :: u32(msg[block_offset + i * usize(4) + 0])
+            b1 :: u32(msg[block_offset + i * usize(4) + 1])
+            b2 :: u32(msg[block_offset + i * usize(4) + 2])
+            b3 :: u32(msg[block_offset + i * usize(4) + 3])
             w.push(mask32((b0 << u32(24)) | (b1 << u32(16)) | (b2 << u32(8)) | b3))
-            i = i + usize(1)
+            i = i + 1
         }
         // Message schedule W[16..63]
         j: usize = 16
-        for j < usize(64) {
-            w_jm15 :: w[j - usize(15)]
-            w_jm2  :: w[j - usize(2)]
+        for j < 64 {
+            w_jm15 :: w[j - 15]
+            w_jm2  :: w[j - 2]
             s0 :: rotr32(w_jm15, u32(7)) ^ rotr32(w_jm15, u32(18)) ^ (w_jm15 >> u32(3))
             s1 :: rotr32(w_jm2,  u32(17)) ^ rotr32(w_jm2,  u32(19)) ^ (w_jm2  >> u32(10))
-            w.push(mask32(w[j - usize(16)] + s0 + w[j - usize(7)] + s1))
-            j = j + usize(1)
+            w.push(mask32(w[j - 16] + s0 + w[j - 7] + s1))
+            j = j + 1
         }
 
         a := h0
@@ -112,7 +112,7 @@ export sha256 :: fn(input: string) -> string {
         h := h7
 
         t: usize = 0
-        for t < usize(64) {
+        for t < 64 {
             sig1 :: rotr32(e, u32(6)) ^ rotr32(e, u32(11)) ^ rotr32(e, u32(25))
             ch_efg :: (e & f) ^ (mask32(~e) & g)
             t1 :: mask32(h + sig1 + ch_efg + SHA256_K[t] + w[t])
@@ -129,7 +129,7 @@ export sha256 :: fn(input: string) -> string {
             b = a
             a = mask32(t1 + t2)
 
-            t = t + usize(1)
+            t = t + 1
         }
 
         h0 = mask32(h0 + a)
@@ -140,7 +140,7 @@ export sha256 :: fn(input: string) -> string {
         h5 = mask32(h5 + f)
         h6 = mask32(h6 + g)
         h7 = mask32(h7 + h)
-        block_idx = block_idx + usize(1)
+        block_idx = block_idx + 1
     }
 
     sb := new_builder()
@@ -189,7 +189,7 @@ pad_sha256 :: fn(input: string) -> u8[] {
     i: usize = 0
     for i < n {
         out.push(ib[i])
-        i = i + usize(1)
+        i = i + 1
     }
     out.push(u8(0x80))
     for out.len() % usize(64) != usize(56) {
@@ -228,13 +228,13 @@ export md5 :: fn(input: string) -> string {
         block_offset :: block_idx * usize(64)
         m: u32[] = []
         i: usize = 0
-        for i < usize(16) {
-            b0 :: u32(msg[block_offset + i * usize(4) + usize(0)])
-            b1 :: u32(msg[block_offset + i * usize(4) + usize(1)])
-            b2 :: u32(msg[block_offset + i * usize(4) + usize(2)])
-            b3 :: u32(msg[block_offset + i * usize(4) + usize(3)])
+        for i < 16 {
+            b0 :: u32(msg[block_offset + i * usize(4) + 0])
+            b1 :: u32(msg[block_offset + i * usize(4) + 1])
+            b2 :: u32(msg[block_offset + i * usize(4) + 2])
+            b3 :: u32(msg[block_offset + i * usize(4) + 3])
             m.push(mask32(b0 | (b1 << u32(8)) | (b2 << u32(16)) | (b3 << u32(24))))
-            i = i + usize(1)
+            i = i + 1
         }
 
         a := a0
@@ -243,18 +243,18 @@ export md5 :: fn(input: string) -> string {
         d := d0
 
         j: usize = 0
-        for j < usize(64) {
+        for j < 64 {
             f: u32 = 0
             g: usize = 0
-            if j < usize(16) {
+            if j < 16 {
                 f = (b & c) | (mask32(~b) & d)
                 g = j
-            } else if j < usize(32) {
+            } else if j < 32 {
                 f = (d & b) | (mask32(~d) & c)
-                g = (usize(5) * j + usize(1)) % usize(16)
-            } else if j < usize(48) {
+                g = (usize(5) * j + 1) % usize(16)
+            } else if j < 48 {
                 f = b ^ c ^ d
-                g = (usize(3) * j + usize(5)) % usize(16)
+                g = (usize(3) * j + 5) % usize(16)
             } else {
                 f = c ^ (b | mask32(~d))
                 g = (usize(7) * j) % usize(16)
@@ -264,14 +264,14 @@ export md5 :: fn(input: string) -> string {
             d = c
             c = b
             b = mask32(b + rotl32(tmp, MD5_S[j]))
-            j = j + usize(1)
+            j = j + 1
         }
 
         a0 = mask32(a0 + a)
         b0 = mask32(b0 + b)
         c0 = mask32(c0 + c)
         d0 = mask32(d0 + d)
-        block_idx = block_idx + usize(1)
+        block_idx = block_idx + 1
     }
 
     // Output : a0, b0, c0, d0 as 16 bytes little-endian.
@@ -338,7 +338,7 @@ pad_md5 :: fn(input: string) -> u8[] {
     i: usize = 0
     for i < n {
         out.push(ib[i])
-        i = i + usize(1)
+        i = i + 1
     }
     out.push(u8(0x80))
     for out.len() % usize(64) != usize(56) {

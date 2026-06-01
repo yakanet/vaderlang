@@ -489,7 +489,7 @@ span_contains :: fn(s: Span, line: i32, col: i32) -> bool {
 span_size :: fn(s: Span) -> u64 {
     line_extent :: u64(s.end.line - s.start.line)
     col_extent  :: u64(s.end.column - s.start.column)
-    return (line_extent << usize(16)) + col_extent
+    return (line_extent << 16) + col_extent
 }
 
 import "vader/diagnostics" { Diagnostic, Span }

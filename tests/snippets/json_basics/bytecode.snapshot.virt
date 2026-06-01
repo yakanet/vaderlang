@@ -1969,8 +1969,8 @@ fn 60 std_json$parse_string (ref) -> ref
   local scan usize
   local $field_11 usize
   local b u8
-  local $add_20 usize
-  local $call_30 string
+  local $add_19 usize
+  local $call_29 string
   local.get 0
   char.const 34
   call 54
@@ -3095,10 +3095,10 @@ end
 fn 73 std_string$decode_char_at (ref,usize) -> char
   local n usize
   local b u8
-  local $add_30 usize
+  local $add_28 usize
   local b1 u8
-  local $cast_33 u32
-  local $cast_40 u32
+  local $cast_31 u32
+  local $cast_38 u32
   local b2 u8
   local b3 u8
   local.get 0

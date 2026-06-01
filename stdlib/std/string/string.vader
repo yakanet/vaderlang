@@ -122,20 +122,20 @@ export decode_char_at :: fn(bs: const u8[], i: usize) -> char {
     if b < u8(0xC0) { return char(u32(0xFFFD)) }
     rem :: n - i
     if b < u8(0xE0) {
-        if rem < usize(2) { return char(u32(0)) }
-        b1 :: bs[i + usize(1)]
+        if rem < 2 { return char(u32(0)) }
+        b1 :: bs[i + 1]
         return char(((u32(b) & u32(0x1F)) << u32(6)) + (u32(b1) & u32(0x3F)))
     }
     if b < u8(0xF0) {
-        if rem < usize(3) { return char(u32(0)) }
-        b1 :: bs[i + usize(1)]
-        b2 :: bs[i + usize(2)]
+        if rem < 3 { return char(u32(0)) }
+        b1 :: bs[i + 1]
+        b2 :: bs[i + 2]
         return char(((u32(b) & u32(0x0F)) << u32(12)) + ((u32(b1) & u32(0x3F)) << u32(6)) + (u32(b2) & u32(0x3F)))
     }
-    if rem < usize(4) { return char(u32(0)) }
-    b1 :: bs[i + usize(1)]
-    b2 :: bs[i + usize(2)]
-    b3 :: bs[i + usize(3)]
+    if rem < 4 { return char(u32(0)) }
+    b1 :: bs[i + 1]
+    b2 :: bs[i + 2]
+    b3 :: bs[i + 3]
     return char(((u32(b) & u32(0x07)) << u32(18)) + ((u32(b1) & u32(0x3F)) << u32(12)) + ((u32(b2) & u32(0x3F)) << u32(6)) + (u32(b3) & u32(0x3F)))
 }
 
@@ -334,13 +334,13 @@ byte_find :: fn(s: string, sub: string, from: usize) -> isize {
     subb :: sub.bytes()
     n :: sb.len()
     m :: subb.len()
-    if m == usize(0) { return isize(from) }
+    if m == 0 { return isize(from) }
     if m > n { return -1 }
     last :: n - m
     i := from
     for i <= last {
         if bytes_match_at(sb, i, subb, m) { return isize(i) }
-        i = i + usize(1)
+        i = i + 1
     }
     return -1
 }
@@ -404,11 +404,11 @@ export split :: fn(s: string, sep: string) -> string[] {
     sb :: s.bytes()
     n :: sb.len()
     m :: sep.bytes().len()
-    if m == usize(0) {
+    if m == 0 {
         i := usize(0)
         for i < n {
-            out.push(sb[i..<i + usize(1)].as_string())
-            i = i + usize(1)
+            out.push(sb[i..<i + 1].as_string())
+            i = i + 1
         }
         return out
     }
@@ -430,9 +430,9 @@ export trim :: fn(s: string) -> string {
     sb :: s.bytes()
     n :: sb.len()
     lo := usize(0)
-    for lo < n && is_white_byte(sb[lo]) { lo = lo + usize(1) }
+    for lo < n && is_white_byte(sb[lo]) { lo = lo + 1 }
     hi := n
-    for hi > lo && is_white_byte(sb[hi - usize(1)]) { hi = hi - usize(1) }
+    for hi > lo && is_white_byte(sb[hi - 1]) { hi = hi - 1 }
     return sb[lo..<hi].as_string()
 }
 
@@ -444,7 +444,7 @@ export left_trim :: fn(s: string) -> string {
     sb :: s.bytes()
     n :: sb.len()
     lo := usize(0)
-    for lo < n && is_white_byte(sb[lo]) { lo = lo + usize(1) }
+    for lo < n && is_white_byte(sb[lo]) { lo = lo + 1 }
     return sb[lo..<n].as_string()
 }
 
@@ -455,8 +455,8 @@ export left_trim :: fn(s: string) -> string {
 export right_trim :: fn(s: string) -> string {
     sb :: s.bytes()
     hi := sb.len()
-    for hi > usize(0) && is_white_byte(sb[hi - usize(1)]) { hi = hi - usize(1) }
-    return sb[usize(0)..<hi].as_string()
+    for hi > 0 && is_white_byte(sb[hi - 1]) { hi = hi - 1 }
+    return sb[0..<hi].as_string()
 }
 
 // Codepoint-level uppercase over ASCII + the Latin-1 Supplement letters
@@ -542,10 +542,10 @@ ParseError implements Error {
 export parse_int :: fn(s: string) -> i32 | ParseError {
     bs :: s.bytes()
     n :: bs.len()
-    if n == usize(0) { return ParseError { .msg = "parse_int: empty string" } }
+    if n == 0 { return ParseError { .msg = "parse_int: empty string" } }
     i := usize(0)
     neg := false
-    if bs[usize(0)] == b'-' {
+    if bs[0] == b'-' {
         neg = true
         i = usize(1)
     }
@@ -563,7 +563,7 @@ export parse_int :: fn(s: string) -> i32 | ParseError {
         } else {
             if acc > i64(2147483647) { return ParseError { .msg = "parse_int: overflow" } }
         }
-        i = i + usize(1)
+        i = i + 1
     }
     if neg { return i32(-acc) }
     return i32(acc)
@@ -690,12 +690,12 @@ export decode_escapes :: fn(body: string) -> string {
             i += w
             continue
         }
-        if i + usize(1) >= n {
+        if i + 1 >= n {
             out.append("\\")
             i += usize(1)
             continue
         }
-        next :: bs[i + usize(1)]
+        next :: bs[i + 1]
         if      next == b'n'  { out.append("\n") }
         else if next == b't'  { out.append("\t") }
         else if next == b'r'  { out.append("\r") }
@@ -704,7 +704,7 @@ export decode_escapes :: fn(body: string) -> string {
         else if next == b'0'  { out.append("\0") }
         else {
             // Unknown escape — drop the backslash, copy the following codepoint.
-            [c, w] :: bs.decode_codepoint_at(i + usize(1))
+            [c, w] :: bs.decode_codepoint_at(i + 1)
             out.append_char(c)
             i += usize(1) + w
             continue
@@ -805,7 +805,7 @@ import "std/testing" { assert, assert_eq, assert_close }
     assert_eq(cjk[2], u8(160))
 
     // Slicing a byte view stays a byte view over the same bytes.
-    sl :: "abcde".bytes()[usize(1)..<usize(4)]
+    sl :: "abcde".bytes()[1..<4]
     assert_eq(sl.len(), usize(3))
     assert_eq(sl[0], u8(98))
     assert_eq(sl[1], u8(99))

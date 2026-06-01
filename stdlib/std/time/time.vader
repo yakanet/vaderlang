@@ -271,7 +271,7 @@ expect_byte :: fn(s: string, offset: usize, expected: u8) -> null | TimeError {
 export parse_iso8601 :: fn(s: string) -> Instant | TimeError {
     sb :: s.bytes()
     // Minimum is `1970-01-01T00:00:00Z` — 20 bytes.
-    if sb.len() < usize(20) {
+    if sb.len() < 20 {
         return TimeError { .msg = "iso8601: too short" }
     }
     year   :: parse_digits(s, usize(0),  usize(4))?
@@ -293,7 +293,7 @@ export parse_iso8601 :: fn(s: string) -> Instant | TimeError {
         cursor = cursor + 1
         // Consume up to 3 digits — truncate further fractional detail.
         consumed: usize = 0
-        for consumed < usize(3) && cursor < sb.len() && sb[cursor] >= b'0' && sb[cursor] <= b'9' {
+        for consumed < 3 && cursor < sb.len() && sb[cursor] >= b'0' && sb[cursor] <= b'9' {
             ms_part = ms_part * i64(10) + i64(sb[cursor] - b'0')
             cursor = cursor + 1
             consumed = consumed + 1

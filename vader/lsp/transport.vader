@@ -61,7 +61,7 @@ export read_frame :: fn() -> string | TransportError {
                                 finished = true
                             } else {
                                 if line.starts_with("Content-Length:") {
-                                    raw :: line_bytes[usize(15)..<line_bytes.len()].as_string()
+                                    raw :: line_bytes[15..<line_bytes.len()].as_string()
                                     trimmed :: trim_ascii(raw)
                                     parsed :: trimmed.parse_int()
                                     match parsed {
