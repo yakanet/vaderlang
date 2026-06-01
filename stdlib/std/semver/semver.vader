@@ -27,7 +27,7 @@
 module "std/semver"
 
 import "std/string"         {
-    byte_len, byte_at, byte_slice, is_empty, index_of, starts_with, parse_int,
+    bytes, as_string, is_empty, index_of, starts_with, parse_int,
     trim, split, chars, is_alnum, is_digit, is_white_char, ParseError,
 }
 import "std/string_builder" { StringBuilder, new_builder, append }
@@ -94,13 +94,14 @@ TermOp :: enum { Eq, Lt, Lte, Gt, Gte }
 ///   }
 export parse :: fn(s: string) -> Version | ParseError {
     if s.is_empty() { return ParseError { .msg = "empty version string" } }
-    n :: s.byte_len()
+    sb :: s.bytes()
+    n :: sb.len()
 
     // Locate the build separator `+` first (last occurrence — build
     // identifiers cannot themselves contain `+`).
     plus_pos: usize = n
     for i in 0..<n {
-        if s.byte_at(i) == b'+' { plus_pos = i }
+        if sb[i] == b'+' { plus_pos = i }
     }
 
     // Locate the first `-` that lives in the pre-release slot — i.e.
@@ -110,7 +111,7 @@ export parse :: fn(s: string) -> Version | ParseError {
     dash_pos: usize = plus_pos
     dots_seen: i32 = 0
     for j in 0..<plus_pos {
-        b :: s.byte_at(j)
+        b :: sb[j]
         if b == b'.' { dots_seen += 1 }
         else if b == b'-' && dots_seen >= 2 {
             dash_pos = j
@@ -119,20 +120,21 @@ export parse :: fn(s: string) -> Version | ParseError {
     }
 
     core_end :: if dash_pos < plus_pos { dash_pos } else { plus_pos }
-    core     :: s.byte_slice(0, core_end)
-    pre      :: if dash_pos < plus_pos { s.byte_slice(dash_pos + 1, plus_pos) } else { "" }
-    build    :: if plus_pos < n        { s.byte_slice(plus_pos + 1, n)        } else { "" }
+    core     :: sb[0..<core_end].as_string()
+    pre      :: if dash_pos < plus_pos { sb[dash_pos + 1..<plus_pos].as_string() } else { "" }
+    build    :: if plus_pos < n        { sb[plus_pos + 1..<n].as_string()        } else { "" }
 
     // Core must be M.N.P with exactly three numeric identifiers,
     // each free of leading zeros.
     triple := [i32(0), i32(0), i32(0)]
     fill: usize = 0
     start: usize = 0
-    cn :: core.byte_len()
+    cb :: core.bytes()
+    cn :: cb.len()
     for k in 0..<cn {
-        if core.byte_at(k) == b'.' {
+        if cb[k] == b'.' {
             if fill >= 3 { return ParseError { .msg = "too many '.' in version core" } }
-            piece :: core.byte_slice(start, k)
+            piece :: cb[start..<k].as_string()
             v :: parse_numeric_id(piece)
             match v {
                 is i32        as iv -> { triple[fill] = iv }
@@ -143,7 +145,7 @@ export parse :: fn(s: string) -> Version | ParseError {
         }
     }
     if fill != 2 { return ParseError { .msg = "version core must be M.N.P" } }
-    last_piece :: core.byte_slice(start, cn)
+    last_piece :: cb[start..<cn].as_string()
     last_v :: parse_numeric_id(last_piece)
     match last_v {
         is i32        as iv -> { triple[2] = iv }
@@ -227,7 +229,8 @@ is_all_digits :: fn(s: string) -> bool {
 parse_numeric_id :: fn(s: string) -> i32 | ParseError {
     if s.is_empty()      { return ParseError { .msg = "empty numeric identifier" } }
     if !is_all_digits(s) { return ParseError { .msg = "non-digit in numeric identifier" } }
-    if s.byte_len() > 1 && s.byte_at(0) == b'0' {
+    sb :: s.bytes()
+    if sb.len() > 1 && sb[0] == b'0' {
         return ParseError { .msg = "leading zero in numeric identifier" }
     }
     match parse_int(s) {
@@ -245,24 +248,26 @@ validate_prerelease_id :: fn(id: string) -> string {
         if !is_alnum(c) && c != '-' { return "invalid character in prerelease identifier" }
         if !is_digit(c) { only_digits = false }
     }
-    if only_digits && id.byte_len() > 1 && id.byte_at(0) == b'0' {
+    idb :: id.bytes()
+    if only_digits && idb.len() > 1 && idb[0] == b'0' {
         return "leading zero in numeric prerelease identifier"
     }
     return ""
 }
 
 validate_prerelease :: fn(s: string) -> string {
-    n :: s.byte_len()
+    sb :: s.bytes()
+    n :: sb.len()
     start: usize = 0
     for i in 0..<n {
-        if s.byte_at(i) == b'.' {
-            id :: s.byte_slice(start, i)
+        if sb[i] == b'.' {
+            id :: sb[start..<i].as_string()
             err :: validate_prerelease_id(id)
             if !err.is_empty() { return err }
             start = i + 1
         }
     }
-    return validate_prerelease_id(s.byte_slice(start, n))
+    return validate_prerelease_id(sb[start..<n].as_string())
 }
 
 // Build identifiers : same charset, but leading zeros are allowed
@@ -276,28 +281,31 @@ validate_build_id :: fn(id: string) -> string {
 }
 
 validate_build :: fn(s: string) -> string {
-    n :: s.byte_len()
+    sb :: s.bytes()
+    n :: sb.len()
     start: usize = 0
     for i in 0..<n {
-        if s.byte_at(i) == b'.' {
-            id :: s.byte_slice(start, i)
+        if sb[i] == b'.' {
+            id :: sb[start..<i].as_string()
             err :: validate_build_id(id)
             if !err.is_empty() { return err }
             start = i + 1
         }
     }
-    return validate_build_id(s.byte_slice(start, n))
+    return validate_build_id(sb[start..<n].as_string())
 }
 
 // Lexicographic ASCII byte compare. Used for non-numeric pre-release
 // identifier ordering per §11.
 compare_lex :: fn(a: string, b: string) -> i32 {
-    na :: a.byte_len()
-    nb :: b.byte_len()
+    av :: a.bytes()
+    bv :: b.bytes()
+    na :: av.len()
+    nb :: bv.len()
     common :: if na < nb { na } else { nb }
     for i in 0..<common {
-        ba :: a.byte_at(i)
-        bb :: b.byte_at(i)
+        ba :: av[i]
+        bb :: bv[i]
         if ba < bb { return -1 }
         if ba > bb { return  1 }
     }
@@ -333,8 +341,8 @@ compare_id :: fn(a: string, b: string) -> i32 {
             is ParseError -> {}
         }
         // Fallback : length then lex (both all-digit).
-        na :: a.byte_len()
-        nb :: b.byte_len()
+        na :: a.bytes().len()
+        nb :: b.bytes().len()
         if na < nb { return -1 }
         if na > nb { return  1 }
         return compare_lex(a, b)
@@ -384,19 +392,20 @@ compare_prerelease :: fn(a: string, b: string) -> i32 {
 // empty element ; the caller is expected to filter / trim.
 split_or :: fn(s: string) -> string[] {
     out: string[] = []
-    n :: s.byte_len()
+    sb :: s.bytes()
+    n :: sb.len()
     if n < 2 {
         out.push(s)
         return out
     }
     start: usize = 0
     for i in 0..<(n - 1) {
-        if s.byte_at(i) == b'|' && s.byte_at(i + 1) == b'|' {
-            out.push(s.byte_slice(start, i))
+        if sb[i] == b'|' && sb[i + 1] == b'|' {
+            out.push(sb[start..<i].as_string())
             start = i + 2
         }
     }
-    out.push(s.byte_slice(start, n))
+    out.push(sb[start..<n].as_string())
     return out
 }
 
@@ -405,14 +414,15 @@ split_or :: fn(s: string) -> string[] {
 // which preserves empty pieces).
 split_ws :: fn(s: string) -> string[] {
     out: string[] = []
-    n :: s.byte_len()
+    sb :: s.bytes()
+    n :: sb.len()
     start: usize = 0
     in_word := false
     for i in 0..<n {
-        c :: char(u32(s.byte_at(i)))
+        c :: char(u32(sb[i]))
         if is_white_char(c) {
             if in_word {
-                out.push(s.byte_slice(start, i))
+                out.push(sb[start..<i].as_string())
                 in_word = false
             }
         } else {
@@ -422,7 +432,7 @@ split_ws :: fn(s: string) -> string[] {
             }
         }
     }
-    if in_word { out.push(s.byte_slice(start, n)) }
+    if in_word { out.push(sb[start..<n].as_string()) }
     return out
 }
 
@@ -446,16 +456,17 @@ parse_partial :: fn(s: string) -> PartialVersion | ParseError {
     if s.is_empty()      { return ParseError { .msg = "empty version expression" } }
     if s.is_x_token()    { return PartialVersion {} }
 
-    n :: s.byte_len()
+    sb :: s.bytes()
+    n :: sb.len()
     // Locate `+` (last) and the first `-` after two `.`.
     plus_pos: usize = n
     for i in 0..<n {
-        if s.byte_at(i) == b'+' { plus_pos = i }
+        if sb[i] == b'+' { plus_pos = i }
     }
     dash_pos: usize = plus_pos
     dots_seen: i32 = 0
     for j in 0..<plus_pos {
-        b :: s.byte_at(j)
+        b :: sb[j]
         if b == b'.' { dots_seen += 1 }
         else if b == b'-' && dots_seen >= 2 {
             dash_pos = j
@@ -463,9 +474,9 @@ parse_partial :: fn(s: string) -> PartialVersion | ParseError {
         }
     }
     core_end :: if dash_pos < plus_pos { dash_pos } else { plus_pos }
-    core     :: s.byte_slice(0, core_end)
-    pre      :: if dash_pos < plus_pos { s.byte_slice(dash_pos + 1, plus_pos) } else { "" }
-    build    :: if plus_pos < n        { s.byte_slice(plus_pos + 1, n)         } else { "" }
+    core     :: sb[0..<core_end].as_string()
+    pre      :: if dash_pos < plus_pos { sb[dash_pos + 1..<plus_pos].as_string() } else { "" }
+    build    :: if plus_pos < n        { sb[plus_pos + 1..<n].as_string()         } else { "" }
 
     parts :: core.split(".")
     if parts.len() == 0 || parts.len() > 3 {
@@ -645,15 +656,16 @@ parse_token :: fn(t: string) -> RangeTerm[] | ParseError {
     }
     if t.is_x_token() { return expand_xrange(PartialVersion {}) }
     // Primitive comparators ; check longer (`>=` / `<=`) before short.
-    n :: t.byte_len()
-    if n >= 2 && t.byte_at(0) == b'>' && t.byte_at(1) == b'=' {
-        return parse_comparator_token(.Gte, t.byte_slice(2, n))
+    tb :: t.bytes()
+    n :: tb.len()
+    if n >= 2 && tb[0] == b'>' && tb[1] == b'=' {
+        return parse_comparator_token(.Gte, tb[2..<n].as_string())
     }
-    if n >= 2 && t.byte_at(0) == b'<' && t.byte_at(1) == b'=' {
-        return parse_comparator_token(.Lte, t.byte_slice(2, n))
+    if n >= 2 && tb[0] == b'<' && tb[1] == b'=' {
+        return parse_comparator_token(.Lte, tb[2..<n].as_string())
     }
-    b0   :: t.byte_at(0)
-    rest :: t.byte_slice(1, n)
+    b0   :: tb[0]
+    rest :: tb[1..<n].as_string()
     if b0 == b'>' { return parse_comparator_token(.Gt, rest) }
     if b0 == b'<' { return parse_comparator_token(.Lt, rest) }
     if b0 == b'=' { return parse_comparator_token(.Eq, rest) }

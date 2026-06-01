@@ -17,7 +17,7 @@
 module "std/cli"
 
 import "std/collections" { MutableMap }
-import "std/string" { starts_with, byte_slice, byte_len, split }
+import "std/string" { starts_with, bytes, as_string, split }
 
 /// Kind of a flag — controls how a value (if any) is interpreted.
 /// `Bool` flags don't require a `=value` suffix (presence sets `"true"`).
@@ -89,7 +89,8 @@ parse_inner :: fn(args: string[], specs: FlagSpec[], strict: bool) -> ParsedArgs
         // flag accepts one ; today `split("=")` keeps every separator so
         // a `--name=a=b` value would surface as `parts.len() > 2`, which
         // we collapse by rejoining at MVP scope-out.
-        rest :: a.byte_slice(usize(2), a.byte_len())
+        ab :: a.bytes()
+        rest :: ab[usize(2)..<ab.len()].as_string()
         parts :: rest.split("=")
         name :: parts[0]
         has_value :: parts.len() >= 2

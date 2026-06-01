@@ -6,8 +6,8 @@
 // when those land).
 //
 // Pure Vader, zero host imports — WASM-ready as-is. Operates on
-// UTF-8 byte sequences via `byte_at` ; output is the lowercase hex
-// digest, matching the convention of every other tool (openssl,
+// the UTF-8 byte view (`bytes()`) of the input ; output is the
+// lowercase hex digest, matching the convention of every other tool (openssl,
 // shasum, md5sum, GitHub commit hashes…).
 //
 // Both algorithms run in O(n) over the input length and use only
@@ -17,7 +17,7 @@
 
 module "std/crypto"
 
-import "std/string" { byte_len, byte_at }
+import "std/string" { bytes }
 import "std/string_builder" { StringBuilder, new_builder, append_char }
 
 // =========================================================================
@@ -182,12 +182,13 @@ SHA256_K :: [
 // SHA-256 padding : append `0x80`, then zeros until length ≡ 56 mod 64,
 // then the message-length-in-bits as a big-endian 64-bit suffix.
 pad_sha256 :: fn(input: string) -> u8[] {
-    n :: input.byte_len()
+    ib :: input.bytes()
+    n :: ib.len()
     bit_len :: u64(n) * u64(8)
     out: u8[] = []
     i: usize = 0
     for i < n {
-        out.push(input.byte_at(i))
+        out.push(ib[i])
         i = i + usize(1)
     }
     out.push(u8(0x80))
@@ -330,12 +331,13 @@ MD5_K :: [
 // MD5 padding : append `0x80`, then zeros until length ≡ 56 mod 64,
 // then 8-byte little-endian bit length.
 pad_md5 :: fn(input: string) -> u8[] {
-    n :: input.byte_len()
+    ib :: input.bytes()
+    n :: ib.len()
     bit_len :: u64(n) * u64(8)
     out: u8[] = []
     i: usize = 0
     for i < n {
-        out.push(input.byte_at(i))
+        out.push(ib[i])
         i = i + usize(1)
     }
     out.push(u8(0x80))

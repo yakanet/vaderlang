@@ -7,7 +7,7 @@
 
 module "std/time"
 
-import "std/string" { byte_len, byte_at, pad_start }
+import "std/string" { bytes, pad_start }
 import "std/math" { abs }
 
 /// Wall-clock instant — nanoseconds since the Unix epoch (1970-01-01 UTC).
@@ -231,13 +231,14 @@ TimeError implements Error {
 }
 
 parse_digits :: fn(s: string, start: usize, count: usize) -> i64 | TimeError {
-    if start + count > s.byte_len() {
+    sb :: s.bytes()
+    if start + count > sb.len() {
         return TimeError { .msg = "unexpected end of input" }
     }
     acc: i64 = i64(0)
     i: usize = 0
     for i < count {
-        b :: s.byte_at(start + i)
+        b :: sb[start + i]
         if b < b'0' || b > b'9' {
             return TimeError { .msg = "expected digit" }
         }
@@ -248,10 +249,11 @@ parse_digits :: fn(s: string, start: usize, count: usize) -> i64 | TimeError {
 }
 
 expect_byte :: fn(s: string, offset: usize, expected: u8) -> null | TimeError {
-    if offset >= s.byte_len() {
+    sb :: s.bytes()
+    if offset >= sb.len() {
         return TimeError { .msg = "unexpected end of input" }
     }
-    if s.byte_at(offset) != expected {
+    if sb[offset] != expected {
         return TimeError { .msg = "unexpected byte" }
     }
     return null
@@ -267,8 +269,9 @@ expect_byte :: fn(s: string, offset: usize, expected: u8) -> null | TimeError {
 /// @return   the parsed `Instant`.
 /// @error    `TimeError` when `s` doesn't fit the accepted shape.
 export parse_iso8601 :: fn(s: string) -> Instant | TimeError {
+    sb :: s.bytes()
     // Minimum is `1970-01-01T00:00:00Z` — 20 bytes.
-    if s.byte_len() < usize(20) {
+    if sb.len() < usize(20) {
         return TimeError { .msg = "iso8601: too short" }
     }
     year   :: parse_digits(s, usize(0),  usize(4))?
@@ -286,12 +289,12 @@ export parse_iso8601 :: fn(s: string) -> Instant | TimeError {
     // Fractional seconds : optional `.fff` block, then required `Z`.
     cursor: usize = 19
     ms_part: i64 = 0
-    if cursor < s.byte_len() && s.byte_at(cursor) == b'.' {
+    if cursor < sb.len() && sb[cursor] == b'.' {
         cursor = cursor + 1
         // Consume up to 3 digits — truncate further fractional detail.
         consumed: usize = 0
-        for consumed < usize(3) && cursor < s.byte_len() && s.byte_at(cursor) >= b'0' && s.byte_at(cursor) <= b'9' {
-            ms_part = ms_part * i64(10) + i64(s.byte_at(cursor) - b'0')
+        for consumed < usize(3) && cursor < sb.len() && sb[cursor] >= b'0' && sb[cursor] <= b'9' {
+            ms_part = ms_part * i64(10) + i64(sb[cursor] - b'0')
             cursor = cursor + 1
             consumed = consumed + 1
         }
@@ -304,7 +307,7 @@ export parse_iso8601 :: fn(s: string) -> Instant | TimeError {
         }
         ms_part = ms_part * scale
         // Drop any additional fractional digits the caller supplied.
-        for cursor < s.byte_len() && s.byte_at(cursor) >= b'0' && s.byte_at(cursor) <= b'9' {
+        for cursor < sb.len() && sb[cursor] >= b'0' && sb[cursor] <= b'9' {
             cursor = cursor + 1
         }
     }

@@ -94,12 +94,10 @@ string 50 "parse_int: overflow"
 string 51 "\n"
 import 0 to_string std_core$string$Display$to_string (string) -> string
 import 1 byte_len std_string$byte_len (string) -> usize
-import 2 byte_slice std_string$byte_slice (string,usize,usize) -> string
-import 3 byte_at std_string$byte_at (string,usize) -> u8
-import 4 bytes std_string$bytes (string) -> ref
-import 5 as_string std_string$as_string (ref) -> string
-import 6 write std_io$write (i32,string) -> void
-import 7 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> string
+import 2 bytes std_string$bytes (string) -> ref
+import 3 as_string std_string$as_string (ref) -> string
+import 4 write std_io$write (i32,string) -> void
+import 5 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> string
 impl 3 Display
 impl 3 Equals
 impl 3 Comparable
@@ -854,29 +852,30 @@ fn 35 std_core$Range$Contains$contains__char (ref,ref) -> bool
 end
 
 fn 36 std_semver$parse (string) -> ref
+  local sb ref
   local n usize
   local plus_pos usize
   local i usize
-  local $call_10 u8
+  local $idx_12 u8
   local dots_seen i32
   local j usize
   local and_res bool
-  local $k_33 usize
+  local $k_35 usize
   local core string
   local if_res string
   local if_res string
-  local triple ref
+  local cb ref
   local cn usize
   local k usize
   local __scrut_0 ref
   local __sb_1 any
-  local $call_93 string
-  local $k_100 usize
-  local $idx_151 i32
-  local $k_152 i32
-  local $idx_153 i32
-  local $k_154 i32
-  local $idx_155 i32
+  local $k_108 usize
+  local e1 string
+  local $idx_160 i32
+  local $k_161 i32
+  local $idx_162 i32
+  local $k_163 i32
+  local $idx_164 i32
   local.get 0
   call 70
   if $L0 void
@@ -885,185 +884,195 @@ fn 36 std_semver$parse (string) -> ref
     return
   end $L0
   local.get 0
-  call.import 1
+  call.import 2
   local.tee 1
-  local.set 2
-  i64.const 0
+  array.len
+  local.tee 2
   local.set 3
+  i64.const 0
+  local.set 4
   block $L1 void
     loop $L2 void
-      local.get 3
-      local.get 1
+      local.get 4
+      local.get 2
       usize.lt
       if $L3 void
-        local.get 0
-        local.get 3
-        call.import 3
-        local.set 4
+        local.get 1
         local.get 4
+        array.get 33
+        ref.cast 9
+        local.set 5
+        local.get 5
         i32.const 43
         i32.to_u8
         u8.eq
         if $L4 void
-          local.get 3
-          local.set 2
+          local.get 4
+          local.set 3
         else
         end $L4
-        local.get 3
+        local.get 4
         i64.const 1
         i64.to_usize
         usize.add
-        local.set 3
+        local.set 4
         br $L2
       else
       end $L3
     end $L2
   end $L1
-  local.get 2
-  local.set 3
+  local.get 3
+  local.set 4
   i32.const 0
-  local.set 5
-  i64.const 0
   local.set 6
+  i64.const 0
+  local.set 7
   block $L5 void
     loop $L6 void
-      local.get 6
-      local.get 2
+      local.get 7
+      local.get 3
       usize.lt
       if $L7 void
-        local.get 0
-        local.get 6
-        call.import 3
-        local.set 4
-        local.get 4
+        local.get 1
+        local.get 7
+        array.get 33
+        ref.cast 9
+        local.set 5
+        local.get 5
         i32.const 46
         i32.to_u8
         u8.eq
         if $L8 void
-          local.get 5
+          local.get 6
           i32.const 1
           i32.add
-          local.set 5
-          i64.const 1
-          local.set 8
-          local.get 6
-          local.get 8
-          usize.add
           local.set 6
+          i64.const 1
+          local.set 9
+          local.get 7
+          local.get 9
+          usize.add
+          local.set 7
           br $L6
         end $L8
-        local.get 4
+        local.get 5
         i32.const 45
         i32.to_u8
         u8.eq
         if $L9 void
-          local.get 5
+          local.get 6
           i32.const 2
           i32.ge
-          local.set 7
+          local.set 8
         else
           bool.const false
-          local.set 7
+          local.set 8
         end $L9
-        local.get 7
+        local.get 8
         if $L10 void
-          local.get 6
-          local.set 3
+          local.get 7
+          local.set 4
         else
           i64.const 1
-          local.set 8
-          local.get 6
-          local.get 8
+          local.set 9
+          local.get 7
+          local.get 9
           usize.add
-          local.set 6
+          local.set 7
           br $L6
         end $L10
       else
       end $L7
     end $L6
   end $L5
+  local.get 4
   local.get 3
-  local.get 2
   usize.lt
   if $L11 void
-    local.get 3
-    local.set 6
+    local.get 4
+    local.set 7
   else
-    local.get 2
-    local.set 6
+    local.get 3
+    local.set 7
   end $L11
-  local.get 0
+  local.get 1
   i64.const 0
   i64.to_usize
-  local.get 6
-  call.import 2
-  local.set 9
+  local.get 7
+  array.slice 35
+  call.import 3
+  local.set 10
+  local.get 4
+  local.get 3
+  usize.lt
+  if $L12 void
+    local.get 4
+    i64.const 1
+    i64.to_usize
+    usize.add
+    local.set 7
+    local.get 1
+    local.get 7
+    local.get 3
+    array.slice 35
+    call.import 3
+    local.set 11
+  else
+    string.const 8
+    local.set 11
+  end $L12
   local.get 3
   local.get 2
   usize.lt
-  if $L12 void
+  if $L13 void
     local.get 3
     i64.const 1
     i64.to_usize
     usize.add
-    local.set 6
-    local.get 0
-    local.get 6
-    local.get 2
-    call.import 2
-    local.set 10
-  else
-    string.const 8
-    local.set 10
-  end $L12
-  local.get 2
-  local.get 1
-  usize.lt
-  if $L13 void
-    local.get 2
-    i64.const 1
-    i64.to_usize
-    usize.add
-    local.set 6
-    local.get 0
-    local.get 6
+    local.set 7
     local.get 1
-    call.import 2
-    local.set 11
+    local.get 7
+    local.get 2
+    array.slice 35
+    call.import 3
+    local.set 12
   else
     string.const 8
-    local.set 11
+    local.set 12
   end $L13
   i32.const 0
   i32.const 0
   i32.const 0
   array.new 39 3
-  local.set 12
+  local.set 1
   i64.const 0
-  local.set 6
+  local.set 7
   i64.const 0
-  local.set 8
-  local.get 9
-  call.import 1
-  local.set 13
-  i64.const 0
+  local.set 9
+  local.get 10
+  call.import 2
+  local.tee 13
+  array.len
   local.set 14
+  i64.const 0
+  local.set 15
   block $L14 void
     loop $L15 void
+      local.get 15
       local.get 14
-      local.get 13
       usize.lt
       if $L16 void
-        local.get 9
-        local.get 14
-        call.import 3
-        local.set 4
-        local.get 4
+        local.get 13
+        local.get 15
+        array.get 33
+        ref.cast 9
+        local.set 5
+        local.get 5
         i32.const 46
         i32.to_u8
         u8.eq
         if $L17 void
-          local.get 6
+          local.get 7
           i64.const 3
           i64.to_usize
           usize.ge
@@ -1072,54 +1081,55 @@ fn 36 std_semver$parse (string) -> ref
             struct.new 20
             return
           end $L18
+          local.get 13
           local.get 9
-          local.get 8
-          local.get 14
-          call.import 2
+          local.get 15
+          array.slice 35
+          call.import 3
           call 39
-          local.tee 15
+          local.tee 16
           type_check 1
           if $L19 void
-            local.get 15
+            local.get 16
             ref.cast 1
-            local.set 5
-            local.get 12
-            local.get 6
-            local.get 5
-            array.set 39
-            local.get 6
-            i64.const 1
-            i64.to_usize
-            usize.add
             local.set 6
-            local.get 14
+            local.get 1
+            local.get 7
+            local.get 6
+            array.set 39
+            local.get 7
             i64.const 1
             i64.to_usize
             usize.add
-            local.set 8
+            local.set 7
+            local.get 15
+            i64.const 1
+            i64.to_usize
+            usize.add
+            local.set 9
             i64.const 1
             local.set 18
-            local.get 14
+            local.get 15
             local.get 18
             usize.add
-            local.set 14
+            local.set 15
             br $L15
           end $L19
-          local.get 15
+          local.get 16
           type_check 20
           if $L20 void
             intrinsic builder.new
-            local.set 16
-            local.get 16
+            local.set 17
+            local.get 17
             string.const 11
             intrinsic builder.append_str
-            local.get 15
+            local.get 16
             call 80
-            local.set 17
-            local.get 16
+            local.set 10
             local.get 17
+            local.get 10
             intrinsic builder.append_display
-            local.get 16
+            local.get 17
             intrinsic builder.finish
             struct.new 20
             return
@@ -1128,16 +1138,16 @@ fn 36 std_semver$parse (string) -> ref
         end $L17
         i64.const 1
         local.set 18
-        local.get 14
+        local.get 15
         local.get 18
         usize.add
-        local.set 14
+        local.set 15
         br $L15
       else
       end $L16
     end $L15
   end $L14
-  local.get 6
+  local.get 7
   i64.const 2
   i64.to_usize
   usize.ne
@@ -1146,228 +1156,229 @@ fn 36 std_semver$parse (string) -> ref
     struct.new 20
     return
   end $L21
-  local.get 9
-  local.get 8
   local.get 13
-  call.import 2
+  local.get 9
+  local.get 14
+  array.slice 35
+  call.import 3
   call 39
-  local.tee 15
+  local.tee 13
   type_check 1
   if $L22 void
-    local.get 15
+    local.get 13
     ref.cast 1
-    local.set 5
-    local.get 12
+    local.set 6
+    local.get 1
     i32.const 2
-    local.get 5
+    local.get 6
     array.set 39
+    local.get 4
     local.get 3
-    local.get 2
     usize.lt
     if $L23 void
-      local.get 10
+      local.get 11
       call 70
-      local.set 7
+      local.set 8
     else
       bool.const false
-      local.set 7
+      local.set 8
     end $L23
-    local.get 7
+    local.get 8
     if $L24 void
       string.const 13
       struct.new 20
       return
     end $L24
+    local.get 3
     local.get 2
-    local.get 1
     usize.lt
     if $L25 void
-      local.get 11
+      local.get 12
       call 70
-      local.set 7
+      local.set 8
     else
       bool.const false
-      local.set 7
+      local.set 8
     end $L25
-    local.get 7
+    local.get 8
     if $L26 void
       string.const 14
       struct.new 20
       return
     end $L26
-    local.get 10
+    local.get 11
     call 70
     bool.not
     if $L27 void
-      local.get 10
+      local.get 11
       call 41
-      local.tee 17
+      local.tee 19
       call 70
       bool.not
       if $L28 void
-        local.get 17
+        local.get 19
         struct.new 20
         return
       end $L28
-      local.get 11
+      local.get 12
       call 70
       bool.not
       if $L29 void
-        local.get 11
+        local.get 12
         call 43
-        local.tee 17
+        local.tee 19
         call 70
         bool.not
         if $L30 void
-          local.get 17
+          local.get 19
           struct.new 20
           return
         end $L30
         i32.const 0
-        local.set 5
-        local.get 12
-        local.get 5
+        local.set 6
+        local.get 1
+        local.get 6
         array.get 39
         ref.cast 1
-        local.set 19
-        i32.const 1
         local.set 20
-        local.get 12
-        local.get 20
-        array.get 39
-        ref.cast 1
+        i32.const 1
         local.set 21
-        i32.const 2
-        local.set 22
-        local.get 12
-        local.get 22
+        local.get 1
+        local.get 21
         array.get 39
         ref.cast 1
+        local.set 22
+        i32.const 2
         local.set 23
-        local.get 19
-        local.get 21
+        local.get 1
         local.get 23
-        local.get 10
+        array.get 39
+        ref.cast 1
+        local.set 24
+        local.get 20
+        local.get 22
+        local.get 24
         local.get 11
+        local.get 12
         struct.new 3
         return
       end $L29
       i32.const 0
-      local.set 5
-      local.get 12
-      local.get 5
+      local.set 6
+      local.get 1
+      local.get 6
       array.get 39
       ref.cast 1
-      local.set 19
-      i32.const 1
       local.set 20
-      local.get 12
-      local.get 20
-      array.get 39
-      ref.cast 1
+      i32.const 1
       local.set 21
-      i32.const 2
-      local.set 22
-      local.get 12
-      local.get 22
+      local.get 1
+      local.get 21
       array.get 39
       ref.cast 1
+      local.set 22
+      i32.const 2
       local.set 23
-      local.get 19
-      local.get 21
+      local.get 1
       local.get 23
-      local.get 10
+      array.get 39
+      ref.cast 1
+      local.set 24
+      local.get 20
+      local.get 22
+      local.get 24
       local.get 11
+      local.get 12
       struct.new 3
       return
     end $L27
-    local.get 11
+    local.get 12
     call 70
     bool.not
     if $L31 void
-      local.get 11
+      local.get 12
       call 43
-      local.tee 17
+      local.tee 19
       call 70
       bool.not
       if $L32 void
-        local.get 17
+        local.get 19
         struct.new 20
         return
       end $L32
       i32.const 0
-      local.set 5
-      local.get 12
-      local.get 5
+      local.set 6
+      local.get 1
+      local.get 6
       array.get 39
       ref.cast 1
-      local.set 19
-      i32.const 1
       local.set 20
-      local.get 12
-      local.get 20
-      array.get 39
-      ref.cast 1
+      i32.const 1
       local.set 21
-      i32.const 2
-      local.set 22
-      local.get 12
-      local.get 22
+      local.get 1
+      local.get 21
       array.get 39
       ref.cast 1
+      local.set 22
+      i32.const 2
       local.set 23
-      local.get 19
-      local.get 21
+      local.get 1
       local.get 23
-      local.get 10
+      array.get 39
+      ref.cast 1
+      local.set 24
+      local.get 20
+      local.get 22
+      local.get 24
       local.get 11
+      local.get 12
       struct.new 3
       return
     end $L31
     i32.const 0
-    local.set 5
-    local.get 12
-    local.get 5
+    local.set 6
+    local.get 1
+    local.get 6
     array.get 39
     ref.cast 1
-    local.set 19
-    i32.const 1
     local.set 20
-    local.get 12
-    local.get 20
-    array.get 39
-    ref.cast 1
+    i32.const 1
     local.set 21
-    i32.const 2
-    local.set 22
-    local.get 12
-    local.get 22
+    local.get 1
+    local.get 21
     array.get 39
     ref.cast 1
+    local.set 22
+    i32.const 2
     local.set 23
-    local.get 19
-    local.get 21
+    local.get 1
     local.get 23
-    local.get 10
+    array.get 39
+    ref.cast 1
+    local.set 24
+    local.get 20
+    local.get 22
+    local.get 24
     local.get 11
+    local.get 12
     struct.new 3
     return
   end $L22
-  local.get 15
+  local.get 13
   type_check 20
   if $L33 void
     intrinsic builder.new
-    local.set 16
-    local.get 16
+    local.set 17
+    local.get 17
     string.const 11
     intrinsic builder.append_str
-    local.get 15
+    local.get 13
     call 80
-    local.set 9
-    local.get 16
-    local.get 9
+    local.set 10
+    local.get 17
+    local.get 10
     intrinsic builder.append_display
-    local.get 16
+    local.get 17
     intrinsic builder.finish
     struct.new 20
     return
@@ -1489,10 +1500,10 @@ fn 38 std_semver$is_all_digits (string) -> bool
 end
 
 fn 39 std_semver$parse_numeric_id (string) -> ref
-  local $call_8 usize
+  local sb ref
+  local $len_10 usize
   local and_res bool
-  local $call_13 u8
-  local __scrut_0 ref
+  local $idx_15 u8
   local.get 0
   call 70
   if $L0 void
@@ -1509,28 +1520,30 @@ fn 39 std_semver$parse_numeric_id (string) -> ref
     return
   end $L1
   local.get 0
-  call.import 1
-  local.set 1
-  local.get 1
+  call.import 2
+  local.tee 1
+  array.len
+  local.set 2
+  local.get 2
   i64.const 1
   i64.to_usize
   usize.gt
   if $L2 void
-    local.get 0
-    i64.const 0
-    i64.to_usize
-    call.import 3
-    local.set 3
-    local.get 3
+    local.get 1
+    i32.const 0
+    array.get 33
+    ref.cast 9
+    local.set 4
+    local.get 4
     i32.const 48
     i32.to_u8
     u8.eq
-    local.set 2
+    local.set 3
   else
     bool.const false
-    local.set 2
+    local.set 3
   end $L2
-  local.get 2
+  local.get 3
   if $L3 void
     string.const 18
     struct.new 20
@@ -1538,14 +1551,14 @@ fn 39 std_semver$parse_numeric_id (string) -> ref
   end $L3
   local.get 0
   call 81
-  local.tee 4
+  local.tee 1
   type_check 1
   if $L4 void
-    local.get 4
+    local.get 1
     ref.cast 1
     return
   end $L4
-  local.get 4
+  local.get 1
   type_check 20
   if $L5 void
     string.const 19
@@ -1561,10 +1574,11 @@ fn 40 std_semver$validate_prerelease_id (string) -> string
   local __step_1 ref
   local c char
   local and_res bool
+  local idb ref
   local and_res bool
-  local $call_24 usize
+  local $len_26 usize
   local and_res bool
-  local $call_30 u8
+  local $idx_32 u8
   local.get 0
   call 70
   if $L0 void
@@ -1582,37 +1596,40 @@ fn 40 std_semver$validate_prerelease_id (string) -> string
       local.tee 3
       type_check 0
       if $L3 void
+        local.get 0
+        call.import 2
+        local.set 6
         local.get 1
         if $L4 void
-          local.get 0
-          call.import 1
-          local.set 7
-          local.get 7
+          local.get 6
+          array.len
+          local.set 8
+          local.get 8
           i64.const 1
           i64.to_usize
           usize.gt
-          local.set 6
+          local.set 7
         else
           bool.const false
-          local.set 6
+          local.set 7
         end $L4
-        local.get 6
+        local.get 7
         if $L5 void
-          local.get 0
-          i64.const 0
-          i64.to_usize
-          call.import 3
-          local.set 9
-          local.get 9
+          local.get 6
+          i32.const 0
+          array.get 33
+          ref.cast 9
+          local.set 10
+          local.get 10
           i32.const 48
           i32.to_u8
           u8.eq
-          local.set 8
+          local.set 9
         else
           bool.const false
-          local.set 8
+          local.set 9
         end $L5
-        local.get 8
+        local.get 9
         if $L6 void
           return.lit string.const 22
         end $L6
@@ -1652,74 +1669,80 @@ fn 40 std_semver$validate_prerelease_id (string) -> string
 end
 
 fn 41 std_semver$validate_prerelease (string) -> string
+  local sb ref
   local n usize
   local start usize
   local i usize
-  local $call_8 u8
+  local $idx_10 u8
   local err string
-  local $k_19 usize
+  local $k_22 usize
   local.get 0
-  call.import 1
-  local.set 1
-  i64.const 0
+  call.import 2
+  local.tee 1
+  array.len
   local.set 2
   i64.const 0
   local.set 3
+  i64.const 0
+  local.set 4
   block $L0 void
     loop $L1 void
-      local.get 3
-      local.get 1
+      local.get 4
+      local.get 2
       usize.lt
       if $L2 void
-        local.get 0
-        local.get 3
-        call.import 3
-        local.set 4
+        local.get 1
         local.get 4
+        array.get 33
+        ref.cast 9
+        local.set 5
+        local.get 5
         i32.const 46
         i32.to_u8
         u8.eq
         if $L3 void
-          local.get 0
-          local.get 2
+          local.get 1
           local.get 3
-          call.import 2
+          local.get 4
+          array.slice 35
+          call.import 3
           call 40
-          local.tee 5
+          local.tee 6
           call 70
           bool.not
           if $L4 void
-            local.get 5
+            local.get 6
             return
           end $L4
-          local.get 3
+          local.get 4
           i64.const 1
           i64.to_usize
           usize.add
-          local.set 2
-          i64.const 1
-          local.set 6
-          local.get 3
-          local.get 6
-          usize.add
           local.set 3
+          i64.const 1
+          local.set 7
+          local.get 4
+          local.get 7
+          usize.add
+          local.set 4
           br $L1
         end $L3
         i64.const 1
-        local.set 6
-        local.get 3
-        local.get 6
+        local.set 7
+        local.get 4
+        local.get 7
         usize.add
-        local.set 3
+        local.set 4
         br $L1
       else
       end $L2
     end $L1
   end $L0
-  local.get 0
-  local.get 2
   local.get 1
-  call.import 2
+  local.get 3
+  local.get 2
+  array.slice 35
+  call.import 3
   call 40
   return
 end
@@ -1772,79 +1795,87 @@ fn 42 std_semver$validate_build_id (string) -> string
 end
 
 fn 43 std_semver$validate_build (string) -> string
+  local sb ref
   local n usize
   local start usize
   local i usize
-  local $call_8 u8
+  local $idx_10 u8
   local err string
-  local $k_19 usize
+  local $k_22 usize
   local.get 0
-  call.import 1
-  local.set 1
-  i64.const 0
+  call.import 2
+  local.tee 1
+  array.len
   local.set 2
   i64.const 0
   local.set 3
+  i64.const 0
+  local.set 4
   block $L0 void
     loop $L1 void
-      local.get 3
-      local.get 1
+      local.get 4
+      local.get 2
       usize.lt
       if $L2 void
-        local.get 0
-        local.get 3
-        call.import 3
-        local.set 4
+        local.get 1
         local.get 4
+        array.get 33
+        ref.cast 9
+        local.set 5
+        local.get 5
         i32.const 46
         i32.to_u8
         u8.eq
         if $L3 void
-          local.get 0
-          local.get 2
+          local.get 1
           local.get 3
-          call.import 2
+          local.get 4
+          array.slice 35
+          call.import 3
           call 42
-          local.tee 5
+          local.tee 6
           call 70
           bool.not
           if $L4 void
-            local.get 5
+            local.get 6
             return
           end $L4
-          local.get 3
+          local.get 4
           i64.const 1
           i64.to_usize
           usize.add
-          local.set 2
-          i64.const 1
-          local.set 6
-          local.get 3
-          local.get 6
-          usize.add
           local.set 3
+          i64.const 1
+          local.set 7
+          local.get 4
+          local.get 7
+          usize.add
+          local.set 4
           br $L1
         end $L3
         i64.const 1
-        local.set 6
-        local.get 3
-        local.get 6
+        local.set 7
+        local.get 4
+        local.get 7
         usize.add
-        local.set 3
+        local.set 4
         br $L1
       else
       end $L2
     end $L1
   end $L0
-  local.get 0
-  local.get 2
   local.get 1
-  call.import 2
+  local.get 3
+  local.get 2
+  array.slice 35
+  call.import 3
   call 42
   return
 end
 
 fn 44 std_semver$compare_lex (string,string) -> i32
+  local av ref
+  local bv ref
   local na usize
   local nb usize
   local if_res usize
@@ -1852,71 +1883,79 @@ fn 44 std_semver$compare_lex (string,string) -> i32
   local ba u8
   local bb u8
   local.get 0
-  call.import 1
+  call.import 2
   local.set 2
   local.get 1
-  call.import 1
+  call.import 2
   local.set 3
   local.get 2
+  array.len
+  local.set 4
   local.get 3
+  array.len
+  local.set 5
+  local.get 4
+  local.get 5
   usize.lt
   if $L0 void
-    local.get 2
-    local.set 4
+    local.get 4
+    local.set 6
   else
-    local.get 3
-    local.set 4
+    local.get 5
+    local.set 6
   end $L0
   i64.const 0
-  local.set 5
+  local.set 7
   block $L1 void
     loop $L2 void
-      local.get 5
-      local.get 4
+      local.get 7
+      local.get 6
       usize.lt
       if $L3 void
-        local.get 0
-        local.get 5
-        call.import 3
-        local.set 6
-        local.get 1
-        local.get 5
-        call.import 3
-        local.set 7
-        local.get 6
+        local.get 2
         local.get 7
+        array.get 33
+        ref.cast 9
+        local.set 8
+        local.get 3
+        local.get 7
+        array.get 33
+        ref.cast 9
+        local.set 9
+        local.get 8
+        local.get 9
         u8.lt
         if $L4 void
           i32.const 1
           i32.neg
           return
         end $L4
-        local.get 6
-        local.get 7
+        local.get 8
+        local.get 9
         u8.gt
         if $L5 void
           return.lit i32.const 1
         end $L5
-        local.get 5
+        local.get 7
         i64.const 1
         i64.to_usize
         usize.add
-        local.set 5
+        local.set 7
         br $L2
       else
       end $L3
     end $L2
   end $L1
-  local.get 2
-  local.get 3
+  local.get 4
+  local.get 5
   usize.lt
   if $L6 void
     i32.const 1
     i32.neg
     return
   end $L6
-  local.get 2
-  local.get 3
+  local.get 4
+  local.get 5
   usize.gt
   if $L7 void
     return.lit i32.const 1
@@ -2296,21 +2335,24 @@ end
 
 fn 48 std_semver$split_or (string) -> ref
   local out ref
+  local sb ref
   local n usize
   local start usize
   local __for_hi_0 usize
   local i usize
-  local $call_15 u8
+  local $idx_17 u8
   local and_res bool
-  local $add_20 usize
-  local $call_21 u8
-  local $call_25 string
+  local $add_22 usize
+  local $idx_23 u8
+  local $call_28 string
   array.new 24 0
   local.set 1
   local.get 0
-  call.import 1
-  local.set 2
-  local.get 2
+  call.import 2
+  local.tee 2
+  array.len
+  local.set 3
+  local.get 3
   i64.const 2
   i64.to_usize
   usize.lt
@@ -2322,81 +2364,85 @@ fn 48 std_semver$split_or (string) -> ref
     return
   end $L0
   i64.const 0
-  local.set 3
-  local.get 2
+  local.set 4
+  local.get 3
   i64.const 1
   i64.to_usize
   usize.sub
-  local.set 4
-  i64.const 0
   local.set 5
+  i64.const 0
+  local.set 6
   block $L1 void
     loop $L2 void
+      local.get 6
       local.get 5
-      local.get 4
       usize.lt
       if $L3 void
-        local.get 0
-        local.get 5
-        call.import 3
-        local.set 6
+        local.get 2
         local.get 6
+        array.get 33
+        ref.cast 9
+        local.set 7
+        local.get 7
         i32.const 124
         i32.to_u8
         u8.eq
         if $L4 void
-          local.get 5
+          local.get 6
           i64.const 1
           i64.to_usize
           usize.add
-          local.set 8
-          local.get 0
-          local.get 8
-          call.import 3
           local.set 9
+          local.get 2
           local.get 9
+          array.get 33
+          ref.cast 9
+          local.set 10
+          local.get 10
           i32.const 124
           i32.to_u8
           u8.eq
-          local.set 7
+          local.set 8
         else
           bool.const false
-          local.set 7
+          local.set 8
         end $L4
-        local.get 7
+        local.get 8
         if $L5 void
-          local.get 0
-          local.get 3
-          local.get 5
-          call.import 2
-          local.set 10
+          local.get 2
+          local.get 4
+          local.get 6
+          array.slice 35
+          call.import 3
+          local.set 11
           local.get 1
-          local.get 10
+          local.get 11
           array.push 2
-          local.get 5
+          local.get 6
           i64.const 2
           i64.to_usize
           usize.add
-          local.set 3
+          local.set 4
         else
         end $L5
-        local.get 5
+        local.get 6
         i64.const 1
         i64.to_usize
         usize.add
-        local.set 5
+        local.set 6
         br $L2
       else
       end $L3
     end $L2
   end $L1
-  local.get 0
-  local.get 3
   local.get 2
-  call.import 2
-  local.set 10
+  local.get 4
+  local.get 3
+  array.slice 35
+  call.import 3
+  local.set 11
   local.get 1
-  local.get 10
+  local.get 11
   array.push 2
   local.get 1
   return
@@ -2404,79 +2450,85 @@ end
 
 fn 49 std_semver$split_ws (string) -> ref
   local out ref
+  local sb ref
   local n usize
   local start usize
   local in_word bool
   local i usize
-  local $call_17 string
+  local $call_20 string
   array.new 24 0
   local.set 1
   local.get 0
-  call.import 1
-  local.set 2
-  i64.const 0
+  call.import 2
+  local.tee 2
+  array.len
   local.set 3
-  bool.const false
-  local.set 4
   i64.const 0
+  local.set 4
+  bool.const false
   local.set 5
+  i64.const 0
+  local.set 6
   block $L0 void
     loop $L1 void
-      local.get 5
-      local.get 2
+      local.get 6
+      local.get 3
       usize.lt
       if $L2 void
-        local.get 0
-        local.get 5
-        call.import 3
+        local.get 2
+        local.get 6
+        array.get 33
+        ref.cast 9
         u8.to_u32
         u32.to_char
         call 82
         if $L3 void
-          local.get 4
+          local.get 5
           if $L4 void
-            local.get 0
-            local.get 3
-            local.get 5
-            call.import 2
-            local.set 6
-            local.get 1
+            local.get 2
+            local.get 4
             local.get 6
+            array.slice 35
+            call.import 3
+            local.set 7
+            local.get 1
+            local.get 7
             array.push 2
             bool.const false
-            local.set 4
+            local.set 5
           else
           end $L4
         else
-          local.get 4
+          local.get 5
           bool.not
           if $L5 void
-            local.get 5
-            local.set 3
-            bool.const true
+            local.get 6
             local.set 4
+            bool.const true
+            local.set 5
           else
           end $L5
         end $L3
-        local.get 5
+        local.get 6
         i64.const 1
         i64.to_usize
         usize.add
-        local.set 5
+        local.set 6
         br $L1
       else
       end $L2
     end $L1
   end $L0
-  local.get 4
+  local.get 5
   if $L6 void
-    local.get 0
-    local.get 3
     local.get 2
-    call.import 2
-    local.set 6
+    local.get 4
+    local.get 3
+    array.slice 35
+    call.import 3
+    local.set 7
     local.get 1
-    local.get 6
+    local.get 7
     array.push 2
   else
   end $L6
@@ -2516,33 +2568,33 @@ fn 51 std_semver$parse_partial (string) -> ref
   local $neg_6 i32
   local $neg_8 i32
   local $neg_10 i32
+  local sb ref
   local n usize
   local plus_pos usize
   local i usize
-  local $call_20 u8
+  local $idx_22 u8
   local j usize
   local and_res bool
-  local $k_43 usize
+  local $k_45 usize
   local core string
   local if_res string
   local if_res string
-  local parts ref
   local result ref
   local __scrut_0 ref
   local __sb_1 any
   local __scrut_2 ref
   local e ref
   local __sb_3 any
-  local $k_130 string
-  local $call_131 string
-  local $k_137 i32
-  local $k_141 i32
+  local $k_135 string
+  local $call_136 string
+  local $k_142 i32
+  local $k_146 i32
   local __scrut_4 ref
   local v i32
   local e ref
   local __sb_5 any
-  local $k_153 string
-  local $call_154 string
+  local $k_158 string
+  local $call_159 string
   local e1 string
   local e2 string
   local.get 0
@@ -2573,57 +2625,61 @@ fn 51 std_semver$parse_partial (string) -> ref
     return
   end $L1
   local.get 0
-  call.import 1
+  call.import 2
   local.tee 4
-  local.set 5
-  i64.const 0
+  array.len
+  local.tee 5
   local.set 6
+  i64.const 0
+  local.set 7
   block $L2 void
     loop $L3 void
-      local.get 6
-      local.get 4
+      local.get 7
+      local.get 5
       usize.lt
       if $L4 void
-        local.get 0
-        local.get 6
-        call.import 3
-        local.set 7
+        local.get 4
         local.get 7
+        array.get 33
+        ref.cast 9
+        local.set 8
+        local.get 8
         i32.const 43
         i32.to_u8
         u8.eq
         if $L5 void
-          local.get 6
-          local.set 5
+          local.get 7
+          local.set 6
         else
         end $L5
-        local.get 6
+        local.get 7
         i64.const 1
         i64.to_usize
         usize.add
-        local.set 6
+        local.set 7
         br $L3
       else
       end $L4
     end $L3
   end $L2
-  local.get 5
-  local.set 6
+  local.get 6
+  local.set 7
   i32.const 0
   local.set 1
   i64.const 0
-  local.set 8
+  local.set 9
   block $L6 void
     loop $L7 void
-      local.get 8
-      local.get 5
+      local.get 9
+      local.get 6
       usize.lt
       if $L8 void
-        local.get 0
+        local.get 4
+        local.get 9
+        array.get 33
+        ref.cast 9
+        local.set 8
         local.get 8
-        call.import 3
-        local.set 7
-        local.get 7
         i32.const 46
         i32.to_u8
         u8.eq
@@ -2633,14 +2689,14 @@ fn 51 std_semver$parse_partial (string) -> ref
           i32.add
           local.set 1
           i64.const 1
-          local.set 10
-          local.get 8
-          local.get 10
+          local.set 11
+          local.get 9
+          local.get 11
           usize.add
-          local.set 8
+          local.set 9
           br $L7
         end $L9
-        local.get 7
+        local.get 8
         i32.const 45
         i32.to_u8
         u8.eq
@@ -2648,104 +2704,107 @@ fn 51 std_semver$parse_partial (string) -> ref
           local.get 1
           i32.const 2
           i32.ge
-          local.set 9
+          local.set 10
         else
           bool.const false
-          local.set 9
+          local.set 10
         end $L10
-        local.get 9
+        local.get 10
         if $L11 void
-          local.get 8
-          local.set 6
+          local.get 9
+          local.set 7
         else
           i64.const 1
-          local.set 10
-          local.get 8
-          local.get 10
+          local.set 11
+          local.get 9
+          local.get 11
           usize.add
-          local.set 8
+          local.set 9
           br $L7
         end $L11
       else
       end $L8
     end $L7
   end $L6
+  local.get 7
   local.get 6
-  local.get 5
   usize.lt
   if $L12 void
-    local.get 6
-    local.set 8
+    local.get 7
+    local.set 9
   else
-    local.get 5
-    local.set 8
+    local.get 6
+    local.set 9
   end $L12
-  local.get 0
+  local.get 4
   i64.const 0
   i64.to_usize
-  local.get 8
-  call.import 2
-  local.set 11
+  local.get 9
+  array.slice 35
+  call.import 3
+  local.set 12
+  local.get 7
+  local.get 6
+  usize.lt
+  if $L13 void
+    local.get 7
+    i64.const 1
+    i64.to_usize
+    usize.add
+    local.set 7
+    local.get 4
+    local.get 7
+    local.get 6
+    array.slice 35
+    call.import 3
+    local.set 13
+  else
+    string.const 8
+    local.set 13
+  end $L13
   local.get 6
   local.get 5
   usize.lt
-  if $L13 void
+  if $L14 void
     local.get 6
     i64.const 1
     i64.to_usize
     usize.add
     local.set 6
-    local.get 0
+    local.get 4
     local.get 6
     local.get 5
-    call.import 2
-    local.set 12
+    array.slice 35
+    call.import 3
+    local.set 14
   else
     string.const 8
-    local.set 12
-  end $L13
-  local.get 5
-  local.get 4
-  usize.lt
-  if $L14 void
-    local.get 5
-    i64.const 1
-    i64.to_usize
-    usize.add
-    local.set 5
-    local.get 0
-    local.get 5
-    local.get 4
-    call.import 2
-    local.set 13
-  else
-    string.const 8
-    local.set 13
+    local.set 14
   end $L14
-  local.get 11
+  local.get 12
   string.const 25
   call 78
-  local.tee 14
+  local.tee 4
   array.len
-  local.set 4
-  local.get 4
+  local.set 5
+  local.get 5
   i64.const 0
   i64.to_usize
   usize.eq
   if $L15 void
     bool.const true
-    local.set 9
+    local.set 10
   else
-    local.get 14
-    array.len
-    local.set 4
     local.get 4
+    array.len
+    local.set 5
+    local.get 5
     i64.const 3
     i64.to_usize
     usize.gt
-    local.set 9
+    local.set 10
   end $L15
-  local.get 9
+  local.get 10
   if $L16 void
     string.const 30
     struct.new 20
@@ -2767,22 +2826,22 @@ fn 51 std_semver$parse_partial (string) -> ref
   string.const 8
   struct.new 26
   local.set 15
-  local.get 14
-  array.len
-  local.set 4
   local.get 4
+  array.len
+  local.set 5
+  local.get 5
   i64.const 1
   i64.to_usize
   usize.ge
   if $L17 void
-    local.get 14
+    local.get 4
     i32.const 0
     array.get 24
     ref.cast 2
     call 50
     bool.not
     if $L18 void
-      local.get 14
+      local.get 4
       i32.const 0
       array.get 24
       ref.cast 2
@@ -2796,18 +2855,18 @@ fn 51 std_semver$parse_partial (string) -> ref
         local.get 15
         local.get 1
         struct.set 26 0
-        local.get 14
-        array.len
-        local.set 4
-        i64.const 2
-        local.set 5
         local.get 4
+        array.len
+        local.set 5
+        i64.const 2
+        local.set 6
         local.get 5
+        local.get 6
         usize.ge
         if $L20 void
           i32.const 1
           local.set 1
-          local.get 14
+          local.get 4
           local.get 1
           array.get 24
           ref.cast 2
@@ -2816,7 +2875,7 @@ fn 51 std_semver$parse_partial (string) -> ref
           if $L21 void
             i32.const 1
             local.set 2
-            local.get 14
+            local.get 4
             local.get 2
             array.get 24
             ref.cast 2
@@ -2830,18 +2889,18 @@ fn 51 std_semver$parse_partial (string) -> ref
               local.get 15
               local.get 3
               struct.set 26 1
-              local.get 14
+              local.get 4
               array.len
-              local.set 6
+              local.set 7
               i64.const 3
-              local.set 8
-              local.get 6
-              local.get 8
+              local.set 9
+              local.get 7
+              local.get 9
               usize.ge
               if $L23 void
                 i32.const 2
                 local.set 23
-                local.get 14
+                local.get 4
                 local.get 23
                 array.get 24
                 ref.cast 2
@@ -2850,7 +2909,7 @@ fn 51 std_semver$parse_partial (string) -> ref
                 if $L24 void
                   i32.const 2
                   local.set 24
-                  local.get 14
+                  local.get 4
                   local.get 24
                   array.get 24
                   ref.cast 2
@@ -2864,11 +2923,11 @@ fn 51 std_semver$parse_partial (string) -> ref
                     local.get 15
                     local.get 26
                     struct.set 26 2
-                    local.get 12
+                    local.get 13
                     call 70
                     bool.not
                     if $L26 void
-                      local.get 12
+                      local.get 13
                       call 41
                       local.tee 31
                       call 70
@@ -2879,13 +2938,13 @@ fn 51 std_semver$parse_partial (string) -> ref
                         return
                       end $L27
                       local.get 15
-                      local.get 12
-                      struct.set 26 3
                       local.get 13
+                      struct.set 26 3
+                      local.get 14
                       call 70
                       bool.not
                       if $L28 void
-                        local.get 13
+                        local.get 14
                         call 43
                         local.tee 32
                         call 70
@@ -2896,7 +2955,7 @@ fn 51 std_semver$parse_partial (string) -> ref
                           return
                         end $L29
                         local.get 15
-                        local.get 13
+                        local.get 14
                         struct.set 26 4
                         local.get 15
                         return
@@ -2904,11 +2963,11 @@ fn 51 std_semver$parse_partial (string) -> ref
                       local.get 15
                       return
                     end $L26
-                    local.get 13
+                    local.get 14
                     call 70
                     bool.not
                     if $L30 void
-                      local.get 13
+                      local.get 14
                       call 43
                       local.tee 32
                       call 70
@@ -2919,7 +2978,7 @@ fn 51 std_semver$parse_partial (string) -> ref
                         return
                       end $L31
                       local.get 15
-                      local.get 13
+                      local.get 14
                       struct.set 26 4
                       local.get 15
                       return
@@ -2952,11 +3011,11 @@ fn 51 std_semver$parse_partial (string) -> ref
                   end $L32
                   unreachable
                 end $L24
-                local.get 12
+                local.get 13
                 call 70
                 bool.not
                 if $L33 void
-                  local.get 12
+                  local.get 13
                   call 41
                   local.tee 31
                   call 70
@@ -2967,13 +3026,13 @@ fn 51 std_semver$parse_partial (string) -> ref
                     return
                   end $L34
                   local.get 15
-                  local.get 12
-                  struct.set 26 3
                   local.get 13
+                  struct.set 26 3
+                  local.get 14
                   call 70
                   bool.not
                   if $L35 void
-                    local.get 13
+                    local.get 14
                     call 43
                     local.tee 32
                     call 70
@@ -2984,7 +3043,7 @@ fn 51 std_semver$parse_partial (string) -> ref
                       return
                     end $L36
                     local.get 15
-                    local.get 13
+                    local.get 14
                     struct.set 26 4
                     local.get 15
                     return
@@ -2992,11 +3051,11 @@ fn 51 std_semver$parse_partial (string) -> ref
                   local.get 15
                   return
                 end $L33
-                local.get 13
+                local.get 14
                 call 70
                 bool.not
                 if $L37 void
-                  local.get 13
+                  local.get 14
                   call 43
                   local.tee 32
                   call 70
@@ -3007,7 +3066,7 @@ fn 51 std_semver$parse_partial (string) -> ref
                     return
                   end $L38
                   local.get 15
-                  local.get 13
+                  local.get 14
                   struct.set 26 4
                   local.get 15
                   return
@@ -3015,11 +3074,11 @@ fn 51 std_semver$parse_partial (string) -> ref
                 local.get 15
                 return
               end $L23
-              local.get 12
+              local.get 13
               call 70
               bool.not
               if $L39 void
-                local.get 12
+                local.get 13
                 call 41
                 local.tee 31
                 call 70
@@ -3030,13 +3089,13 @@ fn 51 std_semver$parse_partial (string) -> ref
                   return
                 end $L40
                 local.get 15
-                local.get 12
-                struct.set 26 3
                 local.get 13
+                struct.set 26 3
+                local.get 14
                 call 70
                 bool.not
                 if $L41 void
-                  local.get 13
+                  local.get 14
                   call 43
                   local.tee 32
                   call 70
@@ -3047,7 +3106,7 @@ fn 51 std_semver$parse_partial (string) -> ref
                     return
                   end $L42
                   local.get 15
-                  local.get 13
+                  local.get 14
                   struct.set 26 4
                   local.get 15
                   return
@@ -3055,11 +3114,11 @@ fn 51 std_semver$parse_partial (string) -> ref
                 local.get 15
                 return
               end $L39
-              local.get 13
+              local.get 14
               call 70
               bool.not
               if $L43 void
-                local.get 13
+                local.get 14
                 call 43
                 local.tee 32
                 call 70
@@ -3070,7 +3129,7 @@ fn 51 std_semver$parse_partial (string) -> ref
                   return
                 end $L44
                 local.get 15
-                local.get 13
+                local.get 14
                 struct.set 26 4
                 local.get 15
                 return
@@ -3103,18 +3162,18 @@ fn 51 std_semver$parse_partial (string) -> ref
             end $L45
             unreachable
           end $L21
-          local.get 14
+          local.get 4
           array.len
-          local.set 6
+          local.set 7
           i64.const 3
-          local.set 8
-          local.get 6
-          local.get 8
+          local.set 9
+          local.get 7
+          local.get 9
           usize.ge
           if $L46 void
             i32.const 2
             local.set 23
-            local.get 14
+            local.get 4
             local.get 23
             array.get 24
             ref.cast 2
@@ -3123,7 +3182,7 @@ fn 51 std_semver$parse_partial (string) -> ref
             if $L47 void
               i32.const 2
               local.set 24
-              local.get 14
+              local.get 4
               local.get 24
               array.get 24
               ref.cast 2
@@ -3137,11 +3196,11 @@ fn 51 std_semver$parse_partial (string) -> ref
                 local.get 15
                 local.get 26
                 struct.set 26 2
-                local.get 12
+                local.get 13
                 call 70
                 bool.not
                 if $L49 void
-                  local.get 12
+                  local.get 13
                   call 41
                   local.tee 31
                   call 70
@@ -3152,13 +3211,13 @@ fn 51 std_semver$parse_partial (string) -> ref
                     return
                   end $L50
                   local.get 15
-                  local.get 12
-                  struct.set 26 3
                   local.get 13
+                  struct.set 26 3
+                  local.get 14
                   call 70
                   bool.not
                   if $L51 void
-                    local.get 13
+                    local.get 14
                     call 43
                     local.tee 32
                     call 70
@@ -3169,7 +3228,7 @@ fn 51 std_semver$parse_partial (string) -> ref
                       return
                     end $L52
                     local.get 15
-                    local.get 13
+                    local.get 14
                     struct.set 26 4
                     local.get 15
                     return
@@ -3177,11 +3236,11 @@ fn 51 std_semver$parse_partial (string) -> ref
                   local.get 15
                   return
                 end $L49
-                local.get 13
+                local.get 14
                 call 70
                 bool.not
                 if $L53 void
-                  local.get 13
+                  local.get 14
                   call 43
                   local.tee 32
                   call 70
@@ -3192,7 +3251,7 @@ fn 51 std_semver$parse_partial (string) -> ref
                     return
                   end $L54
                   local.get 15
-                  local.get 13
+                  local.get 14
                   struct.set 26 4
                   local.get 15
                   return
@@ -3225,11 +3284,11 @@ fn 51 std_semver$parse_partial (string) -> ref
               end $L55
               unreachable
             end $L47
-            local.get 12
+            local.get 13
             call 70
             bool.not
             if $L56 void
-              local.get 12
+              local.get 13
               call 41
               local.tee 31
               call 70
@@ -3240,13 +3299,13 @@ fn 51 std_semver$parse_partial (string) -> ref
                 return
               end $L57
               local.get 15
-              local.get 12
-              struct.set 26 3
               local.get 13
+              struct.set 26 3
+              local.get 14
               call 70
               bool.not
               if $L58 void
-                local.get 13
+                local.get 14
                 call 43
                 local.tee 32
                 call 70
@@ -3257,7 +3316,7 @@ fn 51 std_semver$parse_partial (string) -> ref
                   return
                 end $L59
                 local.get 15
-                local.get 13
+                local.get 14
                 struct.set 26 4
                 local.get 15
                 return
@@ -3265,11 +3324,11 @@ fn 51 std_semver$parse_partial (string) -> ref
               local.get 15
               return
             end $L56
-            local.get 13
+            local.get 14
             call 70
             bool.not
             if $L60 void
-              local.get 13
+              local.get 14
               call 43
               local.tee 32
               call 70
@@ -3280,7 +3339,7 @@ fn 51 std_semver$parse_partial (string) -> ref
                 return
               end $L61
               local.get 15
-              local.get 13
+              local.get 14
               struct.set 26 4
               local.get 15
               return
@@ -3288,11 +3347,11 @@ fn 51 std_semver$parse_partial (string) -> ref
             local.get 15
             return
           end $L46
-          local.get 12
+          local.get 13
           call 70
           bool.not
           if $L62 void
-            local.get 12
+            local.get 13
             call 41
             local.tee 31
             call 70
@@ -3303,13 +3362,13 @@ fn 51 std_semver$parse_partial (string) -> ref
               return
             end $L63
             local.get 15
-            local.get 12
-            struct.set 26 3
             local.get 13
+            struct.set 26 3
+            local.get 14
             call 70
             bool.not
             if $L64 void
-              local.get 13
+              local.get 14
               call 43
               local.tee 32
               call 70
@@ -3320,7 +3379,7 @@ fn 51 std_semver$parse_partial (string) -> ref
                 return
               end $L65
               local.get 15
-              local.get 13
+              local.get 14
               struct.set 26 4
               local.get 15
               return
@@ -3328,11 +3387,11 @@ fn 51 std_semver$parse_partial (string) -> ref
             local.get 15
             return
           end $L62
-          local.get 13
+          local.get 14
           call 70
           bool.not
           if $L66 void
-            local.get 13
+            local.get 14
             call 43
             local.tee 32
             call 70
@@ -3343,7 +3402,7 @@ fn 51 std_semver$parse_partial (string) -> ref
               return
             end $L67
             local.get 15
-            local.get 13
+            local.get 14
             struct.set 26 4
             local.get 15
             return
@@ -3351,18 +3410,18 @@ fn 51 std_semver$parse_partial (string) -> ref
           local.get 15
           return
         end $L20
-        local.get 14
+        local.get 4
         array.len
-        local.set 6
+        local.set 7
         i64.const 3
-        local.set 8
-        local.get 6
-        local.get 8
+        local.set 9
+        local.get 7
+        local.get 9
         usize.ge
         if $L68 void
           i32.const 2
           local.set 23
-          local.get 14
+          local.get 4
           local.get 23
           array.get 24
           ref.cast 2
@@ -3371,7 +3430,7 @@ fn 51 std_semver$parse_partial (string) -> ref
           if $L69 void
             i32.const 2
             local.set 24
-            local.get 14
+            local.get 4
             local.get 24
             array.get 24
             ref.cast 2
@@ -3385,11 +3444,11 @@ fn 51 std_semver$parse_partial (string) -> ref
               local.get 15
               local.get 26
               struct.set 26 2
-              local.get 12
+              local.get 13
               call 70
               bool.not
               if $L71 void
-                local.get 12
+                local.get 13
                 call 41
                 local.tee 31
                 call 70
@@ -3400,13 +3459,13 @@ fn 51 std_semver$parse_partial (string) -> ref
                   return
                 end $L72
                 local.get 15
-                local.get 12
-                struct.set 26 3
                 local.get 13
+                struct.set 26 3
+                local.get 14
                 call 70
                 bool.not
                 if $L73 void
-                  local.get 13
+                  local.get 14
                   call 43
                   local.tee 32
                   call 70
@@ -3417,7 +3476,7 @@ fn 51 std_semver$parse_partial (string) -> ref
                     return
                   end $L74
                   local.get 15
-                  local.get 13
+                  local.get 14
                   struct.set 26 4
                   local.get 15
                   return
@@ -3425,11 +3484,11 @@ fn 51 std_semver$parse_partial (string) -> ref
                 local.get 15
                 return
               end $L71
-              local.get 13
+              local.get 14
               call 70
               bool.not
               if $L75 void
-                local.get 13
+                local.get 14
                 call 43
                 local.tee 32
                 call 70
@@ -3440,7 +3499,7 @@ fn 51 std_semver$parse_partial (string) -> ref
                   return
                 end $L76
                 local.get 15
-                local.get 13
+                local.get 14
                 struct.set 26 4
                 local.get 15
                 return
@@ -3473,11 +3532,11 @@ fn 51 std_semver$parse_partial (string) -> ref
             end $L77
             unreachable
           end $L69
-          local.get 12
+          local.get 13
           call 70
           bool.not
           if $L78 void
-            local.get 12
+            local.get 13
             call 41
             local.tee 31
             call 70
@@ -3488,13 +3547,13 @@ fn 51 std_semver$parse_partial (string) -> ref
               return
             end $L79
             local.get 15
-            local.get 12
-            struct.set 26 3
             local.get 13
+            struct.set 26 3
+            local.get 14
             call 70
             bool.not
             if $L80 void
-              local.get 13
+              local.get 14
               call 43
               local.tee 32
               call 70
@@ -3505,7 +3564,7 @@ fn 51 std_semver$parse_partial (string) -> ref
                 return
               end $L81
               local.get 15
-              local.get 13
+              local.get 14
               struct.set 26 4
               local.get 15
               return
@@ -3513,11 +3572,11 @@ fn 51 std_semver$parse_partial (string) -> ref
             local.get 15
             return
           end $L78
-          local.get 13
+          local.get 14
           call 70
           bool.not
           if $L82 void
-            local.get 13
+            local.get 14
             call 43
             local.tee 32
             call 70
@@ -3528,7 +3587,7 @@ fn 51 std_semver$parse_partial (string) -> ref
               return
             end $L83
             local.get 15
-            local.get 13
+            local.get 14
             struct.set 26 4
             local.get 15
             return
@@ -3536,11 +3595,11 @@ fn 51 std_semver$parse_partial (string) -> ref
           local.get 15
           return
         end $L68
-        local.get 12
+        local.get 13
         call 70
         bool.not
         if $L84 void
-          local.get 12
+          local.get 13
           call 41
           local.tee 31
           call 70
@@ -3551,13 +3610,13 @@ fn 51 std_semver$parse_partial (string) -> ref
             return
           end $L85
           local.get 15
-          local.get 12
-          struct.set 26 3
           local.get 13
+          struct.set 26 3
+          local.get 14
           call 70
           bool.not
           if $L86 void
-            local.get 13
+            local.get 14
             call 43
             local.tee 32
             call 70
@@ -3568,7 +3627,7 @@ fn 51 std_semver$parse_partial (string) -> ref
               return
             end $L87
             local.get 15
-            local.get 13
+            local.get 14
             struct.set 26 4
             local.get 15
             return
@@ -3576,11 +3635,11 @@ fn 51 std_semver$parse_partial (string) -> ref
           local.get 15
           return
         end $L84
-        local.get 13
+        local.get 14
         call 70
         bool.not
         if $L88 void
-          local.get 13
+          local.get 14
           call 43
           local.tee 32
           call 70
@@ -3591,7 +3650,7 @@ fn 51 std_semver$parse_partial (string) -> ref
             return
           end $L89
           local.get 15
-          local.get 13
+          local.get 14
           struct.set 26 4
           local.get 15
           return
@@ -3609,9 +3668,9 @@ fn 51 std_semver$parse_partial (string) -> ref
         intrinsic builder.append_str
         local.get 16
         call 80
-        local.set 11
+        local.set 12
         local.get 17
-        local.get 11
+        local.get 12
         intrinsic builder.append_display
         local.get 17
         intrinsic builder.finish
@@ -3620,18 +3679,18 @@ fn 51 std_semver$parse_partial (string) -> ref
       end $L90
       unreachable
     end $L18
-    local.get 14
-    array.len
-    local.set 4
-    i64.const 2
-    local.set 5
     local.get 4
+    array.len
+    local.set 5
+    i64.const 2
+    local.set 6
     local.get 5
+    local.get 6
     usize.ge
     if $L91 void
       i32.const 1
       local.set 1
-      local.get 14
+      local.get 4
       local.get 1
       array.get 24
       ref.cast 2
@@ -3640,7 +3699,7 @@ fn 51 std_semver$parse_partial (string) -> ref
       if $L92 void
         i32.const 1
         local.set 2
-        local.get 14
+        local.get 4
         local.get 2
         array.get 24
         ref.cast 2
@@ -3654,18 +3713,18 @@ fn 51 std_semver$parse_partial (string) -> ref
           local.get 15
           local.get 3
           struct.set 26 1
-          local.get 14
+          local.get 4
           array.len
-          local.set 6
+          local.set 7
           i64.const 3
-          local.set 8
-          local.get 6
-          local.get 8
+          local.set 9
+          local.get 7
+          local.get 9
           usize.ge
           if $L94 void
             i32.const 2
             local.set 23
-            local.get 14
+            local.get 4
             local.get 23
             array.get 24
             ref.cast 2
@@ -3674,7 +3733,7 @@ fn 51 std_semver$parse_partial (string) -> ref
             if $L95 void
               i32.const 2
               local.set 24
-              local.get 14
+              local.get 4
               local.get 24
               array.get 24
               ref.cast 2
@@ -3688,11 +3747,11 @@ fn 51 std_semver$parse_partial (string) -> ref
                 local.get 15
                 local.get 26
                 struct.set 26 2
-                local.get 12
+                local.get 13
                 call 70
                 bool.not
                 if $L97 void
-                  local.get 12
+                  local.get 13
                   call 41
                   local.tee 31
                   call 70
@@ -3703,13 +3762,13 @@ fn 51 std_semver$parse_partial (string) -> ref
                     return
                   end $L98
                   local.get 15
-                  local.get 12
-                  struct.set 26 3
                   local.get 13
+                  struct.set 26 3
+                  local.get 14
                   call 70
                   bool.not
                   if $L99 void
-                    local.get 13
+                    local.get 14
                     call 43
                     local.tee 32
                     call 70
@@ -3720,7 +3779,7 @@ fn 51 std_semver$parse_partial (string) -> ref
                       return
                     end $L100
                     local.get 15
-                    local.get 13
+                    local.get 14
                     struct.set 26 4
                     local.get 15
                     return
@@ -3728,11 +3787,11 @@ fn 51 std_semver$parse_partial (string) -> ref
                   local.get 15
                   return
                 end $L97
-                local.get 13
+                local.get 14
                 call 70
                 bool.not
                 if $L101 void
-                  local.get 13
+                  local.get 14
                   call 43
                   local.tee 32
                   call 70
@@ -3743,7 +3802,7 @@ fn 51 std_semver$parse_partial (string) -> ref
                     return
                   end $L102
                   local.get 15
-                  local.get 13
+                  local.get 14
                   struct.set 26 4
                   local.get 15
                   return
@@ -3776,11 +3835,11 @@ fn 51 std_semver$parse_partial (string) -> ref
               end $L103
               unreachable
             end $L95
-            local.get 12
+            local.get 13
             call 70
             bool.not
             if $L104 void
-              local.get 12
+              local.get 13
               call 41
               local.tee 31
               call 70
@@ -3791,13 +3850,13 @@ fn 51 std_semver$parse_partial (string) -> ref
                 return
               end $L105
               local.get 15
-              local.get 12
-              struct.set 26 3
               local.get 13
+              struct.set 26 3
+              local.get 14
               call 70
               bool.not
               if $L106 void
-                local.get 13
+                local.get 14
                 call 43
                 local.tee 32
                 call 70
@@ -3808,7 +3867,7 @@ fn 51 std_semver$parse_partial (string) -> ref
                   return
                 end $L107
                 local.get 15
-                local.get 13
+                local.get 14
                 struct.set 26 4
                 local.get 15
                 return
@@ -3816,11 +3875,11 @@ fn 51 std_semver$parse_partial (string) -> ref
               local.get 15
               return
             end $L104
-            local.get 13
+            local.get 14
             call 70
             bool.not
             if $L108 void
-              local.get 13
+              local.get 14
               call 43
               local.tee 32
               call 70
@@ -3831,7 +3890,7 @@ fn 51 std_semver$parse_partial (string) -> ref
                 return
               end $L109
               local.get 15
-              local.get 13
+              local.get 14
               struct.set 26 4
               local.get 15
               return
@@ -3839,11 +3898,11 @@ fn 51 std_semver$parse_partial (string) -> ref
             local.get 15
             return
           end $L94
-          local.get 12
+          local.get 13
           call 70
           bool.not
           if $L110 void
-            local.get 12
+            local.get 13
             call 41
             local.tee 31
             call 70
@@ -3854,13 +3913,13 @@ fn 51 std_semver$parse_partial (string) -> ref
               return
             end $L111
             local.get 15
-            local.get 12
-            struct.set 26 3
             local.get 13
+            struct.set 26 3
+            local.get 14
             call 70
             bool.not
             if $L112 void
-              local.get 13
+              local.get 14
               call 43
               local.tee 32
               call 70
@@ -3871,7 +3930,7 @@ fn 51 std_semver$parse_partial (string) -> ref
                 return
               end $L113
               local.get 15
-              local.get 13
+              local.get 14
               struct.set 26 4
               local.get 15
               return
@@ -3879,11 +3938,11 @@ fn 51 std_semver$parse_partial (string) -> ref
             local.get 15
             return
           end $L110
-          local.get 13
+          local.get 14
           call 70
           bool.not
           if $L114 void
-            local.get 13
+            local.get 14
             call 43
             local.tee 32
             call 70
@@ -3894,7 +3953,7 @@ fn 51 std_semver$parse_partial (string) -> ref
               return
             end $L115
             local.get 15
-            local.get 13
+            local.get 14
             struct.set 26 4
             local.get 15
             return
@@ -3927,18 +3986,18 @@ fn 51 std_semver$parse_partial (string) -> ref
         end $L116
         unreachable
       end $L92
-      local.get 14
+      local.get 4
       array.len
-      local.set 6
+      local.set 7
       i64.const 3
-      local.set 8
-      local.get 6
-      local.get 8
+      local.set 9
+      local.get 7
+      local.get 9
       usize.ge
       if $L117 void
         i32.const 2
         local.set 23
-        local.get 14
+        local.get 4
         local.get 23
         array.get 24
         ref.cast 2
@@ -3947,7 +4006,7 @@ fn 51 std_semver$parse_partial (string) -> ref
         if $L118 void
           i32.const 2
           local.set 24
-          local.get 14
+          local.get 4
           local.get 24
           array.get 24
           ref.cast 2
@@ -3961,11 +4020,11 @@ fn 51 std_semver$parse_partial (string) -> ref
             local.get 15
             local.get 26
             struct.set 26 2
-            local.get 12
+            local.get 13
             call 70
             bool.not
             if $L120 void
-              local.get 12
+              local.get 13
               call 41
               local.tee 31
               call 70
@@ -3976,13 +4035,13 @@ fn 51 std_semver$parse_partial (string) -> ref
                 return
               end $L121
               local.get 15
-              local.get 12
-              struct.set 26 3
               local.get 13
+              struct.set 26 3
+              local.get 14
               call 70
               bool.not
               if $L122 void
-                local.get 13
+                local.get 14
                 call 43
                 local.tee 32
                 call 70
@@ -3993,7 +4052,7 @@ fn 51 std_semver$parse_partial (string) -> ref
                   return
                 end $L123
                 local.get 15
-                local.get 13
+                local.get 14
                 struct.set 26 4
                 local.get 15
                 return
@@ -4001,11 +4060,11 @@ fn 51 std_semver$parse_partial (string) -> ref
               local.get 15
               return
             end $L120
-            local.get 13
+            local.get 14
             call 70
             bool.not
             if $L124 void
-              local.get 13
+              local.get 14
               call 43
               local.tee 32
               call 70
@@ -4016,7 +4075,7 @@ fn 51 std_semver$parse_partial (string) -> ref
                 return
               end $L125
               local.get 15
-              local.get 13
+              local.get 14
               struct.set 26 4
               local.get 15
               return
@@ -4049,11 +4108,11 @@ fn 51 std_semver$parse_partial (string) -> ref
           end $L126
           unreachable
         end $L118
-        local.get 12
+        local.get 13
         call 70
         bool.not
         if $L127 void
-          local.get 12
+          local.get 13
           call 41
           local.tee 31
           call 70
@@ -4064,13 +4123,13 @@ fn 51 std_semver$parse_partial (string) -> ref
             return
           end $L128
           local.get 15
-          local.get 12
-          struct.set 26 3
           local.get 13
+          struct.set 26 3
+          local.get 14
           call 70
           bool.not
           if $L129 void
-            local.get 13
+            local.get 14
             call 43
             local.tee 32
             call 70
@@ -4081,7 +4140,7 @@ fn 51 std_semver$parse_partial (string) -> ref
               return
             end $L130
             local.get 15
-            local.get 13
+            local.get 14
             struct.set 26 4
             local.get 15
             return
@@ -4089,11 +4148,11 @@ fn 51 std_semver$parse_partial (string) -> ref
           local.get 15
           return
         end $L127
-        local.get 13
+        local.get 14
         call 70
         bool.not
         if $L131 void
-          local.get 13
+          local.get 14
           call 43
           local.tee 32
           call 70
@@ -4104,7 +4163,7 @@ fn 51 std_semver$parse_partial (string) -> ref
             return
           end $L132
           local.get 15
-          local.get 13
+          local.get 14
           struct.set 26 4
           local.get 15
           return
@@ -4112,11 +4171,11 @@ fn 51 std_semver$parse_partial (string) -> ref
         local.get 15
         return
       end $L117
-      local.get 12
+      local.get 13
       call 70
       bool.not
       if $L133 void
-        local.get 12
+        local.get 13
         call 41
         local.tee 31
         call 70
@@ -4127,13 +4186,13 @@ fn 51 std_semver$parse_partial (string) -> ref
           return
         end $L134
         local.get 15
-        local.get 12
-        struct.set 26 3
         local.get 13
+        struct.set 26 3
+        local.get 14
         call 70
         bool.not
         if $L135 void
-          local.get 13
+          local.get 14
           call 43
           local.tee 32
           call 70
@@ -4144,7 +4203,7 @@ fn 51 std_semver$parse_partial (string) -> ref
             return
           end $L136
           local.get 15
-          local.get 13
+          local.get 14
           struct.set 26 4
           local.get 15
           return
@@ -4152,11 +4211,11 @@ fn 51 std_semver$parse_partial (string) -> ref
         local.get 15
         return
       end $L133
-      local.get 13
+      local.get 14
       call 70
       bool.not
       if $L137 void
-        local.get 13
+        local.get 14
         call 43
         local.tee 32
         call 70
@@ -4167,7 +4226,7 @@ fn 51 std_semver$parse_partial (string) -> ref
           return
         end $L138
         local.get 15
-        local.get 13
+        local.get 14
         struct.set 26 4
         local.get 15
         return
@@ -4175,18 +4234,18 @@ fn 51 std_semver$parse_partial (string) -> ref
       local.get 15
       return
     end $L91
-    local.get 14
+    local.get 4
     array.len
-    local.set 6
+    local.set 7
     i64.const 3
-    local.set 8
-    local.get 6
-    local.get 8
+    local.set 9
+    local.get 7
+    local.get 9
     usize.ge
     if $L139 void
       i32.const 2
       local.set 23
-      local.get 14
+      local.get 4
       local.get 23
       array.get 24
       ref.cast 2
@@ -4195,7 +4254,7 @@ fn 51 std_semver$parse_partial (string) -> ref
       if $L140 void
         i32.const 2
         local.set 24
-        local.get 14
+        local.get 4
         local.get 24
         array.get 24
         ref.cast 2
@@ -4209,11 +4268,11 @@ fn 51 std_semver$parse_partial (string) -> ref
           local.get 15
           local.get 26
           struct.set 26 2
-          local.get 12
+          local.get 13
           call 70
           bool.not
           if $L142 void
-            local.get 12
+            local.get 13
             call 41
             local.tee 31
             call 70
@@ -4224,13 +4283,13 @@ fn 51 std_semver$parse_partial (string) -> ref
               return
             end $L143
             local.get 15
-            local.get 12
-            struct.set 26 3
             local.get 13
+            struct.set 26 3
+            local.get 14
             call 70
             bool.not
             if $L144 void
-              local.get 13
+              local.get 14
               call 43
               local.tee 32
               call 70
@@ -4241,7 +4300,7 @@ fn 51 std_semver$parse_partial (string) -> ref
                 return
               end $L145
               local.get 15
-              local.get 13
+              local.get 14
               struct.set 26 4
               local.get 15
               return
@@ -4249,11 +4308,11 @@ fn 51 std_semver$parse_partial (string) -> ref
             local.get 15
             return
           end $L142
-          local.get 13
+          local.get 14
           call 70
           bool.not
           if $L146 void
-            local.get 13
+            local.get 14
             call 43
             local.tee 32
             call 70
@@ -4264,7 +4323,7 @@ fn 51 std_semver$parse_partial (string) -> ref
               return
             end $L147
             local.get 15
-            local.get 13
+            local.get 14
             struct.set 26 4
             local.get 15
             return
@@ -4297,11 +4356,11 @@ fn 51 std_semver$parse_partial (string) -> ref
         end $L148
         unreachable
       end $L140
-      local.get 12
+      local.get 13
       call 70
       bool.not
       if $L149 void
-        local.get 12
+        local.get 13
         call 41
         local.tee 31
         call 70
@@ -4312,13 +4371,13 @@ fn 51 std_semver$parse_partial (string) -> ref
           return
         end $L150
         local.get 15
-        local.get 12
-        struct.set 26 3
         local.get 13
+        struct.set 26 3
+        local.get 14
         call 70
         bool.not
         if $L151 void
-          local.get 13
+          local.get 14
           call 43
           local.tee 32
           call 70
@@ -4329,7 +4388,7 @@ fn 51 std_semver$parse_partial (string) -> ref
             return
           end $L152
           local.get 15
-          local.get 13
+          local.get 14
           struct.set 26 4
           local.get 15
           return
@@ -4337,11 +4396,11 @@ fn 51 std_semver$parse_partial (string) -> ref
         local.get 15
         return
       end $L149
-      local.get 13
+      local.get 14
       call 70
       bool.not
       if $L153 void
-        local.get 13
+        local.get 14
         call 43
         local.tee 32
         call 70
@@ -4352,7 +4411,7 @@ fn 51 std_semver$parse_partial (string) -> ref
           return
         end $L154
         local.get 15
-        local.get 13
+        local.get 14
         struct.set 26 4
         local.get 15
         return
@@ -4360,11 +4419,11 @@ fn 51 std_semver$parse_partial (string) -> ref
       local.get 15
       return
     end $L139
-    local.get 12
+    local.get 13
     call 70
     bool.not
     if $L155 void
-      local.get 12
+      local.get 13
       call 41
       local.tee 31
       call 70
@@ -4375,13 +4434,13 @@ fn 51 std_semver$parse_partial (string) -> ref
         return
       end $L156
       local.get 15
-      local.get 12
-      struct.set 26 3
       local.get 13
+      struct.set 26 3
+      local.get 14
       call 70
       bool.not
       if $L157 void
-        local.get 13
+        local.get 14
         call 43
         local.tee 32
         call 70
@@ -4392,7 +4451,7 @@ fn 51 std_semver$parse_partial (string) -> ref
           return
         end $L158
         local.get 15
-        local.get 13
+        local.get 14
         struct.set 26 4
         local.get 15
         return
@@ -4400,11 +4459,11 @@ fn 51 std_semver$parse_partial (string) -> ref
       local.get 15
       return
     end $L155
-    local.get 13
+    local.get 14
     call 70
     bool.not
     if $L159 void
-      local.get 13
+      local.get 14
       call 43
       local.tee 32
       call 70
@@ -4415,7 +4474,7 @@ fn 51 std_semver$parse_partial (string) -> ref
         return
       end $L160
       local.get 15
-      local.get 13
+      local.get 14
       struct.set 26 4
       local.get 15
       return
@@ -4423,18 +4482,18 @@ fn 51 std_semver$parse_partial (string) -> ref
     local.get 15
     return
   end $L17
-  local.get 14
-  array.len
-  local.set 4
-  i64.const 2
-  local.set 5
   local.get 4
+  array.len
+  local.set 5
+  i64.const 2
+  local.set 6
   local.get 5
+  local.get 6
   usize.ge
   if $L161 void
     i32.const 1
     local.set 1
-    local.get 14
+    local.get 4
     local.get 1
     array.get 24
     ref.cast 2
@@ -4443,7 +4502,7 @@ fn 51 std_semver$parse_partial (string) -> ref
     if $L162 void
       i32.const 1
       local.set 2
-      local.get 14
+      local.get 4
       local.get 2
       array.get 24
       ref.cast 2
@@ -4457,18 +4516,18 @@ fn 51 std_semver$parse_partial (string) -> ref
         local.get 15
         local.get 3
         struct.set 26 1
-        local.get 14
+        local.get 4
         array.len
-        local.set 6
+        local.set 7
         i64.const 3
-        local.set 8
-        local.get 6
-        local.get 8
+        local.set 9
+        local.get 7
+        local.get 9
         usize.ge
         if $L164 void
           i32.const 2
           local.set 23
-          local.get 14
+          local.get 4
           local.get 23
           array.get 24
           ref.cast 2
@@ -4477,7 +4536,7 @@ fn 51 std_semver$parse_partial (string) -> ref
           if $L165 void
             i32.const 2
             local.set 24
-            local.get 14
+            local.get 4
             local.get 24
             array.get 24
             ref.cast 2
@@ -4491,11 +4550,11 @@ fn 51 std_semver$parse_partial (string) -> ref
               local.get 15
               local.get 26
               struct.set 26 2
-              local.get 12
+              local.get 13
               call 70
               bool.not
               if $L167 void
-                local.get 12
+                local.get 13
                 call 41
                 local.tee 31
                 call 70
@@ -4506,13 +4565,13 @@ fn 51 std_semver$parse_partial (string) -> ref
                   return
                 end $L168
                 local.get 15
-                local.get 12
-                struct.set 26 3
                 local.get 13
+                struct.set 26 3
+                local.get 14
                 call 70
                 bool.not
                 if $L169 void
-                  local.get 13
+                  local.get 14
                   call 43
                   local.tee 32
                   call 70
@@ -4523,7 +4582,7 @@ fn 51 std_semver$parse_partial (string) -> ref
                     return
                   end $L170
                   local.get 15
-                  local.get 13
+                  local.get 14
                   struct.set 26 4
                   local.get 15
                   return
@@ -4531,11 +4590,11 @@ fn 51 std_semver$parse_partial (string) -> ref
                 local.get 15
                 return
               end $L167
-              local.get 13
+              local.get 14
               call 70
               bool.not
               if $L171 void
-                local.get 13
+                local.get 14
                 call 43
                 local.tee 32
                 call 70
@@ -4546,7 +4605,7 @@ fn 51 std_semver$parse_partial (string) -> ref
                   return
                 end $L172
                 local.get 15
-                local.get 13
+                local.get 14
                 struct.set 26 4
                 local.get 15
                 return
@@ -4579,11 +4638,11 @@ fn 51 std_semver$parse_partial (string) -> ref
             end $L173
             unreachable
           end $L165
-          local.get 12
+          local.get 13
           call 70
           bool.not
           if $L174 void
-            local.get 12
+            local.get 13
             call 41
             local.tee 31
             call 70
@@ -4594,13 +4653,13 @@ fn 51 std_semver$parse_partial (string) -> ref
               return
             end $L175
             local.get 15
-            local.get 12
-            struct.set 26 3
             local.get 13
+            struct.set 26 3
+            local.get 14
             call 70
             bool.not
             if $L176 void
-              local.get 13
+              local.get 14
               call 43
               local.tee 32
               call 70
@@ -4611,7 +4670,7 @@ fn 51 std_semver$parse_partial (string) -> ref
                 return
               end $L177
               local.get 15
-              local.get 13
+              local.get 14
               struct.set 26 4
               local.get 15
               return
@@ -4619,11 +4678,11 @@ fn 51 std_semver$parse_partial (string) -> ref
             local.get 15
             return
           end $L174
-          local.get 13
+          local.get 14
           call 70
           bool.not
           if $L178 void
-            local.get 13
+            local.get 14
             call 43
             local.tee 32
             call 70
@@ -4634,7 +4693,7 @@ fn 51 std_semver$parse_partial (string) -> ref
               return
             end $L179
             local.get 15
-            local.get 13
+            local.get 14
             struct.set 26 4
             local.get 15
             return
@@ -4642,11 +4701,11 @@ fn 51 std_semver$parse_partial (string) -> ref
           local.get 15
           return
         end $L164
-        local.get 12
+        local.get 13
         call 70
         bool.not
         if $L180 void
-          local.get 12
+          local.get 13
           call 41
           local.tee 31
           call 70
@@ -4657,13 +4716,13 @@ fn 51 std_semver$parse_partial (string) -> ref
             return
           end $L181
           local.get 15
-          local.get 12
-          struct.set 26 3
           local.get 13
+          struct.set 26 3
+          local.get 14
           call 70
           bool.not
           if $L182 void
-            local.get 13
+            local.get 14
             call 43
             local.tee 32
             call 70
@@ -4674,7 +4733,7 @@ fn 51 std_semver$parse_partial (string) -> ref
               return
             end $L183
             local.get 15
-            local.get 13
+            local.get 14
             struct.set 26 4
             local.get 15
             return
@@ -4682,11 +4741,11 @@ fn 51 std_semver$parse_partial (string) -> ref
           local.get 15
           return
         end $L180
-        local.get 13
+        local.get 14
         call 70
         bool.not
         if $L184 void
-          local.get 13
+          local.get 14
           call 43
           local.tee 32
           call 70
@@ -4697,7 +4756,7 @@ fn 51 std_semver$parse_partial (string) -> ref
             return
           end $L185
           local.get 15
-          local.get 13
+          local.get 14
           struct.set 26 4
           local.get 15
           return
@@ -4730,18 +4789,18 @@ fn 51 std_semver$parse_partial (string) -> ref
       end $L186
       unreachable
     end $L162
-    local.get 14
+    local.get 4
     array.len
-    local.set 6
+    local.set 7
     i64.const 3
-    local.set 8
-    local.get 6
-    local.get 8
+    local.set 9
+    local.get 7
+    local.get 9
     usize.ge
     if $L187 void
       i32.const 2
       local.set 23
-      local.get 14
+      local.get 4
       local.get 23
       array.get 24
       ref.cast 2
@@ -4750,7 +4809,7 @@ fn 51 std_semver$parse_partial (string) -> ref
       if $L188 void
         i32.const 2
         local.set 24
-        local.get 14
+        local.get 4
         local.get 24
         array.get 24
         ref.cast 2
@@ -4764,11 +4823,11 @@ fn 51 std_semver$parse_partial (string) -> ref
           local.get 15
           local.get 26
           struct.set 26 2
-          local.get 12
+          local.get 13
           call 70
           bool.not
           if $L190 void
-            local.get 12
+            local.get 13
             call 41
             local.tee 31
             call 70
@@ -4779,13 +4838,13 @@ fn 51 std_semver$parse_partial (string) -> ref
               return
             end $L191
             local.get 15
-            local.get 12
-            struct.set 26 3
             local.get 13
+            struct.set 26 3
+            local.get 14
             call 70
             bool.not
             if $L192 void
-              local.get 13
+              local.get 14
               call 43
               local.tee 32
               call 70
@@ -4796,7 +4855,7 @@ fn 51 std_semver$parse_partial (string) -> ref
                 return
               end $L193
               local.get 15
-              local.get 13
+              local.get 14
               struct.set 26 4
               local.get 15
               return
@@ -4804,11 +4863,11 @@ fn 51 std_semver$parse_partial (string) -> ref
             local.get 15
             return
           end $L190
-          local.get 13
+          local.get 14
           call 70
           bool.not
           if $L194 void
-            local.get 13
+            local.get 14
             call 43
             local.tee 32
             call 70
@@ -4819,7 +4878,7 @@ fn 51 std_semver$parse_partial (string) -> ref
               return
             end $L195
             local.get 15
-            local.get 13
+            local.get 14
             struct.set 26 4
             local.get 15
             return
@@ -4852,11 +4911,11 @@ fn 51 std_semver$parse_partial (string) -> ref
         end $L196
         unreachable
       end $L188
-      local.get 12
+      local.get 13
       call 70
       bool.not
       if $L197 void
-        local.get 12
+        local.get 13
         call 41
         local.tee 31
         call 70
@@ -4867,13 +4926,13 @@ fn 51 std_semver$parse_partial (string) -> ref
           return
         end $L198
         local.get 15
-        local.get 12
-        struct.set 26 3
         local.get 13
+        struct.set 26 3
+        local.get 14
         call 70
         bool.not
         if $L199 void
-          local.get 13
+          local.get 14
           call 43
           local.tee 32
           call 70
@@ -4884,7 +4943,7 @@ fn 51 std_semver$parse_partial (string) -> ref
             return
           end $L200
           local.get 15
-          local.get 13
+          local.get 14
           struct.set 26 4
           local.get 15
           return
@@ -4892,11 +4951,11 @@ fn 51 std_semver$parse_partial (string) -> ref
         local.get 15
         return
       end $L197
-      local.get 13
+      local.get 14
       call 70
       bool.not
       if $L201 void
-        local.get 13
+        local.get 14
         call 43
         local.tee 32
         call 70
@@ -4907,7 +4966,7 @@ fn 51 std_semver$parse_partial (string) -> ref
           return
         end $L202
         local.get 15
-        local.get 13
+        local.get 14
         struct.set 26 4
         local.get 15
         return
@@ -4915,11 +4974,11 @@ fn 51 std_semver$parse_partial (string) -> ref
       local.get 15
       return
     end $L187
-    local.get 12
+    local.get 13
     call 70
     bool.not
     if $L203 void
-      local.get 12
+      local.get 13
       call 41
       local.tee 31
       call 70
@@ -4930,13 +4989,13 @@ fn 51 std_semver$parse_partial (string) -> ref
         return
       end $L204
       local.get 15
-      local.get 12
-      struct.set 26 3
       local.get 13
+      struct.set 26 3
+      local.get 14
       call 70
       bool.not
       if $L205 void
-        local.get 13
+        local.get 14
         call 43
         local.tee 32
         call 70
@@ -4947,7 +5006,7 @@ fn 51 std_semver$parse_partial (string) -> ref
           return
         end $L206
         local.get 15
-        local.get 13
+        local.get 14
         struct.set 26 4
         local.get 15
         return
@@ -4955,11 +5014,11 @@ fn 51 std_semver$parse_partial (string) -> ref
       local.get 15
       return
     end $L203
-    local.get 13
+    local.get 14
     call 70
     bool.not
     if $L207 void
-      local.get 13
+      local.get 14
       call 43
       local.tee 32
       call 70
@@ -4970,7 +5029,7 @@ fn 51 std_semver$parse_partial (string) -> ref
         return
       end $L208
       local.get 15
-      local.get 13
+      local.get 14
       struct.set 26 4
       local.get 15
       return
@@ -4978,18 +5037,18 @@ fn 51 std_semver$parse_partial (string) -> ref
     local.get 15
     return
   end $L161
-  local.get 14
+  local.get 4
   array.len
-  local.set 6
+  local.set 7
   i64.const 3
-  local.set 8
-  local.get 6
-  local.get 8
+  local.set 9
+  local.get 7
+  local.get 9
   usize.ge
   if $L209 void
     i32.const 2
     local.set 23
-    local.get 14
+    local.get 4
     local.get 23
     array.get 24
     ref.cast 2
@@ -4998,7 +5057,7 @@ fn 51 std_semver$parse_partial (string) -> ref
     if $L210 void
       i32.const 2
       local.set 24
-      local.get 14
+      local.get 4
       local.get 24
       array.get 24
       ref.cast 2
@@ -5012,11 +5071,11 @@ fn 51 std_semver$parse_partial (string) -> ref
         local.get 15
         local.get 26
         struct.set 26 2
-        local.get 12
+        local.get 13
         call 70
         bool.not
         if $L212 void
-          local.get 12
+          local.get 13
           call 41
           local.tee 31
           call 70
@@ -5027,13 +5086,13 @@ fn 51 std_semver$parse_partial (string) -> ref
             return
           end $L213
           local.get 15
-          local.get 12
-          struct.set 26 3
           local.get 13
+          struct.set 26 3
+          local.get 14
           call 70
           bool.not
           if $L214 void
-            local.get 13
+            local.get 14
             call 43
             local.tee 32
             call 70
@@ -5044,7 +5103,7 @@ fn 51 std_semver$parse_partial (string) -> ref
               return
             end $L215
             local.get 15
-            local.get 13
+            local.get 14
             struct.set 26 4
             local.get 15
             return
@@ -5052,11 +5111,11 @@ fn 51 std_semver$parse_partial (string) -> ref
           local.get 15
           return
         end $L212
-        local.get 13
+        local.get 14
         call 70
         bool.not
         if $L216 void
-          local.get 13
+          local.get 14
           call 43
           local.tee 32
           call 70
@@ -5067,7 +5126,7 @@ fn 51 std_semver$parse_partial (string) -> ref
             return
           end $L217
           local.get 15
-          local.get 13
+          local.get 14
           struct.set 26 4
           local.get 15
           return
@@ -5100,11 +5159,11 @@ fn 51 std_semver$parse_partial (string) -> ref
       end $L218
       unreachable
     end $L210
-    local.get 12
+    local.get 13
     call 70
     bool.not
     if $L219 void
-      local.get 12
+      local.get 13
       call 41
       local.tee 31
       call 70
@@ -5115,13 +5174,13 @@ fn 51 std_semver$parse_partial (string) -> ref
         return
       end $L220
       local.get 15
-      local.get 12
-      struct.set 26 3
       local.get 13
+      struct.set 26 3
+      local.get 14
       call 70
       bool.not
       if $L221 void
-        local.get 13
+        local.get 14
         call 43
         local.tee 32
         call 70
@@ -5132,7 +5191,7 @@ fn 51 std_semver$parse_partial (string) -> ref
           return
         end $L222
         local.get 15
-        local.get 13
+        local.get 14
         struct.set 26 4
         local.get 15
         return
@@ -5140,11 +5199,11 @@ fn 51 std_semver$parse_partial (string) -> ref
       local.get 15
       return
     end $L219
-    local.get 13
+    local.get 14
     call 70
     bool.not
     if $L223 void
-      local.get 13
+      local.get 14
       call 43
       local.tee 32
       call 70
@@ -5155,7 +5214,7 @@ fn 51 std_semver$parse_partial (string) -> ref
         return
       end $L224
       local.get 15
-      local.get 13
+      local.get 14
       struct.set 26 4
       local.get 15
       return
@@ -5163,11 +5222,11 @@ fn 51 std_semver$parse_partial (string) -> ref
     local.get 15
     return
   end $L209
-  local.get 12
+  local.get 13
   call 70
   bool.not
   if $L225 void
-    local.get 12
+    local.get 13
     call 41
     local.tee 31
     call 70
@@ -5178,13 +5237,13 @@ fn 51 std_semver$parse_partial (string) -> ref
       return
     end $L226
     local.get 15
-    local.get 12
-    struct.set 26 3
     local.get 13
+    struct.set 26 3
+    local.get 14
     call 70
     bool.not
     if $L227 void
-      local.get 13
+      local.get 14
       call 43
       local.tee 32
       call 70
@@ -5195,7 +5254,7 @@ fn 51 std_semver$parse_partial (string) -> ref
         return
       end $L228
       local.get 15
-      local.get 13
+      local.get 14
       struct.set 26 4
       local.get 15
       return
@@ -5203,11 +5262,11 @@ fn 51 std_semver$parse_partial (string) -> ref
     local.get 15
     return
   end $L225
-  local.get 13
+  local.get 14
   call 70
   bool.not
   if $L229 void
-    local.get 13
+    local.get 14
     call 43
     local.tee 32
     call 70
@@ -5218,7 +5277,7 @@ fn 51 std_semver$parse_partial (string) -> ref
       return
     end $L230
     local.get 15
-    local.get 13
+    local.get 14
     struct.set 26 4
     local.get 15
     return
@@ -5724,14 +5783,14 @@ fn 60 std_semver$parse_token (string) -> ref
   local $neg_6 i32
   local $neg_8 i32
   local $neg_10 i32
+  local tb ref
   local n usize
   local and_res bool
-  local $call_21 u8
-  local $call_33 string
-  local __scrut_0 ref
+  local $idx_23 u8
+  local $call_36 string
   local __sb_1 any
-  local $call_87 string
-  local $struct_136 ref
+  local $call_92 string
+  local $struct_141 ref
   local.get 0
   call 70
   if $L0 void
@@ -5761,160 +5820,165 @@ fn 60 std_semver$parse_token (string) -> ref
     return
   end $L1
   local.get 0
-  call.import 1
-  local.set 4
-  local.get 4
+  call.import 2
+  local.tee 4
+  array.len
+  local.set 5
+  local.get 5
   i64.const 2
   i64.to_usize
   usize.ge
   if $L2 void
-    local.get 0
-    i64.const 0
-    i64.to_usize
-    call.import 3
-    local.set 6
-    local.get 6
+    local.get 4
+    i32.const 0
+    array.get 33
+    ref.cast 9
+    local.set 7
+    local.get 7
     i32.const 62
     i32.to_u8
     u8.eq
-    local.set 5
+    local.set 6
   else
     bool.const false
-    local.set 5
-  end $L2
-  local.get 5
-  if $L3 void
-    local.get 0
-    i64.const 1
-    i64.to_usize
-    call.import 3
     local.set 6
-    local.get 6
+  end $L2
+  local.get 6
+  if $L3 void
+    local.get 4
+    i32.const 1
+    array.get 33
+    ref.cast 9
+    local.set 7
+    local.get 7
     i32.const 61
     i32.to_u8
     u8.eq
-    local.set 5
+    local.set 6
   else
     bool.const false
-    local.set 5
+    local.set 6
   end $L3
-  local.get 5
+  local.get 6
   if $L4 void
-    local.get 0
+    local.get 4
     i64.const 2
     i64.to_usize
-    local.get 4
-    call.import 2
-    local.set 7
+    local.get 5
+    array.slice 35
+    call.import 3
+    local.set 8
     i32.const 4
-    local.get 7
+    local.get 8
     call 59
     return
   end $L4
-  local.get 4
+  local.get 5
   i64.const 2
   i64.to_usize
   usize.ge
   if $L5 void
-    local.get 0
-    i64.const 0
-    i64.to_usize
-    call.import 3
-    local.set 6
-    local.get 6
+    local.get 4
+    i32.const 0
+    array.get 33
+    ref.cast 9
+    local.set 7
+    local.get 7
     i32.const 60
     i32.to_u8
     u8.eq
-    local.set 5
+    local.set 6
   else
     bool.const false
-    local.set 5
-  end $L5
-  local.get 5
-  if $L6 void
-    local.get 0
-    i64.const 1
-    i64.to_usize
-    call.import 3
     local.set 6
-    local.get 6
+  end $L5
+  local.get 6
+  if $L6 void
+    local.get 4
+    i32.const 1
+    array.get 33
+    ref.cast 9
+    local.set 7
+    local.get 7
     i32.const 61
     i32.to_u8
     u8.eq
-    local.set 5
+    local.set 6
   else
     bool.const false
-    local.set 5
+    local.set 6
   end $L6
-  local.get 5
+  local.get 6
   if $L7 void
-    local.get 0
+    local.get 4
     i64.const 2
     i64.to_usize
-    local.get 4
-    call.import 2
-    local.set 7
+    local.get 5
+    array.slice 35
+    call.import 3
+    local.set 8
     i32.const 2
-    local.get 7
+    local.get 8
     call 59
     return
   end $L7
-  local.get 0
-  i64.const 0
-  i64.to_usize
-  call.import 3
-  local.set 6
-  local.get 0
+  local.get 4
+  i32.const 0
+  array.get 33
+  ref.cast 9
+  local.set 7
+  local.get 4
   i64.const 1
   i64.to_usize
-  local.get 4
-  call.import 2
-  local.set 7
-  local.get 6
+  local.get 5
+  array.slice 35
+  call.import 3
+  local.set 8
+  local.get 7
   i32.const 62
   i32.to_u8
   u8.eq
   if $L8 void
     i32.const 3
-    local.get 7
+    local.get 8
     call 59
     return
   end $L8
-  local.get 6
+  local.get 7
   i32.const 60
   i32.to_u8
   u8.eq
   if $L9 void
     i32.const 1
-    local.get 7
+    local.get 8
     call 59
     return
   end $L9
-  local.get 6
+  local.get 7
   i32.const 61
   i32.to_u8
   u8.eq
   if $L10 void
     i32.const 0
-    local.get 7
+    local.get 8
     call 59
     return
   end $L10
-  local.get 6
+  local.get 7
   i32.const 94
   i32.to_u8
   u8.eq
   if $L11 void
-    local.get 7
+    local.get 8
     call 51
-    local.tee 8
+    local.tee 4
     type_check 26
     if $L12 void
-      local.get 8
+      local.get 4
       call 54
       return
     end $L12
-    local.get 8
+    local.get 4
     type_check 20
     if $L13 void
       intrinsic builder.new
@@ -5922,7 +5986,7 @@ fn 60 std_semver$parse_token (string) -> ref
       local.get 9
       string.const 38
       intrinsic builder.append_str
-      local.get 8
+      local.get 4
       call 80
       local.set 10
       local.get 9
@@ -5935,21 +5999,21 @@ fn 60 std_semver$parse_token (string) -> ref
     end $L13
     unreachable
   end $L11
-  local.get 6
+  local.get 7
   i32.const 126
   i32.to_u8
   u8.eq
   if $L14 void
-    local.get 7
+    local.get 8
     call 51
-    local.tee 8
+    local.tee 4
     type_check 26
     if $L15 void
-      local.get 8
+      local.get 4
       call 56
       return
     end $L15
-    local.get 8
+    local.get 4
     type_check 20
     if $L16 void
       intrinsic builder.new
@@ -5957,11 +6021,11 @@ fn 60 std_semver$parse_token (string) -> ref
       local.get 9
       string.const 39
       intrinsic builder.append_str
-      local.get 8
+      local.get 4
       call 80
-      local.set 7
+      local.set 8
       local.get 9
-      local.get 7
+      local.get 8
       intrinsic builder.append_display
       local.get 9
       intrinsic builder.finish
@@ -5972,61 +6036,61 @@ fn 60 std_semver$parse_token (string) -> ref
   end $L14
   local.get 0
   call 51
-  local.tee 8
+  local.tee 4
   type_check 26
   if $L17 void
-    local.field 8 26 0
+    local.field 4 26 0
     ref.cast 1
     local.set 1
     local.get 1
     i32.const 0
     i32.ge
     if $L18 void
-      local.field 8 26 1
+      local.field 4 26 1
       ref.cast 1
       local.set 1
       local.get 1
       i32.const 0
       i32.ge
-      local.set 5
+      local.set 6
     else
       bool.const false
-      local.set 5
+      local.set 6
     end $L18
-    local.get 5
+    local.get 6
     if $L19 void
-      local.field 8 26 2
+      local.field 4 26 2
       ref.cast 1
       local.set 1
       local.get 1
       i32.const 0
       i32.ge
-      local.set 5
+      local.set 6
     else
       bool.const false
-      local.set 5
+      local.set 6
     end $L19
-    local.get 5
+    local.get 6
     if $L20 void
-      local.field 8 26 0
+      local.field 4 26 0
       ref.cast 1
       local.set 1
-      local.field 8 26 1
+      local.field 4 26 1
       ref.cast 1
       local.set 2
-      local.field 8 26 2
+      local.field 4 26 2
       ref.cast 1
       local.set 3
-      local.field 8 26 3
+      local.field 4 26 3
       ref.cast 2
-      local.set 7
-      local.field 8 26 4
+      local.set 8
+      local.field 4 26 4
       ref.cast 2
       local.set 10
       local.get 1
       local.get 2
       local.get 3
-      local.get 7
+      local.get 8
       local.get 10
       struct.new 3
       local.set 11
@@ -6036,11 +6100,11 @@ fn 60 std_semver$parse_token (string) -> ref
       array.new 28 1
       return
     end $L20
-    local.get 8
+    local.get 4
     call 57
     return
   end $L17
-  local.get 8
+  local.get 4
   type_check 20
   if $L21 void
     intrinsic builder.new
@@ -6048,11 +6112,11 @@ fn 60 std_semver$parse_token (string) -> ref
     local.get 9
     string.const 40
     intrinsic builder.append_str
-    local.get 8
+    local.get 4
     call 80
-    local.set 7
+    local.set 8
     local.get 9
-    local.get 7
+    local.get 8
     intrinsic builder.append_display
     local.get 9
     intrinsic builder.finish
@@ -7078,7 +7142,7 @@ fn 74 std_string$chars (string) -> ref
   local bs ref
   local $len_5 usize
   local.get 0
-  call.import 4
+  call.import 2
   local.set 1
   local.get 1
   array.len
@@ -7186,10 +7250,10 @@ fn 77 std_string$byte_find (string,string,usize) -> isize
   local m usize
   local i usize
   local.get 0
-  call.import 4
+  call.import 2
   local.set 3
   local.get 1
-  call.import 4
+  call.import 2
   local.set 4
   local.get 3
   array.len
@@ -7263,7 +7327,7 @@ fn 78 std_string$split (string,string) -> ref
   array.new 24 0
   local.set 2
   local.get 0
-  call.import 4
+  call.import 2
   local.tee 3
   array.len
   local.set 4
@@ -7292,7 +7356,7 @@ fn 78 std_string$split (string,string) -> ref
           local.get 6
           local.get 7
           array.slice 35
-          call.import 5
+          call.import 3
           local.set 8
           local.get 2
           local.get 8
@@ -7331,7 +7395,7 @@ fn 78 std_string$split (string,string) -> ref
         local.get 6
         local.get 7
         array.slice 35
-        call.import 5
+        call.import 3
         local.set 8
         local.get 2
         local.get 8
@@ -7354,7 +7418,7 @@ fn 78 std_string$split (string,string) -> ref
   local.get 6
   local.get 4
   array.slice 35
-  call.import 5
+  call.import 3
   local.set 8
   local.get 2
   local.get 8
@@ -7370,7 +7434,7 @@ fn 79 std_string$trim (string) -> string
   local and_res bool
   local $sub_21 usize
   local.get 0
-  call.import 4
+  call.import 2
   local.tee 1
   array.len
   local.set 2
@@ -7443,7 +7507,7 @@ fn 79 std_string$trim (string) -> string
   local.get 3
   local.get 2
   array.slice 35
-  call.import 5
+  call.import 3
   return
 end
 
@@ -7466,7 +7530,7 @@ fn 81 std_string$parse_int (string) -> ref
   local $add_50 i64
   local $cast_60 usize
   local.get 0
-  call.import 4
+  call.import 2
   local.tee 1
   array.len
   local.set 2
@@ -7776,12 +7840,12 @@ end
 fn 92 std_io$write$vt (i32,string) -> void
   local.get 0
   local.get 1
-  call.import 6
+  call.import 4
   return
 end
 
 fn 93 std_string_builder$StringBuilder$Display$to_string$vt (ref) -> string
   local.get 0
-  call.import 7
+  call.import 5
   return
 end

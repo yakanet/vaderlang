@@ -124,11 +124,10 @@ import 0 to_string std_core$string$Display$to_string (string) -> string
 import 1 hash std_core$string$Hash$hash (string) -> u64
 import 2 write std_io$write (i32,string) -> void
 import 3 byte_len std_string$byte_len (string) -> usize
-import 4 byte_slice std_string$byte_slice (string,usize,usize) -> string
-import 5 bytes std_string$bytes (string) -> ref
-import 6 as_string std_string$as_string (ref) -> string
-import 7 parse_float std_string$parse_float (string) -> ref
-import 8 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> string
+import 4 bytes std_string$bytes (string) -> ref
+import 5 as_string std_string$as_string (ref) -> string
+import 6 parse_float std_string$parse_float (string) -> ref
+import 7 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> string
 impl 15 Contains
 impl 15 Iterator
 impl 20 Contains
@@ -1079,7 +1078,7 @@ fn 48 std_json$new_parser (string) -> ref
   local $call_1 ref
   local $call_3 usize
   local.get 0
-  call.import 5
+  call.import 4
   local.set 1
   local.get 0
   call.import 3
@@ -1218,7 +1217,7 @@ fn 55 std_json$match_keyword (ref,string) -> bool
   local $idx_17 u8
   local $idx_18 u8
   local.get 1
-  call.import 5
+  call.import 4
   local.tee 2
   array.len
   local.set 3
@@ -1726,8 +1725,8 @@ fn 59 std_json$parse_number (ref) -> ref
       local.get 1
       local.get 18
       array.slice 46
+      call.import 5
       call.import 6
-      call.import 7
       local.tee 19
       local.tee 20
       type_check 18
@@ -1758,8 +1757,8 @@ fn 59 std_json$parse_number (ref) -> ref
     local.get 1
     local.get 18
     array.slice 46
+    call.import 5
     call.import 6
-    call.import 7
     local.tee 19
     local.tee 20
     type_check 18
@@ -1908,8 +1907,8 @@ fn 59 std_json$parse_number (ref) -> ref
     local.get 1
     local.get 18
     array.slice 46
+    call.import 5
     call.import 6
-    call.import 7
     local.tee 19
     local.tee 20
     type_check 18
@@ -1940,8 +1939,8 @@ fn 59 std_json$parse_number (ref) -> ref
   local.get 1
   local.get 18
   array.slice 46
+  call.import 5
   call.import 6
-  call.import 7
   local.tee 19
   local.tee 20
   type_check 18
@@ -2018,7 +2017,7 @@ fn 60 std_json$parse_string (ref) -> ref
           local.get 2
           local.get 3
           array.slice 46
-          call.import 6
+          call.import 5
           return
         end $L4
         local.get 5
@@ -2032,7 +2031,7 @@ fn 60 std_json$parse_string (ref) -> ref
           local.get 2
           local.get 3
           array.slice 46
-          call.import 6
+          call.import 5
           local.set 7
           local.get 1
           local.get 7
@@ -3032,10 +3031,10 @@ fn 72 std_string$ends_with (string,string) -> bool
   local $idx_18 u8
   local $idx_19 u8
   local.get 0
-  call.import 5
+  call.import 4
   local.set 2
   local.get 1
-  call.import 5
+  call.import 4
   local.tee 3
   array.len
   local.set 4
@@ -3427,7 +3426,7 @@ fn 76 std_string$chars (string) -> ref
   local bs ref
   local $len_5 usize
   local.get 0
-  call.import 5
+  call.import 4
   local.set 1
   local.get 1
   array.len
@@ -4173,7 +4172,8 @@ end
 fn 95 std_numbers$to_compact_str (f64) -> string
   local __sb_0 any
   local s string
-  local $call_8 usize
+  local sb ref
+  local $len_10 usize
   intrinsic builder.new
   local.tee 1
   local.get 0
@@ -4186,18 +4186,22 @@ fn 95 std_numbers$to_compact_str (f64) -> string
   call 72
   if $L0 void
     local.get 2
-    call.import 3
+    call.import 4
     local.set 3
     local.get 3
+    array.len
+    local.set 4
+    local.get 4
     i64.const 2
     i64.to_usize
     usize.sub
-    local.set 3
-    local.get 2
+    local.set 4
+    local.get 3
     i64.const 0
     i64.to_usize
-    local.get 3
-    call.import 4
+    local.get 4
+    array.slice 46
+    call.import 5
     return
   end $L0
   local.get 2
@@ -4359,6 +4363,6 @@ end
 
 fn 115 std_string_builder$StringBuilder$Display$to_string$vt (ref) -> string
   local.get 0
-  call.import 8
+  call.import 7
   return
 end

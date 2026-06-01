@@ -5,7 +5,7 @@
 
 module "std/numbers"
 
-import "std/string" { byte_len, chars, ends_with, is_digit, is_empty, byte_slice, replace_chars_where, ParseError }
+import "std/string" { as_string, bytes, chars, ends_with, is_digit, is_empty, replace_chars_where, ParseError }
 import "std/string_builder" { StringBuilder, new_builder, append_char }
 
 /// True for an ASCII hex digit — `0`..`9`, `a`..`f`, `A`..`F`.
@@ -164,7 +164,10 @@ export to_bin :: fn(self: u64) -> string {
 /// @return      the compact decimal representation.
 export to_compact_str :: fn(self: f64) -> string {
     s :: "${self}"
-    if s.ends_with(".0") { return s.byte_slice(0, s.byte_len() - 2) }
+    if s.ends_with(".0") {
+        sb :: s.bytes()
+        return sb[0..<sb.len() - 2].as_string()
+    }
     return s
 }
 
@@ -204,13 +207,14 @@ export is_float_suffix :: fn(s: string) = s == "f32" || s == "f64"
 export strip_numeric_text :: fn(text: string, base: i32, suffix: string) -> string {
     start: usize = if base == 10 { 0 } else { 2 }
     has_suffix :: !suffix.is_empty()
-    end_no_suffix :: text.byte_len() - suffix.byte_len()
+    tb :: text.bytes()
+    end_no_suffix :: tb.len() - suffix.bytes().len()
     end :: if has_suffix && end_no_suffix > start && text[end_no_suffix - 1] == '_' {
         end_no_suffix - 1
     } else {
         end_no_suffix
     }
-    body :: text.byte_slice(start, end)
+    body :: tb[start..<end].as_string()
     // Fast path : no `_` to filter → return the slice directly.
     if !body.contains("_") { return body }
     return body.replace_chars_where((c: char) -> c == '_', "")
