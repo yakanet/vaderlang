@@ -230,7 +230,7 @@ TimeError implements Error {
     message :: fn(self) -> string { return self.msg }
 }
 
-parse_digits :: fn(s: string, start: usize, count: usize) -> i64! {
+parse_digits :: fn(s: string, start: usize, count: usize) -> i64 | TimeError {
     if start + count > s.byte_len() {
         return TimeError { .msg = "unexpected end of input" }
     }
@@ -247,7 +247,7 @@ parse_digits :: fn(s: string, start: usize, count: usize) -> i64! {
     return acc
 }
 
-expect_byte :: fn(s: string, offset: usize, expected: u8) -> void! {
+expect_byte :: fn(s: string, offset: usize, expected: u8) -> null | TimeError {
     if offset >= s.byte_len() {
         return TimeError { .msg = "unexpected end of input" }
     }
@@ -266,7 +266,7 @@ expect_byte :: fn(s: string, offset: usize, expected: u8) -> void! {
 /// @param s  the timestamp to parse.
 /// @return   the parsed `Instant`.
 /// @error    `TimeError` when `s` doesn't fit the accepted shape.
-export parse_iso8601 :: fn(s: string) -> Instant! {
+export parse_iso8601 :: fn(s: string) -> Instant | TimeError {
     // Minimum is `1970-01-01T00:00:00Z` — 20 bytes.
     if s.byte_len() < usize(20) {
         return TimeError { .msg = "iso8601: too short" }
@@ -388,8 +388,8 @@ import "std/testing" { assert_eq, assert }
     for s in inputs {
         parsed :: parse_iso8601(s)
         match parsed {
-            is Instant -> assert_eq(format_iso8601(parsed), s)
-            is Error -> assert(false, "unreachable")
+            is Instant   -> assert_eq(format_iso8601(parsed), s)
+            is TimeError -> assert(false, "unreachable")
         }
     }
 }
@@ -397,8 +397,8 @@ import "std/testing" { assert_eq, assert }
 @test test_iso8601_parse_rejects_bad_input :: fn() -> void {
     bad :: parse_iso8601("not a timestamp")
     match bad {
-        is Error -> assert(true, "expected error")
-        is Instant -> assert(false, "unreachable")
+        is TimeError -> assert(true, "expected error")
+        is Instant   -> assert(false, "unreachable")
     }
 }
 

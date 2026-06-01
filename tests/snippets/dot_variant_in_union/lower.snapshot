@@ -1,7 +1,7 @@
 # Lower
 
 ## snippet
-  fn snippet$parse(c: char) -> Direction | Error
+  fn snippet$parse(c: char) -> Direction | ParseError
     if :void
       cond:
         eq :bool
@@ -98,21 +98,21 @@
                                   unreachable("non-exhaustive match (T3013 should have caught this)") :string
   fn snippet$main() -> i32
     block :void
-      let __scrut_0: Direction | Error =
-        call :Direction | Error
+      let __scrut_0: Direction | ParseError =
+        call :Direction | ParseError
           callee:
-            parse :fn(char) -> Direction | Error
+            parse :fn(char) -> Direction | ParseError
           arg0:
             char(0x4e)
       ~>
         if :void
           cond:
             is Direction :bool
-              __scrut_0 :Direction | Error
+              __scrut_0 :Direction | ParseError
           then:
             let d: Direction =
               cast → Direction
-                __scrut_0 :Direction | Error
+                __scrut_0 :Direction | ParseError
             ~>
               call :void
                 callee:
@@ -127,8 +127,8 @@
             ~>
               if :void
                 cond:
-                  is Error :bool
-                    __scrut_0 :Direction | Error
+                  is ParseError :bool
+                    __scrut_0 :Direction | ParseError
                 then:
                   ~>
                     call :void
@@ -140,21 +140,21 @@
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
     block :void
-      let __scrut_1: Direction | Error =
-        call :Direction | Error
+      let __scrut_1: Direction | ParseError =
+        call :Direction | ParseError
           callee:
-            parse :fn(char) -> Direction | Error
+            parse :fn(char) -> Direction | ParseError
           arg0:
             char(0x3f)
       ~>
         if :void
           cond:
             is Direction :bool
-              __scrut_1 :Direction | Error
+              __scrut_1 :Direction | ParseError
           then:
             let d: Direction =
               cast → Direction
-                __scrut_1 :Direction | Error
+                __scrut_1 :Direction | ParseError
             ~>
               call :void
                 callee:
@@ -169,8 +169,8 @@
             ~>
               if :void
                 cond:
-                  is Error :bool
-                    __scrut_1 :Direction | Error
+                  is ParseError :bool
+                    __scrut_1 :Direction | ParseError
                 then:
                   ~>
                     call :void

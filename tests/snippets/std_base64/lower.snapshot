@@ -2,20 +2,20 @@
 
 ## snippet
   fn snippet$show_decode(label: string, input: string) -> void
-    let out: Error | string =
-      call :Error | string
+    let out: Base64Error | string =
+      call :Base64Error | string
         callee:
-          decode :fn(string) -> Error | string
+          decode :fn(string) -> Base64Error | string
         arg0:
           input :string
     ~>
       block :void
-        let __scrut_0: Error | string = out :Error | string
+        let __scrut_0: Base64Error | string = out :Base64Error | string
         ~>
           if :void
             cond:
               is string :bool
-                __scrut_0 :Error | string
+                __scrut_0 :Base64Error | string
             then:
               ~>
                 call :void
@@ -34,7 +34,7 @@
                       @builder.append_display <for string> :void
                         __sb_2 :?
                         cast → string
-                          out :Error | string
+                          out :Base64Error | string
                       ~>
                         @builder.finish :string
                           __sb_2 :?
@@ -42,8 +42,8 @@
               ~>
                 if :void
                   cond:
-                    is Error :bool
-                      __scrut_0 :Error | string
+                    is Base64Error :bool
+                      __scrut_0 :Base64Error | string
                   then:
                     ~>
                       call :void
@@ -61,10 +61,12 @@
                               "=ERR:" :string
                             @builder.append_display <for string> :void
                               __sb_1 :?
-                              vcall Error.message :string
-                                recv:
-                                  cast → Error
-                                    out :Error | string
+                              call :string
+                                callee:
+                                  message :string
+                                arg0:
+                                  cast → Base64Error
+                                    out :Base64Error | string
                             ~>
                               @builder.finish :string
                                 __sb_1 :?
@@ -253,10 +255,10 @@
               __for_arr_6 :string[]
             ix:
               __for_i_8 :usize
-        let decoded: Error | string =
-          call :Error | string
+        let decoded: Base64Error | string =
+          call :Base64Error | string
             callee:
-              decode :fn(string) -> Error | string
+              decode :fn(string) -> Base64Error | string
             arg0:
               call :string
                 callee:
@@ -264,12 +266,12 @@
                 arg0:
                   s :string
         block :void
-          let __scrut_9: Error | string = decoded :Error | string
+          let __scrut_9: Base64Error | string = decoded :Base64Error | string
           ~>
             if :void
               cond:
                 is string :bool
-                  __scrut_9 :Error | string
+                  __scrut_9 :Base64Error | string
               then:
                 ~>
                   call :void
@@ -293,7 +295,7 @@
                           eq :bool
                             l:
                               cast → string
-                                decoded :Error | string
+                                decoded :Base64Error | string
                             r:
                               s :string
                         ~>
@@ -303,8 +305,8 @@
                 ~>
                   if :void
                     cond:
-                      is Error :bool
-                        __scrut_9 :Error | string
+                      is Base64Error :bool
+                        __scrut_9 :Base64Error | string
                     then:
                       ~>
                         call :void

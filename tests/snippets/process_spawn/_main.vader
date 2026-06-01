@@ -5,7 +5,7 @@
 module "snippet"
 
 import "std/io" { println }
-import "std/process" { spawn, ProcessResult }
+import "std/process" { spawn, ProcessResult, ProcessError }
 
 main :: fn() -> i32 {
     r :: spawn(["/bin/echo", "ok"])
@@ -14,7 +14,7 @@ main :: fn() -> i32 {
             println("exit=${r.exit}")
             println("out=${r.stdout}")
         }
-        is Error -> println("err: ${r.message()}")
+        is ProcessError -> println("err: ${r.message()}")
     }
     return 0
 }

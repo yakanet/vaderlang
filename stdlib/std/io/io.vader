@@ -73,7 +73,7 @@ export eprintln :: fn<T: Display>(msg: T) -> void {
 /// returned string does NOT include the trailing `\n`.
 /// @return      the line text.
 /// @error       `IOError` on EOF or stdin read failure.
-@intrinsic export read_line :: fn() -> string!
+@intrinsic export read_line :: fn() -> string | Error
 
 /// Read EXACTLY `n` bytes from stdin into a fresh UTF-8 string. Loops
 /// until `n` bytes are accumulated ; EOF before `n` is an error. Forces
@@ -82,19 +82,19 @@ export eprintln :: fn<T: Display>(msg: T) -> void {
 /// @param n     number of bytes to consume.
 /// @return      a string of exactly `n` bytes (interpreted as UTF-8).
 /// @error       `IOError` on EOF, partial read, or stream error.
-@intrinsic export read_stdin :: fn(n: usize) -> string!
+@intrinsic export read_stdin :: fn(n: usize) -> string | Error
 
 /// Read a file fully into a UTF-8 string.
 /// @param path  filesystem path (absolute or cwd-relative).
 /// @return      file contents as a UTF-8 string.
 /// @error       `IOError` if the file can't be opened or read.
-@intrinsic export read_file :: fn(path: string) -> string!
+@intrinsic export read_file :: fn(path: string) -> string | Error
 
 /// Write `content` to `path`, replacing any existing file.
 /// @param path     filesystem path.
 /// @param content  the UTF-8 string to write.
 /// @error          `IOError` if the file can't be opened or written.
-@intrinsic export write_file :: fn(path: string, content: string) -> void!
+@intrinsic export write_file :: fn(path: string, content: string) -> null | Error
 
 /// True iff `path` resolves to an existing filesystem entry (file or
 /// directory). Errors (e.g. permission denied) collapse to `false`.
@@ -114,4 +114,4 @@ export eprintln :: fn<T: Display>(msg: T) -> void {
 /// @param path  the directory to list.
 /// @return      entry names (no path prefix).
 /// @error       `IOError` if `path` isn't a directory or can't be opened.
-@intrinsic export read_dir :: fn(path: string) -> string[]!
+@intrinsic export read_dir :: fn(path: string) -> string[] | Error

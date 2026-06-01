@@ -123,7 +123,7 @@ Parser :: struct {
 /// inside the pattern bind to the input boundaries. The pattern is
 /// implicitly anchored at the start during `matches` (whole input)
 /// and unanchored during `find` / `find_all` / `replace_all`.
-export compile :: fn(pattern: string) -> Pattern! {
+export compile :: fn(pattern: string) -> Pattern | RegexError {
     p := Parser {
         .pattern = pattern,
         .cursor = usize(0),
@@ -882,8 +882,8 @@ import "std/testing" { assert_eq, assert }
 @test test_compile_simple :: fn() -> void {
     p :: compile("abc")
     match p {
-        is Pattern -> assert(p.matches("abc"), "abc should match abc")
-        is Error   -> assert(false, "compile abc failed")
+        is Pattern    -> assert(p.matches("abc"), "abc should match abc")
+        is RegexError -> assert(false, "compile abc failed")
     }
 }
 
@@ -895,7 +895,7 @@ import "std/testing" { assert_eq, assert }
             assert(!p.matches("hell"),  "hello does not match hell")
             assert(!p.matches("hellox"), "hello matches whole input, not prefix")
         }
-        is Error -> assert(false, "compile hello failed")
+        is RegexError -> assert(false, "compile hello failed")
     }
 }
 
@@ -907,7 +907,7 @@ import "std/testing" { assert_eq, assert }
             assert(p.matches("a c"), "a.c matches a c")
             assert(!p.matches("ac"),  "a.c needs three chars")
         }
-        is Error -> assert(false, "compile a.c failed")
+        is RegexError -> assert(false, "compile a.c failed")
     }
 }
 
@@ -919,7 +919,7 @@ import "std/testing" { assert_eq, assert }
             assert(star.matches("abc"),   "ab*c matches abc")
             assert(star.matches("abbbc"), "ab*c matches abbbc")
         }
-        is Error -> assert(false, "compile ab*c failed")
+        is RegexError -> assert(false, "compile ab*c failed")
     }
     plus :: compile("ab+c")
     match plus {
@@ -928,7 +928,7 @@ import "std/testing" { assert_eq, assert }
             assert(plus.matches("abc"),    "ab+c matches abc")
             assert(plus.matches("abbbc"),  "ab+c matches abbbc")
         }
-        is Error -> assert(false, "compile ab+c failed")
+        is RegexError -> assert(false, "compile ab+c failed")
     }
     opt :: compile("ab?c")
     match opt {
@@ -937,7 +937,7 @@ import "std/testing" { assert_eq, assert }
             assert(opt.matches("abc"), "ab?c matches abc")
             assert(!opt.matches("abbc"), "ab?c rejects abbc")
         }
-        is Error -> assert(false, "compile ab?c failed")
+        is RegexError -> assert(false, "compile ab?c failed")
     }
 }
 
@@ -948,7 +948,7 @@ import "std/testing" { assert_eq, assert }
             assert(p.matches("abccab"), "[abc]+ matches abccab")
             assert(!p.matches("abd"),   "[abc]+ rejects abd")
         }
-        is Error -> assert(false, "compile [abc]+ failed")
+        is RegexError -> assert(false, "compile [abc]+ failed")
     }
     neg :: compile("[^abc]+")
     match neg {
@@ -956,7 +956,7 @@ import "std/testing" { assert_eq, assert }
             assert(neg.matches("xyz"),  "[^abc]+ matches xyz")
             assert(!neg.matches("a"),   "[^abc]+ rejects a")
         }
-        is Error -> assert(false, "compile [^abc]+ failed")
+        is RegexError -> assert(false, "compile [^abc]+ failed")
     }
     range :: compile("[a-z]+")
     match range {
@@ -964,7 +964,7 @@ import "std/testing" { assert_eq, assert }
             assert(range.matches("hello"), "[a-z]+ matches hello")
             assert(!range.matches("Hello"), "[a-z]+ rejects Hello (upper)")
         }
-        is Error -> assert(false, "compile [a-z]+ failed")
+        is RegexError -> assert(false, "compile [a-z]+ failed")
     }
 }
 
@@ -975,7 +975,7 @@ import "std/testing" { assert_eq, assert }
             assert(p.matches("12345"), "\\d+ matches 12345")
             assert(!p.matches("12a"),  "\\d+ rejects 12a (whole)")
         }
-        is Error -> assert(false, "compile \\d+ failed")
+        is RegexError -> assert(false, "compile \\d+ failed")
     }
 }
 
@@ -993,7 +993,7 @@ import "std/testing" { assert_eq, assert }
                 is null -> assert(false, "\\d+ should find 42")
             }
         }
-        is Error -> assert(false, "compile \\d+ failed")
+        is RegexError -> assert(false, "compile \\d+ failed")
     }
 }
 
@@ -1007,7 +1007,7 @@ import "std/testing" { assert_eq, assert }
             assert_eq(matches_found[1].groups[0], "def")
             assert_eq(matches_found[2].groups[0], "ghi")
         }
-        is Error -> assert(false, "compile [a-z]+ failed")
+        is RegexError -> assert(false, "compile [a-z]+ failed")
     }
 }
 
@@ -1018,15 +1018,15 @@ import "std/testing" { assert_eq, assert }
             assert(p.find("foo bar") is Match,  "^foo finds prefix")
             assert(p.find("bar foo") is null,   "^foo rejects suffix")
         }
-        is Error -> assert(false, "compile ^foo failed")
+        is RegexError -> assert(false, "compile ^foo failed")
     }
 }
 
 @test test_compile_error :: fn() -> void {
     bad :: compile("[abc")
     match bad {
-        is Pattern -> assert(false, "[abc should not compile")
-        is Error   -> assert(true,  "got error as expected")
+        is Pattern    -> assert(false, "[abc should not compile")
+        is RegexError -> assert(true,  "got error as expected")
     }
 }
 
@@ -1038,7 +1038,7 @@ import "std/testing" { assert_eq, assert }
             assert(!p.matches("aa"),  "a{3} rejects aa")
             assert(!p.matches("aaaa"), "a{3} anchored — rejects aaaa")
         }
-        is Error -> assert(false, "compile a{3} failed")
+        is RegexError -> assert(false, "compile a{3} failed")
     }
     rng :: compile("a{2,4}")
     match rng {
@@ -1048,7 +1048,7 @@ import "std/testing" { assert_eq, assert }
             assert(rng.matches("aaaa"),  "a{2,4} matches aaaa")
             assert(!rng.matches("aaaaa"), "a{2,4} rejects aaaaa")
         }
-        is Error -> assert(false, "compile a{2,4} failed")
+        is RegexError -> assert(false, "compile a{2,4} failed")
     }
 }
 
@@ -1058,6 +1058,6 @@ import "std/testing" { assert_eq, assert }
         is Pattern -> {
             assert_eq(p.replace_all("a1b22c333", "X"), "aXbXcX")
         }
-        is Error -> assert(false, "compile \\d+ failed")
+        is RegexError -> assert(false, "compile \\d+ failed")
     }
 }

@@ -50,7 +50,7 @@ export spawn_last_stderr :: fn() -> string
 ///               (`spawn: failed to launch …`), terminated by a signal
 ///               (`… terminated by signal`), or `argv` was empty
 ///               (`spawn: empty argv`).
-export spawn :: fn(argv: string[]) -> ProcessResult! {
+export spawn :: fn(argv: string[]) -> ProcessResult | ProcessError {
     if argv.len() == 0 {
         return ProcessError { .msg = "spawn: empty argv" }
     }

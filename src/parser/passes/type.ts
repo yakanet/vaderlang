@@ -1,11 +1,8 @@
 // Type-expression parsing. Handles named types, generic instantiation, the
 // `$T` typeParam shorthand, function types, postfix array `T[]` and tuple
-// `[T1, T2, ...]` types, the `T!` Error-union shorthand, and pipe-separated
-// unions.
+// `[T1, T2, ...]` types, and pipe-separated unions.
 //
-// Precedence on type postfix : `[]` binds tightest, then `!`, then `|`.
-// `int[]!`        → `(int[])!`  (= `int[] | Error`)
-// `int!`          → `int | Error`
+// Precedence on type postfix : `[]` binds tightest, then `|`.
 // `fn() -> int[]` → return type is `int[]` (postfix on the return primary).
 
 import type * as A from "../ast.ts";
@@ -16,7 +13,7 @@ import { describeToken } from "../parser.ts";
 export function parseType(p: Parser): A.TypeExpr {
   // Precedence ladder for type expressions :
   //   prefix  `const`      (qualifies an array type as immutable)
-  //   postfix `[]` `!`     (tightest — applied to the primary)
+  //   postfix `[]`         (tightest — applied to the primary)
   //   infix   `&`          (intersection / trait composition)
   //   infix   `|`          (union — loosest)
   // Mirrors the value-side Pratt precedence (`amp` BP 60, `pipe` BP 40)
@@ -86,9 +83,7 @@ function parseTypeIntersection(p: Parser): A.TypeExpr {
   return head;
 }
 
-/** Primary + the two postfix operators (`T[]`, `T!`). The `!` form
- *  desugars to `T | Error` (SPEC §10) — `void!` rewrites to `null!` so the
- *  success arm matches cleanly on `is null`. */
+/** Primary + the postfix `[]` operator (`T[]`, `T[][]`, ...). */
 function parseTypePostfix(p: Parser): A.TypeExpr {
   let head = parseTypePrimary(p);
   // Postfix `[]` loop : `T[]`, `T[][]`, ... wraps `head` into an ArrayTypeExpr.
@@ -102,23 +97,6 @@ function parseTypePostfix(p: Parser): A.TypeExpr {
       id: UNASSIGNED_NODE_ID, span: { start: head.span.start, end: rb.span.end },
       element: head,
       immutable: false,
-    };
-  }
-  // Postfix `!` — error-union shorthand.
-  if (p.match("bang") !== null) {
-    const bangEnd = p.peek(-1).span.end;
-    const successVariant: A.TypeExpr = head.kind === "IdentExpr" && head.name === "void"
-      ? { kind: "IdentExpr", id: UNASSIGNED_NODE_ID, span: head.span, name: "null" }
-      : head;
-    const errorVariant: A.IdentExpr = {
-      kind: "IdentExpr", id: UNASSIGNED_NODE_ID, span: { start: bangEnd, end: bangEnd }, name: "Error",
-    };
-    head = {
-      kind: "BinaryExpr",
-      id: UNASSIGNED_NODE_ID, span: { start: head.span.start, end: bangEnd },
-      op: "bitor",
-      left: successVariant,
-      right: errorVariant,
     };
   }
   return head;
@@ -223,7 +201,7 @@ function parseTypePrimary(p: Parser): A.TypeExpr {
     }
     // Generic instantiation : `Foo<i32, U>`. Returns the bare ident
     // when no `<` follows ; the outer postfix loop then picks up `T[]`
-    // arrays / `T!` error-unions.
+    // arrays.
     const args = parseGenericArgList(p, "generic argument list");
     if (args === null) return head;
     return {

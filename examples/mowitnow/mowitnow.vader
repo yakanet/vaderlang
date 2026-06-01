@@ -5,7 +5,7 @@
 //   - user-defined trait (`Turnable`) implemented by an enum, with `Self` return
 //   - trait impl on both struct and enum (`Mower`/`Direction` implements Display)
 //   - tuple destructuring of a function result
-//   - `!T` errors propagated through `?`
+//   - explicit error unions (`T | ParseError`) propagated through `?`
 //   - top-level `@file` baking the canonical test input at compile time
 //   - argv handling so the same binary accepts an external file at runtime
 //   - UFCS chained calls (`s.trim().split_where(is_white_char)`, `m.dir.turn_left()`)
@@ -116,7 +116,7 @@ run_mower :: fn(start: Mower, lawn: Lawn, commands: Command[]) -> Mower {
 
 // --- Parsing --------------------------------------------------------------
 
-parse_direction :: fn(c: char) -> Direction! {
+parse_direction :: fn(c: char) -> Direction | ParseError {
     if c == 'N' { return .North }
     if c == 'E' { return .East }
     if c == 'S' { return .South }
@@ -124,14 +124,14 @@ parse_direction :: fn(c: char) -> Direction! {
     return ParseError { .msg = "unknown direction: '${c}'" }
 }
 
-parse_command :: fn(c: char) -> Command! {
+parse_command :: fn(c: char) -> Command | ParseError {
     if c == 'A' { return .Advance }
     if c == 'G' { return .Left }
     if c == 'D' { return .Right }
     return ParseError { .msg = "unknown command: '${c}'" }
 }
 
-parse_lawn :: fn(line: string) -> Lawn! {
+parse_lawn :: fn(line: string) -> Lawn | ParseError {
     parts :: line.trim().split_where(is_white_char)
     if parts.len() != 2 {
         return ParseError { .msg = "expected '<w> <h>', got '${line}'" }
@@ -144,7 +144,7 @@ parse_lawn :: fn(line: string) -> Lawn! {
     return Lawn { .width = w, .height = h }
 }
 
-parse_position :: fn(line: string, lawn: Lawn) -> Mower! {
+parse_position :: fn(line: string, lawn: Lawn) -> Mower | ParseError {
     parts :: line.trim().split_where(is_white_char)
     if parts.len() != 3 {
         return ParseError { .msg = "expected '<x> <y> <dir>', got '${line}'" }
@@ -161,7 +161,7 @@ parse_position :: fn(line: string, lawn: Lawn) -> Mower! {
     return Mower { .x = x, .y = y, .dir = d }
 }
 
-parse_commands :: fn(line: string) -> Command[]! {
+parse_commands :: fn(line: string) -> Command[] | ParseError {
     out: Command[] = []
     for c in line.trim().chars() {
         out.push(parse_command(c)?)
@@ -173,7 +173,7 @@ parse_commands :: fn(line: string) -> Command[]! {
 
 is_newline :: fn(c: char) = c == '\n' || c == '\r'
 
-run :: fn(input: string) -> string! {
+run :: fn(input: string) -> string | ParseError {
     lines :: input.split_where(is_newline)
     if lines.len() == 0 {
         return ParseError { .msg = "input is empty" }
@@ -202,7 +202,7 @@ run :: fn(input: string) -> string! {
 
 // --- Entrypoint -----------------------------------------------------------
 
-load_input :: fn(argv: string[]) -> string! {
+load_input :: fn(argv: string[]) -> string | Error {
     if argv.len() > 1 {
         return read_file(argv[1])?
     }
@@ -226,7 +226,7 @@ main :: fn(argv: string[]) -> i32 {
         is string -> {
             match run(raw) {
                 is string as out -> println(out)
-                is Error  as err -> {
+                is ParseError as err -> {
                     eprintln("parse error: ${err.message()}")
                     return 1
                 }

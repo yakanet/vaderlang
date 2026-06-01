@@ -2266,7 +2266,7 @@
                 },
                 "right": {
                   "kind": "IdentExpr",
-                  "name": "Error"
+                  "name": "RegexError"
                 }
               },
               "then": {

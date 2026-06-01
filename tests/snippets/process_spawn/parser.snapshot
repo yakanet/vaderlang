@@ -33,6 +33,10 @@
           {
             "name": "ProcessResult",
             "alias": null
+          },
+          {
+            "name": "ProcessError",
+            "alias": null
           }
         ]
       },
@@ -196,7 +200,7 @@
                     "kind": "IsPattern",
                     "type": {
                       "kind": "IdentExpr",
-                      "name": "Error"
+                      "name": "ProcessError"
                     },
                     "inner": null,
                     "bindAs": null

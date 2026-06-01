@@ -943,7 +943,7 @@
                     "kind": "IsPattern",
                     "type": {
                       "kind": "IdentExpr",
-                      "name": "Error"
+                      "name": "TimeError"
                     },
                     "inner": null,
                     "bindAs": null
@@ -1062,7 +1062,7 @@
                     "kind": "IsPattern",
                     "type": {
                       "kind": "IdentExpr",
-                      "name": "Error"
+                      "name": "TimeError"
                     },
                     "inner": null,
                     "bindAs": null
@@ -1139,7 +1139,7 @@
                     "kind": "IsPattern",
                     "type": {
                       "kind": "IdentExpr",
-                      "name": "Error"
+                      "name": "TimeError"
                     },
                     "inner": null,
                     "bindAs": null

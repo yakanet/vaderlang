@@ -56,8 +56,8 @@ function errorVariantsOf(t: Type, ctx: FnLowerCtx): readonly Type[] {
 }
 
 function satisfiesError(v: Type, errorSym: Symbol, impls: ImplRegistry): boolean {
-  // The trait type itself counts: `string!` desugars to `Error | string` where
-  // `Error` is the trait — any value of that variant is by definition an error.
+  // The trait type itself counts: in a union like `string | Error`, the `Error`
+  // variant is the trait — any value of that variant is by definition an error.
   if (v.kind === "Trait") return v.symbol.id === errorSym.id;
   if (v.kind === "Struct") return impls.hasUser(v.symbol, errorSym);
   if (v.kind === "Primitive") return impls.forPrimitive(v.name, errorSym) !== null;

@@ -1294,19 +1294,6 @@ emit_unary :: fn(self: Printer, x: p.UnaryExpr) -> void {
 }
 
 emit_binary :: fn(self: Printer, x: p.BinaryExpr) -> void {
-    // Recover the `T!` Error-union shorthand. The parser desugars `T!` to a
-    // `BinaryExpr(.BitOr, T, Error)` whose right span is zero-width and sits
-    // exactly on the `!` byte ; the source slice of the BinaryExpr's span
-    // therefore ends with `!`. (Special case `void!` → `null | Error` is
-    // handled by the same source-slice path, recovering `void!` verbatim.)
-    if x.op == .BitOr {
-        slice :: self.source_slice(x.span)
-        n :: slice.byte_len()
-        if n > 0 && slice.byte_at(n - 1) == 33u8 {
-            self.write(slice)
-            return
-        }
-    }
     self.emit_binary_operand(x.left, x.op, true)
     self.write(" ")
     self.write(binary_op_symbol(x.op))

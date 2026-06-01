@@ -5,6 +5,7 @@
 module "snippet"
 
 import "std/semver" { parse, parse_range, Version, VersionRange }
+import "std/string" { ParseError }
 import "std/io"     { println, eprintln }
 
 main :: fn() -> i32 {
@@ -18,13 +19,13 @@ main :: fn() -> i32 {
                     target :: parse_one("1.5.0")
                     if target in rg { println("1.5.0 in ^1.0.0") }
                 }
-                is Error as e -> {
+                is ParseError as e -> {
                     eprintln("range err: ${e.message()}")
                     return 1
                 }
             }
         }
-        is Error as e -> {
+        is ParseError as e -> {
             eprintln("err: ${e.message()}")
             return 1
         }
@@ -35,7 +36,7 @@ main :: fn() -> i32 {
 parse_one :: fn(s: string) -> Version {
     match parse(s) {
         is Version as v -> { return v }
-        is Error -> {
+        is ParseError -> {
             return Version { .major = 0, .minor = 0, .patch = 0 }
         }
     }

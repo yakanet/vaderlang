@@ -30,7 +30,7 @@ export zero_value :: fn() -> Value { return I32Val { .value = 0 } }
 /// `find_string_array_type_id`) — `type_matches` does an exact `type_id`
 /// equality check on arrays (value.vader:298), so a host-built array
 /// tagged 0 never narrows to `is string[]` in a union (e.g. the
-/// `string[]!` return of `read_dir` / `split`). Bound-checks still use
+/// `string[] | Error` return of `read_dir` / `split`). Bound-checks still use
 /// `elements.len()`, not the type table.
 /// @param items    the strings to box.
 /// @param type_id  the module's `string[]` ArrayType index, or 0 when the

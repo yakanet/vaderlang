@@ -2,21 +2,21 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let r: Error | ProcessResult =
-      call :Error | ProcessResult
+    let r: ProcessError | ProcessResult =
+      call :ProcessError | ProcessResult
         callee:
-          spawn :fn(string[]) -> Error | ProcessResult
+          spawn :fn(string[]) -> ProcessError | ProcessResult
         arg0:
           array :string[]
             "/bin/echo" :string
             "ok" :string
     block :void
-      let __scrut_0: Error | ProcessResult = r :Error | ProcessResult
+      let __scrut_0: ProcessError | ProcessResult = r :ProcessError | ProcessResult
       ~>
         if :void
           cond:
             is ProcessResult :bool
-              __scrut_0 :Error | ProcessResult
+              __scrut_0 :ProcessError | ProcessResult
           then:
             ~>
               block :void
@@ -34,7 +34,7 @@
                         __sb_2 :?
                         .exit :i32
                           cast → ProcessResult
-                            r :Error | ProcessResult
+                            r :ProcessError | ProcessResult
                       ~>
                         @builder.finish :string
                           __sb_2 :?
@@ -53,7 +53,7 @@
                           __sb_3 :?
                           .stdout :string
                             cast → ProcessResult
-                              r :Error | ProcessResult
+                              r :ProcessError | ProcessResult
                         ~>
                           @builder.finish :string
                             __sb_3 :?
@@ -61,8 +61,8 @@
             ~>
               if :void
                 cond:
-                  is Error :bool
-                    __scrut_0 :Error | ProcessResult
+                  is ProcessError :bool
+                    __scrut_0 :ProcessError | ProcessResult
                 then:
                   ~>
                     call :void
@@ -77,10 +77,12 @@
                             "err: " :string
                           @builder.append_display <for string> :void
                             __sb_1 :?
-                            vcall Error.message :string
-                              recv:
-                                cast → Error
-                                  r :Error | ProcessResult
+                            call :string
+                              callee:
+                                message :string
+                              arg0:
+                                cast → ProcessError
+                                  r :ProcessError | ProcessResult
                           ~>
                             @builder.finish :string
                               __sb_1 :?

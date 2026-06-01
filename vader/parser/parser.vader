@@ -1360,7 +1360,7 @@ ident_expr :: fn(span: Span, name: string) -> IdentExpr {
 
 parse_type :: fn(p: Parser) -> TypeExpr {
     // Precedence : `const` prefix (qualifies the array type), postfix
-    // `[]` `!` (tightest), then `&` intersection, then `|` union
+    // `[]` (tightest), then `&` intersection, then `|` union
     // (loosest). Mirrors the value-side Pratt table.
     // Optional leading `|` lets multi-line unions read cleanly in the
     // Haskell / Rust style. The lexer's `suppresses_newline_before` on
@@ -1431,30 +1431,6 @@ parse_type_postfix :: fn(p: Parser) -> TypeExpr {
         head = ArrayTypeExpr {
             .span    = Span { .start = head_span.start, .end = rb.span.end },
             .element = head,
-        }
-    }
-    // `T!` desugars to `T | Error` (or `null | Error` for `void!`).
-    if p.match_kind(.Bang) != null {
-        bang_end :: p.peek_at(-1).span.end
-        head_span :: head.span
-        success: TypeExpr = match head {
-            is IdentExpr -> {
-                if head.name == "void" { ident_expr(head_span, "null") }
-                else { head }
-            }
-            _ -> head
-        }
-        error_ident :: IdentExpr {
-            .span = Span { .start = bang_end, .end = bang_end },
-            .name = "Error",
-            .implicit_dot = false,
-            .is_type_param_intro = false,
-        }
-        head = BinaryExpr {
-            .span  = Span { .start = head_span.start, .end = bang_end },
-            .op    = .BitOr,
-            .left  = success,
-            .right = error_ident,
         }
     }
     return head

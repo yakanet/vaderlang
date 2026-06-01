@@ -10,7 +10,7 @@ show_decode :: fn(label: string, input: string) -> void {
     out :: decode(input)
     match out {
         is string -> println("${label}=${out}")
-        is Error  -> println("${label}=ERR:${out.message()}")
+        is Base64Error -> println("${label}=ERR:${out.message()}")
     }
 }
 
@@ -35,8 +35,8 @@ main :: fn() -> i32 {
     for s in inputs {
         decoded :: decode(encode(s))
         match decoded {
-            is string -> println("roundtrip-${s}=${decoded == s}")
-            is Error  -> println("roundtrip-${s}=ERR")
+            is string      -> println("roundtrip-${s}=${decoded == s}")
+            is Base64Error -> println("roundtrip-${s}=ERR")
         }
     }
 

@@ -6,9 +6,9 @@ fn snippet$show_decode(%0: string, %1: string) -> void
   locals:
     %0 label: string (param label)
     %1 input: string (param input)
-    %2 $call_2: Error | string
-    %3 out: Error | string (local out)
-    %4 __scrut_0: Error | string (synthetic __scrut_0)
+    %2 $call_2: Base64Error | string
+    %3 out: Base64Error | string (local out)
+    %4 __scrut_0: Base64Error | string (synthetic __scrut_0)
     %5 $type_check_5: bool
     %6 $intrinsic_6: ?
     %7 __sb_2: ? (synthetic __sb_2)
@@ -19,11 +19,11 @@ fn snippet$show_decode(%0: string, %1: string) -> void
     %12 $intrinsic_12: ?
     %13 __sb_1: ? (synthetic __sb_1)
     %14 $k_14: string
-    %15 $cast_15: Error
-    %16 $vcall_16: string
+    %15 $cast_15: Base64Error
+    %16 $call_16: string
     %17 $intrinsic_17: string
   bb0:
-    %2 = call decode(%1) :Error | string
+    %2 = call decode(%1) :Base64Error | string
     %3 = move %2
     %4 = move %3
     %5 = type_check %4 is string
@@ -40,7 +40,7 @@ fn snippet$show_decode(%0: string, %1: string) -> void
     call println(%10) :void
     branch -> bb3
   bb2:
-    %11 = type_check %4 is Error
+    %11 = type_check %4 is Base64Error
     cond_branch %11 ? bb4 : bb5
   bb3:
     return
@@ -50,8 +50,8 @@ fn snippet$show_decode(%0: string, %1: string) -> void
     intrinsic builder.append_display(%13, %0)
     %14 = const string(#1) :string
     intrinsic builder.append_str(%13, %14)
-    %15 = cast %3 :Error
-    %16 = vcall Error.message(recv=%15) :string
+    %15 = cast %3 :Base64Error
+    %16 = call message(%15) :string
     intrinsic builder.append_display(%13, %16)
     %17 = intrinsic builder.finish(%13)
     call println(%17) :void
@@ -122,9 +122,9 @@ fn snippet$main() -> i32
     %56 $lt_60: bool
     %57 s: string (binding s)
     %58 $call_63: string
-    %59 $call_64: Error | string
-    %60 decoded: Error | string (local decoded)
-    %61 __scrut_9: Error | string (synthetic __scrut_9)
+    %59 $call_64: Base64Error | string
+    %60 decoded: Base64Error | string (local decoded)
+    %61 __scrut_9: Base64Error | string (synthetic __scrut_9)
     %62 $type_check_67: bool
     %63 $intrinsic_68: ?
     %64 __sb_11: ? (synthetic __sb_11)
@@ -233,7 +233,7 @@ fn snippet$main() -> i32
   bb2:
     %57 = array_get %53[%55] :string
     %58 = call encode(%57) :string
-    %59 = call decode(%58) :Error | string
+    %59 = call decode(%58) :Base64Error | string
     %60 = move %59
     %61 = move %60
     %62 = type_check %61 is string
@@ -262,7 +262,7 @@ fn snippet$main() -> i32
     call println(%69) :void
     branch -> bb6
   bb5:
-    %70 = type_check %61 is Error
+    %70 = type_check %61 is Base64Error
     cond_branch %70 ? bb7 : bb8
   bb6:
     %76 = const int(1) :usize

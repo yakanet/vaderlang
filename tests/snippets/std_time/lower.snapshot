@@ -210,19 +210,19 @@
           arg0:
             epoch :Instant
     let iso: string = "2026-05-15T12:34:56.789Z" :string
-    let parsed: Error | Instant =
-      call :Error | Instant
+    let parsed: Instant | TimeError =
+      call :Instant | TimeError
         callee:
-          parse_iso8601 :fn(string) -> Error | Instant
+          parse_iso8601 :fn(string) -> Instant | TimeError
         arg0:
           iso :string
     block :void
-      let __scrut_3: Error | Instant = parsed :Error | Instant
+      let __scrut_3: Instant | TimeError = parsed :Instant | TimeError
       ~>
         if :void
           cond:
             is Instant :bool
-              __scrut_3 :Error | Instant
+              __scrut_3 :Instant | TimeError
           then:
             ~>
               call :void
@@ -234,13 +234,13 @@
                       format_iso8601 :fn(Instant) -> string
                     arg0:
                       cast → Instant
-                        parsed :Error | Instant
+                        parsed :Instant | TimeError
           else:
             ~>
               if :void
                 cond:
-                  is Error :bool
-                    __scrut_3 :Error | Instant
+                  is TimeError :bool
+                    __scrut_3 :Instant | TimeError
                 then:
                   ~>
                     call :void
@@ -251,19 +251,19 @@
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
-    let pre: Error | Instant =
-      call :Error | Instant
+    let pre: Instant | TimeError =
+      call :Instant | TimeError
         callee:
-          parse_iso8601 :fn(string) -> Error | Instant
+          parse_iso8601 :fn(string) -> Instant | TimeError
         arg0:
           "1900-01-01T00:00:00.000Z" :string
     block :void
-      let __scrut_4: Error | Instant = pre :Error | Instant
+      let __scrut_4: Instant | TimeError = pre :Instant | TimeError
       ~>
         if :void
           cond:
             is Instant :bool
-              __scrut_4 :Error | Instant
+              __scrut_4 :Instant | TimeError
           then:
             ~>
               call :void
@@ -275,13 +275,13 @@
                       format_iso8601 :fn(Instant) -> string
                     arg0:
                       cast → Instant
-                        pre :Error | Instant
+                        pre :Instant | TimeError
           else:
             ~>
               if :void
                 cond:
-                  is Error :bool
-                    __scrut_4 :Error | Instant
+                  is TimeError :bool
+                    __scrut_4 :Instant | TimeError
                 then:
                   ~>
                     call :void
@@ -292,19 +292,19 @@
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
-    let bad: Error | Instant =
-      call :Error | Instant
+    let bad: Instant | TimeError =
+      call :Instant | TimeError
         callee:
-          parse_iso8601 :fn(string) -> Error | Instant
+          parse_iso8601 :fn(string) -> Instant | TimeError
         arg0:
           "not a timestamp" :string
     block :void
-      let __scrut_5: Error | Instant = bad :Error | Instant
+      let __scrut_5: Instant | TimeError = bad :Instant | TimeError
       ~>
         if :void
           cond:
-            is Error :bool
-              __scrut_5 :Error | Instant
+            is TimeError :bool
+              __scrut_5 :Instant | TimeError
           then:
             ~>
               call :void
@@ -317,7 +317,7 @@
               if :void
                 cond:
                   is Instant :bool
-                    __scrut_5 :Error | Instant
+                    __scrut_5 :Instant | TimeError
                 then:
                   ~>
                     call :void

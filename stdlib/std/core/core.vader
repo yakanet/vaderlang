@@ -7,8 +7,8 @@
 //      ArrayIterator)
 //   3. Primitive type impls (Equals, Hash, numeric arithmetic, string)
 //
-// The base `Error` trait powering the `!T` and `?` sugar lives in §1 ; the
-// concrete error structs are user-defined.
+// The base `Error` trait powering error unions and the `?` operator lives
+// in §1 ; the concrete error structs are user-defined.
 
 // ============================================================================
 // 1. Trait declarations
@@ -171,9 +171,9 @@ export Iterator :: trait<T> {
     }
 }
 
-/// Base trait for every error type usable in `!T` returns and the `?`
-/// operator. Any struct implementing `Error` participates in `T!`
-/// (`T | Error`) unions ; `?` re-raises by matching the trait.
+/// Base trait for every error type usable in `T | Error` returns and the
+/// `?` operator. Any struct implementing `Error` participates in such
+/// error unions ; `?` re-raises by matching the trait.
 ///
 /// @return  short human-readable message — used by `Display`-style
 ///          renderers, never parsed.

@@ -5,15 +5,8 @@
 
 module "std/numbers"
 
-import "std/string" { byte_len, chars, ends_with, is_digit, is_empty, byte_slice, replace_chars_where }
+import "std/string" { byte_len, chars, ends_with, is_digit, is_empty, byte_slice, replace_chars_where, ParseError }
 import "std/string_builder" { StringBuilder, new_builder, append_char }
-
-/// Raised by every fallible parser in this module. The shape mirrors
-/// `std/string.ParseError` so callers can match on either as `Error`.
-export ParseError :: struct { msg: string }
-ParseError implements Error {
-    message :: fn(self) -> string { return self.msg }
-}
 
 /// True for an ASCII hex digit — `0`..`9`, `a`..`f`, `A`..`F`.
 /// @param c  codepoint to classify.
@@ -49,7 +42,7 @@ export hex_digit_value :: fn(c: char) -> i32 {
 /// @param base  one of 2 / 8 / 10 / 16.
 /// @return      the parsed `i64`.
 /// @error       `ParseError` on empty input or any out-of-base digit.
-export parse_int_in_base :: fn(s: string, base: i32) -> i64! {
+export parse_int_in_base :: fn(s: string, base: i32) -> i64 | ParseError {
     if s.is_empty() {
         return ParseError { .msg = "empty input" }
     }
@@ -74,7 +67,7 @@ export parse_int_in_base :: fn(s: string, base: i32) -> i64! {
 /// @param base  one of 2 / 8 / 10 / 16.
 /// @return      the parsed `u64`.
 /// @error       `ParseError` on empty input or any out-of-base digit.
-export parse_uint_in_base :: fn(s: string, base: i32) -> u64! {
+export parse_uint_in_base :: fn(s: string, base: i32) -> u64 | ParseError {
     if s.is_empty() {
         return ParseError { .msg = "empty input" }
     }

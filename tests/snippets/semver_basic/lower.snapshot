@@ -3,21 +3,21 @@
 ## snippet
   fn snippet$main() -> i32
     block :void
-      let __scrut_0: Error | Version =
-        call :Error | Version
+      let __scrut_0: ParseError | Version =
+        call :ParseError | Version
           callee:
-            parse :fn(string) -> Error | Version
+            parse :fn(string) -> ParseError | Version
           arg0:
             "1.2.3-rc.1" :string
       ~>
         if :void
           cond:
             is Version :bool
-              __scrut_0 :Error | Version
+              __scrut_0 :ParseError | Version
           then:
             let ver: Version =
               cast → Version
-                __scrut_0 :Error | Version
+                __scrut_0 :ParseError | Version
             ~>
               block :void
                 call :void
@@ -64,21 +64,21 @@
                         "after 1.0.0" :string
                 ~>
                   block :void
-                    let __scrut_3: Error | VersionRange =
-                      call :Error | VersionRange
+                    let __scrut_3: ParseError | VersionRange =
+                      call :ParseError | VersionRange
                         callee:
-                          parse_range :fn(string) -> Error | VersionRange
+                          parse_range :fn(string) -> ParseError | VersionRange
                         arg0:
                           "^1.0.0" :string
                     ~>
                       if :void
                         cond:
                           is VersionRange :bool
-                            __scrut_3 :Error | VersionRange
+                            __scrut_3 :ParseError | VersionRange
                         then:
                           let rg: VersionRange =
                             cast → VersionRange
-                              __scrut_3 :Error | VersionRange
+                              __scrut_3 :ParseError | VersionRange
                           ~>
                             block :void
                               let target: Version =
@@ -107,12 +107,12 @@
                           ~>
                             if :void
                               cond:
-                                is Error :bool
-                                  __scrut_3 :Error | VersionRange
+                                is ParseError :bool
+                                  __scrut_3 :ParseError | VersionRange
                               then:
-                                let e: Error =
-                                  cast → Error
-                                    __scrut_3 :Error | VersionRange
+                                let e: ParseError =
+                                  cast → ParseError
+                                    __scrut_3 :ParseError | VersionRange
                                 ~>
                                   block :void
                                     call :void
@@ -127,9 +127,11 @@
                                             "range err: " :string
                                           @builder.append_display <for string> :void
                                             __sb_4 :?
-                                            vcall Error.message :string
-                                              recv:
-                                                e :Error
+                                            call :string
+                                              callee:
+                                                message :string
+                                              arg0:
+                                                e :ParseError
                                           ~>
                                             @builder.finish :string
                                               __sb_4 :?
@@ -141,12 +143,12 @@
             ~>
               if :void
                 cond:
-                  is Error :bool
-                    __scrut_0 :Error | Version
+                  is ParseError :bool
+                    __scrut_0 :ParseError | Version
                 then:
-                  let e: Error =
-                    cast → Error
-                      __scrut_0 :Error | Version
+                  let e: ParseError =
+                    cast → ParseError
+                      __scrut_0 :ParseError | Version
                   ~>
                     block :void
                       call :void
@@ -161,9 +163,11 @@
                               "err: " :string
                             @builder.append_display <for string> :void
                               __sb_1 :?
-                              vcall Error.message :string
-                                recv:
-                                  e :Error
+                              call :string
+                                callee:
+                                  message :string
+                                arg0:
+                                  e :ParseError
                             ~>
                               @builder.finish :string
                                 __sb_1 :?
@@ -175,21 +179,21 @@
   fn snippet$parse_one(s: string) -> Version
     ~>
       block :never
-        let __scrut_0: Error | Version =
-          call :Error | Version
+        let __scrut_0: ParseError | Version =
+          call :ParseError | Version
             callee:
-              parse :fn(string) -> Error | Version
+              parse :fn(string) -> ParseError | Version
             arg0:
               s :string
         ~>
           if :never
             cond:
               is Version :bool
-                __scrut_0 :Error | Version
+                __scrut_0 :ParseError | Version
             then:
               let v: Version =
                 cast → Version
-                  __scrut_0 :Error | Version
+                  __scrut_0 :ParseError | Version
               ~>
                 block :void
                   return v :Version
@@ -197,8 +201,8 @@
               ~>
                 if :never
                   cond:
-                    is Error :bool
-                      __scrut_0 :Error | Version
+                    is ParseError :bool
+                      __scrut_0 :ParseError | Version
                   then:
                     ~>
                       block :void

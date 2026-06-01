@@ -33,7 +33,7 @@ is_ascii_space :: fn(c: char) -> bool { return c == ' ' || c == '\t' }
 /// `Content-Length`, or EOF.
 /// @return  the JSON body (UTF-8, exactly `Content-Length` bytes).
 /// @error   `TransportError` on malformed frame or EOF.
-export read_frame :: fn() -> string! {
+export read_frame :: fn() -> string | TransportError {
     content_length: isize = -1
     // Read header lines until the blank `\r\n`. Each line ends with
     // `\r\n` so we read 1 byte at a time looking for the terminator —

@@ -124,8 +124,8 @@
   Yield<T>
   Yield<T>
   Yield<T>
-  Yield<T>
   Yield<U>
+  Yield<T>
   Yield<T>
   Yield<T>
   Range<char>

@@ -2,12 +2,12 @@
 
 ## tests/snippets/process_spawn
   FnDecl         main                 :: fn() -> i32
-  expr 11:10    CallExpr       :: Error | ProcessResult
-  expr 11:10    IdentExpr      :: fn(string[]) -> Error | ProcessResult
+  expr 11:10    CallExpr       :: ProcessError | ProcessResult
+  expr 11:10    IdentExpr      :: fn(string[]) -> ProcessError | ProcessResult
   expr 11:16    SeqLitExpr     :: string[]
   expr 11:17    StringLitExpr  :: string
   expr 11:30    StringLitExpr  :: string
-  expr 12:11    IdentExpr      :: Error | ProcessResult
+  expr 12:11    IdentExpr      :: ProcessError | ProcessResult
   expr 12:5     MatchExpr      :: void
   expr 14:13    CallExpr       :: void
   expr 14:13    IdentExpr      :: fn(T) -> void
@@ -19,9 +19,9 @@
   expr 15:21    StringLitExpr  :: string
   expr 15:28    FieldExpr      :: string
   expr 15:28    IdentExpr      :: ProcessResult
-  expr 17:21    CallExpr       :: void
-  expr 17:21    IdentExpr      :: fn(T) -> void
-  expr 17:29    StringLitExpr  :: string
-  expr 17:37    CallExpr       :: string
-  expr 17:37    FieldExpr      :: fn() -> string
-  expr 17:37    IdentExpr      :: Error
+  expr 17:28    CallExpr       :: void
+  expr 17:28    IdentExpr      :: fn(T) -> void
+  expr 17:36    StringLitExpr  :: string
+  expr 17:44    CallExpr       :: string
+  expr 17:44    FieldExpr      :: fn() -> string
+  expr 17:44    IdentExpr      :: ProcessError

@@ -43,22 +43,22 @@ main :: fn() -> i32 {
     iso :: "2026-05-15T12:34:56.789Z"
     parsed :: parse_iso8601(iso)
     match parsed {
-        is Instant -> println(format_iso8601(parsed))  // 2026-05-15T12:34:56.789Z
-        is Error   -> println("parse failed")
+        is Instant   -> println(format_iso8601(parsed))  // 2026-05-15T12:34:56.789Z
+        is TimeError -> println("parse failed")
     }
 
     // Pre-epoch round-trip — negative ns_since_epoch.
     pre :: parse_iso8601("1900-01-01T00:00:00.000Z")
     match pre {
-        is Instant -> println(format_iso8601(pre))     // 1900-01-01T00:00:00.000Z
-        is Error   -> println("pre failed")
+        is Instant   -> println(format_iso8601(pre))     // 1900-01-01T00:00:00.000Z
+        is TimeError -> println("pre failed")
     }
 
     // Parser rejects malformed input.
     bad :: parse_iso8601("not a timestamp")
     match bad {
-        is Error   -> println("bad ok")
-        is Instant -> println("bad nope")
+        is TimeError -> println("bad ok")
+        is Instant   -> println("bad nope")
     }
 
     // Monotonic non-decreasing check — normalise to bool so the

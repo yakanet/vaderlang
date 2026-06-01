@@ -46,7 +46,7 @@ export run_server :: fn(args: string[]) -> i32 {
     for {
         frame :: read_frame()
         match frame {
-            is Error -> {
+            is TransportError -> {
                 eprintln("lsp: transport error, exiting")
                 return 1
             }

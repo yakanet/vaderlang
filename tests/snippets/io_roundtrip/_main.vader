@@ -5,7 +5,7 @@ import "std/io" { println, write_file, read_file, exists }
 main :: fn() -> i32 {
     path :: "/tmp/vader_io_roundtrip.txt"
 
-    // Ignore the void!-typed result — the side effect (file written) is what we test.
+    // Ignore the null | Error result — the side effect (file written) is what we test.
     write_file(path, "hello from vader")
 
     println("exists: ${exists(path)}")

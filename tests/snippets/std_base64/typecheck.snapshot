@@ -3,23 +3,23 @@
 ## tests/snippets/std_base64
   FnDecl         main                 :: fn() -> i32
   FnDecl         show_decode          :: fn(string, string) -> void
-  expr 10:12    CallExpr       :: Error | string
-  expr 10:12    IdentExpr      :: fn(string) -> Error | string
+  expr 10:12    CallExpr       :: Base64Error | string
+  expr 10:12    IdentExpr      :: fn(string) -> Base64Error | string
   expr 10:19    IdentExpr      :: string
-  expr 11:11    IdentExpr      :: Error | string
+  expr 11:11    IdentExpr      :: Base64Error | string
   expr 11:5     MatchExpr      :: void
   expr 12:22    CallExpr       :: void
   expr 12:22    IdentExpr      :: fn(T) -> void
   expr 12:30    StringLitExpr  :: string
   expr 12:33    IdentExpr      :: string
   expr 12:42    IdentExpr      :: string
-  expr 13:22    CallExpr       :: void
-  expr 13:22    IdentExpr      :: fn(T) -> void
-  expr 13:30    StringLitExpr  :: string
-  expr 13:33    IdentExpr      :: string
-  expr 13:46    CallExpr       :: string
-  expr 13:46    FieldExpr      :: fn() -> string
-  expr 13:46    IdentExpr      :: Error
+  expr 13:27    CallExpr       :: void
+  expr 13:27    IdentExpr      :: fn(T) -> void
+  expr 13:35    StringLitExpr  :: string
+  expr 13:38    IdentExpr      :: string
+  expr 13:51    CallExpr       :: string
+  expr 13:51    FieldExpr      :: fn() -> string
+  expr 13:51    IdentExpr      :: Base64Error
   expr 19:13    StringLitExpr  :: string
   expr 19:22    CallExpr       :: string
   expr 19:22    IdentExpr      :: fn(string) -> string
@@ -87,24 +87,24 @@
   expr 34:40    StringLitExpr  :: string
   expr 34:46    StringLitExpr  :: string
   expr 35:14    IdentExpr      :: string[]
-  expr 36:20    CallExpr       :: Error | string
-  expr 36:20    IdentExpr      :: fn(string) -> Error | string
+  expr 36:20    CallExpr       :: Base64Error | string
+  expr 36:20    IdentExpr      :: fn(string) -> Base64Error | string
   expr 36:27    CallExpr       :: string
   expr 36:27    IdentExpr      :: fn(string) -> string
   expr 36:34    IdentExpr      :: string
-  expr 37:15    IdentExpr      :: Error | string
+  expr 37:15    IdentExpr      :: Base64Error | string
   expr 37:9     MatchExpr      :: void
-  expr 38:26    CallExpr       :: void
-  expr 38:26    IdentExpr      :: fn(T) -> void
-  expr 38:34    StringLitExpr  :: string
-  expr 38:47    IdentExpr      :: string
-  expr 38:52    BinaryExpr     :: bool
+  expr 38:31    CallExpr       :: void
+  expr 38:31    IdentExpr      :: fn(T) -> void
+  expr 38:39    StringLitExpr  :: string
   expr 38:52    IdentExpr      :: string
-  expr 38:63    IdentExpr      :: string
-  expr 39:26    CallExpr       :: void
-  expr 39:26    IdentExpr      :: fn(T) -> void
-  expr 39:34    StringLitExpr  :: string
-  expr 39:47    IdentExpr      :: string
+  expr 38:57    BinaryExpr     :: bool
+  expr 38:57    IdentExpr      :: string
+  expr 38:68    IdentExpr      :: string
+  expr 39:31    CallExpr       :: void
+  expr 39:31    IdentExpr      :: fn(T) -> void
+  expr 39:39    StringLitExpr  :: string
+  expr 39:52    IdentExpr      :: string
   expr 44:17    StringLitExpr  :: string
   expr 44:32    StringLitExpr  :: string
   expr 44:5     CallExpr       :: void

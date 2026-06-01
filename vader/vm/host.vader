@@ -108,7 +108,7 @@ stringbuilder_to_string :: fn(sv: StructVal, at_pc: i32) -> HostCallResult {
 /// @param string_array_type_id  the module's `string[]` ArrayType index
 ///                  (see `find_string_array_type_id`), stamped onto the
 ///                  arrays returned by `split` / `read_dir` so they narrow
-///                  to `is string[]` in their `string[]!` union return.
+///                  to `is string[]` in their `string[] | Error` union return.
 /// @return          `HostOk { value }` on success ; `Trap` on a missing
 ///                  import, malformed arg, or host-level failure.
 export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, gc_state: usize[], at_pc: i32, string_array_type_id: i32) -> HostCallResult {
@@ -320,7 +320,7 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
         if content is Trap { return content }
         result :: write_file(path.value, content.value)
         // The C-emitter assigns a non-zero tag to the `null` type, but
-        // `vader_box_null` (used by the runtime for `void!` success
+        // `vader_box_null` (used by the runtime for `null | Error` success
         // returns) emits tag 0, so `is null` would miss. Match the
         // failure path explicitly and fall through to success.
         return match result {
@@ -341,7 +341,7 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
     if info.mangled == r"std_io$read_dir" {
         path :: read_string(stack[arg_base], at_pc, "read_dir")
         if path is Trap { return path }
-        // `read_dir` returns `string[]!` (string[] | Error). The early-return
+        // `read_dir` returns `string[] | Error`. The early-return
         // guard narrows `result` to the array on the success path. Needed by
         // the resolver's module discovery (vader/resolver/discover.vader) when
         // the compiler runs itself through the VM.

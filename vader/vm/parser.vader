@@ -14,7 +14,7 @@
 
 module "vader/vm"
 
-import "std/string" { byte_len, byte_at, byte_slice, starts_with, ends_with, trim, split, index_of, decode_escapes }
+import "std/string" { byte_len, byte_at, byte_slice, starts_with, ends_with, trim, split, index_of, decode_escapes, ParseError }
 import "std/numbers" { hex_digit_value, parse_int_in_base, parse_uint_in_base }
 
 // `ScopeEntry` and `PendingBranch` live in `vader/vm/builder.vader` —
@@ -426,7 +426,7 @@ parse_type_decl :: fn(cleaned: string, types: TypeDecl[]) -> void {
     if rest.starts_with("array ") {
         element_text :: rest.byte_slice("array ".byte_len(), rest.byte_len()).trim()
         parsed :: parse_int_in_base(element_text, 10)
-        if parsed is Error { types.push(RefType { .trait_name = "" }) return }
+        if parsed is ParseError { types.push(RefType { .trait_name = "" }) return }
         types.push(ArrayType { .element_type_id = i32(parsed) })
         return
     }
@@ -490,7 +490,7 @@ parse_int_list :: fn(csv: string) -> i32[] {
     i: usize = 0
     for i < n {
         parsed :: parse_int_in_base(parts[i].trim(), 10)
-        if !(parsed is Error) { ids.push(i32(parsed)) }
+        if !(parsed is ParseError) { ids.push(i32(parsed)) }
         i += 1
     }
     return ids
@@ -515,7 +515,7 @@ parse_fn_type :: fn(rest: string) -> FnType {
     if arrow >= 0 {
         ret_text :: rest.byte_slice(usize(arrow) + 1, rest.byte_len()).trim()
         parsed :: parse_int_in_base(ret_text, 10)
-        if !(parsed is Error) { return_type_id = i32(parsed) }
+        if !(parsed is ParseError) { return_type_id = i32(parsed) }
     }
     return FnType { .parameter_type_ids = parameter_type_ids, .return_type_id = return_type_id }
 }
@@ -735,7 +735,7 @@ parse_impl_decl :: fn(cleaned: string, impls: Impl[]) -> void {
     if space < 0 { return }
     type_id_text :: after.byte_slice(0, usize(space)).trim()
     parsed :: parse_int_in_base(type_id_text, 10)
-    if parsed is Error { return }
+    if parsed is ParseError { return }
     trait_name :: after.byte_slice(usize(space) + 1, after.byte_len()).trim()
     // Drop surrounding `"..."` quotes if the writer chose to quote a
     // non-ident trait name. Today every emitted trait name is a bare
@@ -758,13 +758,13 @@ parse_vtable_decl :: fn(cleaned: string, vtables: Vtable[]) -> void {
     if last_space < 0 { return }
     fn_text :: after.byte_slice(usize(last_space) + 1, after.byte_len()).trim()
     fn_parsed :: parse_int_in_base(fn_text, 10)
-    if fn_parsed is Error { return }
+    if fn_parsed is ParseError { return }
     head :: after.byte_slice(0, usize(last_space)).trim()
     second_space :: last_index_of_space(head)
     if second_space < 0 { return }
     type_text :: head.byte_slice(usize(second_space) + 1, head.byte_len()).trim()
     type_parsed :: parse_int_in_base(type_text, 10)
-    if type_parsed is Error { return }
+    if type_parsed is ParseError { return }
     raw_key :: head.byte_slice(0, usize(second_space)).trim()
     key: string = raw_key
     if raw_key.byte_len() >= 2 && raw_key.byte_at(0) == b'"' && raw_key.byte_at(raw_key.byte_len() - 1) == b'"' {
@@ -793,7 +793,7 @@ parse_export_main_index :: fn(cleaned: string) -> i32 {
     if parts.len() < 2 { return -1 }
     if parts[0] != "main" { return -1 }
     parsed :: parse_int_in_base(parts[1], 10)
-    if parsed is Error { return -1 }
+    if parsed is ParseError { return -1 }
     return i32(parsed)
 }
 
@@ -1220,7 +1220,7 @@ parse_int_const_text :: fn(rest: string) -> Op | null {
     // read correctly downstream.
     if rest.starts_with("-") {
         mag :: parse_uint_in_base(rest.byte_slice(1, rest.byte_len()), 10)
-        if mag is Error { return null }
+        if mag is ParseError { return null }
         signed :: i64(0) - i64(mag)
         if signed >= i64(-0x80000000) && signed <= i64(0x7fffffff) {
             return I32Const { .value = i32(signed) }
@@ -1233,7 +1233,7 @@ parse_int_const_text :: fn(rest: string) -> Op | null {
     // `I64Const`, and the host display arms pick the right signedness from
     // the op sequence that surrounds the const.
     parsed :: parse_uint_in_base(rest, 10)
-    if parsed is Error { return null }
+    if parsed is ParseError { return null }
     if parsed <= u64(0x7fffffff) {
         return I32Const { .value = i32(parsed) }
     }
@@ -1283,7 +1283,7 @@ is_unsigned_width :: fn(width: string) -> bool {
 parse_int_after_prefix :: fn(line: string, prefix: string) -> i32 | null {
     rest :: line.byte_slice(prefix.byte_len(), line.byte_len()).trim()
     parsed :: parse_int_in_base(rest, 10)
-    if parsed is Error { return null }
+    if parsed is ParseError { return null }
     return i32(parsed)
 }
 
@@ -1380,7 +1380,7 @@ export parse_decimal_f64 :: fn(s: string) -> f64 | null {
     if dot_index < 0 { if exp_index >= 0 { int_end = usize(exp_index) } }
     int_text :: s.byte_slice(cursor, int_end)
     int_part :: parse_int_in_base(int_text, 10)
-    if int_part is Error { return null }
+    if int_part is ParseError { return null }
     result: f64 = f64(int_part)
     if dot_index >= 0 {
         frac_end: usize = n
@@ -1388,7 +1388,7 @@ export parse_decimal_f64 :: fn(s: string) -> f64 | null {
         frac_text :: s.byte_slice(usize(dot_index) + 1, frac_end)
         if frac_text.byte_len() > 0 {
             frac_part :: parse_int_in_base(frac_text, 10)
-            if frac_part is Error { return null }
+            if frac_part is ParseError { return null }
             divisor: f64 = f64(1)
             frac_ten :: f64(10)
             d: usize = 0
@@ -1402,7 +1402,7 @@ export parse_decimal_f64 :: fn(s: string) -> f64 | null {
     if exp_index >= 0 {
         exp_text :: s.byte_slice(usize(exp_index) + 1, n)
         exp_part :: parse_int_in_base(exp_text, 10)
-        if exp_part is Error { return null }
+        if exp_part is ParseError { return null }
         abs_exp: i64 = exp_part
         if abs_exp < 0 { abs_exp = -abs_exp }
         // `f64.pow` isn't available at parse time (intrinsic, host-only),
@@ -1479,7 +1479,7 @@ parse_virtual_call :: fn(line: string) -> Op | null {
     if space < 0 { return null }
     pc_text :: rest.byte_slice(0, usize(space)).trim()
     parsed_pc :: parse_int_in_base(pc_text, 10)
-    if parsed_pc is Error { return null }
+    if parsed_pc is ParseError { return null }
     key :: rest.byte_slice(usize(space) + 1, rest.byte_len()).trim()
     return VirtualCall { .parameter_count = i32(parsed_pc), .vtable_key = key }
 }
@@ -1559,9 +1559,9 @@ parse_int_pair_after_prefix :: fn(line: string, prefix: string) -> [i32, i32] | 
     space :: rest.index_of(' ', 0)
     if space < 0 { return null }
     a :: parse_int_in_base(rest.byte_slice(0, usize(space)).trim(), 10)
-    if a is Error { return null }
+    if a is ParseError { return null }
     b :: parse_int_in_base(rest.byte_slice(usize(space) + 1, rest.byte_len()).trim(), 10)
-    if b is Error { return null }
+    if b is ParseError { return null }
     return [i32(a), i32(b)]
 }
 
@@ -1588,11 +1588,11 @@ parse_local_field :: fn(line: string) -> Op | null {
     type_str :: rest.byte_slice(usize(s1) + 1, usize(s2)).trim()
     field_str :: rest.byte_slice(usize(s2) + 1, rest.byte_len()).trim()
     slot :: parse_int_in_base(slot_str, 10)
-    if slot is Error { return null }
+    if slot is ParseError { return null }
     tid :: parse_int_in_base(type_str, 10)
-    if tid is Error { return null }
+    if tid is ParseError { return null }
     fi :: parse_int_in_base(field_str, 10)
-    if fi is Error { return null }
+    if fi is ParseError { return null }
     return LocalField { .slot = i32(slot), .type_id = i32(tid), .field_index = i32(fi) }
 }
 
@@ -1662,8 +1662,8 @@ parse_data_const :: fn(line: string) -> Op | null {
     pool_text :: after.byte_slice(0, usize(sp))
     type_text :: after.byte_slice(usize(sp) + 1, after.byte_len()).trim()
     pool_parsed :: parse_int_in_base(pool_text, 10)
-    if pool_parsed is Error { return null }
+    if pool_parsed is ParseError { return null }
     type_parsed :: parse_int_in_base(type_text, 10)
-    if type_parsed is Error { return null }
+    if type_parsed is ParseError { return null }
     return DataConst { .pool_index = i32(pool_parsed), .type_id = i32(type_parsed) }
 }

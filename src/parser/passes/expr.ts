@@ -158,35 +158,6 @@ export function parseExpr(p: Parser, minBP: number): A.Expr {
       continue;
     }
 
-    // Lone postfix `!` — type-mode error-union shorthand absorbed into the
-    // main Pratt parser since 1.C. `T!` desugars to `T | Error` (with the
-    // void→null special case mirroring the original parseType behaviour).
-    // In value position the typechecker rejects the resulting BinaryExpr,
-    // so semantics are unchanged.
-    // Guard: do not fire when the next token is `kw_in` (handled above as
-    // `!in`) — without this, a higher-minBP context that skipped the
-    // 20-BP `!in` branch would misparse `expr !in xs` as `(expr!) in xs`.
-    if (t.kind === "bang" && p.peek(1).kind !== "kw_in" && 100 >= minBP) {
-      const bangTok = p.advance();
-      const successVariant: A.Expr = left.kind === "IdentExpr" && left.name === "void"
-        ? { kind: "IdentExpr", id: UNASSIGNED_NODE_ID, span: left.span, name: "null" }
-        : left;
-      const errorVariant: A.IdentExpr = {
-        kind: "IdentExpr",
-        id: UNASSIGNED_NODE_ID, span: { start: bangTok.span.end, end: bangTok.span.end },
-        name: "Error",
-      };
-      left = {
-        kind: "BinaryExpr",
-        id: UNASSIGNED_NODE_ID, span: { start: left.span.start, end: bangTok.span.end },
-        op: "bitor",
-        left: successVariant,
-        right: errorVariant,
-      };
-      lastNonAssocLevel = -1;
-      continue;
-    }
-
     const infix = INFIX_OPS.get(t.kind);
     if (infix !== undefined && infix.leftBP >= minBP) {
       if (infix.nonAssoc === true && lastNonAssocLevel === infix.leftBP) {

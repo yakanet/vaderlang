@@ -104,7 +104,7 @@ main :: fn() -> i32 {
 
     // Compile error path
     bad :: compile("[abc")
-    if bad is Error {
+    if bad is RegexError {
         println("bad-compile=caught")
     }
 

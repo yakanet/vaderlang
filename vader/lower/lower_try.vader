@@ -11,9 +11,9 @@
 //   }
 //
 // Error detection : a variant is an "error" when it's the trait
-// `Error` itself (`string!` desugars to `Error | string`) or when its
-// nominal type has a user impl `T implements Error`. The lookup uses
-// the project-wide `impl_by_trait` query.
+// `Error` itself (e.g. `string | Error`) or when its nominal type has a
+// user impl `T implements Error`. The lookup uses the project-wide
+// `impl_by_trait` query.
 //
 // Cycle-breaker pattern : `lower_expr` is supplied as a callback to
 // dodge the import cycle with `lower_expr.vader`.
@@ -100,7 +100,7 @@ build_error_predicate :: fn(span: Span, ident: LoweredExpr, variants: Type[]) ->
 
 // Compute the error half of the operand's union. A variant counts as
 // an error when :
-//   - it's the `Error` trait itself (`string!` → `Error | string`)
+//   - it's the `Error` trait itself (e.g. `string | Error`)
 //   - it's a nominal struct/enum with a user impl `T implements Error`
 //   - it's a primitive — best-effort skipped here since Vader's typer
 //     doesn't yet expose `forPrimitive` impls.

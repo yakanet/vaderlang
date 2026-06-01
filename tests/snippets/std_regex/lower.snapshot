@@ -112,16 +112,16 @@
                     @builder.finish :string
                       __sb_1 :?
   fn snippet$main() -> i32
-    let p_lit: Error | Pattern =
-      call :Error | Pattern
+    let p_lit: Pattern | RegexError =
+      call :Pattern | RegexError
         callee:
-          compile :fn(string) -> Error | Pattern
+          compile :fn(string) -> Pattern | RegexError
         arg0:
           "hello" :string
     if :void
       cond:
         is Pattern :bool
-          p_lit :Error | Pattern
+          p_lit :Pattern | RegexError
       then:
         call :void
           callee:
@@ -130,7 +130,7 @@
             "lit-exact" :string
           arg1:
             cast → Pattern
-              p_lit :Error | Pattern
+              p_lit :Pattern | RegexError
           arg2:
             "hello" :string
         call :void
@@ -140,19 +140,19 @@
             "lit-partial" :string
           arg1:
             cast → Pattern
-              p_lit :Error | Pattern
+              p_lit :Pattern | RegexError
           arg2:
             "hellox" :string
-    let p_digits: Error | Pattern =
-      call :Error | Pattern
+    let p_digits: Pattern | RegexError =
+      call :Pattern | RegexError
         callee:
-          compile :fn(string) -> Error | Pattern
+          compile :fn(string) -> Pattern | RegexError
         arg0:
           "\\d{3}-\\d{4}" :string
     if :void
       cond:
         is Pattern :bool
-          p_digits :Error | Pattern
+          p_digits :Pattern | RegexError
       then:
         call :void
           callee:
@@ -161,7 +161,7 @@
             "phone-good" :string
           arg1:
             cast → Pattern
-              p_digits :Error | Pattern
+              p_digits :Pattern | RegexError
           arg2:
             "555-1234" :string
         call :void
@@ -171,19 +171,19 @@
             "phone-bad" :string
           arg1:
             cast → Pattern
-              p_digits :Error | Pattern
+              p_digits :Pattern | RegexError
           arg2:
             "55-1234" :string
-    let p_word: Error | Pattern =
-      call :Error | Pattern
+    let p_word: Pattern | RegexError =
+      call :Pattern | RegexError
         callee:
-          compile :fn(string) -> Error | Pattern
+          compile :fn(string) -> Pattern | RegexError
         arg0:
           "[a-z]+" :string
     if :void
       cond:
         is Pattern :bool
-          p_word :Error | Pattern
+          p_word :Pattern | RegexError
       then:
         call :void
           callee:
@@ -192,7 +192,7 @@
             "first-word" :string
           arg1:
             cast → Pattern
-              p_word :Error | Pattern
+              p_word :Pattern | RegexError
           arg2:
             "abc def ghi" :string
         let all: Match[] =
@@ -201,7 +201,7 @@
               find_all :Match[]
             arg0:
               cast → Pattern
-                p_word :Error | Pattern
+                p_word :Pattern | RegexError
             arg1:
               "abc def ghi" :string
         call :void
@@ -271,16 +271,16 @@
                 r:
                   cast → usize
                     int(1) :usize
-    let p_anchor: Error | Pattern =
-      call :Error | Pattern
+    let p_anchor: Pattern | RegexError =
+      call :Pattern | RegexError
         callee:
-          compile :fn(string) -> Error | Pattern
+          compile :fn(string) -> Pattern | RegexError
         arg0:
           "^foo" :string
     if :void
       cond:
         is Pattern :bool
-          p_anchor :Error | Pattern
+          p_anchor :Pattern | RegexError
       then:
         call :void
           callee:
@@ -289,7 +289,7 @@
             "anchor-hit" :string
           arg1:
             cast → Pattern
-              p_anchor :Error | Pattern
+              p_anchor :Pattern | RegexError
           arg2:
             "foo bar" :string
         call :void
@@ -299,19 +299,19 @@
             "anchor-miss" :string
           arg1:
             cast → Pattern
-              p_anchor :Error | Pattern
+              p_anchor :Pattern | RegexError
           arg2:
             "bar foo" :string
-    let p_email: Error | Pattern =
-      call :Error | Pattern
+    let p_email: Pattern | RegexError =
+      call :Pattern | RegexError
         callee:
-          compile :fn(string) -> Error | Pattern
+          compile :fn(string) -> Pattern | RegexError
         arg0:
           "(\\w+)@(\\w+)\\.(\\w+)" :string
     if :void
       cond:
         is Pattern :bool
-          p_email :Error | Pattern
+          p_email :Pattern | RegexError
       then:
         let r: Match | null =
           call :Match | null
@@ -319,7 +319,7 @@
               find :Match | null
             arg0:
               cast → Pattern
-                p_email :Error | Pattern
+                p_email :Pattern | RegexError
             arg1:
               "contact user@domain.com please" :string
         if :void
@@ -415,16 +415,16 @@
                   ~>
                     @builder.finish :string
                       __sb_5 :?
-    let p_alt: Error | Pattern =
-      call :Error | Pattern
+    let p_alt: Pattern | RegexError =
+      call :Pattern | RegexError
         callee:
-          compile :fn(string) -> Error | Pattern
+          compile :fn(string) -> Pattern | RegexError
         arg0:
           "cat|dog|bird" :string
     if :void
       cond:
         is Pattern :bool
-          p_alt :Error | Pattern
+          p_alt :Pattern | RegexError
       then:
         call :void
           callee:
@@ -433,7 +433,7 @@
             "alt-cat" :string
           arg1:
             cast → Pattern
-              p_alt :Error | Pattern
+              p_alt :Pattern | RegexError
           arg2:
             "cat" :string
         call :void
@@ -443,7 +443,7 @@
             "alt-dog" :string
           arg1:
             cast → Pattern
-              p_alt :Error | Pattern
+              p_alt :Pattern | RegexError
           arg2:
             "dog" :string
         call :void
@@ -453,7 +453,7 @@
             "alt-bird" :string
           arg1:
             cast → Pattern
-              p_alt :Error | Pattern
+              p_alt :Pattern | RegexError
           arg2:
             "bird" :string
         call :void
@@ -463,19 +463,19 @@
             "alt-fish" :string
           arg1:
             cast → Pattern
-              p_alt :Error | Pattern
+              p_alt :Pattern | RegexError
           arg2:
             "fish" :string
-    let p_3a: Error | Pattern =
-      call :Error | Pattern
+    let p_3a: Pattern | RegexError =
+      call :Pattern | RegexError
         callee:
-          compile :fn(string) -> Error | Pattern
+          compile :fn(string) -> Pattern | RegexError
         arg0:
           "a{3}" :string
     if :void
       cond:
         is Pattern :bool
-          p_3a :Error | Pattern
+          p_3a :Pattern | RegexError
       then:
         call :void
           callee:
@@ -484,7 +484,7 @@
             "3a-yes" :string
           arg1:
             cast → Pattern
-              p_3a :Error | Pattern
+              p_3a :Pattern | RegexError
           arg2:
             "aaa" :string
         call :void
@@ -494,19 +494,19 @@
             "3a-no" :string
           arg1:
             cast → Pattern
-              p_3a :Error | Pattern
+              p_3a :Pattern | RegexError
           arg2:
             "aa" :string
-    let p_2to4: Error | Pattern =
-      call :Error | Pattern
+    let p_2to4: Pattern | RegexError =
+      call :Pattern | RegexError
         callee:
-          compile :fn(string) -> Error | Pattern
+          compile :fn(string) -> Pattern | RegexError
         arg0:
           "a{2,4}" :string
     if :void
       cond:
         is Pattern :bool
-          p_2to4 :Error | Pattern
+          p_2to4 :Pattern | RegexError
       then:
         call :void
           callee:
@@ -515,7 +515,7 @@
             "2to4-1" :string
           arg1:
             cast → Pattern
-              p_2to4 :Error | Pattern
+              p_2to4 :Pattern | RegexError
           arg2:
             "a" :string
         call :void
@@ -525,7 +525,7 @@
             "2to4-3" :string
           arg1:
             cast → Pattern
-              p_2to4 :Error | Pattern
+              p_2to4 :Pattern | RegexError
           arg2:
             "aaa" :string
         call :void
@@ -535,19 +535,19 @@
             "2to4-5" :string
           arg1:
             cast → Pattern
-              p_2to4 :Error | Pattern
+              p_2to4 :Pattern | RegexError
           arg2:
             "aaaaa" :string
-    let p_swap: Error | Pattern =
-      call :Error | Pattern
+    let p_swap: Pattern | RegexError =
+      call :Pattern | RegexError
         callee:
-          compile :fn(string) -> Error | Pattern
+          compile :fn(string) -> Pattern | RegexError
         arg0:
           "(\\w+) (\\w+)" :string
     if :void
       cond:
         is Pattern :bool
-          p_swap :Error | Pattern
+          p_swap :Pattern | RegexError
       then:
         call :void
           callee:
@@ -566,7 +566,7 @@
                     replace_all :string
                   arg0:
                     cast → Pattern
-                      p_swap :Error | Pattern
+                      p_swap :Pattern | RegexError
                   arg1:
                     "Mathieu Broutin" :string
                   arg2:
@@ -574,16 +574,16 @@
               ~>
                 @builder.finish :string
                   __sb_6 :?
-    let p_redact: Error | Pattern =
-      call :Error | Pattern
+    let p_redact: Pattern | RegexError =
+      call :Pattern | RegexError
         callee:
-          compile :fn(string) -> Error | Pattern
+          compile :fn(string) -> Pattern | RegexError
         arg0:
           "\\d+" :string
     if :void
       cond:
         is Pattern :bool
-          p_redact :Error | Pattern
+          p_redact :Pattern | RegexError
       then:
         call :void
           callee:
@@ -602,7 +602,7 @@
                     replace_all :string
                   arg0:
                     cast → Pattern
-                      p_redact :Error | Pattern
+                      p_redact :Pattern | RegexError
                   arg1:
                     "a1b22c333" :string
                   arg2:
@@ -610,16 +610,16 @@
               ~>
                 @builder.finish :string
                   __sb_7 :?
-    let bad: Error | Pattern =
-      call :Error | Pattern
+    let bad: Pattern | RegexError =
+      call :Pattern | RegexError
         callee:
-          compile :fn(string) -> Error | Pattern
+          compile :fn(string) -> Pattern | RegexError
         arg0:
           "[abc" :string
     if :void
       cond:
-        is Error :bool
-          bad :Error | Pattern
+        is RegexError :bool
+          bad :Pattern | RegexError
       then:
         call :void
           callee:

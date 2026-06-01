@@ -3,12 +3,11 @@ type 0 primitive null
 type 1 primitive char
 type 2 union 3,4
 type 3 primitive i32
-type 4 ref Error
+type 4 struct std_string$ParseError { msg:5 }
 type 5 primitive string
 type 6 primitive void
 type 7 array 5
-type 8 struct std_string$ParseError { msg:5 }
-type 9 struct std_string_builder$StringBuilder { parts:7 }
+type 8 struct std_string_builder$StringBuilder { parts:7 }
 string 0 "unknown"
 string 1 "N"
 string 2 "E"
@@ -18,8 +17,8 @@ string 5 "err"
 string 6 "\n"
 import 0 to_string std_core$string$Display$to_string (string) -> string
 import 1 write std_io$write (i32,string) -> void
-impl 8 Error
-impl 9 Display
+impl 4 Error
+impl 8 Display
 export main 2
 
 fn 0 snippet$parse (char) -> ref
@@ -48,7 +47,7 @@ fn 0 snippet$parse (char) -> ref
     return.lit i32.const 3
   end $L3
   string.const 0
-  struct.new 8
+  struct.new 4
   return
 end
 

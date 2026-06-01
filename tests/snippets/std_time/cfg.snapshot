@@ -66,26 +66,26 @@ fn snippet$main() -> i32
     %59 $intrinsic_60: string
     %60 $call_61: string
     %61 iso: string (local iso)
-    %62 $call_64: Error | Instant
-    %63 parsed: Error | Instant (local parsed)
-    %64 __scrut_3: Error | Instant (synthetic __scrut_3)
+    %62 $call_64: Instant | TimeError
+    %63 parsed: Instant | TimeError (local parsed)
+    %64 __scrut_3: Instant | TimeError (synthetic __scrut_3)
     %65 $type_check_67: bool
     %66 $cast_68: Instant
     %67 $call_69: string
     %68 $type_check_70: bool
     %69 $k_71: string
     %70 $k_72: string
-    %71 $call_73: Error | Instant
-    %72 pre: Error | Instant (local pre)
-    %73 __scrut_4: Error | Instant (synthetic __scrut_4)
+    %71 $call_73: Instant | TimeError
+    %72 pre: Instant | TimeError (local pre)
+    %73 __scrut_4: Instant | TimeError (synthetic __scrut_4)
     %74 $type_check_76: bool
     %75 $cast_77: Instant
     %76 $call_78: string
     %77 $type_check_79: bool
     %78 $k_80: string
     %79 $k_81: string
-    %80 $call_82: Error | Instant
-    %81 __scrut_5: Error | Instant (synthetic __scrut_5)
+    %80 $call_82: Instant | TimeError
+    %81 __scrut_5: Instant | TimeError (synthetic __scrut_5)
     %82 $type_check_85: bool
     %83 $k_86: string
     %84 $type_check_87: bool
@@ -186,7 +186,7 @@ fn snippet$main() -> i32
     %60 = call format_iso8601(%47) :string
     call println(%60) :void
     %61 = const string(#3) :string
-    %62 = call parse_iso8601(%61) :Error | Instant
+    %62 = call parse_iso8601(%61) :Instant | TimeError
     %63 = move %62
     %64 = move %63
     %65 = type_check %64 is Instant
@@ -197,11 +197,11 @@ fn snippet$main() -> i32
     call println(%67) :void
     branch -> bb3
   bb2:
-    %68 = type_check %64 is Error
+    %68 = type_check %64 is TimeError
     cond_branch %68 ? bb4 : bb5
   bb3:
     %70 = const string(#5) :string
-    %71 = call parse_iso8601(%70) :Error | Instant
+    %71 = call parse_iso8601(%70) :Instant | TimeError
     %72 = move %71
     %73 = move %72
     %74 = type_check %73 is Instant
@@ -220,13 +220,13 @@ fn snippet$main() -> i32
     call println(%76) :void
     branch -> bb9
   bb8:
-    %77 = type_check %73 is Error
+    %77 = type_check %73 is TimeError
     cond_branch %77 ? bb10 : bb11
   bb9:
     %79 = const string(#7) :string
-    %80 = call parse_iso8601(%79) :Error | Instant
+    %80 = call parse_iso8601(%79) :Instant | TimeError
     %81 = move %80
-    %82 = type_check %81 is Error
+    %82 = type_check %81 is TimeError
     cond_branch %82 ? bb13 : bb14
   bb10:
     %78 = const string(#6) :string

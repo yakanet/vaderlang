@@ -80,7 +80,7 @@ decode_byte :: fn(b: u8) -> i32 {
 /// length MUST be a multiple of 4 and padding MUST be canonical
 /// (one or two trailing `=`, nothing else). Whitespace and newlines
 /// are NOT allowed — strip them upstream if your transport adds them.
-export decode :: fn(input: string) -> string! {
+export decode :: fn(input: string) -> string | Base64Error {
     n :: input.byte_len()
     if n == usize(0) { return "" }
     if n % usize(4) != usize(0) {
@@ -173,24 +173,24 @@ import "std/testing" { assert_eq, assert }
 expect_decode :: fn(encoded: string, expected: string) -> void {
     out :: decode(encoded)
     match out {
-        is string -> assert_eq(out, expected)
-        is Error  -> assert(false, "decode failed for ${encoded}")
+        is string      -> assert_eq(out, expected)
+        is Base64Error -> assert(false, "decode failed for ${encoded}")
     }
 }
 
 @test test_decode_rejects_bad_length :: fn() -> void {
     bad :: decode("abc")
     match bad {
-        is Error  -> assert(true, "length error caught")
-        is string -> assert(false, "should have rejected length 3")
+        is Base64Error -> assert(true, "length error caught")
+        is string      -> assert(false, "should have rejected length 3")
     }
 }
 
 @test test_decode_rejects_invalid_char :: fn() -> void {
     bad :: decode("ab!d")
     match bad {
-        is Error  -> assert(true, "invalid char caught")
-        is string -> assert(false, "should have rejected `!`")
+        is Base64Error -> assert(true, "invalid char caught")
+        is string      -> assert(false, "should have rejected `!`")
     }
 }
 
@@ -200,8 +200,8 @@ expect_decode :: fn(encoded: string, expected: string) -> void {
         encoded :: encode(s)
         decoded :: decode(encoded)
         match decoded {
-            is string -> assert_eq(decoded, s)
-            is Error  -> assert(false, "roundtrip decode failed for ${s}")
+            is string      -> assert_eq(decoded, s)
+            is Base64Error -> assert(false, "roundtrip decode failed for ${s}")
         }
     }
 }

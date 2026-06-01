@@ -9,8 +9,9 @@
 // Public surface :
 //   - `Version` carries the parsed `major.minor.patch[-prerelease][+build]`.
 //   - `VersionRange` carries the parsed range expression.
-//   - `parse` / `parse_range` are the entry points ; both return `T!`
-//     and throw `ParseError` on malformed input.
+//   - `parse` / `parse_range` are the entry points ; both return an
+//     explicit `T | ParseError` union, carrying `ParseError`
+//     (from `std/string`) on malformed input.
 //   - `Version` plugs into `std/core::Display`, `Equals`, `Comparable` —
 //     call sites use UFCS : `a.compare(b)`, `a.lt(b)`, `a.equals(b)`,
 //     `${v}` (interp).
@@ -27,7 +28,7 @@ module "std/semver"
 
 import "std/string"         {
     byte_len, byte_at, byte_slice, is_empty, index_of, starts_with, parse_int,
-    trim, split, chars, is_alnum, is_digit, is_white_char,
+    trim, split, chars, is_alnum, is_digit, is_white_char, ParseError,
 }
 import "std/string_builder" { StringBuilder, new_builder, append }
 
@@ -53,15 +54,6 @@ export Version :: struct {
 /// are not exported.
 export VersionRange :: struct {
     clauses: RangeClause[]
-}
-
-/// Error raised by `parse` and `parse_range` on malformed input.
-export ParseError :: struct {
-    msg: string
-}
-
-ParseError implements Error {
-    message :: fn(self) -> string { return self.msg }
 }
 
 // ---- internal types (NOT exported) ----------------------------------------
@@ -97,10 +89,10 @@ TermOp :: enum { Eq, Lt, Lte, Gt, Gte }
 /// @error    `ParseError` carrying a one-line description.
 /// @example
 ///   match parse("1.2.3-rc.1") {
-///       is Version as v  -> println("${v}")
-///       is Error   as e  -> eprintln(e.message())
+///       is Version    as v -> println("${v}")
+///       is ParseError as e -> eprintln(e.message())
 ///   }
-export parse :: fn(s: string) -> Version! {
+export parse :: fn(s: string) -> Version | ParseError {
     if s.is_empty() { return ParseError { .msg = "empty version string" } }
     n :: s.byte_len()
 
@@ -143,8 +135,8 @@ export parse :: fn(s: string) -> Version! {
             piece :: core.byte_slice(start, k)
             v :: parse_numeric_id(piece)
             match v {
-                is i32 as iv  -> { triple[fill] = iv }
-                is Error as e -> { return ParseError { .msg = "version core: ${e.message()}" } }
+                is i32        as iv -> { triple[fill] = iv }
+                is ParseError as e  -> { return ParseError { .msg = "version core: ${e.message()}" } }
             }
             fill += 1
             start = k + 1
@@ -154,8 +146,8 @@ export parse :: fn(s: string) -> Version! {
     last_piece :: core.byte_slice(start, cn)
     last_v :: parse_numeric_id(last_piece)
     match last_v {
-        is i32 as iv  -> { triple[2] = iv }
-        is Error as e -> { return ParseError { .msg = "version core: ${e.message()}" } }
+        is i32        as iv -> { triple[2] = iv }
+        is ParseError as e  -> { return ParseError { .msg = "version core: ${e.message()}" } }
     }
 
     // A trailing `-` or `+` separator with nothing after it is invalid :
@@ -199,7 +191,7 @@ export parse :: fn(s: string) -> Version! {
 /// @error    `ParseError` carrying a one-line description.
 /// @example
 ///   r :: parse_range("^1.2.3 || >=2.0.0")
-export parse_range :: fn(s: string) -> VersionRange! {
+export parse_range :: fn(s: string) -> VersionRange | ParseError {
     trimmed :: s.trim()
     if trimmed.is_empty() {
         // Empty range == `*` per node-semver — matches any non-pre-release.
@@ -210,7 +202,7 @@ export parse_range :: fn(s: string) -> VersionRange! {
         cl :: parse_clause(cstr.trim())
         match cl {
             is RangeClause as c -> { out_clauses.push(c) }
-            is Error as e       -> { return ParseError { .msg = e.message() } }
+            is ParseError  as e -> { return ParseError { .msg = e.message() } }
         }
     }
     if out_clauses.len() == 0 {
@@ -232,20 +224,15 @@ is_all_digits :: fn(s: string) -> bool {
 // Parse a strict numeric identifier (digits only, no leading zero
 // unless the value is the single digit "0"). Used by the core (major
 // /minor/patch) parser.
-parse_numeric_id :: fn(s: string) -> i32! {
+parse_numeric_id :: fn(s: string) -> i32 | ParseError {
     if s.is_empty()      { return ParseError { .msg = "empty numeric identifier" } }
     if !is_all_digits(s) { return ParseError { .msg = "non-digit in numeric identifier" } }
     if s.byte_len() > 1 && s.byte_at(0) == b'0' {
         return ParseError { .msg = "leading zero in numeric identifier" }
     }
     match parse_int(s) {
-        is i32 as v -> { return v }
-        // `parse_int` now returns the concrete `i32 | ParseError` (std/string).
-        // semver defines its OWN `ParseError` and there's no module aliasing,
-        // so it can't name std/string's variant — match the failure with `_`
-        // until the duplicated `ParseError` types are consolidated (see TODO
-        // "Remove the `T!` error-union sugar").
-        _           -> { return ParseError { .msg = "numeric identifier overflow" } }
+        is i32        as v -> { return v }
+        is ParseError      -> { return ParseError { .msg = "numeric identifier overflow" } }
     }
 }
 
@@ -337,12 +324,13 @@ compare_id :: fn(a: string, b: string) -> i32 {
                         if va > vb { return  1 }
                         return 0
                     }
-                    // See note in `parse_numeric_id` : `_` matches the concrete
-                    // `ParseError` std/string returns (semver can't name it).
-                    _ -> {}
+                    // Both inputs are validated all-digits ; a parse failure
+                    // here is impossible, so fall through to the length/lex
+                    // fallback below.
+                    is ParseError -> {}
                 }
             }
-            _ -> {}
+            is ParseError -> {}
         }
         // Fallback : length then lex (both all-digit).
         na :: a.byte_len()
@@ -454,7 +442,7 @@ is_x_token :: fn(s: string) -> bool = s == "x" || s == "X" || s == "*"
 // Parse a partial version expression. `1.2.3`, `1.2.x`, `1.x`, `1`,
 // `*`, `1.2.3-rc.1+build` all accepted. Returns the populated
 // `PartialVersion` ; absent / wildcard slots stay at `-1`.
-parse_partial :: fn(s: string) -> PartialVersion! {
+parse_partial :: fn(s: string) -> PartialVersion | ParseError {
     if s.is_empty()      { return ParseError { .msg = "empty version expression" } }
     if s.is_x_token()    { return PartialVersion {} }
 
@@ -488,24 +476,24 @@ parse_partial :: fn(s: string) -> PartialVersion! {
     if parts.len() >= 1 {
         if !is_x_token(parts[0]) {
             match parse_numeric_id(parts[0]) {
-                is i32 as v -> { result.major = v }
-                is Error as e -> { return ParseError { .msg = "major: ${e.message()}" } }
+                is i32        as v -> { result.major = v }
+                is ParseError as e -> { return ParseError { .msg = "major: ${e.message()}" } }
             }
         }
     }
     if parts.len() >= 2 {
         if !is_x_token(parts[1]) {
             match parse_numeric_id(parts[1]) {
-                is i32 as v -> { result.minor = v }
-                is Error as e -> { return ParseError { .msg = "minor: ${e.message()}" } }
+                is i32        as v -> { result.minor = v }
+                is ParseError as e -> { return ParseError { .msg = "minor: ${e.message()}" } }
             }
         }
     }
     if parts.len() >= 3 {
         if !is_x_token(parts[2]) {
             match parse_numeric_id(parts[2]) {
-                is i32 as v -> { result.patch = v }
-                is Error as e -> { return ParseError { .msg = "patch: ${e.message()}" } }
+                is i32        as v -> { result.patch = v }
+                is ParseError as e -> { return ParseError { .msg = "patch: ${e.message()}" } }
             }
         }
     }
@@ -549,7 +537,7 @@ zero_pre :: fn(major: i32, minor: i32, patch: i32) -> Version {
 // `^X.Y.Z` desugars to `>=X.Y.Z <U-0` where U bumps the left-most
 // non-zero component. Partial input is treated like x-range :
 // `^1.2.x` == `^1.2.0`, `^0.0.x` == `>=0.0.0 <0.1.0-0`.
-expand_caret :: fn(p: PartialVersion) -> RangeTerm[]! {
+expand_caret :: fn(p: PartialVersion) -> RangeTerm[] | ParseError {
     lo :: partial_to_lower(p)
     upper :: caret_upper(p)
     return [
@@ -572,7 +560,7 @@ caret_upper :: fn(p: PartialVersion) -> Version {
 
 // `~X.Y.Z` desugars to `>=X.Y.Z <X.(Y+1).0-0` ; `~X.Y` and `~X` are
 // identical to their x-range expansions.
-expand_tilde :: fn(p: PartialVersion) -> RangeTerm[]! {
+expand_tilde :: fn(p: PartialVersion) -> RangeTerm[] | ParseError {
     lo :: partial_to_lower(p)
     maj :: if p.major >= 0 { p.major } else { 0 }
     upper :: if p.minor >= 0 {
@@ -639,19 +627,19 @@ expand_hyphen :: fn(lo: PartialVersion, hi: PartialVersion) -> RangeTerm[] {
 // Parse a primitive comparator with a leading operator (`>=`, `<=`,
 // `>`, `<`, `=`). The version following the op must be complete
 // (M.N.P) — partials with primitives aren't supported in MVP.
-parse_comparator_token :: fn(op: TermOp, rest: string) -> RangeTerm[]! {
+parse_comparator_token :: fn(op: TermOp, rest: string) -> RangeTerm[] | ParseError {
     if rest.is_empty() {
         return ParseError { .msg = "primitive comparator missing version" }
     }
     match parse(rest) {
-        is Version as v -> { return [RangeTerm { .op = op, .version = v }] }
-        is Error as e   -> { return ParseError { .msg = "comparator: ${e.message()}" } }
+        is Version    as v -> { return [RangeTerm { .op = op, .version = v }] }
+        is ParseError as e -> { return ParseError { .msg = "comparator: ${e.message()}" } }
     }
 }
 
 // Decode the operator (if any) and the residual version-text portion.
 // Returns `(op, rest)` ; `op` is `null` for bare tokens.
-parse_token :: fn(t: string) -> RangeTerm[]! {
+parse_token :: fn(t: string) -> RangeTerm[] | ParseError {
     if t.is_empty() {
         return ParseError { .msg = "empty range token" }
     }
@@ -672,13 +660,13 @@ parse_token :: fn(t: string) -> RangeTerm[]! {
     if b0 == b'^' {
         match parse_partial(rest) {
             is PartialVersion as p -> { return expand_caret(p) }
-            is Error as e          -> { return ParseError { .msg = "caret: ${e.message()}" } }
+            is ParseError     as e -> { return ParseError { .msg = "caret: ${e.message()}" } }
         }
     }
     if b0 == b'~' {
         match parse_partial(rest) {
             is PartialVersion as p -> { return expand_tilde(p) }
-            is Error as e          -> { return ParseError { .msg = "tilde: ${e.message()}" } }
+            is ParseError     as e -> { return ParseError { .msg = "tilde: ${e.message()}" } }
         }
     }
     // Bare token : full M.N.P → equality ; partial / wildcard →
@@ -696,14 +684,14 @@ parse_token :: fn(t: string) -> RangeTerm[]! {
             }
             return expand_xrange(p)
         }
-        is Error as e -> { return ParseError { .msg = "bare: ${e.message()}" } }
+        is ParseError as e -> { return ParseError { .msg = "bare: ${e.message()}" } }
     }
 }
 
 // Parse a clause string into a `RangeClause` (AND-conjunction).
 // Tokens separated by whitespace ; `A B -` triggers hyphen-range
 // detection via a 3-token look-ahead.
-parse_clause :: fn(s: string) -> RangeClause! {
+parse_clause :: fn(s: string) -> RangeClause | ParseError {
     tokens :: split_ws(s)
     if tokens.len() == 0 {
         return ParseError { .msg = "empty clause" }
@@ -725,15 +713,15 @@ parse_clause :: fn(s: string) -> RangeClause! {
                             i += 3
                             continue
                         }
-                        is Error as e -> { return ParseError { .msg = "hyphen upper: ${e.message()}" } }
+                        is ParseError as e -> { return ParseError { .msg = "hyphen upper: ${e.message()}" } }
                     }
                 }
-                is Error as e -> { return ParseError { .msg = "hyphen lower: ${e.message()}" } }
+                is ParseError as e -> { return ParseError { .msg = "hyphen lower: ${e.message()}" } }
             }
         }
         match parse_token(tokens[i]) {
             is RangeTerm[] as arr -> { for t in arr { terms.push(t) } }
-            is Error       as e   -> { return ParseError { .msg = e.message() } }
+            is ParseError  as e   -> { return ParseError { .msg = e.message() } }
         }
         i += 1
     }
@@ -900,7 +888,7 @@ import "std/testing" { assert, assert_eq }
             assert(v.prerelease.is_empty(), "pre")
             assert(v.build.is_empty(),      "build")
         }
-        is Error -> assert(false, "expected Ok")
+        is ParseError -> assert(false, "expected Ok")
     }
 }
 
@@ -911,28 +899,28 @@ import "std/testing" { assert, assert_eq }
             assert_eq(v.minor, 0)
             assert_eq(v.patch, 0)
         }
-        is Error -> assert(false, "expected Ok")
+        is ParseError -> assert(false, "expected Ok")
     }
 }
 
 @test test_parse_prerelease_single :: fn() -> void {
     match parse("1.0.0-alpha") {
         is Version as v -> assert_eq(v.prerelease, "alpha")
-        is Error -> assert(false, "expected Ok")
+        is ParseError -> assert(false, "expected Ok")
     }
 }
 
 @test test_parse_prerelease_dotted :: fn() -> void {
     match parse("1.0.0-alpha.1") {
         is Version as v -> assert_eq(v.prerelease, "alpha.1")
-        is Error -> assert(false, "expected Ok")
+        is ParseError -> assert(false, "expected Ok")
     }
 }
 
 @test test_parse_prerelease_mixed_ids :: fn() -> void {
     match parse("1.0.0-x.7.z.92") {
         is Version as v -> assert_eq(v.prerelease, "x.7.z.92")
-        is Error -> assert(false, "expected Ok")
+        is ParseError -> assert(false, "expected Ok")
     }
 }
 
@@ -942,7 +930,7 @@ import "std/testing" { assert, assert_eq }
             assert(v.prerelease.is_empty(), "pre")
             assert_eq(v.build, "build.7")
         }
-        is Error -> assert(false, "expected Ok")
+        is ParseError -> assert(false, "expected Ok")
     }
 }
 
@@ -952,7 +940,7 @@ import "std/testing" { assert, assert_eq }
             assert_eq(v.prerelease, "rc.1")
             assert_eq(v.build,      "build.7")
         }
-        is Error -> assert(false, "expected Ok")
+        is ParseError -> assert(false, "expected Ok")
     }
 }
 
@@ -965,7 +953,7 @@ import "std/testing" { assert, assert_eq }
             assert_eq(v.major, 0)
             assert_eq(v.prerelease, "pre-mvp")
         }
-        is Error -> assert(false, "expected Ok")
+        is ParseError -> assert(false, "expected Ok")
     }
 }
 
@@ -974,63 +962,63 @@ import "std/testing" { assert, assert_eq }
 @test test_parse_empty :: fn() -> void {
     match parse("") {
         is Version -> assert(false, "expected err")
-        is Error   -> {}
+        is ParseError -> {}
     }
 }
 
 @test test_parse_missing_minor :: fn() -> void {
     match parse("1") {
         is Version -> assert(false, "expected err")
-        is Error   -> {}
+        is ParseError -> {}
     }
 }
 
 @test test_parse_missing_patch :: fn() -> void {
     match parse("1.2") {
         is Version -> assert(false, "expected err")
-        is Error   -> {}
+        is ParseError -> {}
     }
 }
 
 @test test_parse_leading_zero_major :: fn() -> void {
     match parse("01.2.3") {
         is Version -> assert(false, "expected err")
-        is Error   -> {}
+        is ParseError -> {}
     }
 }
 
 @test test_parse_leading_zero_minor :: fn() -> void {
     match parse("1.02.3") {
         is Version -> assert(false, "expected err")
-        is Error   -> {}
+        is ParseError -> {}
     }
 }
 
 @test test_parse_leading_zero_pre :: fn() -> void {
     match parse("1.2.3-01") {
         is Version -> assert(false, "expected err")
-        is Error   -> {}
+        is ParseError -> {}
     }
 }
 
 @test test_parse_empty_patch :: fn() -> void {
     match parse("1.2.-3") {
         is Version -> assert(false, "expected err")
-        is Error   -> {}
+        is ParseError -> {}
     }
 }
 
 @test test_parse_empty_pre :: fn() -> void {
     match parse("1.2.3-") {
         is Version -> assert(false, "expected err")
-        is Error   -> {}
+        is ParseError -> {}
     }
 }
 
 @test test_parse_empty_build :: fn() -> void {
     match parse("1.2.3+") {
         is Version -> assert(false, "expected err")
-        is Error   -> {}
+        is ParseError -> {}
     }
 }
 
@@ -1038,14 +1026,14 @@ import "std/testing" { assert, assert_eq }
     // `_` is not in [0-9A-Za-z-].
     match parse("1.2.3-foo_bar") {
         is Version -> assert(false, "expected err")
-        is Error   -> {}
+        is ParseError -> {}
     }
 }
 
 @test test_parse_double_dot_in_pre :: fn() -> void {
     match parse("1.2.3-foo..bar") {
         is Version -> assert(false, "expected err")
-        is Error   -> {}
+        is ParseError -> {}
     }
 }
 
@@ -1058,8 +1046,8 @@ import "std/testing" { assert, assert_eq }
 // of trading a `panic` for a delayed assertion failure.
 parse_ok :: fn(s: string) -> Version {
     match parse(s) {
-        is Version as v -> { return v }
-        is Error as e   -> {
+        is Version    as v -> { return v }
+        is ParseError as e -> {
             return Version {
                 .major = -1, .minor = -1, .patch = -1,
                 .prerelease = e.message(),
@@ -1145,7 +1133,7 @@ parse_ok :: fn(s: string) -> Version {
 parse_range_ok :: fn(s: string) -> VersionRange {
     match parse_range(s) {
         is VersionRange as r -> { return r }
-        is Error as e        -> { return VersionRange { .clauses = [] } }
+        is ParseError   as e -> { return VersionRange { .clauses = [] } }
     }
 }
 
@@ -1198,8 +1186,8 @@ parse_range_ok :: fn(s: string) -> VersionRange {
 
 @test test_parse_range_error :: fn() -> void {
     match parse_range("not a range") {
-        is VersionRange -> assert(false, "expected err")
-        is Error as e   -> assert(!e.message().is_empty(), "msg non-empty")
+        is VersionRange    -> assert(false, "expected err")
+        is ParseError as e -> assert(!e.message().is_empty(), "msg non-empty")
     }
 }
 

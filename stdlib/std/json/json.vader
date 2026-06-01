@@ -1,7 +1,7 @@
 // std/json — recursive-descent JSON parse + stringify.
 //
 // `JsonValue` is the tagged union of every JSON shape. `parse` returns
-// `JsonValue!` (= `JsonValue | Error`) so failures propagate via `?`.
+// `JsonValue | JsonError` so failures propagate via `?`.
 // `stringify` and `stringify_pretty` build a string via std/string_builder.
 //
 // Numbers are stored as `f64` for MVP — fine for the compiler's use cases

@@ -98,8 +98,8 @@ fn snippet$run_find(%0: string, %1: Pattern, %2: string) -> void
 fn snippet$main() -> i32
   locals:
     %0 $k_0: string
-    %1 $call_1: Error | Pattern
-    %2 p_lit: Error | Pattern (local p_lit)
+    %1 $call_1: Pattern | RegexError
+    %2 p_lit: Pattern | RegexError (local p_lit)
     %3 $type_check_3: bool
     %4 $k_4: string
     %5 $cast_5: Pattern
@@ -108,8 +108,8 @@ fn snippet$main() -> i32
     %8 $cast_8: Pattern
     %9 $k_9: string
     %10 $k_10: string
-    %11 $call_11: Error | Pattern
-    %12 p_digits: Error | Pattern (local p_digits)
+    %11 $call_11: Pattern | RegexError
+    %12 p_digits: Pattern | RegexError (local p_digits)
     %13 $type_check_13: bool
     %14 $k_14: string
     %15 $cast_15: Pattern
@@ -118,8 +118,8 @@ fn snippet$main() -> i32
     %18 $cast_18: Pattern
     %19 $k_19: string
     %20 $k_20: string
-    %21 $call_21: Error | Pattern
-    %22 p_word: Error | Pattern (local p_word)
+    %21 $call_21: Pattern | RegexError
+    %22 p_word: Pattern | RegexError (local p_word)
     %23 $type_check_23: bool
     %24 $k_24: string
     %25 $cast_25: Pattern
@@ -150,8 +150,8 @@ fn snippet$main() -> i32
     %50 $k_51: usize
     %51 $cast_52: usize
     %52 $k_54: string
-    %53 $call_55: Error | Pattern
-    %54 p_anchor: Error | Pattern (local p_anchor)
+    %53 $call_55: Pattern | RegexError
+    %54 p_anchor: Pattern | RegexError (local p_anchor)
     %55 $type_check_57: bool
     %56 $k_58: string
     %57 $cast_59: Pattern
@@ -160,8 +160,8 @@ fn snippet$main() -> i32
     %60 $cast_62: Pattern
     %61 $k_63: string
     %62 $k_64: string
-    %63 $call_65: Error | Pattern
-    %64 p_email: Error | Pattern (local p_email)
+    %63 $call_65: Pattern | RegexError
+    %64 p_email: Pattern | RegexError (local p_email)
     %65 $type_check_67: bool
     %66 $cast_68: Pattern
     %67 $k_69: string
@@ -201,8 +201,8 @@ fn snippet$main() -> i32
     %101 $idx_103: string
     %102 $intrinsic_104: string
     %103 $k_105: string
-    %104 $call_106: Error | Pattern
-    %105 p_alt: Error | Pattern (local p_alt)
+    %104 $call_106: Pattern | RegexError
+    %105 p_alt: Pattern | RegexError (local p_alt)
     %106 $type_check_108: bool
     %107 $k_109: string
     %108 $cast_110: Pattern
@@ -217,8 +217,8 @@ fn snippet$main() -> i32
     %117 $cast_119: Pattern
     %118 $k_120: string
     %119 $k_121: string
-    %120 $call_122: Error | Pattern
-    %121 p_3a: Error | Pattern (local p_3a)
+    %120 $call_122: Pattern | RegexError
+    %121 p_3a: Pattern | RegexError (local p_3a)
     %122 $type_check_124: bool
     %123 $k_125: string
     %124 $cast_126: Pattern
@@ -227,8 +227,8 @@ fn snippet$main() -> i32
     %127 $cast_129: Pattern
     %128 $k_130: string
     %129 $k_131: string
-    %130 $call_132: Error | Pattern
-    %131 p_2to4: Error | Pattern (local p_2to4)
+    %130 $call_132: Pattern | RegexError
+    %131 p_2to4: Pattern | RegexError (local p_2to4)
     %132 $type_check_134: bool
     %133 $k_135: string
     %134 $cast_136: Pattern
@@ -240,8 +240,8 @@ fn snippet$main() -> i32
     %140 $cast_142: Pattern
     %141 $k_143: string
     %142 $k_144: string
-    %143 $call_145: Error | Pattern
-    %144 p_swap: Error | Pattern (local p_swap)
+    %143 $call_145: Pattern | RegexError
+    %144 p_swap: Pattern | RegexError (local p_swap)
     %145 $type_check_147: bool
     %146 $intrinsic_148: ?
     %147 __sb_6: ? (synthetic __sb_6)
@@ -252,8 +252,8 @@ fn snippet$main() -> i32
     %152 $call_154: string
     %153 $intrinsic_155: string
     %154 $k_156: string
-    %155 $call_157: Error | Pattern
-    %156 p_redact: Error | Pattern (local p_redact)
+    %155 $call_157: Pattern | RegexError
+    %156 p_redact: Pattern | RegexError (local p_redact)
     %157 $type_check_159: bool
     %158 $intrinsic_160: ?
     %159 __sb_7: ? (synthetic __sb_7)
@@ -264,14 +264,14 @@ fn snippet$main() -> i32
     %164 $call_166: string
     %165 $intrinsic_167: string
     %166 $k_168: string
-    %167 $call_169: Error | Pattern
-    %168 bad: Error | Pattern (local bad)
+    %167 $call_169: Pattern | RegexError
+    %168 bad: Pattern | RegexError (local bad)
     %169 $type_check_171: bool
     %170 $k_172: string
     %171 $k_173: i32
   bb0:
     %0 = const string(#4) :string
-    %1 = call compile(%0) :Error | Pattern
+    %1 = call compile(%0) :Pattern | RegexError
     %2 = move %1
     %3 = type_check %2 is Pattern
     cond_branch %3 ? bb1 : bb2
@@ -287,7 +287,7 @@ fn snippet$main() -> i32
     branch -> bb2
   bb2:
     %10 = const string(#8) :string
-    %11 = call compile(%10) :Error | Pattern
+    %11 = call compile(%10) :Pattern | RegexError
     %12 = move %11
     %13 = type_check %12 is Pattern
     cond_branch %13 ? bb3 : bb4
@@ -303,7 +303,7 @@ fn snippet$main() -> i32
     branch -> bb4
   bb4:
     %20 = const string(#13) :string
-    %21 = call compile(%20) :Error | Pattern
+    %21 = call compile(%20) :Pattern | RegexError
     %22 = move %21
     %23 = type_check %22 is Pattern
     cond_branch %23 ? bb5 : bb6
@@ -329,7 +329,7 @@ fn snippet$main() -> i32
     branch -> bb7
   bb6:
     %52 = const string(#19) :string
-    %53 = call compile(%52) :Error | Pattern
+    %53 = call compile(%52) :Pattern | RegexError
     %54 = move %53
     %55 = type_check %54 is Pattern
     cond_branch %55 ? bb10 : bb11
@@ -371,7 +371,7 @@ fn snippet$main() -> i32
     branch -> bb11
   bb11:
     %62 = const string(#24) :string
-    %63 = call compile(%62) :Error | Pattern
+    %63 = call compile(%62) :Pattern | RegexError
     %64 = move %63
     %65 = type_check %64 is Pattern
     cond_branch %65 ? bb12 : bb13
@@ -384,7 +384,7 @@ fn snippet$main() -> i32
     cond_branch %70 ? bb14 : bb15
   bb13:
     %103 = const string(#30) :string
-    %104 = call compile(%103) :Error | Pattern
+    %104 = call compile(%103) :Pattern | RegexError
     %105 = move %104
     %106 = type_check %105 is Pattern
     cond_branch %106 ? bb16 : bb17
@@ -456,7 +456,7 @@ fn snippet$main() -> i32
     branch -> bb17
   bb17:
     %119 = const string(#39) :string
-    %120 = call compile(%119) :Error | Pattern
+    %120 = call compile(%119) :Pattern | RegexError
     %121 = move %120
     %122 = type_check %121 is Pattern
     cond_branch %122 ? bb18 : bb19
@@ -472,7 +472,7 @@ fn snippet$main() -> i32
     branch -> bb19
   bb19:
     %129 = const string(#44) :string
-    %130 = call compile(%129) :Error | Pattern
+    %130 = call compile(%129) :Pattern | RegexError
     %131 = move %130
     %132 = type_check %131 is Pattern
     cond_branch %132 ? bb20 : bb21
@@ -492,7 +492,7 @@ fn snippet$main() -> i32
     branch -> bb21
   bb21:
     %142 = const string(#50) :string
-    %143 = call compile(%142) :Error | Pattern
+    %143 = call compile(%142) :Pattern | RegexError
     %144 = move %143
     %145 = type_check %144 is Pattern
     cond_branch %145 ? bb22 : bb23
@@ -511,7 +511,7 @@ fn snippet$main() -> i32
     branch -> bb23
   bb23:
     %154 = const string(#54) :string
-    %155 = call compile(%154) :Error | Pattern
+    %155 = call compile(%154) :Pattern | RegexError
     %156 = move %155
     %157 = type_check %156 is Pattern
     cond_branch %157 ? bb24 : bb25
@@ -530,9 +530,9 @@ fn snippet$main() -> i32
     branch -> bb25
   bb25:
     %166 = const string(#58) :string
-    %167 = call compile(%166) :Error | Pattern
+    %167 = call compile(%166) :Pattern | RegexError
     %168 = move %167
-    %169 = type_check %168 is Error
+    %169 = type_check %168 is RegexError
     cond_branch %169 ? bb26 : bb27
   bb26:
     %170 = const string(#59) :string

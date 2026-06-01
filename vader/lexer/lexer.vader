@@ -15,7 +15,7 @@
 
 module "vader/lexer"
 
-import "std/string" { byte_at, byte_decode_at, byte_len, is_empty, byte_slice, parse_float, is_alpha, is_alnum, is_digit }
+import "std/string" { byte_at, byte_decode_at, byte_len, is_empty, byte_slice, parse_float, is_alpha, is_alnum, is_digit, ParseError }
 import "std/utf8" { codepoint_byte_len }
 
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
@@ -442,7 +442,7 @@ lex_number :: fn(l: Lexer) -> void {
         parsed :: parse_uint_in_base(digits, base)
         t.value = match parsed {
             is u64 -> parsed
-            is Error -> u64(0)
+            is ParseError -> u64(0)
         }
     }
     l.emit(t)

@@ -196,7 +196,7 @@ Doc-comments may use the following tags. Tags appear one per line, after a blank
 /// @example
 ///   `parse_int("42")     → 42`
 ///   `parse_int("hello")  → ParseError`
-export parse_int :: fn(s: string) -> i32!
+export parse_int :: fn(s: string) -> i32 | ParseError
 ```
 
 Every public method in the standard library carries a VaderDoc block following this convention.
@@ -531,7 +531,7 @@ The `Target(value)` syntax doubles as the explicit coercion surface. Numeric and
 - **Implicit reference** semantics: `arr2 := arr` copies the reference; use `arr.clone()` (UFCS from `std/iter`) for a fresh mutable copy.
 - Indexing: `arr[i]`. Bounds-checked in debug (panic), elidable in release.
 - **Slicing**: `arr[r]` where `r : Range[<integer>]` returns a **zero-copy view** sharing the parent's buffer. Both literal ranges (`arr[1..<4]`, `arr[0..=2]`) and let-bound range values work — dispatch keys on the index *type*, not the AST shape. Any integer-bounded range is accepted ; bounds are coerced to `usize` at the use site. Pushing into the view detaches it into a fresh buffer so the parent is never mutated through the slice. For an independent copy use `arr[r].clone()`.
-- Postfix `[]` binds tighter than `!` and `|` ; use parens to group : `(T | U)[]` is "array of T-or-U", `T | U[]` is "T or array-of-U", `int[]!` is `int[] | Error`.
+- Postfix `[]` binds tighter than `|` ; use parens to group : `(T | U)[]` is "array of T-or-U", `T | U[]` is "T or array-of-U".
 
 #### `const T[]` — immutable arrays
 
@@ -947,7 +947,7 @@ back := char(n + u32(1))   // 'B'
 For risky conversions (parsing), use explicit functions returning unions:
 
 ```vader
-n: i32 | Error = parse_int("42")
+n: i32 | ParseError = parse_int("42")
 ```
 
 ### Generics
@@ -1559,7 +1559,7 @@ Without a label, `break`/`continue` act on the innermost loop.
 Block-scoped, executed when leaving the block where it was written:
 
 ```vader
-process :: fn(path: string) -> string! {
+process :: fn(path: string) -> string | Error {
     file := open(path)?
     defer close(file)
 
@@ -1694,15 +1694,13 @@ read_file :: fn(path: string) -> string | IOError {
 }
 ```
 
-### `!T` sugar
+### Error unions
 
-`!T` is a syntactic alias for `T | Error`, where `Error` is the stdlib's nominal trait:
-
-```vader
-read_file :: fn(path: string) -> string!  {
-    // equivalent to : -> string | Error
-}
-```
+A fallible function returns an explicit union of its success type and one or
+more error types — e.g. `fn parse_int(s: string) -> i32 | ParseError` or, when
+the error is the generic stdlib `Error`, `fn read_file(p: string) -> string |
+Error`. There is no postfix-`!` shorthand : write the union out. The `?`
+operator (above) propagates any member implementing the `Error` trait.
 
 ### `Error` trait
 
@@ -1712,14 +1710,14 @@ Error :: trait {
 }
 ```
 
-Any type implementing `Error` may be returned by an `!T` function. The stdlib provides concrete errors: `IOError`, `ParseError`, etc.
+Any type implementing `Error` may be returned in an error union (e.g. `T | Error`). The stdlib provides concrete errors: `IOError`, `ParseError`, etc.
 
 ### `?` operator
 
 Postfix, propagates the error if present:
 
 ```vader
-process :: fn(path: string) -> string! {
+process :: fn(path: string) -> string | Error {
     raw    := read_file(path)?     // if Error: return the Error
     parsed := parse(raw)?
     return parsed
@@ -1892,7 +1890,7 @@ main :: fn() -> i32 {
 }
 ```
 
-`main` may also return `void` (equivalent to returning `0` from `i32`) or `i32!` to propagate errors via `?`.
+`main` may also return `void` (equivalent to returning `0` from `i32`) or `i32 | Error` to propagate errors via `?`.
 
 ### What appears at the top level of a `.vader` file
 
@@ -2170,13 +2168,13 @@ print      :: fn(msg: string) -> void
 println    :: fn(msg: string) -> void
 eprint     :: fn(msg: string) -> void
 eprintln   :: fn(msg: string) -> void
-read_line  :: fn() -> string!
-read_stdin :: fn(n: usize) -> string!         // read up to n bytes from stdin
-read_file  :: fn(path: string) -> string!
-write_file :: fn(path: string, content: string) -> void!
+read_line  :: fn() -> string | Error
+read_stdin :: fn(n: usize) -> string | Error  // read up to n bytes from stdin
+read_file  :: fn(path: string) -> string | Error
+write_file :: fn(path: string, content: string) -> null | Error
 exists     :: fn(path: string) -> bool
 is_dir     :: fn(path: string) -> bool
-read_dir   :: fn(path: string) -> string[]!   // names only (no recursion)
+read_dir   :: fn(path: string) -> string[] | Error  // names only (no recursion)
 ```
 
 `print` / `println` / `eprint` / `eprintln` declare a `string` parameter ;
@@ -2209,8 +2207,8 @@ to_lower    :: fn(s: string) -> string
 
 // Parsing. `ParseError` is the union arm raised on malformed / empty / overflow.
 ParseError  :: struct { msg: string }              // implements Error
-parse_int   :: fn(s: string) -> i32!
-parse_float :: fn(s: string) -> f64!
+parse_int   :: fn(s: string) -> i32 | ParseError
+parse_float :: fn(s: string) -> f64 | Error          // host intrinsic : generic Error
 
 // Codepoint walkers. `s[i]` (Index impl in std/core) is the primary access form.
 len              :: fn(s: string) -> usize                      // codepoint count, allocation-free
@@ -2260,7 +2258,7 @@ to_hex          :: fn(self: u64) -> string         // lowercase, no `0x`, no lea
 to_bin          :: fn(self: u64) -> string         // no prefix, no leading zeros
 to_compact_str  :: fn(self: f64) -> string         // strips trailing `.0` ; `(10.0).to_compact_str() = "10"`
 
-parse_int_in_base :: fn(s: string, base: i32) -> i64!
+parse_int_in_base :: fn(s: string, base: i32) -> i64 | ParseError
 hex_digit_value   :: fn(c: char) -> i32            // -1 if not a hex digit
 
 // Numeric type-suffix predicates — for DSLs parsing typed literals.
@@ -2463,7 +2461,7 @@ ProcessResult :: struct {
     stderr: string
 }
 
-spawn :: fn(argv: string[]) -> ProcessResult!
+spawn :: fn(argv: string[]) -> ProcessResult | ProcessError
 ```
 
 `argv[0]` is the program name (resolved against `PATH`) ; `argv[1..]` are
@@ -2493,7 +2491,7 @@ stringify        :: fn(v: JsonValue)                  -> string
 stringify_pretty :: fn(v: JsonValue, indent: i32)     -> string
 ```
 
-The trait-widening limitation (struct implementing `Error` → `Error`) prevents `T!` sugar on `parse`'s return today (cf. self-host TODO). Returns `JsonValue | JsonError` explicitly.
+`parse` returns `JsonValue | JsonError` explicitly.
 
 ### Out of MVP
 
@@ -2851,9 +2849,9 @@ main :: fn() -> i32 {
 import "std/io" { read_file, println }
 import "std/string" { parse_int, trim }
 
-read_count :: fn(path: string) -> i32! {
-    raw := read_file(path)?
-    n   := parse_int(trim(raw))?
+read_count :: fn(path: string) -> i32 | Error {
+    raw := read_file(path)?            // read_file → string | Error
+    n   := parse_int(trim(raw))?       // parse_int → i32 | ParseError ; ParseError widens to Error
     return n
 }
 

@@ -463,7 +463,8 @@ export to_lower :: fn(s: string) -> string {
     return sb.to_string()
 }
 
-/// Error raised by `parse_int` / `parse_float` on malformed input.
+/// Error raised by `parse_int` on malformed input. Also the canonical
+/// parse-error type imported by `std/numbers` and `std/semver`.
 export ParseError :: struct {
     msg: string
 }
@@ -475,11 +476,10 @@ ParseError implements Error {
 /// Parse `s` as a base-10 `i32`. No prefix, no underscores, no leading
 /// `+` sign ; a leading `-` is accepted.
 ///
-/// Returns the explicit union `i32 | ParseError` rather than the `i32!`
-/// sugar : callers match the concrete `is ParseError` (a plain field read)
-/// instead of `is Error`. The existential `Error`-trait dispatch on a
-/// stdlib error value mis-executes on the self-host VM ; the concrete-type
-/// match sidesteps it.
+/// Returns the explicit union `i32 | ParseError` : callers match the
+/// concrete `is ParseError` (a plain field read) instead of `is Error`.
+/// The existential `Error`-trait dispatch on a stdlib error value
+/// mis-executes on the self-host VM ; the concrete-type match sidesteps it.
 /// @param s   the digits-only input.
 /// @return    the parsed integer, or `ParseError` on failure.
 /// @error     `ParseError` on empty input, malformed digit, or overflow.
@@ -513,10 +513,14 @@ export parse_int :: fn(s: string) -> i32 | ParseError {
 }
 
 /// Parse `s` as an `f64`. Accepts mantissa + optional exponent.
+///
+/// Host intrinsic : the failure is the generic host `Error` (a runtime
+/// error value), so the return is `f64 | Error` rather than a concrete
+/// parse-error type. Callers match `is Error`.
 /// @param s   the float input.
 /// @return    the parsed float.
-/// @error     `ParseError` on malformed input.
-export parse_float :: fn(s: string) -> f64!
+/// @error     `Error` on malformed input.
+export parse_float :: fn(s: string) -> f64 | Error
 
 /// Pad `s` on the LEFT with copies of `fill` until its byte length
 /// reaches `width`. Returns `s` unchanged when it's already at least

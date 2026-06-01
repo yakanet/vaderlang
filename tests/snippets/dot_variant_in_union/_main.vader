@@ -1,6 +1,6 @@
 // `.Variant` shorthand must descend into a Union expected type and find the
 // matching Enum. Repro for the typechecker bug where `return .North` inside
-// `fn(...) -> Direction! { ... }` (= `Direction | Error`) failed because
+// `fn(...) -> Direction | ParseError { ... }` failed because
 // inferDotVariant only accepted bare-Enum expected types.
 
 module "snippet"
@@ -10,7 +10,7 @@ import "std/string" { ParseError }
 
 Direction :: enum { North, East, South, West }
 
-parse :: fn(c: char) -> Direction! {
+parse :: fn(c: char) -> Direction | ParseError {
     if c == 'N' { return .North }
     if c == 'E' { return .East }
     if c == 'S' { return .South }
@@ -30,11 +30,11 @@ dir_label :: fn(d: Direction) -> string {
 main :: fn() -> i32 {
     match parse('N') {
         is Direction as d -> println(dir_label(d))
-        is Error           -> println("err")
+        is ParseError     -> println("err")
     }
     match parse('?') {
         is Direction as d -> println(dir_label(d))
-        is Error           -> println("err")
+        is ParseError     -> println("err")
     }
     return 0
 }

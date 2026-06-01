@@ -103,43 +103,43 @@
   expr 41:5     CallExpr       :: void
   expr 41:5     IdentExpr      :: fn(T) -> void
   expr 43:12    StringLitExpr  :: string
-  expr 44:15    CallExpr       :: Error | Instant
-  expr 44:15    IdentExpr      :: fn(string) -> Error | Instant
+  expr 44:15    CallExpr       :: Instant | TimeError
+  expr 44:15    IdentExpr      :: fn(string) -> Instant | TimeError
   expr 44:29    IdentExpr      :: string
-  expr 45:11    IdentExpr      :: Error | Instant
+  expr 45:11    IdentExpr      :: Instant | TimeError
   expr 45:5     MatchExpr      :: void
-  expr 46:23    CallExpr       :: void
-  expr 46:23    IdentExpr      :: fn(T) -> void
-  expr 46:31    CallExpr       :: string
-  expr 46:31    IdentExpr      :: fn(Instant) -> string
-  expr 46:46    IdentExpr      :: Instant
-  expr 47:23    CallExpr       :: void
-  expr 47:23    IdentExpr      :: fn(T) -> void
-  expr 47:31    StringLitExpr  :: string
-  expr 51:12    CallExpr       :: Error | Instant
-  expr 51:12    IdentExpr      :: fn(string) -> Error | Instant
+  expr 46:25    CallExpr       :: void
+  expr 46:25    IdentExpr      :: fn(T) -> void
+  expr 46:33    CallExpr       :: string
+  expr 46:33    IdentExpr      :: fn(Instant) -> string
+  expr 46:48    IdentExpr      :: Instant
+  expr 47:25    CallExpr       :: void
+  expr 47:25    IdentExpr      :: fn(T) -> void
+  expr 47:33    StringLitExpr  :: string
+  expr 51:12    CallExpr       :: Instant | TimeError
+  expr 51:12    IdentExpr      :: fn(string) -> Instant | TimeError
   expr 51:26    StringLitExpr  :: string
-  expr 52:11    IdentExpr      :: Error | Instant
+  expr 52:11    IdentExpr      :: Instant | TimeError
   expr 52:5     MatchExpr      :: void
-  expr 53:23    CallExpr       :: void
-  expr 53:23    IdentExpr      :: fn(T) -> void
-  expr 53:31    CallExpr       :: string
-  expr 53:31    IdentExpr      :: fn(Instant) -> string
-  expr 53:46    IdentExpr      :: Instant
-  expr 54:23    CallExpr       :: void
-  expr 54:23    IdentExpr      :: fn(T) -> void
-  expr 54:31    StringLitExpr  :: string
-  expr 58:12    CallExpr       :: Error | Instant
-  expr 58:12    IdentExpr      :: fn(string) -> Error | Instant
+  expr 53:25    CallExpr       :: void
+  expr 53:25    IdentExpr      :: fn(T) -> void
+  expr 53:33    CallExpr       :: string
+  expr 53:33    IdentExpr      :: fn(Instant) -> string
+  expr 53:48    IdentExpr      :: Instant
+  expr 54:25    CallExpr       :: void
+  expr 54:25    IdentExpr      :: fn(T) -> void
+  expr 54:33    StringLitExpr  :: string
+  expr 58:12    CallExpr       :: Instant | TimeError
+  expr 58:12    IdentExpr      :: fn(string) -> Instant | TimeError
   expr 58:26    StringLitExpr  :: string
-  expr 59:11    IdentExpr      :: Error | Instant
+  expr 59:11    IdentExpr      :: Instant | TimeError
   expr 59:5     MatchExpr      :: void
-  expr 60:23    CallExpr       :: void
-  expr 60:23    IdentExpr      :: fn(T) -> void
-  expr 60:31    StringLitExpr  :: string
-  expr 61:23    CallExpr       :: void
-  expr 61:23    IdentExpr      :: fn(T) -> void
-  expr 61:31    StringLitExpr  :: string
+  expr 60:25    CallExpr       :: void
+  expr 60:25    IdentExpr      :: fn(T) -> void
+  expr 60:33    StringLitExpr  :: string
+  expr 61:25    CallExpr       :: void
+  expr 61:25    IdentExpr      :: fn(T) -> void
+  expr 61:33    StringLitExpr  :: string
   expr 66:14    CallExpr       :: Monotonic
   expr 66:14    IdentExpr      :: fn() -> Monotonic
   expr 68:9     BinaryExpr     :: bool

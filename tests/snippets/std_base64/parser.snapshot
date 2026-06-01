@@ -161,7 +161,7 @@
                 "kind": "IsPattern",
                 "type": {
                   "kind": "IdentExpr",
-                  "name": "Error"
+                  "name": "Base64Error"
                 },
                 "inner": null,
                 "bindAs": null
@@ -938,7 +938,7 @@
                       "kind": "IsPattern",
                       "type": {
                         "kind": "IdentExpr",
-                        "name": "Error"
+                        "name": "Base64Error"
                       },
                       "inner": null,
                       "bindAs": null
