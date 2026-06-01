@@ -197,13 +197,13 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
         // Walk UTF-8 until the `i`-th codepoint, then decode it. OOB
         // returns U+0000 — the Vader VM mirrors the TS host bridge ;
         // the native runtime traps instead.
-        s_str :: s.value
+        sb :: s.value.bytes()
         target :: usize(i.value)
         cursor: usize = 0
         seen:   usize = 0
-        n :: s_str.byte_len()
+        n :: sb.len()
         for cursor < n {
-            [cp, width] :: s_str.decode_codepoint(cursor)
+            [cp, width] :: sb.decode_codepoint_at(cursor)
             if seen == target { return HostOk { .value = CharVal { .value = cp } } }
             cursor = cursor + width
             seen   = seen + 1
@@ -317,7 +317,7 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
         s :: read_string(stack[arg_base], at_pc, "parse_float")
         if s is Trap { return s }
         trimmed :: s.value.trim()
-        if trimmed.byte_len() == 0 { return HostOk { .value = ErrorVal { .message = "parse_float: empty string" } } }
+        if trimmed.bytes().len() == 0 { return HostOk { .value = ErrorVal { .message = "parse_float: empty string" } } }
         parsed :: parse_decimal_f64(trimmed)
         if parsed is null { return HostOk { .value = ErrorVal { .message = "parse_float: invalid float '${trimmed}'" } } }
         return HostOk { .value = F64Val { .value = parsed } }
@@ -456,9 +456,10 @@ fnv1a31_low :: fn(s: string) -> i32 {
     // small constants (`0x1b3`, `0x7fffffff`) sit in i32 range so the
     // context-sensitive literal adopts the operand width directly.
     h: i32 = i32(0x84222325)
+    sb :: s.bytes()
     i: usize = 0
-    for i < s.byte_len() {
-        h = (h ^ i32(s.byte_at(i))) * 0x1b3
+    for i < sb.len() {
+        h = (h ^ i32(sb[i])) * 0x1b3
         i += 1
     }
     return h & 0x7fffffff

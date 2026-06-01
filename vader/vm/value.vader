@@ -12,7 +12,7 @@
 
 module "vader/vm"
 
-import "std/string" { starts_with, byte_at, byte_len, byte_slice }
+import "std/string" { starts_with, bytes, as_string }
 
 /// Tagged outcome of an `exec` call. `Ok` carries the program's i32
 /// return value ; `Trap` carries a debug-friendly message so the host
@@ -56,8 +56,7 @@ export string_array_to_value :: fn(items: string[], type_id: i32) -> ArrayVal {
 /// @return         an `ArrayVal` whose elements are the UTF-8 bytes of `s`.
 export bytes_to_value :: fn(s: string, type_id: i32) -> ArrayVal {
     elements: Value[] = []
-    n :: s.byte_len()
-    for i in 0..<n { elements.push(I32Val { .value = i32(s.byte_at(i)) }) }
+    for b in s.bytes() { elements.push(I32Val { .value = i32(b) }) }
     return ArrayVal { .type_id = type_id, .elements = elements, .offset = usize(0), .length = elements.len() }
 }
 
@@ -422,19 +421,20 @@ struct_name_at :: fn(module: Module, type_id: i32) -> string = match module.type
 /// non-generic structs declared in a path whose folder name contains
 /// `__` (e.g. `tests_snippets_if_is_narrow__main_vader$Cat` vs `$Dog`).
 prefix_before_double_underscore :: fn(s: string) -> string {
-    n :: s.byte_len()
+    sb :: s.bytes()
+    n :: sb.len()
     if n < 2 { return "" }
     last_dollar: i32 = -1
     i: usize = 0
     for i < n {
-        if s.byte_at(i) == b'$' { last_dollar = i32(i) }
+        if sb[i] == b'$' { last_dollar = i32(i) }
         i += 1
     }
     start: usize = if last_dollar < 0 { 0 } else { usize(last_dollar) + 1 }
     j: usize = start
     for j + 1 < n {
-        if s.byte_at(j) == b'_' && s.byte_at(j + 1) == b'_' {
-            return s.byte_slice(0, j)
+        if sb[j] == b'_' && sb[j + 1] == b'_' {
+            return sb[0..<j].as_string()
         }
         j += 1
     }

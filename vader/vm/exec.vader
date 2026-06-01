@@ -29,7 +29,7 @@ module "vader/vm"
 
 import "std/io" { read_file, eprintln }
 import "std/string_builder" { StringBuilder }
-import "std/string" { index_of, byte_slice, byte_len }
+import "std/string" { index_of, bytes, as_string, decode_codepoint_at }
 
 // Mangled host-import names. Lifted to module-scope so the dispatch
 // chain reads as identifier comparisons rather than raw-string
@@ -554,8 +554,9 @@ intrinsic_host_mangle :: fn(kind: string, vtable_key: string) -> string {
     if kind == "" { return "" }
     dot :: vtable_key.index_of('.', 0)
     if dot < 0 { return "" }
-    trait_name :: vtable_key.byte_slice(0, usize(dot))
-    method :: vtable_key.byte_slice(usize(dot) + 1, vtable_key.byte_len())
+    kb :: vtable_key.bytes()
+    trait_name :: kb[0..<usize(dot)].as_string()
+    method :: kb[usize(dot) + 1..<kb.len()].as_string()
     return "std_core$${kind}$${trait_name}$${method}"
 }
 
@@ -1444,7 +1445,8 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                 // substring rather than trapping.
                 lo_cp :: usize(lo_box.value)
                 hi_cp :: usize(hi_box.value)
-                n_bytes :: s.byte_len()
+                sb :: s.bytes()
+                n_bytes :: sb.len()
                 cursor: usize = 0
                 seen:   usize = 0
                 byte_lo: usize = n_bytes
@@ -1452,14 +1454,14 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                 for cursor < n_bytes {
                     if seen == lo_cp { byte_lo = cursor }
                     if seen == hi_cp { byte_hi = cursor }
-                    [_c, width] :: s.decode_codepoint(cursor)
+                    [_c, width] :: sb.decode_codepoint_at(cursor)
                     cursor = cursor + width
                     seen   = seen + 1
                 }
                 if seen <= lo_cp { byte_lo = n_bytes }
                 if seen <= hi_cp { byte_hi = n_bytes }
                 if byte_hi < byte_lo { byte_hi = byte_lo }
-                frame.stack[frame.sp - 3] = StringVal { .value = s.byte_slice(byte_lo, byte_hi) }
+                frame.stack[frame.sp - 3] = StringVal { .value = sb[byte_lo..<byte_hi].as_string() }
                 frame.sp = frame.sp - 2
                 frame.pc = frame.pc + 1
             }
