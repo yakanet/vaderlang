@@ -1,0 +1,169 @@
+# CFG
+
+## snippet
+
+fn snippet$view_of(%0: i32) -> const u8[]
+  locals:
+    %0 seed: i32 (param seed)
+    %1 $intrinsic_1: ?
+    %2 __sb_0: ? (synthetic __sb_0)
+    %3 $k_3: string
+    %4 $intrinsic_4: string
+    %5 s: string (local s)
+    %6 $call_6: const u8[]
+  bb0:
+    %1 = intrinsic builder.new()
+    %2 = move %1
+    %3 = const string(#0) :string
+    intrinsic builder.append_str(%2, %3)
+    intrinsic builder.append_display(%2, %0)
+    %4 = intrinsic builder.finish(%2)
+    %5 = move %4
+    %6 = call bytes(%5) :const u8[]
+    return %6
+
+fn snippet$fold(%0: const u8[]) -> u64
+  locals:
+    %0 v: const u8[] (param v)
+    %1 $k_1: u64
+    %2 acc: u64 (local acc)
+    %3 __for_arr_0: const u8[] (synthetic __for_arr_0)
+    %4 __for_len_1: usize (synthetic __for_len_1)
+    %5 __for_i_2: usize (synthetic __for_i_2)
+    %6 $lt_9: bool
+    %7 b: u8 (binding b)
+    %8 $cast_12: u64
+    %9 $k_14: usize
+  bb0:
+    %1 = const int(0) :u64
+    %2 = cast %1 :u64
+    %3 = move %0
+    %4 = array_len %3
+    %5 = const int(0) :usize
+    branch -> bb1
+  bb1:
+    %6 = binop lt %5 %4 :bool
+    cond_branch %6 ? bb2 : bb3
+  bb2:
+    %7 = array_get %3[%5] :u8
+    %8 = cast %7 :u64
+    %2 = binop add %2 %8 :u64
+    %9 = const int(1) :usize
+    %5 = binop add %5 %9 :usize
+    branch -> bb1
+  bb3:
+    return %2
+
+fn snippet$main() -> i32
+  locals:
+    %0 $k_0: i32
+    %1 $call_1: const u8[]
+    %2 va: const u8[] (local va)
+    %3 $k_3: i32
+    %4 $call_4: const u8[]
+    %5 vb: const u8[] (local vb)
+    %6 $k_6: i32
+    %7 $call_7: const u8[]
+    %8 vc: const u8[] (local vc)
+    %9 $k_9: i32
+    %10 $call_10: const u8[]
+    %11 vd: const u8[] (local vd)
+    %12 $call_12: u64
+    %13 sa: u64 (local sa)
+    %14 $call_14: u64
+    %15 sb: u64 (local sb)
+    %16 $call_16: u64
+    %17 sc: u64 (local sc)
+    %18 $call_18: u64
+    %19 sd: u64 (local sd)
+    %20 $call_20: u64
+    %21 $neq_21: bool
+    %22 or_res: bool
+    %23 $call_24: u64
+    %24 or_res: bool
+    %25 $call_28: u64
+    %26 or_res: bool
+    %27 $call_32: u64
+    %28 $k_34: string
+    %29 $k_35: i32
+    %30 $add_36: u64
+    %31 $add_37: u64
+    %32 total: u64 (local total)
+    %33 $intrinsic_40: ?
+    %34 __sb_0: ? (synthetic __sb_0)
+    %35 $k_42: string
+    %36 $call_43: string
+    %37 $intrinsic_44: string
+    %38 $k_45: i32
+  bb0:
+    %0 = const int(1) :i32
+    %1 = call view_of(%0) :const u8[]
+    %2 = move %1
+    %3 = const int(22) :i32
+    %4 = call view_of(%3) :const u8[]
+    %5 = move %4
+    %6 = const int(333) :i32
+    %7 = call view_of(%6) :const u8[]
+    %8 = move %7
+    %9 = const int(4444) :i32
+    %10 = call view_of(%9) :const u8[]
+    %11 = move %10
+    %12 = call fold(%2) :u64
+    %13 = move %12
+    %14 = call fold(%5) :u64
+    %15 = move %14
+    %16 = call fold(%8) :u64
+    %17 = move %16
+    %18 = call fold(%11) :u64
+    %19 = move %18
+    call collect() :void
+    call collect() :void
+    %20 = call fold(%2) :u64
+    %21 = binop neq %20 %13 :bool
+    cond_branch %21 ? bb1 : bb2
+  bb1:
+    %22 = const bool(true) :bool
+    branch -> bb3
+  bb2:
+    %23 = call fold(%5) :u64
+    %22 = binop neq %23 %15 :bool
+    branch -> bb3
+  bb3:
+    cond_branch %22 ? bb4 : bb5
+  bb4:
+    %24 = const bool(true) :bool
+    branch -> bb6
+  bb5:
+    %25 = call fold(%8) :u64
+    %24 = binop neq %25 %17 :bool
+    branch -> bb6
+  bb6:
+    cond_branch %24 ? bb7 : bb8
+  bb7:
+    %26 = const bool(true) :bool
+    branch -> bb9
+  bb8:
+    %27 = call fold(%11) :u64
+    %26 = binop neq %27 %19 :bool
+    branch -> bb9
+  bb9:
+    cond_branch %26 ? bb10 : bb11
+  bb10:
+    %28 = const string(#1) :string
+    call println(%28) :void
+    %29 = const int(1) :i32
+    return %29
+  bb11:
+    %30 = binop add %13 %15 :u64
+    %31 = binop add %30 %17 :u64
+    %32 = binop add %31 %19 :u64
+    %33 = intrinsic builder.new()
+    %34 = move %33
+    %35 = const string(#2) :string
+    intrinsic builder.append_str(%34, %35)
+    %36 = call to_string(%32) :string
+    intrinsic builder.append_str(%34, %36)
+    %37 = intrinsic builder.finish(%34)
+    call println(%37) :void
+    %38 = const int(0) :i32
+    return %38

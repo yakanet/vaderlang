@@ -1,0 +1,58 @@
+module "snippet"
+
+import "std/io" { println }
+import "std/string" { bytes }
+import "std/runtime" { collect }
+
+// `bytes()` returns a borrowed `const u8[]` view that, on the native target,
+// aliases the string's interned bytes and keeps the owner atom reachable only
+// through its own header. This exercises the native GC paths :
+//   - the view headers live in the young arena and are relocated by a major
+//     cycle ; the borrowed flag + owner id + offset must survive the copy
+//     (vader_gc_copy_into memcpy + the NULL-`buf` scan).
+//   - the owner atoms are built at runtime (non-PERM) and reachable only via
+//     the views — vader_atom_mark_heap must mark them through the view header.
+// `view_of` lets its source string die so only the returned view holds the
+// atom. On the VM, `bytes()` copies (no aliasing), so reads are trivially
+// stable ; the assertion holds identically on both targets.
+
+view_of :: fn(seed: i32) -> const u8[] {
+    s :: "vader-byte-view-payload-${seed}"
+    return s.bytes()
+}
+
+fold :: fn(v: const u8[]) -> u64 {
+    acc: u64 = u64(0)
+    for b in v { acc = acc + u64(b) }
+    return acc
+}
+
+main :: fn() -> i32 {
+    va :: view_of(1)
+    vb :: view_of(22)
+    vc :: view_of(333)
+    vd :: view_of(4444)
+
+    // Sums captured while the atoms are definitely live ; plain integers, so
+    // they survive the collections trivially.
+    sa :: fold(va)
+    sb :: fold(vb)
+    sc :: fold(vc)
+    sd :: fold(vd)
+
+    // Two major cycles : the second runs after the first relocated the view
+    // headers, so a stale owner id or dropped flag would surface here.
+    collect()
+    collect()
+
+    // Re-read the SAME views post-GC — no re-interning happens in between, so
+    // a swept or mis-relocated view surfaces as a changed sum (or a crash).
+    if fold(va) != sa || fold(vb) != sb || fold(vc) != sc || fold(vd) != sd {
+        println("byte-view GC corruption after major cycles")
+        return 1
+    }
+
+    total :: sa + sb + sc + sd
+    println("ok: 4 byte views survived 2 major GCs; sum=${total}")
+    return 0
+}

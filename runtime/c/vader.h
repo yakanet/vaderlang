@@ -346,6 +346,16 @@ static inline size_t vader_array_element_size(uint8_t kind) {
     }
 }
 
+/* Borrowed-view discriminator — stored in `vader_obj_header_t._reserved` of a
+ * `vader_array_t`. Set on the read-only `const u8[]` views returned by
+ * `vader_string_bytes_view` : the header aliases an interned string's bytes
+ * instead of owning a GC-backed `buf` (which is NULL). On a borrowed view
+ * `capacity` is repurposed to carry `(element_tag << 32) | owner_atom_id` —
+ * the view is never grown in place (push detaches / is a compile error via
+ * T3042), so `capacity` is otherwise dead. `vader_array_get` / `_slice` honour
+ * the flag ; `vader_atom_mark_heap` keeps the owner atom alive through it. */
+#define VADER_ARRAY_FLAG_BORROWED  ((uint16_t) 0x0001u)
+
 /* Array data buffer — a separate GC object so `push` can reallocate without
  * breaking aliases to the array header. The buf carries its own
  * `element_kind` so the GC scanner can decide whether to walk slots for refs
@@ -362,6 +372,27 @@ typedef struct {
     size_t                   offset;
     struct vader_array_buf*  buf;
 } vader_array_t;
+
+/* Borrowed `const u8[]` byte-view accessors — the single home of the
+ * VADER_ARRAY_FLAG_BORROWED representation. On a borrowed view `capacity`
+ * packs `(element_tag << 32) | owner_atom_id` (see VADER_ARRAY_FLAG_BORROWED
+ * above) ; reading goes through `vader_atom_data(owner)`. Keeping the bit
+ * layout here means `vader_array_get` / `_slice` / the GC mark never open-code
+ * the casts. */
+static inline bool vader_array_is_borrowed(const vader_array_t* a) {
+    return (a->header._reserved & VADER_ARRAY_FLAG_BORROWED) != 0;
+}
+static inline vader_atom_t vader_array_borrowed_owner(const vader_array_t* a) {
+    return (vader_atom_t) (uint32_t) a->capacity;
+}
+static inline uint32_t vader_array_borrowed_tag(const vader_array_t* a) {
+    return (uint32_t) (a->capacity >> 32);
+}
+/* Flag `a` as a borrowed view over `owner`'s bytes, packing the element tag. */
+static inline void vader_array_make_borrowed(vader_array_t* a, uint32_t elem_tag, vader_atom_t owner) {
+    a->header._reserved = VADER_ARRAY_FLAG_BORROWED;
+    a->capacity = ((uint64_t) elem_tag << 32) | (uint64_t) (uint32_t) owner;
+}
 
 /* `capacity` / `length` are mirrored from the parent vader_array_t — the
  * GC needs them at scan time and there's no back-pointer to the array.
@@ -698,6 +729,14 @@ vader_string_t vader_string_slice(vader_string_t s, size_t start, size_t end);
 vader_box_t    vader_string_parse_float(vader_string_t s, uint32_t ok_tag, uint32_t err_tag);
 vader_char_t   vader_string_char_at(vader_string_t s, size_t i);
 vader_u8_t     vader_string_byte_at(vader_string_t s, size_t i);
+/* Zero-copy `const u8[]` view over `s`'s interned bytes — backs
+ * `std/string::bytes`. Allocates only a small `vader_array_t` header
+ * (flagged VADER_ARRAY_FLAG_BORROWED, `buf == NULL`) ; reads route through
+ * `vader_atom_data(s)`. `arr_type` is the module's `u8[]` ArrayType index
+ * (stamped onto the header) ; `elem_tag` is the `u8` element BcType index,
+ * packed into `capacity` so reads box bytes with the right virtual-dispatch
+ * tag. The owner atom is kept alive by `vader_atom_mark_heap`. */
+vader_array_t* vader_string_bytes_view(vader_string_t s, uint32_t arr_type, uint32_t elem_tag);
 /* Codepoint-indexed counterparts. `vader_string_codepoint_at` traps
  * on OOB ; `vader_string_slice_codepoints` clamps. Both walk UTF-8
  * from the start (O(n) in the target index). */

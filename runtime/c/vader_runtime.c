@@ -714,6 +714,16 @@ static void vader_atom_mark_heap(void) {
                     vader_string_t* sp = (vader_string_t*) (scan + info->string_offsets[i]);
                     vader_atom_mark(*sp);
                 }
+                /* Borrowed `const u8[]` byte view (`vader_string_bytes_view`) :
+                 * the array header carries no string field, but its `capacity`
+                 * low 32 bits hold the owner atom id whose interned bytes the
+                 * view aliases. Mark it so the bytes aren't swept under us. */
+                if (info->kind == VADER_TYPE_KIND_ARRAY) {
+                    vader_array_t* arr = (vader_array_t*) scan;
+                    if (vader_array_is_borrowed(arr)) {
+                        vader_atom_mark(vader_array_borrowed_owner(arr));
+                    }
+                }
                 /* Conservative : box fields. The payload's lower 4 bytes
                  * may be an atom (for string-tagged variants) or any
                  * other primitive ; conservativeness keeps the latter
@@ -1411,6 +1421,17 @@ static void vader_array_store_slot(vader_array_buf_t* buf, size_t i, vader_box_t
 
 vader_box_t vader_array_get(vader_array_t* a, size_t i) {
     a = vader_array_resolve(a);
+    if (VADER_UNLIKELY(vader_array_is_borrowed(a))) {
+        /* Borrowed `const u8[]` byte view : read directly from the owner
+         * atom's bytes (kept alive by `vader_atom_mark_heap`). */
+        if (VADER_UNLIKELY(i >= a->length)) vader_trap("array index out of bounds");
+        const uint8_t* data = (const uint8_t*) vader_atom_data(vader_array_borrowed_owner(a));
+        vader_box_t out;
+        out.tag = vader_array_borrowed_tag(a);
+        out._pad = 0;
+        out.payload.i = data[a->offset + i];
+        return out;
+    }
     while (a->buf != NULL && a->buf->header.forward != NULL) {
         a->buf = (vader_array_buf_t*) a->buf->header.forward;
     }
@@ -1420,6 +1441,12 @@ vader_box_t vader_array_get(vader_array_t* a, size_t i) {
 
 void vader_array_set(vader_array_t* a, size_t i, vader_box_t v) {
     a = vader_array_resolve(a);
+    if (VADER_UNLIKELY(vader_array_is_borrowed(a))) {
+        /* Defensive : T3042 already rejects writes to a `const u8[]` at
+         * compile time. Trapping here turns any bypass into a clean abort
+         * rather than a NULL-`buf` segfault. */
+        vader_trap("cannot mutate a borrowed `const u8[]` byte view");
+    }
     while (a->buf != NULL && a->buf->header.forward != NULL) {
         a->buf = (vader_array_buf_t*) a->buf->header.forward;
     }
@@ -1440,13 +1467,35 @@ void vader_array_set(vader_array_t* a, size_t i, vader_box_t v) {
 
 vader_array_t* vader_array_slice(vader_array_t* a, size_t lo, size_t hi) {
     a = vader_array_resolve(a);
-    while (a->buf != NULL && a->buf->header.forward != NULL) {
-        a->buf = (vader_array_buf_t*) a->buf->header.forward;
-    }
+    /* Clamp bounds against the header length (independent of `buf`, so it's
+     * valid for both the owning, view, and borrowed cases). */
     if (lo > a->length) lo = a->length;
     if (hi < lo)        hi = lo;
     if (hi > a->length) hi = a->length;
     size_t len = hi - lo;
+    if (VADER_UNLIKELY(vader_array_is_borrowed(a))) {
+        /* Slicing a borrowed byte view yields another borrowed view over the
+         * same owner atom : carry `capacity` (element_tag + owner) verbatim,
+         * advance `offset` by `lo`. `buf` stays NULL. The alloc may forward
+         * `a`, so root it as a box (its `capacity`/`offset`/flag copy verbatim
+         * on relocation — §borrowed) and reload after. */
+        uint32_t tag = a->header.type_index;
+        vader_box_t a_box; a_box.tag = tag; a_box._pad = 0; a_box.payload.obj = a;
+        VADER_GC_PUSH1(a_box);
+        vader_array_t* view = (vader_array_t*) vader_gc_alloc(vader_gc_align(sizeof(vader_array_t)));
+        VADER_GC_POP();
+        a = (vader_array_t*) a_box.payload.obj;
+        vader_obj_header_init(view, tag);
+        view->length   = len;
+        view->capacity = a->capacity;     /* (element_tag << 32) | owner — verbatim */
+        view->header._reserved = VADER_ARRAY_FLAG_BORROWED;
+        view->offset   = a->offset + lo;
+        view->buf      = NULL;
+        return view;
+    }
+    while (a->buf != NULL && a->buf->header.forward != NULL) {
+        a->buf = (vader_array_buf_t*) a->buf->header.forward;
+    }
     /* Root the parent array across the alloc — a collection inside
      * `vader_gc_alloc` would forward it otherwise. */
     uint32_t tag = a->header.type_index;
@@ -1481,6 +1530,10 @@ static vader_array_t* vader_array_resolve(vader_array_t* a) {
 }
 
 void vader_array_push(vader_array_t* a, vader_box_t v) {
+    if (VADER_UNLIKELY(vader_array_is_borrowed(a))) {
+        /* Defensive : T3042 rejects mutation of a `const u8[]` view. */
+        vader_trap("cannot push to a borrowed `const u8[]` byte view");
+    }
     /* Three reasons to detach into a fresh buf : (a) cap reached, (b) view
      * with non-zero offset, (c) view whose tail doesn't extend to the buf
      * end (another view aliases the tail slots — growing in place would
@@ -1626,6 +1679,30 @@ vader_char_t vader_string_char_at(vader_string_t s, size_t i) {
 vader_u8_t vader_string_byte_at(vader_string_t s, size_t i) {
     if (i >= vader_atom_len(s)) vader_trap("string index out of bounds");
     return (vader_u8_t)(uint8_t) vader_atom_data(s)[i];
+}
+
+/* Zero-copy `const u8[]` view over `s`'s interned bytes — see the header
+ * decl. Allocates only the array header ; `buf` stays NULL and reads route
+ * through `vader_atom_data(s)` (`vader_array_get` / `_slice`). `capacity`
+ * packs `(elem_tag << 32) | owner_atom_id` so reads box each byte with the
+ * right element tag and `vader_atom_mark_heap` recovers the owner (low 32
+ * bits). The view is flagged VADER_ARRAY_FLAG_BORROWED. 64-bit `capacity`
+ * assumed (the runtime targets 64-bit throughout).
+ *
+ * `s` needs no extra rooting across the alloc : it is an atom id (a value,
+ * not a heap pointer) and the caller holds the source string live on the
+ * shadow stack, so any major cycle inside `vader_gc_alloc` keeps the atom
+ * marked. No allocation runs between the alloc and the field writes, so
+ * `view` cannot move before it is populated. */
+vader_array_t* vader_string_bytes_view(vader_string_t s, uint32_t arr_type, uint32_t elem_tag) {
+    size_t len = vader_atom_len(s);
+    vader_array_t* view = (vader_array_t*) vader_gc_alloc(vader_gc_align(sizeof(vader_array_t)));
+    vader_obj_header_init(view, arr_type);
+    view->length = len;
+    view->offset = 0;
+    view->buf    = NULL;
+    vader_array_make_borrowed(view, elem_tag, s);   /* sets flag + packs capacity */
+    return view;
 }
 
 /* Box the host argv into a `[string]` Vader array. Called from emitted main

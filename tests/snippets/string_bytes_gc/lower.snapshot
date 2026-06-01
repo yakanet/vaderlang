@@ -1,0 +1,203 @@
+# Lower
+
+## snippet
+  fn snippet$view_of(seed: i32) -> const u8[]
+    let s: string =
+      block :string
+        let __sb_0: ? =
+          @builder.new :?
+        @builder.append_str :void
+          __sb_0 :?
+          "vader-byte-view-payload-" :string
+        @builder.append_display <for i32> :void
+          __sb_0 :?
+          seed :i32
+        ~>
+          @builder.finish :string
+            __sb_0 :?
+    return
+      call :const u8[]
+        callee:
+          bytes :const u8[]
+        arg0:
+          s :string
+  fn snippet$fold(v: const u8[]) -> u64
+    let acc: u64 =
+      cast → u64
+        int(0) :u64
+    block :void
+      let __for_arr_0: const u8[] = v :const u8[]
+      let __for_len_1: usize =
+        LoweredArrayLen
+      let __for_i_2: usize = int(0) :usize
+      loop while (<…>)
+        let b: u8 =
+          index :u8
+            on:
+              __for_arr_0 :const u8[]
+            ix:
+              __for_i_2 :usize
+        assign
+          target:
+            acc :u64
+          value:
+            add :u64
+              l:
+                acc :u64
+              r:
+                cast → u64
+                  b :u8
+        assign
+          target:
+            __for_i_2 :usize
+          value:
+            add :usize
+              l:
+                __for_i_2 :usize
+              r:
+                int(1) :usize
+    return acc :u64
+  fn snippet$main() -> i32
+    let va: const u8[] =
+      call :const u8[]
+        callee:
+          view_of :fn(i32) -> const u8[]
+        arg0:
+          int(1) :i32
+    let vb: const u8[] =
+      call :const u8[]
+        callee:
+          view_of :fn(i32) -> const u8[]
+        arg0:
+          int(22) :i32
+    let vc: const u8[] =
+      call :const u8[]
+        callee:
+          view_of :fn(i32) -> const u8[]
+        arg0:
+          int(333) :i32
+    let vd: const u8[] =
+      call :const u8[]
+        callee:
+          view_of :fn(i32) -> const u8[]
+        arg0:
+          int(4444) :i32
+    let sa: u64 =
+      call :u64
+        callee:
+          fold :fn(const u8[]) -> u64
+        arg0:
+          va :const u8[]
+    let sb: u64 =
+      call :u64
+        callee:
+          fold :fn(const u8[]) -> u64
+        arg0:
+          vb :const u8[]
+    let sc: u64 =
+      call :u64
+        callee:
+          fold :fn(const u8[]) -> u64
+        arg0:
+          vc :const u8[]
+    let sd: u64 =
+      call :u64
+        callee:
+          fold :fn(const u8[]) -> u64
+        arg0:
+          vd :const u8[]
+    call :void
+      callee:
+        collect :fn() -> void
+    call :void
+      callee:
+        collect :fn() -> void
+    if :void
+      cond:
+        or :bool
+          l:
+            or :bool
+              l:
+                or :bool
+                  l:
+                    neq :bool
+                      l:
+                        call :u64
+                          callee:
+                            fold :fn(const u8[]) -> u64
+                          arg0:
+                            va :const u8[]
+                      r:
+                        sa :u64
+                  r:
+                    neq :bool
+                      l:
+                        call :u64
+                          callee:
+                            fold :fn(const u8[]) -> u64
+                          arg0:
+                            vb :const u8[]
+                      r:
+                        sb :u64
+              r:
+                neq :bool
+                  l:
+                    call :u64
+                      callee:
+                        fold :fn(const u8[]) -> u64
+                      arg0:
+                        vc :const u8[]
+                  r:
+                    sc :u64
+          r:
+            neq :bool
+              l:
+                call :u64
+                  callee:
+                    fold :fn(const u8[]) -> u64
+                  arg0:
+                    vd :const u8[]
+              r:
+                sd :u64
+      then:
+        call :void
+          callee:
+            println :void
+          arg0:
+            "byte-view GC corruption after major cycles" :string
+        return int(1) :i32
+    let total: u64 =
+      add :u64
+        l:
+          add :u64
+            l:
+              add :u64
+                l:
+                  sa :u64
+                r:
+                  sb :u64
+            r:
+              sc :u64
+        r:
+          sd :u64
+    call :void
+      callee:
+        println :void
+      arg0:
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0 :?
+            "ok: 4 byte views survived 2 major GCs; sum=" :string
+          @builder.append_str :void
+            __sb_0 :?
+            call :string
+              callee:
+                to_string :string
+              arg0:
+                total :u64
+          ~>
+            @builder.finish :string
+              __sb_0 :?
+    return int(0) :i32

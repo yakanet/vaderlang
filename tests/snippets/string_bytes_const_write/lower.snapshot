@@ -1,0 +1,23 @@
+# Lower
+
+## snippet
+  fn snippet$main() -> i32
+    let bs: const u8[] =
+      call :const u8[]
+        callee:
+          bytes :const u8[]
+        arg0:
+          "abc" :string
+    assign
+      target:
+        index :?
+          on:
+            bs :const u8[]
+          ix:
+            int(0) :i32
+      value:
+        int(120) :?
+    return int(0) :i32
+
+# Diagnostics
+[11:5] error[T3042] cannot mutate an immutable array: cannot mutate `const u8[]` — declared with `const`

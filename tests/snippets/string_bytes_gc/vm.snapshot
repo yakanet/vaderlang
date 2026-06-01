@@ -1,0 +1,4 @@
+# stdout
+ok: 4 byte views survived 2 major GCs; sum=9850
+# exit
+0

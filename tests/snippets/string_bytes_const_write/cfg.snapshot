@@ -1,0 +1,24 @@
+# CFG
+
+## snippet
+
+fn snippet$main() -> i32
+  locals:
+    %0 $k_0: string
+    %1 $call_1: const u8[]
+    %2 bs: const u8[] (local bs)
+    %3 $k_3: i32
+    %4 $k_4: ?
+    %5 $k_5: i32
+  bb0:
+    %0 = const string(#0) :string
+    %1 = call bytes(%0) :const u8[]
+    %2 = move %1
+    %3 = const int(0) :i32
+    %4 = const int(120) :?
+    array_set %2[%3] = %4
+    %5 = const int(0) :i32
+    return %5
+
+# Diagnostics
+[11:5] error[T3042] cannot mutate an immutable array: cannot mutate `const u8[]` — declared with `const`

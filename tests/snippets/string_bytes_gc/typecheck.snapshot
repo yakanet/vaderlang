@@ -1,0 +1,83 @@
+# Typecheck
+
+## tests/snippets/string_bytes_gc
+  FnDecl         fold                 :: fn(const u8[]) -> u64
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         view_of              :: fn(i32) -> const u8[]
+  expr 20:10    StringLitExpr  :: string
+  expr 20:37    IdentExpr      :: i32
+  expr 21:12    CallExpr       :: const u8[]
+  expr 21:12    FieldExpr      :: fn() -> const u8[]
+  expr 21:12    IdentExpr      :: string
+  expr 25:16    CallExpr       :: u64
+  expr 25:16    IdentExpr      :: type
+  expr 26:14    IdentExpr      :: const u8[]
+  expr 26:18    IdentExpr      :: u64
+  expr 26:24    BinaryExpr     :: u64
+  expr 26:24    IdentExpr      :: u64
+  expr 26:30    CallExpr       :: u64
+  expr 26:30    IdentExpr      :: type
+  expr 26:34    IdentExpr      :: u8
+  expr 27:12    IdentExpr      :: u64
+  expr 31:11    CallExpr       :: const u8[]
+  expr 31:11    IdentExpr      :: fn(i32) -> const u8[]
+  expr 32:11    CallExpr       :: const u8[]
+  expr 32:11    IdentExpr      :: fn(i32) -> const u8[]
+  expr 33:11    CallExpr       :: const u8[]
+  expr 33:11    IdentExpr      :: fn(i32) -> const u8[]
+  expr 34:11    CallExpr       :: const u8[]
+  expr 34:11    IdentExpr      :: fn(i32) -> const u8[]
+  expr 38:11    CallExpr       :: u64
+  expr 38:11    IdentExpr      :: fn(const u8[]) -> u64
+  expr 38:16    IdentExpr      :: const u8[]
+  expr 39:11    CallExpr       :: u64
+  expr 39:11    IdentExpr      :: fn(const u8[]) -> u64
+  expr 39:16    IdentExpr      :: const u8[]
+  expr 40:11    CallExpr       :: u64
+  expr 40:11    IdentExpr      :: fn(const u8[]) -> u64
+  expr 40:16    IdentExpr      :: const u8[]
+  expr 41:11    CallExpr       :: u64
+  expr 41:11    IdentExpr      :: fn(const u8[]) -> u64
+  expr 41:16    IdentExpr      :: const u8[]
+  expr 45:5     CallExpr       :: void
+  expr 45:5     IdentExpr      :: fn() -> void
+  expr 46:5     CallExpr       :: void
+  expr 46:5     IdentExpr      :: fn() -> void
+  expr 50:13    IdentExpr      :: const u8[]
+  expr 50:20    IdentExpr      :: u64
+  expr 50:26    BinaryExpr     :: bool
+  expr 50:26    CallExpr       :: u64
+  expr 50:26    IdentExpr      :: fn(const u8[]) -> u64
+  expr 50:31    IdentExpr      :: const u8[]
+  expr 50:38    IdentExpr      :: u64
+  expr 50:44    BinaryExpr     :: bool
+  expr 50:44    CallExpr       :: u64
+  expr 50:44    IdentExpr      :: fn(const u8[]) -> u64
+  expr 50:49    IdentExpr      :: const u8[]
+  expr 50:5     IfExpr         :: void
+  expr 50:56    IdentExpr      :: u64
+  expr 50:62    BinaryExpr     :: bool
+  expr 50:62    CallExpr       :: u64
+  expr 50:62    IdentExpr      :: fn(const u8[]) -> u64
+  expr 50:67    IdentExpr      :: const u8[]
+  expr 50:74    IdentExpr      :: u64
+  expr 50:8     BinaryExpr     :: bool
+  expr 50:8     BinaryExpr     :: bool
+  expr 50:8     BinaryExpr     :: bool
+  expr 50:8     BinaryExpr     :: bool
+  expr 50:8     CallExpr       :: u64
+  expr 50:8     IdentExpr      :: fn(const u8[]) -> u64
+  expr 51:17    StringLitExpr  :: string
+  expr 51:9     CallExpr       :: void
+  expr 51:9     IdentExpr      :: fn(T) -> void
+  expr 55:14    BinaryExpr     :: u64
+  expr 55:14    BinaryExpr     :: u64
+  expr 55:14    BinaryExpr     :: u64
+  expr 55:14    IdentExpr      :: u64
+  expr 55:19    IdentExpr      :: u64
+  expr 55:24    IdentExpr      :: u64
+  expr 55:29    IdentExpr      :: u64
+  expr 56:13    StringLitExpr  :: string
+  expr 56:5     CallExpr       :: void
+  expr 56:5     IdentExpr      :: fn(T) -> void
+  expr 56:59    IdentExpr      :: u64

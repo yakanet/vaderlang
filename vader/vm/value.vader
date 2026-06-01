@@ -43,6 +43,24 @@ export string_array_to_value :: fn(items: string[], type_id: i32) -> ArrayVal {
     return ArrayVal { .type_id = type_id, .elements = elements, .offset = usize(0), .length = elements.len() }
 }
 
+/// Box a string's UTF-8 bytes as an `ArrayVal` of `u8` values — the VM's
+/// copy fallback for `std/string::bytes`. The native target returns a
+/// zero-copy `const u8[]` view aliasing the interned bytes ; the VM boxes
+/// every slot so it cannot alias a raw buffer and materialises a copy
+/// (same observable values). `u8` rides in `I32Val` (see `coerce_i32`).
+///
+/// `type_id` must be the module's `u8[]` `ArrayType` index (see
+/// `find_u8_array_type_id`) so the result narrows under an `is u8[]` test.
+/// @param s        source string.
+/// @param type_id  the module's `u8[]` ArrayType index, or 0 when absent.
+/// @return         an `ArrayVal` whose elements are the UTF-8 bytes of `s`.
+export bytes_to_value :: fn(s: string, type_id: i32) -> ArrayVal {
+    elements: Value[] = []
+    n :: s.byte_len()
+    for i in 0..<n { elements.push(I32Val { .value = i32(s.byte_at(i)) }) }
+    return ArrayVal { .type_id = type_id, .elements = elements, .offset = usize(0), .length = elements.len() }
+}
+
 /// Locate the module's `string[]` `ArrayType` index — the type id a
 /// host-produced string array must carry so `is string[]` narrows.
 /// Mirrors `findStringArrayTypeIndex` in `src/vm/host.ts`. Returns 0 when
@@ -64,6 +82,30 @@ export find_string_array_type_id :: fn(module: Module) -> i32 {
         t :: module.types[j]
         if t is ArrayType as a {
             if a.element_type_id == string_idx { return i32(j) }
+        }
+    }
+    return 0
+}
+
+/// Locate the module's `u8[]` `ArrayType` index — the tag a host-produced
+/// `bytes()` array must carry so `is u8[]` narrows. Sibling of
+/// `find_string_array_type_id`. Returns 0 when no `u8` primitive or no
+/// `u8[]` array entry exists. Compute once per run.
+/// @param module  the running module.
+/// @return        the `u8[]` ArrayType index, or 0 when absent.
+export find_u8_array_type_id :: fn(module: Module) -> i32 {
+    u8_idx: i32 = -1
+    for i in 0..<module.types.len() {
+        t :: module.types[i]
+        if t is PrimitiveType as p {
+            if p.kind == "u8" { u8_idx = i32(i) }
+        }
+    }
+    if u8_idx < 0 { return 0 }
+    for j in 0..<module.types.len() {
+        t :: module.types[j]
+        if t is ArrayType as a {
+            if a.element_type_id == u8_idx { return i32(j) }
         }
     }
     return 0

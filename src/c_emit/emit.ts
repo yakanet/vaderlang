@@ -883,6 +883,16 @@ function importShim(ctx: EmitCtx, imp: BcImport, idx: number): string | null {
       return `${head} { return vader_string_codepoint_at(a0, a1); }`;
     case "std_string$byte_at":
       return `${head} { return vader_string_byte_at(a0, a1); }`;
+    case "std_string$bytes": {
+      // Zero-copy `const u8[]` view aliasing the string's interned bytes.
+      // `const u8[]` and `u8[]` intern to the same BcType (immutability is a
+      // typecheck-only concept), so any array-of-u8 entry is the right tag.
+      const u8Idx = ctx.module.types.findIndex(t => t.kind === "primitive" && t.val === "u8");
+      if (u8Idx < 0) return `${head} { vader_trap("bytes: no u8 type"); }`;
+      const arrIdx = ctx.module.types.findIndex(t => t.kind === "array" && t.element === u8Idx);
+      if (arrIdx < 0) return `${head} { vader_trap("bytes: no u8[] type"); }`;
+      return `${head} { return vader_box_obj(${arrIdx}u, vader_string_bytes_view(a0, ${arrIdx}u, ${u8Idx}u)); }`;
+    }
     case "std_string$parse_float":
       return `${head} { return vader_string_parse_float(a0, ${primTagOrTrap(ctx, "f64")}, ${tagOrTrap(ctx, "error")}); }`;
     case "std_core$string$Hash$hash":

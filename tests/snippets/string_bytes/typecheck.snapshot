@@ -2,8 +2,8 @@
 
 ## tests/snippets/string_bytes
   FnDecl         main                 :: fn() -> i32
-  expr 10:14    CallExpr       :: u8[]
-  expr 10:14    FieldExpr      :: fn() -> u8[]
+  expr 10:14    CallExpr       :: const u8[]
+  expr 10:14    FieldExpr      :: fn() -> const u8[]
   expr 10:14    StringLitExpr  :: string
   expr 11:15    BinaryExpr     :: u32
   expr 11:15    IdentExpr      :: u32
@@ -18,8 +18,8 @@
   expr 16:13    StringLitExpr  :: string
   expr 16:5     CallExpr       :: void
   expr 16:5     IdentExpr      :: fn(T) -> void
-  expr 17:14    CallExpr       :: u8[]
-  expr 17:14    FieldExpr      :: fn() -> u8[]
+  expr 17:14    CallExpr       :: const u8[]
+  expr 17:14    FieldExpr      :: fn() -> const u8[]
   expr 17:14    StringLitExpr  :: string
   expr 18:17    StringLitExpr  :: string
   expr 18:20    IdentExpr      :: u8
@@ -53,8 +53,8 @@
   expr 29:13    StringLitExpr  :: string
   expr 29:5     CallExpr       :: void
   expr 29:5     IdentExpr      :: fn(T) -> void
-  expr 30:14    CallExpr       :: u8[]
-  expr 30:14    FieldExpr      :: fn() -> u8[]
+  expr 30:14    CallExpr       :: const u8[]
+  expr 30:14    FieldExpr      :: fn() -> const u8[]
   expr 30:14    StringLitExpr  :: string
   expr 31:17    StringLitExpr  :: string
   expr 31:9     CallExpr       :: void
@@ -65,24 +65,48 @@
   expr 33:36    StringLitExpr  :: string
   expr 33:5     CallExpr       :: void
   expr 33:5     IdentExpr      :: fn(T) -> void
-  expr 37:13    StringLitExpr  :: string
-  expr 37:5     CallExpr       :: void
-  expr 37:5     IdentExpr      :: fn(T) -> void
-  expr 38:11    CallExpr       :: u8[]
-  expr 38:11    FieldExpr      :: fn() -> u8[]
-  expr 38:11    StringLitExpr  :: string
-  expr 39:13    StringLitExpr  :: string
-  expr 39:20    CallExpr       :: usize
-  expr 39:20    FieldExpr      :: fn() -> usize
-  expr 39:20    IdentExpr      :: u8[]
-  expr 39:38    IdentExpr      :: u8[]
-  expr 39:38    IndexExpr      :: u8
-  expr 39:5     CallExpr       :: void
-  expr 39:5     IdentExpr      :: fn(T) -> void
-  expr 39:53    IdentExpr      :: u8[]
-  expr 39:53    IndexExpr      :: u8
-  expr 39:68    IdentExpr      :: u8[]
-  expr 39:68    IndexExpr      :: u8
+  expr 38:13    StringLitExpr  :: string
+  expr 38:5     CallExpr       :: void
+  expr 38:5     IdentExpr      :: fn(T) -> void
+  expr 39:11    CallExpr       :: const u8[]
+  expr 39:11    FieldExpr      :: fn() -> const u8[]
+  expr 39:11    StringLitExpr  :: string
+  expr 40:13    StringLitExpr  :: string
+  expr 40:20    CallExpr       :: usize
+  expr 40:20    FieldExpr      :: fn() -> usize
+  expr 40:20    IdentExpr      :: const u8[]
+  expr 40:38    IdentExpr      :: const u8[]
+  expr 40:38    IndexExpr      :: u8
+  expr 40:5     CallExpr       :: void
+  expr 40:5     IdentExpr      :: fn(T) -> void
+  expr 40:53    IdentExpr      :: const u8[]
+  expr 40:53    IndexExpr      :: u8
+  expr 40:68    IdentExpr      :: const u8[]
+  expr 40:68    IndexExpr      :: u8
+  expr 43:13    StringLitExpr  :: string
+  expr 43:5     CallExpr       :: void
+  expr 43:5     IdentExpr      :: fn(T) -> void
+  expr 44:11    CallExpr       :: const u8[]
+  expr 44:11    FieldExpr      :: fn() -> const u8[]
+  expr 44:11    IndexExpr      :: u8[]
+  expr 44:11    StringLitExpr  :: string
+  expr 44:27    CallExpr       :: usize
+  expr 44:27    IdentExpr      :: type
+  expr 44:27    RangeExpr      :: Range<usize>
+  expr 44:38    CallExpr       :: usize
+  expr 44:38    IdentExpr      :: type
+  expr 45:13    StringLitExpr  :: string
+  expr 45:23    CallExpr       :: usize
+  expr 45:23    FieldExpr      :: fn() -> usize
+  expr 45:23    IdentExpr      :: u8[]
+  expr 45:39    IdentExpr      :: u8[]
+  expr 45:39    IndexExpr      :: u8
+  expr 45:5     CallExpr       :: void
+  expr 45:5     IdentExpr      :: fn(T) -> void
+  expr 45:52    IdentExpr      :: u8[]
+  expr 45:52    IndexExpr      :: u8
+  expr 45:65    IdentExpr      :: u8[]
+  expr 45:65    IndexExpr      :: u8
   expr 8:13     StringLitExpr  :: string
   expr 8:5      CallExpr       :: void
   expr 8:5      IdentExpr      :: fn(T) -> void

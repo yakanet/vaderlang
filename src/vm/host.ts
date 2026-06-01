@@ -184,6 +184,16 @@ function findStringArrayTypeIndex(module: BytecodeModule): number {
   return arrIdx < 0 ? 0 : arrIdx;
 }
 
+/** Walk the BcType table looking for a `u8[]` entry (array whose element type
+ *  resolves to the `u8` primitive) — the tag a host-built `bytes()` array
+ *  carries so `is u8[]` narrows. Returns 0 if none exists. */
+function findU8ArrayTypeIndex(module: BytecodeModule): number {
+  const u8Idx = module.types.findIndex(t => t.kind === "primitive" && t.val === "u8");
+  if (u8Idx < 0) return 0;
+  const arrIdx = module.types.findIndex(t => t.kind === "array" && t.element === u8Idx);
+  return arrIdx < 0 ? 0 : arrIdx;
+}
+
 /** FNV-1a 64-bit hash over the raw UTF-8 bytes — mirrors vader_string_hash in C. */
 function fnv1a64(s: string): bigint {
   const bytes = UTF8_ENC.encode(s);
@@ -210,6 +220,16 @@ export function stdStringBindings(): Record<string, HostFn> {
       const i = indexArg(args, 1);
       if (i < 0 || i >= bytes.length) return num("u8", 0);
       return num("u8", bytes[i]!);
+    },
+    // `bytes()` is a zero-copy `const u8[]` view on the native target ; the
+    // VM has no raw byte buffer to alias (every slot is a boxed Value), so it
+    // materialises a copy. Same observable values. The array carries the
+    // module's `u8[]` type index so an `is u8[]` test would still narrow.
+    std_string$bytes: (args, module) => {
+      const bytes = UTF8_ENC.encode(stringArg(args, 0));
+      const arrTypeIdx = findU8ArrayTypeIndex(module);
+      const elements = Array.from(bytes, (b) => num("u8", b));
+      return { tag: "array" as const, typeIndex: arrTypeIdx, elements, offset: 0, length: elements.length };
     },
     // `string implements Index(usize, char)` is `@intrinsic`-impl in std/core,
     // so the host provides the body under the impl-method mangled name.

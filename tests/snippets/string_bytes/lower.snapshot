@@ -11,10 +11,10 @@
       cast → u32
         int(0) :u32
     block :void
-      let __for_arr_0: u8[] =
-        call :u8[]
+      let __for_arr_0: const u8[] =
+        call :const u8[]
           callee:
-            bytes :u8[]
+            bytes :const u8[]
           arg0:
             "vader" :string
       let __for_len_1: usize =
@@ -24,7 +24,7 @@
         let b: u8 =
           index :u8
             on:
-              __for_arr_0 :u8[]
+              __for_arr_0 :const u8[]
             ix:
               __for_i_2 :usize
         assign
@@ -72,10 +72,10 @@
       arg0:
         "-- multibyte --" :string
     block :void
-      let __for_arr_4: u8[] =
-        call :u8[]
+      let __for_arr_4: const u8[] =
+        call :const u8[]
           callee:
-            bytes :u8[]
+            bytes :const u8[]
           arg0:
             "你" :string
       let __for_len_5: usize =
@@ -85,7 +85,7 @@
         let b: u8 =
           index :u8
             on:
-              __for_arr_4 :u8[]
+              __for_arr_4 :const u8[]
             ix:
               __for_i_6 :usize
         call :void
@@ -202,10 +202,10 @@
       arg0:
         "-- empty --" :string
     block :void
-      let __for_arr_10: u8[] =
-        call :u8[]
+      let __for_arr_10: const u8[] =
+        call :const u8[]
           callee:
-            bytes :u8[]
+            bytes :const u8[]
           arg0:
             "" :string
       let __for_len_11: usize =
@@ -215,7 +215,7 @@
         let b: u8 =
           index :u8
             on:
-              __for_arr_10 :u8[]
+              __for_arr_10 :const u8[]
             ix:
               __for_i_12 :usize
         call :void
@@ -261,10 +261,10 @@
         println :void
       arg0:
         "-- u8[] surface --" :string
-    let bs: u8[] =
-      call :u8[]
+    let bs: const u8[] =
+      call :const u8[]
         callee:
-          bytes :u8[]
+          bytes :const u8[]
         arg0:
           "abc" :string
     call :void
@@ -291,7 +291,7 @@
             __sb_14 :?
             index :u8
               on:
-                bs :u8[]
+                bs :const u8[]
               ix:
                 int(0) :i32
           @builder.append_str :void
@@ -301,7 +301,7 @@
             __sb_14 :?
             index :u8
               on:
-                bs :u8[]
+                bs :const u8[]
               ix:
                 int(1) :i32
           @builder.append_str :void
@@ -311,10 +311,79 @@
             __sb_14 :?
             index :u8
               on:
-                bs :u8[]
+                bs :const u8[]
               ix:
                 int(2) :i32
           ~>
             @builder.finish :string
               __sb_14 :?
+    call :void
+      callee:
+        println :void
+      arg0:
+        "-- slice --" :string
+    let sl: const u8[] =
+      slice :const u8[]
+        on:
+          call :const u8[]
+            callee:
+              bytes :const u8[]
+            arg0:
+              "abcde" :string
+        lo:
+          cast → usize
+            int(1) :usize
+        hi:
+          cast → usize
+            int(4) :usize
+    call :void
+      callee:
+        println :void
+      arg0:
+        block :string
+          let __sb_15: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_15 :?
+            "sl.len=" :string
+          @builder.append_str :void
+            __sb_15 :?
+            call :string
+              callee:
+                to_string :string
+              arg0:
+                LoweredArrayLen
+          @builder.append_str :void
+            __sb_15 :?
+            " sl0=" :string
+          @builder.append_display <for u8> :void
+            __sb_15 :?
+            index :u8
+              on:
+                sl :const u8[]
+              ix:
+                int(0) :i32
+          @builder.append_str :void
+            __sb_15 :?
+            " sl1=" :string
+          @builder.append_display <for u8> :void
+            __sb_15 :?
+            index :u8
+              on:
+                sl :const u8[]
+              ix:
+                int(1) :i32
+          @builder.append_str :void
+            __sb_15 :?
+            " sl2=" :string
+          @builder.append_display <for u8> :void
+            __sb_15 :?
+            index :u8
+              on:
+                sl :const u8[]
+              ix:
+                int(2) :i32
+          ~>
+            @builder.finish :string
+              __sb_15 :?
     return int(0) :i32

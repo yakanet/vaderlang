@@ -21,39 +21,43 @@ type 18 struct std_core$Range__Any { start:8,end:8,inclusive:4,cursor:8 }
 type 19 union 0,20
 type 20 struct std_core$Yield__Any { value:8 }
 type 21 struct std_core$ArrayIterator__Any { arr:7,cursor:6 }
-type 22 struct std_core$ArrayIterator__T { arr:36,cursor:6 }
+type 22 struct std_core$ArrayIterator__T { arr:39,cursor:6 }
 type 23 union 0,24
 type 24 ref Yield
-type 25 struct std_core$ArrayIterator__U { arr:38,cursor:6 }
+type 25 struct std_core$ArrayIterator__U { arr:41,cursor:6 }
 type 26 union 0,27
 type 27 ref Yield
-type 28 struct std_core$ArrayIterator__i32 { arr:40,cursor:6 }
+type 28 struct std_core$ArrayIterator__i32 { arr:43,cursor:6 }
 type 29 union 0,30
 type 30 struct std_core$Yield__i32 { value:2 }
-type 31 struct std_core$ArrayIterator__string { arr:41,cursor:6 }
+type 31 struct std_core$ArrayIterator__string { arr:44,cursor:6 }
 type 32 union 0,33
 type 33 struct std_core$Yield__string { value:5 }
-type 34 struct std_core$Yield__char { value:3 }
-type 35 struct std_core$Range__i32 { start:8,end:8,inclusive:4,cursor:8 }
-type 36 array 37
-type 37 ref _
-type 38 array 39
-type 39 ref _
-type 40 array 2
-type 41 array 5
-type 42 primitive void
-type 43 struct std_iter$FilterIterator__Any { source:9,pred:46 }
-type 44 struct std_iter$FilterIterator__char { source:47,pred:48 }
-type 45 union 0,34
-type 46 fn (8) -> 4
-type 47 ref Iterator
-type 48 fn (3) -> 4
-type 49 struct std_string$StringChars { s:5,cursor:6,length:6 }
-type 50 struct __Tuple_56 { _0:3,_1:6 }
-type 51 struct std_string_builder$StringBuilder { parts:41 }
-type 52 union 30,0
-type 53 ref Range
-type 54 ref Range
+type 34 struct std_core$ArrayIterator__u8 { arr:45,cursor:6 }
+type 35 union 0,36
+type 36 struct std_core$Yield__u8 { value:14 }
+type 37 struct std_core$Yield__char { value:3 }
+type 38 struct std_core$Range__i32 { start:8,end:8,inclusive:4,cursor:8 }
+type 39 array 40
+type 40 ref _
+type 41 array 42
+type 42 ref _
+type 43 array 2
+type 44 array 5
+type 45 array 14
+type 46 primitive void
+type 47 struct std_iter$FilterIterator__Any { source:9,pred:50 }
+type 48 struct std_iter$FilterIterator__char { source:51,pred:52 }
+type 49 union 0,37
+type 50 fn (8) -> 4
+type 51 ref Iterator
+type 52 fn (3) -> 4
+type 53 struct std_string$StringChars { s:5,cursor:6,length:6 }
+type 54 struct __Tuple_60 { _0:3,_1:6 }
+type 55 struct std_string_builder$StringBuilder { parts:44 }
+type 56 union 30,0
+type 57 ref Range
+type 58 ref Range
 string 0 "range sum  = "
 string 1 "array sum  = "
 string 2 "hello, world!"
@@ -71,12 +75,13 @@ impl 22 Iterator
 impl 25 Iterator
 impl 28 Iterator
 impl 31 Iterator
-impl 35 Contains
-impl 35 Iterator
-impl 43 Iterator
-impl 44 Iterator
-impl 49 Iterator
-impl 51 Display
+impl 34 Iterator
+impl 38 Contains
+impl 38 Iterator
+impl 47 Iterator
+impl 48 Iterator
+impl 53 Iterator
+impl 55 Display
 vtable Comparable.gt 2 12
 vtable Comparable.gt 3 36
 vtable Comparable.gt 6 33
@@ -105,12 +110,13 @@ vtable Iterator.next 22 51
 vtable Iterator.next 25 52
 vtable Iterator.next 28 53
 vtable Iterator.next 31 54
-vtable Iterator.next 35 49
-vtable Iterator.next 43 56
-vtable Iterator.next 44 57
-vtable Iterator.next 49 61
-vtable Iterator.next 53 49
-vtable Iterator.next 54 49
+vtable Iterator.next 34 55
+vtable Iterator.next 38 49
+vtable Iterator.next 47 57
+vtable Iterator.next 48 58
+vtable Iterator.next 53 62
+vtable Iterator.next 57 49
+vtable Iterator.next 58 49
 vtable Step.step 2 40
 vtable Step.step 3 48
 vtable Step.step 6 47
@@ -165,14 +171,14 @@ fn 2 snippet$count_ls (string) -> usize
   local $call_1 ref
   local $fn_ref_2 ref
   local.get 0
-  call 62
+  call 63
   local.set 1
-  fn.ref 1 48
+  fn.ref 1 52
   local.set 2
   local.get 1
   local.get 2
+  call 60
   call 59
-  call 58
   return
 end
 
@@ -186,13 +192,13 @@ fn 3 snippet$main () -> i32
   i32.const 5
   bool.const false
   i32.const 0
-  struct.new 35
+  struct.new 38
   call 0
   local.set 0
   i32.const 10
   i32.const 20
   i32.const 30
-  array.new 40 3
+  array.new 43 3
   call 4
   call 0
   local.set 1
@@ -206,7 +212,7 @@ fn 3 snippet$main () -> i32
   intrinsic builder.append_display
   local.get 2
   intrinsic builder.finish
-  call 55
+  call 56
   intrinsic builder.new
   local.set 2
   local.get 2
@@ -217,7 +223,7 @@ fn 3 snippet$main () -> i32
   intrinsic builder.append_display
   local.get 2
   intrinsic builder.finish
-  call 55
+  call 56
   string.const 2
   call 2
   local.set 3
@@ -227,14 +233,14 @@ fn 3 snippet$main () -> i32
   string.const 3
   intrinsic builder.append_str
   local.get 3
-  call 65
+  call 66
   local.set 4
   local.get 2
   local.get 4
   intrinsic builder.append_str
   local.get 2
   intrinsic builder.finish
-  call 55
+  call 56
   return.lit i32.const 0
 end
 
@@ -1011,7 +1017,7 @@ fn 51 std_core$ArrayIterator$Iterator$next__T_8 (ref) -> ref
   local.set 1
   local.get 3
   local.get 1
-  array.get 36
+  array.get 39
   local.set 3
   local.field 0 22 1
   ref.cast 6
@@ -1052,7 +1058,7 @@ fn 52 std_core$ArrayIterator$Iterator$next__U (ref) -> ref
   local.set 1
   local.get 3
   local.get 1
-  array.get 38
+  array.get 41
   local.set 3
   local.field 0 25 1
   ref.cast 6
@@ -1094,7 +1100,7 @@ fn 53 std_core$ArrayIterator$Iterator$next__i32 (ref) -> ref
   local.set 1
   local.get 3
   local.get 1
-  array.get 40
+  array.get 43
   ref.cast 2
   local.set 4
   local.field 0 28 1
@@ -1137,7 +1143,7 @@ fn 54 std_core$ArrayIterator$Iterator$next__string (ref) -> ref
   local.set 1
   local.get 3
   local.get 1
-  array.get 41
+  array.get 44
   ref.cast 5
   local.set 4
   local.field 0 31 1
@@ -1156,21 +1162,64 @@ fn 54 std_core$ArrayIterator$Iterator$next__string (ref) -> ref
   return
 end
 
-fn 55 std_io$std_io$println__string (string) -> void
-  local $call_2 string
-  local.get 0
-  call 66
+fn 55 std_core$ArrayIterator$Iterator$next__u8 (ref) -> ref
+  local $field_1 usize
+  local $len_3 usize
+  local $field_6 ref
+  local v u8
+  local.field 0 34 1
+  ref.cast 6
   local.set 1
-  i32.const 0
+  local.field 0 34 0
+  array.len
+  local.set 2
   local.get 1
-  call 67
-  i32.const 0
-  string.const 4
-  call 67
+  local.get 2
+  usize.ge
+  if $L0 void
+    return.lit null.const
+  end $L0
+  local.field 0 34 0
+  local.set 3
+  local.field 0 34 1
+  ref.cast 6
+  local.set 1
+  local.get 3
+  local.get 1
+  array.get 45
+  ref.cast 14
+  local.set 4
+  local.field 0 34 1
+  ref.cast 6
+  local.set 1
+  local.get 1
+  i64.const 1
+  i64.to_usize
+  usize.add
+  local.set 1
+  local.get 0
+  local.get 1
+  struct.set 34 1
+  local.get 4
+  struct.new 36
   return
 end
 
-fn 56 std_iter$FilterIterator$Iterator$next__Any (ref) -> ref
+fn 56 std_io$std_io$println__string (string) -> void
+  local $call_2 string
+  local.get 0
+  call 67
+  local.set 1
+  i32.const 0
+  local.get 1
+  call 68
+  i32.const 0
+  string.const 4
+  call 68
+  return
+end
+
+fn 57 std_iter$FilterIterator$Iterator$next__Any (ref) -> ref
   local finished bool
   local __scrut_0 ref
   local $field_12 ref
@@ -1181,7 +1230,7 @@ fn 56 std_iter$FilterIterator$Iterator$next__Any (ref) -> ref
       local.get 1
       bool.not
       if $L2 void
-        local.field 0 43 0
+        local.field 0 47 0
         virtual.call 1 Iterator.next
         local.tee 2
         type_check 0
@@ -1193,11 +1242,11 @@ fn 56 std_iter$FilterIterator$Iterator$next__Any (ref) -> ref
         local.get 2
         type_check 20
         if $L4 void
-          local.field 0 43 1
+          local.field 0 47 1
           local.set 3
           local.field 2 20 0
           local.get 3
-          call.indirect 46
+          call.indirect 50
           if $L5 void
             local.field 2 20 0
             struct.new 20
@@ -1213,7 +1262,7 @@ fn 56 std_iter$FilterIterator$Iterator$next__Any (ref) -> ref
   return.lit null.const
 end
 
-fn 57 std_iter$FilterIterator$Iterator$next__char (ref) -> ref
+fn 58 std_iter$FilterIterator$Iterator$next__char (ref) -> ref
   local finished bool
   local __scrut_0 ref
   local $field_12 ref
@@ -1224,7 +1273,7 @@ fn 57 std_iter$FilterIterator$Iterator$next__char (ref) -> ref
       local.get 1
       bool.not
       if $L2 void
-        local.field 0 44 0
+        local.field 0 48 0
         virtual.call 1 Iterator.next
         local.tee 2
         type_check 0
@@ -1234,18 +1283,18 @@ fn 57 std_iter$FilterIterator$Iterator$next__char (ref) -> ref
           br $L1
         end $L3
         local.get 2
-        type_check 34
+        type_check 37
         if $L4 void
-          local.field 0 44 1
+          local.field 0 48 1
           local.set 3
-          local.field 2 34 0
+          local.field 2 37 0
           ref.cast 3
           local.get 3
-          call.indirect 48
+          call.indirect 52
           if $L5 void
-            local.field 2 34 0
+            local.field 2 37 0
             ref.cast 3
-            struct.new 34
+            struct.new 37
             return
           end $L5
           br $L1
@@ -1258,7 +1307,7 @@ fn 57 std_iter$FilterIterator$Iterator$next__char (ref) -> ref
   return.lit null.const
 end
 
-fn 58 std_iter$FilterIterator$Iterator$count__char (ref) -> usize
+fn 59 std_iter$FilterIterator$Iterator$count__char (ref) -> usize
   local total usize
   local finished bool
   local __scrut_0 ref
@@ -1272,7 +1321,7 @@ fn 58 std_iter$FilterIterator$Iterator$count__char (ref) -> usize
       bool.not
       if $L2 void
         local.get 0
-        call 57
+        call 58
         local.tee 3
         type_check 0
         if $L3 void
@@ -1281,7 +1330,7 @@ fn 58 std_iter$FilterIterator$Iterator$count__char (ref) -> usize
           br $L1
         end $L3
         local.get 3
-        type_check 34
+        type_check 37
         if $L4 void
           local.get 1
           i64.const 1
@@ -1299,14 +1348,14 @@ fn 58 std_iter$FilterIterator$Iterator$count__char (ref) -> usize
   return
 end
 
-fn 59 std_iter$std_iter$filter__char (ref,ref) -> ref
+fn 60 std_iter$std_iter$filter__char (ref,ref) -> ref
   local.get 0
   local.get 1
-  struct.new 43
+  struct.new 47
   return
 end
 
-fn 60 std_string$byte_decode_at (string,usize) -> char
+fn 61 std_string$byte_decode_at (string,usize) -> char
   local n usize
   local b u8
   local $add_30 usize
@@ -1569,16 +1618,16 @@ fn 60 std_string$byte_decode_at (string,usize) -> char
   return
 end
 
-fn 61 std_string$StringChars$Iterator$next (ref) -> ref
+fn 62 std_string$StringChars$Iterator$next (ref) -> ref
   local $field_1 usize
   local $field_2 usize
   local $field_5 string
   local __tup_0 ref
   local c char
-  local.field 0 49 1
+  local.field 0 53 1
   ref.cast 6
   local.set 1
-  local.field 0 49 2
+  local.field 0 53 2
   ref.cast 6
   local.set 2
   local.get 1
@@ -1587,36 +1636,36 @@ fn 61 std_string$StringChars$Iterator$next (ref) -> ref
   if $L0 void
     return.lit null.const
   end $L0
-  local.field 0 49 0
+  local.field 0 53 0
   ref.cast 5
   local.set 3
-  local.field 0 49 1
+  local.field 0 53 1
   ref.cast 6
   local.set 1
   local.get 3
   local.get 1
-  call 63
+  call 64
   local.set 4
-  local.field 4 50 0
+  local.field 4 54 0
   ref.cast 3
   local.set 5
-  local.field 4 50 1
+  local.field 4 54 1
   ref.cast 6
   local.set 1
-  local.field 0 49 1
+  local.field 0 53 1
   ref.cast 6
   local.get 1
   usize.add
   local.set 1
   local.get 0
   local.get 1
-  struct.set 49 1
+  struct.set 53 1
   local.get 5
-  struct.new 34
+  struct.new 37
   return
 end
 
-fn 62 std_string$chars (string) -> ref
+fn 63 std_string$chars (string) -> ref
   local $call_3 usize
   local.get 0
   call.import 3
@@ -1625,26 +1674,26 @@ fn 62 std_string$chars (string) -> ref
   i64.const 0
   i64.to_usize
   local.get 1
-  struct.new 49
+  struct.new 53
   return
 end
 
-fn 63 std_string$decode_codepoint (string,usize) -> ref
+fn 64 std_string$decode_codepoint (string,usize) -> ref
   local c char
   local $call_4 usize
   local.get 0
   local.get 1
-  call 60
+  call 61
   local.tee 2
-  call 64
+  call 65
   local.set 3
   local.get 2
   local.get 3
-  struct.new 50
+  struct.new 54
   return
 end
 
-fn 64 std_utf8$codepoint_byte_len (char) -> usize
+fn 65 std_utf8$codepoint_byte_len (char) -> usize
   local cp u32
   local.get 0
   char.to_u32
@@ -1673,19 +1722,19 @@ fn 64 std_utf8$codepoint_byte_len (char) -> usize
   return.lit i64.const 4
 end
 
-fn 65 std_core$usize$Display$to_string$vt (usize) -> string
+fn 66 std_core$usize$Display$to_string$vt (usize) -> string
   local.get 0
   call.import 0
   return
 end
 
-fn 66 std_core$string$Display$to_string$vt (string) -> string
+fn 67 std_core$string$Display$to_string$vt (string) -> string
   local.get 0
   call.import 1
   return
 end
 
-fn 67 std_io$write$vt (i32,string) -> void
+fn 68 std_io$write$vt (i32,string) -> void
   local.get 0
   local.get 1
   call.import 2

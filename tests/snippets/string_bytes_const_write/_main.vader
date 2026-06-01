@@ -1,0 +1,13 @@
+// T3042 — `bytes()` returns `const u8[]`, so writing through the view is
+// rejected at typecheck. The view aliases the string's immutable interned
+// bytes ; the const-ness is what makes the native zero-copy view sound.
+
+module "snippet"
+
+import "std/string" { bytes }
+
+main :: fn() -> i32 {
+    bs :: "abc".bytes()
+    bs[0] = u8(120)
+    return 0
+}

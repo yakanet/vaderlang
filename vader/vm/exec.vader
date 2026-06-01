@@ -603,6 +603,9 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
     // (type_matches does exact-type_id equality on arrays). Computed once;
     // the scan is linear in the type table.
     string_array_type_id :: find_string_array_type_id(module)
+    // The `u8[]` ArrayType index — stamped onto the array `bytes` materialises
+    // (the VM's copy fallback for the native zero-copy view). Same rationale.
+    u8_array_type_id :: find_u8_array_type_id(module)
 
     main_function :: module.functions[usize(module.main_index)]
     // If `main` is declared `fn(argv: string[]) -> i32`, supply its argv.
@@ -707,7 +710,7 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                     return Trap { .message = "call.import '${info.mangled}' needs ${info.parameter_count} arg(s) but stack has ${frame.sp} at pc=${frame.pc}" }
                 }
                 arg_base :: frame.sp - info.parameter_count
-                dispatch_outcome :: dispatch_import(info, frame.stack, arg_base, gc_state, frame.pc, string_array_type_id)
+                dispatch_outcome :: dispatch_import(info, frame.stack, arg_base, gc_state, frame.pc, string_array_type_id, u8_array_type_id)
                 if dispatch_outcome is Trap {
                     return dispatch_outcome
                 }
@@ -788,7 +791,7 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                             .parameter_count = usize(instr.parameter_count),
                             .has_return = true,
                         }
-                        host_outcome :: dispatch_import(synth_info, frame.stack, arg_base, gc_state, frame.pc, string_array_type_id)
+                        host_outcome :: dispatch_import(synth_info, frame.stack, arg_base, gc_state, frame.pc, string_array_type_id, u8_array_type_id)
                         if host_outcome is Trap { return host_outcome }
                         if host_outcome is HostOk as hok {
                             frame.stack[arg_base] = hok.value

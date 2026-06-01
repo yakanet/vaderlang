@@ -32,11 +32,17 @@ main :: fn() -> i32 {
     }
     println("done bytes=${byte_len("")}")
 
-    // A7 P4c — bytes() now returns u8[], so the array supports random
-    // access and .len() like any other array. Test both surfaces.
+    // bytes() returns const u8[], so the array supports random access and
+    // .len() like any other array. On native this is a zero-copy view over
+    // the interned bytes ; on the VM a materialised copy. Same values.
     println("-- u8[] surface --")
     bs :: "abc".bytes()
     println("len=${bs.len()} bs[0]=${bs[0]} bs[1]=${bs[1]} bs[2]=${bs[2]}")
+
+    // Slicing the view stays a (native zero-copy) view over the same bytes.
+    println("-- slice --")
+    sl :: "abcde".bytes()[usize(1)..<usize(4)]
+    println("sl.len=${sl.len()} sl0=${sl[0]} sl1=${sl[1]} sl2=${sl[2]}")
 
     return 0
 }

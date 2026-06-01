@@ -103,31 +103,28 @@ export byte_decode_at :: fn(s: string, i: usize) -> char {
     return char(((u32(b) & u32(0x07)) << u32(18)) + ((u32(b1) & u32(0x3F)) << u32(12)) + ((u32(b2) & u32(0x3F)) << u32(6)) + (u32(b3) & u32(0x3F)))
 }
 
-/// Snapshot the UTF-8 byte sequence as `u8[]`. Use for ASCII data,
+/// View the UTF-8 byte sequence as `const u8[]`. Use for ASCII data,
 /// binary protocols carried in strings, byte-level digests, or random
 /// byte access. Iteration works through the array's built-in
 /// `for b in s.bytes()`. For codepoint iteration use `chars()` instead.
 ///
-/// Currently O(n) in `byte_len(s)` — copies the bytes into a fresh
-/// array. A zero-copy view sharing the string's buffer is a planned
-/// optimisation (see A7 docs/ARRAY_STRING_VIEW_DESIGN.md).
+/// Host intrinsic. On the native target this is **zero-copy** — the
+/// returned array aliases the string's interned bytes (no allocation of
+/// the byte storage ; only a small array header). The result is
+/// `const u8[]` so writes are rejected at compile time (T3042) ; the
+/// shared atom bytes are immutable. On the VM the bytes are **copied**
+/// into a materialised array — same observable values, just not
+/// zero-copy (VM arrays box every element, so they cannot alias a raw
+/// byte buffer). See `.claude/plans/string-bytes-zero-copy.md`.
 ///
 /// Example :
 ///   `sum: u32 = u32(0)`
 ///   `for b in "vader".bytes() { sum = sum + u32(b) }`
 ///
 /// @param s  source string.
-/// @return   a fresh `u8[]` holding the UTF-8 bytes of `s`.
-export bytes :: fn(s: string) -> u8[] {
-    n :: s.byte_len()
-    out: u8[] = []
-    i: usize = 0
-    for i < n {
-        out.push(s.byte_at(i))
-        i = i + 1
-    }
-    return out
-}
+/// @return   a `const u8[]` over the UTF-8 bytes of `s` — a borrowed
+///           view of the interned bytes on native, a fresh copy on the VM.
+export bytes :: fn(s: string) -> const u8[]
 
 /// Iterator yielding Unicode codepoints — one per UTF-8 sequence,
 /// regardless of whether the codepoint is encoded in 1, 2, 3, or 4
@@ -710,6 +707,37 @@ import "std/testing" { assert, assert_eq, assert_close }
 @test test_is_empty :: fn() -> void {
     assert(is_empty(""), "empty string should be empty")
     assert(!is_empty("x"), "non-empty string should not be empty")
+}
+
+@test test_bytes :: fn() -> void {
+    // ASCII : one byte per codepoint, indexing + len.
+    bs :: "abc".bytes()
+    assert_eq(bs.len(), usize(3))
+    assert_eq(bs[0], u8(97))
+    assert_eq(bs[1], u8(98))
+    assert_eq(bs[2], u8(99))
+
+    // Iteration matches a manual byte_at sum.
+    sum: u32 = u32(0)
+    for b in "vader".bytes() { sum = sum + u32(b) }
+    assert_eq(sum, u32(530))
+
+    // Empty string : zero-length view.
+    assert_eq("".bytes().len(), usize(0))
+
+    // Multi-byte UTF-8 : surface the raw bytes (你 = E4 BD A0).
+    cjk :: "你".bytes()
+    assert_eq(cjk.len(), usize(3))
+    assert_eq(cjk[0], u8(228))
+    assert_eq(cjk[1], u8(189))
+    assert_eq(cjk[2], u8(160))
+
+    // Slicing a byte view stays a byte view over the same bytes.
+    sl :: "abcde".bytes()[usize(1)..<usize(4)]
+    assert_eq(sl.len(), usize(3))
+    assert_eq(sl[0], u8(98))
+    assert_eq(sl[1], u8(99))
+    assert_eq(sl[2], u8(100))
 }
 
 @test test_byte_slice :: fn() -> void {

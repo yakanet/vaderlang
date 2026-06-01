@@ -1,0 +1,30 @@
+module _main
+type 0 primitive null
+type 1 primitive i32
+type 2 primitive string
+type 3 primitive u8
+type 4 array 3
+type 5 struct std_string_builder$StringBuilder { parts:6 }
+type 6 array 2
+string 0 "abc"
+import 0 bytes std_string$bytes (string) -> ref
+impl 5 Display
+export main 0
+
+fn 0 snippet$main () -> i32
+  local bs ref
+  local $k_4 any
+  string.const 0
+  call.import 0
+  local.set 0
+  i32.const 120
+  local.set 1
+  local.get 0
+  i32.const 0
+  local.get 1
+  array.set 4
+  return.lit i32.const 0
+end
+
+# Diagnostics
+[11:5] error[T3042] cannot mutate an immutable array: cannot mutate `const u8[]` — declared with `const`

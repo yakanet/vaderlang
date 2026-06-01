@@ -1,0 +1,2 @@
+# compile errors
+[T3042] cannot mutate an immutable array: cannot mutate `const u8[]` — declared with `const`

@@ -109,9 +109,12 @@ stringbuilder_to_string :: fn(sv: StructVal, at_pc: i32) -> HostCallResult {
 ///                  (see `find_string_array_type_id`), stamped onto the
 ///                  arrays returned by `split` / `read_dir` so they narrow
 ///                  to `is string[]` in their `string[] | Error` union return.
+/// @param u8_array_type_id  the module's `u8[]` ArrayType index (see
+///                  `find_u8_array_type_id`), stamped onto the array `bytes`
+///                  materialises so it narrows to `is u8[]`.
 /// @return          `HostOk { value }` on success ; `Trap` on a missing
 ///                  import, malformed arg, or host-level failure.
-export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, gc_state: usize[], at_pc: i32, string_array_type_id: i32) -> HostCallResult {
+export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, gc_state: usize[], at_pc: i32, string_array_type_id: i32, u8_array_type_id: i32) -> HostCallResult {
     if info.mangled == r"std_io$write" {
         // arg_base + 0 : Stream tag ; arg_base + 1 : the string payload.
         STDOUT :: i32(0)
@@ -150,6 +153,13 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
         if s is Trap { return s }
         if i is Trap { return i }
         return HostOk { .value = I32Val { .value = i32(s.value.byte_at(usize(i.value))) } }
+    }
+    if info.mangled == r"std_string$bytes" {
+        // Native zero-copies a `const u8[]` view ; the VM materialises a copy
+        // (boxed slots can't alias the interned bytes) — same values.
+        s :: read_string(stack[arg_base], at_pc, "bytes receiver")
+        if s is Trap { return s }
+        return HostOk { .value = bytes_to_value(s.value, u8_array_type_id) }
     }
     if info.mangled == r"std_string$index_of" {
         s    :: read_string(stack[arg_base    ], at_pc, "index_of receiver")
