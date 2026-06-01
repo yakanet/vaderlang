@@ -893,6 +893,10 @@ function importShim(ctx: EmitCtx, imp: BcImport, idx: number): string | null {
       if (arrIdx < 0) return `${head} { vader_trap("bytes: no u8[] type"); }`;
       return `${head} { return vader_box_obj(${arrIdx}u, vader_string_bytes_view(a0, ${arrIdx}u, ${u8Idx}u)); }`;
     }
+    case "std_string$as_string":
+      // Inverse of `bytes()`. The `const u8[]` arrives boxed ; O(1) atom_slice
+      // on a borrowed `bytes()` slice, gather+intern on a materialised array.
+      return `${head} { return vader_string_as_string((vader_array_t*) a0.payload.obj); }`;
     case "std_string$parse_float":
       return `${head} { return vader_string_parse_float(a0, ${primTagOrTrap(ctx, "f64")}, ${tagOrTrap(ctx, "error")}); }`;
     case "std_core$string$Hash$hash":

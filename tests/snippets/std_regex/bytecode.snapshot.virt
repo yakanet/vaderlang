@@ -123,7 +123,8 @@ import 0 to_string std_core$usize$Display$to_string (usize) -> string
 import 1 to_string std_core$string$Display$to_string (string) -> string
 import 2 write std_io$write (i32,string) -> void
 import 3 bytes std_string$bytes (string) -> ref
-import 4 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> string
+import 4 as_string std_string$as_string (ref) -> string
+import 5 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> string
 impl 16 Contains
 impl 16 Iterator
 impl 18 Contains
@@ -197,7 +198,7 @@ fn 1 snippet$run_find (string,ref,string) -> void
     local.get 3
     struct.get 41 0
     ref.cast 14
-    call 78
+    call 77
     local.set 5
     local.get 4
     local.get 5
@@ -208,7 +209,7 @@ fn 1 snippet$run_find (string,ref,string) -> void
     local.get 3
     struct.get 41 1
     ref.cast 14
-    call 78
+    call 77
     local.set 5
     local.get 4
     local.get 5
@@ -303,7 +304,7 @@ fn 2 snippet$main () -> i32
     intrinsic builder.append_str
     local.get 0
     array.len
-    call 78
+    call 77
     local.set 2
     local.get 1
     local.get 2
@@ -328,7 +329,7 @@ fn 2 snippet$main () -> i32
           string.const 17
           intrinsic builder.append_str
           local.get 3
-          call 78
+          call 77
           local.set 2
           local.get 1
           local.get 2
@@ -1180,14 +1181,14 @@ end
 fn 37 std_io$std_io$println__string (string) -> void
   local $call_2 string
   local.get 0
-  call 79
+  call 78
   local.set 1
   i32.const 0
   local.get 1
-  call 80
+  call 79
   i32.const 0
   string.const 60
-  call 80
+  call 79
   return
 end
 
@@ -4449,7 +4450,7 @@ fn 61 std_regex$replace_all (ref,string,string) -> string
   local.get 2
   call.import 3
   local.set 4
-  call 74
+  call 73
   local.set 5
   i64.const 0
   local.set 6
@@ -4479,11 +4480,11 @@ fn 61 std_regex$replace_all (ref,string,string) -> string
         local.get 6
         local.get 11
         array.slice 45
-        call 73
+        call.import 4
         local.set 12
         local.get 5
         local.get 12
-        call 75
+        call 74
         local.get 5
         local.get 4
         local.get 10
@@ -4515,15 +4516,15 @@ fn 61 std_regex$replace_all (ref,string,string) -> string
     local.get 6
     local.get 8
     array.slice 45
-    call 73
+    call.import 4
     local.set 12
     local.get 5
     local.get 12
-    call 75
+    call 74
   else
   end $L3
   local.get 5
-  call 81
+  call 80
   return
 end
 
@@ -4621,7 +4622,7 @@ fn 62 std_regex$expand_replacement (ref,ref,ref) -> void
               local.set 12
               local.get 0
               local.get 12
-              call 75
+              call 74
             else
             end $L7
             local.get 4
@@ -4643,7 +4644,7 @@ fn 62 std_regex$expand_replacement (ref,ref,ref) -> void
           local.set 15
           local.get 0
           local.get 14
-          call 76
+          call 75
           local.get 4
           local.get 15
           usize.add
@@ -4662,7 +4663,7 @@ fn 62 std_regex$expand_replacement (ref,ref,ref) -> void
         local.set 15
         local.get 0
         local.get 14
-        call 76
+        call 75
         local.get 4
         local.get 15
         usize.add
@@ -5574,7 +5575,7 @@ fn 69 std_regex$captured_groups (ref,ref) -> ref
           local.get 7
           local.get 11
           array.slice 45
-          call 73
+          call.import 4
           local.set 15
           local.get 3
           local.get 15
@@ -5906,7 +5907,7 @@ fn 72 std_string$decode_codepoint_at (ref,usize) -> ref
   local.get 1
   call 71
   local.tee 2
-  call 77
+  call 76
   local.set 3
   local.get 2
   local.get 3
@@ -5914,67 +5915,20 @@ fn 72 std_string$decode_codepoint_at (ref,usize) -> ref
   return
 end
 
-fn 73 std_string$as_string (ref) -> string
-  local sb ref
-  local i usize
-  local n usize
-  local __tup_0 ref
-  local c char
-  local width usize
-  call 74
-  local.set 1
-  i64.const 0
-  local.set 2
-  local.get 0
-  array.len
-  local.set 3
-  block $L0 void
-    loop $L1 void
-      local.get 2
-      local.get 3
-      usize.lt
-      if $L2 void
-        local.get 0
-        local.get 2
-        call 72
-        local.set 4
-        local.field 4 47 0
-        ref.cast 15
-        local.set 5
-        local.field 4 47 1
-        ref.cast 14
-        local.set 6
-        local.get 1
-        local.get 5
-        call 76
-        local.get 2
-        local.get 6
-        usize.add
-        local.set 2
-        br $L1
-      else
-      end $L2
-    end $L1
-  end $L0
-  local.get 1
-  call 81
-  return
-end
-
-fn 74 std_string_builder$new_builder () -> ref
+fn 73 std_string_builder$new_builder () -> ref
   array.new 19 0
   struct.new 43
   return
 end
 
-fn 75 std_string_builder$append (ref,string) -> void
+fn 74 std_string_builder$append (ref,string) -> void
   local.field 0 43 0
   local.get 1
   array.push 1
   return
 end
 
-fn 76 std_string_builder$append_char (ref,char) -> void
+fn 75 std_string_builder$append_char (ref,char) -> void
   local $field_2 ref
   local __sb_0 any
   local $intrinsic_5 string
@@ -5993,7 +5947,7 @@ fn 76 std_string_builder$append_char (ref,char) -> void
   return
 end
 
-fn 77 std_utf8$codepoint_byte_len (char) -> usize
+fn 76 std_utf8$codepoint_byte_len (char) -> usize
   local cp u32
   local.get 0
   char.to_u32
@@ -6022,27 +5976,27 @@ fn 77 std_utf8$codepoint_byte_len (char) -> usize
   return.lit i64.const 4
 end
 
-fn 78 std_core$usize$Display$to_string$vt (usize) -> string
+fn 77 std_core$usize$Display$to_string$vt (usize) -> string
   local.get 0
   call.import 0
   return
 end
 
-fn 79 std_core$string$Display$to_string$vt (string) -> string
+fn 78 std_core$string$Display$to_string$vt (string) -> string
   local.get 0
   call.import 1
   return
 end
 
-fn 80 std_io$write$vt (i32,string) -> void
+fn 79 std_io$write$vt (i32,string) -> void
   local.get 0
   local.get 1
   call.import 2
   return
 end
 
-fn 81 std_string_builder$StringBuilder$Display$to_string$vt (ref) -> string
+fn 80 std_string_builder$StringBuilder$Display$to_string$vt (ref) -> string
   local.get 0
-  call.import 4
+  call.import 5
   return
 end

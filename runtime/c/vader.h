@@ -737,6 +737,12 @@ vader_u8_t     vader_string_byte_at(vader_string_t s, size_t i);
  * packed into `capacity` so reads box bytes with the right virtual-dispatch
  * tag. The owner atom is kept alive by `vader_atom_mark_heap`. */
 vader_array_t* vader_string_bytes_view(vader_string_t s, uint32_t arr_type, uint32_t elem_tag);
+/* Inverse of `bytes()` : materialise a `const u8[]` back into a string. A
+ * borrowed view (a `bytes()` slice) is O(1) — `vader_atom_slice` over the
+ * owner atom, no copy of the byte storage. A materialised `u8[]` gathers the
+ * packed bytes and interns a copy (O(n)). Bytes are taken verbatim, no UTF-8
+ * validation. Backs `std/string::as_string`. */
+vader_string_t vader_string_as_string(vader_array_t* a);
 /* Codepoint-indexed counterparts. `vader_string_codepoint_at` traps
  * on OOB ; `vader_string_slice_codepoints` clamps. Both walk UTF-8
  * from the start (O(n) in the target index). */

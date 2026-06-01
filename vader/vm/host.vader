@@ -15,7 +15,7 @@ import "std/process" { spawn_run, spawn_last_stdout, spawn_last_stderr }
 import "std/math" { sqrt, pow, floor, ceil, round }
 import "std/time" { monotonic_ns, now_unix_ms }
 import "std/string_builder" { new_builder, append }
-import "std/string" { byte_len, byte_at, byte_slice, trim, index_of, last_index_of, decode_codepoint }
+import "std/string" { byte_len, byte_at, byte_slice, as_string, trim, index_of, last_index_of, decode_codepoint }
 
 /// Outcome of a successful host call. `value` is unused when the import
 /// has `has_return == false` — the exec checks the import's signature
@@ -153,6 +153,20 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
         if s is Trap { return s }
         if i is Trap { return i }
         return HostOk { .value = I32Val { .value = i32(s.value.byte_at(usize(i.value))) } }
+    }
+    if info.mangled == r"std_string$as_string" {
+        // Inverse of `bytes()`. Native O(1)-reinterprets a borrowed slice ; the
+        // VM gathers the boxed u8 slots into a real `u8[]` and lets the native
+        // `as_string` intern them (verbatim, no UTF-8 validation).
+        arr :: read_array(stack[arg_base], at_pc, "as_string receiver")
+        if arr is Trap { return arr }
+        raw: u8[] = []
+        for i in 0..<arr.length {
+            b :: read_i32(arr.elements[arr.offset + i], at_pc, "as_string byte")
+            if b is Trap { return b }
+            raw.push(u8(b.value))
+        }
+        return HostOk { .value = StringVal { .value = as_string(raw) } }
     }
     if info.mangled == r"std_string$bytes" {
         // Native zero-copies a `const u8[]` view ; the VM materialises a copy

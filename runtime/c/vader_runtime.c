@@ -1705,6 +1705,28 @@ vader_array_t* vader_string_bytes_view(vader_string_t s, uint32_t arr_type, uint
     return view;
 }
 
+/* Inverse of `vader_string_bytes_view` — see the header. A borrowed view
+ * aliases `owner[offset .. offset+len]`, so `vader_atom_slice` reinterprets
+ * those bytes as a string atom in O(1) (intern-deduped, no copy of the byte
+ * storage). A materialised `u8[]` (rare — e.g. a built array) is gathered
+ * byte-by-byte and interned. Bytes are taken verbatim ; no UTF-8 validation. */
+vader_string_t vader_string_as_string(vader_array_t* a) {
+    a = vader_array_resolve(a);
+    size_t len = a->length;
+    if (len == 0) return VADER_ATOM_EMPTY;
+    if (vader_array_is_borrowed(a)) {
+        return vader_atom_slice(vader_array_borrowed_owner(a), a->offset, len);
+    }
+    /* Materialised KIND_U8 buffer : gather via `vader_array_get` (no alloc, so
+     * `buf` stays valid across the loop) and intern a copy. */
+    char* buf = (char*) malloc(len + 1u);
+    if (buf == NULL) vader_trap("vader_string_as_string: buffer malloc failed");
+    for (size_t i = 0; i < len; i++) {
+        buf[i] = (char) (uint8_t) vader_array_get(a, i).payload.i;
+    }
+    return vader_atom_intern_take(buf, len);
+}
+
 /* Box the host argv into a `[string]` Vader array. Called from emitted main
  * when the user's `main` takes an `[string]` parameter. The caller passes the
  * BcType indices for the array type and the string element type (the emitter

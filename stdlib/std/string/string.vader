@@ -151,30 +151,22 @@ export decode_codepoint_at :: fn(bs: const u8[], i: usize) -> [char, usize] {
     return [c, codepoint_byte_len(c)]
 }
 
-/// Rebuild a `string` from the UTF-8 bytes of a `const u8[]` — the inverse
-/// of `bytes()`. Use it to turn a byte-view slice back into a string :
+/// Materialise a `string` from the UTF-8 bytes of a `const u8[]` — the inverse
+/// of `bytes()`. Turns a byte-view slice back into a string :
 /// `s.bytes()[lo..<hi].as_string()` is the byte-indexed substring (what the
-/// old `byte_slice` produced). Infallible : the bytes are interpreted as
-/// UTF-8 ; valid input round-trips exactly, malformed sequences decode to
-/// `U+FFFD` / `U+0000` (same contract as `decode_char_at`).
+/// old `byte_slice` produced).
 ///
-/// Pure Vader — decodes codepoint-by-codepoint into a `StringBuilder`, O(n)
-/// in `bs.len()`. (A zero-copy O(1) path exists only via a runtime
-/// primitive ; see `.claude/plans/et-pareil-pour-byte-at-byte-slice-*.md`.)
+/// Host intrinsic. On a **borrowed** view (a `bytes()` slice) this is **O(1)** —
+/// it reinterprets the aliased owner bytes as a string atom (`vader_atom_slice`,
+/// intern-deduped, no copy of the byte storage). On a **materialised** `u8[]`
+/// it gathers the packed bytes and interns a copy (O(n)). On the VM the bytes
+/// are read from the materialised array and re-interned — same observable
+/// string. The bytes are taken **verbatim** — no UTF-8 validation ; valid
+/// UTF-8 in round-trips exactly.
 ///
 /// @param bs  the UTF-8 bytes to materialise (typically a `bytes()` slice).
-/// @return    a fresh string with those bytes.
-export as_string :: fn(bs: const u8[]) -> string {
-    sb :: new_builder()
-    i: usize = 0
-    n :: bs.len()
-    for i < n {
-        [c, width] :: bs.decode_codepoint_at(i)
-        sb.append_char(c)
-        i += width
-    }
-    return sb.to_string()
-}
+/// @return    the string those bytes encode.
+export as_string :: fn(bs: const u8[]) -> string
 
 /// Iterator yielding Unicode codepoints — one per UTF-8 sequence,
 /// regardless of whether the codepoint is encoded in 1, 2, 3, or 4

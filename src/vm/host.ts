@@ -15,7 +15,7 @@ import {
 
 import type { BytecodeModule } from "../bytecode/module.ts";
 import type { Value } from "./value.ts";
-import { NULL, VOID, bool, ch, displayValue, err, num, str, asNum, asIndex, i64 } from "./value.ts";
+import { NULL, VOID, bool, ch, displayValue, err, num, str, asNum, asArray, asIndex, i64 } from "./value.ts";
 import { VmError } from "./exec.ts";
 
 const UTF8_ENC = new TextEncoder();
@@ -230,6 +230,15 @@ export function stdStringBindings(): Record<string, HostFn> {
       const arrTypeIdx = findU8ArrayTypeIndex(module);
       const elements = Array.from(bytes, (b) => num("u8", b));
       return { tag: "array" as const, typeIndex: arrTypeIdx, elements, offset: 0, length: elements.length };
+    },
+    // Inverse of `bytes()` — materialise a `const u8[]` view back into a string.
+    // Native O(1)-reinterprets a borrowed slice ; the VM has only boxed slots,
+    // so it reads each u8 and UTF-8-decodes them into a JS string.
+    std_string$as_string: (args) => {
+      const arr = asArray(args[0]!);
+      const bytes = new Uint8Array(arr.length);
+      for (let i = 0; i < arr.length; i++) bytes[i] = asNum(arr.elements[arr.offset + i]!) & 0xFF;
+      return str(UTF8_DEC.decode(bytes));
     },
     // `string implements Index(usize, char)` is `@intrinsic`-impl in std/core,
     // so the host provides the body under the impl-method mangled name.
