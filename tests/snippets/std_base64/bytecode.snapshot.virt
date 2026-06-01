@@ -9,7 +9,8 @@ type 6 primitive char
 type 7 array 1
 type 8 struct std_base64$Base64Error { msg:1 }
 type 9 union 8,1
-type 10 struct std_string_builder$StringBuilder { parts:7 }
+type 10 array 4
+type 11 struct std_string_builder$StringBuilder { parts:7 }
 string 0 "="
 string 1 "=ERR:"
 string 2 "enc-f="
@@ -57,11 +58,10 @@ import 0 to_string std_core$usize$Display$to_string (usize) -> string
 import 1 to_string std_core$string$Display$to_string (string) -> string
 import 2 at std_core$string$Index$at (string,usize) -> char
 import 3 write std_io$write (i32,string) -> void
-import 4 byte_len std_string$byte_len (string) -> usize
-import 5 byte_at std_string$byte_at (string,usize) -> u8
-import 6 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> string
+import 4 bytes std_string$bytes (string) -> ref
+import 5 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> string
 impl 8 Error
-impl 10 Display
+impl 11 Display
 export main 1
 
 fn 0 snippet$show_decode (string,string) -> void
@@ -342,319 +342,328 @@ fn 2 std_io$std_io$println__string (string) -> void
 end
 
 fn 3 std_base64$encode (string) -> string
+  local bs ref
   local n usize
   local sb ref
   local i usize
   local b0 u32
   local $add_16 usize
   local b1 u32
-  local $add_22 usize
+  local $add_21 usize
   local b2 u32
-  local $shl_28 u32
-  local $shl_31 u32
+  local $shl_27 u32
+  local $shl_30 u32
   local triple u32
-  local $shr_38 u32
-  local $cast_42 usize
-  local $call_43 char
-  local $shr_47 u32
-  local $cast_51 usize
-  local $call_52 char
-  local $shr_56 u32
-  local $cast_60 usize
-  local $call_61 char
-  local $cast_66 usize
-  local $call_67 char
+  local $shr_37 u32
+  local $cast_41 usize
+  local $call_42 char
+  local $shr_46 u32
+  local $cast_50 usize
+  local $call_51 char
+  local $shr_55 u32
+  local $cast_59 usize
+  local $call_60 char
+  local $cast_65 usize
+  local $call_66 char
   local.get 0
   call.import 4
-  local.set 1
-  call 7
+  local.tee 1
+  array.len
   local.set 2
-  i64.const 0
+  call 7
   local.set 3
+  i64.const 0
+  local.set 4
   block $L0 void
     loop $L1 void
-      local.get 3
+      local.get 4
       i64.const 3
       i64.to_usize
       usize.add
-      local.get 1
+      local.get 2
       usize.le
       if $L2 void
-        local.get 0
-        local.get 3
-        call.import 5
+        local.get 1
+        local.get 4
+        array.get 10
+        ref.cast 4
         u8.to_u32
-        local.set 4
-        local.get 3
+        local.set 5
+        local.get 4
         i64.const 1
         i64.to_usize
         usize.add
-        local.set 5
-        local.get 0
-        local.get 5
-        call.import 5
-        u8.to_u32
         local.set 6
-        local.get 3
+        local.get 1
+        local.get 6
+        array.get 10
+        ref.cast 4
+        u8.to_u32
+        local.set 7
+        local.get 4
         i64.const 2
         i64.to_usize
         usize.add
-        local.set 7
-        local.get 0
-        local.get 7
-        call.import 5
-        u8.to_u32
         local.set 8
-        local.get 4
+        local.get 1
+        local.get 8
+        array.get 10
+        ref.cast 4
+        u8.to_u32
+        local.set 9
+        local.get 5
         i32.const 16
         i32.to_u32
         u32.shl
-        local.set 9
-        local.get 6
+        local.set 10
+        local.get 7
         i32.const 8
         i32.to_u32
         u32.shl
-        local.set 10
-        local.get 9
-        local.get 10
-        u32.bitor
-        local.get 8
-        u32.bitor
         local.set 11
+        local.get 10
         local.get 11
+        u32.bitor
+        local.get 9
+        u32.bitor
+        local.set 12
+        local.get 12
         i32.const 18
         i32.to_u32
         u32.shr
-        local.set 12
+        local.set 13
+        local.get 13
+        i32.const 63
+        i32.to_u32
+        u32.bitand
+        u32.to_usize
+        local.set 14
+        string.const 38
+        local.get 14
+        call 11
+        local.set 15
+        local.get 3
+        local.get 15
+        call 8
+        local.get 12
+        i32.const 12
+        i32.to_u32
+        u32.shr
+        local.set 16
+        local.get 16
+        i32.const 63
+        i32.to_u32
+        u32.bitand
+        u32.to_usize
+        local.set 17
+        string.const 38
+        local.get 17
+        call 11
+        local.set 18
+        local.get 3
+        local.get 18
+        call 8
+        local.get 12
+        i32.const 6
+        i32.to_u32
+        u32.shr
+        local.set 19
+        local.get 19
+        i32.const 63
+        i32.to_u32
+        u32.bitand
+        u32.to_usize
+        local.set 20
+        string.const 38
+        local.get 20
+        call 11
+        local.set 21
+        local.get 3
+        local.get 21
+        call 8
         local.get 12
         i32.const 63
         i32.to_u32
         u32.bitand
         u32.to_usize
-        local.set 13
-        string.const 38
-        local.get 13
-        call 11
-        local.set 14
-        local.get 2
-        local.get 14
-        call 8
-        local.get 11
-        i32.const 12
-        i32.to_u32
-        u32.shr
-        local.set 15
-        local.get 15
-        i32.const 63
-        i32.to_u32
-        u32.bitand
-        u32.to_usize
-        local.set 16
-        string.const 38
-        local.get 16
-        call 11
-        local.set 17
-        local.get 2
-        local.get 17
-        call 8
-        local.get 11
-        i32.const 6
-        i32.to_u32
-        u32.shr
-        local.set 18
-        local.get 18
-        i32.const 63
-        i32.to_u32
-        u32.bitand
-        u32.to_usize
-        local.set 19
-        string.const 38
-        local.get 19
-        call 11
-        local.set 20
-        local.get 2
-        local.get 20
-        call 8
-        local.get 11
-        i32.const 63
-        i32.to_u32
-        u32.bitand
-        u32.to_usize
-        local.set 21
-        string.const 38
-        local.get 21
-        call 11
         local.set 22
-        local.get 2
+        string.const 38
         local.get 22
-        call 8
+        call 11
+        local.set 23
         local.get 3
+        local.get 23
+        call 8
+        local.get 4
         i64.const 3
         i64.to_usize
         usize.add
-        local.set 3
+        local.set 4
         br $L1
       else
       end $L2
     end $L1
   end $L0
-  local.get 1
-  local.get 3
+  local.get 2
+  local.get 4
   usize.sub
-  local.set 1
-  local.get 1
+  local.set 2
+  local.get 2
   i64.const 1
   i64.to_usize
   usize.eq
   if $L3 void
-    local.get 0
-    local.get 3
-    call.import 5
-    u8.to_u32
-    local.set 4
+    local.get 1
     local.get 4
+    array.get 10
+    ref.cast 4
+    u8.to_u32
+    local.set 5
+    local.get 5
     i32.const 16
     i32.to_u32
     u32.shl
-    local.set 4
-    local.get 4
+    local.set 5
+    local.get 5
     i32.const 18
     i32.to_u32
     u32.shr
-    local.set 6
-    local.get 6
+    local.set 7
+    local.get 7
     i32.const 63
     i32.to_u32
     u32.bitand
     u32.to_usize
-    local.set 5
+    local.set 6
     string.const 38
-    local.get 5
+    local.get 6
     call 11
-    local.set 14
-    local.get 2
-    local.get 14
+    local.set 15
+    local.get 3
+    local.get 15
     call 8
-    local.get 4
+    local.get 5
     i32.const 12
     i32.to_u32
     u32.shr
-    local.set 4
-    local.get 4
+    local.set 5
+    local.get 5
     i32.const 63
     i32.to_u32
     u32.bitand
     u32.to_usize
-    local.set 5
+    local.set 6
     string.const 38
-    local.get 5
+    local.get 6
     call 11
-    local.set 14
-    local.get 2
-    local.get 14
+    local.set 15
+    local.get 3
+    local.get 15
     call 8
-    local.get 2
+    local.get 3
     char.const 61
     call 8
-    local.get 2
+    local.get 3
     char.const 61
     call 8
   else
-    local.get 1
+    local.get 2
     i64.const 2
     i64.to_usize
     usize.eq
     if $L4 void
-      local.get 0
-      local.get 3
-      call.import 5
+      local.get 1
+      local.get 4
+      array.get 10
+      ref.cast 4
       u8.to_u32
-      local.set 4
-      local.get 3
+      local.set 5
+      local.get 4
       i64.const 1
       i64.to_usize
       usize.add
-      local.set 1
-      local.get 0
+      local.set 2
       local.get 1
-      call.import 5
+      local.get 2
+      array.get 10
+      ref.cast 4
       u8.to_u32
-      local.set 6
-      local.get 4
+      local.set 7
+      local.get 5
       i32.const 16
       i32.to_u32
       u32.shl
-      local.set 4
-      local.get 6
+      local.set 5
+      local.get 7
       i32.const 8
       i32.to_u32
       u32.shl
-      local.set 6
-      local.get 4
-      local.get 6
+      local.set 7
+      local.get 5
+      local.get 7
       u32.bitor
-      local.set 4
-      local.get 4
+      local.set 5
+      local.get 5
       i32.const 18
       i32.to_u32
       u32.shr
-      local.set 6
-      local.get 6
+      local.set 7
+      local.get 7
       i32.const 63
       i32.to_u32
       u32.bitand
       u32.to_usize
-      local.set 1
+      local.set 2
       string.const 38
-      local.get 1
-      call 11
-      local.set 14
       local.get 2
-      local.get 14
+      call 11
+      local.set 15
+      local.get 3
+      local.get 15
       call 8
-      local.get 4
+      local.get 5
       i32.const 12
       i32.to_u32
       u32.shr
-      local.set 6
-      local.get 6
+      local.set 7
+      local.get 7
       i32.const 63
       i32.to_u32
       u32.bitand
       u32.to_usize
-      local.set 1
+      local.set 2
       string.const 38
-      local.get 1
-      call 11
-      local.set 14
       local.get 2
-      local.get 14
+      call 11
+      local.set 15
+      local.get 3
+      local.get 15
       call 8
-      local.get 4
+      local.get 5
       i32.const 6
       i32.to_u32
       u32.shr
-      local.set 4
-      local.get 4
+      local.set 5
+      local.get 5
       i32.const 63
       i32.to_u32
       u32.bitand
       u32.to_usize
-      local.set 1
+      local.set 2
       string.const 38
-      local.get 1
+      local.get 2
       call 11
-      local.set 14
-      local.get 2
-      local.get 14
+      local.set 15
+      local.get 3
+      local.get 15
       call 8
-      local.get 2
+      local.get 3
       char.const 61
       call 8
     else
     end $L4
   end $L3
-  local.get 2
+  local.get 3
   call 13
   return
 end
@@ -765,54 +774,57 @@ fn 5 std_base64$decode_byte (u8) -> i32
 end
 
 fn 6 std_base64$decode (string) -> ref
+  local bs ref
   local n usize
   local $mod_9 usize
-  local $sub_19 usize
-  local $call_20 u8
+  local $sub_17 usize
+  local $idx_18 u8
   local sb ref
   local v0 i32
-  local $add_47 usize
+  local $add_40 usize
   local v1 i32
-  local $add_53 usize
+  local $add_45 usize
   local v2 i32
-  local $add_59 usize
+  local $add_50 usize
   local v3 i32
   local or_res bool
   local or_res bool
   local or_res bool
   local __sb_0 any
-  local $call_80 string
+  local $call_71 string
+  local $cast_74 u32
+  local $shl_77 u32
+  local $cast_78 u32
+  local $shl_81 u32
+  local $bitor_82 u32
   local $cast_83 u32
   local $shl_86 u32
-  local $cast_87 u32
-  local $shl_90 u32
-  local $bitor_91 u32
-  local $cast_92 u32
-  local $shl_95 u32
-  local $bitor_96 u32
-  local $cast_97 u32
+  local $bitor_87 u32
+  local $cast_88 u32
   local triple u32
-  local $shr_102 u32
-  local $cast_106 char
-  local $shr_109 u32
-  local $cast_113 char
-  local $cast_117 char
+  local $shr_93 u32
+  local $cast_97 char
+  local $shr_100 u32
+  local $cast_104 char
+  local $cast_108 char
   local.get 0
   call.import 4
-  local.set 1
-  local.get 1
+  local.tee 1
+  array.len
+  local.set 2
+  local.get 2
   i64.const 0
   i64.to_usize
   usize.eq
   if $L0 void
     return.lit string.const 27
   end $L0
-  local.get 1
+  local.get 2
   i64.const 4
   i64.to_usize
   usize.rem
-  local.set 2
-  local.get 2
+  local.set 3
+  local.get 3
   i64.const 0
   i64.to_usize
   usize.ne
@@ -822,401 +834,412 @@ fn 6 std_base64$decode (string) -> ref
     return
   end $L1
   i64.const 0
-  local.set 2
-  local.get 1
+  local.set 3
+  local.get 2
   i64.const 1
   i64.to_usize
   usize.sub
-  local.set 3
-  local.get 0
-  local.get 3
-  call.import 5
   local.set 4
+  local.get 1
   local.get 4
+  array.get 10
+  ref.cast 4
+  local.set 5
+  local.get 5
   i32.const 61
   i32.to_u8
   u8.eq
   if $L2 void
     i64.const 1
-    local.set 2
+    local.set 3
   else
   end $L2
-  local.get 1
+  local.get 2
   i64.const 2
   i64.to_usize
   usize.sub
-  local.set 3
-  local.get 0
-  local.get 3
-  call.import 5
   local.set 4
+  local.get 1
   local.get 4
+  array.get 10
+  ref.cast 4
+  local.set 5
+  local.get 5
   i32.const 61
   i32.to_u8
   u8.eq
   if $L3 void
     i64.const 2
-    local.set 2
+    local.set 3
   else
   end $L3
   call 7
-  local.set 5
+  local.set 6
   i64.const 0
-  local.set 3
-  local.get 1
+  local.set 4
+  local.get 2
   i64.const 4
   i64.to_usize
   usize.sub
-  local.set 1
+  local.set 2
   block $L4 void
     loop $L5 void
-      local.get 3
-      local.get 1
+      local.get 4
+      local.get 2
       usize.lt
       if $L6 void
-        local.get 0
-        local.get 3
-        call.import 5
+        local.get 1
+        local.get 4
+        array.get 10
+        ref.cast 4
         call 5
-        local.set 6
-        local.get 3
+        local.set 7
+        local.get 4
         i64.const 1
         i64.to_usize
         usize.add
-        local.set 7
-        local.get 0
-        local.get 7
-        call.import 5
-        call 5
         local.set 8
-        local.get 3
+        local.get 1
+        local.get 8
+        array.get 10
+        ref.cast 4
+        call 5
+        local.set 9
+        local.get 4
         i64.const 2
         i64.to_usize
         usize.add
-        local.set 9
-        local.get 0
-        local.get 9
-        call.import 5
-        call 5
         local.set 10
-        local.get 3
+        local.get 1
+        local.get 10
+        array.get 10
+        ref.cast 4
+        call 5
+        local.set 11
+        local.get 4
         i64.const 3
         i64.to_usize
         usize.add
-        local.set 11
-        local.get 0
-        local.get 11
-        call.import 5
-        call 5
         local.set 12
-        local.get 6
+        local.get 1
+        local.get 12
+        array.get 10
+        ref.cast 4
+        call 5
+        local.set 13
+        local.get 7
         i32.const 0
         i32.lt
         if $L7 void
           bool.const true
-          local.set 13
+          local.set 14
         else
-          local.get 8
+          local.get 9
           i32.const 0
           i32.lt
-          local.set 13
+          local.set 14
         end $L7
-        local.get 13
+        local.get 14
         if $L8 void
           bool.const true
-          local.set 14
+          local.set 15
         else
-          local.get 10
+          local.get 11
           i32.const 0
           i32.lt
-          local.set 14
+          local.set 15
         end $L8
-        local.get 14
+        local.get 15
         if $L9 void
           bool.const true
-          local.set 15
+          local.set 16
         else
-          local.get 12
+          local.get 13
           i32.const 0
           i32.lt
-          local.set 15
+          local.set 16
         end $L9
-        local.get 15
+        local.get 16
         if $L10 void
           intrinsic builder.new
-          local.set 16
-          local.get 16
+          local.set 17
+          local.get 17
           string.const 40
           intrinsic builder.append_str
-          local.get 3
+          local.get 4
           call 9
-          local.set 17
-          local.get 16
+          local.set 18
           local.get 17
+          local.get 18
           intrinsic builder.append_str
-          local.get 16
+          local.get 17
           intrinsic builder.finish
           struct.new 8
           return
         end $L10
-        local.get 6
+        local.get 7
         i32.to_u32
-        local.set 18
-        local.get 18
+        local.set 19
+        local.get 19
         i32.const 18
         i32.to_u32
         u32.shl
-        local.set 19
-        local.get 8
-        i32.to_u32
         local.set 20
-        local.get 20
+        local.get 9
+        i32.to_u32
+        local.set 21
+        local.get 21
         i32.const 12
         i32.to_u32
         u32.shl
-        local.set 21
-        local.get 19
-        local.get 21
-        u32.bitor
         local.set 22
-        local.get 10
-        i32.to_u32
+        local.get 20
+        local.get 22
+        u32.bitor
         local.set 23
-        local.get 23
+        local.get 11
+        i32.to_u32
+        local.set 24
+        local.get 24
         i32.const 6
         i32.to_u32
         u32.shl
-        local.set 24
-        local.get 22
-        local.get 24
-        u32.bitor
         local.set 25
-        local.get 12
-        i32.to_u32
-        local.set 26
+        local.get 23
         local.get 25
-        local.get 26
         u32.bitor
+        local.set 26
+        local.get 13
+        i32.to_u32
         local.set 27
+        local.get 26
         local.get 27
+        u32.bitor
+        local.set 28
+        local.get 28
         i32.const 16
         i32.to_u32
         u32.shr
-        local.set 28
-        local.get 28
+        local.set 29
+        local.get 29
         i32.const 255
         i32.to_u32
         u32.bitand
         u32.to_char
-        local.set 29
-        local.get 5
-        local.get 29
+        local.set 30
+        local.get 6
+        local.get 30
         call 8
-        local.get 27
+        local.get 28
         i32.const 8
         i32.to_u32
         u32.shr
-        local.set 30
-        local.get 30
-        i32.const 255
-        i32.to_u32
-        u32.bitand
-        u32.to_char
         local.set 31
-        local.get 5
         local.get 31
-        call 8
-        local.get 27
         i32.const 255
         i32.to_u32
         u32.bitand
         u32.to_char
         local.set 32
-        local.get 5
+        local.get 6
         local.get 32
         call 8
-        local.get 3
+        local.get 28
+        i32.const 255
+        i32.to_u32
+        u32.bitand
+        u32.to_char
+        local.set 33
+        local.get 6
+        local.get 33
+        call 8
+        local.get 4
         i64.const 4
         i64.to_usize
         usize.add
-        local.set 3
+        local.set 4
         br $L5
       else
       end $L6
     end $L5
   end $L4
-  local.get 0
-  local.get 3
-  call.import 5
+  local.get 1
+  local.get 4
+  array.get 10
+  ref.cast 4
   call 5
-  local.set 6
-  local.get 3
+  local.set 7
+  local.get 4
   i64.const 1
   i64.to_usize
   usize.add
-  local.set 1
-  local.get 0
+  local.set 2
   local.get 1
-  call.import 5
+  local.get 2
+  array.get 10
+  ref.cast 4
   call 5
-  local.set 8
-  local.get 6
+  local.set 9
+  local.get 7
   i32.const 0
   i32.lt
   if $L11 void
     bool.const true
-    local.set 13
+    local.set 14
   else
-    local.get 8
+    local.get 9
     i32.const 0
     i32.lt
-    local.set 13
+    local.set 14
   end $L11
-  local.get 13
+  local.get 14
   if $L12 void
     string.const 41
     struct.new 8
     return
   end $L12
-  local.get 6
+  local.get 7
   i32.to_u32
-  local.set 18
-  local.get 18
+  local.set 19
+  local.get 19
   i32.const 18
   i32.to_u32
   u32.shl
-  local.set 18
-  local.get 8
-  i32.to_u32
   local.set 19
-  local.get 19
+  local.get 9
+  i32.to_u32
+  local.set 20
+  local.get 20
   i32.const 12
   i32.to_u32
   u32.shl
-  local.set 19
-  local.get 18
+  local.set 20
   local.get 19
+  local.get 20
   u32.bitor
-  local.set 18
-  local.get 18
+  local.set 19
+  local.get 19
   i32.const 16
   i32.to_u32
   u32.shr
-  local.set 19
-  local.get 19
+  local.set 20
+  local.get 20
   i32.const 255
   i32.to_u32
   u32.bitand
   u32.to_char
-  local.set 29
-  local.get 5
-  local.get 29
+  local.set 30
+  local.get 6
+  local.get 30
   call 8
-  local.get 2
+  local.get 3
   i64.const 0
   i64.to_usize
   usize.eq
   if $L13 void
-    local.get 3
+    local.get 4
     i64.const 2
     i64.to_usize
     usize.add
-    local.set 1
-    local.get 0
+    local.set 2
     local.get 1
-    call.import 5
+    local.get 2
+    array.get 10
+    ref.cast 4
     call 5
-    local.set 6
-    local.get 3
+    local.set 7
+    local.get 4
     i64.const 3
     i64.to_usize
     usize.add
-    local.set 1
-    local.get 0
+    local.set 2
     local.get 1
-    call.import 5
+    local.get 2
+    array.get 10
+    ref.cast 4
     call 5
-    local.set 8
-    local.get 6
+    local.set 9
+    local.get 7
     i32.const 0
     i32.lt
     if $L14 void
       bool.const true
-      local.set 13
+      local.set 14
     else
-      local.get 8
+      local.get 9
       i32.const 0
       i32.lt
-      local.set 13
+      local.set 14
     end $L14
-    local.get 13
+    local.get 14
     if $L15 void
       string.const 41
       struct.new 8
       return
     end $L15
-    local.get 6
+    local.get 7
     i32.to_u32
-    local.set 19
-    local.get 19
+    local.set 20
+    local.get 20
     i32.const 6
     i32.to_u32
     u32.shl
-    local.set 19
-    local.get 18
-    local.get 19
-    u32.bitor
-    local.set 19
-    local.get 8
-    i32.to_u32
     local.set 20
     local.get 19
     local.get 20
     u32.bitor
-    local.set 19
-    local.get 19
+    local.set 20
+    local.get 9
+    i32.to_u32
+    local.set 21
+    local.get 20
+    local.get 21
+    u32.bitor
+    local.set 20
+    local.get 20
     i32.const 8
     i32.to_u32
     u32.shr
-    local.set 20
+    local.set 21
+    local.get 21
+    i32.const 255
+    i32.to_u32
+    u32.bitand
+    u32.to_char
+    local.set 30
+    local.get 6
+    local.get 30
+    call 8
     local.get 20
     i32.const 255
     i32.to_u32
     u32.bitand
     u32.to_char
-    local.set 29
-    local.get 5
-    local.get 29
+    local.set 30
+    local.get 6
+    local.get 30
     call 8
-    local.get 19
-    i32.const 255
-    i32.to_u32
-    u32.bitand
-    u32.to_char
-    local.set 29
-    local.get 5
-    local.get 29
-    call 8
-    local.get 5
+    local.get 6
     call 13
     return
   end $L13
-  local.get 2
+  local.get 3
   i64.const 1
   i64.to_usize
   usize.eq
   if $L16 void
-    local.get 3
+    local.get 4
     i64.const 2
     i64.to_usize
     usize.add
-    local.set 1
-    local.get 0
+    local.set 2
     local.get 1
-    call.import 5
+    local.get 2
+    array.get 10
+    ref.cast 4
     call 5
-    local.set 6
-    local.get 6
+    local.set 7
+    local.get 7
     i32.const 0
     i32.lt
     if $L17 void
@@ -1224,44 +1247,44 @@ fn 6 std_base64$decode (string) -> ref
       struct.new 8
       return
     end $L17
-    local.get 6
+    local.get 7
     i32.to_u32
-    local.set 19
-    local.get 19
+    local.set 20
+    local.get 20
     i32.const 6
     i32.to_u32
     u32.shl
-    local.set 19
-    local.get 18
+    local.set 20
     local.get 19
+    local.get 20
     u32.bitor
-    local.set 18
-    local.get 18
+    local.set 19
+    local.get 19
     i32.const 8
     i32.to_u32
     u32.shr
-    local.set 18
-    local.get 18
+    local.set 19
+    local.get 19
     i32.const 255
     i32.to_u32
     u32.bitand
     u32.to_char
-    local.set 29
-    local.get 5
-    local.get 29
+    local.set 30
+    local.get 6
+    local.get 30
     call 8
-    local.get 5
+    local.get 6
     call 13
     return
   end $L16
-  local.get 5
+  local.get 6
   call 13
   return
 end
 
 fn 7 std_string_builder$new_builder () -> ref
   array.new 7 0
-  struct.new 10
+  struct.new 11
   return
 end
 
@@ -1269,7 +1292,7 @@ fn 8 std_string_builder$append_char (ref,char) -> void
   local $field_2 ref
   local __sb_0 any
   local $intrinsic_5 string
-  local.field 0 10 0
+  local.field 0 11 0
   local.set 2
   intrinsic builder.new
   local.tee 3
@@ -1312,6 +1335,6 @@ end
 
 fn 13 std_string_builder$StringBuilder$Display$to_string$vt (ref) -> string
   local.get 0
-  call.import 6
+  call.import 5
   return
 end

@@ -9,7 +9,7 @@
 
 module "std/base64"
 
-import "std/string" { byte_len, byte_at }
+import "std/string" { bytes }
 import "std/string_builder" { StringBuilder, new_builder, append_char }
 
 ALPHABET :: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
@@ -18,32 +18,33 @@ ALPHABET :: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 /// sequence of UTF-8 bytes (or raw bytes — base64 is content-agnostic).
 /// Output length is `4 * ceil(input_bytes / 3)`.
 export encode :: fn(input: string) -> string {
-    n :: input.byte_len()
+    bs :: input.bytes()
+    n :: bs.len()
     sb := new_builder()
     i: usize = 0
-    for i + usize(3) <= n {
-        b0 :: u32(input.byte_at(i))
-        b1 :: u32(input.byte_at(i + usize(1)))
-        b2 :: u32(input.byte_at(i + usize(2)))
+    for i + 3 <= n {
+        b0 :: u32(bs[i])
+        b1 :: u32(bs[i + 1])
+        b2 :: u32(bs[i + 2])
         triple :: (b0 << u32(16)) | (b1 << u32(8)) | b2
         sb.append_char(ALPHABET[usize((triple >> u32(18)) & u32(0x3F))])
         sb.append_char(ALPHABET[usize((triple >> u32(12)) & u32(0x3F))])
         sb.append_char(ALPHABET[usize((triple >> u32(6))  & u32(0x3F))])
         sb.append_char(ALPHABET[usize(triple & u32(0x3F))])
-        i = i + usize(3)
+        i = i + 3
     }
     // Tail : 1 or 2 leftover bytes need padding.
     remainder :: n - i
-    if remainder == usize(1) {
-        b0 :: u32(input.byte_at(i))
+    if remainder == 1 {
+        b0 :: u32(bs[i])
         triple :: b0 << u32(16)
         sb.append_char(ALPHABET[usize((triple >> u32(18)) & u32(0x3F))])
         sb.append_char(ALPHABET[usize((triple >> u32(12)) & u32(0x3F))])
         sb.append_char('=')
         sb.append_char('=')
-    } else if remainder == usize(2) {
-        b0 :: u32(input.byte_at(i))
-        b1 :: u32(input.byte_at(i + usize(1)))
+    } else if remainder == 2 {
+        b0 :: u32(bs[i])
+        b1 :: u32(bs[i + 1])
         triple :: (b0 << u32(16)) | (b1 << u32(8))
         sb.append_char(ALPHABET[usize((triple >> u32(18)) & u32(0x3F))])
         sb.append_char(ALPHABET[usize((triple >> u32(12)) & u32(0x3F))])
@@ -81,24 +82,25 @@ decode_byte :: fn(b: u8) -> i32 {
 /// (one or two trailing `=`, nothing else). Whitespace and newlines
 /// are NOT allowed — strip them upstream if your transport adds them.
 export decode :: fn(input: string) -> string | Base64Error {
-    n :: input.byte_len()
-    if n == usize(0) { return "" }
-    if n % usize(4) != usize(0) {
+    bs :: input.bytes()
+    n :: bs.len()
+    if n == 0 { return "" }
+    if n % 4 != 0 {
         return Base64Error { .msg = "base64: input length must be a multiple of 4" }
     }
 
     pad_count: usize = 0
-    if input.byte_at(n - usize(1)) == b'=' { pad_count = usize(1) }
-    if input.byte_at(n - usize(2)) == b'=' { pad_count = usize(2) }
+    if bs[n - 1] == b'=' { pad_count = 1 }
+    if bs[n - 2] == b'=' { pad_count = 2 }
 
     sb := new_builder()
     i: usize = 0
-    full_quads :: n - usize(4)
+    full_quads :: n - 4
     for i < full_quads {
-        v0 :: decode_byte(input.byte_at(i))
-        v1 :: decode_byte(input.byte_at(i + usize(1)))
-        v2 :: decode_byte(input.byte_at(i + usize(2)))
-        v3 :: decode_byte(input.byte_at(i + usize(3)))
+        v0 :: decode_byte(bs[i])
+        v1 :: decode_byte(bs[i + 1])
+        v2 :: decode_byte(bs[i + 2])
+        v3 :: decode_byte(bs[i + 3])
         if v0 < 0 || v1 < 0 || v2 < 0 || v3 < 0 {
             return Base64Error { .msg = "base64: invalid character at offset ${i}" }
         }
@@ -106,28 +108,28 @@ export decode :: fn(input: string) -> string | Base64Error {
         sb.append_char(char((triple >> u32(16)) & u32(0xFF)))
         sb.append_char(char((triple >> u32(8))  & u32(0xFF)))
         sb.append_char(char(triple & u32(0xFF)))
-        i = i + usize(4)
+        i = i + 4
     }
 
     // Final quad with possible padding.
-    v0 :: decode_byte(input.byte_at(i))
-    v1 :: decode_byte(input.byte_at(i + usize(1)))
+    v0 :: decode_byte(bs[i])
+    v1 :: decode_byte(bs[i + 1])
     if v0 < 0 || v1 < 0 {
         return Base64Error { .msg = "base64: invalid character in final quad" }
     }
     triple_lead :: (u32(v0) << u32(18)) | (u32(v1) << u32(12))
     sb.append_char(char((triple_lead >> u32(16)) & u32(0xFF)))
-    if pad_count == usize(0) {
-        v2 :: decode_byte(input.byte_at(i + usize(2)))
-        v3 :: decode_byte(input.byte_at(i + usize(3)))
+    if pad_count == 0 {
+        v2 :: decode_byte(bs[i + 2])
+        v3 :: decode_byte(bs[i + 3])
         if v2 < 0 || v3 < 0 {
             return Base64Error { .msg = "base64: invalid character in final quad" }
         }
         triple :: triple_lead | (u32(v2) << u32(6)) | u32(v3)
         sb.append_char(char((triple >> u32(8)) & u32(0xFF)))
         sb.append_char(char(triple & u32(0xFF)))
-    } else if pad_count == usize(1) {
-        v2 :: decode_byte(input.byte_at(i + usize(2)))
+    } else if pad_count == 1 {
+        v2 :: decode_byte(bs[i + 2])
         if v2 < 0 {
             return Base64Error { .msg = "base64: invalid character before padding" }
         }
