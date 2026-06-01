@@ -8,7 +8,7 @@
       arg0:
         call :string
           callee:
-            from_utf8 :string
+            as_string :string
           arg0:
             call :const u8[]
               callee:
@@ -21,7 +21,7 @@
       arg0:
         call :string
           callee:
-            from_utf8 :string
+            as_string :string
           arg0:
             call :const u8[]
               callee:
@@ -34,7 +34,7 @@
       arg0:
         call :string
           callee:
-            from_utf8 :string
+            as_string :string
           arg0:
             slice :const u8[]
               on:
@@ -52,7 +52,7 @@
     let e: string =
       call :string
         callee:
-          from_utf8 :string
+          as_string :string
         arg0:
           call :const u8[]
             callee:

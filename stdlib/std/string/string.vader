@@ -153,7 +153,7 @@ export decode_codepoint_at :: fn(bs: const u8[], i: usize) -> [char, usize] {
 
 /// Rebuild a `string` from the UTF-8 bytes of a `const u8[]` — the inverse
 /// of `bytes()`. Use it to turn a byte-view slice back into a string :
-/// `s.bytes()[lo..<hi].from_utf8()` is the byte-indexed substring (what the
+/// `s.bytes()[lo..<hi].as_string()` is the byte-indexed substring (what the
 /// old `byte_slice` produced). Infallible : the bytes are interpreted as
 /// UTF-8 ; valid input round-trips exactly, malformed sequences decode to
 /// `U+FFFD` / `U+0000` (same contract as `decode_char_at`).
@@ -164,7 +164,7 @@ export decode_codepoint_at :: fn(bs: const u8[], i: usize) -> [char, usize] {
 ///
 /// @param bs  the UTF-8 bytes to materialise (typically a `bytes()` slice).
 /// @return    a fresh string with those bytes.
-export from_utf8 :: fn(bs: const u8[]) -> string {
+export as_string :: fn(bs: const u8[]) -> string {
     sb :: new_builder()
     i: usize = 0
     n :: bs.len()
@@ -415,7 +415,7 @@ export split :: fn(s: string, sep: string) -> string[] {
     if m == usize(0) {
         i := usize(0)
         for i < n {
-            out.push(sb[i..<i + usize(1)].from_utf8())
+            out.push(sb[i..<i + usize(1)].as_string())
             i = i + usize(1)
         }
         return out
@@ -424,11 +424,11 @@ export split :: fn(s: string, sep: string) -> string[] {
     found := byte_find(s, sep, start)
     for found >= isize(0) {
         fpos :: usize(found)
-        out.push(sb[start..<fpos].from_utf8())
+        out.push(sb[start..<fpos].as_string())
         start = fpos + m
         found = byte_find(s, sep, start)
     }
-    out.push(sb[start..<n].from_utf8())
+    out.push(sb[start..<n].as_string())
     return out
 }
 
@@ -441,7 +441,7 @@ export trim :: fn(s: string) -> string {
     for lo < n && is_white_byte(sb[lo]) { lo = lo + usize(1) }
     hi := n
     for hi > lo && is_white_byte(sb[hi - usize(1)]) { hi = hi - usize(1) }
-    return sb[lo..<hi].from_utf8()
+    return sb[lo..<hi].as_string()
 }
 
 /// Strip leading ASCII whitespace (`' '`, `'\t'`, `'\n'`, `'\r'`) only ;
@@ -453,7 +453,7 @@ export left_trim :: fn(s: string) -> string {
     n :: sb.len()
     lo := usize(0)
     for lo < n && is_white_byte(sb[lo]) { lo = lo + usize(1) }
-    return sb[lo..<n].from_utf8()
+    return sb[lo..<n].as_string()
 }
 
 /// Strip trailing ASCII whitespace (`' '`, `'\t'`, `'\n'`, `'\r'`) only ;
@@ -464,7 +464,7 @@ export right_trim :: fn(s: string) -> string {
     sb :: s.bytes()
     hi := sb.len()
     for hi > usize(0) && is_white_byte(sb[hi - usize(1)]) { hi = hi - usize(1) }
-    return sb[usize(0)..<hi].from_utf8()
+    return sb[usize(0)..<hi].as_string()
 }
 
 // Codepoint-level uppercase over ASCII + the Latin-1 Supplement letters
@@ -651,7 +651,7 @@ export is_alnum :: fn(c: char) = c.is_alpha() || c.is_digit()
 export trim_suffix :: fn(s: string, suffix: string) -> string {
     if s.ends_with(suffix) {
         bs :: s.bytes()
-        return bs[0..<bs.len() - suffix.bytes().len()].from_utf8()
+        return bs[0..<bs.len() - suffix.bytes().len()].as_string()
     }
     return s
 }
@@ -661,7 +661,7 @@ export trim_suffix :: fn(s: string, suffix: string) -> string {
 export trim_prefix :: fn(s: string, prefix: string) -> string {
     if s.starts_with(prefix) {
         bs :: s.bytes()
-        return bs[prefix.bytes().len()..<bs.len()].from_utf8()
+        return bs[prefix.bytes().len()..<bs.len()].as_string()
     }
     return s
 }

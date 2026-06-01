@@ -1,6 +1,6 @@
 # Typecheck
 
-## tests/snippets/from_utf8_roundtrip
+## tests/snippets/as_string_roundtrip
   FnDecl         main                 :: fn() -> i32
   expr 11:13    CallExpr       :: const u8[]
   expr 11:13    CallExpr       :: string

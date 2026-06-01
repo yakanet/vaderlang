@@ -31,11 +31,11 @@ fn snippet$main() -> i32
   bb0:
     %0 = const string(#0) :string
     %1 = call bytes(%0) :const u8[]
-    %2 = call from_utf8(%1) :string
+    %2 = call as_string(%1) :string
     call println(%2) :void
     %3 = const string(#1) :string
     %4 = call bytes(%3) :const u8[]
-    %5 = call from_utf8(%4) :string
+    %5 = call as_string(%4) :string
     call println(%5) :void
     %6 = const string(#2) :string
     %7 = call bytes(%6) :const u8[]
@@ -44,11 +44,11 @@ fn snippet$main() -> i32
     %10 = const int(4) :usize
     %11 = cast %10 :usize
     %12 = array_slice %7[%9..%11] :const u8[]
-    %13 = call from_utf8(%12) :string
+    %13 = call as_string(%12) :string
     call println(%13) :void
     %14 = const string(#3) :string
     %15 = call bytes(%14) :const u8[]
-    %16 = call from_utf8(%15) :string
+    %16 = call as_string(%15) :string
     %17 = move %16
     %18 = intrinsic builder.new()
     %19 = move %18

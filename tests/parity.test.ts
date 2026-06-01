@@ -65,7 +65,7 @@ const BYTECODE_DIVERGENT_SNIPPETS: ReadonlySet<string> = new Set<string>([
   "enum_match", "enum_to_repr_cast", "enum_trait_self_return", "enum_typed",
   "expr_bodied_fn", "expr_bodied_recursive_typed",
   "expressions", "extern_native_basic", "file_decorator",
-  "from_utf8_roundtrip",
+  "as_string_roundtrip",
   "for_in_into_iter", "for_in_iter_trait", "for_range",
   "for_range_sugar", "format_helpers", "gc_array_survive", "gc_chain_survive",
   "gc_multi_collect", "generic_angle_decl",

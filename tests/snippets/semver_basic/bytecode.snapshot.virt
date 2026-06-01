@@ -7028,7 +7028,7 @@ fn 72 std_string$decode_codepoint_at (ref,usize) -> ref
   return
 end
 
-fn 73 std_string$from_utf8 (ref) -> string
+fn 73 std_string$as_string (ref) -> string
   local sb ref
   local i usize
   local n usize

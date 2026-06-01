@@ -1,21 +1,21 @@
 module "snippet"
 
 import "std/io" { println }
-import "std/string" { bytes, from_utf8 }
+import "std/string" { bytes, as_string }
 
 main :: fn() -> i32 {
     // ASCII round-trip: bytes() then back.
-    println("vader".bytes().from_utf8())
+    println("vader".bytes().as_string())
 
     // Multi-byte UTF-8 round-trips exactly (2- and 3-byte codepoints).
-    println("héllo café 你好".bytes().from_utf8())
+    println("héllo café 你好".bytes().as_string())
 
     // Sliced byte view → string : the byte-indexed substring that the old
     // `byte_slice` produced. "abcde"[1..<4] bytes = b,c,d.
-    println("abcde".bytes()[usize(1)..<usize(4)].from_utf8())
+    println("abcde".bytes()[usize(1)..<usize(4)].as_string())
 
     // Empty view → empty string.
-    e :: "".bytes().from_utf8()
+    e :: "".bytes().as_string()
     println("[${e}]")
 
     return 0

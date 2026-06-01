@@ -18,7 +18,7 @@
 
 ## stdlib/std/utf8
 
-## tests/snippets/from_utf8_roundtrip
+## tests/snippets/as_string_roundtrip
 
 ## generic instances
   Into<Target>
