@@ -16,7 +16,7 @@
 
 module "vader/typecheck"
 
-import "std/string" { byte_at, byte_len }
+import "std/string" { bytes }
 import "vader/diagnostics" { Diagnostic, typecheck_error }
 AST :: import "vader/parser"
 import "vader/resolver" { ResolvedModule }
@@ -271,7 +271,7 @@ narrow_field_if_active :: fn(
 ) -> Type {
     // Fast path : the common case is no live field narrowings at all,
     // so dodge the chain walk + key build entirely.
-    if typed.narrowed_fields.size == usize(0) { return declared }
+    if typed.narrowed_fields.size == 0 { return declared }
     key :: field_chain_key(e, typed)
     if key == "" { return declared }
     return narrow_for_field(typed, key, declared)
@@ -463,7 +463,7 @@ check_trait_ambiguity :: fn(
 join_commas :: fn(names: string[]) -> string {
     out := ""
     for i in 0..<names.len() {
-        if i > usize(0) { out = "${out}, " }
+        if i > 0 { out = "${out}, " }
         out = "${out}${names[i]}"
     }
     return out
@@ -759,11 +759,12 @@ receiver_fits_first_param :: fn(target_ty: Type, first: Type, typed: TypedProgra
 // the name isn't a non-negative integer literal — `.foo` on a tuple
 // then falls through to T3009 via the bounds check.
 parse_tuple_index :: fn(s: string) -> i32 {
-    len :: s.byte_len()
-    if len == usize(0) { return -1 }
+    sb :: s.bytes()
+    len :: sb.len()
+    if len == 0 { return -1 }
     n: i32 = 0
-    for i in usize(0)..<len {
-        c :: s.byte_at(i)
+    for i in 0..<len {
+        c :: sb[i]
         if c < u8('0') || c > u8('9') { return -1 }
         n = n * 10 + i32(c - u8('0'))
     }
@@ -891,7 +892,7 @@ get_z :: fn(p: Point) -> i32 { return p.z }
         is AST.FieldExpr as f -> {
             diags: Diagnostic[] = []
             infer_field(f, fx.typed, diags, stub_check_expr)
-            assert(diags.len() >= usize(1), "expected a diagnostic")
+            assert(diags.len() >= 1, "expected a diagnostic")
             assert_eq(diags[0].code.id, "T3009")
         }
     }
@@ -908,7 +909,7 @@ f :: fn(n: i32) -> i32 { return n.x }
         is AST.FieldExpr as f -> {
             diags: Diagnostic[] = []
             infer_field(f, fx.typed, diags, stub_check_expr)
-            assert(diags.len() >= usize(1), "expected a diagnostic")
+            assert(diags.len() >= 1, "expected a diagnostic")
             assert_eq(diags[0].code.id, "T3008")
         }
     }

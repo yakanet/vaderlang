@@ -5,7 +5,7 @@
 
 module "vader/parser"
 
-import "std/string" { byte_at, byte_len, byte_slice, starts_with, chars, is_digit }
+import "std/string" { bytes, as_string, chars, is_digit }
 import "vader/lexer" {
     tokenize, Token, TokenKind, Lexer, empty_span, make_token, kind_name,
 }
@@ -64,30 +64,32 @@ export ModuleHeader :: struct {
 }
 
 export parse_module_header :: fn(source: string, file: string) -> ModuleHeader | null {
-    n :: source.byte_len()
+    // Hold the byte view once — every scan below indexes through `sb`.
+    sb :: source.bytes()
+    n :: sb.len()
     i: usize = 0
     // Optional shebang on first line.
-    if i + usize(1) < n && source.byte_at(i) == u8(0x23) && source.byte_at(i + usize(1)) == u8(0x21) {
-        i = skip_to_eol(source, i, n)
+    if i + 1 < n && sb[i] == u8(0x23) && sb[i + 1] == u8(0x21) {
+        i = skip_to_eol(sb, i, n)
     }
     // Skip whitespace + line/block comments until we hit the first
     // non-trivial token. Bail out early past a reasonable header-size
     // budget to avoid scanning the entire file when no decl exists.
     budget :: header_budget(n)
     for i < budget {
-        c :: source.byte_at(i)
+        c :: sb[i]
         if c == u8(0x20) || c == u8(0x09) || c == u8(0x0A) || c == u8(0x0D) {
-            i = i + usize(1)
+            i = i + 1
             continue
         }
         // Line comment `// ...`
-        if c == u8(0x2F) && i + usize(1) < n && source.byte_at(i + usize(1)) == u8(0x2F) {
-            i = skip_to_eol(source, i, n)
+        if c == u8(0x2F) && i + 1 < n && sb[i + 1] == u8(0x2F) {
+            i = skip_to_eol(sb, i, n)
             continue
         }
         // Block comment `/* ... */`
-        if c == u8(0x2F) && i + usize(1) < n && source.byte_at(i + usize(1)) == u8(0x2A) {
-            i = skip_block_comment(source, i + usize(2), n)
+        if c == u8(0x2F) && i + 1 < n && sb[i + 1] == u8(0x2A) {
+            i = skip_block_comment(sb, i + 2, n)
             continue
         }
         break
@@ -95,29 +97,29 @@ export parse_module_header :: fn(source: string, file: string) -> ModuleHeader |
     // Match `module "<name>"` at the current position. Anything else
     // means no header decl (callers may still treat it as a tolerant
     // pre-Phase-7 file).
-    if i + usize(7) > n { return null }
-    if source.byte_at(i)     != u8(0x6D) { return null }     // m
-    if source.byte_at(i + usize(1)) != u8(0x6F) { return null }     // o
-    if source.byte_at(i + usize(2)) != u8(0x64) { return null }     // d
-    if source.byte_at(i + usize(3)) != u8(0x75) { return null }     // u
-    if source.byte_at(i + usize(4)) != u8(0x6C) { return null }     // l
-    if source.byte_at(i + usize(5)) != u8(0x65) { return null }     // e
-    i = i + usize(6)
+    if i + 7 > n { return null }
+    if sb[i]     != u8(0x6D) { return null }     // m
+    if sb[i + 1] != u8(0x6F) { return null }     // o
+    if sb[i + 2] != u8(0x64) { return null }     // d
+    if sb[i + 3] != u8(0x75) { return null }     // u
+    if sb[i + 4] != u8(0x6C) { return null }     // l
+    if sb[i + 5] != u8(0x65) { return null }     // e
+    i = i + 6
     // Whitespace between `module` and the string literal.
     for i < n {
-        c :: source.byte_at(i)
+        c :: sb[i]
         if c == u8(0x20) || c == u8(0x09) {
-            i = i + usize(1)
+            i = i + 1
             continue
         }
         break
     }
-    if i >= n || source.byte_at(i) != u8(0x22) { return null }      // opening "
-    i = i + usize(1)
+    if i >= n || sb[i] != u8(0x22) { return null }      // opening "
+    i = i + 1
     name_start :: i
-    for i < n && source.byte_at(i) != u8(0x22) { i = i + usize(1) }
+    for i < n && sb[i] != u8(0x22) { i = i + 1 }
     if i >= n { return null }                                       // unterminated
-    name :: byte_slice(source, name_start, i)
+    name :: sb[name_start..<i].as_string()
     return ModuleHeader { .name = name, .name_span = empty_span(file) }
 }
 
@@ -130,30 +132,30 @@ header_budget :: fn(n: usize) -> usize {
     return cap
 }
 
-skip_to_eol :: fn(source: string, from: usize, n: usize) -> usize {
+skip_to_eol :: fn(sb: const u8[], from: usize, n: usize) -> usize {
     i := from
-    for i < n && source.byte_at(i) != u8(0x0A) { i = i + usize(1) }
-    if i < n { i = i + usize(1) }
+    for i < n && sb[i] != u8(0x0A) { i = i + 1 }
+    if i < n { i = i + 1 }
     return i
 }
 
-skip_block_comment :: fn(source: string, from: usize, n: usize) -> usize {
+skip_block_comment :: fn(sb: const u8[], from: usize, n: usize) -> usize {
     i := from
     depth: i32 = 1
-    for i + usize(1) < n && depth > 0 {
-        c0 :: source.byte_at(i)
-        c1 :: source.byte_at(i + usize(1))
+    for i + 1 < n && depth > 0 {
+        c0 :: sb[i]
+        c1 :: sb[i + 1]
         if c0 == u8(0x2F) && c1 == u8(0x2A) {
             depth = depth + 1
-            i = i + usize(2)
+            i = i + 2
             continue
         }
         if c0 == u8(0x2A) && c1 == u8(0x2F) {
             depth = depth - 1
-            i = i + usize(2)
+            i = i + 2
             continue
         }
-        i = i + usize(1)
+        i = i + 1
     }
     return i
 }

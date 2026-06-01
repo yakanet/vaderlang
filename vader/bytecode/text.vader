@@ -38,7 +38,7 @@
 
 module "vader/bytecode"
 
-import "std/string" { byte_len, byte_at, byte_slice }
+import "std/string" { bytes, as_string }
 import "std/string_builder" { StringBuilder, new_builder, append }
 op :: import "vader/vm"
 
@@ -130,10 +130,11 @@ write_strings_virt :: fn(out: StringBuilder, strings: string[]) -> void {
 export quote_string :: fn(value: string) -> string {
     out :: new_builder()
     out.append("\"")
-    n :: value.byte_len()
+    vb :: value.bytes()
+    n :: vb.len()
     i: usize = 0
     for i < n {
-        b :: value.byte_at(i)
+        b :: vb[i]
         if      b == b'\\' { out.append("\\\\") }
         else if b == b'"'  { out.append("\\\"") }
         else if b == b'\n' { out.append("\\n") }
@@ -141,13 +142,13 @@ export quote_string :: fn(value: string) -> string {
         else if b == b'\t' { out.append("\\t") }
         else if b == 0     { out.append("\\0") }
         else {
-            // Copy the raw byte verbatim. `byte_slice(i, i + 1)` yields the
-            // single source byte unchanged ; `char(u32(b))` would instead
+            // Copy the raw byte verbatim. `vb[i..<i + 1].as_string()` yields
+            // the single source byte unchanged ; `char(u32(b))` would instead
             // promote the byte to a codepoint and re-encode it as UTF-8,
             // double-encoding any byte ≥ 0x80 (so every non-ASCII character
             // turned into mojibake). `decode_escapes` copies it back
             // byte-transparently — mirror its own verbatim-append path.
-            out.append(value.byte_slice(i, i + usize(1)))
+            out.append(vb[i..<i + 1].as_string())
         }
         i += 1
     }
@@ -253,14 +254,17 @@ write_u64_le :: fn(out: u8[], value: u64) -> void {
 
 HEX_DIGITS :: "0123456789abcdef"
 
-bytes_to_hex :: fn(bytes: u8[]) -> string {
-    if bytes.len() == 0 { return "" }
+bytes_to_hex :: fn(data: u8[]) -> string {
+    if data.len() == 0 { return "" }
     out :: new_builder()
+    hd :: HEX_DIGITS.bytes()
     i: usize = 0
-    for i < bytes.len() {
-        b :: bytes[i]
-        out.append(HEX_DIGITS.byte_slice(usize(u32(b) >> 0o04), usize(u32(b) >> 0o04) + 1))
-        out.append(HEX_DIGITS.byte_slice(usize(u32(b) & u32(0o17)), usize(u32(b) & u32(0o17)) + 1))
+    for i < data.len() {
+        b :: data[i]
+        hi :: usize(u32(b) >> 0o04)
+        lo :: usize(u32(b) & u32(0o17))
+        out.append(hd[hi..<hi + 1].as_string())
+        out.append(hd[lo..<lo + 1].as_string())
         i += 1
     }
     return "${out}"

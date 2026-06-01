@@ -19,7 +19,7 @@
 module "vader/comptime"
 
 import "std/collections" { MutableMap }
-import "std/string" { byte_len, byte_at }
+import "std/string" { bytes }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 import "vader/parser" {
     TypeExpr, IdentExpr, GenericInstExpr,
@@ -81,10 +81,11 @@ export mangle_type_arg :: fn(t: Type) -> string = sanitise_ident(display_type(t)
 /// @return     the sanitised form, safe to splice into a mangled name.
 export sanitise_ident :: fn(raw: string) -> string {
     sb :: new_builder()
-    n :: raw.byte_len()
+    rb :: raw.bytes()
+    n :: rb.len()
     i: usize = 0
     for i < n {
-        b :: raw.byte_at(i)
+        b :: rb[i]
         if is_ident_byte(b) {
             sb.append_char(char(u32(b)))
         } else {

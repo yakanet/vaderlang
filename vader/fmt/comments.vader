@@ -9,7 +9,7 @@
 
 module "vader/fmt"
 
-import "std/string" { byte_len, byte_at, byte_slice as slice_text }
+import "std/string" { bytes, as_string as bytes_as_string }
 
 /// Classification of a scanned comment. VaderDoc is `///` only ; `/**` is
 /// recognised as a plain `Block` since SPEC §3 dropped the block-form
@@ -58,11 +58,12 @@ export CommentMap :: struct {
 /// @param source source code
 export scan_comments :: fn(source: string) -> CommentMap {
     out: Comment[] = []
-    n :: source.byte_len()
+    sb :: source.bytes()
+    n :: sb.len()
     i: usize = 0
     line: i32 = 1
     for i < n {
-        b :: source.byte_at(i)
+        b :: sb[i]
 
         // Newline tracking. `\n` only — CR is normalised elsewhere.
         if b == b'\n' {
@@ -72,15 +73,15 @@ export scan_comments :: fn(source: string) -> CommentMap {
         }
 
         // `//` line comment (or `///` vaderdoc line).
-        if b == b'/' && i + 1 < n && source.byte_at(i + 1) == b'/' {
+        if b == b'/' && i + 1 < n && sb[i + 1] == b'/' {
             start :: i
             start_line :: line
-            is_doc :: i + 2 < n && source.byte_at(i + 2) == b'/'
+            is_doc :: i + 2 < n && sb[i + 2] == b'/'
             j: usize = i + 2
-            for j < n && source.byte_at(j) != b'\n' {
+            for j < n && sb[j] != b'\n' {
                 j = j + 1
             }
-            text :: source.slice_text(start, j)
+            text :: sb[start..<j].bytes_as_string()
             kind: CommentKind = if is_doc { .DocLine } else { .Line }
             out.push(Comment {
                 .offset = start,
@@ -97,31 +98,31 @@ export scan_comments :: fn(source: string) -> CommentMap {
         // `/* … */` block comment, nesting-aware. SPEC §3 dropped the
         // `/** … */` doc-comment form ; `/**` is treated as a plain block
         // comment to keep round-trip semantics for any legacy source.
-        if b == b'/' && i + 1 < n && source.byte_at(i + 1) == b'*' {
+        if b == b'/' && i + 1 < n && sb[i + 1] == b'*' {
             start :: i
             start_line :: line
             j: usize = i + 2
             depth: i32 = 1
             for j < n && depth > 0 {
-                cur :: source.byte_at(j)
+                cur :: sb[j]
                 if cur == b'\n' {
                     line = line + 1
                     j = j + 1
                     continue
                 }
-                if cur == b'/' && j + 1 < n && source.byte_at(j + 1) == b'*' {
+                if cur == b'/' && j + 1 < n && sb[j + 1] == b'*' {
                     depth = depth + 1
                     j = j + 2
                     continue
                 }
-                if cur == b'*' && j + 1 < n && source.byte_at(j + 1) == b'/' {
+                if cur == b'*' && j + 1 < n && sb[j + 1] == b'/' {
                     depth = depth - 1
                     j = j + 2
                     continue
                 }
                 j = j + 1
             }
-            text :: source.slice_text(start, j)
+            text :: sb[start..<j].bytes_as_string()
             kind: CommentKind = .Block
             out.push(Comment {
                 .offset = start,
@@ -140,14 +141,14 @@ export scan_comments :: fn(source: string) -> CommentMap {
         // we don't care what's *inside* the literal, only the closing quote.
         if b == b'"' {
             // Triple-quoted ?
-            if i + 2 < n && source.byte_at(i + 1) == b'"' && source.byte_at(i + 2) == b'"' {
+            if i + 2 < n && sb[i + 1] == b'"' && sb[i + 2] == b'"' {
                 j: usize = i + 3
                 for j + 2 < n {
-                    if source.byte_at(j) == b'"' && source.byte_at(j + 1) == b'"' && source.byte_at(j + 2) == b'"' {
+                    if sb[j] == b'"' && sb[j + 1] == b'"' && sb[j + 2] == b'"' {
                         j = j + 3
                         break
                     }
-                    if source.byte_at(j) == b'\n' { line = line + 1 }
+                    if sb[j] == b'\n' { line = line + 1 }
                     j = j + 1
                 }
                 i = j
@@ -159,7 +160,7 @@ export scan_comments :: fn(source: string) -> CommentMap {
             // misclassification.
             j: usize = i + 1
             for j < n {
-                c :: source.byte_at(j)
+                c :: sb[j]
                 if c == b'\\' && j + 1 < n {
                     j = j + 2
                     continue
@@ -176,10 +177,10 @@ export scan_comments :: fn(source: string) -> CommentMap {
         }
 
         // Raw string `r"…"`.
-        if b == b'r' && i + 1 < n && source.byte_at(i + 1) == b'"' {
+        if b == b'r' && i + 1 < n && sb[i + 1] == b'"' {
             j: usize = i + 2
             for j < n {
-                c :: source.byte_at(j)
+                c :: sb[j]
                 if c == b'"' {
                     j = j + 1
                     break
@@ -195,7 +196,7 @@ export scan_comments :: fn(source: string) -> CommentMap {
         if b == b'\'' {
             j: usize = i + 1
             for j < n {
-                c :: source.byte_at(j)
+                c :: sb[j]
                 if c == b'\\' && j + 1 < n {
                     j = j + 2
                     continue

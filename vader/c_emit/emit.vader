@@ -28,7 +28,7 @@
 
 module "vader/c_emit"
 
-import "std/string" { byte_len }
+import "std/string" { bytes }
 import "std/string_builder" { StringBuilder, new_builder, append }
 import "vader/bytecode" { BytecodeModule, BcFunction }
 import "vader/bytecode" {
@@ -164,7 +164,7 @@ emit_type_decls :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
     k: usize = 0
     for k < ctx.module.strings.len() {
         s :: ctx.module.strings[k]
-        out.append("static const vader_string_t vader_str_${k} = { ${c_string_lit(s)}, ${s.byte_len()} };\n")
+        out.append("static const vader_string_t vader_str_${k} = { ${c_string_lit(s)}, ${s.bytes().len()} };\n")
         k += 1
     }
     out.append("\n")

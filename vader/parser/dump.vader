@@ -9,7 +9,7 @@
 
 module "vader/parser"
 
-import "std/string" { byte_len, chars, is_empty, pad_start }
+import "std/string" { chars, is_empty, pad_start }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char, append_repeated }
 import "std/numbers" { to_hex, to_compact_str }
 

@@ -12,7 +12,7 @@ module "vader/cli"
 
 import "std/io" { println, eprintln, read_file, print }
 import "std/collections" { keys, values, MutableMap }
-import "std/string" { starts_with, ends_with, byte_len, byte_at, byte_slice as byte_slice_str }
+import "std/string" { starts_with, ends_with, bytes, as_string }
 import "std/string_builder" { new_builder, append_char, append }
 import "std/iter" { slice as slice_arr }
 import "std/cli" { FlagSpec, parse_known, bool_flag, string_flag }
@@ -611,16 +611,18 @@ entry_main_name :: fn(typed: TypedProject, entry: string) -> string {
 }
 
 module_name_from_file :: fn(file: string) -> string {
+    fileb :: file.bytes()
     last_slash: i64 = -1
     i: i64 = 0
-    n :: i64(file.byte_len())
+    n :: i64(fileb.len())
     for i < n {
-        if file.byte_at(usize(i)) == u8(0x2F) { last_slash = i }
+        if fileb[usize(i)] == u8(0x2F) { last_slash = i }
         i += 1
     }
-    base: string = if last_slash < 0 { file } else { byte_slice_str(file, usize(last_slash + 1), usize(n)) }
+    base: string = if last_slash < 0 { file } else { fileb[usize(last_slash + 1)..<usize(n)].as_string() }
     if base.ends_with(".vader") {
-        return byte_slice_str(base, usize(0), base.byte_len() - usize(6))
+        baseb :: base.bytes()
+        return baseb[0..<baseb.len() - 6].as_string()
     }
     return base
 }
@@ -709,7 +711,7 @@ prepare_evaluated_project :: fn(file: string) -> EvaluatedPipeline {
 /// here too.
 collect_body_diags :: fn(result: CheckResult) -> Diagnostic[] {
     out: Diagnostic[] = []
-    if result.all_modules.size == usize(0) { return out }
+    if result.all_modules.size == 0 { return out }
     for module_id in result.all_modules.keys() {
         if module_id == result.typed.resolved.path { continue }
         module_typed :: result.all_modules[module_id]
@@ -727,7 +729,7 @@ assemble_typed_project :: fn(result: CheckResult) -> TypedProject {
     // Drain every typed module the orchestrator built — entry + direct
     // imports + std/* — so downstream passes that need impl-by-trait
     // queries (lower, bytecode emit) see std-defined impls.
-    if result.all_modules.size > usize(0) {
+    if result.all_modules.size > 0 {
         for module_id in result.all_modules.keys() {
             module_typed :: result.all_modules[module_id]
             if module_typed is null { continue }

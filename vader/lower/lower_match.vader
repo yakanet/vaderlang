@@ -66,7 +66,7 @@ export lower_match :: fn(
     })
 
     arm_count :: expr.arms.len()
-    if arm_count == usize(0) {
+    if arm_count == 0 {
         for stmt in fallback.stmts { stmts.push(stmt) }
         return LoweredBlock {
             .span = expr.span, .type = result_type,
@@ -76,8 +76,8 @@ export lower_match :: fn(
 
     chain: LoweredBlock = fallback
     cursor := arm_count
-    for cursor > usize(0) {
-        cursor = cursor - usize(1)
+    for cursor > 0 {
+        cursor = cursor - 1
         arm :: expr.arms[cursor]
         arm_block :: lower_arm(ctx, arm, scrut_symbol, scrut_type, recurse)
         predicate :: arm_predicate(ctx, arm, scrut_symbol, scrut_type, recurse)
@@ -494,7 +494,6 @@ export resolve_pattern_type :: fn(ctx: FnLowerCtx, type_expr: TypeExpr) -> Type 
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing" { assert_eq, assert }
-import "std/string" { byte_len }
 import "vader/diagnostics" { empty_span }
 
 @test test_fill_unresolved_emits_unresolved_array :: fn() -> void {

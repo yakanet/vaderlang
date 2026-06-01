@@ -20,7 +20,7 @@ module "vader/lower"
 
 import "std/collections" { keys }
 import "std/sort" { sort }
-import "std/string" { compare_ascending, to_lower, ends_with, byte_slice, byte_len }
+import "std/string" { compare_ascending, to_lower, ends_with, bytes, as_string }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 import "vader/diagnostics" { Span }
 import "vader/resolver" { is_stdlib_module }
@@ -83,7 +83,7 @@ emit_decl :: fn(lines: string[], decl: LoweredDecl, indent: string) -> void {
 render_params :: fn(params: LoweredParam[]) -> string {
     sb := new_builder()
     for i in 0..<params.len() {
-        if i > usize(0) { sb.append(", ") }
+        if i > 0 { sb.append(", ") }
         sb.append("${params[i].name}: ${display_type(params[i].type)}")
     }
     return sb.to_string()
@@ -92,7 +92,7 @@ render_params :: fn(params: LoweredParam[]) -> string {
 render_fields :: fn(fields: LoweredStructField[]) -> string {
     sb := new_builder()
     for i in 0..<fields.len() {
-        if i > usize(0) { sb.append(", ") }
+        if i > 0 { sb.append(", ") }
         sb.append("${fields[i].name}: ${display_type(fields[i].type)}")
     }
     return sb.to_string()
@@ -368,7 +368,8 @@ hex_string :: fn(value: u32) -> string {
 format_float :: fn(value: f64) -> string {
     raw :: "${value}"
     if raw.ends_with(".0") {
-        return raw.byte_slice(usize(0), raw.byte_len() - usize(2))
+        rb :: raw.bytes()
+        return rb[0..<rb.len() - 2].as_string()
     }
     return raw
 }
@@ -441,7 +442,7 @@ expr_kind_label :: fn(expr: LoweredExpr) -> string = match expr {
 join_lines :: fn(lines: string[]) -> string {
     sb := new_builder()
     for i in 0..<lines.len() {
-        if i > usize(0) { sb.append_char('\n') }
+        if i > 0 { sb.append_char('\n') }
         sb.append(lines[i])
     }
     return sb.to_string()

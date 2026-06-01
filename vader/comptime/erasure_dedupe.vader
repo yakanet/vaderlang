@@ -114,7 +114,7 @@ build_dedupe_ctx :: fn(
 ///   - if the decl is an impl member, its host struct doesn't carry
 ///     `@specialize` either (members inherit from the host).
 should_erase :: fn(entry: MonoEntry, ctx: DedupeCtx) -> bool {
-    if entry.type_arguments.len() == usize(0) { return false }
+    if entry.type_arguments.len() == 0 { return false }
     if is_specialized(entry.decl) { return false }
     match entry.decl {
         is FnDecl as f -> {
@@ -185,14 +185,14 @@ any_subst_for_entry :: fn(entry: MonoEntry) -> Substitution {
 ///           to `Any`.
 any_leaves_of :: fn(t: Type) -> Type = match t {
     is StructType as s -> {
-        if s.args.len() == usize(0) {
+        if s.args.len() == 0 {
             return mk_primitive("any")
         }
         new_args :: any_leaves_of_each(s.args)
         return StructType { .symbol = s.symbol, .args = new_args }
     }
     is TraitType as r -> {
-        if r.args.len() == usize(0) {
+        if r.args.len() == 0 {
             return mk_primitive("any")
         }
         new_args :: any_leaves_of_each(r.args)
@@ -237,7 +237,7 @@ display_any_arg :: fn(t: Type) -> string = match t {
 }
 
 display_args_name :: fn(name: string, args: Type[]) -> string {
-    if args.len() == usize(0) { return name }
+    if args.len() == 0 { return name }
     return "${name}_${join_displays(args, "_")}"
 }
 
@@ -392,7 +392,7 @@ export erasure_dedupe :: fn(
         group_opt :: groups[decl_id]
         if group_opt is null { continue }
         group :: group_opt
-        if group.entries.len() == usize(0) { continue }
+        if group.entries.len() == 0 { continue }
         if !any_should_erase(group.entries, ctx) { continue }
         first :: group.entries[0]
         match first.decl {
@@ -541,7 +541,7 @@ any_should_erase :: fn(entries: MonoEntry[], ctx: DedupeCtx) -> bool {
 pick_seed_with_bound_subst :: fn(entries: MonoEntry[]) -> MonoEntry {
     i: usize = 0
     for i < entries.len() {
-        if entries[i].subst.type_params.size > usize(0) {
+        if entries[i].subst.type_params.size > 0 {
             return entries[i]
         }
         i += 1
@@ -623,20 +623,21 @@ rewrite_struct_group :: fn(
 /// name. Mirrors the TS regex `/__[^_]+(_\d+)?$/`.
 strip_mangled_tail :: fn(mangled: string) -> string {
     // Find the last `__` and trim it + everything after.
-    n :: mangled.byte_len()
+    mb :: mangled.bytes()
+    n :: mb.len()
     last_double_underscore: isize = -1
     i: usize = 0
-    for i + usize(1) < n {
-        if mangled.byte_at(i) == 0x5F_u8 && mangled.byte_at(i + 1) == 0x5F_u8 {
+    for i + 1 < n {
+        if mb[i] == 0x5F_u8 && mb[i + 1] == 0x5F_u8 {
             last_double_underscore = isize(i)
         }
         i += 1
     }
     if last_double_underscore < isize(0) { return mangled }
-    return mangled.byte_slice(usize(0), usize(last_double_underscore))
+    return mb[0..<usize(last_double_underscore)].as_string()
 }
 
-import "std/string" { byte_len, byte_at, byte_slice }
+import "std/string" { bytes, as_string }
 
 find_entry_by_id :: fn(entries: MonoEntry[], id: i32) -> MonoEntry | null {
     i: usize = 0

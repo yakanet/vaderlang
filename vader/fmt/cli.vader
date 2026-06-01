@@ -9,7 +9,7 @@
 module "vader/fmt"
 
 import "std/io" { read_file, write_file, exists, is_dir, read_dir, print, eprintln }
-import "std/string" { byte_len, ends_with, starts_with }
+import "std/string" { ends_with, starts_with }
 import "std/path" { Path, join, to_path, as_string }
 import "vader/diagnostics" { Diagnostic, render }
 
@@ -49,7 +49,7 @@ parse_args :: fn(args: string[]) -> Options {
         }
         paths.push(a)
     }
-    if paths.len() == usize(0) { paths.push(".") }
+    if paths.len() == 0 { paths.push(".") }
     return Options { .mode = mode, .paths = paths }
 }
 

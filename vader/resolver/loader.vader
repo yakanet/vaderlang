@@ -16,7 +16,7 @@ module "vader/resolver"
 
 import "std/collections" { MutableMap, keys }
 import "std/io" { exists, is_dir, read_file }
-import "std/string" { byte_at, byte_len, ends_with, byte_slice, starts_with }
+import "std/string" { bytes, as_string as bytes_as_string, ends_with, starts_with }
 import "vader/diagnostics" { Diagnostic, Position, Span, resolver_error }
 import "vader/parser" { NodeIdFactory, new_node_id_factory, parse_source, assign_program_ids }
 import "vader/resolver/symbol" { Symbol, SymbolKind, SymbolFactory, new_factory }
@@ -140,7 +140,7 @@ export load_project :: fn(entry_path: string) -> LoadedProject {
             cursor: usize = 0
             for cursor < queue.len() {
                 m :: queue[cursor]
-                cursor = cursor + usize(1)
+                cursor = cursor + 1
                 id :: m.folder
                 if has_module(modules, id) { continue }
                 ingest_module(m, stdlib_root, modules, factory, index, loader_diags)
@@ -256,9 +256,10 @@ is_under_any_root :: fn(folder: string, roots: string[]) -> bool {
 }
 
 trim_trailing_slash :: fn(s: string) -> string {
-    n :: s.byte_len()
-    if n == usize(0) { return s }
-    if s.byte_at(n - usize(1)) == u8(0x2F) { return byte_slice(s, usize(0), n - usize(1)) }
+    sb :: s.bytes()
+    n :: sb.len()
+    if n == 0 { return s }
+    if sb[n - 1] == u8(0x2F) { return sb[0..<n - 1].bytes_as_string() }
     return s
 }
 
@@ -350,13 +351,15 @@ merge_collected :: fn(dst: CollectedModule, src: CollectedModule, diags: Diagnos
 display_path_for :: fn(root: string, stdlib_root: string) -> string {
     // Avoid the `"${stdlib_root}/"` interpolation alloc on every call —
     // manual prefix check + slash byte probe.
-    n :: stdlib_root.byte_len()
-    if root.byte_len() > n &&
+    n :: stdlib_root.bytes().len()
+    rootb :: root.bytes()
+    if rootb.len() > n &&
        root.starts_with(stdlib_root) &&
-       root.byte_at(n) == u8(0x2F) {
-        rel :: byte_slice(root, n + usize(1), root.byte_len())
+       rootb[n] == u8(0x2F) {
+        rel :: rootb[n + 1..<rootb.len()].bytes_as_string()
         if rel.ends_with(".vader") {
-            return byte_slice(rel, usize(0), rel.byte_len() - usize(6))
+            relb :: rel.bytes()
+            return relb[0..<relb.len() - 6].bytes_as_string()
         }
         return rel
     }

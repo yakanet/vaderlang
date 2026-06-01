@@ -181,7 +181,7 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
             // Size short-circuit : `comptime_bindings` is empty for
             // every fn that doesn't use `@comptime for`, so skip the
             // hash probe in the 99% case. Per-ident hot path.
-            if ctx.comptime_bindings.size > usize(0) {
+            if ctx.comptime_bindings.size > 0 {
                 comptime_val :: ctx.comptime_bindings[resolved.id]
                 if !(comptime_val is null) { return comptime_val }
             }
@@ -489,7 +489,7 @@ try_lower_common_union_field :: fn(
     if !(target_type is UnionType) { return null }
     match target_type {
         is UnionType as u -> {
-            if u.variants.len() == usize(0) { return null }
+            if u.variants.len() == 0 { return null }
             first_variant :: u.variants[0]
             if !(first_variant is StructType) { return null }
             // Every variant must be a struct exposing the same field
@@ -944,7 +944,7 @@ try_lower_virtual_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Low
                 // `equals` is `@intrinsic` on primitives ; `not_equals` is the
                 // trait default `!self.equals(...)`, which on a primitive is
                 // exactly `!=` — both reduce to a comparison primop here.
-                if tname == "Equals" && call.args.len() > usize(0) {
+                if tname == "Equals" && call.args.len() > 0 {
                     if field_expr.field == "equals" || field_expr.field == "not_equals" {
                         cmp_op :: if field_expr.field == "equals" { LoweredBinaryOp.Eq } else { LoweredBinaryOp.Neq }
                         return LoweredBinary {
@@ -1261,9 +1261,9 @@ trait_concrete_args :: fn(tt: TraitType, concrete: Type, ctx: FnLowerCtx) -> Typ
     if recorded != null {
         if all_concrete(recorded) { return recorded }
     }
-    if tt.symbol.name == "Iterator" && tt.args.len() == usize(1) {
+    if tt.symbol.name == "Iterator" && tt.args.len() == 1 {
         if concrete is StructType as st {
-            if st.args.len() > usize(0) { return [st.args[0]] }
+            if st.args.len() > 0 { return [st.args[0]] }
         }
         if concrete is ArrayType as ar {
             return [ar.element]
@@ -1463,7 +1463,7 @@ first_param_matches :: fn(ctx: FnLowerCtx, sym: Symbol, recv_type: Type) -> bool
     // accepted) ; otherwise match by nominal surface name.
     fn_ty :: lookup_fn_type_anywhere(ctx, sym)
     if fn_ty is FnType as ft {
-        if ft.params.len() == usize(0) { return false }
+        if ft.params.len() == 0 { return false }
         first :: ft.params[0]
         if first is TypeParamType { return true }
         if recv_type is UnionType { return is_assignable(recv_type, first, null) }
@@ -1523,7 +1523,7 @@ harvest_ufcs_fn_instance :: fn(
             register_nongeneric_stdlib_fn(ctx, fn_sym)
             return null
         }
-        if ft.params.len() == usize(0) { return null }
+        if ft.params.len() == 0 { return null }
         bindings :: MutableMap<i32, Type> { .buckets = [], .size = 0 }
         order: i32[] = []
         unify_params(ft.params[0], default_if_free(recv_type), bindings, order, ctx)
@@ -1850,7 +1850,7 @@ try_emit_into_coercion :: fn(
 }
 
 impl_trait_first_arg_is :: fn(decl: ImplDecl, name: string) -> bool {
-    if decl.trait_args.len() == usize(0) { return false }
+    if decl.trait_args.len() == 0 { return false }
     arg :: decl.trait_args[0]
     return impl_targets_name(arg, name)
 }
@@ -1913,7 +1913,7 @@ fold_bytes_len :: fn(ctx: FnLowerCtx, target: LoweredExpr, span: Span) -> Lowere
     // `.len()` sites (plain arrays) before touching the symbol table.
     if target is LoweredCall as lc {
         if lc.callee is LoweredIdent as ci {
-            if lc.args.len() == usize(1) {
+            if lc.args.len() == 1 {
                 strs :: ctx.project.string_symbols
                 if strs == null { return null }
                 bytes_sym :: strs["bytes"]
@@ -1950,7 +1950,7 @@ try_lower_array_op :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowered
             target_type :: ctx.types.expr_type(field_expr.target)
             match target_type {
                 is ArrayType -> {
-                    if field_expr.field == "len" && call.args.len() == usize(0) {
+                    if field_expr.field == "len" && call.args.len() == 0 {
                         len_target :: lower_expr(ctx, field_expr.target)
                         // `s.bytes().len()` → `byte_len(s)` : fold the inline
                         // form to the O(1) host primitive so it doesn't alloc a
@@ -1964,7 +1964,7 @@ try_lower_array_op :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowered
                             .target = len_target,
                         }
                     }
-                    if field_expr.field == "push" && call.args.len() == usize(1) {
+                    if field_expr.field == "push" && call.args.len() == 1 {
                         return LoweredArrayPush {
                             .span = call.span, .type = mk_primitive("void"),
                             .target = lower_expr(ctx, field_expr.target),
@@ -2363,7 +2363,7 @@ lower_struct_lit :: fn(ctx: FnLowerCtx, lit: StructLitExpr, type: Type) -> Lower
     }
     fields :: build_struct_lit_fields(ctx, type, provided, lit, spread_sym)
     struct_lit :: LoweredStructLit { .span = lit.span, .type = type, .fields = fields }
-    if spread_stmts.len() == usize(0) { return struct_lit }
+    if spread_stmts.len() == 0 { return struct_lit }
     return LoweredBlock {
         .span = lit.span, .type = type,
         .stmts = spread_stmts, .trailing = struct_lit,
@@ -2577,7 +2577,7 @@ lower_intrinsic :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type)
     // — we lower the args here so post-substitution literals get
     // picked up. When the typer left the result type unresolved,
     // refine from the receiver's struct decl + field name pair.
-    if intrinsic.name == "field" && intrinsic.args.len() == usize(2) {
+    if intrinsic.name == "field" && intrinsic.args.len() == 2 {
         target :: lower_expr(ctx, intrinsic.args[0])
         name_arg :: lower_expr(ctx, intrinsic.args[1])
         if name_arg is LoweredStringLit as name_lit {
@@ -2651,7 +2651,7 @@ try_late_fold_type_arg :: fn(name: string, args: LoweredExpr[], span: Span, type
 }
 
 runtime_intrinsic_name :: fn(name: string, args: LoweredExpr[]) -> string {
-    if name == "size_of" && args.len() == usize(1) {
+    if name == "size_of" && args.len() == 1 {
         return "size_of.type"
     }
     return name
@@ -2967,7 +2967,7 @@ export lower_block :: fn(
     // already exited (return / break / continue). The `drain_*`
     // helpers at those sites already emitted the proper drain count,
     // so a trailing pop_exec here would be dead code.
-    last_diverges :: stmts.len() > usize(0) && stmt_diverges(stmts[stmts.len() - usize(1)])
+    last_diverges :: stmts.len() > 0 && stmt_diverges(stmts[stmts.len() - 1])
     // Sequence the block-fall-through defer drain so it runs AFTER
     // the trailing expression has computed its value. The trailing's
     // side-effects must land before any defer fires (their thunks
@@ -2978,7 +2978,7 @@ export lower_block :: fn(
     // ident-ref as the new trailing. Mirror of
     // `src/lower/passes/block.ts::emitTrailingValueWithDefers`.
     trailing := raw_trailing
-    if defer_count > usize(0) && !last_diverges {
+    if defer_count > 0 && !last_diverges {
         if trailing == null {
             stmts.push(LoweredDeferPopExec {
                 .span = block.span, .count = i32(defer_count),
@@ -3049,7 +3049,7 @@ lower_stmt_into :: fn(ctx: FnLowerCtx, stmt: Stmt, out: LoweredStmt[]) -> void {
             drain: LoweredStmt[] = []
             drain_all_defers(ctx, return_stmt.span, drain)
             exit :: lower_return(ctx, return_stmt)
-            if drain.len() > usize(0) {
+            if drain.len() > 0 {
                 drain.push(exit)
                 out.push(wrap_stmts(return_stmt.span, drain))
             } else {
@@ -3061,7 +3061,7 @@ lower_stmt_into :: fn(ctx: FnLowerCtx, stmt: Stmt, out: LoweredStmt[]) -> void {
             drain: LoweredStmt[] = []
             drain_defers_to_loop(ctx, break_stmt.span, drain)
             exit :: LoweredBreak { .span = break_stmt.span, .label = break_stmt.label }
-            if drain.len() > usize(0) {
+            if drain.len() > 0 {
                 drain.push(exit)
                 out.push(wrap_stmts(break_stmt.span, drain))
             } else {
@@ -3072,7 +3072,7 @@ lower_stmt_into :: fn(ctx: FnLowerCtx, stmt: Stmt, out: LoweredStmt[]) -> void {
             drain: LoweredStmt[] = []
             drain_defers_to_loop(ctx, continue_stmt.span, drain)
             exit :: LoweredContinue { .span = continue_stmt.span, .label = continue_stmt.label }
-            if drain.len() > usize(0) {
+            if drain.len() > 0 {
                 drain.push(exit)
                 out.push(wrap_stmts(continue_stmt.span, drain))
             } else {
@@ -3090,8 +3090,8 @@ lower_stmt_into :: fn(ctx: FnLowerCtx, stmt: Stmt, out: LoweredStmt[]) -> void {
             // so the matching fall-through / break / continue / return
             // can drain it with `defer.pop_exec N`.
             n_blocks :: ctx.blocks.len()
-            if n_blocks > usize(0) {
-                ctx.blocks[n_blocks - usize(1)].defers.push(defer_stmt)
+            if n_blocks > 0 {
+                ctx.blocks[n_blocks - 1].defers.push(defer_stmt)
             }
         }
     }
@@ -3655,7 +3655,7 @@ try_lower_range_slice :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type, as_str
             .type = idx_type, .value = lower_expr(ctx, expr.index),
         }
         range_ref :: LoweredIdent { .span = span, .type = idx_type, .symbol = range_sym }
-        bound_type :: if st.args.len() > usize(0) { st.args[0] } else { mk_primitive("usize") }
+        bound_type :: if st.args.len() > 0 { st.args[0] } else { mk_primitive("usize") }
         lo_value :: cast_to_usize(LoweredFieldAccess {
             .span = span, .type = bound_type, .target = range_ref, .field = "start",
         }, span)
@@ -3806,7 +3806,7 @@ stmt_diverges :: fn(s: LoweredStmt) -> bool {
     if s is LoweredExprStmt as es {
         if es.expr is LoweredBlock as lb {
             n :: lb.stmts.len()
-            if n > usize(0) { return stmt_diverges(lb.stmts[n - usize(1)]) }
+            if n > 0 { return stmt_diverges(lb.stmts[n - 1]) }
         }
     }
     return false
@@ -3947,7 +3947,7 @@ lower_comptime_for_in :: fn(ctx: FnLowerCtx, for_stmt: ForStmt, in_form: InFor) 
             },
         }
     }
-    if arr_lit.elements.len() > usize(256) {
+    if arr_lit.elements.len() > 256 {
         return LoweredExprStmt {
             .span = span,
             .expr = LoweredUnreachable {

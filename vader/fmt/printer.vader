@@ -9,7 +9,7 @@
 module "vader/fmt"
 
 import "std/string_builder" { StringBuilder, new_builder, append, append_char, append_repeated }
-import "std/string" { byte_len, byte_at, byte_slice as str_slice }
+import "std/string" { bytes, as_string as bytes_as_string }
 import "std/io" { eprintln }
 import "vader/diagnostics" { Span, Position }
 p :: import "vader/parser"
@@ -53,7 +53,7 @@ export finish :: fn(self: Printer) -> string {
 
 write :: fn(self: Printer, s: string) -> void {
     self.buf.append(s)
-    if s.byte_len() > 0 { self.has_written = true }
+    if s.bytes().len() > 0 { self.has_written = true }
 }
 
 newline :: fn(self: Printer) -> void {
@@ -76,7 +76,7 @@ nl_indent :: fn(self: Printer) -> void {
 //        from the AST — strings, generic-inst syntax forms) -----
 
 source_slice :: fn(self: Printer, span: Span) -> string {
-    return self.source.str_slice(span.start.offset, span.end.offset)
+    return self.source.bytes()[span.start.offset..<span.end.offset].bytes_as_string()
 }
 
 // Write `name` followed by enough trailing spaces to reach
@@ -86,7 +86,7 @@ source_slice :: fn(self: Printer, span: Span) -> string {
 write_name_padded :: fn(self: Printer, name: string) -> void {
     self.write(name)
     target :: self.align_name_width
-    n :: name.byte_len()
+    n :: name.bytes().len()
     if target > n {
         pad :: target - n
         k: usize = 0
@@ -278,10 +278,10 @@ compute_decl_alignment_widths :: fn(decls: p.Decl[]) -> usize[] {
             continue
         }
         end := i + 1
-        width: usize = decl_alignable_name(decls[i]).byte_len()
+        width: usize = decl_alignable_name(decls[i]).bytes().len()
         for end < decls.len() {
             if !decls_in_same_group(decls[end - 1], decls[end]) { break }
-            w :: decl_alignable_name(decls[end]).byte_len()
+            w :: decl_alignable_name(decls[end]).bytes().len()
             if w > width { width = w }
             end = end + 1
         }
@@ -673,7 +673,7 @@ compute_fn_alignment_widths :: fn(members: p.FnDecl[]) -> usize[] {
         // Group : consecutive sig-only members, adjacent lines, same
         // visibility, same decorator set.
         end := i + 1
-        width: usize = m.name.byte_len()
+        width: usize = m.name.bytes().len()
         for end < members.len() {
             prev :: members[end - 1]
             cur :: members[end]
@@ -682,7 +682,7 @@ compute_fn_alignment_widths :: fn(members: p.FnDecl[]) -> usize[] {
             if cur.span.start.line != prev.span.end.line + 1 { break }
             if prev.visibility != cur.visibility { break }
             if !decorators_equal(prev.decorators, cur.decorators) { break }
-            w :: cur.name.byte_len()
+            w :: cur.name.bytes().len()
             if w > width { width = w }
             end = end + 1
         }
@@ -826,7 +826,7 @@ emit_const_decl :: fn(self: Printer, d: p.ConstDecl) -> void {
             self.write_name_padded(d.name)
             self.write(" :: ")
             target :: self.align_name_width
-            n :: d.name.byte_len()
+            n :: d.name.bytes().len()
             name_width = if target > n { target } else { n }
         }
         _ -> {
@@ -846,9 +846,9 @@ emit_const_decl :: fn(self: Printer, d: p.ConstDecl) -> void {
     // Typed constants skip this path (the `: T :` segment makes the prefix
     // shape too irregular for the simple align rule to read cleanly).
     if d.ty is null && is_bitor_chain(d.value) {
-        prefix_width :: usize(self.depth) * usize(4) + name_width + usize(4) // " :: "
+        prefix_width :: usize(self.depth) * usize(4) + name_width + 4 // " :: "
         rendered :: render_expr_for_measure(self.source, d.value)
-        if prefix_width + rendered.byte_len() > usize(MAX_LINE) {
+        if prefix_width + rendered.bytes().len() > usize(MAX_LINE) {
             self.emit_union_multiline(d.value, name_width)
             return
         }
@@ -880,7 +880,7 @@ render_expr_for_measure :: fn(source: string, e: p.Expr) -> string {
 
 emit_union_multiline :: fn(self: Printer, value: p.Expr, name_width: usize) -> void {
     variants :: p.collect_bitor_variants(value)
-    if variants.len() < usize(2) {
+    if variants.len() < 2 {
         // Defensive fallback : a degenerate chain (or a single-variant
         // `BitOr` that shouldn't exist) renders inline.
         self.emit_expr(value)
@@ -890,18 +890,18 @@ emit_union_multiline :: fn(self: Printer, value: p.Expr, name_width: usize) -> v
     // Leading-pipe indent : `depth*4` for the base indent + `name_width`
     // to step past the name column + 2 more cols so the `|` lands one
     // space before each variant's column (matches the first variant).
-    pad :: usize(self.depth) * usize(4) + name_width + usize(2)
+    pad :: usize(self.depth) * usize(4) + name_width + 2
     i: usize = 1
     for i < variants.len() {
         self.newline()
         k: usize = 0
         for k < pad {
             self.buf.append(" ")
-            k = k + usize(1)
+            k = k + 1
         }
         self.write("| ")
         self.emit_binary_operand(variants[i], .BitOr, false)
-        i = i + usize(1)
+        i = i + 1
     }
 }
 

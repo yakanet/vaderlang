@@ -17,7 +17,7 @@ module "vader/lower"
 import "std/collections" { MutableMap, keys, values }
 import "std/sort" { sort }
 import "std/iter" { is_empty }
-import "std/string" { compare_ascending, byte_at, byte_len, byte_slice }
+import "std/string" { compare_ascending, bytes }
 import "vader/diagnostics" { Diagnostic, Span }
 import "vader/parser" {
     Decl, FnDecl, StructDecl, ConstDecl,
@@ -88,7 +88,7 @@ export lower_project :: fn(
                 if stdlib_typed_opt is TypedProgram as stdlib_typed {
                     for d in module_decls(sl) {
                         if d is FnDecl as fd {
-                            if fd.body is null && fd.type_params.len() == usize(0) {
+                            if fd.body is null && fd.type_params.len() == 0 {
                                 lowered :: lower_fn_decl(fd, stdlib_typed, project_ctx, diags)
                                 if lowered != null {
                                     stdlib_decls.push(lowered)
@@ -227,18 +227,19 @@ ImplTraitMethod :: struct { trait_name: string, method: string }
 // round-trip is the cheap substitute).
 impl_trait_method_from_mangled :: fn(mangled: string) -> ImplTraitMethod | null {
     parts :: split_dollar(mangled)
-    if parts.len() < usize(4) { return null }
+    if parts.len() < 4 { return null }
     return ImplTraitMethod {
-        .trait_name = parts[parts.len() - usize(2)],
-        .method     = parts[parts.len() - usize(1)],
+        .trait_name = parts[parts.len() - 2],
+        .method     = parts[parts.len() - 1],
     }
 }
 
 split_dollar :: fn(s: string) -> string[] {
     out: string[] = []
     cur := ""
-    for i in usize(0)..<s.byte_len() {
-        b :: s.byte_at(i)
+    sb :: s.bytes()
+    for i in 0..<sb.len() {
+        b :: sb[i]
         if b == u8(0x24) { out.push(cur)  cur = "" }
         else { cur = "${cur}${char(u32(b))}" }
     }
@@ -252,7 +253,7 @@ split_dollar :: fn(s: string) -> string[] {
 // key. Returns null when params are empty (defensive — impl members
 // always carry self).
 impl_receiver_type_from_decl :: fn(fd: LoweredFnDecl, _typed: TypedProject) -> Type | null {
-    if fd.params.len() == usize(0) { return null }
+    if fd.params.len() == 0 { return null }
     return fd.params[0].type
 }
 
@@ -513,12 +514,12 @@ lower_impl_member_list :: fn(
     out: LoweredDecl[] = []
     // Skip generic impls entirely — the mono pass binds them via a
     // separate path.
-    if impl_decl.type_params.len() > usize(0) { return out }
+    if impl_decl.type_params.len() > 0 { return out }
     if impl_decl.for_type is GenericInstExpr { return out }
     self_type :: lower_for_type(impl_decl, typed)
     base_mangle :: "${mangle_module_id(typed.resolved.display_path)}$${impl_decl.trait_name}"
     for member in impl_decl.members {
-        if member.type_params.len() > usize(0) { continue }
+        if member.type_params.len() > 0 { continue }
         subst :: new_substitution()
         types :: make_entry_types(typed, subst)
         params :: build_impl_member_params(member, self_type, types, typed, project_ctx)
@@ -560,7 +561,7 @@ surface_referenced_intrinsic_externs :: fn(
                 }
             }
         }
-        if extra.len() == usize(0) { continue }
+        if extra.len() == 0 { continue }
         existing :: project.modules[module_id]
         if existing is null { continue }
         merged :: existing.decls
@@ -586,11 +587,11 @@ surface_stdlib_impl_externs :: fn(
     impl_decl: ImplDecl, typed: TypedProgram, project_ctx: LowerProjectCtx, module_decls: Decl[],
 ) -> LoweredDecl[] {
     out: LoweredDecl[] = []
-    if impl_decl.type_params.len() > usize(0) { return out }
+    if impl_decl.type_params.len() > 0 { return out }
     if impl_decl.for_type is GenericInstExpr { return out }
     self_type :: lower_for_type(impl_decl, typed)
     for member in impl_decl.members {
-        if member.type_params.len() > usize(0) { continue }
+        if member.type_params.len() > 0 { continue }
         mangled :: impl_member_mangled(impl_decl, member, typed, module_decls)
         // Only emit members an actual call referenced — emitting every stdlib
         // impl member would intern unused signature types and shift the type
@@ -682,7 +683,7 @@ impl_member_mangled :: fn(
 impl_member_overload_suffix :: fn(
     member: FnDecl, owning_impl: ImplDecl, target_name: string, decls: Decl[],
 ) -> string {
-    if member.name_span.start.offset < usize(0) { return "" }
+    if member.name_span.start.offset < 0 { return "" }
     target_offset :: member.name_span.start.offset
     seen :: i32(0)
     counter := seen
@@ -771,7 +772,7 @@ synth_impl_entry :: fn(member: FnDecl, typed: TypedProgram, mangled: string) -> 
 lower_fn_decl :: fn(
     fn_decl: FnDecl, typed: TypedProgram, project_ctx: LowerProjectCtx, diags: Diagnostic[],
 ) -> LoweredDecl | null {
-    if fn_decl.type_params.len() > usize(0) { return null }
+    if fn_decl.type_params.len() > 0 { return null }
     subst :: new_substitution()
     types :: make_entry_types(typed, subst)
     params: LoweredParam[] = []
@@ -824,7 +825,7 @@ lower_fn_body :: fn(
 lower_struct_decl :: fn(
     struct_decl: StructDecl, typed: TypedProgram, project_ctx: LowerProjectCtx, diags: Diagnostic[],
 ) -> LoweredDecl | null {
-    if struct_decl.type_params.len() > usize(0) { return null }
+    if struct_decl.type_params.len() > 0 { return null }
     types :: make_entry_types(typed, new_substitution())
     field_table :: lookup_struct_field_table(struct_decl, typed)
     fields: LoweredStructField[] = []
@@ -996,13 +997,13 @@ overload_suffix_for :: fn(decl: Decl, typed: TypedProgram) -> string {
         bucket :: typed.resolved.fn_overloads[decl_name(decl)]
         if bucket is null { return "" }
         if bucket is Symbol[] as symbols {
-            if symbols.len() < usize(2) { return "" }
+            if symbols.len() < 2 { return "" }
             for i in 0..<symbols.len() {
                 match symbols[i].defined_at {
                     is null -> {}
                     is Span as defined -> {
                         if defined.hash() == name_span.hash() {
-                            if i == usize(0) { return "" }
+                            if i == 0 { return "" }
                             return "_${i}"
                         }
                     }
@@ -1290,7 +1291,7 @@ find_fn_decl_by_name :: fn(decls: Decl[], name: string, arity: usize) -> FnDecl 
         match d {
             is FnDecl as f -> {
                 if f.name != name { continue }
-                if f.type_params.len() == usize(0) { continue }
+                if f.type_params.len() == 0 { continue }
                 if f.type_params.len() != arity { continue }
                 return f
             }
@@ -1306,7 +1307,7 @@ find_fn_decl_by_name :: fn(decls: Decl[], name: string, arity: usize) -> FnDecl 
 find_nongeneric_fn_decl_by_name :: fn(decls: Decl[], name: string) -> FnDecl | null {
     for d in decls {
         if d is FnDecl as f {
-            if f.name == name && f.type_params.len() == usize(0) { return f }
+            if f.name == name && f.type_params.len() == 0 { return f }
         }
     }
     return null
@@ -1498,7 +1499,7 @@ materialize_representative :: fn(
             decl :: find_struct_decl_by_name(owner_decls, sym.name)
             if decl is null { return }
             if decl is StructDecl as sd {
-                if sd.type_params.len() == usize(0) { return }
+                if sd.type_params.len() == 0 { return }
                 seen_reps.add(rep_mangled)
                 erase :: build_any_subst(sd, owner_typed_ok)
                 fields: LoweredStructField[] = []
@@ -1627,7 +1628,7 @@ mono_has_struct_entry_for :: fn(project_ctx: LowerProjectCtx, inst: GenericInsta
     i: usize = 0
     for i < entries.len() {
         entry :: entries[i]
-        if entry.type_arguments.len() == usize(0) {
+        if entry.type_arguments.len() == 0 {
             i += 1
             continue
         }
@@ -2377,7 +2378,7 @@ materialize_bound_impl :: fn(
                         // Generic / concrete-instantiation impls go through the
                         // struct-instance path ; this targets the non-generic
                         // primitive (or plain struct) impls.
-                        if impl_.type_params.len() > usize(0) { continue }
+                        if impl_.type_params.len() > 0 { continue }
                         if impl_.for_type is GenericInstExpr { continue }
                         project_ctx.materialized_impl_keys.add(dedupe_key)
                         for m in lower_impl_member_list(impl_, mt, project_ctx, diags, decls) {
@@ -2438,7 +2439,7 @@ build_impl_subst :: fn(
     // typeParams. The legacy `Foo[T] implements ...` form is handled
     // by walking through the impl-side resolved symbols (the resolver
     // hoists struct typeParam names into the impl's scope).
-    if impl_decl.type_params.len() > usize(0) {
+    if impl_decl.type_params.len() > 0 {
         for i in 0..<impl_decl.type_params.len() {
             if i >= args.len() { break }
             tp_sym :: lookup_type_param_symbol(impl_typed.resolved, impl_decl.type_params[i].span)
@@ -2620,7 +2621,7 @@ import "vader/resolver" { ResolvedModule }
 import "vader/comptime" { symbol_for_decl }
 
 module_decls :: fn(module_loaded: LoadedModule) -> Decl[] {
-    if module_loaded.module.files.len() == usize(0) { return [] }
+    if module_loaded.module.files.len() == 0 { return [] }
     out: Decl[] = []
     for source_file in module_loaded.module.files {
         for decl in source_file.program.decls {

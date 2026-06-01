@@ -27,7 +27,7 @@
 
 module "vader/c_emit"
 
-import "std/string" { byte_len, byte_at }
+import "std/string" { bytes }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 import "vader/bytecode" {
     BcType, BcPrimitive, BcStruct, BcArray, BcUnion, BcRef, BcFn,
@@ -47,10 +47,11 @@ import "vader/bytecode" {
 /// @return     a safe C identifier.
 export sanitise :: fn(raw: string) -> string {
     sb :: new_builder()
-    n :: raw.byte_len()
+    rawb :: raw.bytes()
+    n :: rawb.len()
     i: usize = 0
     for i < n {
-        b :: raw.byte_at(i)
+        b :: rawb[i]
         if is_ident_byte(b) {
             sb.append_char(char(u32(b)))
         } else {
@@ -147,10 +148,11 @@ is_c_reserved :: fn(name: string) -> bool {
 export c_string_lit :: fn(s: string) -> string {
     sb :: new_builder()
     sb.append_char('"')
-    n :: s.byte_len()
+    sbytes :: s.bytes()
+    n :: sbytes.len()
     i: usize = 0
     for i < n {
-        b :: s.byte_at(i)
+        b :: sbytes[i]
         if b == 0x5C_u8 {
             sb.append("\\\\")
         } else if b == 0x22_u8 {
@@ -170,7 +172,7 @@ export c_string_lit :: fn(s: string) -> string {
             // Close the escape so a following hex digit doesn't extend it.
             next_idx :: i + 1
             if next_idx < n {
-                next_b :: s.byte_at(next_idx)
+                next_b :: sbytes[next_idx]
                 if is_c_hex_digit(next_b) {
                     sb.append("\"\"")
                 }
