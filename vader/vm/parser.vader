@@ -14,7 +14,7 @@
 
 module "vader/vm"
 
-import "std/string" { byte_len, byte_at, byte_slice, starts_with, ends_with, trim, split, index_of, decode_escapes, ParseError }
+import "std/string" { bytes, from_utf8, starts_with, ends_with, trim, split, index_of, decode_escapes, ParseError }
 import "std/numbers" { hex_digit_value, parse_int_in_base, parse_uint_in_base }
 
 // `ScopeEntry` and `PendingBranch` live in `vader/vm/builder.vader` —
@@ -57,18 +57,19 @@ strip_comment :: fn(line: string) -> string {
     // quoted string. The `.virt` writer keeps the comment delimiter
     // literal so a `;` inside a quoted payload (e.g. `string 3 "GC;..."`)
     // must not be treated as the start of a comment.
-    n :: line.byte_len()
+    lb :: line.bytes()
+    n :: lb.len()
     in_quote := false
     i: usize = 0
     for i < n {
-        b :: line.byte_at(i)
+        b :: lb[i]
         if b == b'\\' && in_quote && i + 1 < n {
             // Skip the escaped byte so `\"` doesn't close the string.
             i += 2
             continue
         }
         if b == b'"' { in_quote = !in_quote }
-        else if b == b';' && !in_quote { return line.byte_slice(0, i).trim() }
+        else if b == b';' && !in_quote { return lb[0..<i].from_utf8().trim() }
         i += 1
     }
     return line.trim()
@@ -83,7 +84,8 @@ strip_comment :: fn(line: string) -> string {
 /// @return         the next whitespace-delimited token, or the rest of
 ///                 the line if there is no further space.
 first_token_after :: fn(cleaned: string, prefix: string) -> string {
-    rest :: cleaned.byte_slice(prefix.byte_len(), cleaned.byte_len()).trim()
+    cb :: cleaned.bytes()
+    rest :: cb[prefix.bytes().len()..<cb.len()].from_utf8().trim()
     return head_of(rest)
 }
 
@@ -98,7 +100,7 @@ first_token_after :: fn(cleaned: string, prefix: string) -> string {
 head_of :: fn(s: string) -> string {
     space :: s.index_of(' ', 0)
     if space < 0 { return s }
-    return s.byte_slice(0, usize(space))
+    return s.bytes()[0..<usize(space)].from_utf8()
 }
 
 /// Walk every line of the .virt source. Module-level directives
@@ -150,7 +152,7 @@ export parse_virt :: fn(source: string) -> Module {
         line :: lines[line_index]
         line_index += 1
         cleaned :: strip_comment(line)
-        if cleaned.byte_len() == 0 { continue }
+        if cleaned.bytes().len() == 0 { continue }
 
         head :: head_of(cleaned)
 
@@ -289,7 +291,8 @@ parse_trait_impl_name :: fn(function_name: string, types: TypeDecl[]) -> TraitIm
     vt_suffix :: "\$vt"
     name := function_name
     if name.ends_with(vt_suffix) {
-        name = name.byte_slice(0, name.byte_len() - vt_suffix.byte_len())
+        nb0 :: name.bytes()
+        name = nb0[0..<nb0.len() - vt_suffix.bytes().len()].from_utf8()
     }
     last_dollar :: last_index_of_dollar(name)
     if last_dollar < 0 { return null }
@@ -298,7 +301,8 @@ parse_trait_impl_name :: fn(function_name: string, types: TypeDecl[]) -> TraitIm
     // Require a module prefix `$` before the `<Type>$<Trait>$<Method>` tail —
     // bare `$Type$Method` shapes (no module) are never trait impls.
     if last_index_of_dollar_before(name, second_last) < 0 { return null }
-    method_full :: name.byte_slice(usize(last_dollar + 1), name.byte_len())
+    nb :: name.bytes()
+    method_full :: nb[usize(last_dollar + 1)..<nb.len()].from_utf8()
     // Generic-monomorphised impls mangle as `<Type>__T1[..]$<Trait>$<method>__T1[..]`,
     // so the `__T...` tail on the method name mirrors the receiver type's own
     // suffix. Detach it from the method name and append it to the type prefix
@@ -307,11 +311,12 @@ parse_trait_impl_name :: fn(function_name: string, types: TypeDecl[]) -> TraitIm
     method_name := method_full
     generic_suffix := ""
     if underscore_at >= 0 {
-        method_name = method_full.byte_slice(0, usize(underscore_at))
-        generic_suffix = method_full.byte_slice(usize(underscore_at), method_full.byte_len())
+        mfb :: method_full.bytes()
+        method_name = mfb[0..<usize(underscore_at)].from_utf8()
+        generic_suffix = mfb[usize(underscore_at)..<mfb.len()].from_utf8()
     }
-    trait_name :: name.byte_slice(usize(second_last + 1), usize(last_dollar))
-    type_prefix :: name.byte_slice(0, usize(second_last))
+    trait_name :: nb[usize(second_last + 1)..<usize(last_dollar)].from_utf8()
+    type_prefix :: nb[0..<usize(second_last)].from_utf8()
     type_name :: "${type_prefix}${generic_suffix}"
     type_id :: find_struct_type_id(types, type_name)
     if type_id < 0 { return null }
@@ -323,11 +328,12 @@ parse_trait_impl_name :: fn(function_name: string, types: TypeDecl[]) -> TraitIm
 
 /// Index of the first `__` at or after `start`, or `-1` if absent.
 find_double_underscore :: fn(s: string, start: usize) -> i32 {
-    n :: s.byte_len()
+    sb :: s.bytes()
+    n :: sb.len()
     if n < 2 { return -1 }
     i := start
     for i + 1 < n {
-        if s.byte_at(i) == b'_' && s.byte_at(i + 1) == b'_' {
+        if sb[i] == b'_' && sb[i + 1] == b'_' {
             return i32(i)
         }
         i += 1
@@ -350,7 +356,10 @@ find_struct_type_id :: fn(types: TypeDecl[], target: string) -> i32 {
     // can resolve a primitive receiver to a real type-id.
     last_dollar :: last_index_of_dollar(target)
     primitive_name: string = target
-    if last_dollar >= 0 { primitive_name = target.byte_slice(usize(last_dollar + 1), target.byte_len()) }
+    if last_dollar >= 0 {
+        tb :: target.bytes()
+        primitive_name = tb[usize(last_dollar + 1)..<tb.len()].from_utf8()
+    }
     j: usize = 0
     for j < types.len() {
         if primitive_name_matches(types[j], primitive_name) { return i32(j) }
@@ -375,9 +384,10 @@ primitive_name_matches :: fn(td: TypeDecl, target: string) -> bool = match td {
 
 /// Index of the last `$` strictly before `end_exclusive`, or `-1`.
 last_index_of_dollar_before :: fn(s: string, end_exclusive: i32) -> i32 {
+    sb :: s.bytes()
     i: i32 = end_exclusive - 1
     for i >= 0 {
-        if s.byte_at(usize(i)) == b'$' { return i }
+        if sb[usize(i)] == b'$' { return i }
         i -= 1
     }
     return -1
@@ -385,7 +395,7 @@ last_index_of_dollar_before :: fn(s: string, end_exclusive: i32) -> i32 {
 
 /// Index of the last `$` in `s`, or `-1` if none. Thin alias over
 /// `last_index_of_dollar_before` with the byte length as the exclusive end.
-last_index_of_dollar :: fn(s: string) -> i32 = last_index_of_dollar_before(s, i32(s.byte_len()))
+last_index_of_dollar :: fn(s: string) -> i32 = last_index_of_dollar_before(s, i32(s.bytes().len()))
 
 /// Append an entry into the vtable for `key` (creates the vtable if absent).
 register_vtable_entry :: fn(vtables: Vtable[], key: string, entry: VtableEntry) -> void {
@@ -409,22 +419,25 @@ register_vtable_entry :: fn(vtables: Vtable[], key: string, entry: VtableEntry) 
 /// @param cleaned  the .virt line (comment-stripped).
 /// @param types    the module type table, appended to in place.
 parse_type_decl :: fn(cleaned: string, types: TypeDecl[]) -> void {
-    after_type :: cleaned.byte_slice("type ".byte_len(), cleaned.byte_len()).trim()
+    cb :: cleaned.bytes()
+    after_type :: cb["type ".bytes().len()..<cb.len()].from_utf8().trim()
     first_space :: after_type.index_of(' ', 0)
     if first_space < 0 { types.push(RefType { .trait_name = "" }) return }
-    rest :: after_type.byte_slice(usize(first_space) + 1, after_type.byte_len()).trim()
+    atb :: after_type.bytes()
+    rest :: atb[usize(first_space) + 1..<atb.len()].from_utf8().trim()
+    rb :: rest.bytes()
 
     if rest.starts_with("struct ") {
         types.push(parse_struct_type(rest))
         return
     }
     if rest.starts_with("primitive ") {
-        kind :: rest.byte_slice("primitive ".byte_len(), rest.byte_len()).trim()
+        kind :: rb["primitive ".bytes().len()..<rb.len()].from_utf8().trim()
         types.push(PrimitiveType { .kind = kind })
         return
     }
     if rest.starts_with("array ") {
-        element_text :: rest.byte_slice("array ".byte_len(), rest.byte_len()).trim()
+        element_text :: rb["array ".bytes().len()..<rb.len()].from_utf8().trim()
         parsed :: parse_int_in_base(element_text, 10)
         if parsed is ParseError { types.push(RefType { .trait_name = "" }) return }
         types.push(ArrayType { .element_type_id = i32(parsed) })
@@ -435,7 +448,7 @@ parse_type_decl :: fn(cleaned: string, types: TypeDecl[]) -> void {
         // dispatch in `type_matches` : `is Error` patterns succeed when
         // the value is an `ErrorVal`. `_` (wildcard) stays as the empty
         // string and matches no specific trait.
-        name :: rest.byte_slice("ref ".byte_len(), rest.byte_len()).trim()
+        name :: rb["ref ".bytes().len()..<rb.len()].from_utf8().trim()
         normalised: string = if name == "_" { "" } else { name }
         types.push(RefType { .trait_name = normalised })
         return
@@ -459,9 +472,10 @@ parse_type_decl :: fn(cleaned: string, types: TypeDecl[]) -> void {
 /// @return      a `StructType` carrying the mangled name and the count
 ///              of comma-separated fields (0 for `{ }`).
 parse_struct_type :: fn(rest: string) -> StructType {
-    after_struct :: rest.byte_slice("struct ".byte_len(), rest.byte_len())
+    rb :: rest.bytes()
+    after_struct :: rb["struct ".bytes().len()..<rb.len()].from_utf8()
     open :: after_struct.index_of('{', 0)
-    name :: if open < 0 { after_struct.trim() } else { after_struct.byte_slice(0, usize(open)).trim() }
+    name :: if open < 0 { after_struct.trim() } else { after_struct.bytes()[0..<usize(open)].from_utf8().trim() }
     return StructType { .name = name, .field_count = count_delimited_items(after_struct, '{', '}') }
 }
 
@@ -472,7 +486,8 @@ parse_struct_type :: fn(rest: string) -> StructType {
 /// @return      a `UnionType` ; malformed input yields an empty variant
 ///              list (the resulting type matches nothing).
 parse_union_type :: fn(rest: string) -> UnionType {
-    after :: rest.byte_slice("union ".byte_len(), rest.byte_len()).trim()
+    rb :: rest.bytes()
+    after :: rb["union ".bytes().len()..<rb.len()].from_utf8().trim()
     return UnionType { .variant_type_ids = parse_int_list(after) }
 }
 
@@ -484,7 +499,7 @@ parse_union_type :: fn(rest: string) -> UnionType {
 /// @return     parsed ids, in order.
 parse_int_list :: fn(csv: string) -> i32[] {
     ids: i32[] = []
-    if csv.byte_len() == 0 { return ids }
+    if csv.bytes().len() == 0 { return ids }
     parts :: csv.split(",")
     n :: parts.len()
     i: usize = 0
@@ -503,17 +518,18 @@ parse_int_list :: fn(csv: string) -> i32[] {
 /// @return      a `FnType` ; on malformed input, returns one with an
 ///              empty parameter list and `return_type_id = 0`.
 parse_fn_type :: fn(rest: string) -> FnType {
+    rb :: rest.bytes()
     open :: rest.index_of('(', 0)
     close :: rest.index_of(')', 0)
     parameter_type_ids: i32[] = if open >= 0 && close >= 0 && close > open + 1 {
-        parse_int_list(rest.byte_slice(usize(open) + 1, usize(close)).trim())
+        parse_int_list(rb[usize(open) + 1..<usize(close)].from_utf8().trim())
     } else {
         []
     }
     return_type_id := 0
     arrow :: rest.index_of('>', 0)
     if arrow >= 0 {
-        ret_text :: rest.byte_slice(usize(arrow) + 1, rest.byte_len()).trim()
+        ret_text :: rb[usize(arrow) + 1..<rb.len()].from_utf8().trim()
         parsed :: parse_int_in_base(ret_text, 10)
         if !(parsed is ParseError) { return_type_id = i32(parsed) }
     }
@@ -527,10 +543,10 @@ parse_fn_type :: fn(rest: string) -> FnType {
 /// @param cleaned  the .virt line, already comment-stripped.
 /// @param strings  the module-wide string pool, appended to in place.
 parse_string_decl :: fn(cleaned: string, strings: string[]) -> void {
-    after :: cleaned.byte_slice("string ".byte_len(), cleaned.byte_len())
+    after :: cleaned.bytes()["string ".bytes().len()..<cleaned.bytes().len()].from_utf8()
     first_quote :: after.index_of('"', 0)
     if first_quote < 0 { return }
-    body :: after.byte_slice(usize(first_quote) + 1, after.byte_len() - 1)
+    body :: after.bytes()[usize(first_quote) + 1..<after.bytes().len() - 1].from_utf8()
     strings.push(decode_escapes(body))
 }
 
@@ -542,22 +558,25 @@ parse_string_decl :: fn(cleaned: string, strings: string[]) -> void {
 /// @param cleaned    the .virt line, already comment-stripped.
 /// @param data_pool  the module-wide data pool, appended to in place.
 parse_data_decl :: fn(cleaned: string, data_pool: ArrayVal[]) -> void {
-    after :: cleaned.byte_slice("data ".byte_len(), cleaned.byte_len())
+    cb :: cleaned.bytes()
+    after :: cb["data ".bytes().len()..<cb.len()].from_utf8()
     sp1 :: after.index_of(' ', 0)
     if sp1 < 0 { return }
     sp2 :: after.index_of(' ', usize(sp1) + 1)
     if sp2 < 0 { return }
-    kind :: after.byte_slice(usize(sp1) + 1, usize(sp2))
-    rest :: after.byte_slice(usize(sp2) + 1, after.byte_len())
+    ab :: after.bytes()
+    kind :: ab[usize(sp1) + 1..<usize(sp2)].from_utf8()
+    rest :: ab[usize(sp2) + 1..<ab.len()].from_utf8()
     // Match `hex"..."` via byte-compare — the closing `"` would need an
     // awkward escape in a Vader string literal otherwise.
-    if rest.byte_len() < 5 { return }
-    if rest.byte_at(0) != u8(b'h') { return }
-    if rest.byte_at(1) != u8(b'e') { return }
-    if rest.byte_at(2) != u8(b'x') { return }
-    if rest.byte_at(3) != u8(b'"') { return }
-    if rest.byte_at(rest.byte_len() - 1) != u8(b'"') { return }
-    hex_body :: rest.byte_slice(4, rest.byte_len() - 1)
+    rb :: rest.bytes()
+    if rb.len() < 5 { return }
+    if rb[0] != u8(b'h') { return }
+    if rb[1] != u8(b'e') { return }
+    if rb[2] != u8(b'x') { return }
+    if rb[3] != u8(b'"') { return }
+    if rb[rb.len() - 1] != u8(b'"') { return }
+    hex_body :: rb[4..<rb.len() - 1].from_utf8()
     elements :: data_entry_elements(kind, hex_body)
     data_pool.push(ArrayVal { .type_id = 0, .elements = elements, .offset = usize(0), .length = elements.len() })
 }
@@ -649,10 +668,11 @@ read_data_item :: fn(kind: string, bytes: u8[], offset: usize) -> Value {
 hex_to_bytes :: fn(s: string) -> u8[] {
     out: u8[] = []
     i: usize = 0
-    len :: s.byte_len()
+    sb :: s.bytes()
+    len :: sb.len()
     for i + 1 < len {
-        hi :: u32(hex_digit_value(char(u32(s.byte_at(i)))))
-        lo :: u32(hex_digit_value(char(u32(s.byte_at(i + 1)))))
+        hi :: u32(hex_digit_value(char(u32(sb[i]))))
+        lo :: u32(hex_digit_value(char(u32(sb[i + 1]))))
         out.push(u8((hi << 4) | lo))
         i += 2
     }
@@ -701,7 +721,7 @@ read_u64_le :: fn(bytes: u8[], offset: usize) -> u64 {
 /// @param cleaned  the .virt line, already comment-stripped.
 /// @param imports  the module-wide import table, appended to in place.
 parse_import_decl :: fn(cleaned: string, imports: ImportInfo[]) -> void {
-    after :: cleaned.byte_slice("import ".byte_len(), cleaned.byte_len())
+    after :: cleaned.bytes()["import ".bytes().len()..<cleaned.bytes().len()].from_utf8()
     parts :: after.split(" ")
     if parts.len() < 4 { return }
     name    :: parts[1]
@@ -730,19 +750,22 @@ parse_import_decl :: fn(cleaned: string, imports: ImportInfo[]) -> void {
 /// @param cleaned  the .virt line (comment-stripped).
 /// @param impls    the module impl table, appended to in place.
 parse_impl_decl :: fn(cleaned: string, impls: Impl[]) -> void {
-    after :: cleaned.byte_slice("impl ".byte_len(), cleaned.byte_len()).trim()
+    cb :: cleaned.bytes()
+    after :: cb["impl ".bytes().len()..<cb.len()].from_utf8().trim()
     space :: after.index_of(' ', 0)
     if space < 0 { return }
-    type_id_text :: after.byte_slice(0, usize(space)).trim()
+    ab :: after.bytes()
+    type_id_text :: ab[0..<usize(space)].from_utf8().trim()
     parsed :: parse_int_in_base(type_id_text, 10)
     if parsed is ParseError { return }
-    trait_name :: after.byte_slice(usize(space) + 1, after.byte_len()).trim()
+    trait_name :: ab[usize(space) + 1..<ab.len()].from_utf8().trim()
     // Drop surrounding `"..."` quotes if the writer chose to quote a
     // non-ident trait name. Today every emitted trait name is a bare
     // identifier so this only triggers if a future writer adds quotes.
     unquoted: string = trait_name
-    if trait_name.byte_len() >= 2 && trait_name.byte_at(0) == b'"' && trait_name.byte_at(trait_name.byte_len() - 1) == b'"' {
-        unquoted = trait_name.byte_slice(1, trait_name.byte_len() - 1)
+    tnb :: trait_name.bytes()
+    if tnb.len() >= 2 && tnb[0] == b'"' && tnb[tnb.len() - 1] == b'"' {
+        unquoted = tnb[1..<tnb.len() - 1].from_utf8()
     }
     impls.push(Impl { .type_id = i32(parsed), .trait_name = unquoted })
 }
@@ -752,23 +775,27 @@ parse_impl_decl :: fn(cleaned: string, impls: Impl[]) -> void {
 /// `Iterator.next`). Multiple lines may share the same key — each
 /// pushes a new entry into the matching `Vtable`.
 parse_vtable_decl :: fn(cleaned: string, vtables: Vtable[]) -> void {
-    after :: cleaned.byte_slice("vtable ".byte_len(), cleaned.byte_len()).trim()
+    cb :: cleaned.bytes()
+    after :: cb["vtable ".bytes().len()..<cb.len()].from_utf8().trim()
     // Last two tokens are integers, everything before is the key.
     last_space :: last_index_of_space(after)
     if last_space < 0 { return }
-    fn_text :: after.byte_slice(usize(last_space) + 1, after.byte_len()).trim()
+    ab :: after.bytes()
+    fn_text :: ab[usize(last_space) + 1..<ab.len()].from_utf8().trim()
     fn_parsed :: parse_int_in_base(fn_text, 10)
     if fn_parsed is ParseError { return }
-    head :: after.byte_slice(0, usize(last_space)).trim()
+    head :: ab[0..<usize(last_space)].from_utf8().trim()
     second_space :: last_index_of_space(head)
     if second_space < 0 { return }
-    type_text :: head.byte_slice(usize(second_space) + 1, head.byte_len()).trim()
+    hb :: head.bytes()
+    type_text :: hb[usize(second_space) + 1..<hb.len()].from_utf8().trim()
     type_parsed :: parse_int_in_base(type_text, 10)
     if type_parsed is ParseError { return }
-    raw_key :: head.byte_slice(0, usize(second_space)).trim()
+    raw_key :: hb[0..<usize(second_space)].from_utf8().trim()
     key: string = raw_key
-    if raw_key.byte_len() >= 2 && raw_key.byte_at(0) == b'"' && raw_key.byte_at(raw_key.byte_len() - 1) == b'"' {
-        key = raw_key.byte_slice(1, raw_key.byte_len() - 1)
+    rkb :: raw_key.bytes()
+    if rkb.len() >= 2 && rkb[0] == b'"' && rkb[rkb.len() - 1] == b'"' {
+        key = rkb[1..<rkb.len() - 1].from_utf8()
     }
     register_vtable_entry(vtables, key, VtableEntry {
         .type_id        = i32(type_parsed),
@@ -778,17 +805,18 @@ parse_vtable_decl :: fn(cleaned: string, vtables: Vtable[]) -> void {
 
 /// Index of the last ASCII space in `s`, or `-1` if absent.
 last_index_of_space :: fn(s: string) -> i32 {
-    n :: i32(s.byte_len())
+    sb :: s.bytes()
+    n :: i32(sb.len())
     i: i32 = n - 1
     for i >= 0 {
-        if s.byte_at(usize(i)) == b' ' { return i }
+        if sb[usize(i)] == b' ' { return i }
         i -= 1
     }
     return -1
 }
 
 parse_export_main_index :: fn(cleaned: string) -> i32 {
-    after :: cleaned.byte_slice("export ".byte_len(), cleaned.byte_len()).trim()
+    after :: cleaned.bytes()["export ".bytes().len()..<cleaned.bytes().len()].from_utf8().trim()
     parts :: after.split(" ")
     if parts.len() < 2 { return -1 }
     if parts[0] != "main" { return -1 }
@@ -821,7 +849,7 @@ export find_main_by_suffix :: fn(functions: BytecodeFunction[]) -> i32 {
 /// @param cleaned  the .virt line, already comment-stripped.
 /// @return         the mangled name, or `""` if the header is malformed.
 read_fn_mangled_name :: fn(cleaned: string) -> string {
-    after :: cleaned.byte_slice("fn ".byte_len(), cleaned.byte_len())
+    after :: cleaned.bytes()["fn ".bytes().len()..<cleaned.bytes().len()].from_utf8()
     parts :: after.split(" ")
     if parts.len() < 2 { return "" }
     return parts[1]
@@ -844,8 +872,8 @@ count_delimited_items :: fn(line: string, open_char: char, close_char: char) -> 
     open :: line.index_of(open_char, 0)
     close :: line.index_of(close_char, 0)
     if open < 0 || close < 0 || close <= open + 1 { return 0 }
-    inner :: line.byte_slice(usize(open + 1), usize(close)).trim()
-    if inner.byte_len() == 0 { return 0 }
+    inner :: line.bytes()[usize(open + 1)..<usize(close)].from_utf8().trim()
+    if inner.bytes().len() == 0 { return 0 }
     return usize(inner.split(",").len())
 }
 
@@ -1004,7 +1032,7 @@ drain_pending :: fn(state: ParserState, label: string, is_loop: bool, opener_pc:
 parse_op_line :: fn(cleaned: string, head: string) -> Op | null {
     dot :: head.index_of('.', 0)
     if dot >= 0 {
-        width :: head.byte_slice(0, usize(dot))
+        width :: head.bytes()[0..<usize(dot)].from_utf8()
 
         // Width gates : we only slice the suffix for the int / f64 width
         // families. `array.X`, `bool.X`, `char.X`, `string.X`, `ref.X`,
@@ -1015,12 +1043,12 @@ parse_op_line :: fn(cleaned: string, head: string) -> Op | null {
         is_f64 :: width == "f64"
         is_char_or_f32 :: width == "char" || width == "f32"
         if is_int || is_f64 || is_char_or_f32 {
-            suffix :: head.byte_slice(usize(dot) + 1, head.byte_len())
+            suffix :: head.bytes()[usize(dot) + 1..<head.bytes().len()].from_utf8()
 
             if suffix == "const" && is_int {
-                value_off :: head.byte_len() + usize(1)
-                if value_off >= cleaned.byte_len() { return null }
-                return parse_int_const_text(cleaned.byte_slice(value_off, cleaned.byte_len()).trim())
+                value_off :: head.bytes().len() + usize(1)
+                if value_off >= cleaned.bytes().len() { return null }
+                return parse_int_const_text(cleaned.bytes()[value_off..<cleaned.bytes().len()].from_utf8().trim())
             }
             if suffix == "const" && is_f64 { return parse_f64_const(cleaned) }
 
@@ -1031,7 +1059,7 @@ parse_op_line :: fn(cleaned: string, head: string) -> Op | null {
             if width == "char" && suffix.starts_with("to_") { return CharToInt {} }
             if suffix == "to_char" { return IntToChar {} }
             if suffix.starts_with("to_") {
-                target :: suffix.byte_slice("to_".byte_len(), suffix.byte_len())
+                target :: suffix.bytes()["to_".bytes().len()..<suffix.bytes().len()].from_utf8()
                 if is_int_width(target) || target == "f32" || target == "f64" { return parse_convert(cleaned) }
             }
 
@@ -1219,7 +1247,7 @@ parse_int_const_text :: fn(rest: string) -> Op | null {
     // to the right i64, so an `i64.const -1` that collapses to I32Const is
     // read correctly downstream.
     if rest.starts_with("-") {
-        mag :: parse_uint_in_base(rest.byte_slice(1, rest.byte_len()), 10)
+        mag :: parse_uint_in_base(rest.bytes()[1..<rest.bytes().len()].from_utf8(), 10)
         if mag is ParseError { return null }
         signed :: i64(0) - i64(mag)
         if signed >= i64(-0x80000000) && signed <= i64(0x7fffffff) {
@@ -1281,7 +1309,7 @@ is_unsigned_width :: fn(width: string) -> bool {
 /// @return        the parsed i32, or `null` if the remainder isn't
 ///                a valid base-10 number.
 parse_int_after_prefix :: fn(line: string, prefix: string) -> i32 | null {
-    rest :: line.byte_slice(prefix.byte_len(), line.byte_len()).trim()
+    rest :: line.bytes()[prefix.bytes().len()..<line.bytes().len()].from_utf8().trim()
     parsed :: parse_int_in_base(rest, 10)
     if parsed is ParseError { return null }
     return i32(parsed)
@@ -1295,8 +1323,8 @@ parse_int_after_prefix :: fn(line: string, prefix: string) -> i32 | null {
 /// @return         the `Convert` op carrying the target tag.
 parse_convert :: fn(cleaned: string) -> Op {
     dot :: cleaned.index_of('.', 0)
-    prefix :: cleaned.byte_slice(usize(0), usize(dot))
-    suffix :: cleaned.byte_slice(usize(dot) + 1 + usize(3), cleaned.byte_len())
+    prefix :: cleaned.bytes()[usize(0)..<usize(dot)].from_utf8()
+    suffix :: cleaned.bytes()[usize(dot) + 1 + usize(3)..<cleaned.bytes().len()].from_utf8()
     return Convert { .from_name = prefix, .target = convert_target_of(suffix) }
 }
 
@@ -1331,7 +1359,7 @@ parse_slot_arg :: fn(line: string, prefix: string, is_get: bool) -> Op | null {
 /// @return      `F64Const { value }` on success, `null` on malformed
 ///              input.
 parse_f64_const :: fn(line: string) -> Op | null {
-    rest :: line.byte_slice("f64.const ".byte_len(), line.byte_len()).trim()
+    rest :: line.bytes()["f64.const ".bytes().len()..<line.bytes().len()].from_utf8().trim()
     parsed :: parse_decimal_f64(rest)
     if parsed is null { return null }
     return F64Const { .value = parsed }
@@ -1355,11 +1383,11 @@ parse_f64_const :: fn(line: string) -> Op | null {
 /// @param s  the decimal literal (digits only — no `f` / `d` suffix).
 /// @return   the parsed `f64`, or `null` on malformed input.
 export parse_decimal_f64 :: fn(s: string) -> f64 | null {
-    n :: s.byte_len()
+    n :: s.bytes().len()
     if n == 0 { return null }
     cursor: usize = 0
     negative := false
-    first_byte :: s.byte_at(0)
+    first_byte :: s.bytes()[0]
     if first_byte == b'-' {
         negative = true
         cursor = 1
@@ -1369,7 +1397,7 @@ export parse_decimal_f64 :: fn(s: string) -> f64 | null {
     exp_index: i32 = -1
     i: usize = cursor
     for i < n {
-        b :: s.byte_at(i)
+        b :: s.bytes()[i]
         if b == b'.' { if dot_index < 0 { if exp_index < 0 { dot_index = i32(i) } } }
         if b == b'e' { if exp_index < 0 { exp_index = i32(i) } }
         if b == b'E' { if exp_index < 0 { exp_index = i32(i) } }
@@ -1378,21 +1406,21 @@ export parse_decimal_f64 :: fn(s: string) -> f64 | null {
     int_end: usize = n
     if dot_index >= 0 { int_end = usize(dot_index) }
     if dot_index < 0 { if exp_index >= 0 { int_end = usize(exp_index) } }
-    int_text :: s.byte_slice(cursor, int_end)
+    int_text :: s.bytes()[cursor..<int_end].from_utf8()
     int_part :: parse_int_in_base(int_text, 10)
     if int_part is ParseError { return null }
     result: f64 = f64(int_part)
     if dot_index >= 0 {
         frac_end: usize = n
         if exp_index >= 0 { frac_end = usize(exp_index) }
-        frac_text :: s.byte_slice(usize(dot_index) + 1, frac_end)
-        if frac_text.byte_len() > 0 {
+        frac_text :: s.bytes()[usize(dot_index) + 1..<frac_end].from_utf8()
+        if frac_text.bytes().len() > 0 {
             frac_part :: parse_int_in_base(frac_text, 10)
             if frac_part is ParseError { return null }
             divisor: f64 = f64(1)
             frac_ten :: f64(10)
             d: usize = 0
-            for d < frac_text.byte_len() {
+            for d < frac_text.bytes().len() {
                 divisor = divisor * frac_ten
                 d += 1
             }
@@ -1400,7 +1428,7 @@ export parse_decimal_f64 :: fn(s: string) -> f64 | null {
         }
     }
     if exp_index >= 0 {
-        exp_text :: s.byte_slice(usize(exp_index) + 1, n)
+        exp_text :: s.bytes()[usize(exp_index) + 1..<n].from_utf8()
         exp_part :: parse_int_in_base(exp_text, 10)
         if exp_part is ParseError { return null }
         abs_exp: i64 = exp_part
@@ -1448,7 +1476,7 @@ parse_call :: fn(line: string) -> Op | null {
 /// @param line  the .virt line (comment-stripped).
 /// @return      `BoolConst { value }`, or `null` on malformed input.
 parse_bool_const :: fn(line: string) -> Op | null {
-    rest :: line.byte_slice("bool.const ".byte_len(), line.byte_len()).trim()
+    rest :: line.bytes()["bool.const ".bytes().len()..<line.bytes().len()].from_utf8().trim()
     if rest == "true"  { return BoolConst { .value = true  } }
     if rest == "false" { return BoolConst { .value = false } }
     return null
@@ -1474,13 +1502,13 @@ parse_call_indirect :: fn(line: string) -> Op | null {
 /// @return      `VirtualCall { parameter_count, vtable_key }`, or `null`
 ///              on malformed input.
 parse_virtual_call :: fn(line: string) -> Op | null {
-    rest :: line.byte_slice("virtual.call ".byte_len(), line.byte_len()).trim()
+    rest :: line.bytes()["virtual.call ".bytes().len()..<line.bytes().len()].from_utf8().trim()
     space :: rest.index_of(' ', 0)
     if space < 0 { return null }
-    pc_text :: rest.byte_slice(0, usize(space)).trim()
+    pc_text :: rest.bytes()[0..<usize(space)].from_utf8().trim()
     parsed_pc :: parse_int_in_base(pc_text, 10)
     if parsed_pc is ParseError { return null }
-    key :: rest.byte_slice(usize(space) + 1, rest.byte_len()).trim()
+    key :: rest.bytes()[usize(space) + 1..<rest.bytes().len()].from_utf8().trim()
     return VirtualCall { .parameter_count = i32(parsed_pc), .vtable_key = key }
 }
 
@@ -1555,12 +1583,12 @@ parse_struct_new_after :: fn(line: string, prefix: string) -> Op | null {
 /// @param prefix  literal prefix to skip (e.g. `"struct.get "`).
 /// @return        the parsed pair ; `null` on malformed input.
 parse_int_pair_after_prefix :: fn(line: string, prefix: string) -> [i32, i32] | null {
-    rest :: line.byte_slice(prefix.byte_len(), line.byte_len()).trim()
+    rest :: line.bytes()[prefix.bytes().len()..<line.bytes().len()].from_utf8().trim()
     space :: rest.index_of(' ', 0)
     if space < 0 { return null }
-    a :: parse_int_in_base(rest.byte_slice(0, usize(space)).trim(), 10)
+    a :: parse_int_in_base(rest.bytes()[0..<usize(space)].from_utf8().trim(), 10)
     if a is ParseError { return null }
-    b :: parse_int_in_base(rest.byte_slice(usize(space) + 1, rest.byte_len()).trim(), 10)
+    b :: parse_int_in_base(rest.bytes()[usize(space) + 1..<rest.bytes().len()].from_utf8().trim(), 10)
     if b is ParseError { return null }
     return [i32(a), i32(b)]
 }
@@ -1579,14 +1607,14 @@ parse_struct_get :: fn(line: string) -> Op | null {
 /// @return      a `LocalField` op on success, `null` on any parse error
 ///              (missing space, non-integer token, …).
 parse_local_field :: fn(line: string) -> Op | null {
-    rest :: line.byte_slice("local.field ".byte_len(), line.byte_len()).trim()
+    rest :: line.bytes()["local.field ".bytes().len()..<line.bytes().len()].from_utf8().trim()
     s1 :: rest.index_of(' ', 0)
     if s1 < 0 { return null }
     s2 :: rest.index_of(' ', usize(s1) + 1)
     if s2 < 0 { return null }
-    slot_str :: rest.byte_slice(0, usize(s1)).trim()
-    type_str :: rest.byte_slice(usize(s1) + 1, usize(s2)).trim()
-    field_str :: rest.byte_slice(usize(s2) + 1, rest.byte_len()).trim()
+    slot_str :: rest.bytes()[0..<usize(s1)].from_utf8().trim()
+    type_str :: rest.bytes()[usize(s1) + 1..<usize(s2)].from_utf8().trim()
+    field_str :: rest.bytes()[usize(s2) + 1..<rest.bytes().len()].from_utf8().trim()
     slot :: parse_int_in_base(slot_str, 10)
     if slot is ParseError { return null }
     tid :: parse_int_in_base(type_str, 10)
@@ -1605,10 +1633,10 @@ parse_local_field :: fn(line: string) -> Op | null {
 /// @return      a `ReturnLit` op on success, `null` when the inner op
 ///              isn't a recognised const-producing op.
 parse_return_lit :: fn(line: string) -> Op | null {
-    inner_raw :: line.byte_slice("return.lit ".byte_len(), line.byte_len()).trim()
+    inner_raw :: line.bytes()["return.lit ".bytes().len()..<line.bytes().len()].from_utf8().trim()
     space :: inner_raw.index_of(' ', 0)
     inner_head: string = ""
-    if space < 0 { inner_head = inner_raw } else { inner_head = inner_raw.byte_slice(0, usize(space)) }
+    if space < 0 { inner_head = inner_raw } else { inner_head = inner_raw.bytes()[0..<usize(space)].from_utf8() }
     inner_op :: parse_op_line(inner_raw, inner_head)
     if inner_op is null { return null }
     const_inner :: const_op_of(inner_op)
@@ -1656,11 +1684,11 @@ parse_array_slice :: fn(line: string) -> Op | null {
 }
 
 parse_data_const :: fn(line: string) -> Op | null {
-    after :: line.byte_slice("data.const ".byte_len(), line.byte_len())
+    after :: line.bytes()["data.const ".bytes().len()..<line.bytes().len()].from_utf8()
     sp :: after.index_of(' ', 0)
     if sp < 0 { return null }
-    pool_text :: after.byte_slice(0, usize(sp))
-    type_text :: after.byte_slice(usize(sp) + 1, after.byte_len()).trim()
+    pool_text :: after.bytes()[0..<usize(sp)].from_utf8()
+    type_text :: after.bytes()[usize(sp) + 1..<after.bytes().len()].from_utf8().trim()
     pool_parsed :: parse_int_in_base(pool_text, 10)
     if pool_parsed is ParseError { return null }
     type_parsed :: parse_int_in_base(type_text, 10)
