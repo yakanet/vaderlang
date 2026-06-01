@@ -34,7 +34,7 @@ import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/types" {
     Type, FnType, PrimitiveType, FreeIntType, FreeFloatType, UnionType, TraitType,
     TypeParamType, ArrayType, TupleType, TypeMetaType, AnyType, SelfType, NeverType,
-    TY_BOOL, TY_VOID, TY_NEVER, TY_UNRESOLVED, TY_TYPE, mk_primitive,
+    TY_BOOL, TY_VOID, TY_NEVER, TY_UNRESOLVED, TY_TYPE, mk_primitive, is_primitive_name,
 }
 import "vader/typecheck" { default_if_free, equals_type, type_list_equals, is_assignable, lookup_struct_trait_args }
 import "vader/typecheck" { TypedProgram }
@@ -345,7 +345,20 @@ is_scalar_literal_expr :: fn(e: Expr) -> bool = match e {
     is NullLitExpr   -> true
     is CharLitExpr   -> true
     is StringLitExpr -> true
+    // `usize(0)` / `i32(N)` — a primitive numeric conversion of a scalar
+    // literal parses as a CallExpr. It folds just as safely (the arg is a
+    // literal, so no dependency on another unbaked const), so a const like
+    // `UNASSIGNED_NODE_ID :: usize(0)` resolves at its use sites in imported
+    // bodies instead of degrading to an unresolved ident.
+    is CallExpr as c -> is_numeric_conversion_of_literal(c)
     _                -> false
+}
+
+is_numeric_conversion_of_literal :: fn(c: CallExpr) -> bool {
+    if !(c.callee is IdentExpr) { return false }
+    if !is_primitive_name(c.callee.name) { return false }
+    if c.args.len() != 1 { return false }
+    return is_scalar_literal_expr(c.args[0].value)
 }
 
 /// Materialise a `ComptimeValue` as a `LoweredExpr` literal. Compound
