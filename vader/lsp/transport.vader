@@ -14,7 +14,7 @@
 module "vader/lsp"
 
 import "std/io" { read_stdin, print, eprintln }
-import "std/string" { byte_len, byte_decode_at, starts_with, byte_slice, parse_int, ParseError }
+import "std/string" { bytes, as_string, byte_decode_at, starts_with, parse_int, ParseError }
 import "std/string_builder" { new_builder, append }
 
 export TransportError :: struct {
@@ -55,12 +55,13 @@ export read_frame :: fn() -> string | TransportError {
                                 return TransportError { .msg = "expected LF after CR in header" }
                             }
                             line :: line_buf.to_string()
-                            if line.byte_len() == 0 {
+                            line_bytes :: line.bytes()
+                            if line_bytes.len() == 0 {
                                 // Blank line = end of headers.
                                 finished = true
                             } else {
                                 if line.starts_with("Content-Length:") {
-                                    raw :: line.byte_slice(usize(15), line.byte_len())
+                                    raw :: line_bytes[usize(15)..<line_bytes.len()].as_string()
                                     trimmed :: trim_ascii(raw)
                                     parsed :: trimmed.parse_int()
                                     match parsed {
@@ -96,7 +97,8 @@ export read_frame :: fn() -> string | TransportError {
 /// recognises additional codepoints we don't care about for HTTP-style
 /// header values.
 trim_ascii :: fn(s: string) -> string {
-    n :: s.byte_len()
+    sb :: s.bytes()
+    n :: sb.len()
     start: usize = 0
     end := n
     for start < end {
@@ -105,7 +107,7 @@ trim_ascii :: fn(s: string) -> string {
     for end > start {
         if is_ascii_space(s.byte_decode_at(end - 1)) { end = end - 1 } else { break }
     }
-    return s.byte_slice(start, end)
+    return sb[start..<end].as_string()
 }
 
 /// Write one JSON-RPC frame to stdout. Encodes the `Content-Length`
@@ -113,7 +115,7 @@ trim_ascii :: fn(s: string) -> string {
 /// then the body. Flushes via `print` (which calls `fflush(stdout)`).
 /// @param body  the JSON-encoded message to send.
 export write_frame :: fn(body: string) -> void {
-    n :: body.byte_len()
+    n :: body.bytes().len()
     sb := new_builder()
     sb.append("Content-Length: ")
     sb.append("${n}")

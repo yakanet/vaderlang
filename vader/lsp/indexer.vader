@@ -23,7 +23,7 @@
 
 module "vader/lsp"
 
-import "std/string" { byte_len, byte_at, byte_slice, trim }
+import "std/string" { bytes, as_string, trim }
 import "vader/parser" {
     parse_source,
     Decl,
@@ -121,7 +121,7 @@ export build_index :: fn(uri: string, source: string) -> DocIndex {
 export find_at :: fn(idx: DocIndex, line: i32, character: i32) -> DeclEntry | null {
     offset :: lsp_to_offset(idx.source, line, character)
     name :: token_name_at(idx.tokens, offset)
-    if name.byte_len() == 0 { return null }
+    if name.bytes().len() == 0 { return null }
     return lookup_innermost(idx.decls, name, offset)
 }
 
@@ -258,9 +258,10 @@ doc_boundary_offset :: fn(decl_start: usize, decorators: Decorator[]) -> usize {
 // include in a decl's `span.start`.
 line_start_offset :: fn(source: string, pos: usize) -> usize {
     if pos == 0 { return 0 }
+    sb :: source.bytes()
     i: i32 = i32(pos) - 1
     for i >= 0 {
-        if source.byte_at(usize(i)) == b'\n' { return usize(i) + 1 }
+        if sb[usize(i)] == b'\n' { return usize(i) + 1 }
         i = i - 1
     }
     return 0
@@ -290,7 +291,7 @@ ix_walk_fn_body :: fn(f: FnDecl, source: string, entries: DeclEntry[]) -> void {
             // Params live for the whole body. `FnParam.span` covers
             // the whole `name: T = default` form ; goto-def should
             // land on the name alone, so we synthesise a narrower
-            // span by stretching `name.byte_len()` past the start.
+            // span by stretching `name.bytes().len()` past the start.
             for p in f.params {
                 name_span :: name_span_from(p.span.start, p.name)
                 sig :: param_signature_slice(p.span, p.name, source)
@@ -305,7 +306,7 @@ ix_walk_fn_body :: fn(f: FnDecl, source: string, entries: DeclEntry[]) -> void {
 // ASCII-only — non-ASCII identifier names would need codepoint
 // arithmetic, which the parser doesn't currently do here either.
 name_span_from :: fn(start: Position, name: string) -> Span {
-    width :: name.byte_len()
+    width :: name.bytes().len()
     end :: Position {
         .file   = start.file,
         .offset = start.offset + width,
@@ -397,7 +398,7 @@ local_sig :: fn(
     name: string, type_hint: string,
     decl_start: usize, scope_end: usize, source: string,
 ) -> string {
-    if type_hint.byte_len() > 0 {
+    if type_hint.bytes().len() > 0 {
         return name + ": " + type_hint
     }
     return slice_to_eol(source, decl_start, scope_end)
@@ -455,7 +456,7 @@ type_expr_slice :: fn(t: Expr, source: string) -> string {
         is ArrayTypeExpr as x    -> x.span
     }
     if sp.end.offset > sp.start.offset {
-        return source.byte_slice(sp.start.offset, sp.end.offset).trim()
+        return source.bytes()[sp.start.offset..<sp.end.offset].as_string().trim()
     }
     return ""
 }
@@ -613,34 +614,36 @@ collect_import :: fn(d: ImportDecl, imports: ImportEntry[]) -> void {
 // Slice the source from a decl's start up to the first `{` or `=` (or
 // EOL for `Const :: <expr>` body-less forms), then trim.
 head_signature :: fn(span: Span, source: string) -> string {
+    sb    :: source.bytes()
     start :: span.start.offset
     end   :: span.end.offset
-    cap   :: source.byte_len()
+    cap   :: sb.len()
     upper :: if end > cap { cap } else { end }
     cursor: usize = start
     for cursor < upper {
-        b :: source.byte_at(cursor)
+        b :: sb[cursor]
         if b == b'{' { break }
         if b == b'=' { break }
         if b == b'\n' { break }
         cursor = cursor + 1
     }
-    return source.byte_slice(start, cursor).trim()
+    return sb[start..<cursor].as_string().trim()
 }
 
 // Slice up to the end of the current line — used for local-binding
 // signatures (`x :: expr` form). Caps at `upper` so we don't read past
 // the enclosing block.
 slice_to_eol :: fn(source: string, start: usize, upper: usize) -> string {
-    cap :: source.byte_len()
+    sb :: source.bytes()
+    cap :: sb.len()
     up: usize = if upper > cap { cap } else { upper }
     cursor: usize = start
     for cursor < up {
-        b :: source.byte_at(cursor)
+        b :: sb[cursor]
         if b == b'\n' { break }
         cursor = cursor + 1
     }
-    return source.byte_slice(start, cursor).trim()
+    return sb[start..<cursor].as_string().trim()
 }
 
 // Slice the source for a span — used to render `x: T` for params and
@@ -648,7 +651,7 @@ slice_to_eol :: fn(source: string, start: usize, upper: usize) -> string {
 // degenerate spans.
 param_signature_slice :: fn(span: Span, fallback: string, source: string) -> string {
     if span.end.offset > span.start.offset {
-        return source.byte_slice(span.start.offset, span.end.offset).trim()
+        return source.bytes()[span.start.offset..<span.end.offset].as_string().trim()
     }
     return fallback
 }
@@ -684,7 +687,7 @@ leading_doc :: fn(cmap: CommentMap, decl_start: usize, source: string) -> string
         if c.kind != .DocLine { break }
         if c.offset >= decl_start { break }
         line :: strip_doc_prefix(c.text)
-        if out.byte_len() == 0 {
+        if out == "" {
             out = line
         } else {
             out = out + "\n" + line
@@ -695,9 +698,10 @@ leading_doc :: fn(cmap: CommentMap, decl_start: usize, source: string) -> string
 }
 
 whitespace_between :: fn(source: string, start: usize, end: usize) -> bool {
+    sb :: source.bytes()
     cursor: usize = start
     for cursor < end {
-        b :: source.byte_at(cursor)
+        b :: sb[cursor]
         if b != b' ' && b != b'\t' && b != b'\n' && b != b'\r' {
             return false
         }
@@ -707,13 +711,14 @@ whitespace_between :: fn(source: string, start: usize, end: usize) -> bool {
 }
 
 strip_doc_prefix :: fn(text: string) -> string {
-    n :: text.byte_len()
+    tb :: text.bytes()
+    n :: tb.len()
     if n < 3 { return text }
     cursor: usize = 3
-    if cursor < n && text.byte_at(cursor) == b' ' {
+    if cursor < n && tb[cursor] == b' ' {
         cursor = cursor + 1
     }
-    return text.byte_slice(cursor, n)
+    return tb[cursor..<n].as_string()
 }
 
 // ---- token-based position resolution -------------------------------------
@@ -781,12 +786,13 @@ lookup_innermost :: fn(decls: DeclEntry[], name: string, offset: usize) -> DeclE
 // as a UTF-8 byte offset within the line — ASCII identifiers round-trip
 // cleanly, non-ASCII may misalign by a few bytes.
 lsp_to_offset :: fn(source: string, line: i32, character: i32) -> usize {
-    n :: source.byte_len()
+    sb :: source.bytes()
+    n :: sb.len()
     cur_line: i32 = 0
     cursor: usize = 0
     for cursor < n {
         if cur_line == line { break }
-        b :: source.byte_at(cursor)
+        b :: sb[cursor]
         cursor = cursor + 1
         if b == b'\n' { cur_line = cur_line + 1 }
     }

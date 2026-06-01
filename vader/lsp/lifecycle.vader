@@ -8,7 +8,6 @@
 
 module "vader/lsp"
 
-import "std/string" { byte_len }
 import "std/json" {
     JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonNull, JsonArray
 }

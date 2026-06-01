@@ -13,7 +13,6 @@
 
 module "vader/lsp"
 
-import "std/string" { byte_len }
 import "std/string_builder" { new_builder, append }
 import "std/json" {
     JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonNull, JsonArray,

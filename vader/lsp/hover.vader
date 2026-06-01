@@ -12,7 +12,7 @@
 
 module "vader/lsp"
 
-import "std/string" { byte_len, byte_at, split, trim, starts_with, byte_slice }
+import "std/string" { split, trim, starts_with, bytes, as_string }
 import "std/json" {
     JsonValue, JsonObject, JsonString, JsonNumber, JsonNull, JsonArray, JsonBool
 }
@@ -62,7 +62,7 @@ export handle_hover :: fn(state: ServerState, params: JsonValue) -> JsonValue {
 // collapse everything onto a single line.
 hover_json :: fn(d: DeclEntry) -> JsonValue {
     body := "```vader\n" + d.signature + "\n```"
-    if d.doc.byte_len() > 0 {
+    if d.doc.bytes().len() > 0 {
         body = body + "\n\n" + format_vaderdoc(d.doc)
     }
     contents :: MutableMap<string, JsonValue> { .buckets = [], .size = 0 }
@@ -89,24 +89,26 @@ hover_json :: fn(d: DeclEntry) -> JsonValue {
 // must sit on its own line ; multi-line @tag continuations are kept
 // verbatim in the body for now.
 format_vaderdoc :: fn(raw: string) -> string {
-    if raw.byte_len() == 0 { return raw }
+    if raw.bytes().len() == 0 { return raw }
     lines :: raw.split("\n")
     body: string[] = []
     tags: string[] = []
     for ln in lines {
         rest :: ln.trim()
+        // One byte view per trimmed line ; the @tag branches slice off it.
+        rb :: rest.bytes()
         if rest.starts_with("@param ") || rest == "@param" {
-            payload :: rest.byte_slice(6, rest.byte_len()).trim()
+            payload :: rb[6..<rb.len()].as_string().trim()
             tags.push("- **param** " + format_param_payload(payload))
             continue
         }
         if rest.starts_with("@return ") || rest == "@return" {
-            payload :: rest.byte_slice(7, rest.byte_len()).trim()
+            payload :: rb[7..<rb.len()].as_string().trim()
             tags.push("- **returns** " + payload)
             continue
         }
         if rest.starts_with("@error ") || rest == "@error" {
-            payload :: rest.byte_slice(6, rest.byte_len()).trim()
+            payload :: rb[6..<rb.len()].as_string().trim()
             tags.push("- **error** " + payload)
             continue
         }
@@ -115,9 +117,9 @@ format_vaderdoc :: fn(raw: string) -> string {
             // lines (often indented backtick-quoted snippets) follow
             // it visually. Insert a blank line before the header so
             // it stands out as its own paragraph.
-            payload :: rest.byte_slice(8, rest.byte_len()).trim()
+            payload :: rb[8..<rb.len()].as_string().trim()
             if body.len() > 0 { body.push("") }
-            if payload.byte_len() > 0 {
+            if payload.bytes().len() > 0 {
                 body.push("**Example** " + payload)
             } else {
                 body.push("**Example**")
@@ -128,7 +130,7 @@ format_vaderdoc :: fn(raw: string) -> string {
     }
     out := join_lines(body)
     if tags.len() > 0 {
-        if out.byte_len() > 0 { out = out + "\n\n" }
+        if out.bytes().len() > 0 { out = out + "\n\n" }
         out = out + join_lines(tags)
     }
     return out
@@ -138,20 +140,21 @@ format_vaderdoc :: fn(raw: string) -> string {
 // the description into running text. Falls back to the bare payload
 // when no whitespace separates name from description.
 format_param_payload :: fn(payload: string) -> string {
-    n :: payload.byte_len()
+    pb :: payload.bytes()
+    n :: pb.len()
     if n == 0 { return payload }
     space :: b' '
     tab   :: b'\t'
     i: usize = 0
     for i < n {
-        b :: payload.byte_at(i)
+        b :: pb[i]
         if b == space || b == tab { break }
         i = i + 1
     }
     if i == 0 || i >= n { return payload }
-    name :: payload.byte_slice(0, i)
-    desc :: payload.byte_slice(i, n).trim()
-    if desc.byte_len() == 0 { return "`" + name + "`" }
+    name :: pb[0..<i].as_string()
+    desc :: pb[i..<n].as_string().trim()
+    if desc.bytes().len() == 0 { return "`" + name + "`" }
     return "`" + name + "` — " + desc
 }
 
@@ -311,7 +314,8 @@ binding_hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindBindingStat
 uri_to_path :: fn(uri: string) -> string {
     prefix :: "file://"
     if uri.starts_with(prefix) {
-        return uri.byte_slice(prefix.byte_len(), uri.byte_len())
+        ub :: uri.bytes()
+        return ub[prefix.bytes().len()..<ub.len()].as_string()
     }
     return ""
 }

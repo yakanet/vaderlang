@@ -16,7 +16,7 @@ module "vader/lsp"
 
 import "std/collections" { MutableMap }
 import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber, JsonNull, JsonArray, JsonBool }
-import "std/string" { byte_len, byte_slice, starts_with }
+import "std/string" { bytes, as_string, starts_with }
 import "vader/diagnostics" { Diagnostic, Span, Severity }
 import "vader/resolver" { load_project }
 import "vader/typecheck" { check_project_with_bodies }
@@ -94,7 +94,7 @@ encode_range :: fn(s: Span) -> JsonValue {
 }
 
 format_message :: fn(d: Diagnostic) -> string {
-    if d.detail.byte_len() == 0 { return d.code.message }
+    if d.detail.bytes().len() == 0 { return d.code.message }
     return "${d.code.message}: ${d.detail}"
 }
 
@@ -111,7 +111,8 @@ lsp_severity :: fn(s: Severity) -> i32 = match s {
 uri_to_path :: fn(uri: string) -> string {
     prefix :: "file://"
     if uri.starts_with(prefix) {
-        return uri.byte_slice(prefix.byte_len(), uri.byte_len())
+        uri_bytes :: uri.bytes()
+        return uri_bytes[prefix.bytes().len()..<uri_bytes.len()].as_string()
     }
     return ""
 }

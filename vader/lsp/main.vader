@@ -19,7 +19,7 @@
 module "vader/lsp"
 
 import "std/io" { eprintln }
-import "std/string" { byte_len, starts_with, byte_slice }
+import "std/string" { as_string, bytes, starts_with }
 import "std/json" { parse, JsonValue, JsonObject, JsonString, JsonNumber, JsonNull, JsonError, JsonBool, JsonArray }
 
 /// LSP server entry. Blocks reading frames until EOF or `exit`
@@ -32,12 +32,13 @@ export run_server :: fn(args: string[]) -> i32 {
     stdlib_prefix :: "--stdlib-root="
     vader_prefix :: "--vader-root="
     for a in args {
+        ab :: a.bytes()
         if a.starts_with(stdlib_prefix) {
-            stdlib_root = a.byte_slice(stdlib_prefix.byte_len(), a.byte_len())
+            stdlib_root = ab[stdlib_prefix.bytes().len()..<ab.len()].as_string()
             continue
         }
         if a.starts_with(vader_prefix) {
-            vader_root = a.byte_slice(vader_prefix.byte_len(), a.byte_len())
+            vader_root = ab[vader_prefix.bytes().len()..<ab.len()].as_string()
             continue
         }
     }

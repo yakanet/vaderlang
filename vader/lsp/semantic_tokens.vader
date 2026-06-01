@@ -16,7 +16,7 @@
 
 module "vader/lsp"
 
-import "std/string" { byte_len, byte_at, byte_decode_at, byte_slice }
+import "std/string" { bytes, as_string, byte_decode_at }
 import "std/json" {
     JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonNull, JsonArray
 }
@@ -87,14 +87,14 @@ is_ascii_space :: fn(c: char) -> bool {
 /// @return        `{ data: [...] }` or `null`.
 export handle_semantic_tokens_full :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     uri :: extract_uri(params)
-    if uri.byte_len() == 0 {
+    if uri.bytes().len() == 0 {
         return JsonNull {}
     }
     source :: state.source_for(uri)
     match source {
         is null -> { return JsonNull {} }
         is string as src -> {
-            if src.byte_len() == 0 { return JsonNull {} }
+            if src.bytes().len() == 0 { return JsonNull {} }
             data :: produce_tokens(src, uri)
             result :: MutableMap<string, JsonValue> { .buckets = [], .size = 0 }
             result["data"] = data
@@ -282,7 +282,8 @@ make_comment_token :: fn(c: Comment, source: string, modifiers: i32) -> RawToken
 // receive semantic-token treatment.
 collect_doc_line_tokens :: fn(c: Comment, source: string, out: RawToken[]) -> void {
     text :: c.text
-    n :: text.byte_len()
+    text_bytes :: text.bytes()
+    n :: text_bytes.len()
     i: usize = 0
     line := c.line - 1   // 0-based
     // We track byte-offset inside the comment to compute column ; column
@@ -300,7 +301,7 @@ collect_doc_line_tokens :: fn(c: Comment, source: string, out: RawToken[]) -> vo
             i = i + 1
             continue
         }
-        tag_name :: text.byte_slice(i + 1, tag_end)
+        tag_name :: text_bytes[i + 1..<tag_end].as_string()
         is_known :: tag_name == "param" || tag_name == "return" || tag_name == "error" || tag_name == "example"
         if !is_known {
             i = tag_end
@@ -338,7 +339,7 @@ collect_doc_line_tokens :: fn(c: Comment, source: string, out: RawToken[]) -> vo
 }
 
 scan_ident_end :: fn(s: string, start: usize) -> usize {
-    n :: s.byte_len()
+    n :: s.bytes().len()
     j := start
     for j < n {
         if !is_ident_char(s.byte_decode_at(j)) { break }
