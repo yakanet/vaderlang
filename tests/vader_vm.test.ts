@@ -93,6 +93,16 @@ const VADER_SELF_EMIT = new Set<string>([
   // may still diverge from TS at the .virt level (tracked separately in
   // parity's BYTECODE_DIVERGENT_SNIPPETS) — this only asserts the self-host
   // VM produces correct OUTPUT.
+  // `x in arr` / `b in s.bytes()` membership (std/core `T[] implements Contains`
+  // blanket). Self-emit ONLY : the TS in-process bytecode emit for this snippet
+  // is non-deterministic under the concurrent multi-file runner (the disposable
+  // erasure-dedupe/DCE layer — a harvested `Yield<char>` from std/string's
+  // char-range helpers survives-concrete-vs-erases depending on test-file
+  // interleaving ; ruled out type-intern caches + synth counters via verified
+  // per-compile resets, 2026-06-02). build/vader emits it deterministically, so
+  // the bytecode stage is excluded in its `_config.json` and the feature is
+  // validated here against the vm.snapshot oracle.
+  "array_contains",
   "_diag_const_string", "alias_union_in_array", "array_view_aliasing",
   "for_range_sugar", "b1_fn_boundary", "closure_pattern_binding", "comptime_type_value",
   "const_array_basic", "contains_op", "decorator_deprecated",

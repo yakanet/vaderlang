@@ -1,0 +1,313 @@
+# AST
+{
+  "kind": "Program",
+  "module": {
+    "kind": "ModuleDecl",
+    "name": "snippet"
+  },
+  "decls": [
+    {
+      "kind": "ImportDecl",
+      "path": "std/io",
+      "binding": {
+        "kind": "destructure",
+        "names": [
+          {
+            "name": "println",
+            "alias": null
+          }
+        ]
+      },
+      "decorators": []
+    },
+    {
+      "kind": "ImportDecl",
+      "path": "std/string",
+      "binding": {
+        "kind": "destructure",
+        "names": [
+          {
+            "name": "bytes",
+            "alias": null
+          }
+        ]
+      },
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "main",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "i32"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "primes"
+            },
+            "type": null,
+            "value": {
+              "kind": "SeqLitExpr",
+              "elements": [
+                {
+                  "kind": "IntLitExpr",
+                  "value": "2n",
+                  "suffix": null
+                },
+                {
+                  "kind": "IntLitExpr",
+                  "value": "3n",
+                  "suffix": null
+                },
+                {
+                  "kind": "IntLitExpr",
+                  "value": "5n",
+                  "suffix": null
+                },
+                {
+                  "kind": "IntLitExpr",
+                  "value": "7n",
+                  "suffix": null
+                },
+                {
+                  "kind": "IntLitExpr",
+                  "value": "11n",
+                  "suffix": null
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "IfExpr",
+              "cond": {
+                "kind": "BinaryExpr",
+                "op": "in",
+                "left": {
+                  "kind": "IntLitExpr",
+                  "value": "7n",
+                  "suffix": null
+                },
+                "right": {
+                  "kind": "IdentExpr",
+                  "name": "primes"
+                }
+              },
+              "then": {
+                "kind": "BlockExpr",
+                "stmts": [],
+                "trailing": {
+                  "kind": "CallExpr",
+                  "callee": {
+                    "kind": "IdentExpr",
+                    "name": "println"
+                  },
+                  "args": [
+                    {
+                      "name": null,
+                      "value": {
+                        "kind": "StringLitExpr",
+                        "parts": [
+                          {
+                            "kind": "text",
+                            "value": "7 is prime"
+                          }
+                        ]
+                      },
+                      "spread": false
+                    }
+                  ]
+                }
+              },
+              "else": null
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "IfExpr",
+              "cond": {
+                "kind": "BinaryExpr",
+                "op": "not_in",
+                "left": {
+                  "kind": "IntLitExpr",
+                  "value": "4n",
+                  "suffix": null
+                },
+                "right": {
+                  "kind": "IdentExpr",
+                  "name": "primes"
+                }
+              },
+              "then": {
+                "kind": "BlockExpr",
+                "stmts": [],
+                "trailing": {
+                  "kind": "CallExpr",
+                  "callee": {
+                    "kind": "IdentExpr",
+                    "name": "println"
+                  },
+                  "args": [
+                    {
+                      "name": null,
+                      "value": {
+                        "kind": "StringLitExpr",
+                        "parts": [
+                          {
+                            "kind": "text",
+                            "value": "4 is not prime"
+                          }
+                        ]
+                      },
+                      "spread": false
+                    }
+                  ]
+                }
+              },
+              "else": null
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "vowels"
+            },
+            "type": null,
+            "value": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "FieldExpr",
+                "target": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "aeiou"
+                    }
+                  ]
+                },
+                "field": "bytes"
+              },
+              "args": []
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "IfExpr",
+              "cond": {
+                "kind": "BinaryExpr",
+                "op": "in",
+                "left": {
+                  "kind": "IntLitExpr",
+                  "value": "101n",
+                  "suffix": "u8"
+                },
+                "right": {
+                  "kind": "IdentExpr",
+                  "name": "vowels"
+                }
+              },
+              "then": {
+                "kind": "BlockExpr",
+                "stmts": [],
+                "trailing": {
+                  "kind": "CallExpr",
+                  "callee": {
+                    "kind": "IdentExpr",
+                    "name": "println"
+                  },
+                  "args": [
+                    {
+                      "name": null,
+                      "value": {
+                        "kind": "StringLitExpr",
+                        "parts": [
+                          {
+                            "kind": "text",
+                            "value": "e is vowel"
+                          }
+                        ]
+                      },
+                      "spread": false
+                    }
+                  ]
+                }
+              },
+              "else": null
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "IfExpr",
+              "cond": {
+                "kind": "BinaryExpr",
+                "op": "not_in",
+                "left": {
+                  "kind": "IntLitExpr",
+                  "value": "122n",
+                  "suffix": "u8"
+                },
+                "right": {
+                  "kind": "IdentExpr",
+                  "name": "vowels"
+                }
+              },
+              "then": {
+                "kind": "BlockExpr",
+                "stmts": [],
+                "trailing": {
+                  "kind": "CallExpr",
+                  "callee": {
+                    "kind": "IdentExpr",
+                    "name": "println"
+                  },
+                  "args": [
+                    {
+                      "name": null,
+                      "value": {
+                        "kind": "StringLitExpr",
+                        "parts": [
+                          {
+                            "kind": "text",
+                            "value": "z is not vowel"
+                          }
+                        ]
+                      },
+                      "spread": false
+                    }
+                  ]
+                }
+              },
+              "else": null
+            }
+          },
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "IntLitExpr",
+              "value": "0n",
+              "suffix": null
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+{
+  "_comment": "bytecode phase excluded on purpose: the TS in-process bytecode emit for `x in arr` is non-deterministic under the concurrent multi-file test runner. Root cause (investigated 2026-06-02): `std/string` char-range helpers (is_digit etc.) always harvest a `Yield<char>` instance into this snippet's project; whether it survives concrete vs erases to `ref _` in the type table depends on the DCE root set, which varies with test-file interleaving. NOT the type-intern caches / synth counters (ruled out by verified per-compile resets) — it lives in the disposable TS erasure-dedupe/DCE layer. The Vader self-host compiler (build/vader) emits this snippet deterministically, so it is validated via VADER_SELF_EMIT in tests/vader_vm.test.ts instead. All other stages are deterministic and snapshotted normally.",
+  "phases": ["lexer", "parser", "typecheck", "comptime", "lower", "cfg"]
+}

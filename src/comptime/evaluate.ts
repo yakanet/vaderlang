@@ -189,6 +189,17 @@ function collectIntoMembers(project: TypedProject): IntoMemberObservation[] {
       seen.add(key);
       out.push({ member, program: ownerProgram, typeArgs });
     }
+    // Blanket array `Contains` : same shape as the `Into` observation, but the
+    // typer pre-resolved (member, element) at each `v in arr` site — no
+    // implSubst to unpack. Materialise one `contains` per distinct element.
+    for (const use of typed.arrayContainsUses) {
+      const ownerProgram = project.modules.get(use.moduleId);
+      if (ownerProgram === undefined) continue;
+      const key = `contains:${use.member.span.start.offset}:${canonicalArgsKey(use.typeArgs)}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push({ member: use.member, program: ownerProgram, typeArgs: use.typeArgs });
+    }
   }
   return out;
 }

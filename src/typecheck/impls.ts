@@ -72,12 +72,27 @@ export class ImplRegistry {
     return null;
   }
 
+  /** A blanket array impl (`T[] implements[T] Trait`) : `forSymbol` is null
+   *  (no nominal target) and the for-type is an `ArrayTypeExpr`. Mirrors
+   *  `forPrimitive` — scans the trait bucket for the single blanket entry.
+   *  Powers `v in arr` membership through the std/core `Contains` blanket. */
+  forArray(traitSymbol: Symbol): ImplEntry | null {
+    const bucket = this.byTrait.get(traitSymbol.id);
+    if (bucket === undefined) return null;
+    for (const e of bucket) {
+      if (e.forSymbol !== null) continue;
+      if (e.decl.forType.kind === "ArrayTypeExpr") return e;
+    }
+    return null;
+  }
+
   /** Resolve `(forType, trait)` regardless of whether `forType` is a struct,
-   *  an enum, or a primitive. Struct lookups consider the concrete type-args
-   *  so `Range[i32] implements Iterator` and `Range[char] implements Iterator`
-   *  coexist without clobbering each other. Enums have no type-args (their
-   *  variants are name-only) so the lookup uses an empty args key. Other
-   *  shapes (Array, Trait, TypeParam, …) have no impl by construction. */
+   *  an enum, a primitive, or an array. Struct lookups consider the concrete
+   *  type-args so `Range[i32] implements Iterator` and `Range[char] implements
+   *  Iterator` coexist without clobbering each other. Enums have no type-args
+   *  (their variants are name-only) so the lookup uses an empty args key.
+   *  Arrays resolve through the blanket impl (`forArray`). Other shapes
+   *  (Trait, TypeParam, …) have no impl by construction. */
   findFor(forType: Type, traitSymbol: Symbol): ImplEntry | null {
     if (forType.kind === "Struct") {
       const argsKey = forType.args.length === 0 ? "" : forType.args.map(implArgKey).join(",");
@@ -85,6 +100,7 @@ export class ImplRegistry {
     }
     if (forType.kind === "Enum") return this.findUserWithArgs(forType.symbol, traitSymbol, "");
     if (forType.kind === "Primitive") return this.forPrimitive(forType.name, traitSymbol);
+    if (forType.kind === "Array") return this.forArray(traitSymbol);
     return null;
   }
 

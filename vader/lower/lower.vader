@@ -483,7 +483,7 @@ lower_decl :: fn(
     }
 }
 
-import "vader/parser" { ImplDecl }
+import "vader/parser" { ImplDecl, ArrayTypeExpr }
 
 // Each `T implements Trait { method ... }` member surfaces as a fn
 // decl with mangled name `<module>$<for-type>$<trait>$<method>`.
@@ -559,6 +559,9 @@ surface_referenced_intrinsic_externs :: fn(
                 for ext in surface_stdlib_impl_externs(impl_, module_typed, project_ctx, decls_list) {
                     extra.push(ext)
                 }
+                for ext in surface_array_contains_for_impl(impl_, module_typed, project_ctx) {
+                    extra.push(ext)
+                }
             }
         }
         if extra.len() == 0 { continue }
@@ -621,6 +624,57 @@ surface_stdlib_impl_externs :: fn(
             .body        = body_lowered,
             .origin      = entry,
         })
+    }
+    return out
+}
+
+/// Materialise the blanket `T[] implements<T: Equals> Contains<T>` member once
+/// per element type a `v in arr` call referenced. The generic-impl materialiser
+/// (`materialize_impl_for_instance`) is struct-instance-driven and never reaches
+/// an array receiver, so `find_impl_member_for` records the element type keyed by
+/// the call-site mangle (`project_ctx.array_contains_elems`) ; here we lower the
+/// `contains` body with a CONCRETE substitution `T → element` so the body's `==`
+/// devirtualises to the element's primitive comparison (unlike a generic free-fn
+/// body, whose `==` stays an unbound virtual dispatch on the VM).
+///
+/// @param impl_decl    the candidate impl ; ignored unless it is the array
+///                     `Contains` blanket.
+/// @param typed        the impl's owning module (std/core) — source of the subst
+///                     symbols and entry types.
+/// @param project_ctx  carries `array_contains_elems` (mangle → element) and the
+///                     `materialized_impl_keys` dedupe set.
+/// @return             one materialised `LoweredFnDecl` per fresh element mangle.
+surface_array_contains_for_impl :: fn(
+    impl_decl: ImplDecl, typed: TypedProgram, project_ctx: LowerProjectCtx,
+) -> LoweredDecl[] {
+    out: LoweredDecl[] = []
+    if impl_decl.type_params.len() == 0 { return out }
+    if !(impl_decl.for_type is ArrayTypeExpr) { return out }
+    if impl_decl.trait_name != "Contains" { return out }
+    for member in impl_decl.members {
+        if member.name != "contains" { continue }
+        for mangled in project_ctx.array_contains_elems.keys() {
+            element :: project_ctx.array_contains_elems[mangled]
+            if element is null { continue }
+            // Dedupe against re-entrant drain-loop passes.
+            dedupe_key :: "arr_contains::${mangled}"
+            if project_ctx.materialized_impl_keys.contains(dedupe_key) { continue }
+            project_ctx.materialized_impl_keys.add(dedupe_key)
+            subst :: build_impl_subst(impl_decl, [element], typed, typed)
+            self_type :: mk_array(element, false)
+            types :: make_entry_types(typed, subst)
+            params :: build_impl_member_params(member, self_type, types, typed, project_ctx)
+            return_type :: return_type_of(member, types)
+            entry :: synth_impl_entry(member, typed, mangled)
+            body :: lower_fn_body(member, typed, project_ctx, entry, subst, return_type)
+            out.push(LoweredFnDecl {
+                .mangled     = mangled,
+                .params      = params,
+                .return_type = return_type,
+                .body        = body,
+                .origin      = entry,
+            })
+        }
     }
     return out
 }

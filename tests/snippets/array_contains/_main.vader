@@ -1,0 +1,18 @@
+module "snippet"
+
+import "std/io" { println }
+import "std/string" { bytes }
+
+// `v in arr` / `v !in arr` over an array literal and over a borrowed `bytes()`
+// view, both routed through the std/core blanket `T[] implements[T] Contains(T)`.
+main :: fn() -> i32 {
+    primes :: [2, 3, 5, 7, 11]
+    if 7 in primes  { println("7 is prime") }
+    if 4 !in primes { println("4 is not prime") }
+
+    vowels :: "aeiou".bytes()
+    if b'e' in vowels  { println("e is vowel") }
+    if b'z' !in vowels { println("z is not vowel") }
+
+    return 0
+}

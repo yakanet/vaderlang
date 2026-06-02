@@ -270,6 +270,20 @@ T[] implements<T> Into<Iterator<T>> {
     }
 }
 
+/// Membership for arrays — `v in arr` / `v !in arr` dispatch here. Linear scan
+/// via `Equals` ; `const T[]` so a borrowed `s.bytes()` view is accepted. As an
+/// impl member, the monomorphised `==` devirtualises to the element's primitive
+/// comparison on every backend. Blanket impl (orphan rule : `Contains` is
+/// std/core's, `T[]` isn't), mirroring the `Into` blanket above.
+T[] implements<T: Equals> Contains<T> {
+    contains :: fn(self, value: T) -> bool {
+        for item in self {
+            if item == value { return true }
+        }
+        return false
+    }
+}
+
 T implements<T: Display> Into<string> {
     into :: fn(self) -> string {
         return self.to_string()

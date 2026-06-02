@@ -1,0 +1,80 @@
+# Lower
+
+## snippet
+  fn snippet$main() -> i32
+    let primes: i32[] =
+      array :i32[]
+        int(2) :i32
+        int(3) :i32
+        int(5) :i32
+        int(7) :i32
+        int(11) :i32
+    if :void
+      cond:
+        call :bool
+          callee:
+            contains :bool
+          arg0:
+            primes :i32[]
+          arg1:
+            int(7) :i32
+      then:
+        call :void
+          callee:
+            println :void
+          arg0:
+            "7 is prime" :string
+    if :void
+      cond:
+        not :bool
+          call :bool
+            callee:
+              contains :bool
+            arg0:
+              primes :i32[]
+            arg1:
+              int(4) :i32
+      then:
+        call :void
+          callee:
+            println :void
+          arg0:
+            "4 is not prime" :string
+    let vowels: const u8[] =
+      call :const u8[]
+        callee:
+          bytes :const u8[]
+        arg0:
+          "aeiou" :string
+    if :void
+      cond:
+        call :bool
+          callee:
+            contains :bool
+          arg0:
+            vowels :const u8[]
+          arg1:
+            int(101) :u8
+      then:
+        call :void
+          callee:
+            println :void
+          arg0:
+            "e is vowel" :string
+    if :void
+      cond:
+        not :bool
+          call :bool
+            callee:
+              contains :bool
+            arg0:
+              vowels :const u8[]
+            arg1:
+              int(122) :u8
+      then:
+        call :void
+          callee:
+            println :void
+          arg0:
+            "z is not vowel" :string
+    return int(0) :i32

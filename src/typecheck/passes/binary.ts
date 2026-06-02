@@ -86,12 +86,30 @@ export function inferBinary(
       if (!isPrimitive(left, "bool") && left.kind !== "Unresolved") err(diags, "T3017", expr.left.span);
       if (!isPrimitive(right, "bool") && right.kind !== "Unresolved") err(diags, "T3017", expr.right.span);
       return TY.bool;
-    case "in": case "not_in":
+    case "in": case "not_in": {
       // `x in coll` / `x !in coll`: collection-side must implement Contains($T)
       // where $T accepts the element's type. Returns bool. Validation happens
       // in the lowerer when the call gets resolved against the impl registry —
       // here we just report the result type.
+      //
+      // When `coll` is an array, the std/core blanket `T[] implements[T]
+      // Contains(T)` supplies `contains`. That blanket member isn't anchored to
+      // a registered struct instance, so the regular mono pass can't reach it ;
+      // record the (member, element) here so comptime materialises one
+      // `contains` per element type (mirrors `intoCoercions` for the `Into`
+      // blanket). The lowerer then finds the instance via `lookupImplEntry`.
+      if (right.kind === "Array") {
+        const containsTrait = impls.coreTrait(CORE_TRAITS.Contains);
+        const entry = containsTrait === null ? null : impls.forArray(containsTrait);
+        const member = entry?.decl.members.find((m) => m.name === "contains");
+        if (entry !== null && member !== undefined) {
+          t.arrayContainsUses.push({
+            member, typeArgs: [defaultIfFree(right.element)], moduleId: entry.module.id,
+          });
+        }
+      }
       return TY.bool;
+    }
   }
 }
 

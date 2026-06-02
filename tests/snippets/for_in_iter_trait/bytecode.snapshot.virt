@@ -993,7 +993,7 @@ fn 50 std_core$ArrayIterator$Iterator$next__Any (ref) -> ref
   return
 end
 
-fn 51 std_core$ArrayIterator$Iterator$next__T_8 (ref) -> ref
+fn 51 std_core$ArrayIterator$Iterator$next__T_9 (ref) -> ref
   local $field_1 usize
   local $len_3 usize
   local $field_6 ref

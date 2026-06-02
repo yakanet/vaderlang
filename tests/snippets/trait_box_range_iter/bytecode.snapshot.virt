@@ -22,19 +22,25 @@ type 19 struct std_core$Range__Any { start:5,end:5,inclusive:9,cursor:5 }
 type 20 union 0,21
 type 21 struct std_core$Yield__Any { value:5 }
 type 22 struct std_core$ArrayIterator__Any { arr:7,cursor:17 }
-type 23 struct std_core$ArrayIterator__i32 { arr:27,cursor:17 }
+type 23 struct std_core$ArrayIterator__T { arr:30,cursor:17 }
 type 24 union 0,25
-type 25 struct std_core$Yield__i32 { value:2 }
-type 26 struct std_core$Range__i32 { start:5,end:5,inclusive:9,cursor:5 }
-type 27 array 2
-type 28 ref Doubler
+type 25 ref Yield
+type 26 struct std_core$ArrayIterator__i32 { arr:32,cursor:17 }
+type 27 union 0,28
+type 28 struct std_core$Yield__i32 { value:2 }
+type 29 struct std_core$Range__i32 { start:5,end:5,inclusive:9,cursor:5 }
+type 30 array 31
+type 31 ref _
+type 32 array 2
+type 33 ref Doubler
 impl 1 Greeter
 impl 19 Contains
 impl 19 Iterator
 impl 22 Iterator
 impl 23 Iterator
-impl 26 Contains
 impl 26 Iterator
+impl 29 Contains
+impl 29 Iterator
 vtable Comparable.gt 2 14
 vtable Comparable.gt 8 8
 vtable Comparable.gt 10 11
@@ -62,7 +68,8 @@ vtable Greeter.greet 1 0
 vtable Iterator.next 19 51
 vtable Iterator.next 22 52
 vtable Iterator.next 23 53
-vtable Iterator.next 26 51
+vtable Iterator.next 26 54
+vtable Iterator.next 29 51
 vtable Step.step 2 42
 vtable Step.step 8 40
 vtable Step.step 10 41
@@ -96,13 +103,13 @@ fn 2 snippet$main () -> i32
   i32.const 5
   bool.const false
   i32.const 0
-  struct.new 26
+  struct.new 29
   call 3
   local.set 0
   i32.const 10
   i32.const 20
   i32.const 30
-  array.new 27 3
+  array.new 32 3
   call 6
   call 3
   local.set 1
@@ -923,11 +930,10 @@ fn 52 std_core$ArrayIterator$Iterator$next__Any (ref) -> ref
   return
 end
 
-fn 53 std_core$ArrayIterator$Iterator$next__i32 (ref) -> ref
+fn 53 std_core$ArrayIterator$Iterator$next__T (ref) -> ref
   local $field_1 usize
   local $len_3 usize
   local $field_6 ref
-  local v i32
   local.field 0 23 1
   ref.cast 17
   local.set 1
@@ -947,9 +953,8 @@ fn 53 std_core$ArrayIterator$Iterator$next__i32 (ref) -> ref
   local.set 1
   local.get 3
   local.get 1
-  array.get 27
-  ref.cast 2
-  local.set 4
+  array.get 30
+  local.set 3
   local.field 0 23 1
   ref.cast 17
   local.set 1
@@ -961,7 +966,50 @@ fn 53 std_core$ArrayIterator$Iterator$next__i32 (ref) -> ref
   local.get 0
   local.get 1
   struct.set 23 1
-  local.get 4
+  local.get 3
   struct.new 25
+  return
+end
+
+fn 54 std_core$ArrayIterator$Iterator$next__i32 (ref) -> ref
+  local $field_1 usize
+  local $len_3 usize
+  local $field_6 ref
+  local v i32
+  local.field 0 26 1
+  ref.cast 17
+  local.set 1
+  local.field 0 26 0
+  array.len
+  local.set 2
+  local.get 1
+  local.get 2
+  usize.ge
+  if $L0 void
+    return.lit null.const
+  end $L0
+  local.field 0 26 0
+  local.set 3
+  local.field 0 26 1
+  ref.cast 17
+  local.set 1
+  local.get 3
+  local.get 1
+  array.get 32
+  ref.cast 2
+  local.set 4
+  local.field 0 26 1
+  ref.cast 17
+  local.set 1
+  local.get 1
+  i64.const 1
+  i64.to_usize
+  usize.add
+  local.set 1
+  local.get 0
+  local.get 1
+  struct.set 26 1
+  local.get 4
+  struct.new 28
   return
 end

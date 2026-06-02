@@ -963,7 +963,9 @@ function lowerInOp(ctx: FnLowerCtx, expr: A.BinaryExpr): LoweredExpr {
   }
   const containsDecl = entry.decl.members.find((m) => m.name === "contains");
   if (containsDecl === undefined) return fail("Contains impl missing `contains` member");
-  const structArgs = collType.kind === "Struct" ? collType.args : [];
+  const structArgs = collType.kind === "Struct" ? collType.args
+    : collType.kind === "Array" ? [collType.element]
+    : [];
   const monoEntry = lookupImplEntry(ctx, containsDecl, structArgs);
   if (monoEntry === null || monoEntry.symbol === null) {
     return fail("Contains.contains has no monomorphised instance");

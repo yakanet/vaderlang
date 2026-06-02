@@ -154,6 +154,12 @@ export interface TypedProgram {
    *  reads this to route through the for-in path with the synthesised
    *  discard symbol. */
   readonly whileAsForIn: ReadonlyMap<A.ForStmt, Symbol>;
+  /** `v in arr` membership sites resolving to the blanket `T[] implements[T]
+   *  Contains(T)` impl. The blanket member isn't anchored to a registered
+   *  struct instance, so the regular mono pass can't reach it — comptime reads
+   *  this (alongside `intoCoercions`) to materialise `contains` per element
+   *  type. See `ArrayContainsUse`. */
+  readonly arrayContainsUses: readonly ArrayContainsUse[];
 }
 
 export interface TypedProject {
@@ -164,6 +170,19 @@ export interface TypedProject {
    *  — see `docs/STDLIB_GENERIC_COLLAPSE_PHASE0.md`). Populated by
    *  `checkProject` after every TraitDecl is known. */
   readonly traitSlots: TraitSlotRegistry;
+}
+
+/** Recorded `v in arr` membership site against the blanket array `Contains`
+ *  impl — see `TypedProgram.arrayContainsUses`. Carries everything comptime
+ *  needs to materialise the `contains` member for the element type without
+ *  re-walking the impl table : the member decl, the concrete element bound to
+ *  the impl's `T`, and the impl module's id (resolves to the owning program). */
+export interface ArrayContainsUse {
+  readonly member: A.FnDecl;
+  /** Concrete values bound to the impl's typeParams (`[element]`). */
+  readonly typeArgs: readonly Type[];
+  /** Id of the module the blanket impl is declared in (std/core). */
+  readonly moduleId: string;
 }
 
 /** Recorded `S implements Into(T)` coercion site — see `TypedProgram.intoCoercions`. */

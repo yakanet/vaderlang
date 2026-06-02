@@ -179,6 +179,15 @@ export LowerProjectCtx :: struct {
     /// for unrelated snippets.
     referenced_impl_mangles: MutableSet<string>
 
+    /// `x in arr` sites resolved to the blanket `T[] implements Contains`
+    /// impl : maps the call-site mangle (`std_core$[]$Contains$contains__i32`)
+    /// to the array's element type. `surface_array_contains_members` reads
+    /// this to materialise one CONCRETE `contains` body per element type, with
+    /// `T → element` substituted so the body's `==` devirtualises to the
+    /// element primop (a blanket array impl has no struct instance to drive
+    /// the regular generic-impl materialiser).
+    array_contains_elems: MutableMap<string, Type>
+
     diags:               Diagnostic[]
 }
 
@@ -224,6 +233,7 @@ export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedPr
         .referenced_impl_mangles = MutableSet<string> {
             .inner = MutableMap<string, bool> { .buckets = [], .size = usize(0) },
         },
+        .array_contains_elems = MutableMap<string, Type> { .buckets = [], .size = usize(0) },
         .synth_decls         = [],
         .next_synthetic_id   = i32(-1),
         .diags               = [],

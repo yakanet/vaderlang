@@ -8,7 +8,7 @@
 
 import type * as A from "../parser/ast.ts";
 import type { Module } from "../resolver/module.ts";
-import type { IntoCoercion } from "./typed-ast.ts";
+import type { ArrayContainsUse, IntoCoercion } from "./typed-ast.ts";
 import type { ResolvedProgram, ResolvedProject } from "../resolver/resolved-ast.ts";
 import type { ModuleId, Symbol, SymbolFactory } from "../resolver/symbol.ts";
 import type {
@@ -103,6 +103,9 @@ export interface MutableTyped {
   readonly directCallOverloads: Map<A.CallExpr, Symbol>;
   /** User `Into(Target)` coercion sites. See `TypedProgram.intoCoercions`. */
   readonly intoCoercions: Map<A.Expr, IntoCoercion>;
+  /** `v in arr` blanket-`Contains` membership sites. See
+   *  `TypedProgram.arrayContainsUses`. Populated by the `in` binary rule. */
+  readonly arrayContainsUses: ArrayContainsUse[];
   /** Operator-overload dispatch sites. See `TypedProgram.binaryOpResolutions`. */
   readonly binaryOpResolutions: Map<A.BinaryExpr, BinaryOpResolution>;
   /** Type-position resolution of the RHS of every `BinaryExpr` with `op:"is"`.
