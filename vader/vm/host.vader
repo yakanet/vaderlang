@@ -15,7 +15,7 @@ import "std/process" { spawn_run, spawn_last_stdout, spawn_last_stderr }
 import "std/math" { sqrt, pow, floor, ceil, round }
 import "std/time" { monotonic_ns, now_unix_ms }
 import "std/string_builder" { new_builder, append }
-import "std/string" { as_string, trim, index_of, last_index_of }
+import "std/string" { as_string, trim, index_of, last_index_of, starts_with, ends_with }
 
 /// Outcome of a successful host call. `value` is unused when the import
 /// has `has_return == false` — the exec checks the import's signature
@@ -67,6 +67,42 @@ host_i32_binary :: fn(stack: Value[], arg_base: usize, at_pc: i32, label: string
     if a is Trap { return a }
     if b is Trap { return b }
     return HostOk { .value = I32Val { .value = apply(a.value, b.value) } }
+}
+
+/// True for every integer-width primitive kind. Drives the bodyless
+/// integer-`Equals` host dispatch — these widths all carry as `I32Val` /
+/// `I64Val` at runtime, so one handler pair covers them.
+is_int_kind :: fn(k: string) = k == "i8" || k == "i16" || k == "i32" || k == "i64" || k == "isize" ||
+    k == "u8" || k == "u16" || k == "u32" || k == "u64" || k == "usize"
+
+/// `"equals"` / `"not_equals"` when `mangled` is an integer width's bodyless
+/// `@intrinsic Equals` member (`std_core$i32$Equals$equals`), else `""`.
+/// `string`-Equals is matched by its own arm earlier ; integer `Hash` needs no
+/// host arm (its impls have bodies → real fns). Parses by suffix + kind slice
+/// (no per-call string building) so the hot map-key path stays cheap.
+int_equals_method :: fn(mangled: string) -> string {
+    if !mangled.starts_with(r"std_core$") { return "" }
+    b :: mangled.bytes()
+    if mangled.ends_with(r"$Equals$equals") {
+        // strip "std_core$" (9) prefix + "$Equals$equals" (14) suffix
+        if is_int_kind(b[9..<b.len() - 14].as_string()) { return "equals" }
+    }
+    if mangled.ends_with(r"$Equals$not_equals") {
+        // "$Equals$not_equals" suffix is 18 bytes
+        if is_int_kind(b[9..<b.len() - 18].as_string()) { return "not_equals" }
+    }
+    return ""
+}
+
+/// Two integer args → bool. Reads both via `read_i64` (widening `I32Val`), so
+/// it covers every integer width ; equality on the i64 bit pattern is correct
+/// for signed and unsigned alike.
+host_int_pair_to_bool :: fn(stack: Value[], arg_base: usize, at_pc: i32, label: string, apply: fn(i64, i64) -> bool) -> HostCallResult {
+    a :: read_i64(stack[arg_base    ], at_pc, "${label} receiver")
+    b :: read_i64(stack[arg_base + 1], at_pc, "${label} arg")
+    if a is Trap { return a }
+    if b is Trap { return b }
+    return HostOk { .value = BoolVal { .value = apply(a.value, b.value) } }
 }
 
 /// Flush a `StringBuilder` `StructVal` into a `StringVal`. The
@@ -222,6 +258,17 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
     }
     if info.mangled == r"std_core$string$Equals$not_equals" {
         return host_str_pair_to_bool(stack, arg_base, at_pc, "not_equals", (a, b) -> a != b)
+    }
+    // `@intrinsic <intwidth> implements Equals` — bodyless for every integer
+    // width, so an erased map-key lookup (`MutableMap<Any, K>` with integer K)
+    // dispatches `key.equals(other)` virtually and surfaces it as a host import
+    // (mirror of the string arms above). Reached e.g. by `MutableSet<i32>`.
+    int_eq :: int_equals_method(info.mangled)
+    if int_eq == "equals" {
+        return host_int_pair_to_bool(stack, arg_base, at_pc, "equals", (a: i64, b: i64) -> a == b)
+    }
+    if int_eq == "not_equals" {
+        return host_int_pair_to_bool(stack, arg_base, at_pc, "not_equals", (a: i64, b: i64) -> a != b)
     }
     // `<width> implements Display.to_string` for every primitive — the
     // VM emits the SPEC §9 canonical form via `display_value`. Width

@@ -103,6 +103,14 @@ const VADER_SELF_EMIT = new Set<string>([
   // the bytecode stage is excluded in its `_config.json` and the feature is
   // validated here against the vm.snapshot oracle.
   "array_contains",
+  // `MutableSet<i32>` end-to-end self-host : exercises the erased generic-struct
+  // impl-member materialisation (`MutableMap<Any, bool>.Contains.contains`,
+  // reached from the deduped erased `add` body) AND the integer-primitive
+  // `Equals` host dispatch the erased map-key lookup needs. Guards the three
+  // fixes that landed it (DCE walks verbatim survivors / erased impl-member
+  // materialisation / VM integer `Equals`) — the suite's only coverage of the
+  // Vader emitter on a map/set program.
+  "mutable_set",
   "_diag_const_string", "alias_union_in_array", "array_view_aliasing",
   "for_range_sugar", "b1_fn_boundary", "closure_pattern_binding", "comptime_type_value",
   "const_array_basic", "contains_op", "decorator_deprecated",
