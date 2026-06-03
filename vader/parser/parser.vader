@@ -3017,16 +3017,16 @@ parse_string_lit :: fn(p: Parser) -> StringLitExpr {
 parse_if_expr :: fn(p: Parser) -> IfExpr {
     start :: p.advance()  // `if`
     saved_allow :: p.allow_struct_lit
+    // Struct literals are disabled at condition top-level so `if Foo { … }`
+    // reads `Foo` as the condition (not a struct literal). A leading `(` is NOT
+    // special-cased here: it parses as an ordinary parenthesised primary
+    // (`parse_paren_or_tuple` re-enables struct literals inside the parens AND
+    // keeps the infix chain going), so `if (i + 1) % 4 == 0` and
+    // `if (Point { .x = 1 }).ok` parse as the full expression. A bespoke
+    // `if (...)` grabber used to eat just the first paren group and leave the
+    // rest dangling — that was the bug. Mirror of the TS `parseIfExpr` fix.
     p.allow_struct_lit = false
-
-    cond: Expr = NullLitExpr { .span = start.span }
-    if p.match_kind(.LParen) != null {
-        p.allow_struct_lit = true
-        cond = p.parse_expr(0)
-        p.expect(.RParen, "`)` to close `if` condition")
-    } else {
-        cond = p.parse_expr(0)
-    }
+    cond :: p.parse_expr(0)
     p.allow_struct_lit = saved_allow
 
     then_block :: p.parse_block()

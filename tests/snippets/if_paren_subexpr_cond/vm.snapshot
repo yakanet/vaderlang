@@ -1,0 +1,7 @@
+# stdout
+paren subexpr cond
+c-style paren cond
+bare cond
+struct-lit-in-paren cond
+# exit
+0

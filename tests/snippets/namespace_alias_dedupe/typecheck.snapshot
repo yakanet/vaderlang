@@ -7276,32 +7276,11 @@
   expr 3018:14  IdentExpr      :: Parser
   expr 3019:20  FieldExpr      :: bool
   expr 3019:20  IdentExpr      :: Parser
-  expr 3020:5   FieldExpr      :: bool
-  expr 3020:5   IdentExpr      :: Parser
-  expr 3022:18  StructLitExpr  :: NullLitExpr
-  expr 3022:40  FieldExpr      :: Span
-  expr 3022:40  IdentExpr      :: Token
-  expr 3023:21  DotVariantExpr :: TokenKind
-  expr 3023:5   IfExpr         :: Token | void
-  expr 3023:8   BinaryExpr     :: bool
-  expr 3023:8   CallExpr       :: null | Token
-  expr 3023:8   FieldExpr      :: fn(TokenKind) -> null | Token
-  expr 3023:8   IdentExpr      :: Parser
-  expr 3024:9   FieldExpr      :: bool
-  expr 3024:9   IdentExpr      :: Parser
-  expr 3025:16  CallExpr       :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
-  expr 3025:16  FieldExpr      :: fn(i32) -> ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
-  expr 3025:16  IdentExpr      :: Parser
-  expr 3025:9   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
-  expr 3026:18  DotVariantExpr :: TokenKind
-  expr 3026:27  StringLitExpr  :: string
-  expr 3026:9   CallExpr       :: Token
-  expr 3026:9   FieldExpr      :: fn(TokenKind, string) -> Token
-  expr 3026:9   IdentExpr      :: Parser
-  expr 3028:16  CallExpr       :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
-  expr 3028:16  FieldExpr      :: fn(i32) -> ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
-  expr 3028:16  IdentExpr      :: Parser
-  expr 3028:9   IdentExpr      :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
+  expr 3028:5   FieldExpr      :: bool
+  expr 3028:5   IdentExpr      :: Parser
+  expr 3029:13  CallExpr       :: ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
+  expr 3029:13  FieldExpr      :: fn(i32) -> ArrayTypeExpr | BinaryExpr | BlockExpr | BoolLitExpr | CallExpr | CastExpr | CharLitExpr | DotVariantExpr | FieldExpr | FloatLitExpr | FnTypeExpr | GenericInstExpr | IdentExpr | IfExpr | IndexExpr | IntLitExpr | IntrinsicCallExpr | LambdaExpr | MatchExpr | NullLitExpr | RangeExpr | SeqLitExpr | StringLitExpr | StructLitExpr | TryExpr | UnaryExpr
+  expr 3029:13  IdentExpr      :: Parser
   expr 3030:26  IdentExpr      :: bool
   expr 3030:5   FieldExpr      :: bool
   expr 3030:5   IdentExpr      :: Parser

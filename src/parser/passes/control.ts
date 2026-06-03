@@ -17,17 +17,16 @@ import { parseType } from "./type.ts";
 export function parseIfExpr(p: Parser): A.IfExpr {
   const start = p.advance(); // if
   const savedAllow = p.allowStructLit;
+  // Struct literals are disabled at condition top-level so `if Foo { … }`
+  // reads `Foo` as the condition (not `Foo { … }` as a struct lit). A leading
+  // `(` is NOT special-cased here: it parses as an ordinary parenthesised
+  // primary via `parseParenOrTuple`, which re-enables struct literals inside
+  // the parens AND keeps the infix chain going — so `if (i + 1) % 4 == 0` and
+  // `if (Point { .x = 1 }).ok` both parse as the full expression. (A bespoke
+  // `if (...)` grabber used to eat just the first paren group and leave the
+  // rest dangling — that was the bug.)
   p.allowStructLit = false;
-
-  let cond: A.Expr;
-  if (p.match("lparen") !== null) {
-    // Parenthesised condition: struct literals allowed inside.
-    p.allowStructLit = true;
-    cond = parseExpr(p, 0);
-    p.expect("rparen", "`)` to close `if` condition");
-  } else {
-    cond = parseExpr(p, 0);
-  }
+  const cond = parseExpr(p, 0);
   p.allowStructLit = savedAllow;
 
   const thenBlock = parseBlock(p);

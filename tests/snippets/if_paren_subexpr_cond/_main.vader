@@ -1,0 +1,19 @@
+// Regression: an `if` condition that STARTS with `(` but continues with an
+// infix operator must parse as the full expression. The parser used to grab
+// the leading parenthesised group `(n + 1)` as the whole condition and choke
+// on the trailing `% 4 == 0`. A leading `(` is now an ordinary parenthesised
+// primary (struct literals re-enabled inside, infix chain preserved).
+module "snippet"
+
+import "std/io" { println }
+
+Point :: struct { x: i32 }
+
+main :: fn() -> i32 {
+    n :: 7
+    if (n + 1) % 4 == 0 { println("paren subexpr cond") }   // (7+1)%4 == 0 -> true
+    if (n > 3) { println("c-style paren cond") }            // still works
+    if n > 3 { println("bare cond") }                       // still works
+    if (Point { .x = 5 }).x > 0 { println("struct-lit-in-paren cond") }
+    return 0
+}
