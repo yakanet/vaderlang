@@ -192,13 +192,28 @@ export LowerProjectCtx :: struct {
     /// Erased generic-struct impl-member receivers (`MutableMap<Any, bool>`)
     /// discovered by `find_impl_member_for` — their instance never reaches
     /// `evaluated.instances` (erasure artifacts, not source-level). Drained
-    /// inside the `materialize_generic_fn_instances` fixpoint so the impl
+    /// inside the `drain_generic_fn_instances` fixpoint so the impl
     /// bodies' transitive free-fn harvests stay on the same cursor. Struct
     /// analogue of `array_contains_elems`.
     pending_generic_impl_recv: GenericInstance[]
     /// Receiver keys already queued, so each erased instance is queued once
     /// (bounds the queue + avoids redundant per-receiver module scans).
     seen_generic_impl_recv: MutableSet<string>
+
+    /// Resumable state for the generic-fn-instance materialiser, split into a
+    /// build phase (`drain_generic_fn_instances`) and a one-shot flush
+    /// (`flush_generic_fn_instances`). The fn-instance + erased-impl-receiver
+    /// cursors and the `processed` dedup persist so the build phase can run
+    /// repeatedly inside `lower_project`'s generic↔stdlib joint fixpoint —
+    /// draining instances that later harvest rounds register (e.g. `len` pulled
+    /// in by the harvested `std/json::write_object` body) without re-processing
+    /// earlier ones. `generic_collected` accumulates every built instance across
+    /// rounds ; the flush sorts + erasure-dedups + pushes it ONCE after the
+    /// fixpoint converges, so emission order is a single deterministic sort.
+    generic_collected:   PendingFnInstance[]
+    generic_processed:   MutableMap<string, bool>
+    generic_fn_cursor:   usize
+    generic_recv_cursor: usize
 
     diags:               Diagnostic[]
 }
@@ -250,6 +265,10 @@ export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedPr
         .seen_generic_impl_recv = MutableSet<string> {
             .inner = MutableMap<string, bool> {},
         },
+        .generic_collected   = [],
+        .generic_processed   = MutableMap<string, bool> {},
+        .generic_fn_cursor   = 0,
+        .generic_recv_cursor = 0,
         .synth_decls         = [],
         .next_synthetic_id   = i32(-1),
         .diags               = [],

@@ -117,6 +117,13 @@ const VADER_SELF_EMIT = new Set<string>([
   // make-closure GATE-B1 fix (`drain_synth_window`) — without it the lifted
   // closure has no reserved fn index and Vader emit panics.
   "closure_in_generic_fn",
+  // JSON parse + stringify : `std/json::write_object` (a harvested non-generic
+  // stdlib fn) calls the generic `MutableMap.len`, registering that instance
+  // DURING the stdlib harvest — after the old single generic pass. Guards the
+  // generic↔stdlib joint-fixpoint fix (drain_generic_fn_instances inside the
+  // fixpoint + deferred flush) ; without it `len__string__JsonValue` is
+  // stranded and Vader emit panics with an unresolved callee.
+  "json_basics",
   "_diag_const_string", "alias_union_in_array", "array_view_aliasing",
   "for_range_sugar", "b1_fn_boundary", "closure_pattern_binding", "comptime_type_value",
   "const_array_basic", "contains_op", "decorator_deprecated",

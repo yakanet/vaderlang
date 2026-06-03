@@ -125,38 +125,41 @@ export lower_project :: fn(
     // their matching generic-impl members. Each `evaluated.instances`
     // entry yields a `StructDecl<Concrete>` + per-impl `__T` member fns.
     rep_seen :: materialize_concrete_struct_instances(loaded, typed, project_ctx, project, diags)
-    // Generic-fn instances observed at call sites get one
-    // monomorphized `LoweredFnDecl` per `(fn_symbol, args)` tuple. The
-    // body inherits the source fn-decl but lowered against a typeParam
-    // substitution that binds T → arg[i].
-    materialize_generic_fn_instances(loaded, typed, project_ctx, project, diags)
-    // Non-generic stdlib free fns harvested during call lowering
-    // (`append`, `byte_len`, `new_builder`, …). Runs after generic
-    // instances since both share the harvest ; its own bodies may
-    // harvest further non-generic stdlib fns (cursor-iterated).
-    // Fixpoint : materialising a stdlib free-fn body can harvest impl-member
-    // calls (→ `referenced_impl_mangles`), and surfacing a stdlib impl-member
-    // body (e.g. `StringChars.Iterator.next`) can harvest further stdlib free
-    // fns (→ `nongeneric_stdlib_order`, e.g. `decode_codepoint`). Loop the two
-    // until neither queue grows. `materialize_nongeneric_stdlib_fns` resumes
-    // from a persistent cursor (no re-lowering) ; `surface_*` dedupes via
-    // `materialized_impl_keys`, so re-running is idempotent. Surfaces only
-    // referenced members so unrelated snippets don't gain unused imports.
-    prev_fns := usize(0)
-    prev_impls := usize(0)
+    // Generic-fn instances + non-generic stdlib free fns are MUTUALLY
+    // recursive : a generic instance body calls stdlib fns (harvested into
+    // `nongeneric_stdlib_order`), and a harvested stdlib body calls generic
+    // fns (registered into `fn_instances_order` — e.g. `std/json::write_object`
+    // → `MutableMap.len`). Drain all the queues in ONE joint fixpoint until
+    // none grows : each pass resumes from its own persistent cursor, so
+    // re-entry only processes newly-registered work (`drain_generic_fn_instances`
+    // builds into `generic_collected` ; `materialize_nongeneric_stdlib_fns`
+    // resumes from `nongeneric_stdlib_cursor` ; `surface_*` dedupes via
+    // `materialized_impl_keys`). A pre-fixpoint single generic pass would
+    // strand any instance a later stdlib-harvest round registers (the
+    // `len__...` GATE-B1 unresolved-callee bug). The generic instances are
+    // FLUSHED (sorted + erasure-deduped + pushed) once after convergence so
+    // emission order is a single deterministic sort.
+    // All four queues are append-only (the three arrays) / add-only (the mangle
+    // set), so their combined length strictly increases until the joint fixpoint
+    // settles — loop until the total stops growing.
+    prev_total: usize = 0
     draining := true
     for draining {
+        drain_generic_fn_instances(loaded, typed, project_ctx, project, diags)
         materialize_nongeneric_stdlib_fns(loaded, typed, project_ctx, project, diags)
         surface_referenced_intrinsic_externs(loaded, typed, project_ctx, project)
-        cur_fns :: project_ctx.nongeneric_stdlib_order.len()
-        cur_impls :: project_ctx.referenced_impl_mangles.inner.size
-        if cur_fns == prev_fns && cur_impls == prev_impls {
-            draining = false
-        } else {
-            prev_fns = cur_fns
-            prev_impls = cur_impls
-        }
+        cur_total :: project_ctx.fn_instances_order.len() +
+            project_ctx.pending_generic_impl_recv.len() +
+            project_ctx.nongeneric_stdlib_order.len() +
+            project_ctx.referenced_impl_mangles.inner.size
+        if cur_total == prev_total { draining = false } else { prev_total = cur_total }
     }
+    // INVARIANT : anything that can register a generic fn instance or harvest a
+    // non-generic stdlib fn MUST run inside the loop above — the flush is
+    // one-shot, so a post-flush registration is stranded (the bug this closes).
+    // `materialize_representatives` / `close_over_field_shapes` below only push
+    // struct decls (no body lowering), so they register nothing — keep it that way.
+    flush_generic_fn_instances(project_ctx, project)
     // Representative "any-args" structs come AFTER fn instances —
     // matches TS' emission order so generic_brackets etc. byte-match.
     materialize_representatives(loaded, typed, project_ctx, project, rep_seen)
@@ -1112,72 +1115,57 @@ is_main_decl :: fn(decl: Decl) -> bool {
 /// `Symbol__T1__T2 { field: ConcreteT }` ; generic-impl members
 /// follow as `Symbol$Trait$method__T1__T2(...)`. Mirror of TS's
 /// `monomorphizeProject` (`src/comptime/specialize.ts`) pass-2.
-/// Walk the project ctx's `fn_instances` table and emit one
-/// monomorphized `LoweredFnDecl` per instance. The body lowers the
-/// source FnDecl against a fresh `Substitution` binding the fn's
-/// typeParams to the call site's concrete types.
-materialize_generic_fn_instances :: fn(
+/// Build phase of generic-fn-instance materialisation. Drains the
+/// `fn_instances_order` + `pending_generic_impl_recv` queues into
+/// `project_ctx.generic_collected`, lowering each instance body against a
+/// fresh `Substitution` binding the fn's typeParams to the call site's
+/// concrete types. Resumes from the persistent `generic_fn_cursor` /
+/// `generic_recv_cursor` so `lower_project`'s generic↔stdlib joint fixpoint
+/// can re-run it as later harvest rounds register new instances (e.g. `len`
+/// pulled in by the harvested `std/json::write_object` body). The sort +
+/// erasure-dedup + push happens once in `flush_generic_fn_instances`.
+///
+/// The mono pass's Pass 3 (`run_pass_3` in `specialize.vader`) also produces
+/// one entry per `(fn symbol, type_arguments)` pair via
+/// `evaluated.mono.fn_instance_entries`, but the mangled names differ
+/// (`inst.mangled` carries a double-prefix bug ; mono's is canonical single-
+/// prefix). Until reconciled we drive from `fn_instances_order` for byte-
+/// parity. TODO: drop `fn_instances_order`, read from mono entries.
+drain_generic_fn_instances :: fn(
     loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx,
     project: LoweredProject, diags: Diagnostic[],
 ) -> void {
-    // Sort by `<fn_symbol.id>::<args_key>` to match TS's `displayKey`
-    // ordering in `src/comptime/instances.ts:33`. The `symbol.id`
-    // prefix groups overloads of the same fn ; within a group, args
-    // sort alphabetically (so `id(f64)` < `id(i32)` < `id(string)`).
-    //
-    // The mono pass's Pass 3 (`run_pass_3` in `specialize.vader`)
-    // also produces one entry per `(fn symbol, type_arguments)` pair,
-    // routed through `evaluated.mono.fn_instance_entries`. The
-    // mangled names differ (existing `inst.mangled` carries a
-    // double-prefix bug ; mono's `entry.mangled` carries the
-    // canonical single-prefix). Until that's reconciled, we keep
-    // driving from `project_ctx.fn_instances_order` for byte-parity
-    // with the current snapshots, and use mono only as a gate :
-    // instances absent from mono (e.g. observed-but-rejected) are
-    // skipped early.
-    //
-    // TODO: drop `project_ctx.fn_instances_order` and read entirely
-    // from `evaluated.mono.fn_instance_entries`. Blocked on snapshot
-    // updates for the mangled-name change.
-    // Transitive monomorphisation : lowering an instance body can
-    // register *new* instances (e.g. `outer<T>` calling `inner<T>`),
-    // appending to `fn_instances_order` mid-loop. Iterate to a fixpoint
-    // over a `processed` set so transitively-discovered instances also
-    // materialise. Bodies are built into `collected` first, then sorted
-    // by `<fn_symbol.id>::<args>` and pushed — so `inner` (lower symbol
-    // id) emits before `outer` regardless of discovery order. Mirror of
-    // TS' mono registry, which collects every instance transitively
-    // before emit (`src/comptime/specialize.ts` run_pass_3).
-    processed: MutableMap<string, bool> = MutableMap<string, bool> {}
-    collected: PendingFnInstance[] = []
-    // `fn_instances_order` is append-only here — `build_fn_instance_decl`
-    // only ever pushes newly-discovered instances. A growing-array
-    // cursor that re-reads `len()` each step therefore visits every
-    // transitive instance in one pass ; `processed` dedups duplicate
-    // `(symbol, args)` discoveries. Re-indexing by position is safe
-    // across reallocs.
+    // Transitive monomorphisation : lowering an instance body can register
+    // *new* instances (`outer<T>` calling `inner<T>`), appending to
+    // `fn_instances_order` mid-loop ; the persistent `generic_fn_cursor` (seeded
+    // into the local `i`, written back at the end) re-reads `len()` each step so
+    // it visits every transitive instance — INCLUDING those a later harvest
+    // round registers, since the joint fixpoint re-enters this fn — without
+    // re-processing earlier ones. `generic_processed` dedups duplicate
+    // `(symbol, args)` discoveries. Re-indexing by position is safe across
+    // reallocs.
     // Joint fixpoint over fn instances AND erased generic-struct impl
     // receivers (`pending_generic_impl_recv`). Both cursors only grow ;
     // materialising a receiver's impl members harvests transitive free fns
     // (`MutableMap.contains` → `contains_key`) into `fn_instances_order`, and
     // building a fn instance body can queue further erased receivers, so the
     // two drain to a shared fixpoint via a single growing-cursor loop.
-    i: usize = 0
-    ri: usize = 0
+    i := project_ctx.generic_fn_cursor
+    ri := project_ctx.generic_recv_cursor
     for i < project_ctx.fn_instances_order.len() || ri < project_ctx.pending_generic_impl_recv.len() {
         for i < project_ctx.fn_instances_order.len() {
             inst :: project_ctx.fn_instances_order[i]
             i += 1
             key :: fn_instance_key(inst)
-            if processed[key] != null { continue }
-            processed[key] = true
+            if project_ctx.generic_processed[key] != null { continue }
+            project_ctx.generic_processed[key] = true
             // The comptime harvest (`harvest_instances`) does not observe
             // generic fn calls today ; the lowerer's own probe is
             // authoritative, so we don't gate on the mono table.
             built :: build_fn_instance_decl(inst, key, loaded, typed, project_ctx, diags)
             match built {
                 is null -> {}
-                is PendingFnInstance as p -> { collected.push(p) }
+                is PendingFnInstance as p -> { project_ctx.generic_collected.push(p) }
             }
         }
         // Materialise each queued erased generic-struct instance's impl members
@@ -1195,6 +1183,19 @@ materialize_generic_fn_instances :: fn(
             }
         }
     }
+    project_ctx.generic_fn_cursor = i
+    project_ctx.generic_recv_cursor = ri
+}
+
+/// Flush phase of generic-fn-instance materialisation. Sorts every instance
+/// `drain_generic_fn_instances` collected by `<fn_symbol.id>::<args_key>`
+/// (matching TS's `displayKey` ordering, `src/comptime/instances.ts:33` — the
+/// `symbol.id` prefix groups a fn's overloads, args sort alphabetically within
+/// a group), erasure-dedups, and pushes to modules. Runs ONCE after the joint
+/// fixpoint converges so emission order is a single deterministic sort over the
+/// whole set — `inner` (lower symbol id) emits before `outer` regardless of
+/// discovery order.
+flush_generic_fn_instances :: fn(project_ctx: LowerProjectCtx, project: LoweredProject) -> void {
     // Erasure-dedupe : every instance of a NON-trait-dispatching free
     // generic fn erases to the same Any-typed body, so collapse a fn's
     // group to a single decl keyed by `fn_symbol.id`, keeping the first
@@ -1211,10 +1212,10 @@ materialize_generic_fn_instances :: fn(
     // Collapsing them to the first-sorted `__i32__` instance routes every
     // non-i32-keyed map's `at`/`set_at` into `i32$Hash$hash` → a string key
     // hits `i32.to_i64` and traps. They are already deduped by full `key`
-    // in the build loop above (`processed[key]`) and carry a NULL
+    // in the build loop above (`generic_processed[key]`) and carry a NULL
     // `origin.symbol` (set in `build_fn_instance_decl`), so the body-emit
     // pass indexes them by mangle — exactly like materialised impl members.
-    sorted_pending :: sort(collected, pending_fn_instance_less)
+    sorted_pending :: sort(project_ctx.generic_collected, pending_fn_instance_less)
     emitted_fns: MutableMap<i32, bool> = MutableMap<i32, bool> {}
     for p in sorted_pending {
         // Erasure-dedup gate : dispatching (GATE A) instances always emit ;

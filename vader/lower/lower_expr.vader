@@ -1367,7 +1367,7 @@ try_lower_ufcs_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
                 for call_arg in call.args { args.push(lower_expr(ctx, call_arg.value)) }
                 // UFCS-on-generic-fn instance harvest : when the target
                 // is `fn[T](x: T) -> T`, register a `GenericFnInstance` so
-                // `materialize_generic_fn_instances` emits the body, and point
+                // `drain_generic_fn_instances` emits the body, and point
                 // the callee at the resulting monomorphic mangle (mirror of
                 // `register_and_emit_generic_call`'s ident path). A non-generic
                 // target returns null → keep the plain resolver symbol.
@@ -1677,7 +1677,7 @@ find_impl_member_for :: fn(ctx: FnLowerCtx, target_type: Type, method_name: stri
             // materialiser only covers instances in `evaluated.instances`, so an
             // ERASED receiver reached only from a deduped erased free-fn body
             // (`add`'s `value in self.inner`) never gets its impl members. Queue
-            // it for `materialize_generic_fn_instances` to materialise — the
+            // it for `drain_generic_fn_instances` to materialise — the
             // struct analogue of `array_contains_elems`. Deduped per receiver so
             // a concrete instance already covered by the worklist is a no-op.
             if target_type is StructType as recv_struct {
