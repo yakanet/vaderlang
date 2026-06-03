@@ -30,7 +30,7 @@ export handle_hover :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     // hovers (a local, an argument, an intermediate sub-expression) all
     // surface here. Falls through to the scope-based decl lookup when
     // there's no expression at the cursor or no type was inferred.
-    typed_payload :: try_typed_hover(uri, line, character)
+    typed_payload :: try_typed_hover(state, uri, line, character)
     if !(typed_payload is null) { return typed_payload }
 
     idx :: state.index_for(uri)
@@ -177,12 +177,12 @@ join_lines :: fn(lines: string[]) -> string {
 /// Run the typechecker for `uri` and return a Hover payload with the
 /// inferred type at (line, character). Returns `null` on miss so the
 /// caller can fall through to the scope-based decl lookup.
-try_typed_hover :: fn(uri: string, line: i32, character: i32) -> JsonValue | null {
+try_typed_hover :: fn(self: ServerState, uri: string, line: i32, character: i32) -> JsonValue | null {
     file_path :: uri_to_path(uri)
     if file_path == "" { return null }
-    project :: load_project(file_path)
-    diags: Diagnostic[] = []
-    result :: check_project_with_bodies(project, diags)
+    cached :: typed_project_for(self, file_path)
+    project :: cached.project
+    result :: cached.result
     entry :: project.modules[project.entry]
     if entry is null { return null }
     // LSP positions are 0-based ; the Vader AST is 1-based.
@@ -311,7 +311,7 @@ binding_hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindBindingStat
     }
 }
 
-uri_to_path :: fn(uri: string) -> string {
+export uri_to_path :: fn(uri: string) -> string {
     prefix :: "file://"
     if uri.starts_with(prefix) {
         ub :: uri.bytes()
@@ -492,9 +492,7 @@ span_size :: fn(s: Span) -> u64 {
     return (line_extent << 16) + col_extent
 }
 
-import "vader/diagnostics" { Diagnostic, Span }
-import "vader/resolver" { load_project }
-import "vader/typecheck" { check_project_with_bodies }
+import "vader/diagnostics" { Span }
 import "vader/typecheck" { TypedProgram }
 import "vader/types" { Type, display_type }
 AST :: import "vader/parser"

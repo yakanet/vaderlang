@@ -16,10 +16,8 @@ module "vader/lsp"
 import "std/collections" { MutableMap }
 import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber, JsonNull, JsonArray, JsonBool }
 import "std/string" { as_string, bytes, starts_with }
-import "vader/diagnostics" { Diagnostic, Span }
-import "vader/resolver" { load_project }
+import "vader/diagnostics" { Span }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/typecheck" { check_project_with_bodies }
 import "vader/typecheck" { TypedProgram }
 import "vader/types" { Type, FnType, display_type }
 AST :: import "vader/parser"
@@ -34,9 +32,9 @@ export handle_signature_help :: fn(state: ServerState, params: JsonValue) -> Jso
     file_path :: uri_to_path(uri)
     if file_path == "" { return JsonNull {} }
 
-    project :: load_project(file_path)
-    diags: Diagnostic[] = []
-    result :: check_project_with_bodies(project, diags)
+    cached :: typed_project_for(state, file_path)
+    project :: cached.project
+    result :: cached.result
     entry :: project.modules[project.entry]
     if entry is null { return JsonNull {} }
 

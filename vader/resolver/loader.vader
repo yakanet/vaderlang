@@ -77,7 +77,29 @@ export LoadedModule :: struct {
 
 /// Build the module graph rooted at `entry_path`. Returns the loaded
 /// project ; callers feed it to `resolve_project` / `check_project`.
+/// Reads every module from disk.
 export load_project :: fn(entry_path: string) -> LoadedProject {
+    return load_project_with_overlay(entry_path, MutableMap<string, string> {})
+}
+
+/// Like `load_project`, but consults an in-memory `overlay` (filesystem path
+/// → current source text) before the disk for every module file. The LSP
+/// passes its didOpen/didChange buffer so typed features (hover, diagnostics,
+/// …) reflect unsaved edits instead of the last-saved file ; the CLI calls
+/// `load_project` (empty overlay, disk-only).
+///
+/// Scope: the overlay is consulted only by the loader's *content* read
+/// (`parse_module_files`), NOT by module *discovery* (`discover.vader`, which
+/// scans the disk via `read_dir` + a header-only `read_file`). So an unsaved
+/// edit to a SAVED file's body is reflected, but (a) a never-saved file is not
+/// enumerated, and (b) an unsaved edit to a file's `module "..."` header is
+/// bucketed by the stale on-disk header. Threading the overlay into discovery
+/// (both the dir enumeration and the header read) is a follow-up.
+///
+/// @param entry_path  the entry file's path.
+/// @param overlay     filesystem path → current source text ; consulted
+///                    before the disk in `parse_module_files`.
+export load_project_with_overlay :: fn(entry_path: string, overlay: MutableMap<string, string>) -> LoadedProject {
     factory :: new_factory()
     modules :: MutableMap<string, LoadedModule> {}
     loader_diags: Diagnostic[] = []
@@ -141,7 +163,7 @@ export load_project :: fn(entry_path: string) -> LoadedProject {
                 cursor = cursor + 1
                 id :: m.folder
                 if has_module(modules, id) { continue }
-                ingest_module(m, stdlib_root, modules, factory, index, loader_diags)
+                ingest_module(m, stdlib_root, modules, factory, index, loader_diags, overlay)
                 ingested :: modules[id]
                 match ingested {
                     is null -> {}
@@ -176,9 +198,10 @@ ingest_module :: fn(
     m: DiscoveredModule, stdlib_root: string,
     modules: MutableMap<string, LoadedModule>, factory: SymbolFactory,
     index: MutableMap<string, DiscoveredModule>, diags: Diagnostic[],
+    overlay: MutableMap<string, string>,
 ) -> void {
     if m.files.len() == 0 { return }
-    sources :: parse_module_files(m.files, diags)
+    sources :: parse_module_files(m.files, diags, overlay)
     if sources.len() == 0 { return }
     collected :: collect_files(sources, m.folder, m.name, factory, index, diags)
     modules[m.folder] = LoadedModule {
@@ -198,7 +221,21 @@ ingest_module :: fn(
     }
 }
 
-parse_module_files :: fn(paths: string[], diags: Diagnostic[]) -> SourceFile[] {
+// Read `path`'s source, consulting the in-memory `overlay` (filesystem path →
+// current text) before the disk. The LSP populates the overlay from its
+// didChange buffer so unsaved edits are parsed ; an empty overlay falls
+// straight through to `read_file`. Returns "" when neither the overlay nor
+// the disk has the file (the caller skips empty content) — same handling the
+// pre-overlay code gave `read_file`'s error case.
+read_with_overlay :: fn(overlay: MutableMap<string, string>, path: string) -> string {
+    buffered :: overlay[path]
+    if buffered != null { return buffered }
+    disk :: read_file(path)
+    if disk is string { return disk }
+    return ""
+}
+
+parse_module_files :: fn(paths: string[], diags: Diagnostic[], overlay: MutableMap<string, string>) -> SourceFile[] {
     // One factory shared across every file of the module, so AST node ids
     // are unique within the MODULE (not just within each file). The
     // per-module typed side-tables that key by node id (`expr_types`, …)
@@ -210,8 +247,7 @@ parse_module_files :: fn(paths: string[], diags: Diagnostic[]) -> SourceFile[] {
     shared :: new_node_id_factory()
     out: SourceFile[] = []
     for path in paths {
-        content_opt :: read_file(path)
-        content :: match content_opt { is string as s -> s, _ -> "" }
+        content :: read_with_overlay(overlay, path)
         if content == "" { continue }
         parsed :: parse_source(content, path)
         for e in parsed.errors { diags.push(e) }

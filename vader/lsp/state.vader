@@ -10,13 +10,33 @@ import "std/string" { bytes }
 import "std/json" {
     JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonNull, JsonArray
 }
-import "std/collections" { MutableMap }
+import "std/collections" { MutableMap, keys }
+import "vader/resolver" { load_project_with_overlay, LoadedProject }
+import "vader/typecheck" { check_project_with_bodies, CheckResult }
+import "vader/diagnostics" { Diagnostic }
+
+/// Cached load+typecheck of one project, keyed by the entry file path it was
+/// built for. Reused across typed requests (hover, diagnostics, inlay,
+/// signature) within a quiescent edit window — `load_project` + the multi-
+/// module typecheck re-parse ~30 stdlib modules each, so without this a burst
+/// of requests between two edits pays that cost per request. Invalidated on
+/// every didOpen / didChange / didClose (any doc change can alter any project
+/// the overlay feeds).
+export ProjectCache :: struct {
+    entry_path: string
+    project:    LoadedProject
+    result:     CheckResult
+    diags:      Diagnostic[]
+}
 
 /// One LSP server instance's document table. The single shared state is
 /// passed to every handler ; no globals.
 export ServerState :: struct {
     /// uri → current document text. Empty string for closed documents.
     docs:                       MutableMap<string, string>
+    /// Last load+typecheck, reused while no document changes ; `null` after
+    /// any didOpen / didChange / didClose. See `typed_project_for`.
+    cache:                      ProjectCache | null
     /// uri → per-document goto-def + hover index. Rebuilt on every
     /// didOpen / didChange ; entry is removed (not just emptied) on
     /// didClose so a stale index never serves a closed-doc request.
@@ -40,6 +60,7 @@ export ServerState :: struct {
 export new_state :: fn(stdlib_root: string, vader_root: string) -> ServerState {
     return ServerState {
         .docs                    = MutableMap<string, string> {},
+        .cache                   = null,
         .indices                 = MutableMap<string, DocIndex> {},
         .stdlib_root             = stdlib_root,
         .vader_root              = vader_root,
@@ -60,6 +81,48 @@ export index_for :: fn(self: ServerState, uri: string) -> DocIndex | null {
     return self.indices[uri]
 }
 
+/// Load + typecheck the project rooted at `file_path`, reusing the cache when
+/// no document changed since (the cache is cleared on every didOpen /
+/// didChange / didClose). Module files are read through the in-memory `docs`
+/// overlay first, so the result reflects unsaved edits, not the last-saved
+/// file. The four typed handlers (hover, diagnostics, inlay, signature) all
+/// route through here, so a burst of requests between two edits pays a single
+/// load+typecheck.
+///
+/// @param self       the server state (carries the overlay + the cache).
+/// @param file_path  the entry file's filesystem path (from `uri_to_path`).
+/// @return           the cached-or-freshly-built project, typecheck result,
+///                   and diagnostics.
+export typed_project_for :: fn(self: ServerState, file_path: string) -> ProjectCache {
+    cached :: self.cache
+    if cached != null {
+        if cached.entry_path == file_path { return cached }
+    }
+    project :: load_project_with_overlay(file_path, doc_overlay(self))
+    diags: Diagnostic[] = []
+    result :: check_project_with_bodies(project, diags)
+    entry :: ProjectCache {
+        .entry_path = file_path, .project = project, .result = result, .diags = diags,
+    }
+    self.cache = entry
+    return entry
+}
+
+/// Build a filesystem-path → current-text overlay from every open document,
+/// for the resolver to consult before the disk. `docs` is keyed by uri ; the
+/// loader reads by path, so convert each key via `uri_to_path`. Closed
+/// documents (stored as "") are skipped.
+doc_overlay :: fn(self: ServerState) -> MutableMap<string, string> {
+    overlay :: MutableMap<string, string> {}
+    for uri in self.docs.keys() {
+        text :: self.docs[uri]
+        if text != null {
+            if text != "" { overlay[uri_to_path(uri)] = text }
+        }
+    }
+    return overlay
+}
+
 /// `textDocument/didOpen` handler. Params shape :
 ///   { textDocument: { uri, languageId, version, text } }
 export handle_did_open :: fn(self: ServerState, params: JsonValue) -> void {
@@ -69,7 +132,8 @@ export handle_did_open :: fn(self: ServerState, params: JsonValue) -> void {
     text :: get_string(td, "text")
     self.docs[uri] = text
     self.indices[uri] = build_index(uri, text)
-    publish_diagnostics_for_uri(uri)
+    self.cache = null
+    publish_diagnostics_for_uri(self, uri)
 }
 
 /// `textDocument/didChange` handler. With full-document sync the params
@@ -88,7 +152,8 @@ export handle_did_change :: fn(self: ServerState, params: JsonValue) -> void {
                 text :: get_string(first, "text")
                 self.docs[uri] = text
                 self.indices[uri] = build_index(uri, text)
-                publish_diagnostics_for_uri(uri)
+                self.cache = null
+                publish_diagnostics_for_uri(self, uri)
             }
         }
         _ -> {}
@@ -103,6 +168,7 @@ export handle_did_close :: fn(self: ServerState, params: JsonValue) -> void {
     uri :: get_string(td, "uri")
     if uri.bytes().len() == 0 { return }
     self.docs[uri] = ""
+    self.cache = null
     // Indices map carries the parsed AST + tokens — drop the entry so
     // a stale index never serves a closed-doc request. MutableMap has
     // no remove ; rebuilding an empty index would still pin memory, so
