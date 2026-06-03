@@ -9,7 +9,6 @@
   expr 25:7     IdentExpr      :: K
   expr 29:10    StructLitExpr  :: Counter
   expr 29:30    StructLitExpr  :: MutableMap<string, i32>
-  expr 29:67    SeqLitExpr     :: (Entry<string, i32> | null)[]
   expr 30:10    FieldExpr      :: MutableMap<string, i32>
   expr 30:10    IdentExpr      :: Counter
   expr 30:20    StringLitExpr  :: string

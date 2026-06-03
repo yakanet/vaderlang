@@ -31,11 +31,9 @@ import "vader/resolver/symbol" { Symbol, SymbolKind, SymbolFactory, new_factory 
 /// resolution picks the no-arg variant when both are in scope which
 /// blocks naive reuse. Land a single `empty_span(file: string)` in
 /// `vader/diagnostics/` and migrate every caller.
-zero_span :: fn(path: string) -> Span {
-    return Span {
-        .start = Position { .file = path, .offset = usize(0), .line = 1, .column = 1 },
-        .end   = Position { .file = path, .offset = usize(0), .line = 1, .column = 1 },
-    }
+zero_span :: fn(path: string) = Span {
+    .start = Position { .file = path, .offset = usize(0), .line = 1, .column = 1 },
+    .end   = Position { .file = path, .offset = usize(0), .line = 1, .column = 1 },
 }
 
 /// Output of one project load : the entry module's id, the full set
@@ -59,7 +57,7 @@ export LoadedProject :: struct {
 export empty_loaded_project :: fn() -> LoadedProject {
     return LoadedProject {
         .entry        = "",
-        .modules      = MutableMap<string, LoadedModule> { .buckets = [], .size = 0 },
+        .modules      = MutableMap<string, LoadedModule> {},
         .factory      = new_factory(),
         .project_root = null,
         .diags        = [],
@@ -81,7 +79,7 @@ export LoadedModule :: struct {
 /// project ; callers feed it to `resolve_project` / `check_project`.
 export load_project :: fn(entry_path: string) -> LoadedProject {
     factory :: new_factory()
-    modules :: MutableMap<string, LoadedModule> { .buckets = [], .size = 0 }
+    modules :: MutableMap<string, LoadedModule> {}
     loader_diags: Diagnostic[] = []
     stdlib_root :: default_stdlib_root()
     project_root :: find_manifest_root(entry_path)

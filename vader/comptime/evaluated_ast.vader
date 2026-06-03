@@ -94,7 +94,7 @@ export EvaluatedProject :: struct {
 export new_evaluated_program :: fn(typed: TypedProgram) -> EvaluatedProgram {
     return EvaluatedProgram {
         .typed          = typed,
-        .comptime_decls = MutableMap<i32, ComptimeValue> { .buckets = [], .size = 0 },
+        .comptime_decls = MutableMap<i32, ComptimeValue> {},
     }
 }
 
@@ -106,10 +106,10 @@ export new_evaluated_program :: fn(typed: TypedProgram) -> EvaluatedProgram {
 export new_evaluated_project :: fn(typed: TypedProject) -> EvaluatedProject {
     return EvaluatedProject {
         .typed             = typed,
-        .modules           = MutableMap<string, EvaluatedProgram> { .buckets = [], .size = 0 },
+        .modules           = MutableMap<string, EvaluatedProgram> {},
         .mono              = new_mono_project(),
-        .file_exprs        = MutableMap<usize, string> { .buckets = [], .size = 0 },
-        .file_baked_consts = MutableMap<i32, ComptimeValue> { .buckets = [], .size = 0 },
+        .file_exprs        = MutableMap<usize, string> {},
+        .file_baked_consts = MutableMap<i32, ComptimeValue> {},
         .into_members      = [],
         .instances         = [],
     }

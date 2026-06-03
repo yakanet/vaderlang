@@ -96,7 +96,7 @@ export handle_semantic_tokens_full :: fn(state: ServerState, params: JsonValue) 
         is string as src -> {
             if src.bytes().len() == 0 { return JsonNull {} }
             data :: produce_tokens(src, uri)
-            result :: MutableMap<string, JsonValue> { .buckets = [], .size = 0 }
+            result :: MutableMap<string, JsonValue> {}
             result["data"] = data
             return JsonObject { .entries = result }
         }

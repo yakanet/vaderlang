@@ -39,7 +39,7 @@ export declare_module :: fn(
     program_decls: AST.Decl[], resolved: ResolvedModule,
     typed: TypedProgram, factory: SymbolFactory, diags: Diagnostic[],
 ) -> void {
-    by_name :: MutableMap<string, Symbol> { .buckets = [], .size = 0 }
+    by_name :: MutableMap<string, Symbol> {}
     for s in resolved.symbols { by_name[s.name] = s }
     for decl in program_decls {
         declare_decl(decl, by_name, resolved, typed, factory, diags)
@@ -118,7 +118,7 @@ declare_decl :: fn(
                 // struct lives in `std/collections` but `entry.value`
                 // is read from main) consult these directly via the
                 // owner module's bindings.
-                fields_map :: MutableMap<string, Type> { .buckets = [], .size = 0 }
+                fields_map :: MutableMap<string, Type> {}
                 for f in sd.fields {
                     fields_map[f.name] = type_from_expr(f.ty, resolved, diags)
                 }

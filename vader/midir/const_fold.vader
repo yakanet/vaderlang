@@ -29,7 +29,7 @@ import "vader/lower" { LoweredBinaryOp, LoweredUnaryOp }
 /// @param p  the CFG project from `build_cfg_project`.
 /// @return   a project with foldable BinOp/UnOp replaced by Const.
 export const_fold_project :: fn(p: CFGProject) -> CFGProject {
-    out :: MutableMap<string, CFGModule> { .buckets = [], .size = 0 }
+    out :: MutableMap<string, CFGModule> {}
     for id in p.modules.keys() {
         m :: p.modules[id]
         if m is null { continue }
@@ -78,7 +78,7 @@ const_fold_function :: fn(fn_: CFGFunction) -> CFGFunction {
 }
 
 const_fold_block :: fn(b: BasicBlock) -> Instruction[] {
-    consts :: MutableMap<i32, ConstValue> { .buckets = [], .size = 0 }
+    consts :: MutableMap<i32, ConstValue> {}
     out: Instruction[] = []
     for ins in b.instructions {
         if ins is InstrConst as c {

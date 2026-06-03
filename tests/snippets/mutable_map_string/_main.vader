@@ -4,7 +4,7 @@ import "std/io" { println }
 import "std/collections" { MutableMap, len }
 
 main :: fn() -> i32 {
-    m := MutableMap<string, i32> { .buckets = [], .size = 0 }
+    m := MutableMap<string, i32> {}
 
     m["hello"] = 1
     m["world"] = 2

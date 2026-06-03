@@ -58,7 +58,7 @@ export ImplRegistry :: struct {
 
 export new_registry :: fn() -> ImplRegistry {
     return ImplRegistry {
-        .user_index = MutableMap<string, ImplEntry> { .buckets = [], .size = 0 },
+        .user_index = MutableMap<string, ImplEntry> {},
         .all        = [],
     }
 }
@@ -70,7 +70,7 @@ export build_impl_registry :: fn(
     program_decls: Decl[], resolved: ResolvedModule,
 ) -> ImplRegistry {
     reg :: new_registry()
-    by_name :: MutableMap<string, Symbol> { .buckets = [], .size = 0 }
+    by_name :: MutableMap<string, Symbol> {}
     for s in resolved.symbols { by_name[s.name] = s }
     // Auto-imported traits (`Display`, `Iterator`, `Error`, …) live in
     // `core_symbols`, not `symbols`. Fold them in so `impl T implements

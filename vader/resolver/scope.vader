@@ -26,7 +26,7 @@ export new_scope :: fn(root: MutableMap<string, Symbol>) -> Scope {
 /// Open a fresh inner scope. Subsequent `bind` calls land here until the
 /// matching `pop`.
 export push :: fn(self: Scope) -> void {
-    self.frames.push(MutableMap<string, Symbol> { .buckets = [], .size = 0 })
+    self.frames.push(MutableMap<string, Symbol> {})
 }
 
 /// Drop the innermost scope. No-op on an empty stack — the body walker
@@ -80,7 +80,7 @@ import "vader/diagnostics" { Position }
 test_scope_lookup_finds_root_binding :: fn() -> void {
     factory :: new_factory()
     sym :: factory.make(.Local, "x", "test", .Private, null)
-    root :: MutableMap<string, Symbol> { .buckets = [], .size = 0 }
+    root :: MutableMap<string, Symbol> {}
     root["x"] = sym
     scope :: new_scope(root)
     hit :: scope.lookup("x")
@@ -95,7 +95,7 @@ test_scope_push_pop_restores_outer :: fn() -> void {
     factory :: new_factory()
     outer :: factory.make(.Local, "x", "test", .Private, null)
     inner :: factory.make(.Local, "x", "test", .Private, null)
-    root :: MutableMap<string, Symbol> { .buckets = [], .size = 0 }
+    root :: MutableMap<string, Symbol> {}
     root["x"] = outer
     scope :: new_scope(root)
     scope.push()
@@ -117,7 +117,7 @@ test_scope_push_pop_restores_outer :: fn() -> void {
 
 @test
 test_scope_lookup_misses_return_null :: fn() -> void {
-    root :: MutableMap<string, Symbol> { .buckets = [], .size = 0 }
+    root :: MutableMap<string, Symbol> {}
     scope :: new_scope(root)
     miss :: scope.lookup("nope")
     match miss {

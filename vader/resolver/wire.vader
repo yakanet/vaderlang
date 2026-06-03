@@ -31,9 +31,9 @@ export SymbolTarget :: struct {
 
 export new_import_target_table :: fn() -> ImportTargetTable {
     return ImportTargetTable {
-        .symbol_targets    = MutableMap<i32, SymbolTarget> { .buckets = [], .size = 0 },
-        .namespace_targets = MutableMap<i32, string> { .buckets = [], .size = 0 },
-        .missing           = MutableMap<i32, bool> { .buckets = [], .size = 0 },
+        .symbol_targets    = MutableMap<i32, SymbolTarget> {},
+        .namespace_targets = MutableMap<i32, string> {},
+        .missing           = MutableMap<i32, bool> {},
     }
 }
 
@@ -45,7 +45,7 @@ export wire_imports :: fn(project: LoadedProject) -> ImportTargetTable {
     // One name → id map for the whole project ; reused across every
     // module's import-path resolution. Hoisted out of the inner loop
     // so it's built once (O(N)) rather than per-module (O(N²)).
-    name_to_id :: MutableMap<string, string> { .buckets = [], .size = 0 }
+    name_to_id :: MutableMap<string, string> {}
     for lm in project.modules.values() {
         name_to_id[lm.module.module_name] = lm.module.id
     }

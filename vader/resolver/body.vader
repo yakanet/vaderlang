@@ -57,9 +57,9 @@ export resolve_program :: fn(
     module_path: string, factory: SymbolFactory,
 ) -> ResolvedFile {
     state :: ResolveState {
-        .idents = MutableMap<u64, Symbol> { .buckets = [], .size = 0 },
-        .immutable_locals = MutableMap<i32, bool> { .buckets = [], .size = 0 },
-        .type_param_bounds = MutableMap<i32, AST.Expr> { .buckets = [], .size = 0 },
+        .idents = MutableMap<u64, Symbol> {},
+        .immutable_locals = MutableMap<i32, bool> {},
+        .type_param_bounds = MutableMap<i32, AST.Expr> {},
         .diags = [],
         .scope = new_scope(top_level_seed),
         .module_path = module_path,
@@ -577,7 +577,7 @@ main :: fn() -> i32 {
 """
     parsed :: parse_source(src, "test.vader")
     factory :: new_factory()
-    seed :: MutableMap<string, Symbol> { .buckets = [], .size = 0 }
+    seed :: MutableMap<string, Symbol> {}
     resolved :: resolve_program(parsed.program, seed, "test", factory)
     hit :: resolved.idents[span_at("test.vader", 3, 12).hash()]
     match hit {
@@ -601,7 +601,7 @@ f :: fn(x: i32) -> i32 {
 """
     parsed :: parse_source(src, "test.vader")
     factory :: new_factory()
-    seed :: MutableMap<string, Symbol> { .buckets = [], .size = 0 }
+    seed :: MutableMap<string, Symbol> {}
     resolved :: resolve_program(parsed.program, seed, "test", factory)
     hit :: resolved.idents[span_at("test.vader", 2, 12).hash()]
     match hit {

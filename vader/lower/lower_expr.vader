@@ -1154,7 +1154,7 @@ infer_type_args :: fn(ft: FnType, call: CallExpr, ctx: FnLowerCtx) -> Type[] {
     // call-arg's concrete type in lock-step. The first time we see a
     // TypeParam symbol on the pattern side, record its concrete-side
     // counterpart. Repeated bindings of the same symbol must agree.
-    bindings :: MutableMap<i32, Type> { .buckets = [], .size = 0 }
+    bindings :: MutableMap<i32, Type> {}
     order: i32[] = []
     n :: ft.params.len()
     if n > call.args.len() { return [] }
@@ -1515,7 +1515,7 @@ harvest_ufcs_fn_instance :: fn(
             return null
         }
         if ft.params.len() == 0 { return null }
-        bindings :: MutableMap<i32, Type> { .buckets = [], .size = 0 }
+        bindings :: MutableMap<i32, Type> {}
         order: i32[] = []
         unify_params(ft.params[0], default_if_free(recv_type), bindings, order, ctx)
         n :: ft.params.len()
@@ -2356,7 +2356,7 @@ lower_struct_lit :: fn(ctx: FnLowerCtx, lit: StructLitExpr, type: Type) -> Lower
     // struct decl in declaration order ; this matches the TS emit's
     // canonical field ordering even when the source literal reorders
     // fields or omits ones with defaults.
-    provided: MutableMap<string, Expr> = MutableMap<string, Expr> { .buckets = [], .size = 0 }
+    provided: MutableMap<string, Expr> = MutableMap<string, Expr> {}
     // Bind each `...spread` source to a synthetic temp so it's
     // evaluated exactly once even when several fields inherit from it.
     // Later spreads win, so `spread_sym` tracks the LAST source —
@@ -3461,7 +3461,7 @@ ensure_local_symbol_index :: fn(
 ) -> MutableMap<u64, Symbol> {
     cached :: project_ctx.local_symbol_indices[resolved.path]
     if !(cached is null) { return cached }
-    index :: MutableMap<u64, Symbol> { .buckets = [], .size = 0 }
+    index :: MutableMap<u64, Symbol> {}
     // `idents` first — every referenced binding's defined_at lands here.
     for symbol in resolved.idents.values() {
         match symbol.defined_at {

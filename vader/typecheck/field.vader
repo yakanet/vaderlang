@@ -290,7 +290,7 @@ substitute_struct_field :: fn(
     field_ty: Type, decl: AST.StructDecl, target: StructType,
 ) -> Type {
     if decl.type_params.len() == 0 { return field_ty }
-    bindings :: MutableMap<i32, Type> { .buckets = [], .size = 0 }
+    bindings :: MutableMap<i32, Type> {}
     n :: min(decl.type_params.len(), target.args.len())
     for i in 0..<n {
         tp :: decl.type_params[i]
@@ -720,7 +720,7 @@ try_curry_receiver :: fn(ft: FnType, target_ty: Type, typed: TypedProgram) -> Ty
         for i in 1..<ft.params.len() { rest.push(ft.params[i]) }
         return mk_fn(rest, ft.return_type)
     }
-    bindings :: MutableMap<i32, Type> { .buckets = [], .size = 0 }
+    bindings :: MutableMap<i32, Type> {}
     unify_type_param(ft.params[0], target_ty, bindings)
     // Default Free* bindings so the curried return type comes back as
     // `i32`/`f64` instead of `{integer}`/`{float}` — same pattern as

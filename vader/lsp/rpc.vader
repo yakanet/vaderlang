@@ -61,7 +61,7 @@ export is_json_null :: fn(v: JsonValue) -> bool {
 /// the request's id verbatim (use `JsonNull{}` for notifications, but
 /// notifications shouldn't get responses).
 export encode_response :: fn(id: JsonValue, result: JsonValue) -> string {
-    obj :: MutableMap<string, JsonValue> { .buckets = [], .size = 0 }
+    obj :: MutableMap<string, JsonValue> {}
     obj["jsonrpc"] = JsonString { .value = "2.0" }
     obj["id"]      = id
     obj["result"]  = result
@@ -71,11 +71,11 @@ export encode_response :: fn(id: JsonValue, result: JsonValue) -> string {
 /// Encode an error response : `{ jsonrpc, id, error: { code, message } }`.
 /// `code` is the JSON-RPC standard code (cf. SPEC §JSON-RPC error codes).
 export encode_error :: fn(id: JsonValue, code: i32, message: string) -> string {
-    err_obj :: MutableMap<string, JsonValue> { .buckets = [], .size = 0 }
+    err_obj :: MutableMap<string, JsonValue> {}
     err_obj["code"]    = JsonNumber { .value = f64(code) }
     err_obj["message"] = JsonString { .value = message }
 
-    obj :: MutableMap<string, JsonValue> { .buckets = [], .size = 0 }
+    obj :: MutableMap<string, JsonValue> {}
     obj["jsonrpc"] = JsonString { .value = "2.0" }
     obj["id"]      = id
     obj["error"]   = JsonObject { .entries = err_obj }
@@ -91,7 +91,7 @@ export encode_method_not_found :: fn(id: JsonValue, method: string) -> string {
 /// no `id`. Used for `window/logMessage`, `textDocument/publishDiagnostics`,
 /// etc. — anything the server emits unprompted.
 export encode_notification :: fn(method: string, params: JsonValue) -> string {
-    obj :: MutableMap<string, JsonValue> { .buckets = [], .size = 0 }
+    obj :: MutableMap<string, JsonValue> {}
     obj["jsonrpc"] = JsonString { .value = "2.0" }
     obj["method"]  = JsonString { .value = method }
     obj["params"]  = params

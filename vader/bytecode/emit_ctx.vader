@@ -90,19 +90,19 @@ export EmitterCtx :: struct {
 export new_emitter_ctx :: fn() -> EmitterCtx {
     types: BcType[] = []
     types.push(BcPrimitive { .val = ValType.Null })
-    type_key :: MutableMap<string, i32> { .buckets = [], .size = 0 }
+    type_key :: MutableMap<string, i32> {}
     type_key["null"] = i32(0)
     return EmitterCtx {
         .types                       = types,
         .type_key                    = type_key,
         .strings                     = [],
-        .string_key                  = MutableMap<string, i32> { .buckets = [], .size = 0 },
+        .string_key                  = MutableMap<string, i32> {},
         .functions                   = [],
-        .function_index_by_symbol_id = MutableMap<i32, i32> { .buckets = [], .size = 0 },
-        .function_index_by_mangle    = MutableMap<string, i32> { .buckets = [], .size = 0 },
+        .function_index_by_symbol_id = MutableMap<i32, i32> {},
+        .function_index_by_mangle    = MutableMap<string, i32> {},
         .imports                     = [],
-        .import_index_by_symbol_id   = MutableMap<i32, i32> { .buckets = [], .size = 0 },
-        .import_index_by_mangle      = MutableMap<string, i32> { .buckets = [], .size = 0 },
+        .import_index_by_symbol_id   = MutableMap<i32, i32> {},
+        .import_index_by_mangle      = MutableMap<string, i32> {},
         .exports                     = [],
         .pinned_types                = [],
     }

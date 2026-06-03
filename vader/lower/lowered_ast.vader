@@ -529,7 +529,7 @@ export INTRINSIC_SIZE_OF_TYPE           :: "size_of.type"
 /// @return  a fresh project with empty modules + side-tables.
 export new_lowered_project :: fn() -> LoweredProject {
     return LoweredProject {
-        .modules        = MutableMap<string, LoweredModule> { .buckets = [], .size = 0 },
+        .modules        = MutableMap<string, LoweredModule> {},
         .vtable_entries = [],
         .data_pool      = [],
     }

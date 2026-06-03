@@ -132,10 +132,10 @@ export MonoEntry :: struct {
 export new_mono_project :: fn() -> MonoProject {
     return MonoProject {
         .entries             = [],
-        .lookup_by_instance  = MutableMap<string, MonoEntry> { .buckets = [], .size = 0 },
-        .impl_method_entries = MutableMap<string, MonoEntry> { .buckets = [], .size = 0 },
-        .fn_instance_entries = MutableMap<string, MonoEntry> { .buckets = [], .size = 0 },
-        .symbol_redirects    = MutableMap<i32, i32> { .buckets = [], .size = 0 },
+        .lookup_by_instance  = MutableMap<string, MonoEntry> {},
+        .impl_method_entries = MutableMap<string, MonoEntry> {},
+        .fn_instance_entries = MutableMap<string, MonoEntry> {},
+        .symbol_redirects    = MutableMap<i32, i32> {},
     }
 }
 

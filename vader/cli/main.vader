@@ -454,7 +454,7 @@ resolve_loaded_project :: fn(project: LoadedProject) -> ResolvedProject {
     materialize_all_sams_pre_resolve(project)
     core_seed :: build_core_seed(project)
     modules: ResolvedModule[] = []
-    resolved_by_id :: MutableMap<string, ResolvedModule> { .buckets = [], .size = 0 }
+    resolved_by_id :: MutableMap<string, ResolvedModule> {}
     for id in project.modules.keys() {
         lm :: project.modules[id]
         if lm is null { continue }

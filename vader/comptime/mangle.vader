@@ -201,14 +201,14 @@ import "vader/diagnostics" { Position, Span }
 }
 
 @test test_uniq_returns_candidate_when_free :: fn() -> void {
-    seen :: MutableMap<string, bool> { .buckets = [], .size = 0 }
+    seen :: MutableMap<string, bool> {}
     assert_eq(uniq(seen, "foo"), "foo")
     // Subsequent registration should reflect the addition.
     assert_eq(uniq(seen, "foo"), "foo_1")
 }
 
 @test test_uniq_skips_already_taken_suffixes :: fn() -> void {
-    seen :: MutableMap<string, bool> { .buckets = [], .size = 0 }
+    seen :: MutableMap<string, bool> {}
     seen["foo"] = true
     seen["foo_1"] = true
     assert_eq(uniq(seen, "foo"), "foo_2")

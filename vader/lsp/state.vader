@@ -39,8 +39,8 @@ export ServerState :: struct {
 
 export new_state :: fn(stdlib_root: string, vader_root: string) -> ServerState {
     return ServerState {
-        .docs                    = MutableMap<string, string> { .buckets = [], .size = 0 },
-        .indices                 = MutableMap<string, DocIndex> { .buckets = [], .size = 0 },
+        .docs                    = MutableMap<string, string> {},
+        .indices                 = MutableMap<string, DocIndex> {},
         .stdlib_root             = stdlib_root,
         .vader_root              = vader_root,
         .definition_link_support = false,

@@ -40,7 +40,7 @@ export InstanceRegistry :: struct {
 /// @return  a fresh registry with no instances.
 export new_registry :: fn() -> InstanceRegistry {
     return InstanceRegistry {
-        .by_key = MutableMap<string, GenericInstance> { .buckets = [], .size = 0 },
+        .by_key = MutableMap<string, GenericInstance> {},
         .order  = [],
     }
 }

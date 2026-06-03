@@ -91,7 +91,7 @@ reserve_cfg_function :: fn(cfg_fn: CFGFunction, ctx: EmitterCtx) -> void {
 /// via `CallImport`. Registered under the member's mangle so
 /// `resolve_vtable_fn_index` (mangle-first) finds it.
 synthesise_cfg_intrinsic_wrappers :: fn(cfg: CFGProject, ctx: EmitterCtx) -> void {
-    referenced :: MutableMap<string, bool> { .buckets = [], .size = 0 }
+    referenced :: MutableMap<string, bool> {}
     for e in cfg.vtable_entries { referenced[e.fn_symbol.name] = true }
     import_count :: i32(ctx.imports.len())
     i: i32 = 0
@@ -355,7 +355,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
         // vtable-target rooting AND the impl-table type pinning below
         // can both gate on real virtual.call sites. Mirror of TS
         // pruneUnusedVtables.
-        used_vt_keys: MutableMap<string, bool> = MutableMap<string, bool> { .buckets = [], .size = 0 }
+        used_vt_keys: MutableMap<string, bool> = MutableMap<string, bool> {}
         for f in ctx.functions {
             for op in f.body {
                 if op is VirtualCall as v { used_vt_keys[v.vtable_key] = true }
@@ -417,13 +417,13 @@ resolve_vtable_fn_index :: fn(fn_symbol: Symbol, ctx: EmitterCtx) -> i32 {
 build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx) -> VtableRow[] {
     // Collect every `(trait, method)` key referenced by a surviving
     // VirtualCall — only rows in this set survive.
-    used_keys: MutableMap<string, bool> = MutableMap<string, bool> { .buckets = [], .size = 0 }
+    used_keys: MutableMap<string, bool> = MutableMap<string, bool> {}
     for f in ctx.functions {
         for op in f.body {
             if op is VirtualCall as v { used_keys[v.vtable_key] = true }
         }
     }
-    rows_by_key: MutableMap<string, usize> = MutableMap<string, usize> { .buckets = [], .size = 0 }
+    rows_by_key: MutableMap<string, usize> = MutableMap<string, usize> {}
     out: VtableRow[] = []
     for ve in entries {
         key :: "${ve.trait_name}.${ve.method_name}"
@@ -453,7 +453,7 @@ build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx)
 // trait_name) seen in the vtable entries.
 build_impl_table_from_vtable :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx) -> ImplEntry[] {
     out: ImplEntry[] = []
-    seen :: MutableMap<string, bool> { .buckets = [], .size = 0 }
+    seen :: MutableMap<string, bool> {}
     for entry in entries {
         // Only honour vtable entries whose receiver struct is *already*
         // interned (i.e. some real call site referenced it). intern_type
@@ -570,7 +570,7 @@ emit_cfg_function_body :: fn(
         .scopes               = [],
         .pending              = [],
         .wrapped_loop_headers = MutableSet<i32> {
-            .inner = MutableMap<i32, bool> { .buckets = [], .size = 0 },
+            .inner = MutableMap<i32, bool> {},
         },
         .hints                = hints,
     }

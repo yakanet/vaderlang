@@ -28,7 +28,7 @@ export Subst :: struct {
 }
 
 export new_subst :: fn() -> Subst {
-    return Subst { .entries = MutableMap<string, AST.TypeExpr> { .buckets = [], .size = 0 } }
+    return Subst { .entries = MutableMap<string, AST.TypeExpr> {} }
 }
 
 /// Bind `name` → `replacement`. `replacement` is treated as the

@@ -50,7 +50,6 @@
   ArrayIterator<T>
   ArrayIterator<T>
   ArrayIterator<T>
-  Entry<string, string>
   Entry<K, V>
   Entry<K, V>
   Entry<K, V>
@@ -63,6 +62,7 @@
   Entry<K, V>
   Entry<K, V>
   Entry<T, bool>
+  MutableMap<i32, bool>
   MutableMap<string, i32>
   MutableMap<string, string>
   MutableMap<K, V>

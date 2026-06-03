@@ -319,7 +319,7 @@ populate_core_symbols :: fn(typed: TypedProject, project_ctx: LowerProjectCtx) -
 ensure_string_table :: fn(project_ctx: LowerProjectCtx) -> MutableMap<string, Symbol> {
     match project_ctx.string_symbols {
         is null -> {
-            table :: MutableMap<string, Symbol> { .buckets = [], .size = 0 }
+            table :: MutableMap<string, Symbol> {}
             project_ctx.string_symbols = table
             return table
         }
@@ -332,7 +332,7 @@ is_std_collections_module :: fn(module_id: string) = "stdlib/std/collections" in
 ensure_collections_table :: fn(project_ctx: LowerProjectCtx) -> MutableMap<string, Symbol> {
     match project_ctx.collections_symbols {
         is null -> {
-            table :: MutableMap<string, Symbol> { .buckets = [], .size = 0 }
+            table :: MutableMap<string, Symbol> {}
             project_ctx.collections_symbols = table
             return table
         }
@@ -378,7 +378,7 @@ is_std_iter_module :: fn(module_id: string) = "stdlib/std/iter.vader" in module_
 ensure_iter_table :: fn(project_ctx: LowerProjectCtx) -> MutableMap<string, Symbol> {
     match project_ctx.iter_symbols {
         is null -> {
-            table :: MutableMap<string, Symbol> { .buckets = [], .size = 0 }
+            table :: MutableMap<string, Symbol> {}
             project_ctx.iter_symbols = table
             return table
         }
@@ -1141,7 +1141,7 @@ materialize_generic_fn_instances :: fn(
     // id) emits before `outer` regardless of discovery order. Mirror of
     // TS' mono registry, which collects every instance transitively
     // before emit (`src/comptime/specialize.ts` run_pass_3).
-    processed: MutableMap<string, bool> = MutableMap<string, bool> { .buckets = [], .size = 0 }
+    processed: MutableMap<string, bool> = MutableMap<string, bool> {}
     collected: PendingFnInstance[] = []
     // `fn_instances_order` is append-only here — `build_fn_instance_decl`
     // only ever pushes newly-discovered instances. A growing-array
@@ -1208,7 +1208,7 @@ materialize_generic_fn_instances :: fn(
     // `origin.symbol` (set in `build_fn_instance_decl`), so the body-emit
     // pass indexes them by mangle — exactly like materialised impl members.
     sorted_pending :: sort(collected, pending_fn_instance_less)
-    emitted_fns: MutableMap<i32, bool> = MutableMap<i32, bool> { .buckets = [], .size = 0 }
+    emitted_fns: MutableMap<i32, bool> = MutableMap<i32, bool> {}
     for p in sorted_pending {
         if p.dispatches {
             push_to_module(project, p.module_id, p.decl)
@@ -1901,7 +1901,7 @@ push_struct_shape :: fn(t: Type, out: StructType[], seen: MutableSet<string>) ->
 }
 
 new_string_set :: fn() = MutableSet<string> {
-    .inner = MutableMap<string, bool> { .buckets = [], .size = 0 },
+    .inner = MutableMap<string, bool> {},
 }
 
 /// Visit every `Type` node referenced by `decl` — fields (struct),
@@ -2705,7 +2705,7 @@ import "vader/comptime" { new_evaluated_project }
 @test test_lower_empty_project :: fn() -> void {
     loaded :: LoadedProject {
         .entry        = "",
-        .modules      = MutableMap<string, LoadedModule> { .buckets = [], .size = 0 },
+        .modules      = MutableMap<string, LoadedModule> {},
         .factory      = factory_for_test(),
         .project_root = null,
         .diags        = [],

@@ -48,7 +48,7 @@ ProjectCtx :: struct {
 new_project_ctx :: fn() -> ProjectCtx {
     return ProjectCtx {
         .strings = [],
-        .string_index = MutableMap<string, i32> { .buckets = [], .size = 0 },
+        .string_index = MutableMap<string, i32> {},
     }
 }
 
@@ -107,7 +107,7 @@ import "vader/comptime" { MonoEntry }
 /// @return    a fresh `CFGProject` with one entry per non-stdlib module.
 export build_cfg_project :: fn(lp: LoweredProject) -> CFGProject {
     ctx :: new_project_ctx()
-    modules :: MutableMap<string, CFGModule> { .buckets = [], .size = 0 }
+    modules :: MutableMap<string, CFGModule> {}
     for module_id in lp.modules.keys() {
         m :: lp.modules[module_id]
         if m is null { continue }
@@ -142,7 +142,7 @@ export build_cfg_project :: fn(lp: LoweredProject) -> CFGProject {
     // LoweredProject doesn't carry directly today ; pass empty for now
     // until those side-tables get plumbed through the lower port.
     empty_data: BcDataEntry[] = []
-    empty_redirects :: MutableMap<i32, i32> { .buckets = [], .size = 0 }
+    empty_redirects :: MutableMap<i32, i32> {}
     return CFGProject {
         .modules         = modules,
         .vtable_entries  = lp.vtable_entries,
@@ -252,7 +252,7 @@ convert_function :: fn(d: LoweredFnDecl, project: ProjectCtx) -> CFGFunction | n
 
     params: CFGParam[] = []
     locals: CFGLocal[] = []
-    local_by_sym_id :: MutableMap<i32, LocalId> { .buckets = [], .size = 0 }
+    local_by_sym_id :: MutableMap<i32, LocalId> {}
 
     // Params occupy local slots 0..N-1.
     for p in d.params {

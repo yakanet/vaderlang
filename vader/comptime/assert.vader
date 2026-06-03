@@ -28,7 +28,7 @@ export evaluate_assert_decls :: fn(
 ) -> void {
     context :: ComptimeContext {
         .typed    = typed,
-        .bindings = MutableMap<i32, ComptimeValue> { .buckets = [], .size = 0 },
+        .bindings = MutableMap<i32, ComptimeValue> {},
     }
     for decl in decls {
         match decl {

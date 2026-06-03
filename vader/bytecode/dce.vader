@@ -34,7 +34,7 @@ import "vader/vm" {
 ///
 /// Mirrors `src/midir/dce.ts::pruneUnusedImports`.
 export prune_unused_imports :: fn(ctx: EmitterCtx) -> void {
-    used :: MutableMap<i32, bool> { .buckets = [], .size = 0 }
+    used :: MutableMap<i32, bool> {}
     for fn_ in ctx.functions {
         for op in fn_.body {
             if op is CallImport as ci { used[ci.index] = true }
@@ -80,7 +80,7 @@ export prune_unused_imports :: fn(ctx: EmitterCtx) -> void {
 /// Mirrors `src/midir/dce.ts::pruneUnusedVtables` ; mutates the
 /// EmitterCtx's vtable table in place.
 export prune_unused_vtables :: fn(ctx: EmitterCtx) -> void {
-    used :: MutableMap<string, bool> { .buckets = [], .size = 0 }
+    used :: MutableMap<string, bool> {}
     for fn_ in ctx.functions {
         for op in fn_.body {
             if op is VirtualCall as vc { used[vc.vtable_key] = true }
@@ -109,7 +109,7 @@ export prune_unused_vtables :: fn(ctx: EmitterCtx) -> void {
 /// Mirrors `src/midir/dce.ts::pruneUnusedFunctions`.
 export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[]) -> void {
     n :: ctx.functions.len()
-    reachable :: MutableMap<i32, bool> { .buckets = [], .size = 0 }
+    reachable :: MutableMap<i32, bool> {}
 
     // Roots : main, test, @export entries, vtable-target fns.
     i := usize(0)
@@ -202,7 +202,7 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[]) -> voi
 
     // Rewrite function_index_by_symbol_id — drop entries whose fn
     // was pruned ; remap survivors.
-    new_sym_map :: MutableMap<i32, i32> { .buckets = [], .size = 0 }
+    new_sym_map :: MutableMap<i32, i32> {}
     for sym_id in ctx.function_index_by_symbol_id.keys() {
         old_idx_opt :: ctx.function_index_by_symbol_id[sym_id]
         if old_idx_opt is i32 as old_idx {
@@ -216,7 +216,7 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[]) -> voi
     // runs AFTER this prune and resolves vtable targets by mangle for entries
     // carrying a synthetic `fn_symbol.id = 0` (materialised impl members). A
     // stale pre-prune index here would point those vtable rows at the wrong fn.
-    new_mangle_map :: MutableMap<string, i32> { .buckets = [], .size = 0 }
+    new_mangle_map :: MutableMap<string, i32> {}
     for mangle in ctx.function_index_by_mangle.keys() {
         old_idx_opt :: ctx.function_index_by_mangle[mangle]
         if old_idx_opt is i32 as old_idx {
@@ -243,7 +243,7 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[]) -> voi
 /// doesn't carry a type-id reference (just trait_name) so its
 /// reach-walk is a no-op.
 export prune_unused_types :: fn(ctx: EmitterCtx) -> void {
-    reachable :: MutableSet<i32> { .inner = MutableMap<i32, bool> { .buckets = [], .size = 0 } }
+    reachable :: MutableSet<i32> { .inner = MutableMap<i32, bool> {} }
     reachable.add(0)   // null slot is load-bearing for the runtime
 
     // Visit transitively.
@@ -309,7 +309,7 @@ export prune_unused_types :: fn(ctx: EmitterCtx) -> void {
     ctx.types = remapped_kept
 
     // Remap type_key entries — drop pruned slots, rewrite survivors.
-    new_type_key :: MutableMap<string, i32> { .buckets = [], .size = 0 }
+    new_type_key :: MutableMap<string, i32> {}
     for key in ctx.type_key.keys() {
         old_opt :: ctx.type_key[key]
         if old_opt is i32 as old_idx {

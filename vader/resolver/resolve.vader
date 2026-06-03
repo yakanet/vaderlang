@@ -137,7 +137,7 @@ export resolve_module_with_collected_dp :: fn(
     program: Program, module_path: string, display_path: string, factory: SymbolFactory,
     collected: CollectedModule,
 ) -> ResolvedModule {
-    empty_seed :: MutableMap<string, Symbol> { .buckets = [], .size = 0 }
+    empty_seed :: MutableMap<string, Symbol> {}
     return resolve_module_with_collected_dp_seeded(
         program, module_path, display_path, factory, collected, empty_seed,
     )
@@ -176,14 +176,14 @@ export resolve_module_with_collected_dp_seeded :: fn(
         .idents           = file.idents,
         .immutable_locals = file.immutable_locals,
         .fn_overloads     = collected.fn_overloads,
-        .core_symbols     = MutableMap<string, Symbol> { .buckets = [], .size = 0 },
-        .imports_to       = MutableMap<i32, Symbol> { .buckets = [], .size = 0 },
-        .alias_types      = MutableMap<i32, Type> { .buckets = [], .size = 0 },
-        .alias_decls      = MutableMap<i32, TypeAliasDecl> { .buckets = [], .size = 0 },
+        .core_symbols     = MutableMap<string, Symbol> {},
+        .imports_to       = MutableMap<i32, Symbol> {},
+        .alias_types      = MutableMap<i32, Type> {},
+        .alias_decls      = MutableMap<i32, TypeAliasDecl> {},
         .type_param_bounds = file.type_param_bounds,
         .diags            = file.diags,
-        .deprecated_messages = MutableMap<i32, string> { .buckets = [], .size = 0 },
-        .namespace_member_types = MutableMap<i32, MutableMap<string, Type>> { .buckets = [], .size = 0 },
+        .deprecated_messages = MutableMap<i32, string> {},
+        .namespace_member_types = MutableMap<i32, MutableMap<string, Type>> {},
     }
 }
 

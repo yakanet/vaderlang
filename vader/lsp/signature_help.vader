@@ -51,7 +51,7 @@ export handle_signature_help :: fn(state: ServerState, params: JsonValue) -> Jso
     active :: active_param_index(call, target_line, target_col)
 
     sigs: JsonValue[] = [sig]
-    obj :: MutableMap<string, JsonValue> { .buckets = [], .size = 0 }
+    obj :: MutableMap<string, JsonValue> {}
     obj["signatures"]      = JsonArray { .items = sigs }
     obj["activeSignature"] = JsonNumber { .value = f64(0) }
     obj["activeParameter"] = JsonNumber { .value = f64(active) }
@@ -232,11 +232,11 @@ build_signature :: fn(call: AST.CallExpr, typed: TypedProgram) -> JsonValue | nu
     params: JsonValue[] = []
     for p in fn_decl.params {
         p_label :: render_param_label(p)
-        p_obj :: MutableMap<string, JsonValue> { .buckets = [], .size = 0 }
+        p_obj :: MutableMap<string, JsonValue> {}
         p_obj["label"] = JsonString { .value = p_label }
         params.push(JsonObject { .entries = p_obj })
     }
-    obj :: MutableMap<string, JsonValue> { .buckets = [], .size = 0 }
+    obj :: MutableMap<string, JsonValue> {}
     obj["label"]      = JsonString { .value = label }
     obj["parameters"] = JsonArray { .items = params }
     return JsonObject { .entries = obj }

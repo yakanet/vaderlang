@@ -22,7 +22,7 @@ export LogLevel :: enum(i32) {
 
 /// Emit a `window/logMessage` notification.
 export log :: fn(level: LogLevel, message: string) -> void {
-    params_map :: MutableMap<string, JsonValue> { .buckets = [], .size = 0 }
+    params_map :: MutableMap<string, JsonValue> {}
     params_map["type"]    = JsonNumber { .value = f64(i32(level)) }
     params_map["message"] = JsonString { .value = message }
     params :: JsonObject { .entries = params_map }

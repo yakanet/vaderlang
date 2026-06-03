@@ -32,11 +32,11 @@ export handle_initialize :: fn(state: ServerState, params: JsonValue) -> JsonVal
 
     capabilities :: server_capabilities()
 
-    server_info :: MutableMap<string, JsonValue> { .buckets = [], .size = 0 }
+    server_info :: MutableMap<string, JsonValue> {}
     server_info["name"]    = JsonString { .value = "vader-lsp" }
     server_info["version"] = JsonString { .value = "0.1.0" }
 
-    result :: MutableMap<string, JsonValue> { .buckets = [], .size = 0 }
+    result :: MutableMap<string, JsonValue> {}
     result["capabilities"] = capabilities
     result["serverInfo"]   = JsonObject { .entries = server_info }
     return JsonObject { .entries = result }
@@ -84,15 +84,15 @@ export server_capabilities :: fn() -> JsonValue {
 
     // semanticTokensProvider : we declare full-document tokenisation and
     // omit `range` / `delta` for the MVP.
-    legend :: MutableMap<string, JsonValue> { .buckets = [], .size = 0 }
+    legend :: MutableMap<string, JsonValue> {}
     legend["tokenTypes"]     = string_array(TOKEN_TYPES)
     legend["tokenModifiers"] = string_array(TOKEN_MODIFIERS)
 
-    semantic_provider :: MutableMap<string, JsonValue> { .buckets = [], .size = 0 }
+    semantic_provider :: MutableMap<string, JsonValue> {}
     semantic_provider["legend"] = JsonObject { .entries = legend }
     semantic_provider["full"]   = JsonBool   { .value = true }
 
-    caps :: MutableMap<string, JsonValue> { .buckets = [], .size = 0 }
+    caps :: MutableMap<string, JsonValue> {}
     caps["textDocumentSync"]        = text_document_sync
     caps["semanticTokensProvider"]  = JsonObject { .entries = semantic_provider }
     caps["definitionProvider"]      = JsonBool { .value = true }
@@ -105,7 +105,7 @@ export server_capabilities :: fn() -> JsonValue {
     tp: JsonValue = JsonString { .value = "(" }
     tc: JsonValue = JsonString { .value = "," }
     triggers: JsonValue[] = [tp, tc]
-    sig_help :: MutableMap<string, JsonValue> { .buckets = [], .size = 0 }
+    sig_help :: MutableMap<string, JsonValue> {}
     sig_help["triggerCharacters"]   = JsonArray { .items = triggers }
     caps["signatureHelpProvider"]   = JsonObject { .entries = sig_help }
     return JsonObject { .entries = caps }

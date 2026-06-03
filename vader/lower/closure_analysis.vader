@@ -73,7 +73,7 @@ analyze_module :: fn(loaded: LoadedModule, typed: TypedProgram, analysis: Closur
 // to closure-analysis since that pass runs before the lower-project ctx
 // exists. Covers both `idents` (used bindings) and `symbols` (unused).
 build_symbol_by_span_index :: fn(typed: TypedProgram) -> MutableMap<u64, Symbol> {
-    index :: MutableMap<u64, Symbol> { .buckets = [], .size = 0 }
+    index :: MutableMap<u64, Symbol> {}
     for symbol in typed.resolved.idents.values() {
         match symbol.defined_at {
             is null -> {}
@@ -139,7 +139,7 @@ collect_owned_scope_for_params :: fn(params: AST.FnParam[], symbol_index: Mutabl
 
 empty_scope :: fn() -> MutableSet<i32> {
     return MutableSet<i32> {
-        .inner = MutableMap<i32, bool> { .buckets = [], .size = usize(0) },
+        .inner = MutableMap<i32, bool> {},
     }
 }
 
@@ -209,7 +209,7 @@ walk_stmt :: fn(
             // shape at line 499.
             defer_captures: Capture[] = []
             defer_seen :: MutableSet<i32> {
-                .inner = MutableMap<i32, bool> { .buckets = [], .size = usize(0) },
+                .inner = MutableMap<i32, bool> {},
             }
             match defer_stmt.body {
                 is AST.DeferStmtBody as dsb -> { walk_stmt(dsb.stmt, scope, defer_captures, defer_seen, ctx) }

@@ -46,7 +46,7 @@ export check_module :: fn(
     declare_module(program.decls, resolved, typed, factory, diags)
     return CheckResult {
         .typed = typed, .impls = impls, .others = [],
-        .all_modules = MutableMap<string, TypedProgram> { .buckets = [], .size = 0 },
+        .all_modules = MutableMap<string, TypedProgram> {},
     }
 }
 

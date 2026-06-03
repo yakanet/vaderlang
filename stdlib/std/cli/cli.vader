@@ -65,7 +65,7 @@ export parse_known :: fn(args: string[], specs: FlagSpec[]) -> ParsedArgs {
 // a malformed *known* flag, which is a caller mistake regardless of how
 // unknown flags are routed.
 parse_inner :: fn(args: string[], specs: FlagSpec[], strict: bool) -> ParsedArgs {
-    flags := MutableMap<string, string> { .buckets = [], .size = 0 }
+    flags := MutableMap<string, string> {}
     positionals: string[] = []
     errors: string[] = []
     stop_flags := false

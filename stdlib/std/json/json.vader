@@ -359,7 +359,7 @@ parse_array :: fn(p: Parser) -> JsonArray | JsonError {
 
 parse_object :: fn(p: Parser) -> JsonObject | JsonError {
     expect_byte(p, '{')?
-    entries := MutableMap<string, JsonValue> { .buckets = [], .size = 0 }
+    entries := MutableMap<string, JsonValue> {}
     skip_ws(p)
     if !at_end(p) && peek_byte(p) == '}' {
         advance(p)

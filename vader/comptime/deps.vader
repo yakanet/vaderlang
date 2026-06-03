@@ -63,9 +63,9 @@ Nodes :: struct {
 
 collect_nodes :: fn(program_decls: AST.Decl[]) -> Nodes {
     nodes :: Nodes {
-        .by_id  = MutableMap<usize, NodeRecord> { .buckets = [], .size = 0 },
+        .by_id  = MutableMap<usize, NodeRecord> {},
         .order  = [],
-        .by_symbol = MutableMap<i32, usize> { .buckets = [], .size = 0 },
+        .by_symbol = MutableMap<i32, usize> {},
     }
     for decl in program_decls {
         match decl {
@@ -103,7 +103,7 @@ populate_deps :: fn(nodes: Nodes, typed: TypedProgram) -> void {
     for id in nodes.order {
         record :: nodes.by_id[id]
         if record is null { continue }
-        deps_seen :: MutableMap<usize, bool> { .buckets = [], .size = 0 }
+        deps_seen :: MutableMap<usize, bool> {}
         collect_expr_deps(record.decl.value, typed, nodes, deps_seen, record)
         nodes.by_id[id] = record
     }
@@ -130,8 +130,8 @@ lookup_const_symbol :: fn(decl: AST.ConstDecl, typed: TypedProgram) -> Symbol | 
 topo_sort :: fn(nodes: Nodes) -> ComptimeOrder {
     order: AST.ConstDecl[] = []
     diags: Diagnostic[] = []
-    color :: MutableMap<usize, i32> { .buckets = [], .size = 0 }
-    cyclic :: MutableMap<usize, bool> { .buckets = [], .size = 0 }
+    color :: MutableMap<usize, i32> {}
+    cyclic :: MutableMap<usize, bool> {}
     for id in nodes.order { color[id] = 0 }
     path: usize[] = []
     for id in nodes.order { visit(id, nodes, color, cyclic, path, usize(0), order, diags) }

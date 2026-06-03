@@ -56,7 +56,7 @@ export evaluate_call_expr :: fn(
     if fn_decl.params.len() != expr.args.len() {
         return vm_required(expr.span, "CallExpr (arity mismatch)")
     }
-    bindings :: MutableMap<i32, ComptimeValue> { .buckets = [], .size = 0 }
+    bindings :: MutableMap<i32, ComptimeValue> {}
     for k in context.bindings.keys() {
         bound :: context.bindings[k]
         if !(bound is null) { bindings[k] = bound }

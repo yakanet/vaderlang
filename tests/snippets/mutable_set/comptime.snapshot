@@ -34,7 +34,6 @@
   ArrayIterator<T>
   ArrayIterator<T>
   ArrayIterator<T>
-  Entry<i32, bool>
   Entry<K, V>
   Entry<K, V>
   Entry<K, V>

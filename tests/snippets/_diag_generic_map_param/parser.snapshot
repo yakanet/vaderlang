@@ -189,25 +189,7 @@
                         }
                       ]
                     },
-                    "items": [
-                      {
-                        "kind": "field",
-                        "name": "buckets",
-                        "value": {
-                          "kind": "SeqLitExpr",
-                          "elements": []
-                        }
-                      },
-                      {
-                        "kind": "field",
-                        "name": "size",
-                        "value": {
-                          "kind": "IntLitExpr",
-                          "value": "0n",
-                          "suffix": null
-                        }
-                      }
-                    ]
+                    "items": []
                   }
                 }
               ]

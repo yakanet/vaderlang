@@ -20,7 +20,7 @@ import "vader/resolver/symbol" { Symbol }
 /// stdlib). The seed is merged into the root scope on a "don't shadow
 /// user symbols" basis — see `resolve_module_with_collected_dp_seeded`.
 export build_core_seed :: fn(project: LoadedProject) -> MutableMap<string, Symbol> {
-    out :: MutableMap<string, Symbol> { .buckets = [], .size = 0 }
+    out :: MutableMap<string, Symbol> {}
     core_id :: find_core_module_id(project)
     if core_id is null { return out }
     core_loaded :: project.modules[core_id]

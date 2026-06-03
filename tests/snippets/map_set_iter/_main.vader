@@ -6,7 +6,7 @@ import "std/collections" { MutableMap, MutableSet, add }
 main :: fn() -> i32 {
     // MutableMap — `for entry in m` desugars via the Into(Iterator(...))
     // impl on MutableMap. Sum every value, expect 6.
-    m := MutableMap<string, i32> { .buckets = [], .size = 0 }
+    m := MutableMap<string, i32> {}
     m["a"] = 1
     m["b"] = 2
     m["c"] = 3
@@ -17,7 +17,7 @@ main :: fn() -> i32 {
     println("map_sum=${total}")
 
     // MutableSet — same desugar. Sum every member, expect 60.
-    s := MutableSet<i32> { .inner = MutableMap<i32, bool> { .buckets = [], .size = 0 } }
+    s := MutableSet<i32> { .inner = MutableMap<i32, bool> {} }
     s.add(10)
     s.add(20)
     s.add(30)

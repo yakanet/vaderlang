@@ -23,5 +23,5 @@ export ImportInfo :: struct {
 import "vader/diagnostics" { Span }
 
 export new_import_table :: fn() -> MutableMap<i32, ImportInfo> {
-    return MutableMap<i32, ImportInfo> { .buckets = [], .size = 0 }
+    return MutableMap<i32, ImportInfo> {}
 }

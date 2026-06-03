@@ -25,7 +25,7 @@ export evaluate_seq_lit :: fn(
     }
     inferred :: context.typed.expr_types[expr.id]
     if inferred is TupleType {
-        fields :: MutableMap<string, ComptimeValue> { .buckets = [], .size = 0 }
+        fields :: MutableMap<string, ComptimeValue> {}
         for i in 0..<elements.len() {
             fields["_${i}"] = elements[i]
         }

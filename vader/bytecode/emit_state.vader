@@ -80,7 +80,7 @@ export init_fn_emit_state :: fn(function_decl: LoweredFnDecl) -> FnEmitState {
         .debug             = [],
         .jump_table        = [],
         .locals            = [],
-        .slot_by_symbol_id = MutableMap<i32, i32> { .buckets = [], .size = 0 },
+        .slot_by_symbol_id = MutableMap<i32, i32> {},
         .scope_stack       = [],
     }
     for i in 0..<function_decl.params.len() {
@@ -214,7 +214,7 @@ import "vader/vm" { Branch, Return }
         .debug             = [],
         .jump_table        = [],
         .locals            = [],
-        .slot_by_symbol_id = MutableMap<i32, i32> { .buckets = [], .size = 0 },
+        .slot_by_symbol_id = MutableMap<i32, i32> {},
         .scope_stack       = [],
     }
     pop_scope(state)
@@ -227,7 +227,7 @@ import "vader/vm" { Branch, Return }
         .debug             = [],
         .jump_table        = [],
         .locals            = [],
-        .slot_by_symbol_id = MutableMap<i32, i32> { .buckets = [], .size = 0 },
+        .slot_by_symbol_id = MutableMap<i32, i32> {},
         .scope_stack       = [],
     }
     push_op(state, Return {})
@@ -243,7 +243,7 @@ import "vader/vm" { Branch, Return }
         .debug             = [],
         .jump_table        = [],
         .locals            = [],
-        .slot_by_symbol_id = MutableMap<i32, i32> { .buckets = [], .size = 0 },
+        .slot_by_symbol_id = MutableMap<i32, i32> {},
         .scope_stack       = [],
     }
     push_op(state, Branch {})
@@ -258,7 +258,7 @@ import "vader/vm" { Branch, Return }
         .debug             = [],
         .jump_table        = [],
         .locals            = [],
-        .slot_by_symbol_id = MutableMap<i32, i32> { .buckets = [], .size = 0 },
+        .slot_by_symbol_id = MutableMap<i32, i32> {},
         .scope_stack       = [],
     }
     state.scope_stack.push(ScopeEntry { .kind = ScopeKind.Block, .opener_pc = i32(0), .label = null, .pending_breaks = no_pending })
@@ -272,7 +272,7 @@ import "vader/vm" { Branch, Return }
         .debug             = [],
         .jump_table        = [],
         .locals            = [],
-        .slot_by_symbol_id = MutableMap<i32, i32> { .buckets = [], .size = 0 },
+        .slot_by_symbol_id = MutableMap<i32, i32> {},
         .scope_stack       = [],
     }
     assert_eq(find_break_target(state, null), i32(-1))

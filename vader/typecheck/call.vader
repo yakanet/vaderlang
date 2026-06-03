@@ -194,7 +194,7 @@ export infer_call :: fn(
     is_generic :: fn_has_type_params(callee_ty)
     n :: min(c.args.len(), callee_ty.params.len())
     if is_generic {
-        bindings :: MutableMap<i32, Type> { .buckets = [], .size = 0 }
+        bindings :: MutableMap<i32, Type> {}
         // UFCS dispatch : seed bindings from the receiver's type so
         // type-params bound by the (curried-away) first param
         // (`fn[T](x: T) -> T` called as `42.identity()`) still

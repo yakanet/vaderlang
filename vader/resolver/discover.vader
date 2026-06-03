@@ -40,10 +40,10 @@ export ModuleIndex :: MutableMap(string, DiscoveredModule)
 /// folder + declared module name, emit R2020/R2022/R2023, and return
 /// the unified index.
 export discover_modules :: fn(roots: string[], diags: Diagnostic[]) -> ModuleIndex {
-    folder_buckets :: MutableMap<string, FolderBucket> { .buckets = [], .size = 0 }
+    folder_buckets :: MutableMap<string, FolderBucket> {}
     for root in roots { walk_root(root, folder_buckets, diags) }
 
-    index :: MutableMap<string, DiscoveredModule> { .buckets = [], .size = 0 }
+    index :: MutableMap<string, DiscoveredModule> {}
     for folder in folder_buckets.keys() {
         bucket :: folder_buckets[folder]
         if bucket is null { continue }

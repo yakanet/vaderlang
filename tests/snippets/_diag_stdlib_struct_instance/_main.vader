@@ -16,7 +16,7 @@ Counts :: struct {
 }
 
 main :: fn() -> i32 {
-    c :: Counts { .by_name = MutableMap<string, i32> { .buckets = [], .size = 0 } }
+    c :: Counts { .by_name = MutableMap<string, i32> {} }
     c.by_name["x"] = 7
     v :: c.by_name["x"]
     if v == null { return 1 }

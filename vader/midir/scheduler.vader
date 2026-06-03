@@ -64,9 +64,9 @@ export skip_first_get_at :: fn(h: ScheduleHints, block: BlockId, idx: usize) -> 
 /// this sentinel. Every `.contains()` query returns false.
 export no_hints :: fn() -> ScheduleHints {
     return ScheduleHints {
-        .skip_set            = MutableSet<i64> { .inner = MutableMap<i64, bool> { .buckets = [], .size = 0 } },
-        .skip_first_get      = MutableSet<i64> { .inner = MutableMap<i64, bool> { .buckets = [], .size = 0 } },
-        .skip_terminator_get = MutableSet<BlockId> { .inner = MutableMap<BlockId, bool> { .buckets = [], .size = 0 } },
+        .skip_set            = MutableSet<i64> { .inner = MutableMap<i64, bool> {} },
+        .skip_first_get      = MutableSet<i64> { .inner = MutableMap<i64, bool> {} },
+        .skip_terminator_get = MutableSet<BlockId> { .inner = MutableMap<BlockId, bool> {} },
     }
 }
 

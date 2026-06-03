@@ -25,7 +25,7 @@ import "std/collections" { MutableMap, MutableSet }
 /// the project. Pure : returns a fresh CFGProject sharing unchanged
 /// modules with the input. Mirror of TS `eliminateDeadCFG`.
 export eliminate_dead_cfg :: fn(p: CFGProject) -> CFGProject {
-    new_modules :: MutableMap<string, CFGModule> { .buckets = [], .size = 0 }
+    new_modules :: MutableMap<string, CFGModule> {}
     for module_id in p.modules.keys() {
         m :: p.modules[module_id]
         if m is null { continue }
@@ -170,7 +170,7 @@ prune_block :: fn(b: BasicBlock, live_out: MutableSet<LocalId>, local_count: usi
 fold_moves :: fn(f: CFGFunction) -> CFGFunction {
     use_count :: count_uses(f)
     param_locals: MutableSet<LocalId> = MutableSet<LocalId> {
-        .inner = MutableMap<LocalId, bool> { .buckets = [], .size = usize(0) },
+        .inner = MutableMap<LocalId, bool> {},
     }
     for p in f.params { param_locals.inner[p.local] = true }
 

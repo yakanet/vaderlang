@@ -53,8 +53,8 @@ export collect_module :: fn(
     index: MutableMap<string, DiscoveredModule>, diags: Diagnostic[],
 ) -> CollectedModule {
     out :: CollectedModule {
-        .symbols      = MutableMap<string, Symbol> { .buckets = [], .size = 0 },
-        .fn_overloads = MutableMap<string, Symbol[]> { .buckets = [], .size = 0 },
+        .symbols      = MutableMap<string, Symbol> {},
+        .fn_overloads = MutableMap<string, Symbol[]> {},
         .imports      = new_import_table(),
         .import_paths = [],
     }
@@ -70,7 +70,7 @@ export collect_module :: fn(
 export collect_module_no_index :: fn(
     program: Program, module_path: string, factory: SymbolFactory,
 ) -> CollectedModule {
-    empty_index :: MutableMap<string, DiscoveredModule> { .buckets = [], .size = 0 }
+    empty_index :: MutableMap<string, DiscoveredModule> {}
     discard: Diagnostic[] = []
     return collect_module(program, module_path, module_path, factory, empty_index, discard)
 }

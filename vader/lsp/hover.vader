@@ -65,11 +65,11 @@ hover_json :: fn(d: DeclEntry) -> JsonValue {
     if d.doc.bytes().len() > 0 {
         body = body + "\n\n" + format_vaderdoc(d.doc)
     }
-    contents :: MutableMap<string, JsonValue> { .buckets = [], .size = 0 }
+    contents :: MutableMap<string, JsonValue> {}
     contents["kind"]  = JsonString { .value = "markdown" }
     contents["value"] = JsonString { .value = body }
 
-    obj :: MutableMap<string, JsonValue> { .buckets = [], .size = 0 }
+    obj :: MutableMap<string, JsonValue> {}
     obj["contents"] = JsonObject { .entries = contents }
     return JsonObject { .entries = obj }
 }
@@ -206,10 +206,10 @@ try_typed_hover :: fn(uri: string, line: i32, character: i32) -> JsonValue | nul
 /// Wrap a `Type` in a markdown Hover payload : ```vader\n<type>\n```.
 type_hover :: fn(ty: Type) -> JsonValue {
     body :: "```vader\n" + display_type(ty) + "\n```"
-    contents :: MutableMap<string, JsonValue> { .buckets = [], .size = 0 }
+    contents :: MutableMap<string, JsonValue> {}
     contents["kind"]  = JsonString { .value = "markdown" }
     contents["value"] = JsonString { .value = body }
-    obj :: MutableMap<string, JsonValue> { .buckets = [], .size = 0 }
+    obj :: MutableMap<string, JsonValue> {}
     obj["contents"] = JsonObject { .entries = contents }
     return JsonObject { .entries = obj }
 }

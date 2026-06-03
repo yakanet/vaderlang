@@ -474,7 +474,7 @@ import "std/testing" { assert, assert_eq }
 }
 
 @test test_set_add_contains :: fn() -> void {
-    s := MutableSet<i32> {}
+    s := MutableSet<i32> { .inner = MutableMap<i32, bool> {} }
     s.add(10)
     s.add(20)
     s.add(10)
@@ -496,7 +496,7 @@ import "std/testing" { assert, assert_eq }
 }
 
 @test test_set_remove :: fn() -> void {
-    s := MutableSet<i32> {}
+    s := MutableSet<i32> { .inner = MutableMap<i32, bool> {} }
     s.add(10)
     s.add(20)
     assert(s.remove(10), "removing present member returns true")

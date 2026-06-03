@@ -74,8 +74,8 @@ build_dedupe_ctx :: fn(
     project: TypedProject, decls_of: fn(string) -> Decl[] | null,
 ) -> DedupeCtx {
     ctx :: DedupeCtx {
-        .member_to_impl = MutableMap<i32, ImplDecl> { .buckets = [], .size = 0 },
-        .struct_by_name = MutableMap<string, StructDecl> { .buckets = [], .size = 0 },
+        .member_to_impl = MutableMap<i32, ImplDecl> {},
+        .struct_by_name = MutableMap<string, StructDecl> {},
     }
     for module_id in project.modules.keys() {
         decls_opt :: decls_of(module_id)
@@ -274,7 +274,7 @@ ReplacementMap :: struct {
 
 new_replacement_map :: fn() -> ReplacementMap {
     return ReplacementMap {
-        .by_id = MutableMap<i32, MonoEntry> { .buckets = [], .size = 0 },
+        .by_id = MutableMap<i32, MonoEntry> {},
     }
 }
 
@@ -316,7 +316,7 @@ redirect_inner :: fn(
     src: MutableMap<string, MonoEntry>,
     replacements: ReplacementMap,
 ) -> MutableMap<string, MonoEntry> {
-    out :: MutableMap<string, MonoEntry> { .buckets = [], .size = 0 }
+    out :: MutableMap<string, MonoEntry> {}
     representative_for_dest: MonoEntry | null = null
     for key in src.keys() {
         entry_opt :: src[key]
@@ -386,7 +386,7 @@ export erasure_dedupe :: fn(
 
     // For each erasable group, decide struct vs fn handling.
     replacements :: new_replacement_map()
-    struct_rewrites :: MutableMap<i32, MonoEntry> { .buckets = [], .size = 0 }
+    struct_rewrites :: MutableMap<i32, MonoEntry> {}
     extra_struct_entries: MonoEntry[] = []
     for decl_id in groups.keys() {
         group_opt :: groups[decl_id]
@@ -415,7 +415,7 @@ export erasure_dedupe :: fn(
     // `replacements` ; struct entries swap for their rewrite ; non-
     // erasable entries pass through unchanged. Append extra
     // Any-flavoured struct entries at the end.
-    seen_id :: MutableMap<i32, bool> { .buckets = [], .size = 0 }
+    seen_id :: MutableMap<i32, bool> {}
     j: usize = 0
     for j < mono.entries.len() {
         entry :: mono.entries[j]
@@ -495,7 +495,7 @@ DeclGroup :: struct {
 }
 
 group_by_decl :: fn(entries: MonoEntry[]) -> MutableMap<i32, DeclGroup> {
-    out :: MutableMap<i32, DeclGroup> { .buckets = [], .size = 0 }
+    out :: MutableMap<i32, DeclGroup> {}
     i: usize = 0
     for i < entries.len() {
         entry :: entries[i]
@@ -594,7 +594,7 @@ rewrite_struct_group :: fn(
         i += 1
     }
     first :: group.entries[0]
-    seen_extra :: MutableMap<string, bool> { .buckets = [], .size = 0 }
+    seen_extra :: MutableMap<string, bool> {}
     j: usize = 0
     for j < group.entries.len() {
         entry :: group.entries[j]

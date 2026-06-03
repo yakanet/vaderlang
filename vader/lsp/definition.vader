@@ -77,7 +77,7 @@ location_link_json :: fn(
     origin: Span | null, uri: string,
     name_span: Span, full_span: Span,
 ) -> JsonValue {
-    obj :: MutableMap<string, JsonValue> { .buckets = [], .size = 0 }
+    obj :: MutableMap<string, JsonValue> {}
     match origin {
         is null -> {}
         is Span as sp -> {
@@ -93,7 +93,7 @@ location_link_json :: fn(
 // ---- JSON encoding helpers -----------------------------------------------
 
 location_json :: fn(uri: string, range: SpanRange) -> JsonValue {
-    obj :: MutableMap<string, JsonValue> { .buckets = [], .size = 0 }
+    obj :: MutableMap<string, JsonValue> {}
     obj["uri"]   = JsonString { .value = uri }
     obj["range"] = range_json(range)
     return JsonObject { .entries = obj }
@@ -102,14 +102,14 @@ location_json :: fn(uri: string, range: SpanRange) -> JsonValue {
 range_json :: fn(r: SpanRange) -> JsonValue {
     start :: position_json(r.start_line, r.start_character)
     endp  :: position_json(r.end_line,   r.end_character)
-    obj :: MutableMap<string, JsonValue> { .buckets = [], .size = 0 }
+    obj :: MutableMap<string, JsonValue> {}
     obj["start"] = start
     obj["end"]   = endp
     return JsonObject { .entries = obj }
 }
 
 position_json :: fn(line: i32, character: i32) -> JsonValue {
-    obj :: MutableMap<string, JsonValue> { .buckets = [], .size = 0 }
+    obj :: MutableMap<string, JsonValue> {}
     obj["line"]      = JsonNumber { .value = f64(line) }
     obj["character"] = JsonNumber { .value = f64(character) }
     return JsonObject { .entries = obj }
