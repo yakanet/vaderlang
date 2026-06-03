@@ -407,6 +407,21 @@ export split :: fn(s: string, sep: string) -> string[] {
     return out
 }
 
+/// Concatenate `parts`, inserting `sep` between consecutive elements.
+/// The inverse of `split`: `join(split(s, sep), sep) == s`.
+/// @param parts  segments to concatenate ; an empty array yields `""`.
+/// @param sep    separator inserted between elements only (no leading
+///               or trailing copy).
+/// @return       the concatenation, or `""` when `parts` is empty.
+export join :: fn(parts: string[], sep: string) -> string {
+    sb :: new_builder()
+    for i in 0..<parts.len() {
+        if i > 0 { sb.append(sep) }
+        sb.append(parts[i])
+    }
+    return sb.to_string()
+}
+
 /// Strip leading and trailing ASCII whitespace (`' '`, `'\t'`, `'\n'`,
 /// `'\r'`). Unicode whitespace is not recognised in MVP.
 export trim :: fn(s: string) -> string {
@@ -906,6 +921,33 @@ import "std/testing" { assert, assert_eq, assert_close }
     parts_multi :: split("a::b::c", "::")
     assert_eq(parts_multi.len(), usize(3))
     assert_eq(parts_multi[2], "c")
+}
+
+@test test_join :: fn() -> void {
+    // Separator goes between elements only.
+    assert_eq(["a", "b", "c"].join(", "), "a, b, c")
+    // Empty array → empty string.
+    empty: string[] = []
+    assert_eq(empty.join(", "), "")
+    // Single element → no separator.
+    assert_eq(["solo"].join(", "), "solo")
+    // Empty separator concatenates.
+    assert_eq(["a", "b", "c"].join(""), "abc")
+    // Empty segments are preserved.
+    assert_eq(["", "x", ""].join("-"), "-x-")
+    // Multi-char separator.
+    assert_eq(["a", "b", "c"].join("::"), "a::b::c")
+}
+
+@test test_join_split_roundtrip :: fn() -> void {
+    // join is the inverse of split when sep is non-empty.
+    s :: "a::b::c"
+    assert_eq(s.split("::").join("::"), s)
+    s2 :: "x,,y"
+    assert_eq(s2.split(",").join(","), s2)
+    // Trailing/leading separators survive the round-trip.
+    s3 :: ",lead,trail,"
+    assert_eq(s3.split(",").join(","), s3)
 }
 
 @test test_parse_float :: fn() -> void {

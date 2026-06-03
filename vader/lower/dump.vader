@@ -20,7 +20,7 @@ module "vader/lower"
 
 import "std/collections" { keys }
 import "std/sort" { sort }
-import "std/string" { compare_ascending, to_lower, ends_with, bytes, as_string }
+import "std/string" { compare_ascending, to_lower, ends_with, bytes, as_string, join }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 import "vader/diagnostics" { Span }
 import "vader/resolver" { is_stdlib_module }
@@ -50,7 +50,7 @@ export dump_lowered :: fn(project: LoweredProject) -> string {
             emit_decl(lines, decl, "  ")
         }
     }
-    return join_lines(lines)
+    return lines.join("\n")
 }
 
 
@@ -437,15 +437,6 @@ expr_kind_label :: fn(expr: LoweredExpr) -> string = match expr {
     is LoweredMakeClosure  -> "LoweredMakeClosure"
     is LoweredTypeConst    -> "LoweredTypeConst"
     _ -> "<unknown>"
-}
-
-join_lines :: fn(lines: string[]) -> string {
-    sb := new_builder()
-    for i in 0..<lines.len() {
-        if i > 0 { sb.append_char('\n') }
-        sb.append(lines[i])
-    }
-    return sb.to_string()
 }
 
 // ---- tests ----------------------------------------------------------------

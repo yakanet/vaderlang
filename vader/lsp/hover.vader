@@ -12,7 +12,7 @@
 
 module "vader/lsp"
 
-import "std/string" { split, trim, starts_with, bytes, as_string }
+import "std/string" { split, trim, starts_with, bytes, as_string, join }
 import "std/json" {
     JsonValue, JsonObject, JsonString, JsonNumber, JsonNull, JsonArray, JsonBool
 }
@@ -128,10 +128,10 @@ format_vaderdoc :: fn(raw: string) -> string {
         }
         body.push(ln)
     }
-    out := join_lines(body)
+    out := body.join("\n")
     if tags.len() > 0 {
         if out.bytes().len() > 0 { out = out + "\n\n" }
-        out = out + join_lines(tags)
+        out = out + tags.join("\n")
     }
     return out
 }
@@ -156,20 +156,6 @@ format_param_payload :: fn(payload: string) -> string {
     desc :: pb[i..<n].as_string().trim()
     if desc.bytes().len() == 0 { return "`" + name + "`" }
     return "`" + name + "` — " + desc
-}
-
-join_lines :: fn(lines: string[]) -> string {
-    out := ""
-    first := true
-    for l in lines {
-        if first {
-            out = l
-            first = false
-        } else {
-            out = out + "\n" + l
-        }
-    }
-    return out
 }
 
 // ---- typed-hover lookup --------------------------------------------------

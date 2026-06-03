@@ -16,7 +16,7 @@
 
 module "vader/typecheck"
 
-import "std/string" { bytes }
+import "std/string" { bytes, join }
 import "vader/diagnostics" { Diagnostic, typecheck_error }
 AST :: import "vader/parser"
 import "vader/resolver" { ResolvedModule }
@@ -455,16 +455,7 @@ check_trait_ambiguity :: fn(
     if traits is null { return }
     if traits.len() < 2 { return }
     diags.push(typecheck_error(.AmbiguousOverload, e.field_span,
-        "`${e.field}` on ${display_type(target_ty)} is ambiguous between traits: ${join_commas(traits)}"))
-}
-
-join_commas :: fn(names: string[]) -> string {
-    out := ""
-    for i in 0..<names.len() {
-        if i > 0 { out = "${out}, " }
-        out = "${out}${names[i]}"
-    }
-    return out
+        "`${e.field}` on ${display_type(target_ty)} is ambiguous between traits: ${traits.join(", ")}"))
 }
 
 // Substitute the impl method's TypeParams against the receiver's

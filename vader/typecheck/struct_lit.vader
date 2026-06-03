@@ -6,6 +6,7 @@
 
 module "vader/typecheck"
 
+import "std/string" { join }
 import "vader/diagnostics" { Diagnostic, typecheck_error }
 
 lookup_pre_resolved_field_for_lit :: fn(struct_id: i32, name: string, typed: TypedProgram) -> Type | null {
@@ -119,7 +120,7 @@ check_missing_fields :: fn(
     label := "fields"
     if missing.len() == usize(1) { label = "field" }
     diags.push(typecheck_error(.MissingRequiredFieldInStructLit, e.span,
-        "missing required ${label} on ${display_type(st)}: ${join_commas(missing)}"))
+        "missing required ${label} on ${display_type(st)}: ${missing.join(", ")}"))
 }
 
 check_item_no_expected :: fn(

@@ -28,7 +28,7 @@
 
 module "vader/c_emit"
 
-import "std/string" { bytes }
+import "std/string" { bytes, join }
 import "std/string_builder" { StringBuilder, new_builder, append }
 import "vader/bytecode" { BytecodeModule, BcFunction }
 import "vader/bytecode" {
@@ -406,28 +406,14 @@ classify_struct_fields :: fn(ctx: EmitCtx, s: BcStruct, type_index: usize) -> St
 /// nullable-ref slots that store a raw `void*`.
 emit_struct_offset_arrays :: fn(offs: StructOffsets, type_index: usize, out: StringBuilder) -> void {
     if offs.ptr_offsets.len() > 0 {
-        out.append("static const uint16_t vader_type_${type_index}_ptrs[] = { ${join_offsets(offs.ptr_offsets)} };\n")
+        out.append("static const uint16_t vader_type_${type_index}_ptrs[] = { ${offs.ptr_offsets.join(", ")} };\n")
     }
     if offs.str_offsets.len() > 0 {
-        out.append("static const uint16_t vader_type_${type_index}_strs[] = { ${join_offsets(offs.str_offsets)} };\n")
+        out.append("static const uint16_t vader_type_${type_index}_strs[] = { ${offs.str_offsets.join(", ")} };\n")
     }
     if offs.ref_offsets.len() > 0 {
-        out.append("static const uint16_t vader_type_${type_index}_refs[] = { ${join_offsets(offs.ref_offsets)} };\n")
+        out.append("static const uint16_t vader_type_${type_index}_refs[] = { ${offs.ref_offsets.join(", ")} };\n")
     }
-}
-
-/// Comma-joined offset list, matching `[offsetof(...), offsetof(...)]`
-/// formatting. Empty list yields an empty string ; callers gate the
-/// emit on a `.len() > 0` check.
-join_offsets :: fn(items: string[]) -> string {
-    sb :: new_builder()
-    i: usize = 0
-    for i < items.len() {
-        if i > 0 { sb.append(", ") }
-        sb.append(items[i])
-        i += 1
-    }
-    return "${sb}"
 }
 
 /// Emit one struct's row of the type-info table. Reads the cached
