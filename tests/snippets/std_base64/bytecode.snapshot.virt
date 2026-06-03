@@ -7,12 +7,12 @@ type 4 primitive u8
 type 5 primitive usize
 type 6 primitive char
 type 7 array 1
-type 8 struct std_base64$Base64Error { msg:1 }
-type 9 union 8,1
-type 10 array 4
+type 8 array 4
+type 9 struct std_base64$Base64Error { msg:1 }
+type 10 union 9,8
 type 11 struct std_string_builder$StringBuilder { parts:7 }
-string 0 "="
-string 1 "=ERR:"
+string 0 "=ERR:"
+string 1 "="
 string 2 "enc-f="
 string 3 "f"
 string 4 "enc-fo="
@@ -59,81 +59,74 @@ import 1 to_string std_core$string$Display$to_string (string) -> string
 import 2 at std_core$string$Index$at (string,usize) -> char
 import 3 write std_io$write (i32,string) -> void
 import 4 bytes std_string$bytes (string) -> ref
-import 5 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> string
-impl 8 Error
+import 5 as_string std_string$as_string (ref) -> string
+import 6 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> string
+impl 9 Error
 impl 11 Display
 export main 1
 
 fn 0 snippet$show_decode (string,string) -> void
   local out ref
-  local __scrut_0 ref
-  local __sb_2 any
-  local $cast_9 string
+  local __sb_0 any
+  local $call_9 string
   local.get 1
   call 6
   local.tee 2
-  local.tee 3
-  type_check 1
+  type_check 9
   if $L0 void
     intrinsic builder.new
-    local.tee 4
+    local.tee 3
     local.get 0
     intrinsic builder.append_display
-    local.get 4
+    local.get 3
     string.const 0
     intrinsic builder.append_str
     local.get 2
-    ref.cast 1
-    local.set 5
+    call 4
+    local.set 4
+    local.get 3
     local.get 4
-    local.get 5
     intrinsic builder.append_display
-    local.get 4
+    local.get 3
     intrinsic builder.finish
     call 2
-    return
-  end $L0
-  local.get 3
-  type_check 8
-  if $L1 void
+  else
     intrinsic builder.new
-    local.tee 4
+    local.tee 3
     local.get 0
     intrinsic builder.append_display
-    local.get 4
+    local.get 3
     string.const 1
     intrinsic builder.append_str
     local.get 2
-    call 4
-    local.set 5
+    call.import 5
+    local.set 4
+    local.get 3
     local.get 4
-    local.get 5
     intrinsic builder.append_display
-    local.get 4
+    local.get 3
     intrinsic builder.finish
     call 2
-    return
-  end $L1
-  unreachable
+  end $L0
+  return
 end
 
 fn 1 snippet$main () -> i32
   local __sb_0 any
-  local $call_4 string
+  local $call_5 string
   local __for_arr_6 ref
   local __for_len_7 usize
   local __for_i_8 usize
   local decoded ref
-  local __scrut_9 ref
-  local $eq_73 bool
   local __sb_10 any
-  local $k_81 usize
+  local $eq_85 bool
   intrinsic builder.new
   local.set 0
   local.get 0
   string.const 2
   intrinsic builder.append_str
   string.const 3
+  call.import 4
   call 3
   local.set 1
   local.get 0
@@ -148,6 +141,7 @@ fn 1 snippet$main () -> i32
   string.const 4
   intrinsic builder.append_str
   string.const 5
+  call.import 4
   call 3
   local.set 1
   local.get 0
@@ -162,6 +156,7 @@ fn 1 snippet$main () -> i32
   string.const 6
   intrinsic builder.append_str
   string.const 7
+  call.import 4
   call 3
   local.set 1
   local.get 0
@@ -176,6 +171,7 @@ fn 1 snippet$main () -> i32
   string.const 8
   intrinsic builder.append_str
   string.const 9
+  call.import 4
   call 3
   local.set 1
   local.get 0
@@ -190,6 +186,7 @@ fn 1 snippet$main () -> i32
   string.const 10
   intrinsic builder.append_str
   string.const 11
+  call.import 4
   call 3
   local.set 1
   local.get 0
@@ -204,6 +201,7 @@ fn 1 snippet$main () -> i32
   string.const 12
   intrinsic builder.append_str
   string.const 13
+  call.import 4
   call 3
   local.set 1
   local.get 0
@@ -252,11 +250,11 @@ fn 1 snippet$main () -> i32
         array.get 7
         ref.cast 1
         local.tee 1
+        call.import 4
         call 3
         call 6
         local.tee 5
-        local.tee 6
-        type_check 1
+        type_check 9
         if $L3 void
           intrinsic builder.new
           local.set 0
@@ -267,53 +265,41 @@ fn 1 snippet$main () -> i32
           local.get 1
           intrinsic builder.append_display
           local.get 0
-          string.const 0
+          string.const 32
+          intrinsic builder.append_str
+          local.get 0
+          intrinsic builder.finish
+          call 2
+        else
+          intrinsic builder.new
+          local.set 6
+          local.get 6
+          string.const 31
+          intrinsic builder.append_str
+          local.get 6
+          local.get 1
+          intrinsic builder.append_display
+          local.get 6
+          string.const 1
           intrinsic builder.append_str
           local.get 5
-          ref.cast 1
+          call.import 5
           local.get 1
           string.eq
           local.set 7
-          local.get 0
+          local.get 6
           local.get 7
           intrinsic builder.append_display
-          local.get 0
+          local.get 6
           intrinsic builder.finish
           call 2
-          i64.const 1
-          local.set 9
-          local.get 4
-          local.get 9
-          usize.add
-          local.set 4
-          br $L1
         end $L3
-        local.get 6
-        type_check 8
-        if $L4 void
-          intrinsic builder.new
-          local.set 8
-          local.get 8
-          string.const 31
-          intrinsic builder.append_str
-          local.get 8
-          local.get 1
-          intrinsic builder.append_display
-          local.get 8
-          string.const 32
-          intrinsic builder.append_str
-          local.get 8
-          intrinsic builder.finish
-          call 2
-          i64.const 1
-          local.set 9
-          local.get 4
-          local.get 9
-          usize.add
-          local.set 4
-          br $L1
-        end $L4
-        unreachable
+        local.get 4
+        i64.const 1
+        i64.to_usize
+        usize.add
+        local.set 4
+        br $L1
       else
       end $L2
     end $L1
@@ -341,32 +327,31 @@ fn 2 std_io$std_io$println__string (string) -> void
   return
 end
 
-fn 3 std_base64$encode (string) -> string
+fn 3 std_base64$encode (ref) -> string
   local bs ref
   local n usize
   local sb ref
   local i usize
   local b0 u32
-  local $add_16 usize
+  local $add_15 usize
   local b1 u32
-  local $add_21 usize
+  local $add_20 usize
   local b2 u32
-  local $shl_27 u32
-  local $shl_30 u32
+  local $shl_26 u32
+  local $shl_29 u32
   local triple u32
-  local $shr_37 u32
-  local $cast_41 usize
-  local $call_42 char
-  local $shr_46 u32
-  local $cast_50 usize
-  local $call_51 char
-  local $shr_55 u32
-  local $cast_59 usize
-  local $call_60 char
-  local $cast_65 usize
-  local $call_66 char
+  local $shr_36 u32
+  local $cast_40 usize
+  local $call_41 char
+  local $shr_45 u32
+  local $cast_49 usize
+  local $call_50 char
+  local $shr_54 u32
+  local $cast_58 usize
+  local $call_59 char
+  local $cast_64 usize
+  local $call_65 char
   local.get 0
-  call.import 4
   local.tee 1
   array.len
   local.set 2
@@ -385,7 +370,7 @@ fn 3 std_base64$encode (string) -> string
       if $L2 void
         local.get 1
         local.get 4
-        array.get 10
+        array.get 8
         ref.cast 4
         u8.to_u32
         local.set 5
@@ -396,7 +381,7 @@ fn 3 std_base64$encode (string) -> string
         local.set 6
         local.get 1
         local.get 6
-        array.get 10
+        array.get 8
         ref.cast 4
         u8.to_u32
         local.set 7
@@ -407,7 +392,7 @@ fn 3 std_base64$encode (string) -> string
         local.set 8
         local.get 1
         local.get 8
-        array.get 10
+        array.get 8
         ref.cast 4
         u8.to_u32
         local.set 9
@@ -515,7 +500,7 @@ fn 3 std_base64$encode (string) -> string
   if $L3 void
     local.get 1
     local.get 4
-    array.get 10
+    array.get 8
     ref.cast 4
     u8.to_u32
     local.set 5
@@ -574,7 +559,7 @@ fn 3 std_base64$encode (string) -> string
     if $L4 void
       local.get 1
       local.get 4
-      array.get 10
+      array.get 8
       ref.cast 4
       u8.to_u32
       local.set 5
@@ -585,7 +570,7 @@ fn 3 std_base64$encode (string) -> string
       local.set 2
       local.get 1
       local.get 2
-      array.get 10
+      array.get 8
       ref.cast 4
       u8.to_u32
       local.set 7
@@ -669,7 +654,7 @@ fn 3 std_base64$encode (string) -> string
 end
 
 fn 4 std_base64$Base64Error$Error$message (ref) -> string
-  local.field 0 8 0
+  local.field 0 9 0
   ref.cast 1
   return
 end
@@ -779,7 +764,7 @@ fn 6 std_base64$decode (string) -> ref
   local $mod_9 usize
   local $sub_17 usize
   local $idx_18 u8
-  local sb ref
+  local out ref
   local v0 i32
   local $add_40 usize
   local v1 i32
@@ -803,10 +788,9 @@ fn 6 std_base64$decode (string) -> ref
   local $cast_88 u32
   local triple u32
   local $shr_93 u32
-  local $cast_97 char
   local $shr_100 u32
-  local $cast_104 char
-  local $cast_108 char
+  local $cast_104 u8
+  local $cast_108 u8
   local.get 0
   call.import 4
   local.tee 1
@@ -817,7 +801,8 @@ fn 6 std_base64$decode (string) -> ref
   i64.to_usize
   usize.eq
   if $L0 void
-    return.lit string.const 27
+    array.new 8 0
+    return
   end $L0
   local.get 2
   i64.const 4
@@ -830,7 +815,7 @@ fn 6 std_base64$decode (string) -> ref
   usize.ne
   if $L1 void
     string.const 39
-    struct.new 8
+    struct.new 9
     return
   end $L1
   i64.const 0
@@ -842,7 +827,7 @@ fn 6 std_base64$decode (string) -> ref
   local.set 4
   local.get 1
   local.get 4
-  array.get 10
+  array.get 8
   ref.cast 4
   local.set 5
   local.get 5
@@ -861,7 +846,7 @@ fn 6 std_base64$decode (string) -> ref
   local.set 4
   local.get 1
   local.get 4
-  array.get 10
+  array.get 8
   ref.cast 4
   local.set 5
   local.get 5
@@ -873,7 +858,7 @@ fn 6 std_base64$decode (string) -> ref
     local.set 3
   else
   end $L3
-  call 7
+  array.new 8 0
   local.set 6
   i64.const 0
   local.set 4
@@ -890,7 +875,7 @@ fn 6 std_base64$decode (string) -> ref
       if $L6 void
         local.get 1
         local.get 4
-        array.get 10
+        array.get 8
         ref.cast 4
         call 5
         local.set 7
@@ -901,7 +886,7 @@ fn 6 std_base64$decode (string) -> ref
         local.set 8
         local.get 1
         local.get 8
-        array.get 10
+        array.get 8
         ref.cast 4
         call 5
         local.set 9
@@ -912,7 +897,7 @@ fn 6 std_base64$decode (string) -> ref
         local.set 10
         local.get 1
         local.get 10
-        array.get 10
+        array.get 8
         ref.cast 4
         call 5
         local.set 11
@@ -923,7 +908,7 @@ fn 6 std_base64$decode (string) -> ref
         local.set 12
         local.get 1
         local.get 12
-        array.get 10
+        array.get 8
         ref.cast 4
         call 5
         local.set 13
@@ -974,7 +959,7 @@ fn 6 std_base64$decode (string) -> ref
           intrinsic builder.append_str
           local.get 17
           intrinsic builder.finish
-          struct.new 8
+          struct.new 9
           return
         end $L10
         local.get 7
@@ -1025,34 +1010,34 @@ fn 6 std_base64$decode (string) -> ref
         i32.const 255
         i32.to_u32
         u32.bitand
-        u32.to_char
-        local.set 30
+        u32.to_u8
+        local.set 5
         local.get 6
-        local.get 30
-        call 8
+        local.get 5
+        array.push 4
         local.get 28
         i32.const 8
         i32.to_u32
         u32.shr
-        local.set 31
-        local.get 31
+        local.set 30
+        local.get 30
         i32.const 255
         i32.to_u32
         u32.bitand
-        u32.to_char
-        local.set 32
+        u32.to_u8
+        local.set 31
         local.get 6
-        local.get 32
-        call 8
+        local.get 31
+        array.push 4
         local.get 28
         i32.const 255
         i32.to_u32
         u32.bitand
-        u32.to_char
-        local.set 33
+        u32.to_u8
+        local.set 32
         local.get 6
-        local.get 33
-        call 8
+        local.get 32
+        array.push 4
         local.get 4
         i64.const 4
         i64.to_usize
@@ -1065,7 +1050,7 @@ fn 6 std_base64$decode (string) -> ref
   end $L4
   local.get 1
   local.get 4
-  array.get 10
+  array.get 8
   ref.cast 4
   call 5
   local.set 7
@@ -1076,7 +1061,7 @@ fn 6 std_base64$decode (string) -> ref
   local.set 2
   local.get 1
   local.get 2
-  array.get 10
+  array.get 8
   ref.cast 4
   call 5
   local.set 9
@@ -1095,7 +1080,7 @@ fn 6 std_base64$decode (string) -> ref
   local.get 14
   if $L12 void
     string.const 41
-    struct.new 8
+    struct.new 9
     return
   end $L12
   local.get 7
@@ -1127,11 +1112,11 @@ fn 6 std_base64$decode (string) -> ref
   i32.const 255
   i32.to_u32
   u32.bitand
-  u32.to_char
-  local.set 30
+  u32.to_u8
+  local.set 5
   local.get 6
-  local.get 30
-  call 8
+  local.get 5
+  array.push 4
   local.get 3
   i64.const 0
   i64.to_usize
@@ -1144,7 +1129,7 @@ fn 6 std_base64$decode (string) -> ref
     local.set 2
     local.get 1
     local.get 2
-    array.get 10
+    array.get 8
     ref.cast 4
     call 5
     local.set 7
@@ -1155,7 +1140,7 @@ fn 6 std_base64$decode (string) -> ref
     local.set 2
     local.get 1
     local.get 2
-    array.get 10
+    array.get 8
     ref.cast 4
     call 5
     local.set 9
@@ -1174,7 +1159,7 @@ fn 6 std_base64$decode (string) -> ref
     local.get 14
     if $L15 void
       string.const 41
-      struct.new 8
+      struct.new 9
       return
     end $L15
     local.get 7
@@ -1205,22 +1190,21 @@ fn 6 std_base64$decode (string) -> ref
     i32.const 255
     i32.to_u32
     u32.bitand
-    u32.to_char
-    local.set 30
+    u32.to_u8
+    local.set 5
     local.get 6
-    local.get 30
-    call 8
+    local.get 5
+    array.push 4
     local.get 20
     i32.const 255
     i32.to_u32
     u32.bitand
-    u32.to_char
-    local.set 30
+    u32.to_u8
+    local.set 5
     local.get 6
-    local.get 30
-    call 8
+    local.get 5
+    array.push 4
     local.get 6
-    call 13
     return
   end $L13
   local.get 3
@@ -1235,7 +1219,7 @@ fn 6 std_base64$decode (string) -> ref
     local.set 2
     local.get 1
     local.get 2
-    array.get 10
+    array.get 8
     ref.cast 4
     call 5
     local.set 7
@@ -1244,7 +1228,7 @@ fn 6 std_base64$decode (string) -> ref
     i32.lt
     if $L17 void
       string.const 42
-      struct.new 8
+      struct.new 9
       return
     end $L17
     local.get 7
@@ -1268,17 +1252,15 @@ fn 6 std_base64$decode (string) -> ref
     i32.const 255
     i32.to_u32
     u32.bitand
-    u32.to_char
-    local.set 30
+    u32.to_u8
+    local.set 5
     local.get 6
-    local.get 30
-    call 8
+    local.get 5
+    array.push 4
     local.get 6
-    call 13
     return
   end $L16
   local.get 6
-  call 13
   return
 end
 
@@ -1335,6 +1317,6 @@ end
 
 fn 13 std_string_builder$StringBuilder$Display$to_string$vt (ref) -> string
   local.get 0
-  call.import 5
+  call.import 6
   return
 end

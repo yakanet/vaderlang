@@ -4,24 +4,26 @@
 module "snippet"
 
 import "std/io" { println }
+import "std/string" { bytes, as_string }
 import "std/base64" { encode, decode, Base64Error }
 
 show_decode :: fn(label: string, input: string) -> void {
     out :: decode(input)
-    match out {
-        is string -> println("${label}=${out}")
-        is Base64Error -> println("${label}=ERR:${out.message()}")
+    if out is Base64Error {
+        println("${label}=ERR:${out.message()}")
+    } else {
+        println("${label}=${out.as_string()}")
     }
 }
 
 main :: fn() -> i32 {
     // RFC 4648 §10 vectors
-    println("enc-f=${encode("f")}")
-    println("enc-fo=${encode("fo")}")
-    println("enc-foo=${encode("foo")}")
-    println("enc-foob=${encode("foob")}")
-    println("enc-fooba=${encode("fooba")}")
-    println("enc-foobar=${encode("foobar")}")
+    println("enc-f=${encode("f".bytes())}")
+    println("enc-fo=${encode("fo".bytes())}")
+    println("enc-foo=${encode("foo".bytes())}")
+    println("enc-foob=${encode("foob".bytes())}")
+    println("enc-fooba=${encode("fooba".bytes())}")
+    println("enc-foobar=${encode("foobar".bytes())}")
 
     show_decode("dec-f",      "Zg==")
     show_decode("dec-fo",     "Zm8=")
@@ -33,10 +35,11 @@ main :: fn() -> i32 {
     // Roundtrip
     inputs :: ["hello world", "", "a", "ab", "The quick brown fox"]
     for s in inputs {
-        decoded :: decode(encode(s))
-        match decoded {
-            is string      -> println("roundtrip-${s}=${decoded == s}")
-            is Base64Error -> println("roundtrip-${s}=ERR")
+        decoded :: decode(encode(s.bytes()))
+        if decoded is Base64Error {
+            println("roundtrip-${s}=ERR")
+        } else {
+            println("roundtrip-${s}=${decoded.as_string() == s}")
         }
     }
 

@@ -9,16 +9,18 @@
 
 module "std/base64"
 
-import "std/string" { bytes }
+import "std/string" { bytes, as_string }
 import "std/string_builder" { StringBuilder, new_builder, append_char }
 
 ALPHABET :: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 
-/// Encode `input` as a base64 string. The input is treated as a
-/// sequence of UTF-8 bytes (or raw bytes — base64 is content-agnostic).
-/// Output length is `4 * ceil(input_bytes / 3)`.
-export encode :: fn(input: string) -> string {
-    bs :: input.bytes()
+/// Encode raw bytes as a base64 string (standard alphabet, `=`-padded). The
+/// output is always ASCII ; its length is `4 * ceil(input.len() / 3)`. To
+/// encode text, pass `text.bytes()`.
+///
+/// @param input  the raw bytes to encode.
+export encode :: fn(input: const u8[]) -> string {
+    bs :: input
     n :: bs.len()
     sb := new_builder()
     i: usize = 0
@@ -76,15 +78,24 @@ decode_byte :: fn(b: u8) -> i32 {
     return i32(-1)
 }
 
-/// Decode a base64 string back to raw bytes (returned as a string —
-/// Vader's `string` is byte-indexed under the hood). Strict : input
-/// length MUST be a multiple of 4 and padding MUST be canonical
-/// (one or two trailing `=`, nothing else). Whitespace and newlines
-/// are NOT allowed — strip them upstream if your transport adds them.
-export decode :: fn(input: string) -> string | Base64Error {
+/// Decode a base64 string back to the raw bytes it encodes. Strict : input
+/// length MUST be a multiple of 4 and padding MUST be canonical (one or two
+/// trailing `=`, nothing else). Whitespace and newlines are NOT allowed —
+/// strip them upstream if your transport adds them.
+///
+/// Returns `u8[]` rather than `string` so arbitrary binary round-trips
+/// exactly : `string` is codepoint-based, so non-UTF-8 octets would not
+/// survive a string round-trip. Call `.as_string()` on the result when the
+/// payload is known to be valid UTF-8 text.
+///
+/// @param input  the base64 text (standard alphabet, `=`-padded).
+/// @return       the decoded raw bytes.
+/// @error        Base64Error when `input.len()` isn't a multiple of 4, or any
+///               non-alphabet character appears.
+export decode :: fn(input: string) -> u8[] | Base64Error {
     bs :: input.bytes()
     n :: bs.len()
-    if n == 0 { return "" }
+    if n == 0 { return [] }
     if n % 4 != 0 {
         return Base64Error { .msg = "base64: input length must be a multiple of 4" }
     }
@@ -93,7 +104,11 @@ export decode :: fn(input: string) -> string | Base64Error {
     if bs[n - 1] == b'=' { pad_count = 1 }
     if bs[n - 2] == b'=' { pad_count = 2 }
 
-    sb := new_builder()
+    // Accumulate the decoded octets into a `u8[]` and return them raw. An
+    // earlier version returned a `string` built via `char()` + StringBuilder,
+    // which UTF-8-encodes each codepoint — so every octet >= 0x80 was doubled,
+    // corrupting binary payloads.
+    out: u8[] = []
     i: usize = 0
     full_quads :: n - 4
     for i < full_quads {
@@ -105,9 +120,9 @@ export decode :: fn(input: string) -> string | Base64Error {
             return Base64Error { .msg = "base64: invalid character at offset ${i}" }
         }
         triple :: (u32(v0) << u32(18)) | (u32(v1) << u32(12)) | (u32(v2) << u32(6)) | u32(v3)
-        sb.append_char(char((triple >> u32(16)) & u32(0xFF)))
-        sb.append_char(char((triple >> u32(8))  & u32(0xFF)))
-        sb.append_char(char(triple & u32(0xFF)))
+        out.push(u8((triple >> u32(16)) & u32(0xFF)))
+        out.push(u8((triple >> u32(8))  & u32(0xFF)))
+        out.push(u8(triple & u32(0xFF)))
         i = i + 4
     }
 
@@ -118,7 +133,7 @@ export decode :: fn(input: string) -> string | Base64Error {
         return Base64Error { .msg = "base64: invalid character in final quad" }
     }
     triple_lead :: (u32(v0) << u32(18)) | (u32(v1) << u32(12))
-    sb.append_char(char((triple_lead >> u32(16)) & u32(0xFF)))
+    out.push(u8((triple_lead >> u32(16)) & u32(0xFF)))
     if pad_count == 0 {
         v2 :: decode_byte(bs[i + 2])
         v3 :: decode_byte(bs[i + 3])
@@ -126,17 +141,17 @@ export decode :: fn(input: string) -> string | Base64Error {
             return Base64Error { .msg = "base64: invalid character in final quad" }
         }
         triple :: triple_lead | (u32(v2) << u32(6)) | u32(v3)
-        sb.append_char(char((triple >> u32(8)) & u32(0xFF)))
-        sb.append_char(char(triple & u32(0xFF)))
+        out.push(u8((triple >> u32(8)) & u32(0xFF)))
+        out.push(u8(triple & u32(0xFF)))
     } else if pad_count == 1 {
         v2 :: decode_byte(bs[i + 2])
         if v2 < 0 {
             return Base64Error { .msg = "base64: invalid character before padding" }
         }
         triple :: triple_lead | (u32(v2) << u32(6))
-        sb.append_char(char((triple >> u32(8)) & u32(0xFF)))
+        out.push(u8((triple >> u32(8)) & u32(0xFF)))
     }
-    return sb.to_string()
+    return out
 }
 
 // ---------------------------------------------------------------------- tests
@@ -144,22 +159,22 @@ export decode :: fn(input: string) -> string | Base64Error {
 import "std/testing" { assert_eq, assert }
 
 @test test_encode_empty :: fn() -> void {
-    assert_eq(encode(""), "")
+    assert_eq(encode("".bytes()), "")
 }
 
 @test test_encode_no_padding :: fn() -> void {
-    assert_eq(encode("abc"),    "YWJj")
-    assert_eq(encode("Cat!"),   "Q2F0IQ==")
+    assert_eq(encode("abc".bytes()),  "YWJj")
+    assert_eq(encode("Cat!".bytes()), "Q2F0IQ==")
 }
 
 @test test_encode_rfc4648_vectors :: fn() -> void {
     // From RFC 4648 §10.
-    assert_eq(encode("f"),      "Zg==")
-    assert_eq(encode("fo"),     "Zm8=")
-    assert_eq(encode("foo"),    "Zm9v")
-    assert_eq(encode("foob"),   "Zm9vYg==")
-    assert_eq(encode("fooba"),  "Zm9vYmE=")
-    assert_eq(encode("foobar"), "Zm9vYmFy")
+    assert_eq(encode("f".bytes()),      "Zg==")
+    assert_eq(encode("fo".bytes()),     "Zm8=")
+    assert_eq(encode("foo".bytes()),    "Zm9v")
+    assert_eq(encode("foob".bytes()),   "Zm9vYg==")
+    assert_eq(encode("fooba".bytes()),  "Zm9vYmE=")
+    assert_eq(encode("foobar".bytes()), "Zm9vYmFy")
 }
 
 @test test_decode_rfc4648_vectors :: fn() -> void {
@@ -172,38 +187,61 @@ import "std/testing" { assert_eq, assert }
     expect_decode("Zm9vYmFy",  "foobar")
 }
 
+// The RFC vectors are all ASCII, so `as_string` round-trips them on every
+// backend ; only invalid UTF-8 diverges across backends, which is why the
+// binary test below asserts on the raw `u8[]` instead.
 expect_decode :: fn(encoded: string, expected: string) -> void {
     out :: decode(encoded)
-    match out {
-        is string      -> assert_eq(out, expected)
-        is Base64Error -> assert(false, "decode failed for ${encoded}")
+    if out is Base64Error {
+        assert(false, "decode failed for ${encoded}")
+    } else {
+        assert_eq(out.as_string(), expected)
     }
 }
 
 @test test_decode_rejects_bad_length :: fn() -> void {
     bad :: decode("abc")
-    match bad {
-        is Base64Error -> assert(true, "length error caught")
-        is string      -> assert(false, "should have rejected length 3")
+    if bad is Base64Error {
+        assert(true, "length error caught")
+    } else {
+        assert(false, "should have rejected length 3")
     }
 }
 
 @test test_decode_rejects_invalid_char :: fn() -> void {
     bad :: decode("ab!d")
-    match bad {
-        is Base64Error -> assert(true, "invalid char caught")
-        is string      -> assert(false, "should have rejected `!`")
+    if bad is Base64Error {
+        assert(true, "invalid char caught")
+    } else {
+        assert(false, "should have rejected `!`")
     }
 }
 
 @test test_roundtrip :: fn() -> void {
     inputs :: ["hello world", "", "a", "ab", "abc", "abcd", "The quick brown fox jumps over the lazy dog"]
     for s in inputs {
-        encoded :: encode(s)
-        decoded :: decode(encoded)
-        match decoded {
-            is string      -> assert_eq(decoded, s)
-            is Base64Error -> assert(false, "roundtrip decode failed for ${s}")
+        out :: decode(encode(s.bytes()))
+        if out is Base64Error {
+            assert(false, "roundtrip decode failed for ${s}")
+        } else {
+            assert_eq(out.as_string(), s)
         }
+    }
+}
+
+@test test_roundtrip_binary :: fn() -> void {
+    // Octets >= 0x80 round-trip exactly now that encode/decode are byte-oriented.
+    // Asserting on the raw `u8[]` keeps this backend-agnostic (no `as_string`,
+    // whose invalid-UTF-8 handling differs across backends).
+    raw: u8[] = [0x00, 0x80, 0xFF, 0xC3, 0x28, 0xA9]
+    out :: decode(encode(raw))
+    if out is Base64Error {
+        assert(false, "binary roundtrip failed")
+    } else {
+        assert_eq(out.len(), usize(6))
+        assert_eq(i32(out[1]), i32(128))
+        assert_eq(i32(out[2]), i32(255))
+        assert_eq(i32(out[3]), i32(195))
+        assert_eq(i32(out[5]), i32(169))
     }
 }
