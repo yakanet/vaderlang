@@ -124,6 +124,13 @@ const VADER_SELF_EMIT = new Set<string>([
   // fixpoint + deferred flush) ; without it `len__string__JsonValue` is
   // stranded and Vader emit panics with an unresolved callee.
   "json_basics",
+  // `str.trim(...)` : a namespaced call to a NON-generic stdlib fn. Guards
+  // resolve_namespace_member — the namespace form must resolve the member to
+  // its real symbol (+ harvest it), not a bare id=0 placeholder, else emit
+  // can't reserve the callee. (Generic namespaced calls like `io.println` are
+  // a separate follow-up — they need the generic-instance harvest the direct
+  // path does.)
+  "namespace_call_nongeneric",
   "_diag_const_string", "alias_union_in_array", "array_view_aliasing",
   "for_range_sugar", "b1_fn_boundary", "closure_pattern_binding", "comptime_type_value",
   "const_array_basic", "contains_op", "decorator_deprecated",

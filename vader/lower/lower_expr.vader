@@ -1886,7 +1886,12 @@ try_lower_namespace_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> L
             namespace_symbol :: ctx.typed.resolved.idents[target_ident.span.hash()]
             if namespace_symbol is null { return null }
             if i32(namespace_symbol.kind) != i32(SymbolKind.ImportBinding) { return null }
-            member_symbol :: synth_namespace_member(ctx, field_expr.field, type)
+            member_symbol :: resolve_namespace_member(ctx, namespace_symbol, field_expr.field)
+            // A stdlib member reached only through the namespace form
+            // (`io.println`) still needs harvesting — its body is skipped by
+            // `is_stdlib_path`, so without this it's never reserved and the
+            // call is unresolved at emit. No-op for non-stdlib / generic members.
+            register_nongeneric_stdlib_fn(ctx, member_symbol)
             args: LoweredExpr[] = []
             for call_arg in call.args { args.push(lower_expr(ctx, call_arg.value)) }
             return LoweredCall {
@@ -1908,7 +1913,25 @@ as_ident :: fn(expr: Expr) -> IdentExpr | null {
     }
 }
 
-synth_namespace_member :: fn(ctx: FnLowerCtx, name: string, type: Type) -> Symbol {
+// Resolve `<namespace>.<name>` to the member's REAL symbol in the namespace's
+// target module, so emit indexes the call by the member's true id (matching the
+// direct-import path via `follow_import_binding`). A bare `id=0` placeholder
+// resolved to NEITHER `function_index_by_symbol_id` (id 0) NOR
+// `function_index_by_mangle` (the fn is reserved under `<module>$<name>`, never
+// the bare name) → unresolved-callee panic at emit. Falls back to the bare
+// placeholder when the target module / member can't be located (recovery path).
+resolve_namespace_member :: fn(ctx: FnLowerCtx, namespace_symbol: Symbol, name: string) -> Symbol {
+    targets :: ctx.typed.import_targets
+    if targets is ImportTargetTable as t {
+        mod_id :: t.namespace_targets[namespace_symbol.id]
+        if mod_id != null {
+            mod :: ctx.project.loaded.modules[mod_id]
+            if mod != null {
+                member :: mod.collected.symbols[name]
+                if member is Symbol as m { return m }
+            }
+        }
+    }
     return Symbol {
         .id         = i32(0),
         .kind       = SymbolKind.Fn,

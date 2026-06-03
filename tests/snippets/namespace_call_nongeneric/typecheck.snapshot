@@ -1,0 +1,9 @@
+# Typecheck
+
+## tests/snippets/namespace_call_nongeneric
+  FnDecl         main                 :: fn() -> i32
+  expr 11:13    CallExpr       :: string
+  expr 11:13    FieldExpr      :: fn(string) -> string
+  expr 11:22    StringLitExpr  :: string
+  expr 11:5     CallExpr       :: void
+  expr 11:5     IdentExpr      :: fn(T) -> void

@@ -1,0 +1,14 @@
+# Lower
+
+## snippet
+  fn snippet$main() -> i32
+    call :void
+      callee:
+        println :void
+      arg0:
+        call :string
+          callee:
+            trim :string
+          arg0:
+            "  hi  " :string
+    return int(0) :i32

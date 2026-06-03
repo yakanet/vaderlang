@@ -1,0 +1,178 @@
+module _main
+type 0 primitive null
+type 1 primitive i32
+type 2 primitive string
+type 3 primitive u8
+type 4 primitive bool
+type 5 array 3
+type 6 primitive void
+type 7 array 2
+type 8 struct std_string_builder$StringBuilder { parts:7 }
+string 0 "  hi  "
+string 1 "\n"
+import 0 to_string std_core$string$Display$to_string (string) -> string
+import 1 bytes std_string$bytes (string) -> ref
+import 2 as_string std_string$as_string (ref) -> string
+import 3 write std_io$write (i32,string) -> void
+impl 8 Display
+export main 0
+
+fn 0 snippet$main () -> i32
+  string.const 0
+  call 2
+  call 3
+  return.lit i32.const 0
+end
+
+fn 1 std_string$is_white_byte (u8) -> bool
+  local or_res bool
+  local.get 0
+  i32.const 32
+  i32.to_u8
+  u8.eq
+  if $L0 void
+    bool.const true
+    local.set 1
+  else
+    local.get 0
+    i32.const 9
+    i32.to_u8
+    u8.eq
+    local.set 1
+  end $L0
+  local.get 1
+  if $L1 void
+    bool.const true
+    local.set 1
+  else
+    local.get 0
+    i32.const 10
+    i32.to_u8
+    u8.eq
+    local.set 1
+  end $L1
+  local.get 1
+  if $L2 void
+    bool.const true
+    local.set 1
+  else
+    local.get 0
+    i32.const 13
+    i32.to_u8
+    u8.eq
+    local.set 1
+  end $L2
+  local.get 1
+  return
+end
+
+fn 2 std_string$trim (string) -> string
+  local sb ref
+  local n usize
+  local lo usize
+  local and_res bool
+  local $sub_19 usize
+  local.get 0
+  call.import 1
+  local.tee 1
+  array.len
+  local.set 2
+  i64.const 0
+  local.set 3
+  block $L0 void
+    loop $L1 void
+      local.get 3
+      local.get 2
+      usize.lt
+      if $L2 void
+        local.get 1
+        local.get 3
+        array.get 5
+        ref.cast 3
+        call 1
+        local.set 4
+      else
+        bool.const false
+        local.set 4
+      end $L2
+      local.get 4
+      if $L3 void
+        local.get 3
+        i64.const 1
+        i64.to_usize
+        usize.add
+        local.set 3
+        br $L1
+      else
+      end $L3
+    end $L1
+  end $L0
+  local.get 2
+  local.set 2
+  block $L4 void
+    loop $L5 void
+      local.get 2
+      local.get 3
+      usize.gt
+      if $L6 void
+        local.get 2
+        i64.const 1
+        i64.to_usize
+        usize.sub
+        local.set 5
+        local.get 1
+        local.get 5
+        array.get 5
+        ref.cast 3
+        call 1
+        local.set 4
+      else
+        bool.const false
+        local.set 4
+      end $L6
+      local.get 4
+      if $L7 void
+        local.get 2
+        i64.const 1
+        i64.to_usize
+        usize.sub
+        local.set 2
+        br $L5
+      else
+      end $L7
+    end $L5
+  end $L4
+  local.get 1
+  local.get 3
+  local.get 2
+  array.slice 16
+  call.import 2
+  return
+end
+
+fn 3 std_io$std_io$println__string (string) -> void
+  local $call_2 string
+  local.get 0
+  call 4
+  local.set 1
+  i32.const 0
+  local.get 1
+  call 5
+  i32.const 0
+  string.const 1
+  call 5
+  return
+end
+
+fn 4 std_core$string$Display$to_string$vt (string) -> string
+  local.get 0
+  call.import 0
+  return
+end
+
+fn 5 std_io$write$vt (i32,string) -> void
+  local.get 0
+  local.get 1
+  call.import 3
+  return
+end
