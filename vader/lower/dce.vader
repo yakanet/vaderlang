@@ -55,15 +55,23 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> Lowe
                         by_sym_id[s.id] = d
                     }
                 } else {
-                    // Materialised impl members (e.g. `MutableMap.Index.at`)
-                    // carry a synthetic origin with a NULL symbol — their only
-                    // identity is the mangle. Index them by mangle so a
-                    // mangle-keyed call site (find_impl_member_for) reaches
-                    // them and their body is walked for callees. Without this
-                    // they survive via the vtable path but their bodies are
-                    // never visited, so a callee like `at`'s `self.get(key)`
-                    // is pruned and the call silently dropped at emit.
+                    // Materialised impl members (`MutableMap.Index.at`) and
+                    // dispatching generic instances (`put__i32__bool`) carry a
+                    // synthetic NULL-symbol origin — their only identity is the
+                    // mangle, so index them by mangle.
                     by_mangle[fn_decl.mangled] = d
+                    // They also survive verbatim (`fn_survives`) → they WILL be
+                    // emitted, so seed them as roots to walk their bodies. Else a
+                    // callee reached only from an unwalked survivor (the non-
+                    // dispatching `ensure_buckets`, called from the dispatching
+                    // `put__i32__bool` alone) is pruned while the emitted call
+                    // survives → GATE-B1 panic. Keeps the header invariant
+                    // "DCE-survival ⟺ emit-resolvable". (Collapsed sibling
+                    // suffixes resolve via emit's symbol-id fallback.)
+                    if reachable_mangle[fn_decl.mangled] == null {
+                        reachable_mangle[fn_decl.mangled] = true
+                        worklist.push(d)
+                    }
                 }
                 if is_fn_root(fn_decl, from_stdlib, has_main, keep_tests) {
                     mark_reachable(fn_decl, reachable_sym, reachable_mangle)
