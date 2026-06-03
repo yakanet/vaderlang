@@ -1,0 +1,20 @@
+module "snippet"
+
+import "std/io" { println }
+
+// A lambda lifted inside a GENERIC fn body. The instance `run_id__i32` is
+// monomorphised AFTER the per-module lowering walk, so its lifted
+// `__lambda_*` decl is drained into the module by the post-module synth
+// drain (see `drain_synth_window` in vader/lower/lower.vader) — without it
+// the make-closure has no reserved fn index and emit panics (GATE B1).
+apply :: fn<T>(x: T, f: fn(T) -> T) -> T = f(x)
+
+run_id :: fn<T>(x: T) -> T {
+    id :: (v: T) -> v
+    return apply(x, id)
+}
+
+main :: fn() -> i32 {
+    println("${run_id(7)}")
+    return 0
+}

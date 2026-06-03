@@ -54,6 +54,11 @@ const BYTECODE_DIVERGENT_SNIPPETS: ReadonlySet<string> = new Set<string>([
   "array_of_union", "array_push", "array_slice", "array_view_aliasing",
   "b1_fn_boundary", "bound_enforced", "byte_len_fold", "byte_literal", "cast_test",
   "char_range_contains",
+  // GATE A/B divergence : Vader monomorphises `run_id`/`apply` to concrete
+  // bodies + materialises `println` as a real fn (TS erases to `ref _`), so
+  // the type-table / fn ordering differs. The lifted closure itself emits
+  // correctly (validated via VADER_SELF_EMIT in vader_vm.test.ts → 7).
+  "closure_in_generic_fn",
   "closure_pattern_binding",
   "coerce_into_basic", "coerce_into_chain_no",
   "coerce_into_explicit", "coerce_into_overload",

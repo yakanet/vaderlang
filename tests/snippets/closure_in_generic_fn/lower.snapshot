@@ -1,0 +1,44 @@
+# Lower
+
+## snippet
+  fn snippet$main() -> i32
+    call :void
+      callee:
+        println :void
+      arg0:
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_display <for i32> :void
+            __sb_0 :?
+            call :i32
+              callee:
+                run_id :i32
+              arg0:
+                int(7) :i32
+          ~>
+            @builder.finish :string
+              __sb_0 :?
+    return int(0) :i32
+  fn snippet$snippet$apply__Any(x: Any, f: fn(Any) -> Any) -> Any
+    ~>
+      call :Any
+        callee:
+          f :fn(Any) -> Any
+        arg0:
+          x :Any
+  fn snippet$snippet$run_id__i32(x: Any) -> Any
+    let id: fn(Any) -> Any =
+      LoweredMakeClosure
+    return
+      call :Any
+        callee:
+          apply :Any
+        arg0:
+          x :Any
+        arg1:
+          id :fn(Any) -> Any
+  struct __lambda_env_12 {  }
+  fn __lambda_11(__env_0: __lambda_env_12, v: Any) -> Any
+    ~>
+      v :Any

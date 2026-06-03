@@ -553,6 +553,12 @@ surface_referenced_intrinsic_externs :: fn(
         module_typed :: typed.modules[module_id]
         if module_typed is null { continue }
         decls_list :: module_decls(module_loaded)
+        // Bracket the synth_decls the with-body members surfaced below spawn :
+        // `surface_stdlib_impl_externs` / `surface_array_contains_for_impl` call
+        // `lower_fn_body`, which lifts any lambda/defer in the body into
+        // `synth_decls` — the same post-module orphan class as the materialise
+        // sites. Drained into this module after the batch merge.
+        synth_start :: project_ctx.synth_decls.len()
         extra: LoweredDecl[] = []
         for d in decls_list {
             if d is ImplDecl as impl_ {
@@ -574,6 +580,7 @@ surface_referenced_intrinsic_externs :: fn(
             .display_path = existing.display_path,
             .decls        = merged,
         }
+        drain_synth_since(project, module_id, project_ctx, synth_start)
     }
 }
 
@@ -1210,13 +1217,16 @@ materialize_generic_fn_instances :: fn(
     sorted_pending :: sort(collected, pending_fn_instance_less)
     emitted_fns: MutableMap<i32, bool> = MutableMap<i32, bool> {}
     for p in sorted_pending {
-        if p.dispatches {
-            push_to_module(project, p.module_id, p.decl)
-            continue
+        // Erasure-dedup gate : dispatching (GATE A) instances always emit ;
+        // non-dispatching ones collapse to the first per symbol id.
+        if !p.dispatches {
+            if emitted_fns[p.fn_symbol_id] != null { continue }
+            emitted_fns[p.fn_symbol_id] = true
         }
-        if emitted_fns[p.fn_symbol_id] != null { continue }
-        emitted_fns[p.fn_symbol_id] = true
         push_to_module(project, p.module_id, p.decl)
+        // Drain this instance's own lambda/defer window (skipped for the
+        // deduped siblings the gate `continue`d past).
+        drain_synth_window(project, p.module_id, project_ctx, p.synth_start, p.synth_end)
     }
 }
 
@@ -1234,6 +1244,12 @@ PendingFnInstance :: struct {
     /// call sites target the per-key mangle.
     dispatches:   bool
     decl:         LoweredFnDecl
+    /// `project_ctx.synth_decls` window `[synth_start, synth_end)` of the
+    /// lambda/defer lifted fns spawned while lowering this instance's body.
+    /// Drained into `module_id` at push time (skipped for deduped siblings)
+    /// so a closure inside a monomorphised body isn't orphaned.
+    synth_start:  usize
+    synth_end:    usize
 }
 
 pending_fn_instance_less :: fn(a: PendingFnInstance, b: PendingFnInstance) = compare_ascending(a.key, b.key)
@@ -1282,6 +1298,11 @@ build_fn_instance_decl :: fn(
     inst: GenericFnInstance, key: string, loaded: LoadedProject, typed: TypedProject,
     project_ctx: LowerProjectCtx, diags: Diagnostic[],
 ) -> PendingFnInstance | null {
+    // Bracket the synth_decls this instance's body lowering spawns (lambdas /
+    // defers) so the push loop can drain exactly this window — see
+    // `drain_synth_window`. The early-return (null) paths below don't lower a
+    // body, so they append nothing.
+    synth_start :: project_ctx.synth_decls.len()
     owner_module_id :: inst.owner_module
     owner_module :: loaded.modules[owner_module_id]
     owner_typed :: typed.modules[owner_module_id]
@@ -1348,6 +1369,8 @@ build_fn_instance_decl :: fn(
             .body        = body,
             .origin      = entry,
         },
+        .synth_start  = synth_start,
+        .synth_end    = project_ctx.synth_decls.len(),
     }
 }
 
@@ -1435,8 +1458,13 @@ materialize_nongeneric_stdlib_fns :: fn(
                     // `lower_project`'s stdlib branch — skip to avoid a
                     // duplicate import entry for the same symbol.
                     if fd.body is null { continue }
+                    synth_start :: project_ctx.synth_decls.len()
                     lowered :: lower_fn_decl(fd, mt, project_ctx, diags)
                     if lowered != null { push_to_module(project, fn_sym.module, lowered) }
+                    // Drain any lambda/defer lifted fns this body spawned into
+                    // the same stdlib module (e.g. `strip_numeric_text`'s
+                    // `replace_chars_where((c) -> c == '_', …)`), right after the fn.
+                    drain_synth_since(project, fn_sym.module, project_ctx, synth_start)
                 }
             }
         }
@@ -2356,6 +2384,7 @@ materialize_impl_for_instance :: fn(
             .type_arguments = inst.args,
             .module         = impl_typed,
         }
+        synth_start :: project_ctx.synth_decls.len()
         body :: lower_fn_body(member, impl_typed, project_ctx, entry, subst, return_type)
         push_to_module(project, owner_typed.resolved.path, LoweredFnDecl {
             .mangled     = mangled,
@@ -2364,6 +2393,9 @@ materialize_impl_for_instance :: fn(
             .body        = body,
             .origin      = entry,
         })
+        // Drain lambdas/defers lifted from this member's body into the same
+        // module, right after the member (post-module materialisation site).
+        drain_synth_since(project, owner_typed.resolved.path, project_ctx, synth_start)
     }
 }
 
@@ -2446,9 +2478,13 @@ materialize_bound_impl :: fn(
                         if impl_.type_params.len() > 0 { continue }
                         if impl_.for_type is GenericInstExpr { continue }
                         project_ctx.materialized_impl_keys.add(dedupe_key)
+                        synth_start :: project_ctx.synth_decls.len()
                         for m in lower_impl_member_list(impl_, mt, project_ctx, diags, decls) {
                             push_to_module(project, mt.resolved.path, m)
                         }
+                        // Drain lambdas/defers lifted from these member bodies
+                        // (post-module materialisation site).
+                        drain_synth_since(project, mt.resolved.path, project_ctx, synth_start)
                         return
                     }
                 }
@@ -2679,6 +2715,37 @@ push_to_module :: fn(project: LoweredProject, module_id: string, decl: LoweredDe
         mod.decls.push(decl)
     }
 }
+
+// Drain the lambda/defer lifted fns appended to `project_ctx.synth_decls`
+// in the window `[start, end)` into `module_id`, right after the fn that
+// spawned them. This is the post-module analogue of `lower_module`'s
+// per-module synth drain (`synth_start..synth_end`) : the materialisation
+// passes (generic fn instances, harvested non-generic stdlib fns, impl
+// members) lower fn bodies AFTER the per-module walk, so any lambda lifted
+// inside such a body would otherwise be orphaned — never reserved into the
+// fn table, surfacing as a make-closure GATE-B1 panic at emit (the
+// `__lambda_*` was in `synth_decls` but no module ever drained it).
+// Callers pass an explicit `end` so a separated build/push site (generic
+// instances) drains only the window the survivor produced, skipping the
+// windows of erasure-deduped siblings.
+drain_synth_window :: fn(
+    project: LoweredProject, module_id: string,
+    project_ctx: LowerProjectCtx, start: usize, end: usize,
+) -> void {
+    for i in start..<end {
+        push_to_module(project, module_id, project_ctx.synth_decls[i])
+    }
+}
+
+// `drain_synth_window` over the open window `[start, now)` — the common case
+// for a site that captured `start` immediately before lowering one body and
+// drains right after, when no other body lowered in between. The generic
+// fn-instance push loop needs the explicit-`end` form instead, because its
+// build and push are separated by a sort + erasure-dedup (later instances
+// advance `synth_decls.len()` before the survivor is pushed).
+drain_synth_since :: fn(
+    project: LoweredProject, module_id: string, project_ctx: LowerProjectCtx, start: usize,
+) = drain_synth_window(project, module_id, project_ctx, start, project_ctx.synth_decls.len())
 
 import "vader/comptime" { GenericInstance }
 import "vader/types" { EnumType, PrimitiveType }

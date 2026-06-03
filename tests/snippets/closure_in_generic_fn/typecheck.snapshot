@@ -1,0 +1,20 @@
+# Typecheck
+
+## tests/snippets/closure_in_generic_fn
+  FnDecl         apply                :: fn(T, fn(T) -> T) -> T
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         run_id               :: fn(T) -> T
+  expr 10:44    CallExpr       :: T
+  expr 10:44    IdentExpr      :: fn(T) -> T
+  expr 10:46    IdentExpr      :: T
+  expr 13:11    LambdaExpr     :: fn(T) -> T
+  expr 13:21    IdentExpr      :: T
+  expr 14:12    CallExpr       :: T
+  expr 14:12    IdentExpr      :: fn(T, fn(T) -> T) -> T
+  expr 14:18    IdentExpr      :: T
+  expr 14:21    IdentExpr      :: fn(T) -> T
+  expr 18:13    StringLitExpr  :: string
+  expr 18:16    CallExpr       :: i32
+  expr 18:16    IdentExpr      :: fn(T) -> T
+  expr 18:5     CallExpr       :: void
+  expr 18:5     IdentExpr      :: fn(T) -> void

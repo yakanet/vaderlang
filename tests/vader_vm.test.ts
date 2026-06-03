@@ -111,6 +111,12 @@ const VADER_SELF_EMIT = new Set<string>([
   // materialisation / VM integer `Equals`) — the suite's only coverage of the
   // Vader emitter on a map/set program.
   "mutable_set",
+  // A lambda lifted inside a GENERIC fn body : the instance `run_id__i32` is
+  // monomorphised AFTER the per-module lowering walk, so its `__lambda_*` decl
+  // is drained into the module by the post-module synth drain. Guards the
+  // make-closure GATE-B1 fix (`drain_synth_window`) — without it the lifted
+  // closure has no reserved fn index and Vader emit panics.
+  "closure_in_generic_fn",
   "_diag_const_string", "alias_union_in_array", "array_view_aliasing",
   "for_range_sugar", "b1_fn_boundary", "closure_pattern_binding", "comptime_type_value",
   "const_array_basic", "contains_op", "decorator_deprecated",
