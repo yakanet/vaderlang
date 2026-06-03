@@ -64,7 +64,14 @@ const BYTECODE_DIVERGENT_SNIPPETS: ReadonlySet<string> = new Set<string>([
   "coerce_into_explicit", "coerce_into_overload",
   "coerce_into_union_target_no", "collection_index_sugar", "comptime_for",
   "comptime_type_alias", "comptime_type_value",
-  "const_array_basic", "contains_op", "custom_iter", "custom_iter_generic",
+  "const_array_basic",
+  // The module-level struct-array const lowers (via `inline_consts`) to a
+  // synthetic `__const_SPECS` accessor fn ; its BODY matches TS byte-for-byte,
+  // but emitting it shifts the type-table / string-pool interning ORDER vs TS
+  // (the dominant pre-existing §9 divergence class, not the const mechanism).
+  // Self-host correctness validated via VADER_SELF_EMIT in vader_vm.test.ts.
+  "const_fn_wrap",
+  "contains_op", "custom_iter", "custom_iter_generic",
   "decorator_deprecated", "defer_block", "defer_in_lambda",
   "defer_on_panic", "dot_variant_in_union", "enum_basic", "enum_implements_trait",
   "enum_match", "enum_to_repr_cast", "enum_trait_self_return", "enum_typed",

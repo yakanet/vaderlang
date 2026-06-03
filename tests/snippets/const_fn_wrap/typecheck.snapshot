@@ -1,0 +1,37 @@
+# Typecheck
+
+## tests/snippets/const_fn_wrap
+  FnDecl         lookup               :: fn(string) -> i32
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Spec                 :: Spec
+  ConstDecl      SPECS                :: Spec[]
+  expr 17:10    SeqLitExpr     :: Spec[]
+  expr 18:20    StringLitExpr  :: string
+  expr 18:5     StructLitExpr  :: Spec
+  expr 19:20    StringLitExpr  :: string
+  expr 19:5     StructLitExpr  :: Spec
+  expr 20:20    StringLitExpr  :: string
+  expr 20:5     StructLitExpr  :: Spec
+  expr 21:20    StringLitExpr  :: string
+  expr 21:5     StructLitExpr  :: Spec
+  expr 25:14    IdentExpr      :: Spec[]
+  expr 26:12    BinaryExpr     :: bool
+  expr 26:12    FieldExpr      :: string
+  expr 26:12    IdentExpr      :: Spec
+  expr 26:22    IdentExpr      :: string
+  expr 26:36    FieldExpr      :: i32
+  expr 26:36    IdentExpr      :: Spec
+  expr 26:9     IfExpr         :: void
+  expr 28:12    UnaryExpr      :: i32
+  expr 32:13    StringLitExpr  :: string
+  expr 32:22    CallExpr       :: i32
+  expr 32:22    IdentExpr      :: fn(string) -> i32
+  expr 32:29    StringLitExpr  :: string
+  expr 32:5     CallExpr       :: void
+  expr 32:5     IdentExpr      :: fn(T) -> void
+  expr 33:13    StringLitExpr  :: string
+  expr 33:24    CallExpr       :: i32
+  expr 33:24    IdentExpr      :: fn(string) -> i32
+  expr 33:31    StringLitExpr  :: string
+  expr 33:5     CallExpr       :: void
+  expr 33:5     IdentExpr      :: fn(T) -> void

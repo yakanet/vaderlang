@@ -40,12 +40,36 @@ export DataPoolEntry :: struct {
     elements:  string[]
 }
 
+/// A module-level const routed to a synthetic 0-arg accessor fn by the
+/// `inline_consts` pass. References to the const lower to `call <fn_symbol>`
+/// (CFG `build_ident`) instead of re-emitting the whole literal at every
+/// read site. Mirrors the `fn-wrap` bucket of `src/lower/passes/inline-consts.ts`.
+export ConstFnWrap :: struct {
+    /// The synthesized accessor fn's symbol — its negative id is what the
+    /// emitted `call` resolves through (`function_index_by_symbol_id`).
+    fn_symbol: Symbol
+    /// The const's declared type — the accessor's return type and the
+    /// `call` result type. Mirrors TS's `FnWrapEntry.callType`.
+    call_type: Type
+}
+
 /// Project-wide lowered output. Cross-module shape ; downstream phases
 /// (bytecode emit, C emit, DCE) read this directly.
 export LoweredProject :: struct {
     modules:        MutableMap<string, LoweredModule>
     vtable_entries: VtableEntry[]
     data_pool:      DataPoolEntry[]
+    /// Const symbol id → accessor fn, populated by `inline_consts` for
+    /// bulky array consts (`fn-wrap` bucket). `build_ident` emits a 0-arg
+    /// `call` to the accessor. The accessor REUSES the const's symbol id, so
+    /// a `LoweredIdent` referencing the const marks it reachable through DCE's
+    /// normal `visit_fn` path — it survives iff the const is reached.
+    const_fn_wrap:  MutableMap<i32, ConstFnWrap>
+    /// Const symbol id → lowered value, populated by `inline_consts` for
+    /// every other (non-fn-wrapped) const. `build_ident` re-builds the
+    /// value at each read site (`inline` bucket). Scalars also land here as
+    /// a safety net for any reference `lower_ident` didn't fold.
+    const_inline:   MutableMap<i32, LoweredExpr>
 }
 
 /// One module after lowering. `decls` is a flat list ; synthetic decls
@@ -532,6 +556,8 @@ export new_lowered_project :: fn() -> LoweredProject {
         .modules        = MutableMap<string, LoweredModule> {},
         .vtable_entries = [],
         .data_pool      = [],
+        .const_fn_wrap  = MutableMap<i32, ConstFnWrap> {},
+        .const_inline   = MutableMap<i32, LoweredExpr> {},
     }
 }
 
@@ -544,6 +570,8 @@ import "std/testing" { assert_eq }
     assert_eq(project.modules.size, usize(0))
     assert_eq(project.vtable_entries.len(), usize(0))
     assert_eq(project.data_pool.len(), usize(0))
+    assert_eq(project.const_fn_wrap.size, usize(0))
+    assert_eq(project.const_inline.size, usize(0))
 }
 
 @test test_intrinsic_constants_are_stable :: fn() -> void {

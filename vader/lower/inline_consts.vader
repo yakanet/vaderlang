@@ -1,0 +1,127 @@
+// vader/lower/inline_consts — route module-level const decls to their read sites.
+//
+// Mirror of the `fn-wrap` + `inline` buckets of
+// `src/lower/passes/inline-consts.ts`. A non-scalar const reference can't be
+// emitted as a bare ident — `build_ident` has no const-load case (the CFG
+// design inlines consts out). This pass classifies every `LoweredConstDecl`
+// and records how its read sites should resolve, consumed at CFG-build time
+// by `vader/midir/build.vader::build_ident` :
+//
+//   - fn-wrap : an array literal of `FN_WRAP_MIN_ELEMENTS`+ elements (struct /
+//     string elements that the data pool can't hold, e.g. `INTRINSICS`). The
+//     const decl is REPLACED IN PLACE by a synthetic 0-arg accessor fn
+//     `__const_<name>` returning the literal ; each reference lowers to one
+//     `call` instead of re-emitting the whole literal. In-place replacement
+//     keeps the accessor at the const's fn-table position so emission order
+//     matches the TS lowerer.
+//   - inline  : everything else (scalars, small lists, struct literals). The
+//     value is recorded verbatim and `build_ident` re-builds it at each read
+//     site. Scalars normally fold earlier in `lower_expr.vader::lower_ident` ;
+//     recording them here is a safety net for any reference that didn't fold.
+//
+// The data-pool bucket (primitive-element `const T[]` → `.rodata`) is NOT yet
+// ported : such consts fall through to fn-wrap. The compiler tree reaches no
+// primitive-array const (the crypto K-tables live in unimported std/crypto),
+// so this is byte-parity-neutral for the self-host audit — see CLAUDE.md §9.
+
+module "vader/lower"
+
+import "std/collections" { MutableMap }
+AST :: import "vader/parser"
+import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "vader/comptime" { MonoEntry }
+
+// Break-even point : the `call` at each read site is cheaper than re-emitting
+// `2 * N` ops to rebuild the literal once N passes this threshold. Matches
+// `FN_WRAP_MIN_ELEMENTS` in `src/lower/passes/inline-consts.ts`.
+FN_WRAP_MIN_ELEMENTS :: usize(4)
+
+/// Classify every const decl in `project` and record its read-site routing on
+/// `project.const_fn_wrap` / `project.const_inline`, replacing fn-wrapped
+/// const decls with their synthetic accessor fns. Mutates `project` in place.
+///
+/// @param project  the lowered project ; its `modules` + const maps are mutated.
+export inline_consts :: fn(project: LoweredProject) -> void {
+    for module_id in project.modules.keys() {
+        m :: project.modules[module_id]
+        if m is null { continue }
+        new_decls: LoweredDecl[] = []
+        changed := false
+        for d in m.decls {
+            if d is LoweredConstDecl as cd {
+                sym :: cd.origin.symbol
+                if sym is Symbol as s {
+                    if should_fn_wrap(cd.value) {
+                        fn_symbol :: const_accessor_symbol(s)
+                        project.const_fn_wrap[s.id] = ConstFnWrap { .fn_symbol = fn_symbol, .call_type = cd.type }
+                        new_decls.push(synthesize_const_fn(cd, fn_symbol))
+                        changed = true
+                        continue
+                    }
+                    project.const_inline[s.id] = cd.value
+                }
+            }
+            new_decls.push(d)
+        }
+        if changed {
+            project.modules[module_id] = LoweredModule {
+                .module_id    = m.module_id,
+                .display_path = m.display_path,
+                .decls        = new_decls,
+            }
+        }
+    }
+}
+
+// fn-wrap eligibility : a bulky array literal. Smaller arrays + every other
+// shape (scalars, struct literals) route through the inline bucket.
+should_fn_wrap :: fn(value: LoweredExpr) -> bool {
+    if value is LoweredArrayLit as a { return a.elements.len() >= FN_WRAP_MIN_ELEMENTS }
+    return false
+}
+
+// The accessor fn's symbol. It REUSES the const's own symbol id : a
+// `LoweredIdent` referencing the const still carries that id, so DCE marks the
+// accessor reachable through its unchanged `visit_fn` path and the emitter
+// resolves the `call` via `function_index_by_symbol_id[const_id]` — no
+// const-aware redirect needed in either pass. (The const symbol itself is gone :
+// its decl is replaced by the accessor, so nothing else owns that id.)
+const_accessor_symbol :: fn(orig_sym: Symbol) -> Symbol = Symbol {
+    .id         = orig_sym.id,
+    .kind       = SymbolKind.Fn,
+    .name       = "__const_${orig_sym.name}",
+    .module     = orig_sym.module,
+    .visibility = AST.Visibility.Private,
+    .defined_at = orig_sym.defined_at,
+}
+
+// Build the synthetic 0-arg accessor fn for a fn-wrapped const. Mirror of TS's
+// `synthesizeFnFromConst` : the body is a block whose trailing expression is
+// the const's value, and the origin reuses the const's MonoEntry with the
+// symbol swapped for the `fn_symbol` built by `const_accessor_symbol`.
+synthesize_const_fn :: fn(cd: LoweredConstDecl, fn_symbol: Symbol) -> LoweredFnDecl {
+    synth_entry :: MonoEntry {
+        .id             = cd.origin.id,
+        .is_main        = false,
+        .mangled        = cd.origin.mangled,
+        .decl           = cd.origin.decl,
+        .symbol         = fn_symbol,
+        .subst          = cd.origin.subst,
+        .type_arguments = cd.origin.type_arguments,
+        .module         = cd.origin.module,
+    }
+    no_stmts: LoweredStmt[] = []
+    no_params: LoweredParam[] = []
+    return LoweredFnDecl {
+        .mangled     = "__const_${cd.mangled}",
+        .params      = no_params,
+        .return_type = cd.type,
+        .body        = LoweredBlock {
+            .span     = span_of(cd.value),
+            .type     = cd.type,
+            .stmts    = no_stmts,
+            .trailing = cd.value,
+        },
+        .origin = synth_entry,
+    }
+}

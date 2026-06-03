@@ -103,6 +103,10 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> Lowe
     pending_virtual: string[] = []
     pending_seen :: MutableMap<string, bool> {}
 
+    // NB : a fn-wrapped const's accessor fn (`inline_consts`) REUSES the
+    // const's own symbol id, so a `LoweredIdent` referencing the const marks
+    // the accessor reachable through this unchanged path — no const-aware
+    // redirect needed here.
     visit_fn :: fn(id: i32, name: string) -> void {
         inst :: by_mangle[name]
         if inst != null {
@@ -169,6 +173,8 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> Lowe
         .modules = out_modules,
         .vtable_entries = lp.vtable_entries,
         .data_pool = lp.data_pool,
+        .const_fn_wrap = lp.const_fn_wrap,
+        .const_inline = lp.const_inline,
     }
 }
 

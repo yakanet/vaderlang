@@ -18,7 +18,7 @@ import "std/collections" { MutableMap }
 import "vader/diagnostics" { Span, empty_span }
 import "vader/lower" {
     LoweredProject, LoweredModule, LoweredDecl, LoweredFnDecl, LoweredStructDecl,
-    LoweredConstDecl,
+    LoweredConstDecl, ConstFnWrap,
     LoweredBlock, LoweredStmt, LoweredLet, LoweredAssign, LoweredExprStmt,
     LoweredReturn, LoweredLoop, LoweredBreak, LoweredContinue,
     LoweredCellSet,
@@ -43,12 +43,21 @@ import "vader/typecheck" { equals_type }
 ProjectCtx :: struct {
     strings:      string[]
     string_index: MutableMap<string, i32>
+    /// Const symbol id → accessor fn (fn-wrap bucket), forwarded from the
+    /// `LoweredProject` so `build_ident` can lower a const reference to a
+    /// `call` on its synthetic `__const_<name>` fn.
+    const_fn_wrap: MutableMap<i32, ConstFnWrap>
+    /// Const symbol id → lowered value (inline bucket) — `build_ident`
+    /// re-builds it at each read site.
+    const_inline:  MutableMap<i32, LoweredExpr>
 }
 
-new_project_ctx :: fn() -> ProjectCtx {
+new_project_ctx :: fn(lp: LoweredProject) -> ProjectCtx {
     return ProjectCtx {
         .strings = [],
         .string_index = MutableMap<string, i32> {},
+        .const_fn_wrap = lp.const_fn_wrap,
+        .const_inline  = lp.const_inline,
     }
 }
 
@@ -106,7 +115,7 @@ import "vader/comptime" { MonoEntry }
 /// @param lp  the lowered project from the lowerer pass.
 /// @return    a fresh `CFGProject` with one entry per non-stdlib module.
 export build_cfg_project :: fn(lp: LoweredProject) -> CFGProject {
-    ctx :: new_project_ctx()
+    ctx :: new_project_ctx(lp)
     modules :: MutableMap<string, CFGModule> {}
     for module_id in lp.modules.keys() {
         m :: lp.modules[module_id]
@@ -569,6 +578,22 @@ build_ident :: fn(fn_ctx: FnCtx, e: LoweredIdent) -> LocalId | null {
         })
         return dst
     }
+    // Const references : the `inline_consts` pass routed every non-scalar
+    // const either to a synthetic accessor fn (fn-wrap) or to an inlined
+    // value. A fn-wrapped const lowers to a 0-arg `call` ; an inline const
+    // re-builds its value here. (Scalar consts usually fold in
+    // `lower_ident` upstream, but the inline map catches any that didn't.)
+    wrap :: fn_ctx.project.const_fn_wrap[e.symbol.id]
+    if wrap is ConstFnWrap as w {
+        dst :: fresh_tmp(fn_ctx, "const_init", w.call_type)
+        no_args: LocalId[] = []
+        emit(fn_ctx, InstrCall {
+            .dst = dst, .callee = w.fn_symbol, .args = no_args, .type = w.call_type, .span = e.span,
+        })
+        return dst
+    }
+    inline_value :: fn_ctx.project.const_inline[e.symbol.id]
+    if inline_value !is null { return build_expr(fn_ctx, inline_value) }
     return build_unreachable_type(fn_ctx, e.type, e.span, "unresolved ident ${e.symbol.name}")
 }
 

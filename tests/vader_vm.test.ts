@@ -131,6 +131,14 @@ const VADER_SELF_EMIT = new Set<string>([
   // a separate follow-up — they need the generic-instance harvest the direct
   // path does.)
   "namespace_call_nongeneric",
+  // A module-level `const T[]` of ≥4 struct literals (mirror of the compiler's
+  // own `INTRINSICS`) referenced in a for-loop. Guards the `inline_consts`
+  // fn-wrap path : the const lowers to a synthetic `__const_SPECS` accessor fn
+  // (reusing the const's symbol id) that `build_ident` resolves to a `call`.
+  // Without it a non-scalar const ref hits `build_ident`'s unreachable stub.
+  // (Bytecode diverges from TS only in interning order — see parity's
+  // BYTECODE_DIVERGENT_SNIPPETS ; this asserts the self-host VM output.)
+  "const_fn_wrap",
   "_diag_const_string", "alias_union_in_array", "array_view_aliasing",
   "for_range_sugar", "b1_fn_boundary", "closure_pattern_binding", "comptime_type_value",
   "const_array_basic", "contains_op", "decorator_deprecated",

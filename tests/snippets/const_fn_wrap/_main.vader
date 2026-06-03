@@ -1,0 +1,35 @@
+// tests/snippets/const_fn_wrap — module-level struct-array const referenced in
+// a loop, exercising the `inline_consts` fn-wrap accessor path (mirror of the
+// compiler's own `vader/parser/intrinsics.vader::INTRINSICS`). A const array of
+// ≥4 struct literals lowers to a synthetic `__const_<name>` accessor fn ; every
+// reference becomes a `call` to it. Guards the Vader-emitter side of that path
+// (the suite never exercises the Vader emitter outside VADER_SELF_EMIT).
+
+module "snippet"
+
+import "std/io" { println }
+
+Spec :: struct {
+    name: string
+    code: i32
+}
+
+SPECS :: [
+    Spec { .name = "alpha", .code = 10 },
+    Spec { .name = "beta",  .code = 20 },
+    Spec { .name = "gamma", .code = 30 },
+    Spec { .name = "delta", .code = 40 },
+]
+
+lookup :: fn(name: string) -> i32 {
+    for s in SPECS {
+        if s.name == name { return s.code }
+    }
+    return -1
+}
+
+main :: fn() -> i32 {
+    println("gamma=${lookup("gamma")}")
+    println("missing=${lookup("zeta")}")
+    return 0
+}

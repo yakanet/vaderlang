@@ -1,0 +1,153 @@
+module _main
+type 0 primitive null
+type 1 array 2
+type 2 struct snippet$Spec { name:3,code:4 }
+type 3 primitive string
+type 4 primitive i32
+type 5 primitive void
+string 0 "alpha"
+string 1 "beta"
+string 2 "gamma"
+string 3 "delta"
+string 4 "gamma="
+string 5 "missing="
+string 6 "zeta"
+string 7 "\n"
+import 0 to_string std_core$string$Display$to_string (string) -> string
+import 1 write std_io$write (i32,string) -> void
+export main 2
+
+fn 0 __const_snippet$SPECS () -> ref
+  local $struct_2 ref
+  local $struct_5 ref
+  local $struct_8 ref
+  local $struct_11 ref
+  string.const 0
+  i32.const 10
+  struct.new 2
+  local.set 0
+  string.const 1
+  i32.const 20
+  struct.new 2
+  local.set 1
+  string.const 2
+  i32.const 30
+  struct.new 2
+  local.set 2
+  string.const 3
+  i32.const 40
+  struct.new 2
+  local.set 3
+  local.get 0
+  local.get 1
+  local.get 2
+  local.get 3
+  array.new 1 4
+  return
+end
+
+fn 1 snippet$lookup (string) -> i32
+  local __for_arr_0 ref
+  local __for_len_1 usize
+  local __for_i_2 usize
+  local s ref
+  call 0
+  local.tee 1
+  array.len
+  local.set 2
+  i64.const 0
+  local.set 3
+  block $L0 void
+    loop $L1 void
+      local.get 3
+      local.get 2
+      usize.lt
+      if $L2 void
+        local.get 1
+        local.get 3
+        array.get 1
+        local.set 4
+        local.field 4 2 0
+        ref.cast 3
+        local.get 0
+        string.eq
+        if $L3 void
+          local.field 4 2 1
+          ref.cast 4
+          return
+        end $L3
+        local.get 3
+        i64.const 1
+        i64.to_usize
+        usize.add
+        local.set 3
+        br $L1
+      else
+      end $L2
+    end $L1
+  end $L0
+  i32.const 1
+  i32.neg
+  return
+end
+
+fn 2 snippet$main () -> i32
+  local __sb_0 any
+  local $call_4 i32
+  intrinsic builder.new
+  local.set 0
+  local.get 0
+  string.const 4
+  intrinsic builder.append_str
+  string.const 2
+  call 1
+  local.set 1
+  local.get 0
+  local.get 1
+  intrinsic builder.append_display
+  local.get 0
+  intrinsic builder.finish
+  call 3
+  intrinsic builder.new
+  local.set 0
+  local.get 0
+  string.const 5
+  intrinsic builder.append_str
+  string.const 6
+  call 1
+  local.set 1
+  local.get 0
+  local.get 1
+  intrinsic builder.append_display
+  local.get 0
+  intrinsic builder.finish
+  call 3
+  return.lit i32.const 0
+end
+
+fn 3 std_io$std_io$println__string (string) -> void
+  local $call_2 string
+  local.get 0
+  call 4
+  local.set 1
+  i32.const 0
+  local.get 1
+  call 5
+  i32.const 0
+  string.const 7
+  call 5
+  return
+end
+
+fn 4 std_core$string$Display$to_string$vt (string) -> string
+  local.get 0
+  call.import 0
+  return
+end
+
+fn 5 std_io$write$vt (i32,string) -> void
+  local.get 0
+  local.get 1
+  call.import 1
+  return
+end

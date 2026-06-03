@@ -178,6 +178,11 @@ export lower_project :: fn(
     // in the .virt — the runtime falls back to mangle-keyed dispatch
     // but the parity dump diverges.
     project.vtable_entries = collect_vtable_entries(project, loaded, typed)
+    // Route non-scalar const decls to their read sites : bulky array consts
+    // become synthetic `__const_<name>` accessor fns (resolved by a `call` in
+    // `build_ident`), every other const is recorded for inline rebuild. Runs
+    // last so it sees every materialised decl. See `inline_consts.vader`.
+    inline_consts(project)
     return project
 }
 
@@ -2200,8 +2205,15 @@ ref_expr :: fn(e: LoweredExpr, visit_fn: fn(i32, string) -> void, visit_virtual:
         // by value but not directly called) gets pruned and the
         // bytecode emit hits the defensive `Return` stub when it
         // tries to resolve the fn-index. Mirror of TS's same walk.
+        //
+        // A `Const` ident is also visited : a fn-wrapped const's accessor
+        // (`inline_consts`) REUSES the const's symbol id, so a reference to
+        // the const must mark the accessor reachable. (A non-fn-wrapped
+        // const has no fn under its id → `visit_fn` is a harmless no-op ;
+        // its decl already survives via the unconditional const seed.)
         is LoweredIdent as ident -> {
-            if i32(ident.symbol.kind) == i32(SymbolKind.Fn) {
+            kind :: i32(ident.symbol.kind)
+            if kind == i32(SymbolKind.Fn) || kind == i32(SymbolKind.Const) {
                 visit_fn(ident.symbol.id, ident.symbol.name)
             }
         }

@@ -1,0 +1,105 @@
+# Lower
+
+## snippet
+  struct snippet$Spec { name: string, code: i32 }
+  fn __const_snippet$SPECS() -> const Spec[]
+    ~>
+      array :Spec[]
+        Spec {
+          name: "alpha" :string
+          code: int(10) :i32
+        }
+        Spec {
+          name: "beta" :string
+          code: int(20) :i32
+        }
+        Spec {
+          name: "gamma" :string
+          code: int(30) :i32
+        }
+        Spec {
+          name: "delta" :string
+          code: int(40) :i32
+        }
+  fn snippet$lookup(name: string) -> i32
+    block :void
+      let __for_arr_0: const Spec[] =
+        call :const Spec[]
+          callee:
+            __const_SPECS :fn() -> const Spec[]
+      let __for_len_1: usize =
+        LoweredArrayLen
+      let __for_i_2: usize = int(0) :usize
+      loop while (<…>)
+        let s: Spec =
+          index :Spec
+            on:
+              __for_arr_0 :const Spec[]
+            ix:
+              __for_i_2 :usize
+        if :void
+          cond:
+            eq :bool
+              l:
+                .name :string
+                  s :Spec
+              r:
+                name :string
+          then:
+            return
+              .code :i32
+                s :Spec
+        assign
+          target:
+            __for_i_2 :usize
+          value:
+            add :usize
+              l:
+                __for_i_2 :usize
+              r:
+                int(1) :usize
+    return
+      neg :i32
+        int(1) :i32
+  fn snippet$main() -> i32
+    call :void
+      callee:
+        println :void
+      arg0:
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0 :?
+            "gamma=" :string
+          @builder.append_display <for i32> :void
+            __sb_0 :?
+            call :i32
+              callee:
+                lookup :fn(string) -> i32
+              arg0:
+                "gamma" :string
+          ~>
+            @builder.finish :string
+              __sb_0 :?
+    call :void
+      callee:
+        println :void
+      arg0:
+        block :string
+          let __sb_1: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_1 :?
+            "missing=" :string
+          @builder.append_display <for i32> :void
+            __sb_1 :?
+            call :i32
+              callee:
+                lookup :fn(string) -> i32
+              arg0:
+                "zeta" :string
+          ~>
+            @builder.finish :string
+              __sb_1 :?
+    return int(0) :i32
