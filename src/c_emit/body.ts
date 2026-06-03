@@ -667,9 +667,9 @@ export function constLitC(s: FnState, op: ConstOp): { val: ValType; text: string
       return { val: "any", text: `vader_box_obj(${tag}u, NULL)` };
     }
     case "string.const":
-      // Pool entry is already a `vader_string_t` static — push by name
-      // and let the consumer copy it inline. No allocation, no temp.
-      return { val: "string", text: `vader_str_${op.index}` };
+      // A `vader_string_t` is a u32 atom id ; emit the literal's id inline
+      // (`ctx.atomIds[index]`). No allocation, no temp, no per-literal global.
+      return { val: "string", text: `${s.ctx.atomIds[op.index]!}u` };
   }
 }
 

@@ -111,6 +111,7 @@ export function tryEmitStaticTable(
     module: BytecodeModule;
     structNames: readonly (string | null)[];
     fnNames: readonly string[];
+    atomIds: readonly number[];
     release: boolean;
   },
   fn: BcFunction, fnIdx: number, out: string[],
@@ -127,7 +128,7 @@ export function tryEmitStaticTable(
     const tag = info.resultStructIndex;
     out.push(`static const ${info.resultStructName} ${tableName}[${info.entries.length}] = {`);
     for (const entry of info.entries) {
-      const fieldInits = entry.map((cv, i) => renderConstValue(cv, info.fields[i]!.val, info.fields[i]!.cType)).join(", ");
+      const fieldInits = entry.map((cv, i) => renderConstValue(cv, info.fields[i]!.val, info.fields[i]!.cType, ctx.atomIds)).join(", ");
       out.push(`    { { ${tag}u, 0u, 0u, 0u, NULL }, ${fieldInits} },`);
     }
     out.push(`};`);
@@ -135,7 +136,7 @@ export function tryEmitStaticTable(
     out.push(`    return vader_box_obj(${tag}u, (void*)(uintptr_t)&${tableName}[l0]);`);
     out.push(`}`);
   } else if (info.kind === "primitive") {
-    const inits = info.entries.map((cv) => renderConstValue(cv, info.resultValType, info.resultCType)).join(", ");
+    const inits = info.entries.map((cv) => renderConstValue(cv, info.resultValType, info.resultCType, ctx.atomIds)).join(", ");
     out.push(`static const ${info.resultCType} ${tableName}[${info.entries.length}] = { ${inits} };`);
     out.push(`static ${info.resultCType} ${fnName}(${paramCType} l0) {`);
     out.push(`    return ${tableName}[l0];`);
@@ -163,11 +164,11 @@ export function tryEmitStaticTable(
           lastLine = dbg!.line;
         }
       }
-      const v = renderConstValue(c.value, info.resultValType, info.resultCType);
+      const v = renderConstValue(c.value, info.resultValType, info.resultCType, ctx.atomIds);
       out.push(`        case ${c.k.toString()}u: return ${v};`);
     }
     if (info.defaultValue !== null) {
-      const v = renderConstValue(info.defaultValue, info.resultValType, info.resultCType);
+      const v = renderConstValue(info.defaultValue, info.resultValType, info.resultCType, ctx.atomIds);
       out.push(`        default: return ${v};`);
     } else {
       out.push(`        default: vader_unreachable("${fnName}");`);
@@ -531,7 +532,7 @@ function constMatchesField(cv: ConstValue, fieldVal: ValType): boolean {
   }
 }
 
-function renderConstValue(cv: ConstValue, targetVal: ValType, targetCType: string): string {
+function renderConstValue(cv: ConstValue, targetVal: ValType, targetCType: string, atomIds: readonly number[]): string {
   switch (cv.kind) {
     case "int": {
       const v = cv.value.toString();
@@ -545,7 +546,7 @@ function renderConstValue(cv: ConstValue, targetVal: ValType, targetCType: strin
     }
     case "bool":   return cv.value ? "true" : "false";
     case "char":   return `${cv.value}u`;
-    case "string": return `vader_str_${cv.index}`;
+    case "string": return `${atomIds[cv.index]!}u`;
     case "null":   return `vader_box_null()`;
   }
 }

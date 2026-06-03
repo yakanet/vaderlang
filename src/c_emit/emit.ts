@@ -73,6 +73,12 @@ export function emitC(m: BytecodeModule, opts: EmitOptions = {}): string {
 
 export interface EmitCtx {
   readonly module: BytecodeModule;
+  /** Runtime atom id for each `module.strings` literal, by pool index. The
+   *  empty string maps to 0 (VADER_ATOM_EMPTY, pre-installed by the runtime
+   *  and reached via direct `== 0` checks) ; non-empty literals get contiguous
+   *  ids `1 .. M` matching their comptime-atom-table slot. Inlined at every
+   *  string-literal use site — no `vader_str_<i>` / `ATOM_LIT_<i>` indirection. */
+  readonly atomIds: readonly number[];
   readonly stringTagIndex: number;       // -1 if absent
   readonly errorTagIndex: number;        // -1 if absent
   /** C identifier for each fn slot (mangled name, sanitised). */
@@ -147,7 +153,8 @@ function newCtx(m: BytecodeModule, release: boolean): EmitCtx {
   }
   const erasureGroups = computeErasureGroups(m);
   return {
-    module: m, stringTagIndex: stringIdx, errorTagIndex: errorIdx,
+    module: m, atomIds: computeAtomIds(m.strings),
+    stringTagIndex: stringIdx, errorTagIndex: errorIdx,
     fnNames, structNames, primitiveTagOf, structIdxsByTrait,
     mayAlloc: computeMayAlloc(m),
     mutatedStructs: computeMutatedStructs(m),
@@ -354,19 +361,12 @@ function emitTypeDecls(ctx: EmitCtx, out: string[]): void {
   }
   out.push(``);
 
-  // The comptime atom table defines the `ATOM_LIT_<i>` u32 macros that
-  // the per-literal `vader_str_<i>` aliases below resolve through, so
-  // emit it first.
+  // Comptime atom table — the literal blob the runtime installs at startup.
+  // String literals are referenced by their atom id (`ctx.atomIds[index]`,
+  // computed once in `newCtx`) inlined at each use site (body.ts /
+  // static_table.ts), so no per-literal `vader_str_<i>` / `ATOM_LIT_<i>`
+  // indirection is emitted.
   emitAtomComptimeTable(ctx, out);
-
-  // String literal aliases — each `vader_str_<i>` is now a `u32` (atom
-  // id) initialised from the matching `ATOM_LIT_<i>` macro. body.ts and
-  // static_table.ts still reference `vader_str_<i>` ; keeping the alias
-  // means no rewriter pass is needed across the per-op emit logic.
-  for (let i = 0; i < ctx.module.strings.length; i++) {
-    out.push(`static const vader_string_t vader_str_${i} = ATOM_LIT_${i};`);
-  }
-  out.push(``);
 
   emitDataPool(ctx, out);
 }
@@ -374,67 +374,87 @@ function emitTypeDecls(ctx: EmitCtx, out: string[]): void {
 // =========================================================================
 // Compile-time atom table — see docs/ATOM_INTERNING.md.
 //
-// Every string literal in the bytecode pool is serialised as a PERM atom
-// in the binary's `.rodata`. The emitted `main` hands this table to
-// `vader_atom_init_with_comptime` at startup ; the runtime memcpys it
-// into the live atom table at indices `1 .. N` (index 0 is reserved for
+// Every non-empty string literal in the bytecode pool is serialised as a PERM
+// atom in the binary's `.rodata`. The emitted `main` hands this table to
+// `vader_atom_init_with_comptime` at startup ; the runtime memcpys it into the
+// live atom table at indices `1 .. M` (index 0 is reserved for
 // VADER_ATOM_EMPTY) and rebuilds the intern hash over it.
 //
-// The `ATOM_LIT_<i>` macros expose each literal's runtime atom id as a
-// C compile-time constant — usable in `case ATOM_LIT_X:` once Phase 1
-// flips `vader_string_t = u32` and the codegen emits literals as bare
-// atom ids instead of `vader_str_<i>` fat-ptrs.
+// A `vader_string_t` is a u32 atom id, so a string literal is emitted as its
+// bare atom id (`ctx.atomIds[index]`, computed once by `computeAtomIds`)
+// inlined at each use site — no per-literal `vader_str_<i>` global or
+// `ATOM_LIT_<i>` macro. The empty literal aliases atom 0 (VADER_ATOM_EMPTY).
 // =========================================================================
+
+/** Runtime atom id for each string literal, by pool index. The empty string
+ *  maps to 0 (VADER_ATOM_EMPTY — pre-installed by the runtime, reached via
+ *  direct `== 0` checks, never the intern hash) ; every other literal gets a
+ *  contiguous id `1 .. M` matching its slot in the comptime atom table.
+ *
+ *  An empty literal MUST resolve to 0 so it compares equal to a
+ *  runtime-produced empty string (`as_string([])`, a zero-length slice),
+ *  which is also atom 0 — otherwise `runtime_empty == ""` would compare 0
+ *  against a fresh sequential id and be wrongly false. */
+function computeAtomIds(strings: readonly string[]): number[] {
+  const ids = new Array<number>(strings.length);
+  let nextId = 1;
+  for (let i = 0; i < strings.length; i++) {
+    ids[i] = strings[i] === "" ? 0 : nextId++;
+  }
+  return ids;
+}
 
 function emitAtomComptimeTable(ctx: EmitCtx, out: string[]): void {
   out.push(`/* Compile-time atom table — see docs/ATOM_INTERNING.md. */`);
   const strings = ctx.module.strings;
-  if (strings.length === 0) {
-    // Empty modules still emit a 1-entry placeholder so callers can take
-    // `&vader_atom_comptime_table[0]` without UB ; the count of 0 tells
-    // the runtime to ignore it.
-    out.push(`static const vader_atom_entry_t vader_atom_comptime_table[1] = { { 0u, 0u, 0u, 0u, 0u, "" } };`);
-    out.push(`#define VADER_COMPTIME_ATOM_COUNT 0u`);
-    out.push(``);
-    return;
-  }
+  const atomIds = ctx.atomIds;
 
-  // Blob : every literal's bytes followed by an inline NUL ("\0"
-  // sentinel after each literal, so `data[len]` reads NUL for owners).
-  // C concatenates the adjacent string literals into one `.rodata` array.
+  // Blob + entry table for the non-empty literals, in id order (a literal with
+  // atom id k lands at table index k-1). Empty literals carry no atom — they
+  // alias VADER_ATOM_EMPTY (0) at their use sites — so they are skipped here.
+  // `offsets.length` is the entry count (one per non-empty literal).
   const enc = new TextEncoder();
   const offsets: number[] = [];
   const lens: number[] = [];
   let offset = 0;
   const blobLines: string[] = [];
   for (let i = 0; i < strings.length; i++) {
+    if (atomIds[i] === 0) continue;
     const bytes = enc.encode(strings[i]!);
     blobLines.push(`    ${cStringLitFromBytes(bytes)} "\\0"`);
     offsets.push(offset);
     lens.push(bytes.length);
     offset += bytes.length + 1;
   }
+
+  if (offsets.length === 0) {
+    // No comptime atoms (module has no literals, or every literal is "").
+    // A 1-entry placeholder keeps `&vader_atom_comptime_table[0]` well-defined ;
+    // the count of 0 tells the runtime to ignore it. Empty literals reach
+    // VADER_ATOM_EMPTY (atom 0) directly at their use sites — see computeAtomIds.
+    out.push(`static const vader_atom_entry_t vader_atom_comptime_table[1] = { { 0u, 0u, 0u, 0u, 0u, "" } };`);
+    out.push(`#define VADER_COMPTIME_ATOM_COUNT 0u`);
+    out.push(``);
+    return;
+  }
+
+  // Blob : every non-empty literal's bytes followed by an inline NUL ("\0"
+  // sentinel after each literal, so `data[len]` reads NUL for owners). C
+  // concatenates the adjacent string literals into one `.rodata` array.
   out.push(`static const char vader_atom_blob[] =`);
   for (const line of blobLines) out.push(line);
   out.push(`;`);
   out.push(``);
 
-  // Entry table — one PERM owner per literal, pointing into the blob.
-  // Field order : { parent, parent_offset, len, flags, _pad, data }.
+  // Entry table — one PERM owner per non-empty literal, pointing into the
+  // blob. Field order : { parent, parent_offset, len, flags, _pad, data }.
   out.push(`static const vader_atom_entry_t vader_atom_comptime_table[] = {`);
-  for (let i = 0; i < strings.length; i++) {
-    out.push(`    { 0u, 0u, ${lens[i]}u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[${offsets[i]}] },`);
+  for (let k = 0; k < offsets.length; k++) {
+    out.push(`    { 0u, 0u, ${lens[k]}u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[${offsets[k]}] },`);
   }
   out.push(`};`);
   out.push(``);
-
-  // Macros : `ATOM_LIT_<i>` is the runtime atom id for the i-th literal
-  // in `ctx.module.strings`. +1 because the runtime installs the empty
-  // atom at index 0 before the comptime block.
-  for (let i = 0; i < strings.length; i++) {
-    out.push(`#define ATOM_LIT_${i} ${i + 1}u`);
-  }
-  out.push(`#define VADER_COMPTIME_ATOM_COUNT ${strings.length}u`);
+  out.push(`#define VADER_COMPTIME_ATOM_COUNT ${offsets.length}u`);
   out.push(``);
 }
 
