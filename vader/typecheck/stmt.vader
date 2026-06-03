@@ -605,17 +605,36 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
         return null
     }
     if i32(cond.op) != i32(AST.BinaryOp.Is) { return null }
-    if !(cond.left is AST.IdentExpr) { return null }
-    sym :: typed.resolved.idents[cond.left.span.hash()]
-    if sym is null { return null }
-    base :: type_of_symbol(sym, typed)
-    current :: narrow_for_binding(typed, sym.id, base)
-    narrowed :: type_from_expr(cond.right, typed.resolved, diag_sink_stmt())
-    return BlockNarrow {
-        .sym_id    = sym.id,
-        .static_ty = base,
-        .else_ty   = subtract_type(current, narrowed),
+    // Bare-ident scrutinee : narrow the symbol slot for the complement.
+    if cond.left is AST.IdentExpr {
+        sym :: typed.resolved.idents[cond.left.span.hash()]
+        if sym is null { return null }
+        base :: type_of_symbol(sym, typed)
+        current :: narrow_for_binding(typed, sym.id, base)
+        narrowed :: type_from_expr(cond.right, typed.resolved, diag_sink_stmt())
+        return BlockNarrow {
+            .sym_id    = sym.id,
+            .static_ty = base,
+            .else_ty   = subtract_type(current, narrowed),
+        }
     }
+    // Field-chain scrutinee : `x.y is T` complement-narrows the `x.y` slot,
+    // mirroring the `x.y == null` field path above. The divergent guard
+    // `if d.body is null { return }` then flows `Block` (not `Block | null`)
+    // to `body :: d.body` — the `convert_function` drop this closes.
+    if cond.left is AST.FieldExpr as field_lhs {
+        field_info :: resolve_field_chain_static(field_lhs, typed)
+        if field_info is null { return null }
+        current :: narrow_for_field(typed, field_info.field_key, field_info.static_ty)
+        narrowed :: type_from_expr(cond.right, typed.resolved, diag_sink_stmt())
+        return BlockNarrow {
+            .sym_id    = 0,
+            .static_ty = field_info.static_ty,
+            .else_ty   = subtract_type(current, narrowed),
+            .field_key = field_info.field_key,
+        }
+    }
+    return null
 }
 
 import "vader/types" { mk_primitive }

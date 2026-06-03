@@ -1,0 +1,106 @@
+# Lower
+
+## snippet
+  struct snippet$Block { span: i32 }
+  struct snippet$Decl { body: Block | null, name: string }
+  fn snippet$convert(d: Decl) -> i32
+    if :void
+      cond:
+        is null :bool
+          .body :Block | null
+            d :Decl
+      then:
+        return
+          neg :i32
+            int(1) :i32
+    let body: Block =
+      .body :Block
+        d :Decl
+    return
+      .span :i32
+        body :Block
+  fn snippet$kind_span(d: Decl, fallback: Block | Decl) -> i32
+    if :void
+      cond:
+        is Block :bool
+          fallback :Block | Decl
+      then:
+        let b: Block =
+          cast → Block
+            fallback :Block | Decl
+        return
+          .span :i32
+            b :Block
+    return
+      call :i32
+        callee:
+          convert :fn(Decl) -> i32
+        arg0:
+          d :Decl
+  fn snippet$main() -> i32
+    let hit: i32 =
+      call :i32
+        callee:
+          convert :fn(Decl) -> i32
+        arg0:
+          Decl {
+            body:
+              Block {
+                span: int(42) :i32
+              }
+            name: "x" :string
+          }
+    let miss: i32 =
+      call :i32
+        callee:
+          convert :fn(Decl) -> i32
+        arg0:
+          Decl {
+            body: null
+            name: "y" :string
+          }
+    let via: i32 =
+      call :i32
+        callee:
+          kind_span :fn(Decl, Block | Decl) -> i32
+        arg0:
+          Decl {
+            body:
+              Block {
+                span: int(7) :i32
+              }
+            name: "z" :string
+          }
+        arg1:
+          Block {
+            span: int(99) :i32
+          }
+    call :void
+      callee:
+        println :void
+      arg0:
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0 :?
+            "hit=" :string
+          @builder.append_display <for i32> :void
+            __sb_0 :?
+            hit :i32
+          @builder.append_str :void
+            __sb_0 :?
+            " miss=" :string
+          @builder.append_display <for i32> :void
+            __sb_0 :?
+            miss :i32
+          @builder.append_str :void
+            __sb_0 :?
+            " via=" :string
+          @builder.append_display <for i32> :void
+            __sb_0 :?
+            via :i32
+          ~>
+            @builder.finish :string
+              __sb_0 :?
+    return int(0) :i32

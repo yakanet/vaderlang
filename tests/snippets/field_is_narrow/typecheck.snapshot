@@ -1,0 +1,48 @@
+# Typecheck
+
+## tests/snippets/field_is_narrow
+  StructDecl     Block                :: Block
+  FnDecl         convert              :: fn(Decl) -> i32
+  StructDecl     Decl                 :: Decl
+  FnDecl         kind_span            :: fn(Decl, Block | Decl) -> i32
+  FnDecl         main                 :: fn() -> i32
+  ConstDecl      Shape                :: type
+  expr 25:32    UnaryExpr      :: i32
+  expr 25:5     IfExpr         :: void
+  expr 25:8     BinaryExpr     :: bool
+  expr 25:8     FieldExpr      :: Block | null
+  expr 25:8     IdentExpr      :: Decl
+  expr 26:13    FieldExpr      :: Block
+  expr 26:13    IdentExpr      :: Decl
+  expr 27:12    FieldExpr      :: i32
+  expr 27:12    IdentExpr      :: Block
+  expr 34:20    IdentExpr      :: Block
+  expr 34:40    FieldExpr      :: i32
+  expr 34:40    IdentExpr      :: Block
+  expr 34:5     IfExpr         :: void
+  expr 34:8     BinaryExpr     :: bool
+  expr 34:8     IdentExpr      :: Block | Decl
+  expr 35:12    CallExpr       :: i32
+  expr 35:12    IdentExpr      :: fn(Decl) -> i32
+  expr 35:20    IdentExpr      :: Decl
+  expr 39:13    CallExpr       :: i32
+  expr 39:13    IdentExpr      :: fn(Decl) -> i32
+  expr 39:21    StructLitExpr  :: Decl
+  expr 39:36    StructLitExpr  :: Block
+  expr 39:66    StringLitExpr  :: string
+  expr 40:13    CallExpr       :: i32
+  expr 40:13    IdentExpr      :: fn(Decl) -> i32
+  expr 40:21    StructLitExpr  :: Decl
+  expr 40:50    StringLitExpr  :: string
+  expr 41:13    CallExpr       :: i32
+  expr 41:13    IdentExpr      :: fn(Decl, Block | Decl) -> i32
+  expr 41:23    StructLitExpr  :: Decl
+  expr 41:38    StructLitExpr  :: Block
+  expr 41:67    StringLitExpr  :: string
+  expr 41:74    StructLitExpr  :: Block
+  expr 42:13    StringLitExpr  :: string
+  expr 42:20    IdentExpr      :: i32
+  expr 42:32    IdentExpr      :: i32
+  expr 42:44    IdentExpr      :: i32
+  expr 42:5     CallExpr       :: void
+  expr 42:5     IdentExpr      :: fn(T) -> void

@@ -205,20 +205,38 @@ detect_is_narrow :: fn(
     if cond.bind_as != "" {
         typed.local_types[cond.right.span.hash()] = narrowed
     }
-    // The scrutinee-VARIABLE narrowing still needs a bare ident.
-    if !(cond.left is AST.IdentExpr) { return null }
-    sym :: typed.resolved.idents[cond.left.span.hash()]
-    if sym is null { return null }
-    base :: type_of_symbol(sym, typed)
-    // Same guard as the ident-vs-null path above: don't narrow an
-    // unresolved binding.
-    if base is UnresolvedType { return null }
-    return IsNarrow {
-        .sym_id    = sym.id,
-        .static_ty = base,
-        .then_ty   = narrowed,
-        .else_ty   = subtract_type(base, narrowed),
+    // Scrutinee-VARIABLE narrowing : a bare ident narrows its symbol slot.
+    if cond.left is AST.IdentExpr {
+        sym :: typed.resolved.idents[cond.left.span.hash()]
+        if sym is null { return null }
+        base :: type_of_symbol(sym, typed)
+        // Same guard as the ident-vs-null path above: don't narrow an
+        // unresolved binding.
+        if base is UnresolvedType { return null }
+        return IsNarrow {
+            .sym_id    = sym.id,
+            .static_ty = base,
+            .then_ty   = narrowed,
+            .else_ty   = subtract_type(base, narrowed),
+        }
     }
+    // Scrutinee FIELD-CHAIN narrowing : `x.y is T` narrows the `x.y` slot,
+    // mirroring the `x.y == null` field path above. Without this, `is null` /
+    // `is T` on a field never narrows (only `== null` did), so a field read
+    // after a divergent `if x.y is null { return }` guard degrades — the
+    // `convert_function` `body :: d.body ; body.span` drop.
+    if cond.left is AST.FieldExpr as field_lhs {
+        field_info :: resolve_field_chain_static(field_lhs, typed)
+        if field_info is null { return null }
+        return IsNarrow {
+            .sym_id    = 0,
+            .static_ty = field_info.static_ty,
+            .then_ty   = narrowed,
+            .else_ty   = subtract_type(field_info.static_ty, narrowed),
+            .field_key = field_info.field_key,
+        }
+    }
+    return null
 }
 
 

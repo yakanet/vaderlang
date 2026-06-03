@@ -1,0 +1,4 @@
+# stdout
+hit=42 miss=-1 via=99
+# exit
+0

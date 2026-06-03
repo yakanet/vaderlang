@@ -141,6 +141,11 @@ const VADER_SELF_EMIT = new Set<string>([
   // TS-emitted bytecode for these, never exercising the Vader emitter.)
   "if_is_as_bind",
   "is_as_field_narrow",
+  // `if x.field is null { return }` / `x.field is T` — narrowing a FIELD chain
+  // via the `is` operator (the detectors used to narrow fields only for
+  // `== null`). A field read after a divergent `is null` guard kept its
+  // `T | null` type and dropped (the compiler's own `convert_function`).
+  "field_is_narrow",
   // `alias.Enum.Variant` — namespace-qualified enum-variant access in value
   // position (`P.Color.Green`). The lowerer's `try_lower_enum_field` must fold
   // it to the variant index even though the target (`P.Color`) is a namespace

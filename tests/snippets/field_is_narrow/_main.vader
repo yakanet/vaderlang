@@ -1,0 +1,44 @@
+// `if x.field is null { return }` / `if x.field is T { … }` — narrowing a
+// FIELD chain via the `is` operator (not `== null`). The `is`-operator path
+// in both narrowing detectors used to bail on a non-ident scrutinee, so only
+// `x.field == null` narrowed the field ; `x.field is null` / `x.field is T`
+// did not. A field read after a divergent `if x.field is null { return }`
+// guard then kept the `T | null` type and its `.span`-style accesses dropped
+// (the compiler's own `convert_function` `body :: d.body ; body.span`). Guards
+// the Vader self-emit path (the suite otherwise runs TS-emitted bytecode here).
+
+module "snippet"
+
+import "std/io" { println }
+
+Block :: struct {
+    span: i32
+}
+
+Decl :: struct {
+    body: Block | null
+    name: string
+}
+
+// Divergent guard with `is null` on a field, then read the narrowed field.
+convert :: fn(d: Decl) -> i32 {
+    if d.body is null { return -1 }
+    body :: d.body
+    return body.span
+}
+
+Shape :: Block | Decl
+
+// `is T` (non-null) on a field, then use the binding.
+kind_span :: fn(d: Decl, fallback: Shape) -> i32 {
+    if fallback is Block as b { return b.span }
+    return convert(d)
+}
+
+main :: fn() -> i32 {
+    hit  :: convert(Decl { .body = Block { .span = 42 }, .name = "x" })
+    miss :: convert(Decl { .body = null, .name = "y" })
+    via  :: kind_span(Decl { .body = Block { .span = 7 }, .name = "z" }, Block { .span = 99 })
+    println("hit=${hit} miss=${miss} via=${via}")
+    return 0
+}
