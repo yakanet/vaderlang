@@ -53,6 +53,10 @@ const BYTECODE_DIVERGENT_SNIPPETS: ReadonlySet<string> = new Set<string>([
   "alias_import", "alias_union_in_array", "array_iter",
   "array_of_union", "array_push", "array_slice", "array_view_aliasing",
   "b1_fn_boundary", "bound_enforced", "byte_len_fold", "byte_literal", "cast_test",
+  // Chained divergent `is`-guards + field access : accessor body matches TS, but
+  // emitting it shifts the type/string interning order (§9 class). Self-host
+  // correctness via VADER_SELF_EMIT.
+  "chained_divergent_narrow",
   "char_range_contains",
   // GATE A/B divergence : Vader monomorphises `run_id`/`apply` to concrete
   // bodies + materialises `println` as a real fn (TS erases to `ref _`), so

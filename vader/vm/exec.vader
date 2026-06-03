@@ -728,7 +728,7 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                 if index_check is Trap { return index_check }
                 callee :: module.functions[usize(instr.function_index)]
                 if frame.sp < callee.parameter_count {
-                    return Trap { .message = "call to '${callee.name}' needs ${callee.parameter_count} arg(s) but stack has ${frame.sp} at pc=${frame.pc}" }
+                    return Trap { .message = "call to '${callee.name}' needs ${callee.parameter_count} arg(s) but stack has ${frame.sp} at pc=${frame.pc} in '${body.name}'" }
                 }
                 arg_base :: frame.sp - callee.parameter_count
                 dispatched :: dispatch_call_into(frame, frames, frame_count, callee, instr.function_index, arg_base, null)

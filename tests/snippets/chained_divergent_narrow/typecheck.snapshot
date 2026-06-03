@@ -1,0 +1,40 @@
+# Typecheck
+
+## tests/snippets/chained_divergent_narrow
+  StructDecl     FnLike               :: FnLike
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Meta                 :: Meta
+  StructDecl     Other                :: Other
+  FnDecl         params_of            :: fn(FnLike | Meta | Other | Unres) -> i32
+  ConstDecl      Shape                :: type
+  StructDecl     Unres                :: Unres
+  expr 26:13    IdentExpr      :: Meta
+  expr 26:28    UnaryExpr      :: i32
+  expr 26:5     IfExpr         :: void
+  expr 26:8     BinaryExpr     :: bool
+  expr 26:8     IdentExpr      :: FnLike | Meta | Other | Unres
+  expr 27:13    IdentExpr      :: Unres
+  expr 27:28    UnaryExpr      :: i32
+  expr 27:5     IfExpr         :: void
+  expr 27:8     BinaryExpr     :: bool
+  expr 27:8     IdentExpr      :: FnLike | Other | Unres
+  expr 28:10    BinaryExpr     :: bool
+  expr 28:10    IdentExpr      :: FnLike | Other
+  expr 28:15    IdentExpr      :: FnLike
+  expr 28:32    UnaryExpr      :: i32
+  expr 28:5     IfExpr         :: void
+  expr 28:8     UnaryExpr      :: bool
+  expr 29:12    FieldExpr      :: i32
+  expr 29:12    IdentExpr      :: FnLike
+  expr 33:10    CallExpr       :: i32
+  expr 33:10    IdentExpr      :: fn(FnLike | Meta | Other | Unres) -> i32
+  expr 33:20    StructLitExpr  :: FnLike
+  expr 34:10    CallExpr       :: i32
+  expr 34:10    IdentExpr      :: fn(FnLike | Meta | Other | Unres) -> i32
+  expr 34:20    StructLitExpr  :: Other
+  expr 35:13    StringLitExpr  :: string
+  expr 35:23    IdentExpr      :: i32
+  expr 35:34    IdentExpr      :: i32
+  expr 35:5     CallExpr       :: void
+  expr 35:5     IdentExpr      :: fn(T) -> void
+  expr 36:12    IdentExpr      :: i32

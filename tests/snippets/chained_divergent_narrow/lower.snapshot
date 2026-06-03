@@ -1,0 +1,79 @@
+# Lower
+
+## snippet
+  struct snippet$Meta { m: i32 }
+  struct snippet$Unres { u: i32 }
+  struct snippet$FnLike { params: i32 }
+  struct snippet$Other { o: i32 }
+  fn snippet$params_of(t: FnLike | Meta | Other | Unres) -> i32
+    if :void
+      cond:
+        is Meta :bool
+          t :FnLike | Meta | Other | Unres
+      then:
+        return
+          neg :i32
+            int(1) :i32
+    if :void
+      cond:
+        is Unres :bool
+          cast → FnLike | Other | Unres
+            t :FnLike | Meta | Other | Unres
+      then:
+        return
+          neg :i32
+            int(2) :i32
+    if :void
+      cond:
+        not :bool
+          is FnLike :bool
+            cast → FnLike | Other
+              t :FnLike | Meta | Other | Unres
+      then:
+        return
+          neg :i32
+            int(3) :i32
+    return
+      .params :i32
+        cast → FnLike
+          t :FnLike | Meta | Other | Unres
+  fn snippet$main() -> i32
+    let a: i32 =
+      call :i32
+        callee:
+          params_of :fn(FnLike | Meta | Other | Unres) -> i32
+        arg0:
+          FnLike {
+            params: int(42) :i32
+          }
+    let b: i32 =
+      call :i32
+        callee:
+          params_of :fn(FnLike | Meta | Other | Unres) -> i32
+        arg0:
+          Other {
+            o: int(9) :i32
+          }
+    call :void
+      callee:
+        println :void
+      arg0:
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0 :?
+            "fnlike=" :string
+          @builder.append_display <for i32> :void
+            __sb_0 :?
+            a :i32
+          @builder.append_str :void
+            __sb_0 :?
+            " other=" :string
+          @builder.append_display <for i32> :void
+            __sb_0 :?
+            b :i32
+          ~>
+            @builder.finish :string
+              __sb_0 :?
+    return a :i32

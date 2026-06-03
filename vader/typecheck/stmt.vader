@@ -552,10 +552,22 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
         if i32(cond.op) == i32(AST.UnaryOp.Not) {
             inner :: detect_is_narrow_for_block(cond.operand, typed)
             if inner is null { return null }
+            // Compose `!(x is T)`'s fall-through from the CURRENT narrowing
+            // (after prior guards), not `inner.static_ty` (declared) — which
+            // would RE-WIDEN and undo earlier guards, leaving a chain
+            // `if x is A{return} if !(x is B){return}` as `A | B` not `B`, so a
+            // later `x.<B-field>` drops (infer_call's `callee_ty.params` after
+            // its TypeMetaType / UnresolvedType / !FnType guards). Carry field_key.
+            current :: if inner.field_key == "" {
+                narrow_for_binding(typed, inner.sym_id, inner.static_ty)
+            } else {
+                narrow_for_field(typed, inner.field_key, inner.static_ty)
+            }
             return BlockNarrow {
                 .sym_id    = inner.sym_id,
                 .static_ty = inner.static_ty,
-                .else_ty   = subtract_type(inner.static_ty, inner.else_ty),
+                .else_ty   = subtract_type(current, inner.else_ty),
+                .field_key = inner.field_key,
             }
         }
     }

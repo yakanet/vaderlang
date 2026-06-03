@@ -141,6 +141,13 @@ const VADER_SELF_EMIT = new Set<string>([
   // TS-emitted bytecode for these, never exercising the Vader emitter.)
   "if_is_as_bind",
   "is_as_field_narrow",
+  // A CHAIN of divergent `is`-guards ending in `!(x is T) { return }`, then a
+  // field access on the narrowed `x`. The `!(x is T)` complement must compose
+  // from the already-narrowed type, not re-widen to the declared union — else a
+  // chain leaves `x` as `T | A | B` and `x.<T-field>` drops. This is the
+  // compiler's own `infer_call` (`callee_ty.params` after its TypeMetaType /
+  // UnresolvedType / !FnType guards), which dropped every typed method call.
+  "chained_divergent_narrow",
   // `if x.field is null { return }` / `x.field is T` — narrowing a FIELD chain
   // via the `is` operator (the detectors used to narrow fields only for
   // `== null`). A field read after a divergent `is null` guard kept its

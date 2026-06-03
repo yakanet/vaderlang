@@ -1,0 +1,37 @@
+// A CHAIN of divergent `is`-guards ending in `!(x is T) { return }`, then a
+// field access on the (now narrowed) `x`. Each guard narrows `x` within the
+// CURRENT type ; the final `!(x is T)` complement must compose from the
+// already-narrowed type, not re-widen back to the declared union. The Not-case
+// in the divergent-narrow detector used `inner.static_ty` (declared) instead of
+// the current narrowing, so a chain left `x` as `T | A | B` rather than `T`, and
+// `x.<T-field>` degraded to a drop. This is the compiler's own
+// `infer_call`, whose `callee_ty.params` access after its
+// `is TypeMetaType` / `is UnresolvedType` / `!(is FnType)` guards vanished —
+// which silently dropped every typed method call (`value.lt(...)` in Range's
+// Contains impl). Guards the Vader self-emit path.
+
+module "snippet"
+
+import "std/io" { println }
+
+Meta   :: struct { m: i32 }
+Unres  :: struct { u: i32 }
+FnLike :: struct { params: i32 }
+Other  :: struct { o: i32 }
+Shape  :: Meta | Unres | FnLike | Other
+
+// Three divergent guards (mirror of infer_call's TypeMetaType / UnresolvedType
+// / !FnType chain), then read FnLike's field on the narrowed value.
+params_of :: fn(t: Shape) -> i32 {
+    if t is Meta  { return -1 }
+    if t is Unres { return -2 }
+    if !(t is FnLike) { return -3 }
+    return t.params
+}
+
+main :: fn() -> i32 {
+    a :: params_of(FnLike { .params = 42 })
+    b :: params_of(Other { .o = 9 })
+    println("fnlike=${a} other=${b}")
+    return a
+}
