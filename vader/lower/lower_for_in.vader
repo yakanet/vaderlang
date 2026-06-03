@@ -231,9 +231,20 @@ WrapResult :: struct {
     iter_type: Type
 }
 
-// Wrap a `T[]` iterator into `ArrayIterator(T)` so the step-loop has
-// a struct-typed iter to dispatch on. Returns the input verbatim
-// when the type isn't an array or ArrayIterator isn't in std/core.
+// Wrap a non-iterator receiver into a concrete struct iterator so the
+// step-loop has something to dispatch `next()` on :
+//   - `T[]`     → `ArrayIterator(T)` (struct-wrapped in place ; avoids the
+//                 erased-`Iterator(T)` virtual-call hazard, mirror of TS's
+//                 raw-array path).
+//   - `string`  → `StringChars` via a synthesised `chars(s)` call. `string`
+//                 implements `Into(Iterator(char))`, but routing through
+//                 `into()` yields the erased `Iterator(char)` trait (the same
+//                 hazard) ; calling `chars` keeps the CONCRETE `StringChars`,
+//                 which `build_step_call`'s StructType path already resolves
+//                 (so `for c in s` matches `for c in s.chars()`). `chars` is
+//                 materialised by the normal reachability walk over the emitted
+//                 call. Mirror of TS `for-in.ts` resolving `string`'s iterator.
+// Returns the input verbatim when no wrap applies.
 try_wrap_array_iter :: fn(
     ctx: FnLowerCtx, iter: LoweredExpr, iter_type: Type, span: Span,
 ) -> WrapResult {
@@ -255,6 +266,25 @@ try_wrap_array_iter :: fn(
                 .span = span, .type = wrapped_type, .fields = fields,
             }
             return WrapResult { .iter = wrapped, .iter_type = wrapped_type }
+        }
+        is PrimitiveType as p -> {
+            if p.name != "string" { return WrapResult { .iter = iter, .iter_type = iter_type } }
+            chars_member :: find_free_fn_ufcs(ctx, iter_type, "chars")
+            if chars_member is null { return WrapResult { .iter = iter, .iter_type = iter_type } }
+            chars_fn_ty :: lookup_fn_type_anywhere(ctx, chars_member.symbol)
+            if chars_fn_ty is FnType as ft {
+                args: LoweredExpr[] = []
+                args.push(iter)
+                chars_call :: LoweredCall {
+                    .span = span, .type = ft.return_type,
+                    .callee = LoweredIdent {
+                        .span = span, .type = ft.return_type, .symbol = chars_member.symbol,
+                    },
+                    .args = args,
+                }
+                return WrapResult { .iter = chars_call, .iter_type = ft.return_type }
+            }
+            return WrapResult { .iter = iter, .iter_type = iter_type }
         }
         _ -> { return WrapResult { .iter = iter, .iter_type = iter_type } }
     }

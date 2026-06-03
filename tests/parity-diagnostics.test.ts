@@ -100,17 +100,6 @@ function diffSets(a: DiagRef[], b: DiagRef[]): { onlyA: string[]; onlyB: string[
 const KNOWN_DIVERGENCES: ReadonlySet<string> = new Set<string>([
   // Format : `${stage}:${snippet}`.
   // typecheck-coverage (cascading from incomplete `expr_types`)
-
-  // §9 self-host for-in-over-string gap : build/vader's lowerer can't resolve
-  // `string implements Iterator(char)` for `for c in <str>` loops (in compiler
-  // helpers `mangle_module_id` / `quote_simple` / `entry_main_name` that these
-  // snippets transitively import), so it emits M5001 "for-in receiver has no
-  // `Iterator` impl" at those sites where TS resolves it. Same root cause as
-  // `for_in_into_iter`, already skipped in `tests/vm.test.ts` +
-  // `tests/vader_vm.test.ts`. Remove both once the self-host for-in /
-  // `Iterator(char)`-on-`string` resolution lands.
-  "lower:builder_roundtrip",
-  "lower:peephole_rules",
 ]);
 
 function collectScenarios(): Scenario[] {
