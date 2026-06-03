@@ -144,7 +144,11 @@ const BYTECODE_DIVERGENT_SNIPPETS: ReadonlySet<string> = new Set<string>([
   "tuple_generic_swap", "tuple_in_array", "tuple_match_nested",
   "tuple_match_pattern", "tuple_match_union", "tuple_pair_return",
   "tuple_struct_field", "tuple_triple_quad", "type_aliases", "u32_bitops",
-  "ufcs_overload", "ufcs_union_receiver", "union_common_field", "usize_arith",
+  "ufcs_overload", "ufcs_union_receiver", "union_common_field",
+  // Computed-u64-in-union match : accessor body matches TS, but emitting it
+  // shifts the type/string interning order (§9 class). Self-host correctness
+  // via VADER_SELF_EMIT.
+  "union_computed_u64", "usize_arith",
   "usize_basic",
   "vm_hello",
   "vm_interp_basic", "vm_interp_loop", "vm_interp_mixed",

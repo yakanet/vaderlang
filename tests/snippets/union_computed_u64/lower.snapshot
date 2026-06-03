@@ -1,0 +1,133 @@
+# Lower
+
+## snippet
+  struct snippet$Err { msg: string }
+  fn snippet$scale(factor: u64) -> Err | u64
+    if :void
+      cond:
+        eq :bool
+          l:
+            factor :u64
+          r:
+            cast → u64
+              int(0) :u64
+      then:
+        return
+          Err {
+            msg: "zero" :string
+          }
+    return
+      add :u64
+        l:
+          mul :u64
+            l:
+              factor :u64
+            r:
+              cast → u64
+                int(10) :u64
+        r:
+          cast → u64
+            int(2) :u64
+  fn snippet$show(factor: u64) -> i32
+    ~>
+      block :never
+        let __scrut_0: Err | u64 =
+          call :Err | u64
+            callee:
+              scale :fn(u64) -> Err | u64
+            arg0:
+              factor :u64
+        ~>
+          if :never
+            cond:
+              is u64 :bool
+                __scrut_0 :Err | u64
+            then:
+              let n: u64 =
+                cast → u64
+                  __scrut_0 :Err | u64
+              ~>
+                block :void
+                  return
+                    cast → i32
+                      n :u64
+            else:
+              ~>
+                if :never
+                  cond:
+                    is Err :bool
+                      __scrut_0 :Err | u64
+                  then:
+                    ~>
+                      block :void
+                        return
+                          neg :i32
+                            int(1) :i32
+                  else:
+                    ~>
+                      unreachable("non-exhaustive match (T3013 should have caught this)") :never
+  fn snippet$main() -> i32
+    call :void
+      callee:
+        println :void
+      arg0:
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0 :?
+            "four=" :string
+          @builder.append_display <for i32> :void
+            __sb_0 :?
+            call :i32
+              callee:
+                show :fn(u64) -> i32
+              arg0:
+                cast → u64
+                  int(4) :u64
+          ~>
+            @builder.finish :string
+              __sb_0 :?
+    call :void
+      callee:
+        println :void
+      arg0:
+        block :string
+          let __sb_1: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_1 :?
+            "forty=" :string
+          @builder.append_display <for i32> :void
+            __sb_1 :?
+            call :i32
+              callee:
+                show :fn(u64) -> i32
+              arg0:
+                cast → u64
+                  int(40) :u64
+          ~>
+            @builder.finish :string
+              __sb_1 :?
+    call :void
+      callee:
+        println :void
+      arg0:
+        block :string
+          let __sb_2: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_2 :?
+            "zero=" :string
+          @builder.append_display <for i32> :void
+            __sb_2 :?
+            call :i32
+              callee:
+                show :fn(u64) -> i32
+              arg0:
+                cast → u64
+                  int(0) :u64
+          ~>
+            @builder.finish :string
+              __sb_2 :?
+    return int(0) :i32

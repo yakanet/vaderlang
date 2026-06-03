@@ -146,6 +146,12 @@ const VADER_SELF_EMIT = new Set<string>([
   // `== null`). A field read after a divergent `is null` guard kept its
   // `T | null` type and dropped (the compiler's own `convert_function`).
   "field_is_narrow",
+  // A COMPUTED `u64` (stored `I64Val`, not a small `I32Val` literal) returned
+  // through a union and matched `is u64`. The VM's `primitive_matches` only
+  // accepted `I32Val` for integer aliases, so the match fell through its
+  // no-match arm and dropped the value — exactly how the self-hosted lexer's
+  // `parse_uint_in_base` result vanished, dropping every computed int literal.
+  "union_computed_u64",
   // `alias.Enum.Variant` — namespace-qualified enum-variant access in value
   // position (`P.Color.Green`). The lowerer's `try_lower_enum_field` must fold
   // it to the variant index even though the target (`P.Color`) is a namespace

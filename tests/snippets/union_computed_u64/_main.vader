@@ -1,0 +1,38 @@
+// A 64-bit integer (`u64`) COMPUTED via `i64`-width arithmetic and returned
+// through a union (`u64 | Err`), then matched. The VM stores integers in
+// `I32Val` (≤32-bit) or `I64Val` (64-bit) ; a computed u64 lands in `I64Val`,
+// but `primitive_matches` only accepted `I32Val` for width-suffixed integer
+// aliases — so `match r { is u64 … }` fell through its no-match arm and the
+// value was silently dropped. (This is exactly how the self-hosted lexer's
+// `parse_uint_in_base` result vanished, dropping every computed int literal.)
+// Guards the Vader-VM type-check fix ; small u64 LITERALS rode in I32Val and
+// matched already, so only a computed (I64Val) u64 exercises the gap.
+
+module "snippet"
+
+import "std/io" { println }
+
+Err :: struct {
+    msg: string
+}
+
+// `factor * 10 + 2` runs at `u64`/`i64` width, so the result is stored as
+// `I64Val` rather than a small `I32Val` literal.
+scale :: fn(factor: u64) -> u64 | Err {
+    if factor == u64(0) { return Err { .msg = "zero" } }
+    return factor * u64(10) + u64(2)
+}
+
+show :: fn(factor: u64) -> i32 {
+    match scale(factor) {
+        is u64 as n -> { return i32(n) }
+        is Err      -> { return -1 }
+    }
+}
+
+main :: fn() -> i32 {
+    println("four=${show(u64(4))}")
+    println("forty=${show(u64(40))}")
+    println("zero=${show(u64(0))}")
+    return 0
+}

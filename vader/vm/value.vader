@@ -553,11 +553,20 @@ export lookup_vtable :: fn(vtables: Vtable[], key: string, type_id: i32) -> i32 
 /// semantics. Sprint 5d / per-width values will replace the alias collapse.
 export primitive_matches :: fn(v: Value, kind: string) -> bool {
     if kind == describe_value_tag(v) { return true }
-    if is_integer_alias(kind) { return v is I32Val }
+    // Width-suffixed integer kinds have no dedicated Value variant — they
+    // ride in `I32Val` (≤32-bit) or `I64Val` (64-bit: u64/usize/isize ; i64
+    // is already caught by the tag check above). Accept BOTH widths so e.g. a
+    // `u64` computed via `i64.*` ops (stored `I64Val`) satisfies its `is u64`
+    // check — not just small literals that happen to land in `I32Val`. Without
+    // the `I64Val` arm, `match parse_uint_in_base(...) { is u64 … }` fell
+    // through its no-match `return` and the lexer silently dropped every
+    // computed integer literal.
+    if is_integer_alias(kind) { return v is I32Val || v is I64Val }
     return false
 }
 
-/// Width-suffixed integer kinds that currently alias to `I32Val`.
+/// Width-suffixed integer kinds that have no dedicated `Value` variant —
+/// they ride in `I32Val` or `I64Val` (see `primitive_matches`).
 export is_integer_alias :: fn(kind: string) -> bool {
     if kind == "i8"  { return true }
     if kind == "i16" { return true }

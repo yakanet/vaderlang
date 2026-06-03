@@ -1,0 +1,50 @@
+# Typecheck
+
+## tests/snippets/union_computed_u64
+  StructDecl     Err                  :: Err
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         scale                :: fn(u64) -> Err | u64
+  FnDecl         show                 :: fn(u64) -> i32
+  expr 22:18    CallExpr       :: u64
+  expr 22:18    IdentExpr      :: type
+  expr 22:34    StructLitExpr  :: Err
+  expr 22:47    StringLitExpr  :: string
+  expr 22:5     IfExpr         :: void
+  expr 22:8     BinaryExpr     :: bool
+  expr 22:8     IdentExpr      :: u64
+  expr 23:12    BinaryExpr     :: u64
+  expr 23:12    BinaryExpr     :: u64
+  expr 23:12    IdentExpr      :: u64
+  expr 23:21    CallExpr       :: u64
+  expr 23:21    IdentExpr      :: type
+  expr 23:31    CallExpr       :: u64
+  expr 23:31    IdentExpr      :: type
+  expr 27:11    CallExpr       :: Err | u64
+  expr 27:11    IdentExpr      :: fn(u64) -> Err | u64
+  expr 27:17    IdentExpr      :: u64
+  expr 27:5     MatchExpr      :: never
+  expr 28:33    CallExpr       :: i32
+  expr 28:33    IdentExpr      :: type
+  expr 28:37    IdentExpr      :: u64
+  expr 29:33    UnaryExpr      :: i32
+  expr 34:13    StringLitExpr  :: string
+  expr 34:21    CallExpr       :: i32
+  expr 34:21    IdentExpr      :: fn(u64) -> i32
+  expr 34:26    CallExpr       :: u64
+  expr 34:26    IdentExpr      :: type
+  expr 34:5     CallExpr       :: void
+  expr 34:5     IdentExpr      :: fn(T) -> void
+  expr 35:13    StringLitExpr  :: string
+  expr 35:22    CallExpr       :: i32
+  expr 35:22    IdentExpr      :: fn(u64) -> i32
+  expr 35:27    CallExpr       :: u64
+  expr 35:27    IdentExpr      :: type
+  expr 35:5     CallExpr       :: void
+  expr 35:5     IdentExpr      :: fn(T) -> void
+  expr 36:13    StringLitExpr  :: string
+  expr 36:21    CallExpr       :: i32
+  expr 36:21    IdentExpr      :: fn(u64) -> i32
+  expr 36:26    CallExpr       :: u64
+  expr 36:26    IdentExpr      :: type
+  expr 36:5     CallExpr       :: void
+  expr 36:5     IdentExpr      :: fn(T) -> void
