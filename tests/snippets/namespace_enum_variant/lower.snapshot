@@ -1,0 +1,67 @@
+# Lower
+
+## snippet
+  fn snippet$green_code() -> i32
+    ~>
+      cast → i32
+        int(1) :u8
+  fn snippet$name_of(c: Color) -> string
+    if :void
+      cond:
+        eq :bool
+          l:
+            c :Color
+          r:
+            int(0) :u8
+      then:
+        return "red" :string
+    if :void
+      cond:
+        eq :bool
+          l:
+            c :Color
+          r:
+            int(1) :u8
+      then:
+        return "green" :string
+    return "blue" :string
+  fn snippet$main() -> i32
+    call :void
+      callee:
+        println :void
+      arg0:
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0 :?
+            "green_code=" :string
+          @builder.append_display <for i32> :void
+            __sb_0 :?
+            call :i32
+              callee:
+                green_code :fn() -> i32
+          ~>
+            @builder.finish :string
+              __sb_0 :?
+    call :void
+      callee:
+        println :void
+      arg0:
+        block :string
+          let __sb_1: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_1 :?
+            "name=" :string
+          @builder.append_display <for string> :void
+            __sb_1 :?
+            call :string
+              callee:
+                name_of :fn(Color) -> string
+              arg0:
+                int(2) :u8
+          ~>
+            @builder.finish :string
+              __sb_1 :?
+    return int(0) :i32

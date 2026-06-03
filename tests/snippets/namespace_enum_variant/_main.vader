@@ -1,0 +1,28 @@
+// `alias.Enum.Variant` — namespace-qualified enum-variant access in value
+// position. The variant chain `P.Color.Green` parses as
+// `FieldExpr(FieldExpr(Ident "P", "Color"), "Green")` ; the lowerer's
+// `try_lower_enum_field` must fold it to the variant index even though the
+// target (`P.Color`) is a namespace FieldExpr, not a bare enum ident. Without
+// the fix `P` is an unresolved ident and the whole expression drops. Guards
+// the Vader self-emit path (the suite otherwise runs TS-emitted bytecode here).
+
+module "snippet"
+
+import "std/io" { println }
+P :: import "snippet/palette"
+
+// Namespace enum-variant as a value, cast to its repr.
+green_code :: fn() -> i32 = i32(P.Color.Green)
+
+// Namespace enum-variant as a match scrutinee value + comparison.
+name_of :: fn(c: P.Color) -> string {
+    if c == P.Color.Red   { return "red" }
+    if c == P.Color.Green { return "green" }
+    return "blue"
+}
+
+main :: fn() -> i32 {
+    println("green_code=${green_code()}")
+    println("name=${name_of(P.Color.Blue)}")
+    return 0
+}

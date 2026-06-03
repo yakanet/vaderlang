@@ -1,0 +1,10 @@
+// Sub-module exporting an enum. Reached from `_main` via a namespace
+// import (`P :: import "snippet/palette"`) so `P.Color.Green` exercises
+// namespace-qualified enum-variant access.
+module "snippet/palette"
+
+export Color :: enum(u8) {
+    Red,
+    Green,
+    Blue,
+}

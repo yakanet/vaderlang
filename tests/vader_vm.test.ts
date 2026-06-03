@@ -141,6 +141,12 @@ const VADER_SELF_EMIT = new Set<string>([
   // TS-emitted bytecode for these, never exercising the Vader emitter.)
   "if_is_as_bind",
   "is_as_field_narrow",
+  // `alias.Enum.Variant` — namespace-qualified enum-variant access in value
+  // position (`P.Color.Green`). The lowerer's `try_lower_enum_field` must fold
+  // it to the variant index even though the target (`P.Color`) is a namespace
+  // FieldExpr, not a bare enum ident — else `P` is an unresolved ident and the
+  // expression drops. (Mirrors the compiler's own `AST.BinaryOp.Is`.)
+  "namespace_enum_variant",
   // A module-level `const T[]` of ≥4 struct literals (mirror of the compiler's
   // own `INTRINSICS`) referenced in a for-loop. Guards the `inline_consts`
   // fn-wrap path : the const lowers to a synthetic `__const_SPECS` accessor fn

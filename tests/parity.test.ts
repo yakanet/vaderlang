@@ -100,7 +100,11 @@ const BYTECODE_DIVERGENT_SNIPPETS: ReadonlySet<string> = new Set<string>([
   "match_literal_patterns", "match_partial",
   "match_struct_pattern_binding", "match_struct_pattern_in_union", "match_union",
   "match_wildcard_narrow", "multiline_string", "mutable_map", "mutable_map_string",
-  "mutable_set", "namespace_call_nongeneric", "namespace_import",
+  "mutable_set", "namespace_call_nongeneric",
+  // Namespace-qualified enum-variant access : the accessor body matches TS, but
+  // emitting it shifts the type/string interning order (the §9 class). Self-host
+  // correctness via VADER_SELF_EMIT.
+  "namespace_enum_variant", "namespace_import",
   "nested_field_narrow", "null_blockres",
   "numeric_add_trait", "numeric_context_sensitivity", "numerics", "op_not_is",
   "op_overload_arith", "op_overload_compound", "op_overload_eq_ord",

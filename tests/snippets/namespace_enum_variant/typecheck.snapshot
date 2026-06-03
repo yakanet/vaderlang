@@ -1,0 +1,35 @@
+# Typecheck
+
+## tests/snippets/namespace_enum_variant
+  FnDecl         green_code           :: fn() -> i32
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         name_of              :: fn(Color) -> string
+  expr 15:29    CallExpr       :: i32
+  expr 15:29    IdentExpr      :: type
+  expr 15:33    FieldExpr      :: Color
+  expr 15:33    FieldExpr      :: Color
+  expr 19:13    FieldExpr      :: Color
+  expr 19:13    FieldExpr      :: Color
+  expr 19:36    StringLitExpr  :: string
+  expr 19:5     IfExpr         :: void
+  expr 19:8     BinaryExpr     :: bool
+  expr 19:8     IdentExpr      :: Color
+  expr 20:13    FieldExpr      :: Color
+  expr 20:13    FieldExpr      :: Color
+  expr 20:36    StringLitExpr  :: string
+  expr 20:5     IfExpr         :: void
+  expr 20:8     BinaryExpr     :: bool
+  expr 20:8     IdentExpr      :: Color
+  expr 21:12    StringLitExpr  :: string
+  expr 25:13    StringLitExpr  :: string
+  expr 25:27    CallExpr       :: i32
+  expr 25:27    IdentExpr      :: fn() -> i32
+  expr 25:5     CallExpr       :: void
+  expr 25:5     IdentExpr      :: fn(T) -> void
+  expr 26:13    StringLitExpr  :: string
+  expr 26:21    CallExpr       :: string
+  expr 26:21    IdentExpr      :: fn(Color) -> string
+  expr 26:29    FieldExpr      :: Color
+  expr 26:29    FieldExpr      :: Color
+  expr 26:5     CallExpr       :: void
+  expr 26:5     IdentExpr      :: fn(T) -> void

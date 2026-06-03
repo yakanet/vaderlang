@@ -1881,11 +1881,8 @@ try_lower_namespace_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> L
     callee :: call.callee
     match callee {
         is FieldExpr as field_expr -> {
-            target_ident :: as_ident(field_expr.target)
-            if target_ident is null { return null }
-            namespace_symbol :: ctx.typed.resolved.idents[target_ident.span.hash()]
+            namespace_symbol :: as_namespace_binding(ctx, field_expr.target)
             if namespace_symbol is null { return null }
-            if i32(namespace_symbol.kind) != i32(SymbolKind.ImportBinding) { return null }
             member_symbol :: resolve_namespace_member(ctx, namespace_symbol, field_expr.field)
             // A stdlib member reached only through the namespace form
             // (`io.println`) still needs harvesting — its body is skipped by
@@ -2448,27 +2445,48 @@ lower_dot_variant :: fn(ctx: FnLowerCtx, expr: DotVariantExpr, type: Type) -> Lo
 // the field name matches a variant. Returns null when either check
 // fails ; caller falls back to a regular field-access lowering.
 try_lower_enum_field :: fn(ctx: FnLowerCtx, expr: FieldExpr, type: Type) -> LoweredExpr | null {
-    match expr.target {
-        is IdentExpr as target_ident -> {
-            target_type :: ctx.types.expr_type(target_ident)
-            enum_type :: enum_type_or_unwrap(ctx, target_type)
-            match enum_type {
-                is EnumType as et -> {
-                    index :: et.indices[expr.field]
-                    match index {
-                        is null -> { return null }
-                        is i64 as value -> {
-                            return LoweredIntLit {
-                                .span = expr.span, .type = mk_primitive(et.repr), .value = value,
-                            }
-                        }
-                    }
-                }
-                _ -> { return null }
+    // Fold only when the target's type is an enum AND the target syntactically
+    // NAMES that enum (not a runtime enum-valued expression) : a bare ident
+    // (`Enum.Variant`) or a namespace member (`alias.Enum.Variant`, the receiver
+    // an `ImportBinding`). The type check runs first so a plain `struct.field`
+    // access bails before the (slightly costlier) syntactic gate — and the gate
+    // keeps `value.enumField.Variant` (an enum-VALUED field) on the field path.
+    target_type :: ctx.types.expr_type(expr.target)
+    enum_type :: enum_type_or_unwrap(ctx, target_type)
+    if enum_type is EnumType as et {
+        if !target_is_enum_name(ctx, expr.target) { return null }
+        index :: et.indices[expr.field]
+        if index is i64 as value {
+            return LoweredIntLit {
+                .span = expr.span, .type = mk_primitive(et.repr), .value = value,
             }
         }
-        _ -> { return null }
     }
+    return null
+}
+
+// True when `target` syntactically names an enum TYPE (not a runtime value) :
+// a bare ident (`Enum`) or a namespace member (`alias.Enum`, the receiver
+// resolving to an `ImportBinding`). Guards `try_lower_enum_field` so it only
+// folds variant accesses, never a real field read off an enum-typed value.
+target_is_enum_name :: fn(ctx: FnLowerCtx, target: Expr) -> bool {
+    if target is IdentExpr { return true }
+    if target is FieldExpr as fe { return !(as_namespace_binding(ctx, fe.target) is null) }
+    return false
+}
+
+// Resolve `expr` to its namespace import-binding symbol when it is the bare
+// alias ident of a `<alias>.<member>` access (kind `ImportBinding`) ; null
+// otherwise. Shared by `try_lower_namespace_call` (member calls, passing the
+// callee's `field_expr.target`) and `try_lower_enum_field` (namespace-qualified
+// enum variants, passing the enum FieldExpr's receiver).
+as_namespace_binding :: fn(ctx: FnLowerCtx, expr: Expr) -> Symbol | null {
+    ident :: as_ident(expr)
+    if ident is null { return null }
+    sym :: ctx.typed.resolved.idents[ident.span.hash()]
+    if sym is null { return null }
+    if i32(sym.kind) == i32(SymbolKind.ImportBinding) { return sym }
+    return null
 }
 
 // Unwrap the StructType-as-Enum placeholder if needed (same trick as
