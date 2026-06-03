@@ -1,0 +1,90 @@
+module _main
+type 0 primitive null
+type 1 struct snippet$Box { opt:4 }
+type 2 primitive i32
+type 3 struct snippet$Inner { tag:2 }
+type 4 union 3,0
+type 5 primitive string
+type 6 primitive void
+string 0 "hit="
+string 1 " miss="
+string 2 "\n"
+import 0 to_string std_core$string$Display$to_string (string) -> string
+import 1 write std_io$write (i32,string) -> void
+export main 1
+
+fn 0 snippet$tag_of (ref) -> i32
+  local.field 0 1 0
+  type_check 0
+  bool.not
+  if $L0 void
+    local.field 0 1 0
+    struct.get 3 0
+    ref.cast 2
+    return
+  end $L0
+  i32.const 1
+  i32.neg
+  return
+end
+
+fn 1 snippet$main () -> i32
+  local hit i32
+  local miss i32
+  local __sb_0 any
+  i32.const 7
+  struct.new 3
+  struct.new 1
+  call 0
+  local.set 0
+  null.const
+  struct.new 1
+  call 0
+  local.set 1
+  intrinsic builder.new
+  local.set 2
+  local.get 2
+  string.const 0
+  intrinsic builder.append_str
+  local.get 2
+  local.get 0
+  intrinsic builder.append_display
+  local.get 2
+  string.const 1
+  intrinsic builder.append_str
+  local.get 2
+  local.get 1
+  intrinsic builder.append_display
+  local.get 2
+  intrinsic builder.finish
+  call 2
+  local.get 0
+  return
+end
+
+fn 2 std_io$std_io$println__string (string) -> void
+  local $call_2 string
+  local.get 0
+  call 3
+  local.set 1
+  i32.const 0
+  local.get 1
+  call 4
+  i32.const 0
+  string.const 2
+  call 4
+  return
+end
+
+fn 3 std_core$string$Display$to_string$vt (string) -> string
+  local.get 0
+  call.import 0
+  return
+end
+
+fn 4 std_io$write$vt (i32,string) -> void
+  local.get 0
+  local.get 1
+  call.import 1
+  return
+end

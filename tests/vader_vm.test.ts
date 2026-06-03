@@ -147,6 +147,13 @@ const VADER_SELF_EMIT = new Set<string>([
   // sign wrong. This is the compiler's own `repr_range("i32").min`, mis-emitted
   // as `+2147483648`, which broke the enum backing-range (T3030) check.
   "i64_const_width",
+  // `if !(x.field is null) { … x.field.<sub> … }` — narrowing a FIELD through a
+  // NEGATED `is null` then-block guard. The Not case of the then-block detector
+  // swapped then/else but dropped `field_key`, so `x.field` kept `T | null` and
+  // `x.field.<sub>` dropped. This is the compiler's own `build_if`'s
+  // `if e.else_block !is null { … e.else_block.span … }` — every if-with-else
+  // (for-loops, matches → if-chains) lost its else handling.
+  "field_not_null_narrow",
   // A CHAIN of divergent `is`-guards ending in `!(x is T) { return }`, then a
   // field access on the narrowed `x`. The `!(x is T)` complement must compose
   // from the already-narrowed type, not re-widen to the declared union — else a

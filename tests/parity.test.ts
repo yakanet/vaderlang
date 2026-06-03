@@ -84,7 +84,7 @@ const BYTECODE_DIVERGENT_SNIPPETS: ReadonlySet<string> = new Set<string>([
   // Field-chain `is`-narrowing : accessor body matches TS, but emitting it
   // shifts the type/string interning order (§9 class). Self-host correctness
   // via VADER_SELF_EMIT.
-  "field_is_narrow",
+  "field_is_narrow", "field_not_null_narrow",
   "as_string_roundtrip",
   "for_in_into_iter", "for_in_iter_trait", "for_range",
   "for_range_sugar", "format_helpers", "gc_array_survive", "gc_chain_survive",

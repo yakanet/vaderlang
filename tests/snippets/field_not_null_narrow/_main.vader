@@ -1,0 +1,37 @@
+// `if !(x.field is null) { … x.field.<sub> … }` — narrowing a FIELD through a
+// NEGATED `is null` guard in the then-block (not a divergent guard). The Not
+// case of the then-block narrowing detector swapped then/else but DROPPED the
+// `field_key`, so the swap recorded a symbol narrowing instead of a field one ;
+// `x.field` in the then-block kept its `T | null` type and `x.field.<sub>`
+// degraded to a drop. This is the compiler's own `build_if`:
+// `if e.else_block !is null { … e.else_block.span … }`, which dropped — so
+// every `if`-expression with an else-block lost its else handling (for-loops,
+// matches → if-chains). Guards the field-Not-null narrowing on the Vader
+// self-emit path.
+
+module "snippet"
+
+import "std/io" { println }
+
+Inner :: struct {
+    tag: i32
+}
+
+Box :: struct {
+    opt: Inner | null
+}
+
+// `!(b.opt is null)` then read `b.opt.tag` in the then-block.
+tag_of :: fn(b: Box) -> i32 {
+    if !(b.opt is null) {
+        return b.opt.tag
+    }
+    return -1
+}
+
+main :: fn() -> i32 {
+    hit  :: tag_of(Box { .opt = Inner { .tag = 7 } })
+    miss :: tag_of(Box { .opt = null })
+    println("hit=${hit} miss=${miss}")
+    return hit
+}

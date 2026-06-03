@@ -1,0 +1,63 @@
+# Lower
+
+## snippet
+  struct snippet$Inner { tag: i32 }
+  struct snippet$Box { opt: Inner | null }
+  fn snippet$tag_of(b: Box) -> i32
+    if :void
+      cond:
+        not :bool
+          is null :bool
+            .opt :Inner | null
+              b :Box
+      then:
+        return
+          .tag :i32
+            .opt :Inner
+              b :Box
+    return
+      neg :i32
+        int(1) :i32
+  fn snippet$main() -> i32
+    let hit: i32 =
+      call :i32
+        callee:
+          tag_of :fn(Box) -> i32
+        arg0:
+          Box {
+            opt:
+              Inner {
+                tag: int(7) :i32
+              }
+          }
+    let miss: i32 =
+      call :i32
+        callee:
+          tag_of :fn(Box) -> i32
+        arg0:
+          Box {
+            opt: null
+          }
+    call :void
+      callee:
+        println :void
+      arg0:
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0 :?
+            "hit=" :string
+          @builder.append_display <for i32> :void
+            __sb_0 :?
+            hit :i32
+          @builder.append_str :void
+            __sb_0 :?
+            " miss=" :string
+          @builder.append_display <for i32> :void
+            __sb_0 :?
+            miss :i32
+          ~>
+            @builder.finish :string
+              __sb_0 :?
+    return hit :i32

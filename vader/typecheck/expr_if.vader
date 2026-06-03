@@ -133,7 +133,11 @@ IsNarrow :: struct {
 detect_is_narrow :: fn(
     cond: AST.Expr, typed: TypedProgram, diags: Diagnostic[],
 ) -> IsNarrow | null {
-    // `!(x is T)` flips the two arms — peel the Not, then swap.
+    // `!(x is T)` flips the two arms — peel the Not, then swap. Carry
+    // `field_key` so a field scrutinee (`!(b.opt is null)`) still narrows the
+    // FIELD in the then-block — without it the swap records a symbol narrowing
+    // (field_key "") and `b.opt.<sub>` in the then-block keeps the union type
+    // and degrades (the compiler's own `build_if` `e.else_block.span`).
     if cond is AST.UnaryExpr {
         if i32(cond.op) == i32(AST.UnaryOp.Not) {
             inner :: detect_is_narrow(cond.operand, typed, diags)
@@ -143,6 +147,7 @@ detect_is_narrow :: fn(
                 .static_ty = inner.static_ty,
                 .then_ty   = inner.else_ty,
                 .else_ty   = inner.then_ty,
+                .field_key = inner.field_key,
             }
         }
     }
