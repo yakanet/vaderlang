@@ -128,7 +128,12 @@ const BYTECODE_DIVERGENT_SNIPPETS: ReadonlySet<string> = new Set<string>([
   "std_sort", "std_string", "std_string_builder", "std_time", "string_bytes",
   "string_bytes_const_write", "string_bytes_gc",
   "string_chars", "string_codepoint_slice", "string_codepoints", "strings",
-  "struct_decl", "struct_defaults", "struct_lit_field_order",
+  "struct_decl",
+  // Cross-module struct default (const from the owning module) : accessor body
+  // matches TS, only the type/string interning order diverges (§9 class). Self-host
+  // correctness via VADER_SELF_EMIT.
+  "struct_default_cross_module",
+  "struct_defaults", "struct_lit_field_order",
   "struct_name_collision", "struct_spread",
   // Standard string-pool / import interning-order divergence (the dominant
   // §9 class), not a `todo`-specific gap — todo_stub uses `println` + string

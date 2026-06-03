@@ -1,0 +1,162 @@
+# AST
+{
+  "kind": "Program",
+  "module": {
+    "kind": "ModuleDecl",
+    "name": "snippet"
+  },
+  "decls": [
+    {
+      "kind": "ImportDecl",
+      "path": "std/io",
+      "binding": {
+        "kind": "destructure",
+        "names": [
+          {
+            "name": "println",
+            "alias": null
+          }
+        ]
+      },
+      "decorators": []
+    },
+    {
+      "kind": "ImportDecl",
+      "path": "snippet/shapes",
+      "binding": {
+        "kind": "destructure",
+        "names": [
+          {
+            "name": "Node",
+            "alias": null
+          }
+        ]
+      },
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "main",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "i32"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "n"
+            },
+            "type": null,
+            "value": {
+              "kind": "StructLitExpr",
+              "typeName": {
+                "kind": "IdentExpr",
+                "name": "Node"
+              },
+              "items": [
+                {
+                  "kind": "field",
+                  "name": "name",
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "x"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "name="
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "FieldExpr",
+                          "target": {
+                            "kind": "IdentExpr",
+                            "name": "n"
+                          },
+                          "field": "name"
+                        }
+                      },
+                      {
+                        "kind": "text",
+                        "value": " id="
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "FieldExpr",
+                          "target": {
+                            "kind": "IdentExpr",
+                            "name": "n"
+                          },
+                          "field": "id"
+                        }
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "i32"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "FieldExpr",
+                    "target": {
+                      "kind": "IdentExpr",
+                      "name": "n"
+                    },
+                    "field": "id"
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    }
+  ]
+}

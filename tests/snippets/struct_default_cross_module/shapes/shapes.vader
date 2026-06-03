@@ -1,0 +1,12 @@
+// A struct in a sub-module whose field DEFAULT references a const declared in
+// THIS module. When `_main` (another module) builds `Node` omitting `.id`, the
+// lowerer must resolve the default `DEFAULT_ID` against THIS module's tables,
+// not the construction site's — see `_main`.
+module "snippet/shapes"
+
+export DEFAULT_ID :: usize(99)
+
+export Node :: struct {
+    name: string
+    id:   usize = DEFAULT_ID
+}

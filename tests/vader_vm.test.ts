@@ -154,6 +154,13 @@ const VADER_SELF_EMIT = new Set<string>([
   // `if e.else_block !is null { … e.else_block.span … }` — every if-with-else
   // (for-loops, matches → if-chains) lost its else handling.
   "field_not_null_narrow",
+  // Building a foreign struct while OMITTING a field whose default references a
+  // const in the struct's OWNING module (`id: usize = DEFAULT_ID`). The default's
+  // AST lives in that module, so lowering it with the construction site's context
+  // left the const unresolved → the struct literal dropped. This is the compiler's
+  // own `simple_placeholder` building `SimpleBinding` (default `UNASSIGNED_NODE_ID`
+  // from vader/parser), which broke nested tuple destructuring.
+  "struct_default_cross_module",
   // A CHAIN of divergent `is`-guards ending in `!(x is T) { return }`, then a
   // field access on the narrowed `x`. The `!(x is T)` complement must compose
   // from the already-narrowed type, not re-widen to the declared union — else a

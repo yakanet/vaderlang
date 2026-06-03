@@ -2530,6 +2530,26 @@ enum_type_or_unwrap :: fn(ctx: FnLowerCtx, type: Type) -> Type {
     }
 }
 
+// Return a `FnLowerCtx` whose `typed` / `types` view belongs to `module_id`,
+// so an AST expr that originated in that module (a struct field DEFAULT from a
+// foreign struct decl) resolves its idents / expr-types against the right
+// module's tables instead of the construction site's. No-op (returns `ctx`)
+// when the module isn't in the project's typed set. Mirror of TS'
+// `findForeignTyped` + the `typed`/`types` swap in `lowerExprMaybeForeign`.
+ctx_in_owning_module :: fn(ctx: FnLowerCtx, module_id: string) -> FnLowerCtx {
+    owner_typed :: ctx.project.evaluated.typed.modules[module_id]
+    if owner_typed is null { return ctx }
+    // Keeps the caller's `subst`. A GENERIC struct's default that references the
+    // struct's own type-param (`Container(T) { data: T = mk_T() }`) would need
+    // the instance's type-args merged in (TS' `extraSubst`) ; none exist in the
+    // tree today, so that's deferred — the const-default case needs no subst.
+    return FnLowerCtx {
+        ...ctx,
+        .typed = owner_typed,
+        .types = make_entry_types(owner_typed, ctx.subst),
+    }
+}
+
 build_struct_lit_fields :: fn(
     ctx: FnLowerCtx, type: Type,
     provided: MutableMap<string, Expr>, lit: StructLitExpr,
@@ -2540,6 +2560,15 @@ build_struct_lit_fields :: fn(
         is StructType as st -> {
             decl :: ctx.typed.struct_decls[st.symbol.id]
             if decl is null { return fallback_provided_order(ctx, lit) }
+            // A field DEFAULT (`id: usize = UNASSIGNED_NODE_ID`) is an AST expr
+            // from the struct's OWNING module. Lowering it with the construction
+            // site's `ctx` resolves its idents against the wrong `resolved.idents`
+            // (the spans belong to another module's parse), so a const default
+            // like `UNASSIGNED_NODE_ID` (vader/parser) is unresolved when the
+            // struct is built in vader/lower → the whole struct lit degrades to a
+            // drop. Lower defaults with the owning module's typed view. Mirror of
+            // TS' `lowerExprMaybeForeign` (src/lower/passes/expr.ts).
+            default_ctx :: ctx_in_owning_module(ctx, st.symbol.module)
             for field_decl in decl.fields {
                 // Resolve the field's declared type so a union-typed
                 // field widens literal initializers (e.g.
@@ -2566,7 +2595,7 @@ build_struct_lit_fields :: fn(
                     if field_decl.default != null {
                         out.push(LoweredStructLitField {
                             .name = field_decl.name,
-                            .value = lower_field_value(ctx, field_decl.default, field_type, field_decl.span),
+                            .value = lower_field_value(default_ctx, field_decl.default, field_type, field_decl.span),
                         })
                     }
                 } else {
