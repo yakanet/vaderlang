@@ -1161,20 +1161,43 @@ materialize_generic_fn_instances :: fn(
     // transitive instance in one pass ; `processed` dedups duplicate
     // `(symbol, args)` discoveries. Re-indexing by position is safe
     // across reallocs.
+    // Joint fixpoint over fn instances AND erased generic-struct impl
+    // receivers (`pending_generic_impl_recv`). Both cursors only grow ;
+    // materialising a receiver's impl members harvests transitive free fns
+    // (`MutableMap.contains` → `contains_key`) into `fn_instances_order`, and
+    // building a fn instance body can queue further erased receivers, so the
+    // two drain to a shared fixpoint via a single growing-cursor loop.
     i: usize = 0
-    for i < project_ctx.fn_instances_order.len() {
-        inst :: project_ctx.fn_instances_order[i]
-        i += 1
-        key :: fn_instance_key(inst)
-        if processed[key] != null { continue }
-        processed[key] = true
-        // The comptime harvest (`harvest_instances`) does not observe
-        // generic fn calls today ; the lowerer's own probe is
-        // authoritative, so we don't gate on the mono table.
-        built :: build_fn_instance_decl(inst, key, loaded, typed, project_ctx, diags)
-        match built {
-            is null -> {}
-            is PendingFnInstance as p -> { collected.push(p) }
+    ri: usize = 0
+    for i < project_ctx.fn_instances_order.len() || ri < project_ctx.pending_generic_impl_recv.len() {
+        for i < project_ctx.fn_instances_order.len() {
+            inst :: project_ctx.fn_instances_order[i]
+            i += 1
+            key :: fn_instance_key(inst)
+            if processed[key] != null { continue }
+            processed[key] = true
+            // The comptime harvest (`harvest_instances`) does not observe
+            // generic fn calls today ; the lowerer's own probe is
+            // authoritative, so we don't gate on the mono table.
+            built :: build_fn_instance_decl(inst, key, loaded, typed, project_ctx, diags)
+            match built {
+                is null -> {}
+                is PendingFnInstance as p -> { collected.push(p) }
+            }
+        }
+        // Materialise each queued erased generic-struct instance's impl members
+        // (`MutableMap<Any, bool>.Contains.contains__Any__bool`). Its instance
+        // never reaches `evaluated.instances`, so the regular worklist skips it
+        // — but a deduped erased free-fn body still calls into it. Reuses the
+        // concrete-instance materialiser ; deduped against the worklist via
+        // `materialized_impl_keys`.
+        for ri < project_ctx.pending_generic_impl_recv.len() {
+            recv :: project_ctx.pending_generic_impl_recv[ri]
+            ri += 1
+            owner_typed :: typed.modules[recv.symbol.module]
+            if owner_typed is TypedProgram as ot {
+                materialize_impl_members_for(recv, ot, project_ctx, project, loaded, typed, diags)
+            }
         }
     }
     // Erasure-dedupe : every instance of a NON-trait-dispatching free
@@ -1731,7 +1754,7 @@ materialize_one_instance :: fn(
                 // `Return` arm in the CFG emit. Whole-program DCE
                 // (`prune_unreachable_fns`) culls anything the user never
                 // reaches, so over-materialising is safe.
-                materialize_impl_members_for(inst, owner_decls, owner_typed_ok, project_ctx, project, loaded, typed, diags)
+                materialize_impl_members_for(inst, owner_typed_ok, project_ctx, project, loaded, typed, diags)
             }
         }
     }
@@ -2235,7 +2258,7 @@ resolve_field_type :: fn(
 }
 
 materialize_impl_members_for :: fn(
-    inst: GenericInstance, owner_decls: Decl[], owner_typed: TypedProgram,
+    inst: GenericInstance, owner_typed: TypedProgram,
     project_ctx: LowerProjectCtx, project: LoweredProject,
     loaded: LoadedProject, typed: TypedProject, diags: Diagnostic[],
 ) -> void {

@@ -45,6 +45,7 @@ import "vader/comptime" {
 import "vader/comptime" { EvaluatedProgram }
 import "vader/comptime" { byte_size, byte_align }
 import "vader/comptime" { mangle_type_arg }
+import "vader/comptime" { GenericInstance }
 import "vader/typecheck" { type_to_target_symbol, has_user }
 import "vader/resolver" { ImportTargetTable, SymbolTarget }
 import "vader/parser" { ConstDecl, ImplDecl, StructDecl }
@@ -1681,6 +1682,26 @@ find_impl_member_for :: fn(ctx: FnLowerCtx, target_type: Type, method_name: stri
             // body per element (substituting `T → element` so `==` devirtualises).
             if target_type is ArrayType as arr_ty {
                 ctx.project.array_contains_elems[mangled] = arr_ty.element
+            }
+            // Generic-struct receiver (`MutableMap<Any, bool>`) : the regular
+            // materialiser only covers instances in `evaluated.instances`, so an
+            // ERASED receiver reached only from a deduped erased free-fn body
+            // (`add`'s `value in self.inner`) never gets its impl members. Queue
+            // it for `materialize_generic_fn_instances` to materialise — the
+            // struct analogue of `array_contains_elems`. Deduped per receiver so
+            // a concrete instance already covered by the worklist is a no-op.
+            if target_type is StructType as recv_struct {
+                if entry.is_generic {
+                    recv_key :: "${recv_struct.symbol.name}${mixed_any_suffix(recv_struct.args)}"
+                    if !ctx.project.seen_generic_impl_recv.contains(recv_key) {
+                        ctx.project.seen_generic_impl_recv.add(recv_key)
+                        ctx.project.pending_generic_impl_recv.push(GenericInstance {
+                            .symbol      = recv_struct.symbol,
+                            .args        = recv_struct.args,
+                            .display_key = recv_key,
+                        })
+                    }
+                }
             }
             return UfcsMember {
                 .symbol = Symbol {

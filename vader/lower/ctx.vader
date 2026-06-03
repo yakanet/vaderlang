@@ -19,6 +19,7 @@ import "vader/typecheck" { ImplRegistry, new_registry }
 import "vader/typecheck" { Substitution, new_substitution }
 import "vader/comptime" { EvaluatedProject }
 import "vader/comptime" { ComptimeValue }
+import "vader/comptime" { GenericInstance }
 import "vader/comptime" { MonoProject, MonoEntry, new_mono_project }
 import "vader/resolver" { LoadedProject }
 
@@ -188,6 +189,17 @@ export LowerProjectCtx :: struct {
     /// the regular generic-impl materialiser).
     array_contains_elems: MutableMap<string, Type>
 
+    /// Erased generic-struct impl-member receivers (`MutableMap<Any, bool>`)
+    /// discovered by `find_impl_member_for` — their instance never reaches
+    /// `evaluated.instances` (erasure artifacts, not source-level). Drained
+    /// inside the `materialize_generic_fn_instances` fixpoint so the impl
+    /// bodies' transitive free-fn harvests stay on the same cursor. Struct
+    /// analogue of `array_contains_elems`.
+    pending_generic_impl_recv: GenericInstance[]
+    /// Receiver keys already queued, so each erased instance is queued once
+    /// (bounds the queue + avoids redundant per-receiver module scans).
+    seen_generic_impl_recv: MutableSet<string>
+
     diags:               Diagnostic[]
 }
 
@@ -234,6 +246,10 @@ export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedPr
             .inner = MutableMap<string, bool> { .buckets = [], .size = usize(0) },
         },
         .array_contains_elems = MutableMap<string, Type> { .buckets = [], .size = usize(0) },
+        .pending_generic_impl_recv = [],
+        .seen_generic_impl_recv = MutableSet<string> {
+            .inner = MutableMap<string, bool> { .buckets = [], .size = usize(0) },
+        },
         .synth_decls         = [],
         .next_synthetic_id   = i32(-1),
         .diags               = [],
