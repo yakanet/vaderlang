@@ -79,10 +79,15 @@ export lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
             // value position. Lower to the variant's integer index
             // (matches `lower_dot_variant`'s context-resolved path).
             enum_variant :: try_lower_enum_field(ctx, e, type)
-            match enum_variant {
-                is null -> {}
-                _ -> { return enum_variant }
-            }
+            if enum_variant != null { return enum_variant }
+            // `alias.CONST` — a const reached through a namespace import
+            // (`AST.UNASSIGNED_NODE_ID`). The `alias` ident is an ImportBinding,
+            // so the FieldExpr never resolves as a value field ; fold it like a
+            // bare const reference instead, else the `alias` ident is unresolved
+            // and the enclosing expression (a struct literal `.id = AST.UNASSIGNED_
+            // NODE_ID`, …) degrades to a drop.
+            ns_const :: try_lower_namespace_const(ctx, e, type)
+            if ns_const != null { return ns_const }
             // Tuple `t.0` → `_0` : tuple types are backed by an anonymous
             // struct whose slots are named `_0`, `_1`, … — mirror the TS
             // lowerer's `isNumeric` rewrite so the dump shows `._0`.
@@ -223,22 +228,8 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
             // fn-wrap routing for byte-parity. Also covers param /
             // import-binding symbols when the resolver chained the
             // ident to the original const symbol via aliasing.
-            baked :: lookup_const_baked_value(ctx, resolved)
-            if baked == null {
-                // Bake missed. For a Const symbol this is most often an
-                // imported-module const (the comptime bake is entry-only) —
-                // recover by lowering the const decl's value at the use site
-                // instead of leaving a bare const ident the CFG builder can't
-                // resolve. Gate on Const kind here so the common baked-miss —
-                // every local / param read — skips try_fold_unbaked_const's
-                // module lookups entirely.
-                if i32(resolved.kind) == i32(SymbolKind.Const) {
-                    unbaked :: try_fold_unbaked_const(ctx, resolved, type)
-                    if unbaked != null { return unbaked }
-                }
-            } else if is_scalar_comptime(baked) {
-                return comptime_value_to_lowered(baked, type, ident.span)
-            }
+            folded :: fold_const_symbol(ctx, resolved, type, ident.span)
+            if folded != null { return folded }
             // Match-arm narrowing : the slot stores the declared union
             // (e.g. `Error | string`), the typed-AST narrows this use to a
             // concrete variant (e.g. `string`) — emit a `LoweredCast` so the
@@ -1937,6 +1928,39 @@ resolve_namespace_member :: fn(ctx: FnLowerCtx, namespace_symbol: Symbol, name: 
         .visibility = Visibility.Private,
         .defined_at = null,
     }
+}
+
+// Fold a const symbol to its lowered value : a comptime-baked scalar inlines
+// directly ; an imported const the entry-only bake missed recovers via
+// `try_fold_unbaked_const`. Returns null for a non-const symbol, or a const
+// whose value isn't a foldable scalar — the caller keeps a real reference.
+// Shared by `lower_ident` (every ident) and `try_lower_namespace_const`.
+fold_const_symbol :: fn(ctx: FnLowerCtx, sym: Symbol, type: Type, span: Span) -> LoweredExpr | null {
+    baked :: lookup_const_baked_value(ctx, sym)
+    if baked == null {
+        // Bake missed. Gate on Const kind so the common baked-miss (every
+        // local / param read) skips `try_fold_unbaked_const`'s module lookups.
+        if i32(sym.kind) == i32(SymbolKind.Const) { return try_fold_unbaked_const(ctx, sym, type) }
+        return null
+    }
+    if is_scalar_comptime(baked) { return comptime_value_to_lowered(baked, type, span) }
+    return null
+}
+
+// `<alias>.CONST` → the const's lowered value. Resolves the member to its real
+// const symbol in the namespace's target module, then folds it via the shared
+// `fold_const_symbol`. Returns null when the target isn't a namespace binding
+// or the member isn't a const — the caller falls through to regular
+// field-access lowering. Without this the `alias` ident is unresolved and the
+// enclosing expression (a struct literal `.id = AST.UNASSIGNED_NODE_ID`, …)
+// degrades to a drop. Mirror of `try_lower_namespace_call` (fn members) /
+// `try_lower_enum_field` (namespace enum variants).
+try_lower_namespace_const :: fn(ctx: FnLowerCtx, e: FieldExpr, type: Type) -> LoweredExpr | null {
+    ns_sym :: as_namespace_binding(ctx, e.target)
+    if ns_sym is null { return null }
+    member :: resolve_namespace_member(ctx, ns_sym, e.field)
+    if i32(member.kind) != i32(SymbolKind.Const) { return null }
+    return fold_const_symbol(ctx, member, type, e.span)
 }
 
 

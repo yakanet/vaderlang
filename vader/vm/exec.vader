@@ -1482,7 +1482,7 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                 frame.pc = frame.pc + 1
             }
             is Drop -> {
-                if frame.sp == 0 { return Trap { .message = "drop on empty stack at pc=${frame.pc}" } }
+                if frame.sp == 0 { return Trap { .message = "drop on empty stack at pc=${frame.pc} in '${body.name}'" } }
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }

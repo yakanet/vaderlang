@@ -1,0 +1,26 @@
+// `alias.CONST` — a const reached through a namespace import, in value position
+// AND inside a struct literal. `C.MAX_RETRIES` parses as
+// `FieldExpr(Ident "C", "MAX_RETRIES")` ; the `C` ident is an ImportBinding, so
+// the lowerer must fold the FieldExpr to the const's value rather than leave `C`
+// unresolved. Without the fix the enclosing expression (here the `Budget`
+// struct literal) degrades to a drop. Mirrors the compiler's own
+// `AST.UNASSIGNED_NODE_ID` used in every substitute_* struct literal. Guards the
+// Vader self-emit path (the suite otherwise runs TS-emitted bytecode here).
+
+module "snippet"
+
+import "std/io" { println }
+C :: import "snippet/config"
+
+Budget :: struct {
+    retries: usize
+    label:   string
+}
+
+mk :: fn() -> Budget = Budget { .retries = C.MAX_RETRIES, .label = C.GREETING }
+
+main :: fn() -> i32 {
+    b :: mk()
+    println("retries=${b.retries} label=${b.label}")
+    return i32(C.MAX_RETRIES)
+}

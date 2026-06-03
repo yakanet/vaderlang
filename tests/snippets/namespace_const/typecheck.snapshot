@@ -1,0 +1,21 @@
+# Typecheck
+
+## tests/snippets/namespace_const
+  StructDecl     Budget               :: Budget
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         mk                   :: fn() -> Budget
+  expr 20:24    StructLitExpr  :: Budget
+  expr 20:44    FieldExpr      :: usize
+  expr 20:68    FieldExpr      :: string
+  expr 23:10    CallExpr       :: Budget
+  expr 23:10    IdentExpr      :: fn() -> Budget
+  expr 24:13    StringLitExpr  :: string
+  expr 24:24    FieldExpr      :: usize
+  expr 24:24    IdentExpr      :: Budget
+  expr 24:43    FieldExpr      :: string
+  expr 24:43    IdentExpr      :: Budget
+  expr 24:5     CallExpr       :: void
+  expr 24:5     IdentExpr      :: fn(T) -> void
+  expr 25:12    CallExpr       :: i32
+  expr 25:12    IdentExpr      :: type
+  expr 25:16    FieldExpr      :: usize

@@ -158,6 +158,12 @@ const VADER_SELF_EMIT = new Set<string>([
   // FieldExpr, not a bare enum ident — else `P` is an unresolved ident and the
   // expression drops. (Mirrors the compiler's own `AST.BinaryOp.Is`.)
   "namespace_enum_variant",
+  // `alias.CONST` — a const reached through a namespace import (`C.MAX_RETRIES`),
+  // in value position and inside a struct literal. The lowerer must fold it to
+  // the const's value, not leave the `C` ImportBinding ident unresolved — else
+  // the enclosing struct literal drops. (Mirrors the compiler's own
+  // `AST.UNASSIGNED_NODE_ID` in every substitute_* struct literal.)
+  "namespace_const",
   // A module-level `const T[]` of ≥4 struct literals (mirror of the compiler's
   // own `INTRINSICS`) referenced in a for-loop. Guards the `inline_consts`
   // fn-wrap path : the const lowers to a synthetic `__const_SPECS` accessor fn
