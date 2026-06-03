@@ -13,7 +13,6 @@ module "vader/cli"
 import "std/io" { println, eprintln, read_file, print }
 import "std/collections" { keys, values, MutableMap }
 import "std/string" { starts_with, ends_with, bytes, as_string }
-import "std/string_builder" { new_builder, append_char, append }
 import "std/iter" { slice as slice_arr }
 import "std/cli" { FlagSpec, parse_known, bool_flag, string_flag }
 import "vader/version" { CLI_VERSION }
@@ -33,6 +32,7 @@ import "vader/comptime" { dump_evaluated }
 import "vader/lower" { lower_project }
 import "vader/lower" { dump_lowered }
 import "vader/lower" { prune_unreachable_fns }
+import "vader/lower" { mangle_module_id }
 import "vader/bytecode" { emit_project }
 import "vader/bytecode" { default_emit_options }
 import "vader/bytecode" { dump_bytecode }
@@ -599,15 +599,7 @@ run_c_stage :: fn(file: string) -> i32 {
 entry_main_name :: fn(typed: TypedProject, entry: string) -> string {
     tp :: typed.modules[entry]
     if tp == null { return "" }
-    sb :: new_builder()
-    for c in tp.resolved.display_path {
-        if c == '/'      { sb.append_char('_') }
-        else if c == '.' { sb.append_char('_') }
-        else             { sb.append_char(c) }
-    }
-    sb.append_char('$')
-    sb.append("main")
-    return "${sb}"
+    return "${mangle_module_id(tp.resolved.display_path)}\$main"
 }
 
 module_name_from_file :: fn(file: string) -> string {

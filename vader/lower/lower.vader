@@ -1077,19 +1077,7 @@ decl_name_span :: fn(decl: Decl) -> Span | null {
     }
 }
 
-// Slash-and-dot → underscore substitution. Matches the TS prefix the
-// lowerer's `mangled` field renders against.
-mangle_module_id :: fn(module_id: string) -> string {
-    sb := new_builder()
-    for c in module_id {
-        if c == '/' { sb.append_char('_') }
-        else if c == '.' { sb.append_char('_') }
-        else { sb.append_char(c) }
-    }
-    return sb.to_string()
-}
-
-import "std/string_builder" { new_builder, append, append_char }
+import "std/string_builder" { new_builder, append }
 
 // Recover the source name from any top-level decl. Used for the stub
 // entry's `mangled` field ; Phase 3 will switch to the proper mangled

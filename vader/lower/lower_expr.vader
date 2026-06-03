@@ -1040,7 +1040,7 @@ try_lower_generic_fn_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> 
                 // module so `build_fn_instance_decl` finds the AST decl.
                 module_id :: fn_sym.module
                 display :: lookup_module_display_path(ctx, module_id)
-                mod_mangle :: mangle_module_id_local(if display == null { module_id } else { display })
+                mod_mangle :: mangle_module_id(if display == null { module_id } else { display })
                 suffix :: mono_suffix(concrete_args)
                 mangled :: "${mod_mangle}$${mod_mangle}$${fn_sym.name}${suffix}"
                 // Register the instance for materialisation at the end
@@ -1116,7 +1116,7 @@ register_and_emit_generic_call :: fn(
     // the call drops. Mirrors the harvest path at line 1372.
     module_id :: fn_sym.module
     display :: lookup_module_display_path(ctx, module_id)
-    mod_mangle :: mangle_module_id_local(if display == null { module_id } else { display })
+    mod_mangle :: mangle_module_id(if display == null { module_id } else { display })
     suffix :: mono_suffix(concrete_args)
     mangled :: "${mod_mangle}$${mod_mangle}$${fn_sym.name}${suffix}"
     inst_key :: "${fn_sym.id}::${suffix}"
@@ -1314,16 +1314,6 @@ mono_suffix :: fn(args: Type[]) -> string {
     for a in args {
         sb.append("__")
         sb.append(mangle_type_arg(a))
-    }
-    return sb.to_string()
-}
-
-mangle_module_id_local :: fn(module_id: string) -> string {
-    sb := new_builder_for_mangle()
-    for c in module_id {
-        if c == '/' { sb.append_char('_') }
-        else if c == '.' { sb.append_char('_') }
-        else { sb.append_char(c) }
     }
     return sb.to_string()
 }
@@ -1553,7 +1543,7 @@ harvest_ufcs_fn_instance :: fn(
         // `program.module.displayPath` in `src/comptime/specialize.ts:384`.
         // Falls back to fn_sym.module when the lookup misses (defensive).
         display :: lookup_module_display_path(ctx, owner_module)
-        mod_mangle :: mangle_module_id_local(if display == null { owner_module } else { display })
+        mod_mangle :: mangle_module_id(if display == null { owner_module } else { display })
         mangled :: "${mod_mangle}$${mod_mangle}$${fn_sym.name}${suffix}"
         // Record the instance once ; return the mangle on every call so the
         // call site can target it even when a sibling call already harvested.
@@ -1762,17 +1752,7 @@ impl_targets_name :: fn(for_type: Expr, name: string) -> bool {
     }
 }
 
-mangle_module_id :: fn(module_id: string) -> string {
-    sb := new_builder_for_mangle()
-    for c in module_id {
-        if c == '/' { sb.append_char('_') }
-        else if c == '.' { sb.append_char('_') }
-        else { sb.append_char(c) }
-    }
-    return sb.to_string()
-}
-
-import "std/string_builder" { new_builder as new_builder_for_mangle, append_char, append }
+import "std/string_builder" { new_builder as new_builder_for_mangle, append }
 import "std/sort" { sort }
 import "std/string" { compare_ascending }
 
