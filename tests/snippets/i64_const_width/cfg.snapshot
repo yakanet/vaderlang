@@ -1,0 +1,75 @@
+# CFG
+
+## snippet
+
+fn snippet$min_i32() -> i64
+  locals:
+    %0 $k_0: i64
+    %1 $neg_1: i64
+  bb0:
+    %0 = const int(2147483648) :i64
+    %1 = unop neg %0 :i64
+    return %1
+
+fn snippet$near() -> i64
+  locals:
+    %0 $k_0: i64
+    %1 $neg_1: i64
+  bb0:
+    %0 = const int(2147483647) :i64
+    %1 = unop neg %0 :i64
+    return %1
+
+fn snippet$over() -> i64
+  locals:
+    %0 $k_0: i64
+    %1 $neg_1: i64
+  bb0:
+    %0 = const int(2147483649) :i64
+    %1 = unop neg %0 :i64
+    return %1
+
+fn snippet$big_pos() -> i64
+  locals:
+    %0 $k_0: i64
+  bb0:
+    %0 = const int(4294967296) :i64
+    return %0
+
+fn snippet$main() -> i32
+  locals:
+    %0 $intrinsic_0: ?
+    %1 __sb_0: ? (synthetic __sb_0)
+    %2 $k_2: string
+    %3 $call_3: i64
+    %4 $k_4: string
+    %5 $call_5: i64
+    %6 $k_6: string
+    %7 $call_7: i64
+    %8 $k_8: string
+    %9 $call_9: i64
+    %10 $intrinsic_10: string
+    %11 $k_11: i32
+  bb0:
+    %0 = intrinsic builder.new()
+    %1 = move %0
+    %2 = const string(#0) :string
+    intrinsic builder.append_str(%1, %2)
+    %3 = call min_i32() :i64
+    intrinsic builder.append_display(%1, %3)
+    %4 = const string(#1) :string
+    intrinsic builder.append_str(%1, %4)
+    %5 = call near() :i64
+    intrinsic builder.append_display(%1, %5)
+    %6 = const string(#2) :string
+    intrinsic builder.append_str(%1, %6)
+    %7 = call over() :i64
+    intrinsic builder.append_display(%1, %7)
+    %8 = const string(#3) :string
+    intrinsic builder.append_str(%1, %8)
+    %9 = call big_pos() :i64
+    intrinsic builder.append_display(%1, %9)
+    %10 = intrinsic builder.finish(%1)
+    call println(%10) :void
+    %11 = const int(0) :i32
+    return %11

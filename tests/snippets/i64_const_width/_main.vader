@@ -1,0 +1,24 @@
+// 64-bit integer literals whose magnitude exceeds 2^31 must keep their full
+// width through the CFG bytecode emit. The CFG `emit_const_instr` always emitted
+// `i32.const i32(value)`, truncating any value >= 2^31 to a 32-bit pattern ; a
+// following `i64.neg` then produced the wrong sign — `i64 = -2147483648` came
+// back as `+2147483648`. This is the compiler's own `repr_range("i32")`,
+// whose `.min = -2_147_483_648` was emitted as `+2147483648`, so the enum
+// backing-range check (T3030) rejected every valid i32-repr variant in the
+// self-hosted compiler (hello's auto-imported enums). Guards the width-aware
+// emit on the Vader self-emit path.
+
+module "snippet"
+
+import "std/io" { println }
+
+// `i32`-min magnitude (2^31) and either side of it, in an i64 slot.
+min_i32 :: fn() -> i64 = -2_147_483_648
+near    :: fn() -> i64 = -2_147_483_647
+over    :: fn() -> i64 = -2_147_483_649
+big_pos :: fn() -> i64 = 4_294_967_296   // 2^32, positive, doesn't fit i32
+
+main :: fn() -> i32 {
+    println("min=${min_i32()} near=${near()} over=${over()} big=${big_pos()}")
+    return 0
+}

@@ -141,6 +141,12 @@ const VADER_SELF_EMIT = new Set<string>([
   // TS-emitted bytecode for these, never exercising the Vader emitter.)
   "if_is_as_bind",
   "is_as_field_narrow",
+  // 64-bit integer literals whose magnitude exceeds 2^31 (e.g. `i64 =
+  // -2_147_483_648`). The CFG `emit_const_instr` always emitted `i32.const`,
+  // truncating any value >= 2^31 ; the following `i64.neg` then flipped the
+  // sign wrong. This is the compiler's own `repr_range("i32").min`, mis-emitted
+  // as `+2147483648`, which broke the enum backing-range (T3030) check.
+  "i64_const_width",
   // A CHAIN of divergent `is`-guards ending in `!(x is T) { return }`, then a
   // field access on the narrowed `x`. The `!(x is T)` complement must compose
   // from the already-narrowed type, not re-widen to the declared union — else a

@@ -91,6 +91,10 @@ const BYTECODE_DIVERGENT_SNIPPETS: ReadonlySet<string> = new Set<string>([
   "gc_multi_collect", "generic_angle_decl",
   "generic_eq", "generic_fn", "generic_helper_chain",
   "generic_struct", "generic_type_alias", "hello",
+  // 64-bit int literals >= 2^31 : `i64.const` values match TS, only the
+  // string/import interning order diverges (§9 class). Self-host correctness
+  // via VADER_SELF_EMIT.
+  "i64_const_width",
   "if_field_narrow", "if_is_as_bind", "if_is_field_after_narrow", "if_is_narrow",
   "if_null_narrow", "if_without_else_stmt", "impl_bounded_typeparam",
   "implicit_dot_variant", "implicit_type_alias",

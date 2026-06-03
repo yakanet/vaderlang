@@ -1,0 +1,22 @@
+# Typecheck
+
+## tests/snippets/i64_const_width
+  FnDecl         big_pos              :: fn() -> i64
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         min_i32              :: fn() -> i64
+  FnDecl         near                 :: fn() -> i64
+  FnDecl         over                 :: fn() -> i64
+  expr 16:26    UnaryExpr      :: i64
+  expr 17:26    UnaryExpr      :: i64
+  expr 18:26    UnaryExpr      :: i64
+  expr 22:13    StringLitExpr  :: string
+  expr 22:20    CallExpr       :: i64
+  expr 22:20    IdentExpr      :: fn() -> i64
+  expr 22:38    CallExpr       :: i64
+  expr 22:38    IdentExpr      :: fn() -> i64
+  expr 22:5     CallExpr       :: void
+  expr 22:5     IdentExpr      :: fn(T) -> void
+  expr 22:53    CallExpr       :: i64
+  expr 22:53    IdentExpr      :: fn() -> i64
+  expr 22:67    CallExpr       :: i64
+  expr 22:67    IdentExpr      :: fn() -> i64

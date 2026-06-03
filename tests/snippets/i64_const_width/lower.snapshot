@@ -1,0 +1,62 @@
+# Lower
+
+## snippet
+  fn snippet$min_i32() -> i64
+    ~>
+      neg :i64
+        int(2147483648) :i64
+  fn snippet$near() -> i64
+    ~>
+      neg :i64
+        int(2147483647) :i64
+  fn snippet$over() -> i64
+    ~>
+      neg :i64
+        int(2147483649) :i64
+  fn snippet$big_pos() -> i64
+    ~>
+      int(4294967296) :i64
+  fn snippet$main() -> i32
+    call :void
+      callee:
+        println :void
+      arg0:
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0 :?
+            "min=" :string
+          @builder.append_display <for i64> :void
+            __sb_0 :?
+            call :i64
+              callee:
+                min_i32 :fn() -> i64
+          @builder.append_str :void
+            __sb_0 :?
+            " near=" :string
+          @builder.append_display <for i64> :void
+            __sb_0 :?
+            call :i64
+              callee:
+                near :fn() -> i64
+          @builder.append_str :void
+            __sb_0 :?
+            " over=" :string
+          @builder.append_display <for i64> :void
+            __sb_0 :?
+            call :i64
+              callee:
+                over :fn() -> i64
+          @builder.append_str :void
+            __sb_0 :?
+            " big=" :string
+          @builder.append_display <for i64> :void
+            __sb_0 :?
+            call :i64
+              callee:
+                big_pos :fn() -> i64
+          ~>
+            @builder.finish :string
+              __sb_0 :?
+    return int(0) :i32

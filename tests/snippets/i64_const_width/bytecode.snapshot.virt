@@ -1,0 +1,106 @@
+module _main
+type 0 primitive null
+type 1 primitive i64
+type 2 primitive i32
+type 3 primitive string
+type 4 primitive void
+string 0 "min="
+string 1 " near="
+string 2 " over="
+string 3 " big="
+string 4 "\n"
+import 0 to_string std_core$string$Display$to_string (string) -> string
+import 1 write std_io$write (i32,string) -> void
+export main 4
+
+fn 0 snippet$min_i32 () -> i64
+  i64.const 2147483648
+  i64.neg
+  return
+end
+
+fn 1 snippet$near () -> i64
+  i64.const 2147483647
+  i64.neg
+  return
+end
+
+fn 2 snippet$over () -> i64
+  i64.const 2147483649
+  i64.neg
+  return
+end
+
+fn 3 snippet$big_pos () -> i64
+  return.lit i64.const 4294967296
+end
+
+fn 4 snippet$main () -> i32
+  local __sb_0 any
+  local $call_3 i64
+  intrinsic builder.new
+  local.set 0
+  local.get 0
+  string.const 0
+  intrinsic builder.append_str
+  call 0
+  local.set 1
+  local.get 0
+  local.get 1
+  intrinsic builder.append_display
+  local.get 0
+  string.const 1
+  intrinsic builder.append_str
+  call 1
+  local.set 1
+  local.get 0
+  local.get 1
+  intrinsic builder.append_display
+  local.get 0
+  string.const 2
+  intrinsic builder.append_str
+  call 2
+  local.set 1
+  local.get 0
+  local.get 1
+  intrinsic builder.append_display
+  local.get 0
+  string.const 3
+  intrinsic builder.append_str
+  call 3
+  local.set 1
+  local.get 0
+  local.get 1
+  intrinsic builder.append_display
+  local.get 0
+  intrinsic builder.finish
+  call 5
+  return.lit i32.const 0
+end
+
+fn 5 std_io$std_io$println__string (string) -> void
+  local $call_2 string
+  local.get 0
+  call 6
+  local.set 1
+  i32.const 0
+  local.get 1
+  call 7
+  i32.const 0
+  string.const 4
+  call 7
+  return
+end
+
+fn 6 std_core$string$Display$to_string$vt (string) -> string
+  local.get 0
+  call.import 0
+  return
+end
+
+fn 7 std_io$write$vt (i32,string) -> void
+  local.get 0
+  local.get 1
+  call.import 1
+  return
+end
