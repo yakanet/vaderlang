@@ -1,0 +1,33 @@
+// tests/snippets/is_as_field_narrow — `if <field-chain> is T as p { … p … }`.
+//
+// Narrowing-binding off a FIELD-CHAIN scrutinee (`w.payload is Inner as p`),
+// not a bare ident. The resolver mints the `p` binding keyed by the type
+// expr's span ; the lowerer must reuse that symbol (not a fresh one) so `p`
+// references resolve, AND the typechecker must record `p`'s type even though
+// the scrutinee isn't a bare ident — otherwise `p`'s field accesses degrade
+// (a for-in over `p.items` would emit an unresolved `next`). Guards both
+// halves of the is-T-as-binding fix on the Vader self-emit path (the suite
+// otherwise runs TS-emitted bytecode here, never exercising the Vader emitter).
+
+module "snippet"
+
+import "std/io" { println }
+
+Inner :: struct {
+    kind: i32
+}
+
+Wrapper :: struct {
+    payload: Inner | null
+}
+
+probe :: fn(w: Wrapper) -> i32 {
+    if w.payload is Inner as p { return p.kind }
+    return -1
+}
+
+main :: fn() -> i32 {
+    println("hit=${probe(Wrapper { .payload = Inner { .kind = 42 } })}")
+    println("miss=${probe(Wrapper { .payload = null })}")
+    return 0
+}

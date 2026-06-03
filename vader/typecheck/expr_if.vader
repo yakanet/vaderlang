@@ -193,6 +193,19 @@ detect_is_narrow :: fn(
         return null
     }
     if i32(cond.op) != i32(AST.BinaryOp.Is) { return null }
+    narrowed :: type_from_expr(cond.right, typed.resolved, diags)
+    // `if <scrut> is T as a { … }` — write the bind's type into `local_types`
+    // so `IdentExpr` lookups inside the then-block resolve `a` to T. Recorded
+    // regardless of the scrutinee's shape : the binding's type is `T`,
+    // independent of whether `<scrut>` is a bare ident (narrowable below) or a
+    // field chain (`x.y is T as a`). Without this an `as`-binding off a
+    // field-chain scrutinee has no type, so field / iterable accesses on it
+    // degrade — e.g. `for d in a.items` falls to the iterator path and emits an
+    // unresolved `next`.
+    if cond.bind_as != "" {
+        typed.local_types[cond.right.span.hash()] = narrowed
+    }
+    // The scrutinee-VARIABLE narrowing still needs a bare ident.
     if !(cond.left is AST.IdentExpr) { return null }
     sym :: typed.resolved.idents[cond.left.span.hash()]
     if sym is null { return null }
@@ -200,12 +213,6 @@ detect_is_narrow :: fn(
     // Same guard as the ident-vs-null path above: don't narrow an
     // unresolved binding.
     if base is UnresolvedType { return null }
-    narrowed :: type_from_expr(cond.right, typed.resolved, diags)
-    // `if x is T as a { … }` — write the bind's type into `local_types`
-    // so `IdentExpr` lookups inside the then-block resolve `a` to T.
-    if cond.bind_as != "" {
-        typed.local_types[cond.right.span.hash()] = narrowed
-    }
     return IsNarrow {
         .sym_id    = sym.id,
         .static_ty = base,

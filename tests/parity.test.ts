@@ -87,6 +87,10 @@ const BYTECODE_DIVERGENT_SNIPPETS: ReadonlySet<string> = new Set<string>([
   "if_null_narrow", "if_without_else_stmt", "impl_bounded_typeparam",
   "implicit_dot_variant", "implicit_type_alias",
   "interpolation", "interpolation_tokens",
+  // is-T-as binding off a field-chain scrutinee : the accessor body matches TS,
+  // but emitting it shifts the type-table / string-pool interning order (the
+  // pre-existing §9 class). Self-host correctness via VADER_SELF_EMIT.
+  "is_as_field_narrow",
   "intrinsic_field_access", "intrinsic_fields",
   "intrinsic_size_of", "intrinsic_type_args",
   "io_roundtrip", "is_union_alias_warn",

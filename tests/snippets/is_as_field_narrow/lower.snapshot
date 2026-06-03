@@ -1,0 +1,71 @@
+# Lower
+
+## snippet
+  struct snippet$Inner { kind: i32 }
+  struct snippet$Wrapper { payload: Inner | null }
+  fn snippet$probe(w: Wrapper) -> i32
+    if :void
+      cond:
+        is Inner :bool
+          .payload :Inner | null
+            w :Wrapper
+      then:
+        let p: Inner =
+          cast → Inner
+            .payload :Inner | null
+              w :Wrapper
+        return
+          .kind :i32
+            p :Inner
+    return
+      neg :i32
+        int(1) :i32
+  fn snippet$main() -> i32
+    call :void
+      callee:
+        println :void
+      arg0:
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0 :?
+            "hit=" :string
+          @builder.append_display <for i32> :void
+            __sb_0 :?
+            call :i32
+              callee:
+                probe :fn(Wrapper) -> i32
+              arg0:
+                Wrapper {
+                  payload:
+                    Inner {
+                      kind: int(42) :i32
+                    }
+                }
+          ~>
+            @builder.finish :string
+              __sb_0 :?
+    call :void
+      callee:
+        println :void
+      arg0:
+        block :string
+          let __sb_1: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_1 :?
+            "miss=" :string
+          @builder.append_display <for i32> :void
+            __sb_1 :?
+            call :i32
+              callee:
+                probe :fn(Wrapper) -> i32
+              arg0:
+                Wrapper {
+                  payload: null
+                }
+          ~>
+            @builder.finish :string
+              __sb_1 :?
+    return int(0) :i32

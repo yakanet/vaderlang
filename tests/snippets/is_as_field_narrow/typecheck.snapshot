@@ -1,0 +1,28 @@
+# Typecheck
+
+## tests/snippets/is_as_field_narrow
+  StructDecl     Inner                :: Inner
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         probe                :: fn(Wrapper) -> i32
+  StructDecl     Wrapper              :: Wrapper
+  expr 25:21    IdentExpr      :: Inner
+  expr 25:41    FieldExpr      :: i32
+  expr 25:41    IdentExpr      :: Inner
+  expr 25:5     IfExpr         :: void
+  expr 25:8     BinaryExpr     :: bool
+  expr 25:8     FieldExpr      :: Inner | null
+  expr 25:8     IdentExpr      :: Wrapper
+  expr 26:12    UnaryExpr      :: i32
+  expr 30:13    StringLitExpr  :: string
+  expr 30:20    CallExpr       :: i32
+  expr 30:20    IdentExpr      :: fn(Wrapper) -> i32
+  expr 30:26    StructLitExpr  :: Wrapper
+  expr 30:47    StructLitExpr  :: Inner
+  expr 30:5     CallExpr       :: void
+  expr 30:5     IdentExpr      :: fn(T) -> void
+  expr 31:13    StringLitExpr  :: string
+  expr 31:21    CallExpr       :: i32
+  expr 31:21    IdentExpr      :: fn(Wrapper) -> i32
+  expr 31:27    StructLitExpr  :: Wrapper
+  expr 31:5     CallExpr       :: void
+  expr 31:5     IdentExpr      :: fn(T) -> void

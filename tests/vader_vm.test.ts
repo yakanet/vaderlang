@@ -131,6 +131,16 @@ const VADER_SELF_EMIT = new Set<string>([
   // a separate follow-up — they need the generic-instance harvest the direct
   // path does.)
   "namespace_call_nongeneric",
+  // `if x is T as a { … a … }` narrowing-BINDING resolution on the Vader
+  // self-emit path. The lowerer must reuse the resolver's binding symbol (not
+  // mint a fresh one) so `a` references resolve — without it every `a` use is
+  // an unresolved ident → the then-block body drops. `if_is_as_bind` covers a
+  // bare-ident scrutinee ; `is_as_field_narrow` covers a FIELD-CHAIN scrutinee
+  // (`w.payload is Inner as p`), which also needs the typechecker to record the
+  // binding's type for a non-ident scrutinee. (The suite otherwise runs
+  // TS-emitted bytecode for these, never exercising the Vader emitter.)
+  "if_is_as_bind",
+  "is_as_field_narrow",
   // A module-level `const T[]` of ≥4 struct literals (mirror of the compiler's
   // own `INTRINSICS`) referenced in a for-loop. Guards the `inline_consts`
   // fn-wrap path : the const lowers to a synthetic `__const_SPECS` accessor fn

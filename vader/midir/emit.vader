@@ -930,7 +930,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
                         // iterator struct itself). Fail loudly instead: an
                         // unresolved callee is a materialisation gap (GATE B1),
                         // not something to paper over at runtime.
-                        panic("midir/emit: unresolved callee '${c.callee.name}' (id=${c.callee.id}) — impl-member/for-in materialisation gap (GATE B1)")
+                        panic("midir/emit: unresolved callee '${c.callee.name}' (id=${c.callee.id}) in '${ctx.fn_.mangled}' — impl-member/for-in materialisation gap (GATE B1)")
                     }
                 }
             }

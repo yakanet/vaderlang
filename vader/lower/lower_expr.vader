@@ -2344,7 +2344,14 @@ lower_then_with_binding :: fn(ctx: FnLowerCtx, if_expr: IfExpr) -> LoweredBlock 
         } else {
             scrut_value
         }
-        symbol :: fresh_synthetic_symbol(ctx, bin.bind_as)
+        // Reuse the binding symbol the resolver minted for `as a` (keyed by
+        // the type expr's span, matching `walk_if`'s `if_bind_as_span` =
+        // `cond.right.span`), so references to `a` inside the then-block —
+        // which `resolved.idents` wires to THAT symbol — resolve to this
+        // slot. A `fresh_synthetic_symbol` here mints a different id, leaving
+        // every `a` reference unresolved (build_ident → unreachable). Mirror
+        // of `lower_match`'s `resolve_pattern_symbol` on its `is T as a` arm.
+        symbol :: resolve_pattern_symbol(ctx, bin.right.span, bin.bind_as)
         let_stmt: LoweredStmt = LoweredLet {
             .span = bin.span, .name = bin.bind_as, .symbol = symbol,
             .type = inner_type, .value = cast_value,
