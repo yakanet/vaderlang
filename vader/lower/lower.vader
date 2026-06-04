@@ -20,7 +20,7 @@ import "std/iter" { is_empty }
 import "std/string" { compare_ascending, bytes, starts_with, split }
 import "vader/diagnostics" { Diagnostic, Span }
 import "vader/parser" {
-    Decl, FnDecl, StructDecl, ConstDecl,
+    Decl, FnDecl, FnParam, StructDecl, ConstDecl,
 }
 import "vader/resolver" { LoadedProject, LoadedModule }
 import "vader/typecheck" { TypedProject, TypedProgram }
@@ -151,7 +151,8 @@ export lower_project :: fn(
         cur_total :: project_ctx.fn_instances_order.len() +
             project_ctx.pending_generic_impl_recv.len() +
             project_ctx.nongeneric_stdlib_order.len() +
-            project_ctx.referenced_impl_mangles.inner.size
+            project_ctx.referenced_impl_mangles.inner.size +
+            project_ctx.virtually_dispatched_traits.inner.size
         if cur_total == prev_total { draining = false } else { prev_total = cur_total }
     }
     // INVARIANT : anything that can register a generic fn instance or harvest a
@@ -614,13 +615,24 @@ surface_stdlib_impl_externs :: fn(
     if impl_decl.type_params.len() > 0 { return out }
     if impl_decl.for_type is GenericInstExpr { return out }
     self_type :: lower_for_type(impl_decl, typed)
+    // A primitive impl whose trait was reached by an ERASED virtual dispatch
+    // (op-overload / bounded-method / Display coerce on `T`/`Any`) must place
+    // EVERY primitive implementor in the vtable — the boxed receiver tag picks
+    // the impl at runtime, so no single concrete mangle was recorded. This is
+    // the only path that surfaces a member NOT individually referenced ; it
+    // fires solely for primitive receivers of a virtually-dispatched trait, so
+    // a snippet with no erased primitive dispatch surfaces nothing (no drift).
+    primitive_vtable_gate :: self_type is PrimitiveType &&
+        project_ctx.virtually_dispatched_traits.contains(impl_decl.trait_name)
     for member in impl_decl.members {
         if member.type_params.len() > 0 { continue }
         mangled :: impl_member_mangled(impl_decl, member, typed, module_decls)
-        // Only emit members an actual call referenced — emitting every stdlib
-        // impl member would intern unused signature types and shift the type
-        // table for unrelated snippets.
-        if !project_ctx.referenced_impl_mangles.contains(mangled) { continue }
+        // Only emit members an actual call referenced (direct call → exact
+        // mangle) OR every primitive implementor of a virtually-dispatched
+        // trait (erased dispatch, above) — emitting every stdlib impl member
+        // unconditionally would intern unused signature types and shift the
+        // type table for unrelated snippets.
+        if !project_ctx.referenced_impl_mangles.contains(mangled) && !primitive_vtable_gate { continue }
         // Dedupe against the generic-impl materialiser (and re-entrant calls).
         dedupe_key :: "surfaced::${mangled}"
         if project_ctx.materialized_impl_keys.contains(dedupe_key) { continue }
@@ -720,12 +732,36 @@ build_impl_member_params :: fn(
         // The lone `self` param carries an absent TypeExpr ; substitute the
         // impl's `for_type` so downstream phases see the concrete receiver
         // type rather than `Self`.
-        param_type :: if ast_param.name == "self" { self_type } else { types.param_type(ast_param) }
+        param_type :: if ast_param.name == "self" {
+            self_type
+        } else {
+            impl_member_param_type(ast_param, types, typed)
+        }
         params.push(LoweredParam {
             .name = ast_param.name, .symbol = symbol, .type = param_type,
         })
     }
     return params
+}
+
+// Resolve a surfaced impl member's non-self param type. `@intrinsic`
+// synthetic members (e.g. primitive `Equals::equals`'s `other: Self`) bake
+// the impl substitution into the param's AST type expr but inherit the
+// TRAIT method's param span ; every primitive implementor shares it, so the
+// span-keyed `param_types` table collapses to a single last-writer-wins
+// entry (all primitive `equals` wrappers came out `(prim, string)`). When
+// the substituted type expr resolves structurally to a PRIMITIVE, that is
+// authoritative — take it. Every other param keeps the span/subst-keyed
+// `EntryTypes` path (generic-impl members still carry a type-param at the
+// AST level and need the entry substitution), so this narrows strictly to
+// the primitive-intrinsic collision.
+impl_member_param_type :: fn(ast_param: FnParam, types: EntryTypes, typed: TypedProgram) -> Type {
+    pty :: ast_param.ty
+    if pty is null { return types.param_type(ast_param) }
+    scratch: Diagnostic[] = []
+    direct :: type_from_expr(pty, typed.resolved, scratch)
+    if direct is PrimitiveType { return direct }
+    return types.param_type(ast_param)
 }
 
 import "vader/resolver/symbol" { Symbol, SymbolKind }

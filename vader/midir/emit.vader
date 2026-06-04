@@ -49,6 +49,7 @@ import "vader/bytecode" {
     propagate_const_single_use, drop_dead_stores, coalesce_slots,
     prune_unused_vtables, prune_unused_functions, prune_unused_imports, prune_unused_types,
     type_intern_key, val_type_name, convert_target_of,
+    build_intrinsic_wrapper_body,
 }
 import "vader/resolver/symbol" { Symbol }
 
@@ -103,10 +104,14 @@ synthesise_cfg_intrinsic_wrappers :: fn(cfg: CFGProject, ctx: EmitterCtx) -> voi
         if referenced[imp.mangled_name] == null { continue }
         // Already a real fn under this mangle — nothing to wrap.
         if ctx.function_index_by_mangle[imp.mangled_name] is i32 { continue }
-        body: Op[] = []
-        for p in 0..<imp.signature.params.len() { body.push(LocalGet { .slot = i32(p) }) }
-        body.push(CallImport { .index = import_index })
-        body.push(Return {})
+        // Reuse the bytecode emitter's builder so the intrinsic-op-vs-
+        // `call.import` choice lives in ONE place : `@intrinsic` impl members
+        // on primitives (`i32 implements Equals`) inline their dedicated op so
+        // the cc-emitted C (and the VM without its host-dispatch fallback)
+        // lands on a real op rather than an unbound host import ; genuine host
+        // shims (`string` FNV `Hash`) forward via `call.import`. Mirror of TS's
+        // `synthesiseIntrinsicWrappers` (`OP_INTRINSIC_BY_MANGLED` branch).
+        body :: build_intrinsic_wrapper_body(imp, import_index)
         debug: (DebugPos | null)[] = []
         for _d in 0..<body.len() { debug.push(null) }
         jump_table: i32[] = []

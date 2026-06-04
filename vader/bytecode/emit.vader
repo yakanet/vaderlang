@@ -790,8 +790,15 @@ synthesise_intrinsic_wrappers :: fn(ctx: EmitterCtx) -> void {
 /// Build the wrapper body : per-param `local.get` in order, then the
 /// dedicated bytecode op (when one exists) or a `call.import`
 /// fallback, then `return`. Caller wraps the result into a
-/// `BcFunction` and registers the fn-index.
-build_intrinsic_wrapper_body :: fn(imp: BcImport, import_index: i32) -> Op[] {
+/// `BcFunction` and registers the fn-index. Shared with the MIDIR
+/// emitter's `synthesise_cfg_intrinsic_wrappers` so the op-vs-import
+/// choice lives in ONE place.
+///
+/// @param imp           the import the wrapper forwards to.
+/// @param import_index  its slot in the import table (the `call.import` target
+///                      when no dedicated op exists).
+/// @return              the wrapper's op list (`local.get`* + op/import + return).
+export build_intrinsic_wrapper_body :: fn(imp: BcImport, import_index: i32) -> Op[] {
     body: Op[] = []
     for i in 0..<imp.signature.params.len() {
         body.push(LocalGet { .slot = i32(i) })

@@ -675,6 +675,10 @@ build_display_to_string_call :: fn(ctx: FnLowerCtx, value: LoweredExpr, span: Sp
         is null -> {}
         _ -> { return direct }
     }
+    // Erased Display dispatch (generic-`T` receiver) : record the trait so
+    // every primitive `Display` impl enters the vtable (the boxed tag picks
+    // the impl at runtime). See `virtually_dispatched_traits`.
+    ctx.project.virtually_dispatched_traits.add("Display")
     return LoweredVirtualCall {
         .span       = span,
         .type       = string_type,
@@ -900,6 +904,9 @@ try_lower_virtual_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Low
         if type_of(receiver) is TraitType as tt {
             args: LoweredExpr[] = []
             for call_arg in call.args { args.push(lower_expr(ctx, call_arg.value)) }
+            // Record the dispatched trait so every primitive implementor is
+            // surfaced into the vtable — see `virtually_dispatched_traits`.
+            ctx.project.virtually_dispatched_traits.add(tt.symbol.name)
             return LoweredVirtualCall {
                 .span = call.span, .type = type,
                 .trait_name = tt.symbol.name, .method = field_expr.field,
@@ -917,6 +924,9 @@ try_lower_virtual_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Low
             if trait_name is string as tname {
                 args: LoweredExpr[] = []
                 for call_arg in call.args { args.push(lower_expr(ctx, call_arg.value)) }
+                // Erased bounded-trait receiver : surface every primitive
+                // implementor of `tname` — see `virtually_dispatched_traits`.
+                ctx.project.virtually_dispatched_traits.add(tname)
                 return LoweredVirtualCall {
                     .span = call.span, .type = type,
                     .trait_name = tname, .method = field_expr.field,
@@ -2258,6 +2268,9 @@ lower_op_overload_via_vcall :: fn(
     lowered_right :: lower_expr(ctx, binary.right)
     args: LoweredExpr[] = []
     args.push(lowered_right)
+    // Erased op-trait dispatch (`T`/`Any` operand) : surface every primitive
+    // implementor of the op-trait — see `virtually_dispatched_traits`.
+    ctx.project.virtually_dispatched_traits.add(oti.trait_name)
     call :: LoweredVirtualCall {
         .span = binary.span,
         .type = if i32(oti.shape) == i32(OpShape.CompareCmp) { mk_primitive("i32") } else { TY_BOOL },
