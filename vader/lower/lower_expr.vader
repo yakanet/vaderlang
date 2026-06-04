@@ -48,7 +48,7 @@ import "vader/comptime" { mangle_type_arg }
 import "vader/comptime" { GenericInstance }
 import "vader/typecheck" { type_to_target_symbol, has_user }
 import "vader/resolver" { ImportTargetTable, SymbolTarget }
-import "vader/parser" { ConstDecl, ImplDecl, StructDecl }
+import "vader/parser" { Decl, ConstDecl, ImplDecl, StructDecl }
 import "vader/typecheck" { substitute_by_name }
 import "vader/typecheck" { substitute }
 import "vader/typecheck" { new_substitution }
@@ -1786,23 +1786,33 @@ try_lower_cast_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
     return inner
 }
 
-// Build a `into(arg)` call whose callee is the synthetic `into`
-// fn-symbol. Shared by the array→Iterator coercion and the user-`Into`
-// impl path ; they differ only in the result `type` and the arg.
-mk_into_call :: fn(ctx: FnLowerCtx, arg: LoweredExpr, result_type: Type, span: Span) -> LoweredCall {
+// Build the `into(arg)` coercion call. `callee_name` is the resolved impl-member
+// mangle the emit phase binds via `function_index_by_mangle` (the `id = 0`
+// placeholder is inert — the mangle path runs before the symbol-id lookup).
+// `callee_module` is informational on that path, so callers pass the impl's
+// owning module when resolved and the caller's module on the bare fallback.
+mk_into_call :: fn(
+    arg: LoweredExpr, result_type: Type, span: Span, callee_name: string, callee_module: string,
+) -> LoweredCall {
     return LoweredCall {
         .span = span, .type = result_type,
         .callee = LoweredIdent {
             .span = span, .type = result_type,
             .symbol = Symbol {
-                .id = i32(0), .kind = SymbolKind.Fn, .name = "into",
-                .module = ctx.typed.resolved.path,
+                .id = i32(0), .kind = SymbolKind.Fn, .name = callee_name,
+                .module = callee_module,
                 .visibility = Visibility.Private, .defined_at = null,
             },
         },
         .args = [arg],
     }
 }
+
+// The bare `into` placeholder — emit can't resolve it to a member mangle. Still
+// used by the array→Iterator blanket and generic Into impls, whose element /
+// erased-instance mangles aren't wired into the coercion path yet.
+mk_bare_into_call :: fn(ctx: FnLowerCtx, arg: LoweredExpr, result_type: Type, span: Span) -> LoweredCall =
+    mk_into_call(arg, result_type, span, "into", ctx.typed.resolved.path)
 
 // `T[] -> Iterator<T>` value-slot coercion. Returns `into(arr)` typed
 // `ArrayIterator<T>`, or null when the shapes don't match / ArrayIterator
@@ -1818,7 +1828,7 @@ try_array_iter_coercion :: fn(
             if tt.symbol.name != "Iterator" { return null }
             if tt.args.len() != usize(1) { return null }
             result_type :: find_core_type(ctx, STRUCT_ARRAY_ITERATOR, [arr.element])
-            if result_type != null { return mk_into_call(ctx, arg, result_type, span) }
+            if result_type != null { return mk_bare_into_call(ctx, arg, result_type, span) }
         }
     }
     return null
@@ -1851,10 +1861,33 @@ try_emit_into_coercion :: fn(
         if !impl_trait_first_arg_is(decl, target_name) { continue }
         for m in decl.members {
             if m.name != "into" { continue }
-            return mk_into_call(ctx, arg, target_type, span)
+            // Resolve to the impl member's materialised mangle so emit binds the
+            // call — the bare `into` placeholder resolves to neither symbol id nor
+            // mangle. The mangle mirrors `impl_member_mangled` (the materialiser's
+            // own fn in `lower_impl_member_list`) so call site and emitted member
+            // agree by construction, overload `_N` suffix included — reusing its
+            // `impl_member_overload_suffix` keeps the two in lockstep. Generic
+            // blanket impls (`T[] implements Into<Iterator>`) mangle via the
+            // element recv_suffix instead, so they stay on the bare path for now.
+            if entry.is_generic { return mk_bare_into_call(ctx, arg, target_type, span) }
+            suffix :: impl_member_overload_suffix(m, decl, src_name, module_impl_decls(ctx, entry.module))
+            mangled :: "${mangle_module_id(entry.module)}$${src_name}$${decl.trait_name}$${m.name}${suffix}"
+            ctx.project.referenced_impl_mangles.add(mangled)
+            return mk_into_call(arg, target_type, span, mangled, entry.module)
         }
     }
     return null
+}
+
+// Every impl decl declared in `module`, in source order — the overload-suffix
+// counter (`impl_member_overload_suffix`) needs the owning module's impls to
+// reproduce the mangle `lower_impl_member_list` materialised the member under.
+module_impl_decls :: fn(ctx: FnLowerCtx, module: string) -> Decl[] {
+    out: Decl[] = []
+    for e in ctx.project.impls.all {
+        if e.module == module { out.push(e.decl) }
+    }
+    return out
 }
 
 impl_trait_first_arg_is :: fn(decl: ImplDecl, name: string) -> bool {

@@ -199,6 +199,17 @@ const VADER_SELF_EMIT = new Set<string>([
   // (Bytecode diverges from TS only in interning order — see parity's
   // BYTECODE_DIVERGENT_SNIPPETS ; this asserts the self-host VM output.)
   "const_fn_wrap",
+  // `Target(value)` / implicit `Into` coercion (call arg, typed let, return,
+  // struct field). The coercion call's callee was a bare `into` (id=0) that
+  // resolved to neither symbol id nor mangle → emit panicked. The lowerer now
+  // resolves it to the impl member's materialised mangle (`<mod>$<Src>$Into$
+  // into<_N>`), reusing `impl_member_overload_suffix` so the overload `_N`
+  // disambiguates `Into<i32>` vs `Into<string>` exactly as the materialiser
+  // numbered them. `coerce_into_overload` adds free-fn overload resolution on
+  // top. (Vader self-emit diverges from the TS `.virt` in interning order +
+  // devirt `$vt` naming, so we assert the run-output oracle, not byte-parity ;
+  // TS-vs-snapshot parity is deterministic and stays in the normal path.)
+  "coerce_into_basic", "coerce_into_explicit", "coerce_into_overload",
   "_diag_const_string", "alias_union_in_array", "array_view_aliasing",
   "for_range_sugar", "b1_fn_boundary", "closure_pattern_binding", "comptime_type_value",
   "const_array_basic", "contains_op", "decorator_deprecated",
