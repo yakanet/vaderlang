@@ -528,15 +528,13 @@ emit_return :: fn(s: FnState) -> void {
         return
     }
     v :: pop(s)
-    if val_of(v) != result {
-        todo("emit_return: return-type coercion (T1b / T5)")
-    }
+    rv :: coerce_expr(s.ctx.module.types, name_of(v), val_of(v), result)
     if s.no_frame {
-        line(s, "return ${name_of(v)};")
+        line(s, "return ${rv};")
     } else {
         // Snapshot the value before popping the frame : it may read a
         // frame-pinned local, so capturing first keeps the order safe.
-        line(s, "{ ${c_type_for_val_bare(result)} __vret = ${name_of(v)}; vader_gc_top = gc_frame.prev; return __vret; }")
+        line(s, "{ ${c_type_for_val_bare(result)} __vret = ${rv}; vader_gc_top = gc_frame.prev; return __vret; }")
     }
 }
 
@@ -570,10 +568,8 @@ emit_local_set :: fn(s: FnState, slot: i32, tee: bool) -> void {
     if slot_val == ValType.Void { return }
     materialize_stack_for_slot(s, slot)
     v :: pop(s)
-    if val_of(v) != slot_val {
-        todo("local.set: value coercion (T1b+)")
-    }
-    line(s, "l${slot} = ${name_of(v)};")
+    rv :: coerce_expr(s.ctx.module.types, name_of(v), val_of(v), slot_val)
+    line(s, "l${slot} = ${rv};")
     if tee {
         push_local_ref(s, slot, slot_val)
     }
@@ -781,10 +777,7 @@ emit_call_to :: fn(s: FnState, callee_name: string, sig: BcSignature) -> void {
     for k in 0..<n {
         v :: pop(s)
         slot :: n - 1 - k
-        if val_of(v) != sig.params[usize(slot)] {
-            todo("call: argument coercion (T3+ / T12)")
-        }
-        args[usize(slot)] = name_of(v)
+        args[usize(slot)] = coerce_expr(s.ctx.module.types, name_of(v), val_of(v), sig.params[usize(slot)])
     }
     emit_call_result(s, "${callee_name}(${args.join(", ")})", sig.result)
 }
@@ -1136,10 +1129,7 @@ emit_struct_new :: fn(s: FnState, op: vm.StructNew) -> void {
             v :: pop(s)
             fi :: n - 1 - k
             f :: st.fields[usize(fi)]
-            if val_of(v) != val_type_of_field(s.ctx.module.types, f.type_index) {
-                todo("struct.new: field coercion (T12)")
-            }
-            field_vals[usize(fi)] = name_of(v)
+            field_vals[usize(fi)] = coerce_expr(s.ctx.module.types, name_of(v), val_of(v), val_type_of_field(s.ctx.module.types, f.type_index))
         }
         // Storage : a C local for the escape-proven stack variant, a GC heap
         // block otherwise. The popped field values live in ref temps that

@@ -89,6 +89,16 @@ const C_PARITY = new Set<string>([
   // arg / local.set coercion `todo`s, defer by the upstream Vader bytecode
   // dropping defer ops — a self-host gap, not a C-emit one).
   "chained_divergent_narrow",
+  // T12a : boundary ValType coercion (call-arg / return / local.set /
+  // struct-field) via `coerce_expr` — boxes a primitive into an erased
+  // `ref`/`any` slot (and the inverse), the common monomorphised-generic
+  // shape (`fn<T>` params lowered to `ref`). The heavy erasure-boundary
+  // reshape (array-kind / heap-struct) + B1 stay deferred — no reachable
+  // snippet needs them yet.
+  "trait_dispatch_param",
+  "intrinsic_fields",
+  "intrinsic_type_args",
+  "comptime_type_value",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));
