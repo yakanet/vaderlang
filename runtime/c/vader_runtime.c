@@ -2049,21 +2049,25 @@ vader_box_t vader_read_stdin(size_t n, uint32_t ok_tag, uint32_t err_tag) {
     return vader_box_string(ok_tag, vader_atom_intern_take(buf, n));
 }
 
-vader_bool_t vader_exists(vader_string_t path) {
-    const char* p = vader_atom_to_cstr(path);
-    FILE* f = fopen(p, "rb");
-    vader_atom_cstr_free(p);
-    if (f == NULL) return false;
-    fclose(f);
-    return true;
-}
-
-/* `is_dir` / `read_dir` — directory traversal split across POSIX (`dirent.h`,
- * `sys/stat.h`) and Windows (`FindFirstFileA` / `GetFileAttributesA`). Path
+/* `exists` / `is_dir` / `read_dir` — filesystem queries split across POSIX
+ * (`dirent.h`, `sys/stat.h`) and Windows (`FindFirstFileA` /
+ * `GetFileAttributesA`). `exists` must NOT be implemented via `fopen` : the
+ * Windows CRT refuses to open a directory as a file, so an `fopen`-based
+ * check reports every directory as missing. That silently empties the
+ * module-discovery walk — `walk_root` (vader/resolver/discover.vader) guards
+ * on `exists(dir)` and bails before indexing anything, so every compile on
+ * Windows fails with R2001. Use the stat / attribute query instead. Path
  * arguments come as atom IDs ; we materialise a NUL-terminated C string via
  * `vader_atom_to_cstr` and intern dirent names back through `vader_string_new`. */
 
 #if defined(_WIN32)
+
+vader_bool_t vader_exists(vader_string_t path) {
+    const char* p = vader_atom_to_cstr(path);
+    DWORD attr = GetFileAttributesA(p);
+    vader_atom_cstr_free(p);
+    return attr != INVALID_FILE_ATTRIBUTES;
+}
 
 vader_bool_t vader_is_dir(vader_string_t path) {
     const char* p = vader_atom_to_cstr(path);
@@ -2120,6 +2124,14 @@ vader_box_t vader_read_dir(vader_string_t path, uint32_t arr_type,
 
 #include <dirent.h>
 #include <sys/stat.h>
+
+vader_bool_t vader_exists(vader_string_t path) {
+    const char* p = vader_atom_to_cstr(path);
+    struct stat st;
+    int rc = stat(p, &st);
+    vader_atom_cstr_free(p);
+    return rc == 0;
+}
 
 vader_bool_t vader_is_dir(vader_string_t path) {
     const char* p = vader_atom_to_cstr(path);
