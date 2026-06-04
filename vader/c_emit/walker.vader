@@ -1,0 +1,445 @@
+// vader/c_emit/walker — bytecode function-body → C walker.
+//
+// The per-op emission core of the C emitter : `emit_functions` drives one
+// C definition per `BcFunction` ; `emit_function_body` walks the op stream
+// against a `FnState` (see `stack.vader`) assembling
+// signature → local decls → temp decls → body ; `emit_op` is the
+// exhaustive per-op dispatch. Split out of `emit.vader` (which keeps the
+// driver + section emitters) per the plan's file decomposition. Same
+// module (`vader/c_emit`), so `EmitCtx`, `signature_for`, the `stack.vader`
+// model, and the `body.vader` helpers are all in scope without imports.
+
+module "vader/c_emit"
+
+import "std/string" { join }
+import "std/string_builder" { StringBuilder, new_builder, append }
+import "std/abort" { todo }
+import "vader/bytecode" { BcFunction, ValType }
+// The opcode union pulls in ~120 names ; the namespace form keeps the
+// import to one line and tags every op site as `vm.<Op>` at the match.
+vm :: import "vader/vm"
+
+/// Per-fn body emit — one C function definition per `BcFunction`,
+/// separated by a blank line (matching TS `emitFunctions`).
+///
+/// T0 scope : the constant-return path is emitted ; `emit_op` is already
+/// the exhaustive dispatch (every not-yet-ported op calls `todo`). The
+/// StackVal model + real per-op bodies land tranche by tranche (T1+).
+///
+/// T1 note : this walker block (`emit_functions` / `emit_function_body` /
+/// `emit_op` / `const_lit_c` + the literal helpers / `signature_for`)
+/// moves to `walker.vader` (+ `stack.vader` for the StackVal model) per
+/// the plan's file decomposition — do not relocate it into `body.vader`.
+///
+/// TS reference : `emitFunctions` in `src/c_emit/body.ts`.
+emit_functions :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
+    fns :: ctx.module.functions
+    for i in 0..<fns.len() {
+        emit_function_body(ctx, fns[i], out)
+        out.append("\n")
+    }
+}
+
+/// One C function definition : `static <sig> { <body> }`. Walks the
+/// bytecode body op by op, emitting a deduped `#line` directive (debug
+/// builds only) before each op whose source position differs from the
+/// previous one.
+///
+/// T0 scope : only `return.lit` / bare `return` op bodies are emitted ;
+/// the full StackVal walker (locals, calls, control flow, …) is T1+.
+emit_function_body :: fn(ctx: EmitCtx, function: BcFunction, out: StringBuilder) -> void {
+    out.append("static ${signature_for(function)} {\n")
+
+    // Walk the body into a separate buffer first : temps are discovered
+    // during the walk (materialisation), and their declarations belong in
+    // the prelude *above* the body. After the walk, assemble
+    // signature → local decls → temp decls → body, matching TS (which
+    // splices the temp decls in at `preludePos`).
+    body :: new_builder()
+    s :: new_fn_state(ctx, function, body)
+    last_line: i32 = -1
+    last_file: string = ""
+    for i in 0..<function.body.len() {
+        if !ctx.release {
+            dbg :: function.debug[i]
+            if dbg != null {
+                if dbg.line != last_line || dbg.file != last_file {
+                    body.append("#line ${dbg.line} ${c_string_lit(dbg.file)}\n")
+                    last_line = dbg.line
+                    last_file = dbg.file
+                }
+            }
+        }
+        emit_op(s, function.body[i])
+    }
+
+    emit_local_decls(function, out)
+    emit_tmp_decls(s, out)
+    out.append("${body}")
+
+    out.append("}\n")
+}
+
+/// Declare every non-param local slot, bucketed by ValType in
+/// first-appearance order (`<ctype> lA, lB;` per type). Primitives only
+/// in T1b ; ref / any locals gain the `= vader_box_null()` GC-init in T5.
+/// PER_LINE chunking (TS caps at 10 names / line) is deferred — it only
+/// diverges past 10 locals of one type.
+///
+/// TS reference : `emitLocalDecls` in `src/c_emit/body.ts`.
+emit_local_decls :: fn(function: BcFunction, out: StringBuilder) -> void {
+    locals :: function.locals
+    param_count :: function.signature.params.len()
+    vals: ValType[] = []
+    names: string[] = []
+    for i in 0..<locals.len() {
+        if locals[i].val == ValType.Void { continue }
+        vals.push(locals[i].val)
+        names.push("l${param_count + i}")
+    }
+    emit_slot_decls(out, vals, names)
+}
+
+/// Declare the materialised temps `tN`, bucketed like the locals. Reads
+/// `s.tmp_types` (index N → ValType of `tN`), populated during the walk.
+emit_tmp_decls :: fn(s: FnState, out: StringBuilder) -> void {
+    names: string[] = []
+    for i in 0..<s.tmp_types.len() {
+        names.push("t${i}")
+    }
+    emit_slot_decls(out, s.tmp_types, names)
+}
+
+/// Declare a group of same-kind C slots (`vals[i]` is the ValType of
+/// `names[i]`), bucketed by ValType in first-appearance order :
+/// `<ctype> nameA, nameB;` per type. Shared by the local + temp decls.
+/// PER_LINE chunking (TS caps at 10 names / line) is deferred — it only
+/// diverges past 10 slots of one type.
+///
+/// TS reference : `emitLocalDecls` in `src/c_emit/body.ts`.
+emit_slot_decls :: fn(out: StringBuilder, vals: ValType[], names: string[]) -> void {
+    emitted: ValType[] = []
+    for i in 0..<vals.len() {
+        val :: vals[i]
+        if val in emitted { continue }
+        emitted.push(val)
+        group: string[] = []
+        for j in 0..<vals.len() {
+            if vals[j] == val { group.push(names[j]) }
+        }
+        out.append("    ${c_type_for_val_bare(val)} ${group.join(", ")};\n")
+    }
+}
+
+/// Per-op C emit — the function-body walker's dispatch. Exhaustive over
+/// every `Op` variant (no `_`), so adding an opcode trips T3013 here and
+/// forces a conscious decision — mirroring
+/// `vader/bytecode/dump.vader::write_op`. Ops not yet ported call
+/// `todo(...)` ; they are unreachable for the current C-parity allowlist
+/// (which only exercises ops that have a real arm) and gain a real body
+/// as each tranche lands.
+///
+/// T1 (scalar core) implements consts, `local.get`, the expr-shaped i32
+/// arithmetic, and `return` ; the arm order tracks `write_op` so the two
+/// stay diffable.
+emit_op :: fn(s: FnState, op: vm.Op) -> void {
+    match op {
+        is vm.I32Const as c         -> push_const(s, c)
+        is vm.I64Const as c         -> push_const(s, c)
+        is vm.F64Const as c         -> push_const(s, c)
+        is vm.BoolConst as c        -> push_const(s, c)
+        is vm.CharConst as c        -> push_const(s, c)
+        is vm.NullConst as c        -> push_const(s, c)
+        is vm.StringConst as c      -> push_const(s, c)
+        is vm.LocalGet as l         -> emit_local_get(s, l)
+        is vm.LocalSet as l         -> emit_local_set(s, l.slot, false)
+        is vm.LocalTee as l         -> emit_local_set(s, l.slot, true)
+        is vm.LocalField            -> todo("emit_op: local.field")
+        is vm.Return                -> emit_return(s)
+        is vm.ReturnLit as r        -> s.out.append("    return ${const_lit_c(s.ctx, r.value)};\n")
+        is vm.Drop                  -> drop_top(s)
+        is vm.Call                  -> todo("emit_op: call")
+        is vm.CallImport            -> todo("emit_op: call.import")
+        is vm.CallIndirect          -> todo("emit_op: call.indirect")
+        is vm.VirtualCall           -> todo("emit_op: virtual.call")
+        is vm.FnRef                 -> todo("emit_op: fn.ref")
+        is vm.MakeClosure           -> todo("emit_op: make_closure")
+        is vm.If                    -> todo("emit_op: if")
+        is vm.Else                  -> todo("emit_op: else")
+        is vm.End                   -> todo("emit_op: end")
+        is vm.Block                 -> todo("emit_op: block")
+        is vm.Loop                  -> todo("emit_op: loop")
+        is vm.Branch                -> todo("emit_op: br")
+        is vm.BranchIf              -> todo("emit_op: br_if")
+        is vm.BoolNot               -> push_unop(s, "!", .Bool)
+        is vm.StructNew             -> todo("emit_op: struct.new")
+        is vm.StructGet             -> todo("emit_op: struct.get")
+        is vm.StructSet             -> todo("emit_op: struct.set")
+        is vm.ArrayNew              -> todo("emit_op: array.new")
+        is vm.ArrayLen              -> todo("emit_op: array.len")
+        is vm.ArrayPush             -> todo("emit_op: array.push")
+        is vm.ArrayGet              -> todo("emit_op: array.get")
+        is vm.ArraySet              -> todo("emit_op: array.set")
+        is vm.ArraySlice            -> todo("emit_op: array.slice")
+        is vm.DataConst             -> todo("emit_op: data.const")
+        is vm.TypeConst             -> todo("emit_op: type.const")
+        is vm.TypeCheck             -> todo("emit_op: type_check")
+        is vm.RefCast               -> todo("emit_op: ref.cast")
+        is vm.Convert as c          -> emit_convert(s, convert_target_val(c.target))
+        is vm.BuilderNew            -> todo("emit_op: builder.new")
+        is vm.BuilderAppendStr      -> todo("emit_op: builder.append_str")
+        is vm.BuilderAppendDisplay  -> todo("emit_op: builder.append_display")
+        is vm.BuilderFinish         -> todo("emit_op: builder.finish")
+        is vm.SizeOfType            -> todo("emit_op: size_of.type")
+        is vm.I32Add                -> push_binop(s, "+", .I32)
+        is vm.I32Sub                -> push_binop(s, "-", .I32)
+        is vm.I32Mul                -> push_binop(s, "*", .I32)
+        is vm.I32Div                -> push_eager(s, "/", .I32)
+        is vm.I32Mod                -> push_eager(s, "%", .I32)
+        is vm.I32Neg                -> push_unop(s, "-", .I32)
+        is vm.I32BitNot             -> push_unop(s, "~", .I32)
+        is vm.I32BitAnd             -> push_binop(s, "&", .I32)
+        is vm.I32BitOr              -> push_binop(s, "|", .I32)
+        is vm.I32BitXor             -> push_binop(s, "^", .I32)
+        is vm.I32Shl                -> push_binop(s, "<<", .I32)
+        is vm.I32Shr                -> push_binop(s, ">>", .I32)
+        is vm.I32ShrU               -> push_binop(s, ">>", .U32)
+        is vm.I32Eq                 -> push_binop(s, "==", .Bool)
+        is vm.I32Ne                 -> push_binop(s, "!=", .Bool)
+        is vm.I32Lt                 -> push_binop(s, "<", .Bool)
+        is vm.I32Le                 -> push_binop(s, "<=", .Bool)
+        is vm.I32Gt                 -> push_binop(s, ">", .Bool)
+        is vm.I32Ge                 -> push_binop(s, ">=", .Bool)
+        is vm.I64Add                -> push_binop(s, "+", .I64)
+        is vm.I64Sub                -> push_binop(s, "-", .I64)
+        is vm.I64Mul                -> push_binop(s, "*", .I64)
+        is vm.I64Div                -> push_eager(s, "/", .I64)
+        is vm.I64Mod                -> push_eager(s, "%", .I64)
+        is vm.I64Neg                -> push_unop(s, "-", .I64)
+        is vm.I64BitAnd             -> push_binop(s, "&", .I64)
+        is vm.I64BitOr              -> push_binop(s, "|", .I64)
+        is vm.I64BitXor             -> push_binop(s, "^", .I64)
+        is vm.I64BitNot             -> push_unop(s, "~", .I64)
+        is vm.I64Shl                -> push_binop(s, "<<", .I64)
+        is vm.I64Shr                -> push_binop(s, ">>", .I64)
+        is vm.I64ShrU               -> push_binop(s, ">>", .U64)
+        is vm.I64Eq                 -> push_binop(s, "==", .Bool)
+        is vm.I64Ne                 -> push_binop(s, "!=", .Bool)
+        is vm.I64Lt                 -> push_binop(s, "<", .Bool)
+        is vm.I64Le                 -> push_binop(s, "<=", .Bool)
+        is vm.I64Gt                 -> push_binop(s, ">", .Bool)
+        is vm.I64Ge                 -> push_binop(s, ">=", .Bool)
+        is vm.U32Div                -> push_eager(s, "/", .U32)
+        is vm.U32Mod                -> push_eager(s, "%", .U32)
+        is vm.U32Lt                 -> push_binop(s, "<", .Bool)
+        is vm.U32Le                 -> push_binop(s, "<=", .Bool)
+        is vm.U32Gt                 -> push_binop(s, ">", .Bool)
+        is vm.U32Ge                 -> push_binop(s, ">=", .Bool)
+        is vm.U64Div                -> push_eager(s, "/", .U64)
+        is vm.U64Mod                -> push_eager(s, "%", .U64)
+        is vm.U64Lt                 -> push_binop(s, "<", .Bool)
+        is vm.U64Le                 -> push_binop(s, "<=", .Bool)
+        is vm.U64Gt                 -> push_binop(s, ">", .Bool)
+        is vm.U64Ge                 -> push_binop(s, ">=", .Bool)
+        is vm.F64Add                -> push_binop(s, "+", .F64)
+        is vm.F64Sub                -> push_binop(s, "-", .F64)
+        is vm.F64Mul                -> push_binop(s, "*", .F64)
+        is vm.F64Div                -> push_eager(s, "/", .F64)
+        is vm.F64Neg                -> push_unop(s, "-", .F64)
+        is vm.F64Eq                 -> push_binop(s, "==", .Bool)
+        is vm.F64Ne                 -> push_binop(s, "!=", .Bool)
+        is vm.F64Lt                 -> push_binop(s, "<", .Bool)
+        is vm.F64Le                 -> push_binop(s, "<=", .Bool)
+        is vm.F64Gt                 -> push_binop(s, ">", .Bool)
+        is vm.F64Ge                 -> push_binop(s, ">=", .Bool)
+        is vm.BoolEq                -> push_binop(s, "==", .Bool)
+        is vm.BoolNe                -> push_binop(s, "!=", .Bool)
+        is vm.BoolAnd               -> push_binop(s, "&&", .Bool)
+        is vm.BoolOr                -> push_binop(s, "||", .Bool)
+        is vm.CharEq                -> push_binop(s, "==", .Bool)
+        is vm.CharNe                -> push_binop(s, "!=", .Bool)
+        is vm.CharLt                -> push_binop(s, "<", .Bool)
+        is vm.CharLe                -> push_binop(s, "<=", .Bool)
+        is vm.CharGt                -> push_binop(s, ">", .Bool)
+        is vm.CharGe                -> push_binop(s, ">=", .Bool)
+        is vm.StringEq              -> todo("emit_op: string.eq")
+        is vm.StringNe              -> todo("emit_op: string.ne")
+        is vm.StringConcat          -> todo("emit_op: string.concat")
+        is vm.StringSliceCodepoints -> todo("emit_op: string.slice_codepoints")
+        is vm.IntToChar             -> emit_convert(s, .Char)
+        is vm.CharToInt             -> emit_convert(s, .I32)
+        is vm.RefEq                 -> todo("emit_op: ref.eq")
+        is vm.RefNe                 -> todo("emit_op: ref.ne")
+        is vm.DeferPush             -> todo("emit_op: defer.push")
+        is vm.DeferPopExec          -> todo("emit_op: defer.pop_exec")
+    }
+}
+
+/// C source for a constant op — the `return.lit` payload today, the
+/// const-push path in T1. Exhaustive over the closed `ConstOp` union.
+///
+/// TS reference : `constLitC` in `src/c_emit/body.ts`.
+///
+/// @param ctx  emit context — supplies the null primitive tag and the
+///             string-literal atom ids.
+/// @param c    the constant op to render.
+/// @return     a C expression (no trailing `;`).
+const_lit_c :: fn(ctx: EmitCtx, c: vm.ConstOp) -> string = match c {
+    is vm.I32Const as v    -> i32_lit_c(v.value)
+    is vm.I64Const as v    -> i64_lit_c(v.value)
+    is vm.F64Const as v    -> float_lit(v.value)
+    is vm.BoolConst as v   -> if v.value { "true" } else { "false" }
+    is vm.CharConst as v   -> "${u32(v.value)}u"
+    is vm.NullConst        -> "vader_box_obj(${ctx.null_tag}u, NULL)"
+    is vm.StringConst as v -> "${ctx.atom_ids[usize(v.index)]}u"
+}
+
+/// C literal for an i32 value. `INT32_MIN` can't be spelled
+/// `INT32_C(-2147483648)` — that parses as unary minus on an
+/// out-of-range magnitude (UB on strict toolchains) — so emit the
+/// stdint macro. The TS `(int32_t)UINT32_C(N)` out-of-range branch is
+/// unreachable here : `value` is already typed `i32`.
+i32_lit_c :: fn(value: i32) -> string {
+    if value == i32(-2147483647) - 1 { return "INT32_MIN" }
+    return "INT32_C(${value})"
+}
+
+/// C literal for an i64 value. Same `INT64_MIN` caveat as `i32_lit_c`.
+i64_lit_c :: fn(value: i64) -> string {
+    if value == i64(-9223372036854775807) - 1 { return "INT64_MIN" }
+    return "INT64_C(${value})"
+}
+
+/// C literal for an f64 value. T1 will add inf / nan handling
+/// (`(1.0/0.0)` etc.) and the f32 `f` suffix ; T0 only needs the finite
+/// f64 path. A `.0` suffix is appended when the rendered value has no
+/// `.`/`e`, so the C literal stays a `double`.
+float_lit :: fn(value: f64) -> string {
+    s :: "${value}"
+    if "." in s || "e" in s { return s }
+    return "${s}.0"
+}
+
+/// Push a constant op as a `StackLit` — `const_val` gives the stack
+/// ValType, `const_lit_c` the C literal text.
+push_const :: fn(s: FnState, c: vm.ConstOp) -> void = push_lit(s, const_val(c), const_lit_c(s.ctx, c))
+
+/// Stack ValType produced by a constant op. Exhaustive over `ConstOp`.
+/// `NullConst` boxes to `.Any` on the C stack (matching TS `constLitC`) —
+/// a deliberate divergence from `bytecode::const_val_type`, which wants
+/// `.Null` for its const-propagation slot typing.
+const_val :: fn(c: vm.ConstOp) -> ValType = match c {
+    is vm.I32Const    -> .I32
+    is vm.I64Const    -> .I64
+    is vm.F64Const    -> .F64
+    is vm.BoolConst   -> .Bool
+    is vm.CharConst   -> .Char
+    is vm.NullConst   -> .Any
+    is vm.StringConst -> .String
+}
+
+/// `local.get` — push a snapshot of slot `l.slot` (spelled `lN`). A
+/// `void` slot carries nothing on the stack, so it is a no-op.
+emit_local_get :: fn(s: FnState, l: vm.LocalGet) -> void {
+    val :: slot_val_type(s.function, l.slot)
+    if val == ValType.Void { return }
+    push_local_ref(s, l.slot, val)
+}
+
+/// Push a binary op result as a `StackExpr`. Equality (`==` / `!=`) stays
+/// paren-free so `if (${expr})` doesn't trip `-Wparentheses-equality` ;
+/// every other operator is parenthesised for precedence safety.
+push_binop :: fn(s: FnState, op: string, result_val: ValType) -> void {
+    r :: pop(s)
+    l :: pop(s)
+    text :: if op == "==" || op == "!=" {
+        "${name_of(l)} ${op} ${name_of(r)}"
+    } else {
+        "(${name_of(l)} ${op} ${name_of(r)})"
+    }
+    push_expr(s, result_val, text)
+}
+
+/// Push a unary op result as a `StackExpr`. The operand is wrapped in
+/// parens — unary binds tighter than the comparisons, so e.g.
+/// `~l0 == 0` would otherwise mis-parse.
+push_unop :: fn(s: FnState, op: string, result_val: ValType) -> void {
+    v :: pop(s)
+    push_expr(s, result_val, "${op}(${name_of(v)})")
+}
+
+/// Emit an eager binary op into a fresh temp : `tN = l <op> r;`. Used for
+/// `div` / `rem` (every width, incl. f64) — TS materialises these
+/// unconditionally so an integer divide-by-zero trap fires whether or not
+/// the result is consumed. Note : no parens around `l <op> r` (matches
+/// TS).
+push_eager :: fn(s: FnState, op: string, result_val: ValType) -> void {
+    r :: pop(s)
+    l :: pop(s)
+    name :: fresh_tmp(s, result_val)
+    s.out.append("    ${name} = ${name_of(l)} ${op} ${name_of(r)};\n")
+    push_tmp(s, name, result_val)
+}
+
+/// Reinterpret the top value into `target_val` (`Convert` / `IntToChar` /
+/// `CharToInt`). Same type → pass-through ; else a `((to)(from) v)`
+/// double-cast (the inner cast pins the source signedness, matching TS).
+emit_convert :: fn(s: FnState, target_val: ValType) -> void {
+    v :: pop(s)
+    from_val :: val_of(v)
+    if from_val == target_val {
+        push_expr(s, target_val, name_of(v))
+    } else {
+        push_expr(s, target_val, "((${c_type_for_val_bare(target_val)}) (${c_type_for_val_bare(from_val)}) ${name_of(v)})")
+    }
+}
+
+/// `ConvertTarget` enum → its `ValType`.
+convert_target_val :: fn(t: vm.ConvertTarget) -> ValType = match t {
+    .I32  -> .I32
+    .I64  -> .I64
+    .F64  -> .F64
+    .Char -> .Char
+}
+
+/// `return` — `return;` for a void result, else pop the value and emit
+/// `return <value>;`. Scalar fns never allocate, so there is no GC frame
+/// to pop here ; the framed path lands in T5.
+///
+/// The deferral is self-guarding : if the popped value's ValType differs
+/// from the result type, a coercion is required (the lowerer inserts
+/// `Convert` for every T1 width change, so this never fires on the scalar
+/// subset) and `todo` fires loudly rather than emitting a type-mismatched
+/// `return` — coercion + B1 wire-downgrade are owned by T1b / T12.
+emit_return :: fn(s: FnState) -> void {
+    result :: s.function.signature.result
+    if result == ValType.Void {
+        s.out.append("    return;\n")
+        return
+    }
+    v :: pop(s)
+    if val_of(v) != result {
+        todo("emit_return: return-type coercion (T1b / T5)")
+    }
+    s.out.append("    return ${name_of(v)};\n")
+}
+
+/// `local.set` / `local.tee` — materialise any stack entry the write
+/// would invalidate, pop the value, emit `lN = <value>;`, and (for
+/// `tee`) re-push the slot. A `void` slot is a no-op. Value coercion
+/// (slot type ≠ value type) is self-guarded with `todo` ; the lowerer
+/// inserts `Convert` for every T1 width change, so it never fires on the
+/// scalar subset.
+emit_local_set :: fn(s: FnState, slot: i32, tee: bool) -> void {
+    slot_val :: slot_val_type(s.function, slot)
+    if slot_val == ValType.Void { return }
+    materialize_stack_for_slot(s, slot)
+    v :: pop(s)
+    if val_of(v) != slot_val {
+        todo("local.set: value coercion (T1b+)")
+    }
+    s.out.append("    l${slot} = ${name_of(v)};\n")
+    if tee {
+        push_local_ref(s, slot, slot_val)
+    }
+}

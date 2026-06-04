@@ -34,6 +34,7 @@ import "vader/lower" { dump_lowered }
 import "vader/lower" { prune_unreachable_fns }
 import "vader/lower" { mangle_module_id }
 import "vader/bytecode" { emit_project }
+import "vader/bytecode" { BytecodeModule }
 import "vader/bytecode" { default_emit_options }
 import "vader/bytecode" { dump_bytecode, dump_bytecode_annotated }
 import "vader/midir" { build_cfg_project, dump_cfg_project, DumpCfgOptions, emit_bytecode_from_cfg, const_fold_project, annotate_escape, eliminate_dead_cfg }
@@ -553,55 +554,55 @@ run_bytecode_cfg_stage :: fn(file: string) -> i32 {
     return 0
 }
 
-run_bytecode_stage :: fn(file: string, annotate: bool) -> i32 {
+/// Result of `prepare_cfg_bytecode` — the canonical bytecode module plus
+/// the bits the caller still needs for diagnostics + entry resolution.
+CfgBytecode :: struct {
+    pipeline:    EvaluatedPipeline
+    lower_diags: Diagnostic[]
+    module:      BytecodeModule
+}
+
+/// Lower `file` to a `BytecodeModule` via the CFG midir → bytecode path
+/// (the canonical bytecode the bytecode stage, the C stage, and TS all
+/// share). The CFG path materialises 3-address `local.set` / `local.get`
+/// temps byte-for-byte with TS ; the legacy `emit_project` tree-walker
+/// elides them and diverges on ~150 snippets, so both `dump --stage`
+/// consumers route through here. Const-fold is deliberately NOT run (TS's
+/// `dumpBytecode` skips it too, so arith collapse would over-shrink vs the
+/// parity snapshot).
+prepare_cfg_bytecode :: fn(file: string) -> CfgBytecode {
     pipeline :: prepare_evaluated_project(file)
     lower_diags: Diagnostic[] = []
     lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
     pruned :: prune_unreachable_fns(lowered, false)
-    // Route through the CFG midir → bytecode emit path. The CFG path
-    // materialises 3-address `local.set / local.get` temps around call
-    // results and intermediate expressions byte-for-byte with TS ; the
-    // legacy lowered→bytecode tree-walker (`emit_project`) elides them
-    // and diverges on ~150 parity snippets.
     cfg :: build_cfg_project(pruned)
-    // CFG-level DCE first (foldMoves + future DIE / compact). Const-
-    // fold deliberately NOT run on the bytecode path : TS's
-    // `dumpBytecode` (tests/snapshot.ts) also skips it, so any
-    // arith collapse here would over-shrink vs the parity snapshot.
     dced :: eliminate_dead_cfg(cfg)
     escaped :: annotate_escape(dced).project
     module :: emit_bytecode_from_cfg(escaped, module_name_from_file(file), default_emit_options())
+    return CfgBytecode { .pipeline = pipeline, .lower_diags = lower_diags, .module = module }
+}
+
+run_bytecode_stage :: fn(file: string, annotate: bool) -> i32 {
+    b :: prepare_cfg_bytecode(file)
     // `dump_bytecode` already returns a trailing-newline-terminated
     // string ; use `print` (no auto-newline) to match TS
     // `process.stdout.write(writeVir(...))` byte-for-byte. `--annotate`
     // routes through the disassembly variant — NOT round-trippable, so it
     // never feeds `parse_virt` or the parity snapshots.
-    entry :: entry_main_name(pipeline.typed, pipeline.loaded.entry)
-    out_text :: if annotate { dump_bytecode_annotated(module, entry) } else { dump_bytecode(module, entry) }
+    entry :: entry_main_name(b.pipeline.typed, b.pipeline.loaded.entry)
+    out_text :: if annotate { dump_bytecode_annotated(b.module, entry) } else { dump_bytecode(b.module, entry) }
     print(out_text)
-    print_pipeline_diags(pipeline, lower_diags)
+    print_pipeline_diags(b.pipeline, b.lower_diags)
     return 0
 }
 
 run_c_stage :: fn(file: string) -> i32 {
-    pipeline :: prepare_evaluated_project(file)
-    lower_diags: Diagnostic[] = []
-    lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
-    pruned :: prune_unreachable_fns(lowered, false)
-    // Route through the CFG midir → bytecode path — the same canonical
-    // bytecode the bytecode stage (and TS) produce — NOT the legacy
-    // `emit_project` tree-walker, which diverges (e.g. it inlines
-    // single-use locals instead of materialising them via `local.set`)
-    // and would cascade straight into the C output.
-    cfg :: build_cfg_project(pruned)
-    dced :: eliminate_dead_cfg(cfg)
-    escaped :: annotate_escape(dced).project
-    module :: emit_bytecode_from_cfg(escaped, module_name_from_file(file), default_emit_options())
+    b :: prepare_cfg_bytecode(file)
     // `emit_c` already returns a trailing-newline-terminated string ; use
     // `print` (no auto-newline) to match the TS `Bun.write(emitC(...))`
-    // output byte-for-byte, mirroring `run_bytecode_stage`.
-    print(emit_c(module, default_c_emit_options()))
-    print_pipeline_diags(pipeline, lower_diags)
+    // output byte-for-byte.
+    print(emit_c(b.module, default_c_emit_options()))
+    print_pipeline_diags(b.pipeline, b.lower_diags)
     return 0
 }
 
