@@ -14,7 +14,7 @@ module "vader/c_emit"
 import "std/string" { join }
 import "std/string_builder" { StringBuilder, new_builder, append }
 import "std/abort" { todo }
-import "vader/bytecode" { BcFunction, BcSignature, BcStruct, BcArray, BcType, ValType }
+import "vader/bytecode" { BcFunction, BcSignature, BcStruct, BcArray, BcFn, BcType, ValType }
 import "vader/bytecode" { array_kind_of, array_kind_index }
 // The opcode union pulls in ~120 names ; the namespace form keeps the
 // import to one line and tags every op site as `vm.<Op>` at the match.
@@ -272,10 +272,10 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.Drop                  -> drop_top(s)
         is vm.Call as c             -> emit_call(s, c)
         is vm.CallImport as c       -> emit_call_import(s, c)
-        is vm.CallIndirect          -> todo("emit_op: call.indirect")
-        is vm.VirtualCall           -> todo("emit_op: virtual.call")
-        is vm.FnRef                 -> todo("emit_op: fn.ref")
-        is vm.MakeClosure           -> todo("emit_op: make_closure")
+        is vm.CallIndirect as c     -> emit_call_indirect(s, c)
+        is vm.VirtualCall as c      -> emit_virtual_call(s, c)
+        is vm.FnRef as fr           -> emit_fn_ref(s, fr)
+        is vm.MakeClosure as mc     -> emit_make_closure(s, mc)
         is vm.If                    -> emit_if_open(s)
         is vm.Else                  -> emit_else(s)
         is vm.End                   -> emit_end(s, pc)
@@ -799,6 +799,247 @@ emit_call_result :: fn(s: FnState, call_expr: string, result: ValType) -> void {
         return
     }
     push_into_tmp(s, call_expr, result)
+}
+
+// ---- closures + dispatch --------------------------------------------------
+//
+// Fn values flow as `vader_box_obj(tag, fn_ptr)`. A bare `fn.ref` boxes a
+// pointer to the fn's static trampoline ; `make_closure` heap-allocates a
+// `vader_fn_t` carrying the lifted-fn wrapper + captured env ; `call.indirect`
+// invokes either through the canonical erased ABI (`vader_fn_erased_sig_N_t`),
+// boxing every arg so a concrete-typed closure flows through an erased call
+// site. `virtual.call` routes through the per-key dispatcher (`dispatch.vader`)
+// switching on the receiver's runtime tag. The wrappers themselves are emitted
+// once per module by `emit_fn_trampolines` below.
+
+/// Pop `count` args off the operand stack (top is the last arg), box each to
+/// the erased `any` ABI, and return them in source order — pop #k lands in
+/// slot `count-1-k`. Shared by the erased-call sites (`call.indirect` args,
+/// `virtual.call` tail).
+pop_args_boxed :: fn(s: FnState, count: i32) -> string[] {
+    types :: s.ctx.module.types
+    args: string[] = []
+    for _ in 0..<count { args.push("") }
+    for k in 0..<count {
+        v :: pop(s)
+        slot :: count - 1 - k
+        args[usize(slot)] = coerce_expr(types, name_of(v), val_of(v), .Any)
+    }
+    return args
+}
+
+/// `fn.ref` — box a pointer to the fn's static trampoline value. The
+/// trampoline (`vader_fn_static_N`) is emitted by `emit_fn_trampolines`.
+emit_fn_ref :: fn(s: FnState, op: vm.FnRef) -> void {
+    name :: fresh_tmp(s, .Ref)
+    line(s, "${name} = vader_box_obj(${op.type_id}u, &vader_fn_static_${op.function_index});")
+    push_tmp(s, name, .Ref)
+}
+
+/// `make_closure` — pop the captured env (a boxed struct), heap-allocate a
+/// `vader_fn_t` with `code` = the lifted-fn wrapper + `env` = the env ptr,
+/// box it with the closure's fn-type tag. `env_type_id` carries the closure's
+/// own BcFn type (a lowerer misnomer — see `bytecode/emit_body.vader`).
+emit_make_closure :: fn(s: FnState, op: vm.MakeClosure) -> void {
+    env :: pop(s)
+    fn_obj :: aux(s, "closure")
+    line(s, "vader_fn_t* ${fn_obj} = (vader_fn_t*) vader_gc_alloc(sizeof(vader_fn_t));")
+    line(s, "vader_obj_header_init(${fn_obj}, ${op.env_type_id}u);")
+    line(s, "${fn_obj}->code = (void*) &vader_fn_lift_${op.function_index};")
+    line(s, "${fn_obj}->env = ${name_of(env)}.payload.obj;")
+    name :: fresh_tmp(s, .Ref)
+    line(s, "${name} = vader_box_obj(${op.env_type_id}u, ${fn_obj});")
+    push_tmp(s, name, .Ref)
+}
+
+/// `call.indirect` — invoke a `vader_fn_t` value through the canonical erased
+/// signature. Every arg is boxed to `vader_box_t` and the `code` pointer cast
+/// to `vader_fn_erased_sig_N_t`, so a concrete-typed closure flows through an
+/// erased call site without a calling-convention mismatch ; the wrapper unboxes
+/// per the underlying fn's concrete sig. The wrapper returns the erased box —
+/// coerce it back to the static return class for direct readers.
+emit_call_indirect :: fn(s: FnState, op: vm.CallIndirect) -> void {
+    types :: s.ctx.module.types
+    t :: types[usize(op.type_id)]
+    if t is BcFn as fnt {
+        // `fn_val` is on top — pop it before the args.
+        fn_val :: pop(s)
+        n :: i32(fnt.params.len())
+        args :: pop_args_boxed(s, n)
+        fn_obj :: aux(s, "fnobj")
+        line(s, "vader_fn_t* ${fn_obj} = (vader_fn_t*) ${name_of(fn_val)}.payload.obj;")
+        call_args :: if n == 0 { "${fn_obj}->env" } else { "${fn_obj}->env, ${args.join(", ")}" }
+        call_expr :: "((vader_fn_erased_sig_${n}_t) ${fn_obj}->code)(${call_args})"
+        ret_val :: val_type_of_bc_type(types[usize(fnt.return_type)])
+        if ret_val == ValType.Void {
+            line(s, "${call_expr};")
+            return
+        }
+        any_tmp :: fresh_tmp(s, .Any)
+        line(s, "${any_tmp} = ${call_expr};")
+        if ret_val == ValType.Ref || ret_val == ValType.Any {
+            push_tmp(s, any_tmp, ret_val)
+            return
+        }
+        result :: fresh_tmp(s, ret_val)
+        line(s, "${result} = ${coerce_expr(types, any_tmp, .Any, ret_val)};")
+        push_tmp(s, result, ret_val)
+    } else {
+        todo("call.indirect on non-fn type ${op.type_id}")
+    }
+}
+
+/// `virtual.call` — trait-method dispatch. Pop the receiver (top of stack),
+/// then the tail args below it (source order), box everything to the erased
+/// ABI, and call the per-key dispatcher (`vader_vt_<key>`, emitted in
+/// `dispatch.vader`) which switches on `recv.tag`. The Vader op carries no
+/// result-type index, so there is no erasure-boundary repack here — a
+/// following `ref.cast` / `convert` handles any per-tag reshape (cleaner than
+/// the TS in-op conversion ; full erasure boundary is T12).
+emit_virtual_call :: fn(s: FnState, op: vm.VirtualCall) -> void {
+    row :: find_vtable_row(s.ctx, op.vtable_key)
+    if row == null {
+        line(s, "vader_unreachable(\"no vtable for ${op.vtable_key}\");")
+        return
+    }
+    types :: s.ctx.module.types
+    // Receiver is on top, popped first ; the tail args sit below in source
+    // order (`pop_args_boxed` restores it).
+    recv :: pop(s)
+    recv_boxed :: coerce_expr(types, name_of(recv), val_of(recv), .Any)
+    boxed :: pop_args_boxed(s, op.parameter_count - 1)
+    sig :: vtable_sig_for_row(s.ctx, row)
+    all_args: string[] = [recv_boxed]
+    for a in boxed { all_args.push(a) }
+    call_expr :: "${vtable_helper_name(op.vtable_key)}(${all_args.join(", ")})"
+    if sig.result == ValType.Void {
+        line(s, "${call_expr};")
+        return
+    }
+    push_into_tmp(s, call_expr, sig.result)
+}
+
+// ---- fn-value wrappers (whole-module scan) --------------------------------
+
+/// Per-fn `fn.ref` trampoline + `make_closure` lift wrappers. Walks every fn
+/// body to discover which fns are taken by reference (need a static
+/// `vader_fn_t` + a wrapper dropping env) and which are lifted into closures
+/// (need a wrapper boxing env). Both expose the canonical erased ABI
+/// (`vader_box_t` per arg + return) so one `code` pointer is castable at any
+/// `call.indirect` site. Gated on the ops actually appearing — a fn-typed
+/// field can exist with no fn-value op. Mirrors `emitFnTrampolines` in
+/// `src/c_emit/emit.ts`.
+emit_fn_trampolines :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
+    fns :: ctx.module.functions
+    n :: fns.len()
+    fn_ref_type: i32[] = []     // BcFn type tag per fn.ref target, -1 = none
+    is_closure: bool[] = []     // true when a make_closure lifts this fn
+    for _ in 0..<n {
+        fn_ref_type.push(-1)
+        is_closure.push(false)
+    }
+    any := false
+    for f in fns {
+        for op in f.body {
+            if op is vm.FnRef as fr {
+                fn_ref_type[usize(fr.function_index)] = fr.type_id
+                any = true
+            } else if op is vm.MakeClosure as mc {
+                is_closure[usize(mc.function_index)] = true
+                any = true
+            }
+        }
+    }
+    if !any { return }
+
+    for i in 0..<n {
+        if fn_ref_type[i] >= 0 { emit_fn_ref_tramp(ctx, out, i32(i), fn_ref_type[i]) }
+    }
+    for i in 0..<n {
+        if is_closure[i] { emit_closure_lift(ctx, out, i32(i)) }
+    }
+    out.append("\n")
+}
+
+/// Emit the `fn.ref` trampoline (drops env, unboxes args to the fn's concrete
+/// sig, boxes the result) + the static `vader_fn_t` value pointing at it.
+emit_fn_ref_tramp :: fn(ctx: EmitCtx, out: StringBuilder, fn_index: i32, type_id: i32) -> void {
+    fn_decl :: ctx.module.functions[usize(fn_index)]
+    cname :: sanitise(fn_decl.name)
+    sig :: fn_decl.signature
+    head :: if sig.params.len() == 0 { "void* env" } else { "void* env, ${tramp_box_params(sig.params.len())}" }
+    out.append("static vader_box_t vader_fn_tramp_${fn_index}(${head}) {\n")
+    out.append("    (void) env;\n")
+    unboxed :: tramp_unbox_args(sig.params)
+    if sig.result == ValType.Void {
+        out.append("    ${cname}(${unboxed});\n")
+        out.append("    return vader_box_null();\n")
+    } else {
+        out.append("    return ${tramp_box_result(cname, unboxed, sig)};\n")
+    }
+    out.append("}\n")
+    out.append("static vader_fn_t vader_fn_static_${fn_index} = { { ${type_id}u, 0u, 0u, 0u, NULL }, (void*) &vader_fn_tramp_${fn_index}, NULL };\n")
+}
+
+/// Emit the `make_closure` lift wrapper : takes `void* env` + the tail args
+/// boxed, re-boxes env into the `vader_box_t` the lifted fn's first param
+/// expects, unboxes the tail to the concrete sig, boxes the result.
+emit_closure_lift :: fn(ctx: EmitCtx, out: StringBuilder, fn_index: i32) -> void {
+    fn_decl :: ctx.module.functions[usize(fn_index)]
+    cname :: sanitise(fn_decl.name)
+    sig :: fn_decl.signature
+    if sig.params.len() == 0 { return }
+    tail :: i32(sig.params.len()) - 1
+    head :: if tail == 0 { "void* env" } else { "void* env, ${tramp_box_params(usize(tail))}" }
+    out.append("static vader_box_t vader_fn_lift_${fn_index}(${head}) {\n")
+    out.append("    vader_box_t env_box; env_box.tag = 0u; env_box._pad = 0u; env_box.payload.obj = env;\n")
+    unboxed_tail :: lift_unbox_tail(sig.params)
+    call_args :: if unboxed_tail == "" { "env_box" } else { "env_box, ${unboxed_tail}" }
+    if sig.result == ValType.Void {
+        out.append("    ${cname}(${call_args});\n")
+        out.append("    return vader_box_null();\n")
+    } else {
+        out.append("    return ${tramp_box_result(cname, call_args, sig)};\n")
+    }
+    out.append("}\n")
+}
+
+/// `vader_box_t a0, vader_box_t a1, …` — `count` erased-ABI tail params.
+tramp_box_params :: fn(count: usize) -> string {
+    sb :: new_builder()
+    for j in 0..<count {
+        if j > 0 { sb.append(", ") }
+        sb.append("vader_box_t a${j}")
+    }
+    return "${sb}"
+}
+
+/// Unbox `a0..a<n-1>` to the concrete `params` classes, comma-joined — the
+/// `fn.ref` trampoline's argument list (params map 1:1 to `a<j>`).
+tramp_unbox_args :: fn(params: ValType[]) -> string {
+    parts: string[] = []
+    for j in 0..<params.len() {
+        parts.push(unbox_expr("a${j}", params[j]))
+    }
+    return parts.join(", ")
+}
+
+/// Unbox the lift wrapper's tail `a0..` to `params[1..]` (param 0 is the env
+/// slot, supplied as `env_box`), comma-joined.
+lift_unbox_tail :: fn(params: ValType[]) -> string {
+    parts: string[] = []
+    for j in 1..<params.len() {
+        parts.push(unbox_expr("a${j - 1}", params[j]))
+    }
+    return parts.join(", ")
+}
+
+/// The wrapper's boxed return expression : `<fn>(<args>)`, boxed unless the
+/// result is already a box (`ref` / `any`).
+tramp_box_result :: fn(cname: string, args: string, sig: BcSignature) -> string {
+    call_expr :: "${cname}(${args})"
+    if sig.result == ValType.Ref || sig.result == ValType.Any { return call_expr }
+    return box_expr(call_expr, sig.result, sig.result_type)
 }
 
 // ---- structs --------------------------------------------------------------

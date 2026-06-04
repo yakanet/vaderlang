@@ -395,19 +395,9 @@ erased_sig_params :: fn(n: i32) -> string {
     return "${sb}"
 }
 
-/// Per-fn trampoline shims for closures whose host fn-pointer ABI
-/// doesn't already match the erased canonical signature. Phase 1-2 :
-/// no fns, no trampolines.
-///
-/// TS reference : `emitFnTrampolines` in `src/c_emit/emit.ts`.
-emit_fn_trampolines :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
-    // T10 : per-(non-canonical-arity) trampoline emit. Like TS
-    // `emitFnTrampolines`, this is gated on `fn.ref` / `make_closure`
-    // ops actually appearing in a fn body — NOT on a `BcFn` type-table
-    // entry (a fn-typed field can exist with no fn-value op). That body
-    // scan lands with the real emit in T10 ; until then there is
-    // genuinely nothing to do, so this no-ops.
-}
+// `emit_fn_trampolines` (the per-fn `fn.ref` / `make_closure` wrappers)
+// lives in `walker.vader` (same module), next to `compute_may_alloc` — both
+// are whole-module body scans over the fn table.
 
 /// Per-type GC info table + size table + (at the end) the vtable
 /// section. Always emitted, even for an empty module — the runtime
@@ -585,67 +575,10 @@ emit_struct_info_row :: fn(ctx: EmitCtx, _s: BcStruct, offs: StructOffsets, type
 /// function bodies stays byte-identical.
 // `emit_import_shims` lives in `host.vader` (same module) — the
 // `call.import` host-fn dispatch is a distinct responsibility.
-
-/// Forward decls for each per-tag vtable dispatch function emitted by
-/// `emit_vtable_dispatchers`. Phase 1-2 : no vtables.
-emit_vtable_forward_decls :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
-    if ctx.module.vtables.len() > 0 {
-        todo("emit_vtable_forward_decls: per-(trait.method) dispatcher forward decl")
-    }
-}
-
-/// Per-tag vtable table + count + pinned-slot comment block. Always
-/// emitted, even when the module has no impls — keeps the link-time
-/// strong-symbol takeover deterministic by overriding the runtime's
-/// weak fallback.
-///
-/// TS reference : `emitVtables` in `src/c_emit/emit-vtable.ts`.
-emit_vtables :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
-    // Column-0 body : triple-quoted strings take their content verbatim
-    // (only the newline right after the opening `"""` is stripped), so the
-    // C comment can't be indented to the fn body. The leading blank line
-    // supplies the `\n` separator before the block.
-    out.append("""
-
-/* ----------------------------------------------------------- vtables
- * Per-tag method dispatch tables consumed by
- * `vader_virtual_dispatch(tag, slot)`. Built from the bytecode's
- * `(trait.method)` → `(typeIndex → fnIndex)` map; slot indices are
- * derived deterministically by sorting the trait-method keys
- * alphabetically. Pinned stdlib slots: ${pinned_slot_summary()}.
- */
-""")
-
-    if ctx.module.vtables.len() == 0 {
-        out.append("const vader_vtable_t* const vader_vtable_table[1] = { NULL };\n")
-        out.append("const size_t                vader_vtable_count    = 0;\n")
-        return
-    }
-    // T9 : per-tag vtable struct emit + sized table (with the 3 BOOTSTRAP
-    // canonicalisation fixes — min-fnIdx anchor, sorted cases / lists).
-    todo("emit_vtables: per-tag vtable struct emit + sized table")
-}
-
-/// Stable list of pinned trait-method slots, formatted as
-/// `"Hash.hash=0, Equals.equals=1, Ord.compare=2, Display.display=3"`.
-/// Hard-coded here to mirror TS `PINNED_SLOTS` exactly — the order
-/// matches `src/typecheck/trait-slots.ts:35`.
-///
-/// FRAGILE — when a new pinned slot is added to TS `PINNED_SLOTS`, the
-/// emitted comment in the generated C silently drifts unless this
-/// literal is updated in lock-step. A future pass should source this
-/// from a `vader/typecheck/trait_slots.vader` const so the two stay
-/// in sync.
-pinned_slot_summary :: fn() -> string {
-    return "Hash.hash=0, Equals.equals=1, Ord.compare=2, Display.display=3"
-}
-
-/// Per-trait-method dispatcher function. Phase 1-2 : no vtables.
-emit_vtable_dispatchers :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
-    if ctx.module.vtables.len() > 0 {
-        todo("emit_vtable_dispatchers: per-(trait.method) dispatch fn emit")
-    }
-}
+//
+// The vtable section emitters (`emit_vtable_forward_decls` / `emit_vtables` /
+// `emit_vtable_dispatchers`) + the slot registry live in `dispatch.vader`
+// (same module) — trait-method dispatch is its own responsibility.
 
 /// `int main(...)` shim. No `is_main` fn → the `return 0;` stub. Otherwise
 /// a signature-aware entry : `vader_atom`/`vader_gc` init, optional

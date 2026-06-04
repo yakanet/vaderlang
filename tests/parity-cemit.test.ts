@@ -74,6 +74,14 @@ const C_PARITY = new Set<string>([
   // T6 : strings + builder — string.concat / string.eq (atom ==) + the
   // builder family (interpolation). stdout "hello, world!".
   "string_ops",
+  // T3c : closures + dispatch.
+  //   fn_value_local       — fn.ref → vader_fn_tramp/static + call.indirect.
+  //   closure_callback     — make_closure → vader_fn_lift + fn-value param.
+  //   trait_virtual_dispatch — virtual.call → per-key dispatcher + the slot
+  //                          tables (existential `Error` receiver).
+  "fn_value_local",
+  "closure_callback",
+  "trait_virtual_dispatch",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));

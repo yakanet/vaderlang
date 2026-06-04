@@ -296,6 +296,53 @@ export box_expr :: fn(name: string, val: ValType, type_index: i32) -> string = m
     .Any   -> name
 }
 
+/// BcType index of the primitive whose stack class is `val`, or `0` when no
+/// such primitive is materialised in the type table. Used to tag a box when
+/// the call site has no explicit target type-index (`box_expr_unknown`). A
+/// missing primitive falls back to tag 0 — the receiver's `type_check` simply
+/// misses, exactly as TS. Mirrors the `primitiveTagOf` map in
+/// `src/c_emit/emit.ts`.
+///
+/// @param types  the module type table.
+/// @param val    the primitive stack class to find a tag for.
+/// @return       the BcType index, or `0` if absent.
+export primitive_tag_of :: fn(types: BcType[], val: ValType) -> i32 {
+    for i in 0..<types.len() {
+        t :: types[i]
+        if t is BcPrimitive as p {
+            if p.val == val { return i32(i) }
+        }
+    }
+    return 0
+}
+
+/// Box `name` to a `vader_box_t` without an explicit target type-index — the
+/// tag is the primitive's own BcType index (`primitive_tag_of`). Used by
+/// `coerce_expr` when widening a primitive into a `ref` / `any` slot (fn-arg
+/// boxing, dispatcher result wrapping). Mirrors `boxExprUnknown` in
+/// `src/c_emit/body.ts`.
+export box_expr_unknown :: fn(types: BcType[], name: string, val: ValType) -> string =
+    box_expr(name, val, primitive_tag_of(types, val))
+
+/// C expression coercing `name` from stack class `from` to `to`. Identity
+/// when equal or both boxed ; boxes a primitive into a `ref` / `any` slot ;
+/// unboxes a box into a primitive ; otherwise a double-cast (through `from`
+/// first, matching `emit_convert`). Mirrors `coerceExpr` in
+/// `src/c_emit/body.ts` — B1 nullable-ref slots are deferred to T12.
+///
+/// @param types  the module type table (for the box tag).
+/// @param name   the C name / expression to coerce.
+/// @param from   its current stack class.
+/// @param to     the destination stack class.
+/// @return       a C expression of `to`'s storage type.
+export coerce_expr :: fn(types: BcType[], name: string, from: ValType, to: ValType) -> string {
+    if from == to { return name }
+    if is_ref_val(to) && is_ref_val(from) { return name }
+    if is_ref_val(to) { return box_expr_unknown(types, name, from) }
+    if is_ref_val(from) { return unbox_expr(name, to) }
+    return "(${c_type_for_val_bare(to)}) (${c_type_for_val_bare(from)}) ${name}"
+}
+
 /// The `vader_builder_append_display_<class>` runtime helper for a value
 /// of stack class `v` — used by `builder.append_display`. Non-primitive
 /// classes fall back to the string helper (the lowerer stringifies them

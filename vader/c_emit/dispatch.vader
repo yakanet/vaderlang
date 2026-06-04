@@ -1,0 +1,305 @@
+// vader/c_emit/dispatch — trait-method dispatch tables + per-key helpers.
+//
+// Two outputs feed virtual dispatch in the generated C :
+//
+//   1. Per-tag slot tables (`vt_<typeIdx>` + `vader_vtable_table[]`) that
+//      override the runtime's weak fallback and back the generic
+//      `vader_virtual_dispatch(tag, slot)` helper.
+//   2. Per-`(trait.method)` dispatcher functions (`vader_vt_<key>`) that the
+//      `virtual.call` op actually invokes — a `switch (recv.tag)` forwarding
+//      to the matching impl fn, boxing args / result to the erased ABI so
+//      heterogeneous monomorphised impls can share one dispatcher.
+//
+// Slot indices are a C-emit-only concept here : the Vader VM dispatches a
+// `virtual.call` by `(vtable_key → receiver tag)` directly (see
+// `vader/vm/op.vader::VirtualCall`), never by slot — so, unlike the TS
+// toolchain where typecheck assigns slots project-wide, the registry lives in
+// this module and exists purely to lay out the runtime slot tables.
+//
+// TS reference : `src/typecheck/trait-slots.ts` (slot registry) +
+// `src/c_emit/emit-vtable.ts` (slot tables) + the dispatcher half of
+// `src/c_emit/ops.ts` (`emitVtableForwardDecls` / `emitVtableDispatchers`).
+
+module "vader/c_emit"
+
+import "std/string" { join, split, compare_ascending }
+import "std/string_builder" { StringBuilder, new_builder, append }
+import "std/collections" { MutableMap }
+import "std/sort" { sort }
+import "vader/bytecode" { BcType, BcSignature, ValType, VtableRow }
+
+// ---- slot registry --------------------------------------------------------
+
+/// First slot index available to user-defined trait methods. Slots `0..7`
+/// are reserved for the pinned stdlib traits (`pinned_slot`).
+FIRST_USER_SLOT :: 8
+
+/// Fixed slot for a pinned stdlib trait method, or `-1` when `key` isn't
+/// pinned. Hard-coded to mirror TS `PINNED_SLOTS` exactly so the runtime
+/// helpers + bench tools can reference these without a built registry.
+pinned_slot :: fn(key: string) -> i32 {
+    if key == "Hash.hash"       { return 0 }
+    if key == "Equals.equals"   { return 1 }
+    if key == "Ord.compare"     { return 2 }
+    if key == "Display.display" { return 3 }
+    return -1
+}
+
+/// `${trait}.${method}` → slot index. Pinned methods keep their fixed slot ;
+/// every other method sorts alphabetically and is assigned a slot from
+/// `FIRST_USER_SLOT` up, so independent builds of the same project agree.
+SlotRegistry :: struct {
+    slots: MutableMap<string, i32>
+}
+
+/// Build the registry from the module's vtable keys. Pinned keys seed the
+/// map ; the rest are assigned in alphabetical order from `FIRST_USER_SLOT`.
+/// Mirrors `buildSlotRegistryFromKeys` in `src/typecheck/trait-slots.ts`.
+///
+/// @param keys  every `${trait}.${method}` key in the module's vtables.
+/// @return      a registry mapping each key to its dispatch slot.
+build_slot_registry_from_keys :: fn(keys: string[]) -> SlotRegistry {
+    slots := MutableMap<string, i32> {}
+    slots["Hash.hash"] = 0
+    slots["Equals.equals"] = 1
+    slots["Ord.compare"] = 2
+    slots["Display.display"] = 3
+
+    unpinned: string[] = []
+    for k in keys {
+        if pinned_slot(k) < 0 { unpinned.push(k) }
+    }
+    sorted :: sort(unpinned, (a: string, b: string) -> compare_ascending(a, b))
+    next: i32 = FIRST_USER_SLOT
+    for k in sorted {
+        if !(k in slots) {
+            slots[k] = next
+            next += 1
+        }
+    }
+    return SlotRegistry { .slots = slots }
+}
+
+/// Slot for a `${trait}.${method}` key, or `-1` if unregistered.
+slot_lookup :: fn(self: SlotRegistry, key: string) -> i32 {
+    v :: self.slots[key]
+    if v == null { return -1 }
+    return v
+}
+
+/// Stable list of pinned trait-method slots, formatted as
+/// `"Hash.hash=0, Equals.equals=1, Ord.compare=2, Display.display=3"` for the
+/// generated comment block. Mirrors the order of TS `PINNED_SLOTS`.
+pinned_slot_summary :: fn() -> string {
+    return "Hash.hash=0, Equals.equals=1, Ord.compare=2, Display.display=3"
+}
+
+// ---- per-key dispatcher metadata ------------------------------------------
+
+/// C identifier for the dispatcher function of a `${trait}.${method}` key —
+/// `vader_vt_<Trait>__<method>`. The `.` becomes `__` (matching TS
+/// `key.replace(".", "__")`) before sanitation so the two halves stay
+/// readable. Mirrors `vtableHelperName` in `src/c_emit/ops.ts`.
+vtable_helper_name :: fn(key: string) -> string = "vader_vt_${sanitise(key.split(".").join("__"))}"
+
+/// The vtable row whose key is `key`, or `null` when absent.
+find_vtable_row :: fn(ctx: EmitCtx, key: string) -> VtableRow | null {
+    for row in ctx.module.vtables {
+        if row.key == key { return row }
+    }
+    return null
+}
+
+/// Canonical signature for a dispatcher : the first impl's signature when
+/// every impl agrees on `(result, result_type)`, otherwise a synthetic sig
+/// with `result = .Any` so divergent monomorphised impls can box-and-return
+/// uniformly. Callers guarantee `row.entries` is non-empty. Mirrors
+/// `vtableSignatures` in `src/c_emit/ops.ts`.
+vtable_sig_for_row :: fn(ctx: EmitCtx, row: VtableRow) -> BcSignature {
+    first :: ctx.module.functions[usize(row.entries[0].fn_index)]
+    first_sig :: first.signature
+    uniform := true
+    for e in row.entries {
+        f :: ctx.module.functions[usize(e.fn_index)]
+        if f.signature.result != first_sig.result || f.signature.result_type != first_sig.result_type {
+            uniform = false
+        }
+    }
+    if uniform { return first_sig }
+    return BcSignature {
+        .params = first_sig.params,
+        .result = .Any,
+        .param_types = first_sig.param_types,
+        .result_type = first_sig.result_type,
+    }
+}
+
+/// Formal parameter list for a dispatcher : `vader_box_t recv` plus one
+/// `vader_box_t a<j>` per tail param. Tail params take the erased box type
+/// so impls with divergent concrete signatures share one dispatcher — each
+/// arm unboxes to its own signature.
+dispatcher_formal :: fn(sig: BcSignature) -> string {
+    sb :: new_builder()
+    sb.append("vader_box_t recv")
+    tail :: i32(sig.params.len()) - 1
+    for j in 0..<tail {
+        sb.append(", vader_box_t a${j}")
+    }
+    return "${sb}"
+}
+
+// ---- emit -----------------------------------------------------------------
+
+/// One projected `(type, slot) → fn` row of the per-tag slot table.
+VtSlot :: struct {
+    type_index: i32
+    slot:       i32
+    fn_index:   i32
+    key:        string
+}
+
+/// Forward-declare every dispatcher so user fns calling them compile before
+/// the bodies are emitted. Mirrors `emitVtableForwardDecls` in
+/// `src/c_emit/ops.ts`.
+emit_vtable_forward_decls :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
+    rows :: ctx.module.vtables
+    if rows.len() == 0 { return }
+    out.append("\n/* ----------------------------------------------- vtable forwards */\n")
+    for row in rows {
+        if row.entries.len() == 0 { continue }
+        sig :: vtable_sig_for_row(ctx, row)
+        out.append("static ${c_type_for_val_bare(sig.result)} ${vtable_helper_name(row.key)}(${dispatcher_formal(sig)});\n")
+    }
+}
+
+/// Emit one dispatch helper per `(trait.method)` : `static <ret>
+/// vader_vt_<key>(vader_box_t recv, …)` switching on `recv.tag` and
+/// forwarding to the matching impl. Each arm unboxes args to the impl's
+/// concrete signature ; when the dispatcher returns `any` but the impl
+/// returns a primitive, the result is re-boxed. B1 nullable-ref returns are
+/// deferred to T12 (the non-erased subset never produces them). Mirrors
+/// `emitVtableDispatchers` in `src/c_emit/ops.ts`.
+emit_vtable_dispatchers :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
+    rows :: ctx.module.vtables
+    if rows.len() == 0 { return }
+    types :: ctx.module.types
+    out.append("\n/* ----------------------------------------------- vtable dispatchers */\n")
+    for row in rows {
+        if row.entries.len() == 0 { continue }
+        sig :: vtable_sig_for_row(ctx, row)
+        helper :: vtable_helper_name(row.key)
+        out.append("static ${c_type_for_val_bare(sig.result)} ${helper}(${dispatcher_formal(sig)}) {\n")
+        out.append("    switch (recv.tag) {\n")
+        for e in row.entries {
+            callee :: ctx.module.functions[usize(e.fn_index)]
+            csig :: callee.signature
+            args: string[] = [coerce_expr(types, "recv", .Any, csig.params[0])]
+            tail :: i32(csig.params.len()) - 1
+            for i in 0..<tail {
+                args.push(coerce_expr(types, "a${i}", .Any, csig.params[usize(i + 1)]))
+            }
+            call_expr :: "${sanitise(callee.name)}(${args.join(", ")})"
+            if sig.result == ValType.Void {
+                out.append("        case ${e.receiver_type_index}u: ${call_expr}; return;\n")
+            } else {
+                out.append("        case ${e.receiver_type_index}u: return ${dispatcher_result(types, call_expr, csig.result, sig.result)};\n")
+            }
+        }
+        out.append("        default: vader_unreachable(\"vtable miss in ${row.key}\");\n")
+        out.append("    }\n")
+        if sig.result != ValType.Void {
+            out.append("    vader_unreachable(\"vtable miss in ${row.key}\");\n")
+        }
+        out.append("}\n")
+    }
+}
+
+/// The per-arm return expression : box the impl's primitive result when the
+/// dispatcher returns the erased `any`, otherwise return it as-is (ref / any
+/// impls pass through ; matching concrete results need no wrap).
+dispatcher_result :: fn(types: BcType[], call_expr: string, impl_result: ValType, sig_result: ValType) -> string {
+    impl_is_box :: impl_result == ValType.Any || impl_result == ValType.Ref || impl_result == ValType.Void
+    boxes :: sig_result == ValType.Any && !impl_is_box
+    if boxes { return coerce_expr(types, call_expr, impl_result, .Any) }
+    return call_expr
+}
+
+/// Per-tag slot tables + the `vader_vtable_table[]` index + count. Always
+/// emitted — the strong symbols override the runtime's weak empty fallback,
+/// keeping the link-time takeover deterministic. Mirrors `emitVtables` in
+/// `src/c_emit/emit-vtable.ts`.
+emit_vtables :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
+    // Column-0 body : triple-quoted strings take their content verbatim
+    // (only the newline right after the opening `"""` is stripped), so the
+    // C comment can't be indented. The leading blank line supplies the `\n`
+    // separator before the block.
+    out.append("""
+
+/* ----------------------------------------------------------- vtables
+ * Per-tag method dispatch tables consumed by
+ * `vader_virtual_dispatch(tag, slot)`. Built from the bytecode's
+ * `(trait.method)` → `(typeIndex → fnIndex)` map; slot indices are
+ * derived deterministically by sorting the trait-method keys
+ * alphabetically. Pinned stdlib slots: ${pinned_slot_summary()}.
+ */
+""")
+
+    rows :: ctx.module.vtables
+    reg :: build_slot_registry_from_keys(vtable_keys(rows))
+    entries: VtSlot[] = []
+    max_tag: i32 = -1
+    for row in rows {
+        if row.entries.len() == 0 { continue }
+        slot :: slot_lookup(reg, row.key)
+        if slot < 0 { continue }
+        for e in row.entries {
+            if e.receiver_type_index > max_tag { max_tag = e.receiver_type_index }
+            entries.push(VtSlot {
+                .type_index = e.receiver_type_index,
+                .slot       = slot,
+                .fn_index   = e.fn_index,
+                .key        = row.key,
+            })
+        }
+    }
+    if entries.len() == 0 {
+        out.append("const vader_vtable_t* const vader_vtable_table[1] = { NULL };\n")
+        out.append("const size_t                vader_vtable_count    = 0;\n")
+        return
+    }
+
+    // Group the flat entry list by receiver tag in one pass, then emit the
+    // per-tag `vt_<tag>` structs + the index table (each tag's slots sorted).
+    table_size :: max_tag + 1
+    groups: VtSlot[][] = []
+    for _ in 0..<table_size { groups.push([]) }
+    for e in entries { groups[usize(e.type_index)].push(e) }
+
+    for tag in 0..<table_size {
+        slots :: groups[usize(tag)]
+        if slots.len() == 0 { continue }
+        sorted :: sort(slots, (a: VtSlot, b: VtSlot) -> a.slot < b.slot)
+        out.append("static const vader_vtable_t vt_${tag} = { .slots = {\n")
+        for ent in sorted {
+            out.append("    [${ent.slot}] = (void*)${sanitise(ctx.module.functions[usize(ent.fn_index)].name)}, /* ${ent.key} */\n")
+        }
+        out.append("}};\n")
+    }
+
+    out.append("\n")
+    out.append("const vader_vtable_t* const vader_vtable_table[${table_size}] = {\n")
+    for tag in 0..<table_size {
+        if groups[usize(tag)].len() > 0 {
+            out.append("    [${tag}] = &vt_${tag},\n")
+        }
+    }
+    out.append("};\n")
+    out.append("const size_t vader_vtable_count = ${table_size};\n")
+}
+
+/// Every `${trait}.${method}` key in `rows`, for the slot registry.
+vtable_keys :: fn(rows: VtableRow[]) -> string[] {
+    out: string[] = []
+    for row in rows { out.push(row.key) }
+    return out
+}
