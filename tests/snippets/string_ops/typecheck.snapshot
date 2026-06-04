@@ -1,0 +1,17 @@
+# Typecheck
+
+## tests/snippets/string_ops
+  FnDecl         main                 :: fn() -> i32
+  expr 13:13    StringLitExpr  :: string
+  expr 14:17    BinaryExpr     :: string
+  expr 14:17    StringLitExpr  :: string
+  expr 14:29    IdentExpr      :: string
+  expr 15:13    StringLitExpr  :: string
+  expr 15:16    IdentExpr      :: string
+  expr 16:16    StringLitExpr  :: string
+  expr 16:5     IfExpr         :: void
+  expr 16:8     BinaryExpr     :: bool
+  expr 16:8     IdentExpr      :: string
+  expr 17:17    IdentExpr      :: string
+  expr 17:9     CallExpr       :: void
+  expr 17:9     IdentExpr      :: fn(T) -> void

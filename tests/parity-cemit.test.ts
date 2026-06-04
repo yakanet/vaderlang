@@ -71,6 +71,9 @@ const C_PARITY = new Set<string>([
   // T5 : arrays — array.new / set / push / get / len (boxed elements via
   // box_expr; heap → reuses the GC frame). Exit code 153.
   "array_ops",
+  // T6 : strings + builder — string.concat / string.eq (atom ==) + the
+  // builder family (interpolation). stdout "hello, world!".
+  "string_ops",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));

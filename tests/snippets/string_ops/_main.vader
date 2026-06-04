@@ -1,0 +1,21 @@
+// tests/snippets/string_ops — T6 string + builder coverage.
+//
+// Strings are interned atoms (vader_string_t), so == is atom identity.
+// Exercises: string.concat ("a" + name), the builder family (string
+// interpolation "${...}" → builder.new / append_str / append_display /
+// finish), string.eq (== compare), and println. stdout-observed.
+
+module "snippet"
+
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    name :: "world"
+    greeting :: "hello, " + name
+    full :: "${greeting}!"
+    if full == "hello, world!" {
+        println(full)
+        return 0
+    }
+    return 1
+}

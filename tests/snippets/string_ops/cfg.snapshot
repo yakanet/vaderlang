@@ -1,0 +1,39 @@
+# CFG
+
+## snippet
+
+fn snippet$main() -> i32
+  locals:
+    %0 name: string (local name)
+    %1 $k_2: string
+    %2 greeting: string (local greeting)
+    %3 $intrinsic_5: ?
+    %4 __sb_0: ? (synthetic __sb_0)
+    %5 $k_7: string
+    %6 $intrinsic_8: string
+    %7 full: string (local full)
+    %8 $k_10: string
+    %9 $eq_11: bool
+    %10 $k_12: i32
+    %11 $k_13: i32
+  bb0:
+    %0 = const string(#0) :string
+    %1 = const string(#1) :string
+    %2 = binop add %1 %0 :string
+    %3 = intrinsic builder.new()
+    %4 = move %3
+    intrinsic builder.append_display(%4, %2)
+    %5 = const string(#2) :string
+    intrinsic builder.append_str(%4, %5)
+    %6 = intrinsic builder.finish(%4)
+    %7 = move %6
+    %8 = const string(#3) :string
+    %9 = binop eq %7 %8 :bool
+    cond_branch %9 ? bb1 : bb2
+  bb1:
+    call println(%7) :void
+    %10 = const int(0) :i32
+    return %10
+  bb2:
+    %11 = const int(1) :i32
+    return %11

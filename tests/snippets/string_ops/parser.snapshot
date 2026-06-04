@@ -1,0 +1,177 @@
+# AST
+{
+  "kind": "Program",
+  "module": {
+    "kind": "ModuleDecl",
+    "name": "snippet"
+  },
+  "decls": [
+    {
+      "kind": "ImportDecl",
+      "path": "std/io",
+      "binding": {
+        "kind": "destructure",
+        "names": [
+          {
+            "name": "println",
+            "alias": null
+          }
+        ]
+      },
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "main",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "i32"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "name"
+            },
+            "type": null,
+            "value": {
+              "kind": "StringLitExpr",
+              "parts": [
+                {
+                  "kind": "text",
+                  "value": "world"
+                }
+              ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "greeting"
+            },
+            "type": null,
+            "value": {
+              "kind": "BinaryExpr",
+              "op": "add",
+              "left": {
+                "kind": "StringLitExpr",
+                "parts": [
+                  {
+                    "kind": "text",
+                    "value": "hello, "
+                  }
+                ]
+              },
+              "right": {
+                "kind": "IdentExpr",
+                "name": "name"
+              }
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "full"
+            },
+            "type": null,
+            "value": {
+              "kind": "StringLitExpr",
+              "parts": [
+                {
+                  "kind": "interp",
+                  "expr": {
+                    "kind": "IdentExpr",
+                    "name": "greeting"
+                  }
+                },
+                {
+                  "kind": "text",
+                  "value": "!"
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "IfExpr",
+              "cond": {
+                "kind": "BinaryExpr",
+                "op": "eq",
+                "left": {
+                  "kind": "IdentExpr",
+                  "name": "full"
+                },
+                "right": {
+                  "kind": "StringLitExpr",
+                  "parts": [
+                    {
+                      "kind": "text",
+                      "value": "hello, world!"
+                    }
+                  ]
+                }
+              },
+              "then": {
+                "kind": "BlockExpr",
+                "stmts": [
+                  {
+                    "kind": "ExprStmt",
+                    "expr": {
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "IdentExpr",
+                        "name": "println"
+                      },
+                      "args": [
+                        {
+                          "name": null,
+                          "value": {
+                            "kind": "IdentExpr",
+                            "name": "full"
+                          },
+                          "spread": false
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "kind": "ReturnStmt",
+                    "value": {
+                      "kind": "IntLitExpr",
+                      "value": "0n",
+                      "suffix": null
+                    }
+                  }
+                ],
+                "trailing": null
+              },
+              "else": null
+            }
+          },
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "IntLitExpr",
+              "value": "1n",
+              "suffix": null
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    }
+  ]
+}
