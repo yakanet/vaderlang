@@ -353,6 +353,17 @@ export coerce_expr :: fn(types: BcType[], name: string, from: ValType, to: ValTy
     return "(${c_type_for_val_bare(to)}) (${c_type_for_val_bare(from)}) ${name}"
 }
 
+/// Coerce a binary / unary OPERAND to the op's class `to`. Only a boxed
+/// operand (an erased `any` / `ref` flowing into a primitive op) is converted
+/// — it is unboxed via `coerce_expr`. A primitively-typed operand is left
+/// verbatim : the op's typed C operator drives any width / signedness
+/// conversion implicitly (and re-casting it would add noise without changing
+/// behaviour). Used by `push_binop` / `push_cmp` / `push_unop` / `push_eager`.
+export coerce_operand :: fn(types: BcType[], name: string, from: ValType, to: ValType) -> string {
+    if is_ref_val(from) { return coerce_expr(types, name, from, to) }
+    return name
+}
+
 /// The `vader_builder_append_display_<class>` runtime helper for a value
 /// of stack class `v` — used by `builder.append_display`. Non-primitive
 /// classes fall back to the string helper (the lowerer stringifies them

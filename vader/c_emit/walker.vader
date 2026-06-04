@@ -318,12 +318,12 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.I32Shl                -> push_binop(s, "<<", .I32)
         is vm.I32Shr                -> push_binop(s, ">>", .I32)
         is vm.I32ShrU               -> push_binop(s, ">>", .U32)
-        is vm.I32Eq                 -> push_binop(s, "==", .Bool)
-        is vm.I32Ne                 -> push_binop(s, "!=", .Bool)
-        is vm.I32Lt                 -> push_binop(s, "<", .Bool)
-        is vm.I32Le                 -> push_binop(s, "<=", .Bool)
-        is vm.I32Gt                 -> push_binop(s, ">", .Bool)
-        is vm.I32Ge                 -> push_binop(s, ">=", .Bool)
+        is vm.I32Eq                 -> push_cmp(s, "==", .I32)
+        is vm.I32Ne                 -> push_cmp(s, "!=", .I32)
+        is vm.I32Lt                 -> push_cmp(s, "<", .I32)
+        is vm.I32Le                 -> push_cmp(s, "<=", .I32)
+        is vm.I32Gt                 -> push_cmp(s, ">", .I32)
+        is vm.I32Ge                 -> push_cmp(s, ">=", .I32)
         is vm.I64Add                -> push_binop(s, "+", .I64)
         is vm.I64Sub                -> push_binop(s, "-", .I64)
         is vm.I64Mul                -> push_binop(s, "*", .I64)
@@ -337,47 +337,47 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.I64Shl                -> push_binop(s, "<<", .I64)
         is vm.I64Shr                -> push_binop(s, ">>", .I64)
         is vm.I64ShrU               -> push_binop(s, ">>", .U64)
-        is vm.I64Eq                 -> push_binop(s, "==", .Bool)
-        is vm.I64Ne                 -> push_binop(s, "!=", .Bool)
-        is vm.I64Lt                 -> push_binop(s, "<", .Bool)
-        is vm.I64Le                 -> push_binop(s, "<=", .Bool)
-        is vm.I64Gt                 -> push_binop(s, ">", .Bool)
-        is vm.I64Ge                 -> push_binop(s, ">=", .Bool)
+        is vm.I64Eq                 -> push_cmp(s, "==", .I64)
+        is vm.I64Ne                 -> push_cmp(s, "!=", .I64)
+        is vm.I64Lt                 -> push_cmp(s, "<", .I64)
+        is vm.I64Le                 -> push_cmp(s, "<=", .I64)
+        is vm.I64Gt                 -> push_cmp(s, ">", .I64)
+        is vm.I64Ge                 -> push_cmp(s, ">=", .I64)
         is vm.U32Div                -> push_eager(s, "/", .U32)
         is vm.U32Mod                -> push_eager(s, "%", .U32)
-        is vm.U32Lt                 -> push_binop(s, "<", .Bool)
-        is vm.U32Le                 -> push_binop(s, "<=", .Bool)
-        is vm.U32Gt                 -> push_binop(s, ">", .Bool)
-        is vm.U32Ge                 -> push_binop(s, ">=", .Bool)
+        is vm.U32Lt                 -> push_cmp(s, "<", .U32)
+        is vm.U32Le                 -> push_cmp(s, "<=", .U32)
+        is vm.U32Gt                 -> push_cmp(s, ">", .U32)
+        is vm.U32Ge                 -> push_cmp(s, ">=", .U32)
         is vm.U64Div                -> push_eager(s, "/", .U64)
         is vm.U64Mod                -> push_eager(s, "%", .U64)
-        is vm.U64Lt                 -> push_binop(s, "<", .Bool)
-        is vm.U64Le                 -> push_binop(s, "<=", .Bool)
-        is vm.U64Gt                 -> push_binop(s, ">", .Bool)
-        is vm.U64Ge                 -> push_binop(s, ">=", .Bool)
+        is vm.U64Lt                 -> push_cmp(s, "<", .U64)
+        is vm.U64Le                 -> push_cmp(s, "<=", .U64)
+        is vm.U64Gt                 -> push_cmp(s, ">", .U64)
+        is vm.U64Ge                 -> push_cmp(s, ">=", .U64)
         is vm.F64Add                -> push_binop(s, "+", .F64)
         is vm.F64Sub                -> push_binop(s, "-", .F64)
         is vm.F64Mul                -> push_binop(s, "*", .F64)
         is vm.F64Div                -> push_eager(s, "/", .F64)
         is vm.F64Neg                -> push_unop(s, "-", .F64)
-        is vm.F64Eq                 -> push_binop(s, "==", .Bool)
-        is vm.F64Ne                 -> push_binop(s, "!=", .Bool)
-        is vm.F64Lt                 -> push_binop(s, "<", .Bool)
-        is vm.F64Le                 -> push_binop(s, "<=", .Bool)
-        is vm.F64Gt                 -> push_binop(s, ">", .Bool)
-        is vm.F64Ge                 -> push_binop(s, ">=", .Bool)
+        is vm.F64Eq                 -> push_cmp(s, "==", .F64)
+        is vm.F64Ne                 -> push_cmp(s, "!=", .F64)
+        is vm.F64Lt                 -> push_cmp(s, "<", .F64)
+        is vm.F64Le                 -> push_cmp(s, "<=", .F64)
+        is vm.F64Gt                 -> push_cmp(s, ">", .F64)
+        is vm.F64Ge                 -> push_cmp(s, ">=", .F64)
         is vm.BoolEq                -> push_binop(s, "==", .Bool)
         is vm.BoolNe                -> push_binop(s, "!=", .Bool)
         is vm.BoolAnd               -> push_binop(s, "&&", .Bool)
         is vm.BoolOr                -> push_binop(s, "||", .Bool)
-        is vm.CharEq                -> push_binop(s, "==", .Bool)
-        is vm.CharNe                -> push_binop(s, "!=", .Bool)
-        is vm.CharLt                -> push_binop(s, "<", .Bool)
-        is vm.CharLe                -> push_binop(s, "<=", .Bool)
-        is vm.CharGt                -> push_binop(s, ">", .Bool)
-        is vm.CharGe                -> push_binop(s, ">=", .Bool)
-        is vm.StringEq              -> push_binop(s, "==", .Bool)
-        is vm.StringNe              -> push_binop(s, "!=", .Bool)
+        is vm.CharEq                -> push_cmp(s, "==", .Char)
+        is vm.CharNe                -> push_cmp(s, "!=", .Char)
+        is vm.CharLt                -> push_cmp(s, "<", .Char)
+        is vm.CharLe                -> push_cmp(s, "<=", .Char)
+        is vm.CharGt                -> push_cmp(s, ">", .Char)
+        is vm.CharGe                -> push_cmp(s, ">=", .Char)
+        is vm.StringEq              -> push_cmp(s, "==", .String)
+        is vm.StringNe              -> push_cmp(s, "!=", .String)
         is vm.StringConcat          -> push_fn_call2(s, "vader_string_concat", .String)
         is vm.StringSliceCodepoints -> emit_string_slice(s)
         is vm.IntToChar             -> emit_convert(s, .Char)
@@ -463,34 +463,50 @@ emit_local_get :: fn(s: FnState, l: vm.LocalGet) -> void {
 /// Push a binary op result as a `StackExpr`. Equality (`==` / `!=`) stays
 /// paren-free so `if (${expr})` doesn't trip `-Wparentheses-equality` ;
 /// every other operator is parenthesised for precedence safety.
-push_binop :: fn(s: FnState, op: string, result_val: ValType) -> void {
+push_binop :: fn(s: FnState, op: string, val: ValType) -> void =
+    push_expr(s, val, binop_text(s, op, val))
+
+/// Push a comparison as a `StackExpr` of class `.Bool`. The operands carry
+/// the op's numeric class (`operand_val`), distinct from the `.Bool` result —
+/// so an erased operand (an `any` flowing into `i32.lt` etc.) is unboxed to
+/// the right class before the C compare.
+push_cmp :: fn(s: FnState, op: string, operand_val: ValType) -> void =
+    push_expr(s, .Bool, binop_text(s, op, operand_val))
+
+/// Pop the two operands, coerce each to `operand_val` (the op's operand class
+/// — identity when already that class, an unbox when an erased `any` reaches
+/// the op), and build the infix C text. Equality stays paren-free so
+/// `if (${expr})` doesn't trip `-Wparentheses-equality` ; every other operator
+/// is parenthesised for precedence safety.
+binop_text :: fn(s: FnState, op: string, operand_val: ValType) -> string {
     r :: pop(s)
     l :: pop(s)
-    text :: if op == "==" || op == "!=" {
-        "${name_of(l)} ${op} ${name_of(r)}"
-    } else {
-        "(${name_of(l)} ${op} ${name_of(r)})"
-    }
-    push_expr(s, result_val, text)
+    lc :: coerce_operand(s.ctx.module.types, name_of(l), val_of(l), operand_val)
+    rc :: coerce_operand(s.ctx.module.types, name_of(r), val_of(r), operand_val)
+    if op == "==" || op == "!=" { return "${lc} ${op} ${rc}" }
+    return "(${lc} ${op} ${rc})"
 }
 
-/// Push a unary op result as a `StackExpr`. The operand is wrapped in
-/// parens — unary binds tighter than the comparisons, so e.g.
-/// `~l0 == 0` would otherwise mis-parse.
-push_unop :: fn(s: FnState, op: string, result_val: ValType) -> void {
+/// Push a unary op result as a `StackExpr`. The operand is coerced to `val`
+/// (unbox an erased `any`) and wrapped in parens — unary binds tighter than
+/// the comparisons, so e.g. `~l0 == 0` would otherwise mis-parse.
+push_unop :: fn(s: FnState, op: string, val: ValType) -> void {
     v :: pop(s)
-    push_expr(s, result_val, "${op}(${name_of(v)})")
+    vc :: coerce_operand(s.ctx.module.types, name_of(v), val_of(v), val)
+    push_expr(s, val, "${op}(${vc})")
 }
 
 /// Emit an eager binary op into a fresh temp : `tN = l <op> r;`. Used for
 /// `div` / `rem` (every width, incl. f64) — TS materialises these
 /// unconditionally so an integer divide-by-zero trap fires whether or not
-/// the result is consumed. Note : no parens around `l <op> r` (matches
-/// TS).
-push_eager :: fn(s: FnState, op: string, result_val: ValType) -> void {
+/// the result is consumed. Operands are coerced to `val` (unbox an erased
+/// `any`). Note : no parens around `l <op> r` (matches TS).
+push_eager :: fn(s: FnState, op: string, val: ValType) -> void {
     r :: pop(s)
     l :: pop(s)
-    push_into_tmp(s, "${name_of(l)} ${op} ${name_of(r)}", result_val)
+    lc :: coerce_operand(s.ctx.module.types, name_of(l), val_of(l), val)
+    rc :: coerce_operand(s.ctx.module.types, name_of(r), val_of(r), val)
+    push_into_tmp(s, "${lc} ${op} ${rc}", val)
 }
 
 /// Reinterpret the top value into `target_val` (`Convert` / `IntToChar` /
