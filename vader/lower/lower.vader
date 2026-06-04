@@ -17,7 +17,7 @@ module "vader/lower"
 import "std/collections" { MutableMap, keys, values }
 import "std/sort" { sort }
 import "std/iter" { is_empty }
-import "std/string" { compare_ascending, bytes }
+import "std/string" { compare_ascending, bytes, starts_with, split }
 import "vader/diagnostics" { Diagnostic, Span }
 import "vader/parser" {
     Decl, FnDecl, StructDecl, ConstDecl,
@@ -238,7 +238,13 @@ impl_trait_method_from_mangled :: fn(mangled: string) -> ImplTraitMethod | null 
     if parts.len() < 4 { return null }
     return ImplTraitMethod {
         .trait_name = parts[parts.len() - 2],
-        .method     = parts[parts.len() - 1],
+        // Strip the `__<args>` instance suffix a materialised generic-impl
+        // member carries (`next__i32` → `next`) : virtual dispatch keys on the
+        // bare trait-method name (the `vcall Iterator.next` op + the VM's
+        // VtableRow), so a suffixed `next__i32` would never match. The suffix
+        // always starts at the FIRST `__` (every arg is `__`-prefixed) ; trait
+        // methods are snake_case with single underscores, so this never clips.
+        .method     = parts[parts.len() - 1].split("__")[0],
     }
 }
 
@@ -562,7 +568,7 @@ surface_referenced_intrinsic_externs :: fn(
         if module_typed is null { continue }
         decls_list :: module_decls(module_loaded)
         // Bracket the synth_decls the with-body members surfaced below spawn :
-        // `surface_stdlib_impl_externs` / `surface_array_contains_for_impl` call
+        // `surface_stdlib_impl_externs` / `surface_array_blanket_members` call
         // `lower_fn_body`, which lifts any lambda/defer in the body into
         // `synth_decls` — the same post-module orphan class as the materialise
         // sites. Drained into this module after the batch merge.
@@ -573,7 +579,7 @@ surface_referenced_intrinsic_externs :: fn(
                 for ext in surface_stdlib_impl_externs(impl_, module_typed, project_ctx, decls_list) {
                     extra.push(ext)
                 }
-                for ext in surface_array_contains_for_impl(impl_, module_typed, project_ctx) {
+                for ext in surface_array_blanket_members(impl_, module_typed, project_ctx) {
                     extra.push(ext)
                 }
             }
@@ -643,36 +649,41 @@ surface_stdlib_impl_externs :: fn(
     return out
 }
 
-/// Materialise the blanket `T[] implements<T: Equals> Contains<T>` member once
-/// per element type a `v in arr` call referenced. The generic-impl materialiser
-/// (`materialize_impl_for_instance`) is struct-instance-driven and never reaches
-/// an array receiver, so `find_impl_member_for` records the element type keyed by
-/// the call-site mangle (`project_ctx.array_contains_elems`) ; here we lower the
-/// `contains` body with a CONCRETE substitution `T → element` so the body's `==`
-/// devirtualises to the element's primitive comparison (unlike a generic free-fn
-/// body, whose `==` stays an unbound virtual dispatch on the VM).
+/// Materialise a blanket array-impl member (`T[] implements<T: Equals>
+/// Contains<T>`, `T[] implements<T> Into<Iterator<T>>`) once per element type a
+/// call referenced. The generic-impl materialiser (`materialize_impl_for_instance`)
+/// is struct-instance-driven and never reaches an array receiver, so
+/// `find_impl_member_for` records the element type keyed by the call-site mangle
+/// (`project_ctx.array_blanket_elems`) ; here we lower the member body with a
+/// CONCRETE substitution `T → element` (so e.g. `contains`'s `==` devirtualises
+/// to the element's primitive comparison, and `into`'s `ArrayIterator<T>` return
+/// boxes into the concrete `Iterator<element>` the value slot dispatches on).
 ///
-/// @param impl_decl    the candidate impl ; ignored unless it is the array
-///                     `Contains` blanket.
+/// The element table mixes every referenced array-blanket member, so each call
+/// only claims the mangles under its own `<module>$[]$<trait>$<member>` prefix.
+///
+/// @param impl_decl    the candidate impl ; ignored unless it is an array blanket.
 /// @param typed        the impl's owning module (std/core) — source of the subst
 ///                     symbols and entry types.
-/// @param project_ctx  carries `array_contains_elems` (mangle → element) and the
+/// @param project_ctx  carries `array_blanket_elems` (mangle → element) and the
 ///                     `materialized_impl_keys` dedupe set.
 /// @return             one materialised `LoweredFnDecl` per fresh element mangle.
-surface_array_contains_for_impl :: fn(
+surface_array_blanket_members :: fn(
     impl_decl: ImplDecl, typed: TypedProgram, project_ctx: LowerProjectCtx,
 ) -> LoweredDecl[] {
     out: LoweredDecl[] = []
     if impl_decl.type_params.len() == 0 { return out }
     if !(impl_decl.for_type is ArrayTypeExpr) { return out }
-    if impl_decl.trait_name != "Contains" { return out }
     for member in impl_decl.members {
-        if member.name != "contains" { continue }
-        for mangled in project_ctx.array_contains_elems.keys() {
-            element :: project_ctx.array_contains_elems[mangled]
+        // The mangle prefix that partitions this member's element instances from
+        // the other array-blanket members sharing `array_blanket_elems`.
+        prefix :: "${mangle_module_id(typed.resolved.display_path)}$[]$${impl_decl.trait_name}$${member.name}__"
+        for mangled in project_ctx.array_blanket_elems.keys() {
+            if !mangled.starts_with(prefix) { continue }
+            element :: project_ctx.array_blanket_elems[mangled]
             if element is null { continue }
             // Dedupe against re-entrant drain-loop passes.
-            dedupe_key :: "arr_contains::${mangled}"
+            dedupe_key :: "arr_blanket::${mangled}"
             if project_ctx.materialized_impl_keys.contains(dedupe_key) { continue }
             project_ctx.materialized_impl_keys.add(dedupe_key)
             subst :: build_impl_subst(impl_decl, [element], typed, typed)

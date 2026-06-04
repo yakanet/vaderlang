@@ -180,21 +180,23 @@ export LowerProjectCtx :: struct {
     /// for unrelated snippets.
     referenced_impl_mangles: MutableSet<string>
 
-    /// `x in arr` sites resolved to the blanket `T[] implements Contains`
-    /// impl : maps the call-site mangle (`std_core$[]$Contains$contains__i32`)
-    /// to the array's element type. `surface_array_contains_members` reads
-    /// this to materialise one CONCRETE `contains` body per element type, with
-    /// `T → element` substituted so the body's `==` devirtualises to the
-    /// element primop (a blanket array impl has no struct instance to drive
-    /// the regular generic-impl materialiser).
-    array_contains_elems: MutableMap<string, Type>
+    /// Blanket-array impl-member call sites (`x in arr` → `T[] implements
+    /// Contains`, `[T]`-to-`Iterator` coercion → `T[] implements Into`) : maps
+    /// the call-site mangle (`std_core$[]$Contains$contains__i32`,
+    /// `std_core$[]$Into$into__i32`) to the array's element type.
+    /// `surface_array_blanket_members` reads this to materialise one CONCRETE
+    /// member body per element type, with `T → element` substituted (so e.g.
+    /// `contains`'s `==` devirtualises to the element primop). A blanket array
+    /// impl has no struct instance to drive the regular generic-impl
+    /// materialiser, so it keys off this table instead.
+    array_blanket_elems: MutableMap<string, Type>
 
     /// Erased generic-struct impl-member receivers (`MutableMap<Any, bool>`)
     /// discovered by `find_impl_member_for` — their instance never reaches
     /// `evaluated.instances` (erasure artifacts, not source-level). Drained
     /// inside the `drain_generic_fn_instances` fixpoint so the impl
     /// bodies' transitive free-fn harvests stay on the same cursor. Struct
-    /// analogue of `array_contains_elems`.
+    /// analogue of `array_blanket_elems`.
     pending_generic_impl_recv: GenericInstance[]
     /// Receiver keys already queued, so each erased instance is queued once
     /// (bounds the queue + avoids redundant per-receiver module scans).
@@ -260,7 +262,7 @@ export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedPr
         .referenced_impl_mangles = MutableSet<string> {
             .inner = MutableMap<string, bool> {},
         },
-        .array_contains_elems = MutableMap<string, Type> {},
+        .array_blanket_elems = MutableMap<string, Type> {},
         .pending_generic_impl_recv = [],
         .seen_generic_impl_recv = MutableSet<string> {
             .inner = MutableMap<string, bool> {},

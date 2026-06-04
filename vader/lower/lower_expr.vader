@@ -1598,6 +1598,20 @@ UfcsMember :: struct {
     symbol: Symbol
 }
 
+// Queue a generic-struct instance for impl-member materialisation : its members
+// (re)materialise via `drain_generic_fn_instances` and land in the vtable so a
+// virtual `recv.method()` resolves at emit. Deduped per receiver via
+// `seen_generic_impl_recv`. Shared by the erased-receiver path
+// (`find_impl_member_for`) and the array→Iterator wrap (`try_array_iter_coercion`).
+queue_generic_impl_receiver :: fn(ctx: FnLowerCtx, recv: StructType) -> void {
+    recv_key :: "${recv.symbol.name}${mixed_any_suffix(recv.args)}"
+    if ctx.project.seen_generic_impl_recv.contains(recv_key) { return }
+    ctx.project.seen_generic_impl_recv.add(recv_key)
+    ctx.project.pending_generic_impl_recv.push(GenericInstance {
+        .symbol = recv.symbol, .args = recv.args, .display_key = recv_key,
+    })
+}
+
 find_impl_member_for :: fn(ctx: FnLowerCtx, target_type: Type, method_name: string) -> UfcsMember | null {
     target_name :: type_surface_name(target_type)
     if target_name == "" { return null }
@@ -1656,33 +1670,23 @@ find_impl_member_for :: fn(ctx: FnLowerCtx, target_type: Type, method_name: stri
             // stdlib impl members : bodyless (`@intrinsic`) → import ; with-body
             // (e.g. `i32 implements Hash -> u64(self)`) → materialised real fn.
             ctx.project.referenced_impl_mangles.add(mangled)
-            // Blanket array impl (`T[] implements Contains`) : the generic-impl
-            // materialiser is struct-instance-driven and never reaches an array
-            // receiver, so record the element type keyed by this call-site
-            // mangle. `surface_array_contains_members` materialises one concrete
-            // body per element (substituting `T → element` so `==` devirtualises).
+            // Blanket array impl (`T[] implements Contains` / `Into`) : the
+            // generic-impl materialiser is struct-instance-driven and never
+            // reaches an array receiver, so record the element type keyed by
+            // this call-site mangle. `surface_array_blanket_members` materialises
+            // one concrete body per element (substituting `T → element`, so e.g.
+            // `contains`'s `==` devirtualises to the element primop).
             if target_type is ArrayType as arr_ty {
-                ctx.project.array_contains_elems[mangled] = arr_ty.element
+                ctx.project.array_blanket_elems[mangled] = arr_ty.element
             }
             // Generic-struct receiver (`MutableMap<Any, bool>`) : the regular
             // materialiser only covers instances in `evaluated.instances`, so an
             // ERASED receiver reached only from a deduped erased free-fn body
             // (`add`'s `value in self.inner`) never gets its impl members. Queue
             // it for `drain_generic_fn_instances` to materialise — the
-            // struct analogue of `array_contains_elems`. Deduped per receiver so
-            // a concrete instance already covered by the worklist is a no-op.
+            // struct analogue of `array_blanket_elems`.
             if target_type is StructType as recv_struct {
-                if entry.is_generic {
-                    recv_key :: "${recv_struct.symbol.name}${mixed_any_suffix(recv_struct.args)}"
-                    if !ctx.project.seen_generic_impl_recv.contains(recv_key) {
-                        ctx.project.seen_generic_impl_recv.add(recv_key)
-                        ctx.project.pending_generic_impl_recv.push(GenericInstance {
-                            .symbol      = recv_struct.symbol,
-                            .args        = recv_struct.args,
-                            .display_key = recv_key,
-                        })
-                    }
-                }
+                if entry.is_generic { queue_generic_impl_receiver(ctx, recv_struct) }
             }
             return UfcsMember {
                 .symbol = Symbol {
@@ -1814,12 +1818,14 @@ mk_into_call :: fn(
 mk_bare_into_call :: fn(ctx: FnLowerCtx, arg: LoweredExpr, result_type: Type, span: Span) -> LoweredCall =
     mk_into_call(arg, result_type, span, "into", ctx.typed.resolved.path)
 
-// `T[] -> Iterator<T>` value-slot coercion. Returns `into(arr)` typed
-// `ArrayIterator<T>`, or null when the shapes don't match / ArrayIterator
-// isn't loaded. The `into` symbol routes to std/core's blanket
-// `T[] implements Into<Iterator<T>>` member at codegen. The for-in path
-// inlines an `ArrayIterator` struct lit instead ; value slots take this
-// call shape (mirror of TS' arrayIter coercion).
+// `T[] -> Iterator<T>` value-slot coercion. Returns `into(arr)` resolved to
+// std/core's blanket `T[] implements Into<Iterator<T>>` member, typed as the
+// target `Iterator<T>` existential — value slots dispatch `it.next()`
+// virtually, so the member must box `ArrayIterator<T>` into the trait (unlike
+// the for-in path, which inlines a concrete `ArrayIterator` struct lit and
+// devirtualises). `find_impl_member_for` mangles the member
+// (`std_core$[]$Into$into__<element>`) and records the element in
+// `array_blanket_elems`, which `surface_array_blanket_members` materialises.
 try_array_iter_coercion :: fn(
     ctx: FnLowerCtx, arg: LoweredExpr, arg_type: Type, target_type: Type, span: Span,
 ) -> LoweredExpr | null {
@@ -1827,8 +1833,24 @@ try_array_iter_coercion :: fn(
         if target_type is TraitType as tt {
             if tt.symbol.name != "Iterator" { return null }
             if tt.args.len() != usize(1) { return null }
-            result_type :: find_core_type(ctx, STRUCT_ARRAY_ITERATOR, [arr.element])
-            if result_type != null { return mk_bare_into_call(ctx, arg, result_type, span) }
+            // Guard : the blanket wraps into `ArrayIterator<element>` — bail if
+            // std/core's struct isn't loaded (nothing to materialise).
+            wrapped :: find_core_type(ctx, STRUCT_ARRAY_ITERATOR, [arr.element])
+            if wrapped == null { return null }
+            // Register the `ArrayIterator<element>` instance so its `Iterator`
+            // impl (`next__<element>`) materialises + lands in the vtable — the
+            // value slot dispatches `it.next()` virtually (the for-in path inlines
+            // `next` and never needs the table).
+            if wrapped is StructType as ai { queue_generic_impl_receiver(ctx, ai) }
+            member :: find_impl_member_for(ctx, arg_type, "into")
+            if member is null { return mk_bare_into_call(ctx, arg, target_type, span) }
+            return LoweredCall {
+                .span = span, .type = target_type,
+                .callee = LoweredIdent {
+                    .span = span, .type = target_type, .symbol = member.symbol,
+                },
+                .args = [arg],
+            }
         }
     }
     return null

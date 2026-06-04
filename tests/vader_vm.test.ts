@@ -210,6 +210,17 @@ const VADER_SELF_EMIT = new Set<string>([
   // devirt `$vt` naming, so we assert the run-output oracle, not byte-parity ;
   // TS-vs-snapshot parity is deterministic and stays in the normal path.)
   "coerce_into_basic", "coerce_into_explicit", "coerce_into_overload",
+  // `[T]` → `Iterator<T>` value-slot coercion (call arg, typed let, return).
+  // The blanket `T[] implements Into<Iterator<T>>` member now materialises via
+  // `surface_array_blanket_members` (the generalised array-`Contains` pass), and
+  // the `ArrayIterator<element>` instance is registered so its `Iterator` impl
+  // materialises into the vtable. This is the FIRST self-emit exercise of a
+  // generic-impl trait object dispatched VIRTUALLY (for-in always inlines `next`)
+  // — it surfaced two latent vtable bugs, both fixed: the impl-member mangle's
+  // `__<args>` suffix leaked into the vtable method name (so `Iterator.next__i32`
+  // never matched the `vcall Iterator.next`), and the materialised member's synth
+  // id-0 symbol needed a mangle fallback to resolve its fn index.
+  "iter_coerce_array", "trait_box_range_iter",
   "_diag_const_string", "alias_union_in_array", "array_view_aliasing",
   "for_range_sugar", "b1_fn_boundary", "closure_pattern_binding", "comptime_type_value",
   "const_array_basic", "contains_op", "decorator_deprecated",

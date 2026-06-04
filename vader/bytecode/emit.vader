@@ -1138,6 +1138,15 @@ build_impl_table :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx) -> ImplEn
     return out
 }
 
+// Resolve a vtable entry's impl-member fn to its emitted index. Concrete impl
+// members carry a real symbol id ; materialised generic-impl members carry a
+// synth id-0 symbol whose `name` is the mangle, so fall back to the mangle map.
+vtable_fn_index :: fn(ctx: EmitterCtx, fn_symbol: Symbol) -> i32 | null {
+    by_id :: ctx.function_index_by_symbol_id[fn_symbol.id]
+    if by_id is i32 { return by_id }
+    return ctx.function_index_by_mangle[fn_symbol.name]
+}
+
 /// Group `VtableEntry`s by `(trait, method)` and translate each into
 /// a `VtableRow { key: "Trait.method", entries: [(type_index → fn_index)] }`.
 /// The VM's `virtual.call` op walks this by `vtable_key` then receiver
@@ -1150,7 +1159,11 @@ translate_vtables :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx) -> Vtabl
     out: VtableRow[] = []
     row_index_by_key :: MutableMap<string, i32> {}
     for entry in entries {
-        fn_index :: ctx.function_index_by_symbol_id[entry.fn_symbol.id]
+        // Materialised generic-impl members (`ArrayIterator$Iterator$next__i32`)
+        // carry a synth `fn_symbol` with id 0 — their real identity is the
+        // mangle. Resolve by symbol id first (concrete impl members), then fall
+        // back to the mangle so a boxed generic instance's `next` still binds.
+        fn_index :: vtable_fn_index(ctx, entry.fn_symbol)
         if fn_index is i32 as fi {
             type_index :: intern_type(entry.struct_type, ctx)
             key :: "${entry.trait_name}.${entry.method_name}"
