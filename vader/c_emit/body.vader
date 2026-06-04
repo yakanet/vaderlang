@@ -324,6 +324,16 @@ export primitive_tag_of :: fn(types: BcType[], val: ValType) -> i32 {
 export box_expr_unknown :: fn(types: BcType[], name: string, val: ValType) -> string =
     box_expr(name, val, primitive_tag_of(types, val))
 
+/// True when the type at `type_index` is exactly the primitive of class
+/// `slot_val` — the compile-time answer for `type_check` on a primitively-
+/// typed value (no runtime tag to inspect). Mirrors `primitiveMatchesType`
+/// in `src/c_emit/body.ts`.
+export primitive_matches_type :: fn(types: BcType[], slot_val: ValType, type_index: i32) -> bool {
+    t :: types[usize(type_index)]
+    if t is BcPrimitive as p { return p.val == slot_val }
+    return false
+}
+
 /// C expression coercing `name` from stack class `from` to `to`. Identity
 /// when equal or both boxed ; boxes a primitive into a `ref` / `any` slot ;
 /// unboxes a box into a primitive ; otherwise a double-cast (through `from`

@@ -82,6 +82,13 @@ const C_PARITY = new Set<string>([
   "fn_value_local",
   "closure_callback",
   "trait_virtual_dispatch",
+  // T7 : misc ops. type_check (`x is T` → tag-compare / trait disjunction) is
+  // the validatable one — a chain of divergent `is`-guards. type.const /
+  // size_of.type / defer.push / defer.pop_exec handlers are also ported but
+  // unreachable via a clean snippet today (the former blocked by the pending
+  // arg / local.set coercion `todo`s, defer by the upstream Vader bytecode
+  // dropping defer ops — a self-host gap, not a C-emit one).
+  "chained_divergent_narrow",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));

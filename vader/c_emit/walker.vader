@@ -14,7 +14,7 @@ module "vader/c_emit"
 import "std/string" { join }
 import "std/string_builder" { StringBuilder, new_builder, append }
 import "std/abort" { todo }
-import "vader/bytecode" { BcFunction, BcSignature, BcStruct, BcArray, BcFn, BcType, ValType }
+import "vader/bytecode" { BcFunction, BcSignature, BcStruct, BcArray, BcFn, BcRef, BcType, ValType }
 import "vader/bytecode" { array_kind_of, array_kind_index }
 // The opcode union pulls in ~120 names ; the namespace form keeps the
 // import to one line and tags every op site as `vm.<Op>` at the match.
@@ -294,15 +294,15 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.ArraySet as a         -> emit_array_set(s, a)
         is vm.ArraySlice as a       -> emit_array_slice(s, a)
         is vm.DataConst             -> todo("emit_op: data.const (needs emit_data_pool ; module.data_pool is empty today — the lowerer routes every literal to array.new)")
-        is vm.TypeConst             -> todo("emit_op: type.const")
-        is vm.TypeCheck             -> todo("emit_op: type_check")
+        is vm.TypeConst as tc       -> emit_type_const(s, tc)
+        is vm.TypeCheck as tc       -> emit_type_check(s, tc)
         is vm.RefCast as rc         -> emit_ref_cast(s, rc)
         is vm.Convert as c          -> emit_convert(s, convert_target_val(c.target))
         is vm.BuilderNew            -> emit_builder_new(s)
         is vm.BuilderAppendStr      -> emit_builder_append_str(s)
         is vm.BuilderAppendDisplay  -> emit_builder_append_display(s)
         is vm.BuilderFinish         -> emit_builder_finish(s)
-        is vm.SizeOfType            -> todo("emit_op: size_of.type")
+        is vm.SizeOfType            -> emit_size_of_type(s)
         is vm.I32Add                -> push_binop(s, "+", .I32)
         is vm.I32Sub                -> push_binop(s, "-", .I32)
         is vm.I32Mul                -> push_binop(s, "*", .I32)
@@ -382,8 +382,8 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.CharToInt             -> emit_convert(s, .I32)
         is vm.RefEq                 -> push_binop_any(s, "==", .Bool)
         is vm.RefNe                 -> push_binop_any(s, "!=", .Bool)
-        is vm.DeferPush             -> todo("emit_op: defer.push")
-        is vm.DeferPopExec          -> todo("emit_op: defer.pop_exec")
+        is vm.DeferPush             -> emit_defer_push(s)
+        is vm.DeferPopExec as d     -> emit_defer_pop_exec(s, d)
     }
 }
 
@@ -1041,6 +1041,74 @@ tramp_box_result :: fn(cname: string, args: string, sig: BcSignature) -> string 
     if sig.result == ValType.Ref || sig.result == ValType.Any { return call_expr }
     return box_expr(call_expr, sig.result, sig.result_type)
 }
+
+// ---- type ops + defer -----------------------------------------------------
+
+/// `type.const` — box `type_id` into the payload pointer via `(uintptr_t)` so
+/// `@size_of` can recover the BcType slot at runtime (decoded by
+/// `emit_size_of_type`). Tagged `null` keeps GC + display off the synthetic
+/// pointer. A pure literal — push as a lit so a direct `size_of.type` reader
+/// inlines it. Mirrors the `type.const` arm in `src/c_emit/body.ts`.
+emit_type_const :: fn(s: FnState, op: vm.TypeConst) -> void =
+    push_lit(s, .Any, "vader_box_obj(${s.ctx.null_tag}u, (void*)(uintptr_t)${op.type_id}u)")
+
+/// `size_of.type` — decode the `type.const` payload back to a BcType slot and
+/// index the `vader_type_size[]` table (emitted by `emit_type_info_table`).
+/// Mirrors the `sizeOfType` intrinsic in `src/c_emit/ops.ts`.
+emit_size_of_type :: fn(s: FnState) -> void {
+    tv :: pop(s)
+    push_into_tmp(s, "vader_type_size[(int32_t)(uintptr_t)${name_of(tv)}.payload.obj]", .Usize)
+}
+
+/// `type_check` — runtime `x is T`. A boxed value compares its tag (a trait
+/// ref expands to a disjunction over every implementing struct's tag, plus the
+/// ref type itself) ; a primitively-typed value resolves at compile time
+/// (`primitive_matches_type`). Pushed as an expression so a downstream `if` /
+/// `br_if` / boolean combinator inlines it. Mirrors `emitTypeCheck` in
+/// `src/c_emit/ops.ts`.
+emit_type_check :: fn(s: FnState, op: vm.TypeCheck) -> void {
+    v :: pop(s)
+    val :: val_of(v)
+    if is_ref_val(val) {
+        target :: s.ctx.module.types[usize(op.type_id)]
+        if target is BcRef as r {
+            if r.trait_name != "" {
+                push_expr(s, .Bool, trait_check_expr(s.ctx, name_of(v), r.trait_name, op.type_id))
+                return
+            }
+        }
+        push_expr(s, .Bool, "${name_of(v)}.tag == ${op.type_id}u")
+    } else {
+        matches :: primitive_matches_type(s.ctx.module.types, val, op.type_id)
+        push_lit(s, .Bool, if matches { "true" } else { "false" })
+    }
+}
+
+/// The C boolean expression testing whether `v_name`'s tag matches the trait
+/// `trait_name` — an OR over the ref type index itself (built-in trait refs
+/// like `Error` carry their own tag) plus every struct implementing the trait
+/// (the module's `impl_table`). Mirrors `traitCheckExpr` in `src/c_emit/ops.ts`.
+trait_check_expr :: fn(ctx: EmitCtx, v_name: string, trait_name: string, ref_type_index: i32) -> string {
+    parts: string[] = ["(${v_name}.tag == ${ref_type_index}u)"]
+    for entry in ctx.module.impl_table {
+        if entry.trait_name == trait_name {
+            parts.push("(${v_name}.tag == ${entry.struct_type_index}u)")
+        }
+    }
+    return parts.join(" || ")
+}
+
+/// `defer.push` — register the deferred closure (on top of the stack, built by
+/// a preceding `make_closure`) on the runtime defer stack.
+emit_defer_push :: fn(s: FnState) -> void {
+    closure :: pop(s)
+    line(s, "vader_defer_push(${name_of(closure)});")
+}
+
+/// `defer.pop_exec` — run + pop the top `count` deferred closures at a scope
+/// exit. Mirrors the `defer.pop_exec` arm in `src/c_emit/body.ts`.
+emit_defer_pop_exec :: fn(s: FnState, op: vm.DeferPopExec) -> void =
+    line(s, "vader_defer_pop_exec(${op.count}u);")
 
 // ---- structs --------------------------------------------------------------
 //
