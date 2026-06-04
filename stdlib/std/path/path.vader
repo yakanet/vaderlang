@@ -9,6 +9,7 @@ module "std/path"
 import "std/string" {
     bytes, as_string as bytes_as_string, is_empty, last_index_of,
     starts_with as str_starts_with, ends_with as str_ends_with,
+    replace_chars_where,
 }
 import "std/string_builder" { StringBuilder, new_builder, append }
 
@@ -16,6 +17,16 @@ import "std/string_builder" { StringBuilder, new_builder, append }
 export SEP :: '/'
 /// Path separator as a string — useful for direct concatenation.
 export SEP_STR :: "/"
+
+/// Rewrite OS-native path separators to the canonical `/`. The compiler keeps
+/// `/` as its single internal separator — module discovery, the module index,
+/// and `vader/resolver::join_path` are all `/`-based — so a path entering from
+/// an OS boundary that may carry `\` (Windows CLI arguments, env vars) must be
+/// funnelled through here first, otherwise `parent` / `filename` (which split
+/// on `SEP`) silently return empty. POSIX paths pass through unchanged.
+/// @param s  a path string, possibly using `\` separators.
+/// @return   the same path with every `\` rewritten to `/`.
+export to_posix :: fn(s: string) -> string = s.replace_chars_where((c: char) -> c == '\\', SEP_STR)
 
 /// An immutable filesystem path. The underlying `repr` is a UTF-8 string ;
 /// every combinator returns a fresh `Path` rather than mutating in place.

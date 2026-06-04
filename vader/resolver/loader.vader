@@ -16,6 +16,7 @@ module "vader/resolver"
 
 import "std/collections" { MutableMap, keys }
 import "std/io" { exists, is_dir, read_file }
+import "std/path" { to_posix }
 import "std/string" { bytes, as_string as bytes_as_string, ends_with, starts_with }
 import "vader/diagnostics" { Diagnostic, Position, Span, resolver_error }
 import "vader/parser" { NodeIdFactory, new_node_id_factory, parse_source, assign_program_ids }
@@ -101,11 +102,17 @@ export load_project :: fn(entry_path: string) -> LoadedProject {
 ///                    before the disk in `parse_module_files`.
 export load_project_with_overlay :: fn(entry_path: string, overlay: MutableMap<string, string>) -> LoadedProject {
     factory :: new_factory()
+    // Windows hands the entry path with `\` separators ; the resolver keeps `/`
+    // as its single internal separator (join_path, the module index, std/path
+    // are all `/`-based), so normalise once at this boundary. POSIX paths are
+    // unchanged. Everything downstream derives the entry folder + manifest root
+    // from this normalised form.
+    entry :: entry_path.to_posix()
     modules :: MutableMap<string, LoadedModule> {}
     loader_diags: Diagnostic[] = []
     stdlib_root :: default_stdlib_root()
-    project_root :: find_manifest_root(entry_path)
-    entry_folder :: entry_folder_of(entry_path)
+    project_root :: find_manifest_root(entry)
+    entry_folder :: entry_folder_of(entry)
 
     // Scoped roots : stdlib + manifest::modules + CLI fallback when the
     // entry sits outside the whitelist.
@@ -141,7 +148,7 @@ export load_project_with_overlay :: fn(entry_path: string, overlay: MutableMap<s
     entry_module :: find_by_folder(index, entry_folder)
     match entry_module {
         is null -> {
-            loader_diags.push(resolver_error(.ModuleNotFound, zero_span(entry_path),
+            loader_diags.push(resolver_error(.ModuleNotFound, zero_span(entry),
                 "entry file's containing folder is not in any scanned root"))
             return LoadedProject {
                 .entry = entry_folder, .modules = modules, .factory = factory,
