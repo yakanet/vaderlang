@@ -12,8 +12,9 @@ module "vader/cli"
 
 import "std/io" { println, eprintln, read_file, print }
 import "std/collections" { keys, values, MutableMap }
-import "std/string" { starts_with, ends_with, bytes, as_string }
+import "std/string" { starts_with, ends_with, bytes, as_string, trim_suffix }
 import "std/iter" { slice as slice_arr }
+import "std/path" { to_posix, to_path, filename }
 import "std/cli" { FlagSpec, parse_known, bool_flag, string_flag }
 import "vader/version" { CLI_VERSION }
 import "vader/lexer" { tokenize, dump_tokens, dump_diagnostics }
@@ -623,22 +624,9 @@ entry_main_name :: fn(typed: TypedProject, entry: string) -> string {
     return "${mangle_module_id(tp.resolved.display_path)}\$main"
 }
 
-module_name_from_file :: fn(file: string) -> string {
-    fileb :: file.bytes()
-    last_slash: i64 = -1
-    i: i64 = 0
-    n :: i64(fileb.len())
-    for i < n {
-        if fileb[usize(i)] == u8(0x2F) { last_slash = i }
-        i += 1
-    }
-    base: string = if last_slash < 0 { file } else { fileb[usize(last_slash + 1)..<usize(n)].as_string() }
-    if base.ends_with(".vader") {
-        baseb :: base.bytes()
-        return baseb[0..<baseb.len() - 6].as_string()
-    }
-    return base
-}
+// Module name = the entry file's basename minus the `.vader` extension.
+// `to_posix` first so the basename scan works on Windows `\` paths too.
+module_name_from_file :: fn(file: string) = file.to_posix().to_path().filename().trim_suffix(".vader")
 
 run_lower_stage :: fn(file: string) -> i32 {
     pipeline :: prepare_evaluated_project(file)
