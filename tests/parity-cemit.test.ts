@@ -68,6 +68,9 @@ const C_PARITY = new Set<string>([
   // T4b : heap structs (struct.new) + the GC-frame prologue (gc_roots /
   // gc_frame / gc_top, ref-slot zero-init, framed return). Exit code 7.
   "struct_heap",
+  // T5 : arrays — array.new / set / push / get / len (boxed elements via
+  // box_expr; heap → reuses the GC frame). Exit code 153.
+  "array_ops",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));

@@ -262,6 +262,40 @@ export unbox_expr :: fn(name: string, target: ValType) -> string = match target 
     .Any   -> name
 }
 
+/// C expression boxing `name` (a `val`-typed value) into a `vader_box_t`
+/// tagged `type_index` — the inverse of `unbox_expr`. Each width routes to
+/// the matching `vader_box_<class>` runtime constructor (unsigned widths
+/// re-cast through the signed payload slot). `null` / `ref` / `any` pass
+/// through (already boxed) ; `void` boxes to the empty box. Mirrors
+/// `boxExpr` in `src/c_emit/body.ts`.
+///
+/// @param name        the C name / expression of the value to box.
+/// @param val         its stack value class.
+/// @param type_index  the BcType tag to stamp on the box (the value's own
+///                    type, NOT the enclosing container's).
+/// @return            a C expression of type `vader_box_t`.
+export box_expr :: fn(name: string, val: ValType, type_index: i32) -> string = match val {
+    .I8    -> "vader_box_i32(${type_index}u, ${name})"
+    .I16   -> "vader_box_i32(${type_index}u, ${name})"
+    .I32   -> "vader_box_i32(${type_index}u, ${name})"
+    .U8    -> "vader_box_i32(${type_index}u, (int32_t)(uint32_t) ${name})"
+    .U16   -> "vader_box_i32(${type_index}u, (int32_t)(uint32_t) ${name})"
+    .U32   -> "vader_box_i32(${type_index}u, (int32_t)(uint32_t) ${name})"
+    .I64   -> "vader_box_i64(${type_index}u, ${name})"
+    .Isize -> "vader_box_i64(${type_index}u, (int64_t) ${name})"
+    .U64   -> "vader_box_i64(${type_index}u, (int64_t)(uint64_t) ${name})"
+    .Usize -> "vader_box_i64(${type_index}u, (int64_t)(uint64_t) ${name})"
+    .F32   -> "vader_box_f64(${type_index}u, (double) ${name})"
+    .F64   -> "vader_box_f64(${type_index}u, ${name})"
+    .Bool  -> "vader_box_bool(${type_index}u, ${name})"
+    .Char  -> "vader_box_i32(${type_index}u, (int32_t) ${name})"
+    .String -> "vader_box_string(${type_index}u, ${name})"
+    .Null  -> name
+    .Void  -> "vader_box_null()"
+    .Ref   -> name
+    .Any   -> name
+}
+
 /// `BcType` → C type. Heap shapes (struct, array, union, ref, fn)
 /// collapse to `vader_box_t` ; primitives delegate to
 /// `c_type_for_val_bare`.

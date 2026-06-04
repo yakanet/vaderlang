@@ -1,0 +1,24 @@
+# Typecheck
+
+## tests/snippets/array_ops
+  FnDecl         main                 :: fn() -> i32
+  expr 17:11    SeqLitExpr     :: i32[]
+  expr 18:5     IdentExpr      :: i32[]
+  expr 18:5     IndexExpr      :: i32
+  expr 19:5     CallExpr       :: void
+  expr 19:5     FieldExpr      :: fn(i32) -> void
+  expr 19:5     IdentExpr      :: i32[]
+  expr 20:12    BinaryExpr     :: i32
+  expr 20:12    BinaryExpr     :: i32
+  expr 20:12    BinaryExpr     :: i32
+  expr 20:12    IdentExpr      :: i32[]
+  expr 20:12    IndexExpr      :: i32
+  expr 20:20    IdentExpr      :: i32[]
+  expr 20:20    IndexExpr      :: i32
+  expr 20:28    IdentExpr      :: i32[]
+  expr 20:28    IndexExpr      :: i32
+  expr 20:36    CallExpr       :: i32
+  expr 20:36    IdentExpr      :: type
+  expr 20:40    CallExpr       :: usize
+  expr 20:40    FieldExpr      :: fn() -> usize
+  expr 20:40    IdentExpr      :: i32[]

@@ -1,0 +1,21 @@
+// tests/snippets/array_ops — T5 array coverage.
+//
+// Exercises the C body walker's array ops on a heap array (so the fn is
+// may-alloc → framed, T4b): array.new (literal), array.set (index assign),
+// array.push (grow), array.get (index read), array.len. Elements are
+// stored boxed (vader_array_set/get + box_expr / ref.cast). Result via exit
+// code: 10 + 99 + 40 + len(4) = 153.
+//
+// array.slice + data.const are emitted by the walker but unreachable via
+// surface syntax today (`xs[lo..hi]` lowers to call.indirect; const arrays
+// to array.new, leaving module.data_pool empty), so no snippet exercises
+// them — see the plan.
+
+module "snippet"
+
+main :: fn() -> i32 {
+    xs := [10, 20, 30]
+    xs[1] = 99
+    xs.push(40)
+    return xs[0] + xs[1] + xs[3] + i32(xs.len())
+}

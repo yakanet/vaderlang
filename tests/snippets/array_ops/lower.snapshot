@@ -1,0 +1,46 @@
+# Lower
+
+## snippet
+  fn snippet$main() -> i32
+    let xs: i32[] =
+      array :i32[]
+        int(10) :i32
+        int(20) :i32
+        int(30) :i32
+    assign
+      target:
+        index :i32
+          on:
+            xs :i32[]
+          ix:
+            int(1) :i32
+      value:
+        int(99) :i32
+    LoweredArrayPush
+    return
+      add :i32
+        l:
+          add :i32
+            l:
+              add :i32
+                l:
+                  index :i32
+                    on:
+                      xs :i32[]
+                    ix:
+                      int(0) :i32
+                r:
+                  index :i32
+                    on:
+                      xs :i32[]
+                    ix:
+                      int(1) :i32
+            r:
+              index :i32
+                on:
+                  xs :i32[]
+                ix:
+                  int(3) :i32
+        r:
+          cast → i32
+            LoweredArrayLen

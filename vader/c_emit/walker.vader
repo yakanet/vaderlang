@@ -14,7 +14,8 @@ module "vader/c_emit"
 import "std/string" { join }
 import "std/string_builder" { StringBuilder, new_builder, append }
 import "std/abort" { todo }
-import "vader/bytecode" { BcFunction, BcSignature, BcStruct, ValType }
+import "vader/bytecode" { BcFunction, BcSignature, BcStruct, BcArray, BcType, ValType }
+import "vader/bytecode" { array_kind_of, array_kind_index }
 // The opcode union pulls in ~120 names ; the namespace form keeps the
 // import to one line and tags every op site as `vm.<Op>` at the match.
 vm :: import "vader/vm"
@@ -286,13 +287,13 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.StructNew as sn       -> emit_struct_new(s, sn)
         is vm.StructGet as sg       -> emit_struct_get(s, sg)
         is vm.StructSet as ss       -> emit_struct_set(s, ss)
-        is vm.ArrayNew              -> todo("emit_op: array.new")
-        is vm.ArrayLen              -> todo("emit_op: array.len")
-        is vm.ArrayPush             -> todo("emit_op: array.push")
-        is vm.ArrayGet              -> todo("emit_op: array.get")
-        is vm.ArraySet              -> todo("emit_op: array.set")
-        is vm.ArraySlice            -> todo("emit_op: array.slice")
-        is vm.DataConst             -> todo("emit_op: data.const")
+        is vm.ArrayNew as a         -> emit_array_new(s, a)
+        is vm.ArrayLen              -> emit_array_len(s)
+        is vm.ArrayPush as a        -> emit_array_push(s, a)
+        is vm.ArrayGet              -> emit_array_get(s)
+        is vm.ArraySet as a         -> emit_array_set(s, a)
+        is vm.ArraySlice as a       -> emit_array_slice(s, a)
+        is vm.DataConst             -> todo("emit_op: data.const (needs emit_data_pool ; module.data_pool is empty today — the lowerer routes every literal to array.new)")
         is vm.TypeConst             -> todo("emit_op: type.const")
         is vm.TypeCheck             -> todo("emit_op: type_check")
         is vm.RefCast as rc         -> emit_ref_cast(s, rc)
@@ -921,3 +922,95 @@ emit_ref_cast :: fn(s: FnState, op: vm.RefCast) -> void {
     }
     push_into_tmp(s, expr, target_val)
 }
+
+// ---- arrays ---------------------------------------------------------------
+//
+// Arrays are heap `vader_array_t` (so an array-bearing fn is may-alloc →
+// framed, T4b). Elements are stored BOXED : `vader_array_new` records the
+// element's storage kind + tag, and each slot holds a `vader_box_t`. So
+// `array.get` pushes an `.Any` box that the lowerer's following `ref.cast`
+// unboxes ; `array.new` / `set` / `push` box the value with the ELEMENT
+// type's tag (not the array's) so virtual dispatch on a value read back
+// sees the right tag.
+
+/// `array.new` — allocate a `vader_array_t` of `op.length` elements, store
+/// each (boxed with the element tag), box the buffer. Pops elements
+/// right-to-left into source order.
+emit_array_new :: fn(s: FnState, op: vm.ArrayNew) -> void {
+    types :: s.ctx.module.types
+    elem_tag :: array_element_tag(types, op.type_id)
+    kind_idx :: array_kind_index(array_kind_of(types[usize(elem_tag)]))
+    n :: op.length
+    arr_buf :: aux(s, "arr")
+    line(s, "vader_array_t* ${arr_buf} = vader_array_new(${op.type_id}u, ${n}u, ${kind_idx}u, ${elem_tag}u);")
+    // Pop top-to-bottom : pop #k is the element for slot `n-1-k`. The set
+    // calls target distinct indices, so reverse-order emission is fine ;
+    // boxing primitives can't GC, so the raw `arr_buf` survives the loop.
+    for k in 0..<n {
+        v :: pop(s)
+        line(s, "vader_array_set(${arr_buf}, ${n - 1 - k}u, ${box_expr(name_of(v), val_of(v), elem_tag)});")
+    }
+    name :: fresh_tmp(s, .Ref)
+    line(s, "${name} = vader_box_obj(${op.type_id}u, ${arr_buf});")
+    push_tmp(s, name, .Ref)
+}
+
+/// `array.get` — pop index + array, push the element (a boxed `.Any` ; the
+/// lowerer's following `ref.cast` re-tags / unboxes it). The op's `type_id`
+/// is unused — the element tag is recorded in the array buf at creation.
+emit_array_get :: fn(s: FnState) -> void {
+    idx :: pop(s)
+    arr :: pop(s)
+    name :: fresh_tmp(s, .Any)
+    line(s, "${name} = vader_array_get((vader_array_t*) ${name_of(arr)}.payload.obj, (size_t) ${name_of(idx)});")
+    push_tmp(s, name, .Any)
+}
+
+/// `array.set` — pop value + index + array, store the value (boxed with the
+/// element tag) in place.
+emit_array_set :: fn(s: FnState, op: vm.ArraySet) -> void {
+    value :: pop(s)
+    idx :: pop(s)
+    arr :: pop(s)
+    elem_tag :: array_element_tag(s.ctx.module.types, op.type_id)
+    line(s, "vader_array_set((vader_array_t*) ${name_of(arr)}.payload.obj, (size_t) ${name_of(idx)}, ${box_expr(name_of(value), val_of(value), elem_tag)});")
+}
+
+/// `array.push` — pop value + array, append the value (boxed). Here
+/// `op.type_id` is the ELEMENT type directly (not the array type).
+emit_array_push :: fn(s: FnState, op: vm.ArrayPush) -> void {
+    value :: pop(s)
+    arr :: pop(s)
+    line(s, "vader_array_push((vader_array_t*) ${name_of(arr)}.payload.obj, ${box_expr(name_of(value), val_of(value), op.type_id)});")
+}
+
+/// `array.len` — pop array, push its `usize` length.
+emit_array_len :: fn(s: FnState) -> void {
+    arr :: pop(s)
+    name :: fresh_tmp(s, .Usize)
+    line(s, "${name} = vader_array_len((vader_array_t*) ${name_of(arr)}.payload.obj);")
+    push_tmp(s, name, .Usize)
+}
+
+/// `array.slice` — pop array + lo + hi, push a fresh array header over the
+/// `[lo, hi)` range (the C runtime views ; the VM copies).
+emit_array_slice :: fn(s: FnState, op: vm.ArraySlice) -> void {
+    hi :: pop(s)
+    lo :: pop(s)
+    arr :: pop(s)
+    arr_buf :: aux(s, "arr")
+    line(s, "vader_array_t* ${arr_buf} = vader_array_slice((vader_array_t*) ${name_of(arr)}.payload.obj, (size_t) ${name_of(lo)}, (size_t) ${name_of(hi)});")
+    name :: fresh_tmp(s, .Ref)
+    line(s, "${name} = vader_box_obj(${op.type_id}u, ${arr_buf});")
+    push_tmp(s, name, .Ref)
+}
+
+/// Element BcType index of array type `type_index` (the `BcArray.element`),
+/// or `type_index` itself when it isn't an array (defensive — the lowerer
+/// only emits these ops on array types).
+array_element_tag :: fn(types: BcType[], type_index: i32) -> i32 {
+    t :: types[usize(type_index)]
+    if t is BcArray as a { return a.element }
+    return type_index
+}
+
