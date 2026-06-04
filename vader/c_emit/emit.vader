@@ -653,6 +653,7 @@ emit_functions :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
 emit_function_body :: fn(ctx: EmitCtx, function: BcFunction, out: StringBuilder) -> void {
     out.append("static ${signature_for(function)} {\n")
 
+    s :: new_fn_state(ctx, function, out)
     last_line: i32 = -1
     last_file: string = ""
     for i in 0..<function.body.len() {
@@ -666,7 +667,7 @@ emit_function_body :: fn(ctx: EmitCtx, function: BcFunction, out: StringBuilder)
                 }
             }
         }
-        emit_op(ctx, function.body[i], out)
+        emit_op(s, function.body[i])
     }
 
     out.append("}\n")
@@ -680,24 +681,25 @@ emit_function_body :: fn(ctx: EmitCtx, function: BcFunction, out: StringBuilder)
 /// (which only exercises ops that have a real arm) and gain a real body
 /// as each tranche lands.
 ///
-/// T0 implements the constant-return path (`return.lit` / bare `return`);
-/// the arm order tracks `write_op` so the two stay diffable.
-emit_op :: fn(ctx: EmitCtx, op: Op, out: StringBuilder) -> void {
+/// T1 (scalar core) implements consts, `local.get`, the expr-shaped i32
+/// arithmetic, and `return` ; the arm order tracks `write_op` so the two
+/// stay diffable.
+emit_op :: fn(s: FnState, op: Op) -> void {
     match op {
-        is I32Const              -> todo("emit_op: i32.const")
-        is I64Const              -> todo("emit_op: i64.const")
-        is F64Const              -> todo("emit_op: f64.const")
-        is BoolConst             -> todo("emit_op: bool.const")
-        is CharConst             -> todo("emit_op: char.const")
-        is NullConst             -> todo("emit_op: null.const")
-        is StringConst           -> todo("emit_op: string.const")
-        is LocalGet              -> todo("emit_op: local.get")
+        is I32Const as c         -> push_const(s, c)
+        is I64Const as c         -> push_const(s, c)
+        is F64Const as c         -> push_const(s, c)
+        is BoolConst as c        -> push_const(s, c)
+        is CharConst as c        -> push_const(s, c)
+        is NullConst as c        -> push_const(s, c)
+        is StringConst as c      -> push_const(s, c)
+        is LocalGet as l         -> emit_local_get(s, l)
         is LocalSet              -> todo("emit_op: local.set")
         is LocalTee              -> todo("emit_op: local.tee")
         is LocalField            -> todo("emit_op: local.field")
-        is Return                -> out.append("    return;\n")
-        is ReturnLit as r        -> out.append("    return ${const_lit_c(ctx, r.value)};\n")
-        is Drop                  -> todo("emit_op: drop")
+        is Return                -> emit_return(s)
+        is ReturnLit as r        -> s.out.append("    return ${const_lit_c(s.ctx, r.value)};\n")
+        is Drop                  -> drop_top(s)
         is Call                  -> todo("emit_op: call")
         is CallImport            -> todo("emit_op: call.import")
         is CallIndirect          -> todo("emit_op: call.indirect")
@@ -731,7 +733,7 @@ emit_op :: fn(ctx: EmitCtx, op: Op, out: StringBuilder) -> void {
         is BuilderAppendDisplay  -> todo("emit_op: builder.append_display")
         is BuilderFinish         -> todo("emit_op: builder.finish")
         is SizeOfType            -> todo("emit_op: size_of.type")
-        is I32Add                -> todo("emit_op: i32.add")
+        is I32Add                -> push_binop(s, "+", .I32)
         is I32Sub                -> todo("emit_op: i32.sub")
         is I32Mul                -> todo("emit_op: i32.mul")
         is I32Div                -> todo("emit_op: i32.div")
@@ -858,6 +860,68 @@ float_lit :: fn(value: f64) -> string {
     s :: "${value}"
     if "." in s || "e" in s { return s }
     return "${s}.0"
+}
+
+/// Push a constant op as a `StackLit` — `const_val` gives the stack
+/// ValType, `const_lit_c` the C literal text.
+push_const :: fn(s: FnState, c: ConstOp) -> void = push_lit(s, const_val(c), const_lit_c(s.ctx, c))
+
+/// Stack ValType produced by a constant op. Exhaustive over `ConstOp`.
+/// `NullConst` boxes to `.Any` on the C stack (matching TS `constLitC`) —
+/// a deliberate divergence from `bytecode::const_val_type`, which wants
+/// `.Null` for its const-propagation slot typing.
+const_val :: fn(c: ConstOp) -> ValType = match c {
+    is I32Const    -> .I32
+    is I64Const    -> .I64
+    is F64Const    -> .F64
+    is BoolConst   -> .Bool
+    is CharConst   -> .Char
+    is NullConst   -> .Any
+    is StringConst -> .String
+}
+
+/// `local.get` — push a snapshot of slot `l.slot` (spelled `lN`). A
+/// `void` slot carries nothing on the stack, so it is a no-op.
+emit_local_get :: fn(s: FnState, l: LocalGet) -> void {
+    val :: slot_val_type(s.function, l.slot)
+    if val == ValType.Void { return }
+    push_local_ref(s, l.slot, val)
+}
+
+/// Push a binary op result as a `StackExpr`. Equality (`==` / `!=`) stays
+/// paren-free so `if (${expr})` doesn't trip `-Wparentheses-equality` ;
+/// every other operator is parenthesised for precedence safety.
+push_binop :: fn(s: FnState, op: string, result_val: ValType) -> void {
+    r :: pop(s)
+    l :: pop(s)
+    text :: if op == "==" || op == "!=" {
+        "${name_of(l)} ${op} ${name_of(r)}"
+    } else {
+        "(${name_of(l)} ${op} ${name_of(r)})"
+    }
+    push_expr(s, result_val, text)
+}
+
+/// `return` — `return;` for a void result, else pop the value and emit
+/// `return <value>;`. Scalar fns never allocate, so there is no GC frame
+/// to pop here ; the framed path lands in T5.
+///
+/// The deferral is self-guarding : if the popped value's ValType differs
+/// from the result type, a coercion is required (the lowerer inserts
+/// `Convert` for every T1 width change, so this never fires on the scalar
+/// subset) and `todo` fires loudly rather than emitting a type-mismatched
+/// `return` — coercion + B1 wire-downgrade are owned by T1b / T12.
+emit_return :: fn(s: FnState) -> void {
+    result :: s.function.signature.result
+    if result == ValType.Void {
+        s.out.append("    return;\n")
+        return
+    }
+    v :: pop(s)
+    if val_of(v) != result {
+        todo("emit_return: return-type coercion (T1b / T5)")
+    }
+    s.out.append("    return ${name_of(v)};\n")
 }
 
 /// Per-tag vtable table + count + pinned-slot comment block. Always

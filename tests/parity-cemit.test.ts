@@ -38,6 +38,10 @@ const CC_AVAILABLE = await (async () => {
 // (see the plan's §9). T0 : the constant-return path.
 const C_PARITY = new Set<string>([
   "return_42",
+  // T1 scalar core : params + local.get + i32 binop + non-lit return.
+  // No main (library) → the compile/run oracle skips the run, the
+  // snapshot + cc-compile oracles still apply.
+  "fn_decl",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));

@@ -1,0 +1,159 @@
+// vader/c_emit/stack — operand-stack model for the C body walker.
+//
+// The bytecode is a stack machine ; the C body walker maps it to C
+// statements + expressions by maintaining a virtual operand stack of
+// `StackVal`. Each push records HOW to spell the value at its eventual
+// consumer — a literal, an inlined side-effect-free expression, a local
+// slot `lN`, or a materialised temp `tN` — and the consumer pops and
+// inlines that text. This is the Vader port of the `FnState` / `StackVal`
+// core in `src/c_emit/body.ts`.
+//
+// T1 covers the expr-only subset : `StackTmp` and the tmp / aux counters
+// exist for T1b (`local.set` / calls / allocations), but nothing
+// materialises yet. `EmitCtx` is same-module (`vader/c_emit`), so it
+// needs no import here.
+
+module "vader/c_emit"
+
+import "std/string_builder" { StringBuilder }
+import "std/iter" { slice }
+import "std/abort" { unreachable }
+import "vader/bytecode" { BcFunction, ValType }
+
+// ---- StackVal -------------------------------------------------------------
+
+/// One value on the virtual operand stack. Every variant carries its
+/// C-storage `ValType` ; the consumer pops it and inlines `name_of`.
+StackVal :: StackTmp | StackLit | StackLocalRef | StackExpr
+
+/// A value already materialised into a fresh `tN` C local — the eager
+/// case (calls, allocations, anything with a side effect). Unused until
+/// T1b.
+StackTmp :: struct {
+    name: string
+    val:  ValType
+}
+
+/// A pure literal (`INT32_C(42)`, `true`). Always safe to inline ; no
+/// `T tN = lit;` line is emitted.
+StackLit :: struct {
+    text: string
+    val:  ValType
+}
+
+/// A snapshot of local slot `slot`, spelled `lN` at the consumer.
+/// Inlined directly unless a `local.set` / `local.tee` on the same slot
+/// intervenes before the pop (then it is materialised — T1b).
+StackLocalRef :: struct {
+    slot: i32
+    val:  ValType
+}
+
+/// A side-effect-free C expression (`(l0 + l1)`, `(a == b)`). Inlined
+/// verbatim ; materialised on `dup` or any `local.set` / `local.tee`
+/// (T1b), since operand dependencies are not tracked.
+StackExpr :: struct {
+    text: string
+    val:  ValType
+}
+
+/// How to spell `sv` at its consumer.
+name_of :: fn(sv: StackVal) -> string = match sv {
+    is StackTmp as t      -> t.name
+    is StackLit as l      -> l.text
+    is StackLocalRef as r -> "l${r.slot}"
+    is StackExpr as e     -> e.text
+}
+
+/// Static C-storage type of `sv`.
+val_of :: fn(sv: StackVal) -> ValType = match sv {
+    is StackTmp as t      -> t.val
+    is StackLit as l      -> l.val
+    is StackLocalRef as r -> r.val
+    is StackExpr as e     -> e.val
+}
+
+// ---- FnState --------------------------------------------------------------
+
+/// Mutable state for one fn-body emit. Owns the operand stack plus the
+/// temp / aux counters. Lives only for `emit_function_body` ; discarded
+/// once the body lands in `out`.
+FnState :: struct {
+    ctx:      EmitCtx
+    function: BcFunction
+    out:      StringBuilder
+    /// Virtual operand stack — the top of stack is the last element.
+    stack:    StackVal[]
+    /// Monotone `tN` allocator for materialised temps (T1b).
+    tmp_counter: i32
+    /// Monotone `_aN` scratch allocator for struct storage / call args
+    /// (T1b+). Never recycled, so it can't collide with a reused `tN`.
+    aux_counter: i32
+}
+
+/// Fresh state for `function`, emitting into `out`.
+new_fn_state :: fn(ctx: EmitCtx, function: BcFunction, out: StringBuilder) -> FnState {
+    empty: StackVal[] = []
+    return FnState {
+        .ctx = ctx,
+        .function = function,
+        .out = out,
+        .stack = empty,
+        .tmp_counter = 0,
+        .aux_counter = 0,
+    }
+}
+
+/// Push a pure literal — inlined at the consumer, no temp line emitted.
+push_lit :: fn(s: FnState, val: ValType, text: string) -> void {
+    s.stack.push(StackLit { .text = text, .val = val })
+}
+
+/// Push a side-effect-free C expression, inlined verbatim at the
+/// consumer. `text` must already carry whatever parentheses precedence
+/// safety requires.
+push_expr :: fn(s: FnState, val: ValType, text: string) -> void {
+    s.stack.push(StackExpr { .text = text, .val = val })
+}
+
+/// Push a snapshot of local slot `slot`, spelled `lN` when popped.
+push_local_ref :: fn(s: FnState, slot: i32, val: ValType) -> void {
+    s.stack.push(StackLocalRef { .slot = slot, .val = val })
+}
+
+/// Pop the top of the operand stack. Underflow is a malformed-bytecode
+/// bug (the verifier should have rejected it), so it traps rather than
+/// returning a degraded value.
+pop :: fn(s: FnState) -> StackVal {
+    n :: s.stack.len()
+    if n == 0 { unreachable("c-emit: operand stack underflow") }
+    top :: s.stack[n - 1]
+    s.stack = s.stack.slice(0, n - 1)
+    return top
+}
+
+/// Read the top of the operand stack without removing it. Unused until
+/// T1b / T2 (branch / block-result boundaries) ; declared with the model.
+peek :: fn(s: FnState) -> StackVal {
+    n :: s.stack.len()
+    if n == 0 { unreachable("c-emit: operand stack underflow (peek)") }
+    return s.stack[n - 1]
+}
+
+/// Discard the top of the operand stack — the `drop` op. Underflow is a
+/// malformed-bytecode bug, so it traps.
+drop_top :: fn(s: FnState) -> void {
+    n :: s.stack.len()
+    if n == 0 { unreachable("c-emit: drop on empty operand stack") }
+    s.stack = s.stack.slice(0, n - 1)
+}
+
+/// C-storage `ValType` of local slot `slot` — params occupy the first
+/// `params.len()` slots, then `locals` in order.
+slot_val_type :: fn(function: BcFunction, slot: i32) -> ValType {
+    params :: function.signature.params
+    if slot < i32(params.len()) {
+        return params[usize(slot)]
+    }
+    return function.locals[usize(slot) - params.len()].val
+}
