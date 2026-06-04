@@ -1,0 +1,114 @@
+module _main
+type 0 primitive null
+type 1 primitive i32
+type 2 primitive bool
+
+fn 0 snippet$i_add (i32,i32) -> i32
+  local.get 0
+  local.get 1
+  i32.add
+  return
+end
+
+fn 1 snippet$i_sub (i32,i32) -> i32
+  local.get 0
+  local.get 1
+  i32.sub
+  return
+end
+
+fn 2 snippet$i_mul (i32,i32) -> i32
+  local.get 0
+  local.get 1
+  i32.mul
+  return
+end
+
+fn 3 snippet$i_band (i32,i32) -> i32
+  local.get 0
+  local.get 1
+  i32.bitand
+  return
+end
+
+fn 4 snippet$i_bor (i32,i32) -> i32
+  local.get 0
+  local.get 1
+  i32.bitor
+  return
+end
+
+fn 5 snippet$i_bxor (i32,i32) -> i32
+  local.get 0
+  local.get 1
+  i32.bitxor
+  return
+end
+
+fn 6 snippet$i_shl (i32,i32) -> i32
+  local.get 0
+  local.get 1
+  i32.shl
+  return
+end
+
+fn 7 snippet$i_shr (i32,i32) -> i32
+  local.get 0
+  local.get 1
+  i32.shr
+  return
+end
+
+fn 8 snippet$i_neg (i32) -> i32
+  local.get 0
+  i32.neg
+  return
+end
+
+fn 9 snippet$i_bnot (i32) -> i32
+  local.get 0
+  i32.bitnot
+  return
+end
+
+fn 10 snippet$i_eq (i32,i32) -> bool
+  local.get 0
+  local.get 1
+  i32.eq
+  return
+end
+
+fn 11 snippet$i_ne (i32,i32) -> bool
+  local.get 0
+  local.get 1
+  i32.ne
+  return
+end
+
+fn 12 snippet$i_lt (i32,i32) -> bool
+  local.get 0
+  local.get 1
+  i32.lt
+  return
+end
+
+fn 13 snippet$i_le (i32,i32) -> bool
+  local.get 0
+  local.get 1
+  i32.le
+  return
+end
+
+fn 14 snippet$i_gt (i32,i32) -> bool
+  local.get 0
+  local.get 1
+  i32.gt
+  return
+end
+
+fn 15 snippet$i_ge (i32,i32) -> bool
+  local.get 0
+  local.get 1
+  i32.ge
+  return
+end

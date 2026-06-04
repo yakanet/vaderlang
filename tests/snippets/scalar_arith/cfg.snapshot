@@ -1,0 +1,145 @@
+# CFG
+
+## snippet
+
+fn snippet$i_add(%0: i32, %1: i32) -> i32
+  locals:
+    %0 a: i32 (param a)
+    %1 b: i32 (param b)
+    %2 $add_2: i32
+  bb0:
+    %2 = binop add %0 %1 :i32
+    return %2
+
+fn snippet$i_sub(%0: i32, %1: i32) -> i32
+  locals:
+    %0 a: i32 (param a)
+    %1 b: i32 (param b)
+    %2 $sub_2: i32
+  bb0:
+    %2 = binop sub %0 %1 :i32
+    return %2
+
+fn snippet$i_mul(%0: i32, %1: i32) -> i32
+  locals:
+    %0 a: i32 (param a)
+    %1 b: i32 (param b)
+    %2 $mul_2: i32
+  bb0:
+    %2 = binop mul %0 %1 :i32
+    return %2
+
+fn snippet$i_band(%0: i32, %1: i32) -> i32
+  locals:
+    %0 a: i32 (param a)
+    %1 b: i32 (param b)
+    %2 $bitand_2: i32
+  bb0:
+    %2 = binop bitand %0 %1 :i32
+    return %2
+
+fn snippet$i_bor(%0: i32, %1: i32) -> i32
+  locals:
+    %0 a: i32 (param a)
+    %1 b: i32 (param b)
+    %2 $bitor_2: i32
+  bb0:
+    %2 = binop bitor %0 %1 :i32
+    return %2
+
+fn snippet$i_bxor(%0: i32, %1: i32) -> i32
+  locals:
+    %0 a: i32 (param a)
+    %1 b: i32 (param b)
+    %2 $bitxor_2: i32
+  bb0:
+    %2 = binop bitxor %0 %1 :i32
+    return %2
+
+fn snippet$i_shl(%0: i32, %1: i32) -> i32
+  locals:
+    %0 a: i32 (param a)
+    %1 b: i32 (param b)
+    %2 $shl_2: i32
+  bb0:
+    %2 = binop shl %0 %1 :i32
+    return %2
+
+fn snippet$i_shr(%0: i32, %1: i32) -> i32
+  locals:
+    %0 a: i32 (param a)
+    %1 b: i32 (param b)
+    %2 $shr_2: i32
+  bb0:
+    %2 = binop shr %0 %1 :i32
+    return %2
+
+fn snippet$i_neg(%0: i32) -> i32
+  locals:
+    %0 x: i32 (param x)
+    %1 $neg_1: i32
+  bb0:
+    %1 = unop neg %0 :i32
+    return %1
+
+fn snippet$i_bnot(%0: i32) -> i32
+  locals:
+    %0 x: i32 (param x)
+    %1 $bitnot_1: i32
+  bb0:
+    %1 = unop bitnot %0 :i32
+    return %1
+
+fn snippet$i_eq(%0: i32, %1: i32) -> bool
+  locals:
+    %0 a: i32 (param a)
+    %1 b: i32 (param b)
+    %2 $eq_2: bool
+  bb0:
+    %2 = binop eq %0 %1 :bool
+    return %2
+
+fn snippet$i_ne(%0: i32, %1: i32) -> bool
+  locals:
+    %0 a: i32 (param a)
+    %1 b: i32 (param b)
+    %2 $neq_2: bool
+  bb0:
+    %2 = binop neq %0 %1 :bool
+    return %2
+
+fn snippet$i_lt(%0: i32, %1: i32) -> bool
+  locals:
+    %0 a: i32 (param a)
+    %1 b: i32 (param b)
+    %2 $lt_2: bool
+  bb0:
+    %2 = binop lt %0 %1 :bool
+    return %2
+
+fn snippet$i_le(%0: i32, %1: i32) -> bool
+  locals:
+    %0 a: i32 (param a)
+    %1 b: i32 (param b)
+    %2 $lte_2: bool
+  bb0:
+    %2 = binop lte %0 %1 :bool
+    return %2
+
+fn snippet$i_gt(%0: i32, %1: i32) -> bool
+  locals:
+    %0 a: i32 (param a)
+    %1 b: i32 (param b)
+    %2 $gt_2: bool
+  bb0:
+    %2 = binop gt %0 %1 :bool
+    return %2
+
+fn snippet$i_ge(%0: i32, %1: i32) -> bool
+  locals:
+    %0 a: i32 (param a)
+    %1 b: i32 (param b)
+    %2 $gte_2: bool
+  bb0:
+    %2 = binop gte %0 %1 :bool
+    return %2

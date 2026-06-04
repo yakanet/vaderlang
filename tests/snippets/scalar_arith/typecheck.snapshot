@@ -1,0 +1,65 @@
+# Typecheck
+
+## tests/snippets/scalar_arith
+  FnDecl         i_add                :: fn(i32, i32) -> i32
+  FnDecl         i_band               :: fn(i32, i32) -> i32
+  FnDecl         i_bnot               :: fn(i32) -> i32
+  FnDecl         i_bor                :: fn(i32, i32) -> i32
+  FnDecl         i_bxor               :: fn(i32, i32) -> i32
+  FnDecl         i_eq                 :: fn(i32, i32) -> bool
+  FnDecl         i_ge                 :: fn(i32, i32) -> bool
+  FnDecl         i_gt                 :: fn(i32, i32) -> bool
+  FnDecl         i_le                 :: fn(i32, i32) -> bool
+  FnDecl         i_lt                 :: fn(i32, i32) -> bool
+  FnDecl         i_mul                :: fn(i32, i32) -> i32
+  FnDecl         i_ne                 :: fn(i32, i32) -> bool
+  FnDecl         i_neg                :: fn(i32) -> i32
+  FnDecl         i_shl                :: fn(i32, i32) -> i32
+  FnDecl         i_shr                :: fn(i32, i32) -> i32
+  FnDecl         i_sub                :: fn(i32, i32) -> i32
+  expr 10:47    BinaryExpr     :: i32
+  expr 10:47    IdentExpr      :: i32
+  expr 10:51    IdentExpr      :: i32
+  expr 11:47    BinaryExpr     :: i32
+  expr 11:47    IdentExpr      :: i32
+  expr 11:51    IdentExpr      :: i32
+  expr 12:47    BinaryExpr     :: i32
+  expr 12:47    IdentExpr      :: i32
+  expr 12:51    IdentExpr      :: i32
+  expr 13:47    BinaryExpr     :: i32
+  expr 13:47    IdentExpr      :: i32
+  expr 13:51    IdentExpr      :: i32
+  expr 14:47    BinaryExpr     :: i32
+  expr 14:47    IdentExpr      :: i32
+  expr 14:52    IdentExpr      :: i32
+  expr 15:47    BinaryExpr     :: i32
+  expr 15:47    IdentExpr      :: i32
+  expr 15:52    IdentExpr      :: i32
+  expr 16:47    UnaryExpr      :: i32
+  expr 16:48    IdentExpr      :: i32
+  expr 17:47    UnaryExpr      :: i32
+  expr 17:48    IdentExpr      :: i32
+  expr 18:47    BinaryExpr     :: bool
+  expr 18:47    IdentExpr      :: i32
+  expr 18:52    IdentExpr      :: i32
+  expr 19:47    BinaryExpr     :: bool
+  expr 19:47    IdentExpr      :: i32
+  expr 19:52    IdentExpr      :: i32
+  expr 20:47    BinaryExpr     :: bool
+  expr 20:47    IdentExpr      :: i32
+  expr 20:51    IdentExpr      :: i32
+  expr 21:47    BinaryExpr     :: bool
+  expr 21:47    IdentExpr      :: i32
+  expr 21:52    IdentExpr      :: i32
+  expr 22:47    BinaryExpr     :: bool
+  expr 22:47    IdentExpr      :: i32
+  expr 22:51    IdentExpr      :: i32
+  expr 23:47    BinaryExpr     :: bool
+  expr 23:47    IdentExpr      :: i32
+  expr 23:52    IdentExpr      :: i32
+  expr 8:47     BinaryExpr     :: i32
+  expr 8:47     IdentExpr      :: i32
+  expr 8:51     IdentExpr      :: i32
+  expr 9:47     BinaryExpr     :: i32
+  expr 9:47     IdentExpr      :: i32
+  expr 9:51     IdentExpr      :: i32

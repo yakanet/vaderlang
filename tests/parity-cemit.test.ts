@@ -45,6 +45,10 @@ const C_PARITY = new Set<string>([
   // T1b : local.set / local.tee, the prelude (local + temp decls),
   // operand materialisation, i32 add/sub/mul.
   "scalar_locals",
+  // T1c : the rest of the i32 expr family — cmp (eq/ne/lt/le/gt/ge),
+  // bitwise (and/or/xor), shifts (shl/shr), unary (neg/bitnot). Temp-free
+  // (expression-bodied single-op fns) so byte-parity holds vs TS.
+  "scalar_arith",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));

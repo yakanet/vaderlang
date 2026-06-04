@@ -1,0 +1,23 @@
+// Scalar i32 arithmetic / comparison / bitwise / shift / unary (C-emit
+// T1c coverage). Expression-bodied single-op fns keep each body
+// temp-free, so the C stays byte-parity-checkable against the TS emitter
+// without the monotone-vs-recycle temp divergence.
+
+module "snippet"
+
+export i_add  :: fn(a: i32, b: i32) -> i32  = a + b
+export i_sub  :: fn(a: i32, b: i32) -> i32  = a - b
+export i_mul  :: fn(a: i32, b: i32) -> i32  = a * b
+export i_band :: fn(a: i32, b: i32) -> i32  = a & b
+export i_bor  :: fn(a: i32, b: i32) -> i32  = a | b
+export i_bxor :: fn(a: i32, b: i32) -> i32  = a ^ b
+export i_shl  :: fn(a: i32, b: i32) -> i32  = a << b
+export i_shr  :: fn(a: i32, b: i32) -> i32  = a >> b
+export i_neg  :: fn(x: i32) -> i32          = -x
+export i_bnot :: fn(x: i32) -> i32          = ~x
+export i_eq   :: fn(a: i32, b: i32) -> bool = a == b
+export i_ne   :: fn(a: i32, b: i32) -> bool = a != b
+export i_lt   :: fn(a: i32, b: i32) -> bool = a < b
+export i_le   :: fn(a: i32, b: i32) -> bool = a <= b
+export i_gt   :: fn(a: i32, b: i32) -> bool = a > b
+export i_ge   :: fn(a: i32, b: i32) -> bool = a >= b

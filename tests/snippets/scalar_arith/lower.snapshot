@@ -1,0 +1,109 @@
+# Lower
+
+## snippet
+  fn snippet$i_add(a: i32, b: i32) -> i32
+    ~>
+      add :i32
+        l:
+          a :i32
+        r:
+          b :i32
+  fn snippet$i_sub(a: i32, b: i32) -> i32
+    ~>
+      sub :i32
+        l:
+          a :i32
+        r:
+          b :i32
+  fn snippet$i_mul(a: i32, b: i32) -> i32
+    ~>
+      mul :i32
+        l:
+          a :i32
+        r:
+          b :i32
+  fn snippet$i_band(a: i32, b: i32) -> i32
+    ~>
+      bitand :i32
+        l:
+          a :i32
+        r:
+          b :i32
+  fn snippet$i_bor(a: i32, b: i32) -> i32
+    ~>
+      bitor :i32
+        l:
+          a :i32
+        r:
+          b :i32
+  fn snippet$i_bxor(a: i32, b: i32) -> i32
+    ~>
+      bitxor :i32
+        l:
+          a :i32
+        r:
+          b :i32
+  fn snippet$i_shl(a: i32, b: i32) -> i32
+    ~>
+      shl :i32
+        l:
+          a :i32
+        r:
+          b :i32
+  fn snippet$i_shr(a: i32, b: i32) -> i32
+    ~>
+      shr :i32
+        l:
+          a :i32
+        r:
+          b :i32
+  fn snippet$i_neg(x: i32) -> i32
+    ~>
+      neg :i32
+        x :i32
+  fn snippet$i_bnot(x: i32) -> i32
+    ~>
+      bitnot :i32
+        x :i32
+  fn snippet$i_eq(a: i32, b: i32) -> bool
+    ~>
+      eq :bool
+        l:
+          a :i32
+        r:
+          b :i32
+  fn snippet$i_ne(a: i32, b: i32) -> bool
+    ~>
+      neq :bool
+        l:
+          a :i32
+        r:
+          b :i32
+  fn snippet$i_lt(a: i32, b: i32) -> bool
+    ~>
+      lt :bool
+        l:
+          a :i32
+        r:
+          b :i32
+  fn snippet$i_le(a: i32, b: i32) -> bool
+    ~>
+      lte :bool
+        l:
+          a :i32
+        r:
+          b :i32
+  fn snippet$i_gt(a: i32, b: i32) -> bool
+    ~>
+      gt :bool
+        l:
+          a :i32
+        r:
+          b :i32
+  fn snippet$i_ge(a: i32, b: i32) -> bool
+    ~>
+      gte :bool
+        l:
+          a :i32
+        r:
+          b :i32

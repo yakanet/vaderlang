@@ -799,20 +799,20 @@ emit_op :: fn(s: FnState, op: Op) -> void {
         is I32Mul                -> push_binop(s, "*", .I32)
         is I32Div                -> todo("emit_op: i32.div")
         is I32Mod                -> todo("emit_op: i32.rem")
-        is I32Neg                -> todo("emit_op: i32.neg")
-        is I32BitNot             -> todo("emit_op: i32.bitnot")
-        is I32BitAnd             -> todo("emit_op: i32.bitand")
-        is I32BitOr              -> todo("emit_op: i32.bitor")
-        is I32BitXor             -> todo("emit_op: i32.bitxor")
-        is I32Shl                -> todo("emit_op: i32.shl")
-        is I32Shr                -> todo("emit_op: i32.shr")
+        is I32Neg                -> push_unop(s, "-", .I32)
+        is I32BitNot             -> push_unop(s, "~", .I32)
+        is I32BitAnd             -> push_binop(s, "&", .I32)
+        is I32BitOr              -> push_binop(s, "|", .I32)
+        is I32BitXor             -> push_binop(s, "^", .I32)
+        is I32Shl                -> push_binop(s, "<<", .I32)
+        is I32Shr                -> push_binop(s, ">>", .I32)
         is I32ShrU               -> todo("emit_op: u32.shr")
-        is I32Eq                 -> todo("emit_op: i32.eq")
-        is I32Ne                 -> todo("emit_op: i32.ne")
-        is I32Lt                 -> todo("emit_op: i32.lt")
-        is I32Le                 -> todo("emit_op: i32.le")
-        is I32Gt                 -> todo("emit_op: i32.gt")
-        is I32Ge                 -> todo("emit_op: i32.ge")
+        is I32Eq                 -> push_binop(s, "==", .Bool)
+        is I32Ne                 -> push_binop(s, "!=", .Bool)
+        is I32Lt                 -> push_binop(s, "<", .Bool)
+        is I32Le                 -> push_binop(s, "<=", .Bool)
+        is I32Gt                 -> push_binop(s, ">", .Bool)
+        is I32Ge                 -> push_binop(s, ">=", .Bool)
         is I64Add                -> todo("emit_op: i64.add")
         is I64Sub                -> todo("emit_op: i64.sub")
         is I64Mul                -> todo("emit_op: i64.mul")
@@ -961,6 +961,14 @@ push_binop :: fn(s: FnState, op: string, result_val: ValType) -> void {
         "(${name_of(l)} ${op} ${name_of(r)})"
     }
     push_expr(s, result_val, text)
+}
+
+/// Push a unary op result as a `StackExpr`. The operand is wrapped in
+/// parens — unary binds tighter than the comparisons, so e.g.
+/// `~l0 == 0` would otherwise mis-parse.
+push_unop :: fn(s: FnState, op: string, result_val: ValType) -> void {
+    v :: pop(s)
+    push_expr(s, result_val, "${op}(${name_of(v)})")
 }
 
 /// `return` — `return;` for a void result, else pop the value and emit
