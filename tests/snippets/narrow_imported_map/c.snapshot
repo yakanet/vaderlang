@@ -295,7 +295,7 @@ static void std_collections_std_collections_put__i32__Any(vader_box_t l0, int32_
                     l5 = true;
                     goto loop_15;
                 }
-                if (l7.tag == 20u) {
+                if ((l7.tag == 20u || l7.tag == 19u)) {
                     t3 = ((int32_t) ((vader_struct_std_collections_Entry__i32__Any_t*) l4.payload.obj)->f_key.payload.i);
                     if (t3 == l1) {
                         ((vader_struct_std_collections_Entry__i32__Any_t*) l4.payload.obj)->f_value = l2;
@@ -366,7 +366,7 @@ static vader_box_t std_collections_std_collections_get__i32__Any(vader_box_t l0,
                     l7 = true;
                     goto loop_24;
                 }
-                if (l8.tag == 20u) {
+                if ((l8.tag == 20u || l8.tag == 19u)) {
                     t4 = ((int32_t) ((vader_struct_std_collections_Entry__i32__Any_t*) l5.payload.obj)->f_key.payload.i);
                     if (t4 == l1) {
                         t5 = ((vader_struct_std_collections_Entry__i32__Any_t*) l5.payload.obj)->f_value;

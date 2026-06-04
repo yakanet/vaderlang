@@ -1124,11 +1124,40 @@ emit_type_check :: fn(s: FnState, op: vm.TypeCheck) -> void {
                 return
             }
         }
+        if target is BcStruct as st {
+            push_expr(s, .Bool, struct_check_expr(s.ctx.module.types, name_of(v), op.type_id, st.name))
+            return
+        }
         push_expr(s, .Bool, "${name_of(v)}.tag == ${op.type_id}u")
     } else {
         matches :: primitive_matches_type(s.ctx.module.types, val, op.type_id)
         push_lit(s, .Bool, if matches { "true" } else { "false" })
     }
+}
+
+/// The C boolean expression testing whether `v_name`'s tag matches struct type
+/// `target_id` — its own tag OR any **sibling** struct's tag (same generic
+/// source, by `prefix_before_double_underscore`). Mirrors the VM's
+/// `struct_siblings_match` : an erased generic flows a runtime sibling shape
+/// (`Entry(i32,i32)`, a distinct tag) into a `type_check` typed against the
+/// erased one (`Entry(Any,Any)`) — exact-tag equality would miss it (and trip
+/// the dead-return guard on the match fall-through). A non-generic struct
+/// (empty prefix) has no siblings → a bare tag compare.
+struct_check_expr :: fn(types: BcType[], v_name: string, target_id: i32, target_name: string) -> string {
+    base :: "${v_name}.tag == ${target_id}u"
+    prefix :: prefix_before_double_underscore(target_name)
+    if prefix == "" { return base }
+    parts: string[] = [base]
+    for i in 0..<types.len() {
+        if i32(i) == target_id { continue }
+        if types[i] is BcStruct as st {
+            if prefix_before_double_underscore(st.name) == prefix {
+                parts.push("${v_name}.tag == ${i}u")
+            }
+        }
+    }
+    if parts.len() == 1 { return base }
+    return "(${parts.join(" || ")})"
 }
 
 /// The C boolean expression testing whether `v_name`'s tag matches the trait
