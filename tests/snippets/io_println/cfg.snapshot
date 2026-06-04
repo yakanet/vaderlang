@@ -1,0 +1,16 @@
+# CFG
+
+## snippet
+
+fn snippet$main() -> i32
+  locals:
+    %0 $k_0: string
+    %1 $k_1: i32
+    %2 $k_2: i32
+  bb0:
+    %0 = const string(#0) :string
+    call println(%0) :void
+    %1 = const int(42) :i32
+    call println(%1) :void
+    %2 = const int(0) :i32
+    return %2

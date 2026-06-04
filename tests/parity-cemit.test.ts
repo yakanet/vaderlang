@@ -59,6 +59,9 @@ const C_PARITY = new Set<string>([
   // T3a : direct `call` — own fns by index, scalar args + result
   // threaded through a fresh temp. Result via exit code (49).
   "scalar_call",
+  // T3b : `call.import` + import shims — println reaches the runtime via
+  // vader_import_N (write + Display.to_string). stdout-observed.
+  "io_println",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));

@@ -1,0 +1,9 @@
+# Typecheck
+
+## tests/snippets/io_println
+  FnDecl         main                 :: fn() -> i32
+  expr 14:13    StringLitExpr  :: string
+  expr 14:5     CallExpr       :: void
+  expr 14:5     IdentExpr      :: fn(T) -> void
+  expr 15:5     CallExpr       :: void
+  expr 15:5     IdentExpr      :: fn(T) -> void

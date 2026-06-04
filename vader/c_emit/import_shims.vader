@@ -1,0 +1,290 @@
+// vader/c_emit/import_shims — `call.import` host-fn shims.
+//
+// Every `call.import N` op resolves to a `vader_import_N(...)` C function
+// generated here. Two flavours, switched on `BcImport.is_extern` :
+//   - `@intrinsic` stdlib ops (`is_extern = false`) — routed to the
+//     runtime's `vader_*` helpers by mangled name (`import_shim`).
+//   - `@extern` user FFI (`is_extern = true`) — a forwarding shim that
+//     marshals `vader_string_t` args to `const char*` and calls the real
+//     foreign symbol (`user_extern_shim`), declared once via an `extern`.
+//
+// Same module (`vader/c_emit`), so `EmitCtx` + `c_type_for_val_bare` are
+// in scope without imports. Mirrors `src/c_emit/emit.ts::importShim`.
+
+module "vader/c_emit"
+
+import "std/string" { join, ends_with }
+import "std/string_builder" { StringBuilder, append }
+import "vader/bytecode" {
+    BcImport, BcType, BcPrimitive, BcArray, BcRef, BcStruct, ValType,
+}
+
+// ---- driver ---------------------------------------------------------------
+
+/// Emit every import's shim plus the once-per-module `extern` declarations
+/// for `@extern` foreign symbols. Unused imports are pruned upstream, so
+/// `module.imports` already carries only the referenced host fns. A
+/// trailing blank line keeps the spacing before the fn bodies stable.
+emit_import_shims :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
+    extern_decls: string[] = []
+    seen_extern: string[] = []
+    shims: string[] = []
+    for i in 0..<ctx.module.imports.len() {
+        imp :: ctx.module.imports[i]
+        if imp.is_extern && !(imp.extern_name in seen_extern) {
+            seen_extern.push(imp.extern_name)
+            extern_decls.push(extern_decl(imp))
+        }
+        shims.push(import_shim(ctx, imp, i32(i)))
+    }
+    if extern_decls.len() > 0 {
+        out.append("// User @extern foreign symbols — resolved by the linker.\n")
+        for d in extern_decls { out.append("${d}\n") }
+        out.append("\n")
+    }
+    for s in shims { out.append("${s}\n") }
+    out.append("\n")
+}
+
+/// `extern <ret> <name>(<params>);` for an `@extern` import — foreign ABI
+/// types (`string` → `const char*`), declared once per distinct symbol.
+extern_decl :: fn(imp: BcImport) -> string {
+    parts: string[] = []
+    for j in 0..<imp.signature.params.len() { parts.push(extern_c_type(imp.signature.params[j])) }
+    params :: if parts.len() == 0 { "void" } else { parts.join(", ") }
+    return "extern ${extern_c_type(imp.signature.result)} ${imp.extern_name}(${params});"
+}
+
+// ---- per-import shim ------------------------------------------------------
+
+/// The `vader_import_N` body for one import. Intrinsic stdlib ops route to
+/// their `vader_*` runtime helper by mangled name ; `@extern` falls through
+/// to `user_extern_shim` ; anything else traps loudly (compiler/runtime
+/// version skew). The mangled name is an open string domain, so this is an
+/// `if`-chain, not a closed-union `match`.
+import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
+    sig :: imp.signature
+    parts: string[] = []
+    for j in 0..<sig.params.len() { parts.push("${c_type_for_val_bare(sig.params[j])} a${j}") }
+    params :: if parts.len() == 0 { "void" } else { parts.join(", ") }
+    head :: "static ${c_type_for_val_bare(sig.result)} vader_import_${idx}(${params})"
+    m :: imp.mangled_name
+    types :: ctx.module.types
+
+    // std/io routes — implemented by the runtime.
+    if m == "std_io\$write"  { return "${head} { vader_write(a0, a1); }" }
+    if m == "std_abort\$panic" { return "${head} { vader_panic(a0); }" }
+    if m == "std_io\$exists" { return "${head} { return vader_exists(a0); }" }
+    if m == "std_io\$is_dir" { return "${head} { return vader_is_dir(a0); }" }
+    if m == "std_io\$read_dir" {
+        if ctx.string_tag < 0 { return "${head} { vader_trap(\"read_dir: no string type\"); }" }
+        if ctx.string_array_tag < 0 { return "${head} { vader_trap(\"read_dir: no [string] type\"); }" }
+        return "${head} { return vader_read_dir(a0, ${ctx.string_array_tag}u, ${ctx.string_tag}u, ${tag_u(error_ref_tag(types), "error")}); }"
+    }
+    if m == "std_io\$read_file"  { return "${head} { return vader_read_file(a0, ${tag_u(ctx.string_tag, "string")}, ${tag_u(error_ref_tag(types), "error")}); }" }
+    if m == "std_io\$write_file" { return "${head} { return vader_write_file(a0, a1, 0u, ${tag_u(error_ref_tag(types), "error")}); }" }
+    if m == "std_io\$read_line"  { return "${head} { return vader_read_line(${tag_u(ctx.string_tag, "string")}, ${tag_u(error_ref_tag(types), "error")}); }" }
+    if m == "std_io\$read_stdin" { return "${head} { return vader_read_stdin(a0, ${tag_u(ctx.string_tag, "string")}, ${tag_u(error_ref_tag(types), "error")}); }" }
+
+    // std/string internals.
+    if m == "std_string\$byte_len" { return "${head} { return vader_string_byte_len(a0); }" }
+    if m == "std_core\$string\$Index\$at" { return "${head} { return vader_string_codepoint_at(a0, a1); }" }
+    if m == "std_string\$bytes" {
+        u8 :: prim_tag(types, .U8)
+        if u8 < 0 { return "${head} { vader_trap(\"bytes: no u8 type\"); }" }
+        u8arr :: array_tag(types, u8)
+        if u8arr < 0 { return "${head} { vader_trap(\"bytes: no u8[] type\"); }" }
+        return "${head} { return vader_box_obj(${u8arr}u, vader_string_bytes_view(a0, ${u8arr}u, ${u8}u)); }"
+    }
+    if m == "std_string\$as_string" { return "${head} { return vader_string_as_string((vader_array_t*) a0.payload.obj); }" }
+    if m == "std_string\$parse_float" { return "${head} { return vader_string_parse_float(a0, ${tag_u(prim_tag(types, .F64), "f64")}, ${tag_u(error_ref_tag(types), "error")}); }" }
+    if m == "std_core\$string\$Hash\$hash" { return "${head} { return vader_string_hash(a0); }" }
+
+    // `@intrinsic <T> implements Display` — each shim spins up a one-shot
+    // StringBuilder, appends via the width-matched helper, then finishes.
+    if m == "std_core\$i8\$Display\$to_string" || m == "std_core\$i16\$Display\$to_string" || m == "std_core\$i32\$Display\$to_string" {
+        return "${head} { vader_builder_t* sb = vader_builder_new(); vader_builder_append_display_i32(sb, (int32_t) a0); return vader_builder_finish(sb); }"
+    }
+    if m == "std_core\$i64\$Display\$to_string" || m == "std_core\$isize\$Display\$to_string" {
+        return "${head} { vader_builder_t* sb = vader_builder_new(); vader_builder_append_display_i64(sb, (int64_t) a0); return vader_builder_finish(sb); }"
+    }
+    if m == "std_core\$u8\$Display\$to_string" || m == "std_core\$u16\$Display\$to_string" || m == "std_core\$u32\$Display\$to_string" {
+        return "${head} { vader_builder_t* sb = vader_builder_new(); vader_builder_append_display_u32(sb, (uint32_t) a0); return vader_builder_finish(sb); }"
+    }
+    if m == "std_core\$u64\$Display\$to_string" || m == "std_core\$usize\$Display\$to_string" {
+        return "${head} { vader_builder_t* sb = vader_builder_new(); vader_builder_append_display_u64(sb, (uint64_t) a0); return vader_builder_finish(sb); }"
+    }
+    if m == "std_core\$f32\$Display\$to_string" {
+        return "${head} { vader_builder_t* sb = vader_builder_new(); vader_builder_append_display_f32(sb, a0); return vader_builder_finish(sb); }"
+    }
+    if m == "std_core\$f64\$Display\$to_string" {
+        return "${head} { vader_builder_t* sb = vader_builder_new(); vader_builder_append_display_f64(sb, a0); return vader_builder_finish(sb); }"
+    }
+    if m == "std_core\$bool\$Display\$to_string" {
+        return "${head} { vader_builder_t* sb = vader_builder_new(); vader_builder_append_display_bool(sb, a0); return vader_builder_finish(sb); }"
+    }
+    if m == "std_core\$char\$Display\$to_string" {
+        return "${head} { vader_builder_t* sb = vader_builder_new(); vader_builder_append_display_char(sb, a0); return vader_builder_finish(sb); }"
+    }
+    if m == "std_core\$string\$Display\$to_string" { return "${head} { return a0; }" }
+
+    if m == "std_string_builder\$StringBuilder\$Display\$to_string" {
+        sb_idx :: string_builder_struct_tag(types)
+        if sb_idx < 0 { return "${head} { vader_trap(\"StringBuilder type not found\"); }" }
+        // Non-inline rep : the receiver is a heap struct whose `parts` field
+        // holds the string[] buffer. The inline-ref fast path (payload IS
+        // the array) lands with the inline-rep subsystem (T12).
+        sb_cname :: ctx.struct_c_names[usize(sb_idx)]
+        return "${head} { vader_box_t parts = ((${sb_cname}*) a0.payload.obj)->f_parts; return vader_string_concat_all((vader_array_t*) parts.payload.obj); }"
+    }
+
+    // std/runtime — GC introspection.
+    if m == "std_runtime\$collect"      { return "${head} { vader_gc_collect(); }" }
+    if m == "std_runtime\$collections"  { return "${head} { return (int32_t) vader_gc_get_stats().total_collections; }" }
+    if m == "std_runtime\$bytes_used"   { return "${head} { return (int32_t) vader_gc_get_stats().bytes_used; }" }
+    if m == "std_runtime\$bytes_copied" { return "${head} { return (int32_t) vader_gc_get_stats().total_copied; }" }
+
+    // std/time.
+    if m == "std_time\$now_unix_ms"  { return "${head} { return vader_clock_realtime_ms(); }" }
+    if m == "std_time\$monotonic_ns" { return "${head} { return vader_clock_monotonic_ns(); }" }
+
+    // std/math.
+    if m == "std_math\$sqrt"  { return "${head} { return vader_math_sqrt(a0); }" }
+    if m == "std_math\$pow"   { return "${head} { return vader_math_pow(a0, a1); }" }
+    if m == "std_math\$floor" { return "${head} { return vader_math_floor(a0); }" }
+    if m == "std_math\$ceil"  { return "${head} { return vader_math_ceil(a0); }" }
+    if m == "std_math\$round" { return "${head} { return vader_math_round(a0); }" }
+    if m == "std_math\$sin"   { return "${head} { return vader_math_sin(a0); }" }
+    if m == "std_math\$cos"   { return "${head} { return vader_math_cos(a0); }" }
+    if m == "std_math\$tan"   { return "${head} { return vader_math_tan(a0); }" }
+
+    // std/process.
+    if m == "std_process\$spawn_run"         { return "${head} { return vader_spawn_run((vader_array_t*) a0.payload.obj); }" }
+    if m == "std_process\$spawn_last_stdout" { return "${head} { return vader_spawn_last_stdout(); }" }
+    if m == "std_process\$spawn_last_stderr" { return "${head} { return vader_spawn_last_stderr(); }" }
+
+    // User `@extern` — forward to the real C symbol ; everything else is a
+    // host fn the c-emit doesn't recognise (version skew) → trap loudly.
+    if imp.is_extern { return user_extern_shim(imp, head, c_type_for_val_bare(sig.result)) }
+    return "${head} { vader_trap(\"unbound import: ${m}\"); }"
+}
+
+// ---- @extern forwarding ---------------------------------------------------
+
+/// Threshold below which a `string` extern arg is marshalled on the shim's
+/// own stack (a VLA NUL-copy) instead of `malloc` via the runtime. 4 KiB
+/// stays well under any reasonable `ulimit -s` and covers the common case
+/// (paths, identifiers, log lines) ; larger strings fall back to the heap.
+EXTERN_STACK_CSTR_THRESHOLD :: 4096
+
+/// Forward an `@extern` import to its foreign symbol, marshalling each
+/// `string` arg (`vader_string_t`) to a `const char*` : small strings via a
+/// stack VLA NUL-copy, large ones via `vader_string_to_cstr` (freed after
+/// the call). Non-string args pass through ; the result is captured before
+/// freeing so heap copies outlive the call expression.
+user_extern_shim :: fn(imp: BcImport, head: string, ret: string) -> string {
+    sig :: imp.signature
+    string_indices: i32[] = []
+    call_args: string[] = []
+    for j in 0..<sig.params.len() {
+        if sig.params[j] == ValType.String {
+            string_indices.push(i32(j))
+            call_args.push("c${j}")
+        } else {
+            call_args.push("a${j}")
+        }
+    }
+    t :: EXTERN_STACK_CSTR_THRESHOLD
+    lines: string[] = []
+    for i in 0..<string_indices.len() {
+        j :: string_indices[i]
+        lines.push("char _b${j}[a${j}.len < ${t} ? a${j}.len + 1 : 1];")
+        lines.push("const char* c${j};")
+        lines.push("if (a${j}.len < ${t}) { if (a${j}.len > 0) memcpy(_b${j}, a${j}.ptr, a${j}.len); _b${j}[a${j}.len] = 0; c${j} = _b${j}; } else { c${j} = vader_string_to_cstr(a${j}); }")
+    }
+    call_expr :: "${imp.extern_name}(${call_args.join(", ")})"
+    free_lines: string[] = []
+    fi: i32 = i32(string_indices.len()) - 1
+    for fi >= 0 {
+        j :: string_indices[usize(fi)]
+        free_lines.push("if (a${j}.len >= ${t}) vader_cstr_free(c${j});")
+        fi -= 1
+    }
+    if sig.result == ValType.Void {
+        lines.push("${call_expr};")
+        for fl in free_lines { lines.push(fl) }
+        lines.push("return;")
+    } else if string_indices.len() == 0 {
+        lines.push("return ${call_expr};")
+    } else {
+        lines.push("${ret} r = ${call_expr};")
+        for fl in free_lines { lines.push(fl) }
+        lines.push("return r;")
+    }
+    return "${head} { ${lines.join(" ")} }"
+}
+
+/// Foreign C-ABI type for an `@extern` slot — identical to
+/// `c_type_for_val_bare` except `string`, which the foreign side consumes
+/// as `const char*` (the shim marshals between the two).
+extern_c_type :: fn(v: ValType) -> string {
+    if v == ValType.String { return "const char*" }
+    return c_type_for_val_bare(v)
+}
+
+// ---- tag lookups ----------------------------------------------------------
+
+/// Render a BcType index as a C `u`-suffixed tag, or `0u` with a comment
+/// when absent (`-1`). Mirrors TS `tagOrTrap` — a shim referencing an
+/// absent tag only fires when the program actually uses that intrinsic,
+/// by which point the type is present.
+tag_u :: fn(idx: i32, label: string) -> string {
+    if idx < 0 { return "0u /* ${label} tag absent */" }
+    return "${idx}u"
+}
+
+/// BcType index of the primitive `val`, or `-1` when absent.
+prim_tag :: fn(types: BcType[], val: ValType) -> i32 {
+    for i in 0..<types.len() {
+        t :: types[i]
+        if t is BcPrimitive as p {
+            if p.val == val { return i32(i) }
+        }
+    }
+    return -1
+}
+
+/// BcType index of the array whose element is type `elem`, or `-1`.
+array_tag :: fn(types: BcType[], elem: i32) -> i32 {
+    for i in 0..<types.len() {
+        t :: types[i]
+        if t is BcArray as a {
+            if a.element == elem { return i32(i) }
+        }
+    }
+    return -1
+}
+
+/// BcType index of the `Error` existential (`BcRef` with `trait_name ==
+/// "Error"`), or `-1` when absent.
+error_ref_tag :: fn(types: BcType[]) -> i32 {
+    for i in 0..<types.len() {
+        t :: types[i]
+        if t is BcRef as r {
+            if r.trait_name == "Error" { return i32(i) }
+        }
+    }
+    return -1
+}
+
+/// BcType index of the `StringBuilder` struct (`StringBuilder` or
+/// `<module>\$StringBuilder`), or `-1` when absent.
+string_builder_struct_tag :: fn(types: BcType[]) -> i32 {
+    for i in 0..<types.len() {
+        t :: types[i]
+        if t is BcStruct as s {
+            if s.name == "StringBuilder" || s.name.ends_with("\$StringBuilder") { return i32(i) }
+        }
+    }
+    return -1
+}

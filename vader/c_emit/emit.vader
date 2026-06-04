@@ -578,14 +578,8 @@ emit_struct_info_row :: fn(ctx: EmitCtx, _s: BcStruct, offs: StructOffsets, type
 /// section always closes with a blank line (unconditional in TS
 /// `emitImportShims`, even with no imports) so the spacing before the
 /// function bodies stays byte-identical.
-emit_import_shims :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
-    if ctx.module.imports.len() > 0 {
-        todo("emit_import_shims: per-import shim emit (std/io, std/string, … host dispatch)")
-    }
-    // Unconditional trailing blank — matches TS `emitImportShims`, so the
-    // spacing before the function bodies stays byte-identical.
-    out.append("\n")
-}
+// `emit_import_shims` lives in `import_shims.vader` (same module) — the
+// `call.import` host-fn dispatch is a distinct responsibility.
 
 /// Forward decls for each per-tag vtable dispatch function emitted by
 /// `emit_vtable_dispatchers`. Phase 1-2 : no vtables.
@@ -738,11 +732,5 @@ string_primitive_tag :: fn(types: BcType[]) -> i32 {
 /// `EmitCtx.string_array_tag`).
 string_array_tag :: fn(types: BcType[], str_idx: i32) -> i32 {
     if str_idx < 0 { return -1 }
-    for i in 0..<types.len() {
-        t :: types[i]
-        if t is BcArray as a {
-            if a.element == str_idx { return i32(i) }
-        }
-    }
-    return -1
+    return array_tag(types, str_idx)
 }

@@ -161,7 +161,7 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.ReturnLit as r        -> line(s, "return ${const_lit_c(s.ctx, r.value)};")
         is vm.Drop                  -> drop_top(s)
         is vm.Call as c             -> emit_call(s, c)
-        is vm.CallImport            -> todo("emit_op: call.import")
+        is vm.CallImport as c       -> emit_call_import(s, c)
         is vm.CallIndirect          -> todo("emit_op: call.indirect")
         is vm.VirtualCall           -> todo("emit_op: virtual.call")
         is vm.FnRef                 -> todo("emit_op: fn.ref")
@@ -621,6 +621,14 @@ emit_branch :: fn(s: FnState, pc: i32, conditional: bool) -> void {
 emit_call :: fn(s: FnState, op: vm.Call) -> void {
     callee :: s.ctx.module.functions[usize(op.function_index)]
     emit_call_to(s, sanitise(callee.name), callee.signature)
+}
+
+/// `call.import` — call a host fn through its generated `vader_import_N`
+/// shim (see `import_shims.vader`). Reuses the shared `emit_call_to` with
+/// the import's signature.
+emit_call_import :: fn(s: FnState, op: vm.CallImport) -> void {
+    imp :: s.ctx.module.imports[usize(op.index)]
+    emit_call_to(s, "vader_import_${op.index}", imp.signature)
 }
 
 /// Shared direct-call path (own fns now ; imports reuse it in T3b). Pops
