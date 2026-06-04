@@ -49,6 +49,9 @@ const C_PARITY = new Set<string>([
   // bitwise (and/or/xor), shifts (shl/shr), unary (neg/bitnot). Temp-free
   // (expression-bodied single-op fns) so byte-parity holds vs TS.
   "scalar_arith",
+  // T1d : i64 / u32 / u64 / f64 families, eager integer + f64 div/rem,
+  // bool.not, i32<->i64 / i32<->char conversions.
+  "scalar_wide",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));

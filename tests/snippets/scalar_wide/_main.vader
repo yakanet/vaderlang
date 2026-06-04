@@ -1,0 +1,30 @@
+// Wide scalar ops (C-emit T1d coverage) — i64 / u32 / u64 / f64 families,
+// eager integer + f64 div/rem, bool.not, and the i32<->i64 / i32<->char
+// conversions. Expression-bodied single-op fns keep bodies temp-free (or
+// single-temp for div/rem), so the C is byte-parity-checkable against the
+// TS emitter without the monotone-vs-recycle temp divergence.
+
+module "snippet"
+
+export l_add  :: fn(a: i64, b: i64) -> i64  = a + b
+export l_div  :: fn(a: i64, b: i64) -> i64  = a / b
+export l_rem  :: fn(a: i64, b: i64) -> i64  = a % b
+export l_and  :: fn(a: i64, b: i64) -> i64  = a & b
+export l_shl  :: fn(a: i64, b: i64) -> i64  = a << b
+export l_lt   :: fn(a: i64, b: i64) -> bool = a < b
+export l_neg  :: fn(x: i64) -> i64          = -x
+export l_bnot :: fn(x: i64) -> i64          = ~x
+export i_div  :: fn(a: i32, b: i32) -> i32  = a / b
+export i_rem  :: fn(a: i32, b: i32) -> i32  = a % b
+export u_div  :: fn(a: u32, b: u32) -> u32  = a / b
+export u_lt   :: fn(a: u32, b: u32) -> bool = a < b
+export ul_div :: fn(a: u64, b: u64) -> u64  = a / b
+export ul_ge  :: fn(a: u64, b: u64) -> bool = a >= b
+export f_add  :: fn(a: f64, b: f64) -> f64  = a + b
+export f_div  :: fn(a: f64, b: f64) -> f64  = a / b
+export f_lt   :: fn(a: f64, b: f64) -> bool = a < b
+export f_neg  :: fn(x: f64) -> f64          = -x
+export b_not  :: fn(x: bool) -> bool        = !x
+export to_long  :: fn(x: i32) -> i64  = i64(x)
+export to_chr   :: fn(x: i32) -> char = char(x)
+export from_chr :: fn(x: char) -> i32 = i32(x)

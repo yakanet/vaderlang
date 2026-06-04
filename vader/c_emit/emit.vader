@@ -43,7 +43,7 @@ import "vader/vm" {
     If, Else, End, StructNew, StructGet, StructSet,
     Block, Loop, Branch, BranchIf, BoolNot,
     ArrayNew, ArrayLen, ArrayPush, ArrayGet, ArraySet, ArraySlice,
-    DataConst, TypeConst, TypeCheck, RefCast, Convert,
+    DataConst, TypeConst, TypeCheck, RefCast, Convert, ConvertTarget,
     IntToChar, CharToInt, RefEq, RefNe, DeferPush, DeferPopExec,
     MakeClosure, CallIndirect, VirtualCall, CallImport,
     BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish,
@@ -774,7 +774,7 @@ emit_op :: fn(s: FnState, op: Op) -> void {
         is Loop                  -> todo("emit_op: loop")
         is Branch                -> todo("emit_op: br")
         is BranchIf              -> todo("emit_op: br_if")
-        is BoolNot               -> todo("emit_op: bool.not")
+        is BoolNot               -> push_unop(s, "!", .Bool)
         is StructNew             -> todo("emit_op: struct.new")
         is StructGet             -> todo("emit_op: struct.get")
         is StructSet             -> todo("emit_op: struct.set")
@@ -788,7 +788,7 @@ emit_op :: fn(s: FnState, op: Op) -> void {
         is TypeConst             -> todo("emit_op: type.const")
         is TypeCheck             -> todo("emit_op: type_check")
         is RefCast               -> todo("emit_op: ref.cast")
-        is Convert               -> todo("emit_op: convert")
+        is Convert as c          -> emit_convert(s, convert_target_val(c.target))
         is BuilderNew            -> todo("emit_op: builder.new")
         is BuilderAppendStr      -> todo("emit_op: builder.append_str")
         is BuilderAppendDisplay  -> todo("emit_op: builder.append_display")
@@ -797,8 +797,8 @@ emit_op :: fn(s: FnState, op: Op) -> void {
         is I32Add                -> push_binop(s, "+", .I32)
         is I32Sub                -> push_binop(s, "-", .I32)
         is I32Mul                -> push_binop(s, "*", .I32)
-        is I32Div                -> todo("emit_op: i32.div")
-        is I32Mod                -> todo("emit_op: i32.rem")
+        is I32Div                -> push_eager(s, "/", .I32)
+        is I32Mod                -> push_eager(s, "%", .I32)
         is I32Neg                -> push_unop(s, "-", .I32)
         is I32BitNot             -> push_unop(s, "~", .I32)
         is I32BitAnd             -> push_binop(s, "&", .I32)
@@ -813,64 +813,64 @@ emit_op :: fn(s: FnState, op: Op) -> void {
         is I32Le                 -> push_binop(s, "<=", .Bool)
         is I32Gt                 -> push_binop(s, ">", .Bool)
         is I32Ge                 -> push_binop(s, ">=", .Bool)
-        is I64Add                -> todo("emit_op: i64.add")
-        is I64Sub                -> todo("emit_op: i64.sub")
-        is I64Mul                -> todo("emit_op: i64.mul")
-        is I64Div                -> todo("emit_op: i64.div")
-        is I64Mod                -> todo("emit_op: i64.rem")
-        is I64Neg                -> todo("emit_op: i64.neg")
-        is I64BitAnd             -> todo("emit_op: i64.bitand")
-        is I64BitOr              -> todo("emit_op: i64.bitor")
-        is I64BitXor             -> todo("emit_op: i64.bitxor")
-        is I64BitNot             -> todo("emit_op: i64.bitnot")
-        is I64Shl                -> todo("emit_op: i64.shl")
-        is I64Shr                -> todo("emit_op: i64.shr")
+        is I64Add                -> push_binop(s, "+", .I64)
+        is I64Sub                -> push_binop(s, "-", .I64)
+        is I64Mul                -> push_binop(s, "*", .I64)
+        is I64Div                -> push_eager(s, "/", .I64)
+        is I64Mod                -> push_eager(s, "%", .I64)
+        is I64Neg                -> push_unop(s, "-", .I64)
+        is I64BitAnd             -> push_binop(s, "&", .I64)
+        is I64BitOr              -> push_binop(s, "|", .I64)
+        is I64BitXor             -> push_binop(s, "^", .I64)
+        is I64BitNot             -> push_unop(s, "~", .I64)
+        is I64Shl                -> push_binop(s, "<<", .I64)
+        is I64Shr                -> push_binop(s, ">>", .I64)
         is I64ShrU               -> todo("emit_op: u64.shr")
-        is I64Eq                 -> todo("emit_op: i64.eq")
-        is I64Ne                 -> todo("emit_op: i64.ne")
-        is I64Lt                 -> todo("emit_op: i64.lt")
-        is I64Le                 -> todo("emit_op: i64.le")
-        is I64Gt                 -> todo("emit_op: i64.gt")
-        is I64Ge                 -> todo("emit_op: i64.ge")
-        is U32Div                -> todo("emit_op: u32.div")
-        is U32Mod                -> todo("emit_op: u32.rem")
-        is U32Lt                 -> todo("emit_op: u32.lt")
-        is U32Le                 -> todo("emit_op: u32.le")
-        is U32Gt                 -> todo("emit_op: u32.gt")
-        is U32Ge                 -> todo("emit_op: u32.ge")
-        is U64Div                -> todo("emit_op: u64.div")
-        is U64Mod                -> todo("emit_op: u64.rem")
-        is U64Lt                 -> todo("emit_op: u64.lt")
-        is U64Le                 -> todo("emit_op: u64.le")
-        is U64Gt                 -> todo("emit_op: u64.gt")
-        is U64Ge                 -> todo("emit_op: u64.ge")
-        is F64Add                -> todo("emit_op: f64.add")
-        is F64Sub                -> todo("emit_op: f64.sub")
-        is F64Mul                -> todo("emit_op: f64.mul")
-        is F64Div                -> todo("emit_op: f64.div")
-        is F64Neg                -> todo("emit_op: f64.neg")
-        is F64Eq                 -> todo("emit_op: f64.eq")
-        is F64Ne                 -> todo("emit_op: f64.ne")
-        is F64Lt                 -> todo("emit_op: f64.lt")
-        is F64Le                 -> todo("emit_op: f64.le")
-        is F64Gt                 -> todo("emit_op: f64.gt")
-        is F64Ge                 -> todo("emit_op: f64.ge")
-        is BoolEq                -> todo("emit_op: bool.eq")
-        is BoolNe                -> todo("emit_op: bool.ne")
-        is BoolAnd               -> todo("emit_op: bool.and")
-        is BoolOr                -> todo("emit_op: bool.or")
-        is CharEq                -> todo("emit_op: char.eq")
-        is CharNe                -> todo("emit_op: char.ne")
-        is CharLt                -> todo("emit_op: char.lt")
-        is CharLe                -> todo("emit_op: char.le")
-        is CharGt                -> todo("emit_op: char.gt")
-        is CharGe                -> todo("emit_op: char.ge")
+        is I64Eq                 -> push_binop(s, "==", .Bool)
+        is I64Ne                 -> push_binop(s, "!=", .Bool)
+        is I64Lt                 -> push_binop(s, "<", .Bool)
+        is I64Le                 -> push_binop(s, "<=", .Bool)
+        is I64Gt                 -> push_binop(s, ">", .Bool)
+        is I64Ge                 -> push_binop(s, ">=", .Bool)
+        is U32Div                -> push_eager(s, "/", .U32)
+        is U32Mod                -> push_eager(s, "%", .U32)
+        is U32Lt                 -> push_binop(s, "<", .Bool)
+        is U32Le                 -> push_binop(s, "<=", .Bool)
+        is U32Gt                 -> push_binop(s, ">", .Bool)
+        is U32Ge                 -> push_binop(s, ">=", .Bool)
+        is U64Div                -> push_eager(s, "/", .U64)
+        is U64Mod                -> push_eager(s, "%", .U64)
+        is U64Lt                 -> push_binop(s, "<", .Bool)
+        is U64Le                 -> push_binop(s, "<=", .Bool)
+        is U64Gt                 -> push_binop(s, ">", .Bool)
+        is U64Ge                 -> push_binop(s, ">=", .Bool)
+        is F64Add                -> push_binop(s, "+", .F64)
+        is F64Sub                -> push_binop(s, "-", .F64)
+        is F64Mul                -> push_binop(s, "*", .F64)
+        is F64Div                -> push_eager(s, "/", .F64)
+        is F64Neg                -> push_unop(s, "-", .F64)
+        is F64Eq                 -> push_binop(s, "==", .Bool)
+        is F64Ne                 -> push_binop(s, "!=", .Bool)
+        is F64Lt                 -> push_binop(s, "<", .Bool)
+        is F64Le                 -> push_binop(s, "<=", .Bool)
+        is F64Gt                 -> push_binop(s, ">", .Bool)
+        is F64Ge                 -> push_binop(s, ">=", .Bool)
+        is BoolEq                -> push_binop(s, "==", .Bool)
+        is BoolNe                -> push_binop(s, "!=", .Bool)
+        is BoolAnd               -> push_binop(s, "&&", .Bool)
+        is BoolOr                -> push_binop(s, "||", .Bool)
+        is CharEq                -> push_binop(s, "==", .Bool)
+        is CharNe                -> push_binop(s, "!=", .Bool)
+        is CharLt                -> push_binop(s, "<", .Bool)
+        is CharLe                -> push_binop(s, "<=", .Bool)
+        is CharGt                -> push_binop(s, ">", .Bool)
+        is CharGe                -> push_binop(s, ">=", .Bool)
         is StringEq              -> todo("emit_op: string.eq")
         is StringNe              -> todo("emit_op: string.ne")
         is StringConcat          -> todo("emit_op: string.concat")
         is StringSliceCodepoints -> todo("emit_op: string.slice_codepoints")
-        is IntToChar             -> todo("emit_op: i32.to_char")
-        is CharToInt             -> todo("emit_op: char.to_i32")
+        is IntToChar             -> emit_convert(s, .Char)
+        is CharToInt             -> emit_convert(s, .I32)
         is RefEq                 -> todo("emit_op: ref.eq")
         is RefNe                 -> todo("emit_op: ref.ne")
         is DeferPush             -> todo("emit_op: defer.push")
@@ -969,6 +969,40 @@ push_binop :: fn(s: FnState, op: string, result_val: ValType) -> void {
 push_unop :: fn(s: FnState, op: string, result_val: ValType) -> void {
     v :: pop(s)
     push_expr(s, result_val, "${op}(${name_of(v)})")
+}
+
+/// Emit an eager binary op into a fresh temp : `tN = l <op> r;`. Used for
+/// `div` / `rem` (every width, incl. f64) — TS materialises these
+/// unconditionally so an integer divide-by-zero trap fires whether or not
+/// the result is consumed. Note : no parens around `l <op> r` (matches
+/// TS).
+push_eager :: fn(s: FnState, op: string, result_val: ValType) -> void {
+    r :: pop(s)
+    l :: pop(s)
+    name :: fresh_tmp(s, result_val)
+    s.out.append("    ${name} = ${name_of(l)} ${op} ${name_of(r)};\n")
+    push_tmp(s, name, result_val)
+}
+
+/// Reinterpret the top value into `target_val` (`Convert` / `IntToChar` /
+/// `CharToInt`). Same type → pass-through ; else a `((to)(from) v)`
+/// double-cast (the inner cast pins the source signedness, matching TS).
+emit_convert :: fn(s: FnState, target_val: ValType) -> void {
+    v :: pop(s)
+    from_val :: val_of(v)
+    if from_val == target_val {
+        push_expr(s, target_val, name_of(v))
+    } else {
+        push_expr(s, target_val, "((${c_type_for_val_bare(target_val)}) (${c_type_for_val_bare(from_val)}) ${name_of(v)})")
+    }
+}
+
+/// `ConvertTarget` enum → its `ValType`.
+convert_target_val :: fn(t: ConvertTarget) -> ValType = match t {
+    .I32  -> .I32
+    .I64  -> .I64
+    .F64  -> .F64
+    .Char -> .Char
 }
 
 /// `return` — `return;` for a void result, else pop the value and emit

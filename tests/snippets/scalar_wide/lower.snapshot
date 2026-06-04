@@ -1,0 +1,136 @@
+# Lower
+
+## snippet
+  fn snippet$l_add(a: i64, b: i64) -> i64
+    ~>
+      add :i64
+        l:
+          a :i64
+        r:
+          b :i64
+  fn snippet$l_div(a: i64, b: i64) -> i64
+    ~>
+      div :i64
+        l:
+          a :i64
+        r:
+          b :i64
+  fn snippet$l_rem(a: i64, b: i64) -> i64
+    ~>
+      mod :i64
+        l:
+          a :i64
+        r:
+          b :i64
+  fn snippet$l_and(a: i64, b: i64) -> i64
+    ~>
+      bitand :i64
+        l:
+          a :i64
+        r:
+          b :i64
+  fn snippet$l_shl(a: i64, b: i64) -> i64
+    ~>
+      shl :i64
+        l:
+          a :i64
+        r:
+          b :i64
+  fn snippet$l_lt(a: i64, b: i64) -> bool
+    ~>
+      lt :bool
+        l:
+          a :i64
+        r:
+          b :i64
+  fn snippet$l_neg(x: i64) -> i64
+    ~>
+      neg :i64
+        x :i64
+  fn snippet$l_bnot(x: i64) -> i64
+    ~>
+      bitnot :i64
+        x :i64
+  fn snippet$i_div(a: i32, b: i32) -> i32
+    ~>
+      div :i32
+        l:
+          a :i32
+        r:
+          b :i32
+  fn snippet$i_rem(a: i32, b: i32) -> i32
+    ~>
+      mod :i32
+        l:
+          a :i32
+        r:
+          b :i32
+  fn snippet$u_div(a: u32, b: u32) -> u32
+    ~>
+      div :u32
+        l:
+          a :u32
+        r:
+          b :u32
+  fn snippet$u_lt(a: u32, b: u32) -> bool
+    ~>
+      lt :bool
+        l:
+          a :u32
+        r:
+          b :u32
+  fn snippet$ul_div(a: u64, b: u64) -> u64
+    ~>
+      div :u64
+        l:
+          a :u64
+        r:
+          b :u64
+  fn snippet$ul_ge(a: u64, b: u64) -> bool
+    ~>
+      gte :bool
+        l:
+          a :u64
+        r:
+          b :u64
+  fn snippet$f_add(a: f64, b: f64) -> f64
+    ~>
+      add :f64
+        l:
+          a :f64
+        r:
+          b :f64
+  fn snippet$f_div(a: f64, b: f64) -> f64
+    ~>
+      div :f64
+        l:
+          a :f64
+        r:
+          b :f64
+  fn snippet$f_lt(a: f64, b: f64) -> bool
+    ~>
+      lt :bool
+        l:
+          a :f64
+        r:
+          b :f64
+  fn snippet$f_neg(x: f64) -> f64
+    ~>
+      neg :f64
+        x :f64
+  fn snippet$b_not(x: bool) -> bool
+    ~>
+      not :bool
+        x :bool
+  fn snippet$to_long(x: i32) -> i64
+    ~>
+      cast → i64
+        x :i32
+  fn snippet$to_chr(x: i32) -> char
+    ~>
+      cast → char
+        x :i32
+  fn snippet$from_chr(x: char) -> i32
+    ~>
+      cast → i32
+        x :char

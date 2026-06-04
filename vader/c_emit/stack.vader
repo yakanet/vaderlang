@@ -165,13 +165,24 @@ slot_val_type :: fn(function: BcFunction, slot: i32) -> ValType {
 
 // ---- materialisation ------------------------------------------------------
 
-/// Force `e` into a fresh `tN` temp : allocate the index, record its
-/// ValType for the prelude, emit `tN = <e>;`, and return the `StackTmp`.
-materialise_entry :: fn(s: FnState, e: StackVal) -> StackVal {
-    val :: val_of(e)
+/// Allocate a fresh `tN` temp of type `val` : record its ValType for the
+/// prelude declaration and return the name. Monotone (index = count).
+fresh_tmp :: fn(s: FnState, val: ValType) -> string {
     idx :: s.tmp_types.len()
     s.tmp_types.push(val)
-    name :: "t${idx}"
+    return "t${idx}"
+}
+
+/// Push an already-named temp onto the operand stack.
+push_tmp :: fn(s: FnState, name: string, val: ValType) -> void {
+    s.stack.push(StackTmp { .name = name, .val = val })
+}
+
+/// Force `e` into a fresh `tN` temp : allocate the index, emit
+/// `tN = <e>;`, and return the `StackTmp`.
+materialise_entry :: fn(s: FnState, e: StackVal) -> StackVal {
+    val :: val_of(e)
+    name :: fresh_tmp(s, val)
     s.out.append("    ${name} = ${name_of(e)};\n")
     return StackTmp { .name = name, .val = val }
 }
