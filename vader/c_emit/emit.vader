@@ -43,12 +43,22 @@ import "vader/bytecode" {
 /// builds emit them so `gdb` / `lldb` step through the original Vader
 /// source ; release builds skip them for a faster compile + smaller
 /// binary.
+///
+/// `entry_mangled` is the designated program-entry main's mangled name
+/// (`<entry-module-id>$main`, the same `dump_bytecode` stamps as
+/// `export main N`). A multi-module program — the compiler imports
+/// `vader/lsp`, which has its OWN `main` — has several fns all flagged
+/// `is_main`, and the entry one isn't necessarily first in the fn table, so
+/// the `main()` shim resolves it by name. Empty → fall back to the first
+/// `is_main` fn (single-main programs).
 export EmitOptions :: struct {
     release: bool
+    entry_mangled: string
 }
 
-/// Default options : debug build, `#line` directives ON.
-export default_emit_options :: fn() -> EmitOptions = EmitOptions { .release = false }
+/// Default options : debug build, `#line` directives ON, entry resolved by
+/// the first `is_main` fn (no designated entry name).
+export default_emit_options :: fn() -> EmitOptions = EmitOptions { .release = false, .entry_mangled = "" }
 
 /// Per-module emit context. Built once by `new_ctx`, then threaded
 /// through every section emitter. Read-only — every cache / index is
@@ -157,7 +167,7 @@ export emit_c :: fn(m: BytecodeModule, opts: EmitOptions) -> string {
     emit_vtable_forward_decls(ctx, out)
     emit_functions(ctx, out)
     emit_vtable_dispatchers(ctx, out)
-    emit_main(ctx, out)
+    emit_main(ctx, out, opts.entry_mangled)
 
     return "${out}"
 }
@@ -587,8 +597,8 @@ emit_struct_info_row :: fn(ctx: EmitCtx, _s: BcStruct, offs: StructOffsets, type
 /// `void`). T3033 guarantees the signature is `()` or `([string])`.
 ///
 /// TS reference : `emitMain` in `src/c_emit/emit.ts`.
-emit_main :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
-    main_index :: find_main(ctx.module)
+emit_main :: fn(ctx: EmitCtx, out: StringBuilder, entry_mangled: string) -> void {
+    main_index :: find_main(ctx.module, entry_mangled)
     if main_index < 0 {
         out.append("int main(int argc, char** argv) { (void)argc; (void)argv; return 0; }\n")
         return
@@ -629,8 +639,21 @@ emit_main :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
     out.append("}\n")
 }
 
-/// Index of the first non-empty `is_main` fn, or `-1` when none.
-find_main :: fn(m: BytecodeModule) -> i32 {
+/// Index of the program-entry main, or `-1` when none. Prefers the fn whose
+/// name is `entry_mangled` (the designated entry — `dump_bytecode` stamps the
+/// same one as `export main N`) : a multi-module program has several `main`
+/// fns all flagged `is_main`, and the entry one isn't necessarily first in the
+/// fn table. Falls back to the first non-empty `is_main` fn when no entry name
+/// is supplied (single-main programs).
+find_main :: fn(m: BytecodeModule, entry_mangled: string) -> i32 {
+    if entry_mangled != "" {
+        for i in 0..<m.functions.len() {
+            f :: m.functions[i]
+            if f.name == entry_mangled && f.body.len() > 0 {
+                return i32(i)
+            }
+        }
+    }
     for i in 0..<m.functions.len() {
         f :: m.functions[i]
         if f.is_main && f.body.len() > 0 {

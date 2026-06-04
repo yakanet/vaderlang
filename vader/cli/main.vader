@@ -599,10 +599,15 @@ run_bytecode_stage :: fn(file: string, annotate: bool) -> i32 {
 
 run_c_stage :: fn(file: string) -> i32 {
     b :: prepare_cfg_bytecode(file)
+    // Designate the program entry by name (same source as the bytecode
+    // stage's `export main N`) so the `main()` shim resolves the entry
+    // module's `main` — a multi-module input (the compiler imports
+    // `vader/lsp`, which has its own `main`) flags several fns `is_main`.
+    entry :: entry_main_name(b.pipeline.typed, b.pipeline.loaded.entry)
     // `emit_c` already returns a trailing-newline-terminated string ; use
     // `print` (no auto-newline) to match the TS `Bun.write(emitC(...))`
     // output byte-for-byte.
-    print(emit_c(b.module, default_c_emit_options()))
+    print(emit_c(b.module, CEmitOptions { .release = false, .entry_mangled = entry }))
     print_pipeline_diags(b.pipeline, b.lower_diags)
     return 0
 }
