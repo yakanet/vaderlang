@@ -105,6 +105,11 @@ FnState :: struct {
     /// Opener pcs that are the destination of some `br` / `br_if`. A C
     /// label is emitted only for these — an unreferenced label warns.
     targeted: i32[]
+    /// True when the fn is provably no-alloc (not in `EmitCtx.may_alloc`) —
+    /// it gets no GC shadow-stack frame, so `return` skips the `gc_top`
+    /// restore and ref slots skip the `= vader_box_null()` root-init. Set by
+    /// `emit_function_body` ; default `true` (the scalar / stack subset).
+    no_frame: bool
 }
 
 /// Fresh state for `function`, emitting into `out`.
@@ -118,6 +123,7 @@ new_fn_state :: fn(ctx: EmitCtx, function: BcFunction, out: StringBuilder) -> Fn
     .indent = 1,
     .scopes = [],
     .targeted = [],
+    .no_frame = true,
 }
 
 // ---- indented output ------------------------------------------------------

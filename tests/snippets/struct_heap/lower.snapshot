@@ -1,0 +1,27 @@
+# Lower
+
+## snippet
+  struct snippet$Point { x: i32, y: i32 }
+  fn snippet$make(a: i32, b: i32) -> Point
+    ~>
+      Point {
+        x: a :i32
+        y: b :i32
+      }
+  fn snippet$main() -> i32
+    let p: Point =
+      call :Point
+        callee:
+          make :fn(i32, i32) -> Point
+        arg0:
+          int(3) :i32
+        arg1:
+          int(4) :i32
+    return
+      add :i32
+        l:
+          .x :i32
+            p :Point
+        r:
+          .y :i32
+            p :Point

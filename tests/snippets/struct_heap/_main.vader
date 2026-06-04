@@ -1,0 +1,19 @@
+// tests/snippets/struct_heap — T4b heap-struct + GC-frame coverage.
+//
+// `make` returns a Point, so escape analysis heap-allocates it
+// (struct.new, not struct.new_stack). That makes `make` may-alloc → it
+// gets the shadow-stack frame: ref temp zero-init (vader_box_null()),
+// gc_roots[], gc_frame/gc_top, framed return. `main` calls a may-alloc fn
+// so it too gets a frame (roots its ref local + temp). Result via exit
+// code: 3 + 4 = 7.
+
+module "snippet"
+
+Point :: struct { x: i32, y: i32 }
+
+make :: fn(a: i32, b: i32) -> Point = Point { .x = a, .y = b }
+
+main :: fn() -> i32 {
+    p :: make(3, 4)
+    return p.x + p.y
+}

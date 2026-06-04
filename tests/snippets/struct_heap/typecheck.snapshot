@@ -1,0 +1,16 @@
+# Typecheck
+
+## tests/snippets/struct_heap
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         make                 :: fn(i32, i32) -> Point
+  StructDecl     Point                :: Point
+  expr 14:39    StructLitExpr  :: Point
+  expr 14:52    IdentExpr      :: i32
+  expr 14:60    IdentExpr      :: i32
+  expr 17:10    CallExpr       :: Point
+  expr 17:10    IdentExpr      :: fn(i32, i32) -> Point
+  expr 18:12    BinaryExpr     :: i32
+  expr 18:12    FieldExpr      :: i32
+  expr 18:12    IdentExpr      :: Point
+  expr 18:18    FieldExpr      :: i32
+  expr 18:18    IdentExpr      :: Point

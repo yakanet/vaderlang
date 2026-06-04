@@ -76,6 +76,10 @@ export EmitCtx :: struct {
     /// BcType index of the `[string]` array (element == `string_tag`), or
     /// `-1` when absent. Used by the `main(argv: [string])` shim.
     string_array_tag: i32
+    /// Indices into `module.functions` of every fn that may trigger a GC
+    /// allocation (transitively). A fn NOT in this set is `no_frame` — it
+    /// skips the shadow-stack prologue. Computed by `compute_may_alloc`.
+    may_alloc: i32[]
     release: bool
 }
 
@@ -97,6 +101,7 @@ new_ctx :: fn(m: BytecodeModule, release: bool) -> EmitCtx {
         .null_tag = null_primitive_tag(m.types),
         .string_tag = string_tag,
         .string_array_tag = string_array_tag(m.types, string_tag),
+        .may_alloc = compute_may_alloc(m.functions),
         .release = release,
     }
 }
@@ -578,7 +583,7 @@ emit_struct_info_row :: fn(ctx: EmitCtx, _s: BcStruct, offs: StructOffsets, type
 /// section always closes with a blank line (unconditional in TS
 /// `emitImportShims`, even with no imports) so the spacing before the
 /// function bodies stays byte-identical.
-// `emit_import_shims` lives in `import_shims.vader` (same module) — the
+// `emit_import_shims` lives in `host.vader` (same module) — the
 // `call.import` host-fn dispatch is a distinct responsibility.
 
 /// Forward decls for each per-tag vtable dispatch function emitted by

@@ -295,6 +295,11 @@ export val_type_of_bc_type :: fn(t: BcType) -> ValType = match t {
     is BcFn -> ValType.Ref
 }
 
+/// True for the boxed value classes (`ref` / `any`) — both collapse to
+/// `vader_box_t` storage and are GC roots. Mirrors `isRefVal` in
+/// `src/c_emit/body.ts`.
+export is_ref_val :: fn(v: ValType) -> bool = v == ValType.Ref || v == ValType.Any
+
 /// Stack value class of the field / slot whose `BcType` lives at
 /// `type_index` in `types`. Mirrors `valTypeOfField` in
 /// `src/c_emit/body.ts` — the field-store / field-read / arg paths use it

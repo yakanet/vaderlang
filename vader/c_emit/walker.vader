@@ -35,9 +35,82 @@ vm :: import "vader/vm"
 emit_functions :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
     fns :: ctx.module.functions
     for i in 0..<fns.len() {
-        emit_function_body(ctx, fns[i], out)
+        emit_function_body(ctx, i32(i), fns[i], out)
         out.append("\n")
     }
+}
+
+// ---- may-alloc analysis ---------------------------------------------------
+
+/// Callgraph analysis : which fns may trigger a GC allocation
+/// (transitively). Drives the `no_frame` decision — a fn outside this set
+/// skips the shadow-stack prologue (`inc(x) = x + 1`, accessors,
+/// predicates, stack-only struct builders). Direct allocators are the
+/// heap `struct.new`, array ops, string concat, the builder family,
+/// `make_closure`, and the conservative indirect callers (`call.import` /
+/// `call.indirect` / `virtual.call`) ; transitive via any direct `call` to
+/// a fn already in the set. Mirrors `computeMayAlloc` in
+/// `src/c_emit/emit.ts`.
+compute_may_alloc :: fn(fns: BcFunction[]) -> i32[] {
+    may_alloc: i32[] = []
+    for fi in 0..<fns.len() {
+        if fn_has_direct_alloc(fns[fi]) { may_alloc.push(i32(fi)) }
+    }
+    changed := true
+    for changed {
+        changed = false
+        for fi in 0..<fns.len() {
+            if i32(fi) in may_alloc { continue }
+            if fn_calls_may_alloc(fns[fi], may_alloc) {
+                may_alloc.push(i32(fi))
+                changed = true
+            }
+        }
+    }
+    return may_alloc
+}
+
+/// True when `fn_decl` contains an op that allocates on the GC heap.
+fn_has_direct_alloc :: fn(fn_decl: BcFunction) -> bool {
+    for i in 0..<fn_decl.body.len() {
+        if op_allocates(fn_decl.body[i]) { return true }
+    }
+    return false
+}
+
+/// True when `fn_decl` makes a direct `call` to a fn already known to
+/// may-alloc — the transitive propagation step.
+fn_calls_may_alloc :: fn(fn_decl: BcFunction, may_alloc: i32[]) -> bool {
+    for i in 0..<fn_decl.body.len() {
+        op :: fn_decl.body[i]
+        if op is vm.Call as c {
+            if c.function_index in may_alloc { return true }
+        }
+    }
+    return false
+}
+
+/// True for ops that allocate a fresh GC object. `struct.new_stack`
+/// (`stack = true`) does NOT — it lands on the C stack. Indirect callers
+/// are conservatively included (unknown target). Builder / array ops are
+/// listed ahead of their own tranches so the analysis is correct once they
+/// emit. Open-domain filter over a few variants → an `if`-chain, not an
+/// exhaustive `match`.
+op_allocates :: fn(op: vm.Op) -> bool {
+    if op is vm.StructNew as sn { return !sn.stack }
+    if op is vm.ArrayNew { return true }
+    if op is vm.ArrayPush { return true }
+    if op is vm.StringConcat { return true }
+    if op is vm.StringSliceCodepoints { return true }
+    if op is vm.BuilderNew { return true }
+    if op is vm.BuilderAppendStr { return true }
+    if op is vm.BuilderAppendDisplay { return true }
+    if op is vm.BuilderFinish { return true }
+    if op is vm.MakeClosure { return true }
+    if op is vm.CallImport { return true }
+    if op is vm.CallIndirect { return true }
+    if op is vm.VirtualCall { return true }
+    return false
 }
 
 /// One C function definition : `static <sig> { <body> }`. Walks the
@@ -47,16 +120,18 @@ emit_functions :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
 ///
 /// T0 scope : only `return.lit` / bare `return` op bodies are emitted ;
 /// the full StackVal walker (locals, calls, control flow, …) is T1+.
-emit_function_body :: fn(ctx: EmitCtx, function: BcFunction, out: StringBuilder) -> void {
+emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out: StringBuilder) -> void {
+    no_frame :: !(fn_index in ctx.may_alloc)
     out.append("static ${signature_for(function)} {\n")
 
     // Walk the body into a separate buffer first : temps are discovered
     // during the walk (materialisation), and their declarations belong in
     // the prelude *above* the body. After the walk, assemble
-    // signature → local decls → temp decls → body, matching TS (which
-    // splices the temp decls in at `preludePos`).
+    // signature → local decls → temp decls → frame → body, matching TS
+    // (which splices the prelude in at `preludePos`).
     body :: new_builder()
     s :: new_fn_state(ctx, function, body)
+    s.no_frame = no_frame
     s.scopes = precompute_scopes(function)
     s.targeted = precompute_targeted(function, s.scopes)
     last_line: i32 = -1
@@ -75,10 +150,32 @@ emit_function_body :: fn(ctx: EmitCtx, function: BcFunction, out: StringBuilder)
         emit_op(s, i32(i), function.body[i])
     }
 
-    emit_local_decls(function, out)
-    emit_tmp_decls(s, out)
+    // GC roots : ref-typed params, then locals + temps (collected by the
+    // decl emitters). Order is irrelevant to the GC scan. `no_frame` fns
+    // skip the whole shadow-stack apparatus.
+    root_addrs: string[] = []
+    if !no_frame {
+        params :: function.signature.params
+        for i in 0..<params.len() {
+            if is_ref_val(params[i]) { root_addrs.push("&l${i}") }
+        }
+    }
+    emit_local_decls(function, out, root_addrs, no_frame)
+    emit_tmp_decls(s, out, root_addrs, no_frame)
+    if !no_frame {
+        if root_addrs.len() > 0 {
+            out.append("    vader_box_t* gc_roots[${root_addrs.len()}] = { ${root_addrs.join(", ")} };\n")
+        }
+        roots_expr :: if root_addrs.len() > 0 { "gc_roots" } else { "NULL" }
+        out.append("    vader_gc_frame_t gc_frame = { vader_gc_top, ${root_addrs.len()}u, 0u, ${roots_expr} };\n")
+        out.append("    vader_gc_top = &gc_frame;\n")
+    }
+
     out.append("${body}")
 
+    // Defensive fall-through restore (void / implicit-end fns) ; explicit
+    // returns pop the frame themselves.
+    if !no_frame { out.append("    vader_gc_top = gc_frame.prev;\n") }
     out.append("}\n")
 }
 
@@ -89,7 +186,7 @@ emit_function_body :: fn(ctx: EmitCtx, function: BcFunction, out: StringBuilder)
 /// diverges past 10 locals of one type.
 ///
 /// TS reference : `emitLocalDecls` in `src/c_emit/body.ts`.
-emit_local_decls :: fn(function: BcFunction, out: StringBuilder) -> void {
+emit_local_decls :: fn(function: BcFunction, out: StringBuilder, root_addrs: string[], no_frame: bool) -> void {
     locals :: function.locals
     param_count :: function.signature.params.len()
     vals: ValType[] = []
@@ -99,17 +196,17 @@ emit_local_decls :: fn(function: BcFunction, out: StringBuilder) -> void {
         vals.push(locals[i].val)
         names.push("l${param_count + i}")
     }
-    emit_slot_decls(out, vals, names)
+    emit_slot_decls(out, vals, names, root_addrs, no_frame)
 }
 
 /// Declare the materialised temps `tN`, bucketed like the locals. Reads
 /// `s.tmp_types` (index N → ValType of `tN`), populated during the walk.
-emit_tmp_decls :: fn(s: FnState, out: StringBuilder) -> void {
+emit_tmp_decls :: fn(s: FnState, out: StringBuilder, root_addrs: string[], no_frame: bool) -> void {
     names: string[] = []
     for i in 0..<s.tmp_types.len() {
         names.push("t${i}")
     }
-    emit_slot_decls(out, s.tmp_types, names)
+    emit_slot_decls(out, s.tmp_types, names, root_addrs, no_frame)
 }
 
 /// Declare a group of same-kind C slots (`vals[i]` is the ValType of
@@ -119,15 +216,27 @@ emit_tmp_decls :: fn(s: FnState, out: StringBuilder) -> void {
 /// diverges past 10 slots of one type.
 ///
 /// TS reference : `emitLocalDecls` in `src/c_emit/body.ts`.
-emit_slot_decls :: fn(out: StringBuilder, vals: ValType[], names: string[]) -> void {
+emit_slot_decls :: fn(out: StringBuilder, vals: ValType[], names: string[], root_addrs: string[], no_frame: bool) -> void {
     emitted: ValType[] = []
     for i in 0..<vals.len() {
         val :: vals[i]
         if val in emitted { continue }
         emitted.push(val)
+        // Ref / any slots in a framed fn carry `= vader_box_null()` so the
+        // GC scan reads a valid root before the first write, and their `&`
+        // chains into `gc_roots[]`. No-frame fns (and primitives) get a bare
+        // declaration — write-before-read makes the init unobservable.
+        rooted :: is_ref_val(val) && !no_frame
         group: string[] = []
         for j in 0..<vals.len() {
-            if vals[j] == val { group.push(names[j]) }
+            if vals[j] == val {
+                if rooted {
+                    group.push("${names[j]} = vader_box_null()")
+                    root_addrs.push("&${names[j]}")
+                } else {
+                    group.push(names[j])
+                }
+            }
         }
         out.append("    ${c_type_for_val_bare(val)} ${group.join(", ")};\n")
     }
@@ -158,7 +267,7 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.LocalTee as l         -> emit_local_set(s, l.slot, true)
         is vm.LocalField as l       -> emit_local_field(s, l)
         is vm.Return                -> emit_return(s)
-        is vm.ReturnLit as r        -> line(s, "return ${const_lit_c(s.ctx, r.value)};")
+        is vm.ReturnLit as r        -> emit_return_lit(s, r.value)
         is vm.Drop                  -> drop_top(s)
         is vm.Call as c             -> emit_call(s, c)
         is vm.CallImport as c       -> emit_call_import(s, c)
@@ -414,14 +523,39 @@ convert_target_val :: fn(t: vm.ConvertTarget) -> ValType = match t {
 emit_return :: fn(s: FnState) -> void {
     result :: s.function.signature.result
     if result == ValType.Void {
-        line(s, "return;")
+        emit_return_stmt(s, "return;")
         return
     }
     v :: pop(s)
     if val_of(v) != result {
         todo("emit_return: return-type coercion (T1b / T5)")
     }
-    line(s, "return ${name_of(v)};")
+    if s.no_frame {
+        line(s, "return ${name_of(v)};")
+    } else {
+        // Snapshot the value before popping the frame : it may read a
+        // frame-pinned local, so capturing first keeps the order safe.
+        line(s, "{ ${c_type_for_val_bare(result)} __vret = ${name_of(v)}; vader_gc_top = gc_frame.prev; return __vret; }")
+    }
+}
+
+/// `return.lit` — the fused `<T>.const X ; return`. A const can't read a
+/// frame-pinned local, so the framed form pops the frame inline (no
+/// `__vret` snapshot needed).
+emit_return_lit :: fn(s: FnState, value: vm.ConstOp) -> void {
+    emit_return_stmt(s, "return ${const_lit_c(s.ctx, value)};")
+}
+
+/// Emit a self-contained `return` statement (`ret`), wrapping it in the
+/// GC-frame pop for framed fns. For a value return whose expression may
+/// read a frame-pinned local, `emit_return` uses the `__vret` snapshot
+/// form instead.
+emit_return_stmt :: fn(s: FnState, ret: string) -> void {
+    if s.no_frame {
+        line(s, ret)
+    } else {
+        line(s, "{ vader_gc_top = gc_frame.prev; ${ret} }")
+    }
 }
 
 /// `local.set` / `local.tee` — materialise any stack entry the write
@@ -624,7 +758,7 @@ emit_call :: fn(s: FnState, op: vm.Call) -> void {
 }
 
 /// `call.import` — call a host fn through its generated `vader_import_N`
-/// shim (see `import_shims.vader`). Reuses the shared `emit_call_to` with
+/// shim (see `host.vader`). Reuses the shared `emit_call_to` with
 /// the import's signature.
 emit_call_import :: fn(s: FnState, op: vm.CallImport) -> void {
     imp :: s.ctx.module.imports[usize(op.index)]
@@ -683,7 +817,6 @@ emit_call_result :: fn(s: FnState, call_expr: string, result: ValType) -> void {
 emit_struct_new :: fn(s: FnState, op: vm.StructNew) -> void {
     t :: s.ctx.module.types[usize(op.type_id)]
     if t is BcStruct as st {
-        if !op.stack { todo("struct.new (heap): needs the GC frame (T4b)") }
         cname :: s.ctx.struct_c_names[usize(op.type_id)]
         n :: i32(st.fields.len())
         // Pop top-to-bottom : pop #k is the value for field `n-1-k`.
@@ -698,10 +831,20 @@ emit_struct_new :: fn(s: FnState, op: vm.StructNew) -> void {
             }
             field_vals[usize(fi)] = name_of(v)
         }
-        storage :: aux(s, "storage")
-        obj :: aux(s, "obj")
-        line(s, "${cname} ${storage};")
-        line(s, "${cname}* ${obj} = &${storage};")
+        // Storage : a C local for the escape-proven stack variant, a GC heap
+        // block otherwise. The popped field values live in ref temps that
+        // the frame roots, so a GC during `vader_gc_alloc` can't strand them.
+        obj :: if op.stack {
+            storage :: aux(s, "storage")
+            o :: aux(s, "obj")
+            line(s, "${cname} ${storage};")
+            line(s, "${cname}* ${o} = &${storage};")
+            o
+        } else {
+            o :: aux(s, "obj")
+            line(s, "${cname}* ${o} = (${cname}*) vader_gc_alloc(sizeof(${cname}));")
+            o
+        }
         line(s, "vader_obj_header_init(${obj}, ${op.type_id}u);")
         for i in 0..<n {
             f :: st.fields[usize(i)]

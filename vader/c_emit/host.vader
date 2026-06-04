@@ -1,4 +1,4 @@
-// vader/c_emit/import_shims — `call.import` host-fn shims.
+// vader/c_emit/host — `call.import` host-fn shims.
 //
 // Every `call.import N` op resolves to a `vader_import_N(...)` C function
 // generated here. Two flavours, switched on `BcImport.is_extern` :

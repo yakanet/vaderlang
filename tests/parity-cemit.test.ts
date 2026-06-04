@@ -65,6 +65,9 @@ const C_PARITY = new Set<string>([
   // T4a : stack structs — struct.new_stack / local.field / ref.cast /
   // struct.set_stack (body rep, no GC frame). Exit code 17.
   "struct_point",
+  // T4b : heap structs (struct.new) + the GC-frame prologue (gc_roots /
+  // gc_frame / gc_top, ref-slot zero-init, framed return). Exit code 7.
+  "struct_heap",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));
