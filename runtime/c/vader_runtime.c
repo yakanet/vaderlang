@@ -2298,17 +2298,18 @@ vader_i32_t vader_spawn_run(vader_array_t* argv) {
     size_t cap = 1;  /* terminator */
     for (size_t i = 0; i < n; i++) {
         vader_box_t b = vader_array_get(argv, i);
-        cap += b.payload.s.len * 2 + 3;
+        cap += vader_atom_len((vader_string_t) b.payload.s) * 2 + 3;
     }
     char* cmdline = (char*) malloc(cap);
     if (cmdline == NULL) return VADER_SPAWN_LAUNCH_FAIL;
     size_t pos = 0;
     for (size_t i = 0; i < n; i++) {
         vader_box_t b = vader_array_get(argv, i);
-        vader_string_t s = b.payload.s;
-        char* z = (char*) malloc(s.len + 1);
+        vader_string_t s = (vader_string_t) b.payload.s;
+        size_t slen = vader_atom_len(s);
+        char* z = (char*) malloc(slen + 1);
         if (z == NULL) { free(cmdline); return VADER_SPAWN_LAUNCH_FAIL; }
-        memcpy(z, s.ptr, s.len); z[s.len] = '\0';
+        memcpy(z, vader_atom_data(s), slen); z[slen] = '\0';
         if (i > 0) cmdline[pos++] = ' ';
         pos += win_argv_quote(cmdline + pos, z);
         free(z);
