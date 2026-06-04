@@ -106,6 +106,14 @@ const C_PARITY = new Set<string>([
   "array_of_union",
   "alias_union_in_array",
   "narrow_imported_map",
+  // §9 C-emit audit (the walker now emits C for the whole compiler) :
+  //   for_loop      — `break` out of an infinite `for {}` (a Loop) + `continue`
+  //                   → generalized branch resolution (break past a Loop/If end,
+  //                   not just a Block). Would hit the unresolved-target todo
+  //                   before the fix. (Library snippet : compile oracle only.)
+  //   if_null_narrow — break / continue in divergent null-narrow branches.
+  "for_loop",
+  "if_null_narrow",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));

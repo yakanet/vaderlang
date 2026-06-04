@@ -134,7 +134,9 @@ emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out:
     s :: new_fn_state(ctx, function, body)
     s.no_frame = no_frame
     s.scopes = precompute_scopes(function)
-    s.targeted = precompute_targeted(function, s.scopes)
+    bt :: precompute_branch_targets(function, s.scopes)
+    s.continue_targets = bt.continue_targets
+    s.break_targets = bt.break_targets
     last_line: i32 = -1
     last_file: string = ""
     for i in 0..<function.body.len() {
@@ -552,7 +554,10 @@ emit_return :: fn(s: FnState) -> void {
 /// frame-pinned local, so the framed form pops the frame inline (no
 /// `__vret` snapshot needed).
 emit_return_lit :: fn(s: FnState, value: vm.ConstOp) -> void {
-    emit_return_stmt(s, "return ${const_lit_c(s.ctx, value)};")
+    // Coerce the literal to the fn's result class : a boxed-result fn (e.g. an
+    // enum / union returned as `any`) needs the const boxed, not returned raw.
+    rv :: coerce_expr(s.ctx.module.types, const_lit_c(s.ctx, value), const_val(value), s.function.signature.result)
+    emit_return_stmt(s, "return ${rv};")
 }
 
 /// Emit a self-contained `return` statement (`ret`), wrapping it in the
@@ -645,35 +650,57 @@ precompute_scopes :: fn(function: BcFunction) -> ScopeInfo[] {
     return scopes
 }
 
-/// Collect the opener pcs that some `br` / `br_if` jumps to, so `end` /
-/// `loop` emit a C label only where one is referenced (an unused label
-/// warns). Reads the resolved targets from `function.jump_table`.
-precompute_targeted :: fn(function: BcFunction, scopes: ScopeInfo[]) -> i32[] {
-    targeted: i32[] = []
+/// The two label families a fn needs : `continue_targets` (loop back-edge,
+/// `loop_<o>:`) and `break_targets` (forward exit past a scope's `end`,
+/// `end_<o>:`). Kept separate so a loop targeted only by a continue doesn't
+/// emit an unused `end_` label (and vice versa).
+BranchTargets :: struct {
+    continue_targets: i32[]
+    break_targets:    i32[]
+}
+
+/// One pass over the body collecting both label families from the resolved
+/// `br` / `br_if` targets (`function.jump_table` via `branch_target`), so a
+/// C label is emitted only where referenced (an unused label warns).
+precompute_branch_targets :: fn(function: BcFunction, scopes: ScopeInfo[]) -> BranchTargets {
+    continue_t: i32[] = []
+    break_t:    i32[] = []
     body :: function.body
     jump_table :: function.jump_table
     for pc in 0..<body.len() {
         op :: body[pc]
         if op is vm.Branch || op is vm.BranchIf {
-            target :: branch_target(scopes, jump_table[pc])
-            if target is ScopeInfo as sc {
-                if !(sc.opener_pc in targeted) { targeted.push(sc.opener_pc) }
+            target :: jump_table[pc]
+            found :: branch_target(scopes, target)
+            if found is ScopeInfo as sc {
+                if is_continue_branch(sc, target) {
+                    if !(sc.opener_pc in continue_t) { continue_t.push(sc.opener_pc) }
+                } else {
+                    if !(sc.opener_pc in break_t) { break_t.push(sc.opener_pc) }
+                }
             }
         }
     }
-    return targeted
+    return BranchTargets { .continue_targets = continue_t, .break_targets = break_t }
 }
 
-/// Resolve a `jump_table` target pc to the scope it lands in : a `loop`
-/// whose body start (`opener + 1`) is the target — the continue back-edge
-/// — or a `block` whose past-`end` slot (`end + 1`) is the target — the
-/// break forward-exit. `if` scopes are never branch destinations. Returns
-/// `null` for an unresolved target (malformed bytecode).
+/// True when `target` is the continue back-edge of loop `sc` (its body top,
+/// `opener_pc + 1`). The other resolvable target is a forward exit past a
+/// scope's `end` (`end_pc + 1`, a break).
+is_continue_branch :: fn(sc: ScopeInfo, target: i32) -> bool =
+    sc.kind == .Loop && sc.opener_pc + 1 == target
+
+/// Resolve a `jump_table` target pc to the scope it lands in : the continue
+/// back-edge of a `loop` (`opener + 1`), or the forward exit past ANY scope's
+/// `end` (`end + 1` — break out of a block / loop, or jump past an `if`).
+/// Continue wins when a pc is ambiguously both. Returns `null` for an
+/// unresolved target (malformed bytecode).
 branch_target :: fn(scopes: ScopeInfo[], target: i32) -> ScopeInfo | null {
     for i in 0..<scopes.len() {
-        sc :: scopes[i]
-        if sc.kind == .Loop && sc.opener_pc + 1 == target { return sc }
-        if sc.kind == .Block && sc.end_pc + 1 == target { return sc }
+        if is_continue_branch(scopes[i], target) { return scopes[i] }
+    }
+    for i in 0..<scopes.len() {
+        if scopes[i].end_pc + 1 == target { return scopes[i] }
     }
     return null
 }
@@ -692,7 +719,7 @@ scope_ending_at :: fn(scopes: ScopeInfo[], pc: i32) -> ScopeInfo | null {
 /// backward-jump target) ; everything else is a bare `{`. `block` close
 /// labels are emitted by `emit_end`.
 emit_open_scope :: fn(s: FnState, pc: i32, kind: ScopeKind) -> void {
-    if kind == .Loop && (pc in s.targeted) {
+    if kind == .Loop && (pc in s.continue_targets) {
         line(s, "loop_${pc}: {")
     } else {
         line(s, "{")
@@ -716,14 +743,14 @@ emit_else :: fn(s: FnState) -> void {
     indent_push(s)
 }
 
-/// `end` — close the scope opened earlier. A `block` that is a `br`
-/// destination gets its `end_<opener>: ;` label after the brace ;
-/// `loop` / `if` (and untargeted blocks) close with a bare `}`.
+/// `end` — close the scope opened earlier. Any scope (block / loop / if)
+/// that a `br` exits past gets its `end_<opener>: ;` label after the brace ;
+/// untargeted scopes close with a bare `}`.
 emit_end :: fn(s: FnState, pc: i32) -> void {
     sc :: scope_ending_at(s.scopes, pc)
     if sc is ScopeInfo as scope {
         indent_pop(s)
-        if scope.kind == .Block && (scope.opener_pc in s.targeted) {
+        if scope.opener_pc in s.break_targets {
             line(s, "} end_${scope.opener_pc}: ;")
         } else {
             line(s, "}")
@@ -739,9 +766,10 @@ emit_end :: fn(s: FnState, pc: i32) -> void {
 /// local-materialised by the lowerer, so no value is hoisted before the
 /// jump.
 emit_branch :: fn(s: FnState, pc: i32, conditional: bool) -> void {
-    target :: branch_target(s.scopes, s.function.jump_table[pc])
-    if target is ScopeInfo as sc {
-        dest :: if sc.kind == .Loop { "loop_${sc.opener_pc}" } else { "end_${sc.opener_pc}" }
+    target :: s.function.jump_table[pc]
+    found :: branch_target(s.scopes, target)
+    if found is ScopeInfo as sc {
+        dest :: if is_continue_branch(sc, target) { "loop_${sc.opener_pc}" } else { "end_${sc.opener_pc}" }
         if conditional {
             cond :: pop(s)
             line(s, "if (${name_of(cond)}) goto ${dest};")
@@ -749,7 +777,7 @@ emit_branch :: fn(s: FnState, pc: i32, conditional: bool) -> void {
             line(s, "goto ${dest};")
         }
     } else {
-        todo("emit_branch: unresolved target at pc ${pc}")
+        todo("emit_branch: unresolved target at pc ${pc} (jump_table=${target})")
     }
 }
 
@@ -1208,10 +1236,8 @@ emit_struct_set :: fn(s: FnState, op: vm.StructSet) -> void {
         value :: pop(s)
         obj :: pop(s)
         f :: st.fields[usize(op.field_index)]
-        if val_of(value) != val_type_of_field(s.ctx.module.types, f.type_index) {
-            todo("struct.set: field coercion (T12)")
-        }
-        line(s, "((${cname}*) ${name_of(obj)}.payload.obj)->f_${sanitise(f.name)} = ${name_of(value)};")
+        rv :: coerce_expr(s.ctx.module.types, name_of(value), val_of(value), val_type_of_field(s.ctx.module.types, f.type_index))
+        line(s, "((${cname}*) ${name_of(obj)}.payload.obj)->f_${sanitise(f.name)} = ${rv};")
     } else {
         todo("struct.set on non-struct type ${op.type_id}")
     }

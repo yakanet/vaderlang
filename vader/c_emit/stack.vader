@@ -102,9 +102,15 @@ FnState :: struct {
     /// opener pc. Drives the `if` / `else` / `end` close labels and the
     /// `br` / `br_if` goto-target resolution. See `precompute_scopes`.
     scopes: ScopeInfo[]
-    /// Opener pcs that are the destination of some `br` / `br_if`. A C
-    /// label is emitted only for these — an unreferenced label warns.
-    targeted: i32[]
+    /// Loop opener pcs that a `continue` (`br` to `opener_pc + 1`) jumps to —
+    /// they get a `loop_<opener>:` label before the `{`. A label is emitted
+    /// only for referenced openers (an unreferenced one warns).
+    continue_targets: i32[]
+    /// Scope opener pcs (block / loop / if) that a `break` / forward exit
+    /// (`br` to `end_pc + 1`) jumps past — they get an `end_<opener>:` label
+    /// after the closing `}`. Distinct from `continue_targets` so a loop
+    /// targeted only by a continue doesn't emit an unused `end_` label.
+    break_targets: i32[]
     /// True when the fn is provably no-alloc (not in `EmitCtx.may_alloc`) —
     /// it gets no GC shadow-stack frame, so `return` skips the `gc_top`
     /// restore and ref slots skip the `= vader_box_null()` root-init. Set by
@@ -122,7 +128,8 @@ new_fn_state :: fn(ctx: EmitCtx, function: BcFunction, out: StringBuilder) -> Fn
     .aux_counter = 0,
     .indent = 1,
     .scopes = [],
-    .targeted = [],
+    .continue_targets = [],
+    .break_targets = [],
     .no_frame = true,
 }
 
@@ -162,12 +169,15 @@ push_local_ref :: fn(s: FnState, slot: i32, val: ValType) -> void {
     s.stack.push(StackLocalRef { .slot = slot, .val = val })
 }
 
-/// Pop the top of the operand stack. Underflow is a malformed-bytecode
-/// bug (the verifier should have rejected it), so it traps rather than
-/// returning a degraded value.
+/// Pop the top of the operand stack. An empty stack means the op is in
+/// unreachable code — the lowerer emits dead ops after a terminator (e.g.
+/// a `drop` / `call` past an exhaustive-returning match), and the walker
+/// tracks no reachability (T2). Return a defensive dummy so the dead op
+/// emits harmless (never-executed) C rather than trapping. Mirrors TS
+/// `pop`'s `{ name: "0", val: "i32" }` fallback (`src/c_emit/body.ts`).
 pop :: fn(s: FnState) -> StackVal {
     n :: s.stack.len()
-    if n == 0 { unreachable("c-emit: operand stack underflow") }
+    if n == 0 { return StackLit { .text = "0", .val = .I32 } }
     top :: s.stack[n - 1]
     s.stack = s.stack.slice(0, n - 1)
     return top
@@ -181,11 +191,12 @@ peek :: fn(s: FnState) -> StackVal {
     return s.stack[n - 1]
 }
 
-/// Discard the top of the operand stack — the `drop` op. Underflow is a
-/// malformed-bytecode bug, so it traps.
+/// Discard the top of the operand stack — the `drop` op. An empty stack
+/// means a dead `drop` in unreachable code (see `pop`) ; no-op rather than
+/// trap. Mirrors TS `drop`'s `s.stack.pop()` (no-op on empty).
 drop_top :: fn(s: FnState) -> void {
     n :: s.stack.len()
-    if n == 0 { unreachable("c-emit: drop on empty operand stack") }
+    if n == 0 { return }
     s.stack = s.stack.slice(0, n - 1)
 }
 
