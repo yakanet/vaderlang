@@ -1,0 +1,44 @@
+# Lower
+
+## snippet
+  fn snippet$main() -> i32
+    let acc: i32 = int(0) :i32
+    let i: i32 = int(0) :i32
+    loop while (<…>)
+      if :void
+        cond:
+          eq :bool
+            l:
+              i :i32
+            r:
+              int(3) :i32
+        then:
+          assign
+            target:
+              acc :i32
+            value:
+              add :i32
+                l:
+                  acc :i32
+                r:
+                  int(100) :i32
+        else:
+          assign
+            target:
+              acc :i32
+            value:
+              add :i32
+                l:
+                  acc :i32
+                r:
+                  i :i32
+      assign
+        target:
+          i :i32
+        value:
+          add :i32
+            l:
+              i :i32
+            r:
+              int(1) :i32
+    return acc :i32

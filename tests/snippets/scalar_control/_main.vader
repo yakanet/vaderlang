@@ -1,0 +1,24 @@
+// tests/snippets/scalar_control — T2 control-flow coverage.
+//
+// Exercises the C body walker's structured-control arms (block / loop /
+// if / else / end / br) on the scalar subset: a counted loop whose body
+// branches through an if/else, accumulating into a local. No calls or
+// allocations (T3+), so the compile/run oracle observes the result via
+// main's exit code. Computes sum(0..9) but substitutes 100 for the i==3
+// term: 45 - 3 + 100 = 142.
+
+module "snippet"
+
+main :: fn() -> i32 {
+    acc: i32 = 0
+    i: i32 = 0
+    for i < 10 {
+        if i == 3 {
+            acc = acc + 100
+        } else {
+            acc = acc + i
+        }
+        i = i + 1
+    }
+    return acc
+}

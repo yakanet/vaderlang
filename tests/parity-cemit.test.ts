@@ -52,6 +52,10 @@ const C_PARITY = new Set<string>([
   // T1d : i64 / u32 / u64 / f64 families, eager integer + f64 div/rem,
   // bool.not, i32<->i64 / i32<->char conversions.
   "scalar_wide",
+  // T2 : structured control — block / loop / if / else / end / br
+  // (jump_table-resolved goto labels, dynamic indent). Counted loop +
+  // if/else body ; result via main's exit code (142).
+  "scalar_control",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));

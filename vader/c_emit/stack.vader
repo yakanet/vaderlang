@@ -15,7 +15,7 @@
 
 module "vader/c_emit"
 
-import "std/string_builder" { StringBuilder }
+import "std/string_builder" { StringBuilder, append_repeated }
 import "std/iter" { slice }
 import "std/abort" { unreachable }
 import "vader/bytecode" { BcFunction, ValType }
@@ -93,21 +93,51 @@ FnState :: struct {
     /// Monotone `_aN` scratch allocator for struct storage / call args
     /// (T4+). Never recycled, so it can't collide with a reused name.
     aux_counter: i32
+    /// Current C indent depth in 4-space units. Level 1 is the function
+    /// body top (matching the historical hard-coded 4-space prefix), so
+    /// straight-line bodies stay byte-identical ; control flow pushes /
+    /// pops levels.
+    indent: i32
+    /// Precomputed structured-control scopes (block / loop / if), keyed by
+    /// opener pc. Drives the `if` / `else` / `end` close labels and the
+    /// `br` / `br_if` goto-target resolution. See `precompute_scopes`.
+    scopes: ScopeInfo[]
+    /// Opener pcs that are the destination of some `br` / `br_if`. A C
+    /// label is emitted only for these — an unreferenced label warns.
+    targeted: i32[]
 }
 
 /// Fresh state for `function`, emitting into `out`.
-new_fn_state :: fn(ctx: EmitCtx, function: BcFunction, out: StringBuilder) -> FnState {
-    empty: StackVal[] = []
-    no_tmps: ValType[] = []
-    return FnState {
-        .ctx = ctx,
-        .function = function,
-        .out = out,
-        .stack = empty,
-        .tmp_types = no_tmps,
-        .aux_counter = 0,
-    }
+new_fn_state :: fn(ctx: EmitCtx, function: BcFunction, out: StringBuilder) -> FnState = FnState {
+    .ctx = ctx,
+    .function = function,
+    .out = out,
+    .stack = [],
+    .tmp_types = [],
+    .aux_counter = 0,
+    .indent = 1,
+    .scopes = [],
+    .targeted = [],
 }
+
+// ---- indented output ------------------------------------------------------
+
+/// Append one C statement line (with trailing newline) at the state's
+/// current indent — `s.indent` 4-space units, then `code`. Replaces the
+/// old hard-coded `"    "` prefixes so nested control flow lands at the
+/// right column ; level 1 (the function-body top) reproduces that prefix
+/// byte-for-byte.
+line :: fn(s: FnState, code: string) -> void {
+    s.out.append_repeated(' ', s.indent * 4)
+    s.out.append(code)
+    s.out.append("\n")
+}
+
+/// Open one nesting level — call right after emitting the opening brace.
+indent_push :: fn(s: FnState) -> void { s.indent = s.indent + 1 }
+
+/// Close one nesting level — call right before emitting the closing brace.
+indent_pop :: fn(s: FnState) -> void { s.indent = s.indent - 1 }
 
 /// Push a pure literal — inlined at the consumer, no temp line emitted.
 push_lit :: fn(s: FnState, val: ValType, text: string) -> void {
@@ -183,7 +213,7 @@ push_tmp :: fn(s: FnState, name: string, val: ValType) -> void {
 materialise_entry :: fn(s: FnState, e: StackVal) -> StackVal {
     val :: val_of(e)
     name :: fresh_tmp(s, val)
-    s.out.append("    ${name} = ${name_of(e)};\n")
+    line(s, "${name} = ${name_of(e)};")
     return StackTmp { .name = name, .val = val }
 }
 

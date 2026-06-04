@@ -57,6 +57,8 @@ emit_function_body :: fn(ctx: EmitCtx, function: BcFunction, out: StringBuilder)
     // splices the temp decls in at `preludePos`).
     body :: new_builder()
     s :: new_fn_state(ctx, function, body)
+    s.scopes = precompute_scopes(function)
+    s.targeted = precompute_targeted(function, s.scopes)
     last_line: i32 = -1
     last_file: string = ""
     for i in 0..<function.body.len() {
@@ -70,7 +72,7 @@ emit_function_body :: fn(ctx: EmitCtx, function: BcFunction, out: StringBuilder)
                 }
             }
         }
-        emit_op(s, function.body[i])
+        emit_op(s, i32(i), function.body[i])
     }
 
     emit_local_decls(function, out)
@@ -142,7 +144,7 @@ emit_slot_decls :: fn(out: StringBuilder, vals: ValType[], names: string[]) -> v
 /// T1 (scalar core) implements consts, `local.get`, the expr-shaped i32
 /// arithmetic, and `return` ; the arm order tracks `write_op` so the two
 /// stay diffable.
-emit_op :: fn(s: FnState, op: vm.Op) -> void {
+emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
     match op {
         is vm.I32Const as c         -> push_const(s, c)
         is vm.I64Const as c         -> push_const(s, c)
@@ -156,7 +158,7 @@ emit_op :: fn(s: FnState, op: vm.Op) -> void {
         is vm.LocalTee as l         -> emit_local_set(s, l.slot, true)
         is vm.LocalField            -> todo("emit_op: local.field")
         is vm.Return                -> emit_return(s)
-        is vm.ReturnLit as r        -> s.out.append("    return ${const_lit_c(s.ctx, r.value)};\n")
+        is vm.ReturnLit as r        -> line(s, "return ${const_lit_c(s.ctx, r.value)};")
         is vm.Drop                  -> drop_top(s)
         is vm.Call                  -> todo("emit_op: call")
         is vm.CallImport            -> todo("emit_op: call.import")
@@ -164,13 +166,13 @@ emit_op :: fn(s: FnState, op: vm.Op) -> void {
         is vm.VirtualCall           -> todo("emit_op: virtual.call")
         is vm.FnRef                 -> todo("emit_op: fn.ref")
         is vm.MakeClosure           -> todo("emit_op: make_closure")
-        is vm.If                    -> todo("emit_op: if")
-        is vm.Else                  -> todo("emit_op: else")
-        is vm.End                   -> todo("emit_op: end")
-        is vm.Block                 -> todo("emit_op: block")
-        is vm.Loop                  -> todo("emit_op: loop")
-        is vm.Branch                -> todo("emit_op: br")
-        is vm.BranchIf              -> todo("emit_op: br_if")
+        is vm.If                    -> emit_if_open(s)
+        is vm.Else                  -> emit_else(s)
+        is vm.End                   -> emit_end(s, pc)
+        is vm.Block                 -> emit_open_scope(s, pc, .Block)
+        is vm.Loop                  -> emit_open_scope(s, pc, .Loop)
+        is vm.Branch                -> emit_branch(s, pc, false)
+        is vm.BranchIf              -> emit_branch(s, pc, true)
         is vm.BoolNot               -> push_unop(s, "!", .Bool)
         is vm.StructNew             -> todo("emit_op: struct.new")
         is vm.StructGet             -> todo("emit_op: struct.get")
@@ -377,7 +379,7 @@ push_eager :: fn(s: FnState, op: string, result_val: ValType) -> void {
     r :: pop(s)
     l :: pop(s)
     name :: fresh_tmp(s, result_val)
-    s.out.append("    ${name} = ${name_of(l)} ${op} ${name_of(r)};\n")
+    line(s, "${name} = ${name_of(l)} ${op} ${name_of(r)};")
     push_tmp(s, name, result_val)
 }
 
@@ -414,14 +416,14 @@ convert_target_val :: fn(t: vm.ConvertTarget) -> ValType = match t {
 emit_return :: fn(s: FnState) -> void {
     result :: s.function.signature.result
     if result == ValType.Void {
-        s.out.append("    return;\n")
+        line(s, "return;")
         return
     }
     v :: pop(s)
     if val_of(v) != result {
         todo("emit_return: return-type coercion (T1b / T5)")
     }
-    s.out.append("    return ${name_of(v)};\n")
+    line(s, "return ${name_of(v)};")
 }
 
 /// `local.set` / `local.tee` — materialise any stack entry the write
@@ -438,8 +440,176 @@ emit_local_set :: fn(s: FnState, slot: i32, tee: bool) -> void {
     if val_of(v) != slot_val {
         todo("local.set: value coercion (T1b+)")
     }
-    s.out.append("    l${slot} = ${name_of(v)};\n")
+    line(s, "l${slot} = ${name_of(v)};")
     if tee {
         push_local_ref(s, slot, slot_val)
+    }
+}
+
+// ---- control flow ---------------------------------------------------------
+
+/// Kind of a structured-control scope. Unlike `vader/bytecode`'s
+/// emitter `ScopeKind` (Block / Loop only), the C walker also tracks
+/// `If` so `end` knows to close a plain `}` (if / loop) versus a labelled
+/// `} end_<opener>: ;` (block — a `br` destination).
+ScopeKind :: enum(u8) {
+    Block,
+    Loop,
+    If,
+}
+
+/// One structured-control scope, paired by `precompute_scopes`. `opener_pc`
+/// is the `block` / `loop` / `if` op index ; `end_pc` its matching `end`.
+/// The C-side labels derive from `opener_pc` : `loop_<opener>` (continue
+/// target) and `end_<opener>` (break target).
+ScopeInfo :: struct {
+    opener_pc: i32
+    kind:      ScopeKind
+    end_pc:    i32
+}
+
+/// Pair every `block` / `loop` / `if` with its matching `end` in one
+/// forward pass (the Vader bytecode carries no nesting depth on the op —
+/// scopes are reconstructed structurally, like `dump.vader`). `else` is
+/// not a scope of its own ; it is handled at emit time. Branch targets
+/// live in `function.jump_table`, resolved against this table by
+/// `branch_target`.
+precompute_scopes :: fn(function: BcFunction) -> ScopeInfo[] {
+    scopes: ScopeInfo[] = []
+    open_pc:   i32[]       = []
+    open_kind: ScopeKind[] = []
+    body :: function.body
+    for pc in 0..<body.len() {
+        op :: body[pc]
+        if op is vm.Block {
+            open_pc.push(i32(pc))
+            open_kind.push(.Block)
+        } else if op is vm.Loop {
+            open_pc.push(i32(pc))
+            open_kind.push(.Loop)
+        } else if op is vm.If {
+            open_pc.push(i32(pc))
+            open_kind.push(.If)
+        } else if op is vm.End {
+            n :: open_pc.len()
+            if n > 0 {
+                scopes.push(ScopeInfo {
+                    .opener_pc = open_pc[n - 1],
+                    .kind      = open_kind[n - 1],
+                    .end_pc    = i32(pc),
+                })
+                open_pc   = open_pc.slice(0, n - 1)
+                open_kind = open_kind.slice(0, n - 1)
+            }
+        }
+    }
+    return scopes
+}
+
+/// Collect the opener pcs that some `br` / `br_if` jumps to, so `end` /
+/// `loop` emit a C label only where one is referenced (an unused label
+/// warns). Reads the resolved targets from `function.jump_table`.
+precompute_targeted :: fn(function: BcFunction, scopes: ScopeInfo[]) -> i32[] {
+    targeted: i32[] = []
+    body :: function.body
+    jump_table :: function.jump_table
+    for pc in 0..<body.len() {
+        op :: body[pc]
+        if op is vm.Branch || op is vm.BranchIf {
+            target :: branch_target(scopes, jump_table[pc])
+            if target is ScopeInfo as sc {
+                if !(sc.opener_pc in targeted) { targeted.push(sc.opener_pc) }
+            }
+        }
+    }
+    return targeted
+}
+
+/// Resolve a `jump_table` target pc to the scope it lands in : a `loop`
+/// whose body start (`opener + 1`) is the target — the continue back-edge
+/// — or a `block` whose past-`end` slot (`end + 1`) is the target — the
+/// break forward-exit. `if` scopes are never branch destinations. Returns
+/// `null` for an unresolved target (malformed bytecode).
+branch_target :: fn(scopes: ScopeInfo[], target: i32) -> ScopeInfo | null {
+    for i in 0..<scopes.len() {
+        sc :: scopes[i]
+        if sc.kind == .Loop && sc.opener_pc + 1 == target { return sc }
+        if sc.kind == .Block && sc.end_pc + 1 == target { return sc }
+    }
+    return null
+}
+
+/// The scope closed by the `end` op at `pc`, or `null` if none (malformed
+/// bytecode — every `end` pairs with an opener in `precompute_scopes`).
+scope_ending_at :: fn(scopes: ScopeInfo[], pc: i32) -> ScopeInfo | null {
+    for i in 0..<scopes.len() {
+        if scopes[i].end_pc == pc { return scopes[i] }
+    }
+    return null
+}
+
+/// `block` / `loop` — open a C compound statement. A `loop` that some
+/// `br` continues to gets a `loop_<pc>:` label before the brace (the
+/// backward-jump target) ; everything else is a bare `{`. `block` close
+/// labels are emitted by `emit_end`.
+emit_open_scope :: fn(s: FnState, pc: i32, kind: ScopeKind) -> void {
+    if kind == .Loop && (pc in s.targeted) {
+        line(s, "loop_${pc}: {")
+    } else {
+        line(s, "{")
+    }
+    indent_push(s)
+}
+
+/// `if` — pop the condition and open `if (<cond>) {`.
+emit_if_open :: fn(s: FnState) -> void {
+    cond :: pop(s)
+    line(s, "if (${name_of(cond)}) {")
+    indent_push(s)
+}
+
+/// `else` — close the then-arm and open the else-arm. Block results are
+/// already materialised into locals by the lowerer (every scope is
+/// `void`), so there is nothing to hoist across the boundary.
+emit_else :: fn(s: FnState) -> void {
+    indent_pop(s)
+    line(s, "} else {")
+    indent_push(s)
+}
+
+/// `end` — close the scope opened earlier. A `block` that is a `br`
+/// destination gets its `end_<opener>: ;` label after the brace ;
+/// `loop` / `if` (and untargeted blocks) close with a bare `}`.
+emit_end :: fn(s: FnState, pc: i32) -> void {
+    sc :: scope_ending_at(s.scopes, pc)
+    if sc is ScopeInfo as scope {
+        indent_pop(s)
+        if scope.kind == .Block && (scope.opener_pc in s.targeted) {
+            line(s, "} end_${scope.opener_pc}: ;")
+        } else {
+            line(s, "}")
+        }
+    } else {
+        todo("emit_end: no scope ends at pc ${pc}")
+    }
+}
+
+/// `br` / `br_if` — a `goto` to the resolved scope label (`loop_<opener>`
+/// for a continue back-edge, `end_<opener>` for a break forward-exit).
+/// `br_if` pops its i32 condition and guards the jump. Block results are
+/// local-materialised by the lowerer, so no value is hoisted before the
+/// jump.
+emit_branch :: fn(s: FnState, pc: i32, conditional: bool) -> void {
+    target :: branch_target(s.scopes, s.function.jump_table[pc])
+    if target is ScopeInfo as sc {
+        dest :: if sc.kind == .Loop { "loop_${sc.opener_pc}" } else { "end_${sc.opener_pc}" }
+        if conditional {
+            cond :: pop(s)
+            line(s, "if (${name_of(cond)}) goto ${dest};")
+        } else {
+            line(s, "goto ${dest};")
+        }
+    } else {
+        todo("emit_branch: unresolved target at pc ${pc}")
     }
 }
