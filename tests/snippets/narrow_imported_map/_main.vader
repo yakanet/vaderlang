@@ -1,0 +1,26 @@
+// Regression for an imported-body divergent-guard narrowing bug.
+//
+// `pick` lives in submodule `snippet/lib` (an IMPORTED body -- the trigger
+// can't reproduce in the entry module). It narrows a generic-map-sourced union
+// via `is null` + `is Wrap`, then reads `v.items[0]`. Before the fix the Vader
+// emit dropped `v.items` to a value-less `return`, trapping the caller in the
+// VM. Fix: `detect_is_narrow_for_block` (vader/typecheck/stmt.vader) must not
+// record a narrowing off an unresolved base. Expected output: `42`.
+
+module "snippet"
+
+import "std/io" { println }
+import "std/collections" { MutableMap }
+import "snippet/lib" { pick, Wrap, Thing }
+
+main :: fn() -> i32 {
+    m :: MutableMap<i32, Thing> {}
+    m[1] = Wrap { .items = [42, 7] }
+    r :: pick(m, 1)
+    if r is null {
+        println("null")
+        return 1
+    }
+    println("${r.first}")
+    return 0
+}

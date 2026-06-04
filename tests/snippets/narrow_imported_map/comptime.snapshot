@@ -1,0 +1,92 @@
+# Comptime
+
+## stdlib/std/abort
+
+## stdlib/std/collections
+  @comptime  BUCKET_COUNT         = 16_usize
+
+## stdlib/std/core
+
+## stdlib/std/io
+
+## stdlib/std/testing
+
+## tests/snippets/narrow_imported_map
+
+## tests/snippets/narrow_imported_map/lib
+
+## generic instances
+  Into<Target>
+  Index<I, T>
+  IndexSet<I, T>
+  Contains<T>
+  Iterator<Entry<K, V>>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Yield<Entry<K, V>>
+  Yield<T>
+  Yield<T>
+  Yield<T>
+  Yield<T>
+  Range<usize>
+  Range<T>
+  Range<T>
+  Range<T>
+  ArrayIterator<T>
+  ArrayIterator<T>
+  ArrayIterator<T>
+  Entry<K, V>
+  Entry<K, V>
+  Entry<K, V>
+  Entry<K, V>
+  Entry<K, V>
+  Entry<K, V>
+  Entry<K, V>
+  Entry<K, V>
+  Entry<K, V>
+  Entry<K, V>
+  Entry<T, bool>
+  Entry<K, V>
+  MutableMap<i32, i32 | Wrap>
+  MutableMap<i32, bool>
+  MutableMap<string, i32>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<K, V>
+  MapIterator<K, V>
+  MapIterator<K, V>
+  MapIterator<K, V>
+  MutableSet<i32>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  MutableSet<T>
+  SetIterator<T>
+  SetIterator<T>
+  SetIterator<T>

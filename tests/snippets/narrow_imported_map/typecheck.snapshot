@@ -1,0 +1,22 @@
+# Typecheck
+
+## tests/snippets/narrow_imported_map
+  FnDecl         main                 :: fn() -> i32
+  expr 17:10    StructLitExpr  :: MutableMap<i32, i32 | Wrap>
+  expr 18:12    StructLitExpr  :: Wrap
+  expr 18:28    SeqLitExpr     :: i32[]
+  expr 18:5     IdentExpr      :: MutableMap<i32, i32 | Wrap>
+  expr 19:10    CallExpr       :: null | Out
+  expr 19:10    IdentExpr      :: fn(MutableMap<i32, i32 | Wrap>, i32) -> null | Out
+  expr 19:15    IdentExpr      :: MutableMap<i32, i32 | Wrap>
+  expr 20:5     IfExpr         :: void
+  expr 20:8     BinaryExpr     :: bool
+  expr 20:8     IdentExpr      :: null | Out
+  expr 21:17    StringLitExpr  :: string
+  expr 21:9     CallExpr       :: void
+  expr 21:9     IdentExpr      :: fn(T) -> void
+  expr 24:13    StringLitExpr  :: string
+  expr 24:16    FieldExpr      :: i32
+  expr 24:16    IdentExpr      :: Out
+  expr 24:5     CallExpr       :: void
+  expr 24:5     IdentExpr      :: fn(T) -> void

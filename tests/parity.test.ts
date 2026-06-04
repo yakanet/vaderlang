@@ -112,7 +112,12 @@ const BYTECODE_DIVERGENT_SNIPPETS: ReadonlySet<string> = new Set<string>([
   "match_literal_patterns", "match_partial",
   "match_struct_pattern_binding", "match_struct_pattern_in_union", "match_union",
   "match_wildcard_narrow", "multiline_string", "mutable_map", "mutable_map_string",
-  "mutable_set", "namespace_call_nongeneric",
+  "mutable_set",
+  // Imported-body divergent-guard narrowing fix : the accessor body matches TS,
+  // but emitting it shifts the type/string interning order (§9 class). Self-host
+  // correctness via VADER_SELF_EMIT.
+  "narrow_imported_map",
+  "namespace_call_nongeneric",
   // Namespace-qualified enum-variant + const access : the accessor body matches
   // TS, but emitting it shifts the type/string interning order (the §9 class).
   // Self-host correctness via VADER_SELF_EMIT.

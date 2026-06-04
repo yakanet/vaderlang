@@ -1,0 +1,97 @@
+# Lower
+
+## snippet
+  fn snippet$main() -> i32
+    let m: MutableMap<i32, i32 | Wrap> =
+      MutableMap<i32, i32 | Wrap> {
+        buckets:
+          array :(Entry<i32, i32 | Wrap> | null)[]
+        size: int(0) :usize
+      }
+    call :void
+      callee:
+        set_at :void
+      arg0:
+        m :MutableMap<i32, i32 | Wrap>
+      arg1:
+        int(1) :i32
+      arg2:
+        Wrap {
+          items:
+            array :i32[]
+              int(42) :i32
+              int(7) :i32
+        }
+    let r: null | Out =
+      call :null | Out
+        callee:
+          pick :fn(MutableMap<i32, i32 | Wrap>, i32) -> null | Out
+        arg0:
+          m :MutableMap<i32, i32 | Wrap>
+        arg1:
+          int(1) :i32
+    if :void
+      cond:
+        is null :bool
+          r :null | Out
+      then:
+        call :void
+          callee:
+            println :void
+          arg0:
+            "null" :string
+        return int(1) :i32
+    call :void
+      callee:
+        println :void
+      arg0:
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_display <for i32> :void
+            __sb_0 :?
+            .first :i32
+              cast → Out
+                r :null | Out
+          ~>
+            @builder.finish :string
+              __sb_0 :?
+    return int(0) :i32
+
+## snippet/lib
+  struct snippet_lib$Wrap { items: i32[] }
+  struct snippet_lib$Out { first: i32 }
+  fn snippet_lib$pick(m: MutableMap<i32, i32 | Wrap>, k: i32) -> null | Out
+    let v: i32 | null | Wrap =
+      call :i32 | null | Wrap
+        callee:
+          at :i32 | null | Wrap
+        arg0:
+          m :MutableMap<i32, i32 | Wrap>
+        arg1:
+          k :i32
+    if :void
+      cond:
+        is null :bool
+          v :i32 | null | Wrap
+      then:
+        return null
+    if :void
+      cond:
+        not :bool
+          is Wrap :bool
+            cast → i32 | Wrap
+              v :i32 | null | Wrap
+      then:
+        return null
+    return
+      Out {
+        first:
+          index :i32
+            on:
+              .items :i32[]
+                cast → Wrap
+                  v :i32 | null | Wrap
+            ix:
+              int(0) :i32
+      }

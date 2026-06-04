@@ -581,6 +581,13 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
             sym :: typed.resolved.idents[ident_side.span.hash()]
             if sym is null { return null }
             base :: type_of_symbol(sym, typed)
+            // Don't record a narrowing off an unresolved base — mirrors
+            // `detect_is_narrow` (expr_if.vader). The premature imported-body
+            // walk in `settle_external_expr_bodied_returns` runs before the
+            // module's `MutableMap.at` &c are wired, so an `m[k]`-bound local
+            // is `?` there ; a `?`-based divergent narrow persists (divergent
+            // narrows aren't popped) and poisons the authoritative re-walk.
+            if base is UnresolvedType { return null }
             current :: narrow_for_binding(typed, sym.id, base)
             null_ty :: mk_primitive("null")
             if i32(cond.op) == i32(AST.BinaryOp.Eq) {
@@ -622,6 +629,10 @@ detect_is_narrow_for_block :: fn(cond: AST.Expr, typed: TypedProgram) -> BlockNa
         sym :: typed.resolved.idents[cond.left.span.hash()]
         if sym is null { return null }
         base :: type_of_symbol(sym, typed)
+        // Same `?`-base guard as the `== null` path above : the settle
+        // pre-walk sees an `m[k]`-bound scrutinee as `?` and would persist a
+        // poisoned divergent narrow into the authoritative walk.
+        if base is UnresolvedType { return null }
         current :: narrow_for_binding(typed, sym.id, base)
         narrowed :: type_from_expr(cond.right, typed.resolved, diag_sink_stmt())
         return BlockNarrow {

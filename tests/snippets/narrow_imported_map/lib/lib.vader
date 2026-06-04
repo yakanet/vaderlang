@@ -1,0 +1,18 @@
+// `pick`'s body lives in an IMPORTED module on purpose: the typecheck settle
+// pre-walk reaches it while `v`'s map-`at` return is still unresolved -- the
+// trigger the entry-module version can't reproduce. See ../_main.vader.
+
+module "snippet/lib"
+
+import "std/collections" { MutableMap }
+
+export Wrap  :: struct { items: i32[] }
+export Out   :: struct { first: i32 }
+export Thing :: Wrap | i32
+
+export pick :: fn(m: MutableMap<i32, Thing>, k: i32) -> Out | null {
+    v :: m[k]
+    if v is null { return null }
+    if !(v is Wrap) { return null }
+    return Out { .first = v.items[0] }
+}
