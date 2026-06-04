@@ -29,6 +29,7 @@ module "vader/c_emit"
 
 import "std/string" { bytes }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
+import "std/numbers" { is_hex_digit }
 import "vader/bytecode" {
     BcType, BcPrimitive, BcStruct, BcArray, BcUnion, BcRef, BcFn,
     ValType, ArrayKind,
@@ -153,15 +154,15 @@ export c_string_lit :: fn(s: string) -> string {
     i: usize = 0
     for i < n {
         b :: sbytes[i]
-        if b == 0x5C_u8 {
+        if b == b'\\' {
             sb.append("\\\\")
-        } else if b == 0x22_u8 {
+        } else if b == b'"' {
             sb.append("\\\"")
-        } else if b == 0x0A_u8 {
+        } else if b == b'\n' {
             sb.append("\\n")
-        } else if b == 0x0D_u8 {
+        } else if b == b'\r' {
             sb.append("\\r")
-        } else if b == 0x09_u8 {
+        } else if b == b'\t' {
             sb.append("\\t")
         } else if b < 0x20_u8 || b >= 0x7F_u8 {
             // `\x<hh>` escape — two-digit lowercase hex appended directly to
@@ -173,7 +174,7 @@ export c_string_lit :: fn(s: string) -> string {
             next_idx :: i + 1
             if next_idx < n {
                 next_b :: sbytes[next_idx]
-                if is_c_hex_digit(next_b) {
+                if is_hex_digit(char(u32(next_b))) {
                     sb.append("\"\"")
                 }
             }
@@ -193,15 +194,6 @@ hex_digit_lower :: fn(n: u32) -> char {
         return char(u32('0') + n)
     }
     return char(u32('a') + n - 10_u32)
-}
-
-/// Predicate matching `[0-9A-Fa-f]` — the bytes that would extend a
-/// pending `\x<hh>` escape if not interrupted with `""`.
-is_c_hex_digit :: fn(b: u8) -> bool {
-    if b >= 0x30_u8 && b <= 0x39_u8 { return true }     // 0-9
-    if b >= 0x41_u8 && b <= 0x46_u8 { return true }     // A-F
-    if b >= 0x61_u8 && b <= 0x66_u8 { return true }     // a-f
-    return false
 }
 
 // =========================================================================

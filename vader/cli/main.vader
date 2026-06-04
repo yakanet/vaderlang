@@ -589,7 +589,10 @@ run_c_stage :: fn(file: string) -> i32 {
     lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
     pruned :: prune_unreachable_fns(lowered, false)
     module :: emit_project(pruned, module_name_from_file(file), default_emit_options())
-    println(emit_c(module, default_c_emit_options()))
+    // `emit_c` already returns a trailing-newline-terminated string ; use
+    // `print` (no auto-newline) to match the TS `Bun.write(emitC(...))`
+    // output byte-for-byte, mirroring `run_bytecode_stage`.
+    print(emit_c(module, default_c_emit_options()))
     print_pipeline_diags(pipeline, lower_diags)
     return 0
 }

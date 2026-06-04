@@ -30,10 +30,38 @@ module "vader/c_emit"
 
 import "std/string" { bytes, join }
 import "std/string_builder" { StringBuilder, new_builder, append }
+import "std/abort" { todo }
 import "vader/bytecode" { BytecodeModule, BcFunction }
 import "vader/bytecode" {
     BcType, BcPrimitive, BcStruct, BcArray, BcUnion, BcRef, BcFn,
     BcField, ValType, size_of_bc_type, size_of_val_type, is_string_val,
+}
+import "vader/vm" {
+    Op,
+    I32Const, I64Const, F64Const, BoolConst, CharConst, StringConst, NullConst,
+    LocalGet, LocalSet, LocalTee, LocalField, Return, ReturnLit, ConstOp, Drop, Call,
+    If, Else, End, StructNew, StructGet, StructSet,
+    Block, Loop, Branch, BranchIf, BoolNot,
+    ArrayNew, ArrayLen, ArrayPush, ArrayGet, ArraySet, ArraySlice,
+    DataConst, TypeConst, TypeCheck, RefCast, Convert,
+    IntToChar, CharToInt, RefEq, RefNe, DeferPush, DeferPopExec,
+    MakeClosure, CallIndirect, VirtualCall, CallImport,
+    BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish,
+    SizeOfType, FnRef,
+    I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Neg, I32BitNot,
+    I32BitAnd, I32BitOr, I32BitXor, I32Shl, I32Shr, I32ShrU,
+    I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge,
+    I64Add, I64Sub, I64Mul, I64Div, I64Mod, I64Neg,
+    I64BitAnd, I64BitOr, I64BitXor, I64BitNot,
+    I64Shl, I64Shr, I64ShrU,
+    I64Eq, I64Ne, I64Lt, I64Le, I64Gt, I64Ge,
+    U32Div, U32Mod, U32Lt, U32Le, U32Gt, U32Ge,
+    U64Div, U64Mod, U64Lt, U64Le, U64Gt, U64Ge,
+    F64Add, F64Sub, F64Mul, F64Div, F64Neg,
+    F64Eq, F64Ne, F64Lt, F64Le, F64Gt, F64Ge,
+    BoolEq, BoolNe, BoolAnd, BoolOr,
+    CharEq, CharNe, CharLt, CharLe, CharGt, CharGe,
+    StringEq, StringNe, StringConcat, StringSliceCodepoints,
 }
 
 /// Options threaded through the emit. Mirrors TS `EmitOptions`.
@@ -62,6 +90,19 @@ export EmitCtx :: struct {
     /// `vader_struct_<sanitised>_t` per BcStruct slot, `""` elsewhere.
     /// Indexed by type slot. Computed by `new_ctx`.
     struct_c_names: string[]
+    /// Runtime atom id per string-literal pool index (parallel to
+    /// `module.strings`). Empty string → 0 (VADER_ATOM_EMPTY) ; every
+    /// other literal → a contiguous id `1..M`. `string.const` inlines
+    /// the id at its use site. Computed by `new_ctx`.
+    atom_ids: i32[]
+    /// BcType index of the `null` primitive (`0` when absent). Tags the
+    /// boxed null literal. Cached so per-op const emit stays a field read.
+    null_tag: i32
+    /// BcType index of the `string` primitive, or `-1` when absent.
+    string_tag: i32
+    /// BcType index of the `[string]` array (element == `string_tag`), or
+    /// `-1` when absent. Used by the `main(argv: [string])` shim.
+    string_array_tag: i32
     release: bool
 }
 
@@ -75,11 +116,40 @@ new_ctx :: fn(m: BytecodeModule, release: bool) -> EmitCtx {
         }
         i += 1
     }
+    string_tag :: string_primitive_tag(m.types)
     return EmitCtx {
         .module = m,
         .struct_c_names = names,
+        .atom_ids = compute_atom_ids(m.strings),
+        .null_tag = null_primitive_tag(m.types),
+        .string_tag = string_tag,
+        .string_array_tag = string_array_tag(m.types, string_tag),
         .release = release,
     }
+}
+
+/// Runtime atom id for each string-literal pool index. The empty string
+/// maps to 0 (VADER_ATOM_EMPTY — reached via direct `== 0`, never the
+/// intern hash) ; every other literal gets a contiguous id `1..M`.
+///
+/// An empty literal MUST resolve to 0 so it compares equal to a
+/// runtime-produced empty string (also atom 0). Mirrors TS
+/// `computeAtomIds`.
+///
+/// @param strings  the bytecode string-literal pool.
+/// @return         atom ids parallel to `strings`.
+compute_atom_ids :: fn(strings: string[]) -> i32[] {
+    ids: i32[] = []
+    next_id: i32 = 1
+    for i in 0..<strings.len() {
+        if strings[i] == "" {
+            ids.push(0)
+        } else {
+            ids.push(next_id)
+            next_id += 1
+        }
+    }
+    return ids
 }
 
 /// Top-level entry — produces the C source for a `BytecodeModule`.
@@ -156,20 +226,76 @@ emit_type_decls :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
     }
     out.append("\n")
 
-    // String-literal pool statics — one `vader_string_t` per entry.
-    // The UTF-8 byte length is the second initialiser field ; the C
-    // compiler interns the array data regardless, so folding the
-    // pointer + length into a named static lets `string.const` resolve
-    // to a bare name instead of a runtime `vader_string_new(...)` call.
-    k: usize = 0
-    for k < ctx.module.strings.len() {
-        s :: ctx.module.strings[k]
-        out.append("static const vader_string_t vader_str_${k} = { ${c_string_lit(s)}, ${s.bytes().len()} };\n")
-        k += 1
-    }
-    out.append("\n")
+    // Comptime atom table — every non-empty literal serialised as a PERM
+    // atom in `.rodata`. `string.const` resolves to a bare atom id
+    // (`ctx.atom_ids[i]`) inlined at each use site, so no per-literal
+    // `vader_str_<i>` global is emitted (matches TS `emitTypeDecls`).
+    emit_atom_comptime_table(ctx, out)
 
     emit_data_pool(ctx, out)
+}
+
+/// Compile-time atom table — every non-empty string literal serialised
+/// as a PERM atom in `.rodata`. The emitted `main` hands the table to
+/// `vader_atom_init_with_comptime` at startup ; the runtime memcpys it
+/// into the live atom table at indices `1..M` (index 0 is
+/// VADER_ATOM_EMPTY). A `vader_string_t` is a u32 atom id, so a literal
+/// is referenced by its bare `ctx.atom_ids[i]` at each use site.
+///
+/// TS reference : `emitAtomComptimeTable` in `src/c_emit/emit.ts`.
+emit_atom_comptime_table :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
+    out.append("/* Compile-time atom table — see docs/ATOM_INTERNING.md. */\n")
+    strings :: ctx.module.strings
+
+    // Blob + entry table for the non-empty literals, in id order (a
+    // literal with atom id k lands at index k-1). Empty literals carry
+    // no atom — they alias VADER_ATOM_EMPTY (0) at their use sites.
+    blob_lines: string[] = []
+    offsets: i32[] = []
+    lens: i32[] = []
+    offset: i32 = 0
+    for i in 0..<strings.len() {
+        if ctx.atom_ids[i] != 0 {
+            s :: strings[i]
+            byte_len :: i32(s.bytes().len())
+            blob_lines.push("    ${c_string_lit(s)} \"\\0\"")
+            offsets.push(offset)
+            lens.push(byte_len)
+            offset += byte_len + 1
+        }
+    }
+
+    if offsets.len() == 0 {
+        // No comptime atoms (no literals, or every literal is ""). A
+        // 1-entry placeholder keeps `&vader_atom_comptime_table[0]`
+        // well-defined ; the count of 0 tells the runtime to ignore it.
+        out.append("static const vader_atom_entry_t vader_atom_comptime_table[1] = { { 0u, 0u, 0u, 0u, 0u, \"\" } };\n")
+        out.append("#define VADER_COMPTIME_ATOM_COUNT 0u\n")
+        out.append("\n")
+        return
+    }
+
+    // Blob : each non-empty literal's bytes + an inline NUL sentinel so
+    // `data[len]` reads NUL. C concatenates the adjacent literals into
+    // one `.rodata` array.
+    out.append("static const char vader_atom_blob[] =\n")
+    for j in 0..<blob_lines.len() {
+        out.append("${blob_lines[j]}\n")
+    }
+    out.append(";\n")
+    out.append("\n")
+
+    // Entry table — one PERM owner per non-empty literal, pointing into
+    // the blob. Field order : { parent, parent_offset, len, flags, _pad,
+    // data }.
+    out.append("static const vader_atom_entry_t vader_atom_comptime_table[] = {\n")
+    for k in 0..<offsets.len() {
+        out.append("    { 0u, 0u, ${lens[k]}u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[${offsets[k]}] },\n")
+    }
+    out.append("};\n")
+    out.append("\n")
+    out.append("#define VADER_COMPTIME_ATOM_COUNT ${offsets.len()}u\n")
+    out.append("\n")
 }
 
 /// One struct body : header line + per-field line + closing brace.
@@ -197,14 +323,48 @@ emit_struct_body :: fn(ctx: EmitCtx, s: BcStruct, type_index: usize, out: String
 /// will land per-entry `vader_array_buf_t` + `vader_array_t` wrappers.
 emit_data_pool :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
     if ctx.module.data_pool.len() == 0 { return }
-    // Phase 3+ : per-entry .rodata wrapper + vader_array_t header.
+    // T7 : per-entry .rodata wrapper + vader_array_t header.
     // TS reference : `emitDataPool` in `src/c_emit/emit.ts`.
+    todo("emit_data_pool: per-entry .rodata wrapper + vader_array_t header")
 }
 
-/// `static <sig>;` forward decl for every fn in the module. Phase 1-2 :
-/// no fns, trailing blank line only.
+/// `static <sig>;` forward decl for every fn in the module so call sites
+/// compile in any declaration order. A trailing blank line closes the
+/// section.
+///
+/// TS reference : `emitForwardDecls` in `src/c_emit/emit.ts`.
 emit_forward_decls :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
+    fns :: ctx.module.functions
+    for i in 0..<fns.len() {
+        out.append("static ${signature_for(fns[i])};\n")
+    }
     out.append("\n")
+}
+
+/// C function signature for `function` — return type, sanitised name, and
+/// the parameter list (`(void)` when empty). No leading `static`, no
+/// trailing `;`/`{`.
+///
+/// B1 (nullable-ref inline rep) slots pass as raw `void*` at the C-ABI
+/// boundary AND rename the param to `lN_b1` (the body prologue then
+/// re-declares a `vader_box_t lN` from it) ; both halves land together in
+/// T12. Until then every slot uses its plain `c_type_for_val_bare`
+/// spelling and the `lN` name.
+///
+/// TS reference : `signatureFor` in `src/c_emit/body.ts`.
+///
+/// @param function  the bytecode function to render a signature for.
+/// @return          e.g. `int32_t snippet_main(void)`.
+signature_for :: fn(function: BcFunction) -> string {
+    sb :: new_builder()
+    params :: function.signature.params
+    for i in 0..<params.len() {
+        if i > 0 { sb.append(", ") }
+        sb.append("${c_type_for_val_bare(params[i])} l${i}")
+    }
+    param_list :: if params.len() == 0 { "void" } else { "${sb}" }
+    cret :: c_type_for_val_bare(function.signature.result)
+    return "${cret} ${sanitise(function.name)}(${param_list})"
 }
 
 /// Per-`BcFn` function-pointer typedef + per-arity canonical erased
@@ -263,7 +423,12 @@ erased_sig_params :: fn(n: i32) -> string {
 ///
 /// TS reference : `emitFnTrampolines` in `src/c_emit/emit.ts`.
 emit_fn_trampolines :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
-    // Phase 3+ : per-(non-canonical-arity) trampoline emit.
+    // T10 : per-(non-canonical-arity) trampoline emit. Like TS
+    // `emitFnTrampolines`, this is gated on `fn.ref` / `make_closure`
+    // ops actually appearing in a fn body — NOT on a `BcFn` type-table
+    // entry (a fn-typed field can exist with no fn-value op). That body
+    // scan lands with the real emit in T10 ; until then there is
+    // genuinely nothing to do, so this no-ops.
 }
 
 /// Per-type GC info table + size table + (at the end) the vtable
@@ -436,20 +601,263 @@ emit_struct_info_row :: fn(ctx: EmitCtx, _s: BcStruct, offs: StructOffsets, type
 }
 
 /// Shims that route `call.import` to runtime helpers (`vader_*`) or
-/// extern user symbols. Phase 1-2 : no imports.
+/// extern user symbols. The per-import shim body lands in T4 ; the
+/// section always closes with a blank line (unconditional in TS
+/// `emitImportShims`, even with no imports) so the spacing before the
+/// function bodies stays byte-identical.
 emit_import_shims :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
-    // Phase 3+ : per-import shim emit.
+    if ctx.module.imports.len() > 0 {
+        todo("emit_import_shims: per-import shim emit (std/io, std/string, … host dispatch)")
+    }
+    // Unconditional trailing blank — matches TS `emitImportShims`, so the
+    // spacing before the function bodies stays byte-identical.
+    out.append("\n")
 }
 
 /// Forward decls for each per-tag vtable dispatch function emitted by
 /// `emit_vtable_dispatchers`. Phase 1-2 : no vtables.
 emit_vtable_forward_decls :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
-    // Phase 3+ : per-(trait.method) dispatcher forward decl.
+    if ctx.module.vtables.len() > 0 {
+        todo("emit_vtable_forward_decls: per-(trait.method) dispatcher forward decl")
+    }
 }
 
-/// Per-fn body emit. Phase 1-2 : no fns.
+/// Per-fn body emit — one C function definition per `BcFunction`,
+/// separated by a blank line (matching TS `emitFunctions`).
+///
+/// T0 scope : the constant-return path is emitted ; `emit_op` is already
+/// the exhaustive dispatch (every not-yet-ported op calls `todo`). The
+/// StackVal model + real per-op bodies land tranche by tranche (T1+).
+///
+/// T1 note : this walker block (`emit_functions` / `emit_function_body` /
+/// `emit_op` / `const_lit_c` + the literal helpers / `signature_for`)
+/// moves to `walker.vader` (+ `stack.vader` for the StackVal model) per
+/// the plan's file decomposition — do not relocate it into `body.vader`.
+///
+/// TS reference : `emitFunctions` in `src/c_emit/body.ts`.
 emit_functions :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
-    // Phase 3+ : per-fn body emit via `body.vader`.
+    fns :: ctx.module.functions
+    for i in 0..<fns.len() {
+        emit_function_body(ctx, fns[i], out)
+        out.append("\n")
+    }
+}
+
+/// One C function definition : `static <sig> { <body> }`. Walks the
+/// bytecode body op by op, emitting a deduped `#line` directive (debug
+/// builds only) before each op whose source position differs from the
+/// previous one.
+///
+/// T0 scope : only `return.lit` / bare `return` op bodies are emitted ;
+/// the full StackVal walker (locals, calls, control flow, …) is T1+.
+emit_function_body :: fn(ctx: EmitCtx, function: BcFunction, out: StringBuilder) -> void {
+    out.append("static ${signature_for(function)} {\n")
+
+    last_line: i32 = -1
+    last_file: string = ""
+    for i in 0..<function.body.len() {
+        if !ctx.release {
+            dbg :: function.debug[i]
+            if dbg != null {
+                if dbg.line != last_line || dbg.file != last_file {
+                    out.append("#line ${dbg.line} ${c_string_lit(dbg.file)}\n")
+                    last_line = dbg.line
+                    last_file = dbg.file
+                }
+            }
+        }
+        emit_op(ctx, function.body[i], out)
+    }
+
+    out.append("}\n")
+}
+
+/// Per-op C emit — the function-body walker's dispatch. Exhaustive over
+/// every `Op` variant (no `_`), so adding an opcode trips T3013 here and
+/// forces a conscious decision — mirroring
+/// `vader/bytecode/dump.vader::write_op`. Ops not yet ported call
+/// `todo(...)` ; they are unreachable for the current C-parity allowlist
+/// (which only exercises ops that have a real arm) and gain a real body
+/// as each tranche lands.
+///
+/// T0 implements the constant-return path (`return.lit` / bare `return`);
+/// the arm order tracks `write_op` so the two stay diffable.
+emit_op :: fn(ctx: EmitCtx, op: Op, out: StringBuilder) -> void {
+    match op {
+        is I32Const              -> todo("emit_op: i32.const")
+        is I64Const              -> todo("emit_op: i64.const")
+        is F64Const              -> todo("emit_op: f64.const")
+        is BoolConst             -> todo("emit_op: bool.const")
+        is CharConst             -> todo("emit_op: char.const")
+        is NullConst             -> todo("emit_op: null.const")
+        is StringConst           -> todo("emit_op: string.const")
+        is LocalGet              -> todo("emit_op: local.get")
+        is LocalSet              -> todo("emit_op: local.set")
+        is LocalTee              -> todo("emit_op: local.tee")
+        is LocalField            -> todo("emit_op: local.field")
+        is Return                -> out.append("    return;\n")
+        is ReturnLit as r        -> out.append("    return ${const_lit_c(ctx, r.value)};\n")
+        is Drop                  -> todo("emit_op: drop")
+        is Call                  -> todo("emit_op: call")
+        is CallImport            -> todo("emit_op: call.import")
+        is CallIndirect          -> todo("emit_op: call.indirect")
+        is VirtualCall           -> todo("emit_op: virtual.call")
+        is FnRef                 -> todo("emit_op: fn.ref")
+        is MakeClosure           -> todo("emit_op: make_closure")
+        is If                    -> todo("emit_op: if")
+        is Else                  -> todo("emit_op: else")
+        is End                   -> todo("emit_op: end")
+        is Block                 -> todo("emit_op: block")
+        is Loop                  -> todo("emit_op: loop")
+        is Branch                -> todo("emit_op: br")
+        is BranchIf              -> todo("emit_op: br_if")
+        is BoolNot               -> todo("emit_op: bool.not")
+        is StructNew             -> todo("emit_op: struct.new")
+        is StructGet             -> todo("emit_op: struct.get")
+        is StructSet             -> todo("emit_op: struct.set")
+        is ArrayNew              -> todo("emit_op: array.new")
+        is ArrayLen              -> todo("emit_op: array.len")
+        is ArrayPush             -> todo("emit_op: array.push")
+        is ArrayGet              -> todo("emit_op: array.get")
+        is ArraySet              -> todo("emit_op: array.set")
+        is ArraySlice            -> todo("emit_op: array.slice")
+        is DataConst             -> todo("emit_op: data.const")
+        is TypeConst             -> todo("emit_op: type.const")
+        is TypeCheck             -> todo("emit_op: type_check")
+        is RefCast               -> todo("emit_op: ref.cast")
+        is Convert               -> todo("emit_op: convert")
+        is BuilderNew            -> todo("emit_op: builder.new")
+        is BuilderAppendStr      -> todo("emit_op: builder.append_str")
+        is BuilderAppendDisplay  -> todo("emit_op: builder.append_display")
+        is BuilderFinish         -> todo("emit_op: builder.finish")
+        is SizeOfType            -> todo("emit_op: size_of.type")
+        is I32Add                -> todo("emit_op: i32.add")
+        is I32Sub                -> todo("emit_op: i32.sub")
+        is I32Mul                -> todo("emit_op: i32.mul")
+        is I32Div                -> todo("emit_op: i32.div")
+        is I32Mod                -> todo("emit_op: i32.rem")
+        is I32Neg                -> todo("emit_op: i32.neg")
+        is I32BitNot             -> todo("emit_op: i32.bitnot")
+        is I32BitAnd             -> todo("emit_op: i32.bitand")
+        is I32BitOr              -> todo("emit_op: i32.bitor")
+        is I32BitXor             -> todo("emit_op: i32.bitxor")
+        is I32Shl                -> todo("emit_op: i32.shl")
+        is I32Shr                -> todo("emit_op: i32.shr")
+        is I32ShrU               -> todo("emit_op: u32.shr")
+        is I32Eq                 -> todo("emit_op: i32.eq")
+        is I32Ne                 -> todo("emit_op: i32.ne")
+        is I32Lt                 -> todo("emit_op: i32.lt")
+        is I32Le                 -> todo("emit_op: i32.le")
+        is I32Gt                 -> todo("emit_op: i32.gt")
+        is I32Ge                 -> todo("emit_op: i32.ge")
+        is I64Add                -> todo("emit_op: i64.add")
+        is I64Sub                -> todo("emit_op: i64.sub")
+        is I64Mul                -> todo("emit_op: i64.mul")
+        is I64Div                -> todo("emit_op: i64.div")
+        is I64Mod                -> todo("emit_op: i64.rem")
+        is I64Neg                -> todo("emit_op: i64.neg")
+        is I64BitAnd             -> todo("emit_op: i64.bitand")
+        is I64BitOr              -> todo("emit_op: i64.bitor")
+        is I64BitXor             -> todo("emit_op: i64.bitxor")
+        is I64BitNot             -> todo("emit_op: i64.bitnot")
+        is I64Shl                -> todo("emit_op: i64.shl")
+        is I64Shr                -> todo("emit_op: i64.shr")
+        is I64ShrU               -> todo("emit_op: u64.shr")
+        is I64Eq                 -> todo("emit_op: i64.eq")
+        is I64Ne                 -> todo("emit_op: i64.ne")
+        is I64Lt                 -> todo("emit_op: i64.lt")
+        is I64Le                 -> todo("emit_op: i64.le")
+        is I64Gt                 -> todo("emit_op: i64.gt")
+        is I64Ge                 -> todo("emit_op: i64.ge")
+        is U32Div                -> todo("emit_op: u32.div")
+        is U32Mod                -> todo("emit_op: u32.rem")
+        is U32Lt                 -> todo("emit_op: u32.lt")
+        is U32Le                 -> todo("emit_op: u32.le")
+        is U32Gt                 -> todo("emit_op: u32.gt")
+        is U32Ge                 -> todo("emit_op: u32.ge")
+        is U64Div                -> todo("emit_op: u64.div")
+        is U64Mod                -> todo("emit_op: u64.rem")
+        is U64Lt                 -> todo("emit_op: u64.lt")
+        is U64Le                 -> todo("emit_op: u64.le")
+        is U64Gt                 -> todo("emit_op: u64.gt")
+        is U64Ge                 -> todo("emit_op: u64.ge")
+        is F64Add                -> todo("emit_op: f64.add")
+        is F64Sub                -> todo("emit_op: f64.sub")
+        is F64Mul                -> todo("emit_op: f64.mul")
+        is F64Div                -> todo("emit_op: f64.div")
+        is F64Neg                -> todo("emit_op: f64.neg")
+        is F64Eq                 -> todo("emit_op: f64.eq")
+        is F64Ne                 -> todo("emit_op: f64.ne")
+        is F64Lt                 -> todo("emit_op: f64.lt")
+        is F64Le                 -> todo("emit_op: f64.le")
+        is F64Gt                 -> todo("emit_op: f64.gt")
+        is F64Ge                 -> todo("emit_op: f64.ge")
+        is BoolEq                -> todo("emit_op: bool.eq")
+        is BoolNe                -> todo("emit_op: bool.ne")
+        is BoolAnd               -> todo("emit_op: bool.and")
+        is BoolOr                -> todo("emit_op: bool.or")
+        is CharEq                -> todo("emit_op: char.eq")
+        is CharNe                -> todo("emit_op: char.ne")
+        is CharLt                -> todo("emit_op: char.lt")
+        is CharLe                -> todo("emit_op: char.le")
+        is CharGt                -> todo("emit_op: char.gt")
+        is CharGe                -> todo("emit_op: char.ge")
+        is StringEq              -> todo("emit_op: string.eq")
+        is StringNe              -> todo("emit_op: string.ne")
+        is StringConcat          -> todo("emit_op: string.concat")
+        is StringSliceCodepoints -> todo("emit_op: string.slice_codepoints")
+        is IntToChar             -> todo("emit_op: i32.to_char")
+        is CharToInt             -> todo("emit_op: char.to_i32")
+        is RefEq                 -> todo("emit_op: ref.eq")
+        is RefNe                 -> todo("emit_op: ref.ne")
+        is DeferPush             -> todo("emit_op: defer.push")
+        is DeferPopExec          -> todo("emit_op: defer.pop_exec")
+    }
+}
+
+/// C source for a constant op — the `return.lit` payload today, the
+/// const-push path in T1. Exhaustive over the closed `ConstOp` union.
+///
+/// TS reference : `constLitC` in `src/c_emit/body.ts`.
+///
+/// @param ctx  emit context — supplies the null primitive tag and the
+///             string-literal atom ids.
+/// @param c    the constant op to render.
+/// @return     a C expression (no trailing `;`).
+const_lit_c :: fn(ctx: EmitCtx, c: ConstOp) -> string = match c {
+    is I32Const as v    -> i32_lit_c(v.value)
+    is I64Const as v    -> i64_lit_c(v.value)
+    is F64Const as v    -> float_lit(v.value)
+    is BoolConst as v   -> if v.value { "true" } else { "false" }
+    is CharConst as v   -> "${u32(v.value)}u"
+    is NullConst        -> "vader_box_obj(${ctx.null_tag}u, NULL)"
+    is StringConst as v -> "${ctx.atom_ids[usize(v.index)]}u"
+}
+
+/// C literal for an i32 value. `INT32_MIN` can't be spelled
+/// `INT32_C(-2147483648)` — that parses as unary minus on an
+/// out-of-range magnitude (UB on strict toolchains) — so emit the
+/// stdint macro. The TS `(int32_t)UINT32_C(N)` out-of-range branch is
+/// unreachable here : `value` is already typed `i32`.
+i32_lit_c :: fn(value: i32) -> string {
+    if value == i32(-2147483647) - 1 { return "INT32_MIN" }
+    return "INT32_C(${value})"
+}
+
+/// C literal for an i64 value. Same `INT64_MIN` caveat as `i32_lit_c`.
+i64_lit_c :: fn(value: i64) -> string {
+    if value == i64(-9223372036854775807) - 1 { return "INT64_MIN" }
+    return "INT64_C(${value})"
+}
+
+/// C literal for an f64 value. T1 will add inf / nan handling
+/// (`(1.0/0.0)` etc.) and the f32 `f` suffix ; T0 only needs the finite
+/// f64 path. A `.0` suffix is appended when the rendered value has no
+/// `.`/`e`, so the C literal stays a `double`.
+float_lit :: fn(value: f64) -> string {
+    s :: "${value}"
+    if "." in s || "e" in s { return s }
+    return "${s}.0"
 }
 
 /// Per-tag vtable table + count + pinned-slot comment block. Always
@@ -459,23 +867,29 @@ emit_functions :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
 ///
 /// TS reference : `emitVtables` in `src/c_emit/emit-vtable.ts`.
 emit_vtables :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
-    out.append("\n")
-    out.append("/* ----------------------------------------------------------- vtables\n")
-    out.append(" * Per-tag method dispatch tables consumed by\n")
-    out.append(" * `vader_virtual_dispatch(tag, slot)`. Built from the bytecode's\n")
-    out.append(" * `(trait.method)` → `(typeIndex → fnIndex)` map; slot indices are\n")
-    out.append(" * derived deterministically by sorting the trait-method keys\n")
-    out.append(" * alphabetically. Pinned stdlib slots: ")
-    out.append(pinned_slot_summary())
-    out.append(".\n")
-    out.append(" */\n")
+    // Column-0 body : triple-quoted strings take their content verbatim
+    // (only the newline right after the opening `"""` is stripped), so the
+    // C comment can't be indented to the fn body. The leading blank line
+    // supplies the `\n` separator before the block.
+    out.append("""
+
+/* ----------------------------------------------------------- vtables
+ * Per-tag method dispatch tables consumed by
+ * `vader_virtual_dispatch(tag, slot)`. Built from the bytecode's
+ * `(trait.method)` → `(typeIndex → fnIndex)` map; slot indices are
+ * derived deterministically by sorting the trait-method keys
+ * alphabetically. Pinned stdlib slots: ${pinned_slot_summary()}.
+ */
+""")
 
     if ctx.module.vtables.len() == 0 {
         out.append("const vader_vtable_t* const vader_vtable_table[1] = { NULL };\n")
         out.append("const size_t                vader_vtable_count    = 0;\n")
         return
     }
-    // Phase 3+ : per-tag vtable struct emit + sized table.
+    // T9 : per-tag vtable struct emit + sized table (with the 3 BOOTSTRAP
+    // canonicalisation fixes — min-fnIdx anchor, sorted cases / lists).
+    todo("emit_vtables: per-tag vtable struct emit + sized table")
 }
 
 /// Stable list of pinned trait-method slots, formatted as
@@ -494,33 +908,106 @@ pinned_slot_summary :: fn() -> string {
 
 /// Per-trait-method dispatcher function. Phase 1-2 : no vtables.
 emit_vtable_dispatchers :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
-    // Phase 3+ : per-(trait.method) dispatch fn emit.
+    if ctx.module.vtables.len() > 0 {
+        todo("emit_vtable_dispatchers: per-(trait.method) dispatch fn emit")
+    }
 }
 
-/// `int main(...)` shim. Trivial case (no `is_main` fn found) : emit
-/// the `return 0;` stub. Phase 3+ will support the signature-aware
-/// path with optional `[string]` argv handling.
+/// `int main(...)` shim. No `is_main` fn → the `return 0;` stub. Otherwise
+/// a signature-aware entry : `vader_atom`/`vader_gc` init, optional
+/// `[string]` argv construction, and the call to the user `main`
+/// (`return (int) main()` for an `i32` result, `main(); return 0;` for
+/// `void`). T3033 guarantees the signature is `()` or `([string])`.
 ///
 /// TS reference : `emitMain` in `src/c_emit/emit.ts`.
 emit_main :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
     main_index :: find_main(ctx.module)
     if main_index < 0 {
-        out.append("\n")
         out.append("int main(int argc, char** argv) { (void)argc; (void)argv; return 0; }\n")
         return
     }
-    // Phase 3+ : signature-aware main shim (with optional argv handling).
+
+    function :: ctx.module.functions[usize(main_index)]
+    cname :: sanitise(function.name)
+    takes_argv :: function.signature.params.len() == 1
+
+    out.append("int main(int argc, char** argv) {\n")
+    // Atom table init must precede any string interning. `atexit`
+    // handlers fire LIFO, so atom shutdown runs after gc shutdown.
+    out.append("    vader_atom_init_with_comptime(vader_atom_comptime_table, VADER_COMPTIME_ATOM_COUNT);\n")
+    out.append("    atexit(vader_atom_shutdown);\n")
+    out.append("    atexit(vader_gc_shutdown);\n")
+
+    call_args: string = ""
+    if takes_argv {
+        str_idx :: ctx.string_tag
+        arr_idx :: ctx.string_array_tag
+        if str_idx < 0 || arr_idx < 0 {
+            out.append("    (void)argc; (void)argv; vader_trap(\"main(argv): missing [string] type\"); return 1;\n")
+            out.append("}\n")
+            return
+        }
+        out.append("    vader_box_t __args = vader_box_obj(${arr_idx}u, vader_runtime_argv(argc, argv, ${arr_idx}u, ${str_idx}u));\n")
+        call_args = "__args"
+    } else {
+        out.append("    (void)argc; (void)argv;\n")
+    }
+
+    if function.signature.result == ValType.Void {
+        out.append("    ${cname}(${call_args});\n")
+        out.append("    return 0;\n")
+    } else {
+        out.append("    return (int) ${cname}(${call_args});\n")
+    }
+    out.append("}\n")
 }
 
 /// Index of the first non-empty `is_main` fn, or `-1` when none.
 find_main :: fn(m: BytecodeModule) -> i32 {
-    i: usize = 0
-    for i < m.functions.len() {
+    for i in 0..<m.functions.len() {
         f :: m.functions[i]
         if f.is_main && f.body.len() > 0 {
             return i32(i)
         }
-        i += 1
+    }
+    return -1
+}
+
+/// BcType index of the `null` primitive, or `0` when absent. Tags the
+/// boxed null literal so `type_check` stays consistent across boxed and
+/// unboxed paths. Called once by `new_ctx` (cached in `EmitCtx.null_tag`).
+null_primitive_tag :: fn(types: BcType[]) -> i32 {
+    for i in 0..<types.len() {
+        t :: types[i]
+        if t is BcPrimitive as p {
+            if p.val == ValType.Null { return i32(i) }
+        }
+    }
+    return 0
+}
+
+/// BcType index of the `string` primitive, or `-1` when absent. Called
+/// once by `new_ctx` (cached in `EmitCtx.string_tag`).
+string_primitive_tag :: fn(types: BcType[]) -> i32 {
+    for i in 0..<types.len() {
+        t :: types[i]
+        if t is BcPrimitive as p {
+            if is_string_val(p.val) { return i32(i) }
+        }
+    }
+    return -1
+}
+
+/// BcType index of the `[string]` array (element type == `str_idx`), or
+/// `-1` when absent. Called once by `new_ctx` (cached in
+/// `EmitCtx.string_array_tag`).
+string_array_tag :: fn(types: BcType[], str_idx: i32) -> i32 {
+    if str_idx < 0 { return -1 }
+    for i in 0..<types.len() {
+        t :: types[i]
+        if t is BcArray as a {
+            if a.element == str_idx { return i32(i) }
+        }
     }
     return -1
 }
