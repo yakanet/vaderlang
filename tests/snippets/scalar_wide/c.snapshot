@@ -32,6 +32,8 @@ static bool snippet_b_not(bool l0);
 static int64_t snippet_to_long(int32_t l0);
 static uint32_t snippet_to_chr(int32_t l0);
 static int32_t snippet_from_chr(uint32_t l0);
+static uint32_t snippet_u_shr(uint32_t l0, uint32_t l1);
+static uint64_t snippet_ul_shr(uint64_t l0, uint64_t l1);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
@@ -162,6 +164,14 @@ static uint32_t snippet_to_chr(int32_t l0) {
 
 static int32_t snippet_from_chr(uint32_t l0) {
     return ((int32_t) (uint32_t) l0);
+}
+
+static uint32_t snippet_u_shr(uint32_t l0, uint32_t l1) {
+    return (l0 >> l1);
+}
+
+static uint64_t snippet_ul_shr(uint64_t l0, uint64_t l1) {
+    return (l0 >> l1);
 }
 
 int main(int argc, char** argv) { (void)argc; (void)argv; return 0; }

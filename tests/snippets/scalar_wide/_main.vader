@@ -28,3 +28,5 @@ export b_not  :: fn(x: bool) -> bool        = !x
 export to_long  :: fn(x: i32) -> i64  = i64(x)
 export to_chr   :: fn(x: i32) -> char = char(x)
 export from_chr :: fn(x: char) -> i32 = i32(x)
+export u_shr  :: fn(a: u32, b: u32) -> u32  = a >> b
+export ul_shr :: fn(a: u64, b: u64) -> u64  = a >> b

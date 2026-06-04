@@ -134,3 +134,17 @@
     ~>
       cast → i32
         x :char
+  fn snippet$u_shr(a: u32, b: u32) -> u32
+    ~>
+      shr :u32
+        l:
+          a :u32
+        r:
+          b :u32
+  fn snippet$ul_shr(a: u64, b: u64) -> u64
+    ~>
+      shr :u64
+        l:
+          a :u64
+        r:
+          b :u64

@@ -21,8 +21,10 @@
   FnDecl         to_long              :: fn(i32) -> i64
   FnDecl         u_div                :: fn(u32, u32) -> u32
   FnDecl         u_lt                 :: fn(u32, u32) -> bool
+  FnDecl         u_shr                :: fn(u32, u32) -> u32
   FnDecl         ul_div               :: fn(u64, u64) -> u64
   FnDecl         ul_ge                :: fn(u64, u64) -> bool
+  FnDecl         ul_shr               :: fn(u64, u64) -> u64
   expr 10:47    BinaryExpr     :: i64
   expr 10:47    IdentExpr      :: i64
   expr 10:51    IdentExpr      :: i64
@@ -82,6 +84,12 @@
   expr 30:41    CallExpr       :: i32
   expr 30:41    IdentExpr      :: type
   expr 30:45    IdentExpr      :: char
+  expr 31:47    BinaryExpr     :: u32
+  expr 31:47    IdentExpr      :: u32
+  expr 31:52    IdentExpr      :: u32
+  expr 32:47    BinaryExpr     :: u64
+  expr 32:47    IdentExpr      :: u64
+  expr 32:52    IdentExpr      :: u64
   expr 9:47     BinaryExpr     :: i64
   expr 9:47     IdentExpr      :: i64
   expr 9:51     IdentExpr      :: i64

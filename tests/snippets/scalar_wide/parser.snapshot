@@ -997,6 +997,102 @@
       },
       "decorators": [],
       "isExpressionBodied": true
+    },
+    {
+      "kind": "FnDecl",
+      "name": "u_shr",
+      "visibility": "public",
+      "typeParams": [],
+      "params": [
+        {
+          "name": "a",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "u32"
+          },
+          "defaultValue": null,
+          "variadic": false
+        },
+        {
+          "name": "b",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "u32"
+          },
+          "defaultValue": null,
+          "variadic": false
+        }
+      ],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "u32"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [],
+        "trailing": {
+          "kind": "BinaryExpr",
+          "op": "shr",
+          "left": {
+            "kind": "IdentExpr",
+            "name": "a"
+          },
+          "right": {
+            "kind": "IdentExpr",
+            "name": "b"
+          }
+        }
+      },
+      "decorators": [],
+      "isExpressionBodied": true
+    },
+    {
+      "kind": "FnDecl",
+      "name": "ul_shr",
+      "visibility": "public",
+      "typeParams": [],
+      "params": [
+        {
+          "name": "a",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "u64"
+          },
+          "defaultValue": null,
+          "variadic": false
+        },
+        {
+          "name": "b",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "u64"
+          },
+          "defaultValue": null,
+          "variadic": false
+        }
+      ],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "u64"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [],
+        "trailing": {
+          "kind": "BinaryExpr",
+          "op": "shr",
+          "left": {
+            "kind": "IdentExpr",
+            "name": "a"
+          },
+          "right": {
+            "kind": "IdentExpr",
+            "name": "b"
+          }
+        }
+      },
+      "decorators": [],
+      "isExpressionBodied": true
     }
   ]
 }

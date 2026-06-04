@@ -154,3 +154,17 @@ fn 21 snippet$from_chr (char) -> i32
   char.to_i32
   return
 end
+
+fn 22 snippet$u_shr (u32,u32) -> u32
+  local.get 0
+  local.get 1
+  u32.shr
+  return
+end
+
+fn 23 snippet$ul_shr (u64,u64) -> u64
+  local.get 0
+  local.get 1
+  u64.shr
+  return
+end
