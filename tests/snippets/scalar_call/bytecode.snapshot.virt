@@ -1,0 +1,26 @@
+module _main
+type 0 primitive null
+type 1 primitive i32
+export main 2
+
+fn 0 snippet$add (i32,i32) -> i32
+  local.get 0
+  local.get 1
+  i32.add
+  return
+end
+
+fn 1 snippet$square (i32) -> i32
+  local.get 0
+  local.get 0
+  i32.mul
+  return
+end
+
+fn 2 snippet$main () -> i32
+  i32.const 3
+  i32.const 4
+  call 0
+  call 1
+  return
+end

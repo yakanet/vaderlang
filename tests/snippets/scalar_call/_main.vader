@@ -1,0 +1,18 @@
+// tests/snippets/scalar_call — T3a direct-call coverage.
+//
+// Exercises the C body walker's `call` arm: main calls two helper
+// functions (scalar args + return), the first result threaded as the
+// second's argument. No imports or allocations (T3b+), so the compile/run
+// oracle observes the result via main's exit code: add(3,4)=7,
+// square(7)=49.
+
+module "snippet"
+
+add :: fn(a: i32, b: i32) -> i32 = a + b
+
+square :: fn(x: i32) -> i32 = x * x
+
+main :: fn() -> i32 {
+    s :: add(3, 4)
+    return square(s)
+}

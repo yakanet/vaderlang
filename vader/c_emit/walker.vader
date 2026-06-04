@@ -14,7 +14,7 @@ module "vader/c_emit"
 import "std/string" { join }
 import "std/string_builder" { StringBuilder, new_builder, append }
 import "std/abort" { todo }
-import "vader/bytecode" { BcFunction, ValType }
+import "vader/bytecode" { BcFunction, BcSignature, ValType }
 // The opcode union pulls in ~120 names ; the namespace form keeps the
 // import to one line and tags every op site as `vm.<Op>` at the match.
 vm :: import "vader/vm"
@@ -160,7 +160,7 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.Return                -> emit_return(s)
         is vm.ReturnLit as r        -> line(s, "return ${const_lit_c(s.ctx, r.value)};")
         is vm.Drop                  -> drop_top(s)
-        is vm.Call                  -> todo("emit_op: call")
+        is vm.Call as c             -> emit_call(s, c)
         is vm.CallImport            -> todo("emit_op: call.import")
         is vm.CallIndirect          -> todo("emit_op: call.indirect")
         is vm.VirtualCall           -> todo("emit_op: virtual.call")
@@ -378,9 +378,7 @@ push_unop :: fn(s: FnState, op: string, result_val: ValType) -> void {
 push_eager :: fn(s: FnState, op: string, result_val: ValType) -> void {
     r :: pop(s)
     l :: pop(s)
-    name :: fresh_tmp(s, result_val)
-    line(s, "${name} = ${name_of(l)} ${op} ${name_of(r)};")
-    push_tmp(s, name, result_val)
+    push_into_tmp(s, "${name_of(l)} ${op} ${name_of(r)}", result_val)
 }
 
 /// Reinterpret the top value into `target_val` (`Convert` / `IntToChar` /
@@ -612,4 +610,50 @@ emit_branch :: fn(s: FnState, pc: i32, conditional: bool) -> void {
     } else {
         todo("emit_branch: unresolved target at pc ${pc}")
     }
+}
+
+// ---- calls ----------------------------------------------------------------
+
+/// `call` — direct call of a Vader function by index. Resolves the callee
+/// in `module.functions`, derives its C name the same way the forward decl
+/// / definition do (`sanitise(name)`, see `signature_for`), and delegates
+/// to the shared `emit_call_to`.
+emit_call :: fn(s: FnState, op: vm.Call) -> void {
+    callee :: s.ctx.module.functions[usize(op.function_index)]
+    emit_call_to(s, sanitise(callee.name), callee.signature)
+}
+
+/// Shared direct-call path (own fns now ; imports reuse it in T3b). Pops
+/// `sig`'s params off the operand stack in reverse, reassembles them in
+/// source order, and routes the result through `emit_call_result`. Scalar
+/// subset only : an arg whose ValType differs from the param self-guards
+/// with `todo` — the lowerer inserts `Convert` for width changes, and
+/// ref / erasure / B1 reshaping is T3+ / T12, so it never fires here.
+emit_call_to :: fn(s: FnState, callee_name: string, sig: BcSignature) -> void {
+    n :: i32(sig.params.len())
+    // Top-of-stack is the last argument, so pop into `args` back-to-front :
+    // pop #k lands in slot `n-1-k`, restoring source order for the join.
+    args: string[] = []
+    for _ in 0..<n { args.push("") }
+    for k in 0..<n {
+        v :: pop(s)
+        slot :: n - 1 - k
+        if val_of(v) != sig.params[usize(slot)] {
+            todo("call: argument coercion (T3+ / T12)")
+        }
+        args[usize(slot)] = name_of(v)
+    }
+    emit_call_result(s, "${callee_name}(${args.join(", ")})", sig.result)
+}
+
+/// Capture a call's result : a `void` call is a bare statement ; otherwise
+/// materialise into a fresh `tN` (calls are eager — they may have side
+/// effects, so the result is forced even when unused) and push it. B1 /
+/// erasure return reshaping is T12.
+emit_call_result :: fn(s: FnState, call_expr: string, result: ValType) -> void {
+    if result == ValType.Void {
+        line(s, "${call_expr};")
+        return
+    }
+    push_into_tmp(s, call_expr, result)
 }

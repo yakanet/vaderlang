@@ -208,6 +208,16 @@ push_tmp :: fn(s: FnState, name: string, val: ValType) -> void {
     s.stack.push(StackTmp { .name = name, .val = val })
 }
 
+/// Materialise a ready C expression into a fresh `tN` : emit
+/// `tN = <expr>;` and push the temp. The eager-result idiom shared by
+/// every op that forces its value into a slot (`push_eager`'s div/rem,
+/// call results, struct/array results in later tranches).
+push_into_tmp :: fn(s: FnState, expr: string, val: ValType) -> void {
+    name :: fresh_tmp(s, val)
+    line(s, "${name} = ${expr};")
+    push_tmp(s, name, val)
+}
+
 /// Force `e` into a fresh `tN` temp : allocate the index, emit
 /// `tN = <e>;`, and return the `StackTmp`.
 materialise_entry :: fn(s: FnState, e: StackVal) -> StackVal {

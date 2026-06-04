@@ -1,0 +1,32 @@
+# Lower
+
+## snippet
+  fn snippet$add(a: i32, b: i32) -> i32
+    ~>
+      add :i32
+        l:
+          a :i32
+        r:
+          b :i32
+  fn snippet$square(x: i32) -> i32
+    ~>
+      mul :i32
+        l:
+          x :i32
+        r:
+          x :i32
+  fn snippet$main() -> i32
+    let s: i32 =
+      call :i32
+        callee:
+          add :fn(i32, i32) -> i32
+        arg0:
+          int(3) :i32
+        arg1:
+          int(4) :i32
+    return
+      call :i32
+        callee:
+          square :fn(i32) -> i32
+        arg0:
+          s :i32

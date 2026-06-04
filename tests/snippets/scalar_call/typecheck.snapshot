@@ -1,0 +1,17 @@
+# Typecheck
+
+## tests/snippets/scalar_call
+  FnDecl         add                  :: fn(i32, i32) -> i32
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         square               :: fn(i32) -> i32
+  expr 11:36    BinaryExpr     :: i32
+  expr 11:36    IdentExpr      :: i32
+  expr 11:40    IdentExpr      :: i32
+  expr 13:31    BinaryExpr     :: i32
+  expr 13:31    IdentExpr      :: i32
+  expr 13:35    IdentExpr      :: i32
+  expr 16:10    CallExpr       :: i32
+  expr 16:10    IdentExpr      :: fn(i32, i32) -> i32
+  expr 17:12    CallExpr       :: i32
+  expr 17:12    IdentExpr      :: fn(i32) -> i32
+  expr 17:19    IdentExpr      :: i32

@@ -56,6 +56,9 @@ const C_PARITY = new Set<string>([
   // (jump_table-resolved goto labels, dynamic indent). Counted loop +
   // if/else body ; result via main's exit code (142).
   "scalar_control",
+  // T3a : direct `call` — own fns by index, scalar args + result
+  // threaded through a fresh temp. Result via exit code (49).
+  "scalar_call",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));
