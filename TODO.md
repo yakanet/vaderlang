@@ -919,6 +919,29 @@ with -O2 -g + `sample`) — the hot path has moved several times already.
       let the adaptive `g_string_gc_threshold` trigger fire sooner.
       May be a net win if mark cost is now low.
 - [ ] **Array `pop` intrinsic** — see §1.11.
+- [ ] **GC arenas don't grow — hard OOM ceiling on large inputs**
+      (2026-06-04). The Cheney collector (`runtime/c/vader_runtime.c:878`)
+      allocates fixed semi-spaces (`VADER_GC_YOUNG_BYTES` 32 MB,
+      `VADER_GC_OLD_BYTES` 256 MB) and on overflow does
+      minor → major → **trap** (`:906`), never growing. Self-compiling
+      `vader/cli/main.vader` has a ~252 MB live set, so the default
+      256 MB old arena OOMs on *every* platform — it only "works" when
+      the env knobs are raised (`VADER_GC_OLD_BYTES=$((1024*1024*1024))`,
+      per SPEC §9). Surfaced as a hard blocker on Windows (native `.exe`,
+      no env var set ; not a platform bug — macOS native OOMs identically
+      at the default). Proper fix : grow the semi-spaces (realloc /
+      mmap-backed) so the heap adapts to input size instead of trapping
+      at a compile-time constant. Stopgap : raise the default old arena.
+      See §1.11.
+- [ ] **Shrink the self-compile live set** (2026-06-04). At OOM,
+      `VADER_GC_PROFILE=1` shows the ~252 MB live set dominated by
+      `MutableMap` entries — `Entry<Any, Any>` : 1.25 M live × 72 B =
+      90 MB — plus 451 k array/map backing buffers (61 MB), the rest
+      compiler IR (CFG / symbols / type caches). These are interning /
+      symbol-table / monomorphization caches held live across the whole
+      compile. Investigate tearing per-pass / per-module caches down
+      earlier (or whether something over-retains). Ties into the
+      compiler-memory-profile work (CFG-analysis churn).
 
 #### Lower
 
