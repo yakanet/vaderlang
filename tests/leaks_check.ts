@@ -1,22 +1,25 @@
-// Memory-leak audit for native snippets.
+// Memory-leak audit for native snippets — Vader-emitted C variant.
 //
-// For each snippet under tests/snippets/, build a native binary the same way
-// tests/native.test.ts does, then run it under macOS `leaks --atExit` and
-// collect a per-snippet leak summary. Run with: bun tests/leaks_check.ts
+// For each snippet under tests/snippets/, emit C with the Vader self-compiled
+// compiler (`./build/vader dump --stage=c`), build a native binary the same
+// way tests/native.test.ts does, then run it under macOS `leaks --atExit` and
+// collect a per-snippet leak summary. Unlike the historical flow, the C source
+// now comes from the Vader `c_emit` pass + runtime — NOT the TS pipeline — so
+// this audit exercises the self-compiled compiler's own output.
+// Run with: bun tests/leaks_check.ts
 
 import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 import { VM_ERROR_PREFIXES, listSnippets } from "./snapshot.ts";
-import { pipelineBytecode } from "../src/pipeline.ts";
-import { emitC } from "../src/c_emit/emit.ts";
 
 const RUNTIME_ROOT = resolve(import.meta.dir, "../runtime/c");
+const VADER_BIN = resolve(import.meta.dir, "../build/vader");
 const EXE_EXT = process.platform === "win32" ? ".exe" : "";
 
 interface Result {
   name: string;
-  status: "clean" | "leak" | "skipped" | "build_fail" | "run_fail" | "leaks_fail" | "mismatch";
+  status: "clean" | "leak" | "skipped" | "emit_fail" | "build_fail" | "run_fail" | "leaks_fail" | "mismatch";
   nodes?: number;
   bytes?: number;
   leakedNodes?: number;
@@ -52,30 +55,46 @@ function parseLeaksOutput(text: string): { nodes: number; bytes: number; leakedN
 }
 
 async function check(s: { name: string; dir: string; mainPath: string }): Promise<Result> {
-  let r: Awaited<ReturnType<typeof pipelineBytecode>>;
-  try {
-    r = await pipelineBytecode(s.mainPath);
-  } catch (e) {
-    return { name: s.name, status: "skipped", detail: `pipeline threw: ${(e as Error).message}` };
-  }
-  const errors = r.diagnostics.sorted().filter((d) => d.severity === "error");
-  if (errors.length > 0) return { name: s.name, status: "skipped", detail: "pipeline errors" };
-
   const cFile = join(s.dir, "native.c");
   const binFile = join(s.dir, `native${EXE_EXT}`);
-  await Bun.write(cFile, emitC(r.bytecode));
+
+  // Error snapshots never produce a clean native run — classify them up front
+  // so a non-zero `dump` exit on them counts as a skip, not an emit failure.
+  let expected: string | undefined;
+  try { expected = await Bun.file(join(s.dir, "vm.snapshot")).text(); } catch {}
+  const isErrorSnap = expected !== undefined && VM_ERROR_PREFIXES.some((p) => expected!.startsWith(p));
+
+  // Emit C with the Vader self-compiled compiler (./build/vader), NOT the TS
+  // pipeline. `dump --stage=c` writes the generated C source to stdout.
+  const emitProc = Bun.spawn(
+    [VADER_BIN, "dump", "--stage=c", s.mainPath],
+    { stdout: "pipe", stderr: "pipe" },
+  );
+  const cText = await new Response(emitProc.stdout).text();
+  const emitErr = await new Response(emitProc.stderr).text();
+  if ((await emitProc.exited) !== 0) {
+    // Error snapshots are meant not to compile — skip them quietly. Everything
+    // else is a genuine gap in the Vader c_emit pass, so surface it.
+    if (isErrorSnap) return { name: s.name, status: "skipped", detail: "error snapshot (vader dump failed as expected)" };
+    return { name: s.name, status: "emit_fail", detail: `vader dump --stage=c: ${emitErr.slice(0, 200)}` };
+  }
+  if (isErrorSnap) return { name: s.name, status: "skipped", detail: "vm.snapshot is an error snapshot" };
+
+  // On snippets that emit warnings, `dump --stage=c` appends a trailing
+  // `# Diagnostics` block to stdout after the C source. That marker can never
+  // appear in valid generated C, so truncate there before handing it to cc.
+  const diagIdx = cText.indexOf("\n# Diagnostics");
+  const cSource = diagIdx >= 0 ? cText.slice(0, diagIdx + 1) : cText;
+  await Bun.write(cFile, cSource);
 
   const buildProc = Bun.spawn([
     "cc", "-std=c11", "-O0", "-g", "-I", RUNTIME_ROOT,
     cFile, join(RUNTIME_ROOT, "vader_runtime.c"), "-o", binFile, "-lm",
   ], { stderr: "pipe", stdout: "pipe" });
   const buildErr = await new Response(buildProc.stderr).text();
-  if ((await buildProc.exited) !== 0) return { name: s.name, status: "build_fail", detail: buildErr.slice(0, 200) };
-
-  let expected: string | undefined;
-  try { expected = await Bun.file(join(s.dir, "vm.snapshot")).text(); } catch {}
-  if (expected && VM_ERROR_PREFIXES.some((p) => expected!.startsWith(p))) {
-    return { name: s.name, status: "skipped", detail: "vm.snapshot is an error snapshot" };
+  if ((await buildProc.exited) !== 0) {
+    rmSync(cFile, { force: true });
+    return { name: s.name, status: "build_fail", detail: buildErr.slice(0, 200) };
   }
 
   // `--quiet` is intentionally NOT passed — it suppresses the
@@ -153,6 +172,10 @@ if (process.platform !== "darwin") {
 }
 if (!CC_AVAILABLE) { console.error("cc not available — aborting"); process.exit(1); }
 if (!LEAKS_AVAILABLE) { console.error("leaks not available — aborting (macOS only)"); process.exit(1); }
+if (!existsSync(VADER_BIN)) {
+  console.error(`vader binary not found at ${VADER_BIN} — run \`bun run build:cli\` first`);
+  process.exit(1);
+}
 
 const scenarios = listSnippets("tests/snippets");
 console.log(`scanning ${scenarios.length} snippets…`);
@@ -182,14 +205,16 @@ results.sort((a, b) => a.name.localeCompare(b.name));
 const leaks = results.filter((r) => r.status === "leak");
 const clean = results.filter((r) => r.status === "clean");
 const skipped = results.filter((r) => r.status === "skipped");
-const failed = results.filter((r) => r.status === "build_fail" || r.status === "run_fail" || r.status === "leaks_fail");
+const emitFailed = results.filter((r) => r.status === "emit_fail");
+const failed = results.filter((r) => r.status === "emit_fail" || r.status === "build_fail" || r.status === "run_fail" || r.status === "leaks_fail");
 
 console.log("\n===== SUMMARY =====");
-console.log(`total:    ${results.length}`);
-console.log(`clean:    ${clean.length}`);
-console.log(`leaking:  ${leaks.length}`);
-console.log(`skipped:  ${skipped.length}`);
-console.log(`failed:   ${failed.length}`);
+console.log(`total:     ${results.length}`);
+console.log(`clean:     ${clean.length}`);
+console.log(`leaking:   ${leaks.length}`);
+console.log(`skipped:   ${skipped.length}`);
+console.log(`emit_fail: ${emitFailed.length}  (Vader c_emit could not produce C)`);
+console.log(`failed:    ${failed.length}`);
 
 if (leaks.length > 0) {
   console.log("\n--- leaks ---");
