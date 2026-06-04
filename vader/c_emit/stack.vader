@@ -84,22 +84,27 @@ FnState :: struct {
     out:      StringBuilder
     /// Virtual operand stack — the top of stack is the last element.
     stack:    StackVal[]
-    /// Monotone `tN` allocator for materialised temps (T1b).
-    tmp_counter: i32
+    /// ValType of each materialised temp `tN` (index = N). Drives the
+    /// prelude temp declarations. Allocation is monotone — no free-list
+    /// recycling (simpler than TS ; the run-oracle is the gate, not
+    /// byte-parity, and monotone matches TS exactly while a fn allocates
+    /// each temp at most once).
+    tmp_types: ValType[]
     /// Monotone `_aN` scratch allocator for struct storage / call args
-    /// (T1b+). Never recycled, so it can't collide with a reused `tN`.
+    /// (T4+). Never recycled, so it can't collide with a reused name.
     aux_counter: i32
 }
 
 /// Fresh state for `function`, emitting into `out`.
 new_fn_state :: fn(ctx: EmitCtx, function: BcFunction, out: StringBuilder) -> FnState {
     empty: StackVal[] = []
+    no_tmps: ValType[] = []
     return FnState {
         .ctx = ctx,
         .function = function,
         .out = out,
         .stack = empty,
-        .tmp_counter = 0,
+        .tmp_types = no_tmps,
         .aux_counter = 0,
     }
 }
@@ -156,4 +161,41 @@ slot_val_type :: fn(function: BcFunction, slot: i32) -> ValType {
         return params[usize(slot)]
     }
     return function.locals[usize(slot) - params.len()].val
+}
+
+// ---- materialisation ------------------------------------------------------
+
+/// Force `e` into a fresh `tN` temp : allocate the index, record its
+/// ValType for the prelude, emit `tN = <e>;`, and return the `StackTmp`.
+materialise_entry :: fn(s: FnState, e: StackVal) -> StackVal {
+    val :: val_of(e)
+    idx :: s.tmp_types.len()
+    s.tmp_types.push(val)
+    name :: "t${idx}"
+    s.out.append("    ${name} = ${name_of(e)};\n")
+    return StackTmp { .name = name, .val = val }
+}
+
+/// True for stack entries that a write to slot `slot` would invalidate :
+/// every `StackExpr` (operands are not tracked, so any could read the
+/// slot) and any `StackLocalRef` aliasing `slot`. Literals and existing
+/// temps are stable.
+entry_needs_materialise :: fn(e: StackVal, slot: i32) -> bool = match e {
+    is StackExpr          -> true
+    is StackLocalRef as r -> r.slot == slot
+    is StackTmp           -> false
+    is StackLit           -> false
+}
+
+/// Materialise every stack entry that a write to slot `slot` would
+/// invalidate, in bottom-to-top order (so the emitted `tN = …;` lines
+/// keep stack order). Run before a `local.set` / `local.tee` mutates the
+/// slot. Mirrors TS `materializeStackForSlot`.
+materialize_stack_for_slot :: fn(s: FnState, slot: i32) -> void {
+    for i in 0..<s.stack.len() {
+        e :: s.stack[i]
+        if entry_needs_materialise(e, slot) {
+            s.stack[i] = materialise_entry(s, e)
+        }
+    }
 }

@@ -1,0 +1,33 @@
+# Lower
+
+## snippet
+  fn snippet$tee_reuse(x: i32) -> i32
+    let total: i32 =
+      add :i32
+        l:
+          x :i32
+        r:
+          int(1) :i32
+    return
+      add :i32
+        l:
+          total :i32
+        r:
+          total :i32
+  fn snippet$fold_chain(a: i32, b: i32) -> i32
+    let sum: i32 =
+      add :i32
+        l:
+          a :i32
+        r:
+          b :i32
+    return
+      sub :i32
+        l:
+          mul :i32
+            l:
+              sum :i32
+            r:
+              int(2) :i32
+        r:
+          a :i32

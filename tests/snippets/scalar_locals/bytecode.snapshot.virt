@@ -1,0 +1,28 @@
+module _main
+type 0 primitive null
+type 1 primitive i32
+
+fn 0 snippet$tee_reuse (i32) -> i32
+  local total i32
+  local.get 0
+  i32.const 1
+  i32.add
+  local.tee 1
+  local.get 1
+  i32.add
+  return
+end
+
+fn 1 snippet$fold_chain (i32,i32) -> i32
+  local sum i32
+  local.get 0
+  local.get 1
+  i32.add
+  local.set 2
+  local.get 2
+  i32.const 2
+  i32.mul
+  local.get 0
+  i32.sub
+  return
+end

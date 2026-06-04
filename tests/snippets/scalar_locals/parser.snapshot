@@ -1,0 +1,157 @@
+# AST
+{
+  "kind": "Program",
+  "module": {
+    "kind": "ModuleDecl",
+    "name": "snippet"
+  },
+  "decls": [
+    {
+      "kind": "FnDecl",
+      "name": "tee_reuse",
+      "visibility": "public",
+      "typeParams": [],
+      "params": [
+        {
+          "name": "x",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "i32"
+          },
+          "defaultValue": null,
+          "variadic": false
+        }
+      ],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "i32"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "LetStmt",
+            "mutable": true,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "total"
+            },
+            "type": null,
+            "value": {
+              "kind": "BinaryExpr",
+              "op": "add",
+              "left": {
+                "kind": "IdentExpr",
+                "name": "x"
+              },
+              "right": {
+                "kind": "IntLitExpr",
+                "value": "1n",
+                "suffix": null
+              }
+            }
+          },
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "BinaryExpr",
+              "op": "add",
+              "left": {
+                "kind": "IdentExpr",
+                "name": "total"
+              },
+              "right": {
+                "kind": "IdentExpr",
+                "name": "total"
+              }
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "fold_chain",
+      "visibility": "public",
+      "typeParams": [],
+      "params": [
+        {
+          "name": "a",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "i32"
+          },
+          "defaultValue": null,
+          "variadic": false
+        },
+        {
+          "name": "b",
+          "type": {
+            "kind": "IdentExpr",
+            "name": "i32"
+          },
+          "defaultValue": null,
+          "variadic": false
+        }
+      ],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "i32"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "LetStmt",
+            "mutable": true,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "sum"
+            },
+            "type": null,
+            "value": {
+              "kind": "BinaryExpr",
+              "op": "add",
+              "left": {
+                "kind": "IdentExpr",
+                "name": "a"
+              },
+              "right": {
+                "kind": "IdentExpr",
+                "name": "b"
+              }
+            }
+          },
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "BinaryExpr",
+              "op": "sub",
+              "left": {
+                "kind": "BinaryExpr",
+                "op": "mul",
+                "left": {
+                  "kind": "IdentExpr",
+                  "name": "sum"
+                },
+                "right": {
+                  "kind": "IntLitExpr",
+                  "value": "2n",
+                  "suffix": null
+                }
+              },
+              "right": {
+                "kind": "IdentExpr",
+                "name": "a"
+              }
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    }
+  ]
+}

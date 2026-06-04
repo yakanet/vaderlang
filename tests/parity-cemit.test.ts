@@ -42,6 +42,9 @@ const C_PARITY = new Set<string>([
   // No main (library) → the compile/run oracle skips the run, the
   // snapshot + cc-compile oracles still apply.
   "fn_decl",
+  // T1b : local.set / local.tee, the prelude (local + temp decls),
+  // operand materialisation, i32 add/sub/mul.
+  "scalar_locals",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));

@@ -653,7 +653,13 @@ emit_functions :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
 emit_function_body :: fn(ctx: EmitCtx, function: BcFunction, out: StringBuilder) -> void {
     out.append("static ${signature_for(function)} {\n")
 
-    s :: new_fn_state(ctx, function, out)
+    // Walk the body into a separate buffer first : temps are discovered
+    // during the walk (materialisation), and their declarations belong in
+    // the prelude *above* the body. After the walk, assemble
+    // signature → local decls → temp decls → body, matching TS (which
+    // splices the temp decls in at `preludePos`).
+    body :: new_builder()
+    s :: new_fn_state(ctx, function, body)
     last_line: i32 = -1
     last_file: string = ""
     for i in 0..<function.body.len() {
@@ -661,7 +667,7 @@ emit_function_body :: fn(ctx: EmitCtx, function: BcFunction, out: StringBuilder)
             dbg :: function.debug[i]
             if dbg != null {
                 if dbg.line != last_line || dbg.file != last_file {
-                    out.append("#line ${dbg.line} ${c_string_lit(dbg.file)}\n")
+                    body.append("#line ${dbg.line} ${c_string_lit(dbg.file)}\n")
                     last_line = dbg.line
                     last_file = dbg.file
                 }
@@ -670,7 +676,62 @@ emit_function_body :: fn(ctx: EmitCtx, function: BcFunction, out: StringBuilder)
         emit_op(s, function.body[i])
     }
 
+    emit_local_decls(function, out)
+    emit_tmp_decls(s, out)
+    out.append("${body}")
+
     out.append("}\n")
+}
+
+/// Declare every non-param local slot, bucketed by ValType in
+/// first-appearance order (`<ctype> lA, lB;` per type). Primitives only
+/// in T1b ; ref / any locals gain the `= vader_box_null()` GC-init in T5.
+/// PER_LINE chunking (TS caps at 10 names / line) is deferred — it only
+/// diverges past 10 locals of one type.
+///
+/// TS reference : `emitLocalDecls` in `src/c_emit/body.ts`.
+emit_local_decls :: fn(function: BcFunction, out: StringBuilder) -> void {
+    locals :: function.locals
+    param_count :: function.signature.params.len()
+    vals: ValType[] = []
+    names: string[] = []
+    for i in 0..<locals.len() {
+        if locals[i].val == ValType.Void { continue }
+        vals.push(locals[i].val)
+        names.push("l${param_count + i}")
+    }
+    emit_slot_decls(out, vals, names)
+}
+
+/// Declare the materialised temps `tN`, bucketed like the locals. Reads
+/// `s.tmp_types` (index N → ValType of `tN`), populated during the walk.
+emit_tmp_decls :: fn(s: FnState, out: StringBuilder) -> void {
+    names: string[] = []
+    for i in 0..<s.tmp_types.len() {
+        names.push("t${i}")
+    }
+    emit_slot_decls(out, s.tmp_types, names)
+}
+
+/// Declare a group of same-kind C slots (`vals[i]` is the ValType of
+/// `names[i]`), bucketed by ValType in first-appearance order :
+/// `<ctype> nameA, nameB;` per type. Shared by the local + temp decls.
+/// PER_LINE chunking (TS caps at 10 names / line) is deferred — it only
+/// diverges past 10 slots of one type.
+///
+/// TS reference : `emitLocalDecls` in `src/c_emit/body.ts`.
+emit_slot_decls :: fn(out: StringBuilder, vals: ValType[], names: string[]) -> void {
+    emitted: ValType[] = []
+    for i in 0..<vals.len() {
+        val :: vals[i]
+        if val in emitted { continue }
+        emitted.push(val)
+        group: string[] = []
+        for j in 0..<vals.len() {
+            if vals[j] == val { group.push(names[j]) }
+        }
+        out.append("    ${c_type_for_val_bare(val)} ${group.join(", ")};\n")
+    }
 }
 
 /// Per-op C emit — the function-body walker's dispatch. Exhaustive over
@@ -694,8 +755,8 @@ emit_op :: fn(s: FnState, op: Op) -> void {
         is NullConst as c        -> push_const(s, c)
         is StringConst as c      -> push_const(s, c)
         is LocalGet as l         -> emit_local_get(s, l)
-        is LocalSet              -> todo("emit_op: local.set")
-        is LocalTee              -> todo("emit_op: local.tee")
+        is LocalSet as l         -> emit_local_set(s, l.slot, false)
+        is LocalTee as l         -> emit_local_set(s, l.slot, true)
         is LocalField            -> todo("emit_op: local.field")
         is Return                -> emit_return(s)
         is ReturnLit as r        -> s.out.append("    return ${const_lit_c(s.ctx, r.value)};\n")
@@ -734,8 +795,8 @@ emit_op :: fn(s: FnState, op: Op) -> void {
         is BuilderFinish         -> todo("emit_op: builder.finish")
         is SizeOfType            -> todo("emit_op: size_of.type")
         is I32Add                -> push_binop(s, "+", .I32)
-        is I32Sub                -> todo("emit_op: i32.sub")
-        is I32Mul                -> todo("emit_op: i32.mul")
+        is I32Sub                -> push_binop(s, "-", .I32)
+        is I32Mul                -> push_binop(s, "*", .I32)
         is I32Div                -> todo("emit_op: i32.div")
         is I32Mod                -> todo("emit_op: i32.rem")
         is I32Neg                -> todo("emit_op: i32.neg")
@@ -922,6 +983,26 @@ emit_return :: fn(s: FnState) -> void {
         todo("emit_return: return-type coercion (T1b / T5)")
     }
     s.out.append("    return ${name_of(v)};\n")
+}
+
+/// `local.set` / `local.tee` — materialise any stack entry the write
+/// would invalidate, pop the value, emit `lN = <value>;`, and (for
+/// `tee`) re-push the slot. A `void` slot is a no-op. Value coercion
+/// (slot type ≠ value type) is self-guarded with `todo` ; the lowerer
+/// inserts `Convert` for every T1 width change, so it never fires on the
+/// scalar subset.
+emit_local_set :: fn(s: FnState, slot: i32, tee: bool) -> void {
+    slot_val :: slot_val_type(s.function, slot)
+    if slot_val == ValType.Void { return }
+    materialize_stack_for_slot(s, slot)
+    v :: pop(s)
+    if val_of(v) != slot_val {
+        todo("local.set: value coercion (T1b+)")
+    }
+    s.out.append("    l${slot} = ${name_of(v)};\n")
+    if tee {
+        push_local_ref(s, slot, slot_val)
+    }
 }
 
 /// Per-tag vtable table + count + pinned-slot comment block. Always
