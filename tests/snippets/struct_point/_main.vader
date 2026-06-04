@@ -1,0 +1,17 @@
+// tests/snippets/struct_point — T4a stack-struct coverage.
+//
+// Exercises the C body walker's struct ops on stack-allocated structs
+// (escape-proven non-escaping): struct.new_stack (construct), local.field
+// (fused field read), ref.cast (field type pin), struct.set_stack
+// (mutation). Body representation only — no inline-rep/B1 (T12), no GC
+// frame (stack alloc). Result via exit code: x=3+10=13, +y=4 → 17.
+
+module "snippet"
+
+Point :: struct { x: i32, y: i32 }
+
+main :: fn() -> i32 {
+    p := Point { .x = 3, .y = 4 }
+    p.x = p.x + 10
+    return p.x + p.y
+}

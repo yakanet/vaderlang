@@ -218,6 +218,16 @@ push_into_tmp :: fn(s: FnState, expr: string, val: ValType) -> void {
     push_tmp(s, name, val)
 }
 
+/// Allocate a fresh monotone scratch C identifier `_aN_<suffix>` — block-
+/// local storage that isn't an operand-stack temp (struct stack storage,
+/// the obj pointer, call-arg buffers). Never recycled, so names never
+/// collide with a reused `tN`. Mirrors `aux` in `src/c_emit/body.ts`.
+aux :: fn(s: FnState, suffix: string) -> string {
+    name :: "_a${s.aux_counter}_${suffix}"
+    s.aux_counter = s.aux_counter + 1
+    return name
+}
+
 /// Force `e` into a fresh `tN` temp : allocate the index, emit
 /// `tN = <e>;`, and return the `StackTmp`.
 materialise_entry :: fn(s: FnState, e: StackVal) -> StackVal {

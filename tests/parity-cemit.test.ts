@@ -62,6 +62,9 @@ const C_PARITY = new Set<string>([
   // T3b : `call.import` + import shims — println reaches the runtime via
   // vader_import_N (write + Display.to_string). stdout-observed.
   "io_println",
+  // T4a : stack structs — struct.new_stack / local.field / ref.cast /
+  // struct.set_stack (body rep, no GC frame). Exit code 17.
+  "struct_point",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));

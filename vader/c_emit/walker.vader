@@ -14,7 +14,7 @@ module "vader/c_emit"
 import "std/string" { join }
 import "std/string_builder" { StringBuilder, new_builder, append }
 import "std/abort" { todo }
-import "vader/bytecode" { BcFunction, BcSignature, ValType }
+import "vader/bytecode" { BcFunction, BcSignature, BcStruct, ValType }
 // The opcode union pulls in ~120 names ; the namespace form keeps the
 // import to one line and tags every op site as `vm.<Op>` at the match.
 vm :: import "vader/vm"
@@ -156,7 +156,7 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.LocalGet as l         -> emit_local_get(s, l)
         is vm.LocalSet as l         -> emit_local_set(s, l.slot, false)
         is vm.LocalTee as l         -> emit_local_set(s, l.slot, true)
-        is vm.LocalField            -> todo("emit_op: local.field")
+        is vm.LocalField as l       -> emit_local_field(s, l)
         is vm.Return                -> emit_return(s)
         is vm.ReturnLit as r        -> line(s, "return ${const_lit_c(s.ctx, r.value)};")
         is vm.Drop                  -> drop_top(s)
@@ -174,9 +174,9 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.Branch                -> emit_branch(s, pc, false)
         is vm.BranchIf              -> emit_branch(s, pc, true)
         is vm.BoolNot               -> push_unop(s, "!", .Bool)
-        is vm.StructNew             -> todo("emit_op: struct.new")
-        is vm.StructGet             -> todo("emit_op: struct.get")
-        is vm.StructSet             -> todo("emit_op: struct.set")
+        is vm.StructNew as sn       -> emit_struct_new(s, sn)
+        is vm.StructGet as sg       -> emit_struct_get(s, sg)
+        is vm.StructSet as ss       -> emit_struct_set(s, ss)
         is vm.ArrayNew              -> todo("emit_op: array.new")
         is vm.ArrayLen              -> todo("emit_op: array.len")
         is vm.ArrayPush             -> todo("emit_op: array.push")
@@ -186,7 +186,7 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.DataConst             -> todo("emit_op: data.const")
         is vm.TypeConst             -> todo("emit_op: type.const")
         is vm.TypeCheck             -> todo("emit_op: type_check")
-        is vm.RefCast               -> todo("emit_op: ref.cast")
+        is vm.RefCast as rc         -> emit_ref_cast(s, rc)
         is vm.Convert as c          -> emit_convert(s, convert_target_val(c.target))
         is vm.BuilderNew            -> todo("emit_op: builder.new")
         is vm.BuilderAppendStr      -> todo("emit_op: builder.append_str")
@@ -664,4 +664,117 @@ emit_call_result :: fn(s: FnState, call_expr: string, result: ValType) -> void {
         return
     }
     push_into_tmp(s, call_expr, result)
+}
+
+// ---- structs --------------------------------------------------------------
+//
+// Body representation only (no inline-rep / B1 packing — that is T12) :
+// every struct value flows as a boxed `vader_box_t` whose `payload.obj`
+// points at the storage, and field access derefs `((T*) box.payload.obj)`.
+// T4a covers stack-allocated structs (`struct.new_stack`) ; the heap path
+// (`struct.new`) needs the GC-frame prologue and lands in T4b.
+
+/// `struct.new` / `struct.new_stack` — allocate, header-init, store each
+/// field, box. T4a handles the stack variant only (escape-proven
+/// non-escaping) : storage is a C local, no GC. Fields pop right-to-left
+/// then store in declaration order ; an incoming value whose ValType
+/// differs from the field self-guards with `todo` (the lowerer + `ref.cast`
+/// align them on the scalar/struct subset ; B1 nullable-ref fields are T12).
+emit_struct_new :: fn(s: FnState, op: vm.StructNew) -> void {
+    t :: s.ctx.module.types[usize(op.type_id)]
+    if t is BcStruct as st {
+        if !op.stack { todo("struct.new (heap): needs the GC frame (T4b)") }
+        cname :: s.ctx.struct_c_names[usize(op.type_id)]
+        n :: i32(st.fields.len())
+        // Pop top-to-bottom : pop #k is the value for field `n-1-k`.
+        field_vals: string[] = []
+        for _ in 0..<n { field_vals.push("") }
+        for k in 0..<n {
+            v :: pop(s)
+            fi :: n - 1 - k
+            f :: st.fields[usize(fi)]
+            if val_of(v) != val_type_of_field(s.ctx.module.types, f.type_index) {
+                todo("struct.new: field coercion (T12)")
+            }
+            field_vals[usize(fi)] = name_of(v)
+        }
+        storage :: aux(s, "storage")
+        obj :: aux(s, "obj")
+        line(s, "${cname} ${storage};")
+        line(s, "${cname}* ${obj} = &${storage};")
+        line(s, "vader_obj_header_init(${obj}, ${op.type_id}u);")
+        for i in 0..<n {
+            f :: st.fields[usize(i)]
+            line(s, "${obj}->f_${sanitise(f.name)} = ${field_vals[usize(i)]};")
+        }
+        name :: fresh_tmp(s, .Ref)
+        line(s, "${name} = vader_box_obj(${op.type_id}u, ${obj});")
+        push_tmp(s, name, .Ref)
+    } else {
+        todo("struct.new on non-struct type ${op.type_id}")
+    }
+}
+
+/// `struct.get` — pop the receiver box, push field `field_index` as an
+/// inlined dereference expression.
+emit_struct_get :: fn(s: FnState, op: vm.StructGet) -> void {
+    obj :: pop(s)
+    push_struct_field(s, op.type_id, op.field_index, name_of(obj))
+}
+
+/// `local.field` — the fused `local.get N ; struct.get`. Push field
+/// `field_index` of the struct in slot `slot`.
+emit_local_field :: fn(s: FnState, op: vm.LocalField) -> void {
+    push_struct_field(s, op.type_id, op.field_index, "l${op.slot}")
+}
+
+/// Push field `field_index` of struct type `type_index` read off `recv`
+/// (a `vader_box_t` C expression) as a `StackExpr` — the body-rep
+/// dereference `((T*) recv.payload.obj)->f_<name>`. B1 / inline-rep field
+/// reps are T12.
+push_struct_field :: fn(s: FnState, type_index: i32, field_index: i32, recv: string) -> void {
+    t :: s.ctx.module.types[usize(type_index)]
+    if t is BcStruct as st {
+        cname :: s.ctx.struct_c_names[usize(type_index)]
+        f :: st.fields[usize(field_index)]
+        fval :: val_type_of_field(s.ctx.module.types, f.type_index)
+        push_expr(s, fval, "((${cname}*) ${recv}.payload.obj)->f_${sanitise(f.name)}")
+    } else {
+        todo("struct field access on non-struct type ${type_index}")
+    }
+}
+
+/// `struct.set` / `struct.set_stack` — pop the field value then the
+/// receiver, write the body slot in place. The `stack` flag is irrelevant
+/// to the body rep (mutation is identical). Value-type mismatch self-guards
+/// with `todo` (B1 nullable-ref fields are T12).
+emit_struct_set :: fn(s: FnState, op: vm.StructSet) -> void {
+    t :: s.ctx.module.types[usize(op.type_id)]
+    if t is BcStruct as st {
+        cname :: s.ctx.struct_c_names[usize(op.type_id)]
+        value :: pop(s)
+        obj :: pop(s)
+        f :: st.fields[usize(op.field_index)]
+        if val_of(value) != val_type_of_field(s.ctx.module.types, f.type_index) {
+            todo("struct.set: field coercion (T12)")
+        }
+        line(s, "((${cname}*) ${name_of(obj)}.payload.obj)->f_${sanitise(f.name)} = ${name_of(value)};")
+    } else {
+        todo("struct.set on non-struct type ${op.type_id}")
+    }
+}
+
+/// `ref.cast` — re-tag the top value to `type_id`'s storage class :
+/// unbox when the source is a boxed `ref` / `any`, else a plain C cast.
+/// Materialised into a fresh temp (the lowerer emits it after `local.field`
+/// to pin a field's type).
+emit_ref_cast :: fn(s: FnState, op: vm.RefCast) -> void {
+    v :: pop(s)
+    target_val :: val_type_of_bc_type(s.ctx.module.types[usize(op.type_id)])
+    expr :: if val_of(v) == ValType.Ref || val_of(v) == ValType.Any {
+        unbox_expr(name_of(v), target_val)
+    } else {
+        "(${c_type_for_val_bare(target_val)}) ${name_of(v)}"
+    }
+    push_into_tmp(s, expr, target_val)
 }

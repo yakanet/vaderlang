@@ -1,0 +1,16 @@
+# Typecheck
+
+## tests/snippets/struct_point
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Point                :: Point
+  expr 14:10    StructLitExpr  :: Point
+  expr 15:11    BinaryExpr     :: i32
+  expr 15:11    FieldExpr      :: i32
+  expr 15:11    IdentExpr      :: Point
+  expr 15:5     FieldExpr      :: i32
+  expr 15:5     IdentExpr      :: Point
+  expr 16:12    BinaryExpr     :: i32
+  expr 16:12    FieldExpr      :: i32
+  expr 16:12    IdentExpr      :: Point
+  expr 16:18    FieldExpr      :: i32
+  expr 16:18    IdentExpr      :: Point

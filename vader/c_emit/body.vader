@@ -231,6 +231,37 @@ export c_type_for_val_bare :: fn(v: ValType) -> string = match v {
     .Any -> "vader_box_t"
 }
 
+/// C expression unboxing `name` (a `vader_box_t`) to `target`'s storage —
+/// the per-class payload accessor (`.payload.i` for every integer / char,
+/// `.payload.f` for floats, `.payload.b` / `.payload.s` for bool / string).
+/// `null` / `ref` / `any` pass through (already a box). Mirrors `unboxExpr`
+/// in `src/c_emit/body.ts`.
+///
+/// @param name    the C name of the `vader_box_t` to unbox.
+/// @param target  the destination stack value class.
+/// @return        a C expression of `target`'s storage type.
+export unbox_expr :: fn(name: string, target: ValType) -> string = match target {
+    .I8    -> "((int8_t) ${name}.payload.i)"
+    .I16   -> "((int16_t) ${name}.payload.i)"
+    .I32   -> "((int32_t) ${name}.payload.i)"
+    .I64   -> "((int64_t) ${name}.payload.i)"
+    .U8    -> "((uint8_t) ${name}.payload.i)"
+    .U16   -> "((uint16_t) ${name}.payload.i)"
+    .U32   -> "((uint32_t) ${name}.payload.i)"
+    .U64   -> "((uint64_t) ${name}.payload.i)"
+    .Usize -> "((size_t) ${name}.payload.i)"
+    .Isize -> "((ptrdiff_t) ${name}.payload.i)"
+    .Char  -> "((uint32_t) ${name}.payload.i)"
+    .F32   -> "((float) ${name}.payload.f)"
+    .F64   -> "((double) ${name}.payload.f)"
+    .Bool  -> "${name}.payload.b"
+    .String -> "${name}.payload.s"
+    .Null  -> name
+    .Void  -> "((void) 0)"
+    .Ref   -> name
+    .Any   -> name
+}
+
 /// `BcType` → C type. Heap shapes (struct, array, union, ref, fn)
 /// collapse to `vader_box_t` ; primitives delegate to
 /// `c_type_for_val_bare`.
@@ -263,6 +294,13 @@ export val_type_of_bc_type :: fn(t: BcType) -> ValType = match t {
     is BcRef -> ValType.Ref
     is BcFn -> ValType.Ref
 }
+
+/// Stack value class of the field / slot whose `BcType` lives at
+/// `type_index` in `types`. Mirrors `valTypeOfField` in
+/// `src/c_emit/body.ts` — the field-store / field-read / arg paths use it
+/// to spell the C-storage type of a struct field.
+export val_type_of_field :: fn(types: BcType[], type_index: i32) -> ValType =
+    val_type_of_bc_type(types[usize(type_index)])
 
 /// Canonical C identifier for a `BcStruct` slot. Format matches the TS
 /// emit's `vader_struct_<sanitised>_t` so the runtime `vader.h` shim

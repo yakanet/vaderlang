@@ -1,0 +1,29 @@
+# Lower
+
+## snippet
+  struct snippet$Point { x: i32, y: i32 }
+  fn snippet$main() -> i32
+    let p: Point =
+      Point {
+        x: int(3) :i32
+        y: int(4) :i32
+      }
+    assign
+      target:
+        .x :i32
+          p :Point
+      value:
+        add :i32
+          l:
+            .x :i32
+              p :Point
+          r:
+            int(10) :i32
+    return
+      add :i32
+        l:
+          .x :i32
+            p :Point
+        r:
+          .y :i32
+            p :Point
