@@ -35,7 +35,7 @@ import "vader/lower" { prune_unreachable_fns }
 import "vader/lower" { mangle_module_id }
 import "vader/bytecode" { emit_project }
 import "vader/bytecode" { default_emit_options }
-import "vader/bytecode" { dump_bytecode }
+import "vader/bytecode" { dump_bytecode, dump_bytecode_annotated }
 import "vader/midir" { build_cfg_project, dump_cfg_project, DumpCfgOptions, emit_bytecode_from_cfg, const_fold_project, annotate_escape, eliminate_dead_cfg }
 import "vader/c_emit" { emit_c, EmitOptions as CEmitOptions, default_emit_options as default_c_emit_options }
 import "vader/diagnostics" { Diagnostic }
@@ -83,6 +83,9 @@ COMMANDS:
                                      bytecode       Stack-machine ops + type/string/import tables
                                      c              Generated C source
                                      wasm           WebAssembly module (not yet implemented)
+                                   --annotate (bytecode only) resolves each op's table
+                                     indices inline as `; comment` (string/callee/local/
+                                     field/type names) — a disassembly view, not re-parsable
 
 GLOBAL OPTIONS:
   --diagnostics=text|json          Output diagnostics in plain text (default) or JSON for tooling
@@ -327,6 +330,7 @@ cmd_build :: fn(args: string[]) -> i32 {
 cmd_dump :: fn(args: string[]) -> i32 {
     specs: FlagSpec[] = [
         FlagSpec { .name = "stage", .kind = .Str },
+        FlagSpec { .name = "annotate", .kind = .Bool },
     ]
     parsed :: parse_known(args, specs)
     if parsed.errors.len() > 0 {
@@ -334,8 +338,9 @@ cmd_dump :: fn(args: string[]) -> i32 {
         return 1
     }
 
-    stage :: parsed.string_flag("stage", "")
-    file  :: first_file_arg(parsed.positionals)
+    stage    :: parsed.string_flag("stage", "")
+    annotate :: parsed.bool_flag("annotate")
+    file     :: first_file_arg(parsed.positionals)
 
     if stage == "" || file == "" {
         eprintln("vader dump: expected --stage=<stage> <file>")
@@ -362,7 +367,7 @@ cmd_dump :: fn(args: string[]) -> i32 {
         return file.run_lower_stage()
     }
     if stage == "bytecode" {
-        return file.run_bytecode_stage()
+        return run_bytecode_stage(file, annotate)
     }
     if stage == "cfg" {
         return file.run_cfg_stage()
@@ -548,7 +553,7 @@ run_bytecode_cfg_stage :: fn(file: string) -> i32 {
     return 0
 }
 
-run_bytecode_stage :: fn(file: string) -> i32 {
+run_bytecode_stage :: fn(file: string, annotate: bool) -> i32 {
     pipeline :: prepare_evaluated_project(file)
     lower_diags: Diagnostic[] = []
     lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
@@ -568,8 +573,12 @@ run_bytecode_stage :: fn(file: string) -> i32 {
     module :: emit_bytecode_from_cfg(escaped, module_name_from_file(file), default_emit_options())
     // `dump_bytecode` already returns a trailing-newline-terminated
     // string ; use `print` (no auto-newline) to match TS
-    // `process.stdout.write(writeVir(...))` byte-for-byte.
-    print(dump_bytecode(module, entry_main_name(pipeline.typed, pipeline.loaded.entry)))
+    // `process.stdout.write(writeVir(...))` byte-for-byte. `--annotate`
+    // routes through the disassembly variant — NOT round-trippable, so it
+    // never feeds `parse_virt` or the parity snapshots.
+    entry :: entry_main_name(pipeline.typed, pipeline.loaded.entry)
+    out_text :: if annotate { dump_bytecode_annotated(module, entry) } else { dump_bytecode(module, entry) }
+    print(out_text)
     print_pipeline_diags(pipeline, lower_diags)
     return 0
 }

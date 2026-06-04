@@ -51,13 +51,37 @@ import "vader/vm" {
     StringEq, StringNe, StringConcat, StringSliceCodepoints,
 }
 
-/// Render a `BytecodeModule` as a `.virt`-style text dump. The
-/// resulting string carries a trailing newline ; pipe to stdout
-/// directly.
+/// Render a `BytecodeModule` as a `.virt`-style text dump. The resulting
+/// string carries a trailing newline ; pipe to stdout directly. This is the
+/// canonical `.virt` form `parse_virt` consumes and the parity snapshots
+/// compare — byte-for-byte stable.
 ///
-/// @param module  the bytecode module to render.
-/// @return        the textual dump.
-export dump_bytecode :: fn(module: BytecodeModule, entry_mangled: string) -> string {
+/// @param module         the bytecode module to render.
+/// @param entry_mangled  mangled name of the entry fn (`<mod>$main`), or `""`
+///                       when none — drives the `export main N` directive.
+/// @return               the textual dump.
+export dump_bytecode :: fn(module: BytecodeModule, entry_mangled: string) -> string =
+    dump_bytecode_impl(module, entry_mangled, false)
+
+/// Like `dump_bytecode`, but appends a trailing `; comment` to each op that
+/// carries a table index, resolving it inline (the string literal behind
+/// `string.const`, the callee mangle behind `call`, the `local.field`'s
+/// receiver + field name, the type name behind `ref.cast`, …).
+///
+/// A human/AI-facing disassembly view — **not** round-trippable through
+/// `parse_virt` (the comments aren't part of the grammar), so it's gated
+/// behind `dump --stage=bytecode --annotate` and never feeds the VM or the
+/// parity snapshots. Every index lookup is bounds-guarded : an out-of-range
+/// operand renders `<… #N out of range>` instead of trapping, so the view
+/// stays usable on the very invalid bytecode it's meant to help debug.
+///
+/// @param module         the bytecode module to render.
+/// @param entry_mangled  mangled name of the entry fn, or `""`.
+/// @return               the annotated textual dump.
+export dump_bytecode_annotated :: fn(module: BytecodeModule, entry_mangled: string) -> string =
+    dump_bytecode_impl(module, entry_mangled, true)
+
+dump_bytecode_impl :: fn(module: BytecodeModule, entry_mangled: string, annotate: bool) -> string {
     sb :: new_builder()
     sb.append("module ${module.name}\n")
     write_types(sb, module.types)
@@ -69,7 +93,7 @@ export dump_bytecode :: fn(module: BytecodeModule, entry_mangled: string) -> str
     write_entry_main(sb, module.functions, entry_mangled)
     for i in 0..<module.functions.len() {
         sb.append("\n")
-        write_function(sb, module.functions[i], i32(i))
+        write_function(sb, module, module.functions[i], i32(i), annotate)
     }
     return "${sb}"
 }
@@ -229,7 +253,7 @@ write_signature :: fn(sb: StringBuilder, signature: BcSignature) -> void {
     sb.append(val_type_name(signature.result))
 }
 
-write_function :: fn(sb: StringBuilder, function_decl: BcFunction, function_index: i32) -> void {
+write_function :: fn(sb: StringBuilder, module: BytecodeModule, function_decl: BcFunction, function_index: i32, annotate: bool) -> void {
     sb.append("fn ${function_index} ${function_decl.name} ")
     write_signature(sb, function_decl.signature)
     sb.append("\n")
@@ -237,7 +261,7 @@ write_function :: fn(sb: StringBuilder, function_decl: BcFunction, function_inde
         local :: function_decl.locals[i]
         sb.append("  local ${local.name} ${val_type_name(local.val)}\n")
     }
-    write_body_with_scopes(sb, function_decl.body, function_decl.jump_table)
+    write_body_with_scopes(sb, module, function_decl, annotate)
     sb.append("end\n")
 }
 
@@ -247,7 +271,11 @@ write_function :: fn(sb: StringBuilder, function_decl: BcFunction, function_inde
 // scope ; `else` lives at the parent indent. `br` / `br_if` rewrite their
 // integer depth into the matching `$L<N>` label by walking the label
 // stack from the top. Mirrors `src/bytecode/text.ts::writeBodyLines`.
-write_body_with_scopes :: fn(sb: StringBuilder, body: Op[], jump_table: i32[]) -> void {
+write_body_with_scopes :: fn(sb: StringBuilder, module: BytecodeModule, function_decl: BcFunction, annotate: bool) -> void {
+    body        :: function_decl.body
+    jump_table  :: function_decl.jump_table
+    locals      :: function_decl.locals
+    param_count :: i32(function_decl.signature.params.len())
     // Per-active-scope stacks. Grow-only with `sp` cursor for the
     // logical top so closing a scope is a cheap decrement.
     stack_labels:    string[] = []
@@ -359,6 +387,10 @@ write_body_with_scopes :: fn(sb: StringBuilder, body: Op[], jump_table: i32[]) -
         }
         write_indent(sb, depth)
         write_op(sb, op)
+        if annotate {
+            comment :: annotate_op(module, locals, param_count, op)
+            if comment != "" { sb.append("   ; ${comment}") }
+        }
         sb.append_char('\n')
     }
 }
@@ -593,6 +625,112 @@ format_const_op :: fn(c: ConstOp) -> string = match c {
     is CharConst   as v -> "char.const ${u32(v.value)}"
     is StringConst as v -> "string.const ${v.index}"
     is NullConst        -> "null.const"
+}
+
+// ---- annotation (--annotate) ----------------------------------------------
+
+// Resolve an op's table-index operands against the module's side tables into
+// a short, human/AI-facing comment — the string literal behind
+// `string.const`, the callee mangle behind `call`, the receiver+field behind
+// `local.field`, the type name behind `ref.cast`, … — or `""` when the op
+// carries nothing worth resolving. Appended as a trailing `; …` by
+// `dump_bytecode_annotated` only ; the canonical `.virt` never sees it.
+//
+// An `if`-`is` chain rather than a `match` on purpose : only ~20 of `Op`'s
+// ~128 variants annotate, and a value-returning match over the closed `Op`
+// union would demand an arm per variant AND inflate compile time ~3.5x (same
+// reason `write_op` is a statement match).
+//
+// MAINTAINER NOTE : this is a deliberately NON-exhaustive shadow of `write_op`.
+// `write_op`'s match trips T3013 when a new `Op` variant is added ; this
+// if-chain does NOT — a new index-bearing op (a `call`-like op or one with a
+// `*.type_id` operand) will silently get NO annotation until mirrored here.
+// Low-severity (debug-only view, off the parity / VM path), but add the arm.
+//
+// Every lookup is bounds-guarded via the `*_label` helpers, so the annotator
+// never traps on an out-of-range index — surfacing it as `<… #N out of range>`
+// is itself the signal we want when reading the invalid bytecode this view
+// exists to debug.
+annotate_op :: fn(module: BytecodeModule, locals: BcLocal[], param_count: i32, op: Op) -> string {
+    if op is StringConst as s  { return string_label(module, s.index) }
+    if op is ReturnLit as r    { if r.value is StringConst as s { return string_label(module, s.index) } return "" }
+    if op is Call as c         { return fn_label(module, c.function_index) }
+    if op is CallImport as c   { return import_label(module, c.index) }
+    if op is LocalGet as l     { return local_label(locals, param_count, l.slot) }
+    if op is LocalSet as l     { return local_label(locals, param_count, l.slot) }
+    if op is LocalTee as l     { return local_label(locals, param_count, l.slot) }
+    if op is LocalField as l   { return "${local_label(locals, param_count, l.slot)}.${field_label(module, l.type_id, l.field_index)}" }
+    if op is StructNew as s    { return type_label(module, s.type_id) }
+    if op is StructGet as s    { return "${type_label(module, s.type_id)}.${field_label(module, s.type_id, s.field_index)}" }
+    if op is StructSet as s    { return "${type_label(module, s.type_id)}.${field_label(module, s.type_id, s.field_index)}" }
+    if op is RefCast as r      { return "-> ${type_label(module, r.type_id)}" }
+    if op is TypeConst as t    { return type_label(module, t.type_id) }
+    if op is TypeCheck as t    { return type_label(module, t.type_id) }
+    if op is ArrayNew as a     { return "${type_label(module, a.type_id)}[]" }
+    if op is ArrayGet as a     { return "${type_label(module, a.type_id)}[]" }
+    if op is ArraySet as a     { return "${type_label(module, a.type_id)}[]" }
+    if op is ArrayPush as a    { return "${type_label(module, a.type_id)}[]" }
+    if op is ArraySlice as a   { return "${type_label(module, a.type_id)}[]" }
+    if op is CallIndirect as c { return type_label(module, c.type_id) }
+    if op is FnRef as f        { return fn_label(module, f.function_index) }
+    if op is MakeClosure as m  { return fn_label(module, m.function_index) }
+    if op is DataConst as d    { return "pool[${d.pool_index}] : ${type_label(module, d.type_id)}" }
+    return ""
+}
+
+string_label :: fn(module: BytecodeModule, index: i32) -> string {
+    if index < 0 || usize(index) >= module.strings.len() { return "<string #${index} out of range>" }
+    return quote_string(module.strings[usize(index)])
+}
+
+fn_label :: fn(module: BytecodeModule, index: i32) -> string {
+    if index < 0 || usize(index) >= module.functions.len() { return "<fn #${index} out of range>" }
+    return module.functions[usize(index)].name
+}
+
+import_label :: fn(module: BytecodeModule, index: i32) -> string {
+    if index < 0 || usize(index) >= module.imports.len() { return "<import #${index} out of range>" }
+    return module.imports[usize(index)].mangled_name
+}
+
+// Slot numbering is WASM-style : slots `0..param_count` are the function's
+// parameters (whose names aren't tracked in the bytecode — rendered
+// `arg N`), declared locals follow at `param_count..`. `BcFunction.locals`
+// holds only the declared locals, so a body slot indexes it offset by
+// `param_count`.
+local_label :: fn(locals: BcLocal[], param_count: i32, slot: i32) -> string {
+    if slot < 0 { return "<local #${slot} out of range>" }
+    if slot < param_count { return "arg ${slot}" }
+    li :: usize(slot - param_count)
+    if li >= locals.len() { return "<local #${slot} out of range>" }
+    return locals[li].name
+}
+
+field_label :: fn(module: BytecodeModule, type_id: i32, field_index: i32) -> string {
+    if type_id < 0 || usize(type_id) >= module.types.len() { return "<type #${type_id} out of range>" }
+    t :: module.types[usize(type_id)]
+    if t is BcStruct as s {
+        if field_index < 0 || usize(field_index) >= s.fields.len() { return "<field #${field_index} out of range>" }
+        return s.fields[usize(field_index)].name
+    }
+    return "<field #${field_index}>"
+}
+
+/// Short display name for a type-table index. Bounded against pathological
+/// self-referential arrays by a recursion-depth cap.
+type_label :: fn(module: BytecodeModule, type_id: i32) = type_label_at(module, type_id, 0)
+
+type_label_at :: fn(module: BytecodeModule, type_id: i32, depth: i32) -> string {
+    if depth > 6 { return "..." }
+    if type_id < 0 || usize(type_id) >= module.types.len() { return "<type #${type_id} out of range>" }
+    return match module.types[usize(type_id)] {
+        is BcPrimitive as p -> val_type_name(p.val)
+        is BcStruct    as s -> s.name
+        is BcArray     as a -> "${type_label_at(module, a.element, depth + 1)}[]"
+        is BcUnion          -> "union"
+        is BcRef       as r -> if r.trait_name == "" { "ref" } else { "ref ${r.trait_name}" }
+        is BcFn             -> "fn"
+    }
 }
 
 // ---- tests ----------------------------------------------------------------
