@@ -99,6 +99,13 @@ const C_PARITY = new Set<string>([
   "intrinsic_fields",
   "intrinsic_type_args",
   "comptime_type_value",
+  // Dead trailing return : an exhaustive-returning match leaves the lowerer's
+  // implicit fn-terminator return unreachable with an empty operand stack —
+  // `emit_return` traps it (`vader_unreachable`) instead of underflowing. All
+  // three exercise a union match where every arm returns.
+  "array_of_union",
+  "alias_union_in_array",
+  "narrow_imported_map",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));

@@ -527,6 +527,16 @@ emit_return :: fn(s: FnState) -> void {
         emit_return_stmt(s, "return;")
         return
     }
+    // Dead trailing return : when an exhaustive-returning match (or any
+    // earlier terminator) has already returned on every path, the lowerer's
+    // implicit fn-terminator return is unreachable and carries no value on
+    // the stack. The walker tracks no reachability (T2 — the CFG lowering is
+    // fall-through-oriented), so detect it by the empty stack and emit a
+    // noreturn trap (a reachable non-void return always has its value here).
+    if s.stack.len() == 0 {
+        line(s, "vader_unreachable(\"unreachable return in ${s.function.name}\");")
+        return
+    }
     v :: pop(s)
     rv :: coerce_expr(s.ctx.module.types, name_of(v), val_of(v), result)
     if s.no_frame {
