@@ -17,6 +17,7 @@ module "vader/vm"
 
 import "std/string" { starts_with, bytes, as_string }
 import "std/string_builder" { new_builder, append }
+import "vader/bytecode" { ConvertTarget }
 
 /// Tagged outcome of an `exec` call. `Ok` carries the program's i32
 /// return value ; `Trap` carries a debug-friendly message so the host

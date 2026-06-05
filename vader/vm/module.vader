@@ -12,6 +12,8 @@
 
 module "vader/vm"
 
+import "vader/bytecode" { Op }
+
 /// Host-side description of a `call.import` target. The `mangled`
 /// name is the key the executor's dispatcher matches on
 /// (`std_io$write` etc.) ; `parameter_count` tells it how many
@@ -85,7 +87,7 @@ export UnionType :: struct { variant_type_ids: i32[] }
 /// One trait-method vtable, keyed by `<TraitName>.<MethodName>` and
 /// holding a list of `(type_id → function_index)` entries — one per
 /// implementing struct. Built post-parse by `build_vtables` (in
-/// `parser.vader`) which scans every function's mangled name for the
+/// `virt_reader.vader`) which scans every function's mangled name for the
 /// `…$<TypeName>$<TraitName>$<MethodName>` suffix that the lowerer
 /// emits, then matches `<TypeName>` against `module.types[i]`'s
 /// `StructType.name`. The `.virt` text format itself does not carry

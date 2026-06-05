@@ -49,20 +49,6 @@ import "vader/lower" {
     INTRINSIC_BUILDER_APPEND_DISPLAY, INTRINSIC_BUILDER_FINISH,
     INTRINSIC_SIZE_OF_TYPE,
 }
-import "vader/vm" {
-    Op, I32Const, I64Const, F64Const, BoolConst, CharConst, StringConst,
-    NullConst, LocalGet, LocalSet, LocalTee, LocalField, Return, ReturnLit, ConstOp,
-    const_op_of, Drop, Call, CallImport,
-    If, Else, End, StructNew, StructGet, StructSet,
-    Block, Loop, Branch, BranchIf, BoolNot,
-    ArrayNew, ArrayLen, ArrayPush, ArrayGet, ArraySlice,
-    DataConst, TypeConst, TypeCheck, RefCast,
-    Convert, ConvertTarget,
-    MakeClosure, CallIndirect, VirtualCall,
-    BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish,
-    SizeOfType,
-    I32Add, I32Sub, I32Mul, I64Add, I64Sub, I64Mul,
-}
 
 
 

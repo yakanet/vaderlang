@@ -13,10 +13,6 @@
 
 module "vader/bytecode"
 
-import "vader/vm" {
-    Op, LocalGet, LocalSet, LocalTee, LocalField,
-    Block, Loop, If, End,
-}
 
 /// Slot touched by `op` (read OR write), or -1 when the op doesn't
 /// touch a local slot. Mirror of TS `slotTouched`.

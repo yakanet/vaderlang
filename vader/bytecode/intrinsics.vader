@@ -11,12 +11,6 @@
 
 module "vader/bytecode"
 
-import "vader/vm" {
-    Op, I32Add, I32Sub, I32Mul, I32Div, I32Eq,
-    I64Add, I64Sub, I64Mul, I64Div, I64Eq,
-    F64Add, F64Sub, F64Mul, F64Div, F64Eq,
-    BoolEq, CharEq, StringEq, StringConcat,
-}
 import "vader/resolver/symbol" { Symbol }
 
 /// True when the call's mangled name resolves to a dedicated

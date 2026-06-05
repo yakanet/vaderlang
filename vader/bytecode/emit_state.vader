@@ -12,7 +12,6 @@ module "vader/bytecode"
 import "std/collections" { MutableMap }
 import "vader/lower" { LoweredFnDecl }
 import "vader/resolver/symbol" { Symbol }
-import "vader/vm" { Op }
 
 /// Mutable state threaded through a single fn body emit. Owns the
 /// op + debug + jump_table arrays (lock-step parallel — every
@@ -206,7 +205,6 @@ scope_label_matches :: fn(scope_label: string | null, query: string) -> bool {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing" { assert_eq }
-import "vader/vm" { Branch, Return }
 
 @test test_pop_scope_empty_is_noop :: fn() -> void {
     state :: FnEmitState {

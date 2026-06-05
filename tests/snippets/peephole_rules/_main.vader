@@ -6,17 +6,17 @@
 module "snippet"
 
 import "std/io" { println }
-op :: import "vader/vm"
+op :: import "vader/bytecode"
 import "vader/vm" {
-    FunctionBuilder, new_function_builder,
+    BytecodeFunction, FunctionBuilder, new_function_builder,
     bool_const, bool_not, i32_const, i32_eq, i32_lt,
     local_get, local_set,
 }
-import "vader/bytecode" { run_peepholes }
+import "vader/vm" { run_peepholes }
 
 /// Bake a finished `FunctionBuilder` into a `BytecodeFunction` so the
 /// peephole helper can rewrite its `ops` in place.
-function_from :: fn(fb: FunctionBuilder) -> op.BytecodeFunction = op.BytecodeFunction {
+function_from :: fn(fb: FunctionBuilder) -> BytecodeFunction = BytecodeFunction {
     .name = fb.name, .parameter_count = fb.parameter_count,
     .local_count = fb.local_count, .ops = fb.ops, .jump_table = fb.table,
 }

@@ -18,7 +18,7 @@ import "vader/bytecode" { BcFunction, BcSignature, BcStruct, BcArray, BcFn, BcRe
 import "vader/bytecode" { array_kind_of, array_kind_index }
 // The opcode union pulls in ~120 names ; the namespace form keeps the
 // import to one line and tags every op site as `vm.<Op>` at the match.
-vm :: import "vader/vm"
+vm :: import "vader/bytecode"
 
 /// Per-fn body emit — one C function definition per `BcFunction`,
 /// separated by a blank line (matching TS `emitFunctions`).

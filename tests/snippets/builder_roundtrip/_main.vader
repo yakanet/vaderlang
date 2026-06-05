@@ -33,7 +33,7 @@ import "vader/vm" {
 import "vader/vm" { exec }
 import "vader/vm" { VmResult, Ok, Trap }
 import "vader/vm" { parse_virt }
-import "vader/bytecode" { write_virt }
+import "vader/vm" { write_virt }
 
 build_test_module :: fn() -> op.Module {
     module_builder :: new_module_builder()

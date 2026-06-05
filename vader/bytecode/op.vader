@@ -1,4 +1,4 @@
-// vader/vm/op — bytecode op shapes (the VM's instruction set).
+// vader/bytecode/op — the bytecode op set (the instruction format).
 //
 // One variant per supported op kind, plus the `ConstOp` sub-union and the
 // `ConvertTarget` enum. The union grows sprint by sprint in lock-step with the
@@ -6,11 +6,12 @@
 // `End`, `Branch`, `BranchIf`) carry no operand here — their target pc lives in
 // `BytecodeFunction.jump_table[pc]` (`vader/vm/module.vader`).
 //
-// Split out of the former single `op.vader` mega-file. Same `vader/vm` module
-// as the sibling `value.vader` (runtime values) and `module.vader` (parsed
-// module), so consumers' `import "vader/vm" { ... }` lines are unchanged.
+// The instruction format lives in `vader/bytecode` (the emitter's home) ; the
+// VM's runtime values (`vader/vm/value.vader`) and parsed-module shape
+// (`vader/vm/module.vader`) import these opcodes — the one-way `vm -> bytecode`
+// dependency edge. Nothing in `vader/bytecode` imports `vader/vm`.
 
-module "vader/vm"
+module "vader/bytecode"
 
 /// The full op set understood by the Vader-side VM. Each variant is
 /// pure data — the executor's `match` arms in `exec.vader` carry the
@@ -439,7 +440,7 @@ export F64Ge :: struct {}
 // The seven ops below are width-aliased : every integer-width sibling
 // (`isize.neg`, `u32.bitand`, ...) collapses onto its `I32X` variant
 // because the VM aliases every integer width to `I32Val`. See
-// `is_int_op` in `vader/vm/parser.vader` for the parser-side collapse.
+// `is_int_op` in `vader/vm/virt_reader.vader` for the parser-side collapse.
 /// Pop one i32 ; push `-value`.
 export I32Neg :: struct {}
 /// Pop one i32 ; push `~value`.

@@ -17,12 +17,6 @@
 module "vader/bytecode"
 
 import "std/collections" { MutableMap, MutableSet, keys, values, add, contains }
-import "vader/vm" {
-    Op, Call, CallImport, FnRef, MakeClosure, VirtualCall, CallIndirect,
-    StructNew, StructGet, StructSet, LocalField,
-    ArrayNew, ArrayGet, ArraySet, ArrayPush, ArraySlice,
-    TypeCheck, TypeConst, RefCast, DataConst,
-}
 
 // ============================================================================
 // pruneUnusedImports — drop import entries no `call.import` op references

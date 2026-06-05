@@ -1,14 +1,16 @@
-// vader/bytecode/text — `.virt` text writer, the inverse of
-// `vader/vm/parser.parse_virt`.
+// vader/vm/virt_writer — `.virt` text writer, the inverse of
+// `vader/vm/virt_reader.parse_virt`.
 //
-// First piece of the self-host bytecode emitter port (TODO §2.3 — the
-// rest of `src/bytecode/` will land here over time). Mirrors the
-// reference writer in `src/bytecode/text.ts:writeVir`.
+// Lives in `vader/vm` (not `vader/bytecode`) because it writes the VM's
+// runtime `Module` / `Value` shapes (`vm/module.vader`, `vm/value.vader`) ;
+// it imports the opcode set + the shared `write_op` mnemonic renderer from
+// `vader/bytecode` — the one-way `vm -> bytecode` edge. Mirrors the reference
+// writer in `src/bytecode/text.ts:writeVir`.
 //
 // Output goal : `parse_virt(write_virt(m)) ≈ m` for any module produced
 // by `vader/vm/builder` or `parse_virt` itself. Cross-VM exchange with
 // the TypeScript pipeline is **not** a guarantee — the Vader-side
-// `op.Module` doesn't track ValType info on import signatures, fn
+// `Module` doesn't track ValType info on import signatures, fn
 // signatures, or data-pool element kinds, so the placeholders we emit
 // for those slots only need to satisfy `parse_virt`'s much looser
 // requirements (it counts commas in `(...)` and treats trailing `void`
@@ -31,24 +33,24 @@
 //   end
 //
 // What's NOT emitted :
-//   - vtable directives : reconstructed by `parser.build_vtables` from
+//   - vtable directives : reconstructed by `virt_reader.build_vtables` from
 //     mangled fn names, never written.
 //   - per-op debug annotations (`; file:line:col`) : the Vader VM
 //     doesn't track source spans on ops yet.
 
-module "vader/bytecode"
+module "vader/vm"
 
 import "std/string" { bytes, as_string }
 import "std/string_builder" { StringBuilder, new_builder, append }
-op :: import "vader/vm"
+bc :: import "vader/bytecode"
 
-/// Render an `op.Module` as a `.virt` text dump. The result is a single
+/// Render an `Module` as a `.virt` text dump. The result is a single
 /// trailing-newline-terminated string ; the format matches what
 /// `parse_virt` consumes.
 ///
 /// @param module  the source module.
 /// @return        the textual dump.
-export write_virt :: fn(module: op.Module) -> string {
+export write_virt :: fn(module: Module) -> string {
     out :: new_builder()
     out.append("module main\n")
 
@@ -72,7 +74,7 @@ export write_virt :: fn(module: op.Module) -> string {
 
 // ---------------------------------------------------------------- headers
 
-write_types_virt :: fn(out: StringBuilder, types: op.TypeDecl[]) -> void {
+write_types_virt :: fn(out: StringBuilder, types: TypeDecl[]) -> void {
     i: usize = 0
     for i < types.len() {
         out.append("type ${i} ${format_type(types[i])}\n")
@@ -80,13 +82,13 @@ write_types_virt :: fn(out: StringBuilder, types: op.TypeDecl[]) -> void {
     }
 }
 
-format_type :: fn(t: op.TypeDecl) -> string = match t {
-    is op.PrimitiveType as p -> "primitive ${p.kind}"
-    is op.StructType    as s -> "struct ${s.name} { ${repeat_with_commas("_:0", s.field_count)} }"
-    is op.ArrayType     as a -> "array ${a.element_type_id}"
-    is op.UnionType     as u -> "union ${comma_join_i32(u.variant_type_ids)}"
-    is op.RefType       as r -> if r.trait_name == "" { "ref _" } else { "ref ${r.trait_name}" }
-    is op.FnType        as f -> "fn (${comma_join_i32(f.parameter_type_ids)}) -> ${f.return_type_id}"
+format_type :: fn(t: TypeDecl) -> string = match t {
+    is PrimitiveType as p -> "primitive ${p.kind}"
+    is StructType    as s -> "struct ${s.name} { ${repeat_with_commas("_:0", s.field_count)} }"
+    is ArrayType     as a -> "array ${a.element_type_id}"
+    is UnionType     as u -> "union ${comma_join_i32(u.variant_type_ids)}"
+    is RefType       as r -> if r.trait_name == "" { "ref _" } else { "ref ${r.trait_name}" }
+    is FnType        as f -> "fn (${comma_join_i32(f.parameter_type_ids)}) -> ${f.return_type_id}"
 }
 
 /// Comma-separate `count` repetitions of `token`. Empty when `count == 0`.
@@ -116,47 +118,12 @@ comma_join_i32 :: fn(items: i32[]) -> string {
 write_strings_virt :: fn(out: StringBuilder, strings: string[]) -> void {
     i: usize = 0
     for i < strings.len() {
-        out.append("string ${i} ${quote_string(strings[i])}\n")
+        out.append("string ${i} ${bc.quote_string(strings[i])}\n")
         i += 1
     }
 }
 
-/// JSON-style quoting — wraps in `"..."`, escaping `\\`, `\"`, `\n`, `\r`,
-/// `\t` and NUL (`\0`). Every other byte — including multi-byte UTF-8 — is
-/// copied verbatim so the round-trip is byte-exact. The escape set matches
-/// `std/string::decode_escapes` (the decoder `parser.parse_string_decl`
-/// reads back through), which understands exactly `\n \t \r \" \\ \0` and is
-/// byte-transparent for the rest — it has no `\u` / `\x` form.
-export quote_string :: fn(value: string) -> string {
-    out :: new_builder()
-    out.append("\"")
-    vb :: value.bytes()
-    n :: vb.len()
-    i: usize = 0
-    for i < n {
-        b :: vb[i]
-        if      b == b'\\' { out.append("\\\\") }
-        else if b == b'"'  { out.append("\\\"") }
-        else if b == b'\n' { out.append("\\n") }
-        else if b == b'\r' { out.append("\\r") }
-        else if b == b'\t' { out.append("\\t") }
-        else if b == 0     { out.append("\\0") }
-        else {
-            // Copy the raw byte verbatim. `vb[i..<i + 1].as_string()` yields
-            // the single source byte unchanged ; `char(u32(b))` would instead
-            // promote the byte to a codepoint and re-encode it as UTF-8,
-            // double-encoding any byte ≥ 0x80 (so every non-ASCII character
-            // turned into mojibake). `decode_escapes` copies it back
-            // byte-transparently — mirror its own verbatim-append path.
-            out.append(vb[i..<i + 1].as_string())
-        }
-        i += 1
-    }
-    out.append("\"")
-    return "${out}"
-}
-
-write_data_pool :: fn(out: StringBuilder, data_pool: op.ArrayVal[]) -> void {
+write_data_pool :: fn(out: StringBuilder, data_pool: ArrayVal[]) -> void {
     i: usize = 0
     for i < data_pool.len() {
         kind :: data_entry_kind(data_pool[i])
@@ -172,26 +139,26 @@ write_data_pool :: fn(out: StringBuilder, data_pool: op.ArrayVal[]) -> void {
 /// the round-trip preserves bytes but may pick a wider kind than the
 /// original. Brainfuck and other current users don't exercise the data
 /// pool, so this is acceptable until a typed-data-pool need surfaces.
-data_entry_kind :: fn(entry: op.ArrayVal) -> string {
+data_entry_kind :: fn(entry: ArrayVal) -> string {
     if entry.elements.len() == 0 { return "i32" }
     return match entry.elements[0] {
-        is op.I32Val    -> "i32"
-        is op.I64Val    -> "i64"
-        is op.F64Val    -> "f64"
-        is op.CharVal   -> "char"
-        is op.BoolVal   -> "bool"
-        is op.StringVal -> "i32"
-        is op.StructVal -> "i32"
-        is op.ArrayVal  -> "i32"
-        is op.BuilderVal -> "i32"
-        is op.FnVal      -> "i32"
-        is op.NullVal    -> "i32"
-        is op.ErrorVal   -> "i32"
-        is op.TypeVal    -> "i32"
+        is I32Val    -> "i32"
+        is I64Val    -> "i64"
+        is F64Val    -> "f64"
+        is CharVal   -> "char"
+        is BoolVal   -> "bool"
+        is StringVal -> "i32"
+        is StructVal -> "i32"
+        is ArrayVal  -> "i32"
+        is BuilderVal -> "i32"
+        is FnVal      -> "i32"
+        is NullVal    -> "i32"
+        is ErrorVal   -> "i32"
+        is TypeVal    -> "i32"
     }
 }
 
-data_entry_bytes :: fn(kind: string, elements: op.Value[]) -> u8[] {
+data_entry_bytes :: fn(kind: string, elements: Value[]) -> u8[] {
     out: u8[] = []
     i: usize = 0
     for i < elements.len() {
@@ -201,7 +168,7 @@ data_entry_bytes :: fn(kind: string, elements: op.Value[]) -> u8[] {
     return out
 }
 
-write_element_bytes :: fn(out: u8[], kind: string, value: op.Value) -> void {
+write_element_bytes :: fn(out: u8[], kind: string, value: Value) -> void {
     if kind == "i32"  { write_u32_le(out, u32(read_i32_from(value))) return }
     if kind == "i64"  { write_u64_le(out, u64(read_i64_from(value))) return }
     if kind == "char" { write_u32_le(out, u32(read_char_from(value))) return }
@@ -209,28 +176,28 @@ write_element_bytes :: fn(out: u8[], kind: string, value: op.Value) -> void {
     if kind == "f64"  { /* float bit-cast helper not yet available, emit zero */ write_u64_le(out, u64(0)) return }
 }
 
-read_i32_from :: fn(v: op.Value) -> i32 = match v {
-    is op.I32Val as i -> i.value
-    is op.I64Val as i -> i32(i.value)
-    is op.BoolVal as b -> if b.value { 1 } else { 0 }
-    is op.CharVal as c -> i32(u32(c.value))
+read_i32_from :: fn(v: Value) -> i32 = match v {
+    is I32Val as i -> i.value
+    is I64Val as i -> i32(i.value)
+    is BoolVal as b -> if b.value { 1 } else { 0 }
+    is CharVal as c -> i32(u32(c.value))
     _                 -> 0
 }
 
-read_i64_from :: fn(v: op.Value) -> i64 = match v {
-    is op.I64Val as i -> i.value
-    is op.I32Val as i -> i64(i.value)
+read_i64_from :: fn(v: Value) -> i64 = match v {
+    is I64Val as i -> i.value
+    is I32Val as i -> i64(i.value)
     _                 -> 0
 }
 
-read_char_from :: fn(v: op.Value) -> char = match v {
-    is op.CharVal as c -> c.value
-    is op.I32Val  as i -> char(u32(i.value))
+read_char_from :: fn(v: Value) -> char = match v {
+    is CharVal as c -> c.value
+    is I32Val  as i -> char(u32(i.value))
     _                  -> char(u32(0))
 }
 
-read_bool_from :: fn(v: op.Value) -> bool = match v {
-    is op.BoolVal as b -> b.value
+read_bool_from :: fn(v: Value) -> bool = match v {
+    is BoolVal as b -> b.value
     _                  -> false
 }
 
@@ -270,7 +237,7 @@ bytes_to_hex :: fn(data: u8[]) -> string {
     return "${out}"
 }
 
-write_imports_virt :: fn(out: StringBuilder, imports: op.ImportInfo[]) -> void {
+write_imports_virt :: fn(out: StringBuilder, imports: ImportInfo[]) -> void {
     i: usize = 0
     for i < imports.len() {
         info :: imports[i]
@@ -281,7 +248,7 @@ write_imports_virt :: fn(out: StringBuilder, imports: op.ImportInfo[]) -> void {
     }
 }
 
-write_impls :: fn(out: StringBuilder, impls: op.Impl[]) -> void {
+write_impls :: fn(out: StringBuilder, impls: Impl[]) -> void {
     i: usize = 0
     for i < impls.len() {
         e :: impls[i]
@@ -292,7 +259,7 @@ write_impls :: fn(out: StringBuilder, impls: op.Impl[]) -> void {
 
 /// Emit `vtable KEY TYPE_ID FN_INDEX` for every entry. Entries are
 /// already sorted by build_vtables (key alphabetical, type_id ascending).
-write_vtables :: fn(out: StringBuilder, vtables: op.Vtable[]) -> void {
+write_vtables :: fn(out: StringBuilder, vtables: Vtable[]) -> void {
     i: usize = 0
     for i < vtables.len() {
         vt :: vtables[i]
@@ -312,7 +279,7 @@ write_vtables :: fn(out: StringBuilder, vtables: op.Vtable[]) -> void {
 /// Resolves control-flow labels by walking ops once to assign per-pc
 /// scope labels (`$L0`, `$L1`, …), then a second pass emits each line
 /// with the resolved labels.
-write_function_virt :: fn(out: StringBuilder, function: op.BytecodeFunction, fn_index: i32) -> void {
+write_function_virt :: fn(out: StringBuilder, function: BytecodeFunction, fn_index: i32) -> void {
     param_block :: repeat_with_commas("i32", function.parameter_count)
     out.append("fn ${fn_index} ${function.name} (${param_block}) -> i32\n")
 
@@ -352,7 +319,7 @@ ScopeLabels :: struct {
 /// each `Branch` / `BranchIf`'s `jump_table[pc]` and matching it to a
 /// loop's body-start pc or to the end-pc of a block/if/else scope (the
 /// latter known once that scope is closed).
-assign_scope_labels :: fn(ops: op.Op[], jump_table: i32[]) -> ScopeLabels {
+assign_scope_labels :: fn(ops: bc.Op[], jump_table: i32[]) -> ScopeLabels {
     n :: ops.len()
     open_label: string[]   = []
     close_label: string[]  = []
@@ -368,7 +335,7 @@ assign_scope_labels :: fn(ops: op.Op[], jump_table: i32[]) -> ScopeLabels {
     // Active scope stack — labels and metadata for currently-open scopes.
     // Grow-only arrays + a `sp` cursor for the logical top : avoids the
     // O(depth²) allocation cost of array-rebuild on every End. Same
-    // pattern as `FunctionBuilder.scope_sp` and `parser.ParserState`.
+    // pattern as `FunctionBuilder.scope_sp` and `virt_reader.ParserState`.
     stack_labels: string[] = []
     stack_opener_pc: i32[] = []
     stack_is_loop: bool[] = []
@@ -384,30 +351,30 @@ assign_scope_labels :: fn(ops: op.Op[], jump_table: i32[]) -> ScopeLabels {
     pc: usize = 0
     for pc < n {
         v :: ops[pc]
-        if v is op.Block {
+        if v is bc.Block {
             label :: "\$L${label_counter}"
             label_counter += 1
             open_label[pc] = label
             push_scope_entry(stack_labels, stack_opener_pc, stack_is_loop, sp, label, i32(pc), false)
             sp += 1
-        } else if v is op.Loop {
+        } else if v is bc.Loop {
             label :: "\$L${label_counter}"
             label_counter += 1
             open_label[pc] = label
             push_scope_entry(stack_labels, stack_opener_pc, stack_is_loop, sp, label, i32(pc), true)
             sp += 1
-        } else if v is op.If {
+        } else if v is bc.If {
             label :: "\$L${label_counter}"
             label_counter += 1
             open_label[pc] = label
             push_scope_entry(stack_labels, stack_opener_pc, stack_is_loop, sp, label, i32(pc), false)
             sp += 1
-        } else if v is op.Else {
+        } else if v is bc.Else {
             // Reuse the surrounding if's label ; advance the opener_pc
             // to the else's pc so the closing End matches against it.
             open_label[pc] = stack_labels[sp - 1]
             stack_opener_pc[sp - 1] = i32(pc)
-        } else if v is op.End {
+        } else if v is bc.End {
             label :: stack_labels[sp - 1]
             close_label[pc] = label
             // Resolve any pending branches that named this label —
@@ -426,7 +393,7 @@ assign_scope_labels :: fn(ops: op.Op[], jump_table: i32[]) -> ScopeLabels {
             }
             pending_sp = new_psp
             sp -= 1
-        } else if v is op.Branch || v is op.BranchIf {
+        } else if v is bc.Branch || v is bc.BranchIf {
             target_pc :: jump_table[pc]
             // Loop-target : `target_pc == opener_pc + 1` of some loop on the stack.
             target_label :: find_loop_label(stack_labels, stack_opener_pc, stack_is_loop, sp, target_pc)
@@ -494,7 +461,7 @@ top_non_loop_label :: fn(labels: string[], is_loop: bool[], sp: usize) -> string
     return ""
 }
 
-write_op_line :: fn(out: StringBuilder, v: op.Op, labels: ScopeLabels, pc: usize) -> void {
+write_op_line :: fn(out: StringBuilder, v: bc.Op, labels: ScopeLabels, pc: usize) -> void {
     // Control-flow ops carry per-pc scope labels (resolved from `labels`),
     // so they render here. Every other op delegates to the single
     // exhaustive op→text renderer `write_op` (dump.vader, same module) —
@@ -502,12 +469,12 @@ write_op_line :: fn(out: StringBuilder, v: op.Op, labels: ScopeLabels, pc: usize
     // `--stage=bytecode` dump share. A new op without a `write_op` arm
     // trips T3013 there (its match is exhaustive, no wildcard).
     match v {
-        is op.Block    -> out.append("block ${labels.open_label[pc]} void")
-        is op.Loop     -> out.append("loop ${labels.open_label[pc]} void")
-        is op.If       -> out.append("if ${labels.open_label[pc]} void")
-        is op.End      -> out.append("end ${labels.close_label[pc]}")
-        is op.Branch   -> out.append("br ${labels.branch_label[pc]}")
-        is op.BranchIf -> out.append("br_if ${labels.branch_label[pc]}")
-        _              -> write_op(out, v)
+        is bc.Block    -> out.append("block ${labels.open_label[pc]} void")
+        is bc.Loop     -> out.append("loop ${labels.open_label[pc]} void")
+        is bc.If       -> out.append("if ${labels.open_label[pc]} void")
+        is bc.End      -> out.append("end ${labels.close_label[pc]}")
+        is bc.Branch   -> out.append("br ${labels.branch_label[pc]}")
+        is bc.BranchIf -> out.append("br_if ${labels.branch_label[pc]}")
+        _              -> bc.write_op(out, v)
     }
 }

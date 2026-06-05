@@ -1,6 +1,9 @@
-// vader/bytecode/peephole — local op-sequence rewrites on a freshly
-// emitted `vmop.BytecodeFunction.ops`. Mirrors a subset of `src/bytecode/
-// peephole.ts`.
+// vader/vm/peephole — local op-sequence rewrites on a freshly emitted
+// `BytecodeFunction.ops`. Mirrors a subset of `src/bytecode/peephole.ts`.
+//
+// Lives in `vader/vm` (not `vader/bytecode`) because it operates on the VM's
+// `BytecodeFunction` (`vm/module.vader`) ; it imports the opcode set from
+// `vader/bytecode` — the one-way `vm -> bytecode` edge.
 //
 // **Usage contract** : peephole runs on the `ops` array BEFORE the
 // jump table is computed for that function. Every rule below collapses
@@ -36,10 +39,10 @@
 // `run_peepholes` ; pass `false` to disable everything (matches the
 // `--no-bytecode-opt` CLI escape hatch on the TS side).
 
-module "vader/bytecode"
+module "vader/vm"
 
 import "std/iter" { take }
-vmop :: import "vader/vm"
+bc :: import "vader/bytecode"
 
 /// Apply every peephole rule above to `function`, mutating `ops` in
 /// place ; `jump_table` is NOT touched (the caller computes it after
@@ -48,7 +51,7 @@ vmop :: import "vader/vm"
 /// @param function  the bytecode function to rewrite.
 /// @param optimize  pass `false` to bail without rewriting (parity with
 ///                  the TS CLI's `--no-bytecode-opt` flag).
-export run_peepholes :: fn(function: vmop.BytecodeFunction, optimize: bool) -> void {
+export run_peepholes :: fn(function: BytecodeFunction, optimize: bool) -> void {
     if !optimize { return }
     apply_local_rules(function)
 }
@@ -59,9 +62,9 @@ export run_peepholes :: fn(function: vmop.BytecodeFunction, optimize: bool) -> v
 /// `out: Op[]` with an `out_sp` cursor for the logical length, so
 /// "pop" is a cursor decrement and "push at top" is an overwrite —
 /// no per-firing reallocation. Same pattern as `FunctionBuilder.
-/// scope_sp` and `parser.ParserState`.
-apply_local_rules :: fn(self: vmop.BytecodeFunction) -> void {
-    out: vmop.Op[] = []
+/// scope_sp` and `virt_reader.ParserState`.
+apply_local_rules :: fn(self: BytecodeFunction) -> void {
+    out: bc.Op[] = []
     out_sp: usize = 0
     n :: self.ops.len()
     i: usize = 0
@@ -69,17 +72,17 @@ apply_local_rules :: fn(self: vmop.BytecodeFunction) -> void {
         current :: self.ops[i]
 
         // Rules 2 / 3 / 4 fire on `BoolNot` paired with `out`'s tail.
-        if current is vmop.BoolNot {
+        if current is bc.BoolNot {
             if out_sp > 0 {
                 top_idx :: out_sp - 1
                 previous :: out[top_idx]
-                if previous is vmop.BoolNot {                                  // Rule 4
+                if previous is bc.BoolNot {                                  // Rule 4
                     out_sp -= 1
                     i += 1
                     continue
                 }
-                if previous is vmop.BoolConst as b {                           // Rule 3
-                    out[top_idx] = vmop.BoolConst { .value = !b.value }
+                if previous is bc.BoolConst as b {                           // Rule 3
+                    out[top_idx] = bc.BoolConst { .value = !b.value }
                     i += 1
                     continue
                 }
@@ -97,12 +100,12 @@ apply_local_rules :: fn(self: vmop.BytecodeFunction) -> void {
         // `as` binding (the `as` is captured at the `is` infix and
         // doesn't survive a surrounding `&&`), so the slot test sits in
         // a nested if.
-        if current is vmop.LocalSet as s {
+        if current is bc.LocalSet as s {
             if i + 1 < n {
                 next :: self.ops[i + 1]
-                if next is vmop.LocalGet as g {
+                if next is bc.LocalGet as g {
                     if g.slot == s.slot {
-                        push_op_at(out, out_sp, vmop.LocalTee { .slot = s.slot })
+                        push_op_at(out, out_sp, bc.LocalTee { .slot = s.slot })
                         out_sp += 1
                         i += 2
                         continue
@@ -115,13 +118,13 @@ apply_local_rules :: fn(self: vmop.BytecodeFunction) -> void {
         // Folds the trailing literal-return pair into a single op so the
         // VM / C-emit avoid the temporary push then pop. Matches TS
         // `src/bytecode/peephole.ts`'s identical rule.
-        if current is vmop.Return {
+        if current is bc.Return {
             if out_sp > 0 {
                 top_idx :: out_sp - 1
                 previous :: out[top_idx]
-                cv :: vmop.const_op_of(previous)
+                cv :: bc.const_op_of(previous)
                 if !(cv is null) {
-                    out[top_idx] = vmop.ReturnLit { .value = cv }
+                    out[top_idx] = bc.ReturnLit { .value = cv }
                     i += 1
                     continue
                 }
@@ -138,7 +141,7 @@ apply_local_rules :: fn(self: vmop.BytecodeFunction) -> void {
 
 /// Grow-or-overwrite : append if `sp == items.len()`, else overwrite
 /// `items[sp]`. Mirrors `FunctionBuilder.push_scope`'s reuse pattern.
-push_op_at :: fn(items: vmop.Op[], sp: usize, value: vmop.Op) -> void {
+push_op_at :: fn(items: bc.Op[], sp: usize, value: bc.Op) -> void {
     if sp == items.len() { items.push(value) }
     else                 { items[sp] = value }
 }
@@ -147,45 +150,45 @@ push_op_at :: fn(items: vmop.Op[], sp: usize, value: vmop.Op) -> void {
 /// / `.eq` / `.ne`), return its inverse-op variant ; otherwise `null`.
 /// Mirrors `INVERSE_VERB` in `src/bytecode/peephole.ts`. Hand-rolled
 /// per-variant because Vader doesn't expose op-kind strings at runtime.
-invert_cmp :: fn(o: vmop.Op) -> vmop.Op | null = match o {
-    is vmop.I32Lt   -> vmop.I32Ge {}
-    is vmop.I32Le   -> vmop.I32Gt {}
-    is vmop.I32Gt   -> vmop.I32Le {}
-    is vmop.I32Ge   -> vmop.I32Lt {}
-    is vmop.I32Eq   -> vmop.I32Ne {}
-    is vmop.I32Ne   -> vmop.I32Eq {}
-    is vmop.U32Lt   -> vmop.U32Ge {}
-    is vmop.U32Le   -> vmop.U32Gt {}
-    is vmop.U32Gt   -> vmop.U32Le {}
-    is vmop.U32Ge   -> vmop.U32Lt {}
-    is vmop.I64Lt   -> vmop.I64Ge {}
-    is vmop.I64Le   -> vmop.I64Gt {}
-    is vmop.I64Gt   -> vmop.I64Le {}
-    is vmop.I64Ge   -> vmop.I64Lt {}
-    is vmop.I64Eq   -> vmop.I64Ne {}
-    is vmop.I64Ne   -> vmop.I64Eq {}
-    is vmop.U64Lt   -> vmop.U64Ge {}
-    is vmop.U64Le   -> vmop.U64Gt {}
-    is vmop.U64Gt   -> vmop.U64Le {}
-    is vmop.U64Ge   -> vmop.U64Lt {}
-    is vmop.F64Lt   -> vmop.F64Ge {}
-    is vmop.F64Le   -> vmop.F64Gt {}
-    is vmop.F64Gt   -> vmop.F64Le {}
-    is vmop.F64Ge   -> vmop.F64Lt {}
-    is vmop.F64Eq   -> vmop.F64Ne {}
-    is vmop.F64Ne   -> vmop.F64Eq {}
-    is vmop.BoolEq  -> vmop.BoolNe {}
-    is vmop.BoolNe  -> vmop.BoolEq {}
-    is vmop.CharEq  -> vmop.CharNe {}
-    is vmop.CharNe  -> vmop.CharEq {}
-    is vmop.CharLt  -> vmop.CharGe {}
-    is vmop.CharLe  -> vmop.CharGt {}
-    is vmop.CharGt  -> vmop.CharLe {}
-    is vmop.CharGe  -> vmop.CharLt {}
-    is vmop.StringEq -> vmop.StringNe {}
-    is vmop.StringNe -> vmop.StringEq {}
-    is vmop.RefEq   -> vmop.RefNe {}
-    is vmop.RefNe   -> vmop.RefEq {}
+invert_cmp :: fn(o: bc.Op) -> bc.Op | null = match o {
+    is bc.I32Lt   -> bc.I32Ge {}
+    is bc.I32Le   -> bc.I32Gt {}
+    is bc.I32Gt   -> bc.I32Le {}
+    is bc.I32Ge   -> bc.I32Lt {}
+    is bc.I32Eq   -> bc.I32Ne {}
+    is bc.I32Ne   -> bc.I32Eq {}
+    is bc.U32Lt   -> bc.U32Ge {}
+    is bc.U32Le   -> bc.U32Gt {}
+    is bc.U32Gt   -> bc.U32Le {}
+    is bc.U32Ge   -> bc.U32Lt {}
+    is bc.I64Lt   -> bc.I64Ge {}
+    is bc.I64Le   -> bc.I64Gt {}
+    is bc.I64Gt   -> bc.I64Le {}
+    is bc.I64Ge   -> bc.I64Lt {}
+    is bc.I64Eq   -> bc.I64Ne {}
+    is bc.I64Ne   -> bc.I64Eq {}
+    is bc.U64Lt   -> bc.U64Ge {}
+    is bc.U64Le   -> bc.U64Gt {}
+    is bc.U64Gt   -> bc.U64Le {}
+    is bc.U64Ge   -> bc.U64Lt {}
+    is bc.F64Lt   -> bc.F64Ge {}
+    is bc.F64Le   -> bc.F64Gt {}
+    is bc.F64Gt   -> bc.F64Le {}
+    is bc.F64Ge   -> bc.F64Lt {}
+    is bc.F64Eq   -> bc.F64Ne {}
+    is bc.F64Ne   -> bc.F64Eq {}
+    is bc.BoolEq  -> bc.BoolNe {}
+    is bc.BoolNe  -> bc.BoolEq {}
+    is bc.CharEq  -> bc.CharNe {}
+    is bc.CharNe  -> bc.CharEq {}
+    is bc.CharLt  -> bc.CharGe {}
+    is bc.CharLe  -> bc.CharGt {}
+    is bc.CharGt  -> bc.CharLe {}
+    is bc.CharGe  -> bc.CharLt {}
+    is bc.StringEq -> bc.StringNe {}
+    is bc.StringNe -> bc.StringEq {}
+    is bc.RefEq   -> bc.RefNe {}
+    is bc.RefNe   -> bc.RefEq {}
     _ -> null
 }
 

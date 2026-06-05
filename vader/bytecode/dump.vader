@@ -22,34 +22,7 @@
 module "vader/bytecode"
 
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
-import "std/string" { bytes }
-import "vader/vm" {
-    Op,
-    I32Const, I64Const, F64Const, BoolConst, CharConst, StringConst, NullConst,
-    LocalGet, LocalSet, LocalTee, LocalField, Return, ReturnLit, ConstOp, Drop, Call,
-    If, Else, End, StructNew, StructGet, StructSet,
-    Block, Loop, Branch, BranchIf, BoolNot,
-    ArrayNew, ArrayLen, ArrayPush, ArrayGet, ArraySet, ArraySlice,
-    DataConst, TypeConst, TypeCheck, RefCast, Convert, ConvertTarget,
-    IntToChar, CharToInt, RefEq, RefNe, DeferPush, DeferPopExec,
-    MakeClosure, CallIndirect, VirtualCall, CallImport,
-    BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish,
-    SizeOfType, FnRef,
-    I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Neg, I32BitNot,
-    I32BitAnd, I32BitOr, I32BitXor, I32Shl, I32Shr, I32ShrU,
-    I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge,
-    I64Add, I64Sub, I64Mul, I64Div, I64Mod, I64Neg,
-    I64BitAnd, I64BitOr, I64BitXor, I64BitNot,
-    I64Shl, I64Shr, I64ShrU,
-    I64Eq, I64Ne, I64Lt, I64Le, I64Gt, I64Ge,
-    U32Div, U32Mod, U32Lt, U32Le, U32Gt, U32Ge,
-    U64Div, U64Mod, U64Lt, U64Le, U64Gt, U64Ge,
-    F64Add, F64Sub, F64Mul, F64Div, F64Neg,
-    F64Eq, F64Ne, F64Lt, F64Le, F64Gt, F64Ge,
-    BoolEq, BoolNe, BoolAnd, BoolOr,
-    CharEq, CharNe, CharLt, CharLe, CharGt, CharGe,
-    StringEq, StringNe, StringConcat, StringSliceCodepoints,
-}
+import "std/string" { bytes, as_string }
 
 /// Render a `BytecodeModule` as a `.virt`-style text dump. The resulting
 /// string carries a trailing newline ; pipe to stdout directly. This is the
@@ -481,8 +454,8 @@ convert_target_name :: fn(t: ConvertTarget) -> string = match t {
 // compile ~3.5x larger. Appending in place sidesteps that entirely while
 // staying exhaustive (a new op with no arm trips T3013 — no `_` wildcard).
 // The single canonical op→text table, shared by `dump_bytecode` and
-// `text.vader::write_op_line`.
-write_op :: fn(out: StringBuilder, op: Op) -> void {
+// `vader/vm/virt_writer` (which imports this).
+export write_op :: fn(out: StringBuilder, op: Op) -> void {
     match op {
         is I32Const as c            -> out.append("i32.const ${c.value}")
         is I64Const as c            -> out.append("i64.const ${c.value}")
@@ -759,4 +732,36 @@ import "std/testing" { assert_eq }
     }
     out :: dump_bytecode(module, "")
     assert_eq(out, "module test\n")
+}
+
+/// JSON-style quoting — wraps in `"..."`, escaping `\\`, `\"`, `\n`, `\r`,
+/// `\t` and NUL (`\0`). Every other byte — including multi-byte UTF-8 — is
+/// copied verbatim so the round-trip is byte-exact. Shared by `dump_bytecode`
+/// and `vader/vm/virt_writer` (which imports this). The escape set matches
+/// `std/string::decode_escapes` (the decoder `virt_reader.parse_string_decl`
+/// reads back through), which understands exactly `\n \t \r \" \\ \0` and is
+/// byte-transparent for the rest — it has no `\u` / `\x` form.
+export quote_string :: fn(value: string) -> string {
+    out :: new_builder()
+    out.append("\"")
+    vb :: value.bytes()
+    n :: vb.len()
+    i: usize = 0
+    for i < n {
+        b :: vb[i]
+        if      b == b'\\' { out.append("\\\\") }
+        else if b == b'"'  { out.append("\\\"") }
+        else if b == b'\n' { out.append("\\n") }
+        else if b == b'\r' { out.append("\\r") }
+        else if b == b'\t' { out.append("\\t") }
+        else if b == 0     { out.append("\\0") }
+        else {
+            // Copy the raw byte verbatim — `char(u32(b))` would re-encode it
+            // as UTF-8 and double-encode any byte >= 0x80.
+            out.append(vb[i..<i + 1].as_string())
+        }
+        i += 1
+    }
+    out.append("\"")
+    return "${out}"
 }

@@ -39,19 +39,6 @@ import "vader/lower" {
     INTRINSIC_SIZE_OF_TYPE,
     type_of,
 }
-import "vader/vm" {
-    Op, I32Const, I64Const, F64Const, BoolConst, CharConst, StringConst,
-    NullConst, LocalGet, LocalSet, LocalField, Return, Drop, Call, CallImport, CallIndirect,
-    FnRef,
-    If, Else, End, StructNew, StructGet, StructSet,
-    Block, Loop, Branch, BranchIf, BoolNot,
-    ArrayNew, ArrayLen, ArrayPush, ArrayGet, ArraySet, ArraySlice, StringSliceCodepoints,
-    DataConst, TypeConst, TypeCheck,
-    Convert, ConvertTarget,
-    MakeClosure, VirtualCall,
-    BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish,
-    SizeOfType,
-}
 
 /// Walk a lowered block : every statement in order, then the
 /// trailing expression (if any). Trailing exprs leave their value on

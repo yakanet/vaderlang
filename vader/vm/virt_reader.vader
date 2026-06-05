@@ -1,4 +1,4 @@
-// vader/vm/parser — read a `.virt` text bytecode dump into a `Module`.
+// vader/vm/virt_reader — read a `.virt` text bytecode dump into a `Module`.
 //
 // The format is the one produced by `vader build --target=ir-text` —
 // stable enough that the Vader-side VM can validate end-to-end against
@@ -13,6 +13,8 @@
 // stack that resets at each fn boundary.
 
 module "vader/vm"
+
+bc :: import "vader/bytecode"
 
 import "std/string" { bytes, as_string, starts_with, ends_with, trim, split, index_of, decode_escapes, ParseError }
 import "std/numbers" { hex_digit_value, parse_int_in_base, parse_uint_in_base }
@@ -36,7 +38,7 @@ import "std/numbers" { hex_digit_value, parse_int_in_base, parse_uint_in_base }
 /// `scopes` and `pending` are reused across functions (only their
 /// cursors reset to 0).
 ParserState :: struct {
-    ops:        Op[]
+    ops:        bc.Op[]
     table:      i32[]
     scopes:     ScopeEntry[]
     scope_sp:   usize[]
@@ -888,7 +890,7 @@ count_delimited_items :: fn(line: string, open_char: char, close_char: char) -> 
 /// @return         `true` if a known op was recognised and pushed ;
 ///                 `false` for unknown lines (silently dropped so they
 ///                 don't shift pc indices).
-try_push_op :: fn(cleaned: string, head: string, ops: Op[]) -> bool {
+try_push_op :: fn(cleaned: string, head: string, ops: bc.Op[]) -> bool {
     parsed :: parse_op_line(cleaned, head)
     if parsed is null { return false }
     ops.push(parsed)
@@ -1029,7 +1031,7 @@ drain_pending :: fn(state: ParserState, label: string, is_loop: bool, opener_pc:
 /// @param cleaned  the .virt line (comment-stripped).
 /// @param head     the line's pre-computed head token (see `head_of`).
 /// @return         the parsed op, or `null` for unrecognised lines.
-parse_op_line :: fn(cleaned: string, head: string) -> Op | null {
+parse_op_line :: fn(cleaned: string, head: string) -> bc.Op | null {
     dot :: head.index_of('.', 0)
     if dot >= 0 {
         width :: head.bytes()[0..<usize(dot)].as_string()
@@ -1056,8 +1058,8 @@ parse_op_line :: fn(cleaned: string, head: string) -> Op | null {
             // dedicated ops ; everything else routes through `parse_convert`.
             // `f32` stays a valid from-type for forward compatibility even
             // though the bytecode emit doesn't currently produce it.
-            if width == "char" && suffix.starts_with("to_") { return CharToInt {} }
-            if suffix == "to_char" { return IntToChar {} }
+            if width == "char" && suffix.starts_with("to_") { return bc.CharToInt {} }
+            if suffix == "to_char" { return bc.IntToChar {} }
             if suffix.starts_with("to_") {
                 target :: suffix.bytes()["to_".bytes().len()..<suffix.bytes().len()].as_string()
                 if is_int_width(target) || target == "f32" || target == "f64" { return parse_convert(cleaned) }
@@ -1068,17 +1070,17 @@ parse_op_line :: fn(cleaned: string, head: string) -> Op | null {
                 if !(int_op is null) { return int_op }
             }
             if is_f64 {
-                if suffix == "add" { return F64Add {} }
-                if suffix == "sub" { return F64Sub {} }
-                if suffix == "mul" { return F64Mul {} }
-                if suffix == "div" { return F64Div {} }
-                if suffix == "neg" { return F64Neg {} }
-                if suffix == "eq"  { return F64Eq {} }
-                if suffix == "ne"  { return F64Ne {} }
-                if suffix == "lt"  { return F64Lt {} }
-                if suffix == "le"  { return F64Le {} }
-                if suffix == "gt"  { return F64Gt {} }
-                if suffix == "ge"  { return F64Ge {} }
+                if suffix == "add" { return bc.F64Add {} }
+                if suffix == "sub" { return bc.F64Sub {} }
+                if suffix == "mul" { return bc.F64Mul {} }
+                if suffix == "div" { return bc.F64Div {} }
+                if suffix == "neg" { return bc.F64Neg {} }
+                if suffix == "eq"  { return bc.F64Eq {} }
+                if suffix == "ne"  { return bc.F64Ne {} }
+                if suffix == "lt"  { return bc.F64Lt {} }
+                if suffix == "le"  { return bc.F64Le {} }
+                if suffix == "gt"  { return bc.F64Gt {} }
+                if suffix == "ge"  { return bc.F64Ge {} }
             }
         }
     }
@@ -1104,51 +1106,51 @@ parse_op_line :: fn(cleaned: string, head: string) -> Op | null {
     if head == "array.push"       { return parse_array_push(cleaned) }
     if head == "array.get"        { return parse_array_get(cleaned) }
     if head == "array.set"        { return parse_array_set(cleaned) }
-    if head == "array.len"        { return ArrayLen {} }
+    if head == "array.len"        { return bc.ArrayLen {} }
     if head == "array.slice"      { return parse_array_slice(cleaned) }
     if head == "data.const"       { return parse_data_const(cleaned) }
     if head == "ref.cast"         { return parse_ref_cast(cleaned) }
     if head == "intrinsic" {
-        if cleaned == "intrinsic builder.new"             { return BuilderNew {} }
-        if cleaned == "intrinsic builder.append_str"      { return BuilderAppendStr {} }
-        if cleaned == "intrinsic builder.append_display"  { return BuilderAppendDisplay {} }
-        if cleaned == "intrinsic builder.finish"          { return BuilderFinish {} }
-        if cleaned == "intrinsic size_of.type"            { return SizeOfType {} }
+        if cleaned == "intrinsic builder.new"             { return bc.BuilderNew {} }
+        if cleaned == "intrinsic builder.append_str"      { return bc.BuilderAppendStr {} }
+        if cleaned == "intrinsic builder.append_display"  { return bc.BuilderAppendDisplay {} }
+        if cleaned == "intrinsic builder.finish"          { return bc.BuilderFinish {} }
+        if cleaned == "intrinsic size_of.type"            { return bc.SizeOfType {} }
         return null
     }
-    if head == "null.const"     { return NullConst {} }
+    if head == "null.const"     { return bc.NullConst {} }
     if head == "bool.const"     { return parse_bool_const(cleaned) }
-    if head == "bool.eq"        { return BoolEq {} }
-    if head == "bool.ne"        { return BoolNe {} }
-    if head == "bool.and"       { return BoolAnd {} }
-    if head == "bool.or"        { return BoolOr {} }
-    if head == "bool.not"       { return BoolNot {} }
+    if head == "bool.eq"        { return bc.BoolEq {} }
+    if head == "bool.ne"        { return bc.BoolNe {} }
+    if head == "bool.and"       { return bc.BoolAnd {} }
+    if head == "bool.or"        { return bc.BoolOr {} }
+    if head == "bool.not"       { return bc.BoolNot {} }
     if head == "char.const"     { return parse_char_const(cleaned) }
-    if head == "char.eq"        { return CharEq {} }
-    if head == "char.ne"        { return CharNe {} }
-    if head == "char.lt"        { return CharLt {} }
-    if head == "char.le"        { return CharLe {} }
-    if head == "char.gt"        { return CharGt {} }
-    if head == "char.ge"        { return CharGe {} }
-    if head == "string.eq"      { return StringEq {} }
-    if head == "string.ne"      { return StringNe {} }
-    if head == "string.concat"  { return StringConcat {} }
-    if head == "string.slice_codepoints" { return StringSliceCodepoints {} }
-    if head == "ref.eq"         { return RefEq {} }
-    if head == "ref.ne"         { return RefNe {} }
-    if head == "drop"           { return Drop {} }
+    if head == "char.eq"        { return bc.CharEq {} }
+    if head == "char.ne"        { return bc.CharNe {} }
+    if head == "char.lt"        { return bc.CharLt {} }
+    if head == "char.le"        { return bc.CharLe {} }
+    if head == "char.gt"        { return bc.CharGt {} }
+    if head == "char.ge"        { return bc.CharGe {} }
+    if head == "string.eq"      { return bc.StringEq {} }
+    if head == "string.ne"      { return bc.StringNe {} }
+    if head == "string.concat"  { return bc.StringConcat {} }
+    if head == "string.slice_codepoints" { return bc.StringSliceCodepoints {} }
+    if head == "ref.eq"         { return bc.RefEq {} }
+    if head == "ref.ne"         { return bc.RefNe {} }
+    if head == "drop"           { return bc.Drop {} }
     if head == "type_check"     { return parse_type_check(cleaned) }
     if head == "type.const"     { return parse_type_const(cleaned) }
-    if head == "defer.push"     { return DeferPush {} }
+    if head == "defer.push"     { return bc.DeferPush {} }
     if head == "defer.pop_exec" { return parse_defer_pop_exec(cleaned) }
-    if head == "block"          { return Block {} }
-    if head == "loop"           { return Loop {} }
-    if head == "if"             { return If {} }
-    if head == "else"           { return Else {} }
-    if head == "end"            { return End {} }
-    if head == "br_if"          { return BranchIf {} }
-    if head == "br"             { return Branch {} }
-    if head == "return"         { return Return {} }
+    if head == "block"          { return bc.Block {} }
+    if head == "loop"           { return bc.Loop {} }
+    if head == "if"             { return bc.If {} }
+    if head == "else"           { return bc.Else {} }
+    if head == "end"            { return bc.End {} }
+    if head == "br_if"          { return bc.BranchIf {} }
+    if head == "br"             { return bc.Branch {} }
+    if head == "return"         { return bc.Return {} }
     return null
 }
 
@@ -1161,7 +1163,7 @@ parse_op_line :: fn(cleaned: string, head: string) -> Op | null {
 /// @param width   the integer width prefix (`i32`, `u8`, ..., `usize`).
 /// @param suffix  the verb tail (`add`, `shl`, `neg`, ...).
 /// @return        the matching op, or `null` for an unrecognised suffix.
-int_op_for :: fn(width: string, suffix: string) -> Op | null {
+int_op_for :: fn(width: string, suffix: string) -> bc.Op | null {
     is_wide :: width == "i64" || width == "u64"
     // Unsigned widths route compare / div / rem to dedicated U32*/U64*
     // ops so values with the high bit set don't read as negative. add /
@@ -1169,66 +1171,66 @@ int_op_for :: fn(width: string, suffix: string) -> Op | null {
     // complement and stay on the signed family.
     is_unsigned :: is_unsigned_width(width)
     if is_wide {
-        if suffix == "add" { return I64Add {} }
-        if suffix == "sub" { return I64Sub {} }
-        if suffix == "mul" { return I64Mul {} }
-        if suffix == "eq"  { return I64Eq {} }
-        if suffix == "ne"  { return I64Ne {} }
-        if suffix == "neg" { return I64Neg {} }
+        if suffix == "add" { return bc.I64Add {} }
+        if suffix == "sub" { return bc.I64Sub {} }
+        if suffix == "mul" { return bc.I64Mul {} }
+        if suffix == "eq"  { return bc.I64Eq {} }
+        if suffix == "ne"  { return bc.I64Ne {} }
+        if suffix == "neg" { return bc.I64Neg {} }
         if is_unsigned {
-            if suffix == "div" { return U64Div {} }
-            if suffix == "rem" { return U64Mod {} }
-            if suffix == "lt"  { return U64Lt {} }
-            if suffix == "le"  { return U64Le {} }
-            if suffix == "gt"  { return U64Gt {} }
-            if suffix == "ge"  { return U64Ge {} }
+            if suffix == "div" { return bc.U64Div {} }
+            if suffix == "rem" { return bc.U64Mod {} }
+            if suffix == "lt"  { return bc.U64Lt {} }
+            if suffix == "le"  { return bc.U64Le {} }
+            if suffix == "gt"  { return bc.U64Gt {} }
+            if suffix == "ge"  { return bc.U64Ge {} }
         }
-        if suffix == "div" { return I64Div {} }
-        if suffix == "rem" { return I64Mod {} }
-        if suffix == "lt"  { return I64Lt {} }
-        if suffix == "le"  { return I64Le {} }
-        if suffix == "gt"  { return I64Gt {} }
-        if suffix == "ge"  { return I64Ge {} }
+        if suffix == "div" { return bc.I64Div {} }
+        if suffix == "rem" { return bc.I64Mod {} }
+        if suffix == "lt"  { return bc.I64Lt {} }
+        if suffix == "le"  { return bc.I64Le {} }
+        if suffix == "gt"  { return bc.I64Gt {} }
+        if suffix == "ge"  { return bc.I64Ge {} }
         // 64-bit bitwise / shift stay in the I64 family so wide-width
         // operands don't truncate via the I32 path's i32 apply closure.
-        if suffix == "bitand" { return I64BitAnd {} }
-        if suffix == "bitor"  { return I64BitOr {} }
-        if suffix == "bitxor" { return I64BitXor {} }
-        if suffix == "bitnot" { return I64BitNot {} }
-        if suffix == "shl"    { return I64Shl {} }
+        if suffix == "bitand" { return bc.I64BitAnd {} }
+        if suffix == "bitor"  { return bc.I64BitOr {} }
+        if suffix == "bitxor" { return bc.I64BitXor {} }
+        if suffix == "bitnot" { return bc.I64BitNot {} }
+        if suffix == "shl"    { return bc.I64Shl {} }
         if suffix == "shr" {
-            if is_unsigned { return I64ShrU {} }
-            return I64Shr {}
+            if is_unsigned { return bc.I64ShrU {} }
+            return bc.I64Shr {}
         }
     }
-    if suffix == "add"    { return I32Add {} }
-    if suffix == "sub"    { return I32Sub {} }
-    if suffix == "mul"    { return I32Mul {} }
-    if suffix == "eq"     { return I32Eq {} }
-    if suffix == "ne"     { return I32Ne {} }
-    if suffix == "neg"    { return I32Neg {} }
+    if suffix == "add"    { return bc.I32Add {} }
+    if suffix == "sub"    { return bc.I32Sub {} }
+    if suffix == "mul"    { return bc.I32Mul {} }
+    if suffix == "eq"     { return bc.I32Eq {} }
+    if suffix == "ne"     { return bc.I32Ne {} }
+    if suffix == "neg"    { return bc.I32Neg {} }
     if is_unsigned {
-        if suffix == "div" { return U32Div {} }
-        if suffix == "rem" { return U32Mod {} }
-        if suffix == "lt"  { return U32Lt {} }
-        if suffix == "le"  { return U32Le {} }
-        if suffix == "gt"  { return U32Gt {} }
-        if suffix == "ge"  { return U32Ge {} }
+        if suffix == "div" { return bc.U32Div {} }
+        if suffix == "rem" { return bc.U32Mod {} }
+        if suffix == "lt"  { return bc.U32Lt {} }
+        if suffix == "le"  { return bc.U32Le {} }
+        if suffix == "gt"  { return bc.U32Gt {} }
+        if suffix == "ge"  { return bc.U32Ge {} }
     }
-    if suffix == "div"    { return I32Div {} }
-    if suffix == "rem"    { return I32Mod {} }
-    if suffix == "lt"     { return I32Lt {} }
-    if suffix == "le"     { return I32Le {} }
-    if suffix == "gt"     { return I32Gt {} }
-    if suffix == "ge"     { return I32Ge {} }
-    if suffix == "bitnot" { return I32BitNot {} }
-    if suffix == "bitand" { return I32BitAnd {} }
-    if suffix == "bitor"  { return I32BitOr {} }
-    if suffix == "bitxor" { return I32BitXor {} }
-    if suffix == "shl"    { return I32Shl {} }
+    if suffix == "div"    { return bc.I32Div {} }
+    if suffix == "rem"    { return bc.I32Mod {} }
+    if suffix == "lt"     { return bc.I32Lt {} }
+    if suffix == "le"     { return bc.I32Le {} }
+    if suffix == "gt"     { return bc.I32Gt {} }
+    if suffix == "ge"     { return bc.I32Ge {} }
+    if suffix == "bitnot" { return bc.I32BitNot {} }
+    if suffix == "bitand" { return bc.I32BitAnd {} }
+    if suffix == "bitor"  { return bc.I32BitOr {} }
+    if suffix == "bitxor" { return bc.I32BitXor {} }
+    if suffix == "shl"    { return bc.I32Shl {} }
     if suffix == "shr" {
-        if is_unsigned { return I32ShrU {} }
-        return I32Shr {}
+        if is_unsigned { return bc.I32ShrU {} }
+        return bc.I32Shr {}
     }
     return null
 }
@@ -1238,7 +1240,7 @@ int_op_for :: fn(width: string, suffix: string) -> Op | null {
 /// so the unsigned wide widths (e.g. `u32.const 4000000000`) survive
 /// without wraparound. Downstream `read_i32` truncates the i64 back to
 /// i32 when an i32 consumer wants it.
-parse_int_const_text :: fn(rest: string, width: string) -> Op | null {
+parse_int_const_text :: fn(rest: string, width: string) -> bc.Op | null {
     // 64-bit widths must NEVER collapse to `I32Const` even when the value
     // fits signed-i32 : an `I32Val` only carries 32 bits, so a wide unsigned
     // value whose i64 form happens to fit i32 (e.g. `u64 18446744073700000000`
@@ -1258,9 +1260,9 @@ parse_int_const_text :: fn(rest: string, width: string) -> Op | null {
         if mag is ParseError { return null }
         signed :: i64(0) - i64(mag)
         if !is_wide && signed >= i64(-0x80000000) && signed <= i64(0x7fffffff) {
-            return I32Const { .value = i32(signed) }
+            return bc.I32Const { .value = i32(signed) }
         }
-        return I64Const { .value = signed }
+        return bc.I64Const { .value = signed }
     }
     // Non-negative path : parse as `u64` to catch the full unsigned range
     // — i.e. literals up to `u64.MAX`. Values that don't fit signed-i64
@@ -1270,9 +1272,9 @@ parse_int_const_text :: fn(rest: string, width: string) -> Op | null {
     parsed :: parse_uint_in_base(rest, 10)
     if parsed is ParseError { return null }
     if !is_wide && parsed <= u64(0x7fffffff) {
-        return I32Const { .value = i32(parsed) }
+        return bc.I32Const { .value = i32(parsed) }
     }
-    return I64Const { .value = i64(parsed) }
+    return bc.I64Const { .value = i64(parsed) }
 }
 
 /// True iff `width` is one of the 10 integer prefixes the VM recognises
@@ -1328,11 +1330,11 @@ parse_int_after_prefix :: fn(line: string, prefix: string) -> i32 | null {
 ///
 /// @param cleaned  the .virt line, already comment-stripped.
 /// @return         the `Convert` op carrying the target tag.
-parse_convert :: fn(cleaned: string) -> Op {
+parse_convert :: fn(cleaned: string) -> bc.Op {
     dot :: cleaned.index_of('.', 0)
     prefix :: cleaned.bytes()[0..<usize(dot)].as_string()
     suffix :: cleaned.bytes()[usize(dot) + 1 + 3..<cleaned.bytes().len()].as_string()
-    return Convert { .from_name = prefix, .target = convert_target_of(suffix) }
+    return bc.Convert { .from_name = prefix, .target = convert_target_of(suffix) }
 }
 
 /// Collapse a target width to its `ConvertTarget` storage class. Every
@@ -1341,7 +1343,7 @@ parse_convert :: fn(cleaned: string) -> Op {
 ///
 /// @param width  the target width literal (`i32`, `f64`, `char`, ...).
 /// @return       the matching `ConvertTarget`.
-convert_target_of :: fn(width: string) -> ConvertTarget {
+convert_target_of :: fn(width: string) -> bc.ConvertTarget {
     if width == "i64"   { return .I64 }
     if width == "u64"   { return .I64 }
     if width == "f32"   { return .F64 }
@@ -1350,11 +1352,11 @@ convert_target_of :: fn(width: string) -> ConvertTarget {
     return .I32
 }
 
-parse_slot_arg :: fn(line: string, prefix: string, is_get: bool) -> Op | null {
+parse_slot_arg :: fn(line: string, prefix: string, is_get: bool) -> bc.Op | null {
     parsed :: parse_int_after_prefix(line, prefix)
     if parsed is null { return null }
-    if is_get { return LocalGet { .slot = parsed } }
-    return LocalSet { .slot = parsed }
+    if is_get { return bc.LocalGet { .slot = parsed } }
+    return bc.LocalSet { .slot = parsed }
 }
 
 /// Parse `f64.const N.M` where the operand is a decimal float literal
@@ -1365,11 +1367,11 @@ parse_slot_arg :: fn(line: string, prefix: string, is_get: bool) -> Op | null {
 /// @param line  the comment-stripped op line.
 /// @return      `F64Const { value }` on success, `null` on malformed
 ///              input.
-parse_f64_const :: fn(line: string) -> Op | null {
+parse_f64_const :: fn(line: string) -> bc.Op | null {
     rest :: line.bytes()["f64.const ".bytes().len()..<line.bytes().len()].as_string().trim()
     parsed :: parse_decimal_f64(rest)
     if parsed is null { return null }
-    return F64Const { .value = parsed }
+    return bc.F64Const { .value = parsed }
 }
 
 /// Decimal float parser for `<int>(.<frac>)?(e<int>)?` (sign, exponent,
@@ -1458,22 +1460,22 @@ export parse_decimal_f64 :: fn(s: string) -> f64 | null {
     return result
 }
 
-parse_string_const :: fn(line: string) -> Op | null {
+parse_string_const :: fn(line: string) -> bc.Op | null {
     parsed :: parse_int_after_prefix(line, "string.const ")
     if parsed is null { return null }
-    return StringConst { .index = parsed }
+    return bc.StringConst { .index = parsed }
 }
 
-parse_call_import :: fn(line: string) -> Op | null {
+parse_call_import :: fn(line: string) -> bc.Op | null {
     parsed :: parse_int_after_prefix(line, "call.import ")
     if parsed is null { return null }
-    return CallImport { .index = parsed }
+    return bc.CallImport { .index = parsed }
 }
 
-parse_call :: fn(line: string) -> Op | null {
+parse_call :: fn(line: string) -> bc.Op | null {
     parsed :: parse_int_after_prefix(line, "call ")
     if parsed is null { return null }
-    return Call { .function_index = parsed }
+    return bc.Call { .function_index = parsed }
 }
 
 /// Parse `bool.const true` / `bool.const false`. The TS bytecode
@@ -1482,24 +1484,24 @@ parse_call :: fn(line: string) -> Op | null {
 ///
 /// @param line  the .virt line (comment-stripped).
 /// @return      `BoolConst { value }`, or `null` on malformed input.
-parse_bool_const :: fn(line: string) -> Op | null {
+parse_bool_const :: fn(line: string) -> bc.Op | null {
     rest :: line.bytes()["bool.const ".bytes().len()..<line.bytes().len()].as_string().trim()
-    if rest == "true"  { return BoolConst { .value = true  } }
-    if rest == "false" { return BoolConst { .value = false } }
+    if rest == "true"  { return bc.BoolConst { .value = true  } }
+    if rest == "false" { return bc.BoolConst { .value = false } }
     return null
 }
 
 /// Parse `char.const N` where N is the codepoint as a base-10 integer.
-parse_char_const :: fn(line: string) -> Op | null {
+parse_char_const :: fn(line: string) -> bc.Op | null {
     parsed :: parse_int_after_prefix(line, "char.const ")
     if parsed is null { return null }
-    return CharConst { .value = char(u32(parsed)) }
+    return bc.CharConst { .value = char(u32(parsed)) }
 }
 
-parse_call_indirect :: fn(line: string) -> Op | null {
+parse_call_indirect :: fn(line: string) -> bc.Op | null {
     parsed :: parse_int_after_prefix(line, "call.indirect ")
     if parsed is null { return null }
-    return CallIndirect { .type_id = parsed }
+    return bc.CallIndirect { .type_id = parsed }
 }
 
 /// Parse `virtual.call PARAM_COUNT VTABLE_KEY` — the vtable key is the
@@ -1508,7 +1510,7 @@ parse_call_indirect :: fn(line: string) -> Op | null {
 /// @param line  the .virt line (comment-stripped).
 /// @return      `VirtualCall { parameter_count, vtable_key }`, or `null`
 ///              on malformed input.
-parse_virtual_call :: fn(line: string) -> Op | null {
+parse_virtual_call :: fn(line: string) -> bc.Op | null {
     rest :: line.bytes()["virtual.call ".bytes().len()..<line.bytes().len()].as_string().trim()
     space :: rest.index_of(' ', 0)
     if space < 0 { return null }
@@ -1516,7 +1518,7 @@ parse_virtual_call :: fn(line: string) -> Op | null {
     parsed_pc :: parse_int_in_base(pc_text, 10)
     if parsed_pc is ParseError { return null }
     key :: rest.bytes()[usize(space) + 1..<rest.bytes().len()].as_string().trim()
-    return VirtualCall { .parameter_count = i32(parsed_pc), .vtable_key = key }
+    return bc.VirtualCall { .parameter_count = i32(parsed_pc), .vtable_key = key }
 }
 
 /// Parse `fn.ref FN_INDEX TYPE_ID` — the TYPE_ID operand is parsed
@@ -1526,11 +1528,11 @@ parse_virtual_call :: fn(line: string) -> Op | null {
 ///
 /// @param line  the .virt line (comment-stripped).
 /// @return      `FnRef { function_index }`, or `null` on malformed input.
-parse_fn_ref :: fn(line: string) -> Op | null {
+parse_fn_ref :: fn(line: string) -> bc.Op | null {
     pair :: parse_int_pair_after_prefix(line, "fn.ref ")
     if pair is null { return null }
     [fn_idx, type_id] :: pair
-    return FnRef { .function_index = fn_idx, .type_id = type_id }
+    return bc.FnRef { .function_index = fn_idx, .type_id = type_id }
 }
 
 /// Parse `make_closure FN_INDEX ENV_TYPE_ID` — same shape as `fn.ref`,
@@ -1538,48 +1540,48 @@ parse_fn_ref :: fn(line: string) -> Op | null {
 ///
 /// @param line  the .virt line (comment-stripped).
 /// @return      `MakeClosure { function_index, env_type_id }`, or `null` on malformed input.
-parse_make_closure :: fn(line: string) -> Op | null {
+parse_make_closure :: fn(line: string) -> bc.Op | null {
     pair :: parse_int_pair_after_prefix(line, "make_closure ")
     if pair is null { return null }
     [fn_idx, env_type_id] :: pair
-    return MakeClosure { .function_index = fn_idx, .env_type_id = env_type_id }
+    return bc.MakeClosure { .function_index = fn_idx, .env_type_id = env_type_id }
 }
 
-parse_type_check :: fn(line: string) -> Op | null {
+parse_type_check :: fn(line: string) -> bc.Op | null {
     parsed :: parse_int_after_prefix(line, "type_check ")
     if parsed is null { return null }
-    return TypeCheck { .type_id = parsed }
+    return bc.TypeCheck { .type_id = parsed }
 }
 
-parse_ref_cast :: fn(line: string) -> Op | null {
+parse_ref_cast :: fn(line: string) -> bc.Op | null {
     parsed :: parse_int_after_prefix(line, "ref.cast ")
     if parsed is null { return null }
-    return RefCast { .type_id = parsed }
+    return bc.RefCast { .type_id = parsed }
 }
 
-parse_type_const :: fn(line: string) -> Op | null {
+parse_type_const :: fn(line: string) -> bc.Op | null {
     parsed :: parse_int_after_prefix(line, "type.const ")
     if parsed is null { return null }
-    return TypeConst { .type_id = parsed }
+    return bc.TypeConst { .type_id = parsed }
 }
 
-parse_defer_pop_exec :: fn(line: string) -> Op | null {
+parse_defer_pop_exec :: fn(line: string) -> bc.Op | null {
     parsed :: parse_int_after_prefix(line, "defer.pop_exec ")
     if parsed is null { return null }
-    return DeferPopExec { .count = parsed }
+    return bc.DeferPopExec { .count = parsed }
 }
 
-parse_local_tee :: fn(line: string) -> Op | null {
+parse_local_tee :: fn(line: string) -> bc.Op | null {
     parsed :: parse_int_after_prefix(line, "local.tee ")
     if parsed is null { return null }
-    return LocalTee { .slot = parsed }
+    return bc.LocalTee { .slot = parsed }
 }
 
-parse_struct_new_after :: fn(line: string, prefix: string) -> Op | null {
+parse_struct_new_after :: fn(line: string, prefix: string) -> bc.Op | null {
     parsed :: parse_int_after_prefix(line, prefix)
     if parsed is null { return null }
     stack :: prefix == "struct.new_stack "
-    return StructNew { .type_id = parsed, .stack = stack }
+    return bc.StructNew { .type_id = parsed, .stack = stack }
 }
 
 /// Parse two space-separated base-10 ints after `prefix`. Used by
@@ -1600,11 +1602,11 @@ parse_int_pair_after_prefix :: fn(line: string, prefix: string) -> [i32, i32] | 
     return [i32(a), i32(b)]
 }
 
-parse_struct_get :: fn(line: string) -> Op | null {
+parse_struct_get :: fn(line: string) -> bc.Op | null {
     pair :: parse_int_pair_after_prefix(line, "struct.get ")
     if pair is null { return null }
     [tid, fi] :: pair
-    return StructGet { .type_id = tid, .field_index = fi }
+    return bc.StructGet { .type_id = tid, .field_index = fi }
 }
 
 /// Parse `local.field SLOT TYPE FIELD` — three whitespace-separated
@@ -1613,7 +1615,7 @@ parse_struct_get :: fn(line: string) -> Op | null {
 /// @param line  full line, leading whitespace already stripped.
 /// @return      a `LocalField` op on success, `null` on any parse error
 ///              (missing space, non-integer token, …).
-parse_local_field :: fn(line: string) -> Op | null {
+parse_local_field :: fn(line: string) -> bc.Op | null {
     rest :: line.bytes()["local.field ".bytes().len()..<line.bytes().len()].as_string().trim()
     s1 :: rest.index_of(' ', 0)
     if s1 < 0 { return null }
@@ -1628,7 +1630,7 @@ parse_local_field :: fn(line: string) -> Op | null {
     if tid is ParseError { return null }
     fi :: parse_int_in_base(field_str, 10)
     if fi is ParseError { return null }
-    return LocalField { .slot = i32(slot), .type_id = i32(tid), .field_index = i32(fi) }
+    return bc.LocalField { .slot = i32(slot), .type_id = i32(tid), .field_index = i32(fi) }
 }
 
 /// Parse `return.lit <inner-const-op>` — the inner literal is parsed
@@ -1639,58 +1641,58 @@ parse_local_field :: fn(line: string) -> Op | null {
 /// @param line  full line, leading whitespace already stripped.
 /// @return      a `ReturnLit` op on success, `null` when the inner op
 ///              isn't a recognised const-producing op.
-parse_return_lit :: fn(line: string) -> Op | null {
+parse_return_lit :: fn(line: string) -> bc.Op | null {
     inner_raw :: line.bytes()["return.lit ".bytes().len()..<line.bytes().len()].as_string().trim()
     space :: inner_raw.index_of(' ', 0)
     inner_head: string = ""
     if space < 0 { inner_head = inner_raw } else { inner_head = inner_raw.bytes()[0..<usize(space)].as_string() }
     inner_op :: parse_op_line(inner_raw, inner_head)
     if inner_op is null { return null }
-    const_inner :: const_op_of(inner_op)
+    const_inner :: bc.const_op_of(inner_op)
     if const_inner is null { return null }
-    return ReturnLit { .value = const_inner }
+    return bc.ReturnLit { .value = const_inner }
 }
 
-parse_struct_set_after :: fn(line: string, prefix: string) -> Op | null {
+parse_struct_set_after :: fn(line: string, prefix: string) -> bc.Op | null {
     pair :: parse_int_pair_after_prefix(line, prefix)
     if pair is null { return null }
     [tid, fi] :: pair
     stack :: prefix == "struct.set_stack "
-    return StructSet { .type_id = tid, .field_index = fi, .stack = stack }
+    return bc.StructSet { .type_id = tid, .field_index = fi, .stack = stack }
 }
 
-parse_array_new :: fn(line: string) -> Op | null {
+parse_array_new :: fn(line: string) -> bc.Op | null {
     pair :: parse_int_pair_after_prefix(line, "array.new ")
     if pair is null { return null }
     [tid, len] :: pair
-    return ArrayNew { .type_id = tid, .length = len }
+    return bc.ArrayNew { .type_id = tid, .length = len }
 }
 
-parse_array_push :: fn(line: string) -> Op | null {
+parse_array_push :: fn(line: string) -> bc.Op | null {
     parsed :: parse_int_after_prefix(line, "array.push ")
     if parsed is null { return null }
-    return ArrayPush { .type_id = parsed }
+    return bc.ArrayPush { .type_id = parsed }
 }
 
-parse_array_get :: fn(line: string) -> Op | null {
+parse_array_get :: fn(line: string) -> bc.Op | null {
     parsed :: parse_int_after_prefix(line, "array.get ")
     if parsed is null { return null }
-    return ArrayGet { .type_id = parsed }
+    return bc.ArrayGet { .type_id = parsed }
 }
 
-parse_array_set :: fn(line: string) -> Op | null {
+parse_array_set :: fn(line: string) -> bc.Op | null {
     parsed :: parse_int_after_prefix(line, "array.set ")
     if parsed is null { return null }
-    return ArraySet { .type_id = parsed }
+    return bc.ArraySet { .type_id = parsed }
 }
 
-parse_array_slice :: fn(line: string) -> Op | null {
+parse_array_slice :: fn(line: string) -> bc.Op | null {
     parsed :: parse_int_after_prefix(line, "array.slice ")
     if parsed is null { return null }
-    return ArraySlice { .type_id = parsed }
+    return bc.ArraySlice { .type_id = parsed }
 }
 
-parse_data_const :: fn(line: string) -> Op | null {
+parse_data_const :: fn(line: string) -> bc.Op | null {
     after :: line.bytes()["data.const ".bytes().len()..<line.bytes().len()].as_string()
     sp :: after.index_of(' ', 0)
     if sp < 0 { return null }
@@ -1700,5 +1702,5 @@ parse_data_const :: fn(line: string) -> Op | null {
     if pool_parsed is ParseError { return null }
     type_parsed :: parse_int_in_base(type_text, 10)
     if type_parsed is ParseError { return null }
-    return DataConst { .pool_index = i32(pool_parsed), .type_id = i32(type_parsed) }
+    return bc.DataConst { .pool_index = i32(pool_parsed), .type_id = i32(type_parsed) }
 }

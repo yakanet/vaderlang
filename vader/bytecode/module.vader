@@ -19,7 +19,6 @@
 
 module "vader/bytecode"
 
-import "vader/vm" { Op }
 
 /// One Vader function body, post-lowering. Closely mirrors TS `BcFunction`.
 ///

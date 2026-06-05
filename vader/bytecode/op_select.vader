@@ -28,22 +28,6 @@ module "vader/bytecode"
 import "vader/lower" {
     LoweredBinaryOp, LoweredUnaryOp,
 }
-import "vader/vm" {
-    Op,
-    I32Add, I32Sub, I32Mul, I32Div, I32Mod, I32Neg, I32BitNot,
-    I32BitAnd, I32BitOr, I32BitXor, I32Shl, I32Shr, I32ShrU,
-    I32Eq, I32Ne, I32Lt, I32Le, I32Gt, I32Ge,
-    I64Add, I64Sub, I64Mul, I64Div, I64Mod, I64Neg,
-    I64BitAnd, I64BitOr, I64BitXor, I64BitNot,
-    I64Shl, I64Shr, I64ShrU,
-    I64Eq, I64Ne, I64Lt, I64Le, I64Gt, I64Ge,
-    U32Div, U32Mod, U32Lt, U32Le, U32Gt, U32Ge,
-    U64Div, U64Mod, U64Lt, U64Le, U64Gt, U64Ge,
-    F64Add, F64Sub, F64Mul, F64Div, F64Neg,
-    F64Eq, F64Ne, F64Lt, F64Le, F64Gt, F64Ge,
-    BoolEq, BoolNe, BoolAnd, BoolOr, BoolNot,
-    CharEq, CharNe, StringEq, StringNe, StringConcat,
-}
 
 /// Pick the bytecode op for a `LoweredBinaryOp` over operands of class
 /// `lhs`. `add` over `string` collapses to `StringConcat` ; `eq` /
