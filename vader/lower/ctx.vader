@@ -198,6 +198,17 @@ export LowerProjectCtx :: struct {
     /// with no erased primitive dispatch → no surfacing, no snapshot drift.
     virtually_dispatched_traits: MutableSet<string>
 
+    /// Symbol ids of struct types CONSTRUCTED anywhere in the program (every
+    /// `lower_struct_lit` records its `type`'s symbol). `surface_stdlib_impl_externs`
+    /// gates a NON-generic stdlib struct's vtable surfacing on this : a struct
+    /// implementing a virtually-dispatched trait (`StringChars implements
+    /// Iterator<char>`) needs its impl members in the vtable ONLY when the struct
+    /// is actually constructed (reached via a trait-typed `.next()` vcall), NOT
+    /// for every snippet that merely dispatches the trait — otherwise an
+    /// unconstructed stdlib implementor (`std_io$IOError`) would be pulled into
+    /// unrelated snippets, interning its type + bloating the table.
+    constructed_struct_symbols: MutableSet<i32>
+
     /// Blanket-array impl-member call sites (`x in arr` → `T[] implements
     /// Contains`, `[T]`-to-`Iterator` coercion → `T[] implements Into`) : maps
     /// the call-site mangle (`std_core$[]$Contains$contains__i32`,
@@ -283,6 +294,9 @@ export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedPr
         },
         .virtually_dispatched_traits = MutableSet<string> {
             .inner = MutableMap<string, bool> {},
+        },
+        .constructed_struct_symbols = MutableSet<i32> {
+            .inner = MutableMap<i32, bool> {},
         },
         .array_blanket_elems = MutableMap<string, Type> {},
         .pending_generic_impl_recv = [],

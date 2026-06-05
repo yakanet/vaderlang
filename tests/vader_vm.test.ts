@@ -272,14 +272,6 @@ const KNOWN_DIVERGENT = new Set<string>([
   // VADER_SELF_EMIT set). The entries below are snippets whose native bytecode
   // runs incorrectly — real self-host emit/VM gaps, each its own follow-up.
   //
-  // `for_in_iter_trait` chains `s.chars().filter(is_l).count()`. The
-  // FilterIterator<Any> erased-dispatch leg is now fixed (see _diag_iter_collect,
-  // removed below), but `StringChars` — the non-generic stdlib char iterator
-  // returned by `chars()` — never gets its `Iterator.next` impl surfaced for the
-  // virtual-call path, so `FilterIterator.next`'s `self.source.next()` traps
-  // "no impl for type N" on the StringChars receiver. Distinct gap : non-generic
-  // stdlib struct implementor of a virtually-dispatched trait, tracked separately.
-  "for_in_iter_trait",
   // `Duration` display prints raw nanoseconds instead of the unit-scaled form
   // (`3000000000 ns` vs `3 s`) — std/time formatting path not taken.
   "std_time",

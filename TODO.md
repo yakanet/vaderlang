@@ -734,7 +734,7 @@ queries + closure-analysis pass land on the typechecker side.
       (else stdlib CFG bloats them ~10×). PROVISIONAL : decide whether stdlib
       elision should be a `--stdlib` opt-in flag on `dump` rather than the baked
       default, so the CLI can still show the full CFG when wanted.
-- [ ] **Native-emitter gaps surfaced by the oracle flip — 7 fixed, 4 open**
+- [ ] **Native-emitter gaps surfaced by the oracle flip — 8 fixed, 3 open**
       (2026-06-05). With `bytecode.snapshot.virt` now native-emitted,
       `vader_vm.test.ts` runs native bytecode for the whole corpus and exposed
       11 mis-compiles. FIXED this session:
@@ -769,13 +769,21 @@ queries + closure-analysis pass land on the typechecker side.
         erased instances : queuing a mixed one (`MapIterator<string, Any>`) forces
         a default-method body whose mixed-suffix sibling `next__string__Any` the
         materialiser never produces (GATE-B1 emit panic, surfaced on `json_basics`).
+      - `for_in_iter_trait` — `s.chars().filter(is_l).count()`. The
+        `FilterIterator<Any>` erased leg is the fix above ; the residual was a
+        DISTINCT class : `StringChars` (the NON-generic stdlib char iterator from
+        `chars()`) reached via `FilterIterator.next`'s trait-typed
+        `self.source.next()` vcall never got its `Iterator.next` surfaced —
+        `surface_stdlib_impl_externs` only surfaced directly-referenced or
+        PRIMITIVE-receiver members (the F3 gate). Extended the gate to non-generic
+        STRUCT receivers of a virtually-dispatched trait, but GATED on a new
+        `constructed_struct_symbols` set (populated from `lower_struct_lit`, joined
+        into the drain-fixpoint `cur_total`) so only ACTUALLY-CONSTRUCTED structs
+        surface : StringChars (built by `chars()`) yes, an unconstructed stdlib
+        implementor (`std_io$IOError`) no — the broad gate pulled IOError into
+        `trait_virtual_dispatch`, bloating its table ; the constructed gate is
+        drift-free. StringChars is the sole non-generic Iterator implementor.
       STILL OPEN (in `KNOWN_DIVERGENT` / phase-excluded, each its own fix) :
-      `for_in_iter_trait` — the `FilterIterator<Any>` erased leg is now fixed (as
-      above), but `s.chars().filter(is_l).count()` still traps : `StringChars` (the
-      NON-generic stdlib char iterator from `chars()`) never gets its `Iterator.next`
-      impl surfaced for the virtual-call path, so `FilterIterator.next`'s
-      `self.source.next()` misses on the StringChars receiver. Distinct class :
-      non-generic stdlib struct implementor of a virtually-dispatched trait.
       `std_time` (`abs(i64)` typed `any` — `pick_overload` doesn't collect a
       TRANSITIVELY-imported module's overloads, so `std/time::format` compares a
       wide ns value via `i32.lt`) ; `alias_import`, `namespace_import` (GATE-B1

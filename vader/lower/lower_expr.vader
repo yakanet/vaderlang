@@ -2599,6 +2599,11 @@ lower_struct_lit :: fn(ctx: FnLowerCtx, lit: StructLitExpr, type: Type) -> Lower
     // covered by the harvest (re-queueing them here is a harmless no-op).
     if type is StructType as st {
         if args_all_any_leaves(st.args) { queue_generic_impl_receiver(ctx, st) }
+        // Record the construction so `surface_stdlib_impl_externs` can surface a
+        // NON-generic stdlib struct's vtable members only when the struct is
+        // actually built (`StringChars` via `chars()`), not for every snippet
+        // that merely virtually dispatches its trait.
+        ctx.project.constructed_struct_symbols.add(st.symbol.id)
     }
     struct_lit :: LoweredStructLit { .span = lit.span, .type = type, .fields = fields }
     if spread_stmts.len() == 0 { return struct_lit }

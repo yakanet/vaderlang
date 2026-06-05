@@ -152,7 +152,8 @@ export lower_project :: fn(
             project_ctx.pending_generic_impl_recv.len() +
             project_ctx.nongeneric_stdlib_order.len() +
             project_ctx.referenced_impl_mangles.inner.size +
-            project_ctx.virtually_dispatched_traits.inner.size
+            project_ctx.virtually_dispatched_traits.inner.size +
+            project_ctx.constructed_struct_symbols.inner.size
         if cur_total == prev_total { draining = false } else { prev_total = cur_total }
     }
     // INVARIANT : anything that can register a generic fn instance or harvest a
@@ -615,24 +616,37 @@ surface_stdlib_impl_externs :: fn(
     if impl_decl.type_params.len() > 0 { return out }
     if impl_decl.for_type is GenericInstExpr { return out }
     self_type :: lower_for_type(impl_decl, typed)
-    // A primitive impl whose trait was reached by an ERASED virtual dispatch
-    // (op-overload / bounded-method / Display coerce on `T`/`Any`) must place
-    // EVERY primitive implementor in the vtable — the boxed receiver tag picks
-    // the impl at runtime, so no single concrete mangle was recorded. This is
-    // the only path that surfaces a member NOT individually referenced ; it
-    // fires solely for primitive receivers of a virtually-dispatched trait, so
-    // a snippet with no erased primitive dispatch surfaces nothing (no drift).
-    primitive_vtable_gate :: self_type is PrimitiveType &&
-        project_ctx.virtually_dispatched_traits.contains(impl_decl.trait_name)
+    // An impl whose trait was reached by a VIRTUAL dispatch must place EVERY
+    // implementor in the vtable — the boxed receiver tag picks the impl at
+    // runtime, so no single concrete mangle was recorded. This is the only path
+    // that surfaces a member NOT individually referenced.
+    //
+    // Primitive receivers : the ERASED-dispatch case (op-overload / bounded-method
+    // / Display coerce on `T`/`Any`).
+    //
+    // Non-generic STRUCT receivers : a non-generic stdlib struct implementing a
+    // virtually-dispatched trait (`StringChars implements Iterator<char>`, the
+    // sole such impl) reached via a trait-typed `self.source.next()` vcall — the
+    // generic-impl materialiser never covers it (no type params) and no direct
+    // call records its mangle. Gated on `constructed_struct_symbols` : surface
+    // only when the struct is actually built (`StringChars` via `chars()`), so
+    // an UNCONSTRUCTED stdlib implementor (`std_io$IOError`) is NOT pulled into a
+    // snippet that merely dispatches the same trait. Generic struct implementors
+    // go through `materialize_impl_for_instance` instead, excluded here.
+    //
+    // Both fire only for a virtually-dispatched trait, so a snippet that never
+    // virtually dispatches the trait surfaces nothing (no drift).
+    vtable_gate :: project_ctx.virtually_dispatched_traits.contains(impl_decl.trait_name) &&
+        vtable_receiver_eligible(self_type, project_ctx)
     for member in impl_decl.members {
         if member.type_params.len() > 0 { continue }
         mangled :: impl_member_mangled(impl_decl, member, typed, module_decls)
         // Only emit members an actual call referenced (direct call → exact
-        // mangle) OR every primitive implementor of a virtually-dispatched
-        // trait (erased dispatch, above) — emitting every stdlib impl member
+        // mangle) OR an eligible implementor of a virtually-dispatched trait
+        // (`vtable_gate`, above) — emitting every stdlib impl member
         // unconditionally would intern unused signature types and shift the
         // type table for unrelated snippets.
-        if !project_ctx.referenced_impl_mangles.contains(mangled) && !primitive_vtable_gate { continue }
+        if !project_ctx.referenced_impl_mangles.contains(mangled) && !vtable_gate { continue }
         // Dedupe against the generic-impl materialiser (and re-entrant calls).
         dedupe_key :: "surfaced::${mangled}"
         if project_ctx.materialized_impl_keys.contains(dedupe_key) { continue }
@@ -659,6 +673,17 @@ surface_stdlib_impl_externs :: fn(
         })
     }
     return out
+}
+
+// Receiver eligible for vtable surfacing of a virtually-dispatched trait.
+// PRIMITIVE : always (the erased-dispatch case — the boxed primitive tag picks
+// the impl at runtime). STRUCT : only when the struct is actually constructed
+// (`constructed_struct_symbols`), so an unconstructed stdlib implementor isn't
+// pulled into an unrelated snippet. Other receiver shapes don't reach here.
+vtable_receiver_eligible :: fn(self_type: Type, project_ctx: LowerProjectCtx) -> bool {
+    if self_type is PrimitiveType { return true }
+    if self_type is StructType as st { return project_ctx.constructed_struct_symbols.contains(st.symbol.id) }
+    return false
 }
 
 /// Materialise a blanket array-impl member (`T[] implements<T: Equals>
