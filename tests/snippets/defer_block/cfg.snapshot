@@ -4,17 +4,29 @@
 
 fn snippet$main() -> i32
   locals:
-    %0 $k_0: string
-    %1 $k_1: string
-    %2 __block_2: void (synthetic __block_2)
-    %3 $k_3: i32
+    %0 $struct_0: __defer_env_2
+    %1 $closure_1: ?
+    %2 $k_2: string
+    %3 $struct_3: __defer_env_5
+    %4 $closure_4: ?
+    %5 $k_5: string
+    %6 __block_2: void (synthetic __block_2)
+    %7 $k_7: i32
   bb0:
-    %0 = const string(#1) :string
-    call std_io$std_io$println__string(%0) :void
-    %1 = const string(#2) :string
-    call std_io$std_io$println__string(%1) :void
-    %3 = const int(0) :i32
-    return %3
+    %0 = struct_new __defer_env_2()
+    %1 = make_closure __defer_1 env=%0 :?
+    defer.push %1
+    %2 = const string(#1) :string
+    call std_io$std_io$println__string(%2) :void
+    %3 = struct_new __defer_env_5()
+    %4 = make_closure __defer_4 env=%3 :?
+    defer.push %4
+    %5 = const string(#2) :string
+    call std_io$std_io$println__string(%5) :void
+    defer.pop_exec 1
+    defer.pop_exec 1
+    %7 = const int(0) :i32
+    return %7
 
 fn __defer_1(%0: __defer_env_2) -> void
   locals:

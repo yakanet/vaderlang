@@ -376,6 +376,19 @@ build_stmt :: fn(fn_ctx: FnCtx, s: LoweredStmt) -> void {
         }
         return
     }
+    if s is LoweredDeferPush as dp {
+        // `thunk` builds to a closure (make-closure) in `value` ; push it onto
+        // the frame's defer-stack. Drained by `InstrDeferPopExec` at each exit.
+        value :: build_expr(fn_ctx, dp.thunk)
+        if value !is null {
+            emit(fn_ctx, InstrDeferPush { .value = value, .span = dp.span })
+        }
+        return
+    }
+    if s is LoweredDeferPopExec as dpe {
+        emit(fn_ctx, InstrDeferPopExec { .count = dpe.count, .span = dpe.span })
+        return
+    }
     if s is LoweredExprStmt as e {
         // Side-effect only ; the resulting local is discarded.
         build_expr(fn_ctx, e.expr)

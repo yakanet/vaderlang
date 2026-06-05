@@ -40,7 +40,7 @@ import "vader/vm" {
     StructNew, StructGet, StructSet,
     ArrayNew, ArrayGet, ArraySet, ArrayLen, ArrayPush, ArraySlice, StringSliceCodepoints,
     DataConst, TypeConst, TypeCheck, RefCast, Convert, ConvertTarget,
-    MakeClosure,
+    MakeClosure, DeferPush, DeferPopExec,
     BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish, SizeOfType,
 }
 import "vader/bytecode" {
@@ -1223,10 +1223,16 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         }
         return
     }
-    // InstrDeferPush / InstrDeferPopExec not yet on Vader CFG side —
-    // matches TS but Vader's lower doesn't generate them. When defer
-    // lowering lands (TODO §5), add InstrDeferPush + InstrDeferPopExec
-    // to vader/midir/cfg.vader and re-add the arms here.
+    if ins is InstrDeferPush as dp {
+        // Load the built closure, then push it onto the frame's defer-stack.
+        emit_first_get(ctx, pos, dp.value, dp.span)
+        push_emit(ctx, DeferPush {}, dp.span)
+        return
+    }
+    if ins is InstrDeferPopExec as dpe {
+        push_emit(ctx, DeferPopExec { .count = dpe.count }, dpe.span)
+        return
+    }
 }
 
 /// True when `v` is a numeric / char ValType that can flow through

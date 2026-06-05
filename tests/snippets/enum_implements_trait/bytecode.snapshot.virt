@@ -9,14 +9,13 @@ string 2 "E"
 string 3 "S"
 string 4 "W"
 import 0 write std_io$write (i32,string) -> void
-import 1 to_string std_core$i32$Display$to_string (i32) -> string
-import 2 to_string std_core$string$Display$to_string (string) -> string
+import 1 to_string std_core$string$Display$to_string (string) -> string
 export main 2
 
 fn 0 std_io$std_io$println__string (string) -> void
   local $call_2 string
   local.get 0
-  call 4
+  call 3
   local.set 1
   i32.const 0
   local.get 1
@@ -82,7 +81,7 @@ fn 2 snippet$main () -> i32
   call 1
   call 0
   i32.const 1
-  call 3
+  call 1
   call 0
   i32.const 2
   call 1
@@ -90,14 +89,8 @@ fn 2 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 3 std_core$i32$Display$to_string_vt (i32) -> string
+fn 3 std_core$string$Display$to_string_vt (string) -> string
   local.get 0
   call.import 1
-  return
-end
-
-fn 4 std_core$string$Display$to_string_vt (string) -> string
-  local.get 0
-  call.import 2
   return
 end

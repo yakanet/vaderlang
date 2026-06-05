@@ -1349,7 +1349,15 @@ try_lower_ufcs_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
     if callee_field is null { return null }
     if callee_field is FieldExpr as field_expr {
         receiver :: lower_expr(ctx, field_expr.target)
-        recv_type :: type_of(receiver)
+        // Inline `EnumName.Variant` receivers lower to their integer repr, so
+        // `type_of(receiver)` = i32 and `Direction.East.to_string()` would
+        // wrongly route to `i32$Display$to_string`. Recover the enum identity
+        // from the surface (typed-AST) type for impl lookup — but ONLY for
+        // enums : a generic/monomorphised receiver's surface type is the
+        // unresolved type-param, so it must keep the concrete lowered type.
+        // The lowered node (the repr value) is still passed as the `self` arg.
+        surface_type :: ctx.types.expr_type(field_expr.target)
+        recv_type :: if surface_type is EnumType { surface_type } else { type_of(receiver) }
         // Trait-typed receivers route through vcall (handled above).
         if recv_type is TraitType { return null }
         // Impl-member path first (e.g. `x.to_string()` over
@@ -1628,92 +1636,117 @@ queue_generic_impl_receiver :: fn(ctx: FnLowerCtx, recv: StructType) -> void {
 find_impl_member_for :: fn(ctx: FnLowerCtx, target_type: Type, method_name: string) -> UfcsMember | null {
     target_name :: type_surface_name(target_type)
     if target_name == "" { return null }
+    // A user impl (with a real body) shadows an `@intrinsic` builtin of the
+    // same (type, method) : `i32 implements Display -> "..."` must win over the
+    // std_core intrinsic `Display`. Single pass : return the first non-intrinsic
+    // match immediately ; remember the first intrinsic match as a fallback and
+    // use it only when no user impl turns up.
+    fallback: ImplEntry | null = null
     for entry in ctx.project.impls.all {
         decl :: entry.decl
         if !impl_targets_name(decl.for_type, target_name) { continue }
         for m in decl.members {
             if m.name != method_name { continue }
-            // Synthesise a Fn symbol carrying the member's deterministic
-            // mangle so the call site resolves to the synth decl's mangle
-            // index (`function_index_by_mangle`, consulted first in the CFG
-            // call emit). The `id = 0` placeholder is harmless : the mangle
-            // path resolves before the symbol-id lookup ever runs.
-            //
-            // The module prefix is the IMPL's owning module (`entry.module`),
-            // NOT the caller's (`ctx`). For an intrinsic like `string
-            // implements Display` reached from `println` in std/io, the
-            // mangle must read `std_core$…`, matching where the impl is
-            // declared / its surfaced decl is registered (GATE B). Same-module
-            // user impls are unaffected (entry.module == ctx's module).
-            //
-            // NOTE : this mangle omits the overload `${suffix}` that
-            // `impl_member_mangled` (lower.vader) appends to disambiguate
-            // multiple impls of the same trait/method on one type. Calls to
-            // such overloaded impl members would miss — see audit follow-up.
-            //
-            // Suffix : a generic-struct receiver picks up the materialised
-            // member's instance suffix. The materialiser erases the args to
-            // `Any` for generic impls (`Range<i32>` → `count__Any`) so the
-            // shared erased body's sibling self-calls resolve to one name ;
-            // concrete-instantiation impls keep the concrete suffix
-            // (`Wrapper<i32>` → `count__i32`). Primitive receivers
-            // (`string implements Display`) have no args → empty suffix.
-            recv_suffix :: match target_type {
-                is StructType as s -> {
-                    // Generic impl : structure-free `__Any` × arity so the
-                    // call-site name matches the single deduped body
-                    // regardless of the receiver's concrete args (see
-                    // `flat_any_suffix`). Concrete-instantiation impls keep
-                    // their concrete args.
-                    if entry.is_generic {
-                        mixed_any_suffix(s.args)
-                    } else {
-                        args_suffix(s.args)
-                    }
-                }
-                // Blanket array impl (`T[] implements Contains`) : materialise
-                // one CONCRETE body per element type (`contains__i32`) so the
-                // member's `==` devirtualises to the element primop — distinct
-                // from the struct generic-erasure path (`__Any`).
-                is ArrayType as a -> args_suffix([a.element])
-                _ -> ""
+            if !impl_is_intrinsic(decl) {
+                return build_ufcs_member(ctx, target_type, target_name, method_name, entry)
             }
-            mangled :: "${mangle_module_id(entry.module)}$${target_name}$${decl.trait_name}$${m.name}${recv_suffix}"
-            // Record the call so the post-lowering pass surfaces referenced
-            // stdlib impl members : bodyless (`@intrinsic`) → import ; with-body
-            // (e.g. `i32 implements Hash -> u64(self)`) → materialised real fn.
-            ctx.project.referenced_impl_mangles.add(mangled)
-            // Blanket array impl (`T[] implements Contains` / `Into`) : the
-            // generic-impl materialiser is struct-instance-driven and never
-            // reaches an array receiver, so record the element type keyed by
-            // this call-site mangle. `surface_array_blanket_members` materialises
-            // one concrete body per element (substituting `T → element`, so e.g.
-            // `contains`'s `==` devirtualises to the element primop).
-            if target_type is ArrayType as arr_ty {
-                ctx.project.array_blanket_elems[mangled] = arr_ty.element
-            }
-            // Generic-struct receiver (`MutableMap<Any, bool>`) : the regular
-            // materialiser only covers instances in `evaluated.instances`, so an
-            // ERASED receiver reached only from a deduped erased free-fn body
-            // (`add`'s `value in self.inner`) never gets its impl members. Queue
-            // it for `drain_generic_fn_instances` to materialise — the
-            // struct analogue of `array_blanket_elems`.
-            if target_type is StructType as recv_struct {
-                if entry.is_generic { queue_generic_impl_receiver(ctx, recv_struct) }
-            }
-            return UfcsMember {
-                .symbol = Symbol {
-                    .id         = i32(0),
-                    .kind       = SymbolKind.Fn,
-                    .name       = mangled,
-                    .module     = ctx.typed.resolved.path,
-                    .visibility = Visibility.Private,
-                    .defined_at = null,
-                },
-            }
+            if fallback == null { fallback = entry }
+            break
         }
     }
+    if fallback != null {
+        return build_ufcs_member(ctx, target_type, target_name, method_name, fallback)
+    }
     return null
+}
+
+/// Build the `UfcsMember` for `method_name` on `entry`'s impl of `target_type` :
+/// the deterministic mangle, plus the side-tables that surface / materialise it.
+build_ufcs_member :: fn(ctx: FnLowerCtx, target_type: Type, target_name: string, method_name: string, entry: ImplEntry) -> UfcsMember {
+    decl :: entry.decl
+    // Synthesise a Fn symbol carrying the member's deterministic mangle so the
+    // call site resolves to the synth decl's mangle index
+    // (`function_index_by_mangle`, consulted first in the CFG call emit). The
+    // `id = 0` placeholder is harmless : the mangle path resolves before the
+    // symbol-id lookup ever runs.
+    //
+    // The module prefix is the IMPL's owning module (`entry.module`), NOT the
+    // caller's (`ctx`). For an intrinsic like `string implements Display`
+    // reached from `println` in std/io, the mangle must read `std_core$…`,
+    // matching where the impl is declared / its surfaced decl is registered
+    // (GATE B). Same-module user impls are unaffected (entry.module == ctx's).
+    //
+    // NOTE : this mangle omits the overload `${suffix}` that
+    // `impl_member_mangled` (lower.vader) appends to disambiguate multiple
+    // impls of the same trait/method on one type — see audit follow-up.
+    //
+    // Suffix : a generic-struct receiver picks up the materialised member's
+    // instance suffix. The materialiser erases the args to `Any` for generic
+    // impls (`Range<i32>` → `count__Any`) so the shared erased body's sibling
+    // self-calls resolve to one name ; concrete-instantiation impls keep the
+    // concrete suffix (`Wrapper<i32>` → `count__i32`). Primitive receivers
+    // (`string implements Display`) have no args → empty suffix.
+    recv_suffix :: match target_type {
+        is StructType as s -> {
+            // Generic impl : structure-free `__Any` × arity so the call-site
+            // name matches the single deduped body regardless of the receiver's
+            // concrete args (see `flat_any_suffix`). Concrete-instantiation
+            // impls keep their concrete args.
+            if entry.is_generic {
+                mixed_any_suffix(s.args)
+            } else {
+                args_suffix(s.args)
+            }
+        }
+        // Blanket array impl (`T[] implements Contains`) : materialise one
+        // CONCRETE body per element type (`contains__i32`) so the member's `==`
+        // devirtualises to the element primop — distinct from the struct
+        // generic-erasure path (`__Any`).
+        is ArrayType as a -> args_suffix([a.element])
+        _ -> ""
+    }
+    mangled :: "${mangle_module_id(entry.module)}$${target_name}$${decl.trait_name}$${method_name}${recv_suffix}"
+    // Record the call so the post-lowering pass surfaces referenced stdlib impl
+    // members : bodyless (`@intrinsic`) → import ; with-body (e.g. `i32
+    // implements Hash -> u64(self)`) → materialised real fn.
+    ctx.project.referenced_impl_mangles.add(mangled)
+    // Blanket array impl (`T[] implements Contains` / `Into`) : the generic-impl
+    // materialiser is struct-instance-driven and never reaches an array
+    // receiver, so record the element type keyed by this call-site mangle.
+    // `surface_array_blanket_members` materialises one concrete body per element
+    // (substituting `T → element`, so e.g. `contains`'s `==` devirtualises).
+    if target_type is ArrayType as arr_ty {
+        ctx.project.array_blanket_elems[mangled] = arr_ty.element
+    }
+    // Generic-struct receiver (`MutableMap<Any, bool>`) : the regular
+    // materialiser only covers instances in `evaluated.instances`, so an ERASED
+    // receiver reached only from a deduped erased free-fn body (`add`'s `value
+    // in self.inner`) never gets its impl members. Queue it for
+    // `drain_generic_fn_instances` to materialise (struct analogue of
+    // `array_blanket_elems`).
+    if target_type is StructType as recv_struct {
+        if entry.is_generic { queue_generic_impl_receiver(ctx, recv_struct) }
+    }
+    return UfcsMember {
+        .symbol = Symbol {
+            .id         = i32(0),
+            .kind       = SymbolKind.Fn,
+            .name       = mangled,
+            .module     = ctx.typed.resolved.path,
+            .visibility = Visibility.Private,
+            .defined_at = null,
+        },
+    }
+}
+
+/// True when an `@intrinsic` impl. Lets a user impl shadow the builtin in
+/// `find_impl_member_for`. (Mirrors `vader/resolver/materialize.vader::is_intrinsic`,
+/// kept local to avoid a resolver→lower import.)
+impl_is_intrinsic :: fn(decl: ImplDecl) -> bool {
+    for d in decl.decorators {
+        if d.name == "intrinsic" { return true }
+    }
+    return false
 }
 
 // Nominal token a receiver type registers UFCS impls under. Exhaustive over

@@ -185,6 +185,22 @@ export Instruction ::
     | InstrMakeClosure
     | InstrIntrinsic
     | InstrMove
+    | InstrDeferPush
+    | InstrDeferPopExec
+
+/// Push a defer thunk (a closure built into `value`) onto the frame's
+/// defer-stack. Emitted from `LoweredDeferPush` ; drained by `InstrDeferPopExec`.
+export InstrDeferPush :: struct {
+    span:  Span
+    value: LocalId
+}
+
+/// Pop + execute `count` entries from the frame's defer-stack (LIFO) at a
+/// normal scope exit. Emitted from `LoweredDeferPopExec`.
+export InstrDeferPopExec :: struct {
+    span:  Span
+    count: i32
+}
 
 export InstrConst :: struct {
     span:  Span

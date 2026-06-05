@@ -177,27 +177,38 @@ export read_f64 :: fn(v: Value, at_pc: i32, label: string) -> F64Val | Trap {
 /// already at the target storage is a no-op fast path — avoids the box
 /// reallocation when `mask32(u32 x)` (hot in SHA-256 / MD5) hits an
 /// already-I32Val.
-export convert_value :: fn(v: Value, target: ConvertTarget, at_pc: i32) -> Value | Trap {
+export convert_value :: fn(v: Value, target: ConvertTarget, from_name: string, at_pc: i32) -> Value | Trap {
+    // An unsigned source narrower than 64 bits is tagged `I32Val` holding the
+    // raw bits ; widening must ZERO-extend (the bits are a u32 magnitude), not
+    // sign-extend the way `read_numeric_as_i64` does for a signed i32.
+    // Normalise it up front so every target reads the true unsigned value.
+    // (u8/u16 are always < 2^31, so this is a no-op for them ; only a u32 with
+    // the high bit set actually differs.)
+    nv :: if v is I32Val {
+        if from_name.starts_with("u") { I64Val { .value = i64(u32(v.value)) } } else { v }
+    } else {
+        v
+    }
     if target == .I32 {
-        if v is I32Val { return v }
-        n :: read_numeric_as_i64(v, at_pc)
+        if nv is I32Val { return nv }
+        n :: read_numeric_as_i64(nv, at_pc)
         if n is Trap { return n }
         return I32Val { .value = i32(n) }
     }
     if target == .I64 {
-        if v is I64Val { return v }
-        n :: read_numeric_as_i64(v, at_pc)
+        if nv is I64Val { return nv }
+        n :: read_numeric_as_i64(nv, at_pc)
         if n is Trap { return n }
         return I64Val { .value = n }
     }
     if target == .F64 {
-        if v is F64Val { return v }
-        n :: read_numeric_as_f64(v, at_pc)
+        if nv is F64Val { return nv }
+        n :: read_numeric_as_f64(nv, at_pc)
         if n is Trap { return n }
         return F64Val { .value = n }
     }
-    if v is CharVal { return v }
-    n :: read_numeric_as_i64(v, at_pc)
+    if nv is CharVal { return nv }
+    n :: read_numeric_as_i64(nv, at_pc)
     if n is Trap { return n }
     return CharVal { .value = char(u32(n)) }
 }

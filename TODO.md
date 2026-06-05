@@ -734,18 +734,43 @@ queries + closure-analysis pass land on the typechecker side.
       (else stdlib CFG bloats them ~10×). PROVISIONAL : decide whether stdlib
       elision should be a `--stdlib` opt-in flag on `dump` rather than the baked
       default, so the CLI can still show the full CFG when wanted.
-- [ ] **11 native-emitter gaps surfaced by the oracle flip** (2026-06-05). With
-      `bytecode.snapshot.virt` now native-emitted, `vader_vm.test.ts` runs native
-      bytecode for the whole corpus and exposed 11 mis-compiles (each its own
-      fix), parked in `vader_vm.test.ts::KNOWN_DIVERGENT` / phase-excluded :
-      defer dropped (`defer_block`) ; erased `Iterator.next` vtable miss
-      (`for_in_iter_trait`, `_diag_iter_collect`) ; numeric width/sign —
-      u32→i64 sign-extend + u64 truncation (`enum_to_repr_cast`,
-      `numeric_context_sensitivity`) ; enum trait method returns the repr int
-      (`enum_implements_trait`) ; `Duration` prints raw ns (`std_time`) ;
-      interpolation prefix lost via SAM-impl (`sam_impl`) ; block-result
-      narrowing feeds `null` to `i32.eq` (`null_blockres`) ; GATE-B1
-      namespace/import emit panic (`alias_import`, `namespace_import`).
+- [ ] **Native-emitter gaps surfaced by the oracle flip — 6 fixed, 5 open**
+      (2026-06-05). With `bytecode.snapshot.virt` now native-emitted,
+      `vader_vm.test.ts` runs native bytecode for the whole corpus and exposed
+      11 mis-compiles. FIXED this session:
+      - `enum_to_repr_cast` — VM `convert_value` sign-extended an unsigned
+        source widening to i64 ; now zero-extends (`vader/vm/value.vader`).
+      - `numeric_context_sensitivity` — the `.virt` parser collapsed a 64-bit
+        const that fits signed-i32 to `I32Const`, losing the high bits for the
+        unsigned-display path ; 64-bit widths now keep `I64Const`
+        (`vader/vm/parser.vader`).
+      - `null_blockres` — `i32.eq` over a `null` operand trapped ; `==`/`!=`
+        now compare by null-identity (`vader/vm/exec.vader::apply_eq_binop`).
+      - `enum_implements_trait` — `EnumName.Variant.method()` dispatched on the
+        lowered repr (i32) not the surface enum type ; UFCS now looks up the
+        impl on the typed type for enum receivers (`vader/lower/lower_expr.vader`).
+      - `sam_impl` — a user `i32 implements Display` lost to the builtin in
+        `find_impl_member_for` (first-match wins) ; a user (non-`@intrinsic`)
+        impl now shadows the intrinsic builtin (`vader/lower/lower_expr.vader`).
+      - `defer_block` — `defer` was dropped : the MIDIR CFG had no
+        `InstrDeferPush`/`InstrDeferPopExec`, so `LoweredDeferPush`/`PopExec`
+        vanished at CFG-build. Added the two Instr kinds + build + emit arms
+        (cfg/build/emit/analyses/scheduler/dump in `vader/midir/`). `defer` now
+        runs on normal exits.
+      STILL OPEN (in `KNOWN_DIVERGENT` / phase-excluded, each its own fix) :
+      `for_in_iter_trait`, `_diag_iter_collect` (erased `Iterator.next` vtable
+      miss) ; `std_time` (`abs(i64)` typed `any` — `pick_overload` doesn't
+      collect a TRANSITIVELY-imported module's overloads, so `std/time::format`
+      compares a wide ns value via `i32.lt`) ; `alias_import`, `namespace_import`
+      (GATE-B1 namespace/import emit panic — `dump --stage=bytecode` itself
+      fails). `defer_on_panic` still needs the VM to drain the defer-stack on a
+      TRAPPED exit (separate from the emit gap just fixed). `defer_in_lambda`
+      surfaced a *distinct* deeper gap once `defer.push` started emitting : a
+      defer thunk *inside a lambda* that captures an outer-lambda-captured var
+      (`defer println("...${x}")` where `x` is `__env.cap_N`) fails to resolve
+      `x` while building the thunk's closure env, truncating the lambda body
+      with `unreachable ; unresolved ident x` — a nested-capture chain through
+      the defer thunk, not panic-unwind.
 - [x] **Cross-module folder modules** — landed 2026-05-17. Root cause was a runtime UAF : `vader_read_dir` stored `ent->d_name` (DIR-owned, reused on next readdir) without copying. `mod_a` was the first user-folder ; by the time its name was read back, the buffer pointed at garbage so `load_module_files` saw an empty entry and skipped the module. `vader_string_alloc` + memcpy in `vader_runtime.c`. Also `join_path` now strips leading `./`, `dump_program_with_others` writes one section per loaded module (sorted), and `settle_external_expr_bodied_returns` walks every non-entry module's bodies so per-module `expr_types` populate for the dump.
 - [x] **Generic trait method substitution** (2026-05-17) — landed via `trait_decl_owners` side-table + `substitute_by_name` over `Yield(T)` etc. `try_default_trait_method` for inherited Iterator defaults landed too. Unblocked iter_coerce_array (with `try_array_to_iter` in coerce.vader), iter_combinators, iter_zip_chain, trait_box_range_iter, string_codepoints. Still blocked on default-method *materialize-into-impl-with-original-line:col* (separate item below).
 - [x] **Generic fn-call argument inference back-propagation** (2026-05-17) — `call.vader::infer_call` now substitutes bindings into each param BEFORE typing it (so lambda's expected fn-type reflects already-bound type-params), and `unify_type_param` tightens Free* bindings when a later arg pins the same TypeParam to a concrete numeric. `expr_lambda.vader::pick_final_return` falls back to body's defaulted type when expected is TypeParam-bearing.

@@ -122,6 +122,8 @@ export for_each_read_local :: fn(ins: Instruction, visit: fn(LocalId) -> void) -
         }
         is InstrMakeClosure  as i -> { visit(i.env) }
         is InstrIntrinsic    as i -> { for a in i.args { visit(a) } }
+        is InstrDeferPush    as i -> { visit(i.value) }
+        is InstrDeferPopExec      -> {}
     }
 }
 
@@ -544,5 +546,7 @@ export dst_of :: fn(ins: Instruction) -> LocalId | null {
         is InstrArraySet          -> { return null }
         is InstrArrayPush         -> { return null }
         is InstrCellSet           -> { return null }
+        is InstrDeferPush         -> { return null }
+        is InstrDeferPopExec      -> { return null }
     }
 }

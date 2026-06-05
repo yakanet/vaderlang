@@ -526,6 +526,30 @@ apply_cmp_binop :: fn(frame: Frame, op_label: string, cmp: fn(i32, i32) -> bool)
     return null
 }
 
+/// `==` / `!=` (`negate` true). The emitter routes `ref` / `any` / `null`
+/// equality through `i32.eq`, treating the boxed identity bits as a 32-bit
+/// word — but a `null` operand can't be read as an i32. Compare those by
+/// null-identity (`null == null`, `null != anything-non-null`) ; everything
+/// else falls back to the numeric i32 path.
+apply_eq_binop :: fn(frame: Frame, op_label: string, negate: bool) -> Trap | null {
+    lv :: frame.stack[frame.sp - 2]
+    rv :: frame.stack[frame.sp - 1]
+    eq: bool = false
+    if lv is NullVal || rv is NullVal {
+        eq = lv is NullVal && rv is NullVal
+    } else {
+        left  :: read_i32(lv, frame.pc, op_label)
+        right :: read_i32(rv, frame.pc, op_label)
+        if left  is Trap { return left  }
+        if right is Trap { return right }
+        eq = left.value == right.value
+    }
+    frame.stack[frame.sp - 2] = BoolVal { .value = if negate { !eq } else { eq } }
+    frame.sp = frame.sp - 1
+    frame.pc = frame.pc + 1
+    return null
+}
+
 /// Build the argv argument for a `fn(argv: string[]) -> i32` entry point.
 /// `host_argv` carries the forwarded CLI args (argv[0] = program path, then
 /// the program's own args) — set by `run_virt` from the `--` separator so the
@@ -1005,7 +1029,7 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                     return Trap { .message = "convert on empty stack at pc=${frame.pc} in '${body.name}'" }
                 }
                 v :: frame.stack[frame.sp - 1]
-                converted :: convert_value(v, instr.target, frame.pc)
+                converted :: convert_value(v, instr.target, instr.from_name, frame.pc)
                 if converted is Trap {
                     return Trap { .message = "${converted.message} (got ${describe_value_tag(v)}) in '${body.name}'" }
                 }
@@ -1090,11 +1114,11 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                 if outcome is Trap { return outcome }
             }
             is I32Eq -> {
-                outcome :: apply_cmp_binop(frame, "i32.eq", (a, b) -> a == b)
+                outcome :: apply_eq_binop(frame, "i32.eq", false)
                 if outcome is Trap { return outcome }
             }
             is I32Ne -> {
-                outcome :: apply_cmp_binop(frame, "i32.ne", (a, b) -> a != b)
+                outcome :: apply_eq_binop(frame, "i32.ne", true)
                 if outcome is Trap { return outcome }
             }
             is I32Lt -> {

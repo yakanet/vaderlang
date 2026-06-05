@@ -250,9 +250,15 @@ const KNOWN_DIVERGENT = new Set<string>([
   // host VM ; `defer.push` / `defer.pop_exec` (normal exits) work but a
   // trapped op exits via the regular `Trap` path without draining the
   // frame's defer-stack. Tracked alongside the C-emit setjmp/longjmp
-  // chantier in TODO §3.8. `defer_in_lambda` exercises a panic inside
-  // a lambda ; same root cause.
+  // chantier in TODO §3.8.
   "defer_on_panic",
+  // `defer_in_lambda` exposes a distinct, deeper gap surfaced once the
+  // MIDIR path started emitting `defer.push` : a defer thunk *inside a
+  // lambda* that captures an outer-lambda-captured var (`defer
+  // println("...${x}")` where `x` is itself `__env.cap_N`) fails to
+  // resolve `x` during the thunk's closure build, truncating the lambda
+  // body with `unreachable ; unresolved ident x`. Nested-capture chain
+  // through the defer thunk — tracked in TODO §3.8.
   "defer_in_lambda",
   // `for x in <string>` → codepoint iter requires the `Iterator(char)`
   // impl on `string` to lower without B5001. The arr/map/set legs of
@@ -266,27 +272,12 @@ const KNOWN_DIVERGENT = new Set<string>([
   // VADER_SELF_EMIT set). The entries below are snippets whose native bytecode
   // runs incorrectly — real self-host emit/VM gaps, each its own follow-up.
   //
-  // `defer` is dropped by the Vader bytecode emitter (emit_body.vader stub) —
-  // the cleanup lines never print. Known gap, tracked in the §9 audit.
-  "defer_block",
   // Generic `Iterator.next` virtual dispatch traps "no impl for type N" — the
   // iterator-impl vtable isn't materialised for these erased receivers.
   "for_in_iter_trait", "_diag_iter_collect",
-  // Numeric width / signedness: an unsigned value past 2^31 is sign-extended
-  // (enum→repr cast) or truncated (u64 literal) in the native bytecode.
-  "enum_to_repr_cast", "numeric_context_sensitivity",
-  // Enum trait method returns the repr integer instead of dispatching to the
-  // variant's impl (`E` → `1`).
-  "enum_implements_trait",
   // `Duration` display prints raw nanoseconds instead of the unit-scaled form
   // (`3000000000 ns` vs `3 s`) — std/time formatting path not taken.
   "std_time",
-  // String interpolation prefix dropped through the SAM-impl call path
-  // (`the answer is 42` → `42`).
-  "sam_impl",
-  // `i32.eq` receives a `null` operand — block-result narrowing emits the wrong
-  // operand type.
-  "null_blockres",
 ]);
 
 const scenarios = listSnippets("tests/snippets");

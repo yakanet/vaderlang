@@ -43,7 +43,7 @@
       arg0:
         call :string
           callee:
-            std_core$i32$Display$to_string :string
+            snippet$i32$Display$to_string :string
           arg0:
             x :i32
     call :void
@@ -52,7 +52,7 @@
       arg0:
         call :string
           callee:
-            std_core$i64$Display$to_string :string
+            snippet$i64$Display$to_string :string
           arg0:
             y :i64
     call :void

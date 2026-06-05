@@ -87,7 +87,7 @@ fn snippet$main() -> i32
     %2 = call snippet$Direction$Display$to_string(%1) :string
     call std_io$std_io$println__string(%2) :void
     %3 = const int(1) :i32
-    %4 = call std_core$i32$Display$to_string(%3) :string
+    %4 = call snippet$Direction$Display$to_string(%3) :string
     call std_io$std_io$println__string(%4) :void
     %5 = const int(2) :i32
     %6 = move %5

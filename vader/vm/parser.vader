@@ -1048,7 +1048,7 @@ parse_op_line :: fn(cleaned: string, head: string) -> Op | null {
             if suffix == "const" && is_int {
                 value_off :: head.bytes().len() + 1
                 if value_off >= cleaned.bytes().len() { return null }
-                return parse_int_const_text(cleaned.bytes()[value_off..<cleaned.bytes().len()].as_string().trim())
+                return parse_int_const_text(cleaned.bytes()[value_off..<cleaned.bytes().len()].as_string().trim(), width)
             }
             if suffix == "const" && is_f64 { return parse_f64_const(cleaned) }
 
@@ -1238,7 +1238,14 @@ int_op_for :: fn(width: string, suffix: string) -> Op | null {
 /// so the unsigned wide widths (e.g. `u32.const 4000000000`) survive
 /// without wraparound. Downstream `read_i32` truncates the i64 back to
 /// i32 when an i32 consumer wants it.
-parse_int_const_text :: fn(rest: string) -> Op | null {
+parse_int_const_text :: fn(rest: string, width: string) -> Op | null {
+    // 64-bit widths must NEVER collapse to `I32Const` even when the value
+    // fits signed-i32 : an `I32Val` only carries 32 bits, so a wide unsigned
+    // value whose i64 form happens to fit i32 (e.g. `u64 18446744073700000000`
+    // = i64 -9551616) loses its high bits and the unsigned-display host then
+    // renders only the low 32 (`4285415680`). Preserving `I64Const` keeps the
+    // full bit pattern ; signed consumers still read it via `read_i64`.
+    is_wide :: width == "i64" || width == "u64" || width == "isize" || width == "usize"
     // Negative literals : both emitters print `<width>.const -N` directly
     // (signed widths only — unsigned widths never carry a sign), so a
     // leading `-` strips to the magnitude, which we parse unsigned and
@@ -1250,7 +1257,7 @@ parse_int_const_text :: fn(rest: string) -> Op | null {
         mag :: parse_uint_in_base(rest.bytes()[1..<rest.bytes().len()].as_string(), 10)
         if mag is ParseError { return null }
         signed :: i64(0) - i64(mag)
-        if signed >= i64(-0x80000000) && signed <= i64(0x7fffffff) {
+        if !is_wide && signed >= i64(-0x80000000) && signed <= i64(0x7fffffff) {
             return I32Const { .value = i32(signed) }
         }
         return I64Const { .value = signed }
@@ -1262,7 +1269,7 @@ parse_int_const_text :: fn(rest: string) -> Op | null {
     // the op sequence that surrounds the const.
     parsed :: parse_uint_in_base(rest, 10)
     if parsed is ParseError { return null }
-    if parsed <= u64(0x7fffffff) {
+    if !is_wide && parsed <= u64(0x7fffffff) {
         return I32Const { .value = i32(parsed) }
     }
     return I64Const { .value = i64(parsed) }

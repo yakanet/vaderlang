@@ -63,9 +63,9 @@ fn snippet$main() -> i32
     %1 = move %0
     %2 = const int(7) :i64
     %3 = move %2
-    %4 = call std_core$i32$Display$to_string(%1) :string
+    %4 = call snippet$i32$Display$to_string(%1) :string
     call std_io$std_io$println__string(%4) :void
-    %5 = call std_core$i64$Display$to_string(%3) :string
+    %5 = call snippet$i64$Display$to_string(%3) :string
     call std_io$std_io$println__string(%5) :void
     %6 = intrinsic builder.new()
     %7 = move %6

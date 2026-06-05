@@ -176,6 +176,8 @@ first_stack_operand :: fn(ins: Instruction) -> LocalId | null {
         is InstrMakeClosure  as i -> { return i.env }
         is InstrIntrinsic    as i -> { if i.args.len() > usize(0) { return i.args[0] }
             return null }
+        is InstrDeferPush    as i -> { return i.value }
+        is InstrDeferPopExec      -> { return null }
     }
 }
 

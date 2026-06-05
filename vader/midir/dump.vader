@@ -115,6 +115,8 @@ dump_instr :: fn(ins: Instruction) -> string {
         is InstrMakeClosure  as i -> { return "%${i.dst} = make_closure ${i.fn_symbol.name} env=%${i.env} :${display_type(i.type)}" }
         is InstrIntrinsic    as i -> { return "${dump_dst(i.dst)}intrinsic ${i.name}(${dump_args(i.args)})" }
         is InstrMove         as i -> { return "%${i.dst} = move %${i.src}" }
+        is InstrDeferPush    as i -> { return "defer.push %${i.value}" }
+        is InstrDeferPopExec as i -> { return "defer.pop_exec ${i.count}" }
     }
 }
 
