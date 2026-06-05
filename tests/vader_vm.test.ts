@@ -266,15 +266,6 @@ const KNOWN_DIVERGENT = new Set<string>([
   // the chars leg traps. Tracked alongside TODO §1.5b iterators.
   "for_in_into_iter",
 
-  // ---- surfaced by the Vader-oracle migration -------------------------------
-  // Once `bytecode.snapshot.virt` became the native compiler's own output,
-  // this test runs native bytecode for the whole corpus (not just the curated
-  // VADER_SELF_EMIT set). The entries below are snippets whose native bytecode
-  // runs incorrectly — real self-host emit/VM gaps, each its own follow-up.
-  //
-  // `Duration` display prints raw nanoseconds instead of the unit-scaled form
-  // (`3000000000 ns` vs `3 s`) — std/time formatting path not taken.
-  "std_time",
 ]);
 
 const scenarios = listSnippets("tests/snippets");

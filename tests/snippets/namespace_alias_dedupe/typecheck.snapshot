@@ -50,7 +50,7 @@
   StructDecl     DestructureImport    :: DestructureImport
   StructDecl     DotVariantExpr       :: DotVariantExpr
   FnDecl         dump_program         :: fn(Program) -> string
-  FnDecl         empty_token          :: fn() -> ?
+  FnDecl         empty_token          :: fn() -> Token
   FnDecl         entry                :: fn(StringBuilder, bool, i32, string) -> void
   StructDecl     EnumDecl             :: EnumDecl
   StructDecl     EnumVariant          :: EnumVariant
@@ -344,8 +344,8 @@
   expr 1008:20  IdentExpr      :: BlockExpr
   expr 1008:29  BinaryExpr     :: i32
   expr 1008:29  IdentExpr      :: i32
-  expr 1008:37  CallExpr       :: ?
-  expr 1008:37  IdentExpr      :: fn() -> ?
+  expr 1008:37  CallExpr       :: Token
+  expr 1008:37  IdentExpr      :: fn() -> Token
   expr 1008:5   CallExpr       :: void
   expr 1008:5   FieldExpr      :: fn((AssignStmt | BreakStmt | ContinueStmt | DeferStmt | ExprStmt | ForStmt | LetStmt | ReturnStmt)[], i32) -> void
   expr 1008:5   IdentExpr      :: StringBuilder
@@ -611,8 +611,8 @@
   expr 1046:9   CallExpr       :: void
   expr 1046:9   FieldExpr      :: fn() -> void
   expr 1046:9   IdentExpr      :: StringBuilder
-  expr 1047:23  CallExpr       :: ?
-  expr 1047:23  IdentExpr      :: fn(TokenKind, string, Span) -> ?
+  expr 1047:23  CallExpr       :: Token
+  expr 1047:23  IdentExpr      :: fn(TokenKind, string, Span) -> Token
   expr 1047:34  DotVariantExpr :: TokenKind
   expr 1047:40  StringLitExpr  :: string
   expr 1047:44  CallExpr       :: Span
@@ -8050,8 +8050,8 @@
   expr 3248:85  FieldExpr      :: TokenKind
   expr 3248:85  IdentExpr      :: Token
   expr 3248:95  DotVariantExpr :: TokenKind
-  expr 324:19   CallExpr       :: ?
-  expr 324:19   IdentExpr      :: fn(ParserCode, Span, string) -> ?
+  expr 324:19   CallExpr       :: Diagnostic
+  expr 324:19   IdentExpr      :: fn(ParserCode, Span, string) -> Diagnostic
   expr 324:22   IdentExpr      :: usize
   expr 324:32   IdentExpr      :: ParserCode
   expr 324:38   IdentExpr      :: Span
@@ -8201,8 +8201,8 @@
   expr 338:9    FieldExpr      :: string
   expr 338:9    IdentExpr      :: StringBuilder
   expr 338:9    IdentExpr      :: Token
-  expr 339:12   CallExpr       :: ?
-  expr 339:12   IdentExpr      :: fn(TokenKind) -> ?
+  expr 339:12   CallExpr       :: string
+  expr 339:12   IdentExpr      :: fn(TokenKind) -> string
   expr 339:22   FieldExpr      :: TokenKind
   expr 339:22   IdentExpr      :: Token
   expr 339:29   FieldExpr      :: Visibility

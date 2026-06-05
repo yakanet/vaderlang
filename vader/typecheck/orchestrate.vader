@@ -270,6 +270,15 @@ export check_project_with_bodies :: fn(
         // entry) and persist — no need to re-set / rebuild them here.
         populate_resolver_imports(other_typed)
         populate_external_types(other_typed, project, per_module)
+        // Rebuild from scratch : the pre-settle populate (so settle's own UFCS
+        // sees cross-module overloads) captured expr-bodied callees' returns while
+        // still `?`, and `push_overload` APPENDS — so the stale `fn(i64) -> ?` for
+        // an overloaded expr-bodied import (`abs`) would sit BEFORE the settled
+        // `fn(i64) -> i64`, and `pick_overload` returns the first match (the `?`,
+        // which then flows as `any` and truncates wide-int compares to `i32.lt`).
+        // Follow-up : a replace-on-signature `push_overload` would make populate
+        // idempotent and drop this clear.
+        other_typed.imported_fn_overloads = MutableMap<string, FnType[]> {}
         populate_imported_fn_overloads(other_typed, per_module)
         merge_external_impl_methods(other_typed, project, per_module)
         other_decls :: merge_module_program(other.module.files).decls

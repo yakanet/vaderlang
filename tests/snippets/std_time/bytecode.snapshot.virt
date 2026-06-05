@@ -9,35 +9,26 @@ type 6 array 1
 type 7 struct std_string_builder$StringBuilder { parts:6 }
 type 8 primitive char
 type 9 primitive i64
-type 10 primitive f64
-type 11 struct std_core$Range__char { start:28,end:28,inclusive:5,cursor:28 }
-type 12 union 0,13
-type 13 struct std_core$Yield__char { value:28 }
-type 14 struct std_core$Range__i32 { start:28,end:28,inclusive:5,cursor:28 }
-type 15 union 0,16
-type 16 struct std_core$Yield__i32 { value:28 }
-type 17 struct std_core$Range__usize { start:28,end:28,inclusive:5,cursor:28 }
-type 18 union 0,19
-type 19 struct std_core$Yield__usize { value:28 }
-type 20 primitive i8
-type 21 primitive i16
-type 22 primitive isize
-type 23 primitive u8
-type 24 primitive u16
-type 25 primitive u32
-type 26 primitive u64
-type 27 primitive f32
-type 28 ref _
-type 29 struct std_time$Duration { ns:9 }
-type 30 struct std_time$Instant { ns_since_epoch:9 }
-type 31 union 30,32
-type 32 struct std_time$TimeError { msg:1 }
-type 33 struct std_time$Monotonic { ns:9 }
-type 34 struct __Tuple_43 { _0:9,_1:9,_2:9 }
-type 35 union 9,32
-type 36 union 0,32
-type 37 array 23
-type 38 ref _
+type 10 struct std_core$Range__char { start:19,end:19,inclusive:5,cursor:19 }
+type 11 union 0,12
+type 12 struct std_core$Yield__char { value:19 }
+type 13 struct std_core$Range__i32 { start:19,end:19,inclusive:5,cursor:19 }
+type 14 union 0,15
+type 15 struct std_core$Yield__i32 { value:19 }
+type 16 struct std_core$Range__usize { start:19,end:19,inclusive:5,cursor:19 }
+type 17 union 0,18
+type 18 struct std_core$Yield__usize { value:19 }
+type 19 ref _
+type 20 struct std_time$Duration { ns:9 }
+type 21 struct std_time$Instant { ns_since_epoch:9 }
+type 22 union 21,23
+type 23 struct std_time$TimeError { msg:1 }
+type 24 struct std_time$Monotonic { ns:9 }
+type 25 struct __Tuple_35 { _0:9,_1:9,_2:9 }
+type 26 union 9,23
+type 27 primitive u8
+type 28 union 0,23
+type 29 array 27
 string 0 "\n"
 string 1 "plus="
 string 2 "minus="
@@ -69,53 +60,23 @@ string 27 "expected digit"
 string 28 "unexpected byte"
 import 0 write std_io$write (i32,string) -> void
 import 1 to_string std_string_builder$StringBuilder$Display$to_string (ref) -> string
-import 2 to_string std_core$i8$Display$to_string (i8) -> string
-import 3 to_string std_core$i16$Display$to_string (i16) -> string
-import 4 to_string std_core$i32$Display$to_string (i32) -> string
-import 5 to_string std_core$i64$Display$to_string (i64) -> string
-import 6 to_string std_core$isize$Display$to_string (isize) -> string
-import 7 to_string std_core$u8$Display$to_string (u8) -> string
-import 8 to_string std_core$u16$Display$to_string (u16) -> string
-import 9 to_string std_core$u32$Display$to_string (u32) -> string
-import 10 to_string std_core$u64$Display$to_string (u64) -> string
-import 11 to_string std_core$usize$Display$to_string (usize) -> string
-import 12 to_string std_core$f32$Display$to_string (f32) -> string
-import 13 to_string std_core$f64$Display$to_string (f64) -> string
-import 14 to_string std_core$bool$Display$to_string (bool) -> string
-import 15 to_string std_core$char$Display$to_string (char) -> string
-import 16 to_string std_core$string$Display$to_string (string) -> string
-import 17 monotonic_ns std_time$monotonic_ns () -> i64
-import 18 byte_len std_string$byte_len (string) -> usize
-import 19 bytes std_string$bytes (string) -> ref
+import 2 to_string std_core$string$Display$to_string (string) -> string
+import 3 monotonic_ns std_time$monotonic_ns () -> i64
+import 4 byte_len std_string$byte_len (string) -> usize
+import 5 bytes std_string$bytes (string) -> ref
 impl 7 Display
-impl 11 Contains
-impl 11 Iterator
-impl 14 Contains
-impl 14 Iterator
-impl 17 Contains
-impl 17 Iterator
-vtable Display.to_string 7 24
-vtable Display.to_string 20 25
-vtable Display.to_string 21 26
-vtable Display.to_string 3 27
-vtable Display.to_string 9 28
-vtable Display.to_string 22 29
-vtable Display.to_string 23 30
-vtable Display.to_string 24 31
-vtable Display.to_string 25 32
-vtable Display.to_string 26 33
-vtable Display.to_string 4 34
-vtable Display.to_string 27 35
-vtable Display.to_string 10 36
-vtable Display.to_string 5 37
-vtable Display.to_string 8 38
-vtable Display.to_string 1 39
+impl 10 Contains
+impl 10 Iterator
+impl 13 Contains
+impl 13 Iterator
+impl 16 Contains
+impl 16 Iterator
 export main 1
 
 fn 0 std_io$std_io$println__string (string) -> void
   local $call_2 string
   local.get 0
-  call 39
+  call 25
   local.set 1
   i32.const 0
   local.get 1
@@ -205,7 +166,7 @@ fn 1 snippet$main () -> i32
   intrinsic builder.finish
   call 0
   i64.const 0
-  struct.new 30
+  struct.new 21
   local.set 0
   i64.const 60
   call 10
@@ -237,7 +198,7 @@ fn 1 snippet$main () -> i32
   call 16
   local.tee 0
   local.tee 1
-  type_check 30
+  type_check 21
   if $L0 void
     local.get 0
     call 15
@@ -246,7 +207,7 @@ fn 1 snippet$main () -> i32
     call 16
     local.tee 0
     local.tee 4
-    type_check 30
+    type_check 21
     if $L1 void
       local.get 0
       call 15
@@ -254,7 +215,7 @@ fn 1 snippet$main () -> i32
       string.const 8
       call 16
       local.tee 5
-      type_check 32
+      type_check 23
       if $L2 void
         string.const 9
         call 0
@@ -291,7 +252,7 @@ fn 1 snippet$main () -> i32
         local.get 2
         local.get 3
         intrinsic builder.append_str
-        local.field 10 29 0
+        local.field 10 20 0
         ref.cast 9
         local.set 11
         i64.const 0
@@ -309,7 +270,7 @@ fn 1 snippet$main () -> i32
         return.lit i32.const 0
       end $L2
       local.get 5
-      type_check 30
+      type_check 21
       if $L6 void
         string.const 10
         call 0
@@ -346,7 +307,7 @@ fn 1 snippet$main () -> i32
         local.get 2
         local.get 3
         intrinsic builder.append_str
-        local.field 10 29 0
+        local.field 10 20 0
         ref.cast 9
         local.set 11
         i64.const 0
@@ -366,14 +327,14 @@ fn 1 snippet$main () -> i32
       return
     end $L1
     local.get 4
-    type_check 32
+    type_check 23
     if $L10 void
       string.const 7
       call 0
       string.const 8
       call 16
       local.tee 5
-      type_check 32
+      type_check 23
       if $L11 void
         string.const 9
         call 0
@@ -410,7 +371,7 @@ fn 1 snippet$main () -> i32
         local.get 2
         local.get 3
         intrinsic builder.append_str
-        local.field 10 29 0
+        local.field 10 20 0
         ref.cast 9
         local.set 11
         i64.const 0
@@ -428,7 +389,7 @@ fn 1 snippet$main () -> i32
         return.lit i32.const 0
       end $L11
       local.get 5
-      type_check 30
+      type_check 21
       if $L15 void
         string.const 10
         call 0
@@ -465,7 +426,7 @@ fn 1 snippet$main () -> i32
         local.get 2
         local.get 3
         intrinsic builder.append_str
-        local.field 10 29 0
+        local.field 10 20 0
         ref.cast 9
         local.set 11
         i64.const 0
@@ -487,7 +448,7 @@ fn 1 snippet$main () -> i32
     return
   end $L0
   local.get 1
-  type_check 32
+  type_check 23
   if $L19 void
     string.const 5
     call 0
@@ -495,7 +456,7 @@ fn 1 snippet$main () -> i32
     call 16
     local.tee 0
     local.tee 4
-    type_check 30
+    type_check 21
     if $L20 void
       local.get 0
       call 15
@@ -503,7 +464,7 @@ fn 1 snippet$main () -> i32
       string.const 8
       call 16
       local.tee 5
-      type_check 32
+      type_check 23
       if $L21 void
         string.const 9
         call 0
@@ -540,7 +501,7 @@ fn 1 snippet$main () -> i32
         local.get 2
         local.get 3
         intrinsic builder.append_str
-        local.field 10 29 0
+        local.field 10 20 0
         ref.cast 9
         local.set 11
         i64.const 0
@@ -558,7 +519,7 @@ fn 1 snippet$main () -> i32
         return.lit i32.const 0
       end $L21
       local.get 5
-      type_check 30
+      type_check 21
       if $L25 void
         string.const 10
         call 0
@@ -595,7 +556,7 @@ fn 1 snippet$main () -> i32
         local.get 2
         local.get 3
         intrinsic builder.append_str
-        local.field 10 29 0
+        local.field 10 20 0
         ref.cast 9
         local.set 11
         i64.const 0
@@ -615,14 +576,14 @@ fn 1 snippet$main () -> i32
       return
     end $L20
     local.get 4
-    type_check 32
+    type_check 23
     if $L29 void
       string.const 7
       call 0
       string.const 8
       call 16
       local.tee 5
-      type_check 32
+      type_check 23
       if $L30 void
         string.const 9
         call 0
@@ -659,7 +620,7 @@ fn 1 snippet$main () -> i32
         local.get 2
         local.get 3
         intrinsic builder.append_str
-        local.field 10 29 0
+        local.field 10 20 0
         ref.cast 9
         local.set 11
         i64.const 0
@@ -677,7 +638,7 @@ fn 1 snippet$main () -> i32
         return.lit i32.const 0
       end $L30
       local.get 5
-      type_check 30
+      type_check 21
       if $L34 void
         string.const 10
         call 0
@@ -714,7 +675,7 @@ fn 1 snippet$main () -> i32
         local.get 2
         local.get 3
         intrinsic builder.append_str
-        local.field 10 29 0
+        local.field 10 20 0
         ref.cast 9
         local.set 11
         i64.const 0
@@ -789,17 +750,16 @@ end
 
 fn 6 std_time$nanos (i64) -> ref
   local.get 0
-  struct.new 29
+  struct.new 20
   return
 end
 
 fn 7 std_time$format (ref) -> string
   local n i64
-  local a any
+  local a i64
   local if_res string
   local __sb_0 any
-  local $vcall_17 string
-  local.field 0 29 0
+  local.field 0 20 0
   ref.cast 9
   local.tee 1
   call 5
@@ -818,18 +778,15 @@ fn 7 std_time$format (ref) -> string
   local.set 3
   local.get 2
   i64.const 1000
-  i32.lt
+  i64.lt
   if $L1 void
     intrinsic builder.new
     local.tee 4
     local.get 3
     intrinsic builder.append_display
-    local.get 2
-    virtual.call 1 Display.to_string
-    local.set 5
     local.get 4
-    local.get 5
-    intrinsic builder.append_str
+    local.get 2
+    intrinsic builder.append_display
     local.get 4
     string.const 14
     intrinsic builder.append_str
@@ -839,7 +796,7 @@ fn 7 std_time$format (ref) -> string
   end $L1
   local.get 2
   i64.const 1000000
-  i32.lt
+  i64.lt
   if $L2 void
     intrinsic builder.new
     local.tee 4
@@ -847,12 +804,11 @@ fn 7 std_time$format (ref) -> string
     intrinsic builder.append_display
     local.get 2
     i64.const 1000
-    i32.div
-    virtual.call 1 Display.to_string
-    local.set 5
+    i64.div
+    local.set 1
     local.get 4
-    local.get 5
-    intrinsic builder.append_str
+    local.get 1
+    intrinsic builder.append_display
     local.get 4
     string.const 15
     intrinsic builder.append_str
@@ -862,7 +818,7 @@ fn 7 std_time$format (ref) -> string
   end $L2
   local.get 2
   i64.const 1000000000
-  i32.lt
+  i64.lt
   if $L3 void
     intrinsic builder.new
     local.tee 4
@@ -870,12 +826,11 @@ fn 7 std_time$format (ref) -> string
     intrinsic builder.append_display
     local.get 2
     i64.const 1000000
-    i32.div
-    virtual.call 1 Display.to_string
-    local.set 5
+    i64.div
+    local.set 1
     local.get 4
-    local.get 5
-    intrinsic builder.append_str
+    local.get 1
+    intrinsic builder.append_display
     local.get 4
     string.const 16
     intrinsic builder.append_str
@@ -889,12 +844,11 @@ fn 7 std_time$format (ref) -> string
   intrinsic builder.append_display
   local.get 2
   i64.const 1000000000
-  i32.div
-  virtual.call 1 Display.to_string
-  local.set 3
+  i64.div
+  local.set 1
   local.get 4
-  local.get 3
-  intrinsic builder.append_str
+  local.get 1
+  intrinsic builder.append_display
   local.get 4
   string.const 17
   intrinsic builder.append_str
@@ -907,7 +861,7 @@ fn 8 std_time$micros (i64) -> ref
   local.get 0
   i64.const 1000
   i64.mul
-  struct.new 29
+  struct.new 20
   return
 end
 
@@ -915,7 +869,7 @@ fn 9 std_time$millis (i64) -> ref
   local.get 0
   i64.const 1000000
   i64.mul
-  struct.new 29
+  struct.new 20
   return
 end
 
@@ -923,71 +877,71 @@ fn 10 std_time$seconds (i64) -> ref
   local.get 0
   i64.const 1000000000
   i64.mul
-  struct.new 29
+  struct.new 20
   return
 end
 
 fn 11 std_time$plus (ref,ref) -> ref
   local $field_2 i64
   local $field_3 i64
-  local.field 0 29 0
+  local.field 0 20 0
   ref.cast 9
   local.set 2
-  local.field 1 29 0
+  local.field 1 20 0
   ref.cast 9
   local.set 3
   local.get 2
   local.get 3
   i64.add
-  struct.new 29
+  struct.new 20
   return
 end
 
 fn 12 std_time$minus (ref,ref) -> ref
   local $field_2 i64
   local $field_3 i64
-  local.field 0 29 0
+  local.field 0 20 0
   ref.cast 9
   local.set 2
-  local.field 1 29 0
+  local.field 1 20 0
   ref.cast 9
   local.set 3
   local.get 2
   local.get 3
   i64.sub
-  struct.new 29
+  struct.new 20
   return
 end
 
 fn 13 std_time$add (ref,ref) -> ref
   local $field_2 i64
   local $field_3 i64
-  local.field 0 30 0
+  local.field 0 21 0
   ref.cast 9
   local.set 2
-  local.field 1 29 0
+  local.field 1 20 0
   ref.cast 9
   local.set 3
   local.get 2
   local.get 3
   i64.add
-  struct.new 30
+  struct.new 21
   return
 end
 
 fn 14 std_time$sub (ref,ref) -> ref
   local $field_2 i64
   local $field_3 i64
-  local.field 0 30 0
+  local.field 0 21 0
   ref.cast 9
   local.set 2
-  local.field 1 30 0
+  local.field 1 21 0
   ref.cast 9
   local.set 3
   local.get 2
   local.get 3
   i64.sub
-  struct.new 29
+  struct.new 20
   return
 end
 
@@ -1005,7 +959,7 @@ fn 15 std_time$format_iso8601 (ref) -> string
   local __sb_2 any
   local $intrinsic_62 string
   local $cast_64 usize
-  local.field 0 30 0
+  local.field 0 21 0
   ref.cast 9
   local.set 1
   local.get 1
@@ -1046,13 +1000,13 @@ fn 15 std_time$format_iso8601 (ref) -> string
   local.get 3
   call 19
   local.set 5
-  local.field 5 34 0
+  local.field 5 25 0
   ref.cast 9
   local.set 2
-  local.field 5 34 1
+  local.field 5 25 1
   ref.cast 9
   local.set 3
-  local.field 5 34 2
+  local.field 5 25 2
   ref.cast 9
   local.set 4
   local.get 1
@@ -1266,7 +1220,7 @@ fn 16 std_time$parse_iso8601 (string) -> ref
   local $k_147 usize
   local $k_149 usize
   local.get 0
-  call.import 19
+  call.import 5
   local.tee 1
   array.len
   local.set 2
@@ -1277,7 +1231,7 @@ fn 16 std_time$parse_iso8601 (string) -> ref
   u64.lt
   if $L0 void
     string.const 22
-    struct.new 32
+    struct.new 23
     return
   end $L0
   i64.const 0
@@ -1289,7 +1243,7 @@ fn 16 std_time$parse_iso8601 (string) -> ref
   local.get 3
   call 20
   local.tee 4
-  type_check 32
+  type_check 23
   if $L1 void
     local.get 4
     return
@@ -1306,7 +1260,7 @@ fn 16 std_time$parse_iso8601 (string) -> ref
   local.get 6
   call 21
   local.tee 4
-  type_check 32
+  type_check 23
   if $L2 void
     local.get 4
     return
@@ -1320,7 +1274,7 @@ fn 16 std_time$parse_iso8601 (string) -> ref
   local.get 3
   call 20
   local.tee 4
-  type_check 32
+  type_check 23
   if $L3 void
     local.get 4
     return
@@ -1337,7 +1291,7 @@ fn 16 std_time$parse_iso8601 (string) -> ref
   local.get 6
   call 21
   local.tee 4
-  type_check 32
+  type_check 23
   if $L4 void
     local.get 4
     return
@@ -1351,7 +1305,7 @@ fn 16 std_time$parse_iso8601 (string) -> ref
   local.get 3
   call 20
   local.tee 4
-  type_check 32
+  type_check 23
   if $L5 void
     local.get 4
     return
@@ -1368,7 +1322,7 @@ fn 16 std_time$parse_iso8601 (string) -> ref
   local.get 6
   call 21
   local.tee 4
-  type_check 32
+  type_check 23
   if $L6 void
     local.get 4
     return
@@ -1382,7 +1336,7 @@ fn 16 std_time$parse_iso8601 (string) -> ref
   local.get 3
   call 20
   local.tee 4
-  type_check 32
+  type_check 23
   if $L7 void
     local.get 4
     return
@@ -1399,7 +1353,7 @@ fn 16 std_time$parse_iso8601 (string) -> ref
   local.get 6
   call 21
   local.tee 4
-  type_check 32
+  type_check 23
   if $L8 void
     local.get 4
     return
@@ -1413,7 +1367,7 @@ fn 16 std_time$parse_iso8601 (string) -> ref
   local.get 3
   call 20
   local.tee 4
-  type_check 32
+  type_check 23
   if $L9 void
     local.get 4
     return
@@ -1430,7 +1384,7 @@ fn 16 std_time$parse_iso8601 (string) -> ref
   local.get 6
   call 21
   local.tee 4
-  type_check 32
+  type_check 23
   if $L10 void
     local.get 4
     return
@@ -1444,7 +1398,7 @@ fn 16 std_time$parse_iso8601 (string) -> ref
   local.get 3
   call 20
   local.tee 4
-  type_check 32
+  type_check 23
   if $L11 void
     local.get 4
     return
@@ -1465,8 +1419,8 @@ fn 16 std_time$parse_iso8601 (string) -> ref
   if $L12 void
     local.get 1
     local.get 2
-    array.get 37
-    ref.cast 23
+    array.get 29
+    ref.cast 27
     local.set 6
     i32.const 46
     local.set 14
@@ -1511,8 +1465,8 @@ fn 16 std_time$parse_iso8601 (string) -> ref
         if $L17 void
           local.get 1
           local.get 2
-          array.get 37
-          ref.cast 23
+          array.get 29
+          ref.cast 27
           local.set 6
           i32.const 48
           local.set 14
@@ -1528,8 +1482,8 @@ fn 16 std_time$parse_iso8601 (string) -> ref
         if $L18 void
           local.get 1
           local.get 2
-          array.get 37
-          ref.cast 23
+          array.get 29
+          ref.cast 27
           local.set 19
           i32.const 57
           local.set 20
@@ -1549,8 +1503,8 @@ fn 16 std_time$parse_iso8601 (string) -> ref
           local.set 21
           local.get 1
           local.get 2
-          array.get 37
-          ref.cast 23
+          array.get 29
+          ref.cast 27
           local.set 22
           i32.const 48
           local.set 23
@@ -1624,8 +1578,8 @@ fn 16 std_time$parse_iso8601 (string) -> ref
         if $L25 void
           local.get 1
           local.get 2
-          array.get 37
-          ref.cast 23
+          array.get 29
+          ref.cast 27
           local.set 6
           i32.const 48
           local.set 14
@@ -1641,8 +1595,8 @@ fn 16 std_time$parse_iso8601 (string) -> ref
         if $L26 void
           local.get 1
           local.get 2
-          array.get 37
-          ref.cast 23
+          array.get 29
+          ref.cast 27
           local.set 19
           i32.const 57
           local.set 20
@@ -1676,7 +1630,7 @@ fn 16 std_time$parse_iso8601 (string) -> ref
   local.get 6
   call 21
   local.tee 1
-  type_check 32
+  type_check 23
   if $L28 void
     local.get 1
     return
@@ -1696,7 +1650,7 @@ fn 16 std_time$parse_iso8601 (string) -> ref
   local.get 13
   if $L30 void
     string.const 23
-    struct.new 32
+    struct.new 23
     return
   end $L30
   local.get 8
@@ -1714,7 +1668,7 @@ fn 16 std_time$parse_iso8601 (string) -> ref
   local.get 13
   if $L32 void
     string.const 24
-    struct.new 32
+    struct.new 23
     return
   end $L32
   local.get 9
@@ -1742,7 +1696,7 @@ fn 16 std_time$parse_iso8601 (string) -> ref
   local.get 13
   if $L35 void
     string.const 25
-    struct.new 32
+    struct.new 23
     return
   end $L35
   local.get 5
@@ -1783,28 +1737,28 @@ fn 16 std_time$parse_iso8601 (string) -> ref
   local.get 5
   i64.const 1000000
   i64.mul
-  struct.new 30
+  struct.new 21
   return
 end
 
 fn 17 std_time$monotonic () -> ref
-  call.import 17
-  struct.new 33
+  call.import 3
+  struct.new 24
   return
 end
 
 fn 18 std_time$since (ref) -> ref
   local $call_1 i64
   local $field_2 i64
-  call.import 17
+  call.import 3
   local.set 1
-  local.field 0 33 0
+  local.field 0 24 0
   ref.cast 9
   local.set 2
   local.get 1
   local.get 2
   i64.sub
-  struct.new 29
+  struct.new 20
   return
 end
 
@@ -1969,7 +1923,7 @@ fn 19 std_time$civil_from_days (i64) -> ref
   local.get 4
   local.get 3
   local.get 1
-  struct.new 34
+  struct.new 25
   return
 end
 
@@ -1987,7 +1941,7 @@ fn 20 std_time$parse_digits (string,usize,usize) -> ref
   local $cast_32 i64
   local $k_34 usize
   local.get 0
-  call.import 19
+  call.import 5
   local.set 3
   local.get 1
   local.get 2
@@ -2001,7 +1955,7 @@ fn 20 std_time$parse_digits (string,usize,usize) -> ref
   u64.gt
   if $L0 void
     string.const 26
-    struct.new 32
+    struct.new 23
     return
   end $L0
   i64.const 0
@@ -2020,8 +1974,8 @@ fn 20 std_time$parse_digits (string,usize,usize) -> ref
         local.set 5
         local.get 3
         local.get 5
-        array.get 37
-        ref.cast 23
+        array.get 29
+        ref.cast 27
         local.set 7
         i32.const 48
         local.set 8
@@ -2042,7 +1996,7 @@ fn 20 std_time$parse_digits (string,usize,usize) -> ref
         local.get 9
         if $L5 void
           string.const 27
-          struct.new 32
+          struct.new 23
           return
         end $L5
         local.get 6
@@ -2079,7 +2033,7 @@ fn 21 std_time$expect_byte (string,usize,u8) -> ref
   local sb ref
   local $len_5 usize
   local.get 0
-  call.import 19
+  call.import 5
   local.tee 3
   array.len
   local.set 4
@@ -2088,18 +2042,18 @@ fn 21 std_time$expect_byte (string,usize,u8) -> ref
   u64.ge
   if $L0 void
     string.const 26
-    struct.new 32
+    struct.new 23
     return
   end $L0
   local.get 3
   local.get 1
-  array.get 37
-  ref.cast 23
+  array.get 29
+  ref.cast 27
   local.get 2
   i32.ne
   if $L1 void
     string.const 28
-    struct.new 32
+    struct.new 23
     return
   end $L1
   return.lit null.const
@@ -2226,7 +2180,7 @@ fn 23 std_string$pad_start (string,usize,char) -> string
   local sb ref
   local $k_10 usize
   local.get 0
-  call.import 18
+  call.import 4
   local.tee 3
   local.get 1
   u64.ge
@@ -2272,92 +2226,8 @@ fn 24 std_string_builder$StringBuilder$Display$to_string_vt (ref) -> string
   return
 end
 
-fn 25 std_core$i8$Display$to_string_vt (i8) -> string
+fn 25 std_core$string$Display$to_string_vt (string) -> string
   local.get 0
   call.import 2
-  return
-end
-
-fn 26 std_core$i16$Display$to_string_vt (i16) -> string
-  local.get 0
-  call.import 3
-  return
-end
-
-fn 27 std_core$i32$Display$to_string_vt (i32) -> string
-  local.get 0
-  call.import 4
-  return
-end
-
-fn 28 std_core$i64$Display$to_string_vt (i64) -> string
-  local.get 0
-  call.import 5
-  return
-end
-
-fn 29 std_core$isize$Display$to_string_vt (isize) -> string
-  local.get 0
-  call.import 6
-  return
-end
-
-fn 30 std_core$u8$Display$to_string_vt (u8) -> string
-  local.get 0
-  call.import 7
-  return
-end
-
-fn 31 std_core$u16$Display$to_string_vt (u16) -> string
-  local.get 0
-  call.import 8
-  return
-end
-
-fn 32 std_core$u32$Display$to_string_vt (u32) -> string
-  local.get 0
-  call.import 9
-  return
-end
-
-fn 33 std_core$u64$Display$to_string_vt (u64) -> string
-  local.get 0
-  call.import 10
-  return
-end
-
-fn 34 std_core$usize$Display$to_string_vt (usize) -> string
-  local.get 0
-  call.import 11
-  return
-end
-
-fn 35 std_core$f32$Display$to_string_vt (f32) -> string
-  local.get 0
-  call.import 12
-  return
-end
-
-fn 36 std_core$f64$Display$to_string_vt (f64) -> string
-  local.get 0
-  call.import 13
-  return
-end
-
-fn 37 std_core$bool$Display$to_string_vt (bool) -> string
-  local.get 0
-  call.import 14
-  return
-end
-
-fn 38 std_core$char$Display$to_string_vt (char) -> string
-  local.get 0
-  call.import 15
-  return
-end
-
-fn 39 std_core$string$Display$to_string_vt (string) -> string
-  local.get 0
-  call.import 16
   return
 end

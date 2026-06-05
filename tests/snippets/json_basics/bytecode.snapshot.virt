@@ -67,15 +67,14 @@ type 64 union 65,0
 type 65 struct std_collections$Entry__Any__Any { key:4,value:4,next:64 }
 type 66 struct std_collections$Entry__string__Any { key:4,value:4,next:64 }
 type 67 array 9
-type 68 ref _
-type 69 array 70
-type 70 union 71,0
-type 71 ref Entry
-type 72 array 73
-type 73 struct __Tuple_96 { _0:1,_1:43 }
-type 74 union 14,0
-type 75 array 76
-type 76 union 66,0
+type 68 array 69
+type 69 union 70,0
+type 70 ref Entry
+type 71 array 72
+type 72 struct __Tuple_95 { _0:1,_1:43 }
+type 73 union 14,0
+type 74 array 75
+type 75 union 66,0
 string 0 "0"
 string 1 ".0"
 string 2 "trailing characters after JSON value"
@@ -1715,7 +1714,7 @@ fn 38 std_json$parse_object (ref) -> ref
     local.get 1
     return
   end $L0
-  array.new 69 0
+  array.new 68 0
   local.set 1
   i64.const 0
   local.set 2
@@ -2557,12 +2556,12 @@ fn 44 std_json$write_object (ref,ref,i32,i32) -> void
       if $L3 void
         local.get 6
         local.get 5
-        array.get 72
+        array.get 71
         local.set 7
-        local.field 7 73 0
+        local.field 7 72 0
         ref.cast 1
         local.set 9
-        local.field 7 73 1
+        local.field 7 72 1
         local.set 10
         local.get 8
         bool.not
@@ -3586,7 +3585,7 @@ fn 62 std_collections$std_collections$put__string__Any (ref,string,ref) -> void
   local.set 5
   local.field 0 62 0
   local.get 5
-  array.get 75
+  array.get 74
   local.set 6
   bool.const false
   local.set 7
@@ -3639,7 +3638,7 @@ fn 62 std_collections$std_collections$put__string__Any (ref,string,ref) -> void
   end $L6
   local.field 0 62 0
   local.get 5
-  array.get 75
+  array.get 74
   local.set 6
   local.get 1
   local.get 2
@@ -3649,7 +3648,7 @@ fn 62 std_collections$std_collections$put__string__Any (ref,string,ref) -> void
   local.field 0 62 0
   local.get 5
   local.get 6
-  array.set 75
+  array.set 74
   local.field 0 62 1
   ref.cast 15
   local.set 4

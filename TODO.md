@@ -734,7 +734,7 @@ queries + closure-analysis pass land on the typechecker side.
       (else stdlib CFG bloats them ~10×). PROVISIONAL : decide whether stdlib
       elision should be a `--stdlib` opt-in flag on `dump` rather than the baked
       default, so the CLI can still show the full CFG when wanted.
-- [ ] **Native-emitter gaps surfaced by the oracle flip — 10 fixed, 1 open**
+- [x] **Native-emitter gaps surfaced by the oracle flip — 11 fixed, 0 open**
       (2026-06-05). With `bytecode.snapshot.virt` now native-emitted,
       `vader_vm.test.ts` runs native bytecode for the whole corpus and exposed
       11 mis-compiles. FIXED this session:
@@ -795,20 +795,27 @@ queries + closure-analysis pass land on the typechecker side.
         — the namespace member-type table holds only type-kind members, not fns) and
         delegates to it for generic members, exactly as the direct-ident path does.
         Both `_config.json` bytecode-exclusions deleted ; snapshots regenerated.
-      STILL OPEN (in `KNOWN_DIVERGENT`, each its own fix) :
-      `std_time` (`abs(i64)` typed `any` — `pick_overload` doesn't collect a
-      TRANSITIVELY-imported module's overloads, so `std/time::format` compares a
-      wide ns value via `i32.lt`).
-      `defer_on_panic` still needs the VM to drain the defer-stack on a TRAPPED
-      exit (a substantial `exec`-loop control-flow change — `frames` is local to
-      `exec`, so the drain must happen inside it, intercepting the inline-dispatch
-      Trap). `defer_in_lambda`
-      surfaced a *distinct* deeper gap once `defer.push` started emitting : a
-      defer thunk *inside a lambda* that captures an outer-lambda-captured var
-      (`defer println("...${x}")` where `x` is `__env.cap_N`) fails to resolve
-      `x` while building the thunk's closure env, truncating the lambda body
-      with `unreachable ; unresolved ident x` — a nested-capture chain through
-      the defer thunk, not panic-unwind.
+      - `std_time` — `seconds(i64(3)).format()` printed `3000000000 ns` not `3 s`.
+        ROOT (the memory's "transitive import" note was WRONG — `abs` is DIRECTLY
+        imported): `abs(i64)`'s expression-bodied return type stayed `?` in std/time's
+        view, so `a :: abs(n)` typed `any` → the i64-literal threshold compares emit
+        `i32.lt`, truncating `3e9` past i32. `populate_imported_fn_overloads` runs
+        TWICE for a non-entry module — once BEFORE `settle_external_expr_bodied_returns`
+        (so settle's own UFCS sees cross-module overloads) capturing the still-`?`
+        return, once after — and `push_overload` APPENDS, so the stale `fn(i64) -> ?`
+        sat before the settled `fn(i64) -> i64` and `pick_overload` picked it. FIX:
+        clear `other_typed.imported_fn_overloads` before the post-settle re-populate
+        (orchestrate.vader) so the bucket is rebuilt from settled `decl_types`. The
+        entry module already populated once (post-settle) so it was unaffected — the
+        bug was non-entry-module-only. Drift = IMPROVEMENT (4 snippets : more
+        cross-module expr-bodied returns now resolve concrete instead of `?`).
+      ALL 11 fixed. Separately tracked (NOT among the 11) : `defer_on_panic` needs
+      the VM to drain the defer-stack on a TRAPPED exit (a substantial `exec`-loop
+      control-flow change — `frames` is local to `exec`, so the drain must happen
+      inside it, intercepting the inline-dispatch Trap) ; `defer_in_lambda` — a
+      defer thunk *inside a lambda* capturing an outer-lambda-captured var fails to
+      resolve it, truncating the lambda body (`unreachable ; unresolved ident x`),
+      a nested-capture chain through the defer thunk.
 - [x] **Cross-module folder modules** — landed 2026-05-17. Root cause was a runtime UAF : `vader_read_dir` stored `ent->d_name` (DIR-owned, reused on next readdir) without copying. `mod_a` was the first user-folder ; by the time its name was read back, the buffer pointed at garbage so `load_module_files` saw an empty entry and skipped the module. `vader_string_alloc` + memcpy in `vader_runtime.c`. Also `join_path` now strips leading `./`, `dump_program_with_others` writes one section per loaded module (sorted), and `settle_external_expr_bodied_returns` walks every non-entry module's bodies so per-module `expr_types` populate for the dump.
 - [x] **Generic trait method substitution** (2026-05-17) — landed via `trait_decl_owners` side-table + `substitute_by_name` over `Yield(T)` etc. `try_default_trait_method` for inherited Iterator defaults landed too. Unblocked iter_coerce_array (with `try_array_to_iter` in coerce.vader), iter_combinators, iter_zip_chain, trait_box_range_iter, string_codepoints. Still blocked on default-method *materialize-into-impl-with-original-line:col* (separate item below).
 - [x] **Generic fn-call argument inference back-propagation** (2026-05-17) — `call.vader::infer_call` now substitutes bindings into each param BEFORE typing it (so lambda's expected fn-type reflects already-bound type-params), and `unify_type_param` tightens Free* bindings when a later arg pins the same TypeParam to a concrete numeric. `expr_lambda.vader::pick_final_return` falls back to body's defaulted type when expected is TypeParam-bearing.
