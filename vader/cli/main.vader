@@ -34,6 +34,7 @@ import "vader/lower" { lower_project }
 import "vader/lower" { dump_lowered }
 import "vader/lower" { prune_unreachable_fns }
 import "vader/lower" { mangle_module_id }
+import "vader/lower" { LoweredProject }
 import "vader/bytecode" { emit_project }
 import "vader/bytecode" { BytecodeModule }
 import "vader/bytecode" { default_emit_options }
@@ -246,15 +247,17 @@ forwarded_argv :: fn(path: string, args: string[]) -> string[] {
 // emitted `BytecodeModule` round-trips through `dump_bytecode` / `parse_virt`
 // — the in-memory equivalent of `vader dump --stage=bytecode … | vader run`.
 run_source :: fn(file: string, host_argv: string[]) -> i32 {
-    pipeline :: prepare_evaluated_project(file)
-    lower_diags: Diagnostic[] = []
-    lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
-    pruned :: prune_unreachable_fns(lowered, false)
+    // `lower_to_entry` drops the typed/evaluated/loaded pipeline (its per-module
+    // side-table maps dominate the live set) before this CFG → bytecode tail —
+    // the lowered IR carries its own `Type`s, so emit never revisits the
+    // typed-AST tables.
+    le :: lower_to_entry(file)
+    pruned :: prune_unreachable_fns(le.lowered, false)
     cfg :: build_cfg_project(pruned)
     dced :: eliminate_dead_cfg(cfg)
     escaped :: annotate_escape(dced).project
     module :: emit_bytecode_from_cfg(escaped, module_name_from_file(file), default_emit_options())
-    return match exec(parse_virt(dump_bytecode(module, entry_main_name(pipeline.typed, pipeline.loaded.entry))), host_argv) {
+    return match exec(parse_virt(dump_bytecode(module, le.entry)), host_argv) {
         is Ok   as o -> o.value
         is Trap as t -> {
             eprintln("vader vm: ${t.message}")
@@ -555,10 +558,50 @@ run_bytecode_cfg_stage :: fn(file: string) -> i32 {
     return 0
 }
 
+/// Lowered IR plus the few bits the CFG → bytecode tail still needs, with the
+/// `EvaluatedPipeline` (`loaded` + `typed` + `evaluated`) already out of scope.
+/// `LoweredProject` carries a static `Type` on every expression (see
+/// `vader/lower/lowered_ast.vader`), so nothing here references the typecheck
+/// side-table maps that dominate the live set — returning this lets the caller
+/// run emit without those maps coexisting with the emitter's own tables.
+LoweredEntry :: struct {
+    lowered:     LoweredProject
+    /// Entry-fn mangle (`…$main`) for the `export main` directive — resolved
+    /// from the typed AST before the pipeline is released.
+    entry:       string
+    /// Loader + resolver + typecheck + comptime diags, pre-flattened in the
+    /// canonical order (`gather_pipeline_diags`).
+    pre_diags:   Diagnostic[]
+    lower_diags: Diagnostic[]
+}
+
+/// Run load → typecheck → comptime → lower, resolve the entry-fn name and
+/// harvest the diagnostics, then return — letting the `EvaluatedPipeline` and
+/// its per-module `MutableMap` side-tables leave scope before the caller's
+/// CFG → bytecode tail. This is the live-set lever for `vader run` and
+/// `dump --stage=bytecode|c` : the typecheck-era maps no longer coexist with
+/// the emitter's own tables at the memory peak.
+lower_to_entry :: fn(file: string) -> LoweredEntry {
+    pipeline :: prepare_evaluated_project(file)
+    lower_diags: Diagnostic[] = []
+    lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
+    entry :: entry_main_name(pipeline.typed, pipeline.loaded.entry)
+    pre_diags :: gather_pipeline_diags(pipeline)
+    return LoweredEntry {
+        .lowered     = lowered,
+        .entry       = entry,
+        .pre_diags   = pre_diags,
+        .lower_diags = lower_diags,
+    }
+}
+
 /// Result of `prepare_cfg_bytecode` — the canonical bytecode module plus
 /// the bits the caller still needs for diagnostics + entry resolution.
 CfgBytecode :: struct {
-    pipeline:    EvaluatedPipeline
+    /// Entry-fn mangle (`…$main`), resolved inside `lower_to_entry`.
+    entry:       string
+    /// Loader + resolver + typecheck + comptime diags, canonical order.
+    pre_diags:   Diagnostic[]
     lower_diags: Diagnostic[]
     module:      BytecodeModule
 }
@@ -572,15 +615,18 @@ CfgBytecode :: struct {
 /// `dumpBytecode` skips it too, so arith collapse would over-shrink vs the
 /// parity snapshot).
 prepare_cfg_bytecode :: fn(file: string) -> CfgBytecode {
-    pipeline :: prepare_evaluated_project(file)
-    lower_diags: Diagnostic[] = []
-    lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
-    pruned :: prune_unreachable_fns(lowered, false)
+    le :: lower_to_entry(file)
+    pruned :: prune_unreachable_fns(le.lowered, false)
     cfg :: build_cfg_project(pruned)
     dced :: eliminate_dead_cfg(cfg)
     escaped :: annotate_escape(dced).project
     module :: emit_bytecode_from_cfg(escaped, module_name_from_file(file), default_emit_options())
-    return CfgBytecode { .pipeline = pipeline, .lower_diags = lower_diags, .module = module }
+    return CfgBytecode {
+        .entry       = le.entry,
+        .pre_diags   = le.pre_diags,
+        .lower_diags = le.lower_diags,
+        .module      = module,
+    }
 }
 
 run_bytecode_stage :: fn(file: string, annotate: bool) -> i32 {
@@ -590,10 +636,9 @@ run_bytecode_stage :: fn(file: string, annotate: bool) -> i32 {
     // `process.stdout.write(writeVir(...))` byte-for-byte. `--annotate`
     // routes through the disassembly variant — NOT round-trippable, so it
     // never feeds `parse_virt` or the parity snapshots.
-    entry :: entry_main_name(b.pipeline.typed, b.pipeline.loaded.entry)
-    out_text :: if annotate { dump_bytecode_annotated(b.module, entry) } else { dump_bytecode(b.module, entry) }
+    out_text :: if annotate { dump_bytecode_annotated(b.module, b.entry) } else { dump_bytecode(b.module, b.entry) }
     print(out_text)
-    print_pipeline_diags(b.pipeline, b.lower_diags)
+    print_merged_diags(b.pre_diags, b.lower_diags)
     return 0
 }
 
@@ -603,12 +648,11 @@ run_c_stage :: fn(file: string) -> i32 {
     // stage's `export main N`) so the `main()` shim resolves the entry
     // module's `main` — a multi-module input (the compiler imports
     // `vader/lsp`, which has its own `main`) flags several fns `is_main`.
-    entry :: entry_main_name(b.pipeline.typed, b.pipeline.loaded.entry)
     // `emit_c` already returns a trailing-newline-terminated string ; use
     // `print` (no auto-newline) to match the TS `Bun.write(emitC(...))`
     // output byte-for-byte.
-    print(emit_c(b.module, CEmitOptions { .release = false, .entry_mangled = entry }))
-    print_pipeline_diags(b.pipeline, b.lower_diags)
+    print(emit_c(b.module, CEmitOptions { .release = false, .entry_mangled = b.entry }))
+    print_merged_diags(b.pre_diags, b.lower_diags)
     return 0
 }
 
@@ -663,12 +707,27 @@ run_dced_stage :: fn(file: string) -> i32 {
 // forwards via orchestrate.vader:168), then comptime, then `extra`
 // (the per-stage tail — currently lower).
 print_pipeline_diags :: fn(pipeline: EvaluatedPipeline, extra: Diagnostic[]) -> void {
+    print_merged_diags(gather_pipeline_diags(pipeline), extra)
+}
+
+// Flatten the loader + resolver + typecheck + comptime diagnostic bags into one
+// list, in the canonical order the dump stages expect. Pulled out so
+// `lower_to_entry` can snapshot the diags before releasing the pipeline.
+gather_pipeline_diags :: fn(pipeline: EvaluatedPipeline) -> Diagnostic[] {
+    out: Diagnostic[] = []
+    for d in pipeline.loaded.diags    { out.push(d) }
+    for d in pipeline.resolver_diags  { out.push(d) }
+    for d in pipeline.typecheck_diags { out.push(d) }
+    for d in pipeline.comptime_diags  { out.push(d) }
+    return out
+}
+
+// Print `head` then `extra` as a single `# Diagnostics` block (nothing when
+// both are empty), matching `dumpLower` in `tests/snapshot.ts` byte-for-byte.
+print_merged_diags :: fn(head: Diagnostic[], extra: Diagnostic[]) -> void {
     all_diags: Diagnostic[] = []
-    for d in pipeline.loaded.diags    { all_diags.push(d) }
-    for d in pipeline.resolver_diags  { all_diags.push(d) }
-    for d in pipeline.typecheck_diags { all_diags.push(d) }
-    for d in pipeline.comptime_diags  { all_diags.push(d) }
-    for d in extra                    { all_diags.push(d) }
+    for d in head  { all_diags.push(d) }
+    for d in extra { all_diags.push(d) }
     if all_diags.len() > 0 {
         println(all_diags.dump_diagnostics())
     }
