@@ -38,8 +38,9 @@ cold-start path, and matches the proven Nim / Chicken Scheme pattern.
 | `vader/bootstrap/bootstrap.vader` (seed source) | ✅ created (commit 5aede7e9) |
 | `bootstrap/` layout + scripts (`build`/`regenerate`/`verify`) + `.gitattributes` | ✅ done (commit 7655e1dc) — validated end-to-end (755 KB seed, `verify.sh` green) |
 | `--bundle-runtime` flag | ❌ later (optional improvement, runtime linked externally for now) |
-| **Commit the seed blob `bootstrap.c.gz`** | ❌ deliberately deferred — separate `chore(bootstrap): bump seed` decision |
-| CI / README / §2.8 deletion | ❌ later |
+| **Commit the seed blob `bootstrap.c.gz`** | ✅ sealed (commit 5f718b89, 755 KB) — from HEAD aa48e9f3, fixed-point verified |
+| CI integration (Phase 3) | ✅ done — `.github/workflows/bootstrap.yml`: rebuild-from-seed on every push, gated fixed-point on dispatch/tags |
+| README narrative / §2.8 `src/` deletion | ❌ later |
 
 ## Blocking prerequisite : wire `cmd_build` — ✅ DONE (commit 2c055e00)
 
@@ -456,10 +457,15 @@ The first time `bootstrap.c.gz` is generated, you need a working Vader binary
 
 ---
 
-## Phase 3 — CI integration
+## Phase 3 — CI integration — ✅ DONE (`.github/workflows/bootstrap.yml`)
 
-A new GitHub Actions job `bootstrap.yml` (or a step in the existing
-test workflow), running on each push :
+The GitHub Actions workflow `.github/workflows/bootstrap.yml` runs on each
+push : a `rebuild` job that turns the seed into stage1, rebuilds the full
+compiler, and smoke-tests it (steps below), plus a heavier `fixed-point` job
+(`verify.sh`) gated to `workflow_dispatch` and release tags. Neither needs
+Bun, Node, or a pre-installed `vader` — only a C compiler and `gzip`.
+
+The `rebuild` job, running on each push :
 
 1. `gunzip -c bootstrap/bootstrap.c.gz > build/bootstrap.c`
 2. `cc -O2 build/bootstrap.c runtime/c/vader_runtime.c -Iruntime/c -lm -o build/stage1`
