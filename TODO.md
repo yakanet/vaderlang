@@ -698,6 +698,33 @@ queries + closure-analysis pass land on the typechecker side.
 - [ ] **`if a is X { a.field }` doesn't narrow `a` across statements** — single-expression guards work but `if a is X { for v in a.variants { … } }` requires a `match a { is X as ax -> { for v in ax.variants { … } } _ -> {} }` rewrite. Bit me in `vader/typecheck/binary.vader::types_overlap` ; eventually settled on a tiny `union_variants :: fn(t) -> Type[] | null` helper to dodge the narrow. Either tighten the flow analysis so `a.variants` inside the if-then sees the narrowed type, or document the rewrite + add it to the formatter's lint pass.
 
 #### Typechecker port follow-ups — open
+- [ ] **Typecheck misses missing-argument errors (T3003 under-reporting)** (2026-06-05).
+      Vader's typechecker does NOT flag a call with too few arguments where TS
+      does. Surfaced via `builder_roundtrip` diag-parity : `exec(module_a)`
+      (1 arg) against `exec(module: Module, host_argv: string[])` (2 required
+      params) — TS emits T3003 "wrong number of arguments" at the call site,
+      Vader emits nothing. Both compilers *normally* miss it (parity held) ;
+      adding two fns (`grow` / `maybe_grow`) to `stdlib/std/collections/collections.vader`
+      during the MutableMap-resize chantier shifted symbol ordering enough that
+      TS's signature resolution fired in time and caught it while Vader still
+      didn't → the divergence surfaced. Worked around by fixing the stale
+      snippet (`exec(module_a, [])`), but the real bug is the Vader gap : the
+      arity check in `vader/typecheck/call.vader::infer_call` should reject
+      under-application of a non-defaulted, non-variadic fn. Tied to the
+      `pick_overload` / symbol-id-ordering fragility (see §2.6 re-audit #6).
+- [ ] **Codegen: narrowed scrutinee miscompiles when an arm writes through it
+      AND reassigns it** (2026-06-05). In `match cur { is Entry<K, V> -> { … } }`
+      where the arm BOTH writes through the narrowed node (`cur.next = x`) AND
+      reassigns the scrutinee (`cur = nxt`) in the same arm, a read of the
+      narrowed `cur` (e.g. `cur.key`) compiles to a null deref — the emitted box
+      reads the wrong field (observed tag = pointer low bits). Surfaced writing
+      `MutableMap.grow` (the resize chantier) ; worked around with an `as e`
+      alias (`stdlib/std/collections/collections.vader`), reading/writing through
+      the stable binding instead of `cur`. The sibling walks (`put` / `get` /
+      `remove`) are unaffected — they reassign `cur` only after the last read.
+      Real fix is in the narrowing → c_emit path : a flow-narrowed local that is
+      reassigned later in its block must keep the narrowed representation for the
+      reads that precede the reassignment.
 - [x] **Cross-module folder modules** — landed 2026-05-17. Root cause was a runtime UAF : `vader_read_dir` stored `ent->d_name` (DIR-owned, reused on next readdir) without copying. `mod_a` was the first user-folder ; by the time its name was read back, the buffer pointed at garbage so `load_module_files` saw an empty entry and skipped the module. `vader_string_alloc` + memcpy in `vader_runtime.c`. Also `join_path` now strips leading `./`, `dump_program_with_others` writes one section per loaded module (sorted), and `settle_external_expr_bodied_returns` walks every non-entry module's bodies so per-module `expr_types` populate for the dump.
 - [x] **Generic trait method substitution** (2026-05-17) — landed via `trait_decl_owners` side-table + `substitute_by_name` over `Yield(T)` etc. `try_default_trait_method` for inherited Iterator defaults landed too. Unblocked iter_coerce_array (with `try_array_to_iter` in coerce.vader), iter_combinators, iter_zip_chain, trait_box_range_iter, string_codepoints. Still blocked on default-method *materialize-into-impl-with-original-line:col* (separate item below).
 - [x] **Generic fn-call argument inference back-propagation** (2026-05-17) — `call.vader::infer_call` now substitutes bindings into each param BEFORE typing it (so lambda's expected fn-type reflects already-bound type-params), and `unify_type_param` tightens Free* bindings when a later arg pins the same TypeParam to a concrete numeric. `expr_lambda.vader::pick_final_return` falls back to body's defaulted type when expected is TypeParam-bearing.
@@ -772,15 +799,36 @@ with -O2 -g + `sample`) — the hot path has moved several times already.
       mmap-backed) so the heap adapts to input size instead of trapping
       at a compile-time constant. Stopgap : raise the default old arena.
       See §1.11.
-- [ ] **Shrink the self-compile live set** (2026-06-04). At OOM,
-      `VADER_GC_PROFILE=1` shows the ~252 MB live set dominated by
-      `MutableMap` entries — `Entry<Any, Any>` : 1.25 M live × 72 B =
-      90 MB — plus 451 k array/map backing buffers (61 MB), the rest
-      compiler IR (CFG / symbols / type caches). These are interning /
-      symbol-table / monomorphization caches held live across the whole
-      compile. Investigate tearing per-pass / per-module caches down
-      earlier (or whether something over-retains). Ties into the
-      compiler-memory-profile work (CFG-analysis churn).
+- [ ] **Shrink the self-compile live set** (re-profiled 2026-06-05). At the
+      **bytecode stage** (`VADER_GC_PROFILE=1 … dump --stage=bytecode
+      vader/cli/main.vader`, arenas young 256 MB / old 1536 MB) the live set is
+      **~498 MB** (122 MB young + 376 MB old) — the pipeline's high-water mark,
+      vs **81 MB** at typed-ast (the working-set item in §3.5). **71 %** of it
+      is `MutableMap` machinery :
+      - **ARRAY_BUF — 776 k buffers / 236.7 MB** (#1, 47 %) : variable-sized
+        backing storage — `MutableMap` bucket arrays + arrays + string bytes.
+        (The profiler mislabeled this bucket `?` / `type_index 1343` — the
+        ARRAY_BUF sentinel sits at index `vader_type_info_count` and the display
+        only matched the `VADER_TYPE_INDEX_ARRAY_BUF` header tag. Fixed in
+        `runtime/c/vader_runtime.c::vader_gc_profile_dump`.)
+      - **`Entry<Any, Any>` — 1.61 M × 72 B / 116 MB** (#2) : every `MutableMap`
+        entry node, erasure-deduped to a single C type.
+      - rest (~145 MB) : compiler IR (Position / Span / Type / CFG).
+
+      Root cause is **cross-pass retention**, not the emitter : `run_source`
+      (`vader/cli/main.vader:248-264`), `run_cfg_stage` and
+      `run_legacy_bytecode_stage` keep the whole `pipeline`
+      (`loaded` + `typed` + `evaluated` — every per-module side-table
+      `MutableMap`) live through the entire lower → cfg → dce → escape → emit
+      tail ; its only post-lower use is `entry_main_name(pipeline.typed,
+      pipeline.loaded.entry)` at `:257`. So the typecheck-era maps coexist with
+      the emitter's own tables at the peak. Candidate levers (none committed) :
+      (a) release `typed` / `evaluated` before the CFG→emit tail (extract a
+      helper returning `(lowered, entry_name)` so `pipeline` leaves scope) ;
+      (b) shrink the maps — span-key→i64, flat `Type[]` for dense `Symbol.id`-
+      keyed maps, `IntMap(V)`, small-map specialisation (detailed under the §3.5
+      working-set-reduction item). Orthogonal to the GC-arena-growth item above
+      (that fixes the OOM trap, this shrinks what's retained).
 
 #### Lower
 

@@ -2583,8 +2583,11 @@ static int vader_gc_prof_cmp(const void* a, const void* b) {
  * atexit). */
 void vader_gc_profile_dump(void) {
     if (!g_gc_initialized) return;
-    /* +1 for the ARRAY_BUF sentinel bucket. */
+    /* +1 for the ARRAY_BUF sentinel bucket. ARRAY_BUF objects (header tag
+     * VADER_TYPE_INDEX_ARRAY_BUF) are tallied into this one extra bucket, just
+     * past the real type indices [0, count) — see the bucketing + display below. */
     size_t nbuckets = vader_type_info_count + 1u;
+    const size_t array_buf_bucket = vader_type_info_count;
     vader_gc_prof_entry_t* tally = (vader_gc_prof_entry_t*) calloc(nbuckets, sizeof(vader_gc_prof_entry_t));
     if (tally == NULL) return;
     for (size_t i = 0; i < nbuckets; i++) tally[i].type_index = (uint32_t) i;
@@ -2599,7 +2602,7 @@ void vader_gc_profile_dump(void) {
             size_t bytes = vader_gc_obj_size(scan, type_index);
             if (bytes == 0) break;
             size_t bucket = (type_index == VADER_TYPE_INDEX_ARRAY_BUF)
-                ? vader_type_info_count
+                ? array_buf_bucket
                 : (type_index < vader_type_info_count ? type_index : 0);
             tally[bucket].count += 1u;
             tally[bucket].bytes += bytes;
@@ -2625,9 +2628,10 @@ void vader_gc_profile_dump(void) {
         uint32_t ti = tally[i].type_index;
         const char* kind_name = "?";
         size_t obj_size = 0;
-        if (ti == VADER_TYPE_INDEX_ARRAY_BUF) {
+        /* After bucketing, every ARRAY_BUF object sits in `array_buf_bucket` ;
+         * the raw VADER_TYPE_INDEX_ARRAY_BUF header tag never reaches here. */
+        if (ti == array_buf_bucket) {
             kind_name = "ARRAY_BUF";
-            obj_size = 0;
         } else if (ti < vader_type_info_count) {
             const vader_type_info_t* info = &vader_type_info_table[ti];
             switch (info->kind) {
