@@ -35,8 +35,18 @@ jobs:
       - name: Typecheck
         run: bun run typecheck
 
-      - name: Build Vader CLI (used by tests)
-        run: bun run build:cli
+      # Build the compiler under test from the committed C seed — no TS. This is
+      # the §2.8 path: once src/ is deleted, the seed is the only way to get a
+      # vader binary. stage1 (build-only) emits the full compiler's C, then cc.
+      # GC arenas raised so stage1 doesn't OOM on self-input (docs/BOOTSTRAP.md §9).
+      - name: Build Vader CLI from the C seed (used by tests)
+        env:
+          VADER_GC_YOUNG_BYTES: 268435456
+          VADER_GC_OLD_BYTES: 1073741824
+        run: |
+          bash bootstrap/build.sh
+          ./build/stage1 vader/cli/main.vader build/main.c
+          cc -O2 -o build/vader build/main.c runtime/c/vader_runtime.c -Iruntime/c -lm
 
       - name: Test
         run: bun run test
