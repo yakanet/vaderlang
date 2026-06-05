@@ -2106,6 +2106,20 @@ try_lower_array_op :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowered
     }
 }
 
+// Peel a narrowing `LoweredCast` off a type-check operand. `lower_ident`
+// inserts such a cast (`LoweredCast { value: LoweredIdent : <union> }`) when the
+// typed-AST narrowed a union-declared symbol to a variant at the use site. For
+// an `is` operand that cast is harmful — the C-emit `ref.cast`-unboxes the union
+// to the variant, so the following `type_check` constant-folds. Returning the
+// cast's inner union value keeps the runtime tag intact (the narrowing is a
+// compile-time view, so the check on the original box is what we want).
+strip_narrowing_cast :: fn(e: LoweredExpr) -> LoweredExpr {
+    if e is LoweredCast as c {
+        if type_of(c.value) is UnionType { return c.value }
+    }
+    return e
+}
+
 lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredExpr {
     // `expr is T` lowers to a runtime tag check ; the RHS is a type
     // expression, not a value. The `bind_as` parsing is handled inside
@@ -2114,8 +2128,17 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
     // and lowers to a regular `LoweredCast` reaching the alias slot.
     if i32(binary.op) == i32(BinaryOp.Is) {
         return LoweredTypeCheck {
-            .span = binary.span, .type = TY_BOOL,
-            .value = lower_expr(ctx, binary.left),
+            .span = binary.span,
+            .type = TY_BOOL,
+            // The check must see the operand's FULL (declared union) box so it
+            // can compare the runtime tag. When the typed-AST narrowed this use
+            // to a variant (`l : LocalId | null` recorded as `LocalId` at the
+            // `is null` site), `lower_ident` wraps it in a narrowing `LoweredCast`
+            // — the C-emit then `ref.cast`-unboxes to the variant and CONSTANT-
+            // FOLDS the tag check (`is null` → `false`). Peel that cast so the
+            // check runs on the union value, matching TS (whose typer keeps the
+            // operand at the union type here).
+            .value = strip_narrowing_cast(lower_expr(ctx, binary.left)),
             .check_type = ctx.types.expr_type(binary.right),
         }
     }
