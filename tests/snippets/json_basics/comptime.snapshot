@@ -3,7 +3,7 @@
 ## stdlib/std/abort
 
 ## stdlib/std/collections
-  @comptime  BUCKET_COUNT         = 16_usize
+  @comptime  MINIMAL_BUCKET_COUNT = 16_usize
 
 ## stdlib/std/core
 
@@ -54,7 +54,9 @@
   Entry<K, V>
   Entry<K, V>
   Entry<K, V>
+  Entry<K, V>
   Entry<T, bool>
+  Entry<K, V>
   MutableMap<i32, bool>
   MutableMap<string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString>
   MutableMap<string, i32>
@@ -72,6 +74,7 @@
   MutableMap<K, V>
   MutableMap<K, V>
   MutableMap<K, V>
+  MutableMap<K, V>
   MutableMap<T, bool>
   MutableMap<T, bool>
   MutableMap<T, bool>
@@ -80,6 +83,7 @@
   MutableMap<T, bool>
   MutableMap<T, bool>
   MutableMap<T, bool>
+  MutableMap<K, V>
   MapIterator<K, V>
   MapIterator<K, V>
   MapIterator<K, V>
@@ -122,10 +126,10 @@
   Yield<T>
   Yield<T>
   Yield<T>
-  Yield<T>
-  Yield<T>
-  Yield<T>
   Yield<U>
+  Yield<T>
+  Yield<T>
+  Yield<T>
   Yield<T>
   Yield<T>
   Range<char>

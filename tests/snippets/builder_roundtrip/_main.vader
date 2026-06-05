@@ -107,13 +107,13 @@ run_and_report :: fn(label: string, result: VmResult) -> i32 {
 main :: fn() -> i32 {
     println("=== first exec : freshly built module ===")
     module_a :: build_test_module()
-    result_a :: exec(module_a)
+    result_a :: exec(module_a, [])
     value_a :: run_and_report("first  exec", result_a)
 
     println("=== serialise → parse_virt → second exec ===")
     serialised :: write_virt(module_a)
     module_b :: parse_virt(serialised)
-    result_b :: exec(module_b)
+    result_b :: exec(module_b, [])
     value_b :: run_and_report("second exec", result_b)
 
     if value_a == value_b && value_a == 82 {

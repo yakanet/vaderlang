@@ -18,23 +18,23 @@
 //   s := MutableSet(i32) {}
 //   s.add(10)
 //
-// `MutableMap` is a chaining HashMap with fixed bucket count ; `MutableSet`
-// is linear-search. Both will need trait dispatch on bounded `$K`/`$T` to
-// migrate (post-MVP).
+// `MutableMap` is a chaining HashMap that doubles + rehashes past a 0.75 load
+// factor ; `MutableSet` wraps it (each member a `T → true` entry).
 
 // ===========================================================================
 // MutableMap(K, V) — chaining hash map. Each bucket holds a singly-linked
 // list of `Entry(K, V)` nodes. Lookup hashes the key, walks the bucket's
 // chain comparing keys via the `Equals` trait, and inserts at the chain head.
 //
-// Bucket count is a fixed `BUCKET_COUNT` (no resize in MVP — collisions
-// degrade gracefully into linear search per bucket). Lazy-initialised on
-// first put so the struct-literal constructor stays simple.
+// `MINIMAL_BUCKET_COUNT` is the initial bucket count ; the map doubles + rehashes once
+// the load factor exceeds 0.75 (`maybe_grow`), so lookups stay ~O(1) instead of
+// degrading into a per-bucket linear scan. Lazy-initialised on first put so the
+// struct-literal constructor stays simple.
 // ===========================================================================
 
 module "std/collections"
 
-BUCKET_COUNT :: usize(16)
+MINIMAL_BUCKET_COUNT :: usize(16)
 
 Entry :: struct<K, V> {
     key:   K
@@ -43,12 +43,11 @@ Entry :: struct<K, V> {
 }
 
 /// Chaining hash map keyed by any `K` that implements `Hash & Equals`.
-/// Buckets are a fixed `BUCKET_COUNT`-wide array of singly-linked chains ;
-/// MVP doesn't resize, so the load factor is bounded above by the chain
-/// length. `K`'s `hash()` is queried on insert / lookup, `equals()` on
-/// chain walks.
+/// Buckets start `MINIMAL_BUCKET_COUNT`-wide and double + rehash past a 0.75 load
+/// factor, keeping the average chain length bounded (~O(1) lookups). `K`'s
+/// `hash()` is queried on insert / lookup / resize, `equals()` on chain walks.
 export MutableMap :: struct<K: Hash & Equals, V> {
-    /// Bucket array, lazily widened to `BUCKET_COUNT` by `ensure_buckets` on
+    /// Bucket array, lazily widened to `MINIMAL_BUCKET_COUNT` by `ensure_buckets` on
     /// first insert. Defaults empty so `MutableMap(K, V) {}` is a valid literal.
     buckets: (Entry<K, V> | null)[] = []
     size:    usize = 0
@@ -58,19 +57,17 @@ export MutableMap :: struct<K: Hash & Equals, V> {
 // `Hash & Equals` constraint is auto-inherited from the struct decl above by
 // the typecheck `inherit-bounds` pass when the first param is `MutableMap(K, V)`.
 
-bucket_index :: fn(h: u64) -> i32 {
-    return i32(h % u64(BUCKET_COUNT))
-}
+bucket_index :: fn(h: u64, count: usize) -> i32 = i32(h % u64(count))
 
 /// Lazy-initialise the bucket array on the first call to `put` (or anything
 /// else that needs a populated chain head). After this the receiver carries
-/// `BUCKET_COUNT` null-headed chains, ready for insertion. No-op when the
+/// `MINIMAL_BUCKET_COUNT` null-headed chains, ready for insertion. No-op when the
 /// buckets have already been allocated, so it's cheap to call from every
 /// mutating entry point.
 /// @param self  the map receiver whose buckets get materialised.
 ensure_buckets :: fn<K, V>(self: MutableMap<K, V>) -> void {
     if self.buckets.len() == 0 {
-        for 0..<BUCKET_COUNT {
+        for 0..<MINIMAL_BUCKET_COUNT {
             self.buckets.push(null)
         }
     }
@@ -85,7 +82,7 @@ ensure_buckets :: fn<K, V>(self: MutableMap<K, V>) -> void {
 put :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, value: V) -> void {
     self.ensure_buckets()
     h :: key.hash()
-    idx :: bucket_index(h)
+    idx :: bucket_index(h, self.buckets.len())
 
     // Walk the chain — update in place if the key already exists.
     cur: Entry<K, V> | null = self.buckets[idx]
@@ -113,6 +110,49 @@ put :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, value: V) -> void
     new_entry :: Entry<K, V> { .key = key, .value = value, .next = self.buckets[idx] }
     self.buckets[idx] = new_entry
     self.size = self.size + 1
+    self.maybe_grow()
+}
+
+// Load-factor cap : double the bucket count + rehash once the chains average
+// more than 0.75 entries/bucket, so lookups stay ~O(1) instead of degrading
+// into a linear scan of one long chain. `MINIMAL_BUCKET_COUNT` is now just the initial
+// width, not a fixed ceiling.
+maybe_grow :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>) -> void {
+    if self.size * usize(4) > self.buckets.len() * usize(3) {
+        self.grow()
+    }
+}
+
+// Double the bucket array and re-link every existing entry into its new chain.
+// Entry nodes are reused (only `next` is repointed) so growth allocates no new
+// entries — but each key's `hash()` is recomputed since entries don't cache it.
+// NB: the node is bound via `as e`, not read through `cur` — this arm writes
+// through the node AND reassigns `cur`, which miscompiled the narrowed read to a
+// null deref under the bare `is Entry ->` form (codegen narrowing bug, see TODO).
+grow :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>) -> void {
+    old :: self.buckets
+    new_count :: old.len() * usize(2)
+    fresh: (Entry<K, V> | null)[] = []
+    for 0..<new_count {
+        fresh.push(null)
+    }
+    for head in old {
+        cur: Entry<K, V> | null = head
+        done := false
+        for !done {
+            match cur {
+                is null -> { done = true }
+                is Entry<K, V> as e -> {
+                    nxt :: e.next
+                    idx :: bucket_index(e.key.hash(), new_count)
+                    e.next = fresh[idx]
+                    fresh[idx] = e
+                    cur = nxt
+                }
+            }
+        }
+    }
+    self.buckets = fresh
 }
 
 /// Look up `key`. Returns the stored value or `null` if absent.
@@ -124,7 +164,7 @@ get :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K) -> V | null {
         return null
     }
     h :: key.hash()
-    idx :: bucket_index(h)
+    idx :: bucket_index(h, self.buckets.len())
     cur: Entry<K, V> | null = self.buckets[idx]
     result: V | null = null
     done := false
@@ -153,7 +193,7 @@ contains_key :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K) -> bool 
         return false
     }
     h :: key.hash()
-    idx :: bucket_index(h)
+    idx :: bucket_index(h, self.buckets.len())
     cur: Entry<K, V> | null = self.buckets[idx]
     found := false
     done := false
@@ -183,7 +223,7 @@ export remove :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K) -> bool
         return false
     }
     h :: key.hash()
-    idx :: bucket_index(h)
+    idx :: bucket_index(h, self.buckets.len())
 
     // Walk the chain, tracking the predecessor so the match can be unlinked.
     prev: Entry<K, V> | null = null

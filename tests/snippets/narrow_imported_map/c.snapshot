@@ -95,14 +95,27 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 static void std_io_std_io_println__string(vader_string_t l0);
 static vader_box_t std_collections_MutableMap_Index_at__i32__Any(vader_box_t l0, int32_t l1);
 static void std_collections_MutableMap_IndexSet_set_at__i32__Any(vader_box_t l0, int32_t l1, vader_box_t l2);
-static int32_t std_collections_bucket_index(uint64_t l0);
+static int32_t std_collections_bucket_index(uint64_t l0, size_t l1);
 static void std_collections_std_collections_ensure_buckets__i32__Any(vader_box_t l0);
 static void std_collections_std_collections_put__i32__Any(vader_box_t l0, int32_t l1, vader_box_t l2);
+static void std_collections_std_collections_maybe_grow__i32__Any(vader_box_t l0);
+static void std_collections_std_collections_grow__Any__Any(vader_box_t l0);
 static vader_box_t std_collections_std_collections_get__i32__Any(vader_box_t l0, int32_t l1);
 static int32_t snippet_main(void);
+static uint64_t std_core_i8_Hash_hash(int8_t l0);
+static uint64_t std_core_i16_Hash_hash(int16_t l0);
 static uint64_t std_core_i32_Hash_hash(int32_t l0);
+static uint64_t std_core_i64_Hash_hash(int64_t l0);
+static uint64_t std_core_isize_Hash_hash(ptrdiff_t l0);
+static uint64_t std_core_u8_Hash_hash(uint8_t l0);
+static uint64_t std_core_u16_Hash_hash(uint16_t l0);
+static uint64_t std_core_u32_Hash_hash(uint32_t l0);
+static uint64_t std_core_u64_Hash_hash(uint64_t l0);
+static uint64_t std_core_usize_Hash_hash(size_t l0);
+static uint64_t std_core_char_Hash_hash(uint32_t l0);
 static vader_box_t snippet_lib_pick(vader_box_t l0, int32_t l1);
 static vader_string_t std_core_string_Display_to_string_vt(vader_string_t l0);
+static uint64_t std_core_string_Hash_hash_vt(vader_string_t l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
@@ -117,12 +130,12 @@ static const uint16_t vader_type_19_ptrs[] = { offsetof(vader_struct_std_collect
 static const uint16_t vader_type_20_ptrs[] = { offsetof(vader_struct_std_collections_Entry__i32__Any_t, f_key), offsetof(vader_struct_std_collections_Entry__i32__Any_t, f_value), offsetof(vader_struct_std_collections_Entry__i32__Any_t, f_next) };
 static const uint16_t vader_type_21_ptrs[] = { offsetof(vader_struct_std_core_Range__usize_t, f_start), offsetof(vader_struct_std_core_Range__usize_t, f_end), offsetof(vader_struct_std_core_Range__usize_t, f_cursor) };
 static const uint16_t vader_type_23_ptrs[] = { offsetof(vader_struct_std_core_Yield__usize_t, f_value) };
-static const uint16_t vader_type_26_ptrs[] = { offsetof(vader_struct_snippet_lib_Wrap_t, f_items) };
-static const uint16_t vader_type_27_ptrs[] = { offsetof(vader_array_t, buf) };
-static const uint16_t vader_type_28_ptrs[] = { offsetof(vader_array_t, buf) };
-static const uint16_t vader_type_30_ptrs[] = { offsetof(vader_array_t, buf) };
+static const uint16_t vader_type_34_ptrs[] = { offsetof(vader_struct_snippet_lib_Wrap_t, f_items) };
+static const uint16_t vader_type_35_ptrs[] = { offsetof(vader_array_t, buf) };
+static const uint16_t vader_type_36_ptrs[] = { offsetof(vader_array_t, buf) };
+static const uint16_t vader_type_38_ptrs[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[34] = {
+const vader_type_info_t vader_type_info_table[42] = {
     [6] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__Any___Any_t), vader_type_6_ptrs, 1, 0, NULL, 0, NULL },
     [9] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__i32__bool_t), vader_type_9_ptrs, 1, 0, NULL, 0, NULL },
     [11] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_MutableMap__string__i32_t), vader_type_11_ptrs, 1, 0, NULL, 0, NULL },
@@ -134,15 +147,15 @@ const vader_type_info_t vader_type_info_table[34] = {
     [20] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_collections_Entry__i32__Any_t), vader_type_20_ptrs, 3, 0, NULL, 0, NULL },
     [21] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Range__usize_t), vader_type_21_ptrs, 3, 0, NULL, 0, NULL },
     [23] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Yield__usize_t), vader_type_23_ptrs, 1, 0, NULL, 0, NULL },
-    [25] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_snippet_lib_Out_t), NULL, 0, 0, NULL, 0, NULL },
-    [26] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_snippet_lib_Wrap_t), vader_type_26_ptrs, 1, 0, NULL, 0, NULL },
-    [27] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_27_ptrs, 1, 0, NULL, 0, NULL },
-    [28] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_28_ptrs, 1, 0, NULL, 0, NULL },
-    [30] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_30_ptrs, 1, 0, NULL, 0, NULL },
+    [33] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_snippet_lib_Out_t), NULL, 0, 0, NULL, 0, NULL },
+    [34] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_snippet_lib_Wrap_t), vader_type_34_ptrs, 1, 0, NULL, 0, NULL },
+    [35] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_35_ptrs, 1, 0, NULL, 0, NULL },
+    [36] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_36_ptrs, 1, 0, NULL, 0, NULL },
+    [38] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_38_ptrs, 1, 0, NULL, 0, NULL },
 };
-const size_t vader_type_info_count = 34;
+const size_t vader_type_info_count = 42;
 
-const size_t vader_type_size[34] = {
+const size_t vader_type_size[42] = {
     [0] = 0u,
     [1] = 16u,
     [2] = 0u,
@@ -167,16 +180,24 @@ const size_t vader_type_size[34] = {
     [21] = 16u,
     [22] = 16u,
     [23] = 16u,
-    [24] = 16u,
-    [25] = 16u,
-    [26] = 16u,
-    [27] = 16u,
-    [28] = 16u,
-    [29] = 16u,
-    [30] = 16u,
-    [31] = 16u,
+    [24] = 1u,
+    [25] = 2u,
+    [26] = 8u,
+    [27] = 8u,
+    [28] = 1u,
+    [29] = 2u,
+    [30] = 4u,
+    [31] = 4u,
     [32] = 16u,
     [33] = 16u,
+    [34] = 16u,
+    [35] = 16u,
+    [36] = 16u,
+    [37] = 16u,
+    [38] = 16u,
+    [39] = 16u,
+    [40] = 16u,
+    [41] = 16u,
 };
 
 
@@ -187,11 +208,65 @@ const size_t vader_type_size[34] = {
  * derived deterministically by sorting the trait-method keys
  * alphabetically. Pinned stdlib slots: Hash.hash=0, Equals.equals=1, Ord.compare=2, Display.display=3.
  */
-const vader_vtable_t* const vader_vtable_table[1] = { NULL };
-const size_t                vader_vtable_count    = 0;
+static const vader_vtable_t vt_1 = { .slots = {
+    [0] = (void*)std_core_string_Hash_hash_vt, /* Hash.hash */
+}};
+static const vader_vtable_t vt_3 = { .slots = {
+    [0] = (void*)std_core_i32_Hash_hash, /* Hash.hash */
+}};
+static const vader_vtable_t vt_4 = { .slots = {
+    [0] = (void*)std_core_usize_Hash_hash, /* Hash.hash */
+}};
+static const vader_vtable_t vt_13 = { .slots = {
+    [0] = (void*)std_core_u64_Hash_hash, /* Hash.hash */
+}};
+static const vader_vtable_t vt_24 = { .slots = {
+    [0] = (void*)std_core_i8_Hash_hash, /* Hash.hash */
+}};
+static const vader_vtable_t vt_25 = { .slots = {
+    [0] = (void*)std_core_i16_Hash_hash, /* Hash.hash */
+}};
+static const vader_vtable_t vt_26 = { .slots = {
+    [0] = (void*)std_core_i64_Hash_hash, /* Hash.hash */
+}};
+static const vader_vtable_t vt_27 = { .slots = {
+    [0] = (void*)std_core_isize_Hash_hash, /* Hash.hash */
+}};
+static const vader_vtable_t vt_28 = { .slots = {
+    [0] = (void*)std_core_u8_Hash_hash, /* Hash.hash */
+}};
+static const vader_vtable_t vt_29 = { .slots = {
+    [0] = (void*)std_core_u16_Hash_hash, /* Hash.hash */
+}};
+static const vader_vtable_t vt_30 = { .slots = {
+    [0] = (void*)std_core_u32_Hash_hash, /* Hash.hash */
+}};
+static const vader_vtable_t vt_31 = { .slots = {
+    [0] = (void*)std_core_char_Hash_hash, /* Hash.hash */
+}};
+
+const vader_vtable_t* const vader_vtable_table[32] = {
+    [1] = &vt_1,
+    [3] = &vt_3,
+    [4] = &vt_4,
+    [13] = &vt_13,
+    [24] = &vt_24,
+    [25] = &vt_25,
+    [26] = &vt_26,
+    [27] = &vt_27,
+    [28] = &vt_28,
+    [29] = &vt_29,
+    [30] = &vt_30,
+    [31] = &vt_31,
+};
+const size_t vader_vtable_count = 32;
 static void vader_import_0(int32_t a0, vader_string_t a1) { vader_write(a0, a1); }
 static vader_string_t vader_import_1(vader_string_t a0) { return a0; }
+static uint64_t vader_import_2(vader_string_t a0) { return vader_string_hash(a0); }
 
+
+/* ----------------------------------------------- vtable forwards */
+static uint64_t vader_vt_Hash__hash(vader_box_t recv);
 static void std_io_std_io_println__string(vader_string_t l0) {
     vader_string_t l1;
     vader_string_t t0;
@@ -220,13 +295,13 @@ static void std_collections_MutableMap_IndexSet_set_at__i32__Any(vader_box_t l0,
     vader_gc_top = gc_frame.prev;
 }
 
-static int32_t std_collections_bucket_index(uint64_t l0) {
-    uint64_t l1;
+static int32_t std_collections_bucket_index(uint64_t l0, size_t l1) {
+    uint64_t l2;
     int64_t t0;
     uint64_t t1;
-    t0 = INT64_C(16);
-    l1 = (uint64_t) (int64_t) t0;
-    t1 = l0 % l1;
+    t0 = ((int64_t) (size_t) l1);
+    l2 = (uint64_t) (int64_t) t0;
+    t1 = l0 % l2;
     return ((int32_t) (uint64_t) t1);
 }
 
@@ -266,85 +341,203 @@ static void std_collections_std_collections_ensure_buckets__i32__Any(vader_box_t
 }
 
 static void std_collections_std_collections_put__i32__Any(vader_box_t l0, int32_t l1, vader_box_t l2) {
-    int32_t l3;
-    vader_box_t l4 = vader_box_null(), l7 = vader_box_null();
-    bool l5, l6;
-    size_t l8, l9;
+    uint64_t l3;
+    size_t l4, l10;
+    int32_t l5;
+    vader_box_t l6 = vader_box_null(), l9 = vader_box_null();
+    bool l7, l8;
     uint64_t t0;
-    int32_t t1, t3;
-    vader_box_t t2 = vader_box_null(), t5 = vader_box_null();
-    vader_box_t t4 = vader_box_null(), t6 = vader_box_null();
-    size_t t7;
-    int64_t t8;
-    vader_box_t* gc_roots[8] = { &l0, &l2, &l4, &l7, &t2, &t5, &t4, &t6 };
+    size_t t1, t8;
+    int32_t t2, t4;
+    vader_box_t t3 = vader_box_null(), t6 = vader_box_null();
+    vader_box_t t5 = vader_box_null(), t7 = vader_box_null();
+    int64_t t9;
+    vader_box_t* gc_roots[8] = { &l0, &l2, &l6, &l9, &t3, &t6, &t5, &t7 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 8u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
     std_collections_std_collections_ensure_buckets__i32__Any(l0);
     t0 = std_core_i32_Hash_hash(l1);
-    t1 = std_collections_bucket_index(t0);
-    l3 = t1;
-    t2 = vader_array_get((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_buckets.payload.obj, (size_t) l3);
-    l4 = t2;
-    l5 = false;
-    l6 = false;
+    l3 = t0;
+    t1 = vader_array_len((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_buckets.payload.obj);
+    l4 = t1;
+    t2 = std_collections_bucket_index(l3, l4);
+    l5 = t2;
+    t3 = vader_array_get((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_buckets.payload.obj, (size_t) l5);
+    l6 = t3;
+    l7 = false;
+    l8 = false;
     {
-        loop_15: {
-            if (!(l5)) {
-                l7 = l4;
-                if (l7.tag == 0u) {
-                    l5 = true;
-                    goto loop_15;
+        loop_21: {
+            if (!(l7)) {
+                l9 = l6;
+                if (l9.tag == 0u) {
+                    l7 = true;
+                    goto loop_21;
                 }
-                if ((l7.tag == 20u || l7.tag == 19u)) {
-                    t3 = ((int32_t) ((vader_struct_std_collections_Entry__i32__Any_t*) l4.payload.obj)->f_key.payload.i);
-                    if (t3 == l1) {
-                        ((vader_struct_std_collections_Entry__i32__Any_t*) l4.payload.obj)->f_value = l2;
-                        l6 = true;
-                        l5 = true;
+                if ((l9.tag == 20u || l9.tag == 19u)) {
+                    t4 = ((int32_t) ((vader_struct_std_collections_Entry__i32__Any_t*) l6.payload.obj)->f_key.payload.i);
+                    if (t4 == l1) {
+                        ((vader_struct_std_collections_Entry__i32__Any_t*) l6.payload.obj)->f_value = l2;
+                        l8 = true;
+                        l7 = true;
                     } else {
-                        t4 = ((vader_struct_std_collections_Entry__i32__Any_t*) l4.payload.obj)->f_next;
-                        l4 = t4;
+                        t5 = ((vader_struct_std_collections_Entry__i32__Any_t*) l6.payload.obj)->f_next;
+                        l6 = t5;
                     }
-                    goto loop_15;
+                    goto loop_21;
                 }
                 { vader_gc_top = gc_frame.prev; return; }
             } else {
             }
         }
     }
-    if (l6) {
+    if (l8) {
         { vader_gc_top = gc_frame.prev; return; }
     }
-    t5 = vader_array_get((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_buckets.payload.obj, (size_t) l3);
-    l4 = t5;
+    t6 = vader_array_get((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_buckets.payload.obj, (size_t) l5);
+    l6 = t6;
     vader_struct_std_collections_Entry__i32__Any_t* _a0_obj = (vader_struct_std_collections_Entry__i32__Any_t*) vader_gc_alloc(sizeof(vader_struct_std_collections_Entry__i32__Any_t));
     vader_obj_header_init(_a0_obj, 20u);
     _a0_obj->f_key = vader_box_i32(3u, l1);
     _a0_obj->f_value = l2;
-    _a0_obj->f_next = l4;
-    t6 = vader_box_obj(20u, _a0_obj);
-    l4 = t6;
-    vader_array_set((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_buckets.payload.obj, (size_t) l3, l4);
-    t7 = (size_t) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_size;
-    l8 = t7;
-    l9 = (size_t) (int64_t) INT64_C(1);
-    t8 = (l8 + l9);
-    l8 = (size_t) (int64_t) t8;
-    ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_size = l8;
+    _a0_obj->f_next = l6;
+    t7 = vader_box_obj(20u, _a0_obj);
+    l6 = t7;
+    vader_array_set((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_buckets.payload.obj, (size_t) l5, l6);
+    t8 = (size_t) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_size;
+    l4 = t8;
+    l10 = (size_t) (int64_t) INT64_C(1);
+    t9 = (l4 + l10);
+    l4 = (size_t) (int64_t) t9;
+    ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_size = l4;
+    std_collections_std_collections_maybe_grow__i32__Any(l0);
+    { vader_gc_top = gc_frame.prev; return; }
+    vader_gc_top = gc_frame.prev;
+}
+
+static void std_collections_std_collections_maybe_grow__i32__Any(vader_box_t l0) {
+    size_t l1, l2, l3;
+    size_t t0, t2;
+    int64_t t1, t3;
+    vader_box_t* gc_roots[1] = { &l0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 0u, gc_roots };
+    vader_gc_top = &gc_frame;
+    t0 = (size_t) ((vader_struct_std_collections_MutableMap__Any__Any_t*) l0.payload.obj)->f_size;
+    l1 = t0;
+    l2 = (size_t) (int64_t) INT64_C(4);
+    t1 = (l1 * l2);
+    l1 = (size_t) (int64_t) t1;
+    t2 = vader_array_len((vader_array_t*) ((vader_struct_std_collections_MutableMap__Any__Any_t*) l0.payload.obj)->f_buckets.payload.obj);
+    l2 = t2;
+    l3 = (size_t) (int64_t) INT64_C(3);
+    t3 = (l2 * l3);
+    l2 = (size_t) (int64_t) t3;
+    if ((l1 > l2)) {
+        std_collections_std_collections_grow__Any__Any(l0);
+    } else {
+    }
+    { vader_gc_top = gc_frame.prev; return; }
+    vader_gc_top = gc_frame.prev;
+}
+
+static void std_collections_std_collections_grow__Any__Any(vader_box_t l0) {
+    vader_box_t l1 = vader_box_null(), l4 = vader_box_null(), l6 = vader_box_null(), l8 = vader_box_null(), l9 = vader_box_null(), l11 = vader_box_null();
+    size_t l2, l3, l5, l12;
+    bool l7;
+    int32_t l10;
+    vader_box_t t0 = vader_box_null(), t3 = vader_box_null(), t5 = vader_box_null(), t8 = vader_box_null();
+    size_t t1, t6;
+    int64_t t2, t4, t12;
+    vader_box_t t7 = vader_box_null(), t11 = vader_box_null();
+    uint64_t t9;
+    int32_t t10;
+    vader_box_t* gc_roots[13] = { &l0, &l1, &l4, &l6, &l8, &l9, &l11, &t0, &t3, &t5, &t8, &t7, &t11 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 13u, 0u, gc_roots };
+    vader_gc_top = &gc_frame;
+    t0 = ((vader_struct_std_collections_MutableMap__Any__Any_t*) l0.payload.obj)->f_buckets;
+    l1 = t0;
+    t1 = vader_array_len((vader_array_t*) l1.payload.obj);
+    l2 = t1;
+    l3 = (size_t) (int64_t) INT64_C(2);
+    t2 = (l2 * l3);
+    l2 = (size_t) (int64_t) t2;
+    vader_array_t* _a0_arr = vader_array_new(17u, 0u, 0u, 18u);
+    t3 = vader_box_obj(17u, _a0_arr);
+    l4 = t3;
+    l3 = (size_t) (int64_t) INT64_C(0);
+    {
+        loop_15: {
+            if ((l3 < l2)) {
+                vader_array_push((vader_array_t*) l4.payload.obj, vader_box_obj(0u, NULL));
+                l5 = (size_t) (int64_t) INT64_C(1);
+                t4 = (l3 + l5);
+                l3 = (size_t) (int64_t) t4;
+                goto loop_15;
+            } else {
+            }
+        }
+    }
+    t5 = l1;
+    l1 = t5;
+    t6 = vader_array_len((vader_array_t*) l1.payload.obj);
+    l3 = t6;
+    l5 = (size_t) (int64_t) INT64_C(0);
+    {
+        loop_41: {
+            if ((l5 < l3)) {
+                t7 = vader_array_get((vader_array_t*) l1.payload.obj, (size_t) l5);
+                l6 = t7;
+                l7 = false;
+                {
+                    loop_53: {
+                        if (!(l7)) {
+                            l8 = l6;
+                            if (l8.tag == 0u) {
+                                l7 = true;
+                                goto loop_53;
+                            }
+                            if ((l8.tag == 19u || l8.tag == 20u)) {
+                                l9 = l8;
+                                t8 = ((vader_struct_std_collections_Entry__Any__Any_t*) l9.payload.obj)->f_next;
+                                l6 = t8;
+                                t9 = vader_vt_Hash__hash(((vader_struct_std_collections_Entry__Any__Any_t*) l9.payload.obj)->f_key);
+                                t10 = std_collections_bucket_index(t9, l2);
+                                l10 = t10;
+                                t11 = vader_array_get((vader_array_t*) l4.payload.obj, (size_t) l10);
+                                l11 = t11;
+                                ((vader_struct_std_collections_Entry__Any__Any_t*) l9.payload.obj)->f_next = l11;
+                                vader_array_set((vader_array_t*) l4.payload.obj, (size_t) l10, l9);
+                                goto loop_53;
+                            }
+                            { vader_gc_top = gc_frame.prev; return; }
+                        } else {
+                        }
+                    }
+                }
+                l12 = (size_t) (int64_t) INT64_C(1);
+                t12 = (l5 + l12);
+                l5 = (size_t) (int64_t) t12;
+                goto loop_41;
+            } else {
+            }
+        }
+    }
+    ((vader_struct_std_collections_MutableMap__Any__Any_t*) l0.payload.obj)->f_buckets = l4;
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
 
 static vader_box_t std_collections_std_collections_get__i32__Any(vader_box_t l0, int32_t l1) {
     size_t l2, l3;
-    int32_t l4;
-    vader_box_t l5, l6, l8;
-    bool l7;
-    size_t t0;
+    uint64_t l4;
+    int32_t l5;
+    vader_box_t l6, l7, l9;
+    bool l8;
+    size_t t0, t2;
     uint64_t t1;
-    int32_t t2, t4;
-    vader_box_t t3;
-    vader_box_t t5, t6;
+    int32_t t3, t5;
+    vader_box_t t4;
+    vader_box_t t6, t7;
     t0 = vader_array_len((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_buckets.payload.obj);
     l2 = t0;
     l3 = (size_t) (int64_t) INT64_C(0);
@@ -352,38 +545,41 @@ static vader_box_t std_collections_std_collections_get__i32__Any(vader_box_t l0,
         return vader_box_obj(0u, NULL);
     }
     t1 = std_core_i32_Hash_hash(l1);
-    t2 = std_collections_bucket_index(t1);
-    l4 = t2;
-    t3 = vader_array_get((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_buckets.payload.obj, (size_t) l4);
+    l4 = t1;
+    t2 = vader_array_len((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_buckets.payload.obj);
+    l2 = t2;
+    t3 = std_collections_bucket_index(l4, l2);
     l5 = t3;
-    l6 = vader_box_obj(0u, NULL);
-    l7 = false;
+    t4 = vader_array_get((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_buckets.payload.obj, (size_t) l5);
+    l6 = t4;
+    l7 = vader_box_obj(0u, NULL);
+    l8 = false;
     {
-        loop_24: {
-            if (!(l7)) {
-                l8 = l5;
-                if (l8.tag == 0u) {
-                    l7 = true;
-                    goto loop_24;
+        loop_30: {
+            if (!(l8)) {
+                l9 = l6;
+                if (l9.tag == 0u) {
+                    l8 = true;
+                    goto loop_30;
                 }
-                if ((l8.tag == 20u || l8.tag == 19u)) {
-                    t4 = ((int32_t) ((vader_struct_std_collections_Entry__i32__Any_t*) l5.payload.obj)->f_key.payload.i);
-                    if (t4 == l1) {
-                        t5 = ((vader_struct_std_collections_Entry__i32__Any_t*) l5.payload.obj)->f_value;
-                        l6 = t5;
-                        l7 = true;
+                if ((l9.tag == 20u || l9.tag == 19u)) {
+                    t5 = ((int32_t) ((vader_struct_std_collections_Entry__i32__Any_t*) l6.payload.obj)->f_key.payload.i);
+                    if (t5 == l1) {
+                        t6 = ((vader_struct_std_collections_Entry__i32__Any_t*) l6.payload.obj)->f_value;
+                        l7 = t6;
+                        l8 = true;
                     } else {
-                        t6 = ((vader_struct_std_collections_Entry__i32__Any_t*) l5.payload.obj)->f_next;
-                        l5 = t6;
+                        t7 = ((vader_struct_std_collections_Entry__i32__Any_t*) l6.payload.obj)->f_next;
+                        l6 = t7;
                     }
-                    goto loop_24;
+                    goto loop_30;
                 }
                 vader_unreachable("unreachable return in std_collections$std_collections$get__i32__Any");
             } else {
             }
         }
     }
-    return l6;
+    return l7;
 }
 
 static int32_t snippet_main(void) {
@@ -398,8 +594,8 @@ static int32_t snippet_main(void) {
     vader_box_t* gc_roots[9] = { &l0, &l2, &l3, &t0, &t1, &t2, &t3, &t4, &t5 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 9u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
-    vader_array_t* _a0_arr = vader_array_new(30u, 0u, 0u, 31u);
-    t0 = vader_box_obj(30u, _a0_arr);
+    vader_array_t* _a0_arr = vader_array_new(38u, 0u, 0u, 39u);
+    t0 = vader_box_obj(38u, _a0_arr);
     l0 = t0;
     l1 = (size_t) (int64_t) INT64_C(0);
     vader_struct_std_collections_MutableMap__i32__i32___Wrap_t* _a1_obj = (vader_struct_std_collections_MutableMap__i32__i32___Wrap_t*) vader_gc_alloc(sizeof(vader_struct_std_collections_MutableMap__i32__i32___Wrap_t));
@@ -408,14 +604,14 @@ static int32_t snippet_main(void) {
     _a1_obj->f_size = l1;
     t1 = vader_box_obj(16u, _a1_obj);
     l0 = t1;
-    vader_array_t* _a2_arr = vader_array_new(27u, 2u, 7u, 3u);
+    vader_array_t* _a2_arr = vader_array_new(35u, 2u, 7u, 3u);
     vader_array_set(_a2_arr, 1u, vader_box_i32(3u, INT32_C(7)));
     vader_array_set(_a2_arr, 0u, vader_box_i32(3u, INT32_C(42)));
-    t2 = vader_box_obj(27u, _a2_arr);
+    t2 = vader_box_obj(35u, _a2_arr);
     vader_struct_snippet_lib_Wrap_t* _a3_obj = (vader_struct_snippet_lib_Wrap_t*) vader_gc_alloc(sizeof(vader_struct_snippet_lib_Wrap_t));
-    vader_obj_header_init(_a3_obj, 26u);
+    vader_obj_header_init(_a3_obj, 34u);
     _a3_obj->f_items = t2;
-    t3 = vader_box_obj(26u, _a3_obj);
+    t3 = vader_box_obj(34u, _a3_obj);
     l2 = t3;
     std_collections_MutableMap_IndexSet_set_at__i32__Any(l0, INT32_C(1), l2);
     t4 = snippet_lib_pick(l0, INT32_C(1));
@@ -435,8 +631,48 @@ static int32_t snippet_main(void) {
     vader_gc_top = gc_frame.prev;
 }
 
+static uint64_t std_core_i8_Hash_hash(int8_t l0) {
+    return (uint64_t) (int64_t) ((int64_t) (int8_t) l0);
+}
+
+static uint64_t std_core_i16_Hash_hash(int16_t l0) {
+    return (uint64_t) (int64_t) ((int64_t) (int16_t) l0);
+}
+
 static uint64_t std_core_i32_Hash_hash(int32_t l0) {
     return (uint64_t) (int64_t) ((int64_t) (int32_t) l0);
+}
+
+static uint64_t std_core_i64_Hash_hash(int64_t l0) {
+    return (uint64_t) (int64_t) l0;
+}
+
+static uint64_t std_core_isize_Hash_hash(ptrdiff_t l0) {
+    return (uint64_t) (int64_t) ((int64_t) (ptrdiff_t) l0);
+}
+
+static uint64_t std_core_u8_Hash_hash(uint8_t l0) {
+    return (uint64_t) (int64_t) ((int64_t) (uint8_t) l0);
+}
+
+static uint64_t std_core_u16_Hash_hash(uint16_t l0) {
+    return (uint64_t) (int64_t) ((int64_t) (uint16_t) l0);
+}
+
+static uint64_t std_core_u32_Hash_hash(uint32_t l0) {
+    return (uint64_t) (int64_t) ((int64_t) (uint32_t) l0);
+}
+
+static uint64_t std_core_u64_Hash_hash(uint64_t l0) {
+    return l0;
+}
+
+static uint64_t std_core_usize_Hash_hash(size_t l0) {
+    return (uint64_t) (int64_t) ((int64_t) (size_t) l0);
+}
+
+static uint64_t std_core_char_Hash_hash(uint32_t l0) {
+    return (uint64_t) (int64_t) ((int64_t) (uint32_t) l0);
 }
 
 static vader_box_t snippet_lib_pick(vader_box_t l0, int32_t l1) {
@@ -452,7 +688,7 @@ static vader_box_t snippet_lib_pick(vader_box_t l0, int32_t l1) {
     if (l2.tag == 0u) {
         { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
     }
-    if (!(l2.tag == 26u)) {
+    if (!(l2.tag == 34u)) {
         { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
     }
     t1 = ((vader_struct_snippet_lib_Wrap_t*) l2.payload.obj)->f_items;
@@ -460,9 +696,9 @@ static vader_box_t snippet_lib_pick(vader_box_t l0, int32_t l1) {
     t2 = vader_array_get((vader_array_t*) l2.payload.obj, (size_t) INT32_C(0));
     t3 = ((int32_t) t2.payload.i);
     vader_struct_snippet_lib_Out_t* _a0_obj = (vader_struct_snippet_lib_Out_t*) vader_gc_alloc(sizeof(vader_struct_snippet_lib_Out_t));
-    vader_obj_header_init(_a0_obj, 25u);
+    vader_obj_header_init(_a0_obj, 33u);
     _a0_obj->f_first = t3;
-    t4 = vader_box_obj(25u, _a0_obj);
+    t4 = vader_box_obj(33u, _a0_obj);
     { vader_box_t __vret = t4; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
@@ -476,6 +712,35 @@ static vader_string_t std_core_string_Display_to_string_vt(vader_string_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
+static uint64_t std_core_string_Hash_hash_vt(vader_string_t l0) {
+    uint64_t t0;
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL };
+    vader_gc_top = &gc_frame;
+    t0 = vader_import_2(l0);
+    { uint64_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    vader_gc_top = gc_frame.prev;
+}
+
+
+/* ----------------------------------------------- vtable dispatchers */
+static uint64_t vader_vt_Hash__hash(vader_box_t recv) {
+    switch (recv.tag) {
+        case 24u: return std_core_i8_Hash_hash(((int8_t) recv.payload.i));
+        case 25u: return std_core_i16_Hash_hash(((int16_t) recv.payload.i));
+        case 3u: return std_core_i32_Hash_hash(((int32_t) recv.payload.i));
+        case 26u: return std_core_i64_Hash_hash(((int64_t) recv.payload.i));
+        case 27u: return std_core_isize_Hash_hash(((ptrdiff_t) recv.payload.i));
+        case 28u: return std_core_u8_Hash_hash(((uint8_t) recv.payload.i));
+        case 29u: return std_core_u16_Hash_hash(((uint16_t) recv.payload.i));
+        case 30u: return std_core_u32_Hash_hash(((uint32_t) recv.payload.i));
+        case 13u: return std_core_u64_Hash_hash(((uint64_t) recv.payload.i));
+        case 4u: return std_core_usize_Hash_hash(((size_t) recv.payload.i));
+        case 31u: return std_core_char_Hash_hash(((uint32_t) recv.payload.i));
+        case 1u: return std_core_string_Hash_hash_vt(recv.payload.s);
+        default: vader_unreachable("vtable miss in Hash.hash");
+    }
+    vader_unreachable("vtable miss in Hash.hash");
+}
 int main(int argc, char** argv) {
     vader_atom_init_with_comptime(vader_atom_comptime_table, VADER_COMPTIME_ATOM_COUNT);
     atexit(vader_atom_shutdown);

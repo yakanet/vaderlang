@@ -5,7 +5,7 @@
 ## stdlib/std/cli
 
 ## stdlib/std/collections
-  @comptime  BUCKET_COUNT         = 16_usize
+  @comptime  MINIMAL_BUCKET_COUNT = 16_usize
 
 ## stdlib/std/core
 
@@ -61,10 +61,14 @@
   Entry<K, V>
   Entry<K, V>
   Entry<K, V>
+  Entry<K, V>
+  Entry<K, V>
   Entry<T, bool>
   MutableMap<i32, bool>
   MutableMap<string, i32>
   MutableMap<string, string>
+  MutableMap<K, V>
+  MutableMap<K, V>
   MutableMap<K, V>
   MutableMap<K, V>
   MutableMap<K, V>
