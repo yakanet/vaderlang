@@ -1,0 +1,248 @@
+// vader/bootstrap/bootstrap — build-only compiler entrypoint (the seed source).
+//
+// A minimal compiler whose only job is `<input.vader> -> <output.c>`. It is the
+// source the committed C seed (`bootstrap/bootstrap.c.gz`) is generated from —
+// see docs/BOOTSTRAP.md. Compiling it yields `stage1`, which carries the full
+// compilation pipeline and can therefore compile any `.vader` (including
+// `vader/cli/main.vader` -> the full compiler).
+//
+// The point of a dedicated entrypoint (rather than seeding from
+// `vader/cli/main.vader`) is to DECOUPLE the seed from the CLI : it imports the
+// compilation pipeline ONLY — never `vader/vm`, `vader/fmt`, or `vader/lsp` — so
+// growing the lsp / formatter / interpreter never re-bumps the seed. Only a
+// pipeline change does.
+//
+// The pipeline-driver helpers below are duplicated from `vader/cli/main.vader`
+// (deliberate trade-off : no shared `driver` module, see docs/BOOTSTRAP.md).
+// `bootstrap/verify.sh` catches a stale copy by re-emitting and diffing.
+
+module "vader/bootstrap"
+
+import "std/io" { write_file, eprintln }
+import "std/collections" { keys }
+import "std/string" { trim_suffix }
+import "std/path" { to_posix, to_path, filename }
+
+import "vader/lexer" { dump_diagnostics }
+import "vader/resolver" { load_project, LoadedProject }
+import "vader/typecheck" { check_project_with_bodies, CheckResult, TypedProject, new_typed_project }
+import "vader/comptime" { evaluate_project, EvaluatedProject }
+import "vader/lower" { lower_project, prune_unreachable_fns, mangle_module_id, LoweredProject }
+import "vader/midir" { build_cfg_project, emit_bytecode_from_cfg, annotate_escape, eliminate_dead_cfg }
+import "vader/bytecode" { BytecodeModule, default_emit_options }
+import "vader/c_emit" { emit_c, EmitOptions as CEmitOptions }
+import "vader/diagnostics" { Diagnostic }
+
+/// Build-only entrypoint : compile `<input.vader>` to `<output.c>`.
+///
+/// `argv[0]` is the binary path ; `argv[1]` is the input `.vader` source and
+/// `argv[2]` the output `.c` path. Diagnostics go to stderr ; an error-severity
+/// diagnostic aborts with exit 1 (nothing written). This is `stage1`'s entire
+/// CLI surface — `bootstrap/build.sh`'s smoke test invokes it positionally.
+///
+/// @param argv  process argv ; `argv[1]` = input, `argv[2]` = output.
+/// @return      0 on success, 1 on a usage error / compile error / write error.
+main :: fn(argv: string[]) -> i32 {
+    if argv.len() < 3 {
+        eprintln("usage: bootstrap <input.vader> <output.c>")
+        return 1
+    }
+    input  :: argv[1]
+    output :: argv[2]
+    c_src :: emit_c_source(input)
+    if c_src is null { return 1 }
+    return write_out(output, c_src)
+}
+
+// ---- pipeline driver (duplicated from vader/cli/main.vader) ----------------
+
+// Lower `file` through the canonical CFG → bytecode → c_emit path (the same
+// pipeline `dump --stage=c` uses) and return the generated C. Pipeline
+// diagnostics go to stderr ; returns null when an error-severity diagnostic
+// blocks the build, so the caller emits nothing and exits non-zero.
+emit_c_source :: fn(file: string) -> string | null {
+    b :: prepare_cfg_bytecode(file)
+    if !flush_build_diags(b.pre_diags, b.lower_diags) { return null }
+    // Designate the program entry by mangled name (same source as the bytecode
+    // stage's `export main N`) so the `main()` shim resolves the entry module's
+    // `main` even when a multi-module input (the compiler imports `vader/lsp`,
+    // which has its own `main`) flags several fns `is_main`.
+    // Debug build (`.release = false`) — the seed is cc'd with `-O2` separately.
+    return emit_c(b.module, CEmitOptions { .release = false, .entry_mangled = b.entry })
+}
+
+// Render the merged pipeline diagnostics to stderr and report whether the
+// build may proceed. Any error-severity diagnostic aborts the build (return
+// false) ; warnings / info still print.
+flush_build_diags :: fn(pre: Diagnostic[], lower: Diagnostic[]) -> bool {
+    all :: merge_diagnostics(pre, lower)
+    if all.len() > 0 { eprintln(all.dump_diagnostics()) }
+    for d in all {
+        if d.severity == .Error { return false }
+    }
+    return true
+}
+
+// Write `content` to `path`, surfacing a write failure as exit 1.
+write_out :: fn(path: string, content: string) -> i32 {
+    wr :: write_file(path, content)
+    if wr is Error {
+        eprintln("bootstrap: cannot write `${path}`: ${wr.message()}")
+        return 1
+    }
+    return 0
+}
+
+// Concatenate two diagnostic bags into one list, preserving order
+// (`head` then `extra`).
+merge_diagnostics :: fn(head: Diagnostic[], extra: Diagnostic[]) -> Diagnostic[] {
+    all: Diagnostic[] = []
+    for d in head  { all.push(d) }
+    for d in extra { all.push(d) }
+    return all
+}
+
+/// Lowered IR plus the few bits the CFG → bytecode tail still needs, with the
+/// `EvaluatedPipeline` (`loaded` + `typed` + `evaluated`) already out of scope.
+LoweredEntry :: struct {
+    lowered:     LoweredProject
+    /// Entry-fn mangle (`…$main`) for the `export main` directive.
+    entry:       string
+    /// Loader + resolver + typecheck + comptime diags, canonical order.
+    pre_diags:   Diagnostic[]
+    lower_diags: Diagnostic[]
+}
+
+// Run load → typecheck → comptime → lower, resolve the entry-fn name and
+// harvest the diagnostics, then return — letting the `EvaluatedPipeline` and
+// its per-module side-table maps leave scope before the CFG → bytecode tail.
+lower_to_entry :: fn(file: string) -> LoweredEntry {
+    pipeline :: prepare_evaluated_project(file)
+    lower_diags: Diagnostic[] = []
+    lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
+    entry :: entry_main_name(pipeline.typed, pipeline.loaded.entry)
+    pre_diags :: gather_pipeline_diags(pipeline)
+    return LoweredEntry {
+        .lowered     = lowered,
+        .entry       = entry,
+        .pre_diags   = pre_diags,
+        .lower_diags = lower_diags,
+    }
+}
+
+/// Result of `prepare_cfg_bytecode` — the canonical bytecode module plus
+/// the bits the caller still needs for diagnostics + entry resolution.
+CfgBytecode :: struct {
+    entry:       string
+    pre_diags:   Diagnostic[]
+    lower_diags: Diagnostic[]
+    module:      BytecodeModule
+}
+
+// Lower `file` to a `BytecodeModule` via the CFG midir → bytecode path (the
+// canonical bytecode the bytecode stage, the C stage, and TS all share).
+// Const-fold is deliberately NOT run (matches `dump --stage=bytecode`).
+prepare_cfg_bytecode :: fn(file: string) -> CfgBytecode {
+    le :: lower_to_entry(file)
+    pruned :: prune_unreachable_fns(le.lowered, false)
+    cfg :: build_cfg_project(pruned)
+    dced :: eliminate_dead_cfg(cfg)
+    escaped :: annotate_escape(dced).project
+    module :: emit_bytecode_from_cfg(escaped, module_name_from_file(file), default_emit_options())
+    return CfgBytecode {
+        .entry       = le.entry,
+        .pre_diags   = le.pre_diags,
+        .lower_diags = le.lower_diags,
+        .module      = module,
+    }
+}
+
+// Mangled name of the entry module's `main` (e.g. `vader_cli$main`), used to
+// emit the `export main <index>` directive. Returns "" when the entry module
+// isn't resolvable, which suppresses the directive.
+entry_main_name :: fn(typed: TypedProject, entry: string) -> string {
+    tp :: typed.modules[entry]
+    if tp == null { return "" }
+    return "${mangle_module_id(tp.resolved.display_path)}\$main"
+}
+
+// Module name = the entry file's basename minus the `.vader` extension.
+module_name_from_file :: fn(file: string) = file.to_posix().to_path().filename().trim_suffix(".vader")
+
+// Flatten the loader + resolver + typecheck + comptime diagnostic bags into
+// one list, in the canonical order the dump stages expect.
+gather_pipeline_diags :: fn(pipeline: EvaluatedPipeline) -> Diagnostic[] {
+    out: Diagnostic[] = []
+    for d in pipeline.loaded.diags    { out.push(d) }
+    for d in pipeline.resolver_diags  { out.push(d) }
+    for d in pipeline.typecheck_diags { out.push(d) }
+    for d in pipeline.comptime_diags  { out.push(d) }
+    return out
+}
+
+// Pipeline state shared by the comptime + lowerer stages : both run
+// load → typecheck → comptime and only diverge on the final consumer.
+EvaluatedPipeline :: struct {
+    loaded:          LoadedProject
+    typed:           TypedProject
+    evaluated:       EvaluatedProject
+    resolver_diags:  Diagnostic[]
+    typecheck_diags: Diagnostic[]
+    comptime_diags:  Diagnostic[]
+}
+
+prepare_evaluated_project :: fn(file: string) -> EvaluatedPipeline {
+    loaded :: load_project(file)
+    typecheck_diags: Diagnostic[] = []
+    result :: check_project_with_bodies(loaded, typecheck_diags)
+    resolver_diags :: collect_body_diags(result)
+    typed :: assemble_typed_project(result)
+    comptime_diags: Diagnostic[] = []
+    evaluated :: evaluate_project(loaded, typed, comptime_diags)
+    return EvaluatedPipeline {
+        .loaded          = loaded,
+        .typed           = typed,
+        .evaluated       = evaluated,
+        .resolver_diags  = resolver_diags,
+        .typecheck_diags = typecheck_diags,
+        .comptime_diags  = comptime_diags,
+    }
+}
+
+// Drain non-entry modules' `resolved.diags` (body-walker output) into one
+// flat list. The entry module's R-codes are already forwarded by
+// `check_project_with_bodies` into `typecheck_diags`.
+collect_body_diags :: fn(result: CheckResult) -> Diagnostic[] {
+    out: Diagnostic[] = []
+    if result.all_modules.size == 0 { return out }
+    for module_id in result.all_modules.keys() {
+        if module_id == result.typed.resolved.path { continue }
+        module_typed :: result.all_modules[module_id]
+        if module_typed is null { continue }
+        for d in module_typed.resolved.diags { out.push(d) }
+    }
+    return out
+}
+
+// Bridge the typecheck orchestrator's `CheckResult` (entry + others) into the
+// `TypedProject` shape the comptime engine expects.
+assemble_typed_project :: fn(result: CheckResult) -> TypedProject {
+    project :: new_typed_project()
+    project.modules[result.typed.resolved.path] = result.typed
+    // Drain every typed module the orchestrator built — entry + direct imports
+    // + std/* — so downstream passes (lower, bytecode emit) see std-defined impls.
+    if result.all_modules.size > 0 {
+        for module_id in result.all_modules.keys() {
+            module_typed :: result.all_modules[module_id]
+            if module_typed is null { continue }
+            project.modules[module_id] = module_typed
+        }
+        return project
+    }
+    // Fallback for single-module / shortcut callers : iterate the legacy
+    // `others` filter (skips std/*).
+    for other in result.others {
+        project.modules[other.resolved.path] = other
+    }
+    return project
+}
