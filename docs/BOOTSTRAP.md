@@ -32,46 +32,54 @@ cold-start path, and matches the proven Nim / Chicken Scheme pattern.
 |---|---|
 | Self-host port §2.1-2.7 + fixed-point byte-identical | ✅ done (via `dump --stage=c` + external `cc`) |
 | Codegen determinism (Phase 0) | ✅ effective (byte-identical proves it) |
-| **`cmd_build` self-hosted (`vader build`)** | ❌ **STUB (`main.vader:285-329`) — BLOCKING PREREQUISITE** |
-| `--target=c` wired in `cmd_build` | ❌ not wired |
-| `--target=c-source` / `--bundle-runtime` flags | ❌ do not exist |
-| `vader/bootstrap/bootstrap.vader` (seed source) | ❌ to create |
-| `bootstrap/` layout + scripts | ❌ to create |
+| **`cmd_build` self-hosted (`vader build`)** | ✅ wired — `--target=c` + `--target=native` (commit 2c055e00) |
+| `--target=c` wired in `cmd_build` | ✅ done (`build_c`, `--out=-` streams to stdout) |
+| Cleanliness: `op.vader → vader/bytecode` | ✅ done (commits 77030406 + 544838eb) — went further: one-way `vm → bytecode` layering |
+| `vader/bootstrap/bootstrap.vader` (seed source) | ✅ created (commit 5aede7e9) |
+| `bootstrap/` layout + scripts (`build`/`regenerate`/`verify`) + `.gitattributes` | ✅ done (commit 7655e1dc) — validated end-to-end (755 KB seed, `verify.sh` green) |
+| `--bundle-runtime` flag | ❌ later (optional improvement, runtime linked externally for now) |
+| **Commit the seed blob `bootstrap.c.gz`** | ❌ deliberately deferred — separate `chore(bootstrap): bump seed` decision |
 | CI / README / §2.8 deletion | ❌ later |
 
-## Blocking prerequisite : wire `cmd_build`
+## Blocking prerequisite : wire `cmd_build` — ✅ DONE (commit 2c055e00)
 
 The seed is emitted with **`vader build`**, the proper command — **not**
-`dump --stage=c` (a debug tool). Today `cmd_build` is a stub
-(`main.vader:285-329`), so this must be wired first :
+`dump --stage=c` (a debug tool). `cmd_build` was a stub ; it is now wired :
 
-- **Minimum** : `vader build <file> --target=c --out=<path>` must emit the C
-  source. The logic already exists — `run_c_stage` → `prepare_cfg_bytecode` +
-  `emit_c` (`main.vader:625-665`) — and only needs promoting from a `dump` stage
-  into a real `build` command that writes `--out` instead of `print`.
-- **Bonus** : `--target=native` (invoke `cc` on the emitted C).
+- **`--target=c`** — `build_c` writes the generated C to `--out` (default
+  `<file>.c` ; `--out=-` streams to stdout for the gzip pipe). ✅
+- **`--target=native`** — emits the `.c` next to the binary, then invokes `cc`
+  (`--cc`, `--ldflags`) to link against the external `runtime/c/`. ✅
+- `ir` / `ir-text` / `wasm` stay recognised-but-stubbed (`return 2`, with TODOs).
 
-Without `vader build` wired there is no emission path for any of the steps below.
+Diagnostics go to stderr ; an error-severity diagnostic aborts with exit 1.
 
-## Cleanliness prerequisite (recommended) : `op.vader → vader/bytecode`
+## Cleanliness prerequisite : `op.vader → vader/bytecode` — ✅ DONE (commits 77030406 + 544838eb)
 
-`Op` (the 127 opcodes) currently lives in `vader/vm/op.vader`, whereas in TS it
-lives in `src/bytecode/ops.ts` — the port mislaid it inside the VM module. As a
-result `vader/bytecode/*` (11 files, incl. `module.vader` which defines
-`BytecodeModule { body: Op[] }`), `midir/emit`, and `c_emit/walker` all import
-`vader/vm` solely for the *format* (an inverted dependency ; not a cycle —
-`vader/vm` imports nothing from `vader/bytecode`).
+`op.vader` turned out to be a 160-export mega-file mixing three concerns
+(opcodes + VM runtime values + the parsed-`.virt` module shape), not "the 127
+opcodes". It was first split into three cohesive files (`op` / `value` /
+`module`, all `module "vader/vm"`), then the opcode set (`Op`, op structs,
+`ConstOp`, `const_op_of`, `ConvertTarget`) was moved into
+`vader/bytecode/op.vader`, establishing a **one-way `vm → bytecode`** layering
+(verified: nothing in `vader/bytecode` imports `vader/vm`).
 
-Move it : `git mv vader/vm/op.vader vader/bytecode/op.vader` (`module
-"vader/bytecode"`), drop the now same-module `import "vader/vm" { …opcodes… }` in
-`vader/bytecode/*`, and point `vader/vm/*`, `midir/emit`, `c_emit/walker` at
-`vader/bytecode`. `op.vader` imports only `std/string_builder`, so it moves
-without creating a cycle. ~1 file moved + ~15 mechanical import edits, no logic.
+Getting there required more than the naive `git mv` first assumed:
 
-**Not strictly blocking** the seed (the call-graph DCE already drops the
-interpreter that `bootstrap.vader` never calls), but it gives `vader/bytecode` its
-proper role as the format module and is recommended **before** creating
-`bootstrap.vader`.
+- `peephole.vader` (rewrites the VM's `BytecodeFunction.ops`) and the `.virt`
+  writer moved **into** `vader/vm` — they operate on VM types, so leaving them
+  in `vader/bytecode` would re-form a `bytecode ↔ vm` cycle. Renamed
+  `parser.vader → virt_reader.vader`, `text.vader → virt_writer.vader`.
+- The VM runtime values (`value.vader`) and parsed-module shape (`module.vader`)
+  **stay** in `vader/vm` — moving them to `vader/bytecode` collides their generic
+  names (`PrimitiveType`, `StructType`, `ArrayType`, …) with the compiler's own
+  Type IR used inside `vader/bytecode`.
+- `quote_string` + `write_op` (shared by the bytecode dumper and the vm writer)
+  live in `vader/bytecode/dump.vader`, exported. VM files import the opcode set
+  via a `bc :: import "vader/bytecode"` namespace alias.
+
+See the memory note `vader_vm_bytecode_layering` for the full rationale (don't
+re-attempt moving the values / parsed-module into `vader/bytecode`).
 
 ---
 
