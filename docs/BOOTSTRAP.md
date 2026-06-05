@@ -1,23 +1,77 @@
 # Bootstrap — `bootstrap.c` seed
 
 This document plans the move to a **C-seed bootstrap** : a committed,
-versioned `bootstrap/bootstrap.c` file produced by the **self-hosted**
-Vader compiler, which any C compiler can build into a working `vader`
-binary without needing Bun, the TS toolchain, or a pre-existing Vader
+versioned, gzip-compressed `bootstrap/bootstrap.c.gz` file produced by the
+**self-hosted** Vader compiler, which any C compiler can build into a working
+`vader` binary without needing Bun, the TS toolchain, or a pre-existing Vader
 toolchain.
+
+The seed is **not** the whole CLI compiler. It is the C mirror of a dedicated
+build-only entrypoint, **`vader/bootstrap/bootstrap.vader`** (see *Architecture*
+and its dedicated phase below). This keeps the seed small and — more importantly —
+**stable** : it only re-bumps when the compilation pipeline changes, never when
+the lsp, the formatter, or the rest of the CLI grows.
 
 This is the doc referenced by TODO §2.8 ("Freeze the TS compiler") and
 the plan that operationalises §2.7 ("Bootstrap success check").
-**Committing `bootstrap.c` + green CI is the precondition for deleting
-`src/`.**
+**Committing the seed + green CI is the precondition for deleting `src/`.**
 
-**Goal** : a contributor (or a CI job) clones the repo, runs `cc
-bootstrap/bootstrap.c -o vader`, and gets a compiler capable of
-rebuilding itself from `vader/cli/main.vader`.
+**Goal** : a contributor (or a CI job) clones the repo, runs
+`bash bootstrap/build.sh` (gunzip → `cc` with the external runtime), and gets a
+compiler capable of rebuilding itself from `vader/cli/main.vader`.
 
 **Why this approach** : aligns the in-repo bootstrap with the backend
 we already maintain (C emit), removes the Bun/TS dependency from the
 cold-start path, and matches the proven Nim / Chicken Scheme pattern.
+
+---
+
+## Status (2026-06-05)
+
+| Item | State |
+|---|---|
+| Self-host port §2.1-2.7 + fixed-point byte-identical | ✅ done (via `dump --stage=c` + external `cc`) |
+| Codegen determinism (Phase 0) | ✅ effective (byte-identical proves it) |
+| **`cmd_build` self-hosted (`vader build`)** | ❌ **STUB (`main.vader:285-329`) — BLOCKING PREREQUISITE** |
+| `--target=c` wired in `cmd_build` | ❌ not wired |
+| `--target=c-source` / `--bundle-runtime` flags | ❌ do not exist |
+| `vader/bootstrap/bootstrap.vader` (seed source) | ❌ to create |
+| `bootstrap/` layout + scripts | ❌ to create |
+| CI / README / §2.8 deletion | ❌ later |
+
+## Blocking prerequisite : wire `cmd_build`
+
+The seed is emitted with **`vader build`**, the proper command — **not**
+`dump --stage=c` (a debug tool). Today `cmd_build` is a stub
+(`main.vader:285-329`), so this must be wired first :
+
+- **Minimum** : `vader build <file> --target=c --out=<path>` must emit the C
+  source. The logic already exists — `run_c_stage` → `prepare_cfg_bytecode` +
+  `emit_c` (`main.vader:625-665`) — and only needs promoting from a `dump` stage
+  into a real `build` command that writes `--out` instead of `print`.
+- **Bonus** : `--target=native` (invoke `cc` on the emitted C).
+
+Without `vader build` wired there is no emission path for any of the steps below.
+
+## Cleanliness prerequisite (recommended) : `op.vader → vader/bytecode`
+
+`Op` (the 127 opcodes) currently lives in `vader/vm/op.vader`, whereas in TS it
+lives in `src/bytecode/ops.ts` — the port mislaid it inside the VM module. As a
+result `vader/bytecode/*` (11 files, incl. `module.vader` which defines
+`BytecodeModule { body: Op[] }`), `midir/emit`, and `c_emit/walker` all import
+`vader/vm` solely for the *format* (an inverted dependency ; not a cycle —
+`vader/vm` imports nothing from `vader/bytecode`).
+
+Move it : `git mv vader/vm/op.vader vader/bytecode/op.vader` (`module
+"vader/bytecode"`), drop the now same-module `import "vader/vm" { …opcodes… }` in
+`vader/bytecode/*`, and point `vader/vm/*`, `midir/emit`, `c_emit/walker` at
+`vader/bytecode`. `op.vader` imports only `std/string_builder`, so it moves
+without creating a cycle. ~1 file moved + ~15 mechanical import edits, no logic.
+
+**Not strictly blocking** the seed (the call-graph DCE already drops the
+interpreter that `bootstrap.vader` never calls), but it gives `vader/bytecode` its
+proper role as the format module and is recommended **before** creating
+`bootstrap.vader`.
 
 ---
 
@@ -36,12 +90,13 @@ Required state on TODO.md :
 - §2.7 (fixed-point check : compiler_v1 == compiler_v2 == compiler_v3 with
   the TS compiler as the v0 anchor) — **passes**
 
-In short : `vader build vader/cli/main.vader --release` must produce a
-working binary equivalent in behaviour to the TS-built one, and that
-binary must reproduce itself.
+In short : the self-hosted compiler must emit correct C for
+`vader/cli/main.vader` and reproduce itself. This already holds today via
+`dump --stage=c` + `cc` (fixed-point byte-identical). Exposing that emission as
+`vader build --target=c` is the *Blocking prerequisite* above.
 
 While the port is in progress, the TS compiler in `src/` remains the
-development driver. `bootstrap.c` is **only** generated and committed
+development driver. `bootstrap.c.gz` is **only** generated and committed
 once the self-hosted compiler is the source of truth.
 
 ---
@@ -50,35 +105,88 @@ once the self-hosted compiler is the source of truth.
 
 ```
 ┌──────────────────────────────┐
-│ vader/cli/main.vader  (source of truth)
+│ vader/bootstrap/bootstrap.vader  (build-only entrypoint, seed source)
 └────────────┬─────────────────┘
              │
-             ▼  vader build … --target=c-source  (self-hosted compiler)
+             ▼  vader build --target=c --out=- | gzip -9   (cmd_build wired)
 ┌──────────────────────────────┐
-│ bootstrap/bootstrap.c (committed seed, self-contained TU)
+│ bootstrap/bootstrap.c.gz  (committed seed, ~790 KB)
 └────────────┬─────────────────┘
              │
-             ▼  cc bootstrap/bootstrap.c -o stage1
+             ▼  gunzip | cc -O2 - runtime/c/vader_runtime.c -Iruntime/c -o stage1
 ┌──────────────────────────────┐
-│ stage1 vader binary
+│ stage1  (mini build-only compiler)
 └────────────┬─────────────────┘
              │
-             ▼  stage1 build vader/cli/main.vader --release
+             ▼  stage1 vader/cli/main.vader → main.c → cc
 ┌──────────────────────────────┐
-│ stage2 vader binary  (release candidate)
+│ build/vader  (FULL compiler, release candidate)
 └──────────────────────────────┘
 ```
 
-- **`bootstrap/bootstrap.c`** — single self-contained C translation unit
-  (compiler + runtime statically inlined) generated by the current
-  Vader compiler. Committed in-tree, marked `binary` via `.gitattributes`.
-- **stage1** — binary produced by compiling the seed with a plain C
-  compiler.
-- **stage2** — binary produced by stage1 rebuilding the current source.
+- **`bootstrap/bootstrap.c.gz`** — gzip-compressed C translation unit, the
+  mirror of `vader/bootstrap/bootstrap.vader`, generated by the current Vader
+  compiler. Committed in-tree, marked `binary` via `.gitattributes`. The runtime
+  is linked **externally** (`runtime/c/`), not bundled (see Phase 2).
+- **stage1** — a build-only compiler produced by compiling the decompressed seed
+  with a plain C compiler. It carries the entire pipeline, so it can compile any
+  `.vader` — including `vader/cli/main.vader`.
+- **build/vader** — the full compiler, produced by stage1 rebuilding the current
+  source.
+
+Why a dedicated `bootstrap.vader` rather than seeding from `main.vader` : the seed
+then **decouples from the CLI**. Growing the lsp / formatter / `run` no longer
+bumps the seed — only pipeline changes do. Smaller size is a side benefit (~3 % ;
+the dominant size lever is gzip, 11×). See *Alternatives considered*.
 
 Storage strategy is **same-repo with `.gitattributes`** (decided over
 separate-repo / release-artefact alternatives — see *Migration paths*
 for escape hatches if growth pressure ever flips that decision).
+
+---
+
+## The seed source : `vader/bootstrap/bootstrap.vader`
+
+The seed compiles from a **dedicated build-only entrypoint**, not from
+`vader/cli/main.vader`. This is the central piece of the new design.
+
+**Role** — a minimal compiler (~30-50 LoC) whose only job is
+`<input.vader> → <output.c>`. It reuses the exact pipeline of the full compiler
+(`prepare_cfg_bytecode` + `emit_c`, duplicated from `main.vader` since the project
+keeps the two entrypoints separate rather than extracting a shared module).
+
+**Imports** — pipeline only :
+`resolver`, `typecheck`, `comptime`, `lower`, `midir`, `bytecode`, `c_emit`,
+`diagnostics`. It **must not** import `vader/vm`, `vader/fmt`, or `vader/lsp` —
+that exclusion is the whole point (it is what decouples the seed from the CLI and
+keeps it stable as those modules grow).
+
+**Capability** — because it carries the full pipeline, `stage1` (compiled from it)
+can compile *any* `.vader`, including `main.vader` → the full compiler. "Mini"
+refers to its CLI surface, not its compilation capability.
+
+Skeleton :
+
+```vader
+module "vader/bootstrap"
+
+import "vader/midir"  { ... }
+import "vader/c_emit" { emit_c, EmitOptions }
+// pipeline imports only — NOT vader/vm, vader/fmt, vader/lsp
+
+main :: fn(args: string[]) -> i32 {
+    // args : <input.vader> <output.c>
+    b :: prepare_cfg_bytecode(args[0])   // pipeline duplicated from main.vader
+    write_file(args[1], emit_c(b.module, EmitOptions { .entry_mangled = b.entry }))
+    return 0
+}
+```
+
+Note : the pipeline helpers (`lower_to_entry`, `prepare_cfg_bytecode`,
+`prepare_evaluated_project`, `entry_main_name`, `gather_pipeline_diags`,
+`module_name_from_file`) currently live in `vader/cli/main.vader`. The duplication
+they require is a deliberate trade-off (no shared `driver` module) ; `verify.sh`
+(self-reproduction) catches a stale `bootstrap.vader`.
 
 ---
 
@@ -190,14 +298,16 @@ for (const val of ORDER) {
 
 ## Phase 1 — Directory layout
 
-Create `bootstrap/` at the repo root :
+The seed **source** lives under the compiler tree at
+`vader/bootstrap/bootstrap.vader` (see *The seed source* above). The `bootstrap/`
+directory at the repo root holds the generated seed and the tooling :
 
 ```
 bootstrap/
-├── bootstrap.c        — the seed (generated, committed)
+├── bootstrap.c.gz     — the seed (generated, gzip-compressed, committed)
 ├── VERSION            — metadata about the seed
-├── regenerate.sh      — regenerate bootstrap.c from current source
-├── build.sh           — compile bootstrap.c → ./build/stage1
+├── regenerate.sh      — regenerate bootstrap.c.gz from vader/bootstrap/bootstrap.vader
+├── build.sh           — gunzip + cc (external runtime) → ./build/stage1
 ├── verify.sh          — fixed-point check (Phase 4, on-demand)
 └── README.md          — terse usage, points to docs/BOOTSTRAP.md
 ```
@@ -214,7 +324,7 @@ generator:        <vader binary path + --version output>
 `.gitattributes` at repo root :
 
 ```
-bootstrap/bootstrap.c   binary linguist-generated=true
+bootstrap/bootstrap.c.gz   binary linguist-generated=true
 ```
 
 The `binary` macro expands to `-diff -merge -text` :
@@ -226,22 +336,24 @@ The `binary` macro expands to `-diff -merge -text` :
 
 ## Phase 2 — Regeneration tooling
 
-### Decision : the seed is self-contained
+### Decision : external runtime link to start (bundling is a later improvement)
 
-`bootstrap.c` **bundles** the C runtime (`runtime/c/*.c` statically
-inlined into the same translation unit). Trade-offs evaluated :
+The seed links the C runtime **externally** to begin with —
+`cc bootstrap.c runtime/c/vader_runtime.c -Iruntime/c -o stage1`. This needs
+**zero new compiler code** (no `--bundle-runtime` flag), and `runtime/c/` is
+already in the repo. Trade-offs :
 
-| Aspect | Bundled (chosen) | External link |
+| Aspect | External link (chosen to start) | Bundled (later) |
 |---|---|---|
-| Build command | `cc bootstrap.c -o vader` | `cc bootstrap.c runtime/c/*.c -Iruntime/c -o vader` |
-| Truly standalone | yes | no |
-| Size | larger (one-shot full TU) | smaller .c file |
-| Drift risk | none | seed can desync from runtime sources |
-| CI / contributor friction | minimal | needs `runtime/c/` present at the right version |
+| Build command | `cc bootstrap.c runtime/c/vader_runtime.c -Iruntime/c -o stage1` | `cc bootstrap.c -o stage1` |
+| New compiler code | none | `--bundle-runtime` to write |
+| Truly standalone | no (needs `runtime/c/`) | yes |
+| Size | smaller .c | larger (one-shot full TU) |
+| Drift risk | seed can desync from runtime sources | none |
 
-The "one file, one cc invocation, no flags" property is worth the
-size cost. It also de-risks the deletion of `src/` (§2.8) by making
-`bootstrap/bootstrap.c` the **only** thing needed for cold-start.
+The "one file, no flags" bundled form stays the eventual target (it de-risks the
+§2.8 deletion of `src/`), but it is reclassified as an *Improvement* — **not** a
+blocker for the first seed.
 
 ### `bootstrap/regenerate.sh`
 
@@ -261,15 +373,16 @@ fi
 if ! command -v vader >/dev/null && [ ! -x ./build/vader ]; then
   echo "error: no vader binary available. Build one first." >&2
   echo "  pre-bootstrap path : bun src/index.ts build vader/cli/main.vader --release --out=build/vader" >&2
-  echo "  post-bootstrap path: bootstrap/build.sh && build/stage1 build vader/cli/main.vader --release --out=build/vader" >&2
+  echo "  post-bootstrap path: bootstrap/build.sh && build/stage1 vader/cli/main.vader build/main.c && cc build/main.c runtime/c/vader_runtime.c -Iruntime/c -lm -o build/vader" >&2
   exit 1
 fi
 VADER="${VADER:-$(command -v vader || echo ./build/vader)}"
 
-"$VADER" build vader/cli/main.vader \
-  --target=c-source \
-  --bundle-runtime \
-  --out=bootstrap/bootstrap.c
+# Emit the seed source (build-only entrypoint) to C, then gzip it.
+# `cmd_build --target=c` must be wired — see the Blocking prerequisite.
+mkdir -p build
+"$VADER" build vader/bootstrap/bootstrap.vader --target=c --out=build/bootstrap.c
+gzip -9 -c build/bootstrap.c > bootstrap/bootstrap.c.gz
 
 cat > bootstrap/VERSION <<EOF
 vader_source_sha: $(git rev-parse HEAD)
@@ -278,17 +391,17 @@ regenerated_at:   $(date -u +%Y-%m-%dT%H:%M:%SZ)
 generator:        $VADER ($("$VADER" --version))
 EOF
 
-echo "seed regenerated. review the diff (git diff --text bootstrap/),"
+echo "seed regenerated. review the decompressed diff:"
+echo "  diff <(git show HEAD:bootstrap/bootstrap.c.gz | gunzip -c) build/bootstrap.c"
 echo "confirm it's localised, then commit:"
-echo "  git add bootstrap/bootstrap.c bootstrap/VERSION"
+echo "  git add bootstrap/bootstrap.c.gz bootstrap/VERSION"
 echo "  git commit -m 'chore(bootstrap): bump seed'"
 ```
 
-Implementation note : `--target=c-source --bundle-runtime` is a new
-CLI surface the C emit port (§2.2) needs to expose — currently the C
-emitter writes to `<out>` but assumes external runtime. The bundling
-flag should concatenate `runtime/c/*.c` (in a fixed canonical order)
-into the same output file with appropriate header guards.
+Implementation note : the seed source is `vader/bootstrap/bootstrap.vader`
+(build-only), **not** `vader/cli/main.vader`. `vader build --target=c --out=<path>`
+must be wired in `cmd_build` first (Blocking prerequisite). The runtime stays
+**external** (no bundling) — `build.sh` links `runtime/c/` at `cc` time.
 
 ### `bootstrap/build.sh`
 
@@ -298,33 +411,40 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 mkdir -p build
-cc -O2 -o build/stage1 bootstrap/bootstrap.c
+gunzip -c bootstrap/bootstrap.c.gz > build/bootstrap.c
+cc -O2 -o build/stage1 build/bootstrap.c runtime/c/vader_runtime.c -Iruntime/c -lm
 
 echo "stage1 built at build/stage1"
-echo "smoke test:"
-./build/stage1 --version
+echo "smoke test (stage1 compiles a trivial snippet to C):"
+./build/stage1 tests/snippets/return_42/_main.vader build/_smoke.c && echo "  ok"
 ```
 
-That is the whole contract : `cc bootstrap/bootstrap.c -o stage1`,
-no `-I` paths, no extra TUs, no runtime sidecar required.
+The contract : `gunzip -c bootstrap/bootstrap.c.gz | cc -O2 -x c -
+runtime/c/vader_runtime.c -Iruntime/c -lm -o stage1`. `runtime/c/` is the only
+sidecar required (external link — see the Phase 2 decision). `stage1` is the
+build-only compiler : it takes `<input.vader> <output.c>`, so the smoke test
+compiles a snippet rather than running `--version`.
 
 ### The very first seed (transition step)
 
-The first time `bootstrap.c` is generated, you need a working Vader
-binary. At that point the TS compiler is still present (deletion
-happens at §2.8, **after** this plan succeeds). Sequence :
+The first time `bootstrap.c.gz` is generated, you need a working Vader binary
+**with `cmd_build` wired**. At that point the TS compiler is still present
+(deletion happens at §2.8, **after** this plan succeeds). Sequence :
 
-1. Build a Vader binary via TS one last time :
+0. (Prerequisite) Wire `cmd_build --target=c` in `vader/cli/main.vader`, and
+   create `vader/bootstrap/bootstrap.vader`.
+1. Build a Vader binary via TS one last time (now carries the wired `cmd_build`) :
    `bun src/index.ts build vader/cli/main.vader --release --out=build/vader-via-ts`
-2. Use that binary to emit the first seed :
+2. Emit the first seed from the build-only entrypoint :
    `VADER=./build/vader-via-ts bootstrap/regenerate.sh`
-3. Build stage1 from that seed : `bootstrap/build.sh`
+   (or, equivalently, emit straight from TS :
+   `bun src/index.ts build vader/bootstrap/bootstrap.vader --target=c --out=build/bootstrap.c && gzip -9 -c build/bootstrap.c > bootstrap/bootstrap.c.gz`).
+3. Build stage1 from that seed : `bootstrap/build.sh`.
 4. Run §2.7 fixed-point checks (Phase 4 / `bootstrap/verify.sh`) and
-   confirm `compiler_v1 == compiler_v2`.
-5. Commit `bootstrap/bootstrap.c` + `bootstrap/VERSION`.
-6. Subsequent regenerations use `bootstrap/build.sh` output (stage1)
-   or a previously-installed `vader` — the TS compiler is never the
-   generator again.
+   confirm the seed and `main.c` reproduce byte-identical.
+5. Commit `bootstrap/bootstrap.c.gz` + `bootstrap/VERSION`.
+6. Subsequent regenerations use `bootstrap/build.sh` output (stage1) or a
+   previously-installed `vader` — the TS compiler is never the generator again.
 
 ---
 
@@ -333,10 +453,12 @@ happens at §2.8, **after** this plan succeeds). Sequence :
 A new GitHub Actions job `bootstrap.yml` (or a step in the existing
 test workflow), running on each push :
 
-1. `cc -O2 bootstrap/bootstrap.c -o build/stage1`
-2. `./build/stage1 build vader/cli/main.vader --release --out=build/stage2`
-3. `./build/stage2 --version` smoke test
-4. (Optional gate) `./build/stage2 test …` — sanity check against the
+1. `gunzip -c bootstrap/bootstrap.c.gz > build/bootstrap.c`
+2. `cc -O2 build/bootstrap.c runtime/c/vader_runtime.c -Iruntime/c -lm -o build/stage1`
+3. `./build/stage1 vader/cli/main.vader build/main.c` — stage1 emits the FULL compiler's C
+4. `cc -O2 build/main.c runtime/c/vader_runtime.c -Iruntime/c -lm -o build/vader`
+5. `./build/vader --version` smoke test
+6. (Optional gate) `./build/vader test …` — sanity check against the
    snippet suite
 
 This validates two invariants on every push :
@@ -344,10 +466,10 @@ This validates two invariants on every push :
 - The seed is functionally complete enough to rebuild the compiler.
 
 A drift between source and seed (e.g., bytecode-format change without
-seed regeneration, runtime ABI break) makes CI fail loudly at step 2.
+seed regeneration, runtime ABI break) makes CI fail loudly at step 3.
 
 The CI **does not** require Bun, Node, or any pre-installed `vader`.
-Only a C compiler. That is the whole point.
+Only a C compiler and `gzip`. That is the whole point.
 
 ---
 
@@ -363,27 +485,36 @@ and on releases :
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-./bootstrap/build.sh                                      # stage1
-./build/stage1 build vader/cli/main.vader \
-  --target=c-source --bundle-runtime --out=build/stage1.c  # stage1 emits C
-cc -O2 -o build/stage2 build/stage1.c                     # stage2
-./build/stage2 build vader/cli/main.vader \
-  --target=c-source --bundle-runtime --out=build/stage2.c  # stage2 emits C
+./bootstrap/build.sh                                       # build/stage1 (from seed)
 
-if cmp -s build/stage1.c build/stage2.c; then
-  echo "fixed-point OK : stage1.c == stage2.c"
-else
-  echo "FIXED-POINT FAILED — compiler is not self-reproducing"
-  diff -u build/stage1.c build/stage2.c | head -200
+# stage1 (build-only) emits the FULL compiler's C, then we cc it.
+./build/stage1 vader/cli/main.vader build/main1.c
+cc -O2 -o build/vader build/main1.c runtime/c/vader_runtime.c -Iruntime/c -lm
+
+# (a) full-compiler self-reproduction : vader re-emits main.vader, must match.
+./build/vader build vader/cli/main.vader --target=c --out=build/main2.c
+if ! cmp -s build/main1.c build/main2.c; then
+  echo "FIXED-POINT FAILED — full compiler is not self-reproducing"
+  diff -u build/main1.c build/main2.c | head -200
   exit 1
 fi
+
+# (b) seed freshness : vader re-emits bootstrap.vader, must match the committed seed.
+./build/vader build vader/bootstrap/bootstrap.vader --target=c --out=build/bootstrap.new.c
+if ! cmp -s build/bootstrap.new.c <(gunzip -c bootstrap/bootstrap.c.gz); then
+  echo "STALE SEED — bootstrap.c.gz no longer matches bootstrap.vader; run regenerate.sh"
+  exit 1
+fi
+
+echo "fixed-point OK : main.c reproduced byte-identical, seed up to date"
 ```
 
 Invariants verified :
-- The compiler is **self-reproducing** : a compiler built from the
-  seed, used to rebuild itself, produces the same C as itself.
-- The seed is not "lucky" — it represents a real fixed point of the
-  pipeline.
+- The compiler is **self-reproducing** : a compiler built from the seed, used to
+  rebuild `main.vader`, produces the same C as a fresh re-emit (`main1.c == main2.c`).
+- The committed seed is **fresh** : re-emitting `bootstrap.vader` matches
+  `bootstrap.c.gz` (decompressed) — no silent drift.
+- The seed is not "lucky" — it represents a real fixed point of the pipeline.
 
 Trigger :
 - **Mandatory before committing the very first seed** (Phase 2 step 4).
@@ -398,39 +529,43 @@ Too slow for every PR run.
 
 ### When to bump
 
-Regenerate `bootstrap.c` when **any of these change in a way that
-affects the compiler's own compilation** :
+Regenerate `bootstrap.c.gz` when a change affects **the C that
+`vader/bootstrap/bootstrap.vader` emits** — i.e. the compilation pipeline
+reachable from it :
 
-- `vader/` (lexer, parser, typer, lower, codegen, CLI, …) gains or
-  modifies behaviour exercised by `vader/cli/main.vader`
-- `vader/c_emit/` changes the shape of generated C (output format,
-  ABI, runtime call conventions)
-- `runtime/c/` changes its public surface (function signatures the
-  emitted code calls) — note : since the seed bundles the runtime,
-  any non-trivial runtime change cascades into a seed bump
-- Bytecode/IR format changes
+- `vader/{lexer,parser,resolver,typecheck,comptime,lower,midir,bytecode,c_emit}`
+  gains or modifies behaviour exercised when compiling a `.vader` file
+- `vader/c_emit/` changes the shape of generated C (output format, ABI,
+  runtime call conventions)
+- Bytecode / IR format changes
+- the pipeline helpers duplicated inside `bootstrap.vader` itself change
+
+The runtime is linked externally, so a `runtime/c/` change only forces a seed
+bump when it changes the **emitted call shape** (a pure `.c` body change does not).
 
 ### When **not** to bump
 
 - Tests-only changes (`tests/`, `vader/typecheck/*tests*.vader`, …)
 - Documentation, comments, formatting
-- Editor / tooling / scripts that don't end up in `vader/cli/main.vader`'s
-  compile graph
-- Bug fixes that don't change generated C — verify with a dry-run :
+- **`vader/lsp/`, `vader/fmt/`, `vader/vm/`, and the parts of `vader/cli/` that
+  `bootstrap.vader` does not import** — excluded from the seed by design, so
+  growing them (e.g. the lsp) **never** bumps it. This is the whole point of a
+  dedicated build-only entrypoint.
+- Bug fixes that don't change emitted C — verify with a dry-run :
   if `regenerate.sh` produces a byte-identical seed, no bump needed.
 
 ### Who bumps
 
-The contributor whose PR triggers the need. CI failure on step 2 (see
+The contributor whose PR triggers the need. CI failure on step 3 (see
 Phase 3) is the signal. If a PR changes the compiler such that the
 seed becomes stale :
 
 1. Run `bootstrap/regenerate.sh` locally (uses your installed `vader`
    or the one in `./build/`).
-2. Inspect the diff via `git diff --text bootstrap/bootstrap.c` —
-   `.gitattributes` masks the default diff view, `--text` forces it.
-   Confirm the change looks **localised and proportional** to your
-   source change.
+2. Inspect the decompressed diff (the seed is a gzip blob, so the textual
+   diff must be on its expanded form) :
+   `diff <(git show HEAD:bootstrap/bootstrap.c.gz | gunzip -c) build/bootstrap.c`.
+   Confirm the change looks **localised and proportional** to your source change.
 3. Commit the seed bump as a **separate commit** from the source
    change, with subject `chore(bootstrap): bump seed`. Easier to
    review and easier to revert if regen was premature.
@@ -454,7 +589,7 @@ storage strategy (see *Migration paths* below).
 
 ## TS compiler deletion (§2.8)
 
-Once Phases 0-4 are green and `bootstrap.c` is committed, §2.8 is
+Once Phases 0-4 are green and `bootstrap.c.gz` is committed, §2.8 is
 unblocked. The deletion is a single PR :
 
 1. Delete `src/` entirely.
@@ -473,10 +608,9 @@ Post-deletion, the **only** ways to acquire a `vader` binary are :
 
 - Download a prebuilt release (the existing `scripts/dist.ts` path,
   itself ported to Vader as part of §2.x).
-- Build from source via `bootstrap/build.sh` → stage1 → stage2.
+- Build from source via `bootstrap/build.sh` → stage1 → full `vader`.
 
-There is no third path. That is the whole guarantee `bootstrap.c`
-provides.
+There is no third path. That is the whole guarantee the seed provides.
 
 ---
 
@@ -489,43 +623,62 @@ provides.
 The existing line "The compiler is being bootstrapped in TypeScript
 and will later self-host in Vader." becomes :
 
-> Vader is self-hosted. A committed C seed at `bootstrap/bootstrap.c`
-> lets any machine with a C compiler build the toolchain from source —
-> see [`docs/BOOTSTRAP.md`](./docs/BOOTSTRAP.md).
+> Vader is self-hosted. A committed, gzip-compressed C seed at
+> `bootstrap/bootstrap.c.gz` lets any machine with a C compiler build the
+> toolchain from source — see [`docs/BOOTSTRAP.md`](./docs/BOOTSTRAP.md).
 
 ### New subsection under `## Build from source`
 
 > ### From the C seed (no Vader binary needed)
 >
 > ```sh
-> bash bootstrap/build.sh                           # builds ./build/stage1
-> ./build/stage1 build vader/cli/main.vader \
->   --release --out=build/vader                     # full compiler
+> bash bootstrap/build.sh                           # gunzip + cc → ./build/stage1
+> ./build/stage1 vader/cli/main.vader build/main.c  # stage1 emits the full compiler's C
+> cc -O2 build/main.c runtime/c/vader_runtime.c -Iruntime/c -lm -o build/vader
 > ```
 >
-> The seed is the same C source `vader build --target=c-source` would
-> produce today ; it is committed periodically when the compiler
-> changes. CI validates on every push that the seed still builds and
-> is functionally complete. To regenerate the seed (contributor flow),
-> see `docs/BOOTSTRAP.md` § *Seed lifecycle management*.
+> The seed is the C of `vader/bootstrap/bootstrap.vader` (a build-only
+> entrypoint) that `vader build --target=c` produces, gzip-compressed ; it is
+> committed periodically when the compilation pipeline changes. CI validates on
+> every push that the seed still builds and can rebuild the compiler. To
+> regenerate the seed (contributor flow), see `docs/BOOTSTRAP.md` §
+> *Seed lifecycle management*.
 
 A contributing section (or `CONTRIBUTING.md`) should reference
 `docs/BOOTSTRAP.md` for the bump procedure.
 
 ---
 
+## Alternatives considered (and why they were dropped)
+
+Measured 2026-06-05 on `build/vader.c` (the emitted C of the full compiler) :
+
+| Lever | Effect on the seed | Verdict |
+|---|---|---|
+| **gzip -9** | 8.9 MB → ~790 KB (11×) | ✅ adopted — the size lever |
+| mini-VM + committed bytecode | gzipped bytecode ≈ gzipped C ; **+~3000 LoC of C** to write/maintain ; `stage1` would be *interpreted* (slow) | ❌ no size win, more work |
+| seed = full `vader/cli/main.vader` | +~3 % size ; **re-bumps on every lsp/fmt/cli change** | ❌ unstable seed |
+| better stdlib DCE | stdlib = 4.4 % of the C and **already DCE'd** (`is_stdlib_path`) ; headroom < 4 % | ❌ essentially already done |
+
+Why the format and the pruning barely matter : the seed is **dominated by the
+build pipeline** (parser / typecheck / lower / midir / comptime / c_emit), which
+is irreducible by construction ; compressed, C and bytecode weigh the same ; and
+gzip reabsorbs removed code. So the dedicated build-only entrypoint
+(`bootstrap.vader`) is chosen for **stability and traceability** of the seed, not
+for bytes — while **gzip** does the size work.
+
 ## Migration paths (if growth becomes a problem)
 
 If pack-file size grows beyond the budget above, escape hatches are
 non-breaking for the user-facing `bootstrap/build.sh` contract — only
-`bootstrap.c` *acquisition* changes :
+`bootstrap.c.gz` *acquisition* changes :
 
 1. **Separate repo** (`vaderlang2-seed`) — Nim's `csources_v2` pattern.
    Main repo references a SHA in `bootstrap/VERSION`, `bootstrap/build.sh`
    curls the tarball. Migration : `git filter-repo` purges
-   `bootstrap.c` history from this repo, moves it to the new repo.
+   `bootstrap.c.gz` history from this repo, moves it to the new repo.
 
-2. **GitHub Release artefact** — `bootstrap.c` published as an asset
+2. **GitHub Release artefact** — `bootstrap.c.gz` published as an asset
    on a `bootstrap-v<N>` tag, `bootstrap/build.sh` downloads it. No
    second repo, GC-able by deleting old releases. Trade-off : harder
    offline / air-gapped builds.
@@ -536,17 +689,20 @@ non-breaking for the user-facing `bootstrap/build.sh` contract — only
 
 Strictly sequential (each step gates the next) :
 
-1. **Phase 0 fixes in TS** (4 small patches in `src/c_emit/`) — ~30 min.
-   Land before §2.2 so the port mirrors a stable design.
-2. **Self-host port** (TODO §2.1-2.6) — out of scope of this doc, but
-   listed here because Phases 1-4 below cannot start before it lands.
-3. **Phase 0 mirror check in Vader port** (§2.2) — 15 min, just confirm
-   the same canonicalisations exist in `vader/c_emit/`.
-4. **`--bundle-runtime` CLI flag** (in `vader/c_emit/`) — ~1-2 h, needed
-   by `regenerate.sh`.
-5. **Phase 1 layout** + `.gitattributes` — 15 min.
-6. **First seed generation + verify** (Phase 2 *very first seed* +
-   Phase 4 verify) — 1-2 h.
-7. **Phase 3 CI job** — 30 min once `build.sh` works.
-8. **README update** — 15 min, do alongside Phase 3 going green.
+1. **Self-host port + fixed-point** (TODO §2.1-2.7) — ✅ done. Phase 0 codegen
+   determinism is effective (byte-identical proves it).
+2. **Wire `cmd_build`** (`--target=c` minimum) in `vader/cli/main.vader` —
+   **blocking prerequisite** ; promote `run_c_stage` into a real `build` command
+   writing `--out`.
+3. **Cleanliness refactor** `op.vader → vader/bytecode` — recommended, ~1 file
+   moved + ~15 import edits.
+4. **Create `vader/bootstrap/bootstrap.vader`** (build-only entrypoint, pipeline
+   duplicated, no `vm`/`fmt`/`lsp`).
+5. **Phase 1 layout** (`bootstrap/` + scripts) + `.gitattributes` on the `.gz`.
+6. **First seed generation + verify** (Phase 2 *very first seed* + Phase 4
+   verify) — emit via `vader build --target=c`, gzip, external runtime.
+7. **Phase 3 CI job** — once `build.sh` works.
+8. **README update** — alongside Phase 3 going green.
 9. **§2.8 TS deletion PR** — separate PR, mechanical.
+
+(`--bundle-runtime` one-file seed is an optional improvement, not on this path.)
