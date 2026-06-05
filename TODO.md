@@ -734,7 +734,7 @@ queries + closure-analysis pass land on the typechecker side.
       (else stdlib CFG bloats them ~10×). PROVISIONAL : decide whether stdlib
       elision should be a `--stdlib` opt-in flag on `dump` rather than the baked
       default, so the CLI can still show the full CFG when wanted.
-- [ ] **Native-emitter gaps surfaced by the oracle flip — 6 fixed, 5 open**
+- [ ] **Native-emitter gaps surfaced by the oracle flip — 7 fixed, 4 open**
       (2026-06-05). With `bytecode.snapshot.virt` now native-emitted,
       `vader_vm.test.ts` runs native bytecode for the whole corpus and exposed
       11 mis-compiles. FIXED this session:
@@ -757,14 +757,31 @@ queries + closure-analysis pass land on the typechecker side.
         vanished at CFG-build. Added the two Instr kinds + build + emit arms
         (cfg/build/emit/analyses/scheduler/dump in `vader/midir/`). `defer` now
         runs on normal exits.
+      - `_diag_iter_collect` — `(0..<5).filter(keep).collect()` trapped
+        `virtual.call Iterator.next : no impl for type N`. `filter`'s ERASED body
+        (T→Any) constructs a fully-erased `FilterIterator<Any>`, but the comptime
+        harvest only sees the CONCRETE call-site `FilterIterator<i32>`, so the
+        erased struct's `Iterator.next__Any` impl was never materialised → no
+        vtable row for the tag the runtime value actually carries. `lower_struct_lit`
+        now queues a fully-erased generic-struct instance (`args_all_any_leaves`)
+        via `queue_generic_impl_receiver`, so the joint fixpoint materialises its
+        impl members (self = the erased struct type). Gate restricted to FULLY
+        erased instances : queuing a mixed one (`MapIterator<string, Any>`) forces
+        a default-method body whose mixed-suffix sibling `next__string__Any` the
+        materialiser never produces (GATE-B1 emit panic, surfaced on `json_basics`).
       STILL OPEN (in `KNOWN_DIVERGENT` / phase-excluded, each its own fix) :
-      `for_in_iter_trait`, `_diag_iter_collect` (erased `Iterator.next` vtable
-      miss) ; `std_time` (`abs(i64)` typed `any` — `pick_overload` doesn't
-      collect a TRANSITIVELY-imported module's overloads, so `std/time::format`
-      compares a wide ns value via `i32.lt`) ; `alias_import`, `namespace_import`
-      (GATE-B1 namespace/import emit panic — `dump --stage=bytecode` itself
-      fails). `defer_on_panic` still needs the VM to drain the defer-stack on a
-      TRAPPED exit (separate from the emit gap just fixed). `defer_in_lambda`
+      `for_in_iter_trait` — the `FilterIterator<Any>` erased leg is now fixed (as
+      above), but `s.chars().filter(is_l).count()` still traps : `StringChars` (the
+      NON-generic stdlib char iterator from `chars()`) never gets its `Iterator.next`
+      impl surfaced for the virtual-call path, so `FilterIterator.next`'s
+      `self.source.next()` misses on the StringChars receiver. Distinct class :
+      non-generic stdlib struct implementor of a virtually-dispatched trait.
+      `std_time` (`abs(i64)` typed `any` — `pick_overload` doesn't collect a
+      TRANSITIVELY-imported module's overloads, so `std/time::format` compares a
+      wide ns value via `i32.lt`) ; `alias_import`, `namespace_import` (GATE-B1
+      namespace/import emit panic — `dump --stage=bytecode` itself fails).
+      `defer_on_panic` still needs the VM to drain the defer-stack on a TRAPPED
+      exit (separate from the emit gap just fixed). `defer_in_lambda`
       surfaced a *distinct* deeper gap once `defer.push` started emitting : a
       defer thunk *inside a lambda* that captures an outer-lambda-captured var
       (`defer println("...${x}")` where `x` is `__env.cap_N`) fails to resolve
