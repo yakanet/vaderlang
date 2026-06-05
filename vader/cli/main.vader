@@ -10,11 +10,12 @@
 
 module "vader/cli"
 
-import "std/io" { println, eprintln, read_file, print }
+import "std/io" { println, eprintln, read_file, write_file, print }
 import "std/collections" { keys, values, MutableMap }
-import "std/string" { starts_with, ends_with, bytes, as_string, trim_suffix }
+import "std/string" { starts_with, ends_with, bytes, as_string, trim_suffix, split, trim }
 import "std/iter" { slice as slice_arr }
 import "std/path" { to_posix, to_path, filename }
+import "std/process" { spawn, ProcessError }
 import "std/cli" { FlagSpec, parse_known, bool_flag, string_flag }
 import "vader/version" { CLI_VERSION }
 import "vader/lexer" { tokenize, dump_tokens, dump_diagnostics }
@@ -66,7 +67,9 @@ COMMANDS:
                                      --target=wasm      WebAssembly module (not yet implemented)
                                      --release          Optimise ; default builds carry debug info
                                      --manifest         Read vader.json instead of a single file
-                                     --out=<path>       Override the default output path
+                                     --out=<path>       Override the default output path (- streams C to stdout)
+                                     --cc=<path>        Native only: C compiler to invoke (default: cc)
+                                     --ldflags="..."    Native only: raw linker flags appended to the cc invocation
   fmt [path] [options]             Format Vader sources (single file or recursive directory walk)
                                      --check          Read-only ; exit 1 if any file would change
                                      --stdout         Write formatted output to stdout (single file)
@@ -282,14 +285,19 @@ cmd_test :: fn(args: string[]) -> i32 {
 
 // ----------------------------------------------------------- build
 
+// Runtime root for `--target=native` linking. Cwd-relative `runtime/c`,
+// mirroring `default_stdlib_root`'s cwd-relative `stdlib` — both assume the
+// build runs from the repo root (which `bootstrap/build.sh` guarantees).
+RUNTIME_C_ROOT :: "runtime/c"
+
 cmd_build :: fn(args: string[]) -> i32 {
-    // `--out` and `--release` are registered so they don't surface as
-    // positionals — self-hosted build is a stub, so we don't read them yet.
     specs: FlagSpec[] = [
         FlagSpec { .name = "target",   .kind = .Str  },
         FlagSpec { .name = "manifest", .kind = .Bool },
         FlagSpec { .name = "out",      .kind = .Str  },
         FlagSpec { .name = "release",  .kind = .Bool },
+        FlagSpec { .name = "cc",       .kind = .Str  },
+        FlagSpec { .name = "ldflags",  .kind = .Str  },
     ]
     parsed :: parse_known(args, specs)
     if parsed.errors.len() > 0 {
@@ -299,6 +307,10 @@ cmd_build :: fn(args: string[]) -> i32 {
 
     target       :: parsed.string_flag("target", "native")
     use_manifest :: parsed.bool_flag("manifest")
+    out_flag     :: parsed.string_flag("out", "")
+    release      :: parsed.bool_flag("release")
+    cc           :: parsed.string_flag("cc", "cc")
+    ldflags      :: parsed.string_flag("ldflags", "")
 
     if target != "native" && target != "wasm" && target != "ir" && target != "c" {
         eprintln("vader build: unknown target \"${target}\"")
@@ -313,21 +325,127 @@ cmd_build :: fn(args: string[]) -> i32 {
         return 1
     }
 
-    if target == "wasm" {
-        file_repr :: if file != "" { file } else { "(manifest)" }
-        eprintln("vader build: not yet implemented (target=wasm, file=${file_repr})")
-        return 2
-    }
-
     if use_manifest {
         eprintln("vader build --target=${target}: --manifest mode not yet implemented")
         return 2
     }
 
-    // target ∈ {native, ir, c} with a file : TS implements this. Self-hosted
-    // can't compile yet, so we surface the same wording as the other stubs.
+    if target == "c"      { return build_c(file, out_flag, release) }
+    if target == "native" { return build_native(file, out_flag, release, cc, ldflags) }
+
+    // TODO: --target=ir / --target=ir-text — write the binary (.vir) / text
+    // (.virt) bytecode module. The bytecode already exists post
+    // `prepare_cfg_bytecode` ; this only needs the writer wired (TS reference:
+    // `src/cli/commands/build.ts::buildIr`, via `writeBinary` / `writeVir`).
+    // TODO: --target=wasm — the WebAssembly backend is not ported yet (no
+    // wasm emitter in `vader/`). Recognised here so the flag round-trips with
+    // a clear message instead of an "unknown target" error.
     eprintln("vader build --target=${target}: not yet implemented")
     return 2
+}
+
+// Lower `file` through the canonical CFG → bytecode → c_emit path (the same
+// pipeline `dump --stage=c` uses) and return the generated C. Pipeline
+// diagnostics go to stderr ; returns null when an error-severity diagnostic
+// blocks the build, so the caller emits nothing and exits non-zero.
+emit_c_source :: fn(file: string, release: bool) -> string | null {
+    b :: prepare_cfg_bytecode(file)
+    if !flush_build_diags(b.pre_diags, b.lower_diags) { return null }
+    // Designate the program entry by mangled name (same source as the bytecode
+    // stage's `export main N`) so the `main()` shim resolves the entry module's
+    // `main` even when a multi-module input (the compiler imports `vader/lsp`,
+    // which has its own `main`) flags several fns `is_main`.
+    return emit_c(b.module, CEmitOptions { .release = release, .entry_mangled = b.entry })
+}
+
+// Render the merged pipeline diagnostics to stderr and report whether the
+// build may proceed. Mirrors TS `flushDiagnostics` : any error-severity
+// diagnostic aborts the build (return false) ; warnings / info still print.
+flush_build_diags :: fn(pre: Diagnostic[], lower: Diagnostic[]) -> bool {
+    all :: merge_diagnostics(pre, lower)
+    if all.len() > 0 { eprintln(all.dump_diagnostics()) }
+    for d in all {
+        if d.severity == .Error { return false }
+    }
+    return true
+}
+
+// `--target=c` : write the generated C to `--out` (default `<file>.c`).
+// `--out=-` streams it to stdout — the bootstrap seed pipes that into gzip.
+build_c :: fn(file: string, out_flag: string, release: bool) -> i32 {
+    c_src :: emit_c_source(file, release)
+    if c_src is null { return 1 }
+    if out_flag == "-" {
+        print(c_src)
+        return 0
+    }
+    out :: if out_flag != "" { out_flag } else { "${file.trim_suffix(".vader")}.c" }
+    return write_out(out, c_src)
+}
+
+// `--target=native` : emit the C next to the binary, then invoke the C
+// compiler to link it against the external runtime (`runtime/c/`). The `.c`
+// is kept on a `cc` failure so the user can inspect the generated source.
+build_native :: fn(file: string, out_flag: string, release: bool, cc: string, ldflags: string) -> i32 {
+    c_src :: emit_c_source(file, release)
+    if c_src is null { return 1 }
+    out :: if out_flag != "" { out_flag } else { file.trim_suffix(".vader") }
+    c_file :: "${out}.c"
+    if write_out(c_file, c_src) != 0 { return 1 }
+
+    res :: spawn(cc_argv(cc, c_file, out, release, ldflags))
+    if res is ProcessError {
+        eprintln("vader build: ${res.message()}")
+        eprintln("(generated C kept at ${c_file})")
+        return 1
+    }
+    if res.exit != 0 {
+        eprintln("vader build: ${cc} failed (exit ${res.exit})")
+        eprintln(res.stderr)
+        eprintln("(generated C kept at ${c_file})")
+        return 1
+    }
+    eprintln("vader build: wrote ${out} (and ${c_file})")
+    return 0
+}
+
+// Assemble the `cc` command line : runtime include + the emitted C unit + the
+// external runtime unit, debug (`-O0 -g`) or release (`-O3 -DNDEBUG`) flags,
+// any user `--ldflags`, then `-o <out> -lm`. `-lm` satisfies the runtime's
+// `floor` / `fmod` references on glibc ; it is a no-op on macOS / MinGW.
+cc_argv :: fn(cc: string, c_file: string, out: string, release: bool, ldflags: string) -> string[] {
+    argv: string[] = [cc, "-std=c11"]
+    if release {
+        argv.push("-O3")
+        argv.push("-DNDEBUG")
+    } else {
+        argv.push("-O0")
+        argv.push("-g")
+    }
+    argv.push("-I")
+    argv.push(RUNTIME_C_ROOT)
+    argv.push(c_file)
+    argv.push("${RUNTIME_C_ROOT}/vader_runtime.c")
+    // Whitespace-split user --ldflags into argv tokens — boring, no shell
+    // quoting : a path with spaces is a user bug. Appended before `-o` so they
+    // can refer back to the emitted unit (e.g. `@extern` helper symbols).
+    for tok in ldflags.trim().split(" ") {
+        if tok != "" { argv.push(tok) }
+    }
+    argv.push("-o")
+    argv.push(out)
+    argv.push("-lm")
+    return argv
+}
+
+// Write `content` to `path`, surfacing a write failure as exit 1.
+write_out :: fn(path: string, content: string) -> i32 {
+    wr :: write_file(path, content)
+    if wr is Error {
+        eprintln("vader build: cannot write `${path}`: ${wr.message()}")
+        return 1
+    }
+    return 0
 }
 
 // ----------------------------------------------------------- dump
@@ -730,12 +848,20 @@ gather_pipeline_diags :: fn(pipeline: EvaluatedPipeline) -> Diagnostic[] {
     return out
 }
 
+// Concatenate two diagnostic bags into one list, preserving order (`head`
+// then `extra`). Shared by the dump-stage renderer (`print_merged_diags`,
+// stdout) and the build renderer (`flush_build_diags`, stderr + fail-on-error).
+merge_diagnostics :: fn(head: Diagnostic[], extra: Diagnostic[]) -> Diagnostic[] {
+    all: Diagnostic[] = []
+    for d in head  { all.push(d) }
+    for d in extra { all.push(d) }
+    return all
+}
+
 // Print `head` then `extra` as a single `# Diagnostics` block (nothing when
 // both are empty), matching `dumpLower` in `tests/snapshot.ts` byte-for-byte.
 print_merged_diags :: fn(head: Diagnostic[], extra: Diagnostic[]) -> void {
-    all_diags: Diagnostic[] = []
-    for d in head  { all_diags.push(d) }
-    for d in extra { all_diags.push(d) }
+    all_diags :: merge_diagnostics(head, extra)
     if all_diags.len() > 0 {
         println(all_diags.dump_diagnostics())
     }
