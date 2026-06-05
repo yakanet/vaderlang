@@ -45,6 +45,12 @@ const ANGLE_GENERIC_SNIPPETS: ReadonlySet<string> = new Set<string>([]);
 // Goal : empty set ⇒ §9 done.
 const BYTECODE_DIVERGENT_SNIPPETS: ReadonlySet<string> = new Set<string>([
   "_diag_const_string", "_diag_generic_map_param", "_diag_stdlib_struct_instance",
+  // `collect()` over a lazy `FilterIterator` is not materialised by the
+  // self-host lower/emit path — the result stays the iterator struct, so a
+  // later `.len()` traps with "array.len receiver: expected array, got struct"
+  // (TS emits it correctly). Skip the bytecode-parity dim until the
+  // collect-materialisation gap is fixed ; the snippet is the regression repro.
+  "_diag_iter_collect",
   // Native Vader's CFG→bytecode structurer (emit_range) infinitely recurses on
   // this snippet's match-merge + nested-loop-with-continue CFG and segfaults —
   // a Vader-side structurer bug (TS emits it fine). Skip the bytecode-parity

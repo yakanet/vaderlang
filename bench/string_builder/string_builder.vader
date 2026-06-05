@@ -10,7 +10,7 @@ module "main"
 
 import "std/io" { println }
 import "std/string_builder" { new_builder, append }
-import "std/string" { byte_len }
+import "std/string" { bytes }
 
 N :: 80_000
 FRAGMENT :: "The quick brown fox jumps over the lazy dog.\n"
@@ -21,6 +21,6 @@ main :: fn() -> i32 {
         sb.append(FRAGMENT)
     }
     result :: sb.to_string()
-    println("string_builder N=${N} len=${result.byte_len()}")
+    println("string_builder N=${N} len=${result.bytes().len()}")
     return 0
 }

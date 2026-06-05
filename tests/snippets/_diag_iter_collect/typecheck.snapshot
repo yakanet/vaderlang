@@ -1,0 +1,19 @@
+# Typecheck
+
+## tests/snippets/_diag_iter_collect
+  FnDecl         keep                 :: fn(i32) -> bool
+  FnDecl         main                 :: fn() -> i32
+  expr 24:30    BinaryExpr     :: bool
+  expr 24:30    IdentExpr      :: i32
+  expr 27:14    CallExpr       :: FilterIterator<i32>
+  expr 27:14    CallExpr       :: T[]
+  expr 27:14    FieldExpr      :: fn() -> T[]
+  expr 27:14    FieldExpr      :: fn(fn(T) -> bool) -> FilterIterator<T>
+  expr 27:14    RangeExpr      :: Range<i32>
+  expr 27:28    IdentExpr      :: fn(i32) -> bool
+  expr 28:13    StringLitExpr  :: string
+  expr 28:20    CallExpr       :: usize
+  expr 28:20    FieldExpr      :: fn() -> usize
+  expr 28:20    IdentExpr      :: T[]
+  expr 28:5     CallExpr       :: void
+  expr 28:5     IdentExpr      :: fn(T) -> void

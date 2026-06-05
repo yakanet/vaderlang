@@ -1,0 +1,30 @@
+// Diag snippet: `collect()` on a lazy `FilterIterator` must materialise a
+// fresh array, but the self-host backend leaves it as the iterator struct.
+//
+// Expected (TS-built compiler): `(0..<5).filter(keep).collect()` yields the
+// `i32[]` `[2, 3, 4]`, so `kept.len()` is 3 and the program prints "len=3".
+//
+// Actual (Vader self-emitted / self-host native `./build/vader run`): the
+// `collect()` result stays a `FilterIterator<i32>` struct instead of an
+// `i32[]`, so `kept.len()` traps at runtime with
+//   "vader vm: array.len receiver: expected array, got struct".
+//
+// Root cause hypothesis: the self-host lower/emit path for `collect(it:
+// Iterator<T>) -> T[]` (std/iter.vader:62) over a `FilterIterator` does not
+// drive the iterator to build the backing array — the receiver flows through
+// as the wrapper struct. TS materialises it correctly. Surfaced by
+// `examples/brainfuck/brainfuck.vader::tokenize_bf`, which was rewritten to an
+// explicit accumulator loop as a workaround.
+
+module "snippet"
+
+import "std/io" { println }
+import "std/iter" { filter, collect }
+
+keep :: fn(x: i32) -> bool = x > 1
+
+main :: fn() -> i32 {
+    kept :: (0..<5).filter(keep).collect()
+    println("len=${kept.len()}")
+    return 0
+}
