@@ -1,6 +1,9 @@
-// Shared rebuild hook + spawn wrapper for the Vader CLI native binary.
-// Idempotent — the mtime check short-circuits when the binary is fresh,
-// so the N test files that load this share one actual rebuild.
+// Shared presence check + spawn wrapper for the Vader CLI native binary.
+// The harness does NOT build the compiler — it asserts a prebuilt `build/vader`
+// exists and is up to date vs the .vader sources, failing loudly otherwise.
+// This severs the test suite from the TS compiler in src/ (the §2.8 path): the
+// binary is provided by `bun run build:cli` (while src/ exists) or from the
+// committed C seed (see bootstrap/README.md).
 
 import { beforeAll } from "bun:test";
 import { readdirSync, statSync } from "node:fs";
@@ -12,17 +15,18 @@ export const CLI_BIN = `build/vader${process.platform === "win32" ? ".exe" : ""}
 export const MEDIUM_BUILD = 30_000;
 export const LONG_BUILD = 120_000;
 
-let cachedSourceMtime: number | undefined;
-
+// Newest mtime across the .vader sources the compiler is built from. src/ (the
+// TS compiler) is intentionally excluded — the binary is produced from these
+// .vader sources, not TS, so a TS edit must not flag the binary stale. Post-§2.8
+// src/ is gone entirely. Called once per worker (from the global beforeAll), so
+// no memoization.
 function newestSourceMtime(): number {
-  if (cachedSourceMtime !== undefined) return cachedSourceMtime;
   let max = 0;
-  const exts = [".vader", ".ts"];
   const walk = (dir: string): void => {
     for (const ent of readdirSync(dir, { withFileTypes: true })) {
       const p = join(dir, ent.name);
       if (ent.isDirectory()) walk(p);
-      else if (exts.some((e) => ent.name.endsWith(e))) {
+      else if (ent.name.endsWith(".vader")) {
         const m = statSync(p).mtimeMs;
         if (m > max) max = m;
       }
@@ -30,8 +34,6 @@ function newestSourceMtime(): number {
   };
   walk("vader");
   walk("stdlib");
-  walk("src");
-  cachedSourceMtime = max;
   return max;
 }
 
@@ -39,28 +41,29 @@ function binaryMtime(): number {
   try { return statSync(CLI_BIN).mtimeMs; } catch { return 0; }
 }
 
-// 5-minute timeout covers cold-CI builds. `--release` keeps per-test parse
-// latency below the parity suite's 30 s per-test timeout. Stdout + stderr
-// are drained concurrently with the exit await — same rationale as
-// `runCli` below : the cc subprocess can emit a verbose burst of warnings
-// that saturates the 64 KB pipe buffer, deadlocking the child if nothing
-// reads from those pipes.
+// Build instructions surfaced when the binary is missing or stale. The seed
+// path needs only a C compiler + gzip (no TS); `build:cli` is the fast local
+// shortcut while src/ still exists.
+const BUILD_HINT =
+  `  bun run build:cli                              # fast, while src/ exists\n` +
+  `  # or from the committed C seed (no TS — see bootstrap/README.md):\n` +
+  `  bash bootstrap/build.sh && ./build/stage1 vader/cli/main.vader build/main.c && \\\n` +
+  `    cc -O2 -o ${CLI_BIN} build/main.c runtime/c/vader_runtime.c -Iruntime/c -lm`;
+
+// Assert a prebuilt, up-to-date compiler binary is present — never build it.
+// Missing or stale-vs-sources is a hard failure with rebuild instructions, so
+// the suite never silently runs against a stale binary. The N test files that
+// load this share one check via the global beforeAll.
 export function ensureCliBuilt(): void {
-  beforeAll(async () => {
-    if (binaryMtime() >= newestSourceMtime()) return;
-    const proc = Bun.spawn(
-      ["bun", "src/index.ts", "build", "vader/cli/main.vader", "--target=native", "--release", `--out=${CLI_BIN}`],
-      { stdout: "pipe", stderr: "pipe" },
-    );
-    const [_stdout, stderr, code] = await Promise.all([
-      new Response(proc.stdout).text(),
-      new Response(proc.stderr).text(),
-      proc.exited,
-    ]);
-    if (code !== 0) {
-      throw new Error(`vader CLI build failed (exit ${code}):\n${stderr}`);
+  beforeAll(() => {
+    const bin = binaryMtime();
+    if (bin === 0) {
+      throw new Error(`${CLI_BIN} not found — build the compiler first:\n${BUILD_HINT}`);
     }
-  }, 300_000);
+    if (bin < newestSourceMtime()) {
+      throw new Error(`${CLI_BIN} is stale (older than vader/ or stdlib/ sources) — rebuild it:\n${BUILD_HINT}`);
+    }
+  });
 }
 
 export interface CliResult {
