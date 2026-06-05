@@ -1,57 +1,72 @@
 module _main
 type 0 primitive null
-type 1 array 2
-type 2 struct snippet$Spec { name:3,code:4 }
-type 3 primitive string
-type 4 primitive i32
-type 5 primitive void
-string 0 "alpha"
-string 1 "beta"
-string 2 "gamma"
-string 3 "delta"
-string 4 "gamma="
-string 5 "missing="
-string 6 "zeta"
-string 7 "\n"
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 write std_io$write (i32,string) -> void
-export main 2
+type 1 primitive string
+type 2 primitive void
+type 3 primitive i32
+type 4 array 5
+type 5 struct snippet$Spec { name:1,code:3 }
+string 0 "\n"
+string 1 "alpha"
+string 2 "beta"
+string 3 "gamma"
+string 4 "delta"
+string 5 "gamma="
+string 6 "missing="
+string 7 "zeta"
+import 0 write std_io$write (i32,string) -> void
+import 1 to_string std_core$string$Display$to_string (string) -> string
+export main 3
 
-fn 0 __const_snippet$SPECS () -> ref
+fn 0 std_io$std_io$println__string (string) -> void
+  local $call_2 string
+  local.get 0
+  call 4
+  local.set 1
+  i32.const 0
+  local.get 1
+  call.import 0
+  i32.const 0
+  string.const 0
+  call.import 0
+  return
+end
+
+fn 1 __const_snippet$SPECS () -> ref
   local $struct_2 ref
   local $struct_5 ref
   local $struct_8 ref
   local $struct_11 ref
-  string.const 0
-  i32.const 10
-  struct.new 2
-  local.set 0
   string.const 1
-  i32.const 20
-  struct.new 2
-  local.set 1
+  i32.const 10
+  struct.new 5
+  local.set 0
   string.const 2
-  i32.const 30
-  struct.new 2
-  local.set 2
+  i32.const 20
+  struct.new 5
+  local.set 1
   string.const 3
+  i32.const 30
+  struct.new 5
+  local.set 2
+  string.const 4
   i32.const 40
-  struct.new 2
+  struct.new 5
   local.set 3
   local.get 0
   local.get 1
   local.get 2
   local.get 3
-  array.new 1 4
+  array.new 4 4
   return
 end
 
-fn 1 snippet$lookup (string) -> i32
+fn 2 snippet$lookup (string) -> i32
   local __for_arr_0 ref
   local __for_len_1 usize
   local __for_i_2 usize
   local s ref
-  call 0
+  local $k_13 usize
+  call 1
   local.tee 1
   array.len
   local.set 2
@@ -61,25 +76,26 @@ fn 1 snippet$lookup (string) -> i32
     loop $L1 void
       local.get 3
       local.get 2
-      usize.lt
+      u64.lt
       if $L2 void
         local.get 1
         local.get 3
-        array.get 1
+        array.get 4
         local.set 4
-        local.field 4 2 0
-        ref.cast 3
+        local.field 4 5 0
+        ref.cast 1
         local.get 0
         string.eq
         if $L3 void
-          local.field 4 2 1
-          ref.cast 4
+          local.field 4 5 1
+          ref.cast 3
           return
         end $L3
-        local.get 3
         i64.const 1
-        i64.to_usize
-        usize.add
+        local.set 5
+        local.get 3
+        local.get 5
+        i64.add
         local.set 3
         br $L1
       else
@@ -91,63 +107,42 @@ fn 1 snippet$lookup (string) -> i32
   return
 end
 
-fn 2 snippet$main () -> i32
+fn 3 snippet$main () -> i32
   local __sb_0 any
   local $call_4 i32
   intrinsic builder.new
   local.set 0
   local.get 0
-  string.const 4
+  string.const 5
   intrinsic builder.append_str
-  string.const 2
-  call 1
+  string.const 3
+  call 2
   local.set 1
   local.get 0
   local.get 1
   intrinsic builder.append_display
   local.get 0
   intrinsic builder.finish
-  call 3
+  call 0
   intrinsic builder.new
   local.set 0
   local.get 0
-  string.const 5
-  intrinsic builder.append_str
   string.const 6
-  call 1
+  intrinsic builder.append_str
+  string.const 7
+  call 2
   local.set 1
   local.get 0
   local.get 1
   intrinsic builder.append_display
   local.get 0
   intrinsic builder.finish
-  call 3
+  call 0
   return.lit i32.const 0
 end
 
-fn 3 std_io$std_io$println__string (string) -> void
-  local $call_2 string
+fn 4 std_core$string$Display$to_string_vt (string) -> string
   local.get 0
-  call 4
-  local.set 1
-  i32.const 0
-  local.get 1
-  call 5
-  i32.const 0
-  string.const 7
-  call 5
-  return
-end
-
-fn 4 std_core$string$Display$to_string$vt (string) -> string
-  local.get 0
-  call.import 0
-  return
-end
-
-fn 5 std_io$write$vt (i32,string) -> void
-  local.get 0
-  local.get 1
   call.import 1
   return
 end

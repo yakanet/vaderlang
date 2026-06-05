@@ -16,7 +16,7 @@ fn snippet$main() -> i32
     %9 $cast_9: usize
     %10 $k_10: usize
     %11 $cast_11: usize
-    %12 $slice_12: const u8[]
+    %12 $slice_12: u8[]
     %13 $call_13: string
     %14 $k_14: string
     %15 $call_15: const u8[]
@@ -29,35 +29,35 @@ fn snippet$main() -> i32
     %22 $intrinsic_22: string
     %23 $k_23: i32
   bb0:
-    %0 = const string(#0) :string
+    %0 = const string(#1) :string
     %1 = call bytes(%0) :const u8[]
     %2 = call as_string(%1) :string
-    call println(%2) :void
-    %3 = const string(#1) :string
+    call std_io$std_io$println__string(%2) :void
+    %3 = const string(#2) :string
     %4 = call bytes(%3) :const u8[]
     %5 = call as_string(%4) :string
-    call println(%5) :void
-    %6 = const string(#2) :string
+    call std_io$std_io$println__string(%5) :void
+    %6 = const string(#3) :string
     %7 = call bytes(%6) :const u8[]
     %8 = const int(1) :usize
     %9 = cast %8 :usize
     %10 = const int(4) :usize
     %11 = cast %10 :usize
-    %12 = array_slice %7[%9..%11] :const u8[]
+    %12 = array_slice %7[%9..%11] :u8[]
     %13 = call as_string(%12) :string
-    call println(%13) :void
-    %14 = const string(#3) :string
+    call std_io$std_io$println__string(%13) :void
+    %14 = const string(#4) :string
     %15 = call bytes(%14) :const u8[]
     %16 = call as_string(%15) :string
     %17 = move %16
     %18 = intrinsic builder.new()
     %19 = move %18
-    %20 = const string(#4) :string
+    %20 = const string(#5) :string
     intrinsic builder.append_str(%19, %20)
     intrinsic builder.append_display(%19, %17)
-    %21 = const string(#5) :string
+    %21 = const string(#6) :string
     intrinsic builder.append_str(%19, %21)
     %22 = intrinsic builder.finish(%19)
-    call println(%22) :void
+    call std_io$std_io$println__string(%22) :void
     %23 = const int(0) :i32
     return %23

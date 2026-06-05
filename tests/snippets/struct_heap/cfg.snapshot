@@ -27,5 +27,5 @@ fn snippet$main() -> i32
     %3 = move %2
     %4 = field_get %3.x :i32
     %5 = field_get %3.y :i32
-    %6 = binop add %4 %5 :i32
+    %6 = binop 0 %4 %5 :i32
     return %6

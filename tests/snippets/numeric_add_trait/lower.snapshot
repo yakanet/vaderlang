@@ -5,19 +5,19 @@
     let a: i32 =
       call :i32
         callee:
-          double :i32
+          snippet$snippet$double__i32 :i32
         arg0:
           int(7) :i32
     let b: i32 =
       call :i32
         callee:
-          triple :i32
+          snippet$snippet$triple__i32 :i32
         arg0:
           int(8) :i32
     let c: i32 =
       call :i32
         callee:
-          double :i32
+          snippet$snippet$double__i32 :i32
         arg0:
           int(2) :i32
     return
@@ -30,21 +30,27 @@
               b :i32
         r:
           c :i32
-  fn snippet$snippet$double__i32(x: Any) -> Any
+  fn snippet$snippet$double__i32(x: i32) -> i32
     ~>
-      vcall Add.add :Any
-        recv:
-          x :Any
+      call :i32
+        callee:
+          std_core$i32$Add$add :i32
         arg0:
-          x :Any
-  fn snippet$snippet$triple__i32(x: Any) -> Any
+          x :i32
+        arg1:
+          x :i32
+  fn snippet$snippet$triple__i32(x: i32) -> i32
     ~>
-      vcall Add.add :Any
-        recv:
-          vcall Add.add :Any
-            recv:
-              x :Any
+      call :i32
+        callee:
+          std_core$i32$Add$add :i32
+        arg0:
+          call :i32
+            callee:
+              std_core$i32$Add$add :i32
             arg0:
-              x :Any
-        arg0:
-          x :Any
+              x :i32
+            arg1:
+              x :i32
+        arg1:
+          x :i32

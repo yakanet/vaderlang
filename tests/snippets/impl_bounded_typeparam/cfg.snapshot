@@ -2,35 +2,71 @@
 
 ## snippet
 
+fn snippet$Cat$Tag$tag(%0: Cat) -> string
+  locals:
+    %0 self: Cat (param self)
+    %1 $field_1: string
+  bb0:
+    %1 = field_get %0.name :string
+    return %1
+
+fn snippet$Dog$Tag$tag(%0: Dog) -> string
+  locals:
+    %0 self: Dog (param self)
+    %1 $field_1: string
+  bb0:
+    %1 = field_get %0.name :string
+    return %1
+
 fn snippet$main() -> i32
   locals:
     %0 $k_0: string
     %1 $struct_1: Cat
-    %2 a: Wrap<Cat> (local a)
-    %3 $k_4: string
-    %4 $struct_5: Dog
-    %5 b: Wrap<Dog> (local b)
-    %6 $call_8: string
-    %7 $call_9: string
-    %8 $k_10: i32
+    %2 $struct_2: Wrap<Cat>
+    %3 a: Wrap<Cat> (local a)
+    %4 $k_4: string
+    %5 $struct_5: Dog
+    %6 $struct_6: Wrap<Dog>
+    %7 b: Wrap<Dog> (local b)
+    %8 $call_8: string
+    %9 $call_9: string
+    %10 $k_10: i32
   bb0:
-    %0 = const string(#0) :string
+    %0 = const string(#1) :string
     %1 = struct_new Cat(%0)
     %2 = struct_new Wrap<Cat>(%1)
-    %3 = const string(#1) :string
-    %4 = struct_new Dog(%3)
-    %5 = struct_new Wrap<Dog>(%4)
-    %6 = call to_string(%2) :string
-    call println(%6) :void
-    %7 = call to_string(%5) :string
-    call println(%7) :void
-    %8 = const int(0) :i32
-    return %8
+    %3 = move %2
+    %4 = const string(#2) :string
+    %5 = struct_new Dog(%4)
+    %6 = struct_new Wrap<Dog>(%5)
+    %7 = move %6
+    %8 = call snippet$Wrap$Display$to_string__Any(%3) :string
+    call std_io$std_io$println__string(%8) :void
+    %9 = call snippet$Wrap$Display$to_string__Any(%7) :string
+    call std_io$std_io$println__string(%9) :void
+    %10 = const int(0) :i32
+    return %10
 
-fn snippet$Wrap$Display$to_string__Cat(%0: Wrap<Any>) -> string
+fn snippet$Wrap$Display$to_string__Any(%0: Wrap<Any>) -> string
   locals:
     %0 self: Wrap<Any> (param self)
     %1 $k_1: string
   bb0:
-    %1 = const string(#2) :string
+    %1 = const string(#3) :string
+    return %1
+
+fn snippet$Cat$Tag$tag(%0: Cat) -> string
+  locals:
+    %0 self: Cat (param self)
+    %1 $field_1: string
+  bb0:
+    %1 = field_get %0.name :string
+    return %1
+
+fn snippet$Dog$Tag$tag(%0: Dog) -> string
+  locals:
+    %0 self: Dog (param self)
+    %1 $field_1: string
+  bb0:
+    %1 = field_get %0.name :string
     return %1

@@ -1,27 +1,55 @@
 module _main
 type 0 primitive null
-type 1 primitive char
-type 2 union 3,4
+type 1 primitive string
+type 2 primitive void
 type 3 primitive i32
-type 4 struct std_string$ParseError { msg:5 }
-type 5 primitive string
-type 6 primitive void
-type 7 array 5
-type 8 struct std_string_builder$StringBuilder { parts:7 }
-string 0 "unknown"
-string 1 "N"
-string 2 "E"
-string 3 "S"
-string 4 "W"
-string 5 "err"
-string 6 "\n"
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 write std_io$write (i32,string) -> void
-impl 4 Error
-impl 8 Display
-export main 2
+type 4 primitive usize
+type 5 primitive bool
+type 6 struct std_core$Range__char { start:16,end:16,inclusive:5,cursor:16 }
+type 7 primitive char
+type 8 union 0,9
+type 9 struct std_core$Yield__char { value:16 }
+type 10 struct std_core$Range__i32 { start:16,end:16,inclusive:5,cursor:16 }
+type 11 union 0,12
+type 12 struct std_core$Yield__i32 { value:16 }
+type 13 struct std_core$Range__usize { start:16,end:16,inclusive:5,cursor:16 }
+type 14 union 0,15
+type 15 struct std_core$Yield__usize { value:16 }
+type 16 ref _
+type 17 struct std_string$ParseError { msg:1 }
+type 18 union 3,17
+string 0 "\n"
+string 1 "unknown"
+string 2 "N"
+string 3 "E"
+string 4 "S"
+string 5 "W"
+string 6 "err"
+import 0 write std_io$write (i32,string) -> void
+import 1 to_string std_core$string$Display$to_string (string) -> string
+impl 6 Contains
+impl 6 Iterator
+impl 10 Contains
+impl 10 Iterator
+impl 13 Contains
+impl 13 Iterator
+export main 3
 
-fn 0 snippet$parse (char) -> ref
+fn 0 std_io$std_io$println__string (string) -> void
+  local $call_2 string
+  local.get 0
+  call 4
+  local.set 1
+  i32.const 0
+  local.get 1
+  call.import 0
+  i32.const 0
+  string.const 0
+  call.import 0
+  return
+end
+
+fn 1 snippet$parse (char) -> ref
   local.get 0
   char.const 78
   char.eq
@@ -46,126 +74,123 @@ fn 0 snippet$parse (char) -> ref
   if $L3 void
     return.lit i32.const 3
   end $L3
-  string.const 0
-  struct.new 4
+  string.const 1
+  struct.new 17
   return
 end
 
-fn 1 snippet$dir_label (i32) -> string
+fn 2 snippet$dir_label (i32) -> string
+  local __scrut_0 i32
+  local if_res string
+  local if_res string
+  local if_res string
   local.get 0
+  local.set 1
+  local.get 1
   i32.const 0
   i32.eq
   if $L0 void
-    string.const 1
+    string.const 2
+    local.set 2
+    local.get 2
     return
   end $L0
-  local.get 0
+  local.get 1
   i32.const 1
   i32.eq
   if $L1 void
-    string.const 2
+    string.const 3
+    local.set 3
+    local.get 3
+    local.tee 2
     return
   end $L1
-  local.get 0
+  local.get 1
   i32.const 2
   i32.eq
   if $L2 void
-    string.const 3
+    string.const 4
+    local.set 4
+    local.get 4
+    local.tee 3
+    local.tee 2
     return
   end $L2
-  local.get 0
+  local.get 1
   i32.const 3
   i32.eq
   if $L3 void
-    string.const 4
+    string.const 5
+    local.tee 4
+    local.tee 3
+    local.tee 2
     return
   end $L3
-  unreachable
+  return
 end
 
-fn 2 snippet$main () -> i32
+fn 3 snippet$main () -> i32
   local __scrut_0 ref
   local __scrut_1 ref
   char.const 78
-  call 0
+  call 1
   local.tee 0
   type_check 3
   if $L0 void
     local.get 0
     ref.cast 3
-    call 1
-    call 3
-    char.const 63
+    call 2
     call 0
+    char.const 63
+    call 1
     local.tee 1
     type_check 3
     if $L1 void
       local.get 1
       ref.cast 3
-      call 1
-      call 3
+      call 2
+      call 0
       return.lit i32.const 0
     end $L1
     local.get 1
-    type_check 4
+    type_check 17
     if $L2 void
-      string.const 5
-      call 3
+      string.const 6
+      call 0
       return.lit i32.const 0
     end $L2
-    unreachable
+    return
   end $L0
   local.get 0
-  type_check 4
+  type_check 17
   if $L3 void
-    string.const 5
-    call 3
-    char.const 63
+    string.const 6
     call 0
+    char.const 63
+    call 1
     local.tee 1
     type_check 3
     if $L4 void
       local.get 1
       ref.cast 3
-      call 1
-      call 3
+      call 2
+      call 0
       return.lit i32.const 0
     end $L4
     local.get 1
-    type_check 4
+    type_check 17
     if $L5 void
-      string.const 5
-      call 3
+      string.const 6
+      call 0
       return.lit i32.const 0
     end $L5
-    unreachable
+    return
   end $L3
-  unreachable
-end
-
-fn 3 std_io$std_io$println__string (string) -> void
-  local $call_2 string
-  local.get 0
-  call 4
-  local.set 1
-  i32.const 0
-  local.get 1
-  call 5
-  i32.const 0
-  string.const 6
-  call 5
   return
 end
 
-fn 4 std_core$string$Display$to_string$vt (string) -> string
+fn 4 std_core$string$Display$to_string_vt (string) -> string
   local.get 0
-  call.import 0
-  return
-end
-
-fn 5 std_io$write$vt (i32,string) -> void
-  local.get 0
-  local.get 1
   call.import 1
   return
 end

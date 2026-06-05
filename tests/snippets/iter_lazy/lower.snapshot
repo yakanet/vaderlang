@@ -22,7 +22,7 @@
         let __step_2: Yield<i32> | null =
           call :Yield<i32> | null
             callee:
-              next :?
+              std_iter$MapIterator$Iterator$next__i32__i32 :?
             arg0:
               __iter_1 :MapIterator<i32, i32>
         if :void
@@ -47,7 +47,7 @@
                     v :i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_3: ? =
@@ -82,7 +82,7 @@
         let __step_6: Yield<i32> | null =
           call :Yield<i32> | null
             callee:
-              next :?
+              std_iter$FilterIterator$Iterator$next__i32 :?
             arg0:
               __iter_5 :FilterIterator<i32>
         if :void
@@ -116,7 +116,7 @@
                     v :i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_7: ? =
@@ -156,7 +156,7 @@
         let __step_9: Yield<i32> | null =
           call :Yield<i32> | null
             callee:
-              next :?
+              std_iter$TakeIterator$Iterator$next__i32 :?
             arg0:
               __iter_8 :TakeIterator<i32>
         if :void
@@ -181,7 +181,7 @@
                     v :i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_10: ? =
@@ -218,7 +218,7 @@
         let __step_12: Yield<i32> | null =
           call :Yield<i32> | null
             callee:
-              next :?
+              std_iter$SkipIterator$Iterator$next__i32 :?
             arg0:
               __iter_11 :SkipIterator<i32>
         if :void
@@ -256,7 +256,7 @@
                     int(1) :i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_13: ? =

@@ -41,7 +41,7 @@
                 int(1) :usize
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_3: ? =
@@ -58,12 +58,12 @@
     let m: MutableMap<string, i32> =
       MutableMap<string, i32> {
         buckets:
-          array :(Entry<string, i32> | null)[]
+          array :(Entry<K, V> | null)[]
         size: int(0) :usize
       }
     call :void
       callee:
-        set_at :void
+        std_collections$MutableMap$IndexSet$set_at__string__i32 :void
       arg0:
         m :MutableMap<string, i32>
       arg1:
@@ -72,7 +72,7 @@
         int(1) :i32
     call :void
       callee:
-        set_at :void
+        std_collections$MutableMap$IndexSet$set_at__string__i32 :void
       arg0:
         m :MutableMap<string, i32>
       arg1:
@@ -145,7 +145,7 @@
                       entry :Entry<string, i32>
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_10: ? =
@@ -164,20 +164,20 @@
         inner:
           MutableMap<i32, bool> {
             buckets:
-              array :(Entry<i32, bool> | null)[]
+              array :(Entry<K, V> | null)[]
             size: int(0) :usize
           }
       }
     call :bool
       callee:
-        add :bool
+        std_collections$std_collections$add__i32 :bool
       arg0:
         s :MutableSet<i32>
       arg1:
         int(7) :i32
     call :bool
       callee:
-        add :bool
+        std_collections$std_collections$add__i32 :bool
       arg0:
         s :MutableSet<i32>
       arg1:
@@ -250,7 +250,7 @@
                     v :i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_17: ? =
@@ -268,7 +268,7 @@
     unreachable("no Iterator impl on string") :void
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_18: ? =

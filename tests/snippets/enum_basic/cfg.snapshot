@@ -9,123 +9,134 @@ fn snippet$describe(%0: Direction) -> string
     %2 $k_2: i32
     %3 $eq_3: bool
     %4 if_res: string
-    %5 $k_6: i32
-    %6 $eq_7: bool
-    %7 if_res: string
-    %8 $k_10: i32
-    %9 $eq_11: bool
-    %10 if_res: string
-    %11 $k_14: i32
-    %12 $eq_15: bool
-    %13 if_res: string
+    %5 $k_5: string
+    %6 $k_6: i32
+    %7 $eq_7: bool
+    %8 if_res: string
+    %9 $k_9: string
+    %10 $k_10: i32
+    %11 $eq_11: bool
+    %12 if_res: string
+    %13 $k_13: string
+    %14 $k_14: i32
+    %15 $eq_15: bool
+    %16 if_res: string
+    %17 $k_17: string
+    %18 unreachable: string
   bb0:
     %1 = move %0
     %2 = const int(0) :i32
-    %3 = binop eq %1 %2 :bool
+    %3 = binop 12 %1 %2 :bool
     cond_branch %3 ? bb1 : bb2
   bb1:
-    %4 = const string(#0) :string
+    %5 = const string(#1) :string
+    %4 = move %5
     branch -> bb3
   bb2:
-    %5 = const int(1) :i32
-    %6 = binop eq %1 %5 :bool
-    cond_branch %6 ? bb4 : bb5
+    %6 = const int(1) :i32
+    %7 = binop 12 %1 %6 :bool
+    cond_branch %7 ? bb4 : bb5
   bb3:
     return %4
   bb4:
-    %7 = const string(#1) :string
+    %9 = const string(#2) :string
+    %8 = move %9
     branch -> bb6
   bb5:
-    %8 = const int(2) :i32
-    %9 = binop eq %1 %8 :bool
-    cond_branch %9 ? bb7 : bb8
+    %10 = const int(2) :i32
+    %11 = binop 12 %1 %10 :bool
+    cond_branch %11 ? bb7 : bb8
   bb6:
-    %4 = move %7
+    %4 = move %8
     branch -> bb3
   bb7:
-    %10 = const string(#2) :string
+    %13 = const string(#3) :string
+    %12 = move %13
     branch -> bb9
   bb8:
-    %11 = const int(3) :i32
-    %12 = binop eq %1 %11 :bool
-    cond_branch %12 ? bb10 : bb11
+    %14 = const int(3) :i32
+    %15 = binop 12 %1 %14 :bool
+    cond_branch %15 ? bb10 : bb11
   bb9:
-    %7 = move %10
+    %8 = move %12
     branch -> bb6
   bb10:
-    %13 = const string(#3) :string
+    %17 = const string(#4) :string
+    %16 = move %17
     branch -> bb12
   bb11:
     unreachable ; non-exhaustive match (T3013 should have caught this)
   bb12:
-    %10 = move %13
+    %12 = move %16
     branch -> bb9
 
 fn snippet$main() -> void
   locals:
-    %0 d: Direction (local d)
-    %1 $call_2: string
-    %2 $k_3: i32
-    %3 $call_4: string
-    %4 $k_5: i32
-    %5 $eq_6: bool
-    %6 $k_7: string
-    %7 $k_8: i32
-    %8 $eq_9: bool
-    %9 $k_10: string
-    %10 $intrinsic_11: ?
-    %11 __sb_0: ? (synthetic __sb_0)
-    %12 $k_13: string
-    %13 $k_14: i32
-    %14 $eq_15: bool
-    %15 $intrinsic_16: string
-    %16 $intrinsic_17: ?
-    %17 __sb_1: ? (synthetic __sb_1)
-    %18 $k_19: string
-    %19 $k_20: i32
-    %20 $eq_21: bool
-    %21 $intrinsic_22: string
+    %0 $k_0: i32
+    %1 d: Direction (local d)
+    %2 $call_2: string
+    %3 $k_3: i32
+    %4 $call_4: string
+    %5 $k_5: i32
+    %6 $eq_6: bool
+    %7 $k_7: string
+    %8 $k_8: i32
+    %9 $eq_9: bool
+    %10 $k_10: string
+    %11 $intrinsic_11: ?
+    %12 __sb_0: ? (synthetic __sb_0)
+    %13 $k_13: string
+    %14 $k_14: i32
+    %15 $eq_15: bool
+    %16 $intrinsic_16: string
+    %17 $intrinsic_17: ?
+    %18 __sb_1: ? (synthetic __sb_1)
+    %19 $k_19: string
+    %20 $k_20: i32
+    %21 $eq_21: bool
+    %22 $intrinsic_22: string
   bb0:
     %0 = const int(2) :i32
-    %1 = call describe(%0) :string
-    call println(%1) :void
-    %2 = const int(0) :i32
-    %3 = call describe(%2) :string
-    call println(%3) :void
-    %4 = const int(2) :i32
-    %5 = binop eq %0 %4 :bool
-    cond_branch %5 ? bb1 : bb2
+    %1 = move %0
+    %2 = call describe(%1) :string
+    call std_io$std_io$println__string(%2) :void
+    %3 = const int(0) :i32
+    %4 = call describe(%3) :string
+    call std_io$std_io$println__string(%4) :void
+    %5 = const int(2) :i32
+    %6 = binop 12 %1 %5 :bool
+    cond_branch %6 ? bb1 : bb2
   bb1:
-    %6 = const string(#4) :string
-    call println(%6) :void
+    %7 = const string(#5) :string
+    call std_io$std_io$println__string(%7) :void
     branch -> bb2
   bb2:
-    %7 = const int(3) :i32
-    %8 = binop eq %0 %7 :bool
-    cond_branch %8 ? bb3 : bb4
+    %8 = const int(3) :i32
+    %9 = binop 12 %1 %8 :bool
+    cond_branch %9 ? bb3 : bb4
   bb3:
-    %9 = const string(#5) :string
-    call println(%9) :void
+    %10 = const string(#6) :string
+    call std_io$std_io$println__string(%10) :void
     branch -> bb4
   bb4:
-    %10 = intrinsic builder.new()
-    %11 = move %10
-    %12 = const string(#6) :string
-    intrinsic builder.append_str(%11, %12)
-    %13 = const int(2) :i32
-    %14 = binop eq %0 %13 :bool
-    intrinsic builder.append_display(%11, %14)
-    %15 = intrinsic builder.finish(%11)
-    call println(%15) :void
-    %16 = intrinsic builder.new()
-    %17 = move %16
-    %18 = const string(#7) :string
-    intrinsic builder.append_str(%17, %18)
-    %19 = const int(3) :i32
-    %20 = binop eq %0 %19 :bool
-    intrinsic builder.append_display(%17, %20)
-    %21 = intrinsic builder.finish(%17)
-    call println(%21) :void
+    %11 = intrinsic builder.new()
+    %12 = move %11
+    %13 = const string(#7) :string
+    intrinsic builder.append_str(%12, %13)
+    %14 = const int(2) :i32
+    %15 = binop 12 %1 %14 :bool
+    intrinsic builder.append_display(%12, %15)
+    %16 = intrinsic builder.finish(%12)
+    call std_io$std_io$println__string(%16) :void
+    %17 = intrinsic builder.new()
+    %18 = move %17
+    %19 = const string(#8) :string
+    intrinsic builder.append_str(%18, %19)
+    %20 = const int(3) :i32
+    %21 = binop 12 %1 %20 :bool
+    intrinsic builder.append_display(%18, %21)
+    %22 = intrinsic builder.finish(%18)
+    call std_io$std_io$println__string(%22) :void
     return
 
 # Diagnostics

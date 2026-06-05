@@ -20,58 +20,60 @@ fn snippet$derive_print(%0: User) -> void
   bb0:
     %1 = intrinsic builder.new()
     %2 = move %1
-    %3 = const string(#0) :string
+    %3 = const string(#1) :string
     intrinsic builder.append_display(%2, %3)
-    %4 = const string(#1) :string
+    %4 = const string(#2) :string
     intrinsic builder.append_str(%2, %4)
     %5 = field_get %0.name :string
     intrinsic builder.append_display(%2, %5)
     %6 = intrinsic builder.finish(%2)
-    call println(%6) :void
+    call std_io$std_io$println__string(%6) :void
     %7 = intrinsic builder.new()
     %8 = move %7
-    %9 = const string(#2) :string
+    %9 = const string(#3) :string
     intrinsic builder.append_display(%8, %9)
-    %10 = const string(#1) :string
+    %10 = const string(#2) :string
     intrinsic builder.append_str(%8, %10)
     %11 = field_get %0.age :i32
     intrinsic builder.append_display(%8, %11)
     %12 = intrinsic builder.finish(%8)
-    call println(%12) :void
+    call std_io$std_io$println__string(%12) :void
     return
 
 fn snippet$main() -> i32
   locals:
     %0 $k_0: string
     %1 $k_1: i32
-    %2 u: User (local u)
-    %3 $intrinsic_4: ?
-    %4 __sb_0: ? (synthetic __sb_0)
-    %5 $k_6: string
-    %6 $field_7: string
-    %7 $k_8: string
-    %8 $field_9: i32
-    %9 $k_10: string
-    %10 $intrinsic_11: string
-    %11 $k_12: i32
+    %2 $struct_2: User
+    %3 u: User (local u)
+    %4 $intrinsic_4: ?
+    %5 __sb_0: ? (synthetic __sb_0)
+    %6 $k_6: string
+    %7 $field_7: string
+    %8 $k_8: string
+    %9 $field_9: i32
+    %10 $k_10: string
+    %11 $intrinsic_11: string
+    %12 $k_12: i32
   bb0:
-    %0 = const string(#3) :string
+    %0 = const string(#4) :string
     %1 = const int(30) :i32
     %2 = struct_new User(%0, %1)
-    %3 = intrinsic builder.new()
-    %4 = move %3
-    %5 = const string(#4) :string
-    intrinsic builder.append_str(%4, %5)
-    %6 = field_get %2.name :string
-    intrinsic builder.append_display(%4, %6)
-    %7 = const string(#5) :string
-    intrinsic builder.append_str(%4, %7)
-    %8 = field_get %2.age :i32
-    intrinsic builder.append_display(%4, %8)
-    %9 = const string(#6) :string
-    intrinsic builder.append_str(%4, %9)
-    %10 = intrinsic builder.finish(%4)
-    call println(%10) :void
-    call derive_print(%2) :void
-    %11 = const int(0) :i32
-    return %11
+    %3 = move %2
+    %4 = intrinsic builder.new()
+    %5 = move %4
+    %6 = const string(#5) :string
+    intrinsic builder.append_str(%5, %6)
+    %7 = field_get %3.name :string
+    intrinsic builder.append_display(%5, %7)
+    %8 = const string(#6) :string
+    intrinsic builder.append_str(%5, %8)
+    %9 = field_get %3.age :i32
+    intrinsic builder.append_display(%5, %9)
+    %10 = const string(#7) :string
+    intrinsic builder.append_str(%5, %10)
+    %11 = intrinsic builder.finish(%5)
+    call std_io$std_io$println__string(%11) :void
+    call derive_print(%3) :void
+    %12 = const int(0) :i32
+    return %12

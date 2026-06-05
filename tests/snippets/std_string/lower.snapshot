@@ -5,7 +5,7 @@
     let s: string = "  Hello, World!  " :string
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -14,7 +14,7 @@
             __sb_0 :?
             call :string
               callee:
-                to_string :string
+                std_core$usize$Display$to_string :string
               arg0:
                 call :usize
                   callee:
@@ -26,7 +26,7 @@
               __sb_0 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -35,7 +35,7 @@
             s :string
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -44,7 +44,7 @@
             "hello" :string
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -53,7 +53,7 @@
             "VADER" :string
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_1: ? =
@@ -62,7 +62,7 @@
             __sb_1 :?
             call :bool
               callee:
-                contains :bool
+                std_string$string$Contains$contains :bool
               arg0:
                 "foobar" :string
               arg1:
@@ -72,7 +72,7 @@
               __sb_1 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_2: ? =
@@ -91,7 +91,7 @@
               __sb_2 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_3: ? =
@@ -110,13 +110,13 @@
               __sb_3 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
             as_string :string
           arg0:
-            slice :const u8[]
+            slice :u8[]
               on:
                 call :const u8[]
                   callee:
@@ -131,7 +131,7 @@
                   int(11) :i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_4: ? =
@@ -140,7 +140,7 @@
             __sb_4 :?
             call :char
               callee:
-                at :char
+                std_core$string$Index$at :char
               arg0:
                 "hello" :string
               arg1:
@@ -150,7 +150,7 @@
               __sb_4 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_5: ? =
@@ -159,7 +159,7 @@
             __sb_5 :?
             call :char
               callee:
-                at :char
+                std_core$string$Index$at :char
               arg0:
                 "你好嗎？" :string
               arg1:
@@ -169,7 +169,7 @@
               __sb_5 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_6: ? =
@@ -178,7 +178,7 @@
             __sb_6 :?
             call :char
               callee:
-                at :char
+                std_core$string$Index$at :char
               arg0:
                 "你好嗎？" :string
               arg1:
@@ -188,7 +188,7 @@
               __sb_6 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_7: ? =
@@ -197,7 +197,7 @@
             __sb_7 :?
             call :char
               callee:
-                at :char
+                std_core$string$Index$at :char
               arg0:
                 "你好嗎？" :string
               arg1:
@@ -215,7 +215,7 @@
           "," :string
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         index :string
           on:
@@ -224,7 +224,7 @@
             int(0) :i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         index :string
           on:
@@ -233,7 +233,7 @@
             int(1) :i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         index :string
           on:

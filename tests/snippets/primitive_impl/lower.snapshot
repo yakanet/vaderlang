@@ -19,11 +19,11 @@
     let x: i32 = int(42) :i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
-            to_string :string
+            snippet$i32$Display$to_string :string
           arg0:
             x :i32
     return int(0) :i32

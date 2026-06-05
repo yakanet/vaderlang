@@ -12,7 +12,7 @@
         int(2) :i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -21,7 +21,7 @@
             __sb_0 :?
             call :i32
               callee:
-                count_matching :i32
+                snippet$snippet$count_matching__i32 :i32
               arg0:
                 nums :i32[]
               arg1:
@@ -38,7 +38,7 @@
         "foo" :string
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_1: ? =
@@ -47,7 +47,7 @@
             __sb_1 :?
             call :i32
               callee:
-                count_matching :i32
+                snippet$snippet$count_matching__string :i32
               arg0:
                 words :string[]
               arg1:
@@ -56,18 +56,18 @@
             @builder.finish :string
               __sb_1 :?
     return int(0) :i32
-  fn snippet$snippet$count_matching__i32(items: Any[], target: Any) -> i32
+  fn snippet$snippet$count_matching__i32(items: i32[], target: i32) -> i32
     let n: i32 = int(0) :i32
     block :void
-      let __for_arr_0: Any[] = items :Any[]
+      let __for_arr_0: i32[] = items :i32[]
       let __for_len_1: usize =
         LoweredArrayLen
       let __for_i_2: usize = int(0) :usize
       loop while (<…>)
-        let x: Any =
-          index :Any
+        let x: i32 =
+          index :i32
             on:
-              __for_arr_0 :Any[]
+              __for_arr_0 :i32[]
             ix:
               __for_i_2 :usize
         if :void
@@ -76,19 +76,80 @@
               l:
                 eq :bool
                   l:
-                    vcall Hash.hash :u64
-                      recv:
-                        x :Any
+                    call :u64
+                      callee:
+                        std_core$i32$Hash$hash :u64
+                      arg0:
+                        x :i32
                   r:
-                    vcall Hash.hash :u64
-                      recv:
-                        target :Any
+                    call :u64
+                      callee:
+                        std_core$i32$Hash$hash :u64
+                      arg0:
+                        target :i32
               r:
-                vcall Equals.equals :bool
-                  recv:
-                    x :Any
-                  arg0:
-                    target :Any
+                eq :bool
+                  l:
+                    x :i32
+                  r:
+                    target :i32
+          then:
+            assign
+              target:
+                n :i32
+              value:
+                add :i32
+                  l:
+                    n :i32
+                  r:
+                    int(1) :i32
+        assign
+          target:
+            __for_i_2 :usize
+          value:
+            add :usize
+              l:
+                __for_i_2 :usize
+              r:
+                int(1) :usize
+    return n :i32
+  fn snippet$snippet$count_matching__string(items: string[], target: string) -> i32
+    let n: i32 = int(0) :i32
+    block :void
+      let __for_arr_0: string[] = items :string[]
+      let __for_len_1: usize =
+        LoweredArrayLen
+      let __for_i_2: usize = int(0) :usize
+      loop while (<…>)
+        let x: string =
+          index :string
+            on:
+              __for_arr_0 :string[]
+            ix:
+              __for_i_2 :usize
+        if :void
+          cond:
+            and :bool
+              l:
+                eq :bool
+                  l:
+                    call :u64
+                      callee:
+                        std_core$string$Hash$hash :u64
+                      arg0:
+                        x :string
+                  r:
+                    call :u64
+                      callee:
+                        std_core$string$Hash$hash :u64
+                      arg0:
+                        target :string
+              r:
+                eq :bool
+                  l:
+                    x :string
+                  r:
+                    target :string
           then:
             assign
               target:

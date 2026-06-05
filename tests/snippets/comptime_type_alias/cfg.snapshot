@@ -26,30 +26,30 @@ fn snippet$main() -> i32
   bb0:
     %0 = intrinsic builder.new()
     %1 = move %0
-    %2 = const string(#0) :string
+    %2 = const string(#1) :string
     intrinsic builder.append_str(%1, %2)
     %3 = const int(4) :usize
-    %4 = call to_string(%3) :string
+    %4 = call std_core$usize$Display$to_string(%3) :string
     intrinsic builder.append_str(%1, %4)
     %5 = intrinsic builder.finish(%1)
-    call println(%5) :void
+    call std_io$std_io$println__string(%5) :void
     %6 = intrinsic builder.new()
     %7 = move %6
-    %8 = const string(#1) :string
+    %8 = const string(#2) :string
     intrinsic builder.append_str(%7, %8)
     %9 = const int(8) :usize
-    %10 = call to_string(%9) :string
+    %10 = call std_core$usize$Display$to_string(%9) :string
     intrinsic builder.append_str(%7, %10)
     %11 = intrinsic builder.finish(%7)
-    call println(%11) :void
+    call std_io$std_io$println__string(%11) :void
     %12 = intrinsic builder.new()
     %13 = move %12
-    %14 = const string(#2) :string
+    %14 = const string(#3) :string
     intrinsic builder.append_str(%13, %14)
     %15 = const int(16) :usize
-    %16 = call to_string(%15) :string
+    %16 = call std_core$usize$Display$to_string(%15) :string
     intrinsic builder.append_str(%13, %16)
     %17 = intrinsic builder.finish(%13)
-    call println(%17) :void
+    call std_io$std_io$println__string(%17) :void
     %18 = const int(0) :i32
     return %18

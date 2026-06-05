@@ -5,7 +5,7 @@
     ~>
       call :void
         callee:
-          println :void
+          std_io$std_io$println__string :void
         arg0:
           block :string
             let __sb_0: ? =
@@ -46,7 +46,7 @@
           ~>
             call :void
               callee:
-                println :void
+                std_io$std_io$println__string :void
               arg0:
                 block :string
                   let __sb_0: ? =
@@ -61,7 +61,7 @@
                     __sb_0 :?
                     call :string
                       callee:
-                        to_string :string
+                        std_core$usize$Display$to_string :string
                       arg0:
                         .start :usize
                           cast → Match
@@ -73,7 +73,7 @@
                     __sb_0 :?
                     call :string
                       callee:
-                        to_string :string
+                        std_core$usize$Display$to_string :string
                       arg0:
                         .end :usize
                           cast → Match
@@ -97,7 +97,7 @@
           ~>
             call :void
               callee:
-                println :void
+                std_io$std_io$println__string :void
               arg0:
                 block :string
                   let __sb_1: ? =
@@ -206,7 +206,7 @@
               "abc def ghi" :string
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             block :string
               let __sb_0: ? =
@@ -218,7 +218,7 @@
                 __sb_0 :?
                 call :string
                   callee:
-                    to_string :string
+                    std_core$usize$Display$to_string :string
                   arg0:
                     LoweredArrayLen
               ~>
@@ -228,7 +228,7 @@
         loop while (<…>)
           call :void
             callee:
-              println :void
+              std_io$std_io$println__string :void
             arg0:
               block :string
                 let __sb_1: ? =
@@ -240,7 +240,7 @@
                   __sb_1 :?
                   call :string
                     callee:
-                      to_string :string
+                      std_core$usize$Display$to_string :string
                     arg0:
                       i :usize
                 @builder.append_str :void
@@ -329,7 +329,7 @@
           then:
             call :void
               callee:
-                println :void
+                std_io$std_io$println__string :void
               arg0:
                 block :string
                   let __sb_2: ? =
@@ -351,7 +351,7 @@
                       __sb_2 :?
             call :void
               callee:
-                println :void
+                std_io$std_io$println__string :void
               arg0:
                 block :string
                   let __sb_3: ? =
@@ -373,7 +373,7 @@
                       __sb_3 :?
             call :void
               callee:
-                println :void
+                std_io$std_io$println__string :void
               arg0:
                 block :string
                   let __sb_4: ? =
@@ -395,7 +395,7 @@
                       __sb_4 :?
             call :void
               callee:
-                println :void
+                std_io$std_io$println__string :void
               arg0:
                 block :string
                   let __sb_5: ? =
@@ -551,7 +551,7 @@
       then:
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             block :string
               let __sb_6: ? =
@@ -587,7 +587,7 @@
       then:
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             block :string
               let __sb_7: ? =
@@ -623,7 +623,7 @@
       then:
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             "bad-compile=caught" :string
     return int(0) :i32

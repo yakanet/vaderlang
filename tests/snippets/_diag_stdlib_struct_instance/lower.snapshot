@@ -8,13 +8,13 @@
         by_name:
           MutableMap<string, i32> {
             buckets:
-              array :(Entry<string, i32> | null)[]
+              array :(Entry<K, V> | null)[]
             size: int(0) :usize
           }
       }
     call :void
       callee:
-        set_at :void
+        std_collections$MutableMap$IndexSet$set_at__string__i32 :void
       arg0:
         .by_name :MutableMap<string, i32>
           c :Counts
@@ -25,7 +25,7 @@
     let v: i32 | null =
       call :i32 | null
         callee:
-          at :i32 | null
+          std_collections$MutableMap$Index$at__string__i32 :i32 | null
         arg0:
           .by_name :MutableMap<string, i32>
             c :Counts
@@ -39,7 +39,7 @@
         return int(1) :i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_0: ? =

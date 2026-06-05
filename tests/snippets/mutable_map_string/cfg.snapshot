@@ -4,236 +4,238 @@
 
 fn snippet$main() -> i32
   locals:
-    %0 $arr_0: (Entry<string, i32> | null)[]
+    %0 $arr_0: (Entry<K, V> | null)[]
     %1 $k_1: usize
-    %2 m: MutableMap<string, i32> (local m)
-    %3 $k_4: string
-    %4 $k_5: i32
-    %5 $k_6: string
-    %6 $k_7: i32
-    %7 $k_8: string
-    %8 $k_9: i32
-    %9 $intrinsic_10: ?
-    %10 __sb_0: ? (synthetic __sb_0)
-    %11 $k_12: string
-    %12 $call_13: usize
-    %13 $call_14: string
-    %14 $intrinsic_15: string
-    %15 $k_16: string
-    %16 $call_17: i32 | null
-    %17 v1: i32 | null (local v1)
-    %18 __scrut_1: i32 | null (synthetic __scrut_1)
-    %19 $type_check_20: bool
-    %20 $k_21: string
-    %21 $type_check_22: bool
-    %22 $intrinsic_23: ?
-    %23 __sb_2: ? (synthetic __sb_2)
-    %24 $k_25: string
-    %25 $cast_26: i32
-    %26 $intrinsic_27: string
-    %27 $k_28: string
-    %28 $call_29: i32 | null
-    %29 v2: i32 | null (local v2)
-    %30 __scrut_3: i32 | null (synthetic __scrut_3)
-    %31 $type_check_32: bool
-    %32 $k_33: string
-    %33 $type_check_34: bool
-    %34 $intrinsic_35: ?
-    %35 __sb_4: ? (synthetic __sb_4)
-    %36 $k_37: string
-    %37 $cast_38: i32
-    %38 $intrinsic_39: string
-    %39 $k_40: string
-    %40 $call_41: i32 | null
-    %41 v3: i32 | null (local v3)
-    %42 __scrut_5: i32 | null (synthetic __scrut_5)
-    %43 $type_check_44: bool
-    %44 $k_45: string
-    %45 $type_check_46: bool
-    %46 $intrinsic_47: ?
-    %47 __sb_6: ? (synthetic __sb_6)
-    %48 $k_49: string
-    %49 $cast_50: i32
-    %50 $intrinsic_51: string
-    %51 $intrinsic_52: ?
-    %52 __sb_7: ? (synthetic __sb_7)
-    %53 $k_54: string
-    %54 $k_55: string
-    %55 $call_56: bool
-    %56 $intrinsic_57: string
-    %57 $intrinsic_58: ?
-    %58 __sb_8: ? (synthetic __sb_8)
-    %59 $k_60: string
-    %60 $k_61: string
-    %61 $call_62: bool
-    %62 $intrinsic_63: string
-    %63 $k_64: string
-    %64 $k_65: i32
-    %65 $k_66: string
-    %66 $call_67: i32 | null
-    %67 v1b: i32 | null (local v1b)
-    %68 __scrut_9: i32 | null (synthetic __scrut_9)
-    %69 $type_check_70: bool
-    %70 $k_71: string
-    %71 $type_check_72: bool
-    %72 $intrinsic_73: ?
-    %73 __sb_10: ? (synthetic __sb_10)
-    %74 $k_75: string
-    %75 $cast_76: i32
-    %76 $intrinsic_77: string
-    %77 $k_78: i32
+    %2 $struct_2: MutableMap<string, i32>
+    %3 m: MutableMap<string, i32> (local m)
+    %4 $k_4: string
+    %5 $k_5: i32
+    %6 $k_6: string
+    %7 $k_7: i32
+    %8 $k_8: string
+    %9 $k_9: i32
+    %10 $intrinsic_10: ?
+    %11 __sb_0: ? (synthetic __sb_0)
+    %12 $k_12: string
+    %13 $call_13: usize
+    %14 $call_14: string
+    %15 $intrinsic_15: string
+    %16 $k_16: string
+    %17 $call_17: i32 | null
+    %18 v1: i32 | null (local v1)
+    %19 __scrut_1: i32 | null (synthetic __scrut_1)
+    %20 $type_check_20: bool
+    %21 $k_21: string
+    %22 $type_check_22: bool
+    %23 $intrinsic_23: ?
+    %24 __sb_2: ? (synthetic __sb_2)
+    %25 $k_25: string
+    %26 $cast_26: i32
+    %27 $intrinsic_27: string
+    %28 $k_28: string
+    %29 $call_29: i32 | null
+    %30 v2: i32 | null (local v2)
+    %31 __scrut_3: i32 | null (synthetic __scrut_3)
+    %32 $type_check_32: bool
+    %33 $k_33: string
+    %34 $type_check_34: bool
+    %35 $intrinsic_35: ?
+    %36 __sb_4: ? (synthetic __sb_4)
+    %37 $k_37: string
+    %38 $cast_38: i32
+    %39 $intrinsic_39: string
+    %40 $k_40: string
+    %41 $call_41: i32 | null
+    %42 v3: i32 | null (local v3)
+    %43 __scrut_5: i32 | null (synthetic __scrut_5)
+    %44 $type_check_44: bool
+    %45 $k_45: string
+    %46 $type_check_46: bool
+    %47 $intrinsic_47: ?
+    %48 __sb_6: ? (synthetic __sb_6)
+    %49 $k_49: string
+    %50 $cast_50: i32
+    %51 $intrinsic_51: string
+    %52 $intrinsic_52: ?
+    %53 __sb_7: ? (synthetic __sb_7)
+    %54 $k_54: string
+    %55 $k_55: string
+    %56 $call_56: bool
+    %57 $intrinsic_57: string
+    %58 $intrinsic_58: ?
+    %59 __sb_8: ? (synthetic __sb_8)
+    %60 $k_60: string
+    %61 $k_61: string
+    %62 $call_62: bool
+    %63 $intrinsic_63: string
+    %64 $k_64: string
+    %65 $k_65: i32
+    %66 $k_66: string
+    %67 $call_67: i32 | null
+    %68 v1b: i32 | null (local v1b)
+    %69 __scrut_9: i32 | null (synthetic __scrut_9)
+    %70 $type_check_70: bool
+    %71 $k_71: string
+    %72 $type_check_72: bool
+    %73 $intrinsic_73: ?
+    %74 __sb_10: ? (synthetic __sb_10)
+    %75 $k_75: string
+    %76 $cast_76: i32
+    %77 $intrinsic_77: string
+    %78 $k_78: i32
   bb0:
-    %0 = array_new (Entry<string, i32> | null)[][0]()
+    %0 = array_new (Entry<K, V> | null)[][0]()
     %1 = const int(0) :usize
     %2 = struct_new MutableMap<string, i32>(%0, %1)
-    %3 = const string(#0) :string
-    %4 = const int(1) :i32
-    call set_at(%2, %3, %4) :void
-    %5 = const string(#1) :string
-    %6 = const int(2) :i32
-    call set_at(%2, %5, %6) :void
-    %7 = const string(#2) :string
-    %8 = const int(42) :i32
-    call set_at(%2, %7, %8) :void
-    %9 = intrinsic builder.new()
-    %10 = move %9
-    %11 = const string(#3) :string
-    intrinsic builder.append_str(%10, %11)
-    %12 = call len(%2) :usize
-    %13 = call to_string(%12) :string
-    intrinsic builder.append_str(%10, %13)
-    %14 = intrinsic builder.finish(%10)
-    call println(%14) :void
-    %15 = const string(#0) :string
-    %16 = call at(%2, %15) :i32 | null
-    %17 = move %16
+    %3 = move %2
+    %4 = const string(#1) :string
+    %5 = const int(1) :i32
+    call std_collections$MutableMap$IndexSet$set_at__string__i32(%3, %4, %5) :void
+    %6 = const string(#2) :string
+    %7 = const int(2) :i32
+    call std_collections$MutableMap$IndexSet$set_at__string__i32(%3, %6, %7) :void
+    %8 = const string(#3) :string
+    %9 = const int(42) :i32
+    call std_collections$MutableMap$IndexSet$set_at__string__i32(%3, %8, %9) :void
+    %10 = intrinsic builder.new()
+    %11 = move %10
+    %12 = const string(#4) :string
+    intrinsic builder.append_str(%11, %12)
+    %13 = call std_collections$std_collections$len__string__i32(%3) :usize
+    %14 = call std_core$usize$Display$to_string(%13) :string
+    intrinsic builder.append_str(%11, %14)
+    %15 = intrinsic builder.finish(%11)
+    call std_io$std_io$println__string(%15) :void
+    %16 = const string(#1) :string
+    %17 = call std_collections$MutableMap$Index$at__string__i32(%3, %16) :i32 | null
     %18 = move %17
-    %19 = type_check %18 is null
-    cond_branch %19 ? bb1 : bb2
+    %19 = move %18
+    %20 = type_check %19 is null
+    cond_branch %20 ? bb1 : bb2
   bb1:
-    %20 = const string(#4) :string
-    call println(%20) :void
+    %21 = const string(#5) :string
+    call std_io$std_io$println__string(%21) :void
     branch -> bb3
   bb2:
-    %21 = type_check %18 is i32
-    cond_branch %21 ? bb4 : bb5
+    %22 = type_check %19 is i32
+    cond_branch %22 ? bb4 : bb5
   bb3:
-    %27 = const string(#1) :string
-    %28 = call at(%2, %27) :i32 | null
-    %29 = move %28
+    %28 = const string(#2) :string
+    %29 = call std_collections$MutableMap$Index$at__string__i32(%3, %28) :i32 | null
     %30 = move %29
-    %31 = type_check %30 is null
-    cond_branch %31 ? bb7 : bb8
+    %31 = move %30
+    %32 = type_check %31 is null
+    cond_branch %32 ? bb7 : bb8
   bb4:
-    %22 = intrinsic builder.new()
-    %23 = move %22
-    %24 = const string(#5) :string
-    intrinsic builder.append_str(%23, %24)
-    %25 = cast %17 :i32
-    intrinsic builder.append_display(%23, %25)
-    %26 = intrinsic builder.finish(%23)
-    call println(%26) :void
+    %23 = intrinsic builder.new()
+    %24 = move %23
+    %25 = const string(#6) :string
+    intrinsic builder.append_str(%24, %25)
+    %26 = cast %18 :i32
+    intrinsic builder.append_display(%24, %26)
+    %27 = intrinsic builder.finish(%24)
+    call std_io$std_io$println__string(%27) :void
     branch -> bb6
   bb5:
     unreachable ; non-exhaustive match (T3013 should have caught this)
   bb6:
     branch -> bb3
   bb7:
-    %32 = const string(#6) :string
-    call println(%32) :void
+    %33 = const string(#7) :string
+    call std_io$std_io$println__string(%33) :void
     branch -> bb9
   bb8:
-    %33 = type_check %30 is i32
-    cond_branch %33 ? bb10 : bb11
+    %34 = type_check %31 is i32
+    cond_branch %34 ? bb10 : bb11
   bb9:
-    %39 = const string(#2) :string
-    %40 = call at(%2, %39) :i32 | null
-    %41 = move %40
+    %40 = const string(#3) :string
+    %41 = call std_collections$MutableMap$Index$at__string__i32(%3, %40) :i32 | null
     %42 = move %41
-    %43 = type_check %42 is null
-    cond_branch %43 ? bb13 : bb14
+    %43 = move %42
+    %44 = type_check %43 is null
+    cond_branch %44 ? bb13 : bb14
   bb10:
-    %34 = intrinsic builder.new()
-    %35 = move %34
-    %36 = const string(#7) :string
-    intrinsic builder.append_str(%35, %36)
-    %37 = cast %29 :i32
-    intrinsic builder.append_display(%35, %37)
-    %38 = intrinsic builder.finish(%35)
-    call println(%38) :void
+    %35 = intrinsic builder.new()
+    %36 = move %35
+    %37 = const string(#8) :string
+    intrinsic builder.append_str(%36, %37)
+    %38 = cast %30 :i32
+    intrinsic builder.append_display(%36, %38)
+    %39 = intrinsic builder.finish(%36)
+    call std_io$std_io$println__string(%39) :void
     branch -> bb12
   bb11:
     unreachable ; non-exhaustive match (T3013 should have caught this)
   bb12:
     branch -> bb9
   bb13:
-    %44 = const string(#8) :string
-    call println(%44) :void
+    %45 = const string(#9) :string
+    call std_io$std_io$println__string(%45) :void
     branch -> bb15
   bb14:
-    %45 = type_check %42 is i32
-    cond_branch %45 ? bb16 : bb17
+    %46 = type_check %43 is i32
+    cond_branch %46 ? bb16 : bb17
   bb15:
-    %51 = intrinsic builder.new()
-    %52 = move %51
-    %53 = const string(#10) :string
-    intrinsic builder.append_str(%52, %53)
-    %54 = const string(#0) :string
-    %55 = call contains(%2, %54) :bool
-    intrinsic builder.append_display(%52, %55)
-    %56 = intrinsic builder.finish(%52)
-    call println(%56) :void
-    %57 = intrinsic builder.new()
-    %58 = move %57
-    %59 = const string(#11) :string
-    intrinsic builder.append_str(%58, %59)
+    %52 = intrinsic builder.new()
+    %53 = move %52
+    %54 = const string(#11) :string
+    intrinsic builder.append_str(%53, %54)
+    %55 = const string(#1) :string
+    %56 = call std_collections$MutableMap$Contains$contains__string__i32(%3, %55) :bool
+    intrinsic builder.append_display(%53, %56)
+    %57 = intrinsic builder.finish(%53)
+    call std_io$std_io$println__string(%57) :void
+    %58 = intrinsic builder.new()
+    %59 = move %58
     %60 = const string(#12) :string
-    %61 = call contains(%2, %60) :bool
-    intrinsic builder.append_display(%58, %61)
-    %62 = intrinsic builder.finish(%58)
-    call println(%62) :void
-    %63 = const string(#0) :string
-    %64 = const int(99) :i32
-    call set_at(%2, %63, %64) :void
-    %65 = const string(#0) :string
-    %66 = call at(%2, %65) :i32 | null
-    %67 = move %66
+    intrinsic builder.append_str(%59, %60)
+    %61 = const string(#13) :string
+    %62 = call std_collections$MutableMap$Contains$contains__string__i32(%3, %61) :bool
+    intrinsic builder.append_display(%59, %62)
+    %63 = intrinsic builder.finish(%59)
+    call std_io$std_io$println__string(%63) :void
+    %64 = const string(#1) :string
+    %65 = const int(99) :i32
+    call std_collections$MutableMap$IndexSet$set_at__string__i32(%3, %64, %65) :void
+    %66 = const string(#1) :string
+    %67 = call std_collections$MutableMap$Index$at__string__i32(%3, %66) :i32 | null
     %68 = move %67
-    %69 = type_check %68 is null
-    cond_branch %69 ? bb19 : bb20
+    %69 = move %68
+    %70 = type_check %69 is null
+    cond_branch %70 ? bb19 : bb20
   bb16:
-    %46 = intrinsic builder.new()
-    %47 = move %46
-    %48 = const string(#9) :string
-    intrinsic builder.append_str(%47, %48)
-    %49 = cast %41 :i32
-    intrinsic builder.append_display(%47, %49)
-    %50 = intrinsic builder.finish(%47)
-    call println(%50) :void
+    %47 = intrinsic builder.new()
+    %48 = move %47
+    %49 = const string(#10) :string
+    intrinsic builder.append_str(%48, %49)
+    %50 = cast %42 :i32
+    intrinsic builder.append_display(%48, %50)
+    %51 = intrinsic builder.finish(%48)
+    call std_io$std_io$println__string(%51) :void
     branch -> bb18
   bb17:
     unreachable ; non-exhaustive match (T3013 should have caught this)
   bb18:
     branch -> bb15
   bb19:
-    %70 = const string(#4) :string
-    call println(%70) :void
+    %71 = const string(#5) :string
+    call std_io$std_io$println__string(%71) :void
     branch -> bb21
   bb20:
-    %71 = type_check %68 is i32
-    cond_branch %71 ? bb22 : bb23
+    %72 = type_check %69 is i32
+    cond_branch %72 ? bb22 : bb23
   bb21:
-    %77 = const int(0) :i32
-    return %77
+    %78 = const int(0) :i32
+    return %78
   bb22:
-    %72 = intrinsic builder.new()
-    %73 = move %72
-    %74 = const string(#13) :string
-    intrinsic builder.append_str(%73, %74)
-    %75 = cast %67 :i32
-    intrinsic builder.append_display(%73, %75)
-    %76 = intrinsic builder.finish(%73)
-    call println(%76) :void
+    %73 = intrinsic builder.new()
+    %74 = move %73
+    %75 = const string(#14) :string
+    intrinsic builder.append_str(%74, %75)
+    %76 = cast %68 :i32
+    intrinsic builder.append_display(%74, %76)
+    %77 = intrinsic builder.finish(%74)
+    call std_io$std_io$println__string(%77) :void
     branch -> bb24
   bb23:
     unreachable ; non-exhaustive match (T3013 should have caught this)

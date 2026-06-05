@@ -1,83 +1,108 @@
 module _main
 type 0 primitive null
-type 1 primitive i32
-type 2 union 3,0
-type 3 struct snippet$Node { value:1,next:2 }
-type 4 primitive string
-type 5 primitive void
-string 0 "length="
-string 1 "not found"
-string 2 "found "
-string 3 "\n"
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 write std_io$write (i32,string) -> void
-export main 3
+type 1 primitive string
+type 2 primitive void
+type 3 primitive i32
+type 4 union 5,0
+type 5 struct snippet$Node { value:3,next:4 }
+string 0 "\n"
+string 1 "length="
+string 2 "not found"
+string 3 "found "
+import 0 write std_io$write (i32,string) -> void
+import 1 to_string std_core$string$Display$to_string (string) -> string
+export main 4
 
-fn 0 snippet$cons (i32,ref) -> ref
+fn 0 std_io$std_io$println__string (string) -> void
+  local $call_2 string
   local.get 0
+  call 5
+  local.set 1
+  i32.const 0
   local.get 1
-  struct.new 3
+  call.import 0
+  i32.const 0
+  string.const 0
+  call.import 0
   return
 end
 
-fn 1 snippet$find (ref,i32) -> ref
+fn 1 snippet$cons (i32,ref) -> ref
+  local.get 0
+  local.get 1
+  struct.new 5
+  return
+end
+
+fn 2 snippet$find (ref,i32) -> ref
   local __scrut_0 ref
+  local if_res ref
   local if_res ref
   local.get 0
   local.tee 2
   type_check 0
   if $L0 void
     null.const
+    local.set 3
+    local.get 3
     return
   end $L0
   local.get 2
-  type_check 3
+  type_check 5
   if $L1 void
-    local.field 2 3 0
-    ref.cast 1
+    local.get 2
+    local.set 2
+    local.field 2 5 0
+    ref.cast 3
     local.get 1
     i32.eq
     if $L2 void
       local.get 2
-      local.set 3
+      local.set 4
     else
-      local.field 2 3 1
+      local.field 2 5 1
       local.get 1
-      call 1
-      local.set 3
+      call 2
+      local.set 4
     end $L2
-    local.get 3
+    local.get 4
+    local.tee 3
     return
   end $L1
-  unreachable
+  return
 end
 
-fn 2 snippet$length (ref) -> i32
+fn 3 snippet$length (ref) -> i32
   local __scrut_0 ref
+  local if_res i32
   local $call_11 i32
   local.get 0
   local.tee 1
   type_check 0
   if $L0 void
     i32.const 0
+    local.set 2
+    local.get 2
     return
   end $L0
   local.get 1
-  type_check 3
+  type_check 5
   if $L1 void
-    local.field 1 3 1
-    call 2
-    local.set 2
+    local.get 1
+    local.set 1
+    local.field 1 5 1
+    call 3
+    local.set 3
     i32.const 1
-    local.get 2
+    local.get 3
     i32.add
+    local.tee 2
     return
   end $L1
-  unreachable
+  return
 end
 
-fn 3 snippet$main () -> i32
-  local $k_3 null
+fn 4 snippet$main () -> i32
   local $call_4 ref
   local __sb_0 any
   local $call_11 i32
@@ -88,159 +113,138 @@ fn 3 snippet$main () -> i32
   local __sb_4 any
   local $k_36 string
   local $field_37 i32
-  null.const
-  local.set 0
   i32.const 3
-  local.get 0
-  call 0
-  local.set 1
-  i32.const 2
-  local.get 1
-  call 0
-  local.set 1
-  i32.const 1
-  local.get 1
-  call 0
-  local.set 1
-  intrinsic builder.new
-  local.set 2
-  local.get 2
-  string.const 0
-  intrinsic builder.append_str
-  local.get 1
-  call 2
-  local.set 3
-  local.get 2
-  local.get 3
-  intrinsic builder.append_display
-  local.get 2
-  intrinsic builder.finish
-  call 4
-  local.get 1
-  i32.const 2
+  null.const
   call 1
-  local.tee 4
+  local.set 0
+  i32.const 2
+  local.get 0
+  call 1
+  local.set 0
+  i32.const 1
+  local.get 0
+  call 1
+  local.set 0
+  intrinsic builder.new
+  local.set 1
+  local.get 1
+  string.const 1
+  intrinsic builder.append_str
+  local.get 0
+  call 3
+  local.set 2
+  local.get 1
+  local.get 2
+  intrinsic builder.append_display
+  local.get 1
+  intrinsic builder.finish
+  call 0
+  local.get 0
+  i32.const 2
+  call 2
+  local.tee 3
   type_check 0
   if $L0 void
-    string.const 1
-    call 4
+    string.const 2
+    call 0
     i32.const 42
-    local.set 5
-    local.get 1
-    local.get 5
-    call 1
-    local.tee 6
+    local.set 4
+    local.get 0
+    local.get 4
+    call 2
+    local.tee 5
     type_check 0
     if $L1 void
-      string.const 1
-      call 4
+      string.const 2
+      call 0
       return.lit i32.const 0
     end $L1
-    local.get 6
-    type_check 3
+    local.get 5
+    type_check 5
     if $L2 void
-      local.get 6
-      local.set 7
+      local.get 5
+      local.set 6
       intrinsic builder.new
+      local.set 7
+      string.const 3
       local.set 8
-      string.const 2
-      local.set 9
+      local.get 7
       local.get 8
-      local.get 9
       intrinsic builder.append_str
-      local.field 7 3 0
-      ref.cast 1
-      local.set 10
-      local.get 8
-      local.get 10
+      local.field 6 5 0
+      ref.cast 3
+      local.set 9
+      local.get 7
+      local.get 9
       intrinsic builder.append_display
-      local.get 8
+      local.get 7
       intrinsic builder.finish
-      call 4
+      call 0
       return.lit i32.const 0
     end $L2
-    unreachable
+    return
   end $L0
-  local.get 4
-  type_check 3
+  local.get 3
+  type_check 5
   if $L3 void
-    intrinsic builder.new
-    local.set 2
-    local.get 2
-    string.const 2
-    intrinsic builder.append_str
-    local.field 4 3 0
-    ref.cast 1
-    local.set 3
-    local.get 2
     local.get 3
-    intrinsic builder.append_display
-    local.get 2
-    intrinsic builder.finish
-    call 4
-    i32.const 42
-    local.set 5
+    local.set 3
+    intrinsic builder.new
+    local.set 1
     local.get 1
-    local.get 5
-    call 1
-    local.tee 6
+    string.const 3
+    intrinsic builder.append_str
+    local.field 3 5 0
+    ref.cast 3
+    local.set 2
+    local.get 1
+    local.get 2
+    intrinsic builder.append_display
+    local.get 1
+    intrinsic builder.finish
+    call 0
+    i32.const 42
+    local.set 4
+    local.get 0
+    local.get 4
+    call 2
+    local.tee 5
     type_check 0
     if $L4 void
-      string.const 1
-      call 4
+      string.const 2
+      call 0
       return.lit i32.const 0
     end $L4
-    local.get 6
-    type_check 3
+    local.get 5
+    type_check 5
     if $L5 void
-      local.get 6
-      local.set 7
+      local.get 5
+      local.set 6
       intrinsic builder.new
+      local.set 7
+      string.const 3
       local.set 8
-      string.const 2
-      local.set 9
+      local.get 7
       local.get 8
-      local.get 9
       intrinsic builder.append_str
-      local.field 7 3 0
-      ref.cast 1
-      local.set 10
-      local.get 8
-      local.get 10
+      local.field 6 5 0
+      ref.cast 3
+      local.set 9
+      local.get 7
+      local.get 9
       intrinsic builder.append_display
-      local.get 8
+      local.get 7
       intrinsic builder.finish
-      call 4
+      call 0
       return.lit i32.const 0
     end $L5
-    unreachable
+    return
   end $L3
-  unreachable
-end
-
-fn 4 std_io$std_io$println__string (string) -> void
-  local $call_2 string
-  local.get 0
-  call 5
-  local.set 1
-  i32.const 0
-  local.get 1
-  call 6
-  i32.const 0
-  string.const 3
-  call 6
   return
 end
 
-fn 5 std_core$string$Display$to_string$vt (string) -> string
+fn 5 std_core$string$Display$to_string_vt (string) -> string
   local.get 0
-  call.import 0
-  return
-end
-
-fn 6 std_io$write$vt (i32,string) -> void
-  local.get 0
-  local.get 1
   call.import 1
   return
 end

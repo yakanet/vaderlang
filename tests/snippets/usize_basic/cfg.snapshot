@@ -8,30 +8,32 @@ fn snippet$add(%0: usize, %1: usize) -> usize
     %1 b: usize (param b)
     %2 $add_2: usize
   bb0:
-    %2 = binop add %0 %1 :usize
+    %2 = binop 0 %0 %1 :usize
     return %2
 
 fn snippet$main() -> i32
   locals:
-    %0 n: usize (local n)
-    %1 $k_2: usize
-    %2 $call_3: usize
-    %3 m: usize (local m)
-    %4 $intrinsic_5: ?
-    %5 __sb_0: ? (synthetic __sb_0)
-    %6 $call_7: string
-    %7 $intrinsic_8: string
-    %8 $k_9: i32
+    %0 $k_0: usize
+    %1 n: usize (local n)
+    %2 $k_2: usize
+    %3 $call_3: usize
+    %4 m: usize (local m)
+    %5 $intrinsic_5: ?
+    %6 __sb_0: ? (synthetic __sb_0)
+    %7 $call_7: string
+    %8 $intrinsic_8: string
+    %9 $k_9: i32
   bb0:
     %0 = const int(10) :usize
-    %1 = const int(32) :usize
-    %2 = call add(%0, %1) :usize
-    %3 = move %2
-    %4 = intrinsic builder.new()
-    %5 = move %4
-    %6 = call to_string(%3) :string
-    intrinsic builder.append_str(%5, %6)
-    %7 = intrinsic builder.finish(%5)
-    call println(%7) :void
-    %8 = const int(0) :i32
-    return %8
+    %1 = move %0
+    %2 = const int(32) :usize
+    %3 = call add(%1, %2) :usize
+    %4 = move %3
+    %5 = intrinsic builder.new()
+    %6 = move %5
+    %7 = call std_core$usize$Display$to_string(%4) :string
+    intrinsic builder.append_str(%6, %7)
+    %8 = intrinsic builder.finish(%6)
+    call std_io$std_io$println__string(%8) :void
+    %9 = const int(0) :i32
+    return %9

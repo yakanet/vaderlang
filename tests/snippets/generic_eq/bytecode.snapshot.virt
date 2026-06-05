@@ -1,207 +1,209 @@
 module _main
 type 0 primitive null
-type 1 primitive i32
-type 2 ref _
-type 3 primitive bool
-type 4 primitive i8
-type 5 primitive string
-type 6 primitive i16
-type 7 primitive i64
-type 8 primitive isize
-type 9 primitive u8
-type 10 primitive u16
-type 11 primitive u32
-type 12 primitive u64
-type 13 primitive usize
-type 14 primitive f32
-type 15 primitive f64
-type 16 primitive char
-type 17 primitive void
+type 1 primitive string
+type 2 primitive void
+type 3 primitive i32
+type 4 primitive usize
+type 5 primitive bool
+type 6 ref _
+type 7 primitive i8
+type 8 primitive i16
+type 9 primitive i64
+type 10 primitive isize
+type 11 primitive u8
+type 12 primitive u16
+type 13 primitive u32
+type 14 primitive u64
+type 15 primitive f32
+type 16 primitive f64
+type 17 primitive char
 string 0 "\n"
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 write std_io$write (i32,string) -> void
-vtable Equals.equals 1 6
-vtable Equals.equals 3 16
-vtable Equals.equals 4 4
-vtable Equals.equals 5 18
-vtable Equals.equals 6 5
-vtable Equals.equals 7 7
-vtable Equals.equals 8 8
-vtable Equals.equals 9 9
-vtable Equals.equals 10 10
-vtable Equals.equals 11 11
-vtable Equals.equals 12 12
-vtable Equals.equals 13 13
-vtable Equals.equals 14 14
-vtable Equals.equals 15 15
-vtable Equals.equals 16 17
-export main 0
+import 0 write std_io$write (i32,string) -> void
+import 1 to_string std_core$string$Display$to_string (string) -> string
+import 2 equals std_core$i8$Equals$equals (i8,i8) -> bool
+import 3 equals std_core$i16$Equals$equals (i16,i16) -> bool
+import 4 equals std_core$isize$Equals$equals (isize,isize) -> bool
+import 5 equals std_core$u8$Equals$equals (u8,u8) -> bool
+import 6 equals std_core$u16$Equals$equals (u16,u16) -> bool
+import 7 equals std_core$u32$Equals$equals (u32,u32) -> bool
+import 8 equals std_core$u64$Equals$equals (u64,u64) -> bool
+import 9 equals std_core$usize$Equals$equals (usize,usize) -> bool
+import 10 equals std_core$f32$Equals$equals (f32,f32) -> bool
+vtable Equals.equals 7 4
+vtable Equals.equals 8 5
+vtable Equals.equals 3 6
+vtable Equals.equals 9 7
+vtable Equals.equals 10 8
+vtable Equals.equals 11 9
+vtable Equals.equals 12 10
+vtable Equals.equals 13 11
+vtable Equals.equals 14 12
+vtable Equals.equals 4 13
+vtable Equals.equals 15 14
+vtable Equals.equals 16 15
+vtable Equals.equals 5 16
+vtable Equals.equals 17 17
+vtable Equals.equals 1 18
+export main 1
 
-fn 0 snippet$main () -> i32
-  local __sb_0 any
-  local $call_4 bool
-  intrinsic builder.new
-  local.set 0
-  i32.const 1
-  i32.const 1
-  call 1
-  local.set 1
-  local.get 0
-  local.get 1
-  intrinsic builder.append_display
-  local.get 0
-  intrinsic builder.finish
-  call 2
-  intrinsic builder.new
-  local.set 0
-  i32.const 1
-  i32.const 2
-  call 1
-  local.set 1
-  local.get 0
-  local.get 1
-  intrinsic builder.append_display
-  local.get 0
-  intrinsic builder.finish
-  call 2
-  return.lit i32.const 0
-end
-
-fn 1 snippet$snippet$are_eq__i32 (ref,ref) -> bool
-  local.get 1
-  local.get 0
-  virtual.call 2 Equals.equals
-  return
-end
-
-fn 2 std_io$std_io$println__string (string) -> void
+fn 0 std_io$std_io$println__string (string) -> void
   local $call_2 string
   local.get 0
   call 3
   local.set 1
   i32.const 0
   local.get 1
-  call 19
+  call.import 0
   i32.const 0
   string.const 0
-  call 19
-  return
-end
-
-fn 3 std_core$string$Display$to_string$vt (string) -> string
-  local.get 0
   call.import 0
   return
 end
 
-fn 4 std_core$i8$Equals$equals$vt (i8,i8) -> bool
+fn 1 snippet$main () -> i32
+  local __sb_0 any
+  local $call_4 bool
+  intrinsic builder.new
+  local.set 0
+  i32.const 1
+  i32.const 1
+  call 2
+  local.set 1
   local.get 0
   local.get 1
-  i8.eq
+  intrinsic builder.append_display
+  local.get 0
+  intrinsic builder.finish
+  call 0
+  intrinsic builder.new
+  local.set 0
+  i32.const 1
+  i32.const 2
+  call 2
+  local.set 1
+  local.get 0
+  local.get 1
+  intrinsic builder.append_display
+  local.get 0
+  intrinsic builder.finish
+  call 0
+  return.lit i32.const 0
+end
+
+fn 2 snippet$snippet$are_eq__i32 (ref,ref) -> bool
+  local.get 1
+  local.get 0
+  virtual.call 2 Equals.equals
   return
 end
 
-fn 5 std_core$i16$Equals$equals$vt (i16,i16) -> bool
+fn 3 std_core$string$Display$to_string_vt (string) -> string
   local.get 0
-  local.get 1
-  i16.eq
+  call.import 1
   return
 end
 
-fn 6 std_core$i32$Equals$equals$vt (i32,i32) -> bool
+fn 4 std_core$i8$Equals$equals_vt (i8,i8) -> bool
+  local.get 0
+  local.get 1
+  call.import 2
+  return
+end
+
+fn 5 std_core$i16$Equals$equals_vt (i16,i16) -> bool
+  local.get 0
+  local.get 1
+  call.import 3
+  return
+end
+
+fn 6 std_core$i32$Equals$equals_vt (i32,i32) -> bool
   local.get 0
   local.get 1
   i32.eq
   return
 end
 
-fn 7 std_core$i64$Equals$equals$vt (i64,i64) -> bool
+fn 7 std_core$i64$Equals$equals_vt (i64,i64) -> bool
   local.get 0
   local.get 1
   i64.eq
   return
 end
 
-fn 8 std_core$isize$Equals$equals$vt (isize,isize) -> bool
+fn 8 std_core$isize$Equals$equals_vt (isize,isize) -> bool
   local.get 0
   local.get 1
-  isize.eq
+  call.import 4
   return
 end
 
-fn 9 std_core$u8$Equals$equals$vt (u8,u8) -> bool
+fn 9 std_core$u8$Equals$equals_vt (u8,u8) -> bool
   local.get 0
   local.get 1
-  u8.eq
+  call.import 5
   return
 end
 
-fn 10 std_core$u16$Equals$equals$vt (u16,u16) -> bool
+fn 10 std_core$u16$Equals$equals_vt (u16,u16) -> bool
   local.get 0
   local.get 1
-  u16.eq
+  call.import 6
   return
 end
 
-fn 11 std_core$u32$Equals$equals$vt (u32,u32) -> bool
+fn 11 std_core$u32$Equals$equals_vt (u32,u32) -> bool
   local.get 0
   local.get 1
-  u32.eq
+  call.import 7
   return
 end
 
-fn 12 std_core$u64$Equals$equals$vt (u64,u64) -> bool
+fn 12 std_core$u64$Equals$equals_vt (u64,u64) -> bool
   local.get 0
   local.get 1
-  u64.eq
+  call.import 8
   return
 end
 
-fn 13 std_core$usize$Equals$equals$vt (usize,usize) -> bool
+fn 13 std_core$usize$Equals$equals_vt (usize,usize) -> bool
   local.get 0
   local.get 1
-  usize.eq
+  call.import 9
   return
 end
 
-fn 14 std_core$f32$Equals$equals$vt (f32,f32) -> bool
+fn 14 std_core$f32$Equals$equals_vt (f32,f32) -> bool
   local.get 0
   local.get 1
-  f32.eq
+  call.import 10
   return
 end
 
-fn 15 std_core$f64$Equals$equals$vt (f64,f64) -> bool
+fn 15 std_core$f64$Equals$equals_vt (f64,f64) -> bool
   local.get 0
   local.get 1
   f64.eq
   return
 end
 
-fn 16 std_core$bool$Equals$equals$vt (bool,bool) -> bool
+fn 16 std_core$bool$Equals$equals_vt (bool,bool) -> bool
   local.get 0
   local.get 1
   bool.eq
   return
 end
 
-fn 17 std_core$char$Equals$equals$vt (char,char) -> bool
+fn 17 std_core$char$Equals$equals_vt (char,char) -> bool
   local.get 0
   local.get 1
   char.eq
   return
 end
 
-fn 18 std_core$string$Equals$equals$vt (string,string) -> bool
+fn 18 std_core$string$Equals$equals_vt (string,string) -> bool
   local.get 0
   local.get 1
   string.eq
-  return
-end
-
-fn 19 std_io$write$vt (i32,string) -> void
-  local.get 0
-  local.get 1
-  call.import 1
   return
 end

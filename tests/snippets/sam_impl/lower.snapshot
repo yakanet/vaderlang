@@ -39,25 +39,25 @@
     let y: i64 = int(7) :i64
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
-            to_string :string
+            std_core$i32$Display$to_string :string
           arg0:
             x :i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
-            to_string :string
+            std_core$i64$Display$to_string :string
           arg0:
             y :i64
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -66,11 +66,11 @@
             __sb_0 :?
             call :string
               callee:
-                to_string :string
+                std_core$u64$Display$to_string :string
               arg0:
                 call :u64
                   callee:
-                    hash :u64
+                    std_core$i32$Hash$hash :u64
                   arg0:
                     x :i32
           ~>

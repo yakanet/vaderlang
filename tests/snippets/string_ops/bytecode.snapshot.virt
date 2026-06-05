@@ -1,22 +1,36 @@
 module _main
 type 0 primitive null
-type 1 primitive i32
-type 2 primitive string
-type 3 primitive void
-string 0 "world"
-string 1 "hello, "
-string 2 "!"
-string 3 "hello, world!"
-string 4 "\n"
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 write std_io$write (i32,string) -> void
-export main 0
+type 1 primitive string
+type 2 primitive void
+type 3 primitive i32
+string 0 "\n"
+string 1 "world"
+string 2 "hello, "
+string 3 "!"
+string 4 "hello, world!"
+import 0 write std_io$write (i32,string) -> void
+import 1 to_string std_core$string$Display$to_string (string) -> string
+export main 1
 
-fn 0 snippet$main () -> i32
+fn 0 std_io$std_io$println__string (string) -> void
+  local $call_2 string
+  local.get 0
+  call 2
+  local.set 1
+  i32.const 0
+  local.get 1
+  call.import 0
+  i32.const 0
+  string.const 0
+  call.import 0
+  return
+end
+
+fn 1 snippet$main () -> i32
   local greeting string
   local __sb_0 any
+  string.const 2
   string.const 1
-  string.const 0
   string.concat
   local.set 0
   intrinsic builder.new
@@ -24,45 +38,24 @@ fn 0 snippet$main () -> i32
   local.get 0
   intrinsic builder.append_display
   local.get 1
-  string.const 2
+  string.const 3
   intrinsic builder.append_str
   local.get 1
   intrinsic builder.finish
   local.set 0
   local.get 0
-  string.const 3
+  string.const 4
   string.eq
   if $L0 void
     local.get 0
-    call 1
+    call 0
     return.lit i32.const 0
   end $L0
   return.lit i32.const 1
 end
 
-fn 1 std_io$std_io$println__string (string) -> void
-  local $call_2 string
+fn 2 std_core$string$Display$to_string_vt (string) -> string
   local.get 0
-  call 2
-  local.set 1
-  i32.const 0
-  local.get 1
-  call 3
-  i32.const 0
-  string.const 4
-  call 3
-  return
-end
-
-fn 2 std_core$string$Display$to_string$vt (string) -> string
-  local.get 0
-  call.import 0
-  return
-end
-
-fn 3 std_io$write$vt (i32,string) -> void
-  local.get 0
-  local.get 1
   call.import 1
   return
 end

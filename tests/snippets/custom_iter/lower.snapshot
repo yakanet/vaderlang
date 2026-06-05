@@ -37,7 +37,7 @@
         let __scrut_0: null | Yield<i32> =
           call :null | Yield<i32>
             callee:
-              next :null | Yield<i32>
+              snippet$Countdown$Iterator$next :null | Yield<i32>
             arg0:
               self :Countdown
         ~>
@@ -61,15 +61,15 @@
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :bool
   fn snippet$Countdown$Iterator$count(self: Countdown) -> usize
-    let total: usize = int(0) :usize
-    let finished: bool = false
+    let total: ? = int(0) :usize
+    let finished: ? = false
     loop while (<…>)
       ~>
         block :void
           let __scrut_0: null | Yield<i32> =
             call :null | Yield<i32>
               callee:
-                next :null | Yield<i32>
+                snippet$Countdown$Iterator$next :null | Yield<i32>
               arg0:
                 self :Countdown
           ~>
@@ -108,15 +108,15 @@
                         unreachable("non-exhaustive match (T3013 should have caught this)") :void
     return total :usize
   fn snippet$Countdown$Iterator$last(self: Countdown) -> i32 | null
-    let result: i32 | null = null
-    let finished: bool = false
+    let result: ? = null
+    let finished: ? = false
     loop while (<…>)
       ~>
         block :void
           let __scrut_0: null | Yield<i32> =
             call :null | Yield<i32>
               callee:
-                next :null | Yield<i32>
+                snippet$Countdown$Iterator$next :null | Yield<i32>
               arg0:
                 self :Countdown
           ~>
@@ -165,7 +165,7 @@
         let __step_1: Yield<i32> | null =
           call :Yield<i32> | null
             callee:
-              next :?
+              snippet$Countdown$Iterator$next :?
             arg0:
               __iter_0 :Countdown
         if :void
@@ -181,7 +181,7 @@
                   __step_1 :Yield<i32> | null
             call :void
               callee:
-                println :void
+                std_io$std_io$println__string :void
               arg0:
                 block :string
                   let __sb_2: ? =

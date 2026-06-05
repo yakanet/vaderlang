@@ -6,30 +6,34 @@ fn snippet$pick(%0: bool) -> null | string
   locals:
     %0 c: bool (param c)
     %1 if_res: null
-    %2 x: null (local x)
-    %3 $k_5: null
-    %4 $eq_6: bool
-    %5 $k_7: string
-    %6 $k_8: null
+    %2 $k_2: null
+    %3 $k_3: null
+    %4 x: null (local x)
+    %5 $k_5: null
+    %6 $eq_6: bool
+    %7 $k_7: null | string
+    %8 $k_8: null
   bb0:
     cond_branch %0 ? bb1 : bb2
   bb1:
-    %1 = const null :null
+    %2 = const null :null
+    %1 = move %2
     branch -> bb3
   bb2:
-    %1 = const null :null
+    %3 = const null :null
+    %1 = move %3
     branch -> bb3
   bb3:
-    %2 = move %1
-    %3 = const null :null
-    %4 = binop eq %2 %3 :bool
-    cond_branch %4 ? bb4 : bb5
+    %4 = move %1
+    %5 = const null :null
+    %6 = binop 12 %4 %5 :bool
+    cond_branch %6 ? bb4 : bb5
   bb4:
-    %5 = const string(#0) :string
-    return %5
+    %7 = const string(#1) :null | string
+    return %7
   bb5:
-    %6 = const null :null
-    return %6
+    %8 = const null :null
+    return %8
 
 fn snippet$main() -> i32
   locals:
@@ -48,8 +52,8 @@ fn snippet$main() -> i32
     %3 = type_check %2 is string
     cond_branch %3 ? bb1 : bb2
   bb1:
-    %4 = const string(#1) :string
-    call println(%4) :void
+    %4 = const string(#2) :string
+    call std_io$std_io$println__string(%4) :void
     branch -> bb3
   bb2:
     %5 = type_check %2 is null
@@ -58,8 +62,8 @@ fn snippet$main() -> i32
     %7 = const int(0) :i32
     return %7
   bb4:
-    %6 = const string(#2) :string
-    call println(%6) :void
+    %6 = const string(#3) :string
+    call std_io$std_io$println__string(%6) :void
     branch -> bb6
   bb5:
     unreachable ; non-exhaustive match (T3013 should have caught this)

@@ -725,6 +725,27 @@ queries + closure-analysis pass land on the typechecker side.
       Real fix is in the narrowing → c_emit path : a flow-narrowed local that is
       reassigned later in its block must keep the narrowed representation for the
       reads that precede the reassignment.
+
+#### Vader-as-test-oracle migration follow-ups — open
+- [ ] **`dump --stage=cfg` elides stdlib by default — revisit** (2026-06-05).
+      The oracle migration made the native CLI the snapshot source for cfg ;
+      `run_cfg_stage` (`vader/cli/main.vader`) now bakes in a stdlib-excluding
+      `include_module` + `include_strings=false` so cfg snapshots stay focused
+      (else stdlib CFG bloats them ~10×). PROVISIONAL : decide whether stdlib
+      elision should be a `--stdlib` opt-in flag on `dump` rather than the baked
+      default, so the CLI can still show the full CFG when wanted.
+- [ ] **11 native-emitter gaps surfaced by the oracle flip** (2026-06-05). With
+      `bytecode.snapshot.virt` now native-emitted, `vader_vm.test.ts` runs native
+      bytecode for the whole corpus and exposed 11 mis-compiles (each its own
+      fix), parked in `vader_vm.test.ts::KNOWN_DIVERGENT` / phase-excluded :
+      defer dropped (`defer_block`) ; erased `Iterator.next` vtable miss
+      (`for_in_iter_trait`, `_diag_iter_collect`) ; numeric width/sign —
+      u32→i64 sign-extend + u64 truncation (`enum_to_repr_cast`,
+      `numeric_context_sensitivity`) ; enum trait method returns the repr int
+      (`enum_implements_trait`) ; `Duration` prints raw ns (`std_time`) ;
+      interpolation prefix lost via SAM-impl (`sam_impl`) ; block-result
+      narrowing feeds `null` to `i32.eq` (`null_blockres`) ; GATE-B1
+      namespace/import emit panic (`alias_import`, `namespace_import`).
 - [x] **Cross-module folder modules** — landed 2026-05-17. Root cause was a runtime UAF : `vader_read_dir` stored `ent->d_name` (DIR-owned, reused on next readdir) without copying. `mod_a` was the first user-folder ; by the time its name was read back, the buffer pointed at garbage so `load_module_files` saw an empty entry and skipped the module. `vader_string_alloc` + memcpy in `vader_runtime.c`. Also `join_path` now strips leading `./`, `dump_program_with_others` writes one section per loaded module (sorted), and `settle_external_expr_bodied_returns` walks every non-entry module's bodies so per-module `expr_types` populate for the dump.
 - [x] **Generic trait method substitution** (2026-05-17) — landed via `trait_decl_owners` side-table + `substitute_by_name` over `Yield(T)` etc. `try_default_trait_method` for inherited Iterator defaults landed too. Unblocked iter_coerce_array (with `try_array_to_iter` in coerce.vader), iter_combinators, iter_zip_chain, trait_box_range_iter, string_codepoints. Still blocked on default-method *materialize-into-impl-with-original-line:col* (separate item below).
 - [x] **Generic fn-call argument inference back-propagation** (2026-05-17) — `call.vader::infer_call` now substitutes bindings into each param BEFORE typing it (so lambda's expected fn-type reflects already-bound type-params), and `unify_type_param` tightens Free* bindings when a later arg pins the same TypeParam to a concrete numeric. `expr_lambda.vader::pick_final_return` falls back to body's defaulted type when expected is TypeParam-bearing.

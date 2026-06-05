@@ -4,58 +4,78 @@
 
 fn snippet$main() -> i32
   locals:
-    %0 kp: string (local kp)
-    %1 ks: string (local ks)
-    %2 ka: string (local ka)
-    %3 kt: string (local kt)
-    %4 $k_8: string
-    %5 $eq_9: bool
-    %6 and_res: bool
-    %7 $k_11: string
-    %8 and_res: bool
-    %9 $k_15: string
+    %0 $k_0: string
+    %1 kp: string (local kp)
+    %2 $k_2: string
+    %3 ks: string (local ks)
+    %4 $k_4: string
+    %5 ka: string (local ka)
+    %6 $k_6: string
+    %7 kt: string (local kt)
+    %8 $k_8: string
+    %9 $eq_9: bool
     %10 and_res: bool
-    %11 $k_19: string
-    %12 $k_22: i32
-    %13 $k_23: i32
+    %11 $k_11: string
+    %12 $eq_12: bool
+    %13 $k_13: bool
+    %14 and_res: bool
+    %15 $k_15: string
+    %16 $eq_16: bool
+    %17 $k_17: bool
+    %18 and_res: bool
+    %19 $k_19: string
+    %20 $eq_20: bool
+    %21 $k_21: bool
+    %22 $k_22: i32
+    %23 $k_23: i32
   bb0:
     %0 = const string(#0) :string
-    %1 = const string(#1) :string
-    %2 = const string(#2) :string
-    %3 = const string(#3) :string
-    %4 = const string(#0) :string
-    %5 = binop eq %0 %4 :bool
-    cond_branch %5 ? bb1 : bb2
+    %1 = move %0
+    %2 = const string(#1) :string
+    %3 = move %2
+    %4 = const string(#2) :string
+    %5 = move %4
+    %6 = const string(#3) :string
+    %7 = move %6
+    %8 = const string(#0) :string
+    %9 = binop 12 %1 %8 :bool
+    cond_branch %9 ? bb1 : bb2
   bb1:
-    %7 = const string(#1) :string
-    %6 = binop eq %1 %7 :bool
+    %11 = const string(#1) :string
+    %12 = binop 12 %3 %11 :bool
+    %10 = move %12
     branch -> bb3
   bb2:
-    %6 = const bool(false) :bool
+    %13 = const bool(false) :bool
+    %10 = move %13
     branch -> bb3
   bb3:
-    cond_branch %6 ? bb4 : bb5
+    cond_branch %10 ? bb4 : bb5
   bb4:
-    %9 = const string(#2) :string
-    %8 = binop eq %2 %9 :bool
+    %15 = const string(#2) :string
+    %16 = binop 12 %5 %15 :bool
+    %14 = move %16
     branch -> bb6
   bb5:
-    %8 = const bool(false) :bool
+    %17 = const bool(false) :bool
+    %14 = move %17
     branch -> bb6
   bb6:
-    cond_branch %8 ? bb7 : bb8
+    cond_branch %14 ? bb7 : bb8
   bb7:
-    %11 = const string(#3) :string
-    %10 = binop eq %3 %11 :bool
+    %19 = const string(#3) :string
+    %20 = binop 12 %7 %19 :bool
+    %18 = move %20
     branch -> bb9
   bb8:
-    %10 = const bool(false) :bool
+    %21 = const bool(false) :bool
+    %18 = move %21
     branch -> bb9
   bb9:
-    cond_branch %10 ? bb10 : bb11
+    cond_branch %18 ? bb10 : bb11
   bb10:
-    %12 = const int(0) :i32
-    return %12
+    %22 = const int(0) :i32
+    return %22
   bb11:
-    %13 = const int(1) :i32
-    return %13
+    %23 = const int(1) :i32
+    return %23

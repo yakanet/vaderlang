@@ -5,12 +5,12 @@
     let m: MutableMap<i32, i32 | Wrap> =
       MutableMap<i32, i32 | Wrap> {
         buckets:
-          array :(Entry<i32, i32 | Wrap> | null)[]
+          array :(Entry<K, V> | null)[]
         size: int(0) :usize
       }
     call :void
       callee:
-        set_at :void
+        std_collections$MutableMap$IndexSet$set_at__i32__Any :void
       arg0:
         m :MutableMap<i32, i32 | Wrap>
       arg1:
@@ -37,13 +37,13 @@
       then:
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             "null" :string
         return int(1) :i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -65,7 +65,7 @@
     let v: i32 | null | Wrap =
       call :i32 | null | Wrap
         callee:
-          at :i32 | null | Wrap
+          std_collections$MutableMap$Index$at__i32__Any :i32 | null | Wrap
         arg0:
           m :MutableMap<i32, i32 | Wrap>
         arg1:
@@ -80,8 +80,7 @@
       cond:
         not :bool
           is Wrap :bool
-            cast → i32 | Wrap
-              v :i32 | null | Wrap
+            v :i32 | null | Wrap
       then:
         return null
     return

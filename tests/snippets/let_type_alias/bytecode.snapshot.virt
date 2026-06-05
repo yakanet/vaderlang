@@ -1,26 +1,40 @@
 module _main
 type 0 primitive null
-type 1 primitive i32
-type 2 primitive string
-type 3 primitive usize
-type 4 primitive void
-string 0 "size i32      = "
-string 1 "size i64      = "
-string 2 "size union    = "
-string 3 "size array    = "
-string 4 "\n"
-import 0 to_string std_core$usize$Display$to_string (usize) -> string
-import 1 to_string std_core$string$Display$to_string (string) -> string
-import 2 write std_io$write (i32,string) -> void
-export main 0
+type 1 primitive string
+type 2 primitive void
+type 3 primitive i32
+type 4 primitive usize
+string 0 "\n"
+string 1 "size i32      = "
+string 2 "size i64      = "
+string 3 "size union    = "
+string 4 "size array    = "
+import 0 write std_io$write (i32,string) -> void
+import 1 to_string std_core$usize$Display$to_string (usize) -> string
+import 2 to_string std_core$string$Display$to_string (string) -> string
+export main 1
 
-fn 0 snippet$main () -> i32
+fn 0 std_io$std_io$println__string (string) -> void
+  local $call_2 string
+  local.get 0
+  call 3
+  local.set 1
+  i32.const 0
+  local.get 1
+  call.import 0
+  i32.const 0
+  string.const 0
+  call.import 0
+  return
+end
+
+fn 1 snippet$main () -> i32
   local __sb_0 any
   local $call_4 string
   intrinsic builder.new
   local.set 0
   local.get 0
-  string.const 0
+  string.const 1
   intrinsic builder.append_str
   i64.const 4
   call 2
@@ -30,11 +44,11 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_str
   local.get 0
   intrinsic builder.finish
-  call 1
+  call 0
   intrinsic builder.new
   local.set 0
   local.get 0
-  string.const 1
+  string.const 2
   intrinsic builder.append_str
   i64.const 8
   call 2
@@ -44,21 +58,7 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_str
   local.get 0
   intrinsic builder.finish
-  call 1
-  intrinsic builder.new
-  local.set 0
-  local.get 0
-  string.const 2
-  intrinsic builder.append_str
-  i64.const 16
-  call 2
-  local.set 1
-  local.get 0
-  local.get 1
-  intrinsic builder.append_str
-  local.get 0
-  intrinsic builder.finish
-  call 1
+  call 0
   intrinsic builder.new
   local.set 0
   local.get 0
@@ -72,39 +72,32 @@ fn 0 snippet$main () -> i32
   intrinsic builder.append_str
   local.get 0
   intrinsic builder.finish
-  call 1
+  call 0
+  intrinsic builder.new
+  local.set 0
+  local.get 0
+  string.const 4
+  intrinsic builder.append_str
+  i64.const 16
+  call 2
+  local.set 1
+  local.get 0
+  local.get 1
+  intrinsic builder.append_str
+  local.get 0
+  intrinsic builder.finish
+  call 0
   return.lit i32.const 0
 end
 
-fn 1 std_io$std_io$println__string (string) -> void
-  local $call_2 string
-  local.get 0
-  call 3
-  local.set 1
-  i32.const 0
-  local.get 1
-  call 4
-  i32.const 0
-  string.const 4
-  call 4
-  return
-end
-
-fn 2 std_core$usize$Display$to_string$vt (usize) -> string
-  local.get 0
-  call.import 0
-  return
-end
-
-fn 3 std_core$string$Display$to_string$vt (string) -> string
+fn 2 std_core$usize$Display$to_string_vt (usize) -> string
   local.get 0
   call.import 1
   return
 end
 
-fn 4 std_io$write$vt (i32,string) -> void
+fn 3 std_core$string$Display$to_string_vt (string) -> string
   local.get 0
-  local.get 1
   call.import 2
   return
 end

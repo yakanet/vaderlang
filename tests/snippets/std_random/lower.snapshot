@@ -51,7 +51,7 @@
               int(1) :i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -104,7 +104,7 @@
               int(1) :i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_1: ? =
@@ -175,7 +175,7 @@
               int(1) :i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_2: ? =
@@ -242,7 +242,7 @@
               int(1) :i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_3: ? =
@@ -275,14 +275,14 @@
         int(8) :i32
     call :void
       callee:
-        shuffle :void
+        std_random$std_random$shuffle__i32 :void
       arg0:
         s :Rng
       arg1:
         arr :i32[]
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_4: ? =
@@ -294,7 +294,7 @@
             __sb_4 :?
             call :string
               callee:
-                to_string :string
+                std_core$usize$Display$to_string :string
               arg0:
                 LoweredArrayLen
           ~>
@@ -333,7 +333,7 @@
                 int(1) :usize
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_8: ? =
@@ -394,7 +394,7 @@
               int(1) :i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_9: ? =

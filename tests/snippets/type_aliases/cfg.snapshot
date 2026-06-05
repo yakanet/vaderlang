@@ -8,46 +8,69 @@ fn snippet$add(%0: i32, %1: i32) -> i32
     %1 b: i32 (param b)
     %2 $add_2: i32
   bb0:
-    %2 = binop add %0 %1 :i32
+    %2 = binop 0 %0 %1 :i32
+    return %2
+
+fn snippet$sum_doubles(%0: f64, %1: f64) -> f64
+  locals:
+    %0 a: f64 (param a)
+    %1 b: f64 (param b)
+    %2 $add_2: f64
+  bb0:
+    %2 = binop 0 %0 %1 :f64
     return %2
 
 fn snippet$main() -> i32
   locals:
-    %0 x: i32 (local x)
-    %1 y: i64 (local y)
-    %2 b: u8 (local b)
-    %3 $intrinsic_10: ?
-    %4 __sb_0: ? (synthetic __sb_0)
-    %5 $k_12: i32
-    %6 $call_13: i32
-    %7 $intrinsic_14: string
-    %8 $intrinsic_15: ?
-    %9 __sb_1: ? (synthetic __sb_1)
-    %10 $intrinsic_17: string
-    %11 $intrinsic_18: ?
-    %12 __sb_2: ? (synthetic __sb_2)
-    %13 $intrinsic_20: string
-    %14 $k_21: i32
+    %0 $k_0: i32
+    %1 x: i32 (local x)
+    %2 $k_2: i64
+    %3 y: i64 (local y)
+    %4 $k_4: f32
+    %5 f: f32 (local f)
+    %6 $k_6: f64
+    %7 d: f64 (local d)
+    %8 $k_8: u8
+    %9 b: u8 (local b)
+    %10 $intrinsic_10: ?
+    %11 __sb_0: ? (synthetic __sb_0)
+    %12 $k_12: i32
+    %13 $call_13: i32
+    %14 $intrinsic_14: string
+    %15 $intrinsic_15: ?
+    %16 __sb_1: ? (synthetic __sb_1)
+    %17 $intrinsic_17: string
+    %18 $intrinsic_18: ?
+    %19 __sb_2: ? (synthetic __sb_2)
+    %20 $intrinsic_20: string
+    %21 $k_21: i32
   bb0:
     %0 = const int(42) :i32
-    %1 = const int(1000000000000) :i64
-    %2 = const int(255) :u8
-    %3 = intrinsic builder.new()
-    %4 = move %3
-    %5 = const int(10) :i32
-    %6 = call add(%0, %5) :i32
-    intrinsic builder.append_display(%4, %6)
-    %7 = intrinsic builder.finish(%4)
-    call println(%7) :void
-    %8 = intrinsic builder.new()
+    %1 = move %0
+    %2 = const int(1000000000000) :i64
+    %3 = move %2
+    %4 = const float(3.14) :f32
+    %5 = move %4
+    %6 = const float(2.718281828) :f64
+    %7 = move %6
+    %8 = const int(255) :u8
     %9 = move %8
-    intrinsic builder.append_display(%9, %1)
-    %10 = intrinsic builder.finish(%9)
-    call println(%10) :void
-    %11 = intrinsic builder.new()
-    %12 = move %11
-    intrinsic builder.append_display(%12, %2)
-    %13 = intrinsic builder.finish(%12)
-    call println(%13) :void
-    %14 = const int(0) :i32
-    return %14
+    %10 = intrinsic builder.new()
+    %11 = move %10
+    %12 = const int(10) :i32
+    %13 = call add(%1, %12) :i32
+    intrinsic builder.append_display(%11, %13)
+    %14 = intrinsic builder.finish(%11)
+    call std_io$std_io$println__string(%14) :void
+    %15 = intrinsic builder.new()
+    %16 = move %15
+    intrinsic builder.append_display(%16, %3)
+    %17 = intrinsic builder.finish(%16)
+    call std_io$std_io$println__string(%17) :void
+    %18 = intrinsic builder.new()
+    %19 = move %18
+    intrinsic builder.append_display(%19, %9)
+    %20 = intrinsic builder.finish(%19)
+    call std_io$std_io$println__string(%20) :void
+    %21 = const int(0) :i32
+    return %21

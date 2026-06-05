@@ -12,7 +12,7 @@
           make_b :fn() -> Box
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -29,7 +29,7 @@
               __sb_0 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_1: ? =

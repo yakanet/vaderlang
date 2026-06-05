@@ -4,51 +4,53 @@
 
 fn snippet$main() -> i32
   locals:
-    %0 $arr_0: (Entry<string, i32> | null)[]
+    %0 $arr_0: (Entry<K, V> | null)[]
     %1 $k_1: usize
     %2 $struct_2: MutableMap<string, i32>
-    %3 c: Counts (local c)
-    %4 $field_5: MutableMap<string, i32>
-    %5 $k_6: string
-    %6 $k_7: i32
-    %7 $field_8: MutableMap<string, i32>
-    %8 $k_9: string
-    %9 $call_10: i32 | null
-    %10 v: i32 | null (local v)
-    %11 $type_check_12: bool
-    %12 $k_13: i32
-    %13 $intrinsic_14: ?
-    %14 __sb_0: ? (synthetic __sb_0)
-    %15 $k_16: string
-    %16 $cast_17: i32
-    %17 $intrinsic_18: string
-    %18 $cast_19: i32
+    %3 $struct_3: Counts
+    %4 c: Counts (local c)
+    %5 $field_5: MutableMap<string, i32>
+    %6 $k_6: string
+    %7 $k_7: i32
+    %8 $field_8: MutableMap<string, i32>
+    %9 $k_9: string
+    %10 $call_10: i32 | null
+    %11 v: i32 | null (local v)
+    %12 $type_check_12: bool
+    %13 $k_13: i32
+    %14 $intrinsic_14: ?
+    %15 __sb_0: ? (synthetic __sb_0)
+    %16 $k_16: string
+    %17 $cast_17: i32
+    %18 $intrinsic_18: string
+    %19 $cast_19: i32
   bb0:
-    %0 = array_new[stack] (Entry<string, i32> | null)[][0]()
+    %0 = array_new (Entry<K, V> | null)[][0]()
     %1 = const int(0) :usize
-    %2 = struct_new[stack] MutableMap<string, i32>(%0, %1)
-    %3 = struct_new[stack] Counts(%2)
-    %4 = field_get %3.by_name :MutableMap<string, i32>
-    %5 = const string(#0) :string
-    %6 = const int(7) :i32
-    call set_at(%4, %5, %6) :void
-    %7 = field_get %3.by_name :MutableMap<string, i32>
-    %8 = const string(#0) :string
-    %9 = call at(%7, %8) :i32 | null
-    %10 = move %9
-    %11 = type_check %10 is null
-    cond_branch %11 ? bb1 : bb2
+    %2 = struct_new MutableMap<string, i32>(%0, %1)
+    %3 = struct_new Counts(%2)
+    %4 = move %3
+    %5 = field_get %4.by_name :MutableMap<string, i32>
+    %6 = const string(#1) :string
+    %7 = const int(7) :i32
+    call std_collections$MutableMap$IndexSet$set_at__string__i32(%5, %6, %7) :void
+    %8 = field_get %4.by_name :MutableMap<string, i32>
+    %9 = const string(#1) :string
+    %10 = call std_collections$MutableMap$Index$at__string__i32(%8, %9) :i32 | null
+    %11 = move %10
+    %12 = type_check %11 is null
+    cond_branch %12 ? bb1 : bb2
   bb1:
-    %12 = const int(1) :i32
-    return %12
+    %13 = const int(1) :i32
+    return %13
   bb2:
-    %13 = intrinsic builder.new()
-    %14 = move %13
-    %15 = const string(#1) :string
-    intrinsic builder.append_str(%14, %15)
-    %16 = cast %10 :i32
-    intrinsic builder.append_display(%14, %16)
-    %17 = intrinsic builder.finish(%14)
-    call println(%17) :void
-    %18 = cast %10 :i32
-    return %18
+    %14 = intrinsic builder.new()
+    %15 = move %14
+    %16 = const string(#2) :string
+    intrinsic builder.append_str(%15, %16)
+    %17 = cast %11 :i32
+    intrinsic builder.append_display(%15, %17)
+    %18 = intrinsic builder.finish(%15)
+    call std_io$std_io$println__string(%18) :void
+    %19 = cast %11 :i32
+    return %19

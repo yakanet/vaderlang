@@ -42,7 +42,7 @@
       cond:
         call :bool
           callee:
-            contains :bool
+            std_core$Range$Contains$contains__i32 :bool
           arg0:
             Range<i32> {
               start: int(0) :i32
@@ -55,7 +55,7 @@
       then:
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             "range yes" :string
     if :void
@@ -63,7 +63,7 @@
         not :bool
           call :bool
             callee:
-              contains :bool
+              std_core$Range$Contains$contains__i32 :bool
             arg0:
               Range<i32> {
                 start: int(0) :i32
@@ -76,14 +76,14 @@
       then:
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             "range !in yes" :string
     if :void
       cond:
         call :bool
           callee:
-            contains :bool
+            std_core$Range$Contains$contains__i32 :bool
           arg0:
             Range<i32> {
               start: int(0) :i32
@@ -96,7 +96,7 @@
       then:
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             "range incl yes" :string
     let s: DigitSet =
@@ -128,7 +128,7 @@
       cond:
         call :bool
           callee:
-            contains :bool
+            snippet$DigitSet$Contains$contains :bool
           arg0:
             s :DigitSet
           arg1:
@@ -136,7 +136,7 @@
       then:
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             "set has 4" :string
     if :void
@@ -144,7 +144,7 @@
         not :bool
           call :bool
             callee:
-              contains :bool
+              snippet$DigitSet$Contains$contains :bool
             arg0:
               s :DigitSet
             arg1:
@@ -152,14 +152,14 @@
       then:
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             "set lacks 5" :string
     if :void
       cond:
         call :bool
           callee:
-            contains :bool
+            snippet$DigitSet$Contains$contains :bool
           arg0:
             s :DigitSet
           arg1:
@@ -167,7 +167,7 @@
       then:
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             "set has 7" :string
     return int(0) :i32

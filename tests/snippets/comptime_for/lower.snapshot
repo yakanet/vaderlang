@@ -5,7 +5,7 @@
     block :void
       call :void
         callee:
-          println :void
+          std_io$std_io$println__string :void
         arg0:
           block :string
             let __sb_0: ? =
@@ -17,7 +17,7 @@
               __sb_0 :?
               call :string
                 callee:
-                  to_string :string
+                  std_core$usize$Display$to_string :string
                 arg0:
                   int(4) :usize
             ~>
@@ -25,7 +25,7 @@
                 __sb_0 :?
       call :void
         callee:
-          println :void
+          std_io$std_io$println__string :void
         arg0:
           block :string
             let __sb_1: ? =
@@ -37,7 +37,7 @@
               __sb_1 :?
               call :string
                 callee:
-                  to_string :string
+                  std_core$usize$Display$to_string :string
                 arg0:
                   int(16) :usize
             ~>
@@ -46,7 +46,7 @@
     block :void
       call :void
         callee:
-          println :void
+          std_io$std_io$println__string :void
         arg0:
           block :string
             let __sb_2: ? =
@@ -61,7 +61,7 @@
               __sb_2 :?
               call :string
                 callee:
-                  to_string :string
+                  std_core$usize$Display$to_string :string
                 arg0:
                   int(4) :usize
             ~>
@@ -69,7 +69,7 @@
                 __sb_2 :?
       call :void
         callee:
-          println :void
+          std_io$std_io$println__string :void
         arg0:
           block :string
             let __sb_3: ? =
@@ -84,7 +84,7 @@
               __sb_3 :?
               call :string
                 callee:
-                  to_string :string
+                  std_core$usize$Display$to_string :string
                 arg0:
                   int(16) :usize
             ~>
@@ -92,4 +92,4 @@
                 __sb_3 :?
     return int(0) :i32
   struct snippet$Pair__i32__string { key: Any, value: Any }
-  struct snippet$Pair__i32__Any__Any { key: Any, value: Any }
+  struct snippet$Pair__Any__Any { key: Any, value: Any }

@@ -1,39 +1,53 @@
 module _main
 type 0 primitive null
-type 1 struct snippet$Vec { x:2,y:2 }
-type 2 primitive i32
-type 3 primitive string
-type 4 primitive void
-string 0 "n="
-string 1 "  v=("
-string 2 ","
-string 3 ")"
-string 4 "\n"
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 write std_io$write (i32,string) -> void
-impl 1 Add
-impl 1 Sub
-export main 2
+type 1 primitive string
+type 2 primitive void
+type 3 primitive i32
+type 4 struct snippet$Vec { x:3,y:3 }
+string 0 "\n"
+string 1 "n="
+string 2 "  v=("
+string 3 ","
+string 4 ")"
+import 0 write std_io$write (i32,string) -> void
+import 1 to_string std_core$string$Display$to_string (string) -> string
+impl 4 Add
+impl 4 Sub
+export main 3
 
-fn 0 snippet$Vec$Add$add (ref,ref) -> ref
+fn 0 std_io$std_io$println__string (string) -> void
+  local $call_2 string
+  local.get 0
+  call 4
+  local.set 1
+  i32.const 0
+  local.get 1
+  call.import 0
+  i32.const 0
+  string.const 0
+  call.import 0
+  return
+end
+
+fn 1 snippet$Vec$Add$add (ref,ref) -> ref
   local $field_2 i32
   local $field_3 i32
   local $field_6 i32
-  local.field 0 1 0
-  ref.cast 2
+  local.field 0 4 0
+  ref.cast 3
   local.set 2
-  local.field 1 1 0
-  ref.cast 2
+  local.field 1 4 0
+  ref.cast 3
   local.set 3
   local.get 2
   local.get 3
   i32.add
   local.set 2
-  local.field 0 1 1
-  ref.cast 2
+  local.field 0 4 1
+  ref.cast 3
   local.set 3
-  local.field 1 1 1
-  ref.cast 2
+  local.field 1 4 1
+  ref.cast 3
   local.set 4
   local.get 3
   local.get 4
@@ -41,29 +55,29 @@ fn 0 snippet$Vec$Add$add (ref,ref) -> ref
   local.set 3
   local.get 2
   local.get 3
-  struct.new 1
+  struct.new 4
   return
 end
 
-fn 1 snippet$Vec$Sub$sub (ref,ref) -> ref
+fn 2 snippet$Vec$Sub$sub (ref,ref) -> ref
   local $field_2 i32
   local $field_3 i32
   local $field_6 i32
-  local.field 0 1 0
-  ref.cast 2
+  local.field 0 4 0
+  ref.cast 3
   local.set 2
-  local.field 1 1 0
-  ref.cast 2
+  local.field 1 4 0
+  ref.cast 3
   local.set 3
   local.get 2
   local.get 3
   i32.sub
   local.set 2
-  local.field 0 1 1
-  ref.cast 2
+  local.field 0 4 1
+  ref.cast 3
   local.set 3
-  local.field 1 1 1
-  ref.cast 2
+  local.field 1 4 1
+  ref.cast 3
   local.set 4
   local.get 3
   local.get 4
@@ -71,11 +85,11 @@ fn 1 snippet$Vec$Sub$sub (ref,ref) -> ref
   local.set 3
   local.get 2
   local.get 3
-  struct.new 1
+  struct.new 4
   return
 end
 
-fn 2 snippet$main () -> i32
+fn 3 snippet$main () -> i32
   local n i32
   local v ref
   local $struct_18 ref
@@ -104,46 +118,37 @@ fn 2 snippet$main () -> i32
   local.set 0
   i32.const 1
   i32.const 2
-  struct.new 1
+  struct.new 4
   local.set 1
   i32.const 10
   i32.const 20
-  struct.new 1
-  local.set 2
-  local.get 1
-  local.get 2
-  call 0
-  local.set 1
-  i32.const 1
-  i32.const 1
-  struct.new 1
+  struct.new 4
   local.set 2
   local.get 1
   local.get 2
   call 1
   local.set 1
+  i32.const 1
+  i32.const 1
+  struct.new 4
+  local.set 2
+  local.get 1
+  local.get 2
+  call 2
+  local.set 1
   intrinsic builder.new
   local.set 3
   local.get 3
-  string.const 0
-  intrinsic builder.append_str
-  local.get 3
-  local.get 0
-  intrinsic builder.append_display
-  local.get 3
   string.const 1
   intrinsic builder.append_str
-  local.field 1 1 0
-  ref.cast 2
-  local.set 0
   local.get 3
   local.get 0
   intrinsic builder.append_display
   local.get 3
   string.const 2
   intrinsic builder.append_str
-  local.field 1 1 1
-  ref.cast 2
+  local.field 1 4 0
+  ref.cast 3
   local.set 0
   local.get 3
   local.get 0
@@ -151,35 +156,23 @@ fn 2 snippet$main () -> i32
   local.get 3
   string.const 3
   intrinsic builder.append_str
+  local.field 1 4 1
+  ref.cast 3
+  local.set 0
+  local.get 3
+  local.get 0
+  intrinsic builder.append_display
+  local.get 3
+  string.const 4
+  intrinsic builder.append_str
   local.get 3
   intrinsic builder.finish
-  call 3
+  call 0
   return.lit i32.const 0
 end
 
-fn 3 std_io$std_io$println__string (string) -> void
-  local $call_2 string
+fn 4 std_core$string$Display$to_string_vt (string) -> string
   local.get 0
-  call 4
-  local.set 1
-  i32.const 0
-  local.get 1
-  call 5
-  i32.const 0
-  string.const 4
-  call 5
-  return
-end
-
-fn 4 std_core$string$Display$to_string$vt (string) -> string
-  local.get 0
-  call.import 0
-  return
-end
-
-fn 5 std_io$write$vt (i32,string) -> void
-  local.get 0
-  local.get 1
   call.import 1
   return
 end

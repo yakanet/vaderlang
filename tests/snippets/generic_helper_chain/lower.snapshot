@@ -5,18 +5,18 @@
     let a: Box<Box<i32>> =
       call :Box<Box<i32>>
         callee:
-          outer :Box<Box<i32>>
+          snippet$snippet$outer__i32 :Box<Box<i32>>
         arg0:
           int(42) :i32
     let b: Box<Box<string>> =
       call :Box<Box<string>>
         callee:
-          outer :Box<Box<string>>
+          snippet$snippet$outer__string :Box<Box<string>>
         arg0:
           "ok" :string
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -31,7 +31,7 @@
               __sb_0 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_1: ? =
@@ -57,7 +57,7 @@
         value:
           call :Any
             callee:
-              inner :Any
+              snippet$snippet$inner__Any :Any
             arg0:
               x :Any
       }
@@ -67,9 +67,10 @@
         value:
           call :Box<Any>
             callee:
-              middle :Box<Any>
+              snippet$snippet$middle__Any :Box<Any>
             arg0:
               x :Any
       }
   struct snippet$Box__Any { value: Any }
   struct snippet$Box__Box_Any { value: Any }
+  struct snippet$Box__Box_Any_ { value: Any }

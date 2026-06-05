@@ -1,21 +1,35 @@
 module _main
 type 0 primitive null
-type 1 primitive i32
-type 2 primitive string
-type 3 primitive void
-string 0 "x is null"
-string 1 "x = "
-string 2 "y is null"
-string 3 "y = "
-string 4 "hello"
-string 5 "pair int   = "
-string 6 "pair str   = "
-string 7 "\n"
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 write std_io$write (i32,string) -> void
-export main 0
+type 1 primitive string
+type 2 primitive void
+type 3 primitive i32
+string 0 "\n"
+string 1 "x is null"
+string 2 "x = "
+string 3 "y is null"
+string 4 "y = "
+string 5 "hello"
+string 6 "pair int   = "
+string 7 "pair str   = "
+import 0 write std_io$write (i32,string) -> void
+import 1 to_string std_core$string$Display$to_string (string) -> string
+export main 1
 
-fn 0 snippet$main () -> i32
+fn 0 std_io$std_io$println__string (string) -> void
+  local $call_2 string
+  local.get 0
+  call 2
+  local.set 1
+  i32.const 0
+  local.get 1
+  call.import 0
+  i32.const 0
+  string.const 0
+  call.import 0
+  return
+end
+
+fn 1 snippet$main () -> i32
   local x ref
   local y ref
   local __scrut_0 ref
@@ -41,289 +55,272 @@ fn 0 snippet$main () -> i32
   local.tee 2
   type_check 0
   if $L0 void
-    string.const 0
-    call 1
+    string.const 1
+    call 0
     local.get 1
     local.tee 5
     type_check 0
     if $L1 void
-      string.const 2
-      call 1
-      string.const 4
-      local.tee 9
+      string.const 3
+      call 0
+      string.const 5
+      local.set 9
+      local.get 9
       local.tee 10
-      type_check 1
+      type_check 3
       if $L2 void
         intrinsic builder.new
         local.set 11
-        string.const 5
+        string.const 6
         local.set 12
         local.get 11
         local.get 12
         intrinsic builder.append_str
         local.get 9
-        ref.cast 1
+        ref.cast 3
         local.set 13
         local.get 11
         local.get 13
         intrinsic builder.append_display
         local.get 11
         intrinsic builder.finish
-        call 1
+        call 0
         return.lit i32.const 0
       end $L2
       local.get 10
-      type_check 2
+      type_check 1
       if $L3 void
         intrinsic builder.new
         local.set 14
-        string.const 6
+        string.const 7
         local.set 15
         local.get 14
         local.get 15
         intrinsic builder.append_str
         local.get 9
-        ref.cast 2
+        ref.cast 1
         local.set 16
         local.get 14
         local.get 16
         intrinsic builder.append_display
         local.get 14
         intrinsic builder.finish
-        call 1
+        call 0
         return.lit i32.const 0
       end $L3
-      unreachable
+      return
     end $L1
     local.get 5
-    type_check 1
+    type_check 3
     if $L4 void
       intrinsic builder.new
       local.set 6
-      string.const 3
+      string.const 4
       local.set 7
       local.get 6
       local.get 7
       intrinsic builder.append_str
       local.get 1
-      ref.cast 1
+      ref.cast 3
       local.set 8
       local.get 6
       local.get 8
       intrinsic builder.append_display
       local.get 6
       intrinsic builder.finish
-      call 1
-      string.const 4
-      local.tee 9
+      call 0
+      string.const 5
+      local.set 9
+      local.get 9
       local.tee 10
-      type_check 1
+      type_check 3
       if $L5 void
         intrinsic builder.new
         local.set 11
-        string.const 5
+        string.const 6
         local.set 12
         local.get 11
         local.get 12
         intrinsic builder.append_str
         local.get 9
-        ref.cast 1
+        ref.cast 3
         local.set 13
         local.get 11
         local.get 13
         intrinsic builder.append_display
         local.get 11
         intrinsic builder.finish
-        call 1
+        call 0
         return.lit i32.const 0
       end $L5
       local.get 10
-      type_check 2
+      type_check 1
       if $L6 void
         intrinsic builder.new
         local.set 14
-        string.const 6
+        string.const 7
         local.set 15
         local.get 14
         local.get 15
         intrinsic builder.append_str
         local.get 9
-        ref.cast 2
+        ref.cast 1
         local.set 16
         local.get 14
         local.get 16
         intrinsic builder.append_display
         local.get 14
         intrinsic builder.finish
-        call 1
+        call 0
         return.lit i32.const 0
       end $L6
-      unreachable
+      return
     end $L4
-    unreachable
+    return
   end $L0
   local.get 2
-  type_check 1
+  type_check 3
   if $L7 void
     intrinsic builder.new
     local.set 3
     local.get 3
-    string.const 1
+    string.const 2
     intrinsic builder.append_str
     local.get 0
-    ref.cast 1
+    ref.cast 3
     local.set 4
     local.get 3
     local.get 4
     intrinsic builder.append_display
     local.get 3
     intrinsic builder.finish
-    call 1
+    call 0
     local.get 1
     local.tee 5
     type_check 0
     if $L8 void
-      string.const 2
-      call 1
-      string.const 4
-      local.tee 9
+      string.const 3
+      call 0
+      string.const 5
+      local.set 9
+      local.get 9
       local.tee 10
-      type_check 1
+      type_check 3
       if $L9 void
         intrinsic builder.new
         local.set 11
-        string.const 5
+        string.const 6
         local.set 12
         local.get 11
         local.get 12
         intrinsic builder.append_str
         local.get 9
-        ref.cast 1
+        ref.cast 3
         local.set 13
         local.get 11
         local.get 13
         intrinsic builder.append_display
         local.get 11
         intrinsic builder.finish
-        call 1
+        call 0
         return.lit i32.const 0
       end $L9
       local.get 10
-      type_check 2
+      type_check 1
       if $L10 void
         intrinsic builder.new
         local.set 14
-        string.const 6
+        string.const 7
         local.set 15
         local.get 14
         local.get 15
         intrinsic builder.append_str
         local.get 9
-        ref.cast 2
+        ref.cast 1
         local.set 16
         local.get 14
         local.get 16
         intrinsic builder.append_display
         local.get 14
         intrinsic builder.finish
-        call 1
+        call 0
         return.lit i32.const 0
       end $L10
-      unreachable
+      return
     end $L8
     local.get 5
-    type_check 1
+    type_check 3
     if $L11 void
       intrinsic builder.new
       local.set 6
-      string.const 3
+      string.const 4
       local.set 7
       local.get 6
       local.get 7
       intrinsic builder.append_str
       local.get 1
-      ref.cast 1
+      ref.cast 3
       local.set 8
       local.get 6
       local.get 8
       intrinsic builder.append_display
       local.get 6
       intrinsic builder.finish
-      call 1
-      string.const 4
-      local.tee 9
+      call 0
+      string.const 5
+      local.set 9
+      local.get 9
       local.tee 10
-      type_check 1
+      type_check 3
       if $L12 void
         intrinsic builder.new
         local.set 11
-        string.const 5
+        string.const 6
         local.set 12
         local.get 11
         local.get 12
         intrinsic builder.append_str
         local.get 9
-        ref.cast 1
+        ref.cast 3
         local.set 13
         local.get 11
         local.get 13
         intrinsic builder.append_display
         local.get 11
         intrinsic builder.finish
-        call 1
+        call 0
         return.lit i32.const 0
       end $L12
       local.get 10
-      type_check 2
+      type_check 1
       if $L13 void
         intrinsic builder.new
         local.set 14
-        string.const 6
+        string.const 7
         local.set 15
         local.get 14
         local.get 15
         intrinsic builder.append_str
         local.get 9
-        ref.cast 2
+        ref.cast 1
         local.set 16
         local.get 14
         local.get 16
         intrinsic builder.append_display
         local.get 14
         intrinsic builder.finish
-        call 1
+        call 0
         return.lit i32.const 0
       end $L13
-      unreachable
+      return
     end $L11
-    unreachable
+    return
   end $L7
-  unreachable
-end
-
-fn 1 std_io$std_io$println__string (string) -> void
-  local $call_2 string
-  local.get 0
-  call 2
-  local.set 1
-  i32.const 0
-  local.get 1
-  call 3
-  i32.const 0
-  string.const 7
-  call 3
   return
 end
 
-fn 2 std_core$string$Display$to_string$vt (string) -> string
+fn 2 std_core$string$Display$to_string_vt (string) -> string
   local.get 0
-  call.import 0
-  return
-end
-
-fn 3 std_io$write$vt (i32,string) -> void
-  local.get 0
-  local.get 1
   call.import 1
   return
 end

@@ -17,8 +17,7 @@
     if :void
       cond:
         is ArrayVal :bool
-          cast → ArrayVal | IntVal
-            v :ArrayVal | IntVal | StructVal
+          v :ArrayVal | IntVal | StructVal
       then:
         return
           .type_id :i32
@@ -67,7 +66,7 @@
       }
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -87,7 +86,7 @@
               __sb_0 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_1: ? =
@@ -107,7 +106,7 @@
               __sb_1 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_2: ? =
@@ -127,7 +126,7 @@
               __sb_2 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_3: ? =

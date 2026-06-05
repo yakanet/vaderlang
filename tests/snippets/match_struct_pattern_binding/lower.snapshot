@@ -22,7 +22,7 @@
             ~>
               call :void
                 callee:
-                  println :void
+                  std_io$std_io$println__string :void
                 arg0:
                   block :string
                     let __sb_1: ? =
@@ -40,7 +40,7 @@
             ~>
               call :void
                 callee:
-                  println :void
+                  std_io$std_io$println__string :void
                 arg0:
                   "other" :string
     return int(0) :i32

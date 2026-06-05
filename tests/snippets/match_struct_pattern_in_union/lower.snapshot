@@ -58,7 +58,7 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -70,7 +70,7 @@
             }
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:

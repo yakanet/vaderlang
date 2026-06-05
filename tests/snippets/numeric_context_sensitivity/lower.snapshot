@@ -17,7 +17,7 @@
     let usz: usize = int(42) :usize
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -65,7 +65,7 @@
             __sb_0 :?
             call :string
               callee:
-                to_string :string
+                std_core$u32$Display$to_string :string
               arg0:
                 g32 :u32
           @builder.append_str :void
@@ -75,7 +75,7 @@
             __sb_0 :?
             call :string
               callee:
-                to_string :string
+                std_core$u64$Display$to_string :string
               arg0:
                 h64 :u64
           @builder.append_str :void
@@ -91,7 +91,7 @@
             __sb_0 :?
             call :string
               callee:
-                to_string :string
+                std_core$usize$Display$to_string :string
               arg0:
                 usz :usize
           ~>
@@ -123,7 +123,7 @@
           int(1) :u64
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_1: ? =
@@ -141,7 +141,7 @@
             __sb_1 :?
             call :string
               callee:
-                to_string :string
+                std_core$usize$Display$to_string :string
               arg0:
                 usz2 :usize
           @builder.append_str :void
@@ -157,7 +157,7 @@
             __sb_1 :?
             call :string
               callee:
-                to_string :string
+                std_core$u64$Display$to_string :string
               arg0:
                 h64_2 :u64
           ~>
@@ -174,7 +174,7 @@
           int(1) :isize
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_2: ? =
@@ -203,7 +203,7 @@
       }
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_3: ? =
@@ -215,7 +215,7 @@
             __sb_3 :?
             call :string
               callee:
-                to_string :string
+                std_core$usize$Display$to_string :string
               arg0:
                 .n :usize
                   c :Counter
@@ -239,7 +239,7 @@
       then:
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             "eq ok" :string
     if :void
@@ -252,7 +252,7 @@
       then:
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             "isz_neg ok" :string
     let arr: i32[] =
@@ -267,7 +267,7 @@
     let sub: i32[] =
       call :i32[]
         callee:
-          slice :i32[]
+          std_iter$std_iter$slice__i32 :i32[]
         arg0:
           arr :i32[]
         arg1:
@@ -280,7 +280,7 @@
               int(1) :usize
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_4: ? =
@@ -292,7 +292,7 @@
             __sb_4 :?
             call :string
               callee:
-                to_string :string
+                std_core$usize$Display$to_string :string
               arg0:
                 LoweredArrayLen
           ~>
@@ -302,7 +302,7 @@
       LoweredMakeClosure
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_6: ? =
@@ -314,7 +314,7 @@
             __sb_6 :?
             call :string
               callee:
-                to_string :string
+                std_core$usize$Display$to_string :string
               arg0:
                 call :usize
                   callee:

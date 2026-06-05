@@ -2,6 +2,13 @@
 
 ## snippet
 
+fn snippet$name() -> string
+  locals:
+    %0 $k_0: string
+  bb0:
+    %0 = const string(#0) :string
+    return %0
+
 fn snippet$main() -> i32
   locals:
     %0 $k_0: i32

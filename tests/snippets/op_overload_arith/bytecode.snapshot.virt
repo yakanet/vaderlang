@@ -1,45 +1,59 @@
 module _main
 type 0 primitive null
-type 1 struct snippet$Vec { x:2,y:2 }
-type 2 primitive i32
-type 3 primitive string
-type 4 primitive void
-string 0 "s=("
-string 1 ","
-string 2 ") d=("
-string 3 ") m=("
-string 4 ") q=("
-string 5 ") r=("
-string 6 ")"
-string 7 "\n"
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 write std_io$write (i32,string) -> void
-impl 1 Add
-impl 1 Sub
-impl 1 Mul
-impl 1 Div
-impl 1 Rem
-export main 5
+type 1 primitive string
+type 2 primitive void
+type 3 primitive i32
+type 4 struct snippet$Vec { x:3,y:3 }
+string 0 "\n"
+string 1 "s=("
+string 2 ","
+string 3 ") d=("
+string 4 ") m=("
+string 5 ") q=("
+string 6 ") r=("
+string 7 ")"
+import 0 write std_io$write (i32,string) -> void
+import 1 to_string std_core$string$Display$to_string (string) -> string
+impl 4 Add
+impl 4 Sub
+impl 4 Mul
+impl 4 Div
+impl 4 Rem
+export main 6
 
-fn 0 snippet$Vec$Add$add (ref,ref) -> ref
+fn 0 std_io$std_io$println__string (string) -> void
+  local $call_2 string
+  local.get 0
+  call 7
+  local.set 1
+  i32.const 0
+  local.get 1
+  call.import 0
+  i32.const 0
+  string.const 0
+  call.import 0
+  return
+end
+
+fn 1 snippet$Vec$Add$add (ref,ref) -> ref
   local $field_2 i32
   local $field_3 i32
   local $field_6 i32
-  local.field 0 1 0
-  ref.cast 2
+  local.field 0 4 0
+  ref.cast 3
   local.set 2
-  local.field 1 1 0
-  ref.cast 2
+  local.field 1 4 0
+  ref.cast 3
   local.set 3
   local.get 2
   local.get 3
   i32.add
   local.set 2
-  local.field 0 1 1
-  ref.cast 2
+  local.field 0 4 1
+  ref.cast 3
   local.set 3
-  local.field 1 1 1
-  ref.cast 2
+  local.field 1 4 1
+  ref.cast 3
   local.set 4
   local.get 3
   local.get 4
@@ -47,29 +61,29 @@ fn 0 snippet$Vec$Add$add (ref,ref) -> ref
   local.set 3
   local.get 2
   local.get 3
-  struct.new 1
+  struct.new 4
   return
 end
 
-fn 1 snippet$Vec$Sub$sub (ref,ref) -> ref
+fn 2 snippet$Vec$Sub$sub (ref,ref) -> ref
   local $field_2 i32
   local $field_3 i32
   local $field_6 i32
-  local.field 0 1 0
-  ref.cast 2
+  local.field 0 4 0
+  ref.cast 3
   local.set 2
-  local.field 1 1 0
-  ref.cast 2
+  local.field 1 4 0
+  ref.cast 3
   local.set 3
   local.get 2
   local.get 3
   i32.sub
   local.set 2
-  local.field 0 1 1
-  ref.cast 2
+  local.field 0 4 1
+  ref.cast 3
   local.set 3
-  local.field 1 1 1
-  ref.cast 2
+  local.field 1 4 1
+  ref.cast 3
   local.set 4
   local.get 3
   local.get 4
@@ -77,29 +91,29 @@ fn 1 snippet$Vec$Sub$sub (ref,ref) -> ref
   local.set 3
   local.get 2
   local.get 3
-  struct.new 1
+  struct.new 4
   return
 end
 
-fn 2 snippet$Vec$Mul$mul (ref,ref) -> ref
+fn 3 snippet$Vec$Mul$mul (ref,ref) -> ref
   local $field_2 i32
   local $field_3 i32
   local $field_6 i32
-  local.field 0 1 0
-  ref.cast 2
+  local.field 0 4 0
+  ref.cast 3
   local.set 2
-  local.field 1 1 0
-  ref.cast 2
+  local.field 1 4 0
+  ref.cast 3
   local.set 3
   local.get 2
   local.get 3
   i32.mul
   local.set 2
-  local.field 0 1 1
-  ref.cast 2
+  local.field 0 4 1
+  ref.cast 3
   local.set 3
-  local.field 1 1 1
-  ref.cast 2
+  local.field 1 4 1
+  ref.cast 3
   local.set 4
   local.get 3
   local.get 4
@@ -107,29 +121,29 @@ fn 2 snippet$Vec$Mul$mul (ref,ref) -> ref
   local.set 3
   local.get 2
   local.get 3
-  struct.new 1
+  struct.new 4
   return
 end
 
-fn 3 snippet$Vec$Div$div (ref,ref) -> ref
+fn 4 snippet$Vec$Div$div (ref,ref) -> ref
   local $field_2 i32
   local $field_3 i32
   local $field_6 i32
-  local.field 0 1 0
-  ref.cast 2
+  local.field 0 4 0
+  ref.cast 3
   local.set 2
-  local.field 1 1 0
-  ref.cast 2
+  local.field 1 4 0
+  ref.cast 3
   local.set 3
   local.get 2
   local.get 3
   i32.div
   local.set 2
-  local.field 0 1 1
-  ref.cast 2
+  local.field 0 4 1
+  ref.cast 3
   local.set 3
-  local.field 1 1 1
-  ref.cast 2
+  local.field 1 4 1
+  ref.cast 3
   local.set 4
   local.get 3
   local.get 4
@@ -137,29 +151,29 @@ fn 3 snippet$Vec$Div$div (ref,ref) -> ref
   local.set 3
   local.get 2
   local.get 3
-  struct.new 1
+  struct.new 4
   return
 end
 
-fn 4 snippet$Vec$Rem$rem (ref,ref) -> ref
+fn 5 snippet$Vec$Rem$rem (ref,ref) -> ref
   local $field_2 i32
   local $field_3 i32
   local $field_6 i32
-  local.field 0 1 0
-  ref.cast 2
+  local.field 0 4 0
+  ref.cast 3
   local.set 2
-  local.field 1 1 0
-  ref.cast 2
+  local.field 1 4 0
+  ref.cast 3
   local.set 3
   local.get 2
   local.get 3
   i32.rem
   local.set 2
-  local.field 0 1 1
-  ref.cast 2
+  local.field 0 4 1
+  ref.cast 3
   local.set 3
-  local.field 1 1 1
-  ref.cast 2
+  local.field 1 4 1
+  ref.cast 3
   local.set 4
   local.get 3
   local.get 4
@@ -167,11 +181,11 @@ fn 4 snippet$Vec$Rem$rem (ref,ref) -> ref
   local.set 3
   local.get 2
   local.get 3
-  struct.new 1
+  struct.new 4
   return
 end
 
-fn 5 snippet$main () -> i32
+fn 6 snippet$main () -> i32
   local a ref
   local b ref
   local s ref
@@ -182,48 +196,39 @@ fn 5 snippet$main () -> i32
   local $field_21 i32
   i32.const 10
   i32.const 20
-  struct.new 1
+  struct.new 4
   local.set 0
   i32.const 3
   i32.const 4
-  struct.new 1
+  struct.new 4
   local.set 1
   local.get 0
   local.get 1
-  call 0
+  call 1
   local.set 2
   local.get 0
   local.get 1
-  call 1
+  call 2
   local.set 3
   local.get 0
   local.get 1
-  call 2
+  call 3
   local.set 4
   local.get 0
   local.get 1
-  call 3
+  call 4
   local.set 5
   local.get 0
   local.get 1
-  call 4
+  call 5
   local.set 0
   intrinsic builder.new
   local.set 6
   local.get 6
-  string.const 0
-  intrinsic builder.append_str
-  local.field 2 1 0
-  ref.cast 2
-  local.set 7
-  local.get 6
-  local.get 7
-  intrinsic builder.append_display
-  local.get 6
   string.const 1
   intrinsic builder.append_str
-  local.field 2 1 1
-  ref.cast 2
+  local.field 2 4 0
+  ref.cast 3
   local.set 7
   local.get 6
   local.get 7
@@ -231,17 +236,8 @@ fn 5 snippet$main () -> i32
   local.get 6
   string.const 2
   intrinsic builder.append_str
-  local.field 3 1 0
-  ref.cast 2
-  local.set 7
-  local.get 6
-  local.get 7
-  intrinsic builder.append_display
-  local.get 6
-  string.const 1
-  intrinsic builder.append_str
-  local.field 3 1 1
-  ref.cast 2
+  local.field 2 4 1
+  ref.cast 3
   local.set 7
   local.get 6
   local.get 7
@@ -249,17 +245,17 @@ fn 5 snippet$main () -> i32
   local.get 6
   string.const 3
   intrinsic builder.append_str
-  local.field 4 1 0
-  ref.cast 2
+  local.field 3 4 0
+  ref.cast 3
   local.set 7
   local.get 6
   local.get 7
   intrinsic builder.append_display
   local.get 6
-  string.const 1
+  string.const 2
   intrinsic builder.append_str
-  local.field 4 1 1
-  ref.cast 2
+  local.field 3 4 1
+  ref.cast 3
   local.set 7
   local.get 6
   local.get 7
@@ -267,17 +263,17 @@ fn 5 snippet$main () -> i32
   local.get 6
   string.const 4
   intrinsic builder.append_str
-  local.field 5 1 0
-  ref.cast 2
+  local.field 4 4 0
+  ref.cast 3
   local.set 7
   local.get 6
   local.get 7
   intrinsic builder.append_display
   local.get 6
-  string.const 1
+  string.const 2
   intrinsic builder.append_str
-  local.field 5 1 1
-  ref.cast 2
+  local.field 4 4 1
+  ref.cast 3
   local.set 7
   local.get 6
   local.get 7
@@ -285,17 +281,17 @@ fn 5 snippet$main () -> i32
   local.get 6
   string.const 5
   intrinsic builder.append_str
-  local.field 0 1 0
-  ref.cast 2
+  local.field 5 4 0
+  ref.cast 3
   local.set 7
   local.get 6
   local.get 7
   intrinsic builder.append_display
   local.get 6
-  string.const 1
+  string.const 2
   intrinsic builder.append_str
-  local.field 0 1 1
-  ref.cast 2
+  local.field 5 4 1
+  ref.cast 3
   local.set 7
   local.get 6
   local.get 7
@@ -303,35 +299,32 @@ fn 5 snippet$main () -> i32
   local.get 6
   string.const 6
   intrinsic builder.append_str
+  local.field 0 4 0
+  ref.cast 3
+  local.set 7
+  local.get 6
+  local.get 7
+  intrinsic builder.append_display
+  local.get 6
+  string.const 2
+  intrinsic builder.append_str
+  local.field 0 4 1
+  ref.cast 3
+  local.set 7
+  local.get 6
+  local.get 7
+  intrinsic builder.append_display
+  local.get 6
+  string.const 7
+  intrinsic builder.append_str
   local.get 6
   intrinsic builder.finish
-  call 6
+  call 0
   return.lit i32.const 0
 end
 
-fn 6 std_io$std_io$println__string (string) -> void
-  local $call_2 string
+fn 7 std_core$string$Display$to_string_vt (string) -> string
   local.get 0
-  call 7
-  local.set 1
-  i32.const 0
-  local.get 1
-  call 8
-  i32.const 0
-  string.const 7
-  call 8
-  return
-end
-
-fn 7 std_core$string$Display$to_string$vt (string) -> string
-  local.get 0
-  call.import 0
-  return
-end
-
-fn 8 std_io$write$vt (i32,string) -> void
-  local.get 0
-  local.get 1
   call.import 1
   return
 end

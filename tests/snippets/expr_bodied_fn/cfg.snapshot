@@ -7,7 +7,7 @@ fn snippet$square(%0: i32) -> i32
     %0 x: i32 (param x)
     %1 $mul_1: i32
   bb0:
-    %1 = binop mul %0 %0 :i32
+    %1 = binop 2 %0 %0 :i32
     return %1
 
 fn snippet$max(%0: f64, %1: f64) -> f64
@@ -17,7 +17,7 @@ fn snippet$max(%0: f64, %1: f64) -> f64
     %2 $gt_2: bool
     %3 if_res: f64
   bb0:
-    %2 = binop gt %0 %1 :bool
+    %2 = binop 16 %0 %1 :bool
     cond_branch %2 ? bb1 : bb2
   bb1:
     %3 = move %0
@@ -37,7 +37,7 @@ fn snippet$b(%0: i32) -> i32
   bb0:
     %1 = call a(%0) :i32
     %2 = const int(1) :i32
-    %3 = binop add %1 %2 :i32
+    %3 = binop 0 %1 %2 :i32
     return %3
 
 fn snippet$a(%0: i32) -> i32
@@ -47,7 +47,7 @@ fn snippet$a(%0: i32) -> i32
     %2 $mul_2: i32
   bb0:
     %1 = const int(10) :i32
-    %2 = binop mul %0 %1 :i32
+    %2 = binop 2 %0 %1 :i32
     return %2
 
 fn snippet$main() -> i32
@@ -94,7 +94,7 @@ fn snippet$main() -> i32
     %3 = call square(%2) :i32
     intrinsic builder.append_display(%1, %3)
     %4 = intrinsic builder.finish(%1)
-    call println(%4) :void
+    call std_io$std_io$println__string(%4) :void
     %5 = intrinsic builder.new()
     %6 = move %5
     %7 = const float(3.5) :f64
@@ -102,39 +102,39 @@ fn snippet$main() -> i32
     %9 = call max(%7, %8) :f64
     intrinsic builder.append_display(%6, %9)
     %10 = intrinsic builder.finish(%6)
-    call println(%10) :void
+    call std_io$std_io$println__string(%10) :void
     %11 = intrinsic builder.new()
     %12 = move %11
-    %13 = const float(10) :f64
-    %14 = const float(4) :f64
+    %13 = const float(10.0) :f64
+    %14 = const float(4.0) :f64
     %15 = call max(%13, %14) :f64
     intrinsic builder.append_display(%12, %15)
     %16 = intrinsic builder.finish(%12)
-    call println(%16) :void
+    call std_io$std_io$println__string(%16) :void
     %17 = intrinsic builder.new()
     %18 = move %17
     %19 = const int(5) :i32
     %20 = call b(%19) :i32
     intrinsic builder.append_display(%18, %20)
     %21 = intrinsic builder.finish(%18)
-    call println(%21) :void
+    call std_io$std_io$println__string(%21) :void
     %22 = intrinsic builder.new()
     %23 = move %22
     %24 = const int(42) :i32
-    %25 = call id(%24) :i32
+    %25 = call snippet$snippet$id__i32(%24) :i32
     intrinsic builder.append_display(%23, %25)
     %26 = intrinsic builder.finish(%23)
-    call println(%26) :void
+    call std_io$std_io$println__string(%26) :void
     %27 = intrinsic builder.new()
     %28 = move %27
     %29 = const float(7.5) :f64
-    %30 = call id(%29) :f64
+    %30 = call snippet$snippet$id__f64(%29) :f64
     intrinsic builder.append_display(%28, %30)
     %31 = intrinsic builder.finish(%28)
-    call println(%31) :void
-    %32 = const string(#0) :string
-    %33 = call id(%32) :string
-    call println(%33) :void
+    call std_io$std_io$println__string(%31) :void
+    %32 = const string(#1) :string
+    %33 = call snippet$snippet$id__string(%32) :string
+    call std_io$std_io$println__string(%33) :void
     %34 = const int(0) :i32
     return %34
 

@@ -4,7 +4,7 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -17,7 +17,7 @@
                 "vader" :string
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -30,13 +30,13 @@
                 "héllo café 你好" :string
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
             as_string :string
           arg0:
-            slice :const u8[]
+            slice :u8[]
               on:
                 call :const u8[]
                   callee:
@@ -61,7 +61,7 @@
               "" :string
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_0: ? =

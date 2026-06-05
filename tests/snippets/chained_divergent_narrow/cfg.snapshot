@@ -7,46 +7,42 @@ fn snippet$params_of(%0: FnLike | Meta | Other | Unres) -> i32
     %0 t: FnLike | Meta | Other | Unres (param t)
     %1 $type_check_1: bool
     %2 $k_2: i32
-    %3 $neg_3: i32
-    %4 $cast_4: FnLike | Other | Unres
-    %5 $type_check_5: bool
-    %6 $k_6: i32
-    %7 $neg_7: i32
-    %8 $cast_8: FnLike | Other
-    %9 $type_check_9: bool
-    %10 $not_10: bool
-    %11 $k_11: i32
-    %12 $neg_12: i32
-    %13 $cast_13: FnLike
-    %14 $field_14: i32
+    %3 $unop_3: i32
+    %4 $type_check_4: bool
+    %5 $k_5: i32
+    %6 $unop_6: i32
+    %7 $type_check_7: bool
+    %8 $unop_8: bool
+    %9 $k_9: i32
+    %10 $unop_10: i32
+    %11 $cast_11: FnLike
+    %12 $field_12: i32
   bb0:
     %1 = type_check %0 is Meta
     cond_branch %1 ? bb1 : bb2
   bb1:
     %2 = const int(1) :i32
-    %3 = unop neg %2 :i32
+    %3 = unop 0 %2 :i32
     return %3
   bb2:
-    %4 = cast %0 :FnLike | Other | Unres
-    %5 = type_check %4 is Unres
-    cond_branch %5 ? bb3 : bb4
+    %4 = type_check %0 is Unres
+    cond_branch %4 ? bb3 : bb4
   bb3:
-    %6 = const int(2) :i32
-    %7 = unop neg %6 :i32
-    return %7
+    %5 = const int(2) :i32
+    %6 = unop 0 %5 :i32
+    return %6
   bb4:
-    %8 = cast %0 :FnLike | Other
-    %9 = type_check %8 is FnLike
-    %10 = unop not %9 :bool
-    cond_branch %10 ? bb5 : bb6
+    %7 = type_check %0 is FnLike
+    %8 = unop 1 %7 :bool
+    cond_branch %8 ? bb5 : bb6
   bb5:
-    %11 = const int(3) :i32
-    %12 = unop neg %11 :i32
-    return %12
+    %9 = const int(3) :i32
+    %10 = unop 0 %9 :i32
+    return %10
   bb6:
-    %13 = cast %0 :FnLike
-    %14 = field_get %13.params :i32
-    return %14
+    %11 = cast %0 :FnLike
+    %12 = field_get %11.params :i32
+    return %12
 
 fn snippet$main() -> i32
   locals:
@@ -74,12 +70,12 @@ fn snippet$main() -> i32
     %7 = move %6
     %8 = intrinsic builder.new()
     %9 = move %8
-    %10 = const string(#0) :string
+    %10 = const string(#1) :string
     intrinsic builder.append_str(%9, %10)
     intrinsic builder.append_display(%9, %3)
-    %11 = const string(#1) :string
+    %11 = const string(#2) :string
     intrinsic builder.append_str(%9, %11)
     intrinsic builder.append_display(%9, %7)
     %12 = intrinsic builder.finish(%9)
-    call println(%12) :void
+    call std_io$std_io$println__string(%12) :void
     return %3

@@ -5,7 +5,7 @@
     ~>
       call :void
         callee:
-          println :void
+          std_io$std_io$println__string :void
         arg0:
           block :string
             let __sb_0: ? =
@@ -42,7 +42,7 @@
         p :Path
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -62,7 +62,7 @@
               __sb_0 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_1: ? =
@@ -82,7 +82,7 @@
               __sb_1 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_2: ? =
@@ -134,7 +134,7 @@
           "/usr/local/bin/vader" :string
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_3: ? =
@@ -195,7 +195,7 @@
                 abs :Path
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_4: ? =
@@ -217,7 +217,7 @@
               __sb_4 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_5: ? =
@@ -303,7 +303,7 @@
             "foo" :string
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_6: ? =
@@ -333,7 +333,7 @@
               __sb_6 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_7: ? =
@@ -363,7 +363,7 @@
               __sb_7 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_8: ? =
@@ -393,7 +393,7 @@
               __sb_8 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_9: ? =

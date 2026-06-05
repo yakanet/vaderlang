@@ -28,7 +28,7 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -46,7 +46,7 @@
               __sb_0 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_1: ? =
@@ -65,3 +65,5 @@
             @builder.finish :string
               __sb_1 :?
     return int(0) :i32
+
+## snippet/palette

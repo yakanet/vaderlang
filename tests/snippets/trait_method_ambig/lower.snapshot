@@ -40,7 +40,7 @@
     let s: string =
       call :string
         callee:
-          greet :string
+          snippet$Cat$Greet$greet :string
         arg0:
           c :Cat
     return int(0) :i32

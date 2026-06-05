@@ -47,7 +47,7 @@ fn 0 snippet$run (ref,bool,bool) -> i32
           loop $L4 void
             local.get 8
             local.get 7
-            usize.lt
+            u64.lt
             if $L5 void
               local.get 6
               local.get 8
@@ -64,7 +64,7 @@ fn 0 snippet$run (ref,bool,bool) -> i32
                 local.set 11
                 local.get 8
                 local.get 11
-                usize.add
+                i64.add
                 local.set 8
                 br $L4
               end $L6
@@ -78,7 +78,7 @@ fn 0 snippet$run (ref,bool,bool) -> i32
               local.set 13
               local.get 8
               local.get 13
-              usize.add
+              i64.add
               local.set 8
               br $L4
             else
@@ -113,7 +113,7 @@ fn 0 snippet$run (ref,bool,bool) -> i32
           loop $L11 void
             local.get 8
             local.get 7
-            usize.lt
+            u64.lt
             if $L12 void
               local.get 6
               local.get 8
@@ -130,7 +130,7 @@ fn 0 snippet$run (ref,bool,bool) -> i32
                 local.set 11
                 local.get 8
                 local.get 11
-                usize.add
+                i64.add
                 local.set 8
                 br $L11
               end $L13
@@ -144,7 +144,7 @@ fn 0 snippet$run (ref,bool,bool) -> i32
               local.set 13
               local.get 8
               local.get 13
-              usize.add
+              i64.add
               local.set 8
               br $L11
             else
@@ -158,7 +158,7 @@ fn 0 snippet$run (ref,bool,bool) -> i32
     local.get 5
     return
   end $L7
-  unreachable
+  return
 end
 
 fn 1 snippet$main () -> i32

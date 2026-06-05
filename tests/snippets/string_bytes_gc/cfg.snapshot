@@ -14,7 +14,7 @@ fn snippet$view_of(%0: i32) -> const u8[]
   bb0:
     %1 = intrinsic builder.new()
     %2 = move %1
-    %3 = const string(#0) :string
+    %3 = const string(#1) :string
     intrinsic builder.append_str(%2, %3)
     intrinsic builder.append_display(%2, %0)
     %4 = intrinsic builder.finish(%2)
@@ -26,33 +26,45 @@ fn snippet$fold(%0: const u8[]) -> u64
   locals:
     %0 v: const u8[] (param v)
     %1 $k_1: u64
-    %2 acc: u64 (local acc)
-    %3 __for_arr_0: const u8[] (synthetic __for_arr_0)
-    %4 __for_len_1: usize (synthetic __for_len_1)
-    %5 __for_i_2: usize (synthetic __for_i_2)
-    %6 $lt_9: bool
-    %7 b: u8 (binding b)
-    %8 $cast_12: u64
-    %9 $k_14: usize
+    %2 $cast_2: u64
+    %3 acc: u64 (local acc)
+    %4 __for_arr_0: const u8[] (synthetic __for_arr_0)
+    %5 $len_5: usize
+    %6 __for_len_1: usize (synthetic __for_len_1)
+    %7 $k_7: usize
+    %8 __for_i_2: usize (synthetic __for_i_2)
+    %9 $lt_9: bool
+    %10 $idx_10: u8
+    %11 b: u8 (local b)
+    %12 $cast_12: u64
+    %13 $add_13: u64
+    %14 $k_14: usize
+    %15 $add_15: usize
   bb0:
     %1 = const int(0) :u64
     %2 = cast %1 :u64
-    %3 = move %0
-    %4 = array_len %3
-    %5 = const int(0) :usize
+    %3 = move %2
+    %4 = move %0
+    %5 = array_len %4
+    %6 = move %5
+    %7 = const int(0) :usize
+    %8 = move %7
     branch -> bb1
   bb1:
-    %6 = binop lt %5 %4 :bool
-    cond_branch %6 ? bb2 : bb3
+    %9 = binop 14 %8 %6 :bool
+    cond_branch %9 ? bb2 : bb3
   bb2:
-    %7 = array_get %3[%5] :u8
-    %8 = cast %7 :u64
-    %2 = binop add %2 %8 :u64
-    %9 = const int(1) :usize
-    %5 = binop add %5 %9 :usize
+    %10 = array_get %4[%8] :u8
+    %11 = move %10
+    %12 = cast %11 :u64
+    %13 = binop 0 %3 %12 :u64
+    %3 = move %13
+    %14 = const int(1) :usize
+    %15 = binop 0 %8 %14 :usize
+    %8 = move %15
     branch -> bb1
   bb3:
-    return %2
+    return %3
 
 fn snippet$main() -> i32
   locals:
@@ -79,22 +91,29 @@ fn snippet$main() -> i32
     %20 $call_20: u64
     %21 $neq_21: bool
     %22 or_res: bool
-    %23 $call_24: u64
-    %24 or_res: bool
-    %25 $call_28: u64
+    %23 $k_23: bool
+    %24 $call_24: u64
+    %25 $neq_25: bool
     %26 or_res: bool
-    %27 $call_32: u64
-    %28 $k_34: string
-    %29 $k_35: i32
-    %30 $add_36: u64
-    %31 $add_37: u64
-    %32 total: u64 (local total)
-    %33 $intrinsic_40: ?
-    %34 __sb_0: ? (synthetic __sb_0)
-    %35 $k_42: string
-    %36 $call_43: string
-    %37 $intrinsic_44: string
-    %38 $k_45: i32
+    %27 $k_27: bool
+    %28 $call_28: u64
+    %29 $neq_29: bool
+    %30 or_res: bool
+    %31 $k_31: bool
+    %32 $call_32: u64
+    %33 $neq_33: bool
+    %34 $k_34: string
+    %35 $k_35: i32
+    %36 $add_36: u64
+    %37 $add_37: u64
+    %38 $add_38: u64
+    %39 total: u64 (local total)
+    %40 $intrinsic_40: ?
+    %41 __sb_0: ? (synthetic __sb_0)
+    %42 $k_42: string
+    %43 $call_43: string
+    %44 $intrinsic_44: string
+    %45 $k_45: i32
   bb0:
     %0 = const int(1) :i32
     %1 = call view_of(%0) :const u8[]
@@ -119,51 +138,58 @@ fn snippet$main() -> i32
     call collect() :void
     call collect() :void
     %20 = call fold(%2) :u64
-    %21 = binop neq %20 %13 :bool
+    %21 = binop 13 %20 %13 :bool
     cond_branch %21 ? bb1 : bb2
   bb1:
-    %22 = const bool(true) :bool
+    %23 = const bool(true) :bool
+    %22 = move %23
     branch -> bb3
   bb2:
-    %23 = call fold(%5) :u64
-    %22 = binop neq %23 %15 :bool
+    %24 = call fold(%5) :u64
+    %25 = binop 13 %24 %15 :bool
+    %22 = move %25
     branch -> bb3
   bb3:
     cond_branch %22 ? bb4 : bb5
   bb4:
-    %24 = const bool(true) :bool
+    %27 = const bool(true) :bool
+    %26 = move %27
     branch -> bb6
   bb5:
-    %25 = call fold(%8) :u64
-    %24 = binop neq %25 %17 :bool
+    %28 = call fold(%8) :u64
+    %29 = binop 13 %28 %17 :bool
+    %26 = move %29
     branch -> bb6
   bb6:
-    cond_branch %24 ? bb7 : bb8
+    cond_branch %26 ? bb7 : bb8
   bb7:
-    %26 = const bool(true) :bool
+    %31 = const bool(true) :bool
+    %30 = move %31
     branch -> bb9
   bb8:
-    %27 = call fold(%11) :u64
-    %26 = binop neq %27 %19 :bool
+    %32 = call fold(%11) :u64
+    %33 = binop 13 %32 %19 :bool
+    %30 = move %33
     branch -> bb9
   bb9:
-    cond_branch %26 ? bb10 : bb11
+    cond_branch %30 ? bb10 : bb11
   bb10:
-    %28 = const string(#1) :string
-    call println(%28) :void
-    %29 = const int(1) :i32
-    return %29
+    %34 = const string(#2) :string
+    call std_io$std_io$println__string(%34) :void
+    %35 = const int(1) :i32
+    return %35
   bb11:
-    %30 = binop add %13 %15 :u64
-    %31 = binop add %30 %17 :u64
-    %32 = binop add %31 %19 :u64
-    %33 = intrinsic builder.new()
-    %34 = move %33
-    %35 = const string(#2) :string
-    intrinsic builder.append_str(%34, %35)
-    %36 = call to_string(%32) :string
-    intrinsic builder.append_str(%34, %36)
-    %37 = intrinsic builder.finish(%34)
-    call println(%37) :void
-    %38 = const int(0) :i32
-    return %38
+    %36 = binop 0 %13 %15 :u64
+    %37 = binop 0 %36 %17 :u64
+    %38 = binop 0 %37 %19 :u64
+    %39 = move %38
+    %40 = intrinsic builder.new()
+    %41 = move %40
+    %42 = const string(#3) :string
+    intrinsic builder.append_str(%41, %42)
+    %43 = call std_core$u64$Display$to_string(%39) :string
+    intrinsic builder.append_str(%41, %43)
+    %44 = intrinsic builder.finish(%41)
+    call std_io$std_io$println__string(%44) :void
+    %45 = const int(0) :i32
+    return %45

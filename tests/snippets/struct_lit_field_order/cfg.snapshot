@@ -7,37 +7,39 @@ fn snippet$main() -> i32
     %0 $k_0: i32
     %1 $k_1: i32
     %2 $k_2: i32
-    %3 p: P (local p)
-    %4 $intrinsic_5: ?
-    %5 __sb_0: ? (synthetic __sb_0)
-    %6 $k_7: string
-    %7 $field_8: i32
-    %8 $k_9: string
-    %9 $field_10: i32
-    %10 $k_11: string
-    %11 $field_12: i32
-    %12 $intrinsic_13: string
-    %13 $k_14: i32
+    %3 $struct_3: P
+    %4 p: P (local p)
+    %5 $intrinsic_5: ?
+    %6 __sb_0: ? (synthetic __sb_0)
+    %7 $k_7: string
+    %8 $field_8: i32
+    %9 $k_9: string
+    %10 $field_10: i32
+    %11 $k_11: string
+    %12 $field_12: i32
+    %13 $intrinsic_13: string
+    %14 $k_14: i32
   bb0:
     %0 = const int(1) :i32
     %1 = const int(2) :i32
     %2 = const int(3) :i32
-    %3 = struct_new[stack] P(%0, %1, %2)
-    %4 = intrinsic builder.new()
-    %5 = move %4
-    %6 = const string(#0) :string
-    intrinsic builder.append_str(%5, %6)
-    %7 = field_get %3.a :i32
-    intrinsic builder.append_display(%5, %7)
-    %8 = const string(#1) :string
-    intrinsic builder.append_str(%5, %8)
-    %9 = field_get %3.b :i32
-    intrinsic builder.append_display(%5, %9)
-    %10 = const string(#2) :string
-    intrinsic builder.append_str(%5, %10)
-    %11 = field_get %3.c :i32
-    intrinsic builder.append_display(%5, %11)
-    %12 = intrinsic builder.finish(%5)
-    call println(%12) :void
-    %13 = const int(0) :i32
-    return %13
+    %3 = struct_new P(%0, %1, %2)
+    %4 = move %3
+    %5 = intrinsic builder.new()
+    %6 = move %5
+    %7 = const string(#1) :string
+    intrinsic builder.append_str(%6, %7)
+    %8 = field_get %4.a :i32
+    intrinsic builder.append_display(%6, %8)
+    %9 = const string(#2) :string
+    intrinsic builder.append_str(%6, %9)
+    %10 = field_get %4.b :i32
+    intrinsic builder.append_display(%6, %10)
+    %11 = const string(#3) :string
+    intrinsic builder.append_str(%6, %11)
+    %12 = field_get %4.c :i32
+    intrinsic builder.append_display(%6, %12)
+    %13 = intrinsic builder.finish(%6)
+    call std_io$std_io$println__string(%13) :void
+    %14 = const int(0) :i32
+    return %14

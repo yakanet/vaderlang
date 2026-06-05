@@ -8,7 +8,7 @@ fn snippet$add(%0: i32, %1: i32) -> i32
     %1 y: i32 (param y)
     %2 $add_2: i32
   bb0:
-    %2 = binop add %0 %1 :i32
+    %2 = binop 0 %0 %1 :i32
     return %2
 
 fn snippet$demo() -> i32
@@ -17,50 +17,126 @@ fn snippet$demo() -> i32
     %1 $k_1: i32
     %2 $k_2: i32
     %3 $mul_3: {integer}
-    %4 a: i32 (local a)
-    %5 $k_15: bool
-    %6 $not_16: bool
-    %7 and_res: bool
-    %8 $k_38: i32
-    %9 $k_39: i32
-    %10 $call_40: i32
-    %11 $k_42: i32
-    %12 $k_43: i32
-    %13 $call_44: i32
-    %14 cond: bool (local cond)
+    %4 $add_4: {integer}
+    %5 a: i32 (local a)
+    %6 $k_6: i32
+    %7 $k_7: i32
+    %8 $add_8: {integer}
+    %9 $k_9: i32
+    %10 $mul_10: {integer}
+    %11 b: i32 (local b)
+    %12 $unop_12: i32
+    %13 $add_13: i32
+    %14 c: i32 (local c)
+    %15 $k_15: bool
+    %16 $unop_16: bool
+    %17 and_res: bool
+    %18 $k_18: bool
+    %19 $k_19: bool
+    %20 or_res: bool
+    %21 $k_21: bool
+    %22 $k_22: bool
+    %23 d: bool (local d)
+    %24 $k_24: i32
+    %25 $k_25: i32
+    %26 $k_26: bool
+    %27 $k_27: i32
+    %28 $struct_28: Range<i32>
+    %29 e: Range<i32> (local e)
+    %30 $k_30: i32
+    %31 $k_31: i32
+    %32 $k_32: i32
+    %33 $arr_33: i32[]
+    %34 arr: i32[] (local arr)
+    %35 $k_35: i32
+    %36 $idx_36: i32
+    %37 f: i32 (local f)
+    %38 $k_38: i32
+    %39 $k_39: i32
+    %40 $call_40: i32
+    %41 h: i32 (local h)
+    %42 $k_42: i32
+    %43 $k_43: i32
+    %44 $call_44: i32
+    %45 i: i32 (local i)
+    %46 $k_46: bool
+    %47 cond: bool (local cond)
+    %48 if_res: {integer}
+    %49 $k_49: i32
+    %50 $k_50: i32
+    %51 j: i32 (local j)
   bb0:
     %0 = const int(1) :i32
     %1 = const int(2) :i32
     %2 = const int(3) :i32
-    %3 = binop mul %1 %2 :{integer}
-    %4 = binop add %0 %3 :{integer}
-    %5 = const bool(true) :bool
-    %6 = unop not %5 :bool
-    cond_branch %6 ? bb1 : bb2
+    %3 = binop 2 %1 %2 :{integer}
+    %4 = binop 0 %0 %3 :{integer}
+    %5 = move %4
+    %6 = const int(1) :i32
+    %7 = const int(2) :i32
+    %8 = binop 0 %6 %7 :{integer}
+    %9 = const int(3) :i32
+    %10 = binop 2 %8 %9 :{integer}
+    %11 = move %10
+    %12 = unop 0 %5 :i32
+    %13 = binop 0 %12 %11 :i32
+    %14 = move %13
+    %15 = const bool(true) :bool
+    %16 = unop 1 %15 :bool
+    cond_branch %16 ? bb1 : bb2
   bb1:
-    %7 = const bool(false) :bool
+    %18 = const bool(false) :bool
+    %17 = move %18
     branch -> bb3
   bb2:
-    %7 = const bool(false) :bool
+    %19 = const bool(false) :bool
+    %17 = move %19
     branch -> bb3
   bb3:
-    cond_branch %7 ? bb4 : bb5
+    cond_branch %17 ? bb4 : bb5
   bb4:
+    %21 = const bool(true) :bool
+    %20 = move %21
     branch -> bb6
   bb5:
+    %22 = const bool(true) :bool
+    %20 = move %22
     branch -> bb6
   bb6:
-    %8 = const int(1) :i32
-    %9 = const int(2) :i32
-    %10 = call add(%8, %9) :i32
-    %11 = const int(10) :i32
-    %12 = const int(20) :i32
-    %13 = call add(%11, %12) :i32
-    %14 = const bool(true) :bool
-    cond_branch %14 ? bb7 : bb8
+    %23 = move %20
+    %24 = const int(0) :i32
+    %25 = const int(10) :i32
+    %26 = const bool(false) :bool
+    %27 = const int(0) :i32
+    %28 = struct_new Range<i32>(%24, %25, %26, %27)
+    %29 = move %28
+    %30 = const int(1) :i32
+    %31 = const int(2) :i32
+    %32 = const int(3) :i32
+    %33 = array_new i32[][3](%30, %31, %32)
+    %34 = move %33
+    %35 = const int(0) :i32
+    %36 = array_get %34[%35] :i32
+    %37 = move %36
+    %38 = const int(1) :i32
+    %39 = const int(2) :i32
+    %40 = call add(%38, %39) :i32
+    %41 = move %40
+    %42 = const int(10) :i32
+    %43 = const int(20) :i32
+    %44 = call add(%42, %43) :i32
+    %45 = move %44
+    %46 = const bool(true) :bool
+    %47 = move %46
+    cond_branch %47 ? bb7 : bb8
   bb7:
+    %49 = const int(1) :i32
+    %48 = move %49
     branch -> bb9
   bb8:
+    %50 = const int(2) :i32
+    %48 = move %50
     branch -> bb9
   bb9:
-    return %4
+    %51 = move %48
+    return %5

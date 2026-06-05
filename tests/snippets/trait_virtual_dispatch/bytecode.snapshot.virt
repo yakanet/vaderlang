@@ -1,44 +1,39 @@
 module _main
 type 0 primitive null
-type 1 struct snippet$ParseErr { msg:2 }
-type 2 primitive string
-type 3 struct snippet$NetErr { reason:2 }
+type 1 primitive string
+type 2 primitive void
+type 3 primitive i32
 type 4 ref Error
-type 5 primitive i32
-type 6 primitive void
-string 0 "parse: "
-string 1 "net: "
-string 2 "bad token"
-string 3 "timeout"
-string 4 "\n"
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 write std_io$write (i32,string) -> void
-impl 1 Error
-impl 3 Error
-vtable Error.message 1 0
-vtable Error.message 3 1
-export main 3
+type 5 struct snippet$ParseErr { msg:1 }
+type 6 struct snippet$NetErr { reason:1 }
+string 0 "\n"
+string 1 "parse: "
+string 2 "net: "
+string 3 "bad token"
+string 4 "timeout"
+import 0 write std_io$write (i32,string) -> void
+import 1 to_string std_core$string$Display$to_string (string) -> string
+impl 5 Error
+impl 6 Error
+vtable Error.message 5 1
+vtable Error.message 6 2
+export main 4
 
-fn 0 snippet$ParseErr$Error$message (ref) -> string
-  local __sb_0 any
-  local $field_4 string
-  intrinsic builder.new
+fn 0 std_io$std_io$println__string (string) -> void
+  local $call_2 string
+  local.get 0
+  call 5
   local.set 1
+  i32.const 0
   local.get 1
+  call.import 0
+  i32.const 0
   string.const 0
-  intrinsic builder.append_str
-  local.field 0 1 0
-  ref.cast 2
-  local.set 2
-  local.get 1
-  local.get 2
-  intrinsic builder.append_display
-  local.get 1
-  intrinsic builder.finish
+  call.import 0
   return
 end
 
-fn 1 snippet$NetErr$Error$message (ref) -> string
+fn 1 snippet$ParseErr$Error$message (ref) -> string
   local __sb_0 any
   local $field_4 string
   intrinsic builder.new
@@ -46,8 +41,8 @@ fn 1 snippet$NetErr$Error$message (ref) -> string
   local.get 1
   string.const 1
   intrinsic builder.append_str
-  local.field 0 3 0
-  ref.cast 2
+  local.field 0 5 0
+  ref.cast 1
   local.set 2
   local.get 1
   local.get 2
@@ -57,47 +52,45 @@ fn 1 snippet$NetErr$Error$message (ref) -> string
   return
 end
 
-fn 2 snippet$report (ref) -> string
+fn 2 snippet$NetErr$Error$message (ref) -> string
+  local __sb_0 any
+  local $field_4 string
+  intrinsic builder.new
+  local.set 1
+  local.get 1
+  string.const 2
+  intrinsic builder.append_str
+  local.field 0 6 0
+  ref.cast 1
+  local.set 2
+  local.get 1
+  local.get 2
+  intrinsic builder.append_display
+  local.get 1
+  intrinsic builder.finish
+  return
+end
+
+fn 3 snippet$report (ref) -> string
   local.get 0
   virtual.call 1 Error.message
   return
 end
 
-fn 3 snippet$main () -> i32
-  string.const 2
-  struct.new 1
-  call 2
-  call 4
+fn 4 snippet$main () -> i32
   string.const 3
-  struct.new 3
-  call 2
-  call 4
+  struct.new 5
+  call 3
+  call 0
+  string.const 4
+  struct.new 6
+  call 3
+  call 0
   return.lit i32.const 0
 end
 
-fn 4 std_io$std_io$println__string (string) -> void
-  local $call_2 string
+fn 5 std_core$string$Display$to_string_vt (string) -> string
   local.get 0
-  call 5
-  local.set 1
-  i32.const 0
-  local.get 1
-  call 6
-  i32.const 0
-  string.const 4
-  call 6
-  return
-end
-
-fn 5 std_core$string$Display$to_string$vt (string) -> string
-  local.get 0
-  call.import 0
-  return
-end
-
-fn 6 std_io$write$vt (i32,string) -> void
-  local.get 0
-  local.get 1
   call.import 1
   return
 end

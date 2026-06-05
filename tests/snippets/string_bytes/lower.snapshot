@@ -4,7 +4,7 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         "-- ascii --" :string
     let sum: u32 =
@@ -48,7 +48,7 @@
                 int(1) :usize
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_3: ? =
@@ -60,7 +60,7 @@
             __sb_3 :?
             call :string
               callee:
-                to_string :string
+                std_core$u32$Display$to_string :string
               arg0:
                 sum :u32
           ~>
@@ -68,7 +68,7 @@
               __sb_3 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         "-- multibyte --" :string
     block :void
@@ -90,7 +90,7 @@
               __for_i_6 :usize
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             block :string
               let __sb_7: ? =
@@ -119,12 +119,12 @@
           bom :string
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         "-- bom --" :string
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_8: ? =
@@ -164,7 +164,7 @@
               __sb_8 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_9: ? =
@@ -198,55 +198,55 @@
               __sb_9 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         "-- empty --" :string
     block :void
-      let __for_arr_10: const u8[] =
+      let __for_arr_11: const u8[] =
         call :const u8[]
           callee:
             bytes :const u8[]
           arg0:
             "" :string
-      let __for_len_11: usize =
+      let __for_len_12: usize =
         LoweredArrayLen
-      let __for_i_12: usize = int(0) :usize
+      let __for_i_13: usize = int(0) :usize
       loop while (<…>)
         let b: u8 =
           index :u8
             on:
-              __for_arr_10 :const u8[]
+              __for_arr_11 :const u8[]
             ix:
-              __for_i_12 :usize
+              __for_i_13 :usize
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             "never" :string
         assign
           target:
-            __for_i_12 :usize
+            __for_i_13 :usize
           value:
             add :usize
               l:
-                __for_i_12 :usize
+                __for_i_13 :usize
               r:
                 int(1) :usize
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_13: ? =
+          let __sb_14: ? =
             @builder.new :?
           @builder.append_str :void
-            __sb_13 :?
+            __sb_14 :?
             "done bytes=" :string
           @builder.append_str :void
-            __sb_13 :?
+            __sb_14 :?
             call :string
               callee:
-                to_string :string
+                std_core$usize$Display$to_string :string
               arg0:
                 call :usize
                   callee:
@@ -255,10 +255,10 @@
                     "" :string
           ~>
             @builder.finish :string
-              __sb_13 :?
+              __sb_14 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         "-- u8[] surface --" :string
     let bs: const u8[] =
@@ -269,46 +269,46 @@
           "abc" :string
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_14: ? =
+          let __sb_15: ? =
             @builder.new :?
           @builder.append_str :void
-            __sb_14 :?
+            __sb_15 :?
             "len=" :string
           @builder.append_str :void
-            __sb_14 :?
+            __sb_15 :?
             call :string
               callee:
-                to_string :string
+                std_core$usize$Display$to_string :string
               arg0:
                 LoweredArrayLen
           @builder.append_str :void
-            __sb_14 :?
+            __sb_15 :?
             " bs[0]=" :string
           @builder.append_display <for u8> :void
-            __sb_14 :?
+            __sb_15 :?
             index :u8
               on:
                 bs :const u8[]
               ix:
                 int(0) :i32
           @builder.append_str :void
-            __sb_14 :?
+            __sb_15 :?
             " bs[1]=" :string
           @builder.append_display <for u8> :void
-            __sb_14 :?
+            __sb_15 :?
             index :u8
               on:
                 bs :const u8[]
               ix:
                 int(1) :i32
           @builder.append_str :void
-            __sb_14 :?
+            __sb_15 :?
             " bs[2]=" :string
           @builder.append_display <for u8> :void
-            __sb_14 :?
+            __sb_15 :?
             index :u8
               on:
                 bs :const u8[]
@@ -316,14 +316,14 @@
                 int(2) :i32
           ~>
             @builder.finish :string
-              __sb_14 :?
+              __sb_15 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         "-- slice --" :string
-    let sl: const u8[] =
-      slice :const u8[]
+    let sl: u8[] =
+      slice :u8[]
         on:
           call :const u8[]
             callee:
@@ -338,52 +338,52 @@
             int(4) :usize
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_15: ? =
+          let __sb_16: ? =
             @builder.new :?
           @builder.append_str :void
-            __sb_15 :?
+            __sb_16 :?
             "sl.len=" :string
           @builder.append_str :void
-            __sb_15 :?
+            __sb_16 :?
             call :string
               callee:
-                to_string :string
+                std_core$usize$Display$to_string :string
               arg0:
                 LoweredArrayLen
           @builder.append_str :void
-            __sb_15 :?
+            __sb_16 :?
             " sl0=" :string
           @builder.append_display <for u8> :void
-            __sb_15 :?
+            __sb_16 :?
             index :u8
               on:
-                sl :const u8[]
+                sl :u8[]
               ix:
                 int(0) :i32
           @builder.append_str :void
-            __sb_15 :?
+            __sb_16 :?
             " sl1=" :string
           @builder.append_display <for u8> :void
-            __sb_15 :?
+            __sb_16 :?
             index :u8
               on:
-                sl :const u8[]
+                sl :u8[]
               ix:
                 int(1) :i32
           @builder.append_str :void
-            __sb_15 :?
+            __sb_16 :?
             " sl2=" :string
           @builder.append_display <for u8> :void
-            __sb_15 :?
+            __sb_16 :?
             index :u8
               on:
-                sl :const u8[]
+                sl :u8[]
               ix:
                 int(2) :i32
           ~>
             @builder.finish :string
-              __sb_15 :?
+              __sb_16 :?
     return int(0) :i32

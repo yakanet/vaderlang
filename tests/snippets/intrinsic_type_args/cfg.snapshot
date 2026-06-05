@@ -6,60 +6,72 @@ fn snippet$main() -> i32
   locals:
     %0 $type_const_0: type
     %1 $type_const_1: type
-    %2 __for_arr_0: type[] (synthetic __for_arr_0)
-    %3 __for_len_1: usize (synthetic __for_len_1)
-    %4 __for_i_2: usize (synthetic __for_i_2)
-    %5 $lt_8: bool
-    %6 t: type (binding t)
-    %7 $intrinsic_11: ?
-    %8 __sb_3: ? (synthetic __sb_3)
-    %9 $k_13: string
-    %10 $intrinsic_14: usize
-    %11 $call_15: string
-    %12 $intrinsic_16: string
-    %13 $k_17: usize
-    %14 args: type[] (local args)
-    %15 $intrinsic_21: ?
-    %16 __sb_4: ? (synthetic __sb_4)
-    %17 $k_23: string
-    %18 $len_24: usize
-    %19 $call_25: string
-    %20 $intrinsic_26: string
-    %21 $k_27: i32
+    %2 $arr_2: type[]
+    %3 __for_arr_0: type[] (synthetic __for_arr_0)
+    %4 $len_4: usize
+    %5 __for_len_1: usize (synthetic __for_len_1)
+    %6 $k_6: usize
+    %7 __for_i_2: usize (synthetic __for_i_2)
+    %8 $lt_8: bool
+    %9 $idx_9: type
+    %10 t: type (local t)
+    %11 $intrinsic_11: ?
+    %12 __sb_3: ? (synthetic __sb_3)
+    %13 $k_13: string
+    %14 $intrinsic_14: usize
+    %15 $call_15: string
+    %16 $intrinsic_16: string
+    %17 $k_17: usize
+    %18 $add_18: usize
+    %19 $arr_19: type[]
+    %20 args: type[] (local args)
+    %21 $intrinsic_21: ?
+    %22 __sb_4: ? (synthetic __sb_4)
+    %23 $k_23: string
+    %24 $len_24: usize
+    %25 $call_25: string
+    %26 $intrinsic_26: string
+    %27 $k_27: i32
   bb0:
     %0 = type_const string
     %1 = type_const i64
-    %2 = array_new[stack] type[][2](%0, %1)
-    %3 = array_len %2
-    %4 = const int(0) :usize
+    %2 = array_new type[][2](%0, %1)
+    %3 = move %2
+    %4 = array_len %3
+    %5 = move %4
+    %6 = const int(0) :usize
+    %7 = move %6
     branch -> bb1
   bb1:
-    %5 = binop lt %4 %3 :bool
-    cond_branch %5 ? bb2 : bb3
+    %8 = binop 14 %7 %5 :bool
+    cond_branch %8 ? bb2 : bb3
   bb2:
-    %6 = array_get %2[%4] :type
-    %7 = intrinsic builder.new()
-    %8 = move %7
-    %9 = const string(#0) :string
-    intrinsic builder.append_str(%8, %9)
-    %10 = intrinsic size_of.type(%6)
-    %11 = call to_string(%10) :string
-    intrinsic builder.append_str(%8, %11)
-    %12 = intrinsic builder.finish(%8)
-    call println(%12) :void
-    %13 = const int(1) :usize
-    %4 = binop add %4 %13 :usize
+    %9 = array_get %3[%7] :type
+    %10 = move %9
+    %11 = intrinsic builder.new()
+    %12 = move %11
+    %13 = const string(#1) :string
+    intrinsic builder.append_str(%12, %13)
+    %14 = intrinsic size_of.type(%10)
+    %15 = call std_core$usize$Display$to_string(%14) :string
+    intrinsic builder.append_str(%12, %15)
+    %16 = intrinsic builder.finish(%12)
+    call std_io$std_io$println__string(%16) :void
+    %17 = const int(1) :usize
+    %18 = binop 0 %7 %17 :usize
+    %7 = move %18
     branch -> bb1
   bb3:
-    %14 = array_new[stack] type[][0]()
-    %15 = intrinsic builder.new()
-    %16 = move %15
-    %17 = const string(#1) :string
-    intrinsic builder.append_str(%16, %17)
-    %18 = array_len %14
-    %19 = call to_string(%18) :string
-    intrinsic builder.append_str(%16, %19)
-    %20 = intrinsic builder.finish(%16)
-    call println(%20) :void
-    %21 = const int(0) :i32
-    return %21
+    %19 = array_new type[][0]()
+    %20 = move %19
+    %21 = intrinsic builder.new()
+    %22 = move %21
+    %23 = const string(#2) :string
+    intrinsic builder.append_str(%22, %23)
+    %24 = array_len %20
+    %25 = call std_core$usize$Display$to_string(%24) :string
+    intrinsic builder.append_str(%22, %25)
+    %26 = intrinsic builder.finish(%22)
+    call std_io$std_io$println__string(%26) :void
+    %27 = const int(0) :i32
+    return %27

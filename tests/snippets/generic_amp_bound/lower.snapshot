@@ -5,13 +5,13 @@
     let s: string =
       call :string
         callee:
-          needs_add :string
+          snippet$snippet$needs_add__string :string
         arg0:
           "hello" :string
     let b: i32 =
       call :i32
         callee:
-          bar :i32
+          snippet$snippet$bar__i32__i32 :i32
         arg0:
           int(1) :i32
         arg1:

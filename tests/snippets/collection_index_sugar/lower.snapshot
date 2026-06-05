@@ -5,12 +5,12 @@
     let m: MutableMap<string, i32> =
       MutableMap<string, i32> {
         buckets:
-          array :(Entry<string, i32> | null)[]
+          array :(Entry<K, V> | null)[]
         size: int(0) :usize
       }
     call :void
       callee:
-        set_at :void
+        std_collections$MutableMap$IndexSet$set_at__string__i32 :void
       arg0:
         m :MutableMap<string, i32>
       arg1:
@@ -19,7 +19,7 @@
         int(10) :i32
     call :void
       callee:
-        set_at :void
+        std_collections$MutableMap$IndexSet$set_at__string__i32 :void
       arg0:
         m :MutableMap<string, i32>
       arg1:
@@ -28,7 +28,7 @@
         int(20) :i32
     call :void
       callee:
-        set_at :void
+        std_collections$MutableMap$IndexSet$set_at__string__i32 :void
       arg0:
         m :MutableMap<string, i32>
       arg1:
@@ -39,7 +39,7 @@
       let __scrut_0: i32 | null =
         call :i32 | null
           callee:
-            at :i32 | null
+            std_collections$MutableMap$Index$at__string__i32 :i32 | null
           arg0:
             m :MutableMap<string, i32>
           arg1:
@@ -56,7 +56,7 @@
             ~>
               call :void
                 callee:
-                  println :void
+                  std_io$std_io$println__string :void
                 arg0:
                   block :string
                     let __sb_1: ? =
@@ -80,7 +80,7 @@
                   ~>
                     call :void
                       callee:
-                        println :void
+                        std_io$std_io$println__string :void
                       arg0:
                         "a missing" :string
                 else:
@@ -90,7 +90,7 @@
       let __scrut_2: i32 | null =
         call :i32 | null
           callee:
-            at :i32 | null
+            std_collections$MutableMap$Index$at__string__i32 :i32 | null
           arg0:
             m :MutableMap<string, i32>
           arg1:
@@ -104,7 +104,7 @@
             ~>
               call :void
                 callee:
-                  println :void
+                  std_io$std_io$println__string :void
                 arg0:
                   "c found?!" :string
           else:
@@ -117,7 +117,7 @@
                   ~>
                     call :void
                       callee:
-                        println :void
+                        std_io$std_io$println__string :void
                       arg0:
                         "c missing" :string
                 else:
@@ -127,7 +127,7 @@
       cond:
         call :bool
           callee:
-            contains :bool
+            std_collections$MutableMap$Contains$contains__string__i32 :bool
           arg0:
             m :MutableMap<string, i32>
           arg1:
@@ -135,7 +135,7 @@
       then:
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             "a in m" :string
     if :void
@@ -143,7 +143,7 @@
         not :bool
           call :bool
             callee:
-              contains :bool
+              std_collections$MutableMap$Contains$contains__string__i32 :bool
             arg0:
               m :MutableMap<string, i32>
             arg1:
@@ -151,7 +151,7 @@
       then:
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             "z not in m" :string
     let s: MutableSet<i32> =
@@ -159,20 +159,20 @@
         inner:
           MutableMap<i32, bool> {
             buckets:
-              array :(Entry<i32, bool> | null)[]
+              array :(Entry<K, V> | null)[]
             size: int(0) :usize
           }
       }
     call :bool
       callee:
-        add :bool
+        std_collections$std_collections$add__i32 :bool
       arg0:
         s :MutableSet<i32>
       arg1:
         int(1) :i32
     call :bool
       callee:
-        add :bool
+        std_collections$std_collections$add__i32 :bool
       arg0:
         s :MutableSet<i32>
       arg1:
@@ -181,7 +181,7 @@
       cond:
         call :bool
           callee:
-            contains :bool
+            std_collections$MutableSet$Contains$contains__i32 :bool
           arg0:
             s :MutableSet<i32>
           arg1:
@@ -189,7 +189,7 @@
       then:
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             "1 in s" :string
     if :void
@@ -197,7 +197,7 @@
         not :bool
           call :bool
             callee:
-              contains :bool
+              std_collections$MutableSet$Contains$contains__i32 :bool
             arg0:
               s :MutableSet<i32>
             arg1:
@@ -205,7 +205,7 @@
       then:
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             "3 not in s" :string
     return int(0) :i32

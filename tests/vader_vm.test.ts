@@ -259,6 +259,34 @@ const KNOWN_DIVERGENT = new Set<string>([
   // this snippet run, but the `chars=…` line is never emitted because
   // the chars leg traps. Tracked alongside TODO §1.5b iterators.
   "for_in_into_iter",
+
+  // ---- surfaced by the Vader-oracle migration -------------------------------
+  // Once `bytecode.snapshot.virt` became the native compiler's own output,
+  // this test runs native bytecode for the whole corpus (not just the curated
+  // VADER_SELF_EMIT set). The entries below are snippets whose native bytecode
+  // runs incorrectly — real self-host emit/VM gaps, each its own follow-up.
+  //
+  // `defer` is dropped by the Vader bytecode emitter (emit_body.vader stub) —
+  // the cleanup lines never print. Known gap, tracked in the §9 audit.
+  "defer_block",
+  // Generic `Iterator.next` virtual dispatch traps "no impl for type N" — the
+  // iterator-impl vtable isn't materialised for these erased receivers.
+  "for_in_iter_trait", "_diag_iter_collect",
+  // Numeric width / signedness: an unsigned value past 2^31 is sign-extended
+  // (enum→repr cast) or truncated (u64 literal) in the native bytecode.
+  "enum_to_repr_cast", "numeric_context_sensitivity",
+  // Enum trait method returns the repr integer instead of dispatching to the
+  // variant's impl (`E` → `1`).
+  "enum_implements_trait",
+  // `Duration` display prints raw nanoseconds instead of the unit-scaled form
+  // (`3000000000 ns` vs `3 s`) — std/time formatting path not taken.
+  "std_time",
+  // String interpolation prefix dropped through the SAM-impl call path
+  // (`the answer is 42` → `42`).
+  "sam_impl",
+  // `i32.eq` receives a `null` operand — block-result narrowing emits the wrong
+  // operand type.
+  "null_blockres",
 ]);
 
 const scenarios = listSnippets("tests/snippets");

@@ -21,12 +21,12 @@
     let n: i32 =
       call :i32
         callee:
-          identity :i32
+          snippet$snippet$identity__i32 :i32
         arg0:
           int(42) :i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -43,12 +43,12 @@
     let e: i32 =
       call :i32
         callee:
-          identity :i32
+          snippet$snippet$identity__i32 :i32
         arg0:
           int(42) :i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_1: ? =
@@ -65,12 +65,12 @@
     let b: Box<i32> =
       call :Box<i32>
         callee:
-          make_box :Box<i32>
+          snippet$snippet$make_box__i32 :Box<i32>
         arg0:
           int(7) :i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_2: ? =
@@ -88,12 +88,12 @@
     let nested: Box<Box<i32>> =
       call :Box<Box<i32>>
         callee:
-          make_nested :Box<Box<i32>>
+          snippet$snippet$make_nested__i32 :Box<Box<i32>>
         arg0:
           int(99) :i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_3: ? =
@@ -115,7 +115,7 @@
           demo_comparison_in_args :fn() -> bool
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_4: ? =
@@ -150,3 +150,4 @@
       }
   struct snippet$Box__Any { value: Any }
   struct snippet$Box__Box_Any { value: Any }
+  struct snippet$Box__Box_Any_ { value: Any }

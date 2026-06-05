@@ -9,7 +9,7 @@ fn snippet$make_pair() -> [i32, string]
     %2 $struct_2: [i32, string]
   bb0:
     %0 = const int(10) :i32
-    %1 = const string(#0) :string
+    %1 = const string(#1) :string
     %2 = struct_new [i32, string](%0, %1)
     return %2
 
@@ -17,35 +17,39 @@ fn snippet$main() -> i32
   locals:
     %0 $call_0: [i32, string]
     %1 __tup_0: [i32, string] (synthetic __tup_0)
-    %2 n: i32 (local n)
-    %3 s: string (local s)
-    %4 $intrinsic_6: ?
-    %5 __sb_1: ? (synthetic __sb_1)
-    %6 $k_8: string
-    %7 $intrinsic_9: string
-    %8 $intrinsic_10: ?
-    %9 __sb_2: ? (synthetic __sb_2)
-    %10 $k_12: string
-    %11 $intrinsic_13: string
-    %12 $k_14: i32
+    %2 $field_2: i32
+    %3 n: i32 (local n)
+    %4 $field_4: string
+    %5 s: string (local s)
+    %6 $intrinsic_6: ?
+    %7 __sb_1: ? (synthetic __sb_1)
+    %8 $k_8: string
+    %9 $intrinsic_9: string
+    %10 $intrinsic_10: ?
+    %11 __sb_2: ? (synthetic __sb_2)
+    %12 $k_12: string
+    %13 $intrinsic_13: string
+    %14 $k_14: i32
   bb0:
     %0 = call make_pair() :[i32, string]
     %1 = move %0
     %2 = field_get %1._0 :i32
-    %3 = field_get %1._1 :string
-    %4 = intrinsic builder.new()
+    %3 = move %2
+    %4 = field_get %1._1 :string
     %5 = move %4
-    %6 = const string(#1) :string
-    intrinsic builder.append_str(%5, %6)
-    intrinsic builder.append_display(%5, %2)
-    %7 = intrinsic builder.finish(%5)
-    call println(%7) :void
-    %8 = intrinsic builder.new()
-    %9 = move %8
-    %10 = const string(#2) :string
-    intrinsic builder.append_str(%9, %10)
-    intrinsic builder.append_display(%9, %3)
-    %11 = intrinsic builder.finish(%9)
-    call println(%11) :void
-    %12 = const int(0) :i32
-    return %12
+    %6 = intrinsic builder.new()
+    %7 = move %6
+    %8 = const string(#2) :string
+    intrinsic builder.append_str(%7, %8)
+    intrinsic builder.append_display(%7, %3)
+    %9 = intrinsic builder.finish(%7)
+    call std_io$std_io$println__string(%9) :void
+    %10 = intrinsic builder.new()
+    %11 = move %10
+    %12 = const string(#3) :string
+    intrinsic builder.append_str(%11, %12)
+    intrinsic builder.append_display(%11, %5)
+    %13 = intrinsic builder.finish(%11)
+    call std_io$std_io$println__string(%13) :void
+    %14 = const int(0) :i32
+    return %14

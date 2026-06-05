@@ -27,7 +27,7 @@
                 int(1) :u64
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -39,7 +39,7 @@
             __sb_0 :?
             call :string
               callee:
-                to_string :string
+                std_core$u64$Display$to_string :string
               arg0:
                 su :u64
           ~>
@@ -70,7 +70,7 @@
                 int(1) :i64
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_1: ? =
@@ -109,7 +109,7 @@
                 int(1) :isize
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_2: ? =
@@ -151,7 +151,7 @@
                 int(1) :u8
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_3: ? =
@@ -163,7 +163,7 @@
             __sb_3 :?
             call :string
               callee:
-                to_string :string
+                std_core$u32$Display$to_string :string
               arg0:
                 sb :u32
           ~>
@@ -199,7 +199,7 @@
                 int(1) :i16
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_5: ? =

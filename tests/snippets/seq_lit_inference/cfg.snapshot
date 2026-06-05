@@ -7,72 +7,86 @@ fn snippet$main() -> i32
     %0 $k_0: i32
     %1 $k_1: i32
     %2 $k_2: i32
-    %3 __for_arr_0: i32[] (synthetic __for_arr_0)
-    %4 __for_len_1: usize (synthetic __for_len_1)
-    %5 __for_i_2: usize (synthetic __for_i_2)
-    %6 $lt_10: bool
-    %7 s: i32 (binding s)
-    %8 $intrinsic_13: ?
-    %9 __sb_3: ? (synthetic __sb_3)
-    %10 $k_15: string
-    %11 $intrinsic_16: string
-    %12 $k_17: usize
-    %13 $k_19: i32
-    %14 $k_20: string
-    %15 entry: [i32, string] (local entry)
-    %16 $intrinsic_23: ?
-    %17 __sb_4: ? (synthetic __sb_4)
-    %18 $k_25: string
-    %19 $field_26: i32
-    %20 $intrinsic_27: string
-    %21 $intrinsic_28: ?
-    %22 __sb_5: ? (synthetic __sb_5)
-    %23 $k_30: string
-    %24 $field_31: string
-    %25 $intrinsic_32: string
-    %26 $k_33: i32
+    %3 $arr_3: i32[]
+    %4 scores: i32[] (local scores)
+    %5 __for_arr_0: i32[] (synthetic __for_arr_0)
+    %6 $len_6: usize
+    %7 __for_len_1: usize (synthetic __for_len_1)
+    %8 $k_8: usize
+    %9 __for_i_2: usize (synthetic __for_i_2)
+    %10 $lt_10: bool
+    %11 $idx_11: i32
+    %12 s: i32 (local s)
+    %13 $intrinsic_13: ?
+    %14 __sb_3: ? (synthetic __sb_3)
+    %15 $k_15: string
+    %16 $intrinsic_16: string
+    %17 $k_17: usize
+    %18 $add_18: usize
+    %19 $k_19: i32
+    %20 $k_20: string
+    %21 $struct_21: [i32, string]
+    %22 entry: [i32, string] (local entry)
+    %23 $intrinsic_23: ?
+    %24 __sb_4: ? (synthetic __sb_4)
+    %25 $k_25: string
+    %26 $field_26: i32
+    %27 $intrinsic_27: string
+    %28 $intrinsic_28: ?
+    %29 __sb_5: ? (synthetic __sb_5)
+    %30 $k_30: string
+    %31 $field_31: string
+    %32 $intrinsic_32: string
+    %33 $k_33: i32
   bb0:
     %0 = const int(10) :i32
     %1 = const int(20) :i32
     %2 = const int(30) :i32
-    %3 = array_new[stack] i32[][3](%0, %1, %2)
-    %4 = array_len %3
-    %5 = const int(0) :usize
+    %3 = array_new i32[][3](%0, %1, %2)
+    %4 = move %3
+    %5 = move %4
+    %6 = array_len %5
+    %7 = move %6
+    %8 = const int(0) :usize
+    %9 = move %8
     branch -> bb1
   bb1:
-    %6 = binop lt %5 %4 :bool
-    cond_branch %6 ? bb2 : bb3
+    %10 = binop 14 %9 %7 :bool
+    cond_branch %10 ? bb2 : bb3
   bb2:
-    %7 = array_get %3[%5] :i32
-    %8 = intrinsic builder.new()
-    %9 = move %8
-    %10 = const string(#0) :string
-    intrinsic builder.append_str(%9, %10)
-    intrinsic builder.append_display(%9, %7)
-    %11 = intrinsic builder.finish(%9)
-    call println(%11) :void
-    %12 = const int(1) :usize
-    %5 = binop add %5 %12 :usize
+    %11 = array_get %5[%9] :i32
+    %12 = move %11
+    %13 = intrinsic builder.new()
+    %14 = move %13
+    %15 = const string(#1) :string
+    intrinsic builder.append_str(%14, %15)
+    intrinsic builder.append_display(%14, %12)
+    %16 = intrinsic builder.finish(%14)
+    call std_io$std_io$println__string(%16) :void
+    %17 = const int(1) :usize
+    %18 = binop 0 %9 %17 :usize
+    %9 = move %18
     branch -> bb1
   bb3:
-    %13 = const int(42) :i32
-    %14 = const string(#1) :string
-    %15 = struct_new[stack] [i32, string](%13, %14)
-    %16 = intrinsic builder.new()
-    %17 = move %16
-    %18 = const string(#2) :string
-    intrinsic builder.append_str(%17, %18)
-    %19 = field_get %15._0 :i32
-    intrinsic builder.append_display(%17, %19)
-    %20 = intrinsic builder.finish(%17)
-    call println(%20) :void
-    %21 = intrinsic builder.new()
+    %19 = const int(42) :i32
+    %20 = const string(#2) :string
+    %21 = struct_new [i32, string](%19, %20)
     %22 = move %21
-    %23 = const string(#3) :string
-    intrinsic builder.append_str(%22, %23)
-    %24 = field_get %15._1 :string
-    intrinsic builder.append_display(%22, %24)
-    %25 = intrinsic builder.finish(%22)
-    call println(%25) :void
-    %26 = const int(0) :i32
-    return %26
+    %23 = intrinsic builder.new()
+    %24 = move %23
+    %25 = const string(#3) :string
+    intrinsic builder.append_str(%24, %25)
+    %26 = field_get %22._0 :i32
+    intrinsic builder.append_display(%24, %26)
+    %27 = intrinsic builder.finish(%24)
+    call std_io$std_io$println__string(%27) :void
+    %28 = intrinsic builder.new()
+    %29 = move %28
+    %30 = const string(#4) :string
+    intrinsic builder.append_str(%29, %30)
+    %31 = field_get %22._1 :string
+    intrinsic builder.append_display(%29, %31)
+    %32 = intrinsic builder.finish(%29)
+    call std_io$std_io$println__string(%32) :void
+    %33 = const int(0) :i32
+    return %33

@@ -151,7 +151,7 @@
     let nothing: Cat | Dog | null = null
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -160,7 +160,7 @@
             cat :Cat | Dog | null
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -169,7 +169,7 @@
             nothing :Cat | Dog | null
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -178,7 +178,7 @@
             cat :Cat | Dog | null
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -187,7 +187,7 @@
             nothing :Cat | Dog | null
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -196,7 +196,7 @@
             cat :Cat | Dog | null
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -205,7 +205,7 @@
             nothing :Cat | Dog | null
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -214,7 +214,7 @@
             cat :Cat | Dog | null
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -223,7 +223,7 @@
             nothing :Cat | Dog | null
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -234,7 +234,7 @@
             dog :Cat | Dog | null
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -245,7 +245,7 @@
             dog :Cat | Dog | null
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:

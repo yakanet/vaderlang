@@ -4,7 +4,7 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -13,7 +13,7 @@
             __sb_0 :?
             call :i32
               callee:
-                run_id :i32
+                snippet$snippet$run_id__i32 :i32
               arg0:
                 int(7) :i32
           ~>
@@ -33,12 +33,12 @@
     return
       call :Any
         callee:
-          apply :Any
+          snippet$snippet$apply__Any :Any
         arg0:
           x :Any
         arg1:
           id :fn(Any) -> Any
-  struct __lambda_env_12 {  }
-  fn __lambda_11(__env_0: __lambda_env_12, v: Any) -> Any
+  struct __lambda_env_3 {  }
+  fn __lambda_2(__env_0: __lambda_env_3, v: Any) -> Any
     ~>
       v :Any

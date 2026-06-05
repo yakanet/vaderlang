@@ -1,8 +1,6 @@
 module _main
 type 0 primitive null
 type 1 primitive i32
-type 2 ref _
-vtable Tagger.tag 1 0
 export main 1
 
 fn 0 snippet$i32$Tagger$tag (i32) -> i32
@@ -18,14 +16,14 @@ fn 1 snippet$main () -> i32
   return
 end
 
-fn 2 snippet$snippet$apply_tag__i32 (ref) -> i32
-  local $vcall_1 i32
-  local $vcall_2 i32
+fn 2 snippet$snippet$apply_tag__i32 (i32) -> i32
+  local $call_1 i32
+  local $call_2 i32
   local.get 0
-  virtual.call 1 Tagger.tag
+  call 0
   local.set 1
   local.get 0
-  virtual.call 1 Tagger.tag
+  call 0
   local.set 2
   local.get 1
   local.get 2

@@ -1,174 +1,180 @@
 module _main
 type 0 primitive null
 type 1 primitive string
-type 2 primitive bool
-type 3 primitive void
-type 4 primitive i32
-string 0 "BAD"
-string 1 "shr_high"
-string 2 "shr_top_bit"
-string 3 "shl_top"
-string 4 "shl_wrap"
-string 5 "and"
-string 6 "or"
-string 7 "xor"
-string 8 "not_zero"
-string 9 "not_top"
-string 10 "\n"
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 write std_io$write (i32,string) -> void
-export main 1
+type 2 primitive void
+type 3 primitive i32
+type 4 primitive bool
+string 0 "\n"
+string 1 "BAD"
+string 2 "shr_high"
+string 3 "shr_top_bit"
+string 4 "shl_top"
+string 5 "shl_wrap"
+string 6 "and"
+string 7 "or"
+string 8 "xor"
+string 9 "not_zero"
+string 10 "not_top"
+import 0 write std_io$write (i32,string) -> void
+import 1 to_string std_core$string$Display$to_string (string) -> string
+export main 2
 
-fn 0 snippet$check (string,bool) -> void
-  local.get 1
-  if $L0 void
-    local.get 0
-    call 2
-  else
-    string.const 0
-    call 2
-  end $L0
-  return
-end
-
-fn 1 snippet$main () -> i32
-  local a u32
-  local b u32
-  local $shr_6 u32
-  local $eq_8 bool
-  i32.const 4294967295
-  local.set 0
-  i32.const 2147483648
-  local.set 1
-  local.get 0
-  i32.const 1
-  i32.to_u32
-  u32.shr
-  local.set 2
-  local.get 2
-  i32.const 2147483647
-  i32.to_u32
-  u32.eq
-  local.set 3
-  string.const 1
-  local.get 3
-  call 0
-  local.get 1
-  i32.const 31
-  i32.to_u32
-  u32.shr
-  local.set 2
-  local.get 2
-  i32.const 1
-  i32.to_u32
-  u32.eq
-  local.set 3
-  string.const 2
-  local.get 3
-  call 0
-  i32.const 1
-  i32.to_u32
-  i32.const 31
-  i32.to_u32
-  u32.shl
-  local.get 1
-  u32.eq
-  local.set 3
-  string.const 3
-  local.get 3
-  call 0
-  local.get 1
-  i32.const 1
-  i32.to_u32
-  u32.shl
-  local.set 2
-  local.get 2
-  i32.const 0
-  i32.to_u32
-  u32.eq
-  local.set 3
-  string.const 4
-  local.get 3
-  call 0
-  local.get 0
-  local.get 0
-  u32.bitand
-  local.get 0
-  u32.eq
-  local.set 3
-  string.const 5
-  local.get 3
-  call 0
-  local.get 1
-  i32.const 1
-  i32.to_u32
-  u32.bitor
-  local.set 2
-  local.get 2
-  i32.const 2147483649
-  i32.to_u32
-  u32.eq
-  local.set 3
-  string.const 6
-  local.get 3
-  call 0
-  local.get 0
-  local.get 1
-  u32.bitxor
-  local.set 2
-  local.get 2
-  i32.const 2147483647
-  i32.to_u32
-  u32.eq
-  local.set 3
-  string.const 7
-  local.get 3
-  call 0
-  i32.const 0
-  u32.bitnot
-  local.get 0
-  u32.eq
-  local.set 3
-  string.const 8
-  local.get 3
-  call 0
-  local.get 1
-  u32.bitnot
-  local.set 0
-  local.get 0
-  i32.const 2147483647
-  i32.to_u32
-  u32.eq
-  local.set 3
-  string.const 9
-  local.get 3
-  call 0
-  return.lit i32.const 0
-end
-
-fn 2 std_io$std_io$println__string (string) -> void
+fn 0 std_io$std_io$println__string (string) -> void
   local $call_2 string
   local.get 0
   call 3
   local.set 1
   i32.const 0
   local.get 1
-  call 4
+  call.import 0
   i32.const 0
-  string.const 10
-  call 4
-  return
-end
-
-fn 3 std_core$string$Display$to_string$vt (string) -> string
-  local.get 0
+  string.const 0
   call.import 0
   return
 end
 
-fn 4 std_io$write$vt (i32,string) -> void
+fn 1 snippet$check (string,bool) -> void
+  local.get 1
+  if $L0 void
+    local.get 0
+    call 0
+  else
+    string.const 1
+    call 0
+  end $L0
+  return
+end
+
+fn 2 snippet$main () -> i32
+  local a u32
+  local b u32
+  local $k_5 u32
+  local $k_7 u32
+  local $eq_8 bool
+  i32.const -1
+  local.set 0
+  i32.const -2147483648
+  local.set 1
+  i32.const 1
+  local.set 2
+  local.get 0
+  local.get 2
+  u32.shr
+  local.set 2
+  i32.const 2147483647
+  local.set 3
+  local.get 2
+  local.get 3
+  i32.eq
+  local.set 4
+  string.const 2
+  local.get 4
+  call 1
+  i32.const 31
+  local.set 2
+  local.get 1
+  local.get 2
+  u32.shr
+  local.set 2
+  i32.const 1
+  local.set 3
+  local.get 2
+  local.get 3
+  i32.eq
+  local.set 4
+  string.const 3
+  local.get 4
+  call 1
+  i32.const 1
+  local.set 2
+  i32.const 31
+  local.set 3
+  local.get 2
+  local.get 3
+  i32.shl
+  local.get 1
+  i32.eq
+  local.set 4
+  string.const 4
+  local.get 4
+  call 1
+  i32.const 1
+  local.set 2
+  local.get 1
+  local.get 2
+  i32.shl
+  local.set 2
+  i32.const 0
+  local.set 3
+  local.get 2
+  local.get 3
+  i32.eq
+  local.set 4
+  string.const 5
+  local.get 4
+  call 1
+  local.get 0
+  local.get 0
+  i32.bitand
+  local.get 0
+  i32.eq
+  local.set 4
+  string.const 6
+  local.get 4
+  call 1
+  i32.const 1
+  local.set 2
+  local.get 1
+  local.get 2
+  i32.bitor
+  local.set 2
+  i32.const -2147483647
+  local.set 3
+  local.get 2
+  local.get 3
+  i32.eq
+  local.set 4
+  string.const 7
+  local.get 4
+  call 1
   local.get 0
   local.get 1
+  i32.bitxor
+  local.set 2
+  i32.const 2147483647
+  local.set 3
+  local.get 2
+  local.get 3
+  i32.eq
+  local.set 4
+  string.const 8
+  local.get 4
+  call 1
+  i32.const 0
+  i32.bitnot
+  local.get 0
+  i32.eq
+  local.set 4
+  string.const 9
+  local.get 4
+  call 1
+  local.get 1
+  i32.bitnot
+  local.set 0
+  i32.const 2147483647
+  local.set 1
+  local.get 0
+  local.get 1
+  i32.eq
+  local.set 4
+  string.const 10
+  local.get 4
+  call 1
+  return.lit i32.const 0
+end
+
+fn 3 std_core$string$Display$to_string_vt (string) -> string
+  local.get 0
   call.import 1
   return
 end

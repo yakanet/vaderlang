@@ -1,116 +1,113 @@
 module _main
 type 0 primitive null
-type 1 primitive i32
-type 2 primitive string
-type 3 primitive u32
-type 4 primitive u64
-type 5 primitive void
-string 0 " "
-string 1 "\n"
-import 0 to_string std_core$u32$Display$to_string (u32) -> string
-import 1 to_string std_core$u64$Display$to_string (u64) -> string
-import 2 to_string std_core$string$Display$to_string (string) -> string
-import 3 write std_io$write (i32,string) -> void
-export main 0
+type 1 primitive string
+type 2 primitive void
+type 3 primitive i32
+type 4 primitive u32
+type 5 primitive u64
+string 0 "\n"
+string 1 " "
+import 0 write std_io$write (i32,string) -> void
+import 1 to_string std_core$u32$Display$to_string (u32) -> string
+import 2 to_string std_core$u64$Display$to_string (u64) -> string
+import 3 to_string std_core$string$Display$to_string (string) -> string
+export main 1
 
-fn 0 snippet$main () -> i32
-  local c i32
-  local e u64
-  local f i32
-  local __sb_0 any
-  local $call_21 string
-  i32.const 1
-  u8.to_i32
-  local.set 0
-  i32.const 4000000000
-  u32.to_u64
-  local.set 1
-  i32.const 0
-  u32.to_i32
-  local.set 2
-  intrinsic builder.new
-  local.tee 3
-  i32.const 2
-  i32.to_u8
-  intrinsic builder.append_display
-  local.get 3
-  string.const 0
-  intrinsic builder.append_str
-  i32.const 4000000000
-  i32.to_u32
-  call 2
-  local.set 4
-  local.get 3
-  local.get 4
-  intrinsic builder.append_str
-  local.get 3
-  string.const 0
-  intrinsic builder.append_str
-  local.get 3
-  local.get 0
-  intrinsic builder.append_display
-  local.get 3
-  string.const 0
-  intrinsic builder.append_str
-  local.get 3
-  i32.const 1
-  intrinsic builder.append_display
-  local.get 3
-  string.const 0
-  intrinsic builder.append_str
-  local.get 1
-  call 3
-  local.set 4
-  local.get 3
-  local.get 4
-  intrinsic builder.append_str
-  local.get 3
-  string.const 0
-  intrinsic builder.append_str
-  local.get 3
-  local.get 2
-  intrinsic builder.append_display
-  local.get 3
-  intrinsic builder.finish
-  call 1
-  return.lit i32.const 0
-end
-
-fn 1 std_io$std_io$println__string (string) -> void
+fn 0 std_io$std_io$println__string (string) -> void
   local $call_2 string
   local.get 0
   call 4
   local.set 1
   i32.const 0
   local.get 1
-  call 5
+  call.import 0
   i32.const 0
-  string.const 1
-  call 5
-  return
-end
-
-fn 2 std_core$u32$Display$to_string$vt (u32) -> string
-  local.get 0
+  string.const 0
   call.import 0
   return
 end
 
-fn 3 std_core$u64$Display$to_string$vt (u64) -> string
+fn 1 snippet$main () -> i32
+  local a u8
+  local b u32
+  local c i32
+  local e u64
+  local f i32
+  local __sb_0 any
+  local $call_21 string
+  i32.const 2
+  local.set 0
+  i32.const -294967296
+  local.set 1
+  i32.const 1
+  u8.to_i32
+  local.set 2
+  i32.const -294967296
+  u32.to_i64
+  local.set 3
+  i32.const 0
+  u32.to_i32
+  local.set 4
+  intrinsic builder.new
+  local.tee 5
+  local.get 0
+  intrinsic builder.append_display
+  local.get 5
+  string.const 1
+  intrinsic builder.append_str
+  local.get 1
+  call 2
+  local.set 6
+  local.get 5
+  local.get 6
+  intrinsic builder.append_str
+  local.get 5
+  string.const 1
+  intrinsic builder.append_str
+  local.get 5
+  local.get 2
+  intrinsic builder.append_display
+  local.get 5
+  string.const 1
+  intrinsic builder.append_str
+  local.get 5
+  i32.const 1
+  intrinsic builder.append_display
+  local.get 5
+  string.const 1
+  intrinsic builder.append_str
+  local.get 3
+  call 3
+  local.set 6
+  local.get 5
+  local.get 6
+  intrinsic builder.append_str
+  local.get 5
+  string.const 1
+  intrinsic builder.append_str
+  local.get 5
+  local.get 4
+  intrinsic builder.append_display
+  local.get 5
+  intrinsic builder.finish
+  call 0
+  return.lit i32.const 0
+end
+
+fn 2 std_core$u32$Display$to_string_vt (u32) -> string
   local.get 0
   call.import 1
   return
 end
 
-fn 4 std_core$string$Display$to_string$vt (string) -> string
+fn 3 std_core$u64$Display$to_string_vt (u64) -> string
   local.get 0
   call.import 2
   return
 end
 
-fn 5 std_io$write$vt (i32,string) -> void
+fn 4 std_core$string$Display$to_string_vt (string) -> string
   local.get 0
-  local.get 1
   call.import 3
   return
 end

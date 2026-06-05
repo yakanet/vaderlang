@@ -8,7 +8,7 @@ fn snippet$l_add(%0: i64, %1: i64) -> i64
     %1 b: i64 (param b)
     %2 $add_2: i64
   bb0:
-    %2 = binop add %0 %1 :i64
+    %2 = binop 0 %0 %1 :i64
     return %2
 
 fn snippet$l_div(%0: i64, %1: i64) -> i64
@@ -17,7 +17,7 @@ fn snippet$l_div(%0: i64, %1: i64) -> i64
     %1 b: i64 (param b)
     %2 $div_2: i64
   bb0:
-    %2 = binop div %0 %1 :i64
+    %2 = binop 3 %0 %1 :i64
     return %2
 
 fn snippet$l_rem(%0: i64, %1: i64) -> i64
@@ -26,7 +26,7 @@ fn snippet$l_rem(%0: i64, %1: i64) -> i64
     %1 b: i64 (param b)
     %2 $mod_2: i64
   bb0:
-    %2 = binop mod %0 %1 :i64
+    %2 = binop 4 %0 %1 :i64
     return %2
 
 fn snippet$l_and(%0: i64, %1: i64) -> i64
@@ -35,7 +35,7 @@ fn snippet$l_and(%0: i64, %1: i64) -> i64
     %1 b: i64 (param b)
     %2 $bitand_2: i64
   bb0:
-    %2 = binop bitand %0 %1 :i64
+    %2 = binop 7 %0 %1 :i64
     return %2
 
 fn snippet$l_shl(%0: i64, %1: i64) -> i64
@@ -44,7 +44,7 @@ fn snippet$l_shl(%0: i64, %1: i64) -> i64
     %1 b: i64 (param b)
     %2 $shl_2: i64
   bb0:
-    %2 = binop shl %0 %1 :i64
+    %2 = binop 5 %0 %1 :i64
     return %2
 
 fn snippet$l_lt(%0: i64, %1: i64) -> bool
@@ -53,23 +53,23 @@ fn snippet$l_lt(%0: i64, %1: i64) -> bool
     %1 b: i64 (param b)
     %2 $lt_2: bool
   bb0:
-    %2 = binop lt %0 %1 :bool
+    %2 = binop 14 %0 %1 :bool
     return %2
 
 fn snippet$l_neg(%0: i64) -> i64
   locals:
     %0 x: i64 (param x)
-    %1 $neg_1: i64
+    %1 $unop_1: i64
   bb0:
-    %1 = unop neg %0 :i64
+    %1 = unop 0 %0 :i64
     return %1
 
 fn snippet$l_bnot(%0: i64) -> i64
   locals:
     %0 x: i64 (param x)
-    %1 $bitnot_1: i64
+    %1 $unop_1: i64
   bb0:
-    %1 = unop bitnot %0 :i64
+    %1 = unop 2 %0 :i64
     return %1
 
 fn snippet$i_div(%0: i32, %1: i32) -> i32
@@ -78,7 +78,7 @@ fn snippet$i_div(%0: i32, %1: i32) -> i32
     %1 b: i32 (param b)
     %2 $div_2: i32
   bb0:
-    %2 = binop div %0 %1 :i32
+    %2 = binop 3 %0 %1 :i32
     return %2
 
 fn snippet$i_rem(%0: i32, %1: i32) -> i32
@@ -87,7 +87,7 @@ fn snippet$i_rem(%0: i32, %1: i32) -> i32
     %1 b: i32 (param b)
     %2 $mod_2: i32
   bb0:
-    %2 = binop mod %0 %1 :i32
+    %2 = binop 4 %0 %1 :i32
     return %2
 
 fn snippet$u_div(%0: u32, %1: u32) -> u32
@@ -96,7 +96,7 @@ fn snippet$u_div(%0: u32, %1: u32) -> u32
     %1 b: u32 (param b)
     %2 $div_2: u32
   bb0:
-    %2 = binop div %0 %1 :u32
+    %2 = binop 3 %0 %1 :u32
     return %2
 
 fn snippet$u_lt(%0: u32, %1: u32) -> bool
@@ -105,7 +105,7 @@ fn snippet$u_lt(%0: u32, %1: u32) -> bool
     %1 b: u32 (param b)
     %2 $lt_2: bool
   bb0:
-    %2 = binop lt %0 %1 :bool
+    %2 = binop 14 %0 %1 :bool
     return %2
 
 fn snippet$ul_div(%0: u64, %1: u64) -> u64
@@ -114,7 +114,7 @@ fn snippet$ul_div(%0: u64, %1: u64) -> u64
     %1 b: u64 (param b)
     %2 $div_2: u64
   bb0:
-    %2 = binop div %0 %1 :u64
+    %2 = binop 3 %0 %1 :u64
     return %2
 
 fn snippet$ul_ge(%0: u64, %1: u64) -> bool
@@ -123,7 +123,7 @@ fn snippet$ul_ge(%0: u64, %1: u64) -> bool
     %1 b: u64 (param b)
     %2 $gte_2: bool
   bb0:
-    %2 = binop gte %0 %1 :bool
+    %2 = binop 17 %0 %1 :bool
     return %2
 
 fn snippet$f_add(%0: f64, %1: f64) -> f64
@@ -132,7 +132,7 @@ fn snippet$f_add(%0: f64, %1: f64) -> f64
     %1 b: f64 (param b)
     %2 $add_2: f64
   bb0:
-    %2 = binop add %0 %1 :f64
+    %2 = binop 0 %0 %1 :f64
     return %2
 
 fn snippet$f_div(%0: f64, %1: f64) -> f64
@@ -141,7 +141,7 @@ fn snippet$f_div(%0: f64, %1: f64) -> f64
     %1 b: f64 (param b)
     %2 $div_2: f64
   bb0:
-    %2 = binop div %0 %1 :f64
+    %2 = binop 3 %0 %1 :f64
     return %2
 
 fn snippet$f_lt(%0: f64, %1: f64) -> bool
@@ -150,23 +150,23 @@ fn snippet$f_lt(%0: f64, %1: f64) -> bool
     %1 b: f64 (param b)
     %2 $lt_2: bool
   bb0:
-    %2 = binop lt %0 %1 :bool
+    %2 = binop 14 %0 %1 :bool
     return %2
 
 fn snippet$f_neg(%0: f64) -> f64
   locals:
     %0 x: f64 (param x)
-    %1 $neg_1: f64
+    %1 $unop_1: f64
   bb0:
-    %1 = unop neg %0 :f64
+    %1 = unop 0 %0 :f64
     return %1
 
 fn snippet$b_not(%0: bool) -> bool
   locals:
     %0 x: bool (param x)
-    %1 $not_1: bool
+    %1 $unop_1: bool
   bb0:
-    %1 = unop not %0 :bool
+    %1 = unop 1 %0 :bool
     return %1
 
 fn snippet$to_long(%0: i32) -> i64
@@ -199,7 +199,7 @@ fn snippet$u_shr(%0: u32, %1: u32) -> u32
     %1 b: u32 (param b)
     %2 $shr_2: u32
   bb0:
-    %2 = binop shr %0 %1 :u32
+    %2 = binop 6 %0 %1 :u32
     return %2
 
 fn snippet$ul_shr(%0: u64, %1: u64) -> u64
@@ -208,5 +208,5 @@ fn snippet$ul_shr(%0: u64, %1: u64) -> u64
     %1 b: u64 (param b)
     %2 $shr_2: u64
   bb0:
-    %2 = binop shr %0 %1 :u64
+    %2 = binop 6 %0 %1 :u64
     return %2

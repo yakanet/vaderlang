@@ -8,9 +8,9 @@ fn snippet$main() -> i32
     %1 $k_1: i32
     %2 $k_2: i32
   bb0:
-    %0 = const string(#0) :string
-    call println(%0) :void
+    %0 = const string(#1) :string
+    call std_io$std_io$println__string(%0) :void
     %1 = const int(42) :i32
-    call println(%1) :void
+    call std_io$std_io$println__i32(%1) :void
     %2 = const int(0) :i32
     return %2

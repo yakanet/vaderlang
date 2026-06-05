@@ -5,12 +5,12 @@
     let m: MutableMap<string, i32> =
       MutableMap<string, i32> {
         buckets:
-          array :(Entry<string, i32> | null)[]
+          array :(Entry<K, V> | null)[]
         size: int(0) :usize
       }
     call :void
       callee:
-        set_at :void
+        std_collections$MutableMap$IndexSet$set_at__string__i32 :void
       arg0:
         m :MutableMap<string, i32>
       arg1:
@@ -19,7 +19,7 @@
         int(1) :i32
     call :void
       callee:
-        set_at :void
+        std_collections$MutableMap$IndexSet$set_at__string__i32 :void
       arg0:
         m :MutableMap<string, i32>
       arg1:
@@ -28,7 +28,7 @@
         int(2) :i32
     call :void
       callee:
-        set_at :void
+        std_collections$MutableMap$IndexSet$set_at__string__i32 :void
       arg0:
         m :MutableMap<string, i32>
       arg1:
@@ -37,7 +37,7 @@
         int(42) :i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -49,11 +49,11 @@
             __sb_0 :?
             call :string
               callee:
-                to_string :string
+                std_core$usize$Display$to_string :string
               arg0:
                 call :usize
                   callee:
-                    len :usize
+                    std_collections$std_collections$len__string__i32 :usize
                   arg0:
                     m :MutableMap<string, i32>
           ~>
@@ -62,7 +62,7 @@
     let v1: i32 | null =
       call :i32 | null
         callee:
-          at :i32 | null
+          std_collections$MutableMap$Index$at__string__i32 :i32 | null
         arg0:
           m :MutableMap<string, i32>
         arg1:
@@ -80,7 +80,7 @@
                 ~>
                   call :void
                     callee:
-                      println :void
+                      std_io$std_io$println__string :void
                     arg0:
                       "hello: missing" :string
           else:
@@ -95,7 +95,7 @@
                       ~>
                         call :void
                           callee:
-                            println :void
+                            std_io$std_io$println__string :void
                           arg0:
                             block :string
                               let __sb_2: ? =
@@ -116,7 +116,7 @@
     let v2: i32 | null =
       call :i32 | null
         callee:
-          at :i32 | null
+          std_collections$MutableMap$Index$at__string__i32 :i32 | null
         arg0:
           m :MutableMap<string, i32>
         arg1:
@@ -134,7 +134,7 @@
                 ~>
                   call :void
                     callee:
-                      println :void
+                      std_io$std_io$println__string :void
                     arg0:
                       "world: missing" :string
           else:
@@ -149,7 +149,7 @@
                       ~>
                         call :void
                           callee:
-                            println :void
+                            std_io$std_io$println__string :void
                           arg0:
                             block :string
                               let __sb_4: ? =
@@ -170,7 +170,7 @@
     let v3: i32 | null =
       call :i32 | null
         callee:
-          at :i32 | null
+          std_collections$MutableMap$Index$at__string__i32 :i32 | null
         arg0:
           m :MutableMap<string, i32>
         arg1:
@@ -188,7 +188,7 @@
                 ~>
                   call :void
                     callee:
-                      println :void
+                      std_io$std_io$println__string :void
                     arg0:
                       "vader: missing" :string
           else:
@@ -203,7 +203,7 @@
                       ~>
                         call :void
                           callee:
-                            println :void
+                            std_io$std_io$println__string :void
                           arg0:
                             block :string
                               let __sb_6: ? =
@@ -223,7 +223,7 @@
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_7: ? =
@@ -235,7 +235,7 @@
             __sb_7 :?
             call :bool
               callee:
-                contains :bool
+                std_collections$MutableMap$Contains$contains__string__i32 :bool
               arg0:
                 m :MutableMap<string, i32>
               arg1:
@@ -245,7 +245,7 @@
               __sb_7 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_8: ? =
@@ -257,7 +257,7 @@
             __sb_8 :?
             call :bool
               callee:
-                contains :bool
+                std_collections$MutableMap$Contains$contains__string__i32 :bool
               arg0:
                 m :MutableMap<string, i32>
               arg1:
@@ -267,7 +267,7 @@
               __sb_8 :?
     call :void
       callee:
-        set_at :void
+        std_collections$MutableMap$IndexSet$set_at__string__i32 :void
       arg0:
         m :MutableMap<string, i32>
       arg1:
@@ -277,7 +277,7 @@
     let v1b: i32 | null =
       call :i32 | null
         callee:
-          at :i32 | null
+          std_collections$MutableMap$Index$at__string__i32 :i32 | null
         arg0:
           m :MutableMap<string, i32>
         arg1:
@@ -295,7 +295,7 @@
                 ~>
                   call :void
                     callee:
-                      println :void
+                      std_io$std_io$println__string :void
                     arg0:
                       "hello: missing" :string
           else:
@@ -310,7 +310,7 @@
                       ~>
                         call :void
                           callee:
-                            println :void
+                            std_io$std_io$println__string :void
                           arg0:
                             block :string
                               let __sb_10: ? =

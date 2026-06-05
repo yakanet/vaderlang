@@ -59,7 +59,7 @@
     let d: Direction = int(2) :i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -68,7 +68,7 @@
             d :Direction
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -85,7 +85,7 @@
       then:
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             "d is East" :string
     if :void
@@ -98,12 +98,12 @@
       then:
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             "d is West" :string
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -124,7 +124,7 @@
     ~>
       call :void
         callee:
-          println :void
+          std_io$std_io$println__string :void
         arg0:
           block :string
             let __sb_1: ? =

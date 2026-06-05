@@ -9,44 +9,52 @@ fn snippet$describe_char(%0: char) -> string
     %2 $k_2: char
     %3 $eq_3: bool
     %4 if_res: string
-    %5 $k_6: char
-    %6 $eq_7: bool
-    %7 if_res: string
-    %8 $k_10: char
-    %9 $eq_11: bool
-    %10 if_res: string
+    %5 $k_5: string
+    %6 $k_6: char
+    %7 $eq_7: bool
+    %8 if_res: string
+    %9 $k_9: string
+    %10 $k_10: char
+    %11 $eq_11: bool
+    %12 if_res: string
+    %13 $k_13: string
+    %14 $k_14: string
   bb0:
     %1 = move %0
     %2 = const char(62) :char
-    %3 = binop eq %1 %2 :bool
+    %3 = binop 12 %1 %2 :bool
     cond_branch %3 ? bb1 : bb2
   bb1:
-    %4 = const string(#0) :string
+    %5 = const string(#1) :string
+    %4 = move %5
     branch -> bb3
   bb2:
-    %5 = const char(60) :char
-    %6 = binop eq %1 %5 :bool
-    cond_branch %6 ? bb4 : bb5
+    %6 = const char(60) :char
+    %7 = binop 12 %1 %6 :bool
+    cond_branch %7 ? bb4 : bb5
   bb3:
     return %4
   bb4:
-    %7 = const string(#1) :string
+    %9 = const string(#2) :string
+    %8 = move %9
     branch -> bb6
   bb5:
-    %8 = const char(43) :char
-    %9 = binop eq %1 %8 :bool
-    cond_branch %9 ? bb7 : bb8
+    %10 = const char(43) :char
+    %11 = binop 12 %1 %10 :bool
+    cond_branch %11 ? bb7 : bb8
   bb6:
-    %4 = move %7
+    %4 = move %8
     branch -> bb3
   bb7:
-    %10 = const string(#2) :string
+    %13 = const string(#3) :string
+    %12 = move %13
     branch -> bb9
   bb8:
-    %10 = const string(#3) :string
+    %14 = const string(#4) :string
+    %12 = move %14
     branch -> bb9
   bb9:
-    %7 = move %10
+    %8 = move %12
     branch -> bb6
 
 fn snippet$describe_int(%0: i32) -> string
@@ -56,44 +64,52 @@ fn snippet$describe_int(%0: i32) -> string
     %2 $k_2: i32
     %3 $eq_3: bool
     %4 if_res: string
-    %5 $k_6: i32
-    %6 $eq_7: bool
-    %7 if_res: string
-    %8 $k_10: i32
-    %9 $eq_11: bool
-    %10 if_res: string
+    %5 $k_5: string
+    %6 $k_6: i32
+    %7 $eq_7: bool
+    %8 if_res: string
+    %9 $k_9: string
+    %10 $k_10: i32
+    %11 $eq_11: bool
+    %12 if_res: string
+    %13 $k_13: string
+    %14 $k_14: string
   bb0:
     %1 = move %0
     %2 = const int(0) :i32
-    %3 = binop eq %1 %2 :bool
+    %3 = binop 12 %1 %2 :bool
     cond_branch %3 ? bb1 : bb2
   bb1:
-    %4 = const string(#4) :string
+    %5 = const string(#5) :string
+    %4 = move %5
     branch -> bb3
   bb2:
-    %5 = const int(1) :i32
-    %6 = binop eq %1 %5 :bool
-    cond_branch %6 ? bb4 : bb5
+    %6 = const int(1) :i32
+    %7 = binop 12 %1 %6 :bool
+    cond_branch %7 ? bb4 : bb5
   bb3:
     return %4
   bb4:
-    %7 = const string(#5) :string
+    %9 = const string(#6) :string
+    %8 = move %9
     branch -> bb6
   bb5:
-    %8 = const int(2) :i32
-    %9 = binop eq %1 %8 :bool
-    cond_branch %9 ? bb7 : bb8
+    %10 = const int(2) :i32
+    %11 = binop 12 %1 %10 :bool
+    cond_branch %11 ? bb7 : bb8
   bb6:
-    %4 = move %7
+    %4 = move %8
     branch -> bb3
   bb7:
-    %10 = const string(#6) :string
+    %13 = const string(#7) :string
+    %12 = move %13
     branch -> bb9
   bb8:
-    %10 = const string(#7) :string
+    %14 = const string(#8) :string
+    %12 = move %14
     branch -> bb9
   bb9:
-    %7 = move %10
+    %8 = move %12
     branch -> bb6
 
 fn snippet$flag_label(%0: bool) -> string
@@ -103,31 +119,37 @@ fn snippet$flag_label(%0: bool) -> string
     %2 $k_2: bool
     %3 $eq_3: bool
     %4 if_res: string
-    %5 $k_6: bool
-    %6 $eq_7: bool
-    %7 if_res: string
+    %5 $k_5: string
+    %6 $k_6: bool
+    %7 $eq_7: bool
+    %8 if_res: string
+    %9 $k_9: string
+    %10 $k_10: string
   bb0:
     %1 = move %0
     %2 = const bool(true) :bool
-    %3 = binop eq %1 %2 :bool
+    %3 = binop 12 %1 %2 :bool
     cond_branch %3 ? bb1 : bb2
   bb1:
-    %4 = const string(#8) :string
+    %5 = const string(#9) :string
+    %4 = move %5
     branch -> bb3
   bb2:
-    %5 = const bool(false) :bool
-    %6 = binop eq %1 %5 :bool
-    cond_branch %6 ? bb4 : bb5
+    %6 = const bool(false) :bool
+    %7 = binop 12 %1 %6 :bool
+    cond_branch %7 ? bb4 : bb5
   bb3:
     return %4
   bb4:
-    %7 = const string(#9) :string
+    %9 = const string(#10) :string
+    %8 = move %9
     branch -> bb6
   bb5:
-    %7 = const string(#10) :string
+    %10 = const string(#11) :string
+    %8 = move %10
     branch -> bb6
   bb6:
-    %4 = move %7
+    %4 = move %8
     branch -> bb3
 
 fn snippet$mode_name(%0: string) -> string
@@ -137,44 +159,52 @@ fn snippet$mode_name(%0: string) -> string
     %2 $k_2: string
     %3 $eq_3: bool
     %4 if_res: string
-    %5 $k_6: string
-    %6 $eq_7: bool
-    %7 if_res: string
-    %8 $k_10: string
-    %9 $eq_11: bool
-    %10 if_res: string
+    %5 $k_5: string
+    %6 $k_6: string
+    %7 $eq_7: bool
+    %8 if_res: string
+    %9 $k_9: string
+    %10 $k_10: string
+    %11 $eq_11: bool
+    %12 if_res: string
+    %13 $k_13: string
+    %14 $k_14: string
   bb0:
     %1 = move %0
-    %2 = const string(#11) :string
-    %3 = binop eq %1 %2 :bool
+    %2 = const string(#12) :string
+    %3 = binop 12 %1 %2 :bool
     cond_branch %3 ? bb1 : bb2
   bb1:
-    %4 = const string(#12) :string
+    %5 = const string(#13) :string
+    %4 = move %5
     branch -> bb3
   bb2:
-    %5 = const string(#13) :string
-    %6 = binop eq %1 %5 :bool
-    cond_branch %6 ? bb4 : bb5
+    %6 = const string(#14) :string
+    %7 = binop 12 %1 %6 :bool
+    cond_branch %7 ? bb4 : bb5
   bb3:
     return %4
   bb4:
-    %7 = const string(#14) :string
+    %9 = const string(#15) :string
+    %8 = move %9
     branch -> bb6
   bb5:
-    %8 = const string(#15) :string
-    %9 = binop eq %1 %8 :bool
-    cond_branch %9 ? bb7 : bb8
+    %10 = const string(#16) :string
+    %11 = binop 12 %1 %10 :bool
+    cond_branch %11 ? bb7 : bb8
   bb6:
-    %4 = move %7
+    %4 = move %8
     branch -> bb3
   bb7:
-    %10 = const string(#16) :string
+    %13 = const string(#17) :string
+    %12 = move %13
     branch -> bb9
   bb8:
-    %10 = const string(#17) :string
+    %14 = const string(#18) :string
+    %12 = move %14
     branch -> bb9
   bb9:
-    %7 = move %10
+    %8 = move %12
     branch -> bb6
 
 fn snippet$main() -> i32
@@ -205,36 +235,36 @@ fn snippet$main() -> i32
   bb0:
     %0 = const char(62) :char
     %1 = call describe_char(%0) :string
-    call println(%1) :void
+    call std_io$std_io$println__string(%1) :void
     %2 = const char(43) :char
     %3 = call describe_char(%2) :string
-    call println(%3) :void
+    call std_io$std_io$println__string(%3) :void
     %4 = const char(120) :char
     %5 = call describe_char(%4) :string
-    call println(%5) :void
+    call std_io$std_io$println__string(%5) :void
     %6 = const int(0) :i32
     %7 = call describe_int(%6) :string
-    call println(%7) :void
+    call std_io$std_io$println__string(%7) :void
     %8 = const int(1) :i32
     %9 = call describe_int(%8) :string
-    call println(%9) :void
+    call std_io$std_io$println__string(%9) :void
     %10 = const int(99) :i32
     %11 = call describe_int(%10) :string
-    call println(%11) :void
+    call std_io$std_io$println__string(%11) :void
     %12 = const bool(true) :bool
     %13 = call flag_label(%12) :string
-    call println(%13) :void
+    call std_io$std_io$println__string(%13) :void
     %14 = const bool(false) :bool
     %15 = call flag_label(%14) :string
-    call println(%15) :void
-    %16 = const string(#11) :string
+    call std_io$std_io$println__string(%15) :void
+    %16 = const string(#12) :string
     %17 = call mode_name(%16) :string
-    call println(%17) :void
-    %18 = const string(#15) :string
+    call std_io$std_io$println__string(%17) :void
+    %18 = const string(#16) :string
     %19 = call mode_name(%18) :string
-    call println(%19) :void
-    %20 = const string(#18) :string
+    call std_io$std_io$println__string(%19) :void
+    %20 = const string(#19) :string
     %21 = call mode_name(%20) :string
-    call println(%21) :void
+    call std_io$std_io$println__string(%21) :void
     %22 = const int(0) :i32
     return %22

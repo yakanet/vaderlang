@@ -8,7 +8,7 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         "Hello from file!" :string
     return int(0) :i32

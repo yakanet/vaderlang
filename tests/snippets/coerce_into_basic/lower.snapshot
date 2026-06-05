@@ -32,7 +32,7 @@
     return
       call :i32
         callee:
-          into :i32
+          snippet$UserId$Into$into :i32
         arg0:
           u :UserId
   struct snippet$Pair { tag: string, n: i32 }
@@ -43,7 +43,7 @@
       }
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -59,7 +59,7 @@
               arg0:
                 call :i32
                   callee:
-                    into :i32
+                    snippet$UserId$Into$into :i32
                   arg0:
                     u :UserId
           ~>
@@ -68,12 +68,12 @@
     let n: i32 =
       call :i32
         callee:
-          into :i32
+          snippet$UserId$Into$into :i32
         arg0:
           u :UserId
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_1: ? =
@@ -89,7 +89,7 @@
               __sb_1 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_2: ? =
@@ -112,19 +112,19 @@
         tag:
           call :string
             callee:
-              into :string
+              snippet$UserId$Into$into_1 :string
             arg0:
               u :UserId
         n:
           call :i32
             callee:
-              into :i32
+              snippet$UserId$Into$into :i32
             arg0:
               u :UserId
       }
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_3: ? =

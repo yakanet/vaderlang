@@ -6,65 +6,69 @@ fn snippet$direct(%0: V01 | V02) -> i32
   locals:
     %0 x: V01 | V02 (param x)
     %1 $type_check_1: bool
-    %2 a: V01 (binding a)
-    %3 $field_4: i32
-    %4 $k_5: i32
-    %5 $add_6: i32
-    %6 $cast_7: V02
-    %7 $type_check_8: bool
-    %8 b: V02 (binding b)
-    %9 $field_11: i32
-    %10 $k_12: i32
-    %11 $add_13: i32
-    %12 $k_14: i32
-    %13 $neg_15: i32
+    %2 $cast_2: V01
+    %3 a: V01 (binding a)
+    %4 $field_4: i32
+    %5 $k_5: i32
+    %6 $add_6: i32
+    %7 $type_check_7: bool
+    %8 $cast_8: V02
+    %9 b: V02 (binding b)
+    %10 $field_10: i32
+    %11 $k_11: i32
+    %12 $add_12: i32
+    %13 $k_13: i32
+    %14 $unop_14: i32
   bb0:
     %1 = type_check %0 is V01
     cond_branch %1 ? bb1 : bb2
   bb1:
     %2 = cast %0 :V01
-    %3 = field_get %2.f :i32
-    %4 = const int(1) :i32
-    %5 = binop add %3 %4 :i32
-    return %5
+    %3 = move %2
+    %4 = field_get %3.f :i32
+    %5 = const int(1) :i32
+    %6 = binop 0 %4 %5 :i32
+    return %6
   bb2:
-    %6 = cast %0 :V02
-    %7 = type_check %6 is V02
+    %7 = type_check %0 is V02
     cond_branch %7 ? bb3 : bb4
   bb3:
     %8 = cast %0 :V02
-    %9 = field_get %8.f :i32
-    %10 = const int(100) :i32
-    %11 = binop add %9 %10 :i32
-    return %11
+    %9 = move %8
+    %10 = field_get %9.f :i32
+    %11 = const int(100) :i32
+    %12 = binop 0 %10 %11 :i32
+    return %12
   bb4:
-    %12 = const int(1) :i32
-    %13 = unop neg %12 :i32
-    return %13
+    %13 = const int(1) :i32
+    %14 = unop 0 %13 :i32
+    return %14
 
 fn snippet$post_narrow(%0: V01 | V02) -> i32
   locals:
     %0 x: V01 | V02 (param x)
     %1 $type_check_1: bool
-    %2 a: V01 (binding a)
-    %3 $field_4: i32
-    %4 $k_5: i32
-    %5 $add_6: i32
-    %6 $cast_7: V02
-    %7 $field_8: i32
+    %2 $cast_2: V01
+    %3 a: V01 (binding a)
+    %4 $field_4: i32
+    %5 $k_5: i32
+    %6 $add_6: i32
+    %7 $cast_7: V02
+    %8 $field_8: i32
   bb0:
     %1 = type_check %0 is V01
     cond_branch %1 ? bb1 : bb2
   bb1:
     %2 = cast %0 :V01
-    %3 = field_get %2.f :i32
-    %4 = const int(7) :i32
-    %5 = binop add %3 %4 :i32
-    return %5
+    %3 = move %2
+    %4 = field_get %3.f :i32
+    %5 = const int(7) :i32
+    %6 = binop 0 %4 %5 :i32
+    return %6
   bb2:
-    %6 = cast %0 :V02
-    %7 = field_get %6.f :i32
-    return %7
+    %7 = cast %0 :V02
+    %8 = field_get %7.f :i32
+    return %8
 
 fn snippet$main() -> i32
   locals:
@@ -100,43 +104,43 @@ fn snippet$main() -> i32
   bb0:
     %0 = intrinsic builder.new()
     %1 = move %0
-    %2 = const string(#0) :string
+    %2 = const string(#1) :string
     intrinsic builder.append_str(%1, %2)
     %3 = const int(10) :i32
     %4 = struct_new V01(%3)
     %5 = call direct(%4) :i32
     intrinsic builder.append_display(%1, %5)
     %6 = intrinsic builder.finish(%1)
-    call println(%6) :void
+    call std_io$std_io$println__string(%6) :void
     %7 = intrinsic builder.new()
     %8 = move %7
-    %9 = const string(#1) :string
+    %9 = const string(#2) :string
     intrinsic builder.append_str(%8, %9)
     %10 = const int(20) :i32
     %11 = struct_new V02(%10)
     %12 = call direct(%11) :i32
     intrinsic builder.append_display(%8, %12)
     %13 = intrinsic builder.finish(%8)
-    call println(%13) :void
+    call std_io$std_io$println__string(%13) :void
     %14 = intrinsic builder.new()
     %15 = move %14
-    %16 = const string(#2) :string
+    %16 = const string(#3) :string
     intrinsic builder.append_str(%15, %16)
     %17 = const int(30) :i32
     %18 = struct_new V01(%17)
     %19 = call post_narrow(%18) :i32
     intrinsic builder.append_display(%15, %19)
     %20 = intrinsic builder.finish(%15)
-    call println(%20) :void
+    call std_io$std_io$println__string(%20) :void
     %21 = intrinsic builder.new()
     %22 = move %21
-    %23 = const string(#3) :string
+    %23 = const string(#4) :string
     intrinsic builder.append_str(%22, %23)
     %24 = const int(40) :i32
     %25 = struct_new V02(%24)
     %26 = call post_narrow(%25) :i32
     intrinsic builder.append_display(%22, %26)
     %27 = intrinsic builder.finish(%22)
-    call println(%27) :void
+    call std_io$std_io$println__string(%27) :void
     %28 = const int(0) :i32
     return %28

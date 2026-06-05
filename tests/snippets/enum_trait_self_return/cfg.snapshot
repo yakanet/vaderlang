@@ -9,56 +9,65 @@ fn snippet$Direction$Turnable$turn_left(%0: Direction) -> Direction
     %2 $k_2: i32
     %3 $eq_3: bool
     %4 if_res: Direction
-    %5 $k_6: i32
-    %6 $eq_7: bool
-    %7 if_res: Direction
-    %8 $k_10: i32
-    %9 $eq_11: bool
-    %10 if_res: Direction
-    %11 $k_14: i32
-    %12 $eq_15: bool
-    %13 if_res: Direction
+    %5 $k_5: i32
+    %6 $k_6: i32
+    %7 $eq_7: bool
+    %8 if_res: Direction
+    %9 $k_9: i32
+    %10 $k_10: i32
+    %11 $eq_11: bool
+    %12 if_res: Direction
+    %13 $k_13: i32
+    %14 $k_14: i32
+    %15 $eq_15: bool
+    %16 if_res: Direction
+    %17 $k_17: i32
+    %18 unreachable: Direction
   bb0:
     %1 = move %0
     %2 = const int(0) :i32
-    %3 = binop eq %1 %2 :bool
+    %3 = binop 12 %1 %2 :bool
     cond_branch %3 ? bb1 : bb2
   bb1:
-    %4 = const int(3) :i32
+    %5 = const int(3) :i32
+    %4 = move %5
     branch -> bb3
   bb2:
-    %5 = const int(3) :i32
-    %6 = binop eq %1 %5 :bool
-    cond_branch %6 ? bb4 : bb5
+    %6 = const int(3) :i32
+    %7 = binop 12 %1 %6 :bool
+    cond_branch %7 ? bb4 : bb5
   bb3:
     return %4
   bb4:
-    %7 = const int(2) :i32
+    %9 = const int(2) :i32
+    %8 = move %9
     branch -> bb6
   bb5:
-    %8 = const int(2) :i32
-    %9 = binop eq %1 %8 :bool
-    cond_branch %9 ? bb7 : bb8
+    %10 = const int(2) :i32
+    %11 = binop 12 %1 %10 :bool
+    cond_branch %11 ? bb7 : bb8
   bb6:
-    %4 = move %7
+    %4 = move %8
     branch -> bb3
   bb7:
-    %10 = const int(1) :i32
+    %13 = const int(1) :i32
+    %12 = move %13
     branch -> bb9
   bb8:
-    %11 = const int(1) :i32
-    %12 = binop eq %1 %11 :bool
-    cond_branch %12 ? bb10 : bb11
+    %14 = const int(1) :i32
+    %15 = binop 12 %1 %14 :bool
+    cond_branch %15 ? bb10 : bb11
   bb9:
-    %7 = move %10
+    %8 = move %12
     branch -> bb6
   bb10:
-    %13 = const int(0) :i32
+    %17 = const int(0) :i32
+    %16 = move %17
     branch -> bb12
   bb11:
     unreachable ; non-exhaustive match (T3013 should have caught this)
   bb12:
-    %10 = move %13
+    %12 = move %16
     branch -> bb9
 
 fn snippet$Direction$Turnable$turn_right(%0: Direction) -> Direction
@@ -68,56 +77,65 @@ fn snippet$Direction$Turnable$turn_right(%0: Direction) -> Direction
     %2 $k_2: i32
     %3 $eq_3: bool
     %4 if_res: Direction
-    %5 $k_6: i32
-    %6 $eq_7: bool
-    %7 if_res: Direction
-    %8 $k_10: i32
-    %9 $eq_11: bool
-    %10 if_res: Direction
-    %11 $k_14: i32
-    %12 $eq_15: bool
-    %13 if_res: Direction
+    %5 $k_5: i32
+    %6 $k_6: i32
+    %7 $eq_7: bool
+    %8 if_res: Direction
+    %9 $k_9: i32
+    %10 $k_10: i32
+    %11 $eq_11: bool
+    %12 if_res: Direction
+    %13 $k_13: i32
+    %14 $k_14: i32
+    %15 $eq_15: bool
+    %16 if_res: Direction
+    %17 $k_17: i32
+    %18 unreachable: Direction
   bb0:
     %1 = move %0
     %2 = const int(0) :i32
-    %3 = binop eq %1 %2 :bool
+    %3 = binop 12 %1 %2 :bool
     cond_branch %3 ? bb1 : bb2
   bb1:
-    %4 = const int(1) :i32
+    %5 = const int(1) :i32
+    %4 = move %5
     branch -> bb3
   bb2:
-    %5 = const int(1) :i32
-    %6 = binop eq %1 %5 :bool
-    cond_branch %6 ? bb4 : bb5
+    %6 = const int(1) :i32
+    %7 = binop 12 %1 %6 :bool
+    cond_branch %7 ? bb4 : bb5
   bb3:
     return %4
   bb4:
-    %7 = const int(2) :i32
+    %9 = const int(2) :i32
+    %8 = move %9
     branch -> bb6
   bb5:
-    %8 = const int(2) :i32
-    %9 = binop eq %1 %8 :bool
-    cond_branch %9 ? bb7 : bb8
+    %10 = const int(2) :i32
+    %11 = binop 12 %1 %10 :bool
+    cond_branch %11 ? bb7 : bb8
   bb6:
-    %4 = move %7
+    %4 = move %8
     branch -> bb3
   bb7:
-    %10 = const int(3) :i32
+    %13 = const int(3) :i32
+    %12 = move %13
     branch -> bb9
   bb8:
-    %11 = const int(3) :i32
-    %12 = binop eq %1 %11 :bool
-    cond_branch %12 ? bb10 : bb11
+    %14 = const int(3) :i32
+    %15 = binop 12 %1 %14 :bool
+    cond_branch %15 ? bb10 : bb11
   bb9:
-    %7 = move %10
+    %8 = move %12
     branch -> bb6
   bb10:
-    %13 = const int(0) :i32
+    %17 = const int(0) :i32
+    %16 = move %17
     branch -> bb12
   bb11:
     unreachable ; non-exhaustive match (T3013 should have caught this)
   bb12:
-    %10 = move %13
+    %12 = move %16
     branch -> bb9
 
 fn snippet$Direction$Display$to_string(%0: Direction) -> string
@@ -127,76 +145,87 @@ fn snippet$Direction$Display$to_string(%0: Direction) -> string
     %2 $k_2: i32
     %3 $eq_3: bool
     %4 if_res: string
-    %5 $k_6: i32
-    %6 $eq_7: bool
-    %7 if_res: string
-    %8 $k_10: i32
-    %9 $eq_11: bool
-    %10 if_res: string
-    %11 $k_14: i32
-    %12 $eq_15: bool
-    %13 if_res: string
+    %5 $k_5: string
+    %6 $k_6: i32
+    %7 $eq_7: bool
+    %8 if_res: string
+    %9 $k_9: string
+    %10 $k_10: i32
+    %11 $eq_11: bool
+    %12 if_res: string
+    %13 $k_13: string
+    %14 $k_14: i32
+    %15 $eq_15: bool
+    %16 if_res: string
+    %17 $k_17: string
+    %18 unreachable: string
   bb0:
     %1 = move %0
     %2 = const int(0) :i32
-    %3 = binop eq %1 %2 :bool
+    %3 = binop 12 %1 %2 :bool
     cond_branch %3 ? bb1 : bb2
   bb1:
-    %4 = const string(#0) :string
+    %5 = const string(#1) :string
+    %4 = move %5
     branch -> bb3
   bb2:
-    %5 = const int(1) :i32
-    %6 = binop eq %1 %5 :bool
-    cond_branch %6 ? bb4 : bb5
+    %6 = const int(1) :i32
+    %7 = binop 12 %1 %6 :bool
+    cond_branch %7 ? bb4 : bb5
   bb3:
     return %4
   bb4:
-    %7 = const string(#1) :string
+    %9 = const string(#2) :string
+    %8 = move %9
     branch -> bb6
   bb5:
-    %8 = const int(2) :i32
-    %9 = binop eq %1 %8 :bool
-    cond_branch %9 ? bb7 : bb8
+    %10 = const int(2) :i32
+    %11 = binop 12 %1 %10 :bool
+    cond_branch %11 ? bb7 : bb8
   bb6:
-    %4 = move %7
+    %4 = move %8
     branch -> bb3
   bb7:
-    %10 = const string(#2) :string
+    %13 = const string(#3) :string
+    %12 = move %13
     branch -> bb9
   bb8:
-    %11 = const int(3) :i32
-    %12 = binop eq %1 %11 :bool
-    cond_branch %12 ? bb10 : bb11
+    %14 = const int(3) :i32
+    %15 = binop 12 %1 %14 :bool
+    cond_branch %15 ? bb10 : bb11
   bb9:
-    %7 = move %10
+    %8 = move %12
     branch -> bb6
   bb10:
-    %13 = const string(#3) :string
+    %17 = const string(#4) :string
+    %16 = move %17
     branch -> bb12
   bb11:
     unreachable ; non-exhaustive match (T3013 should have caught this)
   bb12:
-    %10 = move %13
+    %12 = move %16
     branch -> bb9
 
 fn snippet$main() -> i32
   locals:
-    %0 d: Direction (local d)
-    %1 $call_2: string
-    %2 $call_3: Direction
-    %3 $call_4: string
-    %4 $call_5: Direction
-    %5 $call_6: string
-    %6 $k_7: i32
+    %0 $k_0: i32
+    %1 d: Direction (local d)
+    %2 $call_2: string
+    %3 $call_3: Direction
+    %4 $call_4: string
+    %5 $call_5: Direction
+    %6 $call_6: string
+    %7 $k_7: i32
   bb0:
     %0 = const int(0) :i32
-    %1 = call to_string(%0) :string
-    call println(%1) :void
-    %2 = call turn_left(%0) :Direction
-    %3 = call to_string(%2) :string
-    call println(%3) :void
-    %4 = call turn_right(%0) :Direction
-    %5 = call to_string(%4) :string
-    call println(%5) :void
-    %6 = const int(0) :i32
-    return %6
+    %1 = move %0
+    %2 = call snippet$Direction$Display$to_string(%1) :string
+    call std_io$std_io$println__string(%2) :void
+    %3 = call snippet$Direction$Turnable$turn_left(%1) :Direction
+    %4 = call snippet$Direction$Display$to_string(%3) :string
+    call std_io$std_io$println__string(%4) :void
+    %5 = call snippet$Direction$Turnable$turn_right(%1) :Direction
+    %6 = call snippet$Direction$Display$to_string(%5) :string
+    call std_io$std_io$println__string(%6) :void
+    %7 = const int(0) :i32
+    return %7

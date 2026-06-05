@@ -22,7 +22,7 @@
               block :void
                 call :void
                   callee:
-                    println :void
+                    std_io$std_io$println__string :void
                   arg0:
                     block :string
                       let __sb_2: ? =
@@ -41,7 +41,7 @@
                 ~>
                   call :void
                     callee:
-                      println :void
+                      std_io$std_io$println__string :void
                     arg0:
                       block :string
                         let __sb_3: ? =
@@ -67,7 +67,7 @@
                   ~>
                     call :void
                       callee:
-                        println :void
+                        std_io$std_io$println__string :void
                       arg0:
                         block :string
                           let __sb_1: ? =
@@ -79,7 +79,7 @@
                             __sb_1 :?
                             call :string
                               callee:
-                                message :string
+                                std_process$ProcessError$Error$message :string
                               arg0:
                                 cast → ProcessError
                                   r :ProcessError | ProcessResult

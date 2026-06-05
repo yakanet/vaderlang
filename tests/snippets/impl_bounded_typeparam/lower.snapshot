@@ -28,25 +28,33 @@
       }
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
-            to_string :string
+            snippet$Wrap$Display$to_string__Any :string
           arg0:
             a :Wrap<Cat>
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
-            to_string :string
+            snippet$Wrap$Display$to_string__Any :string
           arg0:
             b :Wrap<Dog>
     return int(0) :i32
   struct snippet$Wrap__Cat { value: Any }
-  fn snippet$Wrap$Display$to_string__Cat(self: Wrap<Any>) -> string
+  fn snippet$Wrap$Display$to_string__Any(self: Wrap<Any>) -> string
     return "wrapped" :string
+  fn snippet$Cat$Tag$tag(self: Cat) -> string
+    return
+      .name :string
+        self :Cat
   struct snippet$Wrap__Dog { value: Any }
+  fn snippet$Dog$Tag$tag(self: Dog) -> string
+    return
+      .name :string
+        self :Dog
   struct snippet$Wrap__Any { value: Any }

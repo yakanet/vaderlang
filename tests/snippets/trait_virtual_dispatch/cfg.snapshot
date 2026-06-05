@@ -13,7 +13,7 @@ fn snippet$ParseErr$Error$message(%0: ParseErr) -> string
   bb0:
     %1 = intrinsic builder.new()
     %2 = move %1
-    %3 = const string(#0) :string
+    %3 = const string(#1) :string
     intrinsic builder.append_str(%2, %3)
     %4 = field_get %0.msg :string
     intrinsic builder.append_display(%2, %4)
@@ -31,7 +31,7 @@ fn snippet$NetErr$Error$message(%0: NetErr) -> string
   bb0:
     %1 = intrinsic builder.new()
     %2 = move %1
-    %3 = const string(#1) :string
+    %3 = const string(#2) :string
     intrinsic builder.append_str(%2, %3)
     %4 = field_get %0.reason :string
     intrinsic builder.append_display(%2, %4)
@@ -56,13 +56,13 @@ fn snippet$main() -> i32
     %5 $call_5: string
     %6 $k_6: i32
   bb0:
-    %0 = const string(#2) :string
+    %0 = const string(#3) :string
     %1 = struct_new ParseErr(%0)
     %2 = call report(%1) :string
-    call println(%2) :void
-    %3 = const string(#3) :string
+    call std_io$std_io$println__string(%2) :void
+    %3 = const string(#4) :string
     %4 = struct_new NetErr(%3)
     %5 = call report(%4) :string
-    call println(%5) :void
+    call std_io$std_io$println__string(%5) :void
     %6 = const int(0) :i32
     return %6

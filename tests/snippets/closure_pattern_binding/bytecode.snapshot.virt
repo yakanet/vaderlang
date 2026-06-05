@@ -12,13 +12,13 @@ type 9 struct "$Cell_Struct#tests/snippets/closure_pattern_binding/_main.vader:4
 type 10 fn () -> 7
 type 11 struct $Cell_i32 { value:2 }
 type 12 fn () -> 2
-string 0 "again "
-string 1 "twice = "
-string 2 "world"
-string 3 "HELLO "
-string 4 "\n"
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 write std_io$write (i32,string) -> void
+string 0 "\n"
+string 1 "again "
+string 2 "twice = "
+string 3 "world"
+string 4 "HELLO "
+import 0 write std_io$write (i32,string) -> void
+import 1 to_string std_core$string$Display$to_string (string) -> string
 export main 1
 
 fn 0 snippet$greet (ref) -> void
@@ -41,7 +41,7 @@ fn 0 snippet$greet (ref) -> void
     intrinsic builder.new
     local.set 3
     local.get 3
-    string.const 0
+    string.const 1
     intrinsic builder.append_str
     local.get 2
     call.indirect 10
@@ -66,7 +66,7 @@ fn 0 snippet$greet (ref) -> void
     intrinsic builder.new
     local.set 3
     local.get 3
-    string.const 1
+    string.const 2
     intrinsic builder.append_str
     local.get 1
     call.indirect 12
@@ -79,11 +79,11 @@ fn 0 snippet$greet (ref) -> void
     call 4
     return
   end $L1
-  unreachable
+  return
 end
 
 fn 1 snippet$main () -> i32
-  string.const 2
+  string.const 3
   struct.new 3
   call 0
   i32.const 21
@@ -112,7 +112,7 @@ fn 3 __lambda_6 (ref) -> string
   intrinsic builder.new
   local.set 1
   local.get 1
-  string.const 3
+  string.const 4
   intrinsic builder.append_str
   local.field 0 6 0
   struct.get 9 0
@@ -134,22 +134,15 @@ fn 4 std_io$std_io$println__string (string) -> void
   local.set 1
   i32.const 0
   local.get 1
-  call 6
+  call.import 0
   i32.const 0
-  string.const 4
-  call 6
-  return
-end
-
-fn 5 std_core$string$Display$to_string$vt (string) -> string
-  local.get 0
+  string.const 0
   call.import 0
   return
 end
 
-fn 6 std_io$write$vt (i32,string) -> void
+fn 5 std_core$string$Display$to_string_vt (string) -> string
   local.get 0
-  local.get 1
   call.import 1
   return
 end

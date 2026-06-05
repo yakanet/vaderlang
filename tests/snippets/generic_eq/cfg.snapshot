@@ -22,18 +22,18 @@ fn snippet$main() -> i32
     %1 = move %0
     %2 = const int(1) :i32
     %3 = const int(1) :i32
-    %4 = call are_eq(%2, %3) :bool
+    %4 = call snippet$snippet$are_eq__i32(%2, %3) :bool
     intrinsic builder.append_display(%1, %4)
     %5 = intrinsic builder.finish(%1)
-    call println(%5) :void
+    call std_io$std_io$println__string(%5) :void
     %6 = intrinsic builder.new()
     %7 = move %6
     %8 = const int(1) :i32
     %9 = const int(2) :i32
-    %10 = call are_eq(%8, %9) :bool
+    %10 = call snippet$snippet$are_eq__i32(%8, %9) :bool
     intrinsic builder.append_display(%7, %10)
     %11 = intrinsic builder.finish(%7)
-    call println(%11) :void
+    call std_io$std_io$println__string(%11) :void
     %12 = const int(0) :i32
     return %12
 

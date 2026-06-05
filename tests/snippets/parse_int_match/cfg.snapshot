@@ -34,77 +34,77 @@ fn snippet$main() -> i32
     %27 $k_27: string
     %28 $k_28: i32
   bb0:
-    %0 = const string(#0) :string
+    %0 = const string(#1) :string
     %1 = call parse_int(%0) :i32 | ParseError
     %2 = move %1
     %3 = type_check %2 is i32
     cond_branch %3 ? bb1 : bb2
   bb1:
-    %4 = const string(#1) :string
-    call println(%4) :void
+    %4 = const string(#2) :string
+    call std_io$std_io$println__string(%4) :void
     branch -> bb3
   bb2:
     %5 = type_check %2 is ParseError
     cond_branch %5 ? bb4 : bb5
   bb3:
-    %7 = const string(#3) :string
+    %7 = const string(#4) :string
     %8 = call parse_int(%7) :i32 | ParseError
     %9 = move %8
     %10 = type_check %9 is i32
     cond_branch %10 ? bb7 : bb8
   bb4:
-    %6 = const string(#2) :string
-    call println(%6) :void
+    %6 = const string(#3) :string
+    call std_io$std_io$println__string(%6) :void
     branch -> bb6
   bb5:
     unreachable ; non-exhaustive match (T3013 should have caught this)
   bb6:
     branch -> bb3
   bb7:
-    %11 = const string(#1) :string
-    call println(%11) :void
+    %11 = const string(#2) :string
+    call std_io$std_io$println__string(%11) :void
     branch -> bb9
   bb8:
     %12 = type_check %9 is ParseError
     cond_branch %12 ? bb10 : bb11
   bb9:
-    %14 = const string(#4) :string
+    %14 = const string(#5) :string
     %15 = call parse_float(%14) :Error | f64
     %16 = move %15
     %17 = type_check %16 is f64
     cond_branch %17 ? bb13 : bb14
   bb10:
-    %13 = const string(#2) :string
-    call println(%13) :void
+    %13 = const string(#3) :string
+    call std_io$std_io$println__string(%13) :void
     branch -> bb12
   bb11:
     unreachable ; non-exhaustive match (T3013 should have caught this)
   bb12:
     branch -> bb9
   bb13:
-    %18 = const string(#5) :string
-    call println(%18) :void
+    %18 = const string(#6) :string
+    call std_io$std_io$println__string(%18) :void
     branch -> bb15
   bb14:
     %19 = type_check %16 is Error
     cond_branch %19 ? bb16 : bb17
   bb15:
-    %21 = const string(#3) :string
+    %21 = const string(#4) :string
     %22 = call parse_float(%21) :Error | f64
     %23 = move %22
     %24 = type_check %23 is f64
     cond_branch %24 ? bb19 : bb20
   bb16:
-    %20 = const string(#6) :string
-    call println(%20) :void
+    %20 = const string(#7) :string
+    call std_io$std_io$println__string(%20) :void
     branch -> bb18
   bb17:
     unreachable ; non-exhaustive match (T3013 should have caught this)
   bb18:
     branch -> bb15
   bb19:
-    %25 = const string(#5) :string
-    call println(%25) :void
+    %25 = const string(#6) :string
+    call std_io$std_io$println__string(%25) :void
     branch -> bb21
   bb20:
     %26 = type_check %23 is Error
@@ -113,8 +113,8 @@ fn snippet$main() -> i32
     %28 = const int(0) :i32
     return %28
   bb22:
-    %27 = const string(#6) :string
-    call println(%27) :void
+    %27 = const string(#7) :string
+    call std_io$std_io$println__string(%27) :void
     branch -> bb24
   bb23:
     unreachable ; non-exhaustive match (T3013 should have caught this)

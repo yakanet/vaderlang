@@ -7,15 +7,15 @@ fn snippet$tag_of(%0: Box) -> i32
     %0 b: Box (param b)
     %1 $field_1: Inner | null
     %2 $type_check_2: bool
-    %3 $not_3: bool
+    %3 $unop_3: bool
     %4 $field_4: Inner
     %5 $field_5: i32
     %6 $k_6: i32
-    %7 $neg_7: i32
+    %7 $unop_7: i32
   bb0:
     %1 = field_get %0.opt :Inner | null
     %2 = type_check %1 is null
-    %3 = unop not %2 :bool
+    %3 = unop 1 %2 :bool
     cond_branch %3 ? bb1 : bb2
   bb1:
     %4 = field_get %0.opt :Inner
@@ -23,7 +23,7 @@ fn snippet$tag_of(%0: Box) -> i32
     return %5
   bb2:
     %6 = const int(1) :i32
-    %7 = unop neg %6 :i32
+    %7 = unop 0 %6 :i32
     return %7
 
 fn snippet$main() -> i32
@@ -54,12 +54,12 @@ fn snippet$main() -> i32
     %8 = move %7
     %9 = intrinsic builder.new()
     %10 = move %9
-    %11 = const string(#0) :string
+    %11 = const string(#1) :string
     intrinsic builder.append_str(%10, %11)
     intrinsic builder.append_display(%10, %4)
-    %12 = const string(#1) :string
+    %12 = const string(#2) :string
     intrinsic builder.append_str(%10, %12)
     intrinsic builder.append_display(%10, %8)
     %13 = intrinsic builder.finish(%10)
-    call println(%13) :void
+    call std_io$std_io$println__string(%13) :void
     return %4

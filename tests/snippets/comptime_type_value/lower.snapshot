@@ -24,7 +24,7 @@
         LoweredTypeConst
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         "ok" :string
     return int(0) :i32

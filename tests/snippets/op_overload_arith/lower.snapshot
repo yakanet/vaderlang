@@ -116,7 +116,7 @@
     let s: Vec =
       call :Vec
         callee:
-          add :Vec
+          snippet$Vec$Add$add :Vec
         arg0:
           a :Vec
         arg1:
@@ -124,7 +124,7 @@
     let d: Vec =
       call :Vec
         callee:
-          sub :Vec
+          snippet$Vec$Sub$sub :Vec
         arg0:
           a :Vec
         arg1:
@@ -132,7 +132,7 @@
     let m: Vec =
       call :Vec
         callee:
-          mul :Vec
+          snippet$Vec$Mul$mul :Vec
         arg0:
           a :Vec
         arg1:
@@ -140,7 +140,7 @@
     let q: Vec =
       call :Vec
         callee:
-          div :Vec
+          snippet$Vec$Div$div :Vec
         arg0:
           a :Vec
         arg1:
@@ -148,14 +148,14 @@
     let r: Vec =
       call :Vec
         callee:
-          rem :Vec
+          snippet$Vec$Rem$rem :Vec
         arg0:
           a :Vec
         arg1:
           b :Vec
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_0: ? =

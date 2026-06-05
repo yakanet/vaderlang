@@ -17,8 +17,7 @@
     if :void
       cond:
         is Unres :bool
-          cast → FnLike | Other | Unres
-            t :FnLike | Meta | Other | Unres
+          t :FnLike | Meta | Other | Unres
       then:
         return
           neg :i32
@@ -27,8 +26,7 @@
       cond:
         not :bool
           is FnLike :bool
-            cast → FnLike | Other
-              t :FnLike | Meta | Other | Unres
+            t :FnLike | Meta | Other | Unres
       then:
         return
           neg :i32
@@ -56,7 +54,7 @@
           }
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_0: ? =

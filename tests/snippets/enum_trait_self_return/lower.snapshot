@@ -167,37 +167,37 @@
     let d: Direction = int(0) :i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
-            to_string :string
+            snippet$Direction$Display$to_string :string
           arg0:
             d :Direction
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
-            to_string :string
+            snippet$Direction$Display$to_string :string
           arg0:
             call :Direction
               callee:
-                turn_left :Direction
+                snippet$Direction$Turnable$turn_left :Direction
               arg0:
                 d :Direction
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
-            to_string :string
+            snippet$Direction$Display$to_string :string
           arg0:
             call :Direction
               callee:
-                turn_right :Direction
+                snippet$Direction$Turnable$turn_right :Direction
               arg0:
                 d :Direction
     return int(0) :i32

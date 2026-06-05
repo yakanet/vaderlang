@@ -30,12 +30,12 @@
       cast → i32
         call :i32
           callee:
-            into :i32
+            snippet$UserId$Into$into :i32
           arg0:
             u :UserId
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -52,12 +52,12 @@
     let s: string =
       call :string
         callee:
-          into :string
+          snippet$UserId$Into$into_1 :string
         arg0:
           u :UserId
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_1: ? =

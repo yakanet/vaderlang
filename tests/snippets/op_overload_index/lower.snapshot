@@ -118,7 +118,7 @@
       }
     call :void
       callee:
-        set_at :void
+        snippet$Cell$IndexSet$set_at :void
       arg0:
         c :Cell
       arg1:
@@ -127,7 +127,7 @@
         int(10) :i32
     call :void
       callee:
-        set_at :void
+        snippet$Cell$IndexSet$set_at :void
       arg0:
         c :Cell
       arg1:
@@ -136,7 +136,7 @@
         int(20) :i32
     call :void
       callee:
-        set_at :void
+        snippet$Cell$IndexSet$set_at :void
       arg0:
         c :Cell
       arg1:
@@ -145,7 +145,7 @@
         int(100) :i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -157,7 +157,7 @@
             __sb_0 :?
             call :i32
               callee:
-                at :i32
+                snippet$Cell$Index$at :i32
               arg0:
                 c :Cell
               arg1:
@@ -169,7 +169,7 @@
             __sb_0 :?
             call :i32
               callee:
-                at :i32
+                snippet$Cell$Index$at :i32
               arg0:
                 c :Cell
               arg1:
@@ -181,7 +181,7 @@
             __sb_0 :?
             call :i32
               callee:
-                at :i32
+                snippet$Cell$Index$at :i32
               arg0:
                 c :Cell
               arg1:

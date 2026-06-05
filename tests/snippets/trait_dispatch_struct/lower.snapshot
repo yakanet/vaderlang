@@ -12,17 +12,21 @@
     return
       call :i32
         callee:
-          apply_tag :i32
+          snippet$snippet$apply_tag__i32 :i32
         arg0:
           int(7) :i32
-  fn snippet$snippet$apply_tag__i32(x: Any) -> i32
+  fn snippet$snippet$apply_tag__i32(x: i32) -> i32
     return
       add :i32
         l:
-          vcall Tagger.tag :i32
-            recv:
-              x :Any
+          call :i32
+            callee:
+              snippet$i32$Tagger$tag :i32
+            arg0:
+              x :i32
         r:
-          vcall Tagger.tag :i32
-            recv:
-              x :Any
+          call :i32
+            callee:
+              snippet$i32$Tagger$tag :i32
+            arg0:
+              x :i32

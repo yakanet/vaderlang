@@ -17,7 +17,7 @@
           ~>
             call :void
               callee:
-                println :void
+                std_io$std_io$println__string :void
               arg0:
                 block :string
                   let __sb_0: ? =
@@ -32,7 +32,7 @@
                     __sb_0 :?
                     call :string
                       callee:
-                        message :string
+                        std_base64$Base64Error$Error$message :string
                       arg0:
                         cast → Base64Error
                           out :Base64Error | u8[]
@@ -43,7 +43,7 @@
           ~>
             call :void
               callee:
-                println :void
+                std_io$std_io$println__string :void
               arg0:
                 block :string
                   let __sb_1: ? =
@@ -68,7 +68,7 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -92,7 +92,7 @@
               __sb_0 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_1: ? =
@@ -116,7 +116,7 @@
               __sb_1 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_2: ? =
@@ -140,7 +140,7 @@
               __sb_2 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_3: ? =
@@ -164,7 +164,7 @@
               __sb_3 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_4: ? =
@@ -188,7 +188,7 @@
               __sb_4 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_5: ? =
@@ -293,7 +293,7 @@
             ~>
               call :void
                 callee:
-                  println :void
+                  std_io$std_io$println__string :void
                 arg0:
                   block :string
                     let __sb_9: ? =
@@ -314,7 +314,7 @@
             ~>
               call :void
                 callee:
-                  println :void
+                  std_io$std_io$println__string :void
                 arg0:
                   block :string
                     let __sb_10: ? =

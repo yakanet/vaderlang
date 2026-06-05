@@ -21,7 +21,7 @@ fn snippet$main() -> i32
     %0 = const int(1) :i32
     %1 = const string(#0) :string
     %2 = struct_new [i32, string](%0, %1)
-    %3 = call swap(%2) :[string, i32]
+    %3 = call snippet$snippet$swap__i32__string(%2) :[string, i32]
     %4 = move %3
     %5 = intrinsic builder.new()
     %6 = move %5
@@ -34,7 +34,7 @@ fn snippet$main() -> i32
     %10 = field_get %4._1 :i32
     intrinsic builder.append_display(%6, %10)
     %11 = intrinsic builder.finish(%6)
-    call println(%11) :void
+    call std_io$std_io$println__string(%11) :void
     %12 = const int(0) :i32
     return %12
 

@@ -32,7 +32,7 @@
               int(1) :usize
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_2: ? =
@@ -50,7 +50,7 @@
             __sb_2 :?
             call :string
               callee:
-                to_string :string
+                std_core$usize$Display$to_string :string
               arg0:
                 LoweredArrayLen
           ~>
@@ -70,7 +70,7 @@
               __for_i_5 :usize
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             block :string
               let __sb_6: ? =
@@ -122,7 +122,7 @@
               int(1) :usize
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_9: ? =
@@ -146,7 +146,7 @@
             __sb_9 :?
             call :string
               callee:
-                to_string :string
+                std_core$usize$Display$to_string :string
               arg0:
                 LoweredArrayLen
           ~>
@@ -169,7 +169,7 @@
               int(1) :usize
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_12: ? =
@@ -181,7 +181,7 @@
             __sb_12 :?
             call :string
               callee:
-                to_string :string
+                std_core$usize$Display$to_string :string
               arg0:
                 LoweredArrayLen
           ~>
@@ -201,7 +201,7 @@
               __for_i_15 :usize
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             block :string
               let __sb_16: ? =

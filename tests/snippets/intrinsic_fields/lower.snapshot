@@ -33,7 +33,7 @@
               __for_i_2 :usize
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             block :string
               let __sb_3: ? =
@@ -49,7 +49,7 @@
                 __sb_3 :?
                 call :string
                   callee:
-                    to_string :string
+                    std_core$usize$Display$to_string :string
                   arg0:
                     @size_of.type :usize
                       .type :type
@@ -91,7 +91,7 @@
               __for_i_6 :usize
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             block :string
               let __sb_7: ? =
@@ -110,7 +110,7 @@
                 __sb_7 :?
                 call :string
                   callee:
-                    to_string :string
+                    std_core$usize$Display$to_string :string
                   arg0:
                     @size_of.type :usize
                       .type :type
@@ -129,4 +129,4 @@
                 int(1) :usize
     return int(0) :i32
   struct snippet$Pair__string__i64 { key: Any, value: Any }
-  struct snippet$Pair__string__Any__Any { key: Any, value: Any }
+  struct snippet$Pair__Any__Any { key: Any, value: Any }

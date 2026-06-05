@@ -1,79 +1,72 @@
 module _main
 type 0 primitive null
-type 1 primitive i32
-type 2 ref _
-type 3 fn (2) -> 2
-type 4 struct __lambda_env_12 {  }
-type 5 primitive string
-type 6 primitive void
+type 1 primitive string
+type 2 primitive void
+type 3 primitive i32
+type 4 ref _
+type 5 fn (4) -> 4
+type 6 struct __lambda_env_3 {  }
 string 0 "\n"
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 write std_io$write (i32,string) -> void
-export main 0
+import 0 write std_io$write (i32,string) -> void
+import 1 to_string std_core$string$Display$to_string (string) -> string
+export main 1
 
-fn 0 snippet$main () -> i32
-  local __sb_0 any
-  local $call_3 i32
-  intrinsic builder.new
-  local.set 0
-  i32.const 7
-  call 2
-  local.set 1
-  local.get 0
-  local.get 1
-  intrinsic builder.append_display
-  local.get 0
-  intrinsic builder.finish
-  call 4
-  return.lit i32.const 0
-end
-
-fn 1 snippet$snippet$apply__Any (ref,ref) -> ref
-  local.get 0
-  local.get 1
-  call.indirect 3
-  return
-end
-
-fn 2 snippet$snippet$run_id__i32 (ref) -> ref
-  local id ref
-  struct.new 4
-  make_closure 3 3
-  local.set 1
-  local.get 0
-  local.get 1
-  call 1
-  return
-end
-
-fn 3 __lambda_11 (ref,ref) -> ref
-  local.get 1
-  return
-end
-
-fn 4 std_io$std_io$println__string (string) -> void
+fn 0 std_io$std_io$println__string (string) -> void
   local $call_2 string
   local.get 0
   call 5
   local.set 1
   i32.const 0
   local.get 1
-  call 6
+  call.import 0
   i32.const 0
   string.const 0
-  call 6
-  return
-end
-
-fn 5 std_core$string$Display$to_string$vt (string) -> string
-  local.get 0
   call.import 0
   return
 end
 
-fn 6 std_io$write$vt (i32,string) -> void
+fn 1 snippet$main () -> i32
+  local __sb_0 any
+  local $call_3 i32
+  intrinsic builder.new
+  local.set 0
+  i32.const 7
+  call 3
+  local.set 1
   local.get 0
   local.get 1
+  intrinsic builder.append_display
+  local.get 0
+  intrinsic builder.finish
+  call 0
+  return.lit i32.const 0
+end
+
+fn 2 snippet$snippet$apply__Any (ref,ref) -> ref
+  local.get 0
+  local.get 1
+  call.indirect 5
+  return
+end
+
+fn 3 snippet$snippet$run_id__i32 (ref) -> ref
+  local id ref
+  struct.new 6
+  make_closure 4 5
+  local.set 1
+  local.get 0
+  local.get 1
+  call 2
+  return
+end
+
+fn 4 __lambda_2 (ref,ref) -> ref
+  local.get 1
+  return
+end
+
+fn 5 std_core$string$Display$to_string_vt (string) -> string
+  local.get 0
   call.import 1
   return
 end

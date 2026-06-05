@@ -5,7 +5,7 @@
     return
       call :bool
         callee:
-          contains :bool
+          std_core$Range$Contains$contains__char :bool
         arg0:
           Range<char> {
             start: char(0x30)
@@ -19,7 +19,7 @@
     return
       call :bool
         callee:
-          contains :bool
+          std_core$Range$Contains$contains__char :bool
         arg0:
           Range<char> {
             start: char(0x61)
@@ -35,7 +35,7 @@
         l:
           call :bool
             callee:
-              contains :bool
+              std_core$Range$Contains$contains__char :bool
             arg0:
               Range<char> {
                 start: char(0x61)
@@ -48,7 +48,7 @@
         r:
           call :bool
             callee:
-              contains :bool
+              std_core$Range$Contains$contains__char :bool
             arg0:
               Range<char> {
                 start: char(0x41)
@@ -69,7 +69,7 @@
       then:
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             "5 is digit" :string
     if :void
@@ -83,7 +83,7 @@
       then:
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             "a is not digit" :string
     if :void
@@ -96,7 +96,7 @@
       then:
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             "0 is digit" :string
     if :void
@@ -109,7 +109,7 @@
       then:
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             "9 is digit" :string
     if :void
@@ -123,7 +123,7 @@
       then:
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             ": is not digit" :string
     if :void
@@ -136,7 +136,7 @@
       then:
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             "m is lower" :string
     if :void
@@ -150,7 +150,7 @@
       then:
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             "M is not lower" :string
     if :void
@@ -163,7 +163,7 @@
       then:
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             "z is alpha" :string
     if :void
@@ -176,7 +176,7 @@
       then:
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             "Z is alpha" :string
     if :void
@@ -190,12 +190,12 @@
       then:
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             "5 is not alpha" :string
     let n: i32 = int(0) :i32
     block :void
-      let __iter_0: Range<char> =
+      let __iter_1: Range<char> =
         Range<char> {
           start: char(0x61)
           end: char(0x65)
@@ -203,23 +203,23 @@
           cursor: char(0x61)
         }
       loop
-        let __step_1: Yield<char> | null =
+        let __step_2: Yield<char> | null =
           call :Yield<char> | null
             callee:
-              next :?
+              std_core$Range$Iterator$next__char :?
             arg0:
-              __iter_0 :Range<char>
+              __iter_1 :Range<char>
         if :void
           cond:
             is null :bool
-              __step_1 :Yield<char> | null
+              __step_2 :Yield<char> | null
           then:
             break
           else:
             let c: char =
               .value :char
                 cast → Yield<char>
-                  __step_1 :Yield<char> | null
+                  __step_2 :Yield<char> | null
             assign
               target:
                 n :i32
@@ -231,23 +231,23 @@
                     int(1) :i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_2: ? =
+          let __sb_3: ? =
             @builder.new :?
           @builder.append_str :void
-            __sb_2 :?
+            __sb_3 :?
             "a..=e count = " :string
           @builder.append_display <for i32> :void
-            __sb_2 :?
+            __sb_3 :?
             n :i32
           ~>
             @builder.finish :string
-              __sb_2 :?
+              __sb_3 :?
     let m: i32 = int(0) :i32
     block :void
-      let __iter_3: Range<char> =
+      let __iter_5: Range<char> =
         Range<char> {
           start: char(0x30)
           end: char(0x35)
@@ -255,23 +255,23 @@
           cursor: char(0x30)
         }
       loop
-        let __step_4: Yield<char> | null =
+        let __step_6: Yield<char> | null =
           call :Yield<char> | null
             callee:
-              next :?
+              std_core$Range$Iterator$next__char :?
             arg0:
-              __iter_3 :Range<char>
+              __iter_5 :Range<char>
         if :void
           cond:
             is null :bool
-              __step_4 :Yield<char> | null
+              __step_6 :Yield<char> | null
           then:
             break
           else:
             let c: char =
               .value :char
                 cast → Yield<char>
-                  __step_4 :Yield<char> | null
+                  __step_6 :Yield<char> | null
             assign
               target:
                 m :i32
@@ -283,18 +283,18 @@
                     int(1) :i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_5: ? =
+          let __sb_7: ? =
             @builder.new :?
           @builder.append_str :void
-            __sb_5 :?
+            __sb_7 :?
             "0..<5 count = " :string
           @builder.append_display <for i32> :void
-            __sb_5 :?
+            __sb_7 :?
             m :i32
           ~>
             @builder.finish :string
-              __sb_5 :?
+              __sb_7 :?
     return int(0) :i32

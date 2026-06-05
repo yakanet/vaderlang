@@ -10,7 +10,7 @@ fn snippet$main() -> i32
     %3 $k_3: i32
   bb0:
     %0 = const string(#0) :string
-    %1 = call needs_hash(%0) :bool
+    %1 = call snippet$snippet$needs_hash__string(%0) :bool
     cond_branch %1 ? bb1 : bb2
   bb1:
     %2 = const int(0) :i32
@@ -19,18 +19,18 @@ fn snippet$main() -> i32
     %3 = const int(1) :i32
     return %3
 
-fn snippet$snippet$needs_hash__string(%0: Any) -> bool
+fn snippet$snippet$needs_hash__string(%0: string) -> bool
   locals:
-    %0 x: Any (param x)
-    %1 $vcall_1: u64
+    %0 x: string (param x)
+    %1 $call_1: u64
     %2 h: u64 (local h)
     %3 $k_3: u64
     %4 $cast_4: u64
     %5 $gt_5: bool
   bb0:
-    %1 = vcall Hash.hash(recv=%0) :u64
+    %1 = call std_core$string$Hash$hash(%0) :u64
     %2 = move %1
     %3 = const int(0) :u64
     %4 = cast %3 :u64
-    %5 = binop gt %2 %4 :bool
+    %5 = binop 16 %2 %4 :bool
     return %5

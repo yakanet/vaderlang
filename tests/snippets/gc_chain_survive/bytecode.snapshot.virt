@@ -1,196 +1,176 @@
 module _main
 type 0 primitive null
-type 1 primitive i32
-type 2 struct snippet$Node { value:1,next:3 }
-type 3 union 2,0
-type 4 primitive string
-type 5 primitive void
-string 0 "expected 1 collection, got "
-string 1 "sum mismatch: got "
-string 2 ", expected "
-string 3 "ok: 200 nodes survived GC; sum="
-string 4 "\n"
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 write std_io$write (i32,string) -> void
-import 2 collect std_runtime$collect () -> void
-import 3 collections std_runtime$collections () -> i32
-export main 0
+type 1 primitive string
+type 2 primitive void
+type 3 primitive i32
+type 4 struct snippet$Node { value:3,next:5 }
+type 5 union 4,0
+string 0 "\n"
+string 1 "expected 1 collection, got "
+string 2 "sum mismatch: got "
+string 3 ", expected "
+string 4 "ok: 200 nodes survived GC; sum="
+import 0 write std_io$write (i32,string) -> void
+import 1 collect std_runtime$collect () -> void
+import 2 collections std_runtime$collections () -> i32
+import 3 to_string std_core$string$Display$to_string (string) -> string
+export main 1
 
-fn 0 snippet$main () -> i32
-  local $k_1 null
-  local head ref
-  local i i32
-  local __sb_0 any
-  local done bool
-  local __scrut_1 ref
-  local $field_35 i32
-  null.const
-  local.set 0
-  i32.const 0
-  local.get 0
-  struct.new 2
-  local.set 1
-  i32.const 1
-  local.set 2
-  block $L0 void
-    loop $L1 void
-      local.get 2
-      i32.const 200
-      i32.lt
-      if $L2 void
-        local.get 2
-        local.get 1
-        struct.new 2
-        local.set 1
-        local.get 2
-        i32.const 1
-        i32.add
-        local.set 2
-        br $L1
-      else
-      end $L2
-    end $L1
-  end $L0
-  call 5
-  local.set 2
-  call 4
-  call 5
-  local.get 2
-  i32.sub
-  local.set 2
-  local.get 2
-  i32.const 1
-  i32.ne
-  if $L3 void
-    intrinsic builder.new
-    local.set 3
-    local.get 3
-    string.const 0
-    intrinsic builder.append_str
-    local.get 3
-    local.get 2
-    intrinsic builder.append_display
-    local.get 3
-    intrinsic builder.finish
-    call 1
-    return.lit i32.const 1
-  end $L3
-  i32.const 0
-  local.set 2
-  local.get 1
-  local.set 1
-  bool.const false
-  local.set 4
-  block $L4 void
-    loop $L5 void
-      local.get 4
-      bool.not
-      if $L6 void
-        local.get 1
-        local.tee 5
-        type_check 0
-        if $L7 void
-          bool.const true
-          local.set 4
-          br $L5
-        end $L7
-        local.get 5
-        type_check 2
-        if $L8 void
-          local.get 1
-          struct.get 2 0
-          ref.cast 1
-          local.set 6
-          local.get 2
-          local.get 6
-          i32.add
-          local.set 2
-          local.get 1
-          struct.get 2 1
-          local.set 1
-          br $L5
-        end $L8
-        unreachable
-      else
-      end $L6
-    end $L5
-  end $L4
-  i32.const 39800
-  local.set 6
-  local.get 6
-  i32.const 2
-  i32.div
-  local.set 6
-  local.get 2
-  local.get 6
-  i32.ne
-  if $L9 void
-    intrinsic builder.new
-    local.set 3
-    local.get 3
-    string.const 1
-    intrinsic builder.append_str
-    local.get 3
-    local.get 2
-    intrinsic builder.append_display
-    local.get 3
-    string.const 2
-    intrinsic builder.append_str
-    local.get 3
-    local.get 6
-    intrinsic builder.append_display
-    local.get 3
-    intrinsic builder.finish
-    call 1
-    return.lit i32.const 2
-  end $L9
-  intrinsic builder.new
-  local.set 3
-  local.get 3
-  string.const 3
-  intrinsic builder.append_str
-  local.get 3
-  local.get 2
-  intrinsic builder.append_display
-  local.get 3
-  intrinsic builder.finish
-  call 1
-  return.lit i32.const 0
-end
-
-fn 1 std_io$std_io$println__string (string) -> void
+fn 0 std_io$std_io$println__string (string) -> void
   local $call_2 string
   local.get 0
   call 2
   local.set 1
   i32.const 0
   local.get 1
-  call 3
+  call.import 0
   i32.const 0
-  string.const 4
-  call 3
-  return
-end
-
-fn 2 std_core$string$Display$to_string$vt (string) -> string
-  local.get 0
+  string.const 0
   call.import 0
   return
 end
 
-fn 3 std_io$write$vt (i32,string) -> void
-  local.get 0
-  local.get 1
-  call.import 1
-  return
-end
-
-fn 4 std_runtime$collect$vt () -> void
+fn 1 snippet$main () -> i32
+  local head ref
+  local i i32
+  local __sb_0 any
+  local done bool
+  local __scrut_1 ref
+  local $field_35 i32
+  i32.const 0
+  null.const
+  struct.new 4
+  local.set 0
+  i32.const 1
+  local.set 1
+  block $L0 void
+    loop $L1 void
+      local.get 1
+      i32.const 200
+      i32.lt
+      if $L2 void
+        local.get 1
+        local.get 0
+        struct.new 4
+        local.set 0
+        local.get 1
+        i32.const 1
+        i32.add
+        local.set 1
+        br $L1
+      else
+      end $L2
+    end $L1
+  end $L0
   call.import 2
-  return
+  local.set 1
+  call.import 1
+  call.import 2
+  local.get 1
+  i32.sub
+  local.set 1
+  local.get 1
+  i32.const 1
+  i32.ne
+  if $L3 void
+    intrinsic builder.new
+    local.set 2
+    local.get 2
+    string.const 1
+    intrinsic builder.append_str
+    local.get 2
+    local.get 1
+    intrinsic builder.append_display
+    local.get 2
+    intrinsic builder.finish
+    call 0
+    return.lit i32.const 1
+  end $L3
+  i32.const 0
+  local.set 1
+  local.get 0
+  local.set 0
+  bool.const false
+  local.set 3
+  block $L4 void
+    loop $L5 void
+      local.get 3
+      bool.not
+      if $L6 void
+        local.get 0
+        local.tee 4
+        type_check 0
+        if $L7 void
+          bool.const true
+          local.set 3
+          br $L5
+        end $L7
+        local.get 4
+        type_check 4
+        if $L8 void
+          local.get 0
+          struct.get 4 0
+          ref.cast 3
+          local.set 5
+          local.get 1
+          local.get 5
+          i32.add
+          local.set 1
+          local.get 0
+          struct.get 4 1
+          local.set 0
+          br $L5
+        end $L8
+        return
+      else
+      end $L6
+    end $L5
+  end $L4
+  i32.const 39800
+  local.set 5
+  local.get 5
+  i32.const 2
+  i32.div
+  local.set 5
+  local.get 1
+  local.get 5
+  i32.ne
+  if $L9 void
+    intrinsic builder.new
+    local.set 2
+    local.get 2
+    string.const 2
+    intrinsic builder.append_str
+    local.get 2
+    local.get 1
+    intrinsic builder.append_display
+    local.get 2
+    string.const 3
+    intrinsic builder.append_str
+    local.get 2
+    local.get 5
+    intrinsic builder.append_display
+    local.get 2
+    intrinsic builder.finish
+    call 0
+    return.lit i32.const 2
+  end $L9
+  intrinsic builder.new
+  local.set 2
+  local.get 2
+  string.const 4
+  intrinsic builder.append_str
+  local.get 2
+  local.get 1
+  intrinsic builder.append_display
+  local.get 2
+  intrinsic builder.finish
+  call 0
+  return.lit i32.const 0
 end
 
-fn 5 std_runtime$collections$vt () -> i32
+fn 2 std_core$string$Display$to_string_vt (string) -> string
+  local.get 0
   call.import 3
   return
 end

@@ -8,28 +8,34 @@ fn snippet$classify(%0: i32) -> string
     %1 $k_1: i32
     %2 $gt_2: bool
     %3 if_res: string
-    %4 $k_5: i32
-    %5 $lt_6: bool
-    %6 if_res: string
+    %4 $k_4: string
+    %5 $k_5: i32
+    %6 $lt_6: bool
+    %7 if_res: string
+    %8 $k_8: string
+    %9 $k_9: string
   bb0:
     %1 = const int(0) :i32
-    %2 = binop gt %0 %1 :bool
+    %2 = binop 16 %0 %1 :bool
     cond_branch %2 ? bb1 : bb2
   bb1:
-    %3 = const string(#0) :string
+    %4 = const string(#0) :string
+    %3 = move %4
     branch -> bb3
   bb2:
-    %4 = const int(0) :i32
-    %5 = binop lt %0 %4 :bool
-    cond_branch %5 ? bb4 : bb5
+    %5 = const int(0) :i32
+    %6 = binop 14 %0 %5 :bool
+    cond_branch %6 ? bb4 : bb5
   bb3:
     return %3
   bb4:
-    %6 = const string(#1) :string
+    %8 = const string(#1) :string
+    %7 = move %8
     branch -> bb6
   bb5:
-    %6 = const string(#2) :string
+    %9 = const string(#2) :string
+    %7 = move %9
     branch -> bb6
   bb6:
-    %3 = move %6
+    %3 = move %7
     branch -> bb3

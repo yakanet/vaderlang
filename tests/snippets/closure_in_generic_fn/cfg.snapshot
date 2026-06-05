@@ -14,10 +14,10 @@ fn snippet$main() -> i32
     %0 = intrinsic builder.new()
     %1 = move %0
     %2 = const int(7) :i32
-    %3 = call run_id(%2) :i32
+    %3 = call snippet$snippet$run_id__i32(%2) :i32
     intrinsic builder.append_display(%1, %3)
     %4 = intrinsic builder.finish(%1)
-    call println(%4) :void
+    call std_io$std_io$println__string(%4) :void
     %5 = const int(0) :i32
     return %5
 
@@ -33,18 +33,20 @@ fn snippet$snippet$apply__Any(%0: Any, %1: fn(Any) -> Any) -> Any
 fn snippet$snippet$run_id__i32(%0: Any) -> Any
   locals:
     %0 x: Any (param x)
-    %1 $struct_1: __lambda_env_12
-    %2 id: fn(Any) -> Any (local id)
-    %3 $call_4: Any
+    %1 $struct_1: __lambda_env_3
+    %2 $closure_2: fn(Any) -> Any
+    %3 id: fn(Any) -> Any (local id)
+    %4 $call_4: Any
   bb0:
-    %1 = struct_new __lambda_env_12()
-    %2 = make_closure __lambda_11 env=%1 :fn(Any) -> Any
-    %3 = call apply(%0, %2) :Any
-    return %3
+    %1 = struct_new __lambda_env_3()
+    %2 = make_closure __lambda_2 env=%1 :fn(Any) -> Any
+    %3 = move %2
+    %4 = call snippet$snippet$apply__Any(%0, %3) :Any
+    return %4
 
-fn __lambda_11(%0: __lambda_env_12, %1: Any) -> Any
+fn __lambda_2(%0: __lambda_env_3, %1: Any) -> Any
   locals:
-    %0 __env_0: __lambda_env_12 (synthetic __env_0)
+    %0 __env_0: __lambda_env_3 (synthetic __env_0)
     %1 v: Any (param v)
   bb0:
     return %1

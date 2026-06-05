@@ -22,7 +22,7 @@
         int(0) :u32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -37,7 +37,7 @@
             __sb_0 :?
             call :string
               callee:
-                to_string :string
+                std_core$u32$Display$to_string :string
               arg0:
                 b :u32
           @builder.append_str :void
@@ -59,7 +59,7 @@
             __sb_0 :?
             call :string
               callee:
-                to_string :string
+                std_core$u64$Display$to_string :string
               arg0:
                 e :u64
           @builder.append_str :void

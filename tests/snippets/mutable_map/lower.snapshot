@@ -5,12 +5,12 @@
     let m: MutableMap<i32, i32> =
       MutableMap<i32, i32> {
         buckets:
-          array :(Entry<i32, i32> | null)[]
+          array :(Entry<K, V> | null)[]
         size: int(0) :usize
       }
     call :void
       callee:
-        set_at :void
+        std_collections$MutableMap$IndexSet$set_at__i32__i32 :void
       arg0:
         m :MutableMap<i32, i32>
       arg1:
@@ -19,7 +19,7 @@
         int(10) :i32
     call :void
       callee:
-        set_at :void
+        std_collections$MutableMap$IndexSet$set_at__i32__i32 :void
       arg0:
         m :MutableMap<i32, i32>
       arg1:
@@ -28,7 +28,7 @@
         int(20) :i32
     call :void
       callee:
-        set_at :void
+        std_collections$MutableMap$IndexSet$set_at__i32__i32 :void
       arg0:
         m :MutableMap<i32, i32>
       arg1:
@@ -37,7 +37,7 @@
         int(170) :i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -49,11 +49,11 @@
             __sb_0 :?
             call :string
               callee:
-                to_string :string
+                std_core$usize$Display$to_string :string
               arg0:
                 call :usize
                   callee:
-                    len :usize
+                    std_collections$std_collections$len__i32__i32 :usize
                   arg0:
                     m :MutableMap<i32, i32>
           ~>
@@ -62,7 +62,7 @@
     let v1: i32 | null =
       call :i32 | null
         callee:
-          at :i32 | null
+          std_collections$MutableMap$Index$at__i32__i32 :i32 | null
         arg0:
           m :MutableMap<i32, i32>
         arg1:
@@ -80,7 +80,7 @@
                 ~>
                   call :void
                     callee:
-                      println :void
+                      std_io$std_io$println__string :void
                     arg0:
                       "v1: missing" :string
           else:
@@ -95,7 +95,7 @@
                       ~>
                         call :void
                           callee:
-                            println :void
+                            std_io$std_io$println__string :void
                           arg0:
                             block :string
                               let __sb_2: ? =
@@ -116,7 +116,7 @@
     let v17: i32 | null =
       call :i32 | null
         callee:
-          at :i32 | null
+          std_collections$MutableMap$Index$at__i32__i32 :i32 | null
         arg0:
           m :MutableMap<i32, i32>
         arg1:
@@ -134,7 +134,7 @@
                 ~>
                   call :void
                     callee:
-                      println :void
+                      std_io$std_io$println__string :void
                     arg0:
                       "v17: missing" :string
           else:
@@ -149,7 +149,7 @@
                       ~>
                         call :void
                           callee:
-                            println :void
+                            std_io$std_io$println__string :void
                           arg0:
                             block :string
                               let __sb_4: ? =
@@ -169,7 +169,7 @@
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_5: ? =
@@ -181,7 +181,7 @@
             __sb_5 :?
             call :bool
               callee:
-                contains :bool
+                std_collections$MutableMap$Contains$contains__i32__i32 :bool
               arg0:
                 m :MutableMap<i32, i32>
               arg1:
@@ -191,7 +191,7 @@
               __sb_5 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_6: ? =
@@ -203,7 +203,7 @@
             __sb_6 :?
             call :bool
               callee:
-                contains :bool
+                std_collections$MutableMap$Contains$contains__i32__i32 :bool
               arg0:
                 m :MutableMap<i32, i32>
               arg1:
@@ -213,7 +213,7 @@
               __sb_6 :?
     call :void
       callee:
-        set_at :void
+        std_collections$MutableMap$IndexSet$set_at__i32__i32 :void
       arg0:
         m :MutableMap<i32, i32>
       arg1:
@@ -223,7 +223,7 @@
     let v1b: i32 | null =
       call :i32 | null
         callee:
-          at :i32 | null
+          std_collections$MutableMap$Index$at__i32__i32 :i32 | null
         arg0:
           m :MutableMap<i32, i32>
         arg1:
@@ -241,7 +241,7 @@
                 ~>
                   call :void
                     callee:
-                      println :void
+                      std_io$std_io$println__string :void
                     arg0:
                       "v1b: missing" :string
           else:
@@ -256,7 +256,7 @@
                       ~>
                         call :void
                           callee:
-                            println :void
+                            std_io$std_io$println__string :void
                           arg0:
                             block :string
                               let __sb_8: ? =

@@ -13,109 +13,129 @@ fn snippet$main() -> i32
     %6 $k_6: string
     %7 $type_const_7: type
     %8 $struct_8: Field
-    %9 __for_arr_0: Field[] (synthetic __for_arr_0)
-    %10 __for_len_1: usize (synthetic __for_len_1)
-    %11 __for_i_2: usize (synthetic __for_i_2)
-    %12 $lt_15: bool
-    %13 f: Field (binding f)
-    %14 $intrinsic_18: ?
-    %15 __sb_3: ? (synthetic __sb_3)
-    %16 $field_20: string
-    %17 $k_21: string
-    %18 $field_22: type
-    %19 $intrinsic_23: usize
-    %20 $call_24: string
-    %21 $intrinsic_25: string
-    %22 $k_26: usize
-    %23 $k_28: string
-    %24 $type_const_29: type
-    %25 $struct_30: Field
-    %26 $k_31: string
-    %27 $type_const_32: type
-    %28 $struct_33: Field
-    %29 __for_arr_4: Field[] (synthetic __for_arr_4)
-    %30 __for_len_5: usize (synthetic __for_len_5)
-    %31 __for_i_6: usize (synthetic __for_i_6)
-    %32 $lt_40: bool
-    %33 f: Field (binding f)
-    %34 $intrinsic_43: ?
-    %35 __sb_7: ? (synthetic __sb_7)
-    %36 $k_45: string
-    %37 $field_46: string
-    %38 $k_47: string
-    %39 $field_48: type
-    %40 $intrinsic_49: usize
-    %41 $call_50: string
-    %42 $intrinsic_51: string
-    %43 $k_52: usize
-    %44 $k_54: i32
+    %9 $arr_9: Field[]
+    %10 __for_arr_0: Field[] (synthetic __for_arr_0)
+    %11 $len_11: usize
+    %12 __for_len_1: usize (synthetic __for_len_1)
+    %13 $k_13: usize
+    %14 __for_i_2: usize (synthetic __for_i_2)
+    %15 $lt_15: bool
+    %16 $idx_16: Field
+    %17 f: Field (local f)
+    %18 $intrinsic_18: ?
+    %19 __sb_3: ? (synthetic __sb_3)
+    %20 $field_20: string
+    %21 $k_21: string
+    %22 $field_22: type
+    %23 $intrinsic_23: usize
+    %24 $call_24: string
+    %25 $intrinsic_25: string
+    %26 $k_26: usize
+    %27 $add_27: usize
+    %28 $k_28: string
+    %29 $type_const_29: type
+    %30 $struct_30: Field
+    %31 $k_31: string
+    %32 $type_const_32: type
+    %33 $struct_33: Field
+    %34 $arr_34: Field[]
+    %35 __for_arr_4: Field[] (synthetic __for_arr_4)
+    %36 $len_36: usize
+    %37 __for_len_5: usize (synthetic __for_len_5)
+    %38 $k_38: usize
+    %39 __for_i_6: usize (synthetic __for_i_6)
+    %40 $lt_40: bool
+    %41 $idx_41: Field
+    %42 f: Field (local f)
+    %43 $intrinsic_43: ?
+    %44 __sb_7: ? (synthetic __sb_7)
+    %45 $k_45: string
+    %46 $field_46: string
+    %47 $k_47: string
+    %48 $field_48: type
+    %49 $intrinsic_49: usize
+    %50 $call_50: string
+    %51 $intrinsic_51: string
+    %52 $k_52: usize
+    %53 $add_53: usize
+    %54 $k_54: i32
   bb0:
-    %0 = const string(#0) :string
+    %0 = const string(#1) :string
     %1 = type_const i32
-    %2 = struct_new[stack] Field(%0, %1)
-    %3 = const string(#1) :string
+    %2 = struct_new Field(%0, %1)
+    %3 = const string(#2) :string
     %4 = type_const i32
-    %5 = struct_new[stack] Field(%3, %4)
-    %6 = const string(#2) :string
+    %5 = struct_new Field(%3, %4)
+    %6 = const string(#3) :string
     %7 = type_const string
-    %8 = struct_new[stack] Field(%6, %7)
-    %9 = array_new[stack] Field[][3](%2, %5, %8)
-    %10 = array_len %9
-    %11 = const int(0) :usize
+    %8 = struct_new Field(%6, %7)
+    %9 = array_new Field[][3](%2, %5, %8)
+    %10 = move %9
+    %11 = array_len %10
+    %12 = move %11
+    %13 = const int(0) :usize
+    %14 = move %13
     branch -> bb1
   bb1:
-    %12 = binop lt %11 %10 :bool
-    cond_branch %12 ? bb2 : bb3
+    %15 = binop 14 %14 %12 :bool
+    cond_branch %15 ? bb2 : bb3
   bb2:
-    %13 = array_get %9[%11] :Field
-    %14 = intrinsic builder.new()
-    %15 = move %14
-    %16 = field_get %13.name :string
-    intrinsic builder.append_display(%15, %16)
-    %17 = const string(#3) :string
-    intrinsic builder.append_str(%15, %17)
-    %18 = field_get %13.type :type
-    %19 = intrinsic size_of.type(%18)
-    %20 = call to_string(%19) :string
-    intrinsic builder.append_str(%15, %20)
-    %21 = intrinsic builder.finish(%15)
-    call println(%21) :void
-    %22 = const int(1) :usize
-    %11 = binop add %11 %22 :usize
+    %16 = array_get %10[%14] :Field
+    %17 = move %16
+    %18 = intrinsic builder.new()
+    %19 = move %18
+    %20 = field_get %17.name :string
+    intrinsic builder.append_display(%19, %20)
+    %21 = const string(#4) :string
+    intrinsic builder.append_str(%19, %21)
+    %22 = field_get %17.type :type
+    %23 = intrinsic size_of.type(%22)
+    %24 = call std_core$usize$Display$to_string(%23) :string
+    intrinsic builder.append_str(%19, %24)
+    %25 = intrinsic builder.finish(%19)
+    call std_io$std_io$println__string(%25) :void
+    %26 = const int(1) :usize
+    %27 = binop 0 %14 %26 :usize
+    %14 = move %27
     branch -> bb1
   bb3:
-    %23 = const string(#4) :string
-    %24 = type_const string
-    %25 = struct_new[stack] Field(%23, %24)
-    %26 = const string(#5) :string
-    %27 = type_const i64
-    %28 = struct_new[stack] Field(%26, %27)
-    %29 = array_new[stack] Field[][2](%25, %28)
-    %30 = array_len %29
-    %31 = const int(0) :usize
+    %28 = const string(#5) :string
+    %29 = type_const string
+    %30 = struct_new Field(%28, %29)
+    %31 = const string(#6) :string
+    %32 = type_const i64
+    %33 = struct_new Field(%31, %32)
+    %34 = array_new Field[][2](%30, %33)
+    %35 = move %34
+    %36 = array_len %35
+    %37 = move %36
+    %38 = const int(0) :usize
+    %39 = move %38
     branch -> bb4
   bb4:
-    %32 = binop lt %31 %30 :bool
-    cond_branch %32 ? bb5 : bb6
+    %40 = binop 14 %39 %37 :bool
+    cond_branch %40 ? bb5 : bb6
   bb5:
-    %33 = array_get %29[%31] :Field
-    %34 = intrinsic builder.new()
-    %35 = move %34
-    %36 = const string(#6) :string
-    intrinsic builder.append_str(%35, %36)
-    %37 = field_get %33.name :string
-    intrinsic builder.append_display(%35, %37)
-    %38 = const string(#3) :string
-    intrinsic builder.append_str(%35, %38)
-    %39 = field_get %33.type :type
-    %40 = intrinsic size_of.type(%39)
-    %41 = call to_string(%40) :string
-    intrinsic builder.append_str(%35, %41)
-    %42 = intrinsic builder.finish(%35)
-    call println(%42) :void
-    %43 = const int(1) :usize
-    %31 = binop add %31 %43 :usize
+    %41 = array_get %35[%39] :Field
+    %42 = move %41
+    %43 = intrinsic builder.new()
+    %44 = move %43
+    %45 = const string(#7) :string
+    intrinsic builder.append_str(%44, %45)
+    %46 = field_get %42.name :string
+    intrinsic builder.append_display(%44, %46)
+    %47 = const string(#4) :string
+    intrinsic builder.append_str(%44, %47)
+    %48 = field_get %42.type :type
+    %49 = intrinsic size_of.type(%48)
+    %50 = call std_core$usize$Display$to_string(%49) :string
+    intrinsic builder.append_str(%44, %50)
+    %51 = intrinsic builder.finish(%44)
+    call std_io$std_io$println__string(%51) :void
+    %52 = const int(1) :usize
+    %53 = binop 0 %39 %52 :usize
+    %39 = move %53
     branch -> bb4
   bb6:
-    %44 = const int(0) :i32
-    return %44
+    %54 = const int(0) :i32
+    return %54

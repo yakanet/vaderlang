@@ -6,7 +6,7 @@ fn snippet$describe(%0: Cat | Dog) -> string
   locals:
     %0 p: Cat | Dog (param p)
     %1 $type_check_1: bool
-    %2 $not_2: bool
+    %2 $unop_2: bool
     %3 $intrinsic_3: ?
     %4 __sb_0: ? (synthetic __sb_0)
     %5 $k_5: string
@@ -21,7 +21,7 @@ fn snippet$describe(%0: Cat | Dog) -> string
     %14 $intrinsic_14: string
   bb0:
     %1 = type_check %0 is Cat
-    %2 = unop not %1 :bool
+    %2 = unop 1 %1 :bool
     cond_branch %2 ? bb1 : bb2
   bb1:
     %3 = intrinsic builder.new()
@@ -48,7 +48,7 @@ fn snippet$stringify(%0: i32 | string) -> string
   locals:
     %0 v: i32 | string (param v)
     %1 $type_check_1: bool
-    %2 $not_2: bool
+    %2 $unop_2: bool
     %3 $intrinsic_3: ?
     %4 __sb_0: ? (synthetic __sb_0)
     %5 $k_5: string
@@ -61,7 +61,7 @@ fn snippet$stringify(%0: i32 | string) -> string
     %12 $intrinsic_12: string
   bb0:
     %1 = type_check %0 is string
-    %2 = unop not %1 :bool
+    %2 = unop 1 %1 :bool
     cond_branch %2 ? bb1 : bb2
   bb1:
     %3 = intrinsic builder.new()
@@ -87,7 +87,7 @@ fn snippet$unwrap_or(%0: Cat | null, %1: string) -> string
     %0 value: Cat | null (param value)
     %1 fallback: string (param fallback)
     %2 $type_check_2: bool
-    %3 $not_3: bool
+    %3 $unop_3: bool
     %4 $intrinsic_4: ?
     %5 __sb_0: ? (synthetic __sb_0)
     %6 $k_6: string
@@ -96,7 +96,7 @@ fn snippet$unwrap_or(%0: Cat | null, %1: string) -> string
     %9 $intrinsic_9: string
   bb0:
     %2 = type_check %0 is null
-    %3 = unop not %2 :bool
+    %3 = unop 1 %2 :bool
     cond_branch %3 ? bb1 : bb2
   bb1:
     %4 = intrinsic builder.new()
@@ -115,10 +115,10 @@ fn snippet$is_not_dog(%0: Cat | Dog) -> bool
   locals:
     %0 p: Cat | Dog (param p)
     %1 $type_check_1: bool
-    %2 $not_2: bool
+    %2 $unop_2: bool
   bb0:
     %1 = type_check %0 is Dog
-    %2 = unop not %1 :bool
+    %2 = unop 1 %1 :bool
     return %2
 
 fn snippet$main() -> i32
@@ -131,7 +131,7 @@ fn snippet$main() -> i32
     %5 $call_5: string
     %6 $k_6: i32 | string
     %7 $call_7: string
-    %8 $k_8: string
+    %8 $k_8: i32 | string
     %9 $call_9: string
     %10 $k_10: string
     %11 $struct_11: Cat
@@ -141,55 +141,59 @@ fn snippet$main() -> i32
     %15 $k_15: string
     %16 $call_16: string
     %17 $k_17: string
-    %18 cat: Cat (local cat)
-    %19 $k_20: string
-    %20 dog: Dog (local dog)
-    %21 $call_23: bool
-    %22 $k_24: string
-    %23 $call_25: bool
-    %24 $k_26: string
-    %25 $k_27: i32
+    %18 $struct_18: Cat
+    %19 cat: Cat (local cat)
+    %20 $k_20: string
+    %21 $struct_21: Dog
+    %22 dog: Dog (local dog)
+    %23 $call_23: bool
+    %24 $k_24: string
+    %25 $call_25: bool
+    %26 $k_26: string
+    %27 $k_27: i32
   bb0:
     %0 = const string(#4) :string
     %1 = struct_new Cat(%0)
     %2 = call describe(%1) :string
-    call println(%2) :void
+    call std_io$std_io$println__string(%2) :void
     %3 = const string(#5) :string
     %4 = struct_new Dog(%3)
     %5 = call describe(%4) :string
-    call println(%5) :void
+    call std_io$std_io$println__string(%5) :void
     %6 = const int(42) :i32 | string
     %7 = call stringify(%6) :string
-    call println(%7) :void
-    %8 = const string(#6) :string
+    call std_io$std_io$println__string(%7) :void
+    %8 = const string(#6) :i32 | string
     %9 = call stringify(%8) :string
-    call println(%9) :void
+    call std_io$std_io$println__string(%9) :void
     %10 = const string(#7) :string
     %11 = struct_new Cat(%10)
     %12 = const string(#8) :string
     %13 = call unwrap_or(%11, %12) :string
-    call println(%13) :void
+    call std_io$std_io$println__string(%13) :void
     %14 = const null :null
     %15 = const string(#8) :string
     %16 = call unwrap_or(%14, %15) :string
-    call println(%16) :void
+    call std_io$std_io$println__string(%16) :void
     %17 = const string(#4) :string
     %18 = struct_new Cat(%17)
-    %19 = const string(#5) :string
-    %20 = struct_new Dog(%19)
-    %21 = call is_not_dog(%18) :bool
-    cond_branch %21 ? bb1 : bb2
+    %19 = move %18
+    %20 = const string(#5) :string
+    %21 = struct_new Dog(%20)
+    %22 = move %21
+    %23 = call is_not_dog(%19) :bool
+    cond_branch %23 ? bb1 : bb2
   bb1:
-    %22 = const string(#9) :string
-    call println(%22) :void
+    %24 = const string(#9) :string
+    call std_io$std_io$println__string(%24) :void
     branch -> bb2
   bb2:
-    %23 = call is_not_dog(%20) :bool
-    cond_branch %23 ? bb3 : bb4
+    %25 = call is_not_dog(%22) :bool
+    cond_branch %25 ? bb3 : bb4
   bb3:
-    %24 = const string(#10) :string
-    call println(%24) :void
+    %26 = const string(#10) :string
+    call std_io$std_io$println__string(%26) :void
     branch -> bb4
   bb4:
-    %25 = const int(0) :i32
-    return %25
+    %27 = const int(0) :i32
+    return %27

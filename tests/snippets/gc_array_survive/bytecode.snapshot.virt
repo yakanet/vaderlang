@@ -1,21 +1,35 @@
 module _main
 type 0 primitive null
-type 1 primitive i32
-type 2 primitive string
-type 3 primitive void
-type 4 array 1
-string 0 "expected 1 collection, got "
-string 1 "sum mismatch: got "
-string 2 ", expected "
-string 3 "ok: 200 array elements survived GC; sum="
-string 4 "\n"
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 write std_io$write (i32,string) -> void
-import 2 collect std_runtime$collect () -> void
-import 3 collections std_runtime$collections () -> i32
-export main 0
+type 1 primitive string
+type 2 primitive void
+type 3 primitive i32
+type 4 array 3
+string 0 "\n"
+string 1 "expected 1 collection, got "
+string 2 "sum mismatch: got "
+string 3 ", expected "
+string 4 "ok: 200 array elements survived GC; sum="
+import 0 write std_io$write (i32,string) -> void
+import 1 collect std_runtime$collect () -> void
+import 2 collections std_runtime$collections () -> i32
+import 3 to_string std_core$string$Display$to_string (string) -> string
+export main 1
 
-fn 0 snippet$main () -> i32
+fn 0 std_io$std_io$println__string (string) -> void
+  local $call_2 string
+  local.get 0
+  call 2
+  local.set 1
+  i32.const 0
+  local.get 1
+  call.import 0
+  i32.const 0
+  string.const 0
+  call.import 0
+  return
+end
+
+fn 1 snippet$main () -> i32
   local list ref
   local i i32
   local __sb_0 any
@@ -33,7 +47,7 @@ fn 0 snippet$main () -> i32
       if $L2 void
         local.get 0
         local.get 1
-        array.push 1
+        array.push 3
         local.get 1
         i32.const 1
         i32.add
@@ -43,10 +57,10 @@ fn 0 snippet$main () -> i32
       end $L2
     end $L1
   end $L0
-  call 5
+  call.import 2
   local.set 1
-  call 4
-  call 5
+  call.import 1
+  call.import 2
   local.get 1
   i32.sub
   local.set 1
@@ -57,14 +71,14 @@ fn 0 snippet$main () -> i32
     intrinsic builder.new
     local.set 2
     local.get 2
-    string.const 0
+    string.const 1
     intrinsic builder.append_str
     local.get 2
     local.get 1
     intrinsic builder.append_display
     local.get 2
     intrinsic builder.finish
-    call 1
+    call 0
     return.lit i32.const 1
   end $L3
   i32.const 0
@@ -80,7 +94,7 @@ fn 0 snippet$main () -> i32
         local.get 0
         local.get 3
         array.get 4
-        ref.cast 1
+        ref.cast 3
         local.set 4
         local.get 1
         local.get 4
@@ -108,69 +122,38 @@ fn 0 snippet$main () -> i32
     intrinsic builder.new
     local.set 2
     local.get 2
-    string.const 1
+    string.const 2
     intrinsic builder.append_str
     local.get 2
     local.get 1
     intrinsic builder.append_display
     local.get 2
-    string.const 2
+    string.const 3
     intrinsic builder.append_str
     local.get 2
     local.get 3
     intrinsic builder.append_display
     local.get 2
     intrinsic builder.finish
-    call 1
+    call 0
     return.lit i32.const 2
   end $L7
   intrinsic builder.new
   local.set 2
   local.get 2
-  string.const 3
+  string.const 4
   intrinsic builder.append_str
   local.get 2
   local.get 1
   intrinsic builder.append_display
   local.get 2
   intrinsic builder.finish
-  call 1
+  call 0
   return.lit i32.const 0
 end
 
-fn 1 std_io$std_io$println__string (string) -> void
-  local $call_2 string
+fn 2 std_core$string$Display$to_string_vt (string) -> string
   local.get 0
-  call 2
-  local.set 1
-  i32.const 0
-  local.get 1
-  call 3
-  i32.const 0
-  string.const 4
-  call 3
-  return
-end
-
-fn 2 std_core$string$Display$to_string$vt (string) -> string
-  local.get 0
-  call.import 0
-  return
-end
-
-fn 3 std_io$write$vt (i32,string) -> void
-  local.get 0
-  local.get 1
-  call.import 1
-  return
-end
-
-fn 4 std_runtime$collect$vt () -> void
-  call.import 2
-  return
-end
-
-fn 5 std_runtime$collections$vt () -> i32
   call.import 3
   return
 end

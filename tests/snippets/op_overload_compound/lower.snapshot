@@ -100,7 +100,7 @@
       value:
         call :Vec
           callee:
-            add :Vec
+            snippet$Vec$Add$add :Vec
           arg0:
             v :Vec
           arg1:
@@ -114,7 +114,7 @@
       value:
         call :Vec
           callee:
-            sub :Vec
+            snippet$Vec$Sub$sub :Vec
           arg0:
             v :Vec
           arg1:
@@ -124,7 +124,7 @@
             }
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_0: ? =

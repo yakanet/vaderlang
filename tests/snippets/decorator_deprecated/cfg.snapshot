@@ -9,7 +9,7 @@ fn snippet$old_helper(%0: i32) -> i32
     %2 $add_2: i32
   bb0:
     %1 = const int(1) :i32
-    %2 = binop add %0 %1 :i32
+    %2 = binop 0 %0 %1 :i32
     return %2
 
 fn snippet$new_helper(%0: i32) -> i32
@@ -19,7 +19,7 @@ fn snippet$new_helper(%0: i32) -> i32
     %2 $mul_2: i32
   bb0:
     %1 = const int(2) :i32
-    %2 = binop mul %0 %1 :i32
+    %2 = binop 2 %0 %1 :i32
     return %2
 
 fn snippet$main() -> i32
@@ -52,14 +52,14 @@ fn snippet$main() -> i32
     %9 = intrinsic builder.new()
     %10 = move %9
     intrinsic builder.append_display(%10, %2)
-    %11 = const string(#0) :string
+    %11 = const string(#1) :string
     intrinsic builder.append_str(%10, %11)
     intrinsic builder.append_display(%10, %5)
-    %12 = const string(#0) :string
+    %12 = const string(#1) :string
     intrinsic builder.append_str(%10, %12)
     intrinsic builder.append_display(%10, %8)
     %13 = intrinsic builder.finish(%10)
-    call println(%13) :void
+    call std_io$std_io$println__string(%13) :void
     %14 = const int(0) :i32
     return %14
 

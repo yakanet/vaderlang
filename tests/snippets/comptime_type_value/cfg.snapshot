@@ -19,8 +19,8 @@ fn snippet$main() -> i32
     call accept_type(%2) :void
     %3 = type_const string
     call accept_type(%3) :void
-    %4 = const string(#0) :string
-    call println(%4) :void
+    %4 = const string(#1) :string
+    call std_io$std_io$println__string(%4) :void
     %5 = const int(0) :i32
     return %5
 

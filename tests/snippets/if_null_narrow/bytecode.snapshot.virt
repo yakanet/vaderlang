@@ -1,30 +1,44 @@
 module _main
 type 0 primitive null
-type 1 union 2,3,0
-type 2 struct snippet$Cat { name:4,age:5 }
-type 3 struct snippet$Dog { name:4,age:5 }
-type 4 primitive string
-type 5 primitive i32
-type 6 primitive void
-string 0 "hello "
-string 1 "no animal"
-string 2 "hi "
-string 3 "yo "
-string 4 "nada"
-string 5 ""
-string 6 "ok "
-string 7 "missing"
-string 8 "first missing"
-string 9 "second missing"
-string 10 " & "
-string 11 "Whiskers"
-string 12 "Rex"
-string 13 "\n"
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 write std_io$write (i32,string) -> void
-export main 5
+type 1 primitive string
+type 2 primitive void
+type 3 primitive i32
+type 4 union 5,6,0
+type 5 struct snippet$Cat { name:1,age:3 }
+type 6 struct snippet$Dog { name:1,age:3 }
+string 0 "\n"
+string 1 "hello "
+string 2 "no animal"
+string 3 "hi "
+string 4 "yo "
+string 5 "nada"
+string 6 ""
+string 7 "ok "
+string 8 "missing"
+string 9 "first missing"
+string 10 "second missing"
+string 11 " & "
+string 12 "Whiskers"
+string 13 "Rex"
+import 0 write std_io$write (i32,string) -> void
+import 1 to_string std_core$string$Display$to_string (string) -> string
+export main 6
 
-fn 0 snippet$greet (ref) -> string
+fn 0 std_io$std_io$println__string (string) -> void
+  local $call_2 string
+  local.get 0
+  call 7
+  local.set 1
+  i32.const 0
+  local.get 1
+  call.import 0
+  i32.const 0
+  string.const 0
+  call.import 0
+  return
+end
+
+fn 1 snippet$greet (ref) -> string
   local __sb_0 any
   local $field_8 string
   local.get 0
@@ -34,11 +48,11 @@ fn 0 snippet$greet (ref) -> string
     intrinsic builder.new
     local.set 1
     local.get 1
-    string.const 0
+    string.const 1
     intrinsic builder.append_str
     local.get 0
-    struct.get 2 0
-    ref.cast 4
+    struct.get 5 0
+    ref.cast 1
     local.set 2
     local.get 1
     local.get 2
@@ -47,25 +61,25 @@ fn 0 snippet$greet (ref) -> string
     intrinsic builder.finish
     return
   end $L0
-  return.lit string.const 1
+  return.lit string.const 2
 end
 
-fn 1 snippet$greet_v2 (ref) -> string
+fn 2 snippet$greet_v2 (ref) -> string
   local __sb_0 any
   local $field_8 string
   local.get 0
   type_check 0
   if $L0 void
-    return.lit string.const 1
+    return.lit string.const 2
   end $L0
   intrinsic builder.new
   local.set 1
   local.get 1
-  string.const 2
+  string.const 3
   intrinsic builder.append_str
   local.get 0
-  struct.get 2 0
-  ref.cast 4
+  struct.get 5 0
+  ref.cast 1
   local.set 2
   local.get 1
   local.get 2
@@ -75,7 +89,7 @@ fn 1 snippet$greet_v2 (ref) -> string
   return
 end
 
-fn 2 snippet$greet_v3 (ref) -> string
+fn 3 snippet$greet_v3 (ref) -> string
   local __sb_0 any
   local $field_8 string
   local.get 0
@@ -85,11 +99,11 @@ fn 2 snippet$greet_v3 (ref) -> string
     intrinsic builder.new
     local.set 1
     local.get 1
-    string.const 3
+    string.const 4
     intrinsic builder.append_str
     local.get 0
-    struct.get 2 0
-    ref.cast 4
+    struct.get 5 0
+    ref.cast 1
     local.set 2
     local.get 1
     local.get 2
@@ -98,10 +112,10 @@ fn 2 snippet$greet_v3 (ref) -> string
     intrinsic builder.finish
     return
   end $L0
-  return.lit string.const 4
+  return.lit string.const 5
 end
 
-fn 3 snippet$greet_v4 (ref) -> string
+fn 4 snippet$greet_v4 (ref) -> string
   local __sb_0 any
   local $field_11 string
   local.get 0
@@ -111,11 +125,11 @@ fn 3 snippet$greet_v4 (ref) -> string
     intrinsic builder.new
     local.set 1
     local.get 1
-    string.const 6
+    string.const 7
     intrinsic builder.append_str
     local.get 0
-    struct.get 2 0
-    ref.cast 4
+    struct.get 5 0
+    ref.cast 1
     local.set 2
     local.get 1
     local.get 2
@@ -124,37 +138,37 @@ fn 3 snippet$greet_v4 (ref) -> string
     intrinsic builder.finish
     return
   end $L0
-  return.lit string.const 7
+  return.lit string.const 8
 end
 
-fn 4 snippet$combine (ref,ref) -> string
+fn 5 snippet$combine (ref,ref) -> string
   local __sb_0 any
   local $field_10 string
   local.get 0
   type_check 0
   if $L0 void
-    return.lit string.const 8
+    return.lit string.const 9
   end $L0
   local.get 1
   type_check 0
   if $L1 void
-    return.lit string.const 9
+    return.lit string.const 10
   end $L1
   intrinsic builder.new
   local.set 2
   local.get 0
-  struct.get 2 0
-  ref.cast 4
+  struct.get 5 0
+  ref.cast 1
   local.set 3
   local.get 2
   local.get 3
   intrinsic builder.append_display
   local.get 2
-  string.const 10
+  string.const 11
   intrinsic builder.append_str
   local.get 1
-  struct.get 2 0
-  ref.cast 4
+  struct.get 5 0
+  ref.cast 1
   local.set 3
   local.get 2
   local.get 3
@@ -164,82 +178,61 @@ fn 4 snippet$combine (ref,ref) -> string
   return
 end
 
-fn 5 snippet$main () -> i32
+fn 6 snippet$main () -> i32
   local cat ref
   local dog ref
   local nothing ref
-  string.const 11
-  i32.const 3
-  struct.new 2
-  local.set 0
   string.const 12
+  i32.const 3
+  struct.new 5
+  local.set 0
+  string.const 13
   i32.const 7
-  struct.new 3
+  struct.new 6
   local.set 1
   null.const
   local.set 2
   local.get 0
-  call 0
-  call 6
-  local.get 2
-  call 0
-  call 6
-  local.get 0
   call 1
-  call 6
+  call 0
   local.get 2
   call 1
-  call 6
+  call 0
   local.get 0
   call 2
-  call 6
+  call 0
   local.get 2
   call 2
-  call 6
+  call 0
   local.get 0
   call 3
-  call 6
+  call 0
   local.get 2
   call 3
-  call 6
+  call 0
   local.get 0
-  local.get 1
   call 4
-  call 6
-  local.get 2
-  local.get 1
-  call 4
-  call 6
-  local.get 0
+  call 0
   local.get 2
   call 4
-  call 6
+  call 0
+  local.get 0
+  local.get 1
+  call 5
+  call 0
+  local.get 2
+  local.get 1
+  call 5
+  call 0
+  local.get 0
+  local.get 2
+  call 5
+  call 0
   return.lit i32.const 0
 end
 
-fn 6 std_io$std_io$println__string (string) -> void
-  local $call_2 string
+fn 7 std_core$string$Display$to_string_vt (string) -> string
   local.get 0
-  call 7
-  local.set 1
-  i32.const 0
-  local.get 1
-  call 8
-  i32.const 0
-  string.const 13
-  call 8
-  return
-end
-
-fn 7 std_core$string$Display$to_string$vt (string) -> string
-  local.get 0
-  call.import 0
-  return
-end
-
-fn 8 std_io$write$vt (i32,string) -> void
-  local.get 0
-  local.get 1
   call.import 1
   return
 end

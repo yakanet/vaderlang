@@ -4,18 +4,20 @@
 
 fn snippet$demo_comparison_in_args() -> bool
   locals:
-    %0 v: i32 (local v)
-    %1 $k_2: i32
-    %2 $lt_3: bool
-    %3 $k_4: string
-    %4 $call_5: bool
+    %0 $k_0: i32
+    %1 v: i32 (local v)
+    %2 $k_2: i32
+    %3 $lt_3: bool
+    %4 $k_4: string
+    %5 $call_5: bool
   bb0:
     %0 = const int(10) :i32
-    %1 = const int(20) :i32
-    %2 = binop lt %0 %1 :bool
-    %3 = const string(#0) :string
-    %4 = call assert_cmp(%2, %3) :bool
-    return %4
+    %1 = move %0
+    %2 = const int(20) :i32
+    %3 = binop 14 %1 %2 :bool
+    %4 = const string(#0) :string
+    %5 = call assert_cmp(%3, %4) :bool
+    return %5
 
 fn snippet$assert_cmp(%0: bool, %1: string) -> bool
   locals:
@@ -66,7 +68,7 @@ fn snippet$main() -> i32
     %37 $k_37: i32
   bb0:
     %0 = const int(42) :i32
-    %1 = call identity(%0) :i32
+    %1 = call snippet$snippet$identity__i32(%0) :i32
     %2 = move %1
     %3 = intrinsic builder.new()
     %4 = move %3
@@ -74,9 +76,9 @@ fn snippet$main() -> i32
     intrinsic builder.append_str(%4, %5)
     intrinsic builder.append_display(%4, %2)
     %6 = intrinsic builder.finish(%4)
-    call println(%6) :void
+    call std_io$std_io$println__string(%6) :void
     %7 = const int(42) :i32
-    %8 = call identity(%7) :i32
+    %8 = call snippet$snippet$identity__i32(%7) :i32
     %9 = move %8
     %10 = intrinsic builder.new()
     %11 = move %10
@@ -84,9 +86,9 @@ fn snippet$main() -> i32
     intrinsic builder.append_str(%11, %12)
     intrinsic builder.append_display(%11, %9)
     %13 = intrinsic builder.finish(%11)
-    call println(%13) :void
+    call std_io$std_io$println__string(%13) :void
     %14 = const int(7) :i32
-    %15 = call make_box(%14) :Box<i32>
+    %15 = call snippet$snippet$make_box__i32(%14) :Box<i32>
     %16 = move %15
     %17 = intrinsic builder.new()
     %18 = move %17
@@ -95,9 +97,9 @@ fn snippet$main() -> i32
     %20 = field_get %16.value :i32
     intrinsic builder.append_display(%18, %20)
     %21 = intrinsic builder.finish(%18)
-    call println(%21) :void
+    call std_io$std_io$println__string(%21) :void
     %22 = const int(99) :i32
-    %23 = call make_nested(%22) :Box<Box<i32>>
+    %23 = call snippet$snippet$make_nested__i32(%22) :Box<Box<i32>>
     %24 = move %23
     %25 = intrinsic builder.new()
     %26 = move %25
@@ -107,7 +109,7 @@ fn snippet$main() -> i32
     %29 = field_get %28.value :i32
     intrinsic builder.append_display(%26, %29)
     %30 = intrinsic builder.finish(%26)
-    call println(%30) :void
+    call std_io$std_io$println__string(%30) :void
     %31 = call demo_comparison_in_args() :bool
     %32 = move %31
     %33 = intrinsic builder.new()
@@ -116,7 +118,7 @@ fn snippet$main() -> i32
     intrinsic builder.append_str(%34, %35)
     intrinsic builder.append_display(%34, %32)
     %36 = intrinsic builder.finish(%34)
-    call println(%36) :void
+    call std_io$std_io$println__string(%36) :void
     %37 = const int(0) :i32
     return %37
 
@@ -129,12 +131,14 @@ fn snippet$snippet$identity__i32(%0: Any) -> Any
 fn snippet$snippet$make_nested__i32(%0: Any) -> Box<Box<Any>>
   locals:
     %0 v: Any (param v)
-    %1 inner: Box<Any> (local inner)
-    %2 $struct_3: Box<Box<Any>>
+    %1 $struct_1: Box<Any>
+    %2 inner: Box<Any> (local inner)
+    %3 $struct_3: Box<Box<Any>>
   bb0:
     %1 = struct_new Box<Any>(%0)
-    %2 = struct_new Box<Box<Any>>(%1)
-    return %2
+    %2 = move %1
+    %3 = struct_new Box<Box<Any>>(%2)
+    return %3
 
 fn snippet$snippet$make_box__i32(%0: Any) -> Box<Any>
   locals:

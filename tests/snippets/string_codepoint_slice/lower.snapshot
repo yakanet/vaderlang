@@ -5,38 +5,38 @@
     let s: string = "héllo" :string
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         LoweredStringSlice
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         LoweredStringSlice
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         LoweredStringSlice
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         LoweredStringSlice
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         LoweredStringSlice
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         LoweredStringSlice
     let a: string = "hello" :string
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         LoweredStringSlice
     return int(0) :i32

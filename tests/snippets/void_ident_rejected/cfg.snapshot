@@ -4,17 +4,19 @@
 
 fn snippet$mk() -> void
   locals:
-    %0 void: i32 (local void)
-    %1 $intrinsic_2: ?
-    %2 __sb_0: ? (synthetic __sb_0)
-    %3 $intrinsic_4: string
+    %0 $k_0: i32
+    %1 void: i32 (local void)
+    %2 $intrinsic_2: ?
+    %3 __sb_0: ? (synthetic __sb_0)
+    %4 $intrinsic_4: string
   bb0:
     %0 = const int(42) :i32
-    %1 = intrinsic builder.new()
-    %2 = move %1
-    intrinsic builder.append_display(%2, %0)
-    %3 = intrinsic builder.finish(%2)
-    call println(%3) :void
+    %1 = move %0
+    %2 = intrinsic builder.new()
+    %3 = move %2
+    intrinsic builder.append_display(%3, %1)
+    %4 = intrinsic builder.finish(%3)
+    call std_io$std_io$println__string(%4) :void
     return
 
 fn snippet$main() -> i32

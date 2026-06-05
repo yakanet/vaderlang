@@ -9,7 +9,7 @@
         int(30) :i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -21,11 +21,11 @@
             __sb_0 :?
             call :string
               callee:
-                to_string :string
+                std_core$usize$Display$to_string :string
               arg0:
                 call :usize
                   callee:
-                    count :usize
+                    std_iter$std_iter$count__i32 :usize
                   arg0:
                     nums :i32[]
           ~>
@@ -34,12 +34,12 @@
     let cloned: i32[] =
       call :i32[]
         callee:
-          collect :i32[]
+          std_iter$std_iter$collect__i32 :i32[]
         arg0:
           nums :i32[]
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_1: ? =
@@ -71,7 +71,7 @@
     let pairs: [string, i32][] =
       call :[string, i32][]
         callee:
-          zip :[string, i32][]
+          std_iter$std_iter$zip__string__i32 :[string, i32][]
         arg0:
           keys :string[]
         arg1:
@@ -97,7 +97,7 @@
             __tup_5 :[string, i32]
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             block :string
               let __sb_6: ? =
@@ -135,7 +135,7 @@
     let joined: i32[] =
       call :i32[]
         callee:
-          chain :i32[]
+          std_iter$std_iter$chain__i32 :i32[]
         arg0:
           head :i32[]
         arg1:
@@ -154,7 +154,7 @@
               __for_i_9 :usize
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             block :string
               let __sb_10: ? =
@@ -186,7 +186,7 @@
       let __for_arr_11: [usize, string][] =
         call :[usize, string][]
           callee:
-            enumerate :[usize, string][]
+            std_iter$std_iter$enumerate__string :[usize, string][]
           arg0:
             fruits :string[]
       let __for_len_12: usize =
@@ -208,7 +208,7 @@
             __tup_14 :[usize, string]
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             block :string
               let __sb_15: ? =
@@ -217,7 +217,7 @@
                 __sb_15 :?
                 call :string
                   callee:
-                    to_string :string
+                    std_core$usize$Display$to_string :string
                   arg0:
                     i :usize
               @builder.append_str :void
@@ -241,7 +241,7 @@
     let bursts: i32[] =
       call :i32[]
         callee:
-          flat_map :i32[]
+          std_iter$std_iter$flat_map__i32__i32 :i32[]
         arg0:
           array :i32[]
             int(1) :i32
@@ -263,7 +263,7 @@
               __for_i_19 :usize
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             block :string
               let __sb_20: ? =

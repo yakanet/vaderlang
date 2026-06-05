@@ -1,41 +1,55 @@
 module _main
 type 0 primitive null
-type 1 union 2,3,0
-type 2 struct snippet$Cat { name:4 }
-type 3 struct snippet$Dog { name:4 }
-type 4 primitive string
-type 5 primitive i32
-type 6 primitive void
-string 0 "no pet"
-string 1 "hello "
-string 2 "howdy "
-string 3 "Whiskers"
-string 4 "Rex"
-string 5 "Mittens"
-string 6 "Buddy"
-string 7 "\n"
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 write std_io$write (i32,string) -> void
-export main 2
+type 1 primitive string
+type 2 primitive void
+type 3 primitive i32
+type 4 union 5,6,0
+type 5 struct snippet$Cat { name:1 }
+type 6 struct snippet$Dog { name:1 }
+string 0 "\n"
+string 1 "no pet"
+string 2 "hello "
+string 3 "howdy "
+string 4 "Whiskers"
+string 5 "Rex"
+string 6 "Mittens"
+string 7 "Buddy"
+import 0 write std_io$write (i32,string) -> void
+import 1 to_string std_core$string$Display$to_string (string) -> string
+export main 3
 
-fn 0 snippet$greet_wildcard (ref) -> string
+fn 0 std_io$std_io$println__string (string) -> void
+  local $call_2 string
+  local.get 0
+  call 4
+  local.set 1
+  i32.const 0
+  local.get 1
+  call.import 0
+  i32.const 0
+  string.const 0
+  call.import 0
+  return
+end
+
+fn 1 snippet$greet_wildcard (ref) -> string
   local if_res string
   local __sb_1 any
   local $field_10 string
   local.get 0
   type_check 0
   if $L0 void
-    string.const 0
+    string.const 1
     local.set 1
   else
     intrinsic builder.new
     local.set 2
     local.get 2
-    string.const 1
+    string.const 2
     intrinsic builder.append_str
     local.get 0
-    struct.get 2 0
-    ref.cast 4
+    struct.get 5 0
+    ref.cast 1
     local.set 3
     local.get 2
     local.get 3
@@ -48,7 +62,7 @@ fn 0 snippet$greet_wildcard (ref) -> string
   return
 end
 
-fn 1 snippet$greet_binding (ref) -> string
+fn 2 snippet$greet_binding (ref) -> string
   local __scrut_0 ref
   local if_res string
   local __sb_1 any
@@ -57,17 +71,19 @@ fn 1 snippet$greet_binding (ref) -> string
   local.tee 1
   type_check 0
   if $L0 void
-    string.const 0
+    string.const 1
     local.set 2
   else
+    local.get 1
+    local.set 1
     intrinsic builder.new
     local.set 3
     local.get 3
-    string.const 2
+    string.const 3
     intrinsic builder.append_str
     local.get 1
-    struct.get 2 0
-    ref.cast 4
+    struct.get 5 0
+    ref.cast 1
     local.set 4
     local.get 3
     local.get 4
@@ -80,55 +96,34 @@ fn 1 snippet$greet_binding (ref) -> string
   return
 end
 
-fn 2 snippet$main () -> i32
-  string.const 3
-  struct.new 2
-  call 0
-  call 3
+fn 3 snippet$main () -> i32
   string.const 4
-  struct.new 3
+  struct.new 5
+  call 1
   call 0
-  call 3
-  null.const
-  call 0
-  call 3
   string.const 5
-  struct.new 2
+  struct.new 6
   call 1
-  call 3
-  string.const 6
-  struct.new 3
-  call 1
-  call 3
+  call 0
   null.const
   call 1
-  call 3
+  call 0
+  string.const 6
+  struct.new 5
+  call 2
+  call 0
+  string.const 7
+  struct.new 6
+  call 2
+  call 0
+  null.const
+  call 2
+  call 0
   return.lit i32.const 0
 end
 
-fn 3 std_io$std_io$println__string (string) -> void
-  local $call_2 string
+fn 4 std_core$string$Display$to_string_vt (string) -> string
   local.get 0
-  call 4
-  local.set 1
-  i32.const 0
-  local.get 1
-  call 5
-  i32.const 0
-  string.const 7
-  call 5
-  return
-end
-
-fn 4 std_core$string$Display$to_string$vt (string) -> string
-  local.get 0
-  call.import 0
-  return
-end
-
-fn 5 std_io$write$vt (i32,string) -> void
-  local.get 0
-  local.get 1
   call.import 1
   return
 end

@@ -25,7 +25,7 @@ fn snippet$main() -> i32
     %18 $call_18: Duration
     %19 $call_19: string
     %20 $k_20: i64
-    %21 $neg_21: i64
+    %21 $unop_21: i64
     %22 $cast_22: i64
     %23 $call_23: Duration
     %24 $call_24: string
@@ -51,94 +51,99 @@ fn snippet$main() -> i32
     %44 $intrinsic_44: string
     %45 $k_45: i64
     %46 $cast_46: i64
-    %47 epoch: Instant (local epoch)
-    %48 $k_49: i64
-    %49 $cast_50: i64
-    %50 $call_51: Duration
-    %51 $call_52: Instant
-    %52 later: Instant (local later)
-    %53 $call_54: Duration
-    %54 delta: Duration (local delta)
-    %55 $intrinsic_56: ?
-    %56 __sb_2: ? (synthetic __sb_2)
-    %57 $k_58: string
-    %58 $call_59: string
-    %59 $intrinsic_60: string
-    %60 $call_61: string
-    %61 iso: string (local iso)
-    %62 $call_64: Instant | TimeError
-    %63 parsed: Instant | TimeError (local parsed)
-    %64 __scrut_3: Instant | TimeError (synthetic __scrut_3)
-    %65 $type_check_67: bool
-    %66 $cast_68: Instant
-    %67 $call_69: string
-    %68 $type_check_70: bool
-    %69 $k_71: string
-    %70 $k_72: string
-    %71 $call_73: Instant | TimeError
-    %72 pre: Instant | TimeError (local pre)
-    %73 __scrut_4: Instant | TimeError (synthetic __scrut_4)
-    %74 $type_check_76: bool
-    %75 $cast_77: Instant
-    %76 $call_78: string
-    %77 $type_check_79: bool
-    %78 $k_80: string
-    %79 $k_81: string
-    %80 $call_82: Instant | TimeError
-    %81 __scrut_5: Instant | TimeError (synthetic __scrut_5)
-    %82 $type_check_85: bool
-    %83 $k_86: string
-    %84 $type_check_87: bool
-    %85 $k_88: string
-    %86 $call_89: Monotonic
-    %87 start: Monotonic (local start)
-    %88 spin: i32 (local spin)
-    %89 $k_93: i32
-    %90 $lt_94: bool
-    %91 $k_95: i32
-    %92 $call_97: Duration
-    %93 e: Duration (local e)
-    %94 $intrinsic_99: ?
-    %95 __sb_6: ? (synthetic __sb_6)
-    %96 $k_101: string
-    %97 $field_102: i64
-    %98 $k_103: i64
-    %99 $cast_104: i64
-    %100 $gte_105: bool
-    %101 $intrinsic_106: string
-    %102 $k_107: i32
+    %47 $struct_47: Instant
+    %48 epoch: Instant (local epoch)
+    %49 $k_49: i64
+    %50 $cast_50: i64
+    %51 $call_51: Duration
+    %52 $call_52: Instant
+    %53 later: Instant (local later)
+    %54 $call_54: Duration
+    %55 delta: Duration (local delta)
+    %56 $intrinsic_56: ?
+    %57 __sb_2: ? (synthetic __sb_2)
+    %58 $k_58: string
+    %59 $call_59: string
+    %60 $intrinsic_60: string
+    %61 $call_61: string
+    %62 $k_62: string
+    %63 iso: string (local iso)
+    %64 $call_64: Instant | TimeError
+    %65 parsed: Instant | TimeError (local parsed)
+    %66 __scrut_3: Instant | TimeError (synthetic __scrut_3)
+    %67 $type_check_67: bool
+    %68 $cast_68: Instant
+    %69 $call_69: string
+    %70 $type_check_70: bool
+    %71 $k_71: string
+    %72 $k_72: string
+    %73 $call_73: Instant | TimeError
+    %74 pre: Instant | TimeError (local pre)
+    %75 __scrut_4: Instant | TimeError (synthetic __scrut_4)
+    %76 $type_check_76: bool
+    %77 $cast_77: Instant
+    %78 $call_78: string
+    %79 $type_check_79: bool
+    %80 $k_80: string
+    %81 $k_81: string
+    %82 $call_82: Instant | TimeError
+    %83 bad: Instant | TimeError (local bad)
+    %84 __scrut_5: Instant | TimeError (synthetic __scrut_5)
+    %85 $type_check_85: bool
+    %86 $k_86: string
+    %87 $type_check_87: bool
+    %88 $k_88: string
+    %89 $call_89: Monotonic
+    %90 start: Monotonic (local start)
+    %91 $k_91: i32
+    %92 spin: i32 (local spin)
+    %93 $k_93: i32
+    %94 $lt_94: bool
+    %95 $k_95: i32
+    %96 $add_96: i32
+    %97 $call_97: Duration
+    %98 e: Duration (local e)
+    %99 $intrinsic_99: ?
+    %100 __sb_6: ? (synthetic __sb_6)
+    %101 $k_101: string
+    %102 $field_102: i64
+    %103 $k_103: i64
+    %104 $cast_104: i64
+    %105 $gte_105: bool
+    %106 $intrinsic_106: string
+    %107 $k_107: i32
   bb0:
     %0 = const int(500) :i64
     %1 = cast %0 :i64
     %2 = call nanos(%1) :Duration
     %3 = call format(%2) :string
-    call println(%3) :void
+    call std_io$std_io$println__string(%3) :void
     %4 = const int(1500) :i64
     %5 = cast %4 :i64
     %6 = call nanos(%5) :Duration
     %7 = call format(%6) :string
-    call println(%7) :void
+    call std_io$std_io$println__string(%7) :void
     %8 = const int(42) :i64
     %9 = cast %8 :i64
     %10 = call micros(%9) :Duration
     %11 = call format(%10) :string
-    call println(%11) :void
+    call std_io$std_io$println__string(%11) :void
     %12 = const int(7) :i64
     %13 = cast %12 :i64
     %14 = call millis(%13) :Duration
     %15 = call format(%14) :string
-    call println(%15) :void
+    call std_io$std_io$println__string(%15) :void
     %16 = const int(3) :i64
     %17 = cast %16 :i64
     %18 = call seconds(%17) :Duration
     %19 = call format(%18) :string
-    call println(%19) :void
+    call std_io$std_io$println__string(%19) :void
     %20 = const int(250) :i64
-    %21 = unop neg %20 :i64
+    %21 = unop 0 %20 :i64
     %22 = cast %21 :i64
     %23 = call nanos(%22) :Duration
     %24 = call format(%23) :string
-    call println(%24) :void
+    call std_io$std_io$println__string(%24) :void
     %25 = const int(100) :i64
     %26 = cast %25 :i64
     %27 = call millis(%26) :Duration
@@ -149,134 +154,139 @@ fn snippet$main() -> i32
     %32 = move %31
     %33 = intrinsic builder.new()
     %34 = move %33
-    %35 = const string(#0) :string
+    %35 = const string(#1) :string
     intrinsic builder.append_str(%34, %35)
     %36 = call plus(%28, %32) :Duration
     %37 = call format(%36) :string
     intrinsic builder.append_display(%34, %37)
     %38 = intrinsic builder.finish(%34)
-    call println(%38) :void
+    call std_io$std_io$println__string(%38) :void
     %39 = intrinsic builder.new()
     %40 = move %39
-    %41 = const string(#1) :string
+    %41 = const string(#2) :string
     intrinsic builder.append_str(%40, %41)
     %42 = call minus(%28, %32) :Duration
     %43 = call format(%42) :string
     intrinsic builder.append_display(%40, %43)
     %44 = intrinsic builder.finish(%40)
-    call println(%44) :void
+    call std_io$std_io$println__string(%44) :void
     %45 = const int(0) :i64
     %46 = cast %45 :i64
     %47 = struct_new Instant(%46)
-    %48 = const int(60) :i64
-    %49 = cast %48 :i64
-    %50 = call seconds(%49) :Duration
-    %51 = call add(%47, %50) :Instant
-    %52 = move %51
-    %53 = call sub(%52, %47) :Duration
-    %54 = move %53
-    %55 = intrinsic builder.new()
-    %56 = move %55
-    %57 = const string(#2) :string
-    intrinsic builder.append_str(%56, %57)
-    %58 = call format(%54) :string
-    intrinsic builder.append_display(%56, %58)
-    %59 = intrinsic builder.finish(%56)
-    call println(%59) :void
-    %60 = call format_iso8601(%47) :string
-    call println(%60) :void
-    %61 = const string(#3) :string
-    %62 = call parse_iso8601(%61) :Instant | TimeError
+    %48 = move %47
+    %49 = const int(60) :i64
+    %50 = cast %49 :i64
+    %51 = call seconds(%50) :Duration
+    %52 = call add(%48, %51) :Instant
+    %53 = move %52
+    %54 = call sub(%53, %48) :Duration
+    %55 = move %54
+    %56 = intrinsic builder.new()
+    %57 = move %56
+    %58 = const string(#3) :string
+    intrinsic builder.append_str(%57, %58)
+    %59 = call format(%55) :string
+    intrinsic builder.append_display(%57, %59)
+    %60 = intrinsic builder.finish(%57)
+    call std_io$std_io$println__string(%60) :void
+    %61 = call format_iso8601(%48) :string
+    call std_io$std_io$println__string(%61) :void
+    %62 = const string(#4) :string
     %63 = move %62
-    %64 = move %63
-    %65 = type_check %64 is Instant
-    cond_branch %65 ? bb1 : bb2
+    %64 = call parse_iso8601(%63) :Instant | TimeError
+    %65 = move %64
+    %66 = move %65
+    %67 = type_check %66 is Instant
+    cond_branch %67 ? bb1 : bb2
   bb1:
-    %66 = cast %63 :Instant
-    %67 = call format_iso8601(%66) :string
-    call println(%67) :void
+    %68 = cast %65 :Instant
+    %69 = call format_iso8601(%68) :string
+    call std_io$std_io$println__string(%69) :void
     branch -> bb3
   bb2:
-    %68 = type_check %64 is TimeError
-    cond_branch %68 ? bb4 : bb5
+    %70 = type_check %66 is TimeError
+    cond_branch %70 ? bb4 : bb5
   bb3:
-    %70 = const string(#5) :string
-    %71 = call parse_iso8601(%70) :Instant | TimeError
-    %72 = move %71
-    %73 = move %72
-    %74 = type_check %73 is Instant
-    cond_branch %74 ? bb7 : bb8
+    %72 = const string(#6) :string
+    %73 = call parse_iso8601(%72) :Instant | TimeError
+    %74 = move %73
+    %75 = move %74
+    %76 = type_check %75 is Instant
+    cond_branch %76 ? bb7 : bb8
   bb4:
-    %69 = const string(#4) :string
-    call println(%69) :void
+    %71 = const string(#5) :string
+    call std_io$std_io$println__string(%71) :void
     branch -> bb6
   bb5:
     unreachable ; non-exhaustive match (T3013 should have caught this)
   bb6:
     branch -> bb3
   bb7:
-    %75 = cast %72 :Instant
-    %76 = call format_iso8601(%75) :string
-    call println(%76) :void
+    %77 = cast %74 :Instant
+    %78 = call format_iso8601(%77) :string
+    call std_io$std_io$println__string(%78) :void
     branch -> bb9
   bb8:
-    %77 = type_check %73 is TimeError
-    cond_branch %77 ? bb10 : bb11
+    %79 = type_check %75 is TimeError
+    cond_branch %79 ? bb10 : bb11
   bb9:
-    %79 = const string(#7) :string
-    %80 = call parse_iso8601(%79) :Instant | TimeError
-    %81 = move %80
-    %82 = type_check %81 is TimeError
-    cond_branch %82 ? bb13 : bb14
+    %81 = const string(#8) :string
+    %82 = call parse_iso8601(%81) :Instant | TimeError
+    %83 = move %82
+    %84 = move %83
+    %85 = type_check %84 is TimeError
+    cond_branch %85 ? bb13 : bb14
   bb10:
-    %78 = const string(#6) :string
-    call println(%78) :void
+    %80 = const string(#7) :string
+    call std_io$std_io$println__string(%80) :void
     branch -> bb12
   bb11:
     unreachable ; non-exhaustive match (T3013 should have caught this)
   bb12:
     branch -> bb9
   bb13:
-    %83 = const string(#8) :string
-    call println(%83) :void
+    %86 = const string(#9) :string
+    call std_io$std_io$println__string(%86) :void
     branch -> bb15
   bb14:
-    %84 = type_check %81 is Instant
-    cond_branch %84 ? bb16 : bb17
+    %87 = type_check %84 is Instant
+    cond_branch %87 ? bb16 : bb17
   bb15:
-    %86 = call monotonic() :Monotonic
-    %87 = move %86
-    %88 = const int(0) :i32
+    %89 = call monotonic() :Monotonic
+    %90 = move %89
+    %91 = const int(0) :i32
+    %92 = move %91
     branch -> bb19
   bb16:
-    %85 = const string(#9) :string
-    call println(%85) :void
+    %88 = const string(#10) :string
+    call std_io$std_io$println__string(%88) :void
     branch -> bb18
   bb17:
     unreachable ; non-exhaustive match (T3013 should have caught this)
   bb18:
     branch -> bb15
   bb19:
-    %89 = const int(1000) :i32
-    %90 = binop lt %88 %89 :bool
-    cond_branch %90 ? bb20 : bb21
+    %93 = const int(1000) :i32
+    %94 = binop 14 %92 %93 :bool
+    cond_branch %94 ? bb20 : bb21
   bb20:
-    %91 = const int(1) :i32
-    %88 = binop add %88 %91 :i32
+    %95 = const int(1) :i32
+    %96 = binop 0 %92 %95 :i32
+    %92 = move %96
     branch -> bb19
   bb21:
-    %92 = call since(%87) :Duration
-    %93 = move %92
-    %94 = intrinsic builder.new()
-    %95 = move %94
-    %96 = const string(#10) :string
-    intrinsic builder.append_str(%95, %96)
-    %97 = field_get %93.ns :i64
-    %98 = const int(0) :i64
-    %99 = cast %98 :i64
-    %100 = binop gte %97 %99 :bool
-    intrinsic builder.append_display(%95, %100)
-    %101 = intrinsic builder.finish(%95)
-    call println(%101) :void
-    %102 = const int(0) :i32
-    return %102
+    %97 = call since(%90) :Duration
+    %98 = move %97
+    %99 = intrinsic builder.new()
+    %100 = move %99
+    %101 = const string(#11) :string
+    intrinsic builder.append_str(%100, %101)
+    %102 = field_get %98.ns :i64
+    %103 = const int(0) :i64
+    %104 = cast %103 :i64
+    %105 = binop 17 %102 %104 :bool
+    intrinsic builder.append_display(%100, %105)
+    %106 = intrinsic builder.finish(%100)
+    call std_io$std_io$println__string(%106) :void
+    %107 = const int(0) :i32
+    return %107

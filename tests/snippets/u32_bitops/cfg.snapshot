@@ -10,111 +10,115 @@ fn snippet$check(%0: string, %1: bool) -> void
   bb0:
     cond_branch %1 ? bb1 : bb2
   bb1:
-    call println(%0) :void
+    call std_io$std_io$println__string(%0) :void
     branch -> bb3
   bb2:
-    %2 = const string(#0) :string
-    call println(%2) :void
+    %2 = const string(#1) :string
+    call std_io$std_io$println__string(%2) :void
     branch -> bb3
   bb3:
     return
 
 fn snippet$main() -> i32
   locals:
-    %0 a: u32 (local a)
-    %1 b: u32 (local b)
-    %2 $k_4: string
-    %3 $k_5: u32
-    %4 $shr_6: u32
-    %5 $k_7: u32
-    %6 $eq_8: bool
-    %7 $k_9: string
-    %8 $k_10: u32
-    %9 $shr_11: u32
-    %10 $k_12: u32
-    %11 $eq_13: bool
-    %12 $k_14: string
-    %13 $k_15: u32
-    %14 $k_16: u32
-    %15 $shl_17: u32
-    %16 $eq_18: bool
-    %17 $k_19: string
-    %18 $k_20: u32
-    %19 $shl_21: u32
-    %20 $k_22: u32
-    %21 $eq_23: bool
-    %22 $k_24: string
-    %23 $bitand_25: u32
-    %24 $eq_26: bool
-    %25 $k_27: string
-    %26 $k_28: u32
-    %27 $bitor_29: u32
-    %28 $k_30: u32
-    %29 $eq_31: bool
-    %30 $k_32: string
-    %31 $bitxor_33: u32
-    %32 $k_34: u32
-    %33 $eq_35: bool
-    %34 $k_36: string
-    %35 $k_37: u32
-    %36 $bitnot_38: u32
-    %37 $eq_39: bool
-    %38 $k_40: string
-    %39 $bitnot_41: u32
-    %40 $k_42: u32
-    %41 $eq_43: bool
-    %42 $k_44: i32
+    %0 $k_0: u32
+    %1 a: u32 (local a)
+    %2 $k_2: u32
+    %3 b: u32 (local b)
+    %4 $k_4: string
+    %5 $k_5: u32
+    %6 $shr_6: u32
+    %7 $k_7: u32
+    %8 $eq_8: bool
+    %9 $k_9: string
+    %10 $k_10: u32
+    %11 $shr_11: u32
+    %12 $k_12: u32
+    %13 $eq_13: bool
+    %14 $k_14: string
+    %15 $k_15: u32
+    %16 $k_16: u32
+    %17 $shl_17: u32
+    %18 $eq_18: bool
+    %19 $k_19: string
+    %20 $k_20: u32
+    %21 $shl_21: u32
+    %22 $k_22: u32
+    %23 $eq_23: bool
+    %24 $k_24: string
+    %25 $bitand_25: u32
+    %26 $eq_26: bool
+    %27 $k_27: string
+    %28 $k_28: u32
+    %29 $bitor_29: u32
+    %30 $k_30: u32
+    %31 $eq_31: bool
+    %32 $k_32: string
+    %33 $bitxor_33: u32
+    %34 $k_34: u32
+    %35 $eq_35: bool
+    %36 $k_36: string
+    %37 $k_37: u32
+    %38 $unop_38: u32
+    %39 $eq_39: bool
+    %40 $k_40: string
+    %41 $unop_41: u32
+    %42 $k_42: u32
+    %43 $eq_43: bool
+    %44 $k_44: i32
   bb0:
     %0 = const int(4294967295) :u32
-    %1 = const int(2147483648) :u32
-    %2 = const string(#1) :string
-    %3 = const int(1) :u32
-    %4 = binop shr %0 %3 :u32
-    %5 = const int(2147483647) :u32
-    %6 = binop eq %4 %5 :bool
-    call check(%2, %6) :void
-    %7 = const string(#2) :string
-    %8 = const int(31) :u32
-    %9 = binop shr %1 %8 :u32
-    %10 = const int(1) :u32
-    %11 = binop eq %9 %10 :bool
-    call check(%7, %11) :void
-    %12 = const string(#3) :string
-    %13 = const int(1) :u32
-    %14 = const int(31) :u32
-    %15 = binop shl %13 %14 :u32
-    %16 = binop eq %15 %1 :bool
-    call check(%12, %16) :void
-    %17 = const string(#4) :string
-    %18 = const int(1) :u32
-    %19 = binop shl %1 %18 :u32
-    %20 = const int(0) :u32
-    %21 = binop eq %19 %20 :bool
-    call check(%17, %21) :void
-    %22 = const string(#5) :string
-    %23 = binop bitand %0 %0 :u32
-    %24 = binop eq %23 %0 :bool
-    call check(%22, %24) :void
-    %25 = const string(#6) :string
-    %26 = const int(1) :u32
-    %27 = binop bitor %1 %26 :u32
-    %28 = const int(2147483649) :u32
-    %29 = binop eq %27 %28 :bool
-    call check(%25, %29) :void
-    %30 = const string(#7) :string
-    %31 = binop bitxor %0 %1 :u32
-    %32 = const int(2147483647) :u32
-    %33 = binop eq %31 %32 :bool
-    call check(%30, %33) :void
-    %34 = const string(#8) :string
-    %35 = const int(0) :u32
-    %36 = unop bitnot %35 :u32
-    %37 = binop eq %36 %0 :bool
-    call check(%34, %37) :void
-    %38 = const string(#9) :string
-    %39 = unop bitnot %1 :u32
-    %40 = const int(2147483647) :u32
-    %41 = binop eq %39 %40 :bool
-    call check(%38, %41) :void
-    %42 = const int(0) :i32
-    return %42
+    %1 = move %0
+    %2 = const int(2147483648) :u32
+    %3 = move %2
+    %4 = const string(#2) :string
+    %5 = const int(1) :u32
+    %6 = binop 6 %1 %5 :u32
+    %7 = const int(2147483647) :u32
+    %8 = binop 12 %6 %7 :bool
+    call check(%4, %8) :void
+    %9 = const string(#3) :string
+    %10 = const int(31) :u32
+    %11 = binop 6 %3 %10 :u32
+    %12 = const int(1) :u32
+    %13 = binop 12 %11 %12 :bool
+    call check(%9, %13) :void
+    %14 = const string(#4) :string
+    %15 = const int(1) :u32
+    %16 = const int(31) :u32
+    %17 = binop 5 %15 %16 :u32
+    %18 = binop 12 %17 %3 :bool
+    call check(%14, %18) :void
+    %19 = const string(#5) :string
+    %20 = const int(1) :u32
+    %21 = binop 5 %3 %20 :u32
+    %22 = const int(0) :u32
+    %23 = binop 12 %21 %22 :bool
+    call check(%19, %23) :void
+    %24 = const string(#6) :string
+    %25 = binop 7 %1 %1 :u32
+    %26 = binop 12 %25 %1 :bool
+    call check(%24, %26) :void
+    %27 = const string(#7) :string
+    %28 = const int(1) :u32
+    %29 = binop 8 %3 %28 :u32
+    %30 = const int(2147483649) :u32
+    %31 = binop 12 %29 %30 :bool
+    call check(%27, %31) :void
+    %32 = const string(#8) :string
+    %33 = binop 9 %1 %3 :u32
+    %34 = const int(2147483647) :u32
+    %35 = binop 12 %33 %34 :bool
+    call check(%32, %35) :void
+    %36 = const string(#9) :string
+    %37 = const int(0) :u32
+    %38 = unop 2 %37 :u32
+    %39 = binop 12 %38 %1 :bool
+    call check(%36, %39) :void
+    %40 = const string(#10) :string
+    %41 = unop 2 %3 :u32
+    %42 = const int(2147483647) :u32
+    %43 = binop 12 %41 %42 :bool
+    call check(%40, %43) :void
+    %44 = const int(0) :i32
+    return %44

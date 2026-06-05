@@ -4,21 +4,25 @@
 
 fn snippet$main() -> i32
   locals:
-    %0 n: i32 (local n)
-    %1 m: u64 (local m)
-    %2 $intrinsic_4: ?
-    %3 __sb_0: ? (synthetic __sb_0)
-    %4 $call_6: string
-    %5 $intrinsic_7: string
-    %6 $k_8: i32
+    %0 $k_0: i32
+    %1 n: i32 (local n)
+    %2 $cast_2: u64
+    %3 m: u64 (local m)
+    %4 $intrinsic_4: ?
+    %5 __sb_0: ? (synthetic __sb_0)
+    %6 $call_6: string
+    %7 $intrinsic_7: string
+    %8 $k_8: i32
   bb0:
     %0 = const int(42) :i32
-    %1 = cast %0 :u64
-    %2 = intrinsic builder.new()
+    %1 = move %0
+    %2 = cast %1 :u64
     %3 = move %2
-    %4 = call to_string(%1) :string
-    intrinsic builder.append_str(%3, %4)
-    %5 = intrinsic builder.finish(%3)
-    call println(%5) :void
-    %6 = const int(0) :i32
-    return %6
+    %4 = intrinsic builder.new()
+    %5 = move %4
+    %6 = call std_core$u64$Display$to_string(%3) :string
+    intrinsic builder.append_str(%5, %6)
+    %7 = intrinsic builder.finish(%5)
+    call std_io$std_io$println__string(%7) :void
+    %8 = const int(0) :i32
+    return %8

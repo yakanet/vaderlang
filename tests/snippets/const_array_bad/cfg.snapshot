@@ -18,16 +18,18 @@ fn snippet$main() -> i32
     %0 $k_0: i32
     %1 $k_1: i32
     %2 $k_2: i32
-    %3 arr: i32[] (local arr)
-    %4 $k_5: i32
+    %3 $arr_3: i32[]
+    %4 arr: i32[] (local arr)
+    %5 $k_5: i32
   bb0:
     %0 = const int(10) :i32
     %1 = const int(20) :i32
     %2 = const int(30) :i32
     %3 = array_new i32[][3](%0, %1, %2)
-    call write_first(%3) :void
-    %4 = const int(0) :i32
-    return %4
+    %4 = move %3
+    call write_first(%4) :void
+    %5 = const int(0) :i32
+    return %5
 
 # Diagnostics
 [6:5] error[T3042] cannot mutate an immutable array: cannot mutate `const i32[]` — declared with `const`

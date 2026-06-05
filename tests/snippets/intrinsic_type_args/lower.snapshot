@@ -20,7 +20,7 @@
               __for_i_2 :usize
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             block :string
               let __sb_3: ? =
@@ -32,7 +32,7 @@
                 __sb_3 :?
                 call :string
                   callee:
-                    to_string :string
+                    std_core$usize$Display$to_string :string
                   arg0:
                     @size_of.type :usize
                       t :type
@@ -52,7 +52,7 @@
       array :type[]
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_4: ? =
@@ -64,7 +64,7 @@
             __sb_4 :?
             call :string
               callee:
-                to_string :string
+                std_core$usize$Display$to_string :string
               arg0:
                 LoweredArrayLen
           ~>
@@ -72,4 +72,4 @@
               __sb_4 :?
     return int(0) :i32
   struct snippet$Pair__string__i64 { key: Any, value: Any }
-  struct snippet$Pair__string__Any__Any { key: Any, value: Any }
+  struct snippet$Pair__Any__Any { key: Any, value: Any }

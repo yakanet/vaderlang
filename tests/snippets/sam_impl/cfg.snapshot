@@ -12,7 +12,7 @@ fn snippet$i32$Display$to_string(%0: i32) -> string
   bb0:
     %1 = intrinsic builder.new()
     %2 = move %1
-    %3 = const string(#0) :string
+    %3 = const string(#1) :string
     intrinsic builder.append_str(%2, %3)
     intrinsic builder.append_display(%2, %0)
     %4 = intrinsic builder.finish(%2)
@@ -21,18 +21,20 @@ fn snippet$i32$Display$to_string(%0: i32) -> string
 fn snippet$i64$Display$to_string(%0: i64) -> string
   locals:
     %0 self: i64 (param self)
-    %1 prefix: string (local prefix)
-    %2 $intrinsic_3: ?
-    %3 __sb_0: ? (synthetic __sb_0)
-    %4 $intrinsic_5: string
+    %1 $k_1: string
+    %2 prefix: string (local prefix)
+    %3 $intrinsic_3: ?
+    %4 __sb_0: ? (synthetic __sb_0)
+    %5 $intrinsic_5: string
   bb0:
-    %1 = const string(#1) :string
-    %2 = intrinsic builder.new()
-    %3 = move %2
-    intrinsic builder.append_display(%3, %1)
-    intrinsic builder.append_display(%3, %0)
-    %4 = intrinsic builder.finish(%3)
-    return %4
+    %1 = const string(#2) :string
+    %2 = move %1
+    %3 = intrinsic builder.new()
+    %4 = move %3
+    intrinsic builder.append_display(%4, %2)
+    intrinsic builder.append_display(%4, %0)
+    %5 = intrinsic builder.finish(%4)
+    return %5
 
 fn snippet$i32$Hash$hash(%0: i32) -> u64
   locals:
@@ -44,29 +46,33 @@ fn snippet$i32$Hash$hash(%0: i32) -> u64
 
 fn snippet$main() -> i32
   locals:
-    %0 x: i32 (local x)
-    %1 y: i64 (local y)
-    %2 $call_4: string
-    %3 $call_5: string
-    %4 $intrinsic_6: ?
-    %5 __sb_0: ? (synthetic __sb_0)
-    %6 $call_8: u64
-    %7 $call_9: string
-    %8 $intrinsic_10: string
-    %9 $k_11: i32
+    %0 $k_0: i32
+    %1 x: i32 (local x)
+    %2 $k_2: i64
+    %3 y: i64 (local y)
+    %4 $call_4: string
+    %5 $call_5: string
+    %6 $intrinsic_6: ?
+    %7 __sb_0: ? (synthetic __sb_0)
+    %8 $call_8: u64
+    %9 $call_9: string
+    %10 $intrinsic_10: string
+    %11 $k_11: i32
   bb0:
     %0 = const int(42) :i32
-    %1 = const int(7) :i64
-    %2 = call to_string(%0) :string
-    call println(%2) :void
-    %3 = call to_string(%1) :string
-    call println(%3) :void
-    %4 = intrinsic builder.new()
-    %5 = move %4
-    %6 = call hash(%0) :u64
-    %7 = call to_string(%6) :string
-    intrinsic builder.append_str(%5, %7)
-    %8 = intrinsic builder.finish(%5)
-    call println(%8) :void
-    %9 = const int(0) :i32
-    return %9
+    %1 = move %0
+    %2 = const int(7) :i64
+    %3 = move %2
+    %4 = call std_core$i32$Display$to_string(%1) :string
+    call std_io$std_io$println__string(%4) :void
+    %5 = call std_core$i64$Display$to_string(%3) :string
+    call std_io$std_io$println__string(%5) :void
+    %6 = intrinsic builder.new()
+    %7 = move %6
+    %8 = call std_core$i32$Hash$hash(%1) :u64
+    %9 = call std_core$u64$Display$to_string(%8) :string
+    intrinsic builder.append_str(%7, %9)
+    %10 = intrinsic builder.finish(%7)
+    call std_io$std_io$println__string(%10) :void
+    %11 = const int(0) :i32
+    return %11

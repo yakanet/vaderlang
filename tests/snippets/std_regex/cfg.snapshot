@@ -16,12 +16,12 @@ fn snippet$run_match(%0: string, %1: Pattern, %2: string) -> void
     %3 = intrinsic builder.new()
     %4 = move %3
     intrinsic builder.append_display(%4, %0)
-    %5 = const string(#0) :string
+    %5 = const string(#12) :string
     intrinsic builder.append_str(%4, %5)
     %6 = call matches(%1, %2) :bool
     intrinsic builder.append_display(%4, %6)
     %7 = intrinsic builder.finish(%4)
-    call println(%7) :void
+    call std_io$std_io$println__string(%7) :void
     return
 
 fn snippet$run_find(%0: string, %1: Pattern, %2: string) -> void
@@ -61,19 +61,19 @@ fn snippet$run_find(%0: string, %1: Pattern, %2: string) -> void
     %6 = intrinsic builder.new()
     %7 = move %6
     intrinsic builder.append_display(%7, %0)
-    %8 = const string(#0) :string
+    %8 = const string(#12) :string
     intrinsic builder.append_str(%7, %8)
     %9 = cast %4 :Match
     %10 = field_get %9.start :usize
-    %11 = call to_string(%10) :string
+    %11 = call std_core$usize$Display$to_string(%10) :string
     intrinsic builder.append_str(%7, %11)
-    %12 = const string(#1) :string
+    %12 = const string(#13) :string
     intrinsic builder.append_str(%7, %12)
     %13 = cast %4 :Match
     %14 = field_get %13.end :usize
-    %15 = call to_string(%14) :string
+    %15 = call std_core$usize$Display$to_string(%14) :string
     intrinsic builder.append_str(%7, %15)
-    %16 = const string(#2) :string
+    %16 = const string(#14) :string
     intrinsic builder.append_str(%7, %16)
     %17 = cast %4 :Match
     %18 = field_get %17.groups :string[]
@@ -81,16 +81,16 @@ fn snippet$run_find(%0: string, %1: Pattern, %2: string) -> void
     %20 = array_get %18[%19] :string
     intrinsic builder.append_display(%7, %20)
     %21 = intrinsic builder.finish(%7)
-    call println(%21) :void
+    call std_io$std_io$println__string(%21) :void
     branch -> bb3
   bb2:
     %22 = intrinsic builder.new()
     %23 = move %22
     intrinsic builder.append_display(%23, %0)
-    %24 = const string(#3) :string
+    %24 = const string(#15) :string
     intrinsic builder.append_str(%23, %24)
     %25 = intrinsic builder.finish(%23)
-    call println(%25) :void
+    call std_io$std_io$println__string(%25) :void
     branch -> bb3
   bb3:
     return
@@ -134,410 +134,414 @@ fn snippet$main() -> i32
     %34 $len_34: usize
     %35 $call_35: string
     %36 $intrinsic_36: string
-    %37 i: usize (local i)
-    %38 $len_39: usize
-    %39 $lt_40: bool
-    %40 $intrinsic_41: ?
-    %41 __sb_1: ? (synthetic __sb_1)
-    %42 $k_43: string
-    %43 $call_44: string
-    %44 $k_45: string
-    %45 $idx_46: Match
-    %46 $field_47: string[]
-    %47 $k_48: i32
-    %48 $idx_49: string
-    %49 $intrinsic_50: string
-    %50 $k_51: usize
-    %51 $cast_52: usize
-    %52 $k_54: string
-    %53 $call_55: Pattern | RegexError
-    %54 p_anchor: Pattern | RegexError (local p_anchor)
-    %55 $type_check_57: bool
-    %56 $k_58: string
-    %57 $cast_59: Pattern
-    %58 $k_60: string
-    %59 $k_61: string
-    %60 $cast_62: Pattern
-    %61 $k_63: string
-    %62 $k_64: string
-    %63 $call_65: Pattern | RegexError
-    %64 p_email: Pattern | RegexError (local p_email)
-    %65 $type_check_67: bool
-    %66 $cast_68: Pattern
-    %67 $k_69: string
-    %68 $call_70: Match | null
-    %69 r: Match | null (local r)
-    %70 $type_check_72: bool
-    %71 $intrinsic_73: ?
-    %72 __sb_2: ? (synthetic __sb_2)
-    %73 $k_75: string
-    %74 $cast_76: Match
-    %75 $field_77: string[]
-    %76 $k_78: i32
-    %77 $idx_79: string
-    %78 $intrinsic_80: string
-    %79 $intrinsic_81: ?
-    %80 __sb_3: ? (synthetic __sb_3)
-    %81 $k_83: string
-    %82 $cast_84: Match
-    %83 $field_85: string[]
-    %84 $k_86: i32
-    %85 $idx_87: string
-    %86 $intrinsic_88: string
-    %87 $intrinsic_89: ?
-    %88 __sb_4: ? (synthetic __sb_4)
-    %89 $k_91: string
-    %90 $cast_92: Match
-    %91 $field_93: string[]
-    %92 $k_94: i32
-    %93 $idx_95: string
-    %94 $intrinsic_96: string
-    %95 $intrinsic_97: ?
-    %96 __sb_5: ? (synthetic __sb_5)
-    %97 $k_99: string
-    %98 $cast_100: Match
-    %99 $field_101: string[]
-    %100 $k_102: i32
-    %101 $idx_103: string
-    %102 $intrinsic_104: string
-    %103 $k_105: string
-    %104 $call_106: Pattern | RegexError
-    %105 p_alt: Pattern | RegexError (local p_alt)
-    %106 $type_check_108: bool
-    %107 $k_109: string
-    %108 $cast_110: Pattern
-    %109 $k_111: string
-    %110 $k_112: string
-    %111 $cast_113: Pattern
-    %112 $k_114: string
-    %113 $k_115: string
-    %114 $cast_116: Pattern
-    %115 $k_117: string
-    %116 $k_118: string
-    %117 $cast_119: Pattern
-    %118 $k_120: string
-    %119 $k_121: string
-    %120 $call_122: Pattern | RegexError
-    %121 p_3a: Pattern | RegexError (local p_3a)
-    %122 $type_check_124: bool
-    %123 $k_125: string
-    %124 $cast_126: Pattern
-    %125 $k_127: string
-    %126 $k_128: string
-    %127 $cast_129: Pattern
-    %128 $k_130: string
-    %129 $k_131: string
-    %130 $call_132: Pattern | RegexError
-    %131 p_2to4: Pattern | RegexError (local p_2to4)
-    %132 $type_check_134: bool
-    %133 $k_135: string
-    %134 $cast_136: Pattern
-    %135 $k_137: string
-    %136 $k_138: string
-    %137 $cast_139: Pattern
-    %138 $k_140: string
-    %139 $k_141: string
-    %140 $cast_142: Pattern
-    %141 $k_143: string
-    %142 $k_144: string
-    %143 $call_145: Pattern | RegexError
-    %144 p_swap: Pattern | RegexError (local p_swap)
-    %145 $type_check_147: bool
-    %146 $intrinsic_148: ?
-    %147 __sb_6: ? (synthetic __sb_6)
-    %148 $k_150: string
-    %149 $cast_151: Pattern
-    %150 $k_152: string
-    %151 $k_153: string
-    %152 $call_154: string
-    %153 $intrinsic_155: string
-    %154 $k_156: string
-    %155 $call_157: Pattern | RegexError
-    %156 p_redact: Pattern | RegexError (local p_redact)
-    %157 $type_check_159: bool
-    %158 $intrinsic_160: ?
-    %159 __sb_7: ? (synthetic __sb_7)
-    %160 $k_162: string
-    %161 $cast_163: Pattern
-    %162 $k_164: string
-    %163 $k_165: string
-    %164 $call_166: string
-    %165 $intrinsic_167: string
-    %166 $k_168: string
-    %167 $call_169: Pattern | RegexError
-    %168 bad: Pattern | RegexError (local bad)
-    %169 $type_check_171: bool
-    %170 $k_172: string
-    %171 $k_173: i32
+    %37 $k_37: usize
+    %38 i: usize (local i)
+    %39 $len_39: usize
+    %40 $lt_40: bool
+    %41 $intrinsic_41: ?
+    %42 __sb_1: ? (synthetic __sb_1)
+    %43 $k_43: string
+    %44 $call_44: string
+    %45 $k_45: string
+    %46 $idx_46: Match
+    %47 $field_47: string[]
+    %48 $k_48: i32
+    %49 $idx_49: string
+    %50 $intrinsic_50: string
+    %51 $k_51: usize
+    %52 $cast_52: usize
+    %53 $add_53: usize
+    %54 $k_54: string
+    %55 $call_55: Pattern | RegexError
+    %56 p_anchor: Pattern | RegexError (local p_anchor)
+    %57 $type_check_57: bool
+    %58 $k_58: string
+    %59 $cast_59: Pattern
+    %60 $k_60: string
+    %61 $k_61: string
+    %62 $cast_62: Pattern
+    %63 $k_63: string
+    %64 $k_64: string
+    %65 $call_65: Pattern | RegexError
+    %66 p_email: Pattern | RegexError (local p_email)
+    %67 $type_check_67: bool
+    %68 $cast_68: Pattern
+    %69 $k_69: string
+    %70 $call_70: Match | null
+    %71 r: Match | null (local r)
+    %72 $type_check_72: bool
+    %73 $intrinsic_73: ?
+    %74 __sb_2: ? (synthetic __sb_2)
+    %75 $k_75: string
+    %76 $cast_76: Match
+    %77 $field_77: string[]
+    %78 $k_78: i32
+    %79 $idx_79: string
+    %80 $intrinsic_80: string
+    %81 $intrinsic_81: ?
+    %82 __sb_3: ? (synthetic __sb_3)
+    %83 $k_83: string
+    %84 $cast_84: Match
+    %85 $field_85: string[]
+    %86 $k_86: i32
+    %87 $idx_87: string
+    %88 $intrinsic_88: string
+    %89 $intrinsic_89: ?
+    %90 __sb_4: ? (synthetic __sb_4)
+    %91 $k_91: string
+    %92 $cast_92: Match
+    %93 $field_93: string[]
+    %94 $k_94: i32
+    %95 $idx_95: string
+    %96 $intrinsic_96: string
+    %97 $intrinsic_97: ?
+    %98 __sb_5: ? (synthetic __sb_5)
+    %99 $k_99: string
+    %100 $cast_100: Match
+    %101 $field_101: string[]
+    %102 $k_102: i32
+    %103 $idx_103: string
+    %104 $intrinsic_104: string
+    %105 $k_105: string
+    %106 $call_106: Pattern | RegexError
+    %107 p_alt: Pattern | RegexError (local p_alt)
+    %108 $type_check_108: bool
+    %109 $k_109: string
+    %110 $cast_110: Pattern
+    %111 $k_111: string
+    %112 $k_112: string
+    %113 $cast_113: Pattern
+    %114 $k_114: string
+    %115 $k_115: string
+    %116 $cast_116: Pattern
+    %117 $k_117: string
+    %118 $k_118: string
+    %119 $cast_119: Pattern
+    %120 $k_120: string
+    %121 $k_121: string
+    %122 $call_122: Pattern | RegexError
+    %123 p_3a: Pattern | RegexError (local p_3a)
+    %124 $type_check_124: bool
+    %125 $k_125: string
+    %126 $cast_126: Pattern
+    %127 $k_127: string
+    %128 $k_128: string
+    %129 $cast_129: Pattern
+    %130 $k_130: string
+    %131 $k_131: string
+    %132 $call_132: Pattern | RegexError
+    %133 p_2to4: Pattern | RegexError (local p_2to4)
+    %134 $type_check_134: bool
+    %135 $k_135: string
+    %136 $cast_136: Pattern
+    %137 $k_137: string
+    %138 $k_138: string
+    %139 $cast_139: Pattern
+    %140 $k_140: string
+    %141 $k_141: string
+    %142 $cast_142: Pattern
+    %143 $k_143: string
+    %144 $k_144: string
+    %145 $call_145: Pattern | RegexError
+    %146 p_swap: Pattern | RegexError (local p_swap)
+    %147 $type_check_147: bool
+    %148 $intrinsic_148: ?
+    %149 __sb_6: ? (synthetic __sb_6)
+    %150 $k_150: string
+    %151 $cast_151: Pattern
+    %152 $k_152: string
+    %153 $k_153: string
+    %154 $call_154: string
+    %155 $intrinsic_155: string
+    %156 $k_156: string
+    %157 $call_157: Pattern | RegexError
+    %158 p_redact: Pattern | RegexError (local p_redact)
+    %159 $type_check_159: bool
+    %160 $intrinsic_160: ?
+    %161 __sb_7: ? (synthetic __sb_7)
+    %162 $k_162: string
+    %163 $cast_163: Pattern
+    %164 $k_164: string
+    %165 $k_165: string
+    %166 $call_166: string
+    %167 $intrinsic_167: string
+    %168 $k_168: string
+    %169 $call_169: Pattern | RegexError
+    %170 bad: Pattern | RegexError (local bad)
+    %171 $type_check_171: bool
+    %172 $k_172: string
+    %173 $k_173: i32
   bb0:
-    %0 = const string(#4) :string
+    %0 = const string(#16) :string
     %1 = call compile(%0) :Pattern | RegexError
     %2 = move %1
     %3 = type_check %2 is Pattern
     cond_branch %3 ? bb1 : bb2
   bb1:
-    %4 = const string(#5) :string
+    %4 = const string(#17) :string
     %5 = cast %2 :Pattern
-    %6 = const string(#4) :string
+    %6 = const string(#16) :string
     call run_match(%4, %5, %6) :void
-    %7 = const string(#6) :string
+    %7 = const string(#18) :string
     %8 = cast %2 :Pattern
-    %9 = const string(#7) :string
+    %9 = const string(#19) :string
     call run_match(%7, %8, %9) :void
     branch -> bb2
   bb2:
-    %10 = const string(#8) :string
+    %10 = const string(#20) :string
     %11 = call compile(%10) :Pattern | RegexError
     %12 = move %11
     %13 = type_check %12 is Pattern
     cond_branch %13 ? bb3 : bb4
   bb3:
-    %14 = const string(#9) :string
+    %14 = const string(#21) :string
     %15 = cast %12 :Pattern
-    %16 = const string(#10) :string
+    %16 = const string(#22) :string
     call run_match(%14, %15, %16) :void
-    %17 = const string(#11) :string
+    %17 = const string(#23) :string
     %18 = cast %12 :Pattern
-    %19 = const string(#12) :string
+    %19 = const string(#24) :string
     call run_match(%17, %18, %19) :void
     branch -> bb4
   bb4:
-    %20 = const string(#13) :string
+    %20 = const string(#25) :string
     %21 = call compile(%20) :Pattern | RegexError
     %22 = move %21
     %23 = type_check %22 is Pattern
     cond_branch %23 ? bb5 : bb6
   bb5:
-    %24 = const string(#14) :string
+    %24 = const string(#26) :string
     %25 = cast %22 :Pattern
-    %26 = const string(#15) :string
+    %26 = const string(#27) :string
     call run_find(%24, %25, %26) :void
     %27 = cast %22 :Pattern
-    %28 = const string(#15) :string
+    %28 = const string(#27) :string
     %29 = call find_all(%27, %28) :Match[]
     %30 = move %29
     %31 = intrinsic builder.new()
     %32 = move %31
-    %33 = const string(#16) :string
+    %33 = const string(#28) :string
     intrinsic builder.append_str(%32, %33)
     %34 = array_len %30
-    %35 = call to_string(%34) :string
+    %35 = call std_core$usize$Display$to_string(%34) :string
     intrinsic builder.append_str(%32, %35)
     %36 = intrinsic builder.finish(%32)
-    call println(%36) :void
+    call std_io$std_io$println__string(%36) :void
     %37 = const int(0) :usize
+    %38 = move %37
     branch -> bb7
   bb6:
-    %52 = const string(#19) :string
-    %53 = call compile(%52) :Pattern | RegexError
-    %54 = move %53
-    %55 = type_check %54 is Pattern
-    cond_branch %55 ? bb10 : bb11
+    %54 = const string(#31) :string
+    %55 = call compile(%54) :Pattern | RegexError
+    %56 = move %55
+    %57 = type_check %56 is Pattern
+    cond_branch %57 ? bb10 : bb11
   bb7:
-    %38 = array_len %30
-    %39 = binop lt %37 %38 :bool
-    cond_branch %39 ? bb8 : bb9
+    %39 = array_len %30
+    %40 = binop 14 %38 %39 :bool
+    cond_branch %40 ? bb8 : bb9
   bb8:
-    %40 = intrinsic builder.new()
-    %41 = move %40
-    %42 = const string(#17) :string
-    intrinsic builder.append_str(%41, %42)
-    %43 = call to_string(%37) :string
-    intrinsic builder.append_str(%41, %43)
-    %44 = const string(#18) :string
-    intrinsic builder.append_str(%41, %44)
-    %45 = array_get %30[%37] :Match
-    %46 = field_get %45.groups :string[]
-    %47 = const int(0) :i32
-    %48 = array_get %46[%47] :string
-    intrinsic builder.append_display(%41, %48)
-    %49 = intrinsic builder.finish(%41)
-    call println(%49) :void
-    %50 = const int(1) :usize
-    %51 = cast %50 :usize
-    %37 = binop add %37 %51 :usize
+    %41 = intrinsic builder.new()
+    %42 = move %41
+    %43 = const string(#29) :string
+    intrinsic builder.append_str(%42, %43)
+    %44 = call std_core$usize$Display$to_string(%38) :string
+    intrinsic builder.append_str(%42, %44)
+    %45 = const string(#30) :string
+    intrinsic builder.append_str(%42, %45)
+    %46 = array_get %30[%38] :Match
+    %47 = field_get %46.groups :string[]
+    %48 = const int(0) :i32
+    %49 = array_get %47[%48] :string
+    intrinsic builder.append_display(%42, %49)
+    %50 = intrinsic builder.finish(%42)
+    call std_io$std_io$println__string(%50) :void
+    %51 = const int(1) :usize
+    %52 = cast %51 :usize
+    %53 = binop 0 %38 %52 :usize
+    %38 = move %53
     branch -> bb7
   bb9:
     branch -> bb6
   bb10:
-    %56 = const string(#20) :string
-    %57 = cast %54 :Pattern
-    %58 = const string(#21) :string
-    call run_find(%56, %57, %58) :void
-    %59 = const string(#22) :string
-    %60 = cast %54 :Pattern
-    %61 = const string(#23) :string
-    call run_find(%59, %60, %61) :void
+    %58 = const string(#32) :string
+    %59 = cast %56 :Pattern
+    %60 = const string(#33) :string
+    call run_find(%58, %59, %60) :void
+    %61 = const string(#34) :string
+    %62 = cast %56 :Pattern
+    %63 = const string(#35) :string
+    call run_find(%61, %62, %63) :void
     branch -> bb11
   bb11:
-    %62 = const string(#24) :string
-    %63 = call compile(%62) :Pattern | RegexError
-    %64 = move %63
-    %65 = type_check %64 is Pattern
-    cond_branch %65 ? bb12 : bb13
+    %64 = const string(#36) :string
+    %65 = call compile(%64) :Pattern | RegexError
+    %66 = move %65
+    %67 = type_check %66 is Pattern
+    cond_branch %67 ? bb12 : bb13
   bb12:
-    %66 = cast %64 :Pattern
-    %67 = const string(#25) :string
-    %68 = call find(%66, %67) :Match | null
-    %69 = move %68
-    %70 = type_check %69 is Match
-    cond_branch %70 ? bb14 : bb15
+    %68 = cast %66 :Pattern
+    %69 = const string(#37) :string
+    %70 = call find(%68, %69) :Match | null
+    %71 = move %70
+    %72 = type_check %71 is Match
+    cond_branch %72 ? bb14 : bb15
   bb13:
-    %103 = const string(#30) :string
-    %104 = call compile(%103) :Pattern | RegexError
-    %105 = move %104
-    %106 = type_check %105 is Pattern
-    cond_branch %106 ? bb16 : bb17
+    %105 = const string(#42) :string
+    %106 = call compile(%105) :Pattern | RegexError
+    %107 = move %106
+    %108 = type_check %107 is Pattern
+    cond_branch %108 ? bb16 : bb17
   bb14:
-    %71 = intrinsic builder.new()
-    %72 = move %71
-    %73 = const string(#26) :string
-    intrinsic builder.append_str(%72, %73)
-    %74 = cast %69 :Match
-    %75 = field_get %74.groups :string[]
-    %76 = const int(0) :i32
-    %77 = array_get %75[%76] :string
-    intrinsic builder.append_display(%72, %77)
-    %78 = intrinsic builder.finish(%72)
-    call println(%78) :void
-    %79 = intrinsic builder.new()
-    %80 = move %79
-    %81 = const string(#27) :string
-    intrinsic builder.append_str(%80, %81)
-    %82 = cast %69 :Match
-    %83 = field_get %82.groups :string[]
-    %84 = const int(1) :i32
-    %85 = array_get %83[%84] :string
-    intrinsic builder.append_display(%80, %85)
-    %86 = intrinsic builder.finish(%80)
-    call println(%86) :void
-    %87 = intrinsic builder.new()
-    %88 = move %87
-    %89 = const string(#28) :string
-    intrinsic builder.append_str(%88, %89)
-    %90 = cast %69 :Match
-    %91 = field_get %90.groups :string[]
-    %92 = const int(2) :i32
-    %93 = array_get %91[%92] :string
-    intrinsic builder.append_display(%88, %93)
-    %94 = intrinsic builder.finish(%88)
-    call println(%94) :void
-    %95 = intrinsic builder.new()
-    %96 = move %95
-    %97 = const string(#29) :string
-    intrinsic builder.append_str(%96, %97)
-    %98 = cast %69 :Match
-    %99 = field_get %98.groups :string[]
-    %100 = const int(3) :i32
-    %101 = array_get %99[%100] :string
-    intrinsic builder.append_display(%96, %101)
-    %102 = intrinsic builder.finish(%96)
-    call println(%102) :void
+    %73 = intrinsic builder.new()
+    %74 = move %73
+    %75 = const string(#38) :string
+    intrinsic builder.append_str(%74, %75)
+    %76 = cast %71 :Match
+    %77 = field_get %76.groups :string[]
+    %78 = const int(0) :i32
+    %79 = array_get %77[%78] :string
+    intrinsic builder.append_display(%74, %79)
+    %80 = intrinsic builder.finish(%74)
+    call std_io$std_io$println__string(%80) :void
+    %81 = intrinsic builder.new()
+    %82 = move %81
+    %83 = const string(#39) :string
+    intrinsic builder.append_str(%82, %83)
+    %84 = cast %71 :Match
+    %85 = field_get %84.groups :string[]
+    %86 = const int(1) :i32
+    %87 = array_get %85[%86] :string
+    intrinsic builder.append_display(%82, %87)
+    %88 = intrinsic builder.finish(%82)
+    call std_io$std_io$println__string(%88) :void
+    %89 = intrinsic builder.new()
+    %90 = move %89
+    %91 = const string(#40) :string
+    intrinsic builder.append_str(%90, %91)
+    %92 = cast %71 :Match
+    %93 = field_get %92.groups :string[]
+    %94 = const int(2) :i32
+    %95 = array_get %93[%94] :string
+    intrinsic builder.append_display(%90, %95)
+    %96 = intrinsic builder.finish(%90)
+    call std_io$std_io$println__string(%96) :void
+    %97 = intrinsic builder.new()
+    %98 = move %97
+    %99 = const string(#41) :string
+    intrinsic builder.append_str(%98, %99)
+    %100 = cast %71 :Match
+    %101 = field_get %100.groups :string[]
+    %102 = const int(3) :i32
+    %103 = array_get %101[%102] :string
+    intrinsic builder.append_display(%98, %103)
+    %104 = intrinsic builder.finish(%98)
+    call std_io$std_io$println__string(%104) :void
     branch -> bb15
   bb15:
     branch -> bb13
   bb16:
-    %107 = const string(#31) :string
-    %108 = cast %105 :Pattern
-    %109 = const string(#32) :string
-    call run_match(%107, %108, %109) :void
-    %110 = const string(#33) :string
-    %111 = cast %105 :Pattern
-    %112 = const string(#34) :string
-    call run_match(%110, %111, %112) :void
-    %113 = const string(#35) :string
-    %114 = cast %105 :Pattern
-    %115 = const string(#36) :string
-    call run_match(%113, %114, %115) :void
-    %116 = const string(#37) :string
-    %117 = cast %105 :Pattern
-    %118 = const string(#38) :string
-    call run_match(%116, %117, %118) :void
+    %109 = const string(#43) :string
+    %110 = cast %107 :Pattern
+    %111 = const string(#44) :string
+    call run_match(%109, %110, %111) :void
+    %112 = const string(#45) :string
+    %113 = cast %107 :Pattern
+    %114 = const string(#46) :string
+    call run_match(%112, %113, %114) :void
+    %115 = const string(#47) :string
+    %116 = cast %107 :Pattern
+    %117 = const string(#48) :string
+    call run_match(%115, %116, %117) :void
+    %118 = const string(#49) :string
+    %119 = cast %107 :Pattern
+    %120 = const string(#50) :string
+    call run_match(%118, %119, %120) :void
     branch -> bb17
   bb17:
-    %119 = const string(#39) :string
-    %120 = call compile(%119) :Pattern | RegexError
-    %121 = move %120
-    %122 = type_check %121 is Pattern
-    cond_branch %122 ? bb18 : bb19
+    %121 = const string(#51) :string
+    %122 = call compile(%121) :Pattern | RegexError
+    %123 = move %122
+    %124 = type_check %123 is Pattern
+    cond_branch %124 ? bb18 : bb19
   bb18:
-    %123 = const string(#40) :string
-    %124 = cast %121 :Pattern
-    %125 = const string(#41) :string
-    call run_match(%123, %124, %125) :void
-    %126 = const string(#42) :string
-    %127 = cast %121 :Pattern
-    %128 = const string(#43) :string
-    call run_match(%126, %127, %128) :void
+    %125 = const string(#52) :string
+    %126 = cast %123 :Pattern
+    %127 = const string(#53) :string
+    call run_match(%125, %126, %127) :void
+    %128 = const string(#54) :string
+    %129 = cast %123 :Pattern
+    %130 = const string(#55) :string
+    call run_match(%128, %129, %130) :void
     branch -> bb19
   bb19:
-    %129 = const string(#44) :string
-    %130 = call compile(%129) :Pattern | RegexError
-    %131 = move %130
-    %132 = type_check %131 is Pattern
-    cond_branch %132 ? bb20 : bb21
+    %131 = const string(#56) :string
+    %132 = call compile(%131) :Pattern | RegexError
+    %133 = move %132
+    %134 = type_check %133 is Pattern
+    cond_branch %134 ? bb20 : bb21
   bb20:
-    %133 = const string(#45) :string
-    %134 = cast %131 :Pattern
-    %135 = const string(#46) :string
-    call run_match(%133, %134, %135) :void
-    %136 = const string(#47) :string
-    %137 = cast %131 :Pattern
-    %138 = const string(#41) :string
-    call run_match(%136, %137, %138) :void
-    %139 = const string(#48) :string
-    %140 = cast %131 :Pattern
-    %141 = const string(#49) :string
-    call run_match(%139, %140, %141) :void
+    %135 = const string(#57) :string
+    %136 = cast %133 :Pattern
+    %137 = const string(#58) :string
+    call run_match(%135, %136, %137) :void
+    %138 = const string(#59) :string
+    %139 = cast %133 :Pattern
+    %140 = const string(#53) :string
+    call run_match(%138, %139, %140) :void
+    %141 = const string(#60) :string
+    %142 = cast %133 :Pattern
+    %143 = const string(#61) :string
+    call run_match(%141, %142, %143) :void
     branch -> bb21
   bb21:
-    %142 = const string(#50) :string
-    %143 = call compile(%142) :Pattern | RegexError
-    %144 = move %143
-    %145 = type_check %144 is Pattern
-    cond_branch %145 ? bb22 : bb23
+    %144 = const string(#62) :string
+    %145 = call compile(%144) :Pattern | RegexError
+    %146 = move %145
+    %147 = type_check %146 is Pattern
+    cond_branch %147 ? bb22 : bb23
   bb22:
-    %146 = intrinsic builder.new()
-    %147 = move %146
-    %148 = const string(#51) :string
-    intrinsic builder.append_str(%147, %148)
-    %149 = cast %144 :Pattern
-    %150 = const string(#52) :string
-    %151 = const string(#53) :string
-    %152 = call replace_all(%149, %150, %151) :string
-    intrinsic builder.append_display(%147, %152)
-    %153 = intrinsic builder.finish(%147)
-    call println(%153) :void
+    %148 = intrinsic builder.new()
+    %149 = move %148
+    %150 = const string(#63) :string
+    intrinsic builder.append_str(%149, %150)
+    %151 = cast %146 :Pattern
+    %152 = const string(#64) :string
+    %153 = const string(#65) :string
+    %154 = call replace_all(%151, %152, %153) :string
+    intrinsic builder.append_display(%149, %154)
+    %155 = intrinsic builder.finish(%149)
+    call std_io$std_io$println__string(%155) :void
     branch -> bb23
   bb23:
-    %154 = const string(#54) :string
-    %155 = call compile(%154) :Pattern | RegexError
-    %156 = move %155
-    %157 = type_check %156 is Pattern
-    cond_branch %157 ? bb24 : bb25
+    %156 = const string(#66) :string
+    %157 = call compile(%156) :Pattern | RegexError
+    %158 = move %157
+    %159 = type_check %158 is Pattern
+    cond_branch %159 ? bb24 : bb25
   bb24:
-    %158 = intrinsic builder.new()
-    %159 = move %158
-    %160 = const string(#55) :string
-    intrinsic builder.append_str(%159, %160)
-    %161 = cast %156 :Pattern
-    %162 = const string(#56) :string
-    %163 = const string(#57) :string
-    %164 = call replace_all(%161, %162, %163) :string
-    intrinsic builder.append_display(%159, %164)
-    %165 = intrinsic builder.finish(%159)
-    call println(%165) :void
+    %160 = intrinsic builder.new()
+    %161 = move %160
+    %162 = const string(#67) :string
+    intrinsic builder.append_str(%161, %162)
+    %163 = cast %158 :Pattern
+    %164 = const string(#68) :string
+    %165 = const string(#69) :string
+    %166 = call replace_all(%163, %164, %165) :string
+    intrinsic builder.append_display(%161, %166)
+    %167 = intrinsic builder.finish(%161)
+    call std_io$std_io$println__string(%167) :void
     branch -> bb25
   bb25:
-    %166 = const string(#58) :string
-    %167 = call compile(%166) :Pattern | RegexError
-    %168 = move %167
-    %169 = type_check %168 is RegexError
-    cond_branch %169 ? bb26 : bb27
+    %168 = const string(#70) :string
+    %169 = call compile(%168) :Pattern | RegexError
+    %170 = move %169
+    %171 = type_check %170 is RegexError
+    cond_branch %171 ? bb26 : bb27
   bb26:
-    %170 = const string(#59) :string
-    call println(%170) :void
+    %172 = const string(#71) :string
+    call std_io$std_io$println__string(%172) :void
     branch -> bb27
   bb27:
-    %171 = const int(0) :i32
-    return %171
+    %173 = const int(0) :i32
+    return %173

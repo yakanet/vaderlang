@@ -4,7 +4,7 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -18,7 +18,7 @@
                   int(500) :i64
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -32,7 +32,7 @@
                   int(1500) :i64
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -46,7 +46,7 @@
                   int(42) :i64
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -60,7 +60,7 @@
                   int(7) :i64
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -74,7 +74,7 @@
                   int(3) :i64
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -103,7 +103,7 @@
             int(50) :i64
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -129,7 +129,7 @@
               __sb_0 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_1: ? =
@@ -182,7 +182,7 @@
           epoch :Instant
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_2: ? =
@@ -202,7 +202,7 @@
               __sb_2 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -227,7 +227,7 @@
             ~>
               call :void
                 callee:
-                  println :void
+                  std_io$std_io$println__string :void
                 arg0:
                   call :string
                     callee:
@@ -245,7 +245,7 @@
                   ~>
                     call :void
                       callee:
-                        println :void
+                        std_io$std_io$println__string :void
                       arg0:
                         "parse failed" :string
                 else:
@@ -268,7 +268,7 @@
             ~>
               call :void
                 callee:
-                  println :void
+                  std_io$std_io$println__string :void
                 arg0:
                   call :string
                     callee:
@@ -286,7 +286,7 @@
                   ~>
                     call :void
                       callee:
-                        println :void
+                        std_io$std_io$println__string :void
                       arg0:
                         "pre failed" :string
                 else:
@@ -309,7 +309,7 @@
             ~>
               call :void
                 callee:
-                  println :void
+                  std_io$std_io$println__string :void
                 arg0:
                   "bad ok" :string
           else:
@@ -322,7 +322,7 @@
                   ~>
                     call :void
                       callee:
-                        println :void
+                        std_io$std_io$println__string :void
                       arg0:
                         "bad nope" :string
                 else:
@@ -351,7 +351,7 @@
           start :Monotonic
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_6: ? =

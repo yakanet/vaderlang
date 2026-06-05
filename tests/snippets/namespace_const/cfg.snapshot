@@ -5,15 +5,13 @@
 fn snippet$mk() -> Budget
   locals:
     %0 $k_0: usize
-    %1 $cast_1: usize
-    %2 $k_2: string
-    %3 $struct_3: Budget
+    %1 $k_1: string
+    %2 $struct_2: Budget
   bb0:
     %0 = const int(3) :usize
-    %1 = cast %0 :usize
-    %2 = const string(#0) :string
-    %3 = struct_new Budget(%1, %2)
-    return %3
+    %1 = const string(#1) :string
+    %2 = struct_new Budget(%0, %1)
+    return %2
 
 fn snippet$main() -> i32
   locals:
@@ -28,25 +26,23 @@ fn snippet$main() -> i32
     %8 $field_8: string
     %9 $intrinsic_9: string
     %10 $k_10: usize
-    %11 $cast_11: usize
-    %12 $cast_12: i32
+    %11 $cast_11: i32
   bb0:
     %0 = call mk() :Budget
     %1 = move %0
     %2 = intrinsic builder.new()
     %3 = move %2
-    %4 = const string(#1) :string
+    %4 = const string(#2) :string
     intrinsic builder.append_str(%3, %4)
     %5 = field_get %1.retries :usize
-    %6 = call to_string(%5) :string
+    %6 = call std_core$usize$Display$to_string(%5) :string
     intrinsic builder.append_str(%3, %6)
-    %7 = const string(#2) :string
+    %7 = const string(#3) :string
     intrinsic builder.append_str(%3, %7)
     %8 = field_get %1.label :string
     intrinsic builder.append_display(%3, %8)
     %9 = intrinsic builder.finish(%3)
-    call println(%9) :void
+    call std_io$std_io$println__string(%9) :void
     %10 = const int(3) :usize
-    %11 = cast %10 :usize
-    %12 = cast %11 :i32
-    return %12
+    %11 = cast %10 :i32
+    return %11

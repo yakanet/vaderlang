@@ -26,7 +26,7 @@
                 int(1) :i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -64,7 +64,7 @@
                 int(1) :i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_1: ? =
@@ -102,18 +102,18 @@
                 int(1) :i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_2: ? =
+          let __sb_3: ? =
             @builder.new :?
           @builder.append_str :void
-            __sb_2 :?
+            __sb_3 :?
             "5..<3 iters -> " :string
           @builder.append_display <for i32> :void
-            __sb_2 :?
+            __sb_3 :?
             n :i32
           ~>
             @builder.finish :string
-              __sb_2 :?
+              __sb_3 :?
     return int(0) :i32

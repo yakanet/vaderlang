@@ -15,7 +15,7 @@
     let a: i32 =
       call :i32
         callee:
-          count :i32
+          snippet$snippet$count__i32 :i32
         arg0:
           Range<i32> {
             start: int(0) :i32
@@ -26,11 +26,11 @@
     let b: i32 =
       call :i32
         callee:
-          count :i32
+          snippet$snippet$count__i32 :i32
         arg0:
-          call :ArrayIterator<i32>
+          call :Iterator<T>
             callee:
-              into :ArrayIterator<i32>
+              std_core$[]$Into$into__i32 :Iterator<T>
             arg0:
               array :i32[]
                 int(10) :i32
@@ -39,14 +39,14 @@
     let c: i32 =
       call :i32
         callee:
-          invoke :i32
+          snippet$snippet$invoke__i32 :i32
         arg0:
           Hello {
           }
     let d: i32 =
       call :i32
         callee:
-          twice :i32
+          snippet$snippet$twice__i32 :i32
         arg0:
           int(7) :Doubler<i32>
     return

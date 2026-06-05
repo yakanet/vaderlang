@@ -14,18 +14,18 @@ fn snippet$run_mode(%0: string) -> void
     %7 $intrinsic_7: string
     %8 $call_8: never
   bb0:
-    %1 = const string(#0) :string
-    %2 = binop eq %0 %1 :bool
+    %1 = const string(#1) :string
+    %2 = binop 12 %0 %1 :bool
     cond_branch %2 ? bb1 : bb2
   bb1:
-    %3 = const string(#1) :string
-    call println(%3) :void
+    %3 = const string(#2) :string
+    call std_io$std_io$println__string(%3) :void
     return
   bb2:
     %4 = intrinsic builder.new()
     %5 = move %4
     intrinsic builder.append_display(%5, %0)
-    %6 = const string(#2) :string
+    %6 = const string(#3) :string
     intrinsic builder.append_str(%5, %6)
     %7 = intrinsic builder.finish(%5)
     %8 = call todo(%7) :never
@@ -36,7 +36,7 @@ fn snippet$main() -> i32
     %0 $k_0: string
     %1 $k_1: i32
   bb0:
-    %0 = const string(#0) :string
+    %0 = const string(#1) :string
     call run_mode(%0) :void
     %1 = const int(0) :i32
     return %1

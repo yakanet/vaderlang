@@ -2,7 +2,7 @@
 
 ## snippet
   struct snippet$Spec { name: string, code: i32 }
-  fn __const_snippet$SPECS() -> const Spec[]
+  fn __const_snippet$SPECS() -> Spec[]
     ~>
       array :Spec[]
         Spec {
@@ -23,10 +23,7 @@
         }
   fn snippet$lookup(name: string) -> i32
     block :void
-      let __for_arr_0: const Spec[] =
-        call :const Spec[]
-          callee:
-            __const_SPECS :fn() -> const Spec[]
+      let __for_arr_0: Spec[] = SPECS :Spec[]
       let __for_len_1: usize =
         LoweredArrayLen
       let __for_i_2: usize = int(0) :usize
@@ -34,7 +31,7 @@
         let s: Spec =
           index :Spec
             on:
-              __for_arr_0 :const Spec[]
+              __for_arr_0 :Spec[]
             ix:
               __for_i_2 :usize
         if :void
@@ -64,7 +61,7 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -84,7 +81,7 @@
               __sb_0 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_1: ? =

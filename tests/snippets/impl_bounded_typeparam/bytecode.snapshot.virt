@@ -1,74 +1,65 @@
 module _main
 type 0 primitive null
-type 1 primitive i32
-type 2 struct snippet$Wrap__Any { value:7 }
-type 3 primitive string
-type 4 struct snippet$Cat { name:3 }
-type 5 struct snippet$Dog { name:3 }
-type 6 struct snippet$Wrap__Cat { value:7 }
-type 7 ref _
-type 8 struct snippet$Wrap__Dog { value:7 }
-type 9 primitive void
-string 0 "Mira"
-string 1 "Rex"
-string 2 "wrapped"
-string 3 "\n"
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 write std_io$write (i32,string) -> void
-impl 2 Display
+type 1 primitive string
+type 2 primitive void
+type 3 primitive i32
+type 4 struct snippet$Cat { name:1 }
+type 5 struct snippet$Dog { name:1 }
+type 6 struct snippet$Wrap__Any { value:8 }
+type 7 struct snippet$Wrap__Cat { value:8 }
+type 8 ref _
+type 9 struct snippet$Wrap__Dog { value:8 }
+string 0 "\n"
+string 1 "Mira"
+string 2 "Rex"
+string 3 "wrapped"
+import 0 write std_io$write (i32,string) -> void
+import 1 to_string std_core$string$Display$to_string (string) -> string
 impl 4 Tag
 impl 5 Tag
 impl 6 Display
-impl 8 Display
-export main 0
+export main 1
 
-fn 0 snippet$main () -> i32
-  local a ref
-  local b ref
-  string.const 0
-  struct.new 4
-  struct.new 6
-  local.set 0
-  string.const 1
-  struct.new 5
-  struct.new 8
-  local.set 1
-  local.get 0
-  call 1
-  call 2
-  local.get 1
-  call 1
-  call 2
-  return.lit i32.const 0
-end
-
-fn 1 snippet$Wrap$Display$to_string__Cat (ref) -> string
-  return.lit string.const 2
-end
-
-fn 2 std_io$std_io$println__string (string) -> void
+fn 0 std_io$std_io$println__string (string) -> void
   local $call_2 string
   local.get 0
   call 3
   local.set 1
   i32.const 0
   local.get 1
-  call 4
+  call.import 0
   i32.const 0
-  string.const 3
-  call 4
-  return
-end
-
-fn 3 std_core$string$Display$to_string$vt (string) -> string
-  local.get 0
+  string.const 0
   call.import 0
   return
 end
 
-fn 4 std_io$write$vt (i32,string) -> void
+fn 1 snippet$main () -> i32
+  local a ref
+  local b ref
+  string.const 1
+  struct.new 4
+  struct.new 7
+  local.set 0
+  string.const 2
+  struct.new 5
+  struct.new 9
+  local.set 1
   local.get 0
+  call 2
+  call 0
   local.get 1
+  call 2
+  call 0
+  return.lit i32.const 0
+end
+
+fn 2 snippet$Wrap$Display$to_string__Any (ref) -> string
+  return.lit string.const 3
+end
+
+fn 3 std_core$string$Display$to_string_vt (string) -> string
+  local.get 0
   call.import 1
   return
 end

@@ -8,128 +8,136 @@ fn snippet$main() -> i32
     %1 $call_1: ParseError | Version
     %2 __scrut_0: ParseError | Version (synthetic __scrut_0)
     %3 $type_check_3: bool
-    %4 ver: Version (binding ver)
-    %5 $intrinsic_6: ?
-    %6 __sb_2: ? (synthetic __sb_2)
-    %7 $call_8: string
-    %8 $intrinsic_9: string
-    %9 $k_10: string
-    %10 $call_11: Version
-    %11 base: Version (local base)
-    %12 $call_13: i32
-    %13 $k_14: i32
-    %14 $gt_15: bool
-    %15 $k_16: string
-    %16 $k_17: string
-    %17 $call_18: ParseError | VersionRange
-    %18 __scrut_3: ParseError | VersionRange (synthetic __scrut_3)
-    %19 $type_check_20: bool
-    %20 rg: VersionRange (binding rg)
-    %21 $k_23: string
-    %22 $call_24: Version
-    %23 target: Version (local target)
-    %24 $call_26: bool
-    %25 $k_27: string
-    %26 $type_check_28: bool
-    %27 e: ParseError (binding e)
-    %28 $intrinsic_31: ?
-    %29 __sb_4: ? (synthetic __sb_4)
-    %30 $k_33: string
-    %31 $call_34: string
-    %32 $intrinsic_35: string
-    %33 $k_36: i32
-    %34 $type_check_37: bool
-    %35 e: ParseError (binding e)
-    %36 $intrinsic_40: ?
-    %37 __sb_1: ? (synthetic __sb_1)
-    %38 $k_42: string
-    %39 $call_43: string
-    %40 $intrinsic_44: string
-    %41 $k_45: i32
-    %42 $k_46: i32
+    %4 $cast_4: Version
+    %5 ver: Version (binding ver)
+    %6 $intrinsic_6: ?
+    %7 __sb_2: ? (synthetic __sb_2)
+    %8 $call_8: string
+    %9 $intrinsic_9: string
+    %10 $k_10: string
+    %11 $call_11: Version
+    %12 base: Version (local base)
+    %13 $call_13: i32
+    %14 $k_14: i32
+    %15 $gt_15: bool
+    %16 $k_16: string
+    %17 $k_17: string
+    %18 $call_18: ParseError | VersionRange
+    %19 __scrut_3: ParseError | VersionRange (synthetic __scrut_3)
+    %20 $type_check_20: bool
+    %21 $cast_21: VersionRange
+    %22 rg: VersionRange (binding rg)
+    %23 $k_23: string
+    %24 $call_24: Version
+    %25 target: Version (local target)
+    %26 $call_26: bool
+    %27 $k_27: string
+    %28 $type_check_28: bool
+    %29 $cast_29: ParseError
+    %30 e: ParseError (binding e)
+    %31 $intrinsic_31: ?
+    %32 __sb_4: ? (synthetic __sb_4)
+    %33 $k_33: string
+    %34 $call_34: string
+    %35 $intrinsic_35: string
+    %36 $k_36: i32
+    %37 $type_check_37: bool
+    %38 $cast_38: ParseError
+    %39 e: ParseError (binding e)
+    %40 $intrinsic_40: ?
+    %41 __sb_1: ? (synthetic __sb_1)
+    %42 $k_42: string
+    %43 $call_43: string
+    %44 $intrinsic_44: string
+    %45 $k_45: i32
+    %46 $k_46: i32
   bb0:
-    %0 = const string(#0) :string
+    %0 = const string(#1) :string
     %1 = call parse(%0) :ParseError | Version
     %2 = move %1
     %3 = type_check %2 is Version
     cond_branch %3 ? bb1 : bb2
   bb1:
     %4 = cast %2 :Version
-    %5 = intrinsic builder.new()
-    %6 = move %5
-    %7 = call to_string(%4) :string
-    intrinsic builder.append_str(%6, %7)
-    %8 = intrinsic builder.finish(%6)
-    call println(%8) :void
-    %9 = const string(#1) :string
-    %10 = call parse_one(%9) :Version
-    %11 = move %10
-    %12 = call compare(%4, %11) :i32
-    %13 = const int(0) :i32
-    %14 = binop gt %12 %13 :bool
-    cond_branch %14 ? bb4 : bb5
+    %5 = move %4
+    %6 = intrinsic builder.new()
+    %7 = move %6
+    %8 = call std_semver$Version$Display$to_string(%5) :string
+    intrinsic builder.append_str(%7, %8)
+    %9 = intrinsic builder.finish(%7)
+    call std_io$std_io$println__string(%9) :void
+    %10 = const string(#2) :string
+    %11 = call parse_one(%10) :Version
+    %12 = move %11
+    %13 = call std_semver$Version$Comparable$compare(%5, %12) :i32
+    %14 = const int(0) :i32
+    %15 = binop 16 %13 %14 :bool
+    cond_branch %15 ? bb4 : bb5
   bb2:
-    %34 = type_check %2 is ParseError
-    cond_branch %34 ? bb14 : bb15
+    %37 = type_check %2 is ParseError
+    cond_branch %37 ? bb14 : bb15
   bb3:
-    %42 = const int(0) :i32
-    return %42
+    %46 = const int(0) :i32
+    return %46
   bb4:
-    %15 = const string(#2) :string
-    call println(%15) :void
+    %16 = const string(#3) :string
+    call std_io$std_io$println__string(%16) :void
     branch -> bb5
   bb5:
-    %16 = const string(#3) :string
-    %17 = call parse_range(%16) :ParseError | VersionRange
-    %18 = move %17
-    %19 = type_check %18 is VersionRange
-    cond_branch %19 ? bb6 : bb7
+    %17 = const string(#4) :string
+    %18 = call parse_range(%17) :ParseError | VersionRange
+    %19 = move %18
+    %20 = type_check %19 is VersionRange
+    cond_branch %20 ? bb6 : bb7
   bb6:
-    %20 = cast %18 :VersionRange
-    %21 = const string(#4) :string
-    %22 = call parse_one(%21) :Version
-    %23 = move %22
-    %24 = call contains(%20, %23) :bool
-    cond_branch %24 ? bb9 : bb10
+    %21 = cast %19 :VersionRange
+    %22 = move %21
+    %23 = const string(#5) :string
+    %24 = call parse_one(%23) :Version
+    %25 = move %24
+    %26 = call std_semver$VersionRange$Contains$contains(%22, %25) :bool
+    cond_branch %26 ? bb9 : bb10
   bb7:
-    %26 = type_check %18 is ParseError
-    cond_branch %26 ? bb11 : bb12
+    %28 = type_check %19 is ParseError
+    cond_branch %28 ? bb11 : bb12
   bb8:
     branch -> bb3
   bb9:
-    %25 = const string(#5) :string
-    call println(%25) :void
+    %27 = const string(#6) :string
+    call std_io$std_io$println__string(%27) :void
     branch -> bb10
   bb10:
     branch -> bb8
   bb11:
-    %27 = cast %18 :ParseError
-    %28 = intrinsic builder.new()
-    %29 = move %28
-    %30 = const string(#6) :string
-    intrinsic builder.append_str(%29, %30)
-    %31 = call message(%27) :string
-    intrinsic builder.append_display(%29, %31)
-    %32 = intrinsic builder.finish(%29)
-    call eprintln(%32) :void
-    %33 = const int(1) :i32
-    return %33
+    %29 = cast %19 :ParseError
+    %30 = move %29
+    %31 = intrinsic builder.new()
+    %32 = move %31
+    %33 = const string(#7) :string
+    intrinsic builder.append_str(%32, %33)
+    %34 = call std_string$ParseError$Error$message(%30) :string
+    intrinsic builder.append_display(%32, %34)
+    %35 = intrinsic builder.finish(%32)
+    call std_io$std_io$eprintln__string(%35) :void
+    %36 = const int(1) :i32
+    return %36
   bb12:
     unreachable ; non-exhaustive match (T3013 should have caught this)
   bb13:
     branch -> bb8
   bb14:
-    %35 = cast %2 :ParseError
-    %36 = intrinsic builder.new()
-    %37 = move %36
-    %38 = const string(#7) :string
-    intrinsic builder.append_str(%37, %38)
-    %39 = call message(%35) :string
-    intrinsic builder.append_display(%37, %39)
-    %40 = intrinsic builder.finish(%37)
-    call eprintln(%40) :void
-    %41 = const int(1) :i32
-    return %41
+    %38 = cast %2 :ParseError
+    %39 = move %38
+    %40 = intrinsic builder.new()
+    %41 = move %40
+    %42 = const string(#8) :string
+    intrinsic builder.append_str(%41, %42)
+    %43 = call std_string$ParseError$Error$message(%39) :string
+    intrinsic builder.append_display(%41, %43)
+    %44 = intrinsic builder.finish(%41)
+    call std_io$std_io$eprintln__string(%44) :void
+    %45 = const int(1) :i32
+    return %45
   bb15:
     unreachable ; non-exhaustive match (T3013 should have caught this)
   bb16:
@@ -142,15 +150,17 @@ fn snippet$parse_one(%0: string) -> Version
     %2 __scrut_0: ParseError | Version (synthetic __scrut_0)
     %3 $type_check_3: bool
     %4 if_res: never
-    %5 v: Version (binding v)
-    %6 $type_check_7: bool
-    %7 if_res: never
-    %8 $k_9: i32
-    %9 $k_10: i32
-    %10 $k_11: i32
-    %11 $k_12: string
-    %12 $k_13: string
-    %13 $struct_14: Version
+    %5 $cast_5: Version
+    %6 v: Version (binding v)
+    %7 $type_check_7: bool
+    %8 if_res: never
+    %9 $k_9: i32
+    %10 $k_10: i32
+    %11 $k_11: i32
+    %12 $k_12: string
+    %13 $k_13: string
+    %14 $struct_14: Version
+    %15 unreachable: never
   bb0:
     %1 = call parse(%0) :ParseError | Version
     %2 = move %1
@@ -158,22 +168,23 @@ fn snippet$parse_one(%0: string) -> Version
     cond_branch %3 ? bb1 : bb2
   bb1:
     %5 = cast %2 :Version
-    return %5
+    %6 = move %5
+    return %6
   bb2:
-    %6 = type_check %2 is ParseError
-    cond_branch %6 ? bb4 : bb5
+    %7 = type_check %2 is ParseError
+    cond_branch %7 ? bb4 : bb5
   bb3:
     return %4
   bb4:
-    %8 = const int(0) :i32
     %9 = const int(0) :i32
     %10 = const int(0) :i32
-    %11 = const string(#8) :string
-    %12 = const string(#8) :string
-    %13 = struct_new Version(%8, %9, %10, %11, %12)
-    return %13
+    %11 = const int(0) :i32
+    %12 = const string(#9) :string
+    %13 = const string(#9) :string
+    %14 = struct_new Version(%9, %10, %11, %12, %13)
+    return %14
   bb5:
     unreachable ; non-exhaustive match (T3013 should have caught this)
   bb6:
-    %4 = move %7
+    %4 = move %8
     branch -> bb3

@@ -6,30 +6,38 @@ fn snippet$main() -> i32
   locals:
     %0 $k_0: i32
     %1 $k_1: string
-    %2 __scrut_0: [i32, string] (synthetic __scrut_0)
-    %3 n: i32 (binding n)
-    %4 s: string (binding s)
-    %5 $intrinsic_9: ?
-    %6 __sb_1: ? (synthetic __sb_1)
-    %7 $k_11: string
-    %8 $k_12: string
-    %9 $intrinsic_13: string
-    %10 $k_14: i32
+    %2 $struct_2: [i32, string]
+    %3 pair: [i32, string] (local pair)
+    %4 __scrut_0: [i32, string] (synthetic __scrut_0)
+    %5 $field_5: i32
+    %6 n: i32 (binding n)
+    %7 $field_7: string
+    %8 s: string (binding s)
+    %9 $intrinsic_9: ?
+    %10 __sb_1: ? (synthetic __sb_1)
+    %11 $k_11: string
+    %12 $k_12: string
+    %13 $intrinsic_13: string
+    %14 $k_14: i32
   bb0:
     %0 = const int(3) :i32
-    %1 = const string(#0) :string
-    %2 = struct_new[stack] [i32, string](%0, %1)
-    %3 = field_get %2._0 :i32
-    %4 = field_get %2._1 :string
-    %5 = intrinsic builder.new()
+    %1 = const string(#1) :string
+    %2 = struct_new [i32, string](%0, %1)
+    %3 = move %2
+    %4 = move %3
+    %5 = field_get %4._0 :i32
     %6 = move %5
-    %7 = const string(#1) :string
-    intrinsic builder.append_str(%6, %7)
-    intrinsic builder.append_display(%6, %3)
-    %8 = const string(#2) :string
-    intrinsic builder.append_str(%6, %8)
-    intrinsic builder.append_display(%6, %4)
-    %9 = intrinsic builder.finish(%6)
-    call println(%9) :void
-    %10 = const int(0) :i32
-    return %10
+    %7 = field_get %4._1 :string
+    %8 = move %7
+    %9 = intrinsic builder.new()
+    %10 = move %9
+    %11 = const string(#2) :string
+    intrinsic builder.append_str(%10, %11)
+    intrinsic builder.append_display(%10, %6)
+    %12 = const string(#3) :string
+    intrinsic builder.append_str(%10, %12)
+    intrinsic builder.append_display(%10, %8)
+    %13 = intrinsic builder.finish(%10)
+    call std_io$std_io$println__string(%13) :void
+    %14 = const int(0) :i32
+    return %14

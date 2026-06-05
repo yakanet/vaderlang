@@ -1,8 +1,8 @@
 import { expect, test } from "bun:test";
 import {
-  LEXER_PARSER_CORPUS, MAIN_FILE, dumpBytecode, dumpCfg, dumpComptimeViaVader,
-  dumpLexer, dumpLower, dumpParser, dumpTypecheckViaVader, errMsg, listSnippets,
-  loadConfig, snapshotEquals,
+  MAIN_FILE, dumpBytecodeViaVader, dumpCfgViaVader, dumpComptimeViaVader,
+  dumpLexerViaVader, dumpLowerViaVader, dumpParserViaVader, dumpTypecheckViaVader,
+  errMsg, listSnippets, loadConfig, snapshotEquals,
 } from "./snapshot.ts";
 import { snapshotDiff } from "./diff.ts";
 import { LONG_BUILD } from "./cli-bin.ts";
@@ -14,17 +14,20 @@ import { LONG_BUILD } from "./cli-bin.ts";
 //   usePath — true: pass the absolute file path to dump (it reads from disk to
 //             resolve imports); false: pass the logical filename and let dump
 //             use the source string directly (no import resolution needed).
+// Every stage is sourced from the native Vader CLI (`./build/vader dump
+// --stage=…`) — the self-hosted compiler is the snapshot oracle. usePath is
+// true throughout: the CLI reads the entry file from disk to resolve imports.
 const PHASES = [
-  { name: "lexer",     snap: "lexer.snapshot",     dump: dumpLexer,     usePath: false },
-  { name: "parser",    snap: "parser.snapshot",    dump: dumpParser,    usePath: false },
-  { name: "typecheck", snap: "typecheck.snapshot", dump: dumpTypecheckViaVader, usePath: true  },
-  { name: "comptime",  snap: "comptime.snapshot",  dump: dumpComptimeViaVader,  usePath: true  },
-  { name: "lower",     snap: "lower.snapshot",     dump: dumpLower,     usePath: true  },
-  { name: "cfg",       snap: "cfg.snapshot",       dump: dumpCfg,       usePath: true  },
+  { name: "lexer",     snap: "lexer.snapshot",     dump: dumpLexerViaVader,     usePath: true },
+  { name: "parser",    snap: "parser.snapshot",    dump: dumpParserViaVader,    usePath: true },
+  { name: "typecheck", snap: "typecheck.snapshot", dump: dumpTypecheckViaVader, usePath: true },
+  { name: "comptime",  snap: "comptime.snapshot",  dump: dumpComptimeViaVader,  usePath: true },
+  { name: "lower",     snap: "lower.snapshot",     dump: dumpLowerViaVader,     usePath: true },
+  { name: "cfg",       snap: "cfg.snapshot",       dump: dumpCfgViaVader,       usePath: true },
   // `.virt` suffix : the bytecode snapshot is the `.virt` text-IR dump and
   // is consumed verbatim by the Vader CLI (`./build/vader run`) in the
   // `tests/vader_vm.test.ts` parity test.
-  { name: "bytecode",  snap: "bytecode.snapshot.virt",  dump: dumpBytecode,  usePath: true  },
+  { name: "bytecode",  snap: "bytecode.snapshot.virt",  dump: dumpBytecodeViaVader,  usePath: true },
 ] as const;
 
 const scenarios = listSnippets("tests/snippets");

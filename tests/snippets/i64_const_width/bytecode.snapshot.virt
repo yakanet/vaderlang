@@ -4,13 +4,13 @@ type 1 primitive i64
 type 2 primitive i32
 type 3 primitive string
 type 4 primitive void
-string 0 "min="
-string 1 " near="
-string 2 " over="
-string 3 " big="
-string 4 "\n"
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 write std_io$write (i32,string) -> void
+string 0 "\n"
+string 1 "min="
+string 2 " near="
+string 3 " over="
+string 4 " big="
+import 0 write std_io$write (i32,string) -> void
+import 1 to_string std_core$string$Display$to_string (string) -> string
 export main 4
 
 fn 0 snippet$min_i32 () -> i64
@@ -41,7 +41,7 @@ fn 4 snippet$main () -> i32
   intrinsic builder.new
   local.set 0
   local.get 0
-  string.const 0
+  string.const 1
   intrinsic builder.append_str
   call 0
   local.set 1
@@ -49,7 +49,7 @@ fn 4 snippet$main () -> i32
   local.get 1
   intrinsic builder.append_display
   local.get 0
-  string.const 1
+  string.const 2
   intrinsic builder.append_str
   call 1
   local.set 1
@@ -57,7 +57,7 @@ fn 4 snippet$main () -> i32
   local.get 1
   intrinsic builder.append_display
   local.get 0
-  string.const 2
+  string.const 3
   intrinsic builder.append_str
   call 2
   local.set 1
@@ -65,7 +65,7 @@ fn 4 snippet$main () -> i32
   local.get 1
   intrinsic builder.append_display
   local.get 0
-  string.const 3
+  string.const 4
   intrinsic builder.append_str
   call 3
   local.set 1
@@ -85,22 +85,15 @@ fn 5 std_io$std_io$println__string (string) -> void
   local.set 1
   i32.const 0
   local.get 1
-  call 7
+  call.import 0
   i32.const 0
-  string.const 4
-  call 7
-  return
-end
-
-fn 6 std_core$string$Display$to_string$vt (string) -> string
-  local.get 0
+  string.const 0
   call.import 0
   return
 end
 
-fn 7 std_io$write$vt (i32,string) -> void
+fn 6 std_core$string$Display$to_string_vt (string) -> string
   local.get 0
-  local.get 1
   call.import 1
   return
 end

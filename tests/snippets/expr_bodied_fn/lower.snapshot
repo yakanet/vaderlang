@@ -44,7 +44,7 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -61,7 +61,7 @@
               __sb_0 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_1: ? =
@@ -80,7 +80,7 @@
               __sb_1 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_2: ? =
@@ -99,7 +99,7 @@
               __sb_2 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_3: ? =
@@ -116,7 +116,7 @@
               __sb_3 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_4: ? =
@@ -125,7 +125,7 @@
             __sb_4 :?
             call :i32
               callee:
-                id :i32
+                snippet$snippet$id__i32 :i32
               arg0:
                 int(42) :i32
           ~>
@@ -133,7 +133,7 @@
               __sb_4 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_5: ? =
@@ -142,7 +142,7 @@
             __sb_5 :?
             call :f64
               callee:
-                id :f64
+                snippet$snippet$id__f64 :f64
               arg0:
                 float(7.5) :f64
           ~>
@@ -150,11 +150,11 @@
               __sb_5 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
-            id :string
+            snippet$snippet$id__string :string
           arg0:
             "hello" :string
     return int(0) :i32

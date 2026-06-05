@@ -23,10 +23,10 @@ fn snippet$main() -> i32
     %16 $k_16: i32
   bb0:
     %0 = const int(42) :i32
-    %1 = call outer(%0) :Box<Box<i32>>
+    %1 = call snippet$snippet$outer__i32(%0) :Box<Box<i32>>
     %2 = move %1
-    %3 = const string(#0) :string
-    %4 = call outer(%3) :Box<Box<string>>
+    %3 = const string(#1) :string
+    %4 = call snippet$snippet$outer__string(%3) :Box<Box<string>>
     %5 = move %4
     %6 = intrinsic builder.new()
     %7 = move %6
@@ -34,14 +34,14 @@ fn snippet$main() -> i32
     %9 = field_get %8.value :i32
     intrinsic builder.append_display(%7, %9)
     %10 = intrinsic builder.finish(%7)
-    call println(%10) :void
+    call std_io$std_io$println__string(%10) :void
     %11 = intrinsic builder.new()
     %12 = move %11
     %13 = field_get %5.value :Box<string>
     %14 = field_get %13.value :string
     intrinsic builder.append_display(%12, %14)
     %15 = intrinsic builder.finish(%12)
-    call println(%15) :void
+    call std_io$std_io$println__string(%15) :void
     %16 = const int(0) :i32
     return %16
 
@@ -57,7 +57,7 @@ fn snippet$snippet$middle__Any(%0: Any) -> Box<Any>
     %1 $call_1: Any
     %2 $struct_2: Box<Any>
   bb0:
-    %1 = call inner(%0) :Any
+    %1 = call snippet$snippet$inner__Any(%0) :Any
     %2 = struct_new Box<Any>(%1)
     return %2
 
@@ -67,6 +67,6 @@ fn snippet$snippet$outer__i32(%0: Any) -> Box<Box<Any>>
     %1 $call_1: Box<Any>
     %2 $struct_2: Box<Box<Any>>
   bb0:
-    %1 = call middle(%0) :Box<Any>
+    %1 = call snippet$snippet$middle__Any(%0) :Box<Any>
     %2 = struct_new Box<Box<Any>>(%1)
     return %2

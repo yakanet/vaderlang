@@ -4,62 +4,64 @@
 
 fn snippet$main() -> i32
   locals:
-    %0 path: string (local path)
-    %1 $k_2: string
-    %2 $call_3: Error | null
-    %3 $intrinsic_4: ?
-    %4 __sb_0: ? (synthetic __sb_0)
-    %5 $k_6: string
-    %6 $call_7: bool
-    %7 $intrinsic_8: string
-    %8 $call_9: Error | string
-    %9 contents: Error | string (local contents)
-    %10 __scrut_1: Error | string (synthetic __scrut_1)
-    %11 $type_check_12: bool
-    %12 $intrinsic_13: ?
-    %13 __sb_2: ? (synthetic __sb_2)
-    %14 $k_15: string
-    %15 $cast_16: string
-    %16 $intrinsic_17: string
-    %17 $type_check_18: bool
-    %18 $k_19: string
-    %19 $k_20: i32
+    %0 $k_0: string
+    %1 path: string (local path)
+    %2 $k_2: string
+    %3 $call_3: Error | null
+    %4 $intrinsic_4: ?
+    %5 __sb_0: ? (synthetic __sb_0)
+    %6 $k_6: string
+    %7 $call_7: bool
+    %8 $intrinsic_8: string
+    %9 $call_9: Error | string
+    %10 contents: Error | string (local contents)
+    %11 __scrut_1: Error | string (synthetic __scrut_1)
+    %12 $type_check_12: bool
+    %13 $intrinsic_13: ?
+    %14 __sb_2: ? (synthetic __sb_2)
+    %15 $k_15: string
+    %16 $cast_16: string
+    %17 $intrinsic_17: string
+    %18 $type_check_18: bool
+    %19 $k_19: string
+    %20 $k_20: i32
   bb0:
-    %0 = const string(#0) :string
-    %1 = const string(#1) :string
-    %2 = call write_file(%0, %1) :Error | null
-    %3 = intrinsic builder.new()
-    %4 = move %3
-    %5 = const string(#2) :string
-    intrinsic builder.append_str(%4, %5)
-    %6 = call exists(%0) :bool
-    intrinsic builder.append_display(%4, %6)
-    %7 = intrinsic builder.finish(%4)
-    call println(%7) :void
-    %8 = call read_file(%0) :Error | string
-    %9 = move %8
+    %0 = const string(#1) :string
+    %1 = move %0
+    %2 = const string(#2) :string
+    %3 = call write_file(%1, %2) :Error | null
+    %4 = intrinsic builder.new()
+    %5 = move %4
+    %6 = const string(#3) :string
+    intrinsic builder.append_str(%5, %6)
+    %7 = call exists(%1) :bool
+    intrinsic builder.append_display(%5, %7)
+    %8 = intrinsic builder.finish(%5)
+    call std_io$std_io$println__string(%8) :void
+    %9 = call read_file(%1) :Error | string
     %10 = move %9
-    %11 = type_check %10 is string
-    cond_branch %11 ? bb1 : bb2
+    %11 = move %10
+    %12 = type_check %11 is string
+    cond_branch %12 ? bb1 : bb2
   bb1:
-    %12 = intrinsic builder.new()
-    %13 = move %12
-    %14 = const string(#3) :string
-    intrinsic builder.append_str(%13, %14)
-    %15 = cast %9 :string
-    intrinsic builder.append_display(%13, %15)
-    %16 = intrinsic builder.finish(%13)
-    call println(%16) :void
+    %13 = intrinsic builder.new()
+    %14 = move %13
+    %15 = const string(#4) :string
+    intrinsic builder.append_str(%14, %15)
+    %16 = cast %10 :string
+    intrinsic builder.append_display(%14, %16)
+    %17 = intrinsic builder.finish(%14)
+    call std_io$std_io$println__string(%17) :void
     branch -> bb3
   bb2:
-    %17 = type_check %10 is Error
-    cond_branch %17 ? bb4 : bb5
+    %18 = type_check %11 is Error
+    cond_branch %18 ? bb4 : bb5
   bb3:
-    %19 = const int(0) :i32
-    return %19
+    %20 = const int(0) :i32
+    return %20
   bb4:
-    %18 = const string(#4) :string
-    call println(%18) :void
+    %19 = const string(#5) :string
+    call std_io$std_io$println__string(%19) :void
     branch -> bb6
   bb5:
     unreachable ; non-exhaustive match (T3013 should have caught this)

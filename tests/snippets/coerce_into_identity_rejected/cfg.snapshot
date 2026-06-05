@@ -2,6 +2,12 @@
 
 ## snippet
 
+fn snippet$Foo$Into$into(%0: Foo) -> Foo
+  locals:
+    %0 self: Foo (param self)
+  bb0:
+    return %0
+
 fn snippet$main() -> i32
   locals:
     %0 $k_0: i32

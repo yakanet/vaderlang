@@ -13,7 +13,7 @@
       cond:
         call :bool
           callee:
-            contains :bool
+            std_core$[]$Contains$contains__i32 :bool
           arg0:
             primes :i32[]
           arg1:
@@ -21,7 +21,7 @@
       then:
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             "7 is prime" :string
     if :void
@@ -29,7 +29,7 @@
         not :bool
           call :bool
             callee:
-              contains :bool
+              std_core$[]$Contains$contains__i32 :bool
             arg0:
               primes :i32[]
             arg1:
@@ -37,7 +37,7 @@
       then:
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             "4 is not prime" :string
     let vowels: const u8[] =
@@ -50,7 +50,7 @@
       cond:
         call :bool
           callee:
-            contains :bool
+            std_core$[]$Contains$contains__u8 :bool
           arg0:
             vowels :const u8[]
           arg1:
@@ -58,7 +58,7 @@
       then:
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             "e is vowel" :string
     if :void
@@ -66,7 +66,7 @@
         not :bool
           call :bool
             callee:
-              contains :bool
+              std_core$[]$Contains$contains__u8 :bool
             arg0:
               vowels :const u8[]
             arg1:
@@ -74,7 +74,7 @@
       then:
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             "z is not vowel" :string
     return int(0) :i32

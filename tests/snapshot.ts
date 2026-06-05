@@ -567,6 +567,29 @@ export async function dumpComptimeViaVader(_source: string, entryPath: string): 
   return runVaderDump("evaluated-ast", entryPath);
 }
 
+// The native Vader CLI is the snapshot oracle for every stage it can dump.
+// These mirror the typecheck/comptime ViaVader wrappers above; the TS
+// in-process `dump*` variants are retained only for ad-hoc debugging.
+export async function dumpLexerViaVader(_source: string, entryPath: string): Promise<string> {
+  return runVaderDump("lexer", entryPath);
+}
+
+export async function dumpParserViaVader(_source: string, entryPath: string): Promise<string> {
+  return runVaderDump("ast", entryPath);
+}
+
+export async function dumpLowerViaVader(_source: string, entryPath: string): Promise<string> {
+  return runVaderDump("lowered-ast", entryPath);
+}
+
+export async function dumpCfgViaVader(_source: string, entryPath: string): Promise<string> {
+  return runVaderDump("cfg", entryPath);
+}
+
+export async function dumpBytecodeViaVader(_source: string, entryPath: string): Promise<string> {
+  return runVaderDump("bytecode", entryPath);
+}
+
 // Async wrapper around `./build/vader dump --stage=<S> <file>`. `Bun.spawn`
 // here (not `spawnSync`) — the test runner drives multiple snippets in
 // parallel via `test.concurrent`, and a sync spawn would block the event

@@ -93,7 +93,7 @@
               __for_i_2 :usize
         call :void
           callee:
-            println :void
+            std_io$std_io$println__string :void
           arg0:
             call :string
               callee:

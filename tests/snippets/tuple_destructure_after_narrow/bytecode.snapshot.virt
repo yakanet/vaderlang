@@ -1,36 +1,50 @@
 module _main
 type 0 primitive null
-type 1 primitive bool
-type 2 union 3,0
-type 3 struct __Tuple_3 { _0:4,_1:4 }
-type 4 primitive i32
-type 5 primitive string
-type 6 primitive void
-string 0 "a="
-string 1 " b="
-string 2 "\n"
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 write std_io$write (i32,string) -> void
-export main 1
+type 1 primitive string
+type 2 primitive void
+type 3 primitive i32
+type 4 primitive bool
+type 5 union 6,0
+type 6 struct __Tuple_12 { _0:3,_1:3 }
+string 0 "\n"
+string 1 "a="
+string 2 " b="
+import 0 write std_io$write (i32,string) -> void
+import 1 to_string std_core$string$Display$to_string (string) -> string
+export main 2
 
-fn 0 snippet$make_pair (bool) -> ref
+fn 0 std_io$std_io$println__string (string) -> void
+  local $call_2 string
+  local.get 0
+  call 3
+  local.set 1
+  i32.const 0
+  local.get 1
+  call.import 0
+  i32.const 0
+  string.const 0
+  call.import 0
+  return
+end
+
+fn 1 snippet$make_pair (bool) -> ref
   local.get 0
   if $L0 void
     i32.const 10
     i32.const 20
-    struct.new 3
+    struct.new 6
     return
   end $L0
   return.lit null.const
 end
 
-fn 1 snippet$main () -> i32
+fn 2 snippet$main () -> i32
   local pair ref
   local a i32
   local b i32
   local __sb_1 any
   bool.const true
-  call 0
+  call 1
   local.tee 0
   type_check 0
   if $L0 void
@@ -38,58 +52,39 @@ fn 1 snippet$main () -> i32
     i32.neg
     return
   end $L0
-  local.field 0 3 0
-  ref.cast 4
+  local.get 0
+  local.set 0
+  local.field 0 6 0
+  ref.cast 3
   local.set 1
-  local.field 0 3 1
-  ref.cast 4
+  local.field 0 6 1
+  ref.cast 3
   local.set 2
   intrinsic builder.new
   local.set 3
   local.get 3
-  string.const 0
+  string.const 1
   intrinsic builder.append_str
   local.get 3
   local.get 1
   intrinsic builder.append_display
   local.get 3
-  string.const 1
+  string.const 2
   intrinsic builder.append_str
   local.get 3
   local.get 2
   intrinsic builder.append_display
   local.get 3
   intrinsic builder.finish
-  call 2
+  call 0
   local.get 1
   local.get 2
   i32.add
   return
 end
 
-fn 2 std_io$std_io$println__string (string) -> void
-  local $call_2 string
+fn 3 std_core$string$Display$to_string_vt (string) -> string
   local.get 0
-  call 3
-  local.set 1
-  i32.const 0
-  local.get 1
-  call 4
-  i32.const 0
-  string.const 2
-  call 4
-  return
-end
-
-fn 3 std_core$string$Display$to_string$vt (string) -> string
-  local.get 0
-  call.import 0
-  return
-end
-
-fn 4 std_io$write$vt (i32,string) -> void
-  local.get 0
-  local.get 1
   call.import 1
   return
 end

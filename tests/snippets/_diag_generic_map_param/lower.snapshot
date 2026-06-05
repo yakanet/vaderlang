@@ -8,13 +8,13 @@
         counts:
           MutableMap<string, i32> {
             buckets:
-              array :(Entry<string, i32> | null)[]
+              array :(Entry<K, V> | null)[]
             size: int(0) :usize
           }
       }
     call :void
       callee:
-        bump :void
+        snippet$snippet$bump__string__i32 :void
       arg0:
         .counts :MutableMap<string, i32>
           c :Counter
@@ -30,7 +30,7 @@
   fn snippet$snippet$bump__string__i32(m: MutableMap<Any, Any>, k: Any, v: Any) -> void
     call :void
       callee:
-        set_at :void
+        std_collections$MutableMap$IndexSet$set_at__Any__Any :void
       arg0:
         m :MutableMap<Any, Any>
       arg1:

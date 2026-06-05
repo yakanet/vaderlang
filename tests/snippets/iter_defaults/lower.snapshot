@@ -37,7 +37,7 @@
         let __scrut_0: null | Yield<i32> =
           call :null | Yield<i32>
             callee:
-              next :null | Yield<i32>
+              snippet$Countdown$Iterator$next :null | Yield<i32>
             arg0:
               self :Countdown
         ~>
@@ -61,15 +61,15 @@
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :bool
   fn snippet$Countdown$Iterator$count(self: Countdown) -> usize
-    let total: usize = int(0) :usize
-    let finished: bool = false
+    let total: ? = int(0) :usize
+    let finished: ? = false
     loop while (<…>)
       ~>
         block :void
           let __scrut_0: null | Yield<i32> =
             call :null | Yield<i32>
               callee:
-                next :null | Yield<i32>
+                snippet$Countdown$Iterator$next :null | Yield<i32>
               arg0:
                 self :Countdown
           ~>
@@ -108,15 +108,15 @@
                         unreachable("non-exhaustive match (T3013 should have caught this)") :void
     return total :usize
   fn snippet$Countdown$Iterator$last(self: Countdown) -> i32 | null
-    let result: i32 | null = null
-    let finished: bool = false
+    let result: ? = null
+    let finished: ? = false
     loop while (<…>)
       ~>
         block :void
           let __scrut_0: null | Yield<i32> =
             call :null | Yield<i32>
               callee:
-                next :null | Yield<i32>
+                snippet$Countdown$Iterator$next :null | Yield<i32>
               arg0:
                 self :Countdown
           ~>
@@ -157,11 +157,11 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__usize :void
       arg0:
         call :usize
           callee:
-            count :usize
+            std_core$Range$Iterator$count__i32 :usize
           arg0:
             Range<i32> {
               start: int(0) :i32
@@ -173,7 +173,7 @@
       let __scrut_0: i32 | null =
         call :i32 | null
           callee:
-            last :i32 | null
+            std_core$Range$Iterator$last__i32 :i32 | null
           arg0:
             Range<i32> {
               start: int(10) :i32
@@ -193,7 +193,7 @@
             ~>
               call :void
                 callee:
-                  println :void
+                  std_io$std_io$println__i32 :void
                 arg0:
                   v :i32
           else:
@@ -206,7 +206,7 @@
                   ~>
                     call :void
                       callee:
-                        println :void
+                        std_io$std_io$println__string :void
                       arg0:
                         "none" :string
                 else:
@@ -214,11 +214,11 @@
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
     call :void
       callee:
-        println :void
+        std_io$std_io$println__bool :void
       arg0:
         call :bool
           callee:
-            is_empty :bool
+            std_core$Range$Iterator$is_empty__i32 :bool
           arg0:
             Range<i32> {
               start: int(0) :i32
@@ -228,11 +228,11 @@
             }
     call :void
       callee:
-        println :void
+        std_io$std_io$println__bool :void
       arg0:
         call :bool
           callee:
-            is_empty :bool
+            std_core$Range$Iterator$is_empty__i32 :bool
           arg0:
             Range<i32> {
               start: int(0) :i32
@@ -242,11 +242,11 @@
             }
     call :void
       callee:
-        println :void
+        std_io$std_io$println__usize :void
       arg0:
         call :usize
           callee:
-            count :usize
+            snippet$Countdown$Iterator$count :usize
           arg0:
             Countdown {
               remaining: int(3) :i32

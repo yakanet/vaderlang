@@ -8,10 +8,11 @@ fn snippet$probe(%0: Wrapper) -> i32
     %1 $field_1: Inner | null
     %2 $type_check_2: bool
     %3 $field_3: Inner | null
-    %4 p: Inner (binding p)
-    %5 $field_6: i32
-    %6 $k_7: i32
-    %7 $neg_8: i32
+    %4 $cast_4: Inner
+    %5 p: Inner (binding p)
+    %6 $field_6: i32
+    %7 $k_7: i32
+    %8 $unop_8: i32
   bb0:
     %1 = field_get %0.payload :Inner | null
     %2 = type_check %1 is Inner
@@ -19,12 +20,13 @@ fn snippet$probe(%0: Wrapper) -> i32
   bb1:
     %3 = field_get %0.payload :Inner | null
     %4 = cast %3 :Inner
-    %5 = field_get %4.kind :i32
-    return %5
+    %5 = move %4
+    %6 = field_get %5.kind :i32
+    return %6
   bb2:
-    %6 = const int(1) :i32
-    %7 = unop neg %6 :i32
-    return %7
+    %7 = const int(1) :i32
+    %8 = unop 0 %7 :i32
+    return %8
 
 fn snippet$main() -> i32
   locals:
@@ -47,7 +49,7 @@ fn snippet$main() -> i32
   bb0:
     %0 = intrinsic builder.new()
     %1 = move %0
-    %2 = const string(#0) :string
+    %2 = const string(#1) :string
     intrinsic builder.append_str(%1, %2)
     %3 = const int(42) :i32
     %4 = struct_new Inner(%3)
@@ -55,16 +57,16 @@ fn snippet$main() -> i32
     %6 = call probe(%5) :i32
     intrinsic builder.append_display(%1, %6)
     %7 = intrinsic builder.finish(%1)
-    call println(%7) :void
+    call std_io$std_io$println__string(%7) :void
     %8 = intrinsic builder.new()
     %9 = move %8
-    %10 = const string(#1) :string
+    %10 = const string(#2) :string
     intrinsic builder.append_str(%9, %10)
     %11 = const null :null
     %12 = struct_new Wrapper(%11)
     %13 = call probe(%12) :i32
     intrinsic builder.append_display(%9, %13)
     %14 = intrinsic builder.finish(%9)
-    call println(%14) :void
+    call std_io$std_io$println__string(%14) :void
     %15 = const int(0) :i32
     return %15

@@ -9,6 +9,7 @@ fn snippet$read_or_default(%0: string) -> Error | string
     %2 __try_0: Error | string (synthetic __try_0)
     %3 $type_check_3: bool
     %4 if_res: string
+    %5 $cast_5: string
   bb0:
     %1 = call read_file(%0) :Error | string
     %2 = move %1
@@ -17,7 +18,8 @@ fn snippet$read_or_default(%0: string) -> Error | string
   bb1:
     return %2
   bb2:
-    %4 = cast %2 :string
+    %5 = cast %2 :string
+    %4 = move %5
     branch -> bb3
   bb3:
     return %4
@@ -36,7 +38,7 @@ fn snippet$show(%0: Error | string) -> void
     cond_branch %2 ? bb1 : bb2
   bb1:
     %3 = cast %0 :string
-    call println(%3) :void
+    call std_io$std_io$println__string(%3) :void
     branch -> bb3
   bb2:
     %4 = type_check %1 is Error
@@ -44,8 +46,8 @@ fn snippet$show(%0: Error | string) -> void
   bb3:
     return
   bb4:
-    %5 = const string(#0) :string
-    call println(%5) :void
+    %5 = const string(#1) :string
+    call std_io$std_io$println__string(%5) :void
     branch -> bb6
   bb5:
     unreachable ; non-exhaustive match (T3013 should have caught this)
@@ -60,10 +62,10 @@ fn snippet$main() -> i32
     %3 $call_3: Error | string
     %4 $k_4: i32
   bb0:
-    %0 = const string(#1) :string
+    %0 = const string(#2) :string
     %1 = call read_or_default(%0) :Error | string
     call show(%1) :void
-    %2 = const string(#2) :string
+    %2 = const string(#3) :string
     %3 = call read_or_default(%2) :Error | string
     call show(%3) :void
     %4 = const int(0) :i32

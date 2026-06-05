@@ -1,100 +1,96 @@
 module _main
 type 0 primitive null
-type 1 primitive i32
-type 2 primitive u8
-type 3 primitive string
-type 4 primitive void
-string 0 "red"
-string 1 "green"
-string 2 "blue"
-string 3 "green_code="
-string 4 "name="
-string 5 "\n"
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 write std_io$write (i32,string) -> void
-export main 2
+type 1 primitive string
+type 2 primitive void
+type 3 primitive i32
+type 4 primitive u8
+string 0 "\n"
+string 1 "red"
+string 2 "green"
+string 3 "blue"
+string 4 "green_code="
+string 5 "name="
+import 0 write std_io$write (i32,string) -> void
+import 1 to_string std_core$string$Display$to_string (string) -> string
+export main 3
 
-fn 0 snippet$green_code () -> i32
-  i32.const 1
-  u8.to_i32
-  return
-end
-
-fn 1 snippet$name_of (u8) -> string
-  local.get 0
-  i32.const 0
-  i32.to_u8
-  u8.eq
-  if $L0 void
-    return.lit string.const 0
-  end $L0
-  local.get 0
-  i32.const 1
-  i32.to_u8
-  u8.eq
-  if $L1 void
-    return.lit string.const 1
-  end $L1
-  return.lit string.const 2
-end
-
-fn 2 snippet$main () -> i32
-  local __sb_0 any
-  local $call_3 i32
-  local $call_9 string
-  intrinsic builder.new
-  local.set 0
-  local.get 0
-  string.const 3
-  intrinsic builder.append_str
-  call 0
-  local.set 1
-  local.get 0
-  local.get 1
-  intrinsic builder.append_display
-  local.get 0
-  intrinsic builder.finish
-  call 3
-  intrinsic builder.new
-  local.set 0
-  local.get 0
-  string.const 4
-  intrinsic builder.append_str
-  i32.const 2
-  call 1
-  local.set 2
-  local.get 0
-  local.get 2
-  intrinsic builder.append_display
-  local.get 0
-  intrinsic builder.finish
-  call 3
-  return.lit i32.const 0
-end
-
-fn 3 std_io$std_io$println__string (string) -> void
+fn 0 std_io$std_io$println__string (string) -> void
   local $call_2 string
   local.get 0
   call 4
   local.set 1
   i32.const 0
   local.get 1
-  call 5
+  call.import 0
   i32.const 0
-  string.const 5
-  call 5
-  return
-end
-
-fn 4 std_core$string$Display$to_string$vt (string) -> string
-  local.get 0
+  string.const 0
   call.import 0
   return
 end
 
-fn 5 std_io$write$vt (i32,string) -> void
+fn 1 snippet$green_code () -> i32
+  i32.const 1
+  u8.to_i32
+  return
+end
+
+fn 2 snippet$name_of (u8) -> string
+  local $k_1 u8
+  i32.const 0
+  local.set 1
   local.get 0
   local.get 1
+  i32.eq
+  if $L0 void
+    return.lit string.const 1
+  end $L0
+  i32.const 1
+  local.set 1
+  local.get 0
+  local.get 1
+  i32.eq
+  if $L1 void
+    return.lit string.const 2
+  end $L1
+  return.lit string.const 3
+end
+
+fn 3 snippet$main () -> i32
+  local __sb_0 any
+  local $call_3 i32
+  local $call_9 string
+  intrinsic builder.new
+  local.set 0
+  local.get 0
+  string.const 4
+  intrinsic builder.append_str
+  call 1
+  local.set 1
+  local.get 0
+  local.get 1
+  intrinsic builder.append_display
+  local.get 0
+  intrinsic builder.finish
+  call 0
+  intrinsic builder.new
+  local.set 0
+  local.get 0
+  string.const 5
+  intrinsic builder.append_str
+  i32.const 2
+  call 2
+  local.set 2
+  local.get 0
+  local.get 2
+  intrinsic builder.append_display
+  local.get 0
+  intrinsic builder.finish
+  call 0
+  return.lit i32.const 0
+end
+
+fn 4 std_core$string$Display$to_string_vt (string) -> string
+  local.get 0
   call.import 1
   return
 end

@@ -1,137 +1,127 @@
 module _main
 type 0 primitive null
-type 1 struct snippet$Decl { body:5,name:6 }
-type 2 primitive i32
-type 3 union 4,1
-type 4 struct snippet$Block { span:2 }
-type 5 union 4,0
-type 6 primitive string
-type 7 primitive void
-string 0 "x"
-string 1 "y"
-string 2 "z"
-string 3 "hit="
-string 4 " miss="
-string 5 " via="
-string 6 "\n"
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 write std_io$write (i32,string) -> void
-export main 2
+type 1 primitive string
+type 2 primitive void
+type 3 primitive i32
+type 4 struct snippet$Decl { body:7,name:1 }
+type 5 union 6,4
+type 6 struct snippet$Block { span:3 }
+type 7 union 6,0
+string 0 "\n"
+string 1 "x"
+string 2 "y"
+string 3 "z"
+string 4 "hit="
+string 5 " miss="
+string 6 " via="
+import 0 write std_io$write (i32,string) -> void
+import 1 to_string std_core$string$Display$to_string (string) -> string
+export main 3
 
-fn 0 snippet$convert (ref) -> i32
-  local.field 0 1 0
-  type_check 0
-  if $L0 void
-    i32.const 1
-    i32.neg
-    return
-  end $L0
-  local.field 0 1 0
-  struct.get 4 0
-  ref.cast 2
-  return
-end
-
-fn 1 snippet$kind_span (ref,ref) -> i32
-  local.get 1
-  type_check 4
-  if $L0 void
-    local.get 1
-    struct.get 4 0
-    ref.cast 2
-    return
-  end $L0
-  local.get 0
-  call 0
-  return
-end
-
-fn 2 snippet$main () -> i32
-  local $struct_1 ref
-  local hit i32
-  local $k_6 null
-  local miss i32
-  local $struct_16 ref
-  local via i32
-  local __sb_0 any
-  i32.const 42
-  struct.new 4
-  local.set 0
-  local.get 0
-  string.const 0
-  struct.new 1
-  call 0
-  local.set 1
-  null.const
-  local.set 2
-  local.get 2
-  string.const 1
-  struct.new 1
-  call 0
-  local.set 3
-  i32.const 7
-  struct.new 4
-  local.set 0
-  local.get 0
-  string.const 2
-  struct.new 1
-  local.set 0
-  i32.const 99
-  struct.new 4
-  local.set 4
-  local.get 0
-  local.get 4
-  call 1
-  local.set 5
-  intrinsic builder.new
-  local.set 6
-  local.get 6
-  string.const 3
-  intrinsic builder.append_str
-  local.get 6
-  local.get 1
-  intrinsic builder.append_display
-  local.get 6
-  string.const 4
-  intrinsic builder.append_str
-  local.get 6
-  local.get 3
-  intrinsic builder.append_display
-  local.get 6
-  string.const 5
-  intrinsic builder.append_str
-  local.get 6
-  local.get 5
-  intrinsic builder.append_display
-  local.get 6
-  intrinsic builder.finish
-  call 3
-  return.lit i32.const 0
-end
-
-fn 3 std_io$std_io$println__string (string) -> void
+fn 0 std_io$std_io$println__string (string) -> void
   local $call_2 string
   local.get 0
   call 4
   local.set 1
   i32.const 0
   local.get 1
-  call 5
+  call.import 0
   i32.const 0
-  string.const 6
-  call 5
-  return
-end
-
-fn 4 std_core$string$Display$to_string$vt (string) -> string
-  local.get 0
+  string.const 0
   call.import 0
   return
 end
 
-fn 5 std_io$write$vt (i32,string) -> void
-  local.get 0
+fn 1 snippet$convert (ref) -> i32
+  local.field 0 4 0
+  type_check 0
+  if $L0 void
+    i32.const 1
+    i32.neg
+    return
+  end $L0
+  local.field 0 4 0
+  struct.get 6 0
+  ref.cast 3
+  return
+end
+
+fn 2 snippet$kind_span (ref,ref) -> i32
   local.get 1
+  type_check 6
+  if $L0 void
+    local.get 1
+    struct.get 6 0
+    ref.cast 3
+    return
+  end $L0
+  local.get 0
+  call 1
+  return
+end
+
+fn 3 snippet$main () -> i32
+  local $struct_1 ref
+  local hit i32
+  local miss i32
+  local $struct_16 ref
+  local via i32
+  local __sb_0 any
+  i32.const 42
+  struct.new 6
+  local.set 0
+  local.get 0
+  string.const 1
+  struct.new 4
+  call 1
+  local.set 1
+  null.const
+  string.const 2
+  struct.new 4
+  call 1
+  local.set 2
+  i32.const 7
+  struct.new 6
+  local.set 0
+  local.get 0
+  string.const 3
+  struct.new 4
+  local.set 0
+  i32.const 99
+  struct.new 6
+  local.set 3
+  local.get 0
+  local.get 3
+  call 2
+  local.set 4
+  intrinsic builder.new
+  local.set 5
+  local.get 5
+  string.const 4
+  intrinsic builder.append_str
+  local.get 5
+  local.get 1
+  intrinsic builder.append_display
+  local.get 5
+  string.const 5
+  intrinsic builder.append_str
+  local.get 5
+  local.get 2
+  intrinsic builder.append_display
+  local.get 5
+  string.const 6
+  intrinsic builder.append_str
+  local.get 5
+  local.get 4
+  intrinsic builder.append_display
+  local.get 5
+  intrinsic builder.finish
+  call 0
+  return.lit i32.const 0
+end
+
+fn 4 std_core$string$Display$to_string_vt (string) -> string
+  local.get 0
   call.import 1
   return
 end

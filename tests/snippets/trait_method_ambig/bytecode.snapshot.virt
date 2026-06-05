@@ -4,7 +4,8 @@ type 1 struct snippet$Cat { name:2 }
 type 2 primitive string
 type 3 primitive i32
 string 0 "G:"
-string 1 "x"
+string 1 "A:"
+string 2 "x"
 impl 1 Greet
 impl 1 Annot
 export main 1
@@ -29,7 +30,7 @@ fn 0 snippet$Cat$Greet$greet (ref) -> string
 end
 
 fn 1 snippet$main () -> i32
-  string.const 1
+  string.const 2
   struct.new 1
   call 0
   drop

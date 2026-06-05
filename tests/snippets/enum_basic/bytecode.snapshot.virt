@@ -1,136 +1,148 @@
 module _main
 type 0 primitive null
-type 1 primitive i32
-type 2 primitive string
-type 3 primitive void
-string 0 "north"
-string 1 "south"
-string 2 "east"
-string 3 "west"
-string 4 "d is East"
-string 5 "d is West"
-string 6 "Is EAST: "
-string 7 "Is WEST: "
-string 8 "\n"
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 write std_io$write (i32,string) -> void
-export main 1
+type 1 primitive string
+type 2 primitive void
+type 3 primitive i32
+string 0 "\n"
+string 1 "north"
+string 2 "south"
+string 3 "east"
+string 4 "west"
+string 5 "d is East"
+string 6 "d is West"
+string 7 "Is EAST: "
+string 8 "Is WEST: "
+import 0 write std_io$write (i32,string) -> void
+import 1 to_string std_core$string$Display$to_string (string) -> string
+export main 2
 
-fn 0 snippet$describe (i32) -> string
-  local.get 0
-  i32.const 0
-  i32.eq
-  if $L0 void
-    string.const 0
-    return
-  end $L0
-  local.get 0
-  i32.const 1
-  i32.eq
-  if $L1 void
-    string.const 1
-    return
-  end $L1
-  local.get 0
-  i32.const 2
-  i32.eq
-  if $L2 void
-    string.const 2
-    return
-  end $L2
-  local.get 0
-  i32.const 3
-  i32.eq
-  if $L3 void
-    string.const 3
-    return
-  end $L3
-  unreachable
-end
-
-fn 1 snippet$main () -> void
-  local d i32
-  local __sb_0 any
-  local $eq_15 bool
-  i32.const 2
-  local.tee 0
-  call 0
-  call 2
-  i32.const 0
-  call 0
-  call 2
-  local.get 0
-  i32.const 2
-  i32.eq
-  if $L0 void
-    string.const 4
-    call 2
-  else
-  end $L0
-  local.get 0
-  i32.const 3
-  i32.eq
-  if $L1 void
-    string.const 5
-    call 2
-  else
-  end $L1
-  intrinsic builder.new
-  local.set 1
-  local.get 1
-  string.const 6
-  intrinsic builder.append_str
-  local.get 0
-  i32.const 2
-  i32.eq
-  local.set 2
-  local.get 1
-  local.get 2
-  intrinsic builder.append_display
-  local.get 1
-  intrinsic builder.finish
-  call 2
-  intrinsic builder.new
-  local.set 1
-  local.get 1
-  string.const 7
-  intrinsic builder.append_str
-  local.get 0
-  i32.const 3
-  i32.eq
-  local.set 2
-  local.get 1
-  local.get 2
-  intrinsic builder.append_display
-  local.get 1
-  intrinsic builder.finish
-  call 2
-  return
-end
-
-fn 2 std_io$std_io$println__string (string) -> void
+fn 0 std_io$std_io$println__string (string) -> void
   local $call_2 string
   local.get 0
   call 3
   local.set 1
   i32.const 0
   local.get 1
-  call 4
+  call.import 0
   i32.const 0
-  string.const 8
-  call 4
-  return
-end
-
-fn 3 std_core$string$Display$to_string$vt (string) -> string
-  local.get 0
+  string.const 0
   call.import 0
   return
 end
 
-fn 4 std_io$write$vt (i32,string) -> void
+fn 1 snippet$describe (i32) -> string
+  local __scrut_0 i32
+  local if_res string
+  local if_res string
+  local if_res string
   local.get 0
+  local.set 1
   local.get 1
+  i32.const 0
+  i32.eq
+  if $L0 void
+    string.const 1
+    local.set 2
+    local.get 2
+    return
+  end $L0
+  local.get 1
+  i32.const 1
+  i32.eq
+  if $L1 void
+    string.const 2
+    local.set 3
+    local.get 3
+    local.tee 2
+    return
+  end $L1
+  local.get 1
+  i32.const 2
+  i32.eq
+  if $L2 void
+    string.const 3
+    local.set 4
+    local.get 4
+    local.tee 3
+    local.tee 2
+    return
+  end $L2
+  local.get 1
+  i32.const 3
+  i32.eq
+  if $L3 void
+    string.const 4
+    local.tee 4
+    local.tee 3
+    local.tee 2
+    return
+  end $L3
+  return
+end
+
+fn 2 snippet$main () -> void
+  local d i32
+  local __sb_0 any
+  local $eq_15 bool
+  i32.const 2
+  local.set 0
+  local.get 0
+  call 1
+  call 0
+  i32.const 0
+  call 1
+  call 0
+  local.get 0
+  i32.const 2
+  i32.eq
+  if $L0 void
+    string.const 5
+    call 0
+  else
+  end $L0
+  local.get 0
+  i32.const 3
+  i32.eq
+  if $L1 void
+    string.const 6
+    call 0
+  else
+  end $L1
+  intrinsic builder.new
+  local.set 1
+  local.get 1
+  string.const 7
+  intrinsic builder.append_str
+  local.get 0
+  i32.const 2
+  i32.eq
+  local.set 2
+  local.get 1
+  local.get 2
+  intrinsic builder.append_display
+  local.get 1
+  intrinsic builder.finish
+  call 0
+  intrinsic builder.new
+  local.set 1
+  local.get 1
+  string.const 8
+  intrinsic builder.append_str
+  local.get 0
+  i32.const 3
+  i32.eq
+  local.set 2
+  local.get 1
+  local.get 2
+  intrinsic builder.append_display
+  local.get 1
+  intrinsic builder.finish
+  call 0
+  return
+end
+
+fn 3 std_core$string$Display$to_string_vt (string) -> string
+  local.get 0
   call.import 1
   return
 end

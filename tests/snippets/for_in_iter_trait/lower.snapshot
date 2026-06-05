@@ -42,11 +42,11 @@
     return
       call :usize
         callee:
-          count :usize
+          std_iter$FilterIterator$Iterator$count__char :usize
         arg0:
           call :FilterIterator<char>
             callee:
-              filter :FilterIterator<char>
+              std_iter$std_iter$filter__char :FilterIterator<char>
             arg0:
               call :StringChars
                 callee:
@@ -72,9 +72,9 @@
         callee:
           sum_iter :fn(Iterator<i32>) -> i32
         arg0:
-          call :ArrayIterator<i32>
+          call :Iterator<i32>
             callee:
-              into :ArrayIterator<i32>
+              std_core$[]$Into$into__i32 :Iterator<i32>
             arg0:
               array :i32[]
                 int(10) :i32
@@ -82,7 +82,7 @@
                 int(30) :i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_0: ? =
@@ -98,7 +98,7 @@
               __sb_0 :?
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_1: ? =
@@ -120,7 +120,7 @@
           "hello, world!" :string
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         block :string
           let __sb_2: ? =
@@ -132,7 +132,7 @@
             __sb_2 :?
             call :string
               callee:
-                to_string :string
+                std_core$usize$Display$to_string :string
               arg0:
                 n :usize
           ~>

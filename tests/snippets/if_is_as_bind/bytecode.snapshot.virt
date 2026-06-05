@@ -1,28 +1,42 @@
 module _main
 type 0 primitive null
-type 1 union 2,3
-type 2 struct snippet$V01 { f:4 }
-type 3 struct snippet$V02 { f:4 }
-type 4 primitive i32
-type 5 primitive string
-type 6 primitive void
-string 0 "direct V01      : "
-string 1 "direct V02      : "
-string 2 "post_narrow V01 : "
-string 3 "post_narrow V02 : "
-string 4 "\n"
-import 0 to_string std_core$string$Display$to_string (string) -> string
-import 1 write std_io$write (i32,string) -> void
-export main 2
+type 1 primitive string
+type 2 primitive void
+type 3 primitive i32
+type 4 union 5,6
+type 5 struct snippet$V01 { f:3 }
+type 6 struct snippet$V02 { f:3 }
+string 0 "\n"
+string 1 "direct V01      : "
+string 2 "direct V02      : "
+string 3 "post_narrow V01 : "
+string 4 "post_narrow V02 : "
+import 0 write std_io$write (i32,string) -> void
+import 1 to_string std_core$string$Display$to_string (string) -> string
+export main 3
 
-fn 0 snippet$direct (ref) -> i32
+fn 0 std_io$std_io$println__string (string) -> void
+  local $call_2 string
+  local.get 0
+  call 4
+  local.set 1
+  i32.const 0
+  local.get 1
+  call.import 0
+  i32.const 0
+  string.const 0
+  call.import 0
+  return
+end
+
+fn 1 snippet$direct (ref) -> i32
   local $field_4 i32
   local.get 0
-  type_check 2
+  type_check 5
   if $L0 void
     local.get 0
-    struct.get 2 0
-    ref.cast 4
+    struct.get 5 0
+    ref.cast 3
     local.set 1
     local.get 1
     i32.const 1
@@ -30,11 +44,11 @@ fn 0 snippet$direct (ref) -> i32
     return
   end $L0
   local.get 0
-  type_check 3
+  type_check 6
   if $L1 void
     local.get 0
-    struct.get 3 0
-    ref.cast 4
+    struct.get 6 0
+    ref.cast 3
     local.set 1
     local.get 1
     i32.const 100
@@ -46,14 +60,14 @@ fn 0 snippet$direct (ref) -> i32
   return
 end
 
-fn 1 snippet$post_narrow (ref) -> i32
+fn 2 snippet$post_narrow (ref) -> i32
   local $field_4 i32
   local.get 0
-  type_check 2
+  type_check 5
   if $L0 void
     local.get 0
-    struct.get 2 0
-    ref.cast 4
+    struct.get 5 0
+    ref.cast 3
     local.set 1
     local.get 1
     i32.const 7
@@ -61,51 +75,36 @@ fn 1 snippet$post_narrow (ref) -> i32
     return
   end $L0
   local.get 0
-  struct.get 3 0
-  ref.cast 4
+  struct.get 6 0
+  ref.cast 3
   return
 end
 
-fn 2 snippet$main () -> i32
+fn 3 snippet$main () -> i32
   local __sb_0 any
   local $call_5 i32
   intrinsic builder.new
   local.set 0
   local.get 0
-  string.const 0
-  intrinsic builder.append_str
-  i32.const 10
-  struct.new 2
-  call 0
-  local.set 1
-  local.get 0
-  local.get 1
-  intrinsic builder.append_display
-  local.get 0
-  intrinsic builder.finish
-  call 3
-  intrinsic builder.new
-  local.set 0
-  local.get 0
   string.const 1
   intrinsic builder.append_str
-  i32.const 20
-  struct.new 3
-  call 0
+  i32.const 10
+  struct.new 5
+  call 1
   local.set 1
   local.get 0
   local.get 1
   intrinsic builder.append_display
   local.get 0
   intrinsic builder.finish
-  call 3
+  call 0
   intrinsic builder.new
   local.set 0
   local.get 0
   string.const 2
   intrinsic builder.append_str
-  i32.const 30
-  struct.new 2
+  i32.const 20
+  struct.new 6
   call 1
   local.set 1
   local.get 0
@@ -113,48 +112,42 @@ fn 2 snippet$main () -> i32
   intrinsic builder.append_display
   local.get 0
   intrinsic builder.finish
-  call 3
+  call 0
   intrinsic builder.new
   local.set 0
   local.get 0
   string.const 3
   intrinsic builder.append_str
-  i32.const 40
-  struct.new 3
-  call 1
+  i32.const 30
+  struct.new 5
+  call 2
   local.set 1
   local.get 0
   local.get 1
   intrinsic builder.append_display
   local.get 0
   intrinsic builder.finish
-  call 3
+  call 0
+  intrinsic builder.new
+  local.set 0
+  local.get 0
+  string.const 4
+  intrinsic builder.append_str
+  i32.const 40
+  struct.new 6
+  call 2
+  local.set 1
+  local.get 0
+  local.get 1
+  intrinsic builder.append_display
+  local.get 0
+  intrinsic builder.finish
+  call 0
   return.lit i32.const 0
 end
 
-fn 3 std_io$std_io$println__string (string) -> void
-  local $call_2 string
+fn 4 std_core$string$Display$to_string_vt (string) -> string
   local.get 0
-  call 4
-  local.set 1
-  i32.const 0
-  local.get 1
-  call 5
-  i32.const 0
-  string.const 4
-  call 5
-  return
-end
-
-fn 4 std_core$string$Display$to_string$vt (string) -> string
-  local.get 0
-  call.import 0
-  return
-end
-
-fn 5 std_io$write$vt (i32,string) -> void
-  local.get 0
-  local.get 1
   call.import 1
   return
 end

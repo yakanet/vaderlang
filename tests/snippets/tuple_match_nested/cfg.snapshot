@@ -8,42 +8,52 @@ fn snippet$main() -> i32
     %1 $k_1: string
     %2 $struct_2: [i32, string]
     %3 $k_3: bool
-    %4 __scrut_0: [[i32, string], bool] (synthetic __scrut_0)
-    %5 $field_7: [i32, string]
-    %6 id: i32 (binding id)
-    %7 $field_10: [i32, string]
-    %8 label: string (binding label)
-    %9 active: bool (binding active)
-    %10 $intrinsic_15: ?
-    %11 __sb_1: ? (synthetic __sb_1)
-    %12 $k_17: string
-    %13 $k_18: string
-    %14 $k_19: string
-    %15 $intrinsic_20: string
-    %16 $k_21: i32
+    %4 $struct_4: [[i32, string], bool]
+    %5 record: [[i32, string], bool] (local record)
+    %6 __scrut_0: [[i32, string], bool] (synthetic __scrut_0)
+    %7 $field_7: [i32, string]
+    %8 $field_8: i32
+    %9 id: i32 (binding id)
+    %10 $field_10: [i32, string]
+    %11 $field_11: string
+    %12 label: string (binding label)
+    %13 $field_13: bool
+    %14 active: bool (binding active)
+    %15 $intrinsic_15: ?
+    %16 __sb_1: ? (synthetic __sb_1)
+    %17 $k_17: string
+    %18 $k_18: string
+    %19 $k_19: string
+    %20 $intrinsic_20: string
+    %21 $k_21: i32
   bb0:
     %0 = const int(42) :i32
-    %1 = const string(#0) :string
-    %2 = struct_new[stack] [i32, string](%0, %1)
+    %1 = const string(#1) :string
+    %2 = struct_new [i32, string](%0, %1)
     %3 = const bool(true) :bool
-    %4 = struct_new[stack] [[i32, string], bool](%2, %3)
-    %5 = field_get %4._0 :[i32, string]
-    %6 = field_get %5._0 :i32
-    %7 = field_get %4._0 :[i32, string]
-    %8 = field_get %7._1 :string
-    %9 = field_get %4._1 :bool
-    %10 = intrinsic builder.new()
-    %11 = move %10
-    %12 = const string(#1) :string
-    intrinsic builder.append_str(%11, %12)
-    intrinsic builder.append_display(%11, %6)
-    %13 = const string(#2) :string
-    intrinsic builder.append_str(%11, %13)
-    intrinsic builder.append_display(%11, %8)
-    %14 = const string(#3) :string
-    intrinsic builder.append_str(%11, %14)
-    intrinsic builder.append_display(%11, %9)
-    %15 = intrinsic builder.finish(%11)
-    call println(%15) :void
-    %16 = const int(0) :i32
-    return %16
+    %4 = struct_new [[i32, string], bool](%2, %3)
+    %5 = move %4
+    %6 = move %5
+    %7 = field_get %6._0 :[i32, string]
+    %8 = field_get %7._0 :i32
+    %9 = move %8
+    %10 = field_get %6._0 :[i32, string]
+    %11 = field_get %10._1 :string
+    %12 = move %11
+    %13 = field_get %6._1 :bool
+    %14 = move %13
+    %15 = intrinsic builder.new()
+    %16 = move %15
+    %17 = const string(#2) :string
+    intrinsic builder.append_str(%16, %17)
+    intrinsic builder.append_display(%16, %9)
+    %18 = const string(#3) :string
+    intrinsic builder.append_str(%16, %18)
+    intrinsic builder.append_display(%16, %12)
+    %19 = const string(#4) :string
+    intrinsic builder.append_str(%16, %19)
+    intrinsic builder.append_display(%16, %14)
+    %20 = intrinsic builder.finish(%16)
+    call std_io$std_io$println__string(%20) :void
+    %21 = const int(0) :i32
+    return %21

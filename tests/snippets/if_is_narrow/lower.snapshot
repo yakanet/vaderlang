@@ -101,8 +101,7 @@
     if :void
       cond:
         is Dog :bool
-          cast → Dog | Pig
-            p :Cat | Dog | Pig
+          p :Cat | Dog | Pig
       then:
         return
           block :string
@@ -174,7 +173,7 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -185,7 +184,7 @@
             }
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -196,7 +195,7 @@
             }
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -207,7 +206,7 @@
             }
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -218,7 +217,7 @@
             }
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -229,7 +228,7 @@
             }
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -238,7 +237,7 @@
             int(42) :i32 | string
     call :void
       callee:
-        println :void
+        std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
