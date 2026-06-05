@@ -535,12 +535,20 @@ run_comptime_stage :: fn(file: string) -> i32 {
     return 0
 }
 
+/// `include_module` predicate for the CFG dump — keep user modules, elide
+/// stdlib so the dump stays focused on the snippet under inspection.
+cfg_dump_user_module :: fn(display_path: string) -> bool = !is_stdlib_module(display_path)
+
 run_cfg_stage :: fn(file: string) -> i32 {
     pipeline :: prepare_evaluated_project(file)
     lower_diags: Diagnostic[] = []
     lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
     cfg :: build_cfg_project(lowered)
-    opts :: DumpCfgOptions { .include_module = null, .include_strings = true }
+    // Scope the dump to user modules without the string pool — mirrors the
+    // snapshot-test intent so `dump --stage=cfg` reads as the user's CFG.
+    // PROVISIONAL : stdlib CFG is elided by default ; revisit whether this
+    // should be a `--stdlib` flag rather than the baked-in default (TODO).
+    opts :: DumpCfgOptions { .include_module = cfg_dump_user_module, .include_strings = false }
     print(dump_cfg_project(cfg, opts))
     print_pipeline_diags(pipeline, lower_diags)
     return 0
