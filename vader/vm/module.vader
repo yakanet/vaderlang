@@ -1,0 +1,131 @@
+// vader/vm/module — the VM's parsed `.virt` module representation.
+//
+// The runtime shape of a parsed module: the type table (`TypeDecl` + variants),
+// function bodies (`BytecodeFunction`, carrying `Op[]`), import descriptors
+// (`ImportInfo`), vtables, impl records, and the pre-materialised `const T[]`
+// data pool (`ArrayVal[]`).
+//
+// Split out of the former single `op.vader` mega-file. Same `vader/vm` module
+// as the sibling `op.vader` (opcodes) and `value.vader` (runtime values), so
+// these shapes reference `Op` / `ArrayVal` directly without an import, and
+// consumers' `import "vader/vm" { ... }` lines are unchanged.
+
+module "vader/vm"
+
+/// Host-side description of a `call.import` target. The `mangled`
+/// name is the key the executor's dispatcher matches on
+/// (`std_io$write` etc.) ; `parameter_count` tells it how many
+/// values to pop from the caller's stack before the host call ;
+/// `has_return` controls whether a value gets pushed back afterwards.
+export ImportInfo :: struct {
+    name: string
+    mangled: string
+    parameter_count: usize
+    has_return: bool
+}
+
+/// One Vader-side function body. `jump_table[pc]` is filled by the
+/// parser for every branching op, and is `-1` for all others :
+///   - `If`     → pc just past the matching `Else` (or `End` if none)
+///   - `Else`   → pc just past the matching `End`
+///   - `Loop`   → opener_pc + 1 (back-edge target for `Branch`)
+///   - `Branch` / `BranchIf` → resolved scope target
+///   - every other op → `-1` sentinel, the executor ignores it
+///
+/// `parameter_count` is the number of arguments the caller pops from
+/// its stack at the `Call` site ; `local_count` is the number of
+/// *additional* locals declared in the body. The frame's slot array
+/// is sized `parameter_count + local_count`, with params at the bottom.
+export BytecodeFunction :: struct {
+    name: string
+    parameter_count: usize
+    local_count: usize
+    ops: Op[]
+    jump_table: i32[]
+}
+
+/// Module-level type table entry, indexed by the `.virt`'s `type N ...`
+/// ordinal. Sprint 4 (b1) only consumed `StructType.field_count` ;
+/// Sprint 5b adds `UnionType.variant_type_ids` for `type_check`'s
+/// recursive union matching. `RefType` / `FnType` are still placeholders
+/// (trait-typed type_check lands in Sprint 6 with `virtual.call`).
+export TypeDecl :: PrimitiveType | StructType | ArrayType | RefType | FnType | UnionType
+
+/// `primitive i32` / `primitive string` / `primitive bool` / etc.
+export PrimitiveType :: struct { kind: string }
+
+/// `struct NAME { field0:tid0, field1:tid1, ... }`. `field_count` is
+/// the number of values `struct.new` / `struct.new_stack` pop from the
+/// value stack and the number of slots in `StructVal.fields`.
+export StructType :: struct { name: string, field_count: usize }
+
+/// `array TID` — single-element-type heap-grown array.
+export ArrayType :: struct { element_type_id: i32 }
+
+/// Trait-typed (or opaque) reference. `trait_name` carries the name
+/// from the `.virt` `ref NAME` directive (`ref Error`, `ref Iterator`,
+/// …) ; `""` for the wildcard `ref _` form, which the bytecode pipeline
+/// emits for slots that hold any heap-allocated reference without a
+/// concrete underlying decl. Used by `type_matches` (via
+/// `ref_type_matches` in `exec.vader`) to route `is Trait` patterns —
+/// `is Error` matches when the value is an `ErrorVal` ; the wildcard
+/// matches any struct / array / builder / fn ; other trait names fall
+/// back to `false` until a `.virt` impl table directive lands.
+export RefType :: struct { trait_name: string }
+
+/// `fn (TIDs) -> TID` — function-pointer type. Sprint 4 (b1) records
+/// it but doesn't use it ; `call.indirect` lookups will at (b4).
+export FnType :: struct { parameter_type_ids: i32[], return_type_id: i32 }
+
+/// `union T1,T2,...` — tagged-union type id whose variants are listed
+/// as a comma-separated set of type ids. `type_check` matches by
+/// recursing into each variant. Sprint 5b addition.
+export UnionType :: struct { variant_type_ids: i32[] }
+
+/// One trait-method vtable, keyed by `<TraitName>.<MethodName>` and
+/// holding a list of `(type_id → function_index)` entries — one per
+/// implementing struct. Built post-parse by `build_vtables` (in
+/// `parser.vader`) which scans every function's mangled name for the
+/// `…$<TypeName>$<TraitName>$<MethodName>` suffix that the lowerer
+/// emits, then matches `<TypeName>` against `module.types[i]`'s
+/// `StructType.name`. The `.virt` text format itself does not carry
+/// vtable directives — they're entirely a runtime-side synthesis.
+export Vtable :: struct {
+    key: string
+    entries: VtableEntry[]
+}
+
+/// One `(type_id, function_index)` row of a vtable.
+export VtableEntry :: struct {
+    type_id: i32
+    function_index: i32
+}
+
+/// Records a `<type_id> implements <trait_name>` pair from the .virt
+/// `impl` directive. Used by `ref_type_matches` to answer `is Trait`
+/// patterns where the trait body wouldn't otherwise survive DCE.
+export Impl :: struct {
+    type_id: i32
+    trait_name: string
+}
+
+/// Top-level holder for a parsed .virt module. `main_index` points
+/// at the entry function in `functions` — populated by the parser
+/// from the `export main N` directive, with a fallback search for a
+/// mangled name ending in `$main` if the directive is absent. `vtables`
+/// is built lazily after parse by `build_vtables` from the trait-method
+/// fn-name convention. `impls` is populated directly from the
+/// `impl TYPE_ID TRAIT_NAME` directives the .virt writer emits.
+export Module :: struct {
+    strings: string[]
+    imports: ImportInfo[]
+    types: TypeDecl[]
+    functions: BytecodeFunction[]
+    vtables: Vtable[]
+    impls: Impl[]
+    /// Pre-materialised `const T[]` literals. `DataConst` ops index this
+    /// array directly. Built by the parser from the `data N <kind> hex"..."`
+    /// directives ; mirrors `BytecodeModule.dataPool` on the TS side.
+    data_pool: ArrayVal[]
+    main_index: i32
+}
