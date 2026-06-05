@@ -126,6 +126,23 @@ static size_t        g_total_copied = 0;
  * Captured once on init; the env var has no effect mid-run. */
 static int g_gc_stress = 0;
 
+/* Box-tag corruption check — set via `VADER_GC_CHECK_BOX=1`. When enabled,
+ * `vader_gc_scan_box` traps the first time it meets a box whose `tag` is
+ * neither NULL (0) nor a valid type index (< vader_type_info_count). Such a
+ * tag can only be stray bytes (a heap-pointer's low 32 bits), so it pinpoints
+ * which GC cycle first observes a corrupted bucket box — and whether the box's
+ * payload still points at a valid heap object (tag-only clobber) or not. Off
+ * by default: the scan's existing `tag >= count` fast-path stays silent. */
+static int g_gc_check_box = 0;
+
+/* Old-gen scan override — set via `VADER_GC_SCAN_ALL_OLD=1`. Forces
+ * `vader_gc_scan_old_dirty_cards` to treat every card as dirty, i.e. to scan
+ * and forward EVERY old object's slots on each minor. A/B probe: if a
+ * self-host crash that reproduces under tight young arenas disappears with
+ * this on, the bug is a missing card-mark (a write barrier that didn't fire
+ * on an old→young edge), not the GC scan itself. Off by default. */
+static int g_gc_scan_all_old = 0;
+
 /* Current cycle. Drives both `vader_gc_forward` (which arena to copy into)
  * and the collection counter (sub-cycles don't bump it independently). */
 typedef enum {
@@ -197,6 +214,13 @@ static size_t vader_gc_env_bytes(const char* env_name, size_t fallback) {
     unsigned long long v = strtoull(raw, &end, 10);
     if (end == raw || v == 0ull) return fallback;
     return (size_t)v;
+}
+
+/* Read a boolean toggle from `env_name`: true when set to a non-empty value
+ * other than "0". Used for the GC debug knobs (stress / box-check / scan-all). */
+static int vader_gc_env_bool(const char* env_name) {
+    const char* raw = getenv(env_name);
+    return raw != NULL && raw[0] != '\0' && raw[0] != '0';
 }
 
 static int g_gc_profile = 0;
@@ -800,8 +824,9 @@ void vader_atom_gc_collect(void) {
 void vader_gc_init(void) {
     if (g_gc_initialized) return;
 
-    const char* stress_env = getenv("VADER_GC_STRESS");
-    g_gc_stress = (stress_env != NULL && stress_env[0] != '\0' && stress_env[0] != '0');
+    g_gc_stress       = vader_gc_env_bool("VADER_GC_STRESS");
+    g_gc_check_box    = vader_gc_env_bool("VADER_GC_CHECK_BOX");
+    g_gc_scan_all_old = vader_gc_env_bool("VADER_GC_SCAN_ALL_OLD");
 
     /* VADER_GC_PROFILE : at exit, walk both arenas and dump the live set
      * bucketed by type_index — sorted by total bytes, top-20. Useful to
@@ -1002,6 +1027,42 @@ static void* vader_gc_forward(void* obj, uint32_t type_index) {
  * wrapper case (payload.obj is the referent, not a wrapper-typed pointer). */
 static void vader_gc_scan_raw(void** slot);
 
+/* VADER_GC_CHECK_BOX diagnostic. `boxp->tag` is out of the valid type-index
+ * range — it can only be stray bytes (typically a heap pointer's low 32 bits).
+ * Dump where the box lives and, crucially, whether `payload.obj` still points
+ * at a live arena object: if so this is a TAG-ONLY clobber (a 4-byte write into
+ * the box's tag while the payload survived), which narrows the culprit write. */
+static void vader_gc_box_tag_corrupt(const vader_box_t* boxp) {
+    const char* box_loc =
+        vader_in_young_from(boxp) ? "young-from" :
+        vader_in_old_from(boxp)   ? "old-from"   :
+        vader_in_old_any(boxp)    ? "old-to"     : "off-heap (root/stack/to-space)";
+    void* payload = boxp->payload.obj;
+    int pl_live = payload != NULL
+        && (vader_in_young_from(payload) || vader_in_old_any(payload));
+    const char* pl_loc =
+        payload == NULL              ? "NULL" :
+        vader_in_young_from(payload) ? "young-from" :
+        vader_in_old_any(payload)    ? "old" : "off-heap/garbage";
+    fprintf(stderr,
+        "\n[VADER_GC_CHECK_BOX] corrupt box tag during scan (cycle=%d)\n"
+        "  box @ %p (%s)\n"
+        "  tag = %u (0x%08x)  [valid range 0..%zu)\n"
+        "  payload bits = 0x%016llx -> %p (%s)\n",
+        (int) g_cycle, (const void*) boxp, box_loc,
+        boxp->tag, boxp->tag, (size_t) vader_type_info_count,
+        (unsigned long long) boxp->payload.i, payload, pl_loc);
+    if (pl_live) {
+        const vader_obj_header_t* h = (const vader_obj_header_t*) payload;
+        fprintf(stderr,
+            "  -> referent header: type_index = %u, age = %u, forward = %p\n"
+            "     => TAG-ONLY clobber: payload still references a live object;\n"
+            "        the box tag SHOULD have been this referent's BcType index.\n",
+            h->type_index, (unsigned) h->age, h->forward);
+    }
+    vader_trap("VADER_GC_CHECK_BOX: box tag is not a valid type index");
+}
+
 /* Scan a `vader_box_t` slot — if the tag identifies a heap-allocated kind and
  * the payload holds a pointer, forward it and update the slot in place.
  *
@@ -1011,7 +1072,10 @@ static void vader_gc_scan_raw(void** slot);
  * not on this Cheney write) nor scan_old_dirty_cards covers it. */
 static void vader_gc_scan_box(vader_box_t* boxp) {
     if (boxp == NULL) return;
-    if (boxp->tag >= vader_type_info_count) return;
+    if (boxp->tag >= vader_type_info_count) {
+        if (VADER_UNLIKELY(g_gc_check_box)) vader_gc_box_tag_corrupt(boxp);
+        return;
+    }
     const vader_type_info_t* info = &vader_type_info_table[boxp->tag];
     if (info->kind == VADER_TYPE_KIND_NONE) return;
     /* Inline-ref wrapper : `payload.obj` is the referent itself (not a
@@ -1130,8 +1194,8 @@ static void vader_gc_scan_old_dirty_cards(void) {
         uintptr_t off_end   = off_start + bytes - 1u;
         size_t card_start = off_start / VADER_CARD_BYTES;
         size_t card_end   = off_end   / VADER_CARD_BYTES;
-        int dirty = 0;
-        for (size_t c = card_start; c <= card_end; c++) {
+        int dirty = g_gc_scan_all_old;
+        for (size_t c = card_start; c <= card_end && !dirty; c++) {
             if (vader_card_table[c]) { dirty = 1; break; }
         }
         if (dirty) {

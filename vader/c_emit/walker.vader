@@ -1271,9 +1271,16 @@ push_struct_field :: fn(s: FnState, type_index: i32, field_index: i32, recv: str
 }
 
 /// `struct.set` / `struct.set_stack` — pop the field value then the
-/// receiver, write the body slot in place. The `stack` flag is irrelevant
-/// to the body rep (mutation is identical). Value-type mismatch self-guards
-/// with `todo` (B1 nullable-ref fields are T12).
+/// receiver, write the body slot in place, then fire the generational write
+/// barrier so a later minor rescans this object's slots. Value-type mismatch
+/// self-guards with `todo` (B1 nullable-ref fields are T12).
+///
+/// The barrier is mandatory on `struct.set`: mutating an old object's field to
+/// reference a young object creates an old→young edge whose card must be marked
+/// dirty, else `scan_old_dirty_cards` skips the object and the young referent
+/// goes stale when the next minor moves it. `struct.set_stack` opts out — the
+/// lowerer's escape analysis proved the receiver is stack-allocated, so the
+/// macro's `in old?` test would always be false anyway.
 emit_struct_set :: fn(s: FnState, op: vm.StructSet) -> void {
     t :: s.ctx.module.types[usize(op.type_id)]
     if t is BcStruct as st {
@@ -1283,6 +1290,9 @@ emit_struct_set :: fn(s: FnState, op: vm.StructSet) -> void {
         f :: st.fields[usize(op.field_index)]
         rv :: coerce_expr(s.ctx.module.types, name_of(value), val_of(value), val_type_of_field(s.ctx.module.types, f.type_index))
         line(s, "((${cname}*) ${name_of(obj)}.payload.obj)->f_${sanitise(f.name)} = ${rv};")
+        if !op.stack {
+            line(s, "VADER_WRITE_BARRIER((${cname}*) ${name_of(obj)}.payload.obj);")
+        }
     } else {
         todo("struct.set on non-struct type ${op.type_id}")
     }

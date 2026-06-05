@@ -378,6 +378,7 @@ static void std_collections_std_collections_put__i32__Any(vader_box_t l0, int32_
                     t4 = ((int32_t) ((vader_struct_std_collections_Entry__i32__Any_t*) l6.payload.obj)->f_key.payload.i);
                     if (t4 == l1) {
                         ((vader_struct_std_collections_Entry__i32__Any_t*) l6.payload.obj)->f_value = l2;
+                        VADER_WRITE_BARRIER((vader_struct_std_collections_Entry__i32__Any_t*) l6.payload.obj);
                         l8 = true;
                         l7 = true;
                     } else {
@@ -410,6 +411,7 @@ static void std_collections_std_collections_put__i32__Any(vader_box_t l0, int32_
     t9 = (l4 + l10);
     l4 = (size_t) (int64_t) t9;
     ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_size = l4;
+    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj);
     std_collections_std_collections_maybe_grow__i32__Any(l0);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
@@ -506,6 +508,7 @@ static void std_collections_std_collections_grow__Any__Any(vader_box_t l0) {
                                 t11 = vader_array_get((vader_array_t*) l4.payload.obj, (size_t) l10);
                                 l11 = t11;
                                 ((vader_struct_std_collections_Entry__Any__Any_t*) l9.payload.obj)->f_next = l11;
+                                VADER_WRITE_BARRIER((vader_struct_std_collections_Entry__Any__Any_t*) l9.payload.obj);
                                 vader_array_set((vader_array_t*) l4.payload.obj, (size_t) l10, l9);
                                 goto loop_53;
                             }
@@ -523,6 +526,7 @@ static void std_collections_std_collections_grow__Any__Any(vader_box_t l0) {
         }
     }
     ((vader_struct_std_collections_MutableMap__Any__Any_t*) l0.payload.obj)->f_buckets = l4;
+    VADER_WRITE_BARRIER((vader_struct_std_collections_MutableMap__Any__Any_t*) l0.payload.obj);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;
 }
