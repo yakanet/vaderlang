@@ -6,3 +6,7 @@
 *.json text eol=lf
 *.c text eol=lf
 *.h text eol=lf
+
+# The committed C seed is a generated gzip blob: hide it from diffs, skip
+# 3-way merge, no line-ending normalisation. See docs/BOOTSTRAP.md.
+bootstrap/bootstrap.c.gz binary linguist-generated=true
