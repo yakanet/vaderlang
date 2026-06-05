@@ -1,4 +1,0 @@
-{
-  "_comment": "bytecode phase excluded: the native Vader compiler (the snapshot oracle) cannot yet emit bytecode for this snippet — `dump --stage=bytecode` panics 'unresolved callee' (GATE B1 namespace/import impl-member materialisation gap, tracked in the §9 self-host audit). All earlier stages emit deterministically and are snapshotted normally; vader_vm.test.ts auto-skips it (no bytecode.snapshot.virt).",
-  "phases": ["lexer", "parser", "resolver", "typecheck", "comptime", "lower", "cfg"]
-}

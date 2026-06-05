@@ -734,7 +734,7 @@ queries + closure-analysis pass land on the typechecker side.
       (else stdlib CFG bloats them ~10×). PROVISIONAL : decide whether stdlib
       elision should be a `--stdlib` opt-in flag on `dump` rather than the baked
       default, so the CLI can still show the full CFG when wanted.
-- [ ] **Native-emitter gaps surfaced by the oracle flip — 8 fixed, 3 open**
+- [ ] **Native-emitter gaps surfaced by the oracle flip — 10 fixed, 1 open**
       (2026-06-05). With `bytecode.snapshot.virt` now native-emitted,
       `vader_vm.test.ts` runs native bytecode for the whole corpus and exposed
       11 mis-compiles. FIXED this session:
@@ -783,13 +783,26 @@ queries + closure-analysis pass land on the typechecker side.
         implementor (`std_io$IOError`) no — the broad gate pulled IOError into
         `trait_virtual_dispatch`, bloating its table ; the constructed gate is
         drift-free. StringChars is the sole non-generic Iterator implementor.
-      STILL OPEN (in `KNOWN_DIVERGENT` / phase-excluded, each its own fix) :
+      - `alias_import` / `namespace_import` — `io.println("hi")` (`println<T:
+        Display>` is generic) panicked at emit `unresolved callee 'println'`.
+        `lower_call` runs `try_lower_namespace_call` BEFORE `try_lower_generic_fn_call`
+        and short-circuits, calling `register_nongeneric_stdlib_fn` (no-op for a
+        generic fn) and emitting a bare-symbol callee → the generic instance
+        `println__string` is never harvested/mangled → unresolved at emit (GATE-B1).
+        Extracted the generic-call core into `emit_generic_fn_call(ctx, call, type,
+        fn_sym, ft, callee_span)` ; the namespace path now fetches the member's
+        generic `FnType` cross-module (`evaluated.modules[sym.module].typed.decl_types`
+        — the namespace member-type table holds only type-kind members, not fns) and
+        delegates to it for generic members, exactly as the direct-ident path does.
+        Both `_config.json` bytecode-exclusions deleted ; snapshots regenerated.
+      STILL OPEN (in `KNOWN_DIVERGENT`, each its own fix) :
       `std_time` (`abs(i64)` typed `any` — `pick_overload` doesn't collect a
       TRANSITIVELY-imported module's overloads, so `std/time::format` compares a
-      wide ns value via `i32.lt`) ; `alias_import`, `namespace_import` (GATE-B1
-      namespace/import emit panic — `dump --stage=bytecode` itself fails).
+      wide ns value via `i32.lt`).
       `defer_on_panic` still needs the VM to drain the defer-stack on a TRAPPED
-      exit (separate from the emit gap just fixed). `defer_in_lambda`
+      exit (a substantial `exec`-loop control-flow change — `frames` is local to
+      `exec`, so the drain must happen inside it, intercepting the inline-dispatch
+      Trap). `defer_in_lambda`
       surfaced a *distinct* deeper gap once `defer.push` started emitting : a
       defer thunk *inside a lambda* that captures an outer-lambda-captured var
       (`defer println("...${x}")` where `x` is `__env.cap_N`) fails to resolve

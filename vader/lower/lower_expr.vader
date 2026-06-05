@@ -1027,70 +1027,74 @@ try_lower_generic_fn_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> 
             callee_ty :: ctx.types.expr_type(id)
             if !(callee_ty is FnType) { return null }
             if callee_ty is FnType as ft {
-                if !type_has_param(ft) { return null }
-                // Resolve concrete type args by unifying each
-                // `ft.params[i]` (which carries the generic shape) with
-                // the call arg's inferred concrete type. Each unique
-                // TypeParam symbol in the fn's signature contributes one
-                // entry to `concrete_args` in source-declared order.
-                concrete_args :: infer_type_args(ft, call, ctx)
-                if !all_concrete(concrete_args) { return null }
-                // `owner_module` is the fn's defining module, NOT the
-                // caller's (see `register_and_emit_generic_call` for the
-                // rationale). Cross-module generic calls (snippet's
-                // `main` invoking `println` from std/io) need the fn's
-                // module so `build_fn_instance_decl` finds the AST decl.
-                module_id :: fn_sym.module
-                display :: lookup_module_display_path(ctx, module_id)
-                mod_mangle :: mangle_module_id(if display == null { module_id } else { display })
-                suffix :: mono_suffix(concrete_args)
-                base_mangled :: "${mod_mangle}$${mod_mangle}$${fn_sym.name}${suffix}"
-                // Register the instance for materialisation at the end of
-                // `lower_project`. Dedup by `<symbol.id>::<suffix>` ;
-                // `register_fn_instance_mangle` uniq-disambiguates the mangle
-                // and preserves insertion order for a deterministic dump.
-                inst_key :: "${fn_sym.id}::${suffix}"
-                mangled :: register_fn_instance_mangle(ctx, fn_sym, concrete_args, module_id, base_mangled, inst_key)
-                // Build args first ; the callee's mangled symbol is the
-                // monomorphic instance. A raw array flowing into an
-                // `Iterator(T)` param coerces through `into` (→
-                // `ArrayIterator(T)`), mirroring the non-generic arg path.
-                lowered_args: LoweredExpr[] = []
-                for i in 0..<call.args.len() {
-                    arg_lowered :: lower_expr(ctx, call.args[i].value)
-                    if i >= ft.params.len() {
-                        lowered_args.push(arg_lowered)
-                    } else {
-                        coerced :: try_emit_into_coercion(ctx, arg_lowered, type_of(arg_lowered), ft.params[i], call.args[i].value.span)
-                        if coerced == null { lowered_args.push(arg_lowered) } else { lowered_args.push(coerced) }
-                    }
-                }
-                // The callee must carry `fn_sym.id` : the materialised
-                // instance registers in `function_index_by_symbol_id` under
-                // its origin symbol (= `fn_sym`), so a call keyed on a
-                // placeholder id (`0`) misses and the call is silently
-                // dropped. (Single-instance resolution ; multi-instance of
-                // the same generic still collapses to the last-registered
-                // instance — needs per-instance keying, separate.)
-                mono_sym :: Symbol {
-                    .id         = fn_sym.id,
-                    .kind       = SymbolKind.Fn,
-                    .name       = mangled,
-                    .module     = module_id,
-                    .visibility = Visibility.Private,
-                    .defined_at = null,
-                }
-                return LoweredCall {
-                    .span = call.span, .type = type,
-                    .callee = LoweredIdent {
-                        .span = id.span, .type = type, .symbol = mono_sym,
-                    },
-                    .args = lowered_args,
-                }
+                return emit_generic_fn_call(ctx, call, type, fn_sym, ft, id.span)
             }
         }
     }
     return null
+}
+
+// Harvest the monomorphic instance for a generic free-fn call and emit the
+// `LoweredCall` carrying the instance mangle. Shared by the direct-ident path
+// (`try_lower_generic_fn_call`) and the namespace-member path
+// (`try_lower_namespace_call`, `io.println` → `println<T: Display>`) — both
+// resolve a `(fn_sym, ft)` and must register the instance + point the callee at
+// its mangle, else the bare symbol is unresolved at emit (GATE-B1).
+//
+// Returns null when `ft` isn't generic or the type args don't infer to all-
+// concrete (recovery — the caller falls through to its non-generic handling).
+emit_generic_fn_call :: fn(
+    ctx: FnLowerCtx, call: CallExpr, type: Type, fn_sym: Symbol, ft: FnType, callee_span: Span,
+) -> LoweredExpr | null {
+    if !type_has_param(ft) { return null }
+    // Resolve concrete type args by unifying each `ft.params[i]` (which carries
+    // the generic shape) with the call arg's inferred concrete type. Each unique
+    // TypeParam symbol in the fn's signature contributes one entry to
+    // `concrete_args` in source-declared order.
+    concrete_args :: infer_type_args(ft, call, ctx)
+    if !all_concrete(concrete_args) { return null }
+    // `module_id` is the fn's defining module, NOT the caller's (see
+    // `register_and_emit_generic_call`). Cross-module generic calls (snippet's
+    // `main` invoking `println` from std/io) need the fn's module so
+    // `build_fn_instance_decl` finds the AST decl.
+    module_id :: fn_sym.module
+    display :: lookup_module_display_path(ctx, module_id)
+    mod_mangle :: mangle_module_id(if display == null { module_id } else { display })
+    suffix :: mono_suffix(concrete_args)
+    base_mangled :: "${mod_mangle}$${mod_mangle}$${fn_sym.name}${suffix}"
+    // Register the instance for materialisation at the end of `lower_project`.
+    // Dedup by `<symbol.id>::<suffix>` ; `register_fn_instance_mangle` uniq-
+    // disambiguates the mangle and preserves insertion order.
+    inst_key :: "${fn_sym.id}::${suffix}"
+    mangled :: register_fn_instance_mangle(ctx, fn_sym, concrete_args, module_id, base_mangled, inst_key)
+    // Build args ; a raw array flowing into an `Iterator(T)` param coerces
+    // through `into` (→ `ArrayIterator(T)`), mirroring the non-generic arg path.
+    lowered_args: LoweredExpr[] = []
+    for i in 0..<call.args.len() {
+        arg_lowered :: lower_expr(ctx, call.args[i].value)
+        if i >= ft.params.len() {
+            lowered_args.push(arg_lowered)
+        } else {
+            coerced :: try_emit_into_coercion(ctx, arg_lowered, type_of(arg_lowered), ft.params[i], call.args[i].value.span)
+            if coerced == null { lowered_args.push(arg_lowered) } else { lowered_args.push(coerced) }
+        }
+    }
+    // The callee must carry `fn_sym.id` : the materialised instance registers in
+    // `function_index_by_symbol_id` under its origin symbol (= `fn_sym`), so a
+    // call keyed on a placeholder id (`0`) misses and is silently dropped.
+    mono_sym :: Symbol {
+        .id         = fn_sym.id,
+        .kind       = SymbolKind.Fn,
+        .name       = mangled,
+        .module     = module_id,
+        .visibility = Visibility.Private,
+        .defined_at = null,
+    }
+    return LoweredCall {
+        .span = call.span, .type = type,
+        .callee = LoweredIdent { .span = callee_span, .type = type, .symbol = mono_sym },
+        .args = lowered_args,
+    }
 }
 
 // Register (once per `inst_key`) the monomorphic instance for
@@ -2005,10 +2009,22 @@ try_lower_namespace_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> L
             namespace_symbol :: as_namespace_binding(ctx, field_expr.target)
             if namespace_symbol is null { return null }
             member_symbol :: resolve_namespace_member(ctx, namespace_symbol, field_expr.field)
-            // A stdlib member reached only through the namespace form
+            // A GENERIC member (`io.println` → `println<T: Display>`) must harvest
+            // its monomorphic instance + point the callee at the mangle, exactly
+            // as the direct-ident path does — otherwise the bare member symbol is
+            // unresolved at emit (GATE-B1). The member's generic signature lives in
+            // its OWN module's `decl_types` (the namespace member-type table holds
+            // only type-kind members, not fns), reached cross-module via
+            // `lookup_fn_type_anywhere`.
+            member_ty :: lookup_fn_type_anywhere(ctx, member_symbol)
+            if member_ty is FnType as member_ft {
+                generic_form :: emit_generic_fn_call(ctx, call, type, member_symbol, member_ft, field_expr.span)
+                if generic_form != null { return generic_form }
+            }
+            // A non-generic stdlib member reached only through the namespace form
             // (`io.println`) still needs harvesting — its body is skipped by
             // `is_stdlib_path`, so without this it's never reserved and the
-            // call is unresolved at emit. No-op for non-stdlib / generic members.
+            // call is unresolved at emit. No-op for non-stdlib members.
             register_nongeneric_stdlib_fn(ctx, member_symbol)
             args: LoweredExpr[] = []
             for call_arg in call.args { args.push(lower_expr(ctx, call_arg.value)) }
