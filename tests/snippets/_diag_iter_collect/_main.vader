@@ -1,20 +1,29 @@
-// Diag snippet: `collect()` on a lazy `FilterIterator` must materialise a
-// fresh array, but the self-host backend leaves it as the iterator struct.
+// Diag snippet: `(0..<5).filter(keep).collect()` over a lazy `FilterIterator`.
+// Expected (TS-built compiler): `kept` is the `i32[]` `[2, 3, 4]`, `kept.len()`
+// is 3, the program prints "len=3".
 //
-// Expected (TS-built compiler): `(0..<5).filter(keep).collect()` yields the
-// `i32[]` `[2, 3, 4]`, so `kept.len()` is 3 and the program prints "len=3".
+// Layer 1 — FIXED. The self-host lower used to emit the WRONG `collect`
+// overload body: `build_fn_instance_decl` resolved the body by name+arity
+// (`find_fn_decl_by_name`), always returning the first `collect` decl
+// (`collect(arr: T[])`, std/iter.vader:51) instead of the resolved
+// `collect(it: Iterator<T>)` (:62). The `arr: T[]` body then ran `array.len`
+// on the iterator struct → trap "array.len receiver: expected array, got
+// struct". Fixed: `find_fn_decl_for_symbol` resolves the body by the overload
+// symbol's `defined_at` identity, plus `register_fn_instance_mangle` runs the
+// instance mangle through `uniq` so same-name overloads don't collide.
 //
-// Actual (Vader self-emitted / self-host native `./build/vader run`): the
-// `collect()` result stays a `FilterIterator<i32>` struct instead of an
-// `i32[]`, so `kept.len()` traps at runtime with
-//   "vader vm: array.len receiver: expected array, got struct".
+// Layer 2 — STILL OPEN (this is what the snippet now reproduces). With the
+// correct iterator body emitted, the self-host now traps with
+//   "vader vm: virtual.call 'Iterator.next' : no impl for type <N>".
+// The erased `filter__i32` instance constructs a `FilterIterator__Any` (the
+// `Any`-erased struct), but the Iterator vtable is keyed only on the CONCRETE
+// `FilterIterator__i32`, so the erased value finds no `next` impl. Same class
+// as the §9 F3 erased-dispatch frontier (primitive-Equals vtable gap): the
+// vtable needs an entry for the erased struct type, or `filter` must construct
+// the concrete tag. TS emits the concrete `FilterIterator__i32` throughout.
 //
-// Root cause hypothesis: the self-host lower/emit path for `collect(it:
-// Iterator<T>) -> T[]` (std/iter.vader:62) over a `FilterIterator` does not
-// drive the iterator to build the backing array — the receiver flows through
-// as the wrapper struct. TS materialises it correctly. Surfaced by
-// `examples/brainfuck/brainfuck.vader::tokenize_bf`, which was rewritten to an
-// explicit accumulator loop as a workaround.
+// `examples/brainfuck/brainfuck.vader::tokenize_bf` was rewritten to an
+// explicit accumulator loop to sidestep both layers.
 
 module "snippet"
 

@@ -144,6 +144,12 @@ export LowerProjectCtx :: struct {
     /// stays deterministic.
     fn_instances:        MutableMap<string, GenericFnInstance>
     fn_instances_order:  GenericFnInstance[]
+    /// Claimed instance mangles, for `uniq` overload disambiguation. Two
+    /// same-name/same-arity overloads (`collect(arr: T[])` vs
+    /// `collect(it: Iterator<T>)`) share a base mangle ; the second to
+    /// register gets a `_1` suffix so the `dump_bytecode → parse_virt`
+    /// round-trip keeps distinct fn names. Mirrors `specialize.vader`.
+    seen_mangled:        MutableMap<string, bool>
 
     /// NON-generic stdlib free fns observed at call sites (UFCS or
     /// direct). Their module bodies are skipped by the lowerer
@@ -265,6 +271,7 @@ export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedPr
         .next_mono_entry_id  = i32(1_000_000),
         .fn_instances        = MutableMap<string, GenericFnInstance> {},
         .fn_instances_order  = [],
+        .seen_mangled        = MutableMap<string, bool> {},
         .nongeneric_stdlib_fns   = MutableMap<i32, bool> {},
         .nongeneric_stdlib_order = [],
         .nongeneric_stdlib_cursor = usize(0),

@@ -1361,7 +1361,7 @@ build_fn_instance_decl :: fn(
     owner_typed :: typed.modules[owner_module_id]
     if owner_typed is null { return null }
     if owner_module is null { return null }
-    fn_decl :: find_fn_decl_by_name(module_decls(owner_module), inst.fn_symbol.name, inst.type_args.len())
+    fn_decl :: find_fn_decl_for_symbol(module_decls(owner_module), inst.fn_symbol, inst.type_args.len())
     if fn_decl is null { return null }
     // Erasure vs concrete subst (GATE A) : a generic fn whose body
     // trait-dispatches on a type-param (e.g. `println<T: Display>` calling
@@ -1440,6 +1440,33 @@ find_fn_decl_by_name :: fn(decls: Decl[], name: string, arity: usize) -> FnDecl 
         }
     }
     return null
+}
+
+// Resolve the AST decl for a monomorphic instance by the RESOLVED overload's
+// identity (its definition span), not just name + arity.
+//
+// Two same-name / same-arity generic overloads — `collect(arr: T[])` vs
+// `collect(it: Iterator<T>)` in `std/iter` — share a name. A name-only lookup
+// (`find_fn_decl_by_name`) always returns the FIRST decl, so the typechecker's
+// resolution (e.g. the `Iterator<T>` overload for a `FilterIterator` receiver)
+// is discarded and the wrong body is emitted — the `arr: T[]` body then runs
+// `array.len` on the iterator struct and traps. Match `name_span` against the
+// symbol's `defined_at` so each instance materialises its own overload body.
+find_fn_decl_for_symbol :: fn(decls: Decl[], sym: Symbol, arity: usize) -> FnDecl | null {
+    match sym.defined_at {
+        is Span as def -> {
+            for d in decls {
+                if d is FnDecl as f {
+                    if f.type_params.len() != arity { continue }
+                    if f.name_span.hash() == def.hash() { return f }
+                }
+            }
+        }
+        is null -> {}
+    }
+    // Fallback : name + arity, for synthetic / cloned decls whose symbol span
+    // doesn't line up with a source `name_span`.
+    return find_fn_decl_by_name(decls, sym.name, arity)
 }
 
 // First non-generic FnDecl named `name` in `decls`. Stdlib fn names are

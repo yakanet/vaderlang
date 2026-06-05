@@ -46,6 +46,7 @@ import "vader/comptime" { EvaluatedProgram }
 import "vader/comptime" { byte_size, byte_align }
 import "vader/comptime" { mangle_type_arg }
 import "vader/comptime" { GenericInstance }
+import "vader/comptime" { uniq }
 import "vader/typecheck" { type_to_target_symbol, has_user }
 import "vader/resolver" { ImportTargetTable, SymbolTarget }
 import "vader/parser" { Decl, ConstDecl, ImplDecl, StructDecl }
@@ -1043,22 +1044,13 @@ try_lower_generic_fn_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> 
                 display :: lookup_module_display_path(ctx, module_id)
                 mod_mangle :: mangle_module_id(if display == null { module_id } else { display })
                 suffix :: mono_suffix(concrete_args)
-                mangled :: "${mod_mangle}$${mod_mangle}$${fn_sym.name}${suffix}"
-                // Register the instance for materialisation at the end
-                // of `lower_project`. Dedup by `<symbol.id>::<suffix>` ;
-                // `fn_instances_order` preserves insertion order for
-                // deterministic dump output.
+                base_mangled :: "${mod_mangle}$${mod_mangle}$${fn_sym.name}${suffix}"
+                // Register the instance for materialisation at the end of
+                // `lower_project`. Dedup by `<symbol.id>::<suffix>` ;
+                // `register_fn_instance_mangle` uniq-disambiguates the mangle
+                // and preserves insertion order for a deterministic dump.
                 inst_key :: "${fn_sym.id}::${suffix}"
-                if ctx.project.fn_instances[inst_key] is null {
-                    new_inst :: GenericFnInstance {
-                        .fn_symbol    = fn_sym,
-                        .type_args    = concrete_args,
-                        .mangled      = mangled,
-                        .owner_module = module_id,
-                    }
-                    ctx.project.fn_instances[inst_key] = new_inst
-                    ctx.project.fn_instances_order.push(new_inst)
-                }
+                mangled :: register_fn_instance_mangle(ctx, fn_sym, concrete_args, module_id, base_mangled, inst_key)
                 // Build args first ; the callee's mangled symbol is the
                 // monomorphic instance. A raw array flowing into an
                 // `Iterator(T)` param coerces through `into` (→
@@ -1101,6 +1093,35 @@ try_lower_generic_fn_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> 
     return null
 }
 
+// Register (once per `inst_key`) the monomorphic instance for
+// `fn_sym<concrete_args>` and return its mangle. The base mangle
+// (`<module>$<module>$<name>__<args>`) is run through `uniq` so two same-name /
+// same-arity overloads (`collect(arr: T[])` vs `collect(it: Iterator<T>)`)
+// don't collide on one fn name — the second to register gets a `_1` suffix,
+// keeping the `dump_bytecode → parse_virt → exec` round-trip's fn names
+// distinct. Subsequent call sites of the same instance reuse the cached mangle.
+register_fn_instance_mangle :: fn(
+    ctx: FnLowerCtx, fn_sym: Symbol, concrete_args: Type[],
+    owner_module: string, base_mangled: string, inst_key: string,
+) -> string {
+    existing :: ctx.project.fn_instances[inst_key]
+    match existing {
+        is GenericFnInstance as gi -> { return gi.mangled }
+        is null -> {
+            fresh :: uniq(ctx.project.seen_mangled, base_mangled)
+            new_inst :: GenericFnInstance {
+                .fn_symbol    = fn_sym,
+                .type_args    = concrete_args,
+                .mangled      = fresh,
+                .owner_module = owner_module,
+            }
+            ctx.project.fn_instances[inst_key] = new_inst
+            ctx.project.fn_instances_order.push(new_inst)
+            return fresh
+        }
+    }
+}
+
 // Shared emit for both bare-ident generic calls and explicit-args
 // `fn<T>(args)` GenericInstExpr calls. Registers the GenericFnInstance
 // and emits the LoweredCall pointing at the monomorphic mangled symbol.
@@ -1119,18 +1140,9 @@ register_and_emit_generic_call :: fn(
     display :: lookup_module_display_path(ctx, module_id)
     mod_mangle :: mangle_module_id(if display == null { module_id } else { display })
     suffix :: mono_suffix(concrete_args)
-    mangled :: "${mod_mangle}$${mod_mangle}$${fn_sym.name}${suffix}"
+    base_mangled :: "${mod_mangle}$${mod_mangle}$${fn_sym.name}${suffix}"
     inst_key :: "${fn_sym.id}::${suffix}"
-    if ctx.project.fn_instances[inst_key] is null {
-        new_inst :: GenericFnInstance {
-            .fn_symbol    = fn_sym,
-            .type_args    = concrete_args,
-            .mangled      = mangled,
-            .owner_module = module_id,
-        }
-        ctx.project.fn_instances[inst_key] = new_inst
-        ctx.project.fn_instances_order.push(new_inst)
-    }
+    mangled :: register_fn_instance_mangle(ctx, fn_sym, concrete_args, module_id, base_mangled, inst_key)
     lowered_args: LoweredExpr[] = []
     for ca in call.args { lowered_args.push(lower_expr(ctx, ca.value)) }
     mono_sym :: Symbol {
@@ -1545,20 +1557,11 @@ harvest_ufcs_fn_instance :: fn(
         // Falls back to fn_sym.module when the lookup misses (defensive).
         display :: lookup_module_display_path(ctx, owner_module)
         mod_mangle :: mangle_module_id(if display == null { owner_module } else { display })
-        mangled :: "${mod_mangle}$${mod_mangle}$${fn_sym.name}${suffix}"
-        // Record the instance once ; return the mangle on every call so the
-        // call site can target it even when a sibling call already harvested.
-        if ctx.project.fn_instances[inst_key] is null {
-            new_inst :: GenericFnInstance {
-                .fn_symbol    = fn_sym,
-                .type_args    = concrete_args,
-                .mangled      = mangled,
-                .owner_module = owner_module,
-            }
-            ctx.project.fn_instances[inst_key] = new_inst
-            ctx.project.fn_instances_order.push(new_inst)
-        }
-        return mangled
+        base_mangled :: "${mod_mangle}$${mod_mangle}$${fn_sym.name}${suffix}"
+        // Record the instance once ; return the (uniq-disambiguated) mangle on
+        // every call so the call site can target it even when a sibling call
+        // already harvested.
+        return register_fn_instance_mangle(ctx, fn_sym, concrete_args, owner_module, base_mangled, inst_key)
     }
     return null
 }
