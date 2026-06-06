@@ -1,0 +1,63 @@
+# Comptime
+
+## stdlib/std/abort
+
+## stdlib/std/core
+
+## stdlib/std/io
+
+## stdlib/std/iter
+
+## stdlib/std/testing
+
+## tests/snippets/_diag_fuse_filter
+
+## generic instances
+  Into<Target>
+  Index<I, T>
+  IndexSet<I, T>
+  Contains<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Yield<T>
+  Yield<U>
+  Yield<T>
+  Yield<T>
+  Yield<T>
+  Yield<T>
+  Yield<T>
+  Yield<T>
+  Range<i32>
+  Range<usize>
+  Range<T>
+  Range<T>
+  Range<T>
+  ArrayIterator<T>
+  ArrayIterator<T>
+  ArrayIterator<T>
+  MapIterator<T, U>
+  MapIterator<T, U>
+  MapIterator<T, U>
+  FilterIterator<i32>
+  FilterIterator<T>
+  FilterIterator<T>
+  FilterIterator<T>
+  TakeIterator<T>
+  TakeIterator<T>
+  TakeIterator<T>
+  SkipIterator<T>
+  SkipIterator<T>
+  SkipIterator<T>

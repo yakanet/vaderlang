@@ -1,0 +1,56 @@
+# Lower
+
+## main
+  fn main$double(x: i32) -> i32
+    ~>
+      mul :i32
+        l:
+          x :i32
+        r:
+          int(2) :i32
+  fn main$main() -> i32
+    let total: i32 = int(0) :i32
+    block :void
+      let __src_0: i32 = int(0) :i32
+      loop while (<…>)
+        let x: i32 =
+          call :i32
+            callee:
+              double :fn(i32) -> i32
+            arg0:
+              __src_0 :i32
+        assign
+          target:
+            total :i32
+          value:
+            add :i32
+              l:
+                total :i32
+              r:
+                x :i32
+        assign
+          target:
+            __src_0 :i32
+          value:
+            add :i32
+              l:
+                __src_0 :i32
+              r:
+                int(1) :i32
+    call :void
+      callee:
+        std_io$std_io$println__string :void
+      arg0:
+        block :string
+          let __sb_1: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_1 :?
+            "fuse_map total=" :string
+          @builder.append_display <for i32> :void
+            __sb_1 :?
+            total :i32
+          ~>
+            @builder.finish :string
+              __sb_1 :?
+    return int(0) :i32

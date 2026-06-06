@@ -1,0 +1,20 @@
+// _diag_fuse_map — minimal iterator-chain fusion repro: range.map(f).
+//
+// Exercises the lowerer's chain-fusion fast path on a single `map` layer.
+// double(x) = x * 2 ; sum over [0, 5) = 2 * (0+1+2+3+4) = 20.
+
+module "main"
+
+import "std/io" { println }
+import "std/iter" { map }
+
+double :: fn(x: i32) -> i32 = x * 2
+
+main :: fn() -> i32 {
+    total: i32 = 0
+    for x in (0..<5).map(double) {
+        total = total + x
+    }
+    println("fuse_map total=${total}")
+    return 0
+}
