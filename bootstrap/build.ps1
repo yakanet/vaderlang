@@ -1,10 +1,10 @@
 #!/usr/bin/env pwsh
-# Build the full Vader compiler from the committed C seed — a 3-stage bootstrap:
+# Build the full Vader compiler from the committed C seed -- a 3-stage bootstrap:
 #   seed   -cc->            build\stage0.exe   (bootstrap compiler; emits C only)
 #   stage0 -emit C-> cc->   build\stage1.exe   (intermediate full compiler)
 #   stage1 -build native->  build\vader.exe    (= stage2, the shipped compiler)
 #
-# Needs a mingw-w64 C compiler (gcc or clang) on PATH — MSVC is NOT supported
+# Needs a mingw-w64 C compiler (gcc or clang) on PATH -- MSVC is NOT supported
 # (the runtime uses __attribute__((weak))). gzip is NOT required: the seed is
 # decompressed through .NET's GZipStream. The compiler defaults to gcc; override
 # with `-CC clang` or $env:CC. It is resolved to an absolute path and passed to
@@ -34,13 +34,13 @@ try { $gz.CopyTo($out) } finally { $out.Close(); $gz.Close(); $in.Close() }
 & $ccAbs $stage0cflags -o build\stage0.exe build\bootstrap.c $runtime -Iruntime\c -lm
 if ($LASTEXITCODE -ne 0) { throw "stage0 compilation failed (exit $LASTEXITCODE)" }
 
-Step "[2/3] Building stage1 (full compiler, via stage0)  — self-compiles ~30 kLoC, ~30s"
+Step "[2/3] Building stage1 (full compiler, via stage0)  -- self-compiles ~30 kLoC, ~30s"
 & .\build\stage0.exe vader\cli\main.vader build\stage1.c
 if ($LASTEXITCODE -ne 0) { throw "stage0 failed to emit stage1.c (exit $LASTEXITCODE)" }
 & $ccAbs $stage0cflags -o build\stage1.exe build\stage1.c $runtime -Iruntime\c -lm
 if ($LASTEXITCODE -ne 0) { throw "stage1 compilation failed (exit $LASTEXITCODE)" }
 
-Step "[3/3] Building vader = stage2 (via stage1, --release)  — ~30s"
+Step "[3/3] Building vader = stage2 (via stage1, --release)  -- ~30s"
 & .\build\stage1.exe build vader\cli\main.vader --release --target=native --out=build\vader --cc=$ccAbs
 if ($LASTEXITCODE -ne 0) { throw "stage1 failed to build vader (exit $LASTEXITCODE)" }
 
@@ -58,5 +58,5 @@ if ($Dist) {
     Copy-Item -Recurse stdlib "$distDir\stdlib"
     Copy-Item -Recurse runtime\c "$distDir\runtime\c"
 
-    Write-Host "==> dist  $distDir ready — a self-contained toolchain (resolves stdlib\ + runtime\c\ next to the binary, so it runs from any directory)." -ForegroundColor Green
+    Write-Host "==> dist  $distDir ready -- a self-contained toolchain (resolves stdlib\ + runtime\c\ next to the binary, so it runs from any directory)." -ForegroundColor Green
 }
