@@ -28,6 +28,16 @@ $ccAbs = $ccCmd.Source
 $stage0cflags = if ($env:STAGE0_CFLAGS) { $env:STAGE0_CFLAGS } else { '-O0' }
 $runtime = "runtime\c\vader_runtime.c"
 
+# Speed up the two self-compiles. The compiler allocates ~37M objects per build
+# and is GC-bound : the default 32 MB young / 256 MB old Cheney arenas force a
+# storm of minor (and some major) collections that scan live data over and over.
+# Bigger starting arenas cut the emit step ~3x (the arenas auto-grow anyway, so
+# this only sets a saner initial size -- no correctness or output change). These
+# are inherited by the stage0/stage1 child processes and ignored by cc. A value
+# the caller already exported wins, so it stays overridable.
+if (-not $env:VADER_GC_YOUNG_BYTES) { $env:VADER_GC_YOUNG_BYTES = [string](256 * 1024 * 1024) }
+if (-not $env:VADER_GC_OLD_BYTES)   { $env:VADER_GC_OLD_BYTES   = [string](512 * 1024 * 1024) }
+
 function Step($msg) { Write-Host "==> $msg" -ForegroundColor Cyan }
 New-Item -ItemType Directory -Force build | Out-Null
 
