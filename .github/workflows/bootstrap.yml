@@ -21,39 +21,29 @@ jobs:
   rebuild:
     name: Rebuild compiler from C seed
     runs-on: ubuntu-latest
-    # Compiling vader/cli/main.vader is large — raise the GC arenas so stage1
-    # and the rebuilt compiler don't OOM on self-input (docs/BOOTSTRAP.md §9).
-    env:
-      VADER_GC_YOUNG_BYTES: 268435456
-      VADER_GC_OLD_BYTES: 1073741824
     steps:
       - uses: actions/checkout@v6
 
-      # gunzip the seed + cc -> build/stage1, then smoke-compile a trivial
-      # snippet. Exercises the user-facing bootstrap/build.sh contract too.
-      - name: Build stage1 from the seed
+      # bootstrap/build.sh runs the whole chain end to end: gunzip the seed,
+      # cc -> stage1, stage1 rebuilds the full compiler from
+      # vader/cli/main.vader, cc -> build/vader (+ a --version smoke test).
+      # The GC arenas auto-grow, so no env tuning is needed.
+      - name: Build the full compiler from the seed
         run: bash bootstrap/build.sh
 
-      - name: stage1 rebuilds the full compiler's C
-        run: ./build/stage1 vader/cli/main.vader build/main.c
-
-      - name: Compile the rebuilt compiler
-        run: cc -O2 -o build/vader build/main.c runtime/c/vader_runtime.c -Iruntime/c -lm
-
       - name: Smoke test the rebuilt compiler
-        run: |
-          ./build/vader --version
-          ./build/vader build tests/snippets/return_42/_main.vader --target=c --out=build/_smoke.c
+        run: ./build/vader build tests/snippets/return_42/_main.vader --target=c --out=build/_smoke.c
 
   fixed-point:
     name: Fixed-point verification
     runs-on: ubuntu-latest
-    # Heavy: full self-reproduction (main1.c == main2.c) + seed-freshness cmp.
-    # Too slow for every PR — run on demand and on release tags only.
-    # See docs/BOOTSTRAP.md Phase 4.
+    # Heavy: builds the full compiler via build.sh, then checks it reproduces
+    # its own C (build/main.c == build/main2.c) and the committed seed
+    # byte-for-byte. Too slow for every PR — run on demand and on release tags
+    # only. See docs/BOOTSTRAP.md Phase 4.
     if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
     steps:
       - uses: actions/checkout@v6
 
-      - name: verify.sh (stage1 + self-reproduction + seed freshness)
+      - name: verify.sh (full build + self-reproduction + seed freshness)
         run: bash bootstrap/verify.sh

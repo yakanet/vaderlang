@@ -2,7 +2,7 @@
 
 > Applicative, simple, portable — the discipline of static typing, the ergonomics of a script.
 
-Vader is a general-purpose, statically-typed language with type inference, targeting native binaries and WebAssembly. The compiler is being bootstrapped in TypeScript and will later self-host in Vader.
+Vader is a general-purpose, statically-typed language with type inference, targeting native binaries and WebAssembly. The compiler is **self-hosted** — written in Vader and able to compile itself. A committed, gzip-compressed C seed (`bootstrap/bootstrap.c.gz`) lets any machine with a C compiler rebuild the toolchain from source — see [`docs/BOOTSTRAP.md`](./docs/BOOTSTRAP.md). (A legacy TypeScript implementation under `src/` predates the self-host and is being retired — see TODO §2.8.)
 
 **Status:** pre-MVP, hobby project. Frontend (lexer → parser → resolver → type-checker → comptime →
 monomorphizer → lowerer) feeds **midir** — a CFG/SSA mid-IR (build → SSA + peephole → DCE → escape
@@ -12,18 +12,21 @@ analysis → stack-allocation → scheduler → fromSSA) — which then emits th
 example programs end-to-end, but they are not battle-tested and should not be relied on for anything
 beyond experimentation. The legacy `LoweredAST → bytecode` walker was retired on 2026-05-09; midir is
 now the single backend backbone. A WASM emitter is on the post-MVP roadmap (Phase 3) — the C
-backend already covers native deployment and isn't load-bearing for the upcoming self-host. See
-[`TODO.md`](./TODO.md) for the live roadmap and [`SPEC.md`](./SPEC.md) for the language reference.
+backend already covers native deployment and is the backbone of the self-host bootstrap (the
+committed seed is its C output). See [`TODO.md`](./TODO.md) for the live roadmap and
+[`SPEC.md`](./SPEC.md) for the language reference.
 
-A self-host port of the compiler in Vader itself is underway: the lexer and parser reach 191/191
-byte-for-byte parity with the TS reference across the full snippet corpus, plus a top-level-decl
-resolver MVP.
+The self-host port now spans the full pipeline (lexer → parser → resolver → type-checker → comptime
+→ monomorphizer → lowerer → midir → bytecode → C emitter). The Vader-built compiler reproduces its
+own generated C byte-for-byte — a verified fixed point — and CI rebuilds the entire toolchain from
+the committed C seed (`bootstrap/`) on every push. What remains is retiring the legacy TypeScript
+implementation under `src/` (TODO §2.8) and the post-MVP backends.
 
 ---
 
 ## Install
 
-Prebuilt archives ship the `vader` binary alongside its stdlib and C runtime. Extract anywhere, then run `vader` directly (or add the folder to your `PATH`, or symlink `vader-<os>-<arch>/vader` into `~/.local/bin/vader`).
+Prebuilt archives ship the `vader` binary alongside the stdlib, the C runtime, and the Vader sources it loads at runtime. Extract anywhere, then run `vader` directly (or add the folder to your `PATH`, or symlink `vader-<os>-<arch>/vader` into `~/.local/bin/vader`).
 
 ```sh
 # macOS arm64 (Apple Silicon — Intel Macs are not supported)
@@ -41,7 +44,7 @@ tar -xzf vader-linux-x64.tar.gz
 vader-windows-x64\vader.exe --version
 ```
 
-The binary discovers `stdlib/` and `runtime/c/` next to itself, so keep the extracted folder intact (or symlink `vader` only if you preserve the original sidecar tree).
+The prebuilt `vader` is, for now, the TypeScript compiler compiled into a standalone Bun executable — it bundles its own runtime (no Bun install needed) but loads `stdlib/`, `runtime/c/`, and the Vader sources (`vader-src/`) from next to itself, so keep the extracted folder intact (or symlink `vader` only if you preserve the original sidecar tree). Once the self-host is sealed (TODO §2.8), releases will ship the native self-hosted binary instead.
 
 On macOS, Gatekeeper will block the unsigned binary on first launch. Strip the quarantine attribute :
 
@@ -51,42 +54,41 @@ xattr -d com.apple.quarantine ./vader-darwin-arm64/vader
 
 ## Build from source
 
-### Prerequisites
+Vader is self-hosted — the compiler is written in Vader and compiles itself — so building from a checkout needs only a C compiler and `gzip`. It bootstraps in two stages from a small, committed C **seed**, which is exactly the chain CI replays on every push :
 
-- **[Bun](https://bun.sh)** ≥ 1.3. Bun is the only runtime/build tool the project relies on.
-  ```sh
-  curl -fsSL https://bun.sh/install | bash
-  ```
-
-### Clone & install
+- **stage0 — the seed.** `bootstrap/bootstrap.c.gz` is gzip-compressed C : the output a Vader compiler once emitted for the build-only entrypoint `vader/bootstrap/bootstrap.vader`, then committed and frozen. It is the trusted starting point — turning it into a working compiler takes nothing but `cc`, which is what breaks the chicken-and-egg of needing a Vader compiler to build the Vader compiler.
+- **stage1 — the compiler built from the seed.** Decompress stage0 and compile it with `cc` to get `build/stage1`. Its CLI is deliberately minimal (`<input.vader> → <output.c>`), but it carries the *whole* compilation pipeline — so it can compile any `.vader`, including `vader/cli/main.vader`, which yields the full `vader` toolchain. A fixed-point check then confirms that full compiler re-emits its own C byte-for-byte.
 
 ```sh
 git clone https://github.com/yakanet/vaderlang.git
 cd vaderlang
-bun install
 ```
 
-Run the compiler directly through Bun :
+### From the C seed
+
+One command runs the whole chain — decompress the seed, build stage1, and have stage1 rebuild the full compiler :
 
 ```sh
-# REPL
-bun src/index.ts
-
-# Show CLI help
-bun src/index.ts --help
+bash bootstrap/build.sh        # seed → stage1 → full compiler, all the way to build/vader
+./build/vader --version
 ```
 
-Build the standalone binary for your host (writes `dist/vader-<os>-<arch>/` and an archive — `.tar.gz` for Unix targets, `.zip` for Windows) :
+`build.sh` prints a step-by-step log and defaults to `cc` ; override it with `CC=clang bootstrap/build.sh`. The runtime is linked externally from `runtime/c/` (no bundling), and the GC arenas auto-grow, so self-compiling the compiler needs no special environment tuning. See [`docs/BOOTSTRAP.md`](./docs/BOOTSTRAP.md) for the seed lifecycle, the regeneration flow (`bootstrap/regenerate.sh`), and the fixed-point verification (`bootstrap/verify.sh`).
 
-```sh
-bun run dist:current
+#### On Windows
 
-# Or cross-compile a specific target / all of them:
-bun run dist:linux-x64
-bun run dist:darwin-arm64
-bun run dist:windows-x64
-bun run dist:all
+The runtime relies on GCC/Clang extensions (`__attribute__((weak))`), so build with **mingw-w64** (gcc or clang) — **not** MSVC. With a mingw-w64 `gcc` on `PATH`, the PowerShell wrapper runs the same whole chain :
+
+```powershell
+powershell -ExecutionPolicy Bypass -File bootstrap\build.ps1   # seed → stage1 → full compiler, to build\vader.exe
+.\build\vader.exe --version
 ```
+
+`build.ps1` decompresses the seed through .NET's `GZipStream`, so no `gzip` install is needed ; pass `-CC clang` (or set `$env:CC`) to pick a different compiler.
+
+Alternatively, the MSYS2 *MINGW64* shell bundles `bash`, mingw-w64 `gcc`, and `gzip` (`pacman -S mingw-w64-x86_64-gcc gzip`), so the Unix commands above run unchanged — the outputs just gain a `.exe` suffix.
+
+(WSL builds a *Linux* binary, not a Windows `.exe` — use the Unix instructions inside it, or cross-compile from macOS/Linux per *Cross-compile to Windows* below.)
 
 ### Hello, Vader
 
@@ -104,11 +106,8 @@ main :: fn() -> i32 {
 Run it via the bytecode VM:
 
 ```sh
-# From a prebuilt binary
-./vader-darwin-arm64/vader run examples/hello.vader
-
-# Or from a source checkout
-bun src/index.ts run examples/hello.vader
+# The vader binary you built from the seed (or a prebuilt release)
+./build/vader run examples/hello.vader
 
 # → Hello, World!
 ```
@@ -116,8 +115,7 @@ bun src/index.ts run examples/hello.vader
 Or compile it to a native binary (requires a C compiler in `PATH`):
 
 ```sh
-./vader-darwin-arm64/vader build examples/hello.vader --target=native --out=/tmp/hello
-# (or: bun src/index.ts build …)
+./build/vader build examples/hello.vader --target=native --out=/tmp/hello
 /tmp/hello
 # → Hello, World!
 ```
@@ -129,7 +127,7 @@ You can also inspect every compilation stage via the `dump` subcommand or emit t
 
 ## CLI
 
-Invoke as `vader <command>` (prebuilt binary) or `bun src/index.ts <command>` (source checkout — both are equivalent).
+Invoke as `vader <command>`. The examples below assume a `vader` on your `PATH` ; otherwise call it by path, e.g. `./build/vader <command>`.
 
 | Command                                        | Status  | What it does                                                                                                                                                                                                                                                              |
 |------------------------------------------------|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -165,19 +163,19 @@ Examples:
 
 ```sh
 # Frontend stages
-bun src/index.ts dump --stage=ast          examples/hello.vader
-bun src/index.ts dump --stage=resolved-ast examples/hello.vader
-bun src/index.ts dump --stage=typed-ast    examples/hello.vader
+vader dump --stage=ast          examples/hello.vader
+vader dump --stage=resolved-ast examples/hello.vader
+vader dump --stage=typed-ast    examples/hello.vader
 
 # Comptime + lowering + DCE + midir CFG + bytecode
-bun src/index.ts dump --stage=evaluated-ast examples/hello.vader
-bun src/index.ts dump --stage=lowered-ast   examples/hello.vader
-bun src/index.ts dump --stage=dced-ast      examples/hello.vader
-bun src/index.ts dump --stage=cfg           examples/hello.vader
-bun src/index.ts dump --stage=bytecode      examples/hello.vader
+vader dump --stage=evaluated-ast examples/hello.vader
+vader dump --stage=lowered-ast   examples/hello.vader
+vader dump --stage=dced-ast      examples/hello.vader
+vader dump --stage=cfg           examples/hello.vader
+vader dump --stage=bytecode      examples/hello.vader
 
 # Emit the .vir IR alongside the source
-bun src/index.ts build --target=ir examples/hello.vader
+vader build --target=ir examples/hello.vader
 # → writes examples/hello.vir
 ```
 
@@ -312,7 +310,7 @@ The full roadmap lives in [`TODO.md`](./TODO.md). The high-level milestones are:
 | **0 — Bootstrap** | Project scaffold, test runner, CLI stub | ✓ done |
 | **1 — MVP (TypeScript compiler)** | Lexer → parser → resolver → type-checker → comptime engine → monomorphizer → lowerer → midir CFG/SSA (DCE + escape + stack-alloc + scheduler) → bytecode emitter → VM (`vader run`) → C emitter with precise Cheney GC (`vader build --target=native`). Trait-object boxing, tuples, `@assert`/`@deprecated`/`@partial`, implicit selector exprs, typed enums, `vader test` + `std/testing` runtime assertions all landed (May 2026). Polish items (slot reuse, C-emit `#line` directives, REPL, manifest mode, static methods, type-first reflection layers) tracked under §1.5 / §1.9 / §1.12 / §1.18b / §1.19 in [`TODO.md`](./TODO.md). | MVP cut shipped |
 | **1.11–1.15 — Runtime, stdlib, CLI, formatter** | `std/` covers io / string / math / collections / iter / sort / json / path / process / runtime / testing. `vader fmt` MVP landed (written in Vader, idempotent + parse round-trip on the stdlib). `vader test` runs `@test` fns through the VM with per-file pass/fail reporting. Manifest-mode build and REPL deferred. | MVP cut shipped |
-| **2 — Self-hosting** | Port the compiler to Vader; bootstrap check (`compiler_v2 == compiler_v3`). Lexer + parser + diagnostics + CLI + resolver MVP + formatter + LSP already ported (191/191 lex + parse parity); LSP semantic classification is currently lexer-based and being upgraded to an AST-based pipeline. | in progress |
+| **2 — Self-hosting** | Port the compiler to Vader; bootstrap check (fixed point — the Vader-built compiler reproduces its own generated C byte-for-byte). The full pipeline (lexer → … → C emitter) is self-hosted, and a committed C seed under `bootstrap/` rebuilds the toolchain from a stock C compiler. Remaining: retire the legacy TypeScript implementation (`src/`, TODO §2.8) and finish the AST-based LSP semantic classification. | mostly done |
 | **3 — Post-MVP** | WASM emitter (bytecode → binary WASM with GC types, importable in the browser / wasmtime), concurrency, networking, VS Code extension, CI pipeline for linux/macOS/Windows. | pending |
 
 ---
