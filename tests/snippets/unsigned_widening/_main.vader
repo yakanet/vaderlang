@@ -1,0 +1,36 @@
+// Unsigned-integer widening must zero-extend, not sign-extend.
+//
+// A u32 whose high bit is set (>= 2^31) carries a magnitude, so widening it to
+// 64 bits must zero-extend. Before the emit_convert fix the inner cast rode the
+// collapsed i32 stack class and sign-extended, so `u64(4_000_000_000)` came out
+// as 18446744073414584320. This pins the boundary cases — and the 64-bit
+// unsigned path that the fix deliberately leaves on `val_of(v)`.
+
+module "snippet"
+
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    // u32 high bit set — the regression case (widen to both u64 and signed i64).
+    big: u32 = 4_000_000_000             // 0xEE6B2800
+    println("u64: ${u64(big)} i64: ${i64(big)}")
+
+    // u32 boundaries : the max value and exactly 2^31 (lowest high-bit value).
+    max32: u32 = 4_294_967_295           // 0xFFFFFFFF — u32 max
+    pow31: u32 = 2_147_483_648           // 0x80000000 — 2^31
+    println("max: ${u64(max32)} pow31: ${u64(pow31)}")
+
+    // Narrow unsigned widths are always < 2^31, so sign- and zero-extension
+    // coincide — they must stay correct through the same .U32 reinterpret.
+    b8: u8 = 200
+    s16: u16 = 65_000
+    println("u8: ${u64(b8)} u16: ${u64(s16)}")
+
+    // 64-bit unsigned — the path the fix leaves untouched (broadening here
+    // regressed the compiler's own literal rendering). Must not change.
+    umax: u64 = 18_446_744_073_709_551_615   // u64 max
+    sz: usize = 9_000_000_000
+    println("u64max: ${umax} usize: ${sz}")
+
+    return 0
+}
