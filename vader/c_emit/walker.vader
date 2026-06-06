@@ -299,7 +299,7 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.TypeConst as tc       -> emit_type_const(s, tc)
         is vm.TypeCheck as tc       -> emit_type_check(s, tc)
         is vm.RefCast as rc         -> emit_ref_cast(s, rc)
-        is vm.Convert as c          -> emit_convert(s, convert_target_val(c.target))
+        is vm.Convert as c          -> emit_convert(s, convert_target_val(c.target), c.from_name)
         is vm.BuilderNew            -> emit_builder_new(s)
         is vm.BuilderAppendStr      -> emit_builder_append_str(s)
         is vm.BuilderAppendDisplay  -> emit_builder_append_display(s)
@@ -380,8 +380,8 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.StringNe              -> push_cmp(s, "!=", .String)
         is vm.StringConcat          -> push_fn_call2(s, "vader_string_concat", .String)
         is vm.StringSliceCodepoints -> emit_string_slice(s)
-        is vm.IntToChar             -> emit_convert(s, .Char)
-        is vm.CharToInt             -> emit_convert(s, .I32)
+        is vm.IntToChar             -> emit_convert(s, .Char, "")
+        is vm.CharToInt             -> emit_convert(s, .I32, "")
         is vm.RefEq                 -> push_binop_any(s, "==", .Bool)
         is vm.RefNe                 -> push_binop_any(s, "!=", .Bool)
         is vm.DeferPush             -> emit_defer_push(s)
@@ -530,10 +530,35 @@ push_eager :: fn(s: FnState, op: string, val: ValType) -> void {
 
 /// Reinterpret the top value into `target_val` (`Convert` / `IntToChar` /
 /// `CharToInt`). Same type → pass-through ; else a `((to)(from) v)`
-/// double-cast (the inner cast pins the source signedness, matching TS).
-emit_convert :: fn(s: FnState, target_val: ValType) -> void {
+/// double-cast where the inner cast pins the *source* signedness (mirrors
+/// the TS emitter, which casts through the op's `from` type).
+///
+/// The bytecode collapses every integer ≤ 32 bits onto the `I32` stack
+/// class, so a `u32` source rides as `.I32` and `val_of(v)` alone would
+/// sign-extend it on a widen to 64 bits. When the op records an unsigned
+/// source (`from_name` starts with `"u"`) widening to `i64`, reinterpret
+/// through `uint32_t` so the bits zero-extend — a `u32` carries a magnitude,
+/// not a signed value.
+///
+/// Kept deliberately narrow to exactly the `i32`-class → `i64` widen. A
+/// broader rule (reinterpret *every* unsigned source through its stack-width
+/// unsigned type, incl. the `.I64` class → `uint64_t`) regresses the
+/// bootstrap : it changes how the compiler's own 64-bit literal rendering
+/// compiles and miscompiles large `i64`/`u64` constants (fixed point breaks,
+/// `INT64_MAX` emits as `4294967295`). u8/u16 are always < 2^31, so sign- and
+/// zero-extension coincide ; u64/usize are already `.I64` and never widen.
+///
+/// @param target_val  the result stack class (`I32`/`I64`/`F64`/`Char`).
+/// @param from_name   the op's recorded source type name (`"u32"`, `"i64"`,
+///                    …) ; `""` for `IntToChar`/`CharToInt` (never 64-bit).
+emit_convert :: fn(s: FnState, target_val: ValType, from_name: string) -> void {
     v :: pop(s)
-    from_val :: val_of(v)
+    stack_val :: val_of(v)
+    from_val :: if target_val == .I64 && stack_val == .I32 && from_name.starts_with("u") {
+        ValType.U32
+    } else {
+        stack_val
+    }
     if from_val == target_val {
         push_expr(s, target_val, name_of(v))
     } else {
