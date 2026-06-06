@@ -313,7 +313,9 @@ op_and     :: fn(left: bool, right: bool) -> bool { return left && right }
 op_or      :: fn(left: bool, right: bool) -> bool { return left || right }
 
 // Float arithmetic dispatches inline since the i64 closure won't fit.
-float_arith :: fn(op: AST.BinaryOp, left: f64, right: f64) -> f64 = match op {
+// @partial: float arithmetic supports only Add/Sub/Mul/Div; other BinaryOps
+// are dispatched elsewhere and default to 0.0.
+float_arith :: fn(op: AST.BinaryOp, left: f64, right: f64) -> f64 = @partial match op {
     .Add -> left + right
     .Sub -> left - right
     .Mul -> left * right

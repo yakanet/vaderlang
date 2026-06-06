@@ -1777,7 +1777,8 @@ parse_stmt :: fn(p: Parser) -> Stmt | null {
  *  `{ matched = false }` when the kind isn't a compound assignment. */
 CompoundOpResult :: struct { matched: bool, op: BinaryOp }
 
-compound_op :: fn(k: TokenKind) = match k {
+// @partial: only compound-assign tokens map to an op; every other token → unmatched.
+compound_op :: fn(k: TokenKind) = @partial match k {
     .PlusAssign    -> CompoundOpResult { .matched = true, .op = .Add }
     .MinusAssign   -> CompoundOpResult { .matched = true, .op = .Sub }
     .StarAssign    -> CompoundOpResult { .matched = true, .op = .Mul }

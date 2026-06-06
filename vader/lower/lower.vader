@@ -1772,7 +1772,8 @@ any_leaves_of :: fn(t: Type) -> Type {
 /// Short stable display used when synthesising the representative's
 /// mangled name. Mirrors `displayAnyArg` in
 /// `src/comptime/erasure-dedupe.ts:105-121`.
-display_any_arg :: fn(t: Type) -> string = match t {
+// @partial: only arg-bearing / composite type shapes render a suffix; every other type → "Any".
+display_any_arg :: fn(t: Type) -> string = @partial match t {
     is StructType as s -> if s.args.is_empty() { s.symbol.name } else { joined_named(s.symbol.name, s.args, "_") }
     is TraitType  as t -> if t.args.is_empty() { t.symbol.name } else { joined_named(t.symbol.name, t.args, "_") }
     is ArrayType  as a -> "${display_any_arg(a.element)}_arr"

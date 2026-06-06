@@ -338,7 +338,8 @@ find_const_decl_by_name :: fn(decls: Decl[], name: string) -> ConstDecl | null {
 // string). Gates `try_fold_unbaked_const` to RHS shapes that fold without
 // touching other consts. Shape predicate (`_ -> false`), mirroring
 // `fmt/printer.vader::is_bitor_chain` — a non-literal Expr is correctly false.
-is_scalar_literal_expr :: fn(e: Expr) -> bool = match e {
+// @partial: only the literal-shaped Expr forms are scalar literals; every other Expr is not.
+is_scalar_literal_expr :: fn(e: Expr) -> bool = @partial match e {
     is IntLitExpr    -> true
     is FloatLitExpr  -> true
     is BoolLitExpr   -> true
@@ -1719,7 +1720,8 @@ build_ufcs_member :: fn(ctx: FnLowerCtx, target_type: Type, target_name: string,
     // self-calls resolve to one name ; concrete-instantiation impls keep the
     // concrete suffix (`Wrapper<i32>` → `count__i32`). Primitive receivers
     // (`string implements Display`) have no args → empty suffix.
-    recv_suffix :: match target_type {
+    // @partial: only struct/array receivers carry an arg suffix; primitive/etc. have none → "".
+    recv_suffix :: @partial match target_type {
         is StructType as s -> {
             // Generic impl : structure-free `__Any` × arity so the call-site
             // name matches the single deduped body regardless of the receiver's
@@ -1841,7 +1843,8 @@ try_lower_cast_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
     if callee_ident is null { return null }
     callee_symbol :: ctx.typed.resolved.idents[callee_ident.span.hash()]
     if callee_symbol is null { return null }
-    is_type_shaped :: match callee_symbol.kind {
+    // @partial: only type-introducing symbol kinds are type-shaped callees; the rest are not.
+    is_type_shaped :: @partial match callee_symbol.kind {
         .BuiltinType -> true
         .Struct      -> true
         .TypeAlias   -> true

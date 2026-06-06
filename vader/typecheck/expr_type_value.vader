@@ -27,9 +27,6 @@ export infer_fn_type_value :: fn(
     e: AST.FnTypeExpr, typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
     for p in e.params { type_from_expr(p, typed.resolved, diags) }
-    match e.return_type {
-        is null -> {}
-        _ -> { type_from_expr(e.return_type, typed.resolved, diags) }
-    }
+    if e.return_type != null { type_from_expr(e.return_type, typed.resolved, diags) }
     return TY_TYPE
 }

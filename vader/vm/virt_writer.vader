@@ -176,7 +176,8 @@ write_element_bytes :: fn(out: u8[], kind: string, value: Value) -> void {
     if kind == "f64"  { /* float bit-cast helper not yet available, emit zero */ write_u64_le(out, u64(0)) return }
 }
 
-read_i32_from :: fn(v: Value) -> i32 = match v {
+// @partial: reads the i32-compatible carriers; every other Value variant → 0.
+read_i32_from :: fn(v: Value) -> i32 = @partial match v {
     is I32Val as i -> i.value
     is I64Val as i -> i32(i.value)
     is BoolVal as b -> if b.value { 1 } else { 0 }
@@ -184,19 +185,22 @@ read_i32_from :: fn(v: Value) -> i32 = match v {
     _                 -> 0
 }
 
-read_i64_from :: fn(v: Value) -> i64 = match v {
+// @partial: reads the i64-compatible carriers; every other Value variant → 0.
+read_i64_from :: fn(v: Value) -> i64 = @partial match v {
     is I64Val as i -> i.value
     is I32Val as i -> i64(i.value)
     _                 -> 0
 }
 
-read_char_from :: fn(v: Value) -> char = match v {
+// @partial: reads char / i32 carriers; every other Value variant → U+0000.
+read_char_from :: fn(v: Value) -> char = @partial match v {
     is CharVal as c -> c.value
     is I32Val  as i -> char(u32(i.value))
     _                  -> char(u32(0))
 }
 
-read_bool_from :: fn(v: Value) -> bool = match v {
+// @partial: only BoolVal reads true/false; every other Value variant → false.
+read_bool_from :: fn(v: Value) -> bool = @partial match v {
     is BoolVal as b -> b.value
     _                  -> false
 }

@@ -1370,12 +1370,9 @@ export walk_bodies :: fn(
                 // declared type so `delta: isize = -1` types the `-1`
                 // UnaryExpr as `isize`, not the default `{integer}`.
                 for f in sd.fields {
-                    match f.default {
-                        is null -> {}
-                        _ -> {
-                            field_ty :: type_from_expr(f.ty, typed.resolved, diags)
-                            check_expr(f.default, field_ty, typed, diags)
-                        }
+                    if f.default != null {
+                        field_ty :: type_from_expr(f.ty, typed.resolved, diags)
+                        check_expr(f.default, field_ty, typed, diags)
                     }
                 }
             }
@@ -1445,7 +1442,12 @@ export walk_bodies :: fn(
                     walk_fn_body(m, typed, diags)
                 }
             }
-            _ -> {}
+            // Body-less decl kinds — nothing to walk. Listed explicitly (not
+            // `_`) so a new Decl variant trips T3013 and forces a decision.
+            is AST.EnumDecl -> {}
+            is AST.TraitDecl -> {}
+            is AST.TypeAliasDecl -> {}
+            is AST.ImportDecl -> {}
         }
     }
 }
@@ -1654,7 +1656,8 @@ is_type_value_expr :: fn(e: AST.Expr, typed: TypedProgram) -> bool {
     return false
 }
 
-is_type_kind :: fn(k: SymbolKind) -> bool = match k {
+// @partial: only type-introducing kinds are type kinds; every other SymbolKind → false.
+is_type_kind :: fn(k: SymbolKind) -> bool = @partial match k {
     .Struct    -> true
     .Trait     -> true
     .Enum      -> true

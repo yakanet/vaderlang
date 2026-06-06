@@ -219,7 +219,8 @@ export convert_value :: fn(v: Value, target: ConvertTarget, from_name: string, a
 }
 
 read_numeric_as_i64 :: fn(v: Value, at_pc: i32) -> i64 | Trap {
-    return match v {
+    // @partial: numeric/bool values convert; every other Value variant traps.
+    return @partial match v {
         is I64Val  as i -> i.value
         is I32Val  as i -> i64(i.value)
         is F64Val  as f -> i64(f.value)
@@ -232,7 +233,8 @@ read_numeric_as_i64 :: fn(v: Value, at_pc: i32) -> i64 | Trap {
 // `I32Val`/`I64Val` ahead of `F64Val` : `int → f64` is the common case
 // (e.g. `unit_f64`'s `f64(next_u64() >> 12)`), already-f64 is rare.
 read_numeric_as_f64 :: fn(v: Value, at_pc: i32) -> f64 | Trap {
-    return match v {
+    // @partial: numeric values convert; every other Value variant traps.
+    return @partial match v {
         is I32Val  as i -> f64(i.value)
         is I64Val  as i -> f64(i.value)
         is F64Val  as f -> f.value
@@ -246,7 +248,8 @@ read_numeric_as_f64 :: fn(v: Value, at_pc: i32) -> f64 | Trap {
 /// `Convert` carriers and width-narrowing consumers (array.get index,
 /// `int.to_char`) need the i32 view of those tags.
 export read_i32 :: fn(v: Value, at_pc: i32, label: string) -> I32Val | Trap {
-    return match v {
+    // @partial: i32/char/i64 carriers unwrap; every other Value variant traps.
+    return @partial match v {
         is I32Val  as i -> i
         is CharVal as c -> I32Val { .value = i32(u32(c.value)) }
         is I64Val  as i -> I32Val { .value = i32(i.value) }
@@ -258,7 +261,8 @@ export read_i32 :: fn(v: Value, at_pc: i32, label: string) -> I32Val | Trap {
 /// transparently so mixed-width ops (e.g. an `i32.const N` flowing into
 /// `i64.add`) just work.
 export read_i64 :: fn(v: Value, at_pc: i32, label: string) -> I64Val | Trap {
-    return match v {
+    // @partial: i64/i32 carriers unwrap; every other Value variant traps.
+    return @partial match v {
         is I64Val as i -> i
         is I32Val as i -> I64Val { .value = i64(i.value) }
         _                 -> Trap { .message = "${label} at pc=${at_pc}: expected i64, got ${describe_value_tag(v)}" }
@@ -321,7 +325,8 @@ export read_bool :: fn(v: Value, at_pc: i32, label: string) -> BoolVal | Trap {
 /// promotes to I64Const to preserve the full unsigned range) and need a
 /// truncated reinterpretation.
 export read_char :: fn(v: Value, at_pc: i32, label: string) -> CharVal | Trap {
-    return match v {
+    // @partial: char/i32/i64 carriers unwrap; every other Value variant traps.
+    return @partial match v {
         is CharVal as c -> c
         is I32Val  as i -> CharVal { .value = char(u32(i.value)) }
         is I64Val  as i -> CharVal { .value = char(u32(i32(i.value))) }
@@ -364,12 +369,13 @@ export read_string :: fn(v: Value, at_pc: i32, label: string) -> StringVal | Tra
 /// allocated variants Trap because the lowerer only emits `ref.eq` against
 /// null or between freshly-built sentinels.
 export value_ref_eq :: fn(a: Value, b: Value, at_pc: i32, label: string) -> bool | Trap {
-    return match a {
+    // @partial: null + primitive operands compare; heap-allocated variants trap.
+    return @partial match a {
         is NullVal         -> b is NullVal
-        is I32Val    as ai -> match b { is I32Val    as bi -> ai.value == bi.value, _ -> false }
-        is BoolVal   as ab -> match b { is BoolVal   as bb -> ab.value == bb.value, _ -> false }
-        is CharVal   as ac -> match b { is CharVal   as bc -> ac.value == bc.value, _ -> false }
-        is StringVal as ax -> match b { is StringVal as bx -> ax.value == bx.value, _ -> false }
+        is I32Val    as ai -> if b is I32Val    as bi { ai.value == bi.value } else { false }
+        is BoolVal   as ab -> if b is BoolVal   as bb { ab.value == bb.value } else { false }
+        is CharVal   as ac -> if b is CharVal   as bc { ac.value == bc.value } else { false }
+        is StringVal as ax -> if b is StringVal as bx { ax.value == bx.value } else { false }
         _                  -> Trap { .message = "${label} on ${describe_value_tag(a)} not supported at pc=${at_pc} (only null + primitive operands)" }
     }
 }
@@ -382,11 +388,13 @@ export type_matches :: fn(module: Module, v: Value, type_id: i32) -> bool {
     type_decl :: module.types[usize(type_id)]
     return match type_decl {
         is PrimitiveType as p -> primitive_matches(v, p.kind)
-        is StructType         -> match v {
+        // @partial: only StructVal carries a matchable tag; every other Value → false.
+        is StructType         -> @partial match v {
             is StructVal as s -> s.type_id == type_id || struct_siblings_match(module, s.type_id, type_id)
             _                 -> false
         }
-        is ArrayType          -> match v {
+        // @partial: only ArrayVal carries a matchable tag; every other Value → false.
+        is ArrayType          -> @partial match v {
             is ArrayVal as a  -> a.type_id == type_id
             _                 -> false
         }
@@ -468,13 +476,15 @@ prefix_before_double_underscore :: fn(s: string) -> string {
 export ref_type_matches :: fn(module: Module, v: Value, trait_name: string) -> bool {
     if trait_name == "Error" {
         if v is ErrorVal { return true }
-        return match v {
+        // @partial: only a StructVal can implement Error via the impl table; else false.
+        return @partial match v {
             is StructVal as s -> trait_implemented_by(module, "Error", s.type_id)
             _                    -> false
         }
     }
     if trait_name == "" {
-        return match v {
+        // @partial: `ref _` accepts any heap variant; primitives/null → false.
+        return @partial match v {
             is StructVal  -> true
             is ArrayVal   -> true
             is BuilderVal -> true
@@ -482,7 +492,8 @@ export ref_type_matches :: fn(module: Module, v: Value, trait_name: string) -> b
             _                -> false
         }
     }
-    return match v {
+    // @partial: only a StructVal can implement a named trait via the impl table; else false.
+    return @partial match v {
         is StructVal as s -> trait_implemented_by(module, trait_name, s.type_id)
         _                    -> false
     }
@@ -523,7 +534,8 @@ export trait_implemented_by :: fn(module: Module, trait_name: string, type_id: i
 /// matching the value's runtime tag. Returns `-1` when nothing matches
 /// (caller traps).
 export receiver_type_id_of :: fn(module: Module, v: Value) -> i32 {
-    return match v {
+    // @partial: struct/array receivers carry a type_id; primitives resolve via the table.
+    return @partial match v {
         is StructVal as s -> s.type_id
         is ArrayVal  as a -> a.type_id
         _                    -> primitive_type_id(module, v)

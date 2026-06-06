@@ -283,7 +283,8 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
         // unsigned form by reinterpreting the bit pattern.
         if is_unsigned_display_host(info.mangled) {
             v :: stack[arg_base]
-            return match v {
+            // @partial: integer carriers reinterpret as unsigned; other tags trap.
+            return @partial match v {
                 is I64Val as i -> HostOk { .value = StringVal { .value = u64(i.value).to_string() } }
                 is I32Val as i -> HostOk { .value = StringVal { .value = u64(u32(i.value)).to_string() } }
                 // Any other Value tag means the lowerer routed a non-

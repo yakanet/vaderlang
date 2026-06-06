@@ -342,7 +342,8 @@ apply_f64_cmp :: fn(frame: Frame, op_label: string, cmp: fn(f64, f64) -> bool) -
 /// @return        the `I64Val` payload on success, or a `Trap` on type
 ///                mismatch.
 read_i64 :: fn(v: Value, at_pc: i32, label: string) -> I64Val | Trap {
-    return match v {
+    // @partial: i64/i32 carriers unwrap; every other Value variant traps.
+    return @partial match v {
         is I64Val as i -> i
         is I32Val as i -> I64Val { .value = i64(i.value) }
         _                 -> Trap { .message = "${label} at pc=${at_pc}: expected i64, got ${describe_value_tag(v)}" }
