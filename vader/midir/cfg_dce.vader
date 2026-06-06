@@ -492,6 +492,14 @@ remap_instr :: fn(ins: Instruction, m: i32[]) -> Instruction {
             .display_for = it.display_for,
         }
     }
+    // `InstrDeferPush.value` is a read operand (`for_each_read_local` visits it),
+    // so `compact_locals` renumbers it and it MUST be remapped here too — else
+    // the deferred thunk reads a stale slot after compaction.
+    if ins is InstrDeferPush as dp {
+        return InstrDeferPush { .span = dp.span, .value = remap_local(m, dp.value) }
+    }
+    // `InstrDeferPopExec` carries no LocalId ; every remaining instruction has
+    // no operand to remap, so passing it through unchanged is correct.
     return ins
 }
 

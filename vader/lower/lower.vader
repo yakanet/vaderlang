@@ -28,6 +28,7 @@ import "vader/typecheck" { Substitution, new_substitution, substitute, is_empty_
 import "vader/types" { UnresolvedType }
 import "vader/types" {
     Type, FnType, StructType, TypeMetaType, TypeParamType, ArrayType, mk_struct, mk_primitive,
+    TraitType, TupleType, UnionType, SelfType, FreeIntType, FreeFloatType, NeverType, AnyType,
     display_type, for_each_type, TY_BOOL, TY_UNRESOLVED, TY_VOID,
 }
 import "vader/typecheck" { default_if_free }
@@ -1895,8 +1896,35 @@ has_type_param :: fn(t: Type) -> bool {
             for a in s.args { if has_type_param(a) { return true } }
             return false
         }
+        is TraitType as r -> {
+            for a in r.args { if has_type_param(a) { return true } }
+            return false
+        }
         is ArrayType as ar -> { return has_type_param(ar.element) }
-        _ -> { return false }
+        is TupleType as tu -> {
+            for el in tu.elements { if has_type_param(el) { return true } }
+            return false
+        }
+        is UnionType as u -> {
+            for v in u.variants { if has_type_param(v) { return true } }
+            return false
+        }
+        is FnType as f -> {
+            for p in f.params { if has_type_param(p) { return true } }
+            return has_type_param(f.return_type)
+        }
+        // Scalar / nominal-without-args / sentinel variants nest no type
+        // params. Listed explicitly (not `_`) so a new structural Type
+        // variant trips T3013 here instead of silently reading as concrete.
+        is PrimitiveType  -> { return false }
+        is EnumType       -> { return false }
+        is TypeMetaType   -> { return false }
+        is SelfType       -> { return false }
+        is UnresolvedType -> { return false }
+        is FreeIntType    -> { return false }
+        is FreeFloatType  -> { return false }
+        is NeverType      -> { return false }
+        is AnyType        -> { return false }
     }
 }
 

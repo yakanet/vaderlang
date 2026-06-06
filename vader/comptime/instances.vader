@@ -16,7 +16,7 @@ import "vader/resolver/symbol" { Symbol }
 import "vader/types" {
     Type, PrimitiveType, StructType, EnumType, TraitType, ArrayType, TupleType,
     FnType, TypeParamType, UnionType, UnresolvedType, FreeIntType, FreeFloatType,
-    SelfType, display_type,
+    SelfType, TypeMetaType, NeverType, AnyType, display_type,
 }
 
 /// One registered instantiation. `args` carries the concrete (or
@@ -163,7 +163,16 @@ canonical_type_key :: fn(t: Type) -> string = match t {
     is FnType         as f  -> "F:(${canonical_args_key(f.params)})->${canonical_type_key(f.return_type)}"
     is TypeParamType  as p  -> "X:${p.symbol.id}"
     is UnionType      as u  -> "N:(${canonical_args_key(u.variants)})"
-    _                       -> "?"
+    // Sentinel / metatype variants get a distinct constant key each — a single
+    // shared `_ -> "?"` collapsed all of them, colliding e.g. Never with Any
+    // and dropping the dedup distinction.
+    is TypeMetaType         -> "M:"
+    is SelfType             -> "Sf:"
+    is UnresolvedType       -> "Ur:"
+    is FreeIntType          -> "Fi:"
+    is FreeFloatType        -> "Ff:"
+    is NeverType            -> "Nv:"
+    is AnyType              -> "Y:"
 }
 
 /// Return the registry's instances sorted alphabetically by

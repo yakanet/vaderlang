@@ -219,7 +219,6 @@ walk_expr :: fn(e: LoweredExpr, ctx: WalkCtx) -> void {
         is LoweredCharLit      -> {}
         is LoweredStringLit    -> {}
         is LoweredUnreachable  -> {}
-        _ -> {}
     }
 }
 
