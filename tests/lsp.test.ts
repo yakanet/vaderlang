@@ -13,6 +13,11 @@ import { test, expect } from "bun:test";
 
 import { MEDIUM_BUILD } from "./cli-bin.ts";
 
+// NOTE: still spawns the TS CLI's `lsp`. Native `vader lsp` does not yet emit
+// clean JSON-RPC the way the TS shim does (the frame parser chokes on its
+// output), so these end-to-end sessions can't drive the native binary. Flip
+// the `cmd` arrays below to `[CLI_BIN, "lsp"]` once native lsp is at parity.
+
 const ENABLED = process.env.RUN_LSP_TESTS === "1";
 
 type Json = unknown;

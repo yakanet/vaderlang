@@ -1,3 +1,7 @@
+// NOTE: still drives the TS CLI in-process. The `test` subcommand cases below
+// depend on a working test runner, and native `vader test` is a stub today
+// (vader/cli/main.vader::cmd_test → "not yet implemented", exit 2). Flip the
+// whole file to spawn build/vader (via cli-bin's runCli) once cmd_test lands.
 import { describe, expect, test } from "bun:test";
 import { runCli } from "../src/cli.ts";
 

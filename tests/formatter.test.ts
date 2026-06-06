@@ -13,11 +13,10 @@
 // them failed when not set.
 
 import { test, expect } from "bun:test";
-import { readFileSync, existsSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { join } from "node:path";
 
-import { parseSource } from "../src/parser/pipeline.ts";
-import { MEDIUM_BUILD } from "./cli-bin.ts";
+import { CLI_BIN, MEDIUM_BUILD, runCli } from "./cli-bin.ts";
 
 const ENABLED = process.env.RUN_FMT_TESTS === "1";
 
@@ -50,7 +49,7 @@ const SNIPPETS = [
 
 function fmtStdout(path: string): string {
   const proc = Bun.spawnSync({
-    cmd: ["bun", "src/index.ts", "fmt", "--stdout", path],
+    cmd: [CLI_BIN, "fmt", "--stdout", path],
     cwd: process.cwd(),
     stdout: "pipe",
     stderr: "pipe",
@@ -77,20 +76,15 @@ function fmtString(source: string): string {
   }
 }
 
-// Deep-equality on AST modulo spans and file paths (both shift between
-// runs and don't affect program meaning).
-const STRIPPED_KEYS = new Set([
-  "span", "nameSpan", "fieldSpan", "bindingSpan",
-  "traitNameSpan", "variantSpan", "valueSpan", "file",
-]);
-
-function astJson(src: string, file: string): string {
-  const { program } = parseSource(src, file);
-  return JSON.stringify(program, (key, value) => {
-    if (STRIPPED_KEYS.has(key)) return undefined;
-    if (typeof value === "bigint") return `${value.toString()}n`;
-    return value;
-  });
+// Structural AST via the Vader CLI. `dump --stage=ast` elides spans and
+// embeds no file path, so two dumps are directly comparable ; the module
+// name comes from the source `module "..."` decl, which formatting preserves.
+async function astDump(path: string): Promise<string> {
+  const { stdout, stderr, exit } = await runCli(["dump", "--stage=ast", path]);
+  if (exit !== 0) {
+    throw new Error(`vader dump --stage=ast failed on ${path} (exit ${exit}) :\n${stderr}`);
+  }
+  return stdout;
 }
 
 for (const name of SNIPPETS) {
@@ -111,8 +105,13 @@ for (const name of SNIPPETS) {
     if (!existsSync(path)) {
       throw new Error(`snippet missing : ${path}`);
     }
-    const src = readFileSync(path, "utf8");
     const formatted = fmtStdout(path);
-    expect(astJson(formatted, path)).toBe(astJson(src, path));
+    const tmp = join(process.cwd(), `.tmp-fmt-ast-${name}.vader`);
+    await Bun.write(tmp, formatted);
+    try {
+      expect(await astDump(tmp)).toBe(await astDump(path));
+    } finally {
+      try { Bun.file(tmp).delete?.(); } catch { /* ignore */ }
+    }
   }, { timeout: MEDIUM_BUILD });
 }

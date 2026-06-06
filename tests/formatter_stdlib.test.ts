@@ -11,7 +11,7 @@
 import { test, expect } from "bun:test";
 import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { MEDIUM_BUILD } from "./cli-bin.ts";
+import { CLI_BIN, MEDIUM_BUILD } from "./cli-bin.ts";
 
 const ENABLED = process.env.RUN_FMT_TESTS === "1";
 
@@ -44,7 +44,7 @@ const NO_OP_FILES = new Set([
 
 function fmtStdout(path: string): string {
   const proc = Bun.spawnSync({
-    cmd: ["bun", "src/index.ts", "fmt", "--stdout", path],
+    cmd: [CLI_BIN, "fmt", "--stdout", path],
     cwd: process.cwd(),
     stdout: "pipe",
     stderr: "pipe",
