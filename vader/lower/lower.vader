@@ -2435,22 +2435,19 @@ materialize_impl_members_for :: fn(
             if module_loaded is null { continue }
             if module_loaded is LoadedModule as ml {
                 for d in module_decls(ml) {
-                    match d {
-                        is ImplDecl as impl_decl -> {
-                            if !is_generic_impl_for(impl_decl, inst.symbol.name) { continue }
-                            materialize_impl_for_instance(
-                                impl_decl, inst, mt, owner_typed, project_ctx, project,
-                            )
-                            // The impl body virtual-calls the bound traits'
-                            // methods on the type-param (`cursor.gte(...)` /
-                            // `cursor.step()` in `Range.next`). Materialise
-                            // those bound-trait impls for the concrete args so
-                            // the vtable carries the matching entries.
-                            materialize_bound_trait_impls(
-                                impl_decl, inst, project_ctx, project, loaded, typed, diags,
-                            )
-                        }
-                        _ -> {}
+                    if d is ImplDecl as impl_decl {
+                        if !is_generic_impl_for(impl_decl, inst.symbol.name) { continue }
+                        materialize_impl_for_instance(
+                            impl_decl, inst, mt, owner_typed, project_ctx, project,
+                        )
+                        // The impl body virtual-calls the bound traits'
+                        // methods on the type-param (`cursor.gte(...)` /
+                        // `cursor.step()` in `Range.next`). Materialise
+                        // those bound-trait impls for the concrete args so
+                        // the vtable carries the matching entries.
+                        materialize_bound_trait_impls(
+                            impl_decl, inst, project_ctx, project, loaded, typed, diags,
+                        )
                     }
                 }
             }

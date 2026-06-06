@@ -159,7 +159,11 @@ detect_is_narrow :: fn(
         if !(ident_side is null) {
             sym :: typed.resolved.idents[ident_side.span.hash()]
             if sym is null { return null }
-            base :: type_of_symbol(sym, typed)
+            // Subtract from the binding's CURRENT flow-narrowed type, not its
+            // declared type, so nested / sequential guards compose : an outer
+            // `!(x is null)` must survive an inner `!(x is T)`. Falls back to
+            // the declared type when no narrowing is active for this binding.
+            base :: narrow_for_binding(typed, sym.id, type_of_symbol(sym, typed))
             // Never narrow an unresolved binding — mirrors the field-chain
             // guard in `resolve_field_chain_static` (narrow.vader). A
             // premature imported-body walk (settle pass 0, before the
@@ -214,7 +218,9 @@ detect_is_narrow :: fn(
     if cond.left is AST.IdentExpr {
         sym :: typed.resolved.idents[cond.left.span.hash()]
         if sym is null { return null }
-        base :: type_of_symbol(sym, typed)
+        // Current flow-narrowed base (see the `== null` path) so nested guards
+        // compose instead of resetting to the declared union each time.
+        base :: narrow_for_binding(typed, sym.id, type_of_symbol(sym, typed))
         // Same guard as the ident-vs-null path above: don't narrow an
         // unresolved binding.
         if base is UnresolvedType { return null }
