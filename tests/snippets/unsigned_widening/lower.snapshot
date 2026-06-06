@@ -1,0 +1,134 @@
+# Lower
+
+## snippet
+  fn snippet$main() -> i32
+    let big: u32 = int(4000000000) :u32
+    call :void
+      callee:
+        std_io$std_io$println__string :void
+      arg0:
+        block :string
+          let __sb_0: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_0 :?
+            "u64: " :string
+          @builder.append_str :void
+            __sb_0 :?
+            call :string
+              callee:
+                std_core$u64$Display$to_string :string
+              arg0:
+                cast → u64
+                  big :u32
+          @builder.append_str :void
+            __sb_0 :?
+            " i64: " :string
+          @builder.append_display <for i64> :void
+            __sb_0 :?
+            cast → i64
+              big :u32
+          ~>
+            @builder.finish :string
+              __sb_0 :?
+    let max32: u32 = int(4294967295) :u32
+    let pow31: u32 = int(2147483648) :u32
+    call :void
+      callee:
+        std_io$std_io$println__string :void
+      arg0:
+        block :string
+          let __sb_1: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_1 :?
+            "max: " :string
+          @builder.append_str :void
+            __sb_1 :?
+            call :string
+              callee:
+                std_core$u64$Display$to_string :string
+              arg0:
+                cast → u64
+                  max32 :u32
+          @builder.append_str :void
+            __sb_1 :?
+            " pow31: " :string
+          @builder.append_str :void
+            __sb_1 :?
+            call :string
+              callee:
+                std_core$u64$Display$to_string :string
+              arg0:
+                cast → u64
+                  pow31 :u32
+          ~>
+            @builder.finish :string
+              __sb_1 :?
+    let b8: u8 = int(200) :u8
+    let s16: u16 = int(65000) :u16
+    call :void
+      callee:
+        std_io$std_io$println__string :void
+      arg0:
+        block :string
+          let __sb_2: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_2 :?
+            "u8: " :string
+          @builder.append_str :void
+            __sb_2 :?
+            call :string
+              callee:
+                std_core$u64$Display$to_string :string
+              arg0:
+                cast → u64
+                  b8 :u8
+          @builder.append_str :void
+            __sb_2 :?
+            " u16: " :string
+          @builder.append_str :void
+            __sb_2 :?
+            call :string
+              callee:
+                std_core$u64$Display$to_string :string
+              arg0:
+                cast → u64
+                  s16 :u16
+          ~>
+            @builder.finish :string
+              __sb_2 :?
+    let umax: u64 = int(18446744073709551615) :u64
+    let sz: usize = int(9000000000) :usize
+    call :void
+      callee:
+        std_io$std_io$println__string :void
+      arg0:
+        block :string
+          let __sb_3: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_3 :?
+            "u64max: " :string
+          @builder.append_str :void
+            __sb_3 :?
+            call :string
+              callee:
+                std_core$u64$Display$to_string :string
+              arg0:
+                umax :u64
+          @builder.append_str :void
+            __sb_3 :?
+            " usize: " :string
+          @builder.append_str :void
+            __sb_3 :?
+            call :string
+              callee:
+                std_core$usize$Display$to_string :string
+              arg0:
+                sz :usize
+          ~>
+            @builder.finish :string
+              __sb_3 :?
+    return int(0) :i32

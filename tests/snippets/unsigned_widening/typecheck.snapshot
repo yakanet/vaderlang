@@ -1,0 +1,36 @@
+# Typecheck
+
+## tests/snippets/unsigned_widening
+  FnDecl         main                 :: fn() -> i32
+  expr 16:13    StringLitExpr  :: string
+  expr 16:21    CallExpr       :: u64
+  expr 16:21    IdentExpr      :: type
+  expr 16:25    IdentExpr      :: u32
+  expr 16:38    CallExpr       :: i64
+  expr 16:38    IdentExpr      :: type
+  expr 16:42    IdentExpr      :: u32
+  expr 16:5     CallExpr       :: void
+  expr 16:5     IdentExpr      :: fn(T) -> void
+  expr 21:13    StringLitExpr  :: string
+  expr 21:21    CallExpr       :: u64
+  expr 21:21    IdentExpr      :: type
+  expr 21:25    IdentExpr      :: u32
+  expr 21:42    CallExpr       :: u64
+  expr 21:42    IdentExpr      :: type
+  expr 21:46    IdentExpr      :: u32
+  expr 21:5     CallExpr       :: void
+  expr 21:5     IdentExpr      :: fn(T) -> void
+  expr 27:13    StringLitExpr  :: string
+  expr 27:20    CallExpr       :: u64
+  expr 27:20    IdentExpr      :: type
+  expr 27:24    IdentExpr      :: u8
+  expr 27:36    CallExpr       :: u64
+  expr 27:36    IdentExpr      :: type
+  expr 27:40    IdentExpr      :: u16
+  expr 27:5     CallExpr       :: void
+  expr 27:5     IdentExpr      :: fn(T) -> void
+  expr 33:13    StringLitExpr  :: string
+  expr 33:24    IdentExpr      :: u64
+  expr 33:39    IdentExpr      :: usize
+  expr 33:5     CallExpr       :: void
+  expr 33:5     IdentExpr      :: fn(T) -> void
