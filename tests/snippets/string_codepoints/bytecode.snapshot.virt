@@ -674,8 +674,7 @@ fn 9 snippet$main () -> i32
   intrinsic builder.finish
   call 0
   string.const 12
-  local.set 1
-  local.get 1
+  local.tee 1
   call.import 3
   local.set 2
   i64.const 0

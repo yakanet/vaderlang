@@ -43,8 +43,7 @@ end
 fn 2 snippet$main () -> i32
   local matched bool
   bool.const false
-  local.set 0
-  local.get 0
+  local.tee 0
   if $L0 void
     string.const 2
     call 1

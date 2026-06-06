@@ -332,6 +332,33 @@ try_fold_arith :: fn(op: Op, out: Op[], out_len: usize) -> Op | null {
 export run_bc_peephole :: fn(function: BcFunction) -> BcPeepholeOut {
     body :: function.body
     n :: body.len()
+    // Per-slot set / get / tee counts over the original body. They keep the
+    // Rule-1 const-skip below precise : the skip hands the slot off to
+    // `propagate_const_single_use`, which only fires on a propagate-eligible
+    // slot (its gate is exactly `set_count == 1 && get_count == 1 &&
+    // tee_count == 0`). A value-`match` / value-`if` result is written in
+    // BOTH branches, so its `if_res` slot has `set_count == 2` — not
+    // eligible. Skipping there would strand the slot's lone `local.get` (the
+    // join read), keeping the slot live so `drop_dead_stores` can't reclaim
+    // the per-level result-propagation tees — an O(N²) copy cascade, one
+    // chain per arm. Folding the `set ; get → tee` instead lets the get
+    // collapse and the dead tees drop. (Raw midir emits the moves as
+    // `get ; set` pairs, no tees yet, so `tee_count` is 0 here — the
+    // discriminant that actually fires is `set_count`.)
+    total_slots :: function.signature.params.len() + function.locals.len()
+    set_count: i32[] = []
+    get_count: i32[] = []
+    tee_count: i32[] = []
+    for 0..<total_slots {
+        set_count.push(0)
+        get_count.push(0)
+        tee_count.push(0)
+    }
+    for op in body {
+        if op is LocalSet as cs { set_count[usize(cs.slot)] += 1 }
+        if op is LocalGet as cg { get_count[usize(cg.slot)] += 1 }
+        if op is LocalTee as ct { tee_count[usize(ct.slot)] += 1 }
+    }
     out: Op[] = []
     out_len: usize = 0
     // Per-old-PC : new PC in `out` (or -1 when the op was dropped).
@@ -343,24 +370,29 @@ export run_bc_peephole :: fn(function: BcFunction) -> BcPeepholeOut {
         op :: body[i]
 
         // Rule 1 — `LocalSet N ; LocalGet N` → `LocalTee N`. Skip the
-        // fold when the preceding op is a const (`IntConst` etc.) :
-        // `propagate_const_single_use` will inline the const into the
-        // get site and drop the set, which is what TS produces for
-        // `let n = 5` / `let x: T = literal` patterns. Folding to tee
-        // here would block propagate (tee_count != 0 in its gate) and
-        // leave a `local.tee N` that TS doesn't have.
+        // fold when the preceding op is a const (`IntConst` etc.) AND the
+        // slot is propagate-eligible (zero tees) : `propagate_const_single_use`
+        // will then inline the const into the get site and drop the set,
+        // which is what TS produces for `let n = 5` / `let x: T = literal`
+        // patterns. A slot that is teed elsewhere (a value-`match`'s per-arm
+        // `if_res` chain) is NOT propagate-eligible, so folding to a tee here
+        // — letting `drop_dead_stores` reclaim it — is the only way to avoid
+        // an O(N²) tee cascade ; skipping would strand the surviving get.
         if op is LocalSet as ls {
-            if i + usize(1) < n {
-                next :: body[i + usize(1)]
+            if i + 1 < n {
+                next :: body[i + 1]
                 if next is LocalGet as lg {
                     if lg.slot == ls.slot {
                         prev_is_const := false
-                        if out_len > usize(0) {
-                            prev :: out[out_len - usize(1)]
+                        if out_len > 0 {
+                            prev :: out[out_len - 1]
                             cv :: const_op_of(prev)
                             if !(cv is null) { prev_is_const = true }
                         }
-                        if !prev_is_const {
+                        slot_u :: usize(ls.slot)
+                        propagate_eligible :: set_count[slot_u] == 1 && get_count[slot_u] == 1 && tee_count[slot_u] == 0
+                        skip_fold :: prev_is_const && propagate_eligible
+                        if !skip_fold {
                             push_or_assign(out, out_len, LocalTee { .slot = ls.slot })
                             old_to_new[i] = i32(out_len)
                             old_to_new[i + usize(1)] = i32(out_len)

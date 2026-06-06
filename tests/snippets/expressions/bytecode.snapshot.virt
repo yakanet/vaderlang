@@ -154,23 +154,17 @@ end
 
 fn 10 std_core$Range$Iterator$is_empty__i32 (ref) -> bool
   local __scrut_0 ref
-  local if_res bool
   local.get 0
   call 9
   local.tee 1
   type_check 0
   if $L0 void
-    bool.const true
-    local.set 2
-    local.get 2
-    return
+    return.lit bool.const true
   end $L0
   local.get 1
   type_check 5
   if $L1 void
-    bool.const false
-    local.tee 2
-    return
+    return.lit bool.const false
   end $L1
   return
 end

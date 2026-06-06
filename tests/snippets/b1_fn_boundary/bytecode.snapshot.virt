@@ -37,15 +37,11 @@ end
 fn 2 snippet$find (ref,i32) -> ref
   local __scrut_0 ref
   local if_res ref
-  local if_res ref
   local.get 0
   local.tee 2
   type_check 0
   if $L0 void
-    null.const
-    local.set 3
-    local.get 3
-    return
+    return.lit null.const
   end $L0
   local.get 2
   type_check 5
@@ -58,15 +54,14 @@ fn 2 snippet$find (ref,i32) -> ref
     i32.eq
     if $L2 void
       local.get 2
-      local.set 4
+      local.set 3
     else
       local.field 2 5 1
       local.get 1
       call 2
-      local.set 4
+      local.set 3
     end $L2
-    local.get 4
-    local.tee 3
+    local.get 3
     return
   end $L1
   return
@@ -74,16 +69,12 @@ end
 
 fn 3 snippet$length (ref) -> i32
   local __scrut_0 ref
-  local if_res i32
   local $call_11 i32
   local.get 0
   local.tee 1
   type_check 0
   if $L0 void
-    i32.const 0
-    local.set 2
-    local.get 2
-    return
+    return.lit i32.const 0
   end $L0
   local.get 1
   type_check 5
@@ -92,11 +83,10 @@ fn 3 snippet$length (ref) -> i32
     local.set 1
     local.field 1 5 1
     call 3
-    local.set 3
+    local.set 2
     i32.const 1
-    local.get 3
+    local.get 2
     i32.add
-    local.tee 2
     return
   end $L1
   return

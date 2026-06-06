@@ -31,7 +31,6 @@ end
 
 fn 1 snippet$show (ref) -> string
   local __scrut_0 ref
-  local if_res string
   local p ref
   local __sb_2 any
   local $field_12 i32
@@ -40,30 +39,26 @@ fn 1 snippet$show (ref) -> string
   local.tee 1
   type_check 0
   if $L0 void
-    string.const 1
-    local.set 2
-    local.get 2
-    return
+    return.lit string.const 1
   end $L0
   local.get 1
   type_check 5
   if $L1 void
     local.get 1
-    local.set 3
+    local.set 2
     intrinsic builder.new
-    local.set 4
-    local.get 4
+    local.set 3
+    local.get 3
     string.const 2
     intrinsic builder.append_str
-    local.field 3 5 0
+    local.field 2 5 0
     ref.cast 3
-    local.set 5
+    local.set 4
+    local.get 3
     local.get 4
-    local.get 5
     intrinsic builder.append_display
-    local.get 4
+    local.get 3
     intrinsic builder.finish
-    local.tee 2
     return
   end $L1
   local.get 1
@@ -72,19 +67,18 @@ fn 1 snippet$show (ref) -> string
     local.get 1
     local.set 1
     intrinsic builder.new
-    local.set 4
-    local.get 4
+    local.set 3
+    local.get 3
     string.const 3
     intrinsic builder.append_str
     local.field 1 6 0
     ref.cast 1
-    local.set 6
-    local.get 4
-    local.get 6
+    local.set 5
+    local.get 3
+    local.get 5
     intrinsic builder.append_display
-    local.get 4
+    local.get 3
     intrinsic builder.finish
-    local.tee 2
     return
   end $L2
   return
