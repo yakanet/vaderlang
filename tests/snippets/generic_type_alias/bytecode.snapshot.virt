@@ -64,8 +64,7 @@ fn 1 snippet$main () -> i32
       string.const 3
       call 0
       string.const 5
-      local.set 9
-      local.get 9
+      local.tee 9
       local.tee 10
       type_check 3
       if $L2 void
@@ -130,8 +129,7 @@ fn 1 snippet$main () -> i32
       intrinsic builder.finish
       call 0
       string.const 5
-      local.set 9
-      local.get 9
+      local.tee 9
       local.tee 10
       type_check 3
       if $L5 void
@@ -202,8 +200,7 @@ fn 1 snippet$main () -> i32
       string.const 3
       call 0
       string.const 5
-      local.set 9
-      local.get 9
+      local.tee 9
       local.tee 10
       type_check 3
       if $L9 void
@@ -268,8 +265,7 @@ fn 1 snippet$main () -> i32
       intrinsic builder.finish
       call 0
       string.const 5
-      local.set 9
-      local.get 9
+      local.tee 9
       local.tee 10
       type_check 3
       if $L12 void

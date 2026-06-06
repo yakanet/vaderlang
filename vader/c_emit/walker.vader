@@ -329,7 +329,7 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.I64Mul                -> push_binop(s, "*", .I64)
         is vm.I64Div                -> push_eager(s, "/", .I64)
         is vm.I64Mod                -> push_eager(s, "%", .I64)
-        is vm.I64Neg                -> push_unop(s, "-", .I64)
+        is vm.I64Neg                -> push_i64_neg(s)
         is vm.I64BitAnd             -> push_binop(s, "&", .I64)
         is vm.I64BitOr              -> push_binop(s, "|", .I64)
         is vm.I64BitXor             -> push_binop(s, "^", .I64)
@@ -494,6 +494,25 @@ push_unop :: fn(s: FnState, op: string, val: ValType) -> void {
     v :: pop(s)
     vc :: coerce_operand(s.ctx.module.types, name_of(v), val_of(v), val)
     push_expr(s, val, "${op}(${vc})")
+}
+
+/// `i64.neg`. Special-cases `-(INT64_MIN)` : the source most-negative
+/// literal `-9223372036854775808` reaches the emitter as
+/// `i64.const INT64_MIN ; i64.neg`, and spelling that `-(INT64_MIN)`
+/// overflows `int64_t` (UB ; trips `-Woverflow` on gcc). Since
+/// `-INT64_MIN` wraps back to `INT64_MIN` on two's-complement — exactly
+/// the value the source denotes — fold the pair to a bare `INT64_MIN`,
+/// identical to how a plain `i64.const INT64_MIN` is spelled. Mirror of
+/// the TS i64-neg fold (`src/c_emit/ops.ts`). Any other operand negates
+/// normally.
+push_i64_neg :: fn(s: FnState) -> void {
+    v :: pop(s)
+    vc :: coerce_operand(s.ctx.module.types, name_of(v), val_of(v), .I64)
+    if vc == "INT64_MIN" {
+        push_lit(s, .I64, "INT64_MIN")
+    } else {
+        push_expr(s, .I64, "-(${vc})")
+    }
 }
 
 /// Emit an eager binary op into a fresh temp : `tN = l <op> r;`. Used for

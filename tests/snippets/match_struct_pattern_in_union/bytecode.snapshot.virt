@@ -30,7 +30,6 @@ end
 
 fn 1 snippet$describe (ref) -> string
   local __scrut_0 ref
-  local if_res string
   local x i32
   local y i32
   local __sb_1 any
@@ -38,10 +37,7 @@ fn 1 snippet$describe (ref) -> string
   local.tee 1
   type_check 0
   if $L0 void
-    string.const 1
-    local.set 2
-    local.get 2
-    return
+    return.lit string.const 1
   end $L0
   local.get 1
   type_check 5
@@ -49,31 +45,30 @@ fn 1 snippet$describe (ref) -> string
     local.get 1
     struct.get 5 0
     ref.cast 3
-    local.set 3
+    local.set 2
     local.get 1
     struct.get 5 1
     ref.cast 3
-    local.set 4
+    local.set 3
     intrinsic builder.new
-    local.set 5
-    local.get 5
+    local.set 4
+    local.get 4
     string.const 2
     intrinsic builder.append_str
-    local.get 5
-    local.get 3
+    local.get 4
+    local.get 2
     intrinsic builder.append_display
-    local.get 5
+    local.get 4
     string.const 3
     intrinsic builder.append_str
-    local.get 5
     local.get 4
+    local.get 3
     intrinsic builder.append_display
-    local.get 5
+    local.get 4
     string.const 4
     intrinsic builder.append_str
-    local.get 5
+    local.get 4
     intrinsic builder.finish
-    local.tee 2
     return
   end $L1
   return

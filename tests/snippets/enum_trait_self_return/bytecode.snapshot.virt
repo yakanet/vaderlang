@@ -28,150 +28,93 @@ end
 
 fn 1 snippet$Direction$Turnable$turn_left (i32) -> i32
   local __scrut_0 i32
-  local if_res i32
-  local if_res i32
-  local if_res i32
   local.get 0
   local.set 1
   local.get 1
   i32.const 0
   i32.eq
   if $L0 void
-    i32.const 3
-    local.set 2
-    local.get 2
-    return
+    return.lit i32.const 3
   end $L0
   local.get 1
   i32.const 3
   i32.eq
   if $L1 void
-    i32.const 2
-    local.set 3
-    local.get 3
-    local.tee 2
-    return
+    return.lit i32.const 2
   end $L1
   local.get 1
   i32.const 2
   i32.eq
   if $L2 void
-    i32.const 1
-    local.set 4
-    local.get 4
-    local.tee 3
-    local.tee 2
-    return
+    return.lit i32.const 1
   end $L2
   local.get 1
   i32.const 1
   i32.eq
   if $L3 void
-    i32.const 0
-    local.tee 4
-    local.tee 3
-    local.tee 2
-    return
+    return.lit i32.const 0
   end $L3
   return
 end
 
 fn 2 snippet$Direction$Turnable$turn_right (i32) -> i32
   local __scrut_0 i32
-  local if_res i32
-  local if_res i32
-  local if_res i32
   local.get 0
   local.set 1
   local.get 1
   i32.const 0
   i32.eq
   if $L0 void
-    i32.const 1
-    local.set 2
-    local.get 2
-    return
+    return.lit i32.const 1
   end $L0
   local.get 1
   i32.const 1
   i32.eq
   if $L1 void
-    i32.const 2
-    local.set 3
-    local.get 3
-    local.tee 2
-    return
+    return.lit i32.const 2
   end $L1
   local.get 1
   i32.const 2
   i32.eq
   if $L2 void
-    i32.const 3
-    local.set 4
-    local.get 4
-    local.tee 3
-    local.tee 2
-    return
+    return.lit i32.const 3
   end $L2
   local.get 1
   i32.const 3
   i32.eq
   if $L3 void
-    i32.const 0
-    local.tee 4
-    local.tee 3
-    local.tee 2
-    return
+    return.lit i32.const 0
   end $L3
   return
 end
 
 fn 3 snippet$Direction$Display$to_string (i32) -> string
   local __scrut_0 i32
-  local if_res string
-  local if_res string
-  local if_res string
   local.get 0
   local.set 1
   local.get 1
   i32.const 0
   i32.eq
   if $L0 void
-    string.const 1
-    local.set 2
-    local.get 2
-    return
+    return.lit string.const 1
   end $L0
   local.get 1
   i32.const 1
   i32.eq
   if $L1 void
-    string.const 2
-    local.set 3
-    local.get 3
-    local.tee 2
-    return
+    return.lit string.const 2
   end $L1
   local.get 1
   i32.const 2
   i32.eq
   if $L2 void
-    string.const 3
-    local.set 4
-    local.get 4
-    local.tee 3
-    local.tee 2
-    return
+    return.lit string.const 3
   end $L2
   local.get 1
   i32.const 3
   i32.eq
   if $L3 void
-    string.const 4
-    local.tee 4
-    local.tee 3
-    local.tee 2
-    return
+    return.lit string.const 4
   end $L3
   return
 end
@@ -179,8 +122,7 @@ end
 fn 4 snippet$main () -> i32
   local d i32
   i32.const 0
-  local.set 0
-  local.get 0
+  local.tee 0
   call 3
   call 0
   local.get 0

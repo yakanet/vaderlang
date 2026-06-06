@@ -29,33 +29,21 @@ end
 
 fn 1 snippet$describe (ref) -> string
   local __scrut_0 ref
-  local if_res string
-  local if_res string
   local.get 0
   local.tee 1
   type_check 3
   if $L0 void
-    string.const 1
-    local.set 2
-    local.get 2
-    return
+    return.lit string.const 1
   end $L0
   local.get 1
   type_check 1
   if $L1 void
-    string.const 2
-    local.set 3
-    local.get 3
-    local.tee 2
-    return
+    return.lit string.const 2
   end $L1
   local.get 1
   type_check 0
   if $L2 void
-    string.const 3
-    local.tee 3
-    local.tee 2
-    return
+    return.lit string.const 3
   end $L2
   return
 end

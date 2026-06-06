@@ -81,50 +81,31 @@ end
 
 fn 2 snippet$dir_label (i32) -> string
   local __scrut_0 i32
-  local if_res string
-  local if_res string
-  local if_res string
   local.get 0
   local.set 1
   local.get 1
   i32.const 0
   i32.eq
   if $L0 void
-    string.const 2
-    local.set 2
-    local.get 2
-    return
+    return.lit string.const 2
   end $L0
   local.get 1
   i32.const 1
   i32.eq
   if $L1 void
-    string.const 3
-    local.set 3
-    local.get 3
-    local.tee 2
-    return
+    return.lit string.const 3
   end $L1
   local.get 1
   i32.const 2
   i32.eq
   if $L2 void
-    string.const 4
-    local.set 4
-    local.get 4
-    local.tee 3
-    local.tee 2
-    return
+    return.lit string.const 4
   end $L2
   local.get 1
   i32.const 3
   i32.eq
   if $L3 void
-    string.const 5
-    local.tee 4
-    local.tee 3
-    local.tee 2
-    return
+    return.lit string.const 5
   end $L3
   return
 end
