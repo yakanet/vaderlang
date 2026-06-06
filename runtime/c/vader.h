@@ -459,22 +459,46 @@ static inline size_t vader_array_len(vader_array_t* a) { return a->length; }
  * additional roots instead of the entire old space. */
 
 /* Heap sizing — tunable at compile time via `-D` flags. */
-/* Defaults sized so the compiler self-compiles (`dump --stage=bytecode
- * vader/cli/main.vader`) without manual VADER_GC_* overrides — its peak
- * live-set is ~69 MB (whole-program bytecode held at once). Arenas are
- * malloc'd in full but bump-allocated, so untouched pages never commit:
- * a small program pays RSS only for what it touches, not the reservation. */
+/* Both generations auto-grow (see `vader_old_grow_to` / `vader_young_grow_to`
+ * in the runtime), so these are only the *initial* semi-space sizes. Arenas
+ * are malloc'd in full but bump-allocated, so untouched pages never commit —
+ * a high default costs virtual address space, not RSS, and a small program
+ * pays only for what it touches. The defaults are therefore sized generously
+ * so the compiler self-compiles (`dump --stage=bytecode vader/cli/main.vader`,
+ * live old ~352 MB, largest single young object ~48 MB) without any manual
+ * VADER_GC_* override and without paying a slow grow ramp: old needs at most
+ * one grow (352 > 256), young grows on demand for the rare oversized object. */
 #ifndef VADER_GC_YOUNG_BYTES
-#define VADER_GC_YOUNG_BYTES (32u * 1024u * 1024u)   /* 32 MB per young semi-space */
+#define VADER_GC_YOUNG_BYTES (32u * 1024u * 1024u)   /* 32 MB initial young semi-space; auto-grows */
 #endif
 #ifndef VADER_GC_OLD_BYTES
-#define VADER_GC_OLD_BYTES   (256u * 1024u * 1024u)  /* 256 MB per old semi-space */
+#define VADER_GC_OLD_BYTES   (256u * 1024u * 1024u)  /* 256 MB initial old semi-space; auto-grows */
 #endif
 #ifndef VADER_TENURE_AGE
 #define VADER_TENURE_AGE     2u                      /* minor cycles before promotion */
 #endif
 #ifndef VADER_CARD_BYTES
 #define VADER_CARD_BYTES     512u                    /* one card per 512 bytes of old */
+#endif
+
+/* Old-arena auto-grow policy. On each major, if the live old set times the
+ * headroom fraction exceeds the current semi-space, the arena flips into a
+ * fresh block sized `max(2 × current, live × headroom)`, capped at OLD_MAX.
+ * Headroom defaults to 3/2 (1.5×) — enough slack that the next major isn't
+ * immediately back at the grow threshold. */
+#ifndef VADER_GC_OLD_HEADROOM_NUM
+#define VADER_GC_OLD_HEADROOM_NUM 3u
+#endif
+#ifndef VADER_GC_OLD_HEADROOM_DEN
+#define VADER_GC_OLD_HEADROOM_DEN 2u
+#endif
+#ifndef VADER_GC_OLD_MAX
+#define VADER_GC_OLD_MAX (4ull * 1024ull * 1024ull * 1024ull)  /* 4 GB hard cap per old semi-space */
+#endif
+/* Young grows to fit an oversized single object (one bigger than the current
+ * semi-space) or a working set the minor can't drain, capped here. */
+#ifndef VADER_GC_YOUNG_MAX
+#define VADER_GC_YOUNG_MAX (2ull * 1024ull * 1024ull * 1024ull)  /* 2 GB hard cap per young semi-space */
 #endif
 
 void vader_gc_init(void);

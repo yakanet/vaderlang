@@ -117,6 +117,13 @@ static int           g_gc_initialized = 0;
 static size_t        g_total_collections = 0;
 static size_t        g_total_copied = 0;
 
+/* Hard caps on auto-grow, per semi-space. Default to the compile-time defines
+ * but are env-tunable (VADER_GC_OLD_MAX / VADER_GC_YOUNG_MAX) so a too-large
+ * live set traps at a deliberate ceiling instead of exhausting RAM. Set once
+ * in `vader_gc_init`. */
+static size_t        g_old_max_bytes = 0;
+static size_t        g_young_max_bytes = 0;
+
 /* Stress mode — set via `VADER_GC_STRESS=1`. When enabled, every
  * `vader_gc_alloc` triggers a minor collect (and the string sweep that
  * runs at minor end). Forces every safepoint to exercise the full
@@ -161,6 +168,12 @@ uint8_t*   vader_card_table = NULL;
 uintptr_t  vader_old_base   = 0;
 uintptr_t  vader_old_end    = 0;
 static size_t g_card_count = 0;
+
+/* Card-table entry count covering both old semi-spaces of `half_bytes` each,
+ * one byte per VADER_CARD_BYTES, rounded up. Shared by init and auto-grow. */
+static size_t vader_card_count_for(size_t half_bytes) {
+    return (half_bytes * 2u + VADER_CARD_BYTES - 1u) / VADER_CARD_BYTES;
+}
 
 /* Shadow-stack head. Each emitted C function pushes/pops a frame chained
  * through `prev`; the GC walks this list at collection time to enumerate
@@ -838,6 +851,10 @@ void vader_gc_init(void) {
         atexit(vader_gc_profile_dump);
     }
 
+    /* Auto-grow ceilings (env-tunable, default to the compile-time caps). */
+    g_old_max_bytes   = vader_gc_env_bytes("VADER_GC_OLD_MAX",   (size_t) VADER_GC_OLD_MAX);
+    g_young_max_bytes = vader_gc_env_bytes("VADER_GC_YOUNG_MAX", (size_t) VADER_GC_YOUNG_MAX);
+
     /* Young: one malloc spanning both semi-spaces. */
     size_t young_bytes = vader_gc_env_bytes("VADER_GC_YOUNG_BYTES", (size_t)VADER_GC_YOUNG_BYTES);
     g_young.block = (char*) malloc(young_bytes * 2u);
@@ -866,7 +883,7 @@ void vader_gc_init(void) {
     /* Card table covers both old semi-spaces so an entry remains valid after
      * a major swap. Total old span = 2 * old_bytes, sized at one byte per
      * VADER_CARD_BYTES. */
-    g_card_count = (old_bytes * 2u + VADER_CARD_BYTES - 1u) / VADER_CARD_BYTES;
+    g_card_count = vader_card_count_for(old_bytes);
     vader_card_table = (uint8_t*) calloc(g_card_count, 1u);
     if (vader_card_table == NULL) vader_trap("vader_gc_init: card-table malloc failed");
     vader_old_base = (uintptr_t) g_old.block;
@@ -900,14 +917,77 @@ static void* vader_gc_alloc_young_unchecked(size_t aligned) {
     return p;
 }
 
+/* Grow the young generation to `new_half` per semi-space, via the same flip-
+ * with-resize trick as old: point `g_young.to` at a fresh, larger block and
+ * run a minor, which relocates every live young object into it (forwarding
+ * fixes the pointers) and swaps. Then free the old block and re-slice the
+ * spare to-space onto the new block's second half. Young carries no card table
+ * or write-barrier bounds, so this is simpler than `vader_old_grow_to`. NULL
+ * malloc is the real RAM ceiling. */
+static void vader_young_grow_to(size_t new_half) {
+    char* new_block = (char*) malloc(new_half * 2u);
+    if (new_block == NULL) {
+        fprintf(stderr,
+            "vader_young_grow: malloc failed growing young arena to %zu MB × 2 "
+            "(cap VADER_GC_YOUNG_MAX = %zu MB) — out of RAM\n",
+            new_half / (1024u * 1024u),
+            g_young_max_bytes / (1024u * 1024u));
+        vader_trap("vader_young_grow: out of memory (RAM ceiling)");
+    }
+    char* old_block = g_young.block;
+    /* Relocate live young into the new block's first half: the minor copies
+     * g_young.from → g_young.to (which we point here) and swaps. */
+    g_young.to.base = new_block;
+    g_young.to.cur  = new_block;
+    g_young.to.end  = new_block + new_half;
+    vader_minor_collect();
+    /* Post-swap g_young.from is the new block's first half (survivors); the
+     * spare g_young.to still points at the old block — re-slice it onto the
+     * new block's second half and free the old block. */
+    free(old_block);
+    char* base       = g_young.from.base;            /* == new_block */
+    g_young.block      = base;
+    g_young.half_bytes = new_half;
+    g_young.to.base    = base + new_half;
+    g_young.to.cur     = g_young.to.base;
+    g_young.to.end     = g_young.to.base + new_half;
+}
+
+/* Pick a new young semi-space size large enough that, after a relocating
+ * minor, the from-space can still bump-allocate `aligned`. Survivors are
+ * bounded by the current occupancy, so `occupancy + aligned` is a safe target;
+ * grow geometrically (×2) past it. Caps at VADER_GC_YOUNG_MAX — trap there is
+ * the real ceiling. Returns without growing if the current half already fits. */
+static void vader_young_grow_for(size_t aligned) {
+    size_t occupancy = (size_t)(g_young.from.cur - g_young.from.base);
+    size_t want = occupancy + aligned;
+    /* max(2 × current, want), clamped to the cap — same geometric/at-least-fit
+     * shape as the old-arena grow in `vader_major_collect`. */
+    size_t new_half = g_young.half_bytes * 2u;
+    if (new_half < want) new_half = want;
+    if (new_half > g_young_max_bytes) new_half = g_young_max_bytes;
+    if (new_half < want) {
+        fprintf(stderr,
+            "vader_young_grow: live young %zu MB + object %zu MB exceeds cap "
+            "VADER_GC_YOUNG_MAX %zu MB\n",
+            occupancy / (1024u * 1024u), aligned / (1024u * 1024u),
+            g_young_max_bytes / (1024u * 1024u));
+        /* abort() skips atexit handlers — dump the live set inline so
+         * VADER_GC_PROFILE works on the OOM cases we most want to diagnose. */
+        if (g_gc_profile) vader_gc_profile_dump();
+        vader_trap("vader_young_grow: object + live set exceeds young cap");
+    }
+    if (new_half > g_young.half_bytes) vader_young_grow_to(new_half);
+}
+
 void* vader_gc_alloc(size_t bytes) {
     if (VADER_UNLIKELY(!g_gc_initialized)) vader_gc_init();
     size_t aligned = vader_gc_align(bytes);
-    /* A single allocation that exceeds a young semi-space can never fit, so
-     * no amount of collection will help. Trap early to avoid two wasted
-     * cycles. Bump VADER_GC_YOUNG_BYTES if user code legitimately needs it. */
+    /* A single object bigger than a young semi-space can never fit, however
+     * much we collect — grow young to hold it (relocating the live set into a
+     * larger block) before proceeding. */
     if (VADER_UNLIKELY(aligned > g_young.half_bytes)) {
-        vader_trap("vader_gc_alloc: requested size exceeds young semi-space");
+        vader_young_grow_for(aligned);
     }
     int young_full = (g_young.from.cur + aligned > g_young.from.end);
     if (VADER_UNLIKELY(young_full || g_gc_stress)) {
@@ -917,18 +997,32 @@ void* vader_gc_alloc(size_t bytes) {
              * lived young objects (tenuring will fix it on the next cycle).
              * Force a major to age survivors into old and retry. */
             vader_major_collect();
+            /* The major's preliminary minor runs *before* its auto-grow, so
+             * when old was full it couldn't promote and young stayed full —
+             * the grow then enlarged old too late for that minor. Run one more
+             * minor now that old has fresh room, to drain those survivors. */
             if (VADER_UNLIKELY(g_young.from.cur + aligned > g_young.from.end)) {
-                fprintf(stderr,
-                    "vader_gc_alloc: out of memory after collection\n"
-                    "  young arena %zu MB × 2 (raise via VADER_GC_YOUNG_BYTES, bytes per semi-space)\n"
-                    "  old arena   %zu MB × 2 (raise via VADER_GC_OLD_BYTES)\n",
-                    g_young.half_bytes / (1024u * 1024u),
-                    g_old.half_bytes / (1024u * 1024u));
-                /* abort() skips atexit handlers — dump the live set inline so
-                 * VADER_GC_PROFILE works on OOM cases (the very ones we want
-                 * to diagnose). */
-                if (g_gc_profile) vader_gc_profile_dump();
-                vader_trap("vader_gc_alloc: out of memory after collection");
+                vader_minor_collect();
+            }
+            if (VADER_UNLIKELY(g_young.from.cur + aligned > g_young.from.end)) {
+                /* Even a full collection left no room. Two causes: a young
+                 * working set larger than the semi-space (grow young), or old
+                 * exhausted at its cap so survivors can't promote and pile up
+                 * in young (the real ceiling — trap, don't grow young forever).
+                 * Distinguish: if old is at OLD_MAX and >~94% full, it's old. */
+                size_t old_free = (size_t)(g_old.from.end - g_old.from.cur);
+                if (VADER_UNLIKELY(g_old.half_bytes >= g_old_max_bytes
+                                   && old_free < g_old.half_bytes / 16u)) {
+                    fprintf(stderr,
+                        "vader_gc_alloc: out of memory — old arena full at cap %zu MB "
+                        "(VADER_GC_OLD_MAX); survivors cannot promote\n",
+                        g_old_max_bytes / (1024u * 1024u));
+                    if (g_gc_profile) vader_gc_profile_dump();
+                    vader_trap("vader_gc_alloc: old arena exhausted at cap");
+                }
+                /* Otherwise the young working set genuinely exceeds the semi-
+                 * space — grow young to fit it (capped) rather than failing. */
+                vader_young_grow_for(aligned);
             }
         }
     }
@@ -1257,6 +1351,35 @@ void vader_minor_collect(void) {
      * naturally ignores them. */
 }
 
+/* Grow the old generation in the one window where it is safe: a major's
+ * to-space is empty (no object copied yet), so we can swap in a fresh, larger
+ * block before the Cheney drain and let forwarding relocate every survivor
+ * into it for free. mallocs `new_half * 2` and points `g_old.to` at the new
+ * block's first half; `g_old.from` is left on the current block so the drain
+ * copies old→new across blocks. Returns the *current* block pointer for the
+ * caller to free after the swap — the caller then re-slices `g_old.to` onto
+ * the new block's second half, resizes the card table, and re-points the
+ * write-barrier bounds. A NULL malloc is the real RAM ceiling: trap clearly. */
+static char* vader_old_grow_to(size_t new_half) {
+    char* new_block = (char*) malloc(new_half * 2u);
+    if (new_block == NULL) {
+        fprintf(stderr,
+            "vader_old_grow: malloc failed growing old arena to %zu MB × 2 "
+            "(cap VADER_GC_OLD_MAX = %zu MB) — out of RAM\n",
+            new_half / (1024u * 1024u),
+            g_old_max_bytes / (1024u * 1024u));
+        vader_trap("vader_old_grow: out of memory (RAM ceiling)");
+    }
+    char* current_block = g_old.block;
+    /* Point the major's to-space at the new block's first half. g_old.from is
+     * deliberately untouched (still the current block) — the drain copies from
+     * there into here, and forwarding rewrites every pointer. */
+    g_old.to.base = new_block;
+    g_old.to.cur  = new_block;
+    g_old.to.end  = new_block + new_half;
+    return current_block;
+}
+
 void vader_major_collect(void) {
     if (!g_gc_initialized) return;
 
@@ -1268,6 +1391,28 @@ void vader_major_collect(void) {
     vader_minor_collect();
 
     g_cycle = VADER_CYCLE_MAJOR;
+
+    /* Auto-grow decision — taken here, while `g_old.to` is still empty (the
+     * only safe moment to relocate it). Survivors of the coming Cheney pass
+     * are bounded by the current old.from occupancy, so sizing the to-space to
+     * `occ × headroom` guarantees the drain fits (occ ≤ half ≤ OLD_MAX, so a
+     * clamped new_half still ≥ occ — the `:996` overflow trap stays
+     * unreachable on this path). The grow is carried through the swap by
+     * `grew_old_block`; if no grow, the existing to-space is reused as-is. */
+    size_t occ    = (size_t)(g_old.from.cur - g_old.from.base);
+    size_t needed = occ * (size_t) VADER_GC_OLD_HEADROOM_NUM / (size_t) VADER_GC_OLD_HEADROOM_DEN;
+    char*  grew_old_block = NULL;
+    size_t grew_new_half  = 0;
+    if (needed > g_old.half_bytes) {
+        size_t new_half = g_old.half_bytes * 2u;
+        if (new_half < needed)                   new_half = needed;
+        if (new_half > g_old_max_bytes) new_half = g_old_max_bytes;
+        if (new_half > g_old.half_bytes) {
+            grew_old_block = vader_old_grow_to(new_half);
+            grew_new_half  = new_half;
+        }
+    }
+
     g_old.to.cur = g_old.to.base;
 
     vader_gc_scan_roots();
@@ -1278,11 +1423,37 @@ void vader_major_collect(void) {
     g_old.from   = g_old.to;
     g_old.to     = tmp;
     g_old.to.cur = g_old.to.base;
+
+    if (grew_old_block != NULL) {
+        /* Survivors now live in the new block's first half (it became
+         * `g_old.from` in the swap above). Free the old block, re-slice the
+         * spare to-space onto the new block's second half, and re-point every
+         * old-arena descriptor at the new block. Card-table indexing and the
+         * write barrier key off `g_old.block` / `vader_old_base`, so they must
+         * move together — done before the `memset` re-dirties the table. */
+        free(grew_old_block);
+        char* new_block  = g_old.from.base;          /* == the block we grew into */
+        g_old.block      = new_block;
+        g_old.half_bytes = grew_new_half;
+        g_old.to.base    = new_block + grew_new_half;
+        g_old.to.cur     = g_old.to.base;
+        g_old.to.end     = g_old.to.base + grew_new_half;
+
+        size_t   new_card_count = vader_card_count_for(grew_new_half);
+        uint8_t* new_cards = (uint8_t*) realloc(vader_card_table, new_card_count);
+        if (new_cards == NULL) vader_trap("vader_old_grow: card-table realloc failed");
+        vader_card_table = new_cards;
+        g_card_count     = new_card_count;
+        vader_old_base   = (uintptr_t) new_block;
+        vader_old_end    = (uintptr_t) (new_block + grew_new_half * 2u);
+    }
+
     /* Conservatively mark all cards dirty rather than clearing. The drain
      * passes above may have forwarded young-pointing refs back into the
      * fresh old.from copies without writing a barrier, so any old→young
      * reference's card would be lost if we cleared. Scanning a few extra
-     * cards on the next minor is far cheaper than missing a root. */
+     * cards on the next minor is far cheaper than missing a root. (After a
+     * grow this also covers the cards the resized table never re-armed.) */
     memset(vader_card_table, 1, g_card_count);
 
     g_cycle = VADER_CYCLE_NONE;
@@ -1298,7 +1469,8 @@ void vader_gc_collect(void) {
 
 vader_gc_stats_t vader_gc_get_stats(void) {
     vader_gc_stats_t s;
-    s.arena_size = VADER_GC_OLD_BYTES;
+    /* Live semi-space size — reflects auto-grow, not the initial #define. */
+    s.arena_size = g_gc_initialized ? g_old.half_bytes : (size_t) VADER_GC_OLD_BYTES;
     if (g_gc_initialized) {
         size_t young_used = (size_t)(g_young.from.cur - g_young.from.base);
         size_t old_used   = (size_t)(g_old.from.cur   - g_old.from.base);
