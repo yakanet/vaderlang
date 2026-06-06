@@ -114,6 +114,13 @@ const C_PARITY = new Set<string>([
   //   if_null_narrow — break / continue in divergent null-narrow branches.
   "for_loop",
   "if_null_narrow",
+  // Erasure-boundary tuple field read : `for [k, v] in zip(...)` / `enumerate()`
+  // yield erased-sibling tuples (all-`Any` from zip, `[usize, Any]` from
+  // enumerate) that the carrying array erases to `ref` ; the concrete field
+  // read must tag-dispatch + box/unbox (`c_emit/walker.vader::push_struct_field`).
+  // The native-run oracle here is the regression guard — the snapshot/VM
+  // dimensions stay green even when the native field read is wrong.
+  "iter_zip_chain",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));

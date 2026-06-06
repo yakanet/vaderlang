@@ -1,3 +1,5 @@
+module "snippet"
+
 @unknown_decorator_here
 foo :: fn() -> i32 { return 1 }
 

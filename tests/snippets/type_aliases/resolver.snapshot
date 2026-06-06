@@ -1,7 +1,0 @@
-# Modules
-
-## tests/snippets/type_aliases/_main.vader
-  fn               public   add
-  fn               public   main
-  import-binding   private  println
-  fn               public   sum_doubles

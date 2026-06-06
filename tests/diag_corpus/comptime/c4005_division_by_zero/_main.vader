@@ -2,6 +2,8 @@
 // zero"). Vader's codes.vader renumbered this to C4007, so the
 // diag-parity surface flips this snippet from C4005 (TS-only) to
 // C4007 (Vader-only).
+module "snippet"
+
 @comptime
 export BOOM :: 10 / 0
 

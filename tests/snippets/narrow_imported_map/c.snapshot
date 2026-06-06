@@ -375,14 +375,14 @@ static void std_collections_std_collections_put__i32__Any(vader_box_t l0, int32_
                     goto loop_21;
                 }
                 if ((l9.tag == 20u || l9.tag == 19u)) {
-                    t4 = ((int32_t) ((vader_struct_std_collections_Entry__i32__Any_t*) l6.payload.obj)->f_key.payload.i);
+                    t4 = ((int32_t) (l6.tag == 19u ? ((vader_struct_std_collections_Entry__Any__Any_t*) l6.payload.obj)->f_key : ((vader_struct_std_collections_Entry__i32__Any_t*) l6.payload.obj)->f_key).payload.i);
                     if (t4 == l1) {
                         ((vader_struct_std_collections_Entry__i32__Any_t*) l6.payload.obj)->f_value = l2;
                         VADER_WRITE_BARRIER((vader_struct_std_collections_Entry__i32__Any_t*) l6.payload.obj);
                         l8 = true;
                         l7 = true;
                     } else {
-                        t5 = ((vader_struct_std_collections_Entry__i32__Any_t*) l6.payload.obj)->f_next;
+                        t5 = (l6.tag == 19u ? ((vader_struct_std_collections_Entry__Any__Any_t*) l6.payload.obj)->f_next : ((vader_struct_std_collections_Entry__i32__Any_t*) l6.payload.obj)->f_next);
                         l6 = t5;
                     }
                     goto loop_21;
@@ -500,9 +500,9 @@ static void std_collections_std_collections_grow__Any__Any(vader_box_t l0) {
                             }
                             if ((l8.tag == 19u || l8.tag == 20u)) {
                                 l9 = l8;
-                                t8 = ((vader_struct_std_collections_Entry__Any__Any_t*) l9.payload.obj)->f_next;
+                                t8 = (l9.tag == 20u ? ((vader_struct_std_collections_Entry__i32__Any_t*) l9.payload.obj)->f_next : ((vader_struct_std_collections_Entry__Any__Any_t*) l9.payload.obj)->f_next);
                                 l6 = t8;
-                                t9 = vader_vt_Hash__hash(((vader_struct_std_collections_Entry__Any__Any_t*) l9.payload.obj)->f_key);
+                                t9 = vader_vt_Hash__hash((l9.tag == 20u ? ((vader_struct_std_collections_Entry__i32__Any_t*) l9.payload.obj)->f_key : ((vader_struct_std_collections_Entry__Any__Any_t*) l9.payload.obj)->f_key));
                                 t10 = std_collections_bucket_index(t9, l2);
                                 l10 = t10;
                                 t11 = vader_array_get((vader_array_t*) l4.payload.obj, (size_t) l10);
@@ -567,13 +567,13 @@ static vader_box_t std_collections_std_collections_get__i32__Any(vader_box_t l0,
                     goto loop_30;
                 }
                 if ((l9.tag == 20u || l9.tag == 19u)) {
-                    t5 = ((int32_t) ((vader_struct_std_collections_Entry__i32__Any_t*) l6.payload.obj)->f_key.payload.i);
+                    t5 = ((int32_t) (l6.tag == 19u ? ((vader_struct_std_collections_Entry__Any__Any_t*) l6.payload.obj)->f_key : ((vader_struct_std_collections_Entry__i32__Any_t*) l6.payload.obj)->f_key).payload.i);
                     if (t5 == l1) {
-                        t6 = ((vader_struct_std_collections_Entry__i32__Any_t*) l6.payload.obj)->f_value;
+                        t6 = (l6.tag == 19u ? ((vader_struct_std_collections_Entry__Any__Any_t*) l6.payload.obj)->f_value : ((vader_struct_std_collections_Entry__i32__Any_t*) l6.payload.obj)->f_value);
                         l7 = t6;
                         l8 = true;
                     } else {
-                        t7 = ((vader_struct_std_collections_Entry__i32__Any_t*) l6.payload.obj)->f_next;
+                        t7 = (l6.tag == 19u ? ((vader_struct_std_collections_Entry__Any__Any_t*) l6.payload.obj)->f_next : ((vader_struct_std_collections_Entry__i32__Any_t*) l6.payload.obj)->f_next);
                         l6 = t7;
                     }
                     goto loop_30;

@@ -1,6 +1,8 @@
 // @comptime array index out of bounds — TS emits C4010 from the VM's
 // bounds-check, while Vader's codes.vader hasn't allocated this code
 // yet (only C4001-C4007 are defined). Expected to stay TS-only.
+module "snippet"
+
 @comptime
 export OUT :: [10, 20, 30][7]
 

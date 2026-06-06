@@ -1,3 +1,5 @@
+module "snippet"
+
 f :: fn() -> NonExistentType {
     return 0
 }
