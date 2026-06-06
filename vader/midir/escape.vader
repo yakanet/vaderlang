@@ -82,7 +82,8 @@ annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
     struct_news: LocalId[] = []
     for b in fn_.blocks {
         for ins in b.instructions {
-            match ins {
+            // @partial: only struct/array allocs seed alloc_locals; other instrs are irrelevant.
+            @partial match ins {
                 is InstrStructNew as s -> { alloc_locals.add(s.dst)
                 struct_news.push(s.dst) }
                 is InstrArrayNew  as a -> { alloc_locals.add(a.dst) }
@@ -263,7 +264,8 @@ compute_escaping :: fn(fn_: CFGFunction, alloc_locals: MutableSet<LocalId>) -> E
 
     for b in fn_.blocks {
         for ins in b.instructions {
-            match ins {
+            // @partial: only reference-carrying instrs have an escape effect; others have none.
+            @partial match ins {
                 is InstrMove      as m -> { record_alias(alias_of, alias_from, m.dst, m.src) }
                 is InstrCast      as c -> { record_alias(alias_of, alias_from, c.dst, c.value) }
                 is InstrFieldSet  as f -> { escaping.add(f.value) }
@@ -291,11 +293,8 @@ compute_escaping :: fn(fn_: CFGFunction, alloc_locals: MutableSet<LocalId>) -> E
                 _ -> {}
             }
         }
-        match b.terminator {
-            is TermReturn as r -> {
-                if r.value != null { escaping.add(r.value) }
-            }
-            _ -> {}
+        if b.terminator is TermReturn as r {
+            if r.value != null { escaping.add(r.value) }
         }
     }
 

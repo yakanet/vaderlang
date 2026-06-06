@@ -419,16 +419,15 @@ export binary_op_name :: fn(op: LoweredBinaryOp) -> string = match op {
     .Gte    -> "gte"
 }
 
-render_display_for :: fn(display_for: Type | null) -> string {
-    match display_for {
-        is null -> { return "" }
-        _ -> { return " <for ${display_type(display_for)}>" }
-    }
+render_display_for :: fn(display_for: Type | null) -> string = match display_for {
+    is null -> { return "" }
+    _ -> { return " <for ${display_type(display_for)}>" }
 }
 
 // Per-variant label fallback for shapes the TS dumper renders via
 // `e.kind` — matches the canonical kind tag the TS interface declares.
-expr_kind_label :: fn(expr: LoweredExpr) -> string = match expr {
+// @partial: debug kind label — only a few shapes are named, the rest fall to "<unknown>".
+expr_kind_label :: fn(expr: LoweredExpr) -> string = @partial match expr {
     is LoweredArrayLen     -> "LoweredArrayLen"
     is LoweredArrayPush    -> "LoweredArrayPush"
     is LoweredStringSlice  -> "LoweredStringSlice"

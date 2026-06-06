@@ -150,7 +150,8 @@ push_op_at :: fn(items: bc.Op[], sp: usize, value: bc.Op) -> void {
 /// / `.eq` / `.ne`), return its inverse-op variant ; otherwise `null`.
 /// Mirrors `INVERSE_VERB` in `src/bytecode/peephole.ts`. Hand-rolled
 /// per-variant because Vader doesn't expose op-kind strings at runtime.
-invert_cmp :: fn(o: bc.Op) -> bc.Op | null = match o {
+// @partial: only the comparison ops have an inverse; every other Op → null.
+invert_cmp :: fn(o: bc.Op) -> bc.Op | null = @partial match o {
     is bc.I32Lt   -> bc.I32Ge {}
     is bc.I32Le   -> bc.I32Gt {}
     is bc.I32Gt   -> bc.I32Le {}

@@ -29,10 +29,7 @@ export infer_match :: fn(
     has_wildcard := false
     covered_enum_variants: string[] = []
     for arm in e.arms {
-        match arm.pattern {
-            is AST.LiteralPattern as lp -> { check_expr_fn(lp.value, null, typed, diags) }
-            _ -> {}
-        }
+        if arm.pattern is AST.LiteralPattern as lp { check_expr_fn(lp.value, null, typed, diags) }
         // Re-bind the pattern types against the narrowed `remaining`
         // so wildcard/binding arms see only the still-possible
         // variants ("union − matched").

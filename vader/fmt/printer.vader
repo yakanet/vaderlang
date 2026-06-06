@@ -858,12 +858,7 @@ emit_const_decl :: fn(self: Printer, d: p.ConstDecl) -> void {
 
 // True iff `e` is a `BinaryExpr` with `BitOr` op — i.e. a union RHS
 // candidate for the multi-line layout in `emit_const_decl`.
-is_bitor_chain :: fn(e: p.Expr) -> bool {
-    return match e {
-        is p.BinaryExpr as b -> b.op == .BitOr
-        _ -> false
-    }
-}
+is_bitor_chain :: fn(e: p.Expr) -> bool = if e is p.BinaryExpr as b { b.op == .BitOr } else { false }
 
 // `collect_bitor_variants` now lives in `vader/parser/ast` so both the
 // formatter and the typechecker share one implementation.
@@ -1014,11 +1009,13 @@ emit_assign_stmt :: fn(self: Printer, s: p.AssignStmt) -> void {
 // the compound-eligible arithmetic ops. Returns `null` otherwise so the
 // caller falls back to the plain `=` rendering.
 compound_assign_symbol :: fn(s: p.AssignStmt) -> string | null {
-    return match s.value {
+    // @partial: only a BinaryExpr value can carry a compound-assign shape; any other value → null.
+    return @partial match s.value {
         is p.BinaryExpr as b -> {
             if b.left.span.start.offset != s.target.span.start.offset { return null }
             if b.left.span.end.offset != s.target.span.end.offset { return null }
-            match b.op {
+            // @partial: only the compound-eligible arithmetic ops have a symbol; others → null.
+            @partial match b.op {
                 .Add -> "+="
                 .Sub -> "-="
                 .Mul -> "*="

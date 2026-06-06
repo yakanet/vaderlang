@@ -16,7 +16,9 @@ AST :: import "vader/parser"
 /// @param expr     the expression to evaluate.
 /// @param context  the comptime evaluator context.
 /// @return         the evaluation result.
-export evaluate_expr :: fn(expr: AST.Expr, context: ComptimeContext) -> EvalResult = match expr {
+// @partial: the tree-walk MVP evaluates a subset of Expr kinds; every other
+// variant is intentionally routed to `vm_required`.
+export evaluate_expr :: fn(expr: AST.Expr, context: ComptimeContext) -> EvalResult = @partial match expr {
     is AST.IntLitExpr    as x -> evaluate_int_lit(x)
     is AST.FloatLitExpr  as x -> evaluate_float_lit(x)
     is AST.BoolLitExpr   as x -> evaluate_bool_lit(x)
@@ -67,7 +69,9 @@ export span_of :: fn(expr: AST.Expr) -> Span = match expr {
 // Human-readable label for unsupported variants. Surfaces in the C4001
 // detail so the user sees `expression cannot be evaluated at compile time
 // : MatchExpr` rather than a generic catch-all message.
-expr_kind_label :: fn(expr: AST.Expr) -> string = match expr {
+// @partial: human label only for the unsupported-variant set; the generic
+// "Expr" fallback is intentional.
+expr_kind_label :: fn(expr: AST.Expr) -> string = @partial match expr {
     is AST.CallExpr          -> "CallExpr"
     is AST.FieldExpr         -> "FieldExpr"
     is AST.IndexExpr         -> "IndexExpr"

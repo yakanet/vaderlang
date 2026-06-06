@@ -184,7 +184,8 @@ any_subst_for_entry :: fn(entry: MonoEntry) -> Substitution {
 /// @param t  the source type.
 /// @return   a structurally similar type with every leaf collapsed
 ///           to `Any`.
-any_leaves_of :: fn(t: Type) -> Type = match t {
+// @partial: composite types recurse their args; every leaf/scalar type collapses to Any.
+any_leaves_of :: fn(t: Type) -> Type = @partial match t {
     is StructType as s -> {
         if s.args.len() == 0 {
             return mk_primitive("any")
@@ -228,7 +229,8 @@ any_leaves_of_each :: fn(types: Type[]) -> Type[] {
 /// @param t  the type to render.
 /// @return   a `_`-joined display, e.g. `"Box_Box_Any"` for the
 ///           `Box(Box(i32))` → leaves shape.
-display_any_arg :: fn(t: Type) -> string = match t {
+// @partial: only arg-bearing / composite type shapes render a suffix; every other type → "Any".
+display_any_arg :: fn(t: Type) -> string = @partial match t {
     is StructType as s -> display_args_name(s.symbol.name, s.args)
     is TraitType as r  -> display_args_name(r.symbol.name, r.args)
     is ArrayType as a  -> "${display_any_arg(a.element)}_arr"

@@ -52,27 +52,27 @@ export equals_type :: fn(a: Type, b: Type) -> bool = match a {
     is FreeIntType    -> b is FreeIntType
     is FreeFloatType  -> b is FreeFloatType
     is AnyType        -> b is AnyType
-    is PrimitiveType as ax  -> match b { is PrimitiveType  as bx -> ax.name == bx.name              _ -> false }
-    is TypeParamType as ax  -> match b { is TypeParamType  as bx -> ax.symbol.id == bx.symbol.id     _ -> false }
+    is PrimitiveType as ax  -> if b is PrimitiveType as bx { ax.name == bx.name } else { false }
+    is TypeParamType as ax  -> if b is TypeParamType as bx { ax.symbol.id == bx.symbol.id } else { false }
     // `StructType(EnumSym)` is the placeholder `type_from_expr` returns
     // for enum names ; treat it as equivalent to the real `EnumType` so
     // body-time assignability (annotation vs inferred) doesn't fight the
     // placeholder/proper distinction.
-    is EnumType      as ax  -> match b {
-        is EnumType   as bx -> ax.symbol.id == bx.symbol.id
-        is StructType as bx -> bx.symbol.id == ax.symbol.id
-        _ -> false
-    }
-    is StructType    as ax  -> match b {
-        is StructType as bx -> nominal_eq(ax.symbol.id, ax.args, bx.symbol.id, bx.args)
-        is EnumType   as bx -> ax.symbol.id == bx.symbol.id
-        _ -> false
-    }
-    is TraitType     as ax  -> match b { is TraitType      as bx -> nominal_eq(ax.symbol.id, ax.args, bx.symbol.id, bx.args) _ -> false }
-    is ArrayType     as ax  -> match b { is ArrayType      as bx -> ax.immutable == bx.immutable && equals_type(ax.element, bx.element) _ -> false }
-    is TupleType     as ax  -> match b { is TupleType      as bx -> type_list_equals(ax.elements, bx.elements) _ -> false }
-    is FnType        as ax  -> match b { is FnType         as bx -> type_list_equals(ax.params, bx.params) && equals_type(ax.return_type, bx.return_type) _ -> false }
-    is UnionType     as ax  -> match b { is UnionType      as bx -> type_list_equals(ax.variants, bx.variants) _ -> false }
+    is EnumType      as ax  -> if b is EnumType as bx {
+        ax.symbol.id == bx.symbol.id
+    } else if b is StructType as bx {
+        bx.symbol.id == ax.symbol.id
+    } else { false }
+    is StructType    as ax  -> if b is StructType as bx {
+        nominal_eq(ax.symbol.id, ax.args, bx.symbol.id, bx.args)
+    } else if b is EnumType as bx {
+        ax.symbol.id == bx.symbol.id
+    } else { false }
+    is TraitType     as ax  -> if b is TraitType as bx { nominal_eq(ax.symbol.id, ax.args, bx.symbol.id, bx.args) } else { false }
+    is ArrayType     as ax  -> if b is ArrayType as bx { ax.immutable == bx.immutable && equals_type(ax.element, bx.element) } else { false }
+    is TupleType     as ax  -> if b is TupleType as bx { type_list_equals(ax.elements, bx.elements) } else { false }
+    is FnType        as ax  -> if b is FnType as bx { type_list_equals(ax.params, bx.params) && equals_type(ax.return_type, bx.return_type) } else { false }
+    is UnionType     as ax  -> if b is UnionType as bx { type_list_equals(ax.variants, bx.variants) } else { false }
 }
 
 nominal_eq :: fn(a_id: i32, a_args: Type[], b_id: i32, b_args: Type[]) -> bool {

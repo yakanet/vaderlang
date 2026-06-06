@@ -81,7 +81,8 @@ is_ident_continue :: fn(c: char) = c.is_alnum() || c == '_'
 
 // SPEC §3 newline-suppression set — operators / separators after which a
 // physical newline is NOT a statement terminator.
-suppresses_newline_after :: fn(k: TokenKind) = match k {
+// @partial: only the listed operators/separators suppress a following newline; every other token → false.
+suppresses_newline_after :: fn(k: TokenKind) = @partial match k {
     .Plus      -> true
     .Minus     -> true
     .Star      -> true
@@ -131,7 +132,8 @@ suppresses_newline_after :: fn(k: TokenKind) = match k {
 // without the parser having to thread newline-skipping through every
 // continuation. Mirrors how the suppress-after set drops the newline
 // immediately AFTER themselves.
-suppresses_newline_before :: fn(k: TokenKind) = match k {
+// @partial: only the listed tokens suppress a preceding newline; every other token → false.
+suppresses_newline_before :: fn(k: TokenKind) = @partial match k {
     .Pipe -> true
     .Amp  -> true
     _     -> false

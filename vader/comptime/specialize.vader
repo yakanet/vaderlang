@@ -425,7 +425,9 @@ is_type_param_name :: fn(program: ResolvedModule, name: string) -> bool {
     return false
 }
 
-query_arg_matches_name :: fn(query_arg: Type, name: string) -> bool = match query_arg {
+// @partial: only Primitive/Struct args carry a comparable surface name; every
+// other Type kind is a non-match.
+query_arg_matches_name :: fn(query_arg: Type, name: string) -> bool = @partial match query_arg {
     is PrimitiveType as p -> p.name == name
     is StructType as s    -> s.symbol.name == name
     _                     -> false

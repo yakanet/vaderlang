@@ -91,10 +91,7 @@ infer_expr :: fn(
             // `expr_types` (matches the TS reference). T3018 Display
             // check is deferred — currently we just type the inner.
             for part in e.parts {
-                match part {
-                    is AST.StringLitInterp as p -> { check_expr(p.expr, null, typed, diags) }
-                    _ -> {}
-                }
+                if part is AST.StringLitInterp as p { check_expr(p.expr, null, typed, diags) }
             }
             return infer_string_lit(e)
         }

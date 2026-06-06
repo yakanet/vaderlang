@@ -98,7 +98,8 @@ diag_sink :: fn() -> Diagnostic[] { return [] }
 // Comptime-only / unsized types (TypeMeta / TypeParam / Self /
 // Unresolved / Free* / Never / void) report 0.
 // Mirrors `sizeOfType` in `src/typecheck/types.ts:429-464`.
-export byte_size :: fn(t: Type) -> i64 = match t {
+// @partial: representable types have a fixed size; abstract types (TypeParam/Self/Unresolved/…) → 0.
+export byte_size :: fn(t: Type) -> i64 = @partial match t {
     is PrimitiveType as p -> primitive_size(p.name)
     is StructType  -> 16
     is EnumType    -> 16
@@ -111,7 +112,8 @@ export byte_size :: fn(t: Type) -> i64 = match t {
     _              -> 0
 }
 
-export byte_align :: fn(t: Type) -> i64 = match t {
+// @partial: representable types have a fixed alignment; abstract types → 0.
+export byte_align :: fn(t: Type) -> i64 = @partial match t {
     is PrimitiveType as p -> primitive_align(p.name)
     is StructType  -> 8
     is EnumType    -> 8
@@ -148,7 +150,9 @@ primitive_align :: fn(name: string) -> i64 {
     return primitive_size(name)
 }
 
-type_kind_label :: fn(t: Type) -> string = match t {
+// @partial: only the 9 user-facing kinds are named; sentinel/meta variants
+// intentionally report "unknown".
+type_kind_label :: fn(t: Type) -> string = @partial match t {
     is PrimitiveType  -> "primitive"
     is StructType     -> "struct"
     is EnumType       -> "enum"

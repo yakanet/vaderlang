@@ -157,7 +157,8 @@ is_skipped_kind :: fn(kind: string) -> bool {
 /// Map a `SymbolKind` to the matching AST `*Decl` kind name used by the
 /// TS dump (`FnDecl`, `StructDecl`, `EnumDecl`, …). Returns `""` for
 /// kinds the dump skips (import bindings, locals, params, …).
-ast_decl_kind :: fn(s: Symbol) -> string = match s.kind {
+// @partial: only declaring kinds map to a *Decl name; other SymbolKinds are dump-skipped → "".
+ast_decl_kind :: fn(s: Symbol) -> string = @partial match s.kind {
     .Fn        -> "FnDecl"
     .Struct    -> "StructDecl"
     .Enum      -> "EnumDecl"

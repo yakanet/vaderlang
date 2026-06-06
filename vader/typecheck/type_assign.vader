@@ -35,7 +35,8 @@ export is_assignable :: fn(from: Type, to: Type, oracle: TraitOracle | null) -> 
     if from is TypeParamType { return true }
     if to is TypeParamType { return true }
 
-    return match from {
+    // @partial: variants with a bespoke rule are listed; everything else shares check_common.
+    return @partial match from {
         is StructType    as s -> is_assignable_struct(from, s, to, oracle)
         is TraitType     as t -> is_assignable_trait_from(from, t, to, oracle)
         is TupleType     as t -> is_assignable_tuple(from, t, to, oracle)
