@@ -1,0 +1,20 @@
+# Typecheck
+
+## tests/snippets/_diag_fuse_filter
+  FnDecl         is_even              :: fn(i32) -> bool
+  FnDecl         main                 :: fn() -> i32
+  expr 11:33    BinaryExpr     :: bool
+  expr 11:33    BinaryExpr     :: i32
+  expr 11:33    IdentExpr      :: i32
+  expr 15:15    CallExpr       :: FilterIterator<i32>
+  expr 15:15    FieldExpr      :: fn(fn(T) -> bool) -> FilterIterator<T>
+  expr 15:15    RangeExpr      :: Range<i32>
+  expr 15:30    IdentExpr      :: fn(i32) -> bool
+  expr 16:17    BinaryExpr     :: i32
+  expr 16:17    IdentExpr      :: i32
+  expr 16:25    IdentExpr      :: i32
+  expr 16:9     IdentExpr      :: i32
+  expr 18:13    StringLitExpr  :: string
+  expr 18:34    IdentExpr      :: i32
+  expr 18:5     CallExpr       :: void
+  expr 18:5     IdentExpr      :: fn(T) -> void

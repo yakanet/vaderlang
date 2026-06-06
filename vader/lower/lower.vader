@@ -304,7 +304,11 @@ populate_core_symbols :: fn(typed: TypedProject, project_ctx: LowerProjectCtx) -
         // `std/iter`'s top-level symbols : copy under `iter_symbols`
         // so chain fusion's `MapIterator` / `FilterIterator` lookups
         // resolve to the canonical struct symbols.
-        if is_std_iter_module(module_id) {
+        // Keyed on the exact logical display path (like the `std/string`
+        // arm below) — a `"stdlib/std/iter" in module_id` substring is
+        // fragile (it broke silently when the module moved to a per-file
+        // subfolder, and would match `std/iterator` etc).
+        if module_typed.resolved.display_path == "std/iter" {
             iter_table :: ensure_iter_table(project_ctx)
             for entry in module_typed.resolved.symbols {
                 iter_table[entry.name] = entry
@@ -313,7 +317,7 @@ populate_core_symbols :: fn(typed: TypedProject, project_ctx: LowerProjectCtx) -
         // `std/collections`'s top-level symbols : copy under
         // `collections_symbols` so the for-in MutableMap / MutableSet
         // inliner can recognise the map/set/Entry structs by symbol id.
-        if is_std_collections_module(module_id) {
+        if module_typed.resolved.display_path == "std/collections" {
             coll_table :: ensure_collections_table(project_ctx)
             for entry in module_typed.resolved.symbols {
                 coll_table[entry.name] = entry
@@ -342,8 +346,6 @@ ensure_string_table :: fn(project_ctx: LowerProjectCtx) -> MutableMap<string, Sy
         is MutableMap<string, Symbol> as existing -> { return existing }
     }
 }
-
-is_std_collections_module :: fn(module_id: string) = "stdlib/std/collections" in module_id
 
 ensure_collections_table :: fn(project_ctx: LowerProjectCtx) -> MutableMap<string, Symbol> {
     match project_ctx.collections_symbols {
@@ -388,8 +390,6 @@ populate_comptime_value_index :: fn(project_ctx: LowerProjectCtx) -> void {
         }
     }
 }
-
-is_std_iter_module :: fn(module_id: string) = "stdlib/std/iter.vader" in module_id
 
 ensure_iter_table :: fn(project_ctx: LowerProjectCtx) -> MutableMap<string, Symbol> {
     match project_ctx.iter_symbols {

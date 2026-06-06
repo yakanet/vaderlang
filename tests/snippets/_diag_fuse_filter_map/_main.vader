@@ -1,0 +1,24 @@
+// _diag_fuse_filter_map — minimal repro of the full iter_chain shape:
+// range.filter(p).map(f) with a type-changing map (i32 -> i64).
+//
+// Mirrors bench/iter_chain at tiny scale. sum of x*x for even x over [0, 10)
+// = 0 + 4 + 16 + 36 + 64 = 120. The map's i64 result must NOT be truncated to
+// i32, and the fused loop must reach the trailing println (no `unreachable`).
+
+module "main"
+
+import "std/io" { println }
+import "std/iter" { filter, map }
+
+is_even :: fn(x: i32) -> bool = x % 2 == 0
+
+square_i64 :: fn(x: i32) -> i64 = i64(x) * i64(x)
+
+main :: fn() -> i32 {
+    total: i64 = 0
+    for x in (0..<10).filter(is_even).map(square_i64) {
+        total = total + x
+    }
+    println("fuse_filter_map total=${total}")
+    return 0
+}

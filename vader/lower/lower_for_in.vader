@@ -97,7 +97,7 @@ export lower_for_in :: fn(
     wrap_result :: try_wrap_array_iter(ctx, iter_lowered_raw, iter_type_raw, span)
     iter_lowered :: wrap_result.iter
     iter_type :: wrap_result.iter_type
-    element_type :: resolve_element_type(ctx, iter_type_raw, iter_type)
+    element_type :: resolve_element_type(ctx, iter_type_raw, iter_type, in_form.binding_span.hash())
 
     // M5001 — `for x in iter` needs an Iterator impl on `iter`. When
     // wrapping leaves the iter as a primitive (string / numeric / …),
@@ -291,13 +291,25 @@ try_wrap_array_iter :: fn(
 }
 
 // Determine the element type yielded by the iterator. Tries :
+// 0. The type the typer already bound to the loop variable, stored under
+//    its span in `local_types`. This is authoritative : the typer resolves
+//    the `Iterator(T)` impl and substitutes the iterator's concrete type
+//    args, so it correctly handles combinators whose element type is NOT
+//    the first type arg — `MapIterator(i32, i64)` yields `i64` (the impl's
+//    `Iterator(U)`), not the source `i32` ; a `MutableMap` iterator yields
+//    `Entry(K, V)`. The structural heuristics below cannot, so they must
+//    only run when the typer left no usable entry.
 // 1. The raw iter type's first type-arg (Range(T), ArrayIterator(T)).
 // 2. `typed.iter_element_types[display_type(raw_iter_type)]` — written
 //    by the typecheck when checking the Iterator impl.
 // 3. Falls back to TY_UNRESOLVED so the lowered loop still emits a
 //    well-formed shape (the typer's earlier diagnostics already
 //    surfaced the missing impl).
-resolve_element_type :: fn(ctx: FnLowerCtx, raw_iter_type: Type, iter_type: Type) -> Type {
+resolve_element_type :: fn(ctx: FnLowerCtx, raw_iter_type: Type, iter_type: Type, binding_key: u64) -> Type {
+    from_typed_binding :: ctx.typed.local_types[binding_key]
+    if !(from_typed_binding is null) {
+        if !(from_typed_binding is UnresolvedType) { return from_typed_binding }
+    }
     match iter_type {
         is StructType as st -> {
             if st.args.len() > usize(0) { return st.args[0] }
@@ -938,6 +950,77 @@ descend_chain :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
             }
             return null
         }
+        // Fluent form : `it.map(f)` / `it.filter(p)` (or the direct-call
+        // `map(it, f)` / `filter(it, p)`). The combinators are trivial
+        // std/iter constructors, so we recognise the call directly rather
+        // than waiting for inlining — mirror of the struct-lit arm above.
+        is AST.CallExpr as call -> {
+            iter_symbols :: ctx.project.iter_symbols
+            if iter_symbols is null { return null }
+            fluent :: unpack_fluent_combinator(ctx, call)
+            if fluent is null { return null }
+            inner :: descend_chain(ctx, fluent.receiver)
+            if inner is null { return null }
+            struct_type :: ctx.types.expr_type(call)
+            match struct_type {
+                is StructType as st -> {
+                    if matches_iter_symbol(iter_symbols["MapIterator"], st.symbol.id) {
+                        if st.args.len() < usize(2) { return null }
+                        return IterChain {
+                            .kind = IterChainKind.Map,
+                            .range_lower = null, .range_upper = null, .inclusive = false,
+                            .element_type = TY_UNRESOLVED,
+                            .source = inner, .map_fn = fluent.fn_arg, .output_type = st.args[1],
+                            .pred_fn = null, .span = call.span,
+                        }
+                    }
+                    if matches_iter_symbol(iter_symbols["FilterIterator"], st.symbol.id) {
+                        return IterChain {
+                            .kind = IterChainKind.Filter,
+                            .range_lower = null, .range_upper = null, .inclusive = false,
+                            .element_type = TY_UNRESOLVED,
+                            .source = inner, .map_fn = null, .output_type = TY_UNRESOLVED,
+                            .pred_fn = fluent.fn_arg, .span = call.span,
+                        }
+                    }
+                }
+                _ -> {}
+            }
+            return null
+        }
+        _ -> { return null }
+    }
+}
+
+// The receiver (chain source) + transform/predicate arg of a fluent
+// combinator call. The caller checks the call's return type to decide
+// whether it's a `map` or a `filter`.
+FluentCombinator :: struct {
+    receiver: AST.Expr
+    fn_arg:   AST.Expr
+}
+
+// Recognise the fluent `it.map(f)` / `it.filter(p)` (UFCS) and the direct
+// `map(it, f)` / `filter(it, p)` shapes. Returns the receiver + fn arg, or
+// null when the call isn't one of the two fusible combinators. Mirror of
+// `src/lower/passes/for-in.ts::unpackFluentCombinator`.
+unpack_fluent_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> FluentCombinator | null {
+    match call.callee {
+        // UFCS form `it.map(f)` : the FieldExpr resolved as a free-fn UFCS
+        // dispatch (the typer stashed the receiver type under its id). The
+        // callee's target is the receiver ; the first arg is the transform.
+        is AST.FieldExpr as fe -> {
+            recv_ty :: ctx.typed.ufcs_receiver_types[fe.id]
+            if recv_ty is null { return null }
+            if call.args.len() < usize(1) { return null }
+            return FluentCombinator { .receiver = fe.target, .fn_arg = call.args[0].value }
+        }
+        // Direct-call form `map(it, f)` : first arg is the receiver, second
+        // is the transform / predicate.
+        is AST.IdentExpr -> {
+            if call.args.len() < usize(2) { return null }
+            return FluentCombinator { .receiver = call.args[0].value, .fn_arg = call.args[1].value }
+        }
         _ -> { return null }
     }
 }
@@ -1034,13 +1117,19 @@ emit_fused_chain_map :: fn(
     map_fn :: chain.map_fn
     output_type :: chain.output_type
     span :: chain.span
-    // Inner template wraps the user body with `let __mapped_n = f(<prev>)`
-    // and rebinds the user's loop var to that mapped value.
+    // The source layer (range / filter below us) binds its value to a FRESH
+    // symbol typed by the source's element type — that's the input the map
+    // consumes. Our wrapped body reads it, computes `f(src)`, and binds the
+    // result to the OUTER template's symbol so the consumer above sees the
+    // mapped value. Distinct in / out symbols : reusing one would emit the
+    // self-referential `let x = f(x)`.
+    source_elem :: chain_element_type(inner_chain)
+    source_sym :: fresh_synthetic_symbol(ctx, "src")
     inner_template :: BodyTemplate {
-        .binding_name = "__mapped_${ctx.uniq}",
-        .binding_symbol = fresh_synthetic_symbol(ctx, "mapped"),
-        .element_type = output_type,
-        .user_body = wrap_with_map(ctx, template, map_fn, output_type, span, recurse),
+        .binding_name = source_sym.name,
+        .binding_symbol = source_sym,
+        .element_type = source_elem,
+        .user_body = wrap_with_map(ctx, template, source_sym, source_elem, map_fn, output_type, span, recurse),
     }
     return emit_fused_chain(ctx, inner_chain, loop_label, outer_span, inner_template, recurse)
 }
@@ -1064,25 +1153,18 @@ emit_fused_chain_filter :: fn(
     return emit_fused_chain(ctx, inner_chain, loop_label, outer_span, inner_template, recurse)
 }
 
-// Build the inner body for a Map layer : it consumes the *previous*
-// counter / source value, computes the mapped value, and feeds it as
-// the user's loop variable.
+// Build the inner body for a Map layer : it reads the source value bound
+// by the layer below (`source_sym` : `source_type`), computes the mapped
+// value `f(source)`, binds it to the OUTER template's symbol (the value the
+// consumer above sees), then runs that consumer's body.
 wrap_with_map :: fn(
-    ctx: FnLowerCtx, template: BodyTemplate, map_fn: AST.Expr,
-    output_type: Type, span: Span,
+    ctx: FnLowerCtx, template: BodyTemplate, source_sym: Symbol, source_type: Type,
+    map_fn: AST.Expr, output_type: Type, span: Span,
     recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
 ) -> LoweredBlock {
     callee :: recurse(ctx, map_fn)
-    // The inner symbol carries the *previous* layer's value — its id
-    // gets rebound at emit time when this template fires. We refer to
-    // it via `template.binding_symbol` as a placeholder ; the recurse
-    // chain captures the right symbol via lambda-style capture (Vader
-    // uses by-value structs, so the recurse step that wraps THIS body
-    // is the one whose binding_symbol is the current layer's source).
-    // Phase 5f's MVP uses the user-level binding name as-is.
     arg_ref :: LoweredIdent {
-        .span = span, .type = template.element_type,
-        .symbol = template.binding_symbol,
+        .span = span, .type = source_type, .symbol = source_sym,
     }
     call_args: LoweredExpr[] = []
     call_args.push(arg_ref)

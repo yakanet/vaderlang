@@ -1,0 +1,20 @@
+// _diag_fuse_filter — minimal iterator-chain fusion repro: range.filter(p).
+//
+// Exercises the lowerer's chain-fusion fast path on a single `filter` layer.
+// sum of even x over [0, 10) = 0+2+4+6+8 = 20.
+
+module "main"
+
+import "std/io" { println }
+import "std/iter" { filter }
+
+is_even :: fn(x: i32) -> bool = x % 2 == 0
+
+main :: fn() -> i32 {
+    total: i32 = 0
+    for x in (0..<10).filter(is_even) {
+        total = total + x
+    }
+    println("fuse_filter total=${total}")
+    return 0
+}
