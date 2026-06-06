@@ -1303,15 +1303,97 @@ emit_local_field :: fn(s: FnState, op: vm.LocalField) -> void {
 /// dereference `((T*) recv.payload.obj)->f_<name>`. B1 / inline-rep field
 /// reps are T12.
 push_struct_field :: fn(s: FnState, type_index: i32, field_index: i32, recv: string) -> void {
-    t :: s.ctx.module.types[usize(type_index)]
+    types :: s.ctx.module.types
+    t :: types[usize(type_index)]
     if t is BcStruct as st {
         cname :: s.ctx.struct_c_names[usize(type_index)]
         f :: st.fields[usize(field_index)]
-        fval :: val_type_of_field(s.ctx.module.types, f.type_index)
-        push_expr(s, fval, "((${cname}*) ${recv}.payload.obj)->f_${sanitise(f.name)}")
+        fval :: val_type_of_field(types, f.type_index)
+        concrete :: "((${cname}*) ${recv}.payload.obj)->f_${sanitise(f.name)}"
+        // Erasure boundary (T12). An erased-generic producer (e.g. a generic
+        // `zip`) returns the all-`Any` sibling layout (boxed fields) ; Vader
+        // erases the carrying array / result to a bare `ref`, so the concrete
+        // element type only resurfaces HERE, at the field read (the
+        // `local.field` / `struct.get` op carries the concrete `type_id`).
+        // Dispatch on the runtime tag : a concrete value reads the concrete
+        // layout directly ; an erased sibling reads the sibling's field and
+        // box/unboxes it to the concrete field's storage. Self-gating — a
+        // concrete value never matches the sibling tag, so non-erased reads are
+        // unaffected. (The TS backend reshapes the whole array eagerly at the
+        // call, where it keeps the concrete array type ; Vader's array is erased
+        // to `ref`, so the per-read form is the Vader-appropriate equivalent.)
+        sib :: find_any_counterpart(types, type_index)
+        if sib < 0 {
+            push_expr(s, fval, concrete)
+        } else {
+            sib_read :: erased_sibling_field_read(s, sib, field_index, fval, recv)
+            push_expr(s, fval, "(${recv}.tag == ${type_index}u ? ${concrete} : ${sib_read})")
+        }
     } else {
         todo("struct field access on non-struct type ${type_index}")
     }
+}
+
+/// True for the boxed-storage value classes (a `vader_box_t` slot). Drives the
+/// erasure read's copy (both boxed) vs unbox (concrete target) decision.
+is_ref_like_val :: fn(v: ValType) -> bool = v == ValType.Ref || v == ValType.Any || v == ValType.Null
+
+/// True when every field of `st` is an open `ref` — the erased all-`Any` form
+/// an erased-generic body materialises.
+struct_all_ref :: fn(types: BcType[], st: BcStruct) -> bool {
+    if st.fields.len() == usize(0) { return false }
+    for f in st.fields {
+        if usize(f.type_index) >= types.len() { return false }
+        if !(types[usize(f.type_index)] is BcRef) { return false }
+    }
+    return true
+}
+
+/// Find the erased all-`Any` counterpart of concrete struct `struct_idx` : same
+/// field count, all-`ref` fields, same generic group — a shared `symbol_id` for
+/// named generics, or both anonymous tuples (`__Tuple_*`) otherwise (tuples
+/// carry no source symbol). Returns -1 when `struct_idx` is itself the erased
+/// form or no counterpart exists.
+find_any_counterpart :: fn(types: BcType[], struct_idx: i32) -> i32 {
+    et :: types[usize(struct_idx)]
+    if et is BcStruct as exp {
+        if struct_all_ref(types, exp) { return -1 }
+        nfields :: exp.fields.len()
+        is_tuple :: "Tuple" in exp.name
+        for i in 0..<types.len() {
+            if i32(i) == struct_idx { continue }
+            if types[i] is BcStruct as cand {
+                if cand.fields.len() != nfields { continue }
+                if !struct_all_ref(types, cand) { continue }
+                same_group := false
+                if exp.symbol_id >= 0 && cand.symbol_id == exp.symbol_id { same_group = true }
+                if is_tuple && ("Tuple" in cand.name) { same_group = true }
+                if same_group { return i32(i) }
+            }
+        }
+        return -1
+    }
+    return -1
+}
+
+/// Read field `field_index` of the erased sibling struct `sib_idx` off `recv`,
+/// converting it to the concrete field's storage `target_val` : unbox a boxed
+/// sibling field into a primitive / string, box a concrete sibling field into a
+/// ref slot, or copy when both are boxed.
+erased_sibling_field_read :: fn(s: FnState, sib_idx: i32, field_index: i32, target_val: ValType, recv: string) -> string {
+    types :: s.ctx.module.types
+    st :: types[usize(sib_idx)]
+    if st is BcStruct as sib {
+        sib_cname :: s.ctx.struct_c_names[usize(sib_idx)]
+        sf :: sib.fields[usize(field_index)]
+        sf_val :: val_type_of_field(types, sf.type_index)
+        raw :: "((${sib_cname}*) ${recv}.payload.obj)->f_${sanitise(sf.name)}"
+        if target_val == sf_val { return raw }
+        if is_ref_like_val(target_val) { return box_expr(raw, sf_val, sf.type_index) }
+        if is_ref_like_val(sf_val) { return unbox_expr(raw, target_val) }
+        return raw
+    }
+    return "0"
 }
 
 /// `struct.set` / `struct.set_stack` — pop the field value then the
