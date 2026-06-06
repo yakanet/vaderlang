@@ -184,6 +184,7 @@ export WarningCode :: enum(u8) {
     UnreachableCode,                        // W0002
     IsAgainstUnion,                         // W0003
     AmbiguousLoopJump,                      // W0004
+    WildcardOnClosedUnion,                  // W0005
 }
 
 // `(id, message)` for a code, in one shot. The wire ID stays aligned with
@@ -273,6 +274,7 @@ export warning_info :: fn(c: WarningCode) = match c {
     .UnreachableCode                    -> CodeInfo { .id = "W0002", .message = "unreachable code" }
     .IsAgainstUnion                     -> CodeInfo { .id = "W0003", .message = "`is` against a union type always returns false at runtime" }
     .AmbiguousLoopJump                  -> CodeInfo { .id = "W0004", .message = "unlabeled `break` / `continue` inside nested loops targets the innermost loop ; add a label to make the target explicit" }
+    .WildcardOnClosedUnion              -> CodeInfo { .id = "W0005", .message = "wildcard arm on a closed union silences exhaustiveness checking ; enumerate the variants or mark the match `@partial`" }
 }
 
 export comptime_info :: fn(c: ComptimeCode) = match c {

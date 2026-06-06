@@ -1,3 +1,5 @@
+module "snippet"
+
 import "" { thing }
 
 main :: fn() -> i32 {

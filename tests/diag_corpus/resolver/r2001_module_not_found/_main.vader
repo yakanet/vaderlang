@@ -1,3 +1,5 @@
+module "snippet"
+
 import "nonexistent/module/path" { something }
 
 main :: fn() -> i32 {

@@ -1,5 +1,0 @@
-# Modules
-
-## tests/snippets/arith/_main.vader
-  fn               public   add
-  fn               public   main

@@ -1,7 +1,0 @@
-# Modules
-
-## tests/snippets/enum_basic/_main.vader
-  enum             public   Direction
-  fn               public   describe
-  fn               public   main
-  import-binding   private  println

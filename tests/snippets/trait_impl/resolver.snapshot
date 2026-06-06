@@ -1,5 +1,0 @@
-# Modules
-
-## tests/snippets/trait_impl/_main.vader
-  trait            public   Display
-  struct           public   Point

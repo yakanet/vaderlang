@@ -127,3 +127,7 @@ fn 4 std_core$string$Display$to_string_vt (string) -> string
   call.import 1
   return
 end
+
+# Diagnostics
+[28:12] warning[W0005] wildcard arm on a closed union silences exhaustiveness checking ; enumerate the variants or mark the match `@partial`: wildcard arm on closed union `Cat | Dog | null` — enumerate its variants or mark the match `@partial`
+[42:12] warning[W0005] wildcard arm on a closed union silences exhaustiveness checking ; enumerate the variants or mark the match `@partial`: wildcard arm on closed union `Cat | Dog | null` — enumerate its variants or mark the match `@partial`

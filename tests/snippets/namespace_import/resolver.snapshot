@@ -1,5 +1,0 @@
-# Modules
-
-## tests/snippets/namespace_import/_main.vader
-  import-binding   private  io
-  fn               public   main
