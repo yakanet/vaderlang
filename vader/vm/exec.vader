@@ -1026,6 +1026,9 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
             is bc.RefCast -> {
                 frame.pc = frame.pc + 1
             }
+            is bc.Unreachable as u -> {
+                return Trap { .message = "reached unreachable: ${u.reason}" }
+            }
             is bc.Convert -> {
                 if frame.sp == 0 {
                     return Trap { .message = "convert on empty stack at pc=${frame.pc} in '${body.name}'" }

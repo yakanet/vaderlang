@@ -1151,6 +1151,9 @@ parse_op_line :: fn(cleaned: string, head: string) -> bc.Op | null {
     if head == "br_if"          { return bc.BranchIf {} }
     if head == "br"             { return bc.Branch {} }
     if head == "return"         { return bc.Return {} }
+    // `reason` is not serialised to `.virt` — the round-trip VM traps with a
+    // generic message ; the in-memory run and the native build keep the reason.
+    if head == "unreachable"    { return bc.Unreachable { .reason = "" } }
     return null
 }
 

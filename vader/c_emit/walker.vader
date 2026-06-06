@@ -299,6 +299,7 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.TypeConst as tc       -> emit_type_const(s, tc)
         is vm.TypeCheck as tc       -> emit_type_check(s, tc)
         is vm.RefCast as rc         -> emit_ref_cast(s, rc)
+        is vm.Unreachable as u      -> line(s, "vader_unreachable(${c_string_lit(u.reason)});")
         is vm.Convert as c          -> emit_convert(s, convert_target_val(c.target), c.from_name)
         is vm.BuilderNew            -> emit_builder_new(s)
         is vm.BuilderAppendStr      -> emit_builder_append_str(s)

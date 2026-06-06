@@ -150,6 +150,10 @@ export TermReturn :: struct {
 export TermUnreachable :: struct {
     span:   Span
     reason: string
+    // Mirror of `LoweredUnreachable.trap` : true → emit the trapping
+    // `Unreachable` op ; false (dead fallback / placeholder) → a plain
+    // `Return` terminator, as before.
+    trap:   bool = false
 }
 
 // ---- instructions ---------------------------------------------------------

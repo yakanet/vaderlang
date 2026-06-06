@@ -1400,6 +1400,7 @@ emit_if :: fn(self: Printer, x: p.IfExpr) -> void {
 
 emit_match :: fn(self: Printer, x: p.MatchExpr) -> void {
     if x.partial { self.write("@partial ") }
+    if x.unreachable { self.write("@unreachable ") }
     self.write("match ")
     self.emit_expr(x.scrutinee)
     self.write(" {")

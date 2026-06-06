@@ -33,7 +33,7 @@ import "vader/bytecode" {
     binary_op_for, unary_op_for, default_emit_options, EmitOptions,
 }
 import "vader/bytecode" {
-    Op, I32Const, I64Const, F64Const, BoolConst, CharConst, StringConst,
+    Op, Unreachable, I32Const, I64Const, F64Const, BoolConst, CharConst, StringConst,
     NullConst, LocalGet, LocalSet, LocalTee, LocalField, Return, ReturnLit, ConstOp,
     const_op_of, Drop, Call, CallImport, CallIndirect, FnRef, VirtualCall,
     If, Else, End, Block, Loop, Branch, BranchIf, BoolNot,
@@ -797,10 +797,15 @@ emit_block_contents :: fn(ctx: FnEmitCfg, block_id: BlockId, until: BlockId) -> 
         return -1
     }
     if t is TermUnreachable as u {
-        // No dedicated `unreachable` op in Vader's Op enum yet ; route
-        // to Return as a defensive terminator. Matches the existing
-        // bytecode emit's fallback for unreachable paths.
-        push_emit(ctx, Return {}, u.span)
+        // Reachable fall-through (`@partial` / `@unreachable`) → the trapping
+        // `Unreachable` op (tag 0 ; VM `Trap` + `vader_unreachable` in C). Dead
+        // fallbacks / placeholders keep the plain `Return` terminator they had
+        // before, so neither the bytecode nor the snapshots change.
+        if u.trap {
+            push_emit(ctx, Unreachable { .reason = u.reason }, u.span)
+        } else {
+            push_emit(ctx, Return {}, u.span)
+        }
         return -1
     }
     if t is TermBranch as b {

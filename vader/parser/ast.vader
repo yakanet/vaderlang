@@ -550,6 +550,13 @@ export MatchExpr :: struct {
     // exhaustive-by-default behaviour ; the dump suppresses the field
     // when `false` so old snapshots stay byte-identical.
     partial:   bool
+    // `@unreachable match x { … }` likewise opts out of T3013, but asserts
+    // the *uncovered* variants can never occur : they fall through to the
+    // synthesised trap (`LoweredUnreachable`) instead of being handled. Use
+    // it for "handle A/B/C, the rest are impossible" — no wildcard, no fake
+    // value. Mutually exclusive with `partial`. Defaulted so existing
+    // `MatchExpr { … }` literals and old snapshots are unaffected.
+    unreachable: bool = false
 }
 
 export MatchArm :: struct {

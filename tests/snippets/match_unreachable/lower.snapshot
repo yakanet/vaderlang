@@ -1,0 +1,53 @@
+# Lower
+
+## snippet
+  fn snippet$label(c: Color) -> string
+    ~>
+      block :string
+        let __scrut_0: Color = c :Color
+        ~>
+          if :string
+            cond:
+              eq :bool
+                l:
+                  __scrut_0 :Color
+                r:
+                  int(0) :i32
+            then:
+              ~>
+                "red" :string
+            else:
+              ~>
+                if :string
+                  cond:
+                    eq :bool
+                      l:
+                        __scrut_0 :Color
+                      r:
+                        int(1) :i32
+                  then:
+                    ~>
+                      "green" :string
+                  else:
+                    ~>
+                      unreachable("@unreachable match — a variant the arms assert cannot occur was reached") :string
+  fn snippet$main() -> i32
+    call :void
+      callee:
+        std_io$std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            label :fn(Color) -> string
+          arg0:
+            int(0) :i32
+    call :void
+      callee:
+        std_io$std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            label :fn(Color) -> string
+          arg0:
+            int(1) :i32
+    return int(0) :i32

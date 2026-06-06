@@ -1,0 +1,20 @@
+# Typecheck
+
+## tests/snippets/match_unreachable
+  EnumDecl       Color                :: Color
+  FnDecl         label                :: fn(Color) -> string
+  FnDecl         main                 :: fn() -> i32
+  expr 17:48    MatchExpr      :: string
+  expr 17:54    IdentExpr      :: Color
+  expr 18:15    StringLitExpr  :: string
+  expr 19:15    StringLitExpr  :: string
+  expr 23:13    CallExpr       :: string
+  expr 23:13    IdentExpr      :: fn(Color) -> string
+  expr 23:19    DotVariantExpr :: Color
+  expr 23:5     CallExpr       :: void
+  expr 23:5     IdentExpr      :: fn(T) -> void
+  expr 24:13    CallExpr       :: string
+  expr 24:13    IdentExpr      :: fn(Color) -> string
+  expr 24:19    DotVariantExpr :: Color
+  expr 24:5     CallExpr       :: void
+  expr 24:5     IdentExpr      :: fn(T) -> void

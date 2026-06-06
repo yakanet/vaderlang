@@ -548,7 +548,7 @@ build_expr :: fn(fn_ctx: FnCtx, e: LoweredExpr) -> LocalId | null {
         is LoweredArrayLit as v     -> { return build_array_lit(fn_ctx, v) }
         is LoweredCast as v         -> { return build_cast(fn_ctx, v) }
         is LoweredTypeCheck as v    -> { return build_type_check(fn_ctx, v) }
-        is LoweredUnreachable as v  -> { return build_unreachable_type(fn_ctx, v.type, v.span, v.reason) }
+        is LoweredUnreachable as v  -> { return build_unreachable_type(fn_ctx, v.type, v.span, v.reason, v.trap) }
         is LoweredIntrinsicCall as v -> { return build_intrinsic_call(fn_ctx, v) }
         is LoweredArrayLen as v     -> { return build_array_len(fn_ctx, v) }
         is LoweredArrayPush as v    -> { return build_array_push(fn_ctx, v) }
@@ -607,7 +607,7 @@ build_ident :: fn(fn_ctx: FnCtx, e: LoweredIdent) -> LocalId | null {
     }
     inline_value :: fn_ctx.project.const_inline[e.symbol.id]
     if inline_value !is null { return build_expr(fn_ctx, inline_value) }
-    return build_unreachable_type(fn_ctx, e.type, e.span, "unresolved ident ${e.symbol.name}")
+    return build_unreachable_type(fn_ctx, e.type, e.span, "unresolved ident ${e.symbol.name}", false)
 }
 
 build_call :: fn(fn_ctx: FnCtx, e: LoweredCall) -> LocalId | null {
@@ -856,10 +856,10 @@ build_type_check :: fn(fn_ctx: FnCtx, e: LoweredTypeCheck) -> LocalId | null {
     return dst
 }
 
-build_unreachable_type :: fn(fn_ctx: FnCtx, type: Type, span: Span, reason: string) -> LocalId | null {
+build_unreachable_type :: fn(fn_ctx: FnCtx, type: Type, span: Span, reason: string, trap: bool) -> LocalId | null {
     if fn_ctx.current is null { return null }
     placeholder :: if is_void(type) { null } else { declare_local(fn_ctx, "unreachable", type, null) }
-    terminate(fn_ctx, TermUnreachable { .reason = reason, .span = span })
+    terminate(fn_ctx, TermUnreachable { .reason = reason, .span = span, .trap = trap })
     return placeholder
 }
 

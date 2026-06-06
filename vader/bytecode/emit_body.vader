@@ -176,7 +176,7 @@ emit_expr :: fn(expr: LoweredExpr, state: FnEmitState, ctx: EmitterCtx) -> void 
         is LoweredTypeCheck as type_check   -> emit_type_check(type_check, state, ctx)
         is LoweredTypeConst as type_const   -> emit_type_const(type_const, state, ctx)
         is LoweredDataConst as data_const   -> emit_data_const(data_const, state, ctx)
-        is LoweredUnreachable               -> {}
+        is LoweredUnreachable as u          -> { if u.trap { push_op(state, Unreachable { .reason = u.reason }) } }
         is LoweredMakeClosure as closure    -> emit_make_closure(closure, state, ctx)
         is LoweredVirtualCall as v_call     -> emit_virtual_call(v_call, state, ctx)
         is LoweredIntrinsicCall as intr     -> emit_intrinsic_call(intr, state, ctx)
