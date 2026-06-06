@@ -60,8 +60,10 @@ jobs:
       - name: Build Vader CLI from the C seed (used by tests)
         run: bash bootstrap/build.sh
 
+      # --only-failures: hide passing tests, keep the log to failures + summary
+      # (the local `bun run test` stays verbose for interactive use).
       - name: Test
-        run: bun run test
+        run: bun run test --only-failures
 
   # Heavy fixed-point check: build the toolchain, confirm stage1 and stage2 emit
   # identical C for main.vader, and the committed seed is fresh. Bun-free, gated
