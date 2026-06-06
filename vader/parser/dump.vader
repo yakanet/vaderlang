@@ -896,6 +896,10 @@ write_expr :: fn(sb: StringBuilder, e: Expr | null, level: i32) -> void {
                 sb.entry(false, level + 1, "partial")
                 sb.append("true")
             }
+            if e.unreachable {
+                sb.entry(false, level + 1, "unreachable")
+                sb.append("true")
+            }
             sb.close_obj(level)
         }
         is BlockExpr -> { sb.write_block_expr(e, level) }

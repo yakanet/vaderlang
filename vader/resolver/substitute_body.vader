@@ -157,6 +157,7 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
                 .scrutinee = substitute_expr_full(m.scrutinee, subst),
                 .arms = new_arms,
                 .partial = m.partial,
+                .unreachable = m.unreachable,
             }
         }
         is AST.BlockExpr as b -> { return substitute_block(b, subst) }

@@ -2500,7 +2500,7 @@ parse_prefix :: fn(p: Parser) -> Expr {
         }
     }
     if t.kind == .KwIf    { return p.parse_if_expr() }
-    if t.kind == .KwMatch { return p.parse_match_expr(false) }
+    if t.kind == .KwMatch { return p.parse_match_expr(false, false) }
     if t.kind == .KwFn    { return p.parse_lambda() }
     if t.kind == .KwSelf {
         p.advance()
@@ -2516,12 +2516,12 @@ parse_prefix :: fn(p: Parser) -> Expr {
     if t.kind == .At {
         at_tok :: p.advance()
         name_tok :: p.expect(.Ident, "decorator name after `@`")
-        if name_tok.text == "partial" {
+        if name_tok.text == "partial" || name_tok.text == "unreachable" {
             if !p.check(.KwMatch) {
                 p.error(.UnknownDecoratorPlacement, name_tok.span,
                     "`@${name_tok.text}` must precede a `match` expression")
             }
-            return p.parse_match_expr(true)
+            return p.parse_match_expr(name_tok.text == "partial", name_tok.text == "unreachable")
         }
         spec :: intrinsic_spec(name_tok.text)
         match spec {
@@ -3053,7 +3053,7 @@ parse_if_expr :: fn(p: Parser) -> IfExpr {
     }
 }
 
-parse_match_expr :: fn(p: Parser, partial: bool) -> MatchExpr {
+parse_match_expr :: fn(p: Parser, partial: bool, unreachable: bool) -> MatchExpr {
     start :: p.advance()  // `match`
     saved_allow :: p.allow_struct_lit
     p.allow_struct_lit = false
@@ -3070,10 +3070,11 @@ parse_match_expr :: fn(p: Parser, partial: bool) -> MatchExpr {
     }
     end :: p.expect(.RBrace, "`}` to close match")
     return MatchExpr {
-        .span      = Span { .start = start.span.start, .end = end.span.end },
-        .scrutinee = scrutinee,
-        .arms      = arms,
-        .partial   = partial,
+        .span        = Span { .start = start.span.start, .end = end.span.end },
+        .scrutinee   = scrutinee,
+        .arms        = arms,
+        .partial     = partial,
+        .unreachable = unreachable,
     }
 }
 

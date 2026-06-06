@@ -482,6 +482,12 @@ export LoweredUnreachable :: struct {
     span:   Span
     type:   Type
     reason: string
+    // True when this node can actually be reached at runtime and must trap
+    // (the fall-through of a `@partial` / `@unreachable` match). False — the
+    // default — for provably-dead placeholders (an exhaustive match's unused
+    // fallback, deferred-lowering stubs) : those stay no-ops so they neither
+    // bloat the bytecode nor drift snapshots.
+    trap:   bool = false
 }
 
 /// Static-named compiler/runtime intrinsic. Used for desugared forms

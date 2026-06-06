@@ -60,9 +60,21 @@ export lower_match :: fn(
         .type = scrut_type, .value = scrut_value,
     })
 
+    // `@unreachable` asserts the uncovered variants can't occur, so its
+    // fall-through trap carries an intent-revealing reason ; a plain match is
+    // exhaustive-by-T3013, so reaching its fallback is a compiler bug.
+    fallback_reason :: if expr.unreachable {
+        "@unreachable match — a variant the arms assert cannot occur was reached"
+    } else {
+        "non-exhaustive match (T3013 should have caught this)"
+    }
+    // Only `@partial` / `@unreachable` matches can actually reach the
+    // fallback at runtime, so only they emit the trapping `unreachable` op.
+    // A plain match is exhaustive (T3013), so its fallback is provably dead
+    // and stays a no-op — no bytecode bloat, no snapshot drift.
     fallback: LoweredBlock = wrap_block(expr.span, LoweredUnreachable {
         .span = expr.span, .type = result_type,
-        .reason = "non-exhaustive match (T3013 should have caught this)",
+        .reason = fallback_reason, .trap = expr.partial || expr.unreachable,
     })
 
     arm_count :: expr.arms.len()

@@ -4,8 +4,8 @@ type 1 primitive string
 type 2 primitive void
 type 3 primitive i32
 string 0 "\n"
-string 1 "weekend"
-string 2 "weekday"
+string 1 "red"
+string 2 "green"
 import 0 write std_io$write (i32,string) -> void
 import 1 to_string std_core$string$Display$to_string (string) -> string
 export main 2
@@ -24,60 +24,30 @@ fn 0 std_io$std_io$println__string (string) -> void
   return
 end
 
-fn 1 snippet$weekend_only (i32) -> string
+fn 1 snippet$label (i32) -> string
   local __scrut_0 i32
   local.get 0
   local.set 1
   local.get 1
-  i32.const 5
+  i32.const 0
   i32.eq
   if $L0 void
     return.lit string.const 1
   end $L0
   local.get 1
-  i32.const 6
-  i32.eq
-  if $L1 void
-    return.lit string.const 1
-  end $L1
-  local.get 1
-  i32.const 0
-  i32.eq
-  if $L2 void
-    return.lit string.const 2
-  end $L2
-  local.get 1
   i32.const 1
   i32.eq
-  if $L3 void
+  if $L1 void
     return.lit string.const 2
-  end $L3
-  local.get 1
-  i32.const 2
-  i32.eq
-  if $L4 void
-    return.lit string.const 2
-  end $L4
-  local.get 1
-  i32.const 3
-  i32.eq
-  if $L5 void
-    return.lit string.const 2
-  end $L5
-  local.get 1
-  i32.const 4
-  i32.eq
-  if $L6 void
-    return.lit string.const 2
-  end $L6
+  end $L1
   unreachable
 end
 
 fn 2 snippet$main () -> i32
-  i32.const 5
+  i32.const 0
   call 1
   call 0
-  i32.const 2
+  i32.const 1
   call 1
   call 0
   return.lit i32.const 0

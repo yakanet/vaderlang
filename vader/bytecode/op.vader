@@ -15,9 +15,14 @@ module "vader/bytecode"
 
 /// The full op set understood by the Vader-side VM. Each variant is
 /// pure data — the executor's `match` arms in `exec.vader` carry the
-/// semantics. New ops are appended (never reshaped), so the existing
-/// pattern-match arms keep compiling across sprints.
-export Op :: I32Const
+/// semantics. New ops are appended after `Unreachable` (never reshaped),
+/// so the existing pattern-match arms keep compiling across sprints.
+///
+/// `Unreachable` is deliberately the FIRST variant (tag 0) : a zeroed /
+/// uninitialised op decodes to a trap rather than to a valid instruction,
+/// so corrupt bytecode fails loudly instead of executing garbage.
+export Op :: Unreachable
+    | I32Const
     | LocalGet
     | LocalSet
     | LocalTee
@@ -146,6 +151,14 @@ export Op :: I32Const
     | Return
     | ReturnLit
 
+/// Trap unconditionally — the bytecode reached a point the compiler proved
+/// (or asserted, via `@unreachable match`) can never execute. Carries a
+/// human-readable `reason` for the panic message. The VM raises a `Trap` ;
+/// the C emitter lowers it to `vader_unreachable(reason)`. Tag 0 so a zeroed
+/// op decodes here and fails loudly. `reason` is not serialised to `.virt`
+/// (the round-trip VM traps with a generic message ; the in-memory run and
+/// the native build keep it).
+export Unreachable :: struct { reason: string }
 /// Push a constant i32 onto the value stack.
 export I32Const :: struct { value: i32 }
 /// Read `slots[slot]` onto the value stack.

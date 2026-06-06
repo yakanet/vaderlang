@@ -1,0 +1,26 @@
+// `@unreachable match` — assert the uncovered variants cannot occur.
+//
+// Prefixing a `match` with `@unreachable` suppresses the T3013
+// exhaustiveness error (like `@partial`) but asserts the omitted variants
+// are impossible : any uncovered variant traps at runtime (`reached
+// unreachable`) instead of being handled — no wildcard arm, no fake value.
+// Here only the reachable variants flow in, so the trap is never taken and
+// the program exits cleanly.
+
+module "snippet"
+
+import "std/io" { println }
+
+Color :: enum { Red, Green, Blue }
+
+// Handles Red / Green ; Blue is asserted impossible (would trap if reached).
+label :: fn(c: Color) -> string = @unreachable match c {
+    .Red   -> "red"
+    .Green -> "green"
+}
+
+main :: fn() -> i32 {
+    println(label(.Red))
+    println(label(.Green))
+    return 0
+}

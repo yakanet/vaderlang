@@ -116,8 +116,9 @@ export infer_match :: fn(
             _ -> {}
         }
     }
-    // T3013 — non-exhaustive match. `@partial` opts out.
-    if !has_wildcard && !e.partial && e.arms.len() > 0 {
+    // T3013 — non-exhaustive match. `@partial` / `@unreachable` opt out
+    // (the latter asserts the uncovered variants trap rather than degrade).
+    if !has_wildcard && !e.partial && !e.unreachable && e.arms.len() > 0 {
         if scrut_ty is UnionType {
             if !is_never(remaining) {
                 diags.push(typecheck_error(.NonExhaustiveMatch, e.span,
@@ -145,7 +146,7 @@ export infer_match :: fn(
     result_ty :: union_of(arm_types)
     // `has_wildcard` is only set by a wildcard / binding arm, so it already
     // implies ≥ 1 arm — no explicit arm-count guard needed.
-    if has_wildcard && !e.partial && !is_void(result_ty) && !is_never(result_ty) {
+    if has_wildcard && !e.partial && !e.unreachable && !is_void(result_ty) && !is_never(result_ty) {
         if scrut_ty is UnionType || scrut_ty is EnumType {
             diags.push(warning(.WildcardOnClosedUnion, e.span,
                 "wildcard arm on closed union `${display_type(scrut_ty)}` — enumerate its variants or mark the match `@partial`"))
