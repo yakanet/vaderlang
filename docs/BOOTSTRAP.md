@@ -1,5 +1,14 @@
 # Bootstrap — `bootstrap.c` seed
 
+> **Implemented (2026-06-06) — read before the per-Phase prose below.** The build is now a
+> **3-stage bootstrap**: `cc` the seed → `build/stage0`, stage0 → `build/stage1`, then
+> `stage1 build --target=native` → `build/vader` (stage2, the shipped compiler). The built
+> compiler resolves `stdlib/` + `runtime/c/` **next to its own executable** (the `std/io`
+> intrinsics `current_executable_location` / `current_working_dir`, with a cwd fallback), so a
+> `bash bootstrap/build.sh --dist` bundle runs from any directory. `bootstrap/{build.sh,build.ps1,verify.sh}`
+> are the source of truth. **The per-Phase prose below predates this**: it still calls the *seed
+> binary* `stage1` (now `stage0`) and describes cwd-relative resolution.
+
 This document plans the move to a **C-seed bootstrap** : a committed,
 versioned, gzip-compressed `bootstrap/bootstrap.c.gz` file produced by the
 **self-hosted** Vader compiler, which any C compiler can build into a working
@@ -39,8 +48,9 @@ cold-start path, and matches the proven Nim / Chicken Scheme pattern.
 | `bootstrap/` layout + scripts (`build`/`regenerate`/`verify`) + `.gitattributes` | ✅ done (commit 7655e1dc) — validated end-to-end (755 KB seed, `verify.sh` green) |
 | `--bundle-runtime` flag | ❌ later (optional improvement, runtime linked externally for now) |
 | **Commit the seed blob `bootstrap.c.gz`** | ✅ sealed (commit 5f718b89, 755 KB) — from HEAD aa48e9f3, fixed-point verified |
-| CI integration (Phase 3) | ✅ done — `.github/workflows/bootstrap.yml`: rebuild-from-seed on every push, gated fixed-point on dispatch/tags |
+| CI integration (Phase 3) | ✅ done — merged into `.github/workflows/build.yml` (the CI workflow): a Bun-free `seed-rebuild` job every push + a gated `fixed-point` job |
 | README narrative / §2.8 `src/` deletion | ❌ later |
+| 3-stage build + next-to-exe resolution | ✅ done (2026-06-06) — see the note at the top of this file |
 
 ## Blocking prerequisite : wire `cmd_build` — ✅ DONE (commit 2c055e00)
 
@@ -457,13 +467,14 @@ The first time `bootstrap.c.gz` is generated, you need a working Vader binary
 
 ---
 
-## Phase 3 — CI integration — ✅ DONE (`.github/workflows/bootstrap.yml`)
+## Phase 3 — CI integration — ✅ DONE (`.github/workflows/build.yml`)
 
-The GitHub Actions workflow `.github/workflows/bootstrap.yml` runs on each
-push : a `rebuild` job that turns the seed into stage1, rebuilds the full
-compiler, and smoke-tests it (steps below), plus a heavier `fixed-point` job
-(`verify.sh`) gated to `workflow_dispatch` and release tags. Neither needs
-Bun, Node, or a pre-installed `vader` — only a C compiler and `gzip`.
+CI lives in the unified `.github/workflows/build.yml` workflow. A Bun-free
+`seed-rebuild` job runs on each push — it turns the seed into the full compiler
+(3-stage bootstrap) and smoke-tests it — plus a heavier `fixed-point` job
+(`verify.sh`) gated to `workflow_dispatch` and release tags. Neither installs
+Bun, Node, or a pre-installed `vader` — only a C compiler and `gzip`. (The Bun
+`test` / `dist` jobs in the same file are separate, isolated jobs.)
 
 The `rebuild` job, running on each push :
 
@@ -620,9 +631,9 @@ unblocked. The deletion is a single PR :
 
 Post-deletion, the **only** ways to acquire a `vader` binary are :
 
-- Download a prebuilt release (the existing `scripts/dist.ts` path,
-  itself ported to Vader as part of §2.x).
-- Build from source via `bootstrap/build.sh` → stage1 → full `vader`.
+- Download a prebuilt release (a `dist/vader-<os>-<arch>/` bundle packaged
+  via `bootstrap/build.sh --dist`).
+- Build from source yourself via `bootstrap/build.sh` → stage1 → full `vader`.
 
 There is no third path. That is the whole guarantee the seed provides.
 

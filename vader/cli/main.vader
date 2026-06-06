@@ -27,7 +27,7 @@ import "vader/resolver" { dump_project }
 import "vader/typecheck" { check_module_with_bodies, check_project_with_bodies }
 import "vader/typecheck" { CheckResult }
 import "vader/typecheck" { TypedProject, new_typed_project }
-import "vader/resolver" { load_project }
+import "vader/resolver" { load_project, resolve_sidecar }
 import "vader/typecheck" { dump_program as dump_typed, dump_program_with_others }
 import "vader/comptime" { evaluate_project }
 import "vader/comptime" { dump_evaluated }
@@ -285,10 +285,10 @@ cmd_test :: fn(args: string[]) -> i32 {
 
 // ----------------------------------------------------------- build
 
-// Runtime root for `--target=native` linking. Cwd-relative `runtime/c`,
-// mirroring `default_stdlib_root`'s cwd-relative `stdlib` — both assume the
-// build runs from the repo root (which `bootstrap/build.sh` guarantees).
-RUNTIME_C_ROOT :: "runtime/c"
+// Runtime root for `--target=native` linking — resolved next to the executable
+// (dist bundle) then the cwd, via the shared `resolve_sidecar` probe (marker
+// `vader.h`), so a bundled `vader` finds `runtime/c/` next to itself.
+runtime_c_root :: fn() = resolve_sidecar("runtime/c", "vader.h")
 
 cmd_build :: fn(args: string[]) -> i32 {
     specs: FlagSpec[] = [
@@ -422,10 +422,11 @@ cc_argv :: fn(cc: string, c_file: string, out: string, release: bool, ldflags: s
         argv.push("-O0")
         argv.push("-g")
     }
+    rt :: runtime_c_root()
     argv.push("-I")
-    argv.push(RUNTIME_C_ROOT)
+    argv.push(rt)
     argv.push(c_file)
-    argv.push("${RUNTIME_C_ROOT}/vader_runtime.c")
+    argv.push("${rt}/vader_runtime.c")
     // Whitespace-split user --ldflags into argv tokens — boring, no shell
     // quoting : a path with spaces is a user bug. Appended before `-o` so they
     // can refer back to the emitted unit (e.g. `@extern` helper symbols).

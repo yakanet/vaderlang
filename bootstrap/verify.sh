@@ -1,22 +1,21 @@
 #!/usr/bin/env bash
-# Fixed-point check : the committed seed builds the full compiler (via
-# bootstrap/build.sh), and that compiler reproduces both itself and the seed
-# byte-for-byte. Formalises TODO §2.7 / docs/BOOTSTRAP.md Phase 4. Run on demand
-# / before releases — too slow for every PR. Honours $CC (passed through to
-# bootstrap/build.sh).
+# Fixed-point check : build the 3-stage toolchain, then confirm stage1 and
+# stage2 (vader) emit identical C for main.vader, and the committed seed is
+# fresh. Formalises TODO §2.7 / docs/BOOTSTRAP.md Phase 4. Run on demand /
+# before releases — too slow for every PR. Honours $CC (via bootstrap/build.sh).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-# build.sh runs the whole chain: seed -> stage1 -> build/main.c (stage1's C for
-# the full compiler) -> build/vader. build/main.c is the fixed-point anchor.
 ./bootstrap/build.sh
 
-# (a) full-compiler self-reproduction : vader re-emits main.vader, must match
-#     stage1's emission (build/main.c).
-./build/vader build vader/cli/main.vader --target=c --out=build/main2.c
-if ! cmp -s build/main.c build/main2.c; then
-  echo "FIXED-POINT FAILED — the full compiler is not self-reproducing" >&2
-  diff -u build/main.c build/main2.c | head -80 >&2
+# (a) fixed point : stage1 and stage2 must emit identical C for main.vader.
+# Re-emit from both with the SAME flags (--target=c, no --release) so the diff
+# reflects only compiler behaviour, not the build's debug/release split.
+./build/stage1 build vader/cli/main.vader --target=c --out=build/fp1.c
+./build/vader  build vader/cli/main.vader --target=c --out=build/fp2.c
+if ! cmp -s build/fp1.c build/fp2.c; then
+  echo "FIXED-POINT FAILED — stage1 and stage2 disagree on main.vader's C" >&2
+  diff -u build/fp1.c build/fp2.c | head -80 >&2
   exit 1
 fi
 
@@ -27,4 +26,4 @@ if ! cmp -s build/bootstrap.new.c <(gunzip -c bootstrap/bootstrap.c.gz); then
   exit 1
 fi
 
-echo "fixed-point OK : main.c reproduced byte-identical, seed up to date"
+echo "fixed-point OK : stage1 == stage2, seed up to date"

@@ -1,4 +1,4 @@
-vader_source_sha: aa48e9f357acd54cf2b473d683d1d5ee4c4aa850
+vader_source_sha: ed84258d1e6a5f75322cbf14a43bbe6a9c31aecf (+ uncommitted bootstrap rework — see commit)
 vader_version:    0.0.0-pre-mvp
-regenerated_at:   2026-06-05T21:47:21Z
-generator:        ./build/vader
+regenerated_at:   2026-06-06T13:28:35Z
+generator:        bootstrap/build.sh (3-stage)

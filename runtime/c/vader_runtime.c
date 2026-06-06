@@ -31,6 +31,9 @@
 #  include <spawn.h>
 #  include <sys/wait.h>
 #  include <unistd.h>
+#  if defined(__APPLE__)
+#    include <mach-o/dyld.h> /* _NSGetExecutablePath */
+#  endif
 extern char** environ;
 #endif
 
@@ -2406,6 +2409,38 @@ vader_box_t vader_read_dir(vader_string_t path, uint32_t arr_type,
 }
 
 #endif  /* _WIN32 / POSIX */
+
+/* ----------------------------------------------------------------- location
+ *
+ * `vader_current_executable_location` backs the `std/io` intrinsic the resolver
+ * uses to find the stdlib + C-runtime next to the running binary (sidecar
+ * layout). Returns a `/`-separated path, falling back to "." when the platform
+ * query fails, so resolution degrades to cwd-relative rather than breaking. */
+
+static void vader_path_to_slash(char* s, size_t n) {
+    for (size_t i = 0; i < n; i++) { if (s[i] == '\\') s[i] = '/'; }
+}
+
+vader_string_t vader_current_executable_location(void) {
+    char buf[4096];
+    size_t n = 0;
+#if defined(_WIN32)
+    DWORD len = GetModuleFileNameA(NULL, buf, (DWORD) sizeof(buf));
+    if (len > 0 && len < sizeof(buf)) n = (size_t) len;
+#elif defined(__APPLE__)
+    char raw[4096];
+    uint32_t cap = (uint32_t) sizeof(raw);
+    if (_NSGetExecutablePath(raw, &cap) == 0 && realpath(raw, buf) != NULL) {
+        n = strlen(buf);
+    }
+#else  /* Linux + other /proc systems */
+    ssize_t r = readlink("/proc/self/exe", buf, sizeof(buf) - 1);
+    if (r > 0) { buf[(size_t) r] = '\0'; n = (size_t) r; }
+#endif
+    if (n == 0) return vader_string_new(".", 1);
+    vader_path_to_slash(buf, n);
+    return vader_string_new(buf, n);
+}
 
 /* ----------------------------------------------------------------- process
  *

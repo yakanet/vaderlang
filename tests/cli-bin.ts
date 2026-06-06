@@ -47,8 +47,7 @@ function binaryMtime(): number {
 const BUILD_HINT =
   `  bun run build:cli                              # fast, while src/ exists\n` +
   `  # or from the committed C seed (no TS — see bootstrap/README.md):\n` +
-  `  bash bootstrap/build.sh && ./build/stage1 vader/cli/main.vader build/main.c && \\\n` +
-  `    cc -O2 -o ${CLI_BIN} build/main.c runtime/c/vader_runtime.c -Iruntime/c -lm`;
+  `  bash bootstrap/build.sh                         # 3-stage bootstrap → ${CLI_BIN}`;
 
 // Assert a prebuilt, up-to-date compiler binary is present — never build it.
 // Missing or stale-vs-sources is a hard failure with rebuild instructions, so
