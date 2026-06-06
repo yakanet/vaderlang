@@ -459,10 +459,7 @@ export compute_liveness :: fn(fn_: CFGFunction) -> Liveness {
                 if !d.contains(l) { u.add(l) }
             })
             ds :: dst_of(ins)
-            match ds {
-                is null -> {}
-                _ -> { d.add(ds) }
-            }
+            if ds != null { d.add(ds) }
         }
         for_each_read_in_terminator(b.terminator, (l: LocalId) -> {
             if !d.contains(l) { u.add(l) }

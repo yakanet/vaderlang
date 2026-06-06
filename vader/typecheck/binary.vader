@@ -228,7 +228,10 @@ numeric_propagation :: fn(op: AST.BinaryOp, left: Type) -> Type | null {
         .Arith    -> true
         .Compare  -> true
         .Equality -> true
-        _         -> false
+        .Logical  -> false
+        .Bitwise  -> false
+        .Is       -> false
+        .In       -> false
     }
     if !propagates { return null }
     if is_numeric(left) { return left }

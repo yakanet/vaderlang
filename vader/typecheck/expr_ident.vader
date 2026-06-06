@@ -72,8 +72,11 @@ export type_of_symbol :: fn(sym: Symbol, typed: TypedProgram) -> Type = match sy
     // primitive shape comes back via `type_from_expr` in type-demanding
     // slots. Lets `Foo :: i32 | u32` parse cleanly.
     .BuiltinType -> TY_TYPE
-    // ImportBinding / BuiltinFn / Binding / Synthetic — see header.
-    _          -> TY_UNRESOLVED
+    // ImportBinding / BuiltinFn / Impl / Synthetic carry no value type — see header.
+    .Impl          -> TY_UNRESOLVED
+    .ImportBinding -> TY_UNRESOLVED
+    .BuiltinFn     -> TY_UNRESOLVED
+    .Synthetic     -> TY_UNRESOLVED
 }
 
 /// Look `sym`'s span up in a span-keyed table (`param_types` /

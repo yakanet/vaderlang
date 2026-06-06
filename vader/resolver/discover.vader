@@ -82,7 +82,7 @@ walk_root :: fn(root: string, buckets: MutableMap<string, FolderBucket>, diags: 
 walk_dir :: fn(dir: string, buckets: MutableMap<string, FolderBucket>, diags: Diagnostic[]) -> void {
     entries_opt :: read_dir(dir)
     empty_strs: string[] = []
-    raw: string[] = match entries_opt { is string[] as ss -> ss, _ -> empty_strs }
+    raw: string[] = match entries_opt { is string[] as ss -> ss, is Error -> empty_strs }
     if raw.len() == 0 { return }
     sorted :: sort(raw, (a: string, b: string) -> compare_ascending(a, b))
 
@@ -103,7 +103,7 @@ walk_dir :: fn(dir: string, buckets: MutableMap<string, FolderBucket>, diags: Di
     }
     for path in files_here {
         content_opt :: read_file(path)
-        content :: match content_opt { is string as s -> s, _ -> "" }
+        content :: match content_opt { is string as s -> s, is Error -> "" }
         if content == "" { continue }
         bucket.files.push(path)
         header :: parse_module_header(content, path)

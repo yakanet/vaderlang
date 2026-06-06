@@ -91,6 +91,8 @@ interp_value :: fn(v: ComptimeValue) -> string = match v {
     is CharValue   as x -> "${x.value}"
     is NullValue        -> "null"
     is VoidValue        -> ""
-    _                   -> display_value(v)
+    is ArrayValue       -> display_value(v)
+    is StructValue      -> display_value(v)
+    is TypeValue        -> display_value(v)
 }
 

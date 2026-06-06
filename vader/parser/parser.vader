@@ -1116,9 +1116,10 @@ parse_struct_type_param_list :: fn(p: Parser) -> TypeParam[] {
         if p.match_kind(.Colon) != null { bound = p.parse_type() }
 
             if !has_dollar {
-                hint :: match bound {
-                    is null -> "`${name.text}` must be written `\$${name.text}`"
-                    _       -> "`${name.text}` must be prefixed with `\$`"
+                hint :: if bound == null {
+                    "`${name.text}` must be written `\$${name.text}`"
+                } else {
+                    "`${name.text}` must be prefixed with `\$`"
                 }
                 p.error(.TypeParamMustBePrefixedWithDollar, p.span_of(start, p.peek_at(-1)), hint)
             } else {
