@@ -16,6 +16,11 @@ param([string]$CC = $(if ($env:CC) { $env:CC } else { 'gcc' }), [switch]$Dist)
 
 $ErrorActionPreference = 'Stop'
 Set-Location (Split-Path -Parent $PSScriptRoot)
+# Set-Location only updates $PWD ; .NET file APIs (OpenRead/Create below) resolve
+# relative paths against [Environment]::CurrentDirectory, which Set-Location never
+# touches. Sync it so the seed decompression and the cc/stage child processes all
+# resolve relative paths against the repo root.
+[Environment]::CurrentDirectory = $PWD.Path
 
 $ccCmd = Get-Command $CC -ErrorAction SilentlyContinue
 if ($null -eq $ccCmd) { throw "C compiler '$CC' not found on PATH (use -CC ...)" }
