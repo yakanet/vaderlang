@@ -115,3 +115,9 @@ export eprintln :: fn<T: Display>(msg: T) -> void {
 /// @return      entry names (no path prefix).
 /// @error       `IOError` if `path` isn't a directory or can't be opened.
 @intrinsic export read_dir :: fn(path: string) -> string[] | Error
+
+/// Full path of the running executable, `/`-separated. Use `std/path`'s
+/// `parent` to get its directory — e.g. to resolve sidecar resources (stdlib,
+/// C runtime) next to the binary. Falls back to `"."` if the OS query fails.
+/// @return  the executable's own path.
+@intrinsic export current_executable_location :: fn() -> string

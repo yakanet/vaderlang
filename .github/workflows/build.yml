@@ -1,4 +1,4 @@
-name: Build
+name: CI
 
 on:
   workflow_dispatch:
@@ -14,6 +14,24 @@ concurrency:
   cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 
 jobs:
+  # Bun-free cold-start guarantee (§2.8): a stock C compiler + gzip turn the
+  # committed C seed into the full compiler via the 3-stage bootstrap — no Bun,
+  # no TypeScript, no pre-existing vader. This job deliberately does NOT install
+  # Bun ; that is the whole point. See docs/BOOTSTRAP.md.
+  seed-rebuild:
+    name: Rebuild compiler from C seed
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      # bootstrap/build.sh: gunzip the seed -> cc stage0, stage0 -> stage1,
+      # stage1 -> build/vader (stage2). GC arenas auto-grow — no tuning needed.
+      - name: Build the full compiler from the seed
+        run: bash bootstrap/build.sh
+
+      - name: Smoke test the rebuilt compiler
+        run: ./build/vader build tests/snippets/return_42/_main.vader --target=c --out=build/_smoke.c
+
   test:
     name: Test
     runs-on: ubuntu-latest
@@ -37,48 +55,23 @@ jobs:
 
       # Build the compiler under test from the committed C seed — no TS. This is
       # the §2.8 path: once src/ is deleted, the seed is the only way to get a
-      # vader binary. stage1 (build-only) emits the full compiler's C, then cc.
-      # GC arenas raised so stage1 doesn't OOM on self-input (docs/BOOTSTRAP.md §9).
+      # vader binary. bootstrap/build.sh runs the full 3-stage bootstrap and
+      # leaves the compiler at build/vader. GC arenas auto-grow — no tuning needed.
       - name: Build Vader CLI from the C seed (used by tests)
-        env:
-          VADER_GC_YOUNG_BYTES: 268435456
-          VADER_GC_OLD_BYTES: 1073741824
-        run: |
-          bash bootstrap/build.sh
-          ./build/stage1 vader/cli/main.vader build/main.c
-          cc -O2 -o build/vader build/main.c runtime/c/vader_runtime.c -Iruntime/c -lm
+        run: bash bootstrap/build.sh
 
       - name: Test
         run: bun run test
 
-  dist:
-    name: Build distributable archives
+  # Heavy fixed-point check: build the toolchain, confirm stage1 and stage2 emit
+  # identical C for main.vader, and the committed seed is fresh. Bun-free, gated
+  # to manual dispatch / release tags — too slow for every PR. docs/BOOTSTRAP.md Phase 4.
+  fixed-point:
+    name: Fixed-point verification
     runs-on: ubuntu-latest
-    needs: test
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
     steps:
       - uses: actions/checkout@v6
 
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.3.13
-
-      - uses: actions/cache@v5
-        with:
-          path: ~/.bun/install/cache
-          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-
-      - name: Cross-compile all targets
-        run: bun run dist:all
-
-      - name: Upload archives
-        uses: actions/upload-artifact@v7
-        with:
-          name: vader-archives-${{ github.run_id }}
-          path: |
-            dist/vader-*.tar.gz
-            dist/vader-*.zip
-          if-no-files-found: error
-          retention-days: 30
+      - name: verify.sh (stage1 == stage2 + seed freshness)
+        run: bash bootstrap/verify.sh

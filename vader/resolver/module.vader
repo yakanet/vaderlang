@@ -3,8 +3,8 @@
 // A `Module` represents one resolved-on-disk unit. The MVP loader
 // supports two import forms :
 //
-//   - `import "std/foo"`  — resolves against the stdlib root (search
-//     order : `<cwd>/stdlib`, then via `$VADER_STDLIB` env when set).
+//   - `import "std/foo"`  — resolves against the stdlib root (probed
+//     next to the executable, then `<cwd>/stdlib` — see `resolve_sidecar`).
 //   - `import "./foo"` or `import "../foo"` — resolves relative to
 //     the importing file's directory.
 //
@@ -16,7 +16,7 @@
 
 module "vader/resolver"
 
-import "std/io" { exists, is_dir, read_dir, read_file }
+import "std/io" { exists, is_dir, read_dir, read_file, current_executable_location }
 import "std/path" { Path, to_path, as_string, parent }
 import "std/sort" { sort }
 import "std/string" { bytes, trim_prefix, compare_ascending, ends_with, starts_with }
@@ -204,13 +204,23 @@ export join_path :: fn(base: string, seg: string) -> string {
 /// Returns "" when no separator is present. Uses `std/path::parent`.
 export dir_of :: fn(path: string) -> string { return path.to_path().parent().as_string() }
 
-/// Stdlib root discovery : default to `./stdlib` relative to cwd.
-/// Future work : probe sidecar layout next to the binary, read
-/// `$VADER_STDLIB` env, etc.
-export default_stdlib_root :: fn() -> string {
-    if exists("stdlib") && is_dir("stdlib") { return "stdlib" }
-    return "stdlib"
+/// Resolve a resource directory `<base>/subdir` next to the executable, falling
+/// back to the bare cwd-relative `subdir`. The sidecar candidate wins only when
+/// it holds `marker`. Lets a `dist/` bundle find its stdlib + C runtime next to
+/// the binary, while a repo checkout still resolves via the cwd.
+///
+/// The fallback returns the *relative* `subdir`, never an absolutised cwd path:
+/// the resolved root becomes a module-id prefix, and an absolute root reshuffles
+/// map-keyed insertion order (the comptime generic-instance collection), drifting
+/// snapshots. Relative keeps the historical cwd-relative ids.
+export resolve_sidecar :: fn(subdir: string, marker: string) -> string {
+    exe_root :: join_path(current_executable_location().dir_of(), subdir)
+    if exists(join_path(exe_root, marker)) { return exe_root }
+    return subdir
 }
+
+/// Stdlib root, resolved next to the executable (then cwd) — see `resolve_sidecar`.
+export default_stdlib_root :: fn() = resolve_sidecar("stdlib", "std/io.vader")
 
 import "std/json" { parse, JsonValue, JsonObject, JsonArray, JsonString }
 

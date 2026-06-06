@@ -54,10 +54,10 @@ xattr -d com.apple.quarantine ./vader-darwin-arm64/vader
 
 ## Build from source
 
-Vader is self-hosted — the compiler is written in Vader and compiles itself — so building from a checkout needs only a C compiler and `gzip`. It bootstraps in two stages from a small, committed C **seed**, which is exactly the chain CI replays on every push :
+Vader is self-hosted — the compiler is written in Vader and compiles itself — so building from a checkout needs only a C compiler and `gzip`. It bootstraps in three stages from a small, committed C **seed** (`bootstrap/bootstrap.c.gz`), which is exactly the chain CI replays on every push :
 
-- **stage0 — the seed.** `bootstrap/bootstrap.c.gz` is gzip-compressed C : the output a Vader compiler once emitted for the build-only entrypoint `vader/bootstrap/bootstrap.vader`, then committed and frozen. It is the trusted starting point — turning it into a working compiler takes nothing but `cc`, which is what breaks the chicken-and-egg of needing a Vader compiler to build the Vader compiler.
-- **stage1 — the compiler built from the seed.** Decompress stage0 and compile it with `cc` to get `build/stage1`. Its CLI is deliberately minimal (`<input.vader> → <output.c>`), but it carries the *whole* compilation pipeline — so it can compile any `.vader`, including `vader/cli/main.vader`, which yields the full `vader` toolchain. A fixed-point check then confirms that full compiler re-emits its own C byte-for-byte.
+- **seed → stage0.** The seed is gzip-compressed C — the output a Vader compiler once emitted for the build-only entrypoint `vader/bootstrap/bootstrap.vader`, then committed and frozen. `cc` turns it into `build/stage0`, the bootstrap compiler. This trusted starting point needs no pre-existing Vader toolchain — that's what breaks the chicken-and-egg of compiling the Vader compiler.
+- **stage0 → stage1 → stage2.** stage0 emits the C for `vader/cli/main.vader`, the script links it into `build/stage1` (the full compiler), and stage1 builds itself once more into `build/vader` (= stage2, the shipped compiler). A fixed-point check confirms stage1 and stage2 emit identical C.
 
 ```sh
 git clone https://github.com/yakanet/vaderlang.git
@@ -66,25 +66,28 @@ cd vaderlang
 
 ### From the C seed
 
-One command runs the whole chain — decompress the seed, build stage1, and have stage1 rebuild the full compiler :
+One command runs the whole 3-stage bootstrap — `cc` the seed into **stage0**, stage0 builds the intermediate **stage1**, stage1 builds the shipped compiler **stage2** (`build/vader`) — and, with `--dist`, bundles a distributable folder :
 
 ```sh
-bash bootstrap/build.sh        # seed → stage1 → full compiler, all the way to build/vader
-./build/vader --version
+bash bootstrap/build.sh --dist     # seed → stage0 → stage1 → vader (stage2), + dist/vader-<os>-<arch>/
+dist/vader-*/vader --version        # the bundle is self-contained — run it from anywhere
 ```
+
+The `dist/vader-<os>-<arch>/` bundle (binary + stdlib + C runtime) is self-contained: the binary resolves `stdlib/` and `runtime/c/` **next to its own executable**, so it runs from any directory — no `cd` needed. Omit `--dist` to stop at `build/vader`.
 
 `build.sh` prints a step-by-step log and defaults to `cc` ; override it with `CC=clang bootstrap/build.sh`. The runtime is linked externally from `runtime/c/` (no bundling), and the GC arenas auto-grow, so self-compiling the compiler needs no special environment tuning. See [`docs/BOOTSTRAP.md`](./docs/BOOTSTRAP.md) for the seed lifecycle, the regeneration flow (`bootstrap/regenerate.sh`), and the fixed-point verification (`bootstrap/verify.sh`).
 
 #### On Windows
 
-The runtime relies on GCC/Clang extensions (`__attribute__((weak))`), so build with **mingw-w64** (gcc or clang) — **not** MSVC. With a mingw-w64 `gcc` on `PATH`, the PowerShell wrapper runs the same whole chain :
+The runtime relies on GCC/Clang extensions (`__attribute__((weak))`), so build with **mingw-w64** (gcc or clang) — **not** MSVC. Install a mingw-w64 toolchain with [winget](https://winstall.app/apps/BrechtSanders.WinLibs.MCF.UCRT), then run the PowerShell wrapper :
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File bootstrap\build.ps1   # seed → stage1 → full compiler, to build\vader.exe
-.\build\vader.exe --version
+winget install BrechtSanders.WinLibs.MCF.UCRT                       # mingw-w64 gcc/clang on PATH (once; reopen the terminal afterwards)
+powershell -ExecutionPolicy Bypass -File bootstrap\build.ps1 -Dist  # → dist\vader-windows-<arch>\ (self-contained)
+dist\vader-windows-*\vader.exe --version                            # runs from anywhere
 ```
 
-`build.ps1` decompresses the seed through .NET's `GZipStream`, so no `gzip` install is needed ; pass `-CC clang` (or set `$env:CC`) to pick a different compiler.
+`build.ps1` decompresses the seed through .NET's `GZipStream`, so no `gzip` install is needed ; pass `-CC clang` (or set `$env:CC`) to pick a different compiler, and drop `-Dist` to just build `build\vader.exe`.
 
 Alternatively, the MSYS2 *MINGW64* shell bundles `bash`, mingw-w64 `gcc`, and `gzip` (`pacman -S mingw-w64-x86_64-gcc gzip`), so the Unix commands above run unchanged — the outputs just gain a `.exe` suffix.
 

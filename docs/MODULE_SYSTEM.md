@@ -200,8 +200,8 @@ exists only for the grammar check above.
 The stdlib is resolved out-of-band from `vader.json` :
 
 - **Release mode** — sidecar of the binary. The compiled `vader`
-  executable ships in a tarball alongside `stdlib/` (already done by
-  `scripts/dist.ts` — see `dist/vader-darwin-arm64/stdlib/`).
+  executable ships in a tarball alongside `stdlib/` (packaged by
+  `bootstrap/build.sh --dist` — see `dist/vader-<os>-<arch>/stdlib/`).
   Resolution : `<dir-of-binary>/stdlib/`.
 - **Dev mode** — when running from source via `bun src/index.ts`, the
   stdlib path is hard-coded to `<workspace>/stdlib/` (already handled
