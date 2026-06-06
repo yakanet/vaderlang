@@ -13,6 +13,10 @@ import { test, expect } from "bun:test";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
+// NOTE: still drives the TS CLI in-process. This suite is entirely `vader test
+// <dir>`, and native `vader test` is a stub today (vader/cli/main.vader::
+// cmd_test → "not yet implemented", exit 2). Flip to spawn build/vader (via
+// cli-bin's runCli) once cmd_test is implemented natively.
 import { runCli } from "../src/cli.ts";
 import { LONG_BUILD } from "./cli-bin.ts";
 

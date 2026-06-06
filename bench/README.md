@@ -17,14 +17,14 @@ Every program prints a one-line checksum so cross-language equivalence is verifi
 
 | stack             | entry-point                                  | how it runs                                          |
 |-------------------|----------------------------------------------|------------------------------------------------------|
-| `vader-native`    | `bench/<name>.vader` → native binary         | `bun src/index.ts build --target=native --release`, then exec |
+| `vader-native`    | `bench/<name>.vader` → native binary         | `./build/vader build --target=native --release`, then exec |
 | `bun-ts`          | `bench/<name>.ts`                            | direct `bun bench/<name>.ts`                          |
 | `go`              | `bench/<name>.go` → native binary            | `go build`, then exec                                 |
 | `java`            | `bench/<name>.java` → `bench/<name>.class`   | `javac --release 25`, then `java -cp bench <Name>`    |
 
 The harness times each invocation with `performance.now()` around a `spawnSync`, so what's measured is the **process wall-clock** — startup, runtime initialization, kernel, I/O, teardown.
 
-A fifth implementation, `vader-vm` (`bun src/index.ts run bench/<name>.vader`), exists in the codebase but is commented out in `bench/run.ts`'s `IMPLS` list. Reason : each VM invocation pays 2-30 s for the Vader parse + typecheck + lower + bytecode pipeline, which dwarfs the actual VM loop. Including it inflates the total bench wall time from ~6 s to ~5 min without surfacing a regression signal that `vader-native` doesn't already cover. Uncomment the entry when a change targets the VM exec path specifically (e.g. once the bytecode-on-disk cache lands and the compile phase is amortised).
+A fifth implementation, `vader-vm` (`./build/vader run bench/<name>.vader`), exists in the codebase but is commented out in `bench/run.ts`'s `IMPLS` list. Reason : each VM invocation pays 2-30 s for the Vader parse + typecheck + lower + bytecode pipeline, which dwarfs the actual VM loop. Including it inflates the total bench wall time from ~6 s to ~5 min without surfacing a regression signal that `vader-native` doesn't already cover. Uncomment the entry when a change targets the VM exec path specifically (e.g. once the bytecode-on-disk cache lands and the compile phase is amortised).
 
 Java is precompiled in the build phase rather than run via the single-source-file launcher (`java bench/<name>.java`). The launcher adds ~200 ms per invocation for in-memory source parsing + class load on top of the JVM cold-start floor ; precompiling drops Java's per-run cost to ~30-50 ms which is the JVM startup + cold JIT alone. For steady-state Java throughput (a long-running JVM that has warmed its JIT), Java would land much closer to Go and Vader native ; the bench measures cold script invocations on purpose.
 
@@ -94,4 +94,4 @@ These aren't bench bugs ; they're real Vader limits that constrain workload sizi
 
 - The natively-compiled Vader path uses `--release`, which sets `-O3 -DNDEBUG` and post-link `strip`. Compiler is the system `cc` (clang on macOS, gcc on Linux).
 - Bun's measurement of process wall-clock includes its own startup (~10 ms on macOS). On a workload that takes 15 ms total, that's a third of the run.
-- The VM-path numbers measure `bun src/index.ts run …` end-to-end, including TypeScript parse and stdlib re-typecheck. They'll drop substantially once the bytecode-on-disk cache lands (TODO §3.5).
+- The VM-path numbers measure `./build/vader run …` end-to-end, including the Vader parse + typecheck + lower + bytecode pipeline. They'll drop substantially once the bytecode-on-disk cache lands (TODO §3.5).
