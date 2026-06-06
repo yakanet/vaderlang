@@ -233,13 +233,19 @@ float_compare :: fn(left: f64, right: f64, op: CompareOp) -> bool = match op {
 bool_compare :: fn(left: bool, right: bool, op: CompareOp) -> bool = match op {
     .Eq  -> left == right
     .Neq -> left != right
-    _    -> false
+    .Lt  -> false
+    .Lte -> false
+    .Gt  -> false
+    .Gte -> false
 }
 
 string_compare :: fn(left: string, right: string, op: CompareOp) -> bool = match op {
     .Eq  -> left == right
     .Neq -> left != right
-    _    -> false
+    .Lt  -> false
+    .Lte -> false
+    .Gt  -> false
+    .Gte -> false
 }
 
 bool_value :: fn(b: bool) -> ComptimeValue {

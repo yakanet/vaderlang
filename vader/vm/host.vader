@@ -380,10 +380,8 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
         // `vader_box_null` (used by the runtime for `null | Error` success
         // returns) emits tag 0, so `is null` would miss. Match the
         // failure path explicitly and fall through to success.
-        return match result {
-            is Error -> HostOk { .value = ErrorVal { .message = "write_file failed: ${path.value}" } }
-            _        -> HostOk { .value = NullVal {} }
-        }
+        if result is Error { return HostOk { .value = ErrorVal { .message = "write_file failed: ${path.value}" } } }
+        return HostOk { .value = NullVal {} }
     }
     if info.mangled == r"std_io$exists" {
         path :: read_string(stack[arg_base], at_pc, "exists")

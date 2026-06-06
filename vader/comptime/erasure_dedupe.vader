@@ -34,6 +34,7 @@ module "vader/comptime"
 import "std/collections" { MutableMap, keys }
 import "vader/parser" {
     Decl, FnDecl, StructDecl, ImplDecl, IdentExpr, GenericInstExpr, TypeExpr,
+    ImportDecl, EnumDecl, TraitDecl, TypeAliasDecl, ConstDecl, AssertDecl,
 }
 import "vader/types" {
     Type, PrimitiveType, StructType, TraitType, ArrayType, UnionType, TupleType,
@@ -515,7 +516,13 @@ group_by_decl :: fn(entries: MonoEntry[]) -> MutableMap<i32, DeclGroup> {
 decl_id_of :: fn(d: Decl) -> i32 = match d {
     is FnDecl as f       -> i32(f.id)
     is StructDecl as s   -> i32(s.id)
-    _                    -> -1
+    is ImportDecl        -> -1
+    is EnumDecl          -> -1
+    is TraitDecl         -> -1
+    is ImplDecl          -> -1
+    is TypeAliasDecl     -> -1
+    is ConstDecl         -> -1
+    is AssertDecl        -> -1
 }
 
 import "vader/parser" {

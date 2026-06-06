@@ -28,7 +28,10 @@ import "std/collections" { MutableMap, keys }
 import "vader/diagnostics" { Span }
 import "vader/types" { Type, mk_struct }
 import "vader/resolver/symbol" { Symbol }
-import "vader/parser" { Decl, FnDecl, Decorator, StringLitExpr, StringLitText }
+import "vader/parser" {
+    Decl, FnDecl, AssertDecl, ConstDecl, EnumDecl, ImplDecl, ImportDecl,
+    StructDecl, TraitDecl, TypeAliasDecl, Decorator, StringLitExpr, StringLitText,
+}
 import "vader/lower" {
     LoweredProject, LoweredModule, LoweredDecl,
     LoweredFnDecl, LoweredStructDecl, LoweredConstDecl,
@@ -947,7 +950,14 @@ bare_name_for :: fn(function_decl: LoweredFnDecl) -> string = match function_dec
         if extern_arg != "" { return extern_arg }
         return fn_ast.name
     }
-    _ -> function_decl.mangled
+    is AssertDecl    -> function_decl.mangled
+    is ConstDecl     -> function_decl.mangled
+    is EnumDecl      -> function_decl.mangled
+    is ImplDecl      -> function_decl.mangled
+    is ImportDecl    -> function_decl.mangled
+    is StructDecl    -> function_decl.mangled
+    is TraitDecl     -> function_decl.mangled
+    is TypeAliasDecl -> function_decl.mangled
 }
 
 // Walk `decorators` for an `@extern("module", "name")` and return the

@@ -374,14 +374,22 @@ find_struct_type_id :: fn(types: TypeDecl[], target: string) -> i32 {
 /// fails at C-emit time.
 struct_name_matches :: fn(td: TypeDecl, target: string) -> bool = match td {
     is StructType as s -> s.name == target
-    _                  -> false
+    is ArrayType     -> false
+    is FnType        -> false
+    is PrimitiveType -> false
+    is RefType       -> false
+    is UnionType     -> false
 }
 
 /// Same shape for the primitive-name lookup used by primitive trait
 /// receivers (e.g. matching `i32` against `PrimitiveType { kind: "i32" }`).
 primitive_name_matches :: fn(td: TypeDecl, target: string) -> bool = match td {
     is PrimitiveType as p -> p.kind == target
-    _                        -> false
+    is ArrayType  -> false
+    is FnType     -> false
+    is RefType    -> false
+    is StructType -> false
+    is UnionType  -> false
 }
 
 /// Index of the last `$` strictly before `end_exclusive`, or `-1`.

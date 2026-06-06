@@ -219,10 +219,7 @@ compute_carried_across_loop_headers :: fn(
             block :: fn_.blocks[b_id]
             for ins in block.instructions {
                 d :: dst_of(ins)
-                match d {
-                    is null -> {}
-                    _ -> { defs_in_body.add(d) }
-                }
+                if d != null { defs_in_body.add(d) }
             }
         }
         for l in keys(live.live_in[header].inner) {
@@ -296,10 +293,7 @@ compute_escaping :: fn(fn_: CFGFunction, alloc_locals: MutableSet<LocalId>) -> E
         }
         match b.terminator {
             is TermReturn as r -> {
-                match r.value {
-                    is null -> {}
-                    _ -> { escaping.add(r.value) }
-                }
+                if r.value != null { escaping.add(r.value) }
             }
             _ -> {}
         }

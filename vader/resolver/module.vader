@@ -234,7 +234,7 @@ export read_manifest_modules :: fn(project_root: string) -> string[] {
     manifest_path :: join_path(project_root, MANIFEST_FILENAME)
     if !exists(manifest_path) { return out }
     content :: try_read(manifest_path)
-    raw :: match content { is string as s -> s, _ -> "" }
+    raw :: if content == null { "" } else { content }
     if raw == "" { return out }
     parsed :: parse(raw)
     match parsed {

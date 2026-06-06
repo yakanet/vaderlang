@@ -21,6 +21,7 @@ import "std/string" { compare_ascending, bytes, starts_with, split }
 import "vader/diagnostics" { Diagnostic, Span }
 import "vader/parser" {
     Decl, FnDecl, FnParam, StructDecl, ConstDecl,
+    ImportDecl, EnumDecl, TraitDecl, TypeAliasDecl, AssertDecl,
 }
 import "vader/resolver" { LoadedProject, LoadedModule }
 import "vader/typecheck" { TypedProject, TypedProgram }
@@ -1171,10 +1172,15 @@ import "std/string_builder" { new_builder, append }
 // entry's `mangled` field ; Phase 3 will switch to the proper mangled
 // name once the monomorphizer ports.
 decl_name :: fn(decl: Decl) -> string = match decl {
-    is FnDecl     as f -> f.name
-    is StructDecl as s -> s.name
-    is ConstDecl  as c -> c.name
-    _ -> ""
+    is FnDecl        as f -> f.name
+    is StructDecl    as s -> s.name
+    is ConstDecl     as c -> c.name
+    is ImportDecl         -> ""
+    is EnumDecl           -> ""
+    is TraitDecl          -> ""
+    is ImplDecl           -> ""
+    is TypeAliasDecl      -> ""
+    is AssertDecl         -> ""
 }
 
 is_main_decl :: fn(decl: Decl) -> bool {

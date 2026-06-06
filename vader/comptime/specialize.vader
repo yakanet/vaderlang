@@ -645,7 +645,14 @@ make_impl_member_entry :: fn(
 /// the typechecker (T3033 — `main` must be a fn).
 is_main_decl :: fn(decl: Decl) -> bool = match decl {
     is FnDecl as f -> f.name == "main"
-    _              -> false
+    is ImportDecl    -> false
+    is StructDecl    -> false
+    is EnumDecl      -> false
+    is TraitDecl     -> false
+    is ImplDecl      -> false
+    is TypeAliasDecl -> false
+    is ConstDecl     -> false
+    is AssertDecl    -> false
 }
 
 /// Look up the resolver Symbol that backs a top-level decl. For

@@ -1856,10 +1856,7 @@ try_lower_cast_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
     // that lift at lower time. The numeric-primitive cast then wraps
     // the lifted call for byte-parity (`cast → i32 / call into(u)`).
     coerced :: try_emit_into_coercion(ctx, arg, arg_type, type, call.span)
-    inner :: match coerced {
-        is null -> arg
-        _ -> coerced
-    }
+    inner :: if coerced == null { arg } else { coerced }
     if type is PrimitiveType as pt {
         if pt.name == "string" || pt.name == "bool" || pt.name == "void" || pt.name == "null" {
             return inner
@@ -3433,10 +3430,7 @@ lower_let_into :: fn(ctx: FnLowerCtx, let_stmt: LetStmt, out: LoweredStmt[]) -> 
             // impl exists for the source. Mirror of the typer's
             // `tryInto` hook at let-stmt's value-position.
             coerced :: try_emit_into_coercion(ctx, widened, type_of(widened), binding_type, let_stmt.span)
-            value :: match coerced {
-                is null -> widened
-                _ -> coerced
-            }
+            value :: if coerced == null { widened } else { coerced }
             init :: lower_cell_init(ctx, symbol, value, binding_type, let_stmt.span)
             out.push(LoweredLet {
                 .span = let_stmt.span, .name = simple.name,
@@ -4090,10 +4084,7 @@ lower_return :: fn(ctx: FnLowerCtx, return_stmt: ReturnStmt) -> LoweredStmt {
             // Auto-Into coercion when the return type doesn't match the
             // value's type AND an `Into[return_type]` impl exists.
             coerced :: try_emit_into_coercion(ctx, retyped, type_of(retyped), ctx.return_type, return_stmt.span)
-            final :: match coerced {
-                is null -> retyped
-                _ -> coerced
-            }
+            final :: if coerced == null { retyped } else { coerced }
             return LoweredReturn { .span = return_stmt.span, .value = final }
         }
     }

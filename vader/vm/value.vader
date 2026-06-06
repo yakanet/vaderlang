@@ -425,7 +425,11 @@ struct_siblings_match :: fn(module: Module, value_type_id: i32, target_type_id: 
 /// `type_id` doesn't point to a `StructType`.
 struct_name_at :: fn(module: Module, type_id: i32) -> string = match module.types[usize(type_id)] {
     is StructType as s -> s.name
-    _ -> ""
+    is ArrayType     -> ""
+    is FnType        -> ""
+    is PrimitiveType -> ""
+    is RefType       -> ""
+    is UnionType     -> ""
 }
 
 /// Slice `s` up to the first `__` byte pair occurring *after* the last
