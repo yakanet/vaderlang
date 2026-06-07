@@ -26,31 +26,38 @@ export handle_hover :: fn(state: ServerState, params: JsonValue) -> JsonValue {
     line :: position_line(params)
     character :: position_character(params)
 
-    // First try to surface the inferred type at the cursor — value-position
-    // hovers (a local, an argument, an intermediate sub-expression) all
-    // surface here. Falls through to the scope-based decl lookup when
-    // there's no expression at the cursor or no type was inferred.
+    // A decl carrying vaderdoc gives the richest hover — its signature plus
+    // the `///` docs — so prefer it over the bare inferred type when the
+    // cursor resolves to one. Locals / undocumented bindings have no
+    // vaderdoc, so they fall through to the typed hover below (which surfaces
+    // the inferred type, not the source-text binding signature).
+    decl :: resolve_decl_at(state, uri, line, character)
+    if !(decl is null) {
+        if decl.doc.bytes().len() > 0 { return hover_json(decl) }
+    }
+
+    // Value-position hovers — a local, an argument, an intermediate
+    // sub-expression — surface their inferred type here.
     typed_payload :: try_typed_hover(state, uri, line, character)
     if !(typed_payload is null) { return typed_payload }
 
+    // Undocumented decl : fall back to its bare signature.
+    if !(decl is null) { return hover_json(decl) }
+    return JsonNull {}
+}
+
+// Resolve the cursor position to a decl — a local / top-level one via the
+// document index, or an imported one via the cross-file resolver. Returns
+// null when the cursor isn't on a resolvable name.
+resolve_decl_at :: fn(state: ServerState, uri: string, line: i32, character: i32) -> DeclEntry | null {
     idx :: state.index_for(uri)
-    match idx {
-        is null              -> { return JsonNull {} }
-        is DocIndex as index -> {
-            entry :: index.find_at(line, character)
-            match entry {
-                is DeclEntry as found -> { return hover_json(found) }
-                is null               -> {
-                    // Local miss : surface the imported decl's
-                    // signature + vaderdoc by cross-file resolution.
-                    nm :: index.name_at(line, character)
-                    ext :: resolve(state, index, nm)
-                    if ext == null { return JsonNull {} }
-                    return hover_json(ext.target)
-                }
-            }
-        }
-    }
+    if idx == null { return null }
+    found :: idx.find_at(line, character)
+    if !(found is null) { return found }
+    nm :: idx.name_at(line, character)
+    ext :: resolve(state, idx, nm)
+    if ext == null { return null }
+    return ext.target
 }
 
 // ---- payload encoding ----------------------------------------------------
@@ -487,21 +494,39 @@ AST :: import "vader/parser"
 
 // ---- params extraction (mirrors definition.vader) ------------------------
 
+/// Extract the document URI from an LSP request's `params.textDocument.uri`.
+///
+/// @param params  the top-level JSON params object of the request.
+/// @return        the URI string, or `""` if the field is missing.
 position_uri :: fn(params: JsonValue) -> string {
     td :: get_field(params, "textDocument")
     return get_string(td, "uri")
 }
 
+/// Extract the zero-based line number from an LSP request's `params.position.line`.
+///
+/// @param params  the top-level JSON params object of the request.
+/// @return        the line number, or `0` if the field is missing.
 position_line :: fn(params: JsonValue) -> i32 {
     pos :: get_field(params, "position")
     return get_number(pos, "line")
 }
 
+/// Extract the zero-based character offset from an LSP request's `params.position.character`.
+///
+/// @param params  the top-level JSON params object of the request.
+/// @return        the character offset, or `0` if the field is missing.
 position_character :: fn(params: JsonValue) -> i32 {
     pos :: get_field(params, "position")
     return get_number(pos, "character")
 }
 
+/// Look up a field by name in a JSON object.
+///
+/// @param v    the JSON value to index into (must be a `JsonObject`).
+/// @param key  the field name to retrieve.
+/// @return     the field's value, or `JsonNull` if `v` is not an object
+///             or the key is absent.
 get_field :: fn(v: JsonValue, key: string) -> JsonValue {
     match v {
         is JsonObject as o -> {
@@ -520,6 +545,11 @@ get_field :: fn(v: JsonValue, key: string) -> JsonValue {
     }
 }
 
+/// Look up a string field by name in a JSON object.
+///
+/// @param v    the JSON value to index into.
+/// @param key  the field name to retrieve.
+/// @return     the string value, or `""` if the field is missing or not a string.
 get_string :: fn(v: JsonValue, key: string) -> string {
     f :: get_field(v, key)
     match f {
@@ -528,6 +558,11 @@ get_string :: fn(v: JsonValue, key: string) -> string {
     }
 }
 
+/// Look up a numeric field by name in a JSON object.
+///
+/// @param v    the JSON value to index into.
+/// @param key  the field name to retrieve.
+/// @return     the value as `i32`, or `0` if the field is missing or not a number.
 get_number :: fn(v: JsonValue, key: string) -> i32 {
     f :: get_field(v, key)
     match f {
