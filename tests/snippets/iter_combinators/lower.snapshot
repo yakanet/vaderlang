@@ -63,13 +63,15 @@
         arg2:
           LoweredMakeClosure
     let first: i32[] =
-      call :i32[]
-        callee:
-          std_iter$std_iter$take__i32 :i32[]
-        arg0:
+      slice :i32[]
+        on:
           nums :i32[]
-        arg1:
-          int(3) :usize
+        lo:
+          cast → usize
+            int(0) :i32
+        hi:
+          cast → usize
+            int(3) :i32
     let s3: i32 =
       call :i32
         callee:
@@ -77,13 +79,13 @@
         arg0:
           first :i32[]
     let rest: i32[] =
-      call :i32[]
-        callee:
-          std_iter$std_iter$skip__i32 :i32[]
-        arg0:
+      slice :i32[]
+        on:
           nums :i32[]
-        arg1:
+        lo:
           int(7) :usize
+        hi:
+          LoweredArrayLen
     let s4: i32 =
       call :i32
         callee:

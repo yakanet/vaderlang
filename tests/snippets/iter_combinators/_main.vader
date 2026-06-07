@@ -1,7 +1,7 @@
 module "snippet"
 
 import "std/io" { println }
-import "std/iter" { map, filter, fold, sum, take, skip, slice }
+import "std/iter" { map, filter, fold, sum, slice }
 
 main :: fn() -> i32 {
     nums := [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
@@ -17,12 +17,12 @@ main :: fn() -> i32 {
     // fold: product of 1..=5 → 120
     p := fold([1, 2, 3, 4, 5], 1, (acc: i32, x: i32) -> acc * x)
 
-    // take first 3 of 1..=10 → [1, 2, 3] → sum 6
-    first := take(nums, 3)
+    // first 3 of 1..=10 via slice → [1, 2, 3] → sum 6
+    first := nums[0..<3]
     s3 := sum(first)
 
-    // skip 7 of 1..=10 → [8, 9, 10] → sum 27
-    rest := skip(nums, 7)
+    // last 3 of 1..=10 via tail slice → [8, 9, 10] → sum 27
+    rest := nums[7..<nums.len()]
     s4 := sum(rest)
 
     // slice: clamped, bounded — sanity check shapes without inflating exit code

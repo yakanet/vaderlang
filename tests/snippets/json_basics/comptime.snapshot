@@ -97,10 +97,10 @@
   MutableSet<T>
   MutableSet<T>
   MutableSet<T>
+  SetIterator<T>
+  SetIterator<T>
+  SetIterator<T>
   Index<I, T>
-  SetIterator<T>
-  SetIterator<T>
-  SetIterator<T>
   IndexSet<I, T>
   Contains<T>
   Iterator<char>

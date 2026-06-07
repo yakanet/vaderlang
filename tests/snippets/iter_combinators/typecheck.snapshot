@@ -29,15 +29,18 @@
   expr 18:57    BinaryExpr     :: i32
   expr 18:57    IdentExpr      :: i32
   expr 18:63    IdentExpr      :: i32
-  expr 21:14    CallExpr       :: i32[]
-  expr 21:14    IdentExpr      :: fn(T[], usize) -> T[]
-  expr 21:19    IdentExpr      :: i32[]
+  expr 21:14    IdentExpr      :: i32[]
+  expr 21:14    IndexExpr      :: i32[]
+  expr 21:19    RangeExpr      :: Range<i32>
   expr 22:11    CallExpr       :: i32
   expr 22:11    IdentExpr      :: fn(i32[]) -> i32
   expr 22:15    IdentExpr      :: i32[]
-  expr 25:13    CallExpr       :: i32[]
-  expr 25:13    IdentExpr      :: fn(T[], usize) -> T[]
-  expr 25:18    IdentExpr      :: i32[]
+  expr 25:13    IdentExpr      :: i32[]
+  expr 25:13    IndexExpr      :: i32[]
+  expr 25:18    RangeExpr      :: Range<usize>
+  expr 25:22    CallExpr       :: usize
+  expr 25:22    FieldExpr      :: fn() -> usize
+  expr 25:22    IdentExpr      :: i32[]
   expr 26:11    CallExpr       :: i32
   expr 26:11    IdentExpr      :: fn(i32[]) -> i32
   expr 26:15    IdentExpr      :: i32[]
