@@ -200,7 +200,7 @@ export run_bc_return_lit_fold :: fn(function: BcFunction) -> BcPeepholeOut {
         out_len += 1
         i += 1
     }
-    new_body :: take_prefix(out, out_len)
+    new_body :: out[0..<out_len]
     new_jt :: remap_jump_table(function.jump_table, old_to_new, out_len)
     return BcPeepholeOut { .body = new_body, .jump_table = new_jt }
 }
@@ -285,7 +285,7 @@ export run_bc_const_fold_arith :: fn(function: BcFunction) -> BcPeepholeOut {
         }
         i = i + 1
     }
-    new_body :: take_prefix(out, out_len)
+    new_body :: out[0..<out_len]
     new_jt :: remap_jump_table(function.jump_table, old_to_new, out_len)
     return BcPeepholeOut { .body = new_body, .jump_table = new_jt }
 }
@@ -435,7 +435,7 @@ export run_bc_peephole :: fn(function: BcFunction) -> BcPeepholeOut {
         out_len += 1
         i += 1
     }
-    new_body :: take_prefix(out, out_len)
+    new_body :: out[0..<out_len]
     new_jt :: remap_jump_table(function.jump_table, old_to_new, out_len)
     return BcPeepholeOut { .body = new_body, .jump_table = new_jt }
 }
@@ -448,18 +448,6 @@ push_or_assign :: fn(items: Op[], sp: usize, value: Op) -> void {
     } else {
         items[sp] = value
     }
-}
-
-/// Slice `items[0..sp]` into a fresh array. Vader arrays don't expose a
-/// truncation primitive ; this is the standard rebuild pattern.
-take_prefix :: fn(items: Op[], sp: usize) -> Op[] {
-    out: Op[] = []
-    i: usize = 0
-    for i < sp {
-        out.push(items[i])
-        i += 1
-    }
-    return out
 }
 
 /// Rule 6 — propagate a constant op through a single-use primitive local.
@@ -1022,8 +1010,7 @@ reserve_struct :: fn(struct_decl: Lo.LoweredStructDecl, ctx: EmitterCtx) -> void
 build_signature :: fn(params: Lo.LoweredParam[], return_type: Type, ctx: EmitterCtx) -> BcSignature {
     param_val_types: ValType[] = []
     param_type_indices: i32[] = []
-    for i in 0..<params.len() {
-        param :: params[i]
+    for param in params {
         param_val_types.push(val_type_of_type(param.type))
         param_type_indices.push(intern_type(param.type, ctx))
     }

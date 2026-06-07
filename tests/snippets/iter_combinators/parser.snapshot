@@ -43,14 +43,6 @@
             "alias": null
           },
           {
-            "name": "take",
-            "alias": null
-          },
-          {
-            "name": "skip",
-            "alias": null
-          },
-          {
             "name": "slice",
             "alias": null
           }
@@ -459,30 +451,25 @@
             },
             "type": null,
             "value": {
-              "kind": "CallExpr",
-              "callee": {
+              "kind": "IndexExpr",
+              "target": {
                 "kind": "IdentExpr",
-                "name": "take"
+                "name": "nums"
               },
-              "args": [
-                {
-                  "name": null,
-                  "value": {
-                    "kind": "IdentExpr",
-                    "name": "nums"
-                  },
-                  "spread": false
+              "index": {
+                "kind": "RangeExpr",
+                "inclusive": false,
+                "lower": {
+                  "kind": "IntLitExpr",
+                  "value": "0n",
+                  "suffix": null
                 },
-                {
-                  "name": null,
-                  "value": {
-                    "kind": "IntLitExpr",
-                    "value": "3n",
-                    "suffix": null
-                  },
-                  "spread": false
+                "upper": {
+                  "kind": "IntLitExpr",
+                  "value": "3n",
+                  "suffix": null
                 }
-              ]
+              }
             }
           },
           {
@@ -520,30 +507,32 @@
             },
             "type": null,
             "value": {
-              "kind": "CallExpr",
-              "callee": {
+              "kind": "IndexExpr",
+              "target": {
                 "kind": "IdentExpr",
-                "name": "skip"
+                "name": "nums"
               },
-              "args": [
-                {
-                  "name": null,
-                  "value": {
-                    "kind": "IdentExpr",
-                    "name": "nums"
-                  },
-                  "spread": false
+              "index": {
+                "kind": "RangeExpr",
+                "inclusive": false,
+                "lower": {
+                  "kind": "IntLitExpr",
+                  "value": "7n",
+                  "suffix": null
                 },
-                {
-                  "name": null,
-                  "value": {
-                    "kind": "IntLitExpr",
-                    "value": "7n",
-                    "suffix": null
+                "upper": {
+                  "kind": "CallExpr",
+                  "callee": {
+                    "kind": "FieldExpr",
+                    "target": {
+                      "kind": "IdentExpr",
+                      "name": "nums"
+                    },
+                    "field": "len"
                   },
-                  "spread": false
+                  "args": []
                 }
-              ]
+              }
             }
           },
           {

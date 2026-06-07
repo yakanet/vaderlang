@@ -1245,14 +1245,26 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
 /// True when `v` is a numeric / char ValType that can flow through
 /// a `Convert` op. Anything else (ref / any / void / null / bool /
 /// string) routes through `ref.cast` instead.
-convert_eligible :: fn(v: ValType) -> bool {
-    if i32(v) == i32(ValType.Ref)    { return false }
-    if i32(v) == i32(ValType.Any)    { return false }
-    if i32(v) == i32(ValType.Void)   { return false }
-    if i32(v) == i32(ValType.Null)   { return false }
-    if i32(v) == i32(ValType.Bool)   { return false }
-    if i32(v) == i32(ValType.String) { return false }
-    return true
+convert_eligible :: fn(v: ValType) -> bool = match v {
+    .I8 -> true
+    .I16 -> true
+    .I32 -> true
+    .I64 -> true
+    .Isize -> true
+    .U8 -> true
+    .U16 -> true
+    .U32 -> true
+    .U64 -> true
+    .Usize -> true
+    .F32 -> true
+    .F64 -> true
+    .Bool -> false
+    .Char -> true
+    .String -> false
+    .Null -> false
+    .Void -> false
+    .Ref -> false
+    .Any -> false
 }
 
 /// Map an InstrIntrinsic's canonical name onto its dedicated Op.
