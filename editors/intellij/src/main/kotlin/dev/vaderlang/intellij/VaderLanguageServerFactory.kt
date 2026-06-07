@@ -16,13 +16,20 @@ import com.redhat.devtools.lsp4ij.server.StreamConnectionProvider
 // default as the VSCode extension.
 internal class VaderLanguageServerFactory : LanguageServerFactory {
     override fun createConnectionProvider(project: Project): StreamConnectionProvider =
-        VaderConnectionProvider()
+        VaderConnectionProvider(project)
 }
 
-private class VaderConnectionProvider : OSProcessStreamConnectionProvider() {
+private class VaderConnectionProvider(project: Project) : OSProcessStreamConnectionProvider() {
     init {
         val configured = VaderSettings.getInstance().lspPath.trim()
         val binary = if (configured.isNotEmpty()) configured else "vader"
-        commandLine = GeneralCommandLine(binary, "lsp")
+        val cmd = GeneralCommandLine(binary, "lsp")
+        // Spawn from the project root so the server's stdlib probe
+        // (`default_stdlib_root` → `<cwd>/stdlib` fallback) resolves the
+        // workspace stdlib, mirroring how the VSCode client launches it.
+        // Without this the process inherits the IDE's cwd and every `std/*`
+        // import fails to resolve.
+        project.basePath?.let { cmd.withWorkDirectory(it) }
+        commandLine = cmd
     }
 }
