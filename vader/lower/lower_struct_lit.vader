@@ -1,0 +1,293 @@
+// vader/lower/lower_struct_lit — struct / tuple / array literals and enum-variant folding.
+//
+
+module "vader/lower"
+
+import "std/collections" { MutableMap, values }
+
+import "vader/parser" { Expr, IdentExpr, FieldExpr, StructLitExpr, StructLitField, StructLitSpread, SeqLitExpr, DotVariantExpr }
+import "vader/diagnostics" { Span }
+import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "vader/types" { Type, TupleType, mk_primitive, StructType, EnumType }
+
+lower_struct_lit :: fn(ctx: FnLowerCtx, lit: StructLitExpr, type: Type) -> LoweredExpr {
+    // Index the literal's provided values by name so we can walk the
+    // struct decl in declaration order ; this matches the TS emit's
+    // canonical field ordering even when the source literal reorders
+    // fields or omits ones with defaults.
+    provided: MutableMap<string, Expr> = MutableMap<string, Expr> {}
+    // Bind each `...spread` source to a synthetic temp so it's
+    // evaluated exactly once even when several fields inherit from it.
+    // Later spreads win, so `spread_sym` tracks the LAST source —
+    // omitted fields read from it. Mirror of TS' `lowerStructLit`
+    // (`src/lower/passes/expr.ts:1181`).
+    spread_stmts: LoweredStmt[] = []
+    spread_sym: Symbol | null = null
+    for item in lit.items {
+        match item {
+            is StructLitField as field -> { provided[field.name] = field.value }
+            is StructLitSpread as sp -> {
+                value :: lower_expr(ctx, sp.expr)
+                sym :: fresh_synthetic_symbol(ctx, "spread")
+                spread_sym = sym
+                spread_stmts.push(LoweredLet {
+                    .span = sp.span, .name = sym.name, .symbol = sym,
+                    .type = type, .value = value,
+                })
+            }
+        }
+    }
+    fields :: build_struct_lit_fields(ctx, type, provided, lit, spread_sym)
+    // Erased generic struct instance (`FilterIterator<Any>`, constructed inside
+    // an erased generic fn body where T→Any) : the comptime instance harvest
+    // only observes the CONCRETE call-site instance (`FilterIterator<i32>`), so
+    // the erased struct's trait impls (`Iterator.next__Any`) are never
+    // materialised. Yet because the fn body is erased, EVERY call constructs
+    // THIS erased tag at runtime, and `collect` / `count` / `for-in` virtually
+    // dispatch `next` on it → `vtable miss / no impl for type N`. Queue the
+    // erased instance so the joint fixpoint materialises its impl members
+    // (self = this erased struct type), giving the vtable its missing row.
+    // Deduped by `seen_generic_impl_recv` ; concrete instances are already
+    // covered by the harvest (re-queueing them here is a harmless no-op).
+    if type is StructType as st {
+        if args_all_any_leaves(st.args) { queue_generic_impl_receiver(ctx, st) }
+        // Record the construction so `surface_stdlib_impl_externs` can surface a
+        // NON-generic stdlib struct's vtable members only when the struct is
+        // actually built (`StringChars` via `chars()`), not for every snippet
+        // that merely virtually dispatches its trait.
+        ctx.project.constructed_struct_symbols.add(st.symbol.id)
+    }
+    struct_lit :: LoweredStructLit { .span = lit.span, .type = type, .fields = fields }
+    if spread_stmts.len() == 0 { return struct_lit }
+    return LoweredBlock {
+        .span = lit.span, .type = type,
+        .stmts = spread_stmts, .trailing = struct_lit,
+    }
+}
+
+
+// `.North` resolves through context : the surrounding slot's expected
+// type pins the enum. Look up the variant's integer index off the
+// resolved `EnumType` and emit a `LoweredIntLit`. Falls back to a
+// stub when the context isn't an enum (defensive — earlier
+// diagnostics should have caught the bad use).
+lower_dot_variant :: fn(ctx: FnLowerCtx, expr: DotVariantExpr, type: Type) -> LoweredExpr {
+    resolved :: enum_type_or_unwrap(ctx, type)
+    match resolved {
+        is EnumType as enum_type -> {
+            index :: enum_type.indices[expr.variant]
+            match index {
+                is null -> { return stub(expr.span, type, "unknown variant `${expr.variant}` on `${enum_type.symbol.name}`") }
+                is i64 as value -> {
+                    return LoweredIntLit {
+                        .span = expr.span, .type = mk_primitive(enum_type.repr), .value = value,
+                    }
+                }
+            }
+        }
+        _ -> { return stub(expr.span, type, "`.${expr.variant}` against non-enum context type") }
+    }
+}
+
+// `Enum.Variant` field access on the type-name ident — detect when the
+// FieldExpr's target is an IdentExpr resolving to an enum symbol +
+// the field name matches a variant. Returns null when either check
+// fails ; caller falls back to a regular field-access lowering.
+try_lower_enum_field :: fn(ctx: FnLowerCtx, expr: FieldExpr, type: Type) -> LoweredExpr | null {
+    // Fold only when the target's type is an enum AND the target syntactically
+    // NAMES that enum (not a runtime enum-valued expression) : a bare ident
+    // (`Enum.Variant`) or a namespace member (`alias.Enum.Variant`, the receiver
+    // an `ImportBinding`). The type check runs first so a plain `struct.field`
+    // access bails before the (slightly costlier) syntactic gate — and the gate
+    // keeps `value.enumField.Variant` (an enum-VALUED field) on the field path.
+    target_type :: ctx.types.expr_type(expr.target)
+    enum_type :: enum_type_or_unwrap(ctx, target_type)
+    if enum_type is EnumType as et {
+        if !target_is_enum_name(ctx, expr.target) { return null }
+        index :: et.indices[expr.field]
+        if index is i64 as value {
+            return LoweredIntLit {
+                .span = expr.span, .type = mk_primitive(et.repr), .value = value,
+            }
+        }
+    }
+    return null
+}
+
+// True when `target` syntactically names an enum TYPE (not a runtime value) :
+// a bare ident (`Enum`) or a namespace member (`alias.Enum`, the receiver
+// resolving to an `ImportBinding`). Guards `try_lower_enum_field` so it only
+// folds variant accesses, never a real field read off an enum-typed value.
+target_is_enum_name :: fn(ctx: FnLowerCtx, target: Expr) -> bool {
+    if target is IdentExpr { return true }
+    if target is FieldExpr as fe { return !(as_namespace_binding(ctx, fe.target) is null) }
+    return false
+}
+
+// Resolve `expr` to its namespace import-binding symbol when it is the bare
+// alias ident of a `<alias>.<member>` access (kind `ImportBinding`) ; null
+// otherwise. Shared by `try_lower_namespace_call` (member calls, passing the
+// callee's `field_expr.target`) and `try_lower_enum_field` (namespace-qualified
+// enum variants, passing the enum FieldExpr's receiver).
+as_namespace_binding :: fn(ctx: FnLowerCtx, expr: Expr) -> Symbol | null {
+    ident :: as_ident(expr)
+    if ident is null { return null }
+    sym :: ctx.typed.resolved.idents[ident.span.hash()]
+    if sym is null { return null }
+    if i32(sym.kind) == i32(SymbolKind.ImportBinding) { return sym }
+    return null
+}
+
+// Unwrap the StructType-as-Enum placeholder if needed (same trick as
+// `lower_match::unwrap_enum_type`).
+enum_type_or_unwrap :: fn(ctx: FnLowerCtx, type: Type) -> Type {
+    match type {
+        is EnumType -> { return type }
+        is StructType as st -> {
+            if i32(st.symbol.kind) != i32(SymbolKind.Enum) { return type }
+            real :: ctx.typed.decl_types[st.symbol.id]
+            match real {
+                is EnumType -> { return real }
+                _ -> { return type }
+            }
+        }
+        _ -> { return type }
+    }
+}
+
+// Return a `FnLowerCtx` whose `typed` / `types` view belongs to `module_id`,
+// so an AST expr that originated in that module (a struct field DEFAULT from a
+// foreign struct decl) resolves its idents / expr-types against the right
+// module's tables instead of the construction site's. No-op (returns `ctx`)
+// when the module isn't in the project's typed set. Mirror of TS'
+// `findForeignTyped` + the `typed`/`types` swap in `lowerExprMaybeForeign`.
+ctx_in_owning_module :: fn(ctx: FnLowerCtx, module_id: string) -> FnLowerCtx {
+    owner_typed :: ctx.project.evaluated.typed.modules[module_id]
+    if owner_typed is null { return ctx }
+    // Keeps the caller's `subst`. A GENERIC struct's default that references the
+    // struct's own type-param (`Container(T) { data: T = mk_T() }`) would need
+    // the instance's type-args merged in (TS' `extraSubst`) ; none exist in the
+    // tree today, so that's deferred — the const-default case needs no subst.
+    return FnLowerCtx {
+        ...ctx,
+        .typed = owner_typed,
+        .types = make_entry_types(owner_typed, ctx.subst),
+    }
+}
+
+build_struct_lit_fields :: fn(
+    ctx: FnLowerCtx, type: Type,
+    provided: MutableMap<string, Expr>, lit: StructLitExpr,
+    spread_sym: Symbol | null,
+) -> LoweredStructLitField[] {
+    out: LoweredStructLitField[] = []
+    match type {
+        is StructType as st -> {
+            decl :: ctx.typed.struct_decls[st.symbol.id]
+            if decl is null { return fallback_provided_order(ctx, lit) }
+            // A field DEFAULT (`id: usize = UNASSIGNED_NODE_ID`) is an AST expr
+            // from the struct's OWNING module. Lowering it with the construction
+            // site's `ctx` resolves its idents against the wrong `resolved.idents`
+            // (the spans belong to another module's parse), so a const default
+            // like `UNASSIGNED_NODE_ID` (vader/parser) is unresolved when the
+            // struct is built in vader/lower → the whole struct lit degrades to a
+            // drop. Lower defaults with the owning module's typed view. Mirror of
+            // TS' `lowerExprMaybeForeign` (src/lower/passes/expr.ts).
+            default_ctx :: ctx_in_owning_module(ctx, st.symbol.module)
+            for field_decl in decl.fields {
+                // Resolve the field's declared type so a union-typed
+                // field widens literal initializers (e.g.
+                // `flag: int(42)` against `flag: i32 | null`).
+                field_type :: resolve_pattern_type(ctx, field_decl.ty)
+                user_value :: provided[field_decl.name]
+                if user_value is null {
+                    // Omitted field : inherit from the last `...spread`
+                    // source via a field access, else fall back to the
+                    // declared default. Matches TS' `lowerStructLit`.
+                    if spread_sym is Symbol as sym {
+                        out.push(LoweredStructLitField {
+                            .name = field_decl.name,
+                            .value = LoweredFieldAccess {
+                                .span = lit.span, .type = field_type,
+                                .target = LoweredIdent {
+                                    .span = lit.span, .type = type, .symbol = sym,
+                                },
+                                .field = field_decl.name,
+                            },
+                        })
+                        continue
+                    }
+                    if field_decl.default != null {
+                        out.push(LoweredStructLitField {
+                            .name = field_decl.name,
+                            .value = lower_field_value(default_ctx, field_decl.default, field_type, field_decl.span),
+                        })
+                    }
+                } else {
+                    out.push(LoweredStructLitField {
+                        .name = field_decl.name,
+                        .value = lower_field_value(ctx, user_value, field_type, user_value.span),
+                    })
+                }
+            }
+            return out
+        }
+        _ -> { return fallback_provided_order(ctx, lit) }
+    }
+}
+
+// Lower a struct-lit field value (provided or defaulted) against its
+// declared type : widen free literals to the field's union context,
+// then apply an `Into` coercion when the field type calls for one.
+lower_field_value :: fn(
+    ctx: FnLowerCtx, value: Expr, field_type: Type, span: Span,
+) -> LoweredExpr {
+    lowered :: lower_expr(ctx, value)
+    widened :: widen_literal_to_context(lowered, field_type)
+    coerced :: try_emit_into_coercion(ctx, widened, type_of(widened), field_type, span)
+    match coerced {
+        is null -> { return widened }
+        _ -> { return coerced }
+    }
+}
+
+// Defensive fallback : when the struct decl can't be reached, emit
+// fields in source order (the previous behaviour).
+fallback_provided_order :: fn(ctx: FnLowerCtx, lit: StructLitExpr) -> LoweredStructLitField[] {
+    out: LoweredStructLitField[] = []
+    for item in lit.items {
+        match item {
+            is StructLitField as field -> {
+                out.push(LoweredStructLitField {
+                    .name = field.name, .value = lower_expr(ctx, field.value),
+                })
+            }
+            is StructLitSpread -> {}
+        }
+    }
+    return out
+}
+
+lower_seq_lit :: fn(ctx: FnLowerCtx, lit: SeqLitExpr, type: Type) -> LoweredExpr {
+    // Tuples share the parser shape `[a, b, c]` with arrays — disambiguate
+    // by the resolved type. Tuple-typed literals become struct lits with
+    // synthetic `_0` / `_1` / ... fields ; the bytecode emit reads them
+    // off the same struct layout the typer pins.
+    match type {
+        is TupleType -> {
+            fields: LoweredStructLitField[] = []
+            for i in 0..<lit.elements.len() {
+                fields.push(LoweredStructLitField {
+                    .name = "_${i}",
+                    .value = lower_expr(ctx, lit.elements[i]),
+                })
+            }
+            return LoweredStructLit { .span = lit.span, .type = type, .fields = fields }
+        }
+        _ -> {
+            elements: LoweredExpr[] = []
+            for element in lit.elements { elements.push(lower_expr(ctx, element)) }
+            return LoweredArrayLit { .span = lit.span, .type = type, .elements = elements }
+        }
+    }
+}

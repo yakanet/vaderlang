@@ -1,0 +1,404 @@
+// vader/lower/lower_intrinsic — @intrinsic lowering and compile-time type introspection.
+//
+
+module "vader/lower"
+
+import "vader/parser" { Expr, IdentExpr, IntrinsicCallExpr }
+import "vader/diagnostics" { Span, Diagnostic }
+import "vader/typecheck" { type_from_expr, type_to_target_symbol, has_user, substitute }
+import "vader/resolver/symbol" { Symbol }
+import "vader/types" { Type, FnType, PrimitiveType, FreeIntType, FreeFloatType, UnionType, TraitType, TypeParamType, ArrayType, TupleType, TypeMetaType, AnyType, SelfType, NeverType, TY_UNRESOLVED, TY_TYPE, mk_primitive, display_type, STRUCT_FIELD, StructType, EnumType, UnresolvedType }
+import "vader/comptime" { TypeValue, byte_size, byte_align }
+
+// Preserve the `@<name>(args)` call shape. Comptime-foldable variants
+// (`@size_of`, `@type_kind`, …) get baked at evaluation time and reach
+// the lowerer as bound `@comptime const` references ; what remains is
+// the runtime-bound shape, which the bytecode emit consumes.
+lower_intrinsic :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type) -> LoweredExpr {
+    // `@file("path")` was baked at comptime — substitute the file's
+    // contents as a `LoweredStringLit` so downstream phases see the
+    // materialised constant rather than re-running the AST. Mirror of
+    // `lowerIntrinsic`'s `fileExprs` branch in `src/lower/lower.ts`.
+    if intrinsic.name == "file" {
+        baked :: lookup_file_baked(ctx, intrinsic)
+        match baked {
+            is null -> {}
+            is string as text -> {
+                return LoweredStringLit {
+                    .span = intrinsic.span, .type = mk_primitive("string"), .value = text,
+                }
+            }
+        }
+    }
+    // `@field(target, "name")` folds to `target.name` when the name
+    // arg is a static string literal. Mirror of `lowerIntrinsic`'s
+    // `case "field"` (`src/lower/passes/expr.ts:453-487`). Comptime-for
+    // unrolling can substitute the name slot with a LoweredStringLit
+    // — we lower the args here so post-substitution literals get
+    // picked up. When the typer left the result type unresolved,
+    // refine from the receiver's struct decl + field name pair.
+    if intrinsic.name == "field" && intrinsic.args.len() == 2 {
+        target :: lower_expr(ctx, intrinsic.args[0])
+        name_arg :: lower_expr(ctx, intrinsic.args[1])
+        if name_arg is LoweredStringLit as name_lit {
+            field_type := type
+            if field_type is UnresolvedType {
+                refined :: resolve_field_type(ctx, intrinsic.args[0], name_lit.value)
+                if !(refined is UnresolvedType) { field_type = refined }
+            }
+            return LoweredFieldAccess {
+                .span = intrinsic.span, .type = field_type,
+                .target = target, .field = name_lit.value,
+            }
+        }
+    }
+    // Static-arg intrinsics fold at lower time when the typer recorded
+    // the arg's underlying Type. Mirror of `lowerIntrinsic`'s
+    // `targetTy`-based branches in `src/lower/passes/expr.ts:380-402`.
+    folded :: try_fold_static_intrinsic(ctx, intrinsic, type)
+    match folded {
+        is null -> {}
+        _ -> { return folded }
+    }
+    args: LoweredExpr[] = []
+    for arg_expr in intrinsic.args {
+        args.push(lower_expr(ctx, arg_expr))
+    }
+    // Late-fold path : `@size_of` / `@align_of` / `@type_name` /
+    // `@type_kind` over a single arg that lowered to a
+    // `LoweredTypeConst` (e.g. via `@comptime for` substitution of
+    // `t`). The early `try_fold_static_intrinsic` reads the source
+    // AST so it can't see post-lower substitutions ; this catches
+    // the substituted shape.
+    late_folded :: try_late_fold_type_arg(intrinsic.name, args, intrinsic.span, type)
+    if !(late_folded is null) { return late_folded }
+    // `@size_of(x)` over a `type`-valued runtime expression routes
+    // through the dedicated `size_of.type` intrinsic so the bytecode
+    // emit picks the right opcode. Mirror of the static-fold-failed
+    // fallback in `src/lower/passes/expr.ts:393-396`.
+    final_name :: runtime_intrinsic_name(intrinsic.name, args)
+    return LoweredIntrinsicCall {
+        .span = intrinsic.span, .type = type, .name = final_name,
+        .args = args, .display_for = null,
+    }
+}
+
+/// Late fold for the type-introspection intrinsics — fires when the
+/// arg lowered to a `LoweredTypeConst` (which can happen via
+/// `@comptime for` substitution that the early AST-level fold doesn't
+/// see). Returns null when the pattern doesn't match ; caller falls
+/// through to the runtime `LoweredIntrinsicCall`.
+try_late_fold_type_arg :: fn(name: string, args: LoweredExpr[], span: Span, type: Type) -> LoweredExpr | null {
+    if args.len() != usize(1) { return null }
+    arg :: args[0]
+    tc: LoweredTypeConst | null = null
+    if arg is LoweredTypeConst as t { tc = t }
+    if tc is null { return null }
+    ty :: tc.value
+    if name == "size_of" {
+        return LoweredIntLit { .span = span, .type = type, .value = byte_size(ty) }
+    }
+    if name == "align_of" {
+        return LoweredIntLit { .span = span, .type = type, .value = byte_align(ty) }
+    }
+    if name == "type_name" {
+        return LoweredStringLit { .span = span, .type = mk_primitive("string"), .value = display_type(ty) }
+    }
+    if name == "type_kind" {
+        return LoweredStringLit { .span = span, .type = mk_primitive("string"), .value = kind_string_of_type(ty) }
+    }
+    return null
+}
+
+runtime_intrinsic_name :: fn(name: string, args: LoweredExpr[]) -> string {
+    if name == "size_of" && args.len() == 1 {
+        return "size_of.type"
+    }
+    return name
+}
+
+lookup_file_baked :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr) -> string | null {
+    return ctx.project.evaluated.file_exprs[intrinsic.id]
+}
+
+/// Fold `@size_of` / `@align_of` / `@type_name` / `@type_kind` to a
+/// literal when the single arg resolves to a concrete `Type`. The
+/// typer's `type_expr_types` table covers most cases ; `type_from_expr`
+/// fallback handles type-alias idents the typer left as Unresolved.
+try_fold_static_intrinsic :: fn(
+    ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type,
+) -> LoweredExpr | null {
+    name :: intrinsic.name
+    if name == "satisfies" {
+        return try_fold_satisfies(ctx, intrinsic, type)
+    }
+    if name == "type_of" {
+        return try_fold_type_of(ctx, intrinsic, type)
+    }
+    if name == "type_args" {
+        return try_fold_type_args(ctx, intrinsic, type)
+    }
+    if name == "fields" {
+        return try_fold_fields(ctx, intrinsic, type)
+    }
+    if name != "size_of" && name != "align_of" && name != "type_name" && name != "type_kind" {
+        return null
+    }
+    if intrinsic.args.len() != usize(1) { return null }
+    arg_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0])
+    if arg_or_null is null { return null }
+    ty :: arg_ty_or_unresolved(arg_or_null)
+    if ty is UnresolvedType { return null }
+    if name == "size_of" {
+        return LoweredIntLit { .span = intrinsic.span, .type = type, .value = byte_size(ty) }
+    }
+    if name == "align_of" {
+        return LoweredIntLit { .span = intrinsic.span, .type = type, .value = byte_align(ty) }
+    }
+    if name == "type_name" {
+        return LoweredStringLit { .span = intrinsic.span, .type = mk_primitive("string"), .value = display_type(ty) }
+    }
+    if name == "type_kind" {
+        return LoweredStringLit { .span = intrinsic.span, .type = mk_primitive("string"), .value = kind_string_of_type(ty) }
+    }
+    return null
+}
+
+/// Fold `@type_of(x)` to a `LoweredTypeConst` carrying `x`'s static
+/// type. The arg is NOT evaluated (Zig-style `@TypeOf`) — only the
+/// typed AST's recorded expr-type is read. Mirror of
+/// `lowerIntrinsic`'s `case "type_of"` in `src/lower/passes/expr.ts:431-437`.
+try_fold_type_of :: fn(
+    ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type,
+) -> LoweredExpr | null {
+    if intrinsic.args.len() != usize(1) { return null }
+    arg_type :: expr_type(ctx.types, intrinsic.args[0])
+    return LoweredTypeConst {
+        .span = intrinsic.span, .type = type, .value = arg_type,
+    }
+}
+
+/// Fold `@type_args(T)` to an array literal of `LoweredTypeConst`s — one
+/// per generic argument of `T`. Mirror of `lowerIntrinsic`'s
+/// `case "type_args"` in `src/lower/passes/expr.ts:474-483`. Returns an
+/// empty array for non-generic shapes.
+try_fold_type_args :: fn(
+    ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type,
+) -> LoweredExpr | null {
+    if intrinsic.args.len() != usize(1) { return null }
+    arg_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0])
+    args: Type[] = []
+    if !(arg_or_null is null) {
+        ty :: arg_ty_or_unresolved(arg_or_null)
+        if ty is StructType as st { args = st.args }
+        if ty is TraitType as tt { args = tt.args }
+    }
+    elements: LoweredExpr[] = []
+    for a in args {
+        elements.push(LoweredTypeConst {
+            .span = intrinsic.span, .type = TY_TYPE, .value = a,
+        })
+    }
+    return LoweredArrayLit {
+        .span = intrinsic.span, .type = type, .elements = elements,
+    }
+}
+
+/// Fold `@fields(T)` to an array literal of `Field { name, type }`
+/// struct lits — one entry per field declared on `T`. Generic struct
+/// args flow into each field's type so `@fields(Pair(string, i64))`
+/// reports `value` as `i64`, not the unsubstituted TypeParam. Mirror
+/// of `lowerIntrinsic`'s `case "fields"` in
+/// `src/lower/passes/expr.ts:498-522`.
+///
+/// @param ctx        the fn-body lower context.
+/// @param intrinsic  the `@fields(T)` call site.
+/// @param type       the result type (`Field[]`).
+/// @return           the array lit, or `LoweredUnreachable` when the
+///                   target isn't a struct / Field core type isn't
+///                   reachable / the struct decl can't be found.
+try_fold_fields :: fn(
+    ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type,
+) -> LoweredExpr | null {
+    if intrinsic.args.len() != usize(1) { return null }
+    arg_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0])
+    if arg_or_null is null { return null }
+    target_ty :: arg_ty_or_unresolved(arg_or_null)
+    target_struct: StructType | null = null
+    if target_ty is StructType as st { target_struct = st }
+    if target_struct is null {
+        return LoweredUnreachable {
+            .span = intrinsic.span, .type = type,
+            .reason = "@fields target is not a struct",
+        }
+    }
+    field_type_opt :: find_core_type(ctx, STRUCT_FIELD, [])
+    if field_type_opt is null {
+        return LoweredUnreachable {
+            .span = intrinsic.span, .type = type,
+            .reason = "@fields needs std/core::Field",
+        }
+    }
+    field_type :: field_type_opt
+    // Find the owning module's loaded view + its typed program.
+    owner_module_id :: target_struct.symbol.module
+    owner_loaded_opt :: ctx.project.loaded.modules[owner_module_id]
+    if owner_loaded_opt is null {
+        return LoweredUnreachable {
+            .span = intrinsic.span, .type = type,
+            .reason = "@fields owner module not loaded",
+        }
+    }
+    owner_typed_opt :: ctx.project.evaluated.typed.modules[owner_module_id]
+    if owner_typed_opt is null {
+        return LoweredUnreachable {
+            .span = intrinsic.span, .type = type,
+            .reason = "@fields owner module not typechecked",
+        }
+    }
+    owner_typed :: owner_typed_opt
+    owner_decls :: module_decls(owner_loaded_opt)
+    decl :: find_struct_decl_by_name(owner_decls, target_struct.symbol.name)
+    if decl is null {
+        return LoweredUnreachable {
+            .span = intrinsic.span, .type = type,
+            .reason = "@fields target struct decl not found",
+        }
+    }
+    // Build the type-param → arg substitution using the existing
+    // helper that the generic-instance materialiser uses.
+    subst :: build_struct_subst(decl, target_struct.args, owner_typed)
+    string_type :: mk_primitive("string")
+    elements: LoweredExpr[] = []
+    for f in decl.fields {
+        raw_ty :: resolve_field_type(f.ty, owner_typed, decl, target_struct.args)
+        substituted :: substitute(raw_ty, subst)
+        field_lit_fields: LoweredStructLitField[] = []
+        field_lit_fields.push(LoweredStructLitField {
+            .name = "name",
+            .value = LoweredStringLit {
+                .span = intrinsic.span, .type = string_type, .value = f.name,
+            },
+        })
+        field_lit_fields.push(LoweredStructLitField {
+            .name = "type",
+            .value = LoweredTypeConst {
+                .span = intrinsic.span, .type = TY_TYPE, .value = substituted,
+            },
+        })
+        elements.push(LoweredStructLit {
+            .span = intrinsic.span, .type = field_type, .fields = field_lit_fields,
+        })
+    }
+    return LoweredArrayLit {
+        .span = intrinsic.span, .type = type, .elements = elements,
+    }
+}
+
+
+/// Fold `@satisfies(T, Trait)` to a literal bool. True iff a user impl
+/// `T implements Trait` exists in the registry. Mirror of
+/// `lowerIntrinsic`'s `case "satisfies"` branch in
+/// `src/lower/passes/expr.ts:416-423`.
+try_fold_satisfies :: fn(
+    ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type,
+) -> LoweredExpr | null {
+    if intrinsic.args.len() != usize(2) { return null }
+    target_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0])
+    trait_or_null  :: resolve_intrinsic_type_arg(ctx, intrinsic.args[1])
+    value: bool = false
+    if !(target_or_null is null) && !(trait_or_null is null) {
+        match arg_ty_or_unresolved(trait_or_null) {
+            is TraitType as tt -> {
+                value = impl_exists_for(ctx, arg_ty_or_unresolved(target_or_null), tt.symbol)
+            }
+            _ -> {}
+        }
+    }
+    return LoweredBoolLit { .span = intrinsic.span, .type = type, .value = value }
+}
+
+/// Mirror of `ImplRegistry.findFor` in `src/typecheck/impls.ts:81`: a struct
+/// or enum target resolves through `has_user`, a primitive target falls
+/// back to a name-match scan over the registry's flat entry list (those
+/// impls carry `for_symbol = null`).
+impl_exists_for :: fn(ctx: FnLowerCtx, target_ty: Type, trait_sym: Symbol) -> bool {
+    target_sym :: type_to_target_symbol(target_ty)
+    if target_sym is Symbol as ts {
+        return ctx.project.impls.has_user(ts, trait_sym)
+    }
+    if target_ty is PrimitiveType as pt {
+        for entry in ctx.project.impls.all {
+            if entry.for_symbol is Symbol { continue }
+            if entry.trait_symbol.id != trait_sym.id { continue }
+            if entry.decl.for_type is IdentExpr as id {
+                if id.name == pt.name { return true }
+            }
+        }
+    }
+    return false
+}
+
+arg_ty_or_unresolved :: fn(t: Type | null) -> Type {
+    match t {
+        is null -> { return TY_UNRESOLVED }
+        _ -> { return t }
+    }
+}
+
+resolve_intrinsic_type_arg :: fn(ctx: FnLowerCtx, arg: Expr) -> Type | null {
+    raw :: ctx.types.type_expr_type(arg)
+    if !(raw is UnresolvedType) { return raw }
+    scratch: Diagnostic[] = []
+    via_type_expr :: type_from_expr(arg, ctx.typed.resolved, scratch)
+    if !(via_type_expr is UnresolvedType) { return via_type_expr }
+    // Fall-throughs for IdentExpr args that resolve to a Symbol :
+    //   (a) Layer 5b in-fn alias : `t :: i32` inside a fn body. The
+    //       typer stashed the resolved underlying Type in
+    //       `let_type_aliases` keyed by the local's Symbol.id.
+    //   (b) Comptime const carrying a `TypeValue`. Recovered from
+    //       `comptime_value_by_symbol_id` so dotted refs to a `::`
+    //       alias still fold.
+    if arg is IdentExpr as id {
+        sym :: ctx.typed.resolved.idents[id.span.hash()]
+        if sym is null { return via_type_expr }
+        if sym is Symbol as s {
+            aliased :: ctx.typed.let_type_aliases[s.id]
+            if !(aliased is null) { return aliased }
+            v :: ctx.project.comptime_value_by_symbol_id[s.id]
+            match v {
+                is null -> {}
+                is TypeValue as tv -> { return tv.value }
+                _ -> {}
+            }
+        }
+    }
+    return via_type_expr
+}
+
+// `@type_kind(T)` stable discriminator. Exhaustive over `Type` (no `_`) and
+// kept in lock-step with `src/typecheck/types.ts::kindStringOfType` — the bare
+// types that have no user-facing kind collapse to "unknown", `Any` is "any",
+// `TypeMeta` is "type". Listing every variant trips T3013 on a new Type kind.
+kind_string_of_type :: fn(t: Type) -> string = match t {
+    is PrimitiveType  -> "primitive"
+    is StructType     -> "struct"
+    is EnumType       -> "enum"
+    is UnionType      -> "union"
+    is ArrayType      -> "array"
+    is TupleType      -> "tuple"
+    is FnType         -> "fn"
+    is TraitType      -> "trait"
+    is TypeMetaType   -> "type"
+    is TypeParamType  -> "unknown"
+    is SelfType       -> "unknown"
+    is UnresolvedType -> "unknown"
+    is FreeIntType    -> "unknown"
+    is FreeFloatType  -> "unknown"
+    is NeverType      -> "unknown"
+    is AnyType        -> "any"
+}
+
+// ============================================================================
+// Block + statement lowering
+// ============================================================================

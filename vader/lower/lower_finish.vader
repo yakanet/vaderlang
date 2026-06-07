@@ -1,0 +1,138 @@
+// vader/lower/lower_finish — post-materialization finishing: vtable collection, output assembly.
+//
+
+module "vader/lower"
+
+import "std/collections" { keys }
+import "std/sort" { sort }
+import "std/string" { bytes, split }
+
+import "vader/parser" { FnDecl, Visibility }
+import "vader/resolver" { LoadedProject }
+import "vader/typecheck" { TypedProject, substitute }
+import "vader/types" { Type }
+import "vader/resolver/symbol" { Symbol, SymbolKind }
+
+// Walk every module's impl decls × surviving impl-member fns and yield
+// one `VtableEntry` per `(trait, method, receiver type, impl fn)`.
+// Mirror of `src/lower/lower.ts::collectVtableEntries`.
+collect_vtable_entries :: fn(
+    project: LoweredProject, loaded: LoadedProject, typed: TypedProject,
+) -> VtableEntry[] {
+    out: VtableEntry[] = []
+    for module_id in project.modules.keys() {
+        m :: project.modules[module_id]
+        if m is null { continue }
+        for d in m.decls {
+            if d is LoweredFnDecl as fd {
+                trait_method :: impl_trait_method_from_mangled(fd.mangled)
+                if trait_method is null { continue }
+                receiver_ty :: impl_receiver_type_from_decl(fd, typed)
+                if receiver_ty is null { continue }
+                // fn_symbol is informational here — build_impl_table only
+                // keys on (struct_type, trait_name). Use a synth Symbol
+                // when the impl-member resolver lookup returned null so
+                // the entry still lands in the table.
+                sym :: fd.origin.symbol
+                fn_sym :: if sym is Symbol { sym } else {
+                    Symbol {
+                        .id = i32(0), .kind = SymbolKind.Fn, .name = fd.mangled,
+                        .module = "", .visibility = Visibility.Private, .defined_at = null,
+                    }
+                }
+                out.push(VtableEntry {
+                    .trait_name  = trait_method.trait_name,
+                    .method_name = trait_method.method,
+                    .struct_type = receiver_ty,
+                    .fn_symbol   = fn_sym,
+                })
+            }
+        }
+    }
+    return out
+}
+
+ImplTraitMethod :: struct { trait_name: string, method: string }
+
+// Decode `<module>$<Receiver>$<Trait>$<method>` mangled name into trait
+// + method. The lowerer's `impl_member_mangled` emits this shape ;
+// non-impl fns return null. We can't pull the trait/method directly
+// from the FnDecl because impl members ship as plain LoweredFnDecls
+// (TS keeps a richer ImplRegistry through emit, Vader's mangle
+// round-trip is the cheap substitute).
+impl_trait_method_from_mangled :: fn(mangled: string) -> ImplTraitMethod | null {
+    parts :: split_dollar(mangled)
+    if parts.len() < 4 { return null }
+    return ImplTraitMethod {
+        .trait_name = parts[parts.len() - 2],
+        // Strip the `__<args>` instance suffix a materialised generic-impl
+        // member carries (`next__i32` → `next`) : virtual dispatch keys on the
+        // bare trait-method name (the `vcall Iterator.next` op + the VM's
+        // VtableRow), so a suffixed `next__i32` would never match. The suffix
+        // always starts at the FIRST `__` (every arg is `__`-prefixed) ; trait
+        // methods are snake_case with single underscores, so this never clips.
+        .method     = parts[parts.len() - 1].split("__")[0],
+    }
+}
+
+split_dollar :: fn(s: string) -> string[] {
+    out: string[] = []
+    cur := ""
+    sb :: s.bytes()
+    for i in 0..<sb.len() {
+        b :: sb[i]
+        if b == u8(0x24) { out.push(cur)  cur = "" }
+        else { cur = "${cur}${char(u32(b))}" }
+    }
+    out.push(cur)
+    return out
+}
+
+// Receiver type from the impl-member's first param (`self`). For
+// `Point implements Display { to_string :: fn(self) -> string }`,
+// the param's type is `Point`, which becomes the vtable's receiver-type
+// key. Returns null when params are empty (defensive — impl members
+// always carry self).
+impl_receiver_type_from_decl :: fn(fd: LoweredFnDecl, _typed: TypedProject) -> Type | null {
+    if fd.params.len() == 0 { return null }
+    return fd.params[0].type
+}
+
+push_to_module :: fn(project: LoweredProject, module_id: string, decl: LoweredDecl) -> void {
+    m :: project.modules[module_id]
+    if m is null { return }
+    if m is LoweredModule as mod {
+        mod.decls.push(decl)
+    }
+}
+
+// Drain the lambda/defer lifted fns appended to `project_ctx.synth_decls`
+// in the window `[start, end)` into `module_id`, right after the fn that
+// spawned them. This is the post-module analogue of `lower_module`'s
+// per-module synth drain (`synth_start..synth_end`) : the materialisation
+// passes (generic fn instances, harvested non-generic stdlib fns, impl
+// members) lower fn bodies AFTER the per-module walk, so any lambda lifted
+// inside such a body would otherwise be orphaned — never reserved into the
+// fn table, surfacing as a make-closure GATE-B1 panic at emit (the
+// `__lambda_*` was in `synth_decls` but no module ever drained it).
+// Callers pass an explicit `end` so a separated build/push site (generic
+// instances) drains only the window the survivor produced, skipping the
+// windows of erasure-deduped siblings.
+drain_synth_window :: fn(
+    project: LoweredProject, module_id: string,
+    project_ctx: LowerProjectCtx, start: usize, end: usize,
+) -> void {
+    for i in start..<end {
+        push_to_module(project, module_id, project_ctx.synth_decls[i])
+    }
+}
+
+// `drain_synth_window` over the open window `[start, now)` — the common case
+// for a site that captured `start` immediately before lowering one body and
+// drains right after, when no other body lowered in between. The generic
+// fn-instance push loop needs the explicit-`end` form instead, because its
+// build and push are separated by a sort + erasure-dedup (later instances
+// advance `synth_decls.len()` before the survivor is pushed).
+drain_synth_since :: fn(
+    project: LoweredProject, module_id: string, project_ctx: LowerProjectCtx, start: usize,
+) = drain_synth_window(project, module_id, project_ctx, start, project_ctx.synth_decls.len())

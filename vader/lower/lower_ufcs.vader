@@ -1,0 +1,296 @@
+// vader/lower/lower_ufcs — UFCS method resolution and generic-instance harvesting.
+//
+
+module "vader/lower"
+
+import "std/collections" { MutableMap, keys }
+
+import "vader/parser" { Expr, CallExpr, FieldExpr, CallArg, Visibility, StructDecl }
+import "vader/typecheck" { type_from_expr, default_if_free, is_assignable, substitute_by_name }
+import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "vader/types" { Type, FnType, UnionType, TraitType, TypeParamType, TY_UNRESOLVED, StructType, EnumType }
+import "vader/comptime" { EvaluatedProgram, uniq }
+
+as_field_expr :: fn(expr: Expr) -> FieldExpr | null {
+    match expr {
+        is FieldExpr as f -> { return f }
+        _ -> { return null }
+    }
+}
+
+/// `recv.method(args)` against a concrete-typed receiver (primitive,
+/// struct, enum) lowers to a direct call when an impl member with the
+/// matching name exists. The receiver becomes the first arg.
+/// Mirror of `lowerUfcsCall` in `src/lower/passes/expr.ts` — runs after
+/// the trait-virtual probe so virtual dispatch wins for trait-typed
+/// receivers and UFCS picks up the concrete-type residue.
+try_lower_ufcs_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
+    callee_field :: as_field_expr(call.callee)
+    if callee_field is null { return null }
+    if callee_field is FieldExpr as field_expr {
+        receiver :: lower_expr(ctx, field_expr.target)
+        // Inline `EnumName.Variant` receivers lower to their integer repr, so
+        // `type_of(receiver)` = i32 and `Direction.East.to_string()` would
+        // wrongly route to `i32$Display$to_string`. Recover the enum identity
+        // from the surface (typed-AST) type for impl lookup — but ONLY for
+        // enums : a generic/monomorphised receiver's surface type is the
+        // unresolved type-param, so it must keep the concrete lowered type.
+        // The lowered node (the repr value) is still passed as the `self` arg.
+        surface_type :: ctx.types.expr_type(field_expr.target)
+        recv_type :: if surface_type is EnumType { surface_type } else { type_of(receiver) }
+        // Trait-typed receivers route through vcall (handled above).
+        if recv_type is TraitType { return null }
+        // Impl-member path first (e.g. `x.to_string()` over
+        // `i32 implements Display { to_string }`).
+        member :: find_impl_member_for(ctx, recv_type, field_expr.field)
+        if !(member is null) {
+            if member is UfcsMember as found {
+                args: LoweredExpr[] = []
+                args.push(receiver)
+                for call_arg in call.args { args.push(lower_expr(ctx, call_arg.value)) }
+                return LoweredCall {
+                    .span = call.span, .type = type,
+                    .callee = LoweredIdent {
+                        .span = field_expr.span, .type = type, .symbol = found.symbol,
+                    },
+                    .args = args,
+                }
+            }
+        }
+        // Free-fn UFCS : look in `resolved.fn_overloads` for a fn whose
+        // first param's nominal type matches the receiver's surface name.
+        // Covers `a.inc()` over an `inc :: fn(self: A) -> i32` free fn.
+        free :: find_free_fn_ufcs(ctx, recv_type, field_expr.field)
+        if !(free is null) {
+            if free is UfcsMember as found_free {
+                args: LoweredExpr[] = []
+                args.push(receiver)
+                for call_arg in call.args { args.push(lower_expr(ctx, call_arg.value)) }
+                // UFCS-on-generic-fn instance harvest : when the target
+                // is `fn[T](x: T) -> T`, register a `GenericFnInstance` so
+                // `drain_generic_fn_instances` emits the body, and point
+                // the callee at the resulting monomorphic mangle (mirror of
+                // `register_and_emit_generic_call`'s ident path). A non-generic
+                // target returns null → keep the plain resolver symbol.
+                mangled :: harvest_ufcs_fn_instance(ctx, found_free.symbol, recv_type, call.args)
+                callee_sym :: if mangled == null { found_free.symbol } else {
+                    Symbol {
+                        .id         = found_free.symbol.id,
+                        .kind       = SymbolKind.Fn,
+                        .name       = mangled,
+                        .module     = found_free.symbol.module,
+                        .visibility = Visibility.Private,
+                        .defined_at = null,
+                    }
+                }
+                return LoweredCall {
+                    .span = call.span, .type = type,
+                    .callee = LoweredIdent {
+                        .span = field_expr.span, .type = type, .symbol = callee_sym,
+                    },
+                    .args = args,
+                }
+            }
+        }
+    }
+    return null
+}
+
+find_free_fn_ufcs :: fn(ctx: FnLowerCtx, recv_type: Type, name: string) -> UfcsMember | null {
+    // Unions have no nominal surface name ; they still dispatch UFCS to a
+    // free fn whose first param is the same union (`shape.describe()` ->
+    // `describe(shape: Shape)`). `first_param_matches` handles both the
+    // name and the structural-union case, so don't bail on empty name
+    // unless the receiver is neither nominal nor a union.
+    recv_name :: type_surface_name(recv_type)
+    if recv_name == "" && !(recv_type is UnionType) { return null }
+    overloads :: ctx.typed.resolved.fn_overloads[name]
+    if overloads is Symbol[] as symbols {
+        for sym in symbols {
+            if first_param_matches(ctx, sym, recv_type) {
+                return UfcsMember { .symbol = sym }
+            }
+        }
+    }
+    // Imported free fn — `import "p" { name }` registers `name` in
+    // `symbols` as an ImportBinding but not in `fn_overloads`. Follow
+    // the import target to the source symbol and probe its signature.
+    for candidate in ctx.typed.resolved.symbols {
+        if candidate.name != name { continue }
+        if i32(candidate.kind) != i32(SymbolKind.ImportBinding) { continue }
+        target :: follow_import_binding(ctx, candidate)
+        if i32(target.kind) == i32(SymbolKind.Fn) {
+            if first_param_matches(ctx, target, recv_type) {
+                return UfcsMember { .symbol = target }
+            }
+        }
+    }
+    // Cross-module free fn — `s.len()` against `MutableSet`'s
+    // `len :: fn[T](self: MutableSet(T)) -> usize` defined in
+    // `stdlib/std/collections.vader` even though the user file never
+    // `import`s `len`. Mirror of TS's `inferField` which scans every
+    // loaded module's exports via `fieldRefs` (`ufcs-free` ref).
+    for module_id in ctx.project.evaluated.modules.keys() {
+        program :: ctx.project.evaluated.modules[module_id]
+        if program is null { continue }
+        if program is EvaluatedProgram as ep {
+            bucket :: ep.typed.resolved.fn_overloads[name]
+            if bucket is Symbol[] as bucket_syms {
+                for sym in bucket_syms {
+                    if first_param_matches(ctx, sym, recv_type) {
+                        return UfcsMember { .symbol = sym }
+                    }
+                }
+            }
+        }
+    }
+    return null
+}
+
+first_param_matches :: fn(ctx: FnLowerCtx, sym: Symbol, recv_type: Type) -> bool {
+    // Match the fn's first param against the receiver. A `TypeParam`
+    // first param matches any receiver (`identity[T](x: T)`) ; a union
+    // receiver matches via `is_assignable` (mirrors the typer's
+    // `receiver_fits_first_param`, so lower agrees with what typecheck
+    // accepted) ; otherwise match by nominal surface name.
+    fn_ty :: lookup_fn_type_anywhere(ctx, sym)
+    if fn_ty is FnType as ft {
+        if ft.params.len() == 0 { return false }
+        first :: ft.params[0]
+        if first is TypeParamType { return true }
+        if recv_type is UnionType { return is_assignable(recv_type, first, null) }
+        // Trait-typed first param (`filter(it: Iterator<T>, …)`) matches a
+        // concrete receiver that implements the trait (`StringChars`
+        // implements `Iterator<char>`). Consult the project-wide impl
+        // registry so cross-module stdlib impls are reachable.
+        if first is TraitType as tt {
+            return find_impl_for(ctx.project, recv_type, tt.symbol.name) != null
+        }
+        return type_surface_name(first) == type_surface_name(recv_type)
+    }
+    return false
+}
+
+/// Record a non-generic stdlib free fn for end-of-project
+/// materialization. No-op for user-module fns (already lowered) and for
+/// fns already harvested. Dedup by `fn_symbol.id`.
+register_nongeneric_stdlib_fn :: fn(ctx: FnLowerCtx, fn_sym: Symbol) -> void {
+    if i32(fn_sym.kind) != i32(SymbolKind.Fn) { return }
+    if !is_stdlib_path(fn_sym.module) { return }
+    if ctx.project.nongeneric_stdlib_fns[fn_sym.id] != null { return }
+    // Generic fns route through the GenericFnInstance harvest instead.
+    fn_ty :: lookup_fn_type_anywhere(ctx, fn_sym)
+    if fn_ty is FnType as ft {
+        if type_has_param(ft) { return }
+    }
+    ctx.project.nongeneric_stdlib_fns[fn_sym.id] = true
+    ctx.project.nongeneric_stdlib_order.push(fn_sym)
+}
+
+/// Register a `GenericFnInstance` for a UFCS-resolved generic free fn.
+/// Mirrors the harvest in `try_lower_generic_fn_call` for the
+/// ident-call path. The receiver type binds the first param ; the
+/// remaining call args bind subsequent params. Idempotent on the
+/// `<symbol.id>::<args_suffix>` key.
+// Harvest a UFCS call's generic-fn instance and return the monomorphic
+// mangle the call site must point at (`null` when the target is non-generic,
+// so the caller keeps the plain resolver symbol). Without returning the
+// mangle the UFCS call site would emit a bare resolver-symbol callee that
+// resolves to no fn-table entry — the emit drops it to its defensive
+// `Return` (every `recv.generic_fn()` call silently mis-compiled).
+harvest_ufcs_fn_instance :: fn(
+    ctx: FnLowerCtx, fn_sym: Symbol, recv_type: Type, ast_args: CallArg[],
+) -> string | null {
+    // Locate the fn's FnType — UFCS resolution tolerates fns defined
+    // in foreign modules (e.g. stdlib's `len`).
+    fn_ty :: lookup_fn_type_anywhere(ctx, fn_sym)
+    if fn_ty is null { return null }
+    if fn_ty is FnType as ft {
+        if !type_has_param(ft) {
+            // Non-generic free fn. User-module ones are lowered by
+            // `lower_module` already ; stdlib ones have their bodies
+            // skipped (`is_stdlib_path`), so harvest them for
+            // `materialize_nongeneric_stdlib_fns` — otherwise the call
+            // is dropped (no fn-table entry).
+            register_nongeneric_stdlib_fn(ctx, fn_sym)
+            return null
+        }
+        if ft.params.len() == 0 { return null }
+        bindings :: MutableMap<i32, Type> {}
+        order: i32[] = []
+        unify_params(ft.params[0], default_if_free(recv_type), bindings, order, ctx)
+        n :: ft.params.len()
+        for i in 1..<n {
+            ai :: i - 1
+            if ai >= ast_args.len() { break }
+            concrete :: default_if_free(ctx.types.expr_type(ast_args[ai].value))
+            unify_params(ft.params[i], concrete, bindings, order, ctx)
+        }
+        concrete_args: Type[] = []
+        for id in order {
+            v :: bindings[id]
+            match v {
+                is null -> { return null }
+                _ -> { concrete_args.push(v) }
+            }
+        }
+        if !all_concrete(concrete_args) { return null }
+        suffix :: mono_suffix(concrete_args)
+        inst_key :: "${fn_sym.id}::${suffix}"
+        owner_module :: fn_sym.module
+        // Use the owning module's *display* path (the declared
+        // `module "..."` name) for the mangle, not its filesystem
+        // id. Matches the direct-call path at line 775 and TS'
+        // `program.module.displayPath` in `src/comptime/specialize.ts:384`.
+        // Falls back to fn_sym.module when the lookup misses (defensive).
+        display :: lookup_module_display_path(ctx, owner_module)
+        mod_mangle :: mangle_module_id(if display == null { owner_module } else { display })
+        base_mangled :: "${mod_mangle}$${mod_mangle}$${fn_sym.name}${suffix}"
+        // Record the instance once ; return the (uniq-disambiguated) mangle on
+        // every call so the call site can target it even when a sibling call
+        // already harvested.
+        return register_fn_instance_mangle(ctx, fn_sym, concrete_args, owner_module, base_mangled, inst_key)
+    }
+    return null
+}
+
+// Look up an evaluated module's `display_path` (the declared
+// `module "..."` name) from its module id. Returns null when the
+// module isn't in the evaluated project — callers default to the
+// raw module id in that case.
+lookup_module_display_path :: fn(ctx: FnLowerCtx, module_id: string) -> string | null {
+    program :: ctx.project.evaluated.modules[module_id]
+    if program is EvaluatedProgram as ep { return ep.typed.resolved.display_path }
+    return null
+}
+
+// Find a field's static type on a struct receiver. Used by the
+// `@field(target, "name")` fold to refine the result type when the
+// typer left it Unresolved (`@comptime for f in @fields(T)` paths
+// where the field name is only known post-substitution). Walks the
+// receiver's struct decl, applies the struct's type-arg substitution
+// to the field's TypeExpr.
+resolve_field_type :: fn(ctx: FnLowerCtx, target_arg: Expr, field_name: string) -> Type {
+    recv_ty :: ctx.types.expr_type(target_arg)
+    if recv_ty is StructType as st {
+        decl :: ctx.typed.struct_decls[st.symbol.id]
+        if decl is null { return TY_UNRESOLVED }
+        if decl is StructDecl as sd {
+            for f in sd.fields {
+                if f.name != field_name { continue }
+                raw :: type_from_expr(f.ty, ctx.typed.resolved, [])
+                return substitute_by_name(raw, sd.type_params, st.args)
+            }
+        }
+    }
+    return TY_UNRESOLVED
+}
+
+lookup_fn_type_anywhere :: fn(ctx: FnLowerCtx, sym: Symbol) -> Type | null {
+    // `Symbol.module` carries the owning module id — direct lookup
+    // beats walking every evaluated module per UFCS call site.
+    program :: ctx.project.evaluated.modules[sym.module]
+    if program is null { return null }
+    if program is EvaluatedProgram as ep { return ep.typed.decl_types[sym.id] }
+    return null
+}
