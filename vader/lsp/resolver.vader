@@ -15,6 +15,7 @@ module "vader/lsp"
 
 import "std/io" { read_file, read_dir, is_dir }
 import "std/string" { starts_with, bytes, as_string }
+import "vader/resolver" { default_stdlib_root, find_manifest_root }
 
 /// Where a cross-file goto-def landed : a file URI + the target's
 /// `name_span` so the handler can encode an LSP `Location`. Returns
@@ -34,8 +35,39 @@ export ExternalHit :: struct {
 export resolve :: fn(state: ServerState, idx: DocIndex, name: string) -> ExternalHit | null {
     if name.bytes().len() == 0 { return null }
     imp :: idx.find_import(name)
-    if imp == null { return null }
-    return resolve_imported(state, idx, imp)
+    if imp != null { return resolve_imported(state, idx, imp) }
+    // Not imported — the name may be declared in a SIBLING file of the same
+    // folder module (every `vader/X/*.vader` shares `module "vader/X"`). The
+    // per-document index only sees the open file, so search the rest of the
+    // module's directory. This is the dominant cross-file case in the compiler
+    // tree, and it isn't an `import` so the table lookup above never finds it.
+    return resolve_sibling(idx.uri, name)
+}
+
+// Search the `*.vader` siblings of `from_uri`'s directory for a top-level
+// decl named `name`. Returns the first hit, or null. Skips the open file
+// itself (its own decls are handled by the in-document index).
+resolve_sibling :: fn(from_uri: string, name: string) -> ExternalHit | null {
+    from_path :: uri_to_path(from_uri)
+    if from_path.bytes().len() == 0 { return null }
+    dir :: dirname_path(from_path)
+    files_or :: read_dir(dir)
+    match files_or {
+        is Error -> { return null }
+        is string[] as files -> {
+            for fname in files {
+                if !fname.ends_with_vader() { continue }
+                full :: path_join(dir, fname)
+                if full == from_path { continue }
+                hit :: lookup_in_file(full, name)
+                match hit {
+                    is ExternalHit as h -> { return h }
+                    is null -> {}
+                }
+            }
+            return null
+        }
+    }
 }
 
 resolve_imported :: fn(state: ServerState, idx: DocIndex, imp: ImportEntry) -> ExternalHit | null {
@@ -93,16 +125,18 @@ lookup_in_file :: fn(path: string, name: string) -> ExternalHit | null {
 // "couldn't resolve, fall through to null".
 module_path_to_absolute :: fn(raw: string, state: ServerState, from_uri: string) -> string {
     if raw.starts_with("std/") {
-        if state.stdlib_root.bytes().len() == 0 { return "" }
-        return path_join(state.stdlib_root, raw)
+        root :: stdlib_root_for(state)
+        if root.bytes().len() == 0 { return "" }
+        return path_join(root, raw)
     }
     if raw.starts_with("vader/") {
-        if state.vader_root.bytes().len() == 0 { return "" }
-        // `vader/X` strips the `vader/` prefix because `vader_root`
-        // already points at the `vader/` directory.
+        root :: vader_root_for(state, from_uri)
+        if root.bytes().len() == 0 { return "" }
+        // `vader/X` strips the `vader/` prefix because the root already
+        // points at the `vader/` directory.
         rb :: raw.bytes()
         suffix :: rb[6..<rb.len()].as_string()
-        return path_join(state.vader_root, suffix)
+        return path_join(root, suffix)
     }
     if raw.starts_with("./") || raw.starts_with("../") {
         from_path :: uri_to_path(from_uri)
@@ -115,6 +149,29 @@ module_path_to_absolute :: fn(raw: string, state: ServerState, from_uri: string)
     // Project-root resolution would need the workspace root from the
     // LSP `initialize` params ; that's a follow-up.
     return ""
+}
+
+// Stdlib root for cross-file resolution : the host-seeded `--stdlib-root`
+// when present, otherwise the same exe-sidecar / cwd probe the project
+// loader uses (`default_stdlib_root`). Editors don't pass `--stdlib-root`,
+// so the fallback is what actually fires in practice — without it goto-def
+// into every `std/*` symbol silently returned "".
+stdlib_root_for :: fn(state: ServerState) -> string {
+    if state.stdlib_root.bytes().len() > 0 { return state.stdlib_root }
+    return default_stdlib_root()
+}
+
+// `vader/` source root : the host-seeded `--vader-root`, else `<project>/vader`
+// derived from the importing file's manifest root (`vader.json`). Mirrors how
+// the project loader anchors `vader/*` imports, so goto-def works with no
+// editor-side flags.
+vader_root_for :: fn(state: ServerState, from_uri: string) -> string {
+    if state.vader_root.bytes().len() > 0 { return state.vader_root }
+    from_path :: uri_to_path(from_uri)
+    if from_path.bytes().len() == 0 { return "" }
+    mr :: find_manifest_root(from_path)
+    if mr == null { return "" }
+    return path_join(mr, "vader")
 }
 
 // Strip the `file://` scheme from a URI. Returns `""` for non-file URIs.
