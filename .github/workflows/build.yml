@@ -65,6 +65,49 @@ jobs:
       - name: Test
         run: bun run test --only-failures
 
+  # Real Windows build + test. Faithful (unlike wine) and a regression guard for
+  # the Windows-specific surface (CRLF stdio, path separators, the runtime).
+  # `continue-on-error` while the suite is still red on Windows — it reports the
+  # real diffs without blocking PRs ; flip it off once green.
+  test-windows:
+    name: Test (Windows)
+    runs-on: windows-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+
+      - uses: actions/cache@v5
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # bootstrap/build.ps1 needs a mingw-w64 gcc on PATH — MSVC is unsupported
+      # (the runtime uses `__attribute__((weak))`). If this path is wrong on the
+      # runner image, the `gcc --version` step below fails loudly ; adjust then.
+      - name: Set up mingw-w64
+        shell: pwsh
+        run: |
+          choco install mingw --no-progress -y
+          echo "C:\ProgramData\mingw64\mingw64\bin" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+      - name: Verify gcc on PATH
+        shell: pwsh
+        run: gcc --version
+
+      # 3-stage bootstrap from the committed C seed (PowerShell entry point).
+      - name: Build Vader CLI from the C seed (Windows)
+        shell: pwsh
+        run: pwsh bootstrap/build.ps1
+
+      - name: Test
+        run: bun run test --only-failures
+
   # Heavy fixed-point check: build the toolchain, confirm stage1 and stage2 emit
   # identical C for main.vader, and the committed seed is fresh. Bun-free, gated
   # to manual dispatch / release tags — too slow for every PR. docs/BOOTSTRAP.md Phase 4.
