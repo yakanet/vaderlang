@@ -9,8 +9,8 @@
     "test": "bun test --preload ./tests/setup.ts --parallel",
     "test:update": "UPDATE_SNAPSHOTS=1 bun test --update-snapshots --preload ./tests/setup.ts",
     "test:leak": "bun run ./tests/leaks_check.ts",
-    "build": "bun build src/index.ts --target=bun --outdir=dist",
-    "build:cli": "bun src/index.ts build vader/cli/main.vader --release --target=native --out=build/vader",
+    "build": "bootstrap/build.sh",
+    "build:cli": "bootstrap/build.sh --dist",
     "typecheck": "tsc --noEmit",
     "bench": "bun bench/run.ts",
     "cloc": "npx cloc@latest --read-lang-def=vader-cloc.txt --exclude-dir=editors,docs --vcs=git ."
