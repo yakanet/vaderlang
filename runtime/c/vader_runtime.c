@@ -293,6 +293,7 @@ static int  g_atom_profile = 0;
 static void        vader_atom_install_empty(void);
 static vader_u32_t vader_atom_hash(const char* data, size_t len);
 static void        vader_atom_bucket_install(vader_atom_t a, vader_u32_t hash);
+static void        vader_ensure_stdio_binary(void);
 
 void vader_atom_init(void) {
     vader_atom_init_with_comptime(NULL, 0u);
@@ -300,6 +301,13 @@ void vader_atom_init(void) {
 
 void vader_atom_init_with_comptime(const vader_atom_entry_t* comptime_table,
                                    vader_u32_t count) {
+    /* Program-startup stdio setup : the emitted `main` calls atom-init first,
+     * so this is the one place every C-emitted binary passes through at start.
+     * On Windows the CRT defaults stdout to TEXT mode, which translates every
+     * `\n` to `\r\n` — that corrupts `dump` / `build` / `fmt` output (LF on
+     * disk, CRLF on the wire) and every snapshot comparison. Force binary here,
+     * not just lazily in `vader_read_stdin` (which only `lsp` reaches). */
+    vader_ensure_stdio_binary();
     if (g_atoms_initialized) return;
     g_atoms_initialized = 1;
 
@@ -2242,9 +2250,11 @@ vader_box_t vader_read_line(uint32_t ok_tag, uint32_t err_tag) {
 
 /* Switch stdin/stdout to binary mode on Windows. The CRT default is
  * text mode, which silently translates `\r\n` ↔ `\n` and breaks any
- * length-prefixed binary transport (LSP, MCP, custom RPC). Called once
- * at the first `vader_read_stdin` invocation ; idempotent via the
- * static flag. POSIX has no such concept — the helper is a no-op there. */
+ * length-prefixed binary transport (LSP, MCP, custom RPC) AND every `dump` /
+ * `build` / `fmt` stdout (LF on disk, CRLF on the wire). Called at program
+ * startup (`vader_atom_init_with_comptime`) and at the first
+ * `vader_read_stdin` ; idempotent via the static flag. POSIX has no such
+ * concept — the helper is a no-op there. */
 static int g_stdio_binary_ready = 0;
 
 static void vader_ensure_stdio_binary(void) {
