@@ -39,9 +39,11 @@ export handle_inlay_hint :: fn(state: ServerState, params: JsonValue) -> JsonVal
     result :: cached.result
     entry_loaded :: project.modules[project.entry]
     if entry_loaded is null { return JsonArray { .items = [] } }
+    sf :: source_file_for_path(entry_loaded.module.files, file_path)
+    if sf is null { return JsonArray { .items = [] } }
 
     hints: JsonValue[] = []
-    for decl in entry_loaded.module.files[0].program.decls {
+    for decl in sf.program.decls {
         collect_from_decl(decl, result.typed, hints)
     }
     return JsonArray { .items = hints }

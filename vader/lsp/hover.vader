@@ -171,6 +171,8 @@ try_typed_hover :: fn(self: ServerState, uri: string, line: i32, character: i32)
     result :: cached.result
     entry :: project.modules[project.entry]
     if entry is null { return null }
+    sf :: source_file_for_path(entry.module.files, file_path)
+    if sf is null { return null }
     // LSP positions are 0-based ; the Vader AST is 1-based.
     target_line :: line + i32(1)
     target_col  :: character + i32(1)
@@ -179,10 +181,10 @@ try_typed_hover :: fn(self: ServerState, uri: string, line: i32, character: i32)
     // (often `?` placeholder) declared type. Useful when the user
     // wrote `origin: ? | null :: index.span_at(...)` and wants the
     // LSP to surface what the typechecker resolved to.
-    binding_ty :: find_binding_rhs_type_at(entry.module.files[0].program.decls, target_line, target_col, result.typed)
+    binding_ty :: find_binding_rhs_type_at(sf.program.decls, target_line, target_col, result.typed)
     if !(binding_ty is null) { return type_hover(binding_ty) }
 
-    found :: find_expr_at(entry.module.files[0].program.decls, target_line, target_col, result.typed)
+    found :: find_expr_at(sf.program.decls, target_line, target_col, result.typed)
     if found is null { return null }
     ty :: result.typed.expr_types[found.id]
     if ty is null { return null }

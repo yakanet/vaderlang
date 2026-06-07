@@ -37,11 +37,13 @@ export handle_signature_help :: fn(state: ServerState, params: JsonValue) -> Jso
     result :: cached.result
     entry :: project.modules[project.entry]
     if entry is null { return JsonNull {} }
+    sf :: source_file_for_path(entry.module.files, file_path)
+    if sf is null { return JsonNull {} }
 
     // LSP positions are 0-based ; AST spans are 1-based.
     target_line :: line + i32(1)
     target_col  :: char + i32(1)
-    call :: find_enclosing_call(entry.module.files[0].program.decls, target_line, target_col)
+    call :: find_enclosing_call(sf.program.decls, target_line, target_col)
     if call is null { return JsonNull {} }
 
     sig :: build_signature(call, result.typed)

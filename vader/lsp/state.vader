@@ -11,7 +11,7 @@ import "std/json" {
     JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonNull, JsonArray
 }
 import "std/collections" { MutableMap, keys }
-import "vader/resolver" { load_project_with_overlay, LoadedProject }
+import "vader/resolver" { load_project_with_overlay, LoadedProject, SourceFile }
 import "vader/typecheck" { check_project_with_bodies, CheckResult }
 import "vader/diagnostics" { Diagnostic }
 
@@ -106,6 +106,24 @@ export typed_project_for :: fn(self: ServerState, file_path: string) -> ProjectC
     }
     self.cache = entry
     return entry
+}
+
+/// Pick the `SourceFile` of `files` whose `path` matches the requested
+/// document. A module can span several files (a folder module — every
+/// `vader/lower/*.vader` shares `module "vader/lower"`), so a per-document
+/// request must walk the file the user actually opened, NOT `files[0]`.
+/// Walking `files[0]` surfaces another file's AST nodes : hints / hovers /
+/// signatures land at that file's positions with that file's types, both
+/// wrong (the `dce.vader` inlay hints showing `closure_analysis.vader`'s
+/// bindings). Falls back to the sole file for a single-file module (whose
+/// path always matches anyway) ; returns null for a multi-file module with
+/// no match, so the handler yields nothing rather than another file's data.
+export source_file_for_path :: fn(files: SourceFile[], file_path: string) -> SourceFile | null {
+    for f in files {
+        if f.path == file_path { return f }
+    }
+    if files.len() == 1 { return files[0] }
+    return null
 }
 
 /// Build a filesystem-path → current-text overlay from every open document,
