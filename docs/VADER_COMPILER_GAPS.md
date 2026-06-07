@@ -342,7 +342,7 @@ item 6).
   `CC_COMPILE_TIME_REDUCTION.md`).
 - WASM emitter (gated sur §3.10).
 - `vader fmt` (séparé, déjà tracké dans `IMPROVEMENT.md`).
-- LSP code actions (cf `LSP_CODE_ACTIONS.md`).
+- LSP code actions (cf `LSP_COMPLETENESS.md` § Code actions framework).
 - `bootstrap.c` seed (gated sur compilateur complet).
 - Surface refactor (struct lit paren grammar — décision pending dans
   `STRUCT_LIT_PAREN_GRAMMAR.md`).

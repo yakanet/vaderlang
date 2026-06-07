@@ -10,9 +10,9 @@
 >   exiger évaluation explicite des alternatives C et D, stratégie
 >   de recovery diagnostics, politique nommé-only pour le migration
 >   script Phase B.
-> - Bloquant potentiel sur `LSP_CODE_ACTIONS.md` (le code-action
->   `match`-pattern destructuring devra suivre la syntaxe retenue
->   ici) — cf. refresh de ce doc.
+> - Bloquant potentiel sur `LSP_COMPLETENESS.md` (§ Code actions framework :
+>   le code-action `match`-pattern destructuring devra suivre la syntaxe
+>   retenue ici) — cf. refresh de ce doc.
 > - Sites dépendants : `vader/lsp/` (16+ références `StructLitExpr`,
 >   §10.3), `vader/fmt/printer.vader::emit_struct_lit`, 70 snapshots
 >   parser.
