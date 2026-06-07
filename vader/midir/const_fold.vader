@@ -148,89 +148,73 @@ fold_bin_op :: fn(op: LoweredBinaryOp, l: ConstValue, r: ConstValue) -> ConstVal
     return null
 }
 
-fold_int_bin_op :: fn(op: LoweredBinaryOp, l: i64, r: i64) -> ConstValue | null {
-    if i32(op) == i32(LoweredBinaryOp.Add) { return ConstInt { .value = l + r } }
-    if i32(op) == i32(LoweredBinaryOp.Sub) { return ConstInt { .value = l - r } }
-    if i32(op) == i32(LoweredBinaryOp.Mul) { return ConstInt { .value = l * r } }
-    if i32(op) == i32(LoweredBinaryOp.Div) {
-        if r == i64(0) { return null }
-        return ConstInt { .value = l / r }
-    }
-    if i32(op) == i32(LoweredBinaryOp.Mod) {
-        if r == i64(0) { return null }
-        return ConstInt { .value = l - (l / r) * r }
-    }
-    // Shifts ≥ 64 are runtime-defined ; skip so the VM/runtime (which
+// @partial: folds the arithmetic / bitwise / comparison ops; logical And/Or are
+// bool-only (never reach here with int operands) so any other op → null (unfolded).
+fold_int_bin_op :: fn(op: LoweredBinaryOp, l: i64, r: i64) -> ConstValue | null = @partial match op {
+    .Add -> ConstInt { .value = l + r }
+    .Sub -> ConstInt { .value = l - r }
+    .Mul -> ConstInt { .value = l * r }
+    .Div -> if r == i64(0) { null } else { ConstInt { .value = l / r } }
+    .Mod -> if r == i64(0) { null } else { ConstInt { .value = l - (l / r) * r } }
+    // Shifts < 0 or ≥ 64 are runtime-defined ; skip so the VM/runtime (which
     // knows the type width) handles them.
-    if i32(op) == i32(LoweredBinaryOp.Shl) {
-        if r < i64(0) { return null }
-        if r >= i64(64) { return null }
-        return ConstInt { .value = l << r }
-    }
-    if i32(op) == i32(LoweredBinaryOp.Shr) {
-        if r < i64(0) { return null }
-        if r >= i64(64) { return null }
-        return ConstInt { .value = l >> r }
-    }
-    if i32(op) == i32(LoweredBinaryOp.BitAnd) { return ConstInt { .value = l & r } }
-    if i32(op) == i32(LoweredBinaryOp.BitOr)  { return ConstInt { .value = l | r } }
-    if i32(op) == i32(LoweredBinaryOp.BitXor) { return ConstInt { .value = l ^ r } }
-    if i32(op) == i32(LoweredBinaryOp.Eq)  { return ConstBool { .value = l == r } }
-    if i32(op) == i32(LoweredBinaryOp.Neq) { return ConstBool { .value = l != r } }
-    if i32(op) == i32(LoweredBinaryOp.Lt)  { return ConstBool { .value = l <  r } }
-    if i32(op) == i32(LoweredBinaryOp.Lte) { return ConstBool { .value = l <= r } }
-    if i32(op) == i32(LoweredBinaryOp.Gt)  { return ConstBool { .value = l >  r } }
-    if i32(op) == i32(LoweredBinaryOp.Gte) { return ConstBool { .value = l >= r } }
-    return null
+    .Shl -> if r < i64(0) || r >= i64(64) { null } else { ConstInt { .value = l << r } }
+    .Shr -> if r < i64(0) || r >= i64(64) { null } else { ConstInt { .value = l >> r } }
+    .BitAnd -> ConstInt { .value = l & r }
+    .BitOr  -> ConstInt { .value = l | r }
+    .BitXor -> ConstInt { .value = l ^ r }
+    .Eq  -> ConstBool { .value = l == r }
+    .Neq -> ConstBool { .value = l != r }
+    .Lt  -> ConstBool { .value = l <  r }
+    .Lte -> ConstBool { .value = l <= r }
+    .Gt  -> ConstBool { .value = l >  r }
+    .Gte -> ConstBool { .value = l >= r }
+    _ -> null
 }
 
-fold_float_bin_op :: fn(op: LoweredBinaryOp, l: f64, r: f64) -> ConstValue | null {
-    if i32(op) == i32(LoweredBinaryOp.Add) { return ConstFloat { .value = l + r } }
-    if i32(op) == i32(LoweredBinaryOp.Sub) { return ConstFloat { .value = l - r } }
-    if i32(op) == i32(LoweredBinaryOp.Mul) { return ConstFloat { .value = l * r } }
-    if i32(op) == i32(LoweredBinaryOp.Div) { return ConstFloat { .value = l / r } }
-    if i32(op) == i32(LoweredBinaryOp.Eq)  { return ConstBool  { .value = l == r } }
-    if i32(op) == i32(LoweredBinaryOp.Neq) { return ConstBool  { .value = l != r } }
-    if i32(op) == i32(LoweredBinaryOp.Lt)  { return ConstBool  { .value = l <  r } }
-    if i32(op) == i32(LoweredBinaryOp.Lte) { return ConstBool  { .value = l <= r } }
-    if i32(op) == i32(LoweredBinaryOp.Gt)  { return ConstBool  { .value = l >  r } }
-    if i32(op) == i32(LoweredBinaryOp.Gte) { return ConstBool  { .value = l >= r } }
-    return null
+// @partial: folds float arithmetic + comparisons; any other op → null (unfolded).
+fold_float_bin_op :: fn(op: LoweredBinaryOp, l: f64, r: f64) -> ConstValue | null = @partial match op {
+    .Add -> ConstFloat { .value = l + r }
+    .Sub -> ConstFloat { .value = l - r }
+    .Mul -> ConstFloat { .value = l * r }
+    .Div -> ConstFloat { .value = l / r }
+    .Eq  -> ConstBool  { .value = l == r }
+    .Neq -> ConstBool  { .value = l != r }
+    .Lt  -> ConstBool  { .value = l <  r }
+    .Lte -> ConstBool  { .value = l <= r }
+    .Gt  -> ConstBool  { .value = l >  r }
+    .Gte -> ConstBool  { .value = l >= r }
+    _ -> null
 }
 
-fold_bool_bin_op :: fn(op: LoweredBinaryOp, l: bool, r: bool) -> ConstValue | null {
-    if i32(op) == i32(LoweredBinaryOp.And) { return ConstBool { .value = l && r } }
-    if i32(op) == i32(LoweredBinaryOp.Or)  { return ConstBool { .value = l || r } }
-    if i32(op) == i32(LoweredBinaryOp.Eq)  { return ConstBool { .value = l == r } }
-    if i32(op) == i32(LoweredBinaryOp.Neq) { return ConstBool { .value = l != r } }
-    return null
+// @partial: folds the bool logical / equality ops; any other op → null (unfolded).
+fold_bool_bin_op :: fn(op: LoweredBinaryOp, l: bool, r: bool) -> ConstValue | null = @partial match op {
+    .And -> ConstBool { .value = l && r }
+    .Or  -> ConstBool { .value = l || r }
+    .Eq  -> ConstBool { .value = l == r }
+    .Neq -> ConstBool { .value = l != r }
+    _ -> null
 }
 
-fold_char_bin_op :: fn(op: LoweredBinaryOp, l: i32, r: i32) -> ConstValue | null {
-    if i32(op) == i32(LoweredBinaryOp.Eq)  { return ConstBool { .value = l == r } }
-    if i32(op) == i32(LoweredBinaryOp.Neq) { return ConstBool { .value = l != r } }
-    if i32(op) == i32(LoweredBinaryOp.Lt)  { return ConstBool { .value = l <  r } }
-    if i32(op) == i32(LoweredBinaryOp.Lte) { return ConstBool { .value = l <= r } }
-    if i32(op) == i32(LoweredBinaryOp.Gt)  { return ConstBool { .value = l >  r } }
-    if i32(op) == i32(LoweredBinaryOp.Gte) { return ConstBool { .value = l >= r } }
-    return null
+// @partial: folds char comparisons; any other op → null (unfolded).
+fold_char_bin_op :: fn(op: LoweredBinaryOp, l: i32, r: i32) -> ConstValue | null = @partial match op {
+    .Eq  -> ConstBool { .value = l == r }
+    .Neq -> ConstBool { .value = l != r }
+    .Lt  -> ConstBool { .value = l <  r }
+    .Lte -> ConstBool { .value = l <= r }
+    .Gt  -> ConstBool { .value = l >  r }
+    .Gte -> ConstBool { .value = l >= r }
+    _ -> null
 }
 
-fold_un_op :: fn(op: LoweredUnaryOp, v: ConstValue) -> ConstValue | null {
-    if i32(op) == i32(LoweredUnaryOp.Neg) {
-        if v is ConstInt as iv   { return ConstInt   { .value = i64(0) - iv.value } }
-        if v is ConstFloat as fv { return ConstFloat { .value = f64(0) - fv.value } }
-        return null
-    }
-    if i32(op) == i32(LoweredUnaryOp.Not) {
-        if v is ConstBool as bv { return ConstBool { .value = !bv.value } }
-        return null
-    }
-    if i32(op) == i32(LoweredUnaryOp.BitNot) {
-        if v is ConstInt as iv { return ConstInt { .value = ~iv.value } }
-        return null
-    }
-    return null
+fold_un_op :: fn(op: LoweredUnaryOp, v: ConstValue) -> ConstValue | null = match op {
+    .Neg -> if v is ConstInt as iv {
+        ConstInt { .value = i64(0) - iv.value }
+    } else if v is ConstFloat as fv {
+        ConstFloat { .value = f64(0) - fv.value }
+    } else { null }
+    .Not    -> if v is ConstBool as bv { ConstBool { .value = !bv.value } } else { null }
+    .BitNot -> if v is ConstInt as iv { ConstInt { .value = ~iv.value } } else { null }
 }
 
 // Truncate / sign-extend an integer ConstValue to its declared type's
