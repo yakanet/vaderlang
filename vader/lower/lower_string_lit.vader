@@ -1,0 +1,201 @@
+// vader/lower/lower_string_lit — string + interpolation lowering, with Display coercion.
+//
+
+module "vader/lower"
+
+import "vader/parser" { StringLitExpr, StringLitText, StringLitInterp }
+import "vader/diagnostics" { Span }
+import "vader/types" { Type, PrimitiveType, FreeIntType, FreeFloatType, TY_VOID, TY_UNRESOLVED, mk_primitive }
+
+// Plain text-only string lit becomes a single `LoweredStringLit`. Any
+// `${expr}` segment routes through a builder-chain : `builder.new` +
+// per-part `builder.append_str` / `builder.append_display` +
+// `builder.finish`. Primitive-typed segments take the
+// `builder.append_display` fast path ; non-primitive segments emit an
+// `append_display` call too (the bytecode emitter resolves the right
+// `<T>.Display.to_string` impl via the impl table once it lands —
+// today this means the lowered IR carries the call shape but the impl
+// lookup is deferred).
+lower_string_lit :: fn(ctx: FnLowerCtx, expr: StringLitExpr, type: Type) -> LoweredExpr {
+    if !has_interp_part(expr) {
+        body := ""
+        for part in expr.parts {
+            match part {
+                is StringLitText as text -> { body = body + text.value }
+                _ -> {}
+            }
+        }
+        return LoweredStringLit { .span = expr.span, .type = mk_primitive("string"), .value = body }
+    }
+    builder_symbol :: fresh_synthetic_symbol(ctx, "sb")
+    string_type :: mk_primitive("string")
+    stmts: LoweredStmt[] = []
+    stmts.push(LoweredLet {
+        .span = expr.span, .name = builder_symbol.name, .symbol = builder_symbol,
+        .type = TY_UNRESOLVED,
+        .value = LoweredIntrinsicCall {
+            .span = expr.span, .type = TY_UNRESOLVED,
+            .name = INTRINSIC_BUILDER_NEW, .args = [], .display_for = null,
+        },
+    })
+    for part in expr.parts {
+        match part {
+            is StringLitText as text -> {
+                builder_ref :: LoweredIdent {
+                    .span = text.span, .type = TY_UNRESOLVED, .symbol = builder_symbol,
+                }
+                literal :: LoweredStringLit {
+                    .span = text.span, .type = string_type, .value = text.value,
+                }
+                args: LoweredExpr[] = []
+                args.push(builder_ref)
+                args.push(literal)
+                stmts.push(LoweredExprStmt {
+                    .span = text.span,
+                    .expr = LoweredIntrinsicCall {
+                        .span = text.span, .type = TY_VOID,
+                        .name = INTRINSIC_BUILDER_APPEND_STR, .args = args, .display_for = null,
+                    },
+                })
+            }
+            is StringLitInterp as interp -> {
+                inner :: lower_expr(ctx, interp.expr)
+                inner_type :: type_of(inner)
+                builder_ref :: LoweredIdent {
+                    .span = interp.span, .type = TY_UNRESOLVED, .symbol = builder_symbol,
+                }
+                if is_primitive_for_display(inner_type) {
+                    args: LoweredExpr[] = []
+                    args.push(builder_ref)
+                    args.push(inner)
+                    stmts.push(LoweredExprStmt {
+                        .span = interp.span,
+                        .expr = LoweredIntrinsicCall {
+                            .span = interp.span, .type = TY_VOID,
+                            .name = INTRINSIC_BUILDER_APPEND_DISPLAY,
+                            .args = args, .display_for = inner_type,
+                        },
+                    })
+                } else {
+                    // Non-primitive segment : route through `<T>.Display
+                    // .to_string(value)` then feed the string into
+                    // `builder.append_str`. Mirrors TS's `wrapAsDisplay`
+                    // path. The `to_string` symbol is synthesised here ;
+                    // the bytecode emit resolves it via the impl-member
+                    // mangling once that wiring lands.
+                    str_call :: build_display_to_string_call(ctx, inner, interp.span)
+                    args: LoweredExpr[] = []
+                    args.push(builder_ref)
+                    args.push(str_call)
+                    stmts.push(LoweredExprStmt {
+                        .span = interp.span,
+                        .expr = LoweredIntrinsicCall {
+                            .span = interp.span, .type = TY_VOID,
+                            .name = INTRINSIC_BUILDER_APPEND_STR,
+                            .args = args, .display_for = null,
+                        },
+                    })
+                }
+            }
+        }
+    }
+    finish_args: LoweredExpr[] = []
+    finish_args.push(LoweredIdent { .span = expr.span, .type = TY_UNRESOLVED, .symbol = builder_symbol })
+    return LoweredBlock {
+        .span = expr.span, .type = string_type,
+        .stmts = stmts,
+        .trailing = LoweredIntrinsicCall {
+            .span = expr.span, .type = string_type,
+            .name = INTRINSIC_BUILDER_FINISH, .args = finish_args, .display_for = null,
+        },
+    }
+}
+
+// Primitive integer/float/bool/char/string types take the fast
+// `builder.append_display` path ; the bytecode emit has dedicated ops
+// per width. FreeInt / FreeFloat (un-defaulted lit types) also count —
+// they default to `i32` / `f64` at codegen time. Wide unsigned widths
+// (u32, u64, usize) are an exception : the VM collapses every integer
+// onto `I32Val` / `I64Val` which are signed carriers, so a bit pattern
+// outside the signed-i64 range would print negative. Routing them
+// through `<u32>.Display.to_string` gives the VM a mangled-name hook
+// to pick the unsigned stringifier ; the C target inlines via the
+// @intrinsic impl so this is free at native codegen.
+is_primitive_for_display :: fn(t: Type) -> bool {
+    match t {
+        is PrimitiveType as p -> {
+            if p.name == "u32"   { return false }
+            if p.name == "u64"   { return false }
+            if p.name == "usize" { return false }
+            return true
+        }
+        is FreeIntType -> { return true }
+        is FreeFloatType -> { return true }
+        _ -> { return false }
+    }
+}
+
+// Build a `<T>.Display.to_string(value)` call shape. Prefers a direct
+// `LoweredCall` to the per-receiver impl member when the impl is
+// statically resolvable (concrete struct / enum types) — mirrors TS
+// `wrapAsDisplay` in `src/lower/passes/display-coerce.ts`. Falls back
+// to `LoweredVirtualCall` for primitives / generic-T receivers where
+// the impl exists per-instantiation but isn't reachable at lower-time.
+build_display_to_string_call :: fn(ctx: FnLowerCtx, value: LoweredExpr, span: Span) -> LoweredExpr {
+    string_type :: mk_primitive("string")
+    no_args: LoweredExpr[] = []
+    direct :: try_direct_display_call(ctx, value, span)
+    match direct {
+        is null -> {}
+        _ -> { return direct }
+    }
+    // Erased Display dispatch (generic-`T` receiver) : record the trait so
+    // every primitive `Display` impl enters the vtable (the boxed tag picks
+    // the impl at runtime). See `virtually_dispatched_traits`.
+    ctx.project.virtually_dispatched_traits.add("Display")
+    return LoweredVirtualCall {
+        .span       = span,
+        .type       = string_type,
+        .trait_name = "Display",
+        .method     = "to_string",
+        .receiver   = value,
+        .args       = no_args,
+    }
+}
+
+// Look up `<sourceType>.Display.to_string` statically. Returns a
+// `LoweredCall` whose callee is the impl-member's mangled fn symbol
+// when reachable ; null otherwise. The mangling matches what
+// `lower_impl_members` registers in `lower.vader`.
+try_direct_display_call :: fn(ctx: FnLowerCtx, value: LoweredExpr, span: Span) -> LoweredExpr | null {
+    string_type :: mk_primitive("string")
+    source_type :: type_of(value)
+    // Resolve `<T>.Display.to_string` through the canonical UFCS path. This
+    // mangles via the IMPL's owning module (`std_core$usize$Display$to_string`,
+    // not the caller's) AND records the mangle in `referenced_impl_mangles`, so
+    // the post-lowering pass surfaces the bodyless intrinsic member as an import
+    // and the call resolves to its `$vt` wrapper. A previous hand-rolled scan
+    // here emitted a bare `to_string` callee with no recorded reference, so the
+    // call fell through to the emit's defensive `Return` (e.g. every `${usize}`
+    // interpolation silently mis-compiled). `null` (no concrete Display impl:
+    // generic-T / trait receiver) falls back to a `LoweredVirtualCall`.
+    member :: find_impl_member_for(ctx, source_type, "to_string")
+    if member is null { return null }
+    call_args: LoweredExpr[] = []
+    call_args.push(value)
+    return LoweredCall {
+        .span = span, .type = string_type,
+        .callee = LoweredIdent { .span = span, .type = string_type, .symbol = member.symbol },
+        .args = call_args,
+    }
+}
+
+has_interp_part :: fn(expr: StringLitExpr) -> bool {
+    for part in expr.parts {
+        match part {
+            is StringLitInterp -> { return true }
+            _ -> {}
+        }
+    }
+    return false
+}

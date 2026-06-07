@@ -1,0 +1,203 @@
+// vader/lower/lower_stdlib — surface referenced stdlib / intrinsic externs.
+//
+
+module "vader/lower"
+
+import "std/collections" { keys }
+import "std/string" { starts_with }
+
+import "vader/parser" { Decl, ImplDecl, ArrayTypeExpr, GenericInstExpr }
+import "vader/resolver" { LoadedProject }
+import "vader/typecheck" { TypedProject, TypedProgram, new_substitution }
+import "vader/types" { Type, StructType, mk_array, PrimitiveType }
+
+is_stdlib_path :: fn(path: string) = "stdlib/std/" in path
+
+
+/// Post-lowering pass : surface the referenced stdlib intrinsic impl
+/// members as bodyless externs, appended to their owning stdlib module's
+/// lowered decls (so the bytecode emit reserves them as imports). Gated by
+/// `referenced_impl_mangles` so only members an actual call hit are
+/// surfaced — see `surface_stdlib_impl_externs`.
+surface_referenced_intrinsic_externs :: fn(
+    loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx, project: LoweredProject,
+) -> void {
+    for module_id in typed.modules.keys() {
+        if !is_stdlib_path(module_id) { continue }
+        module_loaded :: loaded.modules[module_id]
+        if module_loaded is null { continue }
+        module_typed :: typed.modules[module_id]
+        if module_typed is null { continue }
+        decls_list :: module_decls(module_loaded)
+        // Bracket the synth_decls the with-body members surfaced below spawn :
+        // `surface_stdlib_impl_externs` / `surface_array_blanket_members` call
+        // `lower_fn_body`, which lifts any lambda/defer in the body into
+        // `synth_decls` — the same post-module orphan class as the materialise
+        // sites. Drained into this module after the batch merge.
+        synth_start :: project_ctx.synth_decls.len()
+        extra: LoweredDecl[] = []
+        for d in decls_list {
+            if d is ImplDecl as impl_ {
+                for ext in surface_stdlib_impl_externs(impl_, module_typed, project_ctx, decls_list) {
+                    extra.push(ext)
+                }
+                for ext in surface_array_blanket_members(impl_, module_typed, project_ctx) {
+                    extra.push(ext)
+                }
+            }
+        }
+        if extra.len() == 0 { continue }
+        existing :: project.modules[module_id]
+        if existing is null { continue }
+        merged :: existing.decls
+        for e in extra { merged.push(e) }
+        project.modules[module_id] = LoweredModule {
+            .module_id    = existing.module_id,
+            .display_path = existing.display_path,
+            .decls        = merged,
+        }
+        drain_synth_since(project, module_id, project_ctx, synth_start)
+    }
+}
+
+/// Surface a stdlib impl's BODYLESS members (referenced by a concrete call)
+/// as bodyless `LoweredFnDecl`s (extern signatures). They flow through
+/// `make_extern_decl` → CFG import so a concrete `recv.method()` call on an
+/// intrinsic impl (e.g. `string implements Display { to_string }`) resolves
+/// to a `CallImport` the Vader VM dispatches via `host.vader`. Mangle
+/// matches `find_impl_member_for`'s call-site mangle (both via the impl's
+/// owning module). With-body members are skipped — surfacing them as
+/// externs would lose their behaviour, and lowering their bodies up front
+/// is the thing the stdlib-skip is meant to avoid.
+surface_stdlib_impl_externs :: fn(
+    impl_decl: ImplDecl, typed: TypedProgram, project_ctx: LowerProjectCtx, module_decls: Decl[],
+) -> LoweredDecl[] {
+    out: LoweredDecl[] = []
+    if impl_decl.type_params.len() > 0 { return out }
+    if impl_decl.for_type is GenericInstExpr { return out }
+    self_type :: lower_for_type(impl_decl, typed)
+    // An impl whose trait was reached by a VIRTUAL dispatch must place EVERY
+    // implementor in the vtable — the boxed receiver tag picks the impl at
+    // runtime, so no single concrete mangle was recorded. This is the only path
+    // that surfaces a member NOT individually referenced.
+    //
+    // Primitive receivers : the ERASED-dispatch case (op-overload / bounded-method
+    // / Display coerce on `T`/`Any`).
+    //
+    // Non-generic STRUCT receivers : a non-generic stdlib struct implementing a
+    // virtually-dispatched trait (`StringChars implements Iterator<char>`, the
+    // sole such impl) reached via a trait-typed `self.source.next()` vcall — the
+    // generic-impl materialiser never covers it (no type params) and no direct
+    // call records its mangle. Gated on `constructed_struct_symbols` : surface
+    // only when the struct is actually built (`StringChars` via `chars()`), so
+    // an UNCONSTRUCTED stdlib implementor (`std_io$IOError`) is NOT pulled into a
+    // snippet that merely dispatches the same trait. Generic struct implementors
+    // go through `materialize_impl_for_instance` instead, excluded here.
+    //
+    // Both fire only for a virtually-dispatched trait, so a snippet that never
+    // virtually dispatches the trait surfaces nothing (no drift).
+    vtable_gate :: project_ctx.virtually_dispatched_traits.contains(impl_decl.trait_name) &&
+        vtable_receiver_eligible(self_type, project_ctx)
+    for member in impl_decl.members {
+        if member.type_params.len() > 0 { continue }
+        mangled :: impl_member_mangled(impl_decl, member, typed, module_decls)
+        // Only emit members an actual call referenced (direct call → exact
+        // mangle) OR an eligible implementor of a virtually-dispatched trait
+        // (`vtable_gate`, above) — emitting every stdlib impl member
+        // unconditionally would intern unused signature types and shift the
+        // type table for unrelated snippets.
+        if !project_ctx.referenced_impl_mangles.contains(mangled) && !vtable_gate { continue }
+        // Dedupe against the generic-impl materialiser (and re-entrant calls).
+        dedupe_key :: "surfaced::${mangled}"
+        if project_ctx.materialized_impl_keys.contains(dedupe_key) { continue }
+        project_ctx.materialized_impl_keys.add(dedupe_key)
+        types :: make_entry_types(typed, new_substitution())
+        params :: build_impl_member_params(member, self_type, types, typed, project_ctx)
+        return_type :: return_type_of(member, types)
+        entry :: synth_impl_entry(member, typed, mangled)
+        // Bodyless (`@intrinsic`) → extern import (Vader VM dispatches via
+        // host.vader). With-body (e.g. `i32 implements Hash -> u64(self)`) →
+        // materialise the real fn so a devirtualised concrete call resolves
+        // directly instead of dropping / surfacing as an unbound host import.
+        body_lowered :: if member.body is null {
+            null
+        } else {
+            lower_fn_body(member, typed, project_ctx, entry, new_substitution(), return_type)
+        }
+        out.push(LoweredFnDecl {
+            .mangled     = mangled,
+            .params      = params,
+            .return_type = return_type,
+            .body        = body_lowered,
+            .origin      = entry,
+        })
+    }
+    return out
+}
+
+// Receiver eligible for vtable surfacing of a virtually-dispatched trait.
+// PRIMITIVE : always (the erased-dispatch case — the boxed primitive tag picks
+// the impl at runtime). STRUCT : only when the struct is actually constructed
+// (`constructed_struct_symbols`), so an unconstructed stdlib implementor isn't
+// pulled into an unrelated snippet. Other receiver shapes don't reach here.
+vtable_receiver_eligible :: fn(self_type: Type, project_ctx: LowerProjectCtx) -> bool {
+    if self_type is PrimitiveType { return true }
+    if self_type is StructType as st { return project_ctx.constructed_struct_symbols.contains(st.symbol.id) }
+    return false
+}
+
+/// Materialise a blanket array-impl member (`T[] implements<T: Equals>
+/// Contains<T>`, `T[] implements<T> Into<Iterator<T>>`) once per element type a
+/// call referenced. The generic-impl materialiser (`materialize_impl_for_instance`)
+/// is struct-instance-driven and never reaches an array receiver, so
+/// `find_impl_member_for` records the element type keyed by the call-site mangle
+/// (`project_ctx.array_blanket_elems`) ; here we lower the member body with a
+/// CONCRETE substitution `T → element` (so e.g. `contains`'s `==` devirtualises
+/// to the element's primitive comparison, and `into`'s `ArrayIterator<T>` return
+/// boxes into the concrete `Iterator<element>` the value slot dispatches on).
+///
+/// The element table mixes every referenced array-blanket member, so each call
+/// only claims the mangles under its own `<module>$[]$<trait>$<member>` prefix.
+///
+/// @param impl_decl    the candidate impl ; ignored unless it is an array blanket.
+/// @param typed        the impl's owning module (std/core) — source of the subst
+///                     symbols and entry types.
+/// @param project_ctx  carries `array_blanket_elems` (mangle → element) and the
+///                     `materialized_impl_keys` dedupe set.
+/// @return             one materialised `LoweredFnDecl` per fresh element mangle.
+surface_array_blanket_members :: fn(
+    impl_decl: ImplDecl, typed: TypedProgram, project_ctx: LowerProjectCtx,
+) -> LoweredDecl[] {
+    out: LoweredDecl[] = []
+    if impl_decl.type_params.len() == 0 { return out }
+    if !(impl_decl.for_type is ArrayTypeExpr) { return out }
+    for member in impl_decl.members {
+        // The mangle prefix that partitions this member's element instances from
+        // the other array-blanket members sharing `array_blanket_elems`.
+        prefix :: "${mangle_module_id(typed.resolved.display_path)}$[]$${impl_decl.trait_name}$${member.name}__"
+        for mangled in project_ctx.array_blanket_elems.keys() {
+            if !mangled.starts_with(prefix) { continue }
+            element :: project_ctx.array_blanket_elems[mangled]
+            if element is null { continue }
+            // Dedupe against re-entrant drain-loop passes.
+            dedupe_key :: "arr_blanket::${mangled}"
+            if project_ctx.materialized_impl_keys.contains(dedupe_key) { continue }
+            project_ctx.materialized_impl_keys.add(dedupe_key)
+            subst :: build_impl_subst(impl_decl, [element], typed, typed)
+            self_type :: mk_array(element, false)
+            types :: make_entry_types(typed, subst)
+            params :: build_impl_member_params(member, self_type, types, typed, project_ctx)
+            return_type :: return_type_of(member, types)
+            entry :: synth_impl_entry(member, typed, mangled)
+            body :: lower_fn_body(member, typed, project_ctx, entry, subst, return_type)
+            out.push(LoweredFnDecl {
+                .mangled     = mangled,
+                .params      = params,
+                .return_type = return_type,
+                .body        = body,
+                .origin      = entry,
+            })
+        }
+    }
+    return out
+}

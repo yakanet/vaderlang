@@ -1,0 +1,522 @@
+// vader/lower/lower_stmt — block + statement lowering: let, return, defer, loops.
+//
+
+module "vader/lower"
+
+import "std/collections" { MutableMap, values }
+
+import "vader/parser" { Expr, BlockExpr, Stmt, LetStmt, AssignStmt, ExprStmt, ReturnStmt, ForStmt, BreakStmt, ContinueStmt, DeferStmt, InfiniteFor, WhileFor, InFor, SimpleBinding, TupleBinding, WildcardBinding, RestBinding, Visibility }
+import "vader/diagnostics" { Span }
+import "vader/typecheck" { equals_type }
+import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "vader/types" { Type, UnionType, ArrayType, TypeMetaType, TY_VOID }
+import "vader/comptime" { uniq }
+import "vader/resolver" { ResolvedModule }
+
+/// Lower a `BlockExpr` to a `LoweredBlock`. Block frames are pushed
+/// onto `ctx.blocks` so defer-aware lowering (Phase 5) can replay
+/// in reverse at every exit edge ; Phase 3 just bookkeeps the stack.
+/// @param ctx           the fn-body context.
+/// @param block         the source block.
+/// @param is_fn_root    true when this is the enclosing fn's body.
+/// @param is_loop_body  true when this is the body of a loop.
+/// @return              the lowered block.
+export lower_block :: fn(
+    ctx: FnLowerCtx, block: BlockExpr, is_fn_root: bool, is_loop_body: bool,
+) -> LoweredBlock {
+    entry_depth :: ctx.blocks.len()
+    ctx.blocks.push(new_block_ctx(is_fn_root, is_loop_body))
+    stmts: LoweredStmt[] = []
+    for stmt in block.stmts {
+        lower_stmt_into(ctx, stmt, stmts)
+    }
+    raw_trailing :: lower_trailing(ctx, block.trailing)
+    defer_count :: ctx.blocks[entry_depth].defers.len()
+    // Skip the block-fall-through pop_exec when control flow has
+    // already exited (return / break / continue). The `drain_*`
+    // helpers at those sites already emitted the proper drain count,
+    // so a trailing pop_exec here would be dead code.
+    last_diverges :: stmts.len() > 0 && stmt_diverges(stmts[stmts.len() - 1])
+    // Sequence the block-fall-through defer drain so it runs AFTER
+    // the trailing expression has computed its value. The trailing's
+    // side-effects must land before any defer fires (their thunks
+    // may observe / mutate state visible to the parent block), and
+    // the drain must run before the value escapes the block. The
+    // only way to achieve both is to bind the trailing to a
+    // `__block_N` synthetic local, push `pop_exec`, then return an
+    // ident-ref as the new trailing. Mirror of
+    // `src/lower/passes/block.ts::emitTrailingValueWithDefers`.
+    trailing := raw_trailing
+    if defer_count > 0 && !last_diverges {
+        if trailing == null {
+            stmts.push(LoweredDeferPopExec {
+                .span = block.span, .count = i32(defer_count),
+            })
+        } else {
+            value_type :: type_of(trailing)
+            tmp_sym :: fresh_synthetic_symbol(ctx, "block")
+            stmts.push(LoweredLet {
+                .span = trailing.span, .name = tmp_sym.name,
+                .symbol = tmp_sym, .type = value_type, .value = trailing,
+            })
+            stmts.push(LoweredDeferPopExec {
+                .span = trailing.span, .count = i32(defer_count),
+            })
+            trailing = LoweredIdent {
+                .span = trailing.span, .type = value_type, .symbol = tmp_sym,
+            }
+        }
+    }
+    block_type :: trailing_type(trailing)
+    // Pop the BlockCtx — mirror TS by maintaining the stack depth
+    // invariant so nested blocks see only their own defers.
+    new_blocks: BlockCtx[] = []
+    i := usize(0)
+    for i < entry_depth {
+        new_blocks.push(ctx.blocks[i])
+        i = i + 1
+    }
+    ctx.blocks = new_blocks
+    return LoweredBlock {
+        .span = block.span, .type = block_type, .stmts = stmts, .trailing = trailing,
+    }
+}
+
+lower_trailing :: fn(ctx: FnLowerCtx, trailing: Expr | null) -> LoweredExpr | null {
+    match trailing {
+        is null -> { return null }
+        _ -> { return lower_expr(ctx, trailing) }
+    }
+}
+
+trailing_type :: fn(trailing: LoweredExpr | null) -> Type {
+    match trailing {
+        is null -> { return TY_VOID }
+        _ -> { return type_of(trailing) }
+    }
+}
+
+// Lower a single stmt and push its lowered form(s) onto `out`. Most
+// stmts produce exactly one ; tuple-destructure `let` produces one
+// __tup binding + N leaf lets ; defer currently produces zero.
+lower_stmt_into :: fn(ctx: FnLowerCtx, stmt: Stmt, out: LoweredStmt[]) -> void {
+    match stmt {
+        is LetStmt      as let_stmt      -> { lower_let_into(ctx, let_stmt, out) }
+        is AssignStmt   as assign_stmt   -> { out.push(lower_assign(ctx, assign_stmt)) }
+        is ExprStmt     as expr_stmt     -> {
+            out.push(LoweredExprStmt { .span = expr_stmt.span, .expr = lower_expr(ctx, expr_stmt.expr) })
+        }
+        is ReturnStmt   as return_stmt   -> {
+            // Drain every pending defer in the enclosing scopes BEFORE
+            // the actual return op. Mirrors TS `lower-stmt` block-exit
+            // defer replay. Count = sum of `defers` across every open
+            // BlockCtx (the innermost block back up to the fn root).
+            // When the drain emits anything, bundle drain + exit into
+            // a single statement via `wrap_stmts` so the dump matches
+            // TS's `(block (pop_exec N) (return …))` shape rather
+            // than two flat sibling stmts.
+            drain: LoweredStmt[] = []
+            drain_all_defers(ctx, return_stmt.span, drain)
+            exit :: lower_return(ctx, return_stmt)
+            if drain.len() > 0 {
+                drain.push(exit)
+                out.push(wrap_stmts(return_stmt.span, drain))
+            } else {
+                out.push(exit)
+            }
+        }
+        is ForStmt      as for_stmt      -> { out.push(lower_for(ctx, for_stmt)) }
+        is BreakStmt    as break_stmt    -> {
+            drain: LoweredStmt[] = []
+            drain_defers_to_loop(ctx, break_stmt.span, drain)
+            exit :: LoweredBreak { .span = break_stmt.span, .label = break_stmt.label }
+            if drain.len() > 0 {
+                drain.push(exit)
+                out.push(wrap_stmts(break_stmt.span, drain))
+            } else {
+                out.push(exit)
+            }
+        }
+        is ContinueStmt as continue_stmt -> {
+            drain: LoweredStmt[] = []
+            drain_defers_to_loop(ctx, continue_stmt.span, drain)
+            exit :: LoweredContinue { .span = continue_stmt.span, .label = continue_stmt.label }
+            if drain.len() > 0 {
+                drain.push(exit)
+                out.push(wrap_stmts(continue_stmt.span, drain))
+            } else {
+                out.push(exit)
+            }
+        }
+        is DeferStmt    as defer_stmt    -> {
+            // Lift to a synthetic `__defer_N` fn + emit
+            // `LoweredDeferPush { LoweredMakeClosure }` at the source
+            // site. Block-exit `defer.pop_exec N` emission is handled
+            // by `lower_block` (counts defers via the BlockCtx).
+            push :: lower_defer(ctx, defer_stmt, lower_block)
+            out.push(push)
+            // Track the defer count on the innermost open block ctx
+            // so the matching fall-through / break / continue / return
+            // can drain it with `defer.pop_exec N`.
+            n_blocks :: ctx.blocks.len()
+            if n_blocks > 0 {
+                ctx.blocks[n_blocks - 1].defers.push(defer_stmt)
+            }
+        }
+    }
+}
+
+lower_let_into :: fn(ctx: FnLowerCtx, let_stmt: LetStmt, out: LoweredStmt[]) -> void {
+    match let_stmt.binding {
+        is SimpleBinding as simple -> {
+            symbol_or_null :: lookup_local_symbol(ctx.project, ctx.typed.resolved, simple.name_span)
+            // Synthesise a Local symbol when the resolver dropped this
+            // binding (cascading-error case, e.g. T3001 on an invalid
+            // annotation, OR an unused let with zero body use-sites).
+            // Mint without bumping `ctx.uniq` so the synth doesn't
+            // drift later `fresh_synthetic_symbol("sb")` / `("try")` /
+            // … naming away from the TS reference.
+            symbol :: match symbol_or_null {
+                is Symbol as s -> s
+                is null -> synth_unused_local(ctx, simple.name)
+            }
+            binding_type :: ctx.types.local_type(simple)
+            // `let t: type = …` is an in-fn type alias — no runtime
+            // slot, the typer pre-resolved the type. Skip emit so the
+            // dump matches the TS lowerer's `letTypeAliases`
+            // short-circuit (`src/lower/passes/block.ts:101-103`).
+            if binding_type is TypeMetaType { return }
+            raw_value :: lower_expr(ctx, let_stmt.value)
+            widened :: widen_literal_to_context(raw_value, binding_type)
+            // Auto-Into coercion when the binding's declared type
+            // differs from the value's type AND an `Into[binding_type]`
+            // impl exists for the source. Mirror of the typer's
+            // `tryInto` hook at let-stmt's value-position.
+            coerced :: try_emit_into_coercion(ctx, widened, type_of(widened), binding_type, let_stmt.span)
+            value :: if coerced == null { widened } else { coerced }
+            init :: lower_cell_init(ctx, symbol, value, binding_type, let_stmt.span)
+            out.push(LoweredLet {
+                .span = let_stmt.span, .name = simple.name,
+                .symbol = symbol, .type = init.slot_type,
+                .value = init.value,
+            })
+        }
+        is TupleBinding as tup -> {
+            // Desugar `let [a, b] := value` into :
+            //   let __tup_n = value
+            //   let a = __tup_n._0   (or __tup_n[0] for arrays)
+            //   let b = __tup_n._1   (or __tup_n[1] for arrays)
+            value :: lower_expr(ctx, let_stmt.value)
+            value_type :: type_of(value)
+            tup_symbol :: fresh_synthetic_symbol(ctx, "tup")
+            out.push(LoweredLet {
+                .span = let_stmt.span, .name = tup_symbol.name,
+                .symbol = tup_symbol, .type = value_type, .value = value,
+            })
+            tup_ref :: LoweredIdent { .span = let_stmt.span, .type = value_type, .symbol = tup_symbol }
+            emit_let_binding_leaves(ctx, tup, tup_ref, value_type, let_stmt.span, out)
+        }
+        is WildcardBinding -> {
+            out.push(LoweredExprStmt {
+                .span = let_stmt.span, .expr = lower_expr(ctx, let_stmt.value),
+            })
+        }
+        is RestBinding -> {
+            out.push(LoweredExprStmt {
+                .span = let_stmt.span,
+                .expr = LoweredUnreachable {
+                    .span = let_stmt.span, .type = TY_VOID,
+                    .reason = "rest-binding only valid inside tuple destructure",
+                },
+            })
+        }
+    }
+}
+
+/// Recover the resolver-minted `Symbol` whose `defined_at` matches the
+/// given binding-site span. Local + param symbols don't live in
+/// `resolved.symbols` (that's the top-level table) ; they surface via
+/// `resolved.idents`, the use-site map. Scan its values once and pick
+/// the first symbol whose `defined_at` matches the target span. Returns
+/// `null` when the binding has no use sites (rare in well-formed code).
+/// @param resolved  the module's resolved view (`typed.resolved`).
+/// @param name_span the binding-site name span.
+/// @return          the resolver-minted symbol, or `null` if absent.
+synth_unused_local :: fn(ctx: FnLowerCtx, name: string) -> Symbol {
+    next_id :: ctx.project.next_synthetic_id
+    ctx.project.next_synthetic_id = next_id - i32(1)
+    return Symbol {
+        .id         = next_id,
+        .kind       = SymbolKind.Local,
+        .name       = name,
+        .module     = ctx.typed.resolved.path,
+        .visibility = Visibility.Private,
+        .defined_at = null,
+    }
+}
+
+export lookup_local_symbol :: fn(
+    project_ctx: LowerProjectCtx, resolved: ResolvedModule, name_span: Span,
+) -> Symbol | null {
+    index :: ensure_local_symbol_index(project_ctx, resolved)
+    return index[name_span.hash()]
+}
+
+// Build (or fetch) the per-module `defined_span_key -> Symbol` index.
+// The first call for a given module pays the O(symbols + idents) build
+// cost ; every subsequent lookup is constant-time. The resolver's
+// `idents` map is the use-site → Symbol view ; combined with the
+// flat `symbols` array (for zero-use bindings) it covers exactly
+// the two passes of the previous naive walk.
+ensure_local_symbol_index :: fn(
+    project_ctx: LowerProjectCtx, resolved: ResolvedModule,
+) -> MutableMap<u64, Symbol> {
+    cached :: project_ctx.local_symbol_indices[resolved.path]
+    if !(cached is null) { return cached }
+    index :: MutableMap<u64, Symbol> {}
+    // `idents` first — every referenced binding's defined_at lands here.
+    for symbol in resolved.idents.values() {
+        match symbol.defined_at {
+            is null -> {}
+            is Span as defined -> { index[defined.hash()] = symbol }
+        }
+    }
+    // Flat symbol list catches definitions with zero use-sites (shadowed
+    // bindings, unused params). Resolver writes `defined_at` for every
+    // minted Symbol.
+    for symbol in resolved.symbols {
+        match symbol.defined_at {
+            is null -> {}
+            is Span as defined -> {
+                key :: defined.hash()
+                existing :: index[key]
+                if existing is null { index[key] = symbol }
+            }
+        }
+    }
+    project_ctx.local_symbol_indices[resolved.path] = index
+    return index
+}
+
+
+lower_return :: fn(ctx: FnLowerCtx, return_stmt: ReturnStmt) -> LoweredStmt {
+    match return_stmt.value {
+        is null -> { return LoweredReturn { .span = return_stmt.span, .value = null } }
+        _ -> {
+            lowered :: lower_expr(ctx, return_stmt.value)
+            // Widen a literal-shaped return value to the fn's declared
+            // return type when the return type is a union and the literal
+            // currently carries its narrow inferred type. The typer in
+            // Vader doesn't propagate context types into literals ; this
+            // late widening matches the TS dump which always records the
+            // wider expected type at the use site.
+            retyped :: widen_literal_to_context(lowered, ctx.return_type)
+            // Auto-Into coercion when the return type doesn't match the
+            // value's type AND an `Into[return_type]` impl exists.
+            coerced :: try_emit_into_coercion(ctx, retyped, type_of(retyped), ctx.return_type, return_stmt.span)
+            final :: if coerced == null { retyped } else { coerced }
+            return LoweredReturn { .span = return_stmt.span, .value = final }
+        }
+    }
+}
+
+// True when `s` will exit its enclosing block (control flow never
+// reaches a subsequent stmt). Used to suppress block-fall-through
+// emissions after a divergent stmt (return / break / continue).
+stmt_diverges :: fn(s: LoweredStmt) -> bool {
+    if s is LoweredReturn   { return true }
+    if s is LoweredBreak    { return true }
+    if s is LoweredContinue { return true }
+    // `wrap_stmts(span, [pop_exec, return])` produces a
+    // `LoweredExprStmt { expr = LoweredBlock { stmts, trailing = null } }`
+    // whose inner block's last stmt is the actual return / break /
+    // continue. Peek through one level so the enclosing block's
+    // fall-through drain doesn't emit a duplicate pop_exec after a
+    // wrapped exit.
+    if s is LoweredExprStmt as es {
+        if es.expr is LoweredBlock as lb {
+            n :: lb.stmts.len()
+            if n > 0 { return stmt_diverges(lb.stmts[n - 1]) }
+        }
+    }
+    return false
+}
+
+// Sum the `defers` count across every open BlockCtx and emit a
+// single `defer.pop_exec N` ; matches TS's "drain everything to fn
+// root before return" semantics.
+drain_all_defers :: fn(ctx: FnLowerCtx, span: Span, out: LoweredStmt[]) -> void {
+    total: i32 = 0
+    for b in ctx.blocks { total += i32(b.defers.len()) }
+    if total > 0 {
+        out.push(LoweredDeferPopExec { .span = span, .count = total })
+    }
+}
+
+// Sum defers from the innermost block up to (but not including) the
+// nearest enclosing loop body — break/continue exit only the loop
+// scope, not the fn.
+drain_defers_to_loop :: fn(ctx: FnLowerCtx, span: Span, out: LoweredStmt[]) -> void {
+    total: i32 = 0
+    i := i64(ctx.blocks.len()) - i64(1)
+    for i >= 0 {
+        b :: ctx.blocks[usize(i)]
+        total += i32(b.defers.len())
+        if b.is_loop_body { break }
+        i -= 1
+    }
+    if total > 0 {
+        out.push(LoweredDeferPopExec { .span = span, .count = total })
+    }
+}
+
+widen_literal_to_context :: fn(expr: LoweredExpr, context_type: Type) -> LoweredExpr {
+    if !(context_type is UnionType) { return expr }
+    // Only widen when the literal's narrow type appears as one of the
+    // union's variants. For enum-context returns / args, the literal's
+    // i32 / repr type is NOT a variant — leave it alone.
+    inner :: type_of(expr)
+    if !union_contains_variant(context_type, inner) { return expr }
+    match expr {
+        is LoweredIntLit    as lit -> { return LoweredIntLit    { .span = lit.span, .type = context_type, .value = lit.value } }
+        is LoweredFloatLit  as lit -> { return LoweredFloatLit  { .span = lit.span, .type = context_type, .value = lit.value } }
+        is LoweredStringLit as lit -> { return LoweredStringLit { .span = lit.span, .type = context_type, .value = lit.value } }
+        is LoweredCharLit   as lit -> { return LoweredCharLit   { .span = lit.span, .type = context_type, .value = lit.value } }
+        is LoweredBoolLit   as lit -> { return LoweredBoolLit   { .span = lit.span, .type = context_type, .value = lit.value } }
+        _ -> { return expr }
+    }
+}
+
+union_contains_variant :: fn(union: Type, variant: Type) -> bool {
+    match union {
+        is UnionType as u -> {
+            for v in u.variants {
+                if equals_type(v, variant) { return true }
+            }
+            return false
+        }
+        _ -> { return false }
+    }
+}
+
+// Phase 3 covers infinite-for and while-for. for-in collapses to an
+// Iterator step-loop via Phase 5's dedicated module ; emit a stub here.
+lower_for :: fn(ctx: FnLowerCtx, for_stmt: ForStmt) -> LoweredStmt {
+    // `@comptime for x in <arr> { body }` — unroll at lower time when
+    // the iter folds to a `LoweredArrayLit`. Threads the per-iter
+    // substitution through `ctx.comptime_bindings` so `lower_ident`
+    // folds loop-var reads to their literal. Mirror of
+    // `src/lower/passes/for-in.ts::lowerComptimeForIn`.
+    if for_stmt.is_comptime {
+        if for_stmt.form is InFor as in_form {
+            return lower_comptime_for_in(ctx, for_stmt, in_form)
+        }
+    }
+    match for_stmt.form {
+        is InfiniteFor -> {
+            body :: lower_block(ctx, for_stmt.body, false, true)
+            return LoweredLoop {
+                .span = for_stmt.span, .label = for_stmt.label,
+                .cond = null, .body = body,
+            }
+        }
+        is WhileFor as while_for -> {
+            // `for <iter> { body }` sugar : when the cond evaluates to an
+            // iterable shape (array, range, struct with `Iterator` impl),
+            // route through the for-in lowerer with a synthetic discard
+            // binding `_`. Mirrors TS `whileAsForIn` in
+            // `src/lower/passes/block.ts:233-238`.
+            cond_type :: ctx.types.expr_type(while_for.cond)
+            if cond_type is ArrayType {
+                synth_in :: InFor {
+                    .binding      = "_",
+                    .binding_span = while_for.cond.span,
+                    .iter         = while_for.cond,
+                }
+                return lower_for_in(ctx, for_stmt, synth_in, lower_expr, lower_block)
+            }
+            cond :: lower_expr(ctx, while_for.cond)
+            body :: lower_block(ctx, for_stmt.body, false, true)
+            return LoweredLoop {
+                .span = for_stmt.span, .label = for_stmt.label,
+                .cond = cond, .body = body,
+            }
+        }
+        is InFor as in_form -> {
+            return lower_for_in(ctx, for_stmt, in_form, lower_expr, lower_block)
+        }
+    }
+}
+
+/// Unroll a `@comptime for x in <arr> { body }` at lower time.
+/// Mirror of `src/lower/passes/for-in.ts::lowerComptimeForIn`.
+/// Returns a synthetic block whose stmts are the body lowered once
+/// per iter element, with the loop-var symbol bound to the per-iter
+/// literal via `comptime_bindings`.
+lower_comptime_for_in :: fn(ctx: FnLowerCtx, for_stmt: ForStmt, in_form: InFor) -> LoweredStmt {
+    span :: for_stmt.span
+    binding_symbol :: lookup_for_binding(ctx, in_form.binding_span)
+    if binding_symbol is null {
+        return LoweredExprStmt {
+            .span = span,
+            .expr = LoweredUnreachable {
+                .span = span, .type = TY_VOID,
+                .reason = "@comptime for binding not resolved",
+            },
+        }
+    }
+    iter_lowered :: lower_expr(ctx, in_form.iter)
+    arr_lit: LoweredArrayLit | null = null
+    if iter_lowered is LoweredArrayLit as al { arr_lit = al }
+    if arr_lit is null {
+        return LoweredExprStmt {
+            .span = span,
+            .expr = LoweredUnreachable {
+                .span = span, .type = TY_VOID,
+                .reason = "@comptime for requires a compile-time-known array literal",
+            },
+        }
+    }
+    if arr_lit.elements.len() > 256 {
+        return LoweredExprStmt {
+            .span = span,
+            .expr = LoweredUnreachable {
+                .span = span, .type = TY_VOID,
+                .reason = "@comptime for exceeds the unroll cap (256)",
+            },
+        }
+    }
+    // Save the prior binding so nested `@comptime for` over the same
+    // name doesn't silently clobber an outer scope's substitution.
+    prior :: ctx.comptime_bindings[binding_symbol.id]
+    unrolled: LoweredStmt[] = []
+    for elt in arr_lit.elements {
+        ctx.comptime_bindings[binding_symbol.id] = elt
+        body :: lower_block(ctx, for_stmt.body, false, false)
+        for s in body.stmts { unrolled.push(s) }
+        if body.trailing !is null {
+            unrolled.push(LoweredExprStmt {
+                .span = span_of(body.trailing), .expr = body.trailing,
+            })
+        }
+    }
+    if prior is null {
+        // Erase the binding from the map. MutableMap has no `delete`,
+        // so leave the last per-iter binding in place — any later use
+        // of the same binding symbol would be a recursion bug rather
+        // than expected.
+    } else {
+        ctx.comptime_bindings[binding_symbol.id] = prior
+    }
+    return LoweredExprStmt {
+        .span = span,
+        .expr = LoweredBlock {
+            .span = span, .type = TY_VOID,
+            .stmts = unrolled, .trailing = null,
+        },
+    }
+}
+
+// ============================================================================
+// Op translation tables
+// ============================================================================

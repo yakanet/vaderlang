@@ -1,0 +1,370 @@
+// vader/lower/lower_impl_member — impl-member resolution, mangling, Into-coercion and casts.
+//
+
+module "vader/lower"
+
+import "std/collections" { MutableMap }
+
+import "vader/parser" { Expr, IdentExpr, CallExpr, GenericInstExpr, ArrayTypeExpr, Visibility, ImplDecl }
+import "vader/diagnostics" { Span }
+import "vader/typecheck" { ImplEntry }
+import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "vader/types" { Type, FnType, PrimitiveType, FreeIntType, FreeFloatType, UnionType, TraitType, TypeParamType, ArrayType, TupleType, TypeMetaType, AnyType, SelfType, NeverType, mk_primitive, STRUCT_ARRAY_ITERATOR, StructType, EnumType, UnresolvedType }
+import "vader/comptime" { GenericInstance }
+
+UfcsMember :: struct {
+    symbol: Symbol
+}
+
+// Queue a generic-struct instance for impl-member materialisation : its members
+// (re)materialise via `drain_generic_fn_instances` and land in the vtable so a
+// virtual `recv.method()` resolves at emit. Deduped per receiver via
+// `seen_generic_impl_recv`. Shared by the erased-receiver path
+// (`find_impl_member_for`) and the array→Iterator wrap (`try_array_iter_coercion`).
+queue_generic_impl_receiver :: fn(ctx: FnLowerCtx, recv: StructType) -> void {
+    recv_key :: "${recv.symbol.name}${mixed_any_suffix(recv.args)}"
+    if ctx.project.seen_generic_impl_recv.contains(recv_key) { return }
+    ctx.project.seen_generic_impl_recv.add(recv_key)
+    ctx.project.pending_generic_impl_recv.push(GenericInstance {
+        .symbol = recv.symbol, .args = recv.args, .display_key = recv_key,
+    })
+}
+
+// True when EVERY top-level arg is the erased `Any` leaf (and there is at least
+// one) — the signature of a FULLY-erased generic instance produced by an erased
+// fn body (all type params substituted T→Any). This is the only shape the
+// comptime instance harvest never observes : the harvest sees the CONCRETE
+// call-site instance (`FilterIterator<char>`), while the erased fn body always
+// constructs the fully-erased tag (`FilterIterator<Any>`).
+//
+// MIXED instances (`MapIterator<string, Any>`, one arg concrete) are
+// deliberately excluded : the harvest already covers them, and queuing one here
+// forces a default-method body (`is_empty__string__Any`) whose sibling
+// (`next__string__Any`) the mixed-suffix materialiser never produces — the
+// GATE-B1 unresolved-callee emit panic.
+args_all_any_leaves :: fn(args: Type[]) -> bool {
+    if args.is_empty() { return false }
+    for a in args {
+        if !is_any_leaf(a) { return false }
+    }
+    return true
+}
+
+// One arg is the erased `Any` leaf. Both representations count : `AnyType`
+// (from `any_leaves_of`) and the `PrimitiveType "any"` the comptime erasure
+// subst mints (`mk_primitive("any")`).
+is_any_leaf :: fn(t: Type) -> bool {
+    if t is AnyType { return true }
+    if t is PrimitiveType as p { return p.name == "any" }
+    return false
+}
+
+find_impl_member_for :: fn(ctx: FnLowerCtx, target_type: Type, method_name: string) -> UfcsMember | null {
+    target_name :: type_surface_name(target_type)
+    if target_name == "" { return null }
+    // A user impl (with a real body) shadows an `@intrinsic` builtin of the
+    // same (type, method) : `i32 implements Display -> "..."` must win over the
+    // std_core intrinsic `Display`. Single pass : return the first non-intrinsic
+    // match immediately ; remember the first intrinsic match as a fallback and
+    // use it only when no user impl turns up.
+    fallback: ImplEntry | null = null
+    for entry in ctx.project.impls.all {
+        decl :: entry.decl
+        if !impl_targets_name(decl.for_type, target_name) { continue }
+        for m in decl.members {
+            if m.name != method_name { continue }
+            if !impl_is_intrinsic(decl) {
+                return build_ufcs_member(ctx, target_type, target_name, method_name, entry)
+            }
+            if fallback == null { fallback = entry }
+            break
+        }
+    }
+    if fallback != null {
+        return build_ufcs_member(ctx, target_type, target_name, method_name, fallback)
+    }
+    return null
+}
+
+/// Build the `UfcsMember` for `method_name` on `entry`'s impl of `target_type` :
+/// the deterministic mangle, plus the side-tables that surface / materialise it.
+build_ufcs_member :: fn(ctx: FnLowerCtx, target_type: Type, target_name: string, method_name: string, entry: ImplEntry) -> UfcsMember {
+    decl :: entry.decl
+    // Synthesise a Fn symbol carrying the member's deterministic mangle so the
+    // call site resolves to the synth decl's mangle index
+    // (`function_index_by_mangle`, consulted first in the CFG call emit). The
+    // `id = 0` placeholder is harmless : the mangle path resolves before the
+    // symbol-id lookup ever runs.
+    //
+    // The module prefix is the IMPL's owning module (`entry.module`), NOT the
+    // caller's (`ctx`). For an intrinsic like `string implements Display`
+    // reached from `println` in std/io, the mangle must read `std_core$…`,
+    // matching where the impl is declared / its surfaced decl is registered
+    // (GATE B). Same-module user impls are unaffected (entry.module == ctx's).
+    //
+    // NOTE : this mangle omits the overload `${suffix}` that
+    // `impl_member_mangled` (lower.vader) appends to disambiguate multiple
+    // impls of the same trait/method on one type — see audit follow-up.
+    //
+    // Suffix : a generic-struct receiver picks up the materialised member's
+    // instance suffix. The materialiser erases the args to `Any` for generic
+    // impls (`Range<i32>` → `count__Any`) so the shared erased body's sibling
+    // self-calls resolve to one name ; concrete-instantiation impls keep the
+    // concrete suffix (`Wrapper<i32>` → `count__i32`). Primitive receivers
+    // (`string implements Display`) have no args → empty suffix.
+    // @partial: only struct/array receivers carry an arg suffix; primitive/etc. have none → "".
+    recv_suffix :: @partial match target_type {
+        is StructType as s -> {
+            // Generic impl : structure-free `__Any` × arity so the call-site
+            // name matches the single deduped body regardless of the receiver's
+            // concrete args (see `flat_any_suffix`). Concrete-instantiation
+            // impls keep their concrete args.
+            if entry.is_generic {
+                mixed_any_suffix(s.args)
+            } else {
+                args_suffix(s.args)
+            }
+        }
+        // Blanket array impl (`T[] implements Contains`) : materialise one
+        // CONCRETE body per element type (`contains__i32`) so the member's `==`
+        // devirtualises to the element primop — distinct from the struct
+        // generic-erasure path (`__Any`).
+        is ArrayType as a -> args_suffix([a.element])
+        _ -> ""
+    }
+    mangled :: "${mangle_module_id(entry.module)}$${target_name}$${decl.trait_name}$${method_name}${recv_suffix}"
+    // Record the call so the post-lowering pass surfaces referenced stdlib impl
+    // members : bodyless (`@intrinsic`) → import ; with-body (e.g. `i32
+    // implements Hash -> u64(self)`) → materialised real fn.
+    ctx.project.referenced_impl_mangles.add(mangled)
+    // Blanket array impl (`T[] implements Contains` / `Into`) : the generic-impl
+    // materialiser is struct-instance-driven and never reaches an array
+    // receiver, so record the element type keyed by this call-site mangle.
+    // `surface_array_blanket_members` materialises one concrete body per element
+    // (substituting `T → element`, so e.g. `contains`'s `==` devirtualises).
+    if target_type is ArrayType as arr_ty {
+        ctx.project.array_blanket_elems[mangled] = arr_ty.element
+    }
+    // Generic-struct receiver (`MutableMap<Any, bool>`) : the regular
+    // materialiser only covers instances in `evaluated.instances`, so an ERASED
+    // receiver reached only from a deduped erased free-fn body (`add`'s `value
+    // in self.inner`) never gets its impl members. Queue it for
+    // `drain_generic_fn_instances` to materialise (struct analogue of
+    // `array_blanket_elems`).
+    if target_type is StructType as recv_struct {
+        if entry.is_generic { queue_generic_impl_receiver(ctx, recv_struct) }
+    }
+    return UfcsMember {
+        .symbol = Symbol {
+            .id         = i32(0),
+            .kind       = SymbolKind.Fn,
+            .name       = mangled,
+            .module     = ctx.typed.resolved.path,
+            .visibility = Visibility.Private,
+            .defined_at = null,
+        },
+    }
+}
+
+/// True when an `@intrinsic` impl. Lets a user impl shadow the builtin in
+/// `find_impl_member_for`. (Mirrors `vader/resolver/materialize.vader::is_intrinsic`,
+/// kept local to avoid a resolver→lower import.)
+impl_is_intrinsic :: fn(decl: ImplDecl) -> bool {
+    for d in decl.decorators {
+        if d.name == "intrinsic" { return true }
+    }
+    return false
+}
+
+// Nominal token a receiver type registers UFCS impls under. Exhaustive over
+// `Type` (no `_`) : the non-nominal shapes (fn / union / trait / type-param /
+// meta / self / unresolved / free-numeric / never / any) have no single
+// surface name and resolve through other paths, so they map to "" explicitly —
+// listing them trips T3013 if a new *nominal* Type variant is added that ought
+// to carry a UFCS surface.
+type_surface_name :: fn(t: Type) -> string = match t {
+    is PrimitiveType as p -> p.name
+    is StructType    as s -> s.symbol.name
+    is EnumType      as e -> e.symbol.name
+    // Generic-shape pattern + concrete receiver agree on a canonical token :
+    // `T[]` and `i32[]` both surface as `[]` for UFCS lookup.
+    is ArrayType          -> "[]"
+    is TupleType          -> "()"
+    is FnType             -> ""
+    is UnionType          -> ""
+    is TraitType          -> ""
+    is TypeParamType      -> ""
+    is TypeMetaType       -> ""
+    is SelfType           -> ""
+    is UnresolvedType     -> ""
+    is FreeIntType        -> ""
+    is FreeFloatType      -> ""
+    is NeverType          -> ""
+    is AnyType            -> ""
+}
+
+
+impl_targets_name :: fn(for_type: Expr, name: string) -> bool {
+    match for_type {
+        is IdentExpr        as e -> { return e.name == name }
+        is GenericInstExpr  as gi -> {
+            match gi.callee {
+                is IdentExpr as inner -> { return inner.name == name }
+                _ -> { return false }
+            }
+        }
+        // Blanket array impl (`T[] implements ...`) — its for_type is an
+        // ArrayTypeExpr ; `type_surface_name` maps every array to `"[]"`.
+        is ArrayTypeExpr -> { return name == "[]" }
+        _ -> { return false }
+    }
+}
+
+
+/// `T(value)` cast-call detector. Returns a `LoweredCast` when the callee
+/// is a type-shaped symbol (builtin primitive, struct, or type alias) with
+/// a single arg. For non-numeric targets the typer already routed the arg
+/// through `tryInto` ; we emit the lowered arg verbatim. Mirror of
+/// `lowerCall`'s cast branch in `src/lower/passes/expr.ts:62-83`.
+try_lower_cast_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
+    if call.args.len() != usize(1) { return null }
+    callee_ident :: as_ident(call.callee)
+    if callee_ident is null { return null }
+    callee_symbol :: ctx.typed.resolved.idents[callee_ident.span.hash()]
+    if callee_symbol is null { return null }
+    // @partial: only type-introducing symbol kinds are type-shaped callees; the rest are not.
+    is_type_shaped :: @partial match callee_symbol.kind {
+        .BuiltinType -> true
+        .Struct      -> true
+        .TypeAlias   -> true
+        _            -> false
+    }
+    if !is_type_shaped { return null }
+    arg :: lower_expr(ctx, call.args[0].value)
+    arg_type :: type_of(arg)
+    // `Target(value)` probes for `value : Source` where
+    // `Source implements Into[Target]`. When the Into impl exists, the
+    // typer's `tryInto` lifts `value` to `into(value)` ; we recreate
+    // that lift at lower time. The numeric-primitive cast then wraps
+    // the lifted call for byte-parity (`cast → i32 / call into(u)`).
+    coerced :: try_emit_into_coercion(ctx, arg, arg_type, type, call.span)
+    inner :: if coerced == null { arg } else { coerced }
+    if type is PrimitiveType as pt {
+        if pt.name == "string" || pt.name == "bool" || pt.name == "void" || pt.name == "null" {
+            return inner
+        }
+        return LoweredCast { .span = call.span, .type = type, .value = inner }
+    }
+    return inner
+}
+
+// Build the `into(arg)` coercion call. `callee_name` is the resolved impl-member
+// mangle the emit phase binds via `function_index_by_mangle` (the `id = 0`
+// placeholder is inert — the mangle path runs before the symbol-id lookup).
+// `callee_module` is informational on that path, so callers pass the impl's
+// owning module when resolved and the caller's module on the bare fallback.
+mk_into_call :: fn(
+    arg: LoweredExpr, result_type: Type, span: Span, callee_name: string, callee_module: string,
+) -> LoweredCall {
+    return LoweredCall {
+        .span = span, .type = result_type,
+        .callee = LoweredIdent {
+            .span = span, .type = result_type,
+            .symbol = Symbol {
+                .id = i32(0), .kind = SymbolKind.Fn, .name = callee_name,
+                .module = callee_module,
+                .visibility = Visibility.Private, .defined_at = null,
+            },
+        },
+        .args = [arg],
+    }
+}
+
+// The bare `into` placeholder — emit can't resolve it to a member mangle. Still
+// used by the array→Iterator blanket and generic Into impls, whose element /
+// erased-instance mangles aren't wired into the coercion path yet.
+mk_bare_into_call :: fn(ctx: FnLowerCtx, arg: LoweredExpr, result_type: Type, span: Span) -> LoweredCall =
+    mk_into_call(arg, result_type, span, "into", ctx.typed.resolved.path)
+
+// `T[] -> Iterator<T>` value-slot coercion. Returns `into(arr)` resolved to
+// std/core's blanket `T[] implements Into<Iterator<T>>` member, typed as the
+// target `Iterator<T>` existential — value slots dispatch `it.next()`
+// virtually, so the member must box `ArrayIterator<T>` into the trait (unlike
+// the for-in path, which inlines a concrete `ArrayIterator` struct lit and
+// devirtualises). `find_impl_member_for` mangles the member
+// (`std_core$[]$Into$into__<element>`) and records the element in
+// `array_blanket_elems`, which `surface_array_blanket_members` materialises.
+try_array_iter_coercion :: fn(
+    ctx: FnLowerCtx, arg: LoweredExpr, arg_type: Type, target_type: Type, span: Span,
+) -> LoweredExpr | null {
+    if arg_type is ArrayType as arr {
+        if target_type is TraitType as tt {
+            if tt.symbol.name != "Iterator" { return null }
+            if tt.args.len() != usize(1) { return null }
+            // Guard : the blanket wraps into `ArrayIterator<element>` — bail if
+            // std/core's struct isn't loaded (nothing to materialise).
+            wrapped :: find_core_type(ctx, STRUCT_ARRAY_ITERATOR, [arr.element])
+            if wrapped == null { return null }
+            // Register the `ArrayIterator<element>` instance so its `Iterator`
+            // impl (`next__<element>`) materialises + lands in the vtable — the
+            // value slot dispatches `it.next()` virtually (the for-in path inlines
+            // `next` and never needs the table).
+            if wrapped is StructType as ai { queue_generic_impl_receiver(ctx, ai) }
+            member :: find_impl_member_for(ctx, arg_type, "into")
+            if member is null { return mk_bare_into_call(ctx, arg, target_type, span) }
+            return LoweredCall {
+                .span = span, .type = target_type,
+                .callee = LoweredIdent {
+                    .span = span, .type = target_type, .symbol = member.symbol,
+                },
+                .args = [arg],
+            }
+        }
+    }
+    return null
+}
+
+/// `Target(value)` where `value : Source` and `Source implements Into[Target]`
+/// emits `LoweredCall { callee: into, args: [value] }`. Mirror of the typer's
+/// `tryInto` coercion path in TS.
+try_emit_into_coercion :: fn(
+    ctx: FnLowerCtx, arg: LoweredExpr, arg_type: Type, target_type: Type, span: Span,
+) -> LoweredExpr | null {
+    // Built-in array→Iterator coercion ; arrays have no nominal surface
+    // name, so it must precede the name-keyed impl scan below.
+    array_iter :: try_array_iter_coercion(ctx, arg, arg_type, target_type, span)
+    if array_iter != null { return array_iter }
+    src_name :: type_surface_name(arg_type)
+    if src_name == "" { return null }
+    // Find `Source implements Into[Target] { into }`. The decl carries
+    // `trait_name = "Into"` and a single trait_arg the surface name of
+    // which must equal target_type's surface name.
+    target_name :: type_surface_name(target_type)
+    if target_name == "" { return null }
+    // Identity-coercion guard : `T(value)` where `value: T` is a no-op
+    // ; never inject `into(self)` against the surrounding type.
+    if src_name == target_name { return null }
+    for entry in ctx.project.impls.all {
+        decl :: entry.decl
+        if decl.trait_name != "Into" { continue }
+        if !impl_targets_name(decl.for_type, src_name) { continue }
+        if !impl_trait_first_arg_is(decl, target_name) { continue }
+        for m in decl.members {
+            if m.name != "into" { continue }
+            // Resolve to the impl member's materialised mangle so emit binds the
+            // call — the bare `into` placeholder resolves to neither symbol id nor
+            // mangle. The mangle mirrors `impl_member_mangled` (the materialiser's
+            // own fn in `lower_impl_member_list`) so call site and emitted member
+            // agree by construction, overload `_N` suffix included — reusing its
+            // `impl_member_overload_suffix` keeps the two in lockstep. Generic
+            // blanket impls (`T[] implements Into<Iterator>`) mangle via the
+            // element recv_suffix instead, so they stay on the bare path for now.
+            if entry.is_generic { return mk_bare_into_call(ctx, arg, target_type, span) }
+            suffix :: impl_member_overload_suffix(m, decl, src_name, module_impl_decls(ctx, entry.module))
+            mangled :: "${mangle_module_id(entry.module)}$${src_name}$${decl.trait_name}$${m.name}${suffix}"
+            ctx.project.referenced_impl_mangles.add(mangled)
+            return mk_into_call(arg, target_type, span, mangled, entry.module)
+        }
+    }
+    return null
+}

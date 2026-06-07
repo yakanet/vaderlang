@@ -1,0 +1,610 @@
+// vader/lower/lower_mono_struct — generic struct-instance and impl-member materialization.
+//
+
+module "vader/lower"
+
+import "std/collections" { MutableMap, keys }
+import "std/iter" { is_empty }
+
+import "vader/diagnostics" { Diagnostic, Span }
+import "vader/parser" { Decl, StructDecl, ImplDecl, IdentExpr, GenericInstExpr, TypeExpr, BinaryExpr, BinaryOp }
+import "vader/resolver" { LoadedProject, LoadedModule }
+import "vader/typecheck" { TypedProject, TypedProgram, substitute, is_empty_substitution, ImplEntry }
+import "vader/types" { UnresolvedType, Type, FnType, StructType, TypeMetaType, TypeParamType, ArrayType, TraitType, TupleType, UnionType, SelfType, FreeIntType, FreeFloatType, NeverType, AnyType, display_type, for_each_type, EnumType, PrimitiveType }
+import "vader/comptime" { MonoEntry, GenericInstance }
+import "vader/resolver/symbol" { Symbol, SymbolKind }
+
+// Phase 1 of the two-pass instance materialisation : concrete struct
+// decls only. Returns the dedupe set so the representatives pass
+// (Phase 2, called after fn-instances) can resume with the same
+// state. `pending_reps` is rebuilt inside the second pass from
+// `evaluated.instances` since they're stored on the project ctx.
+materialize_concrete_struct_instances :: fn(
+    loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx,
+    project: LoweredProject, diags: Diagnostic[],
+) -> MutableSet<string> {
+    seen_reps :: new_string_set()
+    for inst in project_ctx.evaluated.instances {
+        if !mono_has_struct_entry_for(project_ctx, inst) { continue }
+        materialize_one_instance(inst, loaded, typed, project_ctx, project, diags)
+    }
+    return seen_reps
+}
+
+// Phase 2 : emit the "any-args" representative struct decls AFTER
+// the fn-instance pass has run, so the dump order is :
+//   concrete structs ; fn instances ; representative structs.
+materialize_representatives :: fn(
+    loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx,
+    project: LoweredProject, seen_reps: MutableSet<string>,
+) -> void {
+    for inst in project_ctx.evaluated.instances {
+        if !mono_has_struct_entry_for(project_ctx, inst) { continue }
+        materialize_representative(inst, loaded, typed, project_ctx, project, seen_reps)
+    }
+}
+
+/// Emit the second-mono "any-args" representative struct decl for a
+/// concrete generic instance. The representative shares the first
+/// instance's body shape (every field already erased to `Any`) but
+/// carries a distinct mangled name: the bare struct mangle plus the
+/// any-leaves args. Mirrors `src/comptime/erasure-dedupe.ts:217-257`'s
+/// extraStructEntries emission. Deduped on the representative mangle so
+/// two concrete instantiations of the same generic shape only emit one.
+materialize_representative :: fn(
+    inst: GenericInstance, loaded: LoadedProject, typed: TypedProject,
+    project_ctx: LowerProjectCtx, project: LoweredProject,
+    seen_reps: MutableSet<string>,
+) -> void {
+    if !all_concrete_args(inst.args) { return }
+    sym :: inst.symbol
+    if i32(sym.kind) != i32(SymbolKind.Struct) { return }
+    owner_module_id :: sym.module
+    owner_module :: loaded.modules[owner_module_id]
+    if owner_module is null { return }
+    owner_typed :: typed.modules[owner_module_id]
+    if owner_typed is null { return }
+    if owner_typed is TypedProgram as owner_typed_ok {
+        // `join_any_displays` already renders nested wrappers with `_`
+        // (`Box(Box(i32))` → `Box_Any`), so one top-level `__` join keeps
+        // nesting intact. TS extraStructEntries uses the empty-typeArgs
+        // template, so its `first.mangled` likewise has no `__<arg>` segment.
+        bare_mangled :: "${mangle_module_id(owner_typed_ok.resolved.display_path)}$${sym.name}"
+        any_args :: build_any_args_list(inst.args)
+        rep_mangled :: "${bare_mangled}__${join_any_displays(any_args)}"
+        // Dedup before the struct-decl lookup so a repeated instance of an
+        // already-emitted shape skips the linear `find_struct_decl_by_name`.
+        if seen_reps.contains(rep_mangled) { return }
+        if owner_module is LoadedModule as owner_loaded {
+            owner_decls :: module_decls(owner_loaded)
+            decl :: find_struct_decl_by_name(owner_decls, sym.name)
+            if decl is null { return }
+            if decl is StructDecl as sd {
+                if sd.type_params.len() == 0 { return }
+                seen_reps.add(rep_mangled)
+                erase :: build_any_subst(sd, owner_typed_ok)
+                fields: LoweredStructField[] = []
+                for f in sd.fields {
+                    raw_ty :: resolve_field_type(f.ty, owner_typed_ok, sd, inst.args)
+                    fields.push(LoweredStructField {
+                        .name = f.name,
+                        .type = substitute(raw_ty, erase),
+                    })
+                }
+                entry_decl: Decl = sd
+                entry :: MonoEntry {
+                    .id             = i32(0),
+                    .is_main        = false,
+                    .mangled        = rep_mangled,
+                    .decl           = entry_decl,
+                    .symbol         = sym,
+                    .subst          = erase,
+                    .type_arguments = any_args,
+                    .module         = owner_typed_ok,
+                }
+                push_to_module(project, owner_typed_ok.resolved.path, LoweredStructDecl {
+                    .mangled = rep_mangled,
+                    .fields  = fields,
+                    .origin  = entry,
+                })
+            }
+        }
+    }
+}
+
+/// True when `evaluated.mono` carries a StructDecl-kind MonoEntry
+/// whose `symbol.id` matches `inst.symbol.id` and whose
+/// `type_arguments` is non-empty. Lets `materialize_generic_instances`
+/// skip instances that the mono pass already rejected (TypeParam-only,
+/// stdlib-only, etc.) without re-deriving the filter logic.
+mono_has_struct_entry_for :: fn(project_ctx: LowerProjectCtx, inst: GenericInstance) -> bool {
+    if i32(inst.symbol.kind) != i32(SymbolKind.Struct) { return false }
+    entries :: project_ctx.evaluated.mono.entries
+    i: usize = 0
+    for i < entries.len() {
+        entry :: entries[i]
+        if entry.type_arguments.len() == 0 {
+            i += 1
+            continue
+        }
+        match entry.symbol {
+            is Symbol as s -> {
+                if s.id == inst.symbol.id { return true }
+            }
+            _ -> {}
+        }
+        i += 1
+    }
+    return false
+}
+
+materialize_one_instance :: fn(
+    inst: GenericInstance, loaded: LoadedProject, typed: TypedProject,
+    project_ctx: LowerProjectCtx, project: LoweredProject, diags: Diagnostic[],
+) -> void {
+    // Only concrete instances get a monomorphized decl. Skip uses where
+    // any arg is still a TypeParam (those are the generic decl's own
+    // body referencing itself).
+    if !all_concrete_args(inst.args) { return }
+    sym :: inst.symbol
+    owner_module_id :: sym.module
+    owner_module :: loaded.modules[owner_module_id]
+    if owner_module is null { return }
+    owner_typed :: typed.modules[owner_module_id]
+    if owner_typed is null { return }
+    if owner_typed is TypedProgram as owner_typed_ok {
+        if owner_module is LoadedModule as owner_loaded {
+            owner_decls :: module_decls(owner_loaded)
+            // (1) Find the StructDecl for this instance ; emit a
+            // monomorphized struct decl. Emitted even for stdlib structs
+            // (`MutableMap(usize, Span)`, `Entry`, …) — pushed into the
+            // empty stdlib lowered module created above so the bytecode
+            // type table carries the concrete shape instead of an orphan
+            // `ref`. (Filtered from the lower dump, so byte-match is safe.)
+            if i32(sym.kind) == i32(SymbolKind.Struct) {
+                materialize_struct_instance(inst, owner_decls, owner_typed_ok, project_ctx, project)
+                // (2) For every generic impl whose for_type targets the
+                // same struct symbol, materialize each member — including
+                // stdlib structs (`Range<i32>`, `MutableMap<…>`). Trait
+                // default methods (`Range.count()` / `.last()` /
+                // `.is_empty()`) need a real body to dispatch through ;
+                // skipping stdlib here dropped them onto the defensive
+                // `Return` arm in the CFG emit. Whole-program DCE
+                // (`prune_unreachable_fns`) culls anything the user never
+                // reaches, so over-materialising is safe.
+                materialize_impl_members_for(inst, owner_typed_ok, project_ctx, project, loaded, typed, diags)
+            }
+        }
+    }
+}
+
+all_concrete_args :: fn(args: Type[]) -> bool {
+    for a in args {
+        if has_type_param(a) { return false }
+    }
+    return true
+}
+
+has_type_param :: fn(t: Type) -> bool {
+    match t {
+        is TypeParamType -> { return true }
+        is StructType as s -> {
+            for a in s.args { if has_type_param(a) { return true } }
+            return false
+        }
+        is TraitType as r -> {
+            for a in r.args { if has_type_param(a) { return true } }
+            return false
+        }
+        is ArrayType as ar -> { return has_type_param(ar.element) }
+        is TupleType as tu -> {
+            for el in tu.elements { if has_type_param(el) { return true } }
+            return false
+        }
+        is UnionType as u -> {
+            for v in u.variants { if has_type_param(v) { return true } }
+            return false
+        }
+        is FnType as f -> {
+            for p in f.params { if has_type_param(p) { return true } }
+            return has_type_param(f.return_type)
+        }
+        // Scalar / nominal-without-args / sentinel variants nest no type
+        // params. Listed explicitly (not `_`) so a new structural Type
+        // variant trips T3013 here instead of silently reading as concrete.
+        is PrimitiveType  -> { return false }
+        is EnumType       -> { return false }
+        is TypeMetaType   -> { return false }
+        is SelfType       -> { return false }
+        is UnresolvedType -> { return false }
+        is FreeIntType    -> { return false }
+        is FreeFloatType  -> { return false }
+        is NeverType      -> { return false }
+        is AnyType        -> { return false }
+    }
+}
+
+/// Monomorphized struct mangle : `<module>$<Name>__<arg>__<arg>…`.
+/// The single source of the concrete-instance naming scheme — both
+/// `materialize_struct_instance` and `shape_mangle` build their name
+/// here so the closure pass dedups field-referenced shapes against
+/// emitted decls by name.
+mangle_struct_instance :: fn(display_path: string, name: string, args: Type[]) =
+    "${mangle_module_id(display_path)}$${name}${args_suffix(args)}"
+
+materialize_struct_instance :: fn(
+    inst: GenericInstance, owner_decls: Decl[], owner_typed: TypedProgram,
+    project_ctx: LowerProjectCtx, project: LoweredProject,
+) -> LoweredStructField[] {
+    decl :: find_struct_decl_by_name(owner_decls, inst.symbol.name)
+    if decl is null { return [] }
+    if decl is StructDecl as sd {
+        // Non-generic structs fall through safely : empty `type_params`
+        // ⇒ identity substs and `args_suffix([]) == ""`, so fields are
+        // unchanged and the mangle is the bare `<module>$<Name>`. Lets the
+        // closure pass materialise referenced stdlib structs
+        // (`StringBuilder`, `JsonObject`, …) whose bodies are never lowered.
+        mangled :: mangle_struct_instance(owner_typed.resolved.display_path, inst.symbol.name, inst.args)
+        // Erasure : the entry's `subst` keeps the concrete args (for
+        // mangling + downstream consumers that need the source-level
+        // type-args), but the FIELDS get the anySubst applied so every
+        // TypeParam mention lands on `Any`. Identical monos can then
+        // collapse to a single C-emit shape. Mirror of TS `anySubst`
+        // in `src/comptime/specialize.ts:45-54`.
+        subst :: build_struct_subst(sd, inst.args, owner_typed)
+        erase :: build_any_subst(sd, owner_typed)
+        fields: LoweredStructField[] = []
+        for f in sd.fields {
+            raw_ty :: resolve_field_type(f.ty, owner_typed, sd, inst.args)
+            field_ty :: substitute(raw_ty, erase)
+            fields.push(LoweredStructField {
+                .name = f.name,
+                .type = field_ty,
+            })
+        }
+        entry_decl: Decl = sd
+        entry :: MonoEntry {
+            .id             = i32(0),
+            .is_main        = false,
+            .mangled        = mangled,
+            .decl           = entry_decl,
+            .symbol         = inst.symbol,
+            .subst          = subst,
+            .type_arguments = inst.args,
+            .module         = owner_typed,
+        }
+        push_to_module(project, owner_typed.resolved.path, LoweredStructDecl {
+            .mangled = mangled,
+            .fields  = fields,
+            .origin  = entry,
+        })
+        return fields
+    }
+    return []
+}
+
+/// Transitively materialise generic-struct shapes referenced by the
+/// fields of already-emitted struct decls. A struct instance's fields
+/// are erased to `Any` for the instance's own type-params, but a field
+/// whose type names another generic struct keeps that struct's concrete
+/// (or partially-erased) args — e.g. `MutableSet(i32)`'s erased field
+/// `inner: MutableMap(Any, bool)`. Such a shape is neither a directly
+/// instantiated generic nor an all-Any representative, so nothing else
+/// materialises it and the bytecode interner mints an orphan `ref
+/// MutableMap`. This pass walks every emitted struct decl's fields,
+/// materialises each referenced generic-struct shape that has no decl
+/// yet (keyed by mangled name), and drains to a fixpoint over the
+/// shapes the newly-emitted decls reference in turn. Mirrors the shapes
+/// TS' mono pass produces when substituting a representative body's
+/// type-params. Bounded by `MAX_FIELD_SHAPES` against a pathological
+/// ever-growing generic.
+close_over_field_shapes :: fn(
+    loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx,
+    project: LoweredProject,
+) -> void {
+    materialized :: new_string_set()
+    seen_pushed :: new_string_set()
+    worklist: StructType[] = []
+    collect :: (sub: Type) -> push_struct_shape(sub, worklist, seen_pushed)
+    for module_id in project.modules.keys() {
+        m :: project.modules[module_id]
+        if m is LoweredModule as mod {
+            for decl in mod.decls {
+                if decl is LoweredStructDecl as sd { materialized.add(sd.mangled) }
+                // Walk fields, signature AND body so a shape reachable only
+                // through a body local / expr type (e.g. a `ParsedArgs`
+                // local) is harvested alongside field / signature shapes.
+                for_each_lowered_type(decl, collect)
+            }
+        }
+    }
+    i: usize = 0
+    count := 0
+    for i < worklist.len() {
+        if count >= MAX_FIELD_SHAPES { break }
+        shape :: worklist[i]
+        i += 1
+        mangled :: shape_mangle(shape, typed)
+        if mangled is null { continue }
+        if materialized.contains(mangled) { continue }
+        materialized.add(mangled)
+        count += 1
+        new_fields :: materialize_shape(shape.symbol, shape.args, loaded, typed, project_ctx, project)
+        for f in new_fields { for_each_type(f.type, collect) }
+    }
+}
+
+/// Cap on representative field shapes materialised per project — guards
+/// against a pathological generic that grows its type at each level.
+/// Matches TS' `MAX_INSTANCES` (`src/comptime/evaluate.ts`).
+MAX_FIELD_SHAPES :: 4096
+
+/// `for_each_type` visitor : push a struct shape onto `out` the first
+/// time it's seen — both concrete generic instances (`MutableMap(Any,
+/// bool)`) and plain non-generic structs (`StringBuilder`), since either
+/// can be referenced without a materialised decl. Dedup by `(symbol.id,
+/// display)` keeps the worklist to one entry per distinct shape — the
+/// same shape recurs across hundreds of field / signature slots
+/// otherwise. TypeParam-bearing shapes (a generic decl's own
+/// self-reference) are skipped.
+push_struct_shape :: fn(t: Type, out: StructType[], seen: MutableSet<string>) -> void {
+    if t is StructType as s {
+        if has_type_param(s) { return }
+        key :: "${s.symbol.id}|${display_type(s)}"
+        if seen.contains(key) { return }
+        seen.add(key)
+        out.push(s)
+    }
+}
+
+new_string_set :: fn() = MutableSet<string> {
+    .inner = MutableMap<string, bool> {},
+}
+
+/// Mangled name a `materialize_shape` call would emit for `s`, or null
+/// when the struct's owning module has no `TypedProgram`. Matches
+/// `materialize_struct_instance`'s mangle so dedup against already-
+/// emitted decls works by name.
+shape_mangle :: fn(s: StructType, typed: TypedProject) -> string | null {
+    owner_typed :: typed.modules[s.symbol.module]
+    if owner_typed is TypedProgram as ot {
+        return mangle_struct_instance(ot.resolved.display_path, s.symbol.name, s.args)
+    }
+    return null
+}
+
+/// Materialise the struct decl for `(sym, args)` and return its lowered
+/// fields. Thin wrapper over `materialize_struct_instance` that resolves
+/// the owning module's decls + typed view from a bare symbol + args.
+materialize_shape :: fn(
+    sym: Symbol, args: Type[], loaded: LoadedProject, typed: TypedProject,
+    project_ctx: LowerProjectCtx, project: LoweredProject,
+) -> LoweredStructField[] {
+    owner_module :: loaded.modules[sym.module]
+    owner_typed :: typed.modules[sym.module]
+    if owner_module is null { return [] }
+    if owner_typed is null { return [] }
+    if owner_typed is TypedProgram as ot {
+        if owner_module is LoadedModule as ol {
+            inst :: GenericInstance { .symbol = sym, .args = args, .display_key = "" }
+            return materialize_struct_instance(inst, module_decls(ol), ot, project_ctx, project)
+        }
+    }
+    return []
+}
+
+materialize_impl_members_for :: fn(
+    inst: GenericInstance, owner_typed: TypedProgram,
+    project_ctx: LowerProjectCtx, project: LoweredProject,
+    loaded: LoadedProject, typed: TypedProject, diags: Diagnostic[],
+) -> void {
+    // Walk every module's impls (impls can be in foreign modules) and
+    // emit a synth fn for each matching impl member.
+    for module_id in typed.modules.keys() {
+        module_typed :: typed.modules[module_id]
+        if module_typed is null { continue }
+        if module_typed is TypedProgram as mt {
+            module_loaded :: loaded.modules[module_id]
+            if module_loaded is null { continue }
+            if module_loaded is LoadedModule as ml {
+                for d in module_decls(ml) {
+                    if d is ImplDecl as impl_decl {
+                        if !is_generic_impl_for(impl_decl, inst.symbol.name) { continue }
+                        materialize_impl_for_instance(
+                            impl_decl, inst, mt, owner_typed, project_ctx, project,
+                        )
+                        // The impl body virtual-calls the bound traits'
+                        // methods on the type-param (`cursor.gte(...)` /
+                        // `cursor.step()` in `Range.next`). Materialise
+                        // those bound-trait impls for the concrete args so
+                        // the vtable carries the matching entries.
+                        materialize_bound_trait_impls(
+                            impl_decl, inst, project_ctx, project, loaded, typed, diags,
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+is_generic_impl_for :: fn(impl_decl: ImplDecl, struct_name: string) -> bool {
+    match impl_decl.for_type {
+        is GenericInstExpr as gi -> {
+            match gi.callee {
+                is IdentExpr as id -> { return id.name == struct_name }
+                _ -> { return false }
+            }
+        }
+        _ -> { return false }
+    }
+}
+
+materialize_impl_for_instance :: fn(
+    impl_decl: ImplDecl, inst: GenericInstance,
+    impl_typed: TypedProgram, owner_typed: TypedProgram,
+    project_ctx: LowerProjectCtx, project: LoweredProject,
+) -> void {
+    // Erasure : self type uses any-leaves args (Stack(Any) instead of
+    // Stack(i32)) and the substitution carried into params / body maps
+    // T → Any. Concrete monos that share the same impl shape post-
+    // erasure can then collapse to a single C-emit body. Mangled name
+    // keeps the concrete args suffix (`__i32`) so identity tags stay
+    // distinct.
+    subst :: build_impl_mixed_subst(impl_decl, impl_typed, inst.args)
+    // A concrete-instantiation impl (`Wrapper<i32> implements …`) has no
+    // type params, so the substitution is empty — keep the concrete
+    // instance args (self stays `Wrapper<i32>`). Only a genuinely
+    // generic impl (`Repeat<T> implements …`) erases its args to `Any`
+    // for the shared post-erasure C-emit body.
+    erased_args: Type[] = []
+    if is_empty_substitution(subst) {
+        for a in inst.args { erased_args.push(a) }
+    } else {
+        for a in inst.args { erased_args.push(keep_primitive_or_erase(a)) }
+    }
+    self_struct :: StructType { .symbol = inst.symbol, .args = erased_args }
+    self_type: Type = self_struct
+    // Suffix from the ERASED args : a generic impl mangles `count__Any`
+    // (not `count__i32`) so the shared erased body's sibling self-calls
+    // (`self.next()` in the `count` default) and every concrete-arg call
+    // site resolve to one name. `find_impl_member_for` / `lower_for_in`
+    // erase the receiver args the same way (gated on `ImplEntry.is_generic`).
+    // Concrete-instantiation impls keep `erased_args == inst.args`, so their
+    // suffix stays concrete. Generic impls use the STRUCTURE-FREE
+    // `flat_any_suffix` (one `__Any` per arg) — `args_suffix(erased_args)`
+    // would leak inner shape (`MutableMap<_, _[]>` → `at__Any__Any__`) and
+    // diverge from a sibling instance's `at__Any__Any`, breaking the
+    // single-body dedupe.
+    suffix :: if is_empty_substitution(subst) { args_suffix(erased_args) } else { mixed_any_suffix(inst.args) }
+    types :: make_entry_types(impl_typed, subst)
+    impl_key_prefix :: impl_decl.span.hash()
+    for member in impl_decl.members {
+        // Erasure dedupe : every concrete-args instance of the same
+        // (impl_decl, member) collapses to one emission. The first
+        // instance wins ; the call sites land on the survivor via the
+        // trait virtual-dispatch in bytecode emit.
+        dedupe_key :: "${impl_key_prefix}::${member.name}${suffix}"
+        if project_ctx.materialized_impl_keys.contains(dedupe_key) { continue }
+        project_ctx.materialized_impl_keys.add(dedupe_key)
+        params :: build_impl_member_params(member, self_type, types, impl_typed, project_ctx)
+        return_type :: return_type_of(member, types)
+        mangled :: "${mangle_module_id(owner_typed.resolved.display_path)}$${inst.symbol.name}$${impl_decl.trait_name}$${member.name}${suffix}"
+        entry_decl: Decl = member
+        entry :: MonoEntry {
+            .id             = i32(0),
+            .is_main        = false,
+            .mangled        = mangled,
+            .decl           = entry_decl,
+            .symbol         = null,
+            .subst          = subst,
+            .type_arguments = inst.args,
+            .module         = impl_typed,
+        }
+        synth_start :: project_ctx.synth_decls.len()
+        body :: lower_fn_body(member, impl_typed, project_ctx, entry, subst, return_type)
+        push_to_module(project, owner_typed.resolved.path, LoweredFnDecl {
+            .mangled     = mangled,
+            .params      = params,
+            .return_type = return_type,
+            .body        = body,
+            .origin      = entry,
+        })
+        // Drain lambdas/defers lifted from this member's body into the same
+        // module, right after the member (post-module materialisation site).
+        drain_synth_since(project, owner_typed.resolved.path, project_ctx, synth_start)
+    }
+}
+
+
+/// For each bounded type param of `impl_decl` (`Range<T> implements<T:
+/// Comparable & Step>`), materialise the bound traits' impls for the
+/// matching concrete instance arg. The generic-impl body dispatches a
+/// type-param method (`cursor.gte(...)`) through a `virtual.call`, so the
+/// vtable needs the concrete type's `(trait, method)` rows — which
+/// `collect_vtable_entries` builds from the materialised member fns.
+/// Deduped per `(type, trait)` ; no-op for unbounded type params.
+materialize_bound_trait_impls :: fn(
+    impl_decl: ImplDecl, inst: GenericInstance,
+    project_ctx: LowerProjectCtx, project: LoweredProject,
+    loaded: LoadedProject, typed: TypedProject, diags: Diagnostic[],
+) -> void {
+    for i in 0..<impl_decl.type_params.len() {
+        if i >= inst.args.len() { break }
+        bound :: impl_decl.type_params[i].bound
+        if bound == null { continue }
+        type_name :: type_surface_name(inst.args[i])
+        if type_name == "" { continue }
+        trait_names: string[] = []
+        flatten_trait_bound(bound, trait_names)
+        for trait_name in trait_names {
+            materialize_bound_impl(type_name, trait_name, project_ctx, project, loaded, typed, diags)
+        }
+    }
+}
+
+// Flatten a type-param bound expression into the list of trait names it
+// names. `Comparable & Step` is a `BinaryExpr(BitAnd, ...)` ; a single
+// bound is a bare `IdentExpr` ; a generic bound (`Iterator<T>`) takes the
+// callee name.
+flatten_trait_bound :: fn(bound: TypeExpr, out: string[]) -> void {
+    match bound {
+        is IdentExpr as id -> { out.push(id.name) }
+        is BinaryExpr as b -> {
+            if i32(b.op) == i32(BinaryOp.BitAnd) {
+                flatten_trait_bound(b.left, out)
+                flatten_trait_bound(b.right, out)
+            }
+        }
+        is GenericInstExpr as gi -> {
+            match gi.callee {
+                is IdentExpr as cid -> { out.push(cid.name) }
+                _ -> {}
+            }
+        }
+        _ -> {}
+    }
+}
+
+// Find the non-generic `<type_name> implements <trait_name>` impl across
+// loaded modules and lower its members (SAM + default bodies) so the
+// vtable picks them up. Deduped per `(type_name, trait_name)`.
+materialize_bound_impl :: fn(
+    type_name: string, trait_name: string,
+    project_ctx: LowerProjectCtx, project: LoweredProject,
+    loaded: LoadedProject, typed: TypedProject, diags: Diagnostic[],
+) -> void {
+    dedupe_key :: "boundimpl::${type_name}::${trait_name}"
+    if project_ctx.materialized_impl_keys.contains(dedupe_key) { return }
+    for module_id in typed.modules.keys() {
+        module_typed :: typed.modules[module_id]
+        if module_typed is null { continue }
+        if module_typed is TypedProgram as mt {
+            module_loaded :: loaded.modules[module_id]
+            if module_loaded is null { continue }
+            if module_loaded is LoadedModule as ml {
+                decls :: module_decls(ml)
+                for d in decls {
+                    if d is ImplDecl as impl_ {
+                        if impl_.trait_name != trait_name { continue }
+                        if !impl_targets_name(impl_.for_type, type_name) { continue }
+                        // Generic / concrete-instantiation impls go through the
+                        // struct-instance path ; this targets the non-generic
+                        // primitive (or plain struct) impls.
+                        if impl_.type_params.len() > 0 { continue }
+                        if impl_.for_type is GenericInstExpr { continue }
+                        project_ctx.materialized_impl_keys.add(dedupe_key)
+                        synth_start :: project_ctx.synth_decls.len()
+                        for m in lower_impl_member_list(impl_, mt, project_ctx, diags, decls) {
+                            push_to_module(project, mt.resolved.path, m)
+                        }
+                        // Drain lambdas/defers lifted from these member bodies
+                        // (post-module materialisation site).
+                        drain_synth_since(project, mt.resolved.path, project_ctx, synth_start)
+                        return
+                    }
+                }
+            }
+        }
+    }
+}

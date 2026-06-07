@@ -1,0 +1,245 @@
+// vader/lower/lower_destructure — tuple / array destructuring into per-leaf let bindings.
+//
+
+module "vader/lower"
+
+import "vader/parser" { LetBinding, SimpleBinding, TupleBinding, WildcardBinding, RestBinding }
+import "vader/diagnostics" { Span }
+import "vader/resolver/symbol" { Symbol }
+import "vader/types" { Type, ArrayType, TupleType, TY_BOOL, TY_VOID, TY_UNRESOLVED, mk_primitive, UnresolvedType }
+
+// Walk a `LetBinding` tree, emitting one `LoweredLet` per leaf with
+// the target ident's `_<i>` field (tuples) or `[i]` index (arrays).
+emit_let_binding_leaves :: fn(
+    ctx: FnLowerCtx, binding: TupleBinding, target: LoweredExpr,
+    target_type: Type, span: Span, out: LoweredStmt[],
+) -> void {
+    // `[a, b, ...rest] := arr` over an array : N index reads for the
+    // fixed leaves, then a fresh-array + loop-push for the rest leaf.
+    rest_index :: rest_leaf_index(binding)
+    if rest_index >= 0 {
+        if target_type is ArrayType as arr {
+            emit_array_destructure(ctx, binding, usize(rest_index), target, arr, span, out)
+            return
+        }
+    }
+    for i in 0..<binding.elements.len() {
+        leaf :: binding.elements[i]
+        emit_let_leaf(ctx, leaf, target, target_type, i, span, out)
+    }
+}
+
+// Index of the first `...rest` leaf in `binding`, or -1 when none.
+rest_leaf_index :: fn(binding: TupleBinding) -> i64 {
+    for i in 0..<binding.elements.len() {
+        if binding.elements[i] is RestBinding { return i64(i) }
+    }
+    return i64(-1)
+}
+
+// Desugar `[a, ...rest] := arr` (array target) : fixed leaves before the
+// rest read by index, the rest leaf binds a fresh array filled by a
+// loop pushing `arr[i]` for `i` in `rest_index..<arr.len()`. Mirror of
+// TS' `emitArrayDestructure` (`src/lower/passes/block.ts:332`).
+emit_array_destructure :: fn(
+    ctx: FnLowerCtx, binding: TupleBinding, rest_index: usize,
+    target: LoweredExpr, arr: ArrayType, span: Span, out: LoweredStmt[],
+) -> void {
+    elem_type :: ctx.types.apply(arr.element)
+    for i in 0..<rest_index {
+        leaf :: binding.elements[i]
+        if !(leaf is WildcardBinding) {
+            access :: LoweredIndex {
+                .span = span, .type = elem_type, .target = target,
+                .index = LoweredIntLit { .span = span, .type = mk_primitive("usize"), .value = i64(i) },
+            }
+            emit_let_leaf_array(ctx, leaf, access, elem_type, span, out)
+        }
+    }
+    rest_leaf :: binding.elements[rest_index]
+    match rest_leaf {
+        is RestBinding as rest -> {
+            emit_rest_loop(ctx, rest, rest_index, target, elem_type, span, out)
+        }
+        _ -> {}
+    }
+}
+
+// Emit the rest leaf's fresh-array + index-loop-push for an array
+// destructure.
+emit_rest_loop :: fn(
+    ctx: FnLowerCtx, rest: RestBinding, rest_index: usize,
+    target: LoweredExpr, elem_type: Type, span: Span, out: LoweredStmt[],
+) -> void {
+    // The resolver indexes a rest binding's Symbol by `span` (not
+    // `name_span` like simple bindings — see resolver `bind_let_binding`).
+    rest_sym :: lookup_local_symbol(ctx.project, ctx.typed.resolved, rest.span)
+    if rest_sym is null { return }
+    array_type :: mk_array(elem_type, false)
+    empty_arr :: LoweredArrayLit { .span = rest.span, .type = array_type, .elements = [] }
+    rest_init :: lower_cell_init(ctx, rest_sym, empty_arr, array_type, rest.span)
+    out.push(LoweredLet {
+        .span = rest.span, .name = rest.name, .symbol = rest_sym,
+        .type = rest_init.slot_type, .value = rest_init.value,
+    })
+    idx_sym :: fresh_synthetic_symbol(ctx, "i")
+    out.push(LoweredLet {
+        .span = span, .name = idx_sym.name, .symbol = idx_sym, .type = mk_primitive("usize"),
+        .value = LoweredIntLit { .span = span, .type = mk_primitive("usize"), .value = i64(rest_index) },
+    })
+    idx_ref :: LoweredIdent { .span = span, .type = mk_primitive("usize"), .symbol = idx_sym }
+    rest_ref :: read_local_cell_aware(ctx, rest_sym, array_type, span)
+    push_stmt :: LoweredExprStmt {
+        .span = span,
+        .expr = LoweredArrayPush {
+            .span = span, .type = TY_VOID, .target = rest_ref,
+            .value = LoweredIndex { .span = span, .type = elem_type, .target = target, .index = idx_ref },
+        },
+    }
+    inc_stmt :: LoweredAssign {
+        .span = span, .target = idx_ref,
+        .value = LoweredBinary {
+            .span = span, .type = mk_primitive("usize"), .op = LoweredBinaryOp.Add,
+            .left = idx_ref,
+            .right = LoweredIntLit { .span = span, .type = mk_primitive("usize"), .value = i64(1) },
+        },
+    }
+    loop_stmts: LoweredStmt[] = []
+    loop_stmts.push(push_stmt)
+    loop_stmts.push(inc_stmt)
+    loop_body :: LoweredBlock {
+        .span = span, .type = TY_VOID, .stmts = loop_stmts, .trailing = null,
+    }
+    out.push(LoweredLoop {
+        .span = span, .label = null,
+        .cond = LoweredBinary {
+            .span = span, .type = TY_BOOL, .op = LoweredBinaryOp.Lt,
+            .left = idx_ref,
+            .right = LoweredArrayLen { .span = span, .type = mk_primitive("usize"), .target = target },
+        },
+        .body = loop_body,
+    })
+}
+
+// Read a local respecting closure-cell promotion (mirror of `readLocal`
+// in `src/lower/passes/block.ts`).
+read_local_cell_aware :: fn(ctx: FnLowerCtx, sym: Symbol, type: Type, span: Span) -> LoweredExpr {
+    if ctx.project.closures.captured_symbols.contains(sym.id) {
+        cell_ref :: LoweredIdent { .span = span, .type = TY_UNRESOLVED, .symbol = sym }
+        return LoweredCellGet { .span = span, .type = type, .target = cell_ref, .value_type = type }
+    }
+    return LoweredIdent { .span = span, .type = type, .symbol = sym }
+}
+
+// A fixed array-destructure leaf (`a` in `[a, ...rest]`) — binds the
+// leaf to an already-built index access. SimpleBinding binds directly ;
+// nested tuples recurse.
+emit_let_leaf_array :: fn(
+    ctx: FnLowerCtx, leaf: LetBinding, access: LoweredExpr, elem_type: Type,
+    span: Span, out: LoweredStmt[],
+) -> void {
+    match leaf {
+        is SimpleBinding as simple -> {
+            symbol :: lookup_local_symbol(ctx.project, ctx.typed.resolved, simple.name_span)
+            if symbol is null { return }
+            out.push(LoweredLet {
+                .span = simple.span, .name = simple.name, .symbol = symbol,
+                .type = elem_type, .value = access,
+            })
+        }
+        is TupleBinding as nested -> {
+            emit_let_binding_leaves(ctx, nested, access, elem_type, span, out)
+        }
+        _ -> {}
+    }
+}
+
+emit_let_leaf :: fn(
+    ctx: FnLowerCtx, leaf: LetBinding, target: LoweredExpr,
+    target_type: Type, index: usize, span: Span, out: LoweredStmt[],
+) -> void {
+    match leaf {
+        is WildcardBinding -> {}
+        is RestBinding -> {
+            // Rest binding inside a tuple destructure : MVP emits an
+            // unreachable so the dump shape stays well-formed. The
+            // full TS port routes through `emitArrayDestructure` (an
+            // index-loop that fills a fresh array).
+            out.push(LoweredExprStmt {
+                .span = span,
+                .expr = LoweredUnreachable {
+                    .span = span, .type = TY_VOID,
+                    .reason = "rest-binding (`...name`) lowering deferred",
+                },
+            })
+        }
+        is SimpleBinding as simple -> {
+            symbol :: lookup_local_symbol(ctx.project, ctx.typed.resolved, simple.name_span)
+            if symbol is null { return }
+            elem_type :: tuple_or_array_element_type(target_type, index, ctx, simple)
+            access :: build_leaf_access(target, target_type, elem_type, simple.span, index)
+            out.push(LoweredLet {
+                .span = simple.span, .name = simple.name, .symbol = symbol,
+                .type = elem_type, .value = access,
+            })
+        }
+        is TupleBinding as nested -> {
+            elem_type :: tuple_or_array_element_type(target_type, index, ctx, simple_placeholder(nested))
+            access :: build_leaf_access(target, target_type, elem_type, nested.span, index)
+            emit_let_binding_leaves(ctx, nested, access, elem_type, nested.span, out)
+        }
+    }
+}
+
+// Fallback `SimpleBinding`-shaped span carrier for nested-tuple leaf
+// type lookup (we read the binding's `local_types` entry by its
+// `name_span` which doesn't exist for tuples ; in MVP just return
+// TY_UNRESOLVED via the placeholder shape).
+simple_placeholder :: fn(nested: TupleBinding) -> SimpleBinding {
+    return SimpleBinding {
+        .span = nested.span, .name = "", .name_span = nested.span,
+    }
+}
+
+tuple_or_array_element_type :: fn(
+    target_type: Type, index: usize, ctx: FnLowerCtx, binding: SimpleBinding,
+) -> Type {
+    // Prefer the typer's per-binding type (already substituted) when
+    // available — most accurate for the user's slot.
+    from_typed :: ctx.types.local_type(binding)
+    match from_typed {
+        is UnresolvedType -> {}
+        _ -> { return from_typed }
+    }
+    match target_type {
+        is TupleType as tup -> {
+            if index < tup.elements.len() { return tup.elements[index] }
+            return TY_UNRESOLVED
+        }
+        is ArrayType as arr -> { return arr.element }
+        _ -> { return TY_UNRESOLVED }
+    }
+}
+
+
+// Build the `_<index>` field access (tuple) or `[index]` index
+// (array) used to read the leaf value from the synthetic `__tup_n`.
+build_leaf_access :: fn(
+    target: LoweredExpr, target_type: Type, elem_type: Type, span: Span, index: usize,
+) -> LoweredExpr {
+    match target_type {
+        is ArrayType -> {
+            return LoweredIndex {
+                .span = span, .type = elem_type, .target = target,
+                .index = LoweredIntLit {
+                    .span = span, .type = mk_primitive("usize"), .value = i64(index),
+                },
+            }
+        }
+        _ -> {
+            return LoweredFieldAccess {
+                .span = span, .type = elem_type, .target = target, .field = "_${index}",
+            }
+        }
+    }
+}

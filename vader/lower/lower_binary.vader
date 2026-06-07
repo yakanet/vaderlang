@@ -1,0 +1,310 @@
+// vader/lower/lower_binary — binary / unary operators and operator-overload routing.
+//
+
+module "vader/lower"
+
+import "std/collections" { MutableMap }
+
+import "vader/parser" { Expr, NullLitExpr, FieldExpr, BinaryExpr, BinaryOp }
+import "vader/types" { Type, PrimitiveType, UnionType, TypeParamType, AnyType, TY_BOOL, mk_primitive }
+
+// Peel a narrowing `LoweredCast` off a type-check operand. `lower_ident`
+// inserts such a cast (`LoweredCast { value: LoweredIdent : <union> }`) when the
+// typed-AST narrowed a union-declared symbol to a variant at the use site. For
+// an `is` operand that cast is harmful — the C-emit `ref.cast`-unboxes the union
+// to the variant, so the following `type_check` constant-folds. Returning the
+// cast's inner union value keeps the runtime tag intact (the narrowing is a
+// compile-time view, so the check on the original box is what we want).
+strip_narrowing_cast :: fn(e: LoweredExpr) -> LoweredExpr {
+    if e is LoweredCast as c {
+        if type_of(c.value) is UnionType { return c.value }
+    }
+    return e
+}
+
+lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredExpr {
+    // `expr is T` lowers to a runtime tag check ; the RHS is a type
+    // expression, not a value. The `bind_as` parsing is handled inside
+    // `if x is T as alias` where the if's then-branch consumes the
+    // alias — that path lives in the typechecker's narrowing logic
+    // and lowers to a regular `LoweredCast` reaching the alias slot.
+    if i32(binary.op) == i32(BinaryOp.Is) {
+        return LoweredTypeCheck {
+            .span = binary.span,
+            .type = TY_BOOL,
+            // The check must see the operand's FULL (declared union) box so it
+            // can compare the runtime tag. When the typed-AST narrowed this use
+            // to a variant (`l : LocalId | null` recorded as `LocalId` at the
+            // `is null` site), `lower_ident` wraps it in a narrowing `LoweredCast`
+            // — the C-emit then `ref.cast`-unboxes to the variant and CONSTANT-
+            // FOLDS the tag check (`is null` → `false`). Peel that cast so the
+            // check runs on the union value, matching TS (whose typer keeps the
+            // operand at the union type here).
+            .value = strip_narrowing_cast(lower_expr(ctx, binary.left)),
+            .check_type = ctx.types.expr_type(binary.right),
+        }
+    }
+    if i32(binary.op) == i32(BinaryOp.In) || i32(binary.op) == i32(BinaryOp.NotIn) {
+        // `x in coll` → `coll.contains(x)`. `x !in coll` → `!coll.contains(x)`.
+        // The Contains impl on `coll`'s type provides the `contains`
+        // member ; the existing `find_impl_member_for` UFCS lookup
+        // covers struct receivers (`MutableMap`, `MutableSet`, …) and
+        // primitive ones (`Range<T> implements Contains<T>` via the
+        // intrinsic decl in std/core). Mirror of TS' `lowerInOp`
+        // (`src/lower/passes/expr.ts:927`).
+        coll_type :: ctx.types.expr_type(binary.right)
+        member :: find_impl_member_for(ctx, coll_type, "contains")
+        if member is UfcsMember as found {
+            args: LoweredExpr[] = []
+            args.push(lower_expr(ctx, binary.right))
+            args.push(lower_expr(ctx, binary.left))
+            call :: LoweredCall {
+                .span = binary.span, .type = TY_BOOL,
+                .callee = LoweredIdent {
+                    .span = binary.span, .type = TY_BOOL, .symbol = found.symbol,
+                },
+                .args = args,
+            }
+            if i32(binary.op) == i32(BinaryOp.NotIn) {
+                return LoweredUnary {
+                    .span = binary.span, .type = TY_BOOL,
+                    .op = LoweredUnaryOp.Not, .operand = call,
+                }
+            }
+            return call
+        }
+        return stub(binary.span, type, "`in` / `not in` lowering deferred")
+    }
+    // `<union>` `==` / `!=` `null` reduces to a tag-only `LoweredTypeCheck`.
+    // The C/VM emit can't compare two `vader_box_t` directly anyway and
+    // the type-check is the operation we actually want. Mirror of
+    // `lowerBinary`'s null-eq branch in `expr.ts:677-693`.
+    if i32(binary.op) == i32(BinaryOp.Eq) || i32(binary.op) == i32(BinaryOp.Neq) {
+        null_rewrite :: try_lower_null_eq(ctx, binary)
+        match null_rewrite {
+            is null -> {}
+            _ -> { return null_rewrite }
+        }
+    }
+    // Arithmetic + / − / × / ÷ on a user struct with a matching impl
+    // (`Vec implements Add { add(self, other) }` etc.) lowers to a
+    // direct call `add(a, b)`. Mirror of TS's `binaryOpResolutions`
+    // dispatch in `src/lower/passes/expr.ts:715-738`.
+    op_call :: try_lower_op_overload(ctx, binary, type)
+    match op_call {
+        is null -> {}
+        _ -> { return op_call }
+    }
+    return LoweredBinary {
+        .span = binary.span, .type = type,
+        .op    = lower_binary_op(binary.op),
+        .left  = lower_expr(ctx, binary.left),
+        .right = lower_expr(ctx, binary.right),
+    }
+}
+
+try_lower_op_overload :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredExpr | null {
+    info :: op_trait_method(binary.op)
+    if info is null { return null }
+    if info is OpTraitInfo as oti {
+        left_ty :: ctx.types.expr_type(binary.left)
+        // TypeParam-bound + erased Any receivers route through
+        // virtual dispatch — the boxed value's tag picks the right
+        // impl at runtime. Same shape as the FieldExpr path in
+        // `try_lower_virtual_call`, just driven from a BinaryOp.
+        // For Eq, the call's value IS the bool result. For Neq we
+        // wrap in `not`. For Lt/Lte/Gt/Gte, we keep the outer
+        // BinaryOp with the call as left + `0` as right (compare
+        // returns i32).
+        if left_ty is TypeParamType || left_ty is AnyType {
+            return lower_op_overload_via_vcall(ctx, binary, type, oti)
+        }
+        left_name :: type_surface_name(left_ty)
+        if left_name == "" { return null }
+        // Primitive operands stay on the built-in path — primitives
+        // have their own arithmetic / comparison ops.
+        if left_ty is PrimitiveType { return null }
+        member :: find_impl_member_for(ctx, left_ty, oti.method_name)
+        if member is null { return null }
+        // Verify the impl actually targets `oti.trait_name` — UFCS
+        // lookup is name-based and could match a same-named member
+        // on a different trait.
+        if !impl_provides(ctx, left_ty, oti.trait_name, oti.method_name) { return null }
+        if member is UfcsMember as found {
+            lowered_left  :: lower_expr(ctx, binary.left)
+            lowered_right :: lower_expr(ctx, binary.right)
+            call_args: LoweredExpr[] = []
+            call_args.push(lowered_left)
+            call_args.push(lowered_right)
+            if i32(oti.shape) == i32(OpShape.DirectCall) {
+                // Arithmetic + Equals : returns the binary's static type.
+                return LoweredCall {
+                    .span = binary.span, .type = type,
+                    .callee = LoweredIdent {
+                        .span = binary.span, .type = type, .symbol = found.symbol,
+                    },
+                    .args = call_args,
+                }
+            }
+            if i32(oti.shape) == i32(OpShape.NotCall) {
+                // `a != b` → `not(equals(a, b))`.
+                equals_call :: LoweredCall {
+                    .span = binary.span, .type = TY_BOOL,
+                    .callee = LoweredIdent {
+                        .span = binary.span, .type = TY_BOOL, .symbol = found.symbol,
+                    },
+                    .args = call_args,
+                }
+                return LoweredUnary {
+                    .span = binary.span, .type = TY_BOOL,
+                    .op = LoweredUnaryOp.Not, .operand = equals_call,
+                }
+            }
+            // OpShape.CompareCmp : `a < b` → `(compare(a, b)) < 0`, same
+            // for <= / > / >=. The outer BinaryOp matches `binary.op`.
+            compare_call :: LoweredCall {
+                .span = binary.span, .type = mk_primitive("i32"),
+                .callee = LoweredIdent {
+                    .span = binary.span, .type = mk_primitive("i32"), .symbol = found.symbol,
+                },
+                .args = call_args,
+            }
+            return LoweredBinary {
+                .span = binary.span, .type = TY_BOOL,
+                .op    = lower_binary_op(binary.op),
+                .left  = compare_call,
+                .right = LoweredIntLit {
+                    .span = binary.span, .type = mk_primitive("i32"), .value = i64(0),
+                },
+            }
+        }
+        return null
+    }
+    return null
+}
+
+// Emit `a op b` as a virtual call (the receiver is TypeParam-bound or
+// erased to Any). Shape mirrors the field-expr vcall path : Eq /
+// Comparable share the dispatch + outer-op patterns from `op_trait_method`.
+lower_op_overload_via_vcall :: fn(
+    ctx: FnLowerCtx, binary: BinaryExpr, type: Type, oti: OpTraitInfo,
+) -> LoweredExpr | null {
+    lowered_left  :: lower_expr(ctx, binary.left)
+    lowered_right :: lower_expr(ctx, binary.right)
+    args: LoweredExpr[] = []
+    args.push(lowered_right)
+    // Erased op-trait dispatch (`T`/`Any` operand) : surface every primitive
+    // implementor of the op-trait — see `virtually_dispatched_traits`.
+    ctx.project.virtually_dispatched_traits.add(oti.trait_name)
+    call :: LoweredVirtualCall {
+        .span = binary.span,
+        .type = if i32(oti.shape) == i32(OpShape.CompareCmp) { mk_primitive("i32") } else { TY_BOOL },
+        .trait_name = oti.trait_name, .method = oti.method_name,
+        .receiver = lowered_left, .args = args,
+    }
+    if i32(oti.shape) == i32(OpShape.DirectCall) {
+        return call
+    }
+    if i32(oti.shape) == i32(OpShape.NotCall) {
+        return LoweredUnary {
+            .span = binary.span, .type = TY_BOOL,
+            .op = LoweredUnaryOp.Not, .operand = call,
+        }
+    }
+    // CompareCmp : preserve the BinaryOp on (compare-call, 0).
+    return LoweredBinary {
+        .span = binary.span, .type = TY_BOOL,
+        .op    = lower_binary_op(binary.op),
+        .left  = call,
+        .right = LoweredIntLit {
+            .span = binary.span, .type = mk_primitive("i32"), .value = i64(0),
+        },
+    }
+}
+
+// True iff some impl entry targets `for_name` with `trait_name` AND
+// declares a member named `method_name`. Guards against UFCS-name
+// collisions where a struct happens to have a method matching an
+// op-trait's method name but doesn't actually implement that trait.
+impl_provides :: fn(ctx: FnLowerCtx, for_ty: Type, trait_name: string, method_name: string) -> bool {
+    for_name :: type_surface_name(for_ty)
+    if for_name == "" { return false }
+    for entry in ctx.project.impls.all {
+        decl :: entry.decl
+        if decl.trait_name != trait_name { continue }
+        if !impl_targets_name(decl.for_type, for_name) { continue }
+        for m in decl.members {
+            if m.name == method_name { return true }
+        }
+    }
+    return false
+}
+
+OpShape :: enum(i32) {
+    DirectCall,    // `a op b` -> `method(a, b)`             (Add / Sub / Mul / Div / Mod / Eq)
+    NotCall,       // `a op b` -> `!method(a, b)`            (Neq)
+    CompareCmp,    // `a op b` -> `method(a, b) <orig op> 0` (Lt / Lte / Gt / Gte)
+}
+
+OpTraitInfo :: struct {
+    trait_name:  string
+    method_name: string
+    shape:       OpShape
+}
+
+op_trait_method :: fn(op: BinaryOp) -> OpTraitInfo | null {
+    if i32(op) == i32(BinaryOp.Add) { return OpTraitInfo { .trait_name = "Add", .method_name = "add", .shape = OpShape.DirectCall } }
+    if i32(op) == i32(BinaryOp.Sub) { return OpTraitInfo { .trait_name = "Sub", .method_name = "sub", .shape = OpShape.DirectCall } }
+    if i32(op) == i32(BinaryOp.Mul) { return OpTraitInfo { .trait_name = "Mul", .method_name = "mul", .shape = OpShape.DirectCall } }
+    if i32(op) == i32(BinaryOp.Div) { return OpTraitInfo { .trait_name = "Div", .method_name = "div", .shape = OpShape.DirectCall } }
+    if i32(op) == i32(BinaryOp.Mod) { return OpTraitInfo { .trait_name = "Rem", .method_name = "rem", .shape = OpShape.DirectCall } }
+    if i32(op) == i32(BinaryOp.Eq)  { return OpTraitInfo { .trait_name = "Equals", .method_name = "equals", .shape = OpShape.DirectCall } }
+    if i32(op) == i32(BinaryOp.Neq) { return OpTraitInfo { .trait_name = "Equals", .method_name = "equals", .shape = OpShape.NotCall } }
+    if i32(op) == i32(BinaryOp.Lt)  { return OpTraitInfo { .trait_name = "Comparable", .method_name = "compare", .shape = OpShape.CompareCmp } }
+    if i32(op) == i32(BinaryOp.Lte) { return OpTraitInfo { .trait_name = "Comparable", .method_name = "compare", .shape = OpShape.CompareCmp } }
+    if i32(op) == i32(BinaryOp.Gt)  { return OpTraitInfo { .trait_name = "Comparable", .method_name = "compare", .shape = OpShape.CompareCmp } }
+    if i32(op) == i32(BinaryOp.Gte) { return OpTraitInfo { .trait_name = "Comparable", .method_name = "compare", .shape = OpShape.CompareCmp } }
+    return null
+}
+
+try_lower_null_eq :: fn(ctx: FnLowerCtx, binary: BinaryExpr) -> LoweredExpr | null {
+    union_operand: Expr | null = null
+    if is_null_lit(binary.left) && is_union_with_null(ctx.types.expr_type(binary.right)) {
+        union_operand = binary.right
+    }
+    if is_null_lit(binary.right) && is_union_with_null(ctx.types.expr_type(binary.left)) {
+        union_operand = binary.left
+    }
+    if union_operand is null { return null }
+    check :: LoweredTypeCheck {
+        .span = binary.span, .type = TY_BOOL,
+        .value = lower_expr(ctx, union_operand),
+        .check_type = mk_primitive("null"),
+    }
+    if i32(binary.op) == i32(BinaryOp.Eq) { return check }
+    return LoweredUnary {
+        .span = binary.span, .type = TY_BOOL,
+        .op = LoweredUnaryOp.Not, .operand = check,
+    }
+}
+
+is_null_lit :: fn(e: Expr) -> bool {
+    match e {
+        is NullLitExpr -> { return true }
+        _ -> { return false }
+    }
+}
+
+is_union_with_null :: fn(type: Type) -> bool {
+    match type {
+        is UnionType as u -> {
+            for v in u.variants {
+                if v is PrimitiveType as p {
+                    if p.name == "null" { return true }
+                }
+            }
+            return false
+        }
+        _ -> { return false }
+    }
+}

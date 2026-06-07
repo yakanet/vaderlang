@@ -1,0 +1,410 @@
+// vader/lower/lower_mono_fn — generic function-instance materialization.
+//
+
+module "vader/lower"
+
+import "std/collections" { MutableMap }
+import "std/sort" { sort }
+import "std/string" { compare_ascending }
+import "std/string_builder" { new_builder, append }
+
+import "vader/diagnostics" { Diagnostic, Span }
+import "vader/parser" { Decl, FnDecl }
+import "vader/resolver" { LoadedProject, LoadedModule }
+import "vader/typecheck" { TypedProject, TypedProgram, Substitution, substitute }
+import "vader/types" { display_type }
+import "vader/comptime" { MonoEntry }
+import "vader/resolver/symbol" { Symbol }
+
+// Per-module decls. Loaded module's first file carries them ;
+// folder-modules with multiple files are flattened at load time so the
+// per-file accessor doesn't have to walk multiple files here. (Mirrors
+// `vader/comptime/check.vader::lookup_module_decls`.)
+/// Walk `evaluated.instances` and emit a synthetic monomorphic decl
+/// per concrete generic instance. Structs land as
+/// `Symbol__T1__T2 { field: ConcreteT }` ; generic-impl members
+/// follow as `Symbol$Trait$method__T1__T2(...)`. Mirror of TS's
+/// `monomorphizeProject` (`src/comptime/specialize.ts`) pass-2.
+/// Build phase of generic-fn-instance materialisation. Drains the
+/// `fn_instances_order` + `pending_generic_impl_recv` queues into
+/// `project_ctx.generic_collected`, lowering each instance body against a
+/// fresh `Substitution` binding the fn's typeParams to the call site's
+/// concrete types. Resumes from the persistent `generic_fn_cursor` /
+/// `generic_recv_cursor` so `lower_project`'s generic↔stdlib joint fixpoint
+/// can re-run it as later harvest rounds register new instances (e.g. `len`
+/// pulled in by the harvested `std/json::write_object` body). The sort +
+/// erasure-dedup + push happens once in `flush_generic_fn_instances`.
+///
+/// The mono pass's Pass 3 (`run_pass_3` in `specialize.vader`) also produces
+/// one entry per `(fn symbol, type_arguments)` pair via
+/// `evaluated.mono.fn_instance_entries`, but the mangled names differ
+/// (`inst.mangled` carries a double-prefix bug ; mono's is canonical single-
+/// prefix). Until reconciled we drive from `fn_instances_order` for byte-
+/// parity. TODO: drop `fn_instances_order`, read from mono entries.
+drain_generic_fn_instances :: fn(
+    loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx,
+    project: LoweredProject, diags: Diagnostic[],
+) -> void {
+    // Transitive monomorphisation : lowering an instance body can register
+    // *new* instances (`outer<T>` calling `inner<T>`), appending to
+    // `fn_instances_order` mid-loop ; the persistent `generic_fn_cursor` (seeded
+    // into the local `i`, written back at the end) re-reads `len()` each step so
+    // it visits every transitive instance — INCLUDING those a later harvest
+    // round registers, since the joint fixpoint re-enters this fn — without
+    // re-processing earlier ones. `generic_processed` dedups duplicate
+    // `(symbol, args)` discoveries. Re-indexing by position is safe across
+    // reallocs.
+    // Joint fixpoint over fn instances AND erased generic-struct impl
+    // receivers (`pending_generic_impl_recv`). Both cursors only grow ;
+    // materialising a receiver's impl members harvests transitive free fns
+    // (`MutableMap.contains` → `contains_key`) into `fn_instances_order`, and
+    // building a fn instance body can queue further erased receivers, so the
+    // two drain to a shared fixpoint via a single growing-cursor loop.
+    i := project_ctx.generic_fn_cursor
+    ri := project_ctx.generic_recv_cursor
+    for i < project_ctx.fn_instances_order.len() || ri < project_ctx.pending_generic_impl_recv.len() {
+        for i < project_ctx.fn_instances_order.len() {
+            inst :: project_ctx.fn_instances_order[i]
+            i += 1
+            key :: fn_instance_key(inst)
+            if project_ctx.generic_processed[key] != null { continue }
+            project_ctx.generic_processed[key] = true
+            // The comptime harvest (`harvest_instances`) does not observe
+            // generic fn calls today ; the lowerer's own probe is
+            // authoritative, so we don't gate on the mono table.
+            built :: build_fn_instance_decl(inst, key, loaded, typed, project_ctx, diags)
+            match built {
+                is null -> {}
+                is PendingFnInstance as p -> { project_ctx.generic_collected.push(p) }
+            }
+        }
+        // Materialise each queued erased generic-struct instance's impl members
+        // (`MutableMap<Any, bool>.Contains.contains__Any__bool`). Its instance
+        // never reaches `evaluated.instances`, so the regular worklist skips it
+        // — but a deduped erased free-fn body still calls into it. Reuses the
+        // concrete-instance materialiser ; deduped against the worklist via
+        // `materialized_impl_keys`.
+        for ri < project_ctx.pending_generic_impl_recv.len() {
+            recv :: project_ctx.pending_generic_impl_recv[ri]
+            ri += 1
+            owner_typed :: typed.modules[recv.symbol.module]
+            if owner_typed is TypedProgram as ot {
+                materialize_impl_members_for(recv, ot, project_ctx, project, loaded, typed, diags)
+            }
+        }
+    }
+    project_ctx.generic_fn_cursor = i
+    project_ctx.generic_recv_cursor = ri
+}
+
+/// Flush phase of generic-fn-instance materialisation. Sorts every instance
+/// `drain_generic_fn_instances` collected by `<fn_symbol.id>::<args_key>`
+/// (matching TS's `displayKey` ordering, `src/comptime/instances.ts:33` — the
+/// `symbol.id` prefix groups a fn's overloads, args sort alphabetically within
+/// a group), erasure-dedups, and pushes to modules. Runs ONCE after the joint
+/// fixpoint converges so emission order is a single deterministic sort over the
+/// whole set — `inner` (lower symbol id) emits before `outer` regardless of
+/// discovery order.
+flush_generic_fn_instances :: fn(project_ctx: LowerProjectCtx, project: LoweredProject) -> void {
+    // Erasure-dedupe : every instance of a NON-trait-dispatching free
+    // generic fn erases to the same Any-typed body, so collapse a fn's
+    // group to a single decl keyed by `fn_symbol.id`, keeping the first
+    // by sort order (`outer<i32>` + `outer<string>` -> one `outer__i32`).
+    // Mirror of TS' `erasureDedupe` collapsing each fn group to one
+    // representative (`src/comptime/erasure-dedupe.ts`). Impl-member
+    // instances never reach `fn_instances` (they route through the mono
+    // / vtable path), so this only collapses free generic fns.
+    //
+    // A trait-dispatching free generic fn (GATE A : `dispatches`, built
+    // CONCRETE per instance) does NOT erase — `get__string` and `get__i32`
+    // are distinct bodies dispatching `key.hash()` / `key.equals()` on the
+    // concrete key, and their call sites target the per-key mangle.
+    // Collapsing them to the first-sorted `__i32__` instance routes every
+    // non-i32-keyed map's `at`/`set_at` into `i32$Hash$hash` → a string key
+    // hits `i32.to_i64` and traps. They are already deduped by full `key`
+    // in the build loop above (`generic_processed[key]`) and carry a NULL
+    // `origin.symbol` (set in `build_fn_instance_decl`), so the body-emit
+    // pass indexes them by mangle — exactly like materialised impl members.
+    sorted_pending :: sort(project_ctx.generic_collected, pending_fn_instance_less)
+    emitted_fns: MutableMap<i32, bool> = MutableMap<i32, bool> {}
+    for p in sorted_pending {
+        // Erasure-dedup gate : dispatching (GATE A) instances always emit ;
+        // non-dispatching ones collapse to the first per symbol id.
+        if !p.dispatches {
+            if emitted_fns[p.fn_symbol_id] != null { continue }
+            emitted_fns[p.fn_symbol_id] = true
+        }
+        push_to_module(project, p.module_id, p.decl)
+        // Drain this instance's own lambda/defer window (skipped for the
+        // deduped siblings the gate `continue`d past).
+        drain_synth_window(project, p.module_id, project_ctx, p.synth_start, p.synth_end)
+    }
+}
+
+// One materialised fn instance awaiting emission, carrying its routing
+// key so the final push order matches the `<symbol.id>::<args>` sort,
+// plus the source fn's symbol id for erasure-dedupe grouping.
+PendingFnInstance :: struct {
+    module_id:    string
+    key:          string
+    fn_symbol_id: i32
+    /// True when the source generic fn trait-dispatches on a type param
+    /// (GATE A → concretised per instance via `build_fn_concrete_subst`).
+    /// Such instances skip the `fn_symbol_id` erasure-dedupe: each per-key
+    /// body (`get__string` vs `get__i32`) is a distinct concrete fn whose
+    /// call sites target the per-key mangle.
+    dispatches:   bool
+    decl:         LoweredFnDecl
+    /// `project_ctx.synth_decls` window `[synth_start, synth_end)` of the
+    /// lambda/defer lifted fns spawned while lowering this instance's body.
+    /// Drained into `module_id` at push time (skipped for deduped siblings)
+    /// so a closure inside a monomorphised body isn't orphaned.
+    synth_start:  usize
+    synth_end:    usize
+}
+
+pending_fn_instance_less :: fn(a: PendingFnInstance, b: PendingFnInstance) = compare_ascending(a.key, b.key)
+
+/// True when `evaluated.mono` carries a FnDecl-kind MonoEntry whose
+/// symbol id matches `inst.fn_symbol.id` and whose `type_arguments`
+/// matches `inst.type_args`. The mono pass already filters out
+/// degenerate instances, so missing entries here mean the lowerer
+/// should also skip.
+mono_has_fn_instance_for :: fn(project_ctx: LowerProjectCtx, inst: GenericFnInstance) -> bool {
+    entries :: project_ctx.evaluated.mono.entries
+    i: usize = 0
+    for i < entries.len() {
+        entry :: entries[i]
+        if entry.type_arguments.len() != inst.type_args.len() {
+            i += 1
+            continue
+        }
+        match entry.symbol {
+            is Symbol as s -> {
+                if s.id == inst.fn_symbol.id { return true }
+            }
+            _ -> {}
+        }
+        i += 1
+    }
+    return false
+}
+
+fn_instance_key :: fn(inst: GenericFnInstance) -> string {
+    sb := new_builder()
+    sb.append("${inst.fn_symbol.id}::")
+    for a in inst.type_args {
+        sb.append(":")
+        sb.append(display_type(a))
+    }
+    return sb.to_string()
+}
+
+// Build (but don't push) the monomorphized `LoweredFnDecl` for `inst`.
+// Lowering the body here can register transitive fn instances into
+// `project_ctx.fn_instances_order` — the caller's fixpoint loop picks
+// those up. Returns null when the owner module / source decl is
+// missing.
+build_fn_instance_decl :: fn(
+    inst: GenericFnInstance, key: string, loaded: LoadedProject, typed: TypedProject,
+    project_ctx: LowerProjectCtx, diags: Diagnostic[],
+) -> PendingFnInstance | null {
+    // Bracket the synth_decls this instance's body lowering spawns (lambdas /
+    // defers) so the push loop can drain exactly this window — see
+    // `drain_synth_window`. The early-return (null) paths below don't lower a
+    // body, so they append nothing.
+    synth_start :: project_ctx.synth_decls.len()
+    owner_module_id :: inst.owner_module
+    owner_module :: loaded.modules[owner_module_id]
+    owner_typed :: typed.modules[owner_module_id]
+    if owner_typed is null { return null }
+    if owner_module is null { return null }
+    fn_decl :: find_fn_decl_for_symbol(module_decls(owner_module), inst.fn_symbol, inst.type_args.len())
+    if fn_decl is null { return null }
+    // Erasure vs concrete subst (GATE A) : a generic fn whose body
+    // trait-dispatches on a type-param (e.g. `println<T: Display>` calling
+    // `msg.to_string()`) must stay CONCRETE per instance — erasing `T` to
+    // `Any` lowers the dispatch to `virtual.call` on a `ref _` receiver
+    // that no vtable resolves (the mode-a gap). Typecheck flags these in
+    // `fn_trait_dispatches`. Everything else still erases to `Any` (TS does
+    // the same — concrete-everywhere regresses non-dispatching generics).
+    dispatches :: owner_typed.fn_trait_dispatches[fn_decl.id] is bool
+    subst :: if dispatches {
+        build_fn_concrete_subst(fn_decl, owner_typed, inst.type_args)
+    } else {
+        build_fn_any_subst(fn_decl, owner_typed)
+    }
+    types :: make_entry_types(owner_typed, subst)
+    params: LoweredParam[] = []
+    for ast_param in fn_decl.params {
+        symbol_or_null :: lookup_local_symbol(project_ctx, owner_typed.resolved, ast_param.span)
+        sym :: synth_param_or(symbol_or_null, ast_param.name, owner_typed)
+        raw_ty :: types.param_type(ast_param)
+        params.push(LoweredParam {
+            .name = ast_param.name, .symbol = sym, .type = raw_ty,
+        })
+    }
+    return_type :: substitute(return_type_of(fn_decl, types), subst)
+    entry_decl: Decl = fn_decl
+    // A trait-dispatching (GATE A, per-instance-concrete) free generic fn
+    // carries a NULL origin symbol so the bytecode body-emit indexes it by
+    // MANGLE, not by the shared source-fn symbol id. Every per-key instance
+    // (`get__string`, `get__i32`, …) reuses the one `get` symbol ; keeping a
+    // non-null symbol makes `reserve_cfg_function` overwrite a single
+    // `function_index_by_symbol_id` slot, so all instances but the last
+    // ship with an EMPTY body. Mirrors `materialize_impl_for_instance`,
+    // which sets `.symbol = null` on impl members for the same reason.
+    // Erased (non-dispatching) instances keep the symbol — they collapse to
+    // one decl per symbol id via the erasure-dedupe below.
+    entry_symbol: Symbol | null = if dispatches { null } else { inst.fn_symbol }
+    entry :: MonoEntry {
+        .id             = i32(0),
+        .is_main        = false,
+        .mangled        = inst.mangled,
+        .decl           = entry_decl,
+        .symbol         = entry_symbol,
+        .subst          = subst,
+        .type_arguments = inst.type_args,
+        .module         = owner_typed,
+    }
+    body :: lower_fn_body(fn_decl, owner_typed, project_ctx, entry, subst, return_type)
+    return PendingFnInstance {
+        .module_id    = owner_module_id,
+        .key          = key,
+        .fn_symbol_id = inst.fn_symbol.id,
+        .dispatches   = dispatches,
+        .decl         = LoweredFnDecl {
+            .mangled     = inst.mangled,
+            .params      = params,
+            .return_type = return_type,
+            .body        = body,
+            .origin      = entry,
+        },
+        .synth_start  = synth_start,
+        .synth_end    = project_ctx.synth_decls.len(),
+    }
+}
+
+find_fn_decl_by_name :: fn(decls: Decl[], name: string, arity: usize) -> FnDecl | null {
+    for d in decls {
+        match d {
+            is FnDecl as f -> {
+                if f.name != name { continue }
+                if f.type_params.len() == 0 { continue }
+                if f.type_params.len() != arity { continue }
+                return f
+            }
+            _ -> {}
+        }
+    }
+    return null
+}
+
+// Resolve the AST decl for a monomorphic instance by the RESOLVED overload's
+// identity (its definition span), not just name + arity.
+//
+// Two same-name / same-arity generic overloads — `collect(arr: T[])` vs
+// `collect(it: Iterator<T>)` in `std/iter` — share a name. A name-only lookup
+// (`find_fn_decl_by_name`) always returns the FIRST decl, so the typechecker's
+// resolution (e.g. the `Iterator<T>` overload for a `FilterIterator` receiver)
+// is discarded and the wrong body is emitted — the `arr: T[]` body then runs
+// `array.len` on the iterator struct and traps. Match `name_span` against the
+// symbol's `defined_at` so each instance materialises its own overload body.
+find_fn_decl_for_symbol :: fn(decls: Decl[], sym: Symbol, arity: usize) -> FnDecl | null {
+    match sym.defined_at {
+        is Span as def -> {
+            for d in decls {
+                if d is FnDecl as f {
+                    if f.type_params.len() != arity { continue }
+                    if f.name_span.hash() == def.hash() { return f }
+                }
+            }
+        }
+        is null -> {}
+    }
+    // Fallback : name + arity, for synthetic / cloned decls whose symbol span
+    // doesn't line up with a source `name_span`.
+    return find_fn_decl_by_name(decls, sym.name, arity)
+}
+
+// First non-generic FnDecl named `name` in `decls`. Stdlib fn names are
+// effectively unique within a module ; on the rare overload, the first
+// match wins (refine to arity-keyed if a real collision surfaces).
+find_nongeneric_fn_decl_by_name :: fn(decls: Decl[], name: string) -> FnDecl | null {
+    for d in decls {
+        if d is FnDecl as f {
+            if f.name == name && f.type_params.len() == 0 { return f }
+        }
+    }
+    return null
+}
+
+// The non-generic FnDecl that DEFINED `fn_sym`. For an overloaded name
+// (`min :: fn(f64, f64) ; min :: fn(usize, usize)`) the resolver minted a
+// distinct symbol per decl with `defined_at` = the decl's `name_span` ; match
+// on that span so the right overload is materialised. A name-only lookup
+// would always pick the first declared overload and the call site (re-pointed
+// to a sibling overload by `retype_overload_callee`) would resolve to the
+// wrong body — or drop entirely. Falls back to name when the symbol carries
+// no span.
+find_nongeneric_fn_decl_for_symbol :: fn(decls: Decl[], fn_sym: Symbol) -> FnDecl | null {
+    match fn_sym.defined_at {
+        is null -> { return find_nongeneric_fn_decl_by_name(decls, fn_sym.name) }
+        is Span as want -> {
+            for d in decls {
+                if d is FnDecl as f {
+                    if f.name != fn_sym.name { continue }
+                    if f.type_params.len() != usize(0) { continue }
+                    if f.name_span.hash() == want.hash() { return f }
+                }
+            }
+            // Span miss (e.g. a re-pointed symbol whose span originated in a
+            // different per-module parse) : fall back to the name lookup.
+            return find_nongeneric_fn_decl_by_name(decls, fn_sym.name)
+        }
+    }
+}
+
+// Materialise the non-generic stdlib free fns harvested at call sites
+// (`register_nongeneric_stdlib_fn`). Each is lowered once via the normal
+// `lower_fn_decl` path — with-body fns land as real fns, `@extern` ones
+// as `body = null` decls the bytecode emitter routes to the import table.
+// Without this, calls to `append` / `byte_len` / `new_builder` and other
+// non-generic stdlib fns are dropped (their module bodies are skipped by
+// `is_stdlib_path`, and only GENERIC instances are otherwise harvested).
+materialize_nongeneric_stdlib_fns :: fn(
+    loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx,
+    project: LoweredProject, diags: Diagnostic[],
+) -> void {
+    // Cursor over a growing array : lowering one stdlib body can harvest
+    // further non-generic stdlib fns it calls, appending mid-loop.
+    // Resume from a persisted cursor : the materialise↔surface fixpoint loop
+    // re-enters this fn after surfacing harvests further free fns, and we must
+    // not re-lower the entries already emitted on an earlier pass.
+    for project_ctx.nongeneric_stdlib_cursor < project_ctx.nongeneric_stdlib_order.len() {
+        fn_sym :: project_ctx.nongeneric_stdlib_order[project_ctx.nongeneric_stdlib_cursor]
+        project_ctx.nongeneric_stdlib_cursor += usize(1)
+        module_typed :: typed.modules[fn_sym.module]
+        if module_typed is null { continue }
+        module_loaded :: loaded.modules[fn_sym.module]
+        if module_loaded is null { continue }
+        if module_typed is TypedProgram as mt {
+            if module_loaded is LoadedModule as ml {
+                fn_decl :: find_nongeneric_fn_decl_for_symbol(module_decls(ml), fn_sym)
+                if fn_decl is FnDecl as fd {
+                    // Bodyless externs are surfaced up front in
+                    // `lower_project`'s stdlib branch — skip to avoid a
+                    // duplicate import entry for the same symbol.
+                    if fd.body is null { continue }
+                    synth_start :: project_ctx.synth_decls.len()
+                    lowered :: lower_fn_decl(fd, mt, project_ctx, diags)
+                    if lowered != null { push_to_module(project, fn_sym.module, lowered) }
+                    // Drain any lambda/defer lifted fns this body spawned into
+                    // the same stdlib module (e.g. `strip_numeric_text`'s
+                    // `replace_chars_where((c) -> c == '_', …)`), right after the fn.
+                    drain_synth_since(project, fn_sym.module, project_ctx, synth_start)
+                }
+            }
+        }
+    }
+}
