@@ -893,9 +893,8 @@ reserve_fn :: fn(function_decl: LoweredFnDecl, ctx: EmitterCtx) -> void {
         .debug      = empty_debug,
         .jump_table = empty_jump_table,
     })
-    match function_decl.origin.symbol {
-        is Symbol as symbol -> { ctx.function_index_by_symbol_id[symbol.id] = function_index }
-        _ -> {}
+    if function_decl.origin.symbol is Symbol as symbol {
+        ctx.function_index_by_symbol_id[symbol.id] = function_index
     }
     ctx.function_index_by_mangle[function_decl.mangled] = function_index
 }
@@ -916,9 +915,8 @@ reserve_extern :: fn(
         .signature     = signature,
         .is_extern     = is_extern,
     })
-    match function_decl.origin.symbol {
-        is Symbol as symbol -> { ctx.import_index_by_symbol_id[symbol.id] = import_index }
-        _ -> {}
+    if function_decl.origin.symbol is Symbol as symbol {
+        ctx.import_index_by_symbol_id[symbol.id] = import_index
     }
 }
 
@@ -1079,10 +1077,7 @@ emit_fn_body :: fn(function_decl: LoweredFnDecl, ctx: EmitterCtx) -> void {
     function_index :: lookup_function_index(function_decl, ctx)
     if function_index < 0 { return }
     state :: init_fn_emit_state(function_decl)
-    match function_decl.body {
-        is LoweredBlock as block -> emit_block(block, state, ctx)
-        _ -> {}
-    }
+    if function_decl.body is LoweredBlock as block { emit_block(block, state, ctx) }
     if !ends_with_return(state.body) {
         push_op(state, Return {})
     }

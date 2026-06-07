@@ -331,25 +331,6 @@ apply_f64_cmp :: fn(frame: Frame, op_label: string, cmp: fn(f64, f64) -> bool) -
     return null
 }
 
-/// Unwrap an `I64Val` from a `Value`. `I32Val` arrivals widen
-/// transparently so mixed-width ops (e.g. an `i32.const N` flowing into
-/// `i64.add`) just work — the i32 sibling already accepts `CharVal` and
-/// `I64Val` symmetrically.
-///
-/// @param v       the tagged value to inspect.
-/// @param at_pc   pc of the op doing the read (for the Trap message).
-/// @param label   short context label (e.g. `"i64.add left"`).
-/// @return        the `I64Val` payload on success, or a `Trap` on type
-///                mismatch.
-read_i64 :: fn(v: Value, at_pc: i32, label: string) -> I64Val | Trap {
-    // @partial: i64/i32 carriers unwrap; every other Value variant traps.
-    return @partial match v {
-        is I64Val as i -> i
-        is I32Val as i -> I64Val { .value = i64(i.value) }
-        _                 -> Trap { .message = "${label} at pc=${at_pc}: expected i64, got ${describe_value_tag(v)}" }
-    }
-}
-
 /// Apply an i64 binary op (Add / Sub / Mul) on top-of-stack. Pops two
 /// i64 operands, pushes an `I64Val` carrying `apply(left, right)`.
 apply_i64_binop :: fn(frame: Frame, op_label: string, apply: fn(i64, i64) -> i64) -> Trap | null {

@@ -190,12 +190,9 @@ emit_type_decls :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
     // any declaration order.
     i: usize = 0
     for i < ctx.module.types.len() {
-        match ctx.module.types[i] {
-            is BcStruct -> {
-                cname :: ctx.struct_c_names[i]
-                out.append("typedef struct ${cname} ${cname};\n")
-            }
-            _ -> {}
+        if ctx.module.types[i] is BcStruct {
+            cname :: ctx.struct_c_names[i]
+            out.append("typedef struct ${cname} ${cname};\n")
         }
         i += 1
     }
@@ -206,10 +203,7 @@ emit_type_decls :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
     // emits next to the regular typedef for inline-variant POD shapes).
     j: usize = 0
     for j < ctx.module.types.len() {
-        match ctx.module.types[j] {
-            is BcStruct as s -> emit_struct_body(ctx, s, j, out)
-            _ -> {}
-        }
+        if ctx.module.types[j] is BcStruct as s { emit_struct_body(ctx, s, j, out) }
         j += 1
     }
     out.append("\n")

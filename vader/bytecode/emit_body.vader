@@ -352,12 +352,9 @@ emit_if :: fn(if_expr: LoweredIf, state: FnEmitState, ctx: EmitterCtx) -> void {
     emit_expr(if_expr.cond, state, ctx)
     push_op(state, If {})
     emit_block(if_expr.then_block, state, ctx)
-    match if_expr.else_block {
-        is LoweredBlock as else_block -> {
-            push_op(state, Else {})
-            emit_block(else_block, state, ctx)
-        }
-        _ -> {}
+    if if_expr.else_block is LoweredBlock as else_block {
+        push_op(state, Else {})
+        emit_block(else_block, state, ctx)
     }
     push_op(state, End {})
 }
