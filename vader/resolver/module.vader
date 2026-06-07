@@ -220,7 +220,12 @@ export resolve_sidecar :: fn(subdir: string, marker: string) -> string {
 }
 
 /// Stdlib root, resolved next to the executable (then cwd) — see `resolve_sidecar`.
-export default_stdlib_root :: fn() = resolve_sidecar("stdlib", "std/io.vader")
+/// The marker is `std/io/io.vader` : `std/io` is a folder module, so the bare
+/// `std/io.vader` file no longer exists — a stale marker silently defeated the
+/// exe-sidecar branch, forcing every binary onto the `<cwd>/stdlib` fallback
+/// (so a `dist/` bundle could never find its own stdlib unless run from a dir
+/// that happened to hold one).
+export default_stdlib_root :: fn() = resolve_sidecar("stdlib", "std/io/io.vader")
 
 import "std/json" { parse, JsonValue, JsonObject, JsonArray, JsonString }
 

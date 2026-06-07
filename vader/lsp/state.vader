@@ -42,7 +42,7 @@ export ServerState :: struct {
     /// didClose so a stale index never serves a closed-doc request.
     indices:                    MutableMap<string, DocIndex>
     /// Absolute path to the standard-library root (the dir that
-    /// contains `std/io.vader` etc.). Empty when the host didn't
+    /// contains `std/io/io.vader` etc.). Empty when the host didn't
     /// supply `--stdlib-root` — cross-file goto-def on `std/*`
     /// imports degrades to `null` then.
     stdlib_root:                string
