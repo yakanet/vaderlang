@@ -150,7 +150,7 @@ reserve_cfg_extern :: fn(ext: CFGExternDecl, ctx: EmitterCtx) -> void {
 }
 
 reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx) -> void {
-    sym_id := i32(-1)
+    sym_id :i32 = -1
     if s.origin.symbol is Symbol as sym { sym_id = sym.id }
     // Key on the struct *type*'s intern key (display_type), not the
     // mangled name — `intern_type` for a `StructType` derives the same
@@ -616,7 +616,9 @@ cf_else :: fn(ctx: FnEmitCfg, span: Span) -> void {
     ctx.slot.jump_table[usize(top.opener_pc)] = pc + 1
     // Repurpose the same entry as an "else scope".
     ctx.scopes[sp - usize(1)] = ScopeFrame {
-        .kind = "if", .target_blk = top.target_blk, .opener_pc = pc,
+        .kind = "if", 
+        .target_blk = top.target_blk, 
+        .opener_pc = pc,
     }
 }
 
@@ -757,10 +759,10 @@ emit_range :: fn(ctx: FnEmitCfg, start: BlockId, until: BlockId) -> void {
     }
 }
 
-// `MutableMap[k]` returns V (here BlockId|null). When the key is absent
-// the lookup also returns null — indistinguishable from a stored null
-// without `contains_key` (which the Vader stdlib MutableMap doesn't
-// surface via direct field access). Walk the keys instead to know.
+/// `MutableMap[k]` returns V (here BlockId|null). When the key is absent
+/// the lookup also returns null — indistinguishable from a stored null
+/// without `contains_key` (which the Vader stdlib MutableMap doesn't
+/// surface via direct field access). Walk the keys instead to know.
 loop_exit_present :: fn(ctx: FnEmitCfg, b: BlockId) -> bool {
     for k in ctx.loop_exit.keys() { if k == b { return true } }
     return false
