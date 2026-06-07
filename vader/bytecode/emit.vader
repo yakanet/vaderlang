@@ -32,26 +32,7 @@ import "vader/parser" {
     Decl, FnDecl, AssertDecl, ConstDecl, EnumDecl, ImplDecl, ImportDecl,
     StructDecl, TraitDecl, TypeAliasDecl, Decorator, StringLitExpr, StringLitText,
 }
-import "vader/lower" {
-    LoweredProject, LoweredModule, LoweredDecl,
-    LoweredFnDecl, LoweredStructDecl, LoweredConstDecl,
-    LoweredParam, LoweredStructField,
-    LoweredStmt, LoweredLet, LoweredAssign, LoweredCellSet,
-    LoweredExprStmt, LoweredReturn, LoweredLoop, LoweredBreak, LoweredContinue,
-    LoweredExpr, LoweredIntLit, LoweredFloatLit, LoweredBoolLit, LoweredNullLit,
-    LoweredCharLit, LoweredStringLit, LoweredIdent, LoweredCall,
-    LoweredBlock, LoweredIf, LoweredStructLit, LoweredStructLitField,
-    LoweredFieldAccess, LoweredArrayLit, LoweredArrayLen, LoweredArrayPush,
-    LoweredArraySlice, LoweredIndex, LoweredCast, LoweredTypeCheck,
-    LoweredTypeConst, LoweredDataConst, LoweredUnreachable,
-    LoweredMakeClosure, LoweredVirtualCall, LoweredIntrinsicCall,
-    LoweredCellNew, LoweredCellGet,
-    VtableEntry as LoweredVtableEntry,
-    DataPoolEntry,
-    INTRINSIC_BUILDER_NEW, INTRINSIC_BUILDER_APPEND_STR,
-    INTRINSIC_BUILDER_APPEND_DISPLAY, INTRINSIC_BUILDER_FINISH,
-    INTRINSIC_SIZE_OF_TYPE,
-}
+Lo :: import "vader/lower"
 
 
 
@@ -77,7 +58,7 @@ import "vader/lower" {
 ///                     `basename(file, ".vader")`).
 /// @param opts         emit-time switches.
 /// @return             a fresh `BytecodeModule`.
-export emit_project :: fn(lowered: LoweredProject, module_name: string, opts: EmitOptions) -> BytecodeModule {
+export emit_project :: fn(lowered: Lo.LoweredProject, module_name: string, opts: EmitOptions) -> BytecodeModule {
     ctx :: new_emitter_ctx()
 
     // Pass 1 — reserve in TS order : Vader-side fns first (signatures
@@ -90,7 +71,7 @@ export emit_project :: fn(lowered: LoweredProject, module_name: string, opts: Em
         if m is null { continue }
         for i in 0..<m.decls.len() {
             d :: m.decls[i]
-            if d is LoweredFnDecl as fd {
+            if d is Lo.LoweredFnDecl as fd {
                 if !(fd.body is null) { reserve_decl(d, ctx) }
             }
         }
@@ -100,7 +81,7 @@ export emit_project :: fn(lowered: LoweredProject, module_name: string, opts: Em
         if m is null { continue }
         for i in 0..<m.decls.len() {
             d :: m.decls[i]
-            if d is LoweredFnDecl as fd {
+            if d is Lo.LoweredFnDecl as fd {
                 if fd.body is null { reserve_decl(d, ctx) }
             }
         }
@@ -110,7 +91,7 @@ export emit_project :: fn(lowered: LoweredProject, module_name: string, opts: Em
         if m is null { continue }
         for i in 0..<m.decls.len() {
             d :: m.decls[i]
-            if !(d is LoweredFnDecl) { reserve_decl(d, ctx) }
+            if !(d is Lo.LoweredFnDecl) { reserve_decl(d, ctx) }
         }
     }
 
@@ -203,21 +184,21 @@ export run_bc_return_lit_fold :: fn(function: BcFunction) -> BcPeepholeOut {
         op :: body[i]
         if op is Return {
             cur_len :: out.len()
-            if cur_len > usize(0) {
-                prev :: out[cur_len - usize(1)]
+            if cur_len > 0 {
+                prev :: out[cur_len - 1]
                 cv :: const_op_of(prev)
                 if cv !is null {
-                    out[cur_len - usize(1)] = ReturnLit { .value = cv }
-                    old_to_new[i] = i32(cur_len - usize(1))
-                    i += usize(1)
+                    out[cur_len - 1] = ReturnLit { .value = cv }
+                    old_to_new[i] = i32(cur_len - 1)
+                    i += 1
                     continue
                 }
             }
         }
         push_or_assign(out, out_len, op)
         old_to_new[i] = i32(out_len)
-        out_len += usize(1)
-        i += usize(1)
+        out_len += 1
+        i += 1
     }
     new_body :: take_prefix(out, out_len)
     new_jt :: remap_jump_table(function.jump_table, old_to_new, out_len)
@@ -295,14 +276,14 @@ export run_bc_const_fold_arith :: fn(function: BcFunction) -> BcPeepholeOut {
         if folded is null {
             push_or_assign(out, out_len, op)
             old_to_new[i] = i32(out_len)
-            out_len = out_len + usize(1)
+            out_len = out_len + 1
         } else {
-            out_len = out_len - usize(2)
+            out_len = out_len - 2
             push_or_assign(out, out_len, folded)
             old_to_new[i] = i32(out_len)
-            out_len = out_len + usize(1)
+            out_len = out_len + 1
         }
-        i = i + usize(1)
+        i = i + 1
     }
     new_body :: take_prefix(out, out_len)
     new_jt :: remap_jump_table(function.jump_table, old_to_new, out_len)
@@ -310,9 +291,9 @@ export run_bc_const_fold_arith :: fn(function: BcFunction) -> BcPeepholeOut {
 }
 
 try_fold_arith :: fn(op: Op, out: Op[], out_len: usize) -> Op | null {
-    if out_len < usize(2) { return null }
-    right :: out[out_len - usize(1)]
-    left  :: out[out_len - usize(2)]
+    if out_len < 2 { return null }
+    right :: out[out_len - 1]
+    left  :: out[out_len - 2]
     if left is I32Const as l32 {
         if right is I32Const as r32 {
             if op is I32Add { return I32Const { .value = l32.value + r32.value } }
@@ -398,9 +379,9 @@ export run_bc_peephole :: fn(function: BcFunction) -> BcPeepholeOut {
                         if !skip_fold {
                             push_or_assign(out, out_len, LocalTee { .slot = ls.slot })
                             old_to_new[i] = i32(out_len)
-                            old_to_new[i + usize(1)] = i32(out_len)
-                            out_len += usize(1)
-                            i += usize(2)
+                            old_to_new[i + 1] = i32(out_len)
+                            out_len += 1
+                            i += 2
                             continue
                         }
                     }
@@ -413,13 +394,13 @@ export run_bc_peephole :: fn(function: BcFunction) -> BcPeepholeOut {
         // collapsed Return op (terminator) so depth-safety holds.
         if op is Return {
             cur_len :: out.len()
-            if cur_len > usize(0) {
-                prev :: out[cur_len - usize(1)]
+            if cur_len > 0 {
+                prev :: out[cur_len - 1]
                 cv :: const_op_of(prev)
                 if cv !is null {
-                    out[cur_len - usize(1)] = ReturnLit { .value = cv }
-                    old_to_new[i] = i32(out_len - usize(1))
-                    i += usize(1)
+                    out[cur_len - 1] = ReturnLit { .value = cv }
+                    old_to_new[i] = i32(out_len - 1)
+                    i += 1
                     continue
                 }
             }
@@ -427,8 +408,8 @@ export run_bc_peephole :: fn(function: BcFunction) -> BcPeepholeOut {
 
         // Rules 3 / 4 on BoolNot fold.
         if op is BoolNot {
-            if out_len > usize(0) {
-                top_idx :: out_len - usize(1)
+            if out_len > 0 {
+                top_idx :: out_len - 1
                 prev :: out[top_idx]
                 if prev is BoolNot {
                     // Both BoolNots cancel — drop the previous + skip
@@ -436,14 +417,14 @@ export run_bc_peephole :: fn(function: BcFunction) -> BcPeepholeOut {
                     // pointing at its (now empty) slot ; mark both as
                     // removed.
                     old_to_new[i] = -1
-                    out_len -= usize(1)
-                    i += usize(1)
+                    out_len -= 1
+                    i += 1
                     continue
                 }
                 if prev is BoolConst as bc {
                     out[top_idx] = BoolConst { .value = !bc.value }
                     old_to_new[i] = i32(top_idx)
-                    i += usize(1)
+                    i += 1
                     continue
                 }
             }
@@ -451,8 +432,8 @@ export run_bc_peephole :: fn(function: BcFunction) -> BcPeepholeOut {
 
         push_or_assign(out, out_len, op)
         old_to_new[i] = i32(out_len)
-        out_len += usize(1)
-        i += usize(1)
+        out_len += 1
+        i += 1
     }
     new_body :: take_prefix(out, out_len)
     new_jt :: remap_jump_table(function.jump_table, old_to_new, out_len)
@@ -476,7 +457,7 @@ take_prefix :: fn(items: Op[], sp: usize) -> Op[] {
     i: usize = 0
     for i < sp {
         out.push(items[i])
-        i += usize(1)
+        i += 1
     }
     return out
 }
@@ -515,7 +496,7 @@ export propagate_const_single_use :: fn(function: BcFunction) -> BcFunction {
     tee_count: i32[] = []
     set_idx:   i32[] = []
     get_idx:   i32[] = []
-    s := usize(0)
+    s: usize = 0
     for s < total_slots {
         set_count.push(0)
         get_count.push(0)
@@ -525,7 +506,7 @@ export propagate_const_single_use :: fn(function: BcFunction) -> BcFunction {
         s = s + 1
     }
     body :: function.body
-    i := usize(0)
+    i: usize = 0
     n :: body.len()
     for i < n {
         op :: body[i]
@@ -579,7 +560,7 @@ export propagate_const_single_use :: fn(function: BcFunction) -> BcFunction {
         k = k + 1
     }
 
-    if to_delete_set.size == usize(0) { return function }
+    if to_delete_set.size == 0 { return function }
 
     // Rewrite the body : skip deleted indices, replace `local.get` sites.
     new_body: Op[] = []
@@ -587,7 +568,7 @@ export propagate_const_single_use :: fn(function: BcFunction) -> BcFunction {
     old_to_new: i32[] = []
     pp: usize = 0
     for pp < n { old_to_new.push(-1)  pp = pp + 1 }
-    j := usize(0)
+    j: usize = 0
     for j < n {
         if to_delete_set[i32(j)] is bool {
             j = j + 1
@@ -640,7 +621,7 @@ export drop_dead_stores :: fn(function: BcFunction) -> BcFunction {
     s: usize = 0
     for s < total_slots {
         reads.push(0)
-        s += usize(1)
+        s += 1
     }
     // Count slot reads — `local.get` plus the fused composite
     // `local.field` (midir/emit.vader::try_fuse_local_field).
@@ -657,7 +638,7 @@ export drop_dead_stores :: fn(function: BcFunction) -> BcFunction {
     j: usize = 0
     for j < total_slots {
         dead.push(false)
-        j += usize(1)
+        j += 1
     }
     has_dead := false
     k: usize = param_count
@@ -666,7 +647,7 @@ export drop_dead_stores :: fn(function: BcFunction) -> BcFunction {
             dead[k] = true
             has_dead = true
         }
-        k += usize(1)
+        k += 1
     }
     if !has_dead { return function }
 
@@ -675,7 +656,7 @@ export drop_dead_stores :: fn(function: BcFunction) -> BcFunction {
     n: usize = 0
     for n < total_slots {
         remap.push(-1)
-        n += usize(1)
+        n += 1
     }
     next: i32 = 0
     p: usize = 0
@@ -684,7 +665,7 @@ export drop_dead_stores :: fn(function: BcFunction) -> BcFunction {
             remap[p] = next
             next += 1
         }
-        p += usize(1)
+        p += 1
     }
 
     // Rewrite the body : drop dead writes, renumber surviving accesses.
@@ -749,7 +730,7 @@ export drop_dead_stores :: fn(function: BcFunction) -> BcFunction {
     q: usize = param_count
     for q < total_slots {
         if !dead[q] { new_locals.push(function.locals[q - param_count]) }
-        q += usize(1)
+        q += 1
     }
     return BcFunction {
         .name = function.name, .is_main = function.is_main,
@@ -856,11 +837,11 @@ lookup_symbol_id_for_import :: fn(ctx: EmitterCtx, import_index: i32) -> i32 {
 /// Per-decl reservation dispatcher. Allocates fn-table slots for
 /// fns, interns struct field types into the type table for structs,
 /// skips consts in Phase 1 (lowered to fns by a later pass).
-reserve_decl :: fn(decl: LoweredDecl, ctx: EmitterCtx) -> void {
+reserve_decl :: fn(decl: Lo.LoweredDecl, ctx: EmitterCtx) -> void {
     match decl {
-        is LoweredFnDecl as function_decl   -> reserve_fn(function_decl, ctx)
-        is LoweredStructDecl as struct_decl -> reserve_struct(struct_decl, ctx)
-        is LoweredConstDecl                 -> {
+        is Lo.LoweredFnDecl as function_decl   -> reserve_fn(function_decl, ctx)
+        is Lo.LoweredStructDecl as struct_decl -> reserve_struct(struct_decl, ctx)
+        is Lo.LoweredConstDecl                 -> {
             // Phase 1 : consts not yet emitted ; tracked in a future
             // commit alongside `LoweredConstDecl` → BcImport routing.
         }
@@ -873,7 +854,7 @@ reserve_decl :: fn(decl: LoweredDecl, ctx: EmitterCtx) -> void {
 /// stdlib shim). `synthesise_intrinsic_wrappers` later upgrades
 /// every `@intrinsic` import with a wrapper fn so virtual dispatch
 /// can land on a real fn-index.
-reserve_fn :: fn(function_decl: LoweredFnDecl, ctx: EmitterCtx) -> void {
+reserve_fn :: fn(function_decl: Lo.LoweredFnDecl, ctx: EmitterCtx) -> void {
     signature :: build_signature(function_decl.params, function_decl.return_type, ctx)
     if function_decl.body is null {
         reserve_extern(function_decl, signature, ctx)
@@ -905,7 +886,7 @@ reserve_fn :: fn(function_decl: LoweredFnDecl, ctx: EmitterCtx) -> void {
 /// provides). The distinction tells the C-emit whether to forward-
 /// declare the symbol or route to a `vader_*` runtime helper.
 reserve_extern :: fn(
-    function_decl: LoweredFnDecl, signature: BcSignature, ctx: EmitterCtx,
+    function_decl: Lo.LoweredFnDecl, signature: BcSignature, ctx: EmitterCtx,
 ) -> void {
     is_extern :: fn_has_decorator(function_decl, "extern")
     import_index :: i32(ctx.imports.len())
@@ -923,7 +904,7 @@ reserve_extern :: fn(
 /// True when `function_decl` carries the given decorator (e.g. `extern`,
 /// `intrinsic`). Walks the source-AST decorator list ; safe to call on
 /// non-FnDecl origins (returns false).
-fn_has_decorator :: fn(function_decl: LoweredFnDecl, name: string) -> bool {
+fn_has_decorator :: fn(function_decl: Lo.LoweredFnDecl, name: string) -> bool {
     match function_decl.origin.decl {
         is FnDecl as fn_ast -> {
             for d in fn_ast.decorators {
@@ -942,7 +923,7 @@ fn_has_decorator :: fn(function_decl: LoweredFnDecl, name: string) -> bool {
 /// import line surfaces the *external* name (`name` arg) so the C linker
 /// can find the foreign symbol ; for `@intrinsic` shims the bare AST
 /// name suffices (the runtime keys vtable thunks off the mangled name).
-bare_name_for :: fn(function_decl: LoweredFnDecl) -> string = match function_decl.origin.decl {
+bare_name_for :: fn(function_decl: Lo.LoweredFnDecl) -> string = match function_decl.origin.decl {
     is FnDecl as fn_ast -> {
         extern_arg :: extern_name_arg(fn_ast.decorators)
         if extern_arg != "" { return extern_arg }
@@ -964,8 +945,8 @@ bare_name_for :: fn(function_decl: LoweredFnDecl) -> string = match function_dec
 extern_name_arg :: fn(decorators: Decorator[]) -> string {
     for d in decorators {
         if d.name != "extern" { continue }
-        if d.args.len() < usize(2) { continue }
-        last :: d.args[d.args.len() - usize(1)]
+        if d.args.len() < 2 { continue }
+        last :: d.args[d.args.len() - 1]
         if last is StringLitExpr as sl { return string_lit_text(sl) }
     }
     return ""
@@ -992,7 +973,7 @@ string_lit_text :: fn(sl: StringLitExpr) -> string {
 /// `BcStruct.symbol_id`, letting the path-γ erasure pass + the
 /// C-emit boundary dedup match struct instances by source-decl
 /// identity.
-reserve_struct :: fn(struct_decl: LoweredStructDecl, ctx: EmitterCtx) -> void {
+reserve_struct :: fn(struct_decl: Lo.LoweredStructDecl, ctx: EmitterCtx) -> void {
     struct_symbol :: struct_decl.origin.symbol
     if struct_symbol is null { return }
     // Key on the struct *type*'s source-position identity — the same key
@@ -1038,7 +1019,7 @@ reserve_struct :: fn(struct_decl: LoweredStructDecl, ctx: EmitterCtx) -> void {
 /// acceptable today because both fns dispatch in O(1) on the runtime
 /// tag. Phase 2 will collapse this into a single `intern_and_classify`
 /// once the LoweredCall site count justifies the helper.
-build_signature :: fn(params: LoweredParam[], return_type: Type, ctx: EmitterCtx) -> BcSignature {
+build_signature :: fn(params: Lo.LoweredParam[], return_type: Type, ctx: EmitterCtx) -> BcSignature {
     param_val_types: ValType[] = []
     param_type_indices: i32[] = []
     for i in 0..<params.len() {
@@ -1060,11 +1041,11 @@ build_signature :: fn(params: LoweredParam[], return_type: Type, ctx: EmitterCtx
 
 /// Per-decl body dispatcher. FnDecls walk their body block ; structs
 /// + consts no-op in Phase 1.
-emit_decl :: fn(decl: LoweredDecl, ctx: EmitterCtx) -> void {
+emit_decl :: fn(decl: Lo.LoweredDecl, ctx: EmitterCtx) -> void {
     match decl {
-        is LoweredFnDecl as function_decl -> emit_fn_body(function_decl, ctx)
-        is LoweredStructDecl              -> {}
-        is LoweredConstDecl               -> {}
+        is Lo.LoweredFnDecl as function_decl -> emit_fn_body(function_decl, ctx)
+        is Lo.LoweredStructDecl              -> {}
+        is Lo.LoweredConstDecl               -> {}
     }
 }
 
@@ -1073,11 +1054,11 @@ emit_decl :: fn(decl: LoweredDecl, ctx: EmitterCtx) -> void {
 /// arrays. The implicit-return tail keeps the VM + C-emit
 /// terminator-driven even when the source body ends with a trailing
 /// expression.
-emit_fn_body :: fn(function_decl: LoweredFnDecl, ctx: EmitterCtx) -> void {
+emit_fn_body :: fn(function_decl: Lo.LoweredFnDecl, ctx: EmitterCtx) -> void {
     function_index :: lookup_function_index(function_decl, ctx)
     if function_index < 0 { return }
     state :: init_fn_emit_state(function_decl)
-    if function_decl.body is LoweredBlock as block { emit_block(block, state, ctx) }
+    if function_decl.body is Lo.LoweredBlock as block { emit_block(block, state, ctx) }
     if !ends_with_return(state.body) {
         push_op(state, Return {})
     }
@@ -1099,7 +1080,7 @@ emit_fn_body :: fn(function_decl: LoweredFnDecl, ctx: EmitterCtx) -> void {
 /// Resolve a `LoweredFnDecl` to its fn-table slot via the reserved
 /// `function_index_by_symbol_id` mapping. Returns `-1` when the decl
 /// carried no resolver symbol — body emit then no-ops.
-lookup_function_index :: fn(function_decl: LoweredFnDecl, ctx: EmitterCtx) -> i32 {
+lookup_function_index :: fn(function_decl: Lo.LoweredFnDecl, ctx: EmitterCtx) -> i32 {
     match function_decl.origin.symbol {
         is Symbol as symbol -> {
             entry :: ctx.function_index_by_symbol_id[symbol.id]
@@ -1114,8 +1095,8 @@ lookup_function_index :: fn(function_decl: LoweredFnDecl, ctx: EmitterCtx) -> i3
 /// implicit-return tail when the source already supplied one.
 ends_with_return :: fn(body: Op[]) -> bool {
     n :: body.len()
-    if n == usize(0) { return false }
-    last :: body[n - usize(1)]
+    if n == 0 { return false }
+    last :: body[n - 1]
     return last is Return
 }
 
@@ -1130,7 +1111,7 @@ ends_with_return :: fn(body: Op[]) -> bool {
 ///
 /// `_opts` is unused until the peephole pass gates through it —
 /// the leading underscore documents the deferred consumer.
-assemble_module :: fn(ctx: EmitterCtx, module_name: string, _opts: EmitOptions, lowered: LoweredProject) -> BytecodeModule {
+assemble_module :: fn(ctx: EmitterCtx, module_name: string, _opts: EmitOptions, lowered: Lo.LoweredProject) -> BytecodeModule {
     impl_table :: build_impl_table(lowered.vtable_entries, ctx)
     vtables :: translate_vtables(lowered.vtable_entries, ctx)
     data_pool :: translate_data_pool(lowered.data_pool)
@@ -1152,7 +1133,7 @@ assemble_module :: fn(ctx: EmitterCtx, module_name: string, _opts: EmitOptions, 
 // as `impl TYPE_ID TRAIT_NAME` directives the VM consults for `is Trait`
 // patterns. Skips entries whose struct type was DCE'd out of the type
 // table (intern_type would mint a fresh slot the dump wouldn't recognise).
-build_impl_table :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx) -> ImplEntry[] {
+build_impl_table :: fn(entries: Lo.VtableEntry[], ctx: EmitterCtx) -> ImplEntry[] {
     out: ImplEntry[] = []
     seen :: MutableMap<string, bool> {}
     for entry in entries {
@@ -1185,7 +1166,7 @@ vtable_fn_index :: fn(ctx: EmitterCtx, fn_symbol: Symbol) -> i32 | null {
 /// @param entries  cross-module vtable seeds from the lowerer.
 /// @param ctx      emitter context (consulted for type interning + fn-index map).
 /// @return         one `VtableRow` per distinct (trait, method) pair.
-translate_vtables :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx) -> VtableRow[] {
+translate_vtables :: fn(entries: Lo.VtableEntry[], ctx: EmitterCtx) -> VtableRow[] {
     out: VtableRow[] = []
     row_index_by_key :: MutableMap<string, i32> {}
     for entry in entries {
@@ -1204,7 +1185,7 @@ translate_vtables :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx) -> Vtabl
             } else {
                 row_entries: VtableEntry[] = [entry_record]
                 out.push(VtableRow { .key = key, .entries = row_entries })
-                row_index_by_key[key] = i32(out.len() - usize(1))
+                row_index_by_key[key] = i32(out.len() - 1)
             }
         }
     }
@@ -1220,7 +1201,7 @@ translate_vtables :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx) -> Vtabl
 /// path is to mirror the TS shape (have the lower produce `u64[]`
 /// items directly) and drop this fn — the string indirection is
 /// Vader-only.
-translate_data_pool :: fn(_entries: DataPoolEntry[]) -> BcDataEntry[] {
+translate_data_pool :: fn(_entries: Lo.DataPoolEntry[]) -> BcDataEntry[] {
     out: BcDataEntry[] = []
     return out
 }
