@@ -39,6 +39,9 @@ bench/*_go
 bench/*.class
 *.dSYM/
 
+## POCs
+poc/
+
 # Snippet artefacts — left behind when a dev runs `vader build` directly on
 # a `tests/snippets/<name>/_main.vader` to inspect the native output. The
 # C emitter writes `_main.c` next to the source and the linker emits a

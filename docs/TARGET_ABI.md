@@ -185,11 +185,77 @@ implements the ABI and gets the whole stdlib for free.
   the collector traces boxed slots and skips primitive ones — Vader code can't
   trace itself. `store_slot` must emit the write-barrier, exactly like
   `vader_array_store_slot` does today.
-- **Perf depends on inlining.** The dedicated `Array*` / `Builder*` opcodes
-  exist partly for **speed** (no call overhead on a hot path). Moving them to
-  Vader fns regresses unless the lowerer **inlines** these stdlib hot fns.
-  Phases 3-4 are gated on that inlining landing (cross-ref the iterator
-  devirt / inliner work). Phase 1 is unaffected (formatting isn't that hot).
+- **Perf on the native target — measured, the move is a win, not a risk**
+  (`poc/target-abi/`, 2026-06-07, Apple M3 Max / clang 21, release `-O3
+  -DNDEBUG`). The POC links the real runtime and benchmarks `i32[]` get/set,
+  boxed `string[]` get/set, StringBuilder append, and `i64→string` against
+  hand-emitted memory-opcode variants. Findings :
+  - The dominant cost in today's data-structure access is **not** call overhead
+    per se — it is the 24-byte `vader_box_t` round-trip + the 13-way
+    `element_kind` switch inside the out-of-line `vader_array_*` helpers. The
+    generic memory opcodes delete both (the opcode carries the type ; a raw
+    `i32` flows instead of a box). So **even with zero inlining** the ABI path
+    is ~1.9× (read) / ~2.5× (write) faster than the current runtime call.
+  - The "regresses unless the *lowerer* inlines" worry **does not hold for C** :
+    the rewritten stdlib is Vader compiled into the *same translation unit* as
+    its callers, so the **C compiler inlines it for free at `-O3`** (and then
+    auto-vectorizes primitive loops, which an opaque per-element runtime call
+    can never do). The Vader-side inliner becomes a nice-to-have, not a gate.
+  - "Just enable LTO" is **not** a substitute — LTO barely moves the current
+    path (the box + switch survive inlining) ; the ABI wins by removing that
+    work. Boxed arrays gain less (box copy + write-barrier stay in both paths)
+    but still don't regress. Phase 1 (number formatting) is ~2.2× faster as a
+    plain Vader digit-emit.
+
+  Not covered by the perf POC (still to weigh) : the **VM** backend (it indexes
+  a boxed `Value[]` in both paths, so the gap is expected to be far smaller),
+  **cold / main-memory-bandwidth-bound** data (the POC loops are cache-resident,
+  so the vectorized read figure is a hot-data ceiling), and the perf of
+  `array.push` growth / `string.hash` in Vader / `mem_copy` lowering to `memcpy`.
+
+- **GC-safety of the memory opcodes — a lowering discipline, not a blocker**
+  (verified, `poc/target-abi/gc_safety.c`). Raw pointers are never exposed on
+  the frontend — they exist only inside the opcode lowering, which the compiler
+  controls — so the safety rule below is enforceable *by construction*. Under
+  the moving Cheney collector an interior pointer into a GC object (what
+  `load_i32(obj, off)` computes) is valid only until the next safepoint. The POC forces a minor collection that relocates a
+  rooted object and shows a hoisted interior pointer reading a *reused* region
+  (the churn sentinel `0x5A5A5A`), while re-deriving the address from the rooted
+  handle stays correct. **Design rule the lowering MUST enforce** : `load_*` /
+  `store_*` / `mem_copy` re-derive their address from `obj` (the SSA value the
+  c_emit already spills/reloads across calls) at point of use — never hoist the
+  base into a Vader local that survives an allocation. The "frontend stays
+  pointer-free" constraint makes this enforceable (a base can only leak via a
+  lowerer/optimizer hoist). Corollary : base-hoisting is legal only in a
+  provably **allocation-free** loop ; `push` / builder-grow / transform-into
+  loops must re-resolve each iteration (so the bench's `v4`/`v4b` ceiling applies
+  only to alloc-free loops — allocating loops land near `v3`).
+
+- **`store_slot` must fire the write barrier** (verified G2,
+  `poc/target-abi/gc_barrier.c`). A `store_slot` of a young ref into an old
+  object is invisible to a minor collection unless the generational barrier marks
+  the old object's card. The POC promotes a holder to old, stores a young cell
+  into its slot, runs a minor : with the barrier the cell survives (111), without
+  it is reclaimed and the slot reads the churn sentinel (use-after-free). This is
+  the class of bug already shipped once (`project_selfhost_gc_rooting_bug`).
+  Design rule : `store_slot(obj, i, box)` emits `VADER_WRITE_BARRIER(obj)` on the
+  slot-holding object ; the typed primitive stores (`store_i32`/…) must NOT (no
+  ref → no old→young edge) — the stdlib picks the opcode per element kind.
+
+- **push / hash / mem_copy measured — no regression** (`poc/target-abi/bench_more.c`,
+  `-O3`). `array.push` + growth : `vader_array_push` 9.9 ns/push → ABI
+  obj_alloc+mem_copy+store **2.98 ns/push** (~3.3× — same box+switch+cross-TU
+  saving as get/set ; push being a hot path is not a regression risk).
+  `string.hash` : moving FNV-1a 64-bit to a Vader byte loop over `bytes()` is the
+  identical algorithm and **parity** (9.1 → 8.6 ns/hash, identical results) — so
+  MutableMap (~71% of the self-compile) is not at risk. `mem_copy` : at `-O3` the
+  C compiler vectorizes even a naive byte loop (only 1.2× off `memcpy`), but lower
+  it to `memcpy` anyway — the gap widens at `-O0` and with per-byte bounds checks.
+
+- Still open (no POC) : G3 rooting of in-flight temporaries during a Vader
+  `push`'s `obj_alloc` (the model re-resolves correctly but wasn't stressed under
+  a real mid-grow collection), G4 `type_id`/`ptr_offsets` sync for a hand-laid-out
+  `Buffer` (a discipline, not benchmarkable in isolation).
 - **Don't move the intern table** — `string ==` is O(1) only because of atom
   interning. Keep §4 primitive ; only move string *operations* that don't
   touch intern internals.
@@ -213,3 +279,5 @@ implements the ABI and gets the whole stdlib for free.
 - Comptime intrinsics : `vader/comptime/intrinsic.vader`
 - Already-pure stdlib : `stdlib/std/sort`, `stdlib/std/utf8`
 - View model (slice aliasing) : `docs/ARRAY_STRING_VIEW_DESIGN.md`
+- Native perf POC : `poc/target-abi/` (`bench.c` + `run.sh` ; results +
+  verdict in its `README.md`)
