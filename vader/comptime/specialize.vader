@@ -805,7 +805,15 @@ module_decls_for :: fn(loaded: LoadedProject, module_id: string) -> Decl[] | nul
     if module_loaded is null { return null }
     m :: module_loaded
     if m.module.files.len() == usize(0) { return null }
-    return m.module.files[0].program.decls
+    // All files of the module, not just files[0] — a multi-file module's later
+    // files carry decls too (mirror `lookup_module_decls` / `module_decls`).
+    out: Decl[] = []
+    for source_file in m.module.files {
+        for decl in source_file.program.decls {
+            out.push(decl)
+        }
+    }
+    return out
 }
 
 // ---- tests ----------------------------------------------------------------

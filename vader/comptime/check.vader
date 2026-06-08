@@ -119,11 +119,22 @@ harvest_instances :: fn(typed: TypedProject) -> GenericInstance[] {
     return sorted_instances(registry)
 }
 
+// Concatenate the decls of EVERY file in the module (a module may span several
+// files of one folder — `discover.vader` merges them). A `files[0]`-only read
+// drops a 2nd file's decls, so the comptime const-bake never folds a const
+// living there (e.g. a std/core formatter table moved to a sibling file) and its
+// readers emit an unreachable. Mirrors `lower.vader::module_decls`.
 lookup_module_decls :: fn(loaded: LoadedProject, module_id: string) -> AST.Decl[] | null {
     module_loaded :: loaded.modules[module_id]
     if module_loaded is null { return null }
     if module_loaded.module.files.len() == usize(0) { return null }
-    return module_loaded.module.files[0].program.decls
+    out: AST.Decl[] = []
+    for source_file in module_loaded.module.files {
+        for decl in source_file.program.decls {
+            out.push(decl)
+        }
+    }
+    return out
 }
 
 evaluate_module_decls :: fn(
