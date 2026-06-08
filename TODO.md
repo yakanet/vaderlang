@@ -126,6 +126,20 @@ Keep LoweredAST distinct. Tree rewrites (match/try/for-in/range desugar) are cle
 ### 1.13d Stdlib consolidation — partial
 > Shipped: hex/base helpers centralised in `std/numbers`, `std/json` char-predicate duplicates removed.
 - [ ] **Future audits** — revisit when new stdlib modules land. A shared `Cursor(T)` trait could unify `std/json` and `vader/lexer`'s hand-rolled cursors when a real need arises.
+- [ ] **Harden multi-file module support (compiler).** Surfaced 2026-06-08 splitting
+  `std/core` into `core.vader` + `primitives.vader` (same `module "std/core"`). The
+  comptime decl-lookup `files[0]`-only bug is fixed, but two latent single-file
+  assumptions remain (worked around, not fixed): (a) FRAGMENTATION — "a module's
+  decls" has 4 separate accessors (`lower::module_decls`,
+  `comptime/check::lookup_module_decls`, `comptime/specialize::module_decls_for`,
+  `typecheck/orchestrate::merge_module_program`); one shared accessor would make
+  "a pass reads files[0] only" unrepresentable. (b) the resolver body-walker is
+  structurally `files[0]`-only (`resolver/resolve.vader:153`, exploited by the
+  dump path `cli/main.vader:592`), already patched over with `symbols_by_name`
+  fallbacks (`typecheck/type_expr.vader:95`, `resolver/resolve.vader:42`) — later
+  files of a multi-file module aren't body-walked. Stale comment to fix:
+  `lower/lower_mono_fn.vader:19-22` ("flattened at load time" — they aren't).
+  Cross-pass invariant change → review before landing.
 - [ ] **Reconcile `u8[] → string` to `bytes_to_string`.** Target-ABI S1 adds the
   canonical `bytes_to_string` (host intrinsic) in `std/core`. The tree still has
   the legacy `as_string` (`std/string`) and a `bytes_as_string` import alias

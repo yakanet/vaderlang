@@ -127,9 +127,11 @@ harvest_instances :: fn(typed: TypedProject) -> GenericInstance[] {
 lookup_module_decls :: fn(loaded: LoadedProject, module_id: string) -> AST.Decl[] | null {
     module_loaded :: loaded.modules[module_id]
     if module_loaded is null { return null }
-    if module_loaded.module.files.len() == usize(0) { return null }
+    files :: module_loaded.module.files
+    if files.len() == usize(0) { return null }
+    if files.len() == usize(1) { return files[0].program.decls }   // common case — zero-copy
     out: AST.Decl[] = []
-    for source_file in module_loaded.module.files {
+    for source_file in files {
         for decl in source_file.program.decls {
             out.push(decl)
         }
