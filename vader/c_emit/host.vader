@@ -97,37 +97,22 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
         if u8arr < 0 { return "${head} { vader_trap(\"bytes: no u8[] type\"); }" }
         return "${head} { return vader_box_obj(${u8arr}u, vader_string_bytes_view(a0, ${u8arr}u, ${u8}u)); }"
     }
-    if m == "std_string\$as_string" { return "${head} { return vader_string_as_string((vader_array_t*) a0.payload.obj); }" }
+    // `bytes_to_string` (std/core, Target ABI S1) is the canonical bytes→string
+    // primitive ; `as_string` (std/string) is the legacy alias retiring into it
+    // (TODO 1.13d). Same backing runtime symbol.
+    if m == "std_string\$as_string" || m == "std_core\$bytes_to_string" { return "${head} { return vader_string_as_string((vader_array_t*) a0.payload.obj); }" }
     if m == "std_string\$parse_float" { return "${head} { return vader_string_parse_float(a0, ${tag_u(prim_tag(types, .F64), "f64")}, ${tag_u(error_ref_tag(types), "error")}); }" }
     if m == "std_core\$string\$Hash\$hash" { return "${head} { return vader_string_hash(a0); }" }
 
-    // `@intrinsic <T> implements Display` — each shim spins up a one-shot
-    // StringBuilder, appends via the width-matched helper, then finishes.
-    if m == "std_core\$i8\$Display\$to_string" || m == "std_core\$i16\$Display\$to_string" || m == "std_core\$i32\$Display\$to_string" {
-        return "${head} { vader_builder_t* sb = vader_builder_new(); vader_builder_append_display_i32(sb, (int32_t) a0); return vader_builder_finish(sb); }"
-    }
-    if m == "std_core\$i64\$Display\$to_string" || m == "std_core\$isize\$Display\$to_string" {
-        return "${head} { vader_builder_t* sb = vader_builder_new(); vader_builder_append_display_i64(sb, (int64_t) a0); return vader_builder_finish(sb); }"
-    }
-    if m == "std_core\$u8\$Display\$to_string" || m == "std_core\$u16\$Display\$to_string" || m == "std_core\$u32\$Display\$to_string" {
-        return "${head} { vader_builder_t* sb = vader_builder_new(); vader_builder_append_display_u32(sb, (uint32_t) a0); return vader_builder_finish(sb); }"
-    }
-    if m == "std_core\$u64\$Display\$to_string" || m == "std_core\$usize\$Display\$to_string" {
-        return "${head} { vader_builder_t* sb = vader_builder_new(); vader_builder_append_display_u64(sb, (uint64_t) a0); return vader_builder_finish(sb); }"
-    }
+    // `@intrinsic f32/f64 implements Display` — host shim (float-format chantier,
+    // TODO §1.13). The i*/u*/bool/char/string Display impls moved to pure Vader
+    // in Target ABI S1, so their host shims are gone.
     if m == "std_core\$f32\$Display\$to_string" {
         return "${head} { vader_builder_t* sb = vader_builder_new(); vader_builder_append_display_f32(sb, a0); return vader_builder_finish(sb); }"
     }
     if m == "std_core\$f64\$Display\$to_string" {
         return "${head} { vader_builder_t* sb = vader_builder_new(); vader_builder_append_display_f64(sb, a0); return vader_builder_finish(sb); }"
     }
-    if m == "std_core\$bool\$Display\$to_string" {
-        return "${head} { vader_builder_t* sb = vader_builder_new(); vader_builder_append_display_bool(sb, a0); return vader_builder_finish(sb); }"
-    }
-    if m == "std_core\$char\$Display\$to_string" {
-        return "${head} { vader_builder_t* sb = vader_builder_new(); vader_builder_append_display_char(sb, a0); return vader_builder_finish(sb); }"
-    }
-    if m == "std_core\$string\$Display\$to_string" { return "${head} { return a0; }" }
 
     if m == "std_string_builder\$StringBuilder\$Display\$to_string" {
         sb_idx :: string_builder_struct_tag(types)

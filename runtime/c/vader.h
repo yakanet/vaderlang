@@ -700,15 +700,11 @@ void vader_defer_pop_exec(uint32_t count);
 typedef struct vader_builder_s vader_builder_t;
 vader_builder_t* vader_builder_new(void);
 void             vader_builder_append_str(vader_builder_t* b, vader_string_t s);
-void             vader_builder_append_display_i32(vader_builder_t* b, vader_i32_t v);
-void             vader_builder_append_display_i64(vader_builder_t* b, vader_i64_t v);
-void             vader_builder_append_display_u32(vader_builder_t* b, vader_u32_t v);
-void             vader_builder_append_display_u64(vader_builder_t* b, vader_u64_t v);
+/* Number formatting for the integer widths, bool, char and string moved to pure
+ * Vader (Target ABI S1, stdlib/std/core). Only f32 and f64 stay host (libm
+ * shortest-round-trip) until the float-format chantier (TODO 1.13). */
 void             vader_builder_append_display_f32(vader_builder_t* b, vader_f32_t v);
 void             vader_builder_append_display_f64(vader_builder_t* b, vader_f64_t v);
-void             vader_builder_append_display_bool(vader_builder_t* b, vader_bool_t v);
-void             vader_builder_append_display_char(vader_builder_t* b, vader_char_t v);
-void             vader_builder_append_display_string(vader_builder_t* b, vader_string_t v);
 vader_string_t   vader_builder_finish(vader_builder_t* b);
 
 /* ----------------------------------------------------------------- I/O */

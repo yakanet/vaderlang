@@ -2070,10 +2070,6 @@ static void builder_append_fmt(vader_builder_t* b, const char* fmt, ...) {
     b->len += (size_t) n2;
 }
 
-void vader_builder_append_display_i32(vader_builder_t* b, vader_i32_t v) { builder_append_fmt(b, "%" PRId32, v); }
-void vader_builder_append_display_i64(vader_builder_t* b, vader_i64_t v) { builder_append_fmt(b, "%" PRId64, v); }
-void vader_builder_append_display_u32(vader_builder_t* b, vader_u32_t v) { builder_append_fmt(b, "%" PRIu32, v); }
-void vader_builder_append_display_u64(vader_builder_t* b, vader_u64_t v) { builder_append_fmt(b, "%" PRIu64, v); }
 /* Format a finite non-integer float as the shortest decimal that round-trips
  * back to the same double. Mirrors JS `Number.prototype.toString()` (and thus
  * the VM's `displayValue`) so VM and native produce identical output. */
@@ -2101,36 +2097,6 @@ void vader_builder_append_display_f64(vader_builder_t* b, vader_f64_t v) {
     else if (!isfinite(v))            builder_append_fmt(b, "%g",   v);
     else                              append_shortest_double(b, v);
 }
-void vader_builder_append_display_bool(vader_builder_t* b, vader_bool_t v) {
-    vader_string_t s = v ? vader_string_new("true", 4) : vader_string_new("false", 5);
-    vader_builder_append_str(b, s);
-}
-void vader_builder_append_display_char(vader_builder_t* b, vader_char_t v) {
-    /* Encode the codepoint as UTF-8. */
-    if (v < 0x80) {
-        builder_reserve(b, 1);
-        b->buf[b->len++] = (char) v;
-    } else if (v < 0x800) {
-        builder_reserve(b, 2);
-        b->buf[b->len++] = (char) (0xC0 | (v >> 6));
-        b->buf[b->len++] = (char) (0x80 | (v & 0x3F));
-    } else if (v < 0x10000) {
-        builder_reserve(b, 3);
-        b->buf[b->len++] = (char) (0xE0 | (v >> 12));
-        b->buf[b->len++] = (char) (0x80 | ((v >> 6) & 0x3F));
-        b->buf[b->len++] = (char) (0x80 | (v & 0x3F));
-    } else {
-        builder_reserve(b, 4);
-        b->buf[b->len++] = (char) (0xF0 | (v >> 18));
-        b->buf[b->len++] = (char) (0x80 | ((v >> 12) & 0x3F));
-        b->buf[b->len++] = (char) (0x80 | ((v >> 6) & 0x3F));
-        b->buf[b->len++] = (char) (0x80 | (v & 0x3F));
-    }
-}
-void vader_builder_append_display_string(vader_builder_t* b, vader_string_t v) {
-    vader_builder_append_str(b, v);
-}
-
 vader_string_t vader_builder_finish(vader_builder_t* b) {
     /* Hand the buffer to `vader_atom_intern_take` — on miss it adopts
      * the buffer as the atom's owner data ; on hit it frees the buffer

@@ -102,6 +102,15 @@ Keep LoweredAST distinct. Tree rewrites (match/try/for-in/range desugar) are cle
 
 ### 1.13 Stdlib (in Vader) — partial
 - [ ] `std/core` finalisation, `std/io`, `std/string`, `std/math`.
+- [ ] **Float formatting → stdlib (Target ABI follow-up chantier).** `f32`/`f64`
+  `Display.to_string` stays host (libm `snprintf("%.*g")` + `strtod` shortest
+  round-trip) through Target-ABI Stage S1 — only `i*`/`u*`/`bool`/`char`/`string`
+  move to pure Vader there. A separate chantier should port float formatting to
+  pure Vader (Ryū / Grisu / Dragon4-class shortest-round-trip) to retire the last
+  two `vader_builder_append_display_f32/f64` and make float output bit-identical
+  across targets (a real plus for a compiler). Hard + float-rounding-risky — kept
+  out of S1 on purpose. See `.claude/plans/target-abi-migration.md` + the S1
+  decision (2026-06-07).
 - [x] `std/collections` — `MutableMap(K, V)` + `MutableSet(T)` chaining HashMap with FNV-1a string hash. Shared `len` / `is_empty` / `put` / `get` / `contains_key` / `add` / `contains` via first-param overloading.
 - [ ] **Immutable `Map`/`Set` ops + `to_immutable`** — re-add the struct decls when there's a real read-only-view design.
 - [x] Iterator impls for `MutableMap` / `MutableSet`.
@@ -117,6 +126,21 @@ Keep LoweredAST distinct. Tree rewrites (match/try/for-in/range desugar) are cle
 ### 1.13d Stdlib consolidation — partial
 > Shipped: hex/base helpers centralised in `std/numbers`, `std/json` char-predicate duplicates removed.
 - [ ] **Future audits** — revisit when new stdlib modules land. A shared `Cursor(T)` trait could unify `std/json` and `vader/lexer`'s hand-rolled cursors when a real need arises.
+- [ ] **Reconcile `u8[] → string` to `bytes_to_string`.** Target-ABI S1 adds the
+  canonical `bytes_to_string` (host intrinsic) in `std/core`. The tree still has
+  the legacy `as_string` (`std/string`) and a `bytes_as_string` import alias
+  (`as_string as bytes_as_string`, used in `std/path` / `vader/fmt` /
+  `vader/resolver` to dodge the `std/path::as_string` name collision) for the
+  same op — ~313 sites across 83 files. Migrate all to `bytes_to_string` and drop
+  the legacy names (pre-MVP, no back-compat).
+  Separate cleanup chantier, not S1.
+  - [ ] **Idea: `string(bytes)` cast form** — once `bytes_to_string` is canonical,
+    consider letting `string(xxx)` (where `xxx : u8[]`) be the surface for the
+    bytes→string conversion (cast syntax instead of / in addition to the
+    `.bytes_to_string()` method). Language-surface change → SPEC.md update if
+    pursued. Decide whether a `u8[] → string` cast reads clearly vs. being too
+    implicit (same byte-reinterpretation-vs-render concern that ruled out
+    `u8[] implements Into<string>`).
 
 ### 1.13e Language ergonomics surfaced by self-host port — partial
 

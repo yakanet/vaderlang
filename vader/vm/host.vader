@@ -176,15 +176,17 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
         if s is Trap { return s }
         return HostOk { .value = I32Val { .value = i32(s.value.bytes().len()) } }
     }
-    if info.mangled == r"std_string$as_string" {
-        // Inverse of `bytes()`. Native O(1)-reinterprets a borrowed slice ; the
-        // VM gathers the boxed u8 slots into a real `u8[]` and lets the native
-        // `as_string` intern them (verbatim, no UTF-8 validation).
-        arr :: read_array(stack[arg_base], at_pc, "as_string receiver")
+    if info.mangled == r"std_string$as_string" || info.mangled == r"std_core$bytes_to_string" {
+        // bytes→string : the VM gathers the boxed u8 slots into a real `u8[]` and
+        // lets the native intern them verbatim (no UTF-8 validation). Native
+        // O(1)-reinterprets a borrowed slice. `bytes_to_string` (std/core, Target
+        // ABI S1) is canonical ; `as_string` (std/string) is the legacy alias
+        // retiring into it (TODO 1.13d).
+        arr :: read_array(stack[arg_base], at_pc, "bytes_to_string receiver")
         if arr is Trap { return arr }
         raw: u8[] = []
         for i in 0..<arr.length {
-            b :: read_i32(arr.elements[arr.offset + i], at_pc, "as_string byte")
+            b :: read_i32(arr.elements[arr.offset + i], at_pc, "bytes_to_string byte")
             if b is Trap { return b }
             raw.push(u8(b.value))
         }

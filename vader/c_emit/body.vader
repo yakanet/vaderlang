@@ -392,10 +392,16 @@ export coerce_operand :: fn(types: BcType[], name: string, from: ValType, to: Va
 }
 
 /// The `vader_builder_append_display_<class>` runtime helper for a value
-/// of stack class `v` — used by `builder.append_display`. Non-primitive
-/// classes fall back to the string helper (the lowerer stringifies them
-/// via `Display.to_string` first, so the fallback is unreached). Mirrors
-/// `displayFnFor` in `src/c_emit/ops.ts`.
+/// of stack class `v` — used by `builder.append_display`. Post Target ABI S1
+/// only `f32`/`f64` reach this op : every other primitive formats via its
+/// pure-Vader `Display.to_string`, and `is_primitive_for_display`
+/// (`lower_string_lit`) gates `BuilderAppendDisplay` to the floats — those two
+/// helpers are the only `vader_builder_append_display_*` symbols left in the
+/// runtime. Post Target ABI S1 only `.F32`/`.F64` actually reach this — the
+/// lowerer's `is_primitive_for_display` gate routes every other primitive
+/// through its pure-Vader `Display.to_string`, so the integer/bool/char/string
+/// arms below are unreachable (and name now-retired runtime helpers ; they would
+/// only be emitted, and fail at link, if a future change widened the gate).
 export display_fn_for :: fn(v: ValType) -> string = match v {
     .I8    -> "vader_builder_append_display_i32"
     .I16   -> "vader_builder_append_display_i32"

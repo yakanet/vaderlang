@@ -52,11 +52,13 @@ flow (`Block`/`Loop`/`If`/`Branch`/`Return`/`Drop`), and calls (`Call`,
 backend lowers these directly — irreducible by definition.
 
 ### 2. Memory + GC
-`vader_gc_alloc(size, type_id)`, `vader_write_barrier`, collect / minor / major,
-the shadow-stack frame (`vader_gc_frame_t`), and the per-type GC metadata table
-(`vader_type_info_table`). **The GC cannot trace itself in Vader** — it stays
-primitive. This is the foundation every higher-level data structure allocates
-through.
+`vader_gc_alloc(size)` + the separate `vader_obj_header_init(obj, type_id)`
+(two steps — **not** a fused `vader_gc_alloc(size, type_id)`; the runtime has no
+such symbol, `vader.h:530` + `vader.h:299`), `vader_write_barrier`, collect /
+minor / major, the shadow-stack frame (`vader_gc_frame_t`), and the per-type GC
+metadata table (`vader_type_info_table`). **The GC cannot trace itself in Vader**
+— it stays primitive. This is the foundation every higher-level data structure
+allocates through.
 
 ### 3. Value representation
 `vader_box_t` (tagged union) + `vader_box_*` constructors, the nullable-ref
@@ -92,15 +94,21 @@ opcodes** that address memory as `(GC-object-handle, integer-offset)`, never as
 an absolute machine address:
 
 ```
-obj_alloc  (size, type_id)        -> obj   // GC-allocate (generalizes StructNew / ArrayNew)
-load_u8    (obj, off)             -> u8    // raw byte read at a byte offset
-store_u8   (obj, off, v: u8)              // raw byte write
-load_i32 / load_i64 / load_f64    (obj, off)         // typed reads at a byte offset
-store_i32 / store_i64 / store_f64 (obj, off, v)      // typed writes
-load_slot  (obj, i)              -> box    // boxed-slot read
-store_slot (obj, i, v: box)               // boxed-slot write — fires the write-barrier
-mem_copy   (dst, dst_off, src, src_off, n)           // bulk byte copy (obj→obj)
+object_new  (size, type_id)        -> obj   // GC-allocate a fresh object (generalizes StructNew / ArrayNew)
+load_u8     (obj, off)             -> u8    // raw byte read at a byte offset
+store_u8    (obj, off, v: u8)              // raw byte write
+load_i32 / load_i64 / load_f64     (obj, off)         // typed reads at a byte offset
+store_i32 / store_i64 / store_f64  (obj, off, v)      // typed writes
+load_slot   (obj, i)              -> box    // boxed-slot read
+store_slot  (obj, i, v: box)               // boxed-slot write — fires the write-barrier
+memory_copy (dst, dst_off, src, src_off, n)           // bulk byte copy (obj→obj)
 ```
+
+Names spell out per the Vader no-abbreviation rule (`.claude/CLAUDE.md` §5):
+`object_new` (not `obj_alloc` — `ObjectNew` mirrors `ArrayNew`/`StructNew`),
+`memory_copy` (not `mem_copy`). PascalCode opcode variants: `ObjectNew`,
+`LoadU8`/`LoadI32`/`LoadI64`/`LoadF64`, `StoreU8`/`StoreI32`/`StoreI64`/`StoreF64`,
+`LoadSlot`, `StoreSlot`, `MemoryCopy`.
 
 **These are GC-safe under the moving Cheney collector.** The base is always a
 GC-traced object handle (relocated + rewritten by the collector), the offset is
@@ -108,9 +116,39 @@ a plain integer, and the real address is materialized *transiently* inside the
 single opcode — never stored in a local across an allocation / safepoint. The
 borrowed-view model already relies on exactly this : a slice holds
 `(owner_obj, offset, len)`, not a raw pointer (`vader_array_make_borrowed`).
-`store_slot` fires the write-barrier ; `obj_alloc` carries the `type_id` so the
+`store_slot` fires the write-barrier ; `object_new` carries the `type_id` so the
 GC traces boxed slots and skips primitive ones (the `vader_array_kind_t`
 discriminator today).
+
+**Operand convention (S0 freeze, decision D2).** `object_new` takes `type_id` as
+an **immediate** (a compile-time constant — for a `Buffer` it is the dedicated
+`VADER_TYPE_INDEX_BUFFER` sentinel, decision D3) and `size` on the stack ;
+**every other opcode is all-stack** (`obj`, `off`/`i`, value, `n`). So only
+`object_new` needs a dedicated lowering arm (it mirrors `ArrayNew{type_id}`) ;
+the GC therefore reads a static `type_id`, never a runtime-trusted one. C
+lowering of `object_new` is the two-step `vader_gc_alloc(size)` +
+`vader_obj_header_init(obj, type_id)` inline — **no new `vader_*` symbol** (D1).
+
+**Stack effects (S0 freeze).** Operands listed left-to-right = push order; the
+opcode pops them in reverse. `imm` = inline immediate (not a stack pop).
+
+| opcode | immediate | pops (→ top last) | pushes | notes |
+|--------|-----------|-------------------|--------|-------|
+| `ObjectNew`  | `type_id` | `size: usize` | `obj` | `vader_gc_alloc(size)` + `vader_obj_header_init(obj, type_id)` |
+| `LoadU8`     | — | `obj, off: usize` | `u8` | byte read |
+| `LoadI32`    | — | `obj, off: usize` | `i32` | typed read at byte offset |
+| `LoadI64`    | — | `obj, off: usize` | `i64` | |
+| `LoadF64`    | — | `obj, off: usize` | `f64` | |
+| `StoreU8`    | — | `obj, off, v: u8`  | — | byte write |
+| `StoreI32`   | — | `obj, off, v: i32` | — | **no** write-barrier (primitive) |
+| `StoreI64`   | — | `obj, off, v: i64` | — | no barrier |
+| `StoreF64`   | — | `obj, off, v: f64` | — | no barrier |
+| `LoadSlot`   | — | `obj, i: usize` | `box` | boxed-slot read (`i` = slot index) |
+| `StoreSlot`  | — | `obj, i, v: box` | — | boxed-slot write — **fires `VADER_WRITE_BARRIER(obj)`** (G2) |
+| `MemoryCopy` | — | `dst, dst_off, src, src_off, n` | — | bulk byte copy obj→obj (lowers to `memcpy`) |
+
+G1 applies to every accessor: the real address is re-derived from `obj` at the
+opcode, never hoisted into a local across an allocation/safepoint.
 
 **The frontend stays pointer-free** (your constraint). These opcodes are *not*
 surfaced in the Vader language. The stdlib works against an abstract `Buffer`
@@ -122,9 +160,20 @@ and users write safe Vader ; only the lowerer emits memory opcodes. `rawptr` +
 **Why opcodes, not runtime functions** : an opcode *is* the per-target contract
 — each backend implements it inline (VM: index into the object ; C-emit:
 `((T*)hdr->buf)[i]` ; WASM: `i32.load` / `i32.store`). So `array` / `string` /
-`builder` collapse to **zero** `vader_*` runtime functions rather than relocated
-ones — strictly better for the multi-target surface than the runtime-function
-form first sketched here.
+`builder` collapse to **zero** out-of-line `vader_*` runtime functions rather
+than relocated ones — strictly better for the multi-target surface than the
+runtime-function form first sketched here.
+
+**C-emit realization (convention).** The C backend emits each memory opcode as a
+**`static inline vader_*` helper in `vader.h`** — `vader_object_new`,
+`vader_load_i32`/`…`, `vader_store_slot`, `vader_memory_copy`, … — matching the
+existing inline accessors (`vader_box_i32`, `vader_array_len`,
+`vader_obj_header_init`). `static inline` emits **no linkage symbol** (it inlines
+into every TU at `-O3` — the POC's fast same-TU path, not the slow cross-TU one),
+so this does **not** grow the runtime ABI surface ; it is the opcode's named
+inline expansion. Naming the helpers (vs open-coding `((T*)…)[i]` at each emit
+site) **centralizes the G1 re-derive and the G2 `VADER_WRITE_BARRIER` in one
+audited place per opcode**, so the barrier can't be forgotten at a call site.
 
 ### 6. One raw write + the platform syscalls
 `vader_write(stream, ptr, len)` is the single output primitive. Everything else
