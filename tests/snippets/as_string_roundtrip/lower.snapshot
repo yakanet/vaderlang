@@ -69,9 +69,13 @@
           @builder.append_str :void
             __sb_0 :?
             "[" :string
-          @builder.append_display <for string> :void
+          @builder.append_str :void
             __sb_0 :?
-            e :string
+            call :string
+              callee:
+                std_core$string$Display$to_string :string
+              arg0:
+                e :string
           @builder.append_str :void
             __sb_0 :?
             "]" :string

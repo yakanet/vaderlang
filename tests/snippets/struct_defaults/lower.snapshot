@@ -28,24 +28,36 @@
         block :string
           let __sb_0: ? =
             @builder.new :?
-          @builder.append_display <for string> :void
+          @builder.append_str :void
             __sb_0 :?
-            .name :string
-              s1 :Settings
+            call :string
+              callee:
+                std_core$string$Display$to_string :string
+              arg0:
+                .name :string
+                  s1 :Settings
           @builder.append_str :void
             __sb_0 :?
             ": timeout=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            .timeout :i32
-              s1 :Settings
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                .timeout :i32
+                  s1 :Settings
           @builder.append_str :void
             __sb_0 :?
             " debug=" :string
-          @builder.append_display <for bool> :void
+          @builder.append_str :void
             __sb_0 :?
-            .debug :bool
-              s1 :Settings
+            call :string
+              callee:
+                std_core$bool$Display$to_string :string
+              arg0:
+                .debug :bool
+                  s1 :Settings
           ~>
             @builder.finish :string
               __sb_0 :?
@@ -56,24 +68,36 @@
         block :string
           let __sb_1: ? =
             @builder.new :?
-          @builder.append_display <for string> :void
+          @builder.append_str :void
             __sb_1 :?
-            .name :string
-              s2 :Settings
+            call :string
+              callee:
+                std_core$string$Display$to_string :string
+              arg0:
+                .name :string
+                  s2 :Settings
           @builder.append_str :void
             __sb_1 :?
             ": timeout=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_1 :?
-            .timeout :i32
-              s2 :Settings
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                .timeout :i32
+                  s2 :Settings
           @builder.append_str :void
             __sb_1 :?
             " debug=" :string
-          @builder.append_display <for bool> :void
+          @builder.append_str :void
             __sb_1 :?
-            .debug :bool
-              s2 :Settings
+            call :string
+              callee:
+                std_core$bool$Display$to_string :string
+              arg0:
+                .debug :bool
+                  s2 :Settings
           ~>
             @builder.finish :string
               __sb_1 :?
@@ -84,24 +108,36 @@
         block :string
           let __sb_2: ? =
             @builder.new :?
-          @builder.append_display <for string> :void
+          @builder.append_str :void
             __sb_2 :?
-            .name :string
-              s3 :Settings
+            call :string
+              callee:
+                std_core$string$Display$to_string :string
+              arg0:
+                .name :string
+                  s3 :Settings
           @builder.append_str :void
             __sb_2 :?
             ": timeout=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_2 :?
-            .timeout :i32
-              s3 :Settings
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                .timeout :i32
+                  s3 :Settings
           @builder.append_str :void
             __sb_2 :?
             " debug=" :string
-          @builder.append_display <for bool> :void
+          @builder.append_str :void
             __sb_2 :?
-            .debug :bool
-              s3 :Settings
+            call :string
+              callee:
+                std_core$bool$Display$to_string :string
+              arg0:
+                .debug :bool
+                  s3 :Settings
           ~>
             @builder.finish :string
               __sb_2 :?

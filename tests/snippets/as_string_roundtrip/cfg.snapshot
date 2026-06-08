@@ -25,9 +25,10 @@ fn snippet$main() -> i32
     %18 $intrinsic_18: ?
     %19 __sb_0: ? (synthetic __sb_0)
     %20 $k_20: string
-    %21 $k_21: string
-    %22 $intrinsic_22: string
-    %23 $k_23: i32
+    %21 $call_21: string
+    %22 $k_22: string
+    %23 $intrinsic_23: string
+    %24 $k_24: i32
   bb0:
     %0 = const string(#1) :string
     %1 = call bytes(%0) :const u8[]
@@ -54,10 +55,11 @@ fn snippet$main() -> i32
     %19 = move %18
     %20 = const string(#5) :string
     intrinsic builder.append_str(%19, %20)
-    intrinsic builder.append_display(%19, %17)
-    %21 = const string(#6) :string
+    %21 = call std_core$string$Display$to_string(%17) :string
     intrinsic builder.append_str(%19, %21)
-    %22 = intrinsic builder.finish(%19)
-    call std_io$std_io$println__string(%22) :void
-    %23 = const int(0) :i32
-    return %23
+    %22 = const string(#6) :string
+    intrinsic builder.append_str(%19, %22)
+    %23 = intrinsic builder.finish(%19)
+    call std_io$std_io$println__string(%23) :void
+    %24 = const int(0) :i32
+    return %24

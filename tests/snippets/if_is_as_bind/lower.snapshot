@@ -68,15 +68,19 @@
           @builder.append_str :void
             __sb_0 :?
             "direct V01      : " :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            call :i32
+            call :string
               callee:
-                direct :fn(V01 | V02) -> i32
+                std_core$i32$Display$to_string :string
               arg0:
-                V01 {
-                  f: int(10) :i32
-                }
+                call :i32
+                  callee:
+                    direct :fn(V01 | V02) -> i32
+                  arg0:
+                    V01 {
+                      f: int(10) :i32
+                    }
           ~>
             @builder.finish :string
               __sb_0 :?
@@ -90,15 +94,19 @@
           @builder.append_str :void
             __sb_1 :?
             "direct V02      : " :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_1 :?
-            call :i32
+            call :string
               callee:
-                direct :fn(V01 | V02) -> i32
+                std_core$i32$Display$to_string :string
               arg0:
-                V02 {
-                  f: int(20) :i32
-                }
+                call :i32
+                  callee:
+                    direct :fn(V01 | V02) -> i32
+                  arg0:
+                    V02 {
+                      f: int(20) :i32
+                    }
           ~>
             @builder.finish :string
               __sb_1 :?
@@ -112,15 +120,19 @@
           @builder.append_str :void
             __sb_2 :?
             "post_narrow V01 : " :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_2 :?
-            call :i32
+            call :string
               callee:
-                post_narrow :fn(V01 | V02) -> i32
+                std_core$i32$Display$to_string :string
               arg0:
-                V01 {
-                  f: int(30) :i32
-                }
+                call :i32
+                  callee:
+                    post_narrow :fn(V01 | V02) -> i32
+                  arg0:
+                    V01 {
+                      f: int(30) :i32
+                    }
           ~>
             @builder.finish :string
               __sb_2 :?
@@ -134,15 +146,19 @@
           @builder.append_str :void
             __sb_3 :?
             "post_narrow V02 : " :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_3 :?
-            call :i32
+            call :string
               callee:
-                post_narrow :fn(V01 | V02) -> i32
+                std_core$i32$Display$to_string :string
               arg0:
-                V02 {
-                  f: int(40) :i32
-                }
+                call :i32
+                  callee:
+                    post_narrow :fn(V01 | V02) -> i32
+                  arg0:
+                    V02 {
+                      f: int(40) :i32
+                    }
           ~>
             @builder.finish :string
               __sb_3 :?

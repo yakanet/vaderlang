@@ -10,10 +10,14 @@
         @builder.append_str :void
           __sb_0 :?
           "G:" :string
-        @builder.append_display <for string> :void
+        @builder.append_str :void
           __sb_0 :?
-          .name :string
-            self :Cat
+          call :string
+            callee:
+              std_core$string$Display$to_string :string
+            arg0:
+              .name :string
+                self :Cat
         ~>
           @builder.finish :string
             __sb_0 :?
@@ -25,10 +29,14 @@
         @builder.append_str :void
           __sb_0 :?
           "A:" :string
-        @builder.append_display <for string> :void
+        @builder.append_str :void
           __sb_0 :?
-          .name :string
-            self :Cat
+          call :string
+            callee:
+              std_core$string$Display$to_string :string
+            arg0:
+              .name :string
+                self :Cat
         ~>
           @builder.finish :string
             __sb_0 :?

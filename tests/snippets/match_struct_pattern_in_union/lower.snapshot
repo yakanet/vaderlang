@@ -36,15 +36,23 @@
                         @builder.append_str :void
                           __sb_1 :?
                           "(" :string
-                        @builder.append_display <for i32> :void
+                        @builder.append_str :void
                           __sb_1 :?
-                          x :i32
+                          call :string
+                            callee:
+                              std_core$i32$Display$to_string :string
+                            arg0:
+                              x :i32
                         @builder.append_str :void
                           __sb_1 :?
                           ", " :string
-                        @builder.append_display <for i32> :void
+                        @builder.append_str :void
                           __sb_1 :?
-                          y :i32
+                          call :string
+                            callee:
+                              std_core$i32$Display$to_string :string
+                            arg0:
+                              y :i32
                         @builder.append_str :void
                           __sb_1 :?
                           ")" :string

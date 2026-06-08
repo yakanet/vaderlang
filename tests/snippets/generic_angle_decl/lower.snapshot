@@ -34,9 +34,13 @@
           @builder.append_str :void
             __sb_0 :?
             "n = " :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            n :i32
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                n :i32
           ~>
             @builder.finish :string
               __sb_0 :?
@@ -56,9 +60,13 @@
           @builder.append_str :void
             __sb_1 :?
             "e = " :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_1 :?
-            e :i32
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                e :i32
           ~>
             @builder.finish :string
               __sb_1 :?
@@ -78,10 +86,14 @@
           @builder.append_str :void
             __sb_2 :?
             "b = " :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_2 :?
-            .value :i32
-              b :Box<i32>
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                .value :i32
+                  b :Box<i32>
           ~>
             @builder.finish :string
               __sb_2 :?
@@ -101,11 +113,15 @@
           @builder.append_str :void
             __sb_3 :?
             "nested = " :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_3 :?
-            .value :i32
-              .value :Box<i32>
-                nested :Box<Box<i32>>
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                .value :i32
+                  .value :Box<i32>
+                    nested :Box<Box<i32>>
           ~>
             @builder.finish :string
               __sb_3 :?
@@ -123,9 +139,13 @@
           @builder.append_str :void
             __sb_4 :?
             "c = " :string
-          @builder.append_display <for bool> :void
+          @builder.append_str :void
             __sb_4 :?
-            c :bool
+            call :string
+              callee:
+                std_core$bool$Display$to_string :string
+              arg0:
+                c :bool
           ~>
             @builder.finish :string
               __sb_4 :?

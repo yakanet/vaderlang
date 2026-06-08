@@ -18,13 +18,15 @@ fn snippet$main() -> i32
     %11 __sb_1: ? (synthetic __sb_1)
     %12 $k_12: i32
     %13 $idx_13: i32
-    %14 $intrinsic_14: string
-    %15 $intrinsic_15: ?
-    %16 __sb_2: ? (synthetic __sb_2)
-    %17 $k_17: i32
-    %18 $idx_18: i32
-    %19 $intrinsic_19: string
-    %20 $k_20: i32
+    %14 $call_14: string
+    %15 $intrinsic_15: string
+    %16 $intrinsic_16: ?
+    %17 __sb_2: ? (synthetic __sb_2)
+    %18 $k_18: i32
+    %19 $idx_19: i32
+    %20 $call_20: string
+    %21 $intrinsic_21: string
+    %22 $k_22: i32
   bb0:
     %0 = array_new ?[][0]()
     %1 = move %0
@@ -45,15 +47,17 @@ fn snippet$main() -> i32
     %11 = move %10
     %12 = const int(0) :i32
     %13 = array_get %1[%12] :i32
-    intrinsic builder.append_display(%11, %13)
-    %14 = intrinsic builder.finish(%11)
-    call std_io$std_io$println__string(%14) :void
-    %15 = intrinsic builder.new()
-    %16 = move %15
-    %17 = const int(2) :i32
-    %18 = array_get %1[%17] :i32
-    intrinsic builder.append_display(%16, %18)
-    %19 = intrinsic builder.finish(%16)
-    call std_io$std_io$println__string(%19) :void
-    %20 = const int(0) :i32
-    return %20
+    %14 = call std_core$i32$Display$to_string(%13) :string
+    intrinsic builder.append_str(%11, %14)
+    %15 = intrinsic builder.finish(%11)
+    call std_io$std_io$println__string(%15) :void
+    %16 = intrinsic builder.new()
+    %17 = move %16
+    %18 = const int(2) :i32
+    %19 = array_get %1[%18] :i32
+    %20 = call std_core$i32$Display$to_string(%19) :string
+    intrinsic builder.append_str(%17, %20)
+    %21 = intrinsic builder.finish(%17)
+    call std_io$std_io$println__string(%21) :void
+    %22 = const int(0) :i32
+    return %22

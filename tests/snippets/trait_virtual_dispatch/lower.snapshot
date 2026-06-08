@@ -11,10 +11,14 @@
         @builder.append_str :void
           __sb_0 :?
           "parse: " :string
-        @builder.append_display <for string> :void
+        @builder.append_str :void
           __sb_0 :?
-          .msg :string
-            self :ParseErr
+          call :string
+            callee:
+              std_core$string$Display$to_string :string
+            arg0:
+              .msg :string
+                self :ParseErr
         ~>
           @builder.finish :string
             __sb_0 :?
@@ -26,10 +30,14 @@
         @builder.append_str :void
           __sb_0 :?
           "net: " :string
-        @builder.append_display <for string> :void
+        @builder.append_str :void
           __sb_0 :?
-          .reason :string
-            self :NetErr
+          call :string
+            callee:
+              std_core$string$Display$to_string :string
+            arg0:
+              .reason :string
+                self :NetErr
         ~>
           @builder.finish :string
             __sb_0 :?

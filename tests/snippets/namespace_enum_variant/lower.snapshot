@@ -36,11 +36,15 @@
           @builder.append_str :void
             __sb_0 :?
             "green_code=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            call :i32
+            call :string
               callee:
-                green_code :fn() -> i32
+                std_core$i32$Display$to_string :string
+              arg0:
+                call :i32
+                  callee:
+                    green_code :fn() -> i32
           ~>
             @builder.finish :string
               __sb_0 :?
@@ -54,13 +58,17 @@
           @builder.append_str :void
             __sb_1 :?
             "name=" :string
-          @builder.append_display <for string> :void
+          @builder.append_str :void
             __sb_1 :?
             call :string
               callee:
-                name_of :fn(Color) -> string
+                std_core$string$Display$to_string :string
               arg0:
-                int(2) :u8
+                call :string
+                  callee:
+                    name_of :fn(Color) -> string
+                  arg0:
+                    int(2) :u8
           ~>
             @builder.finish :string
               __sb_1 :?

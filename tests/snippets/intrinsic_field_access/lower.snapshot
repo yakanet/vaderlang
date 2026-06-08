@@ -11,16 +11,24 @@
           block :string
             let __sb_0: ? =
               @builder.new :?
-            @builder.append_display <for string> :void
+            @builder.append_str :void
               __sb_0 :?
-              "name" :string
+              call :string
+                callee:
+                  std_core$string$Display$to_string :string
+                arg0:
+                  "name" :string
             @builder.append_str :void
               __sb_0 :?
               ": " :string
-            @builder.append_display <for string> :void
+            @builder.append_str :void
               __sb_0 :?
-              .name :string
-                self :User
+              call :string
+                callee:
+                  std_core$string$Display$to_string :string
+                arg0:
+                  .name :string
+                    self :User
             ~>
               @builder.finish :string
                 __sb_0 :?
@@ -31,16 +39,24 @@
           block :string
             let __sb_1: ? =
               @builder.new :?
-            @builder.append_display <for string> :void
+            @builder.append_str :void
               __sb_1 :?
-              "age" :string
+              call :string
+                callee:
+                  std_core$string$Display$to_string :string
+                arg0:
+                  "age" :string
             @builder.append_str :void
               __sb_1 :?
               ": " :string
-            @builder.append_display <for i32> :void
+            @builder.append_str :void
               __sb_1 :?
-              .age :i32
-                self :User
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  .age :i32
+                    self :User
             ~>
               @builder.finish :string
                 __sb_1 :?
@@ -60,17 +76,25 @@
           @builder.append_str :void
             __sb_0 :?
             "static: " :string
-          @builder.append_display <for string> :void
+          @builder.append_str :void
             __sb_0 :?
-            .name :string
-              u :User
+            call :string
+              callee:
+                std_core$string$Display$to_string :string
+              arg0:
+                .name :string
+                  u :User
           @builder.append_str :void
             __sb_0 :?
             " (" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            .age :i32
-              u :User
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                .age :i32
+                  u :User
           @builder.append_str :void
             __sb_0 :?
             ")" :string

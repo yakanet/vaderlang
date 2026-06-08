@@ -15,7 +15,8 @@ fn snippet$greet_wildcard(%0: Cat | Dog | null) -> string
     %8 $cast_8: Cat | Dog
     %9 $cast_9: Cat
     %10 $field_10: string
-    %11 $intrinsic_11: string
+    %11 $call_11: string
+    %12 $intrinsic_12: string
   bb0:
     %1 = move %0
     %2 = type_check %1 is null
@@ -32,9 +33,10 @@ fn snippet$greet_wildcard(%0: Cat | Dog | null) -> string
     %8 = cast %0 :Cat | Dog
     %9 = cast %8 :Cat
     %10 = field_get %9.name :string
-    intrinsic builder.append_display(%6, %10)
-    %11 = intrinsic builder.finish(%6)
-    %3 = move %11
+    %11 = call std_core$string$Display$to_string(%10) :string
+    intrinsic builder.append_str(%6, %11)
+    %12 = intrinsic builder.finish(%6)
+    %3 = move %12
     branch -> bb3
   bb3:
     return %3
@@ -53,7 +55,8 @@ fn snippet$greet_binding(%0: Cat | Dog | null) -> string
     %9 $narrow_9: Cat | Dog
     %10 $cast_10: Cat
     %11 $field_11: string
-    %12 $intrinsic_12: string
+    %12 $call_12: string
+    %13 $intrinsic_13: string
   bb0:
     %1 = move %0
     %2 = type_check %1 is null
@@ -71,9 +74,10 @@ fn snippet$greet_binding(%0: Cat | Dog | null) -> string
     %9 = cast %5 :Cat | Dog
     %10 = cast %9 :Cat
     %11 = field_get %10.name :string
-    intrinsic builder.append_display(%7, %11)
-    %12 = intrinsic builder.finish(%7)
-    %3 = move %12
+    %12 = call std_core$string$Display$to_string(%11) :string
+    intrinsic builder.append_str(%7, %12)
+    %13 = intrinsic builder.finish(%7)
+    %3 = move %13
     branch -> bb3
   bb3:
     return %3

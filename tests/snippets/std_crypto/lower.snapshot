@@ -12,13 +12,17 @@
           @builder.append_str :void
             __sb_0 :?
             "sha256-empty=" :string
-          @builder.append_display <for string> :void
+          @builder.append_str :void
             __sb_0 :?
             call :string
               callee:
-                sha256 :fn(string) -> string
+                std_core$string$Display$to_string :string
               arg0:
-                "" :string
+                call :string
+                  callee:
+                    sha256 :fn(string) -> string
+                  arg0:
+                    "" :string
           ~>
             @builder.finish :string
               __sb_0 :?
@@ -32,13 +36,17 @@
           @builder.append_str :void
             __sb_1 :?
             "sha256-abc=" :string
-          @builder.append_display <for string> :void
+          @builder.append_str :void
             __sb_1 :?
             call :string
               callee:
-                sha256 :fn(string) -> string
+                std_core$string$Display$to_string :string
               arg0:
-                "abc" :string
+                call :string
+                  callee:
+                    sha256 :fn(string) -> string
+                  arg0:
+                    "abc" :string
           ~>
             @builder.finish :string
               __sb_1 :?
@@ -52,13 +60,17 @@
           @builder.append_str :void
             __sb_2 :?
             "sha256-quick=" :string
-          @builder.append_display <for string> :void
+          @builder.append_str :void
             __sb_2 :?
             call :string
               callee:
-                sha256 :fn(string) -> string
+                std_core$string$Display$to_string :string
               arg0:
-                "The quick brown fox jumps over the lazy dog" :string
+                call :string
+                  callee:
+                    sha256 :fn(string) -> string
+                  arg0:
+                    "The quick brown fox jumps over the lazy dog" :string
           ~>
             @builder.finish :string
               __sb_2 :?
@@ -72,13 +84,17 @@
           @builder.append_str :void
             __sb_3 :?
             "sha256-long=" :string
-          @builder.append_display <for string> :void
+          @builder.append_str :void
             __sb_3 :?
             call :string
               callee:
-                sha256 :fn(string) -> string
+                std_core$string$Display$to_string :string
               arg0:
-                "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq" :string
+                call :string
+                  callee:
+                    sha256 :fn(string) -> string
+                  arg0:
+                    "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq" :string
           ~>
             @builder.finish :string
               __sb_3 :?
@@ -92,13 +108,17 @@
           @builder.append_str :void
             __sb_4 :?
             "md5-empty=" :string
-          @builder.append_display <for string> :void
+          @builder.append_str :void
             __sb_4 :?
             call :string
               callee:
-                md5 :fn(string) -> string
+                std_core$string$Display$to_string :string
               arg0:
-                "" :string
+                call :string
+                  callee:
+                    md5 :fn(string) -> string
+                  arg0:
+                    "" :string
           ~>
             @builder.finish :string
               __sb_4 :?
@@ -112,13 +132,17 @@
           @builder.append_str :void
             __sb_5 :?
             "md5-abc=" :string
-          @builder.append_display <for string> :void
+          @builder.append_str :void
             __sb_5 :?
             call :string
               callee:
-                md5 :fn(string) -> string
+                std_core$string$Display$to_string :string
               arg0:
-                "abc" :string
+                call :string
+                  callee:
+                    md5 :fn(string) -> string
+                  arg0:
+                    "abc" :string
           ~>
             @builder.finish :string
               __sb_5 :?
@@ -132,13 +156,17 @@
           @builder.append_str :void
             __sb_6 :?
             "md5-quick=" :string
-          @builder.append_display <for string> :void
+          @builder.append_str :void
             __sb_6 :?
             call :string
               callee:
-                md5 :fn(string) -> string
+                std_core$string$Display$to_string :string
               arg0:
-                "The quick brown fox jumps over the lazy dog" :string
+                call :string
+                  callee:
+                    md5 :fn(string) -> string
+                  arg0:
+                    "The quick brown fox jumps over the lazy dog" :string
           ~>
             @builder.finish :string
               __sb_6 :?

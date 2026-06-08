@@ -239,9 +239,13 @@
           @builder.append_str :void
             __sb_3 :?
             "a..=e count = " :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_3 :?
-            n :i32
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                n :i32
           ~>
             @builder.finish :string
               __sb_3 :?
@@ -291,9 +295,13 @@
           @builder.append_str :void
             __sb_7 :?
             "0..<5 count = " :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_7 :?
-            m :i32
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                m :i32
           ~>
             @builder.finish :string
               __sb_7 :?

@@ -27,90 +27,96 @@ fn snippet$main() -> i32
     %20 $intrinsic_20: ?
     %21 __sb_3: ? (synthetic __sb_3)
     %22 $k_22: string
-    %23 $intrinsic_23: string
-    %24 $struct_24: __lambda_env_8
-    %25 $closure_25: fn(i32) -> bool
-    %26 is_even: fn(i32) -> bool (local is_even)
-    %27 $k_27: i32
+    %23 $call_23: string
+    %24 $intrinsic_24: string
+    %25 $struct_25: __lambda_env_8
+    %26 $closure_26: fn(i32) -> bool
+    %27 is_even: fn(i32) -> bool (local is_even)
     %28 $k_28: i32
-    %29 $k_29: bool
-    %30 $k_30: i32
-    %31 $struct_31: Range<i32>
-    %32 $struct_32: FilterIterator<i32>
-    %33 fi: FilterIterator<i32> (local fi)
-    %34 $k_34: i32
-    %35 even_count: i32 (local even_count)
-    %36 $k_36: i32
-    %37 even_sum: i32 (local even_sum)
-    %38 __iter_5: FilterIterator<i32> (synthetic __iter_5)
-    %39 $call_39: Yield<i32> | null
-    %40 __step_6: Yield<i32> | null (synthetic __step_6)
-    %41 $type_check_41: bool
-    %42 $cast_42: Yield<i32>
-    %43 $field_43: i32
-    %44 v: i32 (local v)
-    %45 $k_45: i32
-    %46 $add_46: i32
+    %29 $k_29: i32
+    %30 $k_30: bool
+    %31 $k_31: i32
+    %32 $struct_32: Range<i32>
+    %33 $struct_33: FilterIterator<i32>
+    %34 fi: FilterIterator<i32> (local fi)
+    %35 $k_35: i32
+    %36 even_count: i32 (local even_count)
+    %37 $k_37: i32
+    %38 even_sum: i32 (local even_sum)
+    %39 __iter_5: FilterIterator<i32> (synthetic __iter_5)
+    %40 $call_40: Yield<i32> | null
+    %41 __step_6: Yield<i32> | null (synthetic __step_6)
+    %42 $type_check_42: bool
+    %43 $cast_43: Yield<i32>
+    %44 $field_44: i32
+    %45 v: i32 (local v)
+    %46 $k_46: i32
     %47 $add_47: i32
-    %48 $intrinsic_48: ?
-    %49 __sb_7: ? (synthetic __sb_7)
-    %50 $k_50: string
+    %48 $add_48: i32
+    %49 $intrinsic_49: ?
+    %50 __sb_7: ? (synthetic __sb_7)
     %51 $k_51: string
-    %52 $intrinsic_52: string
-    %53 $k_53: i32
-    %54 $k_54: i32
-    %55 $k_55: bool
+    %52 $call_52: string
+    %53 $k_53: string
+    %54 $call_54: string
+    %55 $intrinsic_55: string
     %56 $k_56: i32
-    %57 $struct_57: Range<i32>
-    %58 $k_58: usize
-    %59 $cast_59: usize
-    %60 $struct_60: TakeIterator<i32>
-    %61 ti: TakeIterator<i32> (local ti)
-    %62 $k_62: i32
-    %63 take_sum: i32 (local take_sum)
-    %64 __iter_8: TakeIterator<i32> (synthetic __iter_8)
-    %65 $call_65: Yield<i32> | null
-    %66 __step_9: Yield<i32> | null (synthetic __step_9)
-    %67 $type_check_67: bool
-    %68 $cast_68: Yield<i32>
-    %69 $field_69: i32
-    %70 v: i32 (local v)
-    %71 $add_71: i32
-    %72 $intrinsic_72: ?
-    %73 __sb_10: ? (synthetic __sb_10)
-    %74 $k_74: string
-    %75 $intrinsic_75: string
-    %76 $k_76: i32
-    %77 $k_77: i32
-    %78 $k_78: bool
-    %79 $k_79: i32
-    %80 $struct_80: Range<i32>
-    %81 $k_81: usize
-    %82 $cast_82: usize
-    %83 $struct_83: SkipIterator<i32>
-    %84 si: SkipIterator<i32> (local si)
-    %85 $k_85: i32
-    %86 skip_count: i32 (local skip_count)
-    %87 $k_87: i32
-    %88 $unop_88: {integer}
-    %89 skip_first: i32 (local skip_first)
-    %90 __iter_11: SkipIterator<i32> (synthetic __iter_11)
-    %91 $call_91: Yield<i32> | null
-    %92 __step_12: Yield<i32> | null (synthetic __step_12)
-    %93 $type_check_93: bool
-    %94 $cast_94: Yield<i32>
-    %95 $field_95: i32
-    %96 v: i32 (local v)
-    %97 $k_97: i32
-    %98 $lt_98: bool
-    %99 $k_99: i32
-    %100 $add_100: i32
-    %101 $intrinsic_101: ?
-    %102 __sb_13: ? (synthetic __sb_13)
-    %103 $k_103: string
-    %104 $k_104: string
-    %105 $intrinsic_105: string
-    %106 $k_106: i32
+    %57 $k_57: i32
+    %58 $k_58: bool
+    %59 $k_59: i32
+    %60 $struct_60: Range<i32>
+    %61 $k_61: usize
+    %62 $cast_62: usize
+    %63 $struct_63: TakeIterator<i32>
+    %64 ti: TakeIterator<i32> (local ti)
+    %65 $k_65: i32
+    %66 take_sum: i32 (local take_sum)
+    %67 __iter_8: TakeIterator<i32> (synthetic __iter_8)
+    %68 $call_68: Yield<i32> | null
+    %69 __step_9: Yield<i32> | null (synthetic __step_9)
+    %70 $type_check_70: bool
+    %71 $cast_71: Yield<i32>
+    %72 $field_72: i32
+    %73 v: i32 (local v)
+    %74 $add_74: i32
+    %75 $intrinsic_75: ?
+    %76 __sb_10: ? (synthetic __sb_10)
+    %77 $k_77: string
+    %78 $call_78: string
+    %79 $intrinsic_79: string
+    %80 $k_80: i32
+    %81 $k_81: i32
+    %82 $k_82: bool
+    %83 $k_83: i32
+    %84 $struct_84: Range<i32>
+    %85 $k_85: usize
+    %86 $cast_86: usize
+    %87 $struct_87: SkipIterator<i32>
+    %88 si: SkipIterator<i32> (local si)
+    %89 $k_89: i32
+    %90 skip_count: i32 (local skip_count)
+    %91 $k_91: i32
+    %92 $unop_92: {integer}
+    %93 skip_first: i32 (local skip_first)
+    %94 __iter_11: SkipIterator<i32> (synthetic __iter_11)
+    %95 $call_95: Yield<i32> | null
+    %96 __step_12: Yield<i32> | null (synthetic __step_12)
+    %97 $type_check_97: bool
+    %98 $cast_98: Yield<i32>
+    %99 $field_99: i32
+    %100 v: i32 (local v)
+    %101 $k_101: i32
+    %102 $lt_102: bool
+    %103 $k_103: i32
+    %104 $add_104: i32
+    %105 $intrinsic_105: ?
+    %106 __sb_13: ? (synthetic __sb_13)
+    %107 $k_107: string
+    %108 $call_108: string
+    %109 $k_109: string
+    %110 $call_110: string
+    %111 $intrinsic_111: string
+    %112 $k_112: i32
   bb0:
     %0 = struct_new __lambda_env_2()
     %1 = make_closure __lambda_1 env=%0 :fn(i32) -> i32
@@ -136,26 +142,27 @@ fn snippet$main() -> i32
   bb3:
     %20 = intrinsic builder.new()
     %21 = move %20
-    %22 = const string(#1) :string
+    %22 = const string(#13) :string
     intrinsic builder.append_str(%21, %22)
-    intrinsic builder.append_display(%21, %11)
-    %23 = intrinsic builder.finish(%21)
-    call std_io$std_io$println__string(%23) :void
-    %24 = struct_new __lambda_env_8()
-    %25 = make_closure __lambda_7 env=%24 :fn(i32) -> bool
-    %26 = move %25
-    %27 = const int(0) :i32
-    %28 = const int(10) :i32
-    %29 = const bool(false) :bool
-    %30 = const int(0) :i32
-    %31 = struct_new Range<i32>(%27, %28, %29, %30)
-    %32 = struct_new FilterIterator<i32>(%31, %26)
-    %33 = move %32
-    %34 = const int(0) :i32
-    %35 = move %34
-    %36 = const int(0) :i32
-    %37 = move %36
-    %38 = move %33
+    %23 = call std_core$i32$Display$to_string(%11) :string
+    intrinsic builder.append_str(%21, %23)
+    %24 = intrinsic builder.finish(%21)
+    call std_io$std_io$println__string(%24) :void
+    %25 = struct_new __lambda_env_8()
+    %26 = make_closure __lambda_7 env=%25 :fn(i32) -> bool
+    %27 = move %26
+    %28 = const int(0) :i32
+    %29 = const int(10) :i32
+    %30 = const bool(false) :bool
+    %31 = const int(0) :i32
+    %32 = struct_new Range<i32>(%28, %29, %30, %31)
+    %33 = struct_new FilterIterator<i32>(%32, %27)
+    %34 = move %33
+    %35 = const int(0) :i32
+    %36 = move %35
+    %37 = const int(0) :i32
+    %38 = move %37
+    %39 = move %34
     branch -> bb7
   bb4:
     branch -> bb3
@@ -171,128 +178,133 @@ fn snippet$main() -> i32
   bb7:
     branch -> bb8
   bb8:
-    %39 = call std_iter$FilterIterator$Iterator$next__i32(%38) :Yield<i32> | null
-    %40 = move %39
-    %41 = type_check %40 is null
-    cond_branch %41 ? bb10 : bb11
+    %40 = call std_iter$FilterIterator$Iterator$next__i32(%39) :Yield<i32> | null
+    %41 = move %40
+    %42 = type_check %41 is null
+    cond_branch %42 ? bb10 : bb11
   bb9:
-    %48 = intrinsic builder.new()
-    %49 = move %48
-    %50 = const string(#2) :string
-    intrinsic builder.append_str(%49, %50)
-    intrinsic builder.append_display(%49, %35)
-    %51 = const string(#3) :string
-    intrinsic builder.append_str(%49, %51)
-    intrinsic builder.append_display(%49, %37)
-    %52 = intrinsic builder.finish(%49)
-    call std_io$std_io$println__string(%52) :void
-    %53 = const int(0) :i32
-    %54 = const int(100) :i32
-    %55 = const bool(false) :bool
+    %49 = intrinsic builder.new()
+    %50 = move %49
+    %51 = const string(#14) :string
+    intrinsic builder.append_str(%50, %51)
+    %52 = call std_core$i32$Display$to_string(%36) :string
+    intrinsic builder.append_str(%50, %52)
+    %53 = const string(#15) :string
+    intrinsic builder.append_str(%50, %53)
+    %54 = call std_core$i32$Display$to_string(%38) :string
+    intrinsic builder.append_str(%50, %54)
+    %55 = intrinsic builder.finish(%50)
+    call std_io$std_io$println__string(%55) :void
     %56 = const int(0) :i32
-    %57 = struct_new Range<i32>(%53, %54, %55, %56)
-    %58 = const int(3) :usize
-    %59 = cast %58 :usize
-    %60 = struct_new TakeIterator<i32>(%57, %59)
-    %61 = move %60
-    %62 = const int(0) :i32
-    %63 = move %62
-    %64 = move %61
+    %57 = const int(100) :i32
+    %58 = const bool(false) :bool
+    %59 = const int(0) :i32
+    %60 = struct_new Range<i32>(%56, %57, %58, %59)
+    %61 = const int(3) :usize
+    %62 = cast %61 :usize
+    %63 = struct_new TakeIterator<i32>(%60, %62)
+    %64 = move %63
+    %65 = const int(0) :i32
+    %66 = move %65
+    %67 = move %64
     branch -> bb13
   bb10:
     branch -> bb9
   bb11:
-    %42 = cast %40 :Yield<i32>
-    %43 = field_get %42.value :i32
-    %44 = move %43
-    %45 = const int(1) :i32
-    %46 = binop 0 %35 %45 :i32
-    %35 = move %46
-    %47 = binop 0 %37 %44 :i32
-    %37 = move %47
+    %43 = cast %41 :Yield<i32>
+    %44 = field_get %43.value :i32
+    %45 = move %44
+    %46 = const int(1) :i32
+    %47 = binop 0 %36 %46 :i32
+    %36 = move %47
+    %48 = binop 0 %38 %45 :i32
+    %38 = move %48
     branch -> bb12
   bb12:
     branch -> bb7
   bb13:
     branch -> bb14
   bb14:
-    %65 = call std_iter$TakeIterator$Iterator$next__i32(%64) :Yield<i32> | null
-    %66 = move %65
-    %67 = type_check %66 is null
-    cond_branch %67 ? bb16 : bb17
+    %68 = call std_iter$TakeIterator$Iterator$next__i32(%67) :Yield<i32> | null
+    %69 = move %68
+    %70 = type_check %69 is null
+    cond_branch %70 ? bb16 : bb17
   bb15:
-    %72 = intrinsic builder.new()
-    %73 = move %72
-    %74 = const string(#4) :string
-    intrinsic builder.append_str(%73, %74)
-    intrinsic builder.append_display(%73, %63)
-    %75 = intrinsic builder.finish(%73)
-    call std_io$std_io$println__string(%75) :void
-    %76 = const int(0) :i32
-    %77 = const int(10) :i32
-    %78 = const bool(false) :bool
-    %79 = const int(0) :i32
-    %80 = struct_new Range<i32>(%76, %77, %78, %79)
-    %81 = const int(7) :usize
-    %82 = cast %81 :usize
-    %83 = struct_new SkipIterator<i32>(%80, %82)
-    %84 = move %83
-    %85 = const int(0) :i32
-    %86 = move %85
-    %87 = const int(1) :i32
-    %88 = unop 0 %87 :{integer}
-    %89 = move %88
-    %90 = move %84
+    %75 = intrinsic builder.new()
+    %76 = move %75
+    %77 = const string(#16) :string
+    intrinsic builder.append_str(%76, %77)
+    %78 = call std_core$i32$Display$to_string(%66) :string
+    intrinsic builder.append_str(%76, %78)
+    %79 = intrinsic builder.finish(%76)
+    call std_io$std_io$println__string(%79) :void
+    %80 = const int(0) :i32
+    %81 = const int(10) :i32
+    %82 = const bool(false) :bool
+    %83 = const int(0) :i32
+    %84 = struct_new Range<i32>(%80, %81, %82, %83)
+    %85 = const int(7) :usize
+    %86 = cast %85 :usize
+    %87 = struct_new SkipIterator<i32>(%84, %86)
+    %88 = move %87
+    %89 = const int(0) :i32
+    %90 = move %89
+    %91 = const int(1) :i32
+    %92 = unop 0 %91 :{integer}
+    %93 = move %92
+    %94 = move %88
     branch -> bb19
   bb16:
     branch -> bb15
   bb17:
-    %68 = cast %66 :Yield<i32>
-    %69 = field_get %68.value :i32
-    %70 = move %69
-    %71 = binop 0 %63 %70 :i32
-    %63 = move %71
+    %71 = cast %69 :Yield<i32>
+    %72 = field_get %71.value :i32
+    %73 = move %72
+    %74 = binop 0 %66 %73 :i32
+    %66 = move %74
     branch -> bb18
   bb18:
     branch -> bb13
   bb19:
     branch -> bb20
   bb20:
-    %91 = call std_iter$SkipIterator$Iterator$next__i32(%90) :Yield<i32> | null
-    %92 = move %91
-    %93 = type_check %92 is null
-    cond_branch %93 ? bb22 : bb23
+    %95 = call std_iter$SkipIterator$Iterator$next__i32(%94) :Yield<i32> | null
+    %96 = move %95
+    %97 = type_check %96 is null
+    cond_branch %97 ? bb22 : bb23
   bb21:
-    %101 = intrinsic builder.new()
-    %102 = move %101
-    %103 = const string(#5) :string
-    intrinsic builder.append_str(%102, %103)
-    intrinsic builder.append_display(%102, %86)
-    %104 = const string(#6) :string
-    intrinsic builder.append_str(%102, %104)
-    intrinsic builder.append_display(%102, %89)
-    %105 = intrinsic builder.finish(%102)
-    call std_io$std_io$println__string(%105) :void
-    %106 = const int(0) :i32
-    return %106
+    %105 = intrinsic builder.new()
+    %106 = move %105
+    %107 = const string(#17) :string
+    intrinsic builder.append_str(%106, %107)
+    %108 = call std_core$i32$Display$to_string(%90) :string
+    intrinsic builder.append_str(%106, %108)
+    %109 = const string(#18) :string
+    intrinsic builder.append_str(%106, %109)
+    %110 = call std_core$i32$Display$to_string(%93) :string
+    intrinsic builder.append_str(%106, %110)
+    %111 = intrinsic builder.finish(%106)
+    call std_io$std_io$println__string(%111) :void
+    %112 = const int(0) :i32
+    return %112
   bb22:
     branch -> bb21
   bb23:
-    %94 = cast %92 :Yield<i32>
-    %95 = field_get %94.value :i32
-    %96 = move %95
-    %97 = const int(0) :i32
-    %98 = binop 14 %89 %97 :bool
-    cond_branch %98 ? bb25 : bb26
+    %98 = cast %96 :Yield<i32>
+    %99 = field_get %98.value :i32
+    %100 = move %99
+    %101 = const int(0) :i32
+    %102 = binop 14 %93 %101 :bool
+    cond_branch %102 ? bb25 : bb26
   bb24:
     branch -> bb19
   bb25:
-    %89 = move %96
+    %93 = move %100
     branch -> bb26
   bb26:
-    %99 = const int(1) :i32
-    %100 = binop 0 %86 %99 :i32
-    %86 = move %100
+    %103 = const int(1) :i32
+    %104 = binop 0 %90 %103 :i32
+    %90 = move %104
     branch -> bb24
 
 fn __lambda_1(%0: __lambda_env_2, %1: i32) -> i32

@@ -103,10 +103,14 @@
                               @builder.append_str :void
                                 __sb_2 :?
                                 "hello = " :string
-                              @builder.append_display <for i32> :void
+                              @builder.append_str :void
                                 __sb_2 :?
-                                cast → i32
-                                  v1 :i32 | null
+                                call :string
+                                  callee:
+                                    std_core$i32$Display$to_string :string
+                                  arg0:
+                                    cast → i32
+                                      v1 :i32 | null
                               ~>
                                 @builder.finish :string
                                   __sb_2 :?
@@ -157,10 +161,14 @@
                               @builder.append_str :void
                                 __sb_4 :?
                                 "world = " :string
-                              @builder.append_display <for i32> :void
+                              @builder.append_str :void
                                 __sb_4 :?
-                                cast → i32
-                                  v2 :i32 | null
+                                call :string
+                                  callee:
+                                    std_core$i32$Display$to_string :string
+                                  arg0:
+                                    cast → i32
+                                      v2 :i32 | null
                               ~>
                                 @builder.finish :string
                                   __sb_4 :?
@@ -211,10 +219,14 @@
                               @builder.append_str :void
                                 __sb_6 :?
                                 "vader = " :string
-                              @builder.append_display <for i32> :void
+                              @builder.append_str :void
                                 __sb_6 :?
-                                cast → i32
-                                  v3 :i32 | null
+                                call :string
+                                  callee:
+                                    std_core$i32$Display$to_string :string
+                                  arg0:
+                                    cast → i32
+                                      v3 :i32 | null
                               ~>
                                 @builder.finish :string
                                   __sb_6 :?
@@ -231,15 +243,19 @@
           @builder.append_str :void
             __sb_7 :?
             "has hello? " :string
-          @builder.append_display <for bool> :void
+          @builder.append_str :void
             __sb_7 :?
-            call :bool
+            call :string
               callee:
-                std_collections$MutableMap$Contains$contains__string__i32 :bool
+                std_core$bool$Display$to_string :string
               arg0:
-                m :MutableMap<string, i32>
-              arg1:
-                "hello" :string
+                call :bool
+                  callee:
+                    std_collections$MutableMap$Contains$contains__string__i32 :bool
+                  arg0:
+                    m :MutableMap<string, i32>
+                  arg1:
+                    "hello" :string
           ~>
             @builder.finish :string
               __sb_7 :?
@@ -253,15 +269,19 @@
           @builder.append_str :void
             __sb_8 :?
             "has missing? " :string
-          @builder.append_display <for bool> :void
+          @builder.append_str :void
             __sb_8 :?
-            call :bool
+            call :string
               callee:
-                std_collections$MutableMap$Contains$contains__string__i32 :bool
+                std_core$bool$Display$to_string :string
               arg0:
-                m :MutableMap<string, i32>
-              arg1:
-                "missing" :string
+                call :bool
+                  callee:
+                    std_collections$MutableMap$Contains$contains__string__i32 :bool
+                  arg0:
+                    m :MutableMap<string, i32>
+                  arg1:
+                    "missing" :string
           ~>
             @builder.finish :string
               __sb_8 :?
@@ -318,10 +338,14 @@
                               @builder.append_str :void
                                 __sb_10 :?
                                 "hello updated = " :string
-                              @builder.append_display <for i32> :void
+                              @builder.append_str :void
                                 __sb_10 :?
-                                cast → i32
-                                  v1b :i32 | null
+                                call :string
+                                  callee:
+                                    std_core$i32$Display$to_string :string
+                                  arg0:
+                                    cast → i32
+                                      v1b :i32 | null
                               ~>
                                 @builder.finish :string
                                   __sb_10 :?

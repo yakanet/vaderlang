@@ -74,13 +74,17 @@
           @builder.append_str :void
             __sb_0 :?
             "type_id(s)=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            call :i32
+            call :string
               callee:
-                type_id_of :fn(ArrayVal | IntVal | StructVal) -> i32
+                std_core$i32$Display$to_string :string
               arg0:
-                s :ArrayVal | IntVal | StructVal
+                call :i32
+                  callee:
+                    type_id_of :fn(ArrayVal | IntVal | StructVal) -> i32
+                  arg0:
+                    s :ArrayVal | IntVal | StructVal
           ~>
             @builder.finish :string
               __sb_0 :?
@@ -94,13 +98,17 @@
           @builder.append_str :void
             __sb_1 :?
             "type_id(a)=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_1 :?
-            call :i32
+            call :string
               callee:
-                type_id_of :fn(ArrayVal | IntVal | StructVal) -> i32
+                std_core$i32$Display$to_string :string
               arg0:
-                a :ArrayVal | IntVal | StructVal
+                call :i32
+                  callee:
+                    type_id_of :fn(ArrayVal | IntVal | StructVal) -> i32
+                  arg0:
+                    a :ArrayVal | IntVal | StructVal
           ~>
             @builder.finish :string
               __sb_1 :?
@@ -114,13 +122,17 @@
           @builder.append_str :void
             __sb_2 :?
             "type_id(i)=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_2 :?
-            call :i32
+            call :string
               callee:
-                type_id_of :fn(ArrayVal | IntVal | StructVal) -> i32
+                std_core$i32$Display$to_string :string
               arg0:
-                i :ArrayVal | IntVal | StructVal
+                call :i32
+                  callee:
+                    type_id_of :fn(ArrayVal | IntVal | StructVal) -> i32
+                  arg0:
+                    i :ArrayVal | IntVal | StructVal
           ~>
             @builder.finish :string
               __sb_2 :?
@@ -134,13 +146,17 @@
           @builder.append_str :void
             __sb_3 :?
             "first(a)=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_3 :?
-            call :i32
+            call :string
               callee:
-                first_item :fn(ArrayVal | IntVal | StructVal) -> i32
+                std_core$i32$Display$to_string :string
               arg0:
-                a :ArrayVal | IntVal | StructVal
+                call :i32
+                  callee:
+                    first_item :fn(ArrayVal | IntVal | StructVal) -> i32
+                  arg0:
+                    a :ArrayVal | IntVal | StructVal
           ~>
             @builder.finish :string
               __sb_3 :?

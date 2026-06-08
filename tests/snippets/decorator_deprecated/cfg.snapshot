@@ -35,10 +35,13 @@ fn snippet$main() -> i32
     %8 c: i32 (local c)
     %9 $intrinsic_9: ?
     %10 __sb_0: ? (synthetic __sb_0)
-    %11 $k_11: string
+    %11 $call_11: string
     %12 $k_12: string
-    %13 $intrinsic_13: string
-    %14 $k_14: i32
+    %13 $call_13: string
+    %14 $k_14: string
+    %15 $call_15: string
+    %16 $intrinsic_16: string
+    %17 $k_17: i32
   bb0:
     %0 = const int(42) :i32
     %1 = call old_helper(%0) :i32
@@ -51,17 +54,20 @@ fn snippet$main() -> i32
     %8 = move %7
     %9 = intrinsic builder.new()
     %10 = move %9
-    intrinsic builder.append_display(%10, %2)
-    %11 = const string(#1) :string
+    %11 = call std_core$i32$Display$to_string(%2) :string
     intrinsic builder.append_str(%10, %11)
-    intrinsic builder.append_display(%10, %5)
     %12 = const string(#1) :string
     intrinsic builder.append_str(%10, %12)
-    intrinsic builder.append_display(%10, %8)
-    %13 = intrinsic builder.finish(%10)
-    call std_io$std_io$println__string(%13) :void
-    %14 = const int(0) :i32
-    return %14
+    %13 = call std_core$i32$Display$to_string(%5) :string
+    intrinsic builder.append_str(%10, %13)
+    %14 = const string(#1) :string
+    intrinsic builder.append_str(%10, %14)
+    %15 = call std_core$i32$Display$to_string(%8) :string
+    intrinsic builder.append_str(%10, %15)
+    %16 = intrinsic builder.finish(%10)
+    call std_io$std_io$println__string(%16) :void
+    %17 = const int(0) :i32
+    return %17
 
 # Diagnostics
 [21:10] warning[W0001] use of deprecated declaration: `old_helper`: use new_helper instead

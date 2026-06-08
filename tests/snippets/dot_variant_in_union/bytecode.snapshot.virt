@@ -26,19 +26,18 @@ string 4 "S"
 string 5 "W"
 string 6 "err"
 import 0 write std_io$write (i32,string) -> void
-import 1 to_string std_core$string$Display$to_string (string) -> string
 impl 6 Contains
 impl 6 Iterator
 impl 10 Contains
 impl 10 Iterator
 impl 13 Contains
 impl 13 Iterator
-export main 3
+export main 4
 
 fn 0 std_io$std_io$println__string (string) -> void
   local $call_2 string
   local.get 0
-  call 4
+  call 1
   local.set 1
   i32.const 0
   local.get 1
@@ -49,7 +48,12 @@ fn 0 std_io$std_io$println__string (string) -> void
   return
 end
 
-fn 1 snippet$parse (char) -> ref
+fn 1 std_core$string$Display$to_string (string) -> string
+  local.get 0
+  return
+end
+
+fn 2 snippet$parse (char) -> ref
   local.get 0
   char.const 78
   char.eq
@@ -79,7 +83,7 @@ fn 1 snippet$parse (char) -> ref
   return
 end
 
-fn 2 snippet$dir_label (i32) -> string
+fn 3 snippet$dir_label (i32) -> string
   local __scrut_0 i32
   local.get 0
   local.set 1
@@ -110,26 +114,26 @@ fn 2 snippet$dir_label (i32) -> string
   return
 end
 
-fn 3 snippet$main () -> i32
+fn 4 snippet$main () -> i32
   local __scrut_0 ref
   local __scrut_1 ref
   char.const 78
-  call 1
+  call 2
   local.tee 0
   type_check 3
   if $L0 void
     local.get 0
     ref.cast 3
-    call 2
+    call 3
     call 0
     char.const 63
-    call 1
+    call 2
     local.tee 1
     type_check 3
     if $L1 void
       local.get 1
       ref.cast 3
-      call 2
+      call 3
       call 0
       return.lit i32.const 0
     end $L1
@@ -148,13 +152,13 @@ fn 3 snippet$main () -> i32
     string.const 6
     call 0
     char.const 63
-    call 1
+    call 2
     local.tee 1
     type_check 3
     if $L4 void
       local.get 1
       ref.cast 3
-      call 2
+      call 3
       call 0
       return.lit i32.const 0
     end $L4
@@ -167,11 +171,5 @@ fn 3 snippet$main () -> i32
     end $L5
     return
   end $L3
-  return
-end
-
-fn 4 std_core$string$Display$to_string_vt (string) -> string
-  local.get 0
-  call.import 1
   return
 end

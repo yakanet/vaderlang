@@ -31,18 +31,22 @@
           @builder.append_str :void
             __sb_0 :?
             "hit=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            call :i32
+            call :string
               callee:
-                probe :fn(Wrapper) -> i32
+                std_core$i32$Display$to_string :string
               arg0:
-                Wrapper {
-                  payload:
-                    Inner {
-                      kind: int(42) :i32
+                call :i32
+                  callee:
+                    probe :fn(Wrapper) -> i32
+                  arg0:
+                    Wrapper {
+                      payload:
+                        Inner {
+                          kind: int(42) :i32
+                        }
                     }
-                }
           ~>
             @builder.finish :string
               __sb_0 :?
@@ -56,15 +60,19 @@
           @builder.append_str :void
             __sb_1 :?
             "miss=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_1 :?
-            call :i32
+            call :string
               callee:
-                probe :fn(Wrapper) -> i32
+                std_core$i32$Display$to_string :string
               arg0:
-                Wrapper {
-                  payload: null
-                }
+                call :i32
+                  callee:
+                    probe :fn(Wrapper) -> i32
+                  arg0:
+                    Wrapper {
+                      payload: null
+                    }
           ~>
             @builder.finish :string
               __sb_1 :?

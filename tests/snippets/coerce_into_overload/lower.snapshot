@@ -54,9 +54,13 @@
           @builder.append_str :void
             __sb_0 :?
             "a=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            a :i32
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                a :i32
           ~>
             @builder.finish :string
               __sb_0 :?
@@ -76,9 +80,13 @@
           @builder.append_str :void
             __sb_1 :?
             "b=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_1 :?
-            b :i32
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                b :i32
           ~>
             @builder.finish :string
               __sb_1 :?

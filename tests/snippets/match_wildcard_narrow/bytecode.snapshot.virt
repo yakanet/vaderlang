@@ -15,7 +15,6 @@ string 5 "Rex"
 string 6 "Mittens"
 string 7 "Buddy"
 import 0 write std_io$write (i32,string) -> void
-import 1 to_string std_core$string$Display$to_string (string) -> string
 export main 3
 
 fn 0 std_io$std_io$println__string (string) -> void
@@ -35,7 +34,7 @@ end
 fn 1 snippet$greet_wildcard (ref) -> string
   local if_res string
   local __sb_1 any
-  local $field_10 string
+  local $call_11 string
   local.get 0
   type_check 0
   if $L0 void
@@ -50,10 +49,11 @@ fn 1 snippet$greet_wildcard (ref) -> string
     local.get 0
     struct.get 5 0
     ref.cast 1
+    call 4
     local.set 3
     local.get 2
     local.get 3
-    intrinsic builder.append_display
+    intrinsic builder.append_str
     local.get 2
     intrinsic builder.finish
     local.set 1
@@ -66,7 +66,7 @@ fn 2 snippet$greet_binding (ref) -> string
   local __scrut_0 ref
   local if_res string
   local __sb_1 any
-  local $field_11 string
+  local $call_12 string
   local.get 0
   local.tee 1
   type_check 0
@@ -84,10 +84,11 @@ fn 2 snippet$greet_binding (ref) -> string
     local.get 1
     struct.get 5 0
     ref.cast 1
+    call 4
     local.set 4
     local.get 3
     local.get 4
-    intrinsic builder.append_display
+    intrinsic builder.append_str
     local.get 3
     intrinsic builder.finish
     local.set 2
@@ -122,9 +123,8 @@ fn 3 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 4 std_core$string$Display$to_string_vt (string) -> string
+fn 4 std_core$string$Display$to_string (string) -> string
   local.get 0
-  call.import 1
   return
 end
 

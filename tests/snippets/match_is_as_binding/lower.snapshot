@@ -32,10 +32,14 @@
                         @builder.append_str :void
                           __sb_2 :?
                           "P.x = " :string
-                        @builder.append_display <for i32> :void
+                        @builder.append_str :void
                           __sb_2 :?
-                          .x :i32
-                            p :P
+                          call :string
+                            callee:
+                              std_core$i32$Display$to_string :string
+                            arg0:
+                              .x :i32
+                                p :P
                         ~>
                           @builder.finish :string
                             __sb_2 :?
@@ -56,10 +60,14 @@
                               @builder.append_str :void
                                 __sb_1 :?
                                 "Q.y = " :string
-                              @builder.append_display <for string> :void
+                              @builder.append_str :void
                                 __sb_1 :?
-                                .y :string
-                                  q :Q
+                                call :string
+                                  callee:
+                                    std_core$string$Display$to_string :string
+                                  arg0:
+                                    .y :string
+                                      q :Q
                               ~>
                                 @builder.finish :string
                                   __sb_1 :?

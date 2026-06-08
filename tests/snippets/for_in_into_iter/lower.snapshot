@@ -49,9 +49,13 @@
           @builder.append_str :void
             __sb_3 :?
             "arr=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_3 :?
-            arr_total :i32
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                arr_total :i32
           ~>
             @builder.finish :string
               __sb_3 :?
@@ -153,9 +157,13 @@
           @builder.append_str :void
             __sb_10 :?
             "map=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_10 :?
-            map_total :i32
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                map_total :i32
           ~>
             @builder.finish :string
               __sb_10 :?
@@ -258,9 +266,13 @@
           @builder.append_str :void
             __sb_17 :?
             "set=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_17 :?
-            set_total :i32
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                set_total :i32
           ~>
             @builder.finish :string
               __sb_17 :?
@@ -276,9 +288,13 @@
           @builder.append_str :void
             __sb_18 :?
             "chars=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_18 :?
-            chars :i32
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                chars :i32
           ~>
             @builder.finish :string
               __sb_18 :?

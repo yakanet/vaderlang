@@ -12,7 +12,6 @@ string 0 "\n"
 string 1 "héllo"
 string 2 "hello"
 import 0 write std_io$write (i32,string) -> void
-import 1 to_string std_core$string$Display$to_string (string) -> string
 impl 5 Contains
 impl 5 Iterator
 export main 1
@@ -124,8 +123,7 @@ fn 1 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 2 std_core$string$Display$to_string_vt (string) -> string
+fn 2 std_core$string$Display$to_string (string) -> string
   local.get 0
-  call.import 1
   return
 end

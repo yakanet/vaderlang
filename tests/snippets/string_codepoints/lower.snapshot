@@ -235,9 +235,13 @@
             @builder.append_str :void
               __sb_6 :?
               ": '" :string
-            @builder.append_display <for char> :void
+            @builder.append_str :void
               __sb_6 :?
-              c :char
+              call :string
+                callee:
+                  std_core$char$Display$to_string :string
+                arg0:
+                  c :char
             @builder.append_str :void
               __sb_6 :?
               "' (" :string

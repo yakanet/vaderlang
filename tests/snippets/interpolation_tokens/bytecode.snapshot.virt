@@ -11,113 +11,448 @@ type 8 primitive u16
 type 9 primitive u32
 type 10 primitive u64
 type 11 primitive usize
-type 12 primitive f32
-type 13 primitive f64
-type 14 primitive bool
-type 15 primitive char
-import 0 to_string std_core$i8$Display$to_string (i8) -> string
-import 1 to_string std_core$i16$Display$to_string (i16) -> string
-import 2 to_string std_core$i32$Display$to_string (i32) -> string
-import 3 to_string std_core$i64$Display$to_string (i64) -> string
-import 4 to_string std_core$isize$Display$to_string (isize) -> string
-import 5 to_string std_core$u8$Display$to_string (u8) -> string
-import 6 to_string std_core$u16$Display$to_string (u16) -> string
-import 7 to_string std_core$u32$Display$to_string (u32) -> string
-import 8 to_string std_core$u64$Display$to_string (u64) -> string
-import 9 to_string std_core$usize$Display$to_string (usize) -> string
-import 10 to_string std_core$f32$Display$to_string (f32) -> string
-import 11 to_string std_core$f64$Display$to_string (f64) -> string
-import 12 to_string std_core$bool$Display$to_string (bool) -> string
-import 13 to_string std_core$char$Display$to_string (char) -> string
-import 14 to_string std_core$string$Display$to_string (string) -> string
+type 12 primitive bool
+type 13 primitive char
+type 14 array 7
+type 15 primitive f32
+type 16 primitive f64
+type 17 array 2
+string 0 "true"
+string 1 "false"
+string 2 "0"
+string 3 ""
+string 4 "1"
+string 5 "2"
+string 6 "3"
+string 7 "4"
+string 8 "5"
+string 9 "6"
+string 10 "7"
+string 11 "8"
+string 12 "9"
+string 13 "-"
+import 0 bytes_to_string std_core$bytes_to_string (ref) -> string
+import 1 to_string std_core$f32$Display$to_string (f32) -> string
+import 2 to_string std_core$f64$Display$to_string (f64) -> string
 
-fn 0 std_core$i8$Display$to_string_vt (i8) -> string
+fn 0 std_core$i8$Display$to_string (i8) -> string
   local.get 0
+  i8.to_i64
+  call 13
+  return
+end
+
+fn 1 std_core$i16$Display$to_string (i16) -> string
+  local.get 0
+  i16.to_i64
+  call 13
+  return
+end
+
+fn 2 std_core$i32$Display$to_string (i32) -> string
+  local.get 0
+  i32.to_i64
+  call 13
+  return
+end
+
+fn 3 std_core$i64$Display$to_string (i64) -> string
+  local.get 0
+  call 13
+  return
+end
+
+fn 4 std_core$isize$Display$to_string (isize) -> string
+  local.get 0
+  isize.to_i64
+  call 13
+  return
+end
+
+fn 5 std_core$u8$Display$to_string (u8) -> string
+  local.get 0
+  u8.to_i64
+  call 14
+  return
+end
+
+fn 6 std_core$u16$Display$to_string (u16) -> string
+  local.get 0
+  u16.to_i64
+  call 14
+  return
+end
+
+fn 7 std_core$u32$Display$to_string (u32) -> string
+  local.get 0
+  u32.to_i64
+  call 14
+  return
+end
+
+fn 8 std_core$u64$Display$to_string (u64) -> string
+  local.get 0
+  call 14
+  return
+end
+
+fn 9 std_core$usize$Display$to_string (usize) -> string
+  local.get 0
+  usize.to_i64
+  call 14
+  return
+end
+
+fn 10 std_core$bool$Display$to_string (bool) -> string
+  local if_res string
+  local.get 0
+  if $L0 void
+    string.const 0
+    local.set 1
+  else
+    string.const 1
+    local.set 1
+  end $L0
+  local.get 1
+  return
+end
+
+fn 11 std_core$char$Display$to_string (char) -> string
+  local.get 0
+  call 15
   call.import 0
   return
 end
 
-fn 1 std_core$i16$Display$to_string_vt (i16) -> string
+fn 12 std_core$string$Display$to_string (string) -> string
+  local.get 0
+  return
+end
+
+fn 13 std_core$format_signed (i64) -> string
+  local neg bool
+  local if_res i64
+  local out string
+  local $arr_26 ref
+  local $cast_30 usize
+  local.get 0
+  i64.const 0
+  i64.eq
+  if $L0 void
+    return.lit string.const 2
+  end $L0
+  local.get 0
+  i64.const 0
+  i64.lt
+  local.set 1
+  local.get 0
+  i64.const 0
+  i64.lt
+  if $L1 void
+    local.get 0
+    local.set 2
+  else
+    local.get 0
+    i64.neg
+    local.set 2
+  end $L1
+  local.get 2
+  local.set 2
+  string.const 3
+  local.set 3
+  block $L2 void
+    loop $L3 void
+      local.get 2
+      i64.const 0
+      i64.ne
+      if $L4 void
+        string.const 2
+        string.const 4
+        string.const 5
+        string.const 6
+        string.const 7
+        string.const 8
+        string.const 9
+        string.const 10
+        string.const 11
+        string.const 12
+        array.new 17 10
+        local.set 4
+        local.get 2
+        i64.const 10
+        i64.rem
+        i64.neg
+        i64.to_i64
+        local.set 5
+        local.get 4
+        local.get 5
+        array.get 17
+        ref.cast 2
+        local.get 3
+        string.concat
+        local.set 3
+        local.get 2
+        i64.const 10
+        i64.div
+        local.set 2
+        br $L3
+      else
+      end $L4
+    end $L3
+  end $L2
+  local.get 1
+  if $L5 void
+    string.const 13
+    local.get 3
+    string.concat
+    return
+  end $L5
+  local.get 3
+  return
+end
+
+fn 14 std_core$format_unsigned (u64) -> string
+  local $k_1 u64
+  local out string
+  local $k_7 u64
+  local $arr_19 ref
+  local $k_20 u64
+  local $cast_22 usize
+  local $k_25 u64
+  i64.const 0
+  local.set 1
+  local.get 0
+  local.get 1
+  i64.eq
+  if $L0 void
+    return.lit string.const 2
+  end $L0
+  local.get 0
+  local.set 1
+  string.const 3
+  local.set 2
+  block $L1 void
+    loop $L2 void
+      i64.const 0
+      local.set 3
+      local.get 1
+      local.get 3
+      i64.ne
+      if $L3 void
+        string.const 2
+        string.const 4
+        string.const 5
+        string.const 6
+        string.const 7
+        string.const 8
+        string.const 9
+        string.const 10
+        string.const 11
+        string.const 12
+        array.new 17 10
+        local.set 4
+        i64.const 10
+        local.set 5
+        local.get 1
+        local.get 5
+        u64.rem
+        u64.to_i64
+        local.set 6
+        local.get 4
+        local.get 6
+        array.get 17
+        ref.cast 2
+        local.get 2
+        string.concat
+        local.set 2
+        i64.const 10
+        local.set 7
+        local.get 1
+        local.get 7
+        u64.div
+        local.set 1
+        br $L2
+      else
+      end $L3
+    end $L2
+  end $L1
+  local.get 2
+  return
+end
+
+fn 15 std_core$utf8_encode (char) -> ref
+  local cp u32
+  local out ref
+  local $k_5 u32
+  local $cast_7 u8
+  local.get 0
+  char.to_i32
+  local.set 1
+  array.new 14 0
+  local.set 2
+  i32.const 128
+  local.set 3
+  local.get 1
+  local.get 3
+  u32.lt
+  if $L0 void
+    local.get 1
+    u32.to_i32
+    local.set 4
+    local.get 2
+    local.get 4
+    array.push 7
+  else
+    i32.const 2048
+    local.set 3
+    local.get 1
+    local.get 3
+    u32.lt
+    if $L1 void
+      local.get 1
+      i32.const 6
+      u32.shr
+      local.set 3
+      i32.const 192
+      local.get 3
+      i32.bitor
+      u32.to_i32
+      local.set 4
+      local.get 2
+      local.get 4
+      array.push 7
+      local.get 1
+      i32.const 63
+      i32.bitand
+      local.set 3
+      i32.const 128
+      local.get 3
+      i32.bitor
+      u32.to_i32
+      local.set 4
+      local.get 2
+      local.get 4
+      array.push 7
+    else
+      i32.const 65536
+      local.set 3
+      local.get 1
+      local.get 3
+      u32.lt
+      if $L2 void
+        local.get 1
+        i32.const 12
+        u32.shr
+        local.set 3
+        i32.const 224
+        local.get 3
+        i32.bitor
+        u32.to_i32
+        local.set 4
+        local.get 2
+        local.get 4
+        array.push 7
+        local.get 1
+        i32.const 6
+        u32.shr
+        local.set 3
+        local.get 3
+        i32.const 63
+        i32.bitand
+        local.set 3
+        i32.const 128
+        local.get 3
+        i32.bitor
+        u32.to_i32
+        local.set 4
+        local.get 2
+        local.get 4
+        array.push 7
+        local.get 1
+        i32.const 63
+        i32.bitand
+        local.set 3
+        i32.const 128
+        local.get 3
+        i32.bitor
+        u32.to_i32
+        local.set 4
+        local.get 2
+        local.get 4
+        array.push 7
+      else
+        local.get 1
+        i32.const 18
+        u32.shr
+        local.set 3
+        i32.const 240
+        local.get 3
+        i32.bitor
+        u32.to_i32
+        local.set 4
+        local.get 2
+        local.get 4
+        array.push 7
+        local.get 1
+        i32.const 12
+        u32.shr
+        local.set 3
+        local.get 3
+        i32.const 63
+        i32.bitand
+        local.set 3
+        i32.const 128
+        local.get 3
+        i32.bitor
+        u32.to_i32
+        local.set 4
+        local.get 2
+        local.get 4
+        array.push 7
+        local.get 1
+        i32.const 6
+        u32.shr
+        local.set 3
+        local.get 3
+        i32.const 63
+        i32.bitand
+        local.set 3
+        i32.const 128
+        local.get 3
+        i32.bitor
+        u32.to_i32
+        local.set 4
+        local.get 2
+        local.get 4
+        array.push 7
+        local.get 1
+        i32.const 63
+        i32.bitand
+        local.set 1
+        i32.const 128
+        local.get 1
+        i32.bitor
+        u32.to_i32
+        local.set 4
+        local.get 2
+        local.get 4
+        array.push 7
+      end $L2
+    end $L1
+  end $L0
+  local.get 2
+  return
+end
+
+fn 16 std_core$f32$Display$to_string_vt (f32) -> string
   local.get 0
   call.import 1
   return
 end
 
-fn 2 std_core$i32$Display$to_string_vt (i32) -> string
+fn 17 std_core$f64$Display$to_string_vt (f64) -> string
   local.get 0
   call.import 2
-  return
-end
-
-fn 3 std_core$i64$Display$to_string_vt (i64) -> string
-  local.get 0
-  call.import 3
-  return
-end
-
-fn 4 std_core$isize$Display$to_string_vt (isize) -> string
-  local.get 0
-  call.import 4
-  return
-end
-
-fn 5 std_core$u8$Display$to_string_vt (u8) -> string
-  local.get 0
-  call.import 5
-  return
-end
-
-fn 6 std_core$u16$Display$to_string_vt (u16) -> string
-  local.get 0
-  call.import 6
-  return
-end
-
-fn 7 std_core$u32$Display$to_string_vt (u32) -> string
-  local.get 0
-  call.import 7
-  return
-end
-
-fn 8 std_core$u64$Display$to_string_vt (u64) -> string
-  local.get 0
-  call.import 8
-  return
-end
-
-fn 9 std_core$usize$Display$to_string_vt (usize) -> string
-  local.get 0
-  call.import 9
-  return
-end
-
-fn 10 std_core$f32$Display$to_string_vt (f32) -> string
-  local.get 0
-  call.import 10
-  return
-end
-
-fn 11 std_core$f64$Display$to_string_vt (f64) -> string
-  local.get 0
-  call.import 11
-  return
-end
-
-fn 12 std_core$bool$Display$to_string_vt (bool) -> string
-  local.get 0
-  call.import 12
-  return
-end
-
-fn 13 std_core$char$Display$to_string_vt (char) -> string
-  local.get 0
-  call.import 13
-  return
-end
-
-fn 14 std_core$string$Display$to_string_vt (string) -> string
-  local.get 0
-  call.import 14
   return
 end
 

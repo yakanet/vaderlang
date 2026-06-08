@@ -42,27 +42,31 @@ fn snippet$main() -> i32
     %13 $intrinsic_13: ?
     %14 __sb_1: ? (synthetic __sb_1)
     %15 $k_15: string
-    %16 $k_16: string
-    %17 $intrinsic_17: string
-    %18 $k_18: string
-    %19 $call_19: [i32, string] | null
-    %20 b: [i32, string] | null (local b)
-    %21 __scrut_2: [i32, string] | null (synthetic __scrut_2)
-    %22 $type_check_22: bool
-    %23 $k_23: string
+    %16 $call_16: string
+    %17 $k_17: string
+    %18 $call_18: string
+    %19 $intrinsic_19: string
+    %20 $k_20: string
+    %21 $call_21: [i32, string] | null
+    %22 b: [i32, string] | null (local b)
+    %23 __scrut_2: [i32, string] | null (synthetic __scrut_2)
     %24 $type_check_24: bool
-    %25 $cast_25: [i32, string]
-    %26 $field_26: i32
-    %27 n: i32 (binding n)
-    %28 $cast_28: [i32, string]
-    %29 $field_29: string
-    %30 s: string (binding s)
-    %31 $intrinsic_31: ?
-    %32 __sb_3: ? (synthetic __sb_3)
-    %33 $k_33: string
-    %34 $k_34: string
-    %35 $intrinsic_35: string
-    %36 $k_36: i32
+    %25 $k_25: string
+    %26 $type_check_26: bool
+    %27 $cast_27: [i32, string]
+    %28 $field_28: i32
+    %29 n: i32 (binding n)
+    %30 $cast_30: [i32, string]
+    %31 $field_31: string
+    %32 s: string (binding s)
+    %33 $intrinsic_33: ?
+    %34 __sb_3: ? (synthetic __sb_3)
+    %35 $k_35: string
+    %36 $call_36: string
+    %37 $k_37: string
+    %38 $call_38: string
+    %39 $intrinsic_39: string
+    %40 $k_40: i32
   bb0:
     %0 = const string(#1) :string
     %1 = call lookup(%0) :[i32, string] | null
@@ -78,12 +82,12 @@ fn snippet$main() -> i32
     %6 = type_check %3 is [i32, string]
     cond_branch %6 ? bb4 : bb5
   bb3:
-    %18 = const string(#6) :string
-    %19 = call lookup(%18) :[i32, string] | null
-    %20 = move %19
-    %21 = move %20
-    %22 = type_check %21 is null
-    cond_branch %22 ? bb7 : bb8
+    %20 = const string(#6) :string
+    %21 = call lookup(%20) :[i32, string] | null
+    %22 = move %21
+    %23 = move %22
+    %24 = type_check %23 is null
+    cond_branch %24 ? bb7 : bb8
   bb4:
     %7 = cast %3 :[i32, string]
     %8 = field_get %7._0 :i32
@@ -95,44 +99,48 @@ fn snippet$main() -> i32
     %14 = move %13
     %15 = const string(#4) :string
     intrinsic builder.append_str(%14, %15)
-    intrinsic builder.append_display(%14, %9)
-    %16 = const string(#5) :string
+    %16 = call std_core$i32$Display$to_string(%9) :string
     intrinsic builder.append_str(%14, %16)
-    intrinsic builder.append_display(%14, %12)
-    %17 = intrinsic builder.finish(%14)
-    call std_io$std_io$println__string(%17) :void
+    %17 = const string(#5) :string
+    intrinsic builder.append_str(%14, %17)
+    %18 = call std_core$string$Display$to_string(%12) :string
+    intrinsic builder.append_str(%14, %18)
+    %19 = intrinsic builder.finish(%14)
+    call std_io$std_io$println__string(%19) :void
     branch -> bb6
   bb5:
     unreachable ; non-exhaustive match (T3013 should have caught this)
   bb6:
     branch -> bb3
   bb7:
-    %23 = const string(#3) :string
-    call std_io$std_io$println__string(%23) :void
+    %25 = const string(#3) :string
+    call std_io$std_io$println__string(%25) :void
     branch -> bb9
   bb8:
-    %24 = type_check %21 is [i32, string]
-    cond_branch %24 ? bb10 : bb11
+    %26 = type_check %23 is [i32, string]
+    cond_branch %26 ? bb10 : bb11
   bb9:
-    %36 = const int(0) :i32
-    return %36
+    %40 = const int(0) :i32
+    return %40
   bb10:
-    %25 = cast %21 :[i32, string]
-    %26 = field_get %25._0 :i32
-    %27 = move %26
-    %28 = cast %21 :[i32, string]
-    %29 = field_get %28._1 :string
-    %30 = move %29
-    %31 = intrinsic builder.new()
+    %27 = cast %23 :[i32, string]
+    %28 = field_get %27._0 :i32
+    %29 = move %28
+    %30 = cast %23 :[i32, string]
+    %31 = field_get %30._1 :string
     %32 = move %31
-    %33 = const string(#4) :string
-    intrinsic builder.append_str(%32, %33)
-    intrinsic builder.append_display(%32, %27)
-    %34 = const string(#5) :string
-    intrinsic builder.append_str(%32, %34)
-    intrinsic builder.append_display(%32, %30)
-    %35 = intrinsic builder.finish(%32)
-    call std_io$std_io$println__string(%35) :void
+    %33 = intrinsic builder.new()
+    %34 = move %33
+    %35 = const string(#4) :string
+    intrinsic builder.append_str(%34, %35)
+    %36 = call std_core$i32$Display$to_string(%29) :string
+    intrinsic builder.append_str(%34, %36)
+    %37 = const string(#5) :string
+    intrinsic builder.append_str(%34, %37)
+    %38 = call std_core$string$Display$to_string(%32) :string
+    intrinsic builder.append_str(%34, %38)
+    %39 = intrinsic builder.finish(%34)
+    call std_io$std_io$println__string(%39) :void
     branch -> bb12
   bb11:
     unreachable ; non-exhaustive match (T3013 should have caught this)

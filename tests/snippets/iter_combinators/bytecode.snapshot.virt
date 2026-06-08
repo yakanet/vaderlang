@@ -8,32 +8,43 @@ type 5 struct __lambda_env_8 {  }
 type 6 primitive string
 type 7 primitive void
 type 8 primitive usize
-type 9 array 1
-type 10 array 11
-type 11 ref _
-type 12 fn (11) -> 11
-type 13 fn (11) -> 4
-type 14 fn (11,11) -> 11
-type 15 struct std_core$Range__i32 { start:11,end:11,inclusive:4,cursor:11 }
-type 16 union 0,17
-type 17 struct std_core$Yield__i32 { value:11 }
-type 18 struct std_core$Range__usize { start:11,end:11,inclusive:4,cursor:11 }
-type 19 union 0,20
-type 20 struct std_core$Yield__usize { value:11 }
-type 21 fn (1) -> 1
-type 22 fn (1) -> 4
-type 23 fn (1,1) -> 1
+type 9 array 6
+type 10 array 1
+type 11 array 12
+type 12 ref _
+type 13 fn (12) -> 12
+type 14 fn (12) -> 4
+type 15 fn (12,12) -> 12
+type 16 struct std_core$Range__i32 { start:12,end:12,inclusive:4,cursor:12 }
+type 17 union 0,18
+type 18 struct std_core$Yield__i32 { value:12 }
+type 19 struct std_core$Range__usize { start:12,end:12,inclusive:4,cursor:12 }
+type 20 union 0,21
+type 21 struct std_core$Yield__usize { value:12 }
+type 22 primitive u64
+type 23 fn (1) -> 1
+type 24 fn (1) -> 4
+type 25 fn (1,1) -> 1
 string 0 "\n"
 string 1 "slice mid len="
 string 2 "slice over len="
 string 3 "slice tail len="
+string 4 "0"
+string 5 ""
+string 6 "1"
+string 7 "2"
+string 8 "3"
+string 9 "4"
+string 10 "5"
+string 11 "6"
+string 12 "7"
+string 13 "8"
+string 14 "9"
 import 0 write std_io$write (i32,string) -> void
-import 1 to_string std_core$usize$Display$to_string (usize) -> string
-import 2 to_string std_core$string$Display$to_string (string) -> string
-impl 15 Contains
-impl 15 Iterator
-impl 18 Contains
-impl 18 Iterator
+impl 16 Contains
+impl 16 Iterator
+impl 19 Contains
+impl 19 Iterator
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -59,17 +70,17 @@ fn 0 snippet$main () -> i32
   i32.const 8
   i32.const 9
   i32.const 10
-  array.new 9 10
+  array.new 10 10
   local.set 0
   i32.const 1
   i32.const 2
   i32.const 3
   i32.const 4
   i32.const 5
-  array.new 9 5
+  array.new 10 5
   local.set 1
   struct.new 2
-  make_closure 1 21
+  make_closure 1 23
   local.set 2
   local.get 1
   local.get 2
@@ -77,7 +88,7 @@ fn 0 snippet$main () -> i32
   call 5
   local.set 3
   struct.new 3
-  make_closure 2 22
+  make_closure 2 24
   local.set 1
   local.get 0
   local.get 1
@@ -89,10 +100,10 @@ fn 0 snippet$main () -> i32
   i32.const 3
   i32.const 4
   i32.const 5
-  array.new 9 5
+  array.new 10 5
   local.set 1
   struct.new 5
-  make_closure 3 23
+  make_closure 3 25
   local.set 2
   local.get 1
   i32.const 1
@@ -108,7 +119,7 @@ fn 0 snippet$main () -> i32
   local.get 0
   local.get 6
   local.get 7
-  array.slice 9
+  array.slice 10
   call 5
   local.set 8
   i64.const 7
@@ -119,7 +130,7 @@ fn 0 snippet$main () -> i32
   local.get 0
   local.get 6
   local.get 7
-  array.slice 9
+  array.slice 10
   call 5
   local.set 9
   intrinsic builder.new
@@ -263,7 +274,7 @@ fn 5 std_iter$sum (ref) -> i32
       if $L2 void
         local.get 2
         local.get 4
-        array.get 9
+        array.get 10
         ref.cast 1
         local.set 5
         local.get 1
@@ -292,7 +303,7 @@ fn 6 std_iter$std_iter$map__i32__i32 (ref,ref) -> ref
   local __for_i_2 usize
   local $call_ind_12 ref
   local $k_13 usize
-  array.new 10 0
+  array.new 11 0
   local.set 2
   local.get 0
   local.tee 3
@@ -308,13 +319,13 @@ fn 6 std_iter$std_iter$map__i32__i32 (ref,ref) -> ref
       if $L2 void
         local.get 3
         local.get 5
-        array.get 10
+        array.get 11
         local.get 1
-        call.indirect 12
+        call.indirect 13
         local.set 6
         local.get 2
         local.get 6
-        array.push 11
+        array.push 12
         i64.const 1
         local.set 7
         local.get 5
@@ -337,7 +348,7 @@ fn 7 std_iter$std_iter$filter__i32 (ref,ref) -> ref
   local __for_i_2 usize
   local x ref
   local $k_13 usize
-  array.new 10 0
+  array.new 11 0
   local.set 2
   local.get 0
   local.tee 3
@@ -353,14 +364,14 @@ fn 7 std_iter$std_iter$filter__i32 (ref,ref) -> ref
       if $L2 void
         local.get 3
         local.get 5
-        array.get 10
+        array.get 11
         local.tee 6
         local.get 1
-        call.indirect 13
+        call.indirect 14
         if $L3 void
           local.get 2
           local.get 6
-          array.push 11
+          array.push 12
         else
         end $L3
         i64.const 1
@@ -401,12 +412,12 @@ fn 8 std_iter$std_iter$fold__i32__i32 (ref,ref,ref) -> ref
       if $L2 void
         local.get 4
         local.get 6
-        array.get 10
+        array.get 11
         local.set 7
         local.get 3
         local.get 7
         local.get 2
-        call.indirect 14
+        call.indirect 15
         local.set 3
         i64.const 1
         local.set 8
@@ -427,18 +438,87 @@ fn 9 std_iter$std_iter$slice__i32 (ref,usize,usize) -> ref
   local.get 0
   local.get 1
   local.get 2
-  array.slice 10
+  array.slice 11
   return
 end
 
-fn 10 std_core$usize$Display$to_string_vt (usize) -> string
+fn 10 std_core$usize$Display$to_string (usize) -> string
   local.get 0
-  call.import 1
+  usize.to_i64
+  call 12
   return
 end
 
-fn 11 std_core$string$Display$to_string_vt (string) -> string
+fn 11 std_core$string$Display$to_string (string) -> string
   local.get 0
-  call.import 2
+  return
+end
+
+fn 12 std_core$format_unsigned (u64) -> string
+  local $k_1 u64
+  local out string
+  local $k_7 u64
+  local $arr_19 ref
+  local $k_20 u64
+  local $cast_22 usize
+  local $k_25 u64
+  i64.const 0
+  local.set 1
+  local.get 0
+  local.get 1
+  i64.eq
+  if $L0 void
+    return.lit string.const 4
+  end $L0
+  local.get 0
+  local.set 1
+  string.const 5
+  local.set 2
+  block $L1 void
+    loop $L2 void
+      i64.const 0
+      local.set 3
+      local.get 1
+      local.get 3
+      i64.ne
+      if $L3 void
+        string.const 4
+        string.const 6
+        string.const 7
+        string.const 8
+        string.const 9
+        string.const 10
+        string.const 11
+        string.const 12
+        string.const 13
+        string.const 14
+        array.new 9 10
+        local.set 4
+        i64.const 10
+        local.set 5
+        local.get 1
+        local.get 5
+        u64.rem
+        u64.to_i64
+        local.set 6
+        local.get 4
+        local.get 6
+        array.get 9
+        ref.cast 6
+        local.get 2
+        string.concat
+        local.set 2
+        i64.const 10
+        local.set 7
+        local.get 1
+        local.get 7
+        u64.div
+        local.set 1
+        br $L2
+      else
+      end $L3
+    end $L2
+  end $L1
+  local.get 2
   return
 end

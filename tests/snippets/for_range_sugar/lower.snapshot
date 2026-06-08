@@ -34,9 +34,13 @@
           @builder.append_str :void
             __sb_1 :?
             "five : " :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_1 :?
-            count :i32
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                count :i32
           ~>
             @builder.finish :string
               __sb_1 :?
@@ -72,9 +76,13 @@
           @builder.append_str :void
             __sb_3 :?
             "four : " :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_3 :?
-            sum :i32
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                sum :i32
           ~>
             @builder.finish :string
               __sb_3 :?
@@ -122,9 +130,13 @@
           @builder.append_str :void
             __sb_6 :?
             "six : " :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_6 :?
-            cells :i32
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                cells :i32
           ~>
             @builder.finish :string
               __sb_6 :?
@@ -160,9 +172,13 @@
           @builder.append_str :void
             __sb_7 :?
             "six : " :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_7 :?
-            accum :i32
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                accum :i32
           ~>
             @builder.finish :string
               __sb_7 :?

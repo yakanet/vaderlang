@@ -7,21 +7,21 @@ type 4 ref Error
 type 5 primitive usize
 type 6 primitive bool
 type 7 primitive f64
-type 8 struct std_core$Range__char { start:18,end:18,inclusive:6,cursor:18 }
+type 8 struct std_core$Range__char { start:20,end:20,inclusive:6,cursor:20 }
 type 9 primitive char
 type 10 union 0,11
-type 11 struct std_core$Yield__char { value:18 }
-type 12 struct std_core$Range__i32 { start:18,end:18,inclusive:6,cursor:18 }
+type 11 struct std_core$Yield__char { value:20 }
+type 12 struct std_core$Range__i32 { start:20,end:20,inclusive:6,cursor:20 }
 type 13 union 0,14
-type 14 struct std_core$Yield__i32 { value:18 }
-type 15 struct std_core$Range__usize { start:18,end:18,inclusive:6,cursor:18 }
+type 14 struct std_core$Yield__i32 { value:20 }
+type 15 struct std_core$Range__usize { start:20,end:20,inclusive:6,cursor:20 }
 type 16 union 0,17
-type 17 struct std_core$Yield__usize { value:18 }
-type 18 ref _
-type 19 union 3,20
-type 20 struct std_string$ParseError { msg:1 }
-type 21 array 22
-type 22 primitive u8
+type 17 struct std_core$Yield__usize { value:20 }
+type 18 array 19
+type 19 primitive u8
+type 20 ref _
+type 21 union 3,22
+type 22 struct std_string$ParseError { msg:1 }
 type 23 union 4,7
 string 0 "\n"
 string 1 "42"
@@ -36,9 +36,8 @@ string 9 "parse_int: no digits"
 string 10 "parse_int: invalid digit"
 string 11 "parse_int: overflow"
 import 0 write std_io$write (i32,string) -> void
-import 1 to_string std_core$string$Display$to_string (string) -> string
-import 2 bytes std_string$bytes (string) -> ref
-import 3 parse_float std_string$parse_float (string) -> ref
+import 1 bytes std_string$bytes (string) -> ref
+import 2 parse_float std_string$parse_float (string) -> ref
 impl 8 Contains
 impl 8 Iterator
 impl 12 Contains
@@ -50,7 +49,7 @@ export main 1
 fn 0 std_io$std_io$println__string (string) -> void
   local $call_2 string
   local.get 0
-  call 3
+  call 2
   local.set 1
   i32.const 0
   local.get 1
@@ -67,28 +66,28 @@ fn 1 snippet$main () -> i32
   local __scrut_2 ref
   local __scrut_3 ref
   string.const 1
-  call 2
+  call 3
   local.tee 0
   type_check 3
   if $L0 void
     string.const 2
     call 0
     string.const 4
-    call 2
+    call 3
     local.tee 1
     type_check 3
     if $L1 void
       string.const 2
       call 0
       string.const 5
-      call.import 3
+      call.import 2
       local.tee 2
       type_check 7
       if $L2 void
         string.const 6
         call 0
         string.const 4
-        call.import 3
+        call.import 2
         local.tee 3
         type_check 7
         if $L3 void
@@ -111,7 +110,7 @@ fn 1 snippet$main () -> i32
         string.const 7
         call 0
         string.const 4
-        call.import 3
+        call.import 2
         local.tee 3
         type_check 7
         if $L6 void
@@ -131,19 +130,19 @@ fn 1 snippet$main () -> i32
       return
     end $L1
     local.get 1
-    type_check 20
+    type_check 22
     if $L8 void
       string.const 3
       call 0
       string.const 5
-      call.import 3
+      call.import 2
       local.tee 2
       type_check 7
       if $L9 void
         string.const 6
         call 0
         string.const 4
-        call.import 3
+        call.import 2
         local.tee 3
         type_check 7
         if $L10 void
@@ -166,7 +165,7 @@ fn 1 snippet$main () -> i32
         string.const 7
         call 0
         string.const 4
-        call.import 3
+        call.import 2
         local.tee 3
         type_check 7
         if $L13 void
@@ -188,26 +187,26 @@ fn 1 snippet$main () -> i32
     return
   end $L0
   local.get 0
-  type_check 20
+  type_check 22
   if $L15 void
     string.const 3
     call 0
     string.const 4
-    call 2
+    call 3
     local.tee 1
     type_check 3
     if $L16 void
       string.const 2
       call 0
       string.const 5
-      call.import 3
+      call.import 2
       local.tee 2
       type_check 7
       if $L17 void
         string.const 6
         call 0
         string.const 4
-        call.import 3
+        call.import 2
         local.tee 3
         type_check 7
         if $L18 void
@@ -230,7 +229,7 @@ fn 1 snippet$main () -> i32
         string.const 7
         call 0
         string.const 4
-        call.import 3
+        call.import 2
         local.tee 3
         type_check 7
         if $L21 void
@@ -250,19 +249,19 @@ fn 1 snippet$main () -> i32
       return
     end $L16
     local.get 1
-    type_check 20
+    type_check 22
     if $L23 void
       string.const 3
       call 0
       string.const 5
-      call.import 3
+      call.import 2
       local.tee 2
       type_check 7
       if $L24 void
         string.const 6
         call 0
         string.const 4
-        call.import 3
+        call.import 2
         local.tee 3
         type_check 7
         if $L25 void
@@ -285,7 +284,7 @@ fn 1 snippet$main () -> i32
         string.const 7
         call 0
         string.const 4
-        call.import 3
+        call.import 2
         local.tee 3
         type_check 7
         if $L28 void
@@ -309,7 +308,12 @@ fn 1 snippet$main () -> i32
   return
 end
 
-fn 2 std_string$parse_int (string) -> ref
+fn 2 std_core$string$Display$to_string (string) -> string
+  local.get 0
+  return
+end
+
+fn 3 std_string$parse_int (string) -> ref
   local bs ref
   local n usize
   local $k_5 usize
@@ -325,7 +329,7 @@ fn 2 std_string$parse_int (string) -> ref
   local $add_48 i64
   local $k_57 usize
   local.get 0
-  call.import 2
+  call.import 1
   local.tee 1
   array.len
   local.set 2
@@ -336,7 +340,7 @@ fn 2 std_string$parse_int (string) -> ref
   i64.eq
   if $L0 void
     string.const 8
-    struct.new 20
+    struct.new 22
     return
   end $L0
   i64.const 0
@@ -345,8 +349,8 @@ fn 2 std_string$parse_int (string) -> ref
   local.set 4
   local.get 1
   i32.const 0
-  array.get 21
-  ref.cast 22
+  array.get 18
+  ref.cast 19
   local.set 5
   i32.const 45
   local.set 6
@@ -365,7 +369,7 @@ fn 2 std_string$parse_int (string) -> ref
   u64.ge
   if $L2 void
     string.const 9
-    struct.new 20
+    struct.new 22
     return
   end $L2
   i64.const 0
@@ -378,8 +382,8 @@ fn 2 std_string$parse_int (string) -> ref
       if $L5 void
         local.get 1
         local.get 3
-        array.get 21
-        ref.cast 22
+        array.get 18
+        ref.cast 19
         local.set 5
         i32.const 48
         local.set 6
@@ -400,7 +404,7 @@ fn 2 std_string$parse_int (string) -> ref
         local.get 8
         if $L7 void
           string.const 10
-          struct.new 20
+          struct.new 22
           return
         end $L7
         local.get 7
@@ -427,7 +431,7 @@ fn 2 std_string$parse_int (string) -> ref
           i64.gt
           if $L9 void
             string.const 11
-            struct.new 20
+            struct.new 22
             return
           end $L9
           i64.const 1
@@ -443,7 +447,7 @@ fn 2 std_string$parse_int (string) -> ref
         i64.gt
         if $L10 void
           string.const 11
-          struct.new 20
+          struct.new 22
           return
         end $L10
         i64.const 1
@@ -466,11 +470,5 @@ fn 2 std_string$parse_int (string) -> ref
   end $L11
   local.get 7
   i64.to_i32
-  return
-end
-
-fn 3 std_core$string$Display$to_string_vt (string) -> string
-  local.get 0
-  call.import 1
   return
 end

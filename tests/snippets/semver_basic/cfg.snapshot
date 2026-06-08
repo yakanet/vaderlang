@@ -39,18 +39,20 @@ fn snippet$main() -> i32
     %32 __sb_4: ? (synthetic __sb_4)
     %33 $k_33: string
     %34 $call_34: string
-    %35 $intrinsic_35: string
-    %36 $k_36: i32
-    %37 $type_check_37: bool
-    %38 $cast_38: ParseError
-    %39 e: ParseError (binding e)
-    %40 $intrinsic_40: ?
-    %41 __sb_1: ? (synthetic __sb_1)
-    %42 $k_42: string
-    %43 $call_43: string
-    %44 $intrinsic_44: string
-    %45 $k_45: i32
-    %46 $k_46: i32
+    %35 $call_35: string
+    %36 $intrinsic_36: string
+    %37 $k_37: i32
+    %38 $type_check_38: bool
+    %39 $cast_39: ParseError
+    %40 e: ParseError (binding e)
+    %41 $intrinsic_41: ?
+    %42 __sb_1: ? (synthetic __sb_1)
+    %43 $k_43: string
+    %44 $call_44: string
+    %45 $call_45: string
+    %46 $intrinsic_46: string
+    %47 $k_47: i32
+    %48 $k_48: i32
   bb0:
     %0 = const string(#1) :string
     %1 = call parse(%0) :ParseError | Version
@@ -74,11 +76,11 @@ fn snippet$main() -> i32
     %15 = binop 16 %13 %14 :bool
     cond_branch %15 ? bb4 : bb5
   bb2:
-    %37 = type_check %2 is ParseError
-    cond_branch %37 ? bb14 : bb15
+    %38 = type_check %2 is ParseError
+    cond_branch %38 ? bb14 : bb15
   bb3:
-    %46 = const int(0) :i32
-    return %46
+    %48 = const int(0) :i32
+    return %48
   bb4:
     %16 = const string(#3) :string
     call std_io$std_io$println__string(%16) :void
@@ -116,28 +118,30 @@ fn snippet$main() -> i32
     %33 = const string(#7) :string
     intrinsic builder.append_str(%32, %33)
     %34 = call std_string$ParseError$Error$message(%30) :string
-    intrinsic builder.append_display(%32, %34)
-    %35 = intrinsic builder.finish(%32)
-    call std_io$std_io$eprintln__string(%35) :void
-    %36 = const int(1) :i32
-    return %36
+    %35 = call std_core$string$Display$to_string(%34) :string
+    intrinsic builder.append_str(%32, %35)
+    %36 = intrinsic builder.finish(%32)
+    call std_io$std_io$eprintln__string(%36) :void
+    %37 = const int(1) :i32
+    return %37
   bb12:
     unreachable ; non-exhaustive match (T3013 should have caught this)
   bb13:
     branch -> bb8
   bb14:
-    %38 = cast %2 :ParseError
-    %39 = move %38
-    %40 = intrinsic builder.new()
-    %41 = move %40
-    %42 = const string(#8) :string
-    intrinsic builder.append_str(%41, %42)
-    %43 = call std_string$ParseError$Error$message(%39) :string
-    intrinsic builder.append_display(%41, %43)
-    %44 = intrinsic builder.finish(%41)
-    call std_io$std_io$eprintln__string(%44) :void
-    %45 = const int(1) :i32
-    return %45
+    %39 = cast %2 :ParseError
+    %40 = move %39
+    %41 = intrinsic builder.new()
+    %42 = move %41
+    %43 = const string(#8) :string
+    intrinsic builder.append_str(%42, %43)
+    %44 = call std_string$ParseError$Error$message(%40) :string
+    %45 = call std_core$string$Display$to_string(%44) :string
+    intrinsic builder.append_str(%42, %45)
+    %46 = intrinsic builder.finish(%42)
+    call std_io$std_io$eprintln__string(%46) :void
+    %47 = const int(1) :i32
+    return %47
   bb15:
     unreachable ; non-exhaustive match (T3013 should have caught this)
   bb16:

@@ -77,14 +77,18 @@
           @builder.append_str :void
             __sb_0 :?
             "four=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            call :i32
+            call :string
               callee:
-                show :fn(u64) -> i32
+                std_core$i32$Display$to_string :string
               arg0:
-                cast → u64
-                  int(4) :u64
+                call :i32
+                  callee:
+                    show :fn(u64) -> i32
+                  arg0:
+                    cast → u64
+                      int(4) :u64
           ~>
             @builder.finish :string
               __sb_0 :?
@@ -98,14 +102,18 @@
           @builder.append_str :void
             __sb_1 :?
             "forty=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_1 :?
-            call :i32
+            call :string
               callee:
-                show :fn(u64) -> i32
+                std_core$i32$Display$to_string :string
               arg0:
-                cast → u64
-                  int(40) :u64
+                call :i32
+                  callee:
+                    show :fn(u64) -> i32
+                  arg0:
+                    cast → u64
+                      int(40) :u64
           ~>
             @builder.finish :string
               __sb_1 :?
@@ -119,14 +127,18 @@
           @builder.append_str :void
             __sb_2 :?
             "zero=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_2 :?
-            call :i32
+            call :string
               callee:
-                show :fn(u64) -> i32
+                std_core$i32$Display$to_string :string
               arg0:
-                cast → u64
-                  int(0) :u64
+                call :i32
+                  callee:
+                    show :fn(u64) -> i32
+                  arg0:
+                    cast → u64
+                      int(0) :u64
           ~>
             @builder.finish :string
               __sb_2 :?

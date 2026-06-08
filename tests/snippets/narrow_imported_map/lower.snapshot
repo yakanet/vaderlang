@@ -48,11 +48,15 @@
         block :string
           let __sb_0: ? =
             @builder.new :?
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            .first :i32
-              cast → Out
-                r :null | Out
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                .first :i32
+                  cast → Out
+                    r :null | Out
           ~>
             @builder.finish :string
               __sb_0 :?

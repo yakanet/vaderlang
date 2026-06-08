@@ -21,13 +21,17 @@
         block :string
           let __sb_0: ? =
             @builder.new :?
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            call :i32
+            call :string
               callee:
-                square :fn(i32) -> i32
+                std_core$i32$Display$to_string :string
               arg0:
-                int(0) :i32
+                call :i32
+                  callee:
+                    square :fn(i32) -> i32
+                  arg0:
+                    int(0) :i32
           ~>
             @builder.finish :string
               __sb_0 :?
@@ -38,13 +42,17 @@
         block :string
           let __sb_1: ? =
             @builder.new :?
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_1 :?
-            call :i32
+            call :string
               callee:
-                square :fn(i32) -> i32
+                std_core$i32$Display$to_string :string
               arg0:
-                int(3) :i32
+                call :i32
+                  callee:
+                    square :fn(i32) -> i32
+                  arg0:
+                    int(3) :i32
           ~>
             @builder.finish :string
               __sb_1 :?
@@ -55,13 +63,17 @@
         block :string
           let __sb_2: ? =
             @builder.new :?
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_2 :?
-            call :i32
+            call :string
               callee:
-                square :fn(i32) -> i32
+                std_core$i32$Display$to_string :string
               arg0:
-                int(7) :i32
+                call :i32
+                  callee:
+                    square :fn(i32) -> i32
+                  arg0:
+                    int(7) :i32
           ~>
             @builder.finish :string
               __sb_2 :?

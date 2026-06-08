@@ -8,17 +8,18 @@ type 5 ref Error
 type 6 union 5,0
 type 7 primitive bool
 string 0 "\n"
-string 1 "/tmp/vader_io_roundtrip.txt"
-string 2 "hello from vader"
-string 3 "exists: "
-string 4 "read: "
-string 5 "read failed"
+string 1 "true"
+string 2 "false"
+string 3 "/tmp/vader_io_roundtrip.txt"
+string 4 "hello from vader"
+string 5 "exists: "
+string 6 "read: "
+string 7 "read failed"
 import 0 write std_io$write (i32,string) -> void
 import 1 read_file std_io$read_file (string) -> ref
 import 2 write_file std_io$write_file (string,string) -> ref
 import 3 exists std_io$exists (string) -> bool
-import 4 to_string std_core$string$Display$to_string (string) -> string
-export main 1
+export main 3
 
 fn 0 std_io$std_io$println__string (string) -> void
   local $call_2 string
@@ -34,29 +35,49 @@ fn 0 std_io$std_io$println__string (string) -> void
   return
 end
 
-fn 1 snippet$main () -> i32
+fn 1 std_core$bool$Display$to_string (bool) -> string
+  local if_res string
+  local.get 0
+  if $L0 void
+    string.const 1
+    local.set 1
+  else
+    string.const 2
+    local.set 1
+  end $L0
+  local.get 1
+  return
+end
+
+fn 2 std_core$string$Display$to_string (string) -> string
+  local.get 0
+  return
+end
+
+fn 3 snippet$main () -> i32
   local path string
   local __sb_0 any
-  local $call_7 bool
+  local $call_8 string
   local contents ref
   local __scrut_1 ref
-  string.const 1
+  string.const 3
   local.set 0
   local.get 0
-  string.const 2
+  string.const 4
   call.import 2
   drop
   intrinsic builder.new
   local.set 1
   local.get 1
-  string.const 3
+  string.const 5
   intrinsic builder.append_str
   local.get 0
   call.import 3
+  call 1
   local.set 2
   local.get 1
   local.get 2
-  intrinsic builder.append_display
+  intrinsic builder.append_str
   local.get 1
   intrinsic builder.finish
   call 0
@@ -69,14 +90,15 @@ fn 1 snippet$main () -> i32
     intrinsic builder.new
     local.set 1
     local.get 1
-    string.const 4
+    string.const 6
     intrinsic builder.append_str
     local.get 3
     ref.cast 1
+    call 2
     local.set 0
     local.get 1
     local.get 0
-    intrinsic builder.append_display
+    intrinsic builder.append_str
     local.get 1
     intrinsic builder.finish
     call 0
@@ -85,15 +107,9 @@ fn 1 snippet$main () -> i32
   local.get 4
   type_check 5
   if $L1 void
-    string.const 5
+    string.const 7
     call 0
     return.lit i32.const 0
   end $L1
-  return
-end
-
-fn 2 std_core$string$Display$to_string_vt (string) -> string
-  local.get 0
-  call.import 4
   return
 end

@@ -37,9 +37,13 @@
           @builder.append_str :void
             __sb_1 :?
             "id=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_1 :?
-            id :i32
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                id :i32
           ~>
             @builder.finish :string
               __sb_1 :?
@@ -53,9 +57,13 @@
           @builder.append_str :void
             __sb_2 :?
             "label=" :string
-          @builder.append_display <for string> :void
+          @builder.append_str :void
             __sb_2 :?
-            label :string
+            call :string
+              callee:
+                std_core$string$Display$to_string :string
+              arg0:
+                label :string
           ~>
             @builder.finish :string
               __sb_2 :?
@@ -69,9 +77,13 @@
           @builder.append_str :void
             __sb_3 :?
             "active=" :string
-          @builder.append_display <for bool> :void
+          @builder.append_str :void
             __sb_3 :?
-            active :bool
+            call :string
+              callee:
+                std_core$bool$Display$to_string :string
+              arg0:
+                active :bool
           ~>
             @builder.finish :string
               __sb_3 :?

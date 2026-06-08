@@ -8,19 +8,21 @@ fn snippet$view_of(%0: i32) -> const u8[]
     %1 $intrinsic_1: ?
     %2 __sb_0: ? (synthetic __sb_0)
     %3 $k_3: string
-    %4 $intrinsic_4: string
-    %5 s: string (local s)
-    %6 $call_6: const u8[]
+    %4 $call_4: string
+    %5 $intrinsic_5: string
+    %6 s: string (local s)
+    %7 $call_7: const u8[]
   bb0:
     %1 = intrinsic builder.new()
     %2 = move %1
-    %3 = const string(#1) :string
+    %3 = const string(#13) :string
     intrinsic builder.append_str(%2, %3)
-    intrinsic builder.append_display(%2, %0)
-    %4 = intrinsic builder.finish(%2)
-    %5 = move %4
-    %6 = call bytes(%5) :const u8[]
-    return %6
+    %4 = call std_core$i32$Display$to_string(%0) :string
+    intrinsic builder.append_str(%2, %4)
+    %5 = intrinsic builder.finish(%2)
+    %6 = move %5
+    %7 = call bytes(%6) :const u8[]
+    return %7
 
 fn snippet$fold(%0: const u8[]) -> u64
   locals:
@@ -174,7 +176,7 @@ fn snippet$main() -> i32
   bb9:
     cond_branch %30 ? bb10 : bb11
   bb10:
-    %34 = const string(#2) :string
+    %34 = const string(#14) :string
     call std_io$std_io$println__string(%34) :void
     %35 = const int(1) :i32
     return %35
@@ -185,7 +187,7 @@ fn snippet$main() -> i32
     %39 = move %38
     %40 = intrinsic builder.new()
     %41 = move %40
-    %42 = const string(#3) :string
+    %42 = const string(#15) :string
     intrinsic builder.append_str(%41, %42)
     %43 = call std_core$u64$Display$to_string(%39) :string
     intrinsic builder.append_str(%41, %43)

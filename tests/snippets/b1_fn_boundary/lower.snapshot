@@ -122,13 +122,17 @@
           @builder.append_str :void
             __sb_0 :?
             "length=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            call :i32
+            call :string
               callee:
-                length :fn(Node | null) -> i32
+                std_core$i32$Display$to_string :string
               arg0:
-                head :Node | null
+                call :i32
+                  callee:
+                    length :fn(Node | null) -> i32
+                  arg0:
+                    head :Node | null
           ~>
             @builder.finish :string
               __sb_0 :?
@@ -178,10 +182,14 @@
                               @builder.append_str :void
                                 __sb_2 :?
                                 "found " :string
-                              @builder.append_display <for i32> :void
+                              @builder.append_str :void
                                 __sb_2 :?
-                                .value :i32
-                                  h :Node
+                                call :string
+                                  callee:
+                                    std_core$i32$Display$to_string :string
+                                  arg0:
+                                    .value :i32
+                                      h :Node
                               ~>
                                 @builder.finish :string
                                   __sb_2 :?
@@ -234,10 +242,14 @@
                               @builder.append_str :void
                                 __sb_4 :?
                                 "found " :string
-                              @builder.append_display <for i32> :void
+                              @builder.append_str :void
                                 __sb_4 :?
-                                .value :i32
-                                  h :Node
+                                call :string
+                                  callee:
+                                    std_core$i32$Display$to_string :string
+                                  arg0:
+                                    .value :i32
+                                      h :Node
                               ~>
                                 @builder.finish :string
                                   __sb_4 :?

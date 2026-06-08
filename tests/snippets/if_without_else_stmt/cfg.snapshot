@@ -8,15 +8,17 @@ fn snippet$expect_lparen(%0: string) -> string
     %1 $intrinsic_1: ?
     %2 __sb_0: ? (synthetic __sb_0)
     %3 $k_3: string
-    %4 $intrinsic_4: string
+    %4 $call_4: string
+    %5 $intrinsic_5: string
   bb0:
     %1 = intrinsic builder.new()
     %2 = move %1
     %3 = const string(#1) :string
     intrinsic builder.append_str(%2, %3)
-    intrinsic builder.append_display(%2, %0)
-    %4 = intrinsic builder.finish(%2)
-    return %4
+    %4 = call std_core$string$Display$to_string(%0) :string
+    intrinsic builder.append_str(%2, %4)
+    %5 = intrinsic builder.finish(%2)
+    return %5
 
 fn snippet$main() -> i32
   locals:

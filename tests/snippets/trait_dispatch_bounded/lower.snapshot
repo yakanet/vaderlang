@@ -17,15 +17,19 @@
         block :string
           let __sb_0: ? =
             @builder.new :?
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            call :i32
+            call :string
               callee:
-                snippet$snippet$count_matching__i32 :i32
+                std_core$i32$Display$to_string :string
               arg0:
-                nums :i32[]
-              arg1:
-                int(2) :i32
+                call :i32
+                  callee:
+                    snippet$snippet$count_matching__i32 :i32
+                  arg0:
+                    nums :i32[]
+                  arg1:
+                    int(2) :i32
           ~>
             @builder.finish :string
               __sb_0 :?
@@ -43,15 +47,19 @@
         block :string
           let __sb_1: ? =
             @builder.new :?
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_1 :?
-            call :i32
+            call :string
               callee:
-                snippet$snippet$count_matching__string :i32
+                std_core$i32$Display$to_string :string
               arg0:
-                words :string[]
-              arg1:
-                "foo" :string
+                call :i32
+                  callee:
+                    snippet$snippet$count_matching__string :i32
+                  arg0:
+                    words :string[]
+                  arg1:
+                    "foo" :string
           ~>
             @builder.finish :string
               __sb_1 :?

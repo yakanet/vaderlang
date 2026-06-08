@@ -64,9 +64,13 @@
               @builder.append_str :void
                 __sb_0 :?
                 "expected 3 collections, got " :string
-              @builder.append_display <for i32> :void
+              @builder.append_str :void
                 __sb_0 :?
-                diff :i32
+                call :string
+                  callee:
+                    std_core$i32$Display$to_string :string
+                  arg0:
+                    diff :i32
               ~>
                 @builder.finish :string
                   __sb_0 :?
@@ -149,15 +153,23 @@
               @builder.append_str :void
                 __sb_2 :?
                 "sum mismatch after 3 collections: " :string
-              @builder.append_display <for i32> :void
+              @builder.append_str :void
                 __sb_2 :?
-                sum :i32
+                call :string
+                  callee:
+                    std_core$i32$Display$to_string :string
+                  arg0:
+                    sum :i32
               @builder.append_str :void
                 __sb_2 :?
                 " vs " :string
-              @builder.append_display <for i32> :void
+              @builder.append_str :void
                 __sb_2 :?
-                expected :i32
+                call :string
+                  callee:
+                    std_core$i32$Display$to_string :string
+                  arg0:
+                    expected :i32
               ~>
                 @builder.finish :string
                   __sb_2 :?
@@ -172,9 +184,13 @@
           @builder.append_str :void
             __sb_3 :?
             "ok: 50 nodes survived 3 collections; sum=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_3 :?
-            sum :i32
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                sum :i32
           ~>
             @builder.finish :string
               __sb_3 :?

@@ -40,9 +40,13 @@
           @builder.append_str :void
             __sb_2 :?
             "first=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_2 :?
-            first :i32
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                first :i32
           @builder.append_str :void
             __sb_2 :?
             " rest.len=" :string
@@ -78,9 +82,13 @@
               @builder.append_str :void
                 __sb_6 :?
                 "  " :string
-              @builder.append_display <for i32> :void
+              @builder.append_str :void
                 __sb_6 :?
-                x :i32
+                call :string
+                  callee:
+                    std_core$i32$Display$to_string :string
+                  arg0:
+                    x :i32
               ~>
                 @builder.finish :string
                   __sb_6 :?
@@ -130,15 +138,23 @@
           @builder.append_str :void
             __sb_9 :?
             "a=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_9 :?
-            a :i32
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                a :i32
           @builder.append_str :void
             __sb_9 :?
             " b=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_9 :?
-            b :i32
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                b :i32
           @builder.append_str :void
             __sb_9 :?
             " tail.len=" :string
@@ -209,9 +225,13 @@
               @builder.append_str :void
                 __sb_16 :?
                 "  " :string
-              @builder.append_display <for i32> :void
+              @builder.append_str :void
                 __sb_16 :?
-                x :i32
+                call :string
+                  callee:
+                    std_core$i32$Display$to_string :string
+                  arg0:
+                    x :i32
               ~>
                 @builder.finish :string
                   __sb_16 :?

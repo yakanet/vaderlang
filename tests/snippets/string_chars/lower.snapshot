@@ -39,9 +39,13 @@
                 block :string
                   let __sb_2: ? =
                     @builder.new :?
-                  @builder.append_display <for char> :void
+                  @builder.append_str :void
                     __sb_2 :?
-                    c :char
+                    call :string
+                      callee:
+                        std_core$char$Display$to_string :string
+                      arg0:
+                        c :char
                   ~>
                     @builder.finish :string
                       __sb_2 :?
@@ -82,9 +86,13 @@
                 block :string
                   let __sb_5: ? =
                     @builder.new :?
-                  @builder.append_display <for char> :void
+                  @builder.append_str :void
                     __sb_5 :?
-                    c :char
+                    call :string
+                      callee:
+                        std_core$char$Display$to_string :string
+                      arg0:
+                        c :char
                   ~>
                     @builder.finish :string
                       __sb_5 :?
@@ -133,9 +141,13 @@
           @builder.append_str :void
             __sb_9 :?
             "codepoints=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_9 :?
-            n :i32
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                n :i32
           @builder.append_str :void
             __sb_9 :?
             " bytes=" :string

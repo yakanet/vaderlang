@@ -16,10 +16,14 @@
           @builder.append_str :void
             __sb_0 :?
             "a=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            cast → i32
-              a :u8
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                cast → i32
+                  a :u8
           ~>
             @builder.finish :string
               __sb_0 :?
@@ -33,10 +37,14 @@
           @builder.append_str :void
             __sb_1 :?
             "nl=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_1 :?
-            cast → i32
-              nl :u8
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                cast → i32
+                  nl :u8
           ~>
             @builder.finish :string
               __sb_1 :?
@@ -50,10 +58,14 @@
           @builder.append_str :void
             __sb_2 :?
             "bs=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_2 :?
-            cast → i32
-              bs :u8
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                cast → i32
+                  bs :u8
           ~>
             @builder.finish :string
               __sb_2 :?
@@ -67,10 +79,14 @@
           @builder.append_str :void
             __sb_3 :?
             "sq=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_3 :?
-            cast → i32
-              sq :u8
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                cast → i32
+                  sq :u8
           ~>
             @builder.finish :string
               __sb_3 :?
@@ -85,13 +101,17 @@
           @builder.append_str :void
             __sb_4 :?
             "eq=" :string
-          @builder.append_display <for bool> :void
+          @builder.append_str :void
             __sb_4 :?
-            eq :bool
-              l:
-                b :u8
-              r:
-                int(61) :u8
+            call :string
+              callee:
+                std_core$bool$Display$to_string :string
+              arg0:
+                eq :bool
+                  l:
+                    b :u8
+                  r:
+                    int(61) :u8
           ~>
             @builder.finish :string
               __sb_4 :?

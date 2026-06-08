@@ -14,38 +14,43 @@ fn snippet$main() -> i32
     %7 $k_7: string
     %8 $k_8: i32
     %9 $call_9: bool
-    %10 $intrinsic_10: string
-    %11 $intrinsic_11: ?
-    %12 __sb_1: ? (synthetic __sb_1)
-    %13 $k_13: string
-    %14 $k_14: i32
-    %15 $call_15: bool
-    %16 $intrinsic_16: string
-    %17 $intrinsic_17: ?
-    %18 __sb_2: ? (synthetic __sb_2)
-    %19 $k_19: string
-    %20 $k_20: i32
-    %21 $call_21: bool
-    %22 $intrinsic_22: string
-    %23 $intrinsic_23: ?
-    %24 __sb_3: ? (synthetic __sb_3)
-    %25 $k_25: string
-    %26 $call_26: usize
-    %27 $call_27: string
-    %28 $intrinsic_28: string
-    %29 $intrinsic_29: ?
-    %30 __sb_4: ? (synthetic __sb_4)
-    %31 $k_31: string
-    %32 $k_32: i32
-    %33 $call_33: bool
-    %34 $intrinsic_34: string
-    %35 $intrinsic_35: ?
-    %36 __sb_5: ? (synthetic __sb_5)
-    %37 $k_37: string
-    %38 $k_38: i32
-    %39 $call_39: bool
-    %40 $intrinsic_40: string
-    %41 $k_41: i32
+    %10 $call_10: string
+    %11 $intrinsic_11: string
+    %12 $intrinsic_12: ?
+    %13 __sb_1: ? (synthetic __sb_1)
+    %14 $k_14: string
+    %15 $k_15: i32
+    %16 $call_16: bool
+    %17 $call_17: string
+    %18 $intrinsic_18: string
+    %19 $intrinsic_19: ?
+    %20 __sb_2: ? (synthetic __sb_2)
+    %21 $k_21: string
+    %22 $k_22: i32
+    %23 $call_23: bool
+    %24 $call_24: string
+    %25 $intrinsic_25: string
+    %26 $intrinsic_26: ?
+    %27 __sb_3: ? (synthetic __sb_3)
+    %28 $k_28: string
+    %29 $call_29: usize
+    %30 $call_30: string
+    %31 $intrinsic_31: string
+    %32 $intrinsic_32: ?
+    %33 __sb_4: ? (synthetic __sb_4)
+    %34 $k_34: string
+    %35 $k_35: i32
+    %36 $call_36: bool
+    %37 $call_37: string
+    %38 $intrinsic_38: string
+    %39 $intrinsic_39: ?
+    %40 __sb_5: ? (synthetic __sb_5)
+    %41 $k_41: string
+    %42 $k_42: i32
+    %43 $call_43: bool
+    %44 $call_44: string
+    %45 $intrinsic_45: string
+    %46 $k_46: i32
   bb0:
     %0 = array_new (Entry<K, V> | null)[][0]()
     %1 = const int(0) :usize
@@ -58,53 +63,58 @@ fn snippet$main() -> i32
     intrinsic builder.append_str(%6, %7)
     %8 = const int(10) :i32
     %9 = call std_collections$std_collections$add__i32(%4, %8) :bool
-    intrinsic builder.append_display(%6, %9)
-    %10 = intrinsic builder.finish(%6)
-    call std_io$std_io$println__string(%10) :void
-    %11 = intrinsic builder.new()
-    %12 = move %11
-    %13 = const string(#1) :string
-    intrinsic builder.append_str(%12, %13)
-    %14 = const int(20) :i32
-    %15 = call std_collections$std_collections$add__i32(%4, %14) :bool
-    intrinsic builder.append_display(%12, %15)
-    %16 = intrinsic builder.finish(%12)
-    call std_io$std_io$println__string(%16) :void
-    %17 = intrinsic builder.new()
-    %18 = move %17
-    %19 = const string(#1) :string
-    intrinsic builder.append_str(%18, %19)
-    %20 = const int(10) :i32
-    %21 = call std_collections$std_collections$add__i32(%4, %20) :bool
-    intrinsic builder.append_display(%18, %21)
-    %22 = intrinsic builder.finish(%18)
-    call std_io$std_io$println__string(%22) :void
-    %23 = intrinsic builder.new()
-    %24 = move %23
-    %25 = const string(#2) :string
-    intrinsic builder.append_str(%24, %25)
-    %26 = call std_collections$std_collections$len__i32(%4) :usize
-    %27 = call std_core$usize$Display$to_string(%26) :string
-    intrinsic builder.append_str(%24, %27)
-    %28 = intrinsic builder.finish(%24)
-    call std_io$std_io$println__string(%28) :void
-    %29 = intrinsic builder.new()
-    %30 = move %29
-    %31 = const string(#3) :string
-    intrinsic builder.append_str(%30, %31)
-    %32 = const int(10) :i32
-    %33 = call std_collections$MutableSet$Contains$contains__i32(%4, %32) :bool
-    intrinsic builder.append_display(%30, %33)
-    %34 = intrinsic builder.finish(%30)
-    call std_io$std_io$println__string(%34) :void
-    %35 = intrinsic builder.new()
-    %36 = move %35
-    %37 = const string(#4) :string
-    intrinsic builder.append_str(%36, %37)
-    %38 = const int(30) :i32
-    %39 = call std_collections$MutableSet$Contains$contains__i32(%4, %38) :bool
-    intrinsic builder.append_display(%36, %39)
-    %40 = intrinsic builder.finish(%36)
-    call std_io$std_io$println__string(%40) :void
-    %41 = const int(0) :i32
-    return %41
+    %10 = call std_core$bool$Display$to_string(%9) :string
+    intrinsic builder.append_str(%6, %10)
+    %11 = intrinsic builder.finish(%6)
+    call std_io$std_io$println__string(%11) :void
+    %12 = intrinsic builder.new()
+    %13 = move %12
+    %14 = const string(#1) :string
+    intrinsic builder.append_str(%13, %14)
+    %15 = const int(20) :i32
+    %16 = call std_collections$std_collections$add__i32(%4, %15) :bool
+    %17 = call std_core$bool$Display$to_string(%16) :string
+    intrinsic builder.append_str(%13, %17)
+    %18 = intrinsic builder.finish(%13)
+    call std_io$std_io$println__string(%18) :void
+    %19 = intrinsic builder.new()
+    %20 = move %19
+    %21 = const string(#1) :string
+    intrinsic builder.append_str(%20, %21)
+    %22 = const int(10) :i32
+    %23 = call std_collections$std_collections$add__i32(%4, %22) :bool
+    %24 = call std_core$bool$Display$to_string(%23) :string
+    intrinsic builder.append_str(%20, %24)
+    %25 = intrinsic builder.finish(%20)
+    call std_io$std_io$println__string(%25) :void
+    %26 = intrinsic builder.new()
+    %27 = move %26
+    %28 = const string(#2) :string
+    intrinsic builder.append_str(%27, %28)
+    %29 = call std_collections$std_collections$len__i32(%4) :usize
+    %30 = call std_core$usize$Display$to_string(%29) :string
+    intrinsic builder.append_str(%27, %30)
+    %31 = intrinsic builder.finish(%27)
+    call std_io$std_io$println__string(%31) :void
+    %32 = intrinsic builder.new()
+    %33 = move %32
+    %34 = const string(#3) :string
+    intrinsic builder.append_str(%33, %34)
+    %35 = const int(10) :i32
+    %36 = call std_collections$MutableSet$Contains$contains__i32(%4, %35) :bool
+    %37 = call std_core$bool$Display$to_string(%36) :string
+    intrinsic builder.append_str(%33, %37)
+    %38 = intrinsic builder.finish(%33)
+    call std_io$std_io$println__string(%38) :void
+    %39 = intrinsic builder.new()
+    %40 = move %39
+    %41 = const string(#4) :string
+    intrinsic builder.append_str(%40, %41)
+    %42 = const int(30) :i32
+    %43 = call std_collections$MutableSet$Contains$contains__i32(%4, %42) :bool
+    %44 = call std_core$bool$Display$to_string(%43) :string
+    intrinsic builder.append_str(%40, %44)
+    %45 = intrinsic builder.finish(%40)
+    call std_io$std_io$println__string(%45) :void
+    %46 = const int(0) :i32
+    return %46

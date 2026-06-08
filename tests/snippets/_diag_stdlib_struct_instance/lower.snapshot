@@ -47,10 +47,14 @@
           @builder.append_str :void
             __sb_0 :?
             "v=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            cast → i32
-              v :i32 | null
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                cast → i32
+                  v :i32 | null
           ~>
             @builder.finish :string
               __sb_0 :?

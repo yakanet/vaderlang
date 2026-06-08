@@ -13,30 +13,34 @@ fn snippet$main() -> i32
     %6 $k_6: string
     %7 $cast_7: Cat
     %8 $field_8: string
-    %9 $intrinsic_9: string
-    %10 $intrinsic_10: ?
-    %11 __sb_1: ? (synthetic __sb_1)
-    %12 $k_12: string
-    %13 $cast_13: Cat
-    %14 $field_14: i32
-    %15 $intrinsic_15: string
-    %16 $k_16: string
-    %17 $k_17: i32
-    %18 $struct_18: Dog
-    %19 b: Cat | Dog (local b)
-    %20 $intrinsic_20: ?
-    %21 __sb_2: ? (synthetic __sb_2)
-    %22 $k_22: string
-    %23 $cast_23: Cat
-    %24 $field_24: string
-    %25 $intrinsic_25: string
-    %26 $intrinsic_26: ?
-    %27 __sb_3: ? (synthetic __sb_3)
-    %28 $k_28: string
-    %29 $cast_29: Cat
-    %30 $field_30: i32
-    %31 $intrinsic_31: string
-    %32 $k_32: i32
+    %9 $call_9: string
+    %10 $intrinsic_10: string
+    %11 $intrinsic_11: ?
+    %12 __sb_1: ? (synthetic __sb_1)
+    %13 $k_13: string
+    %14 $cast_14: Cat
+    %15 $field_15: i32
+    %16 $call_16: string
+    %17 $intrinsic_17: string
+    %18 $k_18: string
+    %19 $k_19: i32
+    %20 $struct_20: Dog
+    %21 b: Cat | Dog (local b)
+    %22 $intrinsic_22: ?
+    %23 __sb_2: ? (synthetic __sb_2)
+    %24 $k_24: string
+    %25 $cast_25: Cat
+    %26 $field_26: string
+    %27 $call_27: string
+    %28 $intrinsic_28: string
+    %29 $intrinsic_29: ?
+    %30 __sb_3: ? (synthetic __sb_3)
+    %31 $k_31: string
+    %32 $cast_32: Cat
+    %33 $field_33: i32
+    %34 $call_34: string
+    %35 $intrinsic_35: string
+    %36 $k_36: i32
   bb0:
     %0 = const string(#1) :string
     %1 = const int(3) :i32
@@ -48,39 +52,43 @@ fn snippet$main() -> i32
     intrinsic builder.append_str(%5, %6)
     %7 = cast %3 :Cat
     %8 = field_get %7.name :string
-    intrinsic builder.append_display(%5, %8)
-    %9 = intrinsic builder.finish(%5)
-    call std_io$std_io$println__string(%9) :void
-    %10 = intrinsic builder.new()
-    %11 = move %10
-    %12 = const string(#3) :string
-    intrinsic builder.append_str(%11, %12)
-    %13 = cast %3 :Cat
-    %14 = field_get %13.age :i32
-    intrinsic builder.append_display(%11, %14)
-    %15 = intrinsic builder.finish(%11)
-    call std_io$std_io$println__string(%15) :void
-    %16 = const string(#4) :string
-    %17 = const int(7) :i32
-    %18 = struct_new Dog(%16, %17)
-    %19 = move %18
-    %20 = intrinsic builder.new()
+    %9 = call std_core$string$Display$to_string(%8) :string
+    intrinsic builder.append_str(%5, %9)
+    %10 = intrinsic builder.finish(%5)
+    call std_io$std_io$println__string(%10) :void
+    %11 = intrinsic builder.new()
+    %12 = move %11
+    %13 = const string(#3) :string
+    intrinsic builder.append_str(%12, %13)
+    %14 = cast %3 :Cat
+    %15 = field_get %14.age :i32
+    %16 = call std_core$i32$Display$to_string(%15) :string
+    intrinsic builder.append_str(%12, %16)
+    %17 = intrinsic builder.finish(%12)
+    call std_io$std_io$println__string(%17) :void
+    %18 = const string(#4) :string
+    %19 = const int(7) :i32
+    %20 = struct_new Dog(%18, %19)
     %21 = move %20
-    %22 = const string(#2) :string
-    intrinsic builder.append_str(%21, %22)
-    %23 = cast %19 :Cat
-    %24 = field_get %23.name :string
-    intrinsic builder.append_display(%21, %24)
-    %25 = intrinsic builder.finish(%21)
-    call std_io$std_io$println__string(%25) :void
-    %26 = intrinsic builder.new()
-    %27 = move %26
-    %28 = const string(#3) :string
-    intrinsic builder.append_str(%27, %28)
-    %29 = cast %19 :Cat
-    %30 = field_get %29.age :i32
-    intrinsic builder.append_display(%27, %30)
-    %31 = intrinsic builder.finish(%27)
-    call std_io$std_io$println__string(%31) :void
-    %32 = const int(0) :i32
-    return %32
+    %22 = intrinsic builder.new()
+    %23 = move %22
+    %24 = const string(#2) :string
+    intrinsic builder.append_str(%23, %24)
+    %25 = cast %21 :Cat
+    %26 = field_get %25.name :string
+    %27 = call std_core$string$Display$to_string(%26) :string
+    intrinsic builder.append_str(%23, %27)
+    %28 = intrinsic builder.finish(%23)
+    call std_io$std_io$println__string(%28) :void
+    %29 = intrinsic builder.new()
+    %30 = move %29
+    %31 = const string(#3) :string
+    intrinsic builder.append_str(%30, %31)
+    %32 = cast %21 :Cat
+    %33 = field_get %32.age :i32
+    %34 = call std_core$i32$Display$to_string(%33) :string
+    intrinsic builder.append_str(%30, %34)
+    %35 = intrinsic builder.finish(%30)
+    call std_io$std_io$println__string(%35) :void
+    %36 = const int(0) :i32
+    return %36

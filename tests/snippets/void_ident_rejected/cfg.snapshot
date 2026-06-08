@@ -8,15 +8,17 @@ fn snippet$mk() -> void
     %1 void: i32 (local void)
     %2 $intrinsic_2: ?
     %3 __sb_0: ? (synthetic __sb_0)
-    %4 $intrinsic_4: string
+    %4 $call_4: string
+    %5 $intrinsic_5: string
   bb0:
     %0 = const int(42) :i32
     %1 = move %0
     %2 = intrinsic builder.new()
     %3 = move %2
-    intrinsic builder.append_display(%3, %1)
-    %4 = intrinsic builder.finish(%3)
-    call std_io$std_io$println__string(%4) :void
+    %4 = call std_core$i32$Display$to_string(%1) :string
+    intrinsic builder.append_str(%3, %4)
+    %5 = intrinsic builder.finish(%3)
+    call std_io$std_io$println__string(%5) :void
     return
 
 fn snippet$main() -> i32

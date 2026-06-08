@@ -17,7 +17,6 @@ string 4 "set has 4"
 string 5 "set lacks 5"
 string 6 "set has 7"
 import 0 write std_io$write (i32,string) -> void
-import 1 to_string std_core$string$Display$to_string (string) -> string
 impl 5 Contains
 impl 6 Contains
 impl 6 Iterator
@@ -26,7 +25,7 @@ export main 2
 fn 0 std_io$std_io$println__string (string) -> void
   local $call_2 string
   local.get 0
-  call 7
+  call 4
   local.set 1
   i32.const 0
   local.get 1
@@ -174,7 +173,7 @@ fn 3 std_core$Range$Contains$contains__i32 (ref,i32) -> bool
   local.set 2
   local.get 1
   local.get 2
-  call 5
+  call 6
   if $L0 void
     return.lit bool.const false
   end $L0
@@ -186,7 +185,7 @@ fn 3 std_core$Range$Contains$contains__i32 (ref,i32) -> bool
     local.set 2
     local.get 1
     local.get 2
-    call 6
+    call 7
     return
   end $L1
   local.field 0 6 1
@@ -194,11 +193,16 @@ fn 3 std_core$Range$Contains$contains__i32 (ref,i32) -> bool
   local.set 2
   local.get 1
   local.get 2
-  call 5
+  call 6
   return
 end
 
-fn 4 std_core$i32$Comparable$compare (i32,i32) -> i32
+fn 4 std_core$string$Display$to_string (string) -> string
+  local.get 0
+  return
+end
+
+fn 5 std_core$i32$Comparable$compare (i32,i32) -> i32
   local if_res i32
   local if_res i32
   local.get 0
@@ -249,11 +253,11 @@ fn 4 std_core$i32$Comparable$compare (i32,i32) -> i32
   return
 end
 
-fn 5 std_core$i32$Comparable$lt (i32,i32) -> bool
+fn 6 std_core$i32$Comparable$lt (i32,i32) -> bool
   local $call_2 i32
   local.get 0
   local.get 1
-  call 4
+  call 5
   local.set 2
   local.get 2
   i32.const 0
@@ -261,7 +265,7 @@ fn 5 std_core$i32$Comparable$lt (i32,i32) -> bool
   return
   local.get 0
   local.get 1
-  call 4
+  call 5
   local.set 2
   local.get 2
   i32.const 0
@@ -269,11 +273,11 @@ fn 5 std_core$i32$Comparable$lt (i32,i32) -> bool
   return
 end
 
-fn 6 std_core$i32$Comparable$lte (i32,i32) -> bool
+fn 7 std_core$i32$Comparable$lte (i32,i32) -> bool
   local $call_2 i32
   local.get 0
   local.get 1
-  call 4
+  call 5
   local.set 2
   local.get 2
   i32.const 0
@@ -281,16 +285,10 @@ fn 6 std_core$i32$Comparable$lte (i32,i32) -> bool
   return
   local.get 0
   local.get 1
-  call 4
+  call 5
   local.set 2
   local.get 2
   i32.const 0
   i32.le
-  return
-end
-
-fn 7 std_core$string$Display$to_string_vt (string) -> string
-  local.get 0
-  call.import 1
   return
 end

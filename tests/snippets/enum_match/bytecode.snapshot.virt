@@ -11,14 +11,15 @@ string 3 "blue"
 string 4 "info"
 string 5 "warning"
 string 6 "error"
+string 7 "true"
+string 8 "false"
 import 0 write std_io$write (i32,string) -> void
-import 1 to_string std_core$string$Display$to_string (string) -> string
 export main 4
 
 fn 0 std_io$std_io$println__string (string) -> void
   local $call_2 string
   local.get 0
-  call 5
+  call 6
   local.set 1
   i32.const 0
   local.get 1
@@ -80,15 +81,15 @@ end
 fn 4 snippet$main () -> i32
   local c i32
   local __sb_0 any
-  local $call_11 bool
+  local $call_12 string
   local __scrut_5 i32
-  local $k_47 i32
-  local $k_50 i32
-  local $k_53 i32
+  local $k_51 i32
+  local $k_54 i32
+  local $k_57 i32
   local __scrut_6 i32
-  local $k_60 i32
-  local $k_63 i32
-  local $k_66 i32
+  local $k_64 i32
+  local $k_67 i32
+  local $k_70 i32
   i32.const 1
   local.tee 0
   call 2
@@ -104,10 +105,11 @@ fn 4 snippet$main () -> i32
   i32.const 0
   i32.const 0
   call 3
+  call 5
   local.set 2
   local.get 1
   local.get 2
-  intrinsic builder.append_display
+  intrinsic builder.append_str
   local.get 1
   intrinsic builder.finish
   call 0
@@ -116,10 +118,11 @@ fn 4 snippet$main () -> i32
   i32.const 0
   i32.const 2
   call 3
+  call 5
   local.set 2
   local.get 1
   local.get 2
-  intrinsic builder.append_display
+  intrinsic builder.append_str
   local.get 1
   intrinsic builder.finish
   call 0
@@ -128,10 +131,11 @@ fn 4 snippet$main () -> i32
   local.get 0
   i32.const 0
   i32.ne
+  call 5
   local.set 2
   local.get 1
   local.get 2
-  intrinsic builder.append_display
+  intrinsic builder.append_str
   local.get 1
   intrinsic builder.finish
   call 0
@@ -140,10 +144,11 @@ fn 4 snippet$main () -> i32
   local.get 0
   i32.const 1
   i32.ne
+  call 5
   local.set 2
   local.get 1
   local.get 2
-  intrinsic builder.append_display
+  intrinsic builder.append_str
   local.get 1
   intrinsic builder.finish
   call 0
@@ -574,8 +579,21 @@ fn 4 snippet$main () -> i32
   return
 end
 
-fn 5 std_core$string$Display$to_string_vt (string) -> string
+fn 5 std_core$bool$Display$to_string (bool) -> string
+  local if_res string
   local.get 0
-  call.import 1
+  if $L0 void
+    string.const 7
+    local.set 1
+  else
+    string.const 8
+    local.set 1
+  end $L0
+  local.get 1
+  return
+end
+
+fn 6 std_core$string$Display$to_string (string) -> string
+  local.get 0
   return
 end

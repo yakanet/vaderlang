@@ -39,13 +39,17 @@
           @builder.append_str :void
             __sb_0 :?
             "len = " :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            call :i32
+            call :string
               callee:
-                snippet$Stack$Stackable$len__i32 :i32
+                std_core$i32$Display$to_string :string
               arg0:
-                s :Stack<i32>
+                call :i32
+                  callee:
+                    snippet$Stack$Stackable$len__i32 :i32
+                  arg0:
+                    s :Stack<i32>
           ~>
             @builder.finish :string
               __sb_0 :?
@@ -59,13 +63,17 @@
           @builder.append_str :void
             __sb_1 :?
             "pop = " :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_1 :?
-            call :i32
+            call :string
               callee:
-                snippet$Stack$Stackable$pop__i32 :i32
+                std_core$i32$Display$to_string :string
               arg0:
-                s :Stack<i32>
+                call :i32
+                  callee:
+                    snippet$Stack$Stackable$pop__i32 :i32
+                  arg0:
+                    s :Stack<i32>
           ~>
             @builder.finish :string
               __sb_1 :?
@@ -79,13 +87,17 @@
           @builder.append_str :void
             __sb_2 :?
             "len = " :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_2 :?
-            call :i32
+            call :string
               callee:
-                snippet$Stack$Stackable$len__i32 :i32
+                std_core$i32$Display$to_string :string
               arg0:
-                s :Stack<i32>
+                call :i32
+                  callee:
+                    snippet$Stack$Stackable$len__i32 :i32
+                  arg0:
+                    s :Stack<i32>
           ~>
             @builder.finish :string
               __sb_2 :?

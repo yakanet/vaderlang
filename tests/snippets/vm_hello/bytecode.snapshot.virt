@@ -6,7 +6,6 @@ type 3 primitive void
 string 0 "\n"
 string 1 "hello, vader!"
 import 0 write std_io$write (i32,string) -> void
-import 1 to_string std_core$string$Display$to_string (string) -> string
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -29,8 +28,7 @@ fn 1 std_io$std_io$println__string (string) -> void
   return
 end
 
-fn 2 std_core$string$Display$to_string_vt (string) -> string
+fn 2 std_core$string$Display$to_string (string) -> string
   local.get 0
-  call.import 1
   return
 end

@@ -11,13 +11,12 @@ import 2 pow std_math$pow (f64,f64) -> f64
 import 3 floor std_math$floor (f64) -> f64
 import 4 ceil std_math$ceil (f64) -> f64
 import 5 round std_math$round (f64) -> f64
-import 6 to_string std_core$string$Display$to_string (string) -> string
-export main 1
+export main 2
 
 fn 0 std_io$std_io$println__string (string) -> void
   local $call_2 string
   local.get 0
-  call 2
+  call 1
   local.set 1
   i32.const 0
   local.get 1
@@ -28,7 +27,12 @@ fn 0 std_io$std_io$println__string (string) -> void
   return
 end
 
-fn 1 snippet$main () -> i32
+fn 1 std_core$string$Display$to_string (string) -> string
+  local.get 0
+  return
+end
+
+fn 2 snippet$main () -> i32
   local __sb_0 any
   local $call_3 f64
   intrinsic builder.new
@@ -88,10 +92,4 @@ fn 1 snippet$main () -> i32
   intrinsic builder.finish
   call 0
   return.lit i32.const 0
-end
-
-fn 2 std_core$string$Display$to_string_vt (string) -> string
-  local.get 0
-  call.import 6
-  return
 end

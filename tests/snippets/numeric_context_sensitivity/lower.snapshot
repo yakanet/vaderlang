@@ -25,39 +25,63 @@
           @builder.append_str :void
             __sb_0 :?
             "widths: " :string
-          @builder.append_display <for i8> :void
+          @builder.append_str :void
             __sb_0 :?
-            a8 :i8
+            call :string
+              callee:
+                std_core$i8$Display$to_string :string
+              arg0:
+                a8 :i8
           @builder.append_str :void
             __sb_0 :?
             " " :string
-          @builder.append_display <for i16> :void
+          @builder.append_str :void
             __sb_0 :?
-            b16 :i16
+            call :string
+              callee:
+                std_core$i16$Display$to_string :string
+              arg0:
+                b16 :i16
           @builder.append_str :void
             __sb_0 :?
             " " :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            c32 :i32
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                c32 :i32
           @builder.append_str :void
             __sb_0 :?
             " " :string
-          @builder.append_display <for i64> :void
+          @builder.append_str :void
             __sb_0 :?
-            d64 :i64
+            call :string
+              callee:
+                std_core$i64$Display$to_string :string
+              arg0:
+                d64 :i64
           @builder.append_str :void
             __sb_0 :?
             " " :string
-          @builder.append_display <for u8> :void
+          @builder.append_str :void
             __sb_0 :?
-            e8 :u8
+            call :string
+              callee:
+                std_core$u8$Display$to_string :string
+              arg0:
+                e8 :u8
           @builder.append_str :void
             __sb_0 :?
             " " :string
-          @builder.append_display <for u16> :void
+          @builder.append_str :void
             __sb_0 :?
-            f16 :u16
+            call :string
+              callee:
+                std_core$u16$Display$to_string :string
+              arg0:
+                f16 :u16
           @builder.append_str :void
             __sb_0 :?
             " " :string
@@ -81,9 +105,13 @@
           @builder.append_str :void
             __sb_0 :?
             " " :string
-          @builder.append_display <for isize> :void
+          @builder.append_str :void
             __sb_0 :?
-            isz :isize
+            call :string
+              callee:
+                std_core$isize$Display$to_string :string
+              arg0:
+                isz :isize
           @builder.append_str :void
             __sb_0 :?
             " " :string
@@ -131,9 +159,13 @@
           @builder.append_str :void
             __sb_1 :?
             "arith: " :string
-          @builder.append_display <for isize> :void
+          @builder.append_str :void
             __sb_1 :?
-            isz2 :isize
+            call :string
+              callee:
+                std_core$isize$Display$to_string :string
+              arg0:
+                isz2 :isize
           @builder.append_str :void
             __sb_1 :?
             " " :string
@@ -147,9 +179,13 @@
           @builder.append_str :void
             __sb_1 :?
             " " :string
-          @builder.append_display <for i64> :void
+          @builder.append_str :void
             __sb_1 :?
-            d64_2 :i64
+            call :string
+              callee:
+                std_core$i64$Display$to_string :string
+              arg0:
+                d64_2 :i64
           @builder.append_str :void
             __sb_1 :?
             " " :string
@@ -182,15 +218,23 @@
           @builder.append_str :void
             __sb_2 :?
             "neg: " :string
-          @builder.append_display <for isize> :void
+          @builder.append_str :void
             __sb_2 :?
-            neg :isize
+            call :string
+              callee:
+                std_core$isize$Display$to_string :string
+              arg0:
+                neg :isize
           @builder.append_str :void
             __sb_2 :?
             " " :string
-          @builder.append_display <for isize> :void
+          @builder.append_str :void
             __sb_2 :?
-            neg2 :isize
+            call :string
+              callee:
+                std_core$isize$Display$to_string :string
+              arg0:
+                neg2 :isize
           ~>
             @builder.finish :string
               __sb_2 :?
@@ -222,10 +266,14 @@
           @builder.append_str :void
             __sb_3 :?
             " delta=" :string
-          @builder.append_display <for isize> :void
+          @builder.append_str :void
             __sb_3 :?
-            .delta :isize
-              c :Counter
+            call :string
+              callee:
+                std_core$isize$Display$to_string :string
+              arg0:
+                .delta :isize
+                  c :Counter
           ~>
             @builder.finish :string
               __sb_3 :?

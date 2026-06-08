@@ -18,19 +18,21 @@ fn snippet$greet(%0: i32 | P) -> void
     %11 __sb_4: ? (synthetic __sb_4)
     %12 $k_12: string
     %13 $call_ind_13: string
-    %14 $intrinsic_14: string
-    %15 $type_check_15: bool
-    %16 $cast_16: i32
-    %17 $cell_17: ?
-    %18 n: ? (binding n)
-    %19 $struct_19: __lambda_env_3
-    %20 $closure_20: fn() -> i32
-    %21 doubled: fn() -> i32 (local doubled)
-    %22 $intrinsic_22: ?
-    %23 __sb_2: ? (synthetic __sb_2)
-    %24 $k_24: string
-    %25 $call_ind_25: i32
-    %26 $intrinsic_26: string
+    %14 $call_14: string
+    %15 $intrinsic_15: string
+    %16 $type_check_16: bool
+    %17 $cast_17: i32
+    %18 $cell_18: ?
+    %19 n: ? (binding n)
+    %20 $struct_20: __lambda_env_3
+    %21 $closure_21: fn() -> i32
+    %22 doubled: fn() -> i32 (local doubled)
+    %23 $intrinsic_23: ?
+    %24 __sb_2: ? (synthetic __sb_2)
+    %25 $k_25: string
+    %26 $call_ind_26: i32
+    %27 $call_27: string
+    %28 $intrinsic_28: string
   bb0:
     %1 = move %0
     %2 = type_check %1 is P
@@ -49,30 +51,32 @@ fn snippet$greet(%0: i32 | P) -> void
     %12 = const string(#0) :string
     intrinsic builder.append_str(%11, %12)
     %13 = call_indirect %8() :string
-    intrinsic builder.append_display(%11, %13)
-    %14 = intrinsic builder.finish(%11)
-    call std_io$std_io$println__string(%14) :void
+    %14 = call std_core$string$Display$to_string(%13) :string
+    intrinsic builder.append_str(%11, %14)
+    %15 = intrinsic builder.finish(%11)
+    call std_io$std_io$println__string(%15) :void
     branch -> bb3
   bb2:
-    %15 = type_check %1 is i32
-    cond_branch %15 ? bb4 : bb5
+    %16 = type_check %1 is i32
+    cond_branch %16 ? bb4 : bb5
   bb3:
     return
   bb4:
-    %16 = cast %1 :i32
-    %17 = cell_new %16 :i32
-    %18 = move %17
-    %19 = struct_new __lambda_env_3(%18)
-    %20 = make_closure __lambda_2 env=%19 :fn() -> i32
-    %21 = move %20
-    %22 = intrinsic builder.new()
-    %23 = move %22
-    %24 = const string(#1) :string
-    intrinsic builder.append_str(%23, %24)
-    %25 = call_indirect %21() :i32
-    intrinsic builder.append_display(%23, %25)
-    %26 = intrinsic builder.finish(%23)
-    call std_io$std_io$println__string(%26) :void
+    %17 = cast %1 :i32
+    %18 = cell_new %17 :i32
+    %19 = move %18
+    %20 = struct_new __lambda_env_3(%19)
+    %21 = make_closure __lambda_2 env=%20 :fn() -> i32
+    %22 = move %21
+    %23 = intrinsic builder.new()
+    %24 = move %23
+    %25 = const string(#1) :string
+    intrinsic builder.append_str(%24, %25)
+    %26 = call_indirect %22() :i32
+    %27 = call std_core$i32$Display$to_string(%26) :string
+    intrinsic builder.append_str(%24, %27)
+    %28 = intrinsic builder.finish(%24)
+    call std_io$std_io$println__string(%28) :void
     branch -> bb6
   bb5:
     unreachable ; non-exhaustive match (T3013 should have caught this)
@@ -119,7 +123,8 @@ fn __lambda_6(%0: __lambda_env_7) -> string
     %4 $field_4: ?
     %5 $cell_get_5: P
     %6 $field_6: string
-    %7 $intrinsic_7: string
+    %7 $call_7: string
+    %8 $intrinsic_8: string
   bb0:
     %1 = intrinsic builder.new()
     %2 = move %1
@@ -128,6 +133,7 @@ fn __lambda_6(%0: __lambda_env_7) -> string
     %4 = field_get %0.cap_0 :?
     %5 = cell_get %4 :P
     %6 = field_get %5.name :string
-    intrinsic builder.append_display(%2, %6)
-    %7 = intrinsic builder.finish(%2)
-    return %7
+    %7 = call std_core$string$Display$to_string(%6) :string
+    intrinsic builder.append_str(%2, %7)
+    %8 = intrinsic builder.finish(%2)
+    return %8

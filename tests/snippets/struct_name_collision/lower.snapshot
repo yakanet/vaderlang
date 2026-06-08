@@ -20,10 +20,14 @@
           @builder.append_str :void
             __sb_0 :?
             "a.id = " :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            .id :i32
-              a :Box
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                .id :i32
+                  a :Box
           ~>
             @builder.finish :string
               __sb_0 :?
@@ -37,10 +41,14 @@
           @builder.append_str :void
             __sb_1 :?
             "b.label = " :string
-          @builder.append_display <for string> :void
+          @builder.append_str :void
             __sb_1 :?
-            .label :string
-              b :Box
+            call :string
+              callee:
+                std_core$string$Display$to_string :string
+              arg0:
+                .label :string
+                  b :Box
           ~>
             @builder.finish :string
               __sb_1 :?

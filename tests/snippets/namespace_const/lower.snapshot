@@ -34,10 +34,14 @@
           @builder.append_str :void
             __sb_0 :?
             " label=" :string
-          @builder.append_display <for string> :void
+          @builder.append_str :void
             __sb_0 :?
-            .label :string
-              b :Budget
+            call :string
+              callee:
+                std_core$string$Display$to_string :string
+              arg0:
+                .label :string
+                  b :Budget
           ~>
             @builder.finish :string
               __sb_0 :?

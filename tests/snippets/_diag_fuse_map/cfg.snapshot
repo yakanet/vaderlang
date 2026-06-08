@@ -28,8 +28,9 @@ fn main$main() -> i32
     %11 $intrinsic_11: ?
     %12 __sb_1: ? (synthetic __sb_1)
     %13 $k_13: string
-    %14 $intrinsic_14: string
-    %15 $k_15: i32
+    %14 $call_14: string
+    %15 $intrinsic_15: string
+    %16 $k_16: i32
   bb0:
     %0 = const int(0) :i32
     %1 = move %0
@@ -54,8 +55,9 @@ fn main$main() -> i32
     %12 = move %11
     %13 = const string(#1) :string
     intrinsic builder.append_str(%12, %13)
-    intrinsic builder.append_display(%12, %1)
-    %14 = intrinsic builder.finish(%12)
-    call std_io$std_io$println__string(%14) :void
-    %15 = const int(0) :i32
-    return %15
+    %14 = call std_core$i32$Display$to_string(%1) :string
+    intrinsic builder.append_str(%12, %14)
+    %15 = intrinsic builder.finish(%12)
+    call std_io$std_io$println__string(%15) :void
+    %16 = const int(0) :i32
+    return %16

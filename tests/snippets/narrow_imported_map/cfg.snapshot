@@ -64,8 +64,9 @@ fn snippet$main() -> i32
     %16 __sb_0: ? (synthetic __sb_0)
     %17 $cast_17: Out
     %18 $field_18: i32
-    %19 $intrinsic_19: string
-    %20 $k_20: i32
+    %19 $call_19: string
+    %20 $intrinsic_20: string
+    %21 $k_21: i32
   bb0:
     %0 = array_new (Entry<K, V> | null)[][0]()
     %1 = const int(0) :usize
@@ -92,8 +93,9 @@ fn snippet$main() -> i32
     %16 = move %15
     %17 = cast %11 :Out
     %18 = field_get %17.first :i32
-    intrinsic builder.append_display(%16, %18)
-    %19 = intrinsic builder.finish(%16)
-    call std_io$std_io$println__string(%19) :void
-    %20 = const int(0) :i32
-    return %20
+    %19 = call std_core$i32$Display$to_string(%18) :string
+    intrinsic builder.append_str(%16, %19)
+    %20 = intrinsic builder.finish(%16)
+    call std_io$std_io$println__string(%20) :void
+    %21 = const int(0) :i32
+    return %21

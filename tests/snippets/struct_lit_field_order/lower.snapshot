@@ -19,24 +19,36 @@
           @builder.append_str :void
             __sb_0 :?
             "a=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            .a :i32
-              p :P
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                .a :i32
+                  p :P
           @builder.append_str :void
             __sb_0 :?
             " b=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            .b :i32
-              p :P
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                .b :i32
+                  p :P
           @builder.append_str :void
             __sb_0 :?
             " c=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            .c :i32
-              p :P
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                .c :i32
+                  p :P
           ~>
             @builder.finish :string
               __sb_0 :?

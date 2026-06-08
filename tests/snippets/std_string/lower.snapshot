@@ -58,15 +58,19 @@
         block :string
           let __sb_1: ? =
             @builder.new :?
-          @builder.append_display <for bool> :void
+          @builder.append_str :void
             __sb_1 :?
-            call :bool
+            call :string
               callee:
-                std_string$string$Contains$contains :bool
+                std_core$bool$Display$to_string :string
               arg0:
-                "foobar" :string
-              arg1:
-                "oba" :string
+                call :bool
+                  callee:
+                    std_string$string$Contains$contains :bool
+                  arg0:
+                    "foobar" :string
+                  arg1:
+                    "oba" :string
           ~>
             @builder.finish :string
               __sb_1 :?
@@ -77,15 +81,19 @@
         block :string
           let __sb_2: ? =
             @builder.new :?
-          @builder.append_display <for bool> :void
+          @builder.append_str :void
             __sb_2 :?
-            call :bool
+            call :string
               callee:
-                starts_with :bool
+                std_core$bool$Display$to_string :string
               arg0:
-                "foobar" :string
-              arg1:
-                "foo" :string
+                call :bool
+                  callee:
+                    starts_with :bool
+                  arg0:
+                    "foobar" :string
+                  arg1:
+                    "foo" :string
           ~>
             @builder.finish :string
               __sb_2 :?
@@ -96,15 +104,19 @@
         block :string
           let __sb_3: ? =
             @builder.new :?
-          @builder.append_display <for bool> :void
+          @builder.append_str :void
             __sb_3 :?
-            call :bool
+            call :string
               callee:
-                ends_with :bool
+                std_core$bool$Display$to_string :string
               arg0:
-                "foobar" :string
-              arg1:
-                "bar" :string
+                call :bool
+                  callee:
+                    ends_with :bool
+                  arg0:
+                    "foobar" :string
+                  arg1:
+                    "bar" :string
           ~>
             @builder.finish :string
               __sb_3 :?
@@ -136,15 +148,19 @@
         block :string
           let __sb_4: ? =
             @builder.new :?
-          @builder.append_display <for char> :void
+          @builder.append_str :void
             __sb_4 :?
-            call :char
+            call :string
               callee:
-                std_core$string$Index$at :char
+                std_core$char$Display$to_string :string
               arg0:
-                "hello" :string
-              arg1:
-                int(1) :i32
+                call :char
+                  callee:
+                    std_core$string$Index$at :char
+                  arg0:
+                    "hello" :string
+                  arg1:
+                    int(1) :i32
           ~>
             @builder.finish :string
               __sb_4 :?
@@ -155,15 +171,19 @@
         block :string
           let __sb_5: ? =
             @builder.new :?
-          @builder.append_display <for char> :void
+          @builder.append_str :void
             __sb_5 :?
-            call :char
+            call :string
               callee:
-                std_core$string$Index$at :char
+                std_core$char$Display$to_string :string
               arg0:
-                "你好嗎？" :string
-              arg1:
-                int(0) :i32
+                call :char
+                  callee:
+                    std_core$string$Index$at :char
+                  arg0:
+                    "你好嗎？" :string
+                  arg1:
+                    int(0) :i32
           ~>
             @builder.finish :string
               __sb_5 :?
@@ -174,15 +194,19 @@
         block :string
           let __sb_6: ? =
             @builder.new :?
-          @builder.append_display <for char> :void
+          @builder.append_str :void
             __sb_6 :?
-            call :char
+            call :string
               callee:
-                std_core$string$Index$at :char
+                std_core$char$Display$to_string :string
               arg0:
-                "你好嗎？" :string
-              arg1:
-                int(1) :i32
+                call :char
+                  callee:
+                    std_core$string$Index$at :char
+                  arg0:
+                    "你好嗎？" :string
+                  arg1:
+                    int(1) :i32
           ~>
             @builder.finish :string
               __sb_6 :?
@@ -193,15 +217,19 @@
         block :string
           let __sb_7: ? =
             @builder.new :?
-          @builder.append_display <for char> :void
+          @builder.append_str :void
             __sb_7 :?
-            call :char
+            call :string
               callee:
-                std_core$string$Index$at :char
+                std_core$char$Display$to_string :string
               arg0:
-                "你好嗎？" :string
-              arg1:
-                int(3) :i32
+                call :char
+                  callee:
+                    std_core$string$Index$at :char
+                  arg0:
+                    "你好嗎？" :string
+                  arg1:
+                    int(3) :i32
           ~>
             @builder.finish :string
               __sb_7 :?

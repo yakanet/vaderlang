@@ -16,13 +16,12 @@ string 2 "checked"
 string 3 "felix"
 string 4 "matched"
 import 0 write std_io$write (i32,string) -> void
-import 1 to_string std_core$string$Display$to_string (string) -> string
-export main 3
+export main 4
 
 fn 0 std_io$std_io$println__string (string) -> void
   local $call_2 string
   local.get 0
-  call 4
+  call 1
   local.set 1
   i32.const 0
   local.get 1
@@ -33,7 +32,12 @@ fn 0 std_io$std_io$println__string (string) -> void
   return
 end
 
-fn 1 snippet$classify (ref) -> string
+fn 1 std_core$string$Display$to_string (string) -> string
+  local.get 0
+  return
+end
+
+fn 2 snippet$classify (ref) -> string
   local and_res bool
   bool.const false
   if $L0 void
@@ -51,7 +55,7 @@ fn 1 snippet$classify (ref) -> string
   return.lit string.const 2
 end
 
-fn 2 snippet$inline_check (ref) -> bool
+fn 3 snippet$inline_check (ref) -> bool
   local and_res bool
   bool.const false
   if $L0 void
@@ -69,28 +73,22 @@ fn 2 snippet$inline_check (ref) -> bool
   return.lit bool.const false
 end
 
-fn 3 snippet$main () -> i32
+fn 4 snippet$main () -> i32
   string.const 3
   struct.new 6
-  call 1
-  call 0
-  i32.const 42
-  call 1
+  call 2
   call 0
   i32.const 42
   call 2
+  call 0
+  i32.const 42
+  call 3
   if $L0 void
     string.const 4
     call 0
   else
   end $L0
   return.lit i32.const 0
-end
-
-fn 4 std_core$string$Display$to_string_vt (string) -> string
-  local.get 0
-  call.import 1
-  return
 end
 
 # Diagnostics

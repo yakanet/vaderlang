@@ -26,14 +26,18 @@
                   @builder.append_str :void
                     __sb_0 :?
                     "count=" :string
-                  @builder.append_display <for i32> :void
+                  @builder.append_str :void
                     __sb_0 :?
-                    call :i32
+                    call :string
                       callee:
-                        count :fn(i32[]) -> i32
+                        std_core$i32$Display$to_string :string
                       arg0:
-                        .items :i32[]
-                          b :Bag
+                        call :i32
+                          callee:
+                            count :fn(i32[]) -> i32
+                          arg0:
+                            .items :i32[]
+                              b :Bag
                   ~>
                     @builder.finish :string
                       __sb_0 :?
@@ -94,13 +98,17 @@
           @builder.append_str :void
             __sb_0 :?
             "total=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            call :i32
+            call :string
               callee:
-                total :fn(Bag) -> i32
+                std_core$i32$Display$to_string :string
               arg0:
-                full :Bag
+                call :i32
+                  callee:
+                    total :fn(Bag) -> i32
+                  arg0:
+                    full :Bag
           ~>
             @builder.finish :string
               __sb_0 :?
@@ -114,13 +122,17 @@
           @builder.append_str :void
             __sb_1 :?
             "total=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_1 :?
-            call :i32
+            call :string
               callee:
-                total :fn(Bag) -> i32
+                std_core$i32$Display$to_string :string
               arg0:
-                empty :Bag
+                call :i32
+                  callee:
+                    total :fn(Bag) -> i32
+                  arg0:
+                    empty :Bag
           ~>
             @builder.finish :string
               __sb_1 :?

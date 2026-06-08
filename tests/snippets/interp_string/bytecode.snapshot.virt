@@ -1,29 +1,144 @@
 module _main
 type 0 primitive null
-type 1 primitive string
-type 2 primitive i32
-string 0 "Hello, "
-string 1 "! You are "
-string 2 " years old."
+type 1 primitive i32
+type 2 primitive string
+type 3 primitive i64
+type 4 array 2
+string 0 "0"
+string 1 ""
+string 2 "1"
+string 3 "2"
+string 4 "3"
+string 5 "4"
+string 6 "5"
+string 7 "6"
+string 8 "7"
+string 9 "8"
+string 10 "9"
+string 11 "-"
+string 12 "Hello, "
+string 13 "! You are "
+string 14 " years old."
 
-fn 0 snippet$greet (string,i32) -> string
+fn 0 std_core$i32$Display$to_string (i32) -> string
+  local.get 0
+  i32.to_i64
+  call 2
+  return
+end
+
+fn 1 std_core$string$Display$to_string (string) -> string
+  local.get 0
+  return
+end
+
+fn 2 std_core$format_signed (i64) -> string
+  local neg bool
+  local if_res i64
+  local out string
+  local $arr_26 ref
+  local $cast_30 usize
+  local.get 0
+  i64.const 0
+  i64.eq
+  if $L0 void
+    return.lit string.const 0
+  end $L0
+  local.get 0
+  i64.const 0
+  i64.lt
+  local.set 1
+  local.get 0
+  i64.const 0
+  i64.lt
+  if $L1 void
+    local.get 0
+    local.set 2
+  else
+    local.get 0
+    i64.neg
+    local.set 2
+  end $L1
+  local.get 2
+  local.set 2
+  string.const 1
+  local.set 3
+  block $L2 void
+    loop $L3 void
+      local.get 2
+      i64.const 0
+      i64.ne
+      if $L4 void
+        string.const 0
+        string.const 2
+        string.const 3
+        string.const 4
+        string.const 5
+        string.const 6
+        string.const 7
+        string.const 8
+        string.const 9
+        string.const 10
+        array.new 4 10
+        local.set 4
+        local.get 2
+        i64.const 10
+        i64.rem
+        i64.neg
+        i64.to_i64
+        local.set 5
+        local.get 4
+        local.get 5
+        array.get 4
+        ref.cast 2
+        local.get 3
+        string.concat
+        local.set 3
+        local.get 2
+        i64.const 10
+        i64.div
+        local.set 2
+        br $L3
+      else
+      end $L4
+    end $L3
+  end $L2
+  local.get 1
+  if $L5 void
+    string.const 11
+    local.get 3
+    string.concat
+    return
+  end $L5
+  local.get 3
+  return
+end
+
+fn 3 snippet$greet (string,i32) -> string
   local __sb_0 any
+  local $call_5 string
   intrinsic builder.new
   local.set 2
   local.get 2
-  string.const 0
+  string.const 12
   intrinsic builder.append_str
-  local.get 2
   local.get 0
-  intrinsic builder.append_display
+  call 1
+  local.set 3
   local.get 2
-  string.const 1
+  local.get 3
   intrinsic builder.append_str
   local.get 2
+  string.const 13
+  intrinsic builder.append_str
   local.get 1
-  intrinsic builder.append_display
+  call 0
+  local.set 3
   local.get 2
-  string.const 2
+  local.get 3
+  intrinsic builder.append_str
+  local.get 2
+  string.const 14
   intrinsic builder.append_str
   local.get 2
   intrinsic builder.finish

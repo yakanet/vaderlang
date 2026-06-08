@@ -113,11 +113,15 @@
                     @builder.append_str :void
                       __sb_4 :?
                       "got=" :string
-                    @builder.append_display <for i32> :void
+                    @builder.append_str :void
                       __sb_4 :?
-                      .value :i32
-                        cast → Some
-                          m :None | Some
+                      call :string
+                        callee:
+                          std_core$i32$Display$to_string :string
+                        arg0:
+                          .value :i32
+                            cast → Some
+                              m :None | Some
                     ~>
                       @builder.finish :string
                         __sb_4 :?
@@ -159,11 +163,15 @@
                     @builder.append_str :void
                       __sb_6 :?
                       "got=" :string
-                    @builder.append_display <for i32> :void
+                    @builder.append_str :void
                       __sb_6 :?
-                      .value :i32
-                        cast → Some
-                          n :None | Some
+                      call :string
+                        callee:
+                          std_core$i32$Display$to_string :string
+                        arg0:
+                          .value :i32
+                            cast → Some
+                              n :None | Some
                     ~>
                       @builder.finish :string
                         __sb_6 :?

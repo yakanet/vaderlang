@@ -3,19 +3,32 @@ type 0 primitive null
 type 1 primitive string
 type 2 primitive void
 type 3 primitive i32
-type 4 struct __Tuple_11 { _0:3,_1:1 }
+type 4 array 1
+type 5 primitive i64
+type 6 struct __Tuple_14 { _0:3,_1:1 }
 string 0 "\n"
-string 1 "match"
-string 2 "n="
-string 3 " s="
+string 1 "0"
+string 2 ""
+string 3 "1"
+string 4 "2"
+string 5 "3"
+string 6 "4"
+string 7 "5"
+string 8 "6"
+string 9 "7"
+string 10 "8"
+string 11 "9"
+string 12 "-"
+string 13 "match"
+string 14 "n="
+string 15 " s="
 import 0 write std_io$write (i32,string) -> void
-import 1 to_string std_core$string$Display$to_string (string) -> string
 export main 1
 
 fn 0 std_io$std_io$println__string (string) -> void
   local $call_2 string
   local.get 0
-  call 2
+  call 3
   local.set 1
   i32.const 0
   local.get 1
@@ -31,38 +44,133 @@ fn 1 snippet$main () -> i32
   local n i32
   local s string
   local __sb_1 any
+  local $call_12 string
   i32.const 3
-  string.const 1
-  struct.new_stack 4
+  string.const 13
+  struct.new_stack 6
   local.set 0
-  local.field 0 4 0
+  local.field 0 6 0
   ref.cast 3
   local.set 1
-  local.field 0 4 1
+  local.field 0 6 1
   ref.cast 1
   local.set 2
   intrinsic builder.new
   local.set 3
   local.get 3
-  string.const 2
+  string.const 14
   intrinsic builder.append_str
-  local.get 3
   local.get 1
-  intrinsic builder.append_display
+  call 2
+  local.set 4
   local.get 3
-  string.const 3
+  local.get 4
   intrinsic builder.append_str
+  local.get 3
+  string.const 15
+  intrinsic builder.append_str
+  local.get 2
+  call 3
+  local.set 2
   local.get 3
   local.get 2
-  intrinsic builder.append_display
+  intrinsic builder.append_str
   local.get 3
   intrinsic builder.finish
   call 0
   return.lit i32.const 0
 end
 
-fn 2 std_core$string$Display$to_string_vt (string) -> string
+fn 2 std_core$i32$Display$to_string (i32) -> string
   local.get 0
-  call.import 1
+  i32.to_i64
+  call 4
+  return
+end
+
+fn 3 std_core$string$Display$to_string (string) -> string
+  local.get 0
+  return
+end
+
+fn 4 std_core$format_signed (i64) -> string
+  local neg bool
+  local if_res i64
+  local out string
+  local $arr_26 ref
+  local $cast_30 usize
+  local.get 0
+  i64.const 0
+  i64.eq
+  if $L0 void
+    return.lit string.const 1
+  end $L0
+  local.get 0
+  i64.const 0
+  i64.lt
+  local.set 1
+  local.get 0
+  i64.const 0
+  i64.lt
+  if $L1 void
+    local.get 0
+    local.set 2
+  else
+    local.get 0
+    i64.neg
+    local.set 2
+  end $L1
+  local.get 2
+  local.set 2
+  string.const 2
+  local.set 3
+  block $L2 void
+    loop $L3 void
+      local.get 2
+      i64.const 0
+      i64.ne
+      if $L4 void
+        string.const 1
+        string.const 3
+        string.const 4
+        string.const 5
+        string.const 6
+        string.const 7
+        string.const 8
+        string.const 9
+        string.const 10
+        string.const 11
+        array.new 4 10
+        local.set 4
+        local.get 2
+        i64.const 10
+        i64.rem
+        i64.neg
+        i64.to_i64
+        local.set 5
+        local.get 4
+        local.get 5
+        array.get 4
+        ref.cast 1
+        local.get 3
+        string.concat
+        local.set 3
+        local.get 2
+        i64.const 10
+        i64.div
+        local.set 2
+        br $L3
+      else
+      end $L4
+    end $L3
+  end $L2
+  local.get 1
+  if $L5 void
+    string.const 12
+    local.get 3
+    string.concat
+    return
+  end $L5
+  local.get 3
   return
 end

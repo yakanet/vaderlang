@@ -59,9 +59,13 @@
           @builder.append_str :void
             __sb_0 :?
             "deterministic=" :string
-          @builder.append_display <for bool> :void
+          @builder.append_str :void
             __sb_0 :?
-            same :bool
+            call :string
+              callee:
+                std_core$bool$Display$to_string :string
+              arg0:
+                same :bool
           ~>
             @builder.finish :string
               __sb_0 :?
@@ -112,9 +116,13 @@
           @builder.append_str :void
             __sb_1 :?
             "zero_seed_nonzero=" :string
-          @builder.append_display <for bool> :void
+          @builder.append_str :void
             __sb_1 :?
-            nonzero :bool
+            call :string
+              callee:
+                std_core$bool$Display$to_string :string
+              arg0:
+                nonzero :bool
           ~>
             @builder.finish :string
               __sb_1 :?
@@ -183,9 +191,13 @@
           @builder.append_str :void
             __sb_2 :?
             "range_i32_in_bounds=" :string
-          @builder.append_display <for bool> :void
+          @builder.append_str :void
             __sb_2 :?
-            in_range :bool
+            call :string
+              callee:
+                std_core$bool$Display$to_string :string
+              arg0:
+                in_range :bool
           ~>
             @builder.finish :string
               __sb_2 :?
@@ -250,9 +262,13 @@
           @builder.append_str :void
             __sb_3 :?
             "unit_f64_in_bounds=" :string
-          @builder.append_display <for bool> :void
+          @builder.append_str :void
             __sb_3 :?
-            f_in_range :bool
+            call :string
+              callee:
+                std_core$bool$Display$to_string :string
+              arg0:
+                f_in_range :bool
           ~>
             @builder.finish :string
               __sb_3 :?
@@ -341,9 +357,13 @@
           @builder.append_str :void
             __sb_8 :?
             "shuffled_sum=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_8 :?
-            sum :i32
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                sum :i32
           ~>
             @builder.finish :string
               __sb_8 :?
@@ -402,13 +422,17 @@
           @builder.append_str :void
             __sb_9 :?
             "bool_both_seen=" :string
-          @builder.append_display <for bool> :void
+          @builder.append_str :void
             __sb_9 :?
-            and :bool
-              l:
-                seen_t :bool
-              r:
-                seen_f :bool
+            call :string
+              callee:
+                std_core$bool$Display$to_string :string
+              arg0:
+                and :bool
+                  l:
+                    seen_t :bool
+                  r:
+                    seen_f :bool
           ~>
             @builder.finish :string
               __sb_9 :?

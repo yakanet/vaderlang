@@ -24,9 +24,13 @@
           block :string
             let __sb_0: ? =
               @builder.new :?
-            @builder.append_display <for string> :void
+            @builder.append_str :void
               __sb_0 :?
-              mode :string
+              call :string
+                callee:
+                  std_core$string$Display$to_string :string
+                arg0:
+                  mode :string
             @builder.append_str :void
               __sb_0 :?
               " mode dispatch" :string

@@ -71,10 +71,13 @@ fn snippet$main() -> i32
     %19 $intrinsic_19: ?
     %20 __sb_0: ? (synthetic __sb_0)
     %21 $k_21: string
-    %22 $k_22: string
+    %22 $call_22: string
     %23 $k_23: string
-    %24 $intrinsic_24: string
-    %25 $k_25: i32
+    %24 $call_24: string
+    %25 $k_25: string
+    %26 $call_26: string
+    %27 $intrinsic_27: string
+    %28 $k_28: i32
   bb0:
     %0 = const int(42) :i32
     %1 = struct_new Block(%0)
@@ -99,14 +102,17 @@ fn snippet$main() -> i32
     %20 = move %19
     %21 = const string(#4) :string
     intrinsic builder.append_str(%20, %21)
-    intrinsic builder.append_display(%20, %5)
-    %22 = const string(#5) :string
+    %22 = call std_core$i32$Display$to_string(%5) :string
     intrinsic builder.append_str(%20, %22)
-    intrinsic builder.append_display(%20, %10)
-    %23 = const string(#6) :string
+    %23 = const string(#5) :string
     intrinsic builder.append_str(%20, %23)
-    intrinsic builder.append_display(%20, %18)
-    %24 = intrinsic builder.finish(%20)
-    call std_io$std_io$println__string(%24) :void
-    %25 = const int(0) :i32
-    return %25
+    %24 = call std_core$i32$Display$to_string(%10) :string
+    intrinsic builder.append_str(%20, %24)
+    %25 = const string(#6) :string
+    intrinsic builder.append_str(%20, %25)
+    %26 = call std_core$i32$Display$to_string(%18) :string
+    intrinsic builder.append_str(%20, %26)
+    %27 = intrinsic builder.finish(%20)
+    call std_io$std_io$println__string(%27) :void
+    %28 = const int(0) :i32
+    return %28

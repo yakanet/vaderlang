@@ -61,9 +61,13 @@
               @builder.append_str :void
                 __sb_4 :?
                 "  " :string
-              @builder.append_display <for i32> :void
+              @builder.append_str :void
                 __sb_4 :?
-                v :i32
+                call :string
+                  callee:
+                    std_core$i32$Display$to_string :string
+                  arg0:
+                    v :i32
               ~>
                 @builder.finish :string
                   __sb_4 :?
@@ -132,9 +136,13 @@
               @builder.append_str :void
                 __sb_9 :?
                 "  " :string
-              @builder.append_display <for i32> :void
+              @builder.append_str :void
                 __sb_9 :?
-                v :i32
+                call :string
+                  callee:
+                    std_core$i32$Display$to_string :string
+                  arg0:
+                    v :i32
               ~>
                 @builder.finish :string
                   __sb_9 :?
@@ -224,9 +232,13 @@
               @builder.append_str :void
                 __sb_15 :?
                 "  " :string
-              @builder.append_display <for i32> :void
+              @builder.append_str :void
                 __sb_15 :?
-                v :i32
+                call :string
+                  callee:
+                    std_core$i32$Display$to_string :string
+                  arg0:
+                    v :i32
               ~>
                 @builder.finish :string
                   __sb_15 :?
@@ -290,9 +302,13 @@
               @builder.append_str :void
                 __sb_20 :?
                 "  " :string
-              @builder.append_display <for i32> :void
+              @builder.append_str :void
                 __sb_20 :?
-                v :i32
+                call :string
+                  callee:
+                    std_core$i32$Display$to_string :string
+                  arg0:
+                    v :i32
               ~>
                 @builder.finish :string
                   __sb_20 :?

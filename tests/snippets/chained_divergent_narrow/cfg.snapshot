@@ -57,8 +57,10 @@ fn snippet$main() -> i32
     %8 $intrinsic_8: ?
     %9 __sb_0: ? (synthetic __sb_0)
     %10 $k_10: string
-    %11 $k_11: string
-    %12 $intrinsic_12: string
+    %11 $call_11: string
+    %12 $k_12: string
+    %13 $call_13: string
+    %14 $intrinsic_14: string
   bb0:
     %0 = const int(42) :i32
     %1 = struct_new FnLike(%0)
@@ -72,10 +74,12 @@ fn snippet$main() -> i32
     %9 = move %8
     %10 = const string(#1) :string
     intrinsic builder.append_str(%9, %10)
-    intrinsic builder.append_display(%9, %3)
-    %11 = const string(#2) :string
+    %11 = call std_core$i32$Display$to_string(%3) :string
     intrinsic builder.append_str(%9, %11)
-    intrinsic builder.append_display(%9, %7)
-    %12 = intrinsic builder.finish(%9)
-    call std_io$std_io$println__string(%12) :void
+    %12 = const string(#2) :string
+    intrinsic builder.append_str(%9, %12)
+    %13 = call std_core$i32$Display$to_string(%7) :string
+    intrinsic builder.append_str(%9, %13)
+    %14 = intrinsic builder.finish(%9)
+    call std_io$std_io$println__string(%14) :void
     return %3

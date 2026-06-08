@@ -21,7 +21,6 @@ string 11 " & "
 string 12 "Whiskers"
 string 13 "Rex"
 import 0 write std_io$write (i32,string) -> void
-import 1 to_string std_core$string$Display$to_string (string) -> string
 export main 6
 
 fn 0 std_io$std_io$println__string (string) -> void
@@ -40,7 +39,7 @@ end
 
 fn 1 snippet$greet (ref) -> string
   local __sb_0 any
-  local $field_8 string
+  local $call_9 string
   local.get 0
   type_check 0
   bool.not
@@ -53,10 +52,11 @@ fn 1 snippet$greet (ref) -> string
     local.get 0
     struct.get 5 0
     ref.cast 1
+    call 7
     local.set 2
     local.get 1
     local.get 2
-    intrinsic builder.append_display
+    intrinsic builder.append_str
     local.get 1
     intrinsic builder.finish
     return
@@ -66,7 +66,7 @@ end
 
 fn 2 snippet$greet_v2 (ref) -> string
   local __sb_0 any
-  local $field_8 string
+  local $call_9 string
   local.get 0
   type_check 0
   if $L0 void
@@ -80,10 +80,11 @@ fn 2 snippet$greet_v2 (ref) -> string
   local.get 0
   struct.get 5 0
   ref.cast 1
+  call 7
   local.set 2
   local.get 1
   local.get 2
-  intrinsic builder.append_display
+  intrinsic builder.append_str
   local.get 1
   intrinsic builder.finish
   return
@@ -91,7 +92,7 @@ end
 
 fn 3 snippet$greet_v3 (ref) -> string
   local __sb_0 any
-  local $field_8 string
+  local $call_9 string
   local.get 0
   type_check 0
   bool.not
@@ -104,10 +105,11 @@ fn 3 snippet$greet_v3 (ref) -> string
     local.get 0
     struct.get 5 0
     ref.cast 1
+    call 7
     local.set 2
     local.get 1
     local.get 2
-    intrinsic builder.append_display
+    intrinsic builder.append_str
     local.get 1
     intrinsic builder.finish
     return
@@ -117,7 +119,7 @@ end
 
 fn 4 snippet$greet_v4 (ref) -> string
   local __sb_0 any
-  local $field_11 string
+  local $call_12 string
   local.get 0
   type_check 0
   bool.not
@@ -130,10 +132,11 @@ fn 4 snippet$greet_v4 (ref) -> string
     local.get 0
     struct.get 5 0
     ref.cast 1
+    call 7
     local.set 2
     local.get 1
     local.get 2
-    intrinsic builder.append_display
+    intrinsic builder.append_str
     local.get 1
     intrinsic builder.finish
     return
@@ -143,7 +146,7 @@ end
 
 fn 5 snippet$combine (ref,ref) -> string
   local __sb_0 any
-  local $field_10 string
+  local $call_11 string
   local.get 0
   type_check 0
   if $L0 void
@@ -159,20 +162,22 @@ fn 5 snippet$combine (ref,ref) -> string
   local.get 0
   struct.get 5 0
   ref.cast 1
+  call 7
   local.set 3
   local.get 2
   local.get 3
-  intrinsic builder.append_display
+  intrinsic builder.append_str
   local.get 2
   string.const 11
   intrinsic builder.append_str
   local.get 1
   struct.get 5 0
   ref.cast 1
+  call 7
   local.set 3
   local.get 2
   local.get 3
-  intrinsic builder.append_display
+  intrinsic builder.append_str
   local.get 2
   intrinsic builder.finish
   return
@@ -231,8 +236,7 @@ fn 6 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 7 std_core$string$Display$to_string_vt (string) -> string
+fn 7 std_core$string$Display$to_string (string) -> string
   local.get 0
-  call.import 1
   return
 end

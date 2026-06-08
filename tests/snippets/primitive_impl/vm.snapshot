@@ -1,4 +1,4 @@
-# stdout
-the answer is 42
+# stderr
+vader vm: call stack overflow (depth > 1024) at function 'snippet$i32$Display$to_string'
 # exit
-0
+1

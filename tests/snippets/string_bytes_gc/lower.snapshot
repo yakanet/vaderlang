@@ -9,9 +9,13 @@
         @builder.append_str :void
           __sb_0 :?
           "vader-byte-view-payload-" :string
-        @builder.append_display <for i32> :void
+        @builder.append_str :void
           __sb_0 :?
-          seed :i32
+          call :string
+            callee:
+              std_core$i32$Display$to_string :string
+            arg0:
+              seed :i32
         ~>
           @builder.finish :string
             __sb_0 :?

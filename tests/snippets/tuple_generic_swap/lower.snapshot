@@ -21,17 +21,25 @@
           @builder.append_str :void
             __sb_0 :?
             "first=" :string
-          @builder.append_display <for string> :void
+          @builder.append_str :void
             __sb_0 :?
-            ._0 :string
-              s :[string, i32]
+            call :string
+              callee:
+                std_core$string$Display$to_string :string
+              arg0:
+                ._0 :string
+                  s :[string, i32]
           @builder.append_str :void
             __sb_0 :?
             " second=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            ._1 :i32
-              s :[string, i32]
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                ._1 :i32
+                  s :[string, i32]
           ~>
             @builder.finish :string
               __sb_0 :?

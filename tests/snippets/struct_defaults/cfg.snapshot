@@ -22,40 +22,49 @@ fn snippet$main() -> i32
     %15 $intrinsic_15: ?
     %16 __sb_0: ? (synthetic __sb_0)
     %17 $field_17: string
-    %18 $k_18: string
-    %19 $field_19: i32
-    %20 $k_20: string
-    %21 $field_21: bool
-    %22 $intrinsic_22: string
-    %23 $intrinsic_23: ?
-    %24 __sb_1: ? (synthetic __sb_1)
-    %25 $field_25: string
-    %26 $k_26: string
-    %27 $field_27: i32
-    %28 $k_28: string
-    %29 $field_29: bool
-    %30 $intrinsic_30: string
-    %31 $intrinsic_31: ?
-    %32 __sb_2: ? (synthetic __sb_2)
-    %33 $field_33: string
-    %34 $k_34: string
-    %35 $field_35: i32
-    %36 $k_36: string
-    %37 $field_37: bool
-    %38 $intrinsic_38: string
-    %39 $k_39: i32
+    %18 $call_18: string
+    %19 $k_19: string
+    %20 $field_20: i32
+    %21 $call_21: string
+    %22 $k_22: string
+    %23 $field_23: bool
+    %24 $call_24: string
+    %25 $intrinsic_25: string
+    %26 $intrinsic_26: ?
+    %27 __sb_1: ? (synthetic __sb_1)
+    %28 $field_28: string
+    %29 $call_29: string
+    %30 $k_30: string
+    %31 $field_31: i32
+    %32 $call_32: string
+    %33 $k_33: string
+    %34 $field_34: bool
+    %35 $call_35: string
+    %36 $intrinsic_36: string
+    %37 $intrinsic_37: ?
+    %38 __sb_2: ? (synthetic __sb_2)
+    %39 $field_39: string
+    %40 $call_40: string
+    %41 $k_41: string
+    %42 $field_42: i32
+    %43 $call_43: string
+    %44 $k_44: string
+    %45 $field_45: bool
+    %46 $call_46: string
+    %47 $intrinsic_47: string
+    %48 $k_48: i32
   bb0:
-    %0 = const string(#1) :string
+    %0 = const string(#15) :string
     %1 = const int(30) :i32
     %2 = const bool(false) :bool
     %3 = struct_new Settings(%0, %1, %2)
     %4 = move %3
-    %5 = const string(#2) :string
+    %5 = const string(#16) :string
     %6 = const int(30) :i32
     %7 = const bool(true) :bool
     %8 = struct_new Settings(%5, %6, %7)
     %9 = move %8
-    %10 = const string(#3) :string
+    %10 = const string(#17) :string
     %11 = const int(5) :i32
     %12 = const bool(true) :bool
     %13 = struct_new Settings(%10, %11, %12)
@@ -63,44 +72,53 @@ fn snippet$main() -> i32
     %15 = intrinsic builder.new()
     %16 = move %15
     %17 = field_get %4.name :string
-    intrinsic builder.append_display(%16, %17)
-    %18 = const string(#4) :string
+    %18 = call std_core$string$Display$to_string(%17) :string
     intrinsic builder.append_str(%16, %18)
-    %19 = field_get %4.timeout :i32
-    intrinsic builder.append_display(%16, %19)
-    %20 = const string(#5) :string
-    intrinsic builder.append_str(%16, %20)
-    %21 = field_get %4.debug :bool
-    intrinsic builder.append_display(%16, %21)
-    %22 = intrinsic builder.finish(%16)
-    call std_io$std_io$println__string(%22) :void
-    %23 = intrinsic builder.new()
-    %24 = move %23
-    %25 = field_get %9.name :string
-    intrinsic builder.append_display(%24, %25)
-    %26 = const string(#4) :string
-    intrinsic builder.append_str(%24, %26)
-    %27 = field_get %9.timeout :i32
-    intrinsic builder.append_display(%24, %27)
-    %28 = const string(#5) :string
-    intrinsic builder.append_str(%24, %28)
-    %29 = field_get %9.debug :bool
-    intrinsic builder.append_display(%24, %29)
-    %30 = intrinsic builder.finish(%24)
-    call std_io$std_io$println__string(%30) :void
-    %31 = intrinsic builder.new()
-    %32 = move %31
-    %33 = field_get %14.name :string
-    intrinsic builder.append_display(%32, %33)
-    %34 = const string(#4) :string
-    intrinsic builder.append_str(%32, %34)
-    %35 = field_get %14.timeout :i32
-    intrinsic builder.append_display(%32, %35)
-    %36 = const string(#5) :string
-    intrinsic builder.append_str(%32, %36)
-    %37 = field_get %14.debug :bool
-    intrinsic builder.append_display(%32, %37)
-    %38 = intrinsic builder.finish(%32)
-    call std_io$std_io$println__string(%38) :void
-    %39 = const int(0) :i32
-    return %39
+    %19 = const string(#18) :string
+    intrinsic builder.append_str(%16, %19)
+    %20 = field_get %4.timeout :i32
+    %21 = call std_core$i32$Display$to_string(%20) :string
+    intrinsic builder.append_str(%16, %21)
+    %22 = const string(#19) :string
+    intrinsic builder.append_str(%16, %22)
+    %23 = field_get %4.debug :bool
+    %24 = call std_core$bool$Display$to_string(%23) :string
+    intrinsic builder.append_str(%16, %24)
+    %25 = intrinsic builder.finish(%16)
+    call std_io$std_io$println__string(%25) :void
+    %26 = intrinsic builder.new()
+    %27 = move %26
+    %28 = field_get %9.name :string
+    %29 = call std_core$string$Display$to_string(%28) :string
+    intrinsic builder.append_str(%27, %29)
+    %30 = const string(#18) :string
+    intrinsic builder.append_str(%27, %30)
+    %31 = field_get %9.timeout :i32
+    %32 = call std_core$i32$Display$to_string(%31) :string
+    intrinsic builder.append_str(%27, %32)
+    %33 = const string(#19) :string
+    intrinsic builder.append_str(%27, %33)
+    %34 = field_get %9.debug :bool
+    %35 = call std_core$bool$Display$to_string(%34) :string
+    intrinsic builder.append_str(%27, %35)
+    %36 = intrinsic builder.finish(%27)
+    call std_io$std_io$println__string(%36) :void
+    %37 = intrinsic builder.new()
+    %38 = move %37
+    %39 = field_get %14.name :string
+    %40 = call std_core$string$Display$to_string(%39) :string
+    intrinsic builder.append_str(%38, %40)
+    %41 = const string(#18) :string
+    intrinsic builder.append_str(%38, %41)
+    %42 = field_get %14.timeout :i32
+    %43 = call std_core$i32$Display$to_string(%42) :string
+    intrinsic builder.append_str(%38, %43)
+    %44 = const string(#19) :string
+    intrinsic builder.append_str(%38, %44)
+    %45 = field_get %14.debug :bool
+    %46 = call std_core$bool$Display$to_string(%45) :string
+    intrinsic builder.append_str(%38, %46)
+    %47 = intrinsic builder.finish(%38)
+    call std_io$std_io$println__string(%47) :void
+    %48 = const int(0) :i32
+    return %48

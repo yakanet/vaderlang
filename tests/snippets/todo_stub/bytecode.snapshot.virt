@@ -11,7 +11,6 @@ string 3 " mode dispatch"
 string 4 "not yet implemented: "
 import 0 write std_io$write (i32,string) -> void
 import 1 panic std_abort$panic (string) -> void
-import 2 to_string std_core$string$Display$to_string (string) -> string
 export main 2
 
 fn 0 std_io$std_io$println__string (string) -> void
@@ -30,6 +29,7 @@ end
 
 fn 1 snippet$run_mode (string) -> void
   local __sb_0 any
+  local $call_6 string
   local.get 0
   string.const 1
   string.eq
@@ -39,9 +39,13 @@ fn 1 snippet$run_mode (string) -> void
     return
   end $L0
   intrinsic builder.new
-  local.tee 1
+  local.set 1
   local.get 0
-  intrinsic builder.append_display
+  call 4
+  local.set 2
+  local.get 1
+  local.get 2
+  intrinsic builder.append_str
   local.get 1
   string.const 3
   intrinsic builder.append_str
@@ -59,22 +63,25 @@ end
 
 fn 3 std_abort$todo (string) -> void
   local __sb_0 any
+  local $call_4 string
   intrinsic builder.new
   local.set 1
   local.get 1
   string.const 4
   intrinsic builder.append_str
-  local.get 1
   local.get 0
-  intrinsic builder.append_display
+  call 4
+  local.set 2
+  local.get 1
+  local.get 2
+  intrinsic builder.append_str
   local.get 1
   intrinsic builder.finish
   call.import 1
   return
 end
 
-fn 4 std_core$string$Display$to_string_vt (string) -> string
+fn 4 std_core$string$Display$to_string (string) -> string
   local.get 0
-  call.import 2
   return
 end

@@ -21,62 +21,69 @@ fn snippet$main() -> i32
     %14 $k_14: string
     %15 $k_15: string
     %16 $call_16: bool
-    %17 $intrinsic_17: string
-    %18 $intrinsic_18: ?
-    %19 __sb_2: ? (synthetic __sb_2)
-    %20 $k_20: string
+    %17 $call_17: string
+    %18 $intrinsic_18: string
+    %19 $intrinsic_19: ?
+    %20 __sb_2: ? (synthetic __sb_2)
     %21 $k_21: string
-    %22 $call_22: bool
-    %23 $intrinsic_23: string
-    %24 $intrinsic_24: ?
-    %25 __sb_3: ? (synthetic __sb_3)
-    %26 $k_26: string
-    %27 $k_27: string
-    %28 $call_28: bool
-    %29 $intrinsic_29: string
-    %30 $k_30: string
-    %31 $call_31: const u8[]
-    %32 $k_32: i32
-    %33 $cast_33: usize
-    %34 $k_34: i32
-    %35 $cast_35: usize
-    %36 $slice_36: u8[]
-    %37 $call_37: string
-    %38 $intrinsic_38: ?
-    %39 __sb_4: ? (synthetic __sb_4)
-    %40 $k_40: string
-    %41 $k_41: i32
-    %42 $call_42: char
-    %43 $intrinsic_43: string
-    %44 $intrinsic_44: ?
-    %45 __sb_5: ? (synthetic __sb_5)
-    %46 $k_46: string
-    %47 $k_47: i32
-    %48 $call_48: char
-    %49 $intrinsic_49: string
-    %50 $intrinsic_50: ?
-    %51 __sb_6: ? (synthetic __sb_6)
-    %52 $k_52: string
-    %53 $k_53: i32
-    %54 $call_54: char
-    %55 $intrinsic_55: string
-    %56 $intrinsic_56: ?
-    %57 __sb_7: ? (synthetic __sb_7)
-    %58 $k_58: string
-    %59 $k_59: i32
-    %60 $call_60: char
+    %22 $k_22: string
+    %23 $call_23: bool
+    %24 $call_24: string
+    %25 $intrinsic_25: string
+    %26 $intrinsic_26: ?
+    %27 __sb_3: ? (synthetic __sb_3)
+    %28 $k_28: string
+    %29 $k_29: string
+    %30 $call_30: bool
+    %31 $call_31: string
+    %32 $intrinsic_32: string
+    %33 $k_33: string
+    %34 $call_34: const u8[]
+    %35 $k_35: i32
+    %36 $cast_36: usize
+    %37 $k_37: i32
+    %38 $cast_38: usize
+    %39 $slice_39: u8[]
+    %40 $call_40: string
+    %41 $intrinsic_41: ?
+    %42 __sb_4: ? (synthetic __sb_4)
+    %43 $k_43: string
+    %44 $k_44: i32
+    %45 $call_45: char
+    %46 $call_46: string
+    %47 $intrinsic_47: string
+    %48 $intrinsic_48: ?
+    %49 __sb_5: ? (synthetic __sb_5)
+    %50 $k_50: string
+    %51 $k_51: i32
+    %52 $call_52: char
+    %53 $call_53: string
+    %54 $intrinsic_54: string
+    %55 $intrinsic_55: ?
+    %56 __sb_6: ? (synthetic __sb_6)
+    %57 $k_57: string
+    %58 $k_58: i32
+    %59 $call_59: char
+    %60 $call_60: string
     %61 $intrinsic_61: string
-    %62 $k_62: string
-    %63 $k_63: string
-    %64 $call_64: string[]
-    %65 parts: string[] (local parts)
-    %66 $k_66: i32
-    %67 $idx_67: string
-    %68 $k_68: i32
-    %69 $idx_69: string
-    %70 $k_70: i32
-    %71 $idx_71: string
-    %72 $k_72: i32
+    %62 $intrinsic_62: ?
+    %63 __sb_7: ? (synthetic __sb_7)
+    %64 $k_64: string
+    %65 $k_65: i32
+    %66 $call_66: char
+    %67 $call_67: string
+    %68 $intrinsic_68: string
+    %69 $k_69: string
+    %70 $k_70: string
+    %71 $call_71: string[]
+    %72 parts: string[] (local parts)
+    %73 $k_73: i32
+    %74 $idx_74: string
+    %75 $k_75: i32
+    %76 $idx_76: string
+    %77 $k_77: i32
+    %78 $idx_78: string
+    %79 $k_79: i32
   bb0:
     %0 = const string(#1) :string
     %1 = move %0
@@ -100,78 +107,85 @@ fn snippet$main() -> i32
     %14 = const string(#4) :string
     %15 = const string(#5) :string
     %16 = call std_string$string$Contains$contains(%14, %15) :bool
-    intrinsic builder.append_display(%13, %16)
-    %17 = intrinsic builder.finish(%13)
-    call std_io$std_io$println__string(%17) :void
-    %18 = intrinsic builder.new()
-    %19 = move %18
-    %20 = const string(#4) :string
-    %21 = const string(#6) :string
-    %22 = call starts_with(%20, %21) :bool
-    intrinsic builder.append_display(%19, %22)
-    %23 = intrinsic builder.finish(%19)
-    call std_io$std_io$println__string(%23) :void
-    %24 = intrinsic builder.new()
-    %25 = move %24
-    %26 = const string(#4) :string
-    %27 = const string(#7) :string
-    %28 = call ends_with(%26, %27) :bool
-    intrinsic builder.append_display(%25, %28)
-    %29 = intrinsic builder.finish(%25)
-    call std_io$std_io$println__string(%29) :void
-    %30 = const string(#8) :string
-    %31 = call bytes(%30) :const u8[]
-    %32 = const int(6) :i32
-    %33 = cast %32 :usize
-    %34 = const int(11) :i32
-    %35 = cast %34 :usize
-    %36 = array_slice %31[%33..%35] :u8[]
-    %37 = call as_string(%36) :string
-    call std_io$std_io$println__string(%37) :void
-    %38 = intrinsic builder.new()
-    %39 = move %38
-    %40 = const string(#2) :string
-    %41 = const int(1) :i32
-    %42 = call std_core$string$Index$at(%40, %41) :char
-    intrinsic builder.append_display(%39, %42)
-    %43 = intrinsic builder.finish(%39)
-    call std_io$std_io$println__string(%43) :void
-    %44 = intrinsic builder.new()
-    %45 = move %44
-    %46 = const string(#9) :string
-    %47 = const int(0) :i32
-    %48 = call std_core$string$Index$at(%46, %47) :char
-    intrinsic builder.append_display(%45, %48)
-    %49 = intrinsic builder.finish(%45)
-    call std_io$std_io$println__string(%49) :void
-    %50 = intrinsic builder.new()
-    %51 = move %50
-    %52 = const string(#9) :string
-    %53 = const int(1) :i32
-    %54 = call std_core$string$Index$at(%52, %53) :char
-    intrinsic builder.append_display(%51, %54)
-    %55 = intrinsic builder.finish(%51)
-    call std_io$std_io$println__string(%55) :void
-    %56 = intrinsic builder.new()
-    %57 = move %56
-    %58 = const string(#9) :string
-    %59 = const int(3) :i32
-    %60 = call std_core$string$Index$at(%58, %59) :char
-    intrinsic builder.append_display(%57, %60)
-    %61 = intrinsic builder.finish(%57)
+    %17 = call std_core$bool$Display$to_string(%16) :string
+    intrinsic builder.append_str(%13, %17)
+    %18 = intrinsic builder.finish(%13)
+    call std_io$std_io$println__string(%18) :void
+    %19 = intrinsic builder.new()
+    %20 = move %19
+    %21 = const string(#4) :string
+    %22 = const string(#6) :string
+    %23 = call starts_with(%21, %22) :bool
+    %24 = call std_core$bool$Display$to_string(%23) :string
+    intrinsic builder.append_str(%20, %24)
+    %25 = intrinsic builder.finish(%20)
+    call std_io$std_io$println__string(%25) :void
+    %26 = intrinsic builder.new()
+    %27 = move %26
+    %28 = const string(#4) :string
+    %29 = const string(#7) :string
+    %30 = call ends_with(%28, %29) :bool
+    %31 = call std_core$bool$Display$to_string(%30) :string
+    intrinsic builder.append_str(%27, %31)
+    %32 = intrinsic builder.finish(%27)
+    call std_io$std_io$println__string(%32) :void
+    %33 = const string(#8) :string
+    %34 = call bytes(%33) :const u8[]
+    %35 = const int(6) :i32
+    %36 = cast %35 :usize
+    %37 = const int(11) :i32
+    %38 = cast %37 :usize
+    %39 = array_slice %34[%36..%38] :u8[]
+    %40 = call as_string(%39) :string
+    call std_io$std_io$println__string(%40) :void
+    %41 = intrinsic builder.new()
+    %42 = move %41
+    %43 = const string(#2) :string
+    %44 = const int(1) :i32
+    %45 = call std_core$string$Index$at(%43, %44) :char
+    %46 = call std_core$char$Display$to_string(%45) :string
+    intrinsic builder.append_str(%42, %46)
+    %47 = intrinsic builder.finish(%42)
+    call std_io$std_io$println__string(%47) :void
+    %48 = intrinsic builder.new()
+    %49 = move %48
+    %50 = const string(#9) :string
+    %51 = const int(0) :i32
+    %52 = call std_core$string$Index$at(%50, %51) :char
+    %53 = call std_core$char$Display$to_string(%52) :string
+    intrinsic builder.append_str(%49, %53)
+    %54 = intrinsic builder.finish(%49)
+    call std_io$std_io$println__string(%54) :void
+    %55 = intrinsic builder.new()
+    %56 = move %55
+    %57 = const string(#9) :string
+    %58 = const int(1) :i32
+    %59 = call std_core$string$Index$at(%57, %58) :char
+    %60 = call std_core$char$Display$to_string(%59) :string
+    intrinsic builder.append_str(%56, %60)
+    %61 = intrinsic builder.finish(%56)
     call std_io$std_io$println__string(%61) :void
-    %62 = const string(#10) :string
-    %63 = const string(#11) :string
-    %64 = call split(%62, %63) :string[]
-    %65 = move %64
-    %66 = const int(0) :i32
-    %67 = array_get %65[%66] :string
-    call std_io$std_io$println__string(%67) :void
-    %68 = const int(1) :i32
-    %69 = array_get %65[%68] :string
-    call std_io$std_io$println__string(%69) :void
-    %70 = const int(2) :i32
-    %71 = array_get %65[%70] :string
-    call std_io$std_io$println__string(%71) :void
-    %72 = const int(0) :i32
-    return %72
+    %62 = intrinsic builder.new()
+    %63 = move %62
+    %64 = const string(#9) :string
+    %65 = const int(3) :i32
+    %66 = call std_core$string$Index$at(%64, %65) :char
+    %67 = call std_core$char$Display$to_string(%66) :string
+    intrinsic builder.append_str(%63, %67)
+    %68 = intrinsic builder.finish(%63)
+    call std_io$std_io$println__string(%68) :void
+    %69 = const string(#10) :string
+    %70 = const string(#11) :string
+    %71 = call split(%69, %70) :string[]
+    %72 = move %71
+    %73 = const int(0) :i32
+    %74 = array_get %72[%73] :string
+    call std_io$std_io$println__string(%74) :void
+    %75 = const int(1) :i32
+    %76 = array_get %72[%75] :string
+    call std_io$std_io$println__string(%76) :void
+    %77 = const int(2) :i32
+    %78 = array_get %72[%77] :string
+    call std_io$std_io$println__string(%78) :void
+    %79 = const int(0) :i32
+    return %79

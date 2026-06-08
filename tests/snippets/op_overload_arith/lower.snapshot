@@ -163,73 +163,113 @@
           @builder.append_str :void
             __sb_0 :?
             "s=(" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            .x :i32
-              s :Vec
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                .x :i32
+                  s :Vec
           @builder.append_str :void
             __sb_0 :?
             "," :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            .y :i32
-              s :Vec
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                .y :i32
+                  s :Vec
           @builder.append_str :void
             __sb_0 :?
             ") d=(" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            .x :i32
-              d :Vec
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                .x :i32
+                  d :Vec
           @builder.append_str :void
             __sb_0 :?
             "," :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            .y :i32
-              d :Vec
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                .y :i32
+                  d :Vec
           @builder.append_str :void
             __sb_0 :?
             ") m=(" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            .x :i32
-              m :Vec
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                .x :i32
+                  m :Vec
           @builder.append_str :void
             __sb_0 :?
             "," :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            .y :i32
-              m :Vec
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                .y :i32
+                  m :Vec
           @builder.append_str :void
             __sb_0 :?
             ") q=(" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            .x :i32
-              q :Vec
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                .x :i32
+                  q :Vec
           @builder.append_str :void
             __sb_0 :?
             "," :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            .y :i32
-              q :Vec
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                .y :i32
+                  q :Vec
           @builder.append_str :void
             __sb_0 :?
             ") r=(" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            .x :i32
-              r :Vec
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                .x :i32
+                  r :Vec
           @builder.append_str :void
             __sb_0 :?
             "," :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            .y :i32
-              r :Vec
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                .y :i32
+                  r :Vec
           @builder.append_str :void
             __sb_0 :?
             ")" :string

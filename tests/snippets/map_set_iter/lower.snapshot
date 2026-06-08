@@ -109,9 +109,13 @@
           @builder.append_str :void
             __sb_6 :?
             "map_sum=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_6 :?
-            total :i32
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                total :i32
           ~>
             @builder.finish :string
               __sb_6 :?
@@ -221,9 +225,13 @@
           @builder.append_str :void
             __sb_13 :?
             "set_sum=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_13 :?
-            sum :i32
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                sum :i32
           ~>
             @builder.finish :string
               __sb_13 :?

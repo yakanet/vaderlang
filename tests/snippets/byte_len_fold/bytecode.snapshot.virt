@@ -5,42 +5,53 @@ type 2 primitive void
 type 3 primitive i32
 type 4 primitive usize
 type 5 primitive bool
-type 6 struct std_core$Range__char { start:16,end:16,inclusive:5,cursor:16 }
-type 7 primitive char
-type 8 union 0,9
-type 9 struct std_core$Yield__char { value:16 }
-type 10 struct std_core$Range__i32 { start:16,end:16,inclusive:5,cursor:16 }
-type 11 union 0,12
-type 12 struct std_core$Yield__i32 { value:16 }
-type 13 struct std_core$Range__usize { start:16,end:16,inclusive:5,cursor:16 }
-type 14 union 0,15
-type 15 struct std_core$Yield__usize { value:16 }
-type 16 ref _
-type 17 array 18
-type 18 primitive u8
+type 6 array 1
+type 7 struct std_core$Range__char { start:20,end:20,inclusive:5,cursor:20 }
+type 8 primitive char
+type 9 union 0,10
+type 10 struct std_core$Yield__char { value:20 }
+type 11 struct std_core$Range__i32 { start:20,end:20,inclusive:5,cursor:20 }
+type 12 union 0,13
+type 13 struct std_core$Yield__i32 { value:20 }
+type 14 struct std_core$Range__usize { start:20,end:20,inclusive:5,cursor:20 }
+type 15 union 0,16
+type 16 struct std_core$Yield__usize { value:20 }
+type 17 primitive u8
+type 18 primitive u64
+type 19 array 17
+type 20 ref _
 string 0 "\n"
 string 1 "inline="
 string 2 "abc"
 string 3 "hello"
 string 4 "held="
 string 5 " first="
+string 6 "0"
+string 7 ""
+string 8 "1"
+string 9 "2"
+string 10 "3"
+string 11 "4"
+string 12 "5"
+string 13 "6"
+string 14 "7"
+string 15 "8"
+string 16 "9"
 import 0 write std_io$write (i32,string) -> void
-import 1 to_string std_core$usize$Display$to_string (usize) -> string
-import 2 to_string std_core$string$Display$to_string (string) -> string
-import 3 byte_len std_string$byte_len (string) -> usize
-import 4 bytes std_string$bytes (string) -> ref
-impl 6 Contains
-impl 6 Iterator
-impl 10 Contains
-impl 10 Iterator
-impl 13 Contains
-impl 13 Iterator
+import 1 byte_len std_string$byte_len (string) -> usize
+import 2 bytes std_string$bytes (string) -> ref
+impl 7 Contains
+impl 7 Iterator
+impl 11 Contains
+impl 11 Iterator
+impl 14 Contains
+impl 14 Iterator
 export main 1
 
 fn 0 std_io$std_io$println__string (string) -> void
   local $call_2 string
   local.get 0
-  call 3
+  call 4
   local.set 1
   i32.const 0
   local.get 1
@@ -55,15 +66,14 @@ fn 1 snippet$main () -> i32
   local __sb_0 any
   local $call_5 string
   local bs ref
-  local $idx_17 u8
   intrinsic builder.new
   local.set 0
   local.get 0
   string.const 1
   intrinsic builder.append_str
   string.const 2
-  call.import 3
-  call 2
+  call.import 1
+  call 3
   local.set 1
   local.get 0
   local.get 1
@@ -72,7 +82,7 @@ fn 1 snippet$main () -> i32
   intrinsic builder.finish
   call 0
   string.const 3
-  call.import 4
+  call.import 2
   local.set 2
   intrinsic builder.new
   local.set 0
@@ -81,7 +91,7 @@ fn 1 snippet$main () -> i32
   intrinsic builder.append_str
   local.get 2
   array.len
-  call 2
+  call 3
   local.set 1
   local.get 0
   local.get 1
@@ -91,26 +101,103 @@ fn 1 snippet$main () -> i32
   intrinsic builder.append_str
   local.get 2
   i32.const 0
-  array.get 17
-  ref.cast 18
-  local.set 3
+  array.get 19
+  ref.cast 17
+  call 2
+  local.set 1
   local.get 0
-  local.get 3
-  intrinsic builder.append_display
+  local.get 1
+  intrinsic builder.append_str
   local.get 0
   intrinsic builder.finish
   call 0
   return.lit i32.const 0
 end
 
-fn 2 std_core$usize$Display$to_string_vt (usize) -> string
+fn 2 std_core$u8$Display$to_string (u8) -> string
   local.get 0
-  call.import 1
+  u8.to_i64
+  call 5
   return
 end
 
-fn 3 std_core$string$Display$to_string_vt (string) -> string
+fn 3 std_core$usize$Display$to_string (usize) -> string
   local.get 0
-  call.import 2
+  usize.to_i64
+  call 5
+  return
+end
+
+fn 4 std_core$string$Display$to_string (string) -> string
+  local.get 0
+  return
+end
+
+fn 5 std_core$format_unsigned (u64) -> string
+  local $k_1 u64
+  local out string
+  local $k_7 u64
+  local $arr_19 ref
+  local $k_20 u64
+  local $cast_22 usize
+  local $k_25 u64
+  i64.const 0
+  local.set 1
+  local.get 0
+  local.get 1
+  i64.eq
+  if $L0 void
+    return.lit string.const 6
+  end $L0
+  local.get 0
+  local.set 1
+  string.const 7
+  local.set 2
+  block $L1 void
+    loop $L2 void
+      i64.const 0
+      local.set 3
+      local.get 1
+      local.get 3
+      i64.ne
+      if $L3 void
+        string.const 6
+        string.const 8
+        string.const 9
+        string.const 10
+        string.const 11
+        string.const 12
+        string.const 13
+        string.const 14
+        string.const 15
+        string.const 16
+        array.new 6 10
+        local.set 4
+        i64.const 10
+        local.set 5
+        local.get 1
+        local.get 5
+        u64.rem
+        u64.to_i64
+        local.set 6
+        local.get 4
+        local.get 6
+        array.get 6
+        ref.cast 1
+        local.get 2
+        string.concat
+        local.set 2
+        i64.const 10
+        local.set 7
+        local.get 1
+        local.get 7
+        u64.div
+        local.set 1
+        br $L2
+      else
+      end $L3
+    end $L2
+  end $L1
+  local.get 2
   return
 end

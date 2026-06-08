@@ -74,23 +74,31 @@
           @builder.append_str :void
             __sb_0 :?
             "fact(5)=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            call :i32
+            call :string
               callee:
-                fact :fn(i32) -> i32
+                std_core$i32$Display$to_string :string
               arg0:
-                int(5) :i32
+                call :i32
+                  callee:
+                    fact :fn(i32) -> i32
+                  arg0:
+                    int(5) :i32
           @builder.append_str :void
             __sb_0 :?
             " fib(10)=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            call :i32
+            call :string
               callee:
-                fib :fn(i32) -> i32
+                std_core$i32$Display$to_string :string
               arg0:
-                int(10) :i32
+                call :i32
+                  callee:
+                    fib :fn(i32) -> i32
+                  arg0:
+                    int(10) :i32
           ~>
             @builder.finish :string
               __sb_0 :?

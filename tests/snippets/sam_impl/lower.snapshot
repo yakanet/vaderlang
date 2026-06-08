@@ -9,9 +9,13 @@
         @builder.append_str :void
           __sb_0 :?
           "the answer is " :string
-        @builder.append_display <for i32> :void
+        @builder.append_str :void
           __sb_0 :?
-          self :i32
+          call :string
+            callee:
+              std_core$i32$Display$to_string :string
+            arg0:
+              self :i32
         ~>
           @builder.finish :string
             __sb_0 :?
@@ -21,12 +25,20 @@
       block :string
         let __sb_0: ? =
           @builder.new :?
-        @builder.append_display <for string> :void
+        @builder.append_str :void
           __sb_0 :?
-          prefix :string
-        @builder.append_display <for i64> :void
+          call :string
+            callee:
+              std_core$string$Display$to_string :string
+            arg0:
+              prefix :string
+        @builder.append_str :void
           __sb_0 :?
-          self :i64
+          call :string
+            callee:
+              std_core$i64$Display$to_string :string
+            arg0:
+              self :i64
         ~>
           @builder.finish :string
             __sb_0 :?
@@ -43,7 +55,7 @@
       arg0:
         call :string
           callee:
-            snippet$i32$Display$to_string :string
+            std_core$i32$Display$to_string :string
           arg0:
             x :i32
     call :void
@@ -52,7 +64,7 @@
       arg0:
         call :string
           callee:
-            snippet$i64$Display$to_string :string
+            std_core$i64$Display$to_string :string
           arg0:
             y :i64
     call :void

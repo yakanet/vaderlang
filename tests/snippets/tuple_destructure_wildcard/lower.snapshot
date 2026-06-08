@@ -29,9 +29,13 @@
           @builder.append_str :void
             __sb_1 :?
             "a = " :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_1 :?
-            a :i32
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                a :i32
           ~>
             @builder.finish :string
               __sb_1 :?
@@ -45,9 +49,13 @@
           @builder.append_str :void
             __sb_2 :?
             "c = " :string
-          @builder.append_display <for bool> :void
+          @builder.append_str :void
             __sb_2 :?
-            c :bool
+            call :string
+              callee:
+                std_core$bool$Display$to_string :string
+              arg0:
+                c :bool
           ~>
             @builder.finish :string
               __sb_2 :?

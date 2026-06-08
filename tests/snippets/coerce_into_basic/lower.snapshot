@@ -14,10 +14,14 @@
         @builder.append_str :void
           __sb_0 :?
           "user_" :string
-        @builder.append_display <for i32> :void
+        @builder.append_str :void
           __sb_0 :?
-          .value :i32
-            self :UserId
+          call :string
+            callee:
+              std_core$i32$Display$to_string :string
+            arg0:
+              .value :i32
+                self :UserId
         ~>
           @builder.finish :string
             __sb_0 :?
@@ -51,17 +55,21 @@
           @builder.append_str :void
             __sb_0 :?
             "call " :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            call :i32
+            call :string
               callee:
-                take_i32 :fn(i32) -> i32
+                std_core$i32$Display$to_string :string
               arg0:
                 call :i32
                   callee:
-                    snippet$UserId$Into$into :i32
+                    take_i32 :fn(i32) -> i32
                   arg0:
-                    u :UserId
+                    call :i32
+                      callee:
+                        snippet$UserId$Into$into :i32
+                      arg0:
+                        u :UserId
           ~>
             @builder.finish :string
               __sb_0 :?
@@ -81,9 +89,13 @@
           @builder.append_str :void
             __sb_1 :?
             "let " :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_1 :?
-            n :i32
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                n :i32
           ~>
             @builder.finish :string
               __sb_1 :?
@@ -97,13 +109,17 @@
           @builder.append_str :void
             __sb_2 :?
             "ret " :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_2 :?
-            call :i32
+            call :string
               callee:
-                get_id :fn(UserId) -> i32
+                std_core$i32$Display$to_string :string
               arg0:
-                u :UserId
+                call :i32
+                  callee:
+                    get_id :fn(UserId) -> i32
+                  arg0:
+                    u :UserId
           ~>
             @builder.finish :string
               __sb_2 :?
@@ -132,17 +148,25 @@
           @builder.append_str :void
             __sb_3 :?
             "field tag=" :string
-          @builder.append_display <for string> :void
+          @builder.append_str :void
             __sb_3 :?
-            .tag :string
-              p :Pair
+            call :string
+              callee:
+                std_core$string$Display$to_string :string
+              arg0:
+                .tag :string
+                  p :Pair
           @builder.append_str :void
             __sb_3 :?
             " n=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_3 :?
-            .n :i32
-              p :Pair
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                .n :i32
+                  p :Pair
           ~>
             @builder.finish :string
               __sb_3 :?

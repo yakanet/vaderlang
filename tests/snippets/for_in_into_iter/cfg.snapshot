@@ -26,79 +26,82 @@ fn snippet$main() -> i32
     %19 $intrinsic_19: ?
     %20 __sb_3: ? (synthetic __sb_3)
     %21 $k_21: string
-    %22 $intrinsic_22: string
-    %23 $arr_23: (Entry<K, V> | null)[]
-    %24 $k_24: usize
-    %25 $struct_25: MutableMap<string, i32>
-    %26 m: MutableMap<string, i32> (local m)
-    %27 $k_27: string
-    %28 $k_28: i32
-    %29 $k_29: string
-    %30 $k_30: i32
+    %22 $call_22: string
+    %23 $intrinsic_23: string
+    %24 $arr_24: (Entry<K, V> | null)[]
+    %25 $k_25: usize
+    %26 $struct_26: MutableMap<string, i32>
+    %27 m: MutableMap<string, i32> (local m)
+    %28 $k_28: string
+    %29 $k_29: i32
+    %30 $k_30: string
     %31 $k_31: i32
-    %32 map_total: i32 (local map_total)
-    %33 __iter_src_4: MutableMap<string, i32> (synthetic __iter_src_4)
-    %34 $field_34: (Entry<string, i32> | null)[]
-    %35 __iter_buckets_5: (Entry<string, i32> | null)[] (synthetic __iter_buckets_5)
-    %36 $len_36: usize
-    %37 __iter_buckets_len_6: usize (synthetic __iter_buckets_len_6)
-    %38 $k_38: usize
-    %39 __iter_bucket_7: usize (synthetic __iter_bucket_7)
-    %40 $k_40: null
-    %41 __iter_chain_8: Entry<string, i32> | null (synthetic __iter_chain_8)
-    %42 $type_check_42: bool
-    %43 $gte_43: bool
-    %44 $idx_44: Entry<string, i32> | null
-    %45 $k_45: usize
-    %46 $add_46: usize
-    %47 $cast_47: Entry<string, i32>
-    %48 __iter_entry_9: Entry<string, i32> (synthetic __iter_entry_9)
-    %49 $field_49: Entry<string, i32> | null
-    %50 entry: Entry<string, i32> (local entry)
-    %51 $field_51: i32
-    %52 $add_52: i32
-    %53 $intrinsic_53: ?
-    %54 __sb_10: ? (synthetic __sb_10)
-    %55 $k_55: string
-    %56 $intrinsic_56: string
-    %57 $arr_57: (Entry<K, V> | null)[]
-    %58 $k_58: usize
-    %59 $struct_59: MutableMap<i32, bool>
-    %60 $struct_60: MutableSet<i32>
-    %61 s: MutableSet<i32> (local s)
-    %62 $k_62: i32
-    %63 $call_63: bool
+    %32 $k_32: i32
+    %33 map_total: i32 (local map_total)
+    %34 __iter_src_4: MutableMap<string, i32> (synthetic __iter_src_4)
+    %35 $field_35: (Entry<string, i32> | null)[]
+    %36 __iter_buckets_5: (Entry<string, i32> | null)[] (synthetic __iter_buckets_5)
+    %37 $len_37: usize
+    %38 __iter_buckets_len_6: usize (synthetic __iter_buckets_len_6)
+    %39 $k_39: usize
+    %40 __iter_bucket_7: usize (synthetic __iter_bucket_7)
+    %41 $k_41: null
+    %42 __iter_chain_8: Entry<string, i32> | null (synthetic __iter_chain_8)
+    %43 $type_check_43: bool
+    %44 $gte_44: bool
+    %45 $idx_45: Entry<string, i32> | null
+    %46 $k_46: usize
+    %47 $add_47: usize
+    %48 $cast_48: Entry<string, i32>
+    %49 __iter_entry_9: Entry<string, i32> (synthetic __iter_entry_9)
+    %50 $field_50: Entry<string, i32> | null
+    %51 entry: Entry<string, i32> (local entry)
+    %52 $field_52: i32
+    %53 $add_53: i32
+    %54 $intrinsic_54: ?
+    %55 __sb_10: ? (synthetic __sb_10)
+    %56 $k_56: string
+    %57 $call_57: string
+    %58 $intrinsic_58: string
+    %59 $arr_59: (Entry<K, V> | null)[]
+    %60 $k_60: usize
+    %61 $struct_61: MutableMap<i32, bool>
+    %62 $struct_62: MutableSet<i32>
+    %63 s: MutableSet<i32> (local s)
     %64 $k_64: i32
     %65 $call_65: bool
     %66 $k_66: i32
-    %67 set_total: i32 (local set_total)
-    %68 __iter_src_11: MutableSet<i32> (synthetic __iter_src_11)
-    %69 $field_69: MutableMap<i32, bool>
-    %70 $field_70: (Entry<i32, bool> | null)[]
-    %71 __iter_buckets_12: (Entry<i32, bool> | null)[] (synthetic __iter_buckets_12)
-    %72 $len_72: usize
-    %73 __iter_buckets_len_13: usize (synthetic __iter_buckets_len_13)
-    %74 $k_74: usize
-    %75 __iter_bucket_14: usize (synthetic __iter_bucket_14)
-    %76 $k_76: null
-    %77 __iter_chain_15: Entry<i32, bool> | null (synthetic __iter_chain_15)
-    %78 $type_check_78: bool
-    %79 $gte_79: bool
-    %80 $idx_80: Entry<i32, bool> | null
-    %81 $k_81: usize
-    %82 $add_82: usize
-    %83 $cast_83: Entry<i32, bool>
-    %84 __iter_entry_16: Entry<i32, bool> (synthetic __iter_entry_16)
-    %85 $field_85: Entry<i32, bool> | null
-    %86 $field_86: i32
-    %87 v: i32 (local v)
-    %88 $add_88: i32
-    %89 $intrinsic_89: ?
-    %90 __sb_17: ? (synthetic __sb_17)
-    %91 $k_91: string
-    %92 $intrinsic_92: string
-    %93 $k_93: i32
-    %94 chars: i32 (local chars)
+    %67 $call_67: bool
+    %68 $k_68: i32
+    %69 set_total: i32 (local set_total)
+    %70 __iter_src_11: MutableSet<i32> (synthetic __iter_src_11)
+    %71 $field_71: MutableMap<i32, bool>
+    %72 $field_72: (Entry<i32, bool> | null)[]
+    %73 __iter_buckets_12: (Entry<i32, bool> | null)[] (synthetic __iter_buckets_12)
+    %74 $len_74: usize
+    %75 __iter_buckets_len_13: usize (synthetic __iter_buckets_len_13)
+    %76 $k_76: usize
+    %77 __iter_bucket_14: usize (synthetic __iter_bucket_14)
+    %78 $k_78: null
+    %79 __iter_chain_15: Entry<i32, bool> | null (synthetic __iter_chain_15)
+    %80 $type_check_80: bool
+    %81 $gte_81: bool
+    %82 $idx_82: Entry<i32, bool> | null
+    %83 $k_83: usize
+    %84 $add_84: usize
+    %85 $cast_85: Entry<i32, bool>
+    %86 __iter_entry_16: Entry<i32, bool> (synthetic __iter_entry_16)
+    %87 $field_87: Entry<i32, bool> | null
+    %88 $field_88: i32
+    %89 v: i32 (local v)
+    %90 $add_90: i32
+    %91 $intrinsic_91: ?
+    %92 __sb_17: ? (synthetic __sb_17)
+    %93 $k_93: string
+    %94 $call_94: string
+    %95 $intrinsic_95: string
+    %96 $k_96: i32
+    %97 chars: i32 (local chars)
   bb0:
     %0 = const int(10) :i32
     %1 = const int(20) :i32
@@ -131,129 +134,132 @@ fn snippet$main() -> i32
     %20 = move %19
     %21 = const string(#1) :string
     intrinsic builder.append_str(%20, %21)
-    intrinsic builder.append_display(%20, %7)
-    %22 = intrinsic builder.finish(%20)
-    call std_io$std_io$println__string(%22) :void
-    %23 = array_new (Entry<K, V> | null)[][0]()
-    %24 = const int(0) :usize
-    %25 = struct_new MutableMap<string, i32>(%23, %24)
-    %26 = move %25
-    %27 = const string(#2) :string
-    %28 = const int(1) :i32
-    call std_collections$MutableMap$IndexSet$set_at__string__i32(%26, %27, %28) :void
-    %29 = const string(#3) :string
-    %30 = const int(2) :i32
-    call std_collections$MutableMap$IndexSet$set_at__string__i32(%26, %29, %30) :void
-    %31 = const int(0) :i32
-    %32 = move %31
-    %33 = move %26
-    %34 = field_get %33.buckets :(Entry<string, i32> | null)[]
-    %35 = move %34
-    %36 = array_len %35
-    %37 = move %36
-    %38 = const int(0) :usize
-    %39 = move %38
-    %40 = const null :null
-    %41 = move %40
+    %22 = call std_core$i32$Display$to_string(%7) :string
+    intrinsic builder.append_str(%20, %22)
+    %23 = intrinsic builder.finish(%20)
+    call std_io$std_io$println__string(%23) :void
+    %24 = array_new (Entry<K, V> | null)[][0]()
+    %25 = const int(0) :usize
+    %26 = struct_new MutableMap<string, i32>(%24, %25)
+    %27 = move %26
+    %28 = const string(#2) :string
+    %29 = const int(1) :i32
+    call std_collections$MutableMap$IndexSet$set_at__string__i32(%27, %28, %29) :void
+    %30 = const string(#3) :string
+    %31 = const int(2) :i32
+    call std_collections$MutableMap$IndexSet$set_at__string__i32(%27, %30, %31) :void
+    %32 = const int(0) :i32
+    %33 = move %32
+    %34 = move %27
+    %35 = field_get %34.buckets :(Entry<string, i32> | null)[]
+    %36 = move %35
+    %37 = array_len %36
+    %38 = move %37
+    %39 = const int(0) :usize
+    %40 = move %39
+    %41 = const null :null
+    %42 = move %41
     branch -> bb4
   bb4:
     branch -> bb5
   bb5:
-    %42 = type_check %41 is null
-    cond_branch %42 ? bb7 : bb8
+    %43 = type_check %42 is null
+    cond_branch %43 ? bb7 : bb8
   bb6:
-    %53 = intrinsic builder.new()
-    %54 = move %53
-    %55 = const string(#4) :string
-    intrinsic builder.append_str(%54, %55)
-    intrinsic builder.append_display(%54, %32)
-    %56 = intrinsic builder.finish(%54)
-    call std_io$std_io$println__string(%56) :void
-    %57 = array_new (Entry<K, V> | null)[][0]()
-    %58 = const int(0) :usize
-    %59 = struct_new MutableMap<i32, bool>(%57, %58)
-    %60 = struct_new MutableSet<i32>(%59)
-    %61 = move %60
-    %62 = const int(7) :i32
-    %63 = call std_collections$std_collections$add__i32(%61, %62) :bool
-    %64 = const int(11) :i32
-    %65 = call std_collections$std_collections$add__i32(%61, %64) :bool
-    %66 = const int(0) :i32
-    %67 = move %66
-    %68 = move %61
-    %69 = field_get %68.inner :MutableMap<i32, bool>
-    %70 = field_get %69.buckets :(Entry<i32, bool> | null)[]
-    %71 = move %70
-    %72 = array_len %71
+    %54 = intrinsic builder.new()
+    %55 = move %54
+    %56 = const string(#4) :string
+    intrinsic builder.append_str(%55, %56)
+    %57 = call std_core$i32$Display$to_string(%33) :string
+    intrinsic builder.append_str(%55, %57)
+    %58 = intrinsic builder.finish(%55)
+    call std_io$std_io$println__string(%58) :void
+    %59 = array_new (Entry<K, V> | null)[][0]()
+    %60 = const int(0) :usize
+    %61 = struct_new MutableMap<i32, bool>(%59, %60)
+    %62 = struct_new MutableSet<i32>(%61)
+    %63 = move %62
+    %64 = const int(7) :i32
+    %65 = call std_collections$std_collections$add__i32(%63, %64) :bool
+    %66 = const int(11) :i32
+    %67 = call std_collections$std_collections$add__i32(%63, %66) :bool
+    %68 = const int(0) :i32
+    %69 = move %68
+    %70 = move %63
+    %71 = field_get %70.inner :MutableMap<i32, bool>
+    %72 = field_get %71.buckets :(Entry<i32, bool> | null)[]
     %73 = move %72
-    %74 = const int(0) :usize
+    %74 = array_len %73
     %75 = move %74
-    %76 = const null :null
+    %76 = const int(0) :usize
     %77 = move %76
+    %78 = const null :null
+    %79 = move %78
     branch -> bb12
   bb7:
-    %43 = binop 17 %39 %37 :bool
-    cond_branch %43 ? bb10 : bb11
+    %44 = binop 17 %40 %38 :bool
+    cond_branch %44 ? bb10 : bb11
   bb8:
-    %47 = cast %41 :Entry<string, i32>
-    %48 = move %47
-    %49 = field_get %48.next :Entry<string, i32> | null
-    %41 = move %49
-    %50 = move %48
-    %51 = field_get %50.value :i32
-    %52 = binop 0 %32 %51 :i32
-    %32 = move %52
+    %48 = cast %42 :Entry<string, i32>
+    %49 = move %48
+    %50 = field_get %49.next :Entry<string, i32> | null
+    %42 = move %50
+    %51 = move %49
+    %52 = field_get %51.value :i32
+    %53 = binop 0 %33 %52 :i32
+    %33 = move %53
     branch -> bb9
   bb9:
     branch -> bb4
   bb10:
     branch -> bb6
   bb11:
-    %44 = array_get %35[%39] :Entry<string, i32> | null
-    %41 = move %44
-    %45 = const int(1) :usize
-    %46 = binop 0 %39 %45 :usize
-    %39 = move %46
+    %45 = array_get %36[%40] :Entry<string, i32> | null
+    %42 = move %45
+    %46 = const int(1) :usize
+    %47 = binop 0 %40 %46 :usize
+    %40 = move %47
     branch -> bb9
   bb12:
     branch -> bb13
   bb13:
-    %78 = type_check %77 is null
-    cond_branch %78 ? bb15 : bb16
+    %80 = type_check %79 is null
+    cond_branch %80 ? bb15 : bb16
   bb14:
-    %89 = intrinsic builder.new()
-    %90 = move %89
-    %91 = const string(#5) :string
-    intrinsic builder.append_str(%90, %91)
-    intrinsic builder.append_display(%90, %67)
-    %92 = intrinsic builder.finish(%90)
-    call std_io$std_io$println__string(%92) :void
-    %93 = const int(0) :i32
-    %94 = move %93
+    %91 = intrinsic builder.new()
+    %92 = move %91
+    %93 = const string(#5) :string
+    intrinsic builder.append_str(%92, %93)
+    %94 = call std_core$i32$Display$to_string(%69) :string
+    intrinsic builder.append_str(%92, %94)
+    %95 = intrinsic builder.finish(%92)
+    call std_io$std_io$println__string(%95) :void
+    %96 = const int(0) :i32
+    %97 = move %96
     unreachable ; no Iterator impl on string
   bb15:
-    %79 = binop 17 %75 %73 :bool
-    cond_branch %79 ? bb18 : bb19
+    %81 = binop 17 %77 %75 :bool
+    cond_branch %81 ? bb18 : bb19
   bb16:
-    %83 = cast %77 :Entry<i32, bool>
-    %84 = move %83
-    %85 = field_get %84.next :Entry<i32, bool> | null
-    %77 = move %85
-    %86 = field_get %84.key :i32
-    %87 = move %86
-    %88 = binop 0 %67 %87 :i32
-    %67 = move %88
+    %85 = cast %79 :Entry<i32, bool>
+    %86 = move %85
+    %87 = field_get %86.next :Entry<i32, bool> | null
+    %79 = move %87
+    %88 = field_get %86.key :i32
+    %89 = move %88
+    %90 = binop 0 %69 %89 :i32
+    %69 = move %90
     branch -> bb17
   bb17:
     branch -> bb12
   bb18:
     branch -> bb14
   bb19:
-    %80 = array_get %71[%75] :Entry<i32, bool> | null
-    %77 = move %80
-    %81 = const int(1) :usize
-    %82 = binop 0 %75 %81 :usize
-    %75 = move %82
+    %82 = array_get %73[%77] :Entry<i32, bool> | null
+    %79 = move %82
+    %83 = const int(1) :usize
+    %84 = binop 0 %77 %83 :usize
+    %77 = move %84
     branch -> bb17
 
 # Diagnostics

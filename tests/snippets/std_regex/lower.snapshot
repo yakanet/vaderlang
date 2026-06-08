@@ -10,21 +10,29 @@
           block :string
             let __sb_0: ? =
               @builder.new :?
-            @builder.append_display <for string> :void
+            @builder.append_str :void
               __sb_0 :?
-              label :string
+              call :string
+                callee:
+                  std_core$string$Display$to_string :string
+                arg0:
+                  label :string
             @builder.append_str :void
               __sb_0 :?
               "=" :string
-            @builder.append_display <for bool> :void
+            @builder.append_str :void
               __sb_0 :?
-              call :bool
+              call :string
                 callee:
-                  matches :bool
+                  std_core$bool$Display$to_string :string
                 arg0:
-                  p :Pattern
-                arg1:
-                  input :string
+                  call :bool
+                    callee:
+                      matches :bool
+                    arg0:
+                      p :Pattern
+                    arg1:
+                      input :string
             ~>
               @builder.finish :string
                 __sb_0 :?
@@ -51,9 +59,13 @@
                 block :string
                   let __sb_0: ? =
                     @builder.new :?
-                  @builder.append_display <for string> :void
+                  @builder.append_str :void
                     __sb_0 :?
-                    label :string
+                    call :string
+                      callee:
+                        std_core$string$Display$to_string :string
+                      arg0:
+                        label :string
                   @builder.append_str :void
                     __sb_0 :?
                     "=" :string
@@ -81,15 +93,19 @@
                   @builder.append_str :void
                     __sb_0 :?
                     ":" :string
-                  @builder.append_display <for string> :void
+                  @builder.append_str :void
                     __sb_0 :?
-                    index :string
-                      on:
-                        .groups :string[]
-                          cast → Match
-                            r :Match | null
-                      ix:
-                        int(0) :i32
+                    call :string
+                      callee:
+                        std_core$string$Display$to_string :string
+                      arg0:
+                        index :string
+                          on:
+                            .groups :string[]
+                              cast → Match
+                                r :Match | null
+                          ix:
+                            int(0) :i32
                   ~>
                     @builder.finish :string
                       __sb_0 :?
@@ -102,9 +118,13 @@
                 block :string
                   let __sb_1: ? =
                     @builder.new :?
-                  @builder.append_display <for string> :void
+                  @builder.append_str :void
                     __sb_1 :?
-                    label :string
+                    call :string
+                      callee:
+                        std_core$string$Display$to_string :string
+                      arg0:
+                        label :string
                   @builder.append_str :void
                     __sb_1 :?
                     "=null" :string
@@ -246,18 +266,22 @@
                 @builder.append_str :void
                   __sb_1 :?
                   "]=" :string
-                @builder.append_display <for string> :void
+                @builder.append_str :void
                   __sb_1 :?
-                  index :string
-                    on:
-                      .groups :string[]
-                        index :Match
-                          on:
-                            all :Match[]
-                          ix:
-                            i :usize
-                    ix:
-                      int(0) :i32
+                  call :string
+                    callee:
+                      std_core$string$Display$to_string :string
+                    arg0:
+                      index :string
+                        on:
+                          .groups :string[]
+                            index :Match
+                              on:
+                                all :Match[]
+                              ix:
+                                i :usize
+                        ix:
+                          int(0) :i32
                 ~>
                   @builder.finish :string
                     __sb_1 :?
@@ -337,15 +361,19 @@
                   @builder.append_str :void
                     __sb_2 :?
                     "email-match=" :string
-                  @builder.append_display <for string> :void
+                  @builder.append_str :void
                     __sb_2 :?
-                    index :string
-                      on:
-                        .groups :string[]
-                          cast → Match
-                            r :Match | null
-                      ix:
-                        int(0) :i32
+                    call :string
+                      callee:
+                        std_core$string$Display$to_string :string
+                      arg0:
+                        index :string
+                          on:
+                            .groups :string[]
+                              cast → Match
+                                r :Match | null
+                          ix:
+                            int(0) :i32
                   ~>
                     @builder.finish :string
                       __sb_2 :?
@@ -359,15 +387,19 @@
                   @builder.append_str :void
                     __sb_3 :?
                     "email-user=" :string
-                  @builder.append_display <for string> :void
+                  @builder.append_str :void
                     __sb_3 :?
-                    index :string
-                      on:
-                        .groups :string[]
-                          cast → Match
-                            r :Match | null
-                      ix:
-                        int(1) :i32
+                    call :string
+                      callee:
+                        std_core$string$Display$to_string :string
+                      arg0:
+                        index :string
+                          on:
+                            .groups :string[]
+                              cast → Match
+                                r :Match | null
+                          ix:
+                            int(1) :i32
                   ~>
                     @builder.finish :string
                       __sb_3 :?
@@ -381,15 +413,19 @@
                   @builder.append_str :void
                     __sb_4 :?
                     "email-host=" :string
-                  @builder.append_display <for string> :void
+                  @builder.append_str :void
                     __sb_4 :?
-                    index :string
-                      on:
-                        .groups :string[]
-                          cast → Match
-                            r :Match | null
-                      ix:
-                        int(2) :i32
+                    call :string
+                      callee:
+                        std_core$string$Display$to_string :string
+                      arg0:
+                        index :string
+                          on:
+                            .groups :string[]
+                              cast → Match
+                                r :Match | null
+                          ix:
+                            int(2) :i32
                   ~>
                     @builder.finish :string
                       __sb_4 :?
@@ -403,15 +439,19 @@
                   @builder.append_str :void
                     __sb_5 :?
                     "email-tld=" :string
-                  @builder.append_display <for string> :void
+                  @builder.append_str :void
                     __sb_5 :?
-                    index :string
-                      on:
-                        .groups :string[]
-                          cast → Match
-                            r :Match | null
-                      ix:
-                        int(3) :i32
+                    call :string
+                      callee:
+                        std_core$string$Display$to_string :string
+                      arg0:
+                        index :string
+                          on:
+                            .groups :string[]
+                              cast → Match
+                                r :Match | null
+                          ix:
+                            int(3) :i32
                   ~>
                     @builder.finish :string
                       __sb_5 :?
@@ -559,18 +599,22 @@
               @builder.append_str :void
                 __sb_6 :?
                 "swap=" :string
-              @builder.append_display <for string> :void
+              @builder.append_str :void
                 __sb_6 :?
                 call :string
                   callee:
-                    replace_all :string
+                    std_core$string$Display$to_string :string
                   arg0:
-                    cast → Pattern
-                      p_swap :Pattern | RegexError
-                  arg1:
-                    "Mathieu Broutin" :string
-                  arg2:
-                    "$2 $1" :string
+                    call :string
+                      callee:
+                        replace_all :string
+                      arg0:
+                        cast → Pattern
+                          p_swap :Pattern | RegexError
+                      arg1:
+                        "Mathieu Broutin" :string
+                      arg2:
+                        "$2 $1" :string
               ~>
                 @builder.finish :string
                   __sb_6 :?
@@ -595,18 +639,22 @@
               @builder.append_str :void
                 __sb_7 :?
                 "redact=" :string
-              @builder.append_display <for string> :void
+              @builder.append_str :void
                 __sb_7 :?
                 call :string
                   callee:
-                    replace_all :string
+                    std_core$string$Display$to_string :string
                   arg0:
-                    cast → Pattern
-                      p_redact :Pattern | RegexError
-                  arg1:
-                    "a1b22c333" :string
-                  arg2:
-                    "X" :string
+                    call :string
+                      callee:
+                        replace_all :string
+                      arg0:
+                        cast → Pattern
+                          p_redact :Pattern | RegexError
+                      arg1:
+                        "a1b22c333" :string
+                      arg2:
+                        "X" :string
               ~>
                 @builder.finish :string
                   __sb_7 :?

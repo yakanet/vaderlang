@@ -12,7 +12,6 @@ string 2 "net: "
 string 3 "bad token"
 string 4 "timeout"
 import 0 write std_io$write (i32,string) -> void
-import 1 to_string std_core$string$Display$to_string (string) -> string
 impl 5 Error
 impl 6 Error
 vtable Error.message 5 1
@@ -35,7 +34,7 @@ end
 
 fn 1 snippet$ParseErr$Error$message (ref) -> string
   local __sb_0 any
-  local $field_4 string
+  local $call_5 string
   intrinsic builder.new
   local.set 1
   local.get 1
@@ -43,10 +42,11 @@ fn 1 snippet$ParseErr$Error$message (ref) -> string
   intrinsic builder.append_str
   local.field 0 5 0
   ref.cast 1
+  call 5
   local.set 2
   local.get 1
   local.get 2
-  intrinsic builder.append_display
+  intrinsic builder.append_str
   local.get 1
   intrinsic builder.finish
   return
@@ -54,7 +54,7 @@ end
 
 fn 2 snippet$NetErr$Error$message (ref) -> string
   local __sb_0 any
-  local $field_4 string
+  local $call_5 string
   intrinsic builder.new
   local.set 1
   local.get 1
@@ -62,10 +62,11 @@ fn 2 snippet$NetErr$Error$message (ref) -> string
   intrinsic builder.append_str
   local.field 0 6 0
   ref.cast 1
+  call 5
   local.set 2
   local.get 1
   local.get 2
-  intrinsic builder.append_display
+  intrinsic builder.append_str
   local.get 1
   intrinsic builder.finish
   return
@@ -89,8 +90,7 @@ fn 4 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 5 std_core$string$Display$to_string_vt (string) -> string
+fn 5 std_core$string$Display$to_string (string) -> string
   local.get 0
-  call.import 1
   return
 end

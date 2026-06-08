@@ -8,7 +8,6 @@ type 5 primitive i64
 string 0 "\n"
 string 1 "ok"
 import 0 write std_io$write (i32,string) -> void
-import 1 to_string std_core$string$Display$to_string (string) -> string
 export main 1
 
 fn 0 std_io$std_io$println__string (string) -> void
@@ -43,8 +42,7 @@ fn 2 snippet$accept_type (ref) -> void
   return
 end
 
-fn 3 std_core$string$Display$to_string_vt (string) -> string
+fn 3 std_core$string$Display$to_string (string) -> string
   local.get 0
-  call.import 1
   return
 end

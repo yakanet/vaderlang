@@ -134,28 +134,30 @@ fn snippet$main() -> i32
     %50 $intrinsic_50: ?
     %51 __sb_3: ? (synthetic __sb_3)
     %52 $k_52: string
-    %53 $intrinsic_53: string
-    %54 $k_54: i32
-    %55 m: i32 (local m)
-    %56 $k_56: char
+    %53 $call_53: string
+    %54 $intrinsic_54: string
+    %55 $k_55: i32
+    %56 m: i32 (local m)
     %57 $k_57: char
-    %58 $k_58: bool
-    %59 $k_59: char
-    %60 $struct_60: Range<char>
-    %61 __iter_5: Range<char> (synthetic __iter_5)
-    %62 $call_62: Yield<char> | null
-    %63 __step_6: Yield<char> | null (synthetic __step_6)
-    %64 $type_check_64: bool
-    %65 $cast_65: Yield<char>
-    %66 $field_66: char
-    %67 c: char (local c)
-    %68 $k_68: i32
-    %69 $add_69: i32
-    %70 $intrinsic_70: ?
-    %71 __sb_7: ? (synthetic __sb_7)
-    %72 $k_72: string
-    %73 $intrinsic_73: string
-    %74 $k_74: i32
+    %58 $k_58: char
+    %59 $k_59: bool
+    %60 $k_60: char
+    %61 $struct_61: Range<char>
+    %62 __iter_5: Range<char> (synthetic __iter_5)
+    %63 $call_63: Yield<char> | null
+    %64 __step_6: Yield<char> | null (synthetic __step_6)
+    %65 $type_check_65: bool
+    %66 $cast_66: Yield<char>
+    %67 $field_67: char
+    %68 c: char (local c)
+    %69 $k_69: i32
+    %70 $add_70: i32
+    %71 $intrinsic_71: ?
+    %72 __sb_7: ? (synthetic __sb_7)
+    %73 $k_73: string
+    %74 $call_74: string
+    %75 $intrinsic_75: string
+    %76 $k_76: i32
   bb0:
     %0 = const char(53) :char
     %1 = call is_digit(%0) :bool
@@ -262,17 +264,18 @@ fn snippet$main() -> i32
     %51 = move %50
     %52 = const string(#11) :string
     intrinsic builder.append_str(%51, %52)
-    intrinsic builder.append_display(%51, %35)
-    %53 = intrinsic builder.finish(%51)
-    call std_io$std_io$println__string(%53) :void
-    %54 = const int(0) :i32
-    %55 = move %54
-    %56 = const char(48) :char
-    %57 = const char(53) :char
-    %58 = const bool(false) :bool
-    %59 = const char(48) :char
-    %60 = struct_new Range<char>(%56, %57, %58, %59)
-    %61 = move %60
+    %53 = call std_core$i32$Display$to_string(%35) :string
+    intrinsic builder.append_str(%51, %53)
+    %54 = intrinsic builder.finish(%51)
+    call std_io$std_io$println__string(%54) :void
+    %55 = const int(0) :i32
+    %56 = move %55
+    %57 = const char(48) :char
+    %58 = const char(53) :char
+    %59 = const bool(false) :bool
+    %60 = const char(48) :char
+    %61 = struct_new Range<char>(%57, %58, %59, %60)
+    %62 = move %61
     branch -> bb27
   bb24:
     branch -> bb23
@@ -289,29 +292,30 @@ fn snippet$main() -> i32
   bb27:
     branch -> bb28
   bb28:
-    %62 = call std_core$Range$Iterator$next__char(%61) :Yield<char> | null
-    %63 = move %62
-    %64 = type_check %63 is null
-    cond_branch %64 ? bb30 : bb31
+    %63 = call std_core$Range$Iterator$next__char(%62) :Yield<char> | null
+    %64 = move %63
+    %65 = type_check %64 is null
+    cond_branch %65 ? bb30 : bb31
   bb29:
-    %70 = intrinsic builder.new()
-    %71 = move %70
-    %72 = const string(#12) :string
-    intrinsic builder.append_str(%71, %72)
-    intrinsic builder.append_display(%71, %55)
-    %73 = intrinsic builder.finish(%71)
-    call std_io$std_io$println__string(%73) :void
-    %74 = const int(0) :i32
-    return %74
+    %71 = intrinsic builder.new()
+    %72 = move %71
+    %73 = const string(#12) :string
+    intrinsic builder.append_str(%72, %73)
+    %74 = call std_core$i32$Display$to_string(%56) :string
+    intrinsic builder.append_str(%72, %74)
+    %75 = intrinsic builder.finish(%72)
+    call std_io$std_io$println__string(%75) :void
+    %76 = const int(0) :i32
+    return %76
   bb30:
     branch -> bb29
   bb31:
-    %65 = cast %63 :Yield<char>
-    %66 = field_get %65.value :char
-    %67 = move %66
-    %68 = const int(1) :i32
-    %69 = binop 0 %55 %68 :i32
-    %55 = move %69
+    %66 = cast %64 :Yield<char>
+    %67 = field_get %66.value :char
+    %68 = move %67
+    %69 = const int(1) :i32
+    %70 = binop 0 %56 %69 :i32
+    %56 = move %70
     branch -> bb32
   bb32:
     branch -> bb27

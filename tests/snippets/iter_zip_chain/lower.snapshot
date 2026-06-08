@@ -47,13 +47,17 @@
           @builder.append_str :void
             __sb_1 :?
             "clone[0]=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_1 :?
-            index :i32
-              on:
-                cloned :i32[]
-              ix:
-                int(0) :i32
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                index :i32
+                  on:
+                    cloned :i32[]
+                  ix:
+                    int(0) :i32
           ~>
             @builder.finish :string
               __sb_1 :?
@@ -102,15 +106,23 @@
             block :string
               let __sb_6: ? =
                 @builder.new :?
-              @builder.append_display <for string> :void
+              @builder.append_str :void
                 __sb_6 :?
-                k :string
+                call :string
+                  callee:
+                    std_core$string$Display$to_string :string
+                  arg0:
+                    k :string
               @builder.append_str :void
                 __sb_6 :?
                 "=" :string
-              @builder.append_display <for i32> :void
+              @builder.append_str :void
                 __sb_6 :?
-                v :i32
+                call :string
+                  callee:
+                    std_core$i32$Display$to_string :string
+                  arg0:
+                    v :i32
               ~>
                 @builder.finish :string
                   __sb_6 :?
@@ -162,9 +174,13 @@
               @builder.append_str :void
                 __sb_10 :?
                 "j=" :string
-              @builder.append_display <for i32> :void
+              @builder.append_str :void
                 __sb_10 :?
-                x :i32
+                call :string
+                  callee:
+                    std_core$i32$Display$to_string :string
+                  arg0:
+                    x :i32
               ~>
                 @builder.finish :string
                   __sb_10 :?
@@ -223,9 +239,13 @@
               @builder.append_str :void
                 __sb_15 :?
                 ": " :string
-              @builder.append_display <for string> :void
+              @builder.append_str :void
                 __sb_15 :?
-                f :string
+                call :string
+                  callee:
+                    std_core$string$Display$to_string :string
+                  arg0:
+                    f :string
               ~>
                 @builder.finish :string
                   __sb_15 :?
@@ -271,9 +291,13 @@
               @builder.append_str :void
                 __sb_20 :?
                 "b=" :string
-              @builder.append_display <for i32> :void
+              @builder.append_str :void
                 __sb_20 :?
-                n :i32
+                call :string
+                  callee:
+                    std_core$i32$Display$to_string :string
+                  arg0:
+                    n :i32
               ~>
                 @builder.finish :string
                   __sb_20 :?

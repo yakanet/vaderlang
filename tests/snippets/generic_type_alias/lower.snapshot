@@ -36,10 +36,14 @@
                           @builder.append_str :void
                             __sb_1 :?
                             "x = " :string
-                          @builder.append_display <for i32> :void
+                          @builder.append_str :void
                             __sb_1 :?
-                            cast → i32
-                              x :i32 | null
+                            call :string
+                              callee:
+                                std_core$i32$Display$to_string :string
+                              arg0:
+                                cast → i32
+                                  x :i32 | null
                           ~>
                             @builder.finish :string
                               __sb_1 :?
@@ -78,10 +82,14 @@
                           @builder.append_str :void
                             __sb_3 :?
                             "y = " :string
-                          @builder.append_display <for i32> :void
+                          @builder.append_str :void
                             __sb_3 :?
-                            cast → i32
-                              y :i32 | null
+                            call :string
+                              callee:
+                                std_core$i32$Display$to_string :string
+                              arg0:
+                                cast → i32
+                                  y :i32 | null
                           ~>
                             @builder.finish :string
                               __sb_3 :?
@@ -108,10 +116,14 @@
                     @builder.append_str :void
                       __sb_6 :?
                       "pair int   = " :string
-                    @builder.append_display <for i32> :void
+                    @builder.append_str :void
                       __sb_6 :?
-                      cast → i32
-                        p :i32 | string
+                      call :string
+                        callee:
+                          std_core$i32$Display$to_string :string
+                        arg0:
+                          cast → i32
+                            p :i32 | string
                     ~>
                       @builder.finish :string
                         __sb_6 :?
@@ -133,10 +145,14 @@
                           @builder.append_str :void
                             __sb_5 :?
                             "pair str   = " :string
-                          @builder.append_display <for string> :void
+                          @builder.append_str :void
                             __sb_5 :?
-                            cast → string
-                              p :i32 | string
+                            call :string
+                              callee:
+                                std_core$string$Display$to_string :string
+                              arg0:
+                                cast → string
+                                  p :i32 | string
                           ~>
                             @builder.finish :string
                               __sb_5 :?

@@ -36,11 +36,15 @@
                           @builder.append_str :void
                             __sb_4 :?
                             "again " :string
-                          @builder.append_display <for string> :void
+                          @builder.append_str :void
                             __sb_4 :?
                             call :string
                               callee:
-                                shout :fn() -> string
+                                std_core$string$Display$to_string :string
+                              arg0:
+                                call :string
+                                  callee:
+                                    shout :fn() -> string
                           ~>
                             @builder.finish :string
                               __sb_4 :?
@@ -68,11 +72,15 @@
                                 @builder.append_str :void
                                   __sb_2 :?
                                   "twice = " :string
-                                @builder.append_display <for i32> :void
+                                @builder.append_str :void
                                   __sb_2 :?
-                                  call :i32
+                                  call :string
                                     callee:
-                                      doubled :fn() -> i32
+                                      std_core$i32$Display$to_string :string
+                                    arg0:
+                                      call :i32
+                                        callee:
+                                          doubled :fn() -> i32
                                 ~>
                                   @builder.finish :string
                                     __sb_2 :?
@@ -110,10 +118,14 @@
         @builder.append_str :void
           __sb_0 :?
           "HELLO " :string
-        @builder.append_display <for string> :void
+        @builder.append_str :void
           __sb_0 :?
-          .name :string
-            LoweredCellGet
+          call :string
+            callee:
+              std_core$string$Display$to_string :string
+            arg0:
+              .name :string
+                LoweredCellGet
         ~>
           @builder.finish :string
             __sb_0 :?

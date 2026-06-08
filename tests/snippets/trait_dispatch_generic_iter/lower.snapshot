@@ -71,13 +71,17 @@
           @builder.append_str :void
             __sb_0 :?
             "repeat=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            call :i32
+            call :string
               callee:
-                walk :fn(Iterator<i32>) -> i32
+                std_core$i32$Display$to_string :string
               arg0:
-                r :Repeat<i32>
+                call :i32
+                  callee:
+                    walk :fn(Iterator<i32>) -> i32
+                  arg0:
+                    r :Repeat<i32>
           ~>
             @builder.finish :string
               __sb_0 :?
@@ -91,13 +95,17 @@
           @builder.append_str :void
             __sb_1 :?
             "once=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_1 :?
-            call :i32
+            call :string
               callee:
-                walk :fn(Iterator<i32>) -> i32
+                std_core$i32$Display$to_string :string
               arg0:
-                o :Once<i32>
+                call :i32
+                  callee:
+                    walk :fn(Iterator<i32>) -> i32
+                  arg0:
+                    o :Once<i32>
           ~>
             @builder.finish :string
               __sb_1 :?

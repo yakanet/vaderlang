@@ -23,12 +23,16 @@
                   @builder.append_str :void
                     __sb_1 :?
                     "hello " :string
-                  @builder.append_display <for string> :void
+                  @builder.append_str :void
                     __sb_1 :?
-                    .name :string
-                      cast → Cat
-                        cast → Cat | Dog
-                          p :Cat | Dog | null
+                    call :string
+                      callee:
+                        std_core$string$Display$to_string :string
+                      arg0:
+                        .name :string
+                          cast → Cat
+                            cast → Cat | Dog
+                              p :Cat | Dog | null
                   ~>
                     @builder.finish :string
                       __sb_1 :?
@@ -53,11 +57,15 @@
                   @builder.append_str :void
                     __sb_1 :?
                     "howdy " :string
-                  @builder.append_display <for string> :void
+                  @builder.append_str :void
                     __sb_1 :?
-                    .name :string
-                      cast → Cat
-                        pet :Cat | Dog
+                    call :string
+                      callee:
+                        std_core$string$Display$to_string :string
+                      arg0:
+                        .name :string
+                          cast → Cat
+                            pet :Cat | Dog
                   ~>
                     @builder.finish :string
                       __sb_1 :?

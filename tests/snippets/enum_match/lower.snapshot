@@ -106,15 +106,19 @@
         block :string
           let __sb_0: ? =
             @builder.new :?
-          @builder.append_display <for bool> :void
+          @builder.append_str :void
             __sb_0 :?
-            call :bool
+            call :string
               callee:
-                same_color :fn(Color, Color) -> bool
+                std_core$bool$Display$to_string :string
               arg0:
-                int(0) :i32
-              arg1:
-                int(0) :i32
+                call :bool
+                  callee:
+                    same_color :fn(Color, Color) -> bool
+                  arg0:
+                    int(0) :i32
+                  arg1:
+                    int(0) :i32
           ~>
             @builder.finish :string
               __sb_0 :?
@@ -125,15 +129,19 @@
         block :string
           let __sb_1: ? =
             @builder.new :?
-          @builder.append_display <for bool> :void
+          @builder.append_str :void
             __sb_1 :?
-            call :bool
+            call :string
               callee:
-                same_color :fn(Color, Color) -> bool
+                std_core$bool$Display$to_string :string
               arg0:
-                int(0) :i32
-              arg1:
-                int(2) :i32
+                call :bool
+                  callee:
+                    same_color :fn(Color, Color) -> bool
+                  arg0:
+                    int(0) :i32
+                  arg1:
+                    int(2) :i32
           ~>
             @builder.finish :string
               __sb_1 :?
@@ -144,13 +152,17 @@
         block :string
           let __sb_2: ? =
             @builder.new :?
-          @builder.append_display <for bool> :void
+          @builder.append_str :void
             __sb_2 :?
-            neq :bool
-              l:
-                c :Color
-              r:
-                int(0) :i32
+            call :string
+              callee:
+                std_core$bool$Display$to_string :string
+              arg0:
+                neq :bool
+                  l:
+                    c :Color
+                  r:
+                    int(0) :i32
           ~>
             @builder.finish :string
               __sb_2 :?
@@ -161,13 +173,17 @@
         block :string
           let __sb_3: ? =
             @builder.new :?
-          @builder.append_display <for bool> :void
+          @builder.append_str :void
             __sb_3 :?
-            neq :bool
-              l:
-                c :Color
-              r:
-                int(1) :i32
+            call :string
+              callee:
+                std_core$bool$Display$to_string :string
+              arg0:
+                neq :bool
+                  l:
+                    c :Color
+                  r:
+                    int(1) :i32
           ~>
             @builder.finish :string
               __sb_3 :?

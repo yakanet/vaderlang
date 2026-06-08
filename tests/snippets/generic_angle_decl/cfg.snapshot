@@ -34,38 +34,43 @@ fn snippet$main() -> i32
     %3 $intrinsic_3: ?
     %4 __sb_0: ? (synthetic __sb_0)
     %5 $k_5: string
-    %6 $intrinsic_6: string
-    %7 $k_7: i32
-    %8 $call_8: i32
-    %9 e: i32 (local e)
-    %10 $intrinsic_10: ?
-    %11 __sb_1: ? (synthetic __sb_1)
-    %12 $k_12: string
-    %13 $intrinsic_13: string
-    %14 $k_14: i32
-    %15 $call_15: Box<i32>
-    %16 b: Box<i32> (local b)
-    %17 $intrinsic_17: ?
-    %18 __sb_2: ? (synthetic __sb_2)
-    %19 $k_19: string
-    %20 $field_20: i32
-    %21 $intrinsic_21: string
-    %22 $k_22: i32
-    %23 $call_23: Box<Box<i32>>
-    %24 nested: Box<Box<i32>> (local nested)
-    %25 $intrinsic_25: ?
-    %26 __sb_3: ? (synthetic __sb_3)
-    %27 $k_27: string
-    %28 $field_28: Box<i32>
-    %29 $field_29: i32
-    %30 $intrinsic_30: string
-    %31 $call_31: bool
-    %32 c: bool (local c)
-    %33 $intrinsic_33: ?
-    %34 __sb_4: ? (synthetic __sb_4)
-    %35 $k_35: string
-    %36 $intrinsic_36: string
-    %37 $k_37: i32
+    %6 $call_6: string
+    %7 $intrinsic_7: string
+    %8 $k_8: i32
+    %9 $call_9: i32
+    %10 e: i32 (local e)
+    %11 $intrinsic_11: ?
+    %12 __sb_1: ? (synthetic __sb_1)
+    %13 $k_13: string
+    %14 $call_14: string
+    %15 $intrinsic_15: string
+    %16 $k_16: i32
+    %17 $call_17: Box<i32>
+    %18 b: Box<i32> (local b)
+    %19 $intrinsic_19: ?
+    %20 __sb_2: ? (synthetic __sb_2)
+    %21 $k_21: string
+    %22 $field_22: i32
+    %23 $call_23: string
+    %24 $intrinsic_24: string
+    %25 $k_25: i32
+    %26 $call_26: Box<Box<i32>>
+    %27 nested: Box<Box<i32>> (local nested)
+    %28 $intrinsic_28: ?
+    %29 __sb_3: ? (synthetic __sb_3)
+    %30 $k_30: string
+    %31 $field_31: Box<i32>
+    %32 $field_32: i32
+    %33 $call_33: string
+    %34 $intrinsic_34: string
+    %35 $call_35: bool
+    %36 c: bool (local c)
+    %37 $intrinsic_37: ?
+    %38 __sb_4: ? (synthetic __sb_4)
+    %39 $k_39: string
+    %40 $call_40: string
+    %41 $intrinsic_41: string
+    %42 $k_42: i32
   bb0:
     %0 = const int(42) :i32
     %1 = call snippet$snippet$identity__i32(%0) :i32
@@ -74,53 +79,58 @@ fn snippet$main() -> i32
     %4 = move %3
     %5 = const string(#1) :string
     intrinsic builder.append_str(%4, %5)
-    intrinsic builder.append_display(%4, %2)
-    %6 = intrinsic builder.finish(%4)
-    call std_io$std_io$println__string(%6) :void
-    %7 = const int(42) :i32
-    %8 = call snippet$snippet$identity__i32(%7) :i32
-    %9 = move %8
-    %10 = intrinsic builder.new()
-    %11 = move %10
-    %12 = const string(#2) :string
-    intrinsic builder.append_str(%11, %12)
-    intrinsic builder.append_display(%11, %9)
-    %13 = intrinsic builder.finish(%11)
-    call std_io$std_io$println__string(%13) :void
-    %14 = const int(7) :i32
-    %15 = call snippet$snippet$make_box__i32(%14) :Box<i32>
-    %16 = move %15
-    %17 = intrinsic builder.new()
+    %6 = call std_core$i32$Display$to_string(%2) :string
+    intrinsic builder.append_str(%4, %6)
+    %7 = intrinsic builder.finish(%4)
+    call std_io$std_io$println__string(%7) :void
+    %8 = const int(42) :i32
+    %9 = call snippet$snippet$identity__i32(%8) :i32
+    %10 = move %9
+    %11 = intrinsic builder.new()
+    %12 = move %11
+    %13 = const string(#2) :string
+    intrinsic builder.append_str(%12, %13)
+    %14 = call std_core$i32$Display$to_string(%10) :string
+    intrinsic builder.append_str(%12, %14)
+    %15 = intrinsic builder.finish(%12)
+    call std_io$std_io$println__string(%15) :void
+    %16 = const int(7) :i32
+    %17 = call snippet$snippet$make_box__i32(%16) :Box<i32>
     %18 = move %17
-    %19 = const string(#3) :string
-    intrinsic builder.append_str(%18, %19)
-    %20 = field_get %16.value :i32
-    intrinsic builder.append_display(%18, %20)
-    %21 = intrinsic builder.finish(%18)
-    call std_io$std_io$println__string(%21) :void
-    %22 = const int(99) :i32
-    %23 = call snippet$snippet$make_nested__i32(%22) :Box<Box<i32>>
-    %24 = move %23
-    %25 = intrinsic builder.new()
-    %26 = move %25
-    %27 = const string(#4) :string
-    intrinsic builder.append_str(%26, %27)
-    %28 = field_get %24.value :Box<i32>
-    %29 = field_get %28.value :i32
-    intrinsic builder.append_display(%26, %29)
-    %30 = intrinsic builder.finish(%26)
-    call std_io$std_io$println__string(%30) :void
-    %31 = call demo_comparison_in_args() :bool
-    %32 = move %31
-    %33 = intrinsic builder.new()
-    %34 = move %33
-    %35 = const string(#5) :string
-    intrinsic builder.append_str(%34, %35)
-    intrinsic builder.append_display(%34, %32)
-    %36 = intrinsic builder.finish(%34)
-    call std_io$std_io$println__string(%36) :void
-    %37 = const int(0) :i32
-    return %37
+    %19 = intrinsic builder.new()
+    %20 = move %19
+    %21 = const string(#3) :string
+    intrinsic builder.append_str(%20, %21)
+    %22 = field_get %18.value :i32
+    %23 = call std_core$i32$Display$to_string(%22) :string
+    intrinsic builder.append_str(%20, %23)
+    %24 = intrinsic builder.finish(%20)
+    call std_io$std_io$println__string(%24) :void
+    %25 = const int(99) :i32
+    %26 = call snippet$snippet$make_nested__i32(%25) :Box<Box<i32>>
+    %27 = move %26
+    %28 = intrinsic builder.new()
+    %29 = move %28
+    %30 = const string(#4) :string
+    intrinsic builder.append_str(%29, %30)
+    %31 = field_get %27.value :Box<i32>
+    %32 = field_get %31.value :i32
+    %33 = call std_core$i32$Display$to_string(%32) :string
+    intrinsic builder.append_str(%29, %33)
+    %34 = intrinsic builder.finish(%29)
+    call std_io$std_io$println__string(%34) :void
+    %35 = call demo_comparison_in_args() :bool
+    %36 = move %35
+    %37 = intrinsic builder.new()
+    %38 = move %37
+    %39 = const string(#5) :string
+    intrinsic builder.append_str(%38, %39)
+    %40 = call std_core$bool$Display$to_string(%36) :string
+    intrinsic builder.append_str(%38, %40)
+    %41 = intrinsic builder.finish(%38)
+    call std_io$std_io$println__string(%41) :void
+    %42 = const int(0) :i32
+    return %42
 
 fn snippet$snippet$identity__i32(%0: Any) -> Any
   locals:

@@ -153,39 +153,51 @@
           @builder.append_str :void
             __sb_0 :?
             "a=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            call :i32
+            call :string
               callee:
-                snippet$Cell$Index$at :i32
+                std_core$i32$Display$to_string :string
               arg0:
-                c :Cell
-              arg1:
-                "a" :string
+                call :i32
+                  callee:
+                    snippet$Cell$Index$at :i32
+                  arg0:
+                    c :Cell
+                  arg1:
+                    "a" :string
           @builder.append_str :void
             __sb_0 :?
             " b=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            call :i32
+            call :string
               callee:
-                snippet$Cell$Index$at :i32
+                std_core$i32$Display$to_string :string
               arg0:
-                c :Cell
-              arg1:
-                "b" :string
+                call :i32
+                  callee:
+                    snippet$Cell$Index$at :i32
+                  arg0:
+                    c :Cell
+                  arg1:
+                    "b" :string
           @builder.append_str :void
             __sb_0 :?
             " c=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            call :i32
+            call :string
               callee:
-                snippet$Cell$Index$at :i32
+                std_core$i32$Display$to_string :string
               arg0:
-                c :Cell
-              arg1:
-                "c" :string
+                call :i32
+                  callee:
+                    snippet$Cell$Index$at :i32
+                  arg0:
+                    c :Cell
+                  arg1:
+                    "c" :string
           ~>
             @builder.finish :string
               __sb_0 :?

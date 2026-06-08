@@ -27,35 +27,51 @@
           @builder.append_str :void
             __sb_0 :?
             "min=" :string
-          @builder.append_display <for i64> :void
+          @builder.append_str :void
             __sb_0 :?
-            call :i64
+            call :string
               callee:
-                min_i32 :fn() -> i64
+                std_core$i64$Display$to_string :string
+              arg0:
+                call :i64
+                  callee:
+                    min_i32 :fn() -> i64
           @builder.append_str :void
             __sb_0 :?
             " near=" :string
-          @builder.append_display <for i64> :void
+          @builder.append_str :void
             __sb_0 :?
-            call :i64
+            call :string
               callee:
-                near :fn() -> i64
+                std_core$i64$Display$to_string :string
+              arg0:
+                call :i64
+                  callee:
+                    near :fn() -> i64
           @builder.append_str :void
             __sb_0 :?
             " over=" :string
-          @builder.append_display <for i64> :void
+          @builder.append_str :void
             __sb_0 :?
-            call :i64
+            call :string
               callee:
-                over :fn() -> i64
+                std_core$i64$Display$to_string :string
+              arg0:
+                call :i64
+                  callee:
+                    over :fn() -> i64
           @builder.append_str :void
             __sb_0 :?
             " big=" :string
-          @builder.append_display <for i64> :void
+          @builder.append_str :void
             __sb_0 :?
-            call :i64
+            call :string
               callee:
-                big_pos :fn() -> i64
+                std_core$i64$Display$to_string :string
+              arg0:
+                call :i64
+                  callee:
+                    big_pos :fn() -> i64
           ~>
             @builder.finish :string
               __sb_0 :?

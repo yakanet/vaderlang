@@ -13,45 +13,46 @@ fn snippet$main() -> i32
     %6 $call_6: string
     %7 $k_7: string
     %8 $cast_8: i64
-    %9 $intrinsic_9: string
-    %10 $k_10: u32
-    %11 max32: u32 (local max32)
-    %12 $k_12: u32
-    %13 pow31: u32 (local pow31)
-    %14 $intrinsic_14: ?
-    %15 __sb_1: ? (synthetic __sb_1)
-    %16 $k_16: string
-    %17 $cast_17: u64
-    %18 $call_18: string
-    %19 $k_19: string
-    %20 $cast_20: u64
-    %21 $call_21: string
-    %22 $intrinsic_22: string
-    %23 $k_23: u8
-    %24 b8: u8 (local b8)
-    %25 $k_25: u16
-    %26 s16: u16 (local s16)
-    %27 $intrinsic_27: ?
-    %28 __sb_2: ? (synthetic __sb_2)
-    %29 $k_29: string
-    %30 $cast_30: u64
-    %31 $call_31: string
-    %32 $k_32: string
-    %33 $cast_33: u64
-    %34 $call_34: string
-    %35 $intrinsic_35: string
-    %36 $k_36: u64
-    %37 umax: u64 (local umax)
-    %38 $k_38: usize
-    %39 sz: usize (local sz)
-    %40 $intrinsic_40: ?
-    %41 __sb_3: ? (synthetic __sb_3)
-    %42 $k_42: string
-    %43 $call_43: string
-    %44 $k_44: string
-    %45 $call_45: string
-    %46 $intrinsic_46: string
-    %47 $k_47: i32
+    %9 $call_9: string
+    %10 $intrinsic_10: string
+    %11 $k_11: u32
+    %12 max32: u32 (local max32)
+    %13 $k_13: u32
+    %14 pow31: u32 (local pow31)
+    %15 $intrinsic_15: ?
+    %16 __sb_1: ? (synthetic __sb_1)
+    %17 $k_17: string
+    %18 $cast_18: u64
+    %19 $call_19: string
+    %20 $k_20: string
+    %21 $cast_21: u64
+    %22 $call_22: string
+    %23 $intrinsic_23: string
+    %24 $k_24: u8
+    %25 b8: u8 (local b8)
+    %26 $k_26: u16
+    %27 s16: u16 (local s16)
+    %28 $intrinsic_28: ?
+    %29 __sb_2: ? (synthetic __sb_2)
+    %30 $k_30: string
+    %31 $cast_31: u64
+    %32 $call_32: string
+    %33 $k_33: string
+    %34 $cast_34: u64
+    %35 $call_35: string
+    %36 $intrinsic_36: string
+    %37 $k_37: u64
+    %38 umax: u64 (local umax)
+    %39 $k_39: usize
+    %40 sz: usize (local sz)
+    %41 $intrinsic_41: ?
+    %42 __sb_3: ? (synthetic __sb_3)
+    %43 $k_43: string
+    %44 $call_44: string
+    %45 $k_45: string
+    %46 $call_46: string
+    %47 $intrinsic_47: string
+    %48 $k_48: i32
   bb0:
     %0 = const int(4000000000) :u32
     %1 = move %0
@@ -65,60 +66,61 @@ fn snippet$main() -> i32
     %7 = const string(#2) :string
     intrinsic builder.append_str(%3, %7)
     %8 = cast %1 :i64
-    intrinsic builder.append_display(%3, %8)
-    %9 = intrinsic builder.finish(%3)
-    call std_io$std_io$println__string(%9) :void
-    %10 = const int(4294967295) :u32
-    %11 = move %10
-    %12 = const int(2147483648) :u32
-    %13 = move %12
-    %14 = intrinsic builder.new()
-    %15 = move %14
-    %16 = const string(#3) :string
-    intrinsic builder.append_str(%15, %16)
-    %17 = cast %11 :u64
-    %18 = call std_core$u64$Display$to_string(%17) :string
-    intrinsic builder.append_str(%15, %18)
-    %19 = const string(#4) :string
-    intrinsic builder.append_str(%15, %19)
-    %20 = cast %13 :u64
-    %21 = call std_core$u64$Display$to_string(%20) :string
-    intrinsic builder.append_str(%15, %21)
-    %22 = intrinsic builder.finish(%15)
-    call std_io$std_io$println__string(%22) :void
-    %23 = const int(200) :u8
-    %24 = move %23
-    %25 = const int(65000) :u16
-    %26 = move %25
-    %27 = intrinsic builder.new()
-    %28 = move %27
-    %29 = const string(#5) :string
-    intrinsic builder.append_str(%28, %29)
-    %30 = cast %24 :u64
-    %31 = call std_core$u64$Display$to_string(%30) :string
-    intrinsic builder.append_str(%28, %31)
-    %32 = const string(#6) :string
-    intrinsic builder.append_str(%28, %32)
-    %33 = cast %26 :u64
-    %34 = call std_core$u64$Display$to_string(%33) :string
-    intrinsic builder.append_str(%28, %34)
-    %35 = intrinsic builder.finish(%28)
-    call std_io$std_io$println__string(%35) :void
-    %36 = const int(-1) :u64
-    %37 = move %36
-    %38 = const int(9000000000) :usize
-    %39 = move %38
-    %40 = intrinsic builder.new()
-    %41 = move %40
-    %42 = const string(#7) :string
-    intrinsic builder.append_str(%41, %42)
-    %43 = call std_core$u64$Display$to_string(%37) :string
-    intrinsic builder.append_str(%41, %43)
-    %44 = const string(#8) :string
-    intrinsic builder.append_str(%41, %44)
-    %45 = call std_core$usize$Display$to_string(%39) :string
-    intrinsic builder.append_str(%41, %45)
-    %46 = intrinsic builder.finish(%41)
-    call std_io$std_io$println__string(%46) :void
-    %47 = const int(0) :i32
-    return %47
+    %9 = call std_core$i64$Display$to_string(%8) :string
+    intrinsic builder.append_str(%3, %9)
+    %10 = intrinsic builder.finish(%3)
+    call std_io$std_io$println__string(%10) :void
+    %11 = const int(4294967295) :u32
+    %12 = move %11
+    %13 = const int(2147483648) :u32
+    %14 = move %13
+    %15 = intrinsic builder.new()
+    %16 = move %15
+    %17 = const string(#3) :string
+    intrinsic builder.append_str(%16, %17)
+    %18 = cast %12 :u64
+    %19 = call std_core$u64$Display$to_string(%18) :string
+    intrinsic builder.append_str(%16, %19)
+    %20 = const string(#4) :string
+    intrinsic builder.append_str(%16, %20)
+    %21 = cast %14 :u64
+    %22 = call std_core$u64$Display$to_string(%21) :string
+    intrinsic builder.append_str(%16, %22)
+    %23 = intrinsic builder.finish(%16)
+    call std_io$std_io$println__string(%23) :void
+    %24 = const int(200) :u8
+    %25 = move %24
+    %26 = const int(65000) :u16
+    %27 = move %26
+    %28 = intrinsic builder.new()
+    %29 = move %28
+    %30 = const string(#5) :string
+    intrinsic builder.append_str(%29, %30)
+    %31 = cast %25 :u64
+    %32 = call std_core$u64$Display$to_string(%31) :string
+    intrinsic builder.append_str(%29, %32)
+    %33 = const string(#6) :string
+    intrinsic builder.append_str(%29, %33)
+    %34 = cast %27 :u64
+    %35 = call std_core$u64$Display$to_string(%34) :string
+    intrinsic builder.append_str(%29, %35)
+    %36 = intrinsic builder.finish(%29)
+    call std_io$std_io$println__string(%36) :void
+    %37 = const int(-1) :u64
+    %38 = move %37
+    %39 = const int(9000000000) :usize
+    %40 = move %39
+    %41 = intrinsic builder.new()
+    %42 = move %41
+    %43 = const string(#7) :string
+    intrinsic builder.append_str(%42, %43)
+    %44 = call std_core$u64$Display$to_string(%38) :string
+    intrinsic builder.append_str(%42, %44)
+    %45 = const string(#8) :string
+    intrinsic builder.append_str(%42, %45)
+    %46 = call std_core$usize$Display$to_string(%40) :string
+    intrinsic builder.append_str(%42, %46)
+    %47 = intrinsic builder.finish(%42)
+    call std_io$std_io$println__string(%47) :void
+    %48 = const int(0) :i32
+    return %48

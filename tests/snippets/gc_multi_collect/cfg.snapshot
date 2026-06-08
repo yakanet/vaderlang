@@ -24,41 +24,45 @@ fn snippet$main() -> i32
     %17 $intrinsic_17: ?
     %18 __sb_0: ? (synthetic __sb_0)
     %19 $k_19: string
-    %20 $intrinsic_20: string
-    %21 $k_21: i32
+    %20 $call_20: string
+    %21 $intrinsic_21: string
     %22 $k_22: i32
-    %23 sum: i32 (local sum)
-    %24 cur: null | Pair (local cur)
-    %25 $k_25: bool
-    %26 done: bool (local done)
-    %27 $unop_27: bool
-    %28 __scrut_1: null | Pair (synthetic __scrut_1)
-    %29 $type_check_29: bool
-    %30 $k_30: bool
-    %31 $type_check_31: bool
-    %32 $cast_32: Pair
-    %33 $field_33: i32
-    %34 $add_34: i32
-    %35 $cast_35: Pair
-    %36 $field_36: null | Pair
-    %37 $k_37: i32
+    %23 $k_23: i32
+    %24 sum: i32 (local sum)
+    %25 cur: null | Pair (local cur)
+    %26 $k_26: bool
+    %27 done: bool (local done)
+    %28 $unop_28: bool
+    %29 __scrut_1: null | Pair (synthetic __scrut_1)
+    %30 $type_check_30: bool
+    %31 $k_31: bool
+    %32 $type_check_32: bool
+    %33 $cast_33: Pair
+    %34 $field_34: i32
+    %35 $add_35: i32
+    %36 $cast_36: Pair
+    %37 $field_37: null | Pair
     %38 $k_38: i32
-    %39 $mul_39: {integer}
-    %40 $k_40: i32
-    %41 $div_41: {integer}
-    %42 expected: i32 (local expected)
-    %43 $neq_43: bool
-    %44 $intrinsic_44: ?
-    %45 __sb_2: ? (synthetic __sb_2)
-    %46 $k_46: string
+    %39 $k_39: i32
+    %40 $mul_40: {integer}
+    %41 $k_41: i32
+    %42 $div_42: {integer}
+    %43 expected: i32 (local expected)
+    %44 $neq_44: bool
+    %45 $intrinsic_45: ?
+    %46 __sb_2: ? (synthetic __sb_2)
     %47 $k_47: string
-    %48 $intrinsic_48: string
-    %49 $k_49: i32
-    %50 $intrinsic_50: ?
-    %51 __sb_3: ? (synthetic __sb_3)
-    %52 $k_52: string
-    %53 $intrinsic_53: string
-    %54 $k_54: i32
+    %48 $call_48: string
+    %49 $k_49: string
+    %50 $call_50: string
+    %51 $intrinsic_51: string
+    %52 $k_52: i32
+    %53 $intrinsic_53: ?
+    %54 __sb_3: ? (synthetic __sb_3)
+    %55 $k_55: string
+    %56 $call_56: string
+    %57 $intrinsic_57: string
+    %58 $k_58: i32
   bb0:
     %0 = const null :null
     %1 = move %0
@@ -94,76 +98,80 @@ fn snippet$main() -> i32
     %18 = move %17
     %19 = const string(#1) :string
     intrinsic builder.append_str(%18, %19)
-    intrinsic builder.append_display(%18, %14)
-    %20 = intrinsic builder.finish(%18)
-    call std_io$std_io$println__string(%20) :void
-    %21 = const int(1) :i32
-    return %21
+    %20 = call std_core$i32$Display$to_string(%14) :string
+    intrinsic builder.append_str(%18, %20)
+    %21 = intrinsic builder.finish(%18)
+    call std_io$std_io$println__string(%21) :void
+    %22 = const int(1) :i32
+    return %22
   bb5:
-    %22 = const int(0) :i32
-    %23 = move %22
-    %24 = move %1
-    %25 = const bool(false) :bool
-    %26 = move %25
+    %23 = const int(0) :i32
+    %24 = move %23
+    %25 = move %1
+    %26 = const bool(false) :bool
+    %27 = move %26
     branch -> bb6
   bb6:
-    %27 = unop 1 %26 :bool
-    cond_branch %27 ? bb7 : bb8
+    %28 = unop 1 %27 :bool
+    cond_branch %28 ? bb7 : bb8
   bb7:
-    %28 = move %24
-    %29 = type_check %28 is null
-    cond_branch %29 ? bb9 : bb10
+    %29 = move %25
+    %30 = type_check %29 is null
+    cond_branch %30 ? bb9 : bb10
   bb8:
-    %37 = const int(50) :i32
-    %38 = const int(49) :i32
-    %39 = binop 2 %37 %38 :{integer}
-    %40 = const int(2) :i32
-    %41 = binop 3 %39 %40 :{integer}
-    %42 = move %41
-    %43 = binop 13 %23 %42 :bool
-    cond_branch %43 ? bb15 : bb16
+    %38 = const int(50) :i32
+    %39 = const int(49) :i32
+    %40 = binop 2 %38 %39 :{integer}
+    %41 = const int(2) :i32
+    %42 = binop 3 %40 %41 :{integer}
+    %43 = move %42
+    %44 = binop 13 %24 %43 :bool
+    cond_branch %44 ? bb15 : bb16
   bb9:
-    %30 = const bool(true) :bool
-    %26 = move %30
+    %31 = const bool(true) :bool
+    %27 = move %31
     branch -> bb11
   bb10:
-    %31 = type_check %28 is Pair
-    cond_branch %31 ? bb12 : bb13
+    %32 = type_check %29 is Pair
+    cond_branch %32 ? bb12 : bb13
   bb11:
     branch -> bb6
   bb12:
-    %32 = cast %24 :Pair
-    %33 = field_get %32.left :i32
-    %34 = binop 0 %23 %33 :i32
-    %23 = move %34
-    %35 = cast %24 :Pair
-    %36 = field_get %35.right :null | Pair
-    %24 = move %36
+    %33 = cast %25 :Pair
+    %34 = field_get %33.left :i32
+    %35 = binop 0 %24 %34 :i32
+    %24 = move %35
+    %36 = cast %25 :Pair
+    %37 = field_get %36.right :null | Pair
+    %25 = move %37
     branch -> bb14
   bb13:
     unreachable ; non-exhaustive match (T3013 should have caught this)
   bb14:
     branch -> bb11
   bb15:
-    %44 = intrinsic builder.new()
-    %45 = move %44
-    %46 = const string(#2) :string
-    intrinsic builder.append_str(%45, %46)
-    intrinsic builder.append_display(%45, %23)
-    %47 = const string(#3) :string
-    intrinsic builder.append_str(%45, %47)
-    intrinsic builder.append_display(%45, %42)
-    %48 = intrinsic builder.finish(%45)
-    call std_io$std_io$println__string(%48) :void
-    %49 = const int(2) :i32
-    return %49
+    %45 = intrinsic builder.new()
+    %46 = move %45
+    %47 = const string(#2) :string
+    intrinsic builder.append_str(%46, %47)
+    %48 = call std_core$i32$Display$to_string(%24) :string
+    intrinsic builder.append_str(%46, %48)
+    %49 = const string(#3) :string
+    intrinsic builder.append_str(%46, %49)
+    %50 = call std_core$i32$Display$to_string(%43) :string
+    intrinsic builder.append_str(%46, %50)
+    %51 = intrinsic builder.finish(%46)
+    call std_io$std_io$println__string(%51) :void
+    %52 = const int(2) :i32
+    return %52
   bb16:
-    %50 = intrinsic builder.new()
-    %51 = move %50
-    %52 = const string(#4) :string
-    intrinsic builder.append_str(%51, %52)
-    intrinsic builder.append_display(%51, %23)
-    %53 = intrinsic builder.finish(%51)
-    call std_io$std_io$println__string(%53) :void
-    %54 = const int(0) :i32
-    return %54
+    %53 = intrinsic builder.new()
+    %54 = move %53
+    %55 = const string(#4) :string
+    intrinsic builder.append_str(%54, %55)
+    %56 = call std_core$i32$Display$to_string(%24) :string
+    intrinsic builder.append_str(%54, %56)
+    %57 = intrinsic builder.finish(%54)
+    call std_io$std_io$println__string(%57) :void
+    %58 = const int(0) :i32
+    return %58

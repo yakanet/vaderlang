@@ -103,10 +103,14 @@
                               @builder.append_str :void
                                 __sb_2 :?
                                 "v1 = " :string
-                              @builder.append_display <for i32> :void
+                              @builder.append_str :void
                                 __sb_2 :?
-                                cast → i32
-                                  v1 :i32 | null
+                                call :string
+                                  callee:
+                                    std_core$i32$Display$to_string :string
+                                  arg0:
+                                    cast → i32
+                                      v1 :i32 | null
                               ~>
                                 @builder.finish :string
                                   __sb_2 :?
@@ -157,10 +161,14 @@
                               @builder.append_str :void
                                 __sb_4 :?
                                 "v17 = " :string
-                              @builder.append_display <for i32> :void
+                              @builder.append_str :void
                                 __sb_4 :?
-                                cast → i32
-                                  v17 :i32 | null
+                                call :string
+                                  callee:
+                                    std_core$i32$Display$to_string :string
+                                  arg0:
+                                    cast → i32
+                                      v17 :i32 | null
                               ~>
                                 @builder.finish :string
                                   __sb_4 :?
@@ -177,15 +185,19 @@
           @builder.append_str :void
             __sb_5 :?
             "has 2? " :string
-          @builder.append_display <for bool> :void
+          @builder.append_str :void
             __sb_5 :?
-            call :bool
+            call :string
               callee:
-                std_collections$MutableMap$Contains$contains__i32__i32 :bool
+                std_core$bool$Display$to_string :string
               arg0:
-                m :MutableMap<i32, i32>
-              arg1:
-                int(2) :i32
+                call :bool
+                  callee:
+                    std_collections$MutableMap$Contains$contains__i32__i32 :bool
+                  arg0:
+                    m :MutableMap<i32, i32>
+                  arg1:
+                    int(2) :i32
           ~>
             @builder.finish :string
               __sb_5 :?
@@ -199,15 +211,19 @@
           @builder.append_str :void
             __sb_6 :?
             "has 99? " :string
-          @builder.append_display <for bool> :void
+          @builder.append_str :void
             __sb_6 :?
-            call :bool
+            call :string
               callee:
-                std_collections$MutableMap$Contains$contains__i32__i32 :bool
+                std_core$bool$Display$to_string :string
               arg0:
-                m :MutableMap<i32, i32>
-              arg1:
-                int(99) :i32
+                call :bool
+                  callee:
+                    std_collections$MutableMap$Contains$contains__i32__i32 :bool
+                  arg0:
+                    m :MutableMap<i32, i32>
+                  arg1:
+                    int(99) :i32
           ~>
             @builder.finish :string
               __sb_6 :?
@@ -264,10 +280,14 @@
                               @builder.append_str :void
                                 __sb_8 :?
                                 "v1b = " :string
-                              @builder.append_display <for i32> :void
+                              @builder.append_str :void
                                 __sb_8 :?
-                                cast → i32
-                                  v1b :i32 | null
+                                call :string
+                                  callee:
+                                    std_core$i32$Display$to_string :string
+                                  arg0:
+                                    cast → i32
+                                      v1b :i32 | null
                               ~>
                                 @builder.finish :string
                                   __sb_8 :?

@@ -24,10 +24,14 @@
                   @builder.append_str :void
                     __sb_2 :?
                     "cat " :string
-                  @builder.append_display <for string> :void
+                  @builder.append_str :void
                     __sb_2 :?
-                    .name :string
-                      c :Cat
+                    call :string
+                      callee:
+                        std_core$string$Display$to_string :string
+                      arg0:
+                        .name :string
+                          c :Cat
                   ~>
                     @builder.finish :string
                       __sb_2 :?
@@ -48,10 +52,14 @@
                         @builder.append_str :void
                           __sb_1 :?
                           "dog " :string
-                        @builder.append_display <for string> :void
+                        @builder.append_str :void
                           __sb_1 :?
-                          .name :string
-                            d :Dog
+                          call :string
+                            callee:
+                              std_core$string$Display$to_string :string
+                            arg0:
+                              .name :string
+                                d :Dog
                         ~>
                           @builder.finish :string
                             __sb_1 :?

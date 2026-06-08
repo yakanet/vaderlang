@@ -29,7 +29,7 @@ fn snippet$describe(%0: Direction) -> string
     %3 = binop 12 %1 %2 :bool
     cond_branch %3 ? bb1 : bb2
   bb1:
-    %5 = const string(#1) :string
+    %5 = const string(#3) :string
     %4 = move %5
     branch -> bb3
   bb2:
@@ -39,7 +39,7 @@ fn snippet$describe(%0: Direction) -> string
   bb3:
     return %4
   bb4:
-    %9 = const string(#2) :string
+    %9 = const string(#4) :string
     %8 = move %9
     branch -> bb6
   bb5:
@@ -50,7 +50,7 @@ fn snippet$describe(%0: Direction) -> string
     %4 = move %8
     branch -> bb3
   bb7:
-    %13 = const string(#3) :string
+    %13 = const string(#5) :string
     %12 = move %13
     branch -> bb9
   bb8:
@@ -61,7 +61,7 @@ fn snippet$describe(%0: Direction) -> string
     %8 = move %12
     branch -> bb6
   bb10:
-    %17 = const string(#4) :string
+    %17 = const string(#6) :string
     %16 = move %17
     branch -> bb12
   bb11:
@@ -88,13 +88,15 @@ fn snippet$main() -> void
     %13 $k_13: string
     %14 $k_14: i32
     %15 $eq_15: bool
-    %16 $intrinsic_16: string
-    %17 $intrinsic_17: ?
-    %18 __sb_1: ? (synthetic __sb_1)
-    %19 $k_19: string
-    %20 $k_20: i32
-    %21 $eq_21: bool
-    %22 $intrinsic_22: string
+    %16 $call_16: string
+    %17 $intrinsic_17: string
+    %18 $intrinsic_18: ?
+    %19 __sb_1: ? (synthetic __sb_1)
+    %20 $k_20: string
+    %21 $k_21: i32
+    %22 $eq_22: bool
+    %23 $call_23: string
+    %24 $intrinsic_24: string
   bb0:
     %0 = const int(2) :i32
     %1 = move %0
@@ -107,7 +109,7 @@ fn snippet$main() -> void
     %6 = binop 12 %1 %5 :bool
     cond_branch %6 ? bb1 : bb2
   bb1:
-    %7 = const string(#5) :string
+    %7 = const string(#7) :string
     call std_io$std_io$println__string(%7) :void
     branch -> bb2
   bb2:
@@ -115,28 +117,30 @@ fn snippet$main() -> void
     %9 = binop 12 %1 %8 :bool
     cond_branch %9 ? bb3 : bb4
   bb3:
-    %10 = const string(#6) :string
+    %10 = const string(#8) :string
     call std_io$std_io$println__string(%10) :void
     branch -> bb4
   bb4:
     %11 = intrinsic builder.new()
     %12 = move %11
-    %13 = const string(#7) :string
+    %13 = const string(#9) :string
     intrinsic builder.append_str(%12, %13)
     %14 = const int(2) :i32
     %15 = binop 12 %1 %14 :bool
-    intrinsic builder.append_display(%12, %15)
-    %16 = intrinsic builder.finish(%12)
-    call std_io$std_io$println__string(%16) :void
-    %17 = intrinsic builder.new()
-    %18 = move %17
-    %19 = const string(#8) :string
-    intrinsic builder.append_str(%18, %19)
-    %20 = const int(3) :i32
-    %21 = binop 12 %1 %20 :bool
-    intrinsic builder.append_display(%18, %21)
-    %22 = intrinsic builder.finish(%18)
-    call std_io$std_io$println__string(%22) :void
+    %16 = call std_core$bool$Display$to_string(%15) :string
+    intrinsic builder.append_str(%12, %16)
+    %17 = intrinsic builder.finish(%12)
+    call std_io$std_io$println__string(%17) :void
+    %18 = intrinsic builder.new()
+    %19 = move %18
+    %20 = const string(#10) :string
+    intrinsic builder.append_str(%19, %20)
+    %21 = const int(3) :i32
+    %22 = binop 12 %1 %21 :bool
+    %23 = call std_core$bool$Display$to_string(%22) :string
+    intrinsic builder.append_str(%19, %23)
+    %24 = intrinsic builder.finish(%19)
+    call std_io$std_io$println__string(%24) :void
     return
 
 # Diagnostics

@@ -30,9 +30,13 @@
                     @builder.append_str :void
                       __sb_1 :?
                       "ten alice=" :string
-                    @builder.append_display <for string> :void
+                    @builder.append_str :void
                       __sb_1 :?
-                      name :string
+                      call :string
+                        callee:
+                          std_core$string$Display$to_string :string
+                        arg0:
+                          name :string
                     ~>
                       @builder.finish :string
                         __sb_1 :?

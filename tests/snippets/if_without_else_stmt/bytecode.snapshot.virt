@@ -8,7 +8,6 @@ string 1 "ok: "
 string 2 ")"
 string 3 "not matched"
 import 0 write std_io$write (i32,string) -> void
-import 1 to_string std_core$string$Display$to_string (string) -> string
 export main 2
 
 fn 0 std_io$std_io$println__string (string) -> void
@@ -27,14 +26,18 @@ end
 
 fn 1 snippet$expect_lparen (string) -> string
   local __sb_0 any
+  local $call_4 string
   intrinsic builder.new
   local.set 1
   local.get 1
   string.const 1
   intrinsic builder.append_str
-  local.get 1
   local.get 0
-  intrinsic builder.append_display
+  call 3
+  local.set 2
+  local.get 1
+  local.get 2
+  intrinsic builder.append_str
   local.get 1
   intrinsic builder.finish
   return
@@ -60,8 +63,7 @@ fn 2 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 3 std_core$string$Display$to_string_vt (string) -> string
+fn 3 std_core$string$Display$to_string (string) -> string
   local.get 0
-  call.import 1
   return
 end

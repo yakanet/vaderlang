@@ -69,13 +69,17 @@
           @builder.append_str :void
             __sb_0 :?
             "gamma=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            call :i32
+            call :string
               callee:
-                lookup :fn(string) -> i32
+                std_core$i32$Display$to_string :string
               arg0:
-                "gamma" :string
+                call :i32
+                  callee:
+                    lookup :fn(string) -> i32
+                  arg0:
+                    "gamma" :string
           ~>
             @builder.finish :string
               __sb_0 :?
@@ -89,13 +93,17 @@
           @builder.append_str :void
             __sb_1 :?
             "missing=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_1 :?
-            call :i32
+            call :string
               callee:
-                lookup :fn(string) -> i32
+                std_core$i32$Display$to_string :string
               arg0:
-                "zeta" :string
+                call :i32
+                  callee:
+                    lookup :fn(string) -> i32
+                  arg0:
+                    "zeta" :string
           ~>
             @builder.finish :string
               __sb_1 :?

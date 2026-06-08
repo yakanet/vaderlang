@@ -111,13 +111,17 @@
           @builder.append_str :void
             __sb_0 :?
             "Is EAST: " :string
-          @builder.append_display <for bool> :void
+          @builder.append_str :void
             __sb_0 :?
-            eq :bool
-              l:
-                d :Direction
-              r:
-                int(2) :i32
+            call :string
+              callee:
+                std_core$bool$Display$to_string :string
+              arg0:
+                eq :bool
+                  l:
+                    d :Direction
+                  r:
+                    int(2) :i32
           ~>
             @builder.finish :string
               __sb_0 :?
@@ -132,13 +136,17 @@
             @builder.append_str :void
               __sb_1 :?
               "Is WEST: " :string
-            @builder.append_display <for bool> :void
+            @builder.append_str :void
               __sb_1 :?
-              eq :bool
-                l:
-                  d :Direction
-                r:
-                  int(3) :i32
+              call :string
+                callee:
+                  std_core$bool$Display$to_string :string
+                arg0:
+                  eq :bool
+                    l:
+                      d :Direction
+                    r:
+                      int(3) :i32
             ~>
               @builder.finish :string
                 __sb_1 :?

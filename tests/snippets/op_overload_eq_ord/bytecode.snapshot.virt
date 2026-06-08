@@ -12,8 +12,9 @@ string 3 "a<c "
 string 4 "  c>a "
 string 5 "  a>=b "
 string 6 "  c<=c "
+string 7 "true"
+string 8 "false"
 import 0 write std_io$write (i32,string) -> void
-import 1 to_string std_core$string$Display$to_string (string) -> string
 impl 5 Equals
 impl 5 Comparable
 export main 3
@@ -21,7 +22,7 @@ export main 3
 fn 0 std_io$std_io$println__string (string) -> void
   local $call_2 string
   local.get 0
-  call 4
+  call 5
   local.set 1
   i32.const 0
   local.get 1
@@ -84,8 +85,8 @@ fn 3 snippet$main () -> i32
   local b ref
   local c ref
   local __sb_0 any
-  local $call_12 bool
-  local $call_20 i32
+  local $call_13 string
+  local $call_22 i32
   i32.const 100
   struct.new 5
   local.set 0
@@ -103,10 +104,11 @@ fn 3 snippet$main () -> i32
   local.get 0
   local.get 1
   call 1
+  call 4
   local.set 4
   local.get 3
   local.get 4
-  intrinsic builder.append_display
+  intrinsic builder.append_str
   local.get 3
   string.const 2
   intrinsic builder.append_str
@@ -114,10 +116,11 @@ fn 3 snippet$main () -> i32
   local.get 2
   call 1
   bool.not
+  call 4
   local.set 4
   local.get 3
   local.get 4
-  intrinsic builder.append_display
+  intrinsic builder.append_str
   local.get 3
   intrinsic builder.finish
   call 0
@@ -133,10 +136,11 @@ fn 3 snippet$main () -> i32
   local.get 5
   i32.const 0
   i32.lt
+  call 4
   local.set 4
   local.get 3
   local.get 4
-  intrinsic builder.append_display
+  intrinsic builder.append_str
   local.get 3
   string.const 4
   intrinsic builder.append_str
@@ -147,10 +151,11 @@ fn 3 snippet$main () -> i32
   local.get 5
   i32.const 0
   i32.gt
+  call 4
   local.set 4
   local.get 3
   local.get 4
-  intrinsic builder.append_display
+  intrinsic builder.append_str
   local.get 3
   string.const 5
   intrinsic builder.append_str
@@ -161,10 +166,11 @@ fn 3 snippet$main () -> i32
   local.get 5
   i32.const 0
   i32.ge
+  call 4
   local.set 4
   local.get 3
   local.get 4
-  intrinsic builder.append_display
+  intrinsic builder.append_str
   local.get 3
   string.const 6
   intrinsic builder.append_str
@@ -175,18 +181,32 @@ fn 3 snippet$main () -> i32
   local.get 5
   i32.const 0
   i32.le
+  call 4
   local.set 4
   local.get 3
   local.get 4
-  intrinsic builder.append_display
+  intrinsic builder.append_str
   local.get 3
   intrinsic builder.finish
   call 0
   return.lit i32.const 0
 end
 
-fn 4 std_core$string$Display$to_string_vt (string) -> string
+fn 4 std_core$bool$Display$to_string (bool) -> string
+  local if_res string
   local.get 0
-  call.import 1
+  if $L0 void
+    string.const 7
+    local.set 1
+  else
+    string.const 8
+    local.set 1
+  end $L0
+  local.get 1
+  return
+end
+
+fn 5 std_core$string$Display$to_string (string) -> string
+  local.get 0
   return
 end

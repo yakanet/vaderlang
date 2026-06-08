@@ -20,13 +20,17 @@
           @builder.append_str :void
             __sb_0 :?
             "exists: " :string
-          @builder.append_display <for bool> :void
+          @builder.append_str :void
             __sb_0 :?
-            call :bool
+            call :string
               callee:
-                exists :fn(string) -> bool
+                std_core$bool$Display$to_string :string
               arg0:
-                path :string
+                call :bool
+                  callee:
+                    exists :fn(string) -> bool
+                  arg0:
+                    path :string
           ~>
             @builder.finish :string
               __sb_0 :?
@@ -55,10 +59,14 @@
                     @builder.append_str :void
                       __sb_2 :?
                       "read: " :string
-                    @builder.append_display <for string> :void
+                    @builder.append_str :void
                       __sb_2 :?
-                      cast → string
-                        contents :Error | string
+                      call :string
+                        callee:
+                          std_core$string$Display$to_string :string
+                        arg0:
+                          cast → string
+                            contents :Error | string
                     ~>
                       @builder.finish :string
                         __sb_2 :?

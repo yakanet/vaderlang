@@ -11,37 +11,40 @@ fn snippet$main() -> i32
     %4 $k_4: ?
     %5 $struct_5: [i32, i32]
     %6 $field_6: i32
-    %7 $k_7: string
-    %8 $k_8: ?
+    %7 $call_7: string
+    %8 $k_8: string
     %9 $k_9: ?
-    %10 $struct_10: [i32, i32]
-    %11 $field_11: i32
-    %12 $intrinsic_12: string
-    %13 $intrinsic_13: ?
-    %14 __sb_1: ? (synthetic __sb_1)
-    %15 $k_15: string
-    %16 $k_16: ?
-    %17 $k_17: ?
-    %18 $k_18: string
-    %19 $struct_19: [f64, f64, string]
-    %20 $field_20: f64
-    %21 $k_21: string
-    %22 $k_22: ?
-    %23 $k_23: ?
-    %24 $k_24: string
-    %25 $struct_25: [f64, f64, string]
-    %26 $field_26: f64
-    %27 $k_27: string
-    %28 $k_28: ?
-    %29 $k_29: ?
-    %30 $k_30: string
-    %31 $struct_31: [f64, f64, string]
-    %32 $field_32: string
-    %33 $intrinsic_33: string
-    %34 $k_34: ?
-    %35 $k_35: ?
-    %36 $struct_36: [i32, i32]
-    %37 $field_37: i32
+    %10 $k_10: ?
+    %11 $struct_11: [i32, i32]
+    %12 $field_12: i32
+    %13 $call_13: string
+    %14 $intrinsic_14: string
+    %15 $intrinsic_15: ?
+    %16 __sb_1: ? (synthetic __sb_1)
+    %17 $k_17: string
+    %18 $k_18: ?
+    %19 $k_19: ?
+    %20 $k_20: string
+    %21 $struct_21: [f64, f64, string]
+    %22 $field_22: f64
+    %23 $k_23: string
+    %24 $k_24: ?
+    %25 $k_25: ?
+    %26 $k_26: string
+    %27 $struct_27: [f64, f64, string]
+    %28 $field_28: f64
+    %29 $k_29: string
+    %30 $k_30: ?
+    %31 $k_31: ?
+    %32 $k_32: string
+    %33 $struct_33: [f64, f64, string]
+    %34 $field_34: string
+    %35 $call_35: string
+    %36 $intrinsic_36: string
+    %37 $k_37: ?
+    %38 $k_38: ?
+    %39 $struct_39: [i32, i32]
+    %40 $field_40: i32
   bb0:
     %0 = intrinsic builder.new()
     %1 = move %0
@@ -51,46 +54,49 @@ fn snippet$main() -> i32
     %4 = const int(20) :?
     %5 = struct_new [i32, i32](%3, %4)
     %6 = field_get %5._0 :i32
-    intrinsic builder.append_display(%1, %6)
-    %7 = const string(#2) :string
+    %7 = call std_core$i32$Display$to_string(%6) :string
     intrinsic builder.append_str(%1, %7)
-    %8 = const int(10) :?
-    %9 = const int(20) :?
-    %10 = struct_new [i32, i32](%8, %9)
-    %11 = field_get %10._1 :i32
-    intrinsic builder.append_display(%1, %11)
-    %12 = intrinsic builder.finish(%1)
-    call std_io$std_io$println__string(%12) :void
-    %13 = intrinsic builder.new()
-    %14 = move %13
-    %15 = const string(#3) :string
-    intrinsic builder.append_str(%14, %15)
-    %16 = const float(0.0) :?
-    %17 = const float(0.0) :?
-    %18 = const string(#4) :string
-    %19 = struct_new [f64, f64, string](%16, %17, %18)
-    %20 = field_get %19._0 :f64
-    intrinsic builder.append_display(%14, %20)
-    %21 = const string(#5) :string
-    intrinsic builder.append_str(%14, %21)
-    %22 = const float(0.0) :?
-    %23 = const float(0.0) :?
-    %24 = const string(#4) :string
-    %25 = struct_new [f64, f64, string](%22, %23, %24)
-    %26 = field_get %25._1 :f64
-    intrinsic builder.append_display(%14, %26)
-    %27 = const string(#6) :string
-    intrinsic builder.append_str(%14, %27)
-    %28 = const float(0.0) :?
-    %29 = const float(0.0) :?
-    %30 = const string(#4) :string
-    %31 = struct_new [f64, f64, string](%28, %29, %30)
-    %32 = field_get %31._2 :string
-    intrinsic builder.append_display(%14, %32)
-    %33 = intrinsic builder.finish(%14)
-    call std_io$std_io$println__string(%33) :void
-    %34 = const int(10) :?
-    %35 = const int(20) :?
-    %36 = struct_new [i32, i32](%34, %35)
-    %37 = field_get %36._0 :i32
-    return %37
+    %8 = const string(#2) :string
+    intrinsic builder.append_str(%1, %8)
+    %9 = const int(10) :?
+    %10 = const int(20) :?
+    %11 = struct_new [i32, i32](%9, %10)
+    %12 = field_get %11._1 :i32
+    %13 = call std_core$i32$Display$to_string(%12) :string
+    intrinsic builder.append_str(%1, %13)
+    %14 = intrinsic builder.finish(%1)
+    call std_io$std_io$println__string(%14) :void
+    %15 = intrinsic builder.new()
+    %16 = move %15
+    %17 = const string(#3) :string
+    intrinsic builder.append_str(%16, %17)
+    %18 = const float(0.0) :?
+    %19 = const float(0.0) :?
+    %20 = const string(#4) :string
+    %21 = struct_new [f64, f64, string](%18, %19, %20)
+    %22 = field_get %21._0 :f64
+    intrinsic builder.append_display(%16, %22)
+    %23 = const string(#5) :string
+    intrinsic builder.append_str(%16, %23)
+    %24 = const float(0.0) :?
+    %25 = const float(0.0) :?
+    %26 = const string(#4) :string
+    %27 = struct_new [f64, f64, string](%24, %25, %26)
+    %28 = field_get %27._1 :f64
+    intrinsic builder.append_display(%16, %28)
+    %29 = const string(#6) :string
+    intrinsic builder.append_str(%16, %29)
+    %30 = const float(0.0) :?
+    %31 = const float(0.0) :?
+    %32 = const string(#4) :string
+    %33 = struct_new [f64, f64, string](%30, %31, %32)
+    %34 = field_get %33._2 :string
+    %35 = call std_core$string$Display$to_string(%34) :string
+    intrinsic builder.append_str(%16, %35)
+    %36 = intrinsic builder.finish(%16)
+    call std_io$std_io$println__string(%36) :void
+    %37 = const int(10) :?
+    %38 = const int(20) :?
+    %39 = struct_new [i32, i32](%37, %38)
+    %40 = field_get %39._0 :i32
+    return %40

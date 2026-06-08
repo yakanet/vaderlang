@@ -13,13 +13,12 @@ string 2 "dog "
 string 3 "Whiskers"
 string 4 "Rex"
 import 0 write std_io$write (i32,string) -> void
-import 1 to_string std_core$string$Display$to_string (string) -> string
-export main 3
+export main 4
 
 fn 0 std_io$std_io$println__string (string) -> void
   local $call_2 string
   local.get 0
-  call 4
+  call 1
   local.set 1
   i32.const 0
   local.get 1
@@ -30,18 +29,23 @@ fn 0 std_io$std_io$println__string (string) -> void
   return
 end
 
-fn 1 snippet$push_pet (ref,ref) -> void
+fn 1 std_core$string$Display$to_string (string) -> string
+  local.get 0
+  return
+end
+
+fn 2 snippet$push_pet (ref,ref) -> void
   local.get 0
   local.get 1
   array.push 7
   return
 end
 
-fn 2 snippet$describe (ref) -> string
+fn 3 snippet$describe (ref) -> string
   local __scrut_0 ref
   local c ref
   local __sb_2 any
-  local $field_9 string
+  local $call_10 string
   local.get 0
   local.tee 1
   type_check 4
@@ -55,10 +59,11 @@ fn 2 snippet$describe (ref) -> string
     intrinsic builder.append_str
     local.field 2 4 0
     ref.cast 1
+    call 1
     local.set 4
     local.get 3
     local.get 4
-    intrinsic builder.append_display
+    intrinsic builder.append_str
     local.get 3
     intrinsic builder.finish
     return
@@ -75,10 +80,11 @@ fn 2 snippet$describe (ref) -> string
     intrinsic builder.append_str
     local.field 1 5 0
     ref.cast 1
+    call 1
     local.set 4
     local.get 3
     local.get 4
-    intrinsic builder.append_display
+    intrinsic builder.append_str
     local.get 3
     intrinsic builder.finish
     return
@@ -86,7 +92,7 @@ fn 2 snippet$describe (ref) -> string
   return
 end
 
-fn 3 snippet$main () -> i32
+fn 4 snippet$main () -> i32
   local pets ref
   local $struct_3 ref
   local __for_len_1 usize
@@ -99,13 +105,13 @@ fn 3 snippet$main () -> i32
   local.set 1
   local.get 0
   local.get 1
-  call 1
+  call 2
   string.const 4
   struct.new 5
   local.set 1
   local.get 0
   local.get 1
-  call 1
+  call 2
   local.get 0
   local.tee 0
   array.len
@@ -121,7 +127,7 @@ fn 3 snippet$main () -> i32
         local.get 0
         local.get 3
         array.get 6
-        call 2
+        call 3
         call 0
         i64.const 1
         local.set 4
@@ -135,10 +141,4 @@ fn 3 snippet$main () -> i32
     end $L1
   end $L0
   return.lit i32.const 0
-end
-
-fn 4 std_core$string$Display$to_string_vt (string) -> string
-  local.get 0
-  call.import 1
-  return
 end

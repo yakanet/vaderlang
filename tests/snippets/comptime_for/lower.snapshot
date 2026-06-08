@@ -51,9 +51,13 @@
           block :string
             let __sb_2: ? =
               @builder.new :?
-            @builder.append_display <for string> :void
+            @builder.append_str :void
               __sb_2 :?
-              "key" :string
+              call :string
+                callee:
+                  std_core$string$Display$to_string :string
+                arg0:
+                  "key" :string
             @builder.append_str :void
               __sb_2 :?
               " size=" :string
@@ -74,9 +78,13 @@
           block :string
             let __sb_3: ? =
               @builder.new :?
-            @builder.append_display <for string> :void
+            @builder.append_str :void
               __sb_3 :?
-              "value" :string
+              call :string
+                callee:
+                  std_core$string$Display$to_string :string
+                arg0:
+                  "value" :string
             @builder.append_str :void
               __sb_3 :?
               " size=" :string

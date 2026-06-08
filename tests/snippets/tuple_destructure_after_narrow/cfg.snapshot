@@ -37,9 +37,11 @@ fn snippet$main() -> i32
     %12 $intrinsic_12: ?
     %13 __sb_1: ? (synthetic __sb_1)
     %14 $k_14: string
-    %15 $k_15: string
-    %16 $intrinsic_16: string
-    %17 $add_17: i32
+    %15 $call_15: string
+    %16 $k_16: string
+    %17 $call_17: string
+    %18 $intrinsic_18: string
+    %19 $add_19: i32
   bb0:
     %0 = const bool(true) :bool
     %1 = call make_pair(%0) :[i32, i32] | null
@@ -61,11 +63,13 @@ fn snippet$main() -> i32
     %13 = move %12
     %14 = const string(#1) :string
     intrinsic builder.append_str(%13, %14)
-    intrinsic builder.append_display(%13, %9)
-    %15 = const string(#2) :string
+    %15 = call std_core$i32$Display$to_string(%9) :string
     intrinsic builder.append_str(%13, %15)
-    intrinsic builder.append_display(%13, %11)
-    %16 = intrinsic builder.finish(%13)
-    call std_io$std_io$println__string(%16) :void
-    %17 = binop 0 %9 %11 :i32
-    return %17
+    %16 = const string(#2) :string
+    intrinsic builder.append_str(%13, %16)
+    %17 = call std_core$i32$Display$to_string(%11) :string
+    intrinsic builder.append_str(%13, %17)
+    %18 = intrinsic builder.finish(%13)
+    call std_io$std_io$println__string(%18) :void
+    %19 = binop 0 %9 %11 :i32
+    return %19

@@ -12,13 +12,15 @@ fn snippet$describe(%0: Cat | Dog) -> string
     %5 $k_5: string
     %6 $cast_6: Dog
     %7 $field_7: string
-    %8 $intrinsic_8: string
-    %9 $intrinsic_9: ?
-    %10 __sb_1: ? (synthetic __sb_1)
-    %11 $k_11: string
-    %12 $cast_12: Cat
-    %13 $field_13: string
-    %14 $intrinsic_14: string
+    %8 $call_8: string
+    %9 $intrinsic_9: string
+    %10 $intrinsic_10: ?
+    %11 __sb_1: ? (synthetic __sb_1)
+    %12 $k_12: string
+    %13 $cast_13: Cat
+    %14 $field_14: string
+    %15 $call_15: string
+    %16 $intrinsic_16: string
   bb0:
     %1 = type_check %0 is Cat
     %2 = unop 1 %1 :bool
@@ -30,19 +32,21 @@ fn snippet$describe(%0: Cat | Dog) -> string
     intrinsic builder.append_str(%4, %5)
     %6 = cast %0 :Dog
     %7 = field_get %6.sound :string
-    intrinsic builder.append_display(%4, %7)
-    %8 = intrinsic builder.finish(%4)
-    return %8
+    %8 = call std_core$string$Display$to_string(%7) :string
+    intrinsic builder.append_str(%4, %8)
+    %9 = intrinsic builder.finish(%4)
+    return %9
   bb2:
-    %9 = intrinsic builder.new()
-    %10 = move %9
-    %11 = const string(#1) :string
-    intrinsic builder.append_str(%10, %11)
-    %12 = cast %0 :Cat
-    %13 = field_get %12.name :string
-    intrinsic builder.append_display(%10, %13)
-    %14 = intrinsic builder.finish(%10)
-    return %14
+    %10 = intrinsic builder.new()
+    %11 = move %10
+    %12 = const string(#1) :string
+    intrinsic builder.append_str(%11, %12)
+    %13 = cast %0 :Cat
+    %14 = field_get %13.name :string
+    %15 = call std_core$string$Display$to_string(%14) :string
+    intrinsic builder.append_str(%11, %15)
+    %16 = intrinsic builder.finish(%11)
+    return %16
 
 fn snippet$stringify(%0: i32 | string) -> string
   locals:
@@ -53,12 +57,14 @@ fn snippet$stringify(%0: i32 | string) -> string
     %4 __sb_0: ? (synthetic __sb_0)
     %5 $k_5: string
     %6 $cast_6: i32
-    %7 $intrinsic_7: string
-    %8 $intrinsic_8: ?
-    %9 __sb_1: ? (synthetic __sb_1)
-    %10 $k_10: string
-    %11 $cast_11: string
-    %12 $intrinsic_12: string
+    %7 $call_7: string
+    %8 $intrinsic_8: string
+    %9 $intrinsic_9: ?
+    %10 __sb_1: ? (synthetic __sb_1)
+    %11 $k_11: string
+    %12 $cast_12: string
+    %13 $call_13: string
+    %14 $intrinsic_14: string
   bb0:
     %1 = type_check %0 is string
     %2 = unop 1 %1 :bool
@@ -69,18 +75,20 @@ fn snippet$stringify(%0: i32 | string) -> string
     %5 = const string(#2) :string
     intrinsic builder.append_str(%4, %5)
     %6 = cast %0 :i32
-    intrinsic builder.append_display(%4, %6)
-    %7 = intrinsic builder.finish(%4)
-    return %7
+    %7 = call std_core$i32$Display$to_string(%6) :string
+    intrinsic builder.append_str(%4, %7)
+    %8 = intrinsic builder.finish(%4)
+    return %8
   bb2:
-    %8 = intrinsic builder.new()
-    %9 = move %8
-    %10 = const string(#3) :string
-    intrinsic builder.append_str(%9, %10)
-    %11 = cast %0 :string
-    intrinsic builder.append_display(%9, %11)
-    %12 = intrinsic builder.finish(%9)
-    return %12
+    %9 = intrinsic builder.new()
+    %10 = move %9
+    %11 = const string(#3) :string
+    intrinsic builder.append_str(%10, %11)
+    %12 = cast %0 :string
+    %13 = call std_core$string$Display$to_string(%12) :string
+    intrinsic builder.append_str(%10, %13)
+    %14 = intrinsic builder.finish(%10)
+    return %14
 
 fn snippet$unwrap_or(%0: Cat | null, %1: string) -> string
   locals:
@@ -93,7 +101,8 @@ fn snippet$unwrap_or(%0: Cat | null, %1: string) -> string
     %6 $k_6: string
     %7 $cast_7: Cat
     %8 $field_8: string
-    %9 $intrinsic_9: string
+    %9 $call_9: string
+    %10 $intrinsic_10: string
   bb0:
     %2 = type_check %0 is null
     %3 = unop 1 %2 :bool
@@ -105,9 +114,10 @@ fn snippet$unwrap_or(%0: Cat | null, %1: string) -> string
     intrinsic builder.append_str(%5, %6)
     %7 = cast %0 :Cat
     %8 = field_get %7.name :string
-    intrinsic builder.append_display(%5, %8)
-    %9 = intrinsic builder.finish(%5)
-    return %9
+    %9 = call std_core$string$Display$to_string(%8) :string
+    intrinsic builder.append_str(%5, %9)
+    %10 = intrinsic builder.finish(%5)
+    return %10
   bb2:
     return %1
 

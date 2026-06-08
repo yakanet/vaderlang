@@ -13,16 +13,18 @@ fn snippet$main() -> i32
     %6 $k_6: i32
     %7 $arr_7: i32[]
     %8 $call_8: i32
-    %9 $intrinsic_9: string
-    %10 $intrinsic_10: ?
-    %11 __sb_1: ? (synthetic __sb_1)
-    %12 $k_12: string
+    %9 $call_9: string
+    %10 $intrinsic_10: string
+    %11 $intrinsic_11: ?
+    %12 __sb_1: ? (synthetic __sb_1)
     %13 $k_13: string
     %14 $k_14: string
-    %15 $arr_15: string[]
-    %16 $call_16: i32
-    %17 $intrinsic_17: string
-    %18 $k_18: i32
+    %15 $k_15: string
+    %16 $arr_16: string[]
+    %17 $call_17: i32
+    %18 $call_18: string
+    %19 $intrinsic_19: string
+    %20 $k_20: i32
   bb0:
     %0 = intrinsic builder.new()
     %1 = move %0
@@ -33,21 +35,23 @@ fn snippet$main() -> i32
     %6 = const int(5) :i32
     %7 = array_new i32[][5](%2, %3, %4, %5, %6)
     %8 = call snippet$snippet$outer__i32(%7) :i32
-    intrinsic builder.append_display(%1, %8)
-    %9 = intrinsic builder.finish(%1)
-    call std_io$std_io$println__string(%9) :void
-    %10 = intrinsic builder.new()
-    %11 = move %10
-    %12 = const string(#1) :string
-    %13 = const string(#2) :string
-    %14 = const string(#3) :string
-    %15 = array_new string[][3](%12, %13, %14)
-    %16 = call snippet$snippet$outer__string(%15) :i32
-    intrinsic builder.append_display(%11, %16)
-    %17 = intrinsic builder.finish(%11)
-    call std_io$std_io$println__string(%17) :void
-    %18 = const int(0) :i32
-    return %18
+    %9 = call std_core$i32$Display$to_string(%8) :string
+    intrinsic builder.append_str(%1, %9)
+    %10 = intrinsic builder.finish(%1)
+    call std_io$std_io$println__string(%10) :void
+    %11 = intrinsic builder.new()
+    %12 = move %11
+    %13 = const string(#1) :string
+    %14 = const string(#2) :string
+    %15 = const string(#3) :string
+    %16 = array_new string[][3](%13, %14, %15)
+    %17 = call snippet$snippet$outer__string(%16) :i32
+    %18 = call std_core$i32$Display$to_string(%17) :string
+    intrinsic builder.append_str(%12, %18)
+    %19 = intrinsic builder.finish(%12)
+    call std_io$std_io$println__string(%19) :void
+    %20 = const int(0) :i32
+    return %20
 
 fn snippet$snippet$inner_count__Any(%0: Any[]) -> i32
   locals:

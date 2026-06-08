@@ -4,14 +4,25 @@ type 1 primitive string
 type 2 primitive void
 type 3 primitive i32
 type 4 primitive usize
+type 5 array 1
+type 6 primitive u64
 string 0 "\n"
 string 1 "size i32      = "
 string 2 "size i64      = "
 string 3 "size union    = "
 string 4 "size array    = "
+string 5 "0"
+string 6 ""
+string 7 "1"
+string 8 "2"
+string 9 "3"
+string 10 "4"
+string 11 "5"
+string 12 "6"
+string 13 "7"
+string 14 "8"
+string 15 "9"
 import 0 write std_io$write (i32,string) -> void
-import 1 to_string std_core$usize$Display$to_string (usize) -> string
-import 2 to_string std_core$string$Display$to_string (string) -> string
 export main 1
 
 fn 0 std_io$std_io$println__string (string) -> void
@@ -90,14 +101,83 @@ fn 1 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 2 std_core$usize$Display$to_string_vt (usize) -> string
+fn 2 std_core$usize$Display$to_string (usize) -> string
   local.get 0
-  call.import 1
+  usize.to_i64
+  call 4
   return
 end
 
-fn 3 std_core$string$Display$to_string_vt (string) -> string
+fn 3 std_core$string$Display$to_string (string) -> string
   local.get 0
-  call.import 2
+  return
+end
+
+fn 4 std_core$format_unsigned (u64) -> string
+  local $k_1 u64
+  local out string
+  local $k_7 u64
+  local $arr_19 ref
+  local $k_20 u64
+  local $cast_22 usize
+  local $k_25 u64
+  i64.const 0
+  local.set 1
+  local.get 0
+  local.get 1
+  i64.eq
+  if $L0 void
+    return.lit string.const 5
+  end $L0
+  local.get 0
+  local.set 1
+  string.const 6
+  local.set 2
+  block $L1 void
+    loop $L2 void
+      i64.const 0
+      local.set 3
+      local.get 1
+      local.get 3
+      i64.ne
+      if $L3 void
+        string.const 5
+        string.const 7
+        string.const 8
+        string.const 9
+        string.const 10
+        string.const 11
+        string.const 12
+        string.const 13
+        string.const 14
+        string.const 15
+        array.new 5 10
+        local.set 4
+        i64.const 10
+        local.set 5
+        local.get 1
+        local.get 5
+        u64.rem
+        u64.to_i64
+        local.set 6
+        local.get 4
+        local.get 6
+        array.get 5
+        ref.cast 1
+        local.get 2
+        string.concat
+        local.set 2
+        i64.const 10
+        local.set 7
+        local.get 1
+        local.get 7
+        u64.div
+        local.set 1
+        br $L2
+      else
+      end $L3
+    end $L2
+  end $L1
+  local.get 2
   return
 end

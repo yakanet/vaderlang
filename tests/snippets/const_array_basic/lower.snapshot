@@ -24,13 +24,17 @@
           @builder.append_str :void
             __sb_0 :?
             "first=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            call :i32
+            call :string
               callee:
-                read_first :fn(const i32[]) -> i32
+                std_core$i32$Display$to_string :string
               arg0:
-                arr :i32[]
+                call :i32
+                  callee:
+                    read_first :fn(const i32[]) -> i32
+                  arg0:
+                    arr :i32[]
           ~>
             @builder.finish :string
               __sb_0 :?

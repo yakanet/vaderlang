@@ -39,15 +39,19 @@
           @builder.append_str :void
             __sb_1 :?
             "a == b : " :string
-          @builder.append_display <for bool> :void
+          @builder.append_str :void
             __sb_1 :?
-            call :bool
+            call :string
               callee:
-                std_core$i32$Equals$equals :bool
+                std_core$bool$Display$to_string :string
               arg0:
-                a :i32
-              arg1:
-                b :i32
+                call :bool
+                  callee:
+                    std_core$i32$Equals$equals :bool
+                  arg0:
+                    a :i32
+                  arg1:
+                    b :i32
           ~>
             @builder.finish :string
               __sb_1 :?
@@ -61,15 +65,19 @@
           @builder.append_str :void
             __sb_2 :?
             "a == c : " :string
-          @builder.append_display <for bool> :void
+          @builder.append_str :void
             __sb_2 :?
-            call :bool
+            call :string
               callee:
-                std_core$i32$Equals$equals :bool
+                std_core$bool$Display$to_string :string
               arg0:
-                a :i32
-              arg1:
-                c :i32
+                call :bool
+                  callee:
+                    std_core$i32$Equals$equals :bool
+                  arg0:
+                    a :i32
+                  arg1:
+                    c :i32
           ~>
             @builder.finish :string
               __sb_2 :?

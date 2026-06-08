@@ -78,9 +78,13 @@
           @builder.append_str :void
             __sb_1 :?
             "i64 sum=" :string
-          @builder.append_display <for i64> :void
+          @builder.append_str :void
             __sb_1 :?
-            si :i64
+            call :string
+              callee:
+                std_core$i64$Display$to_string :string
+              arg0:
+                si :i64
           ~>
             @builder.finish :string
               __sb_1 :?
@@ -117,9 +121,13 @@
           @builder.append_str :void
             __sb_2 :?
             "isize sum=" :string
-          @builder.append_display <for isize> :void
+          @builder.append_str :void
             __sb_2 :?
-            sis :isize
+            call :string
+              callee:
+                std_core$isize$Display$to_string :string
+              arg0:
+                sis :isize
           ~>
             @builder.finish :string
               __sb_2 :?
@@ -207,9 +215,13 @@
           @builder.append_str :void
             __sb_5 :?
             "i16 sum=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_5 :?
-            sh :i32
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                sh :i32
           ~>
             @builder.finish :string
               __sb_5 :?

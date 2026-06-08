@@ -75,14 +75,18 @@
           @builder.append_str :void
             __sb_2 :?
             "first=" :string
-          @builder.append_display <for string> :void
+          @builder.append_str :void
             __sb_2 :?
-            index :string
-              on:
-                .positionals :string[]
-                  r :ParsedArgs
-              ix:
-                int(0) :i32
+            call :string
+              callee:
+                std_core$string$Display$to_string :string
+              arg0:
+                index :string
+                  on:
+                    .positionals :string[]
+                      r :ParsedArgs
+                  ix:
+                    int(0) :i32
           ~>
             @builder.finish :string
               __sb_2 :?
@@ -96,15 +100,19 @@
           @builder.append_str :void
             __sb_3 :?
             "verbose=" :string
-          @builder.append_display <for bool> :void
+          @builder.append_str :void
             __sb_3 :?
-            call :bool
+            call :string
               callee:
-                bool_flag :bool
+                std_core$bool$Display$to_string :string
               arg0:
-                r :ParsedArgs
-              arg1:
-                "verbose" :string
+                call :bool
+                  callee:
+                    bool_flag :bool
+                  arg0:
+                    r :ParsedArgs
+                  arg1:
+                    "verbose" :string
           ~>
             @builder.finish :string
               __sb_3 :?
@@ -118,15 +126,19 @@
           @builder.append_str :void
             __sb_4 :?
             "missing=" :string
-          @builder.append_display <for bool> :void
+          @builder.append_str :void
             __sb_4 :?
-            call :bool
+            call :string
               callee:
-                bool_flag :bool
+                std_core$bool$Display$to_string :string
               arg0:
-                r :ParsedArgs
-              arg1:
-                "missing" :string
+                call :bool
+                  callee:
+                    bool_flag :bool
+                  arg0:
+                    r :ParsedArgs
+                  arg1:
+                    "missing" :string
           ~>
             @builder.finish :string
               __sb_4 :?
@@ -140,17 +152,21 @@
           @builder.append_str :void
             __sb_5 :?
             "out=" :string
-          @builder.append_display <for string> :void
+          @builder.append_str :void
             __sb_5 :?
             call :string
               callee:
-                string_flag :string
+                std_core$string$Display$to_string :string
               arg0:
-                r :ParsedArgs
-              arg1:
-                "out" :string
-              arg2:
-                "" :string
+                call :string
+                  callee:
+                    string_flag :string
+                  arg0:
+                    r :ParsedArgs
+                  arg1:
+                    "out" :string
+                  arg2:
+                    "" :string
           ~>
             @builder.finish :string
               __sb_5 :?
@@ -164,17 +180,21 @@
           @builder.append_str :void
             __sb_6 :?
             "default=" :string
-          @builder.append_display <for string> :void
+          @builder.append_str :void
             __sb_6 :?
             call :string
               callee:
-                string_flag :string
+                std_core$string$Display$to_string :string
               arg0:
-                r :ParsedArgs
-              arg1:
-                "absent" :string
-              arg2:
-                "fallback" :string
+                call :string
+                  callee:
+                    string_flag :string
+                  arg0:
+                    r :ParsedArgs
+                  arg1:
+                    "absent" :string
+                  arg2:
+                    "fallback" :string
           ~>
             @builder.finish :string
               __sb_6 :?
@@ -232,9 +252,13 @@
               @builder.append_str :void
                 __sb_11 :?
                 "err=" :string
-              @builder.append_display <for string> :void
+              @builder.append_str :void
                 __sb_11 :?
-                e :string
+                call :string
+                  callee:
+                    std_core$string$Display$to_string :string
+                  arg0:
+                    e :string
               ~>
                 @builder.finish :string
                   __sb_11 :?

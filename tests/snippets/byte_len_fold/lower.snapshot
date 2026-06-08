@@ -52,13 +52,17 @@
           @builder.append_str :void
             __sb_1 :?
             " first=" :string
-          @builder.append_display <for u8> :void
+          @builder.append_str :void
             __sb_1 :?
-            index :u8
-              on:
-                bs :const u8[]
-              ix:
-                int(0) :i32
+            call :string
+              callee:
+                std_core$u8$Display$to_string :string
+              arg0:
+                index :u8
+                  on:
+                    bs :const u8[]
+                  ix:
+                    int(0) :i32
           ~>
             @builder.finish :string
               __sb_1 :?

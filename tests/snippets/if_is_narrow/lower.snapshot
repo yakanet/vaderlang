@@ -17,11 +17,15 @@
             @builder.append_str :void
               __sb_0 :?
               "cat " :string
-            @builder.append_display <for string> :void
+            @builder.append_str :void
               __sb_0 :?
-              .name :string
-                cast → Cat
-                  p :Cat | Dog
+              call :string
+                callee:
+                  std_core$string$Display$to_string :string
+                arg0:
+                  .name :string
+                    cast → Cat
+                      p :Cat | Dog
             ~>
               @builder.finish :string
                 __sb_0 :?
@@ -32,11 +36,15 @@
         @builder.append_str :void
           __sb_1 :?
           "dog says " :string
-        @builder.append_display <for string> :void
+        @builder.append_str :void
           __sb_1 :?
-          .sound :string
-            cast → Dog
-              p :Cat | Dog
+          call :string
+            callee:
+              std_core$string$Display$to_string :string
+            arg0:
+              .sound :string
+                cast → Dog
+                  p :Cat | Dog
         ~>
           @builder.finish :string
             __sb_1 :?
@@ -54,11 +62,15 @@
             @builder.append_str :void
               __sb_0 :?
               "dog says " :string
-            @builder.append_display <for string> :void
+            @builder.append_str :void
               __sb_0 :?
-              .sound :string
-                cast → Dog
-                  p :Cat | Dog
+              call :string
+                callee:
+                  std_core$string$Display$to_string :string
+                arg0:
+                  .sound :string
+                    cast → Dog
+                      p :Cat | Dog
             ~>
               @builder.finish :string
                 __sb_0 :?
@@ -69,11 +81,15 @@
         @builder.append_str :void
           __sb_1 :?
           "cat " :string
-        @builder.append_display <for string> :void
+        @builder.append_str :void
           __sb_1 :?
-          .name :string
-            cast → Cat
-              p :Cat | Dog
+          call :string
+            callee:
+              std_core$string$Display$to_string :string
+            arg0:
+              .name :string
+                cast → Cat
+                  p :Cat | Dog
         ~>
           @builder.finish :string
             __sb_1 :?
@@ -90,11 +106,15 @@
             @builder.append_str :void
               __sb_0 :?
               "cat " :string
-            @builder.append_display <for string> :void
+            @builder.append_str :void
               __sb_0 :?
-              .name :string
-                cast → Cat
-                  p :Cat | Dog | Pig
+              call :string
+                callee:
+                  std_core$string$Display$to_string :string
+                arg0:
+                  .name :string
+                    cast → Cat
+                      p :Cat | Dog | Pig
             ~>
               @builder.finish :string
                 __sb_0 :?
@@ -110,11 +130,15 @@
             @builder.append_str :void
               __sb_1 :?
               "dog says " :string
-            @builder.append_display <for string> :void
+            @builder.append_str :void
               __sb_1 :?
-              .sound :string
-                cast → Dog
-                  p :Cat | Dog | Pig
+              call :string
+                callee:
+                  std_core$string$Display$to_string :string
+                arg0:
+                  .sound :string
+                    cast → Dog
+                      p :Cat | Dog | Pig
             ~>
               @builder.finish :string
                 __sb_1 :?
@@ -125,11 +149,15 @@
         @builder.append_str :void
           __sb_2 :?
           "pig of " :string
-        @builder.append_display <for i32> :void
+        @builder.append_str :void
           __sb_2 :?
-          .weight :i32
-            cast → Pig
-              p :Cat | Dog | Pig
+          call :string
+            callee:
+              std_core$i32$Display$to_string :string
+            arg0:
+              .weight :i32
+                cast → Pig
+                  p :Cat | Dog | Pig
         @builder.append_str :void
           __sb_2 :?
           " kg" :string
@@ -149,10 +177,14 @@
             @builder.append_str :void
               __sb_0 :?
               "int " :string
-            @builder.append_display <for i32> :void
+            @builder.append_str :void
               __sb_0 :?
-              cast → i32
-                v :i32 | string
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  cast → i32
+                    v :i32 | string
             ~>
               @builder.finish :string
                 __sb_0 :?
@@ -163,10 +195,14 @@
         @builder.append_str :void
           __sb_1 :?
           "str " :string
-        @builder.append_display <for string> :void
+        @builder.append_str :void
           __sb_1 :?
-          cast → string
-            v :i32 | string
+          call :string
+            callee:
+              std_core$string$Display$to_string :string
+            arg0:
+              cast → string
+                v :i32 | string
         ~>
           @builder.finish :string
             __sb_1 :?

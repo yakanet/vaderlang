@@ -111,19 +111,23 @@
           @builder.append_str :void
             __sb_0 :?
             "plus=" :string
-          @builder.append_display <for string> :void
+          @builder.append_str :void
             __sb_0 :?
             call :string
               callee:
-                format :string
+                std_core$string$Display$to_string :string
               arg0:
-                call :Duration
+                call :string
                   callee:
-                    plus :Duration
+                    format :string
                   arg0:
-                    a :Duration
-                  arg1:
-                    b :Duration
+                    call :Duration
+                      callee:
+                        plus :Duration
+                      arg0:
+                        a :Duration
+                      arg1:
+                        b :Duration
           ~>
             @builder.finish :string
               __sb_0 :?
@@ -137,19 +141,23 @@
           @builder.append_str :void
             __sb_1 :?
             "minus=" :string
-          @builder.append_display <for string> :void
+          @builder.append_str :void
             __sb_1 :?
             call :string
               callee:
-                format :string
+                std_core$string$Display$to_string :string
               arg0:
-                call :Duration
+                call :string
                   callee:
-                    minus :Duration
+                    format :string
                   arg0:
-                    a :Duration
-                  arg1:
-                    b :Duration
+                    call :Duration
+                      callee:
+                        minus :Duration
+                      arg0:
+                        a :Duration
+                      arg1:
+                        b :Duration
           ~>
             @builder.finish :string
               __sb_1 :?
@@ -190,13 +198,17 @@
           @builder.append_str :void
             __sb_2 :?
             "delta=" :string
-          @builder.append_display <for string> :void
+          @builder.append_str :void
             __sb_2 :?
             call :string
               callee:
-                format :string
+                std_core$string$Display$to_string :string
               arg0:
-                delta :Duration
+                call :string
+                  callee:
+                    format :string
+                  arg0:
+                    delta :Duration
           ~>
             @builder.finish :string
               __sb_2 :?
@@ -359,15 +371,19 @@
           @builder.append_str :void
             __sb_6 :?
             "monotonic>=0=" :string
-          @builder.append_display <for bool> :void
+          @builder.append_str :void
             __sb_6 :?
-            gte :bool
-              l:
-                .ns :i64
-                  e :Duration
-              r:
-                cast → i64
-                  int(0) :i64
+            call :string
+              callee:
+                std_core$bool$Display$to_string :string
+              arg0:
+                gte :bool
+                  l:
+                    .ns :i64
+                      e :Duration
+                  r:
+                    cast → i64
+                      int(0) :i64
           ~>
             @builder.finish :string
               __sb_6 :?

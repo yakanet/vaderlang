@@ -14,13 +14,15 @@ fn snippet$main() -> i32
     %7 __sb_0: ? (synthetic __sb_0)
     %8 $field_8: Box<i32>
     %9 $field_9: i32
-    %10 $intrinsic_10: string
-    %11 $intrinsic_11: ?
-    %12 __sb_1: ? (synthetic __sb_1)
-    %13 $field_13: Box<string>
-    %14 $field_14: string
-    %15 $intrinsic_15: string
-    %16 $k_16: i32
+    %10 $call_10: string
+    %11 $intrinsic_11: string
+    %12 $intrinsic_12: ?
+    %13 __sb_1: ? (synthetic __sb_1)
+    %14 $field_14: Box<string>
+    %15 $field_15: string
+    %16 $call_16: string
+    %17 $intrinsic_17: string
+    %18 $k_18: i32
   bb0:
     %0 = const int(42) :i32
     %1 = call snippet$snippet$outer__i32(%0) :Box<Box<i32>>
@@ -32,18 +34,20 @@ fn snippet$main() -> i32
     %7 = move %6
     %8 = field_get %2.value :Box<i32>
     %9 = field_get %8.value :i32
-    intrinsic builder.append_display(%7, %9)
-    %10 = intrinsic builder.finish(%7)
-    call std_io$std_io$println__string(%10) :void
-    %11 = intrinsic builder.new()
-    %12 = move %11
-    %13 = field_get %5.value :Box<string>
-    %14 = field_get %13.value :string
-    intrinsic builder.append_display(%12, %14)
-    %15 = intrinsic builder.finish(%12)
-    call std_io$std_io$println__string(%15) :void
-    %16 = const int(0) :i32
-    return %16
+    %10 = call std_core$i32$Display$to_string(%9) :string
+    intrinsic builder.append_str(%7, %10)
+    %11 = intrinsic builder.finish(%7)
+    call std_io$std_io$println__string(%11) :void
+    %12 = intrinsic builder.new()
+    %13 = move %12
+    %14 = field_get %5.value :Box<string>
+    %15 = field_get %14.value :string
+    %16 = call std_core$string$Display$to_string(%15) :string
+    intrinsic builder.append_str(%13, %16)
+    %17 = intrinsic builder.finish(%13)
+    call std_io$std_io$println__string(%17) :void
+    %18 = const int(0) :i32
+    return %18
 
 fn snippet$snippet$inner__Any(%0: Any) -> Any
   locals:

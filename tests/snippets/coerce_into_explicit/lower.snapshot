@@ -14,10 +14,14 @@
         @builder.append_str :void
           __sb_0 :?
           "user_" :string
-        @builder.append_display <for i32> :void
+        @builder.append_str :void
           __sb_0 :?
-          .value :i32
-            self :UserId
+          call :string
+            callee:
+              std_core$i32$Display$to_string :string
+            arg0:
+              .value :i32
+                self :UserId
         ~>
           @builder.finish :string
             __sb_0 :?
@@ -43,9 +47,13 @@
           @builder.append_str :void
             __sb_0 :?
             "n=" :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            n :i32
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                n :i32
           ~>
             @builder.finish :string
               __sb_0 :?
@@ -65,9 +73,13 @@
           @builder.append_str :void
             __sb_1 :?
             "s=" :string
-          @builder.append_display <for string> :void
+          @builder.append_str :void
             __sb_1 :?
-            s :string
+            call :string
+              callee:
+                std_core$string$Display$to_string :string
+              arg0:
+                s :string
           ~>
             @builder.finish :string
               __sb_1 :?

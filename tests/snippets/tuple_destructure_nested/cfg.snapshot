@@ -32,16 +32,19 @@ fn snippet$main() -> i32
     %10 $intrinsic_10: ?
     %11 __sb_1: ? (synthetic __sb_1)
     %12 $k_12: string
-    %13 $intrinsic_13: string
-    %14 $intrinsic_14: ?
-    %15 __sb_2: ? (synthetic __sb_2)
-    %16 $k_16: string
-    %17 $intrinsic_17: string
-    %18 $intrinsic_18: ?
-    %19 __sb_3: ? (synthetic __sb_3)
-    %20 $k_20: string
-    %21 $intrinsic_21: string
-    %22 $k_22: i32
+    %13 $call_13: string
+    %14 $intrinsic_14: string
+    %15 $intrinsic_15: ?
+    %16 __sb_2: ? (synthetic __sb_2)
+    %17 $k_17: string
+    %18 $call_18: string
+    %19 $intrinsic_19: string
+    %20 $intrinsic_20: ?
+    %21 __sb_3: ? (synthetic __sb_3)
+    %22 $k_22: string
+    %23 $call_23: string
+    %24 $intrinsic_24: string
+    %25 $k_25: i32
   bb0:
     %0 = call make_record() :[[i32, string], bool]
     %1 = move %0
@@ -57,22 +60,25 @@ fn snippet$main() -> i32
     %11 = move %10
     %12 = const string(#2) :string
     intrinsic builder.append_str(%11, %12)
-    intrinsic builder.append_display(%11, %4)
-    %13 = intrinsic builder.finish(%11)
-    call std_io$std_io$println__string(%13) :void
-    %14 = intrinsic builder.new()
-    %15 = move %14
-    %16 = const string(#3) :string
-    intrinsic builder.append_str(%15, %16)
-    intrinsic builder.append_display(%15, %7)
-    %17 = intrinsic builder.finish(%15)
-    call std_io$std_io$println__string(%17) :void
-    %18 = intrinsic builder.new()
-    %19 = move %18
-    %20 = const string(#4) :string
-    intrinsic builder.append_str(%19, %20)
-    intrinsic builder.append_display(%19, %9)
-    %21 = intrinsic builder.finish(%19)
-    call std_io$std_io$println__string(%21) :void
-    %22 = const int(0) :i32
-    return %22
+    %13 = call std_core$i32$Display$to_string(%4) :string
+    intrinsic builder.append_str(%11, %13)
+    %14 = intrinsic builder.finish(%11)
+    call std_io$std_io$println__string(%14) :void
+    %15 = intrinsic builder.new()
+    %16 = move %15
+    %17 = const string(#3) :string
+    intrinsic builder.append_str(%16, %17)
+    %18 = call std_core$string$Display$to_string(%7) :string
+    intrinsic builder.append_str(%16, %18)
+    %19 = intrinsic builder.finish(%16)
+    call std_io$std_io$println__string(%19) :void
+    %20 = intrinsic builder.new()
+    %21 = move %20
+    %22 = const string(#4) :string
+    intrinsic builder.append_str(%21, %22)
+    %23 = call std_core$bool$Display$to_string(%9) :string
+    intrinsic builder.append_str(%21, %23)
+    %24 = intrinsic builder.finish(%21)
+    call std_io$std_io$println__string(%24) :void
+    %25 = const int(0) :i32
+    return %25

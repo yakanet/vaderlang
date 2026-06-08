@@ -12,12 +12,13 @@ fn snippet$main() -> i32
     %5 __sb_0: ? (synthetic __sb_0)
     %6 $k_6: string
     %7 $field_7: string
-    %8 $k_8: string
-    %9 $field_9: usize
-    %10 $call_10: string
-    %11 $intrinsic_11: string
-    %12 $field_12: usize
-    %13 $cast_13: i32
+    %8 $call_8: string
+    %9 $k_9: string
+    %10 $field_10: usize
+    %11 $call_11: string
+    %12 $intrinsic_12: string
+    %13 $field_13: usize
+    %14 $cast_14: i32
   bb0:
     %0 = const string(#1) :string
     %1 = const int(99) :usize
@@ -28,16 +29,17 @@ fn snippet$main() -> i32
     %6 = const string(#2) :string
     intrinsic builder.append_str(%5, %6)
     %7 = field_get %3.name :string
-    intrinsic builder.append_display(%5, %7)
-    %8 = const string(#3) :string
+    %8 = call std_core$string$Display$to_string(%7) :string
     intrinsic builder.append_str(%5, %8)
-    %9 = field_get %3.id :usize
-    %10 = call std_core$usize$Display$to_string(%9) :string
-    intrinsic builder.append_str(%5, %10)
-    %11 = intrinsic builder.finish(%5)
-    call std_io$std_io$println__string(%11) :void
-    %12 = field_get %3.id :usize
-    %13 = cast %12 :i32
-    return %13
+    %9 = const string(#3) :string
+    intrinsic builder.append_str(%5, %9)
+    %10 = field_get %3.id :usize
+    %11 = call std_core$usize$Display$to_string(%10) :string
+    intrinsic builder.append_str(%5, %11)
+    %12 = intrinsic builder.finish(%5)
+    call std_io$std_io$println__string(%12) :void
+    %13 = field_get %3.id :usize
+    %14 = cast %13 :i32
+    return %14
 
 ## snippet/shapes

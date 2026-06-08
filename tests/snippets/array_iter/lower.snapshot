@@ -49,9 +49,13 @@
           @builder.append_str :void
             __sb_3 :?
             "sum = " :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_3 :?
-            sum :i32
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                sum :i32
           ~>
             @builder.finish :string
               __sb_3 :?
@@ -101,9 +105,13 @@
           @builder.append_str :void
             __sb_8 :?
             "count = " :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_8 :?
-            n :i32
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                n :i32
           ~>
             @builder.finish :string
               __sb_8 :?

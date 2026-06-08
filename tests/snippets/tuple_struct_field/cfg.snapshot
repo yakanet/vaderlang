@@ -14,14 +14,15 @@ fn snippet$main() -> i32
     %7 __sb_0: ? (synthetic __sb_0)
     %8 $k_8: string
     %9 $field_9: i32
-    %10 $k_10: string
-    %11 $field_11: [f64, f64]
-    %12 $field_12: f64
-    %13 $k_13: string
-    %14 $field_14: [f64, f64]
-    %15 $field_15: f64
-    %16 $intrinsic_16: string
-    %17 $k_17: i32
+    %10 $call_10: string
+    %11 $k_11: string
+    %12 $field_12: [f64, f64]
+    %13 $field_13: f64
+    %14 $k_14: string
+    %15 $field_15: [f64, f64]
+    %16 $field_16: f64
+    %17 $intrinsic_17: string
+    %18 $k_18: i32
   bb0:
     %0 = const int(1) :i32
     %1 = const float(3.5) :f64
@@ -34,18 +35,19 @@ fn snippet$main() -> i32
     %8 = const string(#1) :string
     intrinsic builder.append_str(%7, %8)
     %9 = field_get %5.id :i32
-    intrinsic builder.append_display(%7, %9)
-    %10 = const string(#2) :string
+    %10 = call std_core$i32$Display$to_string(%9) :string
     intrinsic builder.append_str(%7, %10)
-    %11 = field_get %5.coord :[f64, f64]
-    %12 = field_get %11._0 :f64
-    intrinsic builder.append_display(%7, %12)
-    %13 = const string(#3) :string
-    intrinsic builder.append_str(%7, %13)
-    %14 = field_get %5.coord :[f64, f64]
-    %15 = field_get %14._1 :f64
-    intrinsic builder.append_display(%7, %15)
-    %16 = intrinsic builder.finish(%7)
-    call std_io$std_io$println__string(%16) :void
-    %17 = const int(0) :i32
-    return %17
+    %11 = const string(#2) :string
+    intrinsic builder.append_str(%7, %11)
+    %12 = field_get %5.coord :[f64, f64]
+    %13 = field_get %12._0 :f64
+    intrinsic builder.append_display(%7, %13)
+    %14 = const string(#3) :string
+    intrinsic builder.append_str(%7, %14)
+    %15 = field_get %5.coord :[f64, f64]
+    %16 = field_get %15._1 :f64
+    intrinsic builder.append_display(%7, %16)
+    %17 = intrinsic builder.finish(%7)
+    call std_io$std_io$println__string(%17) :void
+    %18 = const int(0) :i32
+    return %18

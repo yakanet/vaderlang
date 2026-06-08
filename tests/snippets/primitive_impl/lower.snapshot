@@ -9,9 +9,13 @@
         @builder.append_str :void
           __sb_0 :?
           "the answer is " :string
-        @builder.append_display <for i32> :void
+        @builder.append_str :void
           __sb_0 :?
-          self :i32
+          call :string
+            callee:
+              snippet$i32$Display$to_string :string
+            arg0:
+              self :i32
         ~>
           @builder.finish :string
             __sb_0 :?

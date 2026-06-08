@@ -23,10 +23,14 @@
                   @builder.append_str :void
                     __sb_2 :?
                     "circle(" :string
-                  @builder.append_display <for i32> :void
+                  @builder.append_str :void
                     __sb_2 :?
-                    .radius :i32
-                      c :Circle
+                    call :string
+                      callee:
+                        std_core$i32$Display$to_string :string
+                      arg0:
+                        .radius :i32
+                          c :Circle
                   @builder.append_str :void
                     __sb_2 :?
                     ")" :string
@@ -50,10 +54,14 @@
                         @builder.append_str :void
                           __sb_1 :?
                           "square(" :string
-                        @builder.append_display <for i32> :void
+                        @builder.append_str :void
                           __sb_1 :?
-                          .side :i32
-                            sq :Square
+                          call :string
+                            callee:
+                              std_core$i32$Display$to_string :string
+                            arg0:
+                              .side :i32
+                                sq :Square
                         @builder.append_str :void
                           __sb_1 :?
                           ")" :string
@@ -146,13 +154,17 @@
           @builder.append_str :void
             __sb_0 :?
             "a.area = " :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_0 :?
-            call :i32
+            call :string
               callee:
-                area :i32
+                std_core$i32$Display$to_string :string
               arg0:
-                a :Circle | Square
+                call :i32
+                  callee:
+                    area :i32
+                  arg0:
+                    a :Circle | Square
           ~>
             @builder.finish :string
               __sb_0 :?
@@ -166,13 +178,17 @@
           @builder.append_str :void
             __sb_1 :?
             "b.area = " :string
-          @builder.append_display <for i32> :void
+          @builder.append_str :void
             __sb_1 :?
-            call :i32
+            call :string
               callee:
-                area :i32
+                std_core$i32$Display$to_string :string
               arg0:
-                b :Circle | Square
+                call :i32
+                  callee:
+                    area :i32
+                  arg0:
+                    b :Circle | Square
           ~>
             @builder.finish :string
               __sb_1 :?

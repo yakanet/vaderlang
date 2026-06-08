@@ -23,8 +23,9 @@ fn snippet$report(%0: Bag) -> void
     %6 $k_6: string
     %7 $field_7: i32[]
     %8 $call_8: i32
-    %9 $intrinsic_9: string
-    %10 $k_10: string
+    %9 $call_9: string
+    %10 $intrinsic_10: string
+    %11 $k_11: string
   bb0:
     %1 = field_get %0.items :i32[] | null
     %2 = type_check %1 is null
@@ -37,13 +38,14 @@ fn snippet$report(%0: Bag) -> void
     intrinsic builder.append_str(%5, %6)
     %7 = field_get %0.items :i32[]
     %8 = call count(%7) :i32
-    intrinsic builder.append_display(%5, %8)
-    %9 = intrinsic builder.finish(%5)
-    call std_io$std_io$println__string(%9) :void
+    %9 = call std_core$i32$Display$to_string(%8) :string
+    intrinsic builder.append_str(%5, %9)
+    %10 = intrinsic builder.finish(%5)
+    call std_io$std_io$println__string(%10) :void
     branch -> bb3
   bb2:
-    %10 = const string(#2) :string
-    call std_io$std_io$println__string(%10) :void
+    %11 = const string(#2) :string
+    call std_io$std_io$println__string(%11) :void
     branch -> bb3
   bb3:
     return
@@ -85,13 +87,15 @@ fn snippet$main() -> i32
     %10 __sb_0: ? (synthetic __sb_0)
     %11 $k_11: string
     %12 $call_12: i32
-    %13 $intrinsic_13: string
-    %14 $intrinsic_14: ?
-    %15 __sb_1: ? (synthetic __sb_1)
-    %16 $k_16: string
-    %17 $call_17: i32
-    %18 $intrinsic_18: string
-    %19 $k_19: i32
+    %13 $call_13: string
+    %14 $intrinsic_14: string
+    %15 $intrinsic_15: ?
+    %16 __sb_1: ? (synthetic __sb_1)
+    %17 $k_17: string
+    %18 $call_18: i32
+    %19 $call_19: string
+    %20 $intrinsic_20: string
+    %21 $k_21: i32
   bb0:
     %0 = const int(1) :i32
     %1 = const int(2) :i32
@@ -109,16 +113,18 @@ fn snippet$main() -> i32
     %11 = const string(#3) :string
     intrinsic builder.append_str(%10, %11)
     %12 = call total(%5) :i32
-    intrinsic builder.append_display(%10, %12)
-    %13 = intrinsic builder.finish(%10)
-    call std_io$std_io$println__string(%13) :void
-    %14 = intrinsic builder.new()
-    %15 = move %14
-    %16 = const string(#3) :string
-    intrinsic builder.append_str(%15, %16)
-    %17 = call total(%8) :i32
-    intrinsic builder.append_display(%15, %17)
-    %18 = intrinsic builder.finish(%15)
-    call std_io$std_io$println__string(%18) :void
-    %19 = const int(0) :i32
-    return %19
+    %13 = call std_core$i32$Display$to_string(%12) :string
+    intrinsic builder.append_str(%10, %13)
+    %14 = intrinsic builder.finish(%10)
+    call std_io$std_io$println__string(%14) :void
+    %15 = intrinsic builder.new()
+    %16 = move %15
+    %17 = const string(#3) :string
+    intrinsic builder.append_str(%16, %17)
+    %18 = call total(%8) :i32
+    %19 = call std_core$i32$Display$to_string(%18) :string
+    intrinsic builder.append_str(%16, %19)
+    %20 = intrinsic builder.finish(%16)
+    call std_io$std_io$println__string(%20) :void
+    %21 = const int(0) :i32
+    return %21

@@ -26,7 +26,6 @@ string 17 "read-write"
 string 18 "unknown"
 string 19 "nope"
 import 0 write std_io$write (i32,string) -> void
-import 1 to_string std_core$string$Display$to_string (string) -> string
 export main 5
 
 fn 0 std_io$std_io$println__string (string) -> void
@@ -232,8 +231,7 @@ fn 5 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 6 std_core$string$Display$to_string_vt (string) -> string
+fn 6 std_core$string$Display$to_string (string) -> string
   local.get 0
-  call.import 1
   return
 end
