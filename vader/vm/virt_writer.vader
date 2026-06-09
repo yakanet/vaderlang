@@ -155,6 +155,7 @@ data_entry_kind :: fn(entry: ArrayVal) -> string {
         is NullVal    -> "i32"
         is ErrorVal   -> "i32"
         is TypeVal    -> "i32"
+        is ObjVal     -> "i32"   // never a data-pool element (primitive arrays only) — arm for exhaustiveness
     }
 }
 

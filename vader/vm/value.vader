@@ -169,6 +169,7 @@ export describe_value_tag :: fn(v: Value) = match v {
     is CharVal    -> "char"
     is ErrorVal   -> "error"
     is TypeVal    -> "type"
+    is ObjVal     -> "object"
 }
 
 /// Unwrap an `F64Val` from a `Value`. Integer values are NOT auto-
@@ -304,6 +305,18 @@ export read_array :: fn(v: Value, at_pc: i32, label: string) -> ArrayVal | Trap 
     if v is ArrayVal { return v }
     return Trap { .message = "${label} at pc=${at_pc}: expected array, got ${describe_value_tag(v)}" }
 }
+
+/// Unwrap an `ObjVal` from a `Value`. Used by the memory-op arms
+/// (`object_new` / `load_*` / `store_*` / `memory_copy`) to recover the
+/// object handle on the stack.
+export read_obj :: fn(v: Value, at_pc: i32, label: string) -> ObjVal | Trap {
+    if v is ObjVal { return v }
+    return Trap { .message = "${label} at pc=${at_pc}: expected object, got ${describe_value_tag(v)}" }
+}
+
+/// Short diagnostic rendering of an `ObjVal` — never dumps the payload,
+/// just the shape. Used by the `Display` impl and trap messages.
+export describe_obj :: fn(o: ObjVal) -> string = "<obj#${o.handle} type=${o.type_id} bytes=${o.bytes.len()} slots=${o.slots.len()}>"
 
 /// True iff `a` is a view onto a buffer it doesn't own — `elements` is
 /// shared with another `ArrayVal`. Used by `array.push` to decide
@@ -652,6 +665,7 @@ export Value :: I32Val
        | CharVal
        | ErrorVal
        | TypeVal
+       | ObjVal
 
 /// 32-bit integer payload.
 export I32Val :: struct { value: i32 }
@@ -745,6 +759,23 @@ export ErrorVal :: struct { message: string }
 /// `type_id` keys `Module.types`. Layer 4 §1.19 B.1.
 export TypeVal :: struct { type_id: i32 }
 
+/// Heap object payload for the Target ABI memory opcodes (decision D8 — the
+/// VM backs a REAL byte-addressed heap). Splits the two disjoint regions an
+/// object holds : `bytes` is the raw inline primitive payload, addressed by
+/// BYTE OFFSET (`load_i32` / `store_u8` / …) ; `slots` is the boxed reference
+/// payload, addressed by SLOT INDEX (`load_slot` / `store_slot` — the fields a
+/// tracing GC follows). A `Buffer` (the first consumer, D6) is all `bytes`,
+/// no `slots` ; a primitive struct is all `bytes` ; an array of references is
+/// all `slots`. `handle` is a synthetic monotonic id for diagnostics only —
+/// object identity is the `ObjVal` reference itself, NEVER a machine address.
+/// Inert until S3 (nothing emits these ops yet).
+export ObjVal :: struct {
+    handle:  i32
+    type_id: i32
+    bytes:   u8[]
+    slots:   Value[]
+}
+
 // ---- Display impls on each `Value` variant --------------------------------
 //
 // Every variant carries its own `Display` impl so the dispatcher below
@@ -801,6 +832,10 @@ ErrorVal implements Display {
 
 TypeVal implements Display {
     to_string :: fn(self) -> string = "<type ${self.type_id}>"
+}
+
+ObjVal implements Display {
+    to_string :: fn(self) -> string = describe_obj(self)
 }
 
 /// Renders as `<type_id>{ field0, field1, … }` — type_id is the ordinal
@@ -861,4 +896,5 @@ export display_value :: fn(v: Value) -> string = match v {
     is CharVal as c -> c.to_string()
     is ErrorVal as e -> e.to_string()
     is TypeVal as t -> t.to_string()
+    is ObjVal as o -> o.to_string()
 }

@@ -99,6 +99,7 @@ fn_calls_may_alloc :: fn(fn_decl: BcFunction, may_alloc: i32[]) -> bool {
 /// exhaustive `match`.
 op_allocates :: fn(op: vm.Op) -> bool {
     if op is vm.StructNew as sn { return !sn.stack }
+    if op is vm.ObjectNew { return true }
     if op is vm.ArrayNew { return true }
     if op is vm.ArrayPush { return true }
     if op is vm.StringConcat { return true }
@@ -387,6 +388,27 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.RefNe                 -> push_binop_any(s, "!=", .Bool)
         is vm.DeferPush             -> emit_defer_push(s)
         is vm.DeferPopExec as d     -> emit_defer_pop_exec(s, d)
+        // ---- memory opcodes (Target ABI) -----------------------------------
+        // Inert in S2 : the lowerer emits none of these yet (first consumer is
+        // the Buffer, S3), so these arms are never reached. The real C-emit —
+        // `static inline vader_*` helpers in vader.h, the G1 `(char*)obj+off`
+        // re-derive at point of use, and the G2 `VADER_WRITE_BARRIER` on
+        // `store_slot` (mirroring emit_struct_set) — lands in S2b together with
+        // the bespoke GC fixture that proves the discipline. Until then a
+        // `todo` trap keeps the arm honest (never silently emits wrong C).
+        // Matches the DataConst precedent above.
+        is vm.ObjectNew             -> todo("emit_op: object_new — Target ABI alloc, real C-emit + GC proof in S2b")
+        is vm.LoadU8                -> todo("emit_op: load_u8 — Target ABI load, real C-emit + GC proof in S2b")
+        is vm.LoadI32               -> todo("emit_op: load_i32 — Target ABI load, real C-emit + GC proof in S2b")
+        is vm.LoadI64               -> todo("emit_op: load_i64 — Target ABI load, real C-emit + GC proof in S2b")
+        is vm.LoadF64               -> todo("emit_op: load_f64 — Target ABI load, real C-emit + GC proof in S2b")
+        is vm.StoreU8               -> todo("emit_op: store_u8 — Target ABI store, real C-emit + GC proof in S2b")
+        is vm.StoreI32              -> todo("emit_op: store_i32 — Target ABI store, real C-emit + GC proof in S2b")
+        is vm.StoreI64              -> todo("emit_op: store_i64 — Target ABI store, real C-emit + GC proof in S2b")
+        is vm.StoreF64              -> todo("emit_op: store_f64 — Target ABI store, real C-emit + GC proof in S2b")
+        is vm.LoadSlot              -> todo("emit_op: load_slot — Target ABI boxed-slot load, real C-emit + GC proof in S2b")
+        is vm.StoreSlot             -> todo("emit_op: store_slot — Target ABI boxed-slot store (fires VADER_WRITE_BARRIER), real C-emit + GC proof in S2b")
+        is vm.MemoryCopy            -> todo("emit_op: memory_copy — Target ABI bulk copy, real C-emit + GC proof in S2b")
     }
 }
 

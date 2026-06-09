@@ -215,7 +215,7 @@ walk_stmt :: fn(
                 is AST.DeferStmtBody as dsb -> { walk_stmt(dsb.stmt, scope, defer_captures, defer_seen, ctx) }
                 is AST.DeferBlockBody as dbb -> { walk_body(dbb.block, scope, defer_captures, defer_seen, ctx) }
             }
-            ctx.analysis.defer_captures[defer_stmt.id] = defer_captures
+            ctx.analysis.defer_captures[capture_key(ctx.typed.resolved.path, defer_stmt.id)] = defer_captures
             // Bubble each captured symbol into the parent's lists so
             // the enclosing fn sees them (it needs to read the cell
             // value to materialise the env at defer-push time).
@@ -525,7 +525,7 @@ process_lambda :: fn(
     walk_body(lambda.body, own_scope, captures, seen, ctx)
 
     for capture in captures { ctx.analysis.captured_symbols.inner[capture.symbol.id] = true }
-    ctx.analysis.lambda_captures[lambda.id] = captures
+    ctx.analysis.lambda_captures[capture_key(ctx.typed.resolved.path, lambda.id)] = captures
 
     // Fold this lambda's captures into the enclosing lambda's, skipping
     // any symbol already defined in the enclosing scope (i.e. shared).

@@ -489,7 +489,16 @@ materialize_impl_for_instance :: fn(
         project_ctx.materialized_impl_keys.add(dedupe_key)
         params :: build_impl_member_params(member, self_type, types, impl_typed, project_ctx)
         return_type :: return_type_of(member, types)
-        mangled :: "${mangle_module_id(owner_typed.resolved.display_path)}$${inst.symbol.name}$${impl_decl.trait_name}$${member.name}${suffix}"
+        // Mangle + emit under the IMPL's owning module (`impl_typed`), NOT the
+        // instantiation context (`owner_typed`). A generic-impl member referenced
+        // from another module (e.g. `MapIterator`'s `next`, reached via
+        // `std/collections`'s `values()`) is resolved by the for-in / default-method
+        // lowering under the impl's owning module (GATE B1, lower_for_in.vader:380) ;
+        // materialising it under the caller's module produced a mangle the call
+        // sites never reference (`std_collections$…next` vs `std_iter$…next`),
+        // dropping the call to the panic fallback. Co-locating with the impl keeps
+        // the two in lock-step. No-op when owner == impl (the colocated case).
+        mangled :: "${mangle_module_id(impl_typed.resolved.display_path)}$${inst.symbol.name}$${impl_decl.trait_name}$${member.name}${suffix}"
         entry_decl: Decl = member
         entry :: MonoEntry {
             .id             = i32(0),
@@ -503,7 +512,7 @@ materialize_impl_for_instance :: fn(
         }
         synth_start :: project_ctx.synth_decls.len()
         body :: lower_fn_body(member, impl_typed, project_ctx, entry, subst, return_type)
-        push_to_module(project, owner_typed.resolved.path, LoweredFnDecl {
+        push_to_module(project, impl_typed.resolved.path, LoweredFnDecl {
             .mangled     = mangled,
             .params      = params,
             .return_type = return_type,
@@ -512,7 +521,7 @@ materialize_impl_for_instance :: fn(
         })
         // Drain lambdas/defers lifted from this member's body into the same
         // module, right after the member (post-module materialisation site).
-        drain_synth_since(project, owner_typed.resolved.path, project_ctx, synth_start)
+        drain_synth_since(project, impl_typed.resolved.path, project_ctx, synth_start)
     }
 }
 

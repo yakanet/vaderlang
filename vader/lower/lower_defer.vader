@@ -98,7 +98,7 @@ export lower_defer :: fn(
 // and fall back to an empty list when the analysis didn't observe
 // this defer (recovery path past an earlier diagnostic).
 lookup_defer_captures :: fn(ctx: FnLowerCtx, defer_stmt: AST.DeferStmt) -> Capture[] {
-    found :: ctx.project.closures.defer_captures[defer_stmt.id]
+    found :: ctx.project.closures.defer_captures[capture_key(ctx.typed.resolved.path, defer_stmt.id)]
     if found is Capture[] as caps { return caps }
     empty: Capture[] = []
     return empty

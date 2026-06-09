@@ -689,42 +689,9 @@ hex_to_bytes :: fn(s: string) -> u8[] {
     return out
 }
 
-/// Read a little-endian u16 from `bytes` at `offset`.
-///
-/// @param bytes   the source byte array.
-/// @param offset  byte offset of the LSB.
-/// @return        the decoded 16-bit value as a u32 (zero-extended).
-read_u16_le :: fn(bytes: u8[], offset: usize) -> u32 {
-    return u32(bytes[offset]) | (u32(bytes[offset + 1]) << 0o10)
-}
-
-/// Read a little-endian u32 from `bytes` at `offset`.
-///
-/// @param bytes   the source byte array.
-/// @param offset  byte offset of the LSB.
-/// @return        the decoded 32-bit value.
-read_u32_le :: fn(bytes: u8[], offset: usize) -> u32 {
-    return u32(bytes[offset])
-        | (u32(bytes[offset + 1]) << 0o10)
-        | (u32(bytes[offset + 2]) << 0o20)
-        | (u32(bytes[offset + 3]) << 0o30)
-}
-
-/// Read a little-endian u64 from `bytes` at `offset`.
-///
-/// @param bytes   the source byte array.
-/// @param offset  byte offset of the LSB.
-/// @return        the decoded 64-bit value.
-read_u64_le :: fn(bytes: u8[], offset: usize) -> u64 {
-    return u64(bytes[offset])
-        | (u64(bytes[offset + 1]) << 0o10)
-        | (u64(bytes[offset + 2]) << 0o20)
-        | (u64(bytes[offset + 3]) << 0o30)
-        | (u64(bytes[offset + 4]) << 0o40)
-        | (u64(bytes[offset + 5]) << 0o50)
-        | (u64(bytes[offset + 6]) << 0o60)
-        | (u64(bytes[offset + 7]) << 0o70)
-}
+// The little-endian readers (`read_u16_le` / `read_u32_le` / `read_u64_le`)
+// moved to `byte_codec.vader` — shared with exec.vader's memory-op arms.
+// Same module, so the call sites above resolve unchanged.
 
 /// Parse `import N name mangled (params) -> ret`.
 ///
@@ -1162,6 +1129,26 @@ parse_op_line :: fn(cleaned: string, head: string) -> bc.Op | null {
     // `reason` is not serialised to `.virt` — the round-trip VM traps with a
     // generic message ; the in-memory run and the native build keep the reason.
     if head == "unreachable"    { return bc.Unreachable { .reason = "" } }
+    // Memory opcodes (Target ABI). `object_new` carries a `type_id` immediate
+    // (decision D2) ; the rest are all-stack, no operands. Landed alongside
+    // write_op's arms so a known op never silently drops here (which would
+    // shift every following pc).
+    if head == "object_new" {
+        parsed :: parse_int_after_prefix(cleaned, "object_new ")
+        if parsed is null { return null }
+        return bc.ObjectNew { .type_id = parsed }
+    }
+    if head == "load_u8"        { return bc.LoadU8 {} }
+    if head == "load_i32"       { return bc.LoadI32 {} }
+    if head == "load_i64"       { return bc.LoadI64 {} }
+    if head == "load_f64"       { return bc.LoadF64 {} }
+    if head == "store_u8"       { return bc.StoreU8 {} }
+    if head == "store_i32"      { return bc.StoreI32 {} }
+    if head == "store_i64"      { return bc.StoreI64 {} }
+    if head == "store_f64"      { return bc.StoreF64 {} }
+    if head == "load_slot"      { return bc.LoadSlot {} }
+    if head == "store_slot"     { return bc.StoreSlot {} }
+    if head == "memory_copy"    { return bc.MemoryCopy {} }
     return null
 }
 
@@ -1714,4 +1701,44 @@ parse_data_const :: fn(line: string) -> bc.Op | null {
     type_parsed :: parse_int_in_base(type_text, 10)
     if type_parsed is ParseError { return null }
     return bc.DataConst { .pool_index = i32(pool_parsed), .type_id = i32(type_parsed) }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert_eq }
+import "std/string_builder" { new_builder }
+
+/// Round-trip an op through `write_op` (the canonical mnemonic writer,
+/// dump.vader) and `parse_op_line`, returning the re-serialised text. A parse
+/// miss returns a sentinel so the asserting test fails with the offending
+/// mnemonic rather than a bare `null`.
+roundtrip_op_text :: fn(op: bc.Op) -> string {
+    sb :: new_builder()
+    bc.write_op(sb, op)
+    text :: "${sb}"
+    parsed :: parse_op_line(text, head_of(text))
+    if parsed is null { return "PARSE-FAIL: ${text}" }
+    sb2 :: new_builder()
+    bc.write_op(sb2, parsed)
+    return "${sb2}"
+}
+
+@test test_memory_opcode_roundtrip :: fn() -> void {
+    // The 12 Target ABI memory opcodes (S2). `object_new` carries a `type_id`
+    // immediate ; the rest are operand-free. Each must survive write_op →
+    // parse_op_line → write_op unchanged — proving parse ≠ null and that the
+    // op (and its immediate) is preserved, so a synthetic op stream keeps its
+    // pc indices.
+    assert_eq(roundtrip_op_text(bc.ObjectNew { .type_id = 7 }), "object_new 7")
+    assert_eq(roundtrip_op_text(bc.LoadU8 {}),     "load_u8")
+    assert_eq(roundtrip_op_text(bc.LoadI32 {}),    "load_i32")
+    assert_eq(roundtrip_op_text(bc.LoadI64 {}),    "load_i64")
+    assert_eq(roundtrip_op_text(bc.LoadF64 {}),    "load_f64")
+    assert_eq(roundtrip_op_text(bc.StoreU8 {}),    "store_u8")
+    assert_eq(roundtrip_op_text(bc.StoreI32 {}),   "store_i32")
+    assert_eq(roundtrip_op_text(bc.StoreI64 {}),   "store_i64")
+    assert_eq(roundtrip_op_text(bc.StoreF64 {}),   "store_f64")
+    assert_eq(roundtrip_op_text(bc.LoadSlot {}),   "load_slot")
+    assert_eq(roundtrip_op_text(bc.StoreSlot {}),  "store_slot")
+    assert_eq(roundtrip_op_text(bc.MemoryCopy {}), "memory_copy")
 }

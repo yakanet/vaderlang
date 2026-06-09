@@ -150,6 +150,18 @@ export Op :: Unreachable
     | BranchIf
     | Return
     | ReturnLit
+    | ObjectNew
+    | LoadU8
+    | LoadI32
+    | LoadI64
+    | LoadF64
+    | StoreU8
+    | StoreI32
+    | StoreI64
+    | StoreF64
+    | LoadSlot
+    | StoreSlot
+    | MemoryCopy
 
 /// Trap unconditionally — the bytecode reached a point the compiler proved
 /// (or asserted, via `@unreachable match`) can never execute. Carries a
@@ -577,6 +589,55 @@ export Return :: struct {}
 /// `value` is the inner const op (carried verbatim) so every backend
 /// inlines the right literal form.
 export ReturnLit :: struct { value: ConstOp }
+
+// ---- memory opcodes (Target ABI) ------------------------------------------
+//
+// GC-safe memory access over the moving Cheney collector. Each addresses
+// memory as `(GC-object-handle, integer-offset)`, never an absolute machine
+// address ; the real address is materialised transiently inside the opcode
+// (the C backend re-derives `(char*)obj + off` at the point of use, never
+// hoisted across a safepoint — invariant G1). Appended after `ReturnLit` and
+// never reshaped (the union tags are positional). Inert until S3 — nothing in
+// the lowerer emits them yet. See docs/TARGET_ABI.md §5 for the frozen contract.
+
+/// GC-allocate a fresh object of `size` bytes (popped) and push the handle.
+/// `type_id` is an inline immediate (decision D2) — for a `Buffer` it is the
+/// dedicated `VADER_TYPE_INDEX_BUFFER` sentinel (D3) — so the GC reads a
+/// static, never runtime-trusted, type. Generalises `StructNew` / `ArrayNew`.
+/// C lowering is the two-step `vader_gc_alloc(size)` + `vader_obj_header_init(
+/// obj, type_id)` inline — no new runtime symbol (D1).
+export ObjectNew :: struct { type_id: i32 }
+
+/// Read one byte. Pops `obj, off` ; pushes the `u8` at byte offset `off`.
+export LoadU8 :: struct {}
+/// Read an `i32` at byte offset `off`. Pops `obj, off` ; pushes `i32`.
+export LoadI32 :: struct {}
+/// Read an `i64` at byte offset `off`. Pops `obj, off` ; pushes `i64`.
+export LoadI64 :: struct {}
+/// Read an `f64` at byte offset `off`. Pops `obj, off` ; pushes `f64`.
+export LoadF64 :: struct {}
+
+/// Write one byte. Pops `obj, off, v: u8`. No write-barrier (primitive).
+export StoreU8 :: struct {}
+/// Write an `i32` at byte offset `off`. Pops `obj, off, v: i32`. No barrier.
+export StoreI32 :: struct {}
+/// Write an `i64` at byte offset `off`. Pops `obj, off, v: i64`. No barrier.
+export StoreI64 :: struct {}
+/// Write an `f64` at byte offset `off`. Pops `obj, off, v: f64`. No barrier.
+export StoreF64 :: struct {}
+
+/// Read a boxed slot. Pops `obj, i: usize` ; pushes the boxed `Value` at slot
+/// index `i` (a reference field the GC traces — distinct from the raw byte
+/// region the `Load*` / `Store*` typed ops address).
+export LoadSlot :: struct {}
+/// Write a boxed slot. Pops `obj, i: usize, v` ; **fires `VADER_WRITE_BARRIER(
+/// obj)`** (invariant G2 — records the potential old→young edge for the
+/// generational collector). The typed primitive stores deliberately do not.
+export StoreSlot :: struct {}
+
+/// Bulk byte copy obj→obj. Pops `dst, dst_off, src, src_off, n` ; copies `n`
+/// bytes. Lowers to `memcpy`. Both ends are GC handles, offsets are integers.
+export MemoryCopy :: struct {}
 
 /// Primitive literal-producing op carried by `ReturnLit`. Mirrors the
 /// TS `ConstOp` extracted from `Op`. Each variant produces exactly one

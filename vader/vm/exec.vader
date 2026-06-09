@@ -647,6 +647,10 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
     body := module.functions[usize(frame.function_index)]
     op_count := body.ops.len()
     cur_top := init_top
+    // Monotonic synthetic object-handle source for `object_new` (diagnostics
+    // only — object identity is the `ObjVal` reference itself, never a machine
+    // address). A 1-cell array so element mutation survives the `::` binding.
+    obj_handles :: [0]
 
     for frame_count[0] > 0 {
         top :: frame_count[0] - 1
@@ -1628,6 +1632,103 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                 outcome :: finalise_return(return_value, true, frame.pc, frames, frame_count, "return.lit from main")
                 if !(outcome is null) { return outcome }
             }
+            // ---- memory opcodes (Target ABI) — inert until S3 -----------
+            is bc.ObjectNew -> {
+                outcome :: build_object(instr.type_id, frame, obj_handles)
+                if outcome is Trap { return outcome }
+            }
+            is bc.LoadU8 -> {
+                raw :: load_bytes_op(frame, 1, "load_u8")
+                if raw is Trap { return raw }
+                frame.stack[frame.sp - 2] = I32Val { .value = i32(raw) }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
+            }
+            is bc.LoadI32 -> {
+                raw :: load_bytes_op(frame, 4, "load_i32")
+                if raw is Trap { return raw }
+                frame.stack[frame.sp - 2] = I32Val { .value = i32(raw) }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
+            }
+            is bc.LoadI64 -> {
+                raw :: load_bytes_op(frame, 8, "load_i64")
+                if raw is Trap { return raw }
+                frame.stack[frame.sp - 2] = I64Val { .value = i64(raw) }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
+            }
+            is bc.LoadF64 -> {
+                // f64 byte codec needs an f64↔bits reinterpret (no Vader-pure
+                // form) ; wired in S5 with the float-array tranche, alongside
+                // de-stubbing read_data_item. Trap loudly until then rather
+                // than push a silently-wrong value.
+                return Trap { .message = "load_f64: f64 byte codec lands with the float-array tranche (S5; see read_data_item) at pc=${frame.pc}" }
+            }
+            is bc.StoreU8 -> {
+                if frame.sp < 3 { return Trap { .message = "store_u8 needs object + offset + value on stack at pc=${frame.pc}" } }
+                val_unwrap :: read_i32(frame.stack[frame.sp - 1], frame.pc, "store_u8 value")
+                if val_unwrap is Trap { return val_unwrap }
+                outcome :: store_bytes_op(frame, 1, u64(u8(val_unwrap.value)), "store_u8")
+                if outcome is Trap { return outcome }
+            }
+            is bc.StoreI32 -> {
+                if frame.sp < 3 { return Trap { .message = "store_i32 needs object + offset + value on stack at pc=${frame.pc}" } }
+                val_unwrap :: read_i32(frame.stack[frame.sp - 1], frame.pc, "store_i32 value")
+                if val_unwrap is Trap { return val_unwrap }
+                outcome :: store_bytes_op(frame, 4, u64(u32(val_unwrap.value)), "store_i32")
+                if outcome is Trap { return outcome }
+            }
+            is bc.StoreI64 -> {
+                if frame.sp < 3 { return Trap { .message = "store_i64 needs object + offset + value on stack at pc=${frame.pc}" } }
+                val_unwrap :: read_i64(frame.stack[frame.sp - 1], frame.pc, "store_i64 value")
+                if val_unwrap is Trap { return val_unwrap }
+                outcome :: store_bytes_op(frame, 8, u64(val_unwrap.value), "store_i64")
+                if outcome is Trap { return outcome }
+            }
+            is bc.StoreF64 -> {
+                // See LoadF64 — deferred to S5 ; trap rather than corrupt.
+                return Trap { .message = "store_f64: f64 byte codec lands with the float-array tranche (S5; see read_data_item) at pc=${frame.pc}" }
+            }
+            is bc.LoadSlot -> {
+                if frame.sp < 2 { return Trap { .message = "load_slot needs object + index on stack at pc=${frame.pc}" } }
+                idx_unwrap :: read_i32(frame.stack[frame.sp - 1], frame.pc, "load_slot index")
+                if idx_unwrap is Trap { return idx_unwrap }
+                obj_unwrap :: read_obj(frame.stack[frame.sp - 2], frame.pc, "load_slot receiver")
+                if obj_unwrap is Trap { return obj_unwrap }
+                if idx_unwrap.value < 0 || usize(idx_unwrap.value) >= obj_unwrap.slots.len() {
+                    return Trap { .message = "load_slot index ${idx_unwrap.value} out of bounds (slots=${obj_unwrap.slots.len()}) at pc=${frame.pc}" }
+                }
+                frame.stack[frame.sp - 2] = obj_unwrap.slots[usize(idx_unwrap.value)]
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
+            }
+            is bc.StoreSlot -> {
+                if frame.sp < 3 { return Trap { .message = "store_slot needs object + index + value on stack at pc=${frame.pc}" } }
+                value :: frame.stack[frame.sp - 1]
+                idx_unwrap :: read_i32(frame.stack[frame.sp - 2], frame.pc, "store_slot index")
+                if idx_unwrap is Trap { return idx_unwrap }
+                obj_unwrap :: read_obj(frame.stack[frame.sp - 3], frame.pc, "store_slot receiver")
+                if obj_unwrap is Trap { return obj_unwrap }
+                if idx_unwrap.value < 0 {
+                    return Trap { .message = "store_slot index ${idx_unwrap.value} is negative at pc=${frame.pc}" }
+                }
+                // Grow the boxed-slot region with `null` padding up to `index`,
+                // then write. In the C backend this op fires VADER_WRITE_BARRIER(
+                // obj) (G2) ; in the VM the host GC traces `slots` directly so
+                // the barrier is implicit — the emitted barrier is proven in S2b.
+                idx :: usize(idx_unwrap.value)
+                for obj_unwrap.slots.len() <= idx {
+                    obj_unwrap.slots.push(NullVal {})
+                }
+                obj_unwrap.slots[idx] = value
+                frame.sp = frame.sp - 3
+                frame.pc = frame.pc + 1
+            }
+            is bc.MemoryCopy -> {
+                outcome :: do_memory_copy(frame)
+                if outcome is Trap { return outcome }
+            }
         }
     }
     // Frame stack drained without an explicit main-return — surface 0.
@@ -1702,6 +1803,168 @@ build_struct :: fn(module: Module, type_id: i32, frame: Frame) -> Trap | null {
     new_struct :: StructVal { .type_id = type_id, .fields = fields }
     push_value(frame.stack, arg_base, new_struct)
     frame.sp = arg_base + 1
+    frame.pc = frame.pc + 1
+    return null
+}
+
+// ---- memory opcodes (Target ABI) — VM byte-heap helpers (decision D8) ----
+//
+// Inert until S3 (nothing emits these yet). The VM backs a REAL byte-
+// addressed heap : `ObjVal.bytes` is the raw inline payload (byte offsets),
+// `ObjVal.slots` the boxed reference fields (slot indices). Each accessor
+// re-derives from the obj on the stack — no base cached across an op (G1,
+// trivially held here since every access hits `obj.bytes` / `obj.slots`
+// fresh). The C backend's emitted arms carry the real G1/G2 discipline ; S2b
+// proves it on a bespoke fixture.
+
+/// Body of the `object_new` arm. Pops `size` (usize) and pushes a zero-filled
+/// `ObjVal` of that byte length. `type_id` is the inline immediate (D2).
+/// `handle_cell[0]` is the monotonic synthetic-handle source (diagnostics).
+///
+/// @param type_id      the object's type-table ordinal (Buffer = the
+///                     `VADER_TYPE_INDEX_BUFFER` sentinel, D3).
+/// @param frame        current top frame, mutated in place (size popped, obj
+///                     pushed in its place — net stack effect 0).
+/// @param handle_cell  1-cell carrier for the monotonic handle counter.
+/// @return             `null` on success, or a `Trap` on stack underflow /
+///                     negative size.
+/// @error              empty stack ; negative size.
+build_object :: fn(type_id: i32, frame: Frame, handle_cell: i32[]) -> Trap | null {
+    if frame.sp < 1 {
+        return Trap { .message = "object_new needs size on stack at pc=${frame.pc}" }
+    }
+    size_unwrap :: read_i32(frame.stack[frame.sp - 1], frame.pc, "object_new size")
+    if size_unwrap is Trap { return size_unwrap }
+    if size_unwrap.value < 0 {
+        return Trap { .message = "object_new size ${size_unwrap.value} is negative at pc=${frame.pc}" }
+    }
+    bytes: u8[] = []
+    for _ in 0..<usize(size_unwrap.value) {
+        bytes.push(u8(0))
+    }
+    handle_cell[0] = handle_cell[0] + 1
+    frame.stack[frame.sp - 1] = ObjVal { .handle = handle_cell[0], .type_id = type_id, .bytes = bytes, .slots = [] }
+    frame.pc = frame.pc + 1
+    return null
+}
+
+/// Shared front-half of the typed/byte loads (`load_u8` / `load_i32` /
+/// `load_i64`). Validates `obj, off` on the stack and bounds, then returns the
+/// `width` little-endian bytes at `off` as a zero-extended u64 — the caller
+/// wraps it in the right `Value` and advances the stack/pc.
+///
+/// @param frame  current top frame ; not mutated here (the arm overwrites
+///               `stack[sp-2]` and drops one slot).
+/// @param width  byte width to read (1 / 4 / 8).
+/// @param label  op label for trap messages.
+/// @return       the raw value, or a `Trap` on underflow / bad obj / OOB.
+/// @error        fewer than 2 stack slots ; non-object receiver ; negative or
+///               out-of-range offset.
+/// Validate a byte-region access for the typed load/store ops: the offset must
+/// be non-negative and `[off, off + width)` must fall within `bytes_len`.
+/// Centralises the bounds logic + trap wording shared by `load_bytes_op` and
+/// `store_bytes_op` so the two stay in lockstep.
+///
+/// @param off        the raw signed offset popped off the stack.
+/// @param width      byte width of the access (1 / 4 / 8).
+/// @param bytes_len  length of the object's inline byte region.
+/// @param label      op label for trap messages.
+/// @param pc         current program counter, for trap provenance.
+/// @return           the validated `usize` offset.
+/// @error            negative offset ; range past the byte length.
+check_byte_range :: fn(off: i32, width: usize, bytes_len: usize, label: string, pc: i32) -> usize | Trap {
+    if off < 0 {
+        return Trap { .message = "${label} offset ${off} is negative at pc=${pc}" }
+    }
+    o :: usize(off)
+    if o + width > bytes_len {
+        return Trap { .message = "${label} offset ${o} (+${width}) exceeds object byte length ${bytes_len} at pc=${pc}" }
+    }
+    return o
+}
+
+load_bytes_op :: fn(frame: Frame, width: usize, label: string) -> u64 | Trap {
+    if frame.sp < 2 {
+        return Trap { .message = "${label} needs object + offset on stack at pc=${frame.pc}" }
+    }
+    off_unwrap :: read_i32(frame.stack[frame.sp - 1], frame.pc, "${label} offset")
+    if off_unwrap is Trap { return off_unwrap }
+    obj_unwrap :: read_obj(frame.stack[frame.sp - 2], frame.pc, "${label} receiver")
+    if obj_unwrap is Trap { return obj_unwrap }
+    off :: check_byte_range(off_unwrap.value, width, obj_unwrap.bytes.len(), label, frame.pc)
+    if off is Trap { return off }
+    return read_le(obj_unwrap.bytes, off, width)
+}
+
+/// Shared body of the typed/byte stores (`store_u8` / `store_i32` /
+/// `store_i64`). The caller has already read the value off `stack[sp-1]` into
+/// `value` (the raw bit pattern) and guaranteed `sp >= 3`. Validates `obj`
+/// (sp-3) and `off` (sp-2), bounds-checks, writes `width` little-endian bytes,
+/// then drops the three operands and advances pc.
+///
+/// @param frame  current top frame, mutated in place.
+/// @param width  byte width to write (1 / 4 / 8).
+/// @param value  the raw bit pattern whose low `width` bytes are stored.
+/// @param label  op label for trap messages.
+/// @return       `null` on success, or a `Trap` on bad obj / OOB offset.
+/// @error        non-object receiver ; negative or out-of-range offset.
+store_bytes_op :: fn(frame: Frame, width: usize, value: u64, label: string) -> Trap | null {
+    off_unwrap :: read_i32(frame.stack[frame.sp - 2], frame.pc, "${label} offset")
+    if off_unwrap is Trap { return off_unwrap }
+    obj_unwrap :: read_obj(frame.stack[frame.sp - 3], frame.pc, "${label} receiver")
+    if obj_unwrap is Trap { return obj_unwrap }
+    off :: check_byte_range(off_unwrap.value, width, obj_unwrap.bytes.len(), label, frame.pc)
+    if off is Trap { return off }
+    write_le(obj_unwrap.bytes, off, width, value)
+    frame.sp = frame.sp - 3
+    frame.pc = frame.pc + 1
+    return null
+}
+
+/// Body of the `memory_copy` arm. Pops `dst, dst_off, src, src_off, n` and
+/// copies `n` bytes src→dst (raw byte regions). Bounds-checks both ends and
+/// copies through a snapshot, so an overlapping self-copy stays well-defined
+/// in the oracle (native lowers to `memcpy` and the lowerer guarantees no
+/// overlap — the snapshot only hardens the VM reference impl).
+///
+/// @param frame  current top frame, mutated in place (5 operands dropped).
+/// @return       `null` on success, or a `Trap` on underflow / bad obj / OOB.
+/// @error        fewer than 5 stack slots ; non-object dst/src ; negative
+///               length/offset ; source or dest range past the byte length.
+do_memory_copy :: fn(frame: Frame) -> Trap | null {
+    if frame.sp < 5 {
+        return Trap { .message = "memory_copy needs dst + dst_off + src + src_off + n on stack at pc=${frame.pc}" }
+    }
+    n_unwrap :: read_i32(frame.stack[frame.sp - 1], frame.pc, "memory_copy n")
+    if n_unwrap is Trap { return n_unwrap }
+    src_off_unwrap :: read_i32(frame.stack[frame.sp - 2], frame.pc, "memory_copy src_off")
+    if src_off_unwrap is Trap { return src_off_unwrap }
+    src_unwrap :: read_obj(frame.stack[frame.sp - 3], frame.pc, "memory_copy src")
+    if src_unwrap is Trap { return src_unwrap }
+    dst_off_unwrap :: read_i32(frame.stack[frame.sp - 4], frame.pc, "memory_copy dst_off")
+    if dst_off_unwrap is Trap { return dst_off_unwrap }
+    dst_unwrap :: read_obj(frame.stack[frame.sp - 5], frame.pc, "memory_copy dst")
+    if dst_unwrap is Trap { return dst_unwrap }
+    if n_unwrap.value < 0 || src_off_unwrap.value < 0 || dst_off_unwrap.value < 0 {
+        return Trap { .message = "memory_copy negative length/offset at pc=${frame.pc}" }
+    }
+    n :: usize(n_unwrap.value)
+    src_off :: usize(src_off_unwrap.value)
+    dst_off :: usize(dst_off_unwrap.value)
+    if src_off + n > src_unwrap.bytes.len() {
+        return Trap { .message = "memory_copy source range [${src_off}, ${src_off + n}) exceeds ${src_unwrap.bytes.len()} at pc=${frame.pc}" }
+    }
+    if dst_off + n > dst_unwrap.bytes.len() {
+        return Trap { .message = "memory_copy dest range [${dst_off}, ${dst_off + n}) exceeds ${dst_unwrap.bytes.len()} at pc=${frame.pc}" }
+    }
+    snapshot: u8[] = []
+    for i in 0..<n {
+        snapshot.push(src_unwrap.bytes[src_off + i])
+    }
+    for i in 0..<n {
+        dst_unwrap.bytes[dst_off + i] = snapshot[i]
+    }
+    frame.sp = frame.sp - 5
     frame.pc = frame.pc + 1
     return null
 }
