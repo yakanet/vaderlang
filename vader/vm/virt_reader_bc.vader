@@ -478,6 +478,139 @@ find_main_by_suffix_bc :: fn(functions: bc.BcFunction[]) -> i32 {
     return -1
 }
 
+// ---- BytecodeModule -> VM Module reduction (transitional) ------------------
+//
+// `parse_virt` keeps its `Module` signature (exec still consumes `Module`), but
+// its body now delegates to `parse_virt_bc` + this reduction — making
+// `BytecodeModule` the single parse source of truth. The VM needs only a
+// projection: field counts rather than full signatures, materialised data
+// values rather than raw bits. Step 2b folds these reads into `exec` and
+// retires `Module` (and this reduction) entirely.
+
+/// Project a `BytecodeModule` onto the runtime-only VM `Module`.
+export bc_to_vm_module :: fn(m: bc.BytecodeModule) -> Module {
+    types :: reduce_types(m.types)
+    functions :: reduce_functions(m.functions)
+    vtables := reduce_vtables(m.vtables)
+    // Preserve `parse_virt`'s fallback: a dump carrying no `vtable` directives
+    // rebuilds the table from the mangled-name heuristic.
+    if vtables.len() == 0 { vtables = build_vtables(functions, types) }
+    return Module {
+        .strings    = m.strings,
+        .imports    = reduce_imports(m.imports),
+        .types      = types,
+        .functions  = functions,
+        .vtables    = vtables,
+        .impls      = reduce_impls(m.impl_table),
+        .data_pool  = reduce_data_pool(m.data_pool),
+        .main_index = reduce_main_index(m.functions),
+    }
+}
+
+reduce_types :: fn(types: bc.BcType[]) -> TypeDecl[] {
+    out: TypeDecl[] = []
+    for t in types { out.push(reduce_type(t)) }
+    return out
+}
+
+reduce_type :: fn(t: bc.BcType) -> TypeDecl = match t {
+    is bc.BcPrimitive as p -> PrimitiveType { .kind = bc.val_type_name(p.val) }
+    is bc.BcStruct    as s -> StructType { .name = s.name, .field_count = s.fields.len() }
+    is bc.BcArray     as a -> ArrayType { .element_type_id = a.element }
+    is bc.BcUnion     as u -> UnionType { .variant_type_ids = u.variants }
+    is bc.BcRef       as r -> RefType { .trait_name = r.trait_name }
+    is bc.BcFn        as f -> FnType { .parameter_type_ids = f.params, .return_type_id = f.return_type }
+}
+
+reduce_functions :: fn(funcs: bc.BcFunction[]) -> BytecodeFunction[] {
+    out: BytecodeFunction[] = []
+    for f in funcs {
+        out.push(BytecodeFunction {
+            .name            = f.name,
+            .parameter_count = f.signature.params.len(),
+            .local_count     = f.locals.len(),
+            .ops             = f.body,
+            .jump_table      = f.jump_table,
+        })
+    }
+    return out
+}
+
+reduce_imports :: fn(imports: bc.BcImport[]) -> ImportInfo[] {
+    out: ImportInfo[] = []
+    for imp in imports {
+        out.push(ImportInfo {
+            .name            = imp.extern_name,
+            .mangled         = imp.mangled_name,
+            .parameter_count = imp.signature.params.len(),
+            .has_return      = imp.signature.result != bc.ValType.Void,
+        })
+    }
+    return out
+}
+
+reduce_impls :: fn(impl_table: bc.ImplEntry[]) -> Impl[] {
+    out: Impl[] = []
+    for e in impl_table { out.push(Impl { .type_id = e.struct_type_index, .trait_name = e.trait_name }) }
+    return out
+}
+
+reduce_vtables :: fn(rows: bc.VtableRow[]) -> Vtable[] {
+    out: Vtable[] = []
+    for row in rows {
+        entries: VtableEntry[] = []
+        for e in row.entries {
+            entries.push(VtableEntry { .type_id = e.receiver_type_index, .function_index = e.fn_index })
+        }
+        out.push(Vtable { .key = row.key, .entries = entries })
+    }
+    return out
+}
+
+// The entry is the `is_main` fn (set by `parse_virt_bc` from `export main N` or
+// the `$main`-suffix fallback) ; default to 0 — `parse_virt`'s historical
+// last-resort when no entry is identified.
+reduce_main_index :: fn(funcs: bc.BcFunction[]) -> i32 {
+    for i in 0..<funcs.len() {
+        if funcs[i].is_main { return i32(i) }
+    }
+    return 0
+}
+
+reduce_data_pool :: fn(entries: bc.BcDataEntry[]) -> ArrayVal[] {
+    out: ArrayVal[] = []
+    for e in entries {
+        elements: Value[] = []
+        for item in e.items { elements.push(value_from_bits(e.kind, item)) }
+        out.push(ArrayVal { .type_id = 0, .elements = elements, .offset = usize(0), .length = elements.len() })
+    }
+    return out
+}
+
+// Reinterpret an element's raw `u64` bit pattern per its `ArrayKind`. Mirrors
+// `virt_reader::read_data_item`, reading from the materialised `u64` rather than
+// a hex byte slice. f32/f64 bit-cast stays unimplemented (matches the prior
+// reader) ; `Boxed` never appears in a primitive data pool.
+value_from_bits :: fn(kind: bc.ArrayKind, bits: u64) -> Value {
+    if kind == bc.ArrayKind.U8   { return I32Val { .value = i32(bits & u64(0xff)) } }
+    if kind == bc.ArrayKind.I8   {
+        b :: bits & u64(0xff)
+        return I32Val { .value = if b >= u64(0x80) { i32(b) - 256 } else { i32(b) } }
+    }
+    if kind == bc.ArrayKind.Bool { return BoolVal { .value = bits != u64(0) } }
+    if kind == bc.ArrayKind.U16  { return I32Val { .value = i32(bits & u64(0xffff)) } }
+    if kind == bc.ArrayKind.I16  {
+        v :: bits & u64(0xffff)
+        return I32Val { .value = if v >= u64(0x8000) { i32(v) - 65536 } else { i32(v) } }
+    }
+    if kind == bc.ArrayKind.U32  { return I32Val { .value = i32(u32(bits)) } }
+    if kind == bc.ArrayKind.I32  { return I32Val { .value = i32(u32(bits)) } }
+    if kind == bc.ArrayKind.Char { return CharVal { .value = char(u32(bits)) } }
+    if kind == bc.ArrayKind.U64  { return I64Val { .value = i64(bits) } }
+    if kind == bc.ArrayKind.I64  { return I64Val { .value = i64(bits) } }
+    return I32Val { .value = 0 }
+}
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing" { assert_eq, assert }
