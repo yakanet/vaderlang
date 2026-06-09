@@ -1,0 +1,94 @@
+; tests/fixtures/membuf_gc.virt — S2b GC proof (G1) for the Target ABI byte buffer.
+; Hand-authored op stream (no .vader source lowers to the memory opcodes yet).
+; main: object_new a buffer, store_i32 42, call garbage() 64x to force minor
+; collections that MOVE the rooted buffer, then load_i32 -> must still read 42.
+; garbage()'s buffer is rooted only for its call -> dead/collectible on return.
+; Compiled via `vader build … --target=c/native` (see tests/membuf_gc.test.ts).
+module membuf
+type 0 primitive i32
+type 1 primitive void
+fn 0 membuf$garbage () -> void
+  i32.const 4096
+  object_new 0
+  drop
+  return
+end
+fn 1 membuf$main () -> i32
+  local buf ref
+  i32.const 512
+  object_new 0
+  local.set 0
+  local.get 0
+  i32.const 0
+  i32.const 42
+  store_i32
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  call 0
+  local.get 0
+  i32.const 0
+  load_i32
+  return
+end
+export main 1

@@ -37,6 +37,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
+#include <string.h>   /* memcpy / memmove / memset — used by the inline buffer ops */
 
 /* Branch-prediction hints. Hot paths put `VADER_LIKELY` on the taken
  * branch and `VADER_UNLIKELY` on the trap branch ; the compiler then
@@ -425,6 +426,56 @@ static inline vader_box_t* vader_array_box_slots(vader_array_buf_t* buf) {
  * dispatches on it because the type info table doesn't carry a static layout
  * for variable-length objects. */
 #define VADER_TYPE_INDEX_ARRAY_BUF UINT32_C(0xFFFFFFFE)
+
+/* ---- Target ABI byte buffer -------------------------------------------- */
+
+/* Sentinel index for the Target ABI byte buffer (`object_new`). A
+ * variable-length, ALL-BYTES GC object : it carries no `vader_box_t` slots, so
+ * the GC scanner walks past it without forwarding anything — only its size
+ * (read off `byte_count`) matters to the heap walk. The boxed-slot path
+ * (`load_slot` / `store_slot`, with the old->young write barrier) lands with
+ * Array in a later stage ; until then those opcodes have no C-emit. */
+#define VADER_TYPE_INDEX_BUFFER UINT32_C(0xFFFFFFFD)
+
+typedef struct {
+    vader_obj_header_t header;
+    size_t             byte_count;
+    uint8_t            bytes[];
+} vader_buffer_t;
+
+/* Forward decl — the canonical declaration sits with the GC API further down ;
+ * the inline `vader_buffer_new` below predates it in file order. */
+void* vader_gc_alloc(size_t bytes);
+
+/* `object_new(size)` : allocate a zeroed `size`-byte buffer. The size is a
+ * runtime stack value, so the GC reads it back off `byte_count` rather than
+ * the (static) type-info table. No in-flight GC reference to root — the size
+ * operand is a primitive. */
+static inline vader_buffer_t* vader_buffer_new(size_t byte_count) {
+    vader_buffer_t* b = (vader_buffer_t*) vader_gc_alloc(sizeof(vader_buffer_t) + byte_count);
+    vader_obj_header_init(b, VADER_TYPE_INDEX_BUFFER);
+    b->byte_count = byte_count;
+    memset(b->bytes, 0, byte_count);
+    return b;
+}
+
+/* Byte-region load / store. `memcpy` (not a cast) for unaligned offsets. The
+ * caller (c-emit) re-derives `b` from its rooted box on every op, so a GC move
+ * between ops is picked up here (G1) — these helpers never allocate, so no move
+ * happens within one. */
+static inline uint8_t vader_buffer_load_u8(vader_buffer_t* b, size_t off) { return b->bytes[off]; }
+static inline void    vader_buffer_store_u8(vader_buffer_t* b, size_t off, uint8_t v) { b->bytes[off] = v; }
+static inline int32_t vader_buffer_load_i32(vader_buffer_t* b, size_t off) { int32_t v; memcpy(&v, b->bytes + off, 4); return v; }
+static inline void    vader_buffer_store_i32(vader_buffer_t* b, size_t off, int32_t v) { memcpy(b->bytes + off, &v, 4); }
+static inline int64_t vader_buffer_load_i64(vader_buffer_t* b, size_t off) { int64_t v; memcpy(&v, b->bytes + off, 8); return v; }
+static inline void    vader_buffer_store_i64(vader_buffer_t* b, size_t off, int64_t v) { memcpy(b->bytes + off, &v, 8); }
+static inline double  vader_buffer_load_f64(vader_buffer_t* b, size_t off) { double v; memcpy(&v, b->bytes + off, 8); return v; }
+static inline void    vader_buffer_store_f64(vader_buffer_t* b, size_t off, double v) { memcpy(b->bytes + off, &v, 8); }
+/* `memmove` not `memcpy` : a self-copy with overlapping ranges stays well
+ * defined (matches the VM reference impl's snapshot semantics). */
+static inline void vader_buffer_memory_copy(vader_buffer_t* dst, size_t dst_off, vader_buffer_t* src, size_t src_off, size_t n) {
+    memmove(dst->bytes + dst_off, src->bytes + src_off, n);
+}
 
 vader_array_t* vader_array_new(uint32_t type_index, size_t length, uint8_t element_kind, uint32_t element_tag);
 vader_box_t    vader_array_get(vader_array_t* a, size_t i);

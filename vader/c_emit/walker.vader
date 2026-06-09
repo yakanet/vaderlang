@@ -389,26 +389,24 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.DeferPush             -> emit_defer_push(s)
         is vm.DeferPopExec as d     -> emit_defer_pop_exec(s, d)
         // ---- memory opcodes (Target ABI) -----------------------------------
-        // Inert in S2 : the lowerer emits none of these yet (first consumer is
-        // the Buffer, S3), so these arms are never reached. The real C-emit —
-        // `static inline vader_*` helpers in vader.h, the G1 `(char*)obj+off`
-        // re-derive at point of use, and the G2 `VADER_WRITE_BARRIER` on
-        // `store_slot` (mirroring emit_struct_set) — lands in S2b together with
-        // the bespoke GC fixture that proves the discipline. Until then a
-        // `todo` trap keeps the arm honest (never silently emits wrong C).
-        // Matches the DataConst precedent above.
-        is vm.ObjectNew             -> todo("emit_op: object_new — Target ABI alloc, real C-emit + GC proof in S2b")
-        is vm.LoadU8                -> todo("emit_op: load_u8 — Target ABI load, real C-emit + GC proof in S2b")
-        is vm.LoadI32               -> todo("emit_op: load_i32 — Target ABI load, real C-emit + GC proof in S2b")
-        is vm.LoadI64               -> todo("emit_op: load_i64 — Target ABI load, real C-emit + GC proof in S2b")
-        is vm.LoadF64               -> todo("emit_op: load_f64 — Target ABI load, real C-emit + GC proof in S2b")
-        is vm.StoreU8               -> todo("emit_op: store_u8 — Target ABI store, real C-emit + GC proof in S2b")
-        is vm.StoreI32              -> todo("emit_op: store_i32 — Target ABI store, real C-emit + GC proof in S2b")
-        is vm.StoreI64              -> todo("emit_op: store_i64 — Target ABI store, real C-emit + GC proof in S2b")
-        is vm.StoreF64              -> todo("emit_op: store_f64 — Target ABI store, real C-emit + GC proof in S2b")
-        is vm.LoadSlot              -> todo("emit_op: load_slot — Target ABI boxed-slot load, real C-emit + GC proof in S2b")
-        is vm.StoreSlot             -> todo("emit_op: store_slot — Target ABI boxed-slot store (fires VADER_WRITE_BARRIER), real C-emit + GC proof in S2b")
-        is vm.MemoryCopy            -> todo("emit_op: memory_copy — Target ABI bulk copy, real C-emit + GC proof in S2b")
+        // Bytes-only Buffer (S2b). object_new allocates a `vader_buffer_t`; the
+        // typed load/store + memory_copy go through the `static inline
+        // vader_buffer_*` helpers in vader.h, re-deriving the buffer pointer
+        // from its rooted box on every op (G1 — no caching across an allocating
+        // op). The boxed-slot path (`load_slot` / `store_slot`, with the
+        // old->young write barrier) lands with Array (S5) — trap until then.
+        is vm.ObjectNew as o        -> emit_object_new(s, o)
+        is vm.LoadU8                -> emit_buffer_load(s, "vader_buffer_load_u8", .I32)
+        is vm.LoadI32               -> emit_buffer_load(s, "vader_buffer_load_i32", .I32)
+        is vm.LoadI64               -> emit_buffer_load(s, "vader_buffer_load_i64", .I64)
+        is vm.LoadF64               -> emit_buffer_load(s, "vader_buffer_load_f64", .F64)
+        is vm.StoreU8               -> emit_buffer_store(s, "vader_buffer_store_u8", "(uint8_t)")
+        is vm.StoreI32              -> emit_buffer_store(s, "vader_buffer_store_i32", "(int32_t)")
+        is vm.StoreI64              -> emit_buffer_store(s, "vader_buffer_store_i64", "(int64_t)")
+        is vm.StoreF64              -> emit_buffer_store(s, "vader_buffer_store_f64", "(double)")
+        is vm.LoadSlot              -> todo("emit_op: load_slot — boxed-slot path lands with Array (S5)")
+        is vm.StoreSlot             -> todo("emit_op: store_slot — boxed-slot path + write barrier land with Array (S5)")
+        is vm.MemoryCopy            -> emit_memory_copy(s)
     }
 }
 
@@ -1499,6 +1497,63 @@ emit_ref_cast :: fn(s: FnState, op: vm.RefCast) -> void {
 /// `array.new` — allocate a `vader_array_t` of `op.length` elements, store
 /// each (boxed with the element tag), box the buffer. Pops elements
 /// right-to-left into source order.
+// ---- memory opcodes (Target ABI, bytes-only Buffer) ----------------------
+
+/// `object_new` — allocate a fresh zeroed `vader_buffer_t` of the popped byte
+/// size, push the boxed reference. The `type_id` immediate tags the box
+/// (informational — the heap object always carries the BUFFER sentinel). The
+/// size operand is a primitive, so there is no in-flight reference to root
+/// across the allocation.
+emit_object_new :: fn(s: FnState, op: vm.ObjectNew) -> void {
+    size :: pop(s)
+    name :: fresh_tmp(s, .Ref)
+    // Tag the box with the BUFFER sentinel — NOT `op.type_id`. The box tag must
+    // equal the heap object's header type_index, because the GC forwards a
+    // boxed reference via `boxp->tag` (vader_runtime.c, vader_gc_forward) to
+    // size the copy. A mismatch sizes the move off the wrong type and corrupts
+    // the bytes across a collection (G1). `vader_buffer_new` inits the header to
+    // the same sentinel.
+    line(s, "${name} = vader_box_obj(VADER_TYPE_INDEX_BUFFER, vader_buffer_new((size_t) ${name_of(size)}));")
+    push_tmp(s, name, .Ref)
+}
+
+/// Shared body of the typed byte loads (`load_u8` / `load_i32` / `load_i64` /
+/// `load_f64`). Pops `obj` + `off`, re-derives the buffer pointer from its
+/// rooted box (G1 — never cached across an allocating op), reads via `helper`,
+/// pushes the result with stack class `result`.
+/// `(vader_buffer_t*) <box>.payload.obj` — the buffer pointer behind a popped
+/// reference, shared by the load / store / copy emitters.
+buf_ptr :: fn(v: StackVal) = "(vader_buffer_t*) ${name_of(v)}.payload.obj"
+
+emit_buffer_load :: fn(s: FnState, helper: string, result: ValType) -> void {
+    off :: pop(s)
+    obj :: pop(s)
+    name :: fresh_tmp(s, result)
+    line(s, "${name} = ${helper}(${buf_ptr(obj)}, (size_t) ${name_of(off)});")
+    push_tmp(s, name, result)
+}
+
+/// Shared body of the typed byte stores. Pops `obj` + `off` + `value` and
+/// writes `value` (cast to the byte width by `cast`) via `helper`. No write
+/// barrier — the byte region holds no references.
+emit_buffer_store :: fn(s: FnState, helper: string, cast: string) -> void {
+    value :: pop(s)
+    off :: pop(s)
+    obj :: pop(s)
+    line(s, "${helper}(${buf_ptr(obj)}, (size_t) ${name_of(off)}, ${cast} ${name_of(value)});")
+}
+
+/// `memory_copy` — pop `dst, dst_off, src, src_off, n` and copy `n` bytes
+/// (memmove semantics, overlap-safe).
+emit_memory_copy :: fn(s: FnState) -> void {
+    n :: pop(s)
+    src_off :: pop(s)
+    src :: pop(s)
+    dst_off :: pop(s)
+    dst :: pop(s)
+    line(s, "vader_buffer_memory_copy(${buf_ptr(dst)}, (size_t) ${name_of(dst_off)}, ${buf_ptr(src)}, (size_t) ${name_of(src_off)}, (size_t) ${name_of(n)});")
+}
+
 emit_array_new :: fn(s: FnState, op: vm.ArrayNew) -> void {
     types :: s.ctx.module.types
     elem_tag :: array_element_tag(types, op.type_id)

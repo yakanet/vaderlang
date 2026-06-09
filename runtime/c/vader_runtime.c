@@ -1051,6 +1051,10 @@ static size_t vader_gc_obj_size(void* obj, uint32_t type_index) {
         vader_array_buf_t* buf = (vader_array_buf_t*) obj;
         return sizeof(vader_array_buf_t) + buf->capacity * vader_array_element_size(buf->element_kind);
     }
+    if (type_index == VADER_TYPE_INDEX_BUFFER) {
+        vader_buffer_t* b = (vader_buffer_t*) obj;
+        return sizeof(vader_buffer_t) + b->byte_count;
+    }
     if (type_index >= vader_type_info_count) return 0;
     const vader_type_info_t* info = &vader_type_info_table[type_index];
     if (info->kind == VADER_TYPE_KIND_NONE) return 0;
@@ -1177,6 +1181,22 @@ static void vader_gc_box_tag_corrupt(const vader_box_t* boxp) {
  * not on this Cheney write) nor scan_old_dirty_cards covers it. */
 static void vader_gc_scan_box(vader_box_t* boxp) {
     if (boxp == NULL) return;
+    if (boxp->tag == VADER_TYPE_INDEX_BUFFER) {
+        /* Buffer box : the sentinel tag has no type-info row, so the generic
+         * `>= count` skip below would treat it as a primitive and never
+         * forward the referent — a moving collection would then leave the box
+         * pointing at the stale (reclaimed) location (G1). Forward via the
+         * sentinel (sizes off the header) and apply the same old->young card
+         * barrier as the ordinary ref path. A buffer holds no inner refs, so
+         * there is nothing further to scan. */
+        boxp->payload.obj = vader_gc_forward(boxp->payload.obj, VADER_TYPE_INDEX_BUFFER);
+        if ((uintptr_t)boxp >= vader_old_base && (uintptr_t)boxp < vader_old_end
+            && boxp->payload.obj != NULL
+            && !vader_in_old_any(boxp->payload.obj)) {
+            VADER_WRITE_BARRIER(boxp);
+        }
+        return;
+    }
     if (boxp->tag >= vader_type_info_count) {
         if (VADER_UNLIKELY(g_gc_check_box)) vader_gc_box_tag_corrupt(boxp);
         return;
@@ -1236,6 +1256,11 @@ static size_t vader_gc_scan_object(char* scan) {
             }
         }
         return vader_gc_align(sizeof(vader_array_buf_t) + buf->capacity * elem_size);
+    }
+    if (type_index == VADER_TYPE_INDEX_BUFFER) {
+        // All-bytes buffer : no boxed slots to forward, just advance past it.
+        vader_buffer_t* b = (vader_buffer_t*) scan;
+        return vader_gc_align(sizeof(vader_buffer_t) + b->byte_count);
     }
     if (type_index >= vader_type_info_count) {
         vader_trap("vader_gc: scanned object with unknown type_index");
@@ -2848,6 +2873,9 @@ void vader_gc_profile_dump(void) {
             uint32_t type_index = hdr->type_index;
             size_t bytes = vader_gc_obj_size(scan, type_index);
             if (bytes == 0) break;
+            // The BUFFER sentinel has no dedicated bucket — it falls into
+            // bucket 0 here (a cosmetic miscount in this debug-only profile,
+            // never a GC-correctness issue ; the size walk handles it above).
             size_t bucket = (type_index == VADER_TYPE_INDEX_ARRAY_BUF)
                 ? array_buf_bucket
                 : (type_index < vader_type_info_count ? type_index : 0);
