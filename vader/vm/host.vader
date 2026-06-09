@@ -10,6 +10,8 @@
 
 module "vader/vm"
 
+bc :: import "vader/bytecode"
+
 import "std/io" { read_file, write_file, exists, is_dir, read_dir, print, eprint }
 import "std/process" { spawn_run, spawn_last_stdout, spawn_last_stderr }
 import "std/math" { sqrt, pow, floor, ceil, round }
@@ -127,13 +129,13 @@ stringbuilder_to_string :: fn(sv: StructVal, at_pc: i32) -> HostCallResult {
     return HostOk { .value = StringVal { .value = "${flush}" } }
 }
 
-/// Dispatch a host import. Walks a flat `if info.mangled == r"…"`
+/// Dispatch a host import. Walks a flat `if info.mangled_name == r"…"`
 /// cascade matching the TS VM's `makeBindings` shape — every arm pops
 /// the args from `stack[arg_base ..]`, executes the host action, and
 /// returns either `HostOk { value }` (the result pushed onto the
 /// caller's value stack) or a `Trap` (surfaced verbatim).
 ///
-/// @param info      the import descriptor (mangled name + parameter count).
+/// @param info      the import descriptor (mangled name + signature).
 /// @param stack     caller value stack — args live at `[arg_base ..]`.
 /// @param arg_base  cursor of the first arg in `stack`.
 /// @param gc_state  1-element box for the `std/runtime` collection
@@ -150,8 +152,8 @@ stringbuilder_to_string :: fn(sv: StructVal, at_pc: i32) -> HostCallResult {
 ///                  materialises so it narrows to `is u8[]`.
 /// @return          `HostOk { value }` on success ; `Trap` on a missing
 ///                  import, malformed arg, or host-level failure.
-export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, gc_state: usize[], at_pc: i32, string_array_type_id: i32, u8_array_type_id: i32) -> HostCallResult {
-    if info.mangled == r"std_io$write" {
+export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, gc_state: usize[], at_pc: i32, string_array_type_id: i32, u8_array_type_id: i32) -> HostCallResult {
+    if info.mangled_name == r"std_io$write" {
         // arg_base + 0 : Stream tag ; arg_base + 1 : the string payload.
         STDOUT :: i32(0)
         STDERR :: i32(1)
@@ -169,14 +171,14 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
         return HostOk { .value = zero_value() }
     }
     // ---- std/string family ----------------------------------------------
-    if info.mangled == r"std_string$byte_len" {
+    if info.mangled_name == r"std_string$byte_len" {
         // Internal fold target — `s.bytes().len()` lowers to a std_string$byte_len
         // import. The body's own `.bytes().len()` folds to the native byte_len.
         s :: read_string(stack[arg_base], at_pc, "byte_len")
         if s is Trap { return s }
         return HostOk { .value = I32Val { .value = i32(s.value.bytes().len()) } }
     }
-    if info.mangled == r"std_string$as_string" || info.mangled == r"std_core$bytes_to_string" {
+    if info.mangled_name == r"std_string$as_string" || info.mangled_name == r"std_core$bytes_to_string" {
         // bytes→string : the VM gathers the boxed u8 slots into a real `u8[]` and
         // lets the native intern them verbatim (no UTF-8 validation). Native
         // O(1)-reinterprets a borrowed slice. `bytes_to_string` (std/core, Target
@@ -192,14 +194,14 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
         }
         return HostOk { .value = StringVal { .value = as_string(raw) } }
     }
-    if info.mangled == r"std_string$bytes" {
+    if info.mangled_name == r"std_string$bytes" {
         // Native zero-copies a `const u8[]` view ; the VM materialises a copy
         // (boxed slots can't alias the interned bytes) — same values.
         s :: read_string(stack[arg_base], at_pc, "bytes receiver")
         if s is Trap { return s }
         return HostOk { .value = bytes_to_value(s.value, u8_array_type_id) }
     }
-    if info.mangled == r"std_string$index_of" {
+    if info.mangled_name == r"std_string$index_of" {
         s    :: read_string(stack[arg_base    ], at_pc, "index_of receiver")
         c    :: read_char  (stack[arg_base + 1], at_pc, "index_of char")
         from :: read_i32   (stack[arg_base + 2], at_pc, "index_of from")
@@ -208,12 +210,12 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
         if from is Trap { return from }
         return HostOk { .value = I32Val { .value = i32(s.value.index_of(c.value, usize(from.value))) } }
     }
-    if info.mangled == r"std_string_builder$StringBuilder$Display$to_string" {
+    if info.mangled_name == r"std_string_builder$StringBuilder$Display$to_string" {
         sv :: read_struct(stack[arg_base], at_pc, "StringBuilder.to_string receiver")
         if sv is Trap { return sv }
         return stringbuilder_to_string(sv, at_pc)
     }
-    if info.mangled == r"std_core$string$Index$at" {
+    if info.mangled_name == r"std_core$string$Index$at" {
         s :: read_string(stack[arg_base    ], at_pc, "string[] receiver")
         i :: read_i32   (stack[arg_base + 1], at_pc, "string[] index")
         if s is Trap { return s }
@@ -234,7 +236,7 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
         }
         return HostOk { .value = CharVal { .value = char(u32(0)) } }
     }
-    if info.mangled == r"std_string$last_index_of" {
+    if info.mangled_name == r"std_string$last_index_of" {
         s         :: read_string(stack[arg_base    ], at_pc, "last_index_of receiver")
         c         :: read_char  (stack[arg_base + 1], at_pc, "last_index_of char")
         min_index :: read_i32   (stack[arg_base + 2], at_pc, "last_index_of min_index")
@@ -247,7 +249,7 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
     // `string implements Hash` is `@intrinsic`. Computes the low 32 bits
     // of FNV-1a-64 (matches the C runtime's `vader_string_hash` modulo
     // 2^32 — sufficient for `hash % capacity` bucket assignments).
-    if info.mangled == r"std_core$string$Hash$hash" {
+    if info.mangled_name == r"std_core$string$Hash$hash" {
         s :: read_string(stack[arg_base], at_pc, "string.hash")
         if s is Trap { return s }
         return HostOk { .value = I32Val { .value = fnv1a31_low(s.value) } }
@@ -255,17 +257,17 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
     // `@intrinsic string implements Equals` — structural string compare.
     // Reached when map key lookups dispatch `key.equals(other)` virtually
     // (the virtual.call intrinsic fallback in exec.vader rebuilds this mangle).
-    if info.mangled == r"std_core$string$Equals$equals" {
+    if info.mangled_name == r"std_core$string$Equals$equals" {
         return host_str_pair_to_bool(stack, arg_base, at_pc, "equals", (a, b) -> a == b)
     }
-    if info.mangled == r"std_core$string$Equals$not_equals" {
+    if info.mangled_name == r"std_core$string$Equals$not_equals" {
         return host_str_pair_to_bool(stack, arg_base, at_pc, "not_equals", (a, b) -> a != b)
     }
     // `@intrinsic <intwidth> implements Equals` — bodyless for every integer
     // width, so an erased map-key lookup (`MutableMap<Any, K>` with integer K)
     // dispatches `key.equals(other)` virtually and surfaces it as a host import
     // (mirror of the string arms above). Reached e.g. by `MutableSet<i32>`.
-    int_eq :: int_equals_method(info.mangled)
+    int_eq :: int_equals_method(info.mangled_name)
     if int_eq == "equals" {
         return host_int_pair_to_bool(stack, arg_base, at_pc, "equals", (a: i64, b: i64) -> a == b)
     }
@@ -276,14 +278,14 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
     // VM emits the SPEC §9 canonical form via `display_value`. Width
     // doesn't matter at runtime (every integer collapses to `I32Val`),
     // so a single arm covers all the per-width manglings.
-    if is_display_to_string_host(info.mangled) {
+    if is_display_to_string_host(info.mangled_name) {
         // `u32` / `u64` / `usize` literals exceeding `i64.MAX` ride the
         // same `I64Val` carrier as signed `i64`. Default `display_value`
         // renders that bit pattern as signed i64 (e.g. `-9551616` instead
         // of `18446744073700000000`). The lower pass routes wide
         // unsigned interpolations through this dispatch — recover the
         // unsigned form by reinterpreting the bit pattern.
-        if is_unsigned_display_host(info.mangled) {
+        if is_unsigned_display_host(info.mangled_name) {
             v :: stack[arg_base]
             // @partial: integer carriers reinterpret as unsigned; other tags trap.
             return @partial match v {
@@ -293,7 +295,7 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
                 // integer through `<u_width>$Display$to_string`. Trap
                 // loudly so the regression surfaces here instead of as a
                 // mysteriously wrong rendering.
-                _ -> Trap { .message = "${info.mangled} at pc=${at_pc}: expected integer Value, got ${describe_value_tag(v)}" }
+                _ -> Trap { .message = "${info.mangled_name} at pc=${at_pc}: expected integer Value, got ${describe_value_tag(v)}" }
             }
         }
         return HostOk { .value = StringVal { .value = display_value(stack[arg_base]) } }
@@ -303,29 +305,29 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
     // counter to be present + monotonic. `collect` bumps it, `collections`
     // returns the current value, `bytes_used` / `bytes_copied` stay at
     // zero (no real arena to measure).
-    if info.mangled == r"std_runtime$collect" {
+    if info.mangled_name == r"std_runtime$collect" {
         gc_state[0] = gc_state[0] + 1
         return HostOk { .value = NullVal {} }
     }
-    if info.mangled == r"std_runtime$collections"  { return HostOk { .value = I32Val { .value = i32(gc_state[0]) } } }
-    if info.mangled == r"std_runtime$bytes_used"   { return HostOk { .value = I32Val { .value = 0 } } }
-    if info.mangled == r"std_runtime$bytes_copied" { return HostOk { .value = I32Val { .value = 0 } } }
+    if info.mangled_name == r"std_runtime$collections"  { return HostOk { .value = I32Val { .value = i32(gc_state[0]) } } }
+    if info.mangled_name == r"std_runtime$bytes_used"   { return HostOk { .value = I32Val { .value = 0 } } }
+    if info.mangled_name == r"std_runtime$bytes_copied" { return HostOk { .value = I32Val { .value = 0 } } }
     // ---- std/time --------------------------------------------------------
-    if info.mangled == r"std_time$now_unix_ms"  { return HostOk { .value = I64Val { .value = now_unix_ms()  } } }
-    if info.mangled == r"std_time$monotonic_ns" { return HostOk { .value = I64Val { .value = monotonic_ns() } } }
+    if info.mangled_name == r"std_time$now_unix_ms"  { return HostOk { .value = I64Val { .value = now_unix_ms()  } } }
+    if info.mangled_name == r"std_time$monotonic_ns" { return HostOk { .value = I64Val { .value = monotonic_ns() } } }
     // ---- std/math --------------------------------------------------------
-    if info.mangled == r"std_math$sqrt"  { return host_f64_unary(stack, arg_base, at_pc, "sqrt",  (a) -> sqrt(a)) }
-    if info.mangled == r"std_math$floor" { return host_f64_unary(stack, arg_base, at_pc, "floor", (a) -> floor(a)) }
-    if info.mangled == r"std_math$ceil"  { return host_f64_unary(stack, arg_base, at_pc, "ceil",  (a) -> ceil(a)) }
-    if info.mangled == r"std_math$round" { return host_f64_unary(stack, arg_base, at_pc, "round", (a) -> round(a)) }
-    if info.mangled == r"std_math$abs"   { return host_f64_unary(stack, arg_base, at_pc, "abs", (a) -> if a < f64(0) { -a } else { a }) }
-    if info.mangled == r"std_math$pow"   { return host_f64_binary(stack, arg_base, at_pc, "pow", (a, b) -> pow(a, b)) }
-    if info.mangled == r"std_math$min"   { return host_f64_binary(stack, arg_base, at_pc, "min", (a, b) -> if a < b { a } else { b }) }
-    if info.mangled == r"std_math$max"   { return host_f64_binary(stack, arg_base, at_pc, "max", (a, b) -> if a > b { a } else { b }) }
-    if info.mangled == r"std_math$min_"   { return host_i32_binary(stack, arg_base, at_pc, "min_", (a, b) -> if a < b { a } else { b }) }
-    if info.mangled == r"std_math$max_"   { return host_i32_binary(stack, arg_base, at_pc, "max_", (a, b) -> if a > b { a } else { b }) }
-    if info.mangled == r"std_math$abs_"   { return host_i32_unary(stack, arg_base, at_pc, "abs_",  (a) -> if a < 0 { -a } else { a }) }
-    if info.mangled == r"std_math$clamp" {
+    if info.mangled_name == r"std_math$sqrt"  { return host_f64_unary(stack, arg_base, at_pc, "sqrt",  (a) -> sqrt(a)) }
+    if info.mangled_name == r"std_math$floor" { return host_f64_unary(stack, arg_base, at_pc, "floor", (a) -> floor(a)) }
+    if info.mangled_name == r"std_math$ceil"  { return host_f64_unary(stack, arg_base, at_pc, "ceil",  (a) -> ceil(a)) }
+    if info.mangled_name == r"std_math$round" { return host_f64_unary(stack, arg_base, at_pc, "round", (a) -> round(a)) }
+    if info.mangled_name == r"std_math$abs"   { return host_f64_unary(stack, arg_base, at_pc, "abs", (a) -> if a < f64(0) { -a } else { a }) }
+    if info.mangled_name == r"std_math$pow"   { return host_f64_binary(stack, arg_base, at_pc, "pow", (a, b) -> pow(a, b)) }
+    if info.mangled_name == r"std_math$min"   { return host_f64_binary(stack, arg_base, at_pc, "min", (a, b) -> if a < b { a } else { b }) }
+    if info.mangled_name == r"std_math$max"   { return host_f64_binary(stack, arg_base, at_pc, "max", (a, b) -> if a > b { a } else { b }) }
+    if info.mangled_name == r"std_math$min_"   { return host_i32_binary(stack, arg_base, at_pc, "min_", (a, b) -> if a < b { a } else { b }) }
+    if info.mangled_name == r"std_math$max_"   { return host_i32_binary(stack, arg_base, at_pc, "max_", (a, b) -> if a > b { a } else { b }) }
+    if info.mangled_name == r"std_math$abs_"   { return host_i32_unary(stack, arg_base, at_pc, "abs_",  (a) -> if a < 0 { -a } else { a }) }
+    if info.mangled_name == r"std_math$clamp" {
         v :: read_f64(stack[arg_base    ], at_pc, "clamp value")
         lo :: read_f64(stack[arg_base + 1], at_pc, "clamp lo")
         hi :: read_f64(stack[arg_base + 2], at_pc, "clamp hi")
@@ -337,7 +339,7 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
         if result > hi.value { result = hi.value }
         return HostOk { .value = F64Val { .value = result } }
     }
-    if info.mangled == r"std_math$clamp_" {
+    if info.mangled_name == r"std_math$clamp_" {
         v :: read_i32(stack[arg_base    ], at_pc, "clamp value")
         lo :: read_i32(stack[arg_base + 1], at_pc, "clamp lo")
         hi :: read_i32(stack[arg_base + 2], at_pc, "clamp hi")
@@ -349,7 +351,7 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
         if result > hi.value { result = hi.value }
         return HostOk { .value = I32Val { .value = result } }
     }
-    if info.mangled == r"std_string$parse_float" {
+    if info.mangled_name == r"std_string$parse_float" {
         s :: read_string(stack[arg_base], at_pc, "parse_float")
         if s is Trap { return s }
         trimmed :: s.value.trim()
@@ -359,7 +361,7 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
         return HostOk { .value = F64Val { .value = parsed } }
     }
     // ---- std/io fallible file ops ---------------------------------------
-    if info.mangled == r"std_io$read_file" {
+    if info.mangled_name == r"std_io$read_file" {
         path :: read_string(stack[arg_base], at_pc, "read_file")
         if path is Trap { return path }
         result :: read_file(path.value)
@@ -373,7 +375,7 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
             is Error       -> HostOk { .value = ErrorVal  { .message = "read_file failed: ${path.value}" } }
         }
     }
-    if info.mangled == r"std_io$write_file" {
+    if info.mangled_name == r"std_io$write_file" {
         path    :: read_string(stack[arg_base    ], at_pc, "write_file path")
         content :: read_string(stack[arg_base + 1], at_pc, "write_file content")
         if path    is Trap { return path }
@@ -386,17 +388,17 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
         if result is Error { return HostOk { .value = ErrorVal { .message = "write_file failed: ${path.value}" } } }
         return HostOk { .value = NullVal {} }
     }
-    if info.mangled == r"std_io$exists" {
+    if info.mangled_name == r"std_io$exists" {
         path :: read_string(stack[arg_base], at_pc, "exists")
         if path is Trap { return path }
         return HostOk { .value = BoolVal { .value = exists(path.value) } }
     }
-    if info.mangled == r"std_io$is_dir" {
+    if info.mangled_name == r"std_io$is_dir" {
         path :: read_string(stack[arg_base], at_pc, "is_dir")
         if path is Trap { return path }
         return HostOk { .value = BoolVal { .value = is_dir(path.value) } }
     }
-    if info.mangled == r"std_io$read_dir" {
+    if info.mangled_name == r"std_io$read_dir" {
         path :: read_string(stack[arg_base], at_pc, "read_dir")
         if path is Trap { return path }
         // `read_dir` returns `string[] | Error`. The early-return
@@ -410,7 +412,7 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
         return HostOk { .value = string_array_to_value(result, string_array_type_id) }
     }
     // ---- std/process spawn ----------------------------------------------
-    if info.mangled == r"std_process$spawn_run" {
+    if info.mangled_name == r"std_process$spawn_run" {
         argv :: read_array(stack[arg_base], at_pc, "spawn_run argv")
         if argv is Trap { return argv }
         argv_strings: string[] = []
@@ -424,19 +426,19 @@ export dispatch_import :: fn(info: ImportInfo, stack: Value[], arg_base: usize, 
         code :: spawn_run(argv_strings)
         return HostOk { .value = I32Val { .value = code } }
     }
-    if info.mangled == r"std_process$spawn_last_stdout" {
+    if info.mangled_name == r"std_process$spawn_last_stdout" {
         return HostOk { .value = StringVal { .value = spawn_last_stdout() } }
     }
-    if info.mangled == r"std_process$spawn_last_stderr" {
+    if info.mangled_name == r"std_process$spawn_last_stderr" {
         return HostOk { .value = StringVal { .value = spawn_last_stderr() } }
     }
     // ---- std/abort -------------------------------------------------------
-    if info.mangled == r"std_abort$panic" {
+    if info.mangled_name == r"std_abort$panic" {
         message :: read_string(stack[arg_base], at_pc, "panic")
         if message is Trap { return message }
         return Trap { .message = "vader: panic — ${message.value}" }
     }
-    return Trap { .message = "unbound host import '${info.mangled}' at pc=${at_pc}" }
+    return Trap { .message = "unbound host import '${info.mangled_name}' at pc=${at_pc}" }
 }
 
 /// True iff `mangled` is a primitive `<T>.Display.to_string` host — one

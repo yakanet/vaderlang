@@ -1,6 +1,6 @@
 // Brainfuck → Vader VM compiler.
 //
-// Reads a `.bf` source file, builds an in-memory `op.Module` via the
+// Reads a `.bf` source file, builds an in-memory `bc.BytecodeModule` via the
 // `vader/vm/builder` API, and runs it through `exec()` — no .virt text
 // intermediate, no subprocess.
 //
@@ -32,7 +32,7 @@ module "main"
 import "std/io" { eprintln, read_file }
 import "std/string" { chars }
 import "std/testing" { assert }
-op :: import "vader/vm"
+bc :: import "vader/bytecode"
 import "vader/vm" {
     ModuleBuilder, FunctionBuilder,
     new_module_builder, new_function_builder,
@@ -44,7 +44,7 @@ import "vader/vm" {
     builder_new, builder_append_display, builder_finish,
     int_to_char, call, call_import, return_op,
 }
-import "vader/vm" { exec }
+import "vader/vm" { exec, prepare }
 import "vader/vm" { VmResult, Ok, Trap }
 
 DEFAULT_PATH :: "examples/brainfuck/hello.bf"
@@ -195,7 +195,7 @@ emit_bf_char :: fn(fb: FunctionBuilder, c: char, idx: usize, partner: i32[], cel
 
 // Stub module returned when the BF source has unmatched brackets — main
 // just pushes 1 and returns, so the caller surfaces a non-zero exit.
-unmatched_bracket_module :: fn() -> op.Module {
+unmatched_bracket_module :: fn() -> bc.BytecodeModule {
     stub :: new_module_builder()
     main_fn :: new_function_builder("bf_main", 0, 0)
     main_fn.i32_const(1)
@@ -204,9 +204,9 @@ unmatched_bracket_module :: fn() -> op.Module {
     return stub.finish()
 }
 
-// Compile `source` (the BF program text) into a runnable `op.Module`.
+// Compile `source` (the BF program text) into a runnable `bc.BytecodeModule`.
 // Returns the unmatched-bracket stub when `source` has dangling `[` / `]`.
-compile_brainfuck :: fn(source: string) -> op.Module {
+compile_brainfuck :: fn(source: string) -> bc.BytecodeModule {
     tokens  :: tokenize_bf(source)
     partner :: match_brackets(tokens)
     if tokens.len() > 0 && partner.len() == 0 {
@@ -214,8 +214,8 @@ compile_brainfuck :: fn(source: string) -> op.Module {
     }
 
     module_builder :: new_module_builder()
-    primitive_i32_type_id :: module_builder.add_type(op.PrimitiveType { .kind = "i32" })
-    cells_type_id :: module_builder.add_type(op.ArrayType { .element_type_id = primitive_i32_type_id })
+    primitive_i32_type_id :: module_builder.add_type(bc.BcPrimitive { .val = bc.ValType.I32 })
+    cells_type_id :: module_builder.add_type(bc.BcArray { .element = primitive_i32_type_id })
     // `write(stream_tag, msg)` is std/io's sole host import — the
     // print / println / eprint / eprintln wrappers in stdlib all route
     // through it. The stream tag matches `std/io::Stream`
@@ -300,7 +300,7 @@ main :: fn(argv: string[]) -> i32 {
         return 1
     }
     module :: compile_brainfuck(src)
-    return match exec(module, []) {
+    return match exec(prepare(module), []) {
         is Ok   as ok -> ok.value
         is Trap as t  -> {
             eprintln("brainfuck: vm trap — ${t.message}")

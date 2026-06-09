@@ -478,94 +478,12 @@ find_main_by_suffix_bc :: fn(functions: bc.BcFunction[]) -> i32 {
     return -1
 }
 
-// ---- BytecodeModule -> VM Module reduction (transitional) ------------------
+// ---- runtime projections (`prepare` reuses these) --------------------------
 //
-// `parse_virt` keeps its `Module` signature (exec still consumes `Module`), but
-// its body now delegates to `parse_virt_bc` + this reduction — making
-// `BytecodeModule` the single parse source of truth. The VM needs only a
-// projection: field counts rather than full signatures, materialised data
-// values rather than raw bits. Step 2b folds these reads into `exec` and
-// retires `Module` (and this reduction) entirely.
-
-/// Project a `BytecodeModule` onto the runtime-only VM `Module`.
-export bc_to_vm_module :: fn(m: bc.BytecodeModule) -> Module {
-    types :: reduce_types(m.types)
-    functions :: reduce_functions(m.functions)
-    vtables := reduce_vtables(m.vtables)
-    // Preserve `parse_virt`'s fallback: a dump carrying no `vtable` directives
-    // rebuilds the table from the mangled-name heuristic.
-    if vtables.len() == 0 { vtables = build_vtables(functions, types) }
-    return Module {
-        .strings    = m.strings,
-        .imports    = reduce_imports(m.imports),
-        .types      = types,
-        .functions  = functions,
-        .vtables    = vtables,
-        .impls      = reduce_impls(m.impl_table),
-        .data_pool  = reduce_data_pool(m.data_pool),
-        .main_index = reduce_main_index(m.functions),
-    }
-}
-
-reduce_types :: fn(types: bc.BcType[]) -> TypeDecl[] {
-    out: TypeDecl[] = []
-    for t in types { out.push(reduce_type(t)) }
-    return out
-}
-
-reduce_type :: fn(t: bc.BcType) -> TypeDecl = match t {
-    is bc.BcPrimitive as p -> PrimitiveType { .kind = bc.val_type_name(p.val) }
-    is bc.BcStruct    as s -> StructType { .name = s.name, .field_count = s.fields.len() }
-    is bc.BcArray     as a -> ArrayType { .element_type_id = a.element }
-    is bc.BcUnion     as u -> UnionType { .variant_type_ids = u.variants }
-    is bc.BcRef       as r -> RefType { .trait_name = r.trait_name }
-    is bc.BcFn        as f -> FnType { .parameter_type_ids = f.params, .return_type_id = f.return_type }
-}
-
-reduce_functions :: fn(funcs: bc.BcFunction[]) -> BytecodeFunction[] {
-    out: BytecodeFunction[] = []
-    for f in funcs {
-        out.push(BytecodeFunction {
-            .name            = f.name,
-            .parameter_count = f.signature.params.len(),
-            .local_count     = f.locals.len(),
-            .ops             = f.body,
-            .jump_table      = f.jump_table,
-        })
-    }
-    return out
-}
-
-reduce_imports :: fn(imports: bc.BcImport[]) -> ImportInfo[] {
-    out: ImportInfo[] = []
-    for imp in imports {
-        out.push(ImportInfo {
-            .name            = imp.extern_name,
-            .mangled         = imp.mangled_name,
-            .parameter_count = imp.signature.params.len(),
-            .has_return      = imp.signature.result != bc.ValType.Void,
-        })
-    }
-    return out
-}
-
-reduce_impls :: fn(impl_table: bc.ImplEntry[]) -> Impl[] {
-    out: Impl[] = []
-    for e in impl_table { out.push(Impl { .type_id = e.struct_type_index, .trait_name = e.trait_name }) }
-    return out
-}
-
-reduce_vtables :: fn(rows: bc.VtableRow[]) -> Vtable[] {
-    out: Vtable[] = []
-    for row in rows {
-        entries: VtableEntry[] = []
-        for e in row.entries {
-            entries.push(VtableEntry { .type_id = e.receiver_type_index, .function_index = e.fn_index })
-        }
-        out.push(Vtable { .key = row.key, .entries = entries })
-    }
-    return out
-}
+// `prepare` (module.vader) wraps a parsed `BytecodeModule` in a `VmState`,
+// materialising the data pool to runtime `ArrayVal`s and resolving the entry
+// index up front. Both helpers below back that wrapper ; `value_from_bits` is
+// the per-element bit-pattern decoder they share.
 
 // The entry is the `is_main` fn (set by `parse_virt_bc` from `export main N` or
 // the `$main`-suffix fallback) ; default to 0 — `parse_virt`'s historical

@@ -1,15 +1,15 @@
-// vader/vm/builder — programmatic construction of an `Module` without
+// vader/vm/builder — programmatic construction of a `BytecodeModule` without
 // going through the `.virt` text intermediate.
 //
-// The parser in `vader/vm/virt_reader.vader` consumes a `.virt` text dump and
-// produces an `Module` (string pool, type table, function bodies +
-// pre-computed jump tables, vtables, data pool). This file exposes the
-// same shape via a builder API so consumers can assemble a Module by
-// emitting `Op` values directly :
+// The reader in `vader/vm/virt_reader_bc.vader` consumes a `.virt` text dump
+// and produces a `vader/bytecode::BytecodeModule` (type table, string pool,
+// function bodies + pre-computed jump tables, imports, impl table, data pool).
+// This file exposes the same target shape via a builder API so consumers can
+// assemble a module by emitting `Op` values directly :
 //
 //   builder :: new_module_builder()
 //   string_pool_index :: builder.intern_string("hello")
-//   type_id_i32 :: builder.add_type(PrimitiveType { .kind = "i32" })
+//   type_id_i32 :: builder.add_type(bc.BcPrimitive { .val = bc.ValType.I32 })
 //
 //   function :: new_function_builder("main", 0, 0)
 //   function.i32_const(42)
@@ -18,7 +18,7 @@
 //   builder.set_main(main_index)
 //
 //   module :: builder.finish()
-//   result :: exec(module)
+//   result :: exec(prepare(module))
 //
 // Use cases : Brainfuck and other source-language → bytecode compilers
 // written in Vader (see `examples/brainfuck.vader`), and any consumer
@@ -40,10 +40,9 @@ import "std/collections" { MutableMap }
 
 // ----------------------------------------------------------------- module
 
-/// In-progress `Module`. Pools (strings, types, imports, functions,
+/// In-progress `BytecodeModule`. Pools (strings, types, imports, functions,
 /// data) grow as the caller registers entries ; `finish()` snapshots
-/// them into the final `Module` and synthesises the per-(trait,
-/// method) vtables via `virt_reader.build_vtables`.
+/// them into the final `BytecodeModule`, flagging the entry fn `is_main`.
 ///
 /// Field-mutability note : every pool here is a heap-grown `Vec[]`-like
 /// array so member methods can `self.strings.push(...)` without taking
@@ -54,11 +53,11 @@ export ModuleBuilder :: struct {
     /// with the pool index. Avoids O(n) lookups when interning the
     /// same string twice from caller code.
     string_index: MutableMap<string, i32>
-    types: TypeDecl[]
-    imports: ImportInfo[]
-    functions: BytecodeFunction[]
-    impls: Impl[]
-    data_pool: ArrayVal[]
+    types: bc.BcType[]
+    imports: bc.BcImport[]
+    functions: bc.BcFunction[]
+    impl_table: bc.ImplEntry[]
+    data_pool: bc.BcDataEntry[]
     main_index: i32[]
 }
 
@@ -72,7 +71,7 @@ export new_module_builder :: fn() -> ModuleBuilder {
         .types        = [],
         .imports      = [],
         .functions    = [],
-        .impls        = [],
+        .impl_table   = [],
         .data_pool    = [],
         .main_index   = [-1],
     }
@@ -102,10 +101,27 @@ export intern_string :: fn(self: ModuleBuilder, value: string) -> i32 {
 /// @param self  the builder.
 /// @param type_decl  the type declaration to append.
 /// @return      the index into `self.types` where the entry lives.
-export add_type :: fn(self: ModuleBuilder, type_decl: TypeDecl) -> i32 {
+export add_type :: fn(self: ModuleBuilder, type_decl: bc.BcType) -> i32 {
     index :: i32(self.types.len())
     self.types.push(type_decl)
     return index
+}
+
+/// Build a synthetic `BcSignature` from an arity + a has-result flag. The
+/// builder API doesn't carry per-slot `ValType`s, so each slot is `Any` ;
+/// `result` is `Any` when the callee returns a value, `Void` otherwise. The
+/// `param_types` / `result_type` `BcType` indices are left at `0` — the VM
+/// only reads `params.len()` / `result`, and a `.virt` round-trip
+/// reconstructs the indices from the type table.
+synth_signature :: fn(parameter_count: usize, has_return: bool) -> bc.BcSignature {
+    params: bc.ValType[] = []
+    for _ in 0..<parameter_count { params.push(bc.ValType.Any) }
+    return bc.BcSignature {
+        .params      = params,
+        .result      = if has_return { bc.ValType.Any } else { bc.ValType.Void },
+        .param_types = [],
+        .result_type = 0,
+    }
 }
 
 /// Register a host-import descriptor and return its `call.import` key.
@@ -121,11 +137,11 @@ export add_type :: fn(self: ModuleBuilder, type_decl: TypeDecl) -> i32 {
 /// @return                the index into `self.imports`.
 export add_import :: fn(self: ModuleBuilder, name: string, mangled: string, parameter_count: usize, has_return: bool) -> i32 {
     index :: i32(self.imports.len())
-    self.imports.push(ImportInfo {
-        .name            = name,
-        .mangled         = mangled,
-        .parameter_count = parameter_count,
-        .has_return      = has_return,
+    self.imports.push(bc.BcImport {
+        .extern_name  = name,
+        .mangled_name = mangled,
+        .signature    = synth_signature(parameter_count, has_return),
+        .is_extern    = false,
     })
     return index
 }
@@ -135,9 +151,9 @@ export add_import :: fn(self: ModuleBuilder, name: string, mangled: string, para
 /// `const T[]` literals onto the stack at runtime.
 ///
 /// @param self        the builder.
-/// @param entry       the pre-built `ArrayVal` (elements + type_id).
+/// @param entry       the pre-built `BcDataEntry` (kind + raw `u64` bits).
 /// @return            the index into `self.data_pool`.
-export add_data_entry :: fn(self: ModuleBuilder, entry: ArrayVal) -> i32 {
+export add_data_entry :: fn(self: ModuleBuilder, entry: bc.BcDataEntry) -> i32 {
     index :: i32(self.data_pool.len())
     self.data_pool.push(entry)
     return index
@@ -151,13 +167,17 @@ export add_data_entry :: fn(self: ModuleBuilder, entry: ArrayVal) -> i32 {
 /// @param type_id     the receiver type's index in `self.types`.
 /// @param trait_name  the trait identifier.
 export add_impl :: fn(self: ModuleBuilder, type_id: i32, trait_name: string) -> void {
-    self.impls.push(Impl { .type_id = type_id, .trait_name = trait_name })
+    self.impl_table.push(bc.ImplEntry { .struct_type_index = type_id, .trait_name = trait_name })
 }
 
 /// Bake a `FunctionBuilder` into the module : reads the accumulated
 /// ops, jump table, name, and frame sizes and appends a fresh
-/// `BytecodeFunction`. Returns the function's index, which can be
+/// `BcFunction`. Returns the function's index, which can be
 /// referenced by `Call` ops and `set_main`.
+///
+/// The builder API carries arities but no per-slot `ValType`s, so the
+/// signature's params + the locals are all `Any` and `debug` is all-null
+/// (the VM reads neither beyond `params.len()` / `locals.len()`).
 ///
 /// @param self      the builder.
 /// @param function  the in-progress function builder, already populated
@@ -166,51 +186,74 @@ export add_impl :: fn(self: ModuleBuilder, type_id: i32, trait_name: string) -> 
 /// @return          the index into `self.functions`.
 export add_function :: fn(self: ModuleBuilder, function: FunctionBuilder) -> i32 {
     index :: i32(self.functions.len())
-    self.functions.push(BytecodeFunction {
-        .name            = function.name,
-        .parameter_count = function.parameter_count,
-        .local_count     = function.local_count,
-        .ops             = function.ops,
-        .jump_table      = function.table,
+    locals: bc.BcLocal[] = []
+    for _ in 0..<function.local_count { locals.push(bc.BcLocal { .name = "_", .val = bc.ValType.Any }) }
+    debug: (bc.DebugPos | null)[] = []
+    for _ in 0..<function.ops.len() { debug.push(null) }
+    self.functions.push(bc.BcFunction {
+        .name       = function.name,
+        .is_main    = false,
+        .signature  = synth_signature(function.parameter_count, true),
+        .locals     = locals,
+        .body       = function.ops,
+        .debug      = debug,
+        .jump_table = function.table,
     })
     return index
 }
 
-/// Mark `function_index` as the module's entry point. The executor
-/// reads `module.main_index` when called via `exec(module)` ; without
-/// this call the builder leaves it at `-1`, in which case `finish()`
-/// falls back to the same `$main`-suffix heuristic that `parse_virt`
-/// uses for raw `.virt` inputs.
+/// Mark `function_index` as the module's entry point. `finish()` flags the
+/// matching `BcFunction.is_main` ; without this call the builder leaves it
+/// at `-1`, in which case `finish()` falls back to the `$main`-suffix
+/// heuristic that `parse_virt_bc` uses for raw `.virt` inputs.
 export set_main :: fn(self: ModuleBuilder, function_index: i32) -> void {
     self.main_index[0] = function_index
 }
 
-/// Snapshot the builder's pools into a fresh `Module`. Computes the
-/// per-(trait, method) vtable table from the mangled function names via
-/// `virt_reader.build_vtables` (same path the live parser takes). The builder
-/// itself is not consumed — callers may continue adding entries and
+/// Snapshot the builder's pools into a fresh `BytecodeModule`, flagging the
+/// entry fn `is_main` (from `set_main`, or the `$main`-suffix fallback). The
+/// builder itself is not consumed — callers may continue adding entries and
 /// call `finish()` again, but mutating the builder after `finish()` does
 /// NOT propagate to the previously-snapshotted module (the underlying
 /// arrays are shared by reference, so be careful — calling `finish()`
 /// then continuing to mutate is supported only for ergonomics).
 ///
+/// `vtables` is empty — the builder's consumers (Brainfuck, the round-trip
+/// smoke test) don't exercise trait dispatch. A future trait-emitting
+/// builder consumer can register `BcVtableRow`s explicitly.
+///
 /// @param self  the builder.
-/// @return      a ready-for-`exec` module.
-export finish :: fn(self: ModuleBuilder) -> Module {
+/// @return      a module ready for `prepare` + `exec`.
+export finish :: fn(self: ModuleBuilder) -> bc.BytecodeModule {
     main_index: i32 = self.main_index[0]
     if main_index < 0 {
-        main_index = find_main_by_suffix(self.functions)
+        main_index = builder_main_by_suffix(self.functions)
     }
-    return Module {
-        .strings    = self.strings,
-        .imports    = self.imports,
+    if main_index >= 0 && usize(main_index) < self.functions.len() {
+        self.functions[usize(main_index)].is_main = true
+    }
+    no_vtables: bc.VtableRow[] = []
+    no_exports: bc.BcExport[] = []
+    return bc.BytecodeModule {
+        .name       = "",
         .types      = self.types,
-        .functions  = self.functions,
-        .vtables    = build_vtables(self.functions, self.types),
-        .impls      = self.impls,
+        .strings    = self.strings,
         .data_pool  = self.data_pool,
-        .main_index = main_index,
+        .functions  = self.functions,
+        .imports    = self.imports,
+        .exports    = no_exports,
+        .impl_table = self.impl_table,
+        .vtables    = no_vtables,
     }
+}
+
+/// First `$main`-suffixed fn index, or 0 when none — the builder's
+/// last-resort entry pick (mirrors `find_main_by_suffix_bc`).
+builder_main_by_suffix :: fn(functions: bc.BcFunction[]) -> i32 {
+    for i in 0..<functions.len() {
+        if functions[i].name.ends_with(r"$main") { return i32(i) }
+    }
+    return 0
 }
 
 // --------------------------------------------------------------- function

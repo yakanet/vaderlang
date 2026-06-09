@@ -44,7 +44,7 @@ import "vader/midir" { build_cfg_project, dump_cfg_project, DumpCfgOptions, emit
 import "vader/c_emit" { emit_c, EmitOptions as CEmitOptions, default_emit_options as default_c_emit_options }
 import "vader/diagnostics" { Diagnostic }
 import "vader/fmt" { run_fmt }
-import "vader/vm" { run_virt, parse_virt, parse_virt_bc, exec, Ok, Trap }
+import "vader/vm" { run_virt, parse_virt_bc, prepare, exec, Ok, Trap }
 import "vader/lsp" { run_server }
 
 // Byte-for-byte copy of `HELP` in `src/cli.ts`. Triple-quoted strings drop
@@ -246,9 +246,10 @@ forwarded_argv :: fn(path: string, args: string[]) -> string[] {
 
 // Compile a `.vader` source through load → typecheck → comptime → lower →
 // CFG → bytecode (the same path as `dump --stage=bytecode`), then execute
-// the result on the VM. The VM consumes the textual `.virt` form, so the
-// emitted `BytecodeModule` round-trips through `dump_bytecode` / `parse_virt`
-// — the in-memory equivalent of `vader dump --stage=bytecode … | vader run`.
+// the result on the VM. The emitted `BytecodeModule` round-trips through
+// `dump_bytecode` / `parse_virt_bc` — the in-memory equivalent of
+// `vader dump --stage=bytecode … | vader run` — preserving the exact `.virt`
+// behaviour the VM corpus is validated against.
 run_source :: fn(file: string, host_argv: string[]) -> i32 {
     // `lower_to_entry` drops the typed/evaluated/loaded pipeline (its per-module
     // side-table maps dominate the live set) before this CFG → bytecode tail —
@@ -260,7 +261,12 @@ run_source :: fn(file: string, host_argv: string[]) -> i32 {
     dced :: eliminate_dead_cfg(cfg)
     escaped :: annotate_escape(dced).project
     module :: emit_bytecode_from_cfg(escaped, module_name_from_file(file), default_emit_options())
-    return match exec(parse_virt(dump_bytecode(module, le.entry)), host_argv) {
+    // Feed the in-hand `BytecodeModule` straight to the VM — no `.virt` text
+    // round-trip. exec consumes `BytecodeModule` now, and the former
+    // `dump_bytecode → parse_virt_bc` hop was both pointless overhead and lossy
+    // (dump_bytecode drops the data pool). `run_virt` still parses real `.virt`
+    // files ; this is the source path.
+    return match exec(prepare(module), host_argv) {
         is Ok   as o -> o.value
         is Trap as t -> {
             eprintln("vader vm: ${t.message}")
