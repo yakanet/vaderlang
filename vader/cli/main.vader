@@ -44,7 +44,7 @@ import "vader/midir" { build_cfg_project, dump_cfg_project, DumpCfgOptions, emit
 import "vader/c_emit" { emit_c, EmitOptions as CEmitOptions, default_emit_options as default_c_emit_options }
 import "vader/diagnostics" { Diagnostic }
 import "vader/fmt" { run_fmt }
-import "vader/vm" { run_virt, parse_virt, exec, Ok, Trap }
+import "vader/vm" { run_virt, parse_virt, parse_virt_bc, exec, Ok, Trap }
 import "vader/lsp" { run_server }
 
 // Byte-for-byte copy of `HELP` in `src/cli.ts`. Triple-quoted strings drop
@@ -373,23 +373,55 @@ flush_build_diags :: fn(pre: Diagnostic[], lower: Diagnostic[]) -> bool {
 // `--target=c` : write the generated C to `--out` (default `<file>.c`).
 // `--out=-` streams it to stdout — the bootstrap seed pipes that into gzip.
 build_c :: fn(file: string, out_flag: string, release: bool) -> i32 {
-    c_src :: emit_c_source(file, release)
+    c_src :: emit_c_for_input(file, release)
     if c_src is null { return 1 }
     if out_flag == "-" {
         print(c_src)
         return 0
     }
-    out :: if out_flag != "" { out_flag } else { "${file.trim_suffix(".vader")}.c" }
+    out :: if out_flag != "" { out_flag } else { "${strip_input_suffix(file)}.c" }
     return write_out(out, c_src)
 }
+
+// Emit C from either a `.vader` source (full front end) or a `.virt` text
+// bytecode dump (`parse_virt_bc` → `emit_c`). A `.virt` input skips the
+// lexer/parser/typer/lower/emit pipeline — the bytecode already exists.
+emit_c_for_input :: fn(file: string, release: bool) -> string | null =
+    if file.ends_with(".virt") { emit_c_source_from_virt(file, release) }
+    else { emit_c_source(file, release) }
+
+// Read a `.virt` text dump, reconstruct its `BytecodeModule`, and hand it to
+// the C-emit. The entry fn is the module's `is_main` function (recovered from
+// the dump's `export main N` directive).
+emit_c_source_from_virt :: fn(file: string, release: bool) -> string | null {
+    src :: read_file(file)
+    if src is Error {
+        eprintln("vader build: cannot read ${file}")
+        return null
+    }
+    module :: parse_virt_bc(src)
+    return emit_c(module, CEmitOptions { .release = release, .entry_mangled = virt_entry_mangled(module) })
+}
+
+// Mangled name of the entry fn (the `is_main` function), or `""` when none.
+virt_entry_mangled :: fn(module: BytecodeModule) -> string {
+    for f in module.functions {
+        if f.is_main { return f.name }
+    }
+    return ""
+}
+
+// Default output base name : strip the recognised source / IR suffix.
+strip_input_suffix :: fn(file: string) -> string =
+    if file.ends_with(".virt") { file.trim_suffix(".virt") } else { file.trim_suffix(".vader") }
 
 // `--target=native` : emit the C next to the binary, then invoke the C
 // compiler to link it against the external runtime (`runtime/c/`). The `.c`
 // is kept on a `cc` failure so the user can inspect the generated source.
 build_native :: fn(file: string, out_flag: string, release: bool, cc: string, ldflags: string) -> i32 {
-    c_src :: emit_c_source(file, release)
+    c_src :: emit_c_for_input(file, release)
     if c_src is null { return 1 }
-    out :: if out_flag != "" { out_flag } else { file.trim_suffix(".vader") }
+    out :: if out_flag != "" { out_flag } else { strip_input_suffix(file) }
     c_file :: "${out}.c"
     if write_out(c_file, c_src) != 0 { return 1 }
 
