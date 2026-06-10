@@ -46,6 +46,14 @@ import "vader/diagnostics" { Diagnostic }
 import "vader/fmt" { run_fmt }
 import "vader/vm" { run_virt, parse_virt_bc, prepare, exec, Ok, Trap }
 import "vader/lsp" { run_server }
+// `vader test` (cmd_test) — native @test discovery + per-test isolated run.
+import "std/io" { read_dir, is_dir, exists }
+import "std/string" { index_of }
+import "std/collections" { MutableSet }
+import "vader/vm" { exec_fn }
+import "vader/bytecode" { EmitOptions }
+import "vader/lower" { LoweredFnDecl }
+import "vader/parser" { FnDecl }
 
 // Byte-for-byte copy of `HELP` in `src/cli.ts`. Triple-quoted strings drop
 // the newline immediately after the opening `"""`, so the body starts at
@@ -283,10 +291,244 @@ cmd_lsp :: fn(args: string[]) -> i32 {
     return run_server(args)
 }
 
+// Directories never descended into during `@test` discovery (mirror of TS
+// `test.ts::SKIP_DIRS`).
+SKIP_TEST_DIRS :: ["node_modules", "dist", "build", ".git", "target"]
+
+/// One discovered `@test` fn : its mangled name (the VM entry) + the display
+/// name shown in the report (the fn's source name).
+DiscoveredTest :: struct {
+    mangled: string
+    display: string
+}
+
+/// `vader test [path]` — discover `@test` fns under `path` (default `.`),
+/// compile each module keeping the tests as roots, and run every test in
+/// isolation on the VM. A trap (e.g. a failed `assert`) is a FAIL ; clean
+/// return is a pass. Mirror of `src/cli/commands/test.ts` — now NATIVE, so the
+/// memory-ABI opcodes (which the legacy TS compiler doesn't know) are testable.
+///
+/// @param args  positional args ; `args[0]` is the target path (file or dir).
+/// @return      0 when every test passed, 1 on any failure, 2 when no `.vader`
+///              files / no `@test` fns were found.
 cmd_test :: fn(args: string[]) -> i32 {
-    path :: if args.len() > 0 { args[0] } else { "." }
-    eprintln("vader test: not yet implemented (would scan ${path} for @test)")
-    return 2
+    target :: if args.len() > 0 { args[0] } else { "." }
+    files :: discover_vader_files(target)
+    if files.len() == 0 {
+        eprintln("vader test: no .vader files found under ${target}")
+        return 2
+    }
+    reps :: pick_module_representatives(files)
+    ran :: MutableSet<string> { .inner = MutableMap<string, bool> {} }
+    total_pass := 0
+    total_fail := 0
+    files_with_tests := 0
+    for rep in reps {
+        le :: lower_to_entry(rep)
+        if !flush_build_diags(le.pre_diags, le.lower_diags) {
+            total_fail += 1
+            continue
+        }
+        // keep_tests=true : `@test` fns survive the lower-level prune ; the
+        // emit-level prune keeps them via EmitOptions.keep_mangles below.
+        pruned :: prune_unreachable_fns(le.lowered, true)
+        all_tests :: find_tests(pruned)
+        // Stdlib modules surface under nearly every rep (imported transitively) ;
+        // run each unique @test once across the whole invocation.
+        fresh: DiscoveredTest[] = []
+        for t in all_tests {
+            if !(t.mangled in ran) { fresh.push(t) }
+        }
+        if fresh.len() == 0 { continue }
+        files_with_tests += 1
+        println(rep)
+        mangles: string[] = []
+        for t in fresh { mangles.push(t.mangled) }
+        cfg :: build_cfg_project(pruned)
+        dced :: eliminate_dead_cfg(cfg)
+        escaped :: annotate_escape(dced).project
+        module :: emit_bytecode_from_cfg(
+            escaped, module_name_from_file(rep),
+            EmitOptions { .optimize = true, .keep_mangles = mangles },
+        )
+        state :: prepare(module)
+        for t in fresh {
+            ran.add(t.mangled)
+            match exec_fn(state, t.mangled) {
+                is Ok -> {
+                    println("  ok ${t.display}")
+                    total_pass += 1
+                }
+                is Trap as tr -> {
+                    println("  FAIL ${t.display}")
+                    println("    ${tr.message}")
+                    total_fail += 1
+                }
+            }
+        }
+    }
+    total :: total_pass + total_fail
+    if total == 0 && files_with_tests == 0 {
+        eprintln("vader test: no @test functions found under ${target}")
+        return 2
+    }
+    println("")
+    println("${total} tests | ${total_pass} pass | ${total_fail} fail")
+    if total_fail == 0 { return 0 }
+    return 1
+}
+
+/// Collect every `@test` fn in a lowered project : a `LoweredFnDecl` with a body
+/// whose origin AST `FnDecl` carries a `@test` decorator. Display name is the
+/// fn's source name (the rare `@test("custom")` string arg is not surfaced).
+find_tests :: fn(lp: LoweredProject) -> DiscoveredTest[] {
+    out: DiscoveredTest[] = []
+    for m in lp.modules.values() {
+        for d in m.decls {
+            if d is LoweredFnDecl as fd {
+                if fd.body == null { continue }
+                if fd.origin.decl is FnDecl as ast {
+                    if has_test_decorator(ast) {
+                        out.push(DiscoveredTest { .mangled = fd.mangled, .display = ast.name })
+                    }
+                }
+            }
+        }
+    }
+    return out
+}
+
+has_test_decorator :: fn(ast: FnDecl) -> bool {
+    for dec in ast.decorators {
+        if dec.name == "test" { return true }
+    }
+    return false
+}
+
+/// Recursively collect every `.vader` file under `target` (or `target` itself
+/// when it's a single `.vader` file). Skips `SKIP_TEST_DIRS` + dot-entries.
+discover_vader_files :: fn(target: string) -> string[] {
+    out: string[] = []
+    if !exists(target) { return out }
+    if is_dir(target) {
+        walk_test_dir(target, out)
+    } else if target.ends_with(".vader") {
+        out.push(target)
+    }
+    return out
+}
+
+walk_test_dir :: fn(dir: string, out: string[]) -> void {
+    entries :: read_dir(dir)
+    if entries is Error { return }
+    for name in entries {
+        if name.starts_with(".") { continue }
+        if name in SKIP_TEST_DIRS { continue }
+        full :: "${dir}/${name}"
+        if is_dir(full) {
+            walk_test_dir(full, out)
+        } else if name.ends_with(".vader") {
+            out.push(full)
+        }
+    }
+}
+
+/// Pick a minimal set of entry paths that transitively cover every file.
+/// Single-file dir → the file. Folder module (no sibling-name imports) → the
+/// dir (the resolver loads every sibling as one module). Per-file modules
+/// (siblings import each other) → only the files no sibling imports, the
+/// entries whose transitive imports drag the rest in. Mirror of TS
+/// `pickModuleRepresentatives`.
+pick_module_representatives :: fn(files: string[]) -> string[] {
+    by_dir :: MutableMap<string, string[]> {}
+    for f in files {
+        d :: dir_of(f)
+        existing :: by_dir[d]
+        if existing is string[] {
+            existing.push(f)
+        } else {
+            bucket: string[] = [f]
+            by_dir[d] = bucket
+        }
+    }
+    out: string[] = []
+    for d in by_dir.keys() {
+        group_opt :: by_dir[d]
+        if group_opt is string[] as group {
+            if group.len() <= usize(1) {
+                out.push(group[0])
+            } else if is_folder_module(group) {
+                out.push(d)
+            } else {
+                imported :: collect_sibling_imports(group)
+                for f in group {
+                    if !(basename_no_ext(f) in imported) { out.push(f) }
+                }
+            }
+        }
+    }
+    return out
+}
+
+is_folder_module :: fn(group: string[]) -> bool = collect_sibling_imports(group).len() == usize(0)
+
+/// Basenames (no `.vader`) of files in `group` that some sibling imports by
+/// name. An empty result means the dir is a folder module (siblings share one
+/// scope, no by-name imports).
+collect_sibling_imports :: fn(group: string[]) -> string[] {
+    names: string[] = []
+    for f in group { names.push(basename_no_ext(f)) }
+    out: string[] = []
+    for f in group {
+        src :: read_file(f)
+        if src is Error { continue }
+        for line in src.split("\n") {
+            seg :: import_last_segment(line)
+            if seg == "" { continue }
+            if seg in names {
+                if !(seg in out) { out.push(seg) }
+            }
+        }
+    }
+    return out
+}
+
+/// Last path segment of an `import "PATH" …` line's PATH, or `""` when the line
+/// is not an import.
+import_last_segment :: fn(line: string) -> string {
+    t :: line.trim()
+    if !t.starts_with("import ") { return "" }
+    tb :: t.bytes()
+    q1 :: t.index_of('"', 0)
+    if q1 < 0 { return "" }
+    q2 :: t.index_of('"', usize(q1) + 1)
+    if q2 < 0 { return "" }
+    path :: tb[usize(q1) + 1..<usize(q2)].as_string()
+    slash :: last_index_of_slash(path)
+    if slash < 0 { return path }
+    return path.bytes()[usize(slash) + 1..<path.bytes().len()].as_string()
+}
+
+dir_of :: fn(path: string) -> string {
+    slash :: last_index_of_slash(path)
+    if slash < 0 { return "." }
+    return path.bytes()[0..<usize(slash)].as_string()
+}
+
+basename_no_ext :: fn(path: string) -> string {
+    slash :: last_index_of_slash(path)
+    base :: if slash < 0 { path } else { path.bytes()[usize(slash) + 1..<path.bytes().len()].as_string() }
+    return base.trim_suffix(".vader")
+}
+
+last_index_of_slash :: fn(s: string) -> i32 {
+    sb :: s.bytes()
+    i: i32 = i32(sb.len()) - 1
+    for i >= 0 {
+        if sb[usize(i)] == b'/' { return i }
+        i -= 1
+    }
+    return -1
 }
 
 // ----------------------------------------------------------- build

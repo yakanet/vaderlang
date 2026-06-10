@@ -148,7 +148,8 @@ export emit_project :: fn(lowered: Lo.LoweredProject, module_name: string, opts:
         // empty roots list. Vtables would be added here once this
         // path threads them through (TODO).
         legacy_vtable_roots: i32[] = []
-        prune_unused_functions(ctx, legacy_vtable_roots)
+        no_keep: string[] = []
+        prune_unused_functions(ctx, legacy_vtable_roots, no_keep)
         prune_unused_imports(ctx)
         prune_unused_types(ctx)
     }

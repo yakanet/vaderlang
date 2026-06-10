@@ -14,11 +14,16 @@ import "vader/types" { Type }
 /// when true, the future peephole pass runs over each fn body.
 export EmitOptions :: struct {
     optimize: bool
+    /// Extra fn mangles to KEEP as roots through the dead-function prune (on
+    /// top of main / `@export` / vtable targets). `vader test` passes the
+    /// `@test` fn mangles here so they survive to the bytecode and can be run
+    /// by name ; empty for normal builds.
+    keep_mangles: string[]
 }
 
-/// Default options : peephole ON (matches TS default).
+/// Default options : peephole ON (matches TS default), no extra roots.
 /// @return  a fresh `EmitOptions` with `optimize = true`.
-export default_emit_options :: fn() -> EmitOptions = EmitOptions { .optimize = true }
+export default_emit_options :: fn() -> EmitOptions = EmitOptions { .optimize = true, .keep_mangles = [] }
 
 /// Per-project emit context. Built once at the top of `emit_project`,
 /// threaded through every reservation + body-emit call. Carries the

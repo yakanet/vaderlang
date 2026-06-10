@@ -101,15 +101,18 @@ export prune_unused_vtables :: fn(ctx: EmitterCtx) -> void {
 /// fn_index_by_symbol_id) is rewritten.
 ///
 /// Mirrors `src/midir/dce.ts::pruneUnusedFunctions`.
-export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[]) -> void {
+export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_mangles: string[]) -> void {
     n :: ctx.functions.len()
     reachable :: MutableMap<i32, bool> {}
 
-    // Roots : main, test, @export entries, vtable-target fns.
+    // Roots : main, @export entries, vtable-target fns, and any explicit
+    // keep-mangle (e.g. the `@test` fns under `vader test`, which nothing calls
+    // but must survive to be run by name).
     i := usize(0)
     for i < n {
         f :: ctx.functions[i]
         if f.is_main { reachable[i32(i)] = true }
+        if f.name in keep_mangles { reachable[i32(i)] = true }
         i = i + 1
     }
     for e in ctx.exports { reachable[e.fn_index] = true }

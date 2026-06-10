@@ -380,7 +380,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             root_idx :: resolve_vtable_fn_index(ve.fn_symbol, ctx)
             if root_idx >= 0 { vtable_roots.push(root_idx) }
         }
-        prune_unused_functions(ctx, vtable_roots)
+        prune_unused_functions(ctx, vtable_roots, opts.keep_mangles)
         prune_unused_imports(ctx)
         prune_unused_types(ctx)
     }

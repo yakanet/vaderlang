@@ -591,9 +591,31 @@ build_main_args :: fn(parameter_count: usize, host_argv: string[], string_array_
 ///                in any op ; div / mod by zero ; unknown host import ;
 ///                call to a non-existent function index ; call stack
 ///                deeper than `MAX_FRAME_DEPTH`.
-export exec :: fn(state: VmState, host_argv: string[]) -> VmResult {
-    if state.main_index < 0 || usize(state.main_index) >= state.bc.functions.len() {
-        return Trap { .message = "module has no entry function (main_index=${state.main_index})" }
+/// Run `main`. Thin wrapper over `exec_entry`.
+export exec :: fn(state: VmState, host_argv: string[]) -> VmResult = exec_entry(state, state.main_index, host_argv)
+
+/// Run the fn named `mangled` as the entry — used by `vader test` to run each
+/// `@test` fn in isolation. A `Trap` (e.g. a failed `assert`) is the test
+/// failure ; `Ok` is a pass. The fn must take no arguments.
+///
+/// @param state    the prepared VM state.
+/// @param mangled  the target fn's mangled name.
+/// @return         the run outcome, or a `Trap` when no such fn exists.
+export exec_fn :: fn(state: VmState, mangled: string) -> VmResult {
+    for i in 0..<state.bc.functions.len() {
+        if state.bc.functions[i].name == mangled {
+            no_args: string[] = []
+            return exec_entry(state, i32(i), no_args)
+        }
+    }
+    return Trap { .message = "exec_fn: no function named '${mangled}'" }
+}
+
+/// Core interpreter loop, entered at `entry_index`. `exec` / `exec_fn` pick the
+/// entry (main vs a named `@test`).
+export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[]) -> VmResult {
+    if entry_index < 0 || usize(entry_index) >= state.bc.functions.len() {
+        return Trap { .message = "no entry function (index=${entry_index})" }
     }
 
     frames: Frame[] = []
@@ -617,14 +639,14 @@ export exec :: fn(state: VmState, host_argv: string[]) -> VmResult {
     // (the VM's copy fallback for the native zero-copy view). Same rationale.
     u8_array_type_id :: find_u8_array_type_id(state.bc.types)
 
-    main_function :: state.bc.functions[usize(state.main_index)]
+    main_function :: state.bc.functions[usize(entry_index)]
     // If `main` is declared `fn(argv: string[]) -> i32`, supply its argv.
     // Built in a helper because inlining it pushed `exec` (the giant op-
     // dispatch fn) past the bytecode emitter's per-function buffer limit —
     // a latent emit bug (array-index-OOB in emit at scale). The split is also
     // cleaner; the underlying limit still needs a real fix.
     main_args :: build_main_args(main_function.signature.params.len(), host_argv, string_array_type_id)
-    main_frame :: build_callee_frame(state.main_index, main_function, main_args, 0, null)
+    main_frame :: build_callee_frame(entry_index, main_function, main_args, 0, null)
     push_frame(frames, frame_count, main_frame)
 
     // Hoist the per-frame fetches out of the per-op hot path. `frame` / `body`

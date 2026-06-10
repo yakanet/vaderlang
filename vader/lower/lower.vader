@@ -67,7 +67,12 @@ export lower_project :: fn(
         // branch and silently drop. The now-wired whole-program DCE
         // (`prune_unreachable_fns`) culls anything the user never reaches,
         // so over-surfacing is safe.
-        if is_stdlib_path(module_id) {
+        // The skip is for IMPORTED stdlib modules. When a stdlib module is the
+        // ENTRY (e.g. `vader test stdlib/std/base64` or running a stdlib file
+        // directly), it's the code under test — lower it in full (with bodies)
+        // so its `@test` fns / `main` survive. Entry is never stdlib in the
+        // normal self-compile, so the fixed point is unaffected.
+        if is_stdlib_path(module_id) && module_id != loaded.entry {
             stdlib_loaded :: loaded.modules[module_id]
             stdlib_typed_opt :: typed.modules[module_id]
             stdlib_decls: LoweredDecl[] = []
