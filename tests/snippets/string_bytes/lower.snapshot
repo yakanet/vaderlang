@@ -272,11 +272,7 @@
               callee:
                 std_core$usize$Display$to_string :string
               arg0:
-                call :usize
-                  callee:
-                    byte_len :fn(string) -> usize
-                  arg0:
-                    "" :string
+                LoweredArrayLen
           ~>
             @builder.finish :string
               __sb_14 :?

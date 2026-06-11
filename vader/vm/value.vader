@@ -15,7 +15,7 @@
 
 module "vader/vm"
 
-import "std/string" { starts_with, bytes, as_string }
+import "std/string" { starts_with, as_string }
 import "std/string_builder" { new_builder, append }
 import "vader/bytecode" { ConvertTarget }
 bc :: import "vader/bytecode"

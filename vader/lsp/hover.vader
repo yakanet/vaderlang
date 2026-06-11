@@ -12,7 +12,7 @@
 
 module "vader/lsp"
 
-import "std/string" { split, trim, starts_with, bytes, as_string, join }
+import "std/string" { split, trim, starts_with, as_string, join }
 import "std/json" {
     JsonValue, JsonObject, JsonString, JsonNumber, JsonNull, JsonArray, JsonBool
 }

@@ -16,7 +16,7 @@
 
 module "vader/typecheck"
 
-import "std/string" { bytes, join }
+import "std/string" { join }
 import "vader/diagnostics" { Diagnostic, typecheck_error }
 AST :: import "vader/parser"
 import "vader/resolver" { ResolvedModule }

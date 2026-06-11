@@ -27,7 +27,7 @@
 module "std/semver"
 
 import "std/string"         {
-    bytes, as_string, is_empty, index_of, starts_with, parse_int,
+    as_string, is_empty, index_of, starts_with, parse_int,
     trim, split, chars, is_alnum, is_digit, is_white_char, ParseError,
 }
 import "std/string_builder" { StringBuilder, new_builder, append }

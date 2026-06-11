@@ -32,11 +32,7 @@
               callee:
                 std_core$usize$Display$to_string :string
               arg0:
-                call :usize
-                  callee:
-                    byte_len :fn(string) -> usize
-                  arg0:
-                    "vader" :string
+                LoweredArrayLen
           ~>
             @builder.finish :string
               __sb_0 :?
@@ -70,11 +66,7 @@
               callee:
                 std_core$usize$Display$to_string :string
               arg0:
-                call :usize
-                  callee:
-                    byte_len :fn(string) -> usize
-                  arg0:
-                    "héllo" :string
+                LoweredArrayLen
           ~>
             @builder.finish :string
               __sb_1 :?
@@ -108,11 +100,7 @@
               callee:
                 std_core$usize$Display$to_string :string
               arg0:
-                call :usize
-                  callee:
-                    byte_len :fn(string) -> usize
-                  arg0:
-                    "你好嗎？" :string
+                LoweredArrayLen
           ~>
             @builder.finish :string
               __sb_2 :?
@@ -146,11 +134,7 @@
               callee:
                 std_core$usize$Display$to_string :string
               arg0:
-                call :usize
-                  callee:
-                    byte_len :fn(string) -> usize
-                  arg0:
-                    "a😀b" :string
+                LoweredArrayLen
           ~>
             @builder.finish :string
               __sb_3 :?
@@ -184,21 +168,13 @@
               callee:
                 std_core$usize$Display$to_string :string
               arg0:
-                call :usize
-                  callee:
-                    byte_len :fn(string) -> usize
-                  arg0:
-                    "" :string
+                LoweredArrayLen
           ~>
             @builder.finish :string
               __sb_4 :?
     let s: string = "你好" :string
     let n: usize =
-      call :usize
-        callee:
-          byte_len :fn(string) -> usize
-        arg0:
-          s :string
+      LoweredArrayLen
     let i: usize = int(0) :usize
     loop while (<…>)
       let __tup_5: [char, usize] =

@@ -1,25 +1,11 @@
 # Comptime
 
-## stdlib/std/abort
-
 ## stdlib/std/core
   @comptime  DECIMAL_DIGITS       = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 
 ## stdlib/std/io
 
-## stdlib/std/math
-  @comptime  e                    = 2.718281828459045_f64
-  @comptime  pi                   = 3.141592653589793_f64
-
 ## stdlib/std/runtime
-
-## stdlib/std/string
-
-## stdlib/std/string_builder
-
-## stdlib/std/testing
-
-## stdlib/std/utf8
 
 ## tests/snippets/string_bytes_gc
 
@@ -28,16 +14,11 @@
   Index<I, T>
   IndexSet<I, T>
   Contains<T>
-  Iterator<char>
   Iterator<T>
   Iterator<T>
-  Yield<char>
   Yield<T>
   Yield<T>
   Yield<T>
-  Range<char>
-  Range<i32>
-  Range<usize>
   Range<T>
   Range<T>
   Range<T>

@@ -90,7 +90,7 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
     // std/string internals.
     if m == "std_string\$byte_len" { return "${head} { return vader_string_byte_len(a0); }" }
     if m == "std_core\$string\$Index\$at" { return "${head} { return vader_string_codepoint_at(a0, a1); }" }
-    if m == "std_string\$bytes" {
+    if m == "std_core\$bytes" {
         u8 :: prim_tag(types, .U8)
         if u8 < 0 { return "${head} { vader_trap(\"bytes: no u8 type\"); }" }
         u8arr :: array_tag(types, u8)
@@ -114,15 +114,10 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
         return "${head} { vader_builder_t* sb = vader_builder_new(); vader_builder_append_display_f64(sb, a0); return vader_builder_finish(sb); }"
     }
 
-    if m == "std_string_builder\$StringBuilder\$Display\$to_string" {
-        sb_idx :: string_builder_struct_tag(types)
-        if sb_idx < 0 { return "${head} { vader_trap(\"StringBuilder type not found\"); }" }
-        // Non-inline rep : the receiver is a heap struct whose `parts` field
-        // holds the string[] buffer. The inline-ref fast path (payload IS
-        // the array) lands with the inline-rep subsystem (T12).
-        sb_cname :: ctx.struct_c_names[usize(sb_idx)]
-        return "${head} { vader_box_t parts = ((${sb_cname}*) a0.payload.obj)->f_parts; return vader_string_concat_all((vader_array_t*) parts.payload.obj); }"
-    }
+    // `StringBuilder implements Display` moved to pure Vader in Target ABI S3
+    // (a byte-Buffer reader + `bytes_to_string`), so the resolver materialises
+    // its body — no host shim, and `vader_string_concat_all` is reached only
+    // through the legacy `[string]` path, now retired here.
 
     // std/runtime — GC introspection.
     if m == "std_runtime\$collect"      { return "${head} { vader_gc_collect(); }" }
@@ -258,18 +253,6 @@ error_ref_tag :: fn(types: BcType[]) -> i32 {
         t :: types[i]
         if t is BcRef as r {
             if r.trait_name == "Error" { return i32(i) }
-        }
-    }
-    return -1
-}
-
-/// BcType index of the `StringBuilder` struct (`StringBuilder` or
-/// `<module>\$StringBuilder`), or `-1` when absent.
-string_builder_struct_tag :: fn(types: BcType[]) -> i32 {
-    for i in 0..<types.len() {
-        t :: types[i]
-        if t is BcStruct as s {
-            if s.name == "StringBuilder" || s.name.ends_with("\$StringBuilder") { return i32(i) }
         }
     }
     return -1

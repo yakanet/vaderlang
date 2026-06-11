@@ -344,6 +344,21 @@ export run_bc_peephole :: fn(function: BcFunction) -> BcPeepholeOut {
         if op is LocalGet as cg { get_count[usize(cg.slot)] += 1 }
         if op is LocalTee as ct { tee_count[usize(ct.slot)] += 1 }
     }
+    // Mark every op that is a jump TARGET (a non-negative value in the jump
+    // table). Rule 1 must NOT fold a `LocalGet` that a branch lands on :
+    // coalescing `LocalSet N ; LocalGet N` into `LocalTee N` there makes the
+    // jump reach the tee with nothing on the stack (`local.tee on empty
+    // stack`) — the set never ran on the jumped-in path. A value-`match`'s
+    // arm-join read is exactly such a target (the discriminant jump lands on
+    // the join `get`). The structured `br`-depth claim above holds for block
+    // exits ; the `jump_table` carries the non-structured match/loop edges
+    // that this guards.
+    is_jump_target: bool[] = []
+    for 0..<n { is_jump_target.push(false) }
+    for k in 0..<function.jump_table.len() {
+        t :: function.jump_table[k]
+        if t >= 0 && usize(t) < n { is_jump_target[usize(t)] = true }
+    }
     out: Op[] = []
     out_len: usize = 0
     // Per-old-PC : new PC in `out` (or -1 when the op was dropped).
@@ -376,7 +391,10 @@ export run_bc_peephole :: fn(function: BcFunction) -> BcPeepholeOut {
                         }
                         slot_u :: usize(ls.slot)
                         propagate_eligible :: set_count[slot_u] == 1 && get_count[slot_u] == 1 && tee_count[slot_u] == 0
-                        skip_fold :: prev_is_const && propagate_eligible
+                        // Never fold when the `get` is a branch target (see
+                        // `is_jump_target` above) : the tee would pop an empty
+                        // stack on the jumped-in path.
+                        skip_fold :: (prev_is_const && propagate_eligible) || is_jump_target[i + 1]
                         if !skip_fold {
                             push_or_assign(out, out_len, LocalTee { .slot = ls.slot })
                             old_to_new[i] = i32(out_len)

@@ -10,13 +10,13 @@
 ## generic instances
   Into<Target>
   Index<I, T>
+  Repeat<i32>
+  Repeat<T>
+  Repeat<T>
   IndexSet<I, T>
   Contains<T>
   Iterator<T>
   Iterator<T>
-  Repeat<i32>
-  Repeat<T>
-  Repeat<T>
   Yield<T>
   Yield<T>
   Yield<T>

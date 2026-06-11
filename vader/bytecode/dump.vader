@@ -22,7 +22,7 @@
 module "vader/bytecode"
 
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
-import "std/string" { bytes, as_string }
+import "std/string" { as_string }
 
 /// Render a `BytecodeModule` as a `.virt`-style text dump. The resulting
 /// string carries a trailing newline ; pipe to stdout directly. This is the

@@ -14,7 +14,7 @@
 module "vader/lsp"
 
 import "std/io" { read_stdin, print, eprintln }
-import "std/string" { bytes, as_string, byte_decode_at, starts_with, parse_int, ParseError }
+import "std/string" { as_string, byte_decode_at, starts_with, parse_int, ParseError }
 import "std/string_builder" { new_builder, append }
 
 export TransportError :: struct {

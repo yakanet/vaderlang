@@ -646,7 +646,7 @@ strip_mangled_tail :: fn(mangled: string) -> string {
     return mb[0..<usize(last_double_underscore)].as_string()
 }
 
-import "std/string" { bytes, as_string }
+import "std/string" { as_string }
 
 find_entry_by_id :: fn(entries: MonoEntry[], id: i32) -> MonoEntry | null {
     i: usize = 0

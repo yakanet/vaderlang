@@ -7,7 +7,7 @@
 
 module "std/time"
 
-import "std/string" { bytes, pad_start }
+import "std/string" { pad_start }
 import "std/math" { abs }
 
 /// Wall-clock instant — nanoseconds since the Unix epoch (1970-01-01 UTC).

@@ -87,10 +87,9 @@ string 37 "--unknown"
 string 38 "err_count="
 string 39 "err="
 import 0 write std_io$write (i32,string) -> void
-import 1 hash std_core$string$Hash$hash (string) -> u64
-import 2 byte_len std_string$byte_len (string) -> usize
-import 3 bytes std_string$bytes (string) -> ref
-import 4 as_string std_string$as_string (ref) -> string
+import 1 bytes std_core$bytes (string) -> ref
+import 2 hash std_core$string$Hash$hash (string) -> u64
+import 3 as_string std_string$as_string (ref) -> string
 impl 7 Index
 impl 7 IndexSet
 impl 7 Contains
@@ -722,10 +721,10 @@ fn 24 std_string$starts_with (string,string) -> bool
   local $idx_15 u8
   local $k_18 usize
   local.get 0
-  call.import 3
+  call.import 1
   local.set 2
   local.get 1
-  call.import 3
+  call.import 1
   local.tee 3
   array.len
   local.set 4
@@ -781,22 +780,23 @@ fn 25 std_string$split (string,string) -> ref
   local sb ref
   local n usize
   local m usize
-  local $k_10 usize
-  local $k_16 usize
-  local $add_17 usize
-  local $call_19 string
-  local $k_20 usize
+  local $k_11 usize
+  local $k_17 usize
+  local $add_18 usize
+  local $call_20 string
+  local $k_21 usize
   local found isize
-  local $cast_28 isize
+  local $cast_29 isize
   array.new 6 0
   local.set 2
   local.get 0
-  call.import 3
+  call.import 1
   local.tee 3
   array.len
   local.set 4
   local.get 1
-  call.import 2
+  call.import 1
+  array.len
   local.set 5
   i64.const 0
   local.set 6
@@ -822,7 +822,7 @@ fn 25 std_string$split (string,string) -> ref
           local.get 6
           local.get 8
           array.slice 37
-          call.import 4
+          call.import 3
           local.set 9
           local.get 2
           local.get 9
@@ -863,7 +863,7 @@ fn 25 std_string$split (string,string) -> ref
         local.get 6
         local.get 7
         array.slice 37
-        call.import 4
+        call.import 3
         local.set 9
         local.get 2
         local.get 9
@@ -886,7 +886,7 @@ fn 25 std_string$split (string,string) -> ref
   local.get 6
   local.get 4
   array.slice 37
-  call.import 4
+  call.import 3
   local.set 9
   local.get 2
   local.get 9
@@ -903,10 +903,10 @@ fn 26 std_string$byte_find (string,string,usize) -> isize
   local $k_11 usize
   local $k_23 usize
   local.get 0
-  call.import 3
+  call.import 1
   local.set 3
   local.get 1
-  call.import 3
+  call.import 1
   local.set 4
   local.get 3
   array.len
@@ -1190,7 +1190,7 @@ fn 31 std_cli$parse_inner (ref,ref,bool) -> ref
           br $L1
         end $L5
         local.get 10
-        call.import 3
+        call.import 1
         local.set 14
         i64.const 2
         local.set 15
@@ -1201,7 +1201,7 @@ fn 31 std_cli$parse_inner (ref,ref,bool) -> ref
         local.get 15
         local.get 16
         array.slice 37
-        call.import 4
+        call.import 3
         local.set 17
         local.get 17
         string.const 15
@@ -1666,6 +1666,6 @@ end
 
 fn 34 std_core$string$Hash$hash_vt (string) -> u64
   local.get 0
-  call.import 1
+  call.import 2
   return
 end

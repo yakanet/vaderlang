@@ -36,8 +36,19 @@ export materialize_intrinsic_members :: fn(impl_: AST.ImplDecl, trait_: AST.Trai
     if !is_intrinsic(impl_.decorators) { return }
     if impl_.members.len() > 0 { return }
     subst :: build_subst(impl_, trait_)
+    // Each materialised member needs a name_span unique per (impl, method) :
+    // `impl_method_decl_types` is name-span-keyed, so anchoring every member at
+    // the shared `impl_.trait_name_span` collapses a multi-method trait's return
+    // types onto the last method's (e.g. `Buffer implements ByteAccess`'s
+    // `load_u8 -> u8` degraded to `memory_copy`'s `void`). A per-impl `StampCtx`
+    // (base keyed to the impl, counter per method) keeps members distinct within
+    // the impl AND across sibling impls of one trait — mirrors the default-method
+    // path (`materialize_default_members`). Single-method intrinsic traits are
+    // unaffected (their lone member was already unique).
+    impl_pos :: impl_.trait_name_span.start
+    stamp :: StampCtx { .base_line = impl_pos.line * 1024 + impl_pos.column, .counter = 0 }
     for method in trait_.members {
-        impl_.members.push(synth_signature(method, impl_.trait_name_span, subst, intrinsic_decorator(impl_.span)))
+        impl_.members.push(synth_signature(method, next_clone_span(stamp), subst, intrinsic_decorator(impl_.span)))
     }
 }
 

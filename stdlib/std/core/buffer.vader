@@ -1,0 +1,51 @@
+// stdlib/std/core/buffer.vader — the abstract byte buffer behind the Target ABI.
+//
+// `Buffer` is an opaque, GC-managed handle to a contiguous run of bytes. It is
+// the single low-level primitive the higher-level growable types (StringBuilder
+// today ; Array and String later) are written against — none of them touch raw
+// pointers. The handful of `@intrinsic` methods here lower directly to the
+// generic memory opcodes (`object_new` / `load_*` / `store_*` / `memory_copy`,
+// see `vader/bytecode/intrinsics.vader::intrinsic_op_for_mangled`), exactly the
+// way `i32 + i32` lowers to `I32Add`. Each opcode carries a `(GC-handle,
+// byte-offset)` pair, never a machine address — the frontend stays pointer-free.
+//
+// Everything here is deliberately UNEXPORTED except the `Buffer` type itself :
+// the raw memory ops stay `@intrinsic`-marked impl members so the low-level
+// boundary is visible, and the rest of the code only ever manipulates the
+// high-level wrappers. `Buffer` lives in `std/core` (the prelude), so consumers
+// reach it — and its methods, via the impl registry — with no import.
+
+module "std/core"
+
+/// Opaque handle to a GC-managed contiguous byte region. Carries no fields : the
+/// backing bytes live in a dedicated runtime object (the `BUFFER` sentinel
+/// type), addressed only through the `@intrinsic` methods below. Never built via
+/// a struct literal — allocate with `<byte-count>.new_buffer()`.
+export Buffer :: struct {}
+
+// ---- raw byte access (lowered to memory opcodes) --------------------------
+
+/// Allocator for `Buffer`, implemented on `usize` (the byte count) so the
+/// constructor stays an `@intrinsic`-marked impl member rather than an exported
+/// free function. `cap.new_buffer()` lowers to `object_new`.
+BufferAlloc :: trait {
+    /// Allocate `self` zeroed bytes and return the handle.
+    new_buffer :: fn(self) -> Buffer
+}
+
+/// Primitive byte read / write / copy over a `Buffer`. Each method lowers to a
+/// single memory opcode and bounds-checks its offsets. `store_u8` writes a raw
+/// byte and `memory_copy` moves a byte range — neither fires a write barrier,
+/// since the region holds no references.
+ByteAccess :: trait {
+    /// Read the byte at `off`.
+    load_u8 :: fn(self, off: usize) -> u8
+    /// Write `v` at byte offset `off`.
+    store_u8 :: fn(self, off: usize, v: u8) -> void
+    /// Copy `n` bytes from `src[s ..< s + n]` into `self[d ..< d + n]`
+    /// (overlap-safe).
+    memory_copy :: fn(self, d: usize, src: Self, s: usize, n: usize) -> void
+}
+
+@intrinsic usize  implements BufferAlloc
+@intrinsic Buffer implements ByteAccess

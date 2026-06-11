@@ -8,11 +8,11 @@
 ## generic instances
   Into<Target>
   Index<I, T>
+  List<T>
   IndexSet<I, T>
   Contains<T>
   Iterator<T>
   Iterator<T>
-  List<T>
   Yield<T>
   Yield<T>
   Yield<T>

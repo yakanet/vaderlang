@@ -17,7 +17,7 @@ module "vader/resolver"
 import "std/collections" { MutableMap, keys }
 import "std/io" { exists, is_dir, read_file }
 import "std/path" { to_posix }
-import "std/string" { bytes, as_string as bytes_as_string, ends_with, starts_with }
+import "std/string" { as_string as bytes_as_string, ends_with, starts_with }
 import "vader/diagnostics" { Diagnostic, Position, Span, resolver_error }
 import "vader/parser" { NodeIdFactory, new_node_id_factory, parse_source, assign_program_ids }
 import "vader/resolver/symbol" { Symbol, SymbolKind, SymbolFactory, new_factory }

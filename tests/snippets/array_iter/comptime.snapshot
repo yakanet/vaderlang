@@ -8,6 +8,7 @@
 ## tests/snippets/array_iter
 
 ## generic instances
+  Into<Target>
   Index<I, T>
   IndexSet<I, T>
   Contains<T>
@@ -22,4 +23,3 @@
   ArrayIterator<T>
   ArrayIterator<T>
   ArrayIterator<T>
-  Into<Target>

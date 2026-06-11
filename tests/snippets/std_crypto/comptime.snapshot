@@ -13,17 +13,9 @@
 
 ## stdlib/std/io
 
-## stdlib/std/math
-  @comptime  e                    = 2.718281828459045_f64
-  @comptime  pi                   = 3.141592653589793_f64
-
-## stdlib/std/string
-
 ## stdlib/std/string_builder
 
 ## stdlib/std/testing
-
-## stdlib/std/utf8
 
 ## tests/snippets/std_crypto
 
@@ -32,14 +24,11 @@
   Index<I, T>
   IndexSet<I, T>
   Contains<T>
-  Iterator<char>
   Iterator<T>
   Iterator<T>
-  Yield<char>
   Yield<T>
   Yield<T>
   Yield<T>
-  Range<char>
   Range<i32>
   Range<usize>
   Range<T>

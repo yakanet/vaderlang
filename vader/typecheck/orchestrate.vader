@@ -1586,7 +1586,12 @@ param_type :: fn(
             if p.name == "self" { return for_ty }
             return TY_UNRESOLVED
         }
-        _ -> { return type_from_expr(p.ty, typed.resolved, diags) }
+        // Substitute `Self` → `for_ty` so an explicit `Self`-typed param (e.g.
+        // `Comparable.compare(self, other: Self)`) records the concrete carrier
+        // — otherwise the impl method's type keeps `other: Self`, and a default-
+        // method clone calling it (`self.compare(other)`, `other` already
+        // substituted to `for_ty`) mismatches `expected Self, got <for_ty>`.
+        _ -> { return substitute_self(type_from_expr(p.ty, typed.resolved, diags), for_ty) }
     }
 }
 

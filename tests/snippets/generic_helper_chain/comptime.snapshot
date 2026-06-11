@@ -9,7 +9,6 @@
 
 ## generic instances
   Into<Target>
-  Index<I, T>
   Box<i32>
   Box<string>
   Box<Box<i32>>
@@ -18,6 +17,7 @@
   Box<T>
   Box<T>
   Box<T>
+  Index<I, T>
   IndexSet<I, T>
   Contains<T>
   Iterator<T>

@@ -36,7 +36,7 @@ string 9 "parse_int: no digits"
 string 10 "parse_int: invalid digit"
 string 11 "parse_int: overflow"
 import 0 write std_io$write (i32,string) -> void
-import 1 bytes std_string$bytes (string) -> ref
+import 1 bytes std_core$bytes (string) -> ref
 import 2 parse_float std_string$parse_float (string) -> ref
 impl 8 Contains
 impl 8 Iterator

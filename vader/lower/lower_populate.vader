@@ -4,7 +4,6 @@
 module "vader/lower"
 
 import "std/collections" { MutableMap, keys, values }
-import "std/string" { bytes }
 
 import "vader/resolver" { LoadedProject, ResolvedModule }
 import "vader/typecheck" { TypedProject, build_impl_registry }

@@ -17,15 +17,15 @@
   Yield<T>
   Yield<T>
   Yield<T>
-  Range<T>
-  Range<T>
-  Range<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
   Box<i32>
   Box<Box<i32>>
   Box<Box<T>>
   Box<T>
   Box<T>
   Box<T>
+  Range<T>
+  Range<T>
+  Range<T>
+  ArrayIterator<T>
+  ArrayIterator<T>
+  ArrayIterator<T>

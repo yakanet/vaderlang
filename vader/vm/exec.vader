@@ -31,8 +31,7 @@ module "vader/vm"
 bc :: import "vader/bytecode"
 
 import "std/io" { read_file, eprintln }
-import "std/string_builder" { StringBuilder }
-import "std/string" { index_of, bytes, as_string, decode_codepoint_at }
+import "std/string" { index_of, as_string, decode_codepoint_at, join }
 
 // Mangled host-import names. Lifted to module-scope so the dispatch
 // chain reads as identifier comparisons rather than raw-string
@@ -1101,12 +1100,10 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[]) -
                 }
                 builder_unwrap :: read_builder(frame.stack[frame.sp - 1], frame.pc, "intrinsic builder.finish receiver")
                 if builder_unwrap is Trap { return builder_unwrap }
-                // Reuse `builder.parts` by reference inside a transient
-                // `StringBuilder` — its `@intrinsic Display::to_string`
-                // flushes the parts in one pass with one allocation, no
-                // intermediate copy.
-                flushing :: StringBuilder { .parts = builder_unwrap.parts }
-                frame.stack[frame.sp - 1] = StringVal { .value = "${flushing}" }
+                // Concatenate the accumulated parts in one pass. (The old path
+                // reused a `StringBuilder { parts }` flush ; StringBuilder is a
+                // byte Buffer now — Target ABI S3 — so join the parts directly.)
+                frame.stack[frame.sp - 1] = StringVal { .value = builder_unwrap.parts.join("") }
                 frame.pc = frame.pc + 1
             }
             is bc.SizeOfType -> {

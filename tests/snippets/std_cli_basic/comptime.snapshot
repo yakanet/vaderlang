@@ -27,6 +27,9 @@
 ## tests/snippets/std_cli_basic
 
 ## generic instances
+  SetIterator<T>
+  SetIterator<T>
+  SetIterator<T>
   Into<Target>
   Index<I, T>
   IndexSet<I, T>
@@ -106,6 +109,3 @@
   MutableSet<T>
   MutableSet<T>
   MutableSet<T>
-  SetIterator<T>
-  SetIterator<T>
-  SetIterator<T>

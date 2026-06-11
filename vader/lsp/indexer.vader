@@ -23,7 +23,7 @@
 
 module "vader/lsp"
 
-import "std/string" { bytes, as_string, trim }
+import "std/string" { as_string, trim }
 import "vader/parser" {
     parse_source,
     Decl,

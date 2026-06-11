@@ -10,8 +10,42 @@
 module "vader/typecheck"
 
 import "vader/diagnostics" { Diagnostic, typecheck_error }
-import "vader/types" { Type, UnresolvedType, display_type, mk_primitive, TY_BOOL, TY_VOID, TY_UNRESOLVED }
+import "vader/types" { Type, UnresolvedType, PrimitiveType, FreeIntType, FreeFloatType, display_type, mk_primitive, TY_BOOL, TY_VOID, TY_UNRESOLVED }
 AST :: import "vader/parser"
+
+/// Combine the two branch types of an `if`/`else`. A free numeric-literal branch
+/// coerces to a concrete sibling of its own family — `if c { x: i32 } else { 0 }`
+/// is `i32`, not `i32 | {integer}` — mirroring the binary-operator coercion
+/// (`binary.vader::numeric_result`). Without this, an unannotated `::` binding
+/// (`expected = null`) escapes as a union with no arithmetic defined on it
+/// (T3017). Unrelated branches fall back to the plain union.
+join_if_branches :: fn(a: Type, b: Type) -> Type {
+    if a is FreeIntType {
+        if b is FreeIntType { return a }
+        if is_concrete_int(b) { return b }
+    }
+    if b is FreeIntType {
+        if is_concrete_int(a) { return a }
+    }
+    if a is FreeFloatType {
+        if b is FreeFloatType { return a }
+        if is_concrete_float(b) { return b }
+    }
+    if b is FreeFloatType {
+        if is_concrete_float(a) { return a }
+    }
+    return union_of([a, b])
+}
+
+is_concrete_int :: fn(t: Type) -> bool {
+    if t is PrimitiveType as p { return is_int_name(p.name) }
+    return false
+}
+
+is_concrete_float :: fn(t: Type) -> bool {
+    if t is PrimitiveType as p { return is_float_name(p.name) }
+    return false
+}
 
 /// Type-check an `IfExpr`. `expected` flows into both branches so
 /// `let x: i64 = if c { 1 } else { 2 }` narrows each literal to i64.
@@ -54,12 +88,12 @@ export infer_if :: fn(
         }
         is AST.IfElseBlock as eb -> {
             else_ty :: check_else_with_narrow(eb.block, narrowing, expected, typed, diags, ctx, check_expr_fn)
-            return collapse_if_unresolved(union_of([then_ty, else_ty]), then_ty, else_ty)
+            return collapse_if_unresolved(join_if_branches(then_ty, else_ty), then_ty, else_ty)
         }
         is AST.IfElseIf as ei -> {
             inner: AST.Expr = ei.branch
             else_ty :: check_else_branch_expr(inner, narrowing, expected, typed, diags, check_expr_fn)
-            return collapse_if_unresolved(union_of([then_ty, else_ty]), then_ty, else_ty)
+            return collapse_if_unresolved(join_if_branches(then_ty, else_ty), then_ty, else_ty)
         }
     }
 }

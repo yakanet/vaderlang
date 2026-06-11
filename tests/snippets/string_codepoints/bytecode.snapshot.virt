@@ -55,8 +55,7 @@ string 29 "'你' width="
 string 30 "emoji width="
 import 0 write std_io$write (i32,string) -> void
 import 1 bytes_to_string std_core$bytes_to_string (ref) -> string
-import 2 byte_len std_string$byte_len (string) -> usize
-import 3 bytes std_string$bytes (string) -> ref
+import 2 bytes std_core$bytes (string) -> ref
 impl 7 Contains
 impl 7 Iterator
 impl 11 Contains
@@ -374,7 +373,7 @@ end
 
 fn 8 std_string$decode_codepoint (string,usize) -> ref
   local.get 0
-  call.import 3
+  call.import 2
   local.get 1
   call 10
   return
@@ -385,7 +384,7 @@ fn 9 std_string$chars (string) -> ref
   local $cast_4 usize
   local $len_5 usize
   local.get 0
-  call.import 3
+  call.import 2
   local.set 1
   i64.const 0
   local.set 2
@@ -809,9 +808,9 @@ fn 14 snippet$main () -> i32
   local __tup_5 ref
   local c char
   local w usize
-  local $call_71 string
-  local $call_73 string
-  local $call_75 string
+  local $call_77 string
+  local $call_79 string
+  local $call_81 string
   intrinsic builder.new
   local.set 0
   local.get 0
@@ -829,6 +828,7 @@ fn 14 snippet$main () -> i32
   intrinsic builder.append_str
   string.const 13
   call.import 2
+  array.len
   call 1
   local.set 1
   local.get 0
@@ -854,6 +854,7 @@ fn 14 snippet$main () -> i32
   intrinsic builder.append_str
   string.const 16
   call.import 2
+  array.len
   call 1
   local.set 1
   local.get 0
@@ -879,6 +880,7 @@ fn 14 snippet$main () -> i32
   intrinsic builder.append_str
   string.const 18
   call.import 2
+  array.len
   call 1
   local.set 1
   local.get 0
@@ -904,6 +906,7 @@ fn 14 snippet$main () -> i32
   intrinsic builder.append_str
   string.const 20
   call.import 2
+  array.len
   call 1
   local.set 1
   local.get 0
@@ -929,6 +932,7 @@ fn 14 snippet$main () -> i32
   intrinsic builder.append_str
   string.const 2
   call.import 2
+  array.len
   call 1
   local.set 1
   local.get 0
@@ -940,6 +944,7 @@ fn 14 snippet$main () -> i32
   string.const 22
   local.tee 1
   call.import 2
+  array.len
   local.set 2
   i64.const 0
   local.set 3

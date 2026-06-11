@@ -27,7 +27,7 @@
 
 module "vader/c_emit"
 
-import "std/string" { bytes, as_string }
+import "std/string" { as_string }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 import "std/numbers" { is_hex_digit }
 import "vader/bytecode" {

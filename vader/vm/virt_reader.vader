@@ -20,7 +20,7 @@ module "vader/vm"
 
 bc :: import "vader/bytecode"
 
-import "std/string" { bytes, as_string, starts_with, ends_with, trim, split, index_of, decode_escapes, ParseError }
+import "std/string" { as_string, starts_with, ends_with, trim, split, index_of, decode_escapes, ParseError }
 import "std/numbers" { hex_digit_value, parse_int_in_base, parse_uint_in_base }
 
 // `ScopeEntry` and `PendingBranch` live in `vader/vm/builder.vader` —

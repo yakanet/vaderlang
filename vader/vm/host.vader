@@ -16,7 +16,6 @@ import "std/io" { read_file, write_file, exists, is_dir, read_dir, print, eprint
 import "std/process" { spawn_run, spawn_last_stdout, spawn_last_stderr }
 import "std/math" { sqrt, pow, floor, ceil, round }
 import "std/time" { monotonic_ns, now_unix_ms }
-import "std/string_builder" { new_builder, append }
 import "std/string" { as_string, trim, index_of, last_index_of, starts_with, ends_with }
 
 /// Outcome of a successful host call. `value` is unused when the import
@@ -107,28 +106,6 @@ host_int_pair_to_bool :: fn(stack: Value[], arg_base: usize, at_pc: i32, label: 
     return HostOk { .value = BoolVal { .value = apply(a.value, b.value) } }
 }
 
-/// Flush a `StringBuilder` `StructVal` into a `StringVal`. The
-/// user-side `StringBuilder` struct has a single `parts: string[]` field ;
-/// reach into `sv.fields[0]` (an `ArrayVal` of `StringVal`), concatenate
-/// via a fresh native `StringBuilder`, and wrap as a string. The
-/// structural assumption is the cross-module contract with
-/// `stdlib/std/string_builder.vader` — future drift breaks loudly at
-/// the single labelled Trap.
-stringbuilder_to_string :: fn(sv: StructVal, at_pc: i32) -> HostCallResult {
-    if sv.fields.len() == 0 { return Trap { .message = "StringBuilder.to_string : empty fields at pc=${at_pc}" } }
-    parts_array :: read_array(sv.fields[0], at_pc, "StringBuilder.parts")
-    if parts_array is Trap { return parts_array }
-    flush :: new_builder()
-    i: usize = 0
-    for i < parts_array.length {
-        piece :: read_string(parts_array.elements[parts_array.offset + i], at_pc, "StringBuilder.parts[i]")
-        if piece is Trap { return piece }
-        flush.append(piece.value)
-        i += 1
-    }
-    return HostOk { .value = StringVal { .value = "${flush}" } }
-}
-
 /// Dispatch a host import. Walks a flat `if info.mangled_name == r"…"`
 /// cascade matching the TS VM's `makeBindings` shape — every arm pops
 /// the args from `stack[arg_base ..]`, executes the host action, and
@@ -194,7 +171,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         }
         return HostOk { .value = StringVal { .value = as_string(raw) } }
     }
-    if info.mangled_name == r"std_string$bytes" {
+    if info.mangled_name == r"std_core$bytes" {
         // Native zero-copies a `const u8[]` view ; the VM materialises a copy
         // (boxed slots can't alias the interned bytes) — same values.
         s :: read_string(stack[arg_base], at_pc, "bytes receiver")
@@ -210,11 +187,9 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         if from is Trap { return from }
         return HostOk { .value = I32Val { .value = i32(s.value.index_of(c.value, usize(from.value))) } }
     }
-    if info.mangled_name == r"std_string_builder$StringBuilder$Display$to_string" {
-        sv :: read_struct(stack[arg_base], at_pc, "StringBuilder.to_string receiver")
-        if sv is Trap { return sv }
-        return stringbuilder_to_string(sv, at_pc)
-    }
+    // `StringBuilder implements Display` moved to pure Vader in Target ABI S3 ;
+    // the resolver materialises its body (a byte-Buffer read + `bytes_to_string`),
+    // so the VM runs a real fn — there is no host shim to dispatch here.
     if info.mangled_name == r"std_core$string$Index$at" {
         s :: read_string(stack[arg_base    ], at_pc, "string[] receiver")
         i :: read_i32   (stack[arg_base + 1], at_pc, "string[] index")

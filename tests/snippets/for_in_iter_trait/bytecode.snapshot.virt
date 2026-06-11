@@ -52,7 +52,7 @@ string 14 "array sum  = "
 string 15 "hello, world!"
 string 16 "l count    = "
 import 0 write std_io$write (i32,string) -> void
-import 1 bytes std_string$bytes (string) -> ref
+import 1 bytes std_core$bytes (string) -> ref
 impl 7 Iterator
 impl 11 Iterator
 impl 17 Contains

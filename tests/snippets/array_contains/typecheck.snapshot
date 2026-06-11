@@ -2,31 +2,31 @@
 
 ## tests/snippets/array_contains
   FnDecl         main                 :: fn() -> i32
-  expr 10:13    IdentExpr      :: i32[]
+  expr 10:14    IdentExpr      :: i32[]
   expr 10:23    CallExpr       :: void
   expr 10:23    IdentExpr      :: fn(T) -> void
   expr 10:31    StringLitExpr  :: string
   expr 10:5     IfExpr         :: void
   expr 10:8     BinaryExpr     :: bool
-  expr 11:14    IdentExpr      :: i32[]
-  expr 11:23    CallExpr       :: void
-  expr 11:23    IdentExpr      :: fn(T) -> void
-  expr 11:31    StringLitExpr  :: string
-  expr 11:5     IfExpr         :: void
-  expr 11:8     BinaryExpr     :: bool
-  expr 13:15    CallExpr       :: const u8[]
-  expr 13:15    FieldExpr      :: fn() -> const u8[]
-  expr 13:15    StringLitExpr  :: string
-  expr 14:16    IdentExpr      :: const u8[]
+  expr 12:15    CallExpr       :: const u8[]
+  expr 12:15    FieldExpr      :: fn() -> const u8[]
+  expr 12:15    StringLitExpr  :: string
+  expr 13:16    IdentExpr      :: const u8[]
+  expr 13:26    CallExpr       :: void
+  expr 13:26    IdentExpr      :: fn(T) -> void
+  expr 13:34    StringLitExpr  :: string
+  expr 13:5     IfExpr         :: void
+  expr 13:8     BinaryExpr     :: bool
+  expr 14:17    IdentExpr      :: const u8[]
   expr 14:26    CallExpr       :: void
   expr 14:26    IdentExpr      :: fn(T) -> void
   expr 14:34    StringLitExpr  :: string
   expr 14:5     IfExpr         :: void
   expr 14:8     BinaryExpr     :: bool
-  expr 15:17    IdentExpr      :: const u8[]
-  expr 15:26    CallExpr       :: void
-  expr 15:26    IdentExpr      :: fn(T) -> void
-  expr 15:34    StringLitExpr  :: string
-  expr 15:5     IfExpr         :: void
-  expr 15:8     BinaryExpr     :: bool
-  expr 9:15     SeqLitExpr     :: i32[]
+  expr 8:15     SeqLitExpr     :: i32[]
+  expr 9:13     IdentExpr      :: i32[]
+  expr 9:23     CallExpr       :: void
+  expr 9:23     IdentExpr      :: fn(T) -> void
+  expr 9:31     StringLitExpr  :: string
+  expr 9:5      IfExpr         :: void
+  expr 9:8      BinaryExpr     :: bool

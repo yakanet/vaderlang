@@ -26,7 +26,7 @@ string 4 ""
 string 5 "["
 string 6 "]"
 import 0 write std_io$write (i32,string) -> void
-import 1 bytes std_string$bytes (string) -> ref
+import 1 bytes std_core$bytes (string) -> ref
 import 2 as_string std_string$as_string (ref) -> string
 impl 6 Contains
 impl 6 Iterator

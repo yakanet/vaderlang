@@ -49,8 +49,7 @@ string 21 "9"
 string 22 "-"
 import 0 write std_io$write (i32,string) -> void
 import 1 bytes_to_string std_core$bytes_to_string (ref) -> string
-import 2 byte_len std_string$byte_len (string) -> usize
-import 3 bytes std_string$bytes (string) -> ref
+import 2 bytes std_core$bytes (string) -> ref
 impl 7 Contains
 impl 7 Iterator
 impl 11 Contains
@@ -181,6 +180,7 @@ fn 1 snippet$main () -> i32
   intrinsic builder.append_str
   string.const 5
   call.import 2
+  array.len
   call 3
   local.set 4
   local.get 3
@@ -591,7 +591,7 @@ fn 10 std_string$chars (string) -> ref
   local $cast_4 usize
   local $len_5 usize
   local.get 0
-  call.import 3
+  call.import 2
   local.set 1
   i64.const 0
   local.set 2

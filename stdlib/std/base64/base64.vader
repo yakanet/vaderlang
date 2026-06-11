@@ -9,7 +9,7 @@
 
 module "std/base64"
 
-import "std/string" { bytes, as_string }
+import "std/string" { as_string }
 import "std/string_builder" { StringBuilder, new_builder, append_char }
 
 ALPHABET :: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
