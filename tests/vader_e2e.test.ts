@@ -61,7 +61,6 @@ function containsTestFn(dir: string): boolean {
 // the self-hosted binary surfaced them. Tracked for focused fixes in
 // `.claude/plans/target-abi-migration.md` §"native vader test gaps".
 const KNOWN_NATIVE_GAPS = new Set([
-  "stdlib/std/numbers",  // GATE-B1 make-closure materialisation gap (__lambda_*)
   "vader/bytecode",      // passes 223/223, but the VM run exceeds the CI per-test budget
 ]);
 

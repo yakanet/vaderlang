@@ -110,6 +110,26 @@ export lower_project :: fn(
         if module_loaded is null { continue }
         decls :: module_decls(module_loaded)
         display_path :: module_loaded.module.display_path
+        // Entry IS a stdlib module (`vader test stdlib/std/numbers`, running a
+        // stdlib file) : `lower_module` lowers its fns WITH bodies (lifting any
+        // lambdas). Seed the call-site-harvest seen-set BEFORE that walk so a
+        // call to one of these fns (e.g. `test_x` → `strip_numeric_text`) does
+        // NOT also queue it into `nongeneric_stdlib_order` — a second lowering by
+        // `materialize_nongeneric_stdlib_fns` re-lifts its lambdas under FRESH
+        // ids, so the emitted make-closure (id from one copy) misses the
+        // surviving decl (the other copy) at emit → make-closure GATE-B1 panic.
+        // The imported-stdlib branch above already seeds its bodyless fns ; this
+        // is its with-body, entry analogue.
+        if is_stdlib_path(module_id) {
+            for d in decls {
+                if d is FnDecl as fd {
+                    if fd.type_params.len() == 0 {
+                        sym :: module_loaded.collected.symbols[fd.name]
+                        if sym is Symbol as s { project_ctx.nongeneric_stdlib_fns[s.id] = true }
+                    }
+                }
+            }
+        }
         lowered_module :: lower_module(module_id, display_path, module_typed, decls, project_ctx, diags)
         project.modules[module_id] = lowered_module
     }
