@@ -9,9 +9,9 @@
 
 ## generic instances
   Into<Target>
-  Index<I, T>
   Node<i32>
   Node<T>
+  Index<I, T>
   IndexSet<I, T>
   Contains<T>
   Iterator<T>

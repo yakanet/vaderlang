@@ -162,6 +162,8 @@ export Op :: Unreachable
     | LoadSlot
     | StoreSlot
     | MemoryCopy
+    | F64ToBits
+    | BitsToF64
 
 /// Trap unconditionally — the bytecode reached a point the compiler proved
 /// (or asserted, via `@unreachable match`) can never execute. Carries a
@@ -638,6 +640,17 @@ export StoreSlot :: struct {}
 /// Bulk byte copy obj→obj. Pops `dst, dst_off, src, src_off, n` ; copies `n`
 /// bytes. Lowers to `memcpy`. Both ends are GC handles, offsets are integers.
 export MemoryCopy :: struct {}
+
+/// Bit-reinterpret an `f64` as its raw IEEE 754 `u64` bit pattern. Pops an
+/// `f64`, pushes the `u64`. This is NOT a numeric conversion (`u64(x)` truncates
+/// the VALUE) — it returns the exact bits (`3.0 → 0x4008000000000000`). Lowers
+/// to a `union`/`memcpy` cast in C, no runtime symbol. The shortest-double
+/// formatter (and any float bit-fiddling) is built on this.
+export F64ToBits :: struct {}
+/// Inverse of `F64ToBits` : bit-reinterpret a `u64` bit pattern as an `f64`.
+/// Pops a `u64`, pushes the `f64`. NOT `f64(x)` (which widens the integer
+/// VALUE). Together they unblock the S2-deferred `LoadF64` byte codec.
+export BitsToF64 :: struct {}
 
 /// Primitive literal-producing op carried by `ReturnLit`. Mirrors the
 /// TS `ConstOp` extracted from `Op`. Each variant produces exactly one

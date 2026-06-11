@@ -18,8 +18,8 @@
   Range<T>
   Range<T>
   Range<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
   Pair<i32, i32>
   Pair<A, B>
+  ArrayIterator<T>
+  ArrayIterator<T>
+  ArrayIterator<T>

@@ -20,8 +20,8 @@
   Range<T>
   Range<T>
   Range<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
   Pair<string, i64>
   Pair<K, V>
+  ArrayIterator<T>
+  ArrayIterator<T>
+  ArrayIterator<T>

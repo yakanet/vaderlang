@@ -14,15 +14,15 @@
   Contains<T>
   Iterator<T>
   Iterator<T>
-  Yield<T>
-  Yield<T>
-  Yield<T>
   Box<i32>
   Box<Box<i32>>
   Box<Box<T>>
   Box<T>
   Box<T>
   Box<T>
+  Yield<T>
+  Yield<T>
+  Yield<T>
   Range<T>
   Range<T>
   Range<T>

@@ -407,6 +407,8 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.LoadSlot              -> todo("emit_op: load_slot — boxed-slot path lands with Array (S5)")
         is vm.StoreSlot             -> todo("emit_op: store_slot — boxed-slot path + write barrier land with Array (S5)")
         is vm.MemoryCopy            -> emit_memory_copy(s)
+        is vm.F64ToBits             -> emit_f64_to_bits(s)
+        is vm.BitsToF64             -> emit_bits_to_f64(s)
     }
 }
 
@@ -534,6 +536,24 @@ push_i64_neg :: fn(s: FnState) -> void {
     } else {
         push_expr(s, .I64, "-(${vc})")
     }
+}
+
+/// `f64.to_bits` — reinterpret an f64 as its raw IEEE u64 bits. Emits a C99
+/// compound-literal union (well-defined type-punning in C ; the optimiser folds
+/// it to a bit-move) so there is NO runtime symbol. The u64 result rides in the
+/// `.I64` stack slot (same 64 bits).
+emit_f64_to_bits :: fn(s: FnState) -> void {
+    v :: pop(s)
+    vc :: coerce_operand(s.ctx.module.types, name_of(v), val_of(v), .F64)
+    push_expr(s, .I64, "(int64_t)(((union { double __vd; uint64_t __vu; }){ .__vd = ${vc} }).__vu)")
+}
+
+/// `u64.from_bits` — the inverse : reinterpret a u64 bit pattern (in the `.I64`
+/// slot) as an f64. Same compound-literal-union technique, no runtime symbol.
+emit_bits_to_f64 :: fn(s: FnState) -> void {
+    v :: pop(s)
+    vc :: coerce_operand(s.ctx.module.types, name_of(v), val_of(v), .I64)
+    push_expr(s, .F64, "(((union { uint64_t __vu; double __vd; }){ .__vu = (uint64_t)(${vc}) }).__vd)")
 }
 
 /// Emit an eager binary op into a fresh temp : `tN = l <op> r;`. Used for

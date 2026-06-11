@@ -33,6 +33,20 @@ bc :: import "vader/bytecode"
 import "std/io" { read_file, eprintln }
 import "std/string" { index_of, as_string, decode_codepoint_at, join }
 
+// IEEE 754 bit reinterpret for the F64ToBits / BitsToF64 arms. The VM's own
+// code can't use the `f64.to_bits()` / `u64.from_bits()` intrinsics : they
+// lower to the new opcodes, which the bootstrap seed predating them emits as
+// unbound imports. Route through the runtime's tiny `union`-cast helpers via
+// `@extern` instead (exec.vader is itself compiled to native C, so this is a
+// direct C call — no bytecode interpretation, no circularity). Native USER code
+// still lowers F64ToBits/BitsToF64 to an inline union cast (no symbol). The
+// Vader fn name MUST equal the C symbol : the bootstrap seed predates the
+// `@extern("c_name")` override-arg, so it binds by fn name.
+@extern("vader_f64_to_bits")
+vader_f64_to_bits :: fn(v: f64) -> u64
+@extern("vader_bits_to_f64")
+vader_bits_to_f64 :: fn(b: u64) -> f64
+
 // Mangled host-import names. Lifted to module-scope so the dispatch
 // chain reads as identifier comparisons rather than raw-string
 // literals — also avoids re-allocating the strings per op execution.
@@ -1766,6 +1780,25 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[]) -
             is bc.MemoryCopy -> {
                 outcome :: do_memory_copy(frame)
                 if outcome is Trap { return outcome }
+            }
+            is bc.F64ToBits -> {
+                // Bit-reinterpret the TOS f64 as its raw u64 bits (held in an
+                // I64Val — same 64 bits) via the runtime `@extern` (see the
+                // module-top note : the VM can't use the intrinsic itself).
+                if frame.sp < 1 { return Trap { .message = "f64_to_bits needs a value on the stack at pc=${frame.pc}" } }
+                fv :: read_f64(frame.stack[frame.sp - 1], frame.pc, "f64_to_bits")
+                if fv is Trap { return fv }
+                frame.stack[frame.sp - 1] = I64Val { .value = i64(vader_f64_to_bits(fv.value)) }
+                frame.pc = frame.pc + 1
+            }
+            is bc.BitsToF64 -> {
+                // Inverse : reinterpret the TOS u64 bit pattern (in an I64Val) as
+                // an f64, via the runtime `@extern`.
+                if frame.sp < 1 { return Trap { .message = "bits_to_f64 needs a value on the stack at pc=${frame.pc}" } }
+                iv :: read_i64(frame.stack[frame.sp - 1], frame.pc, "bits_to_f64")
+                if iv is Trap { return iv }
+                frame.stack[frame.sp - 1] = F64Val { .value = vader_bits_to_f64(u64(iv.value)) }
+                frame.pc = frame.pc + 1
             }
         }
     }

@@ -2122,6 +2122,14 @@ void vader_builder_append_display_f64(vader_builder_t* b, vader_f64_t v) {
     else if (!isfinite(v))            builder_append_fmt(b, "%g",   v);
     else                              append_shortest_double(b, v);
 }
+
+/* IEEE 754 bit reinterpret (`f64.to_bits` / `u64.from_bits`). The native target
+ * lowers these to an inline `union` cast (no call) ; these out-of-line helpers
+ * exist ONLY for the bytecode VM (`exec.vader` calls them via `@extern`, since
+ * the VM's own code can't be lowered to the new opcodes without a seed two-phase).
+ * `memcpy` is the portable, well-defined type-pun (compilers fold it to a move). */
+uint64_t vader_f64_to_bits(double v) { uint64_t u; memcpy(&u, &v, sizeof u); return u; }
+double   vader_bits_to_f64(uint64_t b) { double v; memcpy(&v, &b, sizeof v); return v; }
 vader_string_t vader_builder_finish(vader_builder_t* b) {
     /* Hand the buffer to `vader_atom_intern_take` — on miss it adopts
      * the buffer as the atom's owner data ; on hit it frees the buffer

@@ -598,6 +598,8 @@ export write_op :: fn(out: StringBuilder, op: Op) -> void {
         is LoadSlot                 -> out.append("load_slot")
         is StoreSlot                -> out.append("store_slot")
         is MemoryCopy               -> out.append("memory_copy")
+        is F64ToBits                -> out.append("f64_to_bits")
+        is BitsToF64                -> out.append("bits_to_f64")
     }
 }
 

@@ -758,6 +758,11 @@ void             vader_builder_append_display_f32(vader_builder_t* b, vader_f32_
 void             vader_builder_append_display_f64(vader_builder_t* b, vader_f64_t v);
 vader_string_t   vader_builder_finish(vader_builder_t* b);
 
+/* IEEE 754 bit reinterpret — VM-only (`exec.vader` @extern ; native lowers
+ * F64ToBits/BitsToF64 to an inline union cast). See vader_runtime.c. */
+uint64_t         vader_f64_to_bits(double v);
+double           vader_bits_to_f64(uint64_t b);
+
 /* ----------------------------------------------------------------- I/O */
 
 void           vader_write(int32_t stream_tag, vader_string_t s);

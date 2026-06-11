@@ -24,12 +24,12 @@
   Yield<T>
   Yield<T>
   Yield<T>
-  Range<T>
-  Range<T>
-  Range<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
-  ArrayIterator<T>
   Once<i32>
   Once<T>
   Once<T>
+  Range<T>
+  Range<T>
+  Range<T>
+  ArrayIterator<T>
+  ArrayIterator<T>
+  ArrayIterator<T>

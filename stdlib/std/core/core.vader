@@ -104,6 +104,25 @@ export Div :: trait { div :: fn(self, other: Self) -> Self }
 /// `%` dispatch. See `Add`.
 export Rem :: trait { rem :: fn(self, other: Self) -> Self }
 
+/// Bit-level view of a float as its raw IEEE 754 integer pattern. This is NOT a
+/// numeric conversion : `u64(x)` truncates the VALUE (`3.7 → 3`), whereas
+/// `x.to_bits()` returns the exact bits (`3.0 → 0x4008000000000000`). The
+/// inverse is `BitsFloat::from_bits`. Powers shortest-double formatting and any
+/// float bit-fiddling, with no per-target runtime symbol (lowers to a `union`
+/// cast). Mirrors Rust's `f64::to_bits` / `f64::from_bits` (deliberately
+/// distinct from the `as`/cast conversion).
+export FloatBits :: trait {
+    /// The raw IEEE 754 bit pattern of `self`.
+    to_bits :: fn(self) -> u64
+}
+
+/// Inverse of `FloatBits` — reconstruct an `f64` from a raw IEEE 754 bit pattern.
+export BitsFloat :: trait {
+    /// Reinterpret `self`'s bits as an `f64` (NOT `f64(self)`, which widens the
+    /// integer value).
+    from_bits :: fn(self) -> f64
+}
+
 /// Indexed read — `a[i]` dispatches through this when `a` isn't a built-in
 /// array. `I` is the index type, `T` the element type.
 export Index :: trait<I, T> {

@@ -467,6 +467,18 @@ A literal float with no suffix **infers to `f64`** (`x := 3.14` ⇒ `x: f64`).
 
 There is **no implicit coercion between sized numeric types**. `i32 → i64` requires an explicit cast (`i64(x)`). The exception is unsuffixed numeric literals: `x: i64 = 42` works because `42` is left flexible until it lands in a typed context.
 
+### Float ↔ bits reinterpret
+
+A `Type(expr)` cast **converts the value** (`u64(3.7)` truncates to `3` ; `f64(5)` widens to `5.0`). To reinterpret a float as its raw **IEEE 754 bit pattern** — a different operation, same bits, no value change — use the dedicated methods (NOT the cast, which would silently change meaning) :
+
+```
+x: f64 = 3.0
+bits :: x.to_bits()        // u64 0x4008000000000000  — the exact IEEE bits
+back :: bits.from_bits()   // f64 3.0                 — round-trips bit-for-bit
+```
+
+`f64.to_bits() -> u64` (trait `FloatBits`) and `u64.from_bits() -> f64` (trait `BitsFloat`) are `std/core` prelude methods, mirroring Rust's `f64::to_bits` / `f64::from_bits`. They lower to the `F64ToBits` / `BitsToF64` memory opcodes — an inline `union` cast in the C backend, no runtime symbol — and are the foundation for float formatting / bit-fiddling.
+
 ### Numeric-literal context-sensitivity
 
 An unsuffixed integer literal stays as a *free* (untyped) numeric until its surrounding context provides a concrete width ; at that point it adopts the slot's type *without* a runtime conversion. This is what makes `x: usize = 5`, `Box { .size = 10 }`, `arr.slice(0, n - 1)`, `if usz == 42`, and `g: i64 = -50` all compile without explicit casts even though `5`, `10`, `0`, `42`, `50` would otherwise default to `i32`.
