@@ -394,8 +394,16 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.StoreI32              -> emit_buffer_store(s, "vader_buffer_store_i32", "(int32_t)")
         is vm.StoreI64              -> emit_buffer_store(s, "vader_buffer_store_i64", "(int64_t)")
         is vm.StoreF64              -> emit_buffer_store(s, "vader_buffer_store_f64", "(double)")
-        is vm.LoadSlot              -> todo("emit_op: load_slot — boxed-slot path lands with Array (S5)")
-        is vm.StoreSlot             -> todo("emit_op: store_slot — boxed-slot path + write barrier land with Array (S5)")
+        is vm.LoadSlot              -> emit_slot_load_boxed(s)
+        is vm.LoadSlotU8            -> emit_slot_load_prim(s, "uint8_t", .I32)
+        is vm.LoadSlotI32           -> emit_slot_load_prim(s, "int32_t", .I32)
+        is vm.LoadSlotI64           -> emit_slot_load_prim(s, "int64_t", .I64)
+        is vm.LoadSlotF64           -> emit_slot_load_prim(s, "double", .F64)
+        is vm.StoreSlot             -> emit_slot_store_boxed(s)
+        is vm.StoreSlotU8           -> emit_slot_store_prim(s, "uint8_t")
+        is vm.StoreSlotI32          -> emit_slot_store_prim(s, "int32_t")
+        is vm.StoreSlotI64          -> emit_slot_store_prim(s, "int64_t")
+        is vm.StoreSlotF64          -> emit_slot_store_prim(s, "double")
         is vm.MemoryCopy            -> emit_memory_copy(s)
         is vm.F64ToBits             -> emit_f64_to_bits(s)
         is vm.BitsToF64             -> emit_bits_to_f64(s)
@@ -1580,6 +1588,55 @@ emit_memory_copy :: fn(s: FnState) -> void {
     dst_off :: pop(s)
     dst :: pop(s)
     line(s, "vader_buffer_memory_copy(${buf_ptr(dst)}, (size_t) ${name_of(dst_off)}, ${buf_ptr(src)}, (size_t) ${name_of(src_off)}, (size_t) ${name_of(n)});")
+}
+
+// ---- array slot access (Target ABI S5) -----------------------------------
+
+// `((vader_array_buf_t*) <box>.payload.obj)` — the boxed-slot array buffer
+// behind a popped reference. Slot ops are INDEX-addressed (the `[i]` cast
+// applies the element stride), distinct from the byte-offset bytes-Buffer ops.
+// The outer parens let `…->slots` bind to the cast, not the inner field.
+array_buf_ptr :: fn(v: StackVal) = "((vader_array_buf_t*) ${name_of(v)}.payload.obj)"
+
+/// `load_slot` (boxed) — pop obj + slot index, push the boxed `Value` at that
+/// slot. The result is a traced reference (stack class `.Ref`).
+emit_slot_load_boxed :: fn(s: FnState) -> void {
+    idx :: pop(s)
+    obj :: pop(s)
+    name :: fresh_tmp(s, .Ref)
+    line(s, "${name} = vader_array_box_slots(${array_buf_ptr(obj)})[(size_t) ${name_of(idx)}];")
+    push_tmp(s, name, .Ref)
+}
+
+/// `store_slot` (boxed) — pop obj + slot index + value box ; store it and fire
+/// the generational write barrier (G2) — the boxed slot may record an old→young
+/// edge the minor collector must see.
+emit_slot_store_boxed :: fn(s: FnState) -> void {
+    value :: pop(s)
+    idx :: pop(s)
+    obj :: pop(s)
+    buf :: array_buf_ptr(obj)
+    line(s, "vader_array_box_slots(${buf})[(size_t) ${name_of(idx)}] = ${name_of(value)};")
+    line(s, "VADER_WRITE_BARRIER(${buf});")
+}
+
+/// Primitive slot load — pop obj + slot index, read the `cty`-typed element at
+/// that slot (`((cty*) buf->slots)[i]`), push it with stack class `result`.
+emit_slot_load_prim :: fn(s: FnState, cty: string, result: ValType) -> void {
+    idx :: pop(s)
+    obj :: pop(s)
+    name :: fresh_tmp(s, result)
+    line(s, "${name} = ((${cty}*) ${array_buf_ptr(obj)}->slots)[(size_t) ${name_of(idx)}];")
+    push_tmp(s, name, result)
+}
+
+/// Primitive slot store — pop obj + slot index + value ; write the `cty`-typed
+/// element. No write barrier (the primitive region holds no references).
+emit_slot_store_prim :: fn(s: FnState, cty: string) -> void {
+    value :: pop(s)
+    idx :: pop(s)
+    obj :: pop(s)
+    line(s, "((${cty}*) ${array_buf_ptr(obj)}->slots)[(size_t) ${name_of(idx)}] = (${cty}) ${name_of(value)};")
 }
 
 emit_array_new :: fn(s: FnState, op: vm.ArrayNew) -> void {

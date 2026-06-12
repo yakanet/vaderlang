@@ -481,7 +481,15 @@ parse_op_line :: fn(cleaned: string, head: string) -> bc.Op | null {
     if head == "store_i64"      { return bc.StoreI64 {} }
     if head == "store_f64"      { return bc.StoreF64 {} }
     if head == "load_slot"      { return bc.LoadSlot {} }
+    if head == "load_slot_u8"   { return bc.LoadSlotU8 {} }
+    if head == "load_slot_i32"  { return bc.LoadSlotI32 {} }
+    if head == "load_slot_i64"  { return bc.LoadSlotI64 {} }
+    if head == "load_slot_f64"  { return bc.LoadSlotF64 {} }
     if head == "store_slot"     { return bc.StoreSlot {} }
+    if head == "store_slot_u8"  { return bc.StoreSlotU8 {} }
+    if head == "store_slot_i32" { return bc.StoreSlotI32 {} }
+    if head == "store_slot_i64" { return bc.StoreSlotI64 {} }
+    if head == "store_slot_f64" { return bc.StoreSlotF64 {} }
     if head == "memory_copy"    { return bc.MemoryCopy {} }
     if head == "f64_to_bits"    { return bc.F64ToBits {} }
     if head == "bits_to_f64"    { return bc.BitsToF64 {} }
@@ -1068,11 +1076,11 @@ roundtrip_op_text :: fn(op: bc.Op) -> string {
 }
 
 @test test_memory_opcode_roundtrip :: fn() -> void {
-    // The 12 Target ABI memory opcodes (S2). `object_new` carries a `type_id`
+    // The Target ABI memory opcodes. `object_new` carries a `type_id`
     // immediate ; the rest are operand-free. Each must survive write_op →
     // parse_op_line → write_op unchanged — proving parse ≠ null and that the
     // op (and its immediate) is preserved, so a synthetic op stream keeps its
-    // pc indices.
+    // pc indices. Includes the S5 width-typed array slot family.
     assert_eq(roundtrip_op_text(bc.ObjectNew { .type_id = 7 }), "object_new 7")
     assert_eq(roundtrip_op_text(bc.LoadU8 {}),     "load_u8")
     assert_eq(roundtrip_op_text(bc.LoadI32 {}),    "load_i32")
@@ -1083,7 +1091,15 @@ roundtrip_op_text :: fn(op: bc.Op) -> string {
     assert_eq(roundtrip_op_text(bc.StoreI64 {}),   "store_i64")
     assert_eq(roundtrip_op_text(bc.StoreF64 {}),   "store_f64")
     assert_eq(roundtrip_op_text(bc.LoadSlot {}),   "load_slot")
+    assert_eq(roundtrip_op_text(bc.LoadSlotU8 {}),    "load_slot_u8")
+    assert_eq(roundtrip_op_text(bc.LoadSlotI32 {}),   "load_slot_i32")
+    assert_eq(roundtrip_op_text(bc.LoadSlotI64 {}),   "load_slot_i64")
+    assert_eq(roundtrip_op_text(bc.LoadSlotF64 {}),   "load_slot_f64")
     assert_eq(roundtrip_op_text(bc.StoreSlot {}),  "store_slot")
+    assert_eq(roundtrip_op_text(bc.StoreSlotU8 {}),   "store_slot_u8")
+    assert_eq(roundtrip_op_text(bc.StoreSlotI32 {}),  "store_slot_i32")
+    assert_eq(roundtrip_op_text(bc.StoreSlotI64 {}),  "store_slot_i64")
+    assert_eq(roundtrip_op_text(bc.StoreSlotF64 {}),  "store_slot_f64")
     assert_eq(roundtrip_op_text(bc.MemoryCopy {}), "memory_copy")
     assert_eq(roundtrip_op_text(bc.F64ToBits {}),  "f64_to_bits")
     assert_eq(roundtrip_op_text(bc.BitsToF64 {}),  "bits_to_f64")

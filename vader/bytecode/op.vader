@@ -156,7 +156,15 @@ export Op :: Unreachable
     | StoreI64
     | StoreF64
     | LoadSlot
+    | LoadSlotU8
+    | LoadSlotI32
+    | LoadSlotI64
+    | LoadSlotF64
     | StoreSlot
+    | StoreSlotU8
+    | StoreSlotI32
+    | StoreSlotI64
+    | StoreSlotF64
     | MemoryCopy
     | F64ToBits
     | BitsToF64
@@ -613,12 +621,39 @@ export StoreF64 :: struct {}
 
 /// Read a boxed slot. Pops `obj, i: usize` ; pushes the boxed `Value` at slot
 /// index `i` (a reference field the GC traces — distinct from the raw byte
-/// region the `Load*` / `Store*` typed ops address).
+/// region the `Load*` / `Store*` typed ops address). `obj` is a
+/// `vader_array_buf_t` handle (boxed element kind).
 export LoadSlot :: struct {}
+/// Read a primitive array slot at slot index `i` (NOT a byte offset — the
+/// `vader_array_buf_t` slot family is index-addressed, stride = element width,
+/// distinct from the byte-offset `Load*`/`Store*` over a bytes `Buffer`). Pops
+/// `obj, i: usize` ; pushes the value. The `…U8` / `…I32` / `…I64` / `…F64`
+/// suffix is the element's native storage width (matching
+/// `vader_array_element_size`), selected statically per element kind by
+/// `op_select::slot_load_op_for`. No GC trace (primitive region).
+export LoadSlotU8 :: struct {}
+/// 4-byte signed read (`i32` / `u32` / `char` elements). See `LoadSlotU8`.
+export LoadSlotI32 :: struct {}
+/// 8-byte signed read (`i64` / `u64` / `usize` / `isize` elements). See `LoadSlotU8`.
+export LoadSlotI64 :: struct {}
+/// 8-byte float read (`f64` elements). See `LoadSlotU8`.
+export LoadSlotF64 :: struct {}
 /// Write a boxed slot. Pops `obj, i: usize, v` ; **fires `VADER_WRITE_BARRIER(
 /// obj)`** (invariant G2 — records the potential old→young edge for the
 /// generational collector). The typed primitive stores deliberately do not.
+/// `obj` is a `vader_array_buf_t` handle (boxed element kind).
 export StoreSlot :: struct {}
+/// Write a primitive array slot at slot index `i` (index-addressed, stride =
+/// element width). Pops `obj, i: usize, v`. No write-barrier (primitive
+/// region). Suffix = element storage width ; selected by
+/// `op_select::slot_store_op_for`.
+export StoreSlotU8 :: struct {}
+/// 4-byte signed write (`i32` / `u32` / `char` elements). See `StoreSlotU8`.
+export StoreSlotI32 :: struct {}
+/// 8-byte signed write (`i64` / `u64` / `usize` / `isize` elements). See `StoreSlotU8`.
+export StoreSlotI64 :: struct {}
+/// 8-byte float write (`f64` elements). See `StoreSlotU8`.
+export StoreSlotF64 :: struct {}
 
 /// Bulk byte copy obj→obj. Pops `dst, dst_off, src, src_off, n` ; copies `n`
 /// bytes. Lowers to `memcpy`. Both ends are GC handles, offsets are integers.
