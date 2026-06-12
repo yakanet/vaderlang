@@ -101,32 +101,32 @@ fn snippet$main() -> i32
     %4 $call_4: string
     %5 $k_5: i32
     %6 $call_6: string
-    %7 $intrinsic_7: ?
-    %8 __sb_0: ? (synthetic __sb_0)
+    %7 $call_7: StringBuilder
+    %8 __sb_0: StringBuilder (synthetic __sb_0)
     %9 $k_9: i32
     %10 $k_10: i32
     %11 $call_11: bool
     %12 $call_12: string
-    %13 $intrinsic_13: string
-    %14 $intrinsic_14: ?
-    %15 __sb_1: ? (synthetic __sb_1)
+    %13 $call_13: string
+    %14 $call_14: StringBuilder
+    %15 __sb_1: StringBuilder (synthetic __sb_1)
     %16 $k_16: i32
     %17 $k_17: i32
     %18 $call_18: bool
     %19 $call_19: string
-    %20 $intrinsic_20: string
-    %21 $intrinsic_21: ?
-    %22 __sb_2: ? (synthetic __sb_2)
+    %20 $call_20: string
+    %21 $call_21: StringBuilder
+    %22 __sb_2: StringBuilder (synthetic __sb_2)
     %23 $k_23: i32
     %24 $neq_24: bool
     %25 $call_25: string
-    %26 $intrinsic_26: string
-    %27 $intrinsic_27: ?
-    %28 __sb_3: ? (synthetic __sb_3)
+    %26 $call_26: string
+    %27 $call_27: StringBuilder
+    %28 __sb_3: StringBuilder (synthetic __sb_3)
     %29 $k_29: i32
     %30 $neq_30: bool
     %31 $call_31: string
-    %32 $intrinsic_32: string
+    %32 $call_32: string
     %33 $k_33: i32
     %34 $unop_34: i32
     %35 $call_35: Severity
@@ -179,39 +179,39 @@ fn snippet$main() -> i32
     %5 = const int(2) :i32
     %6 = call label(%5) :string
     call std_io$std_io$println__string(%6) :void
-    %7 = intrinsic builder.new()
+    %7 = call new_builder() :StringBuilder
     %8 = move %7
     %9 = const int(0) :i32
     %10 = const int(0) :i32
     %11 = call same_color(%9, %10) :bool
     %12 = call std_core$bool$Display$to_string(%11) :string
-    intrinsic builder.append_str(%8, %12)
-    %13 = intrinsic builder.finish(%8)
+    call append(%8, %12) :void
+    %13 = call std_string_builder$StringBuilder$Display$to_string(%8) :string
     call std_io$std_io$println__string(%13) :void
-    %14 = intrinsic builder.new()
+    %14 = call new_builder() :StringBuilder
     %15 = move %14
     %16 = const int(0) :i32
     %17 = const int(2) :i32
     %18 = call same_color(%16, %17) :bool
     %19 = call std_core$bool$Display$to_string(%18) :string
-    intrinsic builder.append_str(%15, %19)
-    %20 = intrinsic builder.finish(%15)
+    call append(%15, %19) :void
+    %20 = call std_string_builder$StringBuilder$Display$to_string(%15) :string
     call std_io$std_io$println__string(%20) :void
-    %21 = intrinsic builder.new()
+    %21 = call new_builder() :StringBuilder
     %22 = move %21
     %23 = const int(0) :i32
     %24 = binop 13 %1 %23 :bool
     %25 = call std_core$bool$Display$to_string(%24) :string
-    intrinsic builder.append_str(%22, %25)
-    %26 = intrinsic builder.finish(%22)
+    call append(%22, %25) :void
+    %26 = call std_string_builder$StringBuilder$Display$to_string(%22) :string
     call std_io$std_io$println__string(%26) :void
-    %27 = intrinsic builder.new()
+    %27 = call new_builder() :StringBuilder
     %28 = move %27
     %29 = const int(1) :i32
     %30 = binop 13 %1 %29 :bool
     %31 = call std_core$bool$Display$to_string(%30) :string
-    intrinsic builder.append_str(%28, %31)
-    %32 = intrinsic builder.finish(%28)
+    call append(%28, %31) :void
+    %32 = call std_string_builder$StringBuilder$Display$to_string(%28) :string
     call std_io$std_io$println__string(%32) :void
     %33 = const int(5) :i32
     %34 = unop 0 %33 :i32

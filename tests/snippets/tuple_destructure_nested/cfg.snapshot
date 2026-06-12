@@ -29,21 +29,21 @@ fn snippet$main() -> i32
     %7 label: string (local label)
     %8 $field_8: bool
     %9 active: bool (local active)
-    %10 $intrinsic_10: ?
-    %11 __sb_1: ? (synthetic __sb_1)
+    %10 $call_10: StringBuilder
+    %11 __sb_1: StringBuilder (synthetic __sb_1)
     %12 $k_12: string
     %13 $call_13: string
-    %14 $intrinsic_14: string
-    %15 $intrinsic_15: ?
-    %16 __sb_2: ? (synthetic __sb_2)
+    %14 $call_14: string
+    %15 $call_15: StringBuilder
+    %16 __sb_2: StringBuilder (synthetic __sb_2)
     %17 $k_17: string
     %18 $call_18: string
-    %19 $intrinsic_19: string
-    %20 $intrinsic_20: ?
-    %21 __sb_3: ? (synthetic __sb_3)
+    %19 $call_19: string
+    %20 $call_20: StringBuilder
+    %21 __sb_3: StringBuilder (synthetic __sb_3)
     %22 $k_22: string
     %23 $call_23: string
-    %24 $intrinsic_24: string
+    %24 $call_24: string
     %25 $k_25: i32
   bb0:
     %0 = call make_record() :[[i32, string], bool]
@@ -56,29 +56,29 @@ fn snippet$main() -> i32
     %7 = move %6
     %8 = field_get %1._1 :bool
     %9 = move %8
-    %10 = intrinsic builder.new()
+    %10 = call new_builder() :StringBuilder
     %11 = move %10
     %12 = const string(#2) :string
-    intrinsic builder.append_str(%11, %12)
+    call append(%11, %12) :void
     %13 = call std_core$i32$Display$to_string(%4) :string
-    intrinsic builder.append_str(%11, %13)
-    %14 = intrinsic builder.finish(%11)
+    call append(%11, %13) :void
+    %14 = call std_string_builder$StringBuilder$Display$to_string(%11) :string
     call std_io$std_io$println__string(%14) :void
-    %15 = intrinsic builder.new()
+    %15 = call new_builder() :StringBuilder
     %16 = move %15
     %17 = const string(#3) :string
-    intrinsic builder.append_str(%16, %17)
+    call append(%16, %17) :void
     %18 = call std_core$string$Display$to_string(%7) :string
-    intrinsic builder.append_str(%16, %18)
-    %19 = intrinsic builder.finish(%16)
+    call append(%16, %18) :void
+    %19 = call std_string_builder$StringBuilder$Display$to_string(%16) :string
     call std_io$std_io$println__string(%19) :void
-    %20 = intrinsic builder.new()
+    %20 = call new_builder() :StringBuilder
     %21 = move %20
     %22 = const string(#4) :string
-    intrinsic builder.append_str(%21, %22)
+    call append(%21, %22) :void
     %23 = call std_core$bool$Display$to_string(%9) :string
-    intrinsic builder.append_str(%21, %23)
-    %24 = intrinsic builder.finish(%21)
+    call append(%21, %23) :void
+    %24 = call std_string_builder$StringBuilder$Display$to_string(%21) :string
     call std_io$std_io$println__string(%24) :void
     %25 = const int(0) :i32
     return %25

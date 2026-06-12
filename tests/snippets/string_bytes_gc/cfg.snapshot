@@ -5,21 +5,21 @@
 fn snippet$view_of(%0: i32) -> const u8[]
   locals:
     %0 seed: i32 (param seed)
-    %1 $intrinsic_1: ?
-    %2 __sb_0: ? (synthetic __sb_0)
+    %1 $call_1: StringBuilder
+    %2 __sb_0: StringBuilder (synthetic __sb_0)
     %3 $k_3: string
     %4 $call_4: string
-    %5 $intrinsic_5: string
+    %5 $call_5: string
     %6 s: string (local s)
     %7 $call_7: const u8[]
   bb0:
-    %1 = intrinsic builder.new()
+    %1 = call new_builder() :StringBuilder
     %2 = move %1
     %3 = const string(#13) :string
-    intrinsic builder.append_str(%2, %3)
+    call append(%2, %3) :void
     %4 = call std_core$i32$Display$to_string(%0) :string
-    intrinsic builder.append_str(%2, %4)
-    %5 = intrinsic builder.finish(%2)
+    call append(%2, %4) :void
+    %5 = call std_string_builder$StringBuilder$Display$to_string(%2) :string
     %6 = move %5
     %7 = call bytes(%6) :const u8[]
     return %7
@@ -110,11 +110,11 @@ fn snippet$main() -> i32
     %37 $add_37: u64
     %38 $add_38: u64
     %39 total: u64 (local total)
-    %40 $intrinsic_40: ?
-    %41 __sb_0: ? (synthetic __sb_0)
+    %40 $call_40: StringBuilder
+    %41 __sb_0: StringBuilder (synthetic __sb_0)
     %42 $k_42: string
     %43 $call_43: string
-    %44 $intrinsic_44: string
+    %44 $call_44: string
     %45 $k_45: i32
   bb0:
     %0 = const int(1) :i32
@@ -185,13 +185,13 @@ fn snippet$main() -> i32
     %37 = binop 0 %36 %17 :u64
     %38 = binop 0 %37 %19 :u64
     %39 = move %38
-    %40 = intrinsic builder.new()
+    %40 = call new_builder() :StringBuilder
     %41 = move %40
     %42 = const string(#15) :string
-    intrinsic builder.append_str(%41, %42)
+    call append(%41, %42) :void
     %43 = call std_core$u64$Display$to_string(%39) :string
-    intrinsic builder.append_str(%41, %43)
-    %44 = intrinsic builder.finish(%41)
+    call append(%41, %43) :void
+    %44 = call std_string_builder$StringBuilder$Display$to_string(%41) :string
     call std_io$std_io$println__string(%44) :void
     %45 = const int(0) :i32
     return %45

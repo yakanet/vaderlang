@@ -28,131 +28,196 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_0: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_0 :?
-            "inc(5) = " :string
-          @builder.append_str :void
-            __sb_0 :?
+          let __sb_0: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              "inc(5) = " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  call :i32
+                    callee:
+                      call_it :fn(fn(i32) -> i32, i32) -> i32
+                    arg0:
+                      LoweredMakeClosure
+                    arg1:
+                      int(5) :i32
+          ~>
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                call :i32
-                  callee:
-                    call_it :fn(fn(i32) -> i32, i32) -> i32
-                  arg0:
-                    LoweredMakeClosure
-                  arg1:
-                    int(5) :i32
-          ~>
-            @builder.finish :string
-              __sb_0 :?
+                __sb_0 :StringBuilder
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_2: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_2 :?
-            "dbl(5) = " :string
-          @builder.append_str :void
-            __sb_2 :?
+          let __sb_2: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              "dbl(5) = " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  call :i32
+                    callee:
+                      call_it :fn(fn(i32) -> i32, i32) -> i32
+                    arg0:
+                      LoweredMakeClosure
+                    arg1:
+                      int(5) :i32
+          ~>
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                call :i32
-                  callee:
-                    call_it :fn(fn(i32) -> i32, i32) -> i32
-                  arg0:
-                    LoweredMakeClosure
-                  arg1:
-                    int(5) :i32
-          ~>
-            @builder.finish :string
-              __sb_2 :?
+                __sb_2 :StringBuilder
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_4: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_4 :?
-            "sqr(5) = " :string
-          @builder.append_str :void
-            __sb_4 :?
+          let __sb_4: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_4 :StringBuilder
+            arg1:
+              "sqr(5) = " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_4 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  call :i32
+                    callee:
+                      call_it :fn(fn(i32) -> i32, i32) -> i32
+                    arg0:
+                      LoweredMakeClosure
+                    arg1:
+                      int(5) :i32
+          ~>
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                call :i32
-                  callee:
-                    call_it :fn(fn(i32) -> i32, i32) -> i32
-                  arg0:
-                    LoweredMakeClosure
-                  arg1:
-                    int(5) :i32
-          ~>
-            @builder.finish :string
-              __sb_4 :?
+                __sb_4 :StringBuilder
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_6: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_6 :?
-            "add(3, 4) = " :string
-          @builder.append_str :void
-            __sb_6 :?
+          let __sb_6: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_6 :StringBuilder
+            arg1:
+              "add(3, 4) = " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_6 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  call :i32
+                    callee:
+                      call_two :fn(fn(i32, i32) -> i32, i32, i32) -> i32
+                    arg0:
+                      LoweredMakeClosure
+                    arg1:
+                      int(3) :i32
+                    arg2:
+                      int(4) :i32
+          ~>
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                call :i32
-                  callee:
-                    call_two :fn(fn(i32, i32) -> i32, i32, i32) -> i32
-                  arg0:
-                    LoweredMakeClosure
-                  arg1:
-                    int(3) :i32
-                  arg2:
-                    int(4) :i32
-          ~>
-            @builder.finish :string
-              __sb_6 :?
+                __sb_6 :StringBuilder
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_8: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_8 :?
-            "forty_two() = " :string
-          @builder.append_str :void
-            __sb_8 :?
+          let __sb_8: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_8 :StringBuilder
+            arg1:
+              "forty_two() = " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_8 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  call :i32
+                    callee:
+                      call_none :fn(fn() -> i32) -> i32
+                    arg0:
+                      LoweredMakeClosure
+          ~>
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                call :i32
-                  callee:
-                    call_none :fn(fn() -> i32) -> i32
-                  arg0:
-                    LoweredMakeClosure
-          ~>
-            @builder.finish :string
-              __sb_8 :?
+                __sb_8 :StringBuilder
     let r: i32 =
       call :i32
         callee:
@@ -166,21 +231,34 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_11: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_11 :?
-            "block(3) = " :string
-          @builder.append_str :void
-            __sb_11 :?
+          let __sb_11: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_11 :StringBuilder
+            arg1:
+              "block(3) = " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_11 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  r :i32
+          ~>
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                r :i32
-          ~>
-            @builder.finish :string
-              __sb_11 :?
+                __sb_11 :StringBuilder
     return int(0) :i32
   struct __lambda_env_3 {  }
   fn __lambda_2(__env_1: __lambda_env_3, x: i32) -> i32

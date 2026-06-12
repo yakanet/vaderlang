@@ -41,39 +41,39 @@ fn snippet$name_of(%0: Color) -> string
 
 fn snippet$main() -> i32
   locals:
-    %0 $intrinsic_0: ?
-    %1 __sb_0: ? (synthetic __sb_0)
+    %0 $call_0: StringBuilder
+    %1 __sb_0: StringBuilder (synthetic __sb_0)
     %2 $k_2: string
     %3 $call_3: i32
     %4 $call_4: string
-    %5 $intrinsic_5: string
-    %6 $intrinsic_6: ?
-    %7 __sb_1: ? (synthetic __sb_1)
+    %5 $call_5: string
+    %6 $call_6: StringBuilder
+    %7 __sb_1: StringBuilder (synthetic __sb_1)
     %8 $k_8: string
     %9 $k_9: u8
     %10 $call_10: string
     %11 $call_11: string
-    %12 $intrinsic_12: string
+    %12 $call_12: string
     %13 $k_13: i32
   bb0:
-    %0 = intrinsic builder.new()
+    %0 = call new_builder() :StringBuilder
     %1 = move %0
     %2 = const string(#4) :string
-    intrinsic builder.append_str(%1, %2)
+    call append(%1, %2) :void
     %3 = call green_code() :i32
     %4 = call std_core$i32$Display$to_string(%3) :string
-    intrinsic builder.append_str(%1, %4)
-    %5 = intrinsic builder.finish(%1)
+    call append(%1, %4) :void
+    %5 = call std_string_builder$StringBuilder$Display$to_string(%1) :string
     call std_io$std_io$println__string(%5) :void
-    %6 = intrinsic builder.new()
+    %6 = call new_builder() :StringBuilder
     %7 = move %6
     %8 = const string(#5) :string
-    intrinsic builder.append_str(%7, %8)
+    call append(%7, %8) :void
     %9 = const int(2) :u8
     %10 = call name_of(%9) :string
     %11 = call std_core$string$Display$to_string(%10) :string
-    intrinsic builder.append_str(%7, %11)
-    %12 = intrinsic builder.finish(%7)
+    call append(%7, %11) :void
+    %12 = call std_string_builder$StringBuilder$Display$to_string(%7) :string
     call std_io$std_io$println__string(%12) :void
     %13 = const int(0) :i32
     return %13

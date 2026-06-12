@@ -54,13 +54,13 @@ fn snippet$main() -> i32
     %5 $struct_5: Other
     %6 $call_6: i32
     %7 b: i32 (local b)
-    %8 $intrinsic_8: ?
-    %9 __sb_0: ? (synthetic __sb_0)
+    %8 $call_8: StringBuilder
+    %9 __sb_0: StringBuilder (synthetic __sb_0)
     %10 $k_10: string
     %11 $call_11: string
     %12 $k_12: string
     %13 $call_13: string
-    %14 $intrinsic_14: string
+    %14 $call_14: string
   bb0:
     %0 = const int(42) :i32
     %1 = struct_new FnLike(%0)
@@ -70,16 +70,16 @@ fn snippet$main() -> i32
     %5 = struct_new Other(%4)
     %6 = call params_of(%5) :i32
     %7 = move %6
-    %8 = intrinsic builder.new()
+    %8 = call new_builder() :StringBuilder
     %9 = move %8
     %10 = const string(#1) :string
-    intrinsic builder.append_str(%9, %10)
+    call append(%9, %10) :void
     %11 = call std_core$i32$Display$to_string(%3) :string
-    intrinsic builder.append_str(%9, %11)
+    call append(%9, %11) :void
     %12 = const string(#2) :string
-    intrinsic builder.append_str(%9, %12)
+    call append(%9, %12) :void
     %13 = call std_core$i32$Display$to_string(%7) :string
-    intrinsic builder.append_str(%9, %13)
-    %14 = intrinsic builder.finish(%9)
+    call append(%9, %13) :void
+    %14 = call std_string_builder$StringBuilder$Display$to_string(%9) :string
     call std_io$std_io$println__string(%14) :void
     return %3

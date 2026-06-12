@@ -63,35 +63,56 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_3: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_3 :?
-            "pi = " :string
-          @builder.append_str :void
-            __sb_3 :?
-            call :string
+          let __sb_3: StringBuilder =
+            call :StringBuilder
               callee:
-                std_core$f64$Display$to_string :string
-              arg0:
-                pi :f64
-          @builder.append_str :void
-            __sb_3 :?
-            ", sci = " :string
-          @builder.append_str :void
-            __sb_3 :?
-            call :string
-              callee:
-                std_core$f64$Display$to_string :string
-              arg0:
-                mul :{float}
-                  l:
-                    float(2.5e-8) :f64
-                  r:
-                    float(1) :f64
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_3 :StringBuilder
+            arg1:
+              "pi = " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_3 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$f64$Display$to_string :string
+                arg0:
+                  pi :f64
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_3 :StringBuilder
+            arg1:
+              ", sci = " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_3 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$f64$Display$to_string :string
+                arg0:
+                  mul :{float}
+                    l:
+                      float(2.5e-8) :f64
+                    r:
+                      float(1) :f64
           ~>
-            @builder.finish :string
-              __sb_3 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_3 :StringBuilder
     let inf: f64 =
       div :{float}
         l:
@@ -103,41 +124,66 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_4: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_4 :?
-            call :string
+          let __sb_4: StringBuilder =
+            call :StringBuilder
               callee:
-                std_core$f64$Display$to_string :string
-              arg0:
-                inf :f64
-          @builder.append_str :void
-            __sb_4 :?
-            " " :string
-          @builder.append_str :void
-            __sb_4 :?
-            call :string
-              callee:
-                std_core$f64$Display$to_string :string
-              arg0:
-                neg :f64
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_4 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$f64$Display$to_string :string
+                arg0:
                   inf :f64
-          @builder.append_str :void
-            __sb_4 :?
-            " " :string
-          @builder.append_str :void
-            __sb_4 :?
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_4 :StringBuilder
+            arg1:
+              " " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_4 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$f64$Display$to_string :string
+                arg0:
+                  neg :f64
+                    inf :f64
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_4 :StringBuilder
+            arg1:
+              " " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_4 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$f64$Display$to_string :string
+                arg0:
+                  div :{float}
+                    l:
+                      float(0) :f64
+                    r:
+                      float(0) :f64
+          ~>
             call :string
               callee:
-                std_core$f64$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                div :{float}
-                  l:
-                    float(0) :f64
-                  r:
-                    float(0) :f64
-          ~>
-            @builder.finish :string
-              __sb_4 :?
+                __sb_4 :StringBuilder
     return int(0) :i32

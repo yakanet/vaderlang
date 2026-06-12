@@ -29,21 +29,34 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_1: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_1 :?
-            "five : " :string
-          @builder.append_str :void
-            __sb_1 :?
+          let __sb_1: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              "five : " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  count :i32
+          ~>
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                count :i32
-          ~>
-            @builder.finish :string
-              __sb_1 :?
+                __sb_1 :StringBuilder
     let sum: i32 = int(0) :i32
     block :void
       let _: i32 = int(1) :i32
@@ -71,21 +84,34 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_3: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_3 :?
-            "four : " :string
-          @builder.append_str :void
-            __sb_3 :?
+          let __sb_3: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_3 :StringBuilder
+            arg1:
+              "four : " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_3 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  sum :i32
+          ~>
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                sum :i32
-          ~>
-            @builder.finish :string
-              __sb_3 :?
+                __sb_3 :StringBuilder
     let cells: i32 = int(0) :i32
     block :void
       let _: i32 = int(0) :i32
@@ -125,21 +151,34 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_6: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_6 :?
-            "six : " :string
-          @builder.append_str :void
-            __sb_6 :?
+          let __sb_6: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_6 :StringBuilder
+            arg1:
+              "six : " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_6 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  cells :i32
+          ~>
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                cells :i32
-          ~>
-            @builder.finish :string
-              __sb_6 :?
+                __sb_6 :StringBuilder
     let accum: i32 = int(0) :i32
     block :void
       let i: i32 = int(0) :i32
@@ -167,19 +206,32 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_7: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_7 :?
-            "six : " :string
-          @builder.append_str :void
-            __sb_7 :?
+          let __sb_7: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_7 :StringBuilder
+            arg1:
+              "six : " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_7 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  accum :i32
+          ~>
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                accum :i32
-          ~>
-            @builder.finish :string
-              __sb_7 :?
+                __sb_7 :StringBuilder
     return int(0) :i32

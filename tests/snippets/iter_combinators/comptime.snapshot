@@ -19,6 +19,8 @@
 
 ## stdlib/std/iter
 
+## stdlib/std/string_builder
+
 ## stdlib/std/testing
 
 ## tests/snippets/iter_combinators

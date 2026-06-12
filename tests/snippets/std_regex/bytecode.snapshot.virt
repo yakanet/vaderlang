@@ -206,7 +206,7 @@ fn 3 std_string_builder$append_bytes (ref,ref) -> void
   local.set 3
   local.get 0
   local.get 3
-  call 5
+  call 4
   i64.const 0
   local.set 3
   block $L0 void
@@ -253,18 +253,7 @@ fn 3 std_string_builder$append_bytes (ref,ref) -> void
   return
 end
 
-fn 4 std_string_builder$append_char (ref,char) -> void
-  local $call_2 ref
-  local.get 1
-  call 8
-  local.set 2
-  local.get 0
-  local.get 2
-  call 3
-  return
-end
-
-fn 5 std_string_builder$ensure_capacity (ref,usize) -> void
+fn 4 std_string_builder$ensure_capacity (ref,usize) -> void
   local $field_2 usize
   local $k_5 usize
   local new_buf ref
@@ -320,6 +309,17 @@ fn 5 std_string_builder$ensure_capacity (ref,usize) -> void
   local.get 0
   local.get 2
   struct.set 7 2
+  return
+end
+
+fn 5 std_string_builder$append_char (ref,char) -> void
+  local $call_2 ref
+  local.get 1
+  call 8
+  local.set 2
+  local.get 0
+  local.get 2
+  call 3
   return
 end
 
@@ -847,7 +847,6 @@ fn 19 std_regex$compile (string) -> ref
   local $arr_3 ref
   local $k_4 usize
   local $struct_9 ref
-  local __sb_0 any
   local $call_24 string
   local.get 0
   call.import 2
@@ -890,34 +889,34 @@ fn 19 std_regex$compile (string) -> ref
   local.get 4
   u64.lt
   if $L1 void
-    intrinsic builder.new
-    local.set 6
-    local.get 6
-    string.const 1
-    intrinsic builder.append_str
-    local.field 1 29 0
+    call 1
     local.set 3
+    local.get 3
+    string.const 1
+    call 2
+    local.field 1 29 0
+    local.set 5
     local.field 1 29 1
     ref.cast 4
     local.set 2
-    local.get 3
+    local.get 5
     local.get 2
     call 51
     call 11
-    local.set 7
+    local.set 6
+    local.get 3
     local.get 6
-    local.get 7
-    intrinsic builder.append_str
-    local.get 6
+    call 2
+    local.get 3
     string.const 2
-    intrinsic builder.append_str
-    local.get 6
-    intrinsic builder.finish
-    local.set 7
+    call 2
+    local.get 3
+    call 6
+    local.set 6
     local.field 1 29 1
     ref.cast 4
     local.set 2
-    local.get 7
+    local.get 6
     local.get 2
     struct.new 27
     return
@@ -2146,7 +2145,7 @@ fn 25 std_regex$expand_replacement (ref,ref,ref) -> void
           local.set 22
           local.get 0
           local.get 21
-          call 4
+          call 5
           local.get 4
           local.get 22
           i64.add
@@ -2165,7 +2164,7 @@ fn 25 std_regex$expand_replacement (ref,ref,ref) -> void
         local.set 22
         local.get 0
         local.get 21
-        call 4
+        call 5
         local.get 4
         local.get 22
         i64.add
@@ -5710,19 +5709,19 @@ fn 52 std_string$decode_codepoint_at (ref,usize) -> ref
 end
 
 fn 53 snippet$run_match (string,ref,string) -> void
-  local __sb_0 any
+  local __sb_0 ref
   local $call_5 string
-  intrinsic builder.new
+  call 1
   local.set 3
   local.get 0
   call 12
   local.set 4
   local.get 3
   local.get 4
-  intrinsic builder.append_str
+  call 2
   local.get 3
   string.const 24
-  intrinsic builder.append_str
+  call 2
   local.get 1
   local.get 2
   call 17
@@ -5730,16 +5729,16 @@ fn 53 snippet$run_match (string,ref,string) -> void
   local.set 4
   local.get 3
   local.get 4
-  intrinsic builder.append_str
+  call 2
   local.get 3
-  intrinsic builder.finish
+  call 6
   call 0
   return
 end
 
 fn 54 snippet$run_find (string,ref,string) -> void
   local r ref
-  local __sb_0 any
+  local __sb_0 ref
   local $call_8 string
   local.get 1
   local.get 2
@@ -5747,17 +5746,17 @@ fn 54 snippet$run_find (string,ref,string) -> void
   local.tee 3
   type_check 25
   if $L0 void
-    intrinsic builder.new
+    call 1
     local.set 4
     local.get 0
     call 12
     local.set 5
     local.get 4
     local.get 5
-    intrinsic builder.append_str
+    call 2
     local.get 4
     string.const 24
-    intrinsic builder.append_str
+    call 2
     local.get 3
     struct.get 25 0
     ref.cast 4
@@ -5765,10 +5764,10 @@ fn 54 snippet$run_find (string,ref,string) -> void
     local.set 5
     local.get 4
     local.get 5
-    intrinsic builder.append_str
+    call 2
     local.get 4
     string.const 25
-    intrinsic builder.append_str
+    call 2
     local.get 3
     struct.get 25 1
     ref.cast 4
@@ -5776,10 +5775,10 @@ fn 54 snippet$run_find (string,ref,string) -> void
     local.set 5
     local.get 4
     local.get 5
-    intrinsic builder.append_str
+    call 2
     local.get 4
     string.const 26
-    intrinsic builder.append_str
+    call 2
     local.get 3
     struct.get 25 2
     local.set 3
@@ -5791,24 +5790,24 @@ fn 54 snippet$run_find (string,ref,string) -> void
     local.set 5
     local.get 4
     local.get 5
-    intrinsic builder.append_str
+    call 2
     local.get 4
-    intrinsic builder.finish
+    call 6
     call 0
   else
-    intrinsic builder.new
-    local.set 4
+    call 1
+    local.set 3
     local.get 0
     call 12
     local.set 5
-    local.get 4
+    local.get 3
     local.get 5
-    intrinsic builder.append_str
-    local.get 4
+    call 2
+    local.get 3
     string.const 27
-    intrinsic builder.append_str
-    local.get 4
-    intrinsic builder.finish
+    call 2
+    local.get 3
+    call 6
     call 0
   end $L0
   return
@@ -5817,10 +5816,10 @@ end
 fn 55 snippet$main () -> i32
   local p_lit ref
   local $cast_5 ref
-  local __sb_0 any
   local $call_35 string
   local i usize
   local $len_39 usize
+  local $field_47 ref
   local $call_50 string
   local $cast_53 usize
   string.const 28
@@ -5878,69 +5877,69 @@ fn 55 snippet$main () -> i32
     string.const 39
     call 20
     local.set 0
-    intrinsic builder.new
-    local.set 2
-    local.get 2
+    call 1
+    local.set 1
+    local.get 1
     string.const 40
-    intrinsic builder.append_str
+    call 2
     local.get 0
     array.len
     call 9
-    local.set 3
+    local.set 2
+    local.get 1
     local.get 2
-    local.get 3
-    intrinsic builder.append_str
-    local.get 2
-    intrinsic builder.finish
+    call 2
+    local.get 1
+    call 6
     call 0
     i64.const 0
-    local.set 4
+    local.set 3
     block $L3 void
       loop $L4 void
         local.get 0
         array.len
-        local.set 5
+        local.set 4
+        local.get 3
         local.get 4
-        local.get 5
         u64.lt
         if $L5 void
-          intrinsic builder.new
-          local.set 2
-          local.get 2
-          string.const 41
-          intrinsic builder.append_str
-          local.get 4
-          call 9
-          local.set 3
-          local.get 2
-          local.get 3
-          intrinsic builder.append_str
-          local.get 2
-          string.const 42
-          intrinsic builder.append_str
-          local.get 0
-          local.get 4
-          array.get 28
-          struct.get 25 2
+          call 1
           local.set 1
           local.get 1
+          string.const 41
+          call 2
+          local.get 3
+          call 9
+          local.set 2
+          local.get 1
+          local.get 2
+          call 2
+          local.get 1
+          string.const 42
+          call 2
+          local.get 0
+          local.get 3
+          array.get 28
+          struct.get 25 2
+          local.set 5
+          local.get 5
           i32.const 0
           array.get 6
           ref.cast 1
           call 12
           local.set 6
-          local.get 2
+          local.get 1
           local.get 6
-          intrinsic builder.append_str
-          local.get 2
-          intrinsic builder.finish
+          call 2
+          local.get 1
+          call 6
           call 0
           i64.const 1
           local.set 7
-          local.get 4
+          local.get 3
           local.get 7
           i64.add
-          local.set 4
+          local.set 3
           br $L4
         else
         end $L5
@@ -5980,71 +5979,71 @@ fn 55 snippet$main () -> i32
     local.tee 0
     type_check 25
     if $L8 void
-      intrinsic builder.new
-      local.set 2
-      local.get 2
-      string.const 50
-      intrinsic builder.append_str
-      local.get 0
-      struct.get 25 2
+      call 1
       local.set 1
       local.get 1
+      string.const 50
+      call 2
+      local.get 0
+      struct.get 25 2
+      local.set 5
+      local.get 5
       i32.const 0
       array.get 6
       ref.cast 1
       call 12
-      local.set 3
-      local.get 2
-      local.get 3
-      intrinsic builder.append_str
-      local.get 2
-      intrinsic builder.finish
-      call 0
-      intrinsic builder.new
       local.set 2
+      local.get 1
       local.get 2
-      string.const 51
-      intrinsic builder.append_str
-      local.get 0
-      struct.get 25 2
+      call 2
+      local.get 1
+      call 6
+      call 0
+      call 1
       local.set 1
       local.get 1
+      string.const 51
+      call 2
+      local.get 0
+      struct.get 25 2
+      local.set 5
+      local.get 5
       i32.const 1
       array.get 6
       ref.cast 1
       call 12
-      local.set 3
-      local.get 2
-      local.get 3
-      intrinsic builder.append_str
-      local.get 2
-      intrinsic builder.finish
-      call 0
-      intrinsic builder.new
       local.set 2
+      local.get 1
       local.get 2
-      string.const 52
-      intrinsic builder.append_str
-      local.get 0
-      struct.get 25 2
+      call 2
+      local.get 1
+      call 6
+      call 0
+      call 1
       local.set 1
       local.get 1
+      string.const 52
+      call 2
+      local.get 0
+      struct.get 25 2
+      local.set 5
+      local.get 5
       i32.const 2
       array.get 6
       ref.cast 1
       call 12
-      local.set 3
-      local.get 2
-      local.get 3
-      intrinsic builder.append_str
-      local.get 2
-      intrinsic builder.finish
-      call 0
-      intrinsic builder.new
       local.set 2
+      local.get 1
       local.get 2
+      call 2
+      local.get 1
+      call 6
+      call 0
+      call 1
+      local.set 1
+      local.get 1
       string.const 53
-      intrinsic builder.append_str
+      call 2
       local.get 0
       struct.get 25 2
       local.set 0
@@ -6053,12 +6052,12 @@ fn 55 snippet$main () -> i32
       array.get 6
       ref.cast 1
       call 12
-      local.set 3
+      local.set 2
+      local.get 1
       local.get 2
-      local.get 3
-      intrinsic builder.append_str
-      local.get 2
-      intrinsic builder.finish
+      call 2
+      local.get 1
+      call 6
       call 0
     else
     end $L8
@@ -6144,11 +6143,11 @@ fn 55 snippet$main () -> i32
   local.tee 0
   type_check 23
   if $L12 void
-    intrinsic builder.new
-    local.set 2
-    local.get 2
+    call 1
+    local.set 1
+    local.get 1
     string.const 75
-    intrinsic builder.append_str
+    call 2
     local.get 0
     local.set 0
     local.get 0
@@ -6156,12 +6155,12 @@ fn 55 snippet$main () -> i32
     string.const 77
     call 21
     call 12
-    local.set 3
+    local.set 2
+    local.get 1
     local.get 2
-    local.get 3
-    intrinsic builder.append_str
-    local.get 2
-    intrinsic builder.finish
+    call 2
+    local.get 1
+    call 6
     call 0
   else
   end $L12
@@ -6170,11 +6169,11 @@ fn 55 snippet$main () -> i32
   local.tee 0
   type_check 23
   if $L13 void
-    intrinsic builder.new
-    local.set 2
-    local.get 2
+    call 1
+    local.set 1
+    local.get 1
     string.const 79
-    intrinsic builder.append_str
+    call 2
     local.get 0
     local.set 0
     local.get 0
@@ -6182,12 +6181,12 @@ fn 55 snippet$main () -> i32
     string.const 81
     call 21
     call 12
-    local.set 3
+    local.set 2
+    local.get 1
     local.get 2
-    local.get 3
-    intrinsic builder.append_str
-    local.get 2
-    intrinsic builder.finish
+    call 2
+    local.get 1
+    call 6
     call 0
   else
   end $L13

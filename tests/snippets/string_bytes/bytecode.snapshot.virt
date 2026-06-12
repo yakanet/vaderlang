@@ -6,14 +6,16 @@ type 3 primitive i32
 type 4 primitive usize
 type 5 primitive bool
 type 6 array 1
-type 7 struct std_core$Range__usize { start:14,end:14,inclusive:5,cursor:14 }
-type 8 union 0,9
-type 9 struct std_core$Yield__usize { value:14 }
-type 10 primitive u8
-type 11 primitive u32
-type 12 primitive u64
-type 13 array 10
-type 14 ref _
+type 7 struct std_string_builder$StringBuilder { buf:10,len:4,cap:4 }
+type 8 array 9
+type 9 primitive u8
+type 10 struct std_core$Buffer {  }
+type 11 struct std_core$Range__usize { start:16,end:16,inclusive:5,cursor:16 }
+type 12 union 0,13
+type 13 struct std_core$Yield__usize { value:16 }
+type 14 primitive u32
+type 15 primitive u64
+type 16 ref _
 string 0 "\n"
 string 1 "-- ascii --"
 string 2 "vader"
@@ -55,15 +57,18 @@ string 37 "7"
 string 38 "8"
 string 39 "9"
 import 0 write std_io$write (i32,string) -> void
-import 1 bytes std_core$bytes (string) -> ref
-impl 7 Contains
-impl 7 Iterator
+import 1 bytes_to_string std_core$bytes_to_string (ref) -> string
+import 2 bytes std_core$bytes (string) -> ref
+impl 7 Display
+impl 11 Contains
+impl 11 Iterator
+impl 10 ByteAccess
 export main 1
 
 fn 0 std_io$std_io$println__string (string) -> void
   local $call_2 string
   local.get 0
-  call 5
+  call 10
   local.set 1
   i32.const 0
   local.get 1
@@ -81,15 +86,15 @@ fn 1 snippet$main () -> i32
   local __for_i_2 usize
   local $cast_14 u32
   local $k_16 usize
-  local __sb_3 any
   local $call_21 string
   local b u8
+  local __sb_7 ref
   string.const 1
   call 0
   i32.const 0
   local.set 0
   string.const 2
-  call.import 1
+  call.import 2
   local.tee 1
   array.len
   local.set 2
@@ -103,8 +108,8 @@ fn 1 snippet$main () -> i32
       if $L2 void
         local.get 1
         local.get 3
-        array.get 13
-        ref.cast 10
+        array.get 8
+        ref.cast 9
         u8.to_i32
         local.set 4
         local.get 0
@@ -122,24 +127,24 @@ fn 1 snippet$main () -> i32
       end $L2
     end $L1
   end $L0
-  intrinsic builder.new
-  local.set 6
-  local.get 6
+  call 2
+  local.set 1
+  local.get 1
   string.const 3
-  intrinsic builder.append_str
-  local.get 0
   call 3
-  local.set 7
+  local.get 0
+  call 8
+  local.set 6
+  local.get 1
   local.get 6
-  local.get 7
-  intrinsic builder.append_str
-  local.get 6
-  intrinsic builder.finish
+  call 3
+  local.get 1
+  call 6
   call 0
   string.const 4
   call 0
   string.const 5
-  call.import 1
+  call.import 2
   local.tee 1
   array.len
   local.set 2
@@ -153,19 +158,19 @@ fn 1 snippet$main () -> i32
       if $L5 void
         local.get 1
         local.get 3
-        array.get 13
-        ref.cast 10
+        array.get 8
+        ref.cast 9
+        local.set 7
+        call 2
         local.set 8
-        intrinsic builder.new
+        local.get 7
+        call 7
         local.set 6
         local.get 8
-        call 2
-        local.set 7
         local.get 6
-        local.get 7
-        intrinsic builder.append_str
-        local.get 6
-        intrinsic builder.finish
+        call 3
+        local.get 8
+        call 6
         call 0
         i64.const 1
         local.set 5
@@ -179,87 +184,87 @@ fn 1 snippet$main () -> i32
     end $L4
   end $L3
   string.const 6
-  call.import 1
+  call.import 2
   local.set 1
   string.const 7
   call 0
-  intrinsic builder.new
-  local.set 6
-  local.get 6
+  call 2
+  local.set 8
+  local.get 8
   string.const 8
-  intrinsic builder.append_str
+  call 3
   local.get 1
   i32.const 0
-  array.get 13
-  ref.cast 10
-  call 2
-  local.set 7
+  array.get 8
+  ref.cast 9
+  call 7
+  local.set 6
+  local.get 8
   local.get 6
-  local.get 7
-  intrinsic builder.append_str
-  local.get 6
+  call 3
+  local.get 8
   string.const 9
-  intrinsic builder.append_str
+  call 3
   local.get 1
   i32.const 1
-  array.get 13
-  ref.cast 10
-  call 2
-  local.set 7
+  array.get 8
+  ref.cast 9
+  call 7
+  local.set 6
+  local.get 8
   local.get 6
-  local.get 7
-  intrinsic builder.append_str
-  local.get 6
+  call 3
+  local.get 8
   string.const 10
-  intrinsic builder.append_str
+  call 3
   local.get 1
   i32.const 2
-  array.get 13
-  ref.cast 10
-  call 2
-  local.set 7
-  local.get 6
-  local.get 7
-  intrinsic builder.append_str
-  local.get 6
-  intrinsic builder.finish
-  call 0
-  intrinsic builder.new
+  array.get 8
+  ref.cast 9
+  call 7
   local.set 6
+  local.get 8
   local.get 6
+  call 3
+  local.get 8
+  call 6
+  call 0
+  call 2
+  local.set 8
+  local.get 8
   string.const 11
-  intrinsic builder.append_str
+  call 3
   local.get 1
   i32.const 3
-  array.get 13
-  ref.cast 10
-  call 2
-  local.set 7
+  array.get 8
+  ref.cast 9
+  call 7
+  local.set 6
+  local.get 8
   local.get 6
-  local.get 7
-  intrinsic builder.append_str
-  local.get 6
+  call 3
+  local.get 8
   string.const 12
-  intrinsic builder.append_str
+  call 3
   string.const 13
-  call.import 1
+  call.import 2
   local.set 1
   local.get 1
   i32.const 0
-  array.get 13
-  ref.cast 10
-  call 2
-  local.set 7
+  array.get 8
+  ref.cast 9
+  call 7
+  local.set 6
+  local.get 8
   local.get 6
-  local.get 7
-  intrinsic builder.append_str
-  local.get 6
-  intrinsic builder.finish
+  call 3
+  local.get 8
+  call 6
   call 0
   string.const 14
   call 0
   string.const 15
-  call.import 1
+  call.import 2
   array.len
   local.set 2
   i64.const 0
@@ -283,82 +288,82 @@ fn 1 snippet$main () -> i32
       end $L8
     end $L7
   end $L6
-  intrinsic builder.new
-  local.set 6
-  local.get 6
+  call 2
+  local.set 1
+  local.get 1
   string.const 17
-  intrinsic builder.append_str
+  call 3
   string.const 15
-  call.import 1
+  call.import 2
   array.len
-  call 4
-  local.set 7
+  call 9
+  local.set 6
+  local.get 1
   local.get 6
-  local.get 7
-  intrinsic builder.append_str
-  local.get 6
-  intrinsic builder.finish
+  call 3
+  local.get 1
+  call 6
   call 0
   string.const 18
   call 0
   string.const 19
-  call.import 1
+  call.import 2
   local.set 1
-  intrinsic builder.new
-  local.set 6
-  local.get 6
+  call 2
+  local.set 8
+  local.get 8
   string.const 20
-  intrinsic builder.append_str
+  call 3
   local.get 1
   array.len
-  call 4
-  local.set 7
+  call 9
+  local.set 6
+  local.get 8
   local.get 6
-  local.get 7
-  intrinsic builder.append_str
-  local.get 6
+  call 3
+  local.get 8
   string.const 21
-  intrinsic builder.append_str
+  call 3
   local.get 1
   i32.const 0
-  array.get 13
-  ref.cast 10
-  call 2
-  local.set 7
+  array.get 8
+  ref.cast 9
+  call 7
+  local.set 6
+  local.get 8
   local.get 6
-  local.get 7
-  intrinsic builder.append_str
-  local.get 6
+  call 3
+  local.get 8
   string.const 22
-  intrinsic builder.append_str
+  call 3
   local.get 1
   i32.const 1
-  array.get 13
-  ref.cast 10
-  call 2
-  local.set 7
+  array.get 8
+  ref.cast 9
+  call 7
+  local.set 6
+  local.get 8
   local.get 6
-  local.get 7
-  intrinsic builder.append_str
-  local.get 6
+  call 3
+  local.get 8
   string.const 23
-  intrinsic builder.append_str
+  call 3
   local.get 1
   i32.const 2
-  array.get 13
-  ref.cast 10
-  call 2
-  local.set 7
+  array.get 8
+  ref.cast 9
+  call 7
+  local.set 6
+  local.get 8
   local.get 6
-  local.get 7
-  intrinsic builder.append_str
-  local.get 6
-  intrinsic builder.finish
+  call 3
+  local.get 8
+  call 6
   call 0
   string.const 24
   call 0
   string.const 25
-  call.import 1
+  call.import 2
   local.set 1
   i64.const 1
   local.set 2
@@ -367,89 +372,282 @@ fn 1 snippet$main () -> i32
   local.get 1
   local.get 2
   local.get 3
-  array.slice 13
+  array.slice 8
   local.set 1
-  intrinsic builder.new
-  local.set 6
-  local.get 6
+  call 2
+  local.set 8
+  local.get 8
   string.const 26
-  intrinsic builder.append_str
+  call 3
   local.get 1
   array.len
-  call 4
-  local.set 7
+  call 9
+  local.set 6
+  local.get 8
   local.get 6
-  local.get 7
-  intrinsic builder.append_str
-  local.get 6
+  call 3
+  local.get 8
   string.const 27
-  intrinsic builder.append_str
+  call 3
   local.get 1
   i32.const 0
-  array.get 13
-  ref.cast 10
-  call 2
-  local.set 7
+  array.get 8
+  ref.cast 9
+  call 7
+  local.set 6
+  local.get 8
   local.get 6
-  local.get 7
-  intrinsic builder.append_str
-  local.get 6
+  call 3
+  local.get 8
   string.const 28
-  intrinsic builder.append_str
+  call 3
   local.get 1
   i32.const 1
-  array.get 13
-  ref.cast 10
-  call 2
-  local.set 7
+  array.get 8
+  ref.cast 9
+  call 7
+  local.set 6
+  local.get 8
   local.get 6
-  local.get 7
-  intrinsic builder.append_str
-  local.get 6
+  call 3
+  local.get 8
   string.const 29
-  intrinsic builder.append_str
+  call 3
   local.get 1
   i32.const 2
-  array.get 13
-  ref.cast 10
-  call 2
-  local.set 7
+  array.get 8
+  ref.cast 9
+  call 7
+  local.set 6
+  local.get 8
   local.get 6
-  local.get 7
-  intrinsic builder.append_str
-  local.get 6
-  intrinsic builder.finish
+  call 3
+  local.get 8
+  call 6
   call 0
   return.lit i32.const 0
 end
 
-fn 2 std_core$u8$Display$to_string (u8) -> string
+fn 2 std_string_builder$new_builder () -> ref
+  local cap usize
+  local $call_2 ref
+  local $k_3 usize
+  i64.const 16
+  local.tee 0
+  call 12
+  local.set 1
+  i64.const 0
+  local.set 2
+  local.get 1
+  local.get 2
+  local.get 0
+  struct.new 7
+  return
+end
+
+fn 3 std_string_builder$append (ref,string) -> void
+  local $call_2 ref
+  local.get 1
+  call.import 2
+  local.set 2
+  local.get 0
+  local.get 2
+  call 4
+  return
+end
+
+fn 4 std_string_builder$append_bytes (ref,ref) -> void
+  local n usize
+  local $add_5 usize
+  local $field_9 ref
+  local $add_11 usize
+  local $idx_12 u8
+  local $k_13 usize
+  local.get 1
+  array.len
+  local.set 2
+  local.field 0 7 1
+  ref.cast 4
+  local.get 2
+  i64.add
+  local.set 3
+  local.get 0
+  local.get 3
+  call 5
+  i64.const 0
+  local.set 3
+  block $L0 void
+    loop $L1 void
+      local.get 3
+      local.get 2
+      u64.lt
+      if $L2 void
+        local.field 0 7 0
+        local.set 4
+        local.field 0 7 1
+        ref.cast 4
+        local.get 3
+        i64.add
+        local.set 5
+        local.get 1
+        local.get 3
+        array.get 8
+        ref.cast 9
+        local.set 6
+        local.get 4
+        local.get 5
+        local.get 6
+        call 14
+        i64.const 1
+        local.set 7
+        local.get 3
+        local.get 7
+        i64.add
+        local.set 3
+        br $L1
+      else
+      end $L2
+    end $L1
+  end $L0
+  local.field 0 7 1
+  ref.cast 4
+  local.get 2
+  i64.add
+  local.set 2
+  local.get 0
+  local.get 2
+  struct.set 7 1
+  return
+end
+
+fn 5 std_string_builder$ensure_capacity (ref,usize) -> void
+  local $field_2 usize
+  local $k_5 usize
+  local new_buf ref
+  local $field_12 ref
+  local $k_13 usize
+  local $field_14 usize
+  local.field 0 7 2
+  ref.cast 4
+  local.set 2
+  local.get 1
+  local.get 2
+  u64.le
+  if $L0 void
+    return
+  end $L0
+  local.field 0 7 2
+  ref.cast 4
+  local.set 2
+  i64.const 2
+  local.set 3
+  local.get 2
+  local.get 3
+  i64.mul
+  local.tee 2
+  local.get 1
+  u64.lt
+  if $L1 void
+    local.get 1
+    local.set 2
+  else
+  end $L1
+  local.get 2
+  call 12
+  local.set 4
+  i64.const 0
+  local.set 3
+  local.field 0 7 0
+  local.set 5
+  i64.const 0
+  local.set 6
+  local.field 0 7 1
+  ref.cast 4
+  local.set 7
+  local.get 4
+  local.get 3
+  local.get 5
+  local.get 6
+  local.get 7
+  call 15
+  local.get 0
+  local.get 4
+  struct.set 7 0
+  local.get 0
+  local.get 2
+  struct.set 7 2
+  return
+end
+
+fn 6 std_string_builder$StringBuilder$Display$to_string (ref) -> string
+  local out ref
+  local i usize
+  local $field_5 usize
+  local $call_8 u8
+  local $k_9 usize
+  array.new 8 0
+  local.set 1
+  i64.const 0
+  local.set 2
+  block $L0 void
+    loop $L1 void
+      local.field 0 7 1
+      ref.cast 4
+      local.set 3
+      local.get 2
+      local.get 3
+      u64.lt
+      if $L2 void
+        local.field 0 7 0
+        local.get 2
+        call 13
+        local.set 4
+        local.get 1
+        local.get 4
+        array.push 9
+        i64.const 1
+        local.set 5
+        local.get 2
+        local.get 5
+        i64.add
+        local.set 2
+        br $L1
+      else
+      end $L2
+    end $L1
+  end $L0
+  local.get 1
+  call.import 1
+  return
+end
+
+fn 7 std_core$u8$Display$to_string (u8) -> string
   local.get 0
   u8.to_i64
-  call 6
+  call 11
   return
 end
 
-fn 3 std_core$u32$Display$to_string (u32) -> string
+fn 8 std_core$u32$Display$to_string (u32) -> string
   local.get 0
   u32.to_i64
-  call 6
+  call 11
   return
 end
 
-fn 4 std_core$usize$Display$to_string (usize) -> string
+fn 9 std_core$usize$Display$to_string (usize) -> string
   local.get 0
   usize.to_i64
-  call 6
+  call 11
   return
 end
 
-fn 5 std_core$string$Display$to_string (string) -> string
+fn 10 std_core$string$Display$to_string (string) -> string
   local.get 0
   return
 end
 
-fn 6 std_core$format_unsigned (u64) -> string
+fn 11 std_core$format_unsigned (u64) -> string
   local $k_1 u64
   local out string
   local $k_7 u64
@@ -515,5 +713,36 @@ fn 6 std_core$format_unsigned (u64) -> string
     end $L2
   end $L1
   local.get 2
+  return
+end
+
+fn 12 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+  local.get 0
+  object_new 0
+  return
+end
+
+fn 13 std_core$Buffer$ByteAccess$load_u8_vt (ref,usize) -> u8
+  local.get 0
+  local.get 1
+  load_u8
+  return
+end
+
+fn 14 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
+  local.get 0
+  local.get 1
+  local.get 2
+  store_u8
+  return
+end
+
+fn 15 std_core$Buffer$ByteAccess$memory_copy_vt (ref,usize,ref,usize,usize) -> void
+  local.get 0
+  local.get 1
+  local.get 2
+  local.get 3
+  local.get 4
+  memory_copy
   return
 end

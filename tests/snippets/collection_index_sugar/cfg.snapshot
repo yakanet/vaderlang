@@ -20,11 +20,11 @@ fn snippet$main() -> i32
     %13 $type_check_13: bool
     %14 $cast_14: i32
     %15 v: i32 (binding v)
-    %16 $intrinsic_16: ?
-    %17 __sb_1: ? (synthetic __sb_1)
+    %16 $call_16: StringBuilder
+    %17 __sb_1: StringBuilder (synthetic __sb_1)
     %18 $k_18: string
     %19 $call_19: string
-    %20 $intrinsic_20: string
+    %20 $call_20: string
     %21 $type_check_21: bool
     %22 $k_22: string
     %23 $k_23: string
@@ -80,13 +80,13 @@ fn snippet$main() -> i32
   bb1:
     %14 = cast %12 :i32
     %15 = move %14
-    %16 = intrinsic builder.new()
+    %16 = call new_builder() :StringBuilder
     %17 = move %16
     %18 = const string(#3) :string
-    intrinsic builder.append_str(%17, %18)
+    call append(%17, %18) :void
     %19 = call std_core$i32$Display$to_string(%15) :string
-    intrinsic builder.append_str(%17, %19)
-    %20 = intrinsic builder.finish(%17)
+    call append(%17, %19) :void
+    %20 = call std_string_builder$StringBuilder$Display$to_string(%17) :string
     call std_io$std_io$println__string(%20) :void
     branch -> bb3
   bb2:

@@ -20,6 +20,8 @@
 
 ## stdlib/std/io
 
+## stdlib/std/string_builder
+
 ## stdlib/std/testing
 
 ## tests/snippets/mutable_map_string

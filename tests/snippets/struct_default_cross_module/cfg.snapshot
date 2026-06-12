@@ -8,15 +8,15 @@ fn snippet$main() -> i32
     %1 $k_1: usize
     %2 $struct_2: Node
     %3 n: Node (local n)
-    %4 $intrinsic_4: ?
-    %5 __sb_0: ? (synthetic __sb_0)
+    %4 $call_4: StringBuilder
+    %5 __sb_0: StringBuilder (synthetic __sb_0)
     %6 $k_6: string
     %7 $field_7: string
     %8 $call_8: string
     %9 $k_9: string
     %10 $field_10: usize
     %11 $call_11: string
-    %12 $intrinsic_12: string
+    %12 $call_12: string
     %13 $field_13: usize
     %14 $cast_14: i32
   bb0:
@@ -24,19 +24,19 @@ fn snippet$main() -> i32
     %1 = const int(99) :usize
     %2 = struct_new Node(%0, %1)
     %3 = move %2
-    %4 = intrinsic builder.new()
+    %4 = call new_builder() :StringBuilder
     %5 = move %4
     %6 = const string(#2) :string
-    intrinsic builder.append_str(%5, %6)
+    call append(%5, %6) :void
     %7 = field_get %3.name :string
     %8 = call std_core$string$Display$to_string(%7) :string
-    intrinsic builder.append_str(%5, %8)
+    call append(%5, %8) :void
     %9 = const string(#3) :string
-    intrinsic builder.append_str(%5, %9)
+    call append(%5, %9) :void
     %10 = field_get %3.id :usize
     %11 = call std_core$usize$Display$to_string(%10) :string
-    intrinsic builder.append_str(%5, %11)
-    %12 = intrinsic builder.finish(%5)
+    call append(%5, %11) :void
+    %12 = call std_string_builder$StringBuilder$Display$to_string(%5) :string
     call std_io$std_io$println__string(%12) :void
     %13 = field_get %3.id :usize
     %14 = cast %13 :i32

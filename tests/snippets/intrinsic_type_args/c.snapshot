@@ -4,7 +4,18 @@
 #include <stdlib.h>
 #include <string.h>
 
+typedef struct vader_struct_std_string_builder_StringBuilder_t vader_struct_std_string_builder_StringBuilder_t;
+typedef struct vader_struct_std_core_Buffer_t vader_struct_std_core_Buffer_t;
 
+struct vader_struct_std_string_builder_StringBuilder_t {
+    vader_obj_header_t header;
+    vader_box_t f_buf;
+    size_t f_len;
+    size_t f_cap;
+};
+struct vader_struct_std_core_Buffer_t {
+    vader_obj_header_t header;
+};
 
 /* Compile-time atom table — see docs/ATOM_INTERNING.md. */
 static const char vader_atom_blob[] =
@@ -43,32 +54,50 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 static void std_io_std_io_println__string(vader_string_t l0);
 static int32_t snippet_main(void);
+static vader_box_t std_string_builder_new_builder(void);
+static void std_string_builder_append(vader_box_t l0, vader_string_t l1);
+static void std_string_builder_append_bytes(vader_box_t l0, vader_box_t l1);
+static void std_string_builder_ensure_capacity(vader_box_t l0, size_t l1);
+static vader_string_t std_string_builder_StringBuilder_Display_to_string(vader_box_t l0);
 static vader_string_t std_core_usize_Display_to_string(size_t l0);
 static vader_string_t std_core_string_Display_to_string(vader_string_t l0);
 static vader_string_t std_core_format_unsigned(uint64_t l0);
+static vader_box_t std_core_usize_BufferAlloc_new_buffer_vt(size_t l0);
+static uint8_t std_core_Buffer_ByteAccess_load_u8_vt(vader_box_t l0, size_t l1);
+static void std_core_Buffer_ByteAccess_store_u8_vt(vader_box_t l0, size_t l1, uint8_t l2);
+static void std_core_Buffer_ByteAccess_memory_copy_vt(vader_box_t l0, size_t l1, vader_box_t l2, size_t l3, size_t l4);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 static const uint16_t vader_type_5_ptrs[] = { offsetof(vader_array_t, buf) };
-static const uint16_t vader_type_8_ptrs[] = { offsetof(vader_array_t, buf) };
+static const uint16_t vader_type_6_ptrs[] = { offsetof(vader_struct_std_string_builder_StringBuilder_t, f_buf) };
+static const uint16_t vader_type_7_ptrs[] = { offsetof(vader_array_t, buf) };
+static const uint16_t vader_type_12_ptrs[] = { offsetof(vader_array_t, buf) };
 
-const vader_type_info_t vader_type_info_table[10] = {
+const vader_type_info_t vader_type_info_table[14] = {
     [5] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_5_ptrs, 1, 0, NULL, 0, NULL },
-    [8] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_8_ptrs, 1, 0, NULL, 0, NULL },
+    [6] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_string_builder_StringBuilder_t), vader_type_6_ptrs, 1, 0, NULL, 0, NULL },
+    [7] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_7_ptrs, 1, 0, NULL, 0, NULL },
+    [9] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Buffer_t), NULL, 0, 0, NULL, 0, NULL },
+    [12] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_12_ptrs, 1, 0, NULL, 0, NULL },
 };
-const size_t vader_type_info_count = 10;
+const size_t vader_type_info_count = 14;
 
-const size_t vader_type_size[10] = {
+const size_t vader_type_size[14] = {
     [0] = 0u,
     [1] = 16u,
     [2] = 0u,
     [3] = 4u,
     [4] = 8u,
     [5] = 16u,
-    [6] = 8u,
-    [7] = 8u,
-    [8] = 16u,
+    [6] = 16u,
+    [7] = 16u,
+    [8] = 1u,
     [9] = 16u,
+    [10] = 8u,
+    [11] = 8u,
+    [12] = 16u,
+    [13] = 16u,
 };
 
 
@@ -82,6 +111,8 @@ const size_t vader_type_size[10] = {
 const vader_vtable_t* const vader_vtable_table[1] = { NULL };
 const size_t                vader_vtable_count    = 0;
 static void vader_import_0(int32_t a0, vader_string_t a1) { vader_write(a0, a1); }
+static vader_string_t vader_import_1(vader_box_t a0) { return vader_string_as_string((vader_array_t*) a0.payload.obj); }
+static vader_box_t vader_import_2(vader_string_t a0) { return vader_box_obj(7u, vader_string_bytes_view(a0, 7u, 8u)); }
 
 static void std_io_std_io_println__string(vader_string_t l0) {
     vader_string_t l1;
@@ -97,24 +128,23 @@ static void std_io_std_io_println__string(vader_string_t l0) {
 }
 
 static int32_t snippet_main(void) {
-    vader_box_t l0 = vader_box_null(), l1 = vader_box_null();
+    vader_box_t l0 = vader_box_null(), l1 = vader_box_null(), l4 = vader_box_null();
     size_t l2, l3, l6;
-    vader_box_t l4 = vader_box_null();
     vader_string_t l5;
-    vader_box_t t0 = vader_box_null(), t8 = vader_box_null();
+    vader_box_t t0 = vader_box_null(), t3 = vader_box_null(), t8 = vader_box_null(), t9 = vader_box_null();
     size_t t1, t4, t10;
-    vader_box_t t2 = vader_box_null(), t3 = vader_box_null(), t9 = vader_box_null();
+    vader_box_t t2 = vader_box_null();
     vader_string_t t5, t6, t11, t12;
     int64_t t7;
-    vader_box_t* gc_roots[8] = { &l0, &l1, &l4, &t0, &t8, &t2, &t3, &t9 };
+    vader_box_t* gc_roots[8] = { &l0, &l1, &l4, &t0, &t3, &t8, &t9, &t2 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 8u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
     l0 = vader_box_obj(0u, (void*)(uintptr_t)1u);
-    l1 = vader_box_obj(0u, (void*)(uintptr_t)7u);
-    vader_array_t* _a0_arr = vader_array_new(8u, 2u, 0u, 9u);
+    l1 = vader_box_obj(0u, (void*)(uintptr_t)11u);
+    vader_array_t* _a0_arr = vader_array_new(12u, 2u, 0u, 13u);
     vader_array_set(_a0_arr, 1u, l1);
     vader_array_set(_a0_arr, 0u, l0);
-    t0 = vader_box_obj(8u, _a0_arr);
+    t0 = vader_box_obj(12u, _a0_arr);
     l0 = t0;
     t1 = vader_array_len((vader_array_t*) l0.payload.obj);
     l2 = t1;
@@ -124,14 +154,14 @@ static int32_t snippet_main(void) {
             if ((l3 < l2)) {
                 t2 = vader_array_get((vader_array_t*) l0.payload.obj, (size_t) l3);
                 l1 = t2;
-                t3.tag = 0; t3._pad = 0; t3.payload.obj = vader_builder_new();
+                t3 = std_string_builder_new_builder();
                 l4 = t3;
-                vader_builder_append_str((vader_builder_t*) l4.payload.obj, 2u);
+                std_string_builder_append(l4, 2u);
                 t4 = vader_type_size[(int32_t)(uintptr_t)l1.payload.obj];
                 t5 = std_core_usize_Display_to_string(t4);
                 l5 = t5;
-                vader_builder_append_str((vader_builder_t*) l4.payload.obj, l5);
-                t6 = vader_builder_finish((vader_builder_t*) l4.payload.obj);
+                std_string_builder_append(l4, l5);
+                t6 = std_string_builder_StringBuilder_Display_to_string(l4);
                 std_io_std_io_println__string(t6);
                 l6 = (size_t) (int64_t) INT64_C(1);
                 t7 = (l3 + l6);
@@ -141,19 +171,178 @@ static int32_t snippet_main(void) {
             }
         }
     }
-    vader_array_t* _a1_arr = vader_array_new(8u, 0u, 0u, 9u);
-    t8 = vader_box_obj(8u, _a1_arr);
+    vader_array_t* _a1_arr = vader_array_new(12u, 0u, 0u, 13u);
+    t8 = vader_box_obj(12u, _a1_arr);
     l0 = t8;
-    t9.tag = 0; t9._pad = 0; t9.payload.obj = vader_builder_new();
-    l4 = t9;
-    vader_builder_append_str((vader_builder_t*) l4.payload.obj, 3u);
+    t9 = std_string_builder_new_builder();
+    l1 = t9;
+    std_string_builder_append(l1, 3u);
     t10 = vader_array_len((vader_array_t*) l0.payload.obj);
     t11 = std_core_usize_Display_to_string(t10);
     l5 = t11;
-    vader_builder_append_str((vader_builder_t*) l4.payload.obj, l5);
-    t12 = vader_builder_finish((vader_builder_t*) l4.payload.obj);
+    std_string_builder_append(l1, l5);
+    t12 = std_string_builder_StringBuilder_Display_to_string(l1);
     std_io_std_io_println__string(t12);
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
+    vader_gc_top = gc_frame.prev;
+}
+
+static vader_box_t std_string_builder_new_builder(void) {
+    size_t l0, l2;
+    vader_box_t l1 = vader_box_null();
+    vader_box_t t0 = vader_box_null(), t1 = vader_box_null();
+    vader_box_t* gc_roots[3] = { &l1, &t0, &t1 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 0u, gc_roots };
+    vader_gc_top = &gc_frame;
+    l0 = (size_t) (int64_t) INT64_C(16);
+    t0 = std_core_usize_BufferAlloc_new_buffer_vt(l0);
+    l1 = t0;
+    l2 = (size_t) (int64_t) INT64_C(0);
+    vader_struct_std_string_builder_StringBuilder_t* _a0_obj = (vader_struct_std_string_builder_StringBuilder_t*) vader_gc_alloc(sizeof(vader_struct_std_string_builder_StringBuilder_t));
+    vader_obj_header_init(_a0_obj, 6u);
+    _a0_obj->f_buf = l1;
+    _a0_obj->f_len = l2;
+    _a0_obj->f_cap = l0;
+    t1 = vader_box_obj(6u, _a0_obj);
+    { vader_box_t __vret = t1; vader_gc_top = gc_frame.prev; return __vret; }
+    vader_gc_top = gc_frame.prev;
+}
+
+static void std_string_builder_append(vader_box_t l0, vader_string_t l1) {
+    vader_box_t l2 = vader_box_null();
+    vader_box_t t0 = vader_box_null();
+    vader_box_t* gc_roots[3] = { &l0, &l2, &t0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 0u, gc_roots };
+    vader_gc_top = &gc_frame;
+    t0 = vader_import_2(l1);
+    l2 = t0;
+    std_string_builder_append_bytes(l0, l2);
+    { vader_gc_top = gc_frame.prev; return; }
+    vader_gc_top = gc_frame.prev;
+}
+
+static void std_string_builder_append_bytes(vader_box_t l0, vader_box_t l1) {
+    size_t l2, l3, l5, l7;
+    vader_box_t l4 = vader_box_null();
+    uint8_t l6;
+    size_t t0, t1, t4, t9;
+    int64_t t2, t5, t8, t10;
+    vader_box_t t3 = vader_box_null();
+    vader_box_t t6 = vader_box_null();
+    uint8_t t7;
+    vader_box_t* gc_roots[5] = { &l0, &l1, &l4, &t3, &t6 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 5u, 0u, gc_roots };
+    vader_gc_top = &gc_frame;
+    t0 = vader_array_len((vader_array_t*) l1.payload.obj);
+    l2 = t0;
+    t1 = (size_t) ((vader_struct_std_string_builder_StringBuilder_t*) l0.payload.obj)->f_len;
+    t2 = (t1 + l2);
+    l3 = (size_t) (int64_t) t2;
+    std_string_builder_ensure_capacity(l0, l3);
+    l3 = (size_t) (int64_t) INT64_C(0);
+    {
+        loop_14: {
+            if ((l3 < l2)) {
+                t3 = ((vader_struct_std_string_builder_StringBuilder_t*) l0.payload.obj)->f_buf;
+                l4 = t3;
+                t4 = (size_t) ((vader_struct_std_string_builder_StringBuilder_t*) l0.payload.obj)->f_len;
+                t5 = (t4 + l3);
+                l5 = (size_t) (int64_t) t5;
+                t6 = vader_array_get((vader_array_t*) l1.payload.obj, (size_t) l3);
+                t7 = ((uint8_t) t6.payload.i);
+                l6 = t7;
+                std_core_Buffer_ByteAccess_store_u8_vt(l4, l5, l6);
+                l7 = (size_t) (int64_t) INT64_C(1);
+                t8 = (l3 + l7);
+                l3 = (size_t) (int64_t) t8;
+                goto loop_14;
+            } else {
+            }
+        }
+    }
+    t9 = (size_t) ((vader_struct_std_string_builder_StringBuilder_t*) l0.payload.obj)->f_len;
+    t10 = (t9 + l2);
+    l2 = (size_t) (int64_t) t10;
+    ((vader_struct_std_string_builder_StringBuilder_t*) l0.payload.obj)->f_len = l2;
+    VADER_WRITE_BARRIER((vader_struct_std_string_builder_StringBuilder_t*) l0.payload.obj);
+    { vader_gc_top = gc_frame.prev; return; }
+    vader_gc_top = gc_frame.prev;
+}
+
+static void std_string_builder_ensure_capacity(vader_box_t l0, size_t l1) {
+    size_t l2, l3, l6, l7;
+    vader_box_t l4 = vader_box_null(), l5 = vader_box_null();
+    size_t t0, t1, t5;
+    int64_t t2;
+    vader_box_t t3 = vader_box_null(), t4 = vader_box_null();
+    vader_box_t* gc_roots[5] = { &l0, &l4, &l5, &t3, &t4 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 5u, 0u, gc_roots };
+    vader_gc_top = &gc_frame;
+    t0 = (size_t) ((vader_struct_std_string_builder_StringBuilder_t*) l0.payload.obj)->f_cap;
+    l2 = t0;
+    if ((l1 <= l2)) {
+        { vader_gc_top = gc_frame.prev; return; }
+    }
+    t1 = (size_t) ((vader_struct_std_string_builder_StringBuilder_t*) l0.payload.obj)->f_cap;
+    l2 = t1;
+    l3 = (size_t) (int64_t) INT64_C(2);
+    t2 = (l2 * l3);
+    l2 = (size_t) (int64_t) t2;
+    if ((l2 < l1)) {
+        l2 = l1;
+    } else {
+    }
+    t3 = std_core_usize_BufferAlloc_new_buffer_vt(l2);
+    l4 = t3;
+    l3 = (size_t) (int64_t) INT64_C(0);
+    t4 = ((vader_struct_std_string_builder_StringBuilder_t*) l0.payload.obj)->f_buf;
+    l5 = t4;
+    l6 = (size_t) (int64_t) INT64_C(0);
+    t5 = (size_t) ((vader_struct_std_string_builder_StringBuilder_t*) l0.payload.obj)->f_len;
+    l7 = t5;
+    std_core_Buffer_ByteAccess_memory_copy_vt(l4, l3, l5, l6, l7);
+    ((vader_struct_std_string_builder_StringBuilder_t*) l0.payload.obj)->f_buf = l4;
+    VADER_WRITE_BARRIER((vader_struct_std_string_builder_StringBuilder_t*) l0.payload.obj);
+    ((vader_struct_std_string_builder_StringBuilder_t*) l0.payload.obj)->f_cap = l2;
+    VADER_WRITE_BARRIER((vader_struct_std_string_builder_StringBuilder_t*) l0.payload.obj);
+    { vader_gc_top = gc_frame.prev; return; }
+    vader_gc_top = gc_frame.prev;
+}
+
+static vader_string_t std_string_builder_StringBuilder_Display_to_string(vader_box_t l0) {
+    vader_box_t l1 = vader_box_null();
+    size_t l2, l3, l5;
+    uint8_t l4;
+    vader_box_t t0 = vader_box_null();
+    size_t t1;
+    uint8_t t2;
+    int64_t t3;
+    vader_string_t t4;
+    vader_box_t* gc_roots[3] = { &l0, &l1, &t0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 0u, gc_roots };
+    vader_gc_top = &gc_frame;
+    vader_array_t* _a0_arr = vader_array_new(7u, 0u, 1u, 8u);
+    t0 = vader_box_obj(7u, _a0_arr);
+    l1 = t0;
+    l2 = (size_t) (int64_t) INT64_C(0);
+    {
+        loop_5: {
+            t1 = (size_t) ((vader_struct_std_string_builder_StringBuilder_t*) l0.payload.obj)->f_len;
+            l3 = t1;
+            if ((l2 < l3)) {
+                t2 = std_core_Buffer_ByteAccess_load_u8_vt(((vader_struct_std_string_builder_StringBuilder_t*) l0.payload.obj)->f_buf, l2);
+                l4 = t2;
+                vader_array_push((vader_array_t*) l1.payload.obj, vader_box_i32(8u, (int32_t)(uint32_t) l4));
+                l5 = (size_t) (int64_t) INT64_C(1);
+                t3 = (l2 + l5);
+                l2 = (size_t) (int64_t) t3;
+                goto loop_5;
+            } else {
+            }
+        }
+    }
+    t4 = vader_import_1(l1);
+    { vader_string_t __vret = t4; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
 
@@ -224,6 +413,32 @@ static vader_string_t std_core_format_unsigned(uint64_t l0) {
     }
     { vader_string_t __vret = l2; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
+}
+
+static vader_box_t std_core_usize_BufferAlloc_new_buffer_vt(size_t l0) {
+    vader_box_t t0 = vader_box_null();
+    vader_box_t* gc_roots[1] = { &t0 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 1u, 0u, gc_roots };
+    vader_gc_top = &gc_frame;
+    t0 = vader_box_obj(VADER_TYPE_INDEX_BUFFER, vader_buffer_new((size_t) l0));
+    { vader_box_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    vader_gc_top = gc_frame.prev;
+}
+
+static uint8_t std_core_Buffer_ByteAccess_load_u8_vt(vader_box_t l0, size_t l1) {
+    int32_t t0;
+    t0 = vader_buffer_load_u8((vader_buffer_t*) l0.payload.obj, (size_t) l1);
+    return (uint8_t) (int32_t) t0;
+}
+
+static void std_core_Buffer_ByteAccess_store_u8_vt(vader_box_t l0, size_t l1, uint8_t l2) {
+    vader_buffer_store_u8((vader_buffer_t*) l0.payload.obj, (size_t) l1, (uint8_t) l2);
+    return;
+}
+
+static void std_core_Buffer_ByteAccess_memory_copy_vt(vader_box_t l0, size_t l1, vader_box_t l2, size_t l3, size_t l4) {
+    vader_buffer_memory_copy((vader_buffer_t*) l0.payload.obj, (size_t) l1, (vader_buffer_t*) l2.payload.obj, (size_t) l3, (size_t) l4);
+    return;
 }
 
 int main(int argc, char** argv) {

@@ -4,21 +4,34 @@
   fn snippet$i32$Display$to_string(self: i32) -> string
     return
       block :string
-        let __sb_0: ? =
-          @builder.new :?
-        @builder.append_str :void
-          __sb_0 :?
-          "the answer is " :string
-        @builder.append_str :void
-          __sb_0 :?
+        let __sb_0: StringBuilder =
+          call :StringBuilder
+            callee:
+              new_builder :StringBuilder
+        call :void
+          callee:
+            append :void
+          arg0:
+            __sb_0 :StringBuilder
+          arg1:
+            "the answer is " :string
+        call :void
+          callee:
+            append :void
+          arg0:
+            __sb_0 :StringBuilder
+          arg1:
+            call :string
+              callee:
+                snippet$i32$Display$to_string :string
+              arg0:
+                self :i32
+        ~>
           call :string
             callee:
-              snippet$i32$Display$to_string :string
+              std_string_builder$StringBuilder$Display$to_string :string
             arg0:
-              self :i32
-        ~>
-          @builder.finish :string
-            __sb_0 :?
+              __sb_0 :StringBuilder
   fn snippet$main() -> i32
     let x: i32 = int(42) :i32
     call :void

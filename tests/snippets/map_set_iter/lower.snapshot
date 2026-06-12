@@ -104,21 +104,34 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_6: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_6 :?
-            "map_sum=" :string
-          @builder.append_str :void
-            __sb_6 :?
+          let __sb_6: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_6 :StringBuilder
+            arg1:
+              "map_sum=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_6 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  total :i32
+          ~>
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                total :i32
-          ~>
-            @builder.finish :string
-              __sb_6 :?
+                __sb_6 :StringBuilder
     let s: MutableSet<i32> =
       MutableSet<i32> {
         inner:
@@ -220,19 +233,32 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_13: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_13 :?
-            "set_sum=" :string
-          @builder.append_str :void
-            __sb_13 :?
+          let __sb_13: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_13 :StringBuilder
+            arg1:
+              "set_sum=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_13 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  sum :i32
+          ~>
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                sum :i32
-          ~>
-            @builder.finish :string
-              __sb_13 :?
+                __sb_13 :StringBuilder
     return int(0) :i32

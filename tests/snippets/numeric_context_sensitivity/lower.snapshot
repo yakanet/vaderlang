@@ -20,111 +20,196 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_0: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_0 :?
-            "widths: " :string
-          @builder.append_str :void
-            __sb_0 :?
-            call :string
+          let __sb_0: StringBuilder =
+            call :StringBuilder
               callee:
-                std_core$i8$Display$to_string :string
-              arg0:
-                a8 :i8
-          @builder.append_str :void
-            __sb_0 :?
-            " " :string
-          @builder.append_str :void
-            __sb_0 :?
-            call :string
-              callee:
-                std_core$i16$Display$to_string :string
-              arg0:
-                b16 :i16
-          @builder.append_str :void
-            __sb_0 :?
-            " " :string
-          @builder.append_str :void
-            __sb_0 :?
-            call :string
-              callee:
-                std_core$i32$Display$to_string :string
-              arg0:
-                c32 :i32
-          @builder.append_str :void
-            __sb_0 :?
-            " " :string
-          @builder.append_str :void
-            __sb_0 :?
-            call :string
-              callee:
-                std_core$i64$Display$to_string :string
-              arg0:
-                d64 :i64
-          @builder.append_str :void
-            __sb_0 :?
-            " " :string
-          @builder.append_str :void
-            __sb_0 :?
-            call :string
-              callee:
-                std_core$u8$Display$to_string :string
-              arg0:
-                e8 :u8
-          @builder.append_str :void
-            __sb_0 :?
-            " " :string
-          @builder.append_str :void
-            __sb_0 :?
-            call :string
-              callee:
-                std_core$u16$Display$to_string :string
-              arg0:
-                f16 :u16
-          @builder.append_str :void
-            __sb_0 :?
-            " " :string
-          @builder.append_str :void
-            __sb_0 :?
-            call :string
-              callee:
-                std_core$u32$Display$to_string :string
-              arg0:
-                g32 :u32
-          @builder.append_str :void
-            __sb_0 :?
-            " " :string
-          @builder.append_str :void
-            __sb_0 :?
-            call :string
-              callee:
-                std_core$u64$Display$to_string :string
-              arg0:
-                h64 :u64
-          @builder.append_str :void
-            __sb_0 :?
-            " " :string
-          @builder.append_str :void
-            __sb_0 :?
-            call :string
-              callee:
-                std_core$isize$Display$to_string :string
-              arg0:
-                isz :isize
-          @builder.append_str :void
-            __sb_0 :?
-            " " :string
-          @builder.append_str :void
-            __sb_0 :?
-            call :string
-              callee:
-                std_core$usize$Display$to_string :string
-              arg0:
-                usz :usize
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              "widths: " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i8$Display$to_string :string
+                arg0:
+                  a8 :i8
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              " " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i16$Display$to_string :string
+                arg0:
+                  b16 :i16
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              " " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  c32 :i32
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              " " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i64$Display$to_string :string
+                arg0:
+                  d64 :i64
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              " " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$u8$Display$to_string :string
+                arg0:
+                  e8 :u8
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              " " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$u16$Display$to_string :string
+                arg0:
+                  f16 :u16
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              " " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$u32$Display$to_string :string
+                arg0:
+                  g32 :u32
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              " " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$u64$Display$to_string :string
+                arg0:
+                  h64 :u64
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              " " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$isize$Display$to_string :string
+                arg0:
+                  isz :isize
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              " " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$usize$Display$to_string :string
+                arg0:
+                  usz :usize
           ~>
-            @builder.finish :string
-              __sb_0 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_0 :StringBuilder
     let isz2: isize =
       add :isize
         l:
@@ -154,51 +239,88 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_1: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_1 :?
-            "arith: " :string
-          @builder.append_str :void
-            __sb_1 :?
-            call :string
+          let __sb_1: StringBuilder =
+            call :StringBuilder
               callee:
-                std_core$isize$Display$to_string :string
-              arg0:
-                isz2 :isize
-          @builder.append_str :void
-            __sb_1 :?
-            " " :string
-          @builder.append_str :void
-            __sb_1 :?
-            call :string
-              callee:
-                std_core$usize$Display$to_string :string
-              arg0:
-                usz2 :usize
-          @builder.append_str :void
-            __sb_1 :?
-            " " :string
-          @builder.append_str :void
-            __sb_1 :?
-            call :string
-              callee:
-                std_core$i64$Display$to_string :string
-              arg0:
-                d64_2 :i64
-          @builder.append_str :void
-            __sb_1 :?
-            " " :string
-          @builder.append_str :void
-            __sb_1 :?
-            call :string
-              callee:
-                std_core$u64$Display$to_string :string
-              arg0:
-                h64_2 :u64
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              "arith: " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$isize$Display$to_string :string
+                arg0:
+                  isz2 :isize
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              " " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$usize$Display$to_string :string
+                arg0:
+                  usz2 :usize
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              " " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i64$Display$to_string :string
+                arg0:
+                  d64_2 :i64
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              " " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$u64$Display$to_string :string
+                arg0:
+                  h64_2 :u64
           ~>
-            @builder.finish :string
-              __sb_1 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_1 :StringBuilder
     let neg: isize =
       neg :isize
         int(100) :isize
@@ -213,31 +335,52 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_2: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_2 :?
-            "neg: " :string
-          @builder.append_str :void
-            __sb_2 :?
-            call :string
+          let __sb_2: StringBuilder =
+            call :StringBuilder
               callee:
-                std_core$isize$Display$to_string :string
-              arg0:
-                neg :isize
-          @builder.append_str :void
-            __sb_2 :?
-            " " :string
-          @builder.append_str :void
-            __sb_2 :?
-            call :string
-              callee:
-                std_core$isize$Display$to_string :string
-              arg0:
-                neg2 :isize
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              "neg: " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$isize$Display$to_string :string
+                arg0:
+                  neg :isize
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              " " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$isize$Display$to_string :string
+                arg0:
+                  neg2 :isize
           ~>
-            @builder.finish :string
-              __sb_2 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_2 :StringBuilder
     let c: Counter =
       Counter {
         n: int(0) :usize
@@ -250,33 +393,54 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_3: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_3 :?
-            "counter: n=" :string
-          @builder.append_str :void
-            __sb_3 :?
-            call :string
+          let __sb_3: StringBuilder =
+            call :StringBuilder
               callee:
-                std_core$usize$Display$to_string :string
-              arg0:
-                .n :usize
-                  c :Counter
-          @builder.append_str :void
-            __sb_3 :?
-            " delta=" :string
-          @builder.append_str :void
-            __sb_3 :?
-            call :string
-              callee:
-                std_core$isize$Display$to_string :string
-              arg0:
-                .delta :isize
-                  c :Counter
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_3 :StringBuilder
+            arg1:
+              "counter: n=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_3 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$usize$Display$to_string :string
+                arg0:
+                  .n :usize
+                    c :Counter
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_3 :StringBuilder
+            arg1:
+              " delta=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_3 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$isize$Display$to_string :string
+                arg0:
+                  .delta :isize
+                    c :Counter
           ~>
-            @builder.finish :string
-              __sb_3 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_3 :StringBuilder
     if :void
       cond:
         eq :bool
@@ -331,21 +495,34 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_4: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_4 :?
-            "slice_array: " :string
-          @builder.append_str :void
-            __sb_4 :?
+          let __sb_4: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_4 :StringBuilder
+            arg1:
+              "slice_array: " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_4 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$usize$Display$to_string :string
+                arg0:
+                  LoweredArrayLen
+          ~>
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                LoweredArrayLen
-          ~>
-            @builder.finish :string
-              __sb_4 :?
+                __sb_4 :StringBuilder
     let forty_two: fn() -> usize =
       LoweredMakeClosure
     call :void
@@ -353,23 +530,36 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_6: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_6 :?
-            "returned: " :string
-          @builder.append_str :void
-            __sb_6 :?
+          let __sb_6: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_6 :StringBuilder
+            arg1:
+              "returned: " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_6 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$usize$Display$to_string :string
+                arg0:
+                  call :usize
+                    callee:
+                      forty_two :fn() -> usize
+          ~>
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                call :usize
-                  callee:
-                    forty_two :fn() -> usize
-          ~>
-            @builder.finish :string
-              __sb_6 :?
+                __sb_6 :StringBuilder
     return int(0) :i32
   struct __lambda_env_7 {  }
   fn __lambda_6(__env_5: __lambda_env_7) -> usize

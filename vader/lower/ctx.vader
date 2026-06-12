@@ -113,6 +113,12 @@ export LowerProjectCtx :: struct {
     /// target). Null when the project doesn't import `std/string`.
     string_symbols:      MutableMap<string, Symbol> | null
 
+    /// `name -> Symbol` from `std/string_builder`. Lets `lower_string_lit`
+    /// resolve `new_builder` / `append` when desugaring `${...}` to
+    /// StringBuilder calls (Target ABI S4). Null when `std/string_builder`
+    /// isn't loaded — the lowering then falls back to the legacy Builder ops.
+    string_builder_symbols: MutableMap<string, Symbol> | null
+
     /// Per-trait `Symbol | null` cache — populated lazily on first
     /// `find_core_trait` hit. `null` means "looked up and not found".
     core_trait_cache:    MutableMap<string, Symbol | null>
@@ -291,6 +297,7 @@ export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedPr
         .iter_symbols        = null,
         .collections_symbols = null,
         .string_symbols      = null,
+        .string_builder_symbols = null,
         .core_trait_cache    = MutableMap<string, Symbol | null> {},
         .comptime_value_by_symbol_id = MutableMap<i32, ComptimeValue> {},
         .local_symbol_indices = MutableMap<string, MutableMap<u64, Symbol>> {},

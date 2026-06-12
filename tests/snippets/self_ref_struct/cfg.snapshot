@@ -14,12 +14,12 @@ fn snippet$main() -> i32
     %7 $k_7: i32
     %8 $struct_8: Node<i32>
     %9 head: Node<i32> (local head)
-    %10 $intrinsic_10: ?
-    %11 __sb_0: ? (synthetic __sb_0)
+    %10 $call_10: StringBuilder
+    %11 __sb_0: StringBuilder (synthetic __sb_0)
     %12 $k_12: string
     %13 $field_13: i32
     %14 $call_14: string
-    %15 $intrinsic_15: string
+    %15 $call_15: string
     %16 $k_16: i32
   bb0:
     %0 = const int(30) :i32
@@ -32,14 +32,14 @@ fn snippet$main() -> i32
     %7 = const int(10) :i32
     %8 = struct_new Node<i32>(%7, %6)
     %9 = move %8
-    %10 = intrinsic builder.new()
+    %10 = call new_builder() :StringBuilder
     %11 = move %10
     %12 = const string(#13) :string
-    intrinsic builder.append_str(%11, %12)
+    call append(%11, %12) :void
     %13 = field_get %9.value :i32
     %14 = call std_core$i32$Display$to_string(%13) :string
-    intrinsic builder.append_str(%11, %14)
-    %15 = intrinsic builder.finish(%11)
+    call append(%11, %14) :void
+    %15 = call std_string_builder$StringBuilder$Display$to_string(%11) :string
     call std_io$std_io$println__string(%15) :void
     %16 = const int(0) :i32
     return %16

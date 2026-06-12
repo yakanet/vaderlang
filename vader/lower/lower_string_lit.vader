@@ -1,22 +1,27 @@
 // vader/lower/lower_string_lit — string + interpolation lowering, with Display coercion.
 //
+// A text-only string literal becomes a single `LoweredStringLit`. A literal
+// with any `${expr}` segment desugars to a StringBuilder chain — `new_builder()`
+// + per-part `append(sb, ...)` + a trailing `sb.to_string()` — emitted as real
+// `LoweredCall`s to the Buffer-backed `std/string_builder` fns (Target ABI S4a),
+// not the legacy `Builder*` opcodes. Text parts append the literal string ;
+// interpolated parts append `<value>.to_string()` (via `build_display_to_string_call`,
+// which handles primitives, structs, and FreeFloat→f64 pinning). The legacy
+// `builder.*`-opcode lowering is kept as `lower_string_lit_via_builder_ops` and
+// used only as a fallback when the stdlib fns can't be resolved ; it (and the
+// `INTRINSIC_BUILDER_*` path) is removed in S4b.
 
 module "vader/lower"
 
+import "std/collections" { MutableMap }
+
 import "vader/parser" { StringLitExpr, StringLitText, StringLitInterp }
 import "vader/diagnostics" { Span }
-import "vader/types" { Type, PrimitiveType, FreeIntType, FreeFloatType, TY_VOID, TY_UNRESOLVED, mk_primitive }
+import "vader/resolver/symbol" { Symbol }
+import "vader/types" { Type, FnType, PrimitiveType, FreeFloatType, TY_VOID, TY_UNRESOLVED, mk_primitive }
 
-// Plain text-only string lit becomes a single `LoweredStringLit`. Any
-// `${expr}` segment routes through a builder-chain : `builder.new` +
-// per-part `builder.append_str` / `builder.append_display` +
-// `builder.finish`. Primitive-typed segments take the
-// `builder.append_display` fast path ; non-primitive segments emit an
-// `append_display` call too (the bytecode emitter resolves the right
-// `<T>.Display.to_string` impl via the impl table once it lands —
-// today this means the lowered IR carries the call shape but the impl
-// lookup is deferred).
 lower_string_lit :: fn(ctx: FnLowerCtx, expr: StringLitExpr, type: Type) -> LoweredExpr {
+    string_type :: mk_primitive("string")
     if !has_interp_part(expr) {
         body := ""
         for part in expr.parts {
@@ -25,8 +30,95 @@ lower_string_lit :: fn(ctx: FnLowerCtx, expr: StringLitExpr, type: Type) -> Lowe
                 _ -> {}
             }
         }
-        return LoweredStringLit { .span = expr.span, .type = mk_primitive("string"), .value = body }
+        return LoweredStringLit { .span = expr.span, .type = string_type, .value = body }
     }
+
+    // Resolve the StringBuilder fns (std/string_builder, force-loaded). Any
+    // unresolvable piece falls back to the legacy builder-op path.
+    new_sym :: resolve_string_builder_fn(ctx, "new_builder")
+    if new_sym == null { return lower_string_lit_via_builder_ops(ctx, expr) }
+    append_sym :: resolve_string_builder_fn(ctx, "append")
+    if append_sym == null { return lower_string_lit_via_builder_ops(ctx, expr) }
+    new_fn_ty :: lookup_fn_type_anywhere(ctx, new_sym)
+    sb_type: Type = TY_UNRESOLVED                    // the StringBuilder struct type
+    if new_fn_ty is FnType as new_ft { sb_type = new_ft.return_type } else { return lower_string_lit_via_builder_ops(ctx, expr) }
+
+    // Harvest the synthesised callees so `materialize_nongeneric_stdlib_fns`
+    // emits their bodies — the auto-harvest in `lower_call` only fires for
+    // source-level call exprs, not these lower-time-synthesised ones.
+    register_nongeneric_stdlib_fn(ctx, new_sym)
+    register_nongeneric_stdlib_fn(ctx, append_sym)
+    sb_symbol :: fresh_synthetic_symbol(ctx, "sb")
+    stmts: LoweredStmt[] = []
+
+    // sb := new_builder()
+    stmts.push(LoweredLet {
+        .span = expr.span, .name = sb_symbol.name, .symbol = sb_symbol, .type = sb_type,
+        .value = mk_lowered_call(new_sym, [], sb_type, expr.span),
+    })
+
+    for part in expr.parts {
+        match part {
+            is StringLitText as text -> {
+                // sb.append("…")
+                lit :: LoweredStringLit { .span = text.span, .type = string_type, .value = text.value }
+                args: LoweredExpr[] = []
+                args.push(sb_ident(sb_symbol, sb_type, text.span))
+                args.push(lit)
+                stmts.push(LoweredExprStmt {
+                    .span = text.span, .expr = mk_lowered_call(append_sym, args, TY_VOID, text.span),
+                })
+            }
+            is StringLitInterp as interp -> {
+                // sb.append(<value>.to_string())
+                inner :: lower_expr(ctx, interp.expr)
+                str_call :: build_display_to_string_call(ctx, inner, interp.span)
+                args: LoweredExpr[] = []
+                args.push(sb_ident(sb_symbol, sb_type, interp.span))
+                args.push(str_call)
+                stmts.push(LoweredExprStmt {
+                    .span = interp.span, .expr = mk_lowered_call(append_sym, args, TY_VOID, interp.span),
+                })
+            }
+        }
+    }
+
+    // trailing: sb.to_string()  — StringBuilder's `Display` impl member
+    return LoweredBlock {
+        .span = expr.span, .type = string_type, .stmts = stmts,
+        .trailing = build_display_to_string_call(ctx, sb_ident(sb_symbol, sb_type, expr.span), expr.span),
+    }
+}
+
+// Build a `<fn>(args)` call typed `ret`.
+mk_lowered_call :: fn(sym: Symbol, args: LoweredExpr[], ret: Type, span: Span) -> LoweredExpr =
+    LoweredCall {
+        .span = span, .type = ret,
+        .callee = LoweredIdent { .span = span, .type = ret, .symbol = sym },
+        .args = args,
+    }
+
+// A `LoweredIdent` referencing the synthetic builder local.
+sb_ident :: fn(sym: Symbol, ty: Type, span: Span) -> LoweredExpr =
+    LoweredIdent { .span = span, .type = ty, .symbol = sym }
+
+// Resolve a `std/string_builder` free fn (`new_builder` / `append`) by name
+// via the `string_builder_symbols` side-table (populated from the module's
+// exports in `lower_populate`). Returns `null` when `std/string_builder` isn't
+// loaded — the caller then falls back to the legacy Builder-op lowering.
+resolve_string_builder_fn :: fn(ctx: FnLowerCtx, name: string) -> Symbol | null {
+    match ctx.project.string_builder_symbols {
+        is null -> { return null }
+        is MutableMap<string, Symbol> as tbl -> { return tbl[name] }
+    }
+}
+
+// ---- legacy builder-op lowering (S4a fallback ; removed in S4b) -----------
+
+// The pre-S4 lowering: `${...}` → `BuilderNew` / `BuilderAppendStr` /
+// `BuilderAppendDisplay` / `BuilderFinish` intrinsic ops. Retained only as the
+// fallback when `new_builder`/`append` can't be resolved.
+lower_string_lit_via_builder_ops :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> LoweredExpr {
     builder_symbol :: fresh_synthetic_symbol(ctx, "sb")
     string_type :: mk_primitive("string")
     stmts: LoweredStmt[] = []
@@ -77,12 +169,6 @@ lower_string_lit :: fn(ctx: FnLowerCtx, expr: StringLitExpr, type: Type) -> Lowe
                         },
                     })
                 } else {
-                    // Non-primitive segment : route through `<T>.Display
-                    // .to_string(value)` then feed the string into
-                    // `builder.append_str`. Mirrors TS's `wrapAsDisplay`
-                    // path. The `to_string` symbol is synthesised here ;
-                    // the bytecode emit resolves it via the impl-member
-                    // mangling once that wiring lands.
                     str_call :: build_display_to_string_call(ctx, inner, interp.span)
                     args: LoweredExpr[] = []
                     args.push(builder_ref)
@@ -111,16 +197,10 @@ lower_string_lit :: fn(ctx: FnLowerCtx, expr: StringLitExpr, type: Type) -> Lowe
     }
 }
 
-// Only `f32` still takes the host `builder.append_display` fast path (its
-// `Display` impl is still `@intrinsic` — the f32 Ryu/`f2s` port is a follow-up).
-// `f64` (and a `FreeFloat` literal, which defaults to `f64`) now routes through
-// `to_string()` : f64's pure-Vader Ryu `Display` impl (std/core `dtoa.vader`)
-// is the shortest-double formatter, and matching `${x}` to `x.to_string()`
-// keeps the two paths consistent (the host `%g` fast path formatted scientific
-// notation differently, e.g. `2.5e-08` vs `2.5e-8`). `FreeFloat` is coerced to
-// `f64` in `try_direct_display_call` so the lookup finds a concrete impl. Every
-// other type — integer widths, `bool`, `char`, `string`, arrays, structs —
-// already routed through `to_string()`.
+// `f32` still routes its interpolated segments through the host
+// `builder.append_display` fast path in the fallback above (its `Display` impl
+// is still `@intrinsic` — the f32 Ryu/`f2s` port is a follow-up). Every other
+// type goes through `to_string()`.
 is_primitive_for_display :: fn(t: Type) -> bool = if t is PrimitiveType as p { p.name == "f32" } else { false }
 
 // Build a `<T>.Display.to_string(value)` call shape. Prefers a direct

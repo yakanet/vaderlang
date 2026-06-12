@@ -138,7 +138,7 @@ end
 
 fn 2 snippet$main () -> i32
   local $fn_ref_13 ref
-  local __sb_0 any
+  local __sb_0 ref
   local $call_24 string
   local n usize
   local i usize
@@ -172,20 +172,20 @@ fn 2 snippet$main () -> i32
   local.get 0
   call 17
   local.set 0
-  intrinsic builder.new
+  call 3
   local.set 1
   local.get 1
   string.const 10
-  intrinsic builder.append_str
+  call 4
   local.get 0
   array.len
   call 10
   local.set 2
   local.get 1
   local.get 2
-  intrinsic builder.append_str
+  call 4
   local.get 1
-  intrinsic builder.finish
+  call 8
   call 0
   local.get 0
   array.len

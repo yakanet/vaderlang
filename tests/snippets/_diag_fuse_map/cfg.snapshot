@@ -25,11 +25,11 @@ fn main$main() -> i32
     %8 $add_8: i32
     %9 $k_9: i32
     %10 $add_10: i32
-    %11 $intrinsic_11: ?
-    %12 __sb_1: ? (synthetic __sb_1)
+    %11 $call_11: StringBuilder
+    %12 __sb_1: StringBuilder (synthetic __sb_1)
     %13 $k_13: string
     %14 $call_14: string
-    %15 $intrinsic_15: string
+    %15 $call_15: string
     %16 $k_16: i32
   bb0:
     %0 = const int(0) :i32
@@ -51,13 +51,13 @@ fn main$main() -> i32
     %3 = move %10
     branch -> bb1
   bb3:
-    %11 = intrinsic builder.new()
+    %11 = call new_builder() :StringBuilder
     %12 = move %11
     %13 = const string(#1) :string
-    intrinsic builder.append_str(%12, %13)
+    call append(%12, %13) :void
     %14 = call std_core$i32$Display$to_string(%1) :string
-    intrinsic builder.append_str(%12, %14)
-    %15 = intrinsic builder.finish(%12)
+    call append(%12, %14) :void
+    %15 = call std_string_builder$StringBuilder$Display$to_string(%12) :string
     call std_io$std_io$println__string(%15) :void
     %16 = const int(0) :i32
     return %16

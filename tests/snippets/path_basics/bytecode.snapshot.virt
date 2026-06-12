@@ -103,169 +103,168 @@ fn 0 std_io$std_io$println__string (string) -> void
 end
 
 fn 1 snippet$show_path (string,ref) -> void
-  local __sb_0 any
+  local __sb_0 ref
   local $call_4 string
-  intrinsic builder.new
+  call 3
   local.set 2
   local.get 0
   call 9
   local.set 3
   local.get 2
   local.get 3
-  intrinsic builder.append_str
+  call 4
   local.get 2
   string.const 1
-  intrinsic builder.append_str
+  call 4
   local.get 1
   call 10
   call 9
   local.set 3
   local.get 2
   local.get 3
-  intrinsic builder.append_str
+  call 4
   local.get 2
-  intrinsic builder.finish
+  call 7
   call 0
   return
 end
 
 fn 2 snippet$main () -> i32
   local p ref
-  local __sb_0 any
+  local __sb_0 ref
   local $call_8 string
-  local $call_23 ref
-  local $call_37 ref
+  local __sb_3 ref
   string.const 2
   call 11
   local.set 0
   string.const 3
   local.get 0
   call 1
-  intrinsic builder.new
+  call 3
   local.set 1
   local.get 1
   string.const 4
-  intrinsic builder.append_str
+  call 4
   local.get 0
   call 12
   call 9
   local.set 2
   local.get 1
   local.get 2
-  intrinsic builder.append_str
+  call 4
   local.get 1
-  intrinsic builder.finish
+  call 7
   call 0
-  intrinsic builder.new
+  call 3
   local.set 1
   local.get 1
   string.const 5
-  intrinsic builder.append_str
+  call 4
   local.get 0
   call 13
   call 9
   local.set 2
   local.get 1
   local.get 2
-  intrinsic builder.append_str
+  call 4
   local.get 1
-  intrinsic builder.finish
+  call 7
   call 0
-  intrinsic builder.new
+  call 3
   local.set 1
   local.get 1
   string.const 6
-  intrinsic builder.append_str
+  call 4
   local.get 0
   call 14
   call 9
   local.set 2
   local.get 1
   local.get 2
-  intrinsic builder.append_str
+  call 4
   local.get 1
-  intrinsic builder.finish
+  call 7
   call 0
   local.get 0
   call 15
-  local.set 3
+  local.set 1
   string.const 7
-  local.get 3
+  local.get 1
   call 1
   local.get 0
   call 15
   call 15
-  local.set 3
+  local.set 1
   string.const 8
-  local.get 3
+  local.get 1
   call 1
   string.const 9
   call 11
-  local.set 3
-  intrinsic builder.new
   local.set 1
-  local.get 1
-  string.const 10
-  intrinsic builder.append_str
+  call 3
+  local.set 3
   local.get 3
+  string.const 10
+  call 4
+  local.get 1
   call 16
   call 8
   local.set 2
-  local.get 1
+  local.get 3
   local.get 2
-  intrinsic builder.append_str
-  local.get 1
-  intrinsic builder.finish
+  call 4
+  local.get 3
+  call 7
   call 0
-  local.get 3
-  call 15
-  local.set 4
-  string.const 11
-  local.get 4
-  call 1
-  local.get 3
-  call 12
-  call 11
-  local.set 4
-  string.const 12
-  local.get 4
-  call 1
-  local.get 3
-  call 15
+  local.get 1
   call 15
   local.set 3
-  string.const 13
+  string.const 11
   local.get 3
   call 1
-  intrinsic builder.new
+  local.get 1
+  call 12
+  call 11
+  local.set 3
+  string.const 12
+  local.get 3
+  call 1
+  local.get 1
+  call 15
+  call 15
+  local.set 1
+  string.const 13
+  local.get 1
+  call 1
+  call 3
   local.set 1
   local.get 1
   string.const 14
-  intrinsic builder.append_str
+  call 4
   call 17
   call 18
   call 8
   local.set 2
   local.get 1
   local.get 2
-  intrinsic builder.append_str
+  call 4
   local.get 1
-  intrinsic builder.finish
+  call 7
   call 0
-  intrinsic builder.new
+  call 3
   local.set 1
   local.get 1
   string.const 15
-  intrinsic builder.append_str
+  call 4
   local.get 0
   call 18
   call 8
   local.set 2
   local.get 1
   local.get 2
-  intrinsic builder.append_str
+  call 4
   local.get 1
-  intrinsic builder.finish
+  call 7
   call 0
   string.const 17
   call 11
@@ -306,93 +305,93 @@ fn 2 snippet$main () -> i32
   string.const 23
   local.get 0
   call 1
-  intrinsic builder.new
-  local.set 1
-  local.get 1
+  call 3
+  local.set 0
+  local.get 0
   string.const 25
-  intrinsic builder.append_str
+  call 4
   string.const 26
   call 11
-  local.set 0
+  local.set 1
   string.const 27
   call 11
   local.set 3
-  local.get 0
+  local.get 1
   local.get 3
   call 20
   call 8
   local.set 2
-  local.get 1
+  local.get 0
   local.get 2
-  intrinsic builder.append_str
-  local.get 1
-  intrinsic builder.finish
+  call 4
+  local.get 0
+  call 7
   call 0
-  intrinsic builder.new
-  local.set 1
-  local.get 1
+  call 3
+  local.set 0
+  local.get 0
   string.const 28
-  intrinsic builder.append_str
+  call 4
   string.const 29
   call 11
-  local.set 0
+  local.set 1
   string.const 27
   call 11
   local.set 3
-  local.get 0
+  local.get 1
   local.get 3
   call 20
   call 8
   local.set 2
-  local.get 1
+  local.get 0
   local.get 2
-  intrinsic builder.append_str
-  local.get 1
-  intrinsic builder.finish
+  call 4
+  local.get 0
+  call 7
   call 0
-  intrinsic builder.new
-  local.set 1
-  local.get 1
+  call 3
+  local.set 0
+  local.get 0
   string.const 30
-  intrinsic builder.append_str
+  call 4
   string.const 26
   call 11
-  local.set 0
+  local.set 1
   string.const 31
   call 11
   local.set 3
-  local.get 0
+  local.get 1
   local.get 3
   call 21
   call 8
   local.set 2
-  local.get 1
+  local.get 0
   local.get 2
-  intrinsic builder.append_str
-  local.get 1
-  intrinsic builder.finish
+  call 4
+  local.get 0
+  call 7
   call 0
-  intrinsic builder.new
-  local.set 1
-  local.get 1
+  call 3
+  local.set 0
+  local.get 0
   string.const 32
-  intrinsic builder.append_str
+  call 4
   string.const 26
   call 11
-  local.set 0
+  local.set 1
   string.const 33
   call 11
   local.set 3
-  local.get 0
+  local.get 1
   local.get 3
   call 21
   call 8
   local.set 2
-  local.get 1
+  local.get 0
   local.get 2
-  intrinsic builder.append_str
-  local.get 1
-  intrinsic builder.finish
+  call 4
+  local.get 0
+  call 7
   call 0
   string.const 35
   call 11

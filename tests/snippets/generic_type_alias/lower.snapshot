@@ -31,22 +31,35 @@
                         std_io$std_io$println__string :void
                       arg0:
                         block :string
-                          let __sb_1: ? =
-                            @builder.new :?
-                          @builder.append_str :void
-                            __sb_1 :?
-                            "x = " :string
-                          @builder.append_str :void
-                            __sb_1 :?
+                          let __sb_1: StringBuilder =
+                            call :StringBuilder
+                              callee:
+                                new_builder :StringBuilder
+                          call :void
+                            callee:
+                              append :void
+                            arg0:
+                              __sb_1 :StringBuilder
+                            arg1:
+                              "x = " :string
+                          call :void
+                            callee:
+                              append :void
+                            arg0:
+                              __sb_1 :StringBuilder
+                            arg1:
+                              call :string
+                                callee:
+                                  std_core$i32$Display$to_string :string
+                                arg0:
+                                  cast → i32
+                                    x :i32 | null
+                          ~>
                             call :string
                               callee:
-                                std_core$i32$Display$to_string :string
+                                std_string_builder$StringBuilder$Display$to_string :string
                               arg0:
-                                cast → i32
-                                  x :i32 | null
-                          ~>
-                            @builder.finish :string
-                              __sb_1 :?
+                                __sb_1 :StringBuilder
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -77,22 +90,35 @@
                         std_io$std_io$println__string :void
                       arg0:
                         block :string
-                          let __sb_3: ? =
-                            @builder.new :?
-                          @builder.append_str :void
-                            __sb_3 :?
-                            "y = " :string
-                          @builder.append_str :void
-                            __sb_3 :?
+                          let __sb_3: StringBuilder =
+                            call :StringBuilder
+                              callee:
+                                new_builder :StringBuilder
+                          call :void
+                            callee:
+                              append :void
+                            arg0:
+                              __sb_3 :StringBuilder
+                            arg1:
+                              "y = " :string
+                          call :void
+                            callee:
+                              append :void
+                            arg0:
+                              __sb_3 :StringBuilder
+                            arg1:
+                              call :string
+                                callee:
+                                  std_core$i32$Display$to_string :string
+                                arg0:
+                                  cast → i32
+                                    y :i32 | null
+                          ~>
                             call :string
                               callee:
-                                std_core$i32$Display$to_string :string
+                                std_string_builder$StringBuilder$Display$to_string :string
                               arg0:
-                                cast → i32
-                                  y :i32 | null
-                          ~>
-                            @builder.finish :string
-                              __sb_3 :?
+                                __sb_3 :StringBuilder
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -111,22 +137,35 @@
                   std_io$std_io$println__string :void
                 arg0:
                   block :string
-                    let __sb_6: ? =
-                      @builder.new :?
-                    @builder.append_str :void
-                      __sb_6 :?
-                      "pair int   = " :string
-                    @builder.append_str :void
-                      __sb_6 :?
+                    let __sb_6: StringBuilder =
+                      call :StringBuilder
+                        callee:
+                          new_builder :StringBuilder
+                    call :void
+                      callee:
+                        append :void
+                      arg0:
+                        __sb_6 :StringBuilder
+                      arg1:
+                        "pair int   = " :string
+                    call :void
+                      callee:
+                        append :void
+                      arg0:
+                        __sb_6 :StringBuilder
+                      arg1:
+                        call :string
+                          callee:
+                            std_core$i32$Display$to_string :string
+                          arg0:
+                            cast → i32
+                              p :i32 | string
+                    ~>
                       call :string
                         callee:
-                          std_core$i32$Display$to_string :string
+                          std_string_builder$StringBuilder$Display$to_string :string
                         arg0:
-                          cast → i32
-                            p :i32 | string
-                    ~>
-                      @builder.finish :string
-                        __sb_6 :?
+                          __sb_6 :StringBuilder
           else:
             ~>
               if :void
@@ -140,22 +179,35 @@
                         std_io$std_io$println__string :void
                       arg0:
                         block :string
-                          let __sb_5: ? =
-                            @builder.new :?
-                          @builder.append_str :void
-                            __sb_5 :?
-                            "pair str   = " :string
-                          @builder.append_str :void
-                            __sb_5 :?
+                          let __sb_5: StringBuilder =
+                            call :StringBuilder
+                              callee:
+                                new_builder :StringBuilder
+                          call :void
+                            callee:
+                              append :void
+                            arg0:
+                              __sb_5 :StringBuilder
+                            arg1:
+                              "pair str   = " :string
+                          call :void
+                            callee:
+                              append :void
+                            arg0:
+                              __sb_5 :StringBuilder
+                            arg1:
+                              call :string
+                                callee:
+                                  std_core$string$Display$to_string :string
+                                arg0:
+                                  cast → string
+                                    p :i32 | string
+                          ~>
                             call :string
                               callee:
-                                std_core$string$Display$to_string :string
+                                std_string_builder$StringBuilder$Display$to_string :string
                               arg0:
-                                cast → string
-                                  p :i32 | string
-                          ~>
-                            @builder.finish :string
-                              __sb_5 :?
+                                __sb_5 :StringBuilder
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void

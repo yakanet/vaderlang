@@ -30,39 +30,68 @@
             std_io$std_io$println__string :void
           arg0:
             block :string
-              let __sb_1: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_1 :?
-                "id=" :string
-              @builder.append_str :void
-                __sb_1 :?
-                call :string
+              let __sb_1: StringBuilder =
+                call :StringBuilder
                   callee:
-                    std_core$i32$Display$to_string :string
-                  arg0:
-                    id :i32
-              @builder.append_str :void
-                __sb_1 :?
-                " label=" :string
-              @builder.append_str :void
-                __sb_1 :?
-                call :string
-                  callee:
-                    std_core$string$Display$to_string :string
-                  arg0:
-                    label :string
-              @builder.append_str :void
-                __sb_1 :?
-                " active=" :string
-              @builder.append_str :void
-                __sb_1 :?
-                call :string
-                  callee:
-                    std_core$bool$Display$to_string :string
-                  arg0:
-                    active :bool
+                    new_builder :StringBuilder
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_1 :StringBuilder
+                arg1:
+                  "id=" :string
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_1 :StringBuilder
+                arg1:
+                  call :string
+                    callee:
+                      std_core$i32$Display$to_string :string
+                    arg0:
+                      id :i32
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_1 :StringBuilder
+                arg1:
+                  " label=" :string
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_1 :StringBuilder
+                arg1:
+                  call :string
+                    callee:
+                      std_core$string$Display$to_string :string
+                    arg0:
+                      label :string
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_1 :StringBuilder
+                arg1:
+                  " active=" :string
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_1 :StringBuilder
+                arg1:
+                  call :string
+                    callee:
+                      std_core$bool$Display$to_string :string
+                    arg0:
+                      active :bool
               ~>
-                @builder.finish :string
-                  __sb_1 :?
+                call :string
+                  callee:
+                    std_string_builder$StringBuilder$Display$to_string :string
+                  arg0:
+                    __sb_1 :StringBuilder
     return int(0) :i32

@@ -14,45 +14,71 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_0: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_0 :?
-            "name = " :string
-          @builder.append_str :void
-            __sb_0 :?
+          let __sb_0: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              "name = " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$string$Display$to_string :string
+                arg0:
+                  .name :string
+                    cast → Cat
+                      a :Cat | Dog
+          ~>
             call :string
               callee:
-                std_core$string$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                .name :string
-                  cast → Cat
-                    a :Cat | Dog
-          ~>
-            @builder.finish :string
-              __sb_0 :?
+                __sb_0 :StringBuilder
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_1: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_1 :?
-            "age  = " :string
-          @builder.append_str :void
-            __sb_1 :?
+          let __sb_1: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              "age  = " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  .age :i32
+                    cast → Cat
+                      a :Cat | Dog
+          ~>
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                .age :i32
-                  cast → Cat
-                    a :Cat | Dog
-          ~>
-            @builder.finish :string
-              __sb_1 :?
+                __sb_1 :StringBuilder
     let b: Cat | Dog =
       Dog {
         name: "Rex" :string
@@ -63,43 +89,69 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_2: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_2 :?
-            "name = " :string
-          @builder.append_str :void
-            __sb_2 :?
+          let __sb_2: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              "name = " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$string$Display$to_string :string
+                arg0:
+                  .name :string
+                    cast → Cat
+                      b :Cat | Dog
+          ~>
             call :string
               callee:
-                std_core$string$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                .name :string
-                  cast → Cat
-                    b :Cat | Dog
-          ~>
-            @builder.finish :string
-              __sb_2 :?
+                __sb_2 :StringBuilder
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_3: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_3 :?
-            "age  = " :string
-          @builder.append_str :void
-            __sb_3 :?
+          let __sb_3: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_3 :StringBuilder
+            arg1:
+              "age  = " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_3 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  .age :i32
+                    cast → Cat
+                      b :Cat | Dog
+          ~>
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                .age :i32
-                  cast → Cat
-                    b :Cat | Dog
-          ~>
-            @builder.finish :string
-              __sb_3 :?
+                __sb_3 :StringBuilder
     return int(0) :i32

@@ -234,21 +234,34 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_3: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_3 :?
-            "a..=e count = " :string
-          @builder.append_str :void
-            __sb_3 :?
+          let __sb_3: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_3 :StringBuilder
+            arg1:
+              "a..=e count = " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_3 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  n :i32
+          ~>
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                n :i32
-          ~>
-            @builder.finish :string
-              __sb_3 :?
+                __sb_3 :StringBuilder
     let m: i32 = int(0) :i32
     block :void
       let __iter_5: Range<char> =
@@ -290,19 +303,32 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_7: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_7 :?
-            "0..<5 count = " :string
-          @builder.append_str :void
-            __sb_7 :?
+          let __sb_7: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_7 :StringBuilder
+            arg1:
+              "0..<5 count = " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_7 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  m :i32
+          ~>
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                m :i32
-          ~>
-            @builder.finish :string
-              __sb_7 :?
+                __sb_7 :StringBuilder
     return int(0) :i32

@@ -15,25 +15,38 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_0: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_0 :?
-            "exists: " :string
-          @builder.append_str :void
-            __sb_0 :?
+          let __sb_0: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              "exists: " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$bool$Display$to_string :string
+                arg0:
+                  call :bool
+                    callee:
+                      exists :fn(string) -> bool
+                    arg0:
+                      path :string
+          ~>
             call :string
               callee:
-                std_core$bool$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                call :bool
-                  callee:
-                    exists :fn(string) -> bool
-                  arg0:
-                    path :string
-          ~>
-            @builder.finish :string
-              __sb_0 :?
+                __sb_0 :StringBuilder
     let contents: Error | string =
       call :Error | string
         callee:
@@ -54,22 +67,35 @@
                   std_io$std_io$println__string :void
                 arg0:
                   block :string
-                    let __sb_2: ? =
-                      @builder.new :?
-                    @builder.append_str :void
-                      __sb_2 :?
-                      "read: " :string
-                    @builder.append_str :void
-                      __sb_2 :?
+                    let __sb_2: StringBuilder =
+                      call :StringBuilder
+                        callee:
+                          new_builder :StringBuilder
+                    call :void
+                      callee:
+                        append :void
+                      arg0:
+                        __sb_2 :StringBuilder
+                      arg1:
+                        "read: " :string
+                    call :void
+                      callee:
+                        append :void
+                      arg0:
+                        __sb_2 :StringBuilder
+                      arg1:
+                        call :string
+                          callee:
+                            std_core$string$Display$to_string :string
+                          arg0:
+                            cast → string
+                              contents :Error | string
+                    ~>
                       call :string
                         callee:
-                          std_core$string$Display$to_string :string
+                          std_string_builder$StringBuilder$Display$to_string :string
                         arg0:
-                          cast → string
-                            contents :Error | string
-                    ~>
-                      @builder.finish :string
-                        __sb_2 :?
+                          __sb_2 :StringBuilder
           else:
             ~>
               if :void

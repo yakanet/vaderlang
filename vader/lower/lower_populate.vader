@@ -66,6 +66,27 @@ populate_core_symbols :: fn(typed: TypedProject, project_ctx: LowerProjectCtx) -
                 string_table[entry.name] = entry
             }
         }
+        // `std/string_builder`'s top-level symbols : copy under
+        // `string_builder_symbols` so `lower_string_lit` can resolve
+        // `new_builder` / `append` when desugaring `${...}` to StringBuilder
+        // calls (Target ABI S4).
+        if module_typed.resolved.display_path == "std/string_builder" {
+            sb_table :: ensure_string_builder_table(project_ctx)
+            for entry in module_typed.resolved.symbols {
+                sb_table[entry.name] = entry
+            }
+        }
+    }
+}
+
+ensure_string_builder_table :: fn(project_ctx: LowerProjectCtx) -> MutableMap<string, Symbol> {
+    match project_ctx.string_builder_symbols {
+        is null -> {
+            table :: MutableMap<string, Symbol> {}
+            project_ctx.string_builder_symbols = table
+            return table
+        }
+        is MutableMap<string, Symbol> as existing -> { return existing }
     }
 }
 

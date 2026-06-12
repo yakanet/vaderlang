@@ -8,33 +8,54 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_0: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_0 :?
-            "u64: " :string
-          @builder.append_str :void
-            __sb_0 :?
-            call :string
+          let __sb_0: StringBuilder =
+            call :StringBuilder
               callee:
-                std_core$u64$Display$to_string :string
-              arg0:
-                cast → u64
-                  big :u32
-          @builder.append_str :void
-            __sb_0 :?
-            " i64: " :string
-          @builder.append_str :void
-            __sb_0 :?
-            call :string
-              callee:
-                std_core$i64$Display$to_string :string
-              arg0:
-                cast → i64
-                  big :u32
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              "u64: " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$u64$Display$to_string :string
+                arg0:
+                  cast → u64
+                    big :u32
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              " i64: " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i64$Display$to_string :string
+                arg0:
+                  cast → i64
+                    big :u32
           ~>
-            @builder.finish :string
-              __sb_0 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_0 :StringBuilder
     let max32: u32 = int(4294967295) :u32
     let pow31: u32 = int(2147483648) :u32
     call :void
@@ -42,33 +63,54 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_1: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_1 :?
-            "max: " :string
-          @builder.append_str :void
-            __sb_1 :?
-            call :string
+          let __sb_1: StringBuilder =
+            call :StringBuilder
               callee:
-                std_core$u64$Display$to_string :string
-              arg0:
-                cast → u64
-                  max32 :u32
-          @builder.append_str :void
-            __sb_1 :?
-            " pow31: " :string
-          @builder.append_str :void
-            __sb_1 :?
-            call :string
-              callee:
-                std_core$u64$Display$to_string :string
-              arg0:
-                cast → u64
-                  pow31 :u32
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              "max: " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$u64$Display$to_string :string
+                arg0:
+                  cast → u64
+                    max32 :u32
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              " pow31: " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$u64$Display$to_string :string
+                arg0:
+                  cast → u64
+                    pow31 :u32
           ~>
-            @builder.finish :string
-              __sb_1 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_1 :StringBuilder
     let b8: u8 = int(200) :u8
     let s16: u16 = int(65000) :u16
     call :void
@@ -76,33 +118,54 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_2: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_2 :?
-            "u8: " :string
-          @builder.append_str :void
-            __sb_2 :?
-            call :string
+          let __sb_2: StringBuilder =
+            call :StringBuilder
               callee:
-                std_core$u64$Display$to_string :string
-              arg0:
-                cast → u64
-                  b8 :u8
-          @builder.append_str :void
-            __sb_2 :?
-            " u16: " :string
-          @builder.append_str :void
-            __sb_2 :?
-            call :string
-              callee:
-                std_core$u64$Display$to_string :string
-              arg0:
-                cast → u64
-                  s16 :u16
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              "u8: " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$u64$Display$to_string :string
+                arg0:
+                  cast → u64
+                    b8 :u8
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              " u16: " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$u64$Display$to_string :string
+                arg0:
+                  cast → u64
+                    s16 :u16
           ~>
-            @builder.finish :string
-              __sb_2 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_2 :StringBuilder
     let umax: u64 = int(18446744073709551615) :u64
     let sz: usize = int(9000000000) :usize
     call :void
@@ -110,29 +173,50 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_3: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_3 :?
-            "u64max: " :string
-          @builder.append_str :void
-            __sb_3 :?
-            call :string
+          let __sb_3: StringBuilder =
+            call :StringBuilder
               callee:
-                std_core$u64$Display$to_string :string
-              arg0:
-                umax :u64
-          @builder.append_str :void
-            __sb_3 :?
-            " usize: " :string
-          @builder.append_str :void
-            __sb_3 :?
-            call :string
-              callee:
-                std_core$usize$Display$to_string :string
-              arg0:
-                sz :usize
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_3 :StringBuilder
+            arg1:
+              "u64max: " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_3 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$u64$Display$to_string :string
+                arg0:
+                  umax :u64
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_3 :StringBuilder
+            arg1:
+              " usize: " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_3 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$usize$Display$to_string :string
+                arg0:
+                  sz :usize
           ~>
-            @builder.finish :string
-              __sb_3 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_3 :StringBuilder
     return int(0) :i32

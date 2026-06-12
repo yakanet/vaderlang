@@ -132,8 +132,8 @@ fn snippet$main() -> i32
     %7 $k_7: i32
     %8 $k_8: string
     %9 $k_9: i32
-    %10 $intrinsic_10: ?
-    %11 __sb_0: ? (synthetic __sb_0)
+    %10 $call_10: StringBuilder
+    %11 __sb_0: StringBuilder (synthetic __sb_0)
     %12 $k_12: string
     %13 $k_13: string
     %14 $call_14: i32
@@ -146,7 +146,7 @@ fn snippet$main() -> i32
     %21 $k_21: string
     %22 $call_22: i32
     %23 $call_23: string
-    %24 $intrinsic_24: string
+    %24 $call_24: string
     %25 $k_25: i32
   bb0:
     %0 = array_new string[][0]()
@@ -162,27 +162,27 @@ fn snippet$main() -> i32
     %8 = const string(#1) :string
     %9 = const int(100) :i32
     call snippet$Cell$IndexSet$set_at(%3, %8, %9) :void
-    %10 = intrinsic builder.new()
+    %10 = call new_builder() :StringBuilder
     %11 = move %10
     %12 = const string(#3) :string
-    intrinsic builder.append_str(%11, %12)
+    call append(%11, %12) :void
     %13 = const string(#1) :string
     %14 = call snippet$Cell$Index$at(%3, %13) :i32
     %15 = call std_core$i32$Display$to_string(%14) :string
-    intrinsic builder.append_str(%11, %15)
+    call append(%11, %15) :void
     %16 = const string(#4) :string
-    intrinsic builder.append_str(%11, %16)
+    call append(%11, %16) :void
     %17 = const string(#2) :string
     %18 = call snippet$Cell$Index$at(%3, %17) :i32
     %19 = call std_core$i32$Display$to_string(%18) :string
-    intrinsic builder.append_str(%11, %19)
+    call append(%11, %19) :void
     %20 = const string(#5) :string
-    intrinsic builder.append_str(%11, %20)
+    call append(%11, %20) :void
     %21 = const string(#6) :string
     %22 = call snippet$Cell$Index$at(%3, %21) :i32
     %23 = call std_core$i32$Display$to_string(%22) :string
-    intrinsic builder.append_str(%11, %23)
-    %24 = intrinsic builder.finish(%11)
+    call append(%11, %23) :void
+    %24 = call std_string_builder$StringBuilder$Display$to_string(%11) :string
     call std_io$std_io$println__string(%24) :void
     %25 = const int(0) :i32
     return %25

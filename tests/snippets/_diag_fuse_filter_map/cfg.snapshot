@@ -42,11 +42,11 @@ fn main$main() -> i32
     %9 $add_9: i64
     %10 $k_10: i32
     %11 $add_11: i32
-    %12 $intrinsic_12: ?
-    %13 __sb_1: ? (synthetic __sb_1)
+    %12 $call_12: StringBuilder
+    %13 __sb_1: StringBuilder (synthetic __sb_1)
     %14 $k_14: string
     %15 $call_15: string
-    %16 $intrinsic_16: string
+    %16 $call_16: string
     %17 $k_17: i32
   bb0:
     %0 = const int(0) :i64
@@ -62,13 +62,13 @@ fn main$main() -> i32
     %6 = call is_even(%3) :bool
     cond_branch %6 ? bb4 : bb5
   bb3:
-    %12 = intrinsic builder.new()
+    %12 = call new_builder() :StringBuilder
     %13 = move %12
     %14 = const string(#13) :string
-    intrinsic builder.append_str(%13, %14)
+    call append(%13, %14) :void
     %15 = call std_core$i64$Display$to_string(%1) :string
-    intrinsic builder.append_str(%13, %15)
-    %16 = intrinsic builder.finish(%13)
+    call append(%13, %15) :void
+    %16 = call std_string_builder$StringBuilder$Display$to_string(%13) :string
     call std_io$std_io$println__string(%16) :void
     %17 = const int(0) :i32
     return %17

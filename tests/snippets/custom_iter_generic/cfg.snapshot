@@ -18,10 +18,10 @@ fn snippet$main() -> i32
     %11 $field_11: i32
     %12 x: i32 (local x)
     %13 $add_13: i32
-    %14 $intrinsic_14: ?
-    %15 __sb_2: ? (synthetic __sb_2)
+    %14 $call_14: StringBuilder
+    %15 __sb_2: StringBuilder (synthetic __sb_2)
     %16 $call_16: string
-    %17 $intrinsic_17: string
+    %17 $call_17: string
     %18 $k_18: i32
   bb0:
     %0 = const int(42) :i32
@@ -40,11 +40,11 @@ fn snippet$main() -> i32
     %9 = type_check %8 is null
     cond_branch %9 ? bb4 : bb5
   bb3:
-    %14 = intrinsic builder.new()
+    %14 = call new_builder() :StringBuilder
     %15 = move %14
     %16 = call std_core$i32$Display$to_string(%5) :string
-    intrinsic builder.append_str(%15, %16)
-    %17 = intrinsic builder.finish(%15)
+    call append(%15, %16) :void
+    %17 = call std_string_builder$StringBuilder$Display$to_string(%15) :string
     call std_io$std_io$println__string(%17) :void
     %18 = const int(0) :i32
     return %18

@@ -4,39 +4,39 @@
 
 fn snippet$main() -> i32
   locals:
-    %0 $intrinsic_0: ?
-    %1 __sb_0: ? (synthetic __sb_0)
+    %0 $call_0: StringBuilder
+    %1 __sb_0: StringBuilder (synthetic __sb_0)
     %2 $k_2: i32
     %3 $k_3: i32
     %4 $call_4: bool
     %5 $call_5: string
-    %6 $intrinsic_6: string
-    %7 $intrinsic_7: ?
-    %8 __sb_1: ? (synthetic __sb_1)
+    %6 $call_6: string
+    %7 $call_7: StringBuilder
+    %8 __sb_1: StringBuilder (synthetic __sb_1)
     %9 $k_9: i32
     %10 $k_10: i32
     %11 $call_11: bool
     %12 $call_12: string
-    %13 $intrinsic_13: string
+    %13 $call_13: string
     %14 $k_14: i32
   bb0:
-    %0 = intrinsic builder.new()
+    %0 = call new_builder() :StringBuilder
     %1 = move %0
     %2 = const int(1) :i32
     %3 = const int(1) :i32
     %4 = call snippet$snippet$are_eq__i32(%2, %3) :bool
     %5 = call std_core$bool$Display$to_string(%4) :string
-    intrinsic builder.append_str(%1, %5)
-    %6 = intrinsic builder.finish(%1)
+    call append(%1, %5) :void
+    %6 = call std_string_builder$StringBuilder$Display$to_string(%1) :string
     call std_io$std_io$println__string(%6) :void
-    %7 = intrinsic builder.new()
+    %7 = call new_builder() :StringBuilder
     %8 = move %7
     %9 = const int(1) :i32
     %10 = const int(2) :i32
     %11 = call snippet$snippet$are_eq__i32(%9, %10) :bool
     %12 = call std_core$bool$Display$to_string(%11) :string
-    intrinsic builder.append_str(%8, %12)
-    %13 = intrinsic builder.finish(%8)
+    call append(%8, %12) :void
+    %13 = call std_string_builder$StringBuilder$Display$to_string(%8) :string
     call std_io$std_io$println__string(%13) :void
     %14 = const int(0) :i32
     return %14

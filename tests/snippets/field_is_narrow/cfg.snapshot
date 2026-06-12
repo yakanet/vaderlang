@@ -68,15 +68,15 @@ fn snippet$main() -> i32
     %16 $struct_16: Block
     %17 $call_17: i32
     %18 via: i32 (local via)
-    %19 $intrinsic_19: ?
-    %20 __sb_0: ? (synthetic __sb_0)
+    %19 $call_19: StringBuilder
+    %20 __sb_0: StringBuilder (synthetic __sb_0)
     %21 $k_21: string
     %22 $call_22: string
     %23 $k_23: string
     %24 $call_24: string
     %25 $k_25: string
     %26 $call_26: string
-    %27 $intrinsic_27: string
+    %27 $call_27: string
     %28 $k_28: i32
   bb0:
     %0 = const int(42) :i32
@@ -98,21 +98,21 @@ fn snippet$main() -> i32
     %16 = struct_new Block(%15)
     %17 = call kind_span(%14, %16) :i32
     %18 = move %17
-    %19 = intrinsic builder.new()
+    %19 = call new_builder() :StringBuilder
     %20 = move %19
     %21 = const string(#4) :string
-    intrinsic builder.append_str(%20, %21)
+    call append(%20, %21) :void
     %22 = call std_core$i32$Display$to_string(%5) :string
-    intrinsic builder.append_str(%20, %22)
+    call append(%20, %22) :void
     %23 = const string(#5) :string
-    intrinsic builder.append_str(%20, %23)
+    call append(%20, %23) :void
     %24 = call std_core$i32$Display$to_string(%10) :string
-    intrinsic builder.append_str(%20, %24)
+    call append(%20, %24) :void
     %25 = const string(#6) :string
-    intrinsic builder.append_str(%20, %25)
+    call append(%20, %25) :void
     %26 = call std_core$i32$Display$to_string(%18) :string
-    intrinsic builder.append_str(%20, %26)
-    %27 = intrinsic builder.finish(%20)
+    call append(%20, %26) :void
+    %27 = call std_string_builder$StringBuilder$Display$to_string(%20) :string
     call std_io$std_io$println__string(%27) :void
     %28 = const int(0) :i32
     return %28

@@ -21,6 +21,8 @@
   @comptime  e                    = 2.718281828459045_f64
   @comptime  pi                   = 3.141592653589793_f64
 
+## stdlib/std/string_builder
+
 ## stdlib/std/testing
 
 ## tests/snippets/std_math

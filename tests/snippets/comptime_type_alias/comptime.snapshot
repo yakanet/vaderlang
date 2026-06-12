@@ -15,6 +15,8 @@
 
 ## stdlib/std/io
 
+## stdlib/std/string_builder
+
 ## tests/snippets/comptime_type_alias
   @comptime  byte_int             = i32
   @comptime  byte_long            = i64

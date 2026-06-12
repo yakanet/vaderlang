@@ -42,8 +42,8 @@ fn snippet$main() -> i32
     %35 $add_35: usize
     %36 $k_36: f64
     %37 pi: f64 (local pi)
-    %38 $intrinsic_38: ?
-    %39 __sb_3: ? (synthetic __sb_3)
+    %38 $call_38: StringBuilder
+    %39 __sb_3: StringBuilder (synthetic __sb_3)
     %40 $k_40: string
     %41 $call_41: string
     %42 $k_42: string
@@ -51,13 +51,13 @@ fn snippet$main() -> i32
     %44 $k_44: f64
     %45 $mul_45: {float}
     %46 $call_46: string
-    %47 $intrinsic_47: string
+    %47 $call_47: string
     %48 $k_48: f64
     %49 $k_49: f64
     %50 $div_50: {float}
     %51 inf: f64 (local inf)
-    %52 $intrinsic_52: ?
-    %53 __sb_4: ? (synthetic __sb_4)
+    %52 $call_52: StringBuilder
+    %53 __sb_4: StringBuilder (synthetic __sb_4)
     %54 $call_54: string
     %55 $k_55: string
     %56 $unop_56: f64
@@ -67,7 +67,7 @@ fn snippet$main() -> i32
     %60 $k_60: f64
     %61 $div_61: {float}
     %62 $call_62: string
-    %63 $intrinsic_63: string
+    %63 $call_63: string
     %64 $k_64: i32
   bb0:
     %0 = const float(0.0) :f64
@@ -116,42 +116,42 @@ fn snippet$main() -> i32
   bb3:
     %36 = const float(3.141592653589793) :f64
     %37 = move %36
-    %38 = intrinsic builder.new()
+    %38 = call new_builder() :StringBuilder
     %39 = move %38
     %40 = const string(#1) :string
-    intrinsic builder.append_str(%39, %40)
+    call append(%39, %40) :void
     %41 = call std_core$f64$Display$to_string(%37) :string
-    intrinsic builder.append_str(%39, %41)
+    call append(%39, %41) :void
     %42 = const string(#2) :string
-    intrinsic builder.append_str(%39, %42)
+    call append(%39, %42) :void
     %43 = const float(2.5e-8) :f64
     %44 = const float(1.0) :f64
     %45 = binop 2 %43 %44 :{float}
     %46 = call std_core$f64$Display$to_string(%45) :string
-    intrinsic builder.append_str(%39, %46)
-    %47 = intrinsic builder.finish(%39)
+    call append(%39, %46) :void
+    %47 = call std_string_builder$StringBuilder$Display$to_string(%39) :string
     call std_io$std_io$println__string(%47) :void
     %48 = const float(1.0) :f64
     %49 = const float(0.0) :f64
     %50 = binop 3 %48 %49 :{float}
     %51 = move %50
-    %52 = intrinsic builder.new()
+    %52 = call new_builder() :StringBuilder
     %53 = move %52
     %54 = call std_core$f64$Display$to_string(%51) :string
-    intrinsic builder.append_str(%53, %54)
+    call append(%53, %54) :void
     %55 = const string(#3) :string
-    intrinsic builder.append_str(%53, %55)
+    call append(%53, %55) :void
     %56 = unop 0 %51 :f64
     %57 = call std_core$f64$Display$to_string(%56) :string
-    intrinsic builder.append_str(%53, %57)
+    call append(%53, %57) :void
     %58 = const string(#3) :string
-    intrinsic builder.append_str(%53, %58)
+    call append(%53, %58) :void
     %59 = const float(0.0) :f64
     %60 = const float(0.0) :f64
     %61 = binop 3 %59 %60 :{float}
     %62 = call std_core$f64$Display$to_string(%61) :string
-    intrinsic builder.append_str(%53, %62)
-    %63 = intrinsic builder.finish(%53)
+    call append(%53, %62) :void
+    %63 = call std_string_builder$StringBuilder$Display$to_string(%53) :string
     call std_io$std_io$println__string(%63) :void
     %64 = const int(0) :i32
     return %64

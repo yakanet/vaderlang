@@ -9,8 +9,8 @@ fn snippet$main() -> i32
     %2 $k_2: bool
     %3 $struct_3: [i32, string, bool]
     %4 triple: [i32, string, bool] (local triple)
-    %5 $intrinsic_5: ?
-    %6 __sb_0: ? (synthetic __sb_0)
+    %5 $call_5: StringBuilder
+    %6 __sb_0: StringBuilder (synthetic __sb_0)
     %7 $field_7: i32
     %8 $call_8: string
     %9 $k_9: string
@@ -19,15 +19,15 @@ fn snippet$main() -> i32
     %12 $k_12: string
     %13 $field_13: bool
     %14 $call_14: string
-    %15 $intrinsic_15: string
+    %15 $call_15: string
     %16 $k_16: i32
     %17 $k_17: string
     %18 $k_18: bool
     %19 $k_19: f64
     %20 $struct_20: [i32, string, bool, f64]
     %21 quad: [i32, string, bool, f64] (local quad)
-    %22 $intrinsic_22: ?
-    %23 __sb_1: ? (synthetic __sb_1)
+    %22 $call_22: StringBuilder
+    %23 __sb_1: StringBuilder (synthetic __sb_1)
     %24 $field_24: i32
     %25 $call_25: string
     %26 $k_26: string
@@ -39,7 +39,7 @@ fn snippet$main() -> i32
     %32 $k_32: string
     %33 $field_33: f64
     %34 $call_34: string
-    %35 $intrinsic_35: string
+    %35 $call_35: string
     %36 $k_36: i32
   bb0:
     %0 = const int(1) :i32
@@ -47,22 +47,22 @@ fn snippet$main() -> i32
     %2 = const bool(true) :bool
     %3 = struct_new [i32, string, bool](%0, %1, %2)
     %4 = move %3
-    %5 = intrinsic builder.new()
+    %5 = call new_builder() :StringBuilder
     %6 = move %5
     %7 = field_get %4._0 :i32
     %8 = call std_core$i32$Display$to_string(%7) :string
-    intrinsic builder.append_str(%6, %8)
+    call append(%6, %8) :void
     %9 = const string(#2) :string
-    intrinsic builder.append_str(%6, %9)
+    call append(%6, %9) :void
     %10 = field_get %4._1 :string
     %11 = call std_core$string$Display$to_string(%10) :string
-    intrinsic builder.append_str(%6, %11)
+    call append(%6, %11) :void
     %12 = const string(#2) :string
-    intrinsic builder.append_str(%6, %12)
+    call append(%6, %12) :void
     %13 = field_get %4._2 :bool
     %14 = call std_core$bool$Display$to_string(%13) :string
-    intrinsic builder.append_str(%6, %14)
-    %15 = intrinsic builder.finish(%6)
+    call append(%6, %14) :void
+    %15 = call std_string_builder$StringBuilder$Display$to_string(%6) :string
     call std_io$std_io$println__string(%15) :void
     %16 = const int(9) :i32
     %17 = const string(#3) :string
@@ -70,27 +70,27 @@ fn snippet$main() -> i32
     %19 = const float(3.14) :f64
     %20 = struct_new [i32, string, bool, f64](%16, %17, %18, %19)
     %21 = move %20
-    %22 = intrinsic builder.new()
+    %22 = call new_builder() :StringBuilder
     %23 = move %22
     %24 = field_get %21._0 :i32
     %25 = call std_core$i32$Display$to_string(%24) :string
-    intrinsic builder.append_str(%23, %25)
+    call append(%23, %25) :void
     %26 = const string(#2) :string
-    intrinsic builder.append_str(%23, %26)
+    call append(%23, %26) :void
     %27 = field_get %21._1 :string
     %28 = call std_core$string$Display$to_string(%27) :string
-    intrinsic builder.append_str(%23, %28)
+    call append(%23, %28) :void
     %29 = const string(#2) :string
-    intrinsic builder.append_str(%23, %29)
+    call append(%23, %29) :void
     %30 = field_get %21._2 :bool
     %31 = call std_core$bool$Display$to_string(%30) :string
-    intrinsic builder.append_str(%23, %31)
+    call append(%23, %31) :void
     %32 = const string(#2) :string
-    intrinsic builder.append_str(%23, %32)
+    call append(%23, %32) :void
     %33 = field_get %21._3 :f64
     %34 = call std_core$f64$Display$to_string(%33) :string
-    intrinsic builder.append_str(%23, %34)
-    %35 = intrinsic builder.finish(%23)
+    call append(%23, %34) :void
+    %35 = call std_string_builder$StringBuilder$Display$to_string(%23) :string
     call std_io$std_io$println__string(%35) :void
     %36 = const int(0) :i32
     return %36

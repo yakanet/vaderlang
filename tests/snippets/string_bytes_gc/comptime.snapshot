@@ -17,6 +17,8 @@
 
 ## stdlib/std/runtime
 
+## stdlib/std/string_builder
+
 ## tests/snippets/string_bytes_gc
 
 ## generic instances

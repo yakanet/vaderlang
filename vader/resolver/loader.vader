@@ -168,28 +168,25 @@ export load_project_with_overlay :: fn(entry_path: string, overlay: MutableMap<s
                 }
                 _ -> {}
             }
-            cursor: usize = 0
-            for cursor < queue.len() {
-                m :: queue[cursor]
-                cursor = cursor + 1
-                id :: m.folder
-                if has_module(modules, id) { continue }
-                ingest_module(m, stdlib_root, modules, factory, index, loader_diags, overlay, node_factory)
-                ingested :: modules[id]
-                match ingested {
-                    is null -> {}
-                    is LoadedModule as lm -> {
-                        for raw in lm.collected.import_paths {
-                            target :: index[raw]
-                            match target {
-                                is DiscoveredModule as t -> {
-                                    if !has_module(modules, t.folder) { queue.push(t) }
-                                }
-                                _ -> {}
-                            }
-                        }
+            drain_load_queue(queue, stdlib_root, modules, factory, index, loader_diags, overlay, node_factory)
+            // Force-load `std/string_builder` AFTER the natural BFS (Target ABI
+            // S4): string interpolation `"${...}"` desugars to its `new_builder`/
+            // `append`/`to_string` calls in the lowerer, a dependency not visible
+            // as a source import. Appending it last (rather than seeding it early)
+            // keeps the natural module load order — and thus symbol-id assignment
+            // — identical to a build without the force-load, so it never perturbs
+            // materialisation for entries that already load it (e.g.
+            // bootstrap.vader strands `build_stmt` if string_builder is seeded
+            // early). Unused-when-no-interp code is DCE'd.
+            string_builder :: index["std/string_builder"]
+            match string_builder {
+                is DiscoveredModule as sbm -> {
+                    if !has_module(modules, sbm.folder) {
+                        sb_queue: DiscoveredModule[] = [sbm]
+                        drain_load_queue(sb_queue, stdlib_root, modules, factory, index, loader_diags, overlay, node_factory)
                     }
                 }
+                _ -> {}
             }
             return LoadedProject {
                 .entry = em.folder, .modules = modules, .factory = factory,
@@ -205,6 +202,41 @@ export load_project_with_overlay :: fn(entry_path: string, overlay: MutableMap<s
 // SourceFile + CollectedModule the resolver / typechecker downstream
 // expect. `index` lets `collect_files` resolve each import path and
 // emit R2001/R2024/R2025/R2028 with the right span.
+// BFS-drain a work-queue of discovered modules: ingest each not-yet-loaded
+// module, then enqueue its imports. Shared by the entry BFS and the
+// std/string_builder force-load so both follow identical ingestion logic
+// (and so the force-load can run as a separate, order-preserving pass).
+drain_load_queue :: fn(
+    queue: DiscoveredModule[], stdlib_root: string,
+    modules: MutableMap<string, LoadedModule>, factory: SymbolFactory,
+    index: MutableMap<string, DiscoveredModule>, diags: Diagnostic[],
+    overlay: MutableMap<string, string>, node_factory: NodeIdFactory,
+) -> void {
+    cursor: usize = 0
+    for cursor < queue.len() {
+        m :: queue[cursor]
+        cursor = cursor + 1
+        id :: m.folder
+        if has_module(modules, id) { continue }
+        ingest_module(m, stdlib_root, modules, factory, index, diags, overlay, node_factory)
+        ingested :: modules[id]
+        match ingested {
+            is null -> {}
+            is LoadedModule as lm -> {
+                for raw in lm.collected.import_paths {
+                    target :: index[raw]
+                    match target {
+                        is DiscoveredModule as t -> {
+                            if !has_module(modules, t.folder) { queue.push(t) }
+                        }
+                        _ -> {}
+                    }
+                }
+            }
+        }
+    }
+}
+
 ingest_module :: fn(
     m: DiscoveredModule, stdlib_root: string,
     modules: MutableMap<string, LoadedModule>, factory: SymbolFactory,

@@ -345,7 +345,7 @@ fn 1 std_numbers$to_hex (u64) -> string
         local.set 5
         local.get 6
         local.get 5
-        call 79
+        call 81
         i64.const 1
         local.set 11
         local.get 8
@@ -363,22 +363,21 @@ fn 1 std_numbers$to_hex (u64) -> string
 end
 
 fn 2 std_numbers$to_compact_str (f64) -> string
-  local __sb_0 any
+  local __sb_0 ref
   local $call_3 string
-  local sb ref
   local $k_10 usize
   local $len_11 usize
   local $k_12 usize
-  intrinsic builder.new
+  call 77
   local.set 1
   local.get 0
   call 8
   local.set 2
   local.get 1
   local.get 2
-  intrinsic builder.append_str
+  call 78
   local.get 1
-  intrinsic builder.finish
+  call 83
   local.set 2
   local.get 2
   string.const 1
@@ -386,21 +385,21 @@ fn 2 std_numbers$to_compact_str (f64) -> string
   if $L0 void
     local.get 2
     call.import 1
-    local.set 3
+    local.set 1
     i64.const 0
-    local.set 4
-    local.get 3
+    local.set 3
+    local.get 1
     array.len
-    local.set 5
+    local.set 4
     i64.const 2
-    local.set 6
-    local.get 5
-    local.get 6
-    i64.sub
     local.set 5
-    local.get 3
     local.get 4
     local.get 5
+    i64.sub
+    local.set 4
+    local.get 1
+    local.get 3
+    local.get 4
     array.slice 23
     call.import 3
     return
@@ -7476,7 +7475,7 @@ fn 46 std_string$pad_start (string,usize,char) -> string
       if $L3 void
         local.get 4
         local.get 2
-        call 79
+        call 81
         i64.const 1
         local.set 5
         local.get 3
@@ -8927,7 +8926,7 @@ fn 66 std_json$write_object (ref,ref,i32,i32) -> void
   end $L0
   local.get 0
   char.const 123
-  call 79
+  call 81
   local.field 1 46 0
   call 91
   local.set 6
@@ -8964,7 +8963,7 @@ fn 66 std_json$write_object (ref,ref,i32,i32) -> void
         if $L4 void
           local.get 0
           char.const 44
-          call 79
+          call 81
         else
         end $L4
         local.get 3
@@ -8987,7 +8986,7 @@ fn 66 std_json$write_object (ref,ref,i32,i32) -> void
         if $L5 void
           local.get 0
           char.const 32
-          call 79
+          call 81
         else
         end $L5
         local.get 3
@@ -9018,7 +9017,7 @@ fn 66 std_json$write_object (ref,ref,i32,i32) -> void
   call 73
   local.get 0
   char.const 125
-  call 79
+  call 81
   return
 end
 
@@ -9047,7 +9046,7 @@ fn 67 std_json$write_array (ref,ref,i32,i32) -> void
   end $L0
   local.get 0
   char.const 91
-  call 79
+  call 81
   bool.const true
   local.set 6
   local.field 1 41 0
@@ -9071,7 +9070,7 @@ fn 67 std_json$write_array (ref,ref,i32,i32) -> void
         if $L4 void
           local.get 0
           char.const 44
-          call 79
+          call 81
         else
         end $L4
         local.get 3
@@ -9110,7 +9109,7 @@ fn 67 std_json$write_array (ref,ref,i32,i32) -> void
   call 73
   local.get 0
   char.const 93
-  call 79
+  call 81
   return
 end
 
@@ -9124,7 +9123,7 @@ fn 68 std_json$write_string (ref,string) -> void
   local $call_36 string
   local.get 0
   char.const 34
-  call 79
+  call 81
   local.get 1
   call 45
   local.set 2
@@ -9207,7 +9206,7 @@ fn 68 std_json$write_string (ref,string) -> void
                   else
                     local.get 0
                     local.get 4
-                    call 79
+                    call 81
                   end $L8
                 end $L7
               end $L6
@@ -9220,7 +9219,7 @@ fn 68 std_json$write_string (ref,string) -> void
   end $L0
   local.get 0
   char.const 34
-  call 79
+  call 81
   return
 end
 
@@ -9323,7 +9322,7 @@ fn 71 std_json$parse_string_with_escapes (ref,ref) -> ref
           if $L6 void
             local.get 1
             char.const 34
-            call 79
+            call 81
             br $L1
           end $L6
           local.get 3
@@ -9332,7 +9331,7 @@ fn 71 std_json$parse_string_with_escapes (ref,ref) -> ref
           if $L7 void
             local.get 1
             char.const 92
-            call 79
+            call 81
             br $L1
           end $L7
           local.get 3
@@ -9341,7 +9340,7 @@ fn 71 std_json$parse_string_with_escapes (ref,ref) -> ref
           if $L8 void
             local.get 1
             char.const 47
-            call 79
+            call 81
             br $L1
           end $L8
           local.get 3
@@ -9350,7 +9349,7 @@ fn 71 std_json$parse_string_with_escapes (ref,ref) -> ref
           if $L9 void
             local.get 1
             char.const 10
-            call 79
+            call 81
             br $L1
           end $L9
           local.get 3
@@ -9359,7 +9358,7 @@ fn 71 std_json$parse_string_with_escapes (ref,ref) -> ref
           if $L10 void
             local.get 1
             char.const 9
-            call 79
+            call 81
             br $L1
           end $L10
           local.get 3
@@ -9368,7 +9367,7 @@ fn 71 std_json$parse_string_with_escapes (ref,ref) -> ref
           if $L11 void
             local.get 1
             char.const 13
-            call 79
+            call 81
             br $L1
           end $L11
           local.get 3
@@ -9380,7 +9379,7 @@ fn 71 std_json$parse_string_with_escapes (ref,ref) -> ref
             local.set 4
             local.get 1
             local.get 4
-            call 79
+            call 81
             br $L1
           end $L12
           local.get 3
@@ -9392,7 +9391,7 @@ fn 71 std_json$parse_string_with_escapes (ref,ref) -> ref
             local.set 5
             local.get 1
             local.get 5
-            call 79
+            call 81
             br $L1
           end $L13
           local.get 3
@@ -9487,7 +9486,7 @@ fn 71 std_json$parse_string_with_escapes (ref,ref) -> ref
             local.set 20
             local.get 1
             local.get 20
-            call 79
+            call 81
             br $L1
           end $L14
           local.get 0
@@ -9497,7 +9496,7 @@ fn 71 std_json$parse_string_with_escapes (ref,ref) -> ref
         end $L4
         local.get 1
         local.get 2
-        call 79
+        call 81
         local.get 0
         call 65
         br $L1
@@ -9602,7 +9601,7 @@ fn 73 std_json$write_indent (ref,i32,i32) -> void
   end $L0
   local.get 0
   char.const 10
-  call 79
+  call 81
   local.get 1
   local.get 2
   i32.mul
@@ -9610,7 +9609,7 @@ fn 73 std_json$write_indent (ref,i32,i32) -> void
   local.get 0
   char.const 32
   local.get 3
-  call 81
+  call 82
   return
 end
 
@@ -9631,7 +9630,7 @@ end
 fn 75 snippet$show (string,string) -> void
   local parsed ref
   local __scrut_0 ref
-  local __sb_7 any
+  local __sb_7 ref
   local $call_8 string
   local.get 1
   call 50
@@ -9639,17 +9638,17 @@ fn 75 snippet$show (string,string) -> void
   local.tee 3
   type_check 43
   if $L0 void
-    intrinsic builder.new
+    call 77
     local.set 4
     local.get 0
     call 7
     local.set 5
     local.get 4
     local.get 5
-    intrinsic builder.append_str
+    call 78
     local.get 4
     string.const 53
-    intrinsic builder.append_str
+    call 78
     local.get 2
     struct.get 43 0
     ref.cast 1
@@ -9657,165 +9656,165 @@ fn 75 snippet$show (string,string) -> void
     local.set 5
     local.get 4
     local.get 5
-    intrinsic builder.append_str
+    call 78
     local.get 4
-    intrinsic builder.finish
+    call 83
     call 74
     return
   end $L0
   local.get 3
   type_check 47
   if $L1 void
-    intrinsic builder.new
+    call 77
     local.set 4
     local.get 0
     call 7
     local.set 5
     local.get 4
     local.get 5
-    intrinsic builder.append_str
+    call 78
     local.get 4
     string.const 54
-    intrinsic builder.append_str
+    call 78
     local.get 2
     call 51
     call 7
     local.set 5
     local.get 4
     local.get 5
-    intrinsic builder.append_str
+    call 78
     local.get 4
-    intrinsic builder.finish
+    call 83
     call 74
     return
   end $L1
   local.get 3
   type_check 45
   if $L2 void
-    intrinsic builder.new
+    call 77
     local.set 4
     local.get 0
     call 7
     local.set 5
     local.get 4
     local.get 5
-    intrinsic builder.append_str
+    call 78
     local.get 4
     string.const 54
-    intrinsic builder.append_str
+    call 78
     local.get 2
     call 51
     call 7
     local.set 5
     local.get 4
     local.get 5
-    intrinsic builder.append_str
+    call 78
     local.get 4
-    intrinsic builder.finish
+    call 83
     call 74
     return
   end $L2
   local.get 3
   type_check 42
   if $L3 void
-    intrinsic builder.new
+    call 77
     local.set 4
     local.get 0
     call 7
     local.set 5
     local.get 4
     local.get 5
-    intrinsic builder.append_str
+    call 78
     local.get 4
     string.const 54
-    intrinsic builder.append_str
+    call 78
     local.get 2
     call 51
     call 7
     local.set 5
     local.get 4
     local.get 5
-    intrinsic builder.append_str
+    call 78
     local.get 4
-    intrinsic builder.finish
+    call 83
     call 74
     return
   end $L3
   local.get 3
   type_check 44
   if $L4 void
-    intrinsic builder.new
+    call 77
     local.set 4
     local.get 0
     call 7
     local.set 5
     local.get 4
     local.get 5
-    intrinsic builder.append_str
+    call 78
     local.get 4
     string.const 54
-    intrinsic builder.append_str
+    call 78
     local.get 2
     call 51
     call 7
     local.set 5
     local.get 4
     local.get 5
-    intrinsic builder.append_str
+    call 78
     local.get 4
-    intrinsic builder.finish
+    call 83
     call 74
     return
   end $L4
   local.get 3
   type_check 41
   if $L5 void
-    intrinsic builder.new
+    call 77
     local.set 4
     local.get 0
     call 7
     local.set 5
     local.get 4
     local.get 5
-    intrinsic builder.append_str
+    call 78
     local.get 4
     string.const 54
-    intrinsic builder.append_str
+    call 78
     local.get 2
     call 51
     call 7
     local.set 5
     local.get 4
     local.get 5
-    intrinsic builder.append_str
+    call 78
     local.get 4
-    intrinsic builder.finish
+    call 83
     call 74
     return
   end $L5
   local.get 3
   type_check 46
   if $L6 void
-    intrinsic builder.new
-    local.set 4
+    call 77
+    local.set 3
     local.get 0
     call 7
     local.set 5
-    local.get 4
+    local.get 3
     local.get 5
-    intrinsic builder.append_str
-    local.get 4
+    call 78
+    local.get 3
     string.const 54
-    intrinsic builder.append_str
+    call 78
     local.get 2
     call 51
     call 7
     local.set 5
-    local.get 4
+    local.get 3
     local.get 5
-    intrinsic builder.append_str
-    local.get 4
-    intrinsic builder.finish
+    call 78
+    local.get 3
+    call 83
     call 74
     return
   end $L6
@@ -9895,22 +9894,11 @@ fn 78 std_string_builder$append (ref,string) -> void
   local.set 2
   local.get 0
   local.get 2
-  call 80
+  call 79
   return
 end
 
-fn 79 std_string_builder$append_char (ref,char) -> void
-  local $call_2 ref
-  local.get 1
-  call 6
-  local.set 2
-  local.get 0
-  local.get 2
-  call 80
-  return
-end
-
-fn 80 std_string_builder$append_bytes (ref,ref) -> void
+fn 79 std_string_builder$append_bytes (ref,ref) -> void
   local n usize
   local $add_5 usize
   local $field_9 ref
@@ -9927,7 +9915,7 @@ fn 80 std_string_builder$append_bytes (ref,ref) -> void
   local.set 3
   local.get 0
   local.get 3
-  call 82
+  call 80
   i64.const 0
   local.set 3
   block $L0 void
@@ -9974,32 +9962,7 @@ fn 80 std_string_builder$append_bytes (ref,ref) -> void
   return
 end
 
-fn 81 std_string_builder$append_repeated (ref,char,i32) -> void
-  local _ i32
-  i32.const 0
-  local.set 3
-  block $L0 void
-    loop $L1 void
-      local.get 3
-      local.get 2
-      i32.lt
-      if $L2 void
-        local.get 0
-        local.get 1
-        call 79
-        local.get 3
-        i32.const 1
-        i32.add
-        local.set 3
-        br $L1
-      else
-      end $L2
-    end $L1
-  end $L0
-  return
-end
-
-fn 82 std_string_builder$ensure_capacity (ref,usize) -> void
+fn 80 std_string_builder$ensure_capacity (ref,usize) -> void
   local $field_2 usize
   local $k_5 usize
   local new_buf ref
@@ -10055,6 +10018,42 @@ fn 82 std_string_builder$ensure_capacity (ref,usize) -> void
   local.get 0
   local.get 2
   struct.set 50 2
+  return
+end
+
+fn 81 std_string_builder$append_char (ref,char) -> void
+  local $call_2 ref
+  local.get 1
+  call 6
+  local.set 2
+  local.get 0
+  local.get 2
+  call 79
+  return
+end
+
+fn 82 std_string_builder$append_repeated (ref,char,i32) -> void
+  local i i32
+  i32.const 0
+  local.set 3
+  block $L0 void
+    loop $L1 void
+      local.get 3
+      local.get 2
+      i32.lt
+      if $L2 void
+        local.get 0
+        local.get 1
+        call 81
+        local.get 3
+        i32.const 1
+        i32.add
+        local.set 3
+        br $L1
+      else
+      end $L2
+    end $L1
+  end $L0
   return
 end
 

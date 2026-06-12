@@ -14,11 +14,11 @@ fn snippet$main() -> i32
     %7 $add_7: u64
     %8 $k_8: u64
     %9 $add_9: u64
-    %10 $intrinsic_10: ?
-    %11 __sb_0: ? (synthetic __sb_0)
+    %10 $call_10: StringBuilder
+    %11 __sb_0: StringBuilder (synthetic __sb_0)
     %12 $k_12: string
     %13 $call_13: string
-    %14 $intrinsic_14: string
+    %14 $call_14: string
     %15 $k_15: i64
     %16 ni: i64 (local ni)
     %17 $k_17: i64
@@ -29,11 +29,11 @@ fn snippet$main() -> i32
     %22 $add_22: i64
     %23 $k_23: i64
     %24 $add_24: i64
-    %25 $intrinsic_25: ?
-    %26 __sb_1: ? (synthetic __sb_1)
+    %25 $call_25: StringBuilder
+    %26 __sb_1: StringBuilder (synthetic __sb_1)
     %27 $k_27: string
     %28 $call_28: string
-    %29 $intrinsic_29: string
+    %29 $call_29: string
     %30 $k_30: isize
     %31 nis: isize (local nis)
     %32 $k_32: isize
@@ -44,11 +44,11 @@ fn snippet$main() -> i32
     %37 $add_37: isize
     %38 $k_38: isize
     %39 $add_39: isize
-    %40 $intrinsic_40: ?
-    %41 __sb_2: ? (synthetic __sb_2)
+    %40 $call_40: StringBuilder
+    %41 __sb_2: StringBuilder (synthetic __sb_2)
     %42 $k_42: string
     %43 $call_43: string
-    %44 $intrinsic_44: string
+    %44 $call_44: string
     %45 $k_45: u8
     %46 nb: u8 (local nb)
     %47 $k_47: u32
@@ -61,11 +61,11 @@ fn snippet$main() -> i32
     %54 $add_54: u32
     %55 $k_55: u8
     %56 $add_56: u8
-    %57 $intrinsic_57: ?
-    %58 __sb_3: ? (synthetic __sb_3)
+    %57 $call_57: StringBuilder
+    %58 __sb_3: StringBuilder (synthetic __sb_3)
     %59 $k_59: string
     %60 $call_60: string
-    %61 $intrinsic_61: string
+    %61 $call_61: string
     %62 $k_62: i32
     %63 sh: i32 (local sh)
     %64 $k_64: i16
@@ -79,11 +79,11 @@ fn snippet$main() -> i32
     %72 $add_72: i32
     %73 $k_73: i16
     %74 $add_74: i16
-    %75 $intrinsic_75: ?
-    %76 __sb_5: ? (synthetic __sb_5)
+    %75 $call_75: StringBuilder
+    %76 __sb_5: StringBuilder (synthetic __sb_5)
     %77 $k_77: string
     %78 $call_78: string
-    %79 $intrinsic_79: string
+    %79 $call_79: string
     %80 $k_80: i32
   bb0:
     %0 = const int(3) :u64
@@ -104,13 +104,13 @@ fn snippet$main() -> i32
     %5 = move %9
     branch -> bb1
   bb3:
-    %10 = intrinsic builder.new()
+    %10 = call new_builder() :StringBuilder
     %11 = move %10
     %12 = const string(#1) :string
-    intrinsic builder.append_str(%11, %12)
+    call append(%11, %12) :void
     %13 = call std_core$u64$Display$to_string(%3) :string
-    intrinsic builder.append_str(%11, %13)
-    %14 = intrinsic builder.finish(%11)
+    call append(%11, %13) :void
+    %14 = call std_string_builder$StringBuilder$Display$to_string(%11) :string
     call std_io$std_io$println__string(%14) :void
     %15 = const int(4) :i64
     %16 = move %15
@@ -130,13 +130,13 @@ fn snippet$main() -> i32
     %20 = move %24
     branch -> bb4
   bb6:
-    %25 = intrinsic builder.new()
+    %25 = call new_builder() :StringBuilder
     %26 = move %25
     %27 = const string(#2) :string
-    intrinsic builder.append_str(%26, %27)
+    call append(%26, %27) :void
     %28 = call std_core$i64$Display$to_string(%18) :string
-    intrinsic builder.append_str(%26, %28)
-    %29 = intrinsic builder.finish(%26)
+    call append(%26, %28) :void
+    %29 = call std_string_builder$StringBuilder$Display$to_string(%26) :string
     call std_io$std_io$println__string(%29) :void
     %30 = const int(5) :isize
     %31 = move %30
@@ -156,13 +156,13 @@ fn snippet$main() -> i32
     %35 = move %39
     branch -> bb7
   bb9:
-    %40 = intrinsic builder.new()
+    %40 = call new_builder() :StringBuilder
     %41 = move %40
     %42 = const string(#3) :string
-    intrinsic builder.append_str(%41, %42)
+    call append(%41, %42) :void
     %43 = call std_core$isize$Display$to_string(%33) :string
-    intrinsic builder.append_str(%41, %43)
-    %44 = intrinsic builder.finish(%41)
+    call append(%41, %43) :void
+    %44 = call std_string_builder$StringBuilder$Display$to_string(%41) :string
     call std_io$std_io$println__string(%44) :void
     %45 = const int(6) :u8
     %46 = move %45
@@ -184,13 +184,13 @@ fn snippet$main() -> i32
     %51 = move %56
     branch -> bb10
   bb12:
-    %57 = intrinsic builder.new()
+    %57 = call new_builder() :StringBuilder
     %58 = move %57
     %59 = const string(#4) :string
-    intrinsic builder.append_str(%58, %59)
+    call append(%58, %59) :void
     %60 = call std_core$u32$Display$to_string(%48) :string
-    intrinsic builder.append_str(%58, %60)
-    %61 = intrinsic builder.finish(%58)
+    call append(%58, %60) :void
+    %61 = call std_string_builder$StringBuilder$Display$to_string(%58) :string
     call std_io$std_io$println__string(%61) :void
     %62 = const int(0) :i32
     %63 = move %62
@@ -213,13 +213,13 @@ fn snippet$main() -> i32
     %69 = move %74
     branch -> bb13
   bb15:
-    %75 = intrinsic builder.new()
+    %75 = call new_builder() :StringBuilder
     %76 = move %75
     %77 = const string(#5) :string
-    intrinsic builder.append_str(%76, %77)
+    call append(%76, %77) :void
     %78 = call std_core$i32$Display$to_string(%63) :string
-    intrinsic builder.append_str(%76, %78)
-    %79 = intrinsic builder.finish(%76)
+    call append(%76, %78) :void
+    %79 = call std_string_builder$StringBuilder$Display$to_string(%76) :string
     call std_io$std_io$println__string(%79) :void
     %80 = const int(0) :i32
     return %80

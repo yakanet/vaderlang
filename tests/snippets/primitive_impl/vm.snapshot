@@ -1,4 +1,4 @@
 # stderr
-vader vm: call stack overflow (depth > 1024) at function 'snippet$i32$Display$to_string'
+vader vm: call stack overflow (depth > 1024) at function 'std_string_builder$ensure_capacity'
 # exit
 1

@@ -14,10 +14,10 @@ fn snippet$main() -> i32
     %7 $cast_7: Yield<char>
     %8 $field_8: char
     %9 c: char (local c)
-    %10 $intrinsic_10: ?
-    %11 __sb_2: ? (synthetic __sb_2)
+    %10 $call_10: StringBuilder
+    %11 __sb_2: StringBuilder (synthetic __sb_2)
     %12 $call_12: string
-    %13 $intrinsic_13: string
+    %13 $call_13: string
     %14 $k_14: string
     %15 $k_15: string
     %16 $call_16: StringChars
@@ -28,10 +28,10 @@ fn snippet$main() -> i32
     %21 $cast_21: Yield<char>
     %22 $field_22: char
     %23 c: char (local c)
-    %24 $intrinsic_24: ?
-    %25 __sb_5: ? (synthetic __sb_5)
+    %24 $call_24: StringBuilder
+    %25 __sb_5: StringBuilder (synthetic __sb_5)
     %26 $call_26: string
-    %27 $intrinsic_27: string
+    %27 $call_27: string
     %28 $k_28: i32
     %29 n: i32 (local n)
     %30 $k_30: string
@@ -45,8 +45,8 @@ fn snippet$main() -> i32
     %38 c: char (local c)
     %39 $k_39: i32
     %40 $add_40: i32
-    %41 $intrinsic_41: ?
-    %42 __sb_9: ? (synthetic __sb_9)
+    %41 $call_41: StringBuilder
+    %42 __sb_9: StringBuilder (synthetic __sb_9)
     %43 $k_43: string
     %44 $call_44: string
     %45 $k_45: string
@@ -54,7 +54,7 @@ fn snippet$main() -> i32
     %47 $call_47: const u8[]
     %48 $len_48: usize
     %49 $call_49: string
-    %50 $intrinsic_50: string
+    %50 $call_50: string
     %51 $k_51: string
     %52 $k_52: string
     %53 $call_53: StringChars
@@ -95,11 +95,11 @@ fn snippet$main() -> i32
     %7 = cast %5 :Yield<char>
     %8 = field_get %7.value :char
     %9 = move %8
-    %10 = intrinsic builder.new()
+    %10 = call new_builder() :StringBuilder
     %11 = move %10
     %12 = call std_core$char$Display$to_string(%9) :string
-    intrinsic builder.append_str(%11, %12)
-    %13 = intrinsic builder.finish(%11)
+    call append(%11, %12) :void
+    %13 = call std_string_builder$StringBuilder$Display$to_string(%11) :string
     call std_io$std_io$println__string(%13) :void
     branch -> bb6
   bb6:
@@ -124,11 +124,11 @@ fn snippet$main() -> i32
     %21 = cast %19 :Yield<char>
     %22 = field_get %21.value :char
     %23 = move %22
-    %24 = intrinsic builder.new()
+    %24 = call new_builder() :StringBuilder
     %25 = move %24
     %26 = call std_core$char$Display$to_string(%23) :string
-    intrinsic builder.append_str(%25, %26)
-    %27 = intrinsic builder.finish(%25)
+    call append(%25, %26) :void
+    %27 = call std_string_builder$StringBuilder$Display$to_string(%25) :string
     call std_io$std_io$println__string(%27) :void
     branch -> bb12
   bb12:
@@ -141,20 +141,20 @@ fn snippet$main() -> i32
     %35 = type_check %34 is null
     cond_branch %35 ? bb16 : bb17
   bb15:
-    %41 = intrinsic builder.new()
+    %41 = call new_builder() :StringBuilder
     %42 = move %41
     %43 = const string(#6) :string
-    intrinsic builder.append_str(%42, %43)
+    call append(%42, %43) :void
     %44 = call std_core$i32$Display$to_string(%29) :string
-    intrinsic builder.append_str(%42, %44)
+    call append(%42, %44) :void
     %45 = const string(#7) :string
-    intrinsic builder.append_str(%42, %45)
+    call append(%42, %45) :void
     %46 = const string(#5) :string
     %47 = call bytes(%46) :const u8[]
     %48 = array_len %47
     %49 = call std_core$usize$Display$to_string(%48) :string
-    intrinsic builder.append_str(%42, %49)
-    %50 = intrinsic builder.finish(%42)
+    call append(%42, %49) :void
+    %50 = call std_string_builder$StringBuilder$Display$to_string(%42) :string
     call std_io$std_io$println__string(%50) :void
     %51 = const string(#8) :string
     call std_io$std_io$println__string(%51) :void

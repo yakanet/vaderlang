@@ -30,21 +30,34 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_0: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_0 :?
-            "u64 sum=" :string
-          @builder.append_str :void
-            __sb_0 :?
+          let __sb_0: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              "u64 sum=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$u64$Display$to_string :string
+                arg0:
+                  su :u64
+          ~>
             call :string
               callee:
-                std_core$u64$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                su :u64
-          ~>
-            @builder.finish :string
-              __sb_0 :?
+                __sb_0 :StringBuilder
     let ni: i64 = int(4) :i64
     let si: i64 = int(0) :i64
     block :void
@@ -73,21 +86,34 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_1: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_1 :?
-            "i64 sum=" :string
-          @builder.append_str :void
-            __sb_1 :?
+          let __sb_1: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              "i64 sum=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i64$Display$to_string :string
+                arg0:
+                  si :i64
+          ~>
             call :string
               callee:
-                std_core$i64$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                si :i64
-          ~>
-            @builder.finish :string
-              __sb_1 :?
+                __sb_1 :StringBuilder
     let nis: isize = int(5) :isize
     let sis: isize = int(0) :isize
     block :void
@@ -116,21 +142,34 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_2: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_2 :?
-            "isize sum=" :string
-          @builder.append_str :void
-            __sb_2 :?
+          let __sb_2: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              "isize sum=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$isize$Display$to_string :string
+                arg0:
+                  sis :isize
+          ~>
             call :string
               callee:
-                std_core$isize$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                sis :isize
-          ~>
-            @builder.finish :string
-              __sb_2 :?
+                __sb_2 :StringBuilder
     let nb: u8 = int(6) :u8
     let sb: u32 = int(0) :u32
     block :void
@@ -162,21 +201,34 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_3: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_3 :?
-            "u8 sum=" :string
-          @builder.append_str :void
-            __sb_3 :?
+          let __sb_3: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_3 :StringBuilder
+            arg1:
+              "u8 sum=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_3 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$u32$Display$to_string :string
+                arg0:
+                  sb :u32
+          ~>
             call :string
               callee:
-                std_core$u32$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                sb :u32
-          ~>
-            @builder.finish :string
-              __sb_3 :?
+                __sb_3 :StringBuilder
     let sh: i32 = int(0) :i32
     block :void
       let __for_hi_4: i16 =
@@ -210,19 +262,32 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_5: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_5 :?
-            "i16 sum=" :string
-          @builder.append_str :void
-            __sb_5 :?
+          let __sb_5: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_5 :StringBuilder
+            arg1:
+              "i16 sum=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_5 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  sh :i32
+          ~>
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                sh :i32
-          ~>
-            @builder.finish :string
-              __sb_5 :?
+                __sb_5 :StringBuilder
     return int(0) :i32

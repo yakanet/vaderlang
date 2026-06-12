@@ -8,11 +8,11 @@ fn snippet$run_mode(%0: string) -> void
     %1 $k_1: string
     %2 $eq_2: bool
     %3 $k_3: string
-    %4 $intrinsic_4: ?
-    %5 __sb_0: ? (synthetic __sb_0)
+    %4 $call_4: StringBuilder
+    %5 __sb_0: StringBuilder (synthetic __sb_0)
     %6 $call_6: string
     %7 $k_7: string
-    %8 $intrinsic_8: string
+    %8 $call_8: string
     %9 $call_9: never
   bb0:
     %1 = const string(#1) :string
@@ -23,13 +23,13 @@ fn snippet$run_mode(%0: string) -> void
     call std_io$std_io$println__string(%3) :void
     return
   bb2:
-    %4 = intrinsic builder.new()
+    %4 = call new_builder() :StringBuilder
     %5 = move %4
     %6 = call std_core$string$Display$to_string(%0) :string
-    intrinsic builder.append_str(%5, %6)
+    call append(%5, %6) :void
     %7 = const string(#3) :string
-    intrinsic builder.append_str(%5, %7)
-    %8 = intrinsic builder.finish(%5)
+    call append(%5, %7) :void
+    %8 = call std_string_builder$StringBuilder$Display$to_string(%5) :string
     %9 = call todo(%8) :never
     return %9
 

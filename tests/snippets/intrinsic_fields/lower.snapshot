@@ -36,31 +36,48 @@
             std_io$std_io$println__string :void
           arg0:
             block :string
-              let __sb_3: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_3 :?
-                call :string
+              let __sb_3: StringBuilder =
+                call :StringBuilder
                   callee:
-                    std_core$string$Display$to_string :string
-                  arg0:
-                    .name :string
-                      f :Field
-              @builder.append_str :void
-                __sb_3 :?
-                " size=" :string
-              @builder.append_str :void
-                __sb_3 :?
-                call :string
-                  callee:
-                    std_core$usize$Display$to_string :string
-                  arg0:
-                    @size_of.type :usize
-                      .type :type
+                    new_builder :StringBuilder
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_3 :StringBuilder
+                arg1:
+                  call :string
+                    callee:
+                      std_core$string$Display$to_string :string
+                    arg0:
+                      .name :string
                         f :Field
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_3 :StringBuilder
+                arg1:
+                  " size=" :string
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_3 :StringBuilder
+                arg1:
+                  call :string
+                    callee:
+                      std_core$usize$Display$to_string :string
+                    arg0:
+                      @size_of.type :usize
+                        .type :type
+                          f :Field
               ~>
-                @builder.finish :string
-                  __sb_3 :?
+                call :string
+                  callee:
+                    std_string_builder$StringBuilder$Display$to_string :string
+                  arg0:
+                    __sb_3 :StringBuilder
         assign
           target:
             __for_i_2 :usize
@@ -98,34 +115,55 @@
             std_io$std_io$println__string :void
           arg0:
             block :string
-              let __sb_7: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_7 :?
-                "pair." :string
-              @builder.append_str :void
-                __sb_7 :?
-                call :string
+              let __sb_7: StringBuilder =
+                call :StringBuilder
                   callee:
-                    std_core$string$Display$to_string :string
-                  arg0:
-                    .name :string
-                      f :Field
-              @builder.append_str :void
-                __sb_7 :?
-                " size=" :string
-              @builder.append_str :void
-                __sb_7 :?
-                call :string
-                  callee:
-                    std_core$usize$Display$to_string :string
-                  arg0:
-                    @size_of.type :usize
-                      .type :type
+                    new_builder :StringBuilder
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_7 :StringBuilder
+                arg1:
+                  "pair." :string
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_7 :StringBuilder
+                arg1:
+                  call :string
+                    callee:
+                      std_core$string$Display$to_string :string
+                    arg0:
+                      .name :string
                         f :Field
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_7 :StringBuilder
+                arg1:
+                  " size=" :string
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_7 :StringBuilder
+                arg1:
+                  call :string
+                    callee:
+                      std_core$usize$Display$to_string :string
+                    arg0:
+                      @size_of.type :usize
+                        .type :type
+                          f :Field
               ~>
-                @builder.finish :string
-                  __sb_7 :?
+                call :string
+                  callee:
+                    std_string_builder$StringBuilder$Display$to_string :string
+                  arg0:
+                    __sb_7 :StringBuilder
         assign
           target:
             __for_i_6 :usize

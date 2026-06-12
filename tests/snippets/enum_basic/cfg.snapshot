@@ -83,20 +83,20 @@ fn snippet$main() -> void
     %8 $k_8: i32
     %9 $eq_9: bool
     %10 $k_10: string
-    %11 $intrinsic_11: ?
-    %12 __sb_0: ? (synthetic __sb_0)
+    %11 $call_11: StringBuilder
+    %12 __sb_0: StringBuilder (synthetic __sb_0)
     %13 $k_13: string
     %14 $k_14: i32
     %15 $eq_15: bool
     %16 $call_16: string
-    %17 $intrinsic_17: string
-    %18 $intrinsic_18: ?
-    %19 __sb_1: ? (synthetic __sb_1)
+    %17 $call_17: string
+    %18 $call_18: StringBuilder
+    %19 __sb_1: StringBuilder (synthetic __sb_1)
     %20 $k_20: string
     %21 $k_21: i32
     %22 $eq_22: bool
     %23 $call_23: string
-    %24 $intrinsic_24: string
+    %24 $call_24: string
   bb0:
     %0 = const int(2) :i32
     %1 = move %0
@@ -121,25 +121,25 @@ fn snippet$main() -> void
     call std_io$std_io$println__string(%10) :void
     branch -> bb4
   bb4:
-    %11 = intrinsic builder.new()
+    %11 = call new_builder() :StringBuilder
     %12 = move %11
     %13 = const string(#9) :string
-    intrinsic builder.append_str(%12, %13)
+    call append(%12, %13) :void
     %14 = const int(2) :i32
     %15 = binop 12 %1 %14 :bool
     %16 = call std_core$bool$Display$to_string(%15) :string
-    intrinsic builder.append_str(%12, %16)
-    %17 = intrinsic builder.finish(%12)
+    call append(%12, %16) :void
+    %17 = call std_string_builder$StringBuilder$Display$to_string(%12) :string
     call std_io$std_io$println__string(%17) :void
-    %18 = intrinsic builder.new()
+    %18 = call new_builder() :StringBuilder
     %19 = move %18
     %20 = const string(#10) :string
-    intrinsic builder.append_str(%19, %20)
+    call append(%19, %20) :void
     %21 = const int(3) :i32
     %22 = binop 12 %1 %21 :bool
     %23 = call std_core$bool$Display$to_string(%22) :string
-    intrinsic builder.append_str(%19, %23)
-    %24 = intrinsic builder.finish(%19)
+    call append(%19, %23) :void
+    %24 = call std_string_builder$StringBuilder$Display$to_string(%19) :string
     call std_io$std_io$println__string(%24) :void
     return
 

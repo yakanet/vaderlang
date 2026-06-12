@@ -6,26 +6,26 @@ fn snippet$greet(%0: string, %1: i32) -> string
   locals:
     %0 name: string (param name)
     %1 age: i32 (param age)
-    %2 $intrinsic_2: ?
-    %3 __sb_0: ? (synthetic __sb_0)
+    %2 $call_2: StringBuilder
+    %3 __sb_0: StringBuilder (synthetic __sb_0)
     %4 $k_4: string
     %5 $call_5: string
     %6 $k_6: string
     %7 $call_7: string
     %8 $k_8: string
-    %9 $intrinsic_9: string
+    %9 $call_9: string
   bb0:
-    %2 = intrinsic builder.new()
+    %2 = call new_builder() :StringBuilder
     %3 = move %2
     %4 = const string(#0) :string
-    intrinsic builder.append_str(%3, %4)
+    call append(%3, %4) :void
     %5 = call std_core$string$Display$to_string(%0) :string
-    intrinsic builder.append_str(%3, %5)
+    call append(%3, %5) :void
     %6 = const string(#1) :string
-    intrinsic builder.append_str(%3, %6)
+    call append(%3, %6) :void
     %7 = call std_core$i32$Display$to_string(%1) :string
-    intrinsic builder.append_str(%3, %7)
+    call append(%3, %7) :void
     %8 = const string(#2) :string
-    intrinsic builder.append_str(%3, %8)
-    %9 = intrinsic builder.finish(%3)
+    call append(%3, %8) :void
+    %9 = call std_string_builder$StringBuilder$Display$to_string(%3) :string
     return %9

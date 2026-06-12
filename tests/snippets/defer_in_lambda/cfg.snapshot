@@ -17,12 +17,12 @@ fn snippet$main() -> i32
     %10 $struct_10: __lambda_env_13
     %11 $closure_11: fn() -> i32
     %12 do_panic: fn() -> i32 (local do_panic)
-    %13 $intrinsic_13: ?
-    %14 __sb_2: ? (synthetic __sb_2)
+    %13 $call_13: StringBuilder
+    %14 __sb_2: StringBuilder (synthetic __sb_2)
     %15 $k_15: string
     %16 $call_ind_16: i32
     %17 $call_17: string
-    %18 $intrinsic_18: string
+    %18 $call_18: string
     %19 $k_19: i32
   bb0:
     %0 = const string(#1) :string
@@ -40,14 +40,14 @@ fn snippet$main() -> i32
     %10 = struct_new __lambda_env_13(%2, %9)
     %11 = make_closure __lambda_12 env=%10 :fn() -> i32
     %12 = move %11
-    %13 = intrinsic builder.new()
+    %13 = call new_builder() :StringBuilder
     %14 = move %13
     %15 = const string(#3) :string
-    intrinsic builder.append_str(%14, %15)
+    call append(%14, %15) :void
     %16 = call_indirect %12() :i32
     %17 = call std_core$i32$Display$to_string(%16) :string
-    intrinsic builder.append_str(%14, %17)
-    %18 = intrinsic builder.finish(%14)
+    call append(%14, %17) :void
+    %18 = call std_string_builder$StringBuilder$Display$to_string(%14) :string
     call std_io$std_io$println__string(%18) :void
     %19 = const int(0) :i32
     return %19
@@ -64,23 +64,23 @@ fn __defer_4(%0: __defer_env_5) -> void
 fn __defer_7(%0: __defer_env_8) -> void
   locals:
     %0 __env_1: __defer_env_8 (synthetic __env_1)
-    %1 $intrinsic_1: ?
-    %2 __sb_0: ? (synthetic __sb_0)
+    %1 $call_1: StringBuilder
+    %2 __sb_0: StringBuilder (synthetic __sb_0)
     %3 $k_3: string
     %4 $field_4: ?
     %5 $cell_get_5: string
     %6 $call_6: string
-    %7 $intrinsic_7: string
+    %7 $call_7: string
   bb0:
-    %1 = intrinsic builder.new()
+    %1 = call new_builder() :StringBuilder
     %2 = move %1
     %3 = const string(#5) :string
-    intrinsic builder.append_str(%2, %3)
+    call append(%2, %3) :void
     %4 = field_get %0.cap_0 :?
     %5 = cell_get %4 :string
     %6 = call std_core$string$Display$to_string(%5) :string
-    intrinsic builder.append_str(%2, %6)
-    %7 = intrinsic builder.finish(%2)
+    call append(%2, %6) :void
+    %7 = call std_string_builder$StringBuilder$Display$to_string(%2) :string
     call std_io$std_io$println__string(%7) :void
     return
 
@@ -101,23 +101,23 @@ fn __lambda_1(%0: __lambda_env_2) -> void
 fn __defer_15(%0: __defer_env_16) -> void
   locals:
     %0 __env_0: __defer_env_16 (synthetic __env_0)
-    %1 $intrinsic_1: ?
-    %2 __sb_0: ? (synthetic __sb_0)
+    %1 $call_1: StringBuilder
+    %2 __sb_0: StringBuilder (synthetic __sb_0)
     %3 $k_3: string
     %4 $field_4: ?
     %5 $cell_get_5: string
     %6 $call_6: string
-    %7 $intrinsic_7: string
+    %7 $call_7: string
   bb0:
-    %1 = intrinsic builder.new()
+    %1 = call new_builder() :StringBuilder
     %2 = move %1
     %3 = const string(#6) :string
-    intrinsic builder.append_str(%2, %3)
+    call append(%2, %3) :void
     %4 = field_get %0.cap_0 :?
     %5 = cell_get %4 :string
     %6 = call std_core$string$Display$to_string(%5) :string
-    intrinsic builder.append_str(%2, %6)
-    %7 = intrinsic builder.finish(%2)
+    call append(%2, %6) :void
+    %7 = call std_string_builder$StringBuilder$Display$to_string(%2) :string
     call std_io$std_io$println__string(%7) :void
     return
 

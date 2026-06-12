@@ -18,6 +18,8 @@
   @comptime  MASK32               = 4294967295_u64
   @comptime  MASK52               = 4503599627370495_u64
 
+## stdlib/std/string_builder
+
 ## stdlib/std/testing
 
 ## tests/snippets/_diag_generic_map_param

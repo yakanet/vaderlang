@@ -10,8 +10,8 @@ fn snippet$main() -> i32
     %3 $struct_3: [f64, f64]
     %4 $struct_4: Entry
     %5 e: Entry (local e)
-    %6 $intrinsic_6: ?
-    %7 __sb_0: ? (synthetic __sb_0)
+    %6 $call_6: StringBuilder
+    %7 __sb_0: StringBuilder (synthetic __sb_0)
     %8 $k_8: string
     %9 $field_9: i32
     %10 $call_10: string
@@ -23,7 +23,7 @@ fn snippet$main() -> i32
     %16 $field_16: [f64, f64]
     %17 $field_17: f64
     %18 $call_18: string
-    %19 $intrinsic_19: string
+    %19 $call_19: string
     %20 $k_20: i32
   bb0:
     %0 = const int(1) :i32
@@ -32,26 +32,26 @@ fn snippet$main() -> i32
     %3 = struct_new [f64, f64](%1, %2)
     %4 = struct_new Entry(%0, %3)
     %5 = move %4
-    %6 = intrinsic builder.new()
+    %6 = call new_builder() :StringBuilder
     %7 = move %6
     %8 = const string(#1) :string
-    intrinsic builder.append_str(%7, %8)
+    call append(%7, %8) :void
     %9 = field_get %5.id :i32
     %10 = call std_core$i32$Display$to_string(%9) :string
-    intrinsic builder.append_str(%7, %10)
+    call append(%7, %10) :void
     %11 = const string(#2) :string
-    intrinsic builder.append_str(%7, %11)
+    call append(%7, %11) :void
     %12 = field_get %5.coord :[f64, f64]
     %13 = field_get %12._0 :f64
     %14 = call std_core$f64$Display$to_string(%13) :string
-    intrinsic builder.append_str(%7, %14)
+    call append(%7, %14) :void
     %15 = const string(#3) :string
-    intrinsic builder.append_str(%7, %15)
+    call append(%7, %15) :void
     %16 = field_get %5.coord :[f64, f64]
     %17 = field_get %16._1 :f64
     %18 = call std_core$f64$Display$to_string(%17) :string
-    intrinsic builder.append_str(%7, %18)
-    %19 = intrinsic builder.finish(%7)
+    call append(%7, %18) :void
+    %19 = call std_string_builder$StringBuilder$Display$to_string(%7) :string
     call std_io$std_io$println__string(%19) :void
     %20 = const int(0) :i32
     return %20

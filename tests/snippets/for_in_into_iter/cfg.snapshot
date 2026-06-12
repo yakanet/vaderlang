@@ -23,11 +23,11 @@ fn snippet$main() -> i32
     %16 $add_16: i32
     %17 $k_17: usize
     %18 $add_18: usize
-    %19 $intrinsic_19: ?
-    %20 __sb_3: ? (synthetic __sb_3)
+    %19 $call_19: StringBuilder
+    %20 __sb_3: StringBuilder (synthetic __sb_3)
     %21 $k_21: string
     %22 $call_22: string
-    %23 $intrinsic_23: string
+    %23 $call_23: string
     %24 $arr_24: (Entry<K, V> | null)[]
     %25 $k_25: usize
     %26 $struct_26: MutableMap<string, i32>
@@ -58,11 +58,11 @@ fn snippet$main() -> i32
     %51 entry: Entry<string, i32> (local entry)
     %52 $field_52: i32
     %53 $add_53: i32
-    %54 $intrinsic_54: ?
-    %55 __sb_10: ? (synthetic __sb_10)
+    %54 $call_54: StringBuilder
+    %55 __sb_10: StringBuilder (synthetic __sb_10)
     %56 $k_56: string
     %57 $call_57: string
-    %58 $intrinsic_58: string
+    %58 $call_58: string
     %59 $arr_59: (Entry<K, V> | null)[]
     %60 $k_60: usize
     %61 $struct_61: MutableMap<i32, bool>
@@ -95,11 +95,11 @@ fn snippet$main() -> i32
     %88 $field_88: i32
     %89 v: i32 (local v)
     %90 $add_90: i32
-    %91 $intrinsic_91: ?
-    %92 __sb_17: ? (synthetic __sb_17)
+    %91 $call_91: StringBuilder
+    %92 __sb_17: StringBuilder (synthetic __sb_17)
     %93 $k_93: string
     %94 $call_94: string
-    %95 $intrinsic_95: string
+    %95 $call_95: string
     %96 $k_96: i32
     %97 chars: i32 (local chars)
   bb0:
@@ -130,13 +130,13 @@ fn snippet$main() -> i32
     %12 = move %18
     branch -> bb1
   bb3:
-    %19 = intrinsic builder.new()
+    %19 = call new_builder() :StringBuilder
     %20 = move %19
     %21 = const string(#1) :string
-    intrinsic builder.append_str(%20, %21)
+    call append(%20, %21) :void
     %22 = call std_core$i32$Display$to_string(%7) :string
-    intrinsic builder.append_str(%20, %22)
-    %23 = intrinsic builder.finish(%20)
+    call append(%20, %22) :void
+    %23 = call std_string_builder$StringBuilder$Display$to_string(%20) :string
     call std_io$std_io$println__string(%23) :void
     %24 = array_new (Entry<K, V> | null)[][0]()
     %25 = const int(0) :usize
@@ -166,13 +166,13 @@ fn snippet$main() -> i32
     %43 = type_check %42 is null
     cond_branch %43 ? bb7 : bb8
   bb6:
-    %54 = intrinsic builder.new()
+    %54 = call new_builder() :StringBuilder
     %55 = move %54
     %56 = const string(#4) :string
-    intrinsic builder.append_str(%55, %56)
+    call append(%55, %56) :void
     %57 = call std_core$i32$Display$to_string(%33) :string
-    intrinsic builder.append_str(%55, %57)
-    %58 = intrinsic builder.finish(%55)
+    call append(%55, %57) :void
+    %58 = call std_string_builder$StringBuilder$Display$to_string(%55) :string
     call std_io$std_io$println__string(%58) :void
     %59 = array_new (Entry<K, V> | null)[][0]()
     %60 = const int(0) :usize
@@ -226,13 +226,13 @@ fn snippet$main() -> i32
     %80 = type_check %79 is null
     cond_branch %80 ? bb15 : bb16
   bb14:
-    %91 = intrinsic builder.new()
+    %91 = call new_builder() :StringBuilder
     %92 = move %91
     %93 = const string(#5) :string
-    intrinsic builder.append_str(%92, %93)
+    call append(%92, %93) :void
     %94 = call std_core$i32$Display$to_string(%69) :string
-    intrinsic builder.append_str(%92, %94)
-    %95 = intrinsic builder.finish(%92)
+    call append(%92, %94) :void
+    %95 = call std_string_builder$StringBuilder$Display$to_string(%92) :string
     call std_io$std_io$println__string(%95) :void
     %96 = const int(0) :i32
     %97 = move %96

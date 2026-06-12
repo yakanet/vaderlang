@@ -28,12 +28,12 @@ fn snippet$main() -> i32
     %21 k: string (local k)
     %22 $field_22: i32
     %23 v: i32 (local v)
-    %24 $intrinsic_24: ?
-    %25 __sb_4: ? (synthetic __sb_4)
+    %24 $call_24: StringBuilder
+    %25 __sb_4: StringBuilder (synthetic __sb_4)
     %26 $call_26: string
     %27 $k_27: string
     %28 $call_28: string
-    %29 $intrinsic_29: string
+    %29 $call_29: string
     %30 $k_30: usize
     %31 $add_31: usize
     %32 $k_32: i32
@@ -66,15 +66,15 @@ fn snippet$main() -> i32
     %21 = move %20
     %22 = field_get %19._1 :i32
     %23 = move %22
-    %24 = intrinsic builder.new()
+    %24 = call new_builder() :StringBuilder
     %25 = move %24
     %26 = call std_core$string$Display$to_string(%21) :string
-    intrinsic builder.append_str(%25, %26)
+    call append(%25, %26) :void
     %27 = const string(#4) :string
-    intrinsic builder.append_str(%25, %27)
+    call append(%25, %27) :void
     %28 = call std_core$i32$Display$to_string(%23) :string
-    intrinsic builder.append_str(%25, %28)
-    %29 = intrinsic builder.finish(%25)
+    call append(%25, %28) :void
+    %29 = call std_string_builder$StringBuilder$Display$to_string(%25) :string
     call std_io$std_io$println__string(%29) :void
     %30 = const int(1) :usize
     %31 = binop 0 %15 %30 :usize

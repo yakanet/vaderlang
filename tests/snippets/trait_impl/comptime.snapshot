@@ -13,6 +13,8 @@
   @comptime  MASK32               = 4294967295_u64
   @comptime  MASK52               = 4503599627370495_u64
 
+## stdlib/std/string_builder
+
 ## tests/snippets/trait_impl
 
 ## generic instances

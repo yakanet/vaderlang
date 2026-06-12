@@ -117,25 +117,38 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_0: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_0 :?
-            "length=" :string
-          @builder.append_str :void
-            __sb_0 :?
+          let __sb_0: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              "length=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  call :i32
+                    callee:
+                      length :fn(Node | null) -> i32
+                    arg0:
+                      head :Node | null
+          ~>
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                call :i32
-                  callee:
-                    length :fn(Node | null) -> i32
-                  arg0:
-                    head :Node | null
-          ~>
-            @builder.finish :string
-              __sb_0 :?
+                __sb_0 :StringBuilder
     block :void
       let __scrut_1: Node | null =
         call :Node | null
@@ -177,22 +190,35 @@
                             std_io$std_io$println__string :void
                           arg0:
                             block :string
-                              let __sb_2: ? =
-                                @builder.new :?
-                              @builder.append_str :void
-                                __sb_2 :?
-                                "found " :string
-                              @builder.append_str :void
-                                __sb_2 :?
+                              let __sb_2: StringBuilder =
+                                call :StringBuilder
+                                  callee:
+                                    new_builder :StringBuilder
+                              call :void
+                                callee:
+                                  append :void
+                                arg0:
+                                  __sb_2 :StringBuilder
+                                arg1:
+                                  "found " :string
+                              call :void
+                                callee:
+                                  append :void
+                                arg0:
+                                  __sb_2 :StringBuilder
+                                arg1:
+                                  call :string
+                                    callee:
+                                      std_core$i32$Display$to_string :string
+                                    arg0:
+                                      .value :i32
+                                        h :Node
+                              ~>
                                 call :string
                                   callee:
-                                    std_core$i32$Display$to_string :string
+                                    std_string_builder$StringBuilder$Display$to_string :string
                                   arg0:
-                                    .value :i32
-                                      h :Node
-                              ~>
-                                @builder.finish :string
-                                  __sb_2 :?
+                                    __sb_2 :StringBuilder
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -237,22 +263,35 @@
                             std_io$std_io$println__string :void
                           arg0:
                             block :string
-                              let __sb_4: ? =
-                                @builder.new :?
-                              @builder.append_str :void
-                                __sb_4 :?
-                                "found " :string
-                              @builder.append_str :void
-                                __sb_4 :?
+                              let __sb_4: StringBuilder =
+                                call :StringBuilder
+                                  callee:
+                                    new_builder :StringBuilder
+                              call :void
+                                callee:
+                                  append :void
+                                arg0:
+                                  __sb_4 :StringBuilder
+                                arg1:
+                                  "found " :string
+                              call :void
+                                callee:
+                                  append :void
+                                arg0:
+                                  __sb_4 :StringBuilder
+                                arg1:
+                                  call :string
+                                    callee:
+                                      std_core$i32$Display$to_string :string
+                                    arg0:
+                                      .value :i32
+                                        h :Node
+                              ~>
                                 call :string
                                   callee:
-                                    std_core$i32$Display$to_string :string
+                                    std_string_builder$StringBuilder$Display$to_string :string
                                   arg0:
-                                    .value :i32
-                                      h :Node
-                              ~>
-                                @builder.finish :string
-                                  __sb_4 :?
+                                    __sb_4 :StringBuilder
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void

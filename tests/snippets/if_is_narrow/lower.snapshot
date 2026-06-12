@@ -12,42 +12,68 @@
       then:
         return
           block :string
-            let __sb_0: ? =
-              @builder.new :?
-            @builder.append_str :void
-              __sb_0 :?
-              "cat " :string
-            @builder.append_str :void
-              __sb_0 :?
+            let __sb_0: StringBuilder =
+              call :StringBuilder
+                callee:
+                  new_builder :StringBuilder
+            call :void
+              callee:
+                append :void
+              arg0:
+                __sb_0 :StringBuilder
+              arg1:
+                "cat " :string
+            call :void
+              callee:
+                append :void
+              arg0:
+                __sb_0 :StringBuilder
+              arg1:
+                call :string
+                  callee:
+                    std_core$string$Display$to_string :string
+                  arg0:
+                    .name :string
+                      cast → Cat
+                        p :Cat | Dog
+            ~>
               call :string
                 callee:
-                  std_core$string$Display$to_string :string
+                  std_string_builder$StringBuilder$Display$to_string :string
                 arg0:
-                  .name :string
-                    cast → Cat
-                      p :Cat | Dog
-            ~>
-              @builder.finish :string
-                __sb_0 :?
+                  __sb_0 :StringBuilder
     return
       block :string
-        let __sb_1: ? =
-          @builder.new :?
-        @builder.append_str :void
-          __sb_1 :?
-          "dog says " :string
-        @builder.append_str :void
-          __sb_1 :?
+        let __sb_1: StringBuilder =
+          call :StringBuilder
+            callee:
+              new_builder :StringBuilder
+        call :void
+          callee:
+            append :void
+          arg0:
+            __sb_1 :StringBuilder
+          arg1:
+            "dog says " :string
+        call :void
+          callee:
+            append :void
+          arg0:
+            __sb_1 :StringBuilder
+          arg1:
+            call :string
+              callee:
+                std_core$string$Display$to_string :string
+              arg0:
+                .sound :string
+                  cast → Dog
+                    p :Cat | Dog
+        ~>
           call :string
             callee:
-              std_core$string$Display$to_string :string
+              std_string_builder$StringBuilder$Display$to_string :string
             arg0:
-              .sound :string
-                cast → Dog
-                  p :Cat | Dog
-        ~>
-          @builder.finish :string
-            __sb_1 :?
+              __sb_1 :StringBuilder
   fn snippet$negated(p: Cat | Dog) -> string
     if :void
       cond:
@@ -57,42 +83,68 @@
       then:
         return
           block :string
-            let __sb_0: ? =
-              @builder.new :?
-            @builder.append_str :void
-              __sb_0 :?
-              "dog says " :string
-            @builder.append_str :void
-              __sb_0 :?
+            let __sb_0: StringBuilder =
+              call :StringBuilder
+                callee:
+                  new_builder :StringBuilder
+            call :void
+              callee:
+                append :void
+              arg0:
+                __sb_0 :StringBuilder
+              arg1:
+                "dog says " :string
+            call :void
+              callee:
+                append :void
+              arg0:
+                __sb_0 :StringBuilder
+              arg1:
+                call :string
+                  callee:
+                    std_core$string$Display$to_string :string
+                  arg0:
+                    .sound :string
+                      cast → Dog
+                        p :Cat | Dog
+            ~>
               call :string
                 callee:
-                  std_core$string$Display$to_string :string
+                  std_string_builder$StringBuilder$Display$to_string :string
                 arg0:
-                  .sound :string
-                    cast → Dog
-                      p :Cat | Dog
-            ~>
-              @builder.finish :string
-                __sb_0 :?
+                  __sb_0 :StringBuilder
     return
       block :string
-        let __sb_1: ? =
-          @builder.new :?
-        @builder.append_str :void
-          __sb_1 :?
-          "cat " :string
-        @builder.append_str :void
-          __sb_1 :?
+        let __sb_1: StringBuilder =
+          call :StringBuilder
+            callee:
+              new_builder :StringBuilder
+        call :void
+          callee:
+            append :void
+          arg0:
+            __sb_1 :StringBuilder
+          arg1:
+            "cat " :string
+        call :void
+          callee:
+            append :void
+          arg0:
+            __sb_1 :StringBuilder
+          arg1:
+            call :string
+              callee:
+                std_core$string$Display$to_string :string
+              arg0:
+                .name :string
+                  cast → Cat
+                    p :Cat | Dog
+        ~>
           call :string
             callee:
-              std_core$string$Display$to_string :string
+              std_string_builder$StringBuilder$Display$to_string :string
             arg0:
-              .name :string
-                cast → Cat
-                  p :Cat | Dog
-        ~>
-          @builder.finish :string
-            __sb_1 :?
+              __sb_1 :StringBuilder
   fn snippet$cascade(p: Cat | Dog | Pig) -> string
     if :void
       cond:
@@ -101,23 +153,36 @@
       then:
         return
           block :string
-            let __sb_0: ? =
-              @builder.new :?
-            @builder.append_str :void
-              __sb_0 :?
-              "cat " :string
-            @builder.append_str :void
-              __sb_0 :?
+            let __sb_0: StringBuilder =
+              call :StringBuilder
+                callee:
+                  new_builder :StringBuilder
+            call :void
+              callee:
+                append :void
+              arg0:
+                __sb_0 :StringBuilder
+              arg1:
+                "cat " :string
+            call :void
+              callee:
+                append :void
+              arg0:
+                __sb_0 :StringBuilder
+              arg1:
+                call :string
+                  callee:
+                    std_core$string$Display$to_string :string
+                  arg0:
+                    .name :string
+                      cast → Cat
+                        p :Cat | Dog | Pig
+            ~>
               call :string
                 callee:
-                  std_core$string$Display$to_string :string
+                  std_string_builder$StringBuilder$Display$to_string :string
                 arg0:
-                  .name :string
-                    cast → Cat
-                      p :Cat | Dog | Pig
-            ~>
-              @builder.finish :string
-                __sb_0 :?
+                  __sb_0 :StringBuilder
     if :void
       cond:
         is Dog :bool
@@ -125,45 +190,75 @@
       then:
         return
           block :string
-            let __sb_1: ? =
-              @builder.new :?
-            @builder.append_str :void
-              __sb_1 :?
-              "dog says " :string
-            @builder.append_str :void
-              __sb_1 :?
+            let __sb_1: StringBuilder =
+              call :StringBuilder
+                callee:
+                  new_builder :StringBuilder
+            call :void
+              callee:
+                append :void
+              arg0:
+                __sb_1 :StringBuilder
+              arg1:
+                "dog says " :string
+            call :void
+              callee:
+                append :void
+              arg0:
+                __sb_1 :StringBuilder
+              arg1:
+                call :string
+                  callee:
+                    std_core$string$Display$to_string :string
+                  arg0:
+                    .sound :string
+                      cast → Dog
+                        p :Cat | Dog | Pig
+            ~>
               call :string
                 callee:
-                  std_core$string$Display$to_string :string
+                  std_string_builder$StringBuilder$Display$to_string :string
                 arg0:
-                  .sound :string
-                    cast → Dog
-                      p :Cat | Dog | Pig
-            ~>
-              @builder.finish :string
-                __sb_1 :?
+                  __sb_1 :StringBuilder
     return
       block :string
-        let __sb_2: ? =
-          @builder.new :?
-        @builder.append_str :void
-          __sb_2 :?
-          "pig of " :string
-        @builder.append_str :void
-          __sb_2 :?
+        let __sb_2: StringBuilder =
+          call :StringBuilder
+            callee:
+              new_builder :StringBuilder
+        call :void
+          callee:
+            append :void
+          arg0:
+            __sb_2 :StringBuilder
+          arg1:
+            "pig of " :string
+        call :void
+          callee:
+            append :void
+          arg0:
+            __sb_2 :StringBuilder
+          arg1:
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                .weight :i32
+                  cast → Pig
+                    p :Cat | Dog | Pig
+        call :void
+          callee:
+            append :void
+          arg0:
+            __sb_2 :StringBuilder
+          arg1:
+            " kg" :string
+        ~>
           call :string
             callee:
-              std_core$i32$Display$to_string :string
+              std_string_builder$StringBuilder$Display$to_string :string
             arg0:
-              .weight :i32
-                cast → Pig
-                  p :Cat | Dog | Pig
-        @builder.append_str :void
-          __sb_2 :?
-          " kg" :string
-        ~>
-          @builder.finish :string
-            __sb_2 :?
+              __sb_2 :StringBuilder
   fn snippet$primitive_is(v: i32 | string) -> string
     if :void
       cond:
@@ -172,40 +267,66 @@
       then:
         return
           block :string
-            let __sb_0: ? =
-              @builder.new :?
-            @builder.append_str :void
-              __sb_0 :?
-              "int " :string
-            @builder.append_str :void
-              __sb_0 :?
+            let __sb_0: StringBuilder =
+              call :StringBuilder
+                callee:
+                  new_builder :StringBuilder
+            call :void
+              callee:
+                append :void
+              arg0:
+                __sb_0 :StringBuilder
+              arg1:
+                "int " :string
+            call :void
+              callee:
+                append :void
+              arg0:
+                __sb_0 :StringBuilder
+              arg1:
+                call :string
+                  callee:
+                    std_core$i32$Display$to_string :string
+                  arg0:
+                    cast → i32
+                      v :i32 | string
+            ~>
               call :string
                 callee:
-                  std_core$i32$Display$to_string :string
+                  std_string_builder$StringBuilder$Display$to_string :string
                 arg0:
-                  cast → i32
-                    v :i32 | string
-            ~>
-              @builder.finish :string
-                __sb_0 :?
+                  __sb_0 :StringBuilder
     return
       block :string
-        let __sb_1: ? =
-          @builder.new :?
-        @builder.append_str :void
-          __sb_1 :?
-          "str " :string
-        @builder.append_str :void
-          __sb_1 :?
+        let __sb_1: StringBuilder =
+          call :StringBuilder
+            callee:
+              new_builder :StringBuilder
+        call :void
+          callee:
+            append :void
+          arg0:
+            __sb_1 :StringBuilder
+          arg1:
+            "str " :string
+        call :void
+          callee:
+            append :void
+          arg0:
+            __sb_1 :StringBuilder
+          arg1:
+            call :string
+              callee:
+                std_core$string$Display$to_string :string
+              arg0:
+                cast → string
+                  v :i32 | string
+        ~>
           call :string
             callee:
-              std_core$string$Display$to_string :string
+              std_string_builder$StringBuilder$Display$to_string :string
             arg0:
-              cast → string
-                v :i32 | string
-        ~>
-          @builder.finish :string
-            __sb_1 :?
+              __sb_1 :StringBuilder
   fn snippet$main() -> i32
     call :void
       callee:

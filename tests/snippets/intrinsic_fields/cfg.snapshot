@@ -22,15 +22,15 @@ fn snippet$main() -> i32
     %15 $lt_15: bool
     %16 $idx_16: Field
     %17 f: Field (local f)
-    %18 $intrinsic_18: ?
-    %19 __sb_3: ? (synthetic __sb_3)
+    %18 $call_18: StringBuilder
+    %19 __sb_3: StringBuilder (synthetic __sb_3)
     %20 $field_20: string
     %21 $call_21: string
     %22 $k_22: string
     %23 $field_23: type
     %24 $intrinsic_24: usize
     %25 $call_25: string
-    %26 $intrinsic_26: string
+    %26 $call_26: string
     %27 $k_27: usize
     %28 $add_28: usize
     %29 $k_29: string
@@ -48,8 +48,8 @@ fn snippet$main() -> i32
     %41 $lt_41: bool
     %42 $idx_42: Field
     %43 f: Field (local f)
-    %44 $intrinsic_44: ?
-    %45 __sb_7: ? (synthetic __sb_7)
+    %44 $call_44: StringBuilder
+    %45 __sb_7: StringBuilder (synthetic __sb_7)
     %46 $k_46: string
     %47 $field_47: string
     %48 $call_48: string
@@ -57,7 +57,7 @@ fn snippet$main() -> i32
     %50 $field_50: type
     %51 $intrinsic_51: usize
     %52 $call_52: string
-    %53 $intrinsic_53: string
+    %53 $call_53: string
     %54 $k_54: usize
     %55 $add_55: usize
     %56 $k_56: i32
@@ -84,18 +84,18 @@ fn snippet$main() -> i32
   bb2:
     %16 = array_get %10[%14] :Field
     %17 = move %16
-    %18 = intrinsic builder.new()
+    %18 = call new_builder() :StringBuilder
     %19 = move %18
     %20 = field_get %17.name :string
     %21 = call std_core$string$Display$to_string(%20) :string
-    intrinsic builder.append_str(%19, %21)
+    call append(%19, %21) :void
     %22 = const string(#4) :string
-    intrinsic builder.append_str(%19, %22)
+    call append(%19, %22) :void
     %23 = field_get %17.type :type
     %24 = intrinsic size_of.type(%23)
     %25 = call std_core$usize$Display$to_string(%24) :string
-    intrinsic builder.append_str(%19, %25)
-    %26 = intrinsic builder.finish(%19)
+    call append(%19, %25) :void
+    %26 = call std_string_builder$StringBuilder$Display$to_string(%19) :string
     call std_io$std_io$println__string(%26) :void
     %27 = const int(1) :usize
     %28 = binop 0 %14 %27 :usize
@@ -121,20 +121,20 @@ fn snippet$main() -> i32
   bb5:
     %42 = array_get %36[%40] :Field
     %43 = move %42
-    %44 = intrinsic builder.new()
+    %44 = call new_builder() :StringBuilder
     %45 = move %44
     %46 = const string(#7) :string
-    intrinsic builder.append_str(%45, %46)
+    call append(%45, %46) :void
     %47 = field_get %43.name :string
     %48 = call std_core$string$Display$to_string(%47) :string
-    intrinsic builder.append_str(%45, %48)
+    call append(%45, %48) :void
     %49 = const string(#4) :string
-    intrinsic builder.append_str(%45, %49)
+    call append(%45, %49) :void
     %50 = field_get %43.type :type
     %51 = intrinsic size_of.type(%50)
     %52 = call std_core$usize$Display$to_string(%51) :string
-    intrinsic builder.append_str(%45, %52)
-    %53 = intrinsic builder.finish(%45)
+    call append(%45, %52) :void
+    %53 = call std_string_builder$StringBuilder$Display$to_string(%45) :string
     call std_io$std_io$println__string(%53) :void
     %54 = const int(1) :usize
     %55 = binop 0 %40 %54 :usize

@@ -17,44 +17,73 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_0: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_0 :?
-            "id=" :string
-          @builder.append_str :void
-            __sb_0 :?
-            call :string
+          let __sb_0: StringBuilder =
+            call :StringBuilder
               callee:
-                std_core$i32$Display$to_string :string
-              arg0:
-                .id :i32
-                  e :Entry
-          @builder.append_str :void
-            __sb_0 :?
-            " x=" :string
-          @builder.append_str :void
-            __sb_0 :?
-            call :string
-              callee:
-                std_core$f64$Display$to_string :string
-              arg0:
-                ._0 :f64
-                  .coord :[f64, f64]
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              "id=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  .id :i32
                     e :Entry
-          @builder.append_str :void
-            __sb_0 :?
-            " y=" :string
-          @builder.append_str :void
-            __sb_0 :?
-            call :string
-              callee:
-                std_core$f64$Display$to_string :string
-              arg0:
-                ._1 :f64
-                  .coord :[f64, f64]
-                    e :Entry
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              " x=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$f64$Display$to_string :string
+                arg0:
+                  ._0 :f64
+                    .coord :[f64, f64]
+                      e :Entry
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              " y=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$f64$Display$to_string :string
+                arg0:
+                  ._1 :f64
+                    .coord :[f64, f64]
+                      e :Entry
           ~>
-            @builder.finish :string
-              __sb_0 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_0 :StringBuilder
     return int(0) :i32

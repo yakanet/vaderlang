@@ -35,31 +35,52 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_2: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_2 :?
-            "first=" :string
-          @builder.append_str :void
-            __sb_2 :?
-            call :string
+          let __sb_2: StringBuilder =
+            call :StringBuilder
               callee:
-                std_core$i32$Display$to_string :string
-              arg0:
-                first :i32
-          @builder.append_str :void
-            __sb_2 :?
-            " rest.len=" :string
-          @builder.append_str :void
-            __sb_2 :?
-            call :string
-              callee:
-                std_core$usize$Display$to_string :string
-              arg0:
-                LoweredArrayLen
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              "first=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  first :i32
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              " rest.len=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$usize$Display$to_string :string
+                arg0:
+                  LoweredArrayLen
           ~>
-            @builder.finish :string
-              __sb_2 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_2 :StringBuilder
     block :void
       let __for_arr_3: i32[] = rest :i32[]
       let __for_len_4: usize =
@@ -77,21 +98,34 @@
             std_io$std_io$println__string :void
           arg0:
             block :string
-              let __sb_6: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_6 :?
-                "  " :string
-              @builder.append_str :void
-                __sb_6 :?
+              let __sb_6: StringBuilder =
+                call :StringBuilder
+                  callee:
+                    new_builder :StringBuilder
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_6 :StringBuilder
+                arg1:
+                  "  " :string
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_6 :StringBuilder
+                arg1:
+                  call :string
+                    callee:
+                      std_core$i32$Display$to_string :string
+                    arg0:
+                      x :i32
+              ~>
                 call :string
                   callee:
-                    std_core$i32$Display$to_string :string
+                    std_string_builder$StringBuilder$Display$to_string :string
                   arg0:
-                    x :i32
-              ~>
-                @builder.finish :string
-                  __sb_6 :?
+                    __sb_6 :StringBuilder
         assign
           target:
             __for_i_5 :usize
@@ -133,41 +167,70 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_9: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_9 :?
-            "a=" :string
-          @builder.append_str :void
-            __sb_9 :?
-            call :string
+          let __sb_9: StringBuilder =
+            call :StringBuilder
               callee:
-                std_core$i32$Display$to_string :string
-              arg0:
-                a :i32
-          @builder.append_str :void
-            __sb_9 :?
-            " b=" :string
-          @builder.append_str :void
-            __sb_9 :?
-            call :string
-              callee:
-                std_core$i32$Display$to_string :string
-              arg0:
-                b :i32
-          @builder.append_str :void
-            __sb_9 :?
-            " tail.len=" :string
-          @builder.append_str :void
-            __sb_9 :?
-            call :string
-              callee:
-                std_core$usize$Display$to_string :string
-              arg0:
-                LoweredArrayLen
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_9 :StringBuilder
+            arg1:
+              "a=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_9 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  a :i32
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_9 :StringBuilder
+            arg1:
+              " b=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_9 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  b :i32
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_9 :StringBuilder
+            arg1:
+              " tail.len=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_9 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$usize$Display$to_string :string
+                arg0:
+                  LoweredArrayLen
           ~>
-            @builder.finish :string
-              __sb_9 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_9 :StringBuilder
     let __tup_10: i32[] = arr :i32[]
     let short: i32[] =
       array :i32[]
@@ -188,21 +251,34 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_12: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_12 :?
-            "short.len=" :string
-          @builder.append_str :void
-            __sb_12 :?
+          let __sb_12: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_12 :StringBuilder
+            arg1:
+              "short.len=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_12 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$usize$Display$to_string :string
+                arg0:
+                  LoweredArrayLen
+          ~>
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                LoweredArrayLen
-          ~>
-            @builder.finish :string
-              __sb_12 :?
+                __sb_12 :StringBuilder
     block :void
       let __for_arr_13: i32[] = short :i32[]
       let __for_len_14: usize =
@@ -220,21 +296,34 @@
             std_io$std_io$println__string :void
           arg0:
             block :string
-              let __sb_16: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_16 :?
-                "  " :string
-              @builder.append_str :void
-                __sb_16 :?
+              let __sb_16: StringBuilder =
+                call :StringBuilder
+                  callee:
+                    new_builder :StringBuilder
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_16 :StringBuilder
+                arg1:
+                  "  " :string
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_16 :StringBuilder
+                arg1:
+                  call :string
+                    callee:
+                      std_core$i32$Display$to_string :string
+                    arg0:
+                      x :i32
+              ~>
                 call :string
                   callee:
-                    std_core$i32$Display$to_string :string
+                    std_string_builder$StringBuilder$Display$to_string :string
                   arg0:
-                    x :i32
-              ~>
-                @builder.finish :string
-                  __sb_16 :?
+                    __sb_16 :StringBuilder
         assign
           target:
             __for_i_15 :usize

@@ -80,26 +80,26 @@ fn snippet$main() -> i32
     %20 m: None | Some (local m)
     %21 __scrut_3: None | Some (synthetic __scrut_3)
     %22 $type_check_22: bool
-    %23 $intrinsic_23: ?
-    %24 __sb_4: ? (synthetic __sb_4)
+    %23 $call_23: StringBuilder
+    %24 __sb_4: StringBuilder (synthetic __sb_4)
     %25 $k_25: string
     %26 $cast_26: Some
     %27 $field_27: i32
     %28 $call_28: string
-    %29 $intrinsic_29: string
+    %29 $call_29: string
     %30 $type_check_30: bool
     %31 $k_31: string
     %32 $struct_32: None
     %33 n: None | Some (local n)
     %34 __scrut_5: None | Some (synthetic __scrut_5)
     %35 $type_check_35: bool
-    %36 $intrinsic_36: ?
-    %37 __sb_6: ? (synthetic __sb_6)
+    %36 $call_36: StringBuilder
+    %37 __sb_6: StringBuilder (synthetic __sb_6)
     %38 $k_38: string
     %39 $cast_39: Some
     %40 $field_40: i32
     %41 $call_41: string
-    %42 $intrinsic_42: string
+    %42 $call_42: string
     %43 $type_check_43: bool
     %44 $k_44: string
     %45 $k_45: i32
@@ -138,15 +138,15 @@ fn snippet$main() -> i32
     %22 = type_check %21 is Some
     cond_branch %22 ? bb4 : bb5
   bb4:
-    %23 = intrinsic builder.new()
+    %23 = call new_builder() :StringBuilder
     %24 = move %23
     %25 = const string(#4) :string
-    intrinsic builder.append_str(%24, %25)
+    call append(%24, %25) :void
     %26 = cast %20 :Some
     %27 = field_get %26.value :i32
     %28 = call std_core$i32$Display$to_string(%27) :string
-    intrinsic builder.append_str(%24, %28)
-    %29 = intrinsic builder.finish(%24)
+    call append(%24, %28) :void
+    %29 = call std_string_builder$StringBuilder$Display$to_string(%24) :string
     call std_io$std_io$println__string(%29) :void
     branch -> bb6
   bb5:
@@ -167,15 +167,15 @@ fn snippet$main() -> i32
   bb9:
     branch -> bb6
   bb10:
-    %36 = intrinsic builder.new()
+    %36 = call new_builder() :StringBuilder
     %37 = move %36
     %38 = const string(#4) :string
-    intrinsic builder.append_str(%37, %38)
+    call append(%37, %38) :void
     %39 = cast %33 :Some
     %40 = field_get %39.value :i32
     %41 = call std_core$i32$Display$to_string(%40) :string
-    intrinsic builder.append_str(%37, %41)
-    %42 = intrinsic builder.finish(%37)
+    call append(%37, %41) :void
+    %42 = call std_string_builder$StringBuilder$Display$to_string(%37) :string
     call std_io$std_io$println__string(%42) :void
     branch -> bb12
   bb11:

@@ -31,103 +31,103 @@ fn snippet$main() -> i32
     %0 $k_0: i32
     %1 $call_1: i32
     %2 n: i32 (local n)
-    %3 $intrinsic_3: ?
-    %4 __sb_0: ? (synthetic __sb_0)
+    %3 $call_3: StringBuilder
+    %4 __sb_0: StringBuilder (synthetic __sb_0)
     %5 $k_5: string
     %6 $call_6: string
-    %7 $intrinsic_7: string
+    %7 $call_7: string
     %8 $k_8: i32
     %9 $call_9: i32
     %10 e: i32 (local e)
-    %11 $intrinsic_11: ?
-    %12 __sb_1: ? (synthetic __sb_1)
+    %11 $call_11: StringBuilder
+    %12 __sb_1: StringBuilder (synthetic __sb_1)
     %13 $k_13: string
     %14 $call_14: string
-    %15 $intrinsic_15: string
+    %15 $call_15: string
     %16 $k_16: i32
     %17 $call_17: Box<i32>
     %18 b: Box<i32> (local b)
-    %19 $intrinsic_19: ?
-    %20 __sb_2: ? (synthetic __sb_2)
+    %19 $call_19: StringBuilder
+    %20 __sb_2: StringBuilder (synthetic __sb_2)
     %21 $k_21: string
     %22 $field_22: i32
     %23 $call_23: string
-    %24 $intrinsic_24: string
+    %24 $call_24: string
     %25 $k_25: i32
     %26 $call_26: Box<Box<i32>>
     %27 nested: Box<Box<i32>> (local nested)
-    %28 $intrinsic_28: ?
-    %29 __sb_3: ? (synthetic __sb_3)
+    %28 $call_28: StringBuilder
+    %29 __sb_3: StringBuilder (synthetic __sb_3)
     %30 $k_30: string
     %31 $field_31: Box<i32>
     %32 $field_32: i32
     %33 $call_33: string
-    %34 $intrinsic_34: string
+    %34 $call_34: string
     %35 $call_35: bool
     %36 c: bool (local c)
-    %37 $intrinsic_37: ?
-    %38 __sb_4: ? (synthetic __sb_4)
+    %37 $call_37: StringBuilder
+    %38 __sb_4: StringBuilder (synthetic __sb_4)
     %39 $k_39: string
     %40 $call_40: string
-    %41 $intrinsic_41: string
+    %41 $call_41: string
     %42 $k_42: i32
   bb0:
     %0 = const int(42) :i32
     %1 = call snippet$snippet$identity__i32(%0) :i32
     %2 = move %1
-    %3 = intrinsic builder.new()
+    %3 = call new_builder() :StringBuilder
     %4 = move %3
     %5 = const string(#1) :string
-    intrinsic builder.append_str(%4, %5)
+    call append(%4, %5) :void
     %6 = call std_core$i32$Display$to_string(%2) :string
-    intrinsic builder.append_str(%4, %6)
-    %7 = intrinsic builder.finish(%4)
+    call append(%4, %6) :void
+    %7 = call std_string_builder$StringBuilder$Display$to_string(%4) :string
     call std_io$std_io$println__string(%7) :void
     %8 = const int(42) :i32
     %9 = call snippet$snippet$identity__i32(%8) :i32
     %10 = move %9
-    %11 = intrinsic builder.new()
+    %11 = call new_builder() :StringBuilder
     %12 = move %11
     %13 = const string(#2) :string
-    intrinsic builder.append_str(%12, %13)
+    call append(%12, %13) :void
     %14 = call std_core$i32$Display$to_string(%10) :string
-    intrinsic builder.append_str(%12, %14)
-    %15 = intrinsic builder.finish(%12)
+    call append(%12, %14) :void
+    %15 = call std_string_builder$StringBuilder$Display$to_string(%12) :string
     call std_io$std_io$println__string(%15) :void
     %16 = const int(7) :i32
     %17 = call snippet$snippet$make_box__i32(%16) :Box<i32>
     %18 = move %17
-    %19 = intrinsic builder.new()
+    %19 = call new_builder() :StringBuilder
     %20 = move %19
     %21 = const string(#3) :string
-    intrinsic builder.append_str(%20, %21)
+    call append(%20, %21) :void
     %22 = field_get %18.value :i32
     %23 = call std_core$i32$Display$to_string(%22) :string
-    intrinsic builder.append_str(%20, %23)
-    %24 = intrinsic builder.finish(%20)
+    call append(%20, %23) :void
+    %24 = call std_string_builder$StringBuilder$Display$to_string(%20) :string
     call std_io$std_io$println__string(%24) :void
     %25 = const int(99) :i32
     %26 = call snippet$snippet$make_nested__i32(%25) :Box<Box<i32>>
     %27 = move %26
-    %28 = intrinsic builder.new()
+    %28 = call new_builder() :StringBuilder
     %29 = move %28
     %30 = const string(#4) :string
-    intrinsic builder.append_str(%29, %30)
+    call append(%29, %30) :void
     %31 = field_get %27.value :Box<i32>
     %32 = field_get %31.value :i32
     %33 = call std_core$i32$Display$to_string(%32) :string
-    intrinsic builder.append_str(%29, %33)
-    %34 = intrinsic builder.finish(%29)
+    call append(%29, %33) :void
+    %34 = call std_string_builder$StringBuilder$Display$to_string(%29) :string
     call std_io$std_io$println__string(%34) :void
     %35 = call demo_comparison_in_args() :bool
     %36 = move %35
-    %37 = intrinsic builder.new()
+    %37 = call new_builder() :StringBuilder
     %38 = move %37
     %39 = const string(#5) :string
-    intrinsic builder.append_str(%38, %39)
+    call append(%38, %39) :void
     %40 = call std_core$bool$Display$to_string(%36) :string
-    intrinsic builder.append_str(%38, %40)
-    %41 = intrinsic builder.finish(%38)
+    call append(%38, %40) :void
+    %41 = call std_string_builder$StringBuilder$Display$to_string(%38) :string
     call std_io$std_io$println__string(%41) :void
     %42 = const int(0) :i32
     return %42

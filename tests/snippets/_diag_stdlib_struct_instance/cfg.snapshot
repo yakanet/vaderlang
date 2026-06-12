@@ -18,12 +18,12 @@ fn snippet$main() -> i32
     %11 v: i32 | null (local v)
     %12 $type_check_12: bool
     %13 $k_13: i32
-    %14 $intrinsic_14: ?
-    %15 __sb_0: ? (synthetic __sb_0)
+    %14 $call_14: StringBuilder
+    %15 __sb_0: StringBuilder (synthetic __sb_0)
     %16 $k_16: string
     %17 $cast_17: i32
     %18 $call_18: string
-    %19 $intrinsic_19: string
+    %19 $call_19: string
     %20 $cast_20: i32
   bb0:
     %0 = array_new (Entry<K, V> | null)[][0]()
@@ -45,14 +45,14 @@ fn snippet$main() -> i32
     %13 = const int(1) :i32
     return %13
   bb2:
-    %14 = intrinsic builder.new()
+    %14 = call new_builder() :StringBuilder
     %15 = move %14
     %16 = const string(#2) :string
-    intrinsic builder.append_str(%15, %16)
+    call append(%15, %16) :void
     %17 = cast %11 :i32
     %18 = call std_core$i32$Display$to_string(%17) :string
-    intrinsic builder.append_str(%15, %18)
-    %19 = intrinsic builder.finish(%15)
+    call append(%15, %18) :void
+    %19 = call std_string_builder$StringBuilder$Display$to_string(%15) :string
     call std_io$std_io$println__string(%19) :void
     %20 = cast %11 :i32
     return %20

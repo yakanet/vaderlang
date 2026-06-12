@@ -17,6 +17,8 @@
 
 ## stdlib/std/runtime
 
+## stdlib/std/string_builder
+
 ## tests/snippets/gc_array_survive
 
 ## generic instances

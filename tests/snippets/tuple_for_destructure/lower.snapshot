@@ -40,28 +40,45 @@
             std_io$std_io$println__string :void
           arg0:
             block :string
-              let __sb_4: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_4 :?
-                call :string
+              let __sb_4: StringBuilder =
+                call :StringBuilder
                   callee:
-                    std_core$string$Display$to_string :string
-                  arg0:
-                    k :string
-              @builder.append_str :void
-                __sb_4 :?
-                "=" :string
-              @builder.append_str :void
-                __sb_4 :?
-                call :string
-                  callee:
-                    std_core$i32$Display$to_string :string
-                  arg0:
-                    v :i32
+                    new_builder :StringBuilder
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_4 :StringBuilder
+                arg1:
+                  call :string
+                    callee:
+                      std_core$string$Display$to_string :string
+                    arg0:
+                      k :string
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_4 :StringBuilder
+                arg1:
+                  "=" :string
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_4 :StringBuilder
+                arg1:
+                  call :string
+                    callee:
+                      std_core$i32$Display$to_string :string
+                    arg0:
+                      v :i32
               ~>
-                @builder.finish :string
-                  __sb_4 :?
+                call :string
+                  callee:
+                    std_string_builder$StringBuilder$Display$to_string :string
+                  arg0:
+                    __sb_4 :StringBuilder
         assign
           target:
             __for_i_2 :usize

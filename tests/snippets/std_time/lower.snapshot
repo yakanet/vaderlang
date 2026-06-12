@@ -106,61 +106,87 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_0: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_0 :?
-            "plus=" :string
-          @builder.append_str :void
-            __sb_0 :?
+          let __sb_0: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              "plus=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$string$Display$to_string :string
+                arg0:
+                  call :string
+                    callee:
+                      format :string
+                    arg0:
+                      call :Duration
+                        callee:
+                          plus :Duration
+                        arg0:
+                          a :Duration
+                        arg1:
+                          b :Duration
+          ~>
             call :string
               callee:
-                std_core$string$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                call :string
-                  callee:
-                    format :string
-                  arg0:
-                    call :Duration
-                      callee:
-                        plus :Duration
-                      arg0:
-                        a :Duration
-                      arg1:
-                        b :Duration
-          ~>
-            @builder.finish :string
-              __sb_0 :?
+                __sb_0 :StringBuilder
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_1: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_1 :?
-            "minus=" :string
-          @builder.append_str :void
-            __sb_1 :?
+          let __sb_1: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              "minus=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$string$Display$to_string :string
+                arg0:
+                  call :string
+                    callee:
+                      format :string
+                    arg0:
+                      call :Duration
+                        callee:
+                          minus :Duration
+                        arg0:
+                          a :Duration
+                        arg1:
+                          b :Duration
+          ~>
             call :string
               callee:
-                std_core$string$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                call :string
-                  callee:
-                    format :string
-                  arg0:
-                    call :Duration
-                      callee:
-                        minus :Duration
-                      arg0:
-                        a :Duration
-                      arg1:
-                        b :Duration
-          ~>
-            @builder.finish :string
-              __sb_1 :?
+                __sb_1 :StringBuilder
     let epoch: Instant =
       Instant {
         ns_since_epoch:
@@ -193,25 +219,38 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_2: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_2 :?
-            "delta=" :string
-          @builder.append_str :void
-            __sb_2 :?
+          let __sb_2: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              "delta=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$string$Display$to_string :string
+                arg0:
+                  call :string
+                    callee:
+                      format :string
+                    arg0:
+                      delta :Duration
+          ~>
             call :string
               callee:
-                std_core$string$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                call :string
-                  callee:
-                    format :string
-                  arg0:
-                    delta :Duration
-          ~>
-            @builder.finish :string
-              __sb_2 :?
+                __sb_2 :StringBuilder
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -366,25 +405,38 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_6: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_6 :?
-            "monotonic>=0=" :string
-          @builder.append_str :void
-            __sb_6 :?
+          let __sb_6: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_6 :StringBuilder
+            arg1:
+              "monotonic>=0=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_6 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$bool$Display$to_string :string
+                arg0:
+                  gte :bool
+                    l:
+                      .ns :i64
+                        e :Duration
+                    r:
+                      cast → i64
+                        int(0) :i64
+          ~>
             call :string
               callee:
-                std_core$bool$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                gte :bool
-                  l:
-                    .ns :i64
-                      e :Duration
-                  r:
-                    cast → i64
-                      int(0) :i64
-          ~>
-            @builder.finish :string
-              __sb_6 :?
+                __sb_6 :StringBuilder
     return int(0) :i32

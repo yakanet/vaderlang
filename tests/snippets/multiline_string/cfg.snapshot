@@ -8,12 +8,12 @@ fn snippet$main() -> i32
     %1 s: string (local s)
     %2 $k_2: i32
     %3 n: i32 (local n)
-    %4 $intrinsic_4: ?
-    %5 __sb_0: ? (synthetic __sb_0)
+    %4 $call_4: StringBuilder
+    %5 __sb_0: StringBuilder (synthetic __sb_0)
     %6 $k_6: string
     %7 $call_7: string
     %8 $k_8: string
-    %9 $intrinsic_9: string
+    %9 $call_9: string
     %10 msg: string (local msg)
     %11 $k_11: string
     %12 escaped: string (local escaped)
@@ -29,15 +29,15 @@ fn snippet$main() -> i32
     call std_io$std_io$print__string(%1) :void
     %2 = const int(42) :i32
     %3 = move %2
-    %4 = intrinsic builder.new()
+    %4 = call new_builder() :StringBuilder
     %5 = move %4
     %6 = const string(#2) :string
-    intrinsic builder.append_str(%5, %6)
+    call append(%5, %6) :void
     %7 = call std_core$i32$Display$to_string(%3) :string
-    intrinsic builder.append_str(%5, %7)
+    call append(%5, %7) :void
     %8 = const string(#3) :string
-    intrinsic builder.append_str(%5, %8)
-    %9 = intrinsic builder.finish(%5)
+    call append(%5, %8) :void
+    %9 = call std_string_builder$StringBuilder$Display$to_string(%5) :string
     %10 = move %9
     call std_io$std_io$print__string(%10) :void
     %11 = const string(#4) :string

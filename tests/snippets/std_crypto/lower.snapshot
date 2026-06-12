@@ -7,167 +7,258 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_0: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_0 :?
-            "sha256-empty=" :string
-          @builder.append_str :void
-            __sb_0 :?
+          let __sb_0: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              "sha256-empty=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$string$Display$to_string :string
+                arg0:
+                  call :string
+                    callee:
+                      sha256 :fn(string) -> string
+                    arg0:
+                      "" :string
+          ~>
             call :string
               callee:
-                std_core$string$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                call :string
-                  callee:
-                    sha256 :fn(string) -> string
-                  arg0:
-                    "" :string
-          ~>
-            @builder.finish :string
-              __sb_0 :?
+                __sb_0 :StringBuilder
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_1: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_1 :?
-            "sha256-abc=" :string
-          @builder.append_str :void
-            __sb_1 :?
+          let __sb_1: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              "sha256-abc=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$string$Display$to_string :string
+                arg0:
+                  call :string
+                    callee:
+                      sha256 :fn(string) -> string
+                    arg0:
+                      "abc" :string
+          ~>
             call :string
               callee:
-                std_core$string$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                call :string
-                  callee:
-                    sha256 :fn(string) -> string
-                  arg0:
-                    "abc" :string
-          ~>
-            @builder.finish :string
-              __sb_1 :?
+                __sb_1 :StringBuilder
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_2: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_2 :?
-            "sha256-quick=" :string
-          @builder.append_str :void
-            __sb_2 :?
+          let __sb_2: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              "sha256-quick=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$string$Display$to_string :string
+                arg0:
+                  call :string
+                    callee:
+                      sha256 :fn(string) -> string
+                    arg0:
+                      "The quick brown fox jumps over the lazy dog" :string
+          ~>
             call :string
               callee:
-                std_core$string$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                call :string
-                  callee:
-                    sha256 :fn(string) -> string
-                  arg0:
-                    "The quick brown fox jumps over the lazy dog" :string
-          ~>
-            @builder.finish :string
-              __sb_2 :?
+                __sb_2 :StringBuilder
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_3: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_3 :?
-            "sha256-long=" :string
-          @builder.append_str :void
-            __sb_3 :?
+          let __sb_3: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_3 :StringBuilder
+            arg1:
+              "sha256-long=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_3 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$string$Display$to_string :string
+                arg0:
+                  call :string
+                    callee:
+                      sha256 :fn(string) -> string
+                    arg0:
+                      "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq" :string
+          ~>
             call :string
               callee:
-                std_core$string$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                call :string
-                  callee:
-                    sha256 :fn(string) -> string
-                  arg0:
-                    "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq" :string
-          ~>
-            @builder.finish :string
-              __sb_3 :?
+                __sb_3 :StringBuilder
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_4: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_4 :?
-            "md5-empty=" :string
-          @builder.append_str :void
-            __sb_4 :?
+          let __sb_4: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_4 :StringBuilder
+            arg1:
+              "md5-empty=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_4 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$string$Display$to_string :string
+                arg0:
+                  call :string
+                    callee:
+                      md5 :fn(string) -> string
+                    arg0:
+                      "" :string
+          ~>
             call :string
               callee:
-                std_core$string$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                call :string
-                  callee:
-                    md5 :fn(string) -> string
-                  arg0:
-                    "" :string
-          ~>
-            @builder.finish :string
-              __sb_4 :?
+                __sb_4 :StringBuilder
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_5: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_5 :?
-            "md5-abc=" :string
-          @builder.append_str :void
-            __sb_5 :?
+          let __sb_5: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_5 :StringBuilder
+            arg1:
+              "md5-abc=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_5 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$string$Display$to_string :string
+                arg0:
+                  call :string
+                    callee:
+                      md5 :fn(string) -> string
+                    arg0:
+                      "abc" :string
+          ~>
             call :string
               callee:
-                std_core$string$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                call :string
-                  callee:
-                    md5 :fn(string) -> string
-                  arg0:
-                    "abc" :string
-          ~>
-            @builder.finish :string
-              __sb_5 :?
+                __sb_5 :StringBuilder
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_6: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_6 :?
-            "md5-quick=" :string
-          @builder.append_str :void
-            __sb_6 :?
+          let __sb_6: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_6 :StringBuilder
+            arg1:
+              "md5-quick=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_6 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$string$Display$to_string :string
+                arg0:
+                  call :string
+                    callee:
+                      md5 :fn(string) -> string
+                    arg0:
+                      "The quick brown fox jumps over the lazy dog" :string
+          ~>
             call :string
               callee:
-                std_core$string$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                call :string
-                  callee:
-                    md5 :fn(string) -> string
-                  arg0:
-                    "The quick brown fox jumps over the lazy dog" :string
-          ~>
-            @builder.finish :string
-              __sb_6 :?
+                __sb_6 :StringBuilder
     return int(0) :i32

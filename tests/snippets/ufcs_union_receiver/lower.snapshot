@@ -18,25 +18,42 @@
                   __scrut_0 :Circle | Square
               ~>
                 block :string
-                  let __sb_2: ? =
-                    @builder.new :?
-                  @builder.append_str :void
-                    __sb_2 :?
-                    "circle(" :string
-                  @builder.append_str :void
-                    __sb_2 :?
+                  let __sb_2: StringBuilder =
+                    call :StringBuilder
+                      callee:
+                        new_builder :StringBuilder
+                  call :void
+                    callee:
+                      append :void
+                    arg0:
+                      __sb_2 :StringBuilder
+                    arg1:
+                      "circle(" :string
+                  call :void
+                    callee:
+                      append :void
+                    arg0:
+                      __sb_2 :StringBuilder
+                    arg1:
+                      call :string
+                        callee:
+                          std_core$i32$Display$to_string :string
+                        arg0:
+                          .radius :i32
+                            c :Circle
+                  call :void
+                    callee:
+                      append :void
+                    arg0:
+                      __sb_2 :StringBuilder
+                    arg1:
+                      ")" :string
+                  ~>
                     call :string
                       callee:
-                        std_core$i32$Display$to_string :string
+                        std_string_builder$StringBuilder$Display$to_string :string
                       arg0:
-                        .radius :i32
-                          c :Circle
-                  @builder.append_str :void
-                    __sb_2 :?
-                    ")" :string
-                  ~>
-                    @builder.finish :string
-                      __sb_2 :?
+                        __sb_2 :StringBuilder
             else:
               ~>
                 if :string
@@ -49,25 +66,42 @@
                         __scrut_0 :Circle | Square
                     ~>
                       block :string
-                        let __sb_1: ? =
-                          @builder.new :?
-                        @builder.append_str :void
-                          __sb_1 :?
-                          "square(" :string
-                        @builder.append_str :void
-                          __sb_1 :?
+                        let __sb_1: StringBuilder =
+                          call :StringBuilder
+                            callee:
+                              new_builder :StringBuilder
+                        call :void
+                          callee:
+                            append :void
+                          arg0:
+                            __sb_1 :StringBuilder
+                          arg1:
+                            "square(" :string
+                        call :void
+                          callee:
+                            append :void
+                          arg0:
+                            __sb_1 :StringBuilder
+                          arg1:
+                            call :string
+                              callee:
+                                std_core$i32$Display$to_string :string
+                              arg0:
+                                .side :i32
+                                  sq :Square
+                        call :void
+                          callee:
+                            append :void
+                          arg0:
+                            __sb_1 :StringBuilder
+                          arg1:
+                            ")" :string
+                        ~>
                           call :string
                             callee:
-                              std_core$i32$Display$to_string :string
+                              std_string_builder$StringBuilder$Display$to_string :string
                             arg0:
-                              .side :i32
-                                sq :Square
-                        @builder.append_str :void
-                          __sb_1 :?
-                          ")" :string
-                        ~>
-                          @builder.finish :string
-                            __sb_1 :?
+                              __sb_1 :StringBuilder
                   else:
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :string
@@ -149,47 +183,73 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_0: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_0 :?
-            "a.area = " :string
-          @builder.append_str :void
-            __sb_0 :?
+          let __sb_0: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              "a.area = " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  call :i32
+                    callee:
+                      area :i32
+                    arg0:
+                      a :Circle | Square
+          ~>
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                call :i32
-                  callee:
-                    area :i32
-                  arg0:
-                    a :Circle | Square
-          ~>
-            @builder.finish :string
-              __sb_0 :?
+                __sb_0 :StringBuilder
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_1: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_1 :?
-            "b.area = " :string
-          @builder.append_str :void
-            __sb_1 :?
+          let __sb_1: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              "b.area = " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  call :i32
+                    callee:
+                      area :i32
+                    arg0:
+                      b :Circle | Square
+          ~>
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                call :i32
-                  callee:
-                    area :i32
-                  arg0:
-                    b :Circle | Square
-          ~>
-            @builder.finish :string
-              __sb_1 :?
+                __sb_1 :StringBuilder
     return int(0) :i32

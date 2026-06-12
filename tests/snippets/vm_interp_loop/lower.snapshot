@@ -19,31 +19,52 @@
           std_io$std_io$println__string :void
         arg0:
           block :string
-            let __sb_0: ? =
-              @builder.new :?
-            @builder.append_str :void
-              __sb_0 :?
-              "i=" :string
-            @builder.append_str :void
-              __sb_0 :?
-              call :string
+            let __sb_0: StringBuilder =
+              call :StringBuilder
                 callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  i :i32
-            @builder.append_str :void
-              __sb_0 :?
-              " sum=" :string
-            @builder.append_str :void
-              __sb_0 :?
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  sum :i32
+                  new_builder :StringBuilder
+            call :void
+              callee:
+                append :void
+              arg0:
+                __sb_0 :StringBuilder
+              arg1:
+                "i=" :string
+            call :void
+              callee:
+                append :void
+              arg0:
+                __sb_0 :StringBuilder
+              arg1:
+                call :string
+                  callee:
+                    std_core$i32$Display$to_string :string
+                  arg0:
+                    i :i32
+            call :void
+              callee:
+                append :void
+              arg0:
+                __sb_0 :StringBuilder
+              arg1:
+                " sum=" :string
+            call :void
+              callee:
+                append :void
+              arg0:
+                __sb_0 :StringBuilder
+              arg1:
+                call :string
+                  callee:
+                    std_core$i32$Display$to_string :string
+                  arg0:
+                    sum :i32
             ~>
-              @builder.finish :string
-                __sb_0 :?
+              call :string
+                callee:
+                  std_string_builder$StringBuilder$Display$to_string :string
+                arg0:
+                  __sb_0 :StringBuilder
       assign
         target:
           i :i32

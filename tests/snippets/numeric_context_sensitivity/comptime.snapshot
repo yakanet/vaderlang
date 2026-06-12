@@ -19,6 +19,8 @@
 
 ## stdlib/std/iter
 
+## stdlib/std/string_builder
+
 ## stdlib/std/testing
 
 ## tests/snippets/numeric_context_sensitivity

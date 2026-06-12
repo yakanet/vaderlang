@@ -18,24 +18,37 @@
             else:
               ~>
                 block :string
-                  let __sb_1: ? =
-                    @builder.new :?
-                  @builder.append_str :void
-                    __sb_1 :?
-                    "hello " :string
-                  @builder.append_str :void
-                    __sb_1 :?
+                  let __sb_1: StringBuilder =
+                    call :StringBuilder
+                      callee:
+                        new_builder :StringBuilder
+                  call :void
+                    callee:
+                      append :void
+                    arg0:
+                      __sb_1 :StringBuilder
+                    arg1:
+                      "hello " :string
+                  call :void
+                    callee:
+                      append :void
+                    arg0:
+                      __sb_1 :StringBuilder
+                    arg1:
+                      call :string
+                        callee:
+                          std_core$string$Display$to_string :string
+                        arg0:
+                          .name :string
+                            cast → Cat
+                              cast → Cat | Dog
+                                p :Cat | Dog | null
+                  ~>
                     call :string
                       callee:
-                        std_core$string$Display$to_string :string
+                        std_string_builder$StringBuilder$Display$to_string :string
                       arg0:
-                        .name :string
-                          cast → Cat
-                            cast → Cat | Dog
-                              p :Cat | Dog | null
-                  ~>
-                    @builder.finish :string
-                      __sb_1 :?
+                        __sb_1 :StringBuilder
   fn snippet$greet_binding(p: Cat | Dog | null) -> string
     return
       block :string
@@ -52,23 +65,36 @@
               let pet: Cat | Dog | null = __scrut_0 :Cat | Dog | null
               ~>
                 block :string
-                  let __sb_1: ? =
-                    @builder.new :?
-                  @builder.append_str :void
-                    __sb_1 :?
-                    "howdy " :string
-                  @builder.append_str :void
-                    __sb_1 :?
+                  let __sb_1: StringBuilder =
+                    call :StringBuilder
+                      callee:
+                        new_builder :StringBuilder
+                  call :void
+                    callee:
+                      append :void
+                    arg0:
+                      __sb_1 :StringBuilder
+                    arg1:
+                      "howdy " :string
+                  call :void
+                    callee:
+                      append :void
+                    arg0:
+                      __sb_1 :StringBuilder
+                    arg1:
+                      call :string
+                        callee:
+                          std_core$string$Display$to_string :string
+                        arg0:
+                          .name :string
+                            cast → Cat
+                              pet :Cat | Dog
+                  ~>
                     call :string
                       callee:
-                        std_core$string$Display$to_string :string
+                        std_string_builder$StringBuilder$Display$to_string :string
                       arg0:
-                        .name :string
-                          cast → Cat
-                            pet :Cat | Dog
-                  ~>
-                    @builder.finish :string
-                      __sb_1 :?
+                        __sb_1 :StringBuilder
   fn snippet$main() -> i32
     call :void
       callee:
