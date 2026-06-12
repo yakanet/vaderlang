@@ -1,0 +1,33 @@
+// tests/snippets/float_to_string — pure-Vader shortest-double formatter (Ryu).
+//
+// Exercises `f64.to_string()` / `${f64}` through the normal build/run path,
+// which is the only float-formatting path with no caveats (the bytecode VM's
+// host `parse_float` mishandles subnormals, and std/core can't host @tests).
+// The run-output snapshot guards `stdlib/std/core/dtoa.vader` against
+// regressions ; exhaustive round-trip correctness lives in
+// `tools/dtoa_roundtrip_check.py`. Covers: integer-valued (.0), plain decimal,
+// the ECMAScript decimal/scientific boundary (n = 21 vs 22, n = -6), ties,
+// the 17-significant-digit cases, and the inf / -inf / nan / -0.0 specials.
+
+module "snippet"
+
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    xs: f64[] = [
+        0.0, 1.0, 3.0, 100.0, 1234567.0,
+        0.1, 0.5, 1.5, 2.5, 0.0001,
+        3.141592653589793, 123456789.123456789, 9.999999999999999,
+        1e20, 1e21, 1e-7, 6.022e23, 5e-324, 1.7976931348623157e308,
+        -0.0, -2.5,
+    ]
+    for x in xs {
+        println(x.to_string())
+    }
+    // `${...}` interpolation must agree with `.to_string()` (both Ryu).
+    pi :: 3.141592653589793
+    println("pi = ${pi}, sci = ${2.5e-8 * 1.0}")
+    inf :: 1.0 / 0.0
+    println("${inf} ${-inf} ${0.0 / 0.0}")
+    return 0
+}

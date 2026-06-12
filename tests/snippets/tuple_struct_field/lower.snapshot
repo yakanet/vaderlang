@@ -33,19 +33,27 @@
           @builder.append_str :void
             __sb_0 :?
             " x=" :string
-          @builder.append_display <for f64> :void
+          @builder.append_str :void
             __sb_0 :?
-            ._0 :f64
-              .coord :[f64, f64]
-                e :Entry
+            call :string
+              callee:
+                std_core$f64$Display$to_string :string
+              arg0:
+                ._0 :f64
+                  .coord :[f64, f64]
+                    e :Entry
           @builder.append_str :void
             __sb_0 :?
             " y=" :string
-          @builder.append_display <for f64> :void
+          @builder.append_str :void
             __sb_0 :?
-            ._1 :f64
-              .coord :[f64, f64]
-                e :Entry
+            call :string
+              callee:
+                std_core$f64$Display$to_string :string
+              arg0:
+                ._1 :f64
+                  .coord :[f64, f64]
+                    e :Entry
           ~>
             @builder.finish :string
               __sb_0 :?

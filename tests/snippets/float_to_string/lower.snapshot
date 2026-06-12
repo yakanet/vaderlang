@@ -1,0 +1,143 @@
+# Lower
+
+## snippet
+  fn snippet$main() -> i32
+    let xs: f64[] =
+      array :f64[]
+        float(0) :f64
+        float(1) :f64
+        float(3) :f64
+        float(100) :f64
+        float(1234567) :f64
+        float(0.1) :f64
+        float(0.5) :f64
+        float(1.5) :f64
+        float(2.5) :f64
+        float(0.0001) :f64
+        float(3.141592653589793) :f64
+        float(123456789.12345679) :f64
+        float(9.999999999999998) :f64
+        float(100000000000000000000) :f64
+        float(1e+21) :f64
+        float(1e-7) :f64
+        float(6.022e+23) :f64
+        float(5e-324) :f64
+        float(1.7976931348623157e+308) :f64
+        neg :f64
+          float(0) :f64
+        neg :f64
+          float(2.5) :f64
+    block :void
+      let __for_arr_0: f64[] = xs :f64[]
+      let __for_len_1: usize =
+        LoweredArrayLen
+      let __for_i_2: usize = int(0) :usize
+      loop while (<…>)
+        let x: f64 =
+          index :f64
+            on:
+              __for_arr_0 :f64[]
+            ix:
+              __for_i_2 :usize
+        call :void
+          callee:
+            std_io$std_io$println__string :void
+          arg0:
+            call :string
+              callee:
+                std_core$f64$Display$to_string :string
+              arg0:
+                x :f64
+        assign
+          target:
+            __for_i_2 :usize
+          value:
+            add :usize
+              l:
+                __for_i_2 :usize
+              r:
+                int(1) :usize
+    let pi: f64 = float(3.141592653589793) :f64
+    call :void
+      callee:
+        std_io$std_io$println__string :void
+      arg0:
+        block :string
+          let __sb_3: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_3 :?
+            "pi = " :string
+          @builder.append_str :void
+            __sb_3 :?
+            call :string
+              callee:
+                std_core$f64$Display$to_string :string
+              arg0:
+                pi :f64
+          @builder.append_str :void
+            __sb_3 :?
+            ", sci = " :string
+          @builder.append_str :void
+            __sb_3 :?
+            call :string
+              callee:
+                std_core$f64$Display$to_string :string
+              arg0:
+                mul :{float}
+                  l:
+                    float(2.5e-8) :f64
+                  r:
+                    float(1) :f64
+          ~>
+            @builder.finish :string
+              __sb_3 :?
+    let inf: f64 =
+      div :{float}
+        l:
+          float(1) :f64
+        r:
+          float(0) :f64
+    call :void
+      callee:
+        std_io$std_io$println__string :void
+      arg0:
+        block :string
+          let __sb_4: ? =
+            @builder.new :?
+          @builder.append_str :void
+            __sb_4 :?
+            call :string
+              callee:
+                std_core$f64$Display$to_string :string
+              arg0:
+                inf :f64
+          @builder.append_str :void
+            __sb_4 :?
+            " " :string
+          @builder.append_str :void
+            __sb_4 :?
+            call :string
+              callee:
+                std_core$f64$Display$to_string :string
+              arg0:
+                neg :f64
+                  inf :f64
+          @builder.append_str :void
+            __sb_4 :?
+            " " :string
+          @builder.append_str :void
+            __sb_4 :?
+            call :string
+              callee:
+                std_core$f64$Display$to_string :string
+              arg0:
+                div :{float}
+                  l:
+                    float(0) :f64
+                  r:
+                    float(0) :f64
+          ~>
+            @builder.finish :string
+              __sb_4 :?
+    return int(0) :i32

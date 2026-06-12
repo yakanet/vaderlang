@@ -38,8 +38,9 @@ fn snippet$main() -> i32
     %31 $call_31: string
     %32 $k_32: string
     %33 $field_33: f64
-    %34 $intrinsic_34: string
-    %35 $k_35: i32
+    %34 $call_34: string
+    %35 $intrinsic_35: string
+    %36 $k_36: i32
   bb0:
     %0 = const int(1) :i32
     %1 = const string(#1) :string
@@ -87,8 +88,9 @@ fn snippet$main() -> i32
     %32 = const string(#2) :string
     intrinsic builder.append_str(%23, %32)
     %33 = field_get %21._3 :f64
-    intrinsic builder.append_display(%23, %33)
-    %34 = intrinsic builder.finish(%23)
-    call std_io$std_io$println__string(%34) :void
-    %35 = const int(0) :i32
-    return %35
+    %34 = call std_core$f64$Display$to_string(%33) :string
+    intrinsic builder.append_str(%23, %34)
+    %35 = intrinsic builder.finish(%23)
+    call std_io$std_io$println__string(%35) :void
+    %36 = const int(0) :i32
+    return %36

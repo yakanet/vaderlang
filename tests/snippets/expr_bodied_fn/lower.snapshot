@@ -70,15 +70,19 @@
         block :string
           let __sb_1: ? =
             @builder.new :?
-          @builder.append_display <for f64> :void
+          @builder.append_str :void
             __sb_1 :?
-            call :f64
+            call :string
               callee:
-                max :fn(f64, f64) -> f64
+                std_core$f64$Display$to_string :string
               arg0:
-                float(3.5) :f64
-              arg1:
-                float(7.2) :f64
+                call :f64
+                  callee:
+                    max :fn(f64, f64) -> f64
+                  arg0:
+                    float(3.5) :f64
+                  arg1:
+                    float(7.2) :f64
           ~>
             @builder.finish :string
               __sb_1 :?
@@ -89,15 +93,19 @@
         block :string
           let __sb_2: ? =
             @builder.new :?
-          @builder.append_display <for f64> :void
+          @builder.append_str :void
             __sb_2 :?
-            call :f64
+            call :string
               callee:
-                max :fn(f64, f64) -> f64
+                std_core$f64$Display$to_string :string
               arg0:
-                float(10) :f64
-              arg1:
-                float(4) :f64
+                call :f64
+                  callee:
+                    max :fn(f64, f64) -> f64
+                  arg0:
+                    float(10) :f64
+                  arg1:
+                    float(4) :f64
           ~>
             @builder.finish :string
               __sb_2 :?
@@ -150,13 +158,17 @@
         block :string
           let __sb_5: ? =
             @builder.new :?
-          @builder.append_display <for f64> :void
+          @builder.append_str :void
             __sb_5 :?
-            call :f64
+            call :string
               callee:
-                snippet$snippet$id__f64 :f64
+                std_core$f64$Display$to_string :string
               arg0:
-                float(7.5) :f64
+                call :f64
+                  callee:
+                    snippet$snippet$id__f64 :f64
+                  arg0:
+                    float(7.5) :f64
           ~>
             @builder.finish :string
               __sb_5 :?

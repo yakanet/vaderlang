@@ -697,16 +697,22 @@ parse_slot_arg :: fn(line: string, prefix: string, is_get: bool) -> bc.Op | null
     return bc.LocalSet { .slot = parsed }
 }
 
-/// Parse `f64.const N.M` where the operand is a decimal float literal
-/// in the shape `<int>(.<frac>)?(e<int>)?` with an optional leading
-/// minus. The TS-side `formatF64` (`src/bytecode/text.ts`) is the
-/// canonical writer ; this parser mirrors its inverse.
+/// Parse `f64.const <decimal> <u64 bits>`, where the trailing `u64` is the
+/// exact IEEE-754 bit pattern and the leading decimal is its readable Ryu
+/// rendering (informational, for diffs). Reconstructing via `from_bits` makes
+/// subnormals / scientific / near-max values round-trip exactly — the decimal
+/// parser alone cannot (it overflows past ~1e308 and can't reach subnormals).
+/// Legacy single-token `f64.const N.M` lines fall back to that decimal parser.
 ///
 /// @param line  the comment-stripped op line.
-/// @return      `F64Const { value }` on success, `null` on malformed
-///              input.
+/// @return      `F64Const { value }` on success, `null` on malformed input.
 parse_f64_const :: fn(line: string) -> bc.Op | null {
     rest :: line.bytes()["f64.const ".bytes().len()..<line.bytes().len()].as_string().trim()
+    sp :: last_index_of_space(rest)
+    if sp >= 0 {
+        bits :: parse_uint_in_base(rest.bytes()[usize(sp) + 1..<rest.bytes().len()].as_string(), 10)
+        if bits is u64 { return bc.F64Const { .value = bits.from_bits() } }
+    }
     parsed :: parse_decimal_f64(rest)
     if parsed is null { return null }
     return bc.F64Const { .value = parsed }

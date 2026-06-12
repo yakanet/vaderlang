@@ -1,0 +1,26 @@
+# Typecheck
+
+## tests/snippets/float_to_string
+  FnDecl         main                 :: fn() -> i32
+  expr 17:17    SeqLitExpr     :: f64[]
+  expr 22:15    UnaryExpr      :: f64
+  expr 22:9     UnaryExpr      :: f64
+  expr 24:14    IdentExpr      :: f64[]
+  expr 25:17    CallExpr       :: string
+  expr 25:17    FieldExpr      :: fn() -> string
+  expr 25:17    IdentExpr      :: f64
+  expr 25:9     CallExpr       :: void
+  expr 25:9     IdentExpr      :: fn(T) -> void
+  expr 29:13    StringLitExpr  :: string
+  expr 29:21    IdentExpr      :: f64
+  expr 29:34    BinaryExpr     :: {float}
+  expr 29:5     CallExpr       :: void
+  expr 29:5     IdentExpr      :: fn(T) -> void
+  expr 30:12    BinaryExpr     :: {float}
+  expr 31:13    StringLitExpr  :: string
+  expr 31:16    IdentExpr      :: f64
+  expr 31:23    UnaryExpr      :: f64
+  expr 31:24    IdentExpr      :: f64
+  expr 31:31    BinaryExpr     :: {float}
+  expr 31:5     CallExpr       :: void
+  expr 31:5     IdentExpr      :: fn(T) -> void

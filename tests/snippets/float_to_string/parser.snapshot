@@ -1,0 +1,379 @@
+# AST
+{
+  "kind": "Program",
+  "module": {
+    "kind": "ModuleDecl",
+    "name": "snippet"
+  },
+  "decls": [
+    {
+      "kind": "ImportDecl",
+      "path": "std/io",
+      "binding": {
+        "kind": "destructure",
+        "names": [
+          {
+            "name": "println",
+            "alias": null
+          }
+        ]
+      },
+      "decorators": []
+    },
+    {
+      "kind": "FnDecl",
+      "name": "main",
+      "visibility": "private",
+      "typeParams": [],
+      "params": [],
+      "returnType": {
+        "kind": "IdentExpr",
+        "name": "i32"
+      },
+      "body": {
+        "kind": "BlockExpr",
+        "stmts": [
+          {
+            "kind": "LetStmt",
+            "mutable": true,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "xs"
+            },
+            "type": {
+              "kind": "ArrayTypeExpr",
+              "element": {
+                "kind": "IdentExpr",
+                "name": "f64"
+              }
+            },
+            "value": {
+              "kind": "SeqLitExpr",
+              "elements": [
+                {
+                  "kind": "FloatLitExpr",
+                  "value": 0,
+                  "suffix": null
+                },
+                {
+                  "kind": "FloatLitExpr",
+                  "value": 1,
+                  "suffix": null
+                },
+                {
+                  "kind": "FloatLitExpr",
+                  "value": 3,
+                  "suffix": null
+                },
+                {
+                  "kind": "FloatLitExpr",
+                  "value": 100,
+                  "suffix": null
+                },
+                {
+                  "kind": "FloatLitExpr",
+                  "value": 1234567,
+                  "suffix": null
+                },
+                {
+                  "kind": "FloatLitExpr",
+                  "value": 0.1,
+                  "suffix": null
+                },
+                {
+                  "kind": "FloatLitExpr",
+                  "value": 0.5,
+                  "suffix": null
+                },
+                {
+                  "kind": "FloatLitExpr",
+                  "value": 1.5,
+                  "suffix": null
+                },
+                {
+                  "kind": "FloatLitExpr",
+                  "value": 2.5,
+                  "suffix": null
+                },
+                {
+                  "kind": "FloatLitExpr",
+                  "value": 0.0001,
+                  "suffix": null
+                },
+                {
+                  "kind": "FloatLitExpr",
+                  "value": 3.141592653589793,
+                  "suffix": null
+                },
+                {
+                  "kind": "FloatLitExpr",
+                  "value": 123456789.12345679,
+                  "suffix": null
+                },
+                {
+                  "kind": "FloatLitExpr",
+                  "value": 9.999999999999998,
+                  "suffix": null
+                },
+                {
+                  "kind": "FloatLitExpr",
+                  "value": 100000000000000000000,
+                  "suffix": null
+                },
+                {
+                  "kind": "FloatLitExpr",
+                  "value": 1e+21,
+                  "suffix": null
+                },
+                {
+                  "kind": "FloatLitExpr",
+                  "value": 1e-7,
+                  "suffix": null
+                },
+                {
+                  "kind": "FloatLitExpr",
+                  "value": 6.022e+23,
+                  "suffix": null
+                },
+                {
+                  "kind": "FloatLitExpr",
+                  "value": 5e-324,
+                  "suffix": null
+                },
+                {
+                  "kind": "FloatLitExpr",
+                  "value": 1.7976931348623157e+308,
+                  "suffix": null
+                },
+                {
+                  "kind": "UnaryExpr",
+                  "op": "neg",
+                  "operand": {
+                    "kind": "FloatLitExpr",
+                    "value": 0,
+                    "suffix": null
+                  }
+                },
+                {
+                  "kind": "UnaryExpr",
+                  "op": "neg",
+                  "operand": {
+                    "kind": "FloatLitExpr",
+                    "value": 2.5,
+                    "suffix": null
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ForStmt",
+            "label": null,
+            "form": {
+              "kind": "in",
+              "binding": "x",
+              "iter": {
+                "kind": "IdentExpr",
+                "name": "xs"
+              }
+            },
+            "body": {
+              "kind": "BlockExpr",
+              "stmts": [],
+              "trailing": {
+                "kind": "CallExpr",
+                "callee": {
+                  "kind": "IdentExpr",
+                  "name": "println"
+                },
+                "args": [
+                  {
+                    "name": null,
+                    "value": {
+                      "kind": "CallExpr",
+                      "callee": {
+                        "kind": "FieldExpr",
+                        "target": {
+                          "kind": "IdentExpr",
+                          "name": "x"
+                        },
+                        "field": "to_string"
+                      },
+                      "args": []
+                    },
+                    "spread": false
+                  }
+                ]
+              }
+            },
+            "isComptime": false
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "pi"
+            },
+            "type": null,
+            "value": {
+              "kind": "FloatLitExpr",
+              "value": 3.141592653589793,
+              "suffix": null
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "pi = "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IdentExpr",
+                          "name": "pi"
+                        }
+                      },
+                      {
+                        "kind": "text",
+                        "value": ", sci = "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "BinaryExpr",
+                          "op": "mul",
+                          "left": {
+                            "kind": "FloatLitExpr",
+                            "value": 2.5e-8,
+                            "suffix": null
+                          },
+                          "right": {
+                            "kind": "FloatLitExpr",
+                            "value": 1,
+                            "suffix": null
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "SimpleBinding",
+              "name": "inf"
+            },
+            "type": null,
+            "value": {
+              "kind": "BinaryExpr",
+              "op": "div",
+              "left": {
+                "kind": "FloatLitExpr",
+                "value": 1,
+                "suffix": null
+              },
+              "right": {
+                "kind": "FloatLitExpr",
+                "value": 0,
+                "suffix": null
+              }
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IdentExpr",
+                          "name": "inf"
+                        }
+                      },
+                      {
+                        "kind": "text",
+                        "value": " "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "UnaryExpr",
+                          "op": "neg",
+                          "operand": {
+                            "kind": "IdentExpr",
+                            "name": "inf"
+                          }
+                        }
+                      },
+                      {
+                        "kind": "text",
+                        "value": " "
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "BinaryExpr",
+                          "op": "div",
+                          "left": {
+                            "kind": "FloatLitExpr",
+                            "value": 0,
+                            "suffix": null
+                          },
+                          "right": {
+                            "kind": "FloatLitExpr",
+                            "value": 0,
+                            "suffix": null
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ReturnStmt",
+            "value": {
+              "kind": "IntLitExpr",
+              "value": "0n",
+              "suffix": null
+            }
+          }
+        ],
+        "trailing": null
+      },
+      "decorators": []
+    }
+  ]
+}

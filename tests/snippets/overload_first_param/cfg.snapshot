@@ -68,49 +68,52 @@ fn snippet$main() -> i32
     %21 $k_21: f64
     %22 $k_22: f64
     %23 $call_23: f64
-    %24 $intrinsic_24: string
-    %25 $intrinsic_25: ?
-    %26 __sb_2: ? (synthetic __sb_2)
-    %27 $k_27: string
-    %28 $k_28: i32
-    %29 $unop_29: i32
-    %30 $k_30: i32
-    %31 $call_31: i32
-    %32 $call_32: string
-    %33 $intrinsic_33: string
-    %34 $intrinsic_34: ?
-    %35 __sb_3: ? (synthetic __sb_3)
-    %36 $k_36: string
-    %37 $k_37: i32
-    %38 $unop_38: i32
-    %39 $call_39: i32
-    %40 $call_40: string
-    %41 $intrinsic_41: string
-    %42 $intrinsic_42: ?
-    %43 __sb_4: ? (synthetic __sb_4)
-    %44 $k_44: string
-    %45 $k_45: f64
-    %46 $unop_46: f64
-    %47 $call_47: f64
-    %48 $intrinsic_48: string
-    %49 $intrinsic_49: ?
-    %50 __sb_5: ? (synthetic __sb_5)
-    %51 $k_51: string
-    %52 $k_52: i32
-    %53 $k_53: i32
+    %24 $call_24: string
+    %25 $intrinsic_25: string
+    %26 $intrinsic_26: ?
+    %27 __sb_2: ? (synthetic __sb_2)
+    %28 $k_28: string
+    %29 $k_29: i32
+    %30 $unop_30: i32
+    %31 $k_31: i32
+    %32 $call_32: i32
+    %33 $call_33: string
+    %34 $intrinsic_34: string
+    %35 $intrinsic_35: ?
+    %36 __sb_3: ? (synthetic __sb_3)
+    %37 $k_37: string
+    %38 $k_38: i32
+    %39 $unop_39: i32
+    %40 $call_40: i32
+    %41 $call_41: string
+    %42 $intrinsic_42: string
+    %43 $intrinsic_43: ?
+    %44 __sb_4: ? (synthetic __sb_4)
+    %45 $k_45: string
+    %46 $k_46: f64
+    %47 $unop_47: f64
+    %48 $call_48: f64
+    %49 $call_49: string
+    %50 $intrinsic_50: string
+    %51 $intrinsic_51: ?
+    %52 __sb_5: ? (synthetic __sb_5)
+    %53 $k_53: string
     %54 $k_54: i32
-    %55 $call_55: i32
-    %56 $call_56: string
-    %57 $intrinsic_57: string
-    %58 $intrinsic_58: ?
-    %59 __sb_6: ? (synthetic __sb_6)
-    %60 $k_60: string
-    %61 $k_61: f64
-    %62 $k_62: f64
+    %55 $k_55: i32
+    %56 $k_56: i32
+    %57 $call_57: i32
+    %58 $call_58: string
+    %59 $intrinsic_59: string
+    %60 $intrinsic_60: ?
+    %61 __sb_6: ? (synthetic __sb_6)
+    %62 $k_62: string
     %63 $k_63: f64
-    %64 $call_64: f64
-    %65 $intrinsic_65: string
-    %66 $k_66: i32
+    %64 $k_64: f64
+    %65 $k_65: f64
+    %66 $call_66: f64
+    %67 $call_67: string
+    %68 $intrinsic_68: string
+    %69 $k_69: i32
   bb0:
     %0 = const int(42) :i32
     %1 = struct_new Box(%0)
@@ -144,64 +147,67 @@ fn snippet$main() -> i32
     %21 = const float(3.5) :f64
     %22 = const float(5.0) :f64
     %23 = call min(%21, %22) :f64
-    intrinsic builder.append_display(%19, %23)
-    %24 = intrinsic builder.finish(%19)
-    call std_io$std_io$println__string(%24) :void
-    %25 = intrinsic builder.new()
-    %26 = move %25
-    %27 = const string(#6) :string
-    intrinsic builder.append_str(%26, %27)
-    %28 = const int(2) :i32
-    %29 = unop 0 %28 :i32
-    %30 = const int(8) :i32
-    %31 = call max(%29, %30) :i32
-    %32 = call std_core$i32$Display$to_string(%31) :string
-    intrinsic builder.append_str(%26, %32)
-    %33 = intrinsic builder.finish(%26)
-    call std_io$std_io$println__string(%33) :void
-    %34 = intrinsic builder.new()
-    %35 = move %34
-    %36 = const string(#7) :string
-    intrinsic builder.append_str(%35, %36)
-    %37 = const int(7) :i32
-    %38 = unop 0 %37 :i32
-    %39 = call abs(%38) :i32
-    %40 = call std_core$i32$Display$to_string(%39) :string
-    intrinsic builder.append_str(%35, %40)
-    %41 = intrinsic builder.finish(%35)
-    call std_io$std_io$println__string(%41) :void
-    %42 = intrinsic builder.new()
-    %43 = move %42
-    %44 = const string(#8) :string
-    intrinsic builder.append_str(%43, %44)
-    %45 = const float(7.5) :f64
-    %46 = unop 0 %45 :f64
-    %47 = call abs(%46) :f64
-    intrinsic builder.append_display(%43, %47)
-    %48 = intrinsic builder.finish(%43)
-    call std_io$std_io$println__string(%48) :void
-    %49 = intrinsic builder.new()
-    %50 = move %49
-    %51 = const string(#9) :string
-    intrinsic builder.append_str(%50, %51)
-    %52 = const int(15) :i32
-    %53 = const int(0) :i32
-    %54 = const int(10) :i32
-    %55 = call clamp(%52, %53, %54) :i32
-    %56 = call std_core$i32$Display$to_string(%55) :string
-    intrinsic builder.append_str(%50, %56)
-    %57 = intrinsic builder.finish(%50)
-    call std_io$std_io$println__string(%57) :void
-    %58 = intrinsic builder.new()
-    %59 = move %58
-    %60 = const string(#10) :string
-    intrinsic builder.append_str(%59, %60)
-    %61 = const float(1.5) :f64
-    %62 = const float(0.0) :f64
-    %63 = const float(1.0) :f64
-    %64 = call clamp(%61, %62, %63) :f64
-    intrinsic builder.append_display(%59, %64)
-    %65 = intrinsic builder.finish(%59)
-    call std_io$std_io$println__string(%65) :void
-    %66 = const int(0) :i32
-    return %66
+    %24 = call std_core$f64$Display$to_string(%23) :string
+    intrinsic builder.append_str(%19, %24)
+    %25 = intrinsic builder.finish(%19)
+    call std_io$std_io$println__string(%25) :void
+    %26 = intrinsic builder.new()
+    %27 = move %26
+    %28 = const string(#6) :string
+    intrinsic builder.append_str(%27, %28)
+    %29 = const int(2) :i32
+    %30 = unop 0 %29 :i32
+    %31 = const int(8) :i32
+    %32 = call max(%30, %31) :i32
+    %33 = call std_core$i32$Display$to_string(%32) :string
+    intrinsic builder.append_str(%27, %33)
+    %34 = intrinsic builder.finish(%27)
+    call std_io$std_io$println__string(%34) :void
+    %35 = intrinsic builder.new()
+    %36 = move %35
+    %37 = const string(#7) :string
+    intrinsic builder.append_str(%36, %37)
+    %38 = const int(7) :i32
+    %39 = unop 0 %38 :i32
+    %40 = call abs(%39) :i32
+    %41 = call std_core$i32$Display$to_string(%40) :string
+    intrinsic builder.append_str(%36, %41)
+    %42 = intrinsic builder.finish(%36)
+    call std_io$std_io$println__string(%42) :void
+    %43 = intrinsic builder.new()
+    %44 = move %43
+    %45 = const string(#8) :string
+    intrinsic builder.append_str(%44, %45)
+    %46 = const float(7.5) :f64
+    %47 = unop 0 %46 :f64
+    %48 = call abs(%47) :f64
+    %49 = call std_core$f64$Display$to_string(%48) :string
+    intrinsic builder.append_str(%44, %49)
+    %50 = intrinsic builder.finish(%44)
+    call std_io$std_io$println__string(%50) :void
+    %51 = intrinsic builder.new()
+    %52 = move %51
+    %53 = const string(#9) :string
+    intrinsic builder.append_str(%52, %53)
+    %54 = const int(15) :i32
+    %55 = const int(0) :i32
+    %56 = const int(10) :i32
+    %57 = call clamp(%54, %55, %56) :i32
+    %58 = call std_core$i32$Display$to_string(%57) :string
+    intrinsic builder.append_str(%52, %58)
+    %59 = intrinsic builder.finish(%52)
+    call std_io$std_io$println__string(%59) :void
+    %60 = intrinsic builder.new()
+    %61 = move %60
+    %62 = const string(#10) :string
+    intrinsic builder.append_str(%61, %62)
+    %63 = const float(1.5) :f64
+    %64 = const float(0.0) :f64
+    %65 = const float(1.0) :f64
+    %66 = call clamp(%63, %64, %65) :f64
+    %67 = call std_core$f64$Display$to_string(%66) :string
+    intrinsic builder.append_str(%61, %67)
+    %68 = intrinsic builder.finish(%61)
+    call std_io$std_io$println__string(%68) :void
+    %69 = const int(0) :i32
+    return %69

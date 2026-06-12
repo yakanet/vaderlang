@@ -126,8 +126,8 @@ bool   implements Display { to_string :: fn(self) -> string = if self { "true" }
 char   implements Display { to_string :: fn(self) -> string = utf8_encode(self).bytes_to_string() }
 string implements Display { to_string :: fn(self) -> string = self }
 
-@intrinsic f32 implements Display   // host — float-format chantier (TODO §1.13)
-@intrinsic f64 implements Display   // host
+@intrinsic f32 implements Display   // host — f32 Ryu (f2s) is a follow-up
+f64 implements Display { to_string :: fn(self) -> string = format_f64(self) }
 
 // ---- bit reinterpret (float ↔ raw IEEE bits) ------------------------------
 //

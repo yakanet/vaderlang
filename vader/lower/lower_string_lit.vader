@@ -111,22 +111,17 @@ lower_string_lit :: fn(ctx: FnLowerCtx, expr: StringLitExpr, type: Type) -> Lowe
     }
 }
 
-// Only `f32` / `f64` still take the host `builder.append_display` fast path
-// (float formatting stays host until the float-format chantier — TODO §1.13).
-// Every other type — the integer widths, `bool`, `char`, `string`, arrays and
-// structs — routes through `to_string()` : the integers/bool/char/string now
-// have pure-Vader `Display` impls (std/core, Target ABI S1) that
-// `find_impl_member_for` resolves, and arrays/structs use the runtime's
-// recursive `display_value`. `FreeFloat` (un-defaulted float lit) defaults to
-// `f64`, so it joins the host path ; `FreeInt` defaults to `i32` and takes the
-// Vader `to_string`.
-is_primitive_for_display :: fn(t: Type) -> bool {
-    match t {
-        is PrimitiveType as p -> { return p.name == "f32" || p.name == "f64" }
-        is FreeFloatType -> { return true }
-        _ -> { return false }
-    }
-}
+// Only `f32` still takes the host `builder.append_display` fast path (its
+// `Display` impl is still `@intrinsic` — the f32 Ryu/`f2s` port is a follow-up).
+// `f64` (and a `FreeFloat` literal, which defaults to `f64`) now routes through
+// `to_string()` : f64's pure-Vader Ryu `Display` impl (std/core `dtoa.vader`)
+// is the shortest-double formatter, and matching `${x}` to `x.to_string()`
+// keeps the two paths consistent (the host `%g` fast path formatted scientific
+// notation differently, e.g. `2.5e-08` vs `2.5e-8`). `FreeFloat` is coerced to
+// `f64` in `try_direct_display_call` so the lookup finds a concrete impl. Every
+// other type — integer widths, `bool`, `char`, `string`, arrays, structs —
+// already routed through `to_string()`.
+is_primitive_for_display :: fn(t: Type) -> bool = if t is PrimitiveType as p { p.name == "f32" } else { false }
 
 // Build a `<T>.Display.to_string(value)` call shape. Prefers a direct
 // `LoweredCall` to the per-receiver impl member when the impl is
@@ -162,7 +157,11 @@ build_display_to_string_call :: fn(ctx: FnLowerCtx, value: LoweredExpr, span: Sp
 // `lower_impl_members` registers in `lower.vader`.
 try_direct_display_call :: fn(ctx: FnLowerCtx, value: LoweredExpr, span: Span) -> LoweredExpr | null {
     string_type :: mk_primitive("string")
-    source_type :: type_of(value)
+    source_type := type_of(value)
+    // A `FreeFloat` literal (un-defaulted at lower-time) displays as `f64`:
+    // pin it so the lookup finds f64's concrete Ryu `Display` impl rather than
+    // falling through to an erased virtual dispatch.
+    if source_type is FreeFloatType { source_type = mk_primitive("f64") }
     // Resolve `<T>.Display.to_string` through the canonical UFCS path. This
     // mangles via the IMPL's owning module (`std_core$usize$Display$to_string`,
     // not the caller's) AND records the mangle in `referenced_impl_mangles`, so

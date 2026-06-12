@@ -122,15 +122,19 @@
           @builder.append_str :void
             __sb_1 :?
             "min(3.5, 5.0) = " :string
-          @builder.append_display <for f64> :void
+          @builder.append_str :void
             __sb_1 :?
-            call :f64
+            call :string
               callee:
-                min :fn(f64, f64) -> f64
+                std_core$f64$Display$to_string :string
               arg0:
-                float(3.5) :f64
-              arg1:
-                float(5) :f64
+                call :f64
+                  callee:
+                    min :fn(f64, f64) -> f64
+                  arg0:
+                    float(3.5) :f64
+                  arg1:
+                    float(5) :f64
           ~>
             @builder.finish :string
               __sb_1 :?
@@ -196,14 +200,18 @@
           @builder.append_str :void
             __sb_4 :?
             "abs(-7.5)     = " :string
-          @builder.append_display <for f64> :void
+          @builder.append_str :void
             __sb_4 :?
-            call :f64
+            call :string
               callee:
-                abs :fn(f64) -> f64
+                std_core$f64$Display$to_string :string
               arg0:
-                neg :f64
-                  float(7.5) :f64
+                call :f64
+                  callee:
+                    abs :fn(f64) -> f64
+                  arg0:
+                    neg :f64
+                      float(7.5) :f64
           ~>
             @builder.finish :string
               __sb_4 :?
@@ -245,17 +253,21 @@
           @builder.append_str :void
             __sb_6 :?
             "clamp(1.5, 0.0, 1.0)  = " :string
-          @builder.append_display <for f64> :void
+          @builder.append_str :void
             __sb_6 :?
-            call :f64
+            call :string
               callee:
-                clamp :fn(f64, f64, f64) -> f64
+                std_core$f64$Display$to_string :string
               arg0:
-                float(1.5) :f64
-              arg1:
-                float(0) :f64
-              arg2:
-                float(1) :f64
+                call :f64
+                  callee:
+                    clamp :fn(f64, f64, f64) -> f64
+                  arg0:
+                    float(1.5) :f64
+                  arg1:
+                    float(0) :f64
+                  arg2:
+                    float(1) :f64
           ~>
             @builder.finish :string
               __sb_6 :?

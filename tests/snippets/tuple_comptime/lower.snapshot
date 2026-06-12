@@ -61,25 +61,33 @@
           @builder.append_str :void
             __sb_1 :?
             "origin (" :string
-          @builder.append_display <for f64> :void
+          @builder.append_str :void
             __sb_1 :?
-            ._0 :f64
-              [f64, f64, string] {
-                _0: float(0) :?
-                _1: float(0) :?
-                _2: "origin" :string
-              }
+            call :string
+              callee:
+                std_core$f64$Display$to_string :string
+              arg0:
+                ._0 :f64
+                  [f64, f64, string] {
+                    _0: float(0) :?
+                    _1: float(0) :?
+                    _2: "origin" :string
+                  }
           @builder.append_str :void
             __sb_1 :?
             ", " :string
-          @builder.append_display <for f64> :void
+          @builder.append_str :void
             __sb_1 :?
-            ._1 :f64
-              [f64, f64, string] {
-                _0: float(0) :?
-                _1: float(0) :?
-                _2: "origin" :string
-              }
+            call :string
+              callee:
+                std_core$f64$Display$to_string :string
+              arg0:
+                ._1 :f64
+                  [f64, f64, string] {
+                    _0: float(0) :?
+                    _1: float(0) :?
+                    _2: "origin" :string
+                  }
           @builder.append_str :void
             __sb_1 :?
             ") = " :string

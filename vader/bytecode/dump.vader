@@ -459,7 +459,7 @@ export write_op :: fn(out: StringBuilder, op: Op) -> void {
     match op {
         is I32Const as c            -> out.append("i32.const ${c.value}")
         is I64Const as c            -> out.append("i64.const ${c.value}")
-        is F64Const as c            -> out.append("f64.const ${c.value}")
+        is F64Const as c            -> out.append("f64.const ${c.value} ${c.value.to_bits()}")
         is BoolConst as c           -> out.append("bool.const ${c.value}")
         is CharConst as c           -> out.append("char.const ${u32(c.value)}")
         is NullConst                -> out.append("null.const")
@@ -608,7 +608,7 @@ export write_op :: fn(out: StringBuilder, op: Op) -> void {
 format_const_op :: fn(c: ConstOp) -> string = match c {
     is I32Const    as v -> "i32.const ${v.value}"
     is I64Const    as v -> "i64.const ${v.value}"
-    is F64Const    as v -> "f64.const ${v.value}"
+    is F64Const    as v -> "f64.const ${v.value} ${v.value.to_bits()}"
     is BoolConst   as v -> "bool.const ${v.value}"
     is CharConst   as v -> "char.const ${u32(v.value)}"
     is StringConst as v -> "string.const ${v.index}"
