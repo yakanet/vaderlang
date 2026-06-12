@@ -513,13 +513,6 @@ export convert :: fn(self: FunctionBuilder, from_name: string, target: bc.Conver
 export int_to_char :: fn(self: FunctionBuilder) -> void = push_op(self, bc.IntToChar {})
 export char_to_int :: fn(self: FunctionBuilder) -> void = push_op(self, bc.CharToInt {})
 
-// ---- string-builder intrinsics ------------------------------------------
-
-export builder_new :: fn(self: FunctionBuilder) -> void = push_op(self, bc.BuilderNew {})
-export builder_append_str :: fn(self: FunctionBuilder) -> void = push_op(self, bc.BuilderAppendStr {})
-export builder_append_display :: fn(self: FunctionBuilder) -> void = push_op(self, bc.BuilderAppendDisplay {})
-export builder_finish :: fn(self: FunctionBuilder) -> void = push_op(self, bc.BuilderFinish {})
-
 // ---- i32 arith / compare / bitwise --------------------------------------
 
 export i32_add :: fn(self: FunctionBuilder) -> void = push_op(self, bc.I32Add {})

@@ -115,8 +115,9 @@ export LowerProjectCtx :: struct {
 
     /// `name -> Symbol` from `std/string_builder`. Lets `lower_string_lit`
     /// resolve `new_builder` / `append` when desugaring `${...}` to
-    /// StringBuilder calls (Target ABI S4). Null when `std/string_builder`
-    /// isn't loaded — the lowering then falls back to the legacy Builder ops.
+    /// StringBuilder calls (Target ABI S4). `std/string_builder` is
+    /// force-loaded into every project (resolver/loader.vader), so this is
+    /// always populated ; a null is a compiler invariant violation.
     string_builder_symbols: MutableMap<string, Symbol> | null
 
     /// Per-trait `Symbol | null` cache — populated lazily on first

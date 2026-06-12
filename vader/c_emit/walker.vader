@@ -93,10 +93,8 @@ fn_calls_may_alloc :: fn(fn_decl: BcFunction, may_alloc: i32[]) -> bool {
 
 /// True for ops that allocate a fresh GC object. `struct.new_stack`
 /// (`stack = true`) does NOT — it lands on the C stack. Indirect callers
-/// are conservatively included (unknown target). Builder / array ops are
-/// listed ahead of their own tranches so the analysis is correct once they
-/// emit. Open-domain filter over a few variants → an `if`-chain, not an
-/// exhaustive `match`.
+/// are conservatively included (unknown target). Open-domain filter over
+/// a few variants → an `if`-chain, not an exhaustive `match`.
 op_allocates :: fn(op: vm.Op) -> bool {
     if op is vm.StructNew as sn { return !sn.stack }
     if op is vm.ObjectNew { return true }
@@ -104,10 +102,6 @@ op_allocates :: fn(op: vm.Op) -> bool {
     if op is vm.ArrayPush { return true }
     if op is vm.StringConcat { return true }
     if op is vm.StringSliceCodepoints { return true }
-    if op is vm.BuilderNew { return true }
-    if op is vm.BuilderAppendStr { return true }
-    if op is vm.BuilderAppendDisplay { return true }
-    if op is vm.BuilderFinish { return true }
     if op is vm.MakeClosure { return true }
     if op is vm.CallImport { return true }
     if op is vm.CallIndirect { return true }
@@ -302,10 +296,6 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.RefCast as rc         -> emit_ref_cast(s, rc)
         is vm.Unreachable as u      -> line(s, "vader_unreachable(${c_string_lit(u.reason)});")
         is vm.Convert as c          -> emit_convert(s, convert_target_val(c.target), c.from_name)
-        is vm.BuilderNew            -> emit_builder_new(s)
-        is vm.BuilderAppendStr      -> emit_builder_append_str(s)
-        is vm.BuilderAppendDisplay  -> emit_builder_append_display(s)
-        is vm.BuilderFinish         -> emit_builder_finish(s)
         is vm.SizeOfType            -> emit_size_of_type(s)
         is vm.I32Add                -> push_binop(s, "+", .I32)
         is vm.I32Sub                -> push_binop(s, "-", .I32)
@@ -1703,35 +1693,5 @@ emit_string_slice :: fn(s: FnState) -> void {
     lo :: pop(s)
     str :: pop(s)
     push_into_tmp(s, "vader_string_slice_codepoints(${name_of(str)}, ${name_of(lo)}, ${name_of(hi)})", .String)
-}
-
-/// `builder.new` — construct a `vader_box_t` over a fresh heap
-/// `vader_builder_t` (tag 0 : the builder isn't a tagged user type). The
-/// box is built field-by-field since the payload is a raw builder pointer.
-emit_builder_new :: fn(s: FnState) -> void {
-    name :: fresh_tmp(s, .Any)
-    line(s, "${name}.tag = 0; ${name}._pad = 0; ${name}.payload.obj = vader_builder_new();")
-    push_tmp(s, name, .Any)
-}
-
-/// `builder.append_str` — pop the string then the builder, append in place.
-emit_builder_append_str :: fn(s: FnState) -> void {
-    str :: pop(s)
-    sb :: pop(s)
-    line(s, "vader_builder_append_str((vader_builder_t*) ${name_of(sb)}.payload.obj, ${name_of(str)});")
-}
-
-/// `builder.append_display` — pop the value then the builder, format the
-/// value into it via the width-matched `append_display_<class>` helper.
-emit_builder_append_display :: fn(s: FnState) -> void {
-    v :: pop(s)
-    sb :: pop(s)
-    line(s, "${display_fn_for(val_of(v))}((vader_builder_t*) ${name_of(sb)}.payload.obj, ${display_coerce(name_of(v), val_of(v))});")
-}
-
-/// `builder.finish` — pop the builder, push the concatenated string.
-emit_builder_finish :: fn(s: FnState) -> void {
-    sb :: pop(s)
-    push_into_tmp(s, "vader_builder_finish((vader_builder_t*) ${name_of(sb)}.payload.obj)", .String)
 }
 

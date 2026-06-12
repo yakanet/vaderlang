@@ -132,7 +132,6 @@ export describe_value_tag :: fn(v: Value) = match v {
     is StringVal  -> "string"
     is StructVal  -> "struct"
     is ArrayVal   -> "array"
-    is BuilderVal -> "builder"
     is FnVal      -> "fn"
     is NullVal    -> "null"
     is BoolVal    -> "bool"
@@ -333,13 +332,6 @@ export read_fn :: fn(v: Value, at_pc: i32, label: string) -> FnVal | Trap {
     return Trap { .message = "${label} at pc=${at_pc}: expected fn, got ${describe_value_tag(v)}" }
 }
 
-/// Unwrap a `BuilderVal` from a `Value`. Used by the builder-
-/// intrinsic arms to recover the receiver from the stack.
-export read_builder :: fn(v: Value, at_pc: i32, label: string) -> BuilderVal | Trap {
-    if v is BuilderVal { return v }
-    return Trap { .message = "${label} at pc=${at_pc}: expected builder, got ${describe_value_tag(v)}" }
-}
-
 /// Unwrap a `string` from a `Value`. Used by the host dispatcher to
 /// recover the `string` payload of a `println`-style argument.
 export read_string :: fn(v: Value, at_pc: i32, label: string) -> StringVal | Trap {
@@ -470,7 +462,6 @@ export ref_type_matches :: fn(state: VmState, v: Value, trait_name: string) -> b
         return @partial match v {
             is StructVal  -> true
             is ArrayVal   -> true
-            is BuilderVal -> true
             is FnVal      -> true
             _                -> false
         }
@@ -627,18 +618,16 @@ export union_matches :: fn(state: VmState, v: Value, variant_type_ids: i32[]) ->
 /// widened the stack from raw `i32[]` to this union so strings flow
 /// through `string.const` / `call.import` alongside numerics ; Sprint
 /// 4 (b1) added `StructVal` for `struct.new` / `struct.get` / `struct.set` ;
-/// Sprint 4 (b2) added `ArrayVal` for the array ops ; Sprint 4 (b3)
-/// added `BuilderVal` for `${…}` interpolation via the `builder.*`
-/// intrinsics ; Sprint 4 (b4) added `FnVal` for `fn.ref` / `call.indirect` ;
-/// Sprint 5a adds `NullVal` / `BoolVal` / `CharVal` for the corresponding
-/// const + comparison op families. Mirrors `src/vm/value.ts`.
+/// Sprint 4 (b2) added `ArrayVal` for the array ops ; Sprint 4 (b4) added
+/// `FnVal` for `fn.ref` / `call.indirect` ; Sprint 5a adds `NullVal` /
+/// `BoolVal` / `CharVal` for the corresponding const + comparison op
+/// families. Mirrors `src/vm/value.ts`.
 export Value :: I32Val
        | I64Val
        | F64Val
        | StringVal
        | StructVal
        | ArrayVal
-       | BuilderVal
        | FnVal
        | NullVal
        | BoolVal
@@ -687,17 +676,6 @@ export ArrayVal :: struct {
     elements: Value[]
     offset:   usize
     length:   usize
-}
-
-/// String-builder payload — the runtime backing of the `builder.new` /
-/// `builder.append_*` / `builder.finish` intrinsic family. `parts`
-/// accumulates string fragments in caller-push order ; `builder.finish`
-/// concatenates them in one pass. Mirrors the host-side
-/// `std/string_builder.StringBuilder` shape ; kept as a distinct
-/// `Value` variant rather than a `StructVal` so the intrinsic dispatch
-/// stays branch-free.
-export BuilderVal :: struct {
-    parts: string[]
 }
 
 /// Function-reference payload — the runtime value pushed by `fn.ref`
@@ -786,10 +764,6 @@ StringVal implements Display {
     to_string :: fn(self) -> string = self.value
 }
 
-BuilderVal implements Display {
-    to_string :: fn(self) -> string = "<builder len=${self.parts.len()}>"
-}
-
 FnVal implements Display {
     to_string :: fn(self) -> string = if self.env is null { "<fn ${self.function_index}>" } else { "<fn ${self.function_index}+env>" }
 }
@@ -869,7 +843,6 @@ export display_value :: fn(v: Value) -> string = match v {
     is StringVal as s -> s.to_string()
     is StructVal as s -> s.to_string()
     is ArrayVal as a -> a.to_string()
-    is BuilderVal as b -> b.to_string()
     is FnVal as f -> f.to_string()
     is NullVal as n -> n.to_string()
     is BoolVal as b -> b.to_string()

@@ -16,19 +16,20 @@ module "std/core"
 
 // ---- Display --------------------------------------------------------------
 //
-// Every primitive type carries a host-provided `to_string` so any value
+// Every primitive type carries a pure-Vader `to_string` so any value
 // flowing into a `string` slot (e.g. `print(value)`, `let s: string =
 // value`) routes through the blanket `T implements[T: Display] Into(string)`
-// declared above. `${x}` string interpolation routes the scalar primitives
-// through their `to_string` impl (below) ; only `f32`/`f64` still take the
-// dedicated `builder.append_display` host fast path.
+// declared above. `${x}` string interpolation routes every scalar primitive
+// through its `to_string` impl (below) — including `f32`/`f64`, which format
+// via the Ryu `format_f32`/`format_f64` shortest-float formatters.
 
-// Pure-Vader Display for the scalar primitives (Target ABI S1). Real-body impls
-// shadow the former `@intrinsic` stubs (`lower_impl_member.vader` returns the
-// first non-intrinsic match). Built from string-literal digits + concat because
-// std/core cannot import std/string_builder / std/string (import cycle — that's
-// why std/numbers lives outside core). `f32`/`f64` stay host (float-format
-// chantier, TODO §1.13).
+// Pure-Vader Display for the scalar primitives (Target ABI S1 for the
+// integers/bool/char/string, S4 for f32/f64). Real-body impls shadow the
+// former `@intrinsic` stubs (`lower_impl_member.vader` returns the first
+// non-intrinsic match). The integer formatters are built from string-literal
+// digits + concat because std/core cannot import std/string_builder / std/string
+// (import cycle — that's why std/numbers lives outside core) ; f32/f64 delegate
+// to the Ryu formatters in dtoa.vader / f2s.vader.
 
 // Prepend decimal digits via a string-literal table + concat. NOTE: a digit
 // byte-buffer + single `bytes_to_string` would be O(n) (the perf POC's form),

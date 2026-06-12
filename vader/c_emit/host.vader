@@ -104,15 +104,10 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
     if m == "std_string\$parse_float" { return "${head} { return vader_string_parse_float(a0, ${tag_u(prim_tag(types, .F64), "f64")}, ${tag_u(error_ref_tag(types), "error")}); }" }
     if m == "std_core\$string\$Hash\$hash" { return "${head} { return vader_string_hash(a0); }" }
 
-    // `@intrinsic f32/f64 implements Display` — host shim (float-format chantier,
-    // TODO §1.13). The i*/u*/bool/char/string Display impls moved to pure Vader
-    // in Target ABI S1, so their host shims are gone.
-    if m == "std_core\$f32\$Display\$to_string" {
-        return "${head} { vader_builder_t* sb = vader_builder_new(); vader_builder_append_display_f32(sb, a0); return vader_builder_finish(sb); }"
-    }
-    if m == "std_core\$f64\$Display\$to_string" {
-        return "${head} { vader_builder_t* sb = vader_builder_new(); vader_builder_append_display_f64(sb, a0); return vader_builder_finish(sb); }"
-    }
+    // Every primitive `Display.to_string` is now pure Vader : the integer /
+    // bool / char / string impls moved in Target ABI S1, and f32 / f64 in S4
+    // (the Ryu `format_f32` / `format_f64` formatters, §1.13). No host shim —
+    // the resolver materialises their bodies.
 
     // `StringBuilder implements Display` moved to pure Vader in Target ABI S3
     // (a byte-Buffer reader + `bytes_to_string`), so the resolver materialises

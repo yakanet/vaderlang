@@ -440,9 +440,9 @@ export InstrMakeClosure :: struct {
     type:      Type
 }
 
-/// Compiler/runtime intrinsic call (builder.new, builder.append_*, …).
-/// `name` is the verbatim mangled intrinsic name ; TS uses a const-
-/// literal union (5 fixed strings) but Vader stores the string.
+/// Compiler/runtime intrinsic call (`size_of.type`). `name` is the
+/// verbatim intrinsic name ; TS uses a const-literal union but Vader
+/// stores the string.
 export InstrIntrinsic :: struct {
     span:        Span
     dst:         LocalId | null

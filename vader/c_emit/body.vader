@@ -391,48 +391,6 @@ export coerce_operand :: fn(types: BcType[], name: string, from: ValType, to: Va
     return name
 }
 
-/// The `vader_builder_append_display_<class>` runtime helper for a value
-/// of stack class `v` — used by `builder.append_display`. Post Target ABI S1
-/// only `f32`/`f64` reach this op : every other primitive formats via its
-/// pure-Vader `Display.to_string`, and `is_primitive_for_display`
-/// (`lower_string_lit`) gates `BuilderAppendDisplay` to the floats — those two
-/// helpers are the only `vader_builder_append_display_*` symbols left in the
-/// runtime. Post Target ABI S1 only `.F32`/`.F64` actually reach this — the
-/// lowerer's `is_primitive_for_display` gate routes every other primitive
-/// through its pure-Vader `Display.to_string`, so the integer/bool/char/string
-/// arms below are unreachable (and name now-retired runtime helpers ; they would
-/// only be emitted, and fail at link, if a future change widened the gate).
-export display_fn_for :: fn(v: ValType) -> string = match v {
-    .I8    -> "vader_builder_append_display_i32"
-    .I16   -> "vader_builder_append_display_i32"
-    .I32   -> "vader_builder_append_display_i32"
-    .U8    -> "vader_builder_append_display_u32"
-    .U16   -> "vader_builder_append_display_u32"
-    .U32   -> "vader_builder_append_display_u32"
-    .I64   -> "vader_builder_append_display_i64"
-    .Isize -> "vader_builder_append_display_i64"
-    .U64   -> "vader_builder_append_display_u64"
-    .Usize -> "vader_builder_append_display_u64"
-    .F32   -> "vader_builder_append_display_f32"
-    .F64   -> "vader_builder_append_display_f64"
-    .Bool  -> "vader_builder_append_display_bool"
-    .Char  -> "vader_builder_append_display_char"
-    .String -> "vader_builder_append_display_string"
-    .Null  -> "vader_builder_append_display_string"
-    .Void  -> "vader_builder_append_display_string"
-    .Ref   -> "vader_builder_append_display_string"
-    .Any   -> "vader_builder_append_display_string"
-}
-
-/// Widen a narrow integer to the C-ABI type its `append_display` helper
-/// expects (`i8`/`i16` → `int32_t`, `u8`/`u16` → `uint32_t`) ; every other
-/// class passes through. Mirrors `displayCoerce` in `src/c_emit/ops.ts`.
-export display_coerce :: fn(name: string, v: ValType) -> string {
-    if v == ValType.I8 || v == ValType.I16 { return "(int32_t) ${name}" }
-    if v == ValType.U8 || v == ValType.U16 { return "(uint32_t) ${name}" }
-    return name
-}
-
 /// `BcType` → C type. Heap shapes (struct, array, union, ref, fn)
 /// collapse to `vader_box_t` ; primitives delegate to
 /// `c_type_for_val_bare`.

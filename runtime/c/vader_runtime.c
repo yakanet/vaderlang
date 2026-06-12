@@ -183,25 +183,6 @@ static size_t vader_card_count_for(size_t half_bytes) {
  * precise roots. */
 vader_gc_frame_t* vader_gc_top = NULL;
 
-/* Builder layout + active-list head are declared up here so any pass
- * walking `g_builder_head` to keep partial buffers live (currently none
- * — atoms are tracked separately) can see the struct's `next` chain.
- * The op implementations themselves live alongside the rest of the
- * builder helpers further down. */
-struct vader_builder_s {
-    char*  buf;
-    size_t len;
-    size_t cap;
-    /* Active builders chain through `next` so the string mark-sweep can
-     * keep `buf` reachable while a Vader-side allocation (e.g. evaluating
-     * an `${stringify(x)}` interp arg) triggers a collection between two
-     * `append_*` calls. Without this root the builder's growing buffer
-     * gets swept and subsequent appends scribble into freed memory. */
-    struct vader_builder_s* next;
-};
-
-static vader_builder_t* g_builder_head = NULL;
-
 static size_t vader_gc_align(size_t n) {
     return (n + (VADER_GC_ALIGN - 1u)) & ~(size_t)(VADER_GC_ALIGN - 1u);
 }
@@ -2020,109 +2001,6 @@ vader_array_t* vader_runtime_argv(int argc, char** argv, uint32_t arr_type, uint
     return result;
 }
 
-/* ----------------------------------------------------------------- builder */
-
-static void builder_reserve(vader_builder_t* b, size_t extra) {
-    if (b->len + extra <= b->cap) return;
-    size_t cap = b->cap == 0 ? 64 : b->cap;
-    while (cap < b->len + extra) cap *= 2;
-    /* Plain malloc/free — the buf is private to the builder until
-     * `vader_builder_finish` hands it to `vader_atom_intern_take`, which
-     * either adopts the buffer (on miss) or frees it (on hit). */
-    char* fresh = (char*) malloc(cap + 1u);
-    if (fresh == NULL) vader_trap("builder_reserve: malloc failed");
-    if (b->len > 0) memcpy(fresh, b->buf, b->len);
-    free(b->buf);
-    b->buf = fresh;
-    b->cap = cap;
-}
-
-vader_builder_t* vader_builder_new(void) {
-    vader_builder_t* b = (vader_builder_t*) malloc(sizeof(vader_builder_t));
-    if (b == NULL) vader_trap("vader_builder_new: malloc failed");
-    b->buf = NULL; b->len = 0; b->cap = 0;
-    b->next = g_builder_head;
-    g_builder_head = b;
-    return b;
-}
-
-/* Unlink a builder from the active-list. O(n) walk over currently-active
- * builders ; that list is short (one entry per nested interpolation in
- * flight), so a doubly-linked variant would be wasted complexity. */
-static void vader_builder_unlink(vader_builder_t* b) {
-    vader_builder_t** cursor = &g_builder_head;
-    while (*cursor != NULL && *cursor != b) cursor = &(*cursor)->next;
-    if (*cursor == NULL) vader_trap("vader_builder_unlink: builder not in active list");
-    *cursor = b->next;
-}
-
-void vader_builder_append_str(vader_builder_t* b, vader_string_t s) {
-    size_t n = vader_atom_len(s);
-    if (n == 0) return;
-    builder_reserve(b, n);
-    memcpy(b->buf + b->len, vader_atom_data(s), n);
-    b->len += n;
-}
-
-static void builder_append_fmt(vader_builder_t* b, const char* fmt, ...) {
-    /* Two-pass: first call sizes the formatted output (vsnprintf returns the
-     * would-have-been length), reserve the builder slot, then format
-     * directly into it. Avoids the OOB-read footgun where a caller passing
-     * a format that produces ≥ 64 bytes would `memcpy` past the stack
-     * buffer. We still keep a small stack scratch for the common case. */
-    char stack_buf[64];
-    va_list ap;
-    va_start(ap, fmt);
-    va_list ap2;
-    va_copy(ap2, ap);
-    int n = vsnprintf(stack_buf, sizeof(stack_buf), fmt, ap);
-    va_end(ap);
-    if (n < 0) { va_end(ap2); return; }
-
-    if ((size_t) n < sizeof(stack_buf)) {
-        builder_reserve(b, (size_t) n);
-        memcpy(b->buf + b->len, stack_buf, (size_t) n);
-        b->len += (size_t) n;
-        va_end(ap2);
-        return;
-    }
-    /* Output didn't fit in the stack scratch — format straight into the
-     * builder's own buffer at the reserved offset. */
-    builder_reserve(b, (size_t) n + 1);     /* +1 for vsnprintf's trailing NUL */
-    int n2 = vsnprintf(b->buf + b->len, (size_t) n + 1, fmt, ap2);
-    va_end(ap2);
-    if (n2 < 0) return;
-    b->len += (size_t) n2;
-}
-
-/* Format a finite non-integer float as the shortest decimal that round-trips
- * back to the same double. Mirrors JS `Number.prototype.toString()` (and thus
- * the VM's `displayValue`) so VM and native produce identical output. */
-static void append_shortest_double(vader_builder_t* b, double v) {
-    char buf[64];
-    int n = 0;
-    for (int p = 1; p <= 17; p++) {
-        n = snprintf(buf, sizeof buf, "%.*g", p, v);
-        if (strtod(buf, NULL) == v) break;
-    }
-    if (n < 0) n = 0;
-    if ((size_t) n >= sizeof buf) n = (int) sizeof buf - 1;
-    builder_reserve(b, (size_t) n);
-    memcpy(b->buf + b->len, buf, (size_t) n);
-    b->len += (size_t) n;
-}
-void vader_builder_append_display_f32(vader_builder_t* b, vader_f32_t v) {
-    double d = (double) v;
-    if (isfinite(d) && d == floor(d)) builder_append_fmt(b, "%.1f", d);
-    else if (!isfinite(d))            builder_append_fmt(b, "%g",   d);
-    else                              append_shortest_double(b, d);
-}
-void vader_builder_append_display_f64(vader_builder_t* b, vader_f64_t v) {
-    if (isfinite(v) && v == floor(v)) builder_append_fmt(b, "%.1f", v);
-    else if (!isfinite(v))            builder_append_fmt(b, "%g",   v);
-    else                              append_shortest_double(b, v);
-}
-
 /* IEEE 754 bit reinterpret (`f64.to_bits` / `u64.from_bits`). The native target
  * lowers these to an inline `union` cast (no call) ; these out-of-line helpers
  * exist ONLY for the bytecode VM (`exec.vader` calls them via `@extern`, since
@@ -2132,22 +2010,6 @@ uint64_t vader_f64_to_bits(double v) { uint64_t u; memcpy(&u, &v, sizeof u); ret
 double   vader_bits_to_f64(uint64_t b) { double v; memcpy(&v, &b, sizeof v); return v; }
 uint32_t vader_f32_to_bits(float v) { uint32_t u; memcpy(&u, &v, sizeof u); return u; }
 float    vader_bits_to_f32(uint32_t b) { float v; memcpy(&v, &b, sizeof v); return v; }
-vader_string_t vader_builder_finish(vader_builder_t* b) {
-    /* Hand the buffer to `vader_atom_intern_take` — on miss it adopts
-     * the buffer as the atom's owner data ; on hit it frees the buffer
-     * and returns the canonical atom. The builder struct itself has no
-     * use after finish. */
-    size_t len = b->len;
-    char* buf  = b->buf;
-    vader_builder_unlink(b);
-    free(b);
-    if (len == 0) {
-        if (buf != NULL) free(buf);
-        return VADER_ATOM_EMPTY;
-    }
-    if (buf == NULL) return VADER_ATOM_EMPTY;
-    return vader_atom_intern_take(buf, len);
-}
 
 /* Flatten an array of strings into a single string in one allocation. Used
  * by std/string_builder StringBuilder.to_string to avoid the O(N²) of repeated `+`. */

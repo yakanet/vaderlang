@@ -746,18 +746,6 @@ typedef struct {
 void vader_defer_push(vader_box_t closure);
 void vader_defer_pop_exec(uint32_t count);
 
-/* ----------------------------------------------------------------- builder */
-
-typedef struct vader_builder_s vader_builder_t;
-vader_builder_t* vader_builder_new(void);
-void             vader_builder_append_str(vader_builder_t* b, vader_string_t s);
-/* Number formatting for the integer widths, bool, char and string moved to pure
- * Vader (Target ABI S1, stdlib/std/core). Only f32 and f64 stay host (libm
- * shortest-round-trip) until the float-format chantier (TODO 1.13). */
-void             vader_builder_append_display_f32(vader_builder_t* b, vader_f32_t v);
-void             vader_builder_append_display_f64(vader_builder_t* b, vader_f64_t v);
-vader_string_t   vader_builder_finish(vader_builder_t* b);
-
 /* IEEE 754 bit reinterpret — VM-only (`exec.vader` @extern ; native lowers
  * F64ToBits/BitsToF64 to an inline union cast). See vader_runtime.c. */
 uint64_t         vader_f64_to_bits(double v);

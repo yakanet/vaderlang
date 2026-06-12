@@ -6,10 +6,9 @@
 // `LoweredCall`s to the Buffer-backed `std/string_builder` fns (Target ABI S4a),
 // not the legacy `Builder*` opcodes. Text parts append the literal string ;
 // interpolated parts append `<value>.to_string()` (via `build_display_to_string_call`,
-// which handles primitives, structs, and FreeFloat→f64 pinning). The legacy
-// `builder.*`-opcode lowering is kept as `lower_string_lit_via_builder_ops` and
-// used only as a fallback when the stdlib fns can't be resolved ; it (and the
-// `INTRINSIC_BUILDER_*` path) is removed in S4b.
+// which handles primitives, structs, and FreeFloat→f64 pinning). std/string_builder
+// is force-loaded into every project (resolver/loader.vader), so the resolution
+// always succeeds — the legacy `Builder*`-opcode lowering was removed in S4b.
 
 module "vader/lower"
 
@@ -18,7 +17,7 @@ import "std/collections" { MutableMap }
 import "vader/parser" { StringLitExpr, StringLitText, StringLitInterp }
 import "vader/diagnostics" { Span }
 import "vader/resolver/symbol" { Symbol }
-import "vader/types" { Type, FnType, PrimitiveType, FreeFloatType, TY_VOID, TY_UNRESOLVED, mk_primitive }
+import "vader/types" { Type, FnType, FreeFloatType, TY_VOID, TY_UNRESOLVED, mk_primitive }
 
 lower_string_lit :: fn(ctx: FnLowerCtx, expr: StringLitExpr, type: Type) -> LoweredExpr {
     string_type :: mk_primitive("string")
@@ -33,15 +32,19 @@ lower_string_lit :: fn(ctx: FnLowerCtx, expr: StringLitExpr, type: Type) -> Lowe
         return LoweredStringLit { .span = expr.span, .type = string_type, .value = body }
     }
 
-    // Resolve the StringBuilder fns (std/string_builder, force-loaded). Any
-    // unresolvable piece falls back to the legacy builder-op path.
+    // Resolve the StringBuilder fns. std/string_builder is force-loaded into
+    // every project (resolver/loader.vader), so these always resolve — a miss
+    // is a compiler invariant violation. Each guard diverges via `return`
+    // (an unreachable `stub`) rather than `panic` : `return` narrows the
+    // Symbol / FnType on the fall-through in every compile mode, whereas
+    // `panic`'s `@no_return` narrowing isn't applied by `vader test`.
     new_sym :: resolve_string_builder_fn(ctx, "new_builder")
-    if new_sym == null { return lower_string_lit_via_builder_ops(ctx, expr) }
+    if new_sym == null { return unreachable_sb(expr.span, string_type, "new_builder unresolved") }
     append_sym :: resolve_string_builder_fn(ctx, "append")
-    if append_sym == null { return lower_string_lit_via_builder_ops(ctx, expr) }
+    if append_sym == null { return unreachable_sb(expr.span, string_type, "append unresolved") }
     new_fn_ty :: lookup_fn_type_anywhere(ctx, new_sym)
     sb_type: Type = TY_UNRESOLVED                    // the StringBuilder struct type
-    if new_fn_ty is FnType as new_ft { sb_type = new_ft.return_type } else { return lower_string_lit_via_builder_ops(ctx, expr) }
+    if new_fn_ty is FnType as new_ft { sb_type = new_ft.return_type } else { return unreachable_sb(expr.span, string_type, "new_builder has no fn type") }
 
     // Harvest the synthesised callees so `materialize_nongeneric_stdlib_fns`
     // emits their bodies — the auto-harvest in `lower_call` only fires for
@@ -90,6 +93,14 @@ lower_string_lit :: fn(ctx: FnLowerCtx, expr: StringLitExpr, type: Type) -> Lowe
     }
 }
 
+// An unreachable placeholder for the (provably-dead) std/string_builder
+// resolution guards — std/string_builder is force-loaded into every project,
+// so these never fire. Delegates to the module's `stub` (same convention as
+// every other deferred / shouldn't-reach lowering path) ; centralises the
+// "must be force-loaded" reason prefix.
+unreachable_sb :: fn(span: Span, type: Type, why: string) -> LoweredExpr =
+    stub(span, type, "lower_string_lit: ${why} (std/string_builder must be force-loaded)")
+
 // Build a `<fn>(args)` call typed `ret`.
 mk_lowered_call :: fn(sym: Symbol, args: LoweredExpr[], ret: Type, span: Span) -> LoweredExpr =
     LoweredCall {
@@ -104,104 +115,15 @@ sb_ident :: fn(sym: Symbol, ty: Type, span: Span) -> LoweredExpr =
 
 // Resolve a `std/string_builder` free fn (`new_builder` / `append`) by name
 // via the `string_builder_symbols` side-table (populated from the module's
-// exports in `lower_populate`). Returns `null` when `std/string_builder` isn't
-// loaded — the caller then falls back to the legacy Builder-op lowering.
+// exports in `lower_populate`). Returns `null` only if `std/string_builder`
+// wasn't loaded ; since it is force-loaded into every project, the caller
+// treats a null as a compiler invariant violation (panics).
 resolve_string_builder_fn :: fn(ctx: FnLowerCtx, name: string) -> Symbol | null {
     match ctx.project.string_builder_symbols {
         is null -> { return null }
         is MutableMap<string, Symbol> as tbl -> { return tbl[name] }
     }
 }
-
-// ---- legacy builder-op lowering (S4a fallback ; removed in S4b) -----------
-
-// The pre-S4 lowering: `${...}` → `BuilderNew` / `BuilderAppendStr` /
-// `BuilderAppendDisplay` / `BuilderFinish` intrinsic ops. Retained only as the
-// fallback when `new_builder`/`append` can't be resolved.
-lower_string_lit_via_builder_ops :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> LoweredExpr {
-    builder_symbol :: fresh_synthetic_symbol(ctx, "sb")
-    string_type :: mk_primitive("string")
-    stmts: LoweredStmt[] = []
-    stmts.push(LoweredLet {
-        .span = expr.span, .name = builder_symbol.name, .symbol = builder_symbol,
-        .type = TY_UNRESOLVED,
-        .value = LoweredIntrinsicCall {
-            .span = expr.span, .type = TY_UNRESOLVED,
-            .name = INTRINSIC_BUILDER_NEW, .args = [], .display_for = null,
-        },
-    })
-    for part in expr.parts {
-        match part {
-            is StringLitText as text -> {
-                builder_ref :: LoweredIdent {
-                    .span = text.span, .type = TY_UNRESOLVED, .symbol = builder_symbol,
-                }
-                literal :: LoweredStringLit {
-                    .span = text.span, .type = string_type, .value = text.value,
-                }
-                args: LoweredExpr[] = []
-                args.push(builder_ref)
-                args.push(literal)
-                stmts.push(LoweredExprStmt {
-                    .span = text.span,
-                    .expr = LoweredIntrinsicCall {
-                        .span = text.span, .type = TY_VOID,
-                        .name = INTRINSIC_BUILDER_APPEND_STR, .args = args, .display_for = null,
-                    },
-                })
-            }
-            is StringLitInterp as interp -> {
-                inner :: lower_expr(ctx, interp.expr)
-                inner_type :: type_of(inner)
-                builder_ref :: LoweredIdent {
-                    .span = interp.span, .type = TY_UNRESOLVED, .symbol = builder_symbol,
-                }
-                if is_primitive_for_display(inner_type) {
-                    args: LoweredExpr[] = []
-                    args.push(builder_ref)
-                    args.push(inner)
-                    stmts.push(LoweredExprStmt {
-                        .span = interp.span,
-                        .expr = LoweredIntrinsicCall {
-                            .span = interp.span, .type = TY_VOID,
-                            .name = INTRINSIC_BUILDER_APPEND_DISPLAY,
-                            .args = args, .display_for = inner_type,
-                        },
-                    })
-                } else {
-                    str_call :: build_display_to_string_call(ctx, inner, interp.span)
-                    args: LoweredExpr[] = []
-                    args.push(builder_ref)
-                    args.push(str_call)
-                    stmts.push(LoweredExprStmt {
-                        .span = interp.span,
-                        .expr = LoweredIntrinsicCall {
-                            .span = interp.span, .type = TY_VOID,
-                            .name = INTRINSIC_BUILDER_APPEND_STR,
-                            .args = args, .display_for = null,
-                        },
-                    })
-                }
-            }
-        }
-    }
-    finish_args: LoweredExpr[] = []
-    finish_args.push(LoweredIdent { .span = expr.span, .type = TY_UNRESOLVED, .symbol = builder_symbol })
-    return LoweredBlock {
-        .span = expr.span, .type = string_type,
-        .stmts = stmts,
-        .trailing = LoweredIntrinsicCall {
-            .span = expr.span, .type = string_type,
-            .name = INTRINSIC_BUILDER_FINISH, .args = finish_args, .display_for = null,
-        },
-    }
-}
-
-// `f32` still routes its interpolated segments through the host
-// `builder.append_display` fast path in the fallback above (its `Display` impl
-// is still `@intrinsic` — the f32 Ryu/`f2s` port is a follow-up). Every other
-// type goes through `to_string()`.
-is_primitive_for_display :: fn(t: Type) -> bool = if t is PrimitiveType as p { p.name == "f32" } else { false }
 
 // Build a `<T>.Display.to_string(value)` call shape. Prefers a direct
 // `LoweredCall` to the per-receiver impl member when the impl is

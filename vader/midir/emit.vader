@@ -40,8 +40,7 @@ import "vader/bytecode" {
     StructNew, StructGet, StructSet,
     ArrayNew, ArrayGet, ArraySet, ArrayLen, ArrayPush, ArraySlice, StringSliceCodepoints,
     DataConst, TypeConst, TypeCheck, RefCast, Convert, ConvertTarget,
-    MakeClosure, DeferPush, DeferPopExec,
-    BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish, SizeOfType,
+    MakeClosure, DeferPush, DeferPopExec, SizeOfType,
 }
 import "vader/bytecode" {
     intern_cell_type, run_bc_peephole, run_bc_return_lit_fold,
@@ -1224,9 +1223,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
             push_emit(ctx, Return {}, i.span)
         } else {
             push_emit(ctx, op_opt, i.span)
-            if !is_void_intrinsic(i.name) {
-                emit_result_if_any(ctx, pos, i.dst, i.span)
-            }
+            emit_result_if_any(ctx, pos, i.dst, i.span)
         }
         return
     }
@@ -1272,20 +1269,8 @@ convert_eligible :: fn(v: ValType) -> bool = match v {
 /// null when the name doesn't map to a known intrinsic ; callers fall
 /// back to the defensive Return stub.
 intrinsic_op_for_name :: fn(name: string) -> Op | null {
-    if name == "builder.new"             { return BuilderNew {} }
-    if name == "builder.append_str"      { return BuilderAppendStr {} }
-    if name == "builder.append_display"  { return BuilderAppendDisplay {} }
-    if name == "builder.finish"          { return BuilderFinish {} }
-    if name == "size_of.type"            { return SizeOfType {} }
+    if name == "size_of.type" { return SizeOfType {} }
     return null
-}
-
-/// True when the intrinsic has no result (void return) — used to gate
-/// the trailing emit_result_if_any.
-is_void_intrinsic :: fn(name: string) -> bool {
-    if name == "builder.append_str"     { return true }
-    if name == "builder.append_display" { return true }
-    return false
 }
 
 /// Look up a field index by name on a struct type. Returns -1 when the

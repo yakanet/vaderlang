@@ -490,11 +490,11 @@ export LoweredUnreachable :: struct {
     trap:   bool = false
 }
 
-/// Static-named compiler/runtime intrinsic. Used for desugared forms
-/// that don't have a user-visible call form (string-interp builder, etc.).
-/// `display_for` is non-null only for `builder.append_display` ; carries
-/// the static type of the value being shown so the bytecode emitter can
-/// hook it up to the right `.to_string` impl.
+/// Static-named compiler/runtime intrinsic. Used for desugared forms that
+/// don't have a user-visible call form (`size_of.type` backs `@size_of(T)`).
+/// `display_for` carries the static type of a value being shown so an
+/// intrinsic can hook the right `.to_string` impl ; it is now always null
+/// (the string-interp builder path that used it was retired in Target ABI S4).
 export LoweredIntrinsicCall :: struct {
     span:        Span
     type:        Type
@@ -543,11 +543,7 @@ export LoweredMakeClosure :: struct {
 /// Canonical intrinsic names embedded into `LoweredIntrinsicCall.name`.
 /// Kept as string constants rather than an enum so the bytecode emitter's
 /// dispatch table can key directly off the wire form.
-export INTRINSIC_BUILDER_NEW            :: "builder.new"
-export INTRINSIC_BUILDER_APPEND_STR     :: "builder.append_str"
-export INTRINSIC_BUILDER_APPEND_DISPLAY :: "builder.append_display"
-export INTRINSIC_BUILDER_FINISH         :: "builder.finish"
-export INTRINSIC_SIZE_OF_TYPE           :: "size_of.type"
+export INTRINSIC_SIZE_OF_TYPE :: "size_of.type"
 
 // ============================================================================
 // Constructors
@@ -581,9 +577,5 @@ import "std/testing" { assert_eq }
 }
 
 @test test_intrinsic_constants_are_stable :: fn() -> void {
-    assert_eq(INTRINSIC_BUILDER_NEW,            "builder.new")
-    assert_eq(INTRINSIC_BUILDER_APPEND_STR,     "builder.append_str")
-    assert_eq(INTRINSIC_BUILDER_APPEND_DISPLAY, "builder.append_display")
-    assert_eq(INTRINSIC_BUILDER_FINISH,         "builder.finish")
-    assert_eq(INTRINSIC_SIZE_OF_TYPE,           "size_of.type")
+    assert_eq(INTRINSIC_SIZE_OF_TYPE, "size_of.type")
 }

@@ -1085,45 +1085,6 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[]) -
                 frame.stack[frame.sp - 1] = converted
                 frame.pc = frame.pc + 1
             }
-            is bc.BuilderNew -> {
-                push_value(frame.stack, frame.sp, BuilderVal { .parts = [] })
-                frame.sp = frame.sp + 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.BuilderAppendStr -> {
-                if frame.sp < 2 {
-                    return Trap { .message = "intrinsic builder.append_str needs builder + string on stack at pc=${frame.pc}" }
-                }
-                str_unwrap :: read_string(frame.stack[frame.sp - 1], frame.pc, "intrinsic builder.append_str string")
-                if str_unwrap is Trap { return str_unwrap }
-                builder_unwrap :: read_builder(frame.stack[frame.sp - 2], frame.pc, "intrinsic builder.append_str receiver")
-                if builder_unwrap is Trap { return builder_unwrap }
-                builder_unwrap.parts.push(str_unwrap.value)
-                frame.sp = frame.sp - 2
-                frame.pc = frame.pc + 1
-            }
-            is bc.BuilderAppendDisplay -> {
-                if frame.sp < 2 {
-                    return Trap { .message = "intrinsic builder.append_display needs builder + value on stack at pc=${frame.pc}" }
-                }
-                builder_unwrap :: read_builder(frame.stack[frame.sp - 2], frame.pc, "intrinsic builder.append_display receiver")
-                if builder_unwrap is Trap { return builder_unwrap }
-                builder_unwrap.parts.push(display_value(frame.stack[frame.sp - 1]))
-                frame.sp = frame.sp - 2
-                frame.pc = frame.pc + 1
-            }
-            is bc.BuilderFinish -> {
-                if frame.sp == 0 {
-                    return Trap { .message = "intrinsic builder.finish on empty stack at pc=${frame.pc}" }
-                }
-                builder_unwrap :: read_builder(frame.stack[frame.sp - 1], frame.pc, "intrinsic builder.finish receiver")
-                if builder_unwrap is Trap { return builder_unwrap }
-                // Concatenate the accumulated parts in one pass. (The old path
-                // reused a `StringBuilder { parts }` flush ; StringBuilder is a
-                // byte Buffer now — Target ABI S3 — so join the parts directly.)
-                frame.stack[frame.sp - 1] = StringVal { .value = builder_unwrap.parts.join("") }
-                frame.pc = frame.pc + 1
-            }
             is bc.SizeOfType -> {
                 if frame.sp == 0 {
                     return Trap { .message = "intrinsic size_of.type on empty stack at pc=${frame.pc}" }

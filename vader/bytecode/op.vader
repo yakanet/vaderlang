@@ -55,10 +55,6 @@ export Op :: Unreachable
     | TypeConst
     | DeferPush
     | DeferPopExec
-    | BuilderNew
-    | BuilderAppendStr
-    | BuilderAppendDisplay
-    | BuilderFinish
     | SizeOfType
     | I32Add
     | I32Sub
@@ -348,21 +344,6 @@ export DeferPush :: struct {}
 /// transcends.
 export DeferPopExec :: struct { count: i32 }
 
-/// Allocate a fresh empty `BuilderVal` and push it onto the value stack.
-/// Sprint 4 (b3) addition — backs Vader's `"${...}"` string interpolation
-/// (the lowerer emits builder.new → append_str / append_display ... →
-/// builder.finish for every interpolated string literal).
-export BuilderNew :: struct {}
-/// Pop a string then a builder ; append the string to `builder.parts`.
-/// Statement-form, no push back. Sprint 4 (b3) addition.
-export BuilderAppendStr :: struct {}
-/// Pop a value then a builder ; format the value through `display_value`
-/// (recursive for struct/array) and append the result to `builder.parts`.
-/// Statement-form, no push back. Sprint 4 (b3) addition.
-export BuilderAppendDisplay :: struct {}
-/// Pop a builder ; concatenate `builder.parts` into a single `string`
-/// and push it. Sprint 4 (b3) addition.
-export BuilderFinish :: struct {}
 /// Pop a `TypeVal` ; push a `usize` carrying the byte size of the type
 /// at `module.types[type_id]`. Backs the runtime path of `@size_of(t)`.
 /// Layer 4 §1.19 B.2.
@@ -547,8 +528,8 @@ export StringConcat :: struct {}
 export StringSliceCodepoints :: struct {}
 /// Pop a value (`I32Val` or `CharVal`) ; push a `CharVal` carrying the
 /// same codepoint. Emitted for every `<int>.to_char` Convert op so the
-/// downstream `display_value` / `builder.append_display` arm formats
-/// the value as a UTF-8 character rather than its decimal codepoint.
+/// downstream `display_value` arm formats the value as a UTF-8 character
+/// rather than its decimal codepoint.
 export IntToChar :: struct {}
 /// Pop a value (`CharVal` or `I32Val`) ; push an `I32Val` carrying the
 /// same codepoint. Emitted for every `char.to_<int>` Convert op so the
@@ -556,7 +537,7 @@ export IntToChar :: struct {}
 export CharToInt :: struct {}
 /// Pop two references ; push `BoolVal` for identity equality. In the
 /// VM today, all reference-typed Values are heap-allocated so identity
-/// matches Vader's reference semantics for struct / array / fn / builder.
+/// matches Vader's reference semantics for struct / array / fn.
 /// Sprint 5a addition.
 export RefEq :: struct {}
 /// Pop two references ; push `BoolVal` for identity inequality.
