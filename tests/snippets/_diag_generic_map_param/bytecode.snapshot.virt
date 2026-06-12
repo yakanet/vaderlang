@@ -7,9 +7,9 @@ type 4 struct std_collections$MutableMap__Any__Any { buckets:18,size:16 }
 type 5 ref _
 type 6 struct snippet$Counter { counts:7 }
 type 7 struct std_collections$MutableMap__string__i32 { buckets:18,size:16 }
-type 8 struct std_collections$MutableMap__i32__bool { buckets:18,size:16 }
-type 9 union 10,0
-type 10 primitive bool
+type 8 primitive bool
+type 9 struct std_collections$MutableMap__i32__bool { buckets:18,size:16 }
+type 10 union 8,0
 type 11 union 3,0
 type 12 union 5,0
 type 13 struct std_collections$MapIterator__Any__Any { map:4,bucket_cursor:16,chain_cursor:19 }
@@ -20,7 +20,7 @@ type 17 primitive u64
 type 18 array 19
 type 19 union 20,0
 type 20 struct std_collections$Entry__Any__Any { key:5,value:5,next:19 }
-type 21 struct std_core$Range__usize { start:5,end:5,inclusive:10,cursor:5 }
+type 21 struct std_core$Range__usize { start:5,end:5,inclusive:8,cursor:5 }
 type 22 union 0,23
 type 23 struct std_core$Yield__usize { value:5 }
 type 24 primitive i8
@@ -47,10 +47,10 @@ import 6 equals std_core$u64$Equals$equals (u64,u64) -> bool
 import 7 equals std_core$usize$Equals$equals (usize,usize) -> bool
 import 8 equals std_core$f32$Equals$equals (f32,f32) -> bool
 import 9 hash std_core$string$Hash$hash (string) -> u64
-impl 8 Index
-impl 8 IndexSet
-impl 8 Contains
-impl 8 Into
+impl 9 Index
+impl 9 IndexSet
+impl 9 Contains
+impl 9 Into
 impl 7 Index
 impl 7 IndexSet
 impl 7 Contains
@@ -74,7 +74,7 @@ vtable Equals.equals 17 27
 vtable Equals.equals 16 28
 vtable Equals.equals 32 29
 vtable Equals.equals 33 30
-vtable Equals.equals 10 31
+vtable Equals.equals 8 31
 vtable Equals.equals 31 32
 vtable Equals.equals 1 33
 vtable Hash.hash 24 8

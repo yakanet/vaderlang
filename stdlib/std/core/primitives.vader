@@ -126,7 +126,7 @@ bool   implements Display { to_string :: fn(self) -> string = if self { "true" }
 char   implements Display { to_string :: fn(self) -> string = utf8_encode(self).bytes_to_string() }
 string implements Display { to_string :: fn(self) -> string = self }
 
-@intrinsic f32 implements Display   // host — f32 Ryu (f2s) is a follow-up
+f32 implements Display { to_string :: fn(self) -> string = format_f32(self) }
 f64 implements Display { to_string :: fn(self) -> string = format_f64(self) }
 
 // ---- bit reinterpret (float ↔ raw IEEE bits) ------------------------------
@@ -136,8 +136,10 @@ f64 implements Display { to_string :: fn(self) -> string = format_f64(self) }
 // runtime symbol). Foundation for the pure-Vader shortest-double formatter
 // (§1.13) and the S2-deferred `LoadF64` byte codec.
 
-@intrinsic f64 implements FloatBits   // → F64ToBits
-@intrinsic u64 implements BitsFloat   // → BitsToF64
+@intrinsic f64 implements FloatBits     // → F64ToBits
+@intrinsic u64 implements BitsFloat     // → BitsToF64
+@intrinsic f32 implements Float32Bits   // → F32ToBits
+@intrinsic u32 implements Bits32Float   // → BitsToF32
 
 // ---- Equals ---------------------------------------------------------------
 

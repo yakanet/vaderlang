@@ -123,6 +123,21 @@ export BitsFloat :: trait {
     from_bits :: fn(self) -> f64
 }
 
+/// 32-bit analogue of `FloatBits` : the raw IEEE 754 `u32` bit pattern of an
+/// `f32` (NOT `u32(self)`, which truncates the value). Powers the pure-Vader
+/// shortest-`f32` formatter (Ryu f2s). Inverse is `Bits32Float::from_bits`.
+export Float32Bits :: trait {
+    /// The raw IEEE 754 bit pattern of `self`.
+    to_bits :: fn(self) -> u32
+}
+
+/// Inverse of `Float32Bits` — reconstruct an `f32` from a raw IEEE 754 `u32`
+/// bit pattern (NOT `f32(self)`, which widens the integer value).
+export Bits32Float :: trait {
+    /// Reinterpret `self`'s bits as an `f32`.
+    from_bits :: fn(self) -> f32
+}
+
 /// Indexed read — `a[i]` dispatches through this when `a` isn't a built-in
 /// array. `I` is the index type, `T` the element type.
 export Index :: trait<I, T> {

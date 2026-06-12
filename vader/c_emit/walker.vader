@@ -409,6 +409,8 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.MemoryCopy            -> emit_memory_copy(s)
         is vm.F64ToBits             -> emit_f64_to_bits(s)
         is vm.BitsToF64             -> emit_bits_to_f64(s)
+        is vm.F32ToBits             -> emit_f32_to_bits(s)
+        is vm.BitsToF32             -> emit_bits_to_f32(s)
     }
 }
 
@@ -554,6 +556,22 @@ emit_bits_to_f64 :: fn(s: FnState) -> void {
     v :: pop(s)
     vc :: coerce_operand(s.ctx.module.types, name_of(v), val_of(v), .I64)
     push_expr(s, .F64, "(((union { uint64_t __vu; double __vd; }){ .__vu = (uint64_t)(${vc}) }).__vd)")
+}
+
+/// `f32.to_bits` — the 32-bit analogue. The u32 result rides in the `.I32`
+/// stack slot.
+emit_f32_to_bits :: fn(s: FnState) -> void {
+    v :: pop(s)
+    vc :: coerce_operand(s.ctx.module.types, name_of(v), val_of(v), .F32)
+    push_expr(s, .I32, "(int32_t)(((union { float __vf; uint32_t __vb; }){ .__vf = ${vc} }).__vb)")
+}
+
+/// `u32.from_bits` — the inverse : reinterpret a u32 bit pattern (in the `.I32`
+/// slot) as an f32. Same compound-literal-union technique, no runtime symbol.
+emit_bits_to_f32 :: fn(s: FnState) -> void {
+    v :: pop(s)
+    vc :: coerce_operand(s.ctx.module.types, name_of(v), val_of(v), .I32)
+    push_expr(s, .F32, "(((union { uint32_t __vb; float __vf; }){ .__vb = (uint32_t)(${vc}) }).__vf)")
 }
 
 /// Emit an eager binary op into a fresh temp : `tN = l <op> r;`. Used for

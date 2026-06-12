@@ -762,6 +762,8 @@ vader_string_t   vader_builder_finish(vader_builder_t* b);
  * F64ToBits/BitsToF64 to an inline union cast). See vader_runtime.c. */
 uint64_t         vader_f64_to_bits(double v);
 double           vader_bits_to_f64(uint64_t b);
+uint32_t         vader_f32_to_bits(float v);
+float            vader_bits_to_f32(uint32_t b);
 
 /* ----------------------------------------------------------------- I/O */
 

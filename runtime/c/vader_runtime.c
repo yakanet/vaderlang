@@ -2130,6 +2130,8 @@ void vader_builder_append_display_f64(vader_builder_t* b, vader_f64_t v) {
  * `memcpy` is the portable, well-defined type-pun (compilers fold it to a move). */
 uint64_t vader_f64_to_bits(double v) { uint64_t u; memcpy(&u, &v, sizeof u); return u; }
 double   vader_bits_to_f64(uint64_t b) { double v; memcpy(&v, &b, sizeof v); return v; }
+uint32_t vader_f32_to_bits(float v) { uint32_t u; memcpy(&u, &v, sizeof u); return u; }
+float    vader_bits_to_f32(uint32_t b) { float v; memcpy(&v, &b, sizeof v); return v; }
 vader_string_t vader_builder_finish(vader_builder_t* b) {
     /* Hand the buffer to `vader_atom_intern_take` — on miss it adopts
      * the buffer as the atom's owner data ; on hit it frees the buffer

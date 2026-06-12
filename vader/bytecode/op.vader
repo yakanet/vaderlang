@@ -164,6 +164,8 @@ export Op :: Unreachable
     | MemoryCopy
     | F64ToBits
     | BitsToF64
+    | F32ToBits
+    | BitsToF32
 
 /// Trap unconditionally — the bytecode reached a point the compiler proved
 /// (or asserted, via `@unreachable match`) can never execute. Carries a
@@ -651,6 +653,13 @@ export F64ToBits :: struct {}
 /// Pops a `u64`, pushes the `f64`. NOT `f64(x)` (which widens the integer
 /// VALUE). Together they unblock the S2-deferred `LoadF64` byte codec.
 export BitsToF64 :: struct {}
+/// `f32` → raw IEEE 754 `u32` bit pattern (the 32-bit analogue of `F64ToBits`).
+/// Pops an `f32`, pushes the `u32`. NOT `u32(x)` (value truncation). Powers the
+/// pure-Vader shortest-`f32` formatter (Ryu f2s).
+export F32ToBits :: struct {}
+/// Inverse of `F32ToBits` : bit-reinterpret a `u32` bit pattern as an `f32`.
+/// Pops a `u32`, pushes the `f32`. NOT `f32(x)` (which widens the integer VALUE).
+export BitsToF32 :: struct {}
 
 /// Primitive literal-producing op carried by `ReturnLit`. Mirrors the
 /// TS `ConstOp` extracted from `Op`. Each variant produces exactly one

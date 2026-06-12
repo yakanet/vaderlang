@@ -46,6 +46,10 @@ import "std/string" { index_of, as_string, decode_codepoint_at, join }
 vader_f64_to_bits :: fn(v: f64) -> u64
 @extern("vader_bits_to_f64")
 vader_bits_to_f64 :: fn(b: u64) -> f64
+@extern("vader_f32_to_bits")
+vader_f32_to_bits :: fn(v: f32) -> u32
+@extern("vader_bits_to_f32")
+vader_bits_to_f32 :: fn(b: u32) -> f32
 
 // Mangled host-import names. Lifted to module-scope so the dispatch
 // chain reads as identifier comparisons rather than raw-string
@@ -1798,6 +1802,25 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[]) -
                 iv :: read_i64(frame.stack[frame.sp - 1], frame.pc, "bits_to_f64")
                 if iv is Trap { return iv }
                 frame.stack[frame.sp - 1] = F64Val { .value = vader_bits_to_f64(u64(iv.value)) }
+                frame.pc = frame.pc + 1
+            }
+            is bc.F32ToBits -> {
+                // f32→u32 bits. The VM holds f32 in an F64Val (exact, since f32
+                // widens losslessly), so narrow back to f32 before the cast; the
+                // u32 result rides in an I32Val.
+                if frame.sp < 1 { return Trap { .message = "f32_to_bits needs a value on the stack at pc=${frame.pc}" } }
+                fv :: read_f64(frame.stack[frame.sp - 1], frame.pc, "f32_to_bits")
+                if fv is Trap { return fv }
+                frame.stack[frame.sp - 1] = I32Val { .value = i32(vader_f32_to_bits(f32(fv.value))) }
+                frame.pc = frame.pc + 1
+            }
+            is bc.BitsToF32 -> {
+                // Inverse : reinterpret the TOS u32 bit pattern (in an I32Val) as
+                // an f32, widened back into an F64Val for VM storage.
+                if frame.sp < 1 { return Trap { .message = "bits_to_f32 needs a value on the stack at pc=${frame.pc}" } }
+                iv :: read_i32(frame.stack[frame.sp - 1], frame.pc, "bits_to_f32")
+                if iv is Trap { return iv }
+                frame.stack[frame.sp - 1] = F64Val { .value = f64(vader_bits_to_f32(u32(iv.value))) }
                 frame.pc = frame.pc + 1
             }
         }

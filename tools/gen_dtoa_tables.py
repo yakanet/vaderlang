@@ -26,7 +26,22 @@ POW5_BITCOUNT = 125
 POW5_INV_BITCOUNT = 125
 POW5_SPLIT_ROWS = 326       # i in [0, 326)
 POW5_INV_SPLIT_ROWS = 342   # q in [0, 342)
+# f32 (Ryu f2s) tables: a single u64 each, derived from the f64 tables. NOTE the
+# two effective bitcounts DIFFER (matching ryu's f2s_full_table.h):
+#   FLOAT_POW5_SPLIT[i]     = DOUBLE_POW5_SPLIT[i] >> 64           → FLOAT_POW5_BITCOUNT     = 61
+#   FLOAT_POW5_INV_SPLIT[q] = (DOUBLE_POW5_INV_SPLIT[q] >> 66) + 1 → FLOAT_POW5_INV_BITCOUNT = 59
+# (the INV table takes 2 extra low bits off the f64 high word, hence 125-66=59).
+FLOAT_POW5_SPLIT_ROWS = 47       # i in [0, 47)
+FLOAT_POW5_INV_SPLIT_ROWS = 55   # q in [0, 55)
 MASK64 = (1 << 64) - 1
+
+
+def float_split_value(i: int) -> int:
+    return split_value(i) >> 64
+
+
+def float_inv_split_value(q: int) -> int:
+    return (inv_split_value(q) >> 66) + 1
 
 
 def pow5bits(e: int) -> int:
@@ -74,6 +89,17 @@ EXPECT_SPLIT = {
     7: (0, 1374389534720000000),
     325: (8710297504448807696, 1780059086805761106),
 }
+# f32 (Ryu f2s) reference rows, from ulfjack/ryu ryu/f2s_full_table.h.
+EXPECT_FLOAT_INV = {
+    0: 576460752303423489, 1: 461168601842738791, 2: 368934881474191033,
+    3: 295147905179352826, 4: 472236648286964522, 5: 377789318629571618,
+    54: 441711766194596083,
+}
+EXPECT_FLOAT_SPLIT = {
+    0: 1152921504606846976, 1: 1441151880758558720, 2: 1801439850948198400,
+    3: 2251799813685248000, 4: 1407374883553280000, 5: 1759218604441600000,
+    46: 2019483917365790221,
+}
 
 
 def validate():
@@ -83,6 +109,12 @@ def validate():
     for i, want in EXPECT_SPLIT.items():
         got = halves(split_value(i))
         assert got == want, f"SPLIT[{i}] = {got}, expected {want}"
+    for q, want in EXPECT_FLOAT_INV.items():
+        got = float_inv_split_value(q)
+        assert got == want, f"FLOAT_INV[{q}] = {got}, expected {want}"
+    for i, want in EXPECT_FLOAT_SPLIT.items():
+        got = float_split_value(i)
+        assert got == want, f"FLOAT_SPLIT[{i}] = {got}, expected {want}"
     print("validation OK: all sampled reference rows match")
 
 
@@ -132,6 +164,16 @@ def main():
     out.append("")
     emit_array("DOUBLE_POW5_INV_SPLIT_LO", inv_lo, out)
     emit_array("DOUBLE_POW5_INV_SPLIT_HI", inv_hi, out)
+
+    float_split = [float_split_value(i) for i in range(FLOAT_POW5_SPLIT_ROWS)]
+    float_inv = [float_inv_split_value(q) for q in range(FLOAT_POW5_INV_SPLIT_ROWS)]
+    out.append("// ---- f32 (Ryu f2s) : single-u64 tables, derived from the f64 tables -------")
+    out.append(f"// FLOAT_POW5_SPLIT     : {FLOAT_POW5_SPLIT_ROWS} rows  (5^i,  used when e2 < 0)")
+    out.append(f"// FLOAT_POW5_INV_SPLIT : {FLOAT_POW5_INV_SPLIT_ROWS} rows  (1/5^q, used when e2 >= 0)")
+    out.append("// bitcount: SPLIT = 61 (f64 hi, >>64), INV = 59 (f64 hi >>2, i.e. >>66) — they differ.")
+    out.append("")
+    emit_array("FLOAT_POW5_SPLIT", float_split, out)
+    emit_array("FLOAT_POW5_INV_SPLIT", float_inv, out)
 
     text = "\n".join(out) + "\n"
     import os

@@ -600,6 +600,8 @@ export write_op :: fn(out: StringBuilder, op: Op) -> void {
         is MemoryCopy               -> out.append("memory_copy")
         is F64ToBits                -> out.append("f64_to_bits")
         is BitsToF64                -> out.append("bits_to_f64")
+        is F32ToBits                -> out.append("f32_to_bits")
+        is BitsToF32                -> out.append("bits_to_f32")
     }
 }
 
