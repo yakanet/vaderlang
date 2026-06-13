@@ -102,7 +102,6 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
     // (TODO 1.13d). Same backing runtime symbol.
     if m == "std_string\$as_string" || m == "std_core\$bytes_to_string" { return "${head} { return vader_string_as_string((vader_array_t*) a0.payload.obj); }" }
     if m == "std_string\$parse_float" { return "${head} { return vader_string_parse_float(a0, ${tag_u(prim_tag(types, .F64), "f64")}, ${tag_u(error_ref_tag(types), "error")}); }" }
-    if m == "std_core\$string\$Hash\$hash" { return "${head} { return vader_string_hash(a0); }" }
 
     // Every primitive `Display.to_string` is now pure Vader : the integer /
     // bool / char / string impls moved in Target ABI S1, and f32 / f64 in S4

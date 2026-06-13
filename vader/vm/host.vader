@@ -220,15 +220,10 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         if min_index is Trap { return min_index }
         return HostOk { .value = I32Val { .value = i32(s.value.last_index_of(c.value, isize(min_index.value))) } }
     }
-    // ---- std/core hash + Display intrinsics ------------------------------
-    // `string implements Hash` is `@intrinsic`. Computes the low 32 bits
-    // of FNV-1a-64 (matches the C runtime's `vader_string_hash` modulo
-    // 2^32 — sufficient for `hash % capacity` bucket assignments).
-    if info.mangled_name == r"std_core$string$Hash$hash" {
-        s :: read_string(stack[arg_base], at_pc, "string.hash")
-        if s is Trap { return s }
-        return HostOk { .value = I32Val { .value = fnv1a31_low(s.value) } }
-    }
+    // ---- std/core Display + Equals intrinsics ----------------------------
+    // `string implements Hash` is now pure Vader (FNV-1a-64 over `bytes()`,
+    // `std/core/primitives.vader`) — the host arm + the old 31-bit `fnv1a31_low`
+    // were retired (S6) so a single hash function is live across VM + native.
     // `@intrinsic string implements Equals` — structural string compare.
     // Reached when map key lookups dispatch `key.equals(other)` virtually
     // (the virtual.call intrinsic fallback in exec.vader rebuilds this mangle).
@@ -449,29 +444,3 @@ is_unsigned_display_host :: fn(mangled: string) -> bool {
     return false
 }
 
-/// Low 31 bits of FNV-1a-64 over the UTF-8 bytes of `s`. The 64-bit
-/// FNV prime `0x100000001b3` reduces to `0x1b3` modulo 2^32, so the
-/// low 32 bits of the full 64-bit hash can be computed with plain i32
-/// wrap arithmetic. The final mask clears the sign bit so the result
-/// is always non-negative — `std/collections.bucket_index` expects an
-/// unsigned hash and the VM has no `u64` value tag yet. The **31-bit
-/// width is intentional** : the top hash bit is dropped, so bucket
-/// assignment diverges from the TS VM for keys whose full hash has
-/// bit 31 set. Order-sensitive tests may surface this ; order-
-/// insensitive ones (sum, contains) are unaffected.
-fnv1a31_low :: fn(s: string) -> i32 {
-    // Seed = bit pattern `0x84222325` (low 32 bits of the FNV-1a-64
-    // offset `0xcbf29ce484222325`) reinterpreted as i32. The bit
-    // pattern has the sign bit set, so reading it back as signed-i32
-    // is negative — `u32 → i32` makes the reinterpret explicit. The
-    // small constants (`0x1b3`, `0x7fffffff`) sit in i32 range so the
-    // context-sensitive literal adopts the operand width directly.
-    h: i32 = i32(0x84222325)
-    sb :: s.bytes()
-    i: usize = 0
-    for i < sb.len() {
-        h = (h ^ i32(sb[i])) * 0x1b3
-        i += 1
-    }
-    return h & 0x7fffffff
-}

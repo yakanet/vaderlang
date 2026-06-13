@@ -177,7 +177,18 @@ u64   implements Hash -> u64(self)
 usize implements Hash -> u64(self)
 char  implements Hash -> u64(self)
 
-@intrinsic string implements Hash
+/// FNV-1a over the string's UTF-8 bytes — pure Vader, byte-identical to the
+/// retired host `vader_string_hash`. Powers `string implements Hash`, which
+/// feeds `MutableMap` bucketing.
+string_hash_fnv1a64 :: fn(s: string) -> u64 {
+    h: u64 = 14695981039346656037
+    for b in s.bytes() {
+        h = (h ^ u64(b)) * 1099511628211
+    }
+    return h
+}
+
+string implements Hash -> string_hash_fnv1a64(self)
 
 // ---- Comparable -----------------------------------------------------------
 //

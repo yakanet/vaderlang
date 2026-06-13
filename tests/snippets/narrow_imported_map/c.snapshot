@@ -153,13 +153,14 @@ static uint64_t std_core_u32_Hash_hash(uint32_t l0);
 static uint64_t std_core_u64_Hash_hash(uint64_t l0);
 static uint64_t std_core_usize_Hash_hash(size_t l0);
 static uint64_t std_core_char_Hash_hash(uint32_t l0);
+static uint64_t std_core_string_Hash_hash(vader_string_t l0);
 static vader_string_t std_core_format_signed(int64_t l0);
+static uint64_t std_core_string_hash_fnv1a64(vader_string_t l0);
 static vader_box_t snippet_lib_pick(vader_box_t l0, int32_t l1);
 static vader_box_t std_core_usize_BufferAlloc_new_buffer_vt(size_t l0);
 static uint8_t std_core_Buffer_ByteAccess_load_u8_vt(vader_box_t l0, size_t l1);
 static void std_core_Buffer_ByteAccess_store_u8_vt(vader_box_t l0, size_t l1, uint8_t l2);
 static void std_core_Buffer_ByteAccess_memory_copy_vt(vader_box_t l0, size_t l1, vader_box_t l2, size_t l3, size_t l4);
-static uint64_t std_core_string_Hash_hash_vt(vader_string_t l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
@@ -264,7 +265,7 @@ const size_t vader_type_size[46] = {
  * alphabetically. Pinned stdlib slots: Hash.hash=0, Equals.equals=1, Ord.compare=2, Display.display=3.
  */
 static const vader_vtable_t vt_1 = { .slots = {
-    [0] = (void*)std_core_string_Hash_hash_vt, /* Hash.hash */
+    [0] = (void*)std_core_string_Hash_hash, /* Hash.hash */
 }};
 static const vader_vtable_t vt_3 = { .slots = {
     [0] = (void*)std_core_i32_Hash_hash, /* Hash.hash */
@@ -318,7 +319,6 @@ const size_t vader_vtable_count = 36;
 static void vader_import_0(int32_t a0, vader_string_t a1) { vader_write(a0, a1); }
 static vader_string_t vader_import_1(vader_box_t a0) { return vader_string_as_string((vader_array_t*) a0.payload.obj); }
 static vader_box_t vader_import_2(vader_string_t a0) { return vader_box_obj(23u, vader_string_bytes_view(a0, 23u, 24u)); }
-static uint64_t vader_import_3(vader_string_t a0) { return vader_string_hash(a0); }
 
 
 /* ----------------------------------------------- vtable forwards */
@@ -906,6 +906,15 @@ static uint64_t std_core_char_Hash_hash(uint32_t l0) {
     return (uint64_t) (int64_t) ((int64_t) (uint32_t) l0);
 }
 
+static uint64_t std_core_string_Hash_hash(vader_string_t l0) {
+    uint64_t t0;
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL };
+    vader_gc_top = &gc_frame;
+    t0 = std_core_string_hash_fnv1a64(l0);
+    { uint64_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
+    vader_gc_top = gc_frame.prev;
+}
+
 static vader_string_t std_core_format_signed(int64_t l0) {
     bool l1;
     int64_t l2;
@@ -972,6 +981,48 @@ static vader_string_t std_core_format_signed(int64_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
+static uint64_t std_core_string_hash_fnv1a64(vader_string_t l0) {
+    uint64_t l1, l5, l6, l7;
+    vader_box_t l2 = vader_box_null();
+    size_t l3, l4, l8;
+    vader_box_t t0 = vader_box_null();
+    size_t t1;
+    vader_box_t t2 = vader_box_null();
+    uint8_t t3;
+    int64_t t4, t5, t6, t7;
+    vader_box_t* gc_roots[3] = { &l2, &t0, &t2 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 0u, gc_roots };
+    vader_gc_top = &gc_frame;
+    l1 = (uint64_t) (int64_t) INT64_C(-3750763034362895579);
+    t0 = vader_import_2(l0);
+    l2 = t0;
+    t1 = vader_array_len((vader_array_t*) l2.payload.obj);
+    l3 = t1;
+    l4 = (size_t) (int64_t) INT64_C(0);
+    {
+        loop_10: {
+            if ((l4 < l3)) {
+                t2 = vader_array_get((vader_array_t*) l2.payload.obj, (size_t) l4);
+                t3 = ((uint8_t) t2.payload.i);
+                t4 = ((int64_t) (uint8_t) t3);
+                l5 = (uint64_t) (int64_t) t4;
+                t5 = (l1 ^ l5);
+                l6 = (uint64_t) (int64_t) t5;
+                l7 = (uint64_t) (int64_t) INT64_C(1099511628211);
+                t6 = (l6 * l7);
+                l1 = (uint64_t) (int64_t) t6;
+                l8 = (size_t) (int64_t) INT64_C(1);
+                t7 = (l4 + l8);
+                l4 = (size_t) (int64_t) t7;
+                goto loop_10;
+            } else {
+            }
+        }
+    }
+    { uint64_t __vret = l1; vader_gc_top = gc_frame.prev; return __vret; }
+    vader_gc_top = gc_frame.prev;
+}
+
 static vader_box_t snippet_lib_pick(vader_box_t l0, int32_t l1) {
     vader_box_t l2 = vader_box_null();
     vader_box_t t0 = vader_box_null(), t1 = vader_box_null(), t3 = vader_box_null();
@@ -1027,15 +1078,6 @@ static void std_core_Buffer_ByteAccess_memory_copy_vt(vader_box_t l0, size_t l1,
     return;
 }
 
-static uint64_t std_core_string_Hash_hash_vt(vader_string_t l0) {
-    uint64_t t0;
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL };
-    vader_gc_top = &gc_frame;
-    t0 = vader_import_3(l0);
-    { uint64_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
-}
-
 
 /* ----------------------------------------------- vtable dispatchers */
 static uint64_t vader_vt_Hash__hash(vader_box_t recv) {
@@ -1051,7 +1093,7 @@ static uint64_t vader_vt_Hash__hash(vader_box_t recv) {
         case 14u: return std_core_u64_Hash_hash(((uint64_t) recv.payload.i));
         case 4u: return std_core_usize_Hash_hash(((size_t) recv.payload.i));
         case 35u: return std_core_char_Hash_hash(((uint32_t) recv.payload.i));
-        case 1u: return std_core_string_Hash_hash_vt(recv.payload.s);
+        case 1u: return std_core_string_Hash_hash(recv.payload.s);
         default: vader_unreachable("vtable miss in Hash.hash");
     }
     vader_unreachable("vtable miss in Hash.hash");

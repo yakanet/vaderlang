@@ -33,6 +33,9 @@
 ## tests/snippets/_diag_stdlib_struct_instance
 
 ## generic instances
+  MapIterator<K, V>
+  MapIterator<K, V>
+  MapIterator<K, V>
   MutableSet<i32>
   MutableSet<T>
   MutableSet<T>
@@ -107,6 +110,3 @@
   MutableMap<T, bool>
   MutableMap<T, bool>
   MutableMap<T, bool>
-  MapIterator<K, V>
-  MapIterator<K, V>
-  MapIterator<K, V>
