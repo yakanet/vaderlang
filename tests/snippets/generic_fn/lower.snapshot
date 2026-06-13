@@ -88,9 +88,9 @@
               arg0:
                 __sb_1 :StringBuilder
     return int(0) :i32
-  fn snippet$snippet$identity__i32(x: Any) -> Any
-    return x :Any
-  fn snippet$snippet$first__i32(arr: Any[], fallback: Any) -> Any
+  fn snippet$snippet$identity__i32(x: i32) -> i32
+    return x :i32
+  fn snippet$snippet$first__i32(arr: i32[], fallback: i32) -> i32
     if :void
       cond:
         gt :bool
@@ -100,9 +100,9 @@
             int(0) :usize
       then:
         return
-          index :Any
+          index :i32
             on:
-              arr :Any[]
+              arr :i32[]
             ix:
               int(0) :i32
-    return fallback :Any
+    return fallback :i32

@@ -20,6 +20,6 @@
   fn snippet$snippet$needs_add__string(x: Any) -> Any
     ~>
       x :Any
-  fn snippet$snippet$bar__i32__i32(key: Any, value: Any) -> Any
+  fn snippet$snippet$bar__i32__i32(key: i32, value: i32) -> i32
     ~>
-      value :Any
+      value :i32

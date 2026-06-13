@@ -150,7 +150,19 @@ fn snippet$main() -> i32
     %40 = const int(0) :i32
     return %40
 
-fn snippet$snippet$id__f64(%0: Any) -> Any
+fn snippet$snippet$id__f64(%0: f64) -> f64
+  locals:
+    %0 x: f64 (param x)
+  bb0:
+    return %0
+
+fn snippet$snippet$id__i32(%0: i32) -> i32
+  locals:
+    %0 x: i32 (param x)
+  bb0:
+    return %0
+
+fn snippet$snippet$id__string(%0: Any) -> Any
   locals:
     %0 x: Any (param x)
   bb0:

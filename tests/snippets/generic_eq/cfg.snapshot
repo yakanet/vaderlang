@@ -41,11 +41,11 @@ fn snippet$main() -> i32
     %14 = const int(0) :i32
     return %14
 
-fn snippet$snippet$are_eq__i32(%0: Any, %1: Any) -> bool
+fn snippet$snippet$are_eq__i32(%0: i32, %1: i32) -> bool
   locals:
-    %0 a: Any (param a)
-    %1 b: Any (param b)
-    %2 $vcall_2: bool
+    %0 a: i32 (param a)
+    %1 b: i32 (param b)
+    %2 $eq_2: bool
   bb0:
-    %2 = vcall Equals.equals(recv=%0, %1) :bool
+    %2 = binop 12 %0 %1 :bool
     return %2

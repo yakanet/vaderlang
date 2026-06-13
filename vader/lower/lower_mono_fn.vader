@@ -238,7 +238,19 @@ build_fn_instance_decl :: fn(
     // sound at concrete-primitive read sites (S5 Solution A). Non-bare-element
     // returns (`[T, U][]`, `Pair<T, U>[]`) stay erased — they are BOXED-kind in
     // both worlds, read through the legacy runtime-dispatched op.
-    force_concrete :: dispatches || returns_typeparam_array(fn_decl)
+    //
+    // GATE A's third arm (the .NET-generics model) force-concretes any instance
+    // whose type args are ALL raw-representation primitives (i32/i64/f64/… per
+    // `all_type_args_monomorphizable`). Erasure keeps two representations live —
+    // a raw primitive vs a boxed `{tag,payload}` — so an `Any`-typed site cannot
+    // tell box-from-raw and miscompiles (the inc-2b class). Monomorphizing the
+    // all-primitive instances removes the ambiguity (the body reads raw, primops
+    // inline) ; references stay erased+uniform-pointer (no ambiguity, like Java).
+    // Bounded : all-primitive args mean the concrete subst already equals a mixed
+    // subst, so no over-monomorphization. See `.claude/plans/dotnet-erasure-model.md`.
+    force_concrete :: dispatches ||
+        returns_typeparam_array(fn_decl) ||
+        all_type_args_monomorphizable(inst.type_args)
     subst :: if force_concrete {
         build_fn_concrete_subst(fn_decl, owner_typed, inst.type_args)
     } else {

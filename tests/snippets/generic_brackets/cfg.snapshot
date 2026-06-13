@@ -35,15 +35,15 @@ fn snippet$main() -> i32
     %13 = binop 0 %11 %12 :i32
     return %13
 
-fn snippet$snippet$identity__i32(%0: Any) -> Any
+fn snippet$snippet$identity__i32(%0: i32) -> i32
   locals:
-    %0 x: Any (param x)
+    %0 x: i32 (param x)
   bb0:
     return %0
 
-fn snippet$snippet$swap__i32__i32(%0: Any, %1: Any) -> Any
+fn snippet$snippet$swap__i32__i32(%0: i32, %1: i32) -> i32
   locals:
-    %0 a: Any (param a)
-    %1 b: Any (param b)
+    %0 a: i32 (param a)
+    %1 b: i32 (param b)
   bb0:
     return %1

@@ -10,9 +10,7 @@ type 7 array 8
 type 8 primitive u8
 type 9 struct std_core$Buffer {  }
 type 10 primitive i64
-type 11 ref _
-type 12 array 11
-type 13 array 3
+type 11 array 3
 string 0 "\n"
 string 1 "0"
 string 2 ""
@@ -378,7 +376,7 @@ fn 9 snippet$main () -> i32
   i32.const 10
   i32.const 20
   i32.const 30
-  array.new 13 3
+  array.new 11 3
   local.set 1
   local.get 1
   i32.const 0
@@ -401,12 +399,12 @@ fn 9 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 10 snippet$snippet$identity__i32 (ref) -> ref
+fn 10 snippet$snippet$identity__i32 (i32) -> i32
   local.get 0
   return
 end
 
-fn 11 snippet$snippet$first__i32 (ref,ref) -> ref
+fn 11 snippet$snippet$first__i32 (ref,i32) -> i32
   local $len_2 usize
   local $k_3 usize
   local.get 0
@@ -420,7 +418,7 @@ fn 11 snippet$snippet$first__i32 (ref,ref) -> ref
   if $L0 void
     local.get 0
     i32.const 0
-    array.get 12
+    load_slot_i32
     return
   end $L0
   local.get 1

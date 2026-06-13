@@ -1,0 +1,22 @@
+# Typecheck
+
+## tests/snippets/_diag_mono_primitive_freefn
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Point                :: Point
+  FnDecl         second               :: fn(T[]) -> T
+  expr 21:33    IdentExpr      :: T[]
+  expr 21:33    IndexExpr      :: T
+  expr 26:13    SeqLitExpr     :: i32[]
+  expr 27:10    CallExpr       :: i32
+  expr 27:10    IdentExpr      :: fn(T[]) -> T
+  expr 27:17    IdentExpr      :: i32[]
+  expr 28:12    SeqLitExpr     :: Point[]
+  expr 28:13    StructLitExpr  :: Point
+  expr 28:31    StructLitExpr  :: Point
+  expr 29:10    CallExpr       :: Point
+  expr 29:10    IdentExpr      :: fn(T[]) -> T
+  expr 29:17    IdentExpr      :: Point[]
+  expr 30:12    BinaryExpr     :: i32
+  expr 30:12    IdentExpr      :: i32
+  expr 30:16    FieldExpr      :: i32
+  expr 30:16    IdentExpr      :: Point

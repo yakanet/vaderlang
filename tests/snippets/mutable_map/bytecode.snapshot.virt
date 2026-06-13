@@ -80,18 +80,6 @@ impl 19 Display
 impl 23 Contains
 impl 23 Iterator
 impl 22 ByteAccess
-vtable Hash.hash 26 22
-vtable Hash.hash 27 23
-vtable Hash.hash 3 24
-vtable Hash.hash 28 25
-vtable Hash.hash 29 26
-vtable Hash.hash 21 27
-vtable Hash.hash 30 28
-vtable Hash.hash 31 29
-vtable Hash.hash 12 30
-vtable Hash.hash 4 31
-vtable Hash.hash 32 32
-vtable Hash.hash 1 33
 export main 1
 
 fn 0 std_io$std_io$println__string (string) -> void
@@ -641,12 +629,12 @@ fn 5 std_collections$bucket_index (u64,usize) -> i32
   return
 end
 
-fn 6 std_collections$std_collections$ensure_buckets__i32__bool (ref) -> void
+fn 6 std_collections$std_collections$ensure_buckets__i32__i32 (ref) -> void
   local $len_2 usize
   local $k_3 usize
   local $field_9 ref
   local $k_11 usize
-  local.field 0 13 0
+  local.field 0 9 0
   array.len
   local.set 1
   i64.const 0
@@ -665,7 +653,7 @@ fn 6 std_collections$std_collections$ensure_buckets__i32__bool (ref) -> void
         local.get 2
         u64.lt
         if $L3 void
-          local.field 0 13 0
+          local.field 0 9 0
           local.set 3
           local.get 3
           null.const
@@ -790,11 +778,11 @@ fn 7 std_collections$std_collections$put__i32__i32 (ref,i32,i32) -> void
   return
 end
 
-fn 8 std_collections$std_collections$maybe_grow__i32__bool (ref) -> void
+fn 8 std_collections$std_collections$maybe_grow__i32__i32 (ref) -> void
   local $field_1 usize
   local $cast_3 usize
   local $cast_8 usize
-  local.field 0 13 1
+  local.field 0 9 1
   ref.cast 4
   local.set 1
   i64.const 4
@@ -803,7 +791,7 @@ fn 8 std_collections$std_collections$maybe_grow__i32__bool (ref) -> void
   local.get 2
   i64.mul
   local.set 1
-  local.field 0 13 0
+  local.field 0 9 0
   array.len
   local.set 2
   i64.const 3
@@ -823,7 +811,7 @@ fn 8 std_collections$std_collections$maybe_grow__i32__bool (ref) -> void
   return
 end
 
-fn 9 std_collections$std_collections$grow__Any__Any (ref) -> void
+fn 9 std_collections$std_collections$grow__i32__i32 (ref) -> void
   local old ref
   local $len_3 usize
   local $cast_5 usize
@@ -836,7 +824,7 @@ fn 9 std_collections$std_collections$grow__Any__Any (ref) -> void
   local idx i32
   local $idx_40 ref
   local $k_41 usize
-  local.field 0 13 0
+  local.field 0 9 0
   local.tee 1
   array.len
   local.set 2
@@ -846,7 +834,7 @@ fn 9 std_collections$std_collections$grow__Any__Any (ref) -> void
   local.get 3
   i64.mul
   local.set 2
-  array.new 14 0
+  array.new 36 0
   local.set 4
   i64.const 0
   local.set 3
@@ -884,7 +872,7 @@ fn 9 std_collections$std_collections$grow__Any__Any (ref) -> void
       if $L5 void
         local.get 1
         local.get 5
-        array.get 14
+        array.get 36
         local.set 6
         bool.const false
         local.set 7
@@ -902,28 +890,29 @@ fn 9 std_collections$std_collections$grow__Any__Any (ref) -> void
                 br $L7
               end $L9
               local.get 8
-              type_check 16
+              type_check 18
               if $L10 void
                 local.get 8
                 local.set 9
-                local.field 9 16 2
+                local.field 9 18 2
                 local.set 6
-                local.field 9 16 0
-                virtual.call 1 Hash.hash
+                local.field 9 18 0
+                ref.cast 3
+                call 24
                 local.get 2
                 call 5
                 local.set 10
                 local.get 4
                 local.get 10
-                array.get 14
+                array.get 36
                 local.set 11
                 local.get 9
                 local.get 11
-                struct.set 16 2
+                struct.set 18 2
                 local.get 4
                 local.get 10
                 local.get 9
-                array.set 14
+                array.set 36
                 br $L7
               end $L10
               return
@@ -944,7 +933,7 @@ fn 9 std_collections$std_collections$grow__Any__Any (ref) -> void
   end $L3
   local.get 0
   local.get 4
-  struct.set 13 0
+  struct.set 9 0
   return
 end
 
@@ -1111,7 +1100,7 @@ fn 11 std_collections$std_collections$contains_key__i32__i32 (ref,i32) -> bool
 end
 
 fn 12 std_collections$std_collections$len__i32__i32 (ref) -> usize
-  local.field 0 13 1
+  local.field 0 9 1
   ref.cast 4
   return
 end

@@ -10,24 +10,23 @@ type 7 primitive u64
 type 8 struct std_random$Rng { s0:7,s1:7 }
 type 9 primitive f64
 type 10 primitive u32
-type 11 array 12
-type 12 ref _
-type 13 struct std_string_builder$StringBuilder { buf:16,len:4,cap:4 }
-type 14 array 15
-type 15 primitive u8
-type 16 struct std_core$Buffer {  }
-type 17 struct std_core$Range__char { start:12,end:12,inclusive:5,cursor:12 }
-type 18 primitive char
-type 19 union 0,20
-type 20 struct std_core$Yield__char { value:12 }
-type 21 struct std_core$Range__i32 { start:12,end:12,inclusive:5,cursor:12 }
-type 22 union 0,23
-type 23 struct std_core$Yield__i32 { value:12 }
-type 24 struct std_core$Range__usize { start:12,end:12,inclusive:5,cursor:12 }
-type 25 union 0,26
-type 26 struct std_core$Yield__usize { value:12 }
-type 27 primitive i64
-type 28 array 3
+type 11 array 3
+type 12 struct std_string_builder$StringBuilder { buf:15,len:4,cap:4 }
+type 13 array 14
+type 14 primitive u8
+type 15 struct std_core$Buffer {  }
+type 16 struct std_core$Range__char { start:27,end:27,inclusive:5,cursor:27 }
+type 17 primitive char
+type 18 union 0,19
+type 19 struct std_core$Yield__char { value:27 }
+type 20 struct std_core$Range__i32 { start:27,end:27,inclusive:5,cursor:27 }
+type 21 union 0,22
+type 22 struct std_core$Yield__i32 { value:27 }
+type 23 struct std_core$Range__usize { start:27,end:27,inclusive:5,cursor:27 }
+type 24 union 0,25
+type 25 struct std_core$Yield__usize { value:27 }
+type 26 primitive i64
+type 27 ref _
 string 0 "\n"
 string 1 "deterministic="
 string 2 "zero_seed_nonzero="
@@ -53,14 +52,14 @@ string 21 "-"
 import 0 write std_io$write (i32,string) -> void
 import 1 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 2 bytes std_core$bytes (string) -> ref
-impl 13 Display
-impl 17 Contains
-impl 17 Iterator
-impl 21 Contains
-impl 21 Iterator
-impl 24 Contains
-impl 24 Iterator
-impl 16 ByteAccess
+impl 12 Display
+impl 16 Contains
+impl 16 Iterator
+impl 20 Contains
+impl 20 Iterator
+impl 23 Contains
+impl 23 Iterator
+impl 15 ByteAccess
 export main 12
 
 fn 0 std_io$std_io$println__string (string) -> void
@@ -417,8 +416,8 @@ fn 11 std_random$std_random$shuffle__i32 (ref,ref) -> void
   local $k_15 usize
   local $cast_17 u32
   local j usize
-  local tmp ref
-  local $idx_24 ref
+  local tmp i32
+  local $idx_24 i32
   local $k_25 usize
   local.get 1
   array.len
@@ -462,20 +461,20 @@ fn 11 std_random$std_random$shuffle__i32 (ref,ref) -> void
         local.set 7
         local.get 1
         local.get 2
-        array.get 11
+        load_slot_i32
         local.set 8
         local.get 1
         local.get 7
-        array.get 11
+        load_slot_i32
         local.set 9
         local.get 1
         local.get 2
         local.get 9
-        array.set 11
+        store_slot_i32
         local.get 1
         local.get 7
         local.get 8
-        array.set 11
+        store_slot_i32
         i64.const 1
         local.set 10
         local.get 2
@@ -730,7 +729,7 @@ fn 12 snippet$main () -> i32
   i32.const 6
   i32.const 7
   i32.const 8
-  array.new 28 8
+  array.new 11 8
   local.set 1
   local.get 0
   local.get 1
@@ -874,7 +873,7 @@ fn 13 std_string_builder$new_builder () -> ref
   local.get 1
   local.get 2
   local.get 0
-  struct.new 13
+  struct.new 12
   return
 end
 
@@ -899,7 +898,7 @@ fn 15 std_string_builder$append_bytes (ref,ref) -> void
   local.get 1
   array.len
   local.set 2
-  local.field 0 13 1
+  local.field 0 12 1
   ref.cast 4
   local.get 2
   i64.add
@@ -915,17 +914,17 @@ fn 15 std_string_builder$append_bytes (ref,ref) -> void
       local.get 2
       u64.lt
       if $L2 void
-        local.field 0 13 0
+        local.field 0 12 0
         local.set 4
-        local.field 0 13 1
+        local.field 0 12 1
         ref.cast 4
         local.get 3
         i64.add
         local.set 5
         local.get 1
         local.get 3
-        array.get 14
-        ref.cast 15
+        array.get 13
+        ref.cast 14
         local.set 6
         local.get 4
         local.get 5
@@ -942,14 +941,14 @@ fn 15 std_string_builder$append_bytes (ref,ref) -> void
       end $L2
     end $L1
   end $L0
-  local.field 0 13 1
+  local.field 0 12 1
   ref.cast 4
   local.get 2
   i64.add
   local.set 2
   local.get 0
   local.get 2
-  struct.set 13 1
+  struct.set 12 1
   return
 end
 
@@ -960,7 +959,7 @@ fn 16 std_string_builder$ensure_capacity (ref,usize) -> void
   local $field_12 ref
   local $k_13 usize
   local $field_14 usize
-  local.field 0 13 2
+  local.field 0 12 2
   ref.cast 4
   local.set 2
   local.get 1
@@ -969,7 +968,7 @@ fn 16 std_string_builder$ensure_capacity (ref,usize) -> void
   if $L0 void
     return
   end $L0
-  local.field 0 13 2
+  local.field 0 12 2
   ref.cast 4
   local.set 2
   i64.const 2
@@ -990,11 +989,11 @@ fn 16 std_string_builder$ensure_capacity (ref,usize) -> void
   local.set 4
   i64.const 0
   local.set 3
-  local.field 0 13 0
+  local.field 0 12 0
   local.set 5
   i64.const 0
   local.set 6
-  local.field 0 13 1
+  local.field 0 12 1
   ref.cast 4
   local.set 7
   local.get 4
@@ -1005,10 +1004,10 @@ fn 16 std_string_builder$ensure_capacity (ref,usize) -> void
   call 27
   local.get 0
   local.get 4
-  struct.set 13 0
+  struct.set 12 0
   local.get 0
   local.get 2
-  struct.set 13 2
+  struct.set 12 2
   return
 end
 
@@ -1018,26 +1017,26 @@ fn 17 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local $field_5 usize
   local $call_8 u8
   local $k_9 usize
-  array.new 14 0
+  array.new 13 0
   local.set 1
   i64.const 0
   local.set 2
   block $L0 void
     loop $L1 void
-      local.field 0 13 1
+      local.field 0 12 1
       ref.cast 4
       local.set 3
       local.get 2
       local.get 3
       u64.lt
       if $L2 void
-        local.field 0 13 0
+        local.field 0 12 0
         local.get 2
         call 25
         local.set 4
         local.get 1
         local.get 4
-        array.push 15
+        array.push 14
         i64.const 1
         local.set 5
         local.get 2

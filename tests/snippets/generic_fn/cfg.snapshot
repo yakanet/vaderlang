@@ -57,21 +57,21 @@ fn snippet$main() -> i32
     %21 = const int(0) :i32
     return %21
 
-fn snippet$snippet$identity__i32(%0: Any) -> Any
+fn snippet$snippet$identity__i32(%0: i32) -> i32
   locals:
-    %0 x: Any (param x)
+    %0 x: i32 (param x)
   bb0:
     return %0
 
-fn snippet$snippet$first__i32(%0: Any[], %1: Any) -> Any
+fn snippet$snippet$first__i32(%0: i32[], %1: i32) -> i32
   locals:
-    %0 arr: Any[] (param arr)
-    %1 fallback: Any (param fallback)
+    %0 arr: i32[] (param arr)
+    %1 fallback: i32 (param fallback)
     %2 $len_2: usize
     %3 $k_3: usize
     %4 $gt_4: bool
     %5 $k_5: i32
-    %6 $idx_6: Any
+    %6 $idx_6: i32
   bb0:
     %2 = array_len %0
     %3 = const int(0) :usize
@@ -79,7 +79,7 @@ fn snippet$snippet$first__i32(%0: Any[], %1: Any) -> Any
     cond_branch %4 ? bb1 : bb2
   bb1:
     %5 = const int(0) :i32
-    %6 = array_get %0[%5] :Any
+    %6 = array_get %0[%5] :i32
     return %6
   bb2:
     return %1

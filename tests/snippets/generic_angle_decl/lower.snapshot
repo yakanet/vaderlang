@@ -217,22 +217,21 @@
     return int(0) :i32
   struct snippet$Box__i32 { value: Any }
   struct snippet$Box__Box_i32_ { value: Any }
-  fn snippet$snippet$identity__i32(x: Any) -> Any
-    return x :Any
-  fn snippet$snippet$make_nested__i32(v: Any) -> Box<Box<Any>>
-    let inner: Box<Any> =
-      Box<Any> {
-        value: v :Any
+  fn snippet$snippet$identity__i32(x: i32) -> i32
+    return x :i32
+  fn snippet$snippet$make_nested__i32(v: i32) -> Box<Box<i32>>
+    let inner: Box<i32> =
+      Box<i32> {
+        value: v :i32
       }
     return
-      Box<Box<Any>> {
-        value: inner :Box<Any>
+      Box<Box<i32>> {
+        value: inner :Box<i32>
       }
-  fn snippet$snippet$make_box__i32(v: Any) -> Box<Any>
+  fn snippet$snippet$make_box__i32(v: i32) -> Box<i32>
     return
-      Box<Any> {
-        value: v :Any
+      Box<i32> {
+        value: v :i32
       }
   struct snippet$Box__Any { value: Any }
   struct snippet$Box__Box_Any { value: Any }
-  struct snippet$Box__Box_Any_ { value: Any }

@@ -331,6 +331,45 @@ keep_primitive_or_erase :: fn(t: Type) -> Type {
     return any_leaves_of(t)
 }
 
+// True when `t` is a raw-representation primitive value-type whose array slot is
+// typed-flippable (I32/I64/F64 width per `op_select::slot_width_for`) — i32 / u32
+// / char / i64 / u64 / usize / isize / f64. These are the primitives that carry
+// the box-vs-raw representation ambiguity, so a generic instance whose type args
+// are ALL such primitives is MONOMORPHIZED (the .NET model) : the concrete body
+// reads raw (typed slot op) and dispatches primops inline, instead of erasing to
+// a boxed `Any` body. `string` is box-uniform (an O(1) atom id) and references
+// are pointers — no ambiguity — so both stay erased, like Java. This set MIRRORS
+// `vader/bytecode/op_select.vader::slot_width_for`'s raw kinds ; lower can't import
+// bytecode (the dependency runs the other way), so keep the two in sync by hand.
+is_monomorphizable_value_type :: fn(t: Type) -> bool {
+    if t is PrimitiveType as p {
+        if p.name == "i32"   { return true }
+        if p.name == "u32"   { return true }
+        if p.name == "char"  { return true }
+        if p.name == "i64"   { return true }
+        if p.name == "u64"   { return true }
+        if p.name == "usize" { return true }
+        if p.name == "isize" { return true }
+        if p.name == "f64"   { return true }
+    }
+    return false
+}
+
+// True when a generic instance's type args are ALL monomorphizable primitive
+// value-types (and there is at least one). Such an instance is force-concreted
+// (.NET model) : with no reference arg to erase, the all-concrete subst equals a
+// mixed subst, so there is no over-monomorphization and no mangle/dedupe mismatch
+// (every distinct concrete-arg set is a distinct, uniquely-mangled instance). A
+// mixed primitive/reference instance stays erased for now (a later increment can
+// split it with a mixed subst, mirroring the impl-member `mixed_any_suffix`).
+all_type_args_monomorphizable :: fn(type_args: Type[]) -> bool {
+    if type_args.len() == 0 { return false }
+    for a in type_args {
+        if !is_monomorphizable_value_type(a) { return false }
+    }
+    return true
+}
+
 type_expr_simple_name :: fn(e: TypeExpr) -> string {
     match e {
         is IdentExpr as id -> { return id.name }

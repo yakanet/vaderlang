@@ -9,10 +9,9 @@ type 6 struct std_string_builder$StringBuilder { buf:9,len:4,cap:4 }
 type 7 array 8
 type 8 primitive u8
 type 9 struct std_core$Buffer {  }
-type 10 ref _
-type 11 fn (10) -> 10
-type 12 struct __lambda_env_3 {  }
-type 13 primitive i64
+type 10 fn (3) -> 3
+type 11 struct __lambda_env_3 {  }
+type 12 primitive i64
 string 0 "\n"
 string 1 "0"
 string 2 ""
@@ -258,17 +257,17 @@ fn 6 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 7 snippet$snippet$apply__Any (ref,ref) -> ref
+fn 7 snippet$snippet$apply__i32 (i32,ref) -> i32
   local.get 0
   local.get 1
-  call.indirect 11
+  call.indirect 10
   return
 end
 
-fn 8 snippet$snippet$run_id__i32 (ref) -> ref
+fn 8 snippet$snippet$run_id__i32 (i32) -> i32
   local id ref
-  struct.new 12
-  make_closure 9 11
+  struct.new 11
+  make_closure 9 10
   local.set 1
   local.get 0
   local.get 1
@@ -276,7 +275,7 @@ fn 8 snippet$snippet$run_id__i32 (ref) -> ref
   return
 end
 
-fn 9 __lambda_2 (ref,ref) -> ref
+fn 9 __lambda_2 (ref,i32) -> i32
   local.get 1
   return
 end

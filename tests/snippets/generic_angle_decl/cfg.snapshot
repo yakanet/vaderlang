@@ -132,28 +132,28 @@ fn snippet$main() -> i32
     %42 = const int(0) :i32
     return %42
 
-fn snippet$snippet$identity__i32(%0: Any) -> Any
+fn snippet$snippet$identity__i32(%0: i32) -> i32
   locals:
-    %0 x: Any (param x)
+    %0 x: i32 (param x)
   bb0:
     return %0
 
-fn snippet$snippet$make_nested__i32(%0: Any) -> Box<Box<Any>>
+fn snippet$snippet$make_nested__i32(%0: i32) -> Box<Box<i32>>
   locals:
-    %0 v: Any (param v)
-    %1 $struct_1: Box<Any>
-    %2 inner: Box<Any> (local inner)
-    %3 $struct_3: Box<Box<Any>>
+    %0 v: i32 (param v)
+    %1 $struct_1: Box<i32>
+    %2 inner: Box<i32> (local inner)
+    %3 $struct_3: Box<Box<i32>>
   bb0:
-    %1 = struct_new Box<Any>(%0)
+    %1 = struct_new Box<i32>(%0)
     %2 = move %1
-    %3 = struct_new Box<Box<Any>>(%2)
+    %3 = struct_new Box<Box<i32>>(%2)
     return %3
 
-fn snippet$snippet$make_box__i32(%0: Any) -> Box<Any>
+fn snippet$snippet$make_box__i32(%0: i32) -> Box<i32>
   locals:
-    %0 v: Any (param v)
-    %1 $struct_1: Box<Any>
+    %0 v: i32 (param v)
+    %1 $struct_1: Box<i32>
   bb0:
-    %1 = struct_new Box<Any>(%0)
+    %1 = struct_new Box<i32>(%0)
     return %1

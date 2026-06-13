@@ -21,7 +21,7 @@ fn 1 snippet$snippet$needs_add__string (ref) -> ref
   return
 end
 
-fn 2 snippet$snippet$bar__i32__i32 (ref,ref) -> ref
+fn 2 snippet$snippet$bar__i32__i32 (i32,i32) -> i32
   local.get 1
   return
 end

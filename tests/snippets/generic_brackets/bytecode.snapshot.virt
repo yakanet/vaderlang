@@ -1,8 +1,8 @@
 module _main
 type 0 primitive null
 type 1 primitive i32
-type 2 ref _
-type 3 struct snippet$Pair__i32__i32 { first:2,second:2 }
+type 2 struct snippet$Pair__i32__i32 { first:3,second:3 }
+type 3 ref _
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -18,13 +18,13 @@ fn 0 snippet$main () -> i32
   local.set 1
   i32.const 30
   i32.const 0
-  struct.new_stack 3
+  struct.new_stack 2
   local.set 2
   local.get 0
   local.get 1
   i32.add
   local.set 0
-  local.field 2 3 0
+  local.field 2 2 0
   ref.cast 1
   local.set 1
   local.get 0
@@ -33,12 +33,12 @@ fn 0 snippet$main () -> i32
   return
 end
 
-fn 1 snippet$snippet$identity__i32 (ref) -> ref
+fn 1 snippet$snippet$identity__i32 (i32) -> i32
   local.get 0
   return
 end
 
-fn 2 snippet$snippet$swap__i32__i32 (ref,ref) -> ref
+fn 2 snippet$snippet$swap__i32__i32 (i32,i32) -> i32
   local.get 1
   return
 end

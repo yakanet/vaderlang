@@ -67,10 +67,10 @@
               arg0:
                 __sb_1 :StringBuilder
     return int(0) :i32
-  fn snippet$snippet$are_eq__i32(a: Any, b: Any) -> bool
+  fn snippet$snippet$are_eq__i32(a: i32, b: i32) -> bool
     return
-      vcall Equals.equals :bool
-        recv:
-          a :Any
-        arg0:
-          b :Any
+      eq :bool
+        l:
+          a :i32
+        r:
+          b :i32

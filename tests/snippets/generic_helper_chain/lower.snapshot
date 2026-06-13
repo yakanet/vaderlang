@@ -77,6 +77,8 @@
   struct snippet$Box__Box_string_ { value: Any }
   fn snippet$snippet$inner__Any(x: Any) -> Any
     return x :Any
+  fn snippet$snippet$inner__i32(x: i32) -> i32
+    return x :i32
   fn snippet$snippet$middle__Any(x: Any) -> Box<Any>
     return
       Box<Any> {
@@ -87,7 +89,27 @@
             arg0:
               x :Any
       }
-  fn snippet$snippet$outer__i32(x: Any) -> Box<Box<Any>>
+  fn snippet$snippet$middle__i32(x: i32) -> Box<i32>
+    return
+      Box<i32> {
+        value:
+          call :i32
+            callee:
+              snippet$snippet$inner__i32 :i32
+            arg0:
+              x :i32
+      }
+  fn snippet$snippet$outer__i32(x: i32) -> Box<Box<i32>>
+    return
+      Box<Box<i32>> {
+        value:
+          call :Box<i32>
+            callee:
+              snippet$snippet$middle__i32 :Box<i32>
+            arg0:
+              x :i32
+      }
+  fn snippet$snippet$outer__string(x: Any) -> Box<Box<Any>>
     return
       Box<Box<Any>> {
         value:

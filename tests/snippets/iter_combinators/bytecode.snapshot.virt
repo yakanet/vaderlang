@@ -16,17 +16,15 @@ type 13 struct std_core$Buffer {  }
 type 14 array 1
 type 15 fn (1) -> 1
 type 16 fn (1) -> 4
-type 17 array 18
-type 18 ref _
-type 19 fn (18,18) -> 18
-type 20 struct std_core$Range__i32 { start:18,end:18,inclusive:4,cursor:18 }
-type 21 union 0,22
-type 22 struct std_core$Yield__i32 { value:18 }
-type 23 struct std_core$Range__usize { start:18,end:18,inclusive:4,cursor:18 }
-type 24 union 0,25
-type 25 struct std_core$Yield__usize { value:18 }
-type 26 primitive u64
-type 27 fn (1,1) -> 1
+type 17 fn (1,1) -> 1
+type 18 struct std_core$Range__i32 { start:25,end:25,inclusive:4,cursor:25 }
+type 19 union 0,20
+type 20 struct std_core$Yield__i32 { value:25 }
+type 21 struct std_core$Range__usize { start:25,end:25,inclusive:4,cursor:25 }
+type 22 union 0,23
+type 23 struct std_core$Yield__usize { value:25 }
+type 24 primitive u64
+type 25 ref _
 string 0 "\n"
 string 1 "slice mid len="
 string 2 "slice over len="
@@ -46,10 +44,10 @@ import 0 write std_io$write (i32,string) -> void
 import 1 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 2 bytes std_core$bytes (string) -> ref
 impl 10 Display
-impl 20 Contains
-impl 20 Iterator
-impl 23 Contains
-impl 23 Iterator
+impl 18 Contains
+impl 18 Iterator
+impl 21 Contains
+impl 21 Iterator
 impl 13 ByteAccess
 export main 0
 
@@ -108,7 +106,7 @@ fn 0 snippet$main () -> i32
   array.new 14 5
   local.set 1
   struct.new 5
-  make_closure 3 27
+  make_closure 3 17
   local.set 2
   local.get 1
   i32.const 1
@@ -586,12 +584,12 @@ fn 12 std_iter$std_iter$filter__i32 (ref,ref) -> ref
   return
 end
 
-fn 13 std_iter$std_iter$fold__i32__i32 (ref,ref,ref) -> ref
-  local acc ref
+fn 13 std_iter$std_iter$fold__i32__i32 (ref,i32,ref) -> i32
+  local acc i32
   local __for_arr_0 ref
   local __for_len_1 usize
   local __for_i_2 usize
-  local x ref
+  local x i32
   local $k_13 usize
   local.get 1
   local.set 3
@@ -609,12 +607,12 @@ fn 13 std_iter$std_iter$fold__i32__i32 (ref,ref,ref) -> ref
       if $L2 void
         local.get 4
         local.get 6
-        array.get 17
+        load_slot_i32
         local.set 7
         local.get 3
         local.get 7
         local.get 2
-        call.indirect 19
+        call.indirect 17
         local.set 3
         i64.const 1
         local.set 8
