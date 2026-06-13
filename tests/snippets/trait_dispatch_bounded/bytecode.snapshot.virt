@@ -124,8 +124,7 @@ fn 2 snippet$snippet$count_matching__i32 (ref,i32) -> i32
       if $L2 void
         local.get 3
         local.get 5
-        array.get 6
-        ref.cast 3
+        load_slot_i32
         local.tee 6
         call 11
         local.set 7

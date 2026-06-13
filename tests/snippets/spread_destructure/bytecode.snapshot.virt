@@ -269,8 +269,7 @@ fn 6 snippet$main () -> i32
   local.set 2
   local.get 1
   local.get 2
-  array.get 12
-  ref.cast 3
+  load_slot_i32
   local.set 3
   array.new 12 0
   local.set 4
@@ -287,8 +286,7 @@ fn 6 snippet$main () -> i32
       if $L2 void
         local.get 1
         local.get 2
-        array.get 12
-        ref.cast 3
+        load_slot_i32
         local.set 6
         local.get 4
         local.get 6
@@ -342,8 +340,7 @@ fn 6 snippet$main () -> i32
       if $L5 void
         local.get 1
         local.get 5
-        array.get 12
-        ref.cast 3
+        load_slot_i32
         local.set 3
         call 1
         local.set 4
@@ -376,15 +373,13 @@ fn 6 snippet$main () -> i32
   local.set 2
   local.get 1
   local.get 2
-  array.get 12
-  ref.cast 3
+  load_slot_i32
   local.set 3
   i64.const 1
   local.set 2
   local.get 1
   local.get 2
-  array.get 12
-  ref.cast 3
+  load_slot_i32
   local.set 6
   array.new 12 0
   local.set 4
@@ -401,8 +396,7 @@ fn 6 snippet$main () -> i32
       if $L8 void
         local.get 1
         local.get 2
-        array.get 12
-        ref.cast 3
+        load_slot_i32
         local.set 9
         local.get 4
         local.get 9
@@ -468,8 +462,7 @@ fn 6 snippet$main () -> i32
       if $L11 void
         local.get 0
         local.get 2
-        array.get 12
-        ref.cast 3
+        load_slot_i32
         local.set 3
         local.get 1
         local.get 3
@@ -514,8 +507,7 @@ fn 6 snippet$main () -> i32
       if $L14 void
         local.get 0
         local.get 5
-        array.get 12
-        ref.cast 3
+        load_slot_i32
         local.set 3
         call 1
         local.set 1

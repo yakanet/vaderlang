@@ -400,10 +400,10 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.LoadSlotI64           -> emit_slot_load_prim(s, "int64_t", .I64)
         is vm.LoadSlotF64           -> emit_slot_load_prim(s, "double", .F64)
         is vm.StoreSlot             -> emit_slot_store_boxed(s)
-        is vm.StoreSlotU8           -> emit_slot_store_prim(s, "uint8_t")
-        is vm.StoreSlotI32          -> emit_slot_store_prim(s, "int32_t")
-        is vm.StoreSlotI64          -> emit_slot_store_prim(s, "int64_t")
-        is vm.StoreSlotF64          -> emit_slot_store_prim(s, "double")
+        is vm.StoreSlotU8           -> emit_slot_store_prim(s, "uint8_t", .I32)
+        is vm.StoreSlotI32          -> emit_slot_store_prim(s, "int32_t", .I32)
+        is vm.StoreSlotI64          -> emit_slot_store_prim(s, "int64_t", .I64)
+        is vm.StoreSlotF64          -> emit_slot_store_prim(s, "double", .F64)
         is vm.MemoryCopy            -> emit_memory_copy(s)
         is vm.F64ToBits             -> emit_f64_to_bits(s)
         is vm.BitsToF64             -> emit_bits_to_f64(s)
@@ -1627,25 +1627,42 @@ emit_slot_store_boxed :: fn(s: FnState) -> void {
     line(s, "VADER_WRITE_BARRIER(${arr}->buf);")
 }
 
+/// Bind a `vader_array_t*` C local to `obj` and emit the access guards shared by
+/// the primitive slot load/store : the G1 buf-forwarding resolve (the array box
+/// is a gc_root so the array itself is current, but a minor may have relocated
+/// its buf — follow the forward pointer like `vader_array_get`) and the D7
+/// always-on bounds check (trap on out-of-range). Returns the local's name.
+emit_slot_array_local :: fn(s: FnState, obj: StackVal, idx: StackVal) -> string {
+    a :: aux(s, "slotarr")
+    line(s, "vader_array_t* ${a} = ${array_hdr_ptr(obj)};")
+    line(s, "while (${a}->buf != NULL && ${a}->buf->header.forward != NULL) { ${a}->buf = (vader_array_buf_t*) ${a}->buf->header.forward; }")
+    line(s, "if ((size_t) ${name_of(idx)} >= ${a}->length) { vader_trap(\"array index out of bounds\"); }")
+    return a
+}
+
 /// Primitive slot load — pop array + slot index, read the `cty`-typed element
 /// at `arr->buf->slots[arr->offset + i]`, push it with stack class `result`.
+/// Bounds-checked + buf-forward-resolved (see `emit_slot_array_local`).
 emit_slot_load_prim :: fn(s: FnState, cty: string, result: ValType) -> void {
     idx :: pop(s)
     obj :: pop(s)
-    arr :: array_hdr_ptr(obj)
+    a :: emit_slot_array_local(s, obj, idx)
     name :: fresh_tmp(s, result)
-    line(s, "${name} = ((${cty}*) ${arr}->buf->slots)[${slot_index(arr, idx)}];")
+    line(s, "${name} = ((${cty}*) ${a}->buf->slots)[${slot_index(a, idx)}];")
     push_tmp(s, name, result)
 }
 
 /// Primitive slot store — pop array + slot index + value ; write the `cty`-typed
 /// element. No write barrier (the primitive region holds no references).
-emit_slot_store_prim :: fn(s: FnState, cty: string) -> void {
+/// Bounds-checked + buf-forward-resolved (see `emit_slot_array_local`). The value
+/// is coerced to `val` first (unboxing if it arrives as an erased `Any` box).
+emit_slot_store_prim :: fn(s: FnState, cty: string, val: ValType) -> void {
     value :: pop(s)
     idx :: pop(s)
     obj :: pop(s)
-    arr :: array_hdr_ptr(obj)
-    line(s, "((${cty}*) ${arr}->buf->slots)[${slot_index(arr, idx)}] = (${cty}) ${name_of(value)};")
+    a :: emit_slot_array_local(s, obj, idx)
+    vc :: coerce_expr(s.ctx.module.types, name_of(value), val_of(value), val)
+    line(s, "((${cty}*) ${a}->buf->slots)[${slot_index(a, idx)}] = (${cty}) ${vc};")
 }
 
 emit_array_new :: fn(s: FnState, op: vm.ArrayNew) -> void {

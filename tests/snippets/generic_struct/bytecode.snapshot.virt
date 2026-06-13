@@ -156,8 +156,7 @@ fn 3 snippet$Stack$Stackable$pop__i32 (ref) -> i32
   local.set 1
   local.get 2
   local.get 1
-  array.get 14
-  ref.cast 3
+  load_slot_i32
   return
 end
 

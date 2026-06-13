@@ -14,21 +14,19 @@ type 11 array 12
 type 12 primitive u8
 type 13 struct std_core$Buffer {  }
 type 14 array 1
-type 15 array 16
-type 16 ref _
-type 17 fn (16) -> 16
-type 18 fn (16) -> 4
-type 19 fn (16,16) -> 16
-type 20 struct std_core$Range__i32 { start:16,end:16,inclusive:4,cursor:16 }
+type 15 fn (1) -> 1
+type 16 fn (1) -> 4
+type 17 array 18
+type 18 ref _
+type 19 fn (18,18) -> 18
+type 20 struct std_core$Range__i32 { start:18,end:18,inclusive:4,cursor:18 }
 type 21 union 0,22
-type 22 struct std_core$Yield__i32 { value:16 }
-type 23 struct std_core$Range__usize { start:16,end:16,inclusive:4,cursor:16 }
+type 22 struct std_core$Yield__i32 { value:18 }
+type 23 struct std_core$Range__usize { start:18,end:18,inclusive:4,cursor:18 }
 type 24 union 0,25
-type 25 struct std_core$Yield__usize { value:16 }
+type 25 struct std_core$Yield__usize { value:18 }
 type 26 primitive u64
-type 27 fn (1) -> 1
-type 28 fn (1) -> 4
-type 29 fn (1,1) -> 1
+type 27 fn (1,1) -> 1
 string 0 "\n"
 string 1 "slice mid len="
 string 2 "slice over len="
@@ -87,7 +85,7 @@ fn 0 snippet$main () -> i32
   array.new 14 5
   local.set 1
   struct.new 2
-  make_closure 1 27
+  make_closure 1 15
   local.set 2
   local.get 1
   local.get 2
@@ -95,7 +93,7 @@ fn 0 snippet$main () -> i32
   call 10
   local.set 3
   struct.new 3
-  make_closure 2 28
+  make_closure 2 16
   local.set 1
   local.get 0
   local.get 1
@@ -110,7 +108,7 @@ fn 0 snippet$main () -> i32
   array.new 14 5
   local.set 1
   struct.new 5
-  make_closure 3 29
+  make_closure 3 27
   local.set 2
   local.get 1
   i32.const 1
@@ -474,8 +472,7 @@ fn 10 std_iter$sum (ref) -> i32
       if $L2 void
         local.get 2
         local.get 4
-        array.get 14
-        ref.cast 1
+        load_slot_i32
         local.set 5
         local.get 1
         local.get 5
@@ -501,9 +498,9 @@ fn 11 std_iter$std_iter$map__i32__i32 (ref,ref) -> ref
   local __for_arr_0 ref
   local __for_len_1 usize
   local __for_i_2 usize
-  local $call_ind_12 ref
+  local $call_ind_12 i32
   local $k_13 usize
-  array.new 15 0
+  array.new 14 0
   local.set 2
   local.get 0
   local.tee 3
@@ -519,13 +516,13 @@ fn 11 std_iter$std_iter$map__i32__i32 (ref,ref) -> ref
       if $L2 void
         local.get 3
         local.get 5
-        array.get 15
+        load_slot_i32
         local.get 1
-        call.indirect 17
+        call.indirect 15
         local.set 6
         local.get 2
         local.get 6
-        array.push 16
+        array.push 1
         i64.const 1
         local.set 7
         local.get 5
@@ -546,9 +543,9 @@ fn 12 std_iter$std_iter$filter__i32 (ref,ref) -> ref
   local __for_arr_0 ref
   local __for_len_1 usize
   local __for_i_2 usize
-  local x ref
+  local x i32
   local $k_13 usize
-  array.new 15 0
+  array.new 14 0
   local.set 2
   local.get 0
   local.tee 3
@@ -564,14 +561,14 @@ fn 12 std_iter$std_iter$filter__i32 (ref,ref) -> ref
       if $L2 void
         local.get 3
         local.get 5
-        array.get 15
+        load_slot_i32
         local.tee 6
         local.get 1
-        call.indirect 18
+        call.indirect 16
         if $L3 void
           local.get 2
           local.get 6
-          array.push 16
+          array.push 1
         else
         end $L3
         i64.const 1
@@ -612,7 +609,7 @@ fn 13 std_iter$std_iter$fold__i32__i32 (ref,ref,ref) -> ref
       if $L2 void
         local.get 4
         local.get 6
-        array.get 15
+        array.get 17
         local.set 7
         local.get 3
         local.get 7
@@ -638,7 +635,7 @@ fn 14 std_iter$std_iter$slice__i32 (ref,usize,usize) -> ref
   local.get 0
   local.get 1
   local.get 2
-  array.slice 15
+  array.slice 14
   return
 end
 

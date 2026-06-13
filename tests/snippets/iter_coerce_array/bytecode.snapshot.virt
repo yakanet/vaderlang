@@ -401,8 +401,7 @@ fn 9 std_core$ArrayIterator$Iterator$next__i32 (ref) -> ref
   local.set 1
   local.get 3
   local.get 1
-  array.get 14
-  ref.cast 3
+  load_slot_i32
   local.set 4
   local.field 0 11 1
   ref.cast 4

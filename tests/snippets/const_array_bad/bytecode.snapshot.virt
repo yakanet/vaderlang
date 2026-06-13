@@ -12,7 +12,7 @@ fn 0 snippet$write_first (ref) -> void
   local.get 0
   i32.const 0
   local.get 1
-  array.set 1
+  store_slot_i32
   return
 end
 

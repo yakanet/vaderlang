@@ -83,8 +83,7 @@ fn 1 snippet$Cell$Index$at (ref,string) -> i32
         if $L3 void
           local.field 0 6 1
           local.get 2
-          array.get 7
-          ref.cast 3
+          load_slot_i32
           return
         end $L3
         local.get 2
@@ -135,7 +134,7 @@ fn 2 snippet$Cell$IndexSet$set_at (ref,string,i32) -> void
           local.field 0 6 1
           local.get 3
           local.get 2
-          array.set 7
+          store_slot_i32
           return
         end $L3
         local.get 3

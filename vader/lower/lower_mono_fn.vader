@@ -9,7 +9,7 @@ import "std/string" { compare_ascending }
 import "std/string_builder" { new_builder, append }
 
 import "vader/diagnostics" { Diagnostic, Span }
-import "vader/parser" { Decl, FnDecl }
+import "vader/parser" { Decl, FnDecl, ArrayTypeExpr, IdentExpr }
 import "vader/resolver" { LoadedProject, LoadedModule }
 import "vader/typecheck" { TypedProject, TypedProgram, Substitution, substitute }
 import "vader/types" { display_type }
@@ -229,7 +229,17 @@ build_fn_instance_decl :: fn(
     // `fn_trait_dispatches`. Everything else still erases to `Any` (TS does
     // the same — concrete-everywhere regresses non-dispatching generics).
     dispatches :: owner_typed.fn_trait_dispatches[fn_decl.id] is bool
-    subst :: if dispatches {
+    // GATE A also force-concretes a generic that RETURNS a bare type-param array
+    // (`collect`/`map`/`clone`/… → `T[]`). Erasing `T → Any` makes the body's
+    // `out: T[]` a BOXED-kind array, but a concrete caller reads the result typed
+    // (e.g. `i32[]`) — the target-ABI typed slot ops then read the wrong width
+    // (the inc-2b unsoundness). Keeping the body concrete per instance makes a
+    // `T = i32` result an I32-kind array, so the typed slot-op access flip is
+    // sound at concrete-primitive read sites (S5 Solution A). Non-bare-element
+    // returns (`[T, U][]`, `Pair<T, U>[]`) stay erased — they are BOXED-kind in
+    // both worlds, read through the legacy runtime-dispatched op.
+    force_concrete :: dispatches || returns_typeparam_array(fn_decl)
+    subst :: if force_concrete {
         build_fn_concrete_subst(fn_decl, owner_typed, inst.type_args)
     } else {
         build_fn_any_subst(fn_decl, owner_typed)
@@ -256,7 +266,7 @@ build_fn_instance_decl :: fn(
     // which sets `.symbol = null` on impl members for the same reason.
     // Erased (non-dispatching) instances keep the symbol — they collapse to
     // one decl per symbol id via the erasure-dedupe below.
-    entry_symbol: Symbol | null = if dispatches { null } else { inst.fn_symbol }
+    entry_symbol: Symbol | null = if force_concrete { null } else { inst.fn_symbol }
     entry :: MonoEntry {
         .id             = i32(0),
         .is_main        = false,
@@ -272,7 +282,10 @@ build_fn_instance_decl :: fn(
         .module_id    = owner_module_id,
         .key          = key,
         .fn_symbol_id = inst.fn_symbol.id,
-        .dispatches   = dispatches,
+        // `dispatches` now gates "kept concrete per instance" — trait-dispatch
+        // (GATE A) OR a bare type-param array return (S5 force-concrete). Both
+        // skip the erasure-dedupe collapse in `flush_generic_fn_instances`.
+        .dispatches   = force_concrete,
         .decl         = LoweredFnDecl {
             .mangled     = inst.mangled,
             .params      = params,
@@ -283,6 +296,26 @@ build_fn_instance_decl :: fn(
         .synth_start  = synth_start,
         .synth_end    = project_ctx.synth_decls.len(),
     }
+}
+
+// True when `fn_decl` returns a bare `T[]` whose element is one of its own
+// type-params — the array-constructor shape (`collect`/`map`/`clone`/`chain`/
+// `filter`/`flat_map`/`keys`/`values`/`sort`). Such a fn is force-concreted by
+// GATE A (S5 Solution A) so a `T = i32` instance builds an I32-kind array
+// instead of the erased BOXED kind. Deliberately narrow: a non-bare element
+// (`[T, U][]`, `Pair<T, U>[]`) is BOXED-kind regardless, so leaving it erased is
+// sound — its reads route through the legacy runtime-dispatched op.
+returns_typeparam_array :: fn(fn_decl: FnDecl) -> bool {
+    rt :: fn_decl.return_type
+    if rt == null { return false }
+    if rt is ArrayTypeExpr as a {
+        if a.element is IdentExpr as id {
+            for tp in fn_decl.type_params {
+                if tp.name == id.name { return true }
+            }
+        }
+    }
+    return false
 }
 
 find_fn_decl_by_name :: fn(decls: Decl[], name: string, arity: usize) -> FnDecl | null {

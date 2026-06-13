@@ -119,8 +119,7 @@ fn 1 snippet$main () -> i32
       if $L6 void
         local.get 0
         local.get 4
-        array.get 11
-        ref.cast 3
+        load_slot_i32
         local.set 5
         local.get 1
         local.get 5

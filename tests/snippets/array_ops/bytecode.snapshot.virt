@@ -16,19 +16,17 @@ fn 0 snippet$main () -> i32
   local.get 0
   i32.const 1
   i32.const 99
-  array.set 2
+  store_slot_i32
   local.get 0
   i32.const 40
   array.push 1
   local.get 0
   i32.const 0
-  array.get 2
-  ref.cast 1
+  load_slot_i32
   local.set 1
   local.get 0
   i32.const 1
-  array.get 2
-  ref.cast 1
+  load_slot_i32
   local.set 2
   local.get 1
   local.get 2
@@ -36,8 +34,7 @@ fn 0 snippet$main () -> i32
   local.set 1
   local.get 0
   i32.const 3
-  array.get 2
-  ref.cast 1
+  load_slot_i32
   local.set 2
   local.get 1
   local.get 2

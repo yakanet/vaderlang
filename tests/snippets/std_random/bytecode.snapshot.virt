@@ -766,8 +766,7 @@ fn 12 snippet$main () -> i32
       if $L20 void
         local.get 0
         local.get 10
-        array.get 28
-        ref.cast 3
+        load_slot_i32
         local.set 7
         local.get 3
         local.get 7

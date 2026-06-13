@@ -974,11 +974,10 @@ static vader_string_t std_core_format_signed(int64_t l0) {
 
 static vader_box_t snippet_lib_pick(vader_box_t l0, int32_t l1) {
     vader_box_t l2 = vader_box_null();
-    vader_box_t t0 = vader_box_null(), t1 = vader_box_null(), t4 = vader_box_null();
-    vader_box_t t2 = vader_box_null();
-    int32_t t3;
-    vader_box_t* gc_roots[6] = { &l0, &l2, &t0, &t1, &t4, &t2 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 6u, 0u, gc_roots };
+    vader_box_t t0 = vader_box_null(), t1 = vader_box_null(), t3 = vader_box_null();
+    int32_t t2;
+    vader_box_t* gc_roots[5] = { &l0, &l2, &t0, &t1, &t3 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 5u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
     t0 = std_collections_MutableMap_Index_at__i32__Any(l0, l1);
     l2 = t0;
@@ -990,13 +989,15 @@ static vader_box_t snippet_lib_pick(vader_box_t l0, int32_t l1) {
     }
     t1 = ((vader_struct_snippet_lib_Wrap_t*) l2.payload.obj)->f_items;
     l2 = t1;
-    t2 = vader_array_get((vader_array_t*) l2.payload.obj, (size_t) INT32_C(0));
-    t3 = ((int32_t) t2.payload.i);
-    vader_struct_snippet_lib_Out_t* _a0_obj = (vader_struct_snippet_lib_Out_t*) vader_gc_alloc(sizeof(vader_struct_snippet_lib_Out_t));
-    vader_obj_header_init(_a0_obj, 37u);
-    _a0_obj->f_first = t3;
-    t4 = vader_box_obj(37u, _a0_obj);
-    { vader_box_t __vret = t4; vader_gc_top = gc_frame.prev; return __vret; }
+    vader_array_t* _a0_slotarr = ((vader_array_t*) l2.payload.obj);
+    while (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = (vader_array_buf_t*) _a0_slotarr->buf->header.forward; }
+    if ((size_t) INT32_C(0) >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
+    t2 = ((int32_t*) _a0_slotarr->buf->slots)[_a0_slotarr->offset + (size_t) INT32_C(0)];
+    vader_struct_snippet_lib_Out_t* _a1_obj = (vader_struct_snippet_lib_Out_t*) vader_gc_alloc(sizeof(vader_struct_snippet_lib_Out_t));
+    vader_obj_header_init(_a1_obj, 37u);
+    _a1_obj->f_first = t2;
+    t3 = vader_box_obj(37u, _a1_obj);
+    { vader_box_t __vret = t3; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
 

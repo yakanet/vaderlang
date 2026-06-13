@@ -301,6 +301,47 @@ export slot_load_op_for :: fn(elem: ValType) -> Op | null {
     }
 }
 
+/// True when element class `elem` is eligible for the S5 typed-slot access flip
+/// (Solution A) — only the raw-primitive widths `I32`/`I64`/`F64`. Everything
+/// else stays on the legacy runtime-dispatched `ArrayGet`/`ArraySet` :
+///   - `.Boxed` (ref / string / `Any`) — an erased `Any[]` struct field may hold
+///     a concrete-kind array, so only the kind-dispatched legacy op is sound.
+///   - `.U8` — `const u8[]` byte views are borrowed (`buf == NULL`, atom-backed),
+///     which the raw slot op can't address.
+///   - sub-word i16/u16/f32 — no slot opcode yet (`slot_width_for` → null).
+///
+/// The single home for the flip policy ; `typed_slot_load_op_for` /
+/// `typed_slot_store_op_for` delegate the op shape to `slot_load_op_for` /
+/// `slot_store_op_for` and only gate on this.
+slot_typed_flippable :: fn(elem: ValType) -> bool {
+    w :: slot_width_for(elem)
+    if w == null { return false }
+    return match w {
+        .I32   -> true
+        .I64   -> true
+        .F64   -> true
+        .U8    -> false
+        .Boxed -> false
+    }
+}
+
+/// Slot LOAD op for the S5 access flip — the typed op when the element is a
+/// flippable concrete primitive (`slot_typed_flippable`), else `null` to fall
+/// back to the legacy `ArrayGet`.
+///
+/// @param elem  the array's concrete element value class (the static read type).
+/// @return      a typed `LoadSlot*` op, or `null` to fall back to `ArrayGet`.
+export typed_slot_load_op_for :: fn(elem: ValType) -> Op | null =
+    if slot_typed_flippable(elem) { slot_load_op_for(elem) } else { null }
+
+/// Symmetric typed slot STORE op for the S5 access flip — typed when flippable,
+/// else `null` to fall back to the legacy `ArraySet`.
+///
+/// @param elem  the array's concrete element value class.
+/// @return      a typed `StoreSlot*` op, or `null` to fall back to `ArraySet`.
+export typed_slot_store_op_for :: fn(elem: ValType) -> Op | null =
+    if slot_typed_flippable(elem) { slot_store_op_for(elem) } else { null }
+
 // ---- tests ---------------------------------------------------------------
 
 import "std/testing" { assert_eq }

@@ -49,8 +49,7 @@ end
 fn 1 snippet$read_first (ref) -> i32
   local.get 0
   i32.const 0
-  array.get 6
-  ref.cast 3
+  load_slot_i32
   return
 end
 

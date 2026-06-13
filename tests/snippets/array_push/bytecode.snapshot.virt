@@ -13,7 +13,6 @@ type 10 primitive i64
 type 11 primitive u64
 type 12 array 13
 type 13 ref _
-type 14 array 3
 string 0 "\n"
 string 1 "0"
 string 2 ""
@@ -79,8 +78,7 @@ fn 1 snippet$main () -> i32
   local.set 1
   local.get 0
   i32.const 0
-  array.get 14
-  ref.cast 3
+  load_slot_i32
   call 7
   local.set 2
   local.get 1
@@ -93,8 +91,7 @@ fn 1 snippet$main () -> i32
   local.set 1
   local.get 0
   i32.const 2
-  array.get 14
-  ref.cast 3
+  load_slot_i32
   call 7
   local.set 2
   local.get 1

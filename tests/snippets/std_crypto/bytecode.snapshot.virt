@@ -918,8 +918,7 @@ fn 10 std_crypto$sha256 (string) -> string
               local.set 53
               local.get 14
               local.get 53
-              array.get 11
-              ref.cast 10
+              load_slot_i32
               local.set 54
               i64.const 2
               local.set 55
@@ -929,8 +928,7 @@ fn 10 std_crypto$sha256 (string) -> string
               local.set 56
               local.get 14
               local.get 56
-              array.get 11
-              ref.cast 10
+              load_slot_i32
               local.set 57
               i32.const 7
               local.set 58
@@ -992,8 +990,7 @@ fn 10 std_crypto$sha256 (string) -> string
               local.set 75
               local.get 14
               local.get 75
-              array.get 11
-              ref.cast 10
+              load_slot_i32
               local.get 65
               i32.add
               local.set 76
@@ -1005,8 +1002,7 @@ fn 10 std_crypto$sha256 (string) -> string
               local.set 78
               local.get 14
               local.get 78
-              array.get 11
-              ref.cast 10
+              load_slot_i32
               local.set 79
               local.get 76
               local.get 79
@@ -1295,8 +1291,7 @@ fn 10 std_crypto$sha256 (string) -> string
               local.get 167
               array.new 11 64
               local.get 90
-              array.get 11
-              ref.cast 10
+              load_slot_i32
               local.set 168
               local.get 103
               local.get 168
@@ -1304,8 +1299,7 @@ fn 10 std_crypto$sha256 (string) -> string
               local.set 169
               local.get 14
               local.get 90
-              array.get 11
-              ref.cast 10
+              load_slot_i32
               local.set 170
               local.get 169
               local.get 170
@@ -2196,8 +2190,7 @@ fn 11 std_crypto$md5 (string) -> string
               local.get 138
               array.new 11 64
               local.get 51
-              array.get 11
-              ref.cast 10
+              load_slot_i32
               local.set 139
               local.get 74
               local.get 139
@@ -2205,8 +2198,7 @@ fn 11 std_crypto$md5 (string) -> string
               local.set 140
               local.get 10
               local.get 54
-              array.get 11
-              ref.cast 10
+              load_slot_i32
               local.set 141
               local.get 140
               local.get 141
@@ -2413,8 +2405,7 @@ fn 11 std_crypto$md5 (string) -> string
               local.get 206
               array.new 11 64
               local.get 51
-              array.get 11
-              ref.cast 10
+              load_slot_i32
               local.set 207
               local.get 142
               local.get 207

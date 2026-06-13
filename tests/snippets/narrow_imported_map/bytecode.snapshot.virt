@@ -943,8 +943,7 @@ fn 29 snippet_lib$pick (ref,i32) -> ref
   local.set 2
   local.get 2
   i32.const 0
-  array.get 39
-  ref.cast 3
+  load_slot_i32
   struct.new 37
   return
 end

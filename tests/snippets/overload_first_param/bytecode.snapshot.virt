@@ -2285,8 +2285,7 @@ fn 22 std_core$d2d (u64,u64) -> ref
     local.set 355
     local.get 354
     local.get 355
-    array.get 19
-    ref.cast 15
+    load_slot_i64
     local.set 15
     i64.const 2305843009213693952
     local.set 16
@@ -3321,8 +3320,7 @@ fn 22 std_core$d2d (u64,u64) -> ref
     local.set 355
     local.get 354
     local.get 355
-    array.get 19
-    ref.cast 15
+    load_slot_i64
     local.set 16
     local.get 3
     local.get 15
@@ -4421,8 +4419,7 @@ fn 22 std_core$d2d (u64,u64) -> ref
     local.set 355
     local.get 354
     local.get 355
-    array.get 19
-    ref.cast 15
+    load_slot_i64
     local.set 15
     i64.const 1152921504606846976
     local.set 16
@@ -5409,8 +5406,7 @@ fn 22 std_core$d2d (u64,u64) -> ref
     local.set 355
     local.get 354
     local.get 355
-    array.get 19
-    ref.cast 15
+    load_slot_i64
     local.set 16
     local.get 3
     local.get 15

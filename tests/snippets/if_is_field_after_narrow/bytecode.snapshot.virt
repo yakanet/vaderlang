@@ -85,8 +85,7 @@ fn 2 snippet$first_item (ref) -> i32
     local.set 1
     local.get 1
     i32.const 0
-    array.get 10
-    ref.cast 3
+    load_slot_i32
     return
   end $L0
   i32.const 1

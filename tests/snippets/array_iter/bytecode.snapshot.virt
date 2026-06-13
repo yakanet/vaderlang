@@ -363,8 +363,7 @@ fn 9 snippet$main () -> i32
       if $L2 void
         local.get 1
         local.get 3
-        array.get 11
-        ref.cast 3
+        load_slot_i32
         local.set 4
         local.get 0
         local.get 4

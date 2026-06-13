@@ -18,7 +18,7 @@ type 15 array 16
 type 16 struct __Tuple_20 { _0:14,_1:14 }
 type 17 array 18
 type 18 struct __Tuple_22 { _0:4,_1:14 }
-type 19 fn (14) -> 13
+type 19 fn (3) -> 8
 type 20 struct std_core$Range__usize { start:14,end:14,inclusive:5,cursor:14 }
 type 21 union 0,22
 type 22 struct std_core$Yield__usize { value:14 }
@@ -28,7 +28,6 @@ type 25 array 26
 type 26 struct __Tuple_32 { _0:1,_1:3 }
 type 27 array 28
 type 28 struct __Tuple_34 { _0:4,_1:1 }
-type 29 fn (3) -> 8
 string 0 "\n"
 string 1 "count="
 string 2 "clone[0]="
@@ -120,8 +119,7 @@ fn 1 snippet$main () -> i32
   call 4
   local.get 0
   i32.const 0
-  array.get 8
-  ref.cast 3
+  load_slot_i32
   call 14
   local.set 2
   local.get 1
@@ -221,8 +219,7 @@ fn 1 snippet$main () -> i32
       if $L5 void
         local.get 0
         local.get 4
-        array.get 8
-        ref.cast 3
+        load_slot_i32
         local.set 5
         call 3
         local.set 1
@@ -312,7 +309,7 @@ fn 1 snippet$main () -> i32
   array.new 8 3
   local.set 0
   struct.new 7
-  make_closure 2 29
+  make_closure 2 19
   local.set 1
   local.get 0
   local.get 1
@@ -330,8 +327,7 @@ fn 1 snippet$main () -> i32
       if $L11 void
         local.get 0
         local.get 4
-        array.get 8
-        ref.cast 3
+        load_slot_i32
         local.set 5
         call 3
         local.set 1
@@ -577,9 +573,9 @@ fn 9 std_iter$std_iter$collect__i32 (ref) -> ref
   local __for_arr_0 ref
   local __for_len_1 usize
   local __for_i_2 usize
-  local x ref
+  local x i32
   local $k_11 usize
-  array.new 13 0
+  array.new 8 0
   local.set 1
   local.get 0
   local.tee 2
@@ -595,11 +591,11 @@ fn 9 std_iter$std_iter$collect__i32 (ref) -> ref
       if $L2 void
         local.get 2
         local.get 4
-        array.get 13
+        load_slot_i32
         local.set 5
         local.get 1
         local.get 5
-        array.push 14
+        array.push 3
         i64.const 1
         local.set 6
         local.get 4
@@ -686,9 +682,9 @@ fn 11 std_iter$std_iter$chain__i32 (ref,ref) -> ref
   local __for_arr_0 ref
   local __for_len_1 usize
   local __for_i_2 usize
-  local x ref
+  local x i32
   local $k_12 usize
-  array.new 13 0
+  array.new 8 0
   local.set 2
   local.get 0
   local.tee 3
@@ -704,11 +700,11 @@ fn 11 std_iter$std_iter$chain__i32 (ref,ref) -> ref
       if $L2 void
         local.get 3
         local.get 5
-        array.get 13
+        load_slot_i32
         local.set 6
         local.get 2
         local.get 6
-        array.push 14
+        array.push 3
         i64.const 1
         local.set 7
         local.get 5
@@ -734,11 +730,11 @@ fn 11 std_iter$std_iter$chain__i32 (ref,ref) -> ref
       if $L5 void
         local.get 3
         local.get 5
-        array.get 13
+        load_slot_i32
         local.set 6
         local.get 2
         local.get 6
-        array.push 14
+        array.push 3
         i64.const 1
         local.set 7
         local.get 5
@@ -820,10 +816,10 @@ fn 13 std_iter$std_iter$flat_map__i32__i32 (ref,ref) -> ref
   local __for_arr_3 ref
   local __for_len_4 usize
   local __for_i_5 usize
-  local y ref
+  local y i32
   local $k_21 usize
   local $k_23 usize
-  array.new 13 0
+  array.new 8 0
   local.set 2
   local.get 0
   local.tee 3
@@ -839,7 +835,7 @@ fn 13 std_iter$std_iter$flat_map__i32__i32 (ref,ref) -> ref
       if $L2 void
         local.get 3
         local.get 5
-        array.get 13
+        load_slot_i32
         local.get 1
         call.indirect 19
         local.tee 6
@@ -855,11 +851,11 @@ fn 13 std_iter$std_iter$flat_map__i32__i32 (ref,ref) -> ref
             if $L5 void
               local.get 6
               local.get 8
-              array.get 13
+              load_slot_i32
               local.set 9
               local.get 2
               local.get 9
-              array.push 14
+              array.push 3
               i64.const 1
               local.set 10
               local.get 8

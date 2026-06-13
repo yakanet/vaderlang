@@ -1472,8 +1472,7 @@ fn 22 std_regex$run_at (ref,ref,usize) -> ref
                   local.set 44
                   local.get 44
                   i32.const 0
-                  array.get 48
-                  ref.cast 4
+                  load_slot_i64
                   local.get 2
                   call 28
                   local.set 43
@@ -1494,8 +1493,7 @@ fn 22 std_regex$run_at (ref,ref,usize) -> ref
                   local.set 48
                   local.get 48
                   i32.const 1
-                  array.get 48
-                  ref.cast 4
+                  load_slot_i64
                   local.get 3
                   call 28
                   local.set 47
@@ -1882,8 +1880,7 @@ fn 24 std_regex$parse_alternation (ref) -> ref
               local.set 33
               local.get 8
               local.get 24
-              array.get 48
-              ref.cast 4
+              load_slot_i64
               local.set 34
               i64.const 1
               local.set 35
@@ -1893,8 +1890,7 @@ fn 24 std_regex$parse_alternation (ref) -> ref
               local.set 36
               local.get 8
               local.get 36
-              array.get 48
-              ref.cast 4
+              load_slot_i64
               local.set 37
               local.get 33
               local.get 2
@@ -1949,8 +1945,7 @@ fn 24 std_regex$parse_alternation (ref) -> ref
         local.set 47
         local.get 8
         local.get 46
-        array.get 48
-        ref.cast 4
+        load_slot_i64
         local.set 48
         i64.const 1
         local.set 49
@@ -1960,8 +1955,7 @@ fn 24 std_regex$parse_alternation (ref) -> ref
         local.set 50
         local.get 8
         local.get 50
-        array.get 48
-        ref.cast 4
+        load_slot_i64
         local.set 51
         local.get 47
         local.get 2
@@ -1986,8 +1980,7 @@ fn 24 std_regex$parse_alternation (ref) -> ref
               local.set 55
               local.get 23
               local.get 53
-              array.get 48
-              ref.cast 4
+              load_slot_i64
               local.set 56
               local.get 52
               struct.new 40
@@ -2303,7 +2296,7 @@ fn 27 std_regex$add_thread (ref,ref,ref,ref,usize) -> void
     local.get 9
     local.get 6
     local.get 4
-    array.set 48
+    store_slot_i64
     local.field 1 31 0
     ref.cast 4
     local.set 6
@@ -2487,8 +2480,7 @@ fn 29 std_regex$captured_groups (ref,ref) -> ref
         local.set 6
         local.get 5
         local.get 6
-        array.get 48
-        ref.cast 4
+        load_slot_i64
         local.set 7
         local.field 0 31 1
         local.set 8
@@ -2504,8 +2496,7 @@ fn 29 std_regex$captured_groups (ref,ref) -> ref
         local.set 11
         local.get 8
         local.get 11
-        array.get 48
-        ref.cast 4
+        load_slot_i64
         local.set 12
         i64.const -1
         local.set 13
@@ -2675,8 +2666,7 @@ fn 32 std_regex$clone_thread (ref) -> ref
       if $L2 void
         local.field 0 31 1
         local.get 2
-        array.get 48
-        ref.cast 4
+        load_slot_i64
         local.set 4
         local.get 1
         local.get 4
@@ -3846,8 +3836,7 @@ fn 43 std_regex$apply_counted (ref,usize) -> ref
             if $L18 void
               local.get 24
               local.get 33
-              array.get 48
-              ref.cast 4
+              load_slot_i64
               local.set 35
               local.field 0 29 2
               local.set 36
@@ -4078,8 +4067,7 @@ fn 43 std_regex$apply_counted (ref,usize) -> ref
           if $L31 void
             local.get 24
             local.get 33
-            array.get 48
-            ref.cast 4
+            load_slot_i64
             local.set 35
             local.field 0 29 2
             local.set 36
@@ -4310,8 +4298,7 @@ fn 43 std_regex$apply_counted (ref,usize) -> ref
         if $L44 void
           local.get 24
           local.get 33
-          array.get 48
-          ref.cast 4
+          load_slot_i64
           local.set 35
           local.field 0 29 2
           local.set 36
