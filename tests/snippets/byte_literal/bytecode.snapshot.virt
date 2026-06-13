@@ -373,8 +373,10 @@ fn 10 std_core$format_signed (i64) -> string
   local neg bool
   local if_res i64
   local out string
-  local $arr_26 ref
-  local $cast_30 usize
+  local __sb_0 ref
+  local $arr_28 ref
+  local $cast_32 usize
+  local $idx_33 string
   local.get 0
   i64.const 0
   i64.eq
@@ -406,6 +408,8 @@ fn 10 std_core$format_signed (i64) -> string
       i64.const 0
       i64.ne
       if $L4 void
+        call 2
+        local.set 4
         string.const 8
         string.const 10
         string.const 11
@@ -417,19 +421,26 @@ fn 10 std_core$format_signed (i64) -> string
         string.const 17
         string.const 18
         array.new 6 10
-        local.set 4
+        local.set 5
         local.get 2
         i64.const 10
         i64.rem
         i64.neg
         i64.to_i64
-        local.set 5
-        local.get 4
+        local.set 6
         local.get 5
+        local.get 6
         array.get 6
         ref.cast 2
+        local.set 7
+        local.get 4
+        local.get 7
+        call 3
+        local.get 4
         local.get 3
-        string.concat
+        call 3
+        local.get 4
+        call 6
         local.set 3
         local.get 2
         i64.const 10
@@ -442,9 +453,16 @@ fn 10 std_core$format_signed (i64) -> string
   end $L2
   local.get 1
   if $L5 void
+    call 2
+    local.set 4
+    local.get 4
     string.const 19
+    call 3
+    local.get 4
     local.get 3
-    string.concat
+    call 3
+    local.get 4
+    call 6
     return
   end $L5
   local.get 3

@@ -35,31 +35,38 @@ fn 0 std_io$std_io$println__string (string) -> void
 end
 
 fn 1 snippet$main () -> i32
-  local greeting string
   local __sb_0 ref
-  string.const 2
-  string.const 1
-  string.concat
-  local.set 0
+  local greeting string
   call 2
+  local.set 0
+  local.get 0
+  string.const 2
+  call 3
+  local.get 0
+  string.const 1
+  call 3
+  local.get 0
+  call 6
+  local.set 1
+  call 2
+  local.set 0
+  local.get 1
+  call 7
   local.set 1
   local.get 0
-  call 7
-  local.set 0
   local.get 1
-  local.get 0
   call 3
-  local.get 1
+  local.get 0
   string.const 3
   call 3
-  local.get 1
-  call 6
-  local.set 0
   local.get 0
+  call 6
+  local.set 1
+  local.get 1
   string.const 4
   string.eq
   if $L0 void
-    local.get 0
+    local.get 1
     call 0
     return.lit i32.const 0
   end $L0

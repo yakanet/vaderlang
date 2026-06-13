@@ -101,25 +101,29 @@ static void std_io_std_io_println__string(vader_string_t l0) {
 }
 
 static int32_t snippet_main(void) {
-    vader_string_t l0;
-    vader_box_t l1 = vader_box_null();
-    vader_string_t t0, t2, t3;
-    vader_box_t t1 = vader_box_null();
-    vader_box_t* gc_roots[2] = { &l1, &t1 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 0u, gc_roots };
+    vader_box_t l0 = vader_box_null();
+    vader_string_t l1;
+    vader_box_t t0 = vader_box_null(), t2 = vader_box_null();
+    vader_string_t t1, t3, t4;
+    vader_box_t* gc_roots[3] = { &l0, &t0, &t2 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
-    t0 = vader_string_concat(3u, 2u);
+    t0 = std_string_builder_new_builder();
     l0 = t0;
-    t1 = std_string_builder_new_builder();
+    std_string_builder_append(l0, 3u);
+    std_string_builder_append(l0, 2u);
+    t1 = std_string_builder_StringBuilder_Display_to_string(l0);
     l1 = t1;
-    t2 = std_core_string_Display_to_string(l0);
+    t2 = std_string_builder_new_builder();
     l0 = t2;
-    std_string_builder_append(l1, l0);
-    std_string_builder_append(l1, 4u);
-    t3 = std_string_builder_StringBuilder_Display_to_string(l1);
-    l0 = t3;
-    if (l0 == 5u) {
-        std_io_std_io_println__string(l0);
+    t3 = std_core_string_Display_to_string(l1);
+    l1 = t3;
+    std_string_builder_append(l0, l1);
+    std_string_builder_append(l0, 4u);
+    t4 = std_string_builder_StringBuilder_Display_to_string(l0);
+    l1 = t4;
+    if (l1 == 5u) {
+        std_io_std_io_println__string(l1);
         { vader_gc_top = gc_frame.prev; return INT32_C(0); }
     }
     { vader_gc_top = gc_frame.prev; return INT32_C(1); }

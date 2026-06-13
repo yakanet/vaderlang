@@ -4,12 +4,6 @@
   fn snippet$main() -> i32
     let name: string = "world" :string
     let greeting: string =
-      add :string
-        l:
-          "hello, " :string
-        r:
-          name :string
-    let full: string =
       block :string
         let __sb_0: StringBuilder =
           call :StringBuilder
@@ -21,6 +15,32 @@
           arg0:
             __sb_0 :StringBuilder
           arg1:
+            "hello, " :string
+        call :void
+          callee:
+            append :void
+          arg0:
+            __sb_0 :StringBuilder
+          arg1:
+            name :string
+        ~>
+          call :string
+            callee:
+              std_string_builder$StringBuilder$Display$to_string :string
+            arg0:
+              __sb_0 :StringBuilder
+    let full: string =
+      block :string
+        let __sb_1: StringBuilder =
+          call :StringBuilder
+            callee:
+              new_builder :StringBuilder
+        call :void
+          callee:
+            append :void
+          arg0:
+            __sb_1 :StringBuilder
+          arg1:
             call :string
               callee:
                 std_core$string$Display$to_string :string
@@ -30,7 +50,7 @@
           callee:
             append :void
           arg0:
-            __sb_0 :StringBuilder
+            __sb_1 :StringBuilder
           arg1:
             "!" :string
         ~>
@@ -38,7 +58,7 @@
             callee:
               std_string_builder$StringBuilder$Display$to_string :string
             arg0:
-              __sb_0 :StringBuilder
+              __sb_1 :StringBuilder
     if :void
       cond:
         eq :bool

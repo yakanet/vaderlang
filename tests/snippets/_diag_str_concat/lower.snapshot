@@ -1,0 +1,124 @@
+# Lower
+
+## snippet
+  fn snippet$main() -> i32
+    let a: string = "foo" :string
+    let b: string = "bar" :string
+    let c: string =
+      block :string
+        let __sb_0: StringBuilder =
+          call :StringBuilder
+            callee:
+              new_builder :StringBuilder
+        call :void
+          callee:
+            append :void
+          arg0:
+            __sb_0 :StringBuilder
+          arg1:
+            a :string
+        call :void
+          callee:
+            append :void
+          arg0:
+            __sb_0 :StringBuilder
+          arg1:
+            b :string
+        ~>
+          call :string
+            callee:
+              std_string_builder$StringBuilder$Display$to_string :string
+            arg0:
+              __sb_0 :StringBuilder
+    call :void
+      callee:
+        std_io$std_io$println__string :void
+      arg0:
+        c :string
+    let d: string =
+      block :string
+        let __sb_2: StringBuilder =
+          call :StringBuilder
+            callee:
+              new_builder :StringBuilder
+        call :void
+          callee:
+            append :void
+          arg0:
+            __sb_2 :StringBuilder
+          arg1:
+            block :string
+              let __sb_1: StringBuilder =
+                call :StringBuilder
+                  callee:
+                    new_builder :StringBuilder
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_1 :StringBuilder
+                arg1:
+                  a :string
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_1 :StringBuilder
+                arg1:
+                  b :string
+              ~>
+                call :string
+                  callee:
+                    std_string_builder$StringBuilder$Display$to_string :string
+                  arg0:
+                    __sb_1 :StringBuilder
+        call :void
+          callee:
+            append :void
+          arg0:
+            __sb_2 :StringBuilder
+          arg1:
+            "baz" :string
+        ~>
+          call :string
+            callee:
+              std_string_builder$StringBuilder$Display$to_string :string
+            arg0:
+              __sb_2 :StringBuilder
+    call :void
+      callee:
+        std_io$std_io$println__string :void
+      arg0:
+        d :string
+    let e: string =
+      block :string
+        let __sb_3: StringBuilder =
+          call :StringBuilder
+            callee:
+              new_builder :StringBuilder
+        call :void
+          callee:
+            append :void
+          arg0:
+            __sb_3 :StringBuilder
+          arg1:
+            "" :string
+        call :void
+          callee:
+            append :void
+          arg0:
+            __sb_3 :StringBuilder
+          arg1:
+            a :string
+        ~>
+          call :string
+            callee:
+              std_string_builder$StringBuilder$Display$to_string :string
+            arg0:
+              __sb_3 :StringBuilder
+    call :void
+      callee:
+        std_io$std_io$println__string :void
+      arg0:
+        e :string
+    return int(0) :i32

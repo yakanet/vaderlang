@@ -264,8 +264,10 @@ fn 9 std_core$format_signed (i64) -> string
   local neg bool
   local if_res i64
   local out string
-  local $arr_26 ref
-  local $cast_30 usize
+  local __sb_0 ref
+  local $arr_28 ref
+  local $cast_32 usize
+  local $idx_33 string
   local.get 0
   i64.const 0
   i64.eq
@@ -297,6 +299,8 @@ fn 9 std_core$format_signed (i64) -> string
       i64.const 0
       i64.ne
       if $L4 void
+        call 1
+        local.set 4
         string.const 1
         string.const 3
         string.const 4
@@ -308,19 +312,26 @@ fn 9 std_core$format_signed (i64) -> string
         string.const 10
         string.const 11
         array.new 5 10
-        local.set 4
+        local.set 5
         local.get 2
         i64.const 10
         i64.rem
         i64.neg
         i64.to_i64
-        local.set 5
-        local.get 4
+        local.set 6
         local.get 5
+        local.get 6
         array.get 5
         ref.cast 1
+        local.set 7
+        local.get 4
+        local.get 7
+        call 2
+        local.get 4
         local.get 3
-        string.concat
+        call 2
+        local.get 4
+        call 5
         local.set 3
         local.get 2
         i64.const 10
@@ -333,9 +344,16 @@ fn 9 std_core$format_signed (i64) -> string
   end $L2
   local.get 1
   if $L5 void
+    call 1
+    local.set 4
+    local.get 4
     string.const 12
+    call 2
+    local.get 4
     local.get 3
-    string.concat
+    call 2
+    local.get 4
+    call 5
     return
   end $L5
   local.get 3
@@ -346,10 +364,12 @@ fn 10 std_core$format_unsigned (u64) -> string
   local $k_1 u64
   local out string
   local $k_7 u64
-  local $arr_19 ref
-  local $k_20 u64
-  local $cast_22 usize
-  local $k_25 u64
+  local __sb_0 ref
+  local $arr_21 ref
+  local $k_22 u64
+  local $cast_24 usize
+  local $idx_25 string
+  local $k_27 u64
   i64.const 0
   local.set 1
   local.get 0
@@ -370,6 +390,8 @@ fn 10 std_core$format_unsigned (u64) -> string
       local.get 3
       i64.ne
       if $L3 void
+        call 1
+        local.set 4
         string.const 1
         string.const 3
         string.const 4
@@ -381,25 +403,32 @@ fn 10 std_core$format_unsigned (u64) -> string
         string.const 10
         string.const 11
         array.new 5 10
-        local.set 4
-        i64.const 10
         local.set 5
+        i64.const 10
+        local.set 6
         local.get 1
-        local.get 5
+        local.get 6
         u64.rem
         u64.to_i64
-        local.set 6
-        local.get 4
-        local.get 6
+        local.set 7
+        local.get 5
+        local.get 7
         array.get 5
         ref.cast 1
+        local.set 8
+        local.get 4
+        local.get 8
+        call 2
+        local.get 4
         local.get 2
-        string.concat
+        call 2
+        local.get 4
+        call 5
         local.set 2
         i64.const 10
-        local.set 7
+        local.set 9
         local.get 1
-        local.get 7
+        local.get 9
         u64.div
         local.set 1
         br $L2

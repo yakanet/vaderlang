@@ -891,6 +891,8 @@ fn 19 std_path$join (ref,string) -> ref
   local $field_11 string
   local $len_14 usize
   local $k_15 usize
+  local __sb_0 ref
+  local __sb_1 ref
   local.get 1
   call 25
   if $L0 void
@@ -939,21 +941,46 @@ fn 19 std_path$join (ref,string) -> ref
   char.const 47
   char.eq
   if $L3 void
+    call 3
+    local.set 6
     local.field 0 7 0
     ref.cast 1
+    local.set 3
+    local.get 6
+    local.get 3
+    call 4
+    local.get 6
     local.get 1
-    string.concat
+    call 4
+    local.get 6
+    call 7
     struct.new 7
     return
   end $L3
+  call 3
+  local.set 6
+  call 3
+  local.set 7
   local.field 0 7 0
   ref.cast 1
   local.set 3
+  local.get 7
   local.get 3
+  call 4
+  local.get 7
   string.const 45
-  string.concat
+  call 4
+  local.get 7
+  call 7
+  local.set 3
+  local.get 6
+  local.get 3
+  call 4
+  local.get 6
   local.get 1
-  string.concat
+  call 4
+  local.get 6
+  call 7
   struct.new 7
   return
 end

@@ -19,6 +19,52 @@ import "vader/diagnostics" { Span }
 import "vader/resolver/symbol" { Symbol }
 import "vader/types" { Type, FnType, FreeFloatType, TY_VOID, TY_UNRESOLVED, mk_primitive }
 
+// Shared StringBuilder-chain scaffold for both `${}` interpolation (S4a) and
+// `+`-concat (S6b) lowering. `begin_sb_chain` resolves the force-loaded
+// std/string_builder fns, harvests them for materialisation, mints a fresh `sb`
+// local, and seeds `stmts` with `sb := new_builder()`. `sb_append_stmt` builds
+// one `sb.append(value)` ; `finish_sb_chain` closes with the `sb.to_string()`
+// trailing. `begin_sb_chain` returns null only on a resolution miss (impossible:
+// std/string_builder is force-loaded) — callers diverge via `unreachable_sb`.
+SbChain :: struct {
+    append_sym: Symbol
+    sb_symbol:  Symbol
+    sb_type:    Type
+    stmts:      LoweredStmt[]
+}
+
+begin_sb_chain :: fn(ctx: FnLowerCtx, span: Span) -> SbChain | null {
+    new_sym :: resolve_string_builder_fn(ctx, "new_builder")
+    if new_sym == null { return null }
+    append_sym :: resolve_string_builder_fn(ctx, "append")
+    if append_sym == null { return null }
+    sb_type: Type = TY_UNRESOLVED
+    new_fn_ty :: lookup_fn_type_anywhere(ctx, new_sym)
+    if new_fn_ty is FnType as new_ft { sb_type = new_ft.return_type } else { return null }
+    register_nongeneric_stdlib_fn(ctx, new_sym)
+    register_nongeneric_stdlib_fn(ctx, append_sym)
+    sb_symbol :: fresh_synthetic_symbol(ctx, "sb")
+    stmts: LoweredStmt[] = []
+    stmts.push(LoweredLet {
+        .span = span, .name = sb_symbol.name, .symbol = sb_symbol, .type = sb_type,
+        .value = mk_lowered_call(new_sym, [], sb_type, span),
+    })
+    return SbChain { .append_sym = append_sym, .sb_symbol = sb_symbol, .sb_type = sb_type, .stmts = stmts }
+}
+
+sb_append_stmt :: fn(chain: SbChain, value: LoweredExpr, span: Span) -> LoweredStmt {
+    args: LoweredExpr[] = []
+    args.push(sb_ident(chain.sb_symbol, chain.sb_type, span))
+    args.push(value)
+    return LoweredExprStmt { .span = span, .expr = mk_lowered_call(chain.append_sym, args, TY_VOID, span) }
+}
+
+finish_sb_chain :: fn(ctx: FnLowerCtx, chain: SbChain, span: Span) -> LoweredExpr =
+    LoweredBlock {
+        .span = span, .type = mk_primitive("string"), .stmts = chain.stmts,
+        .trailing = build_display_to_string_call(ctx, sb_ident(chain.sb_symbol, chain.sb_type, span), span),
+    }
+
 lower_string_lit :: fn(ctx: FnLowerCtx, expr: StringLitExpr, type: Type) -> LoweredExpr {
     string_type :: mk_primitive("string")
     if !has_interp_part(expr) {
@@ -32,65 +78,40 @@ lower_string_lit :: fn(ctx: FnLowerCtx, expr: StringLitExpr, type: Type) -> Lowe
         return LoweredStringLit { .span = expr.span, .type = string_type, .value = body }
     }
 
-    // Resolve the StringBuilder fns. std/string_builder is force-loaded into
-    // every project (resolver/loader.vader), so these always resolve — a miss
-    // is a compiler invariant violation. Each guard diverges via `return`
-    // (an unreachable `stub`) rather than `panic` : `return` narrows the
-    // Symbol / FnType on the fall-through in every compile mode, whereas
-    // `panic`'s `@no_return` narrowing isn't applied by `vader test`.
-    new_sym :: resolve_string_builder_fn(ctx, "new_builder")
-    if new_sym == null { return unreachable_sb(expr.span, string_type, "new_builder unresolved") }
-    append_sym :: resolve_string_builder_fn(ctx, "append")
-    if append_sym == null { return unreachable_sb(expr.span, string_type, "append unresolved") }
-    new_fn_ty :: lookup_fn_type_anywhere(ctx, new_sym)
-    sb_type: Type = TY_UNRESOLVED                    // the StringBuilder struct type
-    if new_fn_ty is FnType as new_ft { sb_type = new_ft.return_type } else { return unreachable_sb(expr.span, string_type, "new_builder has no fn type") }
-
-    // Harvest the synthesised callees so `materialize_nongeneric_stdlib_fns`
-    // emits their bodies — the auto-harvest in `lower_call` only fires for
-    // source-level call exprs, not these lower-time-synthesised ones.
-    register_nongeneric_stdlib_fn(ctx, new_sym)
-    register_nongeneric_stdlib_fn(ctx, append_sym)
-    sb_symbol :: fresh_synthetic_symbol(ctx, "sb")
-    stmts: LoweredStmt[] = []
-
-    // sb := new_builder()
-    stmts.push(LoweredLet {
-        .span = expr.span, .name = sb_symbol.name, .symbol = sb_symbol, .type = sb_type,
-        .value = mk_lowered_call(new_sym, [], sb_type, expr.span),
-    })
-
+    // Desugar to a StringBuilder chain : `sb := new_builder()`, then one
+    // `sb.append(...)` per part (text appended verbatim, `${value}` appended as
+    // `value.to_string()`), closed by `sb.to_string()`.
+    chain :: begin_sb_chain(ctx, expr.span)
+    if chain == null { return unreachable_sb(expr.span, string_type, "string builder unresolved") }
     for part in expr.parts {
         match part {
             is StringLitText as text -> {
-                // sb.append("…")
                 lit :: LoweredStringLit { .span = text.span, .type = string_type, .value = text.value }
-                args: LoweredExpr[] = []
-                args.push(sb_ident(sb_symbol, sb_type, text.span))
-                args.push(lit)
-                stmts.push(LoweredExprStmt {
-                    .span = text.span, .expr = mk_lowered_call(append_sym, args, TY_VOID, text.span),
-                })
+                chain.stmts.push(sb_append_stmt(chain, lit, text.span))
             }
             is StringLitInterp as interp -> {
-                // sb.append(<value>.to_string())
                 inner :: lower_expr(ctx, interp.expr)
                 str_call :: build_display_to_string_call(ctx, inner, interp.span)
-                args: LoweredExpr[] = []
-                args.push(sb_ident(sb_symbol, sb_type, interp.span))
-                args.push(str_call)
-                stmts.push(LoweredExprStmt {
-                    .span = interp.span, .expr = mk_lowered_call(append_sym, args, TY_VOID, interp.span),
-                })
+                chain.stmts.push(sb_append_stmt(chain, str_call, interp.span))
             }
         }
     }
+    return finish_sb_chain(ctx, chain, expr.span)
+}
 
-    // trailing: sb.to_string()  — StringBuilder's `Display` impl member
-    return LoweredBlock {
-        .span = expr.span, .type = string_type, .stmts = stmts,
-        .trailing = build_display_to_string_call(ctx, sb_ident(sb_symbol, sb_type, expr.span), expr.span),
-    }
+// Lower `a + b` (both `string`) to the same Buffer-backed StringBuilder chain as
+// a 2-segment interpolation `"${a}${b}"` (S4a) : `sb := new_builder() ;
+// sb.append(a) ; sb.append(b) ; sb.to_string()`. Reuses the S3 StringBuilder, so
+// string `+` needs no dedicated `StringConcat` op (S6b) — the op + its host
+// `vader_string_concat` go inert (retired in S7). `left`/`right` are already
+// lowered (the operands of the source `+`).
+lower_string_concat :: fn(ctx: FnLowerCtx, left: LoweredExpr, right: LoweredExpr, span: Span) -> LoweredExpr {
+    chain :: begin_sb_chain(ctx, span)
+    if chain == null { return unreachable_sb(span, mk_primitive("string"), "string builder unresolved") }
+    // both operands are already `string` → append directly (no Display coercion)
+    chain.stmts.push(sb_append_stmt(chain, left, span))
+    chain.stmts.push(sb_append_stmt(chain, right, span))
+    return finish_sb_chain(ctx, chain, span)
 }
 
 // An unreachable placeholder for the (provably-dead) std/string_builder

@@ -6,40 +6,46 @@ fn snippet$main() -> i32
   locals:
     %0 $k_0: string
     %1 name: string (local name)
-    %2 $k_2: string
-    %3 $add_3: string
-    %4 greeting: string (local greeting)
-    %5 $call_5: StringBuilder
-    %6 __sb_0: StringBuilder (synthetic __sb_0)
-    %7 $call_7: string
-    %8 $k_8: string
+    %2 $call_2: StringBuilder
+    %3 __sb_0: StringBuilder (synthetic __sb_0)
+    %4 $k_4: string
+    %5 $call_5: string
+    %6 greeting: string (local greeting)
+    %7 $call_7: StringBuilder
+    %8 __sb_1: StringBuilder (synthetic __sb_1)
     %9 $call_9: string
-    %10 full: string (local full)
-    %11 $k_11: string
-    %12 $eq_12: bool
-    %13 $k_13: i32
-    %14 $k_14: i32
+    %10 $k_10: string
+    %11 $call_11: string
+    %12 full: string (local full)
+    %13 $k_13: string
+    %14 $eq_14: bool
+    %15 $k_15: i32
+    %16 $k_16: i32
   bb0:
     %0 = const string(#1) :string
     %1 = move %0
-    %2 = const string(#2) :string
-    %3 = binop 0 %2 %1 :string
-    %4 = move %3
-    %5 = call new_builder() :StringBuilder
+    %2 = call new_builder() :StringBuilder
+    %3 = move %2
+    %4 = const string(#2) :string
+    call append(%3, %4) :void
+    call append(%3, %1) :void
+    %5 = call std_string_builder$StringBuilder$Display$to_string(%3) :string
     %6 = move %5
-    %7 = call std_core$string$Display$to_string(%4) :string
-    call append(%6, %7) :void
-    %8 = const string(#3) :string
-    call append(%6, %8) :void
-    %9 = call std_string_builder$StringBuilder$Display$to_string(%6) :string
-    %10 = move %9
-    %11 = const string(#4) :string
-    %12 = binop 12 %10 %11 :bool
-    cond_branch %12 ? bb1 : bb2
+    %7 = call new_builder() :StringBuilder
+    %8 = move %7
+    %9 = call std_core$string$Display$to_string(%6) :string
+    call append(%8, %9) :void
+    %10 = const string(#3) :string
+    call append(%8, %10) :void
+    %11 = call std_string_builder$StringBuilder$Display$to_string(%8) :string
+    %12 = move %11
+    %13 = const string(#4) :string
+    %14 = binop 12 %12 %13 :bool
+    cond_branch %14 ? bb1 : bb2
   bb1:
-    call std_io$std_io$println__string(%10) :void
-    %13 = const int(0) :i32
-    return %13
+    call std_io$std_io$println__string(%12) :void
+    %15 = const int(0) :i32
+    return %15
   bb2:
-    %14 = const int(1) :i32
-    return %14
+    %16 = const int(1) :i32
+    return %16
