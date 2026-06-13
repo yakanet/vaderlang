@@ -305,7 +305,7 @@ static int32_t snippet_main(void) {
     l1 = t11;
     t12 = std_iter_std_iter_zip__string__i32(l0, l1);
     l0 = t12;
-    t13 = vader_array_len((vader_array_t*) l0.payload.obj);
+    t13 = ((vader_array_t*) l0.payload.obj)->length;
     l3 = t13;
     l4 = (size_t) (int64_t) INT64_C(0);
     {
@@ -349,7 +349,7 @@ static int32_t snippet_main(void) {
     l1 = t23;
     t24 = std_iter_std_iter_chain__i32(l0, l1);
     l0 = t24;
-    t25 = vader_array_len((vader_array_t*) l0.payload.obj);
+    t25 = ((vader_array_t*) l0.payload.obj)->length;
     l3 = t25;
     l4 = (size_t) (int64_t) INT64_C(0);
     {
@@ -383,7 +383,7 @@ static int32_t snippet_main(void) {
     t31 = vader_box_obj(6u, _a7_arr);
     t32 = std_iter_std_iter_enumerate__string(t31);
     l0 = t32;
-    t33 = vader_array_len((vader_array_t*) l0.payload.obj);
+    t33 = ((vader_array_t*) l0.payload.obj)->length;
     l3 = t33;
     l4 = (size_t) (int64_t) INT64_C(0);
     {
@@ -431,7 +431,7 @@ static int32_t snippet_main(void) {
     l1 = t44;
     t45 = std_iter_std_iter_flat_map__i32__i32(l0, l1);
     l0 = t45;
-    t46 = vader_array_len((vader_array_t*) l0.payload.obj);
+    t46 = ((vader_array_t*) l0.payload.obj)->length;
     l3 = t46;
     l4 = (size_t) (int64_t) INT64_C(0);
     {
@@ -525,7 +525,7 @@ static void std_string_builder_append_bytes(vader_box_t l0, vader_box_t l1) {
     vader_box_t* gc_roots[5] = { &l0, &l1, &l4, &t3, &t6 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 5u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
-    t0 = vader_array_len((vader_array_t*) l1.payload.obj);
+    t0 = ((vader_array_t*) l1.payload.obj)->length;
     l2 = t0;
     t1 = (size_t) ((vader_struct_std_string_builder_StringBuilder_t*) l0.payload.obj)->f_len;
     t2 = (t1 + l2);
@@ -640,7 +640,7 @@ static vader_string_t std_string_builder_StringBuilder_Display_to_string(vader_b
 
 static size_t std_iter_std_iter_count__i32(vader_box_t l0) {
     size_t t0;
-    t0 = vader_array_len((vader_array_t*) l0.payload.obj);
+    t0 = ((vader_array_t*) l0.payload.obj)->length;
     return t0;
 }
 
@@ -659,7 +659,7 @@ static vader_box_t std_iter_std_iter_collect__i32(vader_box_t l0) {
     t0 = vader_box_obj(8u, _a0_arr);
     l1 = t0;
     l2 = l0;
-    t1 = vader_array_len((vader_array_t*) l2.payload.obj);
+    t1 = ((vader_array_t*) l2.payload.obj)->length;
     l3 = t1;
     l4 = (size_t) (int64_t) INT64_C(0);
     {
@@ -696,9 +696,9 @@ static vader_box_t std_iter_std_iter_zip__string__i32(vader_box_t l0, vader_box_
     vader_array_t* _a0_arr = vader_array_new(15u, 0u, 0u, 16u);
     t0 = vader_box_obj(15u, _a0_arr);
     l2 = t0;
-    t1 = vader_array_len((vader_array_t*) l0.payload.obj);
+    t1 = ((vader_array_t*) l0.payload.obj)->length;
     l3 = t1;
-    t2 = vader_array_len((vader_array_t*) l1.payload.obj);
+    t2 = ((vader_array_t*) l1.payload.obj)->length;
     l4 = t2;
     if ((l3 < l4)) {
         t3 = l3;
@@ -750,7 +750,7 @@ static vader_box_t std_iter_std_iter_chain__i32(vader_box_t l0, vader_box_t l1) 
     t0 = vader_box_obj(8u, _a0_arr);
     l2 = t0;
     l3 = l0;
-    t1 = vader_array_len((vader_array_t*) l3.payload.obj);
+    t1 = ((vader_array_t*) l3.payload.obj)->length;
     l4 = t1;
     l5 = (size_t) (int64_t) INT64_C(0);
     {
@@ -771,7 +771,7 @@ static vader_box_t std_iter_std_iter_chain__i32(vader_box_t l0, vader_box_t l1) 
         }
     }
     l3 = l1;
-    t4 = vader_array_len((vader_array_t*) l3.payload.obj);
+    t4 = ((vader_array_t*) l3.payload.obj)->length;
     l4 = t4;
     l5 = (size_t) (int64_t) INT64_C(0);
     {
@@ -810,7 +810,7 @@ static vader_box_t std_iter_std_iter_enumerate__string(vader_box_t l0) {
     l1 = t0;
     l2 = (size_t) (int64_t) INT64_C(0);
     l3 = l0;
-    t1 = vader_array_len((vader_array_t*) l3.payload.obj);
+    t1 = ((vader_array_t*) l3.payload.obj)->length;
     l4 = t1;
     l5 = (size_t) (int64_t) INT64_C(0);
     {
@@ -856,7 +856,7 @@ static vader_box_t std_iter_std_iter_flat_map__i32__i32(vader_box_t l0, vader_bo
     t0 = vader_box_obj(8u, _a0_arr);
     l2 = t0;
     l3 = l0;
-    t1 = vader_array_len((vader_array_t*) l3.payload.obj);
+    t1 = ((vader_array_t*) l3.payload.obj)->length;
     l4 = t1;
     l5 = (size_t) (int64_t) INT64_C(0);
     {
@@ -869,7 +869,7 @@ static vader_box_t std_iter_std_iter_flat_map__i32__i32(vader_box_t l0, vader_bo
                 vader_fn_t* _a2_fnobj = (vader_fn_t*) l1.payload.obj;
                 t3 = ((vader_fn_erased_sig_1_t) _a2_fnobj->code)(_a2_fnobj->env, vader_box_i32(3u, t2));
                 l6 = t3;
-                t4 = vader_array_len((vader_array_t*) l6.payload.obj);
+                t4 = ((vader_array_t*) l6.payload.obj)->length;
                 l7 = t4;
                 l8 = (size_t) (int64_t) INT64_C(0);
                 {

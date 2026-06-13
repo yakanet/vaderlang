@@ -77,7 +77,7 @@ static int32_t snippet_main(void) {
     l2 = t4;
     t5 = (l1 + l2);
     l1 = t5;
-    t6 = vader_array_len((vader_array_t*) l0.payload.obj);
+    t6 = ((vader_array_t*) l0.payload.obj)->length;
     t7 = ((int32_t) (size_t) t6);
     l2 = t7;
     { int32_t __vret = (l1 + l2); vader_gc_top = gc_frame.prev; return __vret; }

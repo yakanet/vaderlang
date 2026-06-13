@@ -370,7 +370,7 @@ static void std_collections_std_collections_ensure_buckets__i32__Any(vader_box_t
     vader_box_t* gc_roots[3] = { &l0, &l3, &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
-    t0 = vader_array_len((vader_array_t*) ((vader_struct_std_collections_MutableMap__Any__Any_t*) l0.payload.obj)->f_buckets.payload.obj);
+    t0 = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__Any__Any_t*) l0.payload.obj)->f_buckets.payload.obj)->length;
     l1 = t0;
     l2 = (size_t) (int64_t) INT64_C(0);
     if (l1 == l2) {
@@ -414,7 +414,7 @@ static void std_collections_std_collections_put__i32__Any(vader_box_t l0, int32_
     std_collections_std_collections_ensure_buckets__i32__Any(l0);
     t0 = std_core_i32_Hash_hash(l1);
     l3 = t0;
-    t1 = vader_array_len((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_buckets.payload.obj);
+    t1 = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_buckets.payload.obj)->length;
     l4 = t1;
     t2 = std_collections_bucket_index(l3, l4);
     l5 = t2;
@@ -485,7 +485,7 @@ static void std_collections_std_collections_maybe_grow__i32__Any(vader_box_t l0)
     l2 = (size_t) (int64_t) INT64_C(4);
     t1 = (l1 * l2);
     l1 = (size_t) (int64_t) t1;
-    t2 = vader_array_len((vader_array_t*) ((vader_struct_std_collections_MutableMap__Any__Any_t*) l0.payload.obj)->f_buckets.payload.obj);
+    t2 = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__Any__Any_t*) l0.payload.obj)->f_buckets.payload.obj)->length;
     l2 = t2;
     l3 = (size_t) (int64_t) INT64_C(3);
     t3 = (l2 * l3);
@@ -514,7 +514,7 @@ static void std_collections_std_collections_grow__Any__Any(vader_box_t l0) {
     vader_gc_top = &gc_frame;
     t0 = ((vader_struct_std_collections_MutableMap__Any__Any_t*) l0.payload.obj)->f_buckets;
     l1 = t0;
-    t1 = vader_array_len((vader_array_t*) l1.payload.obj);
+    t1 = ((vader_array_t*) l1.payload.obj)->length;
     l2 = t1;
     l3 = (size_t) (int64_t) INT64_C(2);
     t2 = (l2 * l3);
@@ -537,7 +537,7 @@ static void std_collections_std_collections_grow__Any__Any(vader_box_t l0) {
     }
     t5 = l1;
     l1 = t5;
-    t6 = vader_array_len((vader_array_t*) l1.payload.obj);
+    t6 = ((vader_array_t*) l1.payload.obj)->length;
     l3 = t6;
     l5 = (size_t) (int64_t) INT64_C(0);
     {
@@ -598,7 +598,7 @@ static vader_box_t std_collections_std_collections_get__i32__Any(vader_box_t l0,
     int32_t t3, t5;
     vader_box_t t4;
     vader_box_t t6, t7;
-    t0 = vader_array_len((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_buckets.payload.obj);
+    t0 = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_buckets.payload.obj)->length;
     l2 = t0;
     l3 = (size_t) (int64_t) INT64_C(0);
     if (l2 == l3) {
@@ -606,7 +606,7 @@ static vader_box_t std_collections_std_collections_get__i32__Any(vader_box_t l0,
     }
     t1 = std_core_i32_Hash_hash(l1);
     l4 = t1;
-    t2 = vader_array_len((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_buckets.payload.obj);
+    t2 = ((vader_array_t*) ((vader_struct_std_collections_MutableMap__i32__Any_t*) l0.payload.obj)->f_buckets.payload.obj)->length;
     l2 = t2;
     t3 = std_collections_bucket_index(l4, l2);
     l5 = t3;
@@ -688,7 +688,7 @@ static void std_string_builder_append_bytes(vader_box_t l0, vader_box_t l1) {
     vader_box_t* gc_roots[5] = { &l0, &l1, &l4, &t3, &t6 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 5u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
-    t0 = vader_array_len((vader_array_t*) l1.payload.obj);
+    t0 = ((vader_array_t*) l1.payload.obj)->length;
     l2 = t0;
     t1 = (size_t) ((vader_struct_std_string_builder_StringBuilder_t*) l0.payload.obj)->f_len;
     t2 = (t1 + l2);
@@ -1005,7 +1005,7 @@ static uint64_t std_core_string_hash_fnv1a64(vader_string_t l0) {
     l1 = (uint64_t) (int64_t) INT64_C(-3750763034362895579);
     t0 = vader_import_2(l0);
     l2 = t0;
-    t1 = vader_array_len((vader_array_t*) l2.payload.obj);
+    t1 = ((vader_array_t*) l2.payload.obj)->length;
     l3 = t1;
     l4 = (size_t) (int64_t) INT64_C(0);
     {

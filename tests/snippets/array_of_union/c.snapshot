@@ -172,7 +172,7 @@ static int32_t snippet_main(void) {
     t2 = std_string_builder_new_builder();
     l1 = t2;
     std_string_builder_append(l1, 2u);
-    t3 = vader_array_len((vader_array_t*) l0.payload.obj);
+    t3 = ((vader_array_t*) l0.payload.obj)->length;
     t4 = std_core_usize_Display_to_string(t3);
     l2 = t4;
     std_string_builder_append(l1, l2);
@@ -238,7 +238,7 @@ static void std_string_builder_append_bytes(vader_box_t l0, vader_box_t l1) {
     vader_box_t* gc_roots[5] = { &l0, &l1, &l4, &t3, &t6 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 5u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
-    t0 = vader_array_len((vader_array_t*) l1.payload.obj);
+    t0 = ((vader_array_t*) l1.payload.obj)->length;
     l2 = t0;
     t1 = (size_t) ((vader_struct_std_string_builder_StringBuilder_t*) l0.payload.obj)->f_len;
     t2 = (t1 + l2);

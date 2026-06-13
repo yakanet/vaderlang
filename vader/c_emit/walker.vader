@@ -1714,10 +1714,16 @@ emit_array_push :: fn(s: FnState, op: vm.ArrayPush) -> void {
 }
 
 /// `array.len` — pop array, push its `usize` length.
+///
+/// Target ABI S5 (inc-3) : reads the `length` header field inline instead of
+/// calling the runtime accessor — `vader_array_len` is `a->length`, so the
+/// open-coded read is byte-equivalent (no buf deref, no forward-resolve : the
+/// length lives on the array header, which is the live gc_root). Drops the
+/// codegen dependency on `vader_array_len`.
 emit_array_len :: fn(s: FnState) -> void {
     arr :: pop(s)
     name :: fresh_tmp(s, .Usize)
-    line(s, "${name} = vader_array_len((vader_array_t*) ${name_of(arr)}.payload.obj);")
+    line(s, "${name} = ${array_hdr_ptr(arr)}->length;")
     push_tmp(s, name, .Usize)
 }
 
