@@ -1957,50 +1957,50 @@ store_bytes_op :: fn(frame: Frame, width: usize, value: u64, label: string) -> T
     return null
 }
 
-/// Body of the `load_slot` family. Pops `obj, index` and pushes the `Value` at
-/// slot `index`. The VM stores every element as a uniform `Value`, so this
-/// serves both the boxed `load_slot` and each width-typed primitive
-/// `load_slot_*` (native byte-width is irrelevant to the boxed-Value VM).
+/// Body of the `load_slot` family. Pops `arr, index` and pushes the element at
+/// `arr.offset + index`. `arr` is a `T[]` (`ArrayVal`) — the slot `@intrinsic`s
+/// are impl'd on `T[]`, so the operand is the array, mirroring native (which
+/// derefs `->buf` + `->offset`). The VM stores every element as a uniform
+/// `Value`, so this serves the boxed `load_slot` and each width-typed primitive
+/// `load_slot_*` alike (the native byte-width distinction is native-only).
 /// @param frame  current top frame, mutated in place (1 operand dropped).
-/// @return       `null` on success, or a `Trap` on underflow / bad obj / OOB.
+/// @return       `null` on success, or a `Trap` on underflow / non-array / OOB.
 do_load_slot :: fn(frame: Frame) -> Trap | null {
-    if frame.sp < 2 { return Trap { .message = "load_slot needs object + index on stack at pc=${frame.pc}" } }
+    if frame.sp < 2 { return Trap { .message = "load_slot needs array + index on stack at pc=${frame.pc}" } }
     idx_unwrap :: read_i32(frame.stack[frame.sp - 1], frame.pc, "load_slot index")
     if idx_unwrap is Trap { return idx_unwrap }
-    obj_unwrap :: read_obj(frame.stack[frame.sp - 2], frame.pc, "load_slot receiver")
-    if obj_unwrap is Trap { return obj_unwrap }
-    if idx_unwrap.value < 0 || usize(idx_unwrap.value) >= obj_unwrap.slots.len() {
-        return Trap { .message = "load_slot index ${idx_unwrap.value} out of bounds (slots=${obj_unwrap.slots.len()}) at pc=${frame.pc}" }
+    arr :: read_array(frame.stack[frame.sp - 2], frame.pc, "load_slot receiver")
+    if arr is Trap { return arr }
+    if idx_unwrap.value < 0 || usize(idx_unwrap.value) >= arr.length {
+        return Trap { .message = "load_slot index ${idx_unwrap.value} out of bounds (len=${arr.length}) at pc=${frame.pc}" }
     }
-    frame.stack[frame.sp - 2] = obj_unwrap.slots[usize(idx_unwrap.value)]
+    frame.stack[frame.sp - 2] = arr.elements[arr.offset + usize(idx_unwrap.value)]
     frame.sp = frame.sp - 1
     frame.pc = frame.pc + 1
     return null
 }
 
-/// Body of the `store_slot` family. Pops `obj, index, value` and writes `value`
-/// into slot `index`, growing the slot region with `null` padding up to
-/// `index`. Serves the boxed `store_slot` and each primitive `store_slot_*`.
-/// In the C backend the boxed `store_slot` fires `VADER_WRITE_BARRIER(obj)`
-/// (G2) ; in the VM the host GC traces `slots` directly so the barrier is
-/// implicit (the emitted native barrier is proven in S2b).
+/// Body of the `store_slot` family. Pops `arr, index, value` and writes `value`
+/// at `arr.offset + index` (bounds-checked against `length` — the array.vader
+/// impl checks before calling, this is the oracle's defensive mirror). `arr` is
+/// a `T[]` (`ArrayVal`). Serves the boxed `store_slot` and each primitive
+/// `store_slot_*`. In the C backend the boxed `store_slot` fires
+/// `VADER_WRITE_BARRIER(arr->buf)` (G2) ; in the VM the host GC traces
+/// `elements` directly so the barrier is implicit. (`push`'s grow-append is a
+/// separate path — S5 inc 3.)
 /// @param frame  current top frame, mutated in place (3 operands dropped).
-/// @return       `null` on success, or a `Trap` on underflow / bad obj / negative index.
+/// @return       `null` on success, or a `Trap` on underflow / non-array / OOB.
 do_store_slot :: fn(frame: Frame) -> Trap | null {
-    if frame.sp < 3 { return Trap { .message = "store_slot needs object + index + value on stack at pc=${frame.pc}" } }
+    if frame.sp < 3 { return Trap { .message = "store_slot needs array + index + value on stack at pc=${frame.pc}" } }
     value :: frame.stack[frame.sp - 1]
     idx_unwrap :: read_i32(frame.stack[frame.sp - 2], frame.pc, "store_slot index")
     if idx_unwrap is Trap { return idx_unwrap }
-    obj_unwrap :: read_obj(frame.stack[frame.sp - 3], frame.pc, "store_slot receiver")
-    if obj_unwrap is Trap { return obj_unwrap }
-    if idx_unwrap.value < 0 {
-        return Trap { .message = "store_slot index ${idx_unwrap.value} is negative at pc=${frame.pc}" }
+    arr :: read_array(frame.stack[frame.sp - 3], frame.pc, "store_slot receiver")
+    if arr is Trap { return arr }
+    if idx_unwrap.value < 0 || usize(idx_unwrap.value) >= arr.length {
+        return Trap { .message = "store_slot index ${idx_unwrap.value} out of bounds (len=${arr.length}) at pc=${frame.pc}" }
     }
-    idx :: usize(idx_unwrap.value)
-    for obj_unwrap.slots.len() <= idx {
-        obj_unwrap.slots.push(NullVal {})
-    }
-    obj_unwrap.slots[idx] = value
+    arr.elements[arr.offset + usize(idx_unwrap.value)] = value
     frame.sp = frame.sp - 3
     frame.pc = frame.pc + 1
     return null

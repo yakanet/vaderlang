@@ -1592,51 +1592,60 @@ emit_memory_copy :: fn(s: FnState) -> void {
 
 // ---- array slot access (Target ABI S5) -----------------------------------
 
-// `((vader_array_buf_t*) <box>.payload.obj)` — the boxed-slot array buffer
-// behind a popped reference. Slot ops are INDEX-addressed (the `[i]` cast
-// applies the element stride), distinct from the byte-offset bytes-Buffer ops.
-// The outer parens let `…->slots` bind to the cast, not the inner field.
-array_buf_ptr :: fn(v: StackVal) = "((vader_array_buf_t*) ${name_of(v)}.payload.obj)"
+// `((vader_array_t*) <box>.payload.obj)` — the array header behind a popped
+// `T[]` reference. The slot ops receive the ARRAY (the `@intrinsic`s are impl'd
+// on `T[]`, which knows the element type) and deref `->buf` + apply `->offset`
+// internally, so slice views (offset > 0) address the parent's slots correctly.
+// Slot ops are INDEX-addressed (the `[i]` cast applies the element stride),
+// distinct from the byte-offset bytes-Buffer ops. Outer parens bind `->buf`.
+array_hdr_ptr :: fn(v: StackVal) = "((vader_array_t*) ${name_of(v)}.payload.obj)"
 
-/// `load_slot` (boxed) — pop obj + slot index, push the boxed `Value` at that
+// The absolute slot index into the array's buf : `arr->offset + i`.
+slot_index :: fn(arr: string, idx: StackVal) = "${arr}->offset + (size_t) ${name_of(idx)}"
+
+/// `load_slot` (boxed) — pop array + slot index, push the boxed `Value` at that
 /// slot. The result is a traced reference (stack class `.Ref`).
 emit_slot_load_boxed :: fn(s: FnState) -> void {
     idx :: pop(s)
     obj :: pop(s)
+    arr :: array_hdr_ptr(obj)
     name :: fresh_tmp(s, .Ref)
-    line(s, "${name} = vader_array_box_slots(${array_buf_ptr(obj)})[(size_t) ${name_of(idx)}];")
+    line(s, "${name} = vader_array_box_slots(${arr}->buf)[${slot_index(arr, idx)}];")
     push_tmp(s, name, .Ref)
 }
 
-/// `store_slot` (boxed) — pop obj + slot index + value box ; store it and fire
-/// the generational write barrier (G2) — the boxed slot may record an old→young
-/// edge the minor collector must see.
+/// `store_slot` (boxed) — pop array + slot index + value box ; store it and fire
+/// the generational write barrier (G2) on the buf (the object that owns the
+/// slot) — the boxed slot may record an old→young edge the minor collector
+/// must see.
 emit_slot_store_boxed :: fn(s: FnState) -> void {
     value :: pop(s)
     idx :: pop(s)
     obj :: pop(s)
-    buf :: array_buf_ptr(obj)
-    line(s, "vader_array_box_slots(${buf})[(size_t) ${name_of(idx)}] = ${name_of(value)};")
-    line(s, "VADER_WRITE_BARRIER(${buf});")
+    arr :: array_hdr_ptr(obj)
+    line(s, "vader_array_box_slots(${arr}->buf)[${slot_index(arr, idx)}] = ${name_of(value)};")
+    line(s, "VADER_WRITE_BARRIER(${arr}->buf);")
 }
 
-/// Primitive slot load — pop obj + slot index, read the `cty`-typed element at
-/// that slot (`((cty*) buf->slots)[i]`), push it with stack class `result`.
+/// Primitive slot load — pop array + slot index, read the `cty`-typed element
+/// at `arr->buf->slots[arr->offset + i]`, push it with stack class `result`.
 emit_slot_load_prim :: fn(s: FnState, cty: string, result: ValType) -> void {
     idx :: pop(s)
     obj :: pop(s)
+    arr :: array_hdr_ptr(obj)
     name :: fresh_tmp(s, result)
-    line(s, "${name} = ((${cty}*) ${array_buf_ptr(obj)}->slots)[(size_t) ${name_of(idx)}];")
+    line(s, "${name} = ((${cty}*) ${arr}->buf->slots)[${slot_index(arr, idx)}];")
     push_tmp(s, name, result)
 }
 
-/// Primitive slot store — pop obj + slot index + value ; write the `cty`-typed
+/// Primitive slot store — pop array + slot index + value ; write the `cty`-typed
 /// element. No write barrier (the primitive region holds no references).
 emit_slot_store_prim :: fn(s: FnState, cty: string) -> void {
     value :: pop(s)
     idx :: pop(s)
     obj :: pop(s)
-    line(s, "((${cty}*) ${array_buf_ptr(obj)}->slots)[(size_t) ${name_of(idx)}] = (${cty}) ${name_of(value)};")
+    arr :: array_hdr_ptr(obj)
+    line(s, "((${cty}*) ${arr}->buf->slots)[${slot_index(arr, idx)}] = (${cty}) ${name_of(value)};")
 }
 
 emit_array_new :: fn(s: FnState, op: vm.ArrayNew) -> void {

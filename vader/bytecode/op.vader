@@ -619,18 +619,20 @@ export StoreI64 :: struct {}
 /// Write an `f64` at byte offset `off`. Pops `obj, off, v: f64`. No barrier.
 export StoreF64 :: struct {}
 
-/// Read a boxed slot. Pops `obj, i: usize` ; pushes the boxed `Value` at slot
-/// index `i` (a reference field the GC traces — distinct from the raw byte
-/// region the `Load*` / `Store*` typed ops address). `obj` is a
-/// `vader_array_buf_t` handle (boxed element kind).
+/// Read a boxed array slot. Pops `obj, i: usize` ; pushes the boxed `Value` at
+/// slot index `i` (a reference field the GC traces — distinct from the raw byte
+/// region the `Load*` / `Store*` typed ops address). `obj` is a `vader_array_t`
+/// handle (a `T[]`) ; the op derefs `->buf` and applies `->offset` so slice
+/// views address the parent's slots — the slot `@intrinsic`s are impl'd on
+/// `T[]` (which knows the element type), so the operand is the array, not the buf.
 export LoadSlot :: struct {}
-/// Read a primitive array slot at slot index `i` (NOT a byte offset — the
-/// `vader_array_buf_t` slot family is index-addressed, stride = element width,
-/// distinct from the byte-offset `Load*`/`Store*` over a bytes `Buffer`). Pops
-/// `obj, i: usize` ; pushes the value. The `…U8` / `…I32` / `…I64` / `…F64`
-/// suffix is the element's native storage width (matching
-/// `vader_array_element_size`), selected statically per element kind by
-/// `op_select::slot_load_op_for`. No GC trace (primitive region).
+/// Read a primitive array slot at slot index `i` (NOT a byte offset — the array
+/// slot family is index-addressed, stride = element width, distinct from the
+/// byte-offset `Load*`/`Store*` over a bytes `Buffer`). Pops `obj, i: usize`
+/// (`obj` = `vader_array_t`, deref `->buf` + `->offset`) ; pushes the value. The
+/// `…U8` / `…I32` / `…I64` / `…F64` suffix is the element's native storage width
+/// (matching `vader_array_element_size`), selected statically per element kind
+/// by `op_select::slot_load_op_for`. No GC trace (primitive region).
 export LoadSlotU8 :: struct {}
 /// 4-byte signed read (`i32` / `u32` / `char` elements). See `LoadSlotU8`.
 export LoadSlotI32 :: struct {}
@@ -638,15 +640,16 @@ export LoadSlotI32 :: struct {}
 export LoadSlotI64 :: struct {}
 /// 8-byte float read (`f64` elements). See `LoadSlotU8`.
 export LoadSlotF64 :: struct {}
-/// Write a boxed slot. Pops `obj, i: usize, v` ; **fires `VADER_WRITE_BARRIER(
-/// obj)`** (invariant G2 — records the potential old→young edge for the
-/// generational collector). The typed primitive stores deliberately do not.
-/// `obj` is a `vader_array_buf_t` handle (boxed element kind).
+/// Write a boxed array slot. Pops `obj, i: usize, v` ; **fires
+/// `VADER_WRITE_BARRIER(obj->buf)`** (invariant G2 — records the potential
+/// old→young edge for the generational collector ; the barrier targets the buf,
+/// the object that owns the slot). The typed primitive stores deliberately do
+/// not. `obj` is a `vader_array_t` handle (deref `->buf` + `->offset`).
 export StoreSlot :: struct {}
-/// Write a primitive array slot at slot index `i` (index-addressed, stride =
-/// element width). Pops `obj, i: usize, v`. No write-barrier (primitive
-/// region). Suffix = element storage width ; selected by
-/// `op_select::slot_store_op_for`.
+/// Write a primitive array slot at slot index `i` (`obj` = `vader_array_t`,
+/// deref `->buf` + `->offset`, index-addressed, stride = element width). Pops
+/// `obj, i: usize, v`. No write-barrier (primitive region). Suffix = element
+/// storage width ; selected by `op_select::slot_store_op_for`.
 export StoreSlotU8 :: struct {}
 /// 4-byte signed write (`i32` / `u32` / `char` elements). See `StoreSlotU8`.
 export StoreSlotI32 :: struct {}
