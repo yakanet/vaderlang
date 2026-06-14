@@ -210,20 +210,37 @@ fold_moves_in_block :: fn(
             count :: if count_opt is i32 as c { c } else { i32(0) }
             if count != 1 { folded.push(ins)  continue }
             // Walk back through folded to find the producer of `m.src`.
-            // Bail if a later (intervening) instr also wrote `m.dst`
-            // (we'd resurrect a stale value).
+            // Folding rewrites the producer to write `m.dst` at the
+            // producer's (earlier) position, so any instruction BETWEEN the
+            // producer and this Move that touches `m.dst` would then observe
+            // the wrong value. Bail when such an intervening instr WRITES
+            // `m.dst` (stale-value resurrection) OR READS it — the latter is
+            // the swap/rotate idiom `a = b ; b = c` : folding `b = (a+b)` up
+            // past `a = b` makes the `a = b` read the not-yet-clobbered
+            // slot's new value, doubling instead of swapping.
+            mdst :: m.dst
             producer_idx: i64 = -1
+            intervening := false
+            // Reused mutable cell for the closure below — declared once, reset
+            // per iteration (a fresh `[false]` per step would heap-allocate on
+            // every backward step).
+            reads_cell: bool[] = [false]
             j: i64 = i64(folded.len()) - 1
             for j >= 0 {
                 cand :: folded[usize(j)]
                 cdst_opt :: dst_of(cand)
                 if cdst_opt is LocalId as cdst {
-                    if cdst == m.dst && cdst != m.src { break }
                     if cdst == m.src { producer_idx = j  break }
+                    if cdst == mdst { intervening = true  break }
                 }
+                reads_cell[0] = false
+                for_each_read_local(cand, (l: LocalId) -> {
+                    if l == mdst { reads_cell[0] = true }
+                })
+                if reads_cell[0] { intervening = true  break }
                 j = j - 1
             }
-            if producer_idx < 0 { folded.push(ins)  continue }
+            if producer_idx < 0 || intervening { folded.push(ins)  continue }
             producer :: folded[usize(producer_idx)]
             if instruction_has_side_effect(producer) { folded.push(ins)  continue }
             rewritten :: with_dst(producer, m.dst)

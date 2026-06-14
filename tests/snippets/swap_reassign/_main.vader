@@ -1,0 +1,57 @@
+// swap_reassign — local-reassignment ordering across a single-use temp.
+//
+// Regression guard for the bytecode-emit `fold_moves` bug: a sequence like
+// `t :: a + b ; a = b ; b = t` (swap / rotate / fibonacci update) must NOT
+// be reordered. The move-forwarding pass used to rewrite the producer of a
+// single-use temp to write the Move's destination at the producer's
+// (earlier) position, clobbering a slot that an intervening assignment still
+// reads — turning `a = b ; b = a+b` into a doubling. `examples/fibonacci`
+// printed 2^49 instead of fib(50). Fixed in `vader/midir/cfg_dce.vader`
+// (`fold_moves_in_block` now also bails on an intervening READ of the
+// Move's destination).
+
+module "snippet"
+
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    // Two-variable swap through a const temp.
+    a := 3
+    b := 7
+    t :: a
+    a = b
+    b = t
+    println("swap a=${a} b=${b}")            // expect a=7 b=3
+
+    // Fibonacci loop — `c :: a + b ; a = b ; b = c`.
+    f0 := 0
+    f1 := 1
+    for i in 0..<10 {
+        c :: f0 + f1
+        f0 = f1
+        f1 = c
+    }
+    println("fib f0=${f0} f1=${f1}")          // expect f0=55 f1=89
+
+    // Three-variable left rotation (x, y, z) <- (y, z, x).
+    x := 1
+    y := 2
+    z := 3
+    keep :: x
+    x = y
+    y = z
+    z = keep
+    println("rotate x=${x} y=${y} z=${z}")    // expect x=2 y=3 z=1
+
+    // 64-bit fibonacci — the original example used u64 ; guard the wide path.
+    g0 := 0_u64
+    g1 := 1_u64
+    for i in 0..<50 {
+        g :: g0 + g1
+        g0 = g1
+        g1 = g
+    }
+    println("fib50 g0=${g0}")                 // expect 12586269025
+
+    return 0
+}
