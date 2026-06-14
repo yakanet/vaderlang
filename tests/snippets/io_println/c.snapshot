@@ -366,7 +366,10 @@ static vader_string_t std_core_format_signed(int64_t l0) {
                 t5 = l2 % INT64_C(10);
                 t6 = -(t5);
                 l6 = (size_t) (int64_t) t6;
-                t7 = vader_array_get((vader_array_t*) l5.payload.obj, (size_t) l6);
+                vader_array_t* _a1_slotarr = ((vader_array_t*) l5.payload.obj);
+                while (_a1_slotarr->buf != NULL && _a1_slotarr->buf->header.forward != NULL) { _a1_slotarr->buf = (vader_array_buf_t*) _a1_slotarr->buf->header.forward; }
+                if ((size_t) l6 >= _a1_slotarr->length) { vader_trap("array index out of bounds"); }
+                t7 = vader_array_box_slots(_a1_slotarr->buf)[_a1_slotarr->offset + (size_t) l6];
                 t8 = t7.payload.s;
                 l7 = t8;
                 std_string_builder_append(l4, l7);

@@ -286,7 +286,7 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.ArrayNew as a         -> emit_array_new(s, a)
         is vm.ArrayLen              -> emit_array_len(s)
         is vm.ArrayPush as a        -> emit_array_push(s, a)
-        is vm.ArrayGet              -> emit_array_get(s)
+        is vm.ArrayGet as a         -> emit_array_get(s, a)
         is vm.ArraySet as a         -> emit_array_set(s, a)
         is vm.ArraySlice as a       -> emit_array_slice(s, a)
         is vm.DataConst             -> todo("emit_op: data.const (needs emit_data_pool ; module.data_pool is empty today — the lowerer routes every literal to array.new)")
@@ -1719,25 +1719,52 @@ emit_array_new :: fn(s: FnState, op: vm.ArrayNew) -> void {
     push_tmp(s, name, .Ref)
 }
 
+/// True when the static array element kind stores BOXED slots (ref / struct /
+/// string / Any / null / void) — the op-B inline-boxed-access subset. Sub-word
+/// raw kinds (u8 / u16 / i8 / i16 / f32 / bool) and the borrowed `bytes()` view
+/// (a `u8[]`, `buf == NULL`) keep the runtime-dispatched legacy
+/// `vader_array_get` / `vader_array_set` (which handle the raw widths + the
+/// NULL-buf borrowed read). Sound because C2 made array construction fill
+/// concrete primitives through typed slots — no concrete-primitive array ever
+/// reaches a Boxed-static access site (verified by the op-B probe re-audit).
+array_op_is_boxed :: fn(s: FnState, type_id: i32) -> bool {
+    types :: s.ctx.module.types
+    return array_kind_of(types[usize(array_element_tag(types, type_id))]) == .Boxed
+}
+
 /// `array.get` — pop index + array, push the element (a boxed `.Any` ; the
-/// lowerer's following `ref.cast` re-tags / unboxes it). The op's `type_id`
-/// is unused — the element tag is recorded in the array buf at creation.
-emit_array_get :: fn(s: FnState) -> void {
+/// lowerer's following `ref.cast` re-tags / unboxes it). op B : a Boxed-element
+/// array reads the slot inline (no cross-TU `vader_array_get` call) ; sub-word +
+/// borrowed views stay on the runtime-dispatched legacy fn.
+emit_array_get :: fn(s: FnState, op: vm.ArrayGet) -> void {
     idx :: pop(s)
     arr :: pop(s)
     name :: fresh_tmp(s, .Any)
-    line(s, "${name} = vader_array_get((vader_array_t*) ${name_of(arr)}.payload.obj, (size_t) ${name_of(idx)});")
+    if array_op_is_boxed(s, op.type_id) {
+        a :: emit_slot_array_local(s, arr, idx)
+        line(s, "${name} = vader_array_box_slots(${a}->buf)[${slot_index(a, idx)}];")
+    } else {
+        line(s, "${name} = vader_array_get((vader_array_t*) ${name_of(arr)}.payload.obj, (size_t) ${name_of(idx)});")
+    }
     push_tmp(s, name, .Any)
 }
 
 /// `array.set` — pop value + index + array, store the value (boxed with the
-/// element tag) in place.
+/// element tag) in place. op B : a Boxed-element array stores the slot inline
+/// (`box_expr` tags `string`, no-op for already-boxed refs) and fires the G2
+/// write barrier ; sub-word arrays stay on the runtime-dispatched legacy fn.
 emit_array_set :: fn(s: FnState, op: vm.ArraySet) -> void {
     value :: pop(s)
     idx :: pop(s)
     arr :: pop(s)
     elem_tag :: array_element_tag(s.ctx.module.types, op.type_id)
-    line(s, "vader_array_set((vader_array_t*) ${name_of(arr)}.payload.obj, (size_t) ${name_of(idx)}, ${box_expr(name_of(value), val_of(value), elem_tag)});")
+    if array_op_is_boxed(s, op.type_id) {
+        a :: emit_slot_array_local(s, arr, idx)
+        line(s, "vader_array_box_slots(${a}->buf)[${slot_index(a, idx)}] = ${box_expr(name_of(value), val_of(value), elem_tag)};")
+        line(s, "VADER_WRITE_BARRIER(${a}->buf);")
+    } else {
+        line(s, "vader_array_set((vader_array_t*) ${name_of(arr)}.payload.obj, (size_t) ${name_of(idx)}, ${box_expr(name_of(value), val_of(value), elem_tag)});")
+    }
 }
 
 /// `array.push` — pop value + array, append the value (boxed). Here

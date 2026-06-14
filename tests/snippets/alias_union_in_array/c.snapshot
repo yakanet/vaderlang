@@ -366,7 +366,10 @@ static int32_t snippet_main(void) {
     {
         loop_21: {
             if ((l3 < l2)) {
-                t5 = vader_array_get((vader_array_t*) l0.payload.obj, (size_t) l3);
+                vader_array_t* _a3_slotarr = ((vader_array_t*) l0.payload.obj);
+                while (_a3_slotarr->buf != NULL && _a3_slotarr->buf->header.forward != NULL) { _a3_slotarr->buf = (vader_array_buf_t*) _a3_slotarr->buf->header.forward; }
+                if ((size_t) l3 >= _a3_slotarr->length) { vader_trap("array index out of bounds"); }
+                t5 = vader_array_box_slots(_a3_slotarr->buf)[_a3_slotarr->offset + (size_t) l3];
                 t6 = snippet_describe(t5);
                 std_io_std_io_println__string(t6);
                 l4 = (size_t) (int64_t) INT64_C(1);
