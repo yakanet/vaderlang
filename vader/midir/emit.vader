@@ -47,7 +47,7 @@ import "vader/bytecode" {
     intern_cell_type, run_bc_peephole, run_bc_return_lit_fold,
     run_bc_const_fold_arith,
     propagate_const_single_use, drop_dead_stores, coalesce_slots,
-    prune_unused_vtables, prune_unused_functions, prune_unused_imports, prune_unused_types,
+    prune_unused_functions, prune_unused_imports, prune_unused_types,
     type_intern_key, val_type_name, convert_target_of,
     build_intrinsic_wrapper_body,
 }
@@ -353,13 +353,15 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
         }
         // Pass 4 — whole-program prunes on the EmitterCtx. Mirrors
         // the late-emit prune cascade in `src/midir/emit.ts:125-133`.
-        // Order matters : vtables → functions → imports → types so
-        // each pass's root set reflects the previous pass's drops.
-        prune_unused_vtables(ctx)
+        // Order matters : functions → imports → types so each pass's root
+        // set reflects the previous pass's drops. (TS's pruneUnusedVtables
+        // has no peer pass : vtable rows are reachability-filtered when
+        // built — see `build_vtables_from_entries` — and the `used_vt_keys`
+        // set below gates which vtable targets root the fn walk.)
         // Collect (trait, method) keys actually dispatched on so the
         // vtable-target rooting AND the impl-table type pinning below
-        // can both gate on real virtual.call sites. Mirror of TS
-        // pruneUnusedVtables.
+        // can both gate on real virtual.call sites. This is the inlined
+        // equivalent of TS pruneUnusedVtables.
         used_vt_keys: MutableMap<string, bool> = MutableMap<string, bool> {}
         for f in ctx.functions {
             for op in f.body {

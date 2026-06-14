@@ -1,7 +1,11 @@
 // vader/bytecode/dce — late EmitterCtx-level prunes.
 //
 // Mirror of `src/midir/dce.ts`'s `pruneUnusedImports` /
-// `pruneUnusedVtables` / `pruneUnusedFunctions` / `pruneUnusedTypes`.
+// `pruneUnusedFunctions` / `pruneUnusedTypes`. (TS's `pruneUnusedVtables`
+// has no peer pass here : vtable rows are reachability-filtered when they're
+// built — `vader/midir/emit.vader::build_vtables_from_entries` only emits a
+// row whose `(trait, method)` key a surviving `virtual.call` references, and
+// the same `used_vt_keys` set gates which vtable targets root the fn walk.)
 // Run after the CFG → bytecode body emit, before the final
 // BytecodeModule assembly. Each pass walks the EmitterCtx and the
 // surviving fn bodies to compute a reachability set, then drops
@@ -60,32 +64,6 @@ export prune_unused_imports :: fn(ctx: EmitterCtx) -> void {
         }
     }
     ctx.imports = kept
-}
-
-// ============================================================================
-// pruneUnusedVtables — drop (trait.method) vtable rows nothing dispatches on
-// ============================================================================
-
-/// Walk every fn body for `virtual.call` references ; drop vtable
-/// rows whose key no call site uses. Pruning vtables BEFORE
-/// `prune_unused_functions` lets the latter drop the orphan `_vt`
-/// wrapper fns vtables used to root.
-///
-/// Mirrors `src/midir/dce.ts::pruneUnusedVtables` ; mutates the
-/// EmitterCtx's vtable table in place.
-export prune_unused_vtables :: fn(ctx: EmitterCtx) -> void {
-    used :: MutableMap<string, bool> {}
-    for fn_ in ctx.functions {
-        for op in fn_.body {
-            if op is VirtualCall as vc { used[vc.vtable_key] = true }
-        }
-    }
-    // Walk the vtables and drop rows whose key isn't used. ctx
-    // currently uses `vtables: MutableMap(string, MutableMap(i32, i32))`
-    // — let me check the actual field shape.
-    // (No-op stub : EmitterCtx's vtable shape varies across the port.
-    //  When the vtable field stabilises in `vader/bytecode/emit_ctx`,
-    //  drop unused keys from it here.)
 }
 
 // ============================================================================

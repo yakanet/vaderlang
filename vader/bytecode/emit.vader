@@ -138,15 +138,12 @@ export emit_project :: fn(lowered: Lo.LoweredProject, module_name: string, opts:
                 .jump_table = rlf.jump_table,
             }
         }
-        // Whole-program prunes : vtables → functions → imports → types
-        // so each pass's root set reflects the previous pass's drops.
-        // Mirror of the late-emit cascade in `vader/midir/emit.vader:173`
-        // (and `src/midir/emit.ts:125-133`). Without these, the bytecode
-        // dump keeps every unreachable extern / unused struct slot.
-        prune_unused_vtables(ctx)
-        // Legacy emit path doesn't carry CFG vtable_entries ; pass an
-        // empty roots list. Vtables would be added here once this
-        // path threads them through (TODO).
+        // Whole-program prunes : functions → imports → types so each pass's
+        // root set reflects the previous pass's drops. Mirror of the late-emit
+        // cascade in `vader/midir/emit.vader` (and `src/midir/emit.ts:125-133`).
+        // Without these, the bytecode dump keeps every unreachable extern /
+        // unused struct slot. (No vtable prune : this legacy path carries no
+        // CFG vtable_entries, so it builds no vtables — empty roots below.)
         legacy_vtable_roots: i32[] = []
         no_keep: string[] = []
         prune_unused_functions(ctx, legacy_vtable_roots, no_keep)
