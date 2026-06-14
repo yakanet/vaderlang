@@ -41,8 +41,7 @@ import "vader/vm" {
     i32_const, i32_add, i32_sub, i32_eq, i32_ge,
     local_get, local_set,
     array_new, array_push, array_get, array_set,
-    builder_new, builder_append_display, builder_finish,
-    int_to_char, call, call_import, return_op,
+    call, call_import, return_op,
 }
 import "vader/vm" { exec, prepare }
 import "vader/vm" { VmResult, Ok, Trap }
@@ -120,7 +119,7 @@ match_brackets :: fn(tokens: char[]) -> i32[] {
 //
 // Slot layout for `print_byte` (parameter_count = 1, local_count = 1) :
 //   slot 0 = byte argument (i32)
-//   slot 1 = __sb  (string-builder reference)
+//   slot 1 = __buf (u8[], the one-byte view interned into a string)
 
 emit_bf_char :: fn(fb: FunctionBuilder, c: char, idx: usize, partner: i32[], cells_type_id: i32, print_byte_index: i32) -> void {
     match c {
@@ -216,23 +215,35 @@ compile_brainfuck :: fn(source: string) -> bc.BytecodeModule {
     module_builder :: new_module_builder()
     primitive_i32_type_id :: module_builder.add_type(bc.BcPrimitive { .val = bc.ValType.I32 })
     cells_type_id :: module_builder.add_type(bc.BcArray { .element = primitive_i32_type_id })
+    // `u8[]` byte-buffer type — print_byte builds a one-byte view and interns
+    // it to a string (post-S4 there is no Builder opcode family).
+    primitive_u8_type_id :: module_builder.add_type(bc.BcPrimitive { .val = bc.ValType.U8 })
+    bytes_type_id :: module_builder.add_type(bc.BcArray { .element = primitive_u8_type_id })
     // `write(stream_tag, msg)` is std/io's sole host import — the
     // print / println / eprint / eprintln wrappers in stdlib all route
     // through it. The stream tag matches `std/io::Stream`
     // (0 = Stdout, 1 = Stderr) ; we pin Stdout here.
     write_import_index :: module_builder.add_import("write", r"std_io$write", 2, false)
+    // `bytes_to_string(const u8[]) -> string` — the host intrinsic that interns
+    // a byte view into a string (S4 replacement for the Builder family).
+    bytes_to_string_index :: module_builder.add_import("bytes_to_string", r"std_core$bytes_to_string", 1, true)
 
     // ---- fn print_byte(byte: i32) -> void --------------------------------
+    // Build a one-byte `u8[]` from the cell value, intern it to a string via
+    // `bytes_to_string`, and write it to stdout. BF cells hold raw bytes, so
+    // emitting the byte directly (rather than UTF-8-encoding it as a codepoint)
+    // is the faithful semantics.
+    //
+    // Slot layout : slot 0 = byte argument (i32), slot 1 = __buf (u8[]).
     print_byte :: new_function_builder("print_byte", 1, 1)
-    print_byte.builder_new()
+    print_byte.array_new(bytes_type_id, 0)
     print_byte.local_set(1)
     print_byte.local_get(1)
     print_byte.local_get(0)
-    print_byte.int_to_char()
-    print_byte.builder_append_display()
+    print_byte.array_push(bytes_type_id)
     print_byte.i32_const(0)        // Stream.Stdout
     print_byte.local_get(1)
-    print_byte.builder_finish()
+    print_byte.call_import(bytes_to_string_index)
     print_byte.call_import(write_import_index)
     print_byte.return_op()
     print_byte_index :: module_builder.add_function(print_byte)
