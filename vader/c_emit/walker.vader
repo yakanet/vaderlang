@@ -1696,22 +1696,24 @@ emit_array_new :: fn(s: FnState, op: vm.ArrayNew) -> void {
     n :: op.length
     arr_buf :: aux(s, "arr")
     line(s, "vader_array_t* ${arr_buf} = vader_array_new(${op.type_id}u, ${n}u, ${kind_idx}u, ${elem_tag}u);")
-    // Pop top-to-bottom : pop #k is the element for slot `n-1-k`. The fills
-    // target distinct indices, so reverse-order emission is fine ; neither the
-    // boxed nor the typed store can GC, so the raw `arr_buf` survives the loop.
-    // C2 : a flippable-primitive element fills through a typed raw store into the
-    // freshly-allocated buf — no box round-trip, and trivially sound because the
-    // array was just built with this exact kind (no erasure at the construction
-    // site). The boxed `vader_array_set` stays for sub-word + boxed kinds.
+    // Pop top-to-bottom : pop #k fills slot `n-1-k` (distinct indices, so reverse
+    // emission is fine). Three strategies, all keyed on `kind` : a typed raw store
+    // (C2 flippable primitives — `typed_array_fill_for`), an inline box-slot write
+    // (Boxed — op-B's access store minus the barrier : a fresh-young construction
+    // buf can't alias a promoted-old one), else legacy `vader_array_set` (the
+    // sub-word kinds — Inc2/3). No store can GC, so the raw `arr_buf` survives.
     fill :: typed_array_fill_for(kind)
+    boxed :: kind == .Boxed
     for k in 0..<n {
         v :: pop(s)
         slot :: n - 1 - k
-        if fill is null {
-            line(s, "vader_array_set(${arr_buf}, ${slot}u, ${box_expr(name_of(v), val_of(v), elem_tag)});")
-        } else {
+        if fill != null {
             vc :: coerce_expr(types, name_of(v), val_of(v), fill.val)
             line(s, "((${fill.cty}*) ${arr_buf}->buf->slots)[${arr_buf}->offset + ${slot}u] = (${fill.cty}) ${vc};")
+        } else if boxed {
+            line(s, "vader_array_box_slots(${arr_buf}->buf)[${arr_buf}->offset + ${slot}u] = ${box_expr(name_of(v), val_of(v), elem_tag)};")
+        } else {
+            line(s, "vader_array_set(${arr_buf}, ${slot}u, ${box_expr(name_of(v), val_of(v), elem_tag)});")
         }
     }
     name :: fresh_tmp(s, .Ref)
