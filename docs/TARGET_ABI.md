@@ -233,24 +233,30 @@ them back to these four phases. The detailed stage log lives in the local plan
 - **Phase 3 — Array ops → Vader.** `push/get/set/len/slice` over the memory
   opcodes (+ bounds checks, grow, slice-as-aliasing-header). Retire the `Array*`
   opcodes + most `vader_array_*`. Gated on the inliner (see caveats).
-  **◑ PARTIAL (S5 + C2 + op B).** The "all-or-nothing Array-over-Buffer per
-  array" design was NOT what shipped — instead the accessors are **open-coded in
-  c-emit over the existing `vader_array_t` layout**, which keeps the
+  **✅ DONE — accessors retired (S5/A2 + C2 + op B + Inc1-4).** The "all-or-
+  nothing Array-over-Buffer per array" design was NOT what shipped — instead the
+  accessors are **open-coded in c-emit over the existing `vader_array_t` layout**,
+  which keeps the
   runtime-kind-tagged storage that lets erased generic code interoperate with
   concrete code. Shipped: `arr[i]`/`arr[i]=v` for concrete primitive widths
   (i32/u32/char/i64/u64/usize/f64) → typed `LoadSlot*`/`StoreSlot*` (A2) ;
   array-literal construction fills those same kinds via a typed raw store (C2) ;
-  `len` open-coded as the header read ; **boxed (ref/struct/string/Any) `arr[i]`
-  access inlined** to `vader_array_box_slots(buf)[i]` (op B). The soundness
-  boundary that forced this: an array's runtime `element_kind` is fixed at
-  construction, so a *static-type-directed* boxed slot read is unsound under
-  erasure unless no concrete-primitive array reaches a `Any`-static site — C2
-  establishes exactly that (probe-verified, 240k→0). `vader_array_get` calls in
-  the compiler's own emitted C: **2104 → 156**. NOT retired: the runtime
-  `vader_array_*` family stays (sub-word u8/u16/i16/f32 access + the borrowed
-  `bytes()` view + Boxed construction still route through it ; `push`/`slice`/
-  `new` are GC-coupled keep-list primitives). Full `Array*`-op retirement needs
-  the sub-word typed-slot widths + a Boxed-construction flip — a follow-up.
+  `len` open-coded as the header read ; **boxed (ref/struct/string/Any) access
+  inlined** to `vader_array_box_slots(buf)[i]` (op B) ; **boxed construction**
+  fills the box slots inline, no barrier — the buf is freshly young (Inc1) ;
+  **sub-word** (u8/i8/bool/u16/i16/f32) access + construction open-coded as typed
+  slot reads/writes, the borrowed `bytes()` u8 view read via a `static inline
+  vader_array_read_u8` (Inc2/Inc3). The soundness boundary that forced the
+  static-kind dispatch: an array's runtime `element_kind` is fixed at
+  construction, so a static-type-directed slot read is unsound under erasure
+  unless static kind == runtime kind — C2/Inc2 establish that (probe-verified
+  240k→0, plus a box_slots-on-BOXED audit clean across every kind). With every
+  `arr[i]`/`arr[i]=v` open-coded, **`vader_array_get` / `vader_array_set` (+ the
+  static `vader_array_load_slot`) are now DELETED from the runtime (Inc4)** — the
+  4 internal callers (`string.as_string`, `spawn`) rewritten to read the layout
+  directly. Kept (GC-coupled construction primitives): `vader_array_push`/`slice`/
+  `new` + `store_slot`/`box_slots`/`resolve`/`make_borrowed`/…. The `Array*` midir
+  ops stay (they lower to the open-coded c-emit, not to a runtime call).
 - **Phase 4 — String ops → Vader.** `concat` / `slice` / `hash` over the memory
   opcodes and `bytes()`, interning the result on finish. Keep the atom table +
   `==` primitive.
@@ -265,21 +271,25 @@ them back to these four phases. The detailed stage log lives in the local plan
 ### Achieved end state (2026-06-14)
 
 The Builder, String, and number-format families are **fully off the per-target
-runtime**. The Array family is **open-coded in c-emit over the kept
-`vader_array_t` layout** rather than rebuilt over `Buffer` — the primitive hot
-paths (typed slot get/set/construction) and the boxed access path are inline, so
-the per-call `vader_array_*` cost is gone from those sites, but the runtime fns
-themselves are **retained** (the runtime-kind-tagged + boxed-API storage is what
-lets erased and concrete generic code share one array representation — deleting
-it would re-introduce the erasure ref-collapse the ABI avoids).
+runtime**, and the Array **accessors** now are too : every `arr[i]` / `arr[i] = v`
+/ literal fill / `len` is open-coded in c-emit over the kept `vader_array_t`
+layout (typed slots inline, boxed via `vader_array_box_slots` + the write barrier,
+u8 via the `static inline vader_array_read_u8`), so `vader_array_get` /
+`vader_array_set` / `vader_array_load_slot` are **deleted** — no out-of-line,
+element-kind-dispatched accessor remains. The kept `vader_array_t` storage + its
+construction/GC primitives stay : that runtime-kind-tagged + boxed-API
+representation is what lets erased and concrete generic code share one array,
+and `push`/`slice`/`new` are GC-coupled (grow rooting, borrowed-view packing).
 
 What is genuinely retired (deleted from `runtime/c`): the 9 `vader_builder_*` +
 4 `Builder*` ops ; `vader_string_concat` / `vader_string_hash` /
 `vader_string_eq` / `vader_string_byte_at` / `vader_string_slice` (byte) /
-`vader_string_concat_all` + the `StringConcat` op ; the 9 number-format helpers.
+`vader_string_concat_all` + the `StringConcat` op ; the 9 number-format helpers ;
+and **`vader_array_get` / `vader_array_set` / `vader_array_load_slot`** (the Array
+accessor retirement, Inc1-4 — open-coded at every emit site).
 What is kept by design (§2/§4 primitives, NOT "unfinished retirement"): the
 `vader_array_t`/`vader_array_buf_t` storage + its GC-tracing internals
-(`load_slot`/`store_slot`/`box_slots`/`make_borrowed`/`resolve`/…),
+(`store_slot`/`box_slots`/`make_borrowed`/`resolve`/`resolve_buf`/…),
 `vader_array_push`/`slice`/`new`/`len`, the atom table + `vader_atom_*`, the
 codepoint atom-slice `vader_string_slice_codepoints`, `vader_string_bytes_view`/
 `as_string`/`byte_len`/`codepoint_at`/`parse_float`, and the platform-syscall
