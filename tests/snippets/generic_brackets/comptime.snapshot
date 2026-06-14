@@ -35,6 +35,8 @@
   Yield<T>
   Pair<i32, i32>
   Pair<A, B>
+  Range<i32>
+  Range<usize>
   Range<T>
   Range<T>
   Range<T>

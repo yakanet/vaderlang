@@ -51,7 +51,7 @@
           x :i32
         arg1:
           id :fn(i32) -> i32
-  struct __lambda_env_3 {  }
-  fn __lambda_2(__env_0: __lambda_env_3, v: i32) -> i32
+  struct __lambda_env_9 {  }
+  fn __lambda_8(__env_0: __lambda_env_9, v: i32) -> i32
     ~>
       v :i32

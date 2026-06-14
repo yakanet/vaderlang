@@ -17,13 +17,7 @@ type 14 array 1
 type 15 fn (1) -> 1
 type 16 fn (1) -> 4
 type 17 fn (1,1) -> 1
-type 18 struct std_core$Range__i32 { start:1,end:1,inclusive:4,cursor:1 }
-type 19 union 0,20
-type 20 struct std_core$Yield__i32 { value:1 }
-type 21 struct std_core$Range__usize { start:8,end:8,inclusive:4,cursor:8 }
-type 22 union 0,23
-type 23 struct std_core$Yield__usize { value:8 }
-type 24 primitive u64
+type 18 primitive u64
 string 0 "\n"
 string 1 "slice mid len="
 string 2 "slice over len="
@@ -43,10 +37,6 @@ import 0 write std_io$write (i32,string) -> void
 import 1 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 2 bytes std_core$bytes (string) -> ref
 impl 10 Display
-impl 18 Contains
-impl 18 Iterator
-impl 21 Contains
-impl 21 Iterator
 impl 13 ByteAccess
 export main 0
 

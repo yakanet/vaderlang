@@ -39,6 +39,8 @@
   Yield<T>
   Yield<T>
   Stackable<T>
+  Range<i32>
+  Range<usize>
   Range<T>
   Range<T>
   Range<T>

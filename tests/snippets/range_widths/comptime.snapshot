@@ -36,10 +36,12 @@
   Yield<T>
   Yield<T>
   Range<i16>
+  Range<i32>
   Range<i64>
   Range<isize>
   Range<u64>
   Range<u8>
+  Range<usize>
   Range<T>
   Range<T>
   Range<T>

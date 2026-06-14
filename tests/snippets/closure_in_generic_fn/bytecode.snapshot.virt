@@ -10,7 +10,7 @@ type 7 array 8
 type 8 primitive u8
 type 9 struct std_core$Buffer {  }
 type 10 fn (3) -> 3
-type 11 struct __lambda_env_3 {  }
+type 11 struct __lambda_env_9 {  }
 type 12 primitive i64
 string 0 "\n"
 string 1 "0"
@@ -275,7 +275,7 @@ fn 8 snippet$snippet$run_id__i32 (i32) -> i32
   return
 end
 
-fn 9 __lambda_2 (ref,i32) -> i32
+fn 9 __lambda_8 (ref,i32) -> i32
   local.get 1
   return
 end

@@ -20,8 +20,8 @@ type 17 primitive u64
 type 18 primitive u32
 type 19 struct std_core$FloatDec32 { mantissa:18,exp:3 }
 type 20 struct std_core$Dec64 { mantissa:17,exp:3 }
-type 21 struct __Tuple_25 { _0:17,_1:17,_2:17 }
-type 22 struct __Tuple_26 { _0:17,_1:17 }
+type 21 struct __Tuple_33 { _0:17,_1:17,_2:17 }
+type 22 struct __Tuple_34 { _0:17,_1:17 }
 type 23 struct snippet$Box__bool { v:5 }
 type 24 struct snippet$Box__char { v:14 }
 type 25 struct snippet$Box__f32 { v:15 }
@@ -7418,8 +7418,10 @@ fn 33 std_core$digits_of (u64) -> ref
   local $cast_23 usize
   local $idx_24 string
   local $k_25 u64
-  local $k_31 usize
-  local $k_33 usize
+  local i usize
+  local $k_34 usize
+  local $sub_36 usize
+  local $k_38 usize
   i64.const 0
   local.set 1
   local.get 0
@@ -7485,28 +7487,36 @@ fn 33 std_core$digits_of (u64) -> ref
   local.get 2
   array.len
   local.set 6
+  i64.const 0
+  local.set 9
   block $L4 void
     loop $L5 void
-      i64.const 0
-      local.set 9
-      local.get 6
       local.get 9
-      u64.gt
+      local.get 6
+      u64.lt
       if $L6 void
         i64.const 1
         local.set 10
         local.get 6
         local.get 10
         i64.sub
-        local.set 6
+        local.get 9
+        i64.sub
+        local.set 11
         local.get 2
-        local.get 6
+        local.get 11
         array.get 6
         ref.cast 1
         local.set 7
         local.get 4
         local.get 7
         array.push 1
+        i64.const 1
+        local.set 12
+        local.get 9
+        local.get 12
+        i64.add
+        local.set 9
         br $L5
       else
       end $L6
@@ -8187,8 +8197,8 @@ end
 
 fn 43 std_core$zeros (i32) -> string
   local out string
-  local i i32
-  local __sb_0 ref
+  local _ i32
+  local __sb_1 ref
   string.const 4
   local.set 1
   i32.const 0

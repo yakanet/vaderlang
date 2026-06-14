@@ -11,16 +11,7 @@ type 8 primitive u8
 type 9 primitive char
 type 10 struct std_core$Buffer {  }
 type 11 primitive u64
-type 12 struct std_core$Range__char { start:9,end:9,inclusive:5,cursor:9 }
-type 13 union 0,14
-type 14 struct std_core$Yield__char { value:9 }
-type 15 struct std_core$Range__i32 { start:3,end:3,inclusive:5,cursor:3 }
-type 16 union 0,17
-type 17 struct std_core$Yield__i32 { value:3 }
-type 18 struct std_core$Range__usize { start:4,end:4,inclusive:5,cursor:4 }
-type 19 union 0,20
-type 20 struct std_core$Yield__usize { value:4 }
-type 21 array 9
+type 12 array 9
 string 0 "\n"
 string 1 "0"
 string 2 "true"
@@ -40,12 +31,6 @@ import 0 write std_io$write (i32,string) -> void
 import 1 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 2 bytes std_core$bytes (string) -> ref
 impl 6 Display
-impl 12 Contains
-impl 12 Iterator
-impl 15 Contains
-impl 15 Iterator
-impl 18 Contains
-impl 18 Iterator
 impl 10 ByteAccess
 export main 10
 
@@ -287,7 +272,7 @@ fn 7 std_numbers$to_hex (u64) -> string
   if $L0 void
     return.lit string.const 1
   end $L0
-  array.new 21 0
+  array.new 12 0
   local.set 2
   i64.const 16
   local.set 1
@@ -384,7 +369,7 @@ fn 8 std_numbers$to_bin (u64) -> string
   if $L0 void
     return.lit string.const 1
   end $L0
-  array.new 21 0
+  array.new 12 0
   local.set 2
   i64.const 2
   local.set 1

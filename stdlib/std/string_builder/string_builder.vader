@@ -20,15 +20,6 @@
 
 module "std/string_builder"
 
-// NOTE: this module is force-loaded into every program (string interpolation
-// `"${...}"` desugars to its `new_builder`/`append`/`to_string` calls — Target
-// ABI S4). Like the std/core formatters, it therefore avoids `for x in 0..<n`
-// range loops: those materialise usize/i32 `Range`/`Step`/`Comparable` from
-// std/core, which then collide with std/core's own emission and fail to link
-// (`redefinition of std_core_usize_Comparable_*`) until that core-twice-
-// materialisation dedup is fixed. Plain `for <cond>` counter loops use the
-// primitive `<` / `+=` ops (not the traits), so they materialise nothing.
-
 /// Amortised-O(1) string accumulator. Writes UTF-8 bytes into a growing
 /// `Buffer` ; `to_string` (and `${sb}` interpolation) interns the accumulated
 /// bytes in a single allocation.
@@ -72,10 +63,8 @@ ensure_capacity :: fn(self: StringBuilder, needed: usize) -> void {
 append_bytes :: fn(self: StringBuilder, bs: const u8[]) -> void {
     n :: bs.len()
     self.ensure_capacity(self.len + n)
-    i: usize = 0
-    for i < n {
+    for i in 0..<n {
         self.buf.store_u8(self.len + i, bs[i])
-        i += 1
     }
     self.len += n
 }
@@ -107,10 +96,8 @@ export append_char :: fn(self: StringBuilder, c: char) -> void {
 /// @param c      codepoint to repeat.
 /// @param count  number of copies to append (≤ 0 → no-op).
 export append_repeated :: fn(self: StringBuilder, c: char, count: i32) -> void {
-    i: i32 = 0
-    for i < count {
+    for _ in 0..<count {
         self.append_char(c)
-        i += 1
     }
 }
 
@@ -120,10 +107,8 @@ StringBuilder implements Display {
     /// Read back the buffered bytes and intern them as a single string.
     to_string :: fn(self) -> string {
         out: u8[] = []
-        i: usize = 0
-        for i < self.len {
+        for i in 0..<self.len {
             out.push(self.buf.load_u8(i))
-            i += 1
         }
         return out.bytes_to_string()
     }

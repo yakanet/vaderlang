@@ -11,8 +11,8 @@ type 8 array 9
 type 9 primitive u8
 type 10 struct std_core$Buffer {  }
 type 11 primitive i64
-type 12 struct __Tuple_16 { _0:3,_1:1 }
-type 13 struct __Tuple_17 { _0:12,_1:5 }
+type 12 struct __Tuple_26 { _0:3,_1:1 }
+type 13 struct __Tuple_27 { _0:12,_1:5 }
 string 0 "\n"
 string 1 "answer"
 string 2 "id="

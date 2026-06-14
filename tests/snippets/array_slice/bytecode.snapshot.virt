@@ -11,14 +11,9 @@ type 8 array 9
 type 9 primitive u8
 type 10 struct std_core$Buffer {  }
 type 11 struct std_core$Range__i32 { start:3,end:3,inclusive:5,cursor:3 }
-type 12 union 0,13
-type 13 struct std_core$Yield__i32 { value:3 }
-type 14 struct std_core$Range__usize { start:4,end:4,inclusive:5,cursor:4 }
-type 15 union 0,16
-type 16 struct std_core$Yield__usize { value:4 }
-type 17 primitive i64
-type 18 primitive u64
-type 19 array 3
+type 12 primitive i64
+type 13 primitive u64
+type 14 array 3
 string 0 "\n"
 string 1 "s1.len = "
 string 2 "  "
@@ -44,8 +39,6 @@ import 2 bytes std_core$bytes (string) -> ref
 impl 7 Display
 impl 11 Contains
 impl 11 Iterator
-impl 14 Contains
-impl 14 Iterator
 impl 10 ByteAccess
 export main 1
 
@@ -77,7 +70,7 @@ fn 1 snippet$main () -> i32
   i32.const 30
   i32.const 40
   i32.const 50
-  array.new 19 5
+  array.new 14 5
   local.set 0
   i32.const 1
   i32.to_i64
@@ -88,7 +81,7 @@ fn 1 snippet$main () -> i32
   local.get 0
   local.get 1
   local.get 2
-  array.slice 19
+  array.slice 14
   local.set 3
   call 2
   local.set 4
@@ -161,7 +154,7 @@ fn 1 snippet$main () -> i32
   local.get 0
   local.get 1
   local.get 2
-  array.slice 19
+  array.slice 14
   local.set 3
   call 2
   local.set 4
@@ -249,7 +242,7 @@ fn 1 snippet$main () -> i32
   local.get 0
   local.get 1
   local.get 2
-  array.slice 19
+  array.slice 14
   local.set 3
   call 2
   local.set 4
@@ -314,7 +307,7 @@ fn 1 snippet$main () -> i32
   local.get 0
   local.get 2
   local.get 1
-  array.slice 19
+  array.slice 14
   local.set 3
   call 2
   local.set 4
@@ -381,7 +374,7 @@ fn 1 snippet$main () -> i32
   local.get 0
   local.get 1
   local.get 2
-  array.slice 19
+  array.slice 14
   local.set 0
   call 2
   local.set 3

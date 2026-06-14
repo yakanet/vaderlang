@@ -35,20 +35,20 @@ fn snippet$snippet$apply__i32(%0: i32, %1: fn(i32) -> i32) -> i32
 fn snippet$snippet$run_id__i32(%0: i32) -> i32
   locals:
     %0 x: i32 (param x)
-    %1 $struct_1: __lambda_env_3
+    %1 $struct_1: __lambda_env_9
     %2 $closure_2: fn(i32) -> i32
     %3 id: fn(i32) -> i32 (local id)
     %4 $call_4: i32
   bb0:
-    %1 = struct_new __lambda_env_3()
-    %2 = make_closure __lambda_2 env=%1 :fn(i32) -> i32
+    %1 = struct_new __lambda_env_9()
+    %2 = make_closure __lambda_8 env=%1 :fn(i32) -> i32
     %3 = move %2
     %4 = call snippet$snippet$apply__i32(%0, %3) :i32
     return %4
 
-fn __lambda_2(%0: __lambda_env_3, %1: i32) -> i32
+fn __lambda_8(%0: __lambda_env_9, %1: i32) -> i32
   locals:
-    %0 __env_0: __lambda_env_3 (synthetic __env_0)
+    %0 __env_0: __lambda_env_9 (synthetic __env_0)
     %1 v: i32 (param v)
   bb0:
     return %1

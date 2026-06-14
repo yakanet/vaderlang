@@ -80,12 +80,21 @@ export EmitterCtx :: struct {
     exports: BcExport[]
 
     /// Type indices that aren't directly referenced by any op or fn
-    /// signature but must survive `prune_unused_types`. Filled by the
-    /// midir Call emit so each arg's static type (which TS carries on
-    /// `op.argTypeIndices`) keeps its type-table slot even when no
-    /// other site references it. Mirror of TS `pruneUnusedTypes`'s
-    /// `op.argTypeIndices` root traversal (dce.ts:609).
+    /// signature but must survive `prune_unused_types`, and that aren't
+    /// scoped to a single function (the vtable-receiver pins from the
+    /// midir Pass-4 prune setup, already gated on used vtable keys).
+    /// Per-call arg/result pins live in `pinned_types_by_fn` instead.
     pinned_types: i32[]
+
+    /// Per-function arg/result type pins, keyed by fn index. Each Call's
+    /// arg + dst static types (which TS carries on `op.argTypeIndices`)
+    /// are pinned here under the emitting function, so `prune_unused_types`
+    /// roots them only for SURVIVING functions — when a function is
+    /// pruned, its pins drop with it (matching TS, where the roots live on
+    /// the op). A global list would keep dead types (and the impl rows /
+    /// monomorphised `Range` types they anchor) alive in every program.
+    /// `prune_unused_functions` re-keys this by the post-prune index.
+    pinned_types_by_fn: MutableMap<i32, i32[]>
 }
 
 /// Construct a fresh `EmitterCtx`. Reserves type-table slot 0 for the
@@ -110,6 +119,7 @@ export new_emitter_ctx :: fn() -> EmitterCtx {
         .import_index_by_mangle      = MutableMap<string, i32> {},
         .exports                     = [],
         .pinned_types                = [],
+        .pinned_types_by_fn          = MutableMap<i32, i32[]> {},
     }
 }
 

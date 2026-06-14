@@ -7,12 +7,9 @@
 // Display`. The power-of-5 lookup tables live in the generated sibling
 // `dtoa_tables.vader` (both part of `module "std/core"`).
 //
-// std/core constraints honoured here (same as the integer formatters above):
+// std/core constraint honoured here (same as the integer formatters above):
 //   - no `std/string_builder` / `std/string` import (cycle) — the result is
-//     built with string-literal digits + concat, never a StringBuilder ;
-//   - no `for x in 0..<n` range loops — those materialise usize Range / Step /
-//     Comparable *inside* std/core, which is emitted twice and fails to link.
-//     Every loop here is a `for <cond>` with a manual counter.
+//     built with string-literal digits + concat, never a StringBuilder.
 //
 // All 64-bit literals carry the `_u64` suffix: a free literal exceeding i32
 // range is otherwise mis-coerced in a bitwise / wide-arithmetic context
@@ -290,10 +287,9 @@ digits_of :: fn(n: u64) -> string[] {
         m = m / 10
     }
     out: string[] = []
-    i := rev.len()
-    for i > 0 {
-        i = i - 1
-        out.push(rev[i])
+    n_digits :: rev.len()
+    for i in 0..<n_digits {
+        out.push(rev[n_digits - 1 - i])
     }
     return out
 }
@@ -301,10 +297,8 @@ digits_of :: fn(n: u64) -> string[] {
 // Concatenate parts[lo..hi).
 join_range :: fn(parts: string[], lo: i32, hi: i32) -> string {
     out := ""
-    i := lo
-    for i < hi {
+    for i in lo..<hi {
         out = out + parts[usize(i)]
-        i = i + 1
     }
     return out
 }
@@ -312,10 +306,8 @@ join_range :: fn(parts: string[], lo: i32, hi: i32) -> string {
 // A string of `count` zeros (count >= 0).
 zeros :: fn(count: i32) -> string {
     out := ""
-    i: i32 = 0
-    for i < count {
+    for _ in 0..<count {
         out = out + "0"
-        i = i + 1
     }
     return out
 }

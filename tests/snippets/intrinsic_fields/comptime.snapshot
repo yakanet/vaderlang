@@ -37,6 +37,8 @@
   Yield<T>
   Pair<string, i64>
   Pair<K, V>
+  Range<i32>
+  Range<usize>
   Range<T>
   Range<T>
   Range<T>

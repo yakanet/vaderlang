@@ -31,14 +31,12 @@ module "std/core"
 // (import cycle — that's why std/numbers lives outside core) ; f32/f64 delegate
 // to the Ryu formatters in dtoa.vader / f2s.vader.
 
-// Prepend decimal digits via a string-literal table + concat. NOTE: a digit
-// byte-buffer + single `bytes_to_string` would be O(n) (the perf POC's form),
-// but a `0..<(n/2)` reverse loop materialises usize `Range`/`Step`/`Comparable`
-// INSIDE std/core — which is materialised twice, so those impls get emitted
-// twice and the C fails to link (`redefinition of std_core_usize_Comparable_*`).
-// Until that core-twice-materialisation dedup is fixed, stay on prepend-concat
-// (no usize Range/Comparable here — only array index + i64/u64 primops). The
-// buffer form is a perf follow-up gated on that dedup fix (TODO 1.13).
+// Prepend decimal digits via a string-literal table + concat. A digit
+// byte-buffer + single `bytes_to_string` would be O(n) (the perf POC's form) ;
+// the duplicate-mangle dedup that blocked a `0..<(n/2)` reverse loop inside
+// std/core has since landed (`prune_unused_functions` collapses the doubly-
+// materialised usize `Range`/`Step`/`Comparable`), so that form is now safe.
+// Kept as prepend-concat pending the perf follow-up (TODO 1.13).
 
 /// One-char strings per decimal digit — lets the integer formatters avoid
 /// char→string (itself a Display) without a byte sink std/core can't reach.

@@ -36,6 +36,8 @@
   Yield<T>
   Yield<T>
   Yield<T>
+  Range<i32>
+  Range<usize>
   Range<T>
   Range<T>
   Range<T>

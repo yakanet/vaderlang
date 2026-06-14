@@ -12,17 +12,7 @@ type 9 struct std_string_builder$StringBuilder { buf:12,len:4,cap:4 }
 type 10 array 11
 type 11 primitive u8
 type 12 struct std_core$Buffer {  }
-type 13 struct std_core$Range__char { start:14,end:14,inclusive:5,cursor:14 }
-type 14 primitive char
-type 15 union 0,16
-type 16 struct std_core$Yield__char { value:14 }
-type 17 struct std_core$Range__i32 { start:3,end:3,inclusive:5,cursor:3 }
-type 18 union 0,19
-type 19 struct std_core$Yield__i32 { value:3 }
-type 20 struct std_core$Range__usize { start:4,end:4,inclusive:5,cursor:4 }
-type 21 union 0,22
-type 22 struct std_core$Yield__usize { value:4 }
-type 23 primitive i64
+type 13 primitive i64
 string 0 "\n"
 string 1 "0"
 string 2 ""
@@ -40,12 +30,6 @@ import 0 write std_io$write (i32,string) -> void
 import 1 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 2 bytes std_core$bytes (string) -> ref
 impl 9 Display
-impl 13 Contains
-impl 13 Iterator
-impl 17 Contains
-impl 17 Iterator
-impl 20 Contains
-impl 20 Iterator
 impl 12 ByteAccess
 export main 14
 

@@ -28,18 +28,12 @@ type 25 struct std_core$Range__char { start:26,end:26,inclusive:5,cursor:26 }
 type 26 primitive char
 type 27 union 0,28
 type 28 struct std_core$Yield__char { value:26 }
-type 29 struct std_core$Range__i32 { start:3,end:3,inclusive:5,cursor:3 }
-type 30 union 0,31
-type 31 struct std_core$Yield__i32 { value:3 }
-type 32 struct std_core$Range__usize { start:4,end:4,inclusive:5,cursor:4 }
-type 33 union 0,34
-type 34 struct std_core$Yield__usize { value:4 }
-type 35 primitive i64
-type 36 struct std_string$StringChars { bytes:22,cursor:4,length:4 }
-type 37 primitive isize
-type 38 struct __Tuple_49 { _0:26,_1:4 }
-type 39 array 3
-type 40 union 28,0
+type 29 primitive i64
+type 30 struct std_string$StringChars { bytes:22,cursor:4,length:4 }
+type 31 primitive isize
+type 32 struct __Tuple_49 { _0:26,_1:4 }
+type 33 array 3
+type 34 union 28,0
 string 0 "\n"
 string 1 "1.2.3-rc.1"
 string 2 "1.0.0"
@@ -111,12 +105,8 @@ impl 11 Contains
 impl 21 Display
 impl 25 Contains
 impl 25 Iterator
-impl 29 Contains
-impl 29 Iterator
-impl 32 Contains
-impl 32 Iterator
 impl 24 ByteAccess
-impl 36 Iterator
+impl 30 Iterator
 impl 9 Error
 export main 2
 
@@ -492,7 +482,7 @@ fn 4 std_semver$parse (string) -> ref
   i32.const 0
   i32.const 0
   i32.const 0
-  array.new 39 3
+  array.new 33 3
   local.set 1
   i64.const 0
   local.set 7
@@ -7164,7 +7154,7 @@ fn 53 std_string$chars (string) -> ref
   local.get 1
   local.get 2
   local.get 3
-  struct.new 36
+  struct.new 30
   return
 end
 
@@ -7507,10 +7497,10 @@ fn 61 std_string$StringChars$Iterator$next (ref) -> ref
   local $field_2 usize
   local $field_5 ref
   local c char
-  local.field 0 36 1
+  local.field 0 30 1
   ref.cast 4
   local.set 1
-  local.field 0 36 2
+  local.field 0 30 2
   ref.cast 4
   local.set 2
   local.get 1
@@ -7519,29 +7509,29 @@ fn 61 std_string$StringChars$Iterator$next (ref) -> ref
   if $L0 void
     return.lit null.const
   end $L0
-  local.field 0 36 0
+  local.field 0 30 0
   local.set 3
-  local.field 0 36 1
+  local.field 0 30 1
   ref.cast 4
   local.set 1
   local.get 3
   local.get 1
   call 63
   local.set 3
-  local.field 3 38 0
+  local.field 3 32 0
   ref.cast 26
   local.set 4
-  local.field 3 38 1
+  local.field 3 32 1
   ref.cast 4
   local.set 1
-  local.field 0 36 1
+  local.field 0 30 1
   ref.cast 4
   local.get 1
   i64.add
   local.set 1
   local.get 0
   local.get 1
-  struct.set 36 1
+  struct.set 30 1
   local.get 4
   struct.new 28
   return
@@ -7564,7 +7554,7 @@ fn 63 std_string$decode_codepoint_at (ref,usize) -> ref
   local.set 3
   local.get 2
   local.get 3
-  struct.new 38
+  struct.new 32
   return
 end
 
