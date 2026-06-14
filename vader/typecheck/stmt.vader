@@ -752,6 +752,17 @@ assign_tuple :: fn(
             }
         }
         _ -> {
+            // A `[...]` pattern against a value that is neither a tuple nor
+            // an array (e.g. `for [k, v] in m` — a map yields `Entry<K, V>`,
+            // a 3-field struct, not a 2-tuple). Without this the leaves bind
+            // to nothing meaningful and lowering emits an `unreachable`.
+            // Skip when the value type is unresolved (upstream error already
+            // fired) or a bare type-param (generic body — checked per
+            // instance, not at the definition).
+            if !(declared is UnresolvedType) && !(declared is TypeParamType) {
+                diags.push(typecheck_error(.TypeMismatch, tb.span,
+                    "cannot destructure a value of type ${display_type(declared)} ; a `[...]` pattern requires a tuple or array"))
+            }
             for leaf in tb.elements { assign_binding_types(leaf, TY_UNRESOLVED, typed, diags) }
         }
     }
