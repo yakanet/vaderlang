@@ -11,21 +11,20 @@ type 8 struct std_string_builder$StringBuilder { buf:11,len:4,cap:4 }
 type 9 array 10
 type 10 primitive u8
 type 11 struct std_core$Buffer {  }
-type 12 struct std_core$Range__char { start:22,end:22,inclusive:5,cursor:22 }
+type 12 struct std_core$Range__char { start:7,end:7,inclusive:5,cursor:7 }
 type 13 union 0,14
-type 14 struct std_core$Yield__char { value:22 }
-type 15 struct std_core$Range__i32 { start:22,end:22,inclusive:5,cursor:22 }
+type 14 struct std_core$Yield__char { value:7 }
+type 15 struct std_core$Range__i32 { start:3,end:3,inclusive:5,cursor:3 }
 type 16 union 0,17
-type 17 struct std_core$Yield__i32 { value:22 }
-type 18 struct std_core$Range__usize { start:22,end:22,inclusive:5,cursor:22 }
+type 17 struct std_core$Yield__i32 { value:3 }
+type 18 struct std_core$Range__usize { start:4,end:4,inclusive:5,cursor:4 }
 type 19 union 0,20
-type 20 struct std_core$Yield__usize { value:22 }
+type 20 struct std_core$Yield__usize { value:4 }
 type 21 primitive u64
-type 22 ref _
-type 23 fn (7) -> 5
-type 24 struct std_string$StringChars { bytes:9,cursor:4,length:4 }
-type 25 struct __Tuple_35 { _0:7,_1:4 }
-type 26 union 14,0
+type 22 fn (7) -> 5
+type 23 struct std_string$StringChars { bytes:9,cursor:4,length:4 }
+type 24 struct __Tuple_35 { _0:7,_1:4 }
+type 25 union 14,0
 string 0 "\n"
 string 1 "foo.vader"
 string 2 ".vader"
@@ -60,7 +59,7 @@ impl 15 Iterator
 impl 18 Contains
 impl 18 Iterator
 impl 11 ByteAccess
-impl 24 Iterator
+impl 23 Iterator
 export main 2
 
 fn 0 std_io$std_io$println__string (string) -> void
@@ -159,14 +158,14 @@ fn 2 snippet$main () -> i32
   string.const 5
   call 15
   call 0
-  fn.ref 1 23
+  fn.ref 1 22
   local.set 0
   string.const 7
   local.get 0
   string.const 8
   call 16
   call 0
-  fn.ref 18 23
+  fn.ref 18 22
   local.set 0
   string.const 9
   local.get 0
@@ -798,7 +797,7 @@ fn 16 std_string$replace_chars_where (string,ref,string) -> string
         ref.cast 7
         local.tee 6
         local.get 1
-        call.indirect 23
+        call.indirect 22
         if $L3 void
           local.get 3
           local.get 2
@@ -847,7 +846,7 @@ fn 17 std_string$split_where (string,ref) -> ref
         ref.cast 7
         local.tee 7
         local.get 1
-        call.indirect 23
+        call.indirect 22
         if $L3 void
           local.get 4
           if $L4 void
@@ -1077,7 +1076,7 @@ fn 21 std_string$chars (string) -> ref
   local.get 1
   local.get 2
   local.get 3
-  struct.new 24
+  struct.new 23
   return
 end
 
@@ -1086,10 +1085,10 @@ fn 22 std_string$StringChars$Iterator$next (ref) -> ref
   local $field_2 usize
   local $field_5 ref
   local c char
-  local.field 0 24 1
+  local.field 0 23 1
   ref.cast 4
   local.set 1
-  local.field 0 24 2
+  local.field 0 23 2
   ref.cast 4
   local.set 2
   local.get 1
@@ -1098,29 +1097,29 @@ fn 22 std_string$StringChars$Iterator$next (ref) -> ref
   if $L0 void
     return.lit null.const
   end $L0
-  local.field 0 24 0
+  local.field 0 23 0
   local.set 3
-  local.field 0 24 1
+  local.field 0 23 1
   ref.cast 4
   local.set 1
   local.get 3
   local.get 1
   call 23
   local.set 3
-  local.field 3 25 0
+  local.field 3 24 0
   ref.cast 7
   local.set 4
-  local.field 3 25 1
+  local.field 3 24 1
   ref.cast 4
   local.set 1
-  local.field 0 24 1
+  local.field 0 23 1
   ref.cast 4
   local.get 1
   i64.add
   local.set 1
   local.get 0
   local.get 1
-  struct.set 24 1
+  struct.set 23 1
   local.get 4
   struct.new 14
   return
@@ -1137,7 +1136,7 @@ fn 23 std_string$decode_codepoint_at (ref,usize) -> ref
   local.set 3
   local.get 2
   local.get 3
-  struct.new 25
+  struct.new 24
   return
 end
 

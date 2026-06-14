@@ -17,12 +17,11 @@ type 14 struct __Tuple_18 { _0:1,_1:3 }
 type 15 array 16
 type 16 struct __Tuple_20 { _0:4,_1:1 }
 type 17 fn (3) -> 8
-type 18 struct std_core$Range__usize { start:23,end:23,inclusive:5,cursor:23 }
+type 18 struct std_core$Range__usize { start:4,end:4,inclusive:5,cursor:4 }
 type 19 union 0,20
-type 20 struct std_core$Yield__usize { value:23 }
+type 20 struct std_core$Yield__usize { value:4 }
 type 21 primitive i64
 type 22 primitive u64
-type 23 ref _
 string 0 "\n"
 string 1 "count="
 string 2 "clone[0]="

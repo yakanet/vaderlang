@@ -15,18 +15,15 @@ type 12 union 0,13
 type 13 struct std_core$Yield__i64 { value:19 }
 type 14 struct std_iter$FilterIterator__i32 { source:17,pred:20 }
 type 15 union 0,16
-type 16 struct std_core$Yield__i32 { value:19 }
+type 16 struct std_core$Yield__i32 { value:3 }
 type 17 ref Iterator
-type 18 fn (19) -> 19
-type 19 ref _
-type 20 fn (19) -> 5
-type 21 struct std_core$Range__i32 { start:19,end:19,inclusive:5,cursor:19 }
-type 22 struct std_core$Range__usize { start:19,end:19,inclusive:5,cursor:19 }
+type 18 fn (3) -> 19
+type 19 primitive i64
+type 20 fn (3) -> 5
+type 21 struct std_core$Range__i32 { start:3,end:3,inclusive:5,cursor:3 }
+type 22 struct std_core$Range__usize { start:4,end:4,inclusive:5,cursor:4 }
 type 23 union 0,24
-type 24 struct std_core$Yield__usize { value:19 }
-type 25 primitive i64
-type 26 fn (3) -> 25
-type 27 fn (3) -> 5
+type 24 struct std_core$Yield__usize { value:4 }
 string 0 "\n"
 string 1 "0"
 string 2 ""
@@ -285,7 +282,7 @@ fn 6 std_iter$MapIterator$Iterator$next__i32__i64 (ref) -> ref
     local.field 1 16 0
     ref.cast 3
     local.get 2
-    call.indirect 26
+    call.indirect 18
     struct.new 13
     return
   end $L1
@@ -323,7 +320,7 @@ fn 7 std_iter$FilterIterator$Iterator$next__i32 (ref) -> ref
           local.field 3 16 0
           ref.cast 3
           local.get 4
-          call.indirect 27
+          call.indirect 20
           if $L5 void
             local.field 3 16 0
             ref.cast 3

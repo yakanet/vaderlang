@@ -52,5 +52,5 @@
               arg0:
                 __sb_0 :StringBuilder
     return int(0) :i32
-  struct snippet$Node__i32 { value: Any, next: Node<Any> | null }
+  struct snippet$Node__i32 { value: i32, next: Node<i32> | null }
   struct snippet$Node__Any { value: Any, next: Node<Any> | null }

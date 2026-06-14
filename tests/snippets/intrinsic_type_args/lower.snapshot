@@ -97,5 +97,5 @@
               arg0:
                 __sb_4 :StringBuilder
     return int(0) :i32
-  struct snippet$Pair__string__i64 { key: Any, value: Any }
+  struct snippet$Pair__string__i64 { key: string, value: i64 }
   struct snippet$Pair__Any__Any { key: Any, value: Any }

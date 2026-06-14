@@ -136,7 +136,7 @@
               arg0:
                 __sb_1 :StringBuilder
     return int(0) :i32
-  struct snippet$Repeat__i32 { value: Any, remaining: i32 }
+  struct snippet$Repeat__i32 { value: i32, remaining: i32 }
   fn snippet$Repeat$Iterator$next__i32(self: Repeat<i32>) -> null | Yield<i32>
     if :void
       cond:
@@ -289,7 +289,7 @@
                       ~>
                         unreachable("non-exhaustive match (T3013 should have caught this)") :void
     return result :i32 | null
-  struct snippet$Once__i32 { value: Any, yielded: bool }
+  struct snippet$Once__i32 { value: i32, yielded: bool }
   fn snippet$Once$Iterator$next__i32(self: Once<i32>) -> null | Yield<i32>
     if :void
       cond:

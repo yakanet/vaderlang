@@ -9,11 +9,11 @@ type 6 struct std_string_builder$StringBuilder { buf:9,len:4,cap:4 }
 type 7 array 8
 type 8 primitive u8
 type 9 struct std_core$Buffer {  }
-type 10 primitive u64
-type 11 struct std_core$Field { name:1,type:12 }
-type 12 ref _
-type 13 array 11
-type 14 primitive i64
+type 10 primitive i64
+type 11 primitive u64
+type 12 struct std_core$Field { name:1,type:13 }
+type 13 ref _
+type 14 array 12
 string 0 "\n"
 string 1 "0"
 string 2 ""
@@ -260,24 +260,24 @@ fn 6 snippet$main () -> i32
   local.set 0
   string.const 12
   local.get 0
-  struct.new_stack 11
+  struct.new_stack 12
   local.set 0
   type.const 3
   local.set 1
   string.const 13
   local.get 1
-  struct.new_stack 11
+  struct.new_stack 12
   local.set 1
   type.const 1
   local.set 2
   string.const 14
   local.get 2
-  struct.new_stack 11
+  struct.new_stack 12
   local.set 2
   local.get 0
   local.get 1
   local.get 2
-  array.new 13 3
+  array.new 14 3
   local.tee 0
   array.len
   local.set 3
@@ -291,11 +291,11 @@ fn 6 snippet$main () -> i32
       if $L2 void
         local.get 0
         local.get 4
-        array.get 13
+        array.get 14
         local.set 1
         call 1
         local.set 2
-        local.field 1 11 0
+        local.field 1 12 0
         ref.cast 1
         call 8
         local.set 5
@@ -305,7 +305,7 @@ fn 6 snippet$main () -> i32
         local.get 2
         string.const 15
         call 2
-        local.field 1 11 1
+        local.field 1 12 1
         intrinsic size_of.type
         call 7
         local.set 6
@@ -330,17 +330,17 @@ fn 6 snippet$main () -> i32
   local.set 0
   string.const 16
   local.get 0
-  struct.new_stack 11
+  struct.new_stack 12
   local.set 0
-  type.const 14
+  type.const 10
   local.set 1
   string.const 17
   local.get 1
-  struct.new_stack 11
+  struct.new_stack 12
   local.set 1
   local.get 0
   local.get 1
-  array.new 13 2
+  array.new 14 2
   local.tee 0
   array.len
   local.set 3
@@ -354,14 +354,14 @@ fn 6 snippet$main () -> i32
       if $L5 void
         local.get 0
         local.get 4
-        array.get 13
+        array.get 14
         local.set 1
         call 1
         local.set 2
         local.get 2
         string.const 18
         call 2
-        local.field 1 11 0
+        local.field 1 12 0
         ref.cast 1
         call 8
         local.set 5
@@ -371,7 +371,7 @@ fn 6 snippet$main () -> i32
         local.get 2
         string.const 15
         call 2
-        local.field 1 11 1
+        local.field 1 12 1
         intrinsic size_of.type
         call 7
         local.set 6

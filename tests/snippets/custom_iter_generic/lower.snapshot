@@ -64,7 +64,7 @@
               arg0:
                 __sb_2 :StringBuilder
     return int(0) :i32
-  struct snippet$Repeat__i32 { value: Any, remaining: i32 }
+  struct snippet$Repeat__i32 { value: i32, remaining: i32 }
   fn snippet$Repeat$Iterator$next__i32(self: Repeat<i32>) -> null | Yield<i32>
     if :void
       cond:

@@ -4,7 +4,7 @@ type 1 primitive bool
 type 2 primitive string
 type 3 primitive i32
 type 4 struct snippet$Box__Box_i32_ { value:6 }
-type 5 struct snippet$Box__i32 { value:6 }
+type 5 struct snippet$Box__i32 { value:3 }
 type 6 ref _
 type 7 primitive void
 type 8 primitive usize

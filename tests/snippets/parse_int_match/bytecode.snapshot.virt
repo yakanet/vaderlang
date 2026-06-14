@@ -7,22 +7,21 @@ type 4 ref Error
 type 5 primitive usize
 type 6 primitive bool
 type 7 primitive f64
-type 8 struct std_core$Range__char { start:20,end:20,inclusive:6,cursor:20 }
+type 8 struct std_core$Range__char { start:9,end:9,inclusive:6,cursor:9 }
 type 9 primitive char
 type 10 union 0,11
-type 11 struct std_core$Yield__char { value:20 }
-type 12 struct std_core$Range__i32 { start:20,end:20,inclusive:6,cursor:20 }
+type 11 struct std_core$Yield__char { value:9 }
+type 12 struct std_core$Range__i32 { start:3,end:3,inclusive:6,cursor:3 }
 type 13 union 0,14
-type 14 struct std_core$Yield__i32 { value:20 }
-type 15 struct std_core$Range__usize { start:20,end:20,inclusive:6,cursor:20 }
+type 14 struct std_core$Yield__i32 { value:3 }
+type 15 struct std_core$Range__usize { start:5,end:5,inclusive:6,cursor:5 }
 type 16 union 0,17
-type 17 struct std_core$Yield__usize { value:20 }
+type 17 struct std_core$Yield__usize { value:5 }
 type 18 array 19
 type 19 primitive u8
-type 20 ref _
-type 21 union 3,22
-type 22 struct std_string$ParseError { msg:1 }
-type 23 union 4,7
+type 20 union 3,21
+type 21 struct std_string$ParseError { msg:1 }
+type 22 union 4,7
 string 0 "\n"
 string 1 "42"
 string 2 "int ok"
@@ -130,7 +129,7 @@ fn 1 snippet$main () -> i32
       return
     end $L1
     local.get 1
-    type_check 22
+    type_check 21
     if $L8 void
       string.const 3
       call 0
@@ -187,7 +186,7 @@ fn 1 snippet$main () -> i32
     return
   end $L0
   local.get 0
-  type_check 22
+  type_check 21
   if $L15 void
     string.const 3
     call 0
@@ -249,7 +248,7 @@ fn 1 snippet$main () -> i32
       return
     end $L16
     local.get 1
-    type_check 22
+    type_check 21
     if $L23 void
       string.const 3
       call 0
@@ -340,7 +339,7 @@ fn 3 std_string$parse_int (string) -> ref
   i64.eq
   if $L0 void
     string.const 8
-    struct.new 22
+    struct.new 21
     return
   end $L0
   i64.const 0
@@ -369,7 +368,7 @@ fn 3 std_string$parse_int (string) -> ref
   u64.ge
   if $L2 void
     string.const 9
-    struct.new 22
+    struct.new 21
     return
   end $L2
   i64.const 0
@@ -404,7 +403,7 @@ fn 3 std_string$parse_int (string) -> ref
         local.get 8
         if $L7 void
           string.const 10
-          struct.new 22
+          struct.new 21
           return
         end $L7
         local.get 7
@@ -431,7 +430,7 @@ fn 3 std_string$parse_int (string) -> ref
           i64.gt
           if $L9 void
             string.const 11
-            struct.new 22
+            struct.new 21
             return
           end $L9
           i64.const 1
@@ -447,7 +446,7 @@ fn 3 std_string$parse_int (string) -> ref
         i64.gt
         if $L10 void
           string.const 11
-          struct.new 22
+          struct.new 21
           return
         end $L10
         i64.const 1

@@ -11,12 +11,11 @@ type 8 struct std_string_builder$StringBuilder { buf:11,len:4,cap:4 }
 type 9 array 10
 type 10 primitive u8
 type 11 struct std_core$Buffer {  }
-type 12 struct std_core$Range__char { start:16,end:16,inclusive:5,cursor:16 }
+type 12 struct std_core$Range__char { start:7,end:7,inclusive:5,cursor:7 }
 type 13 union 0,14
-type 14 struct std_core$Yield__char { value:16 }
+type 14 struct std_core$Yield__char { value:7 }
 type 15 primitive i64
-type 16 ref _
-type 17 union 14,0
+type 16 union 14,0
 string 0 "\n"
 string 1 "5 is digit"
 string 2 "a is not digit"

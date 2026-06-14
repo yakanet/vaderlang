@@ -11,19 +11,18 @@ type 8 array 9
 type 9 primitive u8
 type 10 primitive char
 type 11 struct std_core$Buffer {  }
-type 12 struct std_core$Range__char { start:22,end:22,inclusive:5,cursor:22 }
+type 12 struct std_core$Range__char { start:10,end:10,inclusive:5,cursor:10 }
 type 13 union 0,14
-type 14 struct std_core$Yield__char { value:22 }
-type 15 struct std_core$Range__i32 { start:22,end:22,inclusive:5,cursor:22 }
+type 14 struct std_core$Yield__char { value:10 }
+type 15 struct std_core$Range__i32 { start:3,end:3,inclusive:5,cursor:3 }
 type 16 union 0,17
-type 17 struct std_core$Yield__i32 { value:22 }
-type 18 struct std_core$Range__usize { start:22,end:22,inclusive:5,cursor:22 }
+type 17 struct std_core$Yield__i32 { value:3 }
+type 18 struct std_core$Range__usize { start:4,end:4,inclusive:5,cursor:4 }
 type 19 union 0,20
-type 20 struct std_core$Yield__usize { value:22 }
+type 20 struct std_core$Yield__usize { value:4 }
 type 21 primitive u64
-type 22 ref _
-type 23 union 24,8
-type 24 struct std_base64$Base64Error { msg:1 }
+type 22 union 23,8
+type 23 struct std_base64$Base64Error { msg:1 }
 string 0 "\n"
 string 1 "=ERR:"
 string 2 "="
@@ -92,7 +91,7 @@ impl 15 Iterator
 impl 18 Contains
 impl 18 Iterator
 impl 11 ByteAccess
-impl 24 Error
+impl 23 Error
 export main 2
 
 fn 0 std_io$std_io$println__string (string) -> void
@@ -116,7 +115,7 @@ fn 1 snippet$show_decode (string,string) -> void
   local.get 1
   call 14
   local.tee 2
-  type_check 24
+  type_check 23
   if $L0 void
     call 3
     local.set 3
@@ -317,7 +316,7 @@ fn 2 snippet$main () -> i32
         call 15
         call 14
         local.tee 4
-        type_check 24
+        type_check 23
         if $L3 void
           call 3
           local.set 5
@@ -930,7 +929,7 @@ fn 14 std_base64$decode (string) -> ref
   i64.ne
   if $L1 void
     string.const 38
-    struct.new 24
+    struct.new 23
     return
   end $L1
   i64.const 0
@@ -1082,7 +1081,7 @@ fn 14 std_base64$decode (string) -> ref
           call 4
           local.get 21
           call 8
-          struct.new 24
+          struct.new 23
           return
         end $L10
         local.get 9
@@ -1213,7 +1212,7 @@ fn 14 std_base64$decode (string) -> ref
   local.get 18
   if $L12 void
     string.const 40
-    struct.new 24
+    struct.new 23
     return
   end $L12
   local.get 9
@@ -1299,7 +1298,7 @@ fn 14 std_base64$decode (string) -> ref
     local.get 18
     if $L15 void
       string.const 40
-      struct.new 24
+      struct.new 23
       return
     end $L15
     local.get 9
@@ -1374,7 +1373,7 @@ fn 14 std_base64$decode (string) -> ref
     i32.lt
     if $L17 void
       string.const 41
-      struct.new 24
+      struct.new 23
       return
     end $L17
     local.get 9
@@ -1893,7 +1892,7 @@ fn 16 std_base64$decode_byte (u8) -> i32
 end
 
 fn 17 std_base64$Base64Error$Error$message (ref) -> string
-  local.field 0 24 0
+  local.field 0 23 0
   ref.cast 1
   return
 end

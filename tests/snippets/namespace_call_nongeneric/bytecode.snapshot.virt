@@ -5,19 +5,18 @@ type 2 primitive void
 type 3 primitive i32
 type 4 primitive usize
 type 5 primitive bool
-type 6 struct std_core$Range__char { start:18,end:18,inclusive:5,cursor:18 }
+type 6 struct std_core$Range__char { start:7,end:7,inclusive:5,cursor:7 }
 type 7 primitive char
 type 8 union 0,9
-type 9 struct std_core$Yield__char { value:18 }
-type 10 struct std_core$Range__i32 { start:18,end:18,inclusive:5,cursor:18 }
+type 9 struct std_core$Yield__char { value:7 }
+type 10 struct std_core$Range__i32 { start:3,end:3,inclusive:5,cursor:3 }
 type 11 union 0,12
-type 12 struct std_core$Yield__i32 { value:18 }
-type 13 struct std_core$Range__usize { start:18,end:18,inclusive:5,cursor:18 }
+type 12 struct std_core$Yield__i32 { value:3 }
+type 13 struct std_core$Range__usize { start:4,end:4,inclusive:5,cursor:4 }
 type 14 union 0,15
-type 15 struct std_core$Yield__usize { value:18 }
+type 15 struct std_core$Yield__usize { value:4 }
 type 16 array 17
 type 17 primitive u8
-type 18 ref _
 string 0 "\n"
 string 1 "  hi  "
 import 0 write std_io$write (i32,string) -> void

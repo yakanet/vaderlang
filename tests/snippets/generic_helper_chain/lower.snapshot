@@ -71,8 +71,8 @@
               arg0:
                 __sb_1 :StringBuilder
     return int(0) :i32
-  struct snippet$Box__i32 { value: Any }
-  struct snippet$Box__string { value: Any }
+  struct snippet$Box__i32 { value: i32 }
+  struct snippet$Box__string { value: string }
   struct snippet$Box__Box_i32_ { value: Any }
   struct snippet$Box__Box_string_ { value: Any }
   fn snippet$snippet$inner__i32(x: i32) -> i32

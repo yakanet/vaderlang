@@ -11,9 +11,9 @@ type 8 array 9
 type 9 primitive u8
 type 10 struct std_core$Buffer {  }
 type 11 array 3
-type 12 struct std_core$Range__usize { start:22,end:22,inclusive:5,cursor:22 }
+type 12 struct std_core$Range__usize { start:4,end:4,inclusive:5,cursor:4 }
 type 13 union 0,14
-type 14 struct std_core$Yield__usize { value:22 }
+type 14 struct std_core$Yield__usize { value:4 }
 type 15 primitive i8
 type 16 primitive i16
 type 17 primitive i64
@@ -21,10 +21,9 @@ type 18 primitive isize
 type 19 primitive u16
 type 20 primitive u32
 type 21 primitive u64
-type 22 ref _
-type 23 struct __lambda_env_7 {  }
-type 24 struct snippet$Counter { n:4,delta:18 }
-type 25 fn () -> 4
+type 22 struct __lambda_env_7 {  }
+type 23 struct snippet$Counter { n:4,delta:18 }
+type 24 fn () -> 4
 string 0 "\n"
 string 1 "0"
 string 2 ""
@@ -759,14 +758,14 @@ fn 20 snippet$main () -> i32
   local.set 11
   local.get 12
   local.get 11
-  struct.new_stack 24
+  struct.new_stack 23
   local.set 9
   call 1
   local.set 15
   local.get 15
   string.const 17
   call 2
-  local.field 9 24 0
+  local.field 9 23 0
   ref.cast 4
   call 16
   local.set 10
@@ -776,7 +775,7 @@ fn 20 snippet$main () -> i32
   local.get 15
   string.const 18
   call 2
-  local.field 9 24 1
+  local.field 9 23 1
   ref.cast 18
   call 11
   local.set 10
@@ -843,8 +842,8 @@ fn 20 snippet$main () -> i32
   local.get 15
   call 5
   call 0
-  struct.new 23
-  make_closure 21 25
+  struct.new 22
+  make_closure 21 24
   local.set 9
   call 1
   local.set 15
@@ -852,7 +851,7 @@ fn 20 snippet$main () -> i32
   string.const 22
   call 2
   local.get 9
-  call.indirect 25
+  call.indirect 24
   call 16
   local.set 10
   local.get 15

@@ -9,17 +9,16 @@ type 6 struct std_string_builder$StringBuilder { buf:9,len:4,cap:4 }
 type 7 array 8
 type 8 primitive u8
 type 9 struct std_core$Buffer {  }
-type 10 struct std_core$Range__char { start:20,end:20,inclusive:5,cursor:20 }
+type 10 struct std_core$Range__char { start:11,end:11,inclusive:5,cursor:11 }
 type 11 primitive char
 type 12 union 0,13
-type 13 struct std_core$Yield__char { value:20 }
-type 14 struct std_core$Range__i32 { start:20,end:20,inclusive:5,cursor:20 }
+type 13 struct std_core$Yield__char { value:11 }
+type 14 struct std_core$Range__i32 { start:3,end:3,inclusive:5,cursor:3 }
 type 15 union 0,16
-type 16 struct std_core$Yield__i32 { value:20 }
-type 17 struct std_core$Range__usize { start:20,end:20,inclusive:5,cursor:20 }
+type 16 struct std_core$Yield__i32 { value:3 }
+type 17 struct std_core$Range__usize { start:4,end:4,inclusive:5,cursor:4 }
 type 18 union 0,19
-type 19 struct std_core$Yield__usize { value:20 }
-type 20 ref _
+type 19 struct std_core$Yield__usize { value:4 }
 string 0 "\n"
 string 1 "vader"
 string 2 "héllo café 你好"

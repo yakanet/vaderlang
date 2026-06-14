@@ -1,13 +1,12 @@
 module _main
 type 0 primitive null
 type 1 primitive i32
-type 2 struct std_core$Range__i32 { start:8,end:8,inclusive:3,cursor:8 }
+type 2 struct std_core$Range__i32 { start:1,end:1,inclusive:3,cursor:1 }
 type 3 primitive bool
 type 4 union 0,5
-type 5 struct std_core$Yield__i32 { value:8 }
+type 5 struct std_core$Yield__i32 { value:1 }
 type 6 primitive usize
 type 7 union 1,0
-type 8 ref _
 impl 2 Contains
 impl 2 Iterator
 

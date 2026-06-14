@@ -11,12 +11,11 @@ type 8 array 9
 type 9 primitive u8
 type 10 struct std_core$Buffer {  }
 type 11 primitive i64
-type 12 struct std_core$Yield__i32 { value:13 }
-type 13 ref _
-type 14 ref Iterator
-type 15 struct snippet$Repeat__i32 { value:13,remaining:3 }
-type 16 union 0,12
-type 17 struct snippet$Once__i32 { value:13,yielded:5 }
+type 12 struct std_core$Yield__i32 { value:3 }
+type 13 ref Iterator
+type 14 struct snippet$Repeat__i32 { value:3,remaining:3 }
+type 15 union 0,12
+type 16 struct snippet$Once__i32 { value:3,yielded:5 }
 string 0 "\n"
 string 1 "0"
 string 2 ""
@@ -37,10 +36,10 @@ import 1 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 2 bytes std_core$bytes (string) -> ref
 impl 7 Display
 impl 10 ByteAccess
-impl 15 Iterator
-impl 17 Iterator
-vtable Iterator.next 15 11
-vtable Iterator.next 17 12
+impl 14 Iterator
+impl 16 Iterator
+vtable Iterator.next 14 11
+vtable Iterator.next 16 12
 export main 10
 
 fn 0 std_io$std_io$println__string (string) -> void
@@ -413,11 +412,11 @@ fn 10 snippet$main () -> i32
   local $call_12 string
   i32.const 7
   i32.const 3
-  struct.new 15
+  struct.new 14
   local.set 0
   i32.const 100
   bool.const false
-  struct.new 17
+  struct.new 16
   local.set 1
   call 1
   local.set 2
@@ -455,7 +454,7 @@ end
 fn 11 snippet$Repeat$Iterator$next__i32 (ref) -> ref
   local $field_1 i32
   local $field_7 i32
-  local.field 0 15 1
+  local.field 0 14 1
   ref.cast 3
   local.set 1
   local.get 1
@@ -464,10 +463,10 @@ fn 11 snippet$Repeat$Iterator$next__i32 (ref) -> ref
   if $L0 void
     return.lit null.const
   end $L0
-  local.field 0 15 0
+  local.field 0 14 0
   ref.cast 3
   local.set 1
-  local.field 0 15 1
+  local.field 0 14 1
   ref.cast 3
   local.set 2
   local.get 2
@@ -476,22 +475,22 @@ fn 11 snippet$Repeat$Iterator$next__i32 (ref) -> ref
   local.set 2
   local.get 0
   local.get 2
-  struct.set 15 1
+  struct.set 14 1
   local.get 1
   struct.new 12
   return
 end
 
 fn 12 snippet$Once$Iterator$next__i32 (ref) -> ref
-  local.field 0 17 1
+  local.field 0 16 1
   ref.cast 5
   if $L0 void
     return.lit null.const
   end $L0
   local.get 0
   bool.const true
-  struct.set 17 1
-  local.field 0 17 0
+  struct.set 16 1
+  local.field 0 16 0
   ref.cast 3
   struct.new 12
   return

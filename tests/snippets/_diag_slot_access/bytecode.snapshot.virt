@@ -10,20 +10,19 @@ type 7 struct std_string_builder$StringBuilder { buf:10,len:4,cap:4 }
 type 8 array 9
 type 9 primitive u8
 type 10 struct std_core$Buffer {  }
-type 11 struct std_core$Range__i32 { start:20,end:20,inclusive:5,cursor:20 }
+type 11 struct std_core$Range__i32 { start:3,end:3,inclusive:5,cursor:3 }
 type 12 union 0,13
-type 13 struct std_core$Yield__i32 { value:20 }
+type 13 struct std_core$Yield__i32 { value:3 }
 type 14 primitive i64
 type 15 primitive f64
 type 16 primitive u64
 type 17 struct std_core$Dec64 { mantissa:16,exp:3 }
 type 18 struct __Tuple_23 { _0:16,_1:16,_2:16 }
 type 19 struct __Tuple_24 { _0:16,_1:16 }
-type 20 ref _
-type 21 array 3
-type 22 array 14
-type 23 array 15
-type 24 array 16
+type 20 array 3
+type 21 array 14
+type 22 array 15
+type 23 array 16
 string 0 "\n"
 string 1 "xs="
 string 2 ","
@@ -93,7 +92,7 @@ fn 1 snippet$main () -> i32
   i32.const 1
   i32.const 2
   i32.const 3
-  array.new 21 3
+  array.new 20 3
   local.set 0
   local.get 0
   i32.const 0
@@ -152,7 +151,7 @@ fn 1 snippet$main () -> i32
   i64.const 10
   i64.const 20
   i64.const 30
-  array.new 22 3
+  array.new 21 3
   local.set 3
   local.get 3
   i32.const 0
@@ -188,7 +187,7 @@ fn 1 snippet$main () -> i32
   call 0
   f64.const 1.5 4609434218613702656
   f64.const 2.5 4612811918334230528
-  array.new 23 2
+  array.new 22 2
   local.set 3
   local.get 3
   i32.const 1
@@ -227,7 +226,7 @@ fn 1 snippet$main () -> i32
   local.get 0
   local.get 9
   local.get 10
-  array.slice 21
+  array.slice 20
   local.set 0
   call 2
   local.set 3
@@ -2219,7 +2218,7 @@ fn 13 std_core$d2d (u64,u64) -> ref
     local.get 351
     local.get 352
     local.get 353
-    array.new 24 342
+    array.new 23 342
     local.set 354
     local.get 13
     i32.to_i64
@@ -3254,7 +3253,7 @@ fn 13 std_core$d2d (u64,u64) -> ref
     local.get 357
     local.get 358
     local.get 359
-    array.new 24 342
+    array.new 23 342
     local.set 354
     local.get 13
     i32.to_i64
@@ -4353,7 +4352,7 @@ fn 13 std_core$d2d (u64,u64) -> ref
     local.get 338
     local.get 339
     local.get 340
-    array.new 24 326
+    array.new 23 326
     local.set 354
     local.get 2
     i32.to_i64
@@ -5340,7 +5339,7 @@ fn 13 std_core$d2d (u64,u64) -> ref
     local.get 339
     local.get 340
     local.get 341
-    array.new 24 326
+    array.new 23 326
     local.set 354
     local.get 2
     i32.to_i64

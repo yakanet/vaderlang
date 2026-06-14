@@ -36,14 +36,14 @@ struct vader_struct___Tuple_20_t {
 };
 struct vader_struct_std_core_Range__usize_t {
     vader_obj_header_t header;
-    vader_box_t f_start;
-    vader_box_t f_end;
+    size_t f_start;
+    size_t f_end;
     bool f_inclusive;
-    vader_box_t f_cursor;
+    size_t f_cursor;
 };
 struct vader_struct_std_core_Yield__usize_t {
     vader_obj_header_t header;
-    vader_box_t f_value;
+    size_t f_value;
 };
 
 /* Compile-time atom table — see docs/ATOM_INTERNING.md. */
@@ -146,10 +146,8 @@ static const uint16_t vader_type_14_strs[] = { offsetof(vader_struct___Tuple_18_
 static const uint16_t vader_type_15_ptrs[] = { offsetof(vader_array_t, buf) };
 static const uint16_t vader_type_16_strs[] = { offsetof(vader_struct___Tuple_20_t, f__1) };
 static const uint16_t vader_type_17_ptrs[] = { offsetof(vader_fn_t, env) };
-static const uint16_t vader_type_18_ptrs[] = { offsetof(vader_struct_std_core_Range__usize_t, f_start), offsetof(vader_struct_std_core_Range__usize_t, f_end), offsetof(vader_struct_std_core_Range__usize_t, f_cursor) };
-static const uint16_t vader_type_20_ptrs[] = { offsetof(vader_struct_std_core_Yield__usize_t, f_value) };
 
-const vader_type_info_t vader_type_info_table[24] = {
+const vader_type_info_t vader_type_info_table[23] = {
     [6] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_6_ptrs, 1, 0, NULL, 0, NULL },
     [7] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___lambda_env_18_t), NULL, 0, 0, NULL, 0, NULL },
     [8] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_8_ptrs, 1, 0, NULL, 0, NULL },
@@ -161,12 +159,12 @@ const vader_type_info_t vader_type_info_table[24] = {
     [15] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_15_ptrs, 1, 0, NULL, 0, NULL },
     [16] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___Tuple_20_t), NULL, 0, 1, vader_type_16_strs, 0, NULL },
     [17] = { VADER_TYPE_KIND_FN, sizeof(vader_fn_t), vader_type_17_ptrs, 1, 0, NULL, 0, NULL },
-    [18] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Range__usize_t), vader_type_18_ptrs, 3, 0, NULL, 0, NULL },
-    [20] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Yield__usize_t), vader_type_20_ptrs, 1, 0, NULL, 0, NULL },
+    [18] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Range__usize_t), NULL, 0, 0, NULL, 0, NULL },
+    [20] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_core_Yield__usize_t), NULL, 0, 0, NULL, 0, NULL },
 };
-const size_t vader_type_info_count = 24;
+const size_t vader_type_info_count = 23;
 
-const size_t vader_type_size[24] = {
+const size_t vader_type_size[23] = {
     [0] = 0u,
     [1] = 16u,
     [2] = 0u,
@@ -190,7 +188,6 @@ const size_t vader_type_size[24] = {
     [20] = 16u,
     [21] = 8u,
     [22] = 8u,
-    [23] = 16u,
 };
 
 

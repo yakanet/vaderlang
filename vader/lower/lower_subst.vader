@@ -194,6 +194,33 @@ build_any_subst :: fn(sd: StructDecl, owner_typed: TypedProgram) -> Substitution
     return subst
 }
 
+/// Mixed struct-layout subst (.NET model, P2 — the box-vs-raw FIELD flip). Maps
+/// each of `sd`'s type-params POSITIONALLY to its concrete instance arg WHEN that
+/// arg is a `PrimitiveType` (so a primitive field lands RAW — `Entry.key : string`
+/// / `i32`, not a boxed `Any`), else to `TY_ANY` (reference fields stay uniform-
+/// pointer). The instance MANGLE is unchanged (`mangle_struct_instance` →
+/// `args_suffix(inst.args)` already renders a ref arg's pre-erased `Any`, e.g.
+/// `Entry__string__Any`), so this only changes the FIELD types, matching the mixed
+/// accessors P1 materialises (`put__string__Any` / `grow__string__Any` read
+/// `e.key` as `string`). SOUNDNESS depends on EVERY accessor being mixed — an
+/// erased `__Any` reader of a now-raw field is the Inc-3 `Hash.hash` trap; P1
+/// closed that. Mirror of `build_any_subst` + `build_fn_mixed_subst`'s primitive-
+/// or-Any choice.
+build_struct_mixed_subst :: fn(sd: StructDecl, owner_typed: TypedProgram, args: Type[]) -> Substitution {
+    subst :: new_substitution()
+    i: usize = 0
+    for tp in sd.type_params {
+        if i >= args.len() { break }
+        tp_symbol :: find_type_param_in_resolved(owner_typed.resolved, tp.name, tp.span)
+        if !(tp_symbol is null) {
+            arg :: args[i]
+            if arg is PrimitiveType { subst.type_params[tp_symbol.id] = arg } else { subst.type_params[tp_symbol.id] = TY_ANY }
+        }
+        i += 1
+    }
+    return subst
+}
+
 
 resolve_field_type :: fn(
     ty: TypeExpr, owner_typed: TypedProgram, sd: StructDecl, args: Type[],

@@ -15,18 +15,17 @@ type 12 struct std_string_builder$StringBuilder { buf:15,len:4,cap:4 }
 type 13 array 14
 type 14 primitive u8
 type 15 struct std_core$Buffer {  }
-type 16 struct std_core$Range__char { start:27,end:27,inclusive:5,cursor:27 }
+type 16 struct std_core$Range__char { start:17,end:17,inclusive:5,cursor:17 }
 type 17 primitive char
 type 18 union 0,19
-type 19 struct std_core$Yield__char { value:27 }
-type 20 struct std_core$Range__i32 { start:27,end:27,inclusive:5,cursor:27 }
+type 19 struct std_core$Yield__char { value:17 }
+type 20 struct std_core$Range__i32 { start:3,end:3,inclusive:5,cursor:3 }
 type 21 union 0,22
-type 22 struct std_core$Yield__i32 { value:27 }
-type 23 struct std_core$Range__usize { start:27,end:27,inclusive:5,cursor:27 }
+type 22 struct std_core$Yield__i32 { value:3 }
+type 23 struct std_core$Range__usize { start:4,end:4,inclusive:5,cursor:4 }
 type 24 union 0,25
-type 25 struct std_core$Yield__usize { value:27 }
+type 25 struct std_core$Yield__usize { value:4 }
 type 26 primitive i64
-type 27 ref _
 string 0 "\n"
 string 1 "deterministic="
 string 2 "zero_seed_nonzero="

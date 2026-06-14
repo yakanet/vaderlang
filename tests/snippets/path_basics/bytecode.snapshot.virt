@@ -11,19 +11,18 @@ type 8 struct std_string_builder$StringBuilder { buf:11,len:4,cap:4 }
 type 9 array 10
 type 10 primitive u8
 type 11 struct std_core$Buffer {  }
-type 12 struct std_core$Range__char { start:22,end:22,inclusive:5,cursor:22 }
+type 12 struct std_core$Range__char { start:13,end:13,inclusive:5,cursor:13 }
 type 13 primitive char
 type 14 union 0,15
-type 15 struct std_core$Yield__char { value:22 }
-type 16 struct std_core$Range__i32 { start:22,end:22,inclusive:5,cursor:22 }
+type 15 struct std_core$Yield__char { value:13 }
+type 16 struct std_core$Range__i32 { start:3,end:3,inclusive:5,cursor:3 }
 type 17 union 0,18
-type 18 struct std_core$Yield__i32 { value:22 }
-type 19 struct std_core$Range__usize { start:22,end:22,inclusive:5,cursor:22 }
+type 18 struct std_core$Yield__i32 { value:3 }
+type 19 struct std_core$Range__usize { start:4,end:4,inclusive:5,cursor:4 }
 type 20 union 0,21
-type 21 struct std_core$Yield__usize { value:22 }
-type 22 ref _
-type 23 primitive isize
-type 24 struct __Tuple_34 { _0:13,_1:4 }
+type 21 struct std_core$Yield__usize { value:4 }
+type 22 primitive isize
+type 23 struct __Tuple_34 { _0:13,_1:4 }
 string 0 "\n"
 string 1 "="
 string 2 "src/parser/expr.ts"
@@ -1498,10 +1497,10 @@ fn 24 std_string$last_index_of (string,char,isize) -> isize
         local.get 6
         call 28
         local.set 7
-        local.field 7 24 0
+        local.field 7 23 0
         ref.cast 13
         local.set 8
-        local.field 7 24 1
+        local.field 7 23 1
         ref.cast 4
         local.set 9
         local.get 6
@@ -1699,7 +1698,7 @@ fn 28 std_string$decode_codepoint_at (ref,usize) -> ref
   local.set 3
   local.get 2
   local.get 3
-  struct.new 24
+  struct.new 23
   return
 end
 

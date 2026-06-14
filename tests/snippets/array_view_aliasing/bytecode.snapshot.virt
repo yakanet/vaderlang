@@ -10,12 +10,11 @@ type 7 struct std_string_builder$StringBuilder { buf:10,len:4,cap:4 }
 type 8 array 9
 type 9 primitive u8
 type 10 struct std_core$Buffer {  }
-type 11 struct std_core$Range__i32 { start:15,end:15,inclusive:5,cursor:15 }
+type 11 struct std_core$Range__i32 { start:3,end:3,inclusive:5,cursor:3 }
 type 12 union 0,13
-type 13 struct std_core$Yield__i32 { value:15 }
+type 13 struct std_core$Yield__i32 { value:3 }
 type 14 primitive i64
-type 15 ref _
-type 16 array 3
+type 15 array 3
 string 0 "\n"
 string 1 "after view[1]=99"
 string 2 "arr[0]="
@@ -273,7 +272,7 @@ fn 6 snippet$main () -> i32
   i32.const 30
   i32.const 40
   i32.const 50
-  array.new 16 5
+  array.new 15 5
   local.set 0
   i32.const 1
   i32.to_i64
@@ -284,7 +283,7 @@ fn 6 snippet$main () -> i32
   local.get 0
   local.get 1
   local.get 2
-  array.slice 16
+  array.slice 15
   local.set 3
   local.get 3
   i32.const 1

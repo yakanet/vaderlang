@@ -11,18 +11,18 @@ type 8 primitive u64
 type 9 primitive f64
 type 10 primitive char
 type 11 primitive i32
-type 12 struct std_core$Range__char { start:5,end:5,inclusive:13,cursor:5 }
+type 12 struct std_core$Range__char { start:10,end:10,inclusive:13,cursor:10 }
 type 13 primitive bool
 type 14 union 0,15
-type 15 struct std_core$Yield__char { value:5 }
+type 15 struct std_core$Yield__char { value:10 }
 type 16 primitive usize
-type 17 struct std_core$Range__i32 { start:5,end:5,inclusive:13,cursor:5 }
+type 17 struct std_core$Range__i32 { start:11,end:11,inclusive:13,cursor:11 }
 type 18 union 0,19
-type 19 struct std_core$Yield__i32 { value:5 }
+type 19 struct std_core$Yield__i32 { value:11 }
 type 20 union 11,0
-type 21 struct std_core$Range__usize { start:5,end:5,inclusive:13,cursor:5 }
+type 21 struct std_core$Range__usize { start:16,end:16,inclusive:13,cursor:16 }
 type 22 union 0,23
-type 23 struct std_core$Yield__usize { value:5 }
+type 23 struct std_core$Yield__usize { value:16 }
 type 24 array 25
 type 25 primitive u8
 type 26 struct std_core$Dec64 { mantissa:8,exp:11 }
@@ -52,30 +52,33 @@ type 49 union 37,38
 type 50 union 37,39
 type 51 union 37,0
 type 52 array 42
-type 53 struct std_collections$MutableMap__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString { buckets:60,size:16 }
+type 53 struct std_collections$MutableMap__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString { buckets:63,size:16 }
 type 54 struct std_collections$MutableMap__i32__bool { buckets:60,size:16 }
 type 55 union 13,0
-type 56 struct std_collections$MutableMap__string__Any___Any___Any___Any___Any___Any { buckets:60,size:16 }
+type 56 struct std_collections$MutableMap__string__Any___Any___Any___Any___Any___Any { buckets:63,size:16 }
 type 57 union 5,0
-type 58 struct std_collections$MutableMap__string__i32 { buckets:60,size:16 }
-type 59 struct std_collections$MutableMap__string__Any { buckets:60,size:16 }
+type 58 struct std_collections$MutableMap__string__i32 { buckets:66,size:16 }
+type 59 struct std_collections$MutableMap__string__Any { buckets:63,size:16 }
 type 60 array 61
 type 61 union 62,0
-type 62 struct std_collections$Entry__Any__Any { key:5,value:5,next:61 }
-type 63 struct std_collections$Entry__string__Any { key:5,value:5,next:61 }
-type 64 struct std_collections$Entry__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString { key:5,value:5,next:61 }
-type 65 array 10
-type 66 array 8
-type 67 array 68
-type 68 union 69,0
-type 69 ref Entry
-type 70 array 71
-type 71 struct __Tuple_95 { _0:1,_1:42 }
-type 72 union 15,0
-type 73 array 74
-type 74 union 63,0
+type 62 struct std_collections$Entry__i32__bool { key:11,value:13,next:61 }
+type 63 array 64
+type 64 union 65,0
+type 65 struct std_collections$Entry__string__Any { key:1,value:5,next:64 }
+type 66 array 67
+type 67 union 68,0
+type 68 struct std_collections$Entry__string__i32 { key:1,value:11,next:67 }
+type 69 struct std_collections$Entry__string__JsonArray___JsonBool___JsonNull___JsonNumber___JsonObject___JsonString { key:1,value:5,next:64 }
+type 70 array 10
+type 71 array 8
+type 72 array 73
+type 73 union 74,0
+type 74 ref Entry
 type 75 array 76
-type 76 union 64,0
+type 76 struct __Tuple_102 { _0:1,_1:42 }
+type 77 union 15,0
+type 78 array 79
+type 79 union 69,0
 string 0 "0"
 string 1 ".0"
 string 2 "nan"
@@ -270,7 +273,7 @@ fn 1 std_numbers$to_hex (u64) -> string
   if $L0 void
     return.lit string.const 0
   end $L0
-  array.new 65 0
+  array.new 70 0
   local.set 2
   i64.const 16
   local.set 1
@@ -2483,7 +2486,7 @@ fn 15 std_core$d2d (u64,u64) -> ref
     local.get 351
     local.get 352
     local.get 353
-    array.new 66 342
+    array.new 71 342
     local.set 354
     local.get 13
     i32.to_i64
@@ -3518,7 +3521,7 @@ fn 15 std_core$d2d (u64,u64) -> ref
     local.get 357
     local.get 358
     local.get 359
-    array.new 66 342
+    array.new 71 342
     local.set 354
     local.get 13
     i32.to_i64
@@ -4617,7 +4620,7 @@ fn 15 std_core$d2d (u64,u64) -> ref
     local.get 338
     local.get 339
     local.get 340
-    array.new 66 326
+    array.new 71 326
     local.set 354
     local.get 2
     i32.to_i64
@@ -5604,7 +5607,7 @@ fn 15 std_core$d2d (u64,u64) -> ref
     local.get 339
     local.get 340
     local.get 341
-    array.new 66 326
+    array.new 71 326
     local.set 354
     local.get 2
     i32.to_i64
@@ -8195,7 +8198,7 @@ fn 51 std_json$parse_object (ref) -> ref
     local.get 1
     return
   end $L0
-  array.new 67 0
+  array.new 72 0
   local.set 1
   i64.const 0
   local.set 2
@@ -9037,12 +9040,12 @@ fn 57 std_json$write_object (ref,ref,i32,i32) -> void
       if $L3 void
         local.get 6
         local.get 5
-        array.get 70
+        array.get 75
         local.set 7
-        local.field 7 71 0
+        local.field 7 76 0
         ref.cast 1
         local.set 9
-        local.field 7 71 1
+        local.field 7 76 1
         local.set 10
         local.get 8
         bool.not
@@ -10273,7 +10276,7 @@ fn 78 std_collections$std_collections$put__string__Any (ref,string,ref) -> void
   local.set 5
   local.field 0 59 0
   local.get 5
-  array.get 73
+  array.get 63
   local.set 6
   bool.const false
   local.set 7
@@ -10293,24 +10296,24 @@ fn 78 std_collections$std_collections$put__string__Any (ref,string,ref) -> void
           br $L1
         end $L3
         local.get 9
-        type_check 63
+        type_check 65
         if $L4 void
           local.get 6
-          struct.get 63 0
+          struct.get 65 0
           ref.cast 1
           local.get 1
           string.eq
           if $L5 void
             local.get 6
             local.get 2
-            struct.set 63 1
+            struct.set 65 1
             bool.const true
             local.set 8
             bool.const true
             local.set 7
           else
             local.get 6
-            struct.get 63 2
+            struct.get 65 2
             local.set 6
           end $L5
           br $L1
@@ -10326,17 +10329,17 @@ fn 78 std_collections$std_collections$put__string__Any (ref,string,ref) -> void
   end $L6
   local.field 0 59 0
   local.get 5
-  array.get 73
+  array.get 63
   local.set 6
   local.get 1
   local.get 2
   local.get 6
-  struct.new 63
+  struct.new 65
   local.set 6
   local.field 0 59 0
   local.get 5
   local.get 6
-  array.set 73
+  array.set 63
   local.field 0 59 1
   ref.cast 16
   local.set 4
@@ -10410,7 +10413,7 @@ fn 80 std_collections$std_collections$grow__string__Any (ref) -> void
   local.get 3
   i64.mul
   local.set 2
-  array.new 73 0
+  array.new 63 0
   local.set 4
   i64.const 0
   local.set 3
@@ -10448,7 +10451,7 @@ fn 80 std_collections$std_collections$grow__string__Any (ref) -> void
       if $L5 void
         local.get 1
         local.get 5
-        array.get 73
+        array.get 63
         local.set 6
         bool.const false
         local.set 7
@@ -10466,13 +10469,13 @@ fn 80 std_collections$std_collections$grow__string__Any (ref) -> void
                 br $L7
               end $L9
               local.get 8
-              type_check 63
+              type_check 65
               if $L10 void
                 local.get 8
                 local.set 9
-                local.field 9 63 2
+                local.field 9 65 2
                 local.set 6
-                local.field 9 63 0
+                local.field 9 65 0
                 ref.cast 1
                 call 9
                 local.get 2
@@ -10480,15 +10483,15 @@ fn 80 std_collections$std_collections$grow__string__Any (ref) -> void
                 local.set 10
                 local.get 4
                 local.get 10
-                array.get 73
+                array.get 63
                 local.set 11
                 local.get 9
                 local.get 11
-                struct.set 63 2
+                struct.set 65 2
                 local.get 4
                 local.get 10
                 local.get 9
-                array.set 73
+                array.set 63
                 br $L7
               end $L10
               return
@@ -10545,7 +10548,7 @@ fn 82 std_collections$std_collections$keys__string__JsonArray___JsonBool___JsonN
       if $L2 void
         local.get 2
         local.get 4
-        array.get 75
+        array.get 78
         local.set 5
         bool.const false
         local.set 6
@@ -10563,17 +10566,17 @@ fn 82 std_collections$std_collections$keys__string__JsonArray___JsonBool___JsonN
                 br $L4
               end $L6
               local.get 7
-              type_check 64
+              type_check 69
               if $L7 void
                 local.get 5
-                struct.get 64 0
+                struct.get 69 0
                 ref.cast 1
                 local.set 8
                 local.get 1
                 local.get 8
                 array.push 1
                 local.get 5
-                struct.get 64 2
+                struct.get 69 2
                 local.set 5
                 br $L4
               end $L7
@@ -10623,7 +10626,7 @@ fn 83 std_collections$std_collections$values__string__JsonArray___JsonBool___Jso
       if $L2 void
         local.get 2
         local.get 4
-        array.get 75
+        array.get 78
         local.set 5
         bool.const false
         local.set 6
@@ -10641,16 +10644,16 @@ fn 83 std_collections$std_collections$values__string__JsonArray___JsonBool___Jso
                 br $L4
               end $L6
               local.get 7
-              type_check 64
+              type_check 69
               if $L7 void
                 local.get 5
-                struct.get 64 1
+                struct.get 69 1
                 local.set 8
                 local.get 1
                 local.get 8
                 array.push 42
                 local.get 5
-                struct.get 64 2
+                struct.get 69 2
                 local.set 5
                 br $L4
               end $L7

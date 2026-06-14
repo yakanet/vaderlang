@@ -7,14 +7,13 @@ type 4 primitive usize
 type 5 array 1
 type 6 struct snippet$Countdown { current:3 }
 type 7 union 0,8
-type 8 struct std_core$Yield__i32 { value:14 }
+type 8 struct std_core$Yield__i32 { value:3 }
 type 9 struct std_string_builder$StringBuilder { buf:12,len:4,cap:4 }
 type 10 array 11
 type 11 primitive u8
 type 12 struct std_core$Buffer {  }
 type 13 primitive i64
-type 14 ref _
-type 15 union 8,0
+type 14 union 8,0
 string 0 "\n"
 string 1 "0"
 string 2 ""
