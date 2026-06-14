@@ -12,8 +12,12 @@ each backend must provide. Everything above the ABI is written **once in
 Vader** (stdlib) and compiled to the ABI, so a new target only implements the
 primitives.
 
-This is a design note / roadmap — no code is changed by it. Architectural
-decisions here are reviewed with the user before implementation
+This started as a design note / roadmap ; most of it has since shipped
+(`feat/target-abi`, stages S0–S7). The Builder, String, and number-format
+families are off the per-target runtime ; the Array family is open-coded in
+c-emit over the kept storage layout. See **"Achieved end state (2026-06-14)"**
+under the Phased plan for the realized surface and what is kept by design.
+Architectural decisions here are reviewed with the user before implementation
 (`.claude/CLAUDE.md` §8).
 
 ## Two kinds of "intrinsic"
@@ -205,28 +209,82 @@ first move.
 
 ## Phased plan
 
-Low risk first ; each phase is independently shippable.
+Low risk first ; each phase is independently shippable. (Implementation shipped
+as finer stages S0–S7 on `feat/target-abi` ; the per-phase status below maps
+them back to these four phases. The detailed stage log lives in the local plan
+`.claude/plans/target-abi-migration.md`.)
 
 - **Phase 0 — Document the ABI (this doc).** Freeze the primitive list. No code.
+  **✅ DONE.**
 - **Phase 1 — Number formatting → Vader.** Reimplement `Display` for the
   primitive numerics (`i8..i64`, `u8..u64`, `f32`, `f64`, `bool`, `char`) in
   `std` over byte append. Collapses the `vader_builder_append_display_*` family.
-  Pure arithmetic, no GC/ABI change — needs only string-concat or a byte sink.
-  **Do this first.**
+  **✅ DONE (S0/S1 + the §1.13 Ryū `f64`/`f32` shortest-double port).** All
+  numeric `Display` is pure Vader ; the 9 `vader_builder_append_display_*`
+  helpers are gone.
 - **Phase 2 — Memory opcodes + StringBuilder.** Add the `(object, offset)`
   load/store opcodes to the ABI (VM + C-emit) + the abstract `Buffer` type whose
   `@intrinsic` methods lower to them. Reimplement `std/string_builder` in Vader
   over `Buffer`. Retire the `Builder*` opcodes + `vader_builder_*`.
+  **✅ DONE (S2/S2b/S3/S4).** 12 memory opcodes shipped ; `Buffer` (an opaque
+  handle, raw ops are `@intrinsic`-marked impl members — the front-end never
+  forms a pointer) ; StringBuilder + interpolation run over it ; the four
+  `Builder*` opcodes + `vader_builder_*` runtime deleted outright (D10).
 - **Phase 3 — Array ops → Vader.** `push/get/set/len/slice` over the memory
   opcodes (+ bounds checks, grow, slice-as-aliasing-header). Retire the `Array*`
   opcodes + most `vader_array_*`. Gated on the inliner (see caveats).
+  **◑ PARTIAL (S5 + C2 + op B).** The "all-or-nothing Array-over-Buffer per
+  array" design was NOT what shipped — instead the accessors are **open-coded in
+  c-emit over the existing `vader_array_t` layout**, which keeps the
+  runtime-kind-tagged storage that lets erased generic code interoperate with
+  concrete code. Shipped: `arr[i]`/`arr[i]=v` for concrete primitive widths
+  (i32/u32/char/i64/u64/usize/f64) → typed `LoadSlot*`/`StoreSlot*` (A2) ;
+  array-literal construction fills those same kinds via a typed raw store (C2) ;
+  `len` open-coded as the header read ; **boxed (ref/struct/string/Any) `arr[i]`
+  access inlined** to `vader_array_box_slots(buf)[i]` (op B). The soundness
+  boundary that forced this: an array's runtime `element_kind` is fixed at
+  construction, so a *static-type-directed* boxed slot read is unsound under
+  erasure unless no concrete-primitive array reaches a `Any`-static site — C2
+  establishes exactly that (probe-verified, 240k→0). `vader_array_get` calls in
+  the compiler's own emitted C: **2104 → 156**. NOT retired: the runtime
+  `vader_array_*` family stays (sub-word u8/u16/i16/f32 access + the borrowed
+  `bytes()` view + Boxed construction still route through it ; `push`/`slice`/
+  `new` are GC-coupled keep-list primitives). Full `Array*`-op retirement needs
+  the sub-word typed-slot widths + a Boxed-construction flip — a follow-up.
 - **Phase 4 — String ops → Vader.** `concat` / `slice` / `hash` over the memory
   opcodes and `bytes()`, interning the result on finish. Keep the atom table +
   `==` primitive.
+  **✅ DONE (S6/S7).** `hash` = pure-Vader FNV-1a-64 over `bytes()` ; `concat`
+  (`+` and `.add()`) = a Buffer-backed StringBuilder chain (no dedicated op) ;
+  the `StringConcat` op + `vader_string_concat`/`hash`/`eq`/`byte_at` + the
+  byte-slice `vader_string_slice` + `vader_string_concat_all` are all deleted.
+  `slice` (`s[lo..<hi]`) is **kept primitive** — it is a codepoint atom-slice
+  aliasing the parent atom (zero-copy, intern-deduped), strictly better than a
+  Buffer copy + re-intern ; `==` stays an O(1) atom-id compare.
 
-End state : the per-target runtime drops from ~200 functions to the ABI (≈15
-primitives + the opcode set + the platform-syscall file). A new target
-implements the ABI and gets the whole stdlib for free.
+### Achieved end state (2026-06-14)
+
+The Builder, String, and number-format families are **fully off the per-target
+runtime**. The Array family is **open-coded in c-emit over the kept
+`vader_array_t` layout** rather than rebuilt over `Buffer` — the primitive hot
+paths (typed slot get/set/construction) and the boxed access path are inline, so
+the per-call `vader_array_*` cost is gone from those sites, but the runtime fns
+themselves are **retained** (the runtime-kind-tagged + boxed-API storage is what
+lets erased and concrete generic code share one array representation — deleting
+it would re-introduce the erasure ref-collapse the ABI avoids).
+
+What is genuinely retired (deleted from `runtime/c`): the 9 `vader_builder_*` +
+4 `Builder*` ops ; `vader_string_concat` / `vader_string_hash` /
+`vader_string_eq` / `vader_string_byte_at` / `vader_string_slice` (byte) /
+`vader_string_concat_all` + the `StringConcat` op ; the 9 number-format helpers.
+What is kept by design (§2/§4 primitives, NOT "unfinished retirement"): the
+`vader_array_t`/`vader_array_buf_t` storage + its GC-tracing internals
+(`load_slot`/`store_slot`/`box_slots`/`make_borrowed`/`resolve`/…),
+`vader_array_push`/`slice`/`new`/`len`, the atom table + `vader_atom_*`, the
+codepoint atom-slice `vader_string_slice_codepoints`, `vader_string_bytes_view`/
+`as_string`/`byte_len`/`codepoint_at`/`parse_float`, and the platform-syscall
+file. A new target implements the ABI (the opcode set + memory opcodes + the
+kept primitives + the syscall file) and gets the whole stdlib for free.
 
 ## Caveats (decide before implementing)
 
