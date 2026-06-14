@@ -34,7 +34,7 @@ fn snippet$main() -> i32
     %9 = move %8
     %10 = call new_builder() :StringBuilder
     %11 = move %10
-    %12 = const string(#13) :string
+    %12 = const string(#2) :string
     call append(%11, %12) :void
     %13 = field_get %9.value :i32
     %14 = call std_core$i32$Display$to_string(%13) :string

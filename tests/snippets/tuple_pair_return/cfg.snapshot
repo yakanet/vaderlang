@@ -9,7 +9,7 @@ fn snippet$make_pair() -> [i32, string]
     %2 $struct_2: [i32, string]
   bb0:
     %0 = const int(42) :i32
-    %1 = const string(#13) :string
+    %1 = const string(#2) :string
     %2 = struct_new [i32, string](%0, %1)
     return %2
 
@@ -35,7 +35,7 @@ fn snippet$main() -> i32
     %1 = move %0
     %2 = call new_builder() :StringBuilder
     %3 = move %2
-    %4 = const string(#14) :string
+    %4 = const string(#3) :string
     call append(%3, %4) :void
     %5 = field_get %1._0 :i32
     %6 = call std_core$i32$Display$to_string(%5) :string
@@ -44,7 +44,7 @@ fn snippet$main() -> i32
     call std_io$std_io$println__string(%7) :void
     %8 = call new_builder() :StringBuilder
     %9 = move %8
-    %10 = const string(#15) :string
+    %10 = const string(#4) :string
     call append(%9, %10) :void
     %11 = field_get %1._1 :string
     %12 = call std_core$string$Display$to_string(%11) :string

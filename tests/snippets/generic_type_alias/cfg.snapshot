@@ -55,7 +55,7 @@ fn snippet$main() -> i32
     %5 = type_check %4 is null
     cond_branch %5 ? bb1 : bb2
   bb1:
-    %6 = const string(#13) :string
+    %6 = const string(#2) :string
     call std_io$std_io$println__string(%6) :void
     branch -> bb3
   bb2:
@@ -68,7 +68,7 @@ fn snippet$main() -> i32
   bb4:
     %8 = call new_builder() :StringBuilder
     %9 = move %8
-    %10 = const string(#14) :string
+    %10 = const string(#3) :string
     call append(%9, %10) :void
     %11 = cast %1 :i32
     %12 = call std_core$i32$Display$to_string(%11) :string
@@ -81,14 +81,14 @@ fn snippet$main() -> i32
   bb6:
     branch -> bb3
   bb7:
-    %16 = const string(#15) :string
+    %16 = const string(#4) :string
     call std_io$std_io$println__string(%16) :void
     branch -> bb9
   bb8:
     %17 = type_check %14 is i32
     cond_branch %17 ? bb10 : bb11
   bb9:
-    %24 = const string(#17) :i32 | string
+    %24 = const string(#6) :i32 | string
     %25 = move %24
     %26 = move %25
     %27 = type_check %26 is i32
@@ -96,7 +96,7 @@ fn snippet$main() -> i32
   bb10:
     %18 = call new_builder() :StringBuilder
     %19 = move %18
-    %20 = const string(#16) :string
+    %20 = const string(#5) :string
     call append(%19, %20) :void
     %21 = cast %3 :i32
     %22 = call std_core$i32$Display$to_string(%21) :string
@@ -111,7 +111,7 @@ fn snippet$main() -> i32
   bb13:
     %28 = call new_builder() :StringBuilder
     %29 = move %28
-    %30 = const string(#18) :string
+    %30 = const string(#7) :string
     call append(%29, %30) :void
     %31 = cast %25 :i32
     %32 = call std_core$i32$Display$to_string(%31) :string
@@ -128,7 +128,7 @@ fn snippet$main() -> i32
   bb16:
     %35 = call new_builder() :StringBuilder
     %36 = move %35
-    %37 = const string(#19) :string
+    %37 = const string(#8) :string
     call append(%36, %37) :void
     %38 = cast %25 :string
     %39 = call std_core$string$Display$to_string(%38) :string

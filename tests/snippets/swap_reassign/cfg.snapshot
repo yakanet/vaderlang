@@ -79,11 +79,11 @@ fn snippet$main() -> i32
     %3 = move %4
     %5 = call new_builder() :StringBuilder
     %6 = move %5
-    %7 = const string(#13) :string
+    %7 = const string(#2) :string
     call append(%6, %7) :void
     %8 = call std_core$i32$Display$to_string(%1) :string
     call append(%6, %8) :void
-    %9 = const string(#14) :string
+    %9 = const string(#3) :string
     call append(%6, %9) :void
     %10 = call std_core$i32$Display$to_string(%3) :string
     call append(%6, %10) :void
@@ -112,11 +112,11 @@ fn snippet$main() -> i32
   bb3:
     %24 = call new_builder() :StringBuilder
     %25 = move %24
-    %26 = const string(#15) :string
+    %26 = const string(#4) :string
     call append(%25, %26) :void
     %27 = call std_core$i32$Display$to_string(%13) :string
     call append(%25, %27) :void
-    %28 = const string(#16) :string
+    %28 = const string(#5) :string
     call append(%25, %28) :void
     %29 = call std_core$i32$Display$to_string(%15) :string
     call append(%25, %29) :void
@@ -134,15 +134,15 @@ fn snippet$main() -> i32
     %36 = move %37
     %38 = call new_builder() :StringBuilder
     %39 = move %38
-    %40 = const string(#17) :string
+    %40 = const string(#6) :string
     call append(%39, %40) :void
     %41 = call std_core$i32$Display$to_string(%32) :string
     call append(%39, %41) :void
-    %42 = const string(#18) :string
+    %42 = const string(#7) :string
     call append(%39, %42) :void
     %43 = call std_core$i32$Display$to_string(%34) :string
     call append(%39, %43) :void
-    %44 = const string(#19) :string
+    %44 = const string(#8) :string
     call append(%39, %44) :void
     %45 = call std_core$i32$Display$to_string(%36) :string
     call append(%39, %45) :void
@@ -171,7 +171,7 @@ fn snippet$main() -> i32
   bb6:
     %59 = call new_builder() :StringBuilder
     %60 = move %59
-    %61 = const string(#20) :string
+    %61 = const string(#9) :string
     call append(%60, %61) :void
     %62 = call std_core$u64$Display$to_string(%48) :string
     call append(%60, %62) :void

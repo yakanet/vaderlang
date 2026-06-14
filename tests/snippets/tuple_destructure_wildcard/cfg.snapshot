@@ -10,7 +10,7 @@ fn snippet$triple() -> [i32, string, bool]
     %3 $struct_3: [i32, string, bool]
   bb0:
     %0 = const int(7) :i32
-    %1 = const string(#15) :string
+    %1 = const string(#4) :string
     %2 = const bool(true) :bool
     %3 = struct_new [i32, string, bool](%0, %1, %2)
     return %3
@@ -43,7 +43,7 @@ fn snippet$main() -> i32
     %5 = move %4
     %6 = call new_builder() :StringBuilder
     %7 = move %6
-    %8 = const string(#16) :string
+    %8 = const string(#5) :string
     call append(%7, %8) :void
     %9 = call std_core$i32$Display$to_string(%3) :string
     call append(%7, %9) :void
@@ -51,7 +51,7 @@ fn snippet$main() -> i32
     call std_io$std_io$println__string(%10) :void
     %11 = call new_builder() :StringBuilder
     %12 = move %11
-    %13 = const string(#17) :string
+    %13 = const string(#6) :string
     call append(%12, %13) :void
     %14 = call std_core$bool$Display$to_string(%5) :string
     call append(%12, %14) :void

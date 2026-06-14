@@ -101,24 +101,24 @@ fn snippet$main() -> i32
     %94 $add_94: usize
     %95 $k_95: i32
   bb0:
-    %0 = const string(#21) :string
+    %0 = const string(#12) :string
     %1 = const int(0) :i32
     %2 = struct_new FlagSpec(%0, %1)
-    %3 = const string(#22) :string
+    %3 = const string(#13) :string
     %4 = const int(1) :i32
     %5 = struct_new FlagSpec(%3, %4)
     %6 = array_new FlagSpec[][2](%2, %5)
     %7 = move %6
-    %8 = const string(#23) :string
-    %9 = const string(#24) :string
-    %10 = const string(#25) :string
+    %8 = const string(#14) :string
+    %9 = const string(#15) :string
+    %10 = const string(#16) :string
     %11 = array_new string[][3](%8, %9, %10)
     %12 = move %11
     %13 = call parse(%12, %7) :ParsedArgs
     %14 = move %13
     %15 = call new_builder() :StringBuilder
     %16 = move %15
-    %17 = const string(#26) :string
+    %17 = const string(#17) :string
     call append(%16, %17) :void
     %18 = field_get %14.errors :string[]
     %19 = array_len %18
@@ -128,7 +128,7 @@ fn snippet$main() -> i32
     call std_io$std_io$println__string(%21) :void
     %22 = call new_builder() :StringBuilder
     %23 = move %22
-    %24 = const string(#27) :string
+    %24 = const string(#18) :string
     call append(%23, %24) :void
     %25 = field_get %14.positionals :string[]
     %26 = array_len %25
@@ -138,7 +138,7 @@ fn snippet$main() -> i32
     call std_io$std_io$println__string(%28) :void
     %29 = call new_builder() :StringBuilder
     %30 = move %29
-    %31 = const string(#28) :string
+    %31 = const string(#19) :string
     call append(%30, %31) :void
     %32 = field_get %14.positionals :string[]
     %33 = const int(0) :i32
@@ -149,9 +149,9 @@ fn snippet$main() -> i32
     call std_io$std_io$println__string(%36) :void
     %37 = call new_builder() :StringBuilder
     %38 = move %37
-    %39 = const string(#29) :string
+    %39 = const string(#20) :string
     call append(%38, %39) :void
-    %40 = const string(#21) :string
+    %40 = const string(#12) :string
     %41 = call bool_flag(%14, %40) :bool
     %42 = call std_core$bool$Display$to_string(%41) :string
     call append(%38, %42) :void
@@ -159,9 +159,9 @@ fn snippet$main() -> i32
     call std_io$std_io$println__string(%43) :void
     %44 = call new_builder() :StringBuilder
     %45 = move %44
-    %46 = const string(#30) :string
+    %46 = const string(#21) :string
     call append(%45, %46) :void
-    %47 = const string(#31) :string
+    %47 = const string(#22) :string
     %48 = call bool_flag(%14, %47) :bool
     %49 = call std_core$bool$Display$to_string(%48) :string
     call append(%45, %49) :void
@@ -169,10 +169,10 @@ fn snippet$main() -> i32
     call std_io$std_io$println__string(%50) :void
     %51 = call new_builder() :StringBuilder
     %52 = move %51
-    %53 = const string(#32) :string
+    %53 = const string(#23) :string
     call append(%52, %53) :void
-    %54 = const string(#22) :string
-    %55 = const string(#4) :string
+    %54 = const string(#13) :string
+    %55 = const string(#6) :string
     %56 = call string_flag(%14, %54, %55) :string
     %57 = call std_core$string$Display$to_string(%56) :string
     call append(%52, %57) :void
@@ -180,23 +180,23 @@ fn snippet$main() -> i32
     call std_io$std_io$println__string(%58) :void
     %59 = call new_builder() :StringBuilder
     %60 = move %59
-    %61 = const string(#33) :string
+    %61 = const string(#24) :string
     call append(%60, %61) :void
-    %62 = const string(#34) :string
-    %63 = const string(#35) :string
+    %62 = const string(#25) :string
+    %63 = const string(#26) :string
     %64 = call string_flag(%14, %62, %63) :string
     %65 = call std_core$string$Display$to_string(%64) :string
     call append(%60, %65) :void
     %66 = call std_string_builder$StringBuilder$Display$to_string(%60) :string
     call std_io$std_io$println__string(%66) :void
-    %67 = const string(#36) :string
-    %68 = const string(#37) :string
+    %67 = const string(#27) :string
+    %68 = const string(#28) :string
     %69 = array_new string[][2](%67, %68)
     %70 = call parse(%69, %7) :ParsedArgs
     %71 = move %70
     %72 = call new_builder() :StringBuilder
     %73 = move %72
-    %74 = const string(#38) :string
+    %74 = const string(#29) :string
     call append(%73, %74) :void
     %75 = field_get %71.errors :string[]
     %76 = array_len %75
@@ -219,7 +219,7 @@ fn snippet$main() -> i32
     %87 = move %86
     %88 = call new_builder() :StringBuilder
     %89 = move %88
-    %90 = const string(#39) :string
+    %90 = const string(#30) :string
     call append(%89, %90) :void
     %91 = call std_core$string$Display$to_string(%87) :string
     call append(%89, %91) :void

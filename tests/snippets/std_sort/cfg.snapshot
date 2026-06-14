@@ -79,7 +79,7 @@ fn snippet$print_ints(%0: i32[]) -> void
     %16 = move %15
     %17 = call std_core$string$Display$to_string(%2) :string
     call append(%16, %17) :void
-    %18 = const string(#13) :string
+    %18 = const string(#3) :string
     call append(%16, %18) :void
     %19 = call std_string_builder$StringBuilder$Display$to_string(%16) :string
     %2 = move %19
@@ -160,7 +160,7 @@ fn snippet$print_strings(%0: string[]) -> void
     %16 = move %15
     %17 = call std_core$string$Display$to_string(%2) :string
     call append(%16, %17) :void
-    %18 = const string(#13) :string
+    %18 = const string(#3) :string
     call append(%16, %18) :void
     %19 = call std_string_builder$StringBuilder$Display$to_string(%16) :string
     %2 = move %19
@@ -370,10 +370,10 @@ fn snippet$main() -> i32
     %79 = call std_sort$std_sort$sort__i32(%77, %78) :i32[]
     %80 = move %79
     call print_ints(%80) :void
-    %81 = const string(#14) :string
-    %82 = const string(#15) :string
-    %83 = const string(#16) :string
-    %84 = const string(#17) :string
+    %81 = const string(#4) :string
+    %82 = const string(#5) :string
+    %83 = const string(#6) :string
+    %84 = const string(#7) :string
     %85 = array_new string[][4](%81, %82, %83, %84)
     %86 = fn_ref compare_ascending :fn(string, string) -> bool
     %87 = call std_sort$std_sort$sort__string(%85, %86) :string[]

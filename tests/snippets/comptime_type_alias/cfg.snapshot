@@ -26,7 +26,7 @@ fn snippet$main() -> i32
   bb0:
     %0 = call new_builder() :StringBuilder
     %1 = move %0
-    %2 = const string(#12) :string
+    %2 = const string(#2) :string
     call append(%1, %2) :void
     %3 = const int(4) :usize
     %4 = call std_core$usize$Display$to_string(%3) :string
@@ -35,7 +35,7 @@ fn snippet$main() -> i32
     call std_io$std_io$println__string(%5) :void
     %6 = call new_builder() :StringBuilder
     %7 = move %6
-    %8 = const string(#13) :string
+    %8 = const string(#3) :string
     call append(%7, %8) :void
     %9 = const int(8) :usize
     %10 = call std_core$usize$Display$to_string(%9) :string
@@ -44,7 +44,7 @@ fn snippet$main() -> i32
     call std_io$std_io$println__string(%11) :void
     %12 = call new_builder() :StringBuilder
     %13 = move %12
-    %14 = const string(#14) :string
+    %14 = const string(#4) :string
     call append(%13, %14) :void
     %15 = const int(16) :usize
     %16 = call std_core$usize$Display$to_string(%15) :string

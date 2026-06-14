@@ -64,7 +64,7 @@ fn main$main() -> i32
   bb3:
     %12 = call new_builder() :StringBuilder
     %13 = move %12
-    %14 = const string(#13) :string
+    %14 = const string(#2) :string
     call append(%13, %14) :void
     %15 = call std_core$i64$Display$to_string(%1) :string
     call append(%13, %15) :void

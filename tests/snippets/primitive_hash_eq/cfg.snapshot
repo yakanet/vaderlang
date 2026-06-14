@@ -46,7 +46,7 @@ fn snippet$main() -> i32
     %5 = move %4
     %6 = call new_builder() :StringBuilder
     %7 = move %6
-    %8 = const string(#14) :string
+    %8 = const string(#4) :string
     call append(%7, %8) :void
     %9 = call std_core$i32$Hash$hash(%1) :u64
     %10 = call std_core$u64$Display$to_string(%9) :string
@@ -55,7 +55,7 @@ fn snippet$main() -> i32
     call std_io$std_io$println__string(%11) :void
     %12 = call new_builder() :StringBuilder
     %13 = move %12
-    %14 = const string(#15) :string
+    %14 = const string(#5) :string
     call append(%13, %14) :void
     %15 = call std_core$i32$Equals$equals(%1, %3) :bool
     %16 = call std_core$bool$Display$to_string(%15) :string
@@ -64,7 +64,7 @@ fn snippet$main() -> i32
     call std_io$std_io$println__string(%17) :void
     %18 = call new_builder() :StringBuilder
     %19 = move %18
-    %20 = const string(#16) :string
+    %20 = const string(#6) :string
     call append(%19, %20) :void
     %21 = call std_core$i32$Equals$equals(%1, %5) :bool
     %22 = call std_core$bool$Display$to_string(%21) :string
@@ -75,7 +75,7 @@ fn snippet$main() -> i32
     %25 = move %24
     %26 = call new_builder() :StringBuilder
     %27 = move %26
-    %28 = const string(#17) :string
+    %28 = const string(#7) :string
     call append(%27, %28) :void
     %29 = call std_core$usize$Hash$hash(%25) :u64
     %30 = call std_core$u64$Display$to_string(%29) :string

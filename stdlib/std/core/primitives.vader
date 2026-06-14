@@ -31,43 +31,57 @@ module "std/core"
 // (import cycle — that's why std/numbers lives outside core) ; f32/f64 delegate
 // to the Ryu formatters in dtoa.vader / f2s.vader.
 
-// Prepend decimal digits via a string-literal table + concat. A digit
-// byte-buffer + single `bytes_to_string` would be O(n) (the perf POC's form) ;
-// the duplicate-mangle dedup that blocked a `0..<(n/2)` reverse loop inside
-// std/core has since landed (`prune_unused_functions` collapses the doubly-
-// materialised usize `Range`/`Step`/`Comparable`), so that form is now safe.
-// Kept as prepend-concat pending the perf follow-up (TODO 1.13).
+// The integer formatters render digits into a byte buffer (emitted LSB-first,
+// then reversed once) and intern via `bytes_to_string` — O(n), where the former
+// prepend-concat (`out = digit + out`) re-allocated the whole string per digit
+// (O(n²)). The `for i in 0..<k` reverse is safe inside std/core now that the
+// duplicate-mangle dedup + per-function type pins landed : a materialised `Range`
+// no longer double-emits (`redefinition`) or leaks dead into every program.
 
-/// One-char strings per decimal digit — lets the integer formatters avoid
-/// char→string (itself a Display) without a byte sink std/core can't reach.
+/// One-char strings per decimal digit. Used by the f64 digit collector in
+/// `dtoa.vader` ; the integer formatters below emit digit *bytes* directly.
 DECIMAL_DIGITS :: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 
-// Render a signed value in non-positive space so `i64` min formats without
-// overflow on negate. `% 10` / `/ 10` are I64Mod / I64Div (C-truncating).
+// Reverse `digits` (a LSB-first decimal byte buffer) into MSB-first order, with a
+// leading `'-'` when `negative`, and intern the result.
+finish_digits :: fn(digits: u8[], negative: bool) -> string {
+    out: u8[] = []
+    if negative { out.push(b'-') }
+    k :: digits.len()
+    for i in 0..<k {
+        out.push(digits[k - 1 - i])
+    }
+    return out.bytes_to_string()
+}
+
+// Render a signed value working entirely in NON-POSITIVE space, because
+// `abs(i64 min)` overflows i64 (|i64 min| = i64 max + 1). So rather than negate
+// n into positive space and extract digits there, only POSITIVE inputs are
+// shifted negative (`if n > 0 { n = -n }` — always safe) ; i64 min, already
+// negative, is never negated. With n <= 0, `n % 10` (I64Mod, C-truncating) is a
+// non-positive remainder, so the actual digit is `-(n % 10)`, in 0..9.
 format_signed :: fn(n: i64) -> string {
     if n == 0 { return "0" }
     neg :: n < 0
-    m: i64 = if n < 0 { n } else { -n }      // m <= 0 ; -(i64 min) never evaluated
-    out := ""
-    for m != 0 {
-        out = DECIMAL_DIGITS[usize(-(m % 10))] + out
-        m = m / 10
+    if n > 0 { n = -n }                       // shift into non-positive space ; -(i64 min) never evaluated
+    digits: u8[] = []
+    for n != 0 {
+        digits.push(b'0' + u8(-(n % 10)))
+        n = n / 10
     }
-    if neg { return "-" + out }
-    return out
+    return finish_digits(digits, neg)
 }
 
 // Render an unsigned value. `% 10` / `/ 10` lower to U64Mod / U64Div
 // (op_select), so high-bit-set values don't format as negative.
 format_unsigned :: fn(n: u64) -> string {
     if n == 0 { return "0" }
-    m: u64 = n
-    out := ""
-    for m != 0 {
-        out = DECIMAL_DIGITS[usize(m % 10)] + out
-        m = m / 10
+    digits: u8[] = []
+    for n != 0 {
+        digits.push(b'0' + u8(n % 10))
+        n = n / 10
     }
-    return out
+    return finish_digits(digits, false)
 }
 
 /// Encode a Unicode codepoint to its UTF-8 bytes (pure arithmetic), for

@@ -142,7 +142,7 @@ fn snippet$main() -> i32
   bb3:
     %20 = call new_builder() :StringBuilder
     %21 = move %20
-    %22 = const string(#13) :string
+    %22 = const string(#2) :string
     call append(%21, %22) :void
     %23 = call std_core$i32$Display$to_string(%11) :string
     call append(%21, %23) :void
@@ -185,11 +185,11 @@ fn snippet$main() -> i32
   bb9:
     %49 = call new_builder() :StringBuilder
     %50 = move %49
-    %51 = const string(#14) :string
+    %51 = const string(#3) :string
     call append(%50, %51) :void
     %52 = call std_core$i32$Display$to_string(%36) :string
     call append(%50, %52) :void
-    %53 = const string(#15) :string
+    %53 = const string(#4) :string
     call append(%50, %53) :void
     %54 = call std_core$i32$Display$to_string(%38) :string
     call append(%50, %54) :void
@@ -232,7 +232,7 @@ fn snippet$main() -> i32
   bb15:
     %75 = call new_builder() :StringBuilder
     %76 = move %75
-    %77 = const string(#16) :string
+    %77 = const string(#5) :string
     call append(%76, %77) :void
     %78 = call std_core$i32$Display$to_string(%66) :string
     call append(%76, %78) :void
@@ -275,11 +275,11 @@ fn snippet$main() -> i32
   bb21:
     %105 = call new_builder() :StringBuilder
     %106 = move %105
-    %107 = const string(#17) :string
+    %107 = const string(#6) :string
     call append(%106, %107) :void
     %108 = call std_core$i32$Display$to_string(%90) :string
     call append(%106, %108) :void
-    %109 = const string(#18) :string
+    %109 = const string(#7) :string
     call append(%106, %109) :void
     %110 = call std_core$i32$Display$to_string(%93) :string
     call append(%106, %110) :void

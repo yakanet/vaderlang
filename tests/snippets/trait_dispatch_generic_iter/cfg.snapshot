@@ -88,7 +88,7 @@ fn snippet$main() -> i32
     %7 = move %6
     %8 = call new_builder() :StringBuilder
     %9 = move %8
-    %10 = const string(#13) :string
+    %10 = const string(#2) :string
     call append(%9, %10) :void
     %11 = call walk(%3) :i32
     %12 = call std_core$i32$Display$to_string(%11) :string
@@ -97,7 +97,7 @@ fn snippet$main() -> i32
     call std_io$std_io$println__string(%13) :void
     %14 = call new_builder() :StringBuilder
     %15 = move %14
-    %16 = const string(#14) :string
+    %16 = const string(#3) :string
     call append(%15, %16) :void
     %17 = call walk(%7) :i32
     %18 = call std_core$i32$Display$to_string(%17) :string
