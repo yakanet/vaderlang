@@ -1650,41 +1650,52 @@ emit_slot_load_prim :: fn(s: FnState, cty: string, result: ValType) -> void {
     push_tmp(s, name, result)
 }
 
+/// Emit one typed (non-boxed) slot store : `((cty*) a->buf->slots)[a->offset + i]
+/// = (cty) <coerced value>`. Shared by the `StoreSlot*` opcode handler
+/// (`emit_slot_store_prim`) and the open-coded array set (`emit_array_set`) — both
+/// reach the same `(a, idx, value, cty, val)` state after their own pop +
+/// `emit_slot_array_local`. No write barrier (a primitive slot holds no reference).
+/// The value is coerced to `val` first (unboxing an erased `Any` box).
+emit_typed_slot_write :: fn(s: FnState, a: string, idx: StackVal, value: StackVal, cty: string, val: ValType) -> void {
+    vc :: coerce_expr(s.ctx.module.types, name_of(value), val_of(value), val)
+    line(s, "((${cty}*) ${a}->buf->slots)[${slot_index(a, idx)}] = (${cty}) ${vc};")
+}
+
 /// Primitive slot store — pop array + slot index + value ; write the `cty`-typed
 /// element. No write barrier (the primitive region holds no references).
-/// Bounds-checked + buf-forward-resolved (see `emit_slot_array_local`). The value
-/// is coerced to `val` first (unboxing if it arrives as an erased `Any` box).
+/// Bounds-checked + buf-forward-resolved (see `emit_slot_array_local`).
 emit_slot_store_prim :: fn(s: FnState, cty: string, val: ValType) -> void {
     value :: pop(s)
     idx :: pop(s)
     obj :: pop(s)
     a :: emit_slot_array_local(s, obj, idx)
-    vc :: coerce_expr(s.ctx.module.types, name_of(value), val_of(value), val)
-    line(s, "((${cty}*) ${a}->buf->slots)[${slot_index(a, idx)}] = (${cty}) ${vc};")
+    emit_typed_slot_write(s, a, idx, value, cty, val)
 }
 
-/// C type + coerce-target stack class for filling one flippable-primitive array
-/// slot through a typed raw store (C2). The cty + ValType mirror the
-/// `StoreSlotI32/I64/F64` reinterpretation the A2 access flip reads back (keyed
-/// on slot WIDTH, not the exact kind — `u32`/`char` store as `int32_t`, same
-/// bytes), so a later typed read sees identical bits. `null` for the kinds that
-/// keep the runtime-dispatched boxed `vader_array_set` fill : the sub-word
-/// primitives (`u8`/`u16`/`i8`/`i16`/`f32`/`bool`, no slot op yet) and `Boxed`.
+/// C type + coerce-target stack class for a typed (non-boxed) array slot store.
+/// The `cty` is the element's native storage type ; `val` is the stack class the
+/// stored value is coerced to before the `(cty)` cast. Returns `null` for the
+/// `Boxed` kind ONLY — every primitive width (flippable AND sub-word) stores raw
+/// here, so `typed_array_fill_for(k) == null` is the canonical "is this array
+/// boxed?" test (`array_op_is_boxed`). The flippable widths keep their A2/C2
+/// shape (`u32`/`char` store as `int32_t`, same bytes, so the typed read reads
+/// back identical bits) ; the sub-word widths use the signedness-correct C type
+/// (`uint16_t`/`int16_t`/`float`/…) so a later typed read zero/sign-extends right.
 SlotFill :: struct { cty: string, val: ValType }
 
 typed_array_fill_for :: fn(k: ArrayKind) -> SlotFill | null = match k {
-    .I32   -> SlotFill { .cty = "int32_t", .val = .I32 }
-    .U32   -> SlotFill { .cty = "int32_t", .val = .I32 }
-    .Char  -> SlotFill { .cty = "int32_t", .val = .I32 }
-    .I64   -> SlotFill { .cty = "int64_t", .val = .I64 }
-    .U64   -> SlotFill { .cty = "int64_t", .val = .I64 }
-    .F64   -> SlotFill { .cty = "double",  .val = .F64 }
-    .U8    -> null
-    .U16   -> null
-    .I8    -> null
-    .I16   -> null
-    .F32   -> null
-    .Bool  -> null
+    .I32   -> SlotFill { .cty = "int32_t",  .val = .I32 }
+    .U32   -> SlotFill { .cty = "int32_t",  .val = .I32 }
+    .Char  -> SlotFill { .cty = "int32_t",  .val = .I32 }
+    .I64   -> SlotFill { .cty = "int64_t",  .val = .I64 }
+    .U64   -> SlotFill { .cty = "int64_t",  .val = .I64 }
+    .F64   -> SlotFill { .cty = "double",   .val = .F64 }
+    .U8    -> SlotFill { .cty = "uint8_t",  .val = .I32 }
+    .I8    -> SlotFill { .cty = "int8_t",   .val = .I32 }
+    .Bool  -> SlotFill { .cty = "uint8_t",  .val = .Bool }
+    .U16   -> SlotFill { .cty = "uint16_t", .val = .I32 }
+    .I16   -> SlotFill { .cty = "int16_t",  .val = .I32 }
+    .F32   -> SlotFill { .cty = "float",    .val = .F32 }
     .Boxed -> null
 }
 
@@ -1697,23 +1708,20 @@ emit_array_new :: fn(s: FnState, op: vm.ArrayNew) -> void {
     arr_buf :: aux(s, "arr")
     line(s, "vader_array_t* ${arr_buf} = vader_array_new(${op.type_id}u, ${n}u, ${kind_idx}u, ${elem_tag}u);")
     // Pop top-to-bottom : pop #k fills slot `n-1-k` (distinct indices, so reverse
-    // emission is fine). Three strategies, all keyed on `kind` : a typed raw store
-    // (C2 flippable primitives — `typed_array_fill_for`), an inline box-slot write
-    // (Boxed — op-B's access store minus the barrier : a fresh-young construction
-    // buf can't alias a promoted-old one), else legacy `vader_array_set` (the
-    // sub-word kinds — Inc2/3). No store can GC, so the raw `arr_buf` survives.
+    // emission is fine). Two strategies keyed on `typed_array_fill_for(kind)` : a
+    // typed raw store for any primitive width (flippable C2 + sub-word Inc2), else
+    // (Boxed) an inline box-slot write — op-B's access store minus the barrier (a
+    // fresh-young construction buf can't alias a promoted-old one). No store can
+    // GC, so the raw `arr_buf` survives the loop and no barrier is ever needed.
     fill :: typed_array_fill_for(kind)
-    boxed :: kind == .Boxed
     for k in 0..<n {
         v :: pop(s)
         slot :: n - 1 - k
         if fill != null {
             vc :: coerce_expr(types, name_of(v), val_of(v), fill.val)
             line(s, "((${fill.cty}*) ${arr_buf}->buf->slots)[${arr_buf}->offset + ${slot}u] = (${fill.cty}) ${vc};")
-        } else if boxed {
-            line(s, "vader_array_box_slots(${arr_buf}->buf)[${arr_buf}->offset + ${slot}u] = ${box_expr(name_of(v), val_of(v), elem_tag)};")
         } else {
-            line(s, "vader_array_set(${arr_buf}, ${slot}u, ${box_expr(name_of(v), val_of(v), elem_tag)});")
+            line(s, "vader_array_box_slots(${arr_buf}->buf)[${arr_buf}->offset + ${slot}u] = ${box_expr(name_of(v), val_of(v), elem_tag)};")
         }
     }
     name :: fresh_tmp(s, .Ref)
@@ -1722,16 +1730,18 @@ emit_array_new :: fn(s: FnState, op: vm.ArrayNew) -> void {
 }
 
 /// True when the static array element kind stores BOXED slots (ref / struct /
-/// string / Any / null / void) — the op-B inline-boxed-access subset. Sub-word
-/// raw kinds (u8 / u16 / i8 / i16 / f32 / bool) and the borrowed `bytes()` view
-/// (a `u8[]`, `buf == NULL`) keep the runtime-dispatched legacy
-/// `vader_array_get` / `vader_array_set` (which handle the raw widths + the
-/// NULL-buf borrowed read). Sound because C2 made array construction fill
-/// concrete primitives through typed slots — no concrete-primitive array ever
-/// reaches a Boxed-static access site (verified by the op-B probe re-audit).
+/// string / Any / null / void) — the op-B inline-boxed-access subset. Defined as
+/// `typed_array_fill_for(kind) == null` : the single source for "boxed vs typed".
+/// Non-boxed (sub-word) kinds are open-coded as typed slot stores everywhere
+/// EXCEPT the read path — `emit_array_get` still routes sub-word + the borrowed
+/// `bytes()` view (a `u8[]`, `buf == NULL`) to the runtime-dispatched
+/// `vader_array_get` pending Inc3 (it handles the raw widths + the NULL-buf read).
+/// Sound because C2 / Inc2 fill concrete primitives through typed slots — no
+/// concrete-primitive array reaches a Boxed-static access site (op-B probe + the
+/// box_slots-on-BOXED audit confirm it for every kind, not just the flippables).
 array_op_is_boxed :: fn(s: FnState, type_id: i32) -> bool {
     types :: s.ctx.module.types
-    return array_kind_of(types[usize(array_element_tag(types, type_id))]) == .Boxed
+    return typed_array_fill_for(array_kind_of(types[usize(array_element_tag(types, type_id))])) == null
 }
 
 /// `array.get` — pop index + array, push the element (a boxed `.Any` ; the
@@ -1751,21 +1761,26 @@ emit_array_get :: fn(s: FnState, op: vm.ArrayGet) -> void {
     push_tmp(s, name, .Any)
 }
 
-/// `array.set` — pop value + index + array, store the value (boxed with the
-/// element tag) in place. op B : a Boxed-element array stores the slot inline
-/// (`box_expr` tags `string`, no-op for already-boxed refs) and fires the G2
-/// write barrier ; sub-word arrays stay on the runtime-dispatched legacy fn.
+/// `array.set` — pop value + index + array, store the value in place. A Boxed
+/// element stores the slot inline (`box_expr` tags `string`, no-op for already-
+/// boxed refs) + fires the G2 write barrier ; a typed (sub-word) element stores
+/// the native width raw (no barrier — primitives hold no refs). Flippable widths
+/// never reach here (midir routes them to `StoreSlot*`). Borrowed `bytes()` views
+/// are read-only (T3042), so `a->buf` is never NULL on this path.
 emit_array_set :: fn(s: FnState, op: vm.ArraySet) -> void {
     value :: pop(s)
     idx :: pop(s)
     arr :: pop(s)
-    elem_tag :: array_element_tag(s.ctx.module.types, op.type_id)
-    if array_op_is_boxed(s, op.type_id) {
-        a :: emit_slot_array_local(s, arr, idx)
+    types :: s.ctx.module.types
+    elem_tag :: array_element_tag(types, op.type_id)
+    kind :: array_kind_of(types[usize(elem_tag)])
+    fill :: typed_array_fill_for(kind)
+    a :: emit_slot_array_local(s, arr, idx)
+    if fill == null {
         line(s, "vader_array_box_slots(${a}->buf)[${slot_index(a, idx)}] = ${box_expr(name_of(value), val_of(value), elem_tag)};")
         line(s, "VADER_WRITE_BARRIER(${a}->buf);")
     } else {
-        line(s, "vader_array_set((vader_array_t*) ${name_of(arr)}.payload.obj, (size_t) ${name_of(idx)}, ${box_expr(name_of(value), val_of(value), elem_tag)});")
+        emit_typed_slot_write(s, a, idx, value, fill.cty, fill.val)
     }
 }
 
