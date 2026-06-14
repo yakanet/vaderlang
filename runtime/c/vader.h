@@ -420,6 +420,27 @@ static inline vader_box_t* vader_array_box_slots(vader_array_buf_t* buf) {
     return (vader_box_t*) (void*) buf->slots;
 }
 
+/* Read a `u8` array element as a box — borrowed-aware. A `bytes()` view
+ * (VADER_ARRAY_FLAG_BORROWED, `buf == NULL`) reads the owner atom's bytes with
+ * its RUNTIME borrowed tag ; a real `u8[]` reads its slots and boxes with the
+ * static `elem_tag`. `slot` is the caller-resolved absolute index (`a->offset +
+ * i`) ; the G1 forward-resolve + D7 bounds check run at the c-emit site (via
+ * `emit_slot_array_local`) before this call. The named inline (no linkage
+ * symbol, inlines at -O3) replaces the open-coded borrowed branch at every u8
+ * read site — the §5 C-emit convention. */
+static inline vader_box_t vader_array_read_u8(vader_array_t* a, size_t slot, uint32_t elem_tag) {
+    vader_box_t out;
+    out._pad = 0;
+    if (vader_array_is_borrowed(a)) {
+        out.tag = vader_array_borrowed_tag(a);
+        out.payload.i = ((const uint8_t*) vader_atom_data(vader_array_borrowed_owner(a)))[slot];
+    } else {
+        out.tag = elem_tag;
+        out.payload.i = ((const uint8_t*) a->buf->slots)[slot];
+    }
+    return out;
+}
+
 /* Sentinel index for buffers — distinct from any user BcType. The scan loop
  * dispatches on it because the type info table doesn't carry a static layout
  * for variable-length objects. */

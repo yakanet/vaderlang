@@ -206,7 +206,10 @@ static void std_string_builder_append_bytes(vader_box_t l0, vader_box_t l1) {
                 t4 = (size_t) ((vader_struct_std_string_builder_StringBuilder_t*) l0.payload.obj)->f_len;
                 t5 = (t4 + l3);
                 l5 = (size_t) (int64_t) t5;
-                t6 = vader_array_get((vader_array_t*) l1.payload.obj, (size_t) l3);
+                vader_array_t* _a0_slotarr = ((vader_array_t*) l1.payload.obj);
+                while (_a0_slotarr->buf != NULL && _a0_slotarr->buf->header.forward != NULL) { _a0_slotarr->buf = (vader_array_buf_t*) _a0_slotarr->buf->header.forward; }
+                if ((size_t) l3 >= _a0_slotarr->length) { vader_trap("array index out of bounds"); }
+                t6 = vader_array_read_u8(_a0_slotarr, _a0_slotarr->offset + (size_t) l3, 8u);
                 t7 = ((uint8_t) t6.payload.i);
                 l6 = t7;
                 std_core_Buffer_ByteAccess_store_u8_vt(l4, l5, l6);

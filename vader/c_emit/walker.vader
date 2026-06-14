@@ -1677,7 +1677,8 @@ emit_slot_store_prim :: fn(s: FnState, cty: string, val: ValType) -> void {
 /// stored value is coerced to before the `(cty)` cast. Returns `null` for the
 /// `Boxed` kind ONLY — every primitive width (flippable AND sub-word) stores raw
 /// here, so `typed_array_fill_for(k) == null` is the canonical "is this array
-/// boxed?" test (`array_op_is_boxed`). The flippable widths keep their A2/C2
+/// boxed?" test shared by construction (`emit_array_new`) and access
+/// (`emit_array_get`/`emit_array_set`). The flippable widths keep their A2/C2
 /// shape (`u32`/`char` store as `int32_t`, same bytes, so the typed read reads
 /// back identical bits) ; the sub-word widths use the signedness-correct C type
 /// (`uint16_t`/`int16_t`/`float`/…) so a later typed read zero/sign-extends right.
@@ -1729,34 +1730,36 @@ emit_array_new :: fn(s: FnState, op: vm.ArrayNew) -> void {
     push_tmp(s, name, .Ref)
 }
 
-/// True when the static array element kind stores BOXED slots (ref / struct /
-/// string / Any / null / void) — the op-B inline-boxed-access subset. Defined as
-/// `typed_array_fill_for(kind) == null` : the single source for "boxed vs typed".
-/// Non-boxed (sub-word) kinds are open-coded as typed slot stores everywhere
-/// EXCEPT the read path — `emit_array_get` still routes sub-word + the borrowed
-/// `bytes()` view (a `u8[]`, `buf == NULL`) to the runtime-dispatched
-/// `vader_array_get` pending Inc3 (it handles the raw widths + the NULL-buf read).
-/// Sound because C2 / Inc2 fill concrete primitives through typed slots — no
-/// concrete-primitive array reaches a Boxed-static access site (op-B probe + the
-/// box_slots-on-BOXED audit confirm it for every kind, not just the flippables).
-array_op_is_boxed :: fn(s: FnState, type_id: i32) -> bool {
-    types :: s.ctx.module.types
-    return typed_array_fill_for(array_kind_of(types[usize(array_element_tag(types, type_id))])) == null
-}
-
-/// `array.get` — pop index + array, push the element (a boxed `.Any` ; the
-/// lowerer's following `ref.cast` re-tags / unboxes it). op B : a Boxed-element
-/// array reads the slot inline (no cross-TU `vader_array_get` call) ; sub-word +
-/// borrowed views stay on the runtime-dispatched legacy fn.
+/// `array.get` — pop index + array, push the element as a boxed `.Any` (the
+/// lowerer's following `ref.cast` re-tags / unboxes it). Fully open-coded over
+/// the kept `vader_array_t` layout, no `vader_array_get` call. Three read paths,
+/// keyed off `typed_array_fill_for(kind)` + the kind :
+///   - Boxed → an inline box-slot read (op B).
+///   - `u8` → the borrowed-aware `vader_array_read_u8` inline (a `bytes()` view,
+///     `buf == NULL`, reads the atom table with the runtime borrowed tag ; a real
+///     `u8[]` reads its slots). It is `static inline`, so no `vader_*` symbol is
+///     added and the read inlines at -O3 (§5 C-emit convention).
+///   - any other sub-word width → an inline typed read, re-boxed via `box_expr`
+///     (the uint/int/float promotion mirrors `vader_array_load_slot`).
+/// `emit_slot_array_local` (G1 forward-resolve + D7 bounds) is hoisted before the
+/// branch — borrowed-safe (its forward loop is guarded on `buf != NULL` and the
+/// bounds check reads the header). Flippable widths never reach here (midir
+/// routes them to `LoadSlot*`).
 emit_array_get :: fn(s: FnState, op: vm.ArrayGet) -> void {
     idx :: pop(s)
     arr :: pop(s)
+    types :: s.ctx.module.types
+    elem_tag :: array_element_tag(types, op.type_id)
+    kind :: array_kind_of(types[usize(elem_tag)])
+    fill :: typed_array_fill_for(kind)
+    a :: emit_slot_array_local(s, arr, idx)
     name :: fresh_tmp(s, .Any)
-    if array_op_is_boxed(s, op.type_id) {
-        a :: emit_slot_array_local(s, arr, idx)
+    if fill == null {
         line(s, "${name} = vader_array_box_slots(${a}->buf)[${slot_index(a, idx)}];")
+    } else if kind == .U8 {
+        line(s, "${name} = vader_array_read_u8(${a}, ${slot_index(a, idx)}, ${elem_tag}u);")
     } else {
-        line(s, "${name} = vader_array_get((vader_array_t*) ${name_of(arr)}.payload.obj, (size_t) ${name_of(idx)});")
+        line(s, "${name} = ${box_expr("((${fill.cty}*) ${a}->buf->slots)[${slot_index(a, idx)}]", fill.val, elem_tag)};")
     }
     push_tmp(s, name, .Any)
 }
