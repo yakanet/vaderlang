@@ -1506,25 +1506,6 @@ vader_string_t vader_string_new(const char* p, size_t n) {
     return vader_atom_intern(p, n);
 }
 
-vader_string_t vader_string_concat(vader_string_t a, vader_string_t b) {
-    if (a == VADER_ATOM_EMPTY) return b;
-    if (b == VADER_ATOM_EMPTY) return a;
-    size_t la = vader_atom_len(a);
-    size_t lb = vader_atom_len(b);
-    /* Two-pass overflow check : the sum must fit, AND leave room for the
-     * inline NUL byte. Splitting the conditions yields a precise trap
-     * message rather than the ambiguous "length overflow" of the
-     * combined `> SIZE_MAX - lb - 1` check. */
-    if (la > SIZE_MAX - lb)     vader_trap("vader_string_concat: total length overflow");
-    size_t total = la + lb;
-    if (total > SIZE_MAX - 1u)  vader_trap("vader_string_concat: no room for NUL terminator");
-    char* buf = (char*) malloc(total + 1u);
-    if (buf == NULL) vader_trap("vader_string_concat: malloc failed");
-    memcpy(buf,      vader_atom_data(a), la);
-    memcpy(buf + la, vader_atom_data(b), lb);
-    return vader_atom_intern_take(buf, total);
-}
-
 bool vader_string_eq(vader_string_t a, vader_string_t b) {
     return a == b;
 }
@@ -1535,23 +1516,6 @@ const char* vader_string_to_cstr(vader_string_t s) {
 
 void vader_cstr_free(const char* p) {
     vader_atom_cstr_free(p);
-}
-
-/* FNV-1a 64-bit hash over the raw UTF-8 bytes of the string. Keeps
- * legacy iteration order for `MutableMap` buckets — atom ids are
- * monotonic, so using them directly as the hash would cluster low bits
- * and reshuffle every `for-in` snapshot. The byte-level hash matches
- * what the pre-atom runtime emitted and what the VM hash uses. */
-vader_u64_t vader_string_hash(vader_string_t s) {
-    const vader_atom_entry_t* e = vader_atom_entry(s);
-    const uint8_t* p   = (const uint8_t*) e->data;
-    size_t         len = e->len;
-    uint64_t h = UINT64_C(14695981039346656037);
-    for (size_t i = 0; i < len; i++) {
-        h ^= (uint64_t) p[i];
-        h *= UINT64_C(1099511628211);
-    }
-    return h;
 }
 
 /* ----------------------------------------------------------------- array */

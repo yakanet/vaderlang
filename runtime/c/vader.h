@@ -86,7 +86,6 @@ typedef vader_u32_t vader_atom_t;
 typedef vader_atom_t vader_string_t;
 
 vader_string_t vader_string_new(const char* p, size_t n);
-vader_string_t vader_string_concat(vader_string_t a, vader_string_t b);
 bool           vader_string_eq(vader_string_t a, vader_string_t b);
 
 /* `@extern` ABI helpers — return a NUL-terminated `const char*` view of
@@ -817,7 +816,6 @@ vader_string_t vader_string_as_string(vader_array_t* a);
  * from the start (O(n) in the target index). */
 vader_char_t   vader_string_codepoint_at(vader_string_t s, size_t cp_index);
 vader_string_t vader_string_slice_codepoints(vader_string_t s, size_t cp_lo, size_t cp_hi);
-vader_u64_t    vader_string_hash(vader_string_t s);
 vader_string_t vader_string_concat_all(vader_array_t* parts);
 
 /* Process-level argv plumbing — emitted `main` calls this to materialise its
