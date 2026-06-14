@@ -48,9 +48,9 @@ static int32_t snippet_main(void) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
     vader_array_t* _a0_arr = vader_array_new(2u, 3u, 7u, 1u);
-    vader_array_set(_a0_arr, 2u, vader_box_i32(1u, INT32_C(30)));
-    vader_array_set(_a0_arr, 1u, vader_box_i32(1u, INT32_C(20)));
-    vader_array_set(_a0_arr, 0u, vader_box_i32(1u, INT32_C(10)));
+    ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 2u] = (int32_t) INT32_C(30);
+    ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 1u] = (int32_t) INT32_C(20);
+    ((int32_t*) _a0_arr->buf->slots)[_a0_arr->offset + 0u] = (int32_t) INT32_C(10);
     t0 = vader_box_obj(2u, _a0_arr);
     l0 = t0;
     vader_array_t* _a1_slotarr = ((vader_array_t*) l0.payload.obj);

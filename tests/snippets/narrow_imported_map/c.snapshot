@@ -756,8 +756,8 @@ static int32_t snippet_main(void) {
     t1 = vader_box_obj(16u, _a1_obj);
     l0 = t1;
     vader_array_t* _a2_arr = vader_array_new(37u, 2u, 7u, 3u);
-    vader_array_set(_a2_arr, 1u, vader_box_i32(3u, INT32_C(7)));
-    vader_array_set(_a2_arr, 0u, vader_box_i32(3u, INT32_C(42)));
+    ((int32_t*) _a2_arr->buf->slots)[_a2_arr->offset + 1u] = (int32_t) INT32_C(7);
+    ((int32_t*) _a2_arr->buf->slots)[_a2_arr->offset + 0u] = (int32_t) INT32_C(42);
     t2 = vader_box_obj(37u, _a2_arr);
     vader_struct_snippet_lib_Wrap_t* _a3_obj = (vader_struct_snippet_lib_Wrap_t*) vader_gc_alloc(sizeof(vader_struct_snippet_lib_Wrap_t));
     vader_obj_header_init(_a3_obj, 36u);

@@ -15,7 +15,7 @@ import "std/string" { join }
 import "std/string_builder" { StringBuilder, new_builder, append }
 import "std/abort" { todo }
 import "vader/bytecode" { BcFunction, BcSignature, BcStruct, BcArray, BcFn, BcRef, BcType, ValType }
-import "vader/bytecode" { array_kind_of, array_kind_index }
+import "vader/bytecode" { array_kind_of, array_kind_index, ArrayKind }
 // The opcode union pulls in ~120 names ; the namespace form keeps the
 // import to one line and tags every op site as `vm.<Op>` at the match.
 vm :: import "vader/bytecode"
@@ -1663,19 +1663,56 @@ emit_slot_store_prim :: fn(s: FnState, cty: string, val: ValType) -> void {
     line(s, "((${cty}*) ${a}->buf->slots)[${slot_index(a, idx)}] = (${cty}) ${vc};")
 }
 
+/// C type + coerce-target stack class for filling one flippable-primitive array
+/// slot through a typed raw store (C2). The cty + ValType mirror the
+/// `StoreSlotI32/I64/F64` reinterpretation the A2 access flip reads back (keyed
+/// on slot WIDTH, not the exact kind — `u32`/`char` store as `int32_t`, same
+/// bytes), so a later typed read sees identical bits. `null` for the kinds that
+/// keep the runtime-dispatched boxed `vader_array_set` fill : the sub-word
+/// primitives (`u8`/`u16`/`i8`/`i16`/`f32`/`bool`, no slot op yet) and `Boxed`.
+SlotFill :: struct { cty: string, val: ValType }
+
+typed_array_fill_for :: fn(k: ArrayKind) -> SlotFill | null = match k {
+    .I32   -> SlotFill { .cty = "int32_t", .val = .I32 }
+    .U32   -> SlotFill { .cty = "int32_t", .val = .I32 }
+    .Char  -> SlotFill { .cty = "int32_t", .val = .I32 }
+    .I64   -> SlotFill { .cty = "int64_t", .val = .I64 }
+    .U64   -> SlotFill { .cty = "int64_t", .val = .I64 }
+    .F64   -> SlotFill { .cty = "double",  .val = .F64 }
+    .U8    -> null
+    .U16   -> null
+    .I8    -> null
+    .I16   -> null
+    .F32   -> null
+    .Bool  -> null
+    .Boxed -> null
+}
+
 emit_array_new :: fn(s: FnState, op: vm.ArrayNew) -> void {
     types :: s.ctx.module.types
     elem_tag :: array_element_tag(types, op.type_id)
-    kind_idx :: array_kind_index(array_kind_of(types[usize(elem_tag)]))
+    kind :: array_kind_of(types[usize(elem_tag)])
+    kind_idx :: array_kind_index(kind)
     n :: op.length
     arr_buf :: aux(s, "arr")
     line(s, "vader_array_t* ${arr_buf} = vader_array_new(${op.type_id}u, ${n}u, ${kind_idx}u, ${elem_tag}u);")
-    // Pop top-to-bottom : pop #k is the element for slot `n-1-k`. The set
-    // calls target distinct indices, so reverse-order emission is fine ;
-    // boxing primitives can't GC, so the raw `arr_buf` survives the loop.
+    // Pop top-to-bottom : pop #k is the element for slot `n-1-k`. The fills
+    // target distinct indices, so reverse-order emission is fine ; neither the
+    // boxed nor the typed store can GC, so the raw `arr_buf` survives the loop.
+    // C2 : a flippable-primitive element fills through a typed raw store into the
+    // freshly-allocated buf — no box round-trip, and trivially sound because the
+    // array was just built with this exact kind (no erasure at the construction
+    // site). The boxed `vader_array_set` stays for sub-word + boxed kinds.
+    fill :: typed_array_fill_for(kind)
     for k in 0..<n {
         v :: pop(s)
-        line(s, "vader_array_set(${arr_buf}, ${n - 1 - k}u, ${box_expr(name_of(v), val_of(v), elem_tag)});")
+        slot :: n - 1 - k
+        if fill is null {
+            line(s, "vader_array_set(${arr_buf}, ${slot}u, ${box_expr(name_of(v), val_of(v), elem_tag)});")
+        } else {
+            vc :: coerce_expr(types, name_of(v), val_of(v), fill.val)
+            line(s, "((${fill.cty}*) ${arr_buf}->buf->slots)[${arr_buf}->offset + ${slot}u] = (${fill.cty}) ${vc};")
+        }
     }
     name :: fresh_tmp(s, .Ref)
     line(s, "${name} = vader_box_obj(${op.type_id}u, ${arr_buf});")
