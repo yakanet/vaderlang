@@ -147,23 +147,86 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
         }
     }
 
-    // No roots → comptime / library-only emit context. Skip the
-    // prune so callers still have bodies.
-    if reachable.size == usize(0) { return }
-    if reachable.size == n { return }
+    // No roots → comptime / library-only emit context : keep every body (the
+    // unreachable-drop is suppressed). We still collapse duplicate mangles below
+    // — a `redefinition of …` is a correctness bug regardless of pruning — so a
+    // main-less library / object build with a doubly-materialised impl member
+    // (e.g. force-loaded `string_builder` pulling `Range` in) still links.
+    keep_all :: reachable.size == usize(0)
 
-    // Remap : surviving fns stay dense from 0.
-    remap: i32[] = []
+    // Collapse duplicate mangles. Two kept fns can share a (non-empty) mangle
+    // when an impl member is materialised twice — once empty (dead, kept only as
+    // a vtable root) and once bodied (call-reached) — e.g. std/core's usize
+    // `Comparable` / `Step` members when both a snippet and the force-loaded
+    // string_builder pull `Range` in. Emitting both would yield two C `static`
+    // defs with the same name → `redefinition of …` at link. Map each mangle to
+    // a single canonical old index (the bodied fn wins over an empty stub) ;
+    // `has_dup_mangle` records whether any fn folds, so a fully-reachable table
+    // with no duplicate still takes the no-op fast path below.
+    canonical_old_by_mangle :: MutableMap<string, i32> {}
+    has_dup_mangle := false
+    ci := usize(0)
+    for ci < n {
+        if keep_all || reachable[i32(ci)] is bool {
+            mangle :: ctx.functions[ci].name
+            if mangle != "" {
+                prev_opt :: canonical_old_by_mangle[mangle]
+                if prev_opt is i32 as prev {
+                    has_dup_mangle = true
+                    if ctx.functions[ci].body.len() > usize(0) && ctx.functions[usize(prev)].body.len() == usize(0) {
+                        canonical_old_by_mangle[mangle] = i32(ci)
+                    }
+                } else {
+                    canonical_old_by_mangle[mangle] = i32(ci)
+                }
+            }
+        }
+        ci = ci + 1
+    }
+
+    // Nothing to drop and no duplicate mangle → leave the table untouched.
+    if !has_dup_mangle && (keep_all || reachable.size == n) { return }
+
+    // Resolve each fn's canonical old index once : a folded duplicate maps to its
+    // canonical, everything else to itself (empty-mangle fns — lambdas / closures
+    // — are never deduped). Reused by the kept / remap passes below.
+    canon: i32[] = []
+    ki := usize(0)
+    for ki < n {
+        mangle :: ctx.functions[ki].name
+        c := i32(ki)
+        if mangle != "" {
+            canon_opt :: canonical_old_by_mangle[mangle]
+            if canon_opt is i32 as cv { c = cv }
+        }
+        canon.push(c)
+        ki = ki + 1
+    }
+
+    // Remap : kept (canonical) fns stay dense from 0 ; every reference to a
+    // folded duplicate lands on its canonical's new index. When `keep_all`, the
+    // set is every fn (minus the folded duplicates) ; otherwise it's the
+    // reachable set.
+    new_idx_by_old :: MutableMap<i32, i32> {}
     kept: BcFunction[] = []
     j := usize(0)
     for j < n {
-        if reachable[i32(j)] is bool {
-            remap.push(i32(kept.len()))
+        if (keep_all || reachable[i32(j)] is bool) && canon[j] == i32(j) {
+            new_idx_by_old[i32(j)] = i32(kept.len())
             kept.push(ctx.functions[j])
-        } else {
-            remap.push(-1)
         }
         j = j + 1
+    }
+    remap: i32[] = []
+    r := usize(0)
+    for r < n {
+        target := i32(-1)
+        if keep_all || reachable[i32(r)] is bool {
+            ni_opt :: new_idx_by_old[canon[r]]
+            if ni_opt is i32 as ni { target = ni }
+        }
+        remap.push(target)
+        r = r + 1
     }
 
     // Rewrite fn-index references in surviving bodies.
