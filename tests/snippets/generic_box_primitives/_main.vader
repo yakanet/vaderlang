@@ -1,0 +1,36 @@
+// generic_box_primitives — every primitive as a RAW generic struct field.
+//
+// Under the .NET-erasure model (P2), a primitive type-argument makes the
+// field land RAW in the struct layout (`Box__i64.v : i64`, not a boxed
+// `Any`). This exercises the full primitive set as raw fields — direct read
+// AND read across a generic-fn boundary (`unwrap`, a Mixed instance) — so a
+// box-vs-raw miscompile of any width / sign / float / char / bool surfaces.
+
+module "snippet"
+
+import "std/io" { println }
+
+Box :: struct<T> { v: T }
+
+unwrap :: fn<T>(b: Box<T>) -> T = b.v
+
+main :: fn() -> i32 {
+    bu8  :: Box<u8>     { .v = 200 }
+    bb   :: Box<bool>   { .v = true }
+    bc   :: Box<char>   { .v = 'Z' }
+    bf32 :: Box<f32>    { .v = 3.5 }
+    bf64 :: Box<f64>    { .v = 2.25 }
+    bi16 :: Box<i16>    { .v = -1000 }
+    bu16 :: Box<u16>    { .v = 50000 }
+    bi64 :: Box<i64>    { .v = 9000000000 }
+    bus  :: Box<usize>  { .v = 42 }
+    bi32 :: Box<i32>    { .v = -7 }
+    bs   :: Box<string> { .v = "hi" }
+
+    // direct raw-field read
+    println("u8=${bu8.v} bool=${bb.v} char=${bc.v} f32=${bf32.v} f64=${bf64.v}")
+    println("i16=${bi16.v} u16=${bu16.v} i64=${bi64.v} usize=${bus.v} i32=${bi32.v} str=${bs.v}")
+    // via generic fn (cross-boundary)
+    println("via=${unwrap(bu8)},${unwrap(bb)},${unwrap(bc)},${unwrap(bf32)},${unwrap(bi16)},${unwrap(bi64)},${unwrap(bs)}")
+    return 0
+}

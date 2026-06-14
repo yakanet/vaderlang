@@ -1,0 +1,166 @@
+# Typecheck
+
+## tests/snippets/map_primitive_values
+  FnDecl         main                 :: fn() -> i32
+  expr 19:12    StructLitExpr  :: MutableMap<string, u8>
+  expr 20:5     IdentExpr      :: MutableMap<string, u8>
+  expr 20:9     StringLitExpr  :: string
+  expr 21:5     IdentExpr      :: MutableMap<string, u8>
+  expr 21:9     StringLitExpr  :: string
+  expr 22:11    IdentExpr      :: MutableMap<string, u8>
+  expr 22:11    IndexExpr      :: null | u8
+  expr 22:15    StringLitExpr  :: string
+  expr 23:21    CallExpr       :: void
+  expr 23:21    IdentExpr      :: fn(T) -> void
+  expr 23:29    StringLitExpr  :: string
+  expr 23:5     IfExpr         :: void
+  expr 23:55    CallExpr       :: void
+  expr 23:55    IdentExpr      :: fn(T) -> void
+  expr 23:63    StringLitExpr  :: string
+  expr 23:71    IdentExpr      :: u8
+  expr 23:79    IdentExpr      :: MutableMap<string, u8>
+  expr 23:79    IndexExpr      :: null | u8
+  expr 23:8     BinaryExpr     :: bool
+  expr 23:8     IdentExpr      :: null | u8
+  expr 23:83    StringLitExpr  :: string
+  expr 25:14    StructLitExpr  :: MutableMap<string, bool>
+  expr 26:11    StringLitExpr  :: string
+  expr 26:5     IdentExpr      :: MutableMap<string, bool>
+  expr 27:11    StringLitExpr  :: string
+  expr 27:5     IdentExpr      :: MutableMap<string, bool>
+  expr 28:11    IdentExpr      :: MutableMap<string, bool>
+  expr 28:11    IndexExpr      :: bool | null
+  expr 28:17    StringLitExpr  :: string
+  expr 29:11    IdentExpr      :: MutableMap<string, bool>
+  expr 29:11    IndexExpr      :: bool | null
+  expr 29:17    StringLitExpr  :: string
+  expr 30:22    BinaryExpr     :: bool
+  expr 30:22    IdentExpr      :: bool | null
+  expr 30:35    CallExpr       :: void
+  expr 30:35    IdentExpr      :: fn(T) -> void
+  expr 30:43    StringLitExpr  :: string
+  expr 30:5     IfExpr         :: void
+  expr 30:69    CallExpr       :: void
+  expr 30:69    IdentExpr      :: fn(T) -> void
+  expr 30:77    StringLitExpr  :: string
+  expr 30:8     BinaryExpr     :: bool
+  expr 30:8     BinaryExpr     :: bool
+  expr 30:8     IdentExpr      :: bool | null
+  expr 30:87    IdentExpr      :: bool | null
+  expr 30:95    IdentExpr      :: bool | null
+  expr 32:14    StructLitExpr  :: MutableMap<string, char>
+  expr 33:11    StringLitExpr  :: string
+  expr 33:5     IdentExpr      :: MutableMap<string, char>
+  expr 34:11    StringLitExpr  :: string
+  expr 34:5     IdentExpr      :: MutableMap<string, char>
+  expr 35:11    IdentExpr      :: MutableMap<string, char>
+  expr 35:11    IndexExpr      :: char | null
+  expr 35:17    StringLitExpr  :: string
+  expr 36:21    CallExpr       :: void
+  expr 36:21    IdentExpr      :: fn(T) -> void
+  expr 36:29    StringLitExpr  :: string
+  expr 36:5     IfExpr         :: void
+  expr 36:55    CallExpr       :: void
+  expr 36:55    IdentExpr      :: fn(T) -> void
+  expr 36:63    StringLitExpr  :: string
+  expr 36:77    IdentExpr      :: char
+  expr 36:8     BinaryExpr     :: bool
+  expr 36:8     IdentExpr      :: char | null
+  expr 36:90    IdentExpr      :: MutableMap<string, char>
+  expr 36:90    IndexExpr      :: char | null
+  expr 36:96    StringLitExpr  :: string
+  expr 38:13    StructLitExpr  :: MutableMap<string, f32>
+  expr 39:10    StringLitExpr  :: string
+  expr 39:5     IdentExpr      :: MutableMap<string, f32>
+  expr 40:11    IdentExpr      :: MutableMap<string, f32>
+  expr 40:11    IndexExpr      :: f32 | null
+  expr 40:16    StringLitExpr  :: string
+  expr 41:21    CallExpr       :: void
+  expr 41:21    IdentExpr      :: fn(T) -> void
+  expr 41:29    StringLitExpr  :: string
+  expr 41:5     IfExpr         :: void
+  expr 41:54    CallExpr       :: void
+  expr 41:54    IdentExpr      :: fn(T) -> void
+  expr 41:62    StringLitExpr  :: string
+  expr 41:72    IdentExpr      :: f32
+  expr 41:8     BinaryExpr     :: bool
+  expr 41:8     IdentExpr      :: f32 | null
+  expr 43:13    StructLitExpr  :: MutableMap<string, f64>
+  expr 44:10    StringLitExpr  :: string
+  expr 44:5     IdentExpr      :: MutableMap<string, f64>
+  expr 45:11    IdentExpr      :: MutableMap<string, f64>
+  expr 45:11    IndexExpr      :: f64 | null
+  expr 45:16    StringLitExpr  :: string
+  expr 46:21    CallExpr       :: void
+  expr 46:21    IdentExpr      :: fn(T) -> void
+  expr 46:29    StringLitExpr  :: string
+  expr 46:5     IfExpr         :: void
+  expr 46:54    CallExpr       :: void
+  expr 46:54    IdentExpr      :: fn(T) -> void
+  expr 46:62    StringLitExpr  :: string
+  expr 46:71    IdentExpr      :: f64
+  expr 46:8     BinaryExpr     :: bool
+  expr 46:8     IdentExpr      :: f64 | null
+  expr 48:13    StructLitExpr  :: MutableMap<string, i16>
+  expr 49:10    StringLitExpr  :: string
+  expr 49:19    UnaryExpr      :: {integer}
+  expr 49:5     IdentExpr      :: MutableMap<string, i16>
+  expr 50:11    IdentExpr      :: MutableMap<string, i16>
+  expr 50:11    IndexExpr      :: i16 | null
+  expr 50:16    StringLitExpr  :: string
+  expr 51:21    CallExpr       :: void
+  expr 51:21    IdentExpr      :: fn(T) -> void
+  expr 51:29    StringLitExpr  :: string
+  expr 51:5     IfExpr         :: void
+  expr 51:54    CallExpr       :: void
+  expr 51:54    IdentExpr      :: fn(T) -> void
+  expr 51:62    StringLitExpr  :: string
+  expr 51:73    IdentExpr      :: i16
+  expr 51:8     BinaryExpr     :: bool
+  expr 51:8     IdentExpr      :: i16 | null
+  expr 53:13    StructLitExpr  :: MutableMap<string, u16>
+  expr 54:10    StringLitExpr  :: string
+  expr 54:5     IdentExpr      :: MutableMap<string, u16>
+  expr 55:11    IdentExpr      :: MutableMap<string, u16>
+  expr 55:11    IndexExpr      :: null | u16
+  expr 55:16    StringLitExpr  :: string
+  expr 56:21    CallExpr       :: void
+  expr 56:21    IdentExpr      :: fn(T) -> void
+  expr 56:29    StringLitExpr  :: string
+  expr 56:5     IfExpr         :: void
+  expr 56:54    CallExpr       :: void
+  expr 56:54    IdentExpr      :: fn(T) -> void
+  expr 56:62    StringLitExpr  :: string
+  expr 56:73    IdentExpr      :: u16
+  expr 56:8     BinaryExpr     :: bool
+  expr 56:8     IdentExpr      :: null | u16
+  expr 58:13    StructLitExpr  :: MutableMap<string, i64>
+  expr 60:10    StringLitExpr  :: string
+  expr 60:20    IdentExpr      :: i64
+  expr 60:5     IdentExpr      :: MutableMap<string, i64>
+  expr 61:11    IdentExpr      :: MutableMap<string, i64>
+  expr 61:11    IndexExpr      :: i64 | null
+  expr 61:16    StringLitExpr  :: string
+  expr 62:21    CallExpr       :: void
+  expr 62:21    IdentExpr      :: fn(T) -> void
+  expr 62:29    StringLitExpr  :: string
+  expr 62:5     IfExpr         :: void
+  expr 62:54    CallExpr       :: void
+  expr 62:54    IdentExpr      :: fn(T) -> void
+  expr 62:62    StringLitExpr  :: string
+  expr 62:74    IdentExpr      :: i64
+  expr 62:8     BinaryExpr     :: bool
+  expr 62:8     IdentExpr      :: i64 | null
+  expr 65:13    IdentExpr      :: MutableMap<string, u8>
+  expr 65:13    IndexExpr      :: null | u8
+  expr 65:17    StringLitExpr  :: string
+  expr 66:23    CallExpr       :: void
+  expr 66:23    IdentExpr      :: fn(T) -> void
+  expr 66:31    StringLitExpr  :: string
+  expr 66:5     IfExpr         :: void
+  expr 66:52    CallExpr       :: void
+  expr 66:52    IdentExpr      :: fn(T) -> void
+  expr 66:60    StringLitExpr  :: string
+  expr 66:75    IdentExpr      :: u8
+  expr 66:8     BinaryExpr     :: bool
+  expr 66:8     IdentExpr      :: null | u8

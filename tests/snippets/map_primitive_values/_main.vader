@@ -1,0 +1,69 @@
+// map_primitive_values — MutableMap<string, V> for the wider primitive
+// value set (u8 / bool / char / f32 / f64 / i16 / u16 / i64).
+//
+// Under the .NET-erasure model the value lands RAW in the bucket entry — a
+// box-vs-raw miscompile surfaces as a wrong read-back. The `V | null` get
+// result also exercises nullable-of-raw-primitive narrowing.
+//
+// The wide i64 value flows through a TYPED LOCAL : a free literal in
+// index-set position isn't repinned to the map's value type and truncates
+// via i32 — a separate, pre-existing typer gap (free literal not repinned
+// to a resolved wide concrete type), not a .NET-model issue.
+
+module "snippet"
+
+import "std/io" { println }
+import "std/collections" { MutableMap, len }
+
+main :: fn() -> i32 {
+    mu8 := MutableMap<string, u8> {}
+    mu8["x"] = 200
+    mu8["y"] = 7
+    vx :: mu8["x"]
+    if vx == null { println("u8 x: missing") } else { println("u8 x=${vx} y=${mu8["y"]}") }
+
+    mbool := MutableMap<string, bool> {}
+    mbool["t"] = true
+    mbool["f"] = false
+    vt :: mbool["t"]
+    vf :: mbool["f"]
+    if vt == null || vf == null { println("bool: missing") } else { println("bool t=${vt} f=${vf}") }
+
+    mchar := MutableMap<string, char> {}
+    mchar["first"] = 'A'
+    mchar["accent"] = 'é'
+    vc :: mchar["first"]
+    if vc == null { println("char: missing") } else { println("char first=${vc} accent=${mchar["accent"]}") }
+
+    mf32 := MutableMap<string, f32> {}
+    mf32["pi"] = 3.5
+    vp :: mf32["pi"]
+    if vp == null { println("f32: missing") } else { println("f32 pi=${vp}") }
+
+    mf64 := MutableMap<string, f64> {}
+    mf64["e"] = 2.25
+    ve :: mf64["e"]
+    if ve == null { println("f64: missing") } else { println("f64 e=${ve}") }
+
+    mi16 := MutableMap<string, i16> {}
+    mi16["neg"] = -1000
+    vn :: mi16["neg"]
+    if vn == null { println("i16: missing") } else { println("i16 neg=${vn}") }
+
+    mu16 := MutableMap<string, u16> {}
+    mu16["big"] = 50000
+    vb :: mu16["big"]
+    if vb == null { println("u16: missing") } else { println("u16 big=${vb}") }
+
+    mi64 := MutableMap<string, i64> {}
+    huge: i64 = 9000000000   // typed local : a free literal would truncate via i32 here
+    mi64["huge"] = huge
+    vh :: mi64["huge"]
+    if vh == null { println("i64: missing") } else { println("i64 huge=${vh}") }
+
+    // Miss + null-narrowing on a raw-valued map.
+    miss :: mu8["absent"]
+    if miss == null { println("miss: ok") } else { println("miss: WRONG ${miss}") }
+
+    return 0
+}

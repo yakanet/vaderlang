@@ -1,0 +1,719 @@
+# Lower
+
+## snippet
+  fn snippet$main() -> i32
+    let mu8: MutableMap<string, u8> =
+      MutableMap<string, u8> {
+        buckets:
+          array :(Entry<K, V> | null)[]
+        size: int(0) :usize
+      }
+    call :void
+      callee:
+        std_collections$MutableMap$IndexSet$set_at__string__u8 :void
+      arg0:
+        mu8 :MutableMap<string, u8>
+      arg1:
+        "x" :string
+      arg2:
+        int(200) :i32
+    call :void
+      callee:
+        std_collections$MutableMap$IndexSet$set_at__string__u8 :void
+      arg0:
+        mu8 :MutableMap<string, u8>
+      arg1:
+        "y" :string
+      arg2:
+        int(7) :i32
+    let vx: null | u8 =
+      call :null | u8
+        callee:
+          std_collections$MutableMap$Index$at__string__u8 :null | u8
+        arg0:
+          mu8 :MutableMap<string, u8>
+        arg1:
+          "x" :string
+    if :void
+      cond:
+        is null :bool
+          vx :null | u8
+      then:
+        ~>
+          call :void
+            callee:
+              std_io$std_io$println__string :void
+            arg0:
+              "u8 x: missing" :string
+      else:
+        ~>
+          call :void
+            callee:
+              std_io$std_io$println__string :void
+            arg0:
+              block :string
+                let __sb_0: StringBuilder =
+                  call :StringBuilder
+                    callee:
+                      new_builder :StringBuilder
+                call :void
+                  callee:
+                    append :void
+                  arg0:
+                    __sb_0 :StringBuilder
+                  arg1:
+                    "u8 x=" :string
+                call :void
+                  callee:
+                    append :void
+                  arg0:
+                    __sb_0 :StringBuilder
+                  arg1:
+                    call :string
+                      callee:
+                        std_core$u8$Display$to_string :string
+                      arg0:
+                        cast → u8
+                          vx :null | u8
+                call :void
+                  callee:
+                    append :void
+                  arg0:
+                    __sb_0 :StringBuilder
+                  arg1:
+                    " y=" :string
+                call :void
+                  callee:
+                    append :void
+                  arg0:
+                    __sb_0 :StringBuilder
+                  arg1:
+                    vcall Display.to_string :string
+                      recv:
+                        call :null | u8
+                          callee:
+                            std_collections$MutableMap$Index$at__string__u8 :null | u8
+                          arg0:
+                            mu8 :MutableMap<string, u8>
+                          arg1:
+                            "y" :string
+                ~>
+                  call :string
+                    callee:
+                      std_string_builder$StringBuilder$Display$to_string :string
+                    arg0:
+                      __sb_0 :StringBuilder
+    let mbool: MutableMap<string, bool> =
+      MutableMap<string, bool> {
+        buckets:
+          array :(Entry<K, V> | null)[]
+        size: int(0) :usize
+      }
+    call :void
+      callee:
+        std_collections$MutableMap$IndexSet$set_at__string__bool :void
+      arg0:
+        mbool :MutableMap<string, bool>
+      arg1:
+        "t" :string
+      arg2:
+        true
+    call :void
+      callee:
+        std_collections$MutableMap$IndexSet$set_at__string__bool :void
+      arg0:
+        mbool :MutableMap<string, bool>
+      arg1:
+        "f" :string
+      arg2:
+        false
+    let vt: bool | null =
+      call :bool | null
+        callee:
+          std_collections$MutableMap$Index$at__string__bool :bool | null
+        arg0:
+          mbool :MutableMap<string, bool>
+        arg1:
+          "t" :string
+    let vf: bool | null =
+      call :bool | null
+        callee:
+          std_collections$MutableMap$Index$at__string__bool :bool | null
+        arg0:
+          mbool :MutableMap<string, bool>
+        arg1:
+          "f" :string
+    if :void
+      cond:
+        or :bool
+          l:
+            is null :bool
+              vt :bool | null
+          r:
+            is null :bool
+              vf :bool | null
+      then:
+        ~>
+          call :void
+            callee:
+              std_io$std_io$println__string :void
+            arg0:
+              "bool: missing" :string
+      else:
+        ~>
+          call :void
+            callee:
+              std_io$std_io$println__string :void
+            arg0:
+              block :string
+                let __sb_1: StringBuilder =
+                  call :StringBuilder
+                    callee:
+                      new_builder :StringBuilder
+                call :void
+                  callee:
+                    append :void
+                  arg0:
+                    __sb_1 :StringBuilder
+                  arg1:
+                    "bool t=" :string
+                call :void
+                  callee:
+                    append :void
+                  arg0:
+                    __sb_1 :StringBuilder
+                  arg1:
+                    vcall Display.to_string :string
+                      recv:
+                        vt :bool | null
+                call :void
+                  callee:
+                    append :void
+                  arg0:
+                    __sb_1 :StringBuilder
+                  arg1:
+                    " f=" :string
+                call :void
+                  callee:
+                    append :void
+                  arg0:
+                    __sb_1 :StringBuilder
+                  arg1:
+                    vcall Display.to_string :string
+                      recv:
+                        vf :bool | null
+                ~>
+                  call :string
+                    callee:
+                      std_string_builder$StringBuilder$Display$to_string :string
+                    arg0:
+                      __sb_1 :StringBuilder
+    let mchar: MutableMap<string, char> =
+      MutableMap<string, char> {
+        buckets:
+          array :(Entry<K, V> | null)[]
+        size: int(0) :usize
+      }
+    call :void
+      callee:
+        std_collections$MutableMap$IndexSet$set_at__string__char :void
+      arg0:
+        mchar :MutableMap<string, char>
+      arg1:
+        "first" :string
+      arg2:
+        char(0x41)
+    call :void
+      callee:
+        std_collections$MutableMap$IndexSet$set_at__string__char :void
+      arg0:
+        mchar :MutableMap<string, char>
+      arg1:
+        "accent" :string
+      arg2:
+        char(0xe9)
+    let vc: char | null =
+      call :char | null
+        callee:
+          std_collections$MutableMap$Index$at__string__char :char | null
+        arg0:
+          mchar :MutableMap<string, char>
+        arg1:
+          "first" :string
+    if :void
+      cond:
+        is null :bool
+          vc :char | null
+      then:
+        ~>
+          call :void
+            callee:
+              std_io$std_io$println__string :void
+            arg0:
+              "char: missing" :string
+      else:
+        ~>
+          call :void
+            callee:
+              std_io$std_io$println__string :void
+            arg0:
+              block :string
+                let __sb_2: StringBuilder =
+                  call :StringBuilder
+                    callee:
+                      new_builder :StringBuilder
+                call :void
+                  callee:
+                    append :void
+                  arg0:
+                    __sb_2 :StringBuilder
+                  arg1:
+                    "char first=" :string
+                call :void
+                  callee:
+                    append :void
+                  arg0:
+                    __sb_2 :StringBuilder
+                  arg1:
+                    call :string
+                      callee:
+                        std_core$char$Display$to_string :string
+                      arg0:
+                        cast → char
+                          vc :char | null
+                call :void
+                  callee:
+                    append :void
+                  arg0:
+                    __sb_2 :StringBuilder
+                  arg1:
+                    " accent=" :string
+                call :void
+                  callee:
+                    append :void
+                  arg0:
+                    __sb_2 :StringBuilder
+                  arg1:
+                    vcall Display.to_string :string
+                      recv:
+                        call :char | null
+                          callee:
+                            std_collections$MutableMap$Index$at__string__char :char | null
+                          arg0:
+                            mchar :MutableMap<string, char>
+                          arg1:
+                            "accent" :string
+                ~>
+                  call :string
+                    callee:
+                      std_string_builder$StringBuilder$Display$to_string :string
+                    arg0:
+                      __sb_2 :StringBuilder
+    let mf32: MutableMap<string, f32> =
+      MutableMap<string, f32> {
+        buckets:
+          array :(Entry<K, V> | null)[]
+        size: int(0) :usize
+      }
+    call :void
+      callee:
+        std_collections$MutableMap$IndexSet$set_at__string__f32 :void
+      arg0:
+        mf32 :MutableMap<string, f32>
+      arg1:
+        "pi" :string
+      arg2:
+        float(3.5) :f64
+    let vp: f32 | null =
+      call :f32 | null
+        callee:
+          std_collections$MutableMap$Index$at__string__f32 :f32 | null
+        arg0:
+          mf32 :MutableMap<string, f32>
+        arg1:
+          "pi" :string
+    if :void
+      cond:
+        is null :bool
+          vp :f32 | null
+      then:
+        ~>
+          call :void
+            callee:
+              std_io$std_io$println__string :void
+            arg0:
+              "f32: missing" :string
+      else:
+        ~>
+          call :void
+            callee:
+              std_io$std_io$println__string :void
+            arg0:
+              block :string
+                let __sb_3: StringBuilder =
+                  call :StringBuilder
+                    callee:
+                      new_builder :StringBuilder
+                call :void
+                  callee:
+                    append :void
+                  arg0:
+                    __sb_3 :StringBuilder
+                  arg1:
+                    "f32 pi=" :string
+                call :void
+                  callee:
+                    append :void
+                  arg0:
+                    __sb_3 :StringBuilder
+                  arg1:
+                    call :string
+                      callee:
+                        std_core$f32$Display$to_string :string
+                      arg0:
+                        cast → f32
+                          vp :f32 | null
+                ~>
+                  call :string
+                    callee:
+                      std_string_builder$StringBuilder$Display$to_string :string
+                    arg0:
+                      __sb_3 :StringBuilder
+    let mf64: MutableMap<string, f64> =
+      MutableMap<string, f64> {
+        buckets:
+          array :(Entry<K, V> | null)[]
+        size: int(0) :usize
+      }
+    call :void
+      callee:
+        std_collections$MutableMap$IndexSet$set_at__string__f64 :void
+      arg0:
+        mf64 :MutableMap<string, f64>
+      arg1:
+        "e" :string
+      arg2:
+        float(2.25) :f64
+    let ve: f64 | null =
+      call :f64 | null
+        callee:
+          std_collections$MutableMap$Index$at__string__f64 :f64 | null
+        arg0:
+          mf64 :MutableMap<string, f64>
+        arg1:
+          "e" :string
+    if :void
+      cond:
+        is null :bool
+          ve :f64 | null
+      then:
+        ~>
+          call :void
+            callee:
+              std_io$std_io$println__string :void
+            arg0:
+              "f64: missing" :string
+      else:
+        ~>
+          call :void
+            callee:
+              std_io$std_io$println__string :void
+            arg0:
+              block :string
+                let __sb_4: StringBuilder =
+                  call :StringBuilder
+                    callee:
+                      new_builder :StringBuilder
+                call :void
+                  callee:
+                    append :void
+                  arg0:
+                    __sb_4 :StringBuilder
+                  arg1:
+                    "f64 e=" :string
+                call :void
+                  callee:
+                    append :void
+                  arg0:
+                    __sb_4 :StringBuilder
+                  arg1:
+                    call :string
+                      callee:
+                        std_core$f64$Display$to_string :string
+                      arg0:
+                        cast → f64
+                          ve :f64 | null
+                ~>
+                  call :string
+                    callee:
+                      std_string_builder$StringBuilder$Display$to_string :string
+                    arg0:
+                      __sb_4 :StringBuilder
+    let mi16: MutableMap<string, i16> =
+      MutableMap<string, i16> {
+        buckets:
+          array :(Entry<K, V> | null)[]
+        size: int(0) :usize
+      }
+    call :void
+      callee:
+        std_collections$MutableMap$IndexSet$set_at__string__i16 :void
+      arg0:
+        mi16 :MutableMap<string, i16>
+      arg1:
+        "neg" :string
+      arg2:
+        neg :{integer}
+          int(1000) :i32
+    let vn: i16 | null =
+      call :i16 | null
+        callee:
+          std_collections$MutableMap$Index$at__string__i16 :i16 | null
+        arg0:
+          mi16 :MutableMap<string, i16>
+        arg1:
+          "neg" :string
+    if :void
+      cond:
+        is null :bool
+          vn :i16 | null
+      then:
+        ~>
+          call :void
+            callee:
+              std_io$std_io$println__string :void
+            arg0:
+              "i16: missing" :string
+      else:
+        ~>
+          call :void
+            callee:
+              std_io$std_io$println__string :void
+            arg0:
+              block :string
+                let __sb_5: StringBuilder =
+                  call :StringBuilder
+                    callee:
+                      new_builder :StringBuilder
+                call :void
+                  callee:
+                    append :void
+                  arg0:
+                    __sb_5 :StringBuilder
+                  arg1:
+                    "i16 neg=" :string
+                call :void
+                  callee:
+                    append :void
+                  arg0:
+                    __sb_5 :StringBuilder
+                  arg1:
+                    call :string
+                      callee:
+                        std_core$i16$Display$to_string :string
+                      arg0:
+                        cast → i16
+                          vn :i16 | null
+                ~>
+                  call :string
+                    callee:
+                      std_string_builder$StringBuilder$Display$to_string :string
+                    arg0:
+                      __sb_5 :StringBuilder
+    let mu16: MutableMap<string, u16> =
+      MutableMap<string, u16> {
+        buckets:
+          array :(Entry<K, V> | null)[]
+        size: int(0) :usize
+      }
+    call :void
+      callee:
+        std_collections$MutableMap$IndexSet$set_at__string__u16 :void
+      arg0:
+        mu16 :MutableMap<string, u16>
+      arg1:
+        "big" :string
+      arg2:
+        int(50000) :i32
+    let vb: null | u16 =
+      call :null | u16
+        callee:
+          std_collections$MutableMap$Index$at__string__u16 :null | u16
+        arg0:
+          mu16 :MutableMap<string, u16>
+        arg1:
+          "big" :string
+    if :void
+      cond:
+        is null :bool
+          vb :null | u16
+      then:
+        ~>
+          call :void
+            callee:
+              std_io$std_io$println__string :void
+            arg0:
+              "u16: missing" :string
+      else:
+        ~>
+          call :void
+            callee:
+              std_io$std_io$println__string :void
+            arg0:
+              block :string
+                let __sb_6: StringBuilder =
+                  call :StringBuilder
+                    callee:
+                      new_builder :StringBuilder
+                call :void
+                  callee:
+                    append :void
+                  arg0:
+                    __sb_6 :StringBuilder
+                  arg1:
+                    "u16 big=" :string
+                call :void
+                  callee:
+                    append :void
+                  arg0:
+                    __sb_6 :StringBuilder
+                  arg1:
+                    call :string
+                      callee:
+                        std_core$u16$Display$to_string :string
+                      arg0:
+                        cast → u16
+                          vb :null | u16
+                ~>
+                  call :string
+                    callee:
+                      std_string_builder$StringBuilder$Display$to_string :string
+                    arg0:
+                      __sb_6 :StringBuilder
+    let mi64: MutableMap<string, i64> =
+      MutableMap<string, i64> {
+        buckets:
+          array :(Entry<K, V> | null)[]
+        size: int(0) :usize
+      }
+    let huge: i64 = int(9000000000) :i64
+    call :void
+      callee:
+        std_collections$MutableMap$IndexSet$set_at__string__i64 :void
+      arg0:
+        mi64 :MutableMap<string, i64>
+      arg1:
+        "huge" :string
+      arg2:
+        huge :i64
+    let vh: i64 | null =
+      call :i64 | null
+        callee:
+          std_collections$MutableMap$Index$at__string__i64 :i64 | null
+        arg0:
+          mi64 :MutableMap<string, i64>
+        arg1:
+          "huge" :string
+    if :void
+      cond:
+        is null :bool
+          vh :i64 | null
+      then:
+        ~>
+          call :void
+            callee:
+              std_io$std_io$println__string :void
+            arg0:
+              "i64: missing" :string
+      else:
+        ~>
+          call :void
+            callee:
+              std_io$std_io$println__string :void
+            arg0:
+              block :string
+                let __sb_7: StringBuilder =
+                  call :StringBuilder
+                    callee:
+                      new_builder :StringBuilder
+                call :void
+                  callee:
+                    append :void
+                  arg0:
+                    __sb_7 :StringBuilder
+                  arg1:
+                    "i64 huge=" :string
+                call :void
+                  callee:
+                    append :void
+                  arg0:
+                    __sb_7 :StringBuilder
+                  arg1:
+                    call :string
+                      callee:
+                        std_core$i64$Display$to_string :string
+                      arg0:
+                        cast → i64
+                          vh :i64 | null
+                ~>
+                  call :string
+                    callee:
+                      std_string_builder$StringBuilder$Display$to_string :string
+                    arg0:
+                      __sb_7 :StringBuilder
+    let miss: null | u8 =
+      call :null | u8
+        callee:
+          std_collections$MutableMap$Index$at__string__u8 :null | u8
+        arg0:
+          mu8 :MutableMap<string, u8>
+        arg1:
+          "absent" :string
+    if :void
+      cond:
+        is null :bool
+          miss :null | u8
+      then:
+        ~>
+          call :void
+            callee:
+              std_io$std_io$println__string :void
+            arg0:
+              "miss: ok" :string
+      else:
+        ~>
+          call :void
+            callee:
+              std_io$std_io$println__string :void
+            arg0:
+              block :string
+                let __sb_8: StringBuilder =
+                  call :StringBuilder
+                    callee:
+                      new_builder :StringBuilder
+                call :void
+                  callee:
+                    append :void
+                  arg0:
+                    __sb_8 :StringBuilder
+                  arg1:
+                    "miss: WRONG " :string
+                call :void
+                  callee:
+                    append :void
+                  arg0:
+                    __sb_8 :StringBuilder
+                  arg1:
+                    call :string
+                      callee:
+                        std_core$u8$Display$to_string :string
+                      arg0:
+                        cast → u8
+                          miss :null | u8
+                ~>
+                  call :string
+                    callee:
+                      std_string_builder$StringBuilder$Display$to_string :string
+                    arg0:
+                      __sb_8 :StringBuilder
+    return int(0) :i32
