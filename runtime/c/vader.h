@@ -351,8 +351,9 @@ static inline size_t vader_array_element_size(uint8_t kind) {
  * instead of owning a GC-backed `buf` (which is NULL). On a borrowed view
  * `capacity` is repurposed to carry `(element_tag << 32) | owner_atom_id` —
  * the view is never grown in place (push detaches / is a compile error via
- * T3042), so `capacity` is otherwise dead. `vader_array_get` / `_slice` honour
- * the flag ; `vader_atom_mark_heap` keeps the owner atom alive through it. */
+ * T3042), so `capacity` is otherwise dead. The open-coded c-emit reads
+ * (`vader_array_read_u8`) / `_slice` honour the flag ; `vader_atom_mark_heap`
+ * keeps the owner atom alive through it. */
 #define VADER_ARRAY_FLAG_BORROWED  ((uint16_t) 0x0001u)
 
 /* Array data buffer — a separate GC object so `push` can reallocate without
@@ -376,8 +377,8 @@ typedef struct {
  * VADER_ARRAY_FLAG_BORROWED representation. On a borrowed view `capacity`
  * packs `(element_tag << 32) | owner_atom_id` (see VADER_ARRAY_FLAG_BORROWED
  * above) ; reading goes through `vader_atom_data(owner)`. Keeping the bit
- * layout here means `vader_array_get` / `_slice` / the GC mark never open-code
- * the casts. */
+ * layout here means `vader_array_read_u8` / `_slice` / the GC mark never
+ * open-code the casts. */
 static inline bool vader_array_is_borrowed(const vader_array_t* a) {
     return (a->header._reserved & VADER_ARRAY_FLAG_BORROWED) != 0;
 }
@@ -401,7 +402,8 @@ static inline void vader_array_make_borrowed(vader_array_t* a, uint32_t elem_tag
  * BOXED kind the per-slot box already carries its own tag (one slot may hold
  * different concrete types under an `Any[]` view) ; element_tag is unused.
  * For primitive kinds (I32, F64, BOOL, ...) all elements share the same tag —
- * `vader_array_load_slot` stamps it onto the returned box so virtual-dispatch
+ * the open-coded c-emit read (`box_expr` with the static elem_tag, or
+ * `vader_array_read_u8`) stamps it onto the returned box so virtual-dispatch
  * call sites that observe the array through an erased `Any[]` view get a
  * properly-tagged receiver. */
 typedef struct vader_array_buf {
@@ -497,8 +499,11 @@ static inline void vader_buffer_memory_copy(vader_buffer_t* dst, size_t dst_off,
 }
 
 vader_array_t* vader_array_new(uint32_t type_index, size_t length, uint8_t element_kind, uint32_t element_tag);
-vader_box_t    vader_array_get(vader_array_t* a, size_t i);
-void           vader_array_set(vader_array_t* a, size_t i, vader_box_t v);
+/* vader_array_get / vader_array_set are RETIRED — the C emitter open-codes every
+ * `arr[i]` / `arr[i] = v` over the kept layout (typed slots inline, boxed via
+ * `vader_array_box_slots` + the write barrier, u8 via `vader_array_read_u8`), so
+ * they are no longer part of the per-target ABI. `push` / `slice` / `new` stay
+ * (the GC-coupled construction primitives). */
 void           vader_array_push(vader_array_t* a, vader_box_t v);
 /* Zero-copy view into `a[lo..hi)`. The returned array shares `a->buf` ;
  * pushing into the view detaches into a fresh buf so concurrent views
