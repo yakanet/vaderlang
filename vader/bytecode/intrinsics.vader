@@ -42,7 +42,6 @@ export intrinsic_op_for_mangled :: fn(mangled: string) -> Op | null {
     if mangled == r"std_core$bool$Equals$equals"   { return BoolEq {} }
     if mangled == r"std_core$char$Equals$equals"   { return CharEq {} }
     if mangled == r"std_core$string$Equals$equals" { return StringEq {} }
-    if mangled == r"std_core$string$Add$add"       { return StringConcat {} }
     // Target ABI memory opcodes — the abstract `Buffer`'s `@intrinsic` methods
     // (`stdlib/std/core/buffer.vader`). `object_new`'s `type_id` immediate is a
     // placeholder : c-emit always tags the box with the BUFFER sentinel and the
@@ -82,14 +81,6 @@ import "std/testing" { assert_eq }
     match op {
         is I32Add -> {}
         _         -> assert_eq("expected I32Add", "")
-    }
-}
-
-@test test_intrinsic_op_for_mangled_string_concat :: fn() -> void {
-    op :: intrinsic_op_for_mangled(r"std_core$string$Add$add")
-    match op {
-        is StringConcat -> {}
-        _               -> assert_eq("expected StringConcat", "")
     }
 }
 

@@ -1452,16 +1452,6 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[]) -
                 frame.stack[frame.sp - 1] = I32Val { .value = i32(u32(source.value)) }
                 frame.pc = frame.pc + 1
             }
-            is bc.StringConcat -> {
-                if frame.sp < 2 { return Trap { .message = "string.concat needs 2 strings on stack at pc=${frame.pc}" } }
-                left  :: read_string(frame.stack[frame.sp - 2], frame.pc, "string.concat")
-                right :: read_string(frame.stack[frame.sp - 1], frame.pc, "string.concat")
-                if left  is Trap { return left  }
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = StringVal { .value = "${left.value}${right.value}" }
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
             is bc.StringSliceCodepoints -> {
                 if frame.sp < 3 { return Trap { .message = "string.slice_codepoints needs string + lo + hi on stack at pc=${frame.pc}" } }
                 s_box  :: read_string(frame.stack[frame.sp - 3], frame.pc, "string.slice_codepoints receiver")

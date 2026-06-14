@@ -296,11 +296,16 @@ char  implements Step -> char(u32(self) + u32(1))
 
 // ---- String ---------------------------------------------------------------
 //
-// `Add` is wired here in std/core (auto-imported) so concat works without
-// `import "std/string"`. `Index(usize, char)` returns the Unicode codepoint
-// at byte offset `i` — strings are immutable so there's no `IndexSet` to
-// pair with. Number formatting (`to_hex`, `to_bin`) lives in `std/numbers`
-// so it can use `std/string_builder`.
+// `Add` is wired here in std/core (auto-imported) so `.add()` and the `Add`
+// bound work without `import "std/string"`. Its body interpolates the two
+// operands — which desugars to the Buffer-backed StringBuilder chain (S6b),
+// so no dedicated `StringConcat` op is needed. The `+` operator never reaches
+// this body : it is special-cased in the typechecker (`typecheck/binary.vader`
+// — `string + string -> string`) and lowered to the same StringBuilder chain
+// directly (`lower/lower_binary.vader`). `Index(usize, char)` returns the
+// Unicode codepoint at byte offset `i` — strings are immutable so there's no
+// `IndexSet` to pair with. Number formatting (`to_hex`, `to_bin`) lives in
+// `std/numbers` so it can use `std/string_builder`.
 
-@intrinsic string implements Add
+string implements Add -> "${self}${other}"
 @intrinsic string implements Index<usize, char>

@@ -130,7 +130,6 @@ export Op :: Unreachable
     | CharGe
     | StringEq
     | StringNe
-    | StringConcat
     | StringSliceCodepoints
     | IntToChar
     | CharToInt
@@ -526,9 +525,6 @@ export CharGe :: struct {}
 export StringEq :: struct {}
 /// Pop two strings (left, right) ; push `BoolVal` for byte-inequality.
 export StringNe :: struct {}
-/// Pop two strings (left, right) ; push their concatenation as a
-/// fresh `StringVal`.
-export StringConcat :: struct {}
 /// Pop a string and two `usize` (lo, hi) ; push the codepoint-indexed
 /// substring as a fresh `StringVal`. Implements the codepoint slice
 /// form `s[r]` where `r : Range[usize]`. Out-of-bounds clamps (no

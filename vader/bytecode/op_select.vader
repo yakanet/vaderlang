@@ -30,16 +30,17 @@ import "vader/lower" {
 }
 
 /// Pick the bytecode op for a `LoweredBinaryOp` over operands of class
-/// `lhs`. `add` over `string` collapses to `StringConcat` ; `eq` /
-/// `neq` over reference shapes (`ref` / `any`) reuse the i32 compare
-/// since both sides hold the boxed pointer tag.
+/// `lhs`. `eq` / `neq` over reference shapes (`ref` / `any`) reuse the
+/// i32 compare since both sides hold the boxed pointer tag. (String `+`
+/// never reaches here — the lowerer rewrites it to a StringBuilder
+/// chain, `lower/lower_binary.vader`.)
 ///
 /// @param op   the source-level binary operator.
 /// @param lhs  the operand stack class (both operands share it after
 ///             typecheck-time numeric promotions).
 /// @return     the concrete op to push.
 export binary_op_for :: fn(op: LoweredBinaryOp, lhs: ValType) -> Op = match op {
-    .Add    -> arith_add(lhs)
+    .Add    -> arith_op(lhs, "add")
     .Sub    -> arith_op(lhs, "sub")
     .Mul    -> arith_op(lhs, "mul")
     .Div    -> div_op(lhs)
@@ -74,11 +75,6 @@ export unary_op_for :: fn(op: LoweredUnaryOp, operand: ValType) -> Op = match op
 }
 
 // ---- arithmetic ----------------------------------------------------------
-
-arith_add :: fn(lhs: ValType) -> Op {
-    if lhs == ValType.String { return StringConcat {} }
-    return arith_op(lhs, "add")
-}
 
 // Generic arith dispatcher : picks the I32 / I64 / F64 family based on
 // width-aliasing, then maps the `op` token to the concrete variant.
@@ -356,12 +352,6 @@ import "std/testing" { assert_eq }
     op :: binary_op_for(LoweredBinaryOp.Add, ValType.I64)
     if op is I64Add { return }
     assert_eq("expected I64Add", "")
-}
-
-@test test_add_string_collapses_to_concat :: fn() -> void {
-    op :: binary_op_for(LoweredBinaryOp.Add, ValType.String)
-    if op is StringConcat { return }
-    assert_eq("expected StringConcat", "")
 }
 
 @test test_div_unsigned_uses_u32div :: fn() -> void {

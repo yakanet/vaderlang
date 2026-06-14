@@ -100,7 +100,6 @@ op_allocates :: fn(op: vm.Op) -> bool {
     if op is vm.ObjectNew { return true }
     if op is vm.ArrayNew { return true }
     if op is vm.ArrayPush { return true }
-    if op is vm.StringConcat { return true }
     if op is vm.StringSliceCodepoints { return true }
     if op is vm.MakeClosure { return true }
     if op is vm.CallImport { return true }
@@ -370,7 +369,6 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.CharGe                -> push_cmp(s, ">=", .Char)
         is vm.StringEq              -> push_cmp(s, "==", .String)
         is vm.StringNe              -> push_cmp(s, "!=", .String)
-        is vm.StringConcat          -> push_fn_call2(s, "vader_string_concat", .String)
         is vm.StringSliceCodepoints -> emit_string_slice(s)
         is vm.IntToChar             -> emit_convert(s, .Char, "")
         is vm.CharToInt             -> emit_convert(s, .I32, "")

@@ -604,7 +604,6 @@ export char_gt :: fn(self: FunctionBuilder) -> void = push_op(self, bc.CharGt {}
 export char_ge :: fn(self: FunctionBuilder) -> void = push_op(self, bc.CharGe {})
 export string_eq :: fn(self: FunctionBuilder) -> void = push_op(self, bc.StringEq {})
 export string_ne :: fn(self: FunctionBuilder) -> void = push_op(self, bc.StringNe {})
-export string_concat :: fn(self: FunctionBuilder) -> void = push_op(self, bc.StringConcat {})
 export ref_eq :: fn(self: FunctionBuilder) -> void = push_op(self, bc.RefEq {})
 export ref_ne :: fn(self: FunctionBuilder) -> void = push_op(self, bc.RefNe {})
 

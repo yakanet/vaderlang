@@ -443,7 +443,6 @@ parse_op_line :: fn(cleaned: string, head: string) -> bc.Op | null {
     if head == "char.ge"        { return bc.CharGe {} }
     if head == "string.eq"      { return bc.StringEq {} }
     if head == "string.ne"      { return bc.StringNe {} }
-    if head == "string.concat"  { return bc.StringConcat {} }
     if head == "string.slice_codepoints" { return bc.StringSliceCodepoints {} }
     if head == "ref.eq"         { return bc.RefEq {} }
     if head == "ref.ne"         { return bc.RefNe {} }

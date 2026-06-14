@@ -574,7 +574,6 @@ export write_op :: fn(out: StringBuilder, op: Op) -> void {
         is CharGe                   -> out.append("char.ge")
         is StringEq                 -> out.append("string.eq")
         is StringNe                 -> out.append("string.ne")
-        is StringConcat             -> out.append("string.concat")
         is StringSliceCodepoints    -> out.append("string.slice_codepoints")
         is IntToChar                -> out.append("i32.to_char")
         is CharToInt                -> out.append("char.to_i32")
