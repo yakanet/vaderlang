@@ -1506,10 +1506,6 @@ vader_string_t vader_string_new(const char* p, size_t n) {
     return vader_atom_intern(p, n);
 }
 
-bool vader_string_eq(vader_string_t a, vader_string_t b) {
-    return a == b;
-}
-
 const char* vader_string_to_cstr(vader_string_t s) {
     return vader_atom_to_cstr(s);
 }
@@ -1807,13 +1803,6 @@ size_t vader_string_byte_len(vader_string_t s) {
     return vader_atom_len(s);
 }
 
-vader_string_t vader_string_slice(vader_string_t s, size_t start, size_t end) {
-    size_t l = vader_atom_len(s);
-    if (end > l) end = l;
-    if (start >= end) return VADER_ATOM_EMPTY;
-    return vader_atom_slice(s, start, end - start);
-}
-
 /* Walk the UTF-8 buffer counting codepoints ; return the byte offset of
  * the `cp_index`-th codepoint, clamped to the atom's length. Invalid
  * continuation bytes count as 1-byte codepoints (mirrors
@@ -1849,8 +1838,7 @@ vader_string_t vader_string_slice_codepoints(vader_string_t s, size_t cp_lo, siz
     return vader_atom_slice(s, byte_lo, byte_hi - byte_lo);
 }
 
-/* `s[i]` semantic — codepoint at codepoint-index `i`. Traps on OOB.
- * Counterpart to `vader_string_byte_at` for the byte-indexed access. */
+/* `s[i]` semantic — codepoint at codepoint-index `i`. Traps on OOB. */
 vader_char_t vader_string_codepoint_at(vader_string_t s, size_t cp_index) {
     size_t byte_off = vader_string_codepoint_byte_offset(s, cp_index);
     if (byte_off >= vader_atom_len(s)) vader_trap("string codepoint index out of bounds");
@@ -1891,11 +1879,6 @@ vader_char_t vader_string_char_at(vader_string_t s, size_t i) {
     }
     if (rem < 4) return 0;
     return (vader_char_t)(((b & 0x07u) << 18) | ((p[1] & 0x3Fu) << 12) | ((p[2] & 0x3Fu) << 6) | (p[3] & 0x3Fu));
-}
-
-vader_u8_t vader_string_byte_at(vader_string_t s, size_t i) {
-    if (i >= vader_atom_len(s)) vader_trap("string index out of bounds");
-    return (vader_u8_t)(uint8_t) vader_atom_data(s)[i];
 }
 
 /* Zero-copy `const u8[]` view over `s`'s interned bytes — see the header
@@ -1974,30 +1957,6 @@ uint64_t vader_f64_to_bits(double v) { uint64_t u; memcpy(&u, &v, sizeof u); ret
 double   vader_bits_to_f64(uint64_t b) { double v; memcpy(&v, &b, sizeof v); return v; }
 uint32_t vader_f32_to_bits(float v) { uint32_t u; memcpy(&u, &v, sizeof u); return u; }
 float    vader_bits_to_f32(uint32_t b) { float v; memcpy(&v, &b, sizeof v); return v; }
-
-/* Flatten an array of strings into a single string in one allocation. Used
- * by std/string_builder StringBuilder.to_string to avoid the O(N²) of repeated `+`. */
-vader_string_t vader_string_concat_all(vader_array_t* parts) {
-    if (parts->length == 0) return VADER_ATOM_EMPTY;
-    vader_box_t* slots = vader_array_box_slots(parts->buf) + parts->offset;
-    size_t total = 0;
-    for (size_t i = 0; i < parts->length; i++) {
-        total += vader_atom_len((vader_string_t) slots[i].payload.s);
-    }
-    if (total == 0) return VADER_ATOM_EMPTY;
-    char* buf = (char*) malloc(total + 1u);
-    if (buf == NULL) vader_trap("vader_string_concat_all: malloc failed");
-    size_t pos = 0;
-    for (size_t i = 0; i < parts->length; i++) {
-        vader_string_t s = (vader_string_t) slots[i].payload.s;
-        size_t n = vader_atom_len(s);
-        if (n > 0) {
-            memcpy(buf + pos, vader_atom_data(s), n);
-            pos += n;
-        }
-    }
-    return vader_atom_intern_take(buf, total);
-}
 
 /* ----------------------------------------------------------------- I/O */
 

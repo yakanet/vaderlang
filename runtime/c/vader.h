@@ -86,7 +86,6 @@ typedef vader_u32_t vader_atom_t;
 typedef vader_atom_t vader_string_t;
 
 vader_string_t vader_string_new(const char* p, size_t n);
-bool           vader_string_eq(vader_string_t a, vader_string_t b);
 
 /* `@extern` ABI helpers — return a NUL-terminated `const char*` view of
  * the atom's bytes. For owner atoms the runtime returns `data` directly
@@ -792,11 +791,9 @@ vader_string_t vader_spawn_last_stderr(void);
 /* ----------------------------------------------------------------- string */
 
 size_t         vader_string_byte_len(vader_string_t s);
-vader_string_t vader_string_slice(vader_string_t s, size_t start, size_t end);
 /* parse_float returns a box: ok_tag on success, err_tag on failure. */
 vader_box_t    vader_string_parse_float(vader_string_t s, uint32_t ok_tag, uint32_t err_tag);
 vader_char_t   vader_string_char_at(vader_string_t s, size_t i);
-vader_u8_t     vader_string_byte_at(vader_string_t s, size_t i);
 /* Zero-copy `const u8[]` view over `s`'s interned bytes — backs
  * `std/string::bytes`. Allocates only a small `vader_array_t` header
  * (flagged VADER_ARRAY_FLAG_BORROWED, `buf == NULL`) ; reads route through
@@ -816,7 +813,6 @@ vader_string_t vader_string_as_string(vader_array_t* a);
  * from the start (O(n) in the target index). */
 vader_char_t   vader_string_codepoint_at(vader_string_t s, size_t cp_index);
 vader_string_t vader_string_slice_codepoints(vader_string_t s, size_t cp_lo, size_t cp_hi);
-vader_string_t vader_string_concat_all(vader_array_t* parts);
 
 /* Process-level argv plumbing — emitted `main` calls this to materialise its
  * `[string]` argument from the host argv. */
