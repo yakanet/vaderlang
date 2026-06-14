@@ -471,11 +471,22 @@ merge_external_impl_methods :: fn(
                             _ -> { entry_typed.iter_element_types[base_key] = elem }
                         }
                     }
-                    // `X implements Index[I, T]` — index the result
-                    // type so `m[k]` returns T.
+                    // `X implements Index[K, T]` — index the result
+                    // type so `m[k]` returns T, and the key type K so a
+                    // free-literal index pins to K instead of i32.
                     if id_decl.trait_name == "Index" && id_decl.trait_args.len() == 2 {
+                        key_ty :: type_from_expr(id_decl.trait_args[0], other.resolved, diag_sink())
                         result_ty :: type_from_expr(id_decl.trait_args[1], other.resolved, diag_sink())
+                        entry_typed.index_key_types[base_key] = key_ty
                         entry_typed.index_target_types[base_key] = result_ty
+                    }
+                    // `X implements IndexSet[K, V]` — index the key and
+                    // write-value types so `m[k] = v` pins both literals.
+                    if id_decl.trait_name == "IndexSet" && id_decl.trait_args.len() == 2 {
+                        key_ty :: type_from_expr(id_decl.trait_args[0], other.resolved, diag_sink())
+                        value_ty :: type_from_expr(id_decl.trait_args[1], other.resolved, diag_sink())
+                        entry_typed.index_key_types[base_key] = key_ty
+                        entry_typed.index_set_value_types[base_key] = value_ty
                     }
                 }
                 _ -> {}
@@ -1402,8 +1413,16 @@ export walk_bodies :: fn(
                     }
                 }
                 if id.trait_name == "Index" && id.trait_args.len() == 2 {
+                    key_ty :: type_from_expr(id.trait_args[0], typed.resolved, diags)
                     result_ty :: type_from_expr(id.trait_args[1], typed.resolved, diags)
+                    typed.index_key_types[local_base_key] = key_ty
                     typed.index_target_types[local_base_key] = result_ty
+                }
+                if id.trait_name == "IndexSet" && id.trait_args.len() == 2 {
+                    key_ty :: type_from_expr(id.trait_args[0], typed.resolved, diags)
+                    value_ty :: type_from_expr(id.trait_args[1], typed.resolved, diags)
+                    typed.index_key_types[local_base_key] = key_ty
+                    typed.index_set_value_types[local_base_key] = value_ty
                 }
                 check_impl_missing_methods(id, typed, diags)
                 record_struct_trait(typed, for_ty, id.trait_name)

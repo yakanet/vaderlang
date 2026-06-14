@@ -154,6 +154,29 @@ seed_ufcs_bindings :: fn(
     unify_type_param(receiver_ty, target_ty, bindings)
 }
 
+// Seed `bindings` from a `f<T1, T2>(…)` callee's explicit type args.
+// Zips the resolved fn-decl's ordered type-params (recovered from
+// `idents` by their decl-site span, as T3006 does) with the resolved
+// `<…>` argument types. No-op when the callee isn't an explicit generic
+// instantiation. Lets a free-literal arg pin to the named concrete type.
+seed_explicit_type_args :: fn(
+    callee: AST.Expr, typed: TypedProgram, bindings: MutableMap<i32, Type>,
+    diags: Diagnostic[],
+) -> void {
+    if !(callee is AST.GenericInstExpr) { return }
+    gi :: callee
+    // `lookup_callee_fn_decl` already sees through the `f<…>` wrapper to
+    // the ident and handles the import-redirect + null guards.
+    decl :: lookup_callee_fn_decl(callee, typed)
+    if decl is null { return }
+    n :: min(decl.type_params.len(), gi.type_args.len())
+    for i in 0..<n {
+        tp_sym :: typed.resolved.idents[decl.type_params[i].span.hash()]
+        if tp_sym is null { continue }
+        bindings[tp_sym.id] = type_from_expr(gi.type_args[i], typed.resolved, diags)
+    }
+}
+
 /// Type-check a `CallExpr`. `check_expr_fn` is threaded the same way as
 /// in `expr_block.vader` to dodge the cyclic import.
 export infer_call :: fn(
@@ -195,6 +218,13 @@ export infer_call :: fn(
     n :: min(c.args.len(), callee_ty.params.len())
     if is_generic {
         bindings :: MutableMap<i32, Type> {}
+        // Explicit type args `f<i64>(…)` : seed bindings from the
+        // callee's `<…>` BEFORE arg-checking so each param substitutes
+        // to its concrete type and a free-literal arg pins to it (e.g.
+        // `9000000000` → i64) instead of defaulting to i32 and
+        // truncating. Authoritative — seeded first so arg-unify can't
+        // loosen it.
+        seed_explicit_type_args(c.callee, typed, bindings, diags)
         // UFCS dispatch : seed bindings from the receiver's type so
         // type-params bound by the (curried-away) first param
         // (`fn[T](x: T) -> T` called as `42.identity()`) still
@@ -347,8 +377,12 @@ satisfies_trait :: fn(t: Type, trait_ty: TraitType, typed: TypedProgram) -> bool
 }
 
 lookup_callee_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST.FnDecl | null {
-    if !(callee is AST.IdentExpr) { return null }
-    sym :: typed.resolved.idents[callee.span.hash()]
+    // See through an explicit `f<…>` instantiation to the underlying
+    // ident, so T3006 bound-checking fires on `f<i64>(…)` too.
+    base: AST.Expr = callee
+    if callee is AST.GenericInstExpr as gi { base = gi.callee }
+    if !(base is AST.IdentExpr) { return null }
+    sym :: typed.resolved.idents[base.span.hash()]
     if sym is null { return null }
     redirected :: redirect_import_typed(sym, typed)
     decl :: typed.fn_decls[redirected.id]
@@ -372,6 +406,7 @@ callee_name :: fn(callee: AST.Expr) -> string {
     match callee {
         is AST.IdentExpr as e -> { return e.name }
         is AST.FieldExpr as e -> { return e.field }
+        is AST.GenericInstExpr as e -> { return callee_name(e.callee) }
         _ -> { return "<callee>" }
     }
 }

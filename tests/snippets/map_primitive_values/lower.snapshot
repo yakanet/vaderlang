@@ -16,7 +16,7 @@
       arg1:
         "x" :string
       arg2:
-        int(200) :i32
+        int(200) :u8
     call :void
       callee:
         std_collections$MutableMap$IndexSet$set_at__string__u8 :void
@@ -25,7 +25,7 @@
       arg1:
         "y" :string
       arg2:
-        int(7) :i32
+        int(7) :u8
     let vx: null | u8 =
       call :null | u8
         callee:
@@ -323,7 +323,7 @@
       arg1:
         "pi" :string
       arg2:
-        float(3.5) :f64
+        float(3.5) :f32
     let vp: f32 | null =
       call :f32 | null
         callee:
@@ -463,8 +463,8 @@
       arg1:
         "neg" :string
       arg2:
-        neg :{integer}
-          int(1000) :i32
+        neg :i16
+          int(1000) :i16
     let vn: i16 | null =
       call :i16 | null
         callee:
@@ -534,7 +534,7 @@
       arg1:
         "big" :string
       arg2:
-        int(50000) :i32
+        int(50000) :u16
     let vb: null | u16 =
       call :null | u16
         callee:

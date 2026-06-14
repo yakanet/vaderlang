@@ -48,11 +48,11 @@ fn snippet$main() -> i32
     %41 $k_41: usize
     %42 $struct_42: MutableMap<u16, i32>
     %43 mu16: MutableMap<u16, i32> (local mu16)
-    %44 $k_44: i32
+    %44 $k_44: u16
     %45 $k_45: i32
-    %46 $k_46: i32
+    %46 $k_46: u16
     %47 $k_47: i32
-    %48 $k_48: i32
+    %48 $k_48: u16
     %49 $k_49: i32
     %50 $call_50: StringBuilder
     %51 __sb_1: StringBuilder (synthetic __sb_1)
@@ -82,13 +82,13 @@ fn snippet$main() -> i32
     %75 $k_75: usize
     %76 $struct_76: MutableMap<i16, i32>
     %77 mi16: MutableMap<i16, i32> (local mi16)
-    %78 $k_78: i32
-    %79 $unop_79: {integer}
+    %78 $k_78: i16
+    %79 $unop_79: i16
     %80 $k_80: i32
-    %81 $k_81: i32
+    %81 $k_81: i16
     %82 $k_82: i32
-    %83 $k_83: i32
-    %84 $unop_84: {integer}
+    %83 $k_83: i16
+    %84 $unop_84: i16
     %85 $k_85: i32
     %86 $call_86: StringBuilder
     %87 __sb_2: StringBuilder (synthetic __sb_2)
@@ -280,13 +280,13 @@ fn snippet$main() -> i32
     %41 = const int(0) :usize
     %42 = struct_new MutableMap<u16, i32>(%40, %41)
     %43 = move %42
-    %44 = const int(1) :i32
+    %44 = const int(1) :u16
     %45 = const int(100) :i32
     call std_collections$MutableMap$IndexSet$set_at__u16__i32(%43, %44, %45) :void
-    %46 = const int(50000) :i32
+    %46 = const int(50000) :u16
     %47 = const int(200) :i32
     call std_collections$MutableMap$IndexSet$set_at__u16__i32(%43, %46, %47) :void
-    %48 = const int(12345) :i32
+    %48 = const int(12345) :u16
     %49 = const int(300) :i32
     call std_collections$MutableMap$IndexSet$set_at__u16__i32(%43, %48, %49) :void
     %50 = call new_builder() :StringBuilder
@@ -324,15 +324,15 @@ fn snippet$main() -> i32
     %75 = const int(0) :usize
     %76 = struct_new MutableMap<i16, i32>(%74, %75)
     %77 = move %76
-    %78 = const int(1000) :i32
-    %79 = unop 0 %78 :{integer}
+    %78 = const int(1000) :i16
+    %79 = unop 0 %78 :i16
     %80 = const int(11) :i32
     call std_collections$MutableMap$IndexSet$set_at__i16__i32(%77, %79, %80) :void
-    %81 = const int(1000) :i32
+    %81 = const int(1000) :i16
     %82 = const int(22) :i32
     call std_collections$MutableMap$IndexSet$set_at__i16__i32(%77, %81, %82) :void
-    %83 = const int(1) :i32
-    %84 = unop 0 %83 :{integer}
+    %83 = const int(1) :i16
+    %84 = unop 0 %83 :i16
     %85 = const int(33) :i32
     call std_collections$MutableMap$IndexSet$set_at__i16__i32(%77, %84, %85) :void
     %86 = call new_builder() :StringBuilder

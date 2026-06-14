@@ -103,7 +103,7 @@
   expr 46:8     IdentExpr      :: f64 | null
   expr 48:13    StructLitExpr  :: MutableMap<string, i16>
   expr 49:10    StringLitExpr  :: string
-  expr 49:19    UnaryExpr      :: {integer}
+  expr 49:19    UnaryExpr      :: i16
   expr 49:5     IdentExpr      :: MutableMap<string, i16>
   expr 50:11    IdentExpr      :: MutableMap<string, i16>
   expr 50:11    IndexExpr      :: i16 | null

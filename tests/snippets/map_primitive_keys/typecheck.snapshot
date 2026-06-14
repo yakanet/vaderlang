@@ -69,10 +69,10 @@
   expr 38:93    CallExpr       :: i32
   expr 38:93    IdentExpr      :: fn(MutableMap<K, i32>, K, i32) -> i32
   expr 41:13    StructLitExpr  :: MutableMap<i16, i32>
-  expr 42:10    UnaryExpr      :: {integer}
+  expr 42:10    UnaryExpr      :: i16
   expr 42:5     IdentExpr      :: MutableMap<i16, i32>
   expr 43:5     IdentExpr      :: MutableMap<i16, i32>
-  expr 44:10    UnaryExpr      :: {integer}
+  expr 44:10    UnaryExpr      :: i16
   expr 44:5     IdentExpr      :: MutableMap<i16, i32>
   expr 45:101   IdentExpr      :: MutableMap<i16, i32>
   expr 45:107   CallExpr       :: i16

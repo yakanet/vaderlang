@@ -9,9 +9,9 @@ fn snippet$main() -> i32
     %2 $struct_2: MutableMap<string, u8>
     %3 mu8: MutableMap<string, u8> (local mu8)
     %4 $k_4: string
-    %5 $k_5: i32
+    %5 $k_5: u8
     %6 $k_6: string
-    %7 $k_7: i32
+    %7 $k_7: u8
     %8 $k_8: string
     %9 $call_9: null | u8
     %10 vx: null | u8 (local vx)
@@ -81,7 +81,7 @@ fn snippet$main() -> i32
     %74 $struct_74: MutableMap<string, f32>
     %75 mf32: MutableMap<string, f32> (local mf32)
     %76 $k_76: string
-    %77 $k_77: f64
+    %77 $k_77: f32
     %78 $k_78: string
     %79 $call_79: f32 | null
     %80 vp: f32 | null (local vp)
@@ -115,8 +115,8 @@ fn snippet$main() -> i32
     %108 $struct_108: MutableMap<string, i16>
     %109 mi16: MutableMap<string, i16> (local mi16)
     %110 $k_110: string
-    %111 $k_111: i32
-    %112 $unop_112: {integer}
+    %111 $k_111: i16
+    %112 $unop_112: i16
     %113 $k_113: string
     %114 $call_114: i16 | null
     %115 vn: i16 | null (local vn)
@@ -133,7 +133,7 @@ fn snippet$main() -> i32
     %126 $struct_126: MutableMap<string, u16>
     %127 mu16: MutableMap<string, u16> (local mu16)
     %128 $k_128: string
-    %129 $k_129: i32
+    %129 $k_129: u16
     %130 $k_130: string
     %131 $call_131: null | u16
     %132 vb: null | u16 (local vb)
@@ -181,10 +181,10 @@ fn snippet$main() -> i32
     %2 = struct_new MutableMap<string, u8>(%0, %1)
     %3 = move %2
     %4 = const string(#1) :string
-    %5 = const int(200) :i32
+    %5 = const int(200) :u8
     call std_collections$MutableMap$IndexSet$set_at__string__u8(%3, %4, %5) :void
     %6 = const string(#2) :string
-    %7 = const int(7) :i32
+    %7 = const int(7) :u8
     call std_collections$MutableMap$IndexSet$set_at__string__u8(%3, %6, %7) :void
     %8 = const string(#1) :string
     %9 = call std_collections$MutableMap$Index$at__string__u8(%3, %8) :null | u8
@@ -302,7 +302,7 @@ fn snippet$main() -> i32
     %74 = struct_new MutableMap<string, f32>(%72, %73)
     %75 = move %74
     %76 = const string(#16) :string
-    %77 = const float(3.5) :f64
+    %77 = const float(3.5) :f32
     call std_collections$MutableMap$IndexSet$set_at__string__f32(%75, %76, %77) :void
     %78 = const string(#16) :string
     %79 = call std_collections$MutableMap$Index$at__string__f32(%75, %78) :f32 | null
@@ -358,8 +358,8 @@ fn snippet$main() -> i32
     %108 = struct_new MutableMap<string, i16>(%106, %107)
     %109 = move %108
     %110 = const string(#22) :string
-    %111 = const int(1000) :i32
-    %112 = unop 0 %111 :{integer}
+    %111 = const int(1000) :i16
+    %112 = unop 0 %111 :i16
     call std_collections$MutableMap$IndexSet$set_at__string__i16(%109, %110, %112) :void
     %113 = const string(#22) :string
     %114 = call std_collections$MutableMap$Index$at__string__i16(%109, %113) :i16 | null
@@ -387,7 +387,7 @@ fn snippet$main() -> i32
     %126 = struct_new MutableMap<string, u16>(%124, %125)
     %127 = move %126
     %128 = const string(#25) :string
-    %129 = const int(50000) :i32
+    %129 = const int(50000) :u16
     call std_collections$MutableMap$IndexSet$set_at__string__u16(%127, %128, %129) :void
     %130 = const string(#25) :string
     %131 = call std_collections$MutableMap$Index$at__string__u16(%127, %130) :null | u16

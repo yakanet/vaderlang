@@ -159,6 +159,20 @@ export TypedProgram :: struct {
     /// `m` is a user struct with an Index impl.
     index_target_types: MutableMap<string, Type>
 
+    /// `display_type(for_ty) → K` for every `X implements Index[K, _]`
+    /// or `X implements IndexSet[K, _]` impl. Consumed by
+    /// `expr_index.vader` / `stmt.vader` to pin a free-literal index key
+    /// (`m[9000000000]`) to the resolved key type instead of letting it
+    /// default to i32 and silently truncate.
+    index_key_types: MutableMap<string, Type>
+
+    /// `display_type(for_ty) → V` for every `X implements IndexSet[K, V]`
+    /// impl. Consumed by `stmt.vader::check_assign` to pin a free-literal
+    /// index-set value (`m[k] = 9000000000`) to the declared value type.
+    /// Distinct from `index_target_types` (which records the nullable
+    /// `Index` *read* result `V | null`, not the write value `V`).
+    index_set_value_types: MutableMap<string, Type>
+
     /// `FieldExpr.id → original first-param type` for every
     /// UFCS-dispatched field access (i.e. the param that got
     /// curried away). `infer_call` unifies it against the receiver's
@@ -294,6 +308,8 @@ export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
         .imported_fn_overloads = MutableMap<string, FnType[]> {},
         .iter_element_types = MutableMap<string, Type> {},
         .index_target_types = MutableMap<string, Type> {},
+        .index_key_types = MutableMap<string, Type> {},
+        .index_set_value_types = MutableMap<string, Type> {},
         .ufcs_receiver_types = MutableMap<usize, Type> {},
         .impl_method_traits = MutableMap<string, string[]> {},
         .struct_field_types = MutableMap<i32, MutableMap<string, Type>> {},
