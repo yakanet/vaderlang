@@ -71,39 +71,6 @@
               arg0:
                 __sb_1 :StringBuilder
     return int(0) :i32
-  fn snippet$snippet$inner_count__Any(arr: Any[]) -> i32
-    let n: i32 = int(0) :i32
-    block :void
-      let __for_arr_1: Any[] = arr :Any[]
-      let __for_len_2: usize =
-        LoweredArrayLen
-      let __for_i_3: usize = int(0) :usize
-      loop while (<…>)
-        let x: Any =
-          index :Any
-            on:
-              __for_arr_1 :Any[]
-            ix:
-              __for_i_3 :usize
-        assign
-          target:
-            n :i32
-          value:
-            add :i32
-              l:
-                n :i32
-              r:
-                int(1) :i32
-        assign
-          target:
-            __for_i_3 :usize
-          value:
-            add :usize
-              l:
-                __for_i_3 :usize
-              r:
-                int(1) :usize
-    return n :i32
   fn snippet$snippet$inner_count__i32(arr: i32[]) -> i32
     let n: i32 = int(0) :i32
     block :void
@@ -137,6 +104,39 @@
               r:
                 int(1) :usize
     return n :i32
+  fn snippet$snippet$inner_count__string(arr: string[]) -> i32
+    let n: i32 = int(0) :i32
+    block :void
+      let __for_arr_1: string[] = arr :string[]
+      let __for_len_2: usize =
+        LoweredArrayLen
+      let __for_i_3: usize = int(0) :usize
+      loop while (<…>)
+        let x: string =
+          index :string
+            on:
+              __for_arr_1 :string[]
+            ix:
+              __for_i_3 :usize
+        assign
+          target:
+            n :i32
+          value:
+            add :i32
+              l:
+                n :i32
+              r:
+                int(1) :i32
+        assign
+          target:
+            __for_i_3 :usize
+          value:
+            add :usize
+              l:
+                __for_i_3 :usize
+              r:
+                int(1) :usize
+    return n :i32
   fn snippet$snippet$outer__i32(arr: i32[]) -> i32
     return
       call :i32
@@ -144,10 +144,10 @@
           snippet$snippet$inner_count__i32 :i32
         arg0:
           arr :i32[]
-  fn snippet$snippet$outer__string(arr: Any[]) -> i32
+  fn snippet$snippet$outer__string(arr: string[]) -> i32
     return
       call :i32
         callee:
-          snippet$snippet$inner_count__Any :i32
+          snippet$snippet$inner_count__string :i32
         arg0:
-          arr :Any[]
+          arr :string[]

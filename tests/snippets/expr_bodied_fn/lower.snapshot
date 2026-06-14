@@ -242,6 +242,6 @@
   fn snippet$snippet$id__i32(x: i32) -> i32
     ~>
       x :i32
-  fn snippet$snippet$id__string(x: Any) -> Any
+  fn snippet$snippet$id__string(x: string) -> string
     ~>
-      x :Any
+      x :string

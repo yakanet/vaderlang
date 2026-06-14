@@ -21,9 +21,9 @@ fn snippet$main() -> i32
     %6 = move %5
     return %6
 
-fn snippet$snippet$needs_add__string(%0: Any) -> Any
+fn snippet$snippet$needs_add__string(%0: string) -> string
   locals:
-    %0 x: Any (param x)
+    %0 x: string (param x)
   bb0:
     return %0
 

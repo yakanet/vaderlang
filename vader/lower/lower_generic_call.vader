@@ -152,7 +152,7 @@ emit_generic_fn_call :: fn(
     module_id :: fn_sym.module
     display :: lookup_module_display_path(ctx, module_id)
     mod_mangle :: mangle_module_id(if display == null { module_id } else { display })
-    suffix :: mono_suffix(concrete_args)
+    suffix :: call_site_instance_suffix(ctx, fn_sym, concrete_args)
     base_mangled :: "${mod_mangle}$${mod_mangle}$${fn_sym.name}${suffix}"
     // Register the instance for materialisation at the end of `lower_project`.
     // Dedup by `<symbol.id>::<suffix>` ; `register_fn_instance_mangle` uniq-
@@ -235,7 +235,7 @@ register_and_emit_generic_call :: fn(
     module_id :: fn_sym.module
     display :: lookup_module_display_path(ctx, module_id)
     mod_mangle :: mangle_module_id(if display == null { module_id } else { display })
-    suffix :: mono_suffix(concrete_args)
+    suffix :: call_site_instance_suffix(ctx, fn_sym, concrete_args)
     base_mangled :: "${mod_mangle}$${mod_mangle}$${fn_sym.name}${suffix}"
     inst_key :: "${fn_sym.id}::${suffix}"
     mangled :: register_fn_instance_mangle(ctx, fn_sym, concrete_args, module_id, base_mangled, inst_key)

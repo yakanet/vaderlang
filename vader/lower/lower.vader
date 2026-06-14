@@ -35,7 +35,7 @@ import "vader/resolver/symbol" { Symbol }
 export lower_project :: fn(
     loaded: LoadedProject, typed: TypedProject, evaluated: EvaluatedProject, diags: Diagnostic[],
 ) -> LoweredProject {
-    project_ctx :: new_lower_project_ctx(evaluated, loaded)
+    project_ctx :: new_lower_project_ctx(evaluated, loaded, typed)
     // Closure analysis runs once at entry — every lambda's capture set
     // is precomputed so per-decl lowering can read it without re-
     // walking the AST.
@@ -273,9 +273,14 @@ lower_decl :: fn(
 
 
 module_decls :: fn(module_loaded: LoadedModule) -> Decl[] {
-    if module_loaded.module.files.len() == 0 { return [] }
+    files :: module_loaded.module.files
+    if files.len() == 0 { return [] }
+    // Single-file module (the common case) : return the file's decls directly,
+    // no concat allocation — mirrors `comptime/check.vader::lookup_module_decls`.
+    // Hot : `call_site_fn_flavor` reaches through here per generic call site.
+    if files.len() == 1 { return files[0].program.decls }
     out: Decl[] = []
-    for source_file in module_loaded.module.files {
+    for source_file in files {
         for decl in source_file.program.decls {
             out.push(decl)
         }

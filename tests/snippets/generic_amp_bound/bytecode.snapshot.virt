@@ -1,8 +1,7 @@
 module _main
 type 0 primitive null
 type 1 primitive i32
-type 2 ref _
-type 3 primitive string
+type 2 primitive string
 string 0 "hello"
 export main 0
 
@@ -16,7 +15,7 @@ fn 0 snippet$main () -> i32
   return
 end
 
-fn 1 snippet$snippet$needs_add__string (ref) -> ref
+fn 1 snippet$snippet$needs_add__string (string) -> string
   local.get 0
   return
 end

@@ -65,13 +65,13 @@
               arg0:
                 __sb_0 :StringBuilder
     return int(0) :i32
-  fn snippet$snippet$swap__i32__string(p: [Any, Any]) -> [Any, Any]
+  fn snippet$snippet$swap__i32__string(p: [i32, string]) -> [string, i32]
     return
-      [Any, Any] {
+      [string, i32] {
         _0:
-          ._1 :Any
-            p :[Any, Any]
+          ._1 :string
+            p :[i32, string]
         _1:
-          ._0 :Any
-            p :[Any, Any]
+          ._0 :i32
+            p :[i32, string]
       }

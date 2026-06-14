@@ -49,27 +49,17 @@ fn snippet$main() -> i32
     %18 = const int(0) :i32
     return %18
 
-fn snippet$snippet$inner__Any(%0: Any) -> Any
-  locals:
-    %0 x: Any (param x)
-  bb0:
-    return %0
-
 fn snippet$snippet$inner__i32(%0: i32) -> i32
   locals:
     %0 x: i32 (param x)
   bb0:
     return %0
 
-fn snippet$snippet$middle__Any(%0: Any) -> Box<Any>
+fn snippet$snippet$inner__string(%0: string) -> string
   locals:
-    %0 x: Any (param x)
-    %1 $call_1: Any
-    %2 $struct_2: Box<Any>
+    %0 x: string (param x)
   bb0:
-    %1 = call snippet$snippet$inner__Any(%0) :Any
-    %2 = struct_new Box<Any>(%1)
-    return %2
+    return %0
 
 fn snippet$snippet$middle__i32(%0: i32) -> Box<i32>
   locals:
@@ -79,6 +69,16 @@ fn snippet$snippet$middle__i32(%0: i32) -> Box<i32>
   bb0:
     %1 = call snippet$snippet$inner__i32(%0) :i32
     %2 = struct_new Box<i32>(%1)
+    return %2
+
+fn snippet$snippet$middle__string(%0: string) -> Box<string>
+  locals:
+    %0 x: string (param x)
+    %1 $call_1: string
+    %2 $struct_2: Box<string>
+  bb0:
+    %1 = call snippet$snippet$inner__string(%0) :string
+    %2 = struct_new Box<string>(%1)
     return %2
 
 fn snippet$snippet$outer__i32(%0: i32) -> Box<Box<i32>>
@@ -91,12 +91,12 @@ fn snippet$snippet$outer__i32(%0: i32) -> Box<Box<i32>>
     %2 = struct_new Box<Box<i32>>(%1)
     return %2
 
-fn snippet$snippet$outer__string(%0: Any) -> Box<Box<Any>>
+fn snippet$snippet$outer__string(%0: string) -> Box<Box<string>>
   locals:
-    %0 x: Any (param x)
-    %1 $call_1: Box<Any>
-    %2 $struct_2: Box<Box<Any>>
+    %0 x: string (param x)
+    %1 $call_1: Box<string>
+    %2 $struct_2: Box<Box<string>>
   bb0:
-    %1 = call snippet$snippet$middle__Any(%0) :Box<Any>
-    %2 = struct_new Box<Box<Any>>(%1)
+    %1 = call snippet$snippet$middle__string(%0) :Box<string>
+    %2 = struct_new Box<Box<string>>(%1)
     return %2

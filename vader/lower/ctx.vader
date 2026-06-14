@@ -14,7 +14,7 @@ import "vader/diagnostics" { Diagnostic }
 import "vader/parser" { Stmt, LambdaExpr }
 import "vader/resolver/symbol" { Symbol }
 import "vader/types" { Type }
-import "vader/typecheck" { TypedProgram }
+import "vader/typecheck" { TypedProgram, TypedProject }
 import "vader/typecheck" { ImplRegistry, new_registry }
 import "vader/typecheck" { Substitution, new_substitution }
 import "vader/comptime" { EvaluatedProject }
@@ -92,6 +92,12 @@ export LowerProjectCtx :: struct {
     /// to a foreign StructDecl) don't have to thread `loaded` through
     /// every signature. Populated by `lower_project` at entry.
     loaded:              LoadedProject
+    /// Every module's typed program, keyed by module path. Threaded onto the
+    /// ctx so a generic-call lowering site (`emit_generic_fn_call`) can read the
+    /// callee's `fn_trait_dispatches` to pick the instance-mangle FLAVOR (Mono /
+    /// Mixed / Erased) consistently with the materialiser (`lower_mono_fn`). Same
+    /// `TypedProject` the materialiser already consumes — exposed earlier here.
+    typed:               TypedProject
     mono:                MonoProject
     impls:               ImplRegistry
 
@@ -288,10 +294,11 @@ export GenericFnInstance :: struct {
 /// at least allocate the shape.
 /// @param evaluated  the comptime engine's output for this project.
 /// @return           a fresh project context with empty side-tables.
-export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedProject) -> LowerProjectCtx {
+export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedProject, typed: TypedProject) -> LowerProjectCtx {
     return LowerProjectCtx {
         .evaluated           = evaluated,
         .loaded              = loaded,
+        .typed               = typed,
         .mono                = new_mono_project(),
         .impls               = new_registry(),
         .core_symbols        = MutableMap<string, Symbol> {},
@@ -460,7 +467,7 @@ import "vader/resolver" { empty_loaded_project }
 
 @test test_new_lower_project_ctx_is_empty :: fn() -> void {
     evaluated :: new_evaluated_project(new_typed_project())
-    project :: new_lower_project_ctx(evaluated, empty_loaded_project())
+    project :: new_lower_project_ctx(evaluated, empty_loaded_project(), new_typed_project())
     assert_eq(project.core_symbols.size, usize(0))
     assert_eq(project.synth_decls.len(), usize(0))
     assert_eq(project.next_synthetic_id, i32(-1))

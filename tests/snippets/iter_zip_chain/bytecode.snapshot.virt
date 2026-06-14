@@ -13,21 +13,16 @@ type 10 array 11
 type 11 primitive u8
 type 12 struct std_core$Buffer {  }
 type 13 array 14
-type 14 ref _
+type 14 struct __Tuple_18 { _0:1,_1:3 }
 type 15 array 16
-type 16 struct __Tuple_20 { _0:14,_1:14 }
-type 17 array 18
-type 18 struct __Tuple_22 { _0:4,_1:14 }
-type 19 fn (3) -> 8
-type 20 struct std_core$Range__usize { start:14,end:14,inclusive:5,cursor:14 }
-type 21 union 0,22
-type 22 struct std_core$Yield__usize { value:14 }
-type 23 primitive i64
-type 24 primitive u64
-type 25 array 26
-type 26 struct __Tuple_32 { _0:1,_1:3 }
-type 27 array 28
-type 28 struct __Tuple_34 { _0:4,_1:1 }
+type 16 struct __Tuple_20 { _0:4,_1:1 }
+type 17 fn (3) -> 8
+type 18 struct std_core$Range__usize { start:23,end:23,inclusive:5,cursor:23 }
+type 19 union 0,20
+type 20 struct std_core$Yield__usize { value:23 }
+type 21 primitive i64
+type 22 primitive u64
+type 23 ref _
 string 0 "\n"
 string 1 "count="
 string 2 "clone[0]="
@@ -58,8 +53,8 @@ import 0 write std_io$write (i32,string) -> void
 import 1 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 2 bytes std_core$bytes (string) -> ref
 impl 9 Display
-impl 20 Contains
-impl 20 Iterator
+impl 18 Contains
+impl 18 Iterator
 impl 12 ByteAccess
 export main 1
 
@@ -155,12 +150,12 @@ fn 1 snippet$main () -> i32
       if $L2 void
         local.get 0
         local.get 4
-        array.get 25
+        array.get 13
         local.set 1
-        local.field 1 26 0
+        local.field 1 14 0
         ref.cast 1
         local.set 2
-        local.field 1 26 1
+        local.field 1 14 1
         ref.cast 3
         local.set 5
         call 3
@@ -264,12 +259,12 @@ fn 1 snippet$main () -> i32
       if $L8 void
         local.get 0
         local.get 4
-        array.get 27
+        array.get 15
         local.set 1
-        local.field 1 28 0
+        local.field 1 16 0
         ref.cast 4
         local.set 9
-        local.field 1 28 1
+        local.field 1 16 1
         ref.cast 1
         local.set 2
         call 3
@@ -309,7 +304,7 @@ fn 1 snippet$main () -> i32
   array.new 8 3
   local.set 0
   struct.new 7
-  make_closure 2 19
+  make_closure 2 17
   local.set 1
   local.get 0
   local.get 1
@@ -615,11 +610,11 @@ fn 10 std_iter$std_iter$zip__string__i32 (ref,ref) -> ref
   local out ref
   local n usize
   local m usize
-  local $idx_14 ref
-  local $idx_15 ref
+  local $idx_14 string
+  local $idx_15 i32
   local $struct_16 ref
   local $k_17 usize
-  array.new 15 0
+  array.new 13 0
   local.set 2
   local.get 0
   array.len
@@ -649,19 +644,20 @@ fn 10 std_iter$std_iter$zip__string__i32 (ref,ref) -> ref
       if $L3 void
         local.get 0
         local.get 4
-        array.get 13
+        array.get 6
+        ref.cast 1
         local.set 5
         local.get 1
         local.get 4
-        array.get 13
+        load_slot_i32
         local.set 6
         local.get 5
         local.get 6
-        struct.new 16
+        struct.new 14
         local.set 7
         local.get 2
         local.get 7
-        array.push 16
+        array.push 14
         i64.const 1
         local.set 8
         local.get 4
@@ -756,11 +752,11 @@ fn 12 std_iter$std_iter$enumerate__string (ref) -> ref
   local __for_arr_0 ref
   local __for_len_1 usize
   local __for_i_2 usize
-  local x ref
+  local x string
   local $struct_13 ref
   local $k_14 usize
   local $k_16 usize
-  array.new 17 0
+  array.new 15 0
   local.set 1
   i64.const 0
   local.set 2
@@ -778,15 +774,16 @@ fn 12 std_iter$std_iter$enumerate__string (ref) -> ref
       if $L2 void
         local.get 3
         local.get 5
-        array.get 13
+        array.get 6
+        ref.cast 1
         local.set 6
         local.get 2
         local.get 6
-        struct.new 18
+        struct.new 16
         local.set 7
         local.get 1
         local.get 7
-        array.push 18
+        array.push 16
         i64.const 1
         local.set 8
         local.get 2
@@ -837,7 +834,7 @@ fn 13 std_iter$std_iter$flat_map__i32__i32 (ref,ref) -> ref
         local.get 5
         load_slot_i32
         local.get 1
-        call.indirect 19
+        call.indirect 17
         local.tee 6
         array.len
         local.set 7

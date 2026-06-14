@@ -42,14 +42,14 @@ fn snippet$main() -> i32
     %14 = const int(0) :i32
     return %14
 
-fn snippet$snippet$swap__i32__string(%0: [Any, Any]) -> [Any, Any]
+fn snippet$snippet$swap__i32__string(%0: [i32, string]) -> [string, i32]
   locals:
-    %0 p: [Any, Any] (param p)
-    %1 $field_1: Any
-    %2 $field_2: Any
-    %3 $struct_3: [Any, Any]
+    %0 p: [i32, string] (param p)
+    %1 $field_1: string
+    %2 $field_2: i32
+    %3 $struct_3: [string, i32]
   bb0:
-    %1 = field_get %0._1 :Any
-    %2 = field_get %0._0 :Any
-    %3 = struct_new [Any, Any](%1, %2)
+    %1 = field_get %0._1 :string
+    %2 = field_get %0._0 :i32
+    %3 = struct_new [string, i32](%1, %2)
     return %3
