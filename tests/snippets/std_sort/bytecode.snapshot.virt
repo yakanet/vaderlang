@@ -199,13 +199,13 @@ fn 3 std_sort$std_sort$merge_sort_range__i32 (ref,ref,usize,usize,ref) -> void
   local.get 2
   local.get 5
   local.get 4
-  call 4
+  call 3
   local.get 0
   local.get 1
   local.get 5
   local.get 3
   local.get 4
-  call 4
+  call 3
   local.get 2
   local.set 6
   block $L2 void
