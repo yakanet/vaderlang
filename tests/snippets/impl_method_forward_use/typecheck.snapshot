@@ -1,0 +1,19 @@
+# Typecheck
+
+## tests/snippets/impl_method_forward_use
+  TraitDecl      Bump                 :: Bump
+  StructDecl     Counter              :: Counter
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         run                  :: fn(Counter) -> i32
+  expr 24:32    CallExpr       :: i32
+  expr 24:32    FieldExpr      :: fn() -> i32
+  expr 24:32    IdentExpr      :: Counter
+  expr 27:31    BinaryExpr     :: i32
+  expr 27:31    FieldExpr      :: i32
+  expr 27:31    IdentExpr      :: Counter
+  expr 31:13    StringLitExpr  :: string
+  expr 31:23    CallExpr       :: i32
+  expr 31:23    IdentExpr      :: fn(Counter) -> i32
+  expr 31:27    StructLitExpr  :: Counter
+  expr 31:5     CallExpr       :: void
+  expr 31:5     IdentExpr      :: fn(T) -> void
