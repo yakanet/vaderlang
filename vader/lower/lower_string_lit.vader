@@ -137,16 +137,11 @@ sb_ident :: fn(sym: Symbol, ty: Type, span: Span) -> LoweredExpr =
     LoweredIdent { .span = span, .type = ty, .symbol = sym }
 
 // Resolve a `std/string_builder` free fn (`new_builder` / `append`) by name
-// via the `string_builder_symbols` side-table (populated from the module's
-// exports in `lower_populate`). Returns `null` only if `std/string_builder`
-// wasn't loaded ; since it is force-loaded into every project, the caller
-// treats a null as a compiler invariant violation (panics).
-resolve_string_builder_fn :: fn(ctx: FnLowerCtx, name: string) -> Symbol | null {
-    match ctx.project.string_builder_symbols {
-        is null -> { return null }
-        is MutableMap<string, Symbol> as tbl -> { return tbl[name] }
-    }
-}
+// via the generic `module_export` lookup. Returns `null` only if
+// `std/string_builder` wasn't loaded ; since it is force-loaded into every
+// project, the caller treats a null as a compiler invariant violation (panics).
+resolve_string_builder_fn :: fn(ctx: FnLowerCtx, name: string) -> Symbol | null =
+    module_export(ctx.project, "std/string_builder", name)
 
 // Build a `<T>.Display.to_string(value)` call shape. Prefers a direct
 // `LoweredCall` to the per-receiver impl member when the impl is
