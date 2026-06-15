@@ -28,7 +28,10 @@ function findTestModules(root: string): string[] {
   const dirs: string[] = [];
   for (const ent of readdirSync(root, { withFileTypes: true })) {
     if (!ent.isDirectory()) continue;
-    const sub = join(root, ent.name);
+    // Normalise to `/` : these are Vader module paths (always slash-separated),
+    // and `join` yields `\` on Windows — which would miss the `KNOWN_NATIVE_GAPS`
+    // lookup below and run a skipped-everywhere-else module to a CI timeout.
+    const sub = join(root, ent.name).replaceAll("\\", "/");
     if (containsTestFn(sub)) dirs.push(sub);
   }
   return dirs.sort();
