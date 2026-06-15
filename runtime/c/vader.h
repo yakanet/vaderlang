@@ -498,6 +498,15 @@ static inline void vader_buffer_memory_copy(vader_buffer_t* dst, size_t dst_off,
     memmove(dst->bytes + dst_off, src->bytes + src_off, n);
 }
 
+/* Intern the buffer's leading `len` bytes as a `vader_string_t` (the
+ * `buffer_to_string` opcode). Verbatim bytes — same intern as
+ * `vader_string_as_string` over a `u8[]`, neither validates UTF-8. The caller
+ * re-derives `b` from its rooted box (G1) ; `vader_string_new` interns via host
+ * `malloc`, so no GC move happens within the call. */
+static inline vader_string_t vader_buffer_intern_string(vader_buffer_t* b, size_t len) {
+    return vader_string_new((const char*) b->bytes, len);
+}
+
 vader_array_t* vader_array_new(uint32_t type_index, size_t length, uint8_t element_kind, uint32_t element_tag);
 /* vader_array_get / vader_array_set are RETIRED — the C emitter open-codes every
  * `arr[i]` / `arr[i] = v` over the kept layout (typed slots inline, boxed via

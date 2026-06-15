@@ -1598,7 +1598,7 @@ emit_memory_copy :: fn(s: FnState) -> void {
 emit_buffer_to_string :: fn(s: FnState) -> void {
     len :: pop(s)
     obj :: pop(s)
-    push_into_tmp(s, "vader_string_new((const char*) ${buf_ptr(obj)}->bytes, (size_t) ${name_of(len)})", .String)
+    push_into_tmp(s, "vader_buffer_intern_string(${buf_ptr(obj)}, (size_t) ${name_of(len)})", .String)
 }
 
 // ---- array slot access (Target ABI S5) -----------------------------------
