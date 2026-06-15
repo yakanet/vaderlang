@@ -1856,21 +1856,15 @@ array_element_tag :: fn(types: BcType[], type_index: i32) -> i32 {
     return type_index
 }
 
-// ---- strings + builder ----------------------------------------------------
+// ---- strings --------------------------------------------------------------
 //
-// Strings are interned atoms (`vader_string_t` = `u32`), so `string.eq` /
-// `.ne` are plain `==` / `!=` (atom identity == value equality). `concat` /
-// `slice` route to runtime helpers ; the builder family (string
-// interpolation, `Display`) wraps a heap `vader_builder_t` (→ may-alloc,
-// framed). `ref.eq` compares boxed `ref` / `any` via `vader_box_eq`.
-
-/// Push the result of a 2-arg runtime call `fn(l, r)` (pops `r` then `l`)
-/// into a fresh temp — `string.concat` and friends.
-push_fn_call2 :: fn(s: FnState, fn_name: string, result_val: ValType) -> void {
-    r :: pop(s)
-    l :: pop(s)
-    push_into_tmp(s, "${fn_name}(${name_of(l)}, ${name_of(r)})", result_val)
-}
+// Strings are interned atoms (`vader_string_t` = `u32`), so `string.eq` / `.ne`
+// are plain `==` / `!=` (atom identity == value equality). Codepoint slicing
+// (`s[lo..<hi]`) routes to `vader_string_slice_codepoints` (a kept zero-copy
+// atom-slice primitive ; `emit_string_slice`). Concatenation (`+`), `Display`,
+// and `${…}` interpolation are now pure Vader (StringBuilder over a byte
+// `Buffer`) — no string/builder runtime family here anymore. `ref.eq` compares
+// boxed `ref` / `any` via `vader_box_eq`.
 
 /// Push a boxed-reference equality (`ref.eq` / `ref.ne`). C can't compare
 /// `vader_box_t` with `==`, so route through `vader_box_eq` (tag + payload

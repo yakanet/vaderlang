@@ -2,8 +2,10 @@
 //
 // Mirror of `OP_INTRINSIC_BY_MANGLED` in `src/bytecode/emit.ts:74`.
 // Stdlib `@intrinsic` impl members map to a dedicated bytecode op
-// rather than a host-provided import — `s1 + s2` and `"a".add("b")`
-// both emit the same `string.concat` op.
+// rather than a host-provided import — e.g. `a + b` on `i32` and
+// `a.add(b)` both emit the same `i32.add` op ; the `Buffer` byte ops
+// (`load_u8` / `store_u8` / `memory_copy` / `intern_string` /
+// `write_string`) map to the Target-ABI memory opcodes.
 //
 // Expanded here as an if-cascade since Vader has no map-literal
 // syntax and a per-startup `MutableMap` fill costs the same lookup

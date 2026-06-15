@@ -297,8 +297,7 @@ emit_expr_compound :: fn(lines: string[], expr: LoweredExpr, indent: string) -> 
             emit_expr(lines, type_check.value, "${indent}  ")
         }
         is LoweredIntrinsicCall as intrinsic -> {
-            tail :: render_display_for(intrinsic.display_for)
-            lines.push("${indent}@${intrinsic.name}${tail} :${display_type(intrinsic.type)}")
+            lines.push("${indent}@${intrinsic.name} :${display_type(intrinsic.type)}")
             for arg in intrinsic.args {
                 emit_expr(lines, arg, "${indent}  ")
             }
@@ -417,11 +416,6 @@ export binary_op_name :: fn(op: LoweredBinaryOp) -> string = match op {
     .Lte    -> "lte"
     .Gt     -> "gt"
     .Gte    -> "gte"
-}
-
-render_display_for :: fn(display_for: Type | null) -> string = match display_for {
-    is null -> { return "" }
-    _ -> { return " <for ${display_type(display_for)}>" }
 }
 
 // Per-variant label fallback for shapes the TS dumper renders via

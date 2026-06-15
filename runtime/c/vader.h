@@ -464,15 +464,22 @@ typedef struct {
     uint8_t            bytes[];
 } vader_buffer_t;
 
-/* Forward decl — the canonical declaration sits with the GC API further down ;
- * the inline `vader_buffer_new` below predates it in file order. */
+/* Forward decls — the canonical declarations sit further down ; the inline
+ * `vader_buffer_new` below predates them in file order. */
 void* vader_gc_alloc(size_t bytes);
+void  vader_trap(const char* msg);
 
 /* `object_new(size)` : allocate a zeroed `size`-byte buffer. The size is a
  * runtime stack value, so the GC reads it back off `byte_count` rather than
  * the (static) type-info table. No in-flight GC reference to root — the size
  * operand is a primitive. */
 static inline vader_buffer_t* vader_buffer_new(size_t byte_count) {
+    /* Guard the header + payload sum (mirror vader_array_new): a wrapped size
+     * would under-allocate while `byte_count` records the huge value, so
+     * later stores AND vader_gc_obj_size (reads byte_count) desync the heap. */
+    if (byte_count > SIZE_MAX - sizeof(vader_buffer_t)) {
+        vader_trap("vader_buffer_new: total alloc size overflows size_t");
+    }
     vader_buffer_t* b = (vader_buffer_t*) vader_gc_alloc(sizeof(vader_buffer_t) + byte_count);
     vader_obj_header_init(b, VADER_TYPE_INDEX_BUFFER);
     b->byte_count = byte_count;

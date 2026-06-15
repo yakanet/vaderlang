@@ -506,7 +506,6 @@ remap_instr :: fn(ins: Instruction, m: i32[]) -> Instruction {
         return InstrIntrinsic {
             .span = it.span, .dst = remap_local_opt(m, it.dst),
             .name = it.name, .args = remap_locals(m, it.args),
-            .display_for = it.display_for,
         }
     }
     // `InstrDeferPush.value` is a read operand (`for_each_read_local` visits it),

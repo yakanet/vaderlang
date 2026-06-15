@@ -13,6 +13,7 @@
 module "vader/lower"
 
 import "std/collections" { MutableMap }
+import "std/abort" { unreachable }
 
 import "vader/parser" { StringLitExpr, StringLitText, StringLitInterp }
 import "vader/diagnostics" { Span }
@@ -114,13 +115,14 @@ lower_string_concat :: fn(ctx: FnLowerCtx, left: LoweredExpr, right: LoweredExpr
     return finish_sb_chain(ctx, chain, span)
 }
 
-// An unreachable placeholder for the (provably-dead) std/string_builder
-// resolution guards — std/string_builder is force-loaded into every project,
-// so these never fire. Delegates to the module's `stub` (same convention as
-// every other deferred / shouldn't-reach lowering path) ; centralises the
-// "must be force-loaded" reason prefix.
+// ICE for the (provably-dead) std/string_builder resolution guards —
+// std/string_builder is force-loaded into every project, so these never fire.
+// A resolution miss here is a broken toolchain, not a user error, so we PANIC
+// (fail loud) rather than emit a degraded `stub` that would silently miscompile
+// every `${…}` interpolation. `span`/`type` are kept in the signature for call-
+// site symmetry with the other guards but are unused on this divergent path.
 unreachable_sb :: fn(span: Span, type: Type, why: string) -> LoweredExpr =
-    stub(span, type, "lower_string_lit: ${why} (std/string_builder must be force-loaded)")
+    unreachable("lower_string_lit: ${why} (std/string_builder must be force-loaded)")
 
 // Build a `<fn>(args)` call typed `ret`.
 mk_lowered_call :: fn(sym: Symbol, args: LoweredExpr[], ret: Type, span: Span) -> LoweredExpr =

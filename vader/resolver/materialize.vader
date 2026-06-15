@@ -46,7 +46,7 @@ export materialize_intrinsic_members :: fn(impl_: AST.ImplDecl, trait_: AST.Trai
     // path (`materialize_default_members`). Single-method intrinsic traits are
     // unaffected (their lone member was already unique).
     impl_pos :: impl_.trait_name_span.start
-    stamp :: StampCtx { .base_line = impl_pos.line * 1024 + impl_pos.column, .counter = 0 }
+    stamp :: StampCtx { .base_line = impl_pos.line * 1024 + impl_pos.column, .counter = 0, .file = "<clone>:${impl_pos.file}" }
     for method in trait_.members {
         impl_.members.push(synth_signature(method, next_clone_span(stamp), subst, intrinsic_decorator(impl_.span)))
     }
@@ -80,7 +80,7 @@ export materialize_default_members :: fn(
     // is collision-free for realistic positions (columns « 1024) and stable
     // across the typecheck/lower materialisation generations.
     impl_pos :: impl_.trait_name_span.start
-    stamp :: StampCtx { .base_line = impl_pos.line * 1024 + impl_pos.column, .counter = 0 }
+    stamp :: StampCtx { .base_line = impl_pos.line * 1024 + impl_pos.column, .counter = 0, .file = "<clone>:${impl_pos.file}" }
     for method in trait_.members {
         body :: method.body
         match body {

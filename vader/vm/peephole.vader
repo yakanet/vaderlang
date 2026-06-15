@@ -26,13 +26,11 @@
 //   4. `BoolNot ; BoolNot`              → ε (both ops dropped)
 //
 // Rules 5–6 from the TS-side peephole (dead-store elimination + const
-// propagation through single-use locals) are deferred — they require
-// each `BytecodeFunction` to track per-local val types so a typed-cmp
-// after the propagated const doesn't lose the implicit coerce. The
-// Vader-side `BytecodeFunction` carries only `local_count: usize`
-// today ; landing those rules is gated on a schema enrichment that
-// records the locals' val types (parsed from the `.virt` `local "name"
-// type` directive — currently dropped).
+// propagation through single-use locals) are not ported yet — they need
+// per-local val types so a typed-cmp after the propagated const doesn't
+// lose the implicit coerce. The data is now available (`bc.BcFunction`
+// carries `locals: BcLocal[]` with each local's `val` type), so the gate
+// is just the porting work, not a schema gap as it once was.
 //
 // All rules are gated by a single `optimize` flag passed to
 // `run_peepholes` ; pass `false` to disable everything (matches the

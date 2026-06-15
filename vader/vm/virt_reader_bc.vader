@@ -507,8 +507,8 @@ reduce_data_pool :: fn(entries: bc.BcDataEntry[]) -> ArrayVal[] {
 
 // Reinterpret an element's raw `u64` bit pattern per its `ArrayKind`. Mirrors
 // `virt_reader::read_data_item`, reading from the materialised `u64` rather than
-// a hex byte slice. f32/f64 bit-cast stays unimplemented (matches the prior
-// reader) ; `Boxed` never appears in a primitive data pool.
+// a hex byte slice. f32/f64 bit-cast the low bits (f32 held in an `F64Val`, as
+// elsewhere in the VM) ; `Boxed` never appears in a primitive data pool.
 value_from_bits :: fn(kind: bc.ArrayKind, bits: u64) -> Value {
     if kind == bc.ArrayKind.U8   { return I32Val { .value = i32(bits & u64(0xff)) } }
     if kind == bc.ArrayKind.I8   {
@@ -526,6 +526,8 @@ value_from_bits :: fn(kind: bc.ArrayKind, bits: u64) -> Value {
     if kind == bc.ArrayKind.Char { return CharVal { .value = char(u32(bits)) } }
     if kind == bc.ArrayKind.U64  { return I64Val { .value = i64(bits) } }
     if kind == bc.ArrayKind.I64  { return I64Val { .value = i64(bits) } }
+    if kind == bc.ArrayKind.F32  { return F64Val { .value = f64(vader_bits_to_f32(u32(bits))) } }
+    if kind == bc.ArrayKind.F64  { return F64Val { .value = vader_bits_to_f64(bits) } }
     return I32Val { .value = 0 }
 }
 

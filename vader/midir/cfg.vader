@@ -448,7 +448,6 @@ export InstrIntrinsic :: struct {
     dst:         LocalId | null
     name:        string
     args:        LocalId[]
-    display_for: Type | null
 }
 
 /// Local-to-local copy. Surfaces in lowered constructs like

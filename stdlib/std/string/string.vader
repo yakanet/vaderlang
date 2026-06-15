@@ -117,10 +117,14 @@ export decode_codepoint_at :: fn(bs: const u8[], i: usize) -> [char, usize] {
     return [c, codepoint_byte_len(c)]
 }
 
-/// Materialise a `string` from the UTF-8 bytes of a `const u8[]` — the inverse
-/// of `bytes()`. Turns a byte-view slice back into a string :
-/// `s.bytes()[lo..<hi].as_string()` is the byte-indexed substring (what the
-/// old `byte_slice` produced).
+/// Materialise a `string` from the UTF-8 bytes of a `const u8[]`.
+///
+/// LEGACY alias of `std/core::bytes_to_string` (the canonical bytes→string
+/// primitive — both lower to the same host op). Kept because it reads well
+/// post-`bytes()` (`s.bytes()[lo..<hi].as_string()` is the byte-indexed
+/// substring the old `byte_slice` produced) and is still the form used across
+/// the stdlib ; the rename to `bytes_to_string` is tracked in `TODO.md` §1.13d.
+/// Prefer `bytes_to_string` in new code.
 ///
 /// Host intrinsic. On a **borrowed** view (a `bytes()` slice) this is **O(1)** —
 /// it reinterprets the aliased owner bytes as a string atom (`vader_atom_slice`,
