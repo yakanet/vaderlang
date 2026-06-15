@@ -1,0 +1,22 @@
+/// Interpolation hot loop — formats three integers into a string via `${}`
+/// 200 000 times. On `feat/target-abi` `${}` lowers to a StringBuilder over a
+/// byte `Buffer` plus the pure-Vader integer formatters, rather than `main`'s
+/// Builder ops + the `vader_builder_append_display_*` host family — so this
+/// measures the off-runtime interpolation path end to end.
+///
+/// Checksums via `bytes().len()` (array length) to avoid the `string.len()` /
+/// `chars().count()` codegen bug (see TODO) while still observing each result.
+
+module "main"
+
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    total: usize = 0
+    for i in 0..<200000 {
+        s :: "val=${i} x=${i * 2} y=${i - 1}"
+        total = total + s.bytes().len()
+    }
+    println("interp ${total}")
+    return 0
+}
