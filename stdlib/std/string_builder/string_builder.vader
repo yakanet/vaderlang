@@ -1,16 +1,18 @@
-// std/string_builder — efficient string construction over a byte Buffer.
+// std/string_builder — efficient string construction over a list of parts.
 //
-// Accumulates UTF-8 bytes into a growable `Buffer` (the Target ABI byte
-// primitive, `std/core/buffer.vader`), doubling the capacity on overflow, and
-// interns the result in one pass via `bytes_to_string`. This replaces the
-// former `[string]`-parts model whose finalisation went through the
-// `vader_string_concat_all` host intrinsic.
+// Accumulates string references in a `string[]` : each `append` is an O(1)
+// reference push, no byte copy. The bytes are moved exactly once, in bulk, at
+// `to_string` : one `Buffer` sized to the total byte length, each part copied
+// in via the `write_string` primitive, interned in a single pass via
+// `intern_string`. This is the lean, off-runtime equivalent of the former
+// `vader_string_concat_all` host intrinsic — finalisation, not every append,
+// pays for the copy.
 //
-// `Buffer` and the byte primitives (`new_buffer` / `store_u8` / `load_u8` /
-// `memory_copy`) live in `std/core` (the prelude) and are reached with no
-// import : the byte ops are `@intrinsic`-marked impl members, resolved through
-// the impl registry. `bytes` / `bytes_to_string` / `utf8_encode` are likewise
-// ambient std/core primitives. So this module needs no `import` of its own.
+// The byte primitives (`new_buffer` / `write_string` / `intern_string`) live in
+// `std/core` (the prelude) and are reached with no import : they are
+// `@intrinsic`-marked impl members resolved through the impl registry. `bytes` /
+// `bytes_to_string` / `utf8_encode` are likewise ambient std/core primitives. So
+// this module needs no `import` of its own.
 //
 // Usage:
 //   sb := new_builder()
@@ -20,73 +22,35 @@
 
 module "std/string_builder"
 
-/// Amortised-O(1) string accumulator. Writes UTF-8 bytes into a growing
-/// `Buffer` ; `to_string` (and `${sb}` interpolation) interns the accumulated
-/// bytes in a single allocation.
+/// String accumulator with O(1) `append`. Holds the appended fragments by
+/// reference ; `to_string` (and `${sb}` interpolation) concatenates them into a
+/// single interned string in one pass.
 export StringBuilder :: struct {
-    /// Backing byte storage. Reallocated (capacity-doubling) when a write would
-    /// exceed `cap` ; the base is re-resolved per grow (GC rule G1).
-    buf: Buffer
-    /// Number of bytes written so far.
-    len: usize
-    /// Allocated byte capacity of `buf`.
-    cap: usize
+    /// Appended fragments, in order. Concatenated at `to_string`.
+    parts: string[]
 }
 
-/// Create an empty builder backed by a small byte buffer.
-/// @return  a fresh `StringBuilder` with zero length.
-export new_builder :: fn() -> StringBuilder {
-    cap: usize = 16
-    return StringBuilder { .buf = cap.new_buffer(), .len = 0, .cap = cap }
-}
+/// Create an empty builder.
+/// @return  a fresh `StringBuilder` with no parts.
+export new_builder :: fn() -> StringBuilder = StringBuilder { .parts = [] }
 
-/// Grow the backing buffer to hold at least `needed` bytes — double the
-/// capacity (or jump straight to `needed`), allocate a fresh buffer, and copy
-/// the live bytes across. `self.buf` stays reachable through `self` over the
-/// allocation, and `memory_copy` re-resolves both buffer pointers at the op, so
-/// no base survives the safepoint (G1).
-/// @param self    builder receiver.
-/// @param needed  minimum byte capacity required after the call.
-ensure_capacity :: fn(self: StringBuilder, needed: usize) -> void {
-    if needed <= self.cap { return }
-    new_cap := self.cap * 2
-    if new_cap < needed { new_cap = needed }
-    new_buf :: new_cap.new_buffer()
-    new_buf.memory_copy(0, self.buf, 0, self.len)
-    self.buf = new_buf
-    self.cap = new_cap
-}
-
-/// Append a raw UTF-8 byte range — the shared core of `append` / `append_char`.
-/// @param self  builder receiver.
-/// @param bs    bytes to copy in (typically `s.bytes()` or `utf8_encode(c)`).
-append_bytes :: fn(self: StringBuilder, bs: const u8[]) -> void {
-    n :: bs.len()
-    self.ensure_capacity(self.len + n)
-    for i in 0..<n {
-        self.buf.store_u8(self.len + i, bs[i])
-    }
-    self.len += n
-}
-
-/// Append a string's UTF-8 bytes.
+/// Append a string — an O(1) reference push, no byte copy.
 /// @param self  builder receiver.
 /// @param s     UTF-8 string to append.
 export append :: fn(self: StringBuilder, s: string) -> void {
-    self.append_bytes(s.bytes())
+    self.parts.push(s)
 }
 
-/// Append a single Unicode codepoint, UTF-8-encoded.
+/// Append a single Unicode codepoint, UTF-8-encoded then interned as a part.
 /// @param self  builder receiver.
 /// @param c     codepoint to encode (`u32(c)` ≤ `0x10FFFF`).
 export append_char :: fn(self: StringBuilder, c: char) -> void {
-    self.append_bytes(utf8_encode(c))
+    self.parts.push(utf8_encode(c).bytes_to_string())
 }
 
-/// Append `count` copies of `c` to the builder. Generalises pretty-printer
-/// indentation, table padding, divider lines, and any other "write N copies"
-/// pattern — symmetric with `std/string.pad_end(s, width, fill)` but writes
-/// directly into the buffer. Negative or zero counts are a no-op.
+/// Append `count` copies of `c`. The codepoint is UTF-8-encoded and interned
+/// once, then pushed `count` times (each push shares the one interned atom).
+/// Negative or zero counts are a no-op.
 ///
 /// Examples :
 ///   `sb.append_repeated(' ', level * 2)   // indentation`
@@ -96,20 +60,29 @@ export append_char :: fn(self: StringBuilder, c: char) -> void {
 /// @param c      codepoint to repeat.
 /// @param count  number of copies to append (≤ 0 → no-op).
 export append_repeated :: fn(self: StringBuilder, c: char, count: i32) -> void {
+    s :: utf8_encode(c).bytes_to_string()
     for _ in 0..<count {
-        self.append_char(c)
+        self.parts.push(s)
     }
 }
 
-// Display — interns the accumulated bytes into one string. `${sb}` interpolation
-// and `sb.to_string()` both resolve here.
+// Display — concatenates the parts into one interned string. `${sb}`
+// interpolation and `sb.to_string()` both resolve here.
 StringBuilder implements Display {
-    /// Read back the buffered bytes and intern them as a single string.
+    /// Assemble all parts into a single interned string : size one `Buffer` to
+    /// the total byte length, copy each part in via `write_string`, intern the
+    /// result. The byte movement is a single bulk pass — no per-append copy.
     to_string :: fn(self) -> string {
-        out: u8[] = []
-        for i in 0..<self.len {
-            out.push(self.buf.load_u8(i))
+        total: usize = 0
+        for p in self.parts {
+            total = total + p.bytes().len()
         }
-        return out.bytes_to_string()
+        buf :: total.new_buffer()
+        off: usize = 0
+        for p in self.parts {
+            buf.write_string(off, p)
+            off = off + p.bytes().len()
+        }
+        return buf.intern_string(total)
     }
 }
