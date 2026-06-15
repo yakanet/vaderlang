@@ -50,6 +50,7 @@ export intrinsic_op_for_mangled :: fn(mangled: string) -> Op | null {
     if mangled == r"std_core$Buffer$ByteAccess$load_u8"     { return LoadU8 {} }
     if mangled == r"std_core$Buffer$ByteAccess$store_u8"    { return StoreU8 {} }
     if mangled == r"std_core$Buffer$ByteAccess$memory_copy" { return MemoryCopy {} }
+    if mangled == r"std_core$Buffer$ByteAccess$intern_string" { return BufferToString {} }
     // Float ↔ raw-bits reinterpret (`stdlib/std/core` FloatBits / BitsFloat).
     // NOT the numeric `f64(x)` / `u64(b)` casts — these return the exact IEEE
     // bit pattern. Lower to a `union` cast in C (no runtime symbol).

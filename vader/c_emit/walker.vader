@@ -101,6 +101,7 @@ op_allocates :: fn(op: vm.Op) -> bool {
     if op is vm.ArrayNew { return true }
     if op is vm.ArrayPush { return true }
     if op is vm.StringSliceCodepoints { return true }
+    if op is vm.BufferToString { return true }
     if op is vm.MakeClosure { return true }
     if op is vm.CallImport { return true }
     if op is vm.CallIndirect { return true }
@@ -403,6 +404,7 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.StoreSlotI64          -> emit_slot_store_prim(s, "int64_t", .I64)
         is vm.StoreSlotF64          -> emit_slot_store_prim(s, "double", .F64)
         is vm.MemoryCopy            -> emit_memory_copy(s)
+        is vm.BufferToString        -> emit_buffer_to_string(s)
         is vm.F64ToBits             -> emit_f64_to_bits(s)
         is vm.BitsToF64             -> emit_bits_to_f64(s)
         is vm.F32ToBits             -> emit_f32_to_bits(s)
@@ -1586,6 +1588,17 @@ emit_memory_copy :: fn(s: FnState) -> void {
     dst_off :: pop(s)
     dst :: pop(s)
     line(s, "vader_buffer_memory_copy(${buf_ptr(dst)}, (size_t) ${name_of(dst_off)}, ${buf_ptr(src)}, (size_t) ${name_of(src_off)}, (size_t) ${name_of(n)});")
+}
+
+/// `buffer_to_string` — pop buffer + `len`, intern the buffer's leading `len`
+/// bytes as a string in a single copy (no read-back). Verbatim-bytes intern,
+/// identical semantics to `bytes_to_string` over a `u8[]` (neither validates
+/// UTF-8). The buffer pointer is re-derived from its rooted box (G1) ;
+/// `vader_string_new` interns via host `malloc`, so no GC move occurs in the call.
+emit_buffer_to_string :: fn(s: FnState) -> void {
+    len :: pop(s)
+    obj :: pop(s)
+    push_into_tmp(s, "vader_string_new((const char*) ${buf_ptr(obj)}->bytes, (size_t) ${name_of(len)})", .String)
 }
 
 // ---- array slot access (Target ABI S5) -----------------------------------

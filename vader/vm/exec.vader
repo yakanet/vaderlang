@@ -1717,6 +1717,21 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[]) -
                 outcome :: do_memory_copy(frame)
                 if outcome is Trap { return outcome }
             }
+            is bc.BufferToString -> {
+                // Pop buffer + len ; intern the leading `len` bytes verbatim as a
+                // string (same semantics as `bytes_to_string` over a `u8[]`).
+                if frame.sp < 2 { return Trap { .message = "buffer_to_string needs object + len on stack at pc=${frame.pc}" } }
+                len_unwrap :: read_i32(frame.stack[frame.sp - 1], frame.pc, "buffer_to_string len")
+                if len_unwrap is Trap { return len_unwrap }
+                obj_unwrap :: read_obj(frame.stack[frame.sp - 2], frame.pc, "buffer_to_string receiver")
+                if obj_unwrap is Trap { return obj_unwrap }
+                // width 0 ⇒ checks `0 <= len <= bytes_len`, returns the usize len.
+                n :: check_byte_range(len_unwrap.value, 0, obj_unwrap.bytes.len(), "buffer_to_string", frame.pc)
+                if n is Trap { return n }
+                frame.stack[frame.sp - 2] = StringVal { .value = obj_unwrap.bytes[0..<n].as_string() }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
+            }
             is bc.F64ToBits -> {
                 // Bit-reinterpret the TOS f64 as its raw u64 bits (held in an
                 // I64Val — same 64 bits) via the runtime `@extern` (see the

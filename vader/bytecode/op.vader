@@ -165,6 +165,7 @@ export Op :: Unreachable
     | StoreSlotI64
     | StoreSlotF64
     | MemoryCopy
+    | BufferToString
     | F64ToBits
     | BitsToF64
     | F32ToBits
@@ -657,6 +658,13 @@ export StoreSlotF64 :: struct {}
 /// Bulk byte copy obj→obj. Pops `dst, dst_off, src, src_off, n` ; copies `n`
 /// bytes. Lowers to `memcpy`. Both ends are GC handles, offsets are integers.
 export MemoryCopy :: struct {}
+
+/// Intern a `Buffer`'s leading `len` bytes as a `string`. Pops `obj, len: usize`
+/// ; pushes the interned `string`. Lowers to `vader_string_new((const char*)
+/// obj->bytes, len)` — a single copy into the atom table, no read-back. Same
+/// verbatim-bytes semantics as `bytes_to_string` over a `u8[]` (neither
+/// validates UTF-8) ; backs `StringBuilder.to_string`.
+export BufferToString :: struct {}
 
 /// Bit-reinterpret an `f64` as its raw IEEE 754 `u64` bit pattern. Pops an
 /// `f64`, pushes the `u64`. This is NOT a numeric conversion (`u64(x)` truncates
