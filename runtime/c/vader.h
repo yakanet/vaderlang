@@ -507,6 +507,16 @@ static inline vader_string_t vader_buffer_intern_string(vader_buffer_t* b, size_
     return vader_string_new((const char*) b->bytes, len);
 }
 
+/* Copy string `s`'s bytes into `dst` at byte offset `off` (the
+ * `buffer_write_string` opcode). A single `memcpy` from the interned atom's
+ * contiguous bytes — the lean replacement for `vader_string_concat_all`, used
+ * by `StringBuilder.to_string` to assemble its parts. No write barrier (the
+ * region holds no references). `s` is an interned atom, so reading its bytes
+ * never allocates ; `dst` is re-derived from its rooted box at the op (G1). */
+static inline void vader_buffer_write_string(vader_buffer_t* dst, size_t off, vader_string_t s) {
+    memcpy(dst->bytes + off, vader_atom_data(s), vader_atom_len(s));
+}
+
 vader_array_t* vader_array_new(uint32_t type_index, size_t length, uint8_t element_kind, uint32_t element_tag);
 /* vader_array_get / vader_array_set are RETIRED — the C emitter open-codes every
  * `arr[i]` / `arr[i] = v` over the kept layout (typed slots inline, boxed via

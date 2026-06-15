@@ -1732,6 +1732,28 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[]) -
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }
+            is bc.BufferWriteString -> {
+                // Pop buffer + off + string ; memcpy the string's bytes into the
+                // buffer at `off` (the parts-model `to_string` assembly step).
+                if frame.sp < 3 { return Trap { .message = "buffer_write_string needs object + off + string on stack at pc=${frame.pc}" } }
+                str_unwrap :: read_string(frame.stack[frame.sp - 1], frame.pc, "buffer_write_string source")
+                if str_unwrap is Trap { return str_unwrap }
+                off_unwrap :: read_i32(frame.stack[frame.sp - 2], frame.pc, "buffer_write_string off")
+                if off_unwrap is Trap { return off_unwrap }
+                obj_unwrap :: read_obj(frame.stack[frame.sp - 3], frame.pc, "buffer_write_string receiver")
+                if obj_unwrap is Trap { return obj_unwrap }
+                if off_unwrap.value < 0 { return Trap { .message = "buffer_write_string negative offset at pc=${frame.pc}" } }
+                src_bytes :: str_unwrap.value.bytes()
+                off :: usize(off_unwrap.value)
+                if off + src_bytes.len() > obj_unwrap.bytes.len() {
+                    return Trap { .message = "buffer_write_string range [${off}, ${off + src_bytes.len()}) exceeds ${obj_unwrap.bytes.len()} at pc=${frame.pc}" }
+                }
+                for i in 0..<src_bytes.len() {
+                    obj_unwrap.bytes[off + i] = src_bytes[i]
+                }
+                frame.sp = frame.sp - 3
+                frame.pc = frame.pc + 1
+            }
             is bc.F64ToBits -> {
                 // Bit-reinterpret the TOS f64 as its raw u64 bits (held in an
                 // I64Val — same 64 bits) via the runtime `@extern` (see the

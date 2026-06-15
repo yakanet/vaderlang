@@ -166,6 +166,7 @@ export Op :: Unreachable
     | StoreSlotF64
     | MemoryCopy
     | BufferToString
+    | BufferWriteString
     | F64ToBits
     | BitsToF64
     | F32ToBits
@@ -665,6 +666,13 @@ export MemoryCopy :: struct {}
 /// verbatim-bytes semantics as `bytes_to_string` over a `u8[]` (neither
 /// validates UTF-8) ; backs `StringBuilder.to_string`.
 export BufferToString :: struct {}
+
+/// Copy a `string`'s bytes into a `Buffer` at byte offset `off`. Pops
+/// `obj, off: usize, s: string` (no push). Lowers to a `memcpy` from the string
+/// atom's bytes into `obj->bytes + off` (`vader_buffer_write_string`). The lean
+/// replacement for the retired `vader_string_concat_all` host intrinsic :
+/// `StringBuilder.to_string` assembles its `string[]` parts with this.
+export BufferWriteString :: struct {}
 
 /// Bit-reinterpret an `f64` as its raw IEEE 754 `u64` bit pattern. Pops an
 /// `f64`, pushes the `u64`. This is NOT a numeric conversion (`u64(x)` truncates

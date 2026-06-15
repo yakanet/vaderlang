@@ -405,6 +405,7 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.StoreSlotF64          -> emit_slot_store_prim(s, "double", .F64)
         is vm.MemoryCopy            -> emit_memory_copy(s)
         is vm.BufferToString        -> emit_buffer_to_string(s)
+        is vm.BufferWriteString     -> emit_buffer_write_string(s)
         is vm.F64ToBits             -> emit_f64_to_bits(s)
         is vm.BitsToF64             -> emit_bits_to_f64(s)
         is vm.F32ToBits             -> emit_f32_to_bits(s)
@@ -1599,6 +1600,17 @@ emit_buffer_to_string :: fn(s: FnState) -> void {
     len :: pop(s)
     obj :: pop(s)
     push_into_tmp(s, "vader_buffer_intern_string(${buf_ptr(obj)}, (size_t) ${name_of(len)})", .String)
+}
+
+/// `buffer_write_string` — pop buffer + `off` + string, memcpy the string's
+/// bytes into the buffer at `off` (no push). The string operand is coerced to a
+/// `vader_string_t` (unboxed when it arrives as an erased `any`).
+emit_buffer_write_string :: fn(s: FnState) -> void {
+    str :: pop(s)
+    off :: pop(s)
+    obj :: pop(s)
+    src :: coerce_operand(s.ctx.module.types, name_of(str), val_of(str), .String)
+    line(s, "vader_buffer_write_string(${buf_ptr(obj)}, (size_t) ${name_of(off)}, ${src});")
 }
 
 // ---- array slot access (Target ABI S5) -----------------------------------

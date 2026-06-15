@@ -491,6 +491,7 @@ parse_op_line :: fn(cleaned: string, head: string) -> bc.Op | null {
     if head == "store_slot_f64" { return bc.StoreSlotF64 {} }
     if head == "memory_copy"    { return bc.MemoryCopy {} }
     if head == "buffer_to_string" { return bc.BufferToString {} }
+    if head == "buffer_write_string" { return bc.BufferWriteString {} }
     if head == "f64_to_bits"    { return bc.F64ToBits {} }
     if head == "bits_to_f64"    { return bc.BitsToF64 {} }
     if head == "f32_to_bits"    { return bc.F32ToBits {} }
@@ -1102,6 +1103,7 @@ roundtrip_op_text :: fn(op: bc.Op) -> string {
     assert_eq(roundtrip_op_text(bc.StoreSlotF64 {}),  "store_slot_f64")
     assert_eq(roundtrip_op_text(bc.MemoryCopy {}), "memory_copy")
     assert_eq(roundtrip_op_text(bc.BufferToString {}), "buffer_to_string")
+    assert_eq(roundtrip_op_text(bc.BufferWriteString {}), "buffer_write_string")
     assert_eq(roundtrip_op_text(bc.F64ToBits {}),  "f64_to_bits")
     assert_eq(roundtrip_op_text(bc.BitsToF64 {}),  "bits_to_f64")
     assert_eq(roundtrip_op_text(bc.F32ToBits {}),  "f32_to_bits")
