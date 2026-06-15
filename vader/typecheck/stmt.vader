@@ -510,6 +510,15 @@ push_divergent_narrow_if :: fn(
 }
 
 then_is_divergent :: fn(b: AST.BlockExpr, typed: TypedProgram) -> bool {
+    // A guard block whose sole (or final) content is a `@no_return` call —
+    // `{ panic(...) }` — parses that call as the block's trailing expression,
+    // not a statement, so `b.stmts` is empty. Honor a `never`-typed trailing
+    // expr as divergent, mirroring the `is_divergent_stmt` ExprStmt arm ;
+    // otherwise the complement narrowing is dropped and the guarded binding
+    // keeps its union type (T3008 on the post-guard use).
+    if b.trailing !is null {
+        if typed.expr_types[b.trailing.id] is NeverType { return true }
+    }
     if b.stmts.len() == 0 { return false }
     return is_divergent_stmt(b.stmts[b.stmts.len() - 1], typed)
 }

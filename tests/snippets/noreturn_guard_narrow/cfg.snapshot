@@ -1,0 +1,91 @@
+# CFG
+
+## snippet
+
+fn snippet$unwrap(%0: Box | null) -> i32
+  locals:
+    %0 b: Box | null (param b)
+    %1 $type_check_1: bool
+    %2 $k_2: string
+    %3 $call_3: never
+    %4 $cast_4: Box
+    %5 $field_5: i32
+  bb0:
+    %1 = type_check %0 is null
+    cond_branch %1 ? bb1 : bb2
+  bb1:
+    %2 = const string(#1) :string
+    %3 = call panic(%2) :never
+    branch -> bb2
+  bb2:
+    %4 = cast %0 :Box
+    %5 = field_get %4.v :i32
+    return %5
+
+fn snippet$unwrap_logged(%0: Box | null) -> i32
+  locals:
+    %0 b: Box | null (param b)
+    %1 $type_check_1: bool
+    %2 $k_2: string
+    %3 $k_3: string
+    %4 $call_4: never
+    %5 $cast_5: Box
+    %6 $field_6: i32
+  bb0:
+    %1 = type_check %0 is null
+    cond_branch %1 ? bb1 : bb2
+  bb1:
+    %2 = const string(#1) :string
+    call std_io$std_io$println__string(%2) :void
+    %3 = const string(#1) :string
+    %4 = call panic(%3) :never
+    branch -> bb2
+  bb2:
+    %5 = cast %0 :Box
+    %6 = field_get %5.v :i32
+    return %6
+
+fn snippet$main() -> i32
+  locals:
+    %0 $call_0: StringBuilder
+    %1 __sb_0: StringBuilder (synthetic __sb_0)
+    %2 $k_2: string
+    %3 $k_3: i32
+    %4 $struct_4: Box
+    %5 $call_5: i32
+    %6 $call_6: string
+    %7 $call_7: string
+    %8 $call_8: StringBuilder
+    %9 __sb_1: StringBuilder (synthetic __sb_1)
+    %10 $k_10: string
+    %11 $k_11: i32
+    %12 $struct_12: Box
+    %13 $call_13: i32
+    %14 $call_14: string
+    %15 $call_15: string
+    %16 $k_16: i32
+  bb0:
+    %0 = call new_builder() :StringBuilder
+    %1 = move %0
+    %2 = const string(#2) :string
+    call append(%1, %2) :void
+    %3 = const int(42) :i32
+    %4 = struct_new Box(%3)
+    %5 = call unwrap(%4) :i32
+    %6 = call std_core$i32$Display$to_string(%5) :string
+    call append(%1, %6) :void
+    %7 = call std_string_builder$StringBuilder$Display$to_string(%1) :string
+    call std_io$std_io$println__string(%7) :void
+    %8 = call new_builder() :StringBuilder
+    %9 = move %8
+    %10 = const string(#3) :string
+    call append(%9, %10) :void
+    %11 = const int(7) :i32
+    %12 = struct_new Box(%11)
+    %13 = call unwrap_logged(%12) :i32
+    %14 = call std_core$i32$Display$to_string(%13) :string
+    call append(%9, %14) :void
+    %15 = call std_string_builder$StringBuilder$Display$to_string(%9) :string
+    call std_io$std_io$println__string(%15) :void
+    %16 = const int(0) :i32
+    return %16
