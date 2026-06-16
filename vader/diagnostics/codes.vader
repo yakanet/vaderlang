@@ -141,6 +141,7 @@ export ResolverCode :: enum(u8) {
     VisibilityLeak,                         // R2027
     ExplicitCorePreludeImport,              // R2028
     AsBindingInConjunction,                 // R2029
+    ConflictingImpl,                        // R2030
 }
 
 // Mirror of `COMPTIME` in `src/diagnostics/codes.ts`. C-codes belong to
@@ -269,6 +270,7 @@ export resolver_info :: fn(c: ResolverCode) = match c {
     .VisibilityLeak                     -> CodeInfo { .id = "R2027", .message = "exported decl references a module-private decl in its signature" }
     .ExplicitCorePreludeImport          -> CodeInfo { .id = "R2028", .message = "explicit `import \"std/core\"` is redundant (prelude already in scope)" }
     .AsBindingInConjunction             -> CodeInfo { .id = "R2029", .message = "`as` binding not allowed in a `&&` condition" }
+    .ConflictingImpl                    -> CodeInfo { .id = "R2030", .message = "conflicting trait impl for the same type" }
 }
 
 export warning_info :: fn(c: WarningCode) = match c {

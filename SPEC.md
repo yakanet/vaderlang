@@ -1065,6 +1065,33 @@ print_it :: fn<T: Display>(x: T) {
 - Operator overloading via stdlib traits — see *Operator overloading* below.
 - **`self` and `Self`**: inside a trait or impl, the first parameter conventionally named `self` carries an implicit `Self` type — no annotation required. `Self` refers to the type that implements the trait; in a `Foo implements Trait { … }` block, `Self = Foo`. Outside trait/impl context, `Self` is undefined (`T3023`).
 
+#### Coherence — one impl per (type, trait)
+
+A program may declare **at most one** `impl` of a given trait for a given
+concrete receiver type. A second impl of the same `(type, trait, trait-args)`
+triple raises **R2030** ("conflicting trait impl for the same type"). This
+mirrors Rust's E0119 and is a sibling of the orphan rule (R2018) and the
+`Into`-identity ban (T3039).
+
+The check spans the **whole program, prelude included**. The `std/core`
+prelude carries `i32 implements Display`, `<prim> implements Hash`, etc., and
+those impls are in scope in every module, so a user re-`impl` of one —
+
+```vader
+i32 implements Display {           // ✗ R2030 — std/core already implements
+    to_string :: fn(self) -> string = "n=${self}"
+}
+```
+
+— is a **conflict**, not a silent shadow. (Before R2030 this compiled, with
+dispatch order deciding which impl won — and `"${self}"` inside the override
+could re-enter the override and recurse.) To attach behaviour to a primitive,
+declare your own trait and `impl` that instead.
+
+Only **fully-concrete** receivers are checked. Blanket / generic-receiver impls
+(`T implements …`, `T[] implements …`, `Range<T> implements …`) have subtler
+overlap rules and are not yet diagnosed.
+
 #### Bounded-generic impls
 
 When the impl introduces its own type parameters (with optional bounds), the `<T>` list follows the `implements` keyword — same position as it does after `fn` / `struct` / `trait`. This is the canonical place for any typeParam that's local to the impl (not borrowed from the for-type's struct head).

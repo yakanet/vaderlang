@@ -1,11 +1,12 @@
 # Typecheck
 
 ## tests/snippets/primitive_impl
+  TraitDecl      Describe             :: Describe
   FnDecl         main                 :: fn() -> i32
-  expr 13:13    CallExpr       :: string
-  expr 13:13    FieldExpr      :: fn() -> string
-  expr 13:13    IdentExpr      :: i32
-  expr 13:5     CallExpr       :: void
-  expr 13:5     IdentExpr      :: fn(T) -> void
-  expr 7:16     StringLitExpr  :: string
-  expr 7:33     IdentExpr      :: i32
+  expr 15:16    StringLitExpr  :: string
+  expr 15:33    IdentExpr      :: i32
+  expr 21:13    CallExpr       :: string
+  expr 21:13    FieldExpr      :: fn() -> string
+  expr 21:13    IdentExpr      :: i32
+  expr 21:5     CallExpr       :: void
+  expr 21:5     IdentExpr      :: fn(T) -> void

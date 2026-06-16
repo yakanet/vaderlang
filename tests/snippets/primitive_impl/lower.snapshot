@@ -1,7 +1,7 @@
 # Lower
 
 ## snippet
-  fn snippet$i32$Display$to_string(self: i32) -> string
+  fn snippet$i32$Describe$describe(self: i32) -> string
     return
       block :string
         let __sb_0: StringBuilder =
@@ -23,7 +23,7 @@
           arg1:
             call :string
               callee:
-                snippet$i32$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
                 self :i32
         ~>
@@ -40,7 +40,7 @@
       arg0:
         call :string
           callee:
-            snippet$i32$Display$to_string :string
+            snippet$i32$Describe$describe :string
           arg0:
             x :i32
     return int(0) :i32

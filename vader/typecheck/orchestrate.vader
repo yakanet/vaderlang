@@ -19,7 +19,7 @@ import "vader/resolver" { LoadedProject, LoadedModule, SourceFile }
 import "vader/resolver" { ResolvedModule, resolve_module, resolve_module_with_collected, resolve_module_with_collected_dp, resolve_module_with_collected_dp_seeded, build_core_seed, find_core_module_id }
 import "vader/resolver/symbol" { Symbol, SymbolFactory }
 import "vader/resolver" { wire_imports, ImportTargetTable, run_orphan_rule_check_for_module }
-import "vader/types" { display_type, type_base_name }
+import "vader/types" { display_type, type_base_name, canonical_key, canonical_args_key }
 import "vader/diagnostics" { typecheck_error }
 import "vader/types" {
     Type, ArrayType, EnumType, FnType, SelfType, StructType, TraitType,
@@ -237,6 +237,12 @@ export check_project_with_bodies :: fn(
     populate_imported_fn_overloads(entry_typed, per_module)
     merge_struct_decls(entry_typed, per_module)
     merge_external_impl_methods(entry_typed, project, per_module)
+    // Coherence : at most one impl per (concrete type, trait, trait-args) across
+    // the whole program — the prelude's `i32 implements Display` etc. are in
+    // scope everywhere, so a user re-impl is a conflict (R2030), not a silent
+    // shadow. Mirrors Rust's E0119. (Blanket / generic-receiver overlap is
+    // deferred — only fully-concrete receivers are checked.)
+    check_impl_coherence(project, per_module, diags)
 
     // Two-pass body walk : first pass infers expression-bodied fn
     // return types (forward-reference safe) ; second pass re-types
@@ -408,9 +414,70 @@ populate_from :: fn(
     }
 }
 
-// Merge every other module's `struct_decls` and `trait_decls` into
-// the entry's tables so `field.vader` can look up cross-module
-// struct field definitions when resolving `external_pt.field`.
+// ---- trait coherence ------------------------------------------------------
+
+// Coherence key for an `impl` : `(receiver type, trait, trait-args)`. Keyed on
+// `canonical_key`, so distinct types never collide (it carries struct/enum
+// symbol ids and generic args — `Foo<i32>` and `Foo<string>` stay separate) and
+// equivalent types always match. Returns null for a blanket / generic receiver
+// (`T implements …`, `T[] implements …`) — their overlap rules are subtler than
+// concrete-vs-concrete, so they're left unchecked for now.
+coherence_key :: fn(for_ty: Type, trait_name: string, args: Type[]) -> string | null {
+    if type_contains_type_param(for_ty) { return null }
+    return "${canonical_key(for_ty)}#${trait_name}<${canonical_args_key(args)}>"
+}
+
+// Project-wide trait coherence : at most one impl per (concrete type, trait,
+// trait-args). Walks every loaded module's `ImplDecl`s (including the `std/core`
+// prelude, whose impls are in scope everywhere) into one key→span map and fires
+// R2030 on the second impl of a key. Catches a user redefining a prelude impl
+// (`i32 implements Display`) — previously a silent, order-dependent shadow that
+// could recurse / mis-resolve. Mirror of Rust's E0119 (concrete-receiver subset).
+check_impl_coherence :: fn(
+    project: LoadedProject, per_module: MutableMap<string, TypedProgram>, diags: Diagnostic[],
+) -> void {
+    seen :: MutableMap<string, Span> {}
+    // Register every NON-entry module's impls (the `std/core` prelude + stdlib +
+    // deps) first, then the entry module LAST. A user impl that duplicates a
+    // prelude/stdlib one is then the *second* seen, so R2030 lands on the user's
+    // (entry-module) span — entry diags are surfaced, imported-module diags are
+    // filtered by the CLI, so an error on a stdlib span would be invisible.
+    for id in project.modules.keys() {
+        if id == project.entry { continue }
+        check_module_impl_coherence(id, project, per_module, seen, diags)
+    }
+    check_module_impl_coherence(project.entry, project, per_module, seen, diags)
+}
+
+check_module_impl_coherence :: fn(
+    id: string, project: LoadedProject, per_module: MutableMap<string, TypedProgram>,
+    seen: MutableMap<string, Span>, diags: Diagnostic[],
+) -> void {
+    tp :: per_module[id]
+    if tp is null { return }
+    loaded :: project.modules[id]
+    if loaded is null { return }
+    for decl in merge_module_program(loaded.module.files).decls {
+        if decl is AST.ImplDecl as impl_decl {
+            for_ty :: type_from_expr(impl_decl.for_type, tp.resolved, diag_sink())
+            args: Type[] = []
+            for ta in impl_decl.trait_args { args.push(type_from_expr(ta, tp.resolved, diag_sink())) }
+            key :: coherence_key(for_ty, impl_decl.trait_name, args)
+            if key == null { continue }
+            if seen[key] != null {
+                // `ConflictingImpl` is a `ResolverCode` (declaration-level, like
+                // the R2018 orphan rule), so it's built with `resolver_error`.
+                diags.push(resolver_error(.ConflictingImpl, impl_decl.span,
+                    "`${display_type(for_ty)}` already implements `${impl_decl.trait_name}` — only one impl per (type, trait) is allowed"))
+            } else {
+                seen[key] = impl_decl.span
+            }
+        }
+    }
+}
+
+// ---- cross-module table merges --------------------------------------------
+
 // Each module mints its own Symbol ids ; the entries don't collide.
 // Walk every non-entry module's `ImplDecl`s and register their UFCS
 // method signatures in the entry's `impl_methods` table. Lets
@@ -945,6 +1012,9 @@ cross_publish_fn_decls :: fn(per_module: MutableMap<string, TypedProgram>) -> vo
     }
 }
 
+// Merge every other module's `struct_decls` and `trait_decls` into
+// the entry's tables so `field.vader` can look up cross-module
+// struct field definitions when resolving `external_pt.field`.
 merge_struct_decls :: fn(
     entry_typed: TypedProgram, per_module: MutableMap<string, TypedProgram>,
 ) -> void {

@@ -8,9 +8,11 @@ export TwoFns :: trait {
     second :: fn(self) -> i32
 }
 
+// Two different receivers so this stays focused on the short-form error —
+// re-using the same receiver would also trip the coherence rule (R2030).
 i32 implements TwoFns -> 0
 
-i32 implements TwoFns {
+i64 implements TwoFns {
     self + 1
 }
 
