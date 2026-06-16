@@ -51,7 +51,7 @@ vtable Iterator.next 8 4
 vtable Iterator.next 14 7
 vtable Iterator.next 17 8
 vtable Iterator.next 20 9
-vtable Iterator.next 28 27
+vtable Iterator.next 28 26
 export main 33
 
 fn 0 std_io$std_io$println__string (string) -> void
@@ -837,40 +837,7 @@ fn 24 std_core$finish_digits (ref,bool) -> string
   return
 end
 
-fn 25 std_utf8$codepoint_byte_len (char) -> usize
-  local cp u32
-  local $cast_4 u32
-  local.get 0
-  char.to_i32
-  local.set 1
-  i32.const 128
-  local.set 2
-  local.get 1
-  local.get 2
-  u32.lt
-  if $L0 void
-    return.lit i64.const 1
-  end $L0
-  i32.const 2048
-  local.set 2
-  local.get 1
-  local.get 2
-  u32.lt
-  if $L1 void
-    return.lit i64.const 2
-  end $L1
-  i32.const 65536
-  local.set 2
-  local.get 1
-  local.get 2
-  u32.lt
-  if $L2 void
-    return.lit i64.const 3
-  end $L2
-  return.lit i64.const 4
-end
-
-fn 26 std_string$chars (string) -> ref
+fn 25 std_string$chars (string) -> ref
   local bs ref
   local $cast_4 usize
   local $len_5 usize
@@ -889,7 +856,7 @@ fn 26 std_string$chars (string) -> ref
   return
 end
 
-fn 27 std_string$StringChars$Iterator$next (ref) -> ref
+fn 26 std_string$StringChars$Iterator$next (ref) -> ref
   local $field_1 usize
   local $field_2 usize
   local $field_5 ref
@@ -913,7 +880,7 @@ fn 27 std_string$StringChars$Iterator$next (ref) -> ref
   local.set 1
   local.get 3
   local.get 1
-  call 28
+  call 27
   local.set 3
   local.field 3 29 0
   ref.cast 11
@@ -934,14 +901,14 @@ fn 27 std_string$StringChars$Iterator$next (ref) -> ref
   return
 end
 
-fn 28 std_string$decode_codepoint_at (ref,usize) -> ref
+fn 27 std_string$decode_codepoint_at (ref,usize) -> ref
   local c char
   local $call_4 usize
   local.get 0
   local.get 1
-  call 29
+  call 28
   local.tee 2
-  call 25
+  call 29
   local.set 3
   local.get 2
   local.get 3
@@ -949,7 +916,7 @@ fn 28 std_string$decode_codepoint_at (ref,usize) -> ref
   return
 end
 
-fn 29 std_string$decode_char_at (ref,usize) -> char
+fn 28 std_string$decode_char_at (ref,usize) -> char
   local n usize
   local b u8
   local $cast_7 u8
@@ -1248,6 +1215,39 @@ fn 29 std_string$decode_char_at (ref,usize) -> char
   return
 end
 
+fn 29 std_string$codepoint_byte_len (char) -> usize
+  local cp u32
+  local $cast_4 u32
+  local.get 0
+  char.to_i32
+  local.set 1
+  i32.const 128
+  local.set 2
+  local.get 1
+  local.get 2
+  u32.lt
+  if $L0 void
+    return.lit i64.const 1
+  end $L0
+  i32.const 2048
+  local.set 2
+  local.get 1
+  local.get 2
+  u32.lt
+  if $L1 void
+    return.lit i64.const 2
+  end $L1
+  i32.const 65536
+  local.set 2
+  local.get 1
+  local.get 2
+  u32.lt
+  if $L2 void
+    return.lit i64.const 3
+  end $L2
+  return.lit i64.const 4
+end
+
 fn 30 snippet$sum_iter (ref) -> i32
   local total i32
   local __iter_0 ref
@@ -1292,7 +1292,7 @@ fn 32 snippet$count_ls (string) -> usize
   local $call_1 ref
   local $fn_ref_2 ref
   local.get 0
-  call 26
+  call 25
   local.set 1
   fn.ref 31 13
   local.set 2

@@ -63,12 +63,12 @@ fn 1 snippet$main () -> i32
   string.const 1
   call 0
   string.const 2
-  call 14
+  call 13
   local.set 0
   block $L0 void
     loop $L1 void
       local.get 0
-      call 15
+      call 14
       local.tee 1
       type_check 0
       if $L2 void
@@ -95,12 +95,12 @@ fn 1 snippet$main () -> i32
   string.const 3
   call 0
   string.const 4
-  call 14
+  call 13
   local.set 0
   block $L3 void
     loop $L4 void
       local.get 0
-      call 15
+      call 14
       local.tee 1
       type_check 0
       if $L5 void
@@ -127,12 +127,12 @@ fn 1 snippet$main () -> i32
   i32.const 0
   local.set 5
   string.const 5
-  call 14
+  call 13
   local.set 0
   block $L6 void
     loop $L7 void
       local.get 0
-      call 15
+      call 14
       type_check 0
       if $L8 void
       else
@@ -172,12 +172,12 @@ fn 1 snippet$main () -> i32
   string.const 8
   call 0
   string.const 9
-  call 14
+  call 13
   local.set 0
   block $L9 void
     loop $L10 void
       local.get 0
-      call 15
+      call 14
       type_check 0
       if $L11 void
       else
@@ -676,40 +676,7 @@ fn 12 std_core$finish_digits (ref,bool) -> string
   return
 end
 
-fn 13 std_utf8$codepoint_byte_len (char) -> usize
-  local cp u32
-  local $cast_4 u32
-  local.get 0
-  char.to_i32
-  local.set 1
-  i32.const 128
-  local.set 2
-  local.get 1
-  local.get 2
-  u32.lt
-  if $L0 void
-    return.lit i64.const 1
-  end $L0
-  i32.const 2048
-  local.set 2
-  local.get 1
-  local.get 2
-  u32.lt
-  if $L1 void
-    return.lit i64.const 2
-  end $L1
-  i32.const 65536
-  local.set 2
-  local.get 1
-  local.get 2
-  u32.lt
-  if $L2 void
-    return.lit i64.const 3
-  end $L2
-  return.lit i64.const 4
-end
-
-fn 14 std_string$chars (string) -> ref
+fn 13 std_string$chars (string) -> ref
   local bs ref
   local $cast_4 usize
   local $len_5 usize
@@ -728,7 +695,7 @@ fn 14 std_string$chars (string) -> ref
   return
 end
 
-fn 15 std_string$StringChars$Iterator$next (ref) -> ref
+fn 14 std_string$StringChars$Iterator$next (ref) -> ref
   local $field_1 usize
   local $field_2 usize
   local $field_5 ref
@@ -752,7 +719,7 @@ fn 15 std_string$StringChars$Iterator$next (ref) -> ref
   local.set 1
   local.get 3
   local.get 1
-  call 16
+  call 15
   local.set 3
   local.field 3 17 0
   ref.cast 8
@@ -773,14 +740,14 @@ fn 15 std_string$StringChars$Iterator$next (ref) -> ref
   return
 end
 
-fn 16 std_string$decode_codepoint_at (ref,usize) -> ref
+fn 15 std_string$decode_codepoint_at (ref,usize) -> ref
   local c char
   local $call_4 usize
   local.get 0
   local.get 1
-  call 17
+  call 16
   local.tee 2
-  call 13
+  call 17
   local.set 3
   local.get 2
   local.get 3
@@ -788,7 +755,7 @@ fn 16 std_string$decode_codepoint_at (ref,usize) -> ref
   return
 end
 
-fn 17 std_string$decode_char_at (ref,usize) -> char
+fn 16 std_string$decode_char_at (ref,usize) -> char
   local n usize
   local b u8
   local $cast_7 u8
@@ -1085,6 +1052,39 @@ fn 17 std_string$decode_char_at (ref,usize) -> char
   i32.add
   u32.to_char
   return
+end
+
+fn 17 std_string$codepoint_byte_len (char) -> usize
+  local cp u32
+  local $cast_4 u32
+  local.get 0
+  char.to_i32
+  local.set 1
+  i32.const 128
+  local.set 2
+  local.get 1
+  local.get 2
+  u32.lt
+  if $L0 void
+    return.lit i64.const 1
+  end $L0
+  i32.const 2048
+  local.set 2
+  local.get 1
+  local.get 2
+  u32.lt
+  if $L1 void
+    return.lit i64.const 2
+  end $L1
+  i32.const 65536
+  local.set 2
+  local.get 1
+  local.get 2
+  u32.lt
+  if $L2 void
+    return.lit i64.const 3
+  end $L2
+  return.lit i64.const 4
 end
 
 fn 18 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref

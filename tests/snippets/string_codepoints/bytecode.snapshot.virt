@@ -533,7 +533,15 @@ fn 10 std_core$finish_digits (ref,bool) -> string
   return
 end
 
-fn 11 std_utf8$codepoint_byte_len (char) -> usize
+fn 11 std_string$decode_codepoint (string,usize) -> ref
+  local.get 0
+  call.import 2
+  local.get 1
+  call 13
+  return
+end
+
+fn 12 std_string$codepoint_byte_len (char) -> usize
   local cp u32
   local $cast_4 u32
   local.get 0
@@ -566,14 +574,6 @@ fn 11 std_utf8$codepoint_byte_len (char) -> usize
   return.lit i64.const 4
 end
 
-fn 12 std_string$decode_codepoint (string,usize) -> ref
-  local.get 0
-  call.import 2
-  local.get 1
-  call 13
-  return
-end
-
 fn 13 std_string$decode_codepoint_at (ref,usize) -> ref
   local c char
   local $call_4 usize
@@ -581,7 +581,7 @@ fn 13 std_string$decode_codepoint_at (ref,usize) -> ref
   local.get 1
   call 14
   local.tee 2
-  call 11
+  call 12
   local.set 3
   local.get 2
   local.get 3
@@ -1044,7 +1044,7 @@ fn 15 snippet$main () -> i32
       if $L2 void
         local.get 1
         local.get 3
-        call 12
+        call 11
         local.set 0
         local.field 0 13 0
         ref.cast 8
@@ -1102,7 +1102,7 @@ fn 15 snippet$main () -> i32
   string.const 18
   call 2
   char.const 97
-  call 11
+  call 12
   call 5
   local.set 1
   local.get 0
@@ -1117,7 +1117,7 @@ fn 15 snippet$main () -> i32
   string.const 19
   call 2
   char.const 233
-  call 11
+  call 12
   call 5
   local.set 1
   local.get 0
@@ -1132,7 +1132,7 @@ fn 15 snippet$main () -> i32
   string.const 20
   call 2
   char.const 20320
-  call 11
+  call 12
   call 5
   local.set 1
   local.get 0
@@ -1147,7 +1147,7 @@ fn 15 snippet$main () -> i32
   string.const 21
   call 2
   char.const 128512
-  call 11
+  call 12
   call 5
   local.set 1
   local.get 0

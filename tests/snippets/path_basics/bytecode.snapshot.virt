@@ -570,7 +570,7 @@ fn 10 std_path$filename (ref) -> string
   local.get 1
   char.const 47
   local.get 2
-  call 22
+  call 21
   local.set 2
   i64.const 0
   local.set 3
@@ -621,7 +621,7 @@ fn 11 std_path$stem (ref) -> string
   local.get 1
   char.const 46
   local.get 2
-  call 22
+  call 21
   local.set 2
   i64.const 0
   local.set 3
@@ -663,7 +663,7 @@ fn 12 std_path$extension (ref) -> string
   local.get 1
   char.const 46
   local.get 2
-  call 22
+  call 21
   local.set 2
   i64.const 0
   local.set 3
@@ -711,7 +711,7 @@ fn 13 std_path$parent (ref) -> ref
   local.get 1
   char.const 47
   local.get 2
-  call 22
+  call 21
   local.set 2
   i64.const 0
   local.set 3
@@ -756,7 +756,7 @@ fn 14 std_path$is_absolute (ref) -> bool
   local $call_6 char
   local.field 0 7 0
   ref.cast 1
-  call 23
+  call 22
   if $L0 void
     return.lit bool.const false
   end $L0
@@ -782,7 +782,7 @@ end
 fn 16 std_path$is_empty (ref) -> bool
   local.field 0 7 0
   ref.cast 1
-  call 23
+  call 22
   return
 end
 
@@ -794,7 +794,7 @@ fn 17 std_path$join (ref,string) -> ref
   local __sb_0 ref
   local __sb_1 ref
   local.get 1
-  call 23
+  call 22
   if $L0 void
     local.get 0
     return
@@ -813,7 +813,7 @@ fn 17 std_path$join (ref,string) -> ref
   end $L1
   local.field 0 7 0
   ref.cast 1
-  call 23
+  call 22
   if $L2 void
     local.get 1
     struct.new 7
@@ -900,7 +900,7 @@ fn 18 std_path$starts_with (ref,ref) -> bool
   local.set 3
   local.get 2
   local.get 3
-  call 24
+  call 23
   bool.not
   if $L0 void
     return.lit bool.const false
@@ -923,7 +923,7 @@ fn 18 std_path$starts_with (ref,ref) -> bool
   end $L1
   local.field 1 7 0
   ref.cast 1
-  call 23
+  call 22
   bool.not
   if $L2 void
     local.field 1 7 0
@@ -977,7 +977,7 @@ fn 19 std_path$ends_with (ref,ref) -> bool
   local.set 3
   local.get 2
   local.get 3
-  call 25
+  call 24
   bool.not
   if $L0 void
     return.lit bool.const false
@@ -1004,7 +1004,7 @@ fn 19 std_path$ends_with (ref,ref) -> bool
   local.set 4
   local.field 1 7 0
   ref.cast 1
-  call 23
+  call 22
   bool.not
   if $L2 void
     local.field 1 7 0
@@ -1073,7 +1073,7 @@ fn 20 std_path$normalize (ref) -> ref
   local $k_65 usize
   local.field 0 7 0
   ref.cast 1
-  call 23
+  call 22
   if $L0 void
     local.get 0
     return
@@ -1143,7 +1143,7 @@ fn 20 std_path$normalize (ref) -> ref
           array.slice 9
           call.import 3
           local.tee 12
-          call 23
+          call 22
           if $L8 void
             bool.const true
             local.set 13
@@ -1316,7 +1316,7 @@ fn 20 std_path$normalize (ref) -> ref
   local.get 4
   call 5
   local.tee 12
-  call 23
+  call 22
   if $L21 void
     local.get 1
     bool.not
@@ -1336,40 +1336,7 @@ fn 20 std_path$normalize (ref) -> ref
   return
 end
 
-fn 21 std_utf8$codepoint_byte_len (char) -> usize
-  local cp u32
-  local $cast_4 u32
-  local.get 0
-  char.to_i32
-  local.set 1
-  i32.const 128
-  local.set 2
-  local.get 1
-  local.get 2
-  u32.lt
-  if $L0 void
-    return.lit i64.const 1
-  end $L0
-  i32.const 2048
-  local.set 2
-  local.get 1
-  local.get 2
-  u32.lt
-  if $L1 void
-    return.lit i64.const 2
-  end $L1
-  i32.const 65536
-  local.set 2
-  local.get 1
-  local.get 2
-  u32.lt
-  if $L2 void
-    return.lit i64.const 3
-  end $L2
-  return.lit i64.const 4
-end
-
-fn 22 std_string$last_index_of (string,char,isize) -> isize
+fn 21 std_string$last_index_of (string,char,isize) -> isize
   local sb ref
   local n usize
   local last isize
@@ -1396,7 +1363,7 @@ fn 22 std_string$last_index_of (string,char,isize) -> isize
       if $L2 void
         local.get 3
         local.get 6
-        call 26
+        call 25
         local.set 7
         local.field 7 14 0
         ref.cast 12
@@ -1437,7 +1404,7 @@ fn 22 std_string$last_index_of (string,char,isize) -> isize
   return
 end
 
-fn 23 std_string$is_empty (string) -> bool
+fn 22 std_string$is_empty (string) -> bool
   local $len_2 usize
   local $k_3 usize
   local.get 0
@@ -1452,7 +1419,7 @@ fn 23 std_string$is_empty (string) -> bool
   return
 end
 
-fn 24 std_string$starts_with (string,string) -> bool
+fn 23 std_string$starts_with (string,string) -> bool
   local sb ref
   local pb ref
   local pl usize
@@ -1515,7 +1482,7 @@ fn 24 std_string$starts_with (string,string) -> bool
   return.lit bool.const true
 end
 
-fn 25 std_string$ends_with (string,string) -> bool
+fn 24 std_string$ends_with (string,string) -> bool
   local sb ref
   local fb ref
   local sl usize
@@ -1588,14 +1555,14 @@ fn 25 std_string$ends_with (string,string) -> bool
   return.lit bool.const true
 end
 
-fn 26 std_string$decode_codepoint_at (ref,usize) -> ref
+fn 25 std_string$decode_codepoint_at (ref,usize) -> ref
   local c char
   local $call_4 usize
   local.get 0
   local.get 1
-  call 27
+  call 26
   local.tee 2
-  call 21
+  call 27
   local.set 3
   local.get 2
   local.get 3
@@ -1603,7 +1570,7 @@ fn 26 std_string$decode_codepoint_at (ref,usize) -> ref
   return
 end
 
-fn 27 std_string$decode_char_at (ref,usize) -> char
+fn 26 std_string$decode_char_at (ref,usize) -> char
   local n usize
   local b u8
   local $cast_7 u8
@@ -1900,6 +1867,39 @@ fn 27 std_string$decode_char_at (ref,usize) -> char
   i32.add
   u32.to_char
   return
+end
+
+fn 27 std_string$codepoint_byte_len (char) -> usize
+  local cp u32
+  local $cast_4 u32
+  local.get 0
+  char.to_i32
+  local.set 1
+  i32.const 128
+  local.set 2
+  local.get 1
+  local.get 2
+  u32.lt
+  if $L0 void
+    return.lit i64.const 1
+  end $L0
+  i32.const 2048
+  local.set 2
+  local.get 1
+  local.get 2
+  u32.lt
+  if $L1 void
+    return.lit i64.const 2
+  end $L1
+  i32.const 65536
+  local.set 2
+  local.get 1
+  local.get 2
+  u32.lt
+  if $L2 void
+    return.lit i64.const 3
+  end $L2
+  return.lit i64.const 4
 end
 
 fn 28 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref

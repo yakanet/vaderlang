@@ -15,9 +15,8 @@
 
 module "vader/lexer"
 
-import "std/string" { as_string, decode_char_at, is_empty, parse_float, ParseError }
+import "std/string" { as_string, decode_char_at, codepoint_byte_len, is_empty, parse_float, ParseError }
 import "std/char" { is_alpha, is_alnum, is_digit }
-import "std/utf8" { codepoint_byte_len }
 
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 import "std/iter" { slice as slice_array }

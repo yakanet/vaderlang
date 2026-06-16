@@ -8,7 +8,6 @@ module "std/string"
 
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 import "std/math" { min }
-import "std/utf8" { codepoint_byte_len }
 
 // Length in bytes. Module-internal (NOT exported) — callers write
 // `s.bytes().len()`, which the lowerer folds to an O(1) call of this host fn
@@ -55,6 +54,27 @@ export ends_with :: fn(s: string, suffix: string) -> bool {
         if sb[off + i] != fb[i] { return false }
     }
     return true
+}
+
+/// UTF-8 byte length of a Unicode codepoint — 1 to 4 bytes.
+///
+/// Encoding bands :
+///   - `U+0000..U+007F`     → 1 byte (ASCII)
+///   - `U+0080..U+07FF`     → 2 bytes
+///   - `U+0800..U+FFFF`     → 3 bytes
+///   - `U+10000..U+10FFFF`  → 4 bytes
+///
+/// Used by `chars()` to step a byte cursor over a UTF-8 sequence after decoding
+/// the codepoint at the current position. Codepoints above `U+10FFFF` clamp to
+/// 4 — invalid Unicode anyway.
+/// @param c  the codepoint to measure.
+/// @return   its UTF-8 encoded length in bytes (1, 2, 3, or 4).
+export codepoint_byte_len :: fn(c: char) -> usize {
+    cp :: u32(c)
+    if cp < u32(0x80)    { return 1 }
+    if cp < u32(0x800)   { return 2 }
+    if cp < u32(0x10000) { return 3 }
+    return 4
 }
 
 /// Decode the UTF-8 codepoint at byte offset `i`. The byte boundary
