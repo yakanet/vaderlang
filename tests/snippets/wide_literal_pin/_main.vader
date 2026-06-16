@@ -1,0 +1,63 @@
+// wide_literal_pin — free integer literals wider than i32 must repin to a
+// resolved wide concrete type instead of defaulting to i32 and truncating.
+//
+// Three faces of one pre-existing typer gap, all fixed by pinning the
+// literal's `expected` type at the check site (see `vader/typecheck`):
+//   1. index-key read   `m[9000000000]`     — `Index<K, _>` key type K.
+//   2. index-set value  `m[k] = 9000000000` — `IndexSet<K, V>` value type V,
+//      and the set key `m[9000000000] = v`  — K.
+//   3. explicit type arg `takes<i64>(9000000000)` — the named type seeds the
+//      generic binding before the arg is checked.
+//
+// Before the fix every literal above silently became `410065408`
+// (9000000000 truncated through i32). Both the typecheck and bytecode
+// snapshots encode the repinned i64, so a regression is caught even without
+// a native run (the truncation is baked in at lowering, not at VM-vs-native).
+//
+// NOTE: a bare `c :: 9000000000` const still defaults to i32 by design (a
+// free literal with no pinning context) — out of scope here; annotate with
+// `i64(...)` to widen.
+
+module "snippet"
+
+import "std/io" { println }
+import "std/collections" { MutableMap }
+
+// Face 3 — explicit type argument pins T to i64.
+takes :: fn<T>(x: T) -> T = x
+
+unwrap :: fn(v: i32 | null) -> i32 {
+    if v == null { return -1 }
+    return v
+}
+
+unwrap_i64 :: fn(v: i64 | null) -> i64 {
+    if v == null { return -1 }
+    return v
+}
+
+main :: fn() -> i32 {
+    // Face 1 — literal index key on a wide-keyed map round-trips against a
+    // typed-local key that stores the same wide value.
+    keyed := MutableMap<i64, i32> {}
+    anchor: i64 = 9000000000
+    keyed[anchor] = 42
+    println("face1 read-key:  ${unwrap(keyed[9000000000])}")
+
+    // Face 2 — literal set value stays wide.
+    valued := MutableMap<i32, i64> {}
+    valued[1] = 9000000000
+    println("face2 set-value: ${unwrap_i64(valued[1])}")
+
+    // Face 2 — literal set key hits the same slot a typed-local key does.
+    setkey := MutableMap<i64, i32> {}
+    setkey[9000000000] = 7
+    probe: i64 = 9000000000
+    println("face2 set-key:   ${unwrap(setkey[probe])}")
+
+    // Face 3 — explicit <i64> keeps the literal wide.
+    face3 :: takes<i64>(9000000000)
+    println("face3 explicit:  ${face3}")
+
+    return 0
+}

@@ -29,10 +29,6 @@
           {
             "name": "chars",
             "alias": null
-          },
-          {
-            "name": "bytes",
-            "alias": null
           }
         ]
       },

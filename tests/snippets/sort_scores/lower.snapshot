@@ -1,0 +1,87 @@
+# Lower
+
+## snippet
+  fn snippet$ascending(a: i32, b: i32) -> bool
+    return
+      lt :bool
+        l:
+          a :i32
+        r:
+          b :i32
+  fn snippet$main() -> i32
+    let scores: i32[] =
+      call :i32[]
+        callee:
+          std_sort$std_sort$sort__i32 :i32[]
+        arg0:
+          array :i32[]
+            int(50) :i32
+            int(12) :i32
+            int(88) :i32
+            int(3) :i32
+            int(71) :i32
+            int(29) :i32
+            int(64) :i32
+            int(7) :i32
+            int(95) :i32
+            int(41) :i32
+            int(18) :i32
+            int(56) :i32
+            int(33) :i32
+            int(80) :i32
+            int(2) :i32
+            int(47) :i32
+            int(23) :i32
+            int(69) :i32
+            int(14) :i32
+            int(90) :i32
+        arg1:
+          ascending :fn(i32, i32) -> bool
+    block :void
+      let __for_arr_0: i32[] = scores :i32[]
+      let __for_len_1: usize =
+        LoweredArrayLen
+      let __for_i_2: usize = int(0) :usize
+      loop while (<…>)
+        let s: i32 =
+          index :i32
+            on:
+              __for_arr_0 :i32[]
+            ix:
+              __for_i_2 :usize
+        call :void
+          callee:
+            std_io$std_io$println__string :void
+          arg0:
+            block :string
+              let __sb_3: StringBuilder =
+                call :StringBuilder
+                  callee:
+                    new_builder :StringBuilder
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_3 :StringBuilder
+                arg1:
+                  call :string
+                    callee:
+                      std_core$i32$Display$to_string :string
+                    arg0:
+                      s :i32
+              ~>
+                call :string
+                  callee:
+                    std_string_builder$StringBuilder$Display$to_string :string
+                  arg0:
+                    __sb_3 :StringBuilder
+        assign
+          target:
+            __for_i_2 :usize
+          value:
+            add :usize
+              l:
+                __for_i_2 :usize
+              r:
+                int(1) :usize
+    return int(0) :i32

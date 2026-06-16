@@ -32,11 +32,11 @@
         r:
           .first :i32
             p :Pair<i32, i32>
-  struct snippet$Pair__i32__i32 { first: Any, second: Any }
-  fn snippet$snippet$identity__i32(x: Any) -> Any
+  struct snippet$Pair__i32__i32 { first: i32, second: i32 }
+  fn snippet$snippet$identity__i32(x: i32) -> i32
     ~>
-      x :Any
-  fn snippet$snippet$swap__i32__i32(a: Any, b: Any) -> Any
+      x :i32
+  fn snippet$snippet$swap__i32__i32(a: i32, b: i32) -> i32
     ~>
-      b :Any
+      b :i32
   struct snippet$Pair__Any__Any { first: Any, second: Any }

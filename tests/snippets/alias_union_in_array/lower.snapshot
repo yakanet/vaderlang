@@ -19,18 +19,35 @@
                   __scrut_0 :Cat | Dog
               ~>
                 block :string
-                  let __sb_2: ? =
-                    @builder.new :?
-                  @builder.append_str :void
-                    __sb_2 :?
-                    "cat " :string
-                  @builder.append_display <for string> :void
-                    __sb_2 :?
-                    .name :string
-                      c :Cat
+                  let __sb_2: StringBuilder =
+                    call :StringBuilder
+                      callee:
+                        new_builder :StringBuilder
+                  call :void
+                    callee:
+                      append :void
+                    arg0:
+                      __sb_2 :StringBuilder
+                    arg1:
+                      "cat " :string
+                  call :void
+                    callee:
+                      append :void
+                    arg0:
+                      __sb_2 :StringBuilder
+                    arg1:
+                      call :string
+                        callee:
+                          std_core$string$Display$to_string :string
+                        arg0:
+                          .name :string
+                            c :Cat
                   ~>
-                    @builder.finish :string
-                      __sb_2 :?
+                    call :string
+                      callee:
+                        std_string_builder$StringBuilder$Display$to_string :string
+                      arg0:
+                        __sb_2 :StringBuilder
             else:
               ~>
                 if :string
@@ -43,18 +60,35 @@
                         __scrut_0 :Cat | Dog
                     ~>
                       block :string
-                        let __sb_1: ? =
-                          @builder.new :?
-                        @builder.append_str :void
-                          __sb_1 :?
-                          "dog " :string
-                        @builder.append_display <for string> :void
-                          __sb_1 :?
-                          .name :string
-                            d :Dog
+                        let __sb_1: StringBuilder =
+                          call :StringBuilder
+                            callee:
+                              new_builder :StringBuilder
+                        call :void
+                          callee:
+                            append :void
+                          arg0:
+                            __sb_1 :StringBuilder
+                          arg1:
+                            "dog " :string
+                        call :void
+                          callee:
+                            append :void
+                          arg0:
+                            __sb_1 :StringBuilder
+                          arg1:
+                            call :string
+                              callee:
+                                std_core$string$Display$to_string :string
+                              arg0:
+                                .name :string
+                                  d :Dog
                         ~>
-                          @builder.finish :string
-                            __sb_1 :?
+                          call :string
+                            callee:
+                              std_string_builder$StringBuilder$Display$to_string :string
+                            arg0:
+                              __sb_1 :StringBuilder
                   else:
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :string

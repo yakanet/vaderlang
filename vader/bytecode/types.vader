@@ -1,12 +1,11 @@
 // vader/bytecode/types — bytecode-level type primitives.
 //
-// Mirror of `src/bytecode/types.ts`. Distinct from `vader/vm/op.TypeDecl`,
-// which is the *runtime-only* type table the Vader-side VM carries on
-// values for `type_check` / `struct.get` diagnostics. The shapes here
-// instead match what the bytecode emitter (T2) writes and what the C
-// emitter (T1) consumes — they carry every field name, every typeIndex,
-// every symbolId required to lower a module to C, none of which the VM
-// needs at runtime.
+// Mirror of `src/bytecode/types.ts`. This is the single type-table shape :
+// the self-host VM consumes it directly (the former runtime-only
+// `vader/vm/op.TypeDecl` was retired in the VM consolidation). It carries
+// every field name, every typeIndex, every symbolId required to lower a
+// module to C ; the VM uses the subset it needs for `type_check` /
+// `struct.get` diagnostics.
 //
 // Two top-level types :
 //   - `ValType` — stack-machine value class. Closed enum over every

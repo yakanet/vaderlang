@@ -42,16 +42,29 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_2: ? =
-            @builder.new :?
-          @builder.append_display <for i32> :void
-            __sb_2 :?
-            sum :i32
+          let __sb_2: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  sum :i32
           ~>
-            @builder.finish :string
-              __sb_2 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_2 :StringBuilder
     return int(0) :i32
-  struct snippet$Repeat__i32 { value: Any, remaining: i32 }
+  struct snippet$Repeat__i32 { value: i32, remaining: i32 }
   fn snippet$Repeat$Iterator$next__i32(self: Repeat<i32>) -> null | Yield<i32>
     if :void
       cond:

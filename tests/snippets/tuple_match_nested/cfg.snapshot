@@ -19,13 +19,16 @@ fn snippet$main() -> i32
     %12 label: string (binding label)
     %13 $field_13: bool
     %14 active: bool (binding active)
-    %15 $intrinsic_15: ?
-    %16 __sb_1: ? (synthetic __sb_1)
+    %15 $call_15: StringBuilder
+    %16 __sb_1: StringBuilder (synthetic __sb_1)
     %17 $k_17: string
-    %18 $k_18: string
+    %18 $call_18: string
     %19 $k_19: string
-    %20 $intrinsic_20: string
-    %21 $k_21: i32
+    %20 $call_20: string
+    %21 $k_21: string
+    %22 $call_22: string
+    %23 $call_23: string
+    %24 $k_24: i32
   bb0:
     %0 = const int(42) :i32
     %1 = const string(#1) :string
@@ -42,18 +45,21 @@ fn snippet$main() -> i32
     %12 = move %11
     %13 = field_get %6._1 :bool
     %14 = move %13
-    %15 = intrinsic builder.new()
+    %15 = call new_builder() :StringBuilder
     %16 = move %15
     %17 = const string(#2) :string
-    intrinsic builder.append_str(%16, %17)
-    intrinsic builder.append_display(%16, %9)
-    %18 = const string(#3) :string
-    intrinsic builder.append_str(%16, %18)
-    intrinsic builder.append_display(%16, %12)
-    %19 = const string(#4) :string
-    intrinsic builder.append_str(%16, %19)
-    intrinsic builder.append_display(%16, %14)
-    %20 = intrinsic builder.finish(%16)
-    call std_io$std_io$println__string(%20) :void
-    %21 = const int(0) :i32
-    return %21
+    call append(%16, %17) :void
+    %18 = call std_core$i32$Display$to_string(%9) :string
+    call append(%16, %18) :void
+    %19 = const string(#3) :string
+    call append(%16, %19) :void
+    %20 = call std_core$string$Display$to_string(%12) :string
+    call append(%16, %20) :void
+    %21 = const string(#4) :string
+    call append(%16, %21) :void
+    %22 = call std_core$bool$Display$to_string(%14) :string
+    call append(%16, %22) :void
+    %23 = call std_string_builder$StringBuilder$Display$to_string(%16) :string
+    call std_io$std_io$println__string(%23) :void
+    %24 = const int(0) :i32
+    return %24

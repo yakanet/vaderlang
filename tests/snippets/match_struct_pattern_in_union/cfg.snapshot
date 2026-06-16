@@ -17,14 +17,16 @@ fn snippet$describe(%0: null | Point) -> string
     %10 $cast_10: Point
     %11 $field_11: i32
     %12 y: i32 (binding y)
-    %13 $intrinsic_13: ?
-    %14 __sb_1: ? (synthetic __sb_1)
+    %13 $call_13: StringBuilder
+    %14 __sb_1: StringBuilder (synthetic __sb_1)
     %15 $k_15: string
-    %16 $k_16: string
+    %16 $call_16: string
     %17 $k_17: string
-    %18 $intrinsic_18: string
-    %19 unreachable: string
-    %20 out: string (local out)
+    %18 $call_18: string
+    %19 $k_19: string
+    %20 $call_20: string
+    %21 unreachable: string
+    %22 out: string (local out)
   bb0:
     %1 = move %0
     %2 = type_check %1 is null
@@ -37,8 +39,8 @@ fn snippet$describe(%0: null | Point) -> string
     %5 = type_check %1 is Point
     cond_branch %5 ? bb4 : bb5
   bb3:
-    %20 = move %3
-    return %20
+    %22 = move %3
+    return %22
   bb4:
     %7 = cast %1 :Point
     %8 = field_get %7.x :i32
@@ -46,18 +48,20 @@ fn snippet$describe(%0: null | Point) -> string
     %10 = cast %1 :Point
     %11 = field_get %10.y :i32
     %12 = move %11
-    %13 = intrinsic builder.new()
+    %13 = call new_builder() :StringBuilder
     %14 = move %13
     %15 = const string(#2) :string
-    intrinsic builder.append_str(%14, %15)
-    intrinsic builder.append_display(%14, %9)
-    %16 = const string(#3) :string
-    intrinsic builder.append_str(%14, %16)
-    intrinsic builder.append_display(%14, %12)
-    %17 = const string(#4) :string
-    intrinsic builder.append_str(%14, %17)
-    %18 = intrinsic builder.finish(%14)
-    %6 = move %18
+    call append(%14, %15) :void
+    %16 = call std_core$i32$Display$to_string(%9) :string
+    call append(%14, %16) :void
+    %17 = const string(#3) :string
+    call append(%14, %17) :void
+    %18 = call std_core$i32$Display$to_string(%12) :string
+    call append(%14, %18) :void
+    %19 = const string(#4) :string
+    call append(%14, %19) :void
+    %20 = call std_string_builder$StringBuilder$Display$to_string(%14) :string
+    %6 = move %20
     branch -> bb6
   bb5:
     unreachable ; non-exhaustive match (T3013 should have caught this)

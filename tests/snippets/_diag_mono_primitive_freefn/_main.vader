@@ -1,0 +1,31 @@
+// tests/snippets/_diag_mono_primitive_freefn — .NET-model free-fn probe.
+//
+// A generic free fn over `T[]` doing element access, instantiated at a raw
+// primitive (`i32`) AND at a struct (`Point`) in the same program. After the
+// .NET-model free-fn monomorphization flip the `i32` instance is force-concrete
+// (`second__i32`, typed `LoadSlotI32` over a genuinely I32-kind array literal)
+// while the struct instance stays erased (`second__Any`, runtime-dispatched
+// `ArrayGet`). This pins two invariants:
+//   - box-vs-raw partition is sound : the i32 array reaching `second__i32` is a
+//     genuine I32-kind array literal (no erased `Any[]` aliasing a concrete
+//     `i32[]` param), the struct array stays boxed.
+//   - mixed instantiation still emits one `second__Any` for the struct caller
+//     (the erasure-dedupe non-dispatching gate must not drop it).
+//
+// Exit code 22 = nums[1] (20) + pts[1].x (2). Diagnostic-only (no snapshot
+// sidecars); the gate is: compiles + runs + exits 22 on VM and native, both
+// before (erased) and after (monomorphized) the flip.
+
+module "snippet"
+
+second :: fn<T>(xs: T[]) -> T = xs[1]
+
+Point :: struct { x: i32 }
+
+main :: fn() -> i32 {
+    nums :: [10, 20, 30]
+    s :: second(nums)
+    pts :: [Point { .x = 1 }, Point { .x = 2 }]
+    p :: second(pts)
+    return s + p.x
+}

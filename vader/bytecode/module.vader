@@ -2,20 +2,21 @@
 // franca shared by the bytecode emitter (T2), the VM, and the C / WASM
 // emitters (T1 / T4).
 //
-// Mirror of `src/bytecode/module.ts`. Distinct from `vader/vm/op.Module`,
-// which is the *runtime-only* shape consumed by the self-host VM after
-// parsing a `.virt` text file. The shape here carries the richer
-// information the bytecode emitter writes and the C-emit later reads :
-// per-fn signatures, per-local val-types, struct symbol-ids, the full
-// import/export tables, and the vtable map.
+// Mirror of `src/bytecode/module.ts`. This is the single in-memory module
+// shape : the self-host VM consumes it directly (the former runtime-only
+// `vader/vm/op.Module` + its parsers were retired in the VM consolidation).
+// It carries the full information the bytecode emitter writes and the C-emit
+// / VM later read : per-fn signatures, per-local val-types, struct symbol-ids,
+// the full import/export tables, and the vtable map.
 //
-// Two construction sites :
-//   - the bytecode emitter (`vader/bytecode/emit`, TODO) builds a fresh
+// Construction sites :
+//   - the bytecode emitter (`vader/bytecode/emit`) builds a fresh
 //     `BytecodeModule` per project ;
-//   - the .virt parser (TODO) builds one from a text dump.
+//   - the .virt readers (`vader/vm/virt_reader_bc` for C-emit ; `virt_reader`
+//     → `bc_to_vm` for the VM) build one from a text dump.
 //
-// One consumer (today) : `vader/c_emit/emit` lowers it to a single C
-// source file.
+// Consumers : `vader/c_emit/emit` lowers it to a single C source file ;
+// `vader/vm/exec` runs it directly.
 
 module "vader/bytecode"
 
@@ -30,9 +31,8 @@ module "vader/bytecode"
 /// span for this op" — handy for synthesised ops (struct.new_stack,
 /// trampoline shims). `jump_table[i]` is the resolved target pc for
 /// branching ops (`Branch` / `BranchIf` / `If` / `Else`) and `-1` for
-/// every other op ; mirrors `vm/op.BytecodeFunction.jump_table` so
-/// downstream consumers (VM exec, c-emit) read the same shape
-/// regardless of which front-end produced the module.
+/// every other op ; both downstream consumers (VM exec, c-emit) read this
+/// same shape regardless of which front-end produced the module.
 export BcFunction :: struct {
     name: string
     is_main: bool

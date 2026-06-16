@@ -13,21 +13,23 @@ fn snippet$show(%0: null | P | Q) -> string
     %6 if_res: string
     %7 $cast_7: P
     %8 p: P (binding p)
-    %9 $intrinsic_9: ?
-    %10 __sb_2: ? (synthetic __sb_2)
+    %9 $call_9: StringBuilder
+    %10 __sb_2: StringBuilder (synthetic __sb_2)
     %11 $k_11: string
     %12 $field_12: i32
-    %13 $intrinsic_13: string
-    %14 $type_check_14: bool
-    %15 if_res: string
-    %16 $cast_16: Q
-    %17 q: Q (binding q)
-    %18 $intrinsic_18: ?
-    %19 __sb_1: ? (synthetic __sb_1)
-    %20 $k_20: string
-    %21 $field_21: string
-    %22 $intrinsic_22: string
-    %23 unreachable: string
+    %13 $call_13: string
+    %14 $call_14: string
+    %15 $type_check_15: bool
+    %16 if_res: string
+    %17 $cast_17: Q
+    %18 q: Q (binding q)
+    %19 $call_19: StringBuilder
+    %20 __sb_1: StringBuilder (synthetic __sb_1)
+    %21 $k_21: string
+    %22 $field_22: string
+    %23 $call_23: string
+    %24 $call_24: string
+    %25 unreachable: string
   bb0:
     %1 = move %0
     %2 = type_check %1 is null
@@ -44,37 +46,39 @@ fn snippet$show(%0: null | P | Q) -> string
   bb4:
     %7 = cast %1 :P
     %8 = move %7
-    %9 = intrinsic builder.new()
+    %9 = call new_builder() :StringBuilder
     %10 = move %9
     %11 = const string(#2) :string
-    intrinsic builder.append_str(%10, %11)
+    call append(%10, %11) :void
     %12 = field_get %8.x :i32
-    intrinsic builder.append_display(%10, %12)
-    %13 = intrinsic builder.finish(%10)
-    %6 = move %13
+    %13 = call std_core$i32$Display$to_string(%12) :string
+    call append(%10, %13) :void
+    %14 = call std_string_builder$StringBuilder$Display$to_string(%10) :string
+    %6 = move %14
     branch -> bb6
   bb5:
-    %14 = type_check %1 is Q
-    cond_branch %14 ? bb7 : bb8
+    %15 = type_check %1 is Q
+    cond_branch %15 ? bb7 : bb8
   bb6:
     %3 = move %6
     branch -> bb3
   bb7:
-    %16 = cast %1 :Q
-    %17 = move %16
-    %18 = intrinsic builder.new()
-    %19 = move %18
-    %20 = const string(#3) :string
-    intrinsic builder.append_str(%19, %20)
-    %21 = field_get %17.y :string
-    intrinsic builder.append_display(%19, %21)
-    %22 = intrinsic builder.finish(%19)
-    %15 = move %22
+    %17 = cast %1 :Q
+    %18 = move %17
+    %19 = call new_builder() :StringBuilder
+    %20 = move %19
+    %21 = const string(#3) :string
+    call append(%20, %21) :void
+    %22 = field_get %18.y :string
+    %23 = call std_core$string$Display$to_string(%22) :string
+    call append(%20, %23) :void
+    %24 = call std_string_builder$StringBuilder$Display$to_string(%20) :string
+    %16 = move %24
     branch -> bb9
   bb8:
     unreachable ; non-exhaustive match (T3013 should have caught this)
   bb9:
-    %6 = move %15
+    %6 = move %16
     branch -> bb6
 
 fn snippet$main() -> i32

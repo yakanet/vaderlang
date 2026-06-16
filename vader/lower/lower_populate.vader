@@ -4,19 +4,17 @@
 module "vader/lower"
 
 import "std/collections" { MutableMap, keys, values }
-import "std/string" { bytes }
 
 import "vader/resolver" { LoadedProject, ResolvedModule }
 import "vader/typecheck" { TypedProject, build_impl_registry }
 import "vader/comptime" { EvaluatedProgram, ComptimeValue }
 import "vader/resolver/symbol" { Symbol }
 
-// Populate `core_symbols` from std/core's resolved view so the
-// lowerer can resolve `Range`, `Yield`, `ArrayIterator`, `Iterator`,
-// `Display`, `Error`, … without re-walking the project per call.
-// `iter_symbols` gets the same treatment for std/iter's exports
-// (`MapIterator` / `FilterIterator` / etc.) so chain-fusion can spot
-// the well-known struct shapes by symbol id.
+// Populate `core_symbols` from std/core's resolved view so the lowerer can
+// resolve `Range`, `Yield`, `ArrayIterator`, `Iterator`, `Display`, `Error`,
+// … without re-walking the project per call. Per-module export lookups
+// (std/iter's `MapIterator`, std/string's `bytes`, …) go through the lazy
+// `module_export` below instead of dedicated per-module tables.
 populate_core_symbols :: fn(typed: TypedProject, project_ctx: LowerProjectCtx) -> void {
     for module_id in typed.modules.keys() {
         module_typed :: typed.modules[module_id]
@@ -28,68 +26,35 @@ populate_core_symbols :: fn(typed: TypedProject, project_ctx: LowerProjectCtx) -
         // dominate since every module imports them.
         for symbol_name in module_typed.resolved.core_symbols.keys() {
             symbol :: module_typed.resolved.core_symbols[symbol_name]
-            match symbol {
-                is null -> {}
-                is Symbol as resolved -> {
-                    project_ctx.core_symbols[symbol_name] = resolved
-                }
-            }
-        }
-        // `std/iter`'s top-level symbols : copy under `iter_symbols`
-        // so chain fusion's `MapIterator` / `FilterIterator` lookups
-        // resolve to the canonical struct symbols.
-        // Keyed on the exact logical display path (like the `std/string`
-        // arm below) — a `"stdlib/std/iter" in module_id` substring is
-        // fragile (it broke silently when the module moved to a per-file
-        // subfolder, and would match `std/iterator` etc).
-        if module_typed.resolved.display_path == "std/iter" {
-            iter_table :: ensure_iter_table(project_ctx)
-            for entry in module_typed.resolved.symbols {
-                iter_table[entry.name] = entry
-            }
-        }
-        // `std/collections`'s top-level symbols : copy under
-        // `collections_symbols` so the for-in MutableMap / MutableSet
-        // inliner can recognise the map/set/Entry structs by symbol id.
-        if module_typed.resolved.display_path == "std/collections" {
-            coll_table :: ensure_collections_table(project_ctx)
-            for entry in module_typed.resolved.symbols {
-                coll_table[entry.name] = entry
-            }
-        }
-        // `std/string`'s top-level symbols : copy under `string_symbols`
-        // so the `s.bytes().len()` peephole resolves the internal
-        // `byte_len` host fn (the O(1) fold target). Keyed on the logical
-        // display path (exact) to avoid matching `std/string_builder`.
-        if module_typed.resolved.display_path == "std/string" {
-            string_table :: ensure_string_table(project_ctx)
-            for entry in module_typed.resolved.symbols {
-                string_table[entry.name] = entry
-            }
+            if symbol != null { project_ctx.core_symbols[symbol_name] = symbol }
         }
     }
 }
 
-ensure_string_table :: fn(project_ctx: LowerProjectCtx) -> MutableMap<string, Symbol> {
-    match project_ctx.string_symbols {
-        is null -> {
-            table :: MutableMap<string, Symbol> {}
-            project_ctx.string_symbols = table
-            return table
+// Resolve a top-level export of a stdlib module by display path + name, e.g.
+// `module_export(ctx, "std/iter", "MapIterator")`. Backs the for-in chain
+// fusion + MutableMap/Set inline + `s.bytes().len()` peephole + `${…}`→
+// StringBuilder desugar, which each used to carry a hardcoded per-module
+// symbol table. Lazily caches one `name -> Symbol` map per path (merging
+// every module sharing the path), keyed on the exact logical `display_path`
+// (a `module_id` substring match is fragile — it broke when a module moved
+// to a per-file subfolder, and `std/string` would match `std/string_builder`).
+// Returns null when the module isn't loaded or has no such export, so the
+// gated peepholes simply don't fire.
+module_export :: fn(ctx: LowerProjectCtx, display_path: string, name: string) -> Symbol | null {
+    cached :: ctx.module_symbol_cache[display_path]
+    if cached != null { return cached[name] }
+    table :: MutableMap<string, Symbol> {}
+    for module_id in ctx.typed.modules.keys() {
+        module_typed :: ctx.typed.modules[module_id]
+        if module_typed is null { continue }
+        if module_typed.resolved.display_path != display_path { continue }
+        for entry in module_typed.resolved.symbols {
+            table[entry.name] = entry
         }
-        is MutableMap<string, Symbol> as existing -> { return existing }
     }
-}
-
-ensure_collections_table :: fn(project_ctx: LowerProjectCtx) -> MutableMap<string, Symbol> {
-    match project_ctx.collections_symbols {
-        is null -> {
-            table :: MutableMap<string, Symbol> {}
-            project_ctx.collections_symbols = table
-            return table
-        }
-        is MutableMap<string, Symbol> as existing -> { return existing }
-    }
+    ctx.module_symbol_cache[display_path] = table
+    return table[name]
 }
 
 populate_comptime_value_index :: fn(project_ctx: LowerProjectCtx) -> void {
@@ -124,18 +89,6 @@ populate_comptime_value_index :: fn(project_ctx: LowerProjectCtx) -> void {
         }
     }
 }
-
-ensure_iter_table :: fn(project_ctx: LowerProjectCtx) -> MutableMap<string, Symbol> {
-    match project_ctx.iter_symbols {
-        is null -> {
-            table :: MutableMap<string, Symbol> {}
-            project_ctx.iter_symbols = table
-            return table
-        }
-        is MutableMap<string, Symbol> as existing -> { return existing }
-    }
-}
-
 
 // Aggregate every loaded module's impl decls into the project ctx's
 // registry. `build_impl_registry` works per-module ; we drain every

@@ -14,7 +14,7 @@
 module "vader/lsp"
 
 import "std/io" { read_file, read_dir, is_dir }
-import "std/string" { starts_with, bytes, as_string }
+import "std/string" { starts_with, as_string }
 import "vader/resolver" { default_stdlib_root, find_manifest_root }
 
 /// Where a cross-file goto-def landed : a file URI + the target's

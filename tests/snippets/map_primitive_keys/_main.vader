@@ -1,0 +1,69 @@
+// map_primitive_keys — MutableMap keyed by the wider Hashable primitives.
+//
+// Under the .NET-erasure model the key lands RAW in the bucket entry
+// (`MutableMap__i64__i32`, key stored as raw `i64`). Exercise insert / get /
+// collision / miss across u8 / u16 / i16 / char / i64 / usize so a box-vs-raw
+// miscompile of the key surfaces as a wrong lookup. The generic `get_or`
+// wrapper reads the key as a Mixed type-param, crossing the box-vs-raw
+// frontier on the way in.
+//
+// Wide-magnitude key literals (> i32 range) flow through TYPED LOCALS : a
+// free literal in index / generic-arg position is not repinned to the
+// resolved i64 and truncates via i32 — a separate, pre-existing typer gap
+// (free literal not repinned to a resolved wide concrete type), not a
+// .NET-model issue.
+
+module "snippet"
+
+import "std/io" { println }
+import "std/collections" { MutableMap, len }
+
+get_or :: fn<K: Hash & Equals>(m: MutableMap<K, i32>, k: K, dflt: i32) -> i32 {
+    v :: m[k]
+    if v == null { return dflt }
+    return v
+}
+
+main :: fn() -> i32 {
+    // u8 keys, force several entries past the initial bucket count.
+    mu8 := MutableMap<u8, i32> {}
+    for i in 0..<20 { mu8[u8(i)] = i * 7 }
+    println("u8 size=${mu8.len()} k7=${get_or(mu8, u8(7), -1)} k19=${get_or(mu8, u8(19), -1)} miss=${get_or(mu8, u8(200), -1)}")
+
+    // u16 keys
+    mu16 := MutableMap<u16, i32> {}
+    mu16[1] = 100
+    mu16[50000] = 200
+    mu16[12345] = 300
+    println("u16 a=${get_or(mu16, u16(50000), -1)} b=${get_or(mu16, u16(12345), -1)} miss=${get_or(mu16, u16(7), -1)}")
+
+    // i16 keys, including negatives
+    mi16 := MutableMap<i16, i32> {}
+    mi16[-1000] = 11
+    mi16[1000] = 22
+    mi16[-1] = 33
+    println("i16 neg=${get_or(mi16, i16(-1000), -1)} pos=${get_or(mi16, i16(1000), -1)} m1=${get_or(mi16, i16(-1), -1)}")
+
+    // char keys
+    mc := MutableMap<char, i32> {}
+    mc['a'] = 1
+    mc['Z'] = 26
+    mc['é'] = 99
+    println("char a=${get_or(mc, 'a', -1)} Z=${get_or(mc, 'Z', -1)} acc=${get_or(mc, 'é', -1)} miss=${get_or(mc, 'q', -1)}")
+
+    // i64 keys, large values past i32 range. Routed through typed locals
+    // (see header) so the key value isn't truncated before the lookup.
+    mi64 := MutableMap<i64, i32> {}
+    kbig: i64 = 9000000000
+    knegbig: i64 = -9000000000
+    mi64[kbig] = 7
+    mi64[knegbig] = 8
+    println("i64 big=${get_or(mi64, kbig, -1)} negbig=${get_or(mi64, knegbig, -1)}")
+
+    // usize keys, exercise collisions by inserting a dense range
+    mus := MutableMap<usize, i32> {}
+    for j in 0..<40 { mus[usize(j)] = j + 1000 }
+    println("usize size=${mus.len()} k0=${get_or(mus, usize(0), -1)} k39=${get_or(mus, usize(39), -1)} miss=${get_or(mus, usize(99), -1)}")
+
+    return 0
+}

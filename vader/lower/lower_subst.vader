@@ -70,6 +70,30 @@ build_fn_concrete_subst :: fn(fd: FnDecl, typed: TypedProgram, type_args: Type[]
     return subst
 }
 
+// Mixed per-instance subst (.NET model, P1) : map each type-param to its concrete
+// arg WHEN that arg is a PrimitiveType (the body sees `K = string` / `i32`, so
+// trait dispatch devirtualises and primops/atom-eq inline), else to `TY_ANY`
+// (references erase to one uniform-pointer body, like Java). The instance mangle
+// uses `mixed_any_suffix` (refs → `__Any`), making the instance INVARIANT under
+// ref-erasure so a top-level call (`[string, StructA]`) and a transitive call from
+// inside an erased body (`[string, Any]`) reconcile on the one materialised body.
+// Mirror of `build_fn_concrete_subst`'s symbol resolution + the impl-member
+// `map_type_params_mixed`'s primitive-or-Any choice ; only used by free fns.
+build_fn_mixed_subst :: fn(fd: FnDecl, typed: TypedProgram, type_args: Type[]) -> Substitution {
+    subst :: new_substitution()
+    i: usize = 0
+    for tp in fd.type_params {
+        if i >= type_args.len() { break }
+        tp_sym :: find_type_param_in_resolved(typed.resolved, tp.name, tp.span)
+        if tp_sym is Symbol as s {
+            arg :: type_args[i]
+            if arg is PrimitiveType { subst.type_params[s.id] = arg } else { subst.type_params[s.id] = TY_ANY }
+        }
+        i += 1
+    }
+    return subst
+}
+
 /// Replace every concrete leaf in a `Type` tree with `Any` while
 /// preserving generic wrappers (Struct / Trait / Array / Union /
 /// Tuple). Mirror of `anyLeavesOf` in
@@ -166,6 +190,33 @@ build_any_subst :: fn(sd: StructDecl, owner_typed: TypedProgram) -> Substitution
         if !(tp_symbol is null) {
             subst.type_params[tp_symbol.id] = TY_ANY
         }
+    }
+    return subst
+}
+
+/// Mixed struct-layout subst (.NET model, P2 — the box-vs-raw FIELD flip). Maps
+/// each of `sd`'s type-params POSITIONALLY to its concrete instance arg WHEN that
+/// arg is a `PrimitiveType` (so a primitive field lands RAW — `Entry.key : string`
+/// / `i32`, not a boxed `Any`), else to `TY_ANY` (reference fields stay uniform-
+/// pointer). The instance MANGLE is unchanged (`mangle_struct_instance` →
+/// `args_suffix(inst.args)` already renders a ref arg's pre-erased `Any`, e.g.
+/// `Entry__string__Any`), so this only changes the FIELD types, matching the mixed
+/// accessors P1 materialises (`put__string__Any` / `grow__string__Any` read
+/// `e.key` as `string`). SOUNDNESS depends on EVERY accessor being mixed — an
+/// erased `__Any` reader of a now-raw field is the Inc-3 `Hash.hash` trap; P1
+/// closed that. Mirror of `build_any_subst` + `build_fn_mixed_subst`'s primitive-
+/// or-Any choice.
+build_struct_mixed_subst :: fn(sd: StructDecl, owner_typed: TypedProgram, args: Type[]) -> Substitution {
+    subst :: new_substitution()
+    i: usize = 0
+    for tp in sd.type_params {
+        if i >= args.len() { break }
+        tp_symbol :: find_type_param_in_resolved(owner_typed.resolved, tp.name, tp.span)
+        if !(tp_symbol is null) {
+            arg :: args[i]
+            if arg is PrimitiveType { subst.type_params[tp_symbol.id] = arg } else { subst.type_params[tp_symbol.id] = TY_ANY }
+        }
+        i += 1
     }
     return subst
 }
@@ -329,6 +380,23 @@ build_impl_mixed_subst :: fn(
 keep_primitive_or_erase :: fn(t: Type) -> Type {
     if t is PrimitiveType { return t }
     return any_leaves_of(t)
+}
+
+// True when AT LEAST ONE type arg is a primitive value-type (the .NET-model gate,
+// BROAD — incl `string`/`bool`/`char`, matching `mixed_any_suffix` /
+// `map_type_params_mixed`). Such an instance is monomorphized MIXED : primitives
+// kept concrete (devirt + primops/atom-eq inline), references erased to `Any`
+// (uniform pointer). `Any` is `AnyType`, not `PrimitiveType`, so an all-erased
+// transitive arg list (`[Any, Any]`) is correctly EXCLUDED → stays fully erased
+// (symbol-id indexed). Subsumes Inc 1's narrow "all type args are raw-flippable
+// primitives" gate : an all-primitive arg list satisfies this too, and a mixed
+// subst over all-primitive args equals the concrete subst, so Inc 1's instances
+// are byte-unchanged.
+has_any_primitive_arg :: fn(type_args: Type[]) -> bool {
+    for a in type_args {
+        if a is PrimitiveType { return true }
+    }
+    return false
 }
 
 type_expr_simple_name :: fn(e: TypeExpr) -> string {

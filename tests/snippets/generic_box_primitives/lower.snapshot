@@ -1,0 +1,501 @@
+# Lower
+
+## snippet
+  fn snippet$main() -> i32
+    let bu8: Box<u8> =
+      Box<u8> {
+        v: int(200) :u8
+      }
+    let bb: Box<bool> =
+      Box<bool> {
+        v: true
+      }
+    let bc: Box<char> =
+      Box<char> {
+        v: char(0x5a)
+      }
+    let bf32: Box<f32> =
+      Box<f32> {
+        v: float(3.5) :f32
+      }
+    let bf64: Box<f64> =
+      Box<f64> {
+        v: float(2.25) :f64
+      }
+    let bi16: Box<i16> =
+      Box<i16> {
+        v:
+          neg :i16
+            int(1000) :i16
+      }
+    let bu16: Box<u16> =
+      Box<u16> {
+        v: int(50000) :u16
+      }
+    let bi64: Box<i64> =
+      Box<i64> {
+        v: int(9000000000) :i64
+      }
+    let bus: Box<usize> =
+      Box<usize> {
+        v: int(42) :usize
+      }
+    let bi32: Box<i32> =
+      Box<i32> {
+        v:
+          neg :i32
+            int(7) :i32
+      }
+    let bs: Box<string> =
+      Box<string> {
+        v: "hi" :string
+      }
+    call :void
+      callee:
+        std_io$std_io$println__string :void
+      arg0:
+        block :string
+          let __sb_0: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              "u8=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$u8$Display$to_string :string
+                arg0:
+                  .v :u8
+                    bu8 :Box<u8>
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              " bool=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$bool$Display$to_string :string
+                arg0:
+                  .v :bool
+                    bb :Box<bool>
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              " char=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$char$Display$to_string :string
+                arg0:
+                  .v :char
+                    bc :Box<char>
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              " f32=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$f32$Display$to_string :string
+                arg0:
+                  .v :f32
+                    bf32 :Box<f32>
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              " f64=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$f64$Display$to_string :string
+                arg0:
+                  .v :f64
+                    bf64 :Box<f64>
+          ~>
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_0 :StringBuilder
+    call :void
+      callee:
+        std_io$std_io$println__string :void
+      arg0:
+        block :string
+          let __sb_1: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              "i16=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i16$Display$to_string :string
+                arg0:
+                  .v :i16
+                    bi16 :Box<i16>
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              " u16=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$u16$Display$to_string :string
+                arg0:
+                  .v :u16
+                    bu16 :Box<u16>
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              " i64=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i64$Display$to_string :string
+                arg0:
+                  .v :i64
+                    bi64 :Box<i64>
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              " usize=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$usize$Display$to_string :string
+                arg0:
+                  .v :usize
+                    bus :Box<usize>
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              " i32=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  .v :i32
+                    bi32 :Box<i32>
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              " str=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$string$Display$to_string :string
+                arg0:
+                  .v :string
+                    bs :Box<string>
+          ~>
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_1 :StringBuilder
+    call :void
+      callee:
+        std_io$std_io$println__string :void
+      arg0:
+        block :string
+          let __sb_2: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              "via=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$u8$Display$to_string :string
+                arg0:
+                  call :u8
+                    callee:
+                      snippet$snippet$unwrap__u8 :u8
+                    arg0:
+                      bu8 :Box<u8>
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              "," :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$bool$Display$to_string :string
+                arg0:
+                  call :bool
+                    callee:
+                      snippet$snippet$unwrap__bool :bool
+                    arg0:
+                      bb :Box<bool>
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              "," :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$char$Display$to_string :string
+                arg0:
+                  call :char
+                    callee:
+                      snippet$snippet$unwrap__char :char
+                    arg0:
+                      bc :Box<char>
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              "," :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$f32$Display$to_string :string
+                arg0:
+                  call :f32
+                    callee:
+                      snippet$snippet$unwrap__f32 :f32
+                    arg0:
+                      bf32 :Box<f32>
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              "," :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i16$Display$to_string :string
+                arg0:
+                  call :i16
+                    callee:
+                      snippet$snippet$unwrap__i16 :i16
+                    arg0:
+                      bi16 :Box<i16>
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              "," :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i64$Display$to_string :string
+                arg0:
+                  call :i64
+                    callee:
+                      snippet$snippet$unwrap__i64 :i64
+                    arg0:
+                      bi64 :Box<i64>
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              "," :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$string$Display$to_string :string
+                arg0:
+                  call :string
+                    callee:
+                      snippet$snippet$unwrap__string :string
+                    arg0:
+                      bs :Box<string>
+          ~>
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_2 :StringBuilder
+    return int(0) :i32
+  struct snippet$Box__bool { v: bool }
+  struct snippet$Box__char { v: char }
+  struct snippet$Box__f32 { v: f32 }
+  struct snippet$Box__f64 { v: f64 }
+  struct snippet$Box__i16 { v: i16 }
+  struct snippet$Box__i32 { v: i32 }
+  struct snippet$Box__i64 { v: i64 }
+  struct snippet$Box__string { v: string }
+  struct snippet$Box__u16 { v: u16 }
+  struct snippet$Box__u8 { v: u8 }
+  struct snippet$Box__usize { v: usize }
+  fn snippet$snippet$unwrap__bool(b: Box<bool>) -> bool
+    ~>
+      .v :bool
+        b :Box<bool>
+  fn snippet$snippet$unwrap__char(b: Box<char>) -> char
+    ~>
+      .v :char
+        b :Box<char>
+  fn snippet$snippet$unwrap__f32(b: Box<f32>) -> f32
+    ~>
+      .v :f32
+        b :Box<f32>
+  fn snippet$snippet$unwrap__i16(b: Box<i16>) -> i16
+    ~>
+      .v :i16
+        b :Box<i16>
+  fn snippet$snippet$unwrap__i64(b: Box<i64>) -> i64
+    ~>
+      .v :i64
+        b :Box<i64>
+  fn snippet$snippet$unwrap__string(b: Box<string>) -> string
+    ~>
+      .v :string
+        b :Box<string>
+  fn snippet$snippet$unwrap__u8(b: Box<u8>) -> u8
+    ~>
+      .v :u8
+        b :Box<u8>
+  struct snippet$Box__Any { v: Any }

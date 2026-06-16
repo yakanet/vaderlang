@@ -5,7 +5,7 @@
 
 module "vader/parser"
 
-import "std/string" { bytes, as_string, chars, is_digit }
+import "std/string" { as_string, chars, is_digit }
 import "vader/lexer" {
     tokenize, Token, TokenKind, Lexer, empty_span, make_token, kind_name,
 }

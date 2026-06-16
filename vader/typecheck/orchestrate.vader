@@ -471,11 +471,22 @@ merge_external_impl_methods :: fn(
                             _ -> { entry_typed.iter_element_types[base_key] = elem }
                         }
                     }
-                    // `X implements Index[I, T]` — index the result
-                    // type so `m[k]` returns T.
+                    // `X implements Index[K, T]` — index the result
+                    // type so `m[k]` returns T, and the key type K so a
+                    // free-literal index pins to K instead of i32.
                     if id_decl.trait_name == "Index" && id_decl.trait_args.len() == 2 {
+                        key_ty :: type_from_expr(id_decl.trait_args[0], other.resolved, diag_sink())
                         result_ty :: type_from_expr(id_decl.trait_args[1], other.resolved, diag_sink())
+                        entry_typed.index_key_types[base_key] = key_ty
                         entry_typed.index_target_types[base_key] = result_ty
+                    }
+                    // `X implements IndexSet[K, V]` — index the key and
+                    // write-value types so `m[k] = v` pins both literals.
+                    if id_decl.trait_name == "IndexSet" && id_decl.trait_args.len() == 2 {
+                        key_ty :: type_from_expr(id_decl.trait_args[0], other.resolved, diag_sink())
+                        value_ty :: type_from_expr(id_decl.trait_args[1], other.resolved, diag_sink())
+                        entry_typed.index_key_types[base_key] = key_ty
+                        entry_typed.index_set_value_types[base_key] = value_ty
                     }
                 }
                 _ -> {}
@@ -1345,20 +1356,25 @@ lookup_external_type :: fn(
 export walk_bodies :: fn(
     decls: AST.Decl[], typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
-    // Pre-pass : seed `struct_implemented_traits` for every impl in the
-    // module so any earlier-declared impl's body that returns a
-    // later-declared type can still trait-widen. Bigger metadata (impl
-    // methods, iter_element_types, Into-keys, …) still lands in the main
-    // pass so the order-of-operations within each impl block stays the
-    // same — fewer surprises for downstream passes.
+    // Pre-pass : seed ALL impl metadata for every impl in the module BEFORE
+    // any fn body is walked, so a body that references an impl member
+    // declared later in file order resolves. `42.to_bits()` calling an
+    // `@intrinsic` impl member declared in a sibling file merged after the
+    // caller would otherwise hit T3008 — its `impl_methods` entry wasn't
+    // registered yet. (Only surfaced when a stdlib module is the `vader test`
+    // entry, where the merge order put the use before the decl ; for an
+    // imported module `merge_external_impl_methods` pre-registers, but it
+    // skips the entry module's own impls.) Two loops : struct-trait
+    // membership first (so a method type that trait-widens to a
+    // later-declared type resolves), then the rest of the metadata + checks.
     for decl in decls {
-        match decl {
-            is AST.ImplDecl as id -> {
-                for_ty :: type_from_expr(id.for_type, typed.resolved, diag_sink())
-                record_struct_trait(typed, for_ty, id.trait_name)
-            }
-            _ -> {}
+        if decl is AST.ImplDecl as id {
+            for_ty :: type_from_expr(id.for_type, typed.resolved, diag_sink())
+            record_struct_trait(typed, for_ty, id.trait_name)
         }
+    }
+    for decl in decls {
+        if decl is AST.ImplDecl as id { register_impl_metadata(id, typed, diags) }
     }
     for decl in decls {
         match decl {
@@ -1377,70 +1393,10 @@ export walk_bodies :: fn(
                 }
             }
             is AST.ImplDecl as id -> {
-                for_ty :: type_from_expr(id.for_type, typed.resolved, diags)
-                if id.trait_name == "Into" {
-                    if id.trait_args.len() == 1 {
-                        target_ty :: type_from_expr(id.trait_args[0], typed.resolved, diags)
-                        if equals_type(for_ty, target_ty) {
-                            diags.push(typecheck_error(.IntoIdentityForbidden, id.span,
-                                "`${display_type(for_ty)} implements Into<${display_type(target_ty)}>` — source and target must differ"))
-                        }
-                    }
-                }
-                // Index `X implements Iterator(T)` so `for x in X` binds
-                // `x` to T (matches the external-impl path).
-                local_base_key :: type_base_name(for_ty)
-                if id.trait_name == "Iterator" && id.trait_args.len() == 1 {
-                    elem :: type_from_expr(id.trait_args[0], typed.resolved, diags)
-                    typed.iter_element_types[local_base_key] = elem
-                }
-                if id.trait_name == "Into" && id.trait_args.len() == 1 {
-                    elem :: into_iterator_element(id.trait_args[0], typed.resolved)
-                    match elem {
-                        is null -> {}
-                        _ -> { typed.iter_element_types[local_base_key] = elem }
-                    }
-                }
-                if id.trait_name == "Index" && id.trait_args.len() == 2 {
-                    result_ty :: type_from_expr(id.trait_args[1], typed.resolved, diags)
-                    typed.index_target_types[local_base_key] = result_ty
-                }
-                check_impl_missing_methods(id, typed, diags)
-                record_struct_trait(typed, for_ty, id.trait_name)
-                local_impl_trait_args: Type[] = []
-                for ta in id.trait_args {
-                    local_impl_trait_args.push(type_from_expr(ta, typed.resolved, diags))
-                }
-                record_struct_trait_args(typed, for_ty, id.trait_name, local_impl_trait_args)
-                trait_decl :: lookup_trait_decl(id.trait_name, typed)
-                for m in id.members {
-                    trait_method :: lookup_trait_method(trait_decl, m.name)
-                    declare_impl_method_for_trait(m, for_ty, trait_method, typed, diags)
-                    key :: "${display_type(for_ty)}::${m.name}"
-                    base_key :: "${type_base_name(for_ty)}::${m.name}"
-                    ufcs_ty :: ufcs_method_type(m, for_ty, trait_method, typed, diags)
-                    match ufcs_ty {
-                        is null -> {}
-                        _ -> {
-                            typed.impl_methods[key] = ufcs_ty
-                            typed.impl_methods[base_key] = ufcs_ty
-                            record_impl_trait(typed, base_key, id.trait_name)
-                        }
-                    }
-                    // `Into(T)` impls are indexed under a target-
-                    // qualified key so multiple `Into` impls for the
-                    // same source (e.g. `Into(i32)` + `Into(string)`)
-                    // don't collide.
-                    if id.trait_name == "Into" && id.trait_args.len() == 1 && m.name == "into" {
-                        target_ty :: type_from_expr(id.trait_args[0], typed.resolved, diags)
-                        into_key :: "${display_type(for_ty)}::into::${display_type(target_ty)}"
-                        match ufcs_ty {
-                            is null -> {}
-                            _ -> { typed.impl_methods[into_key] = ufcs_ty }
-                        }
-                    }
-                    walk_fn_body(m, typed, diags)
-                }
+                // All impl metadata + structural checks ran in the pre-pass
+                // (`register_impl_metadata`) so forward references resolve ;
+                // only the member bodies remain to walk here.
+                for m in id.members { walk_fn_body(m, typed, diags) }
             }
             // Body-less decl kinds — nothing to walk. Listed explicitly (not
             // `_`) so a new Decl variant trips T3013 and forces a decision.
@@ -1448,6 +1404,77 @@ export walk_bodies :: fn(
             is AST.TraitDecl -> {}
             is AST.TypeAliasDecl -> {}
             is AST.ImportDecl -> {}
+        }
+    }
+}
+
+// Register every lookup table + structural check for an impl block — impl-
+// method UFCS types, iter/index element types, Into-key indexing, trait-arg
+// recording, missing-method diagnostics. Runs in `walk_bodies`' pre-pass so a
+// forward reference from an earlier fn body resolves. Excludes
+// `record_struct_trait` (the pre-pass' first loop seeds that for every impl
+// up front) and the member body walk (deferred to the main pass).
+register_impl_metadata :: fn(
+    id: AST.ImplDecl, typed: TypedProgram, diags: Diagnostic[],
+) -> void {
+    for_ty :: type_from_expr(id.for_type, typed.resolved, diags)
+    if id.trait_name == "Into" {
+        if id.trait_args.len() == 1 {
+            target_ty :: type_from_expr(id.trait_args[0], typed.resolved, diags)
+            if equals_type(for_ty, target_ty) {
+                diags.push(typecheck_error(.IntoIdentityForbidden, id.span,
+                    "`${display_type(for_ty)} implements Into<${display_type(target_ty)}>` — source and target must differ"))
+            }
+        }
+    }
+    // Index `X implements Iterator(T)` so `for x in X` binds `x` to T
+    // (matches the external-impl path).
+    local_base_key :: type_base_name(for_ty)
+    if id.trait_name == "Iterator" && id.trait_args.len() == 1 {
+        elem :: type_from_expr(id.trait_args[0], typed.resolved, diags)
+        typed.iter_element_types[local_base_key] = elem
+    }
+    if id.trait_name == "Into" && id.trait_args.len() == 1 {
+        elem :: into_iterator_element(id.trait_args[0], typed.resolved)
+        if elem != null { typed.iter_element_types[local_base_key] = elem }
+    }
+    if id.trait_name == "Index" && id.trait_args.len() == 2 {
+        key_ty :: type_from_expr(id.trait_args[0], typed.resolved, diags)
+        result_ty :: type_from_expr(id.trait_args[1], typed.resolved, diags)
+        typed.index_key_types[local_base_key] = key_ty
+        typed.index_target_types[local_base_key] = result_ty
+    }
+    if id.trait_name == "IndexSet" && id.trait_args.len() == 2 {
+        key_ty :: type_from_expr(id.trait_args[0], typed.resolved, diags)
+        value_ty :: type_from_expr(id.trait_args[1], typed.resolved, diags)
+        typed.index_key_types[local_base_key] = key_ty
+        typed.index_set_value_types[local_base_key] = value_ty
+    }
+    check_impl_missing_methods(id, typed, diags)
+    local_impl_trait_args: Type[] = []
+    for ta in id.trait_args {
+        local_impl_trait_args.push(type_from_expr(ta, typed.resolved, diags))
+    }
+    record_struct_trait_args(typed, for_ty, id.trait_name, local_impl_trait_args)
+    trait_decl :: lookup_trait_decl(id.trait_name, typed)
+    for m in id.members {
+        trait_method :: lookup_trait_method(trait_decl, m.name)
+        declare_impl_method_for_trait(m, for_ty, trait_method, typed, diags)
+        key :: "${display_type(for_ty)}::${m.name}"
+        base_key :: "${type_base_name(for_ty)}::${m.name}"
+        ufcs_ty :: ufcs_method_type(m, for_ty, trait_method, typed, diags)
+        if ufcs_ty != null {
+            typed.impl_methods[key] = ufcs_ty
+            typed.impl_methods[base_key] = ufcs_ty
+            record_impl_trait(typed, base_key, id.trait_name)
+        }
+        // `Into(T)` impls are indexed under a target-qualified key so
+        // multiple `Into` impls for the same source (e.g. `Into(i32)` +
+        // `Into(string)`) don't collide.
+        if id.trait_name == "Into" && id.trait_args.len() == 1 && m.name == "into" && ufcs_ty != null {
+            target_ty :: type_from_expr(id.trait_args[0], typed.resolved, diags)
+            into_key :: "${display_type(for_ty)}::into::${display_type(target_ty)}"
+            typed.impl_methods[into_key] = ufcs_ty
         }
     }
 }
@@ -1586,7 +1613,12 @@ param_type :: fn(
             if p.name == "self" { return for_ty }
             return TY_UNRESOLVED
         }
-        _ -> { return type_from_expr(p.ty, typed.resolved, diags) }
+        // Substitute `Self` → `for_ty` so an explicit `Self`-typed param (e.g.
+        // `Comparable.compare(self, other: Self)`) records the concrete carrier
+        // — otherwise the impl method's type keeps `other: Self`, and a default-
+        // method clone calling it (`self.compare(other)`, `other` already
+        // substituted to `for_ty`) mismatches `expected Self, got <for_ty>`.
+        _ -> { return substitute_self(type_from_expr(p.ty, typed.resolved, diags), for_ty) }
     }
 }
 

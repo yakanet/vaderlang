@@ -1,0 +1,41 @@
+// noreturn_guard_narrow — a `@no_return` guard narrows the guarded binding.
+//
+// Regression guard for the divergent-guard narrowing that ignored a block's
+// trailing expression. A guard whose sole content is a `@no_return` call —
+// `if b == null { panic(...) }` — parses the `panic` call as the then-block's
+// *trailing expression*, not a statement, so the block's `stmts` is empty.
+// `then_is_divergent` only inspected `stmts`, returned false, and the complement
+// narrowing was never pushed — leaving `b` typed `Box | null`, so the post-guard
+// `b.v` failed with T3008. A plain `return`/`break`/`continue` guard narrowed
+// fine because those are always statements. Fixed in
+// `vader/typecheck/stmt.vader::then_is_divergent` (honor a `never`-typed
+// trailing expr, mirroring the `is_divergent_stmt` ExprStmt arm).
+
+module "snippet"
+
+import "std/io" { println }
+import "std/abort" { panic }
+
+Box :: struct { v: i32 }
+
+// `b.v` only type-checks if `b` narrows to `Box` after the divergent guard.
+unwrap :: fn(b: Box | null) -> i32 {
+    if b == null { panic("nil box") }
+    return b.v
+}
+
+// Mixed form: a real statement followed by the trailing `@no_return` call —
+// the trailing expr must still drive the narrowing.
+unwrap_logged :: fn(b: Box | null) -> i32 {
+    if b == null {
+        println("nil box")
+        panic("nil box")
+    }
+    return b.v
+}
+
+main :: fn() -> i32 {
+    println("v=${unwrap(Box { .v = 42 })}")          // expect v=42
+    println("logged=${unwrap_logged(Box { .v = 7 })}") // expect logged=7
+    return 0
+}

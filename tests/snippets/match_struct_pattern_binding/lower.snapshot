@@ -25,17 +25,34 @@
                   std_io$std_io$println__string :void
                 arg0:
                   block :string
-                    let __sb_1: ? =
-                      @builder.new :?
-                    @builder.append_str :void
-                      __sb_1 :?
-                      "ten alice=" :string
-                    @builder.append_display <for string> :void
-                      __sb_1 :?
-                      name :string
+                    let __sb_1: StringBuilder =
+                      call :StringBuilder
+                        callee:
+                          new_builder :StringBuilder
+                    call :void
+                      callee:
+                        append :void
+                      arg0:
+                        __sb_1 :StringBuilder
+                      arg1:
+                        "ten alice=" :string
+                    call :void
+                      callee:
+                        append :void
+                      arg0:
+                        __sb_1 :StringBuilder
+                      arg1:
+                        call :string
+                          callee:
+                            std_core$string$Display$to_string :string
+                          arg0:
+                            name :string
                     ~>
-                      @builder.finish :string
-                        __sb_1 :?
+                      call :string
+                        callee:
+                          std_string_builder$StringBuilder$Display$to_string :string
+                        arg0:
+                          __sb_1 :StringBuilder
           else:
             ~>
               call :void

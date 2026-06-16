@@ -20,7 +20,7 @@ module "vader/lower"
 
 import "std/collections" { keys }
 import "std/sort" { sort }
-import "std/string" { compare_ascending, to_lower, ends_with, bytes, as_string, join }
+import "std/string" { compare_ascending, to_lower, ends_with, as_string, join }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 import "vader/diagnostics" { Span }
 import "vader/resolver" { is_stdlib_module }
@@ -297,8 +297,7 @@ emit_expr_compound :: fn(lines: string[], expr: LoweredExpr, indent: string) -> 
             emit_expr(lines, type_check.value, "${indent}  ")
         }
         is LoweredIntrinsicCall as intrinsic -> {
-            tail :: render_display_for(intrinsic.display_for)
-            lines.push("${indent}@${intrinsic.name}${tail} :${display_type(intrinsic.type)}")
+            lines.push("${indent}@${intrinsic.name} :${display_type(intrinsic.type)}")
             for arg in intrinsic.args {
                 emit_expr(lines, arg, "${indent}  ")
             }
@@ -417,11 +416,6 @@ export binary_op_name :: fn(op: LoweredBinaryOp) -> string = match op {
     .Lte    -> "lte"
     .Gt     -> "gt"
     .Gte    -> "gte"
-}
-
-render_display_for :: fn(display_for: Type | null) -> string = match display_for {
-    is null -> { return "" }
-    _ -> { return " <for ${display_type(display_for)}>" }
 }
 
 // Per-variant label fallback for shapes the TS dumper renders via

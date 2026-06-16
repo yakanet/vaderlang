@@ -22,7 +22,7 @@ module "vader/midir"
 import "std/collections" { MutableMap, MutableSet, remove }
 import "std/abort" { panic }
 import "vader/diagnostics" { Span }
-import "vader/types" { Type, PrimitiveType, mk_struct }
+import "vader/types" { Type, PrimitiveType, ArrayType, mk_struct }
 import "vader/lower" { VtableEntry as LoweredVtableEntry }
 import "vader/bytecode" {
     EmitterCtx, BytecodeModule, BcFunction, BcSignature, BcLocal, BcImport,
@@ -31,6 +31,7 @@ import "vader/bytecode" {
     new_emitter_ctx, intern_type, intern_string,
     val_type_of_type, ValType, is_64_bit_int_val,
     binary_op_for, unary_op_for, default_emit_options, EmitOptions,
+    typed_slot_load_op_for, typed_slot_store_op_for,
 }
 import "vader/bytecode" {
     Op, Unreachable, I32Const, I64Const, F64Const, BoolConst, CharConst, StringConst,
@@ -40,14 +41,13 @@ import "vader/bytecode" {
     StructNew, StructGet, StructSet,
     ArrayNew, ArrayGet, ArraySet, ArrayLen, ArrayPush, ArraySlice, StringSliceCodepoints,
     DataConst, TypeConst, TypeCheck, RefCast, Convert, ConvertTarget,
-    MakeClosure, DeferPush, DeferPopExec,
-    BuilderNew, BuilderAppendStr, BuilderAppendDisplay, BuilderFinish, SizeOfType,
+    MakeClosure, DeferPush, DeferPopExec, SizeOfType,
 }
 import "vader/bytecode" {
     intern_cell_type, run_bc_peephole, run_bc_return_lit_fold,
     run_bc_const_fold_arith,
     propagate_const_single_use, drop_dead_stores, coalesce_slots,
-    prune_unused_vtables, prune_unused_functions, prune_unused_imports, prune_unused_types,
+    prune_unused_functions, prune_unused_imports, prune_unused_types,
     type_intern_key, val_type_name, convert_target_of,
     build_intrinsic_wrapper_body,
 }
@@ -353,13 +353,15 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
         }
         // Pass 4 — whole-program prunes on the EmitterCtx. Mirrors
         // the late-emit prune cascade in `src/midir/emit.ts:125-133`.
-        // Order matters : vtables → functions → imports → types so
-        // each pass's root set reflects the previous pass's drops.
-        prune_unused_vtables(ctx)
+        // Order matters : functions → imports → types so each pass's root
+        // set reflects the previous pass's drops. (TS's pruneUnusedVtables
+        // has no peer pass : vtable rows are reachability-filtered when
+        // built — see `build_vtables_from_entries` — and the `used_vt_keys`
+        // set below gates which vtable targets root the fn walk.)
         // Collect (trait, method) keys actually dispatched on so the
         // vtable-target rooting AND the impl-table type pinning below
-        // can both gate on real virtual.call sites. Mirror of TS
-        // pruneUnusedVtables.
+        // can both gate on real virtual.call sites. This is the inlined
+        // equivalent of TS pruneUnusedVtables.
         used_vt_keys: MutableMap<string, bool> = MutableMap<string, bool> {}
         for f in ctx.functions {
             for op in f.body {
@@ -380,7 +382,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             root_idx :: resolve_vtable_fn_index(ve.fn_symbol, ctx)
             if root_idx >= 0 { vtable_roots.push(root_idx) }
         }
-        prune_unused_functions(ctx, vtable_roots)
+        prune_unused_functions(ctx, vtable_roots, opts.keep_mangles)
         prune_unused_imports(ctx)
         prune_unused_types(ctx)
     }
@@ -509,6 +511,10 @@ PendingBranch :: struct {
 /// Per-fn structurer state.
 FnEmitCfg :: struct {
     fn_:                 CFGFunction
+    /// Arg/result type pins for this function's calls — the SAME array that's
+    /// stored under this fn's index in `project.pinned_types_by_fn`, cached
+    /// here so the per-call emit appends to it without a per-op map lookup.
+    pinned_types_bucket: i32[]
     slot:                BcFunction
     project:             EmitterCtx
     string_index_map:    i32[]
@@ -532,6 +538,12 @@ emit_cfg_function_body :: fn(
     cfg_fn: CFGFunction, fn_idx: i32, ctx: EmitterCtx, string_index_map: i32[],
 ) -> void {
     slot :: ctx.functions[usize(fn_idx)]
+
+    // Open this function's per-call type-pin bucket (see `pinned_types_by_fn`) ;
+    // the same array is cached on `fn_ctx.pinned_types_bucket` below so the
+    // per-call emit appends to it directly (no per-op map lookup).
+    pins_bucket: i32[] = []
+    ctx.pinned_types_by_fn[fn_idx] = pins_bucket
 
     // Map CFG locals to bytecode slots. Params take slots 0..N-1 ;
     // additional locals get fresh slots indexed AFTER the params.
@@ -564,6 +576,7 @@ emit_cfg_function_body :: fn(
 
     fn_ctx :: FnEmitCfg {
         .fn_                  = cfg_fn,
+        .pinned_types_bucket  = pins_bucket,
         .slot                 = slot,
         .project              = ctx,
         .string_index_map     = string_index_map,
@@ -892,15 +905,19 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
     if ins is InstrCall as c {
         // Intern each arg's static type + the result type so the type
         // table mirrors TS (`expectedResultType` / `argTypeIndices` on
-        // every Call). Vader's Call op doesn't carry these indices yet,
-        // so we pin them in the EmitterCtx so `prune_unused_types`
-        // doesn't drop them. Mirror of `src/midir/emit.ts:473-478` +
-        // `dce.ts:609` which visits `op.argTypeIndices` as a root.
+        // every Call). Vader's Call op doesn't carry these indices, so we
+        // pin them under THIS function (via the cached per-fn bucket) — TS
+        // keeps them on the op, so they vanish when the function is pruned ;
+        // a per-function bucket reproduces that (a global list would keep dead
+        // arg types — and the impl rows / `Range` monomorphs they anchor —
+        // alive even after the call's function is DCE'd). Mirror of
+        // `src/midir/emit.ts:473-478` + `dce.ts:609`.
+        pins :: ctx.pinned_types_bucket
         for a in c.args {
-            ctx.project.pinned_types.push(intern_type(ctx.fn_.locals[usize(a)].type, ctx.project))
+            pins.push(intern_type(ctx.fn_.locals[usize(a)].type, ctx.project))
         }
         if c.dst is LocalId as cdst {
-            ctx.project.pinned_types.push(intern_type(ctx.fn_.locals[usize(cdst)].type, ctx.project))
+            pins.push(intern_type(ctx.fn_.locals[usize(cdst)].type, ctx.project))
         }
         for ai in 0..<c.args.len() {
             if ai == usize(0) { emit_first_get(ctx, pos, c.args[ai], c.span) }
@@ -1057,9 +1074,19 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         type_index :: intern_type(target_type, ctx.project)
         emit_first_get(ctx, pos, ag.target, ag.span)
         emit_get(ctx, ag.index, ag.span)
-        push_emit(ctx, ArrayGet { .type_id = type_index }, ag.span)
-        if needs_ref_cast(ag.type) {
-            push_emit(ctx, RefCast { .type_id = intern_type(ag.type, ctx.project) }, ag.span)
+        // S5 access flip (Solution A) : a concrete-primitive element reads through
+        // the typed slot op (no box round-trip, no runtime element-kind switch).
+        // A1 force-concretes the array constructors, so a concrete `i32[]` value is
+        // I32-kind at runtime → the typed read is sound. Boxed / ref / `Any` / `u8`
+        // elements stay on the legacy runtime-dispatched `ArrayGet`.
+        load_op :: typed_slot_load_op_for(array_element_val_type(target_type))
+        if load_op is null {
+            push_emit(ctx, ArrayGet { .type_id = type_index }, ag.span)
+            if needs_ref_cast(ag.type) {
+                push_emit(ctx, RefCast { .type_id = intern_type(ag.type, ctx.project) }, ag.span)
+            }
+        } else {
+            push_emit(ctx, load_op, ag.span)
         }
         emit_result(ctx, pos, ag.dst, ag.span)
         return
@@ -1070,7 +1097,15 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         emit_first_get(ctx, pos, ase.target, ase.span)
         emit_get(ctx, ase.index, ase.span)
         emit_get(ctx, ase.value, ase.span)
-        push_emit(ctx, ArraySet { .type_id = type_index }, ase.span)
+        // S5 access flip (Solution A) — symmetric with the get above : a
+        // concrete-primitive element stores through the typed slot op (no box,
+        // no element-kind switch, no write barrier — primitives hold no refs).
+        store_op :: typed_slot_store_op_for(array_element_val_type(target_type))
+        if store_op is null {
+            push_emit(ctx, ArraySet { .type_id = type_index }, ase.span)
+        } else {
+            push_emit(ctx, store_op, ase.span)
+        }
         return
     }
     if ins is InstrArrayLen as al {
@@ -1224,9 +1259,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
             push_emit(ctx, Return {}, i.span)
         } else {
             push_emit(ctx, op_opt, i.span)
-            if !is_void_intrinsic(i.name) {
-                emit_result_if_any(ctx, pos, i.dst, i.span)
-            }
+            emit_result_if_any(ctx, pos, i.dst, i.span)
         }
         return
     }
@@ -1272,20 +1305,8 @@ convert_eligible :: fn(v: ValType) -> bool = match v {
 /// null when the name doesn't map to a known intrinsic ; callers fall
 /// back to the defensive Return stub.
 intrinsic_op_for_name :: fn(name: string) -> Op | null {
-    if name == "builder.new"             { return BuilderNew {} }
-    if name == "builder.append_str"      { return BuilderAppendStr {} }
-    if name == "builder.append_display"  { return BuilderAppendDisplay {} }
-    if name == "builder.finish"          { return BuilderFinish {} }
-    if name == "size_of.type"            { return SizeOfType {} }
+    if name == "size_of.type" { return SizeOfType {} }
     return null
-}
-
-/// True when the intrinsic has no result (void return) — used to gate
-/// the trailing emit_result_if_any.
-is_void_intrinsic :: fn(name: string) -> bool {
-    if name == "builder.append_str"     { return true }
-    if name == "builder.append_display" { return true }
-    return false
 }
 
 /// Look up a field index by name on a struct type. Returns -1 when the
@@ -1369,6 +1390,16 @@ emit_result_if_any :: fn(ctx: FnEmitCfg, pos: i64, dst: LocalId | null, span: Sp
 needs_ref_cast :: fn(t: Type) -> bool {
     if !(t is PrimitiveType) { return false }
     return t.name != "void"
+}
+
+// Element value class of an array type, or `Any` for a non-array (which keeps
+// the S5 access flip off it — `typed_slot_*_op_for(Any)` is null → legacy op).
+// Keying the flip on the array's own element type (not a possibly-narrowed
+// read-site result type) is what makes it sound : the runtime kind tracks the
+// array's element type, set at construction.
+array_element_val_type :: fn(t: Type) -> ValType {
+    if t is ArrayType as a { return val_type_of_type(a.element) }
+    return ValType.Any
 }
 
 // Pop the trailing `local.get N` from the body and replace with a fused

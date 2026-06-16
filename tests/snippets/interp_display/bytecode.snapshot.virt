@@ -2,30 +2,978 @@ module _main
 type 0 primitive null
 type 1 primitive string
 type 2 primitive i32
+type 3 struct std_string_builder$StringBuilder { parts:5 }
+type 4 primitive void
+type 5 array 1
+type 6 struct std_core$Range__i32 { start:2,end:2,inclusive:7,cursor:2 }
+type 7 primitive bool
+type 8 union 0,9
+type 9 struct std_core$Yield__i32 { value:2 }
+type 10 primitive usize
+type 11 union 2,0
+type 12 struct std_core$Range__usize { start:10,end:10,inclusive:7,cursor:10 }
+type 13 union 0,14
+type 14 struct std_core$Yield__usize { value:10 }
+type 15 union 0,10
+type 16 primitive i64
+type 17 array 18
+type 18 primitive u8
+type 19 struct std_core$Buffer {  }
 string 0 "Hello, "
 string 1 "! You are "
 string 2 " years old."
+string 3 "0"
+import 0 bytes_to_string std_core$bytes_to_string (ref) -> string
+import 1 bytes std_core$bytes (string) -> ref
+impl 3 Display
+impl 6 Contains
+impl 6 Iterator
+impl 12 Contains
+impl 12 Iterator
+impl 19 ByteAccess
 
 fn 0 snippet$greet (string,i32) -> string
-  local __sb_0 any
-  intrinsic builder.new
+  local __sb_0 ref
+  local $call_5 string
+  call 1
   local.set 2
   local.get 2
   string.const 0
-  intrinsic builder.append_str
-  local.get 2
+  call 2
   local.get 0
-  intrinsic builder.append_display
+  call 15
+  local.set 3
+  local.get 2
+  local.get 3
+  call 2
   local.get 2
   string.const 1
-  intrinsic builder.append_str
-  local.get 2
+  call 2
   local.get 1
-  intrinsic builder.append_display
+  call 14
+  local.set 3
+  local.get 2
+  local.get 3
+  call 2
   local.get 2
   string.const 2
-  intrinsic builder.append_str
+  call 2
   local.get 2
-  intrinsic builder.finish
+  call 3
+  return
+end
+
+fn 1 std_string_builder$new_builder () -> ref
+  array.new 5 0
+  struct.new 3
+  return
+end
+
+fn 2 std_string_builder$append (ref,string) -> void
+  local.field 0 3 0
+  local.get 1
+  array.push 1
+  return
+end
+
+fn 3 std_string_builder$StringBuilder$Display$to_string (ref) -> string
+  local total usize
+  local __for_arr_0 ref
+  local __for_len_1 usize
+  local __for_i_2 usize
+  local $len_13 usize
+  local $k_15 usize
+  local __for_arr_3 ref
+  local p string
+  local $k_33 usize
+  i64.const 0
+  local.set 1
+  local.field 0 3 0
+  local.tee 2
+  array.len
+  local.set 3
+  i64.const 0
+  local.set 4
+  block $L0 void
+    loop $L1 void
+      local.get 4
+      local.get 3
+      u64.lt
+      if $L2 void
+        local.get 2
+        local.get 4
+        array.get 5
+        ref.cast 1
+        call.import 1
+        array.len
+        local.set 5
+        local.get 1
+        local.get 5
+        i64.add
+        local.set 1
+        i64.const 1
+        local.set 6
+        local.get 4
+        local.get 6
+        i64.add
+        local.set 4
+        br $L1
+      else
+      end $L2
+    end $L1
+  end $L0
+  local.get 1
+  call 30
+  local.set 2
+  i64.const 0
+  local.set 3
+  local.field 0 3 0
+  local.tee 7
+  array.len
+  local.set 4
+  i64.const 0
+  local.set 5
+  block $L3 void
+    loop $L4 void
+      local.get 5
+      local.get 4
+      u64.lt
+      if $L5 void
+        local.get 7
+        local.get 5
+        array.get 5
+        ref.cast 1
+        local.set 8
+        local.get 2
+        local.get 3
+        local.get 8
+        call 32
+        local.get 8
+        call.import 1
+        array.len
+        local.set 6
+        local.get 3
+        local.get 6
+        i64.add
+        local.set 3
+        i64.const 1
+        local.set 9
+        local.get 5
+        local.get 9
+        i64.add
+        local.set 5
+        br $L4
+      else
+      end $L5
+    end $L4
+  end $L3
+  local.get 2
+  local.get 1
+  call 31
+  return
+end
+
+fn 4 std_core$Range$Contains$contains__i32 (ref,i32) -> bool
+  local $field_2 i32
+  local.field 0 6 0
+  ref.cast 2
+  local.set 2
+  local.get 1
+  local.get 2
+  call 17
+  if $L0 void
+    return.lit bool.const false
+  end $L0
+  local.field 0 6 2
+  ref.cast 7
+  if $L1 void
+    local.field 0 6 1
+    ref.cast 2
+    local.set 2
+    local.get 1
+    local.get 2
+    call 18
+    return
+  end $L1
+  local.field 0 6 1
+  ref.cast 2
+  local.set 2
+  local.get 1
+  local.get 2
+  call 17
+  return
+end
+
+fn 5 std_core$Range$Iterator$next__i32 (ref) -> ref
+  local if_res bool
+  local $field_3 i32
+  local $field_4 i32
+  local.field 0 6 2
+  ref.cast 7
+  if $L0 void
+    local.field 0 6 3
+    ref.cast 2
+    local.set 2
+    local.field 0 6 1
+    ref.cast 2
+    local.set 3
+    local.get 2
+    local.get 3
+    call 19
+    local.set 1
+  else
+    local.field 0 6 3
+    ref.cast 2
+    local.set 2
+    local.field 0 6 1
+    ref.cast 2
+    local.set 3
+    local.get 2
+    local.get 3
+    call 20
+    local.set 1
+  end $L0
+  local.get 1
+  if $L1 void
+    return.lit null.const
+  end $L1
+  local.field 0 6 3
+  ref.cast 2
+  local.set 2
+  local.field 0 6 3
+  ref.cast 2
+  call 26
+  local.set 3
+  local.get 0
+  local.get 3
+  struct.set 6 3
+  local.get 2
+  struct.new 9
+  return
+end
+
+fn 6 std_core$Range$Iterator$is_empty__i32 (ref) -> bool
+  local __scrut_0 ref
+  local.get 0
+  call 5
+  local.tee 1
+  type_check 0
+  if $L0 void
+    return.lit bool.const true
+  end $L0
+  local.get 1
+  type_check 9
+  if $L1 void
+    return.lit bool.const false
+  end $L1
+  return
+end
+
+fn 7 std_core$Range$Iterator$count__i32 (ref) -> usize
+  local total any
+  local finished any
+  local __scrut_0 ref
+  local $k_11 usize
+  i64.const 0
+  local.set 1
+  bool.const false
+  local.set 2
+  block $L0 void
+    loop $L1 void
+      local.get 2
+      bool.not
+      if $L2 void
+        local.get 0
+        call 5
+        local.tee 3
+        type_check 0
+        if $L3 void
+          bool.const true
+          local.set 2
+          br $L1
+        end $L3
+        local.get 3
+        type_check 9
+        if $L4 void
+          i64.const 1
+          local.set 4
+          local.get 1
+          local.get 4
+          i32.add
+          local.set 1
+          br $L1
+        end $L4
+        return
+      else
+      end $L2
+    end $L1
+  end $L0
+  local.get 1
+  return
+end
+
+fn 8 std_core$Range$Iterator$last__i32 (ref) -> ref
+  local result any
+  local finished any
+  local __scrut_0 ref
+  null.const
+  local.set 1
+  bool.const false
+  local.set 2
+  block $L0 void
+    loop $L1 void
+      local.get 2
+      bool.not
+      if $L2 void
+        local.get 0
+        call 5
+        local.tee 3
+        type_check 0
+        if $L3 void
+          bool.const true
+          local.set 2
+          br $L1
+        end $L3
+        local.get 3
+        type_check 9
+        if $L4 void
+          local.get 3
+          struct.get 9 0
+          ref.cast 2
+          local.set 1
+          br $L1
+        end $L4
+        return
+      else
+      end $L2
+    end $L1
+  end $L0
+  local.get 1
+  return
+end
+
+fn 9 std_core$Range$Contains$contains__usize (ref,usize) -> bool
+  local $field_2 usize
+  local.field 0 12 0
+  ref.cast 10
+  local.set 2
+  local.get 1
+  local.get 2
+  call 22
+  if $L0 void
+    return.lit bool.const false
+  end $L0
+  local.field 0 12 2
+  ref.cast 7
+  if $L1 void
+    local.field 0 12 1
+    ref.cast 10
+    local.set 2
+    local.get 1
+    local.get 2
+    call 23
+    return
+  end $L1
+  local.field 0 12 1
+  ref.cast 10
+  local.set 2
+  local.get 1
+  local.get 2
+  call 22
+  return
+end
+
+fn 10 std_core$Range$Iterator$next__usize (ref) -> ref
+  local if_res bool
+  local $field_3 usize
+  local $field_4 usize
+  local.field 0 12 2
+  ref.cast 7
+  if $L0 void
+    local.field 0 12 3
+    ref.cast 10
+    local.set 2
+    local.field 0 12 1
+    ref.cast 10
+    local.set 3
+    local.get 2
+    local.get 3
+    call 24
+    local.set 1
+  else
+    local.field 0 12 3
+    ref.cast 10
+    local.set 2
+    local.field 0 12 1
+    ref.cast 10
+    local.set 3
+    local.get 2
+    local.get 3
+    call 25
+    local.set 1
+  end $L0
+  local.get 1
+  if $L1 void
+    return.lit null.const
+  end $L1
+  local.field 0 12 3
+  ref.cast 10
+  local.set 2
+  local.field 0 12 3
+  ref.cast 10
+  call 27
+  local.set 3
+  local.get 0
+  local.get 3
+  struct.set 12 3
+  local.get 2
+  struct.new 14
+  return
+end
+
+fn 11 std_core$Range$Iterator$is_empty__usize (ref) -> bool
+  local __scrut_0 ref
+  local.get 0
+  call 10
+  local.tee 1
+  type_check 0
+  if $L0 void
+    return.lit bool.const true
+  end $L0
+  local.get 1
+  type_check 14
+  if $L1 void
+    return.lit bool.const false
+  end $L1
+  return
+end
+
+fn 12 std_core$Range$Iterator$count__usize (ref) -> usize
+  local total any
+  local finished any
+  local __scrut_0 ref
+  local $k_11 usize
+  i64.const 0
+  local.set 1
+  bool.const false
+  local.set 2
+  block $L0 void
+    loop $L1 void
+      local.get 2
+      bool.not
+      if $L2 void
+        local.get 0
+        call 10
+        local.tee 3
+        type_check 0
+        if $L3 void
+          bool.const true
+          local.set 2
+          br $L1
+        end $L3
+        local.get 3
+        type_check 14
+        if $L4 void
+          i64.const 1
+          local.set 4
+          local.get 1
+          local.get 4
+          i32.add
+          local.set 1
+          br $L1
+        end $L4
+        return
+      else
+      end $L2
+    end $L1
+  end $L0
+  local.get 1
+  return
+end
+
+fn 13 std_core$Range$Iterator$last__usize (ref) -> ref
+  local result any
+  local finished any
+  local __scrut_0 ref
+  null.const
+  local.set 1
+  bool.const false
+  local.set 2
+  block $L0 void
+    loop $L1 void
+      local.get 2
+      bool.not
+      if $L2 void
+        local.get 0
+        call 10
+        local.tee 3
+        type_check 0
+        if $L3 void
+          bool.const true
+          local.set 2
+          br $L1
+        end $L3
+        local.get 3
+        type_check 14
+        if $L4 void
+          local.get 3
+          struct.get 14 0
+          ref.cast 10
+          local.set 1
+          br $L1
+        end $L4
+        return
+      else
+      end $L2
+    end $L1
+  end $L0
+  local.get 1
+  return
+end
+
+fn 14 std_core$i32$Display$to_string (i32) -> string
+  local.get 0
+  i32.to_i64
+  call 28
+  return
+end
+
+fn 15 std_core$string$Display$to_string (string) -> string
+  local.get 0
+  return
+end
+
+fn 16 std_core$i32$Comparable$compare (i32,i32) -> i32
+  local if_res i32
+  local if_res i32
+  local.get 0
+  local.get 1
+  i32.lt
+  if $L0 void
+    i32.const 1
+    i32.neg
+    local.set 2
+  else
+    local.get 0
+    local.get 1
+    i32.gt
+    if $L1 void
+      i32.const 1
+      local.set 3
+    else
+      i32.const 0
+      local.set 3
+    end $L1
+    local.get 3
+    local.set 2
+  end $L0
+  local.get 2
+  return
+  local.get 0
+  local.get 1
+  i32.lt
+  if $L2 void
+    i32.const 1
+    i32.neg
+    local.set 2
+  else
+    local.get 0
+    local.get 1
+    i32.gt
+    if $L3 void
+      i32.const 1
+      local.set 3
+    else
+      i32.const 0
+      local.set 3
+    end $L3
+    local.get 3
+    local.set 2
+  end $L2
+  local.get 2
+  return
+end
+
+fn 17 std_core$i32$Comparable$lt (i32,i32) -> bool
+  local $call_2 i32
+  local.get 0
+  local.get 1
+  call 16
+  local.set 2
+  local.get 2
+  i32.const 0
+  i32.lt
+  return
+  local.get 0
+  local.get 1
+  call 16
+  local.set 2
+  local.get 2
+  i32.const 0
+  i32.lt
+  return
+end
+
+fn 18 std_core$i32$Comparable$lte (i32,i32) -> bool
+  local $call_2 i32
+  local.get 0
+  local.get 1
+  call 16
+  local.set 2
+  local.get 2
+  i32.const 0
+  i32.le
+  return
+  local.get 0
+  local.get 1
+  call 16
+  local.set 2
+  local.get 2
+  i32.const 0
+  i32.le
+  return
+end
+
+fn 19 std_core$i32$Comparable$gt (i32,i32) -> bool
+  local $call_2 i32
+  local.get 0
+  local.get 1
+  call 16
+  local.set 2
+  local.get 2
+  i32.const 0
+  i32.gt
+  return
+  local.get 0
+  local.get 1
+  call 16
+  local.set 2
+  local.get 2
+  i32.const 0
+  i32.gt
+  return
+end
+
+fn 20 std_core$i32$Comparable$gte (i32,i32) -> bool
+  local $call_2 i32
+  local.get 0
+  local.get 1
+  call 16
+  local.set 2
+  local.get 2
+  i32.const 0
+  i32.ge
+  return
+  local.get 0
+  local.get 1
+  call 16
+  local.set 2
+  local.get 2
+  i32.const 0
+  i32.ge
+  return
+end
+
+fn 21 std_core$usize$Comparable$compare (usize,usize) -> i32
+  local if_res i32
+  local if_res i32
+  local.get 0
+  local.get 1
+  u64.lt
+  if $L0 void
+    i32.const 1
+    i32.neg
+    local.set 2
+  else
+    local.get 0
+    local.get 1
+    u64.gt
+    if $L1 void
+      i32.const 1
+      local.set 3
+    else
+      i32.const 0
+      local.set 3
+    end $L1
+    local.get 3
+    local.set 2
+  end $L0
+  local.get 2
+  return
+  local.get 0
+  local.get 1
+  u64.lt
+  if $L2 void
+    i32.const 1
+    i32.neg
+    local.set 2
+  else
+    local.get 0
+    local.get 1
+    u64.gt
+    if $L3 void
+      i32.const 1
+      local.set 3
+    else
+      i32.const 0
+      local.set 3
+    end $L3
+    local.get 3
+    local.set 2
+  end $L2
+  local.get 2
+  return
+end
+
+fn 22 std_core$usize$Comparable$lt (usize,usize) -> bool
+  local $call_2 i32
+  local.get 0
+  local.get 1
+  call 21
+  local.set 2
+  local.get 2
+  i32.const 0
+  i32.lt
+  return
+  local.get 0
+  local.get 1
+  call 21
+  local.set 2
+  local.get 2
+  i32.const 0
+  i32.lt
+  return
+end
+
+fn 23 std_core$usize$Comparable$lte (usize,usize) -> bool
+  local $call_2 i32
+  local.get 0
+  local.get 1
+  call 21
+  local.set 2
+  local.get 2
+  i32.const 0
+  i32.le
+  return
+  local.get 0
+  local.get 1
+  call 21
+  local.set 2
+  local.get 2
+  i32.const 0
+  i32.le
+  return
+end
+
+fn 24 std_core$usize$Comparable$gt (usize,usize) -> bool
+  local $call_2 i32
+  local.get 0
+  local.get 1
+  call 21
+  local.set 2
+  local.get 2
+  i32.const 0
+  i32.gt
+  return
+  local.get 0
+  local.get 1
+  call 21
+  local.set 2
+  local.get 2
+  i32.const 0
+  i32.gt
+  return
+end
+
+fn 25 std_core$usize$Comparable$gte (usize,usize) -> bool
+  local $call_2 i32
+  local.get 0
+  local.get 1
+  call 21
+  local.set 2
+  local.get 2
+  i32.const 0
+  i32.ge
+  return
+  local.get 0
+  local.get 1
+  call 21
+  local.set 2
+  local.get 2
+  i32.const 0
+  i32.ge
+  return
+end
+
+fn 26 std_core$i32$Step$step (i32) -> i32
+  local.get 0
+  i32.const 1
+  i32.add
+  return
+  local.get 0
+  i32.const 1
+  i32.add
+  return
+end
+
+fn 27 std_core$usize$Step$step (usize) -> usize
+  local $k_1 usize
+  i64.const 1
+  local.set 1
+  local.get 0
+  local.get 1
+  i64.add
+  return
+  i64.const 1
+  local.set 1
+  local.get 0
+  local.get 1
+  i64.add
+  return
+end
+
+fn 28 std_core$format_signed (i64) -> string
+  local neg bool
+  local digits ref
+  local $k_14 u8
+  local $cast_18 u8
+  local $add_19 u8
+  local.get 0
+  i64.const 0
+  i64.eq
+  if $L0 void
+    return.lit string.const 3
+  end $L0
+  local.get 0
+  i64.const 0
+  i64.lt
+  local.set 1
+  local.get 0
+  i64.const 0
+  i64.gt
+  if $L1 void
+    local.get 0
+    i64.neg
+    local.set 0
+  else
+  end $L1
+  array.new 17 0
+  local.set 2
+  block $L2 void
+    loop $L3 void
+      local.get 0
+      i64.const 0
+      i64.ne
+      if $L4 void
+        i32.const 48
+        local.set 3
+        local.get 0
+        i64.const 10
+        i64.rem
+        i64.neg
+        i64.to_i32
+        local.set 4
+        local.get 3
+        local.get 4
+        i32.add
+        local.set 5
+        local.get 2
+        local.get 5
+        array.push 18
+        local.get 0
+        i64.const 10
+        i64.div
+        local.set 0
+        br $L3
+      else
+      end $L4
+    end $L3
+  end $L2
+  local.get 2
+  local.get 1
+  call 29
+  return
+end
+
+fn 29 std_core$finish_digits (ref,bool) -> string
+  local out ref
+  local $k_4 u8
+  local k usize
+  local i usize
+  local $k_10 usize
+  local $sub_12 usize
+  local $k_14 usize
+  array.new 17 0
+  local.set 2
+  local.get 1
+  if $L0 void
+    i32.const 45
+    local.set 3
+    local.get 2
+    local.get 3
+    array.push 18
+  else
+  end $L0
+  local.get 0
+  array.len
+  local.set 4
+  i64.const 0
+  local.set 5
+  block $L1 void
+    loop $L2 void
+      local.get 5
+      local.get 4
+      u64.lt
+      if $L3 void
+        i64.const 1
+        local.set 6
+        local.get 4
+        local.get 6
+        i64.sub
+        local.get 5
+        i64.sub
+        local.set 7
+        local.get 0
+        local.get 7
+        array.get 17
+        ref.cast 18
+        local.set 3
+        local.get 2
+        local.get 3
+        array.push 18
+        i64.const 1
+        local.set 8
+        local.get 5
+        local.get 8
+        i64.add
+        local.set 5
+        br $L2
+      else
+      end $L3
+    end $L2
+  end $L1
+  local.get 2
+  call.import 0
+  return
+end
+
+fn 30 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+  local.get 0
+  object_new 0
+  return
+end
+
+fn 31 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+  local.get 0
+  local.get 1
+  buffer_to_string
+  return
+end
+
+fn 32 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+  local.get 0
+  local.get 1
+  local.get 2
+  buffer_write_string
   return
 end

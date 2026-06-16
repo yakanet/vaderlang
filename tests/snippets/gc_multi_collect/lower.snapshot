@@ -59,17 +59,34 @@
             std_io$std_io$println__string :void
           arg0:
             block :string
-              let __sb_0: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_0 :?
-                "expected 3 collections, got " :string
-              @builder.append_display <for i32> :void
-                __sb_0 :?
-                diff :i32
+              let __sb_0: StringBuilder =
+                call :StringBuilder
+                  callee:
+                    new_builder :StringBuilder
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_0 :StringBuilder
+                arg1:
+                  "expected 3 collections, got " :string
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_0 :StringBuilder
+                arg1:
+                  call :string
+                    callee:
+                      std_core$i32$Display$to_string :string
+                    arg0:
+                      diff :i32
               ~>
-                @builder.finish :string
-                  __sb_0 :?
+                call :string
+                  callee:
+                    std_string_builder$StringBuilder$Display$to_string :string
+                  arg0:
+                    __sb_0 :StringBuilder
         return int(1) :i32
     let sum: i32 = int(0) :i32
     let cur: null | Pair = head :null | Pair
@@ -144,38 +161,84 @@
             std_io$std_io$println__string :void
           arg0:
             block :string
-              let __sb_2: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_2 :?
-                "sum mismatch after 3 collections: " :string
-              @builder.append_display <for i32> :void
-                __sb_2 :?
-                sum :i32
-              @builder.append_str :void
-                __sb_2 :?
-                " vs " :string
-              @builder.append_display <for i32> :void
-                __sb_2 :?
-                expected :i32
+              let __sb_2: StringBuilder =
+                call :StringBuilder
+                  callee:
+                    new_builder :StringBuilder
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_2 :StringBuilder
+                arg1:
+                  "sum mismatch after 3 collections: " :string
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_2 :StringBuilder
+                arg1:
+                  call :string
+                    callee:
+                      std_core$i32$Display$to_string :string
+                    arg0:
+                      sum :i32
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_2 :StringBuilder
+                arg1:
+                  " vs " :string
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_2 :StringBuilder
+                arg1:
+                  call :string
+                    callee:
+                      std_core$i32$Display$to_string :string
+                    arg0:
+                      expected :i32
               ~>
-                @builder.finish :string
-                  __sb_2 :?
+                call :string
+                  callee:
+                    std_string_builder$StringBuilder$Display$to_string :string
+                  arg0:
+                    __sb_2 :StringBuilder
         return int(2) :i32
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_3: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_3 :?
-            "ok: 50 nodes survived 3 collections; sum=" :string
-          @builder.append_display <for i32> :void
-            __sb_3 :?
-            sum :i32
+          let __sb_3: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_3 :StringBuilder
+            arg1:
+              "ok: 50 nodes survived 3 collections; sum=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_3 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  sum :i32
           ~>
-            @builder.finish :string
-              __sb_3 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_3 :StringBuilder
     return int(0) :i32

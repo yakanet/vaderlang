@@ -44,17 +44,34 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_3: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_3 :?
-            "arr=" :string
-          @builder.append_display <for i32> :void
-            __sb_3 :?
-            arr_total :i32
+          let __sb_3: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_3 :StringBuilder
+            arg1:
+              "arr=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_3 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  arr_total :i32
           ~>
-            @builder.finish :string
-              __sb_3 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_3 :StringBuilder
     let m: MutableMap<string, i32> =
       MutableMap<string, i32> {
         buckets:
@@ -148,17 +165,34 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_10: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_10 :?
-            "map=" :string
-          @builder.append_display <for i32> :void
-            __sb_10 :?
-            map_total :i32
+          let __sb_10: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_10 :StringBuilder
+            arg1:
+              "map=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_10 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  map_total :i32
           ~>
-            @builder.finish :string
-              __sb_10 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_10 :StringBuilder
     let s: MutableSet<i32> =
       MutableSet<i32> {
         inner:
@@ -253,17 +287,34 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_17: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_17 :?
-            "set=" :string
-          @builder.append_display <for i32> :void
-            __sb_17 :?
-            set_total :i32
+          let __sb_17: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_17 :StringBuilder
+            arg1:
+              "set=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_17 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  set_total :i32
           ~>
-            @builder.finish :string
-              __sb_17 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_17 :StringBuilder
     let chars: i32 = int(0) :i32
     unreachable("no Iterator impl on string") :void
     call :void
@@ -271,17 +322,34 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_18: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_18 :?
-            "chars=" :string
-          @builder.append_display <for i32> :void
-            __sb_18 :?
-            chars :i32
+          let __sb_18: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_18 :StringBuilder
+            arg1:
+              "chars=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_18 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  chars :i32
           ~>
-            @builder.finish :string
-              __sb_18 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_18 :StringBuilder
     return int(0) :i32
 
 # Diagnostics

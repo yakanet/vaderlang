@@ -127,31 +127,41 @@ fn snippet$main() -> i32
     %15 q: Vec (local q)
     %16 $call_16: Vec
     %17 r: Vec (local r)
-    %18 $intrinsic_18: ?
-    %19 __sb_0: ? (synthetic __sb_0)
+    %18 $call_18: StringBuilder
+    %19 __sb_0: StringBuilder (synthetic __sb_0)
     %20 $k_20: string
     %21 $field_21: i32
-    %22 $k_22: string
-    %23 $field_23: i32
-    %24 $k_24: string
-    %25 $field_25: i32
+    %22 $call_22: string
+    %23 $k_23: string
+    %24 $field_24: i32
+    %25 $call_25: string
     %26 $k_26: string
     %27 $field_27: i32
-    %28 $k_28: string
-    %29 $field_29: i32
-    %30 $k_30: string
-    %31 $field_31: i32
+    %28 $call_28: string
+    %29 $k_29: string
+    %30 $field_30: i32
+    %31 $call_31: string
     %32 $k_32: string
     %33 $field_33: i32
-    %34 $k_34: string
-    %35 $field_35: i32
-    %36 $k_36: string
-    %37 $field_37: i32
+    %34 $call_34: string
+    %35 $k_35: string
+    %36 $field_36: i32
+    %37 $call_37: string
     %38 $k_38: string
     %39 $field_39: i32
-    %40 $k_40: string
-    %41 $intrinsic_41: string
-    %42 $k_42: i32
+    %40 $call_40: string
+    %41 $k_41: string
+    %42 $field_42: i32
+    %43 $call_43: string
+    %44 $k_44: string
+    %45 $field_45: i32
+    %46 $call_46: string
+    %47 $k_47: string
+    %48 $field_48: i32
+    %49 $call_49: string
+    %50 $k_50: string
+    %51 $call_51: string
+    %52 $k_52: i32
   bb0:
     %0 = const int(10) :i32
     %1 = const int(20) :i32
@@ -171,51 +181,61 @@ fn snippet$main() -> i32
     %15 = move %14
     %16 = call snippet$Vec$Rem$rem(%3, %7) :Vec
     %17 = move %16
-    %18 = intrinsic builder.new()
+    %18 = call new_builder() :StringBuilder
     %19 = move %18
     %20 = const string(#1) :string
-    intrinsic builder.append_str(%19, %20)
+    call append(%19, %20) :void
     %21 = field_get %9.x :i32
-    intrinsic builder.append_display(%19, %21)
-    %22 = const string(#2) :string
-    intrinsic builder.append_str(%19, %22)
-    %23 = field_get %9.y :i32
-    intrinsic builder.append_display(%19, %23)
-    %24 = const string(#3) :string
-    intrinsic builder.append_str(%19, %24)
-    %25 = field_get %11.x :i32
-    intrinsic builder.append_display(%19, %25)
-    %26 = const string(#2) :string
-    intrinsic builder.append_str(%19, %26)
-    %27 = field_get %11.y :i32
-    intrinsic builder.append_display(%19, %27)
-    %28 = const string(#4) :string
-    intrinsic builder.append_str(%19, %28)
-    %29 = field_get %13.x :i32
-    intrinsic builder.append_display(%19, %29)
-    %30 = const string(#2) :string
-    intrinsic builder.append_str(%19, %30)
-    %31 = field_get %13.y :i32
-    intrinsic builder.append_display(%19, %31)
-    %32 = const string(#5) :string
-    intrinsic builder.append_str(%19, %32)
-    %33 = field_get %15.x :i32
-    intrinsic builder.append_display(%19, %33)
-    %34 = const string(#2) :string
-    intrinsic builder.append_str(%19, %34)
-    %35 = field_get %15.y :i32
-    intrinsic builder.append_display(%19, %35)
-    %36 = const string(#6) :string
-    intrinsic builder.append_str(%19, %36)
-    %37 = field_get %17.x :i32
-    intrinsic builder.append_display(%19, %37)
-    %38 = const string(#2) :string
-    intrinsic builder.append_str(%19, %38)
-    %39 = field_get %17.y :i32
-    intrinsic builder.append_display(%19, %39)
-    %40 = const string(#7) :string
-    intrinsic builder.append_str(%19, %40)
-    %41 = intrinsic builder.finish(%19)
-    call std_io$std_io$println__string(%41) :void
-    %42 = const int(0) :i32
-    return %42
+    %22 = call std_core$i32$Display$to_string(%21) :string
+    call append(%19, %22) :void
+    %23 = const string(#2) :string
+    call append(%19, %23) :void
+    %24 = field_get %9.y :i32
+    %25 = call std_core$i32$Display$to_string(%24) :string
+    call append(%19, %25) :void
+    %26 = const string(#3) :string
+    call append(%19, %26) :void
+    %27 = field_get %11.x :i32
+    %28 = call std_core$i32$Display$to_string(%27) :string
+    call append(%19, %28) :void
+    %29 = const string(#2) :string
+    call append(%19, %29) :void
+    %30 = field_get %11.y :i32
+    %31 = call std_core$i32$Display$to_string(%30) :string
+    call append(%19, %31) :void
+    %32 = const string(#4) :string
+    call append(%19, %32) :void
+    %33 = field_get %13.x :i32
+    %34 = call std_core$i32$Display$to_string(%33) :string
+    call append(%19, %34) :void
+    %35 = const string(#2) :string
+    call append(%19, %35) :void
+    %36 = field_get %13.y :i32
+    %37 = call std_core$i32$Display$to_string(%36) :string
+    call append(%19, %37) :void
+    %38 = const string(#5) :string
+    call append(%19, %38) :void
+    %39 = field_get %15.x :i32
+    %40 = call std_core$i32$Display$to_string(%39) :string
+    call append(%19, %40) :void
+    %41 = const string(#2) :string
+    call append(%19, %41) :void
+    %42 = field_get %15.y :i32
+    %43 = call std_core$i32$Display$to_string(%42) :string
+    call append(%19, %43) :void
+    %44 = const string(#6) :string
+    call append(%19, %44) :void
+    %45 = field_get %17.x :i32
+    %46 = call std_core$i32$Display$to_string(%45) :string
+    call append(%19, %46) :void
+    %47 = const string(#2) :string
+    call append(%19, %47) :void
+    %48 = field_get %17.y :i32
+    %49 = call std_core$i32$Display$to_string(%48) :string
+    call append(%19, %49) :void
+    %50 = const string(#7) :string
+    call append(%19, %50) :void
+    %51 = call std_string_builder$StringBuilder$Display$to_string(%19) :string
+    call std_io$std_io$println__string(%51) :void
+    %52 = const int(0) :i32
+    return %52

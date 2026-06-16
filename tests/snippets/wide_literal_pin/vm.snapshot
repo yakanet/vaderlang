@@ -1,0 +1,7 @@
+# stdout
+face1 read-key:  42
+face2 set-value: 9000000000
+face2 set-key:   7
+face3 explicit:  9000000000
+# exit
+0

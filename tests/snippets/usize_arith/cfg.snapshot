@@ -9,10 +9,10 @@ fn snippet$main() -> i32
     %2 $k_2: usize
     %3 $add_3: usize
     %4 m: usize (local m)
-    %5 $intrinsic_5: ?
-    %6 __sb_0: ? (synthetic __sb_0)
+    %5 $call_5: StringBuilder
+    %6 __sb_0: StringBuilder (synthetic __sb_0)
     %7 $call_7: string
-    %8 $intrinsic_8: string
+    %8 $call_8: string
     %9 $k_9: i32
   bb0:
     %0 = const int(10) :usize
@@ -20,11 +20,11 @@ fn snippet$main() -> i32
     %2 = const int(1) :usize
     %3 = binop 0 %1 %2 :usize
     %4 = move %3
-    %5 = intrinsic builder.new()
+    %5 = call new_builder() :StringBuilder
     %6 = move %5
     %7 = call std_core$usize$Display$to_string(%4) :string
-    intrinsic builder.append_str(%6, %7)
-    %8 = intrinsic builder.finish(%6)
+    call append(%6, %7) :void
+    %8 = call std_string_builder$StringBuilder$Display$to_string(%6) :string
     call std_io$std_io$println__string(%8) :void
     %9 = const int(0) :i32
     return %9

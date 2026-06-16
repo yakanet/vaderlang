@@ -19,7 +19,7 @@ module "vader/resolver"
 import "std/io" { exists, is_dir, read_dir, read_file, current_executable_location }
 import "std/path" { Path, to_path, as_string, parent }
 import "std/sort" { sort }
-import "std/string" { bytes, trim_prefix, compare_ascending, ends_with, starts_with }
+import "std/string" { trim_prefix, compare_ascending, ends_with, starts_with }
 import "vader/parser" { NodeIdFactory, Program, parse_source }
 
 /// `import "std/..."` and stdlib display paths share this prefix.

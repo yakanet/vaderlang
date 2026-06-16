@@ -102,7 +102,7 @@
               cat_wrap_result :i32
             r:
               int(8) :i32
-  struct snippet$Wrapper__i32 { inner: Any }
+  struct snippet$Wrapper__i32 { inner: i32 }
   fn snippet$Wrapper$Printable$label__i32(self: Wrapper<i32>) -> string
     return "wrapped" :string
   struct snippet$Wrapper__Any { inner: Any }

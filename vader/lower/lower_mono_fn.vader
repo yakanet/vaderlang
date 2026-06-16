@@ -9,10 +9,10 @@ import "std/string" { compare_ascending }
 import "std/string_builder" { new_builder, append }
 
 import "vader/diagnostics" { Diagnostic, Span }
-import "vader/parser" { Decl, FnDecl }
+import "vader/parser" { Decl, FnDecl, ArrayTypeExpr, IdentExpr }
 import "vader/resolver" { LoadedProject, LoadedModule }
 import "vader/typecheck" { TypedProject, TypedProgram, Substitution, substitute }
-import "vader/types" { display_type }
+import "vader/types" { Type, display_type }
 import "vader/comptime" { MonoEntry }
 import "vader/resolver/symbol" { Symbol }
 
@@ -221,19 +221,25 @@ build_fn_instance_decl :: fn(
     if owner_module is null { return null }
     fn_decl :: find_fn_decl_for_symbol(module_decls(owner_module), inst.fn_symbol, inst.type_args.len())
     if fn_decl is null { return null }
-    // Erasure vs concrete subst (GATE A) : a generic fn whose body
-    // trait-dispatches on a type-param (e.g. `println<T: Display>` calling
-    // `msg.to_string()`) must stay CONCRETE per instance — erasing `T` to
-    // `Any` lowers the dispatch to `virtual.call` on a `ref _` receiver
-    // that no vtable resolves (the mode-a gap). Typecheck flags these in
-    // `fn_trait_dispatches`. Everything else still erases to `Any` (TS does
-    // the same — concrete-everywhere regresses non-dispatching generics).
-    dispatches :: owner_typed.fn_trait_dispatches[fn_decl.id] is bool
-    subst :: if dispatches {
-        build_fn_concrete_subst(fn_decl, owner_typed, inst.type_args)
-    } else {
-        build_fn_any_subst(fn_decl, owner_typed)
+    // Monomorphization flavor (.NET model) — see `fn_instance_flavor`. Replaces the
+    // old `dispatches || returns_typeparam_array || all_type_args_monomorphizable`
+    // predicate with a 3-way classifier shared with the call site so the registered
+    // instance mangle reconciles with this body:
+    //   Mono   — trait-dispatch (`fn_trait_dispatches`, the `virtual.call`-on-`ref _`
+    //            gap) OR a bare type-param array return (the result's element kind
+    //            must be concrete, S5 Solution A). Full-concrete subst.
+    //   Mixed  — ≥1 primitive arg: keep primitives concrete (devirt + primops/atom-eq
+    //            inline), erase refs to `Any` via `build_fn_mixed_subst`. Mangle-indexed.
+    //   Erased — all-reference: uniform pointer like Java, symbol-id indexed + deduped.
+    // Mono+Mixed are both mangle-indexed (entry_symbol=null). Mixed SUBSUMES Inc 1's
+    // narrow all-primitive case (an all-primitive mixed subst equals the concrete one).
+    flavor :: fn_instance_flavor(fn_decl, owner_typed, inst.type_args)
+    subst :: match flavor {
+        .Mono   -> build_fn_concrete_subst(fn_decl, owner_typed, inst.type_args)
+        .Mixed  -> build_fn_mixed_subst(fn_decl, owner_typed, inst.type_args)
+        .Erased -> build_fn_any_subst(fn_decl, owner_typed)
     }
+    force_concrete :: flavor == InstanceFlavor.Mono || flavor == InstanceFlavor.Mixed
     types :: make_entry_types(owner_typed, subst)
     params: LoweredParam[] = []
     for ast_param in fn_decl.params {
@@ -256,7 +262,7 @@ build_fn_instance_decl :: fn(
     // which sets `.symbol = null` on impl members for the same reason.
     // Erased (non-dispatching) instances keep the symbol — they collapse to
     // one decl per symbol id via the erasure-dedupe below.
-    entry_symbol: Symbol | null = if dispatches { null } else { inst.fn_symbol }
+    entry_symbol: Symbol | null = if force_concrete { null } else { inst.fn_symbol }
     entry :: MonoEntry {
         .id             = i32(0),
         .is_main        = false,
@@ -272,7 +278,10 @@ build_fn_instance_decl :: fn(
         .module_id    = owner_module_id,
         .key          = key,
         .fn_symbol_id = inst.fn_symbol.id,
-        .dispatches   = dispatches,
+        // `dispatches` now gates "kept concrete per instance" — trait-dispatch
+        // (GATE A) OR a bare type-param array return (S5 force-concrete). Both
+        // skip the erasure-dedupe collapse in `flush_generic_fn_instances`.
+        .dispatches   = force_concrete,
         .decl         = LoweredFnDecl {
             .mangled     = inst.mangled,
             .params      = params,
@@ -283,6 +292,81 @@ build_fn_instance_decl :: fn(
         .synth_start  = synth_start,
         .synth_end    = project_ctx.synth_decls.len(),
     }
+}
+
+// True when `fn_decl` returns a bare `T[]` whose element is one of its own
+// type-params — the array-constructor shape (`collect`/`map`/`clone`/`chain`/
+// `filter`/`flat_map`/`keys`/`values`/`sort`). Such a fn is force-concreted by
+// GATE A (S5 Solution A) so a `T = i32` instance builds an I32-kind array
+// instead of the erased BOXED kind. Deliberately narrow: a non-bare element
+// (`[T, U][]`, `Pair<T, U>[]`) is BOXED-kind regardless, so leaving it erased is
+// sound — its reads route through the legacy runtime-dispatched op.
+returns_typeparam_array :: fn(fn_decl: FnDecl) -> bool {
+    rt :: fn_decl.return_type
+    if rt == null { return false }
+    if rt is ArrayTypeExpr as a {
+        if a.element is IdentExpr as id {
+            for tp in fn_decl.type_params {
+                if tp.name == id.name { return true }
+            }
+        }
+    }
+    return false
+}
+
+// Monomorphization flavor of a generic free-fn instance (.NET model). Drives BOTH
+// the materialised body's substitution AND the instance-mangle suffix, so the two
+// MUST be computed from one classifier — `fn_instance_flavor` — at both the call
+// site and the materialiser, or the registered mangle and the body drift apart.
+//   Mono   — full-concrete subst + `mono_suffix`. Trait-dispatch (the dispatch
+//            vtable needs the concrete struct) or a bare type-param array return
+//            (the result array's element kind must be concrete, S5 Solution A).
+//   Mixed  — `build_fn_mixed_subst` + `mixed_any_suffix`. ≥1 primitive arg: keep
+//            primitives concrete (devirt + primops/atom-eq inline), erase refs to
+//            `Any`. Mangle-indexed (entry_symbol=null), invariant under ref-erasure.
+//   Erased — `build_fn_any_subst`, symbol-id indexed (flush keeps one body per fn).
+//            All-reference args: nothing to monomorphize, uniform pointer like Java.
+InstanceFlavor :: enum { Mono, Mixed, Erased }
+
+// Core classifier. `dispatches` mirrors `build_fn_instance_decl`'s historical
+// check (`fn_trait_dispatches[fn_decl.id]`). Order matters: Mono (dispatch /
+// array-return) is checked before Mixed so an array-returning fn with a primitive
+// arg stays full-concrete.
+fn_instance_flavor :: fn(fn_decl: FnDecl, owner_typed: TypedProgram, type_args: Type[]) -> InstanceFlavor {
+    if owner_typed.fn_trait_dispatches[fn_decl.id] is bool { return .Mono }
+    if returns_typeparam_array(fn_decl) { return .Mono }
+    if has_any_primitive_arg(type_args) { return .Mixed }
+    return .Erased
+}
+
+// Call-site view of `fn_instance_flavor`: resolve the callee's owning-module typed
+// program + fn decl from `fn_sym`, then classify. Returns `Erased` on any lookup
+// miss — safe, because an Erased instance resolves by symbol-id and never matches
+// on its mangle, so its suffix is irrelevant. The suffix the call site derives from
+// this MUST equal the flavor the materialiser computes for the same instance.
+call_site_fn_flavor :: fn(ctx: FnLowerCtx, fn_sym: Symbol, type_args: Type[]) -> InstanceFlavor {
+    owner_typed :: ctx.project.typed.modules[fn_sym.module]
+    if owner_typed is TypedProgram as ot {
+        owner_loaded :: ctx.project.loaded.modules[fn_sym.module]
+        if owner_loaded is LoadedModule as ol {
+            fd :: find_fn_decl_for_symbol(module_decls(ol), fn_sym, type_args.len())
+            if fd is FnDecl as f { return fn_instance_flavor(f, ot, type_args) }
+        }
+    }
+    return InstanceFlavor.Erased
+}
+
+// The instance-mangle suffix a generic free-fn CALL SITE must use, matching the
+// flavor the materialiser will pick: `mixed_any_suffix` for a Mixed instance
+// (invariant under ref-erasure so top-level `[string, StructA]` and a transitive
+// `[string, Any]` reconcile on one body), else `mono_suffix`. Shared by all three
+// call-site mangle builders (`emit_generic_fn_call`, `register_and_emit_generic_call`,
+// `try_lower_ufcs_call`) so the registered mangle + inst_key reconcile with the body.
+call_site_instance_suffix :: fn(ctx: FnLowerCtx, fn_sym: Symbol, concrete_args: Type[]) -> string {
+    if call_site_fn_flavor(ctx, fn_sym, concrete_args) == InstanceFlavor.Mixed {
+        return mixed_any_suffix(concrete_args)
+    }
+    return mono_suffix(concrete_args)
 }
 
 find_fn_decl_by_name :: fn(decls: Decl[], name: string, arity: usize) -> FnDecl | null {

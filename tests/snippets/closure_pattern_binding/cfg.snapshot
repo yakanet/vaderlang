@@ -14,23 +14,25 @@ fn snippet$greet(%0: i32 | P) -> void
     %7 $closure_7: fn() -> string
     %8 shout: fn() -> string (local shout)
     %9 $call_ind_9: string
-    %10 $intrinsic_10: ?
-    %11 __sb_4: ? (synthetic __sb_4)
+    %10 $call_10: StringBuilder
+    %11 __sb_4: StringBuilder (synthetic __sb_4)
     %12 $k_12: string
     %13 $call_ind_13: string
-    %14 $intrinsic_14: string
-    %15 $type_check_15: bool
-    %16 $cast_16: i32
-    %17 $cell_17: ?
-    %18 n: ? (binding n)
-    %19 $struct_19: __lambda_env_3
-    %20 $closure_20: fn() -> i32
-    %21 doubled: fn() -> i32 (local doubled)
-    %22 $intrinsic_22: ?
-    %23 __sb_2: ? (synthetic __sb_2)
-    %24 $k_24: string
-    %25 $call_ind_25: i32
-    %26 $intrinsic_26: string
+    %14 $call_14: string
+    %15 $call_15: string
+    %16 $type_check_16: bool
+    %17 $cast_17: i32
+    %18 $cell_18: ?
+    %19 n: ? (binding n)
+    %20 $struct_20: __lambda_env_3
+    %21 $closure_21: fn() -> i32
+    %22 doubled: fn() -> i32 (local doubled)
+    %23 $call_23: StringBuilder
+    %24 __sb_2: StringBuilder (synthetic __sb_2)
+    %25 $k_25: string
+    %26 $call_ind_26: i32
+    %27 $call_27: string
+    %28 $call_28: string
   bb0:
     %1 = move %0
     %2 = type_check %1 is P
@@ -44,35 +46,37 @@ fn snippet$greet(%0: i32 | P) -> void
     %8 = move %7
     %9 = call_indirect %8() :string
     call std_io$std_io$println__string(%9) :void
-    %10 = intrinsic builder.new()
+    %10 = call new_builder() :StringBuilder
     %11 = move %10
     %12 = const string(#0) :string
-    intrinsic builder.append_str(%11, %12)
+    call append(%11, %12) :void
     %13 = call_indirect %8() :string
-    intrinsic builder.append_display(%11, %13)
-    %14 = intrinsic builder.finish(%11)
-    call std_io$std_io$println__string(%14) :void
+    %14 = call std_core$string$Display$to_string(%13) :string
+    call append(%11, %14) :void
+    %15 = call std_string_builder$StringBuilder$Display$to_string(%11) :string
+    call std_io$std_io$println__string(%15) :void
     branch -> bb3
   bb2:
-    %15 = type_check %1 is i32
-    cond_branch %15 ? bb4 : bb5
+    %16 = type_check %1 is i32
+    cond_branch %16 ? bb4 : bb5
   bb3:
     return
   bb4:
-    %16 = cast %1 :i32
-    %17 = cell_new %16 :i32
-    %18 = move %17
-    %19 = struct_new __lambda_env_3(%18)
-    %20 = make_closure __lambda_2 env=%19 :fn() -> i32
-    %21 = move %20
-    %22 = intrinsic builder.new()
-    %23 = move %22
-    %24 = const string(#1) :string
-    intrinsic builder.append_str(%23, %24)
-    %25 = call_indirect %21() :i32
-    intrinsic builder.append_display(%23, %25)
-    %26 = intrinsic builder.finish(%23)
-    call std_io$std_io$println__string(%26) :void
+    %17 = cast %1 :i32
+    %18 = cell_new %17 :i32
+    %19 = move %18
+    %20 = struct_new __lambda_env_3(%19)
+    %21 = make_closure __lambda_2 env=%20 :fn() -> i32
+    %22 = move %21
+    %23 = call new_builder() :StringBuilder
+    %24 = move %23
+    %25 = const string(#1) :string
+    call append(%24, %25) :void
+    %26 = call_indirect %22() :i32
+    %27 = call std_core$i32$Display$to_string(%26) :string
+    call append(%24, %27) :void
+    %28 = call std_string_builder$StringBuilder$Display$to_string(%24) :string
+    call std_io$std_io$println__string(%28) :void
     branch -> bb6
   bb5:
     unreachable ; non-exhaustive match (T3013 should have caught this)
@@ -113,21 +117,23 @@ fn __lambda_2(%0: __lambda_env_3) -> i32
 fn __lambda_6(%0: __lambda_env_7) -> string
   locals:
     %0 __env_3: __lambda_env_7 (synthetic __env_3)
-    %1 $intrinsic_1: ?
-    %2 __sb_0: ? (synthetic __sb_0)
+    %1 $call_1: StringBuilder
+    %2 __sb_0: StringBuilder (synthetic __sb_0)
     %3 $k_3: string
     %4 $field_4: ?
     %5 $cell_get_5: P
     %6 $field_6: string
-    %7 $intrinsic_7: string
+    %7 $call_7: string
+    %8 $call_8: string
   bb0:
-    %1 = intrinsic builder.new()
+    %1 = call new_builder() :StringBuilder
     %2 = move %1
     %3 = const string(#3) :string
-    intrinsic builder.append_str(%2, %3)
+    call append(%2, %3) :void
     %4 = field_get %0.cap_0 :?
     %5 = cell_get %4 :P
     %6 = field_get %5.name :string
-    intrinsic builder.append_display(%2, %6)
-    %7 = intrinsic builder.finish(%2)
-    return %7
+    %7 = call std_core$string$Display$to_string(%6) :string
+    call append(%2, %7) :void
+    %8 = call std_string_builder$StringBuilder$Display$to_string(%2) :string
+    return %8

@@ -31,6 +31,10 @@ Completed items (`[x]`) are kept as one-liners — see git history for implement
 
 - [ ] **Warn on unused imports** (added 2026-06-07). An imported name that's never referenced in the file earns a compilation warning (new W-code). Covers both import forms : `import "path" { Name1, Name2 }` — each destructured name must be used at least once — and the namespace form `xx :: import "path"` — the binding `xx` must be referenced at least once (e.g. `xx.Member`), else the whole import is dead. Lives in the resolver / typecheck pass that already tracks which imported symbols were touched ; emit one warning per unused name, pointing at its import-list span. Update `SPEC.md` (imports section) in the same commit.
 
+- [ ] **`string.len()` / `s.chars().count()` c-emit codegen bug** (added 2026-06-15, surfaced by the ABI benches). A `string`'s `.len()` (which desugars to `s.chars().count()`) used in an arithmetic / interpolation context emits malformed C — `error: invalid suffix 'payload.obj' on floating constant` (e.g. `total + s.len()`). **Pre-existing on both `main` and `feat/target-abi`** — not introduced by the ABI migration ; it blocked the cross-branch timing of the `str_concat` / `interp` micro-benches against `main`. The emitted C glues a numeric literal to a `.payload.obj` field access without the needed separator / cast. Lives in `vader/c_emit/` (numeric-literal vs field-access emission boundary). Narrow to a minimal `tests/snippets/_diag_*` snippet, then fix.
+
+- [x] **`StringBuilder.to_string` read-back regression** (found + fixed 2026-06-15 via ABI benches). The Buffer-fill model copied bytes per-`append` (a boxed per-byte `u8[]` read into the buffer) **and** read them back per-byte at `to_string` — measured 3.1-3.3× slower than `main`. Rather than patch the read-back, StringBuilder was returned to the **parts model** (`string[]` of references) : `append` is now an O(1) ref push, and `to_string` assembles all parts in one bulk pass — `total.new_buffer()` + per-part `write_string` (the new `BufferWriteString` memory opcode, a lean `memcpy` replacing `vader_string_concat_all`) + `intern_string` (`BufferToString`). Lands StringBuilder ≈ `main` with no fat runtime symbol. See `bench/string_builder`.
+
 ---
 
 ## Phase 1 — MVP compiler in TypeScript
@@ -102,6 +106,15 @@ Keep LoweredAST distinct. Tree rewrites (match/try/for-in/range desugar) are cle
 
 ### 1.13 Stdlib (in Vader) — partial
 - [ ] `std/core` finalisation, `std/io`, `std/string`, `std/math`.
+- [ ] **Float formatting → stdlib (Target ABI follow-up chantier).** `f32`/`f64`
+  `Display.to_string` stays host (libm `snprintf("%.*g")` + `strtod` shortest
+  round-trip) through Target-ABI Stage S1 — only `i*`/`u*`/`bool`/`char`/`string`
+  move to pure Vader there. A separate chantier should port float formatting to
+  pure Vader (Ryū / Grisu / Dragon4-class shortest-round-trip) to retire the last
+  two `vader_builder_append_display_f32/f64` and make float output bit-identical
+  across targets (a real plus for a compiler). Hard + float-rounding-risky — kept
+  out of S1 on purpose. See `.claude/plans/target-abi-migration.md` + the S1
+  decision (2026-06-07).
 - [x] `std/collections` — `MutableMap(K, V)` + `MutableSet(T)` chaining HashMap with FNV-1a string hash. Shared `len` / `is_empty` / `put` / `get` / `contains_key` / `add` / `contains` via first-param overloading.
 - [ ] **Immutable `Map`/`Set` ops + `to_immutable`** — re-add the struct decls when there's a real read-only-view design.
 - [x] Iterator impls for `MutableMap` / `MutableSet`.
@@ -116,7 +129,37 @@ Keep LoweredAST distinct. Tree rewrites (match/try/for-in/range desugar) are cle
 
 ### 1.13d Stdlib consolidation — partial
 > Shipped: hex/base helpers centralised in `std/numbers`, `std/json` char-predicate duplicates removed.
+- [ ] **Audit consistency across `std/core` / `std/string` / `std/utf8`** (noted 2026-06-15) — these three modules feel incoherent : overlapping / unclear ownership of the byte ↔ codepoint ↔ string surface (`bytes_to_string`/`as_string`, `bytes()`, codepoint vs byte cursors, UTF-8 encode/decode). Map which module owns what, dedup the overlap, and settle a clear layering (core = byte primitives + intern ; utf8 = encode/decode ; string = the codepoint-string API). Cross-ref the `bytes_to_string` reconciliation item below.
 - [ ] **Future audits** — revisit when new stdlib modules land. A shared `Cursor(T)` trait could unify `std/json` and `vader/lexer`'s hand-rolled cursors when a real need arises.
+- [ ] **Harden multi-file module support (compiler).** Surfaced 2026-06-08 splitting
+  `std/core` into `core.vader` + `primitives.vader` (same `module "std/core"`). The
+  comptime decl-lookup `files[0]`-only bug is fixed, but two latent single-file
+  assumptions remain (worked around, not fixed): (a) FRAGMENTATION — "a module's
+  decls" has 4 separate accessors (`lower::module_decls`,
+  `comptime/check::lookup_module_decls`, `comptime/specialize::module_decls_for`,
+  `typecheck/orchestrate::merge_module_program`); one shared accessor would make
+  "a pass reads files[0] only" unrepresentable. (b) the resolver body-walker is
+  structurally `files[0]`-only (`resolver/resolve.vader:153`, exploited by the
+  dump path `cli/main.vader:592`), already patched over with `symbols_by_name`
+  fallbacks (`typecheck/type_expr.vader:95`, `resolver/resolve.vader:42`) — later
+  files of a multi-file module aren't body-walked. Stale comment to fix:
+  `lower/lower_mono_fn.vader:19-22` ("flattened at load time" — they aren't).
+  Cross-pass invariant change → review before landing.
+- [ ] **Reconcile `u8[] → string` to `bytes_to_string`.** Target-ABI S1 adds the
+  canonical `bytes_to_string` (host intrinsic) in `std/core`. The tree still has
+  the legacy `as_string` (`std/string`) and a `bytes_as_string` import alias
+  (`as_string as bytes_as_string`, used in `std/path` / `vader/fmt` /
+  `vader/resolver` to dodge the `std/path::as_string` name collision) for the
+  same op — ~313 sites across 83 files. Migrate all to `bytes_to_string` and drop
+  the legacy names (pre-MVP, no back-compat).
+  Separate cleanup chantier, not S1.
+  - [ ] **Idea: `string(bytes)` cast form** — once `bytes_to_string` is canonical,
+    consider letting `string(xxx)` (where `xxx : u8[]`) be the surface for the
+    bytes→string conversion (cast syntax instead of / in addition to the
+    `.bytes_to_string()` method). Language-surface change → SPEC.md update if
+    pursued. Decide whether a `u8[] → string` cast reads clearly vs. being too
+    implicit (same byte-reinterpretation-vs-render concern that ruled out
+    `u8[] implements Into<string>`).
 
 ### 1.13e Language ergonomics surfaced by self-host port — partial
 
@@ -1052,6 +1095,7 @@ with -O2 -g + `sample`) — the hot path has moved several times already.
 - [ ] LSP server (in Vader) — diagnostics, hover, go-to-def, completion.
 - [ ] **LSP completeness roadmap** (added 2026-06-07) — plan in [`docs/LSP_COMPLETENESS.md`](./docs/LSP_COMPLETENESS.md). Takes the server from core navigation to feature-complete : shared infra (project-wide reference index, workspace-symbol index, cross-file diagnostics, file-watch, incremental analysis) then the feature tiers — quick wins (`documentSymbol`, `formatting` via the existing `vader/fmt`, `documentHighlight`, `foldingRange`, `documentLink`), navigation (`references`, `workspace/symbol`, `typeDefinition`, `implementation`, `callHierarchy`), productivity (`codeLens` run-test, completion docs, `linkedEditingRange`), and protocol modernization (pull diagnostics, incremental sync). Sequencing + per-feature code hooks in the doc. Cross-ref the `LSP code actions framework`, completion, rename, and find-references items.
 - [ ] **LSP : revisit hover signatures once the typechecker is self-host.** Today the indexer is AST-only ; hover on local bindings falls back to source slice + literal-suffix heuristics. When the typechecker lands in Vader (§2.6), consult its inferred-type table directly for proper `name: T` rendering. Same upgrade fixes param hover under generics + match-arm pattern bindings.
+- [ ] **LSP : inconsistent semantic highlighting** (noted 2026-06-15) — the syntax/semantic colouring isn't always consistent ; observed on `self` in `stdlib/std/core/primitives.vader`'s `Hash` impl block (`i8 implements Hash -> u64(self)` etc.) — `self` is highlighted/underlined inconsistently across otherwise-identical lines, and `isize` picks up a spurious squiggle. Revisit when reworking the LSP (likely the semantic-tokens classifier mis-scoping `self` / a stale diagnostic on `isize`).
 - [~] **LSP : inlay hints for inferred types** (LSP 3.17 `textDocument/inlayHint`). Landed in `vader/lsp/inlay_hint.vader` (steps 1-3 from the original plan : capability advertised, request routed, types pulled from `typed.local_types[span_key(sb.name_span)]` and `typed.decl_types[sym.id]`, defaulting + UnresolvedType / FreeInt / FreeFloat / TypeMeta filters in place). **Open bug (2026-05-26)** : on `stdlib/std/semver/semver.vader::parse` (and likely any large fn body), VS Code agglutinates every fn-body hint into a single visual cluster at one line instead of laying them out per-binding. Suspect either (a) `name_span.end.line` is identical across many `SimpleBinding`s — bug in the parser's span tracking for grouped lets, (b) `collect_from_stmt` runs more than once per binding, or (c) the position-calculation `sb.name_span.end.column + 1` is wrong for the actual one-space `name :: …` layout and crowds them onto a single column. Repro : open `stdlib/std/semver/semver.vader` in VS Code with the Vader extension active ; scroll to line 110-145 ; observe the cluster `u8 usize string string string i32[] usize string Er…` glued to the front of line 111. Investigation needed before declaring this closed.
 - [ ] **LSP : autocompletion** (`textDocument/completion`, added 2026-06-07). Advertise the `completionProvider` capability and route the request. Contexts to cover :
   - **Imports** — inside `import "…"` complete the module path (walk stdlib + `vader.json::modules` + the project tree) ; inside `import "path" { … }` complete the exported names of that resolved module.

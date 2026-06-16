@@ -40,25 +40,38 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_0: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_0 :?
-            "size = " :string
-          @builder.append_str :void
-            __sb_0 :?
+          let __sb_0: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              "size = " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$usize$Display$to_string :string
+                arg0:
+                  call :usize
+                    callee:
+                      std_collections$std_collections$len__string__i32 :usize
+                    arg0:
+                      m :MutableMap<string, i32>
+          ~>
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                call :usize
-                  callee:
-                    std_collections$std_collections$len__string__i32 :usize
-                  arg0:
-                    m :MutableMap<string, i32>
-          ~>
-            @builder.finish :string
-              __sb_0 :?
+                __sb_0 :StringBuilder
     let v1: i32 | null =
       call :i32 | null
         callee:
@@ -98,18 +111,35 @@
                             std_io$std_io$println__string :void
                           arg0:
                             block :string
-                              let __sb_2: ? =
-                                @builder.new :?
-                              @builder.append_str :void
-                                __sb_2 :?
-                                "hello = " :string
-                              @builder.append_display <for i32> :void
-                                __sb_2 :?
-                                cast → i32
-                                  v1 :i32 | null
+                              let __sb_2: StringBuilder =
+                                call :StringBuilder
+                                  callee:
+                                    new_builder :StringBuilder
+                              call :void
+                                callee:
+                                  append :void
+                                arg0:
+                                  __sb_2 :StringBuilder
+                                arg1:
+                                  "hello = " :string
+                              call :void
+                                callee:
+                                  append :void
+                                arg0:
+                                  __sb_2 :StringBuilder
+                                arg1:
+                                  call :string
+                                    callee:
+                                      std_core$i32$Display$to_string :string
+                                    arg0:
+                                      cast → i32
+                                        v1 :i32 | null
                               ~>
-                                @builder.finish :string
-                                  __sb_2 :?
+                                call :string
+                                  callee:
+                                    std_string_builder$StringBuilder$Display$to_string :string
+                                  arg0:
+                                    __sb_2 :StringBuilder
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -152,18 +182,35 @@
                             std_io$std_io$println__string :void
                           arg0:
                             block :string
-                              let __sb_4: ? =
-                                @builder.new :?
-                              @builder.append_str :void
-                                __sb_4 :?
-                                "world = " :string
-                              @builder.append_display <for i32> :void
-                                __sb_4 :?
-                                cast → i32
-                                  v2 :i32 | null
+                              let __sb_4: StringBuilder =
+                                call :StringBuilder
+                                  callee:
+                                    new_builder :StringBuilder
+                              call :void
+                                callee:
+                                  append :void
+                                arg0:
+                                  __sb_4 :StringBuilder
+                                arg1:
+                                  "world = " :string
+                              call :void
+                                callee:
+                                  append :void
+                                arg0:
+                                  __sb_4 :StringBuilder
+                                arg1:
+                                  call :string
+                                    callee:
+                                      std_core$i32$Display$to_string :string
+                                    arg0:
+                                      cast → i32
+                                        v2 :i32 | null
                               ~>
-                                @builder.finish :string
-                                  __sb_4 :?
+                                call :string
+                                  callee:
+                                    std_string_builder$StringBuilder$Display$to_string :string
+                                  arg0:
+                                    __sb_4 :StringBuilder
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -206,18 +253,35 @@
                             std_io$std_io$println__string :void
                           arg0:
                             block :string
-                              let __sb_6: ? =
-                                @builder.new :?
-                              @builder.append_str :void
-                                __sb_6 :?
-                                "vader = " :string
-                              @builder.append_display <for i32> :void
-                                __sb_6 :?
-                                cast → i32
-                                  v3 :i32 | null
+                              let __sb_6: StringBuilder =
+                                call :StringBuilder
+                                  callee:
+                                    new_builder :StringBuilder
+                              call :void
+                                callee:
+                                  append :void
+                                arg0:
+                                  __sb_6 :StringBuilder
+                                arg1:
+                                  "vader = " :string
+                              call :void
+                                callee:
+                                  append :void
+                                arg0:
+                                  __sb_6 :StringBuilder
+                                arg1:
+                                  call :string
+                                    callee:
+                                      std_core$i32$Display$to_string :string
+                                    arg0:
+                                      cast → i32
+                                        v3 :i32 | null
                               ~>
-                                @builder.finish :string
-                                  __sb_6 :?
+                                call :string
+                                  callee:
+                                    std_string_builder$StringBuilder$Display$to_string :string
+                                  arg0:
+                                    __sb_6 :StringBuilder
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -226,45 +290,79 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_7: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_7 :?
-            "has hello? " :string
-          @builder.append_display <for bool> :void
-            __sb_7 :?
-            call :bool
+          let __sb_7: StringBuilder =
+            call :StringBuilder
               callee:
-                std_collections$MutableMap$Contains$contains__string__i32 :bool
-              arg0:
-                m :MutableMap<string, i32>
-              arg1:
-                "hello" :string
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_7 :StringBuilder
+            arg1:
+              "has hello? " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_7 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$bool$Display$to_string :string
+                arg0:
+                  call :bool
+                    callee:
+                      std_collections$MutableMap$Contains$contains__string__i32 :bool
+                    arg0:
+                      m :MutableMap<string, i32>
+                    arg1:
+                      "hello" :string
           ~>
-            @builder.finish :string
-              __sb_7 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_7 :StringBuilder
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_8: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_8 :?
-            "has missing? " :string
-          @builder.append_display <for bool> :void
-            __sb_8 :?
-            call :bool
+          let __sb_8: StringBuilder =
+            call :StringBuilder
               callee:
-                std_collections$MutableMap$Contains$contains__string__i32 :bool
-              arg0:
-                m :MutableMap<string, i32>
-              arg1:
-                "missing" :string
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_8 :StringBuilder
+            arg1:
+              "has missing? " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_8 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$bool$Display$to_string :string
+                arg0:
+                  call :bool
+                    callee:
+                      std_collections$MutableMap$Contains$contains__string__i32 :bool
+                    arg0:
+                      m :MutableMap<string, i32>
+                    arg1:
+                      "missing" :string
           ~>
-            @builder.finish :string
-              __sb_8 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_8 :StringBuilder
     call :void
       callee:
         std_collections$MutableMap$IndexSet$set_at__string__i32 :void
@@ -313,18 +411,35 @@
                             std_io$std_io$println__string :void
                           arg0:
                             block :string
-                              let __sb_10: ? =
-                                @builder.new :?
-                              @builder.append_str :void
-                                __sb_10 :?
-                                "hello updated = " :string
-                              @builder.append_display <for i32> :void
-                                __sb_10 :?
-                                cast → i32
-                                  v1b :i32 | null
+                              let __sb_10: StringBuilder =
+                                call :StringBuilder
+                                  callee:
+                                    new_builder :StringBuilder
+                              call :void
+                                callee:
+                                  append :void
+                                arg0:
+                                  __sb_10 :StringBuilder
+                                arg1:
+                                  "hello updated = " :string
+                              call :void
+                                callee:
+                                  append :void
+                                arg0:
+                                  __sb_10 :StringBuilder
+                                arg1:
+                                  call :string
+                                    callee:
+                                      std_core$i32$Display$to_string :string
+                                    arg0:
+                                      cast → i32
+                                        v1b :i32 | null
                               ~>
-                                @builder.finish :string
-                                  __sb_10 :?
+                                call :string
+                                  callee:
+                                    std_string_builder$StringBuilder$Display$to_string :string
+                                  arg0:
+                                    __sb_10 :StringBuilder
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void

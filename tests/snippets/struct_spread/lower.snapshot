@@ -27,63 +27,145 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_1: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_1 :?
-            "base: a=" :string
-          @builder.append_display <for i32> :void
-            __sb_1 :?
-            .a :i32
-              base :P
-          @builder.append_str :void
-            __sb_1 :?
-            " b=" :string
-          @builder.append_display <for i32> :void
-            __sb_1 :?
-            .b :i32
-              base :P
-          @builder.append_str :void
-            __sb_1 :?
-            " c=" :string
-          @builder.append_display <for i32> :void
-            __sb_1 :?
-            .c :i32
-              base :P
+          let __sb_1: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              "base: a=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  .a :i32
+                    base :P
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              " b=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  .b :i32
+                    base :P
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              " c=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  .c :i32
+                    base :P
           ~>
-            @builder.finish :string
-              __sb_1 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_1 :StringBuilder
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_2: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_2 :?
-            "upd:  a=" :string
-          @builder.append_display <for i32> :void
-            __sb_2 :?
-            .a :i32
-              upd :P
-          @builder.append_str :void
-            __sb_2 :?
-            " b=" :string
-          @builder.append_display <for i32> :void
-            __sb_2 :?
-            .b :i32
-              upd :P
-          @builder.append_str :void
-            __sb_2 :?
-            " c=" :string
-          @builder.append_display <for i32> :void
-            __sb_2 :?
-            .c :i32
-              upd :P
+          let __sb_2: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              "upd:  a=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  .a :i32
+                    upd :P
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              " b=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  .b :i32
+                    upd :P
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              " c=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  .c :i32
+                    upd :P
           ~>
-            @builder.finish :string
-              __sb_2 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_2 :StringBuilder
     let other: P =
       P {
         a: int(10) :i32
@@ -109,30 +191,71 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_5: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_5 :?
-            "merged: a=" :string
-          @builder.append_display <for i32> :void
-            __sb_5 :?
-            .a :i32
-              merged :P
-          @builder.append_str :void
-            __sb_5 :?
-            " b=" :string
-          @builder.append_display <for i32> :void
-            __sb_5 :?
-            .b :i32
-              merged :P
-          @builder.append_str :void
-            __sb_5 :?
-            " c=" :string
-          @builder.append_display <for i32> :void
-            __sb_5 :?
-            .c :i32
-              merged :P
+          let __sb_5: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_5 :StringBuilder
+            arg1:
+              "merged: a=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_5 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  .a :i32
+                    merged :P
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_5 :StringBuilder
+            arg1:
+              " b=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_5 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  .b :i32
+                    merged :P
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_5 :StringBuilder
+            arg1:
+              " c=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_5 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  .c :i32
+                    merged :P
           ~>
-            @builder.finish :string
-              __sb_5 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_5 :StringBuilder
     return int(0) :i32

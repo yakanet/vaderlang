@@ -1,0 +1,53 @@
+module _main
+type 0 primitive null
+type 1 primitive i32
+type 2 array 3
+type 3 ref _
+type 4 array 1
+type 5 struct snippet$Point { x:1 }
+type 6 array 5
+export main 0
+
+fn 0 snippet$main () -> i32
+  local s i32
+  local $struct_8 ref
+  local $struct_10 ref
+  local $field_15 i32
+  i32.const 10
+  i32.const 20
+  i32.const 30
+  array.new 4 3
+  call 2
+  local.set 0
+  i32.const 1
+  struct.new 5
+  local.set 1
+  i32.const 2
+  struct.new 5
+  local.set 2
+  local.get 1
+  local.get 2
+  array.new 6 2
+  call 1
+  struct.get 5 0
+  ref.cast 1
+  local.set 3
+  local.get 0
+  local.get 3
+  i32.add
+  return
+end
+
+fn 1 snippet$snippet$second__Point (ref) -> ref
+  local.get 0
+  i32.const 1
+  array.get 2
+  return
+end
+
+fn 2 snippet$snippet$second__i32 (ref) -> i32
+  local.get 0
+  i32.const 1
+  load_slot_i32
+  return
+end

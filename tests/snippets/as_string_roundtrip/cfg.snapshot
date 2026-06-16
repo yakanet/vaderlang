@@ -22,12 +22,13 @@ fn snippet$main() -> i32
     %15 $call_15: const u8[]
     %16 $call_16: string
     %17 e: string (local e)
-    %18 $intrinsic_18: ?
-    %19 __sb_0: ? (synthetic __sb_0)
+    %18 $call_18: StringBuilder
+    %19 __sb_0: StringBuilder (synthetic __sb_0)
     %20 $k_20: string
-    %21 $k_21: string
-    %22 $intrinsic_22: string
-    %23 $k_23: i32
+    %21 $call_21: string
+    %22 $k_22: string
+    %23 $call_23: string
+    %24 $k_24: i32
   bb0:
     %0 = const string(#1) :string
     %1 = call bytes(%0) :const u8[]
@@ -50,14 +51,15 @@ fn snippet$main() -> i32
     %15 = call bytes(%14) :const u8[]
     %16 = call as_string(%15) :string
     %17 = move %16
-    %18 = intrinsic builder.new()
+    %18 = call new_builder() :StringBuilder
     %19 = move %18
     %20 = const string(#5) :string
-    intrinsic builder.append_str(%19, %20)
-    intrinsic builder.append_display(%19, %17)
-    %21 = const string(#6) :string
-    intrinsic builder.append_str(%19, %21)
-    %22 = intrinsic builder.finish(%19)
-    call std_io$std_io$println__string(%22) :void
-    %23 = const int(0) :i32
-    return %23
+    call append(%19, %20) :void
+    %21 = call std_core$string$Display$to_string(%17) :string
+    call append(%19, %21) :void
+    %22 = const string(#6) :string
+    call append(%19, %22) :void
+    %23 = call std_string_builder$StringBuilder$Display$to_string(%19) :string
+    call std_io$std_io$println__string(%23) :void
+    %24 = const int(0) :i32
+    return %24

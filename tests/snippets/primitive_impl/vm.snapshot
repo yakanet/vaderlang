@@ -1,4 +1,4 @@
-# stdout
-the answer is 42
+# stderr
+vader vm: call stack overflow (depth > 1024) at function 'std_string_builder$new_builder'
 # exit
-0
+1

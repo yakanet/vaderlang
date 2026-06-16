@@ -14,7 +14,7 @@ import "vader/diagnostics" { Diagnostic }
 import "vader/parser" { Stmt, LambdaExpr }
 import "vader/resolver/symbol" { Symbol }
 import "vader/types" { Type }
-import "vader/typecheck" { TypedProgram }
+import "vader/typecheck" { TypedProgram, TypedProject }
 import "vader/typecheck" { ImplRegistry, new_registry }
 import "vader/typecheck" { Substitution, new_substitution }
 import "vader/comptime" { EvaluatedProject }
@@ -43,11 +43,27 @@ export Capture :: struct {
 /// `defer body` thunks — the body lifts to a synthetic fn carrying its
 /// captured outer symbols through a `__defer_env_N` struct. Both
 /// populated by Phase 5's `analyze_closures`.
+///
+/// `lambda_captures` / `defer_captures` key by `capture_key(module, node.id)`
+/// — a MODULE-QUALIFIED node id, NOT the bare `node.id`. AST node ids are
+/// only unique *within a module* (the loader mints a fresh factory per
+/// module, `parse_module_files`), and this analysis is project-global (one
+/// map across every module), so a bare-id key collides across modules : a
+/// recursive self-capturing closure in module A then leaks its `[self]`
+/// capture into a same-id closure in module B, whose env packs an
+/// out-of-scope symbol → "unresolved ident" → mis-compile. `captured_symbols`
+/// keys by symbol id, which IS project-global-unique (one shared factory),
+/// so it needs no qualification.
 export ClosureAnalysis :: struct {
     captured_symbols: MutableSet<i32>
-    lambda_captures:  MutableMap<usize, Capture[]>
-    defer_captures:   MutableMap<usize, Capture[]>
+    lambda_captures:  MutableMap<string, Capture[]>
+    defer_captures:   MutableMap<string, Capture[]>
 }
+
+/// Module-qualified key for the closure-analysis capture maps. Combines the
+/// module's stable path with the node id so two modules' identically-numbered
+/// AST nodes don't collide in the project-global maps.
+export capture_key :: fn(module_path: string, node_id: usize) -> string = "${module_path}#${node_id}"
 
 /// Construct an empty `ClosureAnalysis`. Lets the phase-2 orchestrator
 /// build a `LowerProjectCtx` before the analyser has populated it.
@@ -57,8 +73,8 @@ export new_closure_analysis :: fn() -> ClosureAnalysis {
         .captured_symbols = MutableSet<i32> {
             .inner = MutableMap<i32, bool> {},
         },
-        .lambda_captures  = MutableMap<usize, Capture[]> {},
-        .defer_captures   = MutableMap<usize, Capture[]> {},
+        .lambda_captures  = MutableMap<string, Capture[]> {},
+        .defer_captures   = MutableMap<string, Capture[]> {},
     }
 }
 
@@ -76,6 +92,12 @@ export LowerProjectCtx :: struct {
     /// to a foreign StructDecl) don't have to thread `loaded` through
     /// every signature. Populated by `lower_project` at entry.
     loaded:              LoadedProject
+    /// Every module's typed program, keyed by module path. Threaded onto the
+    /// ctx so a generic-call lowering site (`emit_generic_fn_call`) can read the
+    /// callee's `fn_trait_dispatches` to pick the instance-mangle FLAVOR (Mono /
+    /// Mixed / Erased) consistently with the materialiser (`lower_mono_fn`). Same
+    /// `TypedProject` the materialiser already consumes — exposed earlier here.
+    typed:               TypedProject
     mono:                MonoProject
     impls:               ImplRegistry
 
@@ -83,19 +105,13 @@ export LowerProjectCtx :: struct {
     /// so trait / struct lookups don't re-walk the module map).
     core_symbols:        MutableMap<string, Symbol>
 
-    /// `name -> Symbol` from `std/iter`. Null when the project doesn't
-    /// import `std/iter` (in which case for-in chain fusion never fires).
-    iter_symbols:        MutableMap<string, Symbol> | null
-
-    /// `name -> Symbol` from `std/collections`. Null when the project
-    /// doesn't import `std/collections` (in which case the for-in
-    /// `MutableMap` / `MutableSet` inline path never fires).
-    collections_symbols: MutableMap<string, Symbol> | null
-
-    /// `name -> Symbol` from `std/string`. Lets the `s.bytes().len()`
-    /// peephole resolve the internal `byte_len` host fn (the O(1) fold
-    /// target). Null when the project doesn't import `std/string`.
-    string_symbols:      MutableMap<string, Symbol> | null
+    /// Per-(display-path) `name -> Symbol` cache backing `module_export` — a
+    /// generic replacement for the old hardcoded per-module tables (std/iter,
+    /// std/collections, std/string, std/string_builder). Lazily filled on the
+    /// first lookup of a path with that module's exports (an empty map for an
+    /// unloaded module, so chain-fusion / inline peepholes that gate on the
+    /// lookup simply don't fire).
+    module_symbol_cache: MutableMap<string, MutableMap<string, Symbol>>
 
     /// Per-trait `Symbol | null` cache — populated lazily on first
     /// `find_core_trait` hit. `null` means "looked up and not found".
@@ -265,16 +281,15 @@ export GenericFnInstance :: struct {
 /// at least allocate the shape.
 /// @param evaluated  the comptime engine's output for this project.
 /// @return           a fresh project context with empty side-tables.
-export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedProject) -> LowerProjectCtx {
+export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedProject, typed: TypedProject) -> LowerProjectCtx {
     return LowerProjectCtx {
         .evaluated           = evaluated,
         .loaded              = loaded,
+        .typed               = typed,
         .mono                = new_mono_project(),
         .impls               = new_registry(),
         .core_symbols        = MutableMap<string, Symbol> {},
-        .iter_symbols        = null,
-        .collections_symbols = null,
-        .string_symbols      = null,
+        .module_symbol_cache = MutableMap<string, MutableMap<string, Symbol>> {},
         .core_trait_cache    = MutableMap<string, Symbol | null> {},
         .comptime_value_by_symbol_id = MutableMap<i32, ComptimeValue> {},
         .local_symbol_indices = MutableMap<string, MutableMap<u64, Symbol>> {},
@@ -436,7 +451,7 @@ import "vader/resolver" { empty_loaded_project }
 
 @test test_new_lower_project_ctx_is_empty :: fn() -> void {
     evaluated :: new_evaluated_project(new_typed_project())
-    project :: new_lower_project_ctx(evaluated, empty_loaded_project())
+    project :: new_lower_project_ctx(evaluated, empty_loaded_project(), new_typed_project())
     assert_eq(project.core_symbols.size, usize(0))
     assert_eq(project.synth_decls.len(), usize(0))
     assert_eq(project.next_synthetic_id, i32(-1))

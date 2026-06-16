@@ -27,10 +27,6 @@
         "kind": "destructure",
         "names": [
           {
-            "name": "bytes",
-            "alias": null
-          },
-          {
             "name": "len",
             "alias": null
           },

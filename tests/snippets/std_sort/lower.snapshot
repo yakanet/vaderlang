@@ -43,33 +43,71 @@
                 sb :string
               value:
                 block :string
-                  let __sb_3: ? =
-                    @builder.new :?
-                  @builder.append_display <for string> :void
-                    __sb_3 :?
-                    sb :string
-                  @builder.append_str :void
-                    __sb_3 :?
-                    ", " :string
+                  let __sb_3: StringBuilder =
+                    call :StringBuilder
+                      callee:
+                        new_builder :StringBuilder
+                  call :void
+                    callee:
+                      append :void
+                    arg0:
+                      __sb_3 :StringBuilder
+                    arg1:
+                      call :string
+                        callee:
+                          std_core$string$Display$to_string :string
+                        arg0:
+                          sb :string
+                  call :void
+                    callee:
+                      append :void
+                    arg0:
+                      __sb_3 :StringBuilder
+                    arg1:
+                      ", " :string
                   ~>
-                    @builder.finish :string
-                      __sb_3 :?
+                    call :string
+                      callee:
+                        std_string_builder$StringBuilder$Display$to_string :string
+                      arg0:
+                        __sb_3 :StringBuilder
         assign
           target:
             sb :string
           value:
             block :string
-              let __sb_4: ? =
-                @builder.new :?
-              @builder.append_display <for string> :void
-                __sb_4 :?
-                sb :string
-              @builder.append_display <for i32> :void
-                __sb_4 :?
-                x :i32
+              let __sb_4: StringBuilder =
+                call :StringBuilder
+                  callee:
+                    new_builder :StringBuilder
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_4 :StringBuilder
+                arg1:
+                  call :string
+                    callee:
+                      std_core$string$Display$to_string :string
+                    arg0:
+                      sb :string
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_4 :StringBuilder
+                arg1:
+                  call :string
+                    callee:
+                      std_core$i32$Display$to_string :string
+                    arg0:
+                      x :i32
               ~>
-                @builder.finish :string
-                  __sb_4 :?
+                call :string
+                  callee:
+                    std_string_builder$StringBuilder$Display$to_string :string
+                  arg0:
+                    __sb_4 :StringBuilder
         assign
           target:
             i :i32
@@ -122,33 +160,71 @@
                 sb :string
               value:
                 block :string
-                  let __sb_3: ? =
-                    @builder.new :?
-                  @builder.append_display <for string> :void
-                    __sb_3 :?
-                    sb :string
-                  @builder.append_str :void
-                    __sb_3 :?
-                    ", " :string
+                  let __sb_3: StringBuilder =
+                    call :StringBuilder
+                      callee:
+                        new_builder :StringBuilder
+                  call :void
+                    callee:
+                      append :void
+                    arg0:
+                      __sb_3 :StringBuilder
+                    arg1:
+                      call :string
+                        callee:
+                          std_core$string$Display$to_string :string
+                        arg0:
+                          sb :string
+                  call :void
+                    callee:
+                      append :void
+                    arg0:
+                      __sb_3 :StringBuilder
+                    arg1:
+                      ", " :string
                   ~>
-                    @builder.finish :string
-                      __sb_3 :?
+                    call :string
+                      callee:
+                        std_string_builder$StringBuilder$Display$to_string :string
+                      arg0:
+                        __sb_3 :StringBuilder
         assign
           target:
             sb :string
           value:
             block :string
-              let __sb_4: ? =
-                @builder.new :?
-              @builder.append_display <for string> :void
-                __sb_4 :?
-                sb :string
-              @builder.append_display <for string> :void
-                __sb_4 :?
-                s :string
+              let __sb_4: StringBuilder =
+                call :StringBuilder
+                  callee:
+                    new_builder :StringBuilder
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_4 :StringBuilder
+                arg1:
+                  call :string
+                    callee:
+                      std_core$string$Display$to_string :string
+                    arg0:
+                      sb :string
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_4 :StringBuilder
+                arg1:
+                  call :string
+                    callee:
+                      std_core$string$Display$to_string :string
+                    arg0:
+                      s :string
               ~>
-                @builder.finish :string
-                  __sb_4 :?
+                call :string
+                  callee:
+                    std_string_builder$StringBuilder$Display$to_string :string
+                  arg0:
+                    __sb_4 :StringBuilder
         assign
           target:
             i :i32

@@ -4,8 +4,11 @@
 //   1. Trait declarations (Display, Equals, Comparable, Hash, Clone,
 //      arithmetic, indexing, containment, iteration, error)
 //   2. Core struct definitions and their impls (Yield, Range,
-//      ArrayIterator)
-//   3. Primitive type impls (Equals, Hash, numeric arithmetic, string)
+//      ArrayIterator) + the blanket array / Display→string impls
+//
+// The primitive-type impls (Display, Equals, Hash, Comparable, Step,
+// arithmetic, string) live in the sibling `primitives.vader` — same
+// `module "std/core"`, split out so neither file outgrows ~500 LoC.
 //
 // The base `Error` trait powering error unions and the `?` operator lives
 // in §1 ; the concrete error structs are user-defined.
@@ -100,6 +103,40 @@ export Mul :: trait { mul :: fn(self, other: Self) -> Self }
 export Div :: trait { div :: fn(self, other: Self) -> Self }
 /// `%` dispatch. See `Add`.
 export Rem :: trait { rem :: fn(self, other: Self) -> Self }
+
+/// Bit-level view of a float as its raw IEEE 754 integer pattern. This is NOT a
+/// numeric conversion : `u64(x)` truncates the VALUE (`3.7 → 3`), whereas
+/// `x.to_bits()` returns the exact bits (`3.0 → 0x4008000000000000`). The
+/// inverse is `BitsFloat::from_bits`. Powers shortest-double formatting and any
+/// float bit-fiddling, with no per-target runtime symbol (lowers to a `union`
+/// cast). Mirrors Rust's `f64::to_bits` / `f64::from_bits` (deliberately
+/// distinct from the `as`/cast conversion).
+export FloatBits :: trait {
+    /// The raw IEEE 754 bit pattern of `self`.
+    to_bits :: fn(self) -> u64
+}
+
+/// Inverse of `FloatBits` — reconstruct an `f64` from a raw IEEE 754 bit pattern.
+export BitsFloat :: trait {
+    /// Reinterpret `self`'s bits as an `f64` (NOT `f64(self)`, which widens the
+    /// integer value).
+    from_bits :: fn(self) -> f64
+}
+
+/// 32-bit analogue of `FloatBits` : the raw IEEE 754 `u32` bit pattern of an
+/// `f32` (NOT `u32(self)`, which truncates the value). Powers the pure-Vader
+/// shortest-`f32` formatter (Ryu f2s). Inverse is `Bits32Float::from_bits`.
+export Float32Bits :: trait {
+    /// The raw IEEE 754 bit pattern of `self`.
+    to_bits :: fn(self) -> u32
+}
+
+/// Inverse of `Float32Bits` — reconstruct an `f32` from a raw IEEE 754 `u32`
+/// bit pattern (NOT `f32(self)`, which widens the integer value).
+export Bits32Float :: trait {
+    /// Reinterpret `self`'s bits as an `f32`.
+    from_bits :: fn(self) -> f32
+}
 
 /// Indexed read — `a[i]` dispatches through this when `a` isn't a built-in
 /// array. `I` is the index type, `T` the element type.
@@ -290,188 +327,3 @@ T implements<T: Display> Into<string> {
     }
 }
 
-// ============================================================================
-// 3. Primitive type impls
-// ============================================================================
-//
-// `@intrinsic` impls route the call directly to the matching bytecode op
-// via `OP_INTRINSIC_BY_MANGLED` (see `src/bytecode/emit.ts`) — no fn-call
-// indirection, identical performance to the operator form. `s1 + s2` and
-// `(s1).add(s2)` share a single runtime path.
-
-// ---- Display --------------------------------------------------------------
-//
-// Every primitive type carries a host-provided `to_string` so any value
-// flowing into a `string` slot (e.g. `print(value)`, `let s: string =
-// value`) routes through the blanket `T implements[T: Display] Into(string)`
-// declared above. `${x}` string interpolation bypasses the trait and
-// goes through the dedicated `builder.append_display` intrinsic for
-// performance.
-
-@intrinsic i8     implements Display
-@intrinsic i16    implements Display
-@intrinsic i32    implements Display
-@intrinsic i64    implements Display
-@intrinsic isize  implements Display
-@intrinsic u8     implements Display
-@intrinsic u16    implements Display
-@intrinsic u32    implements Display
-@intrinsic u64    implements Display
-@intrinsic usize  implements Display
-@intrinsic f32    implements Display
-@intrinsic f64    implements Display
-@intrinsic bool   implements Display
-@intrinsic char   implements Display
-@intrinsic string implements Display
-
-// ---- Equals ---------------------------------------------------------------
-
-@intrinsic i8     implements Equals
-@intrinsic i16    implements Equals
-@intrinsic i32    implements Equals
-@intrinsic i64    implements Equals
-@intrinsic isize  implements Equals
-@intrinsic u8     implements Equals
-@intrinsic u16    implements Equals
-@intrinsic u32    implements Equals
-@intrinsic u64    implements Equals
-@intrinsic usize  implements Equals
-@intrinsic f32    implements Equals
-@intrinsic f64    implements Equals
-@intrinsic bool   implements Equals
-@intrinsic char   implements Equals
-@intrinsic string implements Equals
-
-// ---- Hash -----------------------------------------------------------------
-//
-// Integer Hash impls cast through u64 ; `string` uses FNV-1a over the
-// UTF-8 bytes (host-provided).
-
-i8    implements Hash -> u64(self)
-i16   implements Hash -> u64(self)
-i32   implements Hash -> u64(self)
-i64   implements Hash -> u64(self)
-isize implements Hash -> u64(self)
-u8    implements Hash -> u64(self)
-u16   implements Hash -> u64(self)
-u32   implements Hash -> u64(self)
-u64   implements Hash -> u64(self)
-usize implements Hash -> u64(self)
-char  implements Hash -> u64(self)
-
-@intrinsic string implements Hash
-
-// ---- Comparable -----------------------------------------------------------
-//
-// Three-way `compare` for every integer width plus `char`. Floats are
-// excluded — IEEE-754's NaN breaks total ordering, so an `Ord`-style trait
-// is the right shape for f32/f64 and is deferred. `lt`/`lte`/`gt`/`gte`
-// come from Comparable's default-method injection ; impls only provide
-// `compare`.
-
-i8    implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
-i16   implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
-i32   implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
-i64   implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
-isize implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
-u8    implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
-u16   implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
-u32   implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
-u64   implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
-usize implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
-char  implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
-
-// ---- Step -----------------------------------------------------------------
-//
-// Discrete-successor logic per primitive. Every integer width bumps by 1 ;
-// `char` round-trips through u32 since it has no native `+ i32` op. Floats
-// are intentionally excluded — there's no canonical `next float` semantics.
-
-i8    implements Step -> self + 1
-i16   implements Step -> self + 1
-i32   implements Step -> self + 1
-i64   implements Step -> self + 1
-isize implements Step -> self + 1
-u8    implements Step -> self + 1
-u16   implements Step -> self + 1
-u32   implements Step -> self + 1
-u64   implements Step -> self + 1
-usize implements Step -> self + 1
-char  implements Step -> char(u32(self) + u32(1))
-
-// ---- Numeric arithmetic ---------------------------------------------------
-//
-// Add/Sub/Mul/Div for every primitive numeric type. Makes `[T: Add]` and
-// friends usable on every numeric primitive — `5 + 7` and `(5).add(7)`
-// share one path.
-
-@intrinsic i8 implements Add
-@intrinsic i8 implements Sub
-@intrinsic i8 implements Mul
-@intrinsic i8 implements Div
-
-@intrinsic i16 implements Add
-@intrinsic i16 implements Sub
-@intrinsic i16 implements Mul
-@intrinsic i16 implements Div
-
-@intrinsic i32 implements Add
-@intrinsic i32 implements Sub
-@intrinsic i32 implements Mul
-@intrinsic i32 implements Div
-
-@intrinsic i64 implements Add
-@intrinsic i64 implements Sub
-@intrinsic i64 implements Mul
-@intrinsic i64 implements Div
-
-@intrinsic isize implements Add
-@intrinsic isize implements Sub
-@intrinsic isize implements Mul
-@intrinsic isize implements Div
-
-@intrinsic u8 implements Add
-@intrinsic u8 implements Sub
-@intrinsic u8 implements Mul
-@intrinsic u8 implements Div
-
-@intrinsic u16 implements Add
-@intrinsic u16 implements Sub
-@intrinsic u16 implements Mul
-@intrinsic u16 implements Div
-
-@intrinsic u32 implements Add
-@intrinsic u32 implements Sub
-@intrinsic u32 implements Mul
-@intrinsic u32 implements Div
-
-@intrinsic u64 implements Add
-@intrinsic u64 implements Sub
-@intrinsic u64 implements Mul
-@intrinsic u64 implements Div
-
-@intrinsic usize implements Add
-@intrinsic usize implements Sub
-@intrinsic usize implements Mul
-@intrinsic usize implements Div
-
-@intrinsic f32 implements Add
-@intrinsic f32 implements Sub
-@intrinsic f32 implements Mul
-@intrinsic f32 implements Div
-
-@intrinsic f64 implements Add
-@intrinsic f64 implements Sub
-@intrinsic f64 implements Mul
-@intrinsic f64 implements Div
-
-// ---- String ---------------------------------------------------------------
-//
-// `Add` is wired here in std/core (auto-imported) so concat works without
-// `import "std/string"`. `Index(usize, char)` returns the Unicode codepoint
-// at byte offset `i` — strings are immutable so there's no `IndexSet` to
-// pair with. Number formatting (`to_hex`, `to_bin`) lives in `std/numbers`
-// so it can use `std/string_builder`.
-
-@intrinsic string implements Add
-@intrinsic string implements Index<usize, char>

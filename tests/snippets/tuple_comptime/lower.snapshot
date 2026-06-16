@@ -18,74 +18,144 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_0: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_0 :?
-            "dim " :string
-          @builder.append_display <for i32> :void
-            __sb_0 :?
-            ._0 :i32
-              [i32, i32] {
-                _0: int(10) :?
-                _1: int(20) :?
-              }
-          @builder.append_str :void
-            __sb_0 :?
-            "x" :string
-          @builder.append_display <for i32> :void
-            __sb_0 :?
-            ._1 :i32
-              [i32, i32] {
-                _0: int(10) :?
-                _1: int(20) :?
-              }
+          let __sb_0: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              "dim " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  ._0 :i32
+                    [i32, i32] {
+                      _0: int(10) :?
+                      _1: int(20) :?
+                    }
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              "x" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  ._1 :i32
+                    [i32, i32] {
+                      _0: int(10) :?
+                      _1: int(20) :?
+                    }
           ~>
-            @builder.finish :string
-              __sb_0 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_0 :StringBuilder
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_1: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_1 :?
-            "origin (" :string
-          @builder.append_display <for f64> :void
-            __sb_1 :?
-            ._0 :f64
-              [f64, f64, string] {
-                _0: float(0) :?
-                _1: float(0) :?
-                _2: "origin" :string
-              }
-          @builder.append_str :void
-            __sb_1 :?
-            ", " :string
-          @builder.append_display <for f64> :void
-            __sb_1 :?
-            ._1 :f64
-              [f64, f64, string] {
-                _0: float(0) :?
-                _1: float(0) :?
-                _2: "origin" :string
-              }
-          @builder.append_str :void
-            __sb_1 :?
-            ") = " :string
-          @builder.append_display <for string> :void
-            __sb_1 :?
-            ._2 :string
-              [f64, f64, string] {
-                _0: float(0) :?
-                _1: float(0) :?
-                _2: "origin" :string
-              }
+          let __sb_1: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              "origin (" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$f64$Display$to_string :string
+                arg0:
+                  ._0 :f64
+                    [f64, f64, string] {
+                      _0: float(0) :?
+                      _1: float(0) :?
+                      _2: "origin" :string
+                    }
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              ", " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$f64$Display$to_string :string
+                arg0:
+                  ._1 :f64
+                    [f64, f64, string] {
+                      _0: float(0) :?
+                      _1: float(0) :?
+                      _2: "origin" :string
+                    }
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              ") = " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$string$Display$to_string :string
+                arg0:
+                  ._2 :string
+                    [f64, f64, string] {
+                      _0: float(0) :?
+                      _1: float(0) :?
+                      _2: "origin" :string
+                    }
           ~>
-            @builder.finish :string
-              __sb_1 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_1 :StringBuilder
     return
       ._0 :i32
         [i32, i32] {

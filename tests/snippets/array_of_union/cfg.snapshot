@@ -10,12 +10,12 @@ fn snippet$main() -> i32
     %3 $k_3: i32
     %4 $k_4: null
     %5 $struct_5: Node<i32>
-    %6 $intrinsic_6: ?
-    %7 __sb_0: ? (synthetic __sb_0)
+    %6 $call_6: StringBuilder
+    %7 __sb_0: StringBuilder (synthetic __sb_0)
     %8 $k_8: string
     %9 $len_9: usize
     %10 $call_10: string
-    %11 $intrinsic_11: string
+    %11 $call_11: string
     %12 $k_12: i32
     %13 $idx_13: Node<i32> | null
     %14 cell: Node<i32> | null (local cell)
@@ -34,14 +34,14 @@ fn snippet$main() -> i32
     %4 = const null :null
     %5 = struct_new Node<i32>(%3, %4)
     array_push %1, %5
-    %6 = intrinsic builder.new()
+    %6 = call new_builder() :StringBuilder
     %7 = move %6
     %8 = const string(#1) :string
-    intrinsic builder.append_str(%7, %8)
+    call append(%7, %8) :void
     %9 = array_len %1
     %10 = call std_core$usize$Display$to_string(%9) :string
-    intrinsic builder.append_str(%7, %10)
-    %11 = intrinsic builder.finish(%7)
+    call append(%7, %10) :void
+    %11 = call std_string_builder$StringBuilder$Display$to_string(%7) :string
     call std_io$std_io$println__string(%11) :void
     %12 = const int(1) :i32
     %13 = array_get %1[%12] :Node<i32> | null

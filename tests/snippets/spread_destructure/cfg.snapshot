@@ -24,82 +24,87 @@ fn snippet$main() -> i32
     %17 $idx_17: i32
     %18 $k_18: usize
     %19 $add_19: usize
-    %20 $intrinsic_20: ?
-    %21 __sb_2: ? (synthetic __sb_2)
+    %20 $call_20: StringBuilder
+    %21 __sb_2: StringBuilder (synthetic __sb_2)
     %22 $k_22: string
-    %23 $k_23: string
-    %24 $len_24: usize
-    %25 $call_25: string
-    %26 $intrinsic_26: string
-    %27 __for_arr_3: i32[] (synthetic __for_arr_3)
-    %28 $len_28: usize
-    %29 __for_len_4: usize (synthetic __for_len_4)
-    %30 $k_30: usize
-    %31 __for_i_5: usize (synthetic __for_i_5)
-    %32 $lt_32: bool
-    %33 $idx_33: i32
-    %34 x: i32 (local x)
-    %35 $intrinsic_35: ?
-    %36 __sb_6: ? (synthetic __sb_6)
-    %37 $k_37: string
-    %38 $intrinsic_38: string
-    %39 $k_39: usize
-    %40 $add_40: usize
-    %41 __tup_7: i32[] (synthetic __tup_7)
-    %42 $k_42: usize
-    %43 $idx_43: i32
-    %44 a: i32 (local a)
-    %45 $k_45: usize
-    %46 $idx_46: i32
-    %47 b: i32 (local b)
-    %48 $arr_48: i32[]
-    %49 tail: i32[] (local tail)
-    %50 $k_50: usize
-    %51 __i_8: usize (synthetic __i_8)
-    %52 $len_52: usize
-    %53 $lt_53: bool
-    %54 $idx_54: i32
-    %55 $k_55: usize
-    %56 $add_56: usize
-    %57 $intrinsic_57: ?
-    %58 __sb_9: ? (synthetic __sb_9)
-    %59 $k_59: string
-    %60 $k_60: string
+    %23 $call_23: string
+    %24 $k_24: string
+    %25 $len_25: usize
+    %26 $call_26: string
+    %27 $call_27: string
+    %28 __for_arr_3: i32[] (synthetic __for_arr_3)
+    %29 $len_29: usize
+    %30 __for_len_4: usize (synthetic __for_len_4)
+    %31 $k_31: usize
+    %32 __for_i_5: usize (synthetic __for_i_5)
+    %33 $lt_33: bool
+    %34 $idx_34: i32
+    %35 x: i32 (local x)
+    %36 $call_36: StringBuilder
+    %37 __sb_6: StringBuilder (synthetic __sb_6)
+    %38 $k_38: string
+    %39 $call_39: string
+    %40 $call_40: string
+    %41 $k_41: usize
+    %42 $add_42: usize
+    %43 __tup_7: i32[] (synthetic __tup_7)
+    %44 $k_44: usize
+    %45 $idx_45: i32
+    %46 a: i32 (local a)
+    %47 $k_47: usize
+    %48 $idx_48: i32
+    %49 b: i32 (local b)
+    %50 $arr_50: i32[]
+    %51 tail: i32[] (local tail)
+    %52 $k_52: usize
+    %53 __i_8: usize (synthetic __i_8)
+    %54 $len_54: usize
+    %55 $lt_55: bool
+    %56 $idx_56: i32
+    %57 $k_57: usize
+    %58 $add_58: usize
+    %59 $call_59: StringBuilder
+    %60 __sb_9: StringBuilder (synthetic __sb_9)
     %61 $k_61: string
-    %62 $len_62: usize
-    %63 $call_63: string
-    %64 $intrinsic_64: string
-    %65 __tup_10: i32[] (synthetic __tup_10)
-    %66 $arr_66: i32[]
-    %67 short: i32[] (local short)
-    %68 $k_68: usize
-    %69 __i_11: usize (synthetic __i_11)
-    %70 $len_70: usize
-    %71 $lt_71: bool
-    %72 $idx_72: i32
-    %73 $k_73: usize
-    %74 $add_74: usize
-    %75 $intrinsic_75: ?
-    %76 __sb_12: ? (synthetic __sb_12)
-    %77 $k_77: string
-    %78 $len_78: usize
-    %79 $call_79: string
-    %80 $intrinsic_80: string
-    %81 __for_arr_13: i32[] (synthetic __for_arr_13)
+    %62 $call_62: string
+    %63 $k_63: string
+    %64 $call_64: string
+    %65 $k_65: string
+    %66 $len_66: usize
+    %67 $call_67: string
+    %68 $call_68: string
+    %69 __tup_10: i32[] (synthetic __tup_10)
+    %70 $arr_70: i32[]
+    %71 short: i32[] (local short)
+    %72 $k_72: usize
+    %73 __i_11: usize (synthetic __i_11)
+    %74 $len_74: usize
+    %75 $lt_75: bool
+    %76 $idx_76: i32
+    %77 $k_77: usize
+    %78 $add_78: usize
+    %79 $call_79: StringBuilder
+    %80 __sb_12: StringBuilder (synthetic __sb_12)
+    %81 $k_81: string
     %82 $len_82: usize
-    %83 __for_len_14: usize (synthetic __for_len_14)
-    %84 $k_84: usize
-    %85 __for_i_15: usize (synthetic __for_i_15)
-    %86 $lt_86: bool
-    %87 $idx_87: i32
-    %88 x: i32 (local x)
-    %89 $intrinsic_89: ?
-    %90 __sb_16: ? (synthetic __sb_16)
-    %91 $k_91: string
-    %92 $intrinsic_92: string
-    %93 $k_93: usize
-    %94 $add_94: usize
-    %95 $k_95: i32
+    %83 $call_83: string
+    %84 $call_84: string
+    %85 __for_arr_13: i32[] (synthetic __for_arr_13)
+    %86 $len_86: usize
+    %87 __for_len_14: usize (synthetic __for_len_14)
+    %88 $k_88: usize
+    %89 __for_i_15: usize (synthetic __for_i_15)
+    %90 $lt_90: bool
+    %91 $idx_91: i32
+    %92 x: i32 (local x)
+    %93 $call_93: StringBuilder
+    %94 __sb_16: StringBuilder (synthetic __sb_16)
+    %95 $k_95: string
+    %96 $call_96: string
+    %97 $call_97: string
+    %98 $k_98: usize
+    %99 $add_99: usize
+    %100 $k_100: i32
   bb0:
     %0 = const int(10) :i32
     %1 = const int(20) :i32
@@ -129,131 +134,136 @@ fn snippet$main() -> i32
     %14 = move %19
     branch -> bb1
   bb3:
-    %20 = intrinsic builder.new()
+    %20 = call new_builder() :StringBuilder
     %21 = move %20
     %22 = const string(#1) :string
-    intrinsic builder.append_str(%21, %22)
-    intrinsic builder.append_display(%21, %10)
-    %23 = const string(#2) :string
-    intrinsic builder.append_str(%21, %23)
-    %24 = array_len %12
-    %25 = call std_core$usize$Display$to_string(%24) :string
-    intrinsic builder.append_str(%21, %25)
-    %26 = intrinsic builder.finish(%21)
-    call std_io$std_io$println__string(%26) :void
-    %27 = move %12
-    %28 = array_len %27
-    %29 = move %28
-    %30 = const int(0) :usize
-    %31 = move %30
+    call append(%21, %22) :void
+    %23 = call std_core$i32$Display$to_string(%10) :string
+    call append(%21, %23) :void
+    %24 = const string(#2) :string
+    call append(%21, %24) :void
+    %25 = array_len %12
+    %26 = call std_core$usize$Display$to_string(%25) :string
+    call append(%21, %26) :void
+    %27 = call std_string_builder$StringBuilder$Display$to_string(%21) :string
+    call std_io$std_io$println__string(%27) :void
+    %28 = move %12
+    %29 = array_len %28
+    %30 = move %29
+    %31 = const int(0) :usize
+    %32 = move %31
     branch -> bb4
   bb4:
-    %32 = binop 14 %31 %29 :bool
-    cond_branch %32 ? bb5 : bb6
+    %33 = binop 14 %32 %30 :bool
+    cond_branch %33 ? bb5 : bb6
   bb5:
-    %33 = array_get %27[%31] :i32
-    %34 = move %33
-    %35 = intrinsic builder.new()
-    %36 = move %35
-    %37 = const string(#3) :string
-    intrinsic builder.append_str(%36, %37)
-    intrinsic builder.append_display(%36, %34)
-    %38 = intrinsic builder.finish(%36)
-    call std_io$std_io$println__string(%38) :void
-    %39 = const int(1) :usize
-    %40 = binop 0 %31 %39 :usize
-    %31 = move %40
+    %34 = array_get %28[%32] :i32
+    %35 = move %34
+    %36 = call new_builder() :StringBuilder
+    %37 = move %36
+    %38 = const string(#3) :string
+    call append(%37, %38) :void
+    %39 = call std_core$i32$Display$to_string(%35) :string
+    call append(%37, %39) :void
+    %40 = call std_string_builder$StringBuilder$Display$to_string(%37) :string
+    call std_io$std_io$println__string(%40) :void
+    %41 = const int(1) :usize
+    %42 = binop 0 %32 %41 :usize
+    %32 = move %42
     branch -> bb4
   bb6:
-    %41 = move %6
-    %42 = const int(0) :usize
-    %43 = array_get %41[%42] :i32
-    %44 = move %43
-    %45 = const int(1) :usize
-    %46 = array_get %41[%45] :i32
-    %47 = move %46
-    %48 = array_new i32[][0]()
+    %43 = move %6
+    %44 = const int(0) :usize
+    %45 = array_get %43[%44] :i32
+    %46 = move %45
+    %47 = const int(1) :usize
+    %48 = array_get %43[%47] :i32
     %49 = move %48
-    %50 = const int(2) :usize
+    %50 = array_new i32[][0]()
     %51 = move %50
+    %52 = const int(2) :usize
+    %53 = move %52
     branch -> bb7
   bb7:
-    %52 = array_len %41
-    %53 = binop 14 %51 %52 :bool
-    cond_branch %53 ? bb8 : bb9
+    %54 = array_len %43
+    %55 = binop 14 %53 %54 :bool
+    cond_branch %55 ? bb8 : bb9
   bb8:
-    %54 = array_get %41[%51] :i32
-    array_push %49, %54
-    %55 = const int(1) :usize
-    %56 = binop 0 %51 %55 :usize
-    %51 = move %56
+    %56 = array_get %43[%53] :i32
+    array_push %51, %56
+    %57 = const int(1) :usize
+    %58 = binop 0 %53 %57 :usize
+    %53 = move %58
     branch -> bb7
   bb9:
-    %57 = intrinsic builder.new()
-    %58 = move %57
-    %59 = const string(#4) :string
-    intrinsic builder.append_str(%58, %59)
-    intrinsic builder.append_display(%58, %44)
-    %60 = const string(#5) :string
-    intrinsic builder.append_str(%58, %60)
-    intrinsic builder.append_display(%58, %47)
-    %61 = const string(#6) :string
-    intrinsic builder.append_str(%58, %61)
-    %62 = array_len %49
-    %63 = call std_core$usize$Display$to_string(%62) :string
-    intrinsic builder.append_str(%58, %63)
-    %64 = intrinsic builder.finish(%58)
-    call std_io$std_io$println__string(%64) :void
-    %65 = move %6
-    %66 = array_new i32[][0]()
-    %67 = move %66
-    %68 = const int(3) :usize
-    %69 = move %68
+    %59 = call new_builder() :StringBuilder
+    %60 = move %59
+    %61 = const string(#4) :string
+    call append(%60, %61) :void
+    %62 = call std_core$i32$Display$to_string(%46) :string
+    call append(%60, %62) :void
+    %63 = const string(#5) :string
+    call append(%60, %63) :void
+    %64 = call std_core$i32$Display$to_string(%49) :string
+    call append(%60, %64) :void
+    %65 = const string(#6) :string
+    call append(%60, %65) :void
+    %66 = array_len %51
+    %67 = call std_core$usize$Display$to_string(%66) :string
+    call append(%60, %67) :void
+    %68 = call std_string_builder$StringBuilder$Display$to_string(%60) :string
+    call std_io$std_io$println__string(%68) :void
+    %69 = move %6
+    %70 = array_new i32[][0]()
+    %71 = move %70
+    %72 = const int(3) :usize
+    %73 = move %72
     branch -> bb10
   bb10:
-    %70 = array_len %65
-    %71 = binop 14 %69 %70 :bool
-    cond_branch %71 ? bb11 : bb12
+    %74 = array_len %69
+    %75 = binop 14 %73 %74 :bool
+    cond_branch %75 ? bb11 : bb12
   bb11:
-    %72 = array_get %65[%69] :i32
-    array_push %67, %72
-    %73 = const int(1) :usize
-    %74 = binop 0 %69 %73 :usize
-    %69 = move %74
+    %76 = array_get %69[%73] :i32
+    array_push %71, %76
+    %77 = const int(1) :usize
+    %78 = binop 0 %73 %77 :usize
+    %73 = move %78
     branch -> bb10
   bb12:
-    %75 = intrinsic builder.new()
-    %76 = move %75
-    %77 = const string(#7) :string
-    intrinsic builder.append_str(%76, %77)
-    %78 = array_len %67
-    %79 = call std_core$usize$Display$to_string(%78) :string
-    intrinsic builder.append_str(%76, %79)
-    %80 = intrinsic builder.finish(%76)
-    call std_io$std_io$println__string(%80) :void
-    %81 = move %67
-    %82 = array_len %81
-    %83 = move %82
-    %84 = const int(0) :usize
-    %85 = move %84
+    %79 = call new_builder() :StringBuilder
+    %80 = move %79
+    %81 = const string(#7) :string
+    call append(%80, %81) :void
+    %82 = array_len %71
+    %83 = call std_core$usize$Display$to_string(%82) :string
+    call append(%80, %83) :void
+    %84 = call std_string_builder$StringBuilder$Display$to_string(%80) :string
+    call std_io$std_io$println__string(%84) :void
+    %85 = move %71
+    %86 = array_len %85
+    %87 = move %86
+    %88 = const int(0) :usize
+    %89 = move %88
     branch -> bb13
   bb13:
-    %86 = binop 14 %85 %83 :bool
-    cond_branch %86 ? bb14 : bb15
+    %90 = binop 14 %89 %87 :bool
+    cond_branch %90 ? bb14 : bb15
   bb14:
-    %87 = array_get %81[%85] :i32
-    %88 = move %87
-    %89 = intrinsic builder.new()
-    %90 = move %89
-    %91 = const string(#3) :string
-    intrinsic builder.append_str(%90, %91)
-    intrinsic builder.append_display(%90, %88)
-    %92 = intrinsic builder.finish(%90)
-    call std_io$std_io$println__string(%92) :void
-    %93 = const int(1) :usize
-    %94 = binop 0 %85 %93 :usize
-    %85 = move %94
+    %91 = array_get %85[%89] :i32
+    %92 = move %91
+    %93 = call new_builder() :StringBuilder
+    %94 = move %93
+    %95 = const string(#3) :string
+    call append(%94, %95) :void
+    %96 = call std_core$i32$Display$to_string(%92) :string
+    call append(%94, %96) :void
+    %97 = call std_string_builder$StringBuilder$Display$to_string(%94) :string
+    call std_io$std_io$println__string(%97) :void
+    %98 = const int(1) :usize
+    %99 = binop 0 %89 %98 :usize
+    %89 = move %99
     branch -> bb13
   bb15:
-    %95 = const int(0) :i32
-    return %95
+    %100 = const int(0) :i32
+    return %100

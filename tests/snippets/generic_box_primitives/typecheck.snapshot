@@ -1,0 +1,74 @@
+# Typecheck
+
+## tests/snippets/generic_box_primitives
+  StructDecl     Box                  :: Box<T>
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         unwrap               :: fn(Box<T>) -> T
+  expr 15:35    FieldExpr      :: T
+  expr 15:35    IdentExpr      :: Box<T>
+  expr 18:13    StructLitExpr  :: Box<u8>
+  expr 19:13    StructLitExpr  :: Box<bool>
+  expr 20:13    StructLitExpr  :: Box<char>
+  expr 21:13    StructLitExpr  :: Box<f32>
+  expr 22:13    StructLitExpr  :: Box<f64>
+  expr 23:13    StructLitExpr  :: Box<i16>
+  expr 23:32    UnaryExpr      :: i16
+  expr 24:13    StructLitExpr  :: Box<u16>
+  expr 25:13    StructLitExpr  :: Box<i64>
+  expr 26:13    StructLitExpr  :: Box<usize>
+  expr 27:13    StructLitExpr  :: Box<i32>
+  expr 27:32    UnaryExpr      :: i32
+  expr 28:13    StructLitExpr  :: Box<string>
+  expr 28:32    StringLitExpr  :: string
+  expr 31:13    StringLitExpr  :: string
+  expr 31:19    FieldExpr      :: u8
+  expr 31:19    IdentExpr      :: Box<u8>
+  expr 31:33    FieldExpr      :: bool
+  expr 31:33    IdentExpr      :: Box<bool>
+  expr 31:46    FieldExpr      :: char
+  expr 31:46    IdentExpr      :: Box<char>
+  expr 31:5     CallExpr       :: void
+  expr 31:5     IdentExpr      :: fn(T) -> void
+  expr 31:58    FieldExpr      :: f32
+  expr 31:58    IdentExpr      :: Box<f32>
+  expr 31:72    FieldExpr      :: f64
+  expr 31:72    IdentExpr      :: Box<f64>
+  expr 32:13    StringLitExpr  :: string
+  expr 32:20    FieldExpr      :: i16
+  expr 32:20    IdentExpr      :: Box<i16>
+  expr 32:34    FieldExpr      :: u16
+  expr 32:34    IdentExpr      :: Box<u16>
+  expr 32:48    FieldExpr      :: i64
+  expr 32:48    IdentExpr      :: Box<i64>
+  expr 32:5     CallExpr       :: void
+  expr 32:5     IdentExpr      :: fn(T) -> void
+  expr 32:64    FieldExpr      :: usize
+  expr 32:64    IdentExpr      :: Box<usize>
+  expr 32:77    FieldExpr      :: i32
+  expr 32:77    IdentExpr      :: Box<i32>
+  expr 32:91    FieldExpr      :: string
+  expr 32:91    IdentExpr      :: Box<string>
+  expr 34:102   IdentExpr      :: Box<i64>
+  expr 34:111   CallExpr       :: string
+  expr 34:111   IdentExpr      :: fn(Box<T>) -> T
+  expr 34:118   IdentExpr      :: Box<string>
+  expr 34:13    StringLitExpr  :: string
+  expr 34:20    CallExpr       :: u8
+  expr 34:20    IdentExpr      :: fn(Box<T>) -> T
+  expr 34:27    IdentExpr      :: Box<u8>
+  expr 34:35    CallExpr       :: bool
+  expr 34:35    IdentExpr      :: fn(Box<T>) -> T
+  expr 34:42    IdentExpr      :: Box<bool>
+  expr 34:49    CallExpr       :: char
+  expr 34:49    IdentExpr      :: fn(Box<T>) -> T
+  expr 34:5     CallExpr       :: void
+  expr 34:5     IdentExpr      :: fn(T) -> void
+  expr 34:56    IdentExpr      :: Box<char>
+  expr 34:63    CallExpr       :: f32
+  expr 34:63    IdentExpr      :: fn(Box<T>) -> T
+  expr 34:70    IdentExpr      :: Box<f32>
+  expr 34:79    CallExpr       :: i16
+  expr 34:79    IdentExpr      :: fn(Box<T>) -> T
+  expr 34:86    IdentExpr      :: Box<i16>
+  expr 34:95    CallExpr       :: i64
+  expr 34:95    IdentExpr      :: fn(Box<T>) -> T

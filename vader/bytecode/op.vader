@@ -55,10 +55,6 @@ export Op :: Unreachable
     | TypeConst
     | DeferPush
     | DeferPopExec
-    | BuilderNew
-    | BuilderAppendStr
-    | BuilderAppendDisplay
-    | BuilderFinish
     | SizeOfType
     | I32Add
     | I32Sub
@@ -134,7 +130,6 @@ export Op :: Unreachable
     | CharGe
     | StringEq
     | StringNe
-    | StringConcat
     | StringSliceCodepoints
     | IntToChar
     | CharToInt
@@ -150,6 +145,32 @@ export Op :: Unreachable
     | BranchIf
     | Return
     | ReturnLit
+    | ObjectNew
+    | LoadU8
+    | LoadI32
+    | LoadI64
+    | LoadF64
+    | StoreU8
+    | StoreI32
+    | StoreI64
+    | StoreF64
+    | LoadSlot
+    | LoadSlotU8
+    | LoadSlotI32
+    | LoadSlotI64
+    | LoadSlotF64
+    | StoreSlot
+    | StoreSlotU8
+    | StoreSlotI32
+    | StoreSlotI64
+    | StoreSlotF64
+    | MemoryCopy
+    | BufferToString
+    | BufferWriteString
+    | F64ToBits
+    | BitsToF64
+    | F32ToBits
+    | BitsToF32
 
 /// Trap unconditionally — the bytecode reached a point the compiler proved
 /// (or asserted, via `@unreachable match`) can never execute. Carries a
@@ -332,21 +353,6 @@ export DeferPush :: struct {}
 /// transcends.
 export DeferPopExec :: struct { count: i32 }
 
-/// Allocate a fresh empty `BuilderVal` and push it onto the value stack.
-/// Sprint 4 (b3) addition — backs Vader's `"${...}"` string interpolation
-/// (the lowerer emits builder.new → append_str / append_display ... →
-/// builder.finish for every interpolated string literal).
-export BuilderNew :: struct {}
-/// Pop a string then a builder ; append the string to `builder.parts`.
-/// Statement-form, no push back. Sprint 4 (b3) addition.
-export BuilderAppendStr :: struct {}
-/// Pop a value then a builder ; format the value through `display_value`
-/// (recursive for struct/array) and append the result to `builder.parts`.
-/// Statement-form, no push back. Sprint 4 (b3) addition.
-export BuilderAppendDisplay :: struct {}
-/// Pop a builder ; concatenate `builder.parts` into a single `string`
-/// and push it. Sprint 4 (b3) addition.
-export BuilderFinish :: struct {}
 /// Pop a `TypeVal` ; push a `usize` carrying the byte size of the type
 /// at `module.types[type_id]`. Backs the runtime path of `@size_of(t)`.
 /// Layer 4 §1.19 B.2.
@@ -521,9 +527,6 @@ export CharGe :: struct {}
 export StringEq :: struct {}
 /// Pop two strings (left, right) ; push `BoolVal` for byte-inequality.
 export StringNe :: struct {}
-/// Pop two strings (left, right) ; push their concatenation as a
-/// fresh `StringVal`.
-export StringConcat :: struct {}
 /// Pop a string and two `usize` (lo, hi) ; push the codepoint-indexed
 /// substring as a fresh `StringVal`. Implements the codepoint slice
 /// form `s[r]` where `r : Range[usize]`. Out-of-bounds clamps (no
@@ -531,8 +534,8 @@ export StringConcat :: struct {}
 export StringSliceCodepoints :: struct {}
 /// Pop a value (`I32Val` or `CharVal`) ; push a `CharVal` carrying the
 /// same codepoint. Emitted for every `<int>.to_char` Convert op so the
-/// downstream `display_value` / `builder.append_display` arm formats
-/// the value as a UTF-8 character rather than its decimal codepoint.
+/// downstream `display_value` arm formats the value as a UTF-8 character
+/// rather than its decimal codepoint.
 export IntToChar :: struct {}
 /// Pop a value (`CharVal` or `I32Val`) ; push an `I32Val` carrying the
 /// same codepoint. Emitted for every `char.to_<int>` Convert op so the
@@ -540,7 +543,7 @@ export IntToChar :: struct {}
 export CharToInt :: struct {}
 /// Pop two references ; push `BoolVal` for identity equality. In the
 /// VM today, all reference-typed Values are heap-allocated so identity
-/// matches Vader's reference semantics for struct / array / fn / builder.
+/// matches Vader's reference semantics for struct / array / fn.
 /// Sprint 5a addition.
 export RefEq :: struct {}
 /// Pop two references ; push `BoolVal` for identity inequality.
@@ -577,6 +580,117 @@ export Return :: struct {}
 /// `value` is the inner const op (carried verbatim) so every backend
 /// inlines the right literal form.
 export ReturnLit :: struct { value: ConstOp }
+
+// ---- memory opcodes (Target ABI) ------------------------------------------
+//
+// GC-safe memory access over the moving Cheney collector. Each addresses
+// memory as `(GC-object-handle, integer-offset)`, never an absolute machine
+// address ; the real address is materialised transiently inside the opcode
+// (the C backend re-derives `(char*)obj + off` at the point of use, never
+// hoisted across a safepoint — invariant G1). Appended after `ReturnLit` and
+// never reshaped (the union tags are positional). Inert until S3 — nothing in
+// the lowerer emits them yet. See docs/TARGET_ABI.md §5 for the frozen contract.
+
+/// GC-allocate a fresh object of `size` bytes (popped) and push the handle.
+/// `type_id` is an inline immediate (decision D2) — for a `Buffer` it is the
+/// dedicated `VADER_TYPE_INDEX_BUFFER` sentinel (D3) — so the GC reads a
+/// static, never runtime-trusted, type. Generalises `StructNew` / `ArrayNew`.
+/// C lowering is the two-step `vader_gc_alloc(size)` + `vader_obj_header_init(
+/// obj, type_id)` inline — no new runtime symbol (D1).
+export ObjectNew :: struct { type_id: i32 }
+
+/// Read one byte. Pops `obj, off` ; pushes the `u8` at byte offset `off`.
+export LoadU8 :: struct {}
+/// Read an `i32` at byte offset `off`. Pops `obj, off` ; pushes `i32`.
+export LoadI32 :: struct {}
+/// Read an `i64` at byte offset `off`. Pops `obj, off` ; pushes `i64`.
+export LoadI64 :: struct {}
+/// Read an `f64` at byte offset `off`. Pops `obj, off` ; pushes `f64`.
+export LoadF64 :: struct {}
+
+/// Write one byte. Pops `obj, off, v: u8`. No write-barrier (primitive).
+export StoreU8 :: struct {}
+/// Write an `i32` at byte offset `off`. Pops `obj, off, v: i32`. No barrier.
+export StoreI32 :: struct {}
+/// Write an `i64` at byte offset `off`. Pops `obj, off, v: i64`. No barrier.
+export StoreI64 :: struct {}
+/// Write an `f64` at byte offset `off`. Pops `obj, off, v: f64`. No barrier.
+export StoreF64 :: struct {}
+
+/// Read a boxed array slot. Pops `obj, i: usize` ; pushes the boxed `Value` at
+/// slot index `i` (a reference field the GC traces — distinct from the raw byte
+/// region the `Load*` / `Store*` typed ops address). `obj` is a `vader_array_t`
+/// handle (a `T[]`) ; the op derefs `->buf` and applies `->offset` so slice
+/// views address the parent's slots — the slot `@intrinsic`s are impl'd on
+/// `T[]` (which knows the element type), so the operand is the array, not the buf.
+export LoadSlot :: struct {}
+/// Read a primitive array slot at slot index `i` (NOT a byte offset — the array
+/// slot family is index-addressed, stride = element width, distinct from the
+/// byte-offset `Load*`/`Store*` over a bytes `Buffer`). Pops `obj, i: usize`
+/// (`obj` = `vader_array_t`, deref `->buf` + `->offset`) ; pushes the value. The
+/// `…U8` / `…I32` / `…I64` / `…F64` suffix is the element's native storage width
+/// (matching `vader_array_element_size`), selected statically per element kind
+/// by `op_select::slot_load_op_for`. No GC trace (primitive region).
+export LoadSlotU8 :: struct {}
+/// 4-byte signed read (`i32` / `u32` / `char` elements). See `LoadSlotU8`.
+export LoadSlotI32 :: struct {}
+/// 8-byte signed read (`i64` / `u64` / `usize` / `isize` elements). See `LoadSlotU8`.
+export LoadSlotI64 :: struct {}
+/// 8-byte float read (`f64` elements). See `LoadSlotU8`.
+export LoadSlotF64 :: struct {}
+/// Write a boxed array slot. Pops `obj, i: usize, v` ; **fires
+/// `VADER_WRITE_BARRIER(obj->buf)`** (invariant G2 — records the potential
+/// old→young edge for the generational collector ; the barrier targets the buf,
+/// the object that owns the slot). The typed primitive stores deliberately do
+/// not. `obj` is a `vader_array_t` handle (deref `->buf` + `->offset`).
+export StoreSlot :: struct {}
+/// Write a primitive array slot at slot index `i` (`obj` = `vader_array_t`,
+/// deref `->buf` + `->offset`, index-addressed, stride = element width). Pops
+/// `obj, i: usize, v`. No write-barrier (primitive region). Suffix = element
+/// storage width ; selected by `op_select::slot_store_op_for`.
+export StoreSlotU8 :: struct {}
+/// 4-byte signed write (`i32` / `u32` / `char` elements). See `StoreSlotU8`.
+export StoreSlotI32 :: struct {}
+/// 8-byte signed write (`i64` / `u64` / `usize` / `isize` elements). See `StoreSlotU8`.
+export StoreSlotI64 :: struct {}
+/// 8-byte float write (`f64` elements). See `StoreSlotU8`.
+export StoreSlotF64 :: struct {}
+
+/// Bulk byte copy obj→obj. Pops `dst, dst_off, src, src_off, n` ; copies `n`
+/// bytes. Lowers to `memcpy`. Both ends are GC handles, offsets are integers.
+export MemoryCopy :: struct {}
+
+/// Intern a `Buffer`'s leading `len` bytes as a `string`. Pops `obj, len: usize`
+/// ; pushes the interned `string`. Lowers to `vader_string_new((const char*)
+/// obj->bytes, len)` — a single copy into the atom table, no read-back. Same
+/// verbatim-bytes semantics as `bytes_to_string` over a `u8[]` (neither
+/// validates UTF-8) ; backs `StringBuilder.to_string`.
+export BufferToString :: struct {}
+
+/// Copy a `string`'s bytes into a `Buffer` at byte offset `off`. Pops
+/// `obj, off: usize, s: string` (no push). Lowers to a `memcpy` from the string
+/// atom's bytes into `obj->bytes + off` (`vader_buffer_write_string`). The lean
+/// replacement for the retired `vader_string_concat_all` host intrinsic :
+/// `StringBuilder.to_string` assembles its `string[]` parts with this.
+export BufferWriteString :: struct {}
+
+/// Bit-reinterpret an `f64` as its raw IEEE 754 `u64` bit pattern. Pops an
+/// `f64`, pushes the `u64`. This is NOT a numeric conversion (`u64(x)` truncates
+/// the VALUE) — it returns the exact bits (`3.0 → 0x4008000000000000`). Lowers
+/// to a `union`/`memcpy` cast in C, no runtime symbol. The shortest-double
+/// formatter (and any float bit-fiddling) is built on this.
+export F64ToBits :: struct {}
+/// Inverse of `F64ToBits` : bit-reinterpret a `u64` bit pattern as an `f64`.
+/// Pops a `u64`, pushes the `f64`. NOT `f64(x)` (which widens the integer
+/// VALUE). Together they unblock the S2-deferred `LoadF64` byte codec.
+export BitsToF64 :: struct {}
+/// `f32` → raw IEEE 754 `u32` bit pattern (the 32-bit analogue of `F64ToBits`).
+/// Pops an `f32`, pushes the `u32`. NOT `u32(x)` (value truncation). Powers the
+/// pure-Vader shortest-`f32` formatter (Ryu f2s).
+export F32ToBits :: struct {}
+/// Inverse of `F32ToBits` : bit-reinterpret a `u32` bit pattern as an `f32`.
+/// Pops a `u32`, pushes the `f32`. NOT `f32(x)` (which widens the integer VALUE).
+export BitsToF32 :: struct {}
 
 /// Primitive literal-producing op carried by `ReturnLit`. Mirrors the
 /// TS `ConstOp` extracted from `Op`. Each variant produces exactly one

@@ -1,7 +1,8 @@
 // vader/vm/exec — stack-machine interpreter for the .virt bytecode.
 //
-// Reads a parsed `Module` (see `virt_reader.vader`) and runs its `main`
-// function. The op set grows sprint by sprint (docs/SELFHOST_VM.md) ;
+// Reads a `VmState` wrapping a `vader/bytecode::BytecodeModule` (see
+// `module.vader` / `virt_reader_bc.vader`) and runs its `main` function. The
+// op set grows sprint by sprint (docs/SELFHOST_VM.md) ;
 // the value stack is `Value[]` (tagged union), promoted from the raw
 // `i32[]` of sprints 1-2 so strings and host calls can flow through.
 //
@@ -30,8 +31,25 @@ module "vader/vm"
 bc :: import "vader/bytecode"
 
 import "std/io" { read_file, eprintln }
-import "std/string_builder" { StringBuilder }
-import "std/string" { index_of, bytes, as_string, decode_codepoint_at }
+import "std/string" { index_of, as_string, decode_codepoint_at, join }
+
+// IEEE 754 bit reinterpret for the F64ToBits / BitsToF64 arms. The VM's own
+// code can't use the `f64.to_bits()` / `u64.from_bits()` intrinsics : they
+// lower to the new opcodes, which the bootstrap seed predating them emits as
+// unbound imports. Route through the runtime's tiny `union`-cast helpers via
+// `@extern` instead (exec.vader is itself compiled to native C, so this is a
+// direct C call — no bytecode interpretation, no circularity). Native USER code
+// still lowers F64ToBits/BitsToF64 to an inline union cast (no symbol). The
+// Vader fn name MUST equal the C symbol : the bootstrap seed predates the
+// `@extern("c_name")` override-arg, so it binds by fn name.
+@extern("vader_f64_to_bits")
+vader_f64_to_bits :: fn(v: f64) -> u64
+@extern("vader_bits_to_f64")
+vader_bits_to_f64 :: fn(b: u64) -> f64
+@extern("vader_f32_to_bits")
+vader_f32_to_bits :: fn(v: f32) -> u32
+@extern("vader_bits_to_f32")
+vader_bits_to_f32 :: fn(b: u32) -> f32
 
 // Mangled host-import names. Lifted to module-scope so the dispatch
 // chain reads as identifier comparisons rather than raw-string
@@ -102,21 +120,21 @@ pop_frame :: fn(cursor: usize[]) -> void {
     cursor[0] -= 1
 }
 
-/// Bounds-check a `function_index` against `module.functions`. Used by
+/// Bounds-check a `function_index` against `functions`. Used by
 /// `Call`, `FnRef`, `MakeClosure`, and `CallIndirect` to surface the
 /// same Trap shape on a malformed reference rather than indexing into
 /// the array and letting the host runtime trap.
 ///
-/// @param function_index  candidate index into `module.functions`.
-/// @param module          the running module.
+/// @param function_index  candidate index into `functions`.
+/// @param functions       the running module's function table.
 /// @param at_pc           pc of the op doing the lookup.
 /// @param op_label        op-name prefix for the diagnostic message
 ///                        (`"call"`, `"fn.ref"`, `"make_closure"`,
 ///                        `"call.indirect"`).
 /// @return                `null` on success, `Trap` if out of range.
-/// @error                 `function_index < 0` or `>= module.functions.len()`.
-validate_fn_index :: fn(function_index: i32, module: Module, at_pc: i32, op_label: string) -> Trap | null {
-    if function_index < 0 || usize(function_index) >= module.functions.len() {
+/// @error                 `function_index < 0` or `>= functions.len()`.
+validate_fn_index :: fn(function_index: i32, functions: bc.BcFunction[], at_pc: i32, op_label: string) -> Trap | null {
+    if function_index < 0 || usize(function_index) >= functions.len() {
         return Trap { .message = "${op_label} function ${function_index} out of range at pc=${at_pc}" }
     }
     return null
@@ -130,13 +148,13 @@ validate_fn_index :: fn(function_index: i32, module: Module, at_pc: i32, op_labe
 /// @param frame           current top frame, mutated in place (sp / pc advanced).
 /// @param frames          the frame stack (the callee frame is pushed here).
 /// @param frame_count     1-element cursor — `[0]` is the logical top.
-/// @param callee          the callee's `BytecodeFunction`.
+/// @param callee          the callee's `BcFunction`.
 /// @param function_index  module-level index of the callee.
 /// @param arg_base        caller-stack offset of the first arg.
 /// @param env             closure env for the callee, or `null`.
 /// @return                `null` on success ; `Trap` on frame-stack overflow.
 /// @error                 `frame_count[0] > MAX_FRAME_DEPTH` after push.
-dispatch_call_into :: fn(frame: Frame, frames: Frame[], frame_count: usize[], callee: BytecodeFunction, function_index: i32, arg_base: usize, env: Value | null) -> Trap | null {
+dispatch_call_into :: fn(frame: Frame, frames: Frame[], frame_count: usize[], callee: bc.BcFunction, function_index: i32, arg_base: usize, env: Value | null) -> Trap | null {
     callee_frame :: build_callee_frame(function_index, callee, frame.stack, arg_base, env)
     frame.sp = arg_base
     frame.pc = frame.pc + 1
@@ -158,19 +176,19 @@ dispatch_call_into :: fn(frame: Frame, frames: Frame[], frame_count: usize[], ca
 ///
 /// @param function_index  module-level index of the callee (recorded on
 ///                        the frame so the executor can look up the body).
-/// @param callee          the callee's `BytecodeFunction` (read for the
+/// @param callee          the callee's `BcFunction` (read for the
 ///                        slot counts).
 /// @param args_source     the array to read params from.
 /// @param args_offset     start offset of the params within `args_source`.
 /// @param env             closure env — bound to `slot 0` when non-`null` ;
 ///                        pass `null` for direct / plain `fn.ref` calls.
 /// @return                a fresh `Frame` ready to be pushed.
-build_callee_frame :: fn(function_index: i32, callee: BytecodeFunction, args_source: Value[], args_offset: usize, env: Value | null) -> Frame {
+build_callee_frame :: fn(function_index: i32, callee: bc.BcFunction, args_source: Value[], args_offset: usize, env: Value | null) -> Frame {
     slots: Value[] = []
-    user_arg_count: usize = callee.parameter_count
+    user_arg_count: usize = callee.signature.params.len()
     if !(env is null) {
         slots.push(env)
-        user_arg_count = callee.parameter_count - 1
+        user_arg_count = callee.signature.params.len() - 1
     }
     parameter_index: usize = 0
     for parameter_index < user_arg_count {
@@ -178,7 +196,7 @@ build_callee_frame :: fn(function_index: i32, callee: BytecodeFunction, args_sou
         parameter_index += 1
     }
     local_index: usize = 0
-    for local_index < callee.local_count {
+    for local_index < callee.locals.len() {
         slots.push(zero_value())
         local_index += 1
     }
@@ -195,14 +213,14 @@ build_callee_frame :: fn(function_index: i32, callee: BytecodeFunction, args_sou
 
 /// Materialise a `ConstOp` carried inside a fused op (e.g. `ReturnLit`)
 /// as a runtime `Value`. `StringConst` looks the index up in
-/// `module.strings` ; other variants are pure value lifts.
+/// `strings` ; other variants are pure value lifts.
 ///
-/// @param c       the literal-producing op to materialise.
-/// @param module  the running module (string pool).
-/// @param pc      pc of the carrier op (recorded in the Trap message).
-/// @return        a freshly-built `Value` on success, or a `Trap`.
-/// @error         `StringConst` index out of range.
-const_op_value :: fn(c: bc.ConstOp, module: Module, pc: i32) -> Value | Trap {
+/// @param c        the literal-producing op to materialise.
+/// @param strings  the running module's string pool.
+/// @param pc       pc of the carrier op (recorded in the Trap message).
+/// @return         a freshly-built `Value` on success, or a `Trap`.
+/// @error          `StringConst` index out of range.
+const_op_value :: fn(c: bc.ConstOp, strings: string[], pc: i32) -> Value | Trap {
     match c {
         is bc.I32Const  as v -> { return I32Val { .value = v.value } }
         is bc.I64Const  as v -> { return I64Val { .value = v.value } }
@@ -211,10 +229,10 @@ const_op_value :: fn(c: bc.ConstOp, module: Module, pc: i32) -> Value | Trap {
         is bc.CharConst as v -> { return CharVal { .value = v.value } }
         is bc.NullConst      -> { return NullVal {} }
         is bc.StringConst as v -> {
-            if v.index < 0 || usize(v.index) >= module.strings.len() {
+            if v.index < 0 || usize(v.index) >= strings.len() {
                 return Trap { .message = "return.lit string.const index ${v.index} out of range at pc=${pc}" }
             }
-            return StringVal { .value = module.strings[v.index] }
+            return StringVal { .value = strings[v.index] }
         }
     }
 }
@@ -544,13 +562,13 @@ apply_eq_binop :: fn(frame: Frame, op_label: string, negate: bool) -> Trap | nul
 /// @param parameter_count  the entry fn's declared parameter count.
 /// @param host_argv        forwarded CLI argv, or empty for the synthetic path.
 /// @return                 the `Value[]` to seed the main frame's slots.
-/// Primitive kind ("string" / "char" / "i32" / …) of `module.types[type_id]`,
+/// Primitive kind ("string" / "char" / "i32" / …) of `types[type_id]`,
 /// or "" when the slot isn't a primitive. Used by the virtual.call intrinsic
 /// fallback to rebuild a host mangle.
-primitive_kind_at :: fn(module: Module, type_id: i32) -> string {
-    if type_id < 0 || usize(type_id) >= module.types.len() { return "" }
-    t :: module.types[usize(type_id)]
-    if t is PrimitiveType as p { return p.kind }
+primitive_kind_at :: fn(types: bc.BcType[], type_id: i32) -> string {
+    if type_id < 0 || usize(type_id) >= types.len() { return "" }
+    t :: types[usize(type_id)]
+    if t is bc.BcPrimitive as p { return bc.val_type_name(p.val) }
     return ""
 }
 
@@ -581,8 +599,8 @@ build_main_args :: fn(parameter_count: usize, host_argv: string[], string_array_
 /// the op's effect mutates the top frame's stack / slots / sp / pc and
 /// (for `Call` / `Return`) pushes or pops the frame stack itself.
 ///
-/// @param module  a parsed `.virt` module — `main_index` must point at
-///                a valid entry in `functions`.
+/// @param state   the runtime state wrapping a parsed `BytecodeModule` —
+///                `main_index` must point at a valid entry in `bc.functions`.
 /// @return        `Ok(value)` when `main` returns an i32 ; `Trap(message)`
 ///                on any VM-level error (malformed bytecode, type
 ///                mismatch, division by zero, call-stack overflow, etc).
@@ -590,9 +608,31 @@ build_main_args :: fn(parameter_count: usize, host_argv: string[], string_array_
 ///                in any op ; div / mod by zero ; unknown host import ;
 ///                call to a non-existent function index ; call stack
 ///                deeper than `MAX_FRAME_DEPTH`.
-export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
-    if module.main_index < 0 || usize(module.main_index) >= module.functions.len() {
-        return Trap { .message = "module has no entry function (main_index=${module.main_index})" }
+/// Run `main`. Thin wrapper over `exec_entry`.
+export exec :: fn(state: VmState, host_argv: string[]) -> VmResult = exec_entry(state, state.main_index, host_argv)
+
+/// Run the fn named `mangled` as the entry — used by `vader test` to run each
+/// `@test` fn in isolation. A `Trap` (e.g. a failed `assert`) is the test
+/// failure ; `Ok` is a pass. The fn must take no arguments.
+///
+/// @param state    the prepared VM state.
+/// @param mangled  the target fn's mangled name.
+/// @return         the run outcome, or a `Trap` when no such fn exists.
+export exec_fn :: fn(state: VmState, mangled: string) -> VmResult {
+    for i in 0..<state.bc.functions.len() {
+        if state.bc.functions[i].name == mangled {
+            no_args: string[] = []
+            return exec_entry(state, i32(i), no_args)
+        }
+    }
+    return Trap { .message = "exec_fn: no function named '${mangled}'" }
+}
+
+/// Core interpreter loop, entered at `entry_index`. `exec` / `exec_fn` pick the
+/// entry (main vs a named `@test`).
+export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[]) -> VmResult {
+    if entry_index < 0 || usize(entry_index) >= state.bc.functions.len() {
+        return Trap { .message = "no entry function (index=${entry_index})" }
     }
 
     frames: Frame[] = []
@@ -611,27 +651,27 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
     // string array (argv, `read_dir`, `split`) so `is string[]` narrows
     // (type_matches does exact-type_id equality on arrays). Computed once;
     // the scan is linear in the type table.
-    string_array_type_id :: find_string_array_type_id(module)
+    string_array_type_id :: find_string_array_type_id(state.bc.types)
     // The `u8[]` ArrayType index — stamped onto the array `bytes` materialises
     // (the VM's copy fallback for the native zero-copy view). Same rationale.
-    u8_array_type_id :: find_u8_array_type_id(module)
+    u8_array_type_id :: find_u8_array_type_id(state.bc.types)
 
-    main_function :: module.functions[usize(module.main_index)]
+    main_function :: state.bc.functions[usize(entry_index)]
     // If `main` is declared `fn(argv: string[]) -> i32`, supply its argv.
     // Built in a helper because inlining it pushed `exec` (the giant op-
     // dispatch fn) past the bytecode emitter's per-function buffer limit —
     // a latent emit bug (array-index-OOB in emit at scale). The split is also
     // cleaner; the underlying limit still needs a real fix.
-    main_args :: build_main_args(main_function.parameter_count, host_argv, string_array_type_id)
-    main_frame :: build_callee_frame(module.main_index, main_function, main_args, 0, null)
+    main_args :: build_main_args(main_function.signature.params.len(), host_argv, string_array_type_id)
+    main_frame :: build_callee_frame(entry_index, main_function, main_args, 0, null)
     push_frame(frames, frame_count, main_frame)
 
     // Hoist the per-frame fetches out of the per-op hot path. `frame` / `body`
     // / `op_count` change only when the active frame changes — i.e. on a call
     // (push, top grows) or a return / fall-off (pop, top shrinks). The loop
     // reloads them solely when `top` differs from the last-loaded `cur_top`,
-    // saving three array reads (`frames[top]`, `module.functions[…]`,
-    // `body.ops.len()`) on every other op. `frame` stays a tracked GC root
+    // saving three array reads (`frames[top]`, `state.bc.functions[…]`,
+    // `body.body.len()`) on every other op. `frame` stays a tracked GC root
     // across iterations, so a collection that relocates the Frame keeps the
     // cached reference valid (the `frames` slot is updated in lock-step).
     //
@@ -644,16 +684,20 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
     // reload here).
     init_top :: frame_count[0] - 1
     frame := frames[init_top]
-    body := module.functions[usize(frame.function_index)]
-    op_count := body.ops.len()
+    body := state.bc.functions[usize(frame.function_index)]
+    op_count := body.body.len()
     cur_top := init_top
+    // Monotonic synthetic object-handle source for `object_new` (diagnostics
+    // only — object identity is the `ObjVal` reference itself, never a machine
+    // address). A 1-cell array so element mutation survives the `::` binding.
+    obj_handles :: [0]
 
     for frame_count[0] > 0 {
         top :: frame_count[0] - 1
         if top != cur_top {
             frame = frames[top]
-            body = module.functions[usize(frame.function_index)]
-            op_count = body.ops.len()
+            body = state.bc.functions[usize(frame.function_index)]
+            op_count = body.body.len()
             cur_top = top
         }
 
@@ -666,7 +710,7 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
             continue
         }
 
-        instr :: body.ops[frame.pc]
+        instr :: body.body[frame.pc]
         match instr {
             is bc.I32Const -> {
                 push_value(frame.stack, frame.sp, I32Val { .value = instr.value })
@@ -703,28 +747,29 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                 frame.pc = frame.pc + 1
             }
             is bc.StringConst -> {
-                if instr.index < 0 || usize(instr.index) >= module.strings.len() {
+                if instr.index < 0 || usize(instr.index) >= state.bc.strings.len() {
                     return Trap { .message = "string.const index ${instr.index} out of range at pc=${frame.pc}" }
                 }
-                push_value(frame.stack, frame.sp, StringVal { .value = module.strings[instr.index] })
+                push_value(frame.stack, frame.sp, StringVal { .value = state.bc.strings[instr.index] })
                 frame.sp = frame.sp + 1
                 frame.pc = frame.pc + 1
             }
             is bc.CallImport -> {
-                if instr.index < 0 || usize(instr.index) >= module.imports.len() {
+                if instr.index < 0 || usize(instr.index) >= state.bc.imports.len() {
                     return Trap { .message = "call.import ${instr.index} out of range at pc=${frame.pc}" }
                 }
-                info :: module.imports[instr.index]
-                if frame.sp < info.parameter_count {
-                    return Trap { .message = "call.import '${info.mangled}' needs ${info.parameter_count} arg(s) but stack has ${frame.sp} at pc=${frame.pc}" }
+                info :: state.bc.imports[instr.index]
+                arg_count :: info.signature.params.len()
+                if frame.sp < arg_count {
+                    return Trap { .message = "call.import '${info.mangled_name}' needs ${arg_count} arg(s) but stack has ${frame.sp} at pc=${frame.pc}" }
                 }
-                arg_base :: frame.sp - info.parameter_count
+                arg_base :: frame.sp - arg_count
                 dispatch_outcome :: dispatch_import(info, frame.stack, arg_base, gc_state, frame.pc, string_array_type_id, u8_array_type_id)
                 if dispatch_outcome is Trap {
                     return dispatch_outcome
                 }
                 new_sp := arg_base
-                if info.has_return {
+                if info.signature.result != bc.ValType.Void {
                     push_value(frame.stack, new_sp, dispatch_outcome.value)
                     new_sp += 1
                 }
@@ -732,25 +777,26 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                 frame.pc = frame.pc + 1
             }
             is bc.Call -> {
-                index_check :: validate_fn_index(instr.function_index, module, frame.pc, "call")
+                index_check :: validate_fn_index(instr.function_index, state.bc.functions, frame.pc, "call")
                 if index_check is Trap { return index_check }
-                callee :: module.functions[usize(instr.function_index)]
-                if frame.sp < callee.parameter_count {
-                    return Trap { .message = "call to '${callee.name}' needs ${callee.parameter_count} arg(s) but stack has ${frame.sp} at pc=${frame.pc} in '${body.name}'" }
+                callee :: state.bc.functions[usize(instr.function_index)]
+                callee_arity :: callee.signature.params.len()
+                if frame.sp < callee_arity {
+                    return Trap { .message = "call to '${callee.name}' needs ${callee_arity} arg(s) but stack has ${frame.sp} at pc=${frame.pc} in '${body.name}'" }
                 }
-                arg_base :: frame.sp - callee.parameter_count
+                arg_base :: frame.sp - callee_arity
                 dispatched :: dispatch_call_into(frame, frames, frame_count, callee, instr.function_index, arg_base, null)
                 if dispatched is Trap { return dispatched }
             }
             is bc.FnRef -> {
-                index_check :: validate_fn_index(instr.function_index, module, frame.pc, "fn.ref")
+                index_check :: validate_fn_index(instr.function_index, state.bc.functions, frame.pc, "fn.ref")
                 if index_check is Trap { return index_check }
                 push_value(frame.stack, frame.sp, FnVal { .function_index = instr.function_index, .env = null })
                 frame.sp = frame.sp + 1
                 frame.pc = frame.pc + 1
             }
             is bc.MakeClosure -> {
-                index_check :: validate_fn_index(instr.function_index, module, frame.pc, "make_closure")
+                index_check :: validate_fn_index(instr.function_index, state.bc.functions, frame.pc, "make_closure")
                 if index_check is Trap { return index_check }
                 if frame.sp == 0 {
                     return Trap { .message = "make_closure needs env on stack at pc=${frame.pc}" }
@@ -771,11 +817,11 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                 receiver_top :: frame.sp - 1
                 arg_base :: frame.sp - usize(instr.parameter_count)
                 receiver :: frame.stack[receiver_top]
-                receiver_type_id :: receiver_type_id_of(module, receiver)
+                receiver_type_id :: receiver_type_id_of(state, receiver)
                 if receiver_type_id < 0 {
                     return Trap { .message = "virtual.call '${instr.vtable_key}' : receiver tag ${describe_value_tag(receiver)} has no type id at pc=${frame.pc}" }
                 }
-                callee_fn :: lookup_vtable(module.vtables, instr.vtable_key, receiver_type_id)
+                callee_fn :: lookup_vtable(state.bc.vtables, instr.vtable_key, receiver_type_id)
                 if callee_fn < 0 {
                     // Intrinsic primitive impl fallback : an `@intrinsic`
                     // impl member on a primitive (e.g. `string implements
@@ -786,7 +832,7 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                     // `std_core$<kind>$<Trait>$<method>` from the receiver's
                     // primitive kind + the vtable key and route through the
                     // host dispatcher, which already implements these.
-                    recv_kind :: primitive_kind_at(module, receiver_type_id)
+                    recv_kind :: primitive_kind_at(state.bc.types, receiver_type_id)
                     host_mangle :: intrinsic_host_mangle(recv_kind, instr.vtable_key)
                     if recv_kind != "" && host_mangle != "" {
                         shift2 := receiver_top
@@ -795,10 +841,24 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                             shift2 -= 1
                         }
                         frame.stack[arg_base] = receiver
-                        synth_info :: ImportInfo {
-                            .name = "", .mangled = host_mangle,
-                            .parameter_count = usize(instr.parameter_count),
-                            .has_return = true,
+                        // Synthesise a minimal `BcImport` so `dispatch_import`'s
+                        // host arms (which key on `mangled_name` + read the
+                        // signature's arity / non-Void result) fire as they do
+                        // for a real `call.import`. `params` carries one `Any`
+                        // slot per arg purely for the arity read ; `result` is a
+                        // non-Void placeholder so the result gets pushed back.
+                        synth_params: bc.ValType[] = []
+                        for _ in 0..<usize(instr.parameter_count) { synth_params.push(bc.ValType.Any) }
+                        synth_info :: bc.BcImport {
+                            .extern_name  = "",
+                            .mangled_name = host_mangle,
+                            .signature    = bc.BcSignature {
+                                .params      = synth_params,
+                                .result      = bc.ValType.Any,
+                                .param_types = [],
+                                .result_type = 0,
+                            },
+                            .is_extern    = false,
                         }
                         host_outcome :: dispatch_import(synth_info, frame.stack, arg_base, gc_state, frame.pc, string_array_type_id, u8_array_type_id)
                         if host_outcome is Trap { return host_outcome }
@@ -811,13 +871,14 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                     }
                     return Trap { .message = "virtual.call '${instr.vtable_key}' : no impl for type ${receiver_type_id} at pc=${frame.pc}" }
                 }
-                index_check :: validate_fn_index(callee_fn, module, frame.pc, "virtual.call '${instr.vtable_key}'")
+                index_check :: validate_fn_index(callee_fn, state.bc.functions, frame.pc, "virtual.call '${instr.vtable_key}'")
                 if index_check is Trap { return index_check }
-                callee :: module.functions[usize(callee_fn)]
+                callee :: state.bc.functions[usize(callee_fn)]
                 // The callee's signature has `(receiver, …user args)` so its
-                // parameter_count should equal the instr's parameter_count.
-                if callee.parameter_count != usize(instr.parameter_count) {
-                    return Trap { .message = "virtual.call '${instr.vtable_key}' : impl '${callee.name}' expects ${callee.parameter_count} param(s) but call site supplied ${instr.parameter_count} at pc=${frame.pc}" }
+                // param count should equal the instr's parameter_count.
+                callee_arity :: callee.signature.params.len()
+                if callee_arity != usize(instr.parameter_count) {
+                    return Trap { .message = "virtual.call '${instr.vtable_key}' : impl '${callee.name}' expects ${callee_arity} param(s) but call site supplied ${instr.parameter_count} at pc=${frame.pc}" }
                 }
                 shift_index := receiver_top
                 for shift_index > arg_base {
@@ -834,33 +895,34 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                 // lifted fn's first slot is bound to `env` and the user
                 // args fill `slot 1..N+1` ; otherwise the user args fill
                 // `slot 0..N` (mirrors `src/vm/exec.ts:289-304`).
-                if instr.type_id < 0 || usize(instr.type_id) >= module.types.len() {
+                if instr.type_id < 0 || usize(instr.type_id) >= state.bc.types.len() {
                     return Trap { .message = "call.indirect type ${instr.type_id} out of range at pc=${frame.pc}" }
                 }
-                fn_type_decl :: module.types[usize(instr.type_id)]
-                if !(fn_type_decl is FnType) {
+                fn_type_decl :: state.bc.types[usize(instr.type_id)]
+                if !(fn_type_decl is bc.BcFn) {
                     return Trap { .message = "call.indirect type ${instr.type_id} is not a fn type at pc=${frame.pc}" }
                 }
-                indirect_arity :: fn_type_decl.parameter_type_ids.len()
+                indirect_arity :: fn_type_decl.params.len()
                 if frame.sp < 1 + indirect_arity {
                     return Trap { .message = "call.indirect needs ${indirect_arity} arg(s) + fn-ref but stack has ${frame.sp} at pc=${frame.pc} in '${body.name}'" }
                 }
                 fn_unwrap :: read_fn(frame.stack[frame.sp - 1], frame.pc, "call.indirect receiver")
                 if fn_unwrap is Trap { return fn_unwrap }
-                callee_index_check :: validate_fn_index(fn_unwrap.function_index, module, frame.pc, "call.indirect")
+                callee_index_check :: validate_fn_index(fn_unwrap.function_index, state.bc.functions, frame.pc, "call.indirect")
                 if callee_index_check is Trap { return callee_index_check }
-                callee :: module.functions[usize(fn_unwrap.function_index)]
+                callee :: state.bc.functions[usize(fn_unwrap.function_index)]
                 env_present :: !(fn_unwrap.env is null)
                 expected_callee_arity :: if env_present { indirect_arity + 1 } else { indirect_arity }
-                if callee.parameter_count != expected_callee_arity {
-                    return Trap { .message = "call.indirect arity mismatch at pc=${frame.pc}: caller supplied ${expected_callee_arity}${if env_present { " (incl. env)" } else { "" }} but '${callee.name}' declares ${callee.parameter_count} param(s)" }
+                callee_arity :: callee.signature.params.len()
+                if callee_arity != expected_callee_arity {
+                    return Trap { .message = "call.indirect arity mismatch at pc=${frame.pc}: caller supplied ${expected_callee_arity}${if env_present { " (incl. env)" } else { "" }} but '${callee.name}' declares ${callee_arity} param(s)" }
                 }
                 arg_base :: frame.sp - 1 - indirect_arity
                 dispatched :: dispatch_call_into(frame, frames, frame_count, callee, fn_unwrap.function_index, arg_base, fn_unwrap.env)
                 if dispatched is Trap { return dispatched }
             }
             is bc.StructNew -> {
-                outcome :: build_struct(module, instr.type_id, frame)
+                outcome :: build_struct(state.bc.types, instr.type_id, frame)
                 if outcome is Trap { return outcome }
             }
             is bc.StructGet -> {
@@ -994,10 +1056,10 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                 frame.pc = frame.pc + 1
             }
             is bc.DataConst -> {
-                if instr.pool_index < 0 || usize(instr.pool_index) >= module.data_pool.len() {
+                if instr.pool_index < 0 || usize(instr.pool_index) >= state.data_pool.len() {
                     return Trap { .message = "data.const pool_index ${instr.pool_index} out of range at pc=${frame.pc}" }
                 }
-                entry :: module.data_pool[usize(instr.pool_index)]
+                entry :: state.data_pool[usize(instr.pool_index)]
                 // Re-stamp the call-site's type_id onto a fresh header sharing
                 // the pool entry's `elements` ; mirrors `.rodata` sharing in
                 // the native runtime.
@@ -1023,47 +1085,6 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                 frame.stack[frame.sp - 1] = converted
                 frame.pc = frame.pc + 1
             }
-            is bc.BuilderNew -> {
-                push_value(frame.stack, frame.sp, BuilderVal { .parts = [] })
-                frame.sp = frame.sp + 1
-                frame.pc = frame.pc + 1
-            }
-            is bc.BuilderAppendStr -> {
-                if frame.sp < 2 {
-                    return Trap { .message = "intrinsic builder.append_str needs builder + string on stack at pc=${frame.pc}" }
-                }
-                str_unwrap :: read_string(frame.stack[frame.sp - 1], frame.pc, "intrinsic builder.append_str string")
-                if str_unwrap is Trap { return str_unwrap }
-                builder_unwrap :: read_builder(frame.stack[frame.sp - 2], frame.pc, "intrinsic builder.append_str receiver")
-                if builder_unwrap is Trap { return builder_unwrap }
-                builder_unwrap.parts.push(str_unwrap.value)
-                frame.sp = frame.sp - 2
-                frame.pc = frame.pc + 1
-            }
-            is bc.BuilderAppendDisplay -> {
-                if frame.sp < 2 {
-                    return Trap { .message = "intrinsic builder.append_display needs builder + value on stack at pc=${frame.pc}" }
-                }
-                builder_unwrap :: read_builder(frame.stack[frame.sp - 2], frame.pc, "intrinsic builder.append_display receiver")
-                if builder_unwrap is Trap { return builder_unwrap }
-                builder_unwrap.parts.push(display_value(frame.stack[frame.sp - 1]))
-                frame.sp = frame.sp - 2
-                frame.pc = frame.pc + 1
-            }
-            is bc.BuilderFinish -> {
-                if frame.sp == 0 {
-                    return Trap { .message = "intrinsic builder.finish on empty stack at pc=${frame.pc}" }
-                }
-                builder_unwrap :: read_builder(frame.stack[frame.sp - 1], frame.pc, "intrinsic builder.finish receiver")
-                if builder_unwrap is Trap { return builder_unwrap }
-                // Reuse `builder.parts` by reference inside a transient
-                // `StringBuilder` — its `@intrinsic Display::to_string`
-                // flushes the parts in one pass with one allocation, no
-                // intermediate copy.
-                flushing :: StringBuilder { .parts = builder_unwrap.parts }
-                frame.stack[frame.sp - 1] = StringVal { .value = "${flushing}" }
-                frame.pc = frame.pc + 1
-            }
             is bc.SizeOfType -> {
                 if frame.sp == 0 {
                     return Trap { .message = "intrinsic size_of.type on empty stack at pc=${frame.pc}" }
@@ -1073,10 +1094,10 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                     return Trap { .message = "intrinsic size_of.type: expected type value, got ${describe_value_tag(top_val)} at pc=${frame.pc}" }
                 }
                 type_id :: top_val.type_id
-                if type_id < 0 || usize(type_id) >= module.types.len() {
+                if type_id < 0 || usize(type_id) >= state.bc.types.len() {
                     return Trap { .message = "intrinsic size_of.type: type ${type_id} out of range at pc=${frame.pc}" }
                 }
-                size :: size_of_bc_type(module.types[usize(type_id)])
+                size :: bc.size_of_bc_type(state.bc.types[usize(type_id)])
                 frame.stack[frame.sp - 1] = I64Val { .value = i64(size) }
                 frame.pc = frame.pc + 1
             }
@@ -1431,16 +1452,6 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                 frame.stack[frame.sp - 1] = I32Val { .value = i32(u32(source.value)) }
                 frame.pc = frame.pc + 1
             }
-            is bc.StringConcat -> {
-                if frame.sp < 2 { return Trap { .message = "string.concat needs 2 strings on stack at pc=${frame.pc}" } }
-                left  :: read_string(frame.stack[frame.sp - 2], frame.pc, "string.concat")
-                right :: read_string(frame.stack[frame.sp - 1], frame.pc, "string.concat")
-                if left  is Trap { return left  }
-                if right is Trap { return right }
-                frame.stack[frame.sp - 2] = StringVal { .value = "${left.value}${right.value}" }
-                frame.sp = frame.sp - 1
-                frame.pc = frame.pc + 1
-            }
             is bc.StringSliceCodepoints -> {
                 if frame.sp < 3 { return Trap { .message = "string.slice_codepoints needs string + lo + hi on stack at pc=${frame.pc}" } }
                 s_box  :: read_string(frame.stack[frame.sp - 3], frame.pc, "string.slice_codepoints receiver")
@@ -1499,15 +1510,15 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
             }
             is bc.TypeCheck -> {
                 if frame.sp == 0 { return Trap { .message = "type_check on empty stack at pc=${frame.pc}" } }
-                if instr.type_id < 0 || usize(instr.type_id) >= module.types.len() {
+                if instr.type_id < 0 || usize(instr.type_id) >= state.bc.types.len() {
                     return Trap { .message = "type_check type ${instr.type_id} out of range at pc=${frame.pc}" }
                 }
-                matched :: type_matches(module, frame.stack[frame.sp - 1], instr.type_id)
+                matched :: type_matches(state, frame.stack[frame.sp - 1], instr.type_id)
                 frame.stack[frame.sp - 1] = BoolVal { .value = matched }
                 frame.pc = frame.pc + 1
             }
             is bc.TypeConst -> {
-                if instr.type_id < 0 || usize(instr.type_id) >= module.types.len() {
+                if instr.type_id < 0 || usize(instr.type_id) >= state.bc.types.len() {
                     return Trap { .message = "type.const type ${instr.type_id} out of range at pc=${frame.pc}" }
                 }
                 push_value(frame.stack, frame.sp, TypeVal { .type_id = instr.type_id })
@@ -1549,10 +1560,10 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                     closure_val :: frame.defers[drain_index]
                     fn_unwrap :: read_fn(closure_val, frame.pc, "defer.pop_exec entry")
                     if fn_unwrap is Trap { return fn_unwrap }
-                    callee_index_check :: validate_fn_index(fn_unwrap.function_index, module, frame.pc, "defer.pop_exec")
+                    callee_index_check :: validate_fn_index(fn_unwrap.function_index, state.bc.functions, frame.pc, "defer.pop_exec")
                     if callee_index_check is Trap { return callee_index_check }
-                    callee :: module.functions[usize(fn_unwrap.function_index)]
-                    if callee.parameter_count != usize(1) {
+                    callee :: state.bc.functions[usize(fn_unwrap.function_index)]
+                    if callee.signature.params.len() != usize(1) {
                         return Trap { .message = "defer thunk '${callee.name}' must take exactly one env param at pc=${frame.pc}" }
                     }
                     callee_frame :: build_callee_frame(fn_unwrap.function_index, callee, frame.stack, frame.sp, fn_unwrap.env)
@@ -1623,10 +1634,163 @@ export exec :: fn(module: Module, host_argv: string[]) -> VmResult {
                 if !(outcome is null) { return outcome }
             }
             is bc.ReturnLit -> {
-                return_value :: const_op_value(instr.value, module, frame.pc)
+                return_value :: const_op_value(instr.value, state.bc.strings, frame.pc)
                 if return_value is Trap { return return_value }
                 outcome :: finalise_return(return_value, true, frame.pc, frames, frame_count, "return.lit from main")
                 if !(outcome is null) { return outcome }
+            }
+            // ---- memory opcodes (Target ABI) — inert until S3 -----------
+            is bc.ObjectNew -> {
+                outcome :: build_object(instr.type_id, frame, obj_handles)
+                if outcome is Trap { return outcome }
+            }
+            is bc.LoadU8 -> {
+                raw :: load_bytes_op(frame, 1, "load_u8")
+                if raw is Trap { return raw }
+                frame.stack[frame.sp - 2] = I32Val { .value = i32(raw) }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
+            }
+            is bc.LoadI32 -> {
+                raw :: load_bytes_op(frame, 4, "load_i32")
+                if raw is Trap { return raw }
+                frame.stack[frame.sp - 2] = I32Val { .value = i32(raw) }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
+            }
+            is bc.LoadI64 -> {
+                raw :: load_bytes_op(frame, 8, "load_i64")
+                if raw is Trap { return raw }
+                frame.stack[frame.sp - 2] = I64Val { .value = i64(raw) }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
+            }
+            is bc.LoadF64 -> {
+                // f64 byte codec needs an f64↔bits reinterpret (no Vader-pure
+                // form) ; wired in S5 with the float-array tranche, alongside
+                // de-stubbing read_data_item. Trap loudly until then rather
+                // than push a silently-wrong value.
+                return Trap { .message = "load_f64: f64 byte codec lands with the float-array tranche (S5; see read_data_item) at pc=${frame.pc}" }
+            }
+            is bc.StoreU8 -> {
+                if frame.sp < 3 { return Trap { .message = "store_u8 needs object + offset + value on stack at pc=${frame.pc}" } }
+                val_unwrap :: read_i32(frame.stack[frame.sp - 1], frame.pc, "store_u8 value")
+                if val_unwrap is Trap { return val_unwrap }
+                outcome :: store_bytes_op(frame, 1, u64(u8(val_unwrap.value)), "store_u8")
+                if outcome is Trap { return outcome }
+            }
+            is bc.StoreI32 -> {
+                if frame.sp < 3 { return Trap { .message = "store_i32 needs object + offset + value on stack at pc=${frame.pc}" } }
+                val_unwrap :: read_i32(frame.stack[frame.sp - 1], frame.pc, "store_i32 value")
+                if val_unwrap is Trap { return val_unwrap }
+                outcome :: store_bytes_op(frame, 4, u64(u32(val_unwrap.value)), "store_i32")
+                if outcome is Trap { return outcome }
+            }
+            is bc.StoreI64 -> {
+                if frame.sp < 3 { return Trap { .message = "store_i64 needs object + offset + value on stack at pc=${frame.pc}" } }
+                val_unwrap :: read_i64(frame.stack[frame.sp - 1], frame.pc, "store_i64 value")
+                if val_unwrap is Trap { return val_unwrap }
+                outcome :: store_bytes_op(frame, 8, u64(val_unwrap.value), "store_i64")
+                if outcome is Trap { return outcome }
+            }
+            is bc.StoreF64 -> {
+                // See LoadF64 — deferred to S5 ; trap rather than corrupt.
+                return Trap { .message = "store_f64: f64 byte codec lands with the float-array tranche (S5; see read_data_item) at pc=${frame.pc}" }
+            }
+            // Slot ops — the VM stores every element as a uniform `Value` in
+            // `slots` (no byte packing), so the native width-typed primitive
+            // slot ops (`load_slot_*` / `store_slot_*`) and the boxed
+            // `load_slot` / `store_slot` all route through the same logic ; the
+            // `…U8` / `…I32` / `…I64` / `…F64` width distinction is a native-only
+            // (byte-layout) concern the boxed-Value VM doesn't model.
+            is bc.LoadSlot     -> { if do_load_slot(frame)  is Trap as t { return t } }
+            is bc.LoadSlotU8   -> { if do_load_slot(frame)  is Trap as t { return t } }
+            is bc.LoadSlotI32  -> { if do_load_slot(frame)  is Trap as t { return t } }
+            is bc.LoadSlotI64  -> { if do_load_slot(frame)  is Trap as t { return t } }
+            is bc.LoadSlotF64  -> { if do_load_slot(frame)  is Trap as t { return t } }
+            is bc.StoreSlot    -> { if do_store_slot(frame) is Trap as t { return t } }
+            is bc.StoreSlotU8  -> { if do_store_slot(frame) is Trap as t { return t } }
+            is bc.StoreSlotI32 -> { if do_store_slot(frame) is Trap as t { return t } }
+            is bc.StoreSlotI64 -> { if do_store_slot(frame) is Trap as t { return t } }
+            is bc.StoreSlotF64 -> { if do_store_slot(frame) is Trap as t { return t } }
+            is bc.MemoryCopy -> {
+                outcome :: do_memory_copy(frame)
+                if outcome is Trap { return outcome }
+            }
+            is bc.BufferToString -> {
+                // Pop buffer + len ; intern the leading `len` bytes verbatim as a
+                // string (same semantics as `bytes_to_string` over a `u8[]`).
+                if frame.sp < 2 { return Trap { .message = "buffer_to_string needs object + len on stack at pc=${frame.pc}" } }
+                len_unwrap :: read_i32(frame.stack[frame.sp - 1], frame.pc, "buffer_to_string len")
+                if len_unwrap is Trap { return len_unwrap }
+                obj_unwrap :: read_obj(frame.stack[frame.sp - 2], frame.pc, "buffer_to_string receiver")
+                if obj_unwrap is Trap { return obj_unwrap }
+                // width 0 ⇒ checks `0 <= len <= bytes_len`, returns the usize len.
+                n :: check_byte_range(len_unwrap.value, 0, obj_unwrap.bytes.len(), "buffer_to_string", frame.pc)
+                if n is Trap { return n }
+                frame.stack[frame.sp - 2] = StringVal { .value = obj_unwrap.bytes[0..<n].as_string() }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
+            }
+            is bc.BufferWriteString -> {
+                // Pop buffer + off + string ; memcpy the string's bytes into the
+                // buffer at `off` (the parts-model `to_string` assembly step).
+                if frame.sp < 3 { return Trap { .message = "buffer_write_string needs object + off + string on stack at pc=${frame.pc}" } }
+                str_unwrap :: read_string(frame.stack[frame.sp - 1], frame.pc, "buffer_write_string source")
+                if str_unwrap is Trap { return str_unwrap }
+                off_unwrap :: read_i32(frame.stack[frame.sp - 2], frame.pc, "buffer_write_string off")
+                if off_unwrap is Trap { return off_unwrap }
+                obj_unwrap :: read_obj(frame.stack[frame.sp - 3], frame.pc, "buffer_write_string receiver")
+                if obj_unwrap is Trap { return obj_unwrap }
+                if off_unwrap.value < 0 { return Trap { .message = "buffer_write_string negative offset at pc=${frame.pc}" } }
+                src_bytes :: str_unwrap.value.bytes()
+                off :: usize(off_unwrap.value)
+                if off + src_bytes.len() > obj_unwrap.bytes.len() {
+                    return Trap { .message = "buffer_write_string range [${off}, ${off + src_bytes.len()}) exceeds ${obj_unwrap.bytes.len()} at pc=${frame.pc}" }
+                }
+                for i in 0..<src_bytes.len() {
+                    obj_unwrap.bytes[off + i] = src_bytes[i]
+                }
+                frame.sp = frame.sp - 3
+                frame.pc = frame.pc + 1
+            }
+            is bc.F64ToBits -> {
+                // Bit-reinterpret the TOS f64 as its raw u64 bits (held in an
+                // I64Val — same 64 bits) via the runtime `@extern` (see the
+                // module-top note : the VM can't use the intrinsic itself).
+                if frame.sp < 1 { return Trap { .message = "f64_to_bits needs a value on the stack at pc=${frame.pc}" } }
+                fv :: read_f64(frame.stack[frame.sp - 1], frame.pc, "f64_to_bits")
+                if fv is Trap { return fv }
+                frame.stack[frame.sp - 1] = I64Val { .value = i64(vader_f64_to_bits(fv.value)) }
+                frame.pc = frame.pc + 1
+            }
+            is bc.BitsToF64 -> {
+                // Inverse : reinterpret the TOS u64 bit pattern (in an I64Val) as
+                // an f64, via the runtime `@extern`.
+                if frame.sp < 1 { return Trap { .message = "bits_to_f64 needs a value on the stack at pc=${frame.pc}" } }
+                iv :: read_i64(frame.stack[frame.sp - 1], frame.pc, "bits_to_f64")
+                if iv is Trap { return iv }
+                frame.stack[frame.sp - 1] = F64Val { .value = vader_bits_to_f64(u64(iv.value)) }
+                frame.pc = frame.pc + 1
+            }
+            is bc.F32ToBits -> {
+                // f32→u32 bits. The VM holds f32 in an F64Val (exact, since f32
+                // widens losslessly), so narrow back to f32 before the cast; the
+                // u32 result rides in an I32Val.
+                if frame.sp < 1 { return Trap { .message = "f32_to_bits needs a value on the stack at pc=${frame.pc}" } }
+                fv :: read_f64(frame.stack[frame.sp - 1], frame.pc, "f32_to_bits")
+                if fv is Trap { return fv }
+                frame.stack[frame.sp - 1] = I32Val { .value = i32(vader_f32_to_bits(f32(fv.value))) }
+                frame.pc = frame.pc + 1
+            }
+            is bc.BitsToF32 -> {
+                // Inverse : reinterpret the TOS u32 bit pattern (in an I32Val) as
+                // an f32, widened back into an F64Val for VM storage.
+                if frame.sp < 1 { return Trap { .message = "bits_to_f32 needs a value on the stack at pc=${frame.pc}" } }
+                iv :: read_i32(frame.stack[frame.sp - 1], frame.pc, "bits_to_f32")
+                if iv is Trap { return iv }
+                frame.stack[frame.sp - 1] = F64Val { .value = f64(vader_bits_to_f32(u32(iv.value))) }
+                frame.pc = frame.pc + 1
             }
         }
     }
@@ -1673,22 +1837,22 @@ build_array :: fn(type_id: i32, length: i32, frame: Frame) -> Trap | null {
 /// Pops `field_count` values from `frame.stack` (in field-declaration
 /// order), wraps them in a `StructVal`, and pushes the result.
 ///
-/// @param module   the running module (used to look up `types`).
-/// @param type_id  the struct type's ordinal in `module.types`.
+/// @param types    the running module's type table.
+/// @param type_id  the struct type's ordinal in `types`.
 /// @param frame    current top frame, mutated in place (sp / pc advanced).
 /// @return         `null` on success, or a `Trap` describing the failure.
 /// @error          `type_id` out of range ; type-table entry isn't a
-///                 `StructType` ; stack carries fewer than `field_count`
+///                 `BcStruct` ; stack carries fewer than `field_count`
 ///                 values.
-build_struct :: fn(module: Module, type_id: i32, frame: Frame) -> Trap | null {
-    if type_id < 0 || usize(type_id) >= module.types.len() {
+build_struct :: fn(types: bc.BcType[], type_id: i32, frame: Frame) -> Trap | null {
+    if type_id < 0 || usize(type_id) >= types.len() {
         return Trap { .message = "struct.new type ${type_id} out of range at pc=${frame.pc}" }
     }
-    type_decl :: module.types[usize(type_id)]
-    if !(type_decl is StructType) {
+    type_decl :: types[usize(type_id)]
+    if !(type_decl is bc.BcStruct) {
         return Trap { .message = "struct.new type ${type_id} is not a struct at pc=${frame.pc}" }
     }
-    field_count :: type_decl.field_count
+    field_count :: type_decl.fields.len()
     if frame.sp < field_count {
         return Trap { .message = "struct.new type ${type_id} needs ${field_count} field value(s) but stack has ${frame.sp} at pc=${frame.pc}" }
     }
@@ -1702,6 +1866,217 @@ build_struct :: fn(module: Module, type_id: i32, frame: Frame) -> Trap | null {
     new_struct :: StructVal { .type_id = type_id, .fields = fields }
     push_value(frame.stack, arg_base, new_struct)
     frame.sp = arg_base + 1
+    frame.pc = frame.pc + 1
+    return null
+}
+
+// ---- memory opcodes (Target ABI) — VM byte-heap helpers (decision D8) ----
+//
+// Inert until S3 (nothing emits these yet). The VM backs a REAL byte-
+// addressed heap : `ObjVal.bytes` is the raw inline payload (byte offsets),
+// `ObjVal.slots` the boxed reference fields (slot indices). Each accessor
+// re-derives from the obj on the stack — no base cached across an op (G1,
+// trivially held here since every access hits `obj.bytes` / `obj.slots`
+// fresh). The C backend's emitted arms carry the real G1/G2 discipline ; S2b
+// proves it on a bespoke fixture.
+
+/// Body of the `object_new` arm. Pops `size` (usize) and pushes a zero-filled
+/// `ObjVal` of that byte length. `type_id` is the inline immediate (D2).
+/// `handle_cell[0]` is the monotonic synthetic-handle source (diagnostics).
+///
+/// @param type_id      the object's type-table ordinal (Buffer = the
+///                     `VADER_TYPE_INDEX_BUFFER` sentinel, D3).
+/// @param frame        current top frame, mutated in place (size popped, obj
+///                     pushed in its place — net stack effect 0).
+/// @param handle_cell  1-cell carrier for the monotonic handle counter.
+/// @return             `null` on success, or a `Trap` on stack underflow /
+///                     negative size.
+/// @error              empty stack ; negative size.
+build_object :: fn(type_id: i32, frame: Frame, handle_cell: i32[]) -> Trap | null {
+    if frame.sp < 1 {
+        return Trap { .message = "object_new needs size on stack at pc=${frame.pc}" }
+    }
+    size_unwrap :: read_i32(frame.stack[frame.sp - 1], frame.pc, "object_new size")
+    if size_unwrap is Trap { return size_unwrap }
+    if size_unwrap.value < 0 {
+        return Trap { .message = "object_new size ${size_unwrap.value} is negative at pc=${frame.pc}" }
+    }
+    bytes: u8[] = []
+    for _ in 0..<usize(size_unwrap.value) {
+        bytes.push(u8(0))
+    }
+    handle_cell[0] = handle_cell[0] + 1
+    frame.stack[frame.sp - 1] = ObjVal { .handle = handle_cell[0], .type_id = type_id, .bytes = bytes, .slots = [] }
+    frame.pc = frame.pc + 1
+    return null
+}
+
+/// Shared front-half of the typed/byte loads (`load_u8` / `load_i32` /
+/// `load_i64`). Validates `obj, off` on the stack and bounds, then returns the
+/// `width` little-endian bytes at `off` as a zero-extended u64 — the caller
+/// wraps it in the right `Value` and advances the stack/pc.
+///
+/// @param frame  current top frame ; not mutated here (the arm overwrites
+///               `stack[sp-2]` and drops one slot).
+/// @param width  byte width to read (1 / 4 / 8).
+/// @param label  op label for trap messages.
+/// @return       the raw value, or a `Trap` on underflow / bad obj / OOB.
+/// @error        fewer than 2 stack slots ; non-object receiver ; negative or
+///               out-of-range offset.
+/// Validate a byte-region access for the typed load/store ops: the offset must
+/// be non-negative and `[off, off + width)` must fall within `bytes_len`.
+/// Centralises the bounds logic + trap wording shared by `load_bytes_op` and
+/// `store_bytes_op` so the two stay in lockstep.
+///
+/// @param off        the raw signed offset popped off the stack.
+/// @param width      byte width of the access (1 / 4 / 8).
+/// @param bytes_len  length of the object's inline byte region.
+/// @param label      op label for trap messages.
+/// @param pc         current program counter, for trap provenance.
+/// @return           the validated `usize` offset.
+/// @error            negative offset ; range past the byte length.
+check_byte_range :: fn(off: i32, width: usize, bytes_len: usize, label: string, pc: i32) -> usize | Trap {
+    if off < 0 {
+        return Trap { .message = "${label} offset ${off} is negative at pc=${pc}" }
+    }
+    o :: usize(off)
+    if o + width > bytes_len {
+        return Trap { .message = "${label} offset ${o} (+${width}) exceeds object byte length ${bytes_len} at pc=${pc}" }
+    }
+    return o
+}
+
+load_bytes_op :: fn(frame: Frame, width: usize, label: string) -> u64 | Trap {
+    if frame.sp < 2 {
+        return Trap { .message = "${label} needs object + offset on stack at pc=${frame.pc}" }
+    }
+    off_unwrap :: read_i32(frame.stack[frame.sp - 1], frame.pc, "${label} offset")
+    if off_unwrap is Trap { return off_unwrap }
+    obj_unwrap :: read_obj(frame.stack[frame.sp - 2], frame.pc, "${label} receiver")
+    if obj_unwrap is Trap { return obj_unwrap }
+    off :: check_byte_range(off_unwrap.value, width, obj_unwrap.bytes.len(), label, frame.pc)
+    if off is Trap { return off }
+    return read_le(obj_unwrap.bytes, off, width)
+}
+
+/// Shared body of the typed/byte stores (`store_u8` / `store_i32` /
+/// `store_i64`). The caller has already read the value off `stack[sp-1]` into
+/// `value` (the raw bit pattern) and guaranteed `sp >= 3`. Validates `obj`
+/// (sp-3) and `off` (sp-2), bounds-checks, writes `width` little-endian bytes,
+/// then drops the three operands and advances pc.
+///
+/// @param frame  current top frame, mutated in place.
+/// @param width  byte width to write (1 / 4 / 8).
+/// @param value  the raw bit pattern whose low `width` bytes are stored.
+/// @param label  op label for trap messages.
+/// @return       `null` on success, or a `Trap` on bad obj / OOB offset.
+/// @error        non-object receiver ; negative or out-of-range offset.
+store_bytes_op :: fn(frame: Frame, width: usize, value: u64, label: string) -> Trap | null {
+    off_unwrap :: read_i32(frame.stack[frame.sp - 2], frame.pc, "${label} offset")
+    if off_unwrap is Trap { return off_unwrap }
+    obj_unwrap :: read_obj(frame.stack[frame.sp - 3], frame.pc, "${label} receiver")
+    if obj_unwrap is Trap { return obj_unwrap }
+    off :: check_byte_range(off_unwrap.value, width, obj_unwrap.bytes.len(), label, frame.pc)
+    if off is Trap { return off }
+    write_le(obj_unwrap.bytes, off, width, value)
+    frame.sp = frame.sp - 3
+    frame.pc = frame.pc + 1
+    return null
+}
+
+/// Body of the `load_slot` family. Pops `arr, index` and pushes the element at
+/// `arr.offset + index`. `arr` is a `T[]` (`ArrayVal`) — the slot `@intrinsic`s
+/// are impl'd on `T[]`, so the operand is the array, mirroring native (which
+/// derefs `->buf` + `->offset`). The VM stores every element as a uniform
+/// `Value`, so this serves the boxed `load_slot` and each width-typed primitive
+/// `load_slot_*` alike (the native byte-width distinction is native-only).
+/// @param frame  current top frame, mutated in place (1 operand dropped).
+/// @return       `null` on success, or a `Trap` on underflow / non-array / OOB.
+do_load_slot :: fn(frame: Frame) -> Trap | null {
+    if frame.sp < 2 { return Trap { .message = "load_slot needs array + index on stack at pc=${frame.pc}" } }
+    idx_unwrap :: read_i32(frame.stack[frame.sp - 1], frame.pc, "load_slot index")
+    if idx_unwrap is Trap { return idx_unwrap }
+    arr :: read_array(frame.stack[frame.sp - 2], frame.pc, "load_slot receiver")
+    if arr is Trap { return arr }
+    if idx_unwrap.value < 0 || usize(idx_unwrap.value) >= arr.length {
+        return Trap { .message = "load_slot index ${idx_unwrap.value} out of bounds (len=${arr.length}) at pc=${frame.pc}" }
+    }
+    frame.stack[frame.sp - 2] = arr.elements[arr.offset + usize(idx_unwrap.value)]
+    frame.sp = frame.sp - 1
+    frame.pc = frame.pc + 1
+    return null
+}
+
+/// Body of the `store_slot` family. Pops `arr, index, value` and writes `value`
+/// at `arr.offset + index` (bounds-checked against `length` — the array.vader
+/// impl checks before calling, this is the oracle's defensive mirror). `arr` is
+/// a `T[]` (`ArrayVal`). Serves the boxed `store_slot` and each primitive
+/// `store_slot_*`. In the C backend the boxed `store_slot` fires
+/// `VADER_WRITE_BARRIER(arr->buf)` (G2) ; in the VM the host GC traces
+/// `elements` directly so the barrier is implicit. (`push`'s grow-append is a
+/// separate path — S5 inc 3.)
+/// @param frame  current top frame, mutated in place (3 operands dropped).
+/// @return       `null` on success, or a `Trap` on underflow / non-array / OOB.
+do_store_slot :: fn(frame: Frame) -> Trap | null {
+    if frame.sp < 3 { return Trap { .message = "store_slot needs array + index + value on stack at pc=${frame.pc}" } }
+    value :: frame.stack[frame.sp - 1]
+    idx_unwrap :: read_i32(frame.stack[frame.sp - 2], frame.pc, "store_slot index")
+    if idx_unwrap is Trap { return idx_unwrap }
+    arr :: read_array(frame.stack[frame.sp - 3], frame.pc, "store_slot receiver")
+    if arr is Trap { return arr }
+    if idx_unwrap.value < 0 || usize(idx_unwrap.value) >= arr.length {
+        return Trap { .message = "store_slot index ${idx_unwrap.value} out of bounds (len=${arr.length}) at pc=${frame.pc}" }
+    }
+    arr.elements[arr.offset + usize(idx_unwrap.value)] = value
+    frame.sp = frame.sp - 3
+    frame.pc = frame.pc + 1
+    return null
+}
+
+/// Body of the `memory_copy` arm. Pops `dst, dst_off, src, src_off, n` and
+/// copies `n` bytes src→dst (raw byte regions). Bounds-checks both ends and
+/// copies through a snapshot, so an overlapping self-copy stays well-defined
+/// in the oracle (native lowers to `memcpy` and the lowerer guarantees no
+/// overlap — the snapshot only hardens the VM reference impl).
+///
+/// @param frame  current top frame, mutated in place (5 operands dropped).
+/// @return       `null` on success, or a `Trap` on underflow / bad obj / OOB.
+/// @error        fewer than 5 stack slots ; non-object dst/src ; negative
+///               length/offset ; source or dest range past the byte length.
+do_memory_copy :: fn(frame: Frame) -> Trap | null {
+    if frame.sp < 5 {
+        return Trap { .message = "memory_copy needs dst + dst_off + src + src_off + n on stack at pc=${frame.pc}" }
+    }
+    n_unwrap :: read_i32(frame.stack[frame.sp - 1], frame.pc, "memory_copy n")
+    if n_unwrap is Trap { return n_unwrap }
+    src_off_unwrap :: read_i32(frame.stack[frame.sp - 2], frame.pc, "memory_copy src_off")
+    if src_off_unwrap is Trap { return src_off_unwrap }
+    src_unwrap :: read_obj(frame.stack[frame.sp - 3], frame.pc, "memory_copy src")
+    if src_unwrap is Trap { return src_unwrap }
+    dst_off_unwrap :: read_i32(frame.stack[frame.sp - 4], frame.pc, "memory_copy dst_off")
+    if dst_off_unwrap is Trap { return dst_off_unwrap }
+    dst_unwrap :: read_obj(frame.stack[frame.sp - 5], frame.pc, "memory_copy dst")
+    if dst_unwrap is Trap { return dst_unwrap }
+    if n_unwrap.value < 0 || src_off_unwrap.value < 0 || dst_off_unwrap.value < 0 {
+        return Trap { .message = "memory_copy negative length/offset at pc=${frame.pc}" }
+    }
+    n :: usize(n_unwrap.value)
+    src_off :: usize(src_off_unwrap.value)
+    dst_off :: usize(dst_off_unwrap.value)
+    if src_off + n > src_unwrap.bytes.len() {
+        return Trap { .message = "memory_copy source range [${src_off}, ${src_off + n}) exceeds ${src_unwrap.bytes.len()} at pc=${frame.pc}" }
+    }
+    if dst_off + n > dst_unwrap.bytes.len() {
+        return Trap { .message = "memory_copy dest range [${dst_off}, ${dst_off + n}) exceeds ${dst_unwrap.bytes.len()} at pc=${frame.pc}" }
+    }
+    snapshot: u8[] = []
+    for i in 0..<n {
+        snapshot.push(src_unwrap.bytes[src_off + i])
+    }
+    for i in 0..<n {
+        dst_unwrap.bytes[dst_off + i] = snapshot[i]
+    }
+    frame.sp = frame.sp - 5
     frame.pc = frame.pc + 1
     return null
 }
@@ -1723,7 +2098,7 @@ export run_virt :: fn(path: string, host_argv: string[]) -> i32 {
         eprintln("vader run: cannot read ${path}")
         return 1
     }
-    return match exec(parse_virt(source), host_argv) {
+    return match exec(prepare(parse_virt_bc(source)), host_argv) {
         is Ok   as o -> o.value
         is Trap as t -> {
             eprintln("vader vm: ${t.message}")

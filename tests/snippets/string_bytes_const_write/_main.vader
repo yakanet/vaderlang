@@ -4,7 +4,6 @@
 
 module "snippet"
 
-import "std/string" { bytes }
 
 main :: fn() -> i32 {
     bs :: "abc".bytes()

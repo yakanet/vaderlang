@@ -3,39 +3,20 @@ type 0 primitive null
 type 1 primitive string
 type 2 primitive void
 type 3 primitive i32
-type 4 primitive usize
-type 5 primitive bool
-type 6 struct std_core$Range__char { start:16,end:16,inclusive:5,cursor:16 }
-type 7 primitive char
-type 8 union 0,9
-type 9 struct std_core$Yield__char { value:16 }
-type 10 struct std_core$Range__i32 { start:16,end:16,inclusive:5,cursor:16 }
-type 11 union 0,12
-type 12 struct std_core$Yield__i32 { value:16 }
-type 13 struct std_core$Range__usize { start:16,end:16,inclusive:5,cursor:16 }
-type 14 union 0,15
-type 15 struct std_core$Yield__usize { value:16 }
-type 16 ref _
-type 17 primitive u8
-type 18 array 17
+type 4 primitive bool
+type 5 array 6
+type 6 primitive u8
 string 0 "\n"
 string 1 "  hi  "
 import 0 write std_io$write (i32,string) -> void
-import 1 to_string std_core$string$Display$to_string (string) -> string
-import 2 bytes std_string$bytes (string) -> ref
-import 3 as_string std_string$as_string (ref) -> string
-impl 6 Contains
-impl 6 Iterator
-impl 10 Contains
-impl 10 Iterator
-impl 13 Contains
-impl 13 Iterator
+import 1 bytes std_core$bytes (string) -> ref
+import 2 as_string std_string$as_string (ref) -> string
 export main 1
 
 fn 0 std_io$std_io$println__string (string) -> void
   local $call_2 string
   local.get 0
-  call 4
+  call 2
   local.set 1
   i32.const 0
   local.get 1
@@ -48,12 +29,17 @@ end
 
 fn 1 snippet$main () -> i32
   string.const 1
-  call 2
+  call 3
   call 0
   return.lit i32.const 0
 end
 
-fn 2 std_string$trim (string) -> string
+fn 2 std_core$string$Display$to_string (string) -> string
+  local.get 0
+  return
+end
+
+fn 3 std_string$trim (string) -> string
   local sb ref
   local n usize
   local lo usize
@@ -62,7 +48,7 @@ fn 2 std_string$trim (string) -> string
   local $sub_19 usize
   local $k_23 usize
   local.get 0
-  call.import 2
+  call.import 1
   local.tee 1
   array.len
   local.set 2
@@ -76,9 +62,9 @@ fn 2 std_string$trim (string) -> string
       if $L2 void
         local.get 1
         local.get 3
-        array.get 18
-        ref.cast 17
-        call 3
+        array.get 5
+        ref.cast 6
+        call 4
         local.set 4
       else
         bool.const false
@@ -113,9 +99,9 @@ fn 2 std_string$trim (string) -> string
         local.set 6
         local.get 1
         local.get 6
-        array.get 18
-        ref.cast 17
-        call 3
+        array.get 5
+        ref.cast 6
+        call 4
         local.set 4
       else
         bool.const false
@@ -137,12 +123,12 @@ fn 2 std_string$trim (string) -> string
   local.get 1
   local.get 3
   local.get 2
-  array.slice 18
-  call.import 3
+  array.slice 5
+  call.import 2
   return
 end
 
-fn 3 std_string$is_white_byte (u8) -> bool
+fn 4 std_string$is_white_byte (u8) -> bool
   local $cast_2 u8
   local or_res bool
   i32.const 32
@@ -186,11 +172,5 @@ fn 3 std_string$is_white_byte (u8) -> bool
     local.set 2
   end $L2
   local.get 2
-  return
-end
-
-fn 4 std_core$string$Display$to_string_vt (string) -> string
-  local.get 0
-  call.import 1
   return
 end

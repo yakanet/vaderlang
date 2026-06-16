@@ -17,27 +17,30 @@ fn snippet$main() -> i32
     %10 $lt_10: bool
     %11 $idx_11: i32
     %12 s: i32 (local s)
-    %13 $intrinsic_13: ?
-    %14 __sb_3: ? (synthetic __sb_3)
+    %13 $call_13: StringBuilder
+    %14 __sb_3: StringBuilder (synthetic __sb_3)
     %15 $k_15: string
-    %16 $intrinsic_16: string
-    %17 $k_17: usize
-    %18 $add_18: usize
-    %19 $k_19: i32
-    %20 $k_20: string
-    %21 $struct_21: [i32, string]
-    %22 entry: [i32, string] (local entry)
-    %23 $intrinsic_23: ?
-    %24 __sb_4: ? (synthetic __sb_4)
-    %25 $k_25: string
-    %26 $field_26: i32
-    %27 $intrinsic_27: string
-    %28 $intrinsic_28: ?
-    %29 __sb_5: ? (synthetic __sb_5)
-    %30 $k_30: string
-    %31 $field_31: string
-    %32 $intrinsic_32: string
-    %33 $k_33: i32
+    %16 $call_16: string
+    %17 $call_17: string
+    %18 $k_18: usize
+    %19 $add_19: usize
+    %20 $k_20: i32
+    %21 $k_21: string
+    %22 $struct_22: [i32, string]
+    %23 entry: [i32, string] (local entry)
+    %24 $call_24: StringBuilder
+    %25 __sb_4: StringBuilder (synthetic __sb_4)
+    %26 $k_26: string
+    %27 $field_27: i32
+    %28 $call_28: string
+    %29 $call_29: string
+    %30 $call_30: StringBuilder
+    %31 __sb_5: StringBuilder (synthetic __sb_5)
+    %32 $k_32: string
+    %33 $field_33: string
+    %34 $call_34: string
+    %35 $call_35: string
+    %36 $k_36: i32
   bb0:
     %0 = const int(10) :i32
     %1 = const int(20) :i32
@@ -56,37 +59,40 @@ fn snippet$main() -> i32
   bb2:
     %11 = array_get %5[%9] :i32
     %12 = move %11
-    %13 = intrinsic builder.new()
+    %13 = call new_builder() :StringBuilder
     %14 = move %13
     %15 = const string(#1) :string
-    intrinsic builder.append_str(%14, %15)
-    intrinsic builder.append_display(%14, %12)
-    %16 = intrinsic builder.finish(%14)
-    call std_io$std_io$println__string(%16) :void
-    %17 = const int(1) :usize
-    %18 = binop 0 %9 %17 :usize
-    %9 = move %18
+    call append(%14, %15) :void
+    %16 = call std_core$i32$Display$to_string(%12) :string
+    call append(%14, %16) :void
+    %17 = call std_string_builder$StringBuilder$Display$to_string(%14) :string
+    call std_io$std_io$println__string(%17) :void
+    %18 = const int(1) :usize
+    %19 = binop 0 %9 %18 :usize
+    %9 = move %19
     branch -> bb1
   bb3:
-    %19 = const int(42) :i32
-    %20 = const string(#2) :string
-    %21 = struct_new [i32, string](%19, %20)
-    %22 = move %21
-    %23 = intrinsic builder.new()
-    %24 = move %23
-    %25 = const string(#3) :string
-    intrinsic builder.append_str(%24, %25)
-    %26 = field_get %22._0 :i32
-    intrinsic builder.append_display(%24, %26)
-    %27 = intrinsic builder.finish(%24)
-    call std_io$std_io$println__string(%27) :void
-    %28 = intrinsic builder.new()
-    %29 = move %28
-    %30 = const string(#4) :string
-    intrinsic builder.append_str(%29, %30)
-    %31 = field_get %22._1 :string
-    intrinsic builder.append_display(%29, %31)
-    %32 = intrinsic builder.finish(%29)
-    call std_io$std_io$println__string(%32) :void
-    %33 = const int(0) :i32
-    return %33
+    %20 = const int(42) :i32
+    %21 = const string(#2) :string
+    %22 = struct_new [i32, string](%20, %21)
+    %23 = move %22
+    %24 = call new_builder() :StringBuilder
+    %25 = move %24
+    %26 = const string(#3) :string
+    call append(%25, %26) :void
+    %27 = field_get %23._0 :i32
+    %28 = call std_core$i32$Display$to_string(%27) :string
+    call append(%25, %28) :void
+    %29 = call std_string_builder$StringBuilder$Display$to_string(%25) :string
+    call std_io$std_io$println__string(%29) :void
+    %30 = call new_builder() :StringBuilder
+    %31 = move %30
+    %32 = const string(#4) :string
+    call append(%31, %32) :void
+    %33 = field_get %23._1 :string
+    %34 = call std_core$string$Display$to_string(%33) :string
+    call append(%31, %34) :void
+    %35 = call std_string_builder$StringBuilder$Display$to_string(%31) :string
+    call std_io$std_io$println__string(%35) :void
+    %36 = const int(0) :i32
+    return %36

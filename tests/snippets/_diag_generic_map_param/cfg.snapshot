@@ -30,11 +30,11 @@ fn snippet$main() -> i32
     %10 = cast %9 :i32
     return %10
 
-fn snippet$snippet$bump__string__i32(%0: MutableMap<Any, Any>, %1: Any, %2: Any) -> void
+fn snippet$snippet$bump__string__i32(%0: MutableMap<string, i32>, %1: string, %2: i32) -> void
   locals:
-    %0 m: MutableMap<Any, Any> (param m)
-    %1 k: Any (param k)
-    %2 v: Any (param v)
+    %0 m: MutableMap<string, i32> (param m)
+    %1 k: string (param k)
+    %2 v: i32 (param v)
   bb0:
-    call std_collections$MutableMap$IndexSet$set_at__Any__Any(%0, %1, %2) :void
+    call std_collections$MutableMap$IndexSet$set_at__string__i32(%0, %1, %2) :void
     return

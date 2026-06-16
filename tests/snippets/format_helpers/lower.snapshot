@@ -7,230 +7,412 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_0: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_0 :?
-            "[" :string
-          @builder.append_display <for string> :void
-            __sb_0 :?
+          let __sb_0: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              "[" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$string$Display$to_string :string
+                arg0:
+                  call :string
+                    callee:
+                      pad_start :string
+                    arg0:
+                      "42" :string
+                    arg1:
+                      int(5) :usize
+                    arg2:
+                      char(0x30)
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              "]" :string
+          ~>
             call :string
               callee:
-                pad_start :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                "42" :string
-              arg1:
-                int(5) :usize
-              arg2:
-                char(0x30)
-          @builder.append_str :void
-            __sb_0 :?
-            "]" :string
-          ~>
-            @builder.finish :string
-              __sb_0 :?
+                __sb_0 :StringBuilder
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_1: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_1 :?
-            "[" :string
-          @builder.append_display <for string> :void
-            __sb_1 :?
+          let __sb_1: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              "[" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$string$Display$to_string :string
+                arg0:
+                  call :string
+                    callee:
+                      pad_end :string
+                    arg0:
+                      "42" :string
+                    arg1:
+                      int(5) :usize
+                    arg2:
+                      char(0x2e)
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              "]" :string
+          ~>
             call :string
               callee:
-                pad_end :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                "42" :string
-              arg1:
-                int(5) :usize
-              arg2:
-                char(0x2e)
-          @builder.append_str :void
-            __sb_1 :?
-            "]" :string
-          ~>
-            @builder.finish :string
-              __sb_1 :?
+                __sb_1 :StringBuilder
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_2: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_2 :?
-            "[" :string
-          @builder.append_display <for string> :void
-            __sb_2 :?
+          let __sb_2: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              "[" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$string$Display$to_string :string
+                arg0:
+                  call :string
+                    callee:
+                      pad_start :string
+                    arg0:
+                      "hello" :string
+                    arg1:
+                      int(3) :usize
+                    arg2:
+                      char(0x20)
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              "]" :string
+          ~>
             call :string
               callee:
-                pad_start :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                "hello" :string
-              arg1:
-                int(3) :usize
-              arg2:
-                char(0x20)
-          @builder.append_str :void
-            __sb_2 :?
-            "]" :string
-          ~>
-            @builder.finish :string
-              __sb_2 :?
+                __sb_2 :StringBuilder
     let n: u64 = int(255) :u64
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_3: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_3 :?
-            "hex=" :string
-          @builder.append_display <for string> :void
-            __sb_3 :?
+          let __sb_3: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_3 :StringBuilder
+            arg1:
+              "hex=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_3 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$string$Display$to_string :string
+                arg0:
+                  call :string
+                    callee:
+                      to_hex :string
+                    arg0:
+                      n :u64
+          ~>
             call :string
               callee:
-                to_hex :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                n :u64
-          ~>
-            @builder.finish :string
-              __sb_3 :?
+                __sb_3 :StringBuilder
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_4: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_4 :?
-            "bin=" :string
-          @builder.append_display <for string> :void
-            __sb_4 :?
+          let __sb_4: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_4 :StringBuilder
+            arg1:
+              "bin=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_4 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$string$Display$to_string :string
+                arg0:
+                  call :string
+                    callee:
+                      to_bin :string
+                    arg0:
+                      n :u64
+          ~>
             call :string
               callee:
-                to_bin :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                n :u64
-          ~>
-            @builder.finish :string
-              __sb_4 :?
+                __sb_4 :StringBuilder
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_5: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_5 :?
-            "hex_padded=" :string
-          @builder.append_display <for string> :void
-            __sb_5 :?
+          let __sb_5: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_5 :StringBuilder
+            arg1:
+              "hex_padded=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_5 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$string$Display$to_string :string
+                arg0:
+                  call :string
+                    callee:
+                      pad_start :string
+                    arg0:
+                      call :string
+                        callee:
+                          to_hex :string
+                        arg0:
+                          n :u64
+                    arg1:
+                      int(4) :usize
+                    arg2:
+                      char(0x30)
+          ~>
             call :string
               callee:
-                pad_start :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                call :string
-                  callee:
-                    to_hex :string
-                  arg0:
-                    n :u64
-              arg1:
-                int(4) :usize
-              arg2:
-                char(0x30)
-          ~>
-            @builder.finish :string
-              __sb_5 :?
+                __sb_5 :StringBuilder
     let zero: u64 = int(0) :u64
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_6: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_6 :?
-            "zero_bin=" :string
-          @builder.append_display <for string> :void
-            __sb_6 :?
+          let __sb_6: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_6 :StringBuilder
+            arg1:
+              "zero_bin=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_6 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$string$Display$to_string :string
+                arg0:
+                  call :string
+                    callee:
+                      to_bin :string
+                    arg0:
+                      zero :u64
+          ~>
             call :string
               callee:
-                to_bin :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                zero :u64
-          ~>
-            @builder.finish :string
-              __sb_6 :?
+                __sb_6 :StringBuilder
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_7: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_7 :?
-            "ws_space=" :string
-          @builder.append_display <for bool> :void
-            __sb_7 :?
-            call :bool
+          let __sb_7: StringBuilder =
+            call :StringBuilder
               callee:
-                is_white_char :bool
-              arg0:
-                char(0x20)
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_7 :StringBuilder
+            arg1:
+              "ws_space=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_7 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$bool$Display$to_string :string
+                arg0:
+                  call :bool
+                    callee:
+                      is_white_char :bool
+                    arg0:
+                      char(0x20)
           ~>
-            @builder.finish :string
-              __sb_7 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_7 :StringBuilder
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_8: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_8 :?
-            "ws_a=" :string
-          @builder.append_display <for bool> :void
-            __sb_8 :?
-            call :bool
+          let __sb_8: StringBuilder =
+            call :StringBuilder
               callee:
-                is_white_char :bool
-              arg0:
-                char(0x61)
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_8 :StringBuilder
+            arg1:
+              "ws_a=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_8 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$bool$Display$to_string :string
+                arg0:
+                  call :bool
+                    callee:
+                      is_white_char :bool
+                    arg0:
+                      char(0x61)
           ~>
-            @builder.finish :string
-              __sb_8 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_8 :StringBuilder
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_9: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_9 :?
-            "ws_tab=" :string
-          @builder.append_display <for bool> :void
-            __sb_9 :?
-            call :bool
+          let __sb_9: StringBuilder =
+            call :StringBuilder
               callee:
-                is_white_char :bool
-              arg0:
-                char(0x9)
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_9 :StringBuilder
+            arg1:
+              "ws_tab=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_9 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$bool$Display$to_string :string
+                arg0:
+                  call :bool
+                    callee:
+                      is_white_char :bool
+                    arg0:
+                      char(0x9)
           ~>
-            @builder.finish :string
-              __sb_9 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_9 :StringBuilder
     return int(0) :i32

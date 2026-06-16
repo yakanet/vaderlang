@@ -69,79 +69,147 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_0: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_0 :?
-            "type_id(s)=" :string
-          @builder.append_display <for i32> :void
-            __sb_0 :?
-            call :i32
+          let __sb_0: StringBuilder =
+            call :StringBuilder
               callee:
-                type_id_of :fn(ArrayVal | IntVal | StructVal) -> i32
-              arg0:
-                s :ArrayVal | IntVal | StructVal
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              "type_id(s)=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  call :i32
+                    callee:
+                      type_id_of :fn(ArrayVal | IntVal | StructVal) -> i32
+                    arg0:
+                      s :ArrayVal | IntVal | StructVal
           ~>
-            @builder.finish :string
-              __sb_0 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_0 :StringBuilder
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_1: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_1 :?
-            "type_id(a)=" :string
-          @builder.append_display <for i32> :void
-            __sb_1 :?
-            call :i32
+          let __sb_1: StringBuilder =
+            call :StringBuilder
               callee:
-                type_id_of :fn(ArrayVal | IntVal | StructVal) -> i32
-              arg0:
-                a :ArrayVal | IntVal | StructVal
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              "type_id(a)=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  call :i32
+                    callee:
+                      type_id_of :fn(ArrayVal | IntVal | StructVal) -> i32
+                    arg0:
+                      a :ArrayVal | IntVal | StructVal
           ~>
-            @builder.finish :string
-              __sb_1 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_1 :StringBuilder
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_2: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_2 :?
-            "type_id(i)=" :string
-          @builder.append_display <for i32> :void
-            __sb_2 :?
-            call :i32
+          let __sb_2: StringBuilder =
+            call :StringBuilder
               callee:
-                type_id_of :fn(ArrayVal | IntVal | StructVal) -> i32
-              arg0:
-                i :ArrayVal | IntVal | StructVal
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              "type_id(i)=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  call :i32
+                    callee:
+                      type_id_of :fn(ArrayVal | IntVal | StructVal) -> i32
+                    arg0:
+                      i :ArrayVal | IntVal | StructVal
           ~>
-            @builder.finish :string
-              __sb_2 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_2 :StringBuilder
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_3: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_3 :?
-            "first(a)=" :string
-          @builder.append_display <for i32> :void
-            __sb_3 :?
-            call :i32
+          let __sb_3: StringBuilder =
+            call :StringBuilder
               callee:
-                first_item :fn(ArrayVal | IntVal | StructVal) -> i32
-              arg0:
-                a :ArrayVal | IntVal | StructVal
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_3 :StringBuilder
+            arg1:
+              "first(a)=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_3 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  call :i32
+                    callee:
+                      first_item :fn(ArrayVal | IntVal | StructVal) -> i32
+                    arg0:
+                      a :ArrayVal | IntVal | StructVal
           ~>
-            @builder.finish :string
-              __sb_3 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_3 :StringBuilder
     return int(0) :i32

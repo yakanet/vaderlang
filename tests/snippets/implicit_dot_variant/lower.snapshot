@@ -108,19 +108,36 @@
                   std_io$std_io$println__string :void
                 arg0:
                   block :string
-                    let __sb_4: ? =
-                      @builder.new :?
-                    @builder.append_str :void
-                      __sb_4 :?
-                      "got=" :string
-                    @builder.append_display <for i32> :void
-                      __sb_4 :?
-                      .value :i32
-                        cast → Some
-                          m :None | Some
+                    let __sb_4: StringBuilder =
+                      call :StringBuilder
+                        callee:
+                          new_builder :StringBuilder
+                    call :void
+                      callee:
+                        append :void
+                      arg0:
+                        __sb_4 :StringBuilder
+                      arg1:
+                        "got=" :string
+                    call :void
+                      callee:
+                        append :void
+                      arg0:
+                        __sb_4 :StringBuilder
+                      arg1:
+                        call :string
+                          callee:
+                            std_core$i32$Display$to_string :string
+                          arg0:
+                            .value :i32
+                              cast → Some
+                                m :None | Some
                     ~>
-                      @builder.finish :string
-                        __sb_4 :?
+                      call :string
+                        callee:
+                          std_string_builder$StringBuilder$Display$to_string :string
+                        arg0:
+                          __sb_4 :StringBuilder
           else:
             ~>
               if :void
@@ -154,19 +171,36 @@
                   std_io$std_io$println__string :void
                 arg0:
                   block :string
-                    let __sb_6: ? =
-                      @builder.new :?
-                    @builder.append_str :void
-                      __sb_6 :?
-                      "got=" :string
-                    @builder.append_display <for i32> :void
-                      __sb_6 :?
-                      .value :i32
-                        cast → Some
-                          n :None | Some
+                    let __sb_6: StringBuilder =
+                      call :StringBuilder
+                        callee:
+                          new_builder :StringBuilder
+                    call :void
+                      callee:
+                        append :void
+                      arg0:
+                        __sb_6 :StringBuilder
+                      arg1:
+                        "got=" :string
+                    call :void
+                      callee:
+                        append :void
+                      arg0:
+                        __sb_6 :StringBuilder
+                      arg1:
+                        call :string
+                          callee:
+                            std_core$i32$Display$to_string :string
+                          arg0:
+                            .value :i32
+                              cast → Some
+                                n :None | Some
                     ~>
-                      @builder.finish :string
-                        __sb_6 :?
+                      call :string
+                        callee:
+                          std_string_builder$StringBuilder$Display$to_string :string
+                        arg0:
+                          __sb_6 :StringBuilder
           else:
             ~>
               if :void

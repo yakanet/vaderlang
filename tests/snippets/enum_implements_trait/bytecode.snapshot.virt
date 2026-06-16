@@ -9,7 +9,6 @@ string 2 "E"
 string 3 "S"
 string 4 "W"
 import 0 write std_io$write (i32,string) -> void
-import 1 to_string std_core$string$Display$to_string (string) -> string
 export main 2
 
 fn 0 std_io$std_io$println__string (string) -> void
@@ -70,8 +69,7 @@ fn 2 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 3 std_core$string$Display$to_string_vt (string) -> string
+fn 3 std_core$string$Display$to_string (string) -> string
   local.get 0
-  call.import 1
   return
 end

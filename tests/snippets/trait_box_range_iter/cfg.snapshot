@@ -69,15 +69,15 @@ fn snippet$main() -> i32
     %22 = binop 0 %21 %19 :i32
     return %22
 
-fn snippet$snippet$count__i32(%0: Iterator<Any>) -> i32
+fn snippet$snippet$count__i32(%0: Iterator<i32>) -> i32
   locals:
-    %0 it: Iterator<Any> (param it)
+    %0 it: Iterator<i32> (param it)
     %1 $k_1: i32
     %2 n: i32 (local n)
     %3 $k_3: bool
     %4 cont: bool (local cont)
-    %5 $vcall_5: null | Yield<Any>
-    %6 __scrut_0: null | Yield<Any> (synthetic __scrut_0)
+    %5 $vcall_5: null | Yield<i32>
+    %6 __scrut_0: null | Yield<i32> (synthetic __scrut_0)
     %7 $type_check_7: bool
     %8 $k_8: bool
     %9 $type_check_9: bool
@@ -92,7 +92,7 @@ fn snippet$snippet$count__i32(%0: Iterator<Any>) -> i32
   bb1:
     cond_branch %4 ? bb2 : bb3
   bb2:
-    %5 = vcall Iterator.next(recv=%0) :null | Yield<Any>
+    %5 = vcall Iterator.next(recv=%0) :null | Yield<i32>
     %6 = move %5
     %7 = type_check %6 is null
     cond_branch %7 ? bb4 : bb5
@@ -103,7 +103,7 @@ fn snippet$snippet$count__i32(%0: Iterator<Any>) -> i32
     %4 = move %8
     branch -> bb6
   bb5:
-    %9 = type_check %6 is Yield<Any>
+    %9 = type_check %6 is Yield<i32>
     cond_branch %9 ? bb7 : bb8
   bb6:
     branch -> bb1
@@ -117,18 +117,18 @@ fn snippet$snippet$count__i32(%0: Iterator<Any>) -> i32
   bb9:
     branch -> bb6
 
-fn snippet$snippet$invoke__i32(%0: Greeter<Any>) -> Any
+fn snippet$snippet$invoke__i32(%0: Greeter<i32>) -> i32
   locals:
-    %0 g: Greeter<Any> (param g)
-    %1 $vcall_1: Any
+    %0 g: Greeter<i32> (param g)
+    %1 $vcall_1: i32
   bb0:
-    %1 = vcall Greeter.greet(recv=%0) :Any
+    %1 = vcall Greeter.greet(recv=%0) :i32
     return %1
 
-fn snippet$snippet$twice__i32(%0: Doubler<Any>) -> Any
+fn snippet$snippet$twice__i32(%0: Doubler<i32>) -> i32
   locals:
-    %0 x: Doubler<Any> (param x)
-    %1 $vcall_1: Any
+    %0 x: Doubler<i32> (param x)
+    %1 $vcall_1: i32
   bb0:
-    %1 = vcall Doubler.doubled(recv=%0) :Any
+    %1 = vcall Doubler.doubled(recv=%0) :i32
     return %1

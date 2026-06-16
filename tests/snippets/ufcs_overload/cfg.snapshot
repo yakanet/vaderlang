@@ -34,15 +34,17 @@ fn snippet$main() -> i32
     %3 $k_3: i32
     %4 $struct_4: B
     %5 b: B (local b)
-    %6 $intrinsic_6: ?
-    %7 __sb_0: ? (synthetic __sb_0)
+    %6 $call_6: StringBuilder
+    %7 __sb_0: StringBuilder (synthetic __sb_0)
     %8 $call_8: i32
-    %9 $intrinsic_9: string
-    %10 $intrinsic_10: ?
-    %11 __sb_1: ? (synthetic __sb_1)
-    %12 $call_12: i32
-    %13 $intrinsic_13: string
-    %14 $k_14: i32
+    %9 $call_9: string
+    %10 $call_10: string
+    %11 $call_11: StringBuilder
+    %12 __sb_1: StringBuilder (synthetic __sb_1)
+    %13 $call_13: i32
+    %14 $call_14: string
+    %15 $call_15: string
+    %16 $k_16: i32
   bb0:
     %0 = const int(5) :i32
     %1 = struct_new A(%0)
@@ -50,17 +52,19 @@ fn snippet$main() -> i32
     %3 = const int(5) :i32
     %4 = struct_new B(%3)
     %5 = move %4
-    %6 = intrinsic builder.new()
+    %6 = call new_builder() :StringBuilder
     %7 = move %6
     %8 = call inc(%2) :i32
-    intrinsic builder.append_display(%7, %8)
-    %9 = intrinsic builder.finish(%7)
-    call std_io$std_io$println__string(%9) :void
-    %10 = intrinsic builder.new()
-    %11 = move %10
-    %12 = call inc(%5) :i32
-    intrinsic builder.append_display(%11, %12)
-    %13 = intrinsic builder.finish(%11)
-    call std_io$std_io$println__string(%13) :void
-    %14 = const int(0) :i32
-    return %14
+    %9 = call std_core$i32$Display$to_string(%8) :string
+    call append(%7, %9) :void
+    %10 = call std_string_builder$StringBuilder$Display$to_string(%7) :string
+    call std_io$std_io$println__string(%10) :void
+    %11 = call new_builder() :StringBuilder
+    %12 = move %11
+    %13 = call inc(%5) :i32
+    %14 = call std_core$i32$Display$to_string(%13) :string
+    call append(%12, %14) :void
+    %15 = call std_string_builder$StringBuilder$Display$to_string(%12) :string
+    call std_io$std_io$println__string(%15) :void
+    %16 = const int(0) :i32
+    return %16

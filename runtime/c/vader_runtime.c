@@ -183,25 +183,6 @@ static size_t vader_card_count_for(size_t half_bytes) {
  * precise roots. */
 vader_gc_frame_t* vader_gc_top = NULL;
 
-/* Builder layout + active-list head are declared up here so any pass
- * walking `g_builder_head` to keep partial buffers live (currently none
- * — atoms are tracked separately) can see the struct's `next` chain.
- * The op implementations themselves live alongside the rest of the
- * builder helpers further down. */
-struct vader_builder_s {
-    char*  buf;
-    size_t len;
-    size_t cap;
-    /* Active builders chain through `next` so the string mark-sweep can
-     * keep `buf` reachable while a Vader-side allocation (e.g. evaluating
-     * an `${stringify(x)}` interp arg) triggers a collection between two
-     * `append_*` calls. Without this root the builder's growing buffer
-     * gets swept and subsequent appends scribble into freed memory. */
-    struct vader_builder_s* next;
-};
-
-static vader_builder_t* g_builder_head = NULL;
-
 static size_t vader_gc_align(size_t n) {
     return (n + (VADER_GC_ALIGN - 1u)) & ~(size_t)(VADER_GC_ALIGN - 1u);
 }
@@ -1051,6 +1032,10 @@ static size_t vader_gc_obj_size(void* obj, uint32_t type_index) {
         vader_array_buf_t* buf = (vader_array_buf_t*) obj;
         return sizeof(vader_array_buf_t) + buf->capacity * vader_array_element_size(buf->element_kind);
     }
+    if (type_index == VADER_TYPE_INDEX_BUFFER) {
+        vader_buffer_t* b = (vader_buffer_t*) obj;
+        return sizeof(vader_buffer_t) + b->byte_count;
+    }
     if (type_index >= vader_type_info_count) return 0;
     const vader_type_info_t* info = &vader_type_info_table[type_index];
     if (info->kind == VADER_TYPE_KIND_NONE) return 0;
@@ -1177,6 +1162,22 @@ static void vader_gc_box_tag_corrupt(const vader_box_t* boxp) {
  * not on this Cheney write) nor scan_old_dirty_cards covers it. */
 static void vader_gc_scan_box(vader_box_t* boxp) {
     if (boxp == NULL) return;
+    if (boxp->tag == VADER_TYPE_INDEX_BUFFER) {
+        /* Buffer box : the sentinel tag has no type-info row, so the generic
+         * `>= count` skip below would treat it as a primitive and never
+         * forward the referent — a moving collection would then leave the box
+         * pointing at the stale (reclaimed) location (G1). Forward via the
+         * sentinel (sizes off the header) and apply the same old->young card
+         * barrier as the ordinary ref path. A buffer holds no inner refs, so
+         * there is nothing further to scan. */
+        boxp->payload.obj = vader_gc_forward(boxp->payload.obj, VADER_TYPE_INDEX_BUFFER);
+        if ((uintptr_t)boxp >= vader_old_base && (uintptr_t)boxp < vader_old_end
+            && boxp->payload.obj != NULL
+            && !vader_in_old_any(boxp->payload.obj)) {
+            VADER_WRITE_BARRIER(boxp);
+        }
+        return;
+    }
     if (boxp->tag >= vader_type_info_count) {
         if (VADER_UNLIKELY(g_gc_check_box)) vader_gc_box_tag_corrupt(boxp);
         return;
@@ -1236,6 +1237,11 @@ static size_t vader_gc_scan_object(char* scan) {
             }
         }
         return vader_gc_align(sizeof(vader_array_buf_t) + buf->capacity * elem_size);
+    }
+    if (type_index == VADER_TYPE_INDEX_BUFFER) {
+        // All-bytes buffer : no boxed slots to forward, just advance past it.
+        vader_buffer_t* b = (vader_buffer_t*) scan;
+        return vader_gc_align(sizeof(vader_buffer_t) + b->byte_count);
     }
     if (type_index >= vader_type_info_count) {
         vader_trap("vader_gc: scanned object with unknown type_index");
@@ -1500,52 +1506,12 @@ vader_string_t vader_string_new(const char* p, size_t n) {
     return vader_atom_intern(p, n);
 }
 
-vader_string_t vader_string_concat(vader_string_t a, vader_string_t b) {
-    if (a == VADER_ATOM_EMPTY) return b;
-    if (b == VADER_ATOM_EMPTY) return a;
-    size_t la = vader_atom_len(a);
-    size_t lb = vader_atom_len(b);
-    /* Two-pass overflow check : the sum must fit, AND leave room for the
-     * inline NUL byte. Splitting the conditions yields a precise trap
-     * message rather than the ambiguous "length overflow" of the
-     * combined `> SIZE_MAX - lb - 1` check. */
-    if (la > SIZE_MAX - lb)     vader_trap("vader_string_concat: total length overflow");
-    size_t total = la + lb;
-    if (total > SIZE_MAX - 1u)  vader_trap("vader_string_concat: no room for NUL terminator");
-    char* buf = (char*) malloc(total + 1u);
-    if (buf == NULL) vader_trap("vader_string_concat: malloc failed");
-    memcpy(buf,      vader_atom_data(a), la);
-    memcpy(buf + la, vader_atom_data(b), lb);
-    return vader_atom_intern_take(buf, total);
-}
-
-bool vader_string_eq(vader_string_t a, vader_string_t b) {
-    return a == b;
-}
-
 const char* vader_string_to_cstr(vader_string_t s) {
     return vader_atom_to_cstr(s);
 }
 
 void vader_cstr_free(const char* p) {
     vader_atom_cstr_free(p);
-}
-
-/* FNV-1a 64-bit hash over the raw UTF-8 bytes of the string. Keeps
- * legacy iteration order for `MutableMap` buckets — atom ids are
- * monotonic, so using them directly as the hash would cluster low bits
- * and reshuffle every `for-in` snapshot. The byte-level hash matches
- * what the pre-atom runtime emitted and what the VM hash uses. */
-vader_u64_t vader_string_hash(vader_string_t s) {
-    const vader_atom_entry_t* e = vader_atom_entry(s);
-    const uint8_t* p   = (const uint8_t*) e->data;
-    size_t         len = e->len;
-    uint64_t h = UINT64_C(14695981039346656037);
-    for (size_t i = 0; i < len; i++) {
-        h ^= (uint64_t) p[i];
-        h *= UINT64_C(1099511628211);
-    }
-    return h;
 }
 
 /* ----------------------------------------------------------------- array */
@@ -1613,39 +1579,13 @@ vader_array_t* vader_array_new(uint32_t type_index, size_t length, uint8_t eleme
 }
 
 static vader_array_t* vader_array_resolve(vader_array_t* a);
+static void vader_array_resolve_buf(vader_array_t* a);
 
-/* Box / unbox helpers for primitive-kind slots. Each kind reads or writes
- * the matching primitive width directly from `buf->slots` ; the boxed kind
- * routes through `vader_array_box_slots`. */
-static vader_box_t vader_array_load_slot(vader_array_buf_t* buf, size_t i) {
-    uint8_t* base = buf->slots;
-    vader_box_t out;
-    /* Tag from the buf's recorded element BcType so virtual dispatch on a
-     * receiver coming from a primitive-storage array (i32[], bool[], ...)
-     * observed through an erased `Any[]` view sees the right runtime tag.
-     * BOXED kind returns the per-slot box verbatim — its tag was stamped
-     * at store time and may differ slot-to-slot under a heterogeneous
-     * `Any[]` view. */
-    out.tag = buf->element_tag; out._pad = 0; out.payload.i = 0;
-    switch (buf->element_kind) {
-        case VADER_ARRAY_KIND_BOXED:
-            return vader_array_box_slots(buf)[i];
-        case VADER_ARRAY_KIND_U8:   out.payload.i = ((uint8_t*)  base)[i]; return out;
-        case VADER_ARRAY_KIND_U16:  out.payload.i = ((uint16_t*) base)[i]; return out;
-        case VADER_ARRAY_KIND_U32:  out.payload.i = ((uint32_t*) base)[i]; return out;
-        case VADER_ARRAY_KIND_U64:  out.payload.i = (vader_i64_t)((uint64_t*)base)[i]; return out;
-        case VADER_ARRAY_KIND_I8:   out.payload.i = ((int8_t*)   base)[i]; return out;
-        case VADER_ARRAY_KIND_I16:  out.payload.i = ((int16_t*)  base)[i]; return out;
-        case VADER_ARRAY_KIND_I32:  out.payload.i = ((int32_t*)  base)[i]; return out;
-        case VADER_ARRAY_KIND_I64:  out.payload.i = ((int64_t*)  base)[i]; return out;
-        case VADER_ARRAY_KIND_F32:  out.payload.f = ((float*)    base)[i]; return out;
-        case VADER_ARRAY_KIND_F64:  out.payload.f = ((double*)   base)[i]; return out;
-        case VADER_ARRAY_KIND_CHAR: out.payload.i = ((uint32_t*) base)[i]; return out;
-        case VADER_ARRAY_KIND_BOOL: out.payload.b = ((uint8_t*)  base)[i] != 0; return out;
-        default: vader_trap("vader_array_get: unknown element kind");
-    }
-}
-
+/* Store a primitive-kind slot — writes the matching primitive width directly
+ * to `buf->slots` ; the boxed kind routes through `vader_array_box_slots`. The
+ * symmetric LOAD is no longer an out-of-line helper : reads are open-coded at
+ * each c-emit access site (typed slots inline, boxed via `vader_array_box_slots`,
+ * u8 via `vader_array_read_u8`). Only `push` still needs the out-of-line store. */
 static void vader_array_store_slot(vader_array_buf_t* buf, size_t i, vader_box_t v) {
     uint8_t* base = buf->slots;
     switch (buf->element_kind) {
@@ -1662,55 +1602,17 @@ static void vader_array_store_slot(vader_array_buf_t* buf, size_t i, vader_box_t
         case VADER_ARRAY_KIND_F64:  ((double*)   base)[i] = (double)   v.payload.f; return;
         case VADER_ARRAY_KIND_CHAR: ((uint32_t*) base)[i] = (uint32_t) v.payload.i; return;
         case VADER_ARRAY_KIND_BOOL: ((uint8_t*)  base)[i] = v.payload.b ? 1 : 0; return;
-        default: vader_trap("vader_array_set: unknown element kind");
+        default: vader_trap("vader_array_store_slot: unknown element kind");
     }
 }
 
-vader_box_t vader_array_get(vader_array_t* a, size_t i) {
-    a = vader_array_resolve(a);
-    if (VADER_UNLIKELY(vader_array_is_borrowed(a))) {
-        /* Borrowed `const u8[]` byte view : read directly from the owner
-         * atom's bytes (kept alive by `vader_atom_mark_heap`). */
-        if (VADER_UNLIKELY(i >= a->length)) vader_trap("array index out of bounds");
-        const uint8_t* data = (const uint8_t*) vader_atom_data(vader_array_borrowed_owner(a));
-        vader_box_t out;
-        out.tag = vader_array_borrowed_tag(a);
-        out._pad = 0;
-        out.payload.i = data[a->offset + i];
-        return out;
-    }
-    while (a->buf != NULL && a->buf->header.forward != NULL) {
-        a->buf = (vader_array_buf_t*) a->buf->header.forward;
-    }
-    if (VADER_UNLIKELY(i >= a->length)) vader_trap("array index out of bounds");
-    return vader_array_load_slot(a->buf, a->offset + i);
-}
-
-void vader_array_set(vader_array_t* a, size_t i, vader_box_t v) {
-    a = vader_array_resolve(a);
-    if (VADER_UNLIKELY(vader_array_is_borrowed(a))) {
-        /* Defensive : T3042 already rejects writes to a `const u8[]` at
-         * compile time. Trapping here turns any bypass into a clean abort
-         * rather than a NULL-`buf` segfault. */
-        vader_trap("cannot mutate a borrowed `const u8[]` byte view");
-    }
-    while (a->buf != NULL && a->buf->header.forward != NULL) {
-        a->buf = (vader_array_buf_t*) a->buf->header.forward;
-    }
-    if (VADER_UNLIKELY(i >= a->length)) vader_trap("array index out of bounds");
-    /* A7 unified array+view : `arr[r][i] = v` deliberately writes through
-     * to the parent's backing buffer (Go-style aliasing). Detachment
-     * only happens on `push` (to avoid silently clobbering aliased tail
-     * slots — see vader_array_push). Users opt out of aliasing by
-     * materializing a fresh array — today via push-detach, eventually
-     * `arr[r].clone()` once `T[] implements Clone` is wired. */
-    vader_array_store_slot(a->buf, a->offset + i, v);
-    /* Mark the card holding `a->buf` if it lives in old: subsequent minors
-     * must treat that card as a root since the new slot may point at young. */
-    if (a->buf->element_kind == VADER_ARRAY_KIND_BOXED) {
-        VADER_WRITE_BARRIER(a->buf);
-    }
-}
+/* vader_array_get / vader_array_set were the out-of-line, element-kind-
+ * dispatched accessors the C emitter called for every `arr[i]` / `arr[i] = v`.
+ * Both are now open-coded at the c-emit access site over the kept layout (typed
+ * slots inline, boxed via `vader_array_box_slots` + the write barrier, u8 via
+ * `vader_array_read_u8`), so neither is emitted any more and both are deleted —
+ * the Target-ABI Array-accessor retirement. `push` / `slice` / `new` stay (the
+ * GC-coupled construction primitives). */
 
 vader_array_t* vader_array_slice(vader_array_t* a, size_t lo, size_t hi) {
     a = vader_array_resolve(a);
@@ -1740,9 +1642,7 @@ vader_array_t* vader_array_slice(vader_array_t* a, size_t lo, size_t hi) {
         view->buf      = NULL;
         return view;
     }
-    while (a->buf != NULL && a->buf->header.forward != NULL) {
-        a->buf = (vader_array_buf_t*) a->buf->header.forward;
-    }
+    vader_array_resolve_buf(a);
     /* Root the parent array across the alloc — a collection inside
      * `vader_gc_alloc` would forward it otherwise. */
     uint32_t tag = a->header.type_index;
@@ -1774,6 +1674,18 @@ vader_array_t* vader_array_slice(vader_array_t* a, size_t lo, size_t hi) {
 static vader_array_t* vader_array_resolve(vader_array_t* a) {
     while (a->header.forward != NULL) a = (vader_array_t*) a->header.forward;
     return a;
+}
+
+/* Resolve a pending forward on the array's DATA BUFFER. The buf is a separate
+ * GC object from the header (which `vader_array_resolve` resolves), so a
+ * mid-call collection may forward it independently — and twice in one alloc
+ * (minor THEN major-drain), hence the loop. A NULL buf (borrowed view) is left
+ * untouched. Sites that read `a->buf->slots` after a possible safepoint call
+ * this; the symmetric counterpart of `vader_array_resolve`. */
+static void vader_array_resolve_buf(vader_array_t* a) {
+    while (a->buf != NULL && a->buf->header.forward != NULL) {
+        a->buf = (vader_array_buf_t*) a->buf->header.forward;
+    }
 }
 
 void vader_array_push(vader_array_t* a, vader_box_t v) {
@@ -1837,13 +1749,6 @@ size_t vader_string_byte_len(vader_string_t s) {
     return vader_atom_len(s);
 }
 
-vader_string_t vader_string_slice(vader_string_t s, size_t start, size_t end) {
-    size_t l = vader_atom_len(s);
-    if (end > l) end = l;
-    if (start >= end) return VADER_ATOM_EMPTY;
-    return vader_atom_slice(s, start, end - start);
-}
-
 /* Walk the UTF-8 buffer counting codepoints ; return the byte offset of
  * the `cp_index`-th codepoint, clamped to the atom's length. Invalid
  * continuation bytes count as 1-byte codepoints (mirrors
@@ -1879,8 +1784,7 @@ vader_string_t vader_string_slice_codepoints(vader_string_t s, size_t cp_lo, siz
     return vader_atom_slice(s, byte_lo, byte_hi - byte_lo);
 }
 
-/* `s[i]` semantic — codepoint at codepoint-index `i`. Traps on OOB.
- * Counterpart to `vader_string_byte_at` for the byte-indexed access. */
+/* `s[i]` semantic — codepoint at codepoint-index `i`. Traps on OOB. */
 vader_char_t vader_string_codepoint_at(vader_string_t s, size_t cp_index) {
     size_t byte_off = vader_string_codepoint_byte_offset(s, cp_index);
     if (byte_off >= vader_atom_len(s)) vader_trap("string codepoint index out of bounds");
@@ -1900,7 +1804,7 @@ vader_box_t vader_string_parse_float(vader_string_t s, uint32_t ok_tag, uint32_t
 }
 
 vader_char_t vader_string_char_at(vader_string_t s, size_t i) {
-    /* Trap on OOB to match `vader_array_get`'s contract — silently returning
+    /* Trap on OOB to match the array-access bounds contract — silently returning
      * 0 made callers confuse "real NUL byte" with "out of bounds". The
      * truncated-UTF-8 returns below stay as `0` / `0xFFFD` because they
      * surface mid-codepoint encoding errors, not access violations. */
@@ -1923,14 +1827,9 @@ vader_char_t vader_string_char_at(vader_string_t s, size_t i) {
     return (vader_char_t)(((b & 0x07u) << 18) | ((p[1] & 0x3Fu) << 12) | ((p[2] & 0x3Fu) << 6) | (p[3] & 0x3Fu));
 }
 
-vader_u8_t vader_string_byte_at(vader_string_t s, size_t i) {
-    if (i >= vader_atom_len(s)) vader_trap("string index out of bounds");
-    return (vader_u8_t)(uint8_t) vader_atom_data(s)[i];
-}
-
 /* Zero-copy `const u8[]` view over `s`'s interned bytes — see the header
  * decl. Allocates only the array header ; `buf` stays NULL and reads route
- * through `vader_atom_data(s)` (`vader_array_get` / `_slice`). `capacity`
+ * through `vader_atom_data(s)` (`vader_array_read_u8` / `_slice`). `capacity`
  * packs `(elem_tag << 32) | owner_atom_id` so reads box each byte with the
  * right element tag and `vader_atom_mark_heap` recovers the owner (low 32
  * bits). The view is flagged VADER_ARRAY_FLAG_BORROWED. 64-bit `capacity`
@@ -1964,12 +1863,15 @@ vader_string_t vader_string_as_string(vader_array_t* a) {
     if (vader_array_is_borrowed(a)) {
         return vader_atom_slice(vader_array_borrowed_owner(a), a->offset, len);
     }
-    /* Materialised KIND_U8 buffer : gather via `vader_array_get` (no alloc, so
-     * `buf` stays valid across the loop) and intern a copy. */
+    /* Materialised KIND_U8 buffer : read the slots directly and intern a copy.
+     * No Vader alloc in the loop (`malloc` is host), so `a->buf` stays valid
+     * once resolved (the header was already resolved above). */
+    vader_array_resolve_buf(a);
     char* buf = (char*) malloc(len + 1u);
     if (buf == NULL) vader_trap("vader_string_as_string: buffer malloc failed");
+    const uint8_t* src = (const uint8_t*) a->buf->slots;
     for (size_t i = 0; i < len; i++) {
-        buf[i] = (char) (uint8_t) vader_array_get(a, i).payload.i;
+        buf[i] = (char) src[a->offset + i];
     }
     return vader_atom_intern_take(buf, len);
 }
@@ -1995,182 +1897,15 @@ vader_array_t* vader_runtime_argv(int argc, char** argv, uint32_t arr_type, uint
     return result;
 }
 
-/* ----------------------------------------------------------------- builder */
-
-static void builder_reserve(vader_builder_t* b, size_t extra) {
-    if (b->len + extra <= b->cap) return;
-    size_t cap = b->cap == 0 ? 64 : b->cap;
-    while (cap < b->len + extra) cap *= 2;
-    /* Plain malloc/free — the buf is private to the builder until
-     * `vader_builder_finish` hands it to `vader_atom_intern_take`, which
-     * either adopts the buffer (on miss) or frees it (on hit). */
-    char* fresh = (char*) malloc(cap + 1u);
-    if (fresh == NULL) vader_trap("builder_reserve: malloc failed");
-    if (b->len > 0) memcpy(fresh, b->buf, b->len);
-    free(b->buf);
-    b->buf = fresh;
-    b->cap = cap;
-}
-
-vader_builder_t* vader_builder_new(void) {
-    vader_builder_t* b = (vader_builder_t*) malloc(sizeof(vader_builder_t));
-    if (b == NULL) vader_trap("vader_builder_new: malloc failed");
-    b->buf = NULL; b->len = 0; b->cap = 0;
-    b->next = g_builder_head;
-    g_builder_head = b;
-    return b;
-}
-
-/* Unlink a builder from the active-list. O(n) walk over currently-active
- * builders ; that list is short (one entry per nested interpolation in
- * flight), so a doubly-linked variant would be wasted complexity. */
-static void vader_builder_unlink(vader_builder_t* b) {
-    vader_builder_t** cursor = &g_builder_head;
-    while (*cursor != NULL && *cursor != b) cursor = &(*cursor)->next;
-    if (*cursor == NULL) vader_trap("vader_builder_unlink: builder not in active list");
-    *cursor = b->next;
-}
-
-void vader_builder_append_str(vader_builder_t* b, vader_string_t s) {
-    size_t n = vader_atom_len(s);
-    if (n == 0) return;
-    builder_reserve(b, n);
-    memcpy(b->buf + b->len, vader_atom_data(s), n);
-    b->len += n;
-}
-
-static void builder_append_fmt(vader_builder_t* b, const char* fmt, ...) {
-    /* Two-pass: first call sizes the formatted output (vsnprintf returns the
-     * would-have-been length), reserve the builder slot, then format
-     * directly into it. Avoids the OOB-read footgun where a caller passing
-     * a format that produces ≥ 64 bytes would `memcpy` past the stack
-     * buffer. We still keep a small stack scratch for the common case. */
-    char stack_buf[64];
-    va_list ap;
-    va_start(ap, fmt);
-    va_list ap2;
-    va_copy(ap2, ap);
-    int n = vsnprintf(stack_buf, sizeof(stack_buf), fmt, ap);
-    va_end(ap);
-    if (n < 0) { va_end(ap2); return; }
-
-    if ((size_t) n < sizeof(stack_buf)) {
-        builder_reserve(b, (size_t) n);
-        memcpy(b->buf + b->len, stack_buf, (size_t) n);
-        b->len += (size_t) n;
-        va_end(ap2);
-        return;
-    }
-    /* Output didn't fit in the stack scratch — format straight into the
-     * builder's own buffer at the reserved offset. */
-    builder_reserve(b, (size_t) n + 1);     /* +1 for vsnprintf's trailing NUL */
-    int n2 = vsnprintf(b->buf + b->len, (size_t) n + 1, fmt, ap2);
-    va_end(ap2);
-    if (n2 < 0) return;
-    b->len += (size_t) n2;
-}
-
-void vader_builder_append_display_i32(vader_builder_t* b, vader_i32_t v) { builder_append_fmt(b, "%" PRId32, v); }
-void vader_builder_append_display_i64(vader_builder_t* b, vader_i64_t v) { builder_append_fmt(b, "%" PRId64, v); }
-void vader_builder_append_display_u32(vader_builder_t* b, vader_u32_t v) { builder_append_fmt(b, "%" PRIu32, v); }
-void vader_builder_append_display_u64(vader_builder_t* b, vader_u64_t v) { builder_append_fmt(b, "%" PRIu64, v); }
-/* Format a finite non-integer float as the shortest decimal that round-trips
- * back to the same double. Mirrors JS `Number.prototype.toString()` (and thus
- * the VM's `displayValue`) so VM and native produce identical output. */
-static void append_shortest_double(vader_builder_t* b, double v) {
-    char buf[64];
-    int n = 0;
-    for (int p = 1; p <= 17; p++) {
-        n = snprintf(buf, sizeof buf, "%.*g", p, v);
-        if (strtod(buf, NULL) == v) break;
-    }
-    if (n < 0) n = 0;
-    if ((size_t) n >= sizeof buf) n = (int) sizeof buf - 1;
-    builder_reserve(b, (size_t) n);
-    memcpy(b->buf + b->len, buf, (size_t) n);
-    b->len += (size_t) n;
-}
-void vader_builder_append_display_f32(vader_builder_t* b, vader_f32_t v) {
-    double d = (double) v;
-    if (isfinite(d) && d == floor(d)) builder_append_fmt(b, "%.1f", d);
-    else if (!isfinite(d))            builder_append_fmt(b, "%g",   d);
-    else                              append_shortest_double(b, d);
-}
-void vader_builder_append_display_f64(vader_builder_t* b, vader_f64_t v) {
-    if (isfinite(v) && v == floor(v)) builder_append_fmt(b, "%.1f", v);
-    else if (!isfinite(v))            builder_append_fmt(b, "%g",   v);
-    else                              append_shortest_double(b, v);
-}
-void vader_builder_append_display_bool(vader_builder_t* b, vader_bool_t v) {
-    vader_string_t s = v ? vader_string_new("true", 4) : vader_string_new("false", 5);
-    vader_builder_append_str(b, s);
-}
-void vader_builder_append_display_char(vader_builder_t* b, vader_char_t v) {
-    /* Encode the codepoint as UTF-8. */
-    if (v < 0x80) {
-        builder_reserve(b, 1);
-        b->buf[b->len++] = (char) v;
-    } else if (v < 0x800) {
-        builder_reserve(b, 2);
-        b->buf[b->len++] = (char) (0xC0 | (v >> 6));
-        b->buf[b->len++] = (char) (0x80 | (v & 0x3F));
-    } else if (v < 0x10000) {
-        builder_reserve(b, 3);
-        b->buf[b->len++] = (char) (0xE0 | (v >> 12));
-        b->buf[b->len++] = (char) (0x80 | ((v >> 6) & 0x3F));
-        b->buf[b->len++] = (char) (0x80 | (v & 0x3F));
-    } else {
-        builder_reserve(b, 4);
-        b->buf[b->len++] = (char) (0xF0 | (v >> 18));
-        b->buf[b->len++] = (char) (0x80 | ((v >> 12) & 0x3F));
-        b->buf[b->len++] = (char) (0x80 | ((v >> 6) & 0x3F));
-        b->buf[b->len++] = (char) (0x80 | (v & 0x3F));
-    }
-}
-void vader_builder_append_display_string(vader_builder_t* b, vader_string_t v) {
-    vader_builder_append_str(b, v);
-}
-
-vader_string_t vader_builder_finish(vader_builder_t* b) {
-    /* Hand the buffer to `vader_atom_intern_take` — on miss it adopts
-     * the buffer as the atom's owner data ; on hit it frees the buffer
-     * and returns the canonical atom. The builder struct itself has no
-     * use after finish. */
-    size_t len = b->len;
-    char* buf  = b->buf;
-    vader_builder_unlink(b);
-    free(b);
-    if (len == 0) {
-        if (buf != NULL) free(buf);
-        return VADER_ATOM_EMPTY;
-    }
-    if (buf == NULL) return VADER_ATOM_EMPTY;
-    return vader_atom_intern_take(buf, len);
-}
-
-/* Flatten an array of strings into a single string in one allocation. Used
- * by std/string_builder StringBuilder.to_string to avoid the O(N²) of repeated `+`. */
-vader_string_t vader_string_concat_all(vader_array_t* parts) {
-    if (parts->length == 0) return VADER_ATOM_EMPTY;
-    vader_box_t* slots = vader_array_box_slots(parts->buf) + parts->offset;
-    size_t total = 0;
-    for (size_t i = 0; i < parts->length; i++) {
-        total += vader_atom_len((vader_string_t) slots[i].payload.s);
-    }
-    if (total == 0) return VADER_ATOM_EMPTY;
-    char* buf = (char*) malloc(total + 1u);
-    if (buf == NULL) vader_trap("vader_string_concat_all: malloc failed");
-    size_t pos = 0;
-    for (size_t i = 0; i < parts->length; i++) {
-        vader_string_t s = (vader_string_t) slots[i].payload.s;
-        size_t n = vader_atom_len(s);
-        if (n > 0) {
-            memcpy(buf + pos, vader_atom_data(s), n);
-            pos += n;
-        }
-    }
-    return vader_atom_intern_take(buf, total);
-}
+/* IEEE 754 bit reinterpret (`f64.to_bits` / `u64.from_bits`). The native target
+ * lowers these to an inline `union` cast (no call) ; these out-of-line helpers
+ * exist ONLY for the bytecode VM (`exec.vader` calls them via `@extern`, since
+ * the VM's own code can't be lowered to the new opcodes without a seed two-phase).
+ * `memcpy` is the portable, well-defined type-pun (compilers fold it to a move). */
+uint64_t vader_f64_to_bits(double v) { uint64_t u; memcpy(&u, &v, sizeof u); return u; }
+double   vader_bits_to_f64(uint64_t b) { double v; memcpy(&v, &b, sizeof v); return v; }
+uint32_t vader_f32_to_bits(float v) { uint32_t u; memcpy(&u, &v, sizeof u); return u; }
+float    vader_bits_to_f32(uint32_t b) { float v; memcpy(&v, &b, sizeof v); return v; }
 
 /* ----------------------------------------------------------------- I/O */
 
@@ -2583,21 +2318,25 @@ static size_t win_argv_quote(char* dst, const char* arg) {
 
 vader_i32_t vader_spawn_run(vader_array_t* argv) {
     if (argv == NULL) return VADER_SPAWN_LAUNCH_FAIL;
+    argv = vader_array_resolve(argv);
+    vader_array_resolve_buf(argv);
     size_t n = vader_array_len(argv);
     if (n == 0) return VADER_SPAWN_LAUNCH_FAIL;
 
-    /* Build the command-line string. Upper bound per arg : 2*len + 3 (quotes
-     * + worst-case escape doubling + space separator). */
+    /* argv is a `[string]` (KIND_BOXED) ; read its slots directly (no Vader
+     * alloc in the loops, so the resolved buf stays valid). Build the command-
+     * line string : upper bound per arg 2*len + 3 (quotes + escape + space). */
+    const vader_box_t* slots = vader_array_box_slots(argv->buf);
     size_t cap = 1;  /* terminator */
     for (size_t i = 0; i < n; i++) {
-        vader_box_t b = vader_array_get(argv, i);
+        vader_box_t b = slots[argv->offset + i];
         cap += vader_atom_len((vader_string_t) b.payload.s) * 2 + 3;
     }
     char* cmdline = (char*) malloc(cap);
     if (cmdline == NULL) return VADER_SPAWN_LAUNCH_FAIL;
     size_t pos = 0;
     for (size_t i = 0; i < n; i++) {
-        vader_box_t b = vader_array_get(argv, i);
+        vader_box_t b = slots[argv->offset + i];
         vader_string_t s = (vader_string_t) b.payload.s;
         size_t slen = vader_atom_len(s);
         char* z = (char*) malloc(slen + 1);
@@ -2720,15 +2459,19 @@ static char* drain_fd(int fd, size_t* out_len) {
 
 vader_i32_t vader_spawn_run(vader_array_t* argv) {
     if (argv == NULL) return VADER_SPAWN_LAUNCH_FAIL;
+    argv = vader_array_resolve(argv);
+    vader_array_resolve_buf(argv);
     size_t n = vader_array_len(argv);
     if (n == 0) return VADER_SPAWN_LAUNCH_FAIL;
 
     /* Build a NULL-terminated argv from the Vader [string] array — each slot
-     * needs to be a 0-terminated C string. */
+     * needs to be a 0-terminated C string. argv is KIND_BOXED ; read its slots
+     * directly (no Vader alloc in the loop, so the resolved buf stays valid). */
     char** cargv = (char**) calloc(n + 1, sizeof(char*));
     if (cargv == NULL) return VADER_SPAWN_LAUNCH_FAIL;
+    const vader_box_t* slots = vader_array_box_slots(argv->buf);
     for (size_t i = 0; i < n; i++) {
-        vader_box_t b = vader_array_get(argv, i);
+        vader_box_t b = slots[argv->offset + i];
         vader_string_t s = (vader_string_t) b.payload.s;
         size_t slen = vader_atom_len(s);
         char* z = (char*) malloc(slen + 1);
@@ -2882,6 +2625,9 @@ void vader_gc_profile_dump(void) {
             uint32_t type_index = hdr->type_index;
             size_t bytes = vader_gc_obj_size(scan, type_index);
             if (bytes == 0) break;
+            // The BUFFER sentinel has no dedicated bucket — it falls into
+            // bucket 0 here (a cosmetic miscount in this debug-only profile,
+            // never a GC-correctness issue ; the size walk handles it above).
             size_t bucket = (type_index == VADER_TYPE_INDEX_ARRAY_BUF)
                 ? array_buf_bucket
                 : (type_index < vader_type_info_count ? type_index : 0);

@@ -72,75 +72,83 @@ fn snippet$post_narrow(%0: V01 | V02) -> i32
 
 fn snippet$main() -> i32
   locals:
-    %0 $intrinsic_0: ?
-    %1 __sb_0: ? (synthetic __sb_0)
+    %0 $call_0: StringBuilder
+    %1 __sb_0: StringBuilder (synthetic __sb_0)
     %2 $k_2: string
     %3 $k_3: i32
     %4 $struct_4: V01
     %5 $call_5: i32
-    %6 $intrinsic_6: string
-    %7 $intrinsic_7: ?
-    %8 __sb_1: ? (synthetic __sb_1)
-    %9 $k_9: string
-    %10 $k_10: i32
-    %11 $struct_11: V02
-    %12 $call_12: i32
-    %13 $intrinsic_13: string
-    %14 $intrinsic_14: ?
-    %15 __sb_2: ? (synthetic __sb_2)
-    %16 $k_16: string
-    %17 $k_17: i32
-    %18 $struct_18: V01
-    %19 $call_19: i32
-    %20 $intrinsic_20: string
-    %21 $intrinsic_21: ?
-    %22 __sb_3: ? (synthetic __sb_3)
-    %23 $k_23: string
-    %24 $k_24: i32
-    %25 $struct_25: V02
-    %26 $call_26: i32
-    %27 $intrinsic_27: string
-    %28 $k_28: i32
+    %6 $call_6: string
+    %7 $call_7: string
+    %8 $call_8: StringBuilder
+    %9 __sb_1: StringBuilder (synthetic __sb_1)
+    %10 $k_10: string
+    %11 $k_11: i32
+    %12 $struct_12: V02
+    %13 $call_13: i32
+    %14 $call_14: string
+    %15 $call_15: string
+    %16 $call_16: StringBuilder
+    %17 __sb_2: StringBuilder (synthetic __sb_2)
+    %18 $k_18: string
+    %19 $k_19: i32
+    %20 $struct_20: V01
+    %21 $call_21: i32
+    %22 $call_22: string
+    %23 $call_23: string
+    %24 $call_24: StringBuilder
+    %25 __sb_3: StringBuilder (synthetic __sb_3)
+    %26 $k_26: string
+    %27 $k_27: i32
+    %28 $struct_28: V02
+    %29 $call_29: i32
+    %30 $call_30: string
+    %31 $call_31: string
+    %32 $k_32: i32
   bb0:
-    %0 = intrinsic builder.new()
+    %0 = call new_builder() :StringBuilder
     %1 = move %0
     %2 = const string(#1) :string
-    intrinsic builder.append_str(%1, %2)
+    call append(%1, %2) :void
     %3 = const int(10) :i32
     %4 = struct_new V01(%3)
     %5 = call direct(%4) :i32
-    intrinsic builder.append_display(%1, %5)
-    %6 = intrinsic builder.finish(%1)
-    call std_io$std_io$println__string(%6) :void
-    %7 = intrinsic builder.new()
-    %8 = move %7
-    %9 = const string(#2) :string
-    intrinsic builder.append_str(%8, %9)
-    %10 = const int(20) :i32
-    %11 = struct_new V02(%10)
-    %12 = call direct(%11) :i32
-    intrinsic builder.append_display(%8, %12)
-    %13 = intrinsic builder.finish(%8)
-    call std_io$std_io$println__string(%13) :void
-    %14 = intrinsic builder.new()
-    %15 = move %14
-    %16 = const string(#3) :string
-    intrinsic builder.append_str(%15, %16)
-    %17 = const int(30) :i32
-    %18 = struct_new V01(%17)
-    %19 = call post_narrow(%18) :i32
-    intrinsic builder.append_display(%15, %19)
-    %20 = intrinsic builder.finish(%15)
-    call std_io$std_io$println__string(%20) :void
-    %21 = intrinsic builder.new()
-    %22 = move %21
-    %23 = const string(#4) :string
-    intrinsic builder.append_str(%22, %23)
-    %24 = const int(40) :i32
-    %25 = struct_new V02(%24)
-    %26 = call post_narrow(%25) :i32
-    intrinsic builder.append_display(%22, %26)
-    %27 = intrinsic builder.finish(%22)
-    call std_io$std_io$println__string(%27) :void
-    %28 = const int(0) :i32
-    return %28
+    %6 = call std_core$i32$Display$to_string(%5) :string
+    call append(%1, %6) :void
+    %7 = call std_string_builder$StringBuilder$Display$to_string(%1) :string
+    call std_io$std_io$println__string(%7) :void
+    %8 = call new_builder() :StringBuilder
+    %9 = move %8
+    %10 = const string(#2) :string
+    call append(%9, %10) :void
+    %11 = const int(20) :i32
+    %12 = struct_new V02(%11)
+    %13 = call direct(%12) :i32
+    %14 = call std_core$i32$Display$to_string(%13) :string
+    call append(%9, %14) :void
+    %15 = call std_string_builder$StringBuilder$Display$to_string(%9) :string
+    call std_io$std_io$println__string(%15) :void
+    %16 = call new_builder() :StringBuilder
+    %17 = move %16
+    %18 = const string(#3) :string
+    call append(%17, %18) :void
+    %19 = const int(30) :i32
+    %20 = struct_new V01(%19)
+    %21 = call post_narrow(%20) :i32
+    %22 = call std_core$i32$Display$to_string(%21) :string
+    call append(%17, %22) :void
+    %23 = call std_string_builder$StringBuilder$Display$to_string(%17) :string
+    call std_io$std_io$println__string(%23) :void
+    %24 = call new_builder() :StringBuilder
+    %25 = move %24
+    %26 = const string(#4) :string
+    call append(%25, %26) :void
+    %27 = const int(40) :i32
+    %28 = struct_new V02(%27)
+    %29 = call post_narrow(%28) :i32
+    %30 = call std_core$i32$Display$to_string(%29) :string
+    call append(%25, %30) :void
+    %31 = call std_string_builder$StringBuilder$Display$to_string(%25) :string
+    call std_io$std_io$println__string(%31) :void
+    %32 = const int(0) :i32
+    return %32

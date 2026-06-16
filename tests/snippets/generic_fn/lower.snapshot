@@ -13,17 +13,34 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_0: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_0 :?
-            "n = " :string
-          @builder.append_display <for i32> :void
-            __sb_0 :?
-            n :i32
+          let __sb_0: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              "n = " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  n :i32
           ~>
-            @builder.finish :string
-              __sb_0 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_0 :StringBuilder
     let arr: i32[] =
       array :i32[]
         int(10) :i32
@@ -42,21 +59,38 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_1: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_1 :?
-            "v = " :string
-          @builder.append_display <for i32> :void
-            __sb_1 :?
-            v :i32
+          let __sb_1: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              "v = " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  v :i32
           ~>
-            @builder.finish :string
-              __sb_1 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_1 :StringBuilder
     return int(0) :i32
-  fn snippet$snippet$identity__i32(x: Any) -> Any
-    return x :Any
-  fn snippet$snippet$first__i32(arr: Any[], fallback: Any) -> Any
+  fn snippet$snippet$identity__i32(x: i32) -> i32
+    return x :i32
+  fn snippet$snippet$first__i32(arr: i32[], fallback: i32) -> i32
     if :void
       cond:
         gt :bool
@@ -66,9 +100,9 @@
             int(0) :usize
       then:
         return
-          index :Any
+          index :i32
             on:
-              arr :Any[]
+              arr :i32[]
             ix:
               int(0) :i32
-    return fallback :Any
+    return fallback :i32

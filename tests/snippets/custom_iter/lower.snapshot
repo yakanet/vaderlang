@@ -184,12 +184,25 @@
                 std_io$std_io$println__string :void
               arg0:
                 block :string
-                  let __sb_2: ? =
-                    @builder.new :?
-                  @builder.append_display <for i32> :void
-                    __sb_2 :?
-                    x :i32
+                  let __sb_2: StringBuilder =
+                    call :StringBuilder
+                      callee:
+                        new_builder :StringBuilder
+                  call :void
+                    callee:
+                      append :void
+                    arg0:
+                      __sb_2 :StringBuilder
+                    arg1:
+                      call :string
+                        callee:
+                          std_core$i32$Display$to_string :string
+                        arg0:
+                          x :i32
                   ~>
-                    @builder.finish :string
-                      __sb_2 :?
+                    call :string
+                      callee:
+                        std_string_builder$StringBuilder$Display$to_string :string
+                      arg0:
+                        __sb_2 :StringBuilder
     return int(0) :i32

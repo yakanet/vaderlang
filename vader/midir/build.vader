@@ -868,8 +868,7 @@ build_intrinsic_call :: fn(fn_ctx: FnCtx, e: LoweredIntrinsicCall) -> LocalId | 
     if args is null { return null }
     dst :: if is_void(e.type) { null } else { fresh_tmp(fn_ctx, "intrinsic", e.type) }
     emit(fn_ctx, InstrIntrinsic {
-        .dst = dst, .name = e.name, .args = args,
-        .display_for = e.display_for, .span = e.span,
+        .dst = dst, .name = e.name, .args = args, .span = e.span,
     })
     return dst
 }

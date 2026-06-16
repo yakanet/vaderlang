@@ -1,0 +1,323 @@
+// stdlib/std/core/primitives.vader — primitive-type trait impls.
+//
+// Split out of core.vader so neither file outgrows the ~500-LoC budget. Carries
+// the Display / Equals / Hash / Comparable / Step / arithmetic impls for the
+// built-in scalar types and `string`, plus the pure-Vader number formatters.
+// Part of `module "std/core"` (same folder) — joins the auto-imported prelude
+// and shares core.vader's trait declarations without an explicit import.
+
+module "std/core"
+
+//
+// `@intrinsic` impls route the call directly to the matching bytecode op
+// via `OP_INTRINSIC_BY_MANGLED` (see `src/bytecode/emit.ts`) — no fn-call
+// indirection, identical performance to the operator form. `s1 + s2` and
+// `(s1).add(s2)` share a single runtime path.
+
+// ---- Display --------------------------------------------------------------
+//
+// Every primitive type carries a pure-Vader `to_string` so any value
+// flowing into a `string` slot (e.g. `print(value)`, `let s: string =
+// value`) routes through the blanket `T implements[T: Display] Into(string)`
+// declared above. `${x}` string interpolation routes every scalar primitive
+// through its `to_string` impl (below) — including `f32`/`f64`, which format
+// via the Ryu `format_f32`/`format_f64` shortest-float formatters.
+
+// Pure-Vader Display for the scalar primitives (Target ABI S1 for the
+// integers/bool/char/string, S4 for f32/f64). Real-body impls shadow the
+// former `@intrinsic` stubs (`lower_impl_member.vader` returns the first
+// non-intrinsic match). The integer formatters are built from string-literal
+// digits + concat because std/core cannot import std/string_builder / std/string
+// (import cycle — that's why std/numbers lives outside core) ; f32/f64 delegate
+// to the Ryu formatters in dtoa.vader / f2s.vader.
+
+// The integer formatters render digits into a byte buffer (emitted LSB-first,
+// then reversed once) and intern via `bytes_to_string` — O(n), where the former
+// prepend-concat (`out = digit + out`) re-allocated the whole string per digit
+// (O(n²)). The `for i in 0..<k` reverse is safe inside std/core now that the
+// duplicate-mangle dedup + per-function type pins landed : a materialised `Range`
+// no longer double-emits (`redefinition`) or leaks dead into every program.
+
+/// One-char strings per decimal digit. Used by the f64 digit collector in
+/// `dtoa.vader` ; the integer formatters below emit digit *bytes* directly.
+DECIMAL_DIGITS :: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+
+// Reverse `digits` (a LSB-first decimal byte buffer) into MSB-first order, with a
+// leading `'-'` when `negative`, and intern the result.
+finish_digits :: fn(digits: u8[], negative: bool) -> string {
+    out: u8[] = []
+    if negative { out.push(b'-') }
+    k :: digits.len()
+    for i in 0..<k {
+        out.push(digits[k - 1 - i])
+    }
+    return out.bytes_to_string()
+}
+
+// Render a signed value working entirely in NON-POSITIVE space, because
+// `abs(i64 min)` overflows i64 (|i64 min| = i64 max + 1). So rather than negate
+// n into positive space and extract digits there, only POSITIVE inputs are
+// shifted negative (`if n > 0 { n = -n }` — always safe) ; i64 min, already
+// negative, is never negated. With n <= 0, `n % 10` (I64Mod, C-truncating) is a
+// non-positive remainder, so the actual digit is `-(n % 10)`, in 0..9.
+format_signed :: fn(n: i64) -> string {
+    if n == 0 { return "0" }
+    neg :: n < 0
+    if n > 0 { n = -n }                       // shift into non-positive space ; -(i64 min) never evaluated
+    digits: u8[] = []
+    for n != 0 {
+        digits.push(b'0' + u8(-(n % 10)))
+        n = n / 10
+    }
+    return finish_digits(digits, neg)
+}
+
+// Render an unsigned value. `% 10` / `/ 10` lower to U64Mod / U64Div
+// (op_select), so high-bit-set values don't format as negative.
+format_unsigned :: fn(n: u64) -> string {
+    if n == 0 { return "0" }
+    digits: u8[] = []
+    for n != 0 {
+        digits.push(b'0' + u8(n % 10))
+        n = n / 10
+    }
+    return finish_digits(digits, false)
+}
+
+/// Encode a Unicode codepoint to its UTF-8 bytes (pure arithmetic), for
+/// interning via `bytes_to_string` or appending into a byte buffer.
+/// @param c  the codepoint to encode (`u32(c)` ≤ `0x10FFFF`).
+/// @return   the 1–4 UTF-8 bytes encoding `c`.
+export utf8_encode :: fn(c: char) -> u8[] {
+    cp :: u32(c)
+    out: u8[] = []
+    if cp < 0x80 {
+        out.push(u8(cp))
+    } else if cp < 0x800 {
+        out.push(u8(0xC0 | (cp >> 6)))
+        out.push(u8(0x80 | (cp & 0x3F)))
+    } else if cp < 0x10000 {
+        out.push(u8(0xE0 | (cp >> 12)))
+        out.push(u8(0x80 | ((cp >> 6) & 0x3F)))
+        out.push(u8(0x80 | (cp & 0x3F)))
+    } else {
+        out.push(u8(0xF0 | (cp >> 18)))
+        out.push(u8(0x80 | ((cp >> 12) & 0x3F)))
+        out.push(u8(0x80 | ((cp >> 6) & 0x3F)))
+        out.push(u8(0x80 | (cp & 0x3F)))
+    }
+    return out
+}
+
+/// Materialise a `string` from verbatim UTF-8 bytes — the canonical bytes→string
+/// primitive. Host intrinsic backed by `vader_string_as_string` (no new runtime
+/// symbol) ; O(1) on a borrowed `bytes()` slice, O(n) on a packed array, no UTF-8
+/// validation. Supersedes the legacy `as_string` / `bytes_as_string`.
+/// @param bs  the UTF-8 bytes to materialise (typically a `bytes()` slice).
+/// @return    the string those bytes encode.
+export bytes_to_string :: fn(bs: const u8[]) -> string
+
+/// Borrow the UTF-8 bytes of a string as a `const u8[]` view — the canonical
+/// string→bytes primitive, inverse of `bytes_to_string`. Host intrinsic backed
+/// by `vader_string_bytes_view` (no new runtime symbol) ; a zero-copy borrowed
+/// view of the interned bytes on native, a fresh copy on the VM.
+/// @param s  source string.
+/// @return   a `const u8[]` over the UTF-8 bytes of `s`.
+export bytes :: fn(s: string) -> const u8[]
+
+i8     implements Display { to_string :: fn(self) -> string = format_signed(i64(self)) }
+i16    implements Display { to_string :: fn(self) -> string = format_signed(i64(self)) }
+i32    implements Display { to_string :: fn(self) -> string = format_signed(i64(self)) }
+i64    implements Display { to_string :: fn(self) -> string = format_signed(self) }
+isize  implements Display { to_string :: fn(self) -> string = format_signed(i64(self)) }
+u8     implements Display { to_string :: fn(self) -> string = format_unsigned(u64(self)) }
+u16    implements Display { to_string :: fn(self) -> string = format_unsigned(u64(self)) }
+u32    implements Display { to_string :: fn(self) -> string = format_unsigned(u64(self)) }
+u64    implements Display { to_string :: fn(self) -> string = format_unsigned(self) }
+usize  implements Display { to_string :: fn(self) -> string = format_unsigned(u64(self)) }
+bool   implements Display { to_string :: fn(self) -> string = if self { "true" } else { "false" } }
+char   implements Display { to_string :: fn(self) -> string = utf8_encode(self).bytes_to_string() }
+string implements Display { to_string :: fn(self) -> string = self }
+
+f32 implements Display { to_string :: fn(self) -> string = format_f32(self) }
+f64 implements Display { to_string :: fn(self) -> string = format_f64(self) }
+
+// ---- bit reinterpret (float ↔ raw IEEE bits) ------------------------------
+//
+// Distinct from the numeric `u64(x)` / `f64(b)` casts (which convert the VALUE).
+// `@intrinsic` → the `F64ToBits` / `BitsToF64` opcodes (a `union` cast in C, no
+// runtime symbol). Foundation for the pure-Vader shortest-double formatter
+// (§1.13) and the S2-deferred `LoadF64` byte codec.
+
+@intrinsic f64 implements FloatBits     // → F64ToBits
+@intrinsic u64 implements BitsFloat     // → BitsToF64
+@intrinsic f32 implements Float32Bits   // → F32ToBits
+@intrinsic u32 implements Bits32Float   // → BitsToF32
+
+// ---- Equals ---------------------------------------------------------------
+
+@intrinsic i8     implements Equals
+@intrinsic i16    implements Equals
+@intrinsic i32    implements Equals
+@intrinsic i64    implements Equals
+@intrinsic isize  implements Equals
+@intrinsic u8     implements Equals
+@intrinsic u16    implements Equals
+@intrinsic u32    implements Equals
+@intrinsic u64    implements Equals
+@intrinsic usize  implements Equals
+@intrinsic f32    implements Equals
+@intrinsic f64    implements Equals
+@intrinsic bool   implements Equals
+@intrinsic char   implements Equals
+@intrinsic string implements Equals
+
+// ---- Hash -----------------------------------------------------------------
+//
+// Integer Hash impls cast through u64 ; `string` uses FNV-1a over the
+// UTF-8 bytes (host-provided).
+
+i8    implements Hash -> u64(self)
+i16   implements Hash -> u64(self)
+i32   implements Hash -> u64(self)
+i64   implements Hash -> u64(self)
+isize implements Hash -> u64(self)
+u8    implements Hash -> u64(self)
+u16   implements Hash -> u64(self)
+u32   implements Hash -> u64(self)
+u64   implements Hash -> u64(self)
+usize implements Hash -> u64(self)
+char  implements Hash -> u64(self)
+
+/// FNV-1a over the string's UTF-8 bytes — pure Vader, byte-identical to the
+/// retired host `vader_string_hash`. Powers `string implements Hash`, which
+/// feeds `MutableMap` bucketing.
+string_hash_fnv1a64 :: fn(s: string) -> u64 {
+    h: u64 = 14695981039346656037
+    for b in s.bytes() {
+        h = (h ^ u64(b)) * 1099511628211
+    }
+    return h
+}
+
+string implements Hash -> string_hash_fnv1a64(self)
+
+// ---- Comparable -----------------------------------------------------------
+//
+// Three-way `compare` for every integer width plus `char`. Floats are
+// excluded — IEEE-754's NaN breaks total ordering, so an `Ord`-style trait
+// is the right shape for f32/f64 and is deferred. `lt`/`lte`/`gt`/`gte`
+// come from Comparable's default-method injection ; impls only provide
+// `compare`.
+
+i8    implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
+i16   implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
+i32   implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
+i64   implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
+isize implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
+u8    implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
+u16   implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
+u32   implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
+u64   implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
+usize implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
+char  implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
+
+// ---- Step -----------------------------------------------------------------
+//
+// Discrete-successor logic per primitive. Every integer width bumps by 1 ;
+// `char` round-trips through u32 since it has no native `+ i32` op. Floats
+// are intentionally excluded — there's no canonical `next float` semantics.
+
+i8    implements Step -> self + 1
+i16   implements Step -> self + 1
+i32   implements Step -> self + 1
+i64   implements Step -> self + 1
+isize implements Step -> self + 1
+u8    implements Step -> self + 1
+u16   implements Step -> self + 1
+u32   implements Step -> self + 1
+u64   implements Step -> self + 1
+usize implements Step -> self + 1
+char  implements Step -> char(u32(self) + u32(1))
+
+// ---- Numeric arithmetic ---------------------------------------------------
+//
+// Add/Sub/Mul/Div for every primitive numeric type. Makes `[T: Add]` and
+// friends usable on every numeric primitive — `5 + 7` and `(5).add(7)`
+// share one path.
+
+@intrinsic i8 implements Add
+@intrinsic i8 implements Sub
+@intrinsic i8 implements Mul
+@intrinsic i8 implements Div
+
+@intrinsic i16 implements Add
+@intrinsic i16 implements Sub
+@intrinsic i16 implements Mul
+@intrinsic i16 implements Div
+
+@intrinsic i32 implements Add
+@intrinsic i32 implements Sub
+@intrinsic i32 implements Mul
+@intrinsic i32 implements Div
+
+@intrinsic i64 implements Add
+@intrinsic i64 implements Sub
+@intrinsic i64 implements Mul
+@intrinsic i64 implements Div
+
+@intrinsic isize implements Add
+@intrinsic isize implements Sub
+@intrinsic isize implements Mul
+@intrinsic isize implements Div
+
+@intrinsic u8 implements Add
+@intrinsic u8 implements Sub
+@intrinsic u8 implements Mul
+@intrinsic u8 implements Div
+
+@intrinsic u16 implements Add
+@intrinsic u16 implements Sub
+@intrinsic u16 implements Mul
+@intrinsic u16 implements Div
+
+@intrinsic u32 implements Add
+@intrinsic u32 implements Sub
+@intrinsic u32 implements Mul
+@intrinsic u32 implements Div
+
+@intrinsic u64 implements Add
+@intrinsic u64 implements Sub
+@intrinsic u64 implements Mul
+@intrinsic u64 implements Div
+
+@intrinsic usize implements Add
+@intrinsic usize implements Sub
+@intrinsic usize implements Mul
+@intrinsic usize implements Div
+
+@intrinsic f32 implements Add
+@intrinsic f32 implements Sub
+@intrinsic f32 implements Mul
+@intrinsic f32 implements Div
+
+@intrinsic f64 implements Add
+@intrinsic f64 implements Sub
+@intrinsic f64 implements Mul
+@intrinsic f64 implements Div
+
+// ---- String ---------------------------------------------------------------
+//
+// `Add` is wired here in std/core (auto-imported) so `.add()` and the `Add`
+// bound work without `import "std/string"`. Its body interpolates the two
+// operands — which desugars to the Buffer-backed StringBuilder chain (S6b),
+// so no dedicated `StringConcat` op is needed. The `+` operator never reaches
+// this body : it is special-cased in the typechecker (`typecheck/binary.vader`
+// — `string + string -> string`) and lowered to the same StringBuilder chain
+// directly (`lower/lower_binary.vader`). `Index(usize, char)` returns the
+// Unicode codepoint at byte offset `i` — strings are immutable so there's no
+// `IndexSet` to pair with. Number formatting (`to_hex`, `to_bin`) lives in
+// `std/numbers` so it can use `std/string_builder`.
+
+string implements Add -> "${self}${other}"
+@intrinsic string implements Index<usize, char>

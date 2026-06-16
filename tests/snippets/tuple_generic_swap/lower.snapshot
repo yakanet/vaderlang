@@ -16,33 +16,62 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_0: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_0 :?
-            "first=" :string
-          @builder.append_display <for string> :void
-            __sb_0 :?
-            ._0 :string
-              s :[string, i32]
-          @builder.append_str :void
-            __sb_0 :?
-            " second=" :string
-          @builder.append_display <for i32> :void
-            __sb_0 :?
-            ._1 :i32
-              s :[string, i32]
+          let __sb_0: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              "first=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$string$Display$to_string :string
+                arg0:
+                  ._0 :string
+                    s :[string, i32]
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              " second=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  ._1 :i32
+                    s :[string, i32]
           ~>
-            @builder.finish :string
-              __sb_0 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_0 :StringBuilder
     return int(0) :i32
-  fn snippet$snippet$swap__i32__string(p: [Any, Any]) -> [Any, Any]
+  fn snippet$snippet$swap__i32__string(p: [i32, string]) -> [string, i32]
     return
-      [Any, Any] {
+      [string, i32] {
         _0:
-          ._1 :Any
-            p :[Any, Any]
+          ._1 :string
+            p :[i32, string]
         _1:
-          ._0 :Any
-            p :[Any, Any]
+          ._0 :i32
+            p :[i32, string]
       }

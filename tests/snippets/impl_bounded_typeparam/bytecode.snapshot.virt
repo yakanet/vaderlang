@@ -14,7 +14,6 @@ string 1 "Mira"
 string 2 "Rex"
 string 3 "wrapped"
 import 0 write std_io$write (i32,string) -> void
-import 1 to_string std_core$string$Display$to_string (string) -> string
 impl 4 Tag
 impl 5 Tag
 impl 6 Display
@@ -58,8 +57,7 @@ fn 2 snippet$Wrap$Display$to_string__Any (ref) -> string
   return.lit string.const 3
 end
 
-fn 3 std_core$string$Display$to_string_vt (string) -> string
+fn 3 std_core$string$Display$to_string (string) -> string
   local.get 0
-  call.import 1
   return
 end

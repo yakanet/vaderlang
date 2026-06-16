@@ -1,0 +1,34 @@
+# Typecheck
+
+## tests/snippets/conjunction_narrowing
+  StructDecl     Circle               :: Circle
+  FnDecl         classify             :: fn(Circle | Square) -> string
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Square               :: Square
+  expr 22:17    IdentExpr      :: Circle
+  expr 22:27    BinaryExpr     :: bool
+  expr 22:27    FieldExpr      :: i32
+  expr 22:27    IdentExpr      :: Circle
+  expr 22:5     IfExpr         :: void
+  expr 22:8     BinaryExpr     :: bool
+  expr 22:8     BinaryExpr     :: bool
+  expr 22:8     IdentExpr      :: Circle | Square
+  expr 23:16    StringLitExpr  :: string
+  expr 23:28    FieldExpr      :: i32
+  expr 23:28    IdentExpr      :: Circle
+  expr 25:12    StringLitExpr  :: string
+  expr 29:13    CallExpr       :: string
+  expr 29:13    IdentExpr      :: fn(Circle | Square) -> string
+  expr 29:22    StructLitExpr  :: Circle
+  expr 29:5     CallExpr       :: void
+  expr 29:5     IdentExpr      :: fn(T) -> void
+  expr 30:13    CallExpr       :: string
+  expr 30:13    IdentExpr      :: fn(Circle | Square) -> string
+  expr 30:22    StructLitExpr  :: Square
+  expr 30:5     CallExpr       :: void
+  expr 30:5     IdentExpr      :: fn(T) -> void
+  expr 31:13    CallExpr       :: string
+  expr 31:13    IdentExpr      :: fn(Circle | Square) -> string
+  expr 31:22    StructLitExpr  :: Circle
+  expr 31:5     CallExpr       :: void
+  expr 31:5     IdentExpr      :: fn(T) -> void

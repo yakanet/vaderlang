@@ -4,17 +4,34 @@
   fn snippet$expect_lparen(s: string) -> string
     return
       block :string
-        let __sb_0: ? =
-          @builder.new :?
-        @builder.append_str :void
-          __sb_0 :?
-          "ok: " :string
-        @builder.append_display <for string> :void
-          __sb_0 :?
-          s :string
+        let __sb_0: StringBuilder =
+          call :StringBuilder
+            callee:
+              new_builder :StringBuilder
+        call :void
+          callee:
+            append :void
+          arg0:
+            __sb_0 :StringBuilder
+          arg1:
+            "ok: " :string
+        call :void
+          callee:
+            append :void
+          arg0:
+            __sb_0 :StringBuilder
+          arg1:
+            call :string
+              callee:
+                std_core$string$Display$to_string :string
+              arg0:
+                s :string
         ~>
-          @builder.finish :string
-            __sb_0 :?
+          call :string
+            callee:
+              std_string_builder$StringBuilder$Display$to_string :string
+            arg0:
+              __sb_0 :StringBuilder
   fn snippet$main() -> i32
     let matched: bool = false
     if :void

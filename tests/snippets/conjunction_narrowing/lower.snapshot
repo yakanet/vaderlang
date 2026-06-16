@@ -1,0 +1,89 @@
+# Lower
+
+## snippet
+  struct snippet$Circle { radius: i32 }
+  struct snippet$Square { side: i32 }
+  fn snippet$classify(shape: Circle | Square) -> string
+    if :void
+      cond:
+        and :bool
+          l:
+            is Circle :bool
+              shape :Circle | Square
+          r:
+            gt :bool
+              l:
+                .radius :i32
+                  cast → Circle
+                    shape :Circle | Square
+              r:
+                int(0) :i32
+      then:
+        return
+          block :string
+            let __sb_0: StringBuilder =
+              call :StringBuilder
+                callee:
+                  new_builder :StringBuilder
+            call :void
+              callee:
+                append :void
+              arg0:
+                __sb_0 :StringBuilder
+              arg1:
+                "circle r=" :string
+            call :void
+              callee:
+                append :void
+              arg0:
+                __sb_0 :StringBuilder
+              arg1:
+                call :string
+                  callee:
+                    std_core$i32$Display$to_string :string
+                  arg0:
+                    .radius :i32
+                      cast → Circle
+                        shape :Circle | Square
+            ~>
+              call :string
+                callee:
+                  std_string_builder$StringBuilder$Display$to_string :string
+                arg0:
+                  __sb_0 :StringBuilder
+    return "other" :string
+  fn snippet$main() -> i32
+    call :void
+      callee:
+        std_io$std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            classify :fn(Circle | Square) -> string
+          arg0:
+            Circle {
+              radius: int(5) :i32
+            }
+    call :void
+      callee:
+        std_io$std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            classify :fn(Circle | Square) -> string
+          arg0:
+            Square {
+              side: int(3) :i32
+            }
+    call :void
+      callee:
+        std_io$std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            classify :fn(Circle | Square) -> string
+          arg0:
+            Circle {
+              radius: int(0) :i32
+            }
+    return int(0) :i32

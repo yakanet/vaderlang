@@ -5,7 +5,7 @@ module "vader/lower"
 
 import "std/collections" { keys }
 import "std/sort" { sort }
-import "std/string" { bytes, split }
+import "std/string" { split }
 
 import "vader/parser" { FnDecl, Visibility }
 import "vader/resolver" { LoadedProject }

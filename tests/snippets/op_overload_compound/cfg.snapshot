@@ -70,16 +70,19 @@ fn snippet$main() -> i32
     %21 $k_21: i32
     %22 $struct_22: Vec
     %23 $call_23: Vec
-    %24 $intrinsic_24: ?
-    %25 __sb_0: ? (synthetic __sb_0)
+    %24 $call_24: StringBuilder
+    %25 __sb_0: StringBuilder (synthetic __sb_0)
     %26 $k_26: string
-    %27 $k_27: string
-    %28 $field_28: i32
-    %29 $k_29: string
-    %30 $field_30: i32
+    %27 $call_27: string
+    %28 $k_28: string
+    %29 $field_29: i32
+    %30 $call_30: string
     %31 $k_31: string
-    %32 $intrinsic_32: string
-    %33 $k_33: i32
+    %32 $field_32: i32
+    %33 $call_33: string
+    %34 $k_34: string
+    %35 $call_35: string
+    %36 $k_36: i32
   bb0:
     %0 = const int(5) :i32
     %1 = move %0
@@ -112,22 +115,25 @@ fn snippet$main() -> i32
     %22 = struct_new Vec(%20, %21)
     %23 = call snippet$Vec$Sub$sub(%15, %22) :Vec
     %15 = move %23
-    %24 = intrinsic builder.new()
+    %24 = call new_builder() :StringBuilder
     %25 = move %24
     %26 = const string(#1) :string
-    intrinsic builder.append_str(%25, %26)
-    intrinsic builder.append_display(%25, %1)
-    %27 = const string(#2) :string
-    intrinsic builder.append_str(%25, %27)
-    %28 = field_get %15.x :i32
-    intrinsic builder.append_display(%25, %28)
-    %29 = const string(#3) :string
-    intrinsic builder.append_str(%25, %29)
-    %30 = field_get %15.y :i32
-    intrinsic builder.append_display(%25, %30)
-    %31 = const string(#4) :string
-    intrinsic builder.append_str(%25, %31)
-    %32 = intrinsic builder.finish(%25)
-    call std_io$std_io$println__string(%32) :void
-    %33 = const int(0) :i32
-    return %33
+    call append(%25, %26) :void
+    %27 = call std_core$i32$Display$to_string(%1) :string
+    call append(%25, %27) :void
+    %28 = const string(#2) :string
+    call append(%25, %28) :void
+    %29 = field_get %15.x :i32
+    %30 = call std_core$i32$Display$to_string(%29) :string
+    call append(%25, %30) :void
+    %31 = const string(#3) :string
+    call append(%25, %31) :void
+    %32 = field_get %15.y :i32
+    %33 = call std_core$i32$Display$to_string(%32) :string
+    call append(%25, %33) :void
+    %34 = const string(#4) :string
+    call append(%25, %34) :void
+    %35 = call std_string_builder$StringBuilder$Display$to_string(%25) :string
+    call std_io$std_io$println__string(%35) :void
+    %36 = const int(0) :i32
+    return %36

@@ -15,7 +15,7 @@ import "std/string" { join }
 import "std/string_builder" { StringBuilder, new_builder, append }
 import "std/abort" { todo }
 import "vader/bytecode" { BcFunction, BcSignature, BcStruct, BcArray, BcFn, BcRef, BcType, ValType }
-import "vader/bytecode" { array_kind_of, array_kind_index }
+import "vader/bytecode" { array_kind_of, array_kind_index, ArrayKind }
 // The opcode union pulls in ~120 names ; the namespace form keeps the
 // import to one line and tags every op site as `vm.<Op>` at the match.
 vm :: import "vader/bytecode"
@@ -93,20 +93,15 @@ fn_calls_may_alloc :: fn(fn_decl: BcFunction, may_alloc: i32[]) -> bool {
 
 /// True for ops that allocate a fresh GC object. `struct.new_stack`
 /// (`stack = true`) does NOT — it lands on the C stack. Indirect callers
-/// are conservatively included (unknown target). Builder / array ops are
-/// listed ahead of their own tranches so the analysis is correct once they
-/// emit. Open-domain filter over a few variants → an `if`-chain, not an
-/// exhaustive `match`.
+/// are conservatively included (unknown target). Open-domain filter over
+/// a few variants → an `if`-chain, not an exhaustive `match`.
 op_allocates :: fn(op: vm.Op) -> bool {
     if op is vm.StructNew as sn { return !sn.stack }
+    if op is vm.ObjectNew { return true }
     if op is vm.ArrayNew { return true }
     if op is vm.ArrayPush { return true }
-    if op is vm.StringConcat { return true }
     if op is vm.StringSliceCodepoints { return true }
-    if op is vm.BuilderNew { return true }
-    if op is vm.BuilderAppendStr { return true }
-    if op is vm.BuilderAppendDisplay { return true }
-    if op is vm.BuilderFinish { return true }
+    if op is vm.BufferToString { return true }
     if op is vm.MakeClosure { return true }
     if op is vm.CallImport { return true }
     if op is vm.CallIndirect { return true }
@@ -292,7 +287,7 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.ArrayNew as a         -> emit_array_new(s, a)
         is vm.ArrayLen              -> emit_array_len(s)
         is vm.ArrayPush as a        -> emit_array_push(s, a)
-        is vm.ArrayGet              -> emit_array_get(s)
+        is vm.ArrayGet as a         -> emit_array_get(s, a)
         is vm.ArraySet as a         -> emit_array_set(s, a)
         is vm.ArraySlice as a       -> emit_array_slice(s, a)
         is vm.DataConst             -> todo("emit_op: data.const (needs emit_data_pool ; module.data_pool is empty today — the lowerer routes every literal to array.new)")
@@ -301,10 +296,6 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.RefCast as rc         -> emit_ref_cast(s, rc)
         is vm.Unreachable as u      -> line(s, "vader_unreachable(${c_string_lit(u.reason)});")
         is vm.Convert as c          -> emit_convert(s, convert_target_val(c.target), c.from_name)
-        is vm.BuilderNew            -> emit_builder_new(s)
-        is vm.BuilderAppendStr      -> emit_builder_append_str(s)
-        is vm.BuilderAppendDisplay  -> emit_builder_append_display(s)
-        is vm.BuilderFinish         -> emit_builder_finish(s)
         is vm.SizeOfType            -> emit_size_of_type(s)
         is vm.I32Add                -> push_binop(s, "+", .I32)
         is vm.I32Sub                -> push_binop(s, "-", .I32)
@@ -379,7 +370,6 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.CharGe                -> push_cmp(s, ">=", .Char)
         is vm.StringEq              -> push_cmp(s, "==", .String)
         is vm.StringNe              -> push_cmp(s, "!=", .String)
-        is vm.StringConcat          -> push_fn_call2(s, "vader_string_concat", .String)
         is vm.StringSliceCodepoints -> emit_string_slice(s)
         is vm.IntToChar             -> emit_convert(s, .Char, "")
         is vm.CharToInt             -> emit_convert(s, .I32, "")
@@ -387,6 +377,39 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.RefNe                 -> push_binop_any(s, "!=", .Bool)
         is vm.DeferPush             -> emit_defer_push(s)
         is vm.DeferPopExec as d     -> emit_defer_pop_exec(s, d)
+        // ---- memory opcodes (Target ABI) -----------------------------------
+        // Bytes-only Buffer (S2b). object_new allocates a `vader_buffer_t`; the
+        // typed load/store + memory_copy go through the `static inline
+        // vader_buffer_*` helpers in vader.h, re-deriving the buffer pointer
+        // from its rooted box on every op (G1 — no caching across an allocating
+        // op). The boxed-slot path (`load_slot` / `store_slot`, with the
+        // old->young write barrier) lands with Array (S5) — trap until then.
+        is vm.ObjectNew as o        -> emit_object_new(s, o)
+        is vm.LoadU8                -> emit_buffer_load(s, "vader_buffer_load_u8", .I32)
+        is vm.LoadI32               -> emit_buffer_load(s, "vader_buffer_load_i32", .I32)
+        is vm.LoadI64               -> emit_buffer_load(s, "vader_buffer_load_i64", .I64)
+        is vm.LoadF64               -> emit_buffer_load(s, "vader_buffer_load_f64", .F64)
+        is vm.StoreU8               -> emit_buffer_store(s, "vader_buffer_store_u8", "(uint8_t)")
+        is vm.StoreI32              -> emit_buffer_store(s, "vader_buffer_store_i32", "(int32_t)")
+        is vm.StoreI64              -> emit_buffer_store(s, "vader_buffer_store_i64", "(int64_t)")
+        is vm.StoreF64              -> emit_buffer_store(s, "vader_buffer_store_f64", "(double)")
+        is vm.LoadSlot              -> emit_slot_load_boxed(s)
+        is vm.LoadSlotU8            -> emit_slot_load_prim(s, "uint8_t", .I32)
+        is vm.LoadSlotI32           -> emit_slot_load_prim(s, "int32_t", .I32)
+        is vm.LoadSlotI64           -> emit_slot_load_prim(s, "int64_t", .I64)
+        is vm.LoadSlotF64           -> emit_slot_load_prim(s, "double", .F64)
+        is vm.StoreSlot             -> emit_slot_store_boxed(s)
+        is vm.StoreSlotU8           -> emit_slot_store_prim(s, "uint8_t", .I32)
+        is vm.StoreSlotI32          -> emit_slot_store_prim(s, "int32_t", .I32)
+        is vm.StoreSlotI64          -> emit_slot_store_prim(s, "int64_t", .I64)
+        is vm.StoreSlotF64          -> emit_slot_store_prim(s, "double", .F64)
+        is vm.MemoryCopy            -> emit_memory_copy(s)
+        is vm.BufferToString        -> emit_buffer_to_string(s)
+        is vm.BufferWriteString     -> emit_buffer_write_string(s)
+        is vm.F64ToBits             -> emit_f64_to_bits(s)
+        is vm.BitsToF64             -> emit_bits_to_f64(s)
+        is vm.F32ToBits             -> emit_f32_to_bits(s)
+        is vm.BitsToF32             -> emit_bits_to_f32(s)
     }
 }
 
@@ -514,6 +537,40 @@ push_i64_neg :: fn(s: FnState) -> void {
     } else {
         push_expr(s, .I64, "-(${vc})")
     }
+}
+
+/// `f64.to_bits` — reinterpret an f64 as its raw IEEE u64 bits. Emits a C99
+/// compound-literal union (well-defined type-punning in C ; the optimiser folds
+/// it to a bit-move) so there is NO runtime symbol. The u64 result rides in the
+/// `.I64` stack slot (same 64 bits).
+emit_f64_to_bits :: fn(s: FnState) -> void {
+    v :: pop(s)
+    vc :: coerce_operand(s.ctx.module.types, name_of(v), val_of(v), .F64)
+    push_expr(s, .I64, "(int64_t)(((union { double __vd; uint64_t __vu; }){ .__vd = ${vc} }).__vu)")
+}
+
+/// `u64.from_bits` — the inverse : reinterpret a u64 bit pattern (in the `.I64`
+/// slot) as an f64. Same compound-literal-union technique, no runtime symbol.
+emit_bits_to_f64 :: fn(s: FnState) -> void {
+    v :: pop(s)
+    vc :: coerce_operand(s.ctx.module.types, name_of(v), val_of(v), .I64)
+    push_expr(s, .F64, "(((union { uint64_t __vu; double __vd; }){ .__vu = (uint64_t)(${vc}) }).__vd)")
+}
+
+/// `f32.to_bits` — the 32-bit analogue. The u32 result rides in the `.I32`
+/// stack slot.
+emit_f32_to_bits :: fn(s: FnState) -> void {
+    v :: pop(s)
+    vc :: coerce_operand(s.ctx.module.types, name_of(v), val_of(v), .F32)
+    push_expr(s, .I32, "(int32_t)(((union { float __vf; uint32_t __vb; }){ .__vf = ${vc} }).__vb)")
+}
+
+/// `u32.from_bits` — the inverse : reinterpret a u32 bit pattern (in the `.I32`
+/// slot) as an f32. Same compound-literal-union technique, no runtime symbol.
+emit_bits_to_f32 :: fn(s: FnState) -> void {
+    v :: pop(s)
+    vc :: coerce_operand(s.ctx.module.types, name_of(v), val_of(v), .I32)
+    push_expr(s, .F32, "(((union { uint32_t __vb; float __vf; }){ .__vb = (uint32_t)(${vc}) }).__vf)")
 }
 
 /// Emit an eager binary op into a fresh temp : `tN = l <op> r;`. Used for
@@ -1477,44 +1534,282 @@ emit_ref_cast :: fn(s: FnState, op: vm.RefCast) -> void {
 /// `array.new` — allocate a `vader_array_t` of `op.length` elements, store
 /// each (boxed with the element tag), box the buffer. Pops elements
 /// right-to-left into source order.
+// ---- memory opcodes (Target ABI, bytes-only Buffer) ----------------------
+
+/// `object_new` — allocate a fresh zeroed `vader_buffer_t` of the popped byte
+/// size, push the boxed reference. The `type_id` immediate tags the box
+/// (informational — the heap object always carries the BUFFER sentinel). The
+/// size operand is a primitive, so there is no in-flight reference to root
+/// across the allocation.
+emit_object_new :: fn(s: FnState, op: vm.ObjectNew) -> void {
+    size :: pop(s)
+    name :: fresh_tmp(s, .Ref)
+    // Tag the box with the BUFFER sentinel — NOT `op.type_id`. The box tag must
+    // equal the heap object's header type_index, because the GC forwards a
+    // boxed reference via `boxp->tag` (vader_runtime.c, vader_gc_forward) to
+    // size the copy. A mismatch sizes the move off the wrong type and corrupts
+    // the bytes across a collection (G1). `vader_buffer_new` inits the header to
+    // the same sentinel.
+    line(s, "${name} = vader_box_obj(VADER_TYPE_INDEX_BUFFER, vader_buffer_new((size_t) ${name_of(size)}));")
+    push_tmp(s, name, .Ref)
+}
+
+/// Shared body of the typed byte loads (`load_u8` / `load_i32` / `load_i64` /
+/// `load_f64`). Pops `obj` + `off`, re-derives the buffer pointer from its
+/// rooted box (G1 — never cached across an allocating op), reads via `helper`,
+/// pushes the result with stack class `result`.
+/// `(vader_buffer_t*) <box>.payload.obj` — the buffer pointer behind a popped
+/// reference, shared by the load / store / copy emitters.
+buf_ptr :: fn(v: StackVal) = "(vader_buffer_t*) ${name_of(v)}.payload.obj"
+
+emit_buffer_load :: fn(s: FnState, helper: string, result: ValType) -> void {
+    off :: pop(s)
+    obj :: pop(s)
+    name :: fresh_tmp(s, result)
+    line(s, "${name} = ${helper}(${buf_ptr(obj)}, (size_t) ${name_of(off)});")
+    push_tmp(s, name, result)
+}
+
+/// Shared body of the typed byte stores. Pops `obj` + `off` + `value` and
+/// writes `value` (cast to the byte width by `cast`) via `helper`. No write
+/// barrier — the byte region holds no references.
+emit_buffer_store :: fn(s: FnState, helper: string, cast: string) -> void {
+    value :: pop(s)
+    off :: pop(s)
+    obj :: pop(s)
+    line(s, "${helper}(${buf_ptr(obj)}, (size_t) ${name_of(off)}, ${cast} ${name_of(value)});")
+}
+
+/// `memory_copy` — pop `dst, dst_off, src, src_off, n` and copy `n` bytes
+/// (memmove semantics, overlap-safe).
+emit_memory_copy :: fn(s: FnState) -> void {
+    n :: pop(s)
+    src_off :: pop(s)
+    src :: pop(s)
+    dst_off :: pop(s)
+    dst :: pop(s)
+    line(s, "vader_buffer_memory_copy(${buf_ptr(dst)}, (size_t) ${name_of(dst_off)}, ${buf_ptr(src)}, (size_t) ${name_of(src_off)}, (size_t) ${name_of(n)});")
+}
+
+/// `buffer_to_string` — pop buffer + `len`, intern the buffer's leading `len`
+/// bytes as a string in a single copy (no read-back). Verbatim-bytes intern,
+/// identical semantics to `bytes_to_string` over a `u8[]` (neither validates
+/// UTF-8). The buffer pointer is re-derived from its rooted box (G1) ;
+/// `vader_string_new` interns via host `malloc`, so no GC move occurs in the call.
+emit_buffer_to_string :: fn(s: FnState) -> void {
+    len :: pop(s)
+    obj :: pop(s)
+    push_into_tmp(s, "vader_buffer_intern_string(${buf_ptr(obj)}, (size_t) ${name_of(len)})", .String)
+}
+
+/// `buffer_write_string` — pop buffer + `off` + string, memcpy the string's
+/// bytes into the buffer at `off` (no push). The string operand is coerced to a
+/// `vader_string_t` (unboxed when it arrives as an erased `any`).
+emit_buffer_write_string :: fn(s: FnState) -> void {
+    str :: pop(s)
+    off :: pop(s)
+    obj :: pop(s)
+    src :: coerce_operand(s.ctx.module.types, name_of(str), val_of(str), .String)
+    line(s, "vader_buffer_write_string(${buf_ptr(obj)}, (size_t) ${name_of(off)}, ${src});")
+}
+
+// ---- array slot access (Target ABI S5) -----------------------------------
+
+// `((vader_array_t*) <box>.payload.obj)` — the array header behind a popped
+// `T[]` reference. The slot ops receive the ARRAY (the `@intrinsic`s are impl'd
+// on `T[]`, which knows the element type) and deref `->buf` + apply `->offset`
+// internally, so slice views (offset > 0) address the parent's slots correctly.
+// Slot ops are INDEX-addressed (the `[i]` cast applies the element stride),
+// distinct from the byte-offset bytes-Buffer ops. Outer parens bind `->buf`.
+array_hdr_ptr :: fn(v: StackVal) = "((vader_array_t*) ${name_of(v)}.payload.obj)"
+
+// The absolute slot index into the array's buf : `arr->offset + i`.
+slot_index :: fn(arr: string, idx: StackVal) = "${arr}->offset + (size_t) ${name_of(idx)}"
+
+/// `load_slot` (boxed) — pop array + slot index, push the boxed `Value` at that
+/// slot. The result is a traced reference (stack class `.Ref`).
+emit_slot_load_boxed :: fn(s: FnState) -> void {
+    idx :: pop(s)
+    obj :: pop(s)
+    arr :: array_hdr_ptr(obj)
+    name :: fresh_tmp(s, .Ref)
+    line(s, "${name} = vader_array_box_slots(${arr}->buf)[${slot_index(arr, idx)}];")
+    push_tmp(s, name, .Ref)
+}
+
+/// `store_slot` (boxed) — pop array + slot index + value box ; store it and fire
+/// the generational write barrier (G2) on the buf (the object that owns the
+/// slot) — the boxed slot may record an old→young edge the minor collector
+/// must see.
+emit_slot_store_boxed :: fn(s: FnState) -> void {
+    value :: pop(s)
+    idx :: pop(s)
+    obj :: pop(s)
+    arr :: array_hdr_ptr(obj)
+    line(s, "vader_array_box_slots(${arr}->buf)[${slot_index(arr, idx)}] = ${name_of(value)};")
+    line(s, "VADER_WRITE_BARRIER(${arr}->buf);")
+}
+
+/// Bind a `vader_array_t*` C local to `obj` and emit the access guards shared by
+/// the primitive slot load/store : the G1 buf-forwarding resolve (the array box
+/// is a gc_root so the array itself is current, but a minor may have relocated
+/// its buf — follow the forward pointer like `vader_array_get`) and the D7
+/// always-on bounds check (trap on out-of-range). Returns the local's name.
+emit_slot_array_local :: fn(s: FnState, obj: StackVal, idx: StackVal) -> string {
+    a :: aux(s, "slotarr")
+    line(s, "vader_array_t* ${a} = ${array_hdr_ptr(obj)};")
+    line(s, "while (${a}->buf != NULL && ${a}->buf->header.forward != NULL) { ${a}->buf = (vader_array_buf_t*) ${a}->buf->header.forward; }")
+    line(s, "if ((size_t) ${name_of(idx)} >= ${a}->length) { vader_trap(\"array index out of bounds\"); }")
+    return a
+}
+
+/// Primitive slot load — pop array + slot index, read the `cty`-typed element
+/// at `arr->buf->slots[arr->offset + i]`, push it with stack class `result`.
+/// Bounds-checked + buf-forward-resolved (see `emit_slot_array_local`).
+emit_slot_load_prim :: fn(s: FnState, cty: string, result: ValType) -> void {
+    idx :: pop(s)
+    obj :: pop(s)
+    a :: emit_slot_array_local(s, obj, idx)
+    name :: fresh_tmp(s, result)
+    line(s, "${name} = ((${cty}*) ${a}->buf->slots)[${slot_index(a, idx)}];")
+    push_tmp(s, name, result)
+}
+
+/// Emit one typed (non-boxed) slot store : `((cty*) a->buf->slots)[a->offset + i]
+/// = (cty) <coerced value>`. Shared by the `StoreSlot*` opcode handler
+/// (`emit_slot_store_prim`) and the open-coded array set (`emit_array_set`) — both
+/// reach the same `(a, idx, value, cty, val)` state after their own pop +
+/// `emit_slot_array_local`. No write barrier (a primitive slot holds no reference).
+/// The value is coerced to `val` first (unboxing an erased `Any` box).
+emit_typed_slot_write :: fn(s: FnState, a: string, idx: StackVal, value: StackVal, cty: string, val: ValType) -> void {
+    vc :: coerce_expr(s.ctx.module.types, name_of(value), val_of(value), val)
+    line(s, "((${cty}*) ${a}->buf->slots)[${slot_index(a, idx)}] = (${cty}) ${vc};")
+}
+
+/// Primitive slot store — pop array + slot index + value ; write the `cty`-typed
+/// element. No write barrier (the primitive region holds no references).
+/// Bounds-checked + buf-forward-resolved (see `emit_slot_array_local`).
+emit_slot_store_prim :: fn(s: FnState, cty: string, val: ValType) -> void {
+    value :: pop(s)
+    idx :: pop(s)
+    obj :: pop(s)
+    a :: emit_slot_array_local(s, obj, idx)
+    emit_typed_slot_write(s, a, idx, value, cty, val)
+}
+
+/// C type + coerce-target stack class for a typed (non-boxed) array slot store.
+/// The `cty` is the element's native storage type ; `val` is the stack class the
+/// stored value is coerced to before the `(cty)` cast. Returns `null` for the
+/// `Boxed` kind ONLY — every primitive width (flippable AND sub-word) stores raw
+/// here, so `typed_array_fill_for(k) == null` is the canonical "is this array
+/// boxed?" test shared by construction (`emit_array_new`) and access
+/// (`emit_array_get`/`emit_array_set`). The flippable widths keep their A2/C2
+/// shape (`u32`/`char` store as `int32_t`, same bytes, so the typed read reads
+/// back identical bits) ; the sub-word widths use the signedness-correct C type
+/// (`uint16_t`/`int16_t`/`float`/…) so a later typed read zero/sign-extends right.
+SlotFill :: struct { cty: string, val: ValType }
+
+typed_array_fill_for :: fn(k: ArrayKind) -> SlotFill | null = match k {
+    .I32   -> SlotFill { .cty = "int32_t",  .val = .I32 }
+    .U32   -> SlotFill { .cty = "int32_t",  .val = .I32 }
+    .Char  -> SlotFill { .cty = "int32_t",  .val = .I32 }
+    .I64   -> SlotFill { .cty = "int64_t",  .val = .I64 }
+    .U64   -> SlotFill { .cty = "int64_t",  .val = .I64 }
+    .F64   -> SlotFill { .cty = "double",   .val = .F64 }
+    .U8    -> SlotFill { .cty = "uint8_t",  .val = .I32 }
+    .I8    -> SlotFill { .cty = "int8_t",   .val = .I32 }
+    .Bool  -> SlotFill { .cty = "uint8_t",  .val = .Bool }
+    .U16   -> SlotFill { .cty = "uint16_t", .val = .I32 }
+    .I16   -> SlotFill { .cty = "int16_t",  .val = .I32 }
+    .F32   -> SlotFill { .cty = "float",    .val = .F32 }
+    .Boxed -> null
+}
+
 emit_array_new :: fn(s: FnState, op: vm.ArrayNew) -> void {
     types :: s.ctx.module.types
     elem_tag :: array_element_tag(types, op.type_id)
-    kind_idx :: array_kind_index(array_kind_of(types[usize(elem_tag)]))
+    kind :: array_kind_of(types[usize(elem_tag)])
+    kind_idx :: array_kind_index(kind)
     n :: op.length
     arr_buf :: aux(s, "arr")
     line(s, "vader_array_t* ${arr_buf} = vader_array_new(${op.type_id}u, ${n}u, ${kind_idx}u, ${elem_tag}u);")
-    // Pop top-to-bottom : pop #k is the element for slot `n-1-k`. The set
-    // calls target distinct indices, so reverse-order emission is fine ;
-    // boxing primitives can't GC, so the raw `arr_buf` survives the loop.
+    // Pop top-to-bottom : pop #k fills slot `n-1-k` (distinct indices, so reverse
+    // emission is fine). Two strategies keyed on `typed_array_fill_for(kind)` : a
+    // typed raw store for any primitive width (flippable C2 + sub-word Inc2), else
+    // (Boxed) an inline box-slot write — op-B's access store minus the barrier (a
+    // fresh-young construction buf can't alias a promoted-old one). No store can
+    // GC, so the raw `arr_buf` survives the loop and no barrier is ever needed.
+    fill :: typed_array_fill_for(kind)
     for k in 0..<n {
         v :: pop(s)
-        line(s, "vader_array_set(${arr_buf}, ${n - 1 - k}u, ${box_expr(name_of(v), val_of(v), elem_tag)});")
+        slot :: n - 1 - k
+        if fill != null {
+            vc :: coerce_expr(types, name_of(v), val_of(v), fill.val)
+            line(s, "((${fill.cty}*) ${arr_buf}->buf->slots)[${arr_buf}->offset + ${slot}u] = (${fill.cty}) ${vc};")
+        } else {
+            line(s, "vader_array_box_slots(${arr_buf}->buf)[${arr_buf}->offset + ${slot}u] = ${box_expr(name_of(v), val_of(v), elem_tag)};")
+        }
     }
     name :: fresh_tmp(s, .Ref)
     line(s, "${name} = vader_box_obj(${op.type_id}u, ${arr_buf});")
     push_tmp(s, name, .Ref)
 }
 
-/// `array.get` — pop index + array, push the element (a boxed `.Any` ; the
-/// lowerer's following `ref.cast` re-tags / unboxes it). The op's `type_id`
-/// is unused — the element tag is recorded in the array buf at creation.
-emit_array_get :: fn(s: FnState) -> void {
+/// `array.get` — pop index + array, push the element as a boxed `.Any` (the
+/// lowerer's following `ref.cast` re-tags / unboxes it). Fully open-coded over
+/// the kept `vader_array_t` layout, no `vader_array_get` call. Three read paths,
+/// keyed off `typed_array_fill_for(kind)` + the kind :
+///   - Boxed → an inline box-slot read (op B).
+///   - `u8` → the borrowed-aware `vader_array_read_u8` inline (a `bytes()` view,
+///     `buf == NULL`, reads the atom table with the runtime borrowed tag ; a real
+///     `u8[]` reads its slots). It is `static inline`, so no `vader_*` symbol is
+///     added and the read inlines at -O3 (§5 C-emit convention).
+///   - any other sub-word width → an inline typed read, re-boxed via `box_expr`
+///     (the uint/int/float promotion mirrors `vader_array_load_slot`).
+/// `emit_slot_array_local` (G1 forward-resolve + D7 bounds) is hoisted before the
+/// branch — borrowed-safe (its forward loop is guarded on `buf != NULL` and the
+/// bounds check reads the header). Flippable widths never reach here (midir
+/// routes them to `LoadSlot*`).
+emit_array_get :: fn(s: FnState, op: vm.ArrayGet) -> void {
     idx :: pop(s)
     arr :: pop(s)
+    types :: s.ctx.module.types
+    elem_tag :: array_element_tag(types, op.type_id)
+    kind :: array_kind_of(types[usize(elem_tag)])
+    fill :: typed_array_fill_for(kind)
+    a :: emit_slot_array_local(s, arr, idx)
     name :: fresh_tmp(s, .Any)
-    line(s, "${name} = vader_array_get((vader_array_t*) ${name_of(arr)}.payload.obj, (size_t) ${name_of(idx)});")
+    if fill == null {
+        line(s, "${name} = vader_array_box_slots(${a}->buf)[${slot_index(a, idx)}];")
+    } else if kind == .U8 {
+        line(s, "${name} = vader_array_read_u8(${a}, ${slot_index(a, idx)}, ${elem_tag}u);")
+    } else {
+        line(s, "${name} = ${box_expr("((${fill.cty}*) ${a}->buf->slots)[${slot_index(a, idx)}]", fill.val, elem_tag)};")
+    }
     push_tmp(s, name, .Any)
 }
 
-/// `array.set` — pop value + index + array, store the value (boxed with the
-/// element tag) in place.
+/// `array.set` — pop value + index + array, store the value in place. A Boxed
+/// element stores the slot inline (`box_expr` tags `string`, no-op for already-
+/// boxed refs) + fires the G2 write barrier ; a typed (sub-word) element stores
+/// the native width raw (no barrier — primitives hold no refs). Flippable widths
+/// never reach here (midir routes them to `StoreSlot*`). Borrowed `bytes()` views
+/// are read-only (T3042), so `a->buf` is never NULL on this path.
 emit_array_set :: fn(s: FnState, op: vm.ArraySet) -> void {
     value :: pop(s)
     idx :: pop(s)
     arr :: pop(s)
-    elem_tag :: array_element_tag(s.ctx.module.types, op.type_id)
-    line(s, "vader_array_set((vader_array_t*) ${name_of(arr)}.payload.obj, (size_t) ${name_of(idx)}, ${box_expr(name_of(value), val_of(value), elem_tag)});")
+    types :: s.ctx.module.types
+    elem_tag :: array_element_tag(types, op.type_id)
+    kind :: array_kind_of(types[usize(elem_tag)])
+    fill :: typed_array_fill_for(kind)
+    a :: emit_slot_array_local(s, arr, idx)
+    if fill == null {
+        line(s, "vader_array_box_slots(${a}->buf)[${slot_index(a, idx)}] = ${box_expr(name_of(value), val_of(value), elem_tag)};")
+        line(s, "VADER_WRITE_BARRIER(${a}->buf);")
+    } else {
+        emit_typed_slot_write(s, a, idx, value, fill.cty, fill.val)
+    }
 }
 
 /// `array.push` — pop value + array, append the value (boxed). Here
@@ -1526,10 +1821,16 @@ emit_array_push :: fn(s: FnState, op: vm.ArrayPush) -> void {
 }
 
 /// `array.len` — pop array, push its `usize` length.
+///
+/// Target ABI S5 (inc-3) : reads the `length` header field inline instead of
+/// calling the runtime accessor — `vader_array_len` is `a->length`, so the
+/// open-coded read is byte-equivalent (no buf deref, no forward-resolve : the
+/// length lives on the array header, which is the live gc_root). Drops the
+/// codegen dependency on `vader_array_len`.
 emit_array_len :: fn(s: FnState) -> void {
     arr :: pop(s)
     name :: fresh_tmp(s, .Usize)
-    line(s, "${name} = vader_array_len((vader_array_t*) ${name_of(arr)}.payload.obj);")
+    line(s, "${name} = ${array_hdr_ptr(arr)}->length;")
     push_tmp(s, name, .Usize)
 }
 
@@ -1555,21 +1856,15 @@ array_element_tag :: fn(types: BcType[], type_index: i32) -> i32 {
     return type_index
 }
 
-// ---- strings + builder ----------------------------------------------------
+// ---- strings --------------------------------------------------------------
 //
-// Strings are interned atoms (`vader_string_t` = `u32`), so `string.eq` /
-// `.ne` are plain `==` / `!=` (atom identity == value equality). `concat` /
-// `slice` route to runtime helpers ; the builder family (string
-// interpolation, `Display`) wraps a heap `vader_builder_t` (→ may-alloc,
-// framed). `ref.eq` compares boxed `ref` / `any` via `vader_box_eq`.
-
-/// Push the result of a 2-arg runtime call `fn(l, r)` (pops `r` then `l`)
-/// into a fresh temp — `string.concat` and friends.
-push_fn_call2 :: fn(s: FnState, fn_name: string, result_val: ValType) -> void {
-    r :: pop(s)
-    l :: pop(s)
-    push_into_tmp(s, "${fn_name}(${name_of(l)}, ${name_of(r)})", result_val)
-}
+// Strings are interned atoms (`vader_string_t` = `u32`), so `string.eq` / `.ne`
+// are plain `==` / `!=` (atom identity == value equality). Codepoint slicing
+// (`s[lo..<hi]`) routes to `vader_string_slice_codepoints` (a kept zero-copy
+// atom-slice primitive ; `emit_string_slice`). Concatenation (`+`), `Display`,
+// and `${…}` interpolation are now pure Vader (StringBuilder over a byte
+// `Buffer`) — no string/builder runtime family here anymore. `ref.eq` compares
+// boxed `ref` / `any` via `vader_box_eq`.
 
 /// Push a boxed-reference equality (`ref.eq` / `ref.ne`). C can't compare
 /// `vader_box_t` with `==`, so route through `vader_box_eq` (tag + payload
@@ -1588,35 +1883,5 @@ emit_string_slice :: fn(s: FnState) -> void {
     lo :: pop(s)
     str :: pop(s)
     push_into_tmp(s, "vader_string_slice_codepoints(${name_of(str)}, ${name_of(lo)}, ${name_of(hi)})", .String)
-}
-
-/// `builder.new` — construct a `vader_box_t` over a fresh heap
-/// `vader_builder_t` (tag 0 : the builder isn't a tagged user type). The
-/// box is built field-by-field since the payload is a raw builder pointer.
-emit_builder_new :: fn(s: FnState) -> void {
-    name :: fresh_tmp(s, .Any)
-    line(s, "${name}.tag = 0; ${name}._pad = 0; ${name}.payload.obj = vader_builder_new();")
-    push_tmp(s, name, .Any)
-}
-
-/// `builder.append_str` — pop the string then the builder, append in place.
-emit_builder_append_str :: fn(s: FnState) -> void {
-    str :: pop(s)
-    sb :: pop(s)
-    line(s, "vader_builder_append_str((vader_builder_t*) ${name_of(sb)}.payload.obj, ${name_of(str)});")
-}
-
-/// `builder.append_display` — pop the value then the builder, format the
-/// value into it via the width-matched `append_display_<class>` helper.
-emit_builder_append_display :: fn(s: FnState) -> void {
-    v :: pop(s)
-    sb :: pop(s)
-    line(s, "${display_fn_for(val_of(v))}((vader_builder_t*) ${name_of(sb)}.payload.obj, ${display_coerce(name_of(v), val_of(v))});")
-}
-
-/// `builder.finish` — pop the builder, push the concatenated string.
-emit_builder_finish :: fn(s: FnState) -> void {
-    sb :: pop(s)
-    push_into_tmp(s, "vader_builder_finish((vader_builder_t*) ${name_of(sb)}.payload.obj)", .String)
 }
 

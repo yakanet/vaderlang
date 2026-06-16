@@ -1,0 +1,12 @@
+# stdout
+u8 x=200 y=7
+bool t=true f=false
+char first=A accent=é
+f32 pi=3.5
+f64 e=2.25
+i16 neg=-1000
+u16 big=50000
+i64 huge=9000000000
+miss: ok
+# exit
+0

@@ -348,6 +348,8 @@ Type casts (`Type(expr)`) are parsed as primary call expressions and naturally s
 
 `is` checks the runtime *struct-tag* of the value, not a "union tag" — `x is <UnionType>` therefore always returns false. The typechecker emits `W0003` whenever the RHS of `is` resolves to a union (literal `A | B` or a `MyUnion :: A | B` alias), suggesting the user destructure into individual variants via `match v { is A -> ... is B -> ... }` instead.
 
+Flow narrowing flows through a `&&` condition: in `if x is T && <rest>` the scrutinee `x` is narrowed to `T` both in the conjunction's right operand (`<rest>`) and in the then-block, so `if x is Circle && x.radius > 0 { … x.radius … }` type-checks. The else branch of a conjunction is **not** narrowed (a false `a && b` doesn't reveal which operand failed). An `as` binding may **not** appear inside a `&&` — `if x is T as a && …` raises `R2029` because the binding's scope across the short-circuit is ambiguous ; narrow the variable in place (`if x is T && …`) or nest the checks (`if x is T as a { if … }`).
+
 ### Statement separators
 
 Inside a block, statements are separated by `NEWLINE` tokens (emitted per the rules below). Vader does **not** accept `;` as a statement separator.
@@ -466,6 +468,18 @@ A literal float with no suffix **infers to `f64`** (`x := 3.14` ⇒ `x: f64`).
 ### Implicit numeric coercion
 
 There is **no implicit coercion between sized numeric types**. `i32 → i64` requires an explicit cast (`i64(x)`). The exception is unsuffixed numeric literals: `x: i64 = 42` works because `42` is left flexible until it lands in a typed context.
+
+### Float ↔ bits reinterpret
+
+A `Type(expr)` cast **converts the value** (`u64(3.7)` truncates to `3` ; `f64(5)` widens to `5.0`). To reinterpret a float as its raw **IEEE 754 bit pattern** — a different operation, same bits, no value change — use the dedicated methods (NOT the cast, which would silently change meaning) :
+
+```
+x: f64 = 3.0
+bits :: x.to_bits()        // u64 0x4008000000000000  — the exact IEEE bits
+back :: bits.from_bits()   // f64 3.0                 — round-trips bit-for-bit
+```
+
+`f64.to_bits() -> u64` (trait `FloatBits`) and `u64.from_bits() -> f64` (trait `BitsFloat`) are `std/core` prelude methods, mirroring Rust's `f64::to_bits` / `f64::from_bits`. They lower to the `F64ToBits` / `BitsToF64` memory opcodes — an inline `union` cast in the C backend, no runtime symbol — and are the foundation for float formatting / bit-fiddling.
 
 ### Numeric-literal context-sensitivity
 

@@ -12,25 +12,38 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_0: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_0 :?
-            "count=" :string
-          @builder.append_str :void
-            __sb_0 :?
+          let __sb_0: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              "count=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$usize$Display$to_string :string
+                arg0:
+                  call :usize
+                    callee:
+                      std_iter$std_iter$count__i32 :usize
+                    arg0:
+                      nums :i32[]
+          ~>
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                call :usize
-                  callee:
-                    std_iter$std_iter$count__i32 :usize
-                  arg0:
-                    nums :i32[]
-          ~>
-            @builder.finish :string
-              __sb_0 :?
+                __sb_0 :StringBuilder
     let cloned: i32[] =
       call :i32[]
         callee:
@@ -42,21 +55,38 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_1: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_1 :?
-            "clone[0]=" :string
-          @builder.append_display <for i32> :void
-            __sb_1 :?
-            index :i32
-              on:
-                cloned :i32[]
-              ix:
-                int(0) :i32
+          let __sb_1: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              "clone[0]=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  index :i32
+                    on:
+                      cloned :i32[]
+                    ix:
+                      int(0) :i32
           ~>
-            @builder.finish :string
-              __sb_1 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_1 :StringBuilder
     let keys: string[] =
       array :string[]
         "a" :string
@@ -100,20 +130,45 @@
             std_io$std_io$println__string :void
           arg0:
             block :string
-              let __sb_6: ? =
-                @builder.new :?
-              @builder.append_display <for string> :void
-                __sb_6 :?
-                k :string
-              @builder.append_str :void
-                __sb_6 :?
-                "=" :string
-              @builder.append_display <for i32> :void
-                __sb_6 :?
-                v :i32
+              let __sb_6: StringBuilder =
+                call :StringBuilder
+                  callee:
+                    new_builder :StringBuilder
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_6 :StringBuilder
+                arg1:
+                  call :string
+                    callee:
+                      std_core$string$Display$to_string :string
+                    arg0:
+                      k :string
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_6 :StringBuilder
+                arg1:
+                  "=" :string
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_6 :StringBuilder
+                arg1:
+                  call :string
+                    callee:
+                      std_core$i32$Display$to_string :string
+                    arg0:
+                      v :i32
               ~>
-                @builder.finish :string
-                  __sb_6 :?
+                call :string
+                  callee:
+                    std_string_builder$StringBuilder$Display$to_string :string
+                  arg0:
+                    __sb_6 :StringBuilder
         assign
           target:
             __for_i_4 :usize
@@ -157,17 +212,34 @@
             std_io$std_io$println__string :void
           arg0:
             block :string
-              let __sb_10: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_10 :?
-                "j=" :string
-              @builder.append_display <for i32> :void
-                __sb_10 :?
-                x :i32
+              let __sb_10: StringBuilder =
+                call :StringBuilder
+                  callee:
+                    new_builder :StringBuilder
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_10 :StringBuilder
+                arg1:
+                  "j=" :string
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_10 :StringBuilder
+                arg1:
+                  call :string
+                    callee:
+                      std_core$i32$Display$to_string :string
+                    arg0:
+                      x :i32
               ~>
-                @builder.finish :string
-                  __sb_10 :?
+                call :string
+                  callee:
+                    std_string_builder$StringBuilder$Display$to_string :string
+                  arg0:
+                    __sb_10 :StringBuilder
         assign
           target:
             __for_i_9 :usize
@@ -211,24 +283,45 @@
             std_io$std_io$println__string :void
           arg0:
             block :string
-              let __sb_15: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_15 :?
+              let __sb_15: StringBuilder =
+                call :StringBuilder
+                  callee:
+                    new_builder :StringBuilder
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_15 :StringBuilder
+                arg1:
+                  call :string
+                    callee:
+                      std_core$usize$Display$to_string :string
+                    arg0:
+                      i :usize
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_15 :StringBuilder
+                arg1:
+                  ": " :string
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_15 :StringBuilder
+                arg1:
+                  call :string
+                    callee:
+                      std_core$string$Display$to_string :string
+                    arg0:
+                      f :string
+              ~>
                 call :string
                   callee:
-                    std_core$usize$Display$to_string :string
+                    std_string_builder$StringBuilder$Display$to_string :string
                   arg0:
-                    i :usize
-              @builder.append_str :void
-                __sb_15 :?
-                ": " :string
-              @builder.append_display <for string> :void
-                __sb_15 :?
-                f :string
-              ~>
-                @builder.finish :string
-                  __sb_15 :?
+                    __sb_15 :StringBuilder
         assign
           target:
             __for_i_13 :usize
@@ -266,17 +359,34 @@
             std_io$std_io$println__string :void
           arg0:
             block :string
-              let __sb_20: ? =
-                @builder.new :?
-              @builder.append_str :void
-                __sb_20 :?
-                "b=" :string
-              @builder.append_display <for i32> :void
-                __sb_20 :?
-                n :i32
+              let __sb_20: StringBuilder =
+                call :StringBuilder
+                  callee:
+                    new_builder :StringBuilder
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_20 :StringBuilder
+                arg1:
+                  "b=" :string
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_20 :StringBuilder
+                arg1:
+                  call :string
+                    callee:
+                      std_core$i32$Display$to_string :string
+                    arg0:
+                      n :i32
               ~>
-                @builder.finish :string
-                  __sb_20 :?
+                call :string
+                  callee:
+                    std_string_builder$StringBuilder$Display$to_string :string
+                  arg0:
+                    __sb_20 :StringBuilder
         assign
           target:
             __for_i_19 :usize

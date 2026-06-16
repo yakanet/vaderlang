@@ -1,11 +1,11 @@
 module _main
 type 0 primitive null
-type 1 union 2,3
-type 2 struct snippet$Pair { a:5 }
-type 3 struct snippet$Wrap { b:5 }
-type 4 primitive bool
-type 5 primitive i32
-type 6 array 5
+type 1 primitive i32
+type 2 primitive bool
+type 3 union 4,5
+type 4 struct snippet$Pair { a:1 }
+type 5 struct snippet$Wrap { b:1 }
+type 6 array 1
 export main 1
 
 fn 0 snippet$run (ref,bool,bool) -> i32
@@ -27,11 +27,11 @@ fn 0 snippet$run (ref,bool,bool) -> i32
   local.set 3
   local.get 0
   local.tee 4
-  type_check 2
+  type_check 4
   if $L0 void
     local.get 4
-    struct.get 2 0
-    ref.cast 5
+    struct.get 4 0
+    ref.cast 1
     local.set 5
     local.get 1
     if $L1 void
@@ -51,8 +51,7 @@ fn 0 snippet$run (ref,bool,bool) -> i32
             if $L5 void
               local.get 6
               local.get 8
-              array.get 6
-              ref.cast 5
+              load_slot_i32
               local.set 9
               i32.const 2
               local.set 10
@@ -93,11 +92,11 @@ fn 0 snippet$run (ref,bool,bool) -> i32
     return
   end $L0
   local.get 4
-  type_check 3
+  type_check 5
   if $L7 void
     local.get 4
-    struct.get 3 0
-    ref.cast 5
+    struct.get 5 0
+    ref.cast 1
     local.set 5
     local.get 1
     if $L8 void
@@ -117,8 +116,7 @@ fn 0 snippet$run (ref,bool,bool) -> i32
             if $L12 void
               local.get 6
               local.get 8
-              array.get 6
-              ref.cast 5
+              load_slot_i32
               local.set 9
               i32.const 2
               local.set 10
@@ -164,7 +162,7 @@ end
 fn 1 snippet$main () -> i32
   local $struct_1 ref
   i32.const 5
-  struct.new 2
+  struct.new 4
   local.set 0
   local.get 0
   bool.const true

@@ -1,7 +1,7 @@
 module "snippet"
 
 import "std/io" { println }
-import "std/string" { bytes, as_string }
+import "std/string" { as_string }
 
 main :: fn() -> i32 {
     // ASCII round-trip: bytes() then back.

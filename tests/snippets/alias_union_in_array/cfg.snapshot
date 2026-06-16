@@ -20,21 +20,23 @@ fn snippet$describe(%0: Cat | Dog) -> string
     %3 if_res: string
     %4 $cast_4: Cat
     %5 c: Cat (binding c)
-    %6 $intrinsic_6: ?
-    %7 __sb_2: ? (synthetic __sb_2)
+    %6 $call_6: StringBuilder
+    %7 __sb_2: StringBuilder (synthetic __sb_2)
     %8 $k_8: string
     %9 $field_9: string
-    %10 $intrinsic_10: string
-    %11 $type_check_11: bool
-    %12 if_res: string
-    %13 $cast_13: Dog
-    %14 d: Dog (binding d)
-    %15 $intrinsic_15: ?
-    %16 __sb_1: ? (synthetic __sb_1)
-    %17 $k_17: string
-    %18 $field_18: string
-    %19 $intrinsic_19: string
-    %20 unreachable: string
+    %10 $call_10: string
+    %11 $call_11: string
+    %12 $type_check_12: bool
+    %13 if_res: string
+    %14 $cast_14: Dog
+    %15 d: Dog (binding d)
+    %16 $call_16: StringBuilder
+    %17 __sb_1: StringBuilder (synthetic __sb_1)
+    %18 $k_18: string
+    %19 $field_19: string
+    %20 $call_20: string
+    %21 $call_21: string
+    %22 unreachable: string
   bb0:
     %1 = move %0
     %2 = type_check %1 is Cat
@@ -42,36 +44,38 @@ fn snippet$describe(%0: Cat | Dog) -> string
   bb1:
     %4 = cast %1 :Cat
     %5 = move %4
-    %6 = intrinsic builder.new()
+    %6 = call new_builder() :StringBuilder
     %7 = move %6
     %8 = const string(#1) :string
-    intrinsic builder.append_str(%7, %8)
+    call append(%7, %8) :void
     %9 = field_get %5.name :string
-    intrinsic builder.append_display(%7, %9)
-    %10 = intrinsic builder.finish(%7)
-    %3 = move %10
+    %10 = call std_core$string$Display$to_string(%9) :string
+    call append(%7, %10) :void
+    %11 = call std_string_builder$StringBuilder$Display$to_string(%7) :string
+    %3 = move %11
     branch -> bb3
   bb2:
-    %11 = type_check %1 is Dog
-    cond_branch %11 ? bb4 : bb5
+    %12 = type_check %1 is Dog
+    cond_branch %12 ? bb4 : bb5
   bb3:
     return %3
   bb4:
-    %13 = cast %1 :Dog
-    %14 = move %13
-    %15 = intrinsic builder.new()
-    %16 = move %15
-    %17 = const string(#2) :string
-    intrinsic builder.append_str(%16, %17)
-    %18 = field_get %14.name :string
-    intrinsic builder.append_display(%16, %18)
-    %19 = intrinsic builder.finish(%16)
-    %12 = move %19
+    %14 = cast %1 :Dog
+    %15 = move %14
+    %16 = call new_builder() :StringBuilder
+    %17 = move %16
+    %18 = const string(#2) :string
+    call append(%17, %18) :void
+    %19 = field_get %15.name :string
+    %20 = call std_core$string$Display$to_string(%19) :string
+    call append(%17, %20) :void
+    %21 = call std_string_builder$StringBuilder$Display$to_string(%17) :string
+    %13 = move %21
     branch -> bb6
   bb5:
     unreachable ; non-exhaustive match (T3013 should have caught this)
   bb6:
-    %3 = move %12
+    %3 = move %13
     branch -> bb3
 
 fn snippet$main() -> i32

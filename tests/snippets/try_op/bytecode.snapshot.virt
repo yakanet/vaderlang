@@ -11,7 +11,6 @@ string 2 "./tests/snippets/try_op/data.txt"
 string 3 "./does_not_exist.txt"
 import 0 write std_io$write (i32,string) -> void
 import 1 read_file std_io$read_file (string) -> ref
-import 2 to_string std_core$string$Display$to_string (string) -> string
 export main 3
 
 fn 0 std_io$std_io$println__string (string) -> void
@@ -74,8 +73,7 @@ fn 3 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 4 std_core$string$Display$to_string_vt (string) -> string
+fn 4 std_core$string$Display$to_string (string) -> string
   local.get 0
-  call.import 2
   return
 end

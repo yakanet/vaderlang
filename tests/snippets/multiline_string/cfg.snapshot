@@ -8,44 +8,52 @@ fn snippet$main() -> i32
     %1 s: string (local s)
     %2 $k_2: i32
     %3 n: i32 (local n)
-    %4 $intrinsic_4: ?
-    %5 __sb_0: ? (synthetic __sb_0)
+    %4 $call_4: StringBuilder
+    %5 __sb_0: StringBuilder (synthetic __sb_0)
     %6 $k_6: string
-    %7 $k_7: string
-    %8 $intrinsic_8: string
-    %9 msg: string (local msg)
-    %10 $k_10: string
-    %11 escaped: string (local escaped)
-    %12 $k_12: string
-    %13 prefix: string (local prefix)
-    %14 $k_14: string
-    %15 $add_15: string
-    %16 combined: string (local combined)
-    %17 $k_17: i32
+    %7 $call_7: string
+    %8 $k_8: string
+    %9 $call_9: string
+    %10 msg: string (local msg)
+    %11 $k_11: string
+    %12 escaped: string (local escaped)
+    %13 $k_13: string
+    %14 prefix: string (local prefix)
+    %15 $call_15: StringBuilder
+    %16 __sb_1: StringBuilder (synthetic __sb_1)
+    %17 $k_17: string
+    %18 $call_18: string
+    %19 combined: string (local combined)
+    %20 $k_20: i32
   bb0:
     %0 = const string(#1) :string
     %1 = move %0
     call std_io$std_io$print__string(%1) :void
     %2 = const int(42) :i32
     %3 = move %2
-    %4 = intrinsic builder.new()
+    %4 = call new_builder() :StringBuilder
     %5 = move %4
     %6 = const string(#2) :string
-    intrinsic builder.append_str(%5, %6)
-    intrinsic builder.append_display(%5, %3)
-    %7 = const string(#3) :string
-    intrinsic builder.append_str(%5, %7)
-    %8 = intrinsic builder.finish(%5)
-    %9 = move %8
-    call std_io$std_io$print__string(%9) :void
-    %10 = const string(#4) :string
-    %11 = move %10
-    call std_io$std_io$print__string(%11) :void
-    %12 = const string(#5) :string
-    %13 = move %12
-    %14 = const string(#6) :string
-    %15 = binop 0 %13 %14 :string
+    call append(%5, %6) :void
+    %7 = call std_core$i32$Display$to_string(%3) :string
+    call append(%5, %7) :void
+    %8 = const string(#3) :string
+    call append(%5, %8) :void
+    %9 = call std_string_builder$StringBuilder$Display$to_string(%5) :string
+    %10 = move %9
+    call std_io$std_io$print__string(%10) :void
+    %11 = const string(#4) :string
+    %12 = move %11
+    call std_io$std_io$print__string(%12) :void
+    %13 = const string(#5) :string
+    %14 = move %13
+    %15 = call new_builder() :StringBuilder
     %16 = move %15
-    call std_io$std_io$println__string(%16) :void
-    %17 = const int(0) :i32
-    return %17
+    call append(%16, %14) :void
+    %17 = const string(#6) :string
+    call append(%16, %17) :void
+    %18 = call std_string_builder$StringBuilder$Display$to_string(%16) :string
+    %19 = move %18
+    call std_io$std_io$println__string(%19) :void
+    %20 = const int(0) :i32
+    return %20
