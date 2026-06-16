@@ -405,12 +405,11 @@ primitive_method_type :: fn(prim: string, name: string) -> Type | null {
     // free-fn UFCS against `std/char` (`import "std/char"` required). The old
     // `is_lower`/`is_upper`/char `to_lower`/`to_upper` entries had no impl anywhere
     // and were dropped. See the core/string/utf8 reorg plan.
-    // Numeric formatters live on the integer / float primitives.
-    if name == "to_hex" || name == "to_bin" || name == "to_oct" {
-        return mk_fn([], mk_primitive("string"))
-    }
-    // Hash / Equals are implemented for every primitive type — wired
-    // by the runtime, not by an explicit `implements` block.
+    // No numeric-formatter block: `to_hex`/`to_bin` resolve via free-fn UFCS
+    // against `std/numbers` (`import "std/numbers"` required). `to_oct` had no
+    // impl anywhere and was dropped. See the core/string/utf8 reorg plan.
+    // Hash / Equals remain — implemented for every primitive type, wired by the
+    // runtime (no Vader source to read a signature from), unlike the above.
     if name == "hash"   { return mk_fn([], mk_primitive("u64")) }
     if name == "equals" { return mk_fn([mk_primitive(prim)], mk_primitive("bool")) }
     return null
