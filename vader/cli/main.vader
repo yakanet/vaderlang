@@ -12,7 +12,7 @@ module "vader/cli"
 
 import "std/io" { println, eprintln, read_file, write_file, print }
 import "std/collections" { keys, values, MutableMap }
-import "std/string" { starts_with, ends_with, as_string, trim_suffix, split, trim }
+import "std/string" { starts_with, ends_with, trim_suffix, split, trim }
 import "std/iter" { slice as slice_arr }
 import "std/path" { to_posix, to_path, filename }
 import "std/process" { spawn, ProcessError }
@@ -503,21 +503,21 @@ import_last_segment :: fn(line: string) -> string {
     if q1 < 0 { return "" }
     q2 :: t.index_of('"', usize(q1) + 1)
     if q2 < 0 { return "" }
-    path :: tb[usize(q1) + 1..<usize(q2)].as_string()
+    path :: tb[usize(q1) + 1..<usize(q2)].bytes_to_string()
     slash :: last_index_of_slash(path)
     if slash < 0 { return path }
-    return path.bytes()[usize(slash) + 1..<path.bytes().len()].as_string()
+    return path.bytes()[usize(slash) + 1..<path.bytes().len()].bytes_to_string()
 }
 
 dir_of :: fn(path: string) -> string {
     slash :: last_index_of_slash(path)
     if slash < 0 { return "." }
-    return path.bytes()[0..<usize(slash)].as_string()
+    return path.bytes()[0..<usize(slash)].bytes_to_string()
 }
 
 basename_no_ext :: fn(path: string) -> string {
     slash :: last_index_of_slash(path)
-    base :: if slash < 0 { path } else { path.bytes()[usize(slash) + 1..<path.bytes().len()].as_string() }
+    base :: if slash < 0 { path } else { path.bytes()[usize(slash) + 1..<path.bytes().len()].bytes_to_string() }
     return base.trim_suffix(".vader")
 }
 

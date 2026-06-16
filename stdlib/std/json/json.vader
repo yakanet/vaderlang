@@ -10,7 +10,7 @@
 
 module "std/json"
 
-import "std/string" { as_string, decode_char_at, parse_float, pad_start, chars }
+import "std/string" { decode_char_at, parse_float, pad_start, chars }
 import "std/char" { is_digit, is_white_char }
 import "std/iter" { zip }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char, append_repeated }
@@ -211,7 +211,7 @@ parse_number :: fn(p: Parser) -> JsonNumber | JsonError {
             advance(p)
         }
     }
-    raw := p.bytes[start..<p.pos].as_string()
+    raw := p.bytes[start..<p.pos].bytes_to_string()
     parsed := raw.parse_float()
     match parsed {
         is f64 -> {
@@ -242,11 +242,11 @@ parse_string :: fn(p: Parser) -> string | JsonError {
         b :: p.bytes[scan]
         if b == b'"' {
             p.pos = scan + 1
-            return p.bytes[start..<scan].as_string()
+            return p.bytes[start..<scan].bytes_to_string()
         }
         if b == b'\\' {
             sb :: new_builder()
-            sb.append(p.bytes[start..<scan].as_string())
+            sb.append(p.bytes[start..<scan].bytes_to_string())
             p.pos = scan
             return parse_string_with_escapes(p, sb)
         }

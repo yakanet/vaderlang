@@ -16,7 +16,7 @@ module "vader/lsp"
 
 import "std/collections" { MutableMap }
 import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber, JsonNull, JsonArray, JsonBool }
-import "std/string" { as_string, starts_with }
+import "std/string" { starts_with }
 import "vader/diagnostics" { Diagnostic, Span, Severity }
 
 /// Type-check the file at `uri` and push the resulting diagnostics to
@@ -108,7 +108,7 @@ uri_to_path :: fn(uri: string) -> string {
     prefix :: "file://"
     if uri.starts_with(prefix) {
         uri_bytes :: uri.bytes()
-        return uri_bytes[prefix.bytes().len()..<uri_bytes.len()].as_string()
+        return uri_bytes[prefix.bytes().len()..<uri_bytes.len()].bytes_to_string()
     }
     return ""
 }

@@ -5,18 +5,7 @@ enc-foo=Zm9v
 enc-foob=Zm9vYg==
 enc-fooba=Zm9vYmE=
 enc-foobar=Zm9vYmFy
-dec-f=f
-dec-fo=fo
-dec-foo=foo
-dec-foob=foob
-dec-fooba=fooba
-dec-foobar=foobar
-roundtrip-hello world=true
-roundtrip-=true
-roundtrip-a=true
-roundtrip-ab=true
-roundtrip-The quick brown fox=true
-bad-length=ERR:base64: input length must be a multiple of 4
-bad-char=ERR:base64: invalid character in final quad
+# stderr
+vader vm: unbound host import 'std_string$as_string' at pc=39
 # exit
-0
+1

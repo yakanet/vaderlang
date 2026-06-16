@@ -64,9 +64,9 @@ string 46 "."
 string 47 "true"
 string 48 "false"
 import 0 write std_io$write (i32,string) -> void
-import 1 bytes std_core$bytes (string) -> ref
-import 2 at std_core$string$Index$at (string,usize) -> char
-import 3 as_string std_string$as_string (ref) -> string
+import 1 bytes_to_string std_core$bytes_to_string (ref) -> string
+import 2 bytes std_core$bytes (string) -> ref
+import 3 at std_core$string$Index$at (string,usize) -> char
 impl 8 Display
 impl 11 ByteAccess
 export main 2
@@ -455,7 +455,7 @@ fn 5 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         local.get 4
         array.get 6
         ref.cast 1
-        call.import 1
+        call.import 2
         array.len
         local.set 5
         local.get 1
@@ -500,7 +500,7 @@ fn 5 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         local.get 8
         call 30
         local.get 8
-        call.import 1
+        call.import 2
         array.len
         local.set 6
         local.get 3
@@ -584,7 +584,7 @@ fn 10 std_path$filename (ref) -> string
   end $L0
   local.field 0 7 0
   ref.cast 1
-  call.import 1
+  call.import 2
   local.set 4
   local.get 2
   isize.to_i64
@@ -602,7 +602,7 @@ fn 10 std_path$filename (ref) -> string
   local.get 5
   local.get 6
   array.slice 9
-  call.import 3
+  call.import 1
   return
 end
 
@@ -633,7 +633,7 @@ fn 11 std_path$stem (ref) -> string
     return
   end $L0
   local.get 1
-  call.import 1
+  call.import 2
   local.set 4
   i64.const 0
   local.set 5
@@ -644,7 +644,7 @@ fn 11 std_path$stem (ref) -> string
   local.get 5
   local.get 6
   array.slice 9
-  call.import 3
+  call.import 1
   return
 end
 
@@ -674,7 +674,7 @@ fn 12 std_path$extension (ref) -> string
     return.lit string.const 44
   end $L0
   local.get 1
-  call.import 1
+  call.import 2
   local.set 4
   local.get 2
   isize.to_i64
@@ -692,7 +692,7 @@ fn 12 std_path$extension (ref) -> string
   local.get 5
   local.get 6
   array.slice 9
-  call.import 3
+  call.import 1
   return
 end
 
@@ -735,7 +735,7 @@ fn 13 std_path$parent (ref) -> ref
   end $L1
   local.field 0 7 0
   ref.cast 1
-  call.import 1
+  call.import 2
   local.set 4
   i64.const 0
   local.set 5
@@ -746,7 +746,7 @@ fn 13 std_path$parent (ref) -> ref
   local.get 5
   local.get 6
   array.slice 9
-  call.import 3
+  call.import 1
   struct.new 7
   return
 end
@@ -824,7 +824,7 @@ fn 17 std_path$join (ref,string) -> ref
   local.set 3
   local.field 0 7 0
   ref.cast 1
-  call.import 1
+  call.import 2
   array.len
   local.set 4
   i64.const 1
@@ -907,12 +907,12 @@ fn 18 std_path$starts_with (ref,ref) -> bool
   end $L0
   local.field 0 7 0
   ref.cast 1
-  call.import 1
+  call.import 2
   array.len
   local.set 4
   local.field 1 7 0
   ref.cast 1
-  call.import 1
+  call.import 2
   array.len
   local.set 5
   local.get 4
@@ -984,12 +984,12 @@ fn 19 std_path$ends_with (ref,ref) -> bool
   end $L0
   local.field 0 7 0
   ref.cast 1
-  call.import 1
+  call.import 2
   array.len
   local.set 4
   local.field 1 7 0
   ref.cast 1
-  call.import 1
+  call.import 2
   array.len
   local.set 5
   local.get 4
@@ -1087,7 +1087,7 @@ fn 20 std_path$normalize (ref) -> ref
   local.set 3
   local.field 0 7 0
   ref.cast 1
-  call.import 1
+  call.import 2
   local.tee 4
   array.len
   local.set 5
@@ -1141,7 +1141,7 @@ fn 20 std_path$normalize (ref) -> ref
           local.get 7
           local.get 6
           array.slice 9
-          call.import 3
+          call.import 1
           local.tee 12
           call 22
           if $L8 void
@@ -1346,7 +1346,7 @@ fn 21 std_string$last_index_of (string,char,isize) -> isize
   local width usize
   local and_res bool
   local.get 0
-  call.import 1
+  call.import 2
   local.tee 3
   array.len
   local.set 4
@@ -1408,7 +1408,7 @@ fn 22 std_string$is_empty (string) -> bool
   local $len_2 usize
   local $k_3 usize
   local.get 0
-  call.import 1
+  call.import 2
   array.len
   local.set 1
   i64.const 0
@@ -1428,10 +1428,10 @@ fn 23 std_string$starts_with (string,string) -> bool
   local $idx_15 u8
   local $k_18 usize
   local.get 0
-  call.import 1
+  call.import 2
   local.set 2
   local.get 1
-  call.import 1
+  call.import 2
   local.tee 3
   array.len
   local.set 4
@@ -1493,10 +1493,10 @@ fn 24 std_string$ends_with (string,string) -> bool
   local $idx_19 u8
   local $k_22 usize
   local.get 0
-  call.import 1
+  call.import 2
   local.set 2
   local.get 1
-  call.import 1
+  call.import 2
   local.tee 3
   array.len
   local.set 4
@@ -1926,6 +1926,6 @@ end
 fn 31 std_core$string$Index$at_vt (string,usize) -> char
   local.get 0
   local.get 1
-  call.import 2
+  call.import 3
   return
 end

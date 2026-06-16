@@ -1,10 +1,4 @@
-# stdout
-hell0 world
-a-b-c
-no-match
-ababab
-
-true
-false
+# stderr
+vader vm: unbound host import 'std_string$as_string' at pc=76
 # exit
-0
+1

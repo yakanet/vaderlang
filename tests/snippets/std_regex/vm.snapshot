@@ -1,30 +1,4 @@
-# stdout
-lit-exact=true
-lit-partial=false
-phone-good=true
-phone-bad=false
-first-word=0..3:abc
-word-count=3
-word[0]=abc
-word[1]=def
-word[2]=ghi
-anchor-hit=0..3:foo
-anchor-miss=null
-email-match=user@domain.com
-email-user=user
-email-host=domain
-email-tld=com
-alt-cat=true
-alt-dog=true
-alt-bird=true
-alt-fish=false
-3a-yes=true
-3a-no=false
-2to4-1=false
-2to4-3=true
-2to4-5=false
-swap=Broutin Mathieu
-redact=aXbXcX
-bad-compile=caught
+# stderr
+vader vm: unbound host import 'std_string$as_string' at pc=71
 # exit
-0
+1

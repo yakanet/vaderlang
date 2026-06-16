@@ -1,13 +1,4 @@
-# stdout
-errors=0
-positionals=1
-first=extra
-verbose=true
-missing=false
-out=/tmp/x
-default=fallback
-err_count=2
-err=--out: missing value, expected --out=<value>
-err=unknown flag --unknown
+# stderr
+vader vm: unbound host import 'std_string$as_string' at pc=86
 # exit
-0
+1

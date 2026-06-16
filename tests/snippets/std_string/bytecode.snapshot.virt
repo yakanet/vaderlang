@@ -34,7 +34,6 @@ import 0 write std_io$write (i32,string) -> void
 import 1 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 2 bytes std_core$bytes (string) -> ref
 import 3 at std_core$string$Index$at (string,usize) -> char
-import 4 as_string std_string$as_string (ref) -> string
 impl 7 Display
 impl 12 ByteAccess
 export main 1
@@ -135,7 +134,7 @@ fn 1 snippet$main () -> i32
   local.get 3
   local.get 4
   array.slice 9
-  call.import 4
+  call.import 1
   call 0
   call 2
   local.set 1
@@ -739,7 +738,7 @@ fn 13 std_string$trim (string) -> string
   local.get 3
   local.get 2
   array.slice 9
-  call.import 4
+  call.import 1
   return
 end
 
@@ -1038,7 +1037,7 @@ fn 18 std_string$split (string,string) -> ref
           local.get 6
           local.get 8
           array.slice 9
-          call.import 4
+          call.import 1
           local.set 9
           local.get 2
           local.get 9
@@ -1079,7 +1078,7 @@ fn 18 std_string$split (string,string) -> ref
         local.get 6
         local.get 7
         array.slice 9
-        call.import 4
+        call.import 1
         local.set 9
         local.get 2
         local.get 9
@@ -1102,7 +1101,7 @@ fn 18 std_string$split (string,string) -> ref
   local.get 6
   local.get 4
   array.slice 9
-  call.import 4
+  call.import 1
   local.set 9
   local.get 2
   local.get 9

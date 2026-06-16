@@ -23,7 +23,7 @@
 
 module "vader/lsp"
 
-import "std/string" { as_string, trim }
+import "std/string" { trim }
 import "vader/parser" {
     parse_source,
     Decl,
@@ -456,7 +456,7 @@ type_expr_slice :: fn(t: Expr, source: string) -> string {
         is ArrayTypeExpr as x    -> x.span
     }
     if sp.end.offset > sp.start.offset {
-        return source.bytes()[sp.start.offset..<sp.end.offset].as_string().trim()
+        return source.bytes()[sp.start.offset..<sp.end.offset].bytes_to_string().trim()
     }
     return ""
 }
@@ -627,7 +627,7 @@ head_signature :: fn(span: Span, source: string) -> string {
         if b == b'\n' { break }
         cursor = cursor + 1
     }
-    return sb[start..<cursor].as_string().trim()
+    return sb[start..<cursor].bytes_to_string().trim()
 }
 
 // Slice up to the end of the current line — used for local-binding
@@ -643,7 +643,7 @@ slice_to_eol :: fn(source: string, start: usize, upper: usize) -> string {
         if b == b'\n' { break }
         cursor = cursor + 1
     }
-    return sb[start..<cursor].as_string().trim()
+    return sb[start..<cursor].bytes_to_string().trim()
 }
 
 // Slice the source for a span — used to render `x: T` for params and
@@ -651,7 +651,7 @@ slice_to_eol :: fn(source: string, start: usize, upper: usize) -> string {
 // degenerate spans.
 param_signature_slice :: fn(span: Span, fallback: string, source: string) -> string {
     if span.end.offset > span.start.offset {
-        return source.bytes()[span.start.offset..<span.end.offset].as_string().trim()
+        return source.bytes()[span.start.offset..<span.end.offset].bytes_to_string().trim()
     }
     return fallback
 }
@@ -718,7 +718,7 @@ strip_doc_prefix :: fn(text: string) -> string {
     if cursor < n && tb[cursor] == b' ' {
         cursor = cursor + 1
     }
-    return tb[cursor..<n].as_string()
+    return tb[cursor..<n].bytes_to_string()
 }
 
 // ---- token-based position resolution -------------------------------------

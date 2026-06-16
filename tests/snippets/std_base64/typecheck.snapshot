@@ -3,75 +3,79 @@
 ## tests/snippets/std_base64
   FnDecl         main                 :: fn() -> i32
   FnDecl         show_decode          :: fn(string, string) -> void
-  expr 11:12    CallExpr       :: Base64Error | u8[]
-  expr 11:12    IdentExpr      :: fn(string) -> Base64Error | u8[]
-  expr 11:19    IdentExpr      :: string
-  expr 12:15    IdentExpr      :: Base64Error
-  expr 12:5     IfExpr         :: void
-  expr 12:8     BinaryExpr     :: bool
-  expr 12:8     IdentExpr      :: Base64Error | u8[]
-  expr 13:17    StringLitExpr  :: string
-  expr 13:20    IdentExpr      :: string
-  expr 13:33    CallExpr       :: string
-  expr 13:33    FieldExpr      :: fn() -> string
-  expr 13:33    IdentExpr      :: Base64Error
-  expr 13:9     CallExpr       :: void
-  expr 13:9     IdentExpr      :: fn(T) -> void
-  expr 15:17    StringLitExpr  :: string
-  expr 15:20    IdentExpr      :: string
-  expr 15:29    CallExpr       :: string
-  expr 15:29    FieldExpr      :: fn() -> string
-  expr 15:29    IdentExpr      :: u8[]
-  expr 15:9     CallExpr       :: void
-  expr 15:9     IdentExpr      :: fn(T) -> void
+  expr 10:12    CallExpr       :: Base64Error | u8[]
+  expr 10:12    IdentExpr      :: fn(string) -> Base64Error | u8[]
+  expr 10:19    IdentExpr      :: string
+  expr 11:15    IdentExpr      :: Base64Error
+  expr 11:5     IfExpr         :: void
+  expr 11:8     BinaryExpr     :: bool
+  expr 11:8     IdentExpr      :: Base64Error | u8[]
+  expr 12:17    StringLitExpr  :: string
+  expr 12:20    IdentExpr      :: string
+  expr 12:33    CallExpr       :: string
+  expr 12:33    FieldExpr      :: fn() -> string
+  expr 12:33    IdentExpr      :: Base64Error
+  expr 12:9     CallExpr       :: void
+  expr 12:9     IdentExpr      :: fn(T) -> void
+  expr 14:17    StringLitExpr  :: string
+  expr 14:20    IdentExpr      :: string
+  expr 14:29    CallExpr       :: string
+  expr 14:29    FieldExpr      :: fn() -> string
+  expr 14:29    IdentExpr      :: u8[]
+  expr 14:9     CallExpr       :: void
+  expr 14:9     IdentExpr      :: fn(T) -> void
+  expr 20:13    StringLitExpr  :: string
+  expr 20:22    CallExpr       :: string
+  expr 20:22    IdentExpr      :: fn(const u8[]) -> string
+  expr 20:29    CallExpr       :: const u8[]
+  expr 20:29    FieldExpr      :: fn() -> const u8[]
+  expr 20:29    StringLitExpr  :: string
+  expr 20:5     CallExpr       :: void
+  expr 20:5     IdentExpr      :: fn(T) -> void
   expr 21:13    StringLitExpr  :: string
-  expr 21:22    CallExpr       :: string
-  expr 21:22    IdentExpr      :: fn(const u8[]) -> string
-  expr 21:29    CallExpr       :: const u8[]
-  expr 21:29    FieldExpr      :: fn() -> const u8[]
-  expr 21:29    StringLitExpr  :: string
+  expr 21:23    CallExpr       :: string
+  expr 21:23    IdentExpr      :: fn(const u8[]) -> string
+  expr 21:30    CallExpr       :: const u8[]
+  expr 21:30    FieldExpr      :: fn() -> const u8[]
+  expr 21:30    StringLitExpr  :: string
   expr 21:5     CallExpr       :: void
   expr 21:5     IdentExpr      :: fn(T) -> void
   expr 22:13    StringLitExpr  :: string
-  expr 22:23    CallExpr       :: string
-  expr 22:23    IdentExpr      :: fn(const u8[]) -> string
-  expr 22:30    CallExpr       :: const u8[]
-  expr 22:30    FieldExpr      :: fn() -> const u8[]
-  expr 22:30    StringLitExpr  :: string
+  expr 22:24    CallExpr       :: string
+  expr 22:24    IdentExpr      :: fn(const u8[]) -> string
+  expr 22:31    CallExpr       :: const u8[]
+  expr 22:31    FieldExpr      :: fn() -> const u8[]
+  expr 22:31    StringLitExpr  :: string
   expr 22:5     CallExpr       :: void
   expr 22:5     IdentExpr      :: fn(T) -> void
   expr 23:13    StringLitExpr  :: string
-  expr 23:24    CallExpr       :: string
-  expr 23:24    IdentExpr      :: fn(const u8[]) -> string
-  expr 23:31    CallExpr       :: const u8[]
-  expr 23:31    FieldExpr      :: fn() -> const u8[]
-  expr 23:31    StringLitExpr  :: string
+  expr 23:25    CallExpr       :: string
+  expr 23:25    IdentExpr      :: fn(const u8[]) -> string
+  expr 23:32    CallExpr       :: const u8[]
+  expr 23:32    FieldExpr      :: fn() -> const u8[]
+  expr 23:32    StringLitExpr  :: string
   expr 23:5     CallExpr       :: void
   expr 23:5     IdentExpr      :: fn(T) -> void
   expr 24:13    StringLitExpr  :: string
-  expr 24:25    CallExpr       :: string
-  expr 24:25    IdentExpr      :: fn(const u8[]) -> string
-  expr 24:32    CallExpr       :: const u8[]
-  expr 24:32    FieldExpr      :: fn() -> const u8[]
-  expr 24:32    StringLitExpr  :: string
+  expr 24:26    CallExpr       :: string
+  expr 24:26    IdentExpr      :: fn(const u8[]) -> string
+  expr 24:33    CallExpr       :: const u8[]
+  expr 24:33    FieldExpr      :: fn() -> const u8[]
+  expr 24:33    StringLitExpr  :: string
   expr 24:5     CallExpr       :: void
   expr 24:5     IdentExpr      :: fn(T) -> void
   expr 25:13    StringLitExpr  :: string
-  expr 25:26    CallExpr       :: string
-  expr 25:26    IdentExpr      :: fn(const u8[]) -> string
-  expr 25:33    CallExpr       :: const u8[]
-  expr 25:33    FieldExpr      :: fn() -> const u8[]
-  expr 25:33    StringLitExpr  :: string
+  expr 25:27    CallExpr       :: string
+  expr 25:27    IdentExpr      :: fn(const u8[]) -> string
+  expr 25:34    CallExpr       :: const u8[]
+  expr 25:34    FieldExpr      :: fn() -> const u8[]
+  expr 25:34    StringLitExpr  :: string
   expr 25:5     CallExpr       :: void
   expr 25:5     IdentExpr      :: fn(T) -> void
-  expr 26:13    StringLitExpr  :: string
-  expr 26:27    CallExpr       :: string
-  expr 26:27    IdentExpr      :: fn(const u8[]) -> string
-  expr 26:34    CallExpr       :: const u8[]
-  expr 26:34    FieldExpr      :: fn() -> const u8[]
-  expr 26:34    StringLitExpr  :: string
-  expr 26:5     CallExpr       :: void
-  expr 26:5     IdentExpr      :: fn(T) -> void
+  expr 27:17    StringLitExpr  :: string
+  expr 27:31    StringLitExpr  :: string
+  expr 27:5     CallExpr       :: void
+  expr 27:5     IdentExpr      :: fn(string, string) -> void
   expr 28:17    StringLitExpr  :: string
   expr 28:31    StringLitExpr  :: string
   expr 28:5     CallExpr       :: void
@@ -92,46 +96,42 @@
   expr 32:31    StringLitExpr  :: string
   expr 32:5     CallExpr       :: void
   expr 32:5     IdentExpr      :: fn(string, string) -> void
-  expr 33:17    StringLitExpr  :: string
-  expr 33:31    StringLitExpr  :: string
-  expr 33:5     CallExpr       :: void
-  expr 33:5     IdentExpr      :: fn(string, string) -> void
-  expr 36:15    SeqLitExpr     :: string[]
-  expr 36:16    StringLitExpr  :: string
-  expr 36:31    StringLitExpr  :: string
-  expr 36:35    StringLitExpr  :: string
-  expr 36:40    StringLitExpr  :: string
-  expr 36:46    StringLitExpr  :: string
-  expr 37:14    IdentExpr      :: string[]
-  expr 38:20    CallExpr       :: Base64Error | u8[]
-  expr 38:20    IdentExpr      :: fn(string) -> Base64Error | u8[]
-  expr 38:27    CallExpr       :: string
-  expr 38:27    IdentExpr      :: fn(const u8[]) -> string
-  expr 38:34    CallExpr       :: const u8[]
-  expr 38:34    FieldExpr      :: fn() -> const u8[]
-  expr 38:34    IdentExpr      :: string
-  expr 39:12    BinaryExpr     :: bool
-  expr 39:12    IdentExpr      :: Base64Error | u8[]
-  expr 39:23    IdentExpr      :: Base64Error
-  expr 39:9     IfExpr         :: void
-  expr 40:13    CallExpr       :: void
-  expr 40:13    IdentExpr      :: fn(T) -> void
-  expr 40:21    StringLitExpr  :: string
-  expr 40:34    IdentExpr      :: string
-  expr 42:13    CallExpr       :: void
-  expr 42:13    IdentExpr      :: fn(T) -> void
-  expr 42:21    StringLitExpr  :: string
-  expr 42:34    IdentExpr      :: string
-  expr 42:39    BinaryExpr     :: bool
-  expr 42:39    CallExpr       :: string
-  expr 42:39    FieldExpr      :: fn() -> string
-  expr 42:39    IdentExpr      :: u8[]
-  expr 42:62    IdentExpr      :: string
+  expr 35:15    SeqLitExpr     :: string[]
+  expr 35:16    StringLitExpr  :: string
+  expr 35:31    StringLitExpr  :: string
+  expr 35:35    StringLitExpr  :: string
+  expr 35:40    StringLitExpr  :: string
+  expr 35:46    StringLitExpr  :: string
+  expr 36:14    IdentExpr      :: string[]
+  expr 37:20    CallExpr       :: Base64Error | u8[]
+  expr 37:20    IdentExpr      :: fn(string) -> Base64Error | u8[]
+  expr 37:27    CallExpr       :: string
+  expr 37:27    IdentExpr      :: fn(const u8[]) -> string
+  expr 37:34    CallExpr       :: const u8[]
+  expr 37:34    FieldExpr      :: fn() -> const u8[]
+  expr 37:34    IdentExpr      :: string
+  expr 38:12    BinaryExpr     :: bool
+  expr 38:12    IdentExpr      :: Base64Error | u8[]
+  expr 38:23    IdentExpr      :: Base64Error
+  expr 38:9     IfExpr         :: void
+  expr 39:13    CallExpr       :: void
+  expr 39:13    IdentExpr      :: fn(T) -> void
+  expr 39:21    StringLitExpr  :: string
+  expr 39:34    IdentExpr      :: string
+  expr 41:13    CallExpr       :: void
+  expr 41:13    IdentExpr      :: fn(T) -> void
+  expr 41:21    StringLitExpr  :: string
+  expr 41:34    IdentExpr      :: string
+  expr 41:39    BinaryExpr     :: bool
+  expr 41:39    CallExpr       :: string
+  expr 41:39    FieldExpr      :: fn() -> string
+  expr 41:39    IdentExpr      :: u8[]
+  expr 41:68    IdentExpr      :: string
+  expr 46:17    StringLitExpr  :: string
+  expr 46:32    StringLitExpr  :: string
+  expr 46:5     CallExpr       :: void
+  expr 46:5     IdentExpr      :: fn(string, string) -> void
   expr 47:17    StringLitExpr  :: string
   expr 47:32    StringLitExpr  :: string
   expr 47:5     CallExpr       :: void
   expr 47:5     IdentExpr      :: fn(string, string) -> void
-  expr 48:17    StringLitExpr  :: string
-  expr 48:32    StringLitExpr  :: string
-  expr 48:5     CallExpr       :: void
-  expr 48:5     IdentExpr      :: fn(string, string) -> void

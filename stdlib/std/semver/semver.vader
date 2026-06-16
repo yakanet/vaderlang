@@ -27,7 +27,7 @@
 module "std/semver"
 
 import "std/string"         {
-    as_string, is_empty, index_of, starts_with, parse_int,
+    is_empty, index_of, starts_with, parse_int,
     trim, split, chars, ParseError,
 }
 import "std/char" { is_alnum, is_digit, is_white_char }
@@ -121,9 +121,9 @@ export parse :: fn(s: string) -> Version | ParseError {
     }
 
     core_end :: if dash_pos < plus_pos { dash_pos } else { plus_pos }
-    core     :: sb[0..<core_end].as_string()
-    pre      :: if dash_pos < plus_pos { sb[dash_pos + 1..<plus_pos].as_string() } else { "" }
-    build    :: if plus_pos < n        { sb[plus_pos + 1..<n].as_string()        } else { "" }
+    core     :: sb[0..<core_end].bytes_to_string()
+    pre      :: if dash_pos < plus_pos { sb[dash_pos + 1..<plus_pos].bytes_to_string() } else { "" }
+    build    :: if plus_pos < n        { sb[plus_pos + 1..<n].bytes_to_string()        } else { "" }
 
     // Core must be M.N.P with exactly three numeric identifiers,
     // each free of leading zeros.
@@ -135,7 +135,7 @@ export parse :: fn(s: string) -> Version | ParseError {
     for k in 0..<cn {
         if cb[k] == b'.' {
             if fill >= 3 { return ParseError { .msg = "too many '.' in version core" } }
-            piece :: cb[start..<k].as_string()
+            piece :: cb[start..<k].bytes_to_string()
             v :: parse_numeric_id(piece)
             match v {
                 is i32        as iv -> { triple[fill] = iv }
@@ -146,7 +146,7 @@ export parse :: fn(s: string) -> Version | ParseError {
         }
     }
     if fill != 2 { return ParseError { .msg = "version core must be M.N.P" } }
-    last_piece :: cb[start..<cn].as_string()
+    last_piece :: cb[start..<cn].bytes_to_string()
     last_v :: parse_numeric_id(last_piece)
     match last_v {
         is i32        as iv -> { triple[2] = iv }
@@ -262,13 +262,13 @@ validate_prerelease :: fn(s: string) -> string {
     start: usize = 0
     for i in 0..<n {
         if sb[i] == b'.' {
-            id :: sb[start..<i].as_string()
+            id :: sb[start..<i].bytes_to_string()
             err :: validate_prerelease_id(id)
             if !err.is_empty() { return err }
             start = i + 1
         }
     }
-    return validate_prerelease_id(sb[start..<n].as_string())
+    return validate_prerelease_id(sb[start..<n].bytes_to_string())
 }
 
 // Build identifiers : same charset, but leading zeros are allowed
@@ -287,13 +287,13 @@ validate_build :: fn(s: string) -> string {
     start: usize = 0
     for i in 0..<n {
         if sb[i] == b'.' {
-            id :: sb[start..<i].as_string()
+            id :: sb[start..<i].bytes_to_string()
             err :: validate_build_id(id)
             if !err.is_empty() { return err }
             start = i + 1
         }
     }
-    return validate_build_id(sb[start..<n].as_string())
+    return validate_build_id(sb[start..<n].bytes_to_string())
 }
 
 // Lexicographic ASCII byte compare. Used for non-numeric pre-release
@@ -402,11 +402,11 @@ split_or :: fn(s: string) -> string[] {
     start: usize = 0
     for i in 0..<(n - 1) {
         if sb[i] == b'|' && sb[i + 1] == b'|' {
-            out.push(sb[start..<i].as_string())
+            out.push(sb[start..<i].bytes_to_string())
             start = i + 2
         }
     }
-    out.push(sb[start..<n].as_string())
+    out.push(sb[start..<n].bytes_to_string())
     return out
 }
 
@@ -423,7 +423,7 @@ split_ws :: fn(s: string) -> string[] {
         c :: char(u32(sb[i]))
         if is_white_char(c) {
             if in_word {
-                out.push(sb[start..<i].as_string())
+                out.push(sb[start..<i].bytes_to_string())
                 in_word = false
             }
         } else {
@@ -433,7 +433,7 @@ split_ws :: fn(s: string) -> string[] {
             }
         }
     }
-    if in_word { out.push(sb[start..<n].as_string()) }
+    if in_word { out.push(sb[start..<n].bytes_to_string()) }
     return out
 }
 
@@ -475,9 +475,9 @@ parse_partial :: fn(s: string) -> PartialVersion | ParseError {
         }
     }
     core_end :: if dash_pos < plus_pos { dash_pos } else { plus_pos }
-    core     :: sb[0..<core_end].as_string()
-    pre      :: if dash_pos < plus_pos { sb[dash_pos + 1..<plus_pos].as_string() } else { "" }
-    build    :: if plus_pos < n        { sb[plus_pos + 1..<n].as_string()         } else { "" }
+    core     :: sb[0..<core_end].bytes_to_string()
+    pre      :: if dash_pos < plus_pos { sb[dash_pos + 1..<plus_pos].bytes_to_string() } else { "" }
+    build    :: if plus_pos < n        { sb[plus_pos + 1..<n].bytes_to_string()         } else { "" }
 
     parts :: core.split(".")
     if parts.len() == 0 || parts.len() > 3 {
@@ -660,13 +660,13 @@ parse_token :: fn(t: string) -> RangeTerm[] | ParseError {
     tb :: t.bytes()
     n :: tb.len()
     if n >= 2 && tb[0] == b'>' && tb[1] == b'=' {
-        return parse_comparator_token(.Gte, tb[2..<n].as_string())
+        return parse_comparator_token(.Gte, tb[2..<n].bytes_to_string())
     }
     if n >= 2 && tb[0] == b'<' && tb[1] == b'=' {
-        return parse_comparator_token(.Lte, tb[2..<n].as_string())
+        return parse_comparator_token(.Lte, tb[2..<n].bytes_to_string())
     }
     b0   :: tb[0]
-    rest :: tb[1..<n].as_string()
+    rest :: tb[1..<n].bytes_to_string()
     if b0 == b'>' { return parse_comparator_token(.Gt, rest) }
     if b0 == b'<' { return parse_comparator_token(.Lt, rest) }
     if b0 == b'=' { return parse_comparator_token(.Eq, rest) }

@@ -1,7 +1,5 @@
 # Comptime
 
-## stdlib/std/abort
-
 ## stdlib/std/core
   @comptime  DECIMAL_DIGITS       = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
   @comptime  DOUBLE_BIAS          = 1023_i32
@@ -23,15 +21,7 @@
 
 ## stdlib/std/io
 
-## stdlib/std/math
-  @comptime  e                    = 2.718281828459045_f64
-  @comptime  pi                   = 3.141592653589793_f64
-
-## stdlib/std/string
-
 ## stdlib/std/string_builder
-
-## stdlib/std/testing
 
 ## tests/snippets/as_string_roundtrip
 
@@ -40,10 +30,8 @@
   Index<I, T>
   IndexSet<I, T>
   Contains<T>
-  Iterator<char>
   Iterator<T>
   Iterator<T>
-  Yield<char>
   Yield<T>
   Yield<T>
   Yield<T>

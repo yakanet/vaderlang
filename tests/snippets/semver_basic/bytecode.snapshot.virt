@@ -89,7 +89,6 @@ string 51 "parse_int: overflow"
 import 0 write std_io$write (i32,string) -> void
 import 1 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 2 bytes std_core$bytes (string) -> ref
-import 3 as_string std_string$as_string (ref) -> string
 impl 7 Display
 impl 7 Comparable
 impl 11 Contains
@@ -424,7 +423,7 @@ fn 4 std_semver$parse (string) -> ref
   local.get 11
   local.get 7
   array.slice 27
-  call.import 3
+  call.import 1
   local.set 12
   local.get 4
   local.get 3
@@ -440,7 +439,7 @@ fn 4 std_semver$parse (string) -> ref
     local.get 7
     local.get 3
     array.slice 27
-    call.import 3
+    call.import 1
     local.set 13
   else
     string.const 9
@@ -462,7 +461,7 @@ fn 4 std_semver$parse (string) -> ref
     local.get 7
     local.get 2
     array.slice 27
-    call.import 3
+    call.import 1
     local.set 14
   else
     string.const 9
@@ -517,7 +516,7 @@ fn 4 std_semver$parse (string) -> ref
           local.get 11
           local.get 17
           array.slice 27
-          call.import 3
+          call.import 1
           call 6
           local.tee 19
           type_check 3
@@ -598,7 +597,7 @@ fn 4 std_semver$parse (string) -> ref
   local.get 11
   local.get 16
   array.slice 27
-  call.import 3
+  call.import 1
   call 6
   local.tee 15
   type_check 3
@@ -1013,7 +1012,7 @@ fn 7 std_semver$validate_prerelease (string) -> string
           local.get 3
           local.get 4
           array.slice 27
-          call.import 3
+          call.import 1
           call 13
           local.tee 7
           call 51
@@ -1051,7 +1050,7 @@ fn 7 std_semver$validate_prerelease (string) -> string
   local.get 3
   local.get 2
   array.slice 27
-  call.import 3
+  call.import 1
   call 13
   return
 end
@@ -1096,7 +1095,7 @@ fn 8 std_semver$validate_build (string) -> string
           local.get 3
           local.get 4
           array.slice 27
-          call.import 3
+          call.import 1
           call 14
           local.tee 7
           call 51
@@ -1134,7 +1133,7 @@ fn 8 std_semver$validate_build (string) -> string
   local.get 3
   local.get 2
   array.slice 27
-  call.import 3
+  call.import 1
   call 14
   return
 end
@@ -1248,7 +1247,7 @@ fn 10 std_semver$split_or (string) -> ref
           local.get 4
           local.get 6
           array.slice 27
-          call.import 3
+          call.import 1
           local.set 14
           local.get 1
           local.get 14
@@ -1276,7 +1275,7 @@ fn 10 std_semver$split_or (string) -> ref
   local.get 4
   local.get 3
   array.slice 27
-  call.import 3
+  call.import 1
   local.set 14
   local.get 1
   local.get 14
@@ -1796,7 +1795,7 @@ fn 15 std_semver$split_ws (string) -> ref
             local.get 4
             local.get 6
             array.slice 27
-            call.import 3
+            call.import 1
             local.set 7
             local.get 1
             local.get 7
@@ -1833,7 +1832,7 @@ fn 15 std_semver$split_ws (string) -> ref
     local.get 4
     local.get 3
     array.slice 27
-    call.import 3
+    call.import 1
     local.set 7
     local.get 1
     local.get 7
@@ -2030,7 +2029,7 @@ fn 16 std_semver$parse_partial (string) -> ref
   local.get 13
   local.get 10
   array.slice 27
-  call.import 3
+  call.import 1
   local.set 14
   local.get 7
   local.get 6
@@ -2046,7 +2045,7 @@ fn 16 std_semver$parse_partial (string) -> ref
     local.get 7
     local.get 6
     array.slice 27
-    call.import 3
+    call.import 1
     local.set 15
   else
     string.const 9
@@ -2068,7 +2067,7 @@ fn 16 std_semver$parse_partial (string) -> ref
     local.get 6
     local.get 5
     array.slice 27
-    call.import 3
+    call.import 1
     local.set 16
   else
     string.const 9
@@ -4825,7 +4824,7 @@ fn 18 std_semver$parse_token (string) -> ref
     local.get 6
     local.get 5
     array.slice 27
-    call.import 3
+    call.import 1
     local.set 10
     i32.const 4
     local.get 10
@@ -4878,7 +4877,7 @@ fn 18 std_semver$parse_token (string) -> ref
     local.get 6
     local.get 5
     array.slice 27
-    call.import 3
+    call.import 1
     local.set 10
     i32.const 2
     local.get 10
@@ -4896,7 +4895,7 @@ fn 18 std_semver$parse_token (string) -> ref
   local.get 6
   local.get 5
   array.slice 27
-  call.import 3
+  call.import 1
   local.set 10
   i32.const 62
   local.set 9
@@ -6919,7 +6918,7 @@ fn 52 std_string$trim (string) -> string
   local.get 3
   local.get 2
   array.slice 27
-  call.import 3
+  call.import 1
   return
 end
 
@@ -7196,7 +7195,7 @@ fn 56 std_string$split (string,string) -> ref
           local.get 6
           local.get 8
           array.slice 27
-          call.import 3
+          call.import 1
           local.set 9
           local.get 2
           local.get 9
@@ -7237,7 +7236,7 @@ fn 56 std_string$split (string,string) -> ref
         local.get 6
         local.get 7
         array.slice 27
-        call.import 3
+        call.import 1
         local.set 9
         local.get 2
         local.get 9
@@ -7260,7 +7259,7 @@ fn 56 std_string$split (string,string) -> ref
   local.get 6
   local.get 4
   array.slice 27
-  call.import 3
+  call.import 1
   local.set 9
   local.get 2
   local.get 9

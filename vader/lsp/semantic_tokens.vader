@@ -16,7 +16,7 @@
 
 module "vader/lsp"
 
-import "std/string" { as_string, byte_decode_at }
+import "std/string" { byte_decode_at }
 import "std/json" {
     JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonNull, JsonArray
 }
@@ -301,7 +301,7 @@ collect_doc_line_tokens :: fn(c: Comment, source: string, out: RawToken[]) -> vo
             i = i + 1
             continue
         }
-        tag_name :: text_bytes[i + 1..<tag_end].as_string()
+        tag_name :: text_bytes[i + 1..<tag_end].bytes_to_string()
         is_known :: tag_name == "param" || tag_name == "return" || tag_name == "error" || tag_name == "example"
         if !is_known {
             i = tag_end

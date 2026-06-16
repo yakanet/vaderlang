@@ -137,27 +137,6 @@ export decode_codepoint_at :: fn(bs: const u8[], i: usize) -> [char, usize] {
     return [c, codepoint_byte_len(c)]
 }
 
-/// Materialise a `string` from the UTF-8 bytes of a `const u8[]`.
-///
-/// LEGACY alias of `std/core::bytes_to_string` (the canonical bytes→string
-/// primitive — both lower to the same host op). Kept because it reads well
-/// post-`bytes()` (`s.bytes()[lo..<hi].as_string()` is the byte-indexed
-/// substring the old `byte_slice` produced) and is still the form used across
-/// the stdlib ; the rename to `bytes_to_string` is tracked in `TODO.md` §1.13d.
-/// Prefer `bytes_to_string` in new code.
-///
-/// Host intrinsic. On a **borrowed** view (a `bytes()` slice) this is **O(1)** —
-/// it reinterprets the aliased owner bytes as a string atom (`vader_atom_slice`,
-/// intern-deduped, no copy of the byte storage). On a **materialised** `u8[]`
-/// it gathers the packed bytes and interns a copy (O(n)). On the VM the bytes
-/// are read from the materialised array and re-interned — same observable
-/// string. The bytes are taken **verbatim** — no UTF-8 validation ; valid
-/// UTF-8 in round-trips exactly.
-///
-/// @param bs  the UTF-8 bytes to materialise (typically a `bytes()` slice).
-/// @return    the string those bytes encode.
-export as_string :: fn(bs: const u8[]) -> string
-
 /// Iterator yielding Unicode codepoints — one per UTF-8 sequence,
 /// regardless of whether the codepoint is encoded in 1, 2, 3, or 4
 /// bytes. The cursor moves in bytes ; `length` is the byte length of the
@@ -392,7 +371,7 @@ export split :: fn(s: string, sep: string) -> string[] {
     if m == 0 {
         i := usize(0)
         for i < n {
-            out.push(sb[i..<i + 1].as_string())
+            out.push(sb[i..<i + 1].bytes_to_string())
             i = i + 1
         }
         return out
@@ -401,11 +380,11 @@ export split :: fn(s: string, sep: string) -> string[] {
     found := byte_find(s, sep, start)
     for found >= isize(0) {
         fpos :: usize(found)
-        out.push(sb[start..<fpos].as_string())
+        out.push(sb[start..<fpos].bytes_to_string())
         start = fpos + m
         found = byte_find(s, sep, start)
     }
-    out.push(sb[start..<n].as_string())
+    out.push(sb[start..<n].bytes_to_string())
     return out
 }
 
@@ -473,7 +452,7 @@ export trim :: fn(s: string) -> string {
     for lo < n && is_white_byte(sb[lo]) { lo = lo + 1 }
     hi := n
     for hi > lo && is_white_byte(sb[hi - 1]) { hi = hi - 1 }
-    return sb[lo..<hi].as_string()
+    return sb[lo..<hi].bytes_to_string()
 }
 
 /// Strip leading ASCII whitespace (`' '`, `'\t'`, `'\n'`, `'\r'`) only ;
@@ -485,7 +464,7 @@ export left_trim :: fn(s: string) -> string {
     n :: sb.len()
     lo := usize(0)
     for lo < n && is_white_byte(sb[lo]) { lo = lo + 1 }
-    return sb[lo..<n].as_string()
+    return sb[lo..<n].bytes_to_string()
 }
 
 /// Strip trailing ASCII whitespace (`' '`, `'\t'`, `'\n'`, `'\r'`) only ;
@@ -496,7 +475,7 @@ export right_trim :: fn(s: string) -> string {
     sb :: s.bytes()
     hi := sb.len()
     for hi > 0 && is_white_byte(sb[hi - 1]) { hi = hi - 1 }
-    return sb[0..<hi].as_string()
+    return sb[0..<hi].bytes_to_string()
 }
 
 // Codepoint-level uppercase over ASCII + the Latin-1 Supplement letters
@@ -667,7 +646,7 @@ export pad_end :: fn(s: string, width: usize, fill: char) -> string {
 export trim_suffix :: fn(s: string, suffix: string) -> string {
     if s.ends_with(suffix) {
         bs :: s.bytes()
-        return bs[0..<bs.len() - suffix.bytes().len()].as_string()
+        return bs[0..<bs.len() - suffix.bytes().len()].bytes_to_string()
     }
     return s
 }
@@ -677,7 +656,7 @@ export trim_suffix :: fn(s: string, suffix: string) -> string {
 export trim_prefix :: fn(s: string, prefix: string) -> string {
     if s.starts_with(prefix) {
         bs :: s.bytes()
-        return bs[prefix.bytes().len()..<bs.len()].as_string()
+        return bs[prefix.bytes().len()..<bs.len()].bytes_to_string()
     }
     return s
 }

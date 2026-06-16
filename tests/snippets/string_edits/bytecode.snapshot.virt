@@ -29,8 +29,8 @@ string 12 "ab"
 string 13 "x"
 string 14 "hello"
 import 0 write std_io$write (i32,string) -> void
-import 1 bytes std_core$bytes (string) -> ref
-import 2 as_string std_string$as_string (ref) -> string
+import 1 bytes_to_string std_core$bytes_to_string (ref) -> string
+import 2 bytes std_core$bytes (string) -> ref
 impl 7 Display
 impl 10 ByteAccess
 export main 6
@@ -90,7 +90,7 @@ fn 3 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         local.get 4
         array.get 6
         ref.cast 1
-        call.import 1
+        call.import 2
         array.len
         local.set 5
         local.get 1
@@ -135,7 +135,7 @@ fn 3 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         local.get 8
         call 21
         local.get 8
-        call.import 1
+        call.import 2
         array.len
         local.set 6
         local.get 3
@@ -403,12 +403,12 @@ fn 11 std_string$split (string,string) -> ref
   array.new 6 0
   local.set 2
   local.get 0
-  call.import 1
+  call.import 2
   local.tee 3
   array.len
   local.set 4
   local.get 1
-  call.import 1
+  call.import 2
   array.len
   local.set 5
   i64.const 0
@@ -435,7 +435,7 @@ fn 11 std_string$split (string,string) -> ref
           local.get 6
           local.get 8
           array.slice 8
-          call.import 2
+          call.import 1
           local.set 9
           local.get 2
           local.get 9
@@ -476,7 +476,7 @@ fn 11 std_string$split (string,string) -> ref
         local.get 6
         local.get 7
         array.slice 8
-        call.import 2
+        call.import 1
         local.set 9
         local.get 2
         local.get 9
@@ -499,7 +499,7 @@ fn 11 std_string$split (string,string) -> ref
   local.get 6
   local.get 4
   array.slice 8
-  call.import 2
+  call.import 1
   local.set 9
   local.get 2
   local.get 9
@@ -571,7 +571,7 @@ fn 13 std_string$index_of (string,char,usize) -> isize
   local cp char
   local width usize
   local.get 0
-  call.import 1
+  call.import 2
   local.tee 3
   array.len
   local.set 4
@@ -623,10 +623,10 @@ fn 14 std_string$byte_find (string,string,usize) -> isize
   local $k_11 usize
   local $k_23 usize
   local.get 0
-  call.import 1
+  call.import 2
   local.set 3
   local.get 1
-  call.import 1
+  call.import 2
   local.set 4
   local.get 3
   array.len

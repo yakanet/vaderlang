@@ -15,7 +15,7 @@
 
 module "vader/lexer"
 
-import "std/string" { as_string, decode_char_at, codepoint_byte_len, is_empty, parse_float, ParseError }
+import "std/string" { decode_char_at, codepoint_byte_len, is_empty, parse_float, ParseError }
 import "std/char" { is_alpha, is_alnum, is_digit }
 
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
@@ -298,7 +298,7 @@ lex_ident :: fn(l: Lexer) -> void {
     for !l.at_end() && l.peek().is_ident_continue() {
         l.advance(1)
     }
-    text := l.bytes[start.offset..<l.pos].as_string()
+    text := l.bytes[start.offset..<l.pos].bytes_to_string()
     kw := lookup_keyword(text)
     l.push_simple(kw, text, start)
 }
@@ -315,13 +315,13 @@ read_numeric_suffix :: fn(l: Lexer) -> string {
         for !l.at_end() && l.peek().is_ident_continue() {
             l.advance(1)
         }
-        return l.bytes[suff_start..<l.pos].as_string()
+        return l.bytes[suff_start..<l.pos].bytes_to_string()
     }
     if l.peek().is_ident_start() {
         for !l.at_end() && l.peek().is_ident_continue() {
             l.advance(1)
         }
-        return l.bytes[start..<l.pos].as_string()
+        return l.bytes[start..<l.pos].bytes_to_string()
     }
     return ""
 }
@@ -422,7 +422,7 @@ lex_number :: fn(l: Lexer) -> void {
         l.push_error(.MalformedNumericLiteral, l.error_span(start), "integer suffix \"${suffix}\" on a float literal")
     }
 
-    text := l.bytes[start.offset..<l.pos].as_string()
+    text := l.bytes[start.offset..<l.pos].bytes_to_string()
     span := Span { .start = start, .end = l.position_here() }
     kind: TokenKind = .IntLit
     if is_float {
@@ -538,7 +538,7 @@ lex_byte_lit :: fn(l: Lexer) -> void {
     } else if l.peek() == '\'' || l.peek() == '\n' || l.at_end() {
         l.push_error(.InvalidCharacterLiteral, l.error_span(start),
             "byte literal must contain exactly one ASCII character")
-        text :: l.bytes[start.offset..<l.pos].as_string()
+        text :: l.bytes[start.offset..<l.pos].bytes_to_string()
         t := make_token(.IntLit, text, l.error_span(start))
         t.value = u64(0)
         t.numeric_suffix = "u8"
@@ -562,7 +562,7 @@ lex_byte_lit :: fn(l: Lexer) -> void {
             "byte literal must contain exactly one byte")
     }
 
-    text :: l.bytes[start.offset..<l.pos].as_string()
+    text :: l.bytes[start.offset..<l.pos].bytes_to_string()
     span :: Span { .start = start, .end = l.position_here() }
     t := make_token(.IntLit, text, span)
     t.value = u64(cp & u32(0xFF))
@@ -579,7 +579,7 @@ lex_char :: fn(l: Lexer) -> void {
     if l.peek() == '\'' {
         l.advance(1)
         l.push_error(.InvalidCharacterLiteral, l.error_span(start), "character literal cannot be empty")
-        text :: l.bytes[start.offset..<l.pos].as_string()
+        text :: l.bytes[start.offset..<l.pos].bytes_to_string()
         t := make_token(.CharLit, text, l.error_span(start))
         t.value = u32(0)
         l.emit(t)
@@ -591,7 +591,7 @@ lex_char :: fn(l: Lexer) -> void {
         cp = l.lex_escape()
     } else if l.peek() == '\n' || l.at_end() {
         l.push_error(.InvalidCharacterLiteral, l.error_span(start), "unterminated character literal")
-        text :: l.bytes[start.offset..<l.pos].as_string()
+        text :: l.bytes[start.offset..<l.pos].bytes_to_string()
         t := make_token(.CharLit, text, l.error_span(start))
         t.value = u32(0)
         l.emit(t)
@@ -619,7 +619,7 @@ lex_char :: fn(l: Lexer) -> void {
         l.advance(1)  // consume closing `'`
     }
 
-    text :: l.bytes[start.offset..<l.pos].as_string()
+    text :: l.bytes[start.offset..<l.pos].bytes_to_string()
     t := make_token(.CharLit, text, l.error_span(start))
     t.value = cp
     l.emit(t)
@@ -667,7 +667,7 @@ lex_string :: fn(l: Lexer, raw: bool) -> void {
         }
     }
 
-    text :: l.bytes[start.offset..<l.pos].as_string()
+    text :: l.bytes[start.offset..<l.pos].bytes_to_string()
     span :: Span { .start = start, .end = l.position_here() }
     l.emit(make_token(.StringBegin, text, span))
     l.lex_string_body(triple, raw)

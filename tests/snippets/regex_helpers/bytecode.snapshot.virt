@@ -33,7 +33,6 @@ string 11 "0"
 import 0 write std_io$write (i32,string) -> void
 import 1 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 2 bytes std_core$bytes (string) -> ref
-import 3 as_string std_string$as_string (ref) -> string
 impl 8 Display
 impl 14 ByteAccess
 impl 16 Iterator
@@ -682,7 +681,7 @@ fn 13 std_string$trim_suffix (string,string) -> string
     local.get 3
     local.get 4
     array.slice 11
-    call.import 3
+    call.import 1
     return
   end $L0
   local.get 0
@@ -711,7 +710,7 @@ fn 14 std_string$trim_prefix (string,string) -> string
     local.get 3
     local.get 4
     array.slice 11
-    call.import 3
+    call.import 1
     return
   end $L0
   local.get 0

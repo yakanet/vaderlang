@@ -105,7 +105,7 @@
                         arg0:
                           call :string
                             callee:
-                              as_string :string
+                              bytes_to_string :string
                             arg0:
                               cast → u8[]
                                 out :Base64Error | u8[]
@@ -533,7 +533,7 @@
                               l:
                                 call :string
                                   callee:
-                                    as_string :string
+                                    bytes_to_string :string
                                   arg0:
                                     cast → u8[]
                                       decoded :Base64Error | u8[]

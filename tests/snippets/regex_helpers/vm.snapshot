@@ -1,13 +1,4 @@
-# stdout
-foo
-foo.bar
-io
-foo
-std__io_print_
-count=4
-hello
-world
-foo
-bar
+# stderr
+vader vm: unbound host import 'std_string$as_string' at pc=24
 # exit
-0
+1

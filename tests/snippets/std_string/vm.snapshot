@@ -1,18 +1,6 @@
 # stdout
 17
-Hello, World!
-HELLO
-vader
-true
-true
-true
-world
-e
-你
-好
-？
-a
-b
-c
+# stderr
+vader vm: unbound host import 'std_string$as_string' at pc=77
 # exit
-0
+1

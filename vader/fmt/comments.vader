@@ -9,7 +9,6 @@
 
 module "vader/fmt"
 
-import "std/string" { as_string as bytes_as_string }
 
 /// Classification of a scanned comment. VaderDoc is `///` only ; `/**` is
 /// recognised as a plain `Block` since SPEC §3 dropped the block-form
@@ -81,7 +80,7 @@ export scan_comments :: fn(source: string) -> CommentMap {
             for j < n && sb[j] != b'\n' {
                 j = j + 1
             }
-            text :: sb[start..<j].bytes_as_string()
+            text :: sb[start..<j].bytes_to_string()
             kind: CommentKind = if is_doc { .DocLine } else { .Line }
             out.push(Comment {
                 .offset = start,
@@ -122,7 +121,7 @@ export scan_comments :: fn(source: string) -> CommentMap {
                 }
                 j = j + 1
             }
-            text :: sb[start..<j].bytes_as_string()
+            text :: sb[start..<j].bytes_to_string()
             kind: CommentKind = .Block
             out.push(Comment {
                 .offset = start,
