@@ -398,27 +398,22 @@ array_method_type :: fn(name: string, arr: ArrayType) -> Type | null {
 /// get implemented/dropped per .claude/plans/core-string-utf8-reorg.md.
 primitive_method_type :: fn(prim: string, name: string) -> Type | null {
     if prim == "string" {
-        // `len` → `std/core/primitives.vader`, resolved via free-fn UFCS against
-        // the always-loaded prelude (no hardcoded entry needed).
+        // These 9 still have a std/string impl but no longer need a hardcoded
+        // entry — they resolve via free-fn UFCS when std/string is imported.
+        // Slated for removal once their call sites carry the import (reorg incr. 3).
         if name == "is_empty"    { return mk_fn([], mk_primitive("bool")) }
         if name == "starts_with" { return mk_fn([mk_primitive("string")], mk_primitive("bool")) }
         if name == "ends_with"   { return mk_fn([mk_primitive("string")], mk_primitive("bool")) }
-        if name == "contains"    { return mk_fn([mk_primitive("string")], mk_primitive("bool")) }
         if name == "to_lower"    { return mk_fn([], mk_primitive("string")) }
         if name == "to_upper"    { return mk_fn([], mk_primitive("string")) }
         if name == "trim"        { return mk_fn([], mk_primitive("string")) }
-        if name == "trim_start"  { return mk_fn([], mk_primitive("string")) }
-        if name == "trim_end"    { return mk_fn([], mk_primitive("string")) }
-        if name == "slice"       { return mk_fn([mk_primitive("usize"), mk_primitive("usize")], mk_primitive("string")) }
         if name == "split"       { return mk_fn([mk_primitive("string")], mk_array(mk_primitive("string"), false)) }
-        if name == "replace"     { return mk_fn([mk_primitive("string"), mk_primitive("string")], mk_primitive("string")) }
-        if name == "replace_all" { return mk_fn([mk_primitive("string"), mk_primitive("string")], mk_primitive("string")) }
-        if name == "find"        { return mk_fn([mk_primitive("string")], mk_union([mk_primitive("usize"), mk_primitive("null")])) }
-        if name == "find_all"    { return mk_fn([mk_primitive("string")], mk_array(mk_primitive("usize"), false)) }
         if name == "pad_start"   { return mk_fn([mk_primitive("usize"), mk_primitive("char")], mk_primitive("string")) }
         if name == "pad_end"     { return mk_fn([mk_primitive("usize"), mk_primitive("char")], mk_primitive("string")) }
-        if name == "repeat"      { return mk_fn([mk_primitive("usize")], mk_primitive("string")) }
-        if name == "concat"      { return mk_fn([mk_primitive("string")], mk_primitive("string")) }
+        // Removed (had no impl / now resolve elsewhere): `len`→std/core ;
+        // `contains`→`Contains` trait + `in` ; `slice`→`s[a..<b]` ;
+        // `replace`/`replace_all`/`repeat`/`find`→std/string (implemented) ;
+        // `find_all`/`trim_start`/`trim_end`/`concat`→dropped. See the reorg plan.
     }
     if prim == "char" {
         if name == "is_white_char" { return mk_fn([], mk_primitive("bool")) }

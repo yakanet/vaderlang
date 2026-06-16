@@ -404,6 +404,46 @@ export join :: fn(parts: string[], sep: string) -> string {
     return sb.to_string()
 }
 
+/// Replace the first occurrence of `old` in `s` with `new` (literal substring,
+/// not a pattern — use `std/regex` for pattern replacement). Returns `s`
+/// unchanged when `old` does not occur.
+/// @param s    source string.
+/// @param old  literal substring to find.
+/// @param new  replacement for the first match.
+/// @return     `s` with the first `old` replaced by `new`.
+export replace :: fn(s: string, old: string, new: string) -> string {
+    parts :: s.split(old)
+    if parts.len() <= 1 { return s }
+    rest: string[] = []
+    for i in 1..<parts.len() { rest.push(parts[i]) }
+    return parts[0] + new + rest.join(old)
+}
+
+/// Replace every occurrence of `old` in `s` with `new` (literal). Equivalent to
+/// `s.split(old).join(new)`. Use `std/regex` for pattern replacement.
+/// @param s    source string.
+/// @param old  literal substring to replace.
+/// @param new  replacement for each match.
+/// @return     `s` with every `old` replaced by `new`.
+export replace_all :: fn(s: string, old: string, new: string) = s.split(old).join(new)
+
+/// Concatenate `n` copies of `s` ; `n == 0` yields the empty string.
+/// @param s  the fragment to repeat.
+/// @param n  how many copies.
+/// @return   `s` repeated `n` times.
+export repeat :: fn(s: string, n: usize) -> string {
+    sb :: new_builder()
+    for _ in 0..<n { sb.append(s) }
+    return sb.to_string()
+}
+
+/// True when codepoint `c` occurs in `s` — a `char`-presence predicate built on
+/// `index_of`. For substring containment use `sub in s` (the `Contains` trait).
+/// @param s  string to search.
+/// @param c  codepoint to look for.
+/// @return   whether `c` appears in `s`.
+export find :: fn(s: string, c: char) = s.index_of(c, 0) >= 0
+
 /// Strip leading and trailing ASCII whitespace (`' '`, `'\t'`, `'\n'`,
 /// `'\r'`). Unicode whitespace is not recognised in MVP.
 export trim :: fn(s: string) -> string {
