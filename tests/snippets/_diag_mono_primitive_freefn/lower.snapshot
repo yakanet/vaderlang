@@ -1,0 +1,51 @@
+# Lower
+
+## snippet
+  struct snippet$Point { x: i32 }
+  fn snippet$main() -> i32
+    let nums: i32[] =
+      array :i32[]
+        int(10) :i32
+        int(20) :i32
+        int(30) :i32
+    let s: i32 =
+      call :i32
+        callee:
+          snippet$snippet$second__i32 :i32
+        arg0:
+          nums :i32[]
+    let pts: Point[] =
+      array :Point[]
+        Point {
+          x: int(1) :i32
+        }
+        Point {
+          x: int(2) :i32
+        }
+    let p: Point =
+      call :Point
+        callee:
+          snippet$snippet$second__Point :Point
+        arg0:
+          pts :Point[]
+    return
+      add :i32
+        l:
+          s :i32
+        r:
+          .x :i32
+            p :Point
+  fn snippet$snippet$second__Point(xs: Any[]) -> Any
+    ~>
+      index :Any
+        on:
+          xs :Any[]
+        ix:
+          int(1) :i32
+  fn snippet$snippet$second__i32(xs: i32[]) -> i32
+    ~>
+      index :i32
+        on:
+          xs :i32[]
+        ix:
+          int(1) :i32

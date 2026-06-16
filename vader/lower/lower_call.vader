@@ -389,10 +389,8 @@ fold_bytes_len :: fn(ctx: FnLowerCtx, target: LoweredExpr, span: Span) -> Lowere
     if target is LoweredCall as lc {
         if lc.callee is LoweredIdent as ci {
             if lc.args.len() == 1 {
-                strs :: ctx.project.string_symbols
-                if strs == null { return null }
-                bytes_sym :: strs["bytes"]
-                byte_len_sym :: strs["byte_len"]
+                bytes_sym :: module_export(ctx.project, "std/string", "bytes")
+                byte_len_sym :: module_export(ctx.project, "std/string", "byte_len")
                 if bytes_sym == null { return null }
                 if byte_len_sym == null { return null }
                 // The call site may carry an import-binding symbol ; resolve

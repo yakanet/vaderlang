@@ -1,6 +1,6 @@
 # Vader benchmarks
 
-Five workloads measured across four implementations of each. The set spans float CPU, integer CPU, iterator chains, GC throughput, and string-runtime throughput so a perf change in any of those subsystems trips a regression.
+Two families of workload. The **cross-language** set (six workloads, four implementations each) spans float CPU, integer CPU, iterator chains, GC throughput, and string-runtime throughput so a perf change in any of those subsystems trips a regression. The **Target-ABI** set (four workloads, Vader-only) isolates a single ABI primitive each, so a `main`-vs-branch run quantifies the ABI migration (see [`docs/TARGET_ABI.md`](../docs/TARGET_ABI.md)).
 
 | workload         | exercises                                       | algorithm                                                       | scale                                  |
 |------------------|-------------------------------------------------|-----------------------------------------------------------------|----------------------------------------|
@@ -11,7 +11,16 @@ Five workloads measured across four implementations of each. The set spans float
 | `string_builder` | string runtime + GC under in-flight builder     | append a 45-char fragment N times, finalise to a flat string    | N = 80 000                             |
 | `map_iter`       | hash-map entry iteration, per-visit alloc       | 1 000 outer × 1 000 inner `for entry in m` over a 1 000-entry map | 1 M map visits total                 |
 
-Every program prints a one-line checksum so cross-language equivalence is verifiable.
+**Target-ABI micro-benches** (Vader-only — no `.ts` / `.go` / `.java` port, so only the `vader-native` column is populated) :
+
+| workload      | ABI primitive                                   | algorithm                                                       | scale                          |
+|---------------|-------------------------------------------------|-----------------------------------------------------------------|--------------------------------|
+| `arr_rw`      | open-coded `arr[i]` load / `arr[i] = v` store   | read-modify-write a fixed `i32[]`, no allocation in the loop    | 1024 elts × 100 000 passes     |
+| `arr_push`    | open-coded `push` (typed store + grow)          | build then discard a fresh `i32[]`, exercising grow + GC churn  | 100 000 × 200 (20 M pushes)    |
+| `str_concat`  | off-runtime string `+` (Buffer-backed concat)   | build a 13-byte string by repeated `+`                          | 300 000 iterations             |
+| `interp`      | off-runtime `${}` (StringBuilder + Vader fmt)   | format three integers via `${}` interpolation                   | 200 000 iterations             |
+
+Every program prints a one-line checksum so cross-language (and cross-branch) equivalence is verifiable. The ABI micro-benches sum `bytes().len()` rather than `len()` to dodge an unrelated `string.len()` codegen bug (see the repo `TODO.md`).
 
 ## Implementations
 
@@ -30,7 +39,7 @@ Java is precompiled in the build phase rather than run via the single-source-fil
 
 ### Build parallelism
 
-Every implementation that needs a build step (`vader-native` via the Vader compiler + `cc`, `go` via `go build`, `java` via `javac`) is batched up-front in a single `Promise.all` so independent compilers use every available core. Building all 5 workloads × 3 implementations finishes in 1-3 s instead of the 15+ s a serial compile would take.
+Every implementation that needs a build step (`vader-native` via the Vader compiler + `cc`, `go` via `go build`, `java` via `javac`) is batched up-front in a single `Promise.all` so independent compilers use every available core — an implementation with no source for a given workload is dropped before this step. Building every workload's compiled implementations finishes in 1-3 s instead of the 15+ s a serial compile would take.
 
 **Measurements stay strictly serial.** Running two CPU-bound benchmarks concurrently on the same machine corrupts the signal — they steal cycles from each other, contend on L3 + memory bandwidth, and on Apple Silicon shuffle between P/E cores. Wall-clock numbers from parallel measurements aren't comparable across runs, which is exactly the opposite of what a regression-detection bench needs.
 
@@ -84,11 +93,11 @@ These aren't bench bugs ; they're real Vader limits that constrain workload sizi
 
 ## Adding a workload
 
-1. Write the kernel in `bench/<name>.vader`. Print a one-line checksum to stdout.
-2. Port it to `bench/<name>.ts` and `bench/<name>.go`. Keep the algorithm bit-identical (the harness verifies checksum equality against the committed baseline).
+1. Write the kernel in `bench/<name>/<name>.vader`. Print a one-line checksum to stdout.
+2. **Cross-language workload** — port it to `bench/<name>.ts`, `bench/<name>.go`, `bench/<name>.java`. Keep the algorithm bit-identical (the harness verifies checksum equality against the committed baseline). **Vader-only workload** (e.g. a Target-ABI micro-bench comparing branch vs `main`) — skip the ports ; the harness silently drops any implementation whose source file is absent, so the table shows only the `vader-native` column.
 3. Add an entry to `WORKLOADS` in `bench/run.ts`.
-4. Add the artefacts (`bench/<name>`, `bench/<name>.c`, `bench/<name>_go`) to `.gitignore`.
-5. Run `bun run bench -- --update` to extend the baseline.
+4. Add the artefacts (`bench/<name>/<name>` ; `.c` is covered by `bench/*/*.c`, and `bench/<name>_go` by `bench/*_go`) to `.gitignore`.
+5. Run `bun run bench -- --update` to extend the baseline (baselines are machine-specific — a new workload simply isn't regression-gated until someone records it on the canonical machine).
 
 ## Caveats
 

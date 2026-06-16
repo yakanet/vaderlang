@@ -932,10 +932,8 @@ descend_chain :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
             }
         }
         is AST.StructLitExpr as struct_lit -> {
-            iter_symbols :: ctx.project.iter_symbols
-            if iter_symbols is null { return null }
-            map_symbol_opt    :: iter_symbols["MapIterator"]
-            filter_symbol_opt :: iter_symbols["FilterIterator"]
+            map_symbol_opt    :: module_export(ctx.project, "std/iter", "MapIterator")
+            filter_symbol_opt :: module_export(ctx.project, "std/iter", "FilterIterator")
             struct_type :: ctx.types.expr_type(struct_lit)
             match struct_type {
                 is StructType as st -> {
@@ -955,8 +953,9 @@ descend_chain :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
         // std/iter constructors, so we recognise the call directly rather
         // than waiting for inlining — mirror of the struct-lit arm above.
         is AST.CallExpr as call -> {
-            iter_symbols :: ctx.project.iter_symbols
-            if iter_symbols is null { return null }
+            map_symbol_opt    :: module_export(ctx.project, "std/iter", "MapIterator")
+            filter_symbol_opt :: module_export(ctx.project, "std/iter", "FilterIterator")
+            if map_symbol_opt == null && filter_symbol_opt == null { return null }
             fluent :: unpack_fluent_combinator(ctx, call)
             if fluent is null { return null }
             inner :: descend_chain(ctx, fluent.receiver)
@@ -964,7 +963,7 @@ descend_chain :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
             struct_type :: ctx.types.expr_type(call)
             match struct_type {
                 is StructType as st -> {
-                    if matches_iter_symbol(iter_symbols["MapIterator"], st.symbol.id) {
+                    if matches_iter_symbol(map_symbol_opt, st.symbol.id) {
                         if st.args.len() < usize(2) { return null }
                         return IterChain {
                             .kind = IterChainKind.Map,
@@ -974,7 +973,7 @@ descend_chain :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
                             .pred_fn = null, .span = call.span,
                         }
                     }
-                    if matches_iter_symbol(iter_symbols["FilterIterator"], st.symbol.id) {
+                    if matches_iter_symbol(filter_symbol_opt, st.symbol.id) {
                         return IterChain {
                             .kind = IterChainKind.Filter,
                             .range_lower = null, .range_upper = null, .inclusive = false,
@@ -1277,13 +1276,11 @@ try_lower_for_in_map_set :: fn(
     src_value: LoweredExpr, src_type: Type, span: Span,
     block_lowerer: fn(FnLowerCtx, AST.BlockExpr, bool, bool) -> LoweredBlock,
 ) -> LoweredStmt | null {
-    coll :: ctx.project.collections_symbols
-    if coll is null { return null }
     if src_type is StructType as source {
-        entry_sym :: coll["Entry"]
+        entry_sym :: module_export(ctx.project, "std/collections", "Entry")
         if entry_sym is null { return null }
-        is_map :: struct_sym_matches(coll["MutableMap"], source.symbol.id)
-        is_set :: struct_sym_matches(coll["MutableSet"], source.symbol.id)
+        is_map :: struct_sym_matches(module_export(ctx.project, "std/collections", "MutableMap"), source.symbol.id)
+        is_set :: struct_sym_matches(module_export(ctx.project, "std/collections", "MutableSet"), source.symbol.id)
         if !is_map && !is_set { return null }
         // Entry(K, V) args : Map(K, V) → [K, V] ; Set(T) → [T, bool].
         entry_args: Type[] = []
@@ -1315,7 +1312,7 @@ try_lower_for_in_map_set :: fn(
             .span = span, .type = buckets_array_type, .target = src_ref, .field = "buckets",
         }
         if is_set {
-            inner_map_type :: map_struct_type(coll, entry_args)
+            inner_map_type :: map_struct_type(module_export(ctx.project, "std/collections", "MutableMap"), entry_args)
             inner_access :: LoweredFieldAccess {
                 .span = span, .type = inner_map_type, .target = src_ref, .field = "inner",
             }
@@ -1437,9 +1434,8 @@ struct_sym_matches :: fn(sym: Symbol | null, id: i32) -> bool {
     return false
 }
 
-map_struct_type :: fn(coll_syms: MutableMap<string, Symbol>, entry_args: Type[]) -> Type {
-    map_sym :: coll_syms["MutableMap"]
-    if map_sym is Symbol as s { return mk_struct(s, entry_args) }
+map_struct_type :: fn(map_sym: Symbol | null, entry_args: Type[]) -> Type {
+    if map_sym != null { return mk_struct(map_sym, entry_args) }
     return TY_UNRESOLVED
 }
 

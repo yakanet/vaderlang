@@ -235,7 +235,7 @@ harvest_ufcs_fn_instance :: fn(
             }
         }
         if !all_concrete(concrete_args) { return null }
-        suffix :: mono_suffix(concrete_args)
+        suffix :: call_site_instance_suffix(ctx, fn_sym, concrete_args)
         inst_key :: "${fn_sym.id}::${suffix}"
         owner_module :: fn_sym.module
         // Use the owning module's *display* path (the declared

@@ -23,7 +23,7 @@
 
 module "std/regex"
 
-import "std/string" { bytes, as_string, decode_char_at, decode_codepoint_at, is_empty }
+import "std/string" { as_string, decode_char_at, decode_codepoint_at, is_empty }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 
 // =========================================================================

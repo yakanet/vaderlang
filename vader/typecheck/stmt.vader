@@ -314,7 +314,9 @@ check_assign :: fn(
     if s.target is AST.IndexExpr {
         ix :: s.target
         target_arr_ty :: check_expr_fn(ix.target, null, typed, diags)
-        check_expr_fn(ix.index, null, typed, diags)
+        // Pin a free-literal index key to the IndexSet key type K
+        // (`m[9000000000] = v`); null for arrays = plain integer index.
+        check_expr_fn(ix.index, index_key_expected(target_arr_ty, typed), typed, diags)
         if target_arr_ty is ArrayType {
             if target_arr_ty.immutable {
                 diags.push(typecheck_error(.CannotMutateImmutableArray, ix.target.span,
@@ -325,7 +327,9 @@ check_assign :: fn(
             check_expr_fn(s.value, full_target_ty, typed, diags)
             return
         }
-        check_expr_fn(s.value, null, typed, diags)
+        // Pin a free-literal write value to the IndexSet value type V
+        // (`m[k] = 9000000000`).
+        check_expr_fn(s.value, index_set_value_expected(target_arr_ty, typed), typed, diags)
         return
     }
     target_ty :: check_expr_fn(s.target, null, typed, diags)
@@ -506,6 +510,15 @@ push_divergent_narrow_if :: fn(
 }
 
 then_is_divergent :: fn(b: AST.BlockExpr, typed: TypedProgram) -> bool {
+    // A guard block whose sole (or final) content is a `@no_return` call —
+    // `{ panic(...) }` — parses that call as the block's trailing expression,
+    // not a statement, so `b.stmts` is empty. Honor a `never`-typed trailing
+    // expr as divergent, mirroring the `is_divergent_stmt` ExprStmt arm ;
+    // otherwise the complement narrowing is dropped and the guarded binding
+    // keeps its union type (T3008 on the post-guard use).
+    if b.trailing !is null {
+        if typed.expr_types[b.trailing.id] is NeverType { return true }
+    }
     if b.stmts.len() == 0 { return false }
     return is_divergent_stmt(b.stmts[b.stmts.len() - 1], typed)
 }
@@ -752,6 +765,17 @@ assign_tuple :: fn(
             }
         }
         _ -> {
+            // A `[...]` pattern against a value that is neither a tuple nor
+            // an array (e.g. `for [k, v] in m` — a map yields `Entry<K, V>`,
+            // a 3-field struct, not a 2-tuple). Without this the leaves bind
+            // to nothing meaningful and lowering emits an `unreachable`.
+            // Skip when the value type is unresolved (upstream error already
+            // fired) or a bare type-param (generic body — checked per
+            // instance, not at the definition).
+            if !(declared is UnresolvedType) && !(declared is TypeParamType) {
+                diags.push(typecheck_error(.TypeMismatch, tb.span,
+                    "cannot destructure a value of type ${display_type(declared)} ; a `[...]` pattern requires a tuple or array"))
+            }
             for leaf in tb.elements { assign_binding_types(leaf, TY_UNRESOLVED, typed, diags) }
         }
     }

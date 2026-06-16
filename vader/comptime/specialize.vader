@@ -803,9 +803,18 @@ outer_impl_key :: fn(member: FnDecl, args: Type[]) -> string {
 module_decls_for :: fn(loaded: LoadedProject, module_id: string) -> Decl[] | null {
     module_loaded :: loaded.modules[module_id]
     if module_loaded is null { return null }
-    m :: module_loaded
-    if m.module.files.len() == usize(0) { return null }
-    return m.module.files[0].program.decls
+    files :: module_loaded.module.files
+    if files.len() == usize(0) { return null }
+    if files.len() == usize(1) { return files[0].program.decls }   // common case — zero-copy
+    // All files of the module, not just files[0] — a multi-file module's later
+    // files carry decls too (mirror `lookup_module_decls` / `module_decls`).
+    out: Decl[] = []
+    for source_file in files {
+        for decl in source_file.program.decls {
+            out.push(decl)
+        }
+    }
+    return out
 }
 
 // ---- tests ----------------------------------------------------------------

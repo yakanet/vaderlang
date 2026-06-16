@@ -2,7 +2,7 @@
 === first exec : freshly built module ===
 82
 first  exec: ok=82
-=== serialise → parse_virt → second exec ===
+=== serialise → parse_virt_bc → second exec ===
 82
 second exec: ok=82
 round-trip ok (82)

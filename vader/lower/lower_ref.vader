@@ -118,8 +118,6 @@ for_each_lowered_expr :: fn(e: LoweredExpr, visit: fn(Type) -> void) -> void {
         }
         is LoweredIntrinsicCall as ic -> {
             for a in ic.args { for_each_lowered_expr(a, visit) }
-            display_for :: ic.display_for
-            if display_for != null { for_each_type(display_for, visit) }
         }
         is LoweredCellNew as cn -> {
             for_each_lowered_expr(cn.value, visit)

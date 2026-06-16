@@ -451,22 +451,15 @@ walk_expr :: fn(self: ResolveState, e: AST.Expr) -> void {
 }
 
 walk_if :: fn(self: ResolveState, e: AST.IfExpr) -> void {
-    self.walk_expr(e.cond)
-    // `if x is T as a { … }` — push a binding for `a` into the then
-    // block's scope so `a.field` resolves. Mirrors `bind_pattern`'s
-    // IsPattern path. The bind lives only for the then-block ; the
-    // else / post-if scopes don't see it.
-    bind_name :: if_bind_as_name(e.cond)
-    bind_span :: if_bind_as_span(e.cond)
-    if bind_name != "" {
-        self.scope.push()
-        sym :: self.mint_local(.Binding, bind_name, bind_span)
-        self.scope.bind(bind_name, sym)
-        self.walk_block(e.then_block)
-        self.scope.pop()
-    } else {
-        self.walk_block(e.then_block)
-    }
+    // Push a scope spanning the condition + then-block so `is T as a`
+    // bindings — minted left-to-right by `bind_cond_is_as` — resolve in any
+    // later `&&` operand and in the then-block. The else / post-if scopes
+    // don't see them (the bind only holds when the test is true). Mirrors
+    // `bind_pattern`'s IsPattern path.
+    self.scope.push()
+    self.bind_cond_is_as(e.cond, false)
+    self.walk_block(e.then_block)
+    self.scope.pop()
     match e.else_branch {
         is null -> {}
         is AST.IfElseIf as x -> { self.walk_if(x.branch) }
@@ -474,15 +467,33 @@ walk_if :: fn(self: ResolveState, e: AST.IfExpr) -> void {
     }
 }
 
-if_bind_as_name :: fn(cond: AST.Expr) -> string {
-    if !(cond is AST.BinaryExpr) { return "" }
-    if i32(cond.op) != i32(AST.BinaryOp.Is) { return "" }
-    return cond.bind_as
-}
-
-if_bind_as_span :: fn(cond: AST.Expr) -> Span {
-    if !(cond is AST.BinaryExpr) { return cond.span }
-    return cond.right.span
+// Walk an if-condition, resolving its sub-expressions and minting any
+// `is T as a` binding into the current scope BEFORE the parts that use it
+// (later `&&` operands, the then-block). An `as` binding inside a `&&` is
+// rejected (R2029) — its scope across short-circuit operands is ambiguous —
+// but still minted so the use doesn't cascade into a spurious R2006.
+bind_cond_is_as :: fn(self: ResolveState, cond: AST.Expr, in_conjunction: bool) -> void {
+    if cond is AST.BinaryExpr as x {
+        if i32(x.op) == i32(AST.BinaryOp.And) {
+            self.bind_cond_is_as(x.left, true)
+            self.bind_cond_is_as(x.right, true)
+            return
+        }
+        if i32(x.op) == i32(AST.BinaryOp.Is) {
+            self.walk_expr(x.left)
+            self.walk_expr(x.right)
+            if x.bind_as != "" {
+                if in_conjunction {
+                    self.diags.push(resolver_error(.AsBindingInConjunction, x.right.span,
+                        "an `as` binding cannot appear in a `&&` condition ; narrow the variable in place (`if x is T && …`) or nest the checks (`if x is T as a { if … }`)"))
+                }
+                sym :: self.mint_local(.Binding, x.bind_as, x.right.span)
+                self.scope.bind(x.bind_as, sym)
+            }
+            return
+        }
+    }
+    self.walk_expr(cond)
 }
 
 walk_match :: fn(self: ResolveState, e: AST.MatchExpr) -> void {

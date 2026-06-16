@@ -79,7 +79,7 @@ lower_intrinsic :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type)
     final_name :: runtime_intrinsic_name(intrinsic.name, args)
     return LoweredIntrinsicCall {
         .span = intrinsic.span, .type = type, .name = final_name,
-        .args = args, .display_for = null,
+        .args = args,
     }
 }
 

@@ -1,0 +1,157 @@
+# CFG
+
+## snippet
+
+fn snippet$main() -> i32
+  locals:
+    %0 $k_0: f64
+    %1 $k_1: f64
+    %2 $k_2: f64
+    %3 $k_3: f64
+    %4 $k_4: f64
+    %5 $k_5: f64
+    %6 $k_6: f64
+    %7 $k_7: f64
+    %8 $k_8: f64
+    %9 $k_9: f64
+    %10 $k_10: f64
+    %11 $k_11: f64
+    %12 $k_12: f64
+    %13 $k_13: f64
+    %14 $k_14: f64
+    %15 $k_15: f64
+    %16 $k_16: f64
+    %17 $k_17: f64
+    %18 $k_18: f64
+    %19 $k_19: f64
+    %20 $unop_20: f64
+    %21 $k_21: f64
+    %22 $unop_22: f64
+    %23 $arr_23: f64[]
+    %24 xs: f64[] (local xs)
+    %25 __for_arr_0: f64[] (synthetic __for_arr_0)
+    %26 $len_26: usize
+    %27 __for_len_1: usize (synthetic __for_len_1)
+    %28 $k_28: usize
+    %29 __for_i_2: usize (synthetic __for_i_2)
+    %30 $lt_30: bool
+    %31 $idx_31: f64
+    %32 x: f64 (local x)
+    %33 $call_33: string
+    %34 $k_34: usize
+    %35 $add_35: usize
+    %36 $k_36: f64
+    %37 pi: f64 (local pi)
+    %38 $call_38: StringBuilder
+    %39 __sb_3: StringBuilder (synthetic __sb_3)
+    %40 $k_40: string
+    %41 $call_41: string
+    %42 $k_42: string
+    %43 $k_43: f64
+    %44 $k_44: f64
+    %45 $mul_45: {float}
+    %46 $call_46: string
+    %47 $call_47: string
+    %48 $k_48: f64
+    %49 $k_49: f64
+    %50 $div_50: {float}
+    %51 inf: f64 (local inf)
+    %52 $call_52: StringBuilder
+    %53 __sb_4: StringBuilder (synthetic __sb_4)
+    %54 $call_54: string
+    %55 $k_55: string
+    %56 $unop_56: f64
+    %57 $call_57: string
+    %58 $k_58: string
+    %59 $k_59: f64
+    %60 $k_60: f64
+    %61 $div_61: {float}
+    %62 $call_62: string
+    %63 $call_63: string
+    %64 $k_64: i32
+  bb0:
+    %0 = const float(0.0) :f64
+    %1 = const float(1.0) :f64
+    %2 = const float(3.0) :f64
+    %3 = const float(100.0) :f64
+    %4 = const float(1234567.0) :f64
+    %5 = const float(0.1) :f64
+    %6 = const float(0.5) :f64
+    %7 = const float(1.5) :f64
+    %8 = const float(2.5) :f64
+    %9 = const float(0.0001) :f64
+    %10 = const float(3.141592653589793) :f64
+    %11 = const float(123456789.12345679) :f64
+    %12 = const float(9.999999999999998) :f64
+    %13 = const float(100000000000000000000.0) :f64
+    %14 = const float(1e+21) :f64
+    %15 = const float(1e-7) :f64
+    %16 = const float(6.022e+23) :f64
+    %17 = const float(5e-324) :f64
+    %18 = const float(1.7976931348623157e+308) :f64
+    %19 = const float(0.0) :f64
+    %20 = unop 0 %19 :f64
+    %21 = const float(2.5) :f64
+    %22 = unop 0 %21 :f64
+    %23 = array_new f64[][21](%0, %1, %2, %3, %4, %5, %6, %7, %8, %9, %10, %11, %12, %13, %14, %15, %16, %17, %18, %20, %22)
+    %24 = move %23
+    %25 = move %24
+    %26 = array_len %25
+    %27 = move %26
+    %28 = const int(0) :usize
+    %29 = move %28
+    branch -> bb1
+  bb1:
+    %30 = binop 14 %29 %27 :bool
+    cond_branch %30 ? bb2 : bb3
+  bb2:
+    %31 = array_get %25[%29] :f64
+    %32 = move %31
+    %33 = call std_core$f64$Display$to_string(%32) :string
+    call std_io$std_io$println__string(%33) :void
+    %34 = const int(1) :usize
+    %35 = binop 0 %29 %34 :usize
+    %29 = move %35
+    branch -> bb1
+  bb3:
+    %36 = const float(3.141592653589793) :f64
+    %37 = move %36
+    %38 = call new_builder() :StringBuilder
+    %39 = move %38
+    %40 = const string(#1) :string
+    call append(%39, %40) :void
+    %41 = call std_core$f64$Display$to_string(%37) :string
+    call append(%39, %41) :void
+    %42 = const string(#2) :string
+    call append(%39, %42) :void
+    %43 = const float(2.5e-8) :f64
+    %44 = const float(1.0) :f64
+    %45 = binop 2 %43 %44 :{float}
+    %46 = call std_core$f64$Display$to_string(%45) :string
+    call append(%39, %46) :void
+    %47 = call std_string_builder$StringBuilder$Display$to_string(%39) :string
+    call std_io$std_io$println__string(%47) :void
+    %48 = const float(1.0) :f64
+    %49 = const float(0.0) :f64
+    %50 = binop 3 %48 %49 :{float}
+    %51 = move %50
+    %52 = call new_builder() :StringBuilder
+    %53 = move %52
+    %54 = call std_core$f64$Display$to_string(%51) :string
+    call append(%53, %54) :void
+    %55 = const string(#3) :string
+    call append(%53, %55) :void
+    %56 = unop 0 %51 :f64
+    %57 = call std_core$f64$Display$to_string(%56) :string
+    call append(%53, %57) :void
+    %58 = const string(#3) :string
+    call append(%53, %58) :void
+    %59 = const float(0.0) :f64
+    %60 = const float(0.0) :f64
+    %61 = binop 3 %59 %60 :{float}
+    %62 = call std_core$f64$Display$to_string(%61) :string
+    call append(%53, %62) :void
+    %63 = call std_string_builder$StringBuilder$Display$to_string(%53) :string
+    call std_io$std_io$println__string(%63) :void
+    %64 = const int(0) :i32
+    return %64

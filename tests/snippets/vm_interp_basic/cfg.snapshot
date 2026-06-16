@@ -6,20 +6,22 @@ fn snippet$main() -> i32
   locals:
     %0 $k_0: i32
     %1 n: i32 (local n)
-    %2 $intrinsic_2: ?
-    %3 __sb_0: ? (synthetic __sb_0)
+    %2 $call_2: StringBuilder
+    %3 __sb_0: StringBuilder (synthetic __sb_0)
     %4 $k_4: string
-    %5 $intrinsic_5: string
-    %6 $k_6: i32
+    %5 $call_5: string
+    %6 $call_6: string
+    %7 $k_7: i32
   bb0:
     %0 = const int(42) :i32
     %1 = move %0
-    %2 = intrinsic builder.new()
+    %2 = call new_builder() :StringBuilder
     %3 = move %2
     %4 = const string(#1) :string
-    intrinsic builder.append_str(%3, %4)
-    intrinsic builder.append_display(%3, %1)
-    %5 = intrinsic builder.finish(%3)
-    call std_io$std_io$println__string(%5) :void
-    %6 = const int(0) :i32
-    return %6
+    call append(%3, %4) :void
+    %5 = call std_core$i32$Display$to_string(%1) :string
+    call append(%3, %5) :void
+    %6 = call std_string_builder$StringBuilder$Display$to_string(%3) :string
+    call std_io$std_io$println__string(%6) :void
+    %7 = const int(0) :i32
+    return %7

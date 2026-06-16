@@ -31,15 +31,17 @@ export DiscoveredModule :: struct {
     files:  string[]
 }
 
-/// Name-indexed module table. Keyed by the `module "name"` decl.
-/// Same key shape as the import path in `import "name"`, so import
-/// resolution is a direct lookup.
-export ModuleIndex :: MutableMap(string, DiscoveredModule)
-
 /// Walk each scoped root, header-parse every `.vader` file, bucket by
 /// folder + declared module name, emit R2020/R2022/R2023, and return
 /// the unified index.
-export discover_modules :: fn(roots: string[], diags: Diagnostic[]) -> ModuleIndex {
+///
+/// @return  a name-indexed module table keyed by the `module "name"` decl —
+///          same key shape as the `import "name"` path, so import resolution
+///          is a direct lookup. (Inlined `MutableMap<string, DiscoveredModule>`
+///          rather than a named alias : Vader has no const-alias form for a
+///          concrete generic instantiation — type params are angle-only and
+///          `<...>` doesn't parse in a const-RHS expression position.)
+export discover_modules :: fn(roots: string[], diags: Diagnostic[]) -> MutableMap<string, DiscoveredModule> {
     folder_buckets :: MutableMap<string, FolderBucket> {}
     for root in roots { walk_root(root, folder_buckets, diags) }
 

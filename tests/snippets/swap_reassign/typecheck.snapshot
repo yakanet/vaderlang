@@ -1,0 +1,52 @@
+# Typecheck
+
+## tests/snippets/swap_reassign
+  FnDecl         main                 :: fn() -> i32
+  expr 21:10    IdentExpr      :: i32
+  expr 22:5     IdentExpr      :: i32
+  expr 22:9     IdentExpr      :: i32
+  expr 23:5     IdentExpr      :: i32
+  expr 23:9     IdentExpr      :: i32
+  expr 24:13    StringLitExpr  :: string
+  expr 24:23    IdentExpr      :: i32
+  expr 24:30    IdentExpr      :: i32
+  expr 24:5     CallExpr       :: void
+  expr 24:5     IdentExpr      :: fn(T) -> void
+  expr 29:14    RangeExpr      :: Range<i32>
+  expr 30:14    BinaryExpr     :: i32
+  expr 30:14    IdentExpr      :: i32
+  expr 30:19    IdentExpr      :: i32
+  expr 31:14    IdentExpr      :: i32
+  expr 31:9     IdentExpr      :: i32
+  expr 32:14    IdentExpr      :: i32
+  expr 32:9     IdentExpr      :: i32
+  expr 34:13    StringLitExpr  :: string
+  expr 34:23    IdentExpr      :: i32
+  expr 34:32    IdentExpr      :: i32
+  expr 34:5     CallExpr       :: void
+  expr 34:5     IdentExpr      :: fn(T) -> void
+  expr 40:13    IdentExpr      :: i32
+  expr 41:5     IdentExpr      :: i32
+  expr 41:9     IdentExpr      :: i32
+  expr 42:5     IdentExpr      :: i32
+  expr 42:9     IdentExpr      :: i32
+  expr 43:5     IdentExpr      :: i32
+  expr 43:9     IdentExpr      :: i32
+  expr 44:13    StringLitExpr  :: string
+  expr 44:25    IdentExpr      :: i32
+  expr 44:32    IdentExpr      :: i32
+  expr 44:39    IdentExpr      :: i32
+  expr 44:5     CallExpr       :: void
+  expr 44:5     IdentExpr      :: fn(T) -> void
+  expr 49:14    RangeExpr      :: Range<i32>
+  expr 50:14    BinaryExpr     :: u64
+  expr 50:14    IdentExpr      :: u64
+  expr 50:19    IdentExpr      :: u64
+  expr 51:14    IdentExpr      :: u64
+  expr 51:9     IdentExpr      :: u64
+  expr 52:14    IdentExpr      :: u64
+  expr 52:9     IdentExpr      :: u64
+  expr 54:13    StringLitExpr  :: string
+  expr 54:25    IdentExpr      :: u64
+  expr 54:5     CallExpr       :: void
+  expr 54:5     IdentExpr      :: fn(T) -> void

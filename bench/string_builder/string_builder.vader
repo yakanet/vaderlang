@@ -10,7 +10,6 @@ module "main"
 
 import "std/io" { println }
 import "std/string_builder" { new_builder, append }
-import "std/string" { bytes }
 
 N :: 80_000
 FRAGMENT :: "The quick brown fox jumps over the lazy dog.\n"

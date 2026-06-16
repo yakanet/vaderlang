@@ -148,12 +148,28 @@ export display_value :: fn(value: ComptimeValue) -> string = match value {
     is TypeValue   as x -> display_type(x.value)
 }
 
+// Arrays longer than this are truncated in the dump: a comptime snapshot
+// verifies that evaluation produced an array of the right shape, not the exact
+// payload of a large data table (e.g. std/core's Ryu power-of-5 tables, the
+// crypto round-constant tables) — inlining all ~1300 entries into the 276
+// prelude-bearing snapshots would bloat them by megabytes. The head elements +
+// the total length stay visible; the exact values are checked by the table
+// generators and `tools/dtoa_roundtrip_check.py`.
+ARRAY_DISPLAY_CAP  :: 16   // truncate arrays longer than this ...
+ARRAY_DISPLAY_HEAD :: 8    // ... showing this many leading elements + the count
+
 render_array :: fn(array: ArrayValue) -> string {
     sb := new_builder()
     sb.append_char('[')
-    for i in 0..<array.elements.len() {
+    n :: array.elements.len()
+    truncated :: n > usize(ARRAY_DISPLAY_CAP)
+    shown :: if truncated { usize(ARRAY_DISPLAY_HEAD) } else { n }
+    for i in 0..<shown {
         if i > usize(0) { sb.append(", ") }
         sb.append(display_value(array.elements[i]))
+    }
+    if truncated {
+        sb.append(", ... ${n} elements")
     }
     sb.append_char(']')
     return sb.to_string()
@@ -209,6 +225,17 @@ import "std/testing" { assert_eq }
     elements: ComptimeValue[] = [int_val(1), int_val(2), int_val(3)]
     array_value :: ArrayValue { .elements = elements, .element_type_name = "i32" }
     assert_eq(display_value(array_value), "[1_i32, 2_i32, 3_i32]")
+}
+
+@test test_display_array_truncated :: fn() -> void {
+    // Arrays longer than ARRAY_DISPLAY_CAP show the first 8 + the total length.
+    elements: ComptimeValue[] = []
+    for i in 0..<20 { elements.push(int_val(i64(i))) }
+    array_value :: ArrayValue { .elements = elements, .element_type_name = "i32" }
+    assert_eq(
+        display_value(array_value),
+        "[0_i32, 1_i32, 2_i32, 3_i32, 4_i32, 5_i32, 6_i32, 7_i32, ... 20 elements]",
+    )
 }
 
 @test test_display_struct :: fn() -> void {

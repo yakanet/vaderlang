@@ -1,7 +1,6 @@
 module "snippet"
 
 import "std/io" { println }
-import "std/string" { bytes }
 
 main :: fn() -> i32 {
     // Inline form : `s.bytes().len()` folds to the O(1) byte_len primitive

@@ -14,56 +14,60 @@ fn snippet$main() -> i32
     %7 $cast_7: Yield<char>
     %8 $field_8: char
     %9 c: char (local c)
-    %10 $intrinsic_10: ?
-    %11 __sb_2: ? (synthetic __sb_2)
-    %12 $intrinsic_12: string
-    %13 $k_13: string
+    %10 $call_10: StringBuilder
+    %11 __sb_2: StringBuilder (synthetic __sb_2)
+    %12 $call_12: string
+    %13 $call_13: string
     %14 $k_14: string
-    %15 $call_15: StringChars
-    %16 __iter_3: StringChars (synthetic __iter_3)
-    %17 $call_17: Yield<char> | null
-    %18 __step_4: Yield<char> | null (synthetic __step_4)
-    %19 $type_check_19: bool
-    %20 $cast_20: Yield<char>
-    %21 $field_21: char
-    %22 c: char (local c)
-    %23 $intrinsic_23: ?
-    %24 __sb_5: ? (synthetic __sb_5)
-    %25 $intrinsic_25: string
-    %26 $k_26: i32
-    %27 n: i32 (local n)
-    %28 $k_28: string
-    %29 $call_29: StringChars
-    %30 __iter_7: StringChars (synthetic __iter_7)
-    %31 $call_31: Yield<char> | null
-    %32 __step_8: Yield<char> | null (synthetic __step_8)
-    %33 $type_check_33: bool
-    %34 $cast_34: Yield<char>
-    %35 $field_35: char
-    %36 c: char (local c)
-    %37 $k_37: i32
-    %38 $add_38: i32
-    %39 $intrinsic_39: ?
-    %40 __sb_9: ? (synthetic __sb_9)
-    %41 $k_41: string
-    %42 $k_42: string
+    %15 $k_15: string
+    %16 $call_16: StringChars
+    %17 __iter_3: StringChars (synthetic __iter_3)
+    %18 $call_18: Yield<char> | null
+    %19 __step_4: Yield<char> | null (synthetic __step_4)
+    %20 $type_check_20: bool
+    %21 $cast_21: Yield<char>
+    %22 $field_22: char
+    %23 c: char (local c)
+    %24 $call_24: StringBuilder
+    %25 __sb_5: StringBuilder (synthetic __sb_5)
+    %26 $call_26: string
+    %27 $call_27: string
+    %28 $k_28: i32
+    %29 n: i32 (local n)
+    %30 $k_30: string
+    %31 $call_31: StringChars
+    %32 __iter_7: StringChars (synthetic __iter_7)
+    %33 $call_33: Yield<char> | null
+    %34 __step_8: Yield<char> | null (synthetic __step_8)
+    %35 $type_check_35: bool
+    %36 $cast_36: Yield<char>
+    %37 $field_37: char
+    %38 c: char (local c)
+    %39 $k_39: i32
+    %40 $add_40: i32
+    %41 $call_41: StringBuilder
+    %42 __sb_9: StringBuilder (synthetic __sb_9)
     %43 $k_43: string
-    %44 $call_44: usize
-    %45 $call_45: string
-    %46 $intrinsic_46: string
-    %47 $k_47: string
-    %48 $k_48: string
-    %49 $call_49: StringChars
-    %50 __iter_11: StringChars (synthetic __iter_11)
-    %51 $call_51: Yield<char> | null
-    %52 __step_12: Yield<char> | null (synthetic __step_12)
-    %53 $type_check_53: bool
-    %54 $cast_54: Yield<char>
-    %55 $field_55: char
-    %56 c: char (local c)
-    %57 $k_57: string
-    %58 $k_58: string
-    %59 $k_59: i32
+    %44 $call_44: string
+    %45 $k_45: string
+    %46 $k_46: string
+    %47 $call_47: const u8[]
+    %48 $len_48: usize
+    %49 $call_49: string
+    %50 $call_50: string
+    %51 $k_51: string
+    %52 $k_52: string
+    %53 $call_53: StringChars
+    %54 __iter_11: StringChars (synthetic __iter_11)
+    %55 $call_55: Yield<char> | null
+    %56 __step_12: Yield<char> | null (synthetic __step_12)
+    %57 $type_check_57: bool
+    %58 $cast_58: Yield<char>
+    %59 $field_59: char
+    %60 c: char (local c)
+    %61 $k_61: string
+    %62 $k_62: string
+    %63 $k_63: i32
   bb0:
     %0 = const string(#1) :string
     call std_io$std_io$println__string(%0) :void
@@ -79,11 +83,11 @@ fn snippet$main() -> i32
     %6 = type_check %5 is null
     cond_branch %6 ? bb4 : bb5
   bb3:
-    %13 = const string(#3) :string
-    call std_io$std_io$println__string(%13) :void
-    %14 = const string(#4) :string
-    %15 = call chars(%14) :StringChars
-    %16 = move %15
+    %14 = const string(#3) :string
+    call std_io$std_io$println__string(%14) :void
+    %15 = const string(#4) :string
+    %16 = call chars(%15) :StringChars
+    %17 = move %16
     branch -> bb7
   bb4:
     branch -> bb3
@@ -91,101 +95,105 @@ fn snippet$main() -> i32
     %7 = cast %5 :Yield<char>
     %8 = field_get %7.value :char
     %9 = move %8
-    %10 = intrinsic builder.new()
+    %10 = call new_builder() :StringBuilder
     %11 = move %10
-    intrinsic builder.append_display(%11, %9)
-    %12 = intrinsic builder.finish(%11)
-    call std_io$std_io$println__string(%12) :void
+    %12 = call std_core$char$Display$to_string(%9) :string
+    call append(%11, %12) :void
+    %13 = call std_string_builder$StringBuilder$Display$to_string(%11) :string
+    call std_io$std_io$println__string(%13) :void
     branch -> bb6
   bb6:
     branch -> bb1
   bb7:
     branch -> bb8
   bb8:
-    %17 = call std_string$StringChars$Iterator$next(%16) :Yield<char> | null
-    %18 = move %17
-    %19 = type_check %18 is null
-    cond_branch %19 ? bb10 : bb11
+    %18 = call std_string$StringChars$Iterator$next(%17) :Yield<char> | null
+    %19 = move %18
+    %20 = type_check %19 is null
+    cond_branch %20 ? bb10 : bb11
   bb9:
-    %26 = const int(0) :i32
-    %27 = move %26
-    %28 = const string(#5) :string
-    %29 = call chars(%28) :StringChars
-    %30 = move %29
+    %28 = const int(0) :i32
+    %29 = move %28
+    %30 = const string(#5) :string
+    %31 = call chars(%30) :StringChars
+    %32 = move %31
     branch -> bb13
   bb10:
     branch -> bb9
   bb11:
-    %20 = cast %18 :Yield<char>
-    %21 = field_get %20.value :char
-    %22 = move %21
-    %23 = intrinsic builder.new()
-    %24 = move %23
-    intrinsic builder.append_display(%24, %22)
-    %25 = intrinsic builder.finish(%24)
-    call std_io$std_io$println__string(%25) :void
+    %21 = cast %19 :Yield<char>
+    %22 = field_get %21.value :char
+    %23 = move %22
+    %24 = call new_builder() :StringBuilder
+    %25 = move %24
+    %26 = call std_core$char$Display$to_string(%23) :string
+    call append(%25, %26) :void
+    %27 = call std_string_builder$StringBuilder$Display$to_string(%25) :string
+    call std_io$std_io$println__string(%27) :void
     branch -> bb12
   bb12:
     branch -> bb7
   bb13:
     branch -> bb14
   bb14:
-    %31 = call std_string$StringChars$Iterator$next(%30) :Yield<char> | null
-    %32 = move %31
-    %33 = type_check %32 is null
-    cond_branch %33 ? bb16 : bb17
+    %33 = call std_string$StringChars$Iterator$next(%32) :Yield<char> | null
+    %34 = move %33
+    %35 = type_check %34 is null
+    cond_branch %35 ? bb16 : bb17
   bb15:
-    %39 = intrinsic builder.new()
-    %40 = move %39
-    %41 = const string(#6) :string
-    intrinsic builder.append_str(%40, %41)
-    intrinsic builder.append_display(%40, %27)
-    %42 = const string(#7) :string
-    intrinsic builder.append_str(%40, %42)
-    %43 = const string(#5) :string
-    %44 = call byte_len(%43) :usize
-    %45 = call std_core$usize$Display$to_string(%44) :string
-    intrinsic builder.append_str(%40, %45)
-    %46 = intrinsic builder.finish(%40)
-    call std_io$std_io$println__string(%46) :void
-    %47 = const string(#8) :string
-    call std_io$std_io$println__string(%47) :void
-    %48 = const string(#9) :string
-    %49 = call chars(%48) :StringChars
-    %50 = move %49
+    %41 = call new_builder() :StringBuilder
+    %42 = move %41
+    %43 = const string(#6) :string
+    call append(%42, %43) :void
+    %44 = call std_core$i32$Display$to_string(%29) :string
+    call append(%42, %44) :void
+    %45 = const string(#7) :string
+    call append(%42, %45) :void
+    %46 = const string(#5) :string
+    %47 = call bytes(%46) :const u8[]
+    %48 = array_len %47
+    %49 = call std_core$usize$Display$to_string(%48) :string
+    call append(%42, %49) :void
+    %50 = call std_string_builder$StringBuilder$Display$to_string(%42) :string
+    call std_io$std_io$println__string(%50) :void
+    %51 = const string(#8) :string
+    call std_io$std_io$println__string(%51) :void
+    %52 = const string(#9) :string
+    %53 = call chars(%52) :StringChars
+    %54 = move %53
     branch -> bb19
   bb16:
     branch -> bb15
   bb17:
-    %34 = cast %32 :Yield<char>
-    %35 = field_get %34.value :char
-    %36 = move %35
-    %37 = const int(1) :i32
-    %38 = binop 0 %27 %37 :i32
-    %27 = move %38
+    %36 = cast %34 :Yield<char>
+    %37 = field_get %36.value :char
+    %38 = move %37
+    %39 = const int(1) :i32
+    %40 = binop 0 %29 %39 :i32
+    %29 = move %40
     branch -> bb18
   bb18:
     branch -> bb13
   bb19:
     branch -> bb20
   bb20:
-    %51 = call std_string$StringChars$Iterator$next(%50) :Yield<char> | null
-    %52 = move %51
-    %53 = type_check %52 is null
-    cond_branch %53 ? bb22 : bb23
+    %55 = call std_string$StringChars$Iterator$next(%54) :Yield<char> | null
+    %56 = move %55
+    %57 = type_check %56 is null
+    cond_branch %57 ? bb22 : bb23
   bb21:
-    %58 = const string(#11) :string
-    call std_io$std_io$println__string(%58) :void
-    %59 = const int(0) :i32
-    return %59
+    %62 = const string(#11) :string
+    call std_io$std_io$println__string(%62) :void
+    %63 = const int(0) :i32
+    return %63
   bb22:
     branch -> bb21
   bb23:
-    %54 = cast %52 :Yield<char>
-    %55 = field_get %54.value :char
-    %56 = move %55
-    %57 = const string(#10) :string
-    call std_io$std_io$println__string(%57) :void
+    %58 = cast %56 :Yield<char>
+    %59 = field_get %58.value :char
+    %60 = move %59
+    %61 = const string(#10) :string
+    call std_io$std_io$println__string(%61) :void
     branch -> bb24
   bb24:
     branch -> bb19

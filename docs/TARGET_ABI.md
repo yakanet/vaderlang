@@ -12,8 +12,12 @@ each backend must provide. Everything above the ABI is written **once in
 Vader** (stdlib) and compiled to the ABI, so a new target only implements the
 primitives.
 
-This is a design note / roadmap — no code is changed by it. Architectural
-decisions here are reviewed with the user before implementation
+This started as a design note / roadmap ; most of it has since shipped
+(`feat/target-abi`, stages S0–S7). The Builder, String, and number-format
+families are off the per-target runtime ; the Array family is open-coded in
+c-emit over the kept storage layout. See **"Achieved end state (2026-06-14)"**
+under the Phased plan for the realized surface and what is kept by design.
+Architectural decisions here are reviewed with the user before implementation
 (`.claude/CLAUDE.md` §8).
 
 ## Two kinds of "intrinsic"
@@ -52,11 +56,13 @@ flow (`Block`/`Loop`/`If`/`Branch`/`Return`/`Drop`), and calls (`Call`,
 backend lowers these directly — irreducible by definition.
 
 ### 2. Memory + GC
-`vader_gc_alloc(size, type_id)`, `vader_write_barrier`, collect / minor / major,
-the shadow-stack frame (`vader_gc_frame_t`), and the per-type GC metadata table
-(`vader_type_info_table`). **The GC cannot trace itself in Vader** — it stays
-primitive. This is the foundation every higher-level data structure allocates
-through.
+`vader_gc_alloc(size)` + the separate `vader_obj_header_init(obj, type_id)`
+(two steps — **not** a fused `vader_gc_alloc(size, type_id)`; the runtime has no
+such symbol, `vader.h:530` + `vader.h:299`), `vader_write_barrier`, collect /
+minor / major, the shadow-stack frame (`vader_gc_frame_t`), and the per-type GC
+metadata table (`vader_type_info_table`). **The GC cannot trace itself in Vader**
+— it stays primitive. This is the foundation every higher-level data structure
+allocates through.
 
 ### 3. Value representation
 `vader_box_t` (tagged union) + `vader_box_*` constructors, the nullable-ref
@@ -92,15 +98,21 @@ opcodes** that address memory as `(GC-object-handle, integer-offset)`, never as
 an absolute machine address:
 
 ```
-obj_alloc  (size, type_id)        -> obj   // GC-allocate (generalizes StructNew / ArrayNew)
-load_u8    (obj, off)             -> u8    // raw byte read at a byte offset
-store_u8   (obj, off, v: u8)              // raw byte write
-load_i32 / load_i64 / load_f64    (obj, off)         // typed reads at a byte offset
-store_i32 / store_i64 / store_f64 (obj, off, v)      // typed writes
-load_slot  (obj, i)              -> box    // boxed-slot read
-store_slot (obj, i, v: box)               // boxed-slot write — fires the write-barrier
-mem_copy   (dst, dst_off, src, src_off, n)           // bulk byte copy (obj→obj)
+object_new  (size, type_id)        -> obj   // GC-allocate a fresh object (generalizes StructNew / ArrayNew)
+load_u8     (obj, off)             -> u8    // raw byte read at a byte offset
+store_u8    (obj, off, v: u8)              // raw byte write
+load_i32 / load_i64 / load_f64     (obj, off)         // typed reads at a byte offset
+store_i32 / store_i64 / store_f64  (obj, off, v)      // typed writes
+load_slot   (obj, i)              -> box    // boxed-slot read
+store_slot  (obj, i, v: box)               // boxed-slot write — fires the write-barrier
+memory_copy (dst, dst_off, src, src_off, n)           // bulk byte copy (obj→obj)
 ```
+
+Names spell out per the Vader no-abbreviation rule (`.claude/CLAUDE.md` §5):
+`object_new` (not `obj_alloc` — `ObjectNew` mirrors `ArrayNew`/`StructNew`),
+`memory_copy` (not `mem_copy`). PascalCode opcode variants: `ObjectNew`,
+`LoadU8`/`LoadI32`/`LoadI64`/`LoadF64`, `StoreU8`/`StoreI32`/`StoreI64`/`StoreF64`,
+`LoadSlot`, `StoreSlot`, `MemoryCopy`.
 
 **These are GC-safe under the moving Cheney collector.** The base is always a
 GC-traced object handle (relocated + rewritten by the collector), the offset is
@@ -108,9 +120,39 @@ a plain integer, and the real address is materialized *transiently* inside the
 single opcode — never stored in a local across an allocation / safepoint. The
 borrowed-view model already relies on exactly this : a slice holds
 `(owner_obj, offset, len)`, not a raw pointer (`vader_array_make_borrowed`).
-`store_slot` fires the write-barrier ; `obj_alloc` carries the `type_id` so the
+`store_slot` fires the write-barrier ; `object_new` carries the `type_id` so the
 GC traces boxed slots and skips primitive ones (the `vader_array_kind_t`
 discriminator today).
+
+**Operand convention (S0 freeze, decision D2).** `object_new` takes `type_id` as
+an **immediate** (a compile-time constant — for a `Buffer` it is the dedicated
+`VADER_TYPE_INDEX_BUFFER` sentinel, decision D3) and `size` on the stack ;
+**every other opcode is all-stack** (`obj`, `off`/`i`, value, `n`). So only
+`object_new` needs a dedicated lowering arm (it mirrors `ArrayNew{type_id}`) ;
+the GC therefore reads a static `type_id`, never a runtime-trusted one. C
+lowering of `object_new` is the two-step `vader_gc_alloc(size)` +
+`vader_obj_header_init(obj, type_id)` inline — **no new `vader_*` symbol** (D1).
+
+**Stack effects (S0 freeze).** Operands listed left-to-right = push order; the
+opcode pops them in reverse. `imm` = inline immediate (not a stack pop).
+
+| opcode | immediate | pops (→ top last) | pushes | notes |
+|--------|-----------|-------------------|--------|-------|
+| `ObjectNew`  | `type_id` | `size: usize` | `obj` | `vader_gc_alloc(size)` + `vader_obj_header_init(obj, type_id)` |
+| `LoadU8`     | — | `obj, off: usize` | `u8` | byte read |
+| `LoadI32`    | — | `obj, off: usize` | `i32` | typed read at byte offset |
+| `LoadI64`    | — | `obj, off: usize` | `i64` | |
+| `LoadF64`    | — | `obj, off: usize` | `f64` | |
+| `StoreU8`    | — | `obj, off, v: u8`  | — | byte write |
+| `StoreI32`   | — | `obj, off, v: i32` | — | **no** write-barrier (primitive) |
+| `StoreI64`   | — | `obj, off, v: i64` | — | no barrier |
+| `StoreF64`   | — | `obj, off, v: f64` | — | no barrier |
+| `LoadSlot`   | — | `obj, i: usize` | `box` | boxed-slot read (`i` = slot index) |
+| `StoreSlot`  | — | `obj, i, v: box` | — | boxed-slot write — **fires `VADER_WRITE_BARRIER(obj)`** (G2) |
+| `MemoryCopy` | — | `dst, dst_off, src, src_off, n` | — | bulk byte copy obj→obj (lowers to `memcpy`) |
+
+G1 applies to every accessor: the real address is re-derived from `obj` at the
+opcode, never hoisted into a local across an allocation/safepoint.
 
 **The frontend stays pointer-free** (your constraint). These opcodes are *not*
 surfaced in the Vader language. The stdlib works against an abstract `Buffer`
@@ -122,9 +164,20 @@ and users write safe Vader ; only the lowerer emits memory opcodes. `rawptr` +
 **Why opcodes, not runtime functions** : an opcode *is* the per-target contract
 — each backend implements it inline (VM: index into the object ; C-emit:
 `((T*)hdr->buf)[i]` ; WASM: `i32.load` / `i32.store`). So `array` / `string` /
-`builder` collapse to **zero** `vader_*` runtime functions rather than relocated
-ones — strictly better for the multi-target surface than the runtime-function
-form first sketched here.
+`builder` collapse to **zero** out-of-line `vader_*` runtime functions rather
+than relocated ones — strictly better for the multi-target surface than the
+runtime-function form first sketched here.
+
+**C-emit realization (convention).** The C backend emits each memory opcode as a
+**`static inline vader_*` helper in `vader.h`** — `vader_object_new`,
+`vader_load_i32`/`…`, `vader_store_slot`, `vader_memory_copy`, … — matching the
+existing inline accessors (`vader_box_i32`, `vader_array_len`,
+`vader_obj_header_init`). `static inline` emits **no linkage symbol** (it inlines
+into every TU at `-O3` — the POC's fast same-TU path, not the slow cross-TU one),
+so this does **not** grow the runtime ABI surface ; it is the opcode's named
+inline expansion. Naming the helpers (vs open-coding `((T*)…)[i]` at each emit
+site) **centralizes the G1 re-derive and the G2 `VADER_WRITE_BARRIER` in one
+audited place per opcode**, so the barrier can't be forgotten at a call site.
 
 ### 6. One raw write + the platform syscalls
 `vader_write(stream, ptr, len)` is the single output primitive. Everything else
@@ -156,28 +209,92 @@ first move.
 
 ## Phased plan
 
-Low risk first ; each phase is independently shippable.
+Low risk first ; each phase is independently shippable. (Implementation shipped
+as finer stages S0–S7 on `feat/target-abi` ; the per-phase status below maps
+them back to these four phases. The detailed stage log lives in the local plan
+`.claude/plans/target-abi-migration.md`.)
 
 - **Phase 0 — Document the ABI (this doc).** Freeze the primitive list. No code.
+  **✅ DONE.**
 - **Phase 1 — Number formatting → Vader.** Reimplement `Display` for the
   primitive numerics (`i8..i64`, `u8..u64`, `f32`, `f64`, `bool`, `char`) in
   `std` over byte append. Collapses the `vader_builder_append_display_*` family.
-  Pure arithmetic, no GC/ABI change — needs only string-concat or a byte sink.
-  **Do this first.**
+  **✅ DONE (S0/S1 + the §1.13 Ryū `f64`/`f32` shortest-double port).** All
+  numeric `Display` is pure Vader ; the 9 `vader_builder_append_display_*`
+  helpers are gone.
 - **Phase 2 — Memory opcodes + StringBuilder.** Add the `(object, offset)`
   load/store opcodes to the ABI (VM + C-emit) + the abstract `Buffer` type whose
   `@intrinsic` methods lower to them. Reimplement `std/string_builder` in Vader
   over `Buffer`. Retire the `Builder*` opcodes + `vader_builder_*`.
+  **✅ DONE (S2/S2b/S3/S4).** 12 memory opcodes shipped ; `Buffer` (an opaque
+  handle, raw ops are `@intrinsic`-marked impl members — the front-end never
+  forms a pointer) ; StringBuilder + interpolation run over it ; the four
+  `Builder*` opcodes + `vader_builder_*` runtime deleted outright (D10).
 - **Phase 3 — Array ops → Vader.** `push/get/set/len/slice` over the memory
   opcodes (+ bounds checks, grow, slice-as-aliasing-header). Retire the `Array*`
   opcodes + most `vader_array_*`. Gated on the inliner (see caveats).
+  **✅ DONE — accessors retired (S5/A2 + C2 + op B + Inc1-4).** The "all-or-
+  nothing Array-over-Buffer per array" design was NOT what shipped — instead the
+  accessors are **open-coded in c-emit over the existing `vader_array_t` layout**,
+  which keeps the
+  runtime-kind-tagged storage that lets erased generic code interoperate with
+  concrete code. Shipped: `arr[i]`/`arr[i]=v` for concrete primitive widths
+  (i32/u32/char/i64/u64/usize/f64) → typed `LoadSlot*`/`StoreSlot*` (A2) ;
+  array-literal construction fills those same kinds via a typed raw store (C2) ;
+  `len` open-coded as the header read ; **boxed (ref/struct/string/Any) access
+  inlined** to `vader_array_box_slots(buf)[i]` (op B) ; **boxed construction**
+  fills the box slots inline, no barrier — the buf is freshly young (Inc1) ;
+  **sub-word** (u8/i8/bool/u16/i16/f32) access + construction open-coded as typed
+  slot reads/writes, the borrowed `bytes()` u8 view read via a `static inline
+  vader_array_read_u8` (Inc2/Inc3). The soundness boundary that forced the
+  static-kind dispatch: an array's runtime `element_kind` is fixed at
+  construction, so a static-type-directed slot read is unsound under erasure
+  unless static kind == runtime kind — C2/Inc2 establish that (probe-verified
+  240k→0, plus a box_slots-on-BOXED audit clean across every kind). With every
+  `arr[i]`/`arr[i]=v` open-coded, **`vader_array_get` / `vader_array_set` (+ the
+  static `vader_array_load_slot`) are now DELETED from the runtime (Inc4)** — the
+  4 internal callers (`string.as_string`, `spawn`) rewritten to read the layout
+  directly. Kept (GC-coupled construction primitives): `vader_array_push`/`slice`/
+  `new` + `store_slot`/`box_slots`/`resolve`/`make_borrowed`/…. The `Array*` midir
+  ops stay (they lower to the open-coded c-emit, not to a runtime call).
 - **Phase 4 — String ops → Vader.** `concat` / `slice` / `hash` over the memory
   opcodes and `bytes()`, interning the result on finish. Keep the atom table +
   `==` primitive.
+  **✅ DONE (S6/S7).** `hash` = pure-Vader FNV-1a-64 over `bytes()` ; `concat`
+  (`+` and `.add()`) = a Buffer-backed StringBuilder chain (no dedicated op) ;
+  the `StringConcat` op + `vader_string_concat`/`hash`/`eq`/`byte_at` + the
+  byte-slice `vader_string_slice` + `vader_string_concat_all` are all deleted.
+  `slice` (`s[lo..<hi]`) is **kept primitive** — it is a codepoint atom-slice
+  aliasing the parent atom (zero-copy, intern-deduped), strictly better than a
+  Buffer copy + re-intern ; `==` stays an O(1) atom-id compare.
 
-End state : the per-target runtime drops from ~200 functions to the ABI (≈15
-primitives + the opcode set + the platform-syscall file). A new target
-implements the ABI and gets the whole stdlib for free.
+### Achieved end state (2026-06-14)
+
+The Builder, String, and number-format families are **fully off the per-target
+runtime**, and the Array **accessors** now are too : every `arr[i]` / `arr[i] = v`
+/ literal fill / `len` is open-coded in c-emit over the kept `vader_array_t`
+layout (typed slots inline, boxed via `vader_array_box_slots` + the write barrier,
+u8 via the `static inline vader_array_read_u8`), so `vader_array_get` /
+`vader_array_set` / `vader_array_load_slot` are **deleted** — no out-of-line,
+element-kind-dispatched accessor remains. The kept `vader_array_t` storage + its
+construction/GC primitives stay : that runtime-kind-tagged + boxed-API
+representation is what lets erased and concrete generic code share one array,
+and `push`/`slice`/`new` are GC-coupled (grow rooting, borrowed-view packing).
+
+What is genuinely retired (deleted from `runtime/c`): the 9 `vader_builder_*` +
+4 `Builder*` ops ; `vader_string_concat` / `vader_string_hash` /
+`vader_string_eq` / `vader_string_byte_at` / `vader_string_slice` (byte) /
+`vader_string_concat_all` + the `StringConcat` op ; the 9 number-format helpers ;
+and **`vader_array_get` / `vader_array_set` / `vader_array_load_slot`** (the Array
+accessor retirement, Inc1-4 — open-coded at every emit site).
+What is kept by design (§2/§4 primitives, NOT "unfinished retirement"): the
+`vader_array_t`/`vader_array_buf_t` storage + its GC-tracing internals
+(`store_slot`/`box_slots`/`make_borrowed`/`resolve`/`resolve_buf`/…),
+`vader_array_push`/`slice`/`new`/`len`, the atom table + `vader_atom_*`, the
+codepoint atom-slice `vader_string_slice_codepoints`, `vader_string_bytes_view`/
+`as_string`/`byte_len`/`codepoint_at`/`parse_float`, and the platform-syscall
+file. A new target implements the ABI (the opcode set + memory opcodes + the
+kept primitives + the syscall file) and gets the whole stdlib for free.
 
 ## Caveats (decide before implementing)
 
@@ -185,11 +302,77 @@ implements the ABI and gets the whole stdlib for free.
   the collector traces boxed slots and skips primitive ones — Vader code can't
   trace itself. `store_slot` must emit the write-barrier, exactly like
   `vader_array_store_slot` does today.
-- **Perf depends on inlining.** The dedicated `Array*` / `Builder*` opcodes
-  exist partly for **speed** (no call overhead on a hot path). Moving them to
-  Vader fns regresses unless the lowerer **inlines** these stdlib hot fns.
-  Phases 3-4 are gated on that inlining landing (cross-ref the iterator
-  devirt / inliner work). Phase 1 is unaffected (formatting isn't that hot).
+- **Perf on the native target — measured, the move is a win, not a risk**
+  (`poc/target-abi/`, 2026-06-07, Apple M3 Max / clang 21, release `-O3
+  -DNDEBUG`). The POC links the real runtime and benchmarks `i32[]` get/set,
+  boxed `string[]` get/set, StringBuilder append, and `i64→string` against
+  hand-emitted memory-opcode variants. Findings :
+  - The dominant cost in today's data-structure access is **not** call overhead
+    per se — it is the 24-byte `vader_box_t` round-trip + the 13-way
+    `element_kind` switch inside the out-of-line `vader_array_*` helpers. The
+    generic memory opcodes delete both (the opcode carries the type ; a raw
+    `i32` flows instead of a box). So **even with zero inlining** the ABI path
+    is ~1.9× (read) / ~2.5× (write) faster than the current runtime call.
+  - The "regresses unless the *lowerer* inlines" worry **does not hold for C** :
+    the rewritten stdlib is Vader compiled into the *same translation unit* as
+    its callers, so the **C compiler inlines it for free at `-O3`** (and then
+    auto-vectorizes primitive loops, which an opaque per-element runtime call
+    can never do). The Vader-side inliner becomes a nice-to-have, not a gate.
+  - "Just enable LTO" is **not** a substitute — LTO barely moves the current
+    path (the box + switch survive inlining) ; the ABI wins by removing that
+    work. Boxed arrays gain less (box copy + write-barrier stay in both paths)
+    but still don't regress. Phase 1 (number formatting) is ~2.2× faster as a
+    plain Vader digit-emit.
+
+  Not covered by the perf POC (still to weigh) : the **VM** backend (it indexes
+  a boxed `Value[]` in both paths, so the gap is expected to be far smaller),
+  **cold / main-memory-bandwidth-bound** data (the POC loops are cache-resident,
+  so the vectorized read figure is a hot-data ceiling), and the perf of
+  `array.push` growth / `string.hash` in Vader / `mem_copy` lowering to `memcpy`.
+
+- **GC-safety of the memory opcodes — a lowering discipline, not a blocker**
+  (verified, `poc/target-abi/gc_safety.c`). Raw pointers are never exposed on
+  the frontend — they exist only inside the opcode lowering, which the compiler
+  controls — so the safety rule below is enforceable *by construction*. Under
+  the moving Cheney collector an interior pointer into a GC object (what
+  `load_i32(obj, off)` computes) is valid only until the next safepoint. The POC forces a minor collection that relocates a
+  rooted object and shows a hoisted interior pointer reading a *reused* region
+  (the churn sentinel `0x5A5A5A`), while re-deriving the address from the rooted
+  handle stays correct. **Design rule the lowering MUST enforce** : `load_*` /
+  `store_*` / `mem_copy` re-derive their address from `obj` (the SSA value the
+  c_emit already spills/reloads across calls) at point of use — never hoist the
+  base into a Vader local that survives an allocation. The "frontend stays
+  pointer-free" constraint makes this enforceable (a base can only leak via a
+  lowerer/optimizer hoist). Corollary : base-hoisting is legal only in a
+  provably **allocation-free** loop ; `push` / builder-grow / transform-into
+  loops must re-resolve each iteration (so the bench's `v4`/`v4b` ceiling applies
+  only to alloc-free loops — allocating loops land near `v3`).
+
+- **`store_slot` must fire the write barrier** (verified G2,
+  `poc/target-abi/gc_barrier.c`). A `store_slot` of a young ref into an old
+  object is invisible to a minor collection unless the generational barrier marks
+  the old object's card. The POC promotes a holder to old, stores a young cell
+  into its slot, runs a minor : with the barrier the cell survives (111), without
+  it is reclaimed and the slot reads the churn sentinel (use-after-free). This is
+  the class of bug already shipped once (`project_selfhost_gc_rooting_bug`).
+  Design rule : `store_slot(obj, i, box)` emits `VADER_WRITE_BARRIER(obj)` on the
+  slot-holding object ; the typed primitive stores (`store_i32`/…) must NOT (no
+  ref → no old→young edge) — the stdlib picks the opcode per element kind.
+
+- **push / hash / mem_copy measured — no regression** (`poc/target-abi/bench_more.c`,
+  `-O3`). `array.push` + growth : `vader_array_push` 9.9 ns/push → ABI
+  obj_alloc+mem_copy+store **2.98 ns/push** (~3.3× — same box+switch+cross-TU
+  saving as get/set ; push being a hot path is not a regression risk).
+  `string.hash` : moving FNV-1a 64-bit to a Vader byte loop over `bytes()` is the
+  identical algorithm and **parity** (9.1 → 8.6 ns/hash, identical results) — so
+  MutableMap (~71% of the self-compile) is not at risk. `mem_copy` : at `-O3` the
+  C compiler vectorizes even a naive byte loop (only 1.2× off `memcpy`), but lower
+  it to `memcpy` anyway — the gap widens at `-O0` and with per-byte bounds checks.
+
+- Still open (no POC) : G3 rooting of in-flight temporaries during a Vader
+  `push`'s `obj_alloc` (the model re-resolves correctly but wasn't stressed under
+  a real mid-grow collection), G4 `type_id`/`ptr_offsets` sync for a hand-laid-out
+  `Buffer` (a discipline, not benchmarkable in isolation).
 - **Don't move the intern table** — `string ==` is O(1) only because of atom
   interning. Keep §4 primitive ; only move string *operations* that don't
   touch intern internals.
@@ -213,3 +396,5 @@ implements the ABI and gets the whole stdlib for free.
 - Comptime intrinsics : `vader/comptime/intrinsic.vader`
 - Already-pure stdlib : `stdlib/std/sort`, `stdlib/std/utf8`
 - View model (slice aliasing) : `docs/ARRAY_STRING_VIEW_DESIGN.md`
+- Native perf POC : `poc/target-abi/` (`bench.c` + `run.sh` ; results +
+  verdict in its `README.md`)

@@ -37,11 +37,13 @@ fn snippet$main() -> i32
     %6 $struct_6: Box
     %7 $call_7: i32
     %8 miss: i32 (local miss)
-    %9 $intrinsic_9: ?
-    %10 __sb_0: ? (synthetic __sb_0)
+    %9 $call_9: StringBuilder
+    %10 __sb_0: StringBuilder (synthetic __sb_0)
     %11 $k_11: string
-    %12 $k_12: string
-    %13 $intrinsic_13: string
+    %12 $call_12: string
+    %13 $k_13: string
+    %14 $call_14: string
+    %15 $call_15: string
   bb0:
     %0 = const int(7) :i32
     %1 = struct_new Inner(%0)
@@ -52,14 +54,16 @@ fn snippet$main() -> i32
     %6 = struct_new Box(%5)
     %7 = call tag_of(%6) :i32
     %8 = move %7
-    %9 = intrinsic builder.new()
+    %9 = call new_builder() :StringBuilder
     %10 = move %9
-    %11 = const string(#1) :string
-    intrinsic builder.append_str(%10, %11)
-    intrinsic builder.append_display(%10, %4)
-    %12 = const string(#2) :string
-    intrinsic builder.append_str(%10, %12)
-    intrinsic builder.append_display(%10, %8)
-    %13 = intrinsic builder.finish(%10)
-    call std_io$std_io$println__string(%13) :void
+    %11 = const string(#2) :string
+    call append(%10, %11) :void
+    %12 = call std_core$i32$Display$to_string(%4) :string
+    call append(%10, %12) :void
+    %13 = const string(#3) :string
+    call append(%10, %13) :void
+    %14 = call std_core$i32$Display$to_string(%8) :string
+    call append(%10, %14) :void
+    %15 = call std_string_builder$StringBuilder$Display$to_string(%10) :string
+    call std_io$std_io$println__string(%15) :void
     return %4

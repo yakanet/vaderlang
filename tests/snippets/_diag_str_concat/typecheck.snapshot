@@ -1,0 +1,26 @@
+# Typecheck
+
+## tests/snippets/_diag_str_concat
+  FnDecl         main                 :: fn() -> i32
+  expr 10:10    BinaryExpr     :: string
+  expr 10:10    StringLitExpr  :: string
+  expr 10:15    IdentExpr      :: string
+  expr 11:13    IdentExpr      :: string
+  expr 11:5     CallExpr       :: void
+  expr 11:5     IdentExpr      :: fn(T) -> void
+  expr 4:10     StringLitExpr  :: string
+  expr 5:10     StringLitExpr  :: string
+  expr 6:10     BinaryExpr     :: string
+  expr 6:10     IdentExpr      :: string
+  expr 6:14     IdentExpr      :: string
+  expr 7:13     IdentExpr      :: string
+  expr 7:5      CallExpr       :: void
+  expr 7:5      IdentExpr      :: fn(T) -> void
+  expr 8:10     BinaryExpr     :: string
+  expr 8:10     BinaryExpr     :: string
+  expr 8:10     IdentExpr      :: string
+  expr 8:14     IdentExpr      :: string
+  expr 8:18     StringLitExpr  :: string
+  expr 9:13     IdentExpr      :: string
+  expr 9:5      CallExpr       :: void
+  expr 9:5      IdentExpr      :: fn(T) -> void

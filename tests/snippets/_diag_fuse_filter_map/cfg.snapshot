@@ -42,11 +42,12 @@ fn main$main() -> i32
     %9 $add_9: i64
     %10 $k_10: i32
     %11 $add_11: i32
-    %12 $intrinsic_12: ?
-    %13 __sb_1: ? (synthetic __sb_1)
+    %12 $call_12: StringBuilder
+    %13 __sb_1: StringBuilder (synthetic __sb_1)
     %14 $k_14: string
-    %15 $intrinsic_15: string
-    %16 $k_16: i32
+    %15 $call_15: string
+    %16 $call_16: string
+    %17 $k_17: i32
   bb0:
     %0 = const int(0) :i64
     %1 = move %0
@@ -61,15 +62,16 @@ fn main$main() -> i32
     %6 = call is_even(%3) :bool
     cond_branch %6 ? bb4 : bb5
   bb3:
-    %12 = intrinsic builder.new()
+    %12 = call new_builder() :StringBuilder
     %13 = move %12
-    %14 = const string(#1) :string
-    intrinsic builder.append_str(%13, %14)
-    intrinsic builder.append_display(%13, %1)
-    %15 = intrinsic builder.finish(%13)
-    call std_io$std_io$println__string(%15) :void
-    %16 = const int(0) :i32
-    return %16
+    %14 = const string(#2) :string
+    call append(%13, %14) :void
+    %15 = call std_core$i64$Display$to_string(%1) :string
+    call append(%13, %15) :void
+    %16 = call std_string_builder$StringBuilder$Display$to_string(%13) :string
+    call std_io$std_io$println__string(%16) :void
+    %17 = const int(0) :i32
+    return %17
   bb4:
     %7 = call square_i64(%3) :i64
     %8 = move %7

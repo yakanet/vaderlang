@@ -32,12 +32,19 @@ bench/mandelbrot/mandelbrot
 bench/map_iter/map_iter
 bench/primes/primes
 bench/string_builder/string_builder
+bench/arr_rw/arr_rw
+bench/arr_push/arr_push
+bench/str_concat/str_concat
+bench/interp/interp
 bench/poc_erasure/packed_inline_test/packed_inline_test
 bench/poc_erasure/vtable_emit_test/vtable_emit_test
 bench/poc_erasure/*/*.c
 bench/*_go
 bench/*.class
 *.dSYM/
+
+## POCs
+poc/
 
 # Snippet artefacts — left behind when a dev runs `vader build` directly on
 # a `tests/snippets/<name>/_main.vader` to inspect the native output. The

@@ -15,22 +15,22 @@ fn snippet$main() -> i32
     %8 $lt_8: bool
     %9 $idx_9: type
     %10 t: type (local t)
-    %11 $intrinsic_11: ?
-    %12 __sb_3: ? (synthetic __sb_3)
+    %11 $call_11: StringBuilder
+    %12 __sb_3: StringBuilder (synthetic __sb_3)
     %13 $k_13: string
     %14 $intrinsic_14: usize
     %15 $call_15: string
-    %16 $intrinsic_16: string
+    %16 $call_16: string
     %17 $k_17: usize
     %18 $add_18: usize
     %19 $arr_19: type[]
     %20 args: type[] (local args)
-    %21 $intrinsic_21: ?
-    %22 __sb_4: ? (synthetic __sb_4)
+    %21 $call_21: StringBuilder
+    %22 __sb_4: StringBuilder (synthetic __sb_4)
     %23 $k_23: string
     %24 $len_24: usize
     %25 $call_25: string
-    %26 $intrinsic_26: string
+    %26 $call_26: string
     %27 $k_27: i32
   bb0:
     %0 = type_const string
@@ -48,14 +48,14 @@ fn snippet$main() -> i32
   bb2:
     %9 = array_get %3[%7] :type
     %10 = move %9
-    %11 = intrinsic builder.new()
+    %11 = call new_builder() :StringBuilder
     %12 = move %11
     %13 = const string(#1) :string
-    intrinsic builder.append_str(%12, %13)
+    call append(%12, %13) :void
     %14 = intrinsic size_of.type(%10)
     %15 = call std_core$usize$Display$to_string(%14) :string
-    intrinsic builder.append_str(%12, %15)
-    %16 = intrinsic builder.finish(%12)
+    call append(%12, %15) :void
+    %16 = call std_string_builder$StringBuilder$Display$to_string(%12) :string
     call std_io$std_io$println__string(%16) :void
     %17 = const int(1) :usize
     %18 = binop 0 %7 %17 :usize
@@ -64,14 +64,14 @@ fn snippet$main() -> i32
   bb3:
     %19 = array_new type[][0]()
     %20 = move %19
-    %21 = intrinsic builder.new()
+    %21 = call new_builder() :StringBuilder
     %22 = move %21
     %23 = const string(#2) :string
-    intrinsic builder.append_str(%22, %23)
+    call append(%22, %23) :void
     %24 = array_len %20
     %25 = call std_core$usize$Display$to_string(%24) :string
-    intrinsic builder.append_str(%22, %25)
-    %26 = intrinsic builder.finish(%22)
+    call append(%22, %25) :void
+    %26 = call std_string_builder$StringBuilder$Display$to_string(%22) :string
     call std_io$std_io$println__string(%26) :void
     %27 = const int(0) :i32
     return %27

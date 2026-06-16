@@ -54,10 +54,23 @@ const WORKLOADS: readonly Workload[] = [
   { name: "binary_trees",   description: "balanced tree depth=17 (262 143 nodes)",   outputMatch: "binary_trees" },
   { name: "string_builder", description: "append a 45-char fragment 80 000 times",   outputMatch: "string_builder" },
   { name: "map_iter",       description: "1 000 outer × 1 000 inner map iter (1 M visits)", outputMatch: "map_iter" },
+  // Target-ABI micro-benches — Vader-only (no cross-language port). They isolate
+  // a single ABI primitive so a `main`-vs-branch run quantifies the migration
+  // (e.g. open-coded `arr[i]` vs the old boxed `vader_array_get`). Impls with no
+  // source file for the workload are skipped, so these show only the Vader column.
+  { name: "arr_rw",         description: "1024-elt i32[] read-modify-write, 100k passes",   outputMatch: "arr_rw" },
+  { name: "arr_push",       description: "20 M i32 pushes (200 × 100k), grow + GC churn",    outputMatch: "arr_push" },
+  { name: "str_concat",     description: "300k × build a 13-byte string by repeated +",      outputMatch: "str_concat" },
+  { name: "interp",         description: "200k × format 3 ints via ${} interpolation",       outputMatch: "interp" },
 ];
 
 interface Impl {
   readonly name: string;
+  /** Path (relative to the repo root) to this impl's source for a workload.
+   *  An impl whose source is absent is silently skipped for that workload —
+   *  this is how Vader-only ABI micro-benches (no `.ts` / `.go` / `.java`
+   *  port) coexist with the cross-language workloads in one table. */
+  source: (workload: string) => string;
   /** Optional one-shot build step. Runs once per workload up-front, before
    *  any timed runs ; all `build` invocations are scheduled together via
    *  `Promise.all` so independent compilers (Vader native + Go) can use
@@ -67,6 +80,11 @@ interface Impl {
   build?: (workload: string) => Promise<void>;
   /** Command + args to invoke for a single timed run. */
   run: (workload: string) => { cmd: string; args: readonly string[] };
+}
+
+/** True when `impl` has a source file for `workload` under the repo. */
+function implHasSource(impl: Impl, workload: string): boolean {
+  return existsSync(join(REPO, impl.source(workload)));
 }
 
 async function runBuild(cmd: string, args: readonly string[], label: string): Promise<void> {
@@ -102,20 +120,24 @@ const IMPLS: readonly Impl[] = [
   // },
   {
     name: "vader-native",
+    source: (w) => `bench/${w}/${w}.vader`,
     build: (w) => runBuild("./build/vader", ["build", "--target=native", "--release", `bench/${w}/${w}.vader`], `vader build for ${w}`),
     run: (w) => ({ cmd: `./bench/${w}/${w}`, args: [] }),
   },
   {
     name: "bun-ts",
+    source: (w) => `bench/${w}.ts`,
     run: (w) => ({ cmd: "bun", args: [`bench/${w}.ts`] }),
   },
   {
     name: "go",
+    source: (w) => `bench/${w}.go`,
     build: (w) => runBuild("go", ["build", "-o", `bench/${w}_go`, `bench/${w}.go`], `go build for ${w}`),
     run: (w) => ({ cmd: `./bench/${w}_go`, args: [] }),
   },
   {
     name: "java",
+    source: (w) => `bench/${w}.java`,
     // `javac --release 25 bench/<w>.java` writes `bench/<w>.class` (and
     // any nested-class files like `<w>$Node.class` for records) ; the
     // measured run uses `java -cp bench <w>` so each invocation skips the
@@ -236,6 +258,7 @@ async function buildAll(workloads: readonly Workload[]): Promise<void> {
   for (const w of workloads) {
     for (const impl of IMPLS) {
       if (!impl.build) continue;
+      if (!implHasSource(impl, w.name)) continue;
       tasks.push(impl.build(w.name));
     }
   }
@@ -255,6 +278,7 @@ async function main(): Promise<void> {
   const results: SampleResult[] = [];
   for (const w of workloads) {
     for (const impl of IMPLS) {
+      if (!implHasSource(impl, w.name)) continue;
       console.log(`# ${w.name}/${impl.name} ...`);
       const r = measure(impl, w, args.runs);
       results.push(r);

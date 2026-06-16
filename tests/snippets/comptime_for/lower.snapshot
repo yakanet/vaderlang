@@ -8,88 +8,156 @@
           std_io$std_io$println__string :void
         arg0:
           block :string
-            let __sb_0: ? =
-              @builder.new :?
-            @builder.append_str :void
-              __sb_0 :?
-              "type-arg size=" :string
-            @builder.append_str :void
-              __sb_0 :?
+            let __sb_0: StringBuilder =
+              call :StringBuilder
+                callee:
+                  new_builder :StringBuilder
+            call :void
+              callee:
+                append :void
+              arg0:
+                __sb_0 :StringBuilder
+              arg1:
+                "type-arg size=" :string
+            call :void
+              callee:
+                append :void
+              arg0:
+                __sb_0 :StringBuilder
+              arg1:
+                call :string
+                  callee:
+                    std_core$usize$Display$to_string :string
+                  arg0:
+                    int(4) :usize
+            ~>
               call :string
                 callee:
-                  std_core$usize$Display$to_string :string
+                  std_string_builder$StringBuilder$Display$to_string :string
                 arg0:
-                  int(4) :usize
-            ~>
-              @builder.finish :string
-                __sb_0 :?
+                  __sb_0 :StringBuilder
       call :void
         callee:
           std_io$std_io$println__string :void
         arg0:
           block :string
-            let __sb_1: ? =
-              @builder.new :?
-            @builder.append_str :void
-              __sb_1 :?
-              "type-arg size=" :string
-            @builder.append_str :void
-              __sb_1 :?
+            let __sb_1: StringBuilder =
+              call :StringBuilder
+                callee:
+                  new_builder :StringBuilder
+            call :void
+              callee:
+                append :void
+              arg0:
+                __sb_1 :StringBuilder
+              arg1:
+                "type-arg size=" :string
+            call :void
+              callee:
+                append :void
+              arg0:
+                __sb_1 :StringBuilder
+              arg1:
+                call :string
+                  callee:
+                    std_core$usize$Display$to_string :string
+                  arg0:
+                    int(16) :usize
+            ~>
               call :string
                 callee:
-                  std_core$usize$Display$to_string :string
+                  std_string_builder$StringBuilder$Display$to_string :string
                 arg0:
-                  int(16) :usize
-            ~>
-              @builder.finish :string
-                __sb_1 :?
+                  __sb_1 :StringBuilder
     block :void
       call :void
         callee:
           std_io$std_io$println__string :void
         arg0:
           block :string
-            let __sb_2: ? =
-              @builder.new :?
-            @builder.append_display <for string> :void
-              __sb_2 :?
-              "key" :string
-            @builder.append_str :void
-              __sb_2 :?
-              " size=" :string
-            @builder.append_str :void
-              __sb_2 :?
+            let __sb_2: StringBuilder =
+              call :StringBuilder
+                callee:
+                  new_builder :StringBuilder
+            call :void
+              callee:
+                append :void
+              arg0:
+                __sb_2 :StringBuilder
+              arg1:
+                call :string
+                  callee:
+                    std_core$string$Display$to_string :string
+                  arg0:
+                    "key" :string
+            call :void
+              callee:
+                append :void
+              arg0:
+                __sb_2 :StringBuilder
+              arg1:
+                " size=" :string
+            call :void
+              callee:
+                append :void
+              arg0:
+                __sb_2 :StringBuilder
+              arg1:
+                call :string
+                  callee:
+                    std_core$usize$Display$to_string :string
+                  arg0:
+                    int(4) :usize
+            ~>
               call :string
                 callee:
-                  std_core$usize$Display$to_string :string
+                  std_string_builder$StringBuilder$Display$to_string :string
                 arg0:
-                  int(4) :usize
-            ~>
-              @builder.finish :string
-                __sb_2 :?
+                  __sb_2 :StringBuilder
       call :void
         callee:
           std_io$std_io$println__string :void
         arg0:
           block :string
-            let __sb_3: ? =
-              @builder.new :?
-            @builder.append_display <for string> :void
-              __sb_3 :?
-              "value" :string
-            @builder.append_str :void
-              __sb_3 :?
-              " size=" :string
-            @builder.append_str :void
-              __sb_3 :?
+            let __sb_3: StringBuilder =
+              call :StringBuilder
+                callee:
+                  new_builder :StringBuilder
+            call :void
+              callee:
+                append :void
+              arg0:
+                __sb_3 :StringBuilder
+              arg1:
+                call :string
+                  callee:
+                    std_core$string$Display$to_string :string
+                  arg0:
+                    "value" :string
+            call :void
+              callee:
+                append :void
+              arg0:
+                __sb_3 :StringBuilder
+              arg1:
+                " size=" :string
+            call :void
+              callee:
+                append :void
+              arg0:
+                __sb_3 :StringBuilder
+              arg1:
+                call :string
+                  callee:
+                    std_core$usize$Display$to_string :string
+                  arg0:
+                    int(16) :usize
+            ~>
               call :string
                 callee:
-                  std_core$usize$Display$to_string :string
+                  std_string_builder$StringBuilder$Display$to_string :string
                 arg0:
-                  int(16) :usize
-            ~>
-              @builder.finish :string
-                __sb_3 :?
+                  __sb_3 :StringBuilder
     return int(0) :i32
-  struct snippet$Pair__i32__string { key: Any, value: Any }
+  struct snippet$Pair__i32__string { key: i32, value: string }
   struct snippet$Pair__Any__Any { key: Any, value: Any }

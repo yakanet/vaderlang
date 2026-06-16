@@ -1,7 +1,6 @@
 module "snippet"
 
 import "std/io" { println }
-import "std/string" { bytes }
 import "std/runtime" { collect }
 
 // `bytes()` returns a borrowed `const u8[]` view that, on the native target,

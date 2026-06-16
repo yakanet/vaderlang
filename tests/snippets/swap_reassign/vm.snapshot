@@ -1,0 +1,7 @@
+# stdout
+swap a=7 b=3
+fib f0=55 f1=89
+rotate x=2 y=3 z=1
+fib50 g0=12586269025
+# exit
+0

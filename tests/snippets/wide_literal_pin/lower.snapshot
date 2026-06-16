@@ -1,0 +1,247 @@
+# Lower
+
+## snippet
+  fn snippet$unwrap(v: i32 | null) -> i32
+    if :void
+      cond:
+        is null :bool
+          v :i32 | null
+      then:
+        return
+          neg :i32
+            int(1) :i32
+    return
+      cast → i32
+        v :i32 | null
+  fn snippet$unwrap_i64(v: i64 | null) -> i64
+    if :void
+      cond:
+        is null :bool
+          v :i64 | null
+      then:
+        return
+          neg :i64
+            int(1) :i64
+    return
+      cast → i64
+        v :i64 | null
+  fn snippet$main() -> i32
+    let keyed: MutableMap<i64, i32> =
+      MutableMap<i64, i32> {
+        buckets:
+          array :(Entry<K, V> | null)[]
+        size: int(0) :usize
+      }
+    let anchor: i64 = int(9000000000) :i64
+    call :void
+      callee:
+        std_collections$MutableMap$IndexSet$set_at__i64__i32 :void
+      arg0:
+        keyed :MutableMap<i64, i32>
+      arg1:
+        anchor :i64
+      arg2:
+        int(42) :i32
+    call :void
+      callee:
+        std_io$std_io$println__string :void
+      arg0:
+        block :string
+          let __sb_0: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              "face1 read-key:  " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  call :i32
+                    callee:
+                      unwrap :fn(i32 | null) -> i32
+                    arg0:
+                      call :i32 | null
+                        callee:
+                          std_collections$MutableMap$Index$at__i64__i32 :i32 | null
+                        arg0:
+                          keyed :MutableMap<i64, i32>
+                        arg1:
+                          int(9000000000) :i64
+          ~>
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_0 :StringBuilder
+    let valued: MutableMap<i32, i64> =
+      MutableMap<i32, i64> {
+        buckets:
+          array :(Entry<K, V> | null)[]
+        size: int(0) :usize
+      }
+    call :void
+      callee:
+        std_collections$MutableMap$IndexSet$set_at__i32__i64 :void
+      arg0:
+        valued :MutableMap<i32, i64>
+      arg1:
+        int(1) :i32
+      arg2:
+        int(9000000000) :i64
+    call :void
+      callee:
+        std_io$std_io$println__string :void
+      arg0:
+        block :string
+          let __sb_1: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              "face2 set-value: " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i64$Display$to_string :string
+                arg0:
+                  call :i64
+                    callee:
+                      unwrap_i64 :fn(i64 | null) -> i64
+                    arg0:
+                      call :i64 | null
+                        callee:
+                          std_collections$MutableMap$Index$at__i32__i64 :i64 | null
+                        arg0:
+                          valued :MutableMap<i32, i64>
+                        arg1:
+                          int(1) :i32
+          ~>
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_1 :StringBuilder
+    let setkey: MutableMap<i64, i32> =
+      MutableMap<i64, i32> {
+        buckets:
+          array :(Entry<K, V> | null)[]
+        size: int(0) :usize
+      }
+    call :void
+      callee:
+        std_collections$MutableMap$IndexSet$set_at__i64__i32 :void
+      arg0:
+        setkey :MutableMap<i64, i32>
+      arg1:
+        int(9000000000) :i64
+      arg2:
+        int(7) :i32
+    let probe: i64 = int(9000000000) :i64
+    call :void
+      callee:
+        std_io$std_io$println__string :void
+      arg0:
+        block :string
+          let __sb_2: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              "face2 set-key:   " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  call :i32
+                    callee:
+                      unwrap :fn(i32 | null) -> i32
+                    arg0:
+                      call :i32 | null
+                        callee:
+                          std_collections$MutableMap$Index$at__i64__i32 :i32 | null
+                        arg0:
+                          setkey :MutableMap<i64, i32>
+                        arg1:
+                          probe :i64
+          ~>
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_2 :StringBuilder
+    let face3: i64 =
+      call :i64
+        callee:
+          snippet$snippet$takes__i64 :i64
+        arg0:
+          int(9000000000) :i64
+    call :void
+      callee:
+        std_io$std_io$println__string :void
+      arg0:
+        block :string
+          let __sb_3: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_3 :StringBuilder
+            arg1:
+              "face3 explicit:  " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_3 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i64$Display$to_string :string
+                arg0:
+                  face3 :i64
+          ~>
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_3 :StringBuilder
+    return int(0) :i32
+  fn snippet$snippet$takes__i64(x: i64) -> i64
+    ~>
+      x :i64

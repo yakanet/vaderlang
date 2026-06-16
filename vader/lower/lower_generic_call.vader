@@ -6,7 +6,7 @@ module "vader/lower"
 import "std/collections" { MutableMap }
 import "std/string_builder" { new_builder as new_builder_for_mangle, append }
 
-import "vader/parser" { IdentExpr, CallExpr, GenericInstExpr, Visibility }
+import "vader/parser" { IdentExpr, CallExpr, GenericInstExpr, Visibility, FnDecl }
 import "vader/diagnostics" { Span }
 import "vader/typecheck" { type_from_expr, default_if_free, lookup_struct_trait_args, substitute }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
@@ -35,6 +35,23 @@ follow_import_binding :: fn(ctx: FnLowerCtx, sym: Symbol) -> Symbol {
         if st is SymbolTarget as found { return found.symbol }
     }
     return sym
+}
+
+// True when `callee` resolves to the same source fn as the instance currently
+// being lowered — a self-recursive generic call. The entry being lowered carries
+// the source `FnDecl` (`MonoEntry.decl`) ; a fn symbol's `defined_at` is its
+// `name_span`, so equal spans ⇒ the same fn. Compares via `Span.equals` (full
+// start+end structural equality, collision-free) rather than `Span.hash` (which
+// is start-only by design). Scopes the GATE-B1 raw-signature retry in
+// `try_lower_generic_fn_call` to genuine self-recursion.
+is_self_recursive_instance_call :: fn(ctx: FnLowerCtx, callee: Symbol) -> bool {
+    if ctx.entry.decl is FnDecl as ed {
+        def :: callee.defined_at
+        if def is Span as sp {
+            return sp.equals(ed.name_span)
+        }
+    }
+    return false
 }
 
 try_lower_generic_fn_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
@@ -74,12 +91,35 @@ try_lower_generic_fn_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> 
         if raw_sym is Symbol as raw_resolved {
             fn_sym :: follow_import_binding(ctx, raw_resolved)
             if i32(fn_sym.kind) != i32(SymbolKind.Fn) { return null }
-            // Probe `decl_types` to find the fn's signature. Generic fns
-            // record their type-param-bearing signature here.
+            // Probe the callee's recorded signature (substituted — unchanged
+            // for every call site).
             callee_ty :: ctx.types.expr_type(id)
             if !(callee_ty is FnType) { return null }
             if callee_ty is FnType as ft {
-                return emit_generic_fn_call(ctx, call, type, fn_sym, ft, id.span)
+                result :: emit_generic_fn_call(ctx, call, type, fn_sym, ft, id.span)
+                if result != null { return result }
+                // `emit_generic_fn_call` returned null : `ft` (substituted)
+                // carries no type-param. For a SELF-RECURSIVE call inside a
+                // MANGLE-INDEXED instance (force-concrete, `entry_symbol == null`,
+                // `lower_mono_fn.vader:281`), the params were concretised by this
+                // entry's OWN subst, so the call would fall through to the bare
+                // generic symbol — which has no `function_index_by_symbol_id`
+                // slot → unresolved at emit (GATE-B1). Retry with the RAW (un-
+                // substituted) signature so the self-call re-infers its type args
+                // and routes through the instance mangle. Scoped to genuine self-
+                // recursion in a null-symbol body : every other call is byte-
+                // identical to before — `emit_generic_fn_call` runs no side
+                // effects before its no-param early return (`:101`), so the retry
+                // is clean, and a non-self-recursive null result falls through to
+                // the caller's general handling unchanged. Erased (symbol-indexed)
+                // instances keep resolving their self-calls by symbol-id.
+                if ctx.entry.symbol == null && is_self_recursive_instance_call(ctx, fn_sym) {
+                    raw_ty :: ctx.types.raw_expr_type(id)
+                    if raw_ty is FnType as rft {
+                        return emit_generic_fn_call(ctx, call, type, fn_sym, rft, id.span)
+                    }
+                }
+                return null
             }
         }
     }
@@ -112,7 +152,7 @@ emit_generic_fn_call :: fn(
     module_id :: fn_sym.module
     display :: lookup_module_display_path(ctx, module_id)
     mod_mangle :: mangle_module_id(if display == null { module_id } else { display })
-    suffix :: mono_suffix(concrete_args)
+    suffix :: call_site_instance_suffix(ctx, fn_sym, concrete_args)
     base_mangled :: "${mod_mangle}$${mod_mangle}$${fn_sym.name}${suffix}"
     // Register the instance for materialisation at the end of `lower_project`.
     // Dedup by `<symbol.id>::<suffix>` ; `register_fn_instance_mangle` uniq-
@@ -195,7 +235,7 @@ register_and_emit_generic_call :: fn(
     module_id :: fn_sym.module
     display :: lookup_module_display_path(ctx, module_id)
     mod_mangle :: mangle_module_id(if display == null { module_id } else { display })
-    suffix :: mono_suffix(concrete_args)
+    suffix :: call_site_instance_suffix(ctx, fn_sym, concrete_args)
     base_mangled :: "${mod_mangle}$${mod_mangle}$${fn_sym.name}${suffix}"
     inst_key :: "${fn_sym.id}::${suffix}"
     mangled :: register_fn_instance_mangle(ctx, fn_sym, concrete_args, module_id, base_mangled, inst_key)

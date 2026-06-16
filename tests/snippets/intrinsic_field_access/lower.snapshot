@@ -9,41 +9,91 @@
           std_io$std_io$println__string :void
         arg0:
           block :string
-            let __sb_0: ? =
-              @builder.new :?
-            @builder.append_display <for string> :void
-              __sb_0 :?
-              "name" :string
-            @builder.append_str :void
-              __sb_0 :?
-              ": " :string
-            @builder.append_display <for string> :void
-              __sb_0 :?
-              .name :string
-                self :User
+            let __sb_0: StringBuilder =
+              call :StringBuilder
+                callee:
+                  new_builder :StringBuilder
+            call :void
+              callee:
+                append :void
+              arg0:
+                __sb_0 :StringBuilder
+              arg1:
+                call :string
+                  callee:
+                    std_core$string$Display$to_string :string
+                  arg0:
+                    "name" :string
+            call :void
+              callee:
+                append :void
+              arg0:
+                __sb_0 :StringBuilder
+              arg1:
+                ": " :string
+            call :void
+              callee:
+                append :void
+              arg0:
+                __sb_0 :StringBuilder
+              arg1:
+                call :string
+                  callee:
+                    std_core$string$Display$to_string :string
+                  arg0:
+                    .name :string
+                      self :User
             ~>
-              @builder.finish :string
-                __sb_0 :?
+              call :string
+                callee:
+                  std_string_builder$StringBuilder$Display$to_string :string
+                arg0:
+                  __sb_0 :StringBuilder
       call :void
         callee:
           std_io$std_io$println__string :void
         arg0:
           block :string
-            let __sb_1: ? =
-              @builder.new :?
-            @builder.append_display <for string> :void
-              __sb_1 :?
-              "age" :string
-            @builder.append_str :void
-              __sb_1 :?
-              ": " :string
-            @builder.append_display <for i32> :void
-              __sb_1 :?
-              .age :i32
-                self :User
+            let __sb_1: StringBuilder =
+              call :StringBuilder
+                callee:
+                  new_builder :StringBuilder
+            call :void
+              callee:
+                append :void
+              arg0:
+                __sb_1 :StringBuilder
+              arg1:
+                call :string
+                  callee:
+                    std_core$string$Display$to_string :string
+                  arg0:
+                    "age" :string
+            call :void
+              callee:
+                append :void
+              arg0:
+                __sb_1 :StringBuilder
+              arg1:
+                ": " :string
+            call :void
+              callee:
+                append :void
+              arg0:
+                __sb_1 :StringBuilder
+              arg1:
+                call :string
+                  callee:
+                    std_core$i32$Display$to_string :string
+                  arg0:
+                    .age :i32
+                      self :User
             ~>
-              @builder.finish :string
-                __sb_1 :?
+              call :string
+                callee:
+                  std_string_builder$StringBuilder$Display$to_string :string
+                arg0:
+                  __sb_1 :StringBuilder
   fn snippet$main() -> i32
     let u: User =
       User {
@@ -55,28 +105,61 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_0: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_0 :?
-            "static: " :string
-          @builder.append_display <for string> :void
-            __sb_0 :?
-            .name :string
-              u :User
-          @builder.append_str :void
-            __sb_0 :?
-            " (" :string
-          @builder.append_display <for i32> :void
-            __sb_0 :?
-            .age :i32
-              u :User
-          @builder.append_str :void
-            __sb_0 :?
-            ")" :string
+          let __sb_0: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              "static: " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$string$Display$to_string :string
+                arg0:
+                  .name :string
+                    u :User
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              " (" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  .age :i32
+                    u :User
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              ")" :string
           ~>
-            @builder.finish :string
-              __sb_0 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_0 :StringBuilder
     call :void
       callee:
         derive_print :fn(User) -> void

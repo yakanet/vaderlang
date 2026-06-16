@@ -34,8 +34,6 @@ import "vader/lower" {
     LoweredMakeClosure, LoweredVirtualCall, LoweredIntrinsicCall,
     LoweredCellNew, LoweredCellGet,
     LoweredBinary, LoweredUnary,
-    INTRINSIC_BUILDER_NEW, INTRINSIC_BUILDER_APPEND_STR,
-    INTRINSIC_BUILDER_APPEND_DISPLAY, INTRINSIC_BUILDER_FINISH,
     INTRINSIC_SIZE_OF_TYPE,
     type_of,
 }
@@ -609,31 +607,14 @@ emit_virtual_call :: fn(v_call: LoweredVirtualCall, state: FnEmitState, ctx: Emi
     })
 }
 
-/// Emit a compiler-internal intrinsic call. Dispatches on the
-/// intrinsic name to its dedicated bytecode op : the string-builder
-/// family (`builder.new` / `builder.append_str` /
-/// `builder.append_display` / `builder.finish`) backs string
-/// interpolation ; `size_of.type` backs `@size_of(T)`. Unknown
-/// names emit nothing — surfaces as a missing op the VM traps on.
+/// Emit a compiler-internal intrinsic call. Dispatches on the intrinsic
+/// name to its dedicated bytecode op : `size_of.type` backs `@size_of(T)`.
+/// Unknown names emit nothing — surfaces as a missing op the VM traps on.
+/// (The string-builder intrinsic family was retired in Target ABI S4 ;
+/// interpolation now lowers to real `std/string_builder` calls.)
 emit_intrinsic_call :: fn(intrinsic: LoweredIntrinsicCall, state: FnEmitState, ctx: EmitterCtx) -> void {
     for i in 0..<intrinsic.args.len() {
         emit_expr(intrinsic.args[i], state, ctx)
-    }
-    if intrinsic.name == INTRINSIC_BUILDER_NEW {
-        push_op(state, BuilderNew {})
-        return
-    }
-    if intrinsic.name == INTRINSIC_BUILDER_APPEND_STR {
-        push_op(state, BuilderAppendStr {})
-        return
-    }
-    if intrinsic.name == INTRINSIC_BUILDER_APPEND_DISPLAY {
-        push_op(state, BuilderAppendDisplay {})
-        return
-    }
-    if intrinsic.name == INTRINSIC_BUILDER_FINISH {
-        push_op(state, BuilderFinish {})
-        return
     }
     if intrinsic.name == INTRINSIC_SIZE_OF_TYPE {
         push_op(state, SizeOfType {})

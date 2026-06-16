@@ -1,0 +1,33 @@
+// impl_method_forward_use — a trait method called before its impl block.
+//
+// Regression guard for B.6: `walk_bodies` registered impl-member metadata
+// lazily in its main pass, in file (merge) order — so a fn body that called a
+// trait method whose `impl` block was declared LATER in the file failed
+// typecheck with T3008 (`.m on non-struct`). It surfaced when `std/core` was a
+// `vader test` entry: `f2s.vader`'s `format_f32` calls `x.to_bits()` before
+// `primitives.vader`'s `@intrinsic f32 implements Float32Bits` (a sibling file
+// merged after the caller). Fixed by seeding ALL impl metadata in
+// `walk_bodies`' pre-pass (vader/typecheck/orchestrate.vader::register_impl_metadata),
+// so forward references resolve regardless of decl order.
+
+module "snippet"
+
+import "std/io" { println }
+
+Counter :: struct { n: i32 }
+
+Bump :: trait {
+    bump :: fn(self) -> i32
+}
+
+// Calls `.bump()` BEFORE the `impl` block below — must still resolve.
+run :: fn(c: Counter) -> i32 = c.bump()
+
+Counter implements Bump {
+    bump :: fn(self) -> i32 = self.n + 1
+}
+
+main :: fn() -> i32 {
+    println("bumped=${run(Counter { .n = 41 })}")   // expect bumped=42
+    return 0
+}

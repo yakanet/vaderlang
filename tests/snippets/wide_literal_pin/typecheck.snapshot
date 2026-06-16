@@ -1,0 +1,54 @@
+# Typecheck
+
+## tests/snippets/wide_literal_pin
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         takes                :: fn(T) -> T
+  FnDecl         unwrap               :: fn(i32 | null) -> i32
+  FnDecl         unwrap_i64           :: fn(i64 | null) -> i64
+  expr 27:29    IdentExpr      :: T
+  expr 30:27    UnaryExpr      :: i32
+  expr 30:5     IfExpr         :: void
+  expr 30:8     BinaryExpr     :: bool
+  expr 30:8     IdentExpr      :: i32 | null
+  expr 31:12    IdentExpr      :: i32
+  expr 35:27    UnaryExpr      :: i64
+  expr 35:5     IfExpr         :: void
+  expr 35:8     BinaryExpr     :: bool
+  expr 35:8     IdentExpr      :: i64 | null
+  expr 36:12    IdentExpr      :: i64
+  expr 42:14    StructLitExpr  :: MutableMap<i64, i32>
+  expr 44:11    IdentExpr      :: i64
+  expr 44:5     IdentExpr      :: MutableMap<i64, i32>
+  expr 45:13    StringLitExpr  :: string
+  expr 45:33    CallExpr       :: i32
+  expr 45:33    IdentExpr      :: fn(i32 | null) -> i32
+  expr 45:40    IdentExpr      :: MutableMap<i64, i32>
+  expr 45:40    IndexExpr      :: i32 | null
+  expr 45:5     CallExpr       :: void
+  expr 45:5     IdentExpr      :: fn(T) -> void
+  expr 48:15    StructLitExpr  :: MutableMap<i32, i64>
+  expr 49:5     IdentExpr      :: MutableMap<i32, i64>
+  expr 50:13    StringLitExpr  :: string
+  expr 50:33    CallExpr       :: i64
+  expr 50:33    IdentExpr      :: fn(i64 | null) -> i64
+  expr 50:44    IdentExpr      :: MutableMap<i32, i64>
+  expr 50:44    IndexExpr      :: i64 | null
+  expr 50:5     CallExpr       :: void
+  expr 50:5     IdentExpr      :: fn(T) -> void
+  expr 53:15    StructLitExpr  :: MutableMap<i64, i32>
+  expr 54:5     IdentExpr      :: MutableMap<i64, i32>
+  expr 56:13    StringLitExpr  :: string
+  expr 56:33    CallExpr       :: i32
+  expr 56:33    IdentExpr      :: fn(i32 | null) -> i32
+  expr 56:40    IdentExpr      :: MutableMap<i64, i32>
+  expr 56:40    IndexExpr      :: i32 | null
+  expr 56:47    IdentExpr      :: i64
+  expr 56:5     CallExpr       :: void
+  expr 56:5     IdentExpr      :: fn(T) -> void
+  expr 59:14    CallExpr       :: i64
+  expr 59:14    GenericInstExpr :: fn(T) -> T
+  expr 59:14    IdentExpr      :: fn(T) -> T
+  expr 60:13    StringLitExpr  :: string
+  expr 60:33    IdentExpr      :: i64
+  expr 60:5     CallExpr       :: void
+  expr 60:5     IdentExpr      :: fn(T) -> void

@@ -34,12 +34,14 @@ fn snippet$main() -> i32
     %9 a: i32 (local a)
     %10 $field_10: i32
     %11 b: i32 (local b)
-    %12 $intrinsic_12: ?
-    %13 __sb_1: ? (synthetic __sb_1)
+    %12 $call_12: StringBuilder
+    %13 __sb_1: StringBuilder (synthetic __sb_1)
     %14 $k_14: string
-    %15 $k_15: string
-    %16 $intrinsic_16: string
-    %17 $add_17: i32
+    %15 $call_15: string
+    %16 $k_16: string
+    %17 $call_17: string
+    %18 $call_18: string
+    %19 $add_19: i32
   bb0:
     %0 = const bool(true) :bool
     %1 = call make_pair(%0) :[i32, i32] | null
@@ -57,15 +59,17 @@ fn snippet$main() -> i32
     %9 = move %8
     %10 = field_get %7._1 :i32
     %11 = move %10
-    %12 = intrinsic builder.new()
+    %12 = call new_builder() :StringBuilder
     %13 = move %12
     %14 = const string(#1) :string
-    intrinsic builder.append_str(%13, %14)
-    intrinsic builder.append_display(%13, %9)
-    %15 = const string(#2) :string
-    intrinsic builder.append_str(%13, %15)
-    intrinsic builder.append_display(%13, %11)
-    %16 = intrinsic builder.finish(%13)
-    call std_io$std_io$println__string(%16) :void
-    %17 = binop 0 %9 %11 :i32
-    return %17
+    call append(%13, %14) :void
+    %15 = call std_core$i32$Display$to_string(%9) :string
+    call append(%13, %15) :void
+    %16 = const string(#2) :string
+    call append(%13, %16) :void
+    %17 = call std_core$i32$Display$to_string(%11) :string
+    call append(%13, %17) :void
+    %18 = call std_string_builder$StringBuilder$Display$to_string(%13) :string
+    call std_io$std_io$println__string(%18) :void
+    %19 = binop 0 %9 %11 :i32
+    return %19

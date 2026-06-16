@@ -1,0 +1,27 @@
+// tests/snippets/sort_scores — GATE-B1 monomorphic recursive-generic guard.
+//
+// `std/sort::sort<T>` lowers to the RECURSIVE generic free fn
+// `merge_sort_range<T>`. For an all-primitive arg (T = i32) the .NET-model gate
+// force-concretes it to a mangle-indexed instance (entry_symbol = null), so its
+// self-recursive call must route through the instance MANGLE — the bare generic
+// symbol owns no fn-table slot here. Unlike the mixed `std_sort` snippet (whose
+// erased `__string` sibling owns the symbol-id slot and silently absorbed the
+// i32 self-call), a pure-i32 program has no fallback, so before the GATE-B1 fix
+// the self-call was unresolved at emit and the build panicked. > INSERTION_CUTOFF
+// (16) elements so the merge recursion actually runs, not just the insertion path.
+
+module "snippet"
+
+import "std/io" { println }
+import "std/sort" { sort }
+
+ascending :: fn(a: i32, b: i32) -> bool { return a < b }
+
+main :: fn() -> i32 {
+    scores :: sort(
+        [50, 12, 88, 3, 71, 29, 64, 7, 95, 41, 18, 56, 33, 80, 2, 47, 23, 69, 14, 90],
+        ascending,
+    )
+    for s in scores { println("${s}") }
+    return 0
+}

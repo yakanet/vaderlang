@@ -1,0 +1,60 @@
+// vader/vm/byte_codec — little-endian byte ↔ integer codec for the VM heap.
+//
+// The reference implementation of the Target ABI memory opcodes' byte
+// semantics (`load_i32` / `store_u8` / … in exec.vader) AND the decoder for
+// the `.virt` data-pool hex blobs (virt_reader.vader). Deliberately VM-
+// internal, NOT stdlib : once the memory opcodes land, native-endian typed
+// access IS the opcode (a single per-target typed load), so a pure-Vader
+// shift-loop codec is exactly what they replace — it lives here only because
+// the VM can't dogfood the opcode it implements, and because the `.virt` text
+// format needs a host decoder. Explicit-endianness serialization is a future
+// `std/encoding` concern, built over `Buffer`, orthogonal to this file.
+
+module "vader/vm"
+
+/// Read the low `width` bytes (little-endian) at `offset` as a zero-extended
+/// u64. `width` ∈ {1..8}. NOT bounds-checked — the caller validates
+/// `offset + width <= bytes.len()` (the memory-op arms surface a clean VM
+/// `Trap` ; the data-pool decoder pre-sizes from the blob length).
+///
+/// @param bytes   the source byte array.
+/// @param offset  byte offset of the least-significant byte.
+/// @param width   number of bytes to read (1–8).
+/// @return        the decoded value, zero-extended into a u64.
+export read_le :: fn(bytes: u8[], offset: usize, width: usize) -> u64 {
+    // Assemble most-significant byte first, so the shift amount is the
+    // constant 8 (a free literal coercing to u64) rather than a variable
+    // `i * 8` — no per-byte cast of the loop index.
+    acc: u64 = 0
+    for j in 0..<width {
+        acc = (acc << 8) | u64(bytes[offset + width - 1 - j])
+    }
+    return acc
+}
+
+/// Write the low `width` bytes of `value` (little-endian) into `bytes` at
+/// `offset`, mutating in place. `width` ∈ {1..8}. NOT bounds-checked — the
+/// caller validates `offset + width <= bytes.len()`.
+///
+/// @param bytes   the destination byte array (mutated in place).
+/// @param offset  byte offset of the least-significant byte.
+/// @param width   number of bytes to write (1–8).
+/// @param value   the value whose low `width` bytes are stored.
+export write_le :: fn(bytes: u8[], offset: usize, width: usize, value: u64) -> void {
+    // Peel the low byte and shift down by the constant 8 (free literal), so
+    // the loop index needs no cast.
+    v := value
+    for i in 0..<width {
+        bytes[offset + i] = u8(v & u64(0xff))
+        v = v >> 8
+    }
+}
+
+/// Read a little-endian u16 at `offset`, zero-extended to u32.
+export read_u16_le :: fn(bytes: u8[], offset: usize) -> u32 = u32(read_le(bytes, offset, 2))
+
+/// Read a little-endian u32 at `offset`.
+export read_u32_le :: fn(bytes: u8[], offset: usize) -> u32 = u32(read_le(bytes, offset, 4))
+
+/// Read a little-endian u64 at `offset`.
+export read_u64_le :: fn(bytes: u8[], offset: usize) -> u64 = read_le(bytes, offset, 8)

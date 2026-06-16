@@ -16,133 +16,231 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_0: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_0 :?
-            "new? " :string
-          @builder.append_display <for bool> :void
-            __sb_0 :?
-            call :bool
+          let __sb_0: StringBuilder =
+            call :StringBuilder
               callee:
-                std_collections$std_collections$add__i32 :bool
-              arg0:
-                s :MutableSet<i32>
-              arg1:
-                int(10) :i32
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              "new? " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_0 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$bool$Display$to_string :string
+                arg0:
+                  call :bool
+                    callee:
+                      std_collections$std_collections$add__i32 :bool
+                    arg0:
+                      s :MutableSet<i32>
+                    arg1:
+                      int(10) :i32
           ~>
-            @builder.finish :string
-              __sb_0 :?
-    call :void
-      callee:
-        std_io$std_io$println__string :void
-      arg0:
-        block :string
-          let __sb_1: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_1 :?
-            "new? " :string
-          @builder.append_display <for bool> :void
-            __sb_1 :?
-            call :bool
-              callee:
-                std_collections$std_collections$add__i32 :bool
-              arg0:
-                s :MutableSet<i32>
-              arg1:
-                int(20) :i32
-          ~>
-            @builder.finish :string
-              __sb_1 :?
-    call :void
-      callee:
-        std_io$std_io$println__string :void
-      arg0:
-        block :string
-          let __sb_2: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_2 :?
-            "new? " :string
-          @builder.append_display <for bool> :void
-            __sb_2 :?
-            call :bool
-              callee:
-                std_collections$std_collections$add__i32 :bool
-              arg0:
-                s :MutableSet<i32>
-              arg1:
-                int(10) :i32
-          ~>
-            @builder.finish :string
-              __sb_2 :?
-    call :void
-      callee:
-        std_io$std_io$println__string :void
-      arg0:
-        block :string
-          let __sb_3: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_3 :?
-            "len = " :string
-          @builder.append_str :void
-            __sb_3 :?
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                call :usize
-                  callee:
-                    std_collections$std_collections$len__i32 :usize
-                  arg0:
-                    s :MutableSet<i32>
-          ~>
-            @builder.finish :string
-              __sb_3 :?
+                __sb_0 :StringBuilder
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_4: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_4 :?
-            "has 10? " :string
-          @builder.append_display <for bool> :void
-            __sb_4 :?
-            call :bool
+          let __sb_1: StringBuilder =
+            call :StringBuilder
               callee:
-                std_collections$MutableSet$Contains$contains__i32 :bool
-              arg0:
-                s :MutableSet<i32>
-              arg1:
-                int(10) :i32
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              "new? " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_1 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$bool$Display$to_string :string
+                arg0:
+                  call :bool
+                    callee:
+                      std_collections$std_collections$add__i32 :bool
+                    arg0:
+                      s :MutableSet<i32>
+                    arg1:
+                      int(20) :i32
           ~>
-            @builder.finish :string
-              __sb_4 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_1 :StringBuilder
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_5: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_5 :?
-            "has 30? " :string
-          @builder.append_display <for bool> :void
-            __sb_5 :?
-            call :bool
+          let __sb_2: StringBuilder =
+            call :StringBuilder
               callee:
-                std_collections$MutableSet$Contains$contains__i32 :bool
-              arg0:
-                s :MutableSet<i32>
-              arg1:
-                int(30) :i32
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              "new? " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_2 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$bool$Display$to_string :string
+                arg0:
+                  call :bool
+                    callee:
+                      std_collections$std_collections$add__i32 :bool
+                    arg0:
+                      s :MutableSet<i32>
+                    arg1:
+                      int(10) :i32
           ~>
-            @builder.finish :string
-              __sb_5 :?
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_2 :StringBuilder
+    call :void
+      callee:
+        std_io$std_io$println__string :void
+      arg0:
+        block :string
+          let __sb_3: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_3 :StringBuilder
+            arg1:
+              "len = " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_3 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$usize$Display$to_string :string
+                arg0:
+                  call :usize
+                    callee:
+                      std_collections$std_collections$len__i32 :usize
+                    arg0:
+                      s :MutableSet<i32>
+          ~>
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_3 :StringBuilder
+    call :void
+      callee:
+        std_io$std_io$println__string :void
+      arg0:
+        block :string
+          let __sb_4: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_4 :StringBuilder
+            arg1:
+              "has 10? " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_4 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$bool$Display$to_string :string
+                arg0:
+                  call :bool
+                    callee:
+                      std_collections$MutableSet$Contains$contains__i32 :bool
+                    arg0:
+                      s :MutableSet<i32>
+                    arg1:
+                      int(10) :i32
+          ~>
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_4 :StringBuilder
+    call :void
+      callee:
+        std_io$std_io$println__string :void
+      arg0:
+        block :string
+          let __sb_5: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_5 :StringBuilder
+            arg1:
+              "has 30? " :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_5 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$bool$Display$to_string :string
+                arg0:
+                  call :bool
+                    callee:
+                      std_collections$MutableSet$Contains$contains__i32 :bool
+                    arg0:
+                      s :MutableSet<i32>
+                    arg1:
+                      int(30) :i32
+          ~>
+            call :string
+              callee:
+                std_string_builder$StringBuilder$Display$to_string :string
+              arg0:
+                __sb_5 :StringBuilder
     return int(0) :i32

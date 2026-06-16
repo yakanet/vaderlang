@@ -1,0 +1,6 @@
+# stdout
+u8=200 bool=true char=Z f32=3.5 f64=2.25
+i16=-1000 u16=50000 i64=9000000000 usize=42 i32=-7 str=hi
+via=200,true,Z,3.5,-1000,9000000000,hi
+# exit
+0

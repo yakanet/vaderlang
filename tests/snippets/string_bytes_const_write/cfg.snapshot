@@ -21,4 +21,4 @@ fn snippet$main() -> i32
     return %5
 
 # Diagnostics
-[11:5] error[T3042] cannot mutate an immutable array: cannot mutate `const u8[]` — declared with `const`
+[10:5] error[T3042] cannot mutate an immutable array: cannot mutate `const u8[]` — declared with `const`

@@ -7,7 +7,7 @@
 module "std/path"
 
 import "std/string" {
-    bytes, as_string as bytes_as_string, is_empty, last_index_of,
+    as_string as bytes_as_string, is_empty, last_index_of,
     starts_with as str_starts_with, ends_with as str_ends_with,
     replace_chars_where,
 }

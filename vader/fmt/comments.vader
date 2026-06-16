@@ -9,7 +9,7 @@
 
 module "vader/fmt"
 
-import "std/string" { bytes, as_string as bytes_as_string }
+import "std/string" { as_string as bytes_as_string }
 
 /// Classification of a scanned comment. VaderDoc is `///` only ; `/**` is
 /// recognised as a plain `Block` since SPEC §3 dropped the block-form

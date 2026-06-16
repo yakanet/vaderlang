@@ -1,9 +1,8 @@
 // vader/vm/peephole — local op-sequence rewrites on a freshly emitted
-// `BytecodeFunction.ops`. Mirrors a subset of `src/bytecode/peephole.ts`.
+// `BcFunction.body`. Mirrors a subset of `src/bytecode/peephole.ts`.
 //
-// Lives in `vader/vm` (not `vader/bytecode`) because it operates on the VM's
-// `BytecodeFunction` (`vm/module.vader`) ; it imports the opcode set from
-// `vader/bytecode` — the one-way `vm -> bytecode` edge.
+// Operates on `vader/bytecode::BcFunction` ; it imports the opcode set + the
+// function shape from `vader/bytecode` — the one-way `vm -> bytecode` edge.
 //
 // **Usage contract** : peephole runs on the `ops` array BEFORE the
 // jump table is computed for that function. Every rule below collapses
@@ -27,13 +26,11 @@
 //   4. `BoolNot ; BoolNot`              → ε (both ops dropped)
 //
 // Rules 5–6 from the TS-side peephole (dead-store elimination + const
-// propagation through single-use locals) are deferred — they require
-// each `BytecodeFunction` to track per-local val types so a typed-cmp
-// after the propagated const doesn't lose the implicit coerce. The
-// Vader-side `BytecodeFunction` carries only `local_count: usize`
-// today ; landing those rules is gated on a schema enrichment that
-// records the locals' val types (parsed from the `.virt` `local "name"
-// type` directive — currently dropped).
+// propagation through single-use locals) are not ported yet — they need
+// per-local val types so a typed-cmp after the propagated const doesn't
+// lose the implicit coerce. The data is now available (`bc.BcFunction`
+// carries `locals: BcLocal[]` with each local's `val` type), so the gate
+// is just the porting work, not a schema gap as it once was.
 //
 // All rules are gated by a single `optimize` flag passed to
 // `run_peepholes` ; pass `false` to disable everything (matches the
@@ -50,7 +47,7 @@ bc :: import "vader/bytecode"
 /// @param function  the bytecode function to rewrite.
 /// @param optimize  pass `false` to bail without rewriting (parity with
 ///                  the TS CLI's `--no-bytecode-opt` flag).
-export run_peepholes :: fn(function: BytecodeFunction, optimize: bool) -> void {
+export run_peepholes :: fn(function: bc.BcFunction, optimize: bool) -> void {
     if !optimize { return }
     apply_local_rules(function)
 }
@@ -62,13 +59,13 @@ export run_peepholes :: fn(function: BytecodeFunction, optimize: bool) -> void {
 /// "pop" is a cursor decrement and "push at top" is an overwrite —
 /// no per-firing reallocation. Same pattern as `FunctionBuilder.
 /// scope_sp` and `virt_reader.ParserState`.
-apply_local_rules :: fn(self: BytecodeFunction) -> void {
+apply_local_rules :: fn(self: bc.BcFunction) -> void {
     out: bc.Op[] = []
     out_sp: usize = 0
-    n :: self.ops.len()
+    n :: self.body.len()
     i: usize = 0
     for i < n {
-        current :: self.ops[i]
+        current :: self.body[i]
 
         // Rules 2 / 3 / 4 all fire on a `BoolNot` paired with `out`'s tail.
         if current is bc.BoolNot {
@@ -104,7 +101,7 @@ apply_local_rules :: fn(self: BytecodeFunction) -> void {
         // Rule 1 — `LocalSet N ; LocalGet N` → `LocalTee N`.
         if current is bc.LocalSet as s {
             if i + 1 < n {
-                next :: self.ops[i + 1]
+                next :: self.body[i + 1]
                 if next is bc.LocalGet as g {
                     if g.slot == s.slot {
                         push_op_at(out, out_sp, bc.LocalTee { .slot = s.slot })
@@ -137,7 +134,7 @@ apply_local_rules :: fn(self: BytecodeFunction) -> void {
         i += 1
     }
 
-    self.ops = out[0..<out_sp]
+    self.body = out[0..<out_sp]
 }
 
 /// Grow-or-overwrite : append if `sp == items.len()`, else overwrite

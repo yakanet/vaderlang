@@ -1,0 +1,20 @@
+module "snippet"
+import "std/io" { println }
+import "std/collections" { MutableMap }
+
+main :: fn() -> i32 {
+    m :: MutableMap<string, i32> {}
+    keys :: ["alpha", "beta", "gamma", "MutableMap", "x", "hello world", "a", ""]
+    i: i32 = 0
+    for k in keys {
+        m[k] = i
+        i += 1
+    }
+    // retrieve each — exercises hash bucketing put+get parity
+    for k in keys {
+        v :: m[k]
+        if v is i32 as got { println("${k}=${got}") } else { println("${k}=MISS") }
+    }
+    println("size=${m.size}")
+    return 0
+}

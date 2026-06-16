@@ -17,7 +17,7 @@
 module "std/cli"
 
 import "std/collections" { MutableMap }
-import "std/string" { starts_with, bytes, as_string, split }
+import "std/string" { starts_with, as_string, split }
 
 /// Kind of a flag — controls how a value (if any) is interpreted.
 /// `Bool` flags don't require a `=value` suffix (presence sets `"true"`).

@@ -22,7 +22,7 @@
 module "vader/bytecode"
 
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
-import "std/string" { bytes, as_string }
+import "std/string" { as_string }
 
 /// Render a `BytecodeModule` as a `.virt`-style text dump. The resulting
 /// string carries a trailing newline ; pipe to stdout directly. This is the
@@ -459,7 +459,7 @@ export write_op :: fn(out: StringBuilder, op: Op) -> void {
     match op {
         is I32Const as c            -> out.append("i32.const ${c.value}")
         is I64Const as c            -> out.append("i64.const ${c.value}")
-        is F64Const as c            -> out.append("f64.const ${c.value}")
+        is F64Const as c            -> out.append("f64.const ${c.value} ${c.value.to_bits()}")
         is BoolConst as c           -> out.append("bool.const ${c.value}")
         is CharConst as c           -> out.append("char.const ${u32(c.value)}")
         is NullConst                -> out.append("null.const")
@@ -500,10 +500,6 @@ export write_op :: fn(out: StringBuilder, op: Op) -> void {
         is RefCast as r             -> out.append("ref.cast ${r.type_id}")
         is Unreachable              -> out.append("unreachable")
         is Convert as c             -> out.append("${c.from_name}.to_${convert_target_name(c.target)}")
-        is BuilderNew               -> out.append("intrinsic builder.new")
-        is BuilderAppendStr         -> out.append("intrinsic builder.append_str")
-        is BuilderAppendDisplay     -> out.append("intrinsic builder.append_display")
-        is BuilderFinish            -> out.append("intrinsic builder.finish")
         is SizeOfType               -> out.append("intrinsic size_of.type")
         is I32Add                   -> out.append("i32.add")
         is I32Sub                   -> out.append("i32.sub")
@@ -578,7 +574,6 @@ export write_op :: fn(out: StringBuilder, op: Op) -> void {
         is CharGe                   -> out.append("char.ge")
         is StringEq                 -> out.append("string.eq")
         is StringNe                 -> out.append("string.ne")
-        is StringConcat             -> out.append("string.concat")
         is StringSliceCodepoints    -> out.append("string.slice_codepoints")
         is IntToChar                -> out.append("i32.to_char")
         is CharToInt                -> out.append("char.to_i32")
@@ -586,6 +581,32 @@ export write_op :: fn(out: StringBuilder, op: Op) -> void {
         is RefNe                    -> out.append("ref.ne")
         is DeferPush                -> out.append("defer.push")
         is DeferPopExec as d        -> out.append("defer.pop_exec ${d.count}")
+        is ObjectNew as o           -> out.append("object_new ${o.type_id}")
+        is LoadU8                   -> out.append("load_u8")
+        is LoadI32                  -> out.append("load_i32")
+        is LoadI64                  -> out.append("load_i64")
+        is LoadF64                  -> out.append("load_f64")
+        is StoreU8                  -> out.append("store_u8")
+        is StoreI32                 -> out.append("store_i32")
+        is StoreI64                 -> out.append("store_i64")
+        is StoreF64                 -> out.append("store_f64")
+        is LoadSlot                 -> out.append("load_slot")
+        is LoadSlotU8               -> out.append("load_slot_u8")
+        is LoadSlotI32              -> out.append("load_slot_i32")
+        is LoadSlotI64              -> out.append("load_slot_i64")
+        is LoadSlotF64              -> out.append("load_slot_f64")
+        is StoreSlot                -> out.append("store_slot")
+        is StoreSlotU8              -> out.append("store_slot_u8")
+        is StoreSlotI32             -> out.append("store_slot_i32")
+        is StoreSlotI64             -> out.append("store_slot_i64")
+        is StoreSlotF64             -> out.append("store_slot_f64")
+        is MemoryCopy               -> out.append("memory_copy")
+        is BufferToString           -> out.append("buffer_to_string")
+        is BufferWriteString        -> out.append("buffer_write_string")
+        is F64ToBits                -> out.append("f64_to_bits")
+        is BitsToF64                -> out.append("bits_to_f64")
+        is F32ToBits                -> out.append("f32_to_bits")
+        is BitsToF32                -> out.append("bits_to_f32")
     }
 }
 
@@ -594,7 +615,7 @@ export write_op :: fn(out: StringBuilder, op: Op) -> void {
 format_const_op :: fn(c: ConstOp) -> string = match c {
     is I32Const    as v -> "i32.const ${v.value}"
     is I64Const    as v -> "i64.const ${v.value}"
-    is F64Const    as v -> "f64.const ${v.value}"
+    is F64Const    as v -> "f64.const ${v.value} ${v.value.to_bits()}"
     is BoolConst   as v -> "bool.const ${v.value}"
     is CharConst   as v -> "char.const ${u32(v.value)}"
     is StringConst as v -> "string.const ${v.index}"
@@ -649,6 +670,7 @@ annotate_op :: fn(module: BytecodeModule, locals: BcLocal[], param_count: i32, o
     if op is FnRef as f        { return fn_label(module, f.function_index) }
     if op is MakeClosure as m  { return fn_label(module, m.function_index) }
     if op is DataConst as d    { return "pool[${d.pool_index}] : ${type_label(module, d.type_id)}" }
+    if op is ObjectNew as o    { return type_label(module, o.type_id) }
     return ""
 }
 

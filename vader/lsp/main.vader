@@ -19,7 +19,7 @@
 module "vader/lsp"
 
 import "std/io" { eprintln }
-import "std/string" { as_string, bytes, starts_with }
+import "std/string" { as_string, starts_with }
 import "std/json" { parse, JsonValue, JsonObject, JsonString, JsonNumber, JsonNull, JsonError, JsonBool, JsonArray }
 
 /// LSP server entry. Blocks reading frames until EOF or `exit`

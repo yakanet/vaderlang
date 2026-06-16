@@ -94,7 +94,7 @@ export lower_lambda :: fn(
 // to an empty list when the analysis didn't observe the lambda (e.g.
 // a recovery path past an earlier diagnostic).
 lookup_captures :: fn(ctx: FnLowerCtx, lambda: AST.LambdaExpr) -> Capture[] {
-    found :: ctx.project.closures.lambda_captures[lambda.id]
+    found :: ctx.project.closures.lambda_captures[capture_key(ctx.typed.resolved.path, lambda.id)]
     match found {
         is null -> { return [] }
         _ -> { return found }

@@ -5,9 +5,9 @@
 // `Value` and its `*Val` variants are defined here (split out of the former
 // `op.vader` mega-file). Each `read_*` unwraps the matching variant or surfaces
 // a `Trap` with a labelled mismatch message ; `type_matches` and its friends
-// answer the runtime `is T` / `ref Trait` patterns by walking `Module.types`
-// and `Module.impls` / `Module.vtables` (the parsed-module shape lives in the
-// sibling `module.vader`, same `vader/vm` module).
+// answer the runtime `is T` / `ref Trait` patterns by walking the executing
+// module's `BcType[]` type table and its impl / vtable tables (threaded as a
+// `VmState`, defined in the sibling `module.vader`, same `vader/vm` module).
 //
 // `VmResult` / `Ok` / `Trap` also live here (rather than in exec.vader)
 // so the per-Value helpers can return `… | Trap` without forming an
@@ -15,9 +15,10 @@
 
 module "vader/vm"
 
-import "std/string" { starts_with, bytes, as_string }
+import "std/string" { starts_with, as_string }
 import "std/string_builder" { new_builder, append }
 import "vader/bytecode" { ConvertTarget }
+bc :: import "vader/bytecode"
 
 /// Tagged outcome of an `exec` call. `Ok` carries the program's i32
 /// return value ; `Trap` carries a debug-friendly message so the host
@@ -71,21 +72,21 @@ export bytes_to_value :: fn(s: string, type_id: i32) -> ArrayVal {
 /// no `string` primitive or no `string[]` array entry exists (the caller's
 /// `type_check` then fails loudly rather than masking the miss). Compute
 /// once per run — the scan is linear in the type-table size.
-/// @param module  the running module.
-/// @return        the `string[]` ArrayType index, or 0 when absent.
-export find_string_array_type_id :: fn(module: Module) -> i32 {
+/// @param types  the running module's type table.
+/// @return       the `string[]` ArrayType index, or 0 when absent.
+export find_string_array_type_id :: fn(types: bc.BcType[]) -> i32 {
     string_idx: i32 = -1
-    for i in 0..<module.types.len() {
-        t :: module.types[i]
-        if t is PrimitiveType as p {
-            if p.kind == "string" { string_idx = i32(i) }
+    for i in 0..<types.len() {
+        t :: types[i]
+        if t is bc.BcPrimitive as p {
+            if p.val == bc.ValType.String { string_idx = i32(i) }
         }
     }
     if string_idx < 0 { return 0 }
-    for j in 0..<module.types.len() {
-        t :: module.types[j]
-        if t is ArrayType as a {
-            if a.element_type_id == string_idx { return i32(j) }
+    for j in 0..<types.len() {
+        t :: types[j]
+        if t is bc.BcArray as a {
+            if a.element == string_idx { return i32(j) }
         }
     }
     return 0
@@ -95,55 +96,24 @@ export find_string_array_type_id :: fn(module: Module) -> i32 {
 /// `bytes()` array must carry so `is u8[]` narrows. Sibling of
 /// `find_string_array_type_id`. Returns 0 when no `u8` primitive or no
 /// `u8[]` array entry exists. Compute once per run.
-/// @param module  the running module.
-/// @return        the `u8[]` ArrayType index, or 0 when absent.
-export find_u8_array_type_id :: fn(module: Module) -> i32 {
+/// @param types  the running module's type table.
+/// @return       the `u8[]` ArrayType index, or 0 when absent.
+export find_u8_array_type_id :: fn(types: bc.BcType[]) -> i32 {
     u8_idx: i32 = -1
-    for i in 0..<module.types.len() {
-        t :: module.types[i]
-        if t is PrimitiveType as p {
-            if p.kind == "u8" { u8_idx = i32(i) }
+    for i in 0..<types.len() {
+        t :: types[i]
+        if t is bc.BcPrimitive as p {
+            if p.val == bc.ValType.U8 { u8_idx = i32(i) }
         }
     }
     if u8_idx < 0 { return 0 }
-    for j in 0..<module.types.len() {
-        t :: module.types[j]
-        if t is ArrayType as a {
-            if a.element_type_id == u8_idx { return i32(j) }
+    for j in 0..<types.len() {
+        t :: types[j]
+        if t is bc.BcArray as a {
+            if a.element == u8_idx { return i32(j) }
         }
     }
     return 0
-}
-
-/// Size in bytes of an `TypeDecl` — backs `@size_of(t)` runtime path.
-/// Primitives use their native widths ; everything else fits in a 16-byte
-/// box at the typed boundary (struct/array/fn refs, unions, opaque refs).
-export size_of_bc_type :: fn(t: TypeDecl) -> usize = match t {
-    is PrimitiveType as p -> size_of_primitive(p.kind)
-    is StructType         -> usize(16)
-    is ArrayType          -> usize(16)
-    is RefType            -> usize(16)
-    is FnType             -> usize(16)
-    is UnionType          -> usize(16)
-}
-
-size_of_primitive :: fn(kind: string) -> usize {
-    if kind == "i8"     { return usize(1) }
-    if kind == "u8"     { return usize(1) }
-    if kind == "bool"   { return usize(1) }
-    if kind == "i16"    { return usize(2) }
-    if kind == "u16"    { return usize(2) }
-    if kind == "i32"    { return usize(4) }
-    if kind == "u32"    { return usize(4) }
-    if kind == "f32"    { return usize(4) }
-    if kind == "char"   { return usize(4) }
-    if kind == "i64"    { return usize(8) }
-    if kind == "u64"    { return usize(8) }
-    if kind == "f64"    { return usize(8) }
-    if kind == "isize"  { return usize(8) }
-    if kind == "usize"  { return usize(8) }
-    if kind == "string" { return usize(16) }
-    return usize(0)
 }
 
 /// Short human-readable name of the value's variant — used by every
@@ -162,13 +132,13 @@ export describe_value_tag :: fn(v: Value) = match v {
     is StringVal  -> "string"
     is StructVal  -> "struct"
     is ArrayVal   -> "array"
-    is BuilderVal -> "builder"
     is FnVal      -> "fn"
     is NullVal    -> "null"
     is BoolVal    -> "bool"
     is CharVal    -> "char"
     is ErrorVal   -> "error"
     is TypeVal    -> "type"
+    is ObjVal     -> "object"
 }
 
 /// Unwrap an `F64Val` from a `Value`. Integer values are NOT auto-
@@ -305,6 +275,18 @@ export read_array :: fn(v: Value, at_pc: i32, label: string) -> ArrayVal | Trap 
     return Trap { .message = "${label} at pc=${at_pc}: expected array, got ${describe_value_tag(v)}" }
 }
 
+/// Unwrap an `ObjVal` from a `Value`. Used by the memory-op arms
+/// (`object_new` / `load_*` / `store_*` / `memory_copy`) to recover the
+/// object handle on the stack.
+export read_obj :: fn(v: Value, at_pc: i32, label: string) -> ObjVal | Trap {
+    if v is ObjVal { return v }
+    return Trap { .message = "${label} at pc=${at_pc}: expected object, got ${describe_value_tag(v)}" }
+}
+
+/// Short diagnostic rendering of an `ObjVal` — never dumps the payload,
+/// just the shape. Used by the `Display` impl and trap messages.
+export describe_obj :: fn(o: ObjVal) -> string = "<obj#${o.handle} type=${o.type_id} bytes=${o.bytes.len()} slots=${o.slots.len()}>"
+
 /// True iff `a` is a view onto a buffer it doesn't own — `elements` is
 /// shared with another `ArrayVal`. Used by `array.push` to decide
 /// whether to detach into a fresh buffer before extending.
@@ -350,13 +332,6 @@ export read_fn :: fn(v: Value, at_pc: i32, label: string) -> FnVal | Trap {
     return Trap { .message = "${label} at pc=${at_pc}: expected fn, got ${describe_value_tag(v)}" }
 }
 
-/// Unwrap a `BuilderVal` from a `Value`. Used by the builder-
-/// intrinsic arms to recover the receiver from the stack.
-export read_builder :: fn(v: Value, at_pc: i32, label: string) -> BuilderVal | Trap {
-    if v is BuilderVal { return v }
-    return Trap { .message = "${label} at pc=${at_pc}: expected builder, got ${describe_value_tag(v)}" }
-}
-
 /// Unwrap a `string` from a `Value`. Used by the host dispatcher to
 /// recover the `string` payload of a `println`-style argument.
 export read_string :: fn(v: Value, at_pc: i32, label: string) -> StringVal | Trap {
@@ -380,27 +355,27 @@ export value_ref_eq :: fn(a: Value, b: Value, at_pc: i32, label: string) -> bool
     }
 }
 
-/// Type-check : does `v`'s runtime tag match `module.types[type_id]` ?
+/// Type-check : does `v`'s runtime tag match `state.bc.types[type_id]` ?
 /// Mirrors `typeMatches` + `matchTo` in `src/vm/exec.ts`. Returns `false`
-/// for `FnType` (placeholder until ref/trait dispatch lands).
-export type_matches :: fn(module: Module, v: Value, type_id: i32) -> bool {
-    if type_id < 0 || usize(type_id) >= module.types.len() { return false }
-    type_decl :: module.types[usize(type_id)]
+/// for `BcFn` (placeholder until ref/trait dispatch lands).
+export type_matches :: fn(state: VmState, v: Value, type_id: i32) -> bool {
+    if type_id < 0 || usize(type_id) >= state.bc.types.len() { return false }
+    type_decl :: state.bc.types[usize(type_id)]
     return match type_decl {
-        is PrimitiveType as p -> primitive_matches(v, p.kind)
+        is bc.BcPrimitive as p -> primitive_matches(v, p.val)
         // @partial: only StructVal carries a matchable tag; every other Value → false.
-        is StructType         -> @partial match v {
-            is StructVal as s -> s.type_id == type_id || struct_siblings_match(module, s.type_id, type_id)
+        is bc.BcStruct        -> @partial match v {
+            is StructVal as s -> s.type_id == type_id || struct_siblings_match(state, s.type_id, type_id)
             _                 -> false
         }
         // @partial: only ArrayVal carries a matchable tag; every other Value → false.
-        is ArrayType          -> @partial match v {
+        is bc.BcArray         -> @partial match v {
             is ArrayVal as a  -> a.type_id == type_id
             _                 -> false
         }
-        is UnionType     as u -> union_matches(module, v, u.variant_type_ids)
-        is RefType       as r -> ref_type_matches(module, v, r.trait_name)
-        is FnType             -> false
+        is bc.BcUnion    as u -> union_matches(state, v, u.variants)
+        is bc.BcRef      as r -> ref_type_matches(state, v, r.trait_name)
+        is bc.BcFn            -> false
     }
 }
 
@@ -412,17 +387,17 @@ export type_matches :: fn(module: Module, v: Value, type_id: i32) -> bool {
 /// the first `__` (which separates the source name from the type-arg
 /// suffix).
 ///
-/// @param module   the running module (struct names live in `types`).
+/// @param state    the running VM state (struct names live in `bc.types`).
 /// @param value_type_id   actual tag of the runtime value.
 /// @param target_type_id  static type the value is being matched against.
 /// @return         `true` when both refer to struct types whose names
 ///                 share the same pre-`__` prefix ; `false` otherwise.
-struct_siblings_match :: fn(module: Module, value_type_id: i32, target_type_id: i32) -> bool {
+struct_siblings_match :: fn(state: VmState, value_type_id: i32, target_type_id: i32) -> bool {
     if value_type_id == target_type_id { return true }
-    if value_type_id < 0 || usize(value_type_id) >= module.types.len() { return false }
-    if target_type_id < 0 || usize(target_type_id) >= module.types.len() { return false }
-    value_name :: struct_name_at(module, value_type_id)
-    target_name :: struct_name_at(module, target_type_id)
+    if value_type_id < 0 || usize(value_type_id) >= state.bc.types.len() { return false }
+    if target_type_id < 0 || usize(target_type_id) >= state.bc.types.len() { return false }
+    value_name :: struct_name_at(state, value_type_id)
+    target_name :: struct_name_at(state, target_type_id)
     if value_name == "" || target_name == "" { return false }
     value_prefix :: prefix_before_double_underscore(value_name)
     if value_prefix == "" { return false }
@@ -430,14 +405,14 @@ struct_siblings_match :: fn(module: Module, value_type_id: i32, target_type_id: 
 }
 
 /// Return the mangled name of the struct type at `type_id`, or `""` when
-/// `type_id` doesn't point to a `StructType`.
-struct_name_at :: fn(module: Module, type_id: i32) -> string = match module.types[usize(type_id)] {
-    is StructType as s -> s.name
-    is ArrayType     -> ""
-    is FnType        -> ""
-    is PrimitiveType -> ""
-    is RefType       -> ""
-    is UnionType     -> ""
+/// `type_id` doesn't point to a `BcStruct`.
+struct_name_at :: fn(state: VmState, type_id: i32) -> string = match state.bc.types[usize(type_id)] {
+    is bc.BcStruct as s -> s.name
+    is bc.BcArray     -> ""
+    is bc.BcFn        -> ""
+    is bc.BcPrimitive -> ""
+    is bc.BcRef       -> ""
+    is bc.BcUnion     -> ""
 }
 
 /// Slice `s` up to the first `__` byte pair occurring *after* the last
@@ -473,12 +448,12 @@ prefix_before_double_underscore :: fn(s: string) -> string {
 /// `case "ref"` arm in `src/vm/exec.ts` — `is Error` routes to
 /// `ErrorVal` + impl-table check, `ref _` (empty trait name) accepts any
 /// heap variant, other trait names resolve through the impl table.
-export ref_type_matches :: fn(module: Module, v: Value, trait_name: string) -> bool {
+export ref_type_matches :: fn(state: VmState, v: Value, trait_name: string) -> bool {
     if trait_name == "Error" {
         if v is ErrorVal { return true }
         // @partial: only a StructVal can implement Error via the impl table; else false.
         return @partial match v {
-            is StructVal as s -> trait_implemented_by(module, "Error", s.type_id)
+            is StructVal as s -> trait_implemented_by(state, "Error", s.type_id)
             _                    -> false
         }
     }
@@ -487,39 +462,38 @@ export ref_type_matches :: fn(module: Module, v: Value, trait_name: string) -> b
         return @partial match v {
             is StructVal  -> true
             is ArrayVal   -> true
-            is BuilderVal -> true
             is FnVal      -> true
             _                -> false
         }
     }
     // @partial: only a StructVal can implement a named trait via the impl table; else false.
     return @partial match v {
-        is StructVal as s -> trait_implemented_by(module, trait_name, s.type_id)
+        is StructVal as s -> trait_implemented_by(state, trait_name, s.type_id)
         _                    -> false
     }
 }
 
 /// True iff `type_id` is registered as an implementer of `trait_name`.
-/// Consults `module.impls` first (populated from `impl TYPE_ID TRAIT`
+/// Consults `state.bc.impl_table` first (populated from `impl TYPE_ID TRAIT`
 /// directives in the .virt) — that source survives DCE because the
 /// writer emits one entry per implTable pair regardless of whether the
-/// method bodies are reachable. Falls back to scanning `module.vtables`
+/// method bodies are reachable. Falls back to scanning `state.bc.vtables`
 /// for legacy modules whose .virt predates the directive.
-export trait_implemented_by :: fn(module: Module, trait_name: string, type_id: i32) -> bool {
+export trait_implemented_by :: fn(state: VmState, trait_name: string, type_id: i32) -> bool {
     i: usize = 0
-    for i < module.impls.len() {
-        if module.impls[i].type_id == type_id && module.impls[i].trait_name == trait_name {
+    for i < state.bc.impl_table.len() {
+        if state.bc.impl_table[i].struct_type_index == type_id && state.bc.impl_table[i].trait_name == trait_name {
             return true
         }
         i += 1
     }
     prefix :: "${trait_name}."
     j: usize = 0
-    for j < module.vtables.len() {
-        if module.vtables[j].key.starts_with(prefix) {
+    for j < state.bc.vtables.len() {
+        if state.bc.vtables[j].key.starts_with(prefix) {
             k: usize = 0
-            for k < module.vtables[j].entries.len() {
-                if module.vtables[j].entries[k].type_id == type_id { return true }
+            for k < state.bc.vtables[j].entries.len() {
+                if state.bc.vtables[j].entries[k].receiver_type_index == type_id { return true }
                 k += 1
             }
         }
@@ -533,24 +507,24 @@ export trait_implemented_by :: fn(module: Module, trait_name: string, type_id: i
 /// level lookup via the type table to find the `PrimitiveType` entry
 /// matching the value's runtime tag. Returns `-1` when nothing matches
 /// (caller traps).
-export receiver_type_id_of :: fn(module: Module, v: Value) -> i32 {
+export receiver_type_id_of :: fn(state: VmState, v: Value) -> i32 {
     // @partial: struct/array receivers carry a type_id; primitives resolve via the table.
     return @partial match v {
         is StructVal as s -> s.type_id
         is ArrayVal  as a -> a.type_id
-        _                    -> primitive_type_id(module, v)
+        _                    -> primitive_type_id(state, v)
     }
 }
 
-/// Find the `PrimitiveType` entry in `module.types` whose `kind` matches
+/// Find the `BcPrimitive` entry in `state.bc.types` whose value class matches
 /// `v`'s runtime tag. Used by `receiver_type_id_of` to dispatch trait
 /// methods implemented on primitives (e.g. `i32 implements Doubler`).
-export primitive_type_id :: fn(module: Module, v: Value) -> i32 {
+export primitive_type_id :: fn(state: VmState, v: Value) -> i32 {
     tag :: describe_value_tag(v)
     i: usize = 0
-    for i < module.types.len() {
-        match module.types[i] {
-            is PrimitiveType as p -> { if p.kind == tag { return i32(i) } }
+    for i < state.bc.types.len() {
+        match state.bc.types[i] {
+            is bc.BcPrimitive as p -> { if bc.val_type_name(p.val) == tag { return i32(i) } }
             _                        -> { }
         }
         i += 1
@@ -560,14 +534,14 @@ export primitive_type_id :: fn(module: Module, v: Value) -> i32 {
 
 /// Look up the function index in the vtable for `key` by receiver
 /// `type_id`. Returns `-1` when either the key or the type_id is missing.
-export lookup_vtable :: fn(vtables: Vtable[], key: string, type_id: i32) -> i32 {
+export lookup_vtable :: fn(vtables: bc.VtableRow[], key: string, type_id: i32) -> i32 {
     i: usize = 0
     for i < vtables.len() {
         if vtables[i].key == key {
             j: usize = 0
             for j < vtables[i].entries.len() {
                 entry :: vtables[i].entries[j]
-                if entry.type_id == type_id { return entry.function_index }
+                if entry.receiver_type_index == type_id { return entry.fn_index }
                 j += 1
             }
             return -1
@@ -577,15 +551,15 @@ export lookup_vtable :: fn(vtables: Vtable[], key: string, type_id: i32) -> i32 
     return -1
 }
 
-/// Match a value against a `PrimitiveType.kind` string. Direct kinds
+/// Match a value against a `BcPrimitive.val` value class. Direct classes
 /// (`i32` / `string` / `bool` / `null` / `char`) lookup reuses
-/// `describe_value_tag`. Width-suffixed integer kinds (i8 / i64 / u32 / …)
+/// `describe_value_tag`. Width-suffixed integer classes (i8 / i64 / u32 / …)
 /// collapse onto `I32Val` — **latent miscompile risk** : a snippet
 /// `if x is i64 { … }` against an `I32Val` matches and runs with i32
 /// semantics. Sprint 5d / per-width values will replace the alias collapse.
-export primitive_matches :: fn(v: Value, kind: string) -> bool {
-    if kind == describe_value_tag(v) { return true }
-    // Width-suffixed integer kinds have no dedicated Value variant — they
+export primitive_matches :: fn(v: Value, val: bc.ValType) -> bool {
+    if bc.val_type_name(val) == describe_value_tag(v) { return true }
+    // Width-suffixed integer classes have no dedicated Value variant — they
     // ride in `I32Val` (≤32-bit) or `I64Val` (64-bit: u64/usize/isize ; i64
     // is already caught by the tag check above). Accept BOTH widths so e.g. a
     // `u64` computed via `i64.*` ops (stored `I64Val`) satisfies its `is u64`
@@ -593,31 +567,41 @@ export primitive_matches :: fn(v: Value, kind: string) -> bool {
     // the `I64Val` arm, `match parse_uint_in_base(...) { is u64 … }` fell
     // through its no-match `return` and the lexer silently dropped every
     // computed integer literal.
-    if is_integer_alias(kind) { return v is I32Val || v is I64Val }
+    if is_integer_alias(val) { return v is I32Val || v is I64Val }
     return false
 }
 
-/// Width-suffixed integer kinds that have no dedicated `Value` variant —
-/// they ride in `I32Val` or `I64Val` (see `primitive_matches`).
-export is_integer_alias :: fn(kind: string) -> bool {
-    if kind == "i8"  { return true }
-    if kind == "i16" { return true }
-    if kind == "i64" { return true }
-    if kind == "isize" { return true }
-    if kind == "u8"  { return true }
-    if kind == "u16" { return true }
-    if kind == "u32" { return true }
-    if kind == "u64" { return true }
-    if kind == "usize" { return true }
-    return false
+/// Width-suffixed integer classes that have no dedicated `Value` variant —
+/// they ride in `I32Val` or `I64Val` (see `primitive_matches`). `i32` has
+/// its own `I32Val` tag (caught by the direct check) so it's excluded here.
+export is_integer_alias :: fn(val: bc.ValType) -> bool = match val {
+    .I8    -> true
+    .I16   -> true
+    .I64   -> true
+    .Isize -> true
+    .U8    -> true
+    .U16   -> true
+    .U32   -> true
+    .U64   -> true
+    .Usize -> true
+    .I32   -> false
+    .F32   -> false
+    .F64   -> false
+    .Bool  -> false
+    .Char  -> false
+    .String -> false
+    .Null  -> false
+    .Void  -> false
+    .Ref   -> false
+    .Any   -> false
 }
 
 /// Match a value against a union's set of variant type ids by recursing
 /// through `type_matches` on each.
-export union_matches :: fn(module: Module, v: Value, variant_type_ids: i32[]) -> bool {
+export union_matches :: fn(state: VmState, v: Value, variant_type_ids: i32[]) -> bool {
     i: usize = 0
     for i < variant_type_ids.len() {
-        if type_matches(module, v, variant_type_ids[i]) { return true }
+        if type_matches(state, v, variant_type_ids[i]) { return true }
         i += 1
     }
     return false
@@ -634,24 +618,23 @@ export union_matches :: fn(module: Module, v: Value, variant_type_ids: i32[]) ->
 /// widened the stack from raw `i32[]` to this union so strings flow
 /// through `string.const` / `call.import` alongside numerics ; Sprint
 /// 4 (b1) added `StructVal` for `struct.new` / `struct.get` / `struct.set` ;
-/// Sprint 4 (b2) added `ArrayVal` for the array ops ; Sprint 4 (b3)
-/// added `BuilderVal` for `${…}` interpolation via the `builder.*`
-/// intrinsics ; Sprint 4 (b4) added `FnVal` for `fn.ref` / `call.indirect` ;
-/// Sprint 5a adds `NullVal` / `BoolVal` / `CharVal` for the corresponding
-/// const + comparison op families. Mirrors `src/vm/value.ts`.
+/// Sprint 4 (b2) added `ArrayVal` for the array ops ; Sprint 4 (b4) added
+/// `FnVal` for `fn.ref` / `call.indirect` ; Sprint 5a adds `NullVal` /
+/// `BoolVal` / `CharVal` for the corresponding const + comparison op
+/// families. Mirrors `src/vm/value.ts`.
 export Value :: I32Val
        | I64Val
        | F64Val
        | StringVal
        | StructVal
        | ArrayVal
-       | BuilderVal
        | FnVal
        | NullVal
        | BoolVal
        | CharVal
        | ErrorVal
        | TypeVal
+       | ObjVal
 
 /// 32-bit integer payload.
 export I32Val :: struct { value: i32 }
@@ -695,17 +678,6 @@ export ArrayVal :: struct {
     length:   usize
 }
 
-/// String-builder payload — the runtime backing of the `builder.new` /
-/// `builder.append_*` / `builder.finish` intrinsic family. `parts`
-/// accumulates string fragments in caller-push order ; `builder.finish`
-/// concatenates them in one pass. Mirrors the host-side
-/// `std/string_builder.StringBuilder` shape ; kept as a distinct
-/// `Value` variant rather than a `StructVal` so the intrinsic dispatch
-/// stays branch-free.
-export BuilderVal :: struct {
-    parts: string[]
-}
-
 /// Function-reference payload — the runtime value pushed by `fn.ref`
 /// and `make_closure`, consumed by `call.indirect`. `function_index`
 /// keys into `Module.functions` (same index space as the direct `Call`
@@ -745,6 +717,23 @@ export ErrorVal :: struct { message: string }
 /// `type_id` keys `Module.types`. Layer 4 §1.19 B.1.
 export TypeVal :: struct { type_id: i32 }
 
+/// Heap object payload for the Target ABI memory opcodes (decision D8 — the
+/// VM backs a REAL byte-addressed heap). Splits the two disjoint regions an
+/// object holds : `bytes` is the raw inline primitive payload, addressed by
+/// BYTE OFFSET (`load_i32` / `store_u8` / …) ; `slots` is the boxed reference
+/// payload, addressed by SLOT INDEX (`load_slot` / `store_slot` — the fields a
+/// tracing GC follows). A `Buffer` (the first consumer, D6) is all `bytes`,
+/// no `slots` ; a primitive struct is all `bytes` ; an array of references is
+/// all `slots`. `handle` is a synthetic monotonic id for diagnostics only —
+/// object identity is the `ObjVal` reference itself, NEVER a machine address.
+/// Inert until S3 (nothing emits these ops yet).
+export ObjVal :: struct {
+    handle:  i32
+    type_id: i32
+    bytes:   u8[]
+    slots:   Value[]
+}
+
 // ---- Display impls on each `Value` variant --------------------------------
 //
 // Every variant carries its own `Display` impl so the dispatcher below
@@ -775,10 +764,6 @@ StringVal implements Display {
     to_string :: fn(self) -> string = self.value
 }
 
-BuilderVal implements Display {
-    to_string :: fn(self) -> string = "<builder len=${self.parts.len()}>"
-}
-
 FnVal implements Display {
     to_string :: fn(self) -> string = if self.env is null { "<fn ${self.function_index}>" } else { "<fn ${self.function_index}+env>" }
 }
@@ -801,6 +786,10 @@ ErrorVal implements Display {
 
 TypeVal implements Display {
     to_string :: fn(self) -> string = "<type ${self.type_id}>"
+}
+
+ObjVal implements Display {
+    to_string :: fn(self) -> string = describe_obj(self)
 }
 
 /// Renders as `<type_id>{ field0, field1, … }` — type_id is the ordinal
@@ -854,11 +843,11 @@ export display_value :: fn(v: Value) -> string = match v {
     is StringVal as s -> s.to_string()
     is StructVal as s -> s.to_string()
     is ArrayVal as a -> a.to_string()
-    is BuilderVal as b -> b.to_string()
     is FnVal as f -> f.to_string()
     is NullVal as n -> n.to_string()
     is BoolVal as b -> b.to_string()
     is CharVal as c -> c.to_string()
     is ErrorVal as e -> e.to_string()
     is TypeVal as t -> t.to_string()
+    is ObjVal as o -> o.to_string()
 }

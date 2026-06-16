@@ -1,0 +1,9 @@
+# stdout
+u8 size=20 k7=49 k19=133 miss=-1
+u16 a=200 b=300 miss=-1
+i16 neg=11 pos=22 m1=33
+char a=1 Z=26 acc=99 miss=-1
+i64 big=7 negbig=8
+usize size=40 k0=1000 k39=1039 miss=-1
+# exit
+0

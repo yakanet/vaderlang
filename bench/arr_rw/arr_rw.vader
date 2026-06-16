@@ -1,0 +1,26 @@
+/// Array read-modify-write hot loop — indexes a 1024-element `i32[]` with
+/// `a[i] = a[i] + 1` and re-reads `a[i]`, 100 000 passes over the array. This
+/// is the headline Target-ABI workload : the get + set lower to the open-coded
+/// typed `arr[i]` load / `arr[i] = v` store over the array buffer, replacing
+/// the former out-of-line boxed `vader_array_get` / `vader_array_set`
+/// accessors (see `docs/TARGET_ABI.md`). Pure compute over a fixed buffer — no
+/// allocation in the hot loop — so the win is the accessor inlining, not GC.
+
+module "main"
+
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    n: usize = 1024
+    a: i32[] = []
+    for i in 0..<n { a.push(i32(i)) }
+    sum: i64 = 0
+    for _ in 0..<100000 {
+        for i in 0..<n {
+            a[i] = a[i] + 1
+            sum = sum + i64(a[i])
+        }
+    }
+    println("arr_rw ${sum}")
+    return 0
+}

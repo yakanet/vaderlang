@@ -37,14 +37,27 @@
                 std_io$std_io$println__string :void
               arg0:
                 block :string
-                  let __sb_2: ? =
-                    @builder.new :?
-                  @builder.append_display <for char> :void
-                    __sb_2 :?
-                    c :char
+                  let __sb_2: StringBuilder =
+                    call :StringBuilder
+                      callee:
+                        new_builder :StringBuilder
+                  call :void
+                    callee:
+                      append :void
+                    arg0:
+                      __sb_2 :StringBuilder
+                    arg1:
+                      call :string
+                        callee:
+                          std_core$char$Display$to_string :string
+                        arg0:
+                          c :char
                   ~>
-                    @builder.finish :string
-                      __sb_2 :?
+                    call :string
+                      callee:
+                        std_string_builder$StringBuilder$Display$to_string :string
+                      arg0:
+                        __sb_2 :StringBuilder
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -80,14 +93,27 @@
                 std_io$std_io$println__string :void
               arg0:
                 block :string
-                  let __sb_5: ? =
-                    @builder.new :?
-                  @builder.append_display <for char> :void
-                    __sb_5 :?
-                    c :char
+                  let __sb_5: StringBuilder =
+                    call :StringBuilder
+                      callee:
+                        new_builder :StringBuilder
+                  call :void
+                    callee:
+                      append :void
+                    arg0:
+                      __sb_5 :StringBuilder
+                    arg1:
+                      call :string
+                        callee:
+                          std_core$char$Display$to_string :string
+                        arg0:
+                          c :char
                   ~>
-                    @builder.finish :string
-                      __sb_5 :?
+                    call :string
+                      callee:
+                        std_string_builder$StringBuilder$Display$to_string :string
+                      arg0:
+                        __sb_5 :StringBuilder
     let n: i32 = int(0) :i32
     block :void
       let __iter_7: StringChars =
@@ -128,31 +154,52 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_9: ? =
-            @builder.new :?
-          @builder.append_str :void
-            __sb_9 :?
-            "codepoints=" :string
-          @builder.append_display <for i32> :void
-            __sb_9 :?
-            n :i32
-          @builder.append_str :void
-            __sb_9 :?
-            " bytes=" :string
-          @builder.append_str :void
-            __sb_9 :?
+          let __sb_9: StringBuilder =
+            call :StringBuilder
+              callee:
+                new_builder :StringBuilder
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_9 :StringBuilder
+            arg1:
+              "codepoints=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_9 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  n :i32
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_9 :StringBuilder
+            arg1:
+              " bytes=" :string
+          call :void
+            callee:
+              append :void
+            arg0:
+              __sb_9 :StringBuilder
+            arg1:
+              call :string
+                callee:
+                  std_core$usize$Display$to_string :string
+                arg0:
+                  LoweredArrayLen
+          ~>
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                call :usize
-                  callee:
-                    byte_len :fn(string) -> usize
-                  arg0:
-                    "héllo" :string
-          ~>
-            @builder.finish :string
-              __sb_9 :?
+                __sb_9 :StringBuilder
     call :void
       callee:
         std_io$std_io$println__string :void

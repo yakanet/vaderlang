@@ -63,6 +63,26 @@ export expr_type :: fn(self: EntryTypes, expr: Expr) -> Type {
     return apply_or_unresolved(self, self.typed.expr_types[expr.id])
 }
 
+/// Per-expression type WITHOUT applying the entry substitution — the raw
+/// recorded signature. Needed where a type-param must stay visible despite the
+/// entry's subst binding it: a self-recursive generic call's callee resolves to
+/// the very fn being instantiated, so its `T` is in `subst`; the substituting
+/// `expr_type` concretises `T` and hides the genericity, mis-routing the call
+/// away from the instance mangle (GATE-B1). Use is deliberately narrow — only
+/// `try_lower_generic_fn_call`'s self-recursion retry calls it. The substituting
+/// `expr_type` stays the default everywhere else; reading raw broadly would
+/// change non-self-recursive generic-call routing (the typer can record a callee
+/// type carrying the enclosing fn's type-param).
+/// @param self  the entry-types view.
+/// @param expr  the AST expression node.
+/// @return      the recorded type, no substitution applied; `TY_UNRESOLVED`
+///              on a miss.
+export raw_expr_type :: fn(self: EntryTypes, expr: Expr) -> Type {
+    raw :: self.typed.expr_types[expr.id]
+    if raw is null { return TY_UNRESOLVED }
+    return raw
+}
+
 /// Per-local-binding type. Same fallback convention as `expr_type`.
 /// @param self     the entry-types view.
 /// @param binding  the `SimpleBinding` AST node.

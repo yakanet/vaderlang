@@ -5,51 +5,24 @@ type 2 primitive void
 type 3 primitive i32
 type 4 primitive usize
 type 5 primitive bool
-type 6 ref _
-type 7 primitive i8
-type 8 primitive i16
-type 9 primitive i64
-type 10 primitive isize
-type 11 primitive u8
-type 12 primitive u16
-type 13 primitive u32
-type 14 primitive u64
-type 15 primitive f32
-type 16 primitive f64
-type 17 primitive char
+type 6 array 1
+type 7 struct std_string_builder$StringBuilder { parts:6 }
+type 8 array 9
+type 9 primitive u8
+type 10 struct std_core$Buffer {  }
 string 0 "\n"
+string 1 "true"
+string 2 "false"
 import 0 write std_io$write (i32,string) -> void
-import 1 to_string std_core$string$Display$to_string (string) -> string
-import 2 equals std_core$i8$Equals$equals (i8,i8) -> bool
-import 3 equals std_core$i16$Equals$equals (i16,i16) -> bool
-import 4 equals std_core$isize$Equals$equals (isize,isize) -> bool
-import 5 equals std_core$u8$Equals$equals (u8,u8) -> bool
-import 6 equals std_core$u16$Equals$equals (u16,u16) -> bool
-import 7 equals std_core$u32$Equals$equals (u32,u32) -> bool
-import 8 equals std_core$u64$Equals$equals (u64,u64) -> bool
-import 9 equals std_core$usize$Equals$equals (usize,usize) -> bool
-import 10 equals std_core$f32$Equals$equals (f32,f32) -> bool
-vtable Equals.equals 7 4
-vtable Equals.equals 8 5
-vtable Equals.equals 3 6
-vtable Equals.equals 9 7
-vtable Equals.equals 10 8
-vtable Equals.equals 11 9
-vtable Equals.equals 12 10
-vtable Equals.equals 13 11
-vtable Equals.equals 14 12
-vtable Equals.equals 4 13
-vtable Equals.equals 15 14
-vtable Equals.equals 16 15
-vtable Equals.equals 5 16
-vtable Equals.equals 17 17
-vtable Equals.equals 1 18
+import 1 bytes std_core$bytes (string) -> ref
+impl 7 Display
+impl 10 ByteAccess
 export main 1
 
 fn 0 std_io$std_io$println__string (string) -> void
   local $call_2 string
   local.get 0
-  call 3
+  call 7
   local.set 1
   i32.const 0
   local.get 1
@@ -61,149 +34,190 @@ fn 0 std_io$std_io$println__string (string) -> void
 end
 
 fn 1 snippet$main () -> i32
-  local __sb_0 any
-  local $call_4 bool
-  intrinsic builder.new
+  local __sb_0 ref
+  local $call_5 string
+  call 3
   local.set 0
   i32.const 1
   i32.const 1
   call 2
+  call 6
   local.set 1
   local.get 0
   local.get 1
-  intrinsic builder.append_display
+  call 4
   local.get 0
-  intrinsic builder.finish
+  call 5
   call 0
-  intrinsic builder.new
+  call 3
   local.set 0
   i32.const 1
   i32.const 2
   call 2
+  call 6
   local.set 1
   local.get 0
   local.get 1
-  intrinsic builder.append_display
+  call 4
   local.get 0
-  intrinsic builder.finish
+  call 5
   call 0
   return.lit i32.const 0
 end
 
-fn 2 snippet$snippet$are_eq__i32 (ref,ref) -> bool
-  local.get 1
-  local.get 0
-  virtual.call 2 Equals.equals
-  return
-end
-
-fn 3 std_core$string$Display$to_string_vt (string) -> string
-  local.get 0
-  call.import 1
-  return
-end
-
-fn 4 std_core$i8$Equals$equals_vt (i8,i8) -> bool
-  local.get 0
-  local.get 1
-  call.import 2
-  return
-end
-
-fn 5 std_core$i16$Equals$equals_vt (i16,i16) -> bool
-  local.get 0
-  local.get 1
-  call.import 3
-  return
-end
-
-fn 6 std_core$i32$Equals$equals_vt (i32,i32) -> bool
+fn 2 snippet$snippet$are_eq__i32 (i32,i32) -> bool
   local.get 0
   local.get 1
   i32.eq
   return
 end
 
-fn 7 std_core$i64$Equals$equals_vt (i64,i64) -> bool
-  local.get 0
-  local.get 1
-  i64.eq
+fn 3 std_string_builder$new_builder () -> ref
+  array.new 6 0
+  struct.new 7
   return
 end
 
-fn 8 std_core$isize$Equals$equals_vt (isize,isize) -> bool
-  local.get 0
+fn 4 std_string_builder$append (ref,string) -> void
+  local.field 0 7 0
   local.get 1
-  call.import 4
+  array.push 1
   return
 end
 
-fn 9 std_core$u8$Equals$equals_vt (u8,u8) -> bool
-  local.get 0
+fn 5 std_string_builder$StringBuilder$Display$to_string (ref) -> string
+  local total usize
+  local __for_arr_0 ref
+  local __for_len_1 usize
+  local __for_i_2 usize
+  local $len_13 usize
+  local $k_15 usize
+  local __for_arr_3 ref
+  local p string
+  local $k_33 usize
+  i64.const 0
+  local.set 1
+  local.field 0 7 0
+  local.tee 2
+  array.len
+  local.set 3
+  i64.const 0
+  local.set 4
+  block $L0 void
+    loop $L1 void
+      local.get 4
+      local.get 3
+      u64.lt
+      if $L2 void
+        local.get 2
+        local.get 4
+        array.get 6
+        ref.cast 1
+        call.import 1
+        array.len
+        local.set 5
+        local.get 1
+        local.get 5
+        i64.add
+        local.set 1
+        i64.const 1
+        local.set 6
+        local.get 4
+        local.get 6
+        i64.add
+        local.set 4
+        br $L1
+      else
+      end $L2
+    end $L1
+  end $L0
   local.get 1
-  call.import 5
+  call 8
+  local.set 2
+  i64.const 0
+  local.set 3
+  local.field 0 7 0
+  local.tee 7
+  array.len
+  local.set 4
+  i64.const 0
+  local.set 5
+  block $L3 void
+    loop $L4 void
+      local.get 5
+      local.get 4
+      u64.lt
+      if $L5 void
+        local.get 7
+        local.get 5
+        array.get 6
+        ref.cast 1
+        local.set 8
+        local.get 2
+        local.get 3
+        local.get 8
+        call 10
+        local.get 8
+        call.import 1
+        array.len
+        local.set 6
+        local.get 3
+        local.get 6
+        i64.add
+        local.set 3
+        i64.const 1
+        local.set 9
+        local.get 5
+        local.get 9
+        i64.add
+        local.set 5
+        br $L4
+      else
+      end $L5
+    end $L4
+  end $L3
+  local.get 2
+  local.get 1
+  call 9
   return
 end
 
-fn 10 std_core$u16$Equals$equals_vt (u16,u16) -> bool
+fn 6 std_core$bool$Display$to_string (bool) -> string
+  local if_res string
   local.get 0
+  if $L0 void
+    string.const 1
+    local.set 1
+  else
+    string.const 2
+    local.set 1
+  end $L0
   local.get 1
-  call.import 6
   return
 end
 
-fn 11 std_core$u32$Equals$equals_vt (u32,u32) -> bool
+fn 7 std_core$string$Display$to_string (string) -> string
   local.get 0
-  local.get 1
-  call.import 7
   return
 end
 
-fn 12 std_core$u64$Equals$equals_vt (u64,u64) -> bool
+fn 8 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
-  local.get 1
-  call.import 8
+  object_new 0
   return
 end
 
-fn 13 std_core$usize$Equals$equals_vt (usize,usize) -> bool
+fn 9 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
-  call.import 9
+  buffer_to_string
   return
 end
 
-fn 14 std_core$f32$Equals$equals_vt (f32,f32) -> bool
+fn 10 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0
   local.get 1
-  call.import 10
-  return
-end
-
-fn 15 std_core$f64$Equals$equals_vt (f64,f64) -> bool
-  local.get 0
-  local.get 1
-  f64.eq
-  return
-end
-
-fn 16 std_core$bool$Equals$equals_vt (bool,bool) -> bool
-  local.get 0
-  local.get 1
-  bool.eq
-  return
-end
-
-fn 17 std_core$char$Equals$equals_vt (char,char) -> bool
-  local.get 0
-  local.get 1
-  char.eq
-  return
-end
-
-fn 18 std_core$string$Equals$equals_vt (string,string) -> bool
-  local.get 0
-  local.get 1
-  string.eq
+  local.get 2
+  buffer_write_string
   return
 end

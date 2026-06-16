@@ -1,0 +1,40 @@
+// tests/snippets/_diag_slot_access — S5 typed-slot access flip regression.
+//
+// Exercises the Solution-A access flip: concrete-primitive `arr[i]`/`arr[i] = v`
+// lower to the typed `LoadSlot*`/`StoreSlot*` ops (bounds-checked, buf-forward
+// resolved), while boxed/ref elements stay on the legacy runtime-dispatched
+// `ArrayGet`/`ArraySet`. Covers i32/i64/f64 get+set, a borrowed slice view
+// (offset addressing), and a boxed `string[]` (legacy path) — all must stay
+// byte-correct on both the VM and native.
+
+module "snippet"
+
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    // i32 get + set
+    xs: i32[] = [1, 2, 3]
+    xs[1] = xs[0] + xs[2]
+    println("xs=${xs[0]},${xs[1]},${xs[2]}")
+
+    // i64 get + set
+    ls: i64[] = [10, 20, 30]
+    ls[2] = ls[0] + ls[1]
+    println("ls2=${ls[2]}")
+
+    // f64 get + set
+    fs: f64[] = [1.5, 2.5]
+    fs[0] = fs[1] * 2.0
+    println("fs0=${fs[0]}")
+
+    // borrowed slice view — offset addressing through the typed slot op.
+    view :: xs[1..<3]
+    println("view=${view[0]},${view[1]}")
+
+    // boxed string[] — stays on the legacy runtime-dispatched op.
+    ss: string[] = ["a", "b"]
+    ss[0] = ss[1]
+    println("ss0=${ss[0]}")
+
+    return 0
+}

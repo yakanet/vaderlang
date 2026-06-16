@@ -1,0 +1,13 @@
+// `for [k, v] in m` — a map yields `Entry<K, V>` (a 3-field struct), not a
+// 2-tuple, so destructuring it as `[k, v]` is a type error (T3001), not a
+// silent runtime `unreachable`. Iterate with `for entry in m` instead.
+module "snippet"
+
+import "std/collections" { MutableMap }
+
+main :: fn() -> i32 {
+    m := MutableMap<string, i32> {}
+    for [k, v] in m {
+    }
+    return 0
+}

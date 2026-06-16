@@ -1,0 +1,38 @@
+# Typecheck
+
+## tests/snippets/noreturn_guard_narrow
+  StructDecl     Box                  :: Box
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         unwrap               :: fn(Box | null) -> i32
+  FnDecl         unwrap_logged        :: fn(Box | null) -> i32
+  expr 23:20    CallExpr       :: never
+  expr 23:20    IdentExpr      :: fn(string) -> void
+  expr 23:26    StringLitExpr  :: string
+  expr 23:5     IfExpr         :: void
+  expr 23:8     BinaryExpr     :: bool
+  expr 23:8     IdentExpr      :: Box | null
+  expr 24:12    FieldExpr      :: i32
+  expr 24:12    IdentExpr      :: Box
+  expr 30:5     IfExpr         :: void
+  expr 30:8     BinaryExpr     :: bool
+  expr 30:8     IdentExpr      :: Box | null
+  expr 31:17    StringLitExpr  :: string
+  expr 31:9     CallExpr       :: void
+  expr 31:9     IdentExpr      :: fn(T) -> void
+  expr 32:15    StringLitExpr  :: string
+  expr 32:9     CallExpr       :: never
+  expr 32:9     IdentExpr      :: fn(string) -> void
+  expr 34:12    FieldExpr      :: i32
+  expr 34:12    IdentExpr      :: Box
+  expr 38:13    StringLitExpr  :: string
+  expr 38:18    CallExpr       :: i32
+  expr 38:18    IdentExpr      :: fn(Box | null) -> i32
+  expr 38:25    StructLitExpr  :: Box
+  expr 38:5     CallExpr       :: void
+  expr 38:5     IdentExpr      :: fn(T) -> void
+  expr 39:13    StringLitExpr  :: string
+  expr 39:23    CallExpr       :: i32
+  expr 39:23    IdentExpr      :: fn(Box | null) -> i32
+  expr 39:37    StructLitExpr  :: Box
+  expr 39:5     CallExpr       :: void
+  expr 39:5     IdentExpr      :: fn(T) -> void

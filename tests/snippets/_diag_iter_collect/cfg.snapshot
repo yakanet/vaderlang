@@ -23,12 +23,12 @@ fn snippet$main() -> i32
     %6 $call_6: FilterIterator<i32>
     %7 $call_7: T[]
     %8 kept: T[] (local kept)
-    %9 $intrinsic_9: ?
-    %10 __sb_0: ? (synthetic __sb_0)
+    %9 $call_9: StringBuilder
+    %10 __sb_0: StringBuilder (synthetic __sb_0)
     %11 $k_11: string
     %12 $len_12: usize
     %13 $call_13: string
-    %14 $intrinsic_14: string
+    %14 $call_14: string
     %15 $k_15: i32
   bb0:
     %0 = const int(0) :i32
@@ -40,14 +40,14 @@ fn snippet$main() -> i32
     %6 = call std_iter$std_iter$filter__i32(%4, %5) :FilterIterator<i32>
     %7 = call std_iter$std_iter$collect__i32(%6) :T[]
     %8 = move %7
-    %9 = intrinsic builder.new()
+    %9 = call new_builder() :StringBuilder
     %10 = move %9
     %11 = const string(#1) :string
-    intrinsic builder.append_str(%10, %11)
+    call append(%10, %11) :void
     %12 = array_len %8
     %13 = call std_core$usize$Display$to_string(%12) :string
-    intrinsic builder.append_str(%10, %13)
-    %14 = intrinsic builder.finish(%10)
+    call append(%10, %13) :void
+    %14 = call std_string_builder$StringBuilder$Display$to_string(%10) :string
     call std_io$std_io$println__string(%14) :void
     %15 = const int(0) :i32
     return %15

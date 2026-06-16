@@ -19,40 +19,44 @@ fn snippet$main() -> i32
     %1 a: Box (local a)
     %2 $call_2: Box
     %3 b: Box (local b)
-    %4 $intrinsic_4: ?
-    %5 __sb_0: ? (synthetic __sb_0)
+    %4 $call_4: StringBuilder
+    %5 __sb_0: StringBuilder (synthetic __sb_0)
     %6 $k_6: string
     %7 $field_7: i32
-    %8 $intrinsic_8: string
-    %9 $intrinsic_9: ?
-    %10 __sb_1: ? (synthetic __sb_1)
-    %11 $k_11: string
-    %12 $field_12: string
-    %13 $intrinsic_13: string
-    %14 $k_14: i32
+    %8 $call_8: string
+    %9 $call_9: string
+    %10 $call_10: StringBuilder
+    %11 __sb_1: StringBuilder (synthetic __sb_1)
+    %12 $k_12: string
+    %13 $field_13: string
+    %14 $call_14: string
+    %15 $call_15: string
+    %16 $k_16: i32
   bb0:
     %0 = call make_a() :Box
     %1 = move %0
     %2 = call make_b() :Box
     %3 = move %2
-    %4 = intrinsic builder.new()
+    %4 = call new_builder() :StringBuilder
     %5 = move %4
     %6 = const string(#2) :string
-    intrinsic builder.append_str(%5, %6)
+    call append(%5, %6) :void
     %7 = field_get %1.id :i32
-    intrinsic builder.append_display(%5, %7)
-    %8 = intrinsic builder.finish(%5)
-    call std_io$std_io$println__string(%8) :void
-    %9 = intrinsic builder.new()
-    %10 = move %9
-    %11 = const string(#3) :string
-    intrinsic builder.append_str(%10, %11)
-    %12 = field_get %3.label :string
-    intrinsic builder.append_display(%10, %12)
-    %13 = intrinsic builder.finish(%10)
-    call std_io$std_io$println__string(%13) :void
-    %14 = const int(0) :i32
-    return %14
+    %8 = call std_core$i32$Display$to_string(%7) :string
+    call append(%5, %8) :void
+    %9 = call std_string_builder$StringBuilder$Display$to_string(%5) :string
+    call std_io$std_io$println__string(%9) :void
+    %10 = call new_builder() :StringBuilder
+    %11 = move %10
+    %12 = const string(#3) :string
+    call append(%11, %12) :void
+    %13 = field_get %3.label :string
+    %14 = call std_core$string$Display$to_string(%13) :string
+    call append(%11, %14) :void
+    %15 = call std_string_builder$StringBuilder$Display$to_string(%11) :string
+    call std_io$std_io$println__string(%15) :void
+    %16 = const int(0) :i32
+    return %16
 
 ## snippet/mod_a
 

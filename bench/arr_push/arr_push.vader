@@ -1,0 +1,21 @@
+/// Array append hot loop — builds a fresh `i32[]` by `push`-ing 100 000
+/// elements, 200 times over (20 M pushes total), discarding each array. `push`
+/// lowers to the Target-ABI open-coded append (typed store at the tail + length
+/// bump, amortised-doubling buffer realloc on overflow). Unlike `arr_rw` this
+/// allocates heavily, so it also exercises the grow path and the generational
+/// GC's young-arena churn from the discarded buffers.
+
+module "main"
+
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    total: i64 = 0
+    for _ in 0..<200 {
+        a: i32[] = []
+        for i in 0..<100000 { a.push(i32(i)) }
+        total = total + i64(a.len())
+    }
+    println("arr_push ${total}")
+    return 0
+}

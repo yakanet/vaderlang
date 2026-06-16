@@ -1,0 +1,13 @@
+module "snippet"
+import "std/io" { println }
+main :: fn() -> i32 {
+    a :: "foo"
+    b :: "bar"
+    c :: a + b
+    println(c)
+    d :: a + b + "baz"
+    println(d)
+    e :: "" + a
+    println(e)
+    return 0
+}

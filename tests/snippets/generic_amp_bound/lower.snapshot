@@ -17,9 +17,9 @@
         arg1:
           int(2) :i32
     return b :i32
-  fn snippet$snippet$needs_add__string(x: Any) -> Any
+  fn snippet$snippet$needs_add__string(x: string) -> string
     ~>
-      x :Any
-  fn snippet$snippet$bar__i32__i32(key: Any, value: Any) -> Any
+      x :string
+  fn snippet$snippet$bar__i32__i32(key: i32, value: i32) -> i32
     ~>
-      value :Any
+      value :i32

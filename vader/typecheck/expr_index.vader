@@ -20,9 +20,12 @@ export infer_index :: fn(
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     target :: check_expr_fn(e.target, null, typed, diags)
-    // Hint the index with `usize` for FreeInt literals so `arr[0]`
-    // doesn't default to i32 in array-index position.
-    index :: check_expr_fn(e.index, null, typed, diags)
+    // Pin a free-literal index key to the Index/IndexSet trait's key
+    // type K so `m[9000000000]` on a `MutableMap<i64, _>` doesn't
+    // default to i32 and silently truncate. `null` for arrays/strings —
+    // the index there is just an integer, behaviour unchanged.
+    expected_index :: index_key_expected(target, typed)
+    index :: check_expr_fn(e.index, expected_index, typed, diags)
     if target is UnresolvedType { return TY_UNRESOLVED }
     // `"hello"[1]` — codepoint indexing on string returns char.
     // `"hello"[r]` where `r: Range(T)` — codepoint slice returning string.
@@ -47,18 +50,13 @@ export infer_index :: fn(
             return arr.element
         }
         is StructType as st -> {
-            indexed :: typed.index_target_types[st.symbol.name]
-            match indexed {
-                is null -> {}
-                _ -> {
-                    decl :: typed.struct_decls[st.symbol.id]
-                    if decl is null { return indexed }
-                    return substitute_by_name(indexed, decl.type_params, st.args)
-                }
+            result_ty :: resolve_index_param(st, typed.index_target_types[st.symbol.name], typed)
+            if result_ty == null {
+                diags.push(typecheck_error(.NotIndexable, e.span,
+                    "${display_type(target)} is not indexable"))
+                return TY_UNRESOLVED
             }
-            diags.push(typecheck_error(.NotIndexable, e.span,
-                "${display_type(target)} is not indexable"))
-            return TY_UNRESOLVED
+            return result_ty
         }
         _ -> {
             diags.push(typecheck_error(.NotIndexable, e.span,
@@ -66,6 +64,38 @@ export infer_index :: fn(
             return TY_UNRESOLVED
         }
     }
+}
+
+/// Resolved key type K for an `m[k]` index target, or null when the
+/// target isn't a struct with a recorded `Index`/`IndexSet` impl.
+/// Used to pin a free-literal index key to K (here) and at index-set
+/// sites (`stmt.vader::check_assign`).
+index_key_expected :: fn(target: Type, typed: TypedProgram) -> Type | null {
+    if target is StructType as st {
+        return resolve_index_param(st, typed.index_key_types[st.symbol.name], typed)
+    }
+    return null
+}
+
+/// Resolved write-value type V for an `m[k] = v` target, or null when
+/// the target isn't a struct with a recorded `IndexSet` impl. Consumed
+/// by `stmt.vader::check_assign` to pin a free-literal index-set value.
+index_set_value_expected :: fn(target: Type, typed: TypedProgram) -> Type | null {
+    if target is StructType as st {
+        return resolve_index_param(st, typed.index_set_value_types[st.symbol.name], typed)
+    }
+    return null
+}
+
+// Substitute the struct's concrete type-args into a recorded
+// Index/IndexSet param template (the un-substituted K or V). Returns
+// the template unchanged when the struct decl is unavailable, null when
+// no impl was recorded.
+resolve_index_param :: fn(st: StructType, tmpl: Type | null, typed: TypedProgram) -> Type | null {
+    if tmpl is null { return null }
+    decl :: typed.struct_decls[st.symbol.id]
+    if decl is null { return tmpl }
+    return substitute_by_name(tmpl, decl.type_params, st.args)
 }
 
 is_integer_index :: fn(t: Type) -> bool {

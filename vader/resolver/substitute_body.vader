@@ -341,19 +341,26 @@ export substitute_block_materialized :: fn(
 // where `base_line` is the impl's source line (stable + unique per impl) and
 // `N` is a traversal counter that accumulates across all the impl's cloned
 // members. Identical tree structure → identical counter per node across both
-// generations → resolve and lower agree. `file = "<clone>"` keeps these clear
-// of every real source span. Coverage mirrors `substitute_block` /
-// `substitute_expr_full`.
+// generations → resolve and lower agree. `file = "<clone>:<src>"` (the impl's
+// source file folded in) keeps these clear of every real source span AND
+// distinguishes two impls at the same `(line, column)` in different files of
+// one module (`Span.hash` folds in `start.file`). Coverage mirrors
+// `substitute_block` / `substitute_expr_full`.
 
 /// Deterministic span allocator for one impl's materialised clones. `base_line`
 /// = the impl's source line ; `counter` accumulates across the impl's members
-/// (created once per impl, threaded through every member clone).
-export StampCtx :: struct { base_line: i32, counter: i32 }
+/// (created once per impl, threaded through every member clone) ; `file` is a
+/// synthetic per-impl-source-file discriminator (`"<clone>:<src>"`) so two impls
+/// at the SAME `(line, column)` in DIFFERENT files of one module don't collide
+/// their span keys (`Span.hash` folds in `start.file`). Keeps the `<clone>`
+/// prefix to stay clear of real source spans, and is stable across the
+/// typecheck/lower materialisation generations (the source file is invariant).
+export StampCtx :: struct { base_line: i32, counter: i32, file: string }
 
 export next_clone_span :: fn(stamp: StampCtx) -> Span {
     col :: stamp.counter
     stamp.counter = stamp.counter + 1
-    pos :: Position { .file = "<clone>", .offset = usize(0), .line = stamp.base_line, .column = col }
+    pos :: Position { .file = stamp.file, .offset = usize(0), .line = stamp.base_line, .column = col }
     return Span { .start = pos, .end = pos }
 }
 

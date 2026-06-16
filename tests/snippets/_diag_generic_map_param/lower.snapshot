@@ -27,13 +27,13 @@
         .size :usize
           .counts :MutableMap<string, i32>
             c :Counter
-  fn snippet$snippet$bump__string__i32(m: MutableMap<Any, Any>, k: Any, v: Any) -> void
+  fn snippet$snippet$bump__string__i32(m: MutableMap<string, i32>, k: string, v: i32) -> void
     call :void
       callee:
-        std_collections$MutableMap$IndexSet$set_at__Any__Any :void
+        std_collections$MutableMap$IndexSet$set_at__string__i32 :void
       arg0:
-        m :MutableMap<Any, Any>
+        m :MutableMap<string, i32>
       arg1:
-        k :Any
+        k :string
       arg2:
-        v :Any
+        v :i32

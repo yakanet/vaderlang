@@ -1,0 +1,27 @@
+/// String concatenation hot loop — builds a 13-byte string by repeated `+`
+/// (`s = s + "..."`), 300 000 times. On `feat/target-abi` the `+` lowers to the
+/// pure-Vader Buffer-backed concat rather than `main`'s `vader_string_concat`
+/// host intrinsic, so this measures the off-runtime concat path.
+///
+/// The checksum sums `bytes().len()` (the zero-copy byte-view length, an array
+/// length) rather than `len()` : the latter desugars to `chars().count()`,
+/// which currently trips an unrelated c-emit codegen bug (an indirect-call
+/// callee lowered to literal `0` — see TODO). For ASCII the two are equal, so
+/// the checksum is unchanged.
+
+module "main"
+
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    total: usize = 0
+    for _ in 0..<300000 {
+        s := "a"
+        s = s + "bcd"
+        s = s + "efgh"
+        s = s + "ijklm"
+        total = total + s.bytes().len()
+    }
+    println("str_concat ${total}")
+    return 0
+}

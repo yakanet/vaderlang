@@ -1,0 +1,14 @@
+// R2029: an `as` binding cannot appear in a `&&` condition — its scope across
+// the short-circuit is ambiguous. Narrow the variable in place
+// (`if shape is Circle && …`) or nest the checks.
+module "snippet"
+
+Circle :: struct { radius: i32 }
+Square :: struct { side: i32 }
+
+describe :: fn(shape: Circle | Square) -> i32 {
+    if shape is Circle as c && c.radius > 0 { return c.radius }
+    return -1
+}
+
+main :: fn() -> i32 { return describe(Circle { .radius = 5 }) }

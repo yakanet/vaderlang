@@ -95,12 +95,28 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
         is null -> {}
         _ -> { return op_call }
     }
+    // String `+` desugars to a Buffer-backed StringBuilder chain (S6b) — the same
+    // build as `"${a}${b}"` (S4a) — so it needs no dedicated `StringConcat` op.
+    // Reached only for the primitive `string + string` case (user-struct `Add`
+    // and `T`/`Any` receivers were handled by `try_lower_op_overload` above).
+    if binary.op == BinaryOp.Add && is_string_type(type) {
+        return lower_string_concat(ctx,
+            lower_expr(ctx, binary.left), lower_expr(ctx, binary.right), binary.span)
+    }
     return LoweredBinary {
         .span = binary.span, .type = type,
         .op    = lower_binary_op(binary.op),
         .left  = lower_expr(ctx, binary.left),
         .right = lower_expr(ctx, binary.right),
     }
+}
+
+// True iff `t` is the `string` primitive — the predicate that routes `+` to the
+// StringBuilder-chain concat lowering. A standalone fn (not an `&& as` guard)
+// to avoid the `as`-binding-inside-`&&` miscompile.
+is_string_type :: fn(t: Type) -> bool {
+    if t is PrimitiveType as p { return p.name == "string" }
+    return false
 }
 
 try_lower_op_overload :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredExpr | null {

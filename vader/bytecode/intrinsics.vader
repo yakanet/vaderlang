@@ -2,8 +2,10 @@
 //
 // Mirror of `OP_INTRINSIC_BY_MANGLED` in `src/bytecode/emit.ts:74`.
 // Stdlib `@intrinsic` impl members map to a dedicated bytecode op
-// rather than a host-provided import — `s1 + s2` and `"a".add("b")`
-// both emit the same `string.concat` op.
+// rather than a host-provided import — e.g. `a + b` on `i32` and
+// `a.add(b)` both emit the same `i32.add` op ; the `Buffer` byte ops
+// (`load_u8` / `store_u8` / `memory_copy` / `intern_string` /
+// `write_string`) map to the Target-ABI memory opcodes.
 //
 // Expanded here as an if-cascade since Vader has no map-literal
 // syntax and a per-startup `MutableMap` fill costs the same lookup
@@ -42,7 +44,23 @@ export intrinsic_op_for_mangled :: fn(mangled: string) -> Op | null {
     if mangled == r"std_core$bool$Equals$equals"   { return BoolEq {} }
     if mangled == r"std_core$char$Equals$equals"   { return CharEq {} }
     if mangled == r"std_core$string$Equals$equals" { return StringEq {} }
-    if mangled == r"std_core$string$Add$add"       { return StringConcat {} }
+    // Target ABI memory opcodes — the abstract `Buffer`'s `@intrinsic` methods
+    // (`stdlib/std/core/buffer.vader`). `object_new`'s `type_id` immediate is a
+    // placeholder : c-emit always tags the box with the BUFFER sentinel and the
+    // VM stores it only as an opaque tag, so a constant `0` is sufficient.
+    if mangled == r"std_core$usize$BufferAlloc$new_buffer"  { return ObjectNew { .type_id = 0 } }
+    if mangled == r"std_core$Buffer$ByteAccess$load_u8"     { return LoadU8 {} }
+    if mangled == r"std_core$Buffer$ByteAccess$store_u8"    { return StoreU8 {} }
+    if mangled == r"std_core$Buffer$ByteAccess$memory_copy" { return MemoryCopy {} }
+    if mangled == r"std_core$Buffer$ByteAccess$intern_string" { return BufferToString {} }
+    if mangled == r"std_core$Buffer$ByteAccess$write_string" { return BufferWriteString {} }
+    // Float ↔ raw-bits reinterpret (`stdlib/std/core` FloatBits / BitsFloat).
+    // NOT the numeric `f64(x)` / `u64(b)` casts — these return the exact IEEE
+    // bit pattern. Lower to a `union` cast in C (no runtime symbol).
+    if mangled == r"std_core$f64$FloatBits$to_bits"     { return F64ToBits {} }
+    if mangled == r"std_core$u64$BitsFloat$from_bits"   { return BitsToF64 {} }
+    if mangled == r"std_core$f32$Float32Bits$to_bits"   { return F32ToBits {} }
+    if mangled == r"std_core$u32$Bits32Float$from_bits" { return BitsToF32 {} }
     return null
 }
 
@@ -67,14 +85,6 @@ import "std/testing" { assert_eq }
     match op {
         is I32Add -> {}
         _         -> assert_eq("expected I32Add", "")
-    }
-}
-
-@test test_intrinsic_op_for_mangled_string_concat :: fn() -> void {
-    op :: intrinsic_op_for_mangled(r"std_core$string$Add$add")
-    match op {
-        is StringConcat -> {}
-        _               -> assert_eq("expected StringConcat", "")
     }
 }
 

@@ -10,17 +10,19 @@ fn snippet$main() -> i32
     %3 $k_3: string
     %4 $call_4: Box<Box<string>>
     %5 b: Box<Box<string>> (local b)
-    %6 $intrinsic_6: ?
-    %7 __sb_0: ? (synthetic __sb_0)
+    %6 $call_6: StringBuilder
+    %7 __sb_0: StringBuilder (synthetic __sb_0)
     %8 $field_8: Box<i32>
     %9 $field_9: i32
-    %10 $intrinsic_10: string
-    %11 $intrinsic_11: ?
-    %12 __sb_1: ? (synthetic __sb_1)
-    %13 $field_13: Box<string>
-    %14 $field_14: string
-    %15 $intrinsic_15: string
-    %16 $k_16: i32
+    %10 $call_10: string
+    %11 $call_11: string
+    %12 $call_12: StringBuilder
+    %13 __sb_1: StringBuilder (synthetic __sb_1)
+    %14 $field_14: Box<string>
+    %15 $field_15: string
+    %16 $call_16: string
+    %17 $call_17: string
+    %18 $k_18: i32
   bb0:
     %0 = const int(42) :i32
     %1 = call snippet$snippet$outer__i32(%0) :Box<Box<i32>>
@@ -28,45 +30,73 @@ fn snippet$main() -> i32
     %3 = const string(#1) :string
     %4 = call snippet$snippet$outer__string(%3) :Box<Box<string>>
     %5 = move %4
-    %6 = intrinsic builder.new()
+    %6 = call new_builder() :StringBuilder
     %7 = move %6
     %8 = field_get %2.value :Box<i32>
     %9 = field_get %8.value :i32
-    intrinsic builder.append_display(%7, %9)
-    %10 = intrinsic builder.finish(%7)
-    call std_io$std_io$println__string(%10) :void
-    %11 = intrinsic builder.new()
-    %12 = move %11
-    %13 = field_get %5.value :Box<string>
-    %14 = field_get %13.value :string
-    intrinsic builder.append_display(%12, %14)
-    %15 = intrinsic builder.finish(%12)
-    call std_io$std_io$println__string(%15) :void
-    %16 = const int(0) :i32
-    return %16
+    %10 = call std_core$i32$Display$to_string(%9) :string
+    call append(%7, %10) :void
+    %11 = call std_string_builder$StringBuilder$Display$to_string(%7) :string
+    call std_io$std_io$println__string(%11) :void
+    %12 = call new_builder() :StringBuilder
+    %13 = move %12
+    %14 = field_get %5.value :Box<string>
+    %15 = field_get %14.value :string
+    %16 = call std_core$string$Display$to_string(%15) :string
+    call append(%13, %16) :void
+    %17 = call std_string_builder$StringBuilder$Display$to_string(%13) :string
+    call std_io$std_io$println__string(%17) :void
+    %18 = const int(0) :i32
+    return %18
 
-fn snippet$snippet$inner__Any(%0: Any) -> Any
+fn snippet$snippet$inner__i32(%0: i32) -> i32
   locals:
-    %0 x: Any (param x)
+    %0 x: i32 (param x)
   bb0:
     return %0
 
-fn snippet$snippet$middle__Any(%0: Any) -> Box<Any>
+fn snippet$snippet$inner__string(%0: string) -> string
   locals:
-    %0 x: Any (param x)
-    %1 $call_1: Any
-    %2 $struct_2: Box<Any>
+    %0 x: string (param x)
   bb0:
-    %1 = call snippet$snippet$inner__Any(%0) :Any
-    %2 = struct_new Box<Any>(%1)
+    return %0
+
+fn snippet$snippet$middle__i32(%0: i32) -> Box<i32>
+  locals:
+    %0 x: i32 (param x)
+    %1 $call_1: i32
+    %2 $struct_2: Box<i32>
+  bb0:
+    %1 = call snippet$snippet$inner__i32(%0) :i32
+    %2 = struct_new Box<i32>(%1)
     return %2
 
-fn snippet$snippet$outer__i32(%0: Any) -> Box<Box<Any>>
+fn snippet$snippet$middle__string(%0: string) -> Box<string>
   locals:
-    %0 x: Any (param x)
-    %1 $call_1: Box<Any>
-    %2 $struct_2: Box<Box<Any>>
+    %0 x: string (param x)
+    %1 $call_1: string
+    %2 $struct_2: Box<string>
   bb0:
-    %1 = call snippet$snippet$middle__Any(%0) :Box<Any>
-    %2 = struct_new Box<Box<Any>>(%1)
+    %1 = call snippet$snippet$inner__string(%0) :string
+    %2 = struct_new Box<string>(%1)
+    return %2
+
+fn snippet$snippet$outer__i32(%0: i32) -> Box<Box<i32>>
+  locals:
+    %0 x: i32 (param x)
+    %1 $call_1: Box<i32>
+    %2 $struct_2: Box<Box<i32>>
+  bb0:
+    %1 = call snippet$snippet$middle__i32(%0) :Box<i32>
+    %2 = struct_new Box<Box<i32>>(%1)
+    return %2
+
+fn snippet$snippet$outer__string(%0: string) -> Box<Box<string>>
+  locals:
+    %0 x: string (param x)
+    %1 $call_1: Box<string>
+    %2 $struct_2: Box<Box<string>>
+  bb0:
+    %1 = call snippet$snippet$middle__string(%0) :Box<string>
+    %2 = struct_new Box<Box<string>>(%1)
     return %2

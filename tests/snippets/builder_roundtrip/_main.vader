@@ -3,7 +3,7 @@
 //
 // Builds a small module programmatically via the builder API, runs it
 // through `exec` to capture an Ok value, serialises it to `.virt` text
-// via `write_virt`, parses the text back via `parse_virt`, then runs
+// via `write_virt`, parses the text back via `parse_virt_bc`, then runs
 // the parsed module and compares the two exit values.
 //
 // Exits 0 when both paths agree (the same value bubbles up from `main`),
@@ -20,7 +20,7 @@
 module "snippet"
 
 import "std/io" { println }
-op :: import "vader/vm"
+bc :: import "vader/bytecode"
 import "vader/vm" {
     ModuleBuilder, FunctionBuilder,
     new_module_builder, new_function_builder,
@@ -30,14 +30,14 @@ import "vader/vm" {
     builder_new, builder_append_display, builder_finish,
     int_to_char,
 }
-import "vader/vm" { exec }
+import "vader/vm" { exec, prepare }
 import "vader/vm" { VmResult, Ok, Trap }
-import "vader/vm" { parse_virt }
+import "vader/vm" { parse_virt_bc }
 import "vader/vm" { write_virt }
 
-build_test_module :: fn() -> op.Module {
+build_test_module :: fn() -> bc.BytecodeModule {
     module_builder :: new_module_builder()
-    module_builder.add_type(op.PrimitiveType { .kind = "i32" })
+    module_builder.add_type(bc.BcPrimitive { .val = bc.ValType.I32 })
     // `write(stream_tag, msg)` — std/io's sole host import. The
     // stream tag matches `std/io::Stream` (0 = Stdout, 1 = Stderr).
     write_import :: module_builder.add_import("write", r"std_io$write", 2, false)
@@ -107,13 +107,13 @@ run_and_report :: fn(label: string, result: VmResult) -> i32 {
 main :: fn() -> i32 {
     println("=== first exec : freshly built module ===")
     module_a :: build_test_module()
-    result_a :: exec(module_a, [])
+    result_a :: exec(prepare(module_a), [])
     value_a :: run_and_report("first  exec", result_a)
 
-    println("=== serialise → parse_virt → second exec ===")
+    println("=== serialise → parse_virt_bc → second exec ===")
     serialised :: write_virt(module_a)
-    module_b :: parse_virt(serialised)
-    result_b :: exec(module_b, [])
+    module_b :: parse_virt_bc(serialised)
+    result_b :: exec(prepare(module_b), [])
     value_b :: run_and_report("second exec", result_b)
 
     if value_a == value_b && value_a == 82 {

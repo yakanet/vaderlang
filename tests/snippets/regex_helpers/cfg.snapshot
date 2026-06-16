@@ -117,12 +117,12 @@ fn snippet$main() -> i32
     %17 $fn_ref_17: fn(char) -> bool
     %18 $call_18: string[]
     %19 parts: string[] (local parts)
-    %20 $intrinsic_20: ?
-    %21 __sb_0: ? (synthetic __sb_0)
+    %20 $call_20: StringBuilder
+    %21 __sb_0: StringBuilder (synthetic __sb_0)
     %22 $k_22: string
     %23 $len_23: usize
     %24 $call_24: string
-    %25 $intrinsic_25: string
+    %25 $call_25: string
     %26 $len_26: usize
     %27 n: usize (local n)
     %28 $k_28: usize
@@ -158,14 +158,14 @@ fn snippet$main() -> i32
     %17 = fn_ref is_white_char :fn(char) -> bool
     %18 = call split_where(%16, %17) :string[]
     %19 = move %18
-    %20 = intrinsic builder.new()
+    %20 = call new_builder() :StringBuilder
     %21 = move %20
     %22 = const string(#10) :string
-    intrinsic builder.append_str(%21, %22)
+    call append(%21, %22) :void
     %23 = array_len %19
     %24 = call std_core$usize$Display$to_string(%23) :string
-    intrinsic builder.append_str(%21, %24)
-    %25 = intrinsic builder.finish(%21)
+    call append(%21, %24) :void
+    %25 = call std_string_builder$StringBuilder$Display$to_string(%21) :string
     call std_io$std_io$println__string(%25) :void
     %26 = array_len %19
     %27 = move %26

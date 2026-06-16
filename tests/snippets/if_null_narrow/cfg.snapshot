@@ -7,45 +7,48 @@ fn snippet$greet(%0: Cat | Dog | null) -> string
     %0 a: Cat | Dog | null (param a)
     %1 $type_check_1: bool
     %2 $unop_2: bool
-    %3 $intrinsic_3: ?
-    %4 __sb_0: ? (synthetic __sb_0)
+    %3 $call_3: StringBuilder
+    %4 __sb_0: StringBuilder (synthetic __sb_0)
     %5 $k_5: string
     %6 $cast_6: Cat | Dog
     %7 $cast_7: Cat
     %8 $field_8: string
-    %9 $intrinsic_9: string
-    %10 $k_10: string
+    %9 $call_9: string
+    %10 $call_10: string
+    %11 $k_11: string
   bb0:
     %1 = type_check %0 is null
     %2 = unop 1 %1 :bool
     cond_branch %2 ? bb1 : bb2
   bb1:
-    %3 = intrinsic builder.new()
+    %3 = call new_builder() :StringBuilder
     %4 = move %3
     %5 = const string(#1) :string
-    intrinsic builder.append_str(%4, %5)
+    call append(%4, %5) :void
     %6 = cast %0 :Cat | Dog
     %7 = cast %6 :Cat
     %8 = field_get %7.name :string
-    intrinsic builder.append_display(%4, %8)
-    %9 = intrinsic builder.finish(%4)
-    return %9
-  bb2:
-    %10 = const string(#2) :string
+    %9 = call std_core$string$Display$to_string(%8) :string
+    call append(%4, %9) :void
+    %10 = call std_string_builder$StringBuilder$Display$to_string(%4) :string
     return %10
+  bb2:
+    %11 = const string(#2) :string
+    return %11
 
 fn snippet$greet_v2(%0: Cat | Dog | null) -> string
   locals:
     %0 a: Cat | Dog | null (param a)
     %1 $type_check_1: bool
     %2 $k_2: string
-    %3 $intrinsic_3: ?
-    %4 __sb_0: ? (synthetic __sb_0)
+    %3 $call_3: StringBuilder
+    %4 __sb_0: StringBuilder (synthetic __sb_0)
     %5 $k_5: string
     %6 $cast_6: Cat | Dog
     %7 $cast_7: Cat
     %8 $field_8: string
-    %9 $intrinsic_9: string
+    %9 $call_9: string
+    %10 $call_10: string
   bb0:
     %1 = type_check %0 is null
     cond_branch %1 ? bb1 : bb2
@@ -53,48 +56,51 @@ fn snippet$greet_v2(%0: Cat | Dog | null) -> string
     %2 = const string(#2) :string
     return %2
   bb2:
-    %3 = intrinsic builder.new()
+    %3 = call new_builder() :StringBuilder
     %4 = move %3
     %5 = const string(#3) :string
-    intrinsic builder.append_str(%4, %5)
+    call append(%4, %5) :void
     %6 = cast %0 :Cat | Dog
     %7 = cast %6 :Cat
     %8 = field_get %7.name :string
-    intrinsic builder.append_display(%4, %8)
-    %9 = intrinsic builder.finish(%4)
-    return %9
+    %9 = call std_core$string$Display$to_string(%8) :string
+    call append(%4, %9) :void
+    %10 = call std_string_builder$StringBuilder$Display$to_string(%4) :string
+    return %10
 
 fn snippet$greet_v3(%0: Cat | Dog | null) -> string
   locals:
     %0 a: Cat | Dog | null (param a)
     %1 $type_check_1: bool
     %2 $unop_2: bool
-    %3 $intrinsic_3: ?
-    %4 __sb_0: ? (synthetic __sb_0)
+    %3 $call_3: StringBuilder
+    %4 __sb_0: StringBuilder (synthetic __sb_0)
     %5 $k_5: string
     %6 $cast_6: Cat | Dog
     %7 $cast_7: Cat
     %8 $field_8: string
-    %9 $intrinsic_9: string
-    %10 $k_10: string
+    %9 $call_9: string
+    %10 $call_10: string
+    %11 $k_11: string
   bb0:
     %1 = type_check %0 is null
     %2 = unop 1 %1 :bool
     cond_branch %2 ? bb1 : bb2
   bb1:
-    %3 = intrinsic builder.new()
+    %3 = call new_builder() :StringBuilder
     %4 = move %3
     %5 = const string(#4) :string
-    intrinsic builder.append_str(%4, %5)
+    call append(%4, %5) :void
     %6 = cast %0 :Cat | Dog
     %7 = cast %6 :Cat
     %8 = field_get %7.name :string
-    intrinsic builder.append_display(%4, %8)
-    %9 = intrinsic builder.finish(%4)
-    return %9
-  bb2:
-    %10 = const string(#5) :string
+    %9 = call std_core$string$Display$to_string(%8) :string
+    call append(%4, %9) :void
+    %10 = call std_string_builder$StringBuilder$Display$to_string(%4) :string
     return %10
+  bb2:
+    %11 = const string(#5) :string
+    return %11
 
 fn snippet$greet_v4(%0: Cat | Dog | null) -> string
   locals:
@@ -104,15 +110,16 @@ fn snippet$greet_v4(%0: Cat | Dog | null) -> string
     %3 $type_check_3: bool
     %4 $unop_4: bool
     %5 if_res: never
-    %6 $intrinsic_6: ?
-    %7 __sb_0: ? (synthetic __sb_0)
+    %6 $call_6: StringBuilder
+    %7 __sb_0: StringBuilder (synthetic __sb_0)
     %8 $k_8: string
     %9 $cast_9: Cat | Dog
     %10 $cast_10: Cat
     %11 $field_11: string
-    %12 $intrinsic_12: string
-    %13 out2: string (local out2)
-    %14 $k_14: string
+    %12 $call_12: string
+    %13 $call_13: string
+    %14 out2: string (local out2)
+    %15 $k_15: string
   bb0:
     %1 = const string(#6) :string
     %2 = move %1
@@ -120,20 +127,21 @@ fn snippet$greet_v4(%0: Cat | Dog | null) -> string
     %4 = unop 1 %3 :bool
     cond_branch %4 ? bb1 : bb2
   bb1:
-    %6 = intrinsic builder.new()
+    %6 = call new_builder() :StringBuilder
     %7 = move %6
     %8 = const string(#7) :string
-    intrinsic builder.append_str(%7, %8)
+    call append(%7, %8) :void
     %9 = cast %0 :Cat | Dog
     %10 = cast %9 :Cat
     %11 = field_get %10.name :string
-    intrinsic builder.append_display(%7, %11)
-    %12 = intrinsic builder.finish(%7)
-    %13 = move %12
-    return %13
-  bb2:
-    %14 = const string(#8) :string
+    %12 = call std_core$string$Display$to_string(%11) :string
+    call append(%7, %12) :void
+    %13 = call std_string_builder$StringBuilder$Display$to_string(%7) :string
+    %14 = move %13
     return %14
+  bb2:
+    %15 = const string(#8) :string
+    return %15
   bb3:
     return %5
 
@@ -145,16 +153,18 @@ fn snippet$combine(%0: Cat | Dog | null, %1: Cat | Dog | null) -> string
     %3 $k_3: string
     %4 $type_check_4: bool
     %5 $k_5: string
-    %6 $intrinsic_6: ?
-    %7 __sb_0: ? (synthetic __sb_0)
+    %6 $call_6: StringBuilder
+    %7 __sb_0: StringBuilder (synthetic __sb_0)
     %8 $cast_8: Cat | Dog
     %9 $cast_9: Cat
     %10 $field_10: string
-    %11 $k_11: string
-    %12 $cast_12: Cat | Dog
-    %13 $cast_13: Cat
-    %14 $field_14: string
-    %15 $intrinsic_15: string
+    %11 $call_11: string
+    %12 $k_12: string
+    %13 $cast_13: Cat | Dog
+    %14 $cast_14: Cat
+    %15 $field_15: string
+    %16 $call_16: string
+    %17 $call_17: string
   bb0:
     %2 = type_check %0 is null
     cond_branch %2 ? bb1 : bb2
@@ -168,20 +178,22 @@ fn snippet$combine(%0: Cat | Dog | null, %1: Cat | Dog | null) -> string
     %5 = const string(#10) :string
     return %5
   bb4:
-    %6 = intrinsic builder.new()
+    %6 = call new_builder() :StringBuilder
     %7 = move %6
     %8 = cast %0 :Cat | Dog
     %9 = cast %8 :Cat
     %10 = field_get %9.name :string
-    intrinsic builder.append_display(%7, %10)
-    %11 = const string(#11) :string
-    intrinsic builder.append_str(%7, %11)
-    %12 = cast %1 :Cat | Dog
-    %13 = cast %12 :Cat
-    %14 = field_get %13.name :string
-    intrinsic builder.append_display(%7, %14)
-    %15 = intrinsic builder.finish(%7)
-    return %15
+    %11 = call std_core$string$Display$to_string(%10) :string
+    call append(%7, %11) :void
+    %12 = const string(#11) :string
+    call append(%7, %12) :void
+    %13 = cast %1 :Cat | Dog
+    %14 = cast %13 :Cat
+    %15 = field_get %14.name :string
+    %16 = call std_core$string$Display$to_string(%15) :string
+    call append(%7, %16) :void
+    %17 = call std_string_builder$StringBuilder$Display$to_string(%7) :string
+    return %17
 
 fn snippet$main() -> i32
   locals:

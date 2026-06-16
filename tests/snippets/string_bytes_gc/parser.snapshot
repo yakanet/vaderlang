@@ -22,20 +22,6 @@
     },
     {
       "kind": "ImportDecl",
-      "path": "std/string",
-      "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "bytes",
-            "alias": null
-          }
-        ]
-      },
-      "decorators": []
-    },
-    {
-      "kind": "ImportDecl",
       "path": "std/runtime",
       "binding": {
         "kind": "destructure",

@@ -185,8 +185,6 @@ walk_expr :: fn(e: LoweredExpr, ctx: WalkCtx) -> void {
         }
         is LoweredIntrinsicCall as ic -> {
             for a in ic.args { walk_expr(a, ctx) }
-            display_for :: ic.display_for
-            if display_for != null { walk_type(display_for, ctx) }
         }
         is LoweredCellNew as cn -> {
             walk_expr(cn.value, ctx)
