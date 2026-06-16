@@ -5,7 +5,8 @@
 
 module "std/numbers"
 
-import "std/string" { as_string, chars, ends_with, is_digit, is_empty, replace_chars_where, ParseError }
+import "std/string" { as_string, chars, ends_with, is_empty, replace_chars_where, ParseError }
+import "std/char" { is_digit }
 import "std/string_builder" { StringBuilder, new_builder, append_char }
 
 /// True for an ASCII hex digit — `0`..`9`, `a`..`f`, `A`..`F`.

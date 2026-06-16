@@ -8,16 +8,16 @@ type 5 primitive bool
 type 6 array 1
 type 7 struct std_string_builder$StringBuilder { parts:6 }
 type 8 primitive char
-type 9 union 0,10
-type 10 struct std_core$Yield__char { value:8 }
-type 11 primitive i64
-type 12 primitive u64
-type 13 array 14
-type 14 primitive u8
-type 15 struct std_core$Buffer {  }
-type 16 struct std_string$StringChars { bytes:13,cursor:4,length:4 }
-type 17 struct __Tuple_35 { _0:8,_1:4 }
-type 18 union 10,0
+type 9 primitive i64
+type 10 primitive u64
+type 11 array 12
+type 12 primitive u8
+type 13 struct std_core$Buffer {  }
+type 14 struct std_core$Yield__char { value:8 }
+type 15 struct std_string$StringChars { bytes:11,cursor:4,length:4 }
+type 16 union 0,14
+type 17 struct __Tuple_33 { _0:8,_1:4 }
+type 18 union 14,0
 string 0 "\n"
 string 1 "-- ascii --"
 string 2 "vader"
@@ -35,8 +35,8 @@ import 0 write std_io$write (i32,string) -> void
 import 1 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 2 bytes std_core$bytes (string) -> ref
 impl 7 Display
-impl 15 ByteAccess
-impl 16 Iterator
+impl 13 ByteAccess
+impl 15 Iterator
 export main 1
 
 fn 0 std_io$std_io$println__string (string) -> void
@@ -74,7 +74,7 @@ fn 1 snippet$main () -> i32
       if $L2 void
       else
         local.get 1
-        struct.get 10 0
+        struct.get 14 0
         ref.cast 8
         local.set 2
         call 2
@@ -106,7 +106,7 @@ fn 1 snippet$main () -> i32
       if $L5 void
       else
         local.get 1
-        struct.get 10 0
+        struct.get 14 0
         ref.cast 8
         local.set 2
         call 2
@@ -353,7 +353,7 @@ fn 9 std_core$format_signed (i64) -> string
     local.set 0
   else
   end $L1
-  array.new 13 0
+  array.new 11 0
   local.set 2
   block $L2 void
     loop $L3 void
@@ -375,7 +375,7 @@ fn 9 std_core$format_signed (i64) -> string
         local.set 5
         local.get 2
         local.get 5
-        array.push 14
+        array.push 12
         local.get 0
         i64.const 10
         i64.div
@@ -407,7 +407,7 @@ fn 10 std_core$format_unsigned (u64) -> string
   if $L0 void
     return.lit string.const 12
   end $L0
-  array.new 13 0
+  array.new 11 0
   local.set 2
   block $L1 void
     loop $L2 void
@@ -432,7 +432,7 @@ fn 10 std_core$format_unsigned (u64) -> string
         local.set 6
         local.get 2
         local.get 6
-        array.push 14
+        array.push 12
         i64.const 10
         local.set 7
         local.get 0
@@ -458,7 +458,7 @@ fn 11 std_core$utf8_encode (char) -> ref
   local.get 0
   char.to_i32
   local.set 1
-  array.new 13 0
+  array.new 11 0
   local.set 2
   i32.const 128
   local.set 3
@@ -471,7 +471,7 @@ fn 11 std_core$utf8_encode (char) -> ref
     local.set 4
     local.get 2
     local.get 4
-    array.push 14
+    array.push 12
   else
     i32.const 2048
     local.set 3
@@ -490,7 +490,7 @@ fn 11 std_core$utf8_encode (char) -> ref
       local.set 4
       local.get 2
       local.get 4
-      array.push 14
+      array.push 12
       local.get 1
       i32.const 63
       i32.bitand
@@ -502,7 +502,7 @@ fn 11 std_core$utf8_encode (char) -> ref
       local.set 4
       local.get 2
       local.get 4
-      array.push 14
+      array.push 12
     else
       i32.const 65536
       local.set 3
@@ -521,7 +521,7 @@ fn 11 std_core$utf8_encode (char) -> ref
         local.set 4
         local.get 2
         local.get 4
-        array.push 14
+        array.push 12
         local.get 1
         i32.const 6
         u32.shr
@@ -537,7 +537,7 @@ fn 11 std_core$utf8_encode (char) -> ref
         local.set 4
         local.get 2
         local.get 4
-        array.push 14
+        array.push 12
         local.get 1
         i32.const 63
         i32.bitand
@@ -549,7 +549,7 @@ fn 11 std_core$utf8_encode (char) -> ref
         local.set 4
         local.get 2
         local.get 4
-        array.push 14
+        array.push 12
       else
         local.get 1
         i32.const 18
@@ -562,7 +562,7 @@ fn 11 std_core$utf8_encode (char) -> ref
         local.set 4
         local.get 2
         local.get 4
-        array.push 14
+        array.push 12
         local.get 1
         i32.const 12
         u32.shr
@@ -578,7 +578,7 @@ fn 11 std_core$utf8_encode (char) -> ref
         local.set 4
         local.get 2
         local.get 4
-        array.push 14
+        array.push 12
         local.get 1
         i32.const 6
         u32.shr
@@ -594,7 +594,7 @@ fn 11 std_core$utf8_encode (char) -> ref
         local.set 4
         local.get 2
         local.get 4
-        array.push 14
+        array.push 12
         local.get 1
         i32.const 63
         i32.bitand
@@ -606,7 +606,7 @@ fn 11 std_core$utf8_encode (char) -> ref
         local.set 4
         local.get 2
         local.get 4
-        array.push 14
+        array.push 12
       end $L2
     end $L1
   end $L0
@@ -622,7 +622,7 @@ fn 12 std_core$finish_digits (ref,bool) -> string
   local $k_10 usize
   local $sub_12 usize
   local $k_14 usize
-  array.new 13 0
+  array.new 11 0
   local.set 2
   local.get 1
   if $L0 void
@@ -630,7 +630,7 @@ fn 12 std_core$finish_digits (ref,bool) -> string
     local.set 3
     local.get 2
     local.get 3
-    array.push 14
+    array.push 12
   else
   end $L0
   local.get 0
@@ -654,12 +654,12 @@ fn 12 std_core$finish_digits (ref,bool) -> string
         local.set 7
         local.get 0
         local.get 7
-        array.get 13
-        ref.cast 14
+        array.get 11
+        ref.cast 12
         local.set 3
         local.get 2
         local.get 3
-        array.push 14
+        array.push 12
         i64.const 1
         local.set 8
         local.get 5
@@ -724,7 +724,7 @@ fn 14 std_string$chars (string) -> ref
   local.get 1
   local.get 2
   local.get 3
-  struct.new 16
+  struct.new 15
   return
 end
 
@@ -733,10 +733,10 @@ fn 15 std_string$StringChars$Iterator$next (ref) -> ref
   local $field_2 usize
   local $field_5 ref
   local c char
-  local.field 0 16 1
+  local.field 0 15 1
   ref.cast 4
   local.set 1
-  local.field 0 16 2
+  local.field 0 15 2
   ref.cast 4
   local.set 2
   local.get 1
@@ -745,9 +745,9 @@ fn 15 std_string$StringChars$Iterator$next (ref) -> ref
   if $L0 void
     return.lit null.const
   end $L0
-  local.field 0 16 0
+  local.field 0 15 0
   local.set 3
-  local.field 0 16 1
+  local.field 0 15 1
   ref.cast 4
   local.set 1
   local.get 3
@@ -760,16 +760,16 @@ fn 15 std_string$StringChars$Iterator$next (ref) -> ref
   local.field 3 17 1
   ref.cast 4
   local.set 1
-  local.field 0 16 1
+  local.field 0 15 1
   ref.cast 4
   local.get 1
   i64.add
   local.set 1
   local.get 0
   local.get 1
-  struct.set 16 1
+  struct.set 15 1
   local.get 4
-  struct.new 10
+  struct.new 14
   return
 end
 
@@ -803,8 +803,8 @@ fn 17 std_string$decode_char_at (ref,usize) -> char
   local.set 2
   local.get 0
   local.get 1
-  array.get 13
-  ref.cast 14
+  array.get 11
+  ref.cast 12
   local.set 3
   i32.const 128
   local.set 4
@@ -855,8 +855,8 @@ fn 17 std_string$decode_char_at (ref,usize) -> char
     local.set 5
     local.get 0
     local.get 5
-    array.get 13
-    ref.cast 14
+    array.get 11
+    ref.cast 12
     local.set 4
     local.get 3
     u8.to_i32
@@ -912,8 +912,8 @@ fn 17 std_string$decode_char_at (ref,usize) -> char
     local.set 5
     local.get 0
     local.get 5
-    array.get 13
-    ref.cast 14
+    array.get 11
+    ref.cast 12
     local.set 4
     i64.const 2
     local.set 5
@@ -923,8 +923,8 @@ fn 17 std_string$decode_char_at (ref,usize) -> char
     local.set 5
     local.get 0
     local.get 5
-    array.get 13
-    ref.cast 14
+    array.get 11
+    ref.cast 12
     local.set 9
     local.get 3
     u8.to_i32
@@ -993,8 +993,8 @@ fn 17 std_string$decode_char_at (ref,usize) -> char
   local.set 2
   local.get 0
   local.get 2
-  array.get 13
-  ref.cast 14
+  array.get 11
+  ref.cast 12
   local.set 4
   i64.const 2
   local.set 2
@@ -1004,8 +1004,8 @@ fn 17 std_string$decode_char_at (ref,usize) -> char
   local.set 2
   local.get 0
   local.get 2
-  array.get 13
-  ref.cast 14
+  array.get 11
+  ref.cast 12
   local.set 9
   i64.const 3
   local.set 2
@@ -1015,8 +1015,8 @@ fn 17 std_string$decode_char_at (ref,usize) -> char
   local.set 2
   local.get 0
   local.get 2
-  array.get 13
-  ref.cast 14
+  array.get 11
+  ref.cast 12
   local.set 10
   local.get 3
   u8.to_i32

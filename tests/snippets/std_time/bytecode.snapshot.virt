@@ -17,7 +17,7 @@ type 14 struct std_time$Instant { ns_since_epoch:9 }
 type 15 union 14,16
 type 16 struct std_time$TimeError { msg:1 }
 type 17 struct std_time$Monotonic { ns:9 }
-type 18 struct __Tuple_38 { _0:9,_1:9,_2:9 }
+type 18 struct __Tuple_35 { _0:9,_1:9,_2:9 }
 type 19 union 9,16
 type 20 union 0,16
 string 0 "\n"

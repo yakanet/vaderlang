@@ -12,7 +12,7 @@ type 9 primitive u64
 type 10 array 11
 type 11 primitive u8
 type 12 struct std_core$Buffer {  }
-type 13 struct __Tuple_33 { _0:8,_1:4 }
+type 13 struct __Tuple_30 { _0:8,_1:4 }
 string 0 "\n"
 string 1 "0"
 string 2 "ascii  cp="

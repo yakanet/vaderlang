@@ -10,7 +10,8 @@
 
 module "std/json"
 
-import "std/string" { as_string, decode_char_at, parse_float, pad_start, is_digit, is_white_char, chars }
+import "std/string" { as_string, decode_char_at, parse_float, pad_start, chars }
+import "std/char" { is_digit, is_white_char }
 import "std/iter" { zip }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char, append_repeated }
 import "std/collections" { MutableMap, len, keys, values }

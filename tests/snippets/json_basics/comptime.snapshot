@@ -2,6 +2,8 @@
 
 ## stdlib/std/abort
 
+## stdlib/std/char
+
 ## stdlib/std/collections
   @comptime  MINIMAL_BUCKET_COUNT = 16_usize
 
@@ -143,9 +145,9 @@
   Yield<T>
   Yield<T>
   Yield<T>
+  Yield<T>
+  Yield<T>
   Yield<U>
-  Yield<T>
-  Yield<T>
   Yield<T>
   Yield<T>
   Yield<T>

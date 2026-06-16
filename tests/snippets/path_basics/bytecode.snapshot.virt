@@ -8,12 +8,12 @@ type 5 primitive bool
 type 6 array 1
 type 7 struct std_path$Path { repr:1 }
 type 8 struct std_string_builder$StringBuilder { parts:6 }
-type 9 primitive char
-type 10 array 11
-type 11 primitive u8
-type 12 struct std_core$Buffer {  }
+type 9 array 10
+type 10 primitive u8
+type 11 struct std_core$Buffer {  }
+type 12 primitive char
 type 13 primitive isize
-type 14 struct __Tuple_34 { _0:9,_1:4 }
+type 14 struct __Tuple_31 { _0:12,_1:4 }
 string 0 "\n"
 string 1 "="
 string 2 "src/parser/expr.ts"
@@ -68,7 +68,7 @@ import 1 bytes std_core$bytes (string) -> ref
 import 2 at std_core$string$Index$at (string,usize) -> char
 import 3 as_string std_string$as_string (ref) -> string
 impl 8 Display
-impl 12 ByteAccess
+impl 11 ByteAccess
 export main 2
 
 fn 0 std_io$std_io$println__string (string) -> void
@@ -601,7 +601,7 @@ fn 10 std_path$filename (ref) -> string
   local.get 4
   local.get 5
   local.get 6
-  array.slice 10
+  array.slice 9
   call.import 3
   return
 end
@@ -643,7 +643,7 @@ fn 11 std_path$stem (ref) -> string
   local.get 4
   local.get 5
   local.get 6
-  array.slice 10
+  array.slice 9
   call.import 3
   return
 end
@@ -691,7 +691,7 @@ fn 12 std_path$extension (ref) -> string
   local.get 4
   local.get 5
   local.get 6
-  array.slice 10
+  array.slice 9
   call.import 3
   return
 end
@@ -745,7 +745,7 @@ fn 13 std_path$parent (ref) -> ref
   local.get 4
   local.get 5
   local.get 6
-  array.slice 10
+  array.slice 9
   call.import 3
   struct.new 7
   return
@@ -1140,7 +1140,7 @@ fn 20 std_path$normalize (ref) -> ref
           local.get 4
           local.get 7
           local.get 6
-          array.slice 10
+          array.slice 9
           call.import 3
           local.tee 12
           call 23
@@ -1399,7 +1399,7 @@ fn 22 std_string$last_index_of (string,char,isize) -> isize
         call 26
         local.set 7
         local.field 7 14 0
-        ref.cast 9
+        ref.cast 12
         local.set 8
         local.field 7 14 1
         ref.cast 4
@@ -1487,13 +1487,13 @@ fn 24 std_string$starts_with (string,string) -> bool
       if $L3 void
         local.get 2
         local.get 5
-        array.get 10
-        ref.cast 11
+        array.get 9
+        ref.cast 10
         local.set 6
         local.get 3
         local.get 5
-        array.get 10
-        ref.cast 11
+        array.get 9
+        ref.cast 10
         local.set 7
         local.get 6
         local.get 7
@@ -1560,13 +1560,13 @@ fn 25 std_string$ends_with (string,string) -> bool
         local.set 7
         local.get 2
         local.get 7
-        array.get 10
-        ref.cast 11
+        array.get 9
+        ref.cast 10
         local.set 8
         local.get 3
         local.get 6
-        array.get 10
-        ref.cast 11
+        array.get 9
+        ref.cast 10
         local.set 9
         local.get 8
         local.get 9
@@ -1618,8 +1618,8 @@ fn 27 std_string$decode_char_at (ref,usize) -> char
   local.set 2
   local.get 0
   local.get 1
-  array.get 10
-  ref.cast 11
+  array.get 9
+  ref.cast 10
   local.set 3
   i32.const 128
   local.set 4
@@ -1670,8 +1670,8 @@ fn 27 std_string$decode_char_at (ref,usize) -> char
     local.set 5
     local.get 0
     local.get 5
-    array.get 10
-    ref.cast 11
+    array.get 9
+    ref.cast 10
     local.set 4
     local.get 3
     u8.to_i32
@@ -1727,8 +1727,8 @@ fn 27 std_string$decode_char_at (ref,usize) -> char
     local.set 5
     local.get 0
     local.get 5
-    array.get 10
-    ref.cast 11
+    array.get 9
+    ref.cast 10
     local.set 4
     i64.const 2
     local.set 5
@@ -1738,8 +1738,8 @@ fn 27 std_string$decode_char_at (ref,usize) -> char
     local.set 5
     local.get 0
     local.get 5
-    array.get 10
-    ref.cast 11
+    array.get 9
+    ref.cast 10
     local.set 9
     local.get 3
     u8.to_i32
@@ -1808,8 +1808,8 @@ fn 27 std_string$decode_char_at (ref,usize) -> char
   local.set 2
   local.get 0
   local.get 2
-  array.get 10
-  ref.cast 11
+  array.get 9
+  ref.cast 10
   local.set 4
   i64.const 2
   local.set 2
@@ -1819,8 +1819,8 @@ fn 27 std_string$decode_char_at (ref,usize) -> char
   local.set 2
   local.get 0
   local.get 2
-  array.get 10
-  ref.cast 11
+  array.get 9
+  ref.cast 10
   local.set 9
   i64.const 3
   local.set 2
@@ -1830,8 +1830,8 @@ fn 27 std_string$decode_char_at (ref,usize) -> char
   local.set 2
   local.get 0
   local.get 2
-  array.get 10
-  ref.cast 11
+  array.get 9
+  ref.cast 10
   local.set 10
   local.get 3
   u8.to_i32

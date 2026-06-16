@@ -28,8 +28,9 @@ module "std/semver"
 
 import "std/string"         {
     as_string, is_empty, index_of, starts_with, parse_int,
-    trim, split, chars, is_alnum, is_digit, is_white_char, ParseError,
+    trim, split, chars, ParseError,
 }
+import "std/char" { is_alnum, is_digit, is_white_char }
 import "std/string_builder" { StringBuilder, new_builder, append }
 
 // ---- public types ---------------------------------------------------------

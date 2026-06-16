@@ -1,7 +1,8 @@
 module "snippet"
 
 import "std/io" { println }
-import "std/string" { pad_start, pad_end, is_white_char }
+import "std/string" { pad_start, pad_end }
+import "std/char" { is_white_char }
 import "std/numbers" { to_hex, to_bin }
 
 main :: fn() -> i32 {

@@ -401,16 +401,10 @@ primitive_method_type :: fn(prim: string, name: string) -> Type | null {
     // `to_lower`/`to_upper`/`pad_start`/`pad_end`/…) resolve via free-fn UFCS against
     // their std/string definitions — `import "std/string"` required (the prelude
     // exception is `len`, which lives in std/core). See the core/string/utf8 reorg plan.
-    if prim == "char" {
-        if name == "is_white_char" { return mk_fn([], mk_primitive("bool")) }
-        if name == "is_digit"      { return mk_fn([], mk_primitive("bool")) }
-        if name == "is_alpha"      { return mk_fn([], mk_primitive("bool")) }
-        if name == "is_alnum"      { return mk_fn([], mk_primitive("bool")) }
-        if name == "is_lower"      { return mk_fn([], mk_primitive("bool")) }
-        if name == "is_upper"      { return mk_fn([], mk_primitive("bool")) }
-        if name == "to_lower"      { return mk_fn([], mk_primitive("char")) }
-        if name == "to_upper"      { return mk_fn([], mk_primitive("char")) }
-    }
+    // No `char` block: `is_white_char`/`is_digit`/`is_alpha`/`is_alnum` resolve via
+    // free-fn UFCS against `std/char` (`import "std/char"` required). The old
+    // `is_lower`/`is_upper`/char `to_lower`/`to_upper` entries had no impl anywhere
+    // and were dropped. See the core/string/utf8 reorg plan.
     // Numeric formatters live on the integer / float primitives.
     if name == "to_hex" || name == "to_bin" || name == "to_oct" {
         return mk_fn([], mk_primitive("string"))

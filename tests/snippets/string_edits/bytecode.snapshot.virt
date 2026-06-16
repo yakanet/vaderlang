@@ -7,12 +7,12 @@ type 4 primitive usize
 type 5 primitive bool
 type 6 array 1
 type 7 struct std_string_builder$StringBuilder { parts:6 }
-type 8 primitive char
-type 9 array 10
-type 10 primitive u8
-type 11 struct std_core$Buffer {  }
+type 8 array 9
+type 9 primitive u8
+type 10 struct std_core$Buffer {  }
+type 11 primitive char
 type 12 primitive isize
-type 13 struct __Tuple_33 { _0:8,_1:4 }
+type 13 struct __Tuple_30 { _0:11,_1:4 }
 string 0 "\n"
 string 1 "true"
 string 2 "false"
@@ -32,7 +32,7 @@ import 0 write std_io$write (i32,string) -> void
 import 1 bytes std_core$bytes (string) -> ref
 import 2 as_string std_string$as_string (ref) -> string
 impl 7 Display
-impl 11 ByteAccess
+impl 10 ByteAccess
 export main 7
 
 fn 0 std_io$std_io$println__string (string) -> void
@@ -467,7 +467,7 @@ fn 12 std_string$split (string,string) -> ref
           local.get 3
           local.get 6
           local.get 8
-          array.slice 9
+          array.slice 8
           call.import 2
           local.set 9
           local.get 2
@@ -508,7 +508,7 @@ fn 12 std_string$split (string,string) -> ref
         local.get 3
         local.get 6
         local.get 7
-        array.slice 9
+        array.slice 8
         call.import 2
         local.set 9
         local.get 2
@@ -531,7 +531,7 @@ fn 12 std_string$split (string,string) -> ref
   local.get 3
   local.get 6
   local.get 4
-  array.slice 9
+  array.slice 8
   call.import 2
   local.set 9
   local.get 2
@@ -621,7 +621,7 @@ fn 14 std_string$index_of (string,char,usize) -> isize
         call 16
         local.set 6
         local.field 6 13 0
-        ref.cast 8
+        ref.cast 11
         local.set 7
         local.field 6 13 1
         ref.cast 4
@@ -758,13 +758,13 @@ fn 17 std_string$bytes_match_at (ref,usize,ref,usize) -> bool
         local.set 5
         local.get 0
         local.get 5
-        array.get 9
-        ref.cast 10
+        array.get 8
+        ref.cast 9
         local.set 6
         local.get 2
         local.get 4
-        array.get 9
-        ref.cast 10
+        array.get 8
+        ref.cast 9
         local.set 7
         local.get 6
         local.get 7
@@ -801,8 +801,8 @@ fn 18 std_string$decode_char_at (ref,usize) -> char
   local.set 2
   local.get 0
   local.get 1
-  array.get 9
-  ref.cast 10
+  array.get 8
+  ref.cast 9
   local.set 3
   i32.const 128
   local.set 4
@@ -853,8 +853,8 @@ fn 18 std_string$decode_char_at (ref,usize) -> char
     local.set 5
     local.get 0
     local.get 5
-    array.get 9
-    ref.cast 10
+    array.get 8
+    ref.cast 9
     local.set 4
     local.get 3
     u8.to_i32
@@ -910,8 +910,8 @@ fn 18 std_string$decode_char_at (ref,usize) -> char
     local.set 5
     local.get 0
     local.get 5
-    array.get 9
-    ref.cast 10
+    array.get 8
+    ref.cast 9
     local.set 4
     i64.const 2
     local.set 5
@@ -921,8 +921,8 @@ fn 18 std_string$decode_char_at (ref,usize) -> char
     local.set 5
     local.get 0
     local.get 5
-    array.get 9
-    ref.cast 10
+    array.get 8
+    ref.cast 9
     local.set 9
     local.get 3
     u8.to_i32
@@ -991,8 +991,8 @@ fn 18 std_string$decode_char_at (ref,usize) -> char
   local.set 2
   local.get 0
   local.get 2
-  array.get 9
-  ref.cast 10
+  array.get 8
+  ref.cast 9
   local.set 4
   i64.const 2
   local.set 2
@@ -1002,8 +1002,8 @@ fn 18 std_string$decode_char_at (ref,usize) -> char
   local.set 2
   local.get 0
   local.get 2
-  array.get 9
-  ref.cast 10
+  array.get 8
+  ref.cast 9
   local.set 9
   i64.const 3
   local.set 2
@@ -1013,8 +1013,8 @@ fn 18 std_string$decode_char_at (ref,usize) -> char
   local.set 2
   local.get 0
   local.get 2
-  array.get 9
-  ref.cast 10
+  array.get 8
+  ref.cast 9
   local.set 10
   local.get 3
   u8.to_i32
