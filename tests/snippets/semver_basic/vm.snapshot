@@ -1,4 +1,6 @@
-# stderr
-vader vm: unbound host import 'std_string$as_string' at pc=131
+# stdout
+1.2.3-rc.1
+after 1.0.0
+1.5.0 in ^1.0.0
 # exit
-1
+0

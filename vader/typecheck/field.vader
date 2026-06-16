@@ -46,8 +46,6 @@ export infer_field :: fn(
     candidate: Type | null = null
     candidate = try_array_method_dispatch(target_ty, e)
     match candidate { is null -> {} _ -> { return candidate } }
-    candidate = try_primitive_method_dispatch(target_ty, e)
-    match candidate { is null -> {} _ -> { return candidate } }
     candidate = try_impl_method_ufcs(target_ty, e, typed, diags)
     match candidate { is null -> {} _ -> { return candidate } }
     // Bounded TypeParam dispatch runs BEFORE free-fn UFCS : a free fn
@@ -81,11 +79,6 @@ export infer_field :: fn(
 try_array_method_dispatch :: fn(target_ty: Type, e: AST.FieldExpr) -> Type | null {
     if !(target_ty is ArrayType) { return null }
     return array_method_type(e.field, target_ty)
-}
-
-try_primitive_method_dispatch :: fn(target_ty: Type, e: AST.FieldExpr) -> Type | null {
-    if !(target_ty is PrimitiveType) { return null }
-    return primitive_method_type(target_ty.name, e.field)
 }
 
 // `x.method()` where `<x-type> implements <Trait> { method :: ... }`.
@@ -396,25 +389,6 @@ array_method_type :: fn(name: string, arr: ArrayType) -> Type | null {
 /// the first removed — it lives in `std/core` (the prelude) now. The remaining
 /// string/char entries move to `std/string` / `std/char` (import-required) or
 /// get implemented/dropped per .claude/plans/core-string-utf8-reorg.md.
-primitive_method_type :: fn(prim: string, name: string) -> Type | null {
-    // No `string` block: string methods (`is_empty`/`starts_with`/`split`/`trim`/
-    // `to_lower`/`to_upper`/`pad_start`/`pad_end`/…) resolve via free-fn UFCS against
-    // their std/string definitions — `import "std/string"` required (the prelude
-    // exception is `len`, which lives in std/core). See the core/string/utf8 reorg plan.
-    // No `char` block: `is_white_char`/`is_digit`/`is_alpha`/`is_alnum` resolve via
-    // free-fn UFCS against `std/char` (`import "std/char"` required). The old
-    // `is_lower`/`is_upper`/char `to_lower`/`to_upper` entries had no impl anywhere
-    // and were dropped. See the core/string/utf8 reorg plan.
-    // No numeric-formatter block: `to_hex`/`to_bin` resolve via free-fn UFCS
-    // against `std/numbers` (`import "std/numbers"` required). `to_oct` had no
-    // impl anywhere and was dropped. See the core/string/utf8 reorg plan.
-    // Hash / Equals remain — implemented for every primitive type, wired by the
-    // runtime (no Vader source to read a signature from), unlike the above.
-    if name == "hash"   { return mk_fn([], mk_primitive("u64")) }
-    if name == "equals" { return mk_fn([mk_primitive(prim)], mk_primitive("bool")) }
-    return null
-}
-
 import "vader/resolver/symbol" { Symbol }
 
 /// When `e.target` is an `IdentExpr` resolving to a namespace

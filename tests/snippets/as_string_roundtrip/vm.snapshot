@@ -1,4 +1,7 @@
-# stderr
-vader vm: unbound host import 'std_string$as_string' at pc=2
+# stdout
+vader
+héllo café 你好
+bcd
+[]
 # exit
-1
+0
