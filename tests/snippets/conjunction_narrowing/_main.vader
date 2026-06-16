@@ -1,0 +1,33 @@
+// conjunction_narrowing — `is T` narrows the scrutinee across a `&&`.
+//
+// Regression for B.4: flow narrowing didn't cross `&&` at typecheck, so
+// `if shape is Circle && shape.radius > 0` failed with T3008 (`shape` stayed
+// `Circle | Square` in the `&&` right operand AND in the then-block ; only the
+// VM limped through at runtime). Fixed by flowing each operand's narrowing
+// into the conjunction's right operand (vader/typecheck/binary.vader) and into
+// the then-block (vader/typecheck/expr_if.vader). An `as` binding inside a
+// `&&` is rejected instead (R2029) — see
+// tests/diag_corpus/resolver/r2029_as_binding_in_conjunction.
+
+module "snippet"
+
+import "std/io" { println }
+
+Circle :: struct { radius: i32 }
+Square :: struct { side: i32 }
+
+// `shape.radius` in BOTH the `&&` right operand and the then-block only
+// type-checks if `shape` narrows to `Circle` across the `&&`.
+classify :: fn(shape: Circle | Square) -> string {
+    if shape is Circle && shape.radius > 0 {
+        return "circle r=${shape.radius}"
+    }
+    return "other"
+}
+
+main :: fn() -> i32 {
+    println(classify(Circle { .radius = 5 }))   // circle r=5
+    println(classify(Square { .side = 3 }))     // other
+    println(classify(Circle { .radius = 0 }))   // other
+    return 0
+}

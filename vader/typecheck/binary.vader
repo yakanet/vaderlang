@@ -50,7 +50,14 @@ export infer_binary :: fn(
     // Right-side bidirectional context : when left is a concrete numeric,
     // narrow free numeric literals on the right (`size + 1` → `1: usize`).
     right_ctx :: numeric_propagation(e.op, left)
+    // `a is T && a.f` : the right operand of a conjunction sees the left's
+    // scrutinee / field narrowings, so a flow-narrowed access type-checks.
+    // Conjunction only — `||` can't narrow its right (the left may be false).
+    cond_narrows: IsNarrow[] = []
+    if i32(e.op) == i32(AST.BinaryOp.And) { cond_narrows = collect_and_narrows(e.left, typed) }
+    pushed :: push_then_narrows(cond_narrows, typed)
     right :: check_expr_fn(e.right, right_ctx, typed, diags)
+    pop_then_narrows(pushed, typed)
 
     match classify(e.op) {
         .Arith    -> { return check_arith(e, left, right, typed, diags) }

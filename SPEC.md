@@ -348,6 +348,8 @@ Type casts (`Type(expr)`) are parsed as primary call expressions and naturally s
 
 `is` checks the runtime *struct-tag* of the value, not a "union tag" — `x is <UnionType>` therefore always returns false. The typechecker emits `W0003` whenever the RHS of `is` resolves to a union (literal `A | B` or a `MyUnion :: A | B` alias), suggesting the user destructure into individual variants via `match v { is A -> ... is B -> ... }` instead.
 
+Flow narrowing flows through a `&&` condition: in `if x is T && <rest>` the scrutinee `x` is narrowed to `T` both in the conjunction's right operand (`<rest>`) and in the then-block, so `if x is Circle && x.radius > 0 { … x.radius … }` type-checks. The else branch of a conjunction is **not** narrowed (a false `a && b` doesn't reveal which operand failed). An `as` binding may **not** appear inside a `&&` — `if x is T as a && …` raises `R2029` because the binding's scope across the short-circuit is ambiguous ; narrow the variable in place (`if x is T && …`) or nest the checks (`if x is T as a { if … }`).
+
 ### Statement separators
 
 Inside a block, statements are separated by `NEWLINE` tokens (emitted per the rules below). Vader does **not** accept `;` as a statement separator.

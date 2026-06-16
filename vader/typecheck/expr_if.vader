@@ -60,39 +60,36 @@ export infer_if :: fn(
         diags.push(typecheck_error(.ConditionMustBeBool, e.cond.span,
             "if condition must be `bool`, got ${display_type(cond_ty)}"))
     }
-    narrowing :: detect_is_narrow(e.cond, typed, diags)
-    prev_then: Type | null = null
-    static_then: Type = TY_UNRESOLVED
-    match narrowing {
-        is null -> {}
-        is IsNarrow as n -> {
-            static_then = n.static_ty
-            if n.field_key == "" {
-                prev_then = push_narrow(typed, n.sym_id, n.then_ty)
-            } else {
-                prev_then = push_field_narrow(typed, n.field_key, n.then_ty)
-            }
+    // A `&&` condition narrows EACH operand's scrutinee for the then-block
+    // (`if a is T && a.f { … }`) ; its else can't narrow (we don't know which
+    // operand was false). A single (non-`&&`) condition keeps the existing
+    // then + inverse-else narrowing.
+    is_and :: if e.cond is AST.BinaryExpr as bc { i32(bc.op) == i32(AST.BinaryOp.And) } else { false }
+    then_narrows: IsNarrow[] = []
+    else_narrowing: IsNarrow | null = null
+    if is_and {
+        then_narrows = collect_and_narrows(e.cond, typed)
+    } else {
+        single :: detect_is_narrow(e.cond, typed, diags)
+        if single is IsNarrow as s {
+            then_narrows.push(s)
+            else_narrowing = s
         }
     }
+    pushed :: push_then_narrows(then_narrows, typed)
     then_ty :: check_block(e.then_block, expected, typed, diags, ctx, check_expr_fn)
-    match narrowing {
-        is null -> {}
-        is IsNarrow as n -> {
-            if n.field_key == "" { pop_narrow(typed, n.sym_id, prev_then, static_then) }
-            else { pop_field_narrow(typed, n.field_key, prev_then, static_then) }
-        }
-    }
+    pop_then_narrows(pushed, typed)
     match e.else_branch {
         is null -> {
             return collapse_if_unresolved(union_of([then_ty, TY_VOID]), then_ty, TY_VOID)
         }
         is AST.IfElseBlock as eb -> {
-            else_ty :: check_else_with_narrow(eb.block, narrowing, expected, typed, diags, ctx, check_expr_fn)
+            else_ty :: check_else_with_narrow(eb.block, else_narrowing, expected, typed, diags, ctx, check_expr_fn)
             return collapse_if_unresolved(join_if_branches(then_ty, else_ty), then_ty, else_ty)
         }
         is AST.IfElseIf as ei -> {
             inner: AST.Expr = ei.branch
-            else_ty :: check_else_branch_expr(inner, narrowing, expected, typed, diags, check_expr_fn)
+            else_ty :: check_else_branch_expr(inner, else_narrowing, expected, typed, diags, check_expr_fn)
             return collapse_if_unresolved(join_if_branches(then_ty, else_ty), then_ty, else_ty)
         }
     }
@@ -162,6 +159,60 @@ IsNarrow :: struct {
     then_ty:   Type
     else_ty:   Type
     field_key: string = ""
+}
+
+// One pushed narrowing, recorded so a scope (a `&&` right operand, a
+// then-block) can unwind it.
+PushedNarrow :: struct {
+    sym_id:    i32
+    field_key: string
+    prev:      Type | null
+    static_ty: Type
+}
+
+// Collect the scrutinee / field narrowings introduced by a `&&` condition
+// chain, left-to-right (flattening nested `&&`). Each leaf (`x is T`,
+// `x == null`, `x.f != null`, …) contributes its `then` narrowing via
+// `detect_is_narrow`. A conjunction's else side can't narrow (we don't know
+// which operand was false), so callers apply these to the then side only.
+// Detection only — operands are type-checked with real diags by the caller,
+// so `detect_is_narrow` routes its own here to a sink.
+collect_and_narrows :: fn(cond: AST.Expr, typed: TypedProgram) -> IsNarrow[] {
+    if cond is AST.BinaryExpr as x {
+        if i32(x.op) == i32(AST.BinaryOp.And) {
+            out :: collect_and_narrows(x.left, typed)
+            for n in collect_and_narrows(x.right, typed) { out.push(n) }
+            return out
+        }
+    }
+    out: IsNarrow[] = []
+    single :: detect_is_narrow(cond, typed, diag_sink())
+    if single is IsNarrow as n { out.push(n) }
+    return out
+}
+
+// Push each narrowing's `then` type and return the records to unwind later.
+push_then_narrows :: fn(narrows: IsNarrow[], typed: TypedProgram) -> PushedNarrow[] {
+    pushed: PushedNarrow[] = []
+    for n in narrows {
+        if n.field_key == "" {
+            prev :: push_narrow(typed, n.sym_id, n.then_ty)
+            pushed.push(PushedNarrow { .sym_id = n.sym_id, .field_key = "", .prev = prev, .static_ty = n.static_ty })
+        } else {
+            prev :: push_field_narrow(typed, n.field_key, n.then_ty)
+            pushed.push(PushedNarrow { .sym_id = n.sym_id, .field_key = n.field_key, .prev = prev, .static_ty = n.static_ty })
+        }
+    }
+    return pushed
+}
+
+// Unwind in reverse (LIFO) so stacked pushes on the same slot restore cleanly.
+pop_then_narrows :: fn(pushed: PushedNarrow[], typed: TypedProgram) -> void {
+    for k in 0..<pushed.len() {
+        rec :: pushed[pushed.len() - 1 - k]
+        if rec.field_key == "" { pop_narrow(typed, rec.sym_id, rec.prev, rec.static_ty) }
+        else { pop_field_narrow(typed, rec.field_key, rec.prev, rec.static_ty) }
+    }
 }
 
 detect_is_narrow :: fn(
