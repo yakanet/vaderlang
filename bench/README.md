@@ -1,6 +1,8 @@
 # Vader benchmarks
 
-Two families of workload. The **cross-language** set (six workloads, four implementations each) spans float CPU, integer CPU, iterator chains, GC throughput, and string-runtime throughput so a perf change in any of those subsystems trips a regression. The **Target-ABI** set (four workloads, Vader-only) isolates a single ABI primitive each, so a `main`-vs-branch run quantifies the ABI migration (see [`docs/TARGET_ABI.md`](../docs/TARGET_ABI.md)).
+Two families of workload. The **cross-language** set (six workloads) spans float CPU, integer CPU, iterator chains, GC throughput, and string-runtime throughput so a perf change in any of those subsystems trips a regression. The **Target-ABI** set (four workloads) isolates a single ABI primitive each, so a `main`-vs-branch run quantifies the ABI migration (see [`docs/TARGET_ABI.md`](../docs/TARGET_ABI.md)).
+
+Every workload lives in its own directory `bench/<name>/` with all four language implementations colocated — `<name>.vader`, `<name>.ts`, `<name>.go`, `<name>.java` — alongside the compiled artefacts the harness produces.
 
 | workload         | exercises                                       | algorithm                                                       | scale                                  |
 |------------------|-------------------------------------------------|-----------------------------------------------------------------|----------------------------------------|
@@ -11,7 +13,7 @@ Two families of workload. The **cross-language** set (six workloads, four implem
 | `string_builder` | string runtime + GC under in-flight builder     | append a 45-char fragment N times, finalise to a flat string    | N = 80 000                             |
 | `map_iter`       | hash-map entry iteration, per-visit alloc       | 1 000 outer × 1 000 inner `for entry in m` over a 1 000-entry map | 1 M map visits total                 |
 
-**Target-ABI micro-benches** (Vader-only — no `.ts` / `.go` / `.java` port, so only the `vader-native` column is populated) :
+**Target-ABI micro-benches** — the ABI primitive each isolates doubles as a cross-language comparison point, so they ship the same four-language ports :
 
 | workload      | ABI primitive                                   | algorithm                                                       | scale                          |
 |---------------|-------------------------------------------------|-----------------------------------------------------------------|--------------------------------|
@@ -24,18 +26,18 @@ Every program prints a one-line checksum so cross-language (and cross-branch) eq
 
 ## Implementations
 
-| stack             | entry-point                                  | how it runs                                          |
-|-------------------|----------------------------------------------|------------------------------------------------------|
-| `vader-native`    | `bench/<name>.vader` → native binary         | `./build/vader build --target=native --release`, then exec |
-| `bun-ts`          | `bench/<name>.ts`                            | direct `bun bench/<name>.ts`                          |
-| `go`              | `bench/<name>.go` → native binary            | `go build`, then exec                                 |
-| `java`            | `bench/<name>.java` → `bench/<name>.class`   | `javac --release 25`, then `java -cp bench <Name>`    |
+| stack             | entry-point                                       | how it runs                                                |
+|-------------------|---------------------------------------------------|------------------------------------------------------------|
+| `vader-native`    | `bench/<name>/<name>.vader` → native binary       | `./build/vader build --target=native --release`, then exec |
+| `bun-ts`          | `bench/<name>/<name>.ts`                          | direct `bun bench/<name>/<name>.ts`                        |
+| `go`              | `bench/<name>/<name>.go` → native binary          | `go build`, then exec                                      |
+| `java`            | `bench/<name>/<name>.java` → `<name>.class`       | `javac --release 25 -d bench/<name>`, then `java -cp bench/<name> <Name>` |
 
 The harness times each invocation with `performance.now()` around a `spawnSync`, so what's measured is the **process wall-clock** — startup, runtime initialization, kernel, I/O, teardown.
 
-A fifth implementation, `vader-vm` (`./build/vader run bench/<name>.vader`), exists in the codebase but is commented out in `bench/run.ts`'s `IMPLS` list. Reason : each VM invocation pays 2-30 s for the Vader parse + typecheck + lower + bytecode pipeline, which dwarfs the actual VM loop. Including it inflates the total bench wall time from ~6 s to ~5 min without surfacing a regression signal that `vader-native` doesn't already cover. Uncomment the entry when a change targets the VM exec path specifically (e.g. once the bytecode-on-disk cache lands and the compile phase is amortised).
+A fifth implementation, `vader-vm` (`./build/vader run bench/<name>/<name>.vader`), exists in the codebase but is commented out in `bench/run.ts`'s `IMPLS` list. Reason : each VM invocation pays 2-30 s for the Vader parse + typecheck + lower + bytecode pipeline, which dwarfs the actual VM loop. Including it inflates the total bench wall time from ~6 s to ~5 min without surfacing a regression signal that `vader-native` doesn't already cover. Uncomment the entry when a change targets the VM exec path specifically (e.g. once the bytecode-on-disk cache lands and the compile phase is amortised).
 
-Java is precompiled in the build phase rather than run via the single-source-file launcher (`java bench/<name>.java`). The launcher adds ~200 ms per invocation for in-memory source parsing + class load on top of the JVM cold-start floor ; precompiling drops Java's per-run cost to ~30-50 ms which is the JVM startup + cold JIT alone. For steady-state Java throughput (a long-running JVM that has warmed its JIT), Java would land much closer to Go and Vader native ; the bench measures cold script invocations on purpose.
+Java is precompiled in the build phase rather than run via the single-source-file launcher (`java bench/<name>/<name>.java`). The launcher adds ~200 ms per invocation for in-memory source parsing + class load on top of the JVM cold-start floor ; precompiling drops Java's per-run cost to ~30-50 ms which is the JVM startup + cold JIT alone. For steady-state Java throughput (a long-running JVM that has warmed its JIT), Java would land much closer to Go and Vader native ; the bench measures cold script invocations on purpose.
 
 ### Build parallelism
 
@@ -94,9 +96,9 @@ These aren't bench bugs ; they're real Vader limits that constrain workload sizi
 ## Adding a workload
 
 1. Write the kernel in `bench/<name>/<name>.vader`. Print a one-line checksum to stdout.
-2. **Cross-language workload** — port it to `bench/<name>.ts`, `bench/<name>.go`, `bench/<name>.java`. Keep the algorithm bit-identical (the harness verifies checksum equality against the committed baseline). **Vader-only workload** (e.g. a Target-ABI micro-bench comparing branch vs `main`) — skip the ports ; the harness silently drops any implementation whose source file is absent, so the table shows only the `vader-native` column.
+2. Port it to `bench/<name>/<name>.ts`, `bench/<name>/<name>.go`, `bench/<name>/<name>.java` — all colocated in the same directory. Keep the algorithm bit-identical (the harness verifies checksum equality against the committed baseline). A port may be omitted : the harness silently drops any implementation whose source file is absent, so a Vader-only workload still works (its row just shows only the `vader-native` column).
 3. Add an entry to `WORKLOADS` in `bench/run.ts`.
-4. Add the artefacts (`bench/<name>/<name>` ; `.c` is covered by `bench/*/*.c`, and `bench/<name>_go` by `bench/*_go`) to `.gitignore`.
+4. Add the Vader binary line `bench/<name>/<name>` to `.gitignore` ; the `.c`, Go binary and `.class` artefacts are already covered by the `bench/*/*.c`, `bench/*/*_go`, `bench/*/*.class` globs.
 5. Run `bun run bench -- --update` to extend the baseline (baselines are machine-specific — a new workload simply isn't regression-gated until someone records it on the canonical machine).
 
 ## Caveats
