@@ -397,24 +397,10 @@ array_method_type :: fn(name: string, arr: ArrayType) -> Type | null {
 /// string/char entries move to `std/string` / `std/char` (import-required) or
 /// get implemented/dropped per .claude/plans/core-string-utf8-reorg.md.
 primitive_method_type :: fn(prim: string, name: string) -> Type | null {
-    if prim == "string" {
-        // These 9 still have a std/string impl but no longer need a hardcoded
-        // entry — they resolve via free-fn UFCS when std/string is imported.
-        // Slated for removal once their call sites carry the import (reorg incr. 3).
-        if name == "is_empty"    { return mk_fn([], mk_primitive("bool")) }
-        if name == "starts_with" { return mk_fn([mk_primitive("string")], mk_primitive("bool")) }
-        if name == "ends_with"   { return mk_fn([mk_primitive("string")], mk_primitive("bool")) }
-        if name == "to_lower"    { return mk_fn([], mk_primitive("string")) }
-        if name == "to_upper"    { return mk_fn([], mk_primitive("string")) }
-        if name == "trim"        { return mk_fn([], mk_primitive("string")) }
-        if name == "split"       { return mk_fn([mk_primitive("string")], mk_array(mk_primitive("string"), false)) }
-        if name == "pad_start"   { return mk_fn([mk_primitive("usize"), mk_primitive("char")], mk_primitive("string")) }
-        if name == "pad_end"     { return mk_fn([mk_primitive("usize"), mk_primitive("char")], mk_primitive("string")) }
-        // Removed (had no impl / now resolve elsewhere): `len`→std/core ;
-        // `contains`→`Contains` trait + `in` ; `slice`→`s[a..<b]` ;
-        // `replace`/`replace_all`/`repeat`/`find`→std/string (implemented) ;
-        // `find_all`/`trim_start`/`trim_end`/`concat`→dropped. See the reorg plan.
-    }
+    // No `string` block: string methods (`is_empty`/`starts_with`/`split`/`trim`/
+    // `to_lower`/`to_upper`/`pad_start`/`pad_end`/…) resolve via free-fn UFCS against
+    // their std/string definitions — `import "std/string"` required (the prelude
+    // exception is `len`, which lives in std/core). See the core/string/utf8 reorg plan.
     if prim == "char" {
         if name == "is_white_char" { return mk_fn([], mk_primitive("bool")) }
         if name == "is_digit"      { return mk_fn([], mk_primitive("bool")) }
