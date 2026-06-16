@@ -130,6 +130,8 @@ Keep LoweredAST distinct. Tree rewrites (match/try/for-in/range desugar) are cle
 ### 1.13d Stdlib consolidation — partial
 > Shipped: hex/base helpers centralised in `std/numbers`, `std/json` char-predicate duplicates removed.
 - [ ] **Audit consistency across `std/core` / `std/string` / `std/utf8`** (noted 2026-06-15) — these three modules feel incoherent : overlapping / unclear ownership of the byte ↔ codepoint ↔ string surface (`bytes_to_string`/`as_string`, `bytes()`, codepoint vs byte cursors, UTF-8 encode/decode). Map which module owns what, dedup the overlap, and settle a clear layering (core = byte primitives + intern ; utf8 = encode/decode ; string = the codepoint-string API). Cross-ref the `bytes_to_string` reconciliation item below.
+
+  - **Promoted to a dedicated plan (2026-06-16): [`.claude/plans/core-string-utf8-reorg.md`](.claude/plans/core-string-utf8-reorg.md).** It folds in the `string.len()` miscompile (UFCS to a non-imported, non-`core` free fn → invalid C), the **frozen import policy** (using a non-imported fn — except `std/core` the prelude — is a compilation error), the prelude/layering rule, and the emitter ICE backstop. The `bytes_to_string` reconciliation item below is folded into that plan's Phase 3.
 - [ ] **Future audits** — revisit when new stdlib modules land. A shared `Cursor(T)` trait could unify `std/json` and `vader/lexer`'s hand-rolled cursors when a real need arises.
 - [ ] **Harden multi-file module support (compiler).** Surfaced 2026-06-08 splitting
   `std/core` into `core.vader` + `primitives.vader` (same `module "std/core"`). The

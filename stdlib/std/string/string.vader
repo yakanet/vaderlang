@@ -219,19 +219,14 @@ string implements Contains<string> {
 /// @return   `[codepoint, byte_length]`.
 export decode_codepoint :: fn(s: string, i: usize) -> [char, usize] = decode_codepoint_at(s.bytes(), i)
 
-/// Count the Unicode codepoints in `s` — the codepoint counterpart to
-/// `byte_len()`. Walks the UTF-8 byte sequence directly via leading-
-/// byte widths ; cheaper than `s.chars().count()` because it avoids the
-/// per-step `Yield(char)` allocation. O(n) in the byte length.
-///
-/// Example :
-///   `"héllo".len()    // 5  (byte_len() returns 6)`
-///   `"你好".len()      // 2  (byte_len() returns 6)`
-///   `"".len()         // 0`
-///
-/// @param s  source string.
-/// @return   number of codepoints in `s`.
-export len :: fn(s: string) = s.chars().count()
+// `len` (codepoint count) moved to `std/core` (the prelude) so `s.len()`
+// resolves without importing `std/string`. It was the one string method the
+// typer hardcoded as a primitive (`primitive_method_type`) while the lowerer
+// could only reach it via free-fn UFCS over loaded modules — a mismatch that
+// miscompiled `s.len()` to invalid C unless std/string happened to be loaded.
+// Now a plain core free fn (byte-walk) ; callers drop it from their
+// `import "std/string" { … }` lists. See the core/string/utf8 reorg plan :
+// .claude/plans/core-string-utf8-reorg.md.
 
 /// Comparator suitable for `sort(arr, compare_ascending)` : returns `true`
 /// when `a` lexicographically precedes `b` (byte-wise). Mirrors JS

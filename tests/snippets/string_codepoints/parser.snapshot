@@ -27,10 +27,6 @@
         "kind": "destructure",
         "names": [
           {
-            "name": "len",
-            "alias": null
-          },
-          {
             "name": "decode_codepoint",
             "alias": null
           }

@@ -1,7 +1,7 @@
 module "snippet"
 
 import "std/io" { println }
-import "std/string" { len, decode_codepoint }
+import "std/string" { decode_codepoint }
 import "std/utf8" { codepoint_byte_len }
 
 main :: fn() -> i32 {

@@ -389,9 +389,17 @@ array_method_type :: fn(name: string, arr: ArrayType) -> Type | null {
 
 /// MVP UFCS for the canonical primitive (string / char) methods.
 /// Mirrors the stdlib `T` free fns the lowerer wires in.
+///
+/// MID-REORG : this hardcoded string/char surface is being retired. The typer
+/// claims these methods but the lowerer reaches them only via free-fn UFCS over
+/// loaded modules, so any entry whose impl isn't loaded miscompiles. `len` was
+/// the first removed — it lives in `std/core` (the prelude) now. The remaining
+/// string/char entries move to `std/string` / `std/char` (import-required) or
+/// get implemented/dropped per .claude/plans/core-string-utf8-reorg.md.
 primitive_method_type :: fn(prim: string, name: string) -> Type | null {
     if prim == "string" {
-        if name == "len"         { return mk_fn([], mk_primitive("usize")) }
+        // `len` → `std/core/primitives.vader`, resolved via free-fn UFCS against
+        // the always-loaded prelude (no hardcoded entry needed).
         if name == "is_empty"    { return mk_fn([], mk_primitive("bool")) }
         if name == "starts_with" { return mk_fn([mk_primitive("string")], mk_primitive("bool")) }
         if name == "ends_with"   { return mk_fn([mk_primitive("string")], mk_primitive("bool")) }
