@@ -1037,7 +1037,7 @@ make_buffer :: fn<N: i32>() -> FixedArray<u8, N> { ... }
 **Limitations (MVP)**:
 - **No "associated functions"** (static methods on a type) — `Type.method(args)` syntax is not parsed. Factory functions are written as free functions and called via UFCS or directly: `new_path("foo/bar")`, `MutableMap<K, V> { ... }` for struct-literal construction. Post-MVP candidate.
 
-Numeric primitives carry `@intrinsic` `Add`/`Sub`/`Mul`/`Div` impls in `std/core` — `<T: Add>` succeeds for every primitive numeric type as well as for `string` (concat). `Hash` and `Equals` impls are user-explicit (only `i32`/`u32`/`usize`/`string` carry them today) ; extend per use case.
+Numeric primitives carry `@intrinsic` `Add`/`Sub`/`Mul`/`Div` impls in `std/core` — `<T: Add>` succeeds for every primitive numeric type as well as for `string` (concat). `Equals` and `Hash` are carried by **every** primitive (`@intrinsic <prim> implements Equals` + `<prim> implements Hash` in `std/core`, covering `i8`…`usize`, `f32`/`f64`, `bool`, `char`, `string`), so `x.hash()` / `x.equals(y)` and `MutableMap` / `MutableSet` keying work for any primitive without a per-type opt-in.
 
 ### Traits
 
@@ -1437,6 +1437,10 @@ UFCS dispatch works against three shapes of receiver–first-param relation, ran
 5. **`Into<Target>` last-resort coercion** : strictly weaker than every other rank ; only fires when no direct candidate exists.
 
 Specifically — a partial match where some variants of a union scrutinee carry the field and others don't still raises `T3009` ; the fall-through to UFCS only triggers when *no* variant has the field at all.
+
+#### Import requirement
+
+UFCS resolution obeys the **same import rule as a bare call** : `x.foo()` resolves only against free functions whose owning module is reachable in the program (transitively `import`ed), exactly as `foo(x)` would. `std/core` (the implicit prelude, §11) is the sole exemption — its exports are always in scope, so `s.len()`, `bs.bytes_to_string()`, `x.hash()` work with no import. A `x.foo()` whose only candidate lives in a *non-imported* module is a **compile error** (`T3008` / `T3009`), not a silently-dropped call. This keeps the type-checker's UFCS visibility aligned with the lowerer's : both dispatch against the same reachable module set, so a method that type-checks always lowers to a real call. (Historically the typer carried hardcoded per-primitive method tables that bypassed this, letting `s.split()` type-check without `import "std/string"` and then mis-compile ; those tables were removed so primitive/array methods resolve uniformly through trait impls + free-fn UFCS.)
 
 #### Function overloading
 
