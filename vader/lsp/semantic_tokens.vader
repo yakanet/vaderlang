@@ -153,7 +153,7 @@ token_to_raw :: fn(t: Token) -> RawToken | null {
     return RawToken {
         .line      = sp.start.line - 1,
         .col       = sp.start.column - 1,
-        .length    = i32(sp.end.offset - sp.start.offset),
+        .length    = span_token_length(sp),
         .tok_type  = tt,
         .modifiers = i32(0),
     }
@@ -264,7 +264,10 @@ make_comment_token :: fn(c: Comment, source: string, modifiers: i32) -> RawToken
     return RawToken {
         .line      = c.line - 1,
         .col       = i32(c.offset - line_start),
-        .length    = i32(c.end_offset - c.offset),
+        // Codepoint length, not bytes — a French `// café` is 7 codepoints
+        // but 8 bytes ; the byte count would overshoot (cf. `span_token_length`).
+        // `Comment` carries no end column, so count off the text via core `len`.
+        .length    = i32(c.text.len()),
         .tok_type  = i32(TokenType.Comment),
         .modifiers = modifiers,
     }
@@ -392,7 +395,7 @@ encode_delta :: fn(arr: RawToken[]) -> JsonValue {
 
 // ---- tests ----------------------------------------------------------------
 
-import "std/testing" { assert_eq }
+import "std/testing" { assert, assert_eq }
 
 // Build the full sorted RawToken list the way `produce_tokens` does, exposing
 // the pre-encoding tokens so tests can inspect classifications + overlaps.
@@ -433,4 +436,24 @@ test_no_overlapping_tokens :: fn() -> void {
     src :: "module \"t\"\n\n@extern(\"env\", \"now\")\nclock :: fn(a: i32, b: i32) -> i64\n\nPoint :: struct {\n    x: i32\n    y: i32\n}\n\nmain :: fn() -> void {\n    n :: @size_of(i32)\n    p :: Point { .x = 1, .y = 2 }\n}\n"
     toks :: build_sorted_for_test(src, "file:///t.vader")
     assert_eq(count_token_overlaps(toks), 0)
+}
+
+// Token lengths must be in codepoints (UTF-16 units), not bytes : a 2-byte
+// `é` is one codepoint, so a token covering an accented literal must not run
+// long and overlap its neighbour. `café` is the StringPart at line 0, col 6 ;
+// its length must be 4 (codepoints), not 5 (bytes). The trailing `'é'` char
+// literal is 3 codepoints, not 4 bytes.
+@test
+test_multibyte_token_length :: fn() -> void {
+    src :: "x :: \"café\"\ny :: 'é'\n"
+    toks :: build_sorted_for_test(src, "file:///t.vader")
+    found := false
+    for t in toks {
+        if t.line == 0 && t.col == 6 {
+            assert_eq(t.length, 4)
+            found = true
+            break
+        }
+    }
+    assert(found, "café StringPart token not found at line 0 col 6")
 }

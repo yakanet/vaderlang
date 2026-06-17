@@ -9,6 +9,8 @@
 /// `semantic_tokens.vader`.
 module "vader/lsp"
 
+import "vader/diagnostics" { Span }
+
 export TokenType :: enum(u8) {
     Namespace,    // import path
     Type,         // UpperCase ident (struct / trait / enum)
@@ -31,4 +33,14 @@ export RawToken :: struct {
     length:    i32
     tok_type:  i32
     modifiers: i32
+}
+
+/// Codepoint length of a single-line span, for a semantic token's `length`.
+/// LSP lengths are in the position encoding (UTF-16 / codepoints for the
+/// BMP), matching the codepoint columns the lexer emits — the raw byte span
+/// overshoots on multi-byte UTF-8 (`'é'` is one codepoint, two bytes). A span
+/// crossing lines falls back to the byte span ; the client re-wraps anyway.
+export span_token_length :: fn(sp: Span) -> i32 {
+    if sp.start.line == sp.end.line { return sp.end.column - sp.start.column }
+    return i32(sp.end.offset - sp.start.offset)
 }

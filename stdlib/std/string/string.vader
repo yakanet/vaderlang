@@ -901,7 +901,7 @@ import "std/testing" { assert, assert_eq, assert_close }
     assert_eq(byte_decode_at("héllo", usize(0)), 'h')
     assert_eq(byte_decode_at("héllo", usize(1)), 'é')
     // Offset 2 lands on a continuation byte → U+FFFD.
-    assert_eq(byte_decode_at("héllo", usize(2)), char(u32(0xFFFD)))
+    assert_eq(byte_decode_at("héllo", usize(2)), char(0xFFFD))
 }
 
 @test test_split_edge :: fn() -> void {
