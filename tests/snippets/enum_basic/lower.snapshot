@@ -55,7 +55,7 @@
                               else:
                                 ~>
                                   unreachable("non-exhaustive match (T3013 should have caught this)") :string
-  fn snippet$main() -> i32
+  fn snippet$main() -> void
     let d: Direction = int(2) :i32
     call :void
       callee:
@@ -138,41 +138,44 @@
                 std_string_builder$StringBuilder$Display$to_string :string
               arg0:
                 __sb_0 :StringBuilder
-    call :void
-      callee:
-        std_io$std_io$println__string :void
-      arg0:
-        block :string
-          let __sb_1: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              "Is WEST: " :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              call :string
+    ~>
+      call :void
+        callee:
+          std_io$std_io$println__string :void
+        arg0:
+          block :string
+            let __sb_1: StringBuilder =
+              call :StringBuilder
                 callee:
-                  std_core$bool$Display$to_string :string
-                arg0:
-                  eq :bool
-                    l:
-                      d :Direction
-                    r:
-                      int(3) :i32
-          ~>
-            call :string
+                  new_builder :StringBuilder
+            call :void
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                append :void
               arg0:
                 __sb_1 :StringBuilder
-    return int(0) :i32
+              arg1:
+                "Is WEST: " :string
+            call :void
+              callee:
+                append :void
+              arg0:
+                __sb_1 :StringBuilder
+              arg1:
+                call :string
+                  callee:
+                    std_core$bool$Display$to_string :string
+                  arg0:
+                    eq :bool
+                      l:
+                        d :Direction
+                      r:
+                        int(3) :i32
+            ~>
+              call :string
+                callee:
+                  std_string_builder$StringBuilder$Display$to_string :string
+                arg0:
+                  __sb_1 :StringBuilder
+
+# Diagnostics
+[21:1] error[T3033] invalid `main` signature: main must return i32

@@ -150,10 +150,7 @@
       "visibility": "private",
       "typeParams": [],
       "params": [],
-      "returnType": {
-        "kind": "IdentExpr",
-        "name": "i32"
-      },
+      "returnType": null,
       "body": {
         "kind": "BlockExpr",
         "stmts": [
@@ -372,57 +369,45 @@
                 }
               ]
             }
-          },
-          {
-            "kind": "ExprStmt",
-            "expr": {
-              "kind": "CallExpr",
-              "callee": {
-                "kind": "IdentExpr",
-                "name": "println"
-              },
-              "args": [
-                {
-                  "name": null,
-                  "value": {
-                    "kind": "StringLitExpr",
-                    "parts": [
-                      {
-                        "kind": "text",
-                        "value": "Is WEST: "
-                      },
-                      {
-                        "kind": "interp",
-                        "expr": {
-                          "kind": "BinaryExpr",
-                          "op": "eq",
-                          "left": {
-                            "kind": "IdentExpr",
-                            "name": "d"
-                          },
-                          "right": {
-                            "kind": "DotVariantExpr",
-                            "variant": "West"
-                          }
-                        }
-                      }
-                    ]
-                  },
-                  "spread": false
-                }
-              ]
-            }
-          },
-          {
-            "kind": "ReturnStmt",
-            "value": {
-              "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
-            }
           }
         ],
-        "trailing": null
+        "trailing": {
+          "kind": "CallExpr",
+          "callee": {
+            "kind": "IdentExpr",
+            "name": "println"
+          },
+          "args": [
+            {
+              "name": null,
+              "value": {
+                "kind": "StringLitExpr",
+                "parts": [
+                  {
+                    "kind": "text",
+                    "value": "Is WEST: "
+                  },
+                  {
+                    "kind": "interp",
+                    "expr": {
+                      "kind": "BinaryExpr",
+                      "op": "eq",
+                      "left": {
+                        "kind": "IdentExpr",
+                        "name": "d"
+                      },
+                      "right": {
+                        "kind": "DotVariantExpr",
+                        "variant": "West"
+                      }
+                    }
+                  }
+                ]
+              },
+              "spread": false
+            }
+          ]
+        }
       },
       "decorators": []
     }

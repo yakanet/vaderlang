@@ -70,7 +70,7 @@ fn snippet$describe(%0: Direction) -> string
     %12 = move %16
     branch -> bb9
 
-fn snippet$main() -> i32
+fn snippet$main() -> void
   locals:
     %0 $k_0: i32
     %1 d: Direction (local d)
@@ -97,7 +97,6 @@ fn snippet$main() -> i32
     %22 $eq_22: bool
     %23 $call_23: string
     %24 $call_24: string
-    %25 $k_25: i32
   bb0:
     %0 = const int(2) :i32
     %1 = move %0
@@ -142,5 +141,7 @@ fn snippet$main() -> i32
     call append(%19, %23) :void
     %24 = call std_string_builder$StringBuilder$Display$to_string(%19) :string
     call std_io$std_io$println__string(%24) :void
-    %25 = const int(0) :i32
-    return %25
+    return
+
+# Diagnostics
+[21:1] error[T3033] invalid `main` signature: main must return i32
