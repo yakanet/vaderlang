@@ -11,7 +11,7 @@
 // that Vader's pattern checker hits when a `| null` is added to an
 // already-aliased union.
 
-module "vader/lsp"
+module "vader/lsp/protocol"
 
 import "std/string_builder" { new_builder, append }
 import "std/json" {
@@ -25,7 +25,7 @@ import "std/collections" { MutableMap }
 /// Pluck the `method` field. Returns `""` when absent or non-string.
 export method_name :: fn(msg: JsonValue) -> string {
     match msg {
-        is JsonObject as o -> { return get_string(o, "method") }
+        is JsonObject as o -> { return obj_string(o, "method") }
         _ -> { return "" }
     }
 }
@@ -113,7 +113,7 @@ get_field_or_null :: fn(o: JsonObject, key: string) -> JsonValue {
     }
 }
 
-get_string :: fn(o: JsonObject, key: string) -> string {
+obj_string :: fn(o: JsonObject, key: string) -> string {
     v :: o.entries[key]
     match v {
         is null -> { return "" }

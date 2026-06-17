@@ -10,13 +10,21 @@
 // We omit `range` for now — the client falls back to highlighting the
 // word under the cursor on its own.
 
-module "vader/lsp"
+module "vader/lsp/handlers"
 
 import "std/string" { split, trim, starts_with, join }
 import "std/json" {
     JsonValue, JsonObject, JsonString, JsonNumber, JsonNull, JsonArray, JsonBool
 }
 import "std/collections" { MutableMap }
+import "vader/diagnostics" { Span }
+import "vader/typecheck" { TypedProgram }
+import "vader/types" { Type, display_type }
+import "vader/lsp/protocol" { position_uri, position_line, position_character, uri_to_path }
+import "vader/lsp/analysis" {
+    ServerState, DeclEntry, typed_project_for, index_for, source_file_for_path, resolve, find_at, name_at,
+}
+AST :: import "vader/parser"
 
 /// Build the hover response payload for the position carried in `params`.
 /// Returns a `Hover` object on hit, `JsonNull` on miss.
@@ -306,15 +314,6 @@ binding_hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindBindingStat
     }
 }
 
-export uri_to_path :: fn(uri: string) -> string {
-    prefix :: "file://"
-    if uri.starts_with(prefix) {
-        ub :: uri.bytes()
-        return ub[prefix.bytes().len()..<ub.len()].bytes_to_string()
-    }
-    return ""
-}
-
 /// Walk every fn body in `decls` looking for the smallest expression
 /// whose span contains `(line, col)` AND has a `typed.expr_types`
 /// entry. Returns the matching AST.Expr, or `null` on miss. Smallest
@@ -487,86 +486,3 @@ span_size :: fn(s: Span) -> u64 {
     return (line_extent << 16) + col_extent
 }
 
-import "vader/diagnostics" { Span }
-import "vader/typecheck" { TypedProgram }
-import "vader/types" { Type, display_type }
-AST :: import "vader/parser"
-
-// ---- params extraction (mirrors definition.vader) ------------------------
-
-/// Extract the document URI from an LSP request's `params.textDocument.uri`.
-///
-/// @param params  the top-level JSON params object of the request.
-/// @return        the URI string, or `""` if the field is missing.
-position_uri :: fn(params: JsonValue) -> string {
-    td :: get_field(params, "textDocument")
-    return get_string(td, "uri")
-}
-
-/// Extract the zero-based line number from an LSP request's `params.position.line`.
-///
-/// @param params  the top-level JSON params object of the request.
-/// @return        the line number, or `0` if the field is missing.
-position_line :: fn(params: JsonValue) -> i32 {
-    pos :: get_field(params, "position")
-    return get_number(pos, "line")
-}
-
-/// Extract the zero-based character offset from an LSP request's `params.position.character`.
-///
-/// @param params  the top-level JSON params object of the request.
-/// @return        the character offset, or `0` if the field is missing.
-position_character :: fn(params: JsonValue) -> i32 {
-    pos :: get_field(params, "position")
-    return get_number(pos, "character")
-}
-
-/// Look up a field by name in a JSON object.
-///
-/// @param v    the JSON value to index into (must be a `JsonObject`).
-/// @param key  the field name to retrieve.
-/// @return     the field's value, or `JsonNull` if `v` is not an object
-///             or the key is absent.
-get_field :: fn(v: JsonValue, key: string) -> JsonValue {
-    match v {
-        is JsonObject as o -> {
-            f :: o.entries[key]
-            match f {
-                is null             -> { return JsonNull {} }
-                is JsonString as x  -> { return x }
-                is JsonNumber as x  -> { return x }
-                is JsonBool   as x  -> { return x }
-                is JsonNull   as x  -> { return x }
-                is JsonArray  as x  -> { return x }
-                is JsonObject as x  -> { return x }
-            }
-        }
-        _ -> { return JsonNull {} }
-    }
-}
-
-/// Look up a string field by name in a JSON object.
-///
-/// @param v    the JSON value to index into.
-/// @param key  the field name to retrieve.
-/// @return     the string value, or `""` if the field is missing or not a string.
-get_string :: fn(v: JsonValue, key: string) -> string {
-    f :: get_field(v, key)
-    match f {
-        is JsonString as s -> { return s.value }
-        _ -> { return "" }
-    }
-}
-
-/// Look up a numeric field by name in a JSON object.
-///
-/// @param v    the JSON value to index into.
-/// @param key  the field name to retrieve.
-/// @return     the value as `i32`, or `0` if the field is missing or not a number.
-get_number :: fn(v: JsonValue, key: string) -> i32 {
-    f :: get_field(v, key)
-    match f {
-        is JsonNumber as n -> { return i32(n.value) }
-        _ -> { return 0 }
-    }
-}

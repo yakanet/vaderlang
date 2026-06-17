@@ -4,7 +4,7 @@
 // `didClose` notifications. Semantic tokens read from the doc table ;
 // goto-def + hover read from the per-document index built in parallel.
 
-module "vader/lsp"
+module "vader/lsp/analysis"
 
 import "std/json" {
     JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonNull, JsonArray
@@ -13,6 +13,7 @@ import "std/collections" { MutableMap }
 import "vader/resolver" { LoadedProject, SourceFile }
 import "vader/typecheck" { check_file, CheckResult }
 import "vader/diagnostics" { Diagnostic }
+import "vader/lsp/protocol" { get_field, get_string, uri_to_path }
 
 /// Cached load+typecheck of one project, keyed by the entry file path it was
 /// built for. Reused across typed requests (hover, diagnostics, inlay,
@@ -189,30 +190,3 @@ export handle_did_close :: fn(self: ServerState, params: JsonValue) -> void {
     clear_diagnostics_for_uri(uri)
 }
 
-// ---- internal helpers (returning JsonNull{} for absent fields) ------------
-
-get_field :: fn(v: JsonValue, key: string) -> JsonValue {
-    match v {
-        is JsonObject as o -> {
-            f :: o.entries[key]
-            match f {
-                is null                 -> { return JsonNull {} }
-                is JsonString  as x -> { return x }
-                is JsonNumber  as x -> { return x }
-                is JsonBool    as x -> { return x }
-                is JsonNull    as x -> { return x }
-                is JsonArray   as x -> { return x }
-                is JsonObject  as x -> { return x }
-            }
-        }
-        _ -> { return JsonNull {} }
-    }
-}
-
-get_string :: fn(v: JsonValue, key: string) -> string {
-    f :: get_field(v, key)
-    match f {
-        is JsonString as s -> { return s.value }
-        _ -> { return "" }
-    }
-}

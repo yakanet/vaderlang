@@ -7,10 +7,12 @@
 // intra-file bindings are skipped. Nested blocks (if / for / match bodies) and
 // import groups are a follow-up — this v1 covers the high-value decl bodies.
 
-module "vader/lsp"
+module "vader/lsp/handlers"
 
 import "std/json" { JsonValue, JsonObject, JsonNumber, JsonArray }
 import "std/collections" { MutableMap }
+import "vader/lsp/protocol" { position_uri }
+import "vader/lsp/analysis" { ServerState, DocIndex, DeclEntry, build_index }
 
 /// Build the `FoldingRange[]` response for the document named in `params`
 /// (`{ textDocument: { uri } }`).
@@ -19,7 +21,7 @@ import "std/collections" { MutableMap }
 /// @return        a `FoldingRange[]` JSON array ; empty when the document was
 ///                never indexed.
 export handle_folding_range :: fn(state: ServerState, params: JsonValue) -> JsonValue {
-    uri :: doc_uri(params)
+    uri :: position_uri(params)
     idx :: state.index_for(uri)
     match idx {
         is null              -> { return JsonArray { .items = [] } }

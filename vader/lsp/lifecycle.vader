@@ -9,9 +9,11 @@
 module "vader/lsp"
 
 import "std/json" {
-    JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonNull, JsonArray
+    JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonArray
 }
 import "std/collections" { MutableMap }
+import "vader/lsp/protocol" { get_field, get_bool, log_info, TOKEN_TYPES, TOKEN_MODIFIERS }
+import "vader/lsp/analysis" { ServerState }
 
 /// Build the response payload for `initialize` and remember the
 /// client-side capability flags that downstream handlers care about
@@ -47,32 +49,10 @@ export handle_initialize :: fn(state: ServerState, params: JsonValue) -> JsonVal
 // the path is missing or non-boolean — the LSP spec treats absence as
 // "no LocationLink support", which is also the safer default.
 read_definition_link_support :: fn(params: JsonValue) -> bool {
-    caps :: field(params, "capabilities")
-    td :: field(caps, "textDocument")
-    def :: field(td, "definition")
-    ls :: field(def, "linkSupport")
-    match ls {
-        is JsonBool as b -> { return b.value }
-        _ -> { return false }
-    }
-}
-
-field :: fn(v: JsonValue, key: string) -> JsonValue {
-    match v {
-        is JsonObject as o -> {
-            f :: o.entries[key]
-            match f {
-                is null            -> { return JsonNull {} }
-                is JsonString as x -> { return x }
-                is JsonNumber as x -> { return x }
-                is JsonBool   as x -> { return x }
-                is JsonNull   as x -> { return x }
-                is JsonArray  as x -> { return x }
-                is JsonObject as x -> { return x }
-            }
-        }
-        _ -> { return JsonNull {} }
-    }
+    caps :: get_field(params, "capabilities")
+    td :: get_field(caps, "textDocument")
+    def :: get_field(td, "definition")
+    return get_bool(def, "linkSupport")
 }
 
 /// Server-capabilities JSON. Public so the editor wiring docs can refer

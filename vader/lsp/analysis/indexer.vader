@@ -21,7 +21,7 @@
 // follow-ups since the AST already exposes the shapes (`IsPattern.bind_as`,
 // `LambdaExpr.params`, etc.).
 
-module "vader/lsp"
+module "vader/lsp/analysis"
 
 import "std/string" { trim }
 import "vader/parser" {
@@ -47,9 +47,10 @@ import "vader/parser" {
     StringLitText, StringLitInterp,
     StructLitField, StructLitSpread,
 }
-import "vader/lexer" { Token, tokenize }
+import "vader/lexer" { Token }
 import "vader/diagnostics" { Span, Position }
-import "vader/fmt" { Comment, CommentKind, CommentMap, scan_comments }
+import "vader/fmt" { CommentMap, scan_comments }
+import "vader/lsp/protocol" { lsp_to_offset, line_start_offset }
 
 /// What kind of declaration a DeclEntry points at. Drives the hover
 /// signature template + helps clients decide on icon / styling.
@@ -251,20 +252,6 @@ doc_boundary_offset :: fn(decl_start: usize, decorators: Decorator[]) -> usize {
         if d.span.start.offset < best { best = d.span.start.offset }
     }
     return best
-}
-
-// Offset of the first byte on the source line that contains `pos`.
-// Used to absorb `export`/visibility prefixes that the parser doesn't
-// include in a decl's `span.start`.
-line_start_offset :: fn(source: string, pos: usize) -> usize {
-    if pos == 0 { return 0 }
-    sb :: source.bytes()
-    i: i32 = i32(pos) - 1
-    for i >= 0 {
-        if sb[usize(i)] == b'\n' { return usize(i) + 1 }
-        i = i - 1
-    }
-    return 0
 }
 
 binding_entry :: fn(
@@ -780,40 +767,4 @@ lookup_innermost :: fn(decls: DeclEntry[], name: string, offset: usize) -> DeclE
     }
     if !has_best { return null }
     return decls[best_idx]
-}
-
-// LSP positions are 0-based (line + character). MVP treats `character`
-// as a UTF-8 byte offset within the line — ASCII identifiers round-trip
-// cleanly, non-ASCII may misalign by a few bytes.
-lsp_to_offset :: fn(source: string, line: i32, character: i32) -> usize {
-    sb :: source.bytes()
-    n :: sb.len()
-    cur_line: i32 = 0
-    cursor: usize = 0
-    for cursor < n {
-        if cur_line == line { break }
-        b :: sb[cursor]
-        cursor = cursor + 1
-        if b == b'\n' { cur_line = cur_line + 1 }
-    }
-    if character <= 0 { return cursor }
-    return cursor + usize(character)
-}
-
-/// Convert a Span to an LSP-style range (0-based line + character).
-export span_to_range_json :: fn(s: Span) -> SpanRange {
-    return SpanRange {
-        .start_line      = s.start.line - 1,
-        .start_character = s.start.column - 1,
-        .end_line        = s.end.line - 1,
-        .end_character   = s.end.column - 1,
-    }
-}
-
-/// LSP-encoded range : 0-based line + character pairs.
-export SpanRange :: struct {
-    start_line:      i32
-    start_character: i32
-    end_line:        i32
-    end_character:   i32
 }

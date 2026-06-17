@@ -11,11 +11,12 @@
 // imports (`./mod`, `../lib/foo`) resolve relative to the importing
 // file's path (extracted from its `file://` URI).
 
-module "vader/lsp"
+module "vader/lsp/analysis"
 
 import "std/io" { read_file, read_dir, is_dir }
 import "std/string" { starts_with }
 import "vader/resolver" { default_stdlib_root, find_manifest_root }
+import "vader/lsp/protocol" { uri_to_path }
 
 /// Where a cross-file goto-def landed : a file URI + the target's
 /// `name_span` so the handler can encode an LSP `Location`. Returns
@@ -123,7 +124,11 @@ lookup_in_file :: fn(path: string, name: string) -> ExternalHit | null {
 // Turn an `import "..."` path into an absolute filesystem path. Returns
 // `""` (empty string) for unrecognised forms — caller treats that as
 // "couldn't resolve, fall through to null".
-module_path_to_absolute :: fn(raw: string, state: ServerState, from_uri: string) -> string {
+/// Map an `import "<raw>"` module path to an absolute filesystem path (file or
+/// directory), using the seeded `std/` / `vader/` roots and the importing file's
+/// directory for `./` paths. Returns `""` for unresolvable / unknown-root paths.
+/// Shared with `handlers/document_link` for clickable import links.
+export module_path_to_absolute :: fn(raw: string, state: ServerState, from_uri: string) -> string {
     if raw.starts_with("std/") {
         root :: stdlib_root_for(state)
         if root.bytes().len() == 0 { return "" }
@@ -174,16 +179,6 @@ vader_root_for :: fn(state: ServerState, from_uri: string) -> string {
     return path_join(mr, "vader")
 }
 
-// Strip the `file://` scheme from a URI. Returns `""` for non-file URIs.
-uri_to_path :: fn(uri: string) -> string {
-    prefix :: "file://"
-    if uri.starts_with(prefix) {
-        ub :: uri.bytes()
-        return ub[prefix.bytes().len()..<ub.len()].bytes_to_string()
-    }
-    return ""
-}
-
 // Drop the last path segment. Returns the input verbatim when no
 // separator is present.
 dirname_path :: fn(p: string) -> string {
@@ -222,7 +217,9 @@ path_join :: fn(a: string, b: string) -> string {
     return a + "/" + b
 }
 
-ensure_vader_ext :: fn(p: string) -> string {
+/// Append `.vader` to `p` when it doesn't already end in it. Shared with
+/// `handlers/document_link` to resolve a file-form module's source.
+export ensure_vader_ext :: fn(p: string) -> string {
     suffix :: ".vader"
     if p.ends_with_vader() { return p }
     return p + suffix

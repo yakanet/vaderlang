@@ -12,7 +12,7 @@
 // opening quote — `ImportDecl` carries the path text + statement span but not a
 // dedicated path-string span.
 
-module "vader/lsp"
+module "vader/lsp/handlers"
 
 import "std/json" { JsonValue, JsonObject, JsonString, JsonArray }
 import "std/collections" { MutableMap }
@@ -20,6 +20,8 @@ import "std/io" { exists }
 import "vader/diagnostics" { Span, Position }
 import "vader/parser" { parse_source, ImportDecl }
 import "vader/resolver" { list_vader_files }
+import "vader/lsp/protocol" { position_uri, range_json, span_to_range_json, SpanRange }
+import "vader/lsp/analysis" { ServerState, module_path_to_absolute, ensure_vader_ext }
 
 /// Build the `DocumentLink[]` response for the document named in `params`
 /// (`{ textDocument: { uri } }`).
@@ -28,7 +30,7 @@ import "vader/resolver" { list_vader_files }
 /// @return        a `DocumentLink[]` JSON array ; empty when the document was
 ///                never indexed or carries no resolvable imports.
 export handle_document_link :: fn(state: ServerState, params: JsonValue) -> JsonValue {
-    uri :: doc_uri(params)
+    uri :: position_uri(params)
     idx :: state.index_for(uri)
     if idx == null { return JsonArray { .items = [] } }
     // The index keeps the source but not the AST ; re-parse (lexer + parser

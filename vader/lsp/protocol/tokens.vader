@@ -1,0 +1,88 @@
+// vader/lsp/protocol/tokens — semantic-token vocabulary.
+//
+// The token-type / token-modifier enums, the wire `RawToken`, and the
+// `TOKEN_TYPES` / `TOKEN_MODIFIERS` legend arrays sent to the client on
+// `initialize`. Shared by the lexer-based scanner (`handlers/semantic_tokens`),
+// the AST-driven walker (`handlers/ast_tokens`), and the `initialize` capability
+// builder (`lifecycle`). Living in `protocol` keeps the legend next to the
+// types it indexes and breaks what would otherwise be a circular import
+// between the two producers.
+
+module "vader/lsp/protocol"
+
+import "vader/diagnostics" { Span }
+
+export TokenType :: enum(u8) {
+    Namespace,    // import path
+    Type,         // UpperCase ident (struct / trait / enum)
+    Function,     // fn name in `name :: fn(...)` and call sites
+    Parameter,    // fn params + vaderdoc `@param name`
+    Variable,     // locals, fields, generic catch-all idents
+    Keyword,      // language keywords + fn/struct/trait/enum/etc.
+    String,       // string literals
+    Number,       // int / float literals
+    Comment,      // `//` and `/* */`
+    Operator,     // arithmetic / comparison / logical / etc.
+    Decorator,    // `@test` / `@extern` decorators, `@size_of(…)` intrinsics, vaderdoc tags
+    EnumMember,   // `.Variant` dot-shorthand
+}
+
+/// One raw token before delta-encoding. Lines + columns are 0-based.
+export RawToken :: struct {
+    line:      i32
+    col:       i32
+    length:    i32
+    tok_type:  i32
+    modifiers: i32
+}
+
+/// Codepoint length of a single-line span, for a semantic token's `length`.
+/// LSP lengths are in the position encoding (UTF-16 / codepoints for the
+/// BMP), matching the codepoint columns the lexer emits — the raw byte span
+/// overshoots on multi-byte UTF-8 (`'é'` is one codepoint, two bytes). A span
+/// crossing lines falls back to the byte span ; the client re-wraps anyway.
+export span_token_length :: fn(sp: Span) -> i32 {
+    if sp.start.line == sp.end.line { return sp.end.column - sp.start.column }
+    return i32(sp.end.offset - sp.start.offset)
+}
+
+// ---- legend ---------------------------------------------------------------
+//
+// Indices into these arrays are what the wire format actually carries ; the
+// legend is sent to the client on `initialize`.
+
+/// Modifier bits for a token. The wire format encodes them as a bitmask ;
+/// `Documentation` lives at bit 0 (`1 << 0`).
+export TokenModifier :: enum(u8) {
+    Documentation,   // vaderdoc-derived tokens carry this
+}
+
+/// Bitmask value for a single modifier.
+export modifier_bit :: fn(m: TokenModifier) -> i32 {
+    match m {
+        .Documentation -> { return i32(1) }
+    }
+}
+
+/// LSP semantic-token type names. The index of each entry is what travels on
+/// the wire ; the order MUST stay in sync with the `TokenType` enum above.
+export TOKEN_TYPES :: [
+    "namespace",
+    "type",
+    "function",
+    "parameter",
+    "variable",
+    "keyword",
+    "string",
+    "number",
+    "comment",
+    "operator",
+    "decorator",
+    "enumMember",
+]
+
+/// LSP semantic-token modifier names. Index = bit position in the modifier
+/// bitmask ; order MUST stay in sync with `TokenModifier`.
+export TOKEN_MODIFIERS :: [
+    "documentation",
+]

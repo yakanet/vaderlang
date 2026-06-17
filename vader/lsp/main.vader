@@ -15,12 +15,19 @@
 //
 // Anything else is answered with a JSON-RPC `MethodNotFound` error so the
 // client gracefully degrades.
+//
+// The server is split across three submodules reached via aliases here :
+//   - `P` (vader/lsp/protocol) : JSON-RPC framing, encoders, logging.
+//   - `A` (vader/lsp/analysis) : server state + document/typecheck caches.
+//   - `H` (vader/lsp/handlers) : one `handle_*` per request method.
 
 module "vader/lsp"
 
 import "std/io" { eprintln }
-import "std/string" { starts_with }
 import "std/json" { parse, JsonValue, JsonObject, JsonString, JsonNumber, JsonNull, JsonError, JsonBool, JsonArray }
+P :: import "vader/lsp/protocol"
+A :: import "vader/lsp/analysis"
+H :: import "vader/lsp/handlers"
 
 /// LSP server entry. Blocks reading frames until EOF or `exit`
 /// notification. `args` is parsed for `--stdlib-root=…` and
@@ -42,12 +49,12 @@ export run_server :: fn(args: string[]) -> i32 {
             continue
         }
     }
-    state :: new_state(stdlib_root, vader_root)
+    state :: A.new_state(stdlib_root, vader_root)
     shutdown_received := false
     for {
-        frame :: read_frame()
+        frame :: P.read_frame()
         match frame {
-            is TransportError -> {
+            is P.TransportError -> {
                 eprintln("lsp: transport error, exiting")
                 return 1
             }
@@ -83,26 +90,26 @@ DispatchResult :: enum(u8) {
     ExitAbnormal,
 }
 
-dispatch :: fn(state: ServerState, msg: JsonValue, shutdown_received: bool) -> DispatchResult {
-    method :: method_name(msg)
-    id :: request_id(msg)
-    params :: params_value(msg)
+dispatch :: fn(state: A.ServerState, msg: JsonValue, shutdown_received: bool) -> DispatchResult {
+    method :: P.method_name(msg)
+    id :: P.request_id(msg)
+    params :: P.params_value(msg)
 
     if method == "initialize" {
         result :: handle_initialize(state, params)
-        write_frame(encode_response(id, result))
+        P.write_frame(P.encode_response(id, result))
         // First log emitted *after* the response so the client has already
         // installed its trace listener — earlier log lines are sometimes
         // dropped by clients that buffer pre-initialize traffic.
-        log_info("vader-lsp: initialize complete")
+        P.log_info("vader-lsp: initialize complete")
         return DispatchResult.Continue
     }
     if method == "initialized" {
         return DispatchResult.Continue
     }
     if method == "shutdown" {
-        write_frame(encode_response(id, JsonNull {}))
-        log_info("vader-lsp: shutdown requested")
+        P.write_frame(P.encode_response(id, JsonNull {}))
+        P.log_info("vader-lsp: shutdown requested")
         return DispatchResult.ShutdownRequested
     }
     if method == "exit" {
@@ -112,109 +119,109 @@ dispatch :: fn(state: ServerState, msg: JsonValue, shutdown_received: bool) -> D
         return DispatchResult.ExitAbnormal
     }
     if method == "textDocument/didOpen" {
-        handle_did_open(state, params)
-        log_info("didOpen ${doc_uri(params)}")
+        A.handle_did_open(state, params)
+        P.log_info("didOpen ${doc_uri(params)}")
         return DispatchResult.Continue
     }
     if method == "textDocument/didChange" {
-        handle_did_change(state, params)
+        A.handle_did_change(state, params)
         return DispatchResult.Continue
     }
     if method == "textDocument/didClose" {
-        handle_did_close(state, params)
-        log_info("didClose ${doc_uri(params)}")
+        A.handle_did_close(state, params)
+        P.log_info("didClose ${doc_uri(params)}")
         return DispatchResult.Continue
     }
     if method == "textDocument/semanticTokens/full" {
-        result :: handle_semantic_tokens_full(state, params)
-        write_frame(encode_response(id, result))
-        log_info("semanticTokens/full ${doc_uri(params)}")
+        result :: H.handle_semantic_tokens_full(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("semanticTokens/full ${doc_uri(params)}")
         return DispatchResult.Continue
     }
     if method == "textDocument/definition" {
-        result :: handle_definition(state, params)
-        write_frame(encode_response(id, result))
-        log_info("definition ${doc_uri(params)}")
+        result :: H.handle_definition(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("definition ${doc_uri(params)}")
         return DispatchResult.Continue
     }
     if method == "textDocument/hover" {
-        result :: handle_hover(state, params)
-        write_frame(encode_response(id, result))
-        log_info("hover ${doc_uri(params)}")
+        result :: H.handle_hover(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("hover ${doc_uri(params)}")
         return DispatchResult.Continue
     }
     if method == "textDocument/inlayHint" {
-        result :: handle_inlay_hint(state, params)
-        write_frame(encode_response(id, result))
-        log_info("inlayHint ${doc_uri(params)}")
+        result :: H.handle_inlay_hint(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("inlayHint ${doc_uri(params)}")
         return DispatchResult.Continue
     }
     if method == "textDocument/signatureHelp" {
-        result :: handle_signature_help(state, params)
-        write_frame(encode_response(id, result))
-        log_info("signatureHelp ${doc_uri(params)}")
+        result :: H.handle_signature_help(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("signatureHelp ${doc_uri(params)}")
         return DispatchResult.Continue
     }
     if method == "textDocument/documentSymbol" {
-        result :: handle_document_symbol(state, params)
-        write_frame(encode_response(id, result))
-        log_info("documentSymbol ${doc_uri(params)}")
+        result :: H.handle_document_symbol(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("documentSymbol ${doc_uri(params)}")
         return DispatchResult.Continue
     }
     if method == "textDocument/foldingRange" {
-        result :: handle_folding_range(state, params)
-        write_frame(encode_response(id, result))
-        log_info("foldingRange ${doc_uri(params)}")
+        result :: H.handle_folding_range(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("foldingRange ${doc_uri(params)}")
         return DispatchResult.Continue
     }
     if method == "textDocument/documentHighlight" {
-        result :: handle_document_highlight(state, params)
-        write_frame(encode_response(id, result))
-        log_info("documentHighlight ${doc_uri(params)}")
+        result :: H.handle_document_highlight(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("documentHighlight ${doc_uri(params)}")
         return DispatchResult.Continue
     }
     if method == "textDocument/formatting" {
-        result :: handle_formatting(state, params)
-        write_frame(encode_response(id, result))
-        log_info("formatting ${doc_uri(params)}")
+        result :: H.handle_formatting(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("formatting ${doc_uri(params)}")
         return DispatchResult.Continue
     }
     if method == "textDocument/documentLink" {
-        result :: handle_document_link(state, params)
-        write_frame(encode_response(id, result))
-        log_info("documentLink ${doc_uri(params)}")
+        result :: H.handle_document_link(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("documentLink ${doc_uri(params)}")
         return DispatchResult.Continue
     }
     if method == "textDocument/typeDefinition" {
-        result :: handle_type_definition(state, params)
-        write_frame(encode_response(id, result))
-        log_info("typeDefinition ${doc_uri(params)}")
+        result :: H.handle_type_definition(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("typeDefinition ${doc_uri(params)}")
         return DispatchResult.Continue
     }
     if method == "textDocument/references" {
-        result :: handle_references(state, params)
-        write_frame(encode_response(id, result))
-        log_info("references ${doc_uri(params)}")
+        result :: H.handle_references(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("references ${doc_uri(params)}")
         return DispatchResult.Continue
     }
     if method == "textDocument/prepareRename" {
-        result :: handle_prepare_rename(state, params)
-        write_frame(encode_response(id, result))
-        log_info("prepareRename ${doc_uri(params)}")
+        result :: H.handle_prepare_rename(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("prepareRename ${doc_uri(params)}")
         return DispatchResult.Continue
     }
     if method == "textDocument/rename" {
-        result :: handle_rename(state, params)
-        write_frame(encode_response(id, result))
-        log_info("rename ${doc_uri(params)}")
+        result :: H.handle_rename(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("rename ${doc_uri(params)}")
         return DispatchResult.Continue
     }
     // Unknown method. Respond with MethodNotFound for requests (have an
     // id) ; ignore notifications (id is JsonNull{} per `request_id`'s
     // convention).
-    if !is_json_null(id) {
-        write_frame(encode_method_not_found(id, method))
-        log_warn("unknown request method: ${method}")
+    if !P.is_json_null(id) {
+        P.write_frame(P.encode_method_not_found(id, method))
+        P.log_warn("unknown request method: ${method}")
     }
     return DispatchResult.Continue
 }

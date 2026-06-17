@@ -1,0 +1,60 @@
+// vader/lsp/handlers/references — `textDocument/references` handler.
+//
+// Find-usages across the whole project. Builds the project-wide reference index
+// (`analysis/reference_index`), locates the import-resolved Symbol under the
+// cursor, then returns every recorded site for that Symbol as a `Location[]`.
+// Honours `context.includeDeclaration`.
+
+module "vader/lsp/handlers"
+
+import "std/json" { JsonValue, JsonArray, JsonBool }
+import "vader/lsp/protocol" {
+    uri_to_path, position_uri, cursor_field, location_json, span_to_range_json, get_field
+}
+import "vader/lsp/analysis" {
+    ServerState, typed_project_for, build_reference_index, ReferenceIndex, cursor_in_span
+}
+
+/// Resolve find-references for the position in `params`. Returns a `Location[]`
+/// (every use of the symbol under the cursor), empty when the cursor isn't on a
+/// resolvable identifier. Honours `context.includeDeclaration`.
+export handle_references :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+    uri :: position_uri(params)
+    if uri == "" { return JsonArray { .items = [] } }
+    file_path :: uri_to_path(uri)
+    if file_path == "" { return JsonArray { .items = [] } }
+
+    cached :: typed_project_for(state, file_path)
+    index :: build_reference_index(cached.project, cached.result)
+
+    // LSP positions are 0-based ; the Vader AST is 1-based.
+    target :: symbol_at(index, cursor_field(params, "line") + i32(1), cursor_field(params, "character") + i32(1))
+    if target == null { return JsonArray { .items = [] } }
+
+    include_decl :: include_declaration(params)
+    items: JsonValue[] = []
+    for s in index.sites {
+        if s.symbol_id != target { continue }
+        if s.is_decl && !include_decl { continue }
+        items.push(location_json("file://${s.span.start.file}", s.span.span_to_range_json()))
+    }
+    return JsonArray { .items = items }
+}
+
+// The (import-resolved) symbol id of the reference whose span contains the
+// 1-based cursor, or null when the cursor isn't on a recorded identifier.
+symbol_at :: fn(index: ReferenceIndex, line: i32, col: i32) -> i32 | null {
+    for s in index.sites {
+        if cursor_in_span(s.span, line, col) { return s.symbol_id }
+    }
+    return null
+}
+
+// `params.context.includeDeclaration`, defaulting to true (the LSP default
+// when the client omits it).
+include_declaration :: fn(params: JsonValue) -> bool {
+    ctx :: get_field(params, "context")
+    v :: get_field(ctx, "includeDeclaration")
+    if v is JsonBool as b { return b.value }
+    return true
+}

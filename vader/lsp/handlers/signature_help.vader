@@ -11,23 +11,22 @@
 // SignatureInformation :
 //   { label, documentation?, parameters?: [{ label, documentation? }] }
 
-module "vader/lsp"
+module "vader/lsp/handlers"
 
 import "std/collections" { MutableMap }
-import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber, JsonNull, JsonArray, JsonBool }
-import "std/string" { starts_with }
+import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber, JsonNull, JsonArray }
 import "vader/diagnostics" { Span }
-import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/typecheck" { TypedProgram }
-import "vader/types" { Type, FnType, display_type }
+import "vader/lsp/protocol" { position_uri, cursor_field, uri_to_path }
+import "vader/lsp/analysis" { ServerState, typed_project_for, source_file_for_path }
 AST :: import "vader/parser"
 
 /// Build the signature-help payload for the cursor in `params`. Returns
 /// `JsonNull` when the cursor isn't inside a `CallExpr`'s arg list.
 export handle_signature_help :: fn(state: ServerState, params: JsonValue) -> JsonValue {
-    uri  :: get_uri(params)
-    line :: get_pos_field(params, "line")
-    char :: get_pos_field(params, "character")
+    uri  :: position_uri(params)
+    line :: cursor_field(params, "line")
+    char :: cursor_field(params, "character")
     if uri == "" { return JsonNull {} }
     file_path :: uri_to_path(uri)
     if file_path == "" { return JsonNull {} }
@@ -354,51 +353,3 @@ before_or_at :: fn(line_a: i32, col_a: i32, line_b: i32, col_b: i32) -> bool {
     return col_a <= col_b
 }
 
-// ---- params extraction ---------------------------------------------------
-
-get_uri :: fn(params: JsonValue) -> string {
-    match params {
-        is JsonObject as o -> {
-            td :: o.entries["textDocument"]
-            match td {
-                is JsonObject as tdo -> {
-                    uri :: tdo.entries["uri"]
-                    match uri {
-                        is JsonString as s -> { return s.value }
-                        _ -> { return "" }
-                    }
-                }
-                _ -> { return "" }
-            }
-        }
-        _ -> { return "" }
-    }
-}
-
-get_pos_field :: fn(params: JsonValue, key: string) -> i32 {
-    match params {
-        is JsonObject as o -> {
-            pos :: o.entries["position"]
-            match pos {
-                is JsonObject as po -> {
-                    v :: po.entries[key]
-                    match v {
-                        is JsonNumber as n -> { return i32(n.value) }
-                        _ -> { return 0 }
-                    }
-                }
-                _ -> { return 0 }
-            }
-        }
-        _ -> { return 0 }
-    }
-}
-
-uri_to_path :: fn(uri: string) -> string {
-    prefix :: "file://"
-    if uri.starts_with(prefix) {
-        ub :: uri.bytes()
-        return ub[prefix.bytes().len()..<ub.len()].bytes_to_string()
-    }
-    return ""
-}

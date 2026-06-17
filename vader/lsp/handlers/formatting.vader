@@ -6,14 +6,16 @@
 // document with the formatted output. A document that doesn't parse yields no
 // edits (we never reformat an unparseable buffer).
 //
-// Reuses `doc_uri` (main.vader) and `state.source_for` — siblings / exports in
-// this folder module. Range formatting + on-type formatting are follow-ups.
+// Reuses `position_uri` from `vader/lsp/protocol` and `ServerState.source_for`
+// from `vader/lsp/analysis`. Range formatting + on-type formatting are follow-ups.
 
-module "vader/lsp"
+module "vader/lsp/handlers"
 
 import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber, JsonArray }
 import "std/collections" { MutableMap }
 import "vader/fmt" { format_source, Formatted, ParseFailure }
+import "vader/lsp/protocol" { position_uri }
+import "vader/lsp/analysis" { ServerState }
 
 /// Build the `TextEdit[]` response for `textDocument/formatting`. The whole
 /// document is replaced with `vader/fmt`'s output.
@@ -22,7 +24,7 @@ import "vader/fmt" { format_source, Formatted, ParseFailure }
 /// @return        a one-element `TextEdit[]` (whole-doc replace) on success ;
 ///                an empty array when the document is unknown or doesn't parse.
 export handle_formatting :: fn(state: ServerState, params: JsonValue) -> JsonValue {
-    uri :: doc_uri(params)
+    uri :: position_uri(params)
     src :: state.source_for(uri)
     if src == null { return JsonArray { .items = [] } }
     // `uri` is passed as the provenance path — only `ParseFailure` carries it,

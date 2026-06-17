@@ -7,13 +7,15 @@
 // Intra-file bindings (params, locals, for-in vars) carry a scope and are
 // excluded. No nesting in v1 (a struct's fields aren't surfaced as children).
 //
-// Reuses `range_json` (definition.vader) and `doc_uri` (main.vader) — both
-// siblings in this folder module.
+// Reuses `range_json` / `span_to_range_json` / `position_uri` from
+// `vader/lsp/protocol` and the per-document index from `vader/lsp/analysis`.
 
-module "vader/lsp"
+module "vader/lsp/handlers"
 
 import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber, JsonArray }
 import "std/collections" { MutableMap }
+import "vader/lsp/protocol" { position_uri, range_json, span_to_range_json }
+import "vader/lsp/analysis" { ServerState, DocIndex, DeclEntry, DeclKind, build_index }
 
 /// Build the `DocumentSymbol[]` response for the document named in `params`
 /// (`{ textDocument: { uri } }`).
@@ -22,7 +24,7 @@ import "std/collections" { MutableMap }
 /// @return        a `DocumentSymbol[]` JSON array ; empty when the document was
 ///                never indexed (`documentSymbol` is array-typed, never null).
 export handle_document_symbol :: fn(state: ServerState, params: JsonValue) -> JsonValue {
-    uri :: doc_uri(params)
+    uri :: position_uri(params)
     idx :: state.index_for(uri)
     match idx {
         is null              -> { return JsonArray { .items = [] } }

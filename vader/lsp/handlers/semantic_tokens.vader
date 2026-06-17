@@ -14,54 +14,17 @@
 // equals the codepoint count, which Vader's `Position.column` already
 // gives us — adjusted from 1-based to 0-based.
 
-module "vader/lsp"
+module "vader/lsp/handlers"
 
 import "std/string" { byte_decode_at }
 import "std/json" {
     JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonNull, JsonArray
 }
 import "std/collections" { MutableMap }
-import "vader/lexer" { tokenize, Token, TokenKind }
-import "vader/fmt" { scan_comments, Comment, CommentKind }
-
-// ---- legend ---------------------------------------------------------------
-//
-// Indices into these arrays are what the wire format actually carries ;
-// the legend is sent to the client on `initialize`.
-
-/// LSP semantic-token types. Indices into `TOKEN_TYPES` are what travels
-/// on the wire ; the legend (sent on `initialize`) maps each index to
-/// the canonical type name. Order MUST stay in sync with `TOKEN_TYPES`.
-/// Modifier bits for a token. The wire format encodes them as a bitmask ;
-/// `Documentation` lives at bit 0 (`1 << 0`).
-TokenModifier :: enum(u8) {
-    Documentation,   // vaderdoc-derived tokens carry this
-}
-
-modifier_bit :: fn(m: TokenModifier) -> i32 {
-    match m {
-        .Documentation -> { return i32(1) }
-    }
-}
-
-export TOKEN_TYPES :: [
-    "namespace",
-    "type",
-    "function",
-    "parameter",
-    "variable",
-    "keyword",
-    "string",
-    "number",
-    "comment",
-    "operator",
-    "decorator",
-    "enumMember",
-]
-
-export TOKEN_MODIFIERS :: [
-    "documentation",
-]
+import "vader/lexer" { tokenize, Token }
+import "vader/fmt" { scan_comments, Comment }
+import "vader/lsp/protocol" { TokenType, RawToken, span_token_length, modifier_bit, position_uri, line_start_offset }
+import "vader/lsp/analysis" { ServerState }
 
 // ASCII-aware predicates used by the inner scanners. They operate on
 // `char` rather than `u8` so the source reads with the character itself
@@ -86,7 +49,7 @@ is_ascii_space :: fn(c: char) -> bool {
 /// @param params  request params : `{ textDocument: { uri } }`.
 /// @return        `{ data: [...] }` or `null`.
 export handle_semantic_tokens_full :: fn(state: ServerState, params: JsonValue) -> JsonValue {
-    uri :: extract_uri(params)
+    uri :: position_uri(params)
     if uri.bytes().len() == 0 {
         return JsonNull {}
     }
@@ -100,25 +63,6 @@ export handle_semantic_tokens_full :: fn(state: ServerState, params: JsonValue) 
             result["data"] = data
             return JsonObject { .entries = result }
         }
-    }
-}
-
-extract_uri :: fn(params: JsonValue) -> string {
-    match params {
-        is JsonObject as o -> {
-            td :: o.entries["textDocument"]
-            match td {
-                is JsonObject as inner -> {
-                    uri :: inner.entries["uri"]
-                    match uri {
-                        is JsonString as s -> { return s.value }
-                        _ -> { return "" }
-                    }
-                }
-                _ -> { return "" }
-            }
-        }
-        _ -> { return "" }
     }
 }
 

@@ -6,7 +6,7 @@
 // (which is reserved for the JSON-RPC stream) or stderr (which most
 // clients don't display).
 
-module "vader/lsp"
+module "vader/lsp/protocol"
 
 import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber }
 import "std/collections" { MutableMap }

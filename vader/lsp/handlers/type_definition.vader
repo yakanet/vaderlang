@@ -1,4 +1,4 @@
-// vader/lsp/type_definition — `textDocument/typeDefinition` handler.
+// vader/lsp/handlers/type_definition — `textDocument/typeDefinition` handler.
 //
 // Where goto-`definition` jumps to a name's *binding*, typeDefinition jumps to
 // the declaration of the value's *type*. Cursor over a local, field or call
@@ -6,29 +6,30 @@
 // declaring `Symbol` off the type (struct / enum / trait / type-param), and
 // return that symbol's `defined_at` span as a `Location`.
 //
-// Reuses the typed cache + the expr-finder that power hover (`hover.vader`,
-// `state.vader`) and the `Location` encoder from `definition.vader`. A `T | null`
-// nullable unwraps to `T`. Types with no single declaration to jump to —
-// primitives, tuples/arrays, function types, genuine multi-member unions —
-// yield no result. (A named union alias collapses to a structural `UnionType`
-// in the type IR, so the alias itself has no symbol to target; that's a known
-// limitation, not handled here.)
+// Reuses the typed cache + the `find_expr_at` expr-finder that powers hover
+// (`handlers/hover`, same folder module) and the `location_json` encoder from
+// `vader/lsp/protocol`. A `T | null` nullable unwraps to `T`. Types with no
+// single declaration to jump to — primitives, tuples/arrays, function types,
+// genuine multi-member unions — yield no result. (A named union alias collapses
+// to a structural `UnionType` in the type IR, so the alias itself has no symbol
+// to target; that's a known limitation, not handled here.)
 
-module "vader/lsp"
+module "vader/lsp/handlers"
 
-import "std/json" { JsonValue, JsonObject, JsonNumber, JsonNull }
-import "std/string" { starts_with }
+import "std/json" { JsonValue, JsonNull }
 import "vader/types" {
     Type, StructType, EnumType, TraitType, TypeParamType, UnionType, PrimitiveType,
     TY_VOID, mk_struct, mk_primitive, mk_union,
 }
 import "vader/resolver/symbol" { Symbol }
+import "vader/lsp/protocol" { position_uri, uri_to_path, cursor_field, location_json, span_to_range_json }
+import "vader/lsp/analysis" { ServerState, typed_project_for, source_file_for_path }
 
 /// Resolve typeDefinition for the position carried in `params`. Returns a
 /// `Location` (the type's declaration), or `JsonNull` when the cursor isn't on
 /// a typed value or the value's type has no declaration to jump to.
 export handle_type_definition :: fn(state: ServerState, params: JsonValue) -> JsonValue {
-    uri :: doc_uri(params)
+    uri :: position_uri(params)
     if uri == "" { return JsonNull {} }
     file_path :: uri_to_path(uri)
     if file_path == "" { return JsonNull {} }
@@ -84,32 +85,6 @@ union_symbol :: fn(u: UnionType) -> Symbol | null {
 is_null_primitive :: fn(t: Type) -> bool {
     if t is PrimitiveType as p { return p.name == "null" }
     return false
-}
-
-// ---- params helpers ------------------------------------------------------
-
-// Read `params.position.<key>` (0-based LSP coordinate), or 0 when absent.
-// Self-contained — the shared `get_field` / `position_*` helpers are
-// per-file-duplicated across handlers to avoid a circular dep on state's
-// private surface (see `definition.vader`).
-cursor_field :: fn(params: JsonValue, key: string) -> i32 {
-    if params is JsonObject as o {
-        pos :: o.entries["position"]
-        if pos is JsonObject as p {
-            v :: p.entries[key]
-            if v is JsonNumber as n { return i32(n.value) }
-        }
-    }
-    return 0
-}
-
-uri_to_path :: fn(uri: string) -> string {
-    prefix :: "file://"
-    if uri.starts_with(prefix) {
-        ub :: uri.bytes()
-        return ub[prefix.bytes().len()..<ub.len()].bytes_to_string()
-    }
-    return ""
 }
 
 // ---- tests ----------------------------------------------------------------
