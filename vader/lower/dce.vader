@@ -162,7 +162,9 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> Lowe
             if fn_survives(d, reachable_sym, reachable_mangle) { kept.push(d) }
         }
         out_modules[module_id] = LoweredModule {
-            .module_id = m.module_id, .display_path = m.display_path, .decls = kept,
+            .module_id = m.module_id,
+            .display_path = m.display_path,
+            .decls = kept,
         }
     }
     return LoweredProject {
