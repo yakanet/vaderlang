@@ -274,13 +274,13 @@ export compare_ascending_ci :: fn(a: string, b: string) -> bool {
 }
 
 to_lower_byte :: fn(c: u8) -> u8 {
-    if c >= u8(0x41) && c <= u8(0x5A) { return c + u8(0x20) }
+    if c >= 0x41 && c <= 0x5A { return c + 0x20 }
     return c
 }
 
 // ASCII whitespace byte (space, tab, LF, CR) — the byte-level counterpart of
 // `is_white_char`, used by the trim family.
-is_white_byte :: fn(b: u8) = b == u8(0x20) || b == u8(0x09) || b == u8(0x0A) || b == u8(0x0D)
+is_white_byte :: fn(b: u8) = b == 0x20 || b == 0x09 || b == 0x0A || b == 0x0D
 
 // True iff the `m` bytes of `subb` match `sb` starting at byte offset `off`.
 // Takes byte views (not strings) so the caller holds them once across the scan.
