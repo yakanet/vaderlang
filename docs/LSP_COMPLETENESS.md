@@ -31,6 +31,7 @@ project rooted at the open file).
 | `textDocument/documentLink` | `document_link.vader` | clickable `import "path"` (Tier 1) |
 | `textDocument/typeDefinition` | `type_definition.vader` | jump to a value's type decl (Tier 2) |
 | `textDocument/references` | `references.vader` | project-wide find-usages (Tier 2, infra A) |
+| `textDocument/prepareRename` + `rename` | `rename.vader` | project-wide rename → `WorkspaceEdit` (reuses infra A) |
 
 Already on the TODO (Priority + §3.7): completion, rename, find-references,
 code-actions framework, `repair.id` structured diagnostics, semantic-token /

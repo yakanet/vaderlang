@@ -111,6 +111,12 @@ export server_capabilities :: fn() -> JsonValue {
     caps["typeDefinitionProvider"] = JsonBool { .value = true }
     caps["referencesProvider"] = JsonBool { .value = true }
 
+    // renameProvider with prepareProvider : the client first asks
+    // prepareRename to validate + select the identifier, then rename.
+    rename_provider :: MutableMap<string, JsonValue> {}
+    rename_provider["prepareProvider"] = JsonBool { .value = true }
+    caps["renameProvider"] = JsonObject { .entries = rename_provider }
+
     // signatureHelpProvider : trigger on `(` and re-trigger on `,` so
     // VSCode pops the popup as the user opens a call and slides
     // between args.
