@@ -109,6 +109,7 @@ export server_capabilities :: fn() -> JsonValue {
     link_provider["resolveProvider"] = JsonBool { .value = false }
     caps["documentLinkProvider"] = JsonObject { .entries = link_provider }
     caps["typeDefinitionProvider"] = JsonBool { .value = true }
+    caps["referencesProvider"] = JsonBool { .value = true }
 
     // signatureHelpProvider : trigger on `(` and re-trigger on `,` so
     // VSCode pops the popup as the user opens a call and slides

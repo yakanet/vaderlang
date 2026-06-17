@@ -1,0 +1,481 @@
+// vader/lsp/references — `textDocument/references` handler + reference index.
+//
+// Find-usages across the whole project. Builds a `Symbol → use-spans` index by
+// walking every module's AST (via the typed-project cache's per-module
+// resolution) and binding each `IdentExpr` to the Symbol the resolver resolved
+// it to. Import bindings are followed to their export target (`wire_imports` +
+// `resolve_import_redirect`), so a use of an imported name unifies with the
+// declaration and every other use across files — the project-wide behaviour
+// find-references and the future rename both require.
+//
+// Symbols are globally unique (one factory across modules), so `Symbol.id` is a
+// stable cross-module key. Decl / import sites come from each module's symbol
+// table (`Symbol.defined_at`); use sites from the AST walk. The index is the
+// keystone later reused by rename, call-hierarchy and the "N references" lens.
+//
+// v1 scope: indexes `IdentExpr` use-sites (locals, params, fns, types, consts,
+// imports) in value + type position across all files. Field/method accesses
+// (`.field`) carry no `IdentExpr` (resolved separately) and are a follow-up.
+// The index is rebuilt per request; caching it on `ProjectCache` is a follow-up.
+
+module "vader/lsp"
+
+import "std/json" { JsonValue, JsonObject, JsonNumber, JsonArray, JsonBool }
+import "std/string" { starts_with }
+import "vader/diagnostics" { Span, Position }
+import "vader/resolver" { LoadedProject, wire_imports, resolve_import_redirect }
+import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "vader/typecheck" { CheckResult }
+AST :: import "vader/parser"
+
+/// One recorded reference : a source span + the (import-resolved) Symbol id it
+/// refers to. `is_decl` marks the declaration site (so `includeDeclaration`
+/// can exclude it) ; import-binding sites count as uses, not declarations.
+RefSite :: struct {
+    span:      Span
+    symbol_id: i32
+    is_decl:   bool
+}
+
+/// Project-wide reference table : a flat list of every recorded use / decl
+/// site. Flat (not a map) — a references query does two linear passes (find the
+/// symbol under the cursor, then collect its sites), both bounded by project
+/// size, which is fine for an on-demand request.
+ReferenceIndex :: struct {
+    sites: RefSite[]
+}
+
+/// Resolve find-references for the position in `params`. Returns a `Location[]`
+/// (every use of the symbol under the cursor), empty when the cursor isn't on a
+/// resolvable identifier. Honours `context.includeDeclaration`.
+export handle_references :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+    uri :: doc_uri(params)
+    if uri == "" { return JsonArray { .items = [] } }
+    file_path :: uri_to_path(uri)
+    if file_path == "" { return JsonArray { .items = [] } }
+
+    cached :: typed_project_for(state, file_path)
+    index :: build_reference_index(cached.project, cached.result)
+
+    // LSP positions are 0-based ; the Vader AST is 1-based.
+    target :: symbol_at(index, cursor_field(params, "line") + i32(1), cursor_field(params, "character") + i32(1))
+    if target == null { return JsonArray { .items = [] } }
+
+    include_decl :: include_declaration(params)
+    items: JsonValue[] = []
+    for s in index.sites {
+        if s.symbol_id != target { continue }
+        if s.is_decl && !include_decl { continue }
+        items.push(location_json("file://${s.span.start.file}", s.span.span_to_range_json()))
+    }
+    return JsonArray { .items = items }
+}
+
+// The (import-resolved) symbol id of the reference whose span contains the
+// 1-based cursor, or null when the cursor isn't on a recorded identifier.
+symbol_at :: fn(index: ReferenceIndex, line: i32, col: i32) -> i32 | null {
+    for s in index.sites {
+        if cursor_in_span(s.span, line, col) { return s.symbol_id }
+    }
+    return null
+}
+
+// 1-based (line, col) inside the half-open span [start, end).
+cursor_in_span :: fn(sp: Span, line: i32, col: i32) -> bool {
+    if line < sp.start.line { return false }
+    if line == sp.start.line && col < sp.start.column { return false }
+    if line > sp.end.line { return false }
+    if line == sp.end.line && col >= sp.end.column { return false }
+    return true
+}
+
+// ---- index construction --------------------------------------------------
+
+/// Walk every module's resolution + AST into a flat reference table. Each
+/// `IdentExpr` use-site and each `Symbol.defined_at` decl/import site is keyed
+/// by the import-resolved Symbol id so uses unify across files.
+build_reference_index :: fn(project: LoadedProject, result: CheckResult) -> ReferenceIndex {
+    table :: wire_imports(project)
+    sites: RefSite[] = []
+    for id in result.all_modules.keys() {
+        typed :: result.all_modules[id]
+        if typed == null { continue }
+        mod :: project.modules[id]
+        if mod == null { continue }
+
+        // Declaration + import sites from the module's symbol table.
+        for sym in typed.resolved.symbols {
+            da :: sym.defined_at
+            if da == null { continue }
+            canon :: resolve_import_redirect(sym, table)
+            sites.push(RefSite { .span = da, .symbol_id = canon.id, .is_decl = sym.kind != .ImportBinding })
+        }
+
+        // Use sites from every IdentExpr the body walker bound to a Symbol.
+        for f in mod.module.files {
+            collected: AST.IdentExpr[] = []
+            for d in f.program.decls { collect_decl_idents(d, collected) }
+            for ie in collected {
+                sym :: typed.resolved.idents[ie.span.hash()]
+                if sym == null { continue }
+                canon :: resolve_import_redirect(sym, table)
+                sites.push(RefSite { .span = ie.span, .symbol_id = canon.id, .is_decl = false })
+            }
+        }
+    }
+    return ReferenceIndex { .sites = sites }
+}
+
+// ---- IdentExpr collectors (mirror ast_tokens.vader's walk coverage) -------
+
+collect_decl_idents :: fn(d: AST.Decl, out: AST.IdentExpr[]) -> void {
+    match d {
+        is AST.ImportDecl    as x -> { collect_decorators(x.decorators, out) }
+        is AST.FnDecl        as x -> { collect_fn(x, out) }
+        is AST.StructDecl    as x -> {
+            collect_decorators(x.decorators, out)
+            collect_type_params(x.type_params, out)
+            for fld in x.fields {
+                collect_type(fld.ty, out)
+                collect_opt_expr(fld.default, out)
+            }
+        }
+        is AST.EnumDecl      as x -> {
+            collect_decorators(x.decorators, out)
+            collect_opt_type(x.repr, out)
+        }
+        is AST.TraitDecl     as x -> {
+            collect_decorators(x.decorators, out)
+            collect_type_params(x.type_params, out)
+            collect_opt_type(x.requires, out)
+            for m in x.members { collect_fn(m, out) }
+        }
+        is AST.ImplDecl      as x -> {
+            collect_decorators(x.decorators, out)
+            collect_type_params(x.type_params, out)
+            collect_type(x.for_type, out)
+            for ta in x.trait_args { collect_type(ta, out) }
+            for m in x.members { collect_fn(m, out) }
+        }
+        is AST.TypeAliasDecl as x -> {
+            collect_decorators(x.decorators, out)
+            collect_type_params(x.type_params, out)
+            collect_type(x.aliased, out)
+        }
+        is AST.ConstDecl     as x -> {
+            collect_decorators(x.decorators, out)
+            collect_opt_type(x.ty, out)
+            collect_expr(x.value, out)
+        }
+        is AST.AssertDecl    as x -> {
+            collect_decorators(x.decorators, out)
+            collect_expr(x.condition, out)
+        }
+    }
+}
+
+collect_decorators :: fn(ds: AST.Decorator[], out: AST.IdentExpr[]) -> void {
+    for deco in ds {
+        for a in deco.args { collect_expr(a, out) }
+    }
+}
+
+collect_type_params :: fn(ps: AST.TypeParam[], out: AST.IdentExpr[]) -> void {
+    for p in ps { collect_opt_type(p.bound, out) }
+}
+
+collect_fn :: fn(d: AST.FnDecl, out: AST.IdentExpr[]) -> void {
+    collect_decorators(d.decorators, out)
+    collect_type_params(d.type_params, out)
+    for p in d.params {
+        collect_opt_type(p.ty, out)
+        collect_opt_expr(p.default_value, out)
+    }
+    collect_opt_type(d.return_type, out)
+    collect_opt_block(d.body, out)
+}
+
+collect_stmt :: fn(s: AST.Stmt, out: AST.IdentExpr[]) -> void {
+    match s {
+        is AST.LetStmt      as x -> {
+            collect_opt_type(x.ty, out)
+            collect_expr(x.value, out)
+        }
+        is AST.AssignStmt   as x -> {
+            collect_expr(x.target, out)
+            collect_expr(x.value, out)
+        }
+        is AST.ExprStmt     as x -> { collect_expr(x.expr, out) }
+        is AST.ReturnStmt   as x -> { collect_opt_expr(x.value, out) }
+        is AST.ForStmt      as x -> {
+            match x.form {
+                is AST.InfiniteFor -> {}
+                is AST.WhileFor as w -> { collect_expr(w.cond, out) }
+                is AST.InFor    as f -> { collect_expr(f.iter, out) }
+            }
+            collect_block(x.body, out)
+        }
+        is AST.BreakStmt    -> {}
+        is AST.ContinueStmt -> {}
+        is AST.DeferStmt    as x -> {
+            match x.body {
+                is AST.DeferStmtBody  as b -> { collect_stmt(b.stmt, out) }
+                is AST.DeferBlockBody as b -> { collect_block(b.block, out) }
+            }
+        }
+    }
+}
+
+collect_block :: fn(b: AST.BlockExpr, out: AST.IdentExpr[]) -> void {
+    for s in b.stmts { collect_stmt(s, out) }
+    collect_opt_expr(b.trailing, out)
+}
+
+collect_expr :: fn(e: AST.Expr, out: AST.IdentExpr[]) -> void {
+    match e {
+        is AST.IdentExpr         as x -> { out.push(x) }
+        is AST.CallExpr          as x -> {
+            collect_expr(x.callee, out)
+            for a in x.args { collect_expr(a.value, out) }
+        }
+        is AST.FieldExpr         as x -> { collect_expr(x.target, out) }
+        is AST.IndexExpr         as x -> {
+            collect_expr(x.target, out)
+            collect_expr(x.index, out)
+        }
+        is AST.UnaryExpr         as x -> { collect_expr(x.operand, out) }
+        is AST.BinaryExpr        as x -> {
+            collect_expr(x.left, out)
+            collect_expr(x.right, out)
+        }
+        is AST.IfExpr            as x -> {
+            collect_expr(x.cond, out)
+            collect_block(x.then_block, out)
+            match x.else_branch {
+                is null                 -> {}
+                is AST.IfElseIf    as b -> { collect_expr(b.branch, out) }
+                is AST.IfElseBlock as b -> { collect_block(b.block, out) }
+            }
+        }
+        is AST.MatchExpr         as x -> {
+            collect_expr(x.scrutinee, out)
+            for arm in x.arms {
+                collect_pattern(arm.pattern, out)
+                collect_opt_expr(arm.guard, out)
+                collect_expr(arm.body, out)
+            }
+        }
+        is AST.BlockExpr         as x -> { collect_block(x, out) }
+        is AST.LambdaExpr        as x -> {
+            for p in x.params {
+                collect_opt_type(p.ty, out)
+                collect_opt_expr(p.default_value, out)
+            }
+            collect_opt_type(x.return_type, out)
+            collect_block(x.body, out)
+        }
+        is AST.StructLitExpr     as x -> {
+            collect_type(x.type_name, out)
+            for it in x.items {
+                match it {
+                    is AST.StructLitField  as f  -> { collect_expr(f.value, out) }
+                    is AST.StructLitSpread as sp -> { collect_expr(sp.expr, out) }
+                }
+            }
+        }
+        is AST.SeqLitExpr        as x -> { for it in x.elements { collect_expr(it, out) } }
+        is AST.RangeExpr         as x -> {
+            collect_expr(x.lower, out)
+            collect_expr(x.upper, out)
+        }
+        is AST.TryExpr           as x -> { collect_expr(x.inner, out) }
+        is AST.CastExpr          as x -> {
+            collect_expr(x.value, out)
+            collect_type(x.target, out)
+        }
+        is AST.GenericInstExpr   as x -> {
+            collect_type(x.callee, out)
+            for a in x.type_args { collect_type(a, out) }
+        }
+        is AST.IntrinsicCallExpr as x -> { for a in x.args { collect_expr(a, out) } }
+        is AST.DotVariantExpr    -> {}
+        is AST.FnTypeExpr        as x -> {
+            for p in x.params { collect_type(p, out) }
+            collect_opt_type(x.return_type, out)
+        }
+        is AST.ArrayTypeExpr     as x -> { collect_type(x.element, out) }
+        is AST.IntLitExpr    -> {}
+        is AST.FloatLitExpr  -> {}
+        is AST.BoolLitExpr   -> {}
+        is AST.NullLitExpr   -> {}
+        is AST.CharLitExpr   -> {}
+        is AST.StringLitExpr -> {}
+    }
+}
+
+collect_pattern :: fn(p: AST.Pattern, out: AST.IdentExpr[]) -> void {
+    match p {
+        is AST.IsPattern as x -> {
+            collect_type(x.ty, out)
+            collect_opt_pattern(x.inner, out)
+        }
+        is AST.StructPattern as x -> {
+            for f in x.fields {
+                match f.value {
+                    is AST.PatternBinding        -> {}
+                    is AST.PatternLiteral as lit -> { collect_expr(lit.value, out) }
+                }
+            }
+        }
+        is AST.TuplePattern       as x -> { for el in x.elements { collect_pattern(el, out) } }
+        is AST.WildcardPattern         -> {}
+        is AST.BindingPattern          -> {}
+        is AST.EnumVariantPattern      -> {}
+        is AST.LiteralPattern     as x -> { collect_expr(x.value, out) }
+    }
+}
+
+// Type-position identifiers (`x: Foo`, `Map(K, V)`, `A | B`). The topmost ident
+// names a type that the body walker resolves into `idents`, so it's a reference.
+collect_type :: fn(e: AST.Expr, out: AST.IdentExpr[]) -> void {
+    match e {
+        is AST.IdentExpr       as x -> { out.push(x) }
+        is AST.GenericInstExpr as x -> {
+            collect_type(x.callee, out)
+            for a in x.type_args { collect_type(a, out) }
+        }
+        is AST.CallExpr        as x -> {
+            collect_type(x.callee, out)
+            for a in x.args { collect_type(a.value, out) }
+        }
+        is AST.FieldExpr       as x -> { collect_expr(x.target, out) }
+        is AST.BinaryExpr      as x -> {
+            collect_type(x.left, out)
+            collect_type(x.right, out)
+        }
+        is AST.FnTypeExpr      as x -> {
+            for p in x.params { collect_type(p, out) }
+            collect_opt_type(x.return_type, out)
+        }
+        is AST.ArrayTypeExpr   as x -> { collect_type(x.element, out) }
+        _ -> { collect_expr(e, out) }
+    }
+}
+
+collect_opt_type :: fn(e: AST.Expr | null, out: AST.IdentExpr[]) -> void {
+    match e {
+        is null -> {}
+        _       -> { collect_type(e, out) }
+    }
+}
+
+collect_opt_expr :: fn(e: AST.Expr | null, out: AST.IdentExpr[]) -> void {
+    match e {
+        is null -> {}
+        _       -> { collect_expr(e, out) }
+    }
+}
+
+collect_opt_block :: fn(b: AST.BlockExpr | null, out: AST.IdentExpr[]) -> void {
+    match b {
+        is null -> {}
+        _       -> { collect_block(b, out) }
+    }
+}
+
+collect_opt_pattern :: fn(p: AST.Pattern | null, out: AST.IdentExpr[]) -> void {
+    match p {
+        is null -> {}
+        _       -> { collect_pattern(p, out) }
+    }
+}
+
+// ---- params helpers ------------------------------------------------------
+
+// Read `params.position.<key>` (0-based LSP coordinate), or 0 when absent.
+cursor_field :: fn(params: JsonValue, key: string) -> i32 {
+    if params is JsonObject as o {
+        pos :: o.entries["position"]
+        if pos is JsonObject as p {
+            v :: p.entries[key]
+            if v is JsonNumber as n { return i32(n.value) }
+        }
+    }
+    return 0
+}
+
+// `params.context.includeDeclaration`, defaulting to true (LSP default).
+include_declaration :: fn(params: JsonValue) -> bool {
+    if params is JsonObject as o {
+        ctx :: o.entries["context"]
+        if ctx is JsonObject as c {
+            v :: c.entries["includeDeclaration"]
+            if v is JsonBool as b { return b.value }
+        }
+    }
+    return true
+}
+
+uri_to_path :: fn(uri: string) -> string {
+    prefix :: "file://"
+    if uri.starts_with(prefix) {
+        ub :: uri.bytes()
+        return ub[prefix.bytes().len()..<ub.len()].bytes_to_string()
+    }
+    return ""
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+
+// Count the IdentExprs the walker collects from a parsed source — guards the
+// walker's coverage (parse-only, no resolution needed).
+collect_count :: fn(src: string) -> usize {
+    parsed :: AST.parse_source(src, "t.vader")
+    out: AST.IdentExpr[] = []
+    for d in parsed.program.decls { collect_decl_idents(d, out) }
+    return out.len()
+}
+
+idents_named :: fn(src: string, name: string) -> i32 {
+    parsed :: AST.parse_source(src, "t.vader")
+    out: AST.IdentExpr[] = []
+    for d in parsed.program.decls { collect_decl_idents(d, out) }
+    count := 0
+    for ie in out {
+        if ie.name == name { count = count + 1 }
+    }
+    return count
+}
+
+@test
+test_collect_idents_value_and_type_position :: fn() -> void {
+    // `total` referenced 3× (2 reads + the return), `i32` is a type ident.
+    src :: "module \"t\"\nsum :: fn(a: i32, b: i32) -> i32 {\n    total :: a + b\n    println(total)\n    return total\n}\n"
+    // `total` appears as an IdentExpr twice (println arg + return) — the `::`
+    // binding name is a name_span, not an IdentExpr, so it isn't collected.
+    assert(idents_named(src, "total") == 2, "two uses of total collected")
+    assert(idents_named(src, "a") == 1, "one use of param a")
+    assert(idents_named(src, "println") == 1, "callee ident collected")
+}
+
+@test
+test_collect_idents_skips_literals :: fn() -> void {
+    // No identifiers in the body — only literals.
+    src :: "module \"t\"\nc :: 1 + 2\n"
+    assert_eq(collect_count(src), usize(0))
+}
+
+@test
+test_cursor_in_span_half_open :: fn() -> void {
+    sp :: Span {
+        .start = Position { .file = "t", .offset = usize(0), .line = 3, .column = 5 },
+        .end   = Position { .file = "t", .offset = usize(0), .line = 3, .column = 10 },
+    }
+    assert(cursor_in_span(sp, 3, 5), "start column is inside")
+    assert(cursor_in_span(sp, 3, 9), "last column is inside")
+    assert(!cursor_in_span(sp, 3, 10), "end column is exclusive")
+    assert(!cursor_in_span(sp, 3, 4), "before start is outside")
+    assert(!cursor_in_span(sp, 2, 7), "earlier line is outside")
+}
