@@ -466,72 +466,72 @@ fn 8 std_crypto$sha256 (string) -> string
   local block_offset usize
   local w ref
   local i usize
-  local $k_33 usize
-  local $k_35 usize
-  local $mul_36 usize
-  local $add_37 usize
-  local $k_38 usize
-  local $add_39 usize
+  local $k_34 usize
+  local $k_36 usize
+  local $mul_37 usize
+  local $add_38 usize
+  local $k_39 usize
+  local $add_40 usize
   local b0 u32
-  local $k_43 usize
-  local $mul_44 usize
-  local $add_45 usize
-  local $k_46 usize
-  local $add_47 usize
+  local $k_44 usize
+  local $mul_45 usize
+  local $add_46 usize
+  local $k_47 usize
+  local $add_48 usize
   local b1 u32
-  local $k_51 usize
-  local $mul_52 usize
-  local $add_53 usize
-  local $k_54 usize
-  local $add_55 usize
+  local $k_52 usize
+  local $mul_53 usize
+  local $add_54 usize
+  local $k_55 usize
+  local $add_56 usize
   local b2 u32
-  local $k_59 usize
-  local $mul_60 usize
-  local $add_61 usize
-  local $k_62 usize
-  local $add_63 usize
+  local $k_60 usize
+  local $mul_61 usize
+  local $add_62 usize
+  local $k_63 usize
+  local $add_64 usize
   local b3 u32
-  local $cast_68 u32
-  local $shl_69 u32
-  local $cast_71 u32
-  local $shl_72 u32
-  local $bitor_73 u32
-  local $cast_75 u32
-  local $shl_76 u32
-  local $call_79 u32
-  local $k_80 usize
+  local $cast_69 u32
+  local $shl_70 u32
+  local $cast_72 u32
+  local $shl_73 u32
+  local $bitor_74 u32
+  local $cast_76 u32
+  local $shl_77 u32
+  local $call_80 u32
+  local $k_81 usize
   local j usize
-  local $k_84 usize
-  local $k_86 usize
-  local $sub_87 usize
+  local $k_85 usize
+  local $k_87 usize
+  local $sub_88 usize
   local w_jm15 u32
-  local $k_90 usize
-  local $sub_91 usize
+  local $k_91 usize
+  local $sub_92 usize
   local w_jm2 u32
-  local $cast_95 u32
-  local $call_96 u32
-  local $cast_98 u32
-  local $call_99 u32
-  local $bitxor_100 u32
-  local $cast_102 u32
-  local $shr_103 u32
+  local $cast_96 u32
+  local $call_97 u32
+  local $cast_99 u32
+  local $call_100 u32
+  local $bitxor_101 u32
+  local $cast_103 u32
+  local $shr_104 u32
   local s0 u32
-  local $cast_107 u32
-  local $call_108 u32
-  local $cast_110 u32
-  local $call_111 u32
-  local $bitxor_112 u32
-  local $cast_114 u32
-  local $shr_115 u32
+  local $cast_108 u32
+  local $call_109 u32
+  local $cast_111 u32
+  local $call_112 u32
+  local $bitxor_113 u32
+  local $cast_115 u32
+  local $shr_116 u32
   local s1 u32
-  local $k_118 usize
-  local $sub_119 usize
-  local $add_121 u32
-  local $k_122 usize
-  local $sub_123 usize
-  local $idx_124 u32
-  local $call_127 u32
-  local $k_128 usize
+  local $k_119 usize
+  local $sub_120 usize
+  local $add_122 u32
+  local $k_123 usize
+  local $sub_124 usize
+  local $idx_125 u32
+  local $call_128 u32
+  local $k_129 usize
   local a u32
   local b u32
   local c u32
@@ -541,20 +541,19 @@ fn 8 std_crypto$sha256 (string) -> string
   local g u32
   local h u32
   local t usize
-  local $k_140 usize
-  local $cast_143 u32
-  local $call_144 u32
-  local $cast_146 u32
-  local $call_147 u32
-  local $bitxor_148 u32
-  local $cast_150 u32
-  local $call_151 u32
+  local $k_141 usize
+  local $cast_144 u32
+  local $call_145 u32
+  local $cast_147 u32
+  local $call_148 u32
+  local $bitxor_149 u32
+  local $cast_151 u32
+  local $call_152 u32
   local sig1 u32
-  local $bitand_154 u32
-  local $bitand_157 u32
+  local $bitand_155 u32
+  local $bitand_158 u32
   local ch_efg u32
-  local $add_161 u32
-  local $k_162 u32
+  local $add_162 u32
   local $k_163 u32
   local $k_164 u32
   local $k_165 u32
@@ -618,26 +617,27 @@ fn 8 std_crypto$sha256 (string) -> string
   local $k_223 u32
   local $k_224 u32
   local $k_225 u32
-  local $idx_227 u32
-  local $add_228 u32
-  local $idx_229 u32
+  local $k_226 u32
+  local $idx_228 u32
+  local $add_229 u32
+  local $idx_230 u32
   local t1 u32
-  local $cast_234 u32
-  local $call_235 u32
-  local $cast_237 u32
-  local $call_238 u32
-  local $bitxor_239 u32
-  local $cast_241 u32
-  local $call_242 u32
+  local $cast_235 u32
+  local $call_236 u32
+  local $cast_238 u32
+  local $call_239 u32
+  local $bitxor_240 u32
+  local $cast_242 u32
+  local $call_243 u32
   local sig0 u32
-  local $bitand_245 u32
   local $bitand_246 u32
-  local $bitxor_247 u32
-  local $bitand_248 u32
+  local $bitand_247 u32
+  local $bitxor_248 u32
+  local $bitand_249 u32
   local maj_abc u32
   local t2 u32
-  local $k_258 usize
-  local $k_276 usize
+  local $k_259 usize
+  local $k_277 usize
   i32.const 1779033703
   local.set 1
   i32.const -1150833019
@@ -691,7 +691,7 @@ fn 8 std_crypto$sha256 (string) -> string
             local.get 16
             u64.lt
             if $L5 void
-              i64.const 64
+              i64.const 4
               local.set 17
               local.get 15
               local.get 17
@@ -713,7 +713,7 @@ fn 8 std_crypto$sha256 (string) -> string
               ref.cast 9
               u8.to_i32
               local.set 22
-              i64.const 64
+              i64.const 4
               local.set 23
               local.get 15
               local.get 23
@@ -735,7 +735,7 @@ fn 8 std_crypto$sha256 (string) -> string
               ref.cast 9
               u8.to_i32
               local.set 28
-              i64.const 64
+              i64.const 4
               local.set 29
               local.get 15
               local.get 29
@@ -757,7 +757,7 @@ fn 8 std_crypto$sha256 (string) -> string
               ref.cast 9
               u8.to_i32
               local.set 34
-              i64.const 64
+              i64.const 4
               local.set 35
               local.get 15
               local.get 35
