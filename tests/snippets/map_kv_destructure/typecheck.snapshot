@@ -1,0 +1,26 @@
+# Typecheck
+
+## tests/snippets/map_kv_destructure
+  FnDecl         main                 :: fn() -> i32
+  expr 12:10    StructLitExpr  :: MutableMap<string, i32>
+  expr 13:5     IdentExpr      :: MutableMap<string, i32>
+  expr 13:7     StringLitExpr  :: string
+  expr 14:5     IdentExpr      :: MutableMap<string, i32>
+  expr 14:7     StringLitExpr  :: string
+  expr 15:5     IdentExpr      :: MutableMap<string, i32>
+  expr 15:7     StringLitExpr  :: string
+  expr 18:19    IdentExpr      :: MutableMap<string, i32>
+  expr 18:9     IdentExpr      :: Entry<string, i32>
+  expr 19:17    StringLitExpr  :: string
+  expr 19:20    IdentExpr      :: string
+  expr 19:25    IdentExpr      :: i32
+  expr 19:9     CallExpr       :: void
+  expr 19:9     IdentExpr      :: fn(T) -> void
+  expr 20:15    BinaryExpr     :: i32
+  expr 20:15    IdentExpr      :: i32
+  expr 20:21    IdentExpr      :: i32
+  expr 20:9     IdentExpr      :: i32
+  expr 22:13    StringLitExpr  :: string
+  expr 22:20    IdentExpr      :: i32
+  expr 22:5     CallExpr       :: void
+  expr 22:5     IdentExpr      :: fn(T) -> void

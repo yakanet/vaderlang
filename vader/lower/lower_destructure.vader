@@ -3,10 +3,13 @@
 
 module "vader/lower"
 
-import "vader/parser" { LetBinding, SimpleBinding, TupleBinding, WildcardBinding, RestBinding }
+import "vader/parser" {
+    LetBinding, SimpleBinding, TupleBinding, WildcardBinding, RestBinding,
+    SeqLitExpr, FieldExpr, IdentExpr, FnDecl, Expr,
+}
 import "vader/diagnostics" { Span }
 import "vader/resolver/symbol" { Symbol }
-import "vader/types" { Type, ArrayType, TupleType, TY_BOOL, TY_VOID, TY_UNRESOLVED, mk_primitive, UnresolvedType }
+import "vader/types" { Type, ArrayType, TupleType, TY_BOOL, TY_VOID, TY_UNRESOLVED, mk_primitive, UnresolvedType, display_type }
 
 // Walk a `LetBinding` tree, emitting one `LoweredLet` per leaf with
 // the target ident's `_<i>` field (tuples) or `[i]` index (arrays).
@@ -23,10 +26,92 @@ emit_let_binding_leaves :: fn(
             return
         }
     }
+    // `[...]` over a value that is neither a tuple nor an array : destructure
+    // through an `Into<[...]>` impl (e.g. `Entry<K, V> implements Into<[K, V]>`,
+    // which powers `for [k, v] in m`). When the impl's `into` body is a tuple
+    // literal of plain `self.<field>` reads, bind each leaf DIRECTLY to
+    // `target.<field>` — no `into()` call, no per-iteration tuple allocation.
+    // `build_leaf_access` reads these names instead of the `_<i>` tuple field.
+    if !(target_type is TupleType) && !(target_type is ArrayType) {
+        candidate :: into_tuple_fields(ctx, target_type)
+        if candidate != null && candidate.len() == binding.elements.len() {
+            for i in 0..<binding.elements.len() {
+                emit_let_leaf(ctx, binding.elements[i], target, target_type, i, span, out, candidate)
+            }
+            return
+        }
+        // No inlinable `Into<[...]>` shape : either the typer already rejected
+        // this (T3001), or the `Into` impl's `into` body isn't the zero-alloc
+        // `[self.f0, …]` tuple literal we can inline. Don't silently emit
+        // `_<index>` field reads against a struct (a miscompile) — trap loudly.
+        // A general allocating `into()` fallback could land here if a
+        // computed-body `Into<[...]>` impl ever needs it.
+        out.push(LoweredExprStmt {
+            .span = span,
+            .expr = LoweredUnreachable {
+                .span = span, .type = TY_VOID,
+                .reason = "destructure of ${display_type(target_type)} : no inlinable Into<[...]> coercion",
+            },
+        })
+        return
+    }
     for i in 0..<binding.elements.len() {
         leaf :: binding.elements[i]
-        emit_let_leaf(ctx, leaf, target, target_type, i, span, out)
+        emit_let_leaf(ctx, leaf, target, target_type, i, span, out, null)
     }
+}
+
+// Resolve the field names a `[...]` destructure should read when its target
+// type coerces through `Into<[...]>`. Returns the per-element field names when
+// the impl's `into` body is a tuple literal of plain `self.<field>` reads —
+// the zero-alloc inline case — and null otherwise (the caller then falls back
+// to the `_<i>` tuple-field path). Mirror of the typer's `into_tuple_target`.
+into_tuple_fields :: fn(ctx: FnLowerCtx, target_type: Type) -> string[] | null {
+    surface :: type_surface_name(target_type)
+    if surface == "" { return null }
+    for entry in ctx.project.impls.all {
+        decl :: entry.decl
+        if decl.trait_name != "Into" { continue }
+        if !impl_targets_name(decl.for_type, surface) { continue }
+        for m in decl.members {
+            if m.name != "into" { continue }
+            names :: seq_self_field_names(m)
+            if names != null { return names }
+        }
+    }
+    return null
+}
+
+// Field names of an `into` member whose body is `[self.f0, self.f1, …]`.
+// Returns null unless the body is exactly a tuple/array literal of `self.<f>`
+// field reads (no stmts, no computed elements) — anything else routes through
+// the allocating `into()` fallback, not this zero-alloc inline.
+seq_self_field_names :: fn(m: FnDecl) -> string[] | null {
+    body :: m.body
+    if body == null { return null }
+    if body.stmts.len() != 0 { return null }
+    trailing :: body.trailing
+    if trailing == null { return null }
+    if trailing is SeqLitExpr as seq {
+        names: string[] = []
+        for el in seq.elements {
+            name :: self_field_name(el)
+            if name == "" { return null }
+            names.push(name)
+        }
+        return names
+    }
+    return null
+}
+
+// The field name of a `self.<field>` access, or "" for any other expression.
+self_field_name :: fn(e: Expr) -> string {
+    if e is FieldExpr as fe {
+        if fe.target is IdentExpr as id {
+            if id.name == "self" { return fe.field }
+        }
+    }
+    return ""
 }
 
 // Index of the first `...rest` leaf in `binding`, or -1 when none.
@@ -157,6 +242,7 @@ emit_let_leaf_array :: fn(
 emit_let_leaf :: fn(
     ctx: FnLowerCtx, leaf: LetBinding, target: LoweredExpr,
     target_type: Type, index: usize, span: Span, out: LoweredStmt[],
+    field_names: string[] | null,
 ) -> void {
     match leaf {
         is WildcardBinding -> {}
@@ -177,7 +263,7 @@ emit_let_leaf :: fn(
             symbol :: lookup_local_symbol(ctx.project, ctx.typed.resolved, simple.name_span)
             if symbol is null { return }
             elem_type :: tuple_or_array_element_type(target_type, index, ctx, simple)
-            access :: build_leaf_access(target, target_type, elem_type, simple.span, index)
+            access :: build_leaf_access(target, target_type, elem_type, simple.span, index, field_names)
             out.push(LoweredLet {
                 .span = simple.span, .name = simple.name, .symbol = symbol,
                 .type = elem_type, .value = access,
@@ -185,7 +271,7 @@ emit_let_leaf :: fn(
         }
         is TupleBinding as nested -> {
             elem_type :: tuple_or_array_element_type(target_type, index, ctx, simple_placeholder(nested))
-            access :: build_leaf_access(target, target_type, elem_type, nested.span, index)
+            access :: build_leaf_access(target, target_type, elem_type, nested.span, index, field_names)
             emit_let_binding_leaves(ctx, nested, access, elem_type, nested.span, out)
         }
     }
@@ -222,10 +308,13 @@ tuple_or_array_element_type :: fn(
 }
 
 
-// Build the `_<index>` field access (tuple) or `[index]` index
-// (array) used to read the leaf value from the synthetic `__tup_n`.
+// Build the leaf-read for a destructure : `[index]` for arrays, else a field
+// access — `_<index>` for a tuple, or the named field from `field_names` when
+// the value coerces through `Into<[...]>` (so `Entry` reads `.key` / `.value`,
+// not `._0` / `._1`).
 build_leaf_access :: fn(
     target: LoweredExpr, target_type: Type, elem_type: Type, span: Span, index: usize,
+    field_names: string[] | null,
 ) -> LoweredExpr {
     match target_type {
         is ArrayType -> {
@@ -238,8 +327,17 @@ build_leaf_access :: fn(
         }
         _ -> {
             return LoweredFieldAccess {
-                .span = span, .type = elem_type, .target = target, .field = "_${index}",
+                .span = span, .type = elem_type, .target = target,
+                .field = leaf_field_name(field_names, index),
             }
         }
     }
+}
+
+// The field a leaf reads : the `Into<[...]>` impl's `field_names[index]` when
+// present, else the positional tuple field `_<index>`.
+leaf_field_name :: fn(field_names: string[] | null, index: usize) -> string {
+    if field_names == null { return "_${index}" }
+    if index >= field_names.len() { return "_${index}" }
+    return field_names[index]
 }

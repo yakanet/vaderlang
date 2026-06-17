@@ -30,11 +30,10 @@
 
 ## stdlib/std/testing
 
-## tests/snippets/narrow_imported_map
-
-## tests/snippets/narrow_imported_map/lib
+## tests/snippets/map_kv_destructure
 
 ## generic instances
+  Entry<string, i32>
   Entry<K, V>
   Entry<K, V>
   Entry<K, V>
@@ -50,7 +49,6 @@
   Entry<K, V>
   Entry<K, V>
   Entry<T, bool>
-  MutableMap<i32, i32 | Wrap>
   MutableMap<i32, bool>
   MutableMap<string, i32>
   MutableMap<K, V>

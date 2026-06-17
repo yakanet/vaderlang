@@ -42,6 +42,17 @@ Entry :: struct<K, V> {
     next:  Entry<K, V> | null
 }
 
+// `for [k, v] in m` destructures each yielded `Entry`. The parser desugars
+// the form to `for e in m { let [k, v] := e ; ... }`, so the binding is a
+// `[...]` destructure over an `Entry` — a struct, not a tuple. A `[...]`
+// pattern coerces a non-tuple value through `Into<[...]>`, so this impl is
+// what lets the destructure bind `k`/`v`. The lowerer recognises the
+// tuple-literal body and binds `k = e.key`, `v = e.value` directly — no
+// per-iteration tuple allocation.
+Entry<K, V> implements<K, V> Into<[K, V]> {
+    into :: fn(self) -> [K, V] = [self.key, self.value]
+}
+
 /// Chaining hash map keyed by any `K` that implements `Hash & Equals`.
 /// Buckets start `MINIMAL_BUCKET_COUNT`-wide and double + rehash past a 0.75 load
 /// factor, keeping the average chain length bounded (~O(1) lookups). `K`'s

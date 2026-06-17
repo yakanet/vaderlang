@@ -46,6 +46,7 @@
   Entry<K, V>
   Entry<K, V>
   Entry<K, V>
+  Entry<K, V>
   Entry<T, bool>
   MutableMap<char, i32>
   MutableMap<i16, i32>
