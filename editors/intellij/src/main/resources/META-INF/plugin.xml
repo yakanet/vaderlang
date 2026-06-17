@@ -1,7 +1,7 @@
 <idea-plugin>
     <id>dev.vaderlang.vader</id>
     <name>Vader</name>
-    <vendor email="mbroutin@sedona.fr" url="https://github.com/vaderlang">vaderlang</vendor>
+    <vendor email="yakanet@gmail.com" url="https://github.com/vaderlang">vaderlang</vendor>
 
     <description><![CDATA[
         Syntax highlighting plus full LSP-driven editor features for the
