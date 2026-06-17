@@ -99,6 +99,9 @@ export server_capabilities :: fn() -> JsonValue {
     caps["hoverProvider"]           = JsonBool { .value = true }
     caps["inlayHintProvider"]       = JsonBool { .value = true }
     caps["documentSymbolProvider"]  = JsonBool { .value = true }
+    caps["foldingRangeProvider"]    = JsonBool { .value = true }
+    caps["documentHighlightProvider"] = JsonBool { .value = true }
+    caps["documentFormattingProvider"] = JsonBool { .value = true }
 
     // signatureHelpProvider : trigger on `(` and re-trigger on `,` so
     // VSCode pops the popup as the user opens a call and slides

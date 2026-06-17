@@ -1,0 +1,86 @@
+// vader/lsp/formatting — `textDocument/formatting` handler.
+//
+// Whole-document formatting through the existing `vader/fmt` formatter. Pulls
+// the open document's current text from the server's `docs` overlay, runs
+// `format_source`, and returns a single `TextEdit` that replaces the whole
+// document with the formatted output. A document that doesn't parse yields no
+// edits (we never reformat an unparseable buffer).
+//
+// Reuses `doc_uri` (main.vader) and `state.source_for` — siblings / exports in
+// this folder module. Range formatting + on-type formatting are follow-ups.
+
+module "vader/lsp"
+
+import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber, JsonArray }
+import "std/collections" { MutableMap }
+import "vader/fmt" { format_source, Formatted, ParseFailure }
+
+/// Build the `TextEdit[]` response for `textDocument/formatting`. The whole
+/// document is replaced with `vader/fmt`'s output.
+///
+/// @param params  request params carrying `textDocument.uri`.
+/// @return        a one-element `TextEdit[]` (whole-doc replace) on success ;
+///                an empty array when the document is unknown or doesn't parse.
+export handle_formatting :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+    uri :: doc_uri(params)
+    src :: state.source_for(uri)
+    if src == null { return JsonArray { .items = [] } }
+    // `uri` is passed as the provenance path — only `ParseFailure` carries it,
+    // and we discard that branch, so its exact form doesn't matter here.
+    result :: format_source(src, uri)
+    match result {
+        is ParseFailure   -> { return JsonArray { .items = [] } }
+        is Formatted as f -> { return JsonArray { .items = [full_doc_edit_json(src, f.output)] } }
+    }
+}
+
+// A single `TextEdit` spanning the whole document : start at 0:0, end one line
+// past the last (character 0), which the client clamps to the document's end —
+// the canonical "replace everything" range.
+full_doc_edit_json :: fn(src: string, formatted: string) -> JsonValue {
+    start :: MutableMap<string, JsonValue> {}
+    start["line"]      = JsonNumber { .value = f64(0) }
+    start["character"] = JsonNumber { .value = f64(0) }
+    end :: MutableMap<string, JsonValue> {}
+    end["line"]        = JsonNumber { .value = f64(count_lines(src)) }
+    end["character"]   = JsonNumber { .value = f64(0) }
+    range :: MutableMap<string, JsonValue> {}
+    range["start"] = JsonObject { .entries = start }
+    range["end"]   = JsonObject { .entries = end }
+    obj :: MutableMap<string, JsonValue> {}
+    obj["range"]   = JsonObject { .entries = range }
+    obj["newText"] = JsonString { .value = formatted }
+    return JsonObject { .entries = obj }
+}
+
+// Number of lines in `src` (newline count + 1) — the end-of-document line index
+// is one past the last line, so this value used as `end.line` covers the lot.
+count_lines :: fn(src: string) -> i32 {
+    n: i32 = 1
+    for b in src.bytes() {
+        if b == 10 { n = n + 1 }
+    }
+    return n
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+
+@test
+test_count_lines :: fn() -> void {
+    assert_eq(count_lines("abc"), i32(1))
+    assert_eq(count_lines("a\nb"), i32(2))
+    assert_eq(count_lines("a\nb\n"), i32(3))
+    assert_eq(count_lines(""), i32(1))
+}
+
+@test
+test_format_source_smoke :: fn() -> void {
+    // A messy-but-parseable source formats to something non-empty.
+    r :: format_source("x::1\n", "t.vader")
+    match r {
+        is Formatted as f -> { assert(f.output.bytes().len() > 0, "formatted output is empty") }
+        is ParseFailure   -> { assert(false, "simple source should parse") }
+    }
+}
