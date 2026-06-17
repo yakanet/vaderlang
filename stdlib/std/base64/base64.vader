@@ -70,11 +70,11 @@ Base64Error implements Error {
 // rebuild the array per access — same gotcha as std/crypto's K tables).
 decode_byte :: fn(b: u8) -> i32 {
     if b >= b'A' && b <= b'Z' { return i32(b - b'A') }
-    if b >= b'a' && b <= b'z' { return i32(b - b'a') + i32(26) }
-    if b >= b'0' && b <= b'9' { return i32(b - b'0') + i32(52) }
-    if b == b'+' { return i32(62) }
-    if b == b'/' { return i32(63) }
-    return i32(-1)
+    if b >= b'a' && b <= b'z' { return i32(b - b'a') + 26 }
+    if b >= b'0' && b <= b'9' { return i32(b - b'0') + 52 }
+    if b == b'+' { return 62 }
+    if b == b'/' { return 63 }
+    return -1
 }
 
 /// Decode a base64 string back to the raw bytes it encodes. Strict : input
