@@ -30,6 +30,7 @@ project rooted at the open file).
 | `textDocument/formatting` | `formatting.vader` | whole-doc format via `vader/fmt` (Tier 1) |
 | `textDocument/documentLink` | `document_link.vader` | clickable `import "path"` (Tier 1) |
 | `textDocument/typeDefinition` | `type_definition.vader` | jump to a value's type decl (Tier 2) |
+| `textDocument/references` | `references.vader` | project-wide find-usages (Tier 2, infra A) |
 
 Already on the TODO (Priority + §3.7): completion, rename, find-references,
 code-actions framework, `repair.id` structured diagnostics, semantic-token /
@@ -68,16 +69,23 @@ the detail ; this is the one-look index.
 
 ## Shared infrastructure (build these first — several features depend on them)
 
-### A. Project-wide reference index
-A `Symbol → reference-spans` map across every file of the project, keyed on the
-**resolved Symbol** (not the textual name) so a query never conflates shadowed
-or unrelated identifiers of the same spelling. Built by walking each module's
-AST and recording every `IdentExpr` use-site against the Symbol the resolver
-bound it to. This is the keystone for **find-references**, **rename**,
-**document-highlight**, **call-hierarchy**, and the "N references" **code lens**.
-Cache it on the `ProjectCache` next to the typed result; invalidate with the
-rest of the cache on any edit. Cost: one extra walk over the already-typed
-project; bounded by project size.
+### A. Project-wide reference index — ✅ landed (`references.vader::build_reference_index`)
+A `Symbol → reference-spans` table across every file of the project, keyed on
+the **resolved Symbol id** (not the textual name) so a query never conflates
+shadowed or unrelated identifiers of the same spelling. Built by walking each
+module's AST (via the typed cache's per-module resolution, `CheckResult.all_modules`)
+and binding every `IdentExpr` use-site to the Symbol the body-walker resolved it
+to; import bindings are followed to their export target (`wire_imports` +
+`resolve_import_redirect`) so a use of an imported name unifies with the
+declaration and every other cross-file use. Symbols are globally unique (one
+factory), so `Symbol.id` is the stable key. Decl / import sites come from each
+module's `Symbol.defined_at`. This is the keystone for **find-references** (done),
+**rename**, **call-hierarchy**, and the "N references" **code lens**.
+**Follow-ups**: (1) cache the index on `ProjectCache` (today it's rebuilt per
+request — fine for find-references, but rename/code-lens will want it cached,
+invalidated with the rest of the cache); (2) index `.field` / method accesses
+(no `IdentExpr` — resolved separately); (3) factor the AST `IdentExpr` walk into
+a shared `for_each_ident` visitor (currently duplicated with `ast_tokens.vader`).
 
 ### B. Workspace symbol index
 A flat list of every top-level/exported decl across the project (`name`, kind,
@@ -136,8 +144,13 @@ day-to-day responsiveness.
 
 ### Tier 2 — navigation (needs infra A / B)
 
-- **`textDocument/references`** (infra A) — find-usages. Also the rename
-  prerequisite. Capability: `referencesProvider = true`.
+- ✅ **`textDocument/references`** (`references.vader`) — project-wide find-usages.
+  Cursor → the `IdentExpr` use-site whose span contains it → its import-resolved
+  Symbol id → every recorded site for that id, returned as `Location[]`. Honours
+  `context.includeDeclaration` (decl + import sites are flagged). Built on infra A
+  above. Also the rename prerequisite. Limitation: cursor must sit on an
+  identifier (use or decl/import site recorded via `Symbol.defined_at`); `.field`
+  accesses aren't indexed yet.
 - **`workspace/symbol`** (infra B) — fuzzy project-wide symbol search (Cmd+T).
   Capability: `workspaceSymbolProvider = true`.
 - ✅ **`textDocument/typeDefinition`** (`type_definition.vader`) — jump to the
