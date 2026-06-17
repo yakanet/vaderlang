@@ -1,0 +1,162 @@
+// vader/lsp/document_link — `textDocument/documentLink` handler.
+//
+// Makes each `import "path"` clickable : the quoted path string links to the
+// imported module's source so Ctrl/Cmd-click jumps straight there. Targets
+// resolve through `module_path_to_absolute` — the same `std/` / `vader/` / `./`
+// resolution that cross-file goto-def uses (resolver.vader) — and folder
+// modules link to the first `.vader` file inside. Imports whose path doesn't
+// map to a known root (project-root / third-party prefixes) simply get no link.
+//
+// The link range covers the path text *between* the quotes. It is recovered by
+// re-parsing the document and scanning each `import` decl's source span for the
+// opening quote — `ImportDecl` carries the path text + statement span but not a
+// dedicated path-string span.
+
+module "vader/lsp"
+
+import "std/json" { JsonValue, JsonObject, JsonString, JsonArray }
+import "std/collections" { MutableMap }
+import "std/io" { exists }
+import "vader/diagnostics" { Span, Position }
+import "vader/parser" { parse_source, ImportDecl }
+import "vader/resolver" { list_vader_files }
+
+/// Build the `DocumentLink[]` response for the document named in `params`
+/// (`{ textDocument: { uri } }`).
+///
+/// @param params  the request params carrying `textDocument.uri`.
+/// @return        a `DocumentLink[]` JSON array ; empty when the document was
+///                never indexed or carries no resolvable imports.
+export handle_document_link :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+    uri :: doc_uri(params)
+    idx :: state.index_for(uri)
+    if idx == null { return JsonArray { .items = [] } }
+    // The index keeps the source but not the AST ; re-parse (lexer + parser
+    // only, no resolve) to walk the import decls. documentLink isn't hot.
+    parsed :: parse_source(idx.source, uri)
+    links: JsonValue[] = []
+    for d in parsed.program.decls {
+        if d is ImportDecl as imp {
+            link :: import_link(imp, idx.source, state, uri)
+            if link != null { links.push(link) }
+        }
+    }
+    return JsonArray { .items = links }
+}
+
+// ---- link construction ---------------------------------------------------
+
+// One `DocumentLink` for an import, or null when the path can't be resolved to
+// an on-disk file (unknown root prefix, missing module, empty directory).
+import_link :: fn(imp: ImportDecl, source: string, state: ServerState, from_uri: string) -> JsonValue | null {
+    abs :: module_path_to_absolute(imp.path, state, from_uri)
+    if abs == "" { return null }
+    target :: representative_file(abs)
+    if target == "" { return null }
+    range :: path_string_range(imp, source)
+    if range == null { return null }
+    obj :: MutableMap<string, JsonValue> {}
+    obj["range"]  = range_json(range)
+    obj["target"] = JsonString { .value = "file://${target}" }
+    return JsonObject { .entries = obj }
+}
+
+// A clickable target file for a resolved import root. Folder-form modules
+// (`std/io`) link to their first `.vader` file by sorted name ; file-form
+// modules (`./helper`) link to `<path>.vader`. Returns "" when nothing on
+// disk matches. `list_vader_files` handles both shapes — sorted `.vader`
+// files under a directory, or the single file when `abs` already names one.
+representative_file :: fn(abs: string) -> string {
+    files :: list_vader_files(abs)
+    if files.len() > 0 { return files[0] }
+    with_ext :: ensure_vader_ext(abs)
+    if exists(with_ext) { return with_ext }
+    return ""
+}
+
+// LSP range covering the path text inside the quotes of `import "<path>"`.
+// Anchored on the decl's first line : the opening quote is the first `"` at or
+// after the decl start, and the interior runs `path.byte_len()` bytes past it.
+// Module paths are ASCII, so the byte distance from the decl start equals the
+// column distance (no multi-byte codepoints before the path). Returns null when
+// no quote is found before the line ends (malformed import — parser recovery).
+path_string_range :: fn(imp: ImportDecl, source: string) -> SpanRange | null {
+    sb :: source.bytes()
+    n :: sb.len()
+    start_off :: imp.span.start.offset
+    quote :: b'"'
+    q := start_off
+    found := false
+    for i in start_off..<n {
+        b :: sb[i]
+        if b == quote {
+            q = i
+            found = true
+            break
+        }
+        if b == b'\n' { break }
+    }
+    if !found { return null }
+    interior_off :: q + 1
+    plen :: imp.path.bytes().len()
+    start_col :: imp.span.start.column + i32(interior_off - start_off)
+    sp :: Span {
+        .start = Position {
+            .file = imp.span.start.file, .offset = interior_off,
+            .line = imp.span.start.line, .column = start_col,
+        },
+        .end = Position {
+            .file = imp.span.start.file, .offset = interior_off + plen,
+            .line = imp.span.start.line, .column = start_col + i32(plen),
+        },
+    }
+    return sp.span_to_range_json()
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+
+@test
+test_path_range_covers_quoted_path :: fn() -> void {
+    // Line 2 (0-based 1) : `import "std/io" { exists }`. The path text "std/io"
+    // starts at 0-based char 8 (after `import "`) and runs 6 chars to 14.
+    src :: "module \"t\"\nimport \"std/io\" { exists }\n"
+    parsed :: parse_source(src, "t.vader")
+    saw := false
+    for d in parsed.program.decls {
+        if d is ImportDecl as imp {
+            r :: path_string_range(imp, src)
+            if r == null { assert(false, "expected a path range") }
+            else {
+                assert_eq(r.start_line, i32(1))
+                assert_eq(r.start_character, i32(8))
+                assert_eq(r.end_character, i32(14))
+                saw = true
+            }
+        }
+    }
+    assert(saw, "import decl found")
+}
+
+@test
+test_path_range_handles_namespace_import :: fn() -> void {
+    // `Name :: import "path"` — the path quote is still the first `"` on the
+    // line, so the range anchors past `Lo :: import "`.
+    src :: "module \"t\"\nLo :: import \"vader/lower\"\n"
+    parsed :: parse_source(src, "t.vader")
+    saw := false
+    for d in parsed.program.decls {
+        if d is ImportDecl as imp {
+            r :: path_string_range(imp, src)
+            if r == null { assert(false, "expected a path range") }
+            else {
+                // `Lo :: import "` is 14 chars, so the path starts at 0-based 14.
+                assert_eq(r.start_character, i32(14))
+                assert_eq(r.end_character, i32(14 + 11))   // len("vader/lower")
+                saw = true
+            }
+        }
+    }
+    assert(saw, "namespace import decl found")
+}
