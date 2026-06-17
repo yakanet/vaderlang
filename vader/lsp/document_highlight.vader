@@ -1,0 +1,88 @@
+// vader/lsp/document_highlight — `textDocument/documentHighlight` handler.
+//
+// Highlights every occurrence of the identifier under the cursor within the
+// open file (the soft highlight an editor paints when the caret rests on a
+// name). Scans the per-document token stream (indexer.vader's `DocIndex.tokens`)
+// for `Ident` tokens whose text matches the name under the cursor.
+//
+// v1 is name-based, not scope-aware : it highlights every same-named identifier
+// in the file, which is what the common case (a local, a top-level fn) wants.
+// Read/write classification and scope-precise matching need the typed reference
+// index (a follow-up) — until then we emit kind-less Text highlights.
+//
+// Reuses `range_json` (definition.vader), `position_line` / `position_character`
+// (definition.vader) and `doc_uri` (main.vader) — siblings in this folder module.
+
+module "vader/lsp"
+
+import "std/json" { JsonValue, JsonObject, JsonArray, JsonNull }
+import "std/collections" { MutableMap }
+import "vader/lexer" { TokenKind }
+import "vader/diagnostics" { Span }
+
+/// Build the `DocumentHighlight[]` response for the identifier at the position
+/// carried in `params` (`{ textDocument: { uri }, position }`).
+///
+/// @param params  request params carrying `textDocument.uri` + `position`.
+/// @return        a `DocumentHighlight[]` JSON array, or `null` when the cursor
+///                isn't on an identifier / the document was never indexed.
+export handle_document_highlight :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+    uri :: doc_uri(params)
+    idx :: state.index_for(uri)
+    match idx {
+        is null              -> { return JsonNull {} }
+        is DocIndex as index -> {
+            name :: index.name_at(position_line(params), position_character(params))
+            if name == "" { return JsonNull {} }
+            return highlight_json(ident_occurrences(index, name))
+        }
+    }
+}
+
+/// Spans of every identifier token in the document whose text is `name`.
+ident_occurrences :: fn(idx: DocIndex, name: string) -> Span[] {
+    out: Span[] = []
+    for t in idx.tokens {
+        if t.kind == TokenKind.Ident {
+            if t.text == name { out.push(t.span) }
+        }
+    }
+    return out
+}
+
+highlight_json :: fn(spans: Span[]) -> JsonValue {
+    items: JsonValue[] = []
+    for sp in spans { items.push(highlight_item_json(sp)) }
+    return JsonArray { .items = items }
+}
+
+highlight_item_json :: fn(sp: Span) -> JsonValue {
+    obj :: MutableMap<string, JsonValue> {}
+    obj["range"] = range_json(sp.span_to_range_json())
+    return JsonObject { .entries = obj }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+
+@test
+test_ident_occurrences_counts_all_sites :: fn() -> void {
+    src :: """
+add :: fn(a: i32, b: i32) -> i32 {
+    return a + b
+}
+main :: fn() -> i32 {
+    return add(add(1, 2), 3)
+}
+"""
+    idx :: build_index("t.vader", src)
+    // `add` : the decl name + two call sites = 3 identifier tokens.
+    assert_eq(ident_occurrences(idx, "add").len(), usize(3))
+}
+
+@test
+test_ident_occurrences_none_for_unknown :: fn() -> void {
+    idx :: build_index("t.vader", "x :: 1\n")
+    assert_eq(ident_occurrences(idx, "nonexistent").len(), usize(0))
+}

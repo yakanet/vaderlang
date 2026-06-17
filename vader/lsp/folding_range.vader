@@ -1,0 +1,93 @@
+// vader/lsp/folding_range — `textDocument/foldingRange` handler.
+//
+// Lets the editor collapse multi-line top-level declarations — fn bodies,
+// struct / enum / trait blocks. Derived from the per-document index's
+// `DeclEntry.full_span` (indexer.vader) : every file-wide decl whose span
+// covers more than one line is one collapsible region. One-line decls and
+// intra-file bindings are skipped. Nested blocks (if / for / match bodies) and
+// import groups are a follow-up — this v1 covers the high-value decl bodies.
+
+module "vader/lsp"
+
+import "std/json" { JsonValue, JsonObject, JsonNumber, JsonArray }
+import "std/collections" { MutableMap }
+
+/// Build the `FoldingRange[]` response for the document named in `params`
+/// (`{ textDocument: { uri } }`).
+///
+/// @param params  the request params carrying `textDocument.uri`.
+/// @return        a `FoldingRange[]` JSON array ; empty when the document was
+///                never indexed.
+export handle_folding_range :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+    uri :: doc_uri(params)
+    idx :: state.index_for(uri)
+    match idx {
+        is null              -> { return JsonArray { .items = [] } }
+        is DocIndex as index -> { return folding_range_json(foldable_decls(index)) }
+    }
+}
+
+/// File-wide declarations whose body spans more than one line — the regions an
+/// editor can collapse. One-line decls (`MAX :: 10`) and scoped intra-file
+/// bindings are skipped.
+foldable_decls :: fn(idx: DocIndex) -> DeclEntry[] {
+    out: DeclEntry[] = []
+    for d in idx.decls {
+        if d.scope_span != null { continue }
+        if d.full_span.end.line > d.full_span.start.line { out.push(d) }
+    }
+    return out
+}
+
+folding_range_json :: fn(entries: DeclEntry[]) -> JsonValue {
+    items: JsonValue[] = []
+    for e in entries { items.push(fold_json(e)) }
+    return JsonArray { .items = items }
+}
+
+// LSP FoldingRange : 0-based first + last line of the collapsible region. We
+// omit `kind` — the default (no kind) renders as a generic region, right for
+// declaration bodies (`comment` / `imports` / `region` kinds are for the
+// follow-up that folds those).
+fold_json :: fn(e: DeclEntry) -> JsonValue {
+    obj :: MutableMap<string, JsonValue> {}
+    obj["startLine"] = JsonNumber { .value = f64(e.full_span.start.line - 1) }
+    obj["endLine"]   = JsonNumber { .value = f64(e.full_span.end.line - 1) }
+    return JsonObject { .entries = obj }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+
+@test
+test_foldable_decls_multiline_only :: fn() -> void {
+    src :: """
+add :: fn(a: i32, b: i32) -> i32 {
+    return a + b
+}
+
+MAX :: 10
+
+Point :: struct {
+    x: i32
+    y: i32
+}
+"""
+    idx :: build_index("t.vader", src)
+    folds :: foldable_decls(idx)
+    // `add` (3-line fn) + `Point` (4-line struct) fold ; `MAX` (one line) doesn't.
+    assert_eq(folds.len(), usize(2))
+}
+
+@test
+test_foldable_decls_skips_single_line :: fn() -> void {
+    src :: """
+A :: 1
+B :: 2
+greet :: fn() -> i32 = 0
+"""
+    idx :: build_index("t.vader", src)
+    // All three are one-liners — nothing to fold.
+    assert_eq(foldable_decls(idx).len(), usize(0))
+}
