@@ -641,6 +641,18 @@ arr :: [10, 20, 30, 40, 50]
 
 Tuple sources keep the existing exact-arity rule (`[a, b] := pair` requires the tuple to have exactly two elements) — `...rest` is array-specific because the result type only makes sense when the tail length is dynamic. T3001 fires on a non-array source or when `...rest` isn't the last element.
 
+#### Destructuring via `Into<[...]>`
+
+A `[...]` pattern applied to a value that is **neither a tuple nor an array** still destructures when the value's type implements `Into<[...]>` of matching arity. Each leaf binds to the corresponding element type of the target tuple.
+
+```vader
+for [k, v] in m { ... }                // m: MutableMap<K, V> yields Entry<K, V>
+```
+
+A `MutableMap` yields `Entry<K, V>` (a struct, not a tuple), and `std/collections` ships `Entry<K, V> implements Into<[K, V]>`, so the `for [k, v] in m` form (parser-desugared to `for e in m { let [k, v] := e ; ... }`) binds `k: K`, `v: V`. The same rule applies to any user type with an `Into<[...]>` impl.
+
+When the impl's `into` body is a tuple literal of plain field reads (`[self.key, self.value]`), the lowerer binds each leaf directly to the source field — no `into()` call and no transient tuple allocation. T3001 still fires when the source is a non-tuple, non-array type with no matching `Into<[...]>` impl.
+
 ### Structs
 
 ```vader

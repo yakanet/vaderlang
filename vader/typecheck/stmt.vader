@@ -767,11 +767,20 @@ assign_tuple :: fn(
         _ -> {
             // A `[...]` pattern against a value that is neither a tuple nor
             // an array (e.g. `for [k, v] in m` — a map yields `Entry<K, V>`,
-            // a 3-field struct, not a 2-tuple). Without this the leaves bind
-            // to nothing meaningful and lowering emits an `unreachable`.
-            // Skip when the value type is unresolved (upstream error already
-            // fired) or a bare type-param (generic body — checked per
-            // instance, not at the definition).
+            // a 3-field struct, not a 2-tuple). The value still destructures
+            // when its type implements `Into<[...]>` of the same arity : bind
+            // each leaf to the coerced tuple's element type. `Entry<K, V>
+            // implements Into<[K, V]>` is what powers `for [k, v] in m`.
+            coerced :: into_tuple_target(declared, tb.elements.len(), typed)
+            if coerced is TupleType as tup {
+                for i in 0..<tb.elements.len() {
+                    assign_binding_types(tb.elements[i], tup.elements[i], typed, diags)
+                }
+                return
+            }
+            // Skip the diagnostic when the value type is unresolved (upstream
+            // error already fired) or a bare type-param (generic body —
+            // checked per instance, not at the definition).
             if !(declared is UnresolvedType) && !(declared is TypeParamType) {
                 diags.push(typecheck_error(.TypeMismatch, tb.span,
                     "cannot destructure a value of type ${display_type(declared)} ; a `[...]` pattern requires a tuple or array"))
@@ -779,6 +788,28 @@ assign_tuple :: fn(
             for leaf in tb.elements { assign_binding_types(leaf, TY_UNRESOLVED, typed, diags) }
         }
     }
+}
+
+// Resolve the `[...]` destructure coercion for a non-tuple / non-array
+// value : when `declared` is a struct implementing `Into<[...]>` of
+// `arity` elements, return that target tuple with the impl's type params
+// substituted by the concrete instance args (so `Entry<string, i32>`
+// yields `[string, i32]`). Returns null when no such coercion applies.
+// The lowerer resolves the matching `into` member's field names from the
+// impl body (`into_tuple_fields`) to bind each leaf zero-alloc.
+into_tuple_target :: fn(declared: Type, arity: usize, typed: TypedProgram) -> Type | null {
+    if declared is StructType as st {
+        into_args :: lookup_struct_trait_args(declared, "Into", typed)
+        if into_args == null { return null }
+        if into_args.len() != 1 { return null }
+        decl :: typed.struct_decls[st.symbol.id]
+        if decl == null { return null }
+        target :: substitute_by_name(into_args[0], decl.type_params, st.args)
+        if target is TupleType as tup {
+            if tup.elements.len() == arity { return target }
+        }
+    }
+    return null
 }
 
 // ---- tests ----------------------------------------------------------------
