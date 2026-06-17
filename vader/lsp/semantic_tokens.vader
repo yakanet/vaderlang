@@ -289,9 +289,13 @@ collect_doc_line_tokens :: fn(c: Comment, source: string, out: RawToken[]) -> vo
     n :: text_bytes.len()
     i: usize = 0
     line := c.line - 1   // 0-based
-    // We track byte-offset inside the comment to compute column ; column
-    // 0 = start of the comment which begins with `///` (3 bytes). For
-    // simplicity we use byte offset as column — ASCII-safe.
+    // A tag's source column = the comment's own start column (its
+    // indentation — ASCII, so byte offset = codepoint column) plus the
+    // codepoint distance into the comment text. Both matter : an indented
+    // doc line (a trait-method `/// @param …`) needs the base, and a
+    // multi-byte narrative before the tag (`/// café @param x`) needs the
+    // distance counted in codepoints, not bytes.
+    base_col :: i32(c.offset - line_start_offset(source, c.offset))
     for i < n {
         c :: text.byte_decode_at(i)
         if c != '@' {
@@ -310,10 +314,11 @@ collect_doc_line_tokens :: fn(c: Comment, source: string, out: RawToken[]) -> vo
             i = tag_end
             continue
         }
-        // Tag itself (including `@`).
+        // Tag itself (including `@`). `@` + the tag word are ASCII, so the
+        // byte width is the codepoint length.
         out.push(RawToken {
             .line      = line,
-            .col       = i32(i),
+            .col       = base_col + doc_col_offset(text_bytes, i),
             .length    = i32(tag_end - i),
             .tok_type  = i32(TokenType.Decorator),
             .modifiers = modifier_bit(.Documentation),
@@ -328,9 +333,10 @@ collect_doc_line_tokens :: fn(c: Comment, source: string, out: RawToken[]) -> vo
             }
             name_end :: scan_ident_end(text, j)
             if name_end > j {
+                // The name is an ASCII identifier, so byte width = codepoints.
                 out.push(RawToken {
                     .line      = line,
-                    .col       = i32(j),
+                    .col       = base_col + doc_col_offset(text_bytes, j),
                     .length    = i32(name_end - j),
                     .tok_type  = i32(TokenType.Parameter),
                     .modifiers = modifier_bit(.Documentation),
@@ -349,6 +355,17 @@ scan_ident_end :: fn(s: string, start: usize) -> usize {
         j = j + 1
     }
     return j
+}
+
+// Codepoint distance from the start of `text_bytes` to byte offset `byte_off`
+// — i.e. how many columns into the comment that byte sits. Counts UTF-8
+// leading bytes (those not in the `0x80..0xBF` continuation range).
+doc_col_offset :: fn(text_bytes: const u8[], byte_off: usize) -> i32 {
+    count := 0
+    for k in 0..<byte_off {
+        if (text_bytes[k] & 0xC0) != 0x80 { count = count + 1 }
+    }
+    return count
 }
 
 // ---- sorting + delta encoding ---------------------------------------------
@@ -408,6 +425,15 @@ build_sorted_for_test :: fn(source: string, uri: string) -> RawToken[] {
     return raws
 }
 
+// Column of the first documentation-modifier token of `tok_type` on `line`,
+// or -1 if none. Test helper for doc-comment tag positioning.
+doc_token_col :: fn(toks: RawToken[], line: i32, tok_type: i32) -> i32 {
+    for t in toks {
+        if t.line == line && t.tok_type == tok_type && t.modifiers != 0 { return t.col }
+    }
+    return -1
+}
+
 // Count tokens that start inside the extent of an earlier token on the same
 // line. The LSP semantic-tokens spec forbids overlap ; clients render it
 // inconsistently, so this must stay zero.
@@ -456,4 +482,17 @@ test_multibyte_token_length :: fn() -> void {
         }
     }
     assert(found, "café StringPart token not found at line 0 col 6")
+}
+
+// Doc-comment tags carry source columns, not within-comment byte offsets : an
+// indented `/// @param x` (a trait-method doc) places `@param` at the comment's
+// column + `/// ` (4 + 4 = 8) and `x` at 15 ; a multi-byte narrative before the
+// tag (`/// café …`, café = 4 codepoints / 5 bytes) must not shift it either.
+@test
+test_doc_tag_columns :: fn() -> void {
+    indented :: build_sorted_for_test("M :: trait {\n    /// @param x ok.\n    f :: fn(x: i32) -> i32\n}\n", "file:///d.vader")
+    assert_eq(doc_token_col(indented, 1, i32(TokenType.Decorator)), 8)
+    assert_eq(doc_token_col(indented, 1, i32(TokenType.Parameter)), 15)
+    multibyte :: build_sorted_for_test("/// café @param y ok.\ng :: fn(y: i32) -> i32\n", "file:///d.vader")
+    assert_eq(doc_token_col(multibyte, 0, i32(TokenType.Decorator)), 9)
 }
