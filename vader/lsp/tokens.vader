@@ -20,7 +20,7 @@ export TokenType :: enum(u8) {
     Number,       // int / float literals
     Comment,      // `//` and `/* */`
     Operator,     // arithmetic / comparison / logical / etc.
-    Decorator,    // `@intrinsic`, `@partial`, vaderdoc tags
+    Decorator,    // `@test` / `@extern` decorators, `@size_of(…)` intrinsics, vaderdoc tags
     EnumMember,   // `.Variant` dot-shorthand
 }
 
