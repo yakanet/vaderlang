@@ -10,8 +10,8 @@ for (let i = 0; i < N; i++) a[i] = i;
 let sum = 0;
 for (let pass = 0; pass < 100_000; pass++) {
   for (let i = 0; i < N; i++) {
-    a[i] = a[i] + 1;
-    sum += a[i];
+    a[i] = a[i]! + 1;
+    sum += a[i]!;
   }
 }
 console.log(`arr_rw ${sum}`);
