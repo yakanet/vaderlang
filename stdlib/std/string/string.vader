@@ -19,16 +19,13 @@ byte_len :: fn(s: string) -> usize
 /// True for the empty string. Equivalent to `s.byte_len() == 0` but
 /// reads cleanly at call sites — emptiness is the same in byte and
 /// codepoint views.
-export is_empty :: fn(s: string) = s.bytes().len() == 0
+export is_empty :: fn(s: string) -> bool = s.bytes().len() == 0
 
 /// True iff `sub` appears anywhere in `s`. Byte-wise scan. Module-private —
 /// callers go through `sub in s` (Contains impl below) or UFCS
 /// `s.contains(sub)`. Named distinctly from the trait method (`contains`) to
 /// avoid shadowing it inside the impl body.
-byte_contains :: fn(s: string, sub: string) -> bool {
-    // Empty `sub` → `byte_find` returns `from` (0), so `>= 0` holds.
-    return byte_find(s, sub, usize(0)) >= isize(0)
-}
+byte_contains :: fn(s: string, sub: string) -> bool = byte_find(s, sub, 0) >= 0
 
 /// True iff `s` starts with `prefix`. Byte-wise comparison.
 export starts_with :: fn(s: string, prefix: string) -> bool {
@@ -103,22 +100,22 @@ export byte_decode_at :: fn(s: string, i: usize) -> char = decode_char_at(s.byte
 export decode_char_at :: fn(bs: const u8[], i: usize) -> char {
     n :: bs.len()
     b :: bs[i]
-    if b < u8(0x80) { return char(u32(b)) }
+    if b < 0x80 { return char(b) }
     // Continuation byte as leader : invalid UTF-8.
-    if b < u8(0xC0) { return char(u32(0xFFFD)) }
+    if b < 0xC0 { return char(0xFFFD) }
     rem :: n - i
-    if b < u8(0xE0) {
-        if rem < 2 { return char(u32(0)) }
+    if b < 0xE0 {
+        if rem < 2 { return char(0) }
         b1 :: bs[i + 1]
         return char(((u32(b) & u32(0x1F)) << u32(6)) + (u32(b1) & u32(0x3F)))
     }
-    if b < u8(0xF0) {
-        if rem < 3 { return char(u32(0)) }
+    if b < 0xF0 {
+        if rem < 3 { return char(0) }
         b1 :: bs[i + 1]
         b2 :: bs[i + 2]
         return char(((u32(b) & u32(0x0F)) << u32(12)) + ((u32(b1) & u32(0x3F)) << u32(6)) + (u32(b2) & u32(0x3F)))
     }
-    if rem < 4 { return char(u32(0)) }
+    if rem < 4 { return char(0) }
     b1 :: bs[i + 1]
     b2 :: bs[i + 2]
     b3 :: bs[i + 3]
@@ -369,16 +366,14 @@ export split :: fn(s: string, sep: string) -> string[] {
     n :: sb.len()
     m :: sep.bytes().len()
     if m == 0 {
-        i := usize(0)
-        for i < n {
+        for i in 0..< n {
             out.push(sb[i..<i + 1].bytes_to_string())
-            i = i + 1
         }
         return out
     }
-    start := usize(0)
+    start :usize = 0
     found := byte_find(s, sep, start)
-    for found >= isize(0) {
+    for found >= 0 {
         fpos :: usize(found)
         out.push(sb[start..<fpos].bytes_to_string())
         start = fpos + m

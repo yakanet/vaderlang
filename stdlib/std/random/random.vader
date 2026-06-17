@@ -128,12 +128,11 @@ export unit_f64 :: fn(self: Rng) -> f64 {
 /// input array is permuted directly.
 export shuffle :: fn<T>(self: Rng, arr: T[]) -> void {
     n :: arr.len()
-    if n <= usize(1) { return }
+    if n <= 1 { return }
     i: usize = n - 1
-    for i > usize(0) {
+    for i > 0 {
         // Uniform [0, i].
-        j_u32 :: self.range_u32(u32(0), u32(i + 1))
-        j :: usize(j_u32)
+        j :: usize(self.range_u32(u32(0), u32(i + 1)))
         tmp :: arr[i]
         arr[i] = arr[j]
         arr[j] = tmp
