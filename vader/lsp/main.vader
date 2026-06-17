@@ -197,6 +197,18 @@ dispatch :: fn(state: ServerState, msg: JsonValue, shutdown_received: bool) -> D
         log_info("references ${doc_uri(params)}")
         return DispatchResult.Continue
     }
+    if method == "textDocument/prepareRename" {
+        result :: handle_prepare_rename(state, params)
+        write_frame(encode_response(id, result))
+        log_info("prepareRename ${doc_uri(params)}")
+        return DispatchResult.Continue
+    }
+    if method == "textDocument/rename" {
+        result :: handle_rename(state, params)
+        write_frame(encode_response(id, result))
+        log_info("rename ${doc_uri(params)}")
+        return DispatchResult.Continue
+    }
     // Unknown method. Respond with MethodNotFound for requests (have an
     // id) ; ignore notifications (id is JsonNull{} per `request_id`'s
     // convention).

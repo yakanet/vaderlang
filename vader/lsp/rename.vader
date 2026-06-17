@@ -1,0 +1,227 @@
+// vader/lsp/rename — `textDocument/prepareRename` + `textDocument/rename`.
+//
+// Rename a symbol across the whole project. Reuses the reference index
+// (`references.vader`) : the cursor resolves to a Symbol, and every recorded
+// site for that Symbol — declaration, import bindings, and uses across files —
+// is rewritten in one `WorkspaceEdit`.
+//
+// Safety : a `TextEdit` replaces a range with `newName` regardless of what the
+// range currently holds, so to never corrupt source we rewrite ONLY sites whose
+// current text equals the old name (the identifier under the cursor). That
+// skips the awkward cases the index can't disambiguate yet — e.g. the `foo` in
+// an aliased import `{ foo as f }`, whose binding span may point at `f` — at the
+// cost of leaving them untouched rather than mangling them. The handler itself
+// is read-only ; the editor applies the returned edit on user confirmation.
+
+module "vader/lsp"
+
+import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber, JsonArray, JsonNull }
+import "std/collections" { MutableMap }
+import "std/string" { starts_with }
+import "vader/diagnostics" { Span, Position }
+import "vader/resolver" { LoadedProject }
+
+/// Validate that the cursor sits on a renameable identifier and return its
+/// range (LSP `prepareRename`). Returns `JsonNull` when the cursor isn't on a
+/// resolved reference — the client then refuses the rename.
+export handle_prepare_rename :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+    uri :: doc_uri(params)
+    if uri == "" { return JsonNull {} }
+    file_path :: uri_to_path(uri)
+    if file_path == "" { return JsonNull {} }
+    cached :: typed_project_for(state, file_path)
+    index :: build_reference_index(cached.project, cached.result)
+    site :: site_at(index, cursor_field(params, "line") + i32(1), cursor_field(params, "character") + i32(1))
+    if site == null { return JsonNull {} }
+    return range_json(site.span.span_to_range_json())
+}
+
+/// Compute the project-wide `WorkspaceEdit` renaming the symbol under the cursor
+/// to `params.newName`. Returns `JsonNull` when the cursor isn't on a resolved
+/// reference or `newName` is empty.
+export handle_rename :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+    uri :: doc_uri(params)
+    if uri == "" { return JsonNull {} }
+    file_path :: uri_to_path(uri)
+    if file_path == "" { return JsonNull {} }
+    new_name :: rename_new_name(params)
+    if new_name == "" { return JsonNull {} }
+
+    cached :: typed_project_for(state, file_path)
+    index :: build_reference_index(cached.project, cached.result)
+    site :: site_at(index, cursor_field(params, "line") + i32(1), cursor_field(params, "character") + i32(1))
+    if site == null { return JsonNull {} }
+
+    sources :: build_source_map(cached.project)
+    old_name :: span_text(sources, site.span)
+    if old_name == "" { return JsonNull {} }
+
+    edits :: sites_to_rename(index, site.symbol_id, old_name, sources)
+    return workspace_edit_json(edits, new_name)
+}
+
+// The reference site whose span contains the 1-based cursor, or null.
+site_at :: fn(index: ReferenceIndex, line: i32, col: i32) -> RefSite | null {
+    for s in index.sites {
+        if cursor_in_span(s.span, line, col) { return s }
+    }
+    return null
+}
+
+// Every site of `symbol_id` whose current source text equals `old_name` — the
+// spans safe to overwrite with the new name. Filtering by text protects against
+// rewriting a range that doesn't actually hold the old identifier (aliased
+// imports, re-export shims).
+sites_to_rename :: fn(index: ReferenceIndex, symbol_id: i32, old_name: string, sources: MutableMap<string, string>) -> RefSite[] {
+    out: RefSite[] = []
+    for s in index.sites {
+        if s.symbol_id != symbol_id { continue }
+        if span_text(sources, s.span) != old_name { continue }
+        out.push(s)
+    }
+    return out
+}
+
+// ---- WorkspaceEdit encoding ----------------------------------------------
+
+// `{ changes: { <uri>: TextEdit[] } }` grouping the edits by file.
+workspace_edit_json :: fn(edits: RefSite[], new_name: string) -> JsonValue {
+    by_uri :: MutableMap<string, JsonValue[]> {}
+    for e in edits {
+        key :: "file://${e.span.start.file}"
+        te :: text_edit_json(e.span, new_name)
+        cur :: by_uri[key]
+        if cur == null {
+            first: JsonValue[] = [te]
+            by_uri[key] = first
+        } else {
+            cur.push(te)
+        }
+    }
+    changes :: MutableMap<string, JsonValue> {}
+    for key in by_uri.keys() {
+        arr :: by_uri[key]
+        if arr == null { continue }
+        changes[key] = JsonArray { .items = arr }
+    }
+    edit :: MutableMap<string, JsonValue> {}
+    edit["changes"] = JsonObject { .entries = changes }
+    return JsonObject { .entries = edit }
+}
+
+text_edit_json :: fn(sp: Span, new_name: string) -> JsonValue {
+    obj :: MutableMap<string, JsonValue> {}
+    obj["range"]   = range_json(sp.span_to_range_json())
+    obj["newText"] = JsonString { .value = new_name }
+    return JsonObject { .entries = obj }
+}
+
+// ---- source access -------------------------------------------------------
+
+// filesystem path → current source text, across every file of every module.
+build_source_map :: fn(project: LoadedProject) -> MutableMap<string, string> {
+    sources :: MutableMap<string, string> {}
+    for id in project.modules.keys() {
+        m :: project.modules[id]
+        if m == null { continue }
+        for f in m.module.files { sources[f.path] = f.content }
+    }
+    return sources
+}
+
+// The source slice a span covers, or "" when the file is unknown or the span is
+// degenerate. Module paths + identifiers are ASCII, so a byte slice is exact.
+span_text :: fn(sources: MutableMap<string, string>, sp: Span) -> string {
+    content :: sources[sp.start.file]
+    if content == null { return "" }
+    cb :: content.bytes()
+    if sp.start.offset >= sp.end.offset { return "" }
+    if sp.end.offset > cb.len() { return "" }
+    return cb[sp.start.offset..<sp.end.offset].bytes_to_string()
+}
+
+// ---- params helpers ------------------------------------------------------
+
+rename_new_name :: fn(params: JsonValue) -> string {
+    if params is JsonObject as o {
+        v :: o.entries["newName"]
+        if v is JsonString as s { return s.value }
+    }
+    return ""
+}
+
+cursor_field :: fn(params: JsonValue, key: string) -> i32 {
+    if params is JsonObject as o {
+        pos :: o.entries["position"]
+        if pos is JsonObject as p {
+            v :: p.entries[key]
+            if v is JsonNumber as n { return i32(n.value) }
+        }
+    }
+    return 0
+}
+
+uri_to_path :: fn(uri: string) -> string {
+    prefix :: "file://"
+    if uri.starts_with(prefix) {
+        ub :: uri.bytes()
+        return ub[prefix.bytes().len()..<ub.len()].bytes_to_string()
+    }
+    return ""
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+
+// Build a one-file source map for tests.
+test_sources :: fn(path: string, content: string) -> MutableMap<string, string> {
+    m :: MutableMap<string, string> {}
+    m[path] = content
+    return m
+}
+
+mk_site :: fn(file: string, off: usize, len: usize, symbol_id: i32) -> RefSite {
+    return RefSite {
+        .span = Span {
+            .start = Position { .file = file, .offset = off, .line = 1, .column = i32(off) + 1 },
+            .end   = Position { .file = file, .offset = off + len, .line = 1, .column = i32(off + len) + 1 },
+        },
+        .symbol_id = symbol_id,
+        .is_decl   = false,
+    }
+}
+
+@test
+test_span_text_slices_identifier :: fn() -> void {
+    sources :: test_sources("t.vader", "let foo = 1")
+    // "foo" sits at byte offset 4, length 3.
+    sp :: Span {
+        .start = Position { .file = "t.vader", .offset = usize(4), .line = 1, .column = 5 },
+        .end   = Position { .file = "t.vader", .offset = usize(7), .line = 1, .column = 8 },
+    }
+    assert_eq(span_text(sources, sp), "foo")
+}
+
+@test
+test_sites_to_rename_filters_by_symbol_and_text :: fn() -> void {
+    // Source: `foo + foo + bar`, two `foo` (offsets 0, 6) and one `bar` (12).
+    sources :: test_sources("t.vader", "foo + foo + bar")
+    foo_a :: mk_site("t.vader", usize(0), usize(3), 1)
+    foo_b :: mk_site("t.vader", usize(6), usize(3), 1)
+    bar   :: mk_site("t.vader", usize(12), usize(3), 2)
+    // A site claiming symbol 1 but covering `bar` text — must be filtered out.
+    decoy :: mk_site("t.vader", usize(12), usize(3), 1)
+    index :: ReferenceIndex { .sites = [foo_a, foo_b, bar, decoy] }
+    picked :: sites_to_rename(index, 1, "foo", sources)
+    assert_eq(picked.len(), usize(2))
+}
+
+@test
+test_rename_new_name_reads_param :: fn() -> void {
+    inner :: MutableMap<string, JsonValue> {}
+    inner["newName"] = JsonString { .value = "renamed" }
+    params: JsonValue = JsonObject { .entries = inner }
+    assert_eq(rename_new_name(params), "renamed")
+    assert_eq(rename_new_name(JsonNull {}), "")
+}
