@@ -546,8 +546,8 @@ end
 
 fn 14 std_collections$std_collections$maybe_grow__i32__i64 (ref) -> void
   local $field_1 usize
-  local $cast_3 usize
-  local $cast_8 usize
+  local $k_2 usize
+  local $k_6 usize
   local.field 0 10 1
   ref.cast 4
   local.set 1
@@ -579,8 +579,8 @@ end
 
 fn 15 std_collections$std_collections$maybe_grow__i64__i32 (ref) -> void
   local $field_1 usize
-  local $cast_3 usize
-  local $cast_8 usize
+  local $k_2 usize
+  local $k_6 usize
   local.field 0 11 1
   ref.cast 4
   local.set 1
@@ -613,16 +613,16 @@ end
 fn 16 std_collections$std_collections$grow__i32__i64 (ref) -> void
   local old ref
   local $len_3 usize
-  local $cast_5 usize
+  local $k_4 usize
   local fresh ref
-  local $k_14 usize
+  local $k_13 usize
   local cur ref
   local done bool
   local __scrut_4 ref
   local e ref
   local idx i32
-  local $idx_40 ref
-  local $k_41 usize
+  local $idx_39 ref
+  local $k_40 usize
   local.field 0 10 0
   local.tee 1
   array.len
@@ -739,16 +739,16 @@ end
 fn 17 std_collections$std_collections$grow__i64__i32 (ref) -> void
   local old ref
   local $len_3 usize
-  local $cast_5 usize
+  local $k_4 usize
   local fresh ref
-  local $k_14 usize
+  local $k_13 usize
   local cur ref
   local done bool
   local __scrut_4 ref
   local e ref
   local idx i32
-  local $idx_40 ref
-  local $k_41 usize
+  local $idx_39 ref
+  local $k_40 usize
   local.field 0 11 0
   local.tee 1
   array.len

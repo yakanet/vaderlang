@@ -923,6 +923,41 @@ timeout) to working in 3.2 s for the full broad-parity suite. Remaining
 pistes, ranked by likely payoff. **Reprofile first** (`/tmp/vader_perf`
 with -O2 -g + `sample`) — the hot path has moved several times already.
 
+#### Reprofile 2026-06-17 (`dump --stage=c vader/cli/main.vader`, `-O2 -g` + `sample`, 256/512 MB)
+
+Wall ~8 s, peak RSS 1.12 GB. Self-time is **~74 % substrate, not pass logic**: **GC+alloc
+~34 %** (`vader_minor_collect` 14.7 %), **string Hash + atoms ~27 %** (`string_Hash_hash`
+11.8 %, `atom_intern` 8.3 %), **MutableMap ~13.5 %** (keys()/values() materialize). Live-set:
+**ARRAY_BUF 266 MB / 937k = 42 %** (MutableMap backing), 72-B structs ~120 MB, atom table
+249k / 39 MB. Four optimization tracks (ideas 1-4):
+
+- [x] **(idea 1) String Hash reads a content-hash cached on the atom** — DONE 2026-06-17.
+      `string_hash_fnv1a64` walked `s.bytes()` (allocating a view per call → fed the 14.7 %
+      `minor_collect`) and recomputed FNV every lookup (11.8 % CPU). Now the FNV-1a-64 of the
+      bytes is computed once at intern and cached on `vader_atom_entry_t.hash`; the trait is
+      `@intrinsic` → `vader_string_hash` reads it O(1). **Measured: −25.6 % instructions,
+      −12 % wall**; `string_Hash_hash` leaves the profile. **Content-based** (NOT id-based):
+      an earlier id-hash attempt (Approach 3) was reverted — atom ids are reused across GC, so
+      `mix(id)` made map iteration order (and thus emitted output) **GC/arena-dependent**;
+      FNV(content) keeps it deterministic. Fixed-point byte-identical; GC-stress small-vs-big
+      byte-identical; 30 snapshots regen (pure .virt representation drift — no map-order change,
+      C + VM runs unchanged). Plan `.claude/plans/atom-hash-cache.md`. Follow-up: **Flavor B** —
+      unify the atom-table bucket hash onto the cached FNV-64 (drop `vader_atom_hash`).
+
+- [ ] **(idea 2) Non-allocating MutableMap key/value/entry iteration** — `values()`/`keys()`
+      materialize a fresh array just to iterate (CPU + ARRAY_BUF alloc). Add a non-allocating
+      entry iterator; flip the hot self-host `for k in m.keys()` sites. Pairs with `for [k, v]
+      in m` (`.claude/plans/destructure-via-into.md`). **User-flagged: do.**
+
+- [ ] **(idea 3) Int-keyed side-tables → flat array / `IntMap`** (**to discuss**). Dense
+      `Symbol.id`-keyed maps want a flat `T[]` (or `IntMap` for sparse) — cheaper CPU + RAM.
+      Crux from `project_compiler_intmap_b`: does the value de-erase. Overlaps the "shrink
+      live-set" lever (b).
+
+- [ ] **(idea 4 — umbrella) Cut allocation volume → shrink the GC ~34 %** — ~37M objects/build;
+      `minor_collect` 14.7 % even at big arenas. Driven by ideas 1/2/3 + `span_key` minting +
+      per-block `out.push`. No single fix; landing 1/2/3 reduces it. Reprofile between rounds.
+
 #### Runtime GC
 
 - [ ] **Specialized pointer sort in `vader_string_prepare_marks`** —

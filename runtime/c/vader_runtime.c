@@ -273,6 +273,7 @@ static int  g_atom_profile = 0;
 /* Forward decls — implementations below cluster by concern. */
 static void        vader_atom_install_empty(void);
 static vader_u32_t vader_atom_hash(const char* data, size_t len);
+static uint64_t    vader_atom_hash64(const char* data, size_t len);
 static void        vader_atom_bucket_install(vader_atom_t a, vader_u32_t hash);
 static void        vader_ensure_stdio_binary(void);
 
@@ -357,6 +358,10 @@ void vader_atom_init_with_comptime(const vader_atom_entry_t* comptime_table,
          * its hash-lookup-then-install dance for each one. */
         for (vader_u32_t i = 1; i < g_atoms.count; ++i) {
             const vader_atom_entry_t* e = &g_atoms.entries[i];
+            /* Codegen's positional comptime-table literals omit `hash` (it
+             * zero-fills) — recompute it here so comptime atoms hash like any
+             * interned string. */
+            g_atoms.entries[i].hash = vader_atom_hash64(e->data, e->len);
             vader_u32_t h = vader_atom_hash(e->data, e->len);
             vader_atom_bucket_install(i, h);
         }
@@ -374,6 +379,7 @@ static void vader_atom_install_empty(void) {
     e->flags         = VADER_ATOM_FLAG_PERM;
     e->_pad          = 0;
     e->data          = "";
+    e->hash          = vader_atom_hash64("", 0);
     g_atoms.count    = 1;
 }
 
@@ -435,6 +441,25 @@ static vader_u32_t vader_atom_hash(const char* data, size_t len) {
         h *= 16777619u;
     }
     return h;
+}
+
+/* FNV1a 64-bit over the bytes — cached on the atom entry at insert and returned
+ * by `vader_string_hash`. Byte-identical to the retired pure-Vader
+ * `string_hash_fnv1a64`, so `MutableMap` bucket assignment (and thus iteration
+ * order) is unchanged from the pre-cache behaviour. */
+static uint64_t vader_atom_hash64(const char* data, size_t len) {
+    uint64_t h = 14695981039346656037ull;
+    for (size_t i = 0; i < len; ++i) {
+        h ^= (vader_u8_t) data[i];
+        h *= 1099511628211ull;
+    }
+    return h;
+}
+
+/* String `Hash` — O(1) read of the cached FNV-1a-64 (computed once at intern).
+ * See the `vader_atom_entry_t.hash` note in vader.h. */
+uint64_t vader_string_hash(vader_string_t s) {
+    return g_atoms.entries[s].hash;
 }
 
 /* Bucket probe — returns the matching atom id or VADER_ATOM_EMPTY (0)
@@ -526,6 +551,7 @@ static vader_atom_t vader_atom_install_owner(char* buf, size_t len, vader_u32_t 
     e->flags         = 0;
     e->_pad          = 0;
     e->data          = buf;
+    e->hash          = vader_atom_hash64(buf, len);
     g_atoms.owner_bytes += len;
 
     vader_atom_bucket_install(a, hash);
@@ -619,6 +645,7 @@ vader_atom_t vader_atom_slice(vader_atom_t parent, size_t offset, size_t len) {
     e->flags         = 0;
     e->_pad          = 0;
     e->data          = candidate;
+    e->hash          = vader_atom_hash64(candidate, len);
 
     vader_atom_bucket_install(a, hash);
 

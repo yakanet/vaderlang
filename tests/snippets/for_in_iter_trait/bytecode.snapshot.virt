@@ -919,11 +919,11 @@ end
 fn 28 std_string$decode_char_at (ref,usize) -> char
   local n usize
   local b u8
-  local $cast_7 u8
-  local $k_22 usize
-  local $cast_31 u32
-  local $cast_33 u32
-  local $cast_40 u32
+  local $k_6 u8
+  local $k_17 usize
+  local $cast_25 u32
+  local $cast_27 u32
+  local $cast_34 u32
   local b2 u8
   local b3 u8
   local.get 0
@@ -941,8 +941,7 @@ fn 28 std_string$decode_char_at (ref,usize) -> char
   u32.lt
   if $L0 void
     local.get 3
-    u8.to_i32
-    u32.to_char
+    u8.to_char
     return
   end $L0
   i32.const 192
@@ -952,7 +951,7 @@ fn 28 std_string$decode_char_at (ref,usize) -> char
   u32.lt
   if $L1 void
     i32.const 65533
-    u32.to_char
+    i32.to_char
     return
   end $L1
   local.get 2
@@ -972,7 +971,7 @@ fn 28 std_string$decode_char_at (ref,usize) -> char
     u64.lt
     if $L3 void
       i32.const 0
-      u32.to_char
+      i32.to_char
       return
     end $L3
     i64.const 1
@@ -1029,7 +1028,7 @@ fn 28 std_string$decode_char_at (ref,usize) -> char
     u64.lt
     if $L5 void
       i32.const 0
-      u32.to_char
+      i32.to_char
       return
     end $L5
     i64.const 1
@@ -1110,7 +1109,7 @@ fn 28 std_string$decode_char_at (ref,usize) -> char
   u64.lt
   if $L6 void
     i32.const 0
-    u32.to_char
+    i32.to_char
     return
   end $L6
   i64.const 1
