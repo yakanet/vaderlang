@@ -1,0 +1,130 @@
+// vader/lsp/protocol/position — LSP position geometry + params extraction.
+//
+// The byte ↔ (line, character) bridge and the JSON encoders for the LSP
+// `Position` / `Range` / `Location` shapes, plus the params-object readers
+// every position-bearing request shares. Centralised here so the offset model
+// lives in one place — the future UTF-8 position-encoding negotiation
+// (`LSP_COMPLETENESS.md` §3.18) changes only this module.
+//
+// LSP positions are 0-based ; Vader `Span`s are 1-based, so the converters
+// subtract one on the way out and the byte-offset path adds the raw column.
+
+module "vader/lsp/protocol"
+
+import "std/json" {
+    JsonValue, JsonObject, JsonString, JsonNumber, JsonNull
+}
+import "std/collections" { MutableMap }
+import "vader/diagnostics" { Span }
+
+// ---- range geometry -------------------------------------------------------
+
+/// LSP-encoded range : 0-based line + character pairs.
+export SpanRange :: struct {
+    start_line:      i32
+    start_character: i32
+    end_line:        i32
+    end_character:   i32
+}
+
+/// Convert a 1-based compiler `Span` to a 0-based LSP range.
+export span_to_range_json :: fn(s: Span) -> SpanRange {
+    return SpanRange {
+        .start_line      = s.start.line - 1,
+        .start_character = s.start.column - 1,
+        .end_line        = s.end.line - 1,
+        .end_character   = s.end.column - 1,
+    }
+}
+
+/// Map an LSP (line, character) position to a byte offset in `source`. MVP
+/// treats `character` as a UTF-8 byte offset within the line — ASCII
+/// round-trips cleanly, non-ASCII may misalign by a few bytes.
+///
+/// @param source     the full document text.
+/// @param line       0-based line.
+/// @param character  0-based character (byte) offset within the line.
+/// @return           the absolute byte offset, clamped to the line start when
+///                   `character <= 0`.
+export lsp_to_offset :: fn(source: string, line: i32, character: i32) -> usize {
+    sb :: source.bytes()
+    n :: sb.len()
+    cur_line: i32 = 0
+    cursor: usize = 0
+    for cursor < n {
+        if cur_line == line { break }
+        b :: sb[cursor]
+        cursor = cursor + 1
+        if b == b'\n' { cur_line = cur_line + 1 }
+    }
+    if character <= 0 { return cursor }
+    return cursor + usize(character)
+}
+
+/// Byte offset of the first character on the source line containing `pos`.
+/// Used to absorb `export` / visibility prefixes that the parser doesn't
+/// include in a decl's `span.start`, and to compute a column from a byte
+/// offset in the semantic-token scanners.
+export line_start_offset :: fn(source: string, pos: usize) -> usize {
+    if pos == 0 { return 0 }
+    sb :: source.bytes()
+    i: i32 = i32(pos) - 1
+    for i >= 0 {
+        if sb[usize(i)] == b'\n' { return usize(i) + 1 }
+        i = i - 1
+    }
+    return 0
+}
+
+// ---- JSON encoders --------------------------------------------------------
+
+/// `{ line, character }` — a single LSP `Position`.
+export position_json :: fn(line: i32, character: i32) -> JsonValue {
+    obj :: MutableMap<string, JsonValue> {}
+    obj["line"]      = JsonNumber { .value = f64(line) }
+    obj["character"] = JsonNumber { .value = f64(character) }
+    return JsonObject { .entries = obj }
+}
+
+/// `{ start, end }` — an LSP `Range` from a `SpanRange`.
+export range_json :: fn(r: SpanRange) -> JsonValue {
+    obj :: MutableMap<string, JsonValue> {}
+    obj["start"] = position_json(r.start_line, r.start_character)
+    obj["end"]   = position_json(r.end_line,   r.end_character)
+    return JsonObject { .entries = obj }
+}
+
+/// `{ uri, range }` — an LSP `Location`.
+export location_json :: fn(uri: string, range: SpanRange) -> JsonValue {
+    obj :: MutableMap<string, JsonValue> {}
+    obj["uri"]   = JsonString { .value = uri }
+    obj["range"] = range_json(range)
+    return JsonObject { .entries = obj }
+}
+
+// ---- params extraction ----------------------------------------------------
+
+/// `params.textDocument.uri`, or `""` when absent.
+export position_uri :: fn(params: JsonValue) -> string {
+    td :: get_field(params, "textDocument")
+    return get_string(td, "uri")
+}
+
+/// `params.position.line` (0-based), or `0` when absent.
+export position_line :: fn(params: JsonValue) -> i32 {
+    pos :: get_field(params, "position")
+    return get_number(pos, "line")
+}
+
+/// `params.position.character` (0-based), or `0` when absent.
+export position_character :: fn(params: JsonValue) -> i32 {
+    pos :: get_field(params, "position")
+    return get_number(pos, "character")
+}
+
+/// `params.position.<key>` as an `i32` — generic reader for callers that
+/// pull `line` / `character` by name.
+export cursor_field :: fn(params: JsonValue, key: string) -> i32 {
+    pos :: get_field(params, "position")
+    return get_number(pos, key)
+}

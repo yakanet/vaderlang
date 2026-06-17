@@ -10,15 +10,17 @@
 // Read/write classification and scope-precise matching need the typed reference
 // index (a follow-up) — until then we emit kind-less Text highlights.
 //
-// Reuses `range_json` (definition.vader), `position_line` / `position_character`
-// (definition.vader) and `doc_uri` (main.vader) — siblings in this folder module.
+// Reuses `range_json` / `span_to_range_json` / `position_*` from
+// `vader/lsp/protocol` and the per-document index from `vader/lsp/analysis`.
 
-module "vader/lsp"
+module "vader/lsp/handlers"
 
 import "std/json" { JsonValue, JsonObject, JsonArray, JsonNull }
 import "std/collections" { MutableMap }
 import "vader/lexer" { TokenKind }
 import "vader/diagnostics" { Span }
+import "vader/lsp/protocol" { position_uri, position_line, position_character, range_json, span_to_range_json }
+import "vader/lsp/analysis" { ServerState, DocIndex, build_index }
 
 /// Build the `DocumentHighlight[]` response for the identifier at the position
 /// carried in `params` (`{ textDocument: { uri }, position }`).
@@ -27,7 +29,7 @@ import "vader/diagnostics" { Span }
 /// @return        a `DocumentHighlight[]` JSON array, or `null` when the cursor
 ///                isn't on an identifier / the document was never indexed.
 export handle_document_highlight :: fn(state: ServerState, params: JsonValue) -> JsonValue {
-    uri :: doc_uri(params)
+    uri :: position_uri(params)
     idx :: state.index_for(uri)
     match idx {
         is null              -> { return JsonNull {} }

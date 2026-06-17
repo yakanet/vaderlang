@@ -1,0 +1,21 @@
+// vader/lsp/protocol/uri — `file://` URI ↔ filesystem path conversion.
+//
+// LSP identifies documents by URI (`file:///abs/path.vader`) ; the compiler
+// loader, resolver and overlay all work in plain filesystem paths. This one
+// conversion was copy-pasted across ~8 handlers before this module.
+
+module "vader/lsp/protocol"
+
+import "std/string" { starts_with }
+
+/// Strip the `file://` scheme to recover the filesystem path. Returns `""`
+/// for any non-`file://` URI (untitled buffers, `vader:` virtual docs, …),
+/// which every caller treats as "no on-disk file".
+export uri_to_path :: fn(uri: string) -> string {
+    prefix :: "file://"
+    if uri.starts_with(prefix) {
+        ub :: uri.bytes()
+        return ub[prefix.bytes().len()..<ub.len()].bytes_to_string()
+    }
+    return ""
+}

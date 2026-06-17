@@ -14,14 +14,15 @@
 //      kind. This is what distinguishes a parameter use site from a
 //      local use site — Phase 1 can't tell them apart.
 
-module "vader/lsp"
+module "vader/lsp/handlers"
 
 import "std/collections" { MutableMap }
 import "vader/parser" { parse_source }
 AST :: import "vader/parser"
 import "vader/diagnostics" { Position, Span }
-import "vader/resolver" { resolve_program, ResolvedFile }
+import "vader/resolver" { resolve_program }
 import "vader/resolver/symbol" { Symbol, SymbolKind, new_factory }
+import "vader/lsp/protocol" { TokenType, RawToken, span_token_length }
 
 /// Primitive type names recognised by the lexer / typechecker but not as
 /// individual keywords. When an `IdentExpr` carries one of these names in
@@ -54,7 +55,7 @@ is_primitive_type_name :: fn(name: string) -> bool {
 /// ident by position, then the resolver-refinement pass overrides
 /// tokens whose ident resolves to a Symbol with a kind that Phase 1
 /// couldn't infer (most notably Param vs Local).
-export collect_ast_idents :: fn(source: string, uri: string, out: RawToken[]) -> void {
+collect_ast_idents :: fn(source: string, uri: string, out: RawToken[]) -> void {
     parsed :: parse_source(source, uri)
     program :: parsed.program
     // Soft keyword : `module "..."` on the first non-trivial line is
