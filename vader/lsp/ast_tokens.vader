@@ -137,7 +137,7 @@ push_span :: fn(out: RawToken[], sp: Span, kind: TokenType) -> void {
     out.push(RawToken {
         .line      = sp.start.line - 1,
         .col       = sp.start.column - 1,
-        .length    = i32(sp.end.offset - sp.start.offset),
+        .length    = span_token_length(sp),
         .tok_type  = i32(kind),
         .modifiers = i32(0),
     })
@@ -152,8 +152,10 @@ push_span :: fn(out: RawToken[], sp: Span, kind: TokenType) -> void {
 /// decorator `span` runs to the closing `)` of its args (`@extern("c")`).
 /// Tagging the full span would overlap the inner type / argument tokens,
 /// which LSP forbids and clients render inconsistently — so anchor on the
-/// name alone. Length is byte-based, matching `push_span` (ASCII-safe per
-/// the `semantic_tokens.vader` header note).
+/// name alone. `name` is a declaration / decorator / intrinsic identifier,
+/// which the lexer admits as ASCII only (`is_alpha`), so its byte length
+/// already equals its codepoint length — no UTF-16 adjustment needed here,
+/// unlike the span-based `span_token_length`.
 push_name_token :: fn(out: RawToken[], start: Position, prefix: i32, name: string, kind: TokenType) -> void {
     length :: prefix + i32(name.bytes().len())
     if length <= 0 { return }

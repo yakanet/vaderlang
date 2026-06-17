@@ -69,10 +69,10 @@ export sanitise :: fn(raw: string) -> string {
 /// Predicate matching `[A-Za-z0-9_]`. Bytes outside this class are
 /// replaced with `_` by `sanitise`.
 is_ident_byte :: fn(b: u8) -> bool {
-    if b >= 0x41_u8 && b <= 0x5A_u8 { return true }     // A-Z
-    if b >= 0x61_u8 && b <= 0x7A_u8 { return true }     // a-z
-    if b >= 0x30_u8 && b <= 0x39_u8 { return true }     // 0-9
-    if b == 0x5F_u8 { return true }                     // _
+    if b >= 0x41 && b <= 0x5A { return true }     // A-Z
+    if b >= 0x61 && b <= 0x7A { return true }     // a-z
+    if b >= 0x30 && b <= 0x39 { return true }     // 0-9
+    if b == 0x5F { return true }                     // _
     return false
 }
 

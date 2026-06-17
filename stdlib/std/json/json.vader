@@ -10,7 +10,7 @@
 
 module "std/json"
 
-import "std/string" { decode_char_at, parse_float, pad_start, chars }
+import "std/string" { decode_char_at, codepoint_byte_len, parse_float, pad_start, chars }
 import "std/char" { is_digit, is_white_char }
 import "std/iter" { zip }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char, append_repeated }
@@ -317,8 +317,13 @@ parse_string_with_escapes :: fn(p: Parser, sb: StringBuilder) -> string | JsonEr
                 return fail(p, "unknown escape")
             }
         } else {
+            // Raw (non-escape) character. `peek_byte` decoded the whole
+            // codepoint, so step the cursor by its UTF-8 width — `advance`
+            // moves a single byte, which would strand the cursor on a
+            // continuation byte and decode the rest of a multi-byte
+            // sequence (`é`, `你`, …) as `U+FFFD`, corrupting the string.
             sb.append_char(c)
-            advance(p)
+            p.pos = p.pos + codepoint_byte_len(c)
         }
     }
     return fail(p, "unterminated string")
@@ -601,6 +606,23 @@ expect_error :: fn(src: string) -> void {
     expect_string("\"\\nfoo\"", "\nfoo")
     expect_string("\"foo\\n\"", "foo\n")
     expect_string("\"\\n\"",    "\n")
+}
+
+@test test_string_multibyte_after_escape :: fn() -> void {
+    // Regression : `test_string_unicode_passthrough` only covers raw
+    // multi-byte chars on the fast (no-escape) path. Once any escape
+    // appears, the rest of the string runs through the slow path, which
+    // used to step the cursor a single byte per character — stranding it
+    // on the continuation byte of a multi-byte codepoint and decoding the
+    // tail as `U+FFFD`. So `'é'` round-tripped to TWO codepoints (the LSP
+    // surfaced this as L0005 on every accented char in an opened file).
+    // A raw multi-byte codepoint after an escape must survive whole.
+    expect_string("\"\\tcafé\"",     "\tcafé")
+    expect_string("\"a\\né☃b\"",     "a\né☃b")
+    expect_string("\"\\u0041café\"", "Acafé")
+    // Escape AFTER the multi-byte char too — the cursor must be aligned
+    // when it reaches the escape.
+    expect_string("\"café\\tx\"",    "café\tx")
 }
 
 @test test_string_errors :: fn() -> void {
