@@ -121,13 +121,16 @@ day-to-day responsiveness.
 - ✅ **`textDocument/foldingRange`** (`folding_range.vader`) — fold multi-line
   top-level decl bodies from `DeclEntry.full_span`. Follow-up: nested blocks
   (if / for / match), multi-line imports, `///` doc-comment runs.
-- ⛔ **`textDocument/documentLink`** — make `import "path"` strings clickable.
-  **Blocked**: the path-string SPAN isn't tracked — AST `ImportDecl` keeps only
-  `{ span (whole stmt), path }`, `ImportEntry` keeps the imported-name span, and
-  literals tokenise as `StringBegin/Part/End`. Needs the indexer/parser to
-  capture the path-string span (and `collect_import` to also record the
-  namespace-form `name :: import "..."`, currently skipped). Target resolution
-  is ready: reuse `resolver.vader::module_path_to_absolute` + `is_dir`/`read_dir`.
+- ✅ **`textDocument/documentLink`** (`document_link.vader`) — `import "path"`
+  strings are clickable, linking to the imported module's source. The path-string
+  range is recovered without an AST change: re-parse the doc, then scan each
+  `ImportDecl`'s source span for the opening quote (module paths are ASCII, so the
+  byte offset from the decl start maps straight to a column). Targets resolve via
+  `resolver.vader::module_path_to_absolute` (same `std/` / `vader/` / `./` logic
+  as goto-def); folder modules link to their first `.vader` file. Unresolvable
+  paths (project-root / third-party prefixes) get no link. Follow-up: link the
+  folder module's *main* file (`<name>.vader`) rather than the first by sort;
+  resolve project-root-relative imports once the workspace root is plumbed.
 
 ### Tier 2 — navigation (needs infra A / B)
 

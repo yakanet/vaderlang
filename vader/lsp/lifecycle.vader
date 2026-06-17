@@ -103,6 +103,12 @@ export server_capabilities :: fn() -> JsonValue {
     caps["documentHighlightProvider"] = JsonBool { .value = true }
     caps["documentFormattingProvider"] = JsonBool { .value = true }
 
+    // documentLinkProvider : import-path links. We resolve every link
+    // eagerly in the response, so no `documentLink/resolve` round-trip.
+    link_provider :: MutableMap<string, JsonValue> {}
+    link_provider["resolveProvider"] = JsonBool { .value = false }
+    caps["documentLinkProvider"] = JsonObject { .entries = link_provider }
+
     // signatureHelpProvider : trigger on `(` and re-trigger on `,` so
     // VSCode pops the popup as the user opens a call and slides
     // between args.
