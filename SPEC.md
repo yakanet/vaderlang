@@ -1037,7 +1037,7 @@ make_buffer :: fn<N: i32>() -> FixedArray<u8, N> { ... }
 **Limitations (MVP)**:
 - **No "associated functions"** (static methods on a type) — `Type.method(args)` syntax is not parsed. Factory functions are written as free functions and called via UFCS or directly: `new_path("foo/bar")`, `MutableMap<K, V> { ... }` for struct-literal construction. Post-MVP candidate.
 
-Numeric primitives carry `@intrinsic` `Add`/`Sub`/`Mul`/`Div` impls in `std/core` — `<T: Add>` succeeds for every primitive numeric type as well as for `string` (concat). `Hash` and `Equals` impls are user-explicit (only `i32`/`u32`/`usize`/`string` carry them today) ; extend per use case.
+Numeric primitives carry `@intrinsic` `Add`/`Sub`/`Mul`/`Div` impls in `std/core` — `<T: Add>` succeeds for every primitive numeric type as well as for `string` (concat). `Equals` and `Hash` are carried by **every** primitive (`@intrinsic <prim> implements Equals` + `<prim> implements Hash` in `std/core`, covering `i8`…`usize`, `f32`/`f64`, `bool`, `char`, `string`), so `x.hash()` / `x.equals(y)` and `MutableMap` / `MutableSet` keying work for any primitive without a per-type opt-in.
 
 ### Traits
 
@@ -1064,6 +1064,33 @@ print_it :: fn<T: Display>(x: T) {
 - A union satisfies a trait iff all its members satisfy it.
 - Operator overloading via stdlib traits — see *Operator overloading* below.
 - **`self` and `Self`**: inside a trait or impl, the first parameter conventionally named `self` carries an implicit `Self` type — no annotation required. `Self` refers to the type that implements the trait; in a `Foo implements Trait { … }` block, `Self = Foo`. Outside trait/impl context, `Self` is undefined (`T3023`).
+
+#### Coherence — one impl per (type, trait)
+
+A program may declare **at most one** `impl` of a given trait for a given
+concrete receiver type. A second impl of the same `(type, trait, trait-args)`
+triple raises **R2030** ("conflicting trait impl for the same type"). This
+mirrors Rust's E0119 and is a sibling of the orphan rule (R2018) and the
+`Into`-identity ban (T3039).
+
+The check spans the **whole program, prelude included**. The `std/core`
+prelude carries `i32 implements Display`, `<prim> implements Hash`, etc., and
+those impls are in scope in every module, so a user re-`impl` of one —
+
+```vader
+i32 implements Display {           // ✗ R2030 — std/core already implements
+    to_string :: fn(self) -> string = "n=${self}"
+}
+```
+
+— is a **conflict**, not a silent shadow. (Before R2030 this compiled, with
+dispatch order deciding which impl won — and `"${self}"` inside the override
+could re-enter the override and recurse.) To attach behaviour to a primitive,
+declare your own trait and `impl` that instead.
+
+Only **fully-concrete** receivers are checked. Blanket / generic-receiver impls
+(`T implements …`, `T[] implements …`, `Range<T> implements …`) have subtler
+overlap rules and are not yet diagnosed.
 
 #### Bounded-generic impls
 
@@ -1438,6 +1465,10 @@ UFCS dispatch works against three shapes of receiver–first-param relation, ran
 
 Specifically — a partial match where some variants of a union scrutinee carry the field and others don't still raises `T3009` ; the fall-through to UFCS only triggers when *no* variant has the field at all.
 
+#### Import requirement
+
+UFCS resolution obeys the **same import rule as a bare call** : `x.foo()` resolves only against free functions whose owning module is reachable in the program (transitively `import`ed), exactly as `foo(x)` would. `std/core` (the implicit prelude, §11) is the sole exemption — its exports are always in scope, so `s.len()`, `bs.bytes_to_string()`, `x.hash()` work with no import. A `x.foo()` whose only candidate lives in a *non-imported* module is a **compile error** (`T3008` / `T3009`), not a silently-dropped call. This keeps the type-checker's UFCS visibility aligned with the lowerer's : both dispatch against the same reachable module set, so a method that type-checks always lowers to a real call. (Historically the typer carried hardcoded per-primitive method tables that bypassed this, letting `s.split()` type-check without `import "std/string"` and then mis-compile ; those tables were removed so primitive/array methods resolve uniformly through trait impls + free-fn UFCS.)
+
 #### Function overloading
 
 Two free functions with the same name **may coexist in the same module** when they differ in the type of their **first parameter** (the receiver). The resolver dispatches based on the receiver's type at the call site.
@@ -1474,6 +1505,23 @@ export api :: fn(x: i32) -> i32 {
 
 Note: the `export` keyword (visibility) is distinct from the `@export` decorator
 (ABI exposure to the host — see §12). A function may be both.
+
+#### Exported declarations cannot expose a non-exported type
+
+An `export`ed declaration must not name a non-exported type in its public
+surface — a caller in another module would receive a value of a type it cannot
+name. Mirrors Rust's E0446 (`private_interfaces`). The compiler rejects this
+with **T3052**:
+
+```vader
+Secret :: struct { value: i32 }          // private to this module
+
+export reveal :: fn() -> Secret { ... }   // T3052 — Secret is not exported
+```
+
+To fix, export the type or make the declaration private. The check currently
+covers fn **return types**; coverage of parameter types, exported struct field
+types, and type-alias right-hand sides is planned.
 
 ---
 

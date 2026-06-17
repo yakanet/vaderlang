@@ -20,7 +20,7 @@ module "vader/lower"
 
 import "std/collections" { keys }
 import "std/sort" { sort }
-import "std/string" { compare_ascending, to_lower, ends_with, as_string, join }
+import "std/string" { compare_ascending, to_lower, ends_with, join }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 import "vader/diagnostics" { Span }
 import "vader/resolver" { is_stdlib_module }
@@ -368,7 +368,7 @@ format_float :: fn(value: f64) -> string {
     raw :: "${value}"
     if raw.ends_with(".0") {
         rb :: raw.bytes()
-        return rb[0..<rb.len() - 2].as_string()
+        return rb[0..<rb.len() - 2].bytes_to_string()
     }
     return raw
 }

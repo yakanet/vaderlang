@@ -9,7 +9,6 @@
 module "vader/fmt"
 
 import "std/string_builder" { StringBuilder, new_builder, append, append_char, append_repeated }
-import "std/string" { as_string as bytes_as_string }
 import "std/io" { eprintln }
 import "vader/diagnostics" { Span, Position }
 p :: import "vader/parser"
@@ -76,7 +75,7 @@ nl_indent :: fn(self: Printer) -> void {
 //        from the AST — strings, generic-inst syntax forms) -----
 
 source_slice :: fn(self: Printer, span: Span) -> string {
-    return self.source.bytes()[span.start.offset..<span.end.offset].bytes_as_string()
+    return self.source.bytes()[span.start.offset..<span.end.offset].bytes_to_string()
 }
 
 // Write `name` followed by enough trailing spaces to reach

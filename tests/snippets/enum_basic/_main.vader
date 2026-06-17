@@ -18,7 +18,7 @@ export describe :: fn(d: Direction) -> string {
     }
 }
 
-main :: fn() {
+main :: fn() -> i32 {
     d: Direction = .East
     println(describe(d))
     println(describe(Direction.North))
@@ -26,4 +26,5 @@ main :: fn() {
     if d == .West { println("d is West") }
     println("Is EAST: ${d == .East}")
     println("Is WEST: ${d == .West}")
+    return 0
 }

@@ -1,0 +1,13 @@
+// An exported fn whose return type names a non-exported type — T3052.
+// A caller in another module receives a `Secret` it cannot name.
+module "snippet"
+
+Secret :: struct { value: i32 }
+
+export reveal :: fn() -> Secret {
+    return Secret { .value = 1 }
+}
+
+main :: fn() -> i32 {
+    return reveal().value
+}

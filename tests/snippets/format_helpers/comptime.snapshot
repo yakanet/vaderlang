@@ -2,6 +2,8 @@
 
 ## stdlib/std/abort
 
+## stdlib/std/char
+
 ## stdlib/std/core
   @comptime  DECIMAL_DIGITS       = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
   @comptime  DOUBLE_BIAS          = 1023_i32
@@ -34,8 +36,6 @@
 ## stdlib/std/string_builder
 
 ## stdlib/std/testing
-
-## stdlib/std/utf8
 
 ## tests/snippets/format_helpers
 

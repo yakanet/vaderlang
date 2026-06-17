@@ -18,8 +18,9 @@
 
 module "vader/bytecode"
 
+import "std/abort" { panic }
 import "std/collections" { MutableMap }
-import "vader/types" { Type, PrimitiveType, NeverType }
+import "vader/types" { Type, PrimitiveType, NeverType, display_type }
 import "vader/resolver/symbol" { Symbol }
 import "vader/lower" {
     LoweredStmt, LoweredLet, LoweredAssign, LoweredCellSet,
@@ -382,7 +383,12 @@ emit_struct_lit :: fn(struct_lit: LoweredStructLit, state: FnEmitState, ctx: Emi
 emit_field_access :: fn(field_access: LoweredFieldAccess, state: FnEmitState, ctx: EmitterCtx) -> void {
     target_type_id :: intern_type(type_of(field_access.target), ctx)
     emit_expr(field_access.target, state, ctx)
-    field_index :: lookup_field_index(ctx, target_type_id, field_access.field)
+    field_slot :: lookup_field_index(ctx, target_type_id, field_access.field)
+    if field_slot == null {
+        target_type :: display_type(type_of(field_access.target))
+        panic("bytecode emit: no field `${field_access.field}` on `${target_type}` — a method reference on a primitive isn't a first-class value ; call it directly or wrap it in a lambda")
+    }
+    field_index :: i32(field_slot)
     // Fuse `local.get N ; struct.get T F` → `local.field N T F`
     // (mirrors `src/midir/emit.ts::emitStructGet`'s in-place fold).
     fused :: try_fuse_local_field(state, target_type_id, field_index)
@@ -424,20 +430,21 @@ try_fuse_local_field :: fn(state: FnEmitState, type_id: i32, field_index: i32) -
 }
 
 /// Look up a struct field's index by name within the BcStruct
-/// entry at `type_id`. Returns `-1` when the entry isn't a struct
-/// or the field name doesn't match — downstream consumers can spot
-/// the sentinel and trap with a useful diagnostic.
-lookup_field_index :: fn(ctx: EmitterCtx, type_id: i32, field_name: string) -> i32 {
+/// entry at `type_id`. Returns `null` when the entry isn't a struct
+/// or the field name doesn't match — the caller traps, since a
+/// missing field at emit time means an upstream pass produced a field
+/// access that isn't a real struct load (e.g. a primitive method
+/// reference taken as a first-class value).
+///
+/// @return the field's slot index, or `null` when no such struct field exists.
+lookup_field_index :: fn(ctx: EmitterCtx, type_id: i32, field_name: string) -> usize | null {
     entry :: ctx.types[usize(type_id)]
-    match entry {
-        is BcStruct as bc_struct -> {
-            for i in 0..<bc_struct.fields.len() {
-                if bc_struct.fields[i].name == field_name { return i32(i) }
-            }
-            return -1
+    if entry is BcStruct as bc_struct {
+        for i in 0..<bc_struct.fields.len() {
+            if bc_struct.fields[i].name == field_name { return i }
         }
-        _ -> { return -1 }
     }
+    return null
 }
 
 /// Emit an array literal : each element value in source order, then

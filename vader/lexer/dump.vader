@@ -9,9 +9,8 @@
 // table belongs next to the enum it indexes, and the dump is a primitive
 // other front-ends (LSP, formatter, future tools) will want to reuse.
 
-// `lexer.vader` (same module) already imports the `bytes`/`as_string`
-// std/string surface and the StringBuilder surface ; we only need the
-// extras here.
+// `lexer.vader` (same module) already imports the std/string decode surface
+// and the StringBuilder surface ; we only need the extras here.
 module "vader/lexer"
 
 import "std/string" { chars, pad_start, pad_end, compare_ascending as string_less }

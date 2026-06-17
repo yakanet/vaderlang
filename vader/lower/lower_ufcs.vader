@@ -6,7 +6,7 @@ module "vader/lower"
 import "std/collections" { MutableMap, keys }
 
 import "vader/parser" { Expr, CallExpr, FieldExpr, CallArg, Visibility, StructDecl }
-import "vader/typecheck" { type_from_expr, default_if_free, is_assignable, substitute_by_name }
+import "vader/typecheck" { type_from_expr, default_if_free, is_assignable, substitute_by_name, try_array_to_iter }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/types" { Type, FnType, UnionType, TraitType, TypeParamType, TY_UNRESOLVED, StructType, EnumType }
 import "vader/comptime" { EvaluatedProgram, uniq }
@@ -64,7 +64,19 @@ try_lower_ufcs_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
         if !(free is null) {
             if free is UfcsMember as found_free {
                 args: LoweredExpr[] = []
-                args.push(receiver)
+                // Coerce the receiver into the fn's first-param type the same
+                // way the canonical call path does (`try_emit_into_coercion`,
+                // shared with lower_call / lower_generic_call) — a raw array
+                // flowing into an `Iterator<T>` param wraps through `into`
+                // (→ `ArrayIterator<T>`), so `a.any(p)` lowers identically to
+                // the free call `any(a, p)`. Non-coercible receivers pass
+                // through unchanged.
+                first_param :: ufcs_first_param_type(ctx, found_free.symbol)
+                recv_arg :: if first_param == null { receiver } else {
+                    coerced :: try_emit_into_coercion(ctx, receiver, type_of(receiver), first_param, field_expr.span)
+                    if coerced == null { receiver } else { coerced }
+                }
+                args.push(recv_arg)
                 for call_arg in call.args { args.push(lower_expr(ctx, call_arg.value)) }
                 // UFCS-on-generic-fn instance harvest : when the target
                 // is `fn[T](x: T) -> T`, register a `GenericFnInstance` so
@@ -147,6 +159,18 @@ find_free_fn_ufcs :: fn(ctx: FnLowerCtx, recv_type: Type, name: string) -> UfcsM
     return null
 }
 
+// First-param type of a UFCS-resolved free fn, or null when the symbol
+// has no fn type / no params. The receiver is coerced into this type
+// (array → `Iterator<T>` via `into`) before it becomes arg 0.
+ufcs_first_param_type :: fn(ctx: FnLowerCtx, sym: Symbol) -> Type | null {
+    ft :: lookup_fn_type_anywhere(ctx, sym)
+    if ft is FnType as f {
+        if f.params.len() == 0 { return null }
+        return f.params[0]
+    }
+    return null
+}
+
 first_param_matches :: fn(ctx: FnLowerCtx, sym: Symbol, recv_type: Type) -> bool {
     // Match the fn's first param against the receiver. A `TypeParam`
     // first param matches any receiver (`identity[T](x: T)`) ; a union
@@ -164,7 +188,16 @@ first_param_matches :: fn(ctx: FnLowerCtx, sym: Symbol, recv_type: Type) -> bool
         // implements `Iterator<char>`). Consult the project-wide impl
         // registry so cross-module stdlib impls are reachable.
         if first is TraitType as tt {
-            return find_impl_for(ctx.project, recv_type, tt.symbol.name) != null
+            if find_impl_for(ctx.project, recv_type, tt.symbol.name) != null { return true }
+            // A raw array fits an `Iterator<T>` first param via the blanket
+            // `T[] implements Into<Iterator<T>>` — the receiver is wrapped in
+            // `.into()` at the call site (see `try_lower_ufcs_call`). Mirrors
+            // the typer's `receiver_fits_first_param`, which already accepts
+            // this ; without it the typer/lowerer disagree (typer curries the
+            // UFCS call, lowerer can't resolve it → `a.any(p)` mis-lowered to a
+            // field-access on a primitive). Use the same predicate the typer
+            // does so the two passes can't drift again.
+            return try_array_to_iter(recv_type, first)
         }
         return type_surface_name(first) == type_surface_name(recv_type)
     }

@@ -110,9 +110,9 @@ export utf8_encode :: fn(c: char) -> u8[] {
 }
 
 /// Materialise a `string` from verbatim UTF-8 bytes — the canonical bytes→string
-/// primitive. Host intrinsic backed by `vader_string_as_string` (no new runtime
-/// symbol) ; O(1) on a borrowed `bytes()` slice, O(n) on a packed array, no UTF-8
-/// validation. Supersedes the legacy `as_string` / `bytes_as_string`.
+/// primitive (inverse of `bytes`). Host intrinsic backed by `vader_string_as_string`
+/// (the runtime symbol kept its name) ; O(1) on a borrowed `bytes()` slice, O(n) on
+/// a packed array, no UTF-8 validation.
 /// @param bs  the UTF-8 bytes to materialise (typically a `bytes()` slice).
 /// @return    the string those bytes encode.
 export bytes_to_string :: fn(bs: const u8[]) -> string
@@ -124,6 +124,19 @@ export bytes_to_string :: fn(bs: const u8[]) -> string
 /// @param s  source string.
 /// @return   a `const u8[]` over the UTF-8 bytes of `s`.
 export bytes :: fn(s: string) -> const u8[]
+
+/// Codepoint length of `s` — the number of Unicode codepoints, not bytes.
+/// A core primitive of the `string` type (the auto-imported prelude), so
+/// `s.len()` works without importing `std/string`. Walks the UTF-8 bytes and
+/// counts the non-continuation bytes (those whose top two bits are not `10`),
+/// allocating no iterator. O(n) in the byte length.
+/// @param s  source string.
+/// @return   the codepoint count.
+export len :: fn(s: string) -> usize {
+    n: usize = 0
+    for b in s.bytes() { if (b & 0xC0) != 0x80 { n += 1 } }
+    return n
+}
 
 i8     implements Display { to_string :: fn(self) -> string = format_signed(i64(self)) }
 i16    implements Display { to_string :: fn(self) -> string = format_signed(i64(self)) }

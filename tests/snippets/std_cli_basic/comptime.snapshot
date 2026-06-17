@@ -38,8 +38,6 @@
 
 ## stdlib/std/testing
 
-## stdlib/std/utf8
-
 ## tests/snippets/std_cli_basic
 
 ## generic instances
@@ -116,7 +114,6 @@
   Yield<T>
   Yield<T>
   Yield<T>
-  Range<char>
   Range<i32>
   Range<usize>
   Range<T>

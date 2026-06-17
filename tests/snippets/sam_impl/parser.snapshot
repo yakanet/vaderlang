@@ -21,13 +21,73 @@
       "decorators": []
     },
     {
+      "kind": "TraitDecl",
+      "name": "Describe",
+      "visibility": "private",
+      "typeParams": [],
+      "requires": null,
+      "members": [
+        {
+          "kind": "FnDecl",
+          "name": "describe",
+          "visibility": "private",
+          "typeParams": [],
+          "params": [
+            {
+              "name": "self",
+              "type": null,
+              "defaultValue": null,
+              "variadic": false
+            }
+          ],
+          "returnType": {
+            "kind": "IdentExpr",
+            "name": "string"
+          },
+          "body": null,
+          "decorators": []
+        }
+      ],
+      "decorators": []
+    },
+    {
+      "kind": "TraitDecl",
+      "name": "Tag",
+      "visibility": "private",
+      "typeParams": [],
+      "requires": null,
+      "members": [
+        {
+          "kind": "FnDecl",
+          "name": "tag",
+          "visibility": "private",
+          "typeParams": [],
+          "params": [
+            {
+              "name": "self",
+              "type": null,
+              "defaultValue": null,
+              "variadic": false
+            }
+          ],
+          "returnType": {
+            "kind": "IdentExpr",
+            "name": "u64"
+          },
+          "body": null,
+          "decorators": []
+        }
+      ],
+      "decorators": []
+    },
+    {
       "kind": "ImplDecl",
       "typeParams": [],
       "forType": {
         "kind": "IdentExpr",
         "name": "i32"
       },
-      "traitName": "Display",
+      "traitName": "Describe",
       "traitArgs": [],
       "members": [
         {
@@ -70,7 +130,7 @@
         "kind": "IdentExpr",
         "name": "i64"
       },
-      "traitName": "Display",
+      "traitName": "Describe",
       "traitArgs": [],
       "members": [
         {
@@ -142,7 +202,7 @@
         "kind": "IdentExpr",
         "name": "i32"
       },
-      "traitName": "Hash",
+      "traitName": "Tag",
       "traitArgs": [],
       "members": [
         {
@@ -245,7 +305,7 @@
                         "kind": "IdentExpr",
                         "name": "x"
                       },
-                      "field": "to_string"
+                      "field": "describe"
                     },
                     "args": []
                   },
@@ -273,7 +333,7 @@
                         "kind": "IdentExpr",
                         "name": "y"
                       },
-                      "field": "to_string"
+                      "field": "describe"
                     },
                     "args": []
                   },
@@ -306,7 +366,7 @@
                               "kind": "IdentExpr",
                               "name": "x"
                             },
-                            "field": "hash"
+                            "field": "tag"
                           },
                           "args": []
                         }

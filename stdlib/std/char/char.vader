@@ -1,0 +1,43 @@
+// std/char/char.vader — ASCII character classification.
+//
+// `fn(char) -> bool` classification predicates, split out of std/string so the
+// codepoint-string API (std/string) and char classification (here) have
+// distinct homes. Import-required — not part of the std/core prelude. Numeric-
+// base predicates (`is_hex_digit`, `is_digit_in_base`) stay in std/numbers.
+
+module "std/char"
+
+/// True for ASCII whitespace — space, tab, newline, carriage return.
+/// @param c  the codepoint to test.
+export is_white_char :: fn(c: char) = c == ' ' || c == '\t' || c == '\n' || c == '\r'
+
+/// True for an ASCII decimal digit `'0'`–`'9'`.
+/// @param c  the codepoint to test.
+export is_digit :: fn(c: char) = c in '0'..='9'
+
+/// True for an ASCII letter `'a'`–`'z'` or `'A'`–`'Z'`.
+/// @param c  the codepoint to test.
+export is_alpha :: fn(c: char) = c in 'a'..='z' || c in 'A'..='Z'
+
+/// True for an ASCII letter or digit (`is_alpha` or `is_digit`).
+/// @param c  the codepoint to test.
+export is_alnum :: fn(c: char) = c.is_alpha() || c.is_digit()
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert }
+
+@test test_char_predicates :: fn() -> void {
+    assert(is_white_char(' '), "space is whitespace")
+    assert(is_white_char('\t'), "tab is whitespace")
+    assert(is_white_char('\n'), "newline is whitespace")
+    assert(!is_white_char('a'), "letter is not whitespace")
+    assert(is_digit('5'), "5 is a digit")
+    assert(!is_digit('a'), "a is not a digit")
+    assert(is_alpha('a'), "a is alpha")
+    assert(is_alpha('Z'), "Z is alpha")
+    assert(!is_alpha('5'), "5 is not alpha")
+    assert(is_alnum('x'), "x is alnum")
+    assert(is_alnum('7'), "7 is alnum")
+    assert(!is_alnum(' '), "space is not alnum")
+}

@@ -2,14 +2,22 @@ module "snippet"
 
 import "std/io" { println }
 
-i32 implements Display {
-    to_string :: fn(self) -> string {
+// A user-defined trait implemented on a primitive type. Re-impl'ing a
+// prelude trait (`Display`, `Hash`, …) on `i32` is a coherence error
+// (R2030 — see `vader/typecheck/orchestrate.vader::check_impl_coherence`),
+// so this exercises impl-on-primitive through the snippet's own trait.
+Describe :: trait {
+    describe :: fn(self) -> string
+}
+
+i32 implements Describe {
+    describe :: fn(self) -> string {
         return "the answer is ${self}"
     }
 }
 
 main :: fn() -> i32 {
     x: i32 = 42
-    println(x.to_string())
+    println(x.describe())
     return 0
 }

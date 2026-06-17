@@ -46,8 +46,6 @@ export infer_field :: fn(
     candidate: Type | null = null
     candidate = try_array_method_dispatch(target_ty, e)
     match candidate { is null -> {} _ -> { return candidate } }
-    candidate = try_primitive_method_dispatch(target_ty, e)
-    match candidate { is null -> {} _ -> { return candidate } }
     candidate = try_impl_method_ufcs(target_ty, e, typed, diags)
     match candidate { is null -> {} _ -> { return candidate } }
     // Bounded TypeParam dispatch runs BEFORE free-fn UFCS : a free fn
@@ -81,11 +79,6 @@ export infer_field :: fn(
 try_array_method_dispatch :: fn(target_ty: Type, e: AST.FieldExpr) -> Type | null {
     if !(target_ty is ArrayType) { return null }
     return array_method_type(e.field, target_ty)
-}
-
-try_primitive_method_dispatch :: fn(target_ty: Type, e: AST.FieldExpr) -> Type | null {
-    if !(target_ty is PrimitiveType) { return null }
-    return primitive_method_type(target_ty.name, e.field)
 }
 
 // `x.method()` where `<x-type> implements <Trait> { method :: ... }`.
@@ -361,7 +354,7 @@ import "vader/types" {
     FnType, TypeParamType,
     mk_array, mk_fn, mk_struct, mk_trait, mk_tuple,
 }
-import "vader/types" { mk_primitive, mk_union, TY_VOID }
+import "vader/types" { mk_primitive, TY_VOID }
 
 /// MVP UFCS dispatch for the canonical array methods. Returns the
 /// per-method `FnType` synthesised from the element type, or `null`
@@ -372,67 +365,30 @@ import "vader/types" { mk_primitive, mk_union, TY_VOID }
 ///   - `pop()`       → `T | null`
 ///   - `is_empty()`  → `bool`
 array_method_type :: fn(name: string, arr: ArrayType) -> Type | null {
-    if name == "len"          { return mk_fn([], mk_primitive("usize")) }
-    if name == "is_empty"     { return mk_fn([], mk_primitive("bool")) }
-    if name == "push"         { return mk_fn([arr.element], TY_VOID) }
-    if name == "pop"          { return mk_fn([], mk_union([arr.element, mk_primitive("null")])) }
-    if name == "clear"        { return mk_fn([], TY_VOID) }
-    // `slice_array` falls through to free-fn UFCS — hardcoding here
-    // would substitute T → arr.element eagerly, masking the generic
-    // signature that `infer_call` substitutes properly downstream.
-    if name == "reverse"      { return mk_fn([], mk_array(arr.element, false)) }
-    // `first` / `last` / `contains` stay user-shadowable — they're
-    // commonly redefined by user code with extra args (e.g. `first(arr,
-    // fallback)`), so we fall through to free-fn UFCS dispatch.
+    // Only the two ops with dedicated lowering are typed here : `len` and
+    // `push` lower to `LoweredArrayLen` / `LoweredArrayPush` opcodes
+    // (`lower_call.vader::try_lower_array_op`) and have no free-fn / trait
+    // fallback, so the typer must supply their signature.
+    //
+    // Everything else resolves elsewhere (import required, per the UFCS policy) :
+    // `is_empty` ⟶ `std/iter::is_empty(arr: T[])`, `slice` ⟶ `std/iter::slice`,
+    // `contains` ⟶ the `Contains` trait, `reverse`/`first`/`last` ⟶ std/iter free
+    // fns. `pop` / `clear` had no opcode, no free fn and no call sites — they were
+    // dead table landmines and were dropped.
+    if name == "len"  { return mk_fn([], mk_primitive("usize")) }
+    if name == "push" { return mk_fn([arr.element], TY_VOID) }
     return null
 }
 
 /// MVP UFCS for the canonical primitive (string / char) methods.
 /// Mirrors the stdlib `T` free fns the lowerer wires in.
-primitive_method_type :: fn(prim: string, name: string) -> Type | null {
-    if prim == "string" {
-        if name == "len"         { return mk_fn([], mk_primitive("usize")) }
-        if name == "is_empty"    { return mk_fn([], mk_primitive("bool")) }
-        if name == "starts_with" { return mk_fn([mk_primitive("string")], mk_primitive("bool")) }
-        if name == "ends_with"   { return mk_fn([mk_primitive("string")], mk_primitive("bool")) }
-        if name == "contains"    { return mk_fn([mk_primitive("string")], mk_primitive("bool")) }
-        if name == "to_lower"    { return mk_fn([], mk_primitive("string")) }
-        if name == "to_upper"    { return mk_fn([], mk_primitive("string")) }
-        if name == "trim"        { return mk_fn([], mk_primitive("string")) }
-        if name == "trim_start"  { return mk_fn([], mk_primitive("string")) }
-        if name == "trim_end"    { return mk_fn([], mk_primitive("string")) }
-        if name == "slice"       { return mk_fn([mk_primitive("usize"), mk_primitive("usize")], mk_primitive("string")) }
-        if name == "split"       { return mk_fn([mk_primitive("string")], mk_array(mk_primitive("string"), false)) }
-        if name == "replace"     { return mk_fn([mk_primitive("string"), mk_primitive("string")], mk_primitive("string")) }
-        if name == "replace_all" { return mk_fn([mk_primitive("string"), mk_primitive("string")], mk_primitive("string")) }
-        if name == "find"        { return mk_fn([mk_primitive("string")], mk_union([mk_primitive("usize"), mk_primitive("null")])) }
-        if name == "find_all"    { return mk_fn([mk_primitive("string")], mk_array(mk_primitive("usize"), false)) }
-        if name == "pad_start"   { return mk_fn([mk_primitive("usize"), mk_primitive("char")], mk_primitive("string")) }
-        if name == "pad_end"     { return mk_fn([mk_primitive("usize"), mk_primitive("char")], mk_primitive("string")) }
-        if name == "repeat"      { return mk_fn([mk_primitive("usize")], mk_primitive("string")) }
-        if name == "concat"      { return mk_fn([mk_primitive("string")], mk_primitive("string")) }
-    }
-    if prim == "char" {
-        if name == "is_white_char" { return mk_fn([], mk_primitive("bool")) }
-        if name == "is_digit"      { return mk_fn([], mk_primitive("bool")) }
-        if name == "is_alpha"      { return mk_fn([], mk_primitive("bool")) }
-        if name == "is_alnum"      { return mk_fn([], mk_primitive("bool")) }
-        if name == "is_lower"      { return mk_fn([], mk_primitive("bool")) }
-        if name == "is_upper"      { return mk_fn([], mk_primitive("bool")) }
-        if name == "to_lower"      { return mk_fn([], mk_primitive("char")) }
-        if name == "to_upper"      { return mk_fn([], mk_primitive("char")) }
-    }
-    // Numeric formatters live on the integer / float primitives.
-    if name == "to_hex" || name == "to_bin" || name == "to_oct" {
-        return mk_fn([], mk_primitive("string"))
-    }
-    // Hash / Equals are implemented for every primitive type — wired
-    // by the runtime, not by an explicit `implements` block.
-    if name == "hash"   { return mk_fn([], mk_primitive("u64")) }
-    if name == "equals" { return mk_fn([mk_primitive(prim)], mk_primitive("bool")) }
-    return null
-}
-
+///
+/// MID-REORG : this hardcoded string/char surface is being retired. The typer
+/// claims these methods but the lowerer reaches them only via free-fn UFCS over
+/// loaded modules, so any entry whose impl isn't loaded miscompiles. `len` was
+/// the first removed — it lives in `std/core` (the prelude) now. The remaining
+/// string/char entries move to `std/string` / `std/char` (import-required) or
+/// get implemented/dropped per .claude/plans/core-string-utf8-reorg.md.
 import "vader/resolver/symbol" { Symbol }
 
 /// When `e.target` is an `IdentExpr` resolving to a namespace

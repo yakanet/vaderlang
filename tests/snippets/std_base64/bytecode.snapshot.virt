@@ -64,7 +64,6 @@ import 0 write std_io$write (i32,string) -> void
 import 1 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 2 bytes std_core$bytes (string) -> ref
 import 3 at std_core$string$Index$at (string,usize) -> char
-import 4 as_string std_string$as_string (ref) -> string
 impl 7 Display
 impl 12 ByteAccess
 impl 14 Error
@@ -127,7 +126,7 @@ fn 1 snippet$show_decode (string,string) -> void
     string.const 2
     call 4
     local.get 2
-    call.import 4
+    call.import 1
     call 10
     local.set 4
     local.get 3
@@ -327,7 +326,7 @@ fn 2 snippet$main () -> i32
           string.const 2
           call 4
           local.get 4
-          call.import 4
+          call.import 1
           local.get 1
           string.eq
           call 9

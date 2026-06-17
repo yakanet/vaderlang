@@ -22,7 +22,7 @@ module "vader/midir"
 import "std/collections" { MutableMap, MutableSet, remove }
 import "std/abort" { panic }
 import "vader/diagnostics" { Span }
-import "vader/types" { Type, PrimitiveType, ArrayType, mk_struct }
+import "vader/types" { Type, PrimitiveType, ArrayType, mk_struct, display_type }
 import "vader/lower" { VtableEntry as LoweredVtableEntry }
 import "vader/bytecode" {
     EmitterCtx, BytecodeModule, BcFunction, BcSignature, BcLocal, BcImport,
@@ -1029,12 +1029,18 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         // it. Mirrors TS `skippedReceiverGet` (src/midir/emit.ts:556).
         skipped_receiver_get :: ctx.hints.skip_first_get.contains(pos)
         emit_first_get(ctx, pos, fg.target, fg.span)
-        field_index :: find_struct_field_index(ctx.project, type_index, fg.field)
-        if field_index < 0 {
-            push_emit(ctx, Drop {}, fg.span)
-            push_emit(ctx, Return {}, fg.span)
-            return
+        field_slot :: find_struct_field_index(ctx.project, type_index, fg.field)
+        if field_slot == null {
+            // No such struct field at emit time — the upstream pass produced a
+            // field access that isn't a real load. The classic source is a
+            // primitive method reference taken as a first-class value (`s.hash`
+            // with no backing free fn) ; the old code emitted a silent
+            // `Drop ; Return` here, which truncated the whole function and
+            // mis-compiled in silence. Fail loud, like the FnRef / MakeClosure
+            // materialisation-gap panics above.
+            panic("midir/emit: no field `${fg.field}` on `${display_type(target_type)}` in '${ctx.fn_.mangled}' — a method reference on a primitive isn't a first-class value ; call it directly or wrap it in a lambda")
         }
+        field_index :: i32(field_slot)
         // Fuse `local.get N ; struct.get T F` → `local.field N T F`
         // when the just-emitted op is the receiver's slot read. Mirrors
         // the TS midir emit (src/midir/emit.ts:552).
@@ -1060,13 +1066,14 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         type_index :: intern_type(target_type, ctx.project)
         emit_first_get(ctx, pos, fs.target, fs.span)
         emit_get(ctx, fs.value, fs.span)
-        field_index :: find_struct_field_index(ctx.project, type_index, fs.field)
-        if field_index < 0 {
-            push_emit(ctx, Drop {}, fs.span)
-            push_emit(ctx, Drop {}, fs.span)
-            return
+        field_slot :: find_struct_field_index(ctx.project, type_index, fs.field)
+        if field_slot == null {
+            // Mirror the field-get guard : a field-set whose target isn't a real
+            // struct member is an upstream lowering bug. The old code emitted a
+            // silent `Drop ; Drop` and dropped the store on the floor. Fail loud.
+            panic("midir/emit: no field `${fs.field}` on `${display_type(target_type)}` in '${ctx.fn_.mangled}' — field-set target isn't a real struct member ; upstream lowering bug")
         }
-        push_emit(ctx, StructSet { .type_id = type_index, .field_index = field_index, .stack = fs.barrierless }, fs.span)
+        push_emit(ctx, StructSet { .type_id = type_index, .field_index = i32(field_slot), .stack = fs.barrierless }, fs.span)
         return
     }
     if ins is InstrArrayGet as ag {
@@ -1255,12 +1262,14 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
             else              { emit_get(ctx, i.args[ai], i.span) }
         }
         op_opt :: intrinsic_op_for_name(i.name)
-        if op_opt is null {
-            push_emit(ctx, Return {}, i.span)
-        } else {
-            push_emit(ctx, op_opt, i.span)
-            emit_result_if_any(ctx, pos, i.dst, i.span)
+        if op_opt == null {
+            // Unknown intrinsic at emit time — the args were already pushed and
+            // a bare `Return` would truncate the function in silence. Fail loud,
+            // like the field-get / FnRef / MakeClosure gaps above.
+            panic("midir/emit: unhandled intrinsic `${i.name}` in '${ctx.fn_.mangled}' — no dedicated Op ; add a case to intrinsic_op_for_name")
         }
+        push_emit(ctx, op_opt, i.span)
+        emit_result_if_any(ctx, pos, i.dst, i.span)
         return
     }
     if ins is InstrDeferPush as dp {
@@ -1302,25 +1311,29 @@ convert_eligible :: fn(v: ValType) -> bool = match v {
 
 /// Map an InstrIntrinsic's canonical name onto its dedicated Op.
 /// Mirror of TS `INTRINSIC_TABLE` (src/bytecode/ops.ts:242). Returns
-/// null when the name doesn't map to a known intrinsic ; callers fall
-/// back to the defensive Return stub.
+/// null when the name doesn't map to a known intrinsic ; the sole caller
+/// panics on `null` rather than emitting a function-truncating stub.
 intrinsic_op_for_name :: fn(name: string) -> Op | null {
     if name == "size_of.type" { return SizeOfType {} }
     return null
 }
 
-/// Look up a field index by name on a struct type. Returns -1 when the
-/// type isn't a struct or the field isn't found.
-find_struct_field_index :: fn(ctx: EmitterCtx, type_index: i32, field_name: string) -> i32 {
+/// Look up a field index by name on a struct type. Returns `null` when
+/// the type isn't a struct or the field isn't found — the field-get /
+/// field-set callers panic on `null`, since a missing field at emit time
+/// means an upstream pass produced a field access that isn't a real
+/// struct member (e.g. a primitive method reference taken as a
+/// first-class value).
+///
+/// @return the field's slot index, or `null` when no such struct field exists.
+find_struct_field_index :: fn(ctx: EmitterCtx, type_index: i32, field_name: string) -> usize | null {
     t :: ctx.types[usize(type_index)]
     if t is BcStruct as s {
-        i := i32(0)
-        for i < i32(s.fields.len()) {
-            if s.fields[usize(i)].name == field_name { return i }
-            i = i + 1
+        for i in 0..<s.fields.len() {
+            if s.fields[i].name == field_name { return i }
         }
     }
-    return -1
+    return null
 }
 
 emit_const_instr :: fn(ctx: FnEmitCfg, c: InstrConst, pos: i64) -> void {
