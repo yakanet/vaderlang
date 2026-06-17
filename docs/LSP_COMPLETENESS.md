@@ -75,8 +75,9 @@ A `Symbol → reference-spans` table across every file of the project, keyed on
 the **resolved Symbol id** (not the textual name) so a query never conflates
 shadowed or unrelated identifiers of the same spelling. Built by walking each
 module's AST (via the typed cache's per-module resolution, `CheckResult.all_modules`)
-and binding every `IdentExpr` use-site to the Symbol the body-walker resolved it
-to; import bindings are followed to their export target (`wire_imports` +
+and binding every identifier span — `IdentExpr` uses **and** local / for / match
+binding declaration name-spans (which the body-walker indexes into `idents`) — to
+its resolved Symbol; import bindings are followed to their export target (`wire_imports` +
 `resolve_import_redirect`) so a use of an imported name unifies with the
 declaration and every other cross-file use. Symbols are globally unique (one
 factory), so `Symbol.id` is the stable key. Decl / import sites come from each
@@ -146,12 +147,15 @@ day-to-day responsiveness.
 ### Tier 2 — navigation (needs infra A / B)
 
 - ✅ **`textDocument/references`** (`references.vader`) — project-wide find-usages.
-  Cursor → the `IdentExpr` use-site whose span contains it → its import-resolved
-  Symbol id → every recorded site for that id, returned as `Location[]`. Honours
-  `context.includeDeclaration` (decl + import sites are flagged). Built on infra A
-  above. Also the rename prerequisite. Limitation: cursor must sit on an
-  identifier (use or decl/import site recorded via `Symbol.defined_at`); `.field`
-  accesses aren't indexed yet.
+  Cursor → the identifier span containing it → its import-resolved Symbol id →
+  every recorded site for that id, returned as `Location[]`. Honours
+  `context.includeDeclaration`. Built on infra A above; also the rename
+  prerequisite. The index records `IdentExpr` uses **and** local / for / match
+  binding declaration name-spans (the body-walker indexes those into `idents`),
+  plus top-level decls from `Symbol.defined_at`. Limitations: fn-param and
+  type-param *declarations* aren't indexed (their AST span covers the whole
+  `name: Type` slot, too wide for a precise range — their uses still are);
+  `.field` / method accesses aren't indexed yet.
 - **`workspace/symbol`** (infra B) — fuzzy project-wide symbol search (Cmd+T).
   Capability: `workspaceSymbolProvider = true`.
 - ✅ **`textDocument/typeDefinition`** (`type_definition.vader`) — jump to the

@@ -2,25 +2,32 @@
 //
 // Find-usages across the whole project. Builds a `Symbol → use-spans` index by
 // walking every module's AST (via the typed-project cache's per-module
-// resolution) and binding each `IdentExpr` to the Symbol the resolver resolved
-// it to. Import bindings are followed to their export target (`wire_imports` +
+// resolution) and binding each identifier span — both `IdentExpr` use-sites and
+// the *declaration* name-spans of locals / params / type-params / for- and
+// pattern-bindings — to the Symbol the body-walker recorded for it in `idents`.
+// Top-level declarations come from each module's symbol table (`defined_at`).
+// Import bindings are followed to their export target (`wire_imports` +
 // `resolve_import_redirect`), so a use of an imported name unifies with the
 // declaration and every other use across files — the project-wide behaviour
-// find-references and the future rename both require.
+// find-references and rename both require.
+//
+// Why both decl name-spans AND uses: the body-walker indexes a local's /
+// param's name_span into `idents` (body.vader), but those symbols are NOT in
+// `resolved.symbols` (top-level only). Collecting just `IdentExpr`s would miss
+// every local declaration, so renaming a local would rewrite its uses but not
+// its `::` / `:=` binding. Sites are deduped by span hash so a rename never
+// emits two edits for one range.
 //
 // Symbols are globally unique (one factory across modules), so `Symbol.id` is a
-// stable cross-module key. Decl / import sites come from each module's symbol
-// table (`Symbol.defined_at`); use sites from the AST walk. The index is the
-// keystone later reused by rename, call-hierarchy and the "N references" lens.
-//
-// v1 scope: indexes `IdentExpr` use-sites (locals, params, fns, types, consts,
-// imports) in value + type position across all files. Field/method accesses
-// (`.field`) carry no `IdentExpr` (resolved separately) and are a follow-up.
-// The index is rebuilt per request; caching it on `ProjectCache` is a follow-up.
+// stable cross-module key. v1 scope: identifiers in value + type position +
+// local/param/binding decl names. Field/method accesses (`.field`) carry no
+// `IdentExpr` (resolved separately) and are a follow-up. The index is rebuilt
+// per request; caching it on `ProjectCache` is a follow-up.
 
 module "vader/lsp"
 
 import "std/json" { JsonValue, JsonObject, JsonNumber, JsonArray, JsonBool }
+import "std/collections" { MutableMap }
 import "std/string" { starts_with }
 import "vader/diagnostics" { Span, Position }
 import "vader/resolver" { LoadedProject, wire_imports, resolve_import_redirect }
@@ -29,8 +36,9 @@ import "vader/typecheck" { CheckResult }
 AST :: import "vader/parser"
 
 /// One recorded reference : a source span + the (import-resolved) Symbol id it
-/// refers to. `is_decl` marks the declaration site (so `includeDeclaration`
-/// can exclude it) ; import-binding sites count as uses, not declarations.
+/// refers to. `is_decl` marks a top-level declaration site (so
+/// `includeDeclaration` can exclude it) ; import-binding sites and local/param
+/// decl names count as uses here.
 RefSite :: struct {
     span:      Span
     symbol_id: i32
@@ -92,43 +100,57 @@ cursor_in_span :: fn(sp: Span, line: i32, col: i32) -> bool {
 // ---- index construction --------------------------------------------------
 
 /// Walk every module's resolution + AST into a flat reference table. Each
-/// `IdentExpr` use-site and each `Symbol.defined_at` decl/import site is keyed
-/// by the import-resolved Symbol id so uses unify across files.
+/// identifier span (use or local/param decl name) and each top-level
+/// `Symbol.defined_at` is keyed by the import-resolved Symbol id so uses unify
+/// across files. Deduped by span hash.
 build_reference_index :: fn(project: LoadedProject, result: CheckResult) -> ReferenceIndex {
     table :: wire_imports(project)
     sites: RefSite[] = []
+    seen :: MutableMap<u64, bool> {}
     for id in result.all_modules.keys() {
         typed :: result.all_modules[id]
         if typed == null { continue }
         mod :: project.modules[id]
         if mod == null { continue }
 
-        // Declaration + import sites from the module's symbol table.
+        // Top-level declaration + import sites from the module's symbol table.
         for sym in typed.resolved.symbols {
             da :: sym.defined_at
             if da == null { continue }
+            h :: da.hash()
+            if seen[h] != null { continue }
+            seen[h] = true
             canon :: resolve_import_redirect(sym, table)
             sites.push(RefSite { .span = da, .symbol_id = canon.id, .is_decl = sym.kind != .ImportBinding })
         }
 
-        // Use sites from every IdentExpr the body walker bound to a Symbol.
+        // Identifier spans (uses + local/param/binding decl names) the body
+        // walker bound to a Symbol in `idents`.
         for f in mod.module.files {
-            collected: AST.IdentExpr[] = []
-            for d in f.program.decls { collect_decl_idents(d, collected) }
-            for ie in collected {
-                sym :: typed.resolved.idents[ie.span.hash()]
+            spans: Span[] = []
+            for d in f.program.decls { collect_decl_idents(d, spans) }
+            for sp in spans {
+                h :: sp.hash()
+                if seen[h] != null { continue }
+                sym :: typed.resolved.idents[h]
                 if sym == null { continue }
+                seen[h] = true
                 canon :: resolve_import_redirect(sym, table)
-                sites.push(RefSite { .span = ie.span, .symbol_id = canon.id, .is_decl = false })
+                sites.push(RefSite { .span = sp, .symbol_id = canon.id, .is_decl = false })
             }
         }
     }
     return ReferenceIndex { .sites = sites }
 }
 
-// ---- IdentExpr collectors (mirror ast_tokens.vader's walk coverage) -------
+// ---- identifier-span collectors (mirror ast_tokens.vader coverage) --------
+//
+// Accumulate every identifier-bearing span : `IdentExpr` use-sites AND the
+// name_spans of declarations the body-walker records in `idents` — local lets,
+// params, type-params, for-bindings, pattern bindings. Top-level decl names are
+// NOT pushed here (they come from `resolved.symbols`).
 
-collect_decl_idents :: fn(d: AST.Decl, out: AST.IdentExpr[]) -> void {
+collect_decl_idents :: fn(d: AST.Decl, out: Span[]) -> void {
     match d {
         is AST.ImportDecl    as x -> { collect_decorators(x.decorators, out) }
         is AST.FnDecl        as x -> { collect_fn(x, out) }
@@ -174,17 +196,22 @@ collect_decl_idents :: fn(d: AST.Decl, out: AST.IdentExpr[]) -> void {
     }
 }
 
-collect_decorators :: fn(ds: AST.Decorator[], out: AST.IdentExpr[]) -> void {
+collect_decorators :: fn(ds: AST.Decorator[], out: Span[]) -> void {
     for deco in ds {
         for a in deco.args { collect_expr(a, out) }
     }
 }
 
-collect_type_params :: fn(ps: AST.TypeParam[], out: AST.IdentExpr[]) -> void {
+// Type-param + fn-param DECL names aren't collected : `FnParam.span` /
+// `TypeParam.span` cover the whole `name: Type` slot (wide), so they're neither
+// a clean rename target nor a precise reference range. Their uses (IdentExpr)
+// are still collected. Param / type-param rename is a follow-up needing a
+// name-only span.
+collect_type_params :: fn(ps: AST.TypeParam[], out: Span[]) -> void {
     for p in ps { collect_opt_type(p.bound, out) }
 }
 
-collect_fn :: fn(d: AST.FnDecl, out: AST.IdentExpr[]) -> void {
+collect_fn :: fn(d: AST.FnDecl, out: Span[]) -> void {
     collect_decorators(d.decorators, out)
     collect_type_params(d.type_params, out)
     for p in d.params {
@@ -195,9 +222,19 @@ collect_fn :: fn(d: AST.FnDecl, out: AST.IdentExpr[]) -> void {
     collect_opt_block(d.body, out)
 }
 
-collect_stmt :: fn(s: AST.Stmt, out: AST.IdentExpr[]) -> void {
+collect_binding :: fn(b: AST.LetBinding, out: Span[]) -> void {
+    match b {
+        is AST.SimpleBinding   as x -> { out.push(x.name_span) }
+        is AST.TupleBinding    as x -> { for e in x.elements { collect_binding(e, out) } }
+        is AST.WildcardBinding -> {}
+        is AST.RestBinding     as x -> { out.push(x.span) }
+    }
+}
+
+collect_stmt :: fn(s: AST.Stmt, out: Span[]) -> void {
     match s {
         is AST.LetStmt      as x -> {
+            collect_binding(x.binding, out)
             collect_opt_type(x.ty, out)
             collect_expr(x.value, out)
         }
@@ -211,7 +248,10 @@ collect_stmt :: fn(s: AST.Stmt, out: AST.IdentExpr[]) -> void {
             match x.form {
                 is AST.InfiniteFor -> {}
                 is AST.WhileFor as w -> { collect_expr(w.cond, out) }
-                is AST.InFor    as f -> { collect_expr(f.iter, out) }
+                is AST.InFor    as f -> {
+                    out.push(f.binding_span)
+                    collect_expr(f.iter, out)
+                }
             }
             collect_block(x.body, out)
         }
@@ -226,14 +266,14 @@ collect_stmt :: fn(s: AST.Stmt, out: AST.IdentExpr[]) -> void {
     }
 }
 
-collect_block :: fn(b: AST.BlockExpr, out: AST.IdentExpr[]) -> void {
+collect_block :: fn(b: AST.BlockExpr, out: Span[]) -> void {
     for s in b.stmts { collect_stmt(s, out) }
     collect_opt_expr(b.trailing, out)
 }
 
-collect_expr :: fn(e: AST.Expr, out: AST.IdentExpr[]) -> void {
+collect_expr :: fn(e: AST.Expr, out: Span[]) -> void {
     match e {
-        is AST.IdentExpr         as x -> { out.push(x) }
+        is AST.IdentExpr         as x -> { out.push(x.span) }
         is AST.CallExpr          as x -> {
             collect_expr(x.callee, out)
             for a in x.args { collect_expr(a.value, out) }
@@ -313,7 +353,7 @@ collect_expr :: fn(e: AST.Expr, out: AST.IdentExpr[]) -> void {
     }
 }
 
-collect_pattern :: fn(p: AST.Pattern, out: AST.IdentExpr[]) -> void {
+collect_pattern :: fn(p: AST.Pattern, out: Span[]) -> void {
     match p {
         is AST.IsPattern as x -> {
             collect_type(x.ty, out)
@@ -329,7 +369,7 @@ collect_pattern :: fn(p: AST.Pattern, out: AST.IdentExpr[]) -> void {
         }
         is AST.TuplePattern       as x -> { for el in x.elements { collect_pattern(el, out) } }
         is AST.WildcardPattern         -> {}
-        is AST.BindingPattern          -> {}
+        is AST.BindingPattern     as x -> { out.push(x.span) }
         is AST.EnumVariantPattern      -> {}
         is AST.LiteralPattern     as x -> { collect_expr(x.value, out) }
     }
@@ -337,9 +377,9 @@ collect_pattern :: fn(p: AST.Pattern, out: AST.IdentExpr[]) -> void {
 
 // Type-position identifiers (`x: Foo`, `Map(K, V)`, `A | B`). The topmost ident
 // names a type that the body walker resolves into `idents`, so it's a reference.
-collect_type :: fn(e: AST.Expr, out: AST.IdentExpr[]) -> void {
+collect_type :: fn(e: AST.Expr, out: Span[]) -> void {
     match e {
-        is AST.IdentExpr       as x -> { out.push(x) }
+        is AST.IdentExpr       as x -> { out.push(x.span) }
         is AST.GenericInstExpr as x -> {
             collect_type(x.callee, out)
             for a in x.type_args { collect_type(a, out) }
@@ -362,28 +402,28 @@ collect_type :: fn(e: AST.Expr, out: AST.IdentExpr[]) -> void {
     }
 }
 
-collect_opt_type :: fn(e: AST.Expr | null, out: AST.IdentExpr[]) -> void {
+collect_opt_type :: fn(e: AST.Expr | null, out: Span[]) -> void {
     match e {
         is null -> {}
         _       -> { collect_type(e, out) }
     }
 }
 
-collect_opt_expr :: fn(e: AST.Expr | null, out: AST.IdentExpr[]) -> void {
+collect_opt_expr :: fn(e: AST.Expr | null, out: Span[]) -> void {
     match e {
         is null -> {}
         _       -> { collect_expr(e, out) }
     }
 }
 
-collect_opt_block :: fn(b: AST.BlockExpr | null, out: AST.IdentExpr[]) -> void {
+collect_opt_block :: fn(b: AST.BlockExpr | null, out: Span[]) -> void {
     match b {
         is null -> {}
         _       -> { collect_block(b, out) }
     }
 }
 
-collect_opt_pattern :: fn(p: AST.Pattern | null, out: AST.IdentExpr[]) -> void {
+collect_opt_pattern :: fn(p: AST.Pattern | null, out: Span[]) -> void {
     match p {
         is null -> {}
         _       -> { collect_pattern(p, out) }
@@ -429,40 +469,46 @@ uri_to_path :: fn(uri: string) -> string {
 
 import "std/testing" { assert, assert_eq }
 
-// Count the IdentExprs the walker collects from a parsed source — guards the
-// walker's coverage (parse-only, no resolution needed).
+// Count the identifier spans the walker collects from a parsed source — guards
+// the walker's coverage (parse-only, no resolution needed).
 collect_count :: fn(src: string) -> usize {
     parsed :: AST.parse_source(src, "t.vader")
-    out: AST.IdentExpr[] = []
+    out: Span[] = []
     for d in parsed.program.decls { collect_decl_idents(d, out) }
     return out.len()
 }
 
+// Count collected spans whose source text equals `name`.
 idents_named :: fn(src: string, name: string) -> i32 {
     parsed :: AST.parse_source(src, "t.vader")
-    out: AST.IdentExpr[] = []
+    out: Span[] = []
     for d in parsed.program.decls { collect_decl_idents(d, out) }
+    sb :: src.bytes()
     count := 0
-    for ie in out {
-        if ie.name == name { count = count + 1 }
+    for sp in out {
+        if sp.start.offset < sp.end.offset && sp.end.offset <= sb.len() {
+            if sb[sp.start.offset..<sp.end.offset].bytes_to_string() == name { count = count + 1 }
+        }
     }
     return count
 }
 
 @test
-test_collect_idents_value_and_type_position :: fn() -> void {
-    // `total` referenced 3× (2 reads + the return), `i32` is a type ident.
+test_collect_idents_includes_decls_and_uses :: fn() -> void {
+    // `total` : the `::` local binding name + 2 uses = 3 (collecting the decl
+    // name is what lets rename rewrite a local's declaration, not only its
+    // uses). `a` : the param decl span is wide so isn't collected — only its 1
+    // use. `println` : 1 callee use.
     src :: "module \"t\"\nsum :: fn(a: i32, b: i32) -> i32 {\n    total :: a + b\n    println(total)\n    return total\n}\n"
-    // `total` appears as an IdentExpr twice (println arg + return) — the `::`
-    // binding name is a name_span, not an IdentExpr, so it isn't collected.
-    assert(idents_named(src, "total") == 2, "two uses of total collected")
-    assert(idents_named(src, "a") == 1, "one use of param a")
+    assert(idents_named(src, "total") == 3, "local binding name + two uses of total")
+    assert(idents_named(src, "a") == 1, "param uses only (decl span is wide)")
     assert(idents_named(src, "println") == 1, "callee ident collected")
 }
 
 @test
 test_collect_idents_skips_literals :: fn() -> void {
-    // No identifiers in the body — only literals.
+    // Top-level const : its name comes from resolved.symbols, not the walker ;
+    // the body is only literals, so the walker collects nothing.
     src :: "module \"t\"\nc :: 1 + 2\n"
     assert_eq(collect_count(src), usize(0))
 }
