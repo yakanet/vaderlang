@@ -24,6 +24,10 @@ project rooted at the open file).
 | `textDocument/semanticTokens/full` | `semantic_tokens.vader` / `ast_tokens.vader` | |
 | `textDocument/inlayHint` | `inlay_hint.vader` | inferred-type hints |
 | `textDocument/signatureHelp` | `signature_help.vader` | |
+| `textDocument/documentSymbol` | `document_symbol.vader` | flat outline of file-wide decls (Tier 1) |
+| `textDocument/foldingRange` | `folding_range.vader` | fold multi-line top-level decl bodies (Tier 1) |
+| `textDocument/documentHighlight` | `document_highlight.vader` | name-based occurrences of the ident under cursor (Tier 1) |
+| `textDocument/formatting` | `formatting.vader` | whole-doc format via `vader/fmt` (Tier 1) |
 
 Already on the TODO (Priority + §3.7): completion, rename, find-references,
 code-actions framework, `repair.id` structured diagnostics, semantic-token /
@@ -105,24 +109,25 @@ day-to-day responsiveness.
 
 ### Tier 1 — quick wins (reuse existing infra, no new index)
 
-- **`textDocument/documentSymbol`** — outline / breadcrumbs / Cmd+F12. Map the
-  per-document `DeclEntry[]` (indexer) to `DocumentSymbol[]` (name, kind, range,
-  selectionRange, children for struct fields / enum variants / impl members).
-  Capability: `documentSymbolProvider = true`.
-- **`textDocument/formatting`** (+ `rangeFormatting`, opt. `onTypeFormatting`) —
-  **the formatter already exists** (`vader/fmt/`). Run it on the document text,
-  return one full-document `TextEdit`. Unlocks format-on-save. Capability:
-  `documentFormattingProvider = true`. Lowest effort / highest ratio.
-- **`textDocument/documentHighlight`** — highlight occurrences of the symbol
-  under the cursor **within the open file** (read/write kinds). Needs only the
-  in-file slice of infra A (or a local walk). Capability:
-  `documentHighlightProvider = true`.
-- **`textDocument/foldingRange`** — fold fn bodies, blocks, multi-line imports,
-  `///` doc-comment runs. AST-driven (block spans) + a comment-run pass.
-  Capability: `foldingRangeProvider = true`.
-- **`textDocument/documentLink`** — make `import "path"` strings clickable
-  (resolve to the module file, reuse `resolver.vader::module_path_to_absolute`).
-  Capability: `documentLinkProvider`.
+- ✅ **`textDocument/documentSymbol`** (`document_symbol.vader`) — flat outline
+  of file-wide `DeclEntry[]`. Follow-up: nested children (struct fields / enum
+  variants / impl members) once the indexer records them as entries.
+- ✅ **`textDocument/formatting`** (`formatting.vader`) — whole-document
+  `vader/fmt::format_source` → one `TextEdit`. Follow-up: `rangeFormatting`,
+  `onTypeFormatting`.
+- ✅ **`textDocument/documentHighlight`** (`document_highlight.vader`) —
+  name-based occurrences of the ident under the cursor (Ident-token scan).
+  Follow-up: read/write kinds + scope-precision via the reference index.
+- ✅ **`textDocument/foldingRange`** (`folding_range.vader`) — fold multi-line
+  top-level decl bodies from `DeclEntry.full_span`. Follow-up: nested blocks
+  (if / for / match), multi-line imports, `///` doc-comment runs.
+- ⛔ **`textDocument/documentLink`** — make `import "path"` strings clickable.
+  **Blocked**: the path-string SPAN isn't tracked — AST `ImportDecl` keeps only
+  `{ span (whole stmt), path }`, `ImportEntry` keeps the imported-name span, and
+  literals tokenise as `StringBegin/Part/End`. Needs the indexer/parser to
+  capture the path-string span (and `collect_import` to also record the
+  namespace-form `name :: import "..."`, currently skipped). Target resolution
+  is ready: reuse `resolver.vader::module_path_to_absolute` + `is_dir`/`read_dir`.
 
 ### Tier 2 — navigation (needs infra A / B)
 
