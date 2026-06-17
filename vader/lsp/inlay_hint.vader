@@ -1,13 +1,14 @@
 // vader/lsp/inlay_hint — `textDocument/inlayHint` handler.
 //
 // For each `let x := expr` (or `name :: expr`) without an explicit type
-// annotation, emit a hint `: <inferred-type>` rendered inline after the
-// binding name. Mirrors the Rust-analyzer / TS-server UX so the editor
-// shows what the inference resolved to without forcing the user to
-// hand-annotate.
+// annotation, emit a hint carrying the inferred type rendered *between*
+// the two characters of the binding operator — `name :i64: value` for
+// `::`, `name :i64= value` for `:=`. Mirrors the Rust-analyzer / TS-server
+// UX so the editor shows what inference resolved to without forcing the
+// user to hand-annotate.
 //
 // LSP §3.17 InlayHint shape :
-//   { position: { line, character }, label: ":i32", kind: 1 /* Type */,
+//   { position: { line, character }, label: "i32", kind: 1 /* Type */,
 //     paddingLeft: false, paddingRight: false }
 //
 // Positions are 0-based ; the Vader `Span` is 1-based, so every
@@ -148,12 +149,23 @@ collect_from_expr :: fn(e: AST.Expr, typed: TypedProgram, out: JsonValue[]) -> v
 
 // ---- hint emission -------------------------------------------------------
 
-/// Emit a `<type>` hint between the two characters of the `::` or `:=`
-/// operator. With canonical formatting (`name` + single space + operator),
-/// the rendered line reads `a :u8 : b'{'` for `::` or `a :u8 = b'='` for
-/// `:=` — the first char of the original operator visually reads as the
-/// type-annotation colon, the second char as the (now-bare) decl
-/// separator. Mirrors where a hand-typed `: T` annotation would go.
+/// Push a type hint nested *inside* the binding operator, so the line reads
+/// `name :u8: value` (`::`) or `name :u8= value` (`:=`) — the type sits
+/// between the operator's two characters.
+///
+/// Placement anchors on the **value** span, not the name : the operator→value
+/// gap is canonically one space, whereas the name→operator gap is padded under
+/// vertical alignment (`a   :: 1` / `bb  :: 2`). The operator is two chars + one
+/// space before the value, so the second operator char is at the value's 1-based
+/// column `- 2`, i.e. 0-based column `value.column - 3` — exactly where the hint
+/// must insert to land between the two operator chars.
+emit_operator_hint :: fn(value_span: Span, label: string, out: JsonValue[]) -> void {
+    line :: value_span.start.line - i32(1)
+    col  :: value_span.start.column - i32(3)
+    out.push(build_hint(line, col, label))
+}
+
+/// Emit the inferred-type hint for a `let` binding.
 ///
 /// Currently handles the `SimpleBinding` case ; tuple-destructuring
 /// bindings are skipped (each leaf would need its own hint, and the
@@ -166,16 +178,7 @@ emit_let_hint :: fn(ls: AST.LetStmt, typed: TypedProgram, out: JsonValue[]) -> v
             if ty is UnresolvedType { return }
             if ty is FreeIntType { return }
             if ty is FreeFloatType { return }
-            label :: display_type(ty)
-            // Position : LSP 0-based, between the two chars of `::` /
-            // `:=`. Source layout under canonical formatting is
-            // `<name> <op>` with exactly one space ; the slot between
-            // the op's first and second char sits at `end.column + 1`
-            // (`end.column` is 1-based and exclusive, so `+ 1` after
-            // the implicit `- 1` to 0-base nets to `+ 1`).
-            line :: sb.name_span.end.line - i32(1)
-            col  :: sb.name_span.end.column + i32(1)
-            out.push(build_hint(line, col, label))
+            emit_operator_hint(ls.value.span, display_type(ty), out)
         }
         _ -> {}
     }
@@ -194,10 +197,7 @@ emit_const_hint :: fn(cd: AST.ConstDecl, typed: TypedProgram, out: JsonValue[]) 
     if ty is null { return }
     if ty is UnresolvedType { return }
     if ty is TypeMetaType { return }
-    label :: display_type(ty)
-    line :: cd.name_span.end.line - i32(1)
-    col  :: cd.name_span.end.column + i32(1)
-    out.push(build_hint(line, col, label))
+    emit_operator_hint(cd.value.span, display_type(ty), out)
 }
 
 lookup_const_sym :: fn(resolved: ResolvedModule, name: string) -> Symbol | null {
@@ -215,11 +215,10 @@ build_hint :: fn(line: i32, character: i32, label: string) -> JsonValue {
     hint["label"]        = JsonString { .value = label }
     // InlayHintKind.Type = 1 (LSP §3.17.21).
     hint["kind"]         = JsonNumber { .value = f64(1) }
-    // No leading space — the hint sits flush against the first `:` of
-    // the operator, so the colon reads as the type-annotation colon.
-    // Trailing space separates the hint from the second op char.
+    // The hint nests between the two operator chars (`:<type>:` / `:<type>=`),
+    // so it must hug them with no padding on either side.
     hint["paddingLeft"]  = JsonBool { .value = false }
-    hint["paddingRight"] = JsonBool { .value = true }
+    hint["paddingRight"] = JsonBool { .value = false }
     return JsonObject { .entries = hint }
 }
 

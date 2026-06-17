@@ -114,8 +114,20 @@ export load_project_with_overlay :: fn(entry_path: string, overlay: MutableMap<s
     entry :: entry_path.to_posix()
     modules :: MutableMap<string, LoadedModule> {}
     loader_diags: Diagnostic[] = []
-    stdlib_root :: default_stdlib_root()
     project_root :: find_manifest_root(entry)
+    // Read the project manifest once — both the stdlib root and the extra
+    // source roots come from the same `vader.json`.
+    manifest :: match project_root {
+        is string as pr -> read_manifest(pr)
+        is null          -> Manifest { .stdlib = null, .modules = [] }
+    }
+    // Resolve the stdlib root from the manifest's `stdlib` when declared,
+    // joined onto `project_root` so it shares the entry's path-form (relative
+    // vs absolute). A bare exe-sidecar default (always relative `"stdlib"`)
+    // mismatches an absolute `file://` entry, so an open `stdlib/std/*` file's
+    // folder isn't seen as already-rooted and gets rescanned — redefining every
+    // `std/*` module (R2023/R2001). See `resolve_stdlib_root`.
+    stdlib_root :: resolve_stdlib_root(project_root, manifest.stdlib)
     entry_folder :: entry_folder_of(entry)
 
     // Scoped roots : stdlib + manifest::modules + CLI fallback when the
@@ -124,7 +136,7 @@ export load_project_with_overlay :: fn(entry_path: string, overlay: MutableMap<s
     match project_root {
         is null -> {}
         is string as pr -> {
-            for m in read_manifest_modules(pr) {
+            for m in manifest.modules {
                 scoped_roots.push(join_path(pr, m))
             }
         }
