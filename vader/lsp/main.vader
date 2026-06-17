@@ -155,6 +155,12 @@ dispatch :: fn(state: ServerState, msg: JsonValue, shutdown_received: bool) -> D
         log_info("signatureHelp ${doc_uri(params)}")
         return DispatchResult.Continue
     }
+    if method == "textDocument/documentSymbol" {
+        result :: handle_document_symbol(state, params)
+        write_frame(encode_response(id, result))
+        log_info("documentSymbol ${doc_uri(params)}")
+        return DispatchResult.Continue
+    }
     // Unknown method. Respond with MethodNotFound for requests (have an
     // id) ; ignore notifications (id is JsonNull{} per `request_id`'s
     // convention).
