@@ -16,7 +16,7 @@
 
 module "vader/typecheck"
 
-import "std/collections" { MutableMap, keys, values }
+import "std/collections" { MutableMap }
 import "vader/parser" { ImplDecl, Decl, IdentExpr, GenericInstExpr, TypeExpr }
 import "vader/resolver" { ResolvedModule }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
@@ -76,13 +76,9 @@ export build_impl_registry :: fn(
     // `core_symbols`, not `symbols`. Fold them in so `impl T implements
     // Display { … }` finds the trait symbol when Display wasn't
     // explicitly imported in the user's module.
-    for name in resolved.core_symbols.keys() {
+    for [name, core_sym] in resolved.core_symbols {
         if by_name[name] is null {
-            core_sym :: resolved.core_symbols[name]
-            match core_sym {
-                is null -> {}
-                is Symbol as s -> { by_name[name] = s }
-            }
+            by_name[name] = core_sym
         }
     }
     for d in program_decls {
@@ -143,7 +139,7 @@ name_is_type_param :: fn(resolved: ResolvedModule, name: string) -> bool {
     for s in resolved.symbols {
         if s.name == name && i32(s.kind) == i32(SymbolKind.TypeParam) { return true }
     }
-    for s in resolved.idents.values() {
+    for [_, s] in resolved.idents {
         if s.name == name && i32(s.kind) == i32(SymbolKind.TypeParam) { return true }
     }
     return false

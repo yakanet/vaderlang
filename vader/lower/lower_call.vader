@@ -3,7 +3,7 @@
 
 module "vader/lower"
 
-import "std/collections" { MutableMap, keys }
+import "std/collections" { MutableMap }
 
 import "vader/parser" { Expr, IdentExpr, CallExpr, FieldExpr, Visibility, Decl, ImplDecl }
 import "vader/diagnostics" { Span }
@@ -139,13 +139,9 @@ retype_overload_callee :: fn(
 find_picked_overload_symbol :: fn(ctx: FnLowerCtx, name: string, picked: FnType) -> Symbol | null {
     local :: match_overload_in_bucket(ctx.typed, name, picked)
     if local != null { return local }
-    for module_id in ctx.project.evaluated.modules.keys() {
-        program :: ctx.project.evaluated.modules[module_id]
-        if program is null { continue }
-        if program is EvaluatedProgram as ep {
-            found :: match_overload_in_bucket(ep.typed, name, picked)
-            if found != null { return found }
-        }
+    for [_, ep] in ctx.project.evaluated.modules {
+        found :: match_overload_in_bucket(ep.typed, name, picked)
+        if found != null { return found }
     }
     return null
 }

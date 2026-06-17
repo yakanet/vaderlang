@@ -25,7 +25,6 @@
 
 module "vader/typecheck"
 
-import "std/collections" { keys }
 import "std/sort" { sort }
 import "std/string" { compare_ascending, compare_ascending_ci, pad_end, split }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
@@ -66,9 +65,7 @@ export dump_program_with_others :: fn(
 }
 
 append_expr_lines :: fn(typed: TypedProgram, out: string[]) -> void {
-    for id in typed.expr_kinds.keys() {
-        kind :: typed.expr_kinds[id]
-        if kind is null { continue }
+    for [id, kind] in typed.expr_kinds {
         if is_skipped_kind(kind) { continue }
         ty_str :: lookup_expr_type_str(typed, id)
         loc :: start_loc_for_id(typed, id)
@@ -115,9 +112,7 @@ sort_syms_by_name :: fn(syms: Symbol[]) -> Symbol[] {
 
 build_expr_lines :: fn(typed: TypedProgram) -> string[] {
     out: string[] = []
-    for id in typed.expr_kinds.keys() {
-        kind :: typed.expr_kinds[id]
-        if kind is null { continue }
+    for [id, kind] in typed.expr_kinds {
         if is_skipped_kind(kind) { continue }
         ty_str :: lookup_expr_type_str(typed, id)
         loc :: start_loc_for_id(typed, id)

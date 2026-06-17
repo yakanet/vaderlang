@@ -14,7 +14,7 @@
 
 module "vader/resolver"
 
-import "std/collections" { MutableMap, keys }
+import "std/collections" { MutableMap }
 import "std/io" { exists, is_dir, read_file }
 import "std/path" { to_posix }
 import "std/string" { ends_with, starts_with }
@@ -321,14 +321,8 @@ parse_module_files :: fn(paths: string[], diags: Diagnostic[], overlay: MutableM
 }
 
 find_by_folder :: fn(index: MutableMap<string, DiscoveredModule>, folder: string) -> DiscoveredModule | null {
-    for name in index.keys() {
-        m :: index[name]
-        match m {
-            is DiscoveredModule as dm -> {
-                if dm.folder == folder { return dm }
-            }
-            _ -> {}
-        }
+    for [_, dm] in index {
+        if dm.folder == folder { return dm }
     }
     return null
 }
@@ -376,9 +370,7 @@ collect_files :: fn(
 }
 
 merge_collected :: fn(dst: CollectedModule, src: CollectedModule, diags: Diagnostic[]) -> void {
-    for name in src.symbols.keys() {
-        sym :: src.symbols[name]
-        if sym is null { continue }
+    for [name, sym] in src.symbols {
         existing :: dst.symbols[name]
         match existing {
             is null -> { dst.symbols[name] = sym }
@@ -418,9 +410,7 @@ merge_collected :: fn(dst: CollectedModule, src: CollectedModule, diags: Diagnos
             }
         }
     }
-    for name in src.fn_overloads.keys() {
-        bucket :: src.fn_overloads[name]
-        if bucket is null { continue }
+    for [name, bucket] in src.fn_overloads {
         existing :: dst.fn_overloads[name]
         match existing {
             is null -> { dst.fn_overloads[name] = bucket }
@@ -430,9 +420,7 @@ merge_collected :: fn(dst: CollectedModule, src: CollectedModule, diags: Diagnos
             }
         }
     }
-    for id in src.imports.keys() {
-        info :: src.imports[id]
-        if info is null { continue }
+    for [id, info] in src.imports {
         dst.imports[id] = info
     }
     for p in src.import_paths { dst.import_paths.push(p) }

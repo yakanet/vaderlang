@@ -20,7 +20,7 @@
 
 module "vader/bytecode"
 
-import "std/collections" { MutableMap, MutableSet, keys, values, add, contains }
+import "std/collections" { MutableMap, MutableSet, values, add, contains }
 
 // ============================================================================
 // pruneUnusedImports — drop import entries no `call.import` op references
@@ -100,7 +100,7 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
     // make_closure. Iterate to fixpoint — a vtable-rooted fn may
     // call other fns.
     work: i32[] = []
-    for k in reachable.keys() { work.push(k) }
+    for [k, _] in reachable { work.push(k) }
     for work.len() > usize(0) {
         idx :: work[work.len() - usize(1)]
         // pop
@@ -241,12 +241,9 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
     // Rewrite function_index_by_symbol_id — drop entries whose fn
     // was pruned ; remap survivors.
     new_sym_map :: MutableMap<i32, i32> {}
-    for sym_id in ctx.function_index_by_symbol_id.keys() {
-        old_idx_opt :: ctx.function_index_by_symbol_id[sym_id]
-        if old_idx_opt is i32 as old_idx {
-            r :: remap[usize(old_idx)]
-            if r >= 0 { new_sym_map[sym_id] = r }
-        }
+    for [sym_id, old_idx] in ctx.function_index_by_symbol_id {
+        r :: remap[usize(old_idx)]
+        if r >= 0 { new_sym_map[sym_id] = r }
     }
     ctx.function_index_by_symbol_id = new_sym_map
 
@@ -255,12 +252,9 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
     // carrying a synthetic `fn_symbol.id = 0` (materialised impl members). A
     // stale pre-prune index here would point those vtable rows at the wrong fn.
     new_mangle_map :: MutableMap<string, i32> {}
-    for mangle in ctx.function_index_by_mangle.keys() {
-        old_idx_opt :: ctx.function_index_by_mangle[mangle]
-        if old_idx_opt is i32 as old_idx {
-            r :: remap[usize(old_idx)]
-            if r >= 0 { new_mangle_map[mangle] = r }
-        }
+    for [mangle, old_idx] in ctx.function_index_by_mangle {
+        r :: remap[usize(old_idx)]
+        if r >= 0 { new_mangle_map[mangle] = r }
     }
     ctx.function_index_by_mangle = new_mangle_map
 
@@ -269,18 +263,15 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
     // only a dead fn referenced), and a folded mangle-duplicate merges its
     // (empty) pins onto the canonical.
     new_pins_by_fn :: MutableMap<i32, i32[]> {}
-    for old_fn in ctx.pinned_types_by_fn.keys() {
+    for [old_fn, pins] in ctx.pinned_types_by_fn {
         if usize(old_fn) >= remap.len() { continue }
         new_fn :: remap[usize(old_fn)]
         if new_fn < 0 { continue }
-        pins_opt :: ctx.pinned_types_by_fn[old_fn]
-        if pins_opt is i32[] as pins {
-            existing :: new_pins_by_fn[new_fn]
-            if existing is i32[] as ex {
-                for p in pins { ex.push(p) }
-            } else {
-                new_pins_by_fn[new_fn] = pins
-            }
+        existing :: new_pins_by_fn[new_fn]
+        if existing is i32[] as ex {
+            for p in pins { ex.push(p) }
+        } else {
+            new_pins_by_fn[new_fn] = pins
         }
     }
     ctx.pinned_types_by_fn = new_pins_by_fn
@@ -326,9 +317,8 @@ export prune_unused_types :: fn(ctx: EmitterCtx) -> void {
     // Per-function arg/result pins — only for SURVIVING functions (pruned fns
     // were dropped from `pinned_types_by_fn` by `prune_unused_functions`), so a
     // type a dead fn referenced is no longer rooted here.
-    for fn_key in ctx.pinned_types_by_fn.keys() {
-        pins_opt :: ctx.pinned_types_by_fn[fn_key]
-        if pins_opt is i32[] as pins { for p in pins { roots.push(p) } }
+    for [_, pins] in ctx.pinned_types_by_fn {
+        for p in pins { roots.push(p) }
     }
     for r in roots { visit_type(r, ctx, reachable) }
 
@@ -376,12 +366,9 @@ export prune_unused_types :: fn(ctx: EmitterCtx) -> void {
 
     // Remap type_key entries — drop pruned slots, rewrite survivors.
     new_type_key :: MutableMap<string, i32> {}
-    for key in ctx.type_key.keys() {
-        old_opt :: ctx.type_key[key]
-        if old_opt is i32 as old_idx {
-            r :: remap_idx(remap, old_idx)
-            if r >= 0 { new_type_key[key] = r }
-        }
+    for [key, old_idx] in ctx.type_key {
+        r :: remap_idx(remap, old_idx)
+        if r >= 0 { new_type_key[key] = r }
     }
     ctx.type_key = new_type_key
 

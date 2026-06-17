@@ -179,7 +179,7 @@ is_irrefutable_tuple_pattern :: fn(tp: AST.TuplePattern) -> bool {
 missing_enum_variant_name :: fn(
     en: EnumType, typed: TypedProgram, covered: string[],
 ) -> string {
-    for name in en.indices.keys() {
+    for [name, _] in en.indices {
         found := false
         for c in covered {
             if c == name {

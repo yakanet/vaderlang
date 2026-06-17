@@ -3,7 +3,7 @@
 
 module "vader/lower"
 
-import "std/collections" { MutableMap, keys }
+import "std/collections" { MutableMap }
 
 import "vader/parser" { Expr, CallExpr, FieldExpr, CallArg, Visibility, StructDecl }
 import "vader/typecheck" { type_from_expr, default_if_free, is_assignable, substitute_by_name, try_array_to_iter }
@@ -142,16 +142,12 @@ find_free_fn_ufcs :: fn(ctx: FnLowerCtx, recv_type: Type, name: string) -> UfcsM
     // `stdlib/std/collections.vader` even though the user file never
     // `import`s `len`. Mirror of TS's `inferField` which scans every
     // loaded module's exports via `fieldRefs` (`ufcs-free` ref).
-    for module_id in ctx.project.evaluated.modules.keys() {
-        program :: ctx.project.evaluated.modules[module_id]
-        if program is null { continue }
-        if program is EvaluatedProgram as ep {
-            bucket :: ep.typed.resolved.fn_overloads[name]
-            if bucket is Symbol[] as bucket_syms {
-                for sym in bucket_syms {
-                    if first_param_matches(ctx, sym, recv_type) {
-                        return UfcsMember { .symbol = sym }
-                    }
+    for [_, ep] in ctx.project.evaluated.modules {
+        bucket :: ep.typed.resolved.fn_overloads[name]
+        if bucket is Symbol[] as bucket_syms {
+            for sym in bucket_syms {
+                if first_param_matches(ctx, sym, recv_type) {
+                    return UfcsMember { .symbol = sym }
                 }
             }
         }

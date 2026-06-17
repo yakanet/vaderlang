@@ -29,7 +29,7 @@
 
 module "vader/comptime"
 
-import "std/collections" { MutableMap, keys }
+import "std/collections" { MutableMap }
 import "vader/parser" {
     Decl, FnDecl, StructDecl, ConstDecl, ImplDecl,
     AssertDecl, ImportDecl, EnumDecl, TraitDecl, TypeAliasDecl,
@@ -67,9 +67,7 @@ export monomorphize_project :: fn(
 
     // Pass 1 — walk every typed module's decls. One entry per
     // non-generic top-level decl ; one per non-generic-impl member.
-    for module_id in evaluated.typed.modules.keys() {
-        module_typed :: evaluated.typed.modules[module_id]
-        if module_typed is null { continue }
+    for [module_id, module_typed] in evaluated.typed.modules {
         decls_opt :: module_decls_for(loaded, module_id)
         if decls_opt is null { continue }
         decls :: decls_opt
@@ -198,9 +196,7 @@ build_generic_impls_by_struct :: fn(loaded: LoadedProject, typed: TypedProject) 
     table :: GenericImplsByStruct {
         .by_struct_name = MutableMap<string, GenericImplsBucket> {},
     }
-    for module_id in typed.modules.keys() {
-        module_typed :: typed.modules[module_id]
-        if module_typed is null { continue }
+    for [module_id, module_typed] in typed.modules {
         decls_opt :: module_decls_for(loaded, module_id)
         if decls_opt is null { continue }
         decls :: decls_opt

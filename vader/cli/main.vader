@@ -11,7 +11,7 @@
 module "vader/cli"
 
 import "std/io" { println, eprintln, read_file, write_file, print }
-import "std/collections" { keys, values, MutableMap }
+import "std/collections" { MutableMap }
 import "std/string" { starts_with, ends_with, trim_suffix, split, trim }
 import "std/iter" { slice as slice_arr }
 import "std/path" { to_posix, to_path, filename }
@@ -383,7 +383,7 @@ cmd_test :: fn(args: string[]) -> i32 {
 /// fn's source name (the rare `@test("custom")` string arg is not surfaced).
 find_tests :: fn(lp: LoweredProject) -> DiscoveredTest[] {
     out: DiscoveredTest[] = []
-    for m in lp.modules.values() {
+    for [_, m] in lp.modules {
         for d in m.decls {
             if d is LoweredFnDecl as fd {
                 if fd.body == null { continue }
@@ -452,18 +452,15 @@ pick_module_representatives :: fn(files: string[]) -> string[] {
         }
     }
     out: string[] = []
-    for d in by_dir.keys() {
-        group_opt :: by_dir[d]
-        if group_opt is string[] as group {
-            if group.len() <= usize(1) {
-                out.push(group[0])
-            } else if is_folder_module(group) {
-                out.push(d)
-            } else {
-                imported :: collect_sibling_imports(group)
-                for f in group {
-                    if !(basename_no_ext(f) in imported) { out.push(f) }
-                }
+    for [d, group] in by_dir {
+        if group.len() <= usize(1) {
+            out.push(group[0])
+        } else if is_folder_module(group) {
+            out.push(d)
+        } else {
+            imported :: collect_sibling_imports(group)
+            for f in group {
+                if !(basename_no_ext(f) in imported) { out.push(f) }
             }
         }
     }
@@ -864,9 +861,7 @@ resolve_loaded_project :: fn(project: LoadedProject) -> ResolvedProject {
     core_seed :: build_core_seed(project)
     modules: ResolvedModule[] = []
     resolved_by_id :: MutableMap<string, ResolvedModule> {}
-    for id in project.modules.keys() {
-        lm :: project.modules[id]
-        if lm is null { continue }
+    for [id, lm] in project.modules {
         if is_stdlib_module(lm.module.display_path) { continue }
         rm :: resolve_module_with_collected_dp_seeded(
             lm.module.files[0].program, lm.module.files[0].path,
@@ -878,9 +873,7 @@ resolve_loaded_project :: fn(project: LoadedProject) -> ResolvedProject {
     wire_targets :: wire_imports(project)
     // R2018 orphan-rule pre-resolve check. Runs after wire_imports so
     // ImportBinding redirects resolve to the concrete owner module.
-    for id in project.modules.keys() {
-        lm :: project.modules[id]
-        if lm is null { continue }
+    for [id, lm] in project.modules {
         rm :: resolved_by_id[id]
         if rm is null { continue }
         run_orphan_rule_check_for_module(lm, id, rm.idents, wire_targets, rm.diags)
@@ -1186,10 +1179,8 @@ prepare_evaluated_project :: fn(file: string) -> EvaluatedPipeline {
 collect_body_diags :: fn(result: CheckResult) -> Diagnostic[] {
     out: Diagnostic[] = []
     if result.all_modules.size == 0 { return out }
-    for module_id in result.all_modules.keys() {
+    for [module_id, module_typed] in result.all_modules {
         if module_id == result.typed.resolved.path { continue }
-        module_typed :: result.all_modules[module_id]
-        if module_typed is null { continue }
         for d in module_typed.resolved.diags { out.push(d) }
     }
     return out
@@ -1204,9 +1195,7 @@ assemble_typed_project :: fn(result: CheckResult) -> TypedProject {
     // imports + std/* — so downstream passes that need impl-by-trait
     // queries (lower, bytecode emit) see std-defined impls.
     if result.all_modules.size > 0 {
-        for module_id in result.all_modules.keys() {
-            module_typed :: result.all_modules[module_id]
-            if module_typed is null { continue }
+        for [module_id, module_typed] in result.all_modules {
             project.modules[module_id] = module_typed
         }
         return project

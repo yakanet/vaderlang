@@ -8,7 +8,7 @@
 
 module "vader/comptime"
 
-import "std/collections" { MutableMap, keys }
+import "std/collections" { MutableMap }
 import "vader/diagnostics" { Diagnostic }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/resolver" { LoadedProject }
@@ -30,9 +30,7 @@ export evaluate_project :: fn(
     loaded: LoadedProject, typed: TypedProject, diags: Diagnostic[],
 ) -> EvaluatedProject {
     project :: new_evaluated_project(typed)
-    for module_id in typed.modules.keys() {
-        module_typed :: typed.modules[module_id]
-        if module_typed is null { continue }
+    for [module_id, module_typed] in typed.modules {
         program :: new_evaluated_program(module_typed)
         decls :: lookup_module_decls(loaded, module_id)
         match decls {
@@ -60,60 +58,30 @@ export evaluate_project :: fn(
 // lowerer port when their downstream consumers exist).
 harvest_instances :: fn(typed: TypedProject) -> GenericInstance[] {
     registry :: new_registry()
-    for module_id in typed.modules.keys() {
-        module_typed :: typed.modules[module_id]
-        if module_typed is null { continue }
-        for symbol_id in module_typed.decl_types.keys() {
-            t :: module_typed.decl_types[symbol_id]
-            match t {
-                is null -> {}
-                _       -> { observe(registry, t) }
-            }
+    for [_, module_typed] in typed.modules {
+        for [_, t] in module_typed.decl_types {
+            observe(registry, t)
         }
-        for span_or_id in module_typed.expr_types.keys() {
-            t :: module_typed.expr_types[span_or_id]
-            match t {
-                is null -> {}
-                _       -> { observe(registry, t) }
-            }
+        for [_, t] in module_typed.expr_types {
+            observe(registry, t)
         }
-        for binding_id in module_typed.local_types.keys() {
-            t :: module_typed.local_types[binding_id]
-            match t {
-                is null -> {}
-                _       -> { observe(registry, t) }
-            }
+        for [_, t] in module_typed.local_types {
+            observe(registry, t)
         }
-        for param_id in module_typed.param_types.keys() {
-            t :: module_typed.param_types[param_id]
-            match t {
-                is null -> {}
-                _       -> { observe(registry, t) }
-            }
+        for [_, t] in module_typed.param_types {
+            observe(registry, t)
         }
-        for type_id in module_typed.type_expr_types.keys() {
-            t :: module_typed.type_expr_types[type_id]
-            match t {
-                is null -> {}
-                _       -> { observe(registry, t) }
-            }
+        for [_, t] in module_typed.type_expr_types {
+            observe(registry, t)
         }
         // Impl-method types live in `impl_methods` (mangled-name keyed)
         // and `impl_method_decl_types` (span-keyed), not `decl_types`
         // (Symbol.id-keyed — impl methods aren't in `resolved.symbols`).
-        for impl_key in module_typed.impl_methods.keys() {
-            t :: module_typed.impl_methods[impl_key]
-            match t {
-                is null -> {}
-                _       -> { observe(registry, t) }
-            }
+        for [_, t] in module_typed.impl_methods {
+            observe(registry, t)
         }
-        for impl_span_key in module_typed.impl_method_decl_types.keys() {
-            t :: module_typed.impl_method_decl_types[impl_span_key]
-            match t {
-                is null -> {}
-                _       -> { observe(registry, t) }
-            }
+        for [_, t] in module_typed.impl_method_decl_types {
+            observe(registry, t)
         }
     }
     return sorted_instances(registry)

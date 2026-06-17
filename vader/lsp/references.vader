@@ -107,9 +107,7 @@ build_reference_index :: fn(project: LoadedProject, result: CheckResult) -> Refe
     table :: wire_imports(project)
     sites: RefSite[] = []
     seen :: MutableMap<u64, bool> {}
-    for id in result.all_modules.keys() {
-        typed :: result.all_modules[id]
-        if typed == null { continue }
+    for [id, typed] in result.all_modules {
         mod :: project.modules[id]
         if mod == null { continue }
 

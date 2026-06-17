@@ -25,9 +25,7 @@ export build_core_seed :: fn(project: LoadedProject) -> MutableMap<string, Symbo
     if core_id is null { return out }
     core_loaded :: project.modules[core_id]
     if core_loaded is null { return out }
-    for name in core_loaded.collected.symbols.keys() {
-        sym :: core_loaded.collected.symbols[name]
-        if sym is null { continue }
+    for [name, sym] in core_loaded.collected.symbols {
         out[name] = sym
     }
     return out
@@ -37,7 +35,7 @@ export build_core_seed :: fn(project: LoadedProject) -> MutableMap<string, Symbo
 /// so both single-file (`std/core.vader`) and folder-module
 /// (`std/core/`) layouts resolve.
 export find_core_module_id :: fn(project: LoadedProject) -> string | null {
-    for id in project.modules.keys() {
+    for [id, _] in project.modules {
         if id.ends_with("std/core.vader") || id.ends_with("std/core") {
             return id
         }

@@ -3,7 +3,7 @@
 
 module "vader/lower"
 
-import "std/collections" { MutableMap, values }
+import "std/collections" { MutableMap }
 
 import "vader/parser" { Expr, BlockExpr, Stmt, LetStmt, AssignStmt, ExprStmt, ReturnStmt, ForStmt, BreakStmt, ContinueStmt, DeferStmt, InfiniteFor, WhileFor, InFor, SimpleBinding, TupleBinding, WildcardBinding, RestBinding, Visibility }
 import "vader/diagnostics" { Span }
@@ -275,7 +275,7 @@ ensure_local_symbol_index :: fn(
     if !(cached is null) { return cached }
     index :: MutableMap<u64, Symbol> {}
     // `idents` first — every referenced binding's defined_at lands here.
-    for symbol in resolved.idents.values() {
+    for [_, symbol] in resolved.idents {
         match symbol.defined_at {
             is null -> {}
             is Span as defined -> { index[defined.hash()] = symbol }

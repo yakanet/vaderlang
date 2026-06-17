@@ -8,7 +8,6 @@
 
 module "vader/midir"
 
-import "std/collections" { values }
 import "std/string_builder" { StringBuilder, new_builder, append }
 import "vader/resolver/symbol" { kind_name }
 import "vader/types" { display_type }
@@ -26,7 +25,7 @@ export DumpCfgOptions :: struct {
 export dump_cfg_project :: fn(p: CFGProject, opts: DumpCfgOptions) -> string {
     sb :: new_builder()
     sb.append("# CFG\n")
-    for m in values(p.modules) {
+    for [_, m] in p.modules {
         match opts.include_module {
             is null -> {}
             _ -> { if !opts.include_module(m.display_path) { continue } }

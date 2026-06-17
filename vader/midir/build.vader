@@ -117,9 +117,7 @@ import "vader/comptime" { MonoEntry }
 export build_cfg_project :: fn(lp: LoweredProject) -> CFGProject {
     ctx :: new_project_ctx(lp)
     modules :: MutableMap<string, CFGModule> {}
-    for module_id in lp.modules.keys() {
-        m :: lp.modules[module_id]
-        if m is null { continue }
+    for [module_id, m] in lp.modules {
         functions: CFGFunction[] = []
         externs: CFGExternDecl[] = []
         struct_decls: CFGStructDecl[] = []
