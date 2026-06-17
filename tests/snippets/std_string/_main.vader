@@ -1,7 +1,7 @@
 module "snippet"
 
 import "std/io" { println }
-import "std/string" { as_string, trim, to_upper, to_lower, starts_with, ends_with, split }
+import "std/string" { trim, to_upper, to_lower, starts_with, ends_with, split }
 
 main :: fn() -> i32 {
     s := "  Hello, World!  "
@@ -12,7 +12,7 @@ main :: fn() -> i32 {
     println("${"foobar".contains("oba")}")
     println("${"foobar".starts_with("foo")}")
     println("${"foobar".ends_with("bar")}")
-    println("hello world".bytes()[6..<11].as_string())
+    println("hello world".bytes()[6..<11].bytes_to_string())
     println("${"hello"[1]}")
     println("${"你好嗎？"[0]}")
     println("${"你好嗎？"[1]}")

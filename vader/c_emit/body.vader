@@ -27,7 +27,6 @@
 
 module "vader/c_emit"
 
-import "std/string" { as_string }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 import "std/numbers" { is_hex_digit }
 import "vader/bytecode" {
@@ -344,7 +343,7 @@ export prefix_before_double_underscore :: fn(s: string) -> string {
     j: usize = start
     for j + 1 < n {
         if sb[j] == b'_' && sb[j + 1] == b'_' {
-            return sb[0..<j].as_string()
+            return sb[0..<j].bytes_to_string()
         }
         j += 1
     }

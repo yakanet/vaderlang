@@ -1,0 +1,12 @@
+// R2030: at most one impl per (concrete type, trait). The `std/core` prelude
+// already carries `i32 implements Display`, and that impl is in scope in every
+// module, so re-implementing it here is a conflict — not a silent shadow.
+// (The shadow used to let `"${self}"` re-enter this `to_string` and recurse.)
+// To attach behaviour to a primitive, declare your own trait instead.
+module "snippet"
+
+i32 implements Display {
+    to_string :: fn(self) -> string = "n=${self}"
+}
+
+main :: fn() -> i32 { return 0 }

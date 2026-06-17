@@ -14,7 +14,7 @@
 module "vader/lsp"
 
 import "std/io" { read_file, read_dir, is_dir }
-import "std/string" { starts_with, as_string }
+import "std/string" { starts_with }
 import "vader/resolver" { default_stdlib_root, find_manifest_root }
 
 /// Where a cross-file goto-def landed : a file URI + the target's
@@ -135,7 +135,7 @@ module_path_to_absolute :: fn(raw: string, state: ServerState, from_uri: string)
         // `vader/X` strips the `vader/` prefix because the root already
         // points at the `vader/` directory.
         rb :: raw.bytes()
-        suffix :: rb[6..<rb.len()].as_string()
+        suffix :: rb[6..<rb.len()].bytes_to_string()
         return path_join(root, suffix)
     }
     if raw.starts_with("./") || raw.starts_with("../") {
@@ -179,7 +179,7 @@ uri_to_path :: fn(uri: string) -> string {
     prefix :: "file://"
     if uri.starts_with(prefix) {
         ub :: uri.bytes()
-        return ub[prefix.bytes().len()..<ub.len()].as_string()
+        return ub[prefix.bytes().len()..<ub.len()].bytes_to_string()
     }
     return ""
 }
@@ -195,7 +195,7 @@ dirname_path :: fn(p: string) -> string {
     for i >= 0 {
         if pb[usize(i)] == sep {
             if i == 0 { return "/" }
-            return pb[0..<usize(i)].as_string()
+            return pb[0..<usize(i)].bytes_to_string()
         }
         i = i - 1
     }
@@ -214,7 +214,7 @@ path_join :: fn(a: string, b: string) -> string {
     a_ends_sep :: ab[ab.len() - 1] == sep
     b_starts_sep :: bb[0] == sep
     if a_ends_sep && b_starts_sep {
-        return a + bb[1..<bb.len()].as_string()
+        return a + bb[1..<bb.len()].bytes_to_string()
     }
     if a_ends_sep || b_starts_sep {
         return a + b

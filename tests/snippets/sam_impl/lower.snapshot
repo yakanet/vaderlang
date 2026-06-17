@@ -1,7 +1,7 @@
 # Lower
 
 ## snippet
-  fn snippet$i32$Display$to_string(self: i32) -> string
+  fn snippet$i32$Describe$describe(self: i32) -> string
     ~>
       block :string
         let __sb_0: StringBuilder =
@@ -32,7 +32,7 @@
               std_string_builder$StringBuilder$Display$to_string :string
             arg0:
               __sb_0 :StringBuilder
-  fn snippet$i64$Display$to_string(self: i64) -> string
+  fn snippet$i64$Describe$describe(self: i64) -> string
     let prefix: string = "i64=" :string
     return
       block :string
@@ -68,7 +68,7 @@
               std_string_builder$StringBuilder$Display$to_string :string
             arg0:
               __sb_0 :StringBuilder
-  fn snippet$i32$Hash$hash(self: i32) -> u64
+  fn snippet$i32$Tag$tag(self: i32) -> u64
     ~>
       cast → u64
         self :i32
@@ -81,7 +81,7 @@
       arg0:
         call :string
           callee:
-            std_core$i32$Display$to_string :string
+            snippet$i32$Describe$describe :string
           arg0:
             x :i32
     call :void
@@ -90,7 +90,7 @@
       arg0:
         call :string
           callee:
-            std_core$i64$Display$to_string :string
+            snippet$i64$Describe$describe :string
           arg0:
             y :i64
     call :void
@@ -114,7 +114,7 @@
                 arg0:
                   call :u64
                     callee:
-                      std_core$i32$Hash$hash :u64
+                      snippet$i32$Tag$tag :u64
                     arg0:
                       x :i32
           ~>

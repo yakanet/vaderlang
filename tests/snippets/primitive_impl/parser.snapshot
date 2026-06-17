@@ -21,18 +21,48 @@
       "decorators": []
     },
     {
+      "kind": "TraitDecl",
+      "name": "Describe",
+      "visibility": "private",
+      "typeParams": [],
+      "requires": null,
+      "members": [
+        {
+          "kind": "FnDecl",
+          "name": "describe",
+          "visibility": "private",
+          "typeParams": [],
+          "params": [
+            {
+              "name": "self",
+              "type": null,
+              "defaultValue": null,
+              "variadic": false
+            }
+          ],
+          "returnType": {
+            "kind": "IdentExpr",
+            "name": "string"
+          },
+          "body": null,
+          "decorators": []
+        }
+      ],
+      "decorators": []
+    },
+    {
       "kind": "ImplDecl",
       "typeParams": [],
       "forType": {
         "kind": "IdentExpr",
         "name": "i32"
       },
-      "traitName": "Display",
+      "traitName": "Describe",
       "traitArgs": [],
       "members": [
         {
           "kind": "FnDecl",
-          "name": "to_string",
+          "name": "describe",
           "visibility": "private",
           "typeParams": [],
           "params": [
@@ -126,7 +156,7 @@
                         "kind": "IdentExpr",
                         "name": "x"
                       },
-                      "field": "to_string"
+                      "field": "describe"
                     },
                     "args": []
                   },

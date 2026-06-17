@@ -31,7 +31,7 @@ module "vader/vm"
 bc :: import "vader/bytecode"
 
 import "std/io" { read_file, eprintln }
-import "std/string" { index_of, as_string, decode_codepoint_at, join }
+import "std/string" { index_of, decode_codepoint_at, join }
 
 // IEEE 754 bit reinterpret for the F64ToBits / BitsToF64 arms. The VM's own
 // code can't use the `f64.to_bits()` / `u64.from_bits()` intrinsics : they
@@ -581,8 +581,8 @@ intrinsic_host_mangle :: fn(kind: string, vtable_key: string) -> string {
     dot :: vtable_key.index_of('.', 0)
     if dot < 0 { return "" }
     kb :: vtable_key.bytes()
-    trait_name :: kb[0..<usize(dot)].as_string()
-    method :: kb[usize(dot) + 1..<kb.len()].as_string()
+    trait_name :: kb[0..<usize(dot)].bytes_to_string()
+    method :: kb[usize(dot) + 1..<kb.len()].bytes_to_string()
     return "std_core$${kind}$${trait_name}$${method}"
 }
 
@@ -1483,7 +1483,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[]) -
                 if seen <= lo_cp { byte_lo = n_bytes }
                 if seen <= hi_cp { byte_hi = n_bytes }
                 if byte_hi < byte_lo { byte_hi = byte_lo }
-                frame.stack[frame.sp - 3] = StringVal { .value = sb[byte_lo..<byte_hi].as_string() }
+                frame.stack[frame.sp - 3] = StringVal { .value = sb[byte_lo..<byte_hi].bytes_to_string() }
                 frame.sp = frame.sp - 2
                 frame.pc = frame.pc + 1
             }
@@ -1728,7 +1728,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[]) -
                 // width 0 ⇒ checks `0 <= len <= bytes_len`, returns the usize len.
                 n :: check_byte_range(len_unwrap.value, 0, obj_unwrap.bytes.len(), "buffer_to_string", frame.pc)
                 if n is Trap { return n }
-                frame.stack[frame.sp - 2] = StringVal { .value = obj_unwrap.bytes[0..<n].as_string() }
+                frame.stack[frame.sp - 2] = StringVal { .value = obj_unwrap.bytes[0..<n].bytes_to_string() }
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
             }

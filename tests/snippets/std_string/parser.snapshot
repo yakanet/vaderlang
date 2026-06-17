@@ -27,10 +27,6 @@
         "kind": "destructure",
         "names": [
           {
-            "name": "as_string",
-            "alias": null
-          },
-          {
             "name": "trim",
             "alias": null
           },
@@ -441,7 +437,7 @@
                           }
                         }
                       },
-                      "field": "as_string"
+                      "field": "bytes_to_string"
                     },
                     "args": []
                   },

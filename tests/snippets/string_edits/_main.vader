@@ -1,0 +1,18 @@
+module "snippet"
+
+import "std/io" { println }
+import "std/string" { replace, replace_all, repeat, find }
+
+// Exercises the string methods implemented in std/string (no longer faked by
+// the typer's primitive_method_type table) — they require importing std/string.
+
+main :: fn() -> i32 {
+    println("hello world".replace("o", "0"))   // first occurrence: hell0 world
+    println("a.b.c".replace_all(".", "-"))      // every occurrence: a-b-c
+    println("no-match".replace("z", "Z"))       // unchanged: no-match
+    println("ab".repeat(3))                     // ababab
+    println("x".repeat(0))                      // (empty line)
+    println("${"hello".find('e')}")             // true
+    println("${"hello".find('z')}")             // false
+    return 0
+}

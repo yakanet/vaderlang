@@ -23,7 +23,7 @@ module "vader/vm"
 
 bc :: import "vader/bytecode"
 
-import "std/string" { as_string, starts_with, ends_with, trim, split, index_of, decode_escapes, ParseError }
+import "std/string" { starts_with, ends_with, trim, split, index_of, decode_escapes, ParseError }
 import "std/numbers" { parse_int_in_base }
 
 /// Parse a full `.virt` text dump into a `BytecodeModule` ready for `emit_c`.
@@ -150,7 +150,7 @@ export parse_virt_bc :: fn(source: string) -> bc.BytecodeModule {
 
 parse_module_name :: fn(cleaned: string) -> string {
     cb :: cleaned.bytes()
-    return cb["module ".bytes().len()..<cb.len()].as_string().trim()
+    return cb["module ".bytes().len()..<cb.len()].bytes_to_string().trim()
 }
 
 /// Parse `type N <decl>` into the matching `BcType`, appended in ordinal order
@@ -158,28 +158,28 @@ parse_module_name :: fn(cleaned: string) -> string {
 /// pushes a `BcRef` placeholder to keep ordinals aligned).
 parse_type_decl_bc :: fn(cleaned: string, types: bc.BcType[]) -> void {
     cb :: cleaned.bytes()
-    after_type :: cb["type ".bytes().len()..<cb.len()].as_string().trim()
+    after_type :: cb["type ".bytes().len()..<cb.len()].bytes_to_string().trim()
     first_space :: after_type.index_of(' ', 0)
     if first_space < 0 { types.push(bc.BcRef { .trait_name = "" }) return }
     atb :: after_type.bytes()
-    rest :: atb[usize(first_space) + 1..<atb.len()].as_string().trim()
+    rest :: atb[usize(first_space) + 1..<atb.len()].bytes_to_string().trim()
     rb :: rest.bytes()
 
     if rest.starts_with("struct ") { types.push(parse_struct_type_bc(rest)) return }
     if rest.starts_with("primitive ") {
-        kind :: rb["primitive ".bytes().len()..<rb.len()].as_string().trim()
+        kind :: rb["primitive ".bytes().len()..<rb.len()].bytes_to_string().trim()
         types.push(bc.BcPrimitive { .val = vt_or_void(kind) })
         return
     }
     if rest.starts_with("array ") {
-        element_text :: rb["array ".bytes().len()..<rb.len()].as_string().trim()
+        element_text :: rb["array ".bytes().len()..<rb.len()].bytes_to_string().trim()
         parsed :: parse_int_in_base(element_text, 10)
         if parsed is ParseError { types.push(bc.BcRef { .trait_name = "" }) return }
         types.push(bc.BcArray { .element = i32(parsed) })
         return
     }
     if rest.starts_with("ref ") {
-        name :: rb["ref ".bytes().len()..<rb.len()].as_string().trim()
+        name :: rb["ref ".bytes().len()..<rb.len()].bytes_to_string().trim()
         normalised :: if name == "_" { "" } else { name }
         types.push(bc.BcRef { .trait_name = normalised })
         return
@@ -194,9 +194,9 @@ parse_type_decl_bc :: fn(cleaned: string, types: bc.BcType[]) -> void {
 /// → `-1`.
 parse_struct_type_bc :: fn(rest: string) -> bc.BcStruct {
     rb :: rest.bytes()
-    after_struct :: rb["struct ".bytes().len()..<rb.len()].as_string()
+    after_struct :: rb["struct ".bytes().len()..<rb.len()].bytes_to_string()
     open :: after_struct.index_of('{', 0)
-    raw_name :: if open < 0 { after_struct.trim() } else { after_struct.bytes()[0..<usize(open)].as_string().trim() }
+    raw_name :: if open < 0 { after_struct.trim() } else { after_struct.bytes()[0..<usize(open)].bytes_to_string().trim() }
     // The dump `quote_ident`-wraps a name carrying chars outside [A-Za-z0-9_$.]
     // (e.g. the `/` of a path-qualified synthetic Cell struct) in `"..."` with
     // json-escapes ; unquote so `sanitise` derives the same C identifier as the
@@ -207,15 +207,15 @@ parse_struct_type_bc :: fn(rest: string) -> bc.BcStruct {
         asb :: after_struct.bytes()
         close :: after_struct.index_of('}', 0)
         if close >= 0 && close > open + 1 {
-            inner :: asb[usize(open) + 1..<usize(close)].as_string().trim()
+            inner :: asb[usize(open) + 1..<usize(close)].bytes_to_string().trim()
             if inner.bytes().len() > 0 {
                 for part in inner.split(",") {
                     pt :: part.trim()
                     colon :: pt.index_of(':', 0)
                     if colon >= 0 {
                         ptb :: pt.bytes()
-                        fname :: ptb[0..<usize(colon)].as_string().trim()
-                        tidtext :: ptb[usize(colon) + 1..<ptb.len()].as_string().trim()
+                        fname :: ptb[0..<usize(colon)].bytes_to_string().trim()
+                        tidtext :: ptb[usize(colon) + 1..<ptb.len()].bytes_to_string().trim()
                         tid :: parse_int_in_base(tidtext, 10)
                         if !(tid is ParseError) {
                             fields.push(bc.BcField { .name = fname, .type_index = i32(tid) })
@@ -235,14 +235,14 @@ parse_fn_type_bc :: fn(rest: string) -> bc.BcFn {
     open :: rest.index_of('(', 0)
     close :: rest.index_of(')', 0)
     params: i32[] = if open >= 0 && close >= 0 && close > open + 1 {
-        parse_int_list(rb[usize(open) + 1..<usize(close)].as_string().trim())
+        parse_int_list(rb[usize(open) + 1..<usize(close)].bytes_to_string().trim())
     } else {
         []
     }
     return_type := 0
     arrow :: rest.index_of('>', 0)
     if arrow >= 0 {
-        ret_text :: rb[usize(arrow) + 1..<rb.len()].as_string().trim()
+        ret_text :: rb[usize(arrow) + 1..<rb.len()].bytes_to_string().trim()
         parsed :: parse_int_in_base(ret_text, 10)
         if !(parsed is ParseError) { return_type = i32(parsed) }
     }
@@ -251,7 +251,7 @@ parse_fn_type_bc :: fn(rest: string) -> bc.BcFn {
 
 parse_union_type_bc :: fn(rest: string) -> bc.BcUnion {
     rb :: rest.bytes()
-    after :: rb["union ".bytes().len()..<rb.len()].as_string().trim()
+    after :: rb["union ".bytes().len()..<rb.len()].bytes_to_string().trim()
     return bc.BcUnion { .variants = parse_int_list(after) }
 }
 
@@ -259,9 +259,9 @@ parse_union_type_bc :: fn(rest: string) -> bc.BcUnion {
 /// keyword (when present) shifts the name/mangled tokens by one.
 parse_import_decl_bc :: fn(cleaned: string, imports: bc.BcImport[], types: bc.BcType[]) -> void {
     cb :: cleaned.bytes()
-    after :: cb["import ".bytes().len()..<cb.len()].as_string()
+    after :: cb["import ".bytes().len()..<cb.len()].bytes_to_string()
     open :: after.index_of('(', 0)
-    head_part :: if open < 0 { after } else { after.bytes()[0..<usize(open)].as_string() }
+    head_part :: if open < 0 { after } else { after.bytes()[0..<usize(open)].bytes_to_string() }
     parts :: head_part.trim().split(" ")
     is_extern := false
     name_i: usize = 1
@@ -272,7 +272,7 @@ parse_import_decl_bc :: fn(cleaned: string, imports: bc.BcImport[], types: bc.Bc
     sig: bc.BcSignature = if open < 0 {
         bc.BcSignature { .params = [], .result = bc.ValType.Void, .param_types = [], .result_type = 0 }
     } else {
-        parse_signature_bc(after.bytes()[usize(open)..<after.bytes().len()].as_string(), types)
+        parse_signature_bc(after.bytes()[usize(open)..<after.bytes().len()].bytes_to_string(), types)
     }
     imports.push(bc.BcImport {
         .extern_name  = extern_name,
@@ -284,34 +284,34 @@ parse_import_decl_bc :: fn(cleaned: string, imports: bc.BcImport[], types: bc.Bc
 
 parse_impl_decl_bc :: fn(cleaned: string, impl_table: bc.ImplEntry[]) -> void {
     cb :: cleaned.bytes()
-    after :: cb["impl ".bytes().len()..<cb.len()].as_string().trim()
+    after :: cb["impl ".bytes().len()..<cb.len()].bytes_to_string().trim()
     space :: after.index_of(' ', 0)
     if space < 0 { return }
     ab :: after.bytes()
-    type_id_text :: ab[0..<usize(space)].as_string().trim()
+    type_id_text :: ab[0..<usize(space)].bytes_to_string().trim()
     parsed :: parse_int_in_base(type_id_text, 10)
     if parsed is ParseError { return }
-    trait_name :: ab[usize(space) + 1..<ab.len()].as_string().trim()
+    trait_name :: ab[usize(space) + 1..<ab.len()].bytes_to_string().trim()
     impl_table.push(bc.ImplEntry { .struct_type_index = i32(parsed), .trait_name = trait_name })
 }
 
 parse_vtable_decl_bc :: fn(cleaned: string, vtables: bc.VtableRow[]) -> void {
     cb :: cleaned.bytes()
-    after :: cb["vtable ".bytes().len()..<cb.len()].as_string().trim()
+    after :: cb["vtable ".bytes().len()..<cb.len()].bytes_to_string().trim()
     last_space :: last_index_of_space(after)
     if last_space < 0 { return }
     ab :: after.bytes()
-    fn_text :: ab[usize(last_space) + 1..<ab.len()].as_string().trim()
+    fn_text :: ab[usize(last_space) + 1..<ab.len()].bytes_to_string().trim()
     fn_parsed :: parse_int_in_base(fn_text, 10)
     if fn_parsed is ParseError { return }
-    head :: ab[0..<usize(last_space)].as_string().trim()
+    head :: ab[0..<usize(last_space)].bytes_to_string().trim()
     second_space :: last_index_of_space(head)
     if second_space < 0 { return }
     hb :: head.bytes()
-    type_text :: hb[usize(second_space) + 1..<hb.len()].as_string().trim()
+    type_text :: hb[usize(second_space) + 1..<hb.len()].bytes_to_string().trim()
     type_parsed :: parse_int_in_base(type_text, 10)
     if type_parsed is ParseError { return }
-    key :: hb[0..<usize(second_space)].as_string().trim()
+    key :: hb[0..<usize(second_space)].bytes_to_string().trim()
     register_vtable_row(vtables, key, bc.VtableEntry {
         .receiver_type_index = i32(type_parsed),
         .fn_index            = i32(fn_parsed),
@@ -330,7 +330,7 @@ register_vtable_row :: fn(vtables: bc.VtableRow[], key: string, entry: bc.Vtable
 /// entry directive), otherwise records a `BcExport` row and returns `-1`.
 parse_export_decl_bc :: fn(cleaned: string, exports: bc.BcExport[]) -> i32 {
     cb :: cleaned.bytes()
-    after :: cb["export ".bytes().len()..<cb.len()].as_string().trim()
+    after :: cb["export ".bytes().len()..<cb.len()].bytes_to_string().trim()
     parts :: after.split(" ")
     if parts.len() < 2 { return -1 }
     parsed :: parse_int_in_base(parts[1], 10)
@@ -345,14 +345,14 @@ parse_export_decl_bc :: fn(cleaned: string, exports: bc.BcExport[]) -> i32 {
 /// bit form `emit_c` lowers to `.rodata` (the VM reader materialises to values).
 parse_data_decl_bc :: fn(cleaned: string, data_pool: bc.BcDataEntry[]) -> void {
     cb :: cleaned.bytes()
-    after :: cb["data ".bytes().len()..<cb.len()].as_string()
+    after :: cb["data ".bytes().len()..<cb.len()].bytes_to_string()
     sp1 :: after.index_of(' ', 0)
     if sp1 < 0 { return }
     sp2 :: after.index_of(' ', usize(sp1) + 1)
     if sp2 < 0 { return }
     ab :: after.bytes()
-    kind_name :: ab[usize(sp1) + 1..<usize(sp2)].as_string()
-    rest :: ab[usize(sp2) + 1..<ab.len()].as_string()
+    kind_name :: ab[usize(sp1) + 1..<usize(sp2)].bytes_to_string()
+    rest :: ab[usize(sp2) + 1..<ab.len()].bytes_to_string()
     rb :: rest.bytes()
     if rb.len() < 5 { return }
     if rb[0] != u8(b'h') { return }
@@ -360,7 +360,7 @@ parse_data_decl_bc :: fn(cleaned: string, data_pool: bc.BcDataEntry[]) -> void {
     if rb[2] != u8(b'x') { return }
     if rb[3] != u8(b'"') { return }
     if rb[rb.len() - 1] != u8(b'"') { return }
-    hex_body :: rb[4..<rb.len() - 1].as_string()
+    hex_body :: rb[4..<rb.len() - 1].bytes_to_string()
     kind :: kind_from_name(kind_name)
     esz :: usize(bc.array_kind_element_size(kind))
     items: u64[] = []
@@ -401,7 +401,7 @@ parse_signature_bc :: fn(line: string, types: bc.BcType[]) -> bc.BcSignature {
     params: bc.ValType[] = []
     param_types: i32[] = []
     if open >= 0 && close >= 0 && close > open + 1 {
-        inner :: lb[usize(open) + 1..<usize(close)].as_string()
+        inner :: lb[usize(open) + 1..<usize(close)].bytes_to_string()
         for p in inner.split(",") {
             v :: vt_or_void(p.trim())
             params.push(v)
@@ -411,7 +411,7 @@ parse_signature_bc :: fn(line: string, types: bc.BcType[]) -> bc.BcSignature {
     result := bc.ValType.Void
     arrow :: line.index_of('>', 0)
     if arrow >= 0 {
-        rtext :: lb[usize(arrow) + 1..<lb.len()].as_string().trim()
+        rtext :: lb[usize(arrow) + 1..<lb.len()].bytes_to_string().trim()
         result = vt_or_void(rtext)
     }
     return bc.BcSignature {
@@ -424,12 +424,12 @@ parse_signature_bc :: fn(line: string, types: bc.BcType[]) -> bc.BcSignature {
 
 parse_local_decl_bc :: fn(cleaned: string) -> bc.BcLocal {
     cb :: cleaned.bytes()
-    after :: cb["local ".bytes().len()..<cb.len()].as_string().trim()
+    after :: cb["local ".bytes().len()..<cb.len()].bytes_to_string().trim()
     sp :: after.index_of(' ', 0)
     if sp < 0 { return bc.BcLocal { .name = after, .val = bc.ValType.Void } }
     ab :: after.bytes()
-    nm :: ab[0..<usize(sp)].as_string()
-    vtn :: ab[usize(sp) + 1..<ab.len()].as_string().trim()
+    nm :: ab[0..<usize(sp)].bytes_to_string()
+    vtn :: ab[usize(sp) + 1..<ab.len()].bytes_to_string().trim()
     return bc.BcLocal { .name = nm, .val = vt_or_void(vtn) }
 }
 
@@ -457,7 +457,7 @@ unquote_struct_name :: fn(s: string) -> string {
     sb :: s.bytes()
     n :: sb.len()
     if n >= 2 && sb[0] == b'"' && sb[n - 1] == b'"' {
-        return decode_escapes(sb[1..<n - 1].as_string())
+        return decode_escapes(sb[1..<n - 1].bytes_to_string())
     }
     return s
 }

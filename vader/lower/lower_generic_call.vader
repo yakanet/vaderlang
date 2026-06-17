@@ -8,9 +8,9 @@ import "std/string_builder" { new_builder as new_builder_for_mangle, append }
 
 import "vader/parser" { IdentExpr, CallExpr, GenericInstExpr, Visibility, FnDecl }
 import "vader/diagnostics" { Span }
-import "vader/typecheck" { type_from_expr, default_if_free, lookup_struct_trait_args, substitute }
+import "vader/typecheck" { type_from_expr, default_if_free, lookup_struct_trait_args, substitute, find_unused_equal }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/types" { Type, FnType, TraitType, TypeParamType, ArrayType, TupleType, StructType, UnresolvedType }
+import "vader/types" { Type, FnType, TraitType, TypeParamType, ArrayType, TupleType, StructType, UnionType, UnresolvedType }
 import "vader/comptime" { mangle_type_arg, uniq }
 import "vader/resolver" { ImportTargetTable, SymbolTarget }
 
@@ -329,6 +329,34 @@ unify_params :: fn(pattern: Type, concrete: Type, bindings: MutableMap<i32, Type
     if pattern is ArrayType as pa {
         if concrete is ArrayType as ca {
             unify_params(pa.element, ca.element, bindings, order, ctx)
+        }
+    }
+    // Union param vs union arg : pair exact-equal variants first (`null`,
+    // concrete primitives), then position-match the leftovers — the
+    // "concrete first" pass stops `U | null` from spuriously binding
+    // `U = null`. Mirror of the typer's `unify_unions` (typecheck/unify.vader),
+    // so the lowerer can monomorphise a fn whose signature carries a type-param
+    // inside a union (`find_map`'s `f: fn(T) -> U | null`) the same way the
+    // typer already does — without it the instance materialises with `U`
+    // unbound and the call is unresolved at emit (GATE B1).
+    if pattern is UnionType as pu {
+        if concrete is UnionType as cu {
+            arg_used: bool[] = []
+            for _ in cu.variants { arg_used.push(false) }
+            remaining_pattern: Type[] = []
+            for pv in pu.variants {
+                idx :: find_unused_equal(cu.variants, arg_used, pv)
+                if idx >= 0 { arg_used[usize(idx)] = true } else { remaining_pattern.push(pv) }
+            }
+            remaining_concrete: Type[] = []
+            for i in 0..<cu.variants.len() {
+                if !arg_used[i] { remaining_concrete.push(cu.variants[i]) }
+            }
+            n :: remaining_pattern.len()
+            for i in 0..<n {
+                if i >= remaining_concrete.len() { break }
+                unify_params(remaining_pattern[i], remaining_concrete[i], bindings, order, ctx)
+            }
         }
     }
     if pattern is FnType as pft {

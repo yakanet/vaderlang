@@ -17,7 +17,7 @@ module "vader/resolver"
 import "std/collections" { MutableMap, keys }
 import "std/io" { exists, is_dir, read_file }
 import "std/path" { to_posix }
-import "std/string" { as_string as bytes_as_string, ends_with, starts_with }
+import "std/string" { ends_with, starts_with }
 import "vader/diagnostics" { Diagnostic, Position, Span, resolver_error }
 import "vader/parser" { NodeIdFactory, new_node_id_factory, parse_source, assign_program_ids }
 import "vader/resolver/symbol" { Symbol, SymbolKind, SymbolFactory, new_factory }
@@ -339,7 +339,7 @@ trim_trailing_slash :: fn(s: string) -> string {
     sb :: s.bytes()
     n :: sb.len()
     if n == 0 { return s }
-    if sb[n - 1] == u8(0x2F) { return sb[0..<n - 1].bytes_as_string() }
+    if sb[n - 1] == u8(0x2F) { return sb[0..<n - 1].bytes_to_string() }
     return s
 }
 
@@ -436,10 +436,10 @@ display_path_for :: fn(root: string, stdlib_root: string) -> string {
     if rootb.len() > n &&
        root.starts_with(stdlib_root) &&
        rootb[n] == u8(0x2F) {
-        rel :: rootb[n + 1..<rootb.len()].bytes_as_string()
+        rel :: rootb[n + 1..<rootb.len()].bytes_to_string()
         if rel.ends_with(".vader") {
             relb :: rel.bytes()
-            return relb[0..<relb.len() - 6].bytes_as_string()
+            return relb[0..<relb.len() - 6].bytes_to_string()
         }
         return rel
     }

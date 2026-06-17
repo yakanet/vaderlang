@@ -15,7 +15,7 @@
 
 module "vader/vm"
 
-import "std/string" { starts_with, as_string }
+import "std/string" { starts_with }
 import "std/string_builder" { new_builder, append }
 import "vader/bytecode" { ConvertTarget }
 bc :: import "vader/bytecode"
@@ -437,7 +437,7 @@ prefix_before_double_underscore :: fn(s: string) -> string {
     j: usize = start
     for j + 1 < n {
         if sb[j] == b'_' && sb[j + 1] == b'_' {
-            return sb[0..<j].as_string()
+            return sb[0..<j].bytes_to_string()
         }
         j += 1
     }

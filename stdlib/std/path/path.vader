@@ -7,7 +7,7 @@
 module "std/path"
 
 import "std/string" {
-    as_string as bytes_as_string, is_empty, last_index_of,
+    is_empty, last_index_of,
     starts_with as str_starts_with, ends_with as str_ends_with,
     replace_chars_where,
 }
@@ -84,7 +84,7 @@ export parent :: fn(self: Path) -> Path {
         // Root: keep the leading "/" so parent of "/foo" is "/".
         return Path { .repr = SEP_STR }
     }
-    return Path { .repr = self.repr.bytes()[0..<usize(idx)].bytes_as_string() }
+    return Path { .repr = self.repr.bytes()[0..<usize(idx)].bytes_to_string() }
 }
 
 /// Last segment (filename or directory name). For a path with no
@@ -97,7 +97,7 @@ export filename :: fn(self: Path) -> string {
         return self.repr
     }
     rb :: self.repr.bytes()
-    return rb[usize(idx) + 1..<rb.len()].bytes_as_string()
+    return rb[usize(idx) + 1..<rb.len()].bytes_to_string()
 }
 
 /// File extension without the leading dot. Empty when there's no
@@ -112,7 +112,7 @@ export extension :: fn(self: Path) -> string {
         return ""
     }
     nb :: name.bytes()
-    return nb[usize(idx) + 1..<nb.len()].bytes_as_string()
+    return nb[usize(idx) + 1..<nb.len()].bytes_to_string()
 }
 
 /// Filename without the extension. For names without an extension,
@@ -125,7 +125,7 @@ export stem :: fn(self: Path) -> string {
     if idx < 0 {
         return name
     }
-    return name.bytes()[0..<usize(idx)].bytes_as_string()
+    return name.bytes()[0..<usize(idx)].bytes_to_string()
 }
 
 // ---- combinators ----------------------------------------------------------
@@ -225,7 +225,7 @@ export normalize :: fn(self: Path) -> Path {
         at_end := i == n
         is_sep := !at_end && self.repr[i] == SEP
         if is_sep || at_end {
-            seg := rb[seg_start..<i].bytes_as_string()
+            seg := rb[seg_start..<i].bytes_to_string()
             if seg.is_empty() || seg == "." {
                 // skip
             } else if seg == ".." {

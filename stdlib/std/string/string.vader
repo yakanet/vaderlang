@@ -8,7 +8,6 @@ module "std/string"
 
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 import "std/math" { min }
-import "std/utf8" { codepoint_byte_len }
 
 // Length in bytes. Module-internal (NOT exported) — callers write
 // `s.bytes().len()`, which the lowerer folds to an O(1) call of this host fn
@@ -55,6 +54,27 @@ export ends_with :: fn(s: string, suffix: string) -> bool {
         if sb[off + i] != fb[i] { return false }
     }
     return true
+}
+
+/// UTF-8 byte length of a Unicode codepoint — 1 to 4 bytes.
+///
+/// Encoding bands :
+///   - `U+0000..U+007F`     → 1 byte (ASCII)
+///   - `U+0080..U+07FF`     → 2 bytes
+///   - `U+0800..U+FFFF`     → 3 bytes
+///   - `U+10000..U+10FFFF`  → 4 bytes
+///
+/// Used by `chars()` to step a byte cursor over a UTF-8 sequence after decoding
+/// the codepoint at the current position. Codepoints above `U+10FFFF` clamp to
+/// 4 — invalid Unicode anyway.
+/// @param c  the codepoint to measure.
+/// @return   its UTF-8 encoded length in bytes (1, 2, 3, or 4).
+export codepoint_byte_len :: fn(c: char) -> usize {
+    cp :: u32(c)
+    if cp < u32(0x80)    { return 1 }
+    if cp < u32(0x800)   { return 2 }
+    if cp < u32(0x10000) { return 3 }
+    return 4
 }
 
 /// Decode the UTF-8 codepoint at byte offset `i`. The byte boundary
@@ -116,27 +136,6 @@ export decode_codepoint_at :: fn(bs: const u8[], i: usize) -> [char, usize] {
     c :: decode_char_at(bs, i)
     return [c, codepoint_byte_len(c)]
 }
-
-/// Materialise a `string` from the UTF-8 bytes of a `const u8[]`.
-///
-/// LEGACY alias of `std/core::bytes_to_string` (the canonical bytes→string
-/// primitive — both lower to the same host op). Kept because it reads well
-/// post-`bytes()` (`s.bytes()[lo..<hi].as_string()` is the byte-indexed
-/// substring the old `byte_slice` produced) and is still the form used across
-/// the stdlib ; the rename to `bytes_to_string` is tracked in `TODO.md` §1.13d.
-/// Prefer `bytes_to_string` in new code.
-///
-/// Host intrinsic. On a **borrowed** view (a `bytes()` slice) this is **O(1)** —
-/// it reinterprets the aliased owner bytes as a string atom (`vader_atom_slice`,
-/// intern-deduped, no copy of the byte storage). On a **materialised** `u8[]`
-/// it gathers the packed bytes and interns a copy (O(n)). On the VM the bytes
-/// are read from the materialised array and re-interned — same observable
-/// string. The bytes are taken **verbatim** — no UTF-8 validation ; valid
-/// UTF-8 in round-trips exactly.
-///
-/// @param bs  the UTF-8 bytes to materialise (typically a `bytes()` slice).
-/// @return    the string those bytes encode.
-export as_string :: fn(bs: const u8[]) -> string
 
 /// Iterator yielding Unicode codepoints — one per UTF-8 sequence,
 /// regardless of whether the codepoint is encoded in 1, 2, 3, or 4
@@ -219,19 +218,14 @@ string implements Contains<string> {
 /// @return   `[codepoint, byte_length]`.
 export decode_codepoint :: fn(s: string, i: usize) -> [char, usize] = decode_codepoint_at(s.bytes(), i)
 
-/// Count the Unicode codepoints in `s` — the codepoint counterpart to
-/// `byte_len()`. Walks the UTF-8 byte sequence directly via leading-
-/// byte widths ; cheaper than `s.chars().count()` because it avoids the
-/// per-step `Yield(char)` allocation. O(n) in the byte length.
-///
-/// Example :
-///   `"héllo".len()    // 5  (byte_len() returns 6)`
-///   `"你好".len()      // 2  (byte_len() returns 6)`
-///   `"".len()         // 0`
-///
-/// @param s  source string.
-/// @return   number of codepoints in `s`.
-export len :: fn(s: string) = s.chars().count()
+// `len` (codepoint count) moved to `std/core` (the prelude) so `s.len()`
+// resolves without importing `std/string`. It was the one string method the
+// typer hardcoded as a primitive (`primitive_method_type`) while the lowerer
+// could only reach it via free-fn UFCS over loaded modules — a mismatch that
+// miscompiled `s.len()` to invalid C unless std/string happened to be loaded.
+// Now a plain core free fn (byte-walk) ; callers drop it from their
+// `import "std/string" { … }` lists. See the core/string/utf8 reorg plan :
+// .claude/plans/core-string-utf8-reorg.md.
 
 /// Comparator suitable for `sort(arr, compare_ascending)` : returns `true`
 /// when `a` lexicographically precedes `b` (byte-wise). Mirrors JS
@@ -377,7 +371,7 @@ export split :: fn(s: string, sep: string) -> string[] {
     if m == 0 {
         i := usize(0)
         for i < n {
-            out.push(sb[i..<i + 1].as_string())
+            out.push(sb[i..<i + 1].bytes_to_string())
             i = i + 1
         }
         return out
@@ -386,11 +380,11 @@ export split :: fn(s: string, sep: string) -> string[] {
     found := byte_find(s, sep, start)
     for found >= isize(0) {
         fpos :: usize(found)
-        out.push(sb[start..<fpos].as_string())
+        out.push(sb[start..<fpos].bytes_to_string())
         start = fpos + m
         found = byte_find(s, sep, start)
     }
-    out.push(sb[start..<n].as_string())
+    out.push(sb[start..<n].bytes_to_string())
     return out
 }
 
@@ -409,6 +403,46 @@ export join :: fn(parts: string[], sep: string) -> string {
     return sb.to_string()
 }
 
+/// Replace the first occurrence of `old` in `s` with `new` (literal substring,
+/// not a pattern — use `std/regex` for pattern replacement). Returns `s`
+/// unchanged when `old` does not occur.
+/// @param s    source string.
+/// @param old  literal substring to find.
+/// @param new  replacement for the first match.
+/// @return     `s` with the first `old` replaced by `new`.
+export replace :: fn(s: string, old: string, new: string) -> string {
+    parts :: s.split(old)
+    if parts.len() <= 1 { return s }
+    rest: string[] = []
+    for i in 1..<parts.len() { rest.push(parts[i]) }
+    return parts[0] + new + rest.join(old)
+}
+
+/// Replace every occurrence of `old` in `s` with `new` (literal). Equivalent to
+/// `s.split(old).join(new)`. Use `std/regex` for pattern replacement.
+/// @param s    source string.
+/// @param old  literal substring to replace.
+/// @param new  replacement for each match.
+/// @return     `s` with every `old` replaced by `new`.
+export replace_all :: fn(s: string, old: string, new: string) = s.split(old).join(new)
+
+/// Concatenate `n` copies of `s` ; `n == 0` yields the empty string.
+/// @param s  the fragment to repeat.
+/// @param n  how many copies.
+/// @return   `s` repeated `n` times.
+export repeat :: fn(s: string, n: usize) -> string {
+    sb :: new_builder()
+    for _ in 0..<n { sb.append(s) }
+    return sb.to_string()
+}
+
+/// True when codepoint `c` occurs in `s` — a `char`-presence predicate built on
+/// `index_of`. For substring containment use `sub in s` (the `Contains` trait).
+/// @param s  string to search.
+/// @param c  codepoint to look for.
+/// @return   whether `c` appears in `s`.
+export find :: fn(s: string, c: char) = s.index_of(c, 0) >= 0
+
 /// Strip leading and trailing ASCII whitespace (`' '`, `'\t'`, `'\n'`,
 /// `'\r'`). Unicode whitespace is not recognised in MVP.
 export trim :: fn(s: string) -> string {
@@ -418,7 +452,7 @@ export trim :: fn(s: string) -> string {
     for lo < n && is_white_byte(sb[lo]) { lo = lo + 1 }
     hi := n
     for hi > lo && is_white_byte(sb[hi - 1]) { hi = hi - 1 }
-    return sb[lo..<hi].as_string()
+    return sb[lo..<hi].bytes_to_string()
 }
 
 /// Strip leading ASCII whitespace (`' '`, `'\t'`, `'\n'`, `'\r'`) only ;
@@ -430,7 +464,7 @@ export left_trim :: fn(s: string) -> string {
     n :: sb.len()
     lo := usize(0)
     for lo < n && is_white_byte(sb[lo]) { lo = lo + 1 }
-    return sb[lo..<n].as_string()
+    return sb[lo..<n].bytes_to_string()
 }
 
 /// Strip trailing ASCII whitespace (`' '`, `'\t'`, `'\n'`, `'\r'`) only ;
@@ -441,7 +475,7 @@ export right_trim :: fn(s: string) -> string {
     sb :: s.bytes()
     hi := sb.len()
     for hi > 0 && is_white_byte(sb[hi - 1]) { hi = hi - 1 }
-    return sb[0..<hi].as_string()
+    return sb[0..<hi].bytes_to_string()
 }
 
 // Codepoint-level uppercase over ASCII + the Latin-1 Supplement letters
@@ -603,32 +637,16 @@ export pad_end :: fn(s: string, width: usize, fill: char) -> string {
     return sb.to_string()
 }
 
-/// True for an ASCII whitespace codepoint — space, tab, newline, or
-/// carriage return. Unicode whitespace is not recognised in MVP.
-export is_white_char :: fn(c: char) = c == ' ' || c == '\t' || c == '\n' || c == '\r'
-
-/// True for an ASCII decimal digit `0..9`. Base-aware predicates
-/// (`is_hex_digit`, `is_digit_in_base`) live in `std/numbers`.
-export is_digit :: fn(c: char) = c in '0'..='9'
-
-/// True for an ASCII letter — `a..z` or `A..Z`. Locale-independent ;
-/// Unicode letters are not recognised in MVP.
-/// @param c  codepoint to classify.
-/// @return   `true` iff `c` is an ASCII letter.
-export is_alpha :: fn(c: char) = c in 'a'..='z' || c in 'A'..='Z'
-
-/// True for an ASCII letter or decimal digit — `a..z`, `A..Z`, or `0..9`.
-/// Composes `is_alpha` and `is_digit`.
-/// @param c  codepoint to classify.
-/// @return   `true` iff `c` is alphanumeric.
-export is_alnum :: fn(c: char) = c.is_alpha() || c.is_digit()
+// Char classification (`is_white_char`/`is_digit`/`is_alpha`/`is_alnum`) moved
+// to `std/char` — `fn(char) -> bool` predicates belong with char classification,
+// not the codepoint-string API. Callers `import "std/char"`. See the reorg plan.
 
 /// Strip `suffix` if `s` ends with it ; otherwise return `s` unchanged.
 /// Trims at most one occurrence.
 export trim_suffix :: fn(s: string, suffix: string) -> string {
     if s.ends_with(suffix) {
         bs :: s.bytes()
-        return bs[0..<bs.len() - suffix.bytes().len()].as_string()
+        return bs[0..<bs.len() - suffix.bytes().len()].bytes_to_string()
     }
     return s
 }
@@ -638,7 +656,7 @@ export trim_suffix :: fn(s: string, suffix: string) -> string {
 export trim_prefix :: fn(s: string, prefix: string) -> string {
     if s.starts_with(prefix) {
         bs :: s.bytes()
-        return bs[prefix.bytes().len()..<bs.len()].as_string()
+        return bs[prefix.bytes().len()..<bs.len()].bytes_to_string()
     }
     return s
 }
@@ -948,21 +966,6 @@ import "std/testing" { assert, assert_eq, assert_close }
     assert_eq(pad_start("42", usize(5), '0'), "00042")
     assert_eq(pad_end("hi", usize(5), '.'), "hi...")
     assert_eq(pad_start("already long", usize(3), 'x'), "already long")
-}
-
-@test test_char_predicates :: fn() -> void {
-    assert(is_white_char(' '), "space is whitespace")
-    assert(is_white_char('\t'), "tab is whitespace")
-    assert(is_white_char('\n'), "newline is whitespace")
-    assert(!is_white_char('a'), "letter is not whitespace")
-    assert(is_digit('5'), "5 is a digit")
-    assert(!is_digit('a'), "a is not a digit")
-    assert(is_alpha('a'), "a is alpha")
-    assert(is_alpha('Z'), "Z is alpha")
-    assert(!is_alpha('5'), "5 is not alpha")
-    assert(is_alnum('x'), "x is alnum")
-    assert(is_alnum('7'), "7 is alnum")
-    assert(!is_alnum(' '), "space is not alnum")
 }
 
 @test test_trim_prefix_suffix :: fn() -> void {

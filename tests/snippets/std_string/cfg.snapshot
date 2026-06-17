@@ -138,7 +138,7 @@ fn snippet$main() -> i32
     %38 = const int(11) :i32
     %39 = cast %38 :usize
     %40 = array_slice %35[%37..%39] :u8[]
-    %41 = call as_string(%40) :string
+    %41 = call bytes_to_string(%40) :string
     call std_io$std_io$println__string(%41) :void
     %42 = call new_builder() :StringBuilder
     %43 = move %42

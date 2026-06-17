@@ -19,13 +19,14 @@ coverage/
 !.vscode/extensions.json
 .idea/
 
-# Bench artifacts — native binaries + generated C from `bench/run.ts`. Each
-# bench source lives in `bench/<name>/<name>.vader` (post-Phase-7 module-system
-# rollout) ; the C-emit + native-build outputs land alongside as
-# `bench/<name>/<name>` (binary) and `bench/<name>/<name>.c` (transient C).
-# Per-language ports stay flat under `bench/` (e.g. bench/primes.go,
-# bench/primes_go, bench/primes.class).
+# Bench artifacts — native binaries + generated C/Go/class from `bench/run.ts`.
+# Every workload lives in `bench/<name>/` with all its language sources
+# colocated (`<name>.vader`, `.ts`, `.go`, `.java`) ; the compiled outputs land
+# alongside as `bench/<name>/<name>` (Vader binary), `.c` (transient C),
+# `<name>_go` (Go binary) and `<name>.class` (Java, incl. nested `$X.class`).
 bench/*/*.c
+bench/*/*_go
+bench/*/*.class
 bench/binary_trees/binary_trees
 bench/iter_chain/iter_chain
 bench/mandelbrot/mandelbrot
@@ -39,8 +40,6 @@ bench/interp/interp
 bench/poc_erasure/packed_inline_test/packed_inline_test
 bench/poc_erasure/vtable_emit_test/vtable_emit_test
 bench/poc_erasure/*/*.c
-bench/*_go
-bench/*.class
 *.dSYM/
 
 ## POCs

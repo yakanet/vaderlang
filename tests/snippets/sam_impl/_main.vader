@@ -2,25 +2,37 @@ module "snippet"
 
 import "std/io" { println }
 
-// Arrow form: corps mono-expression. Le compilateur synthétise
-// `to_string :: fn(self) -> string { return "..." }` à partir de Display.
-i32 implements Display -> "the answer is ${self}"
+// SAM (single-abstract-method) sugar exercised on primitives. These use
+// the snippet's own traits, not prelude ones — re-impl'ing `Display` /
+// `Hash` on a primitive is a coherence error (R2030).
+Describe :: trait {
+    describe :: fn(self) -> string
+}
 
-// Bloc anonyme : multi-statements, signature toujours synthétisée.
-i64 implements Display {
+// A `-> u64` trait, mirroring the shape of the prelude's `Hash`.
+Tag :: trait {
+    tag :: fn(self) -> u64
+}
+
+// Arrow form: single-expression body. The compiler synthesises
+// `describe :: fn(self) -> string { return "..." }` from `Describe`.
+i32 implements Describe -> "the answer is ${self}"
+
+// Block form: multi-statement, signature still synthesised.
+i64 implements Describe {
     prefix: string = "i64="
     return "${prefix}${self}"
 }
 
-// Trait générique : `Hash` a `fn hash(self) -> u64`. La forme arrow
-// reprend la signature du trait sans la redéclarer.
-i32 implements Hash -> u64(self)
+// Arrow form on a `-> u64` trait: the synthesised signature follows the
+// trait's single method without redeclaring it.
+i32 implements Tag -> u64(self)
 
 main :: fn() -> i32 {
     x: i32 = 42
     y: i64 = 7
-    println(x.to_string())
-    println(y.to_string())
-    println("${x.hash()}")
+    println(x.describe())
+    println(y.describe())
+    println("${x.tag()}")
     return 0
 }

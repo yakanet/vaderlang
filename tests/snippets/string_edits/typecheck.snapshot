@@ -1,0 +1,47 @@
+# Typecheck
+
+## tests/snippets/string_edits
+  FnDecl         main                 :: fn() -> i32
+  expr 10:13    CallExpr       :: string
+  expr 10:13    FieldExpr      :: fn(string, string) -> string
+  expr 10:13    StringLitExpr  :: string
+  expr 10:35    StringLitExpr  :: string
+  expr 10:40    StringLitExpr  :: string
+  expr 10:5     CallExpr       :: void
+  expr 10:5     IdentExpr      :: fn(T) -> void
+  expr 11:13    CallExpr       :: string
+  expr 11:13    FieldExpr      :: fn(string, string) -> string
+  expr 11:13    StringLitExpr  :: string
+  expr 11:33    StringLitExpr  :: string
+  expr 11:38    StringLitExpr  :: string
+  expr 11:5     CallExpr       :: void
+  expr 11:5     IdentExpr      :: fn(T) -> void
+  expr 12:13    CallExpr       :: string
+  expr 12:13    FieldExpr      :: fn(string, string) -> string
+  expr 12:13    StringLitExpr  :: string
+  expr 12:32    StringLitExpr  :: string
+  expr 12:37    StringLitExpr  :: string
+  expr 12:5     CallExpr       :: void
+  expr 12:5     IdentExpr      :: fn(T) -> void
+  expr 13:13    CallExpr       :: string
+  expr 13:13    FieldExpr      :: fn(usize) -> string
+  expr 13:13    StringLitExpr  :: string
+  expr 13:5     CallExpr       :: void
+  expr 13:5     IdentExpr      :: fn(T) -> void
+  expr 14:13    CallExpr       :: string
+  expr 14:13    FieldExpr      :: fn(usize) -> string
+  expr 14:13    StringLitExpr  :: string
+  expr 14:5     CallExpr       :: void
+  expr 14:5     IdentExpr      :: fn(T) -> void
+  expr 15:13    StringLitExpr  :: string
+  expr 15:16    CallExpr       :: bool
+  expr 15:16    FieldExpr      :: fn(char) -> bool
+  expr 15:16    StringLitExpr  :: string
+  expr 15:5     CallExpr       :: void
+  expr 15:5     IdentExpr      :: fn(T) -> void
+  expr 16:13    StringLitExpr  :: string
+  expr 16:16    CallExpr       :: bool
+  expr 16:16    FieldExpr      :: fn(char) -> bool
+  expr 16:16    StringLitExpr  :: string
+  expr 16:5     CallExpr       :: void
+  expr 16:5     IdentExpr      :: fn(T) -> void

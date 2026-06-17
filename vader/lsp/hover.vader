@@ -12,7 +12,7 @@
 
 module "vader/lsp"
 
-import "std/string" { split, trim, starts_with, as_string, join }
+import "std/string" { split, trim, starts_with, join }
 import "std/json" {
     JsonValue, JsonObject, JsonString, JsonNumber, JsonNull, JsonArray, JsonBool
 }
@@ -105,17 +105,17 @@ format_vaderdoc :: fn(raw: string) -> string {
         // One byte view per trimmed line ; the @tag branches slice off it.
         rb :: rest.bytes()
         if rest.starts_with("@param ") || rest == "@param" {
-            payload :: rb[6..<rb.len()].as_string().trim()
+            payload :: rb[6..<rb.len()].bytes_to_string().trim()
             tags.push("- **param** " + format_param_payload(payload))
             continue
         }
         if rest.starts_with("@return ") || rest == "@return" {
-            payload :: rb[7..<rb.len()].as_string().trim()
+            payload :: rb[7..<rb.len()].bytes_to_string().trim()
             tags.push("- **returns** " + payload)
             continue
         }
         if rest.starts_with("@error ") || rest == "@error" {
-            payload :: rb[6..<rb.len()].as_string().trim()
+            payload :: rb[6..<rb.len()].bytes_to_string().trim()
             tags.push("- **error** " + payload)
             continue
         }
@@ -124,7 +124,7 @@ format_vaderdoc :: fn(raw: string) -> string {
             // lines (often indented backtick-quoted snippets) follow
             // it visually. Insert a blank line before the header so
             // it stands out as its own paragraph.
-            payload :: rb[8..<rb.len()].as_string().trim()
+            payload :: rb[8..<rb.len()].bytes_to_string().trim()
             if body.len() > 0 { body.push("") }
             if payload.bytes().len() > 0 {
                 body.push("**Example** " + payload)
@@ -159,8 +159,8 @@ format_param_payload :: fn(payload: string) -> string {
         i = i + 1
     }
     if i == 0 || i >= n { return payload }
-    name :: pb[0..<i].as_string()
-    desc :: pb[i..<n].as_string().trim()
+    name :: pb[0..<i].bytes_to_string()
+    desc :: pb[i..<n].bytes_to_string().trim()
     if desc.bytes().len() == 0 { return "`" + name + "`" }
     return "`" + name + "` — " + desc
 }
@@ -310,7 +310,7 @@ export uri_to_path :: fn(uri: string) -> string {
     prefix :: "file://"
     if uri.starts_with(prefix) {
         ub :: uri.bytes()
-        return ub[prefix.bytes().len()..<ub.len()].as_string()
+        return ub[prefix.bytes().len()..<ub.len()].bytes_to_string()
     }
     return ""
 }

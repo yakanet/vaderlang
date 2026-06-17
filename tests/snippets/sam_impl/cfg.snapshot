@@ -2,7 +2,7 @@
 
 ## snippet
 
-fn snippet$i32$Display$to_string(%0: i32) -> string
+fn snippet$i32$Describe$describe(%0: i32) -> string
   locals:
     %0 self: i32 (param self)
     %1 $call_1: StringBuilder
@@ -20,7 +20,7 @@ fn snippet$i32$Display$to_string(%0: i32) -> string
     %5 = call std_string_builder$StringBuilder$Display$to_string(%2) :string
     return %5
 
-fn snippet$i64$Display$to_string(%0: i64) -> string
+fn snippet$i64$Describe$describe(%0: i64) -> string
   locals:
     %0 self: i64 (param self)
     %1 $k_1: string
@@ -42,7 +42,7 @@ fn snippet$i64$Display$to_string(%0: i64) -> string
     %7 = call std_string_builder$StringBuilder$Display$to_string(%4) :string
     return %7
 
-fn snippet$i32$Hash$hash(%0: i32) -> u64
+fn snippet$i32$Tag$tag(%0: i32) -> u64
   locals:
     %0 self: i32 (param self)
     %1 $cast_1: u64
@@ -69,13 +69,13 @@ fn snippet$main() -> i32
     %1 = move %0
     %2 = const int(7) :i64
     %3 = move %2
-    %4 = call std_core$i32$Display$to_string(%1) :string
+    %4 = call snippet$i32$Describe$describe(%1) :string
     call std_io$std_io$println__string(%4) :void
-    %5 = call std_core$i64$Display$to_string(%3) :string
+    %5 = call snippet$i64$Describe$describe(%3) :string
     call std_io$std_io$println__string(%5) :void
     %6 = call new_builder() :StringBuilder
     %7 = move %6
-    %8 = call std_core$i32$Hash$hash(%1) :u64
+    %8 = call snippet$i32$Tag$tag(%1) :u64
     %9 = call std_core$u64$Display$to_string(%8) :string
     call append(%7, %9) :void
     %10 = call std_string_builder$StringBuilder$Display$to_string(%7) :string

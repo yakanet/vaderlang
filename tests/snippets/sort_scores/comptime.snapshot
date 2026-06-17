@@ -38,8 +38,6 @@
 
 ## stdlib/std/testing
 
-## stdlib/std/utf8
-
 ## tests/snippets/sort_scores
 
 ## generic instances
@@ -49,10 +47,10 @@
   FilterIterator<T>
   FilterIterator<T>
   FilterIterator<T>
-  TakeIterator<T>
-  TakeIterator<T>
-  TakeIterator<T>
   Into<Target>
+  TakeIterator<T>
+  TakeIterator<T>
+  TakeIterator<T>
   SkipIterator<T>
   SkipIterator<T>
   SkipIterator<T>
@@ -84,7 +82,6 @@
   Yield<T>
   Yield<T>
   Yield<T>
-  Range<char>
   Range<i32>
   Range<usize>
   Range<T>

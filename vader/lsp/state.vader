@@ -10,8 +10,8 @@ import "std/json" {
     JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonNull, JsonArray
 }
 import "std/collections" { MutableMap, keys }
-import "vader/resolver" { load_project_with_overlay, LoadedProject, SourceFile }
-import "vader/typecheck" { check_project_with_bodies, CheckResult }
+import "vader/resolver" { LoadedProject, SourceFile }
+import "vader/typecheck" { check_file, CheckResult }
 import "vader/diagnostics" { Diagnostic }
 
 /// Cached load+typecheck of one project, keyed by the entry file path it was
@@ -97,11 +97,9 @@ export typed_project_for :: fn(self: ServerState, file_path: string) -> ProjectC
     if cached != null {
         if cached.entry_path == file_path { return cached }
     }
-    project :: load_project_with_overlay(file_path, doc_overlay(self))
-    diags: Diagnostic[] = []
-    result :: check_project_with_bodies(project, diags)
+    fc :: check_file(file_path, doc_overlay(self))
     entry :: ProjectCache {
-        .entry_path = file_path, .project = project, .result = result, .diags = diags,
+        .entry_path = file_path, .project = fc.project, .result = fc.result, .diags = fc.diags,
     }
     self.cache = entry
     return entry

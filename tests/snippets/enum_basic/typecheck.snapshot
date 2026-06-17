@@ -3,7 +3,7 @@
 ## tests/snippets/enum_basic
   FnDecl         describe             :: fn(Direction) -> string
   EnumDecl       Direction            :: Direction
-  FnDecl         main                 :: fn() -> void
+  FnDecl         main                 :: fn() -> i32
   expr 13:11    IdentExpr      :: Direction
   expr 13:5     MatchExpr      :: string
   expr 14:19    StringLitExpr  :: string
@@ -48,6 +48,3 @@
   expr 28:30    DotVariantExpr :: Direction
   expr 28:5     CallExpr       :: void
   expr 28:5     IdentExpr      :: fn(T) -> void
-
-# Diagnostics
-[21:1] error[T3033] invalid `main` signature: main must return i32

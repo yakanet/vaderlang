@@ -41,7 +41,17 @@
           {
             "name": "split_where",
             "alias": null
-          },
+          }
+        ]
+      },
+      "decorators": []
+    },
+    {
+      "kind": "ImportDecl",
+      "path": "std/char",
+      "binding": {
+        "kind": "destructure",
+        "names": [
           {
             "name": "is_white_char",
             "alias": null

@@ -52,7 +52,7 @@ fn snippet$show_decode(%0: string, %1: string) -> void
     %16 = const string(#2) :string
     call append(%14, %16) :void
     %17 = cast %3 :u8[]
-    %18 = call as_string(%17) :string
+    %18 = call bytes_to_string(%17) :string
     %19 = call std_core$string$Display$to_string(%18) :string
     call append(%14, %19) :void
     %20 = call std_string_builder$StringBuilder$Display$to_string(%14) :string
@@ -307,7 +307,7 @@ fn snippet$main() -> i32
     %90 = const string(#2) :string
     call append(%87, %90) :void
     %91 = cast %78 :u8[]
-    %92 = call as_string(%91) :string
+    %92 = call bytes_to_string(%91) :string
     %93 = binop 12 %92 %74 :bool
     %94 = call std_core$bool$Display$to_string(%93) :string
     call append(%87, %94) :void

@@ -4,7 +4,6 @@
 module "snippet"
 
 import "std/io" { println }
-import "std/string" { as_string }
 import "std/base64" { encode, decode, Base64Error }
 
 show_decode :: fn(label: string, input: string) -> void {
@@ -12,7 +11,7 @@ show_decode :: fn(label: string, input: string) -> void {
     if out is Base64Error {
         println("${label}=ERR:${out.message()}")
     } else {
-        println("${label}=${out.as_string()}")
+        println("${label}=${out.bytes_to_string()}")
     }
 }
 
@@ -39,7 +38,7 @@ main :: fn() -> i32 {
         if decoded is Base64Error {
             println("roundtrip-${s}=ERR")
         } else {
-            println("roundtrip-${s}=${decoded.as_string() == s}")
+            println("roundtrip-${s}=${decoded.bytes_to_string() == s}")
         }
     }
 

@@ -22,20 +22,6 @@
     },
     {
       "kind": "ImportDecl",
-      "path": "std/string",
-      "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "as_string",
-            "alias": null
-          }
-        ]
-      },
-      "decorators": []
-    },
-    {
-      "kind": "ImportDecl",
       "path": "std/base64",
       "binding": {
         "kind": "destructure",
@@ -213,7 +199,7 @@
                               "kind": "IdentExpr",
                               "name": "out"
                             },
-                            "field": "as_string"
+                            "field": "bytes_to_string"
                           },
                           "args": []
                         }
@@ -1028,7 +1014,7 @@
                                       "kind": "IdentExpr",
                                       "name": "decoded"
                                     },
-                                    "field": "as_string"
+                                    "field": "bytes_to_string"
                                   },
                                   "args": []
                                 },

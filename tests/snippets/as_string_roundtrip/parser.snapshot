@@ -21,20 +21,6 @@
       "decorators": []
     },
     {
-      "kind": "ImportDecl",
-      "path": "std/string",
-      "binding": {
-        "kind": "destructure",
-        "names": [
-          {
-            "name": "as_string",
-            "alias": null
-          }
-        ]
-      },
-      "decorators": []
-    },
-    {
       "kind": "FnDecl",
       "name": "main",
       "visibility": "private",
@@ -79,7 +65,7 @@
                         },
                         "args": []
                       },
-                      "field": "as_string"
+                      "field": "bytes_to_string"
                     },
                     "args": []
                   },
@@ -120,7 +106,7 @@
                         },
                         "args": []
                       },
-                      "field": "as_string"
+                      "field": "bytes_to_string"
                     },
                     "args": []
                   },
@@ -204,7 +190,7 @@
                           }
                         }
                       },
-                      "field": "as_string"
+                      "field": "bytes_to_string"
                     },
                     "args": []
                   },
@@ -237,7 +223,7 @@
                   },
                   "args": []
                 },
-                "field": "as_string"
+                "field": "bytes_to_string"
               },
               "args": []
             }

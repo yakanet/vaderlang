@@ -158,7 +158,7 @@
       arg0:
         call :string
           callee:
-            as_string :string
+            bytes_to_string :string
           arg0:
             slice :u8[]
               on:

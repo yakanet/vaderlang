@@ -5,7 +5,8 @@
 
 module "std/numbers"
 
-import "std/string" { as_string, chars, ends_with, is_digit, is_empty, replace_chars_where, ParseError }
+import "std/string" { chars, ends_with, is_empty, replace_chars_where, ParseError }
+import "std/char" { is_digit }
 import "std/string_builder" { StringBuilder, new_builder, append_char }
 
 /// True for an ASCII hex digit — `0`..`9`, `a`..`f`, `A`..`F`.
@@ -166,7 +167,7 @@ export to_compact_str :: fn(self: f64) -> string {
     s :: "${self}"
     if s.ends_with(".0") {
         sb :: s.bytes()
-        return sb[0..<sb.len() - 2].as_string()
+        return sb[0..<sb.len() - 2].bytes_to_string()
     }
     return s
 }
@@ -214,7 +215,7 @@ export strip_numeric_text :: fn(text: string, base: i32, suffix: string) -> stri
     } else {
         end_no_suffix
     }
-    body :: tb[start..<end].as_string()
+    body :: tb[start..<end].bytes_to_string()
     // Fast path : no `_` to filter → return the slice directly.
     if !body.contains("_") { return body }
     return body.replace_chars_where((c: char) -> c == '_', "")

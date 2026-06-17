@@ -16,7 +16,7 @@ import "std/io" { read_file, write_file, exists, is_dir, read_dir, print, eprint
 import "std/process" { spawn_run, spawn_last_stdout, spawn_last_stderr }
 import "std/math" { sqrt, pow, floor, ceil, round }
 import "std/time" { monotonic_ns, now_unix_ms }
-import "std/string" { as_string, trim, index_of, last_index_of, starts_with, ends_with }
+import "std/string" { trim, index_of, last_index_of, starts_with, ends_with }
 
 /// Outcome of a successful host call. `value` is unused when the import
 /// has `has_return == false` — the exec checks the import's signature
@@ -86,11 +86,11 @@ int_equals_method :: fn(mangled: string) -> string {
     b :: mangled.bytes()
     if mangled.ends_with(r"$Equals$equals") {
         // strip "std_core$" (9) prefix + "$Equals$equals" (14) suffix
-        if is_int_kind(b[9..<b.len() - 14].as_string()) { return "equals" }
+        if is_int_kind(b[9..<b.len() - 14].bytes_to_string()) { return "equals" }
     }
     if mangled.ends_with(r"$Equals$not_equals") {
         // "$Equals$not_equals" suffix is 18 bytes
-        if is_int_kind(b[9..<b.len() - 18].as_string()) { return "not_equals" }
+        if is_int_kind(b[9..<b.len() - 18].bytes_to_string()) { return "not_equals" }
     }
     return ""
 }
@@ -155,12 +155,10 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         if s is Trap { return s }
         return HostOk { .value = I32Val { .value = i32(s.value.bytes().len()) } }
     }
-    if info.mangled_name == r"std_string$as_string" || info.mangled_name == r"std_core$bytes_to_string" {
+    if info.mangled_name == r"std_core$bytes_to_string" {
         // bytes→string : the VM gathers the boxed u8 slots into a real `u8[]` and
         // lets the native intern them verbatim (no UTF-8 validation). Native
-        // O(1)-reinterprets a borrowed slice. `bytes_to_string` (std/core, Target
-        // ABI S1) is canonical ; `as_string` (std/string) is the legacy alias
-        // retiring into it (TODO 1.13d).
+        // O(1)-reinterprets a borrowed slice.
         arr :: read_array(stack[arg_base], at_pc, "bytes_to_string receiver")
         if arr is Trap { return arr }
         raw: u8[] = []
@@ -169,7 +167,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
             if b is Trap { return b }
             raw.push(u8(b.value))
         }
-        return HostOk { .value = StringVal { .value = as_string(raw) } }
+        return HostOk { .value = StringVal { .value = raw.bytes_to_string() } }
     }
     if info.mangled_name == r"std_core$bytes" {
         // Native zero-copies a `const u8[]` view ; the VM materialises a copy

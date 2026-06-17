@@ -2,6 +2,8 @@
 
 ## stdlib/std/abort
 
+## stdlib/std/char
+
 ## stdlib/std/collections
   @comptime  MINIMAL_BUCKET_COUNT = 16_usize
 
@@ -41,8 +43,6 @@
 ## stdlib/std/string_builder
 
 ## stdlib/std/testing
-
-## stdlib/std/utf8
 
 ## tests/snippets/json_basics
 
@@ -143,9 +143,9 @@
   Yield<T>
   Yield<T>
   Yield<T>
+  Yield<T>
+  Yield<T>
   Yield<U>
-  Yield<T>
-  Yield<T>
   Yield<T>
   Yield<T>
   Yield<T>

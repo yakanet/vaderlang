@@ -21,7 +21,7 @@ import 1 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 2 bytes std_core$bytes (string) -> ref
 impl 7 Display
 impl 12 ByteAccess
-export main 12
+export main 14
 
 fn 0 std_io$std_io$println__string (string) -> void
   local $call_2 string
@@ -97,7 +97,7 @@ fn 3 std_string_builder$StringBuilder$Display$to_string (ref) -> string
     end $L1
   end $L0
   local.get 1
-  call 13
+  call 15
   local.set 2
   i64.const 0
   local.set 3
@@ -121,7 +121,7 @@ fn 3 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         local.get 2
         local.get 3
         local.get 8
-        call 15
+        call 17
         local.get 8
         call.import 2
         array.len
@@ -143,26 +143,26 @@ fn 3 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   end $L3
   local.get 2
   local.get 1
-  call 14
+  call 16
   return
 end
 
 fn 4 std_core$i32$Display$to_string (i32) -> string
   local.get 0
   i32.to_i64
-  call 9
+  call 8
   return
 end
 
 fn 5 std_core$i64$Display$to_string (i64) -> string
   local.get 0
-  call 9
+  call 8
   return
 end
 
 fn 6 std_core$u64$Display$to_string (u64) -> string
   local.get 0
-  call 10
+  call 9
   return
 end
 
@@ -171,13 +171,7 @@ fn 7 std_core$string$Display$to_string (string) -> string
   return
 end
 
-fn 8 std_core$i32$Hash$hash (i32) -> u64
-  local.get 0
-  i32.to_i64
-  return
-end
-
-fn 9 std_core$format_signed (i64) -> string
+fn 8 std_core$format_signed (i64) -> string
   local neg bool
   local digits ref
   local $k_14 u8
@@ -236,11 +230,11 @@ fn 9 std_core$format_signed (i64) -> string
   end $L2
   local.get 2
   local.get 1
-  call 11
+  call 10
   return
 end
 
-fn 10 std_core$format_unsigned (u64) -> string
+fn 9 std_core$format_unsigned (u64) -> string
   local $k_1 u64
   local digits ref
   local $k_8 u8
@@ -295,11 +289,11 @@ fn 10 std_core$format_unsigned (u64) -> string
   end $L1
   local.get 2
   bool.const false
-  call 11
+  call 10
   return
 end
 
-fn 11 std_core$finish_digits (ref,bool) -> string
+fn 10 std_core$finish_digits (ref,bool) -> string
   local out ref
   local $k_4 u8
   local k usize
@@ -361,22 +355,69 @@ fn 11 std_core$finish_digits (ref,bool) -> string
   return
 end
 
-fn 12 snippet$main () -> i32
+fn 11 snippet$i32$Describe$describe (i32) -> string
+  local __sb_0 ref
+  local $call_4 string
+  call 1
+  local.set 1
+  local.get 1
+  string.const 2
+  call 2
+  local.get 0
+  call 4
+  local.set 2
+  local.get 1
+  local.get 2
+  call 2
+  local.get 1
+  call 3
+  return
+end
+
+fn 12 snippet$i64$Describe$describe (i64) -> string
+  local __sb_0 ref
+  local $call_5 string
+  call 1
+  local.set 1
+  string.const 3
+  call 7
+  local.set 2
+  local.get 1
+  local.get 2
+  call 2
+  local.get 0
+  call 5
+  local.set 2
+  local.get 1
+  local.get 2
+  call 2
+  local.get 1
+  call 3
+  return
+end
+
+fn 13 snippet$i32$Tag$tag (i32) -> u64
+  local.get 0
+  i32.to_i64
+  return
+end
+
+fn 14 snippet$main () -> i32
   local x i32
   local __sb_0 ref
   local $call_9 string
   i32.const 42
   local.set 0
   local.get 0
-  call 4
+  call 11
   call 0
   i64.const 7
-  call 5
+  call 12
   call 0
   call 1
   local.set 1
   local.get 0
-  call 8
+  call 13
   call 6
   local.set 2
   local.get 1
@@ -388,20 +429,20 @@ fn 12 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 13 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 15 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   object_new 0
   return
 end
 
-fn 14 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 16 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
   buffer_to_string
   return
 end
 
-fn 15 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 17 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0
   local.get 1
   local.get 2

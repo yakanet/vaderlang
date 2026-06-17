@@ -14,7 +14,7 @@
 module "vader/lsp"
 
 import "std/io" { read_stdin, print, eprintln }
-import "std/string" { as_string, byte_decode_at, starts_with, parse_int, ParseError }
+import "std/string" { byte_decode_at, starts_with, parse_int, ParseError }
 import "std/string_builder" { new_builder, append }
 
 export TransportError :: struct {
@@ -61,7 +61,7 @@ export read_frame :: fn() -> string | TransportError {
                                 finished = true
                             } else {
                                 if line.starts_with("Content-Length:") {
-                                    raw :: line_bytes[15..<line_bytes.len()].as_string()
+                                    raw :: line_bytes[15..<line_bytes.len()].bytes_to_string()
                                     trimmed :: trim_ascii(raw)
                                     parsed :: trimmed.parse_int()
                                     match parsed {
@@ -107,7 +107,7 @@ trim_ascii :: fn(s: string) -> string {
     for end > start {
         if is_ascii_space(s.byte_decode_at(end - 1)) { end = end - 1 } else { break }
     }
-    return sb[start..<end].as_string()
+    return sb[start..<end].bytes_to_string()
 }
 
 /// Write one JSON-RPC frame to stdout. Encodes the `Content-Length`

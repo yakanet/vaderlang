@@ -14,9 +14,10 @@ module "main"
 
 import "std/io" { println, eprintln, read_file }
 import "std/string" {
-    chars, is_white_char, len, parse_int,
+    chars, parse_int,
     split_where, trim, ParseError,
 }
+import "std/char" { is_white_char }
 import "std/string_builder" { new_builder, append }
 
 // Compile-time bake: the canonical test input is embedded next to the source.

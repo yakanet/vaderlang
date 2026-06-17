@@ -163,7 +163,15 @@ unify_unions :: fn(pu: UnionType, au: UnionType, out: MutableMap<i32, Type>) -> 
     for i in 0..<m { unify_type_param(remaining_param[i], remaining_arg[i], out) }
 }
 
-find_unused_equal :: fn(types: Type[], used: bool[], target: Type) -> i32 {
+/// Index of the first not-yet-used entry in `types` structurally equal to
+/// `target`, or -1. Drives the "concrete first" union-variant pairing in both
+/// `unify_unions` (typer) and `unify_params`' union case (lowerer).
+///
+/// @param types   the candidate variants to scan.
+/// @param used    parallel flags — entries already paired off are skipped.
+/// @param target  the variant to find a structural match for.
+/// @return        the matching index, or -1 when none is free + equal.
+export find_unused_equal :: fn(types: Type[], used: bool[], target: Type) -> i32 {
     for i in 0..<types.len() {
         if !used[i] && equals_type(types[i], target) { return i32(i) }
     }

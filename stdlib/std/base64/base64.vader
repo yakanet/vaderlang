@@ -9,7 +9,6 @@
 
 module "std/base64"
 
-import "std/string" { as_string }
 import "std/string_builder" { StringBuilder, new_builder, append_char }
 
 ALPHABET :: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
@@ -85,7 +84,7 @@ decode_byte :: fn(b: u8) -> i32 {
 ///
 /// Returns `u8[]` rather than `string` so arbitrary binary round-trips
 /// exactly : `string` is codepoint-based, so non-UTF-8 octets would not
-/// survive a string round-trip. Call `.as_string()` on the result when the
+/// survive a string round-trip. Call `.bytes_to_string()` on the result when the
 /// payload is known to be valid UTF-8 text.
 ///
 /// @param input  the base64 text (standard alphabet, `=`-padded).
@@ -187,7 +186,7 @@ import "std/testing" { assert_eq, assert }
     expect_decode("Zm9vYmFy",  "foobar")
 }
 
-// The RFC vectors are all ASCII, so `as_string` round-trips them on every
+// The RFC vectors are all ASCII, so `bytes_to_string` round-trips them on every
 // backend ; only invalid UTF-8 diverges across backends, which is why the
 // binary test below asserts on the raw `u8[]` instead.
 expect_decode :: fn(encoded: string, expected: string) -> void {
@@ -195,7 +194,7 @@ expect_decode :: fn(encoded: string, expected: string) -> void {
     if out is Base64Error {
         assert(false, "decode failed for ${encoded}")
     } else {
-        assert_eq(out.as_string(), expected)
+        assert_eq(out.bytes_to_string(), expected)
     }
 }
 
@@ -224,14 +223,14 @@ expect_decode :: fn(encoded: string, expected: string) -> void {
         if out is Base64Error {
             assert(false, "roundtrip decode failed for ${s}")
         } else {
-            assert_eq(out.as_string(), s)
+            assert_eq(out.bytes_to_string(), s)
         }
     }
 }
 
 @test test_roundtrip_binary :: fn() -> void {
     // Octets >= 0x80 round-trip exactly now that encode/decode are byte-oriented.
-    // Asserting on the raw `u8[]` keeps this backend-agnostic (no `as_string`,
+    // Asserting on the raw `u8[]` keeps this backend-agnostic (no `bytes_to_string`,
     // whose invalid-UTF-8 handling differs across backends).
     raw: u8[] = [0x00, 0x80, 0xFF, 0xC3, 0x28, 0xA9]
     out :: decode(encode(raw))

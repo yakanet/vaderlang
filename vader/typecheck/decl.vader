@@ -20,11 +20,14 @@ module "vader/typecheck"
 import "std/collections" { MutableMap }
 import "vader/diagnostics" { Diagnostic, Span, typecheck_error }
 import "vader/resolver" { ResolvedModule }
-import "vader/resolver/symbol" { Symbol, SymbolFactory, make }
+import "vader/resolver/symbol" { Symbol, SymbolKind, SymbolFactory, make }
 AST :: import "vader/parser"
 import "vader/parser" { Visibility }
 import "vader/types" {
     Type, ArrayType, PrimitiveType, UnresolvedType, display_type,
+    StructType, EnumType, TraitType, UnionType, FnType, TupleType,
+    TypeParamType, TypeMetaType, SelfType, FreeIntType, FreeFloatType,
+    NeverType, AnyType,
     mk_struct, mk_trait, mk_fn, mk_enum, mk_type_param,
     TY_UNRESOLVED, TY_VOID,
 }
@@ -191,6 +194,87 @@ declare_fn :: fn(
     if has_extern_decorator(decl.decorators) {
         validate_extern(decl, params, return_type, typed, diags)
     }
+    check_public_return_visibility(decl, return_type, diags)
+}
+
+// ---- T3052 : private type in a public interface ---------------------------
+
+// Fire T3052 when an `export`ed fn's return type names a type that isn't
+// itself exported — a caller in another module receives a value of a type it
+// can't name. Mirrors Rust's E0446 (`private_interfaces`). v1 covers return
+// types only ; params / exported struct fields / type-alias RHS are a planned
+// follow-up (see TODO §"Reject private types in a public signature").
+check_public_return_visibility :: fn(decl: AST.FnDecl, return_type: Type, diags: Diagnostic[]) -> void {
+    if decl.visibility != Visibility.Public { return }
+    leak :: first_unexported_type(return_type)
+    if leak == null { return }
+    ret_span: Span = decl.span
+    if decl.return_type != null { ret_span = decl.return_type.span }
+    diags.push(typecheck_error(.PrivateTypeInPublicInterface, ret_span,
+        "exported `${decl.name}` returns `${leak.name}`, which is not exported from its module ; export `${leak.name}` or make `${decl.name}` private"))
+}
+
+// First non-exported user type referenced anywhere in `t`, or null when the
+// whole type is nameable across the module boundary. Exhaustive over the
+// closed `Type` union (no `_` fall-through) so adding a new symbol-carrying
+// variant trips T3013 here and forces a conscious decision ; every type that
+// carries no nameable symbol (primitives, type-params, `Self`, the
+// erasure/inference synthetics) is a leaf that contributes nothing → null.
+first_unexported_type :: fn(t: Type) -> Symbol | null {
+    match t {
+        is StructType as s -> {
+            if is_private_user_type(s.symbol) { return s.symbol }
+            return first_unexported_in(s.args)
+        }
+        is EnumType as e -> {
+            // EnumType carries no generic args today ; if parametric enums land,
+            // recurse into them here like StructType / TraitType.
+            if is_private_user_type(e.symbol) { return e.symbol }
+            return null
+        }
+        is TraitType as tr -> {
+            if is_private_user_type(tr.symbol) { return tr.symbol }
+            return first_unexported_in(tr.args)
+        }
+        is UnionType    as u -> { return first_unexported_in(u.variants) }
+        is ArrayType    as a -> { return first_unexported_type(a.element) }
+        is TupleType    as p -> { return first_unexported_in(p.elements) }
+        is FnType       as f -> {
+            in_params :: first_unexported_in(f.params)
+            if in_params != null { return in_params }
+            return first_unexported_type(f.return_type)
+        }
+        is PrimitiveType  -> { return null }
+        is TypeParamType  -> { return null }
+        is TypeMetaType   -> { return null }
+        is SelfType       -> { return null }
+        is UnresolvedType -> { return null }
+        is FreeIntType    -> { return null }
+        is FreeFloatType  -> { return null }
+        is NeverType      -> { return null }
+        is AnyType        -> { return null }
+    }
+}
+
+first_unexported_in :: fn(types: Type[]) -> Symbol | null {
+    for t in types {
+        r :: first_unexported_type(t)
+        if r != null { return r }
+    }
+    return null
+}
+
+is_private_user_type :: fn(sym: Symbol) -> bool {
+    if sym.visibility != Visibility.Private { return false }
+    return is_user_type_kind(sym.kind)
+}
+
+is_user_type_kind :: fn(k: SymbolKind) -> bool {
+    if k == .Struct    { return true }
+    if k == .Enum      { return true }
+    if k == .Trait     { return true }
+    if k == .TypeAlias { return true }
+    return false
 }
 
 // ---- @extern ABI validation -----------------------------------------------

@@ -93,7 +93,7 @@
       "typeParams": [],
       "forType": {
         "kind": "IdentExpr",
-        "name": "i32"
+        "name": "i64"
       },
       "traitName": "TwoFns",
       "traitArgs": [],

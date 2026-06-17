@@ -1,6 +1,8 @@
 # Vader benchmarks
 
-Two families of workload. The **cross-language** set (six workloads, four implementations each) spans float CPU, integer CPU, iterator chains, GC throughput, and string-runtime throughput so a perf change in any of those subsystems trips a regression. The **Target-ABI** set (four workloads, Vader-only) isolates a single ABI primitive each, so a `main`-vs-branch run quantifies the ABI migration (see [`docs/TARGET_ABI.md`](../docs/TARGET_ABI.md)).
+Two families of workload. The **cross-language** set (six workloads) spans float CPU, integer CPU, iterator chains, GC throughput, and string-runtime throughput so a perf change in any of those subsystems trips a regression. The **Target-ABI** set (four workloads) isolates a single ABI primitive each, so a `main`-vs-branch run quantifies the ABI migration (see [`docs/TARGET_ABI.md`](../docs/TARGET_ABI.md)).
+
+Every workload lives in its own directory `bench/<name>/` with all four language implementations colocated — `<name>.vader`, `<name>.ts`, `<name>.go`, `<name>.java` — alongside the compiled artefacts the harness produces.
 
 | workload         | exercises                                       | algorithm                                                       | scale                                  |
 |------------------|-------------------------------------------------|-----------------------------------------------------------------|----------------------------------------|
@@ -11,7 +13,7 @@ Two families of workload. The **cross-language** set (six workloads, four implem
 | `string_builder` | string runtime + GC under in-flight builder     | append a 45-char fragment N times, finalise to a flat string    | N = 80 000                             |
 | `map_iter`       | hash-map entry iteration, per-visit alloc       | 1 000 outer × 1 000 inner `for entry in m` over a 1 000-entry map | 1 M map visits total                 |
 
-**Target-ABI micro-benches** (Vader-only — no `.ts` / `.go` / `.java` port, so only the `vader-native` column is populated) :
+**Target-ABI micro-benches** — the ABI primitive each isolates doubles as a cross-language comparison point, so they ship the same four-language ports :
 
 | workload      | ABI primitive                                   | algorithm                                                       | scale                          |
 |---------------|-------------------------------------------------|-----------------------------------------------------------------|--------------------------------|
@@ -24,18 +26,18 @@ Every program prints a one-line checksum so cross-language (and cross-branch) eq
 
 ## Implementations
 
-| stack             | entry-point                                  | how it runs                                          |
-|-------------------|----------------------------------------------|------------------------------------------------------|
-| `vader-native`    | `bench/<name>.vader` → native binary         | `./build/vader build --target=native --release`, then exec |
-| `bun-ts`          | `bench/<name>.ts`                            | direct `bun bench/<name>.ts`                          |
-| `go`              | `bench/<name>.go` → native binary            | `go build`, then exec                                 |
-| `java`            | `bench/<name>.java` → `bench/<name>.class`   | `javac --release 25`, then `java -cp bench <Name>`    |
+| stack             | entry-point                                       | how it runs                                                |
+|-------------------|---------------------------------------------------|------------------------------------------------------------|
+| `vader-native`    | `bench/<name>/<name>.vader` → native binary       | `./build/vader build --target=native --release`, then exec |
+| `bun-ts`          | `bench/<name>/<name>.ts`                          | direct `bun bench/<name>/<name>.ts`                        |
+| `go`              | `bench/<name>/<name>.go` → native binary          | `go build`, then exec                                      |
+| `java`            | `bench/<name>/<name>.java` → `<name>.class`       | `javac --release 25 -d bench/<name>`, then `java -cp bench/<name> <Name>` |
 
 The harness times each invocation with `performance.now()` around a `spawnSync`, so what's measured is the **process wall-clock** — startup, runtime initialization, kernel, I/O, teardown.
 
-A fifth implementation, `vader-vm` (`./build/vader run bench/<name>.vader`), exists in the codebase but is commented out in `bench/run.ts`'s `IMPLS` list. Reason : each VM invocation pays 2-30 s for the Vader parse + typecheck + lower + bytecode pipeline, which dwarfs the actual VM loop. Including it inflates the total bench wall time from ~6 s to ~5 min without surfacing a regression signal that `vader-native` doesn't already cover. Uncomment the entry when a change targets the VM exec path specifically (e.g. once the bytecode-on-disk cache lands and the compile phase is amortised).
+A fifth implementation, `vader-vm` (`./build/vader run bench/<name>/<name>.vader`), exists in the codebase but is commented out in `bench/run.ts`'s `IMPLS` list. Reason : each VM invocation pays 2-30 s for the Vader parse + typecheck + lower + bytecode pipeline, which dwarfs the actual VM loop. Including it inflates the total bench wall time from ~6 s to ~5 min without surfacing a regression signal that `vader-native` doesn't already cover. Uncomment the entry when a change targets the VM exec path specifically (e.g. once the bytecode-on-disk cache lands and the compile phase is amortised).
 
-Java is precompiled in the build phase rather than run via the single-source-file launcher (`java bench/<name>.java`). The launcher adds ~200 ms per invocation for in-memory source parsing + class load on top of the JVM cold-start floor ; precompiling drops Java's per-run cost to ~30-50 ms which is the JVM startup + cold JIT alone. For steady-state Java throughput (a long-running JVM that has warmed its JIT), Java would land much closer to Go and Vader native ; the bench measures cold script invocations on purpose.
+Java is precompiled in the build phase rather than run via the single-source-file launcher (`java bench/<name>/<name>.java`). The launcher adds ~200 ms per invocation for in-memory source parsing + class load on top of the JVM cold-start floor ; precompiling drops Java's per-run cost to ~30-50 ms which is the JVM startup + cold JIT alone. For steady-state Java throughput (a long-running JVM that has warmed its JIT), Java would land much closer to Go and Vader native ; the bench measures cold script invocations on purpose.
 
 ### Build parallelism
 
@@ -60,26 +62,28 @@ We compare on `min(samples)` rather than the median because these workloads fini
 
 ## Baseline (committed)
 
-Captured on a 2026 Apple Silicon laptop, `bun bench/run.ts --runs=5 --update`:
+Captured 2026-06-16 on a 2026 Apple Silicon laptop, `bun run bench -- --runs=5 --update`:
 
 | workload         | vader-native | bun-ts  | go      | java    |
 |------------------|--------------|---------|---------|---------|
-| `mandelbrot`     | 16.9 ms      | 26.9 ms | 19.5 ms | 54.3 ms |
-| `primes`         | 25.5 ms      | 43.1 ms | 25.7 ms | 63.3 ms |
-| `iter_chain`     |  1.9 ms      | 39.9 ms |  2.8 ms | 42.9 ms |
-| `binary_trees`   |  4.5 ms      | 14.0 ms |  8.4 ms | 40.4 ms |
-| `string_builder` |  7.5 ms      | 11.9 ms |  4.6 ms | 43.7 ms |
-| `map_iter`       | 10.1 ms      | 37.9 ms |  9.5 ms | 48.7 ms |
+| `mandelbrot`     | 16.2 ms      | 26.6 ms | 19.8 ms | 56.7 ms |
+| `primes`         | 24.4 ms      | 42.4 ms | 26.8 ms | 64.5 ms |
+| `iter_chain`     |  2.3 ms      | 39.8 ms |  3.2 ms | 43.7 ms |
+| `binary_trees`   |  6.9 ms      | 15.0 ms |  8.1 ms | 38.3 ms |
+| `string_builder` |  8.8 ms      | 11.4 ms |  6.6 ms | 39.7 ms |
+| `map_iter`       |  6.5 ms      | 34.9 ms |  9.5 ms | 52.0 ms |
+
+The four Target-ABI micro-benches (`arr_rw`, `arr_push`, `str_concat`, `interp`) are baselined in `baseline.json` too, but omitted from this table : their `vader-native` numbers track the off-runtime ABI path under active migration on `feat/target-abi`, so they're a branch-relative signal rather than a stable cross-language reference.
 
 Reading the table :
 
-- **`mandelbrot`** — Vader native (16.9 ms) beats Go (19.5 ms) and Bun-TS (26.9 ms). After the for-over-integer-range counter-loop lowering (commit `1e268fd3`), the float kernel hits a state where clang `-O3` is doing essentially the same work as `gc`, with a marginal lead from FMA-free arithmetic on this specific kernel.
-- **`primes`** — Vader native (25.5 ms) edges Go (25.7 ms) and beats Bun (43.1 ms). Trial division is mostly integer modulo, which both AOT compilers turn into the same `udiv` / `msub` sequence ; Bun's JIT pays an extra dispatch.
-- **`iter_chain`** — Vader native is ~1.5 × faster than Go's direct loop (1.9 ms vs 2.8 ms) after the iterator-chain fusion landed. The lowerer detects `for x in (0..<N).filter(is_even).map(square_i64) { … }` — fluent UFCS chain or struct-lit chain, both bottom out at a `RangeExpr` — and collapses the three-level lazy chain into a single counter loop with inlined `pred` and `f` calls. Same pattern Rust's iter combinators rely on. Without that, the chain is 7-8 × slower (one `Yielded(T)` heap box + one vtable dispatch per layer per iteration). Bun-TS's generator chain (40 ms) and Java's Stream API (43 ms) sit on the unfused side, showing what we save.
-- **`binary_trees`** — Vader native (4.5 ms) is ~1.9 × faster than Go (8.4 ms) and ~3.1 × Bun-TS (14.0 ms). After the nullable-ref inline representation landed, `Node` dropped from 72 B → 40 B (-44 %) and the GC pressure dropped accordingly ; subsequent GC + dispatch optims (see `map_iter` below) closed the remaining gap and pulled ahead of `gc`'s tracing collector on this allocation-heavy workload.
-- **`string_builder`** — Go (4.6 ms) is ahead of Vader native (7.5 ms), with Bun-TS (11.9 ms) and Java (43.7 ms) trailing. The Vader `StringBuilder` stores fragment refs in a `string[]` and flushes once via the `Display::to_string` intrinsic — no per-iter copy — but Go's `strings.Builder` writes straight into a `[]byte` and amortises the grow over a single buffer, which beats the array-of-refs approach when the fragments are short and many. The gap is two final-pass copies and the GC tracing cost of the ref array.
-- **`map_iter`** — Vader native (10.1 ms) is at parity with Go (9.5 ms) on this workload, and crushes Bun-TS (37.9 ms) and Java (48.7 ms). The previous baseline had Vader at ~23 ms — ~2.8 × behind Go — but recent GC + dispatch optims (`O(log N)` string-mark, midir vtable pruning, lower-pass O(1) symbol lookups) closed most of the gap. Go's `for k, v := range m` allocates nothing per visit ; Vader's `for entry in m` desugars via `Into(Iterator(Entry(K, V)))` (cf. `std/collections.vader`). The `Yield(Entry)` wrapper folds into a 0-byte tag at runtime (`VADER_TYPE_KIND_INLINE_REF`) and the `Yield(T) | null` return slot folds to a raw `void*` via B1, so the dispatch is alloc-free and pointer-sized. The residual ~6 % vs Go is bucket walking + chain-cursor field reads + GC tracing of the eager `into()` allocation — further closing it would require either inlining `MapIterator.next()` at the for-in site or a faster collision chain (open-addressed table). Bun's `Map[Symbol.iterator]` and Java's `entrySet()` both box per visit.
-- **`java`** — every Java row sits at 40-64 ms regardless of workload. That floor is JVM startup + class loading + cold JIT — measurable but bounded now that we precompile in the build phase (down from ~230 ms when each invocation also parsed the source). For steady-state Java throughput (long-running JVM, warmed JIT, millions of iterations) Java would catch up to Go ; we're benching cold script invocations on purpose because that's what `java <Class>` looks like in practice.
+- **`mandelbrot`** — Vader native (16.2 ms) beats Go (19.8 ms) and Bun-TS (26.6 ms). After the for-over-integer-range counter-loop lowering (commit `1e268fd3`), the float kernel hits a state where clang `-O3` is doing essentially the same work as `gc`, with a marginal lead from FMA-free arithmetic on this specific kernel.
+- **`primes`** — Vader native (24.4 ms) edges ahead of Go (26.8 ms) and beats Bun (42.4 ms). Trial division is mostly integer modulo, which both AOT compilers turn into the same `udiv` / `msub` sequence ; the small lead is startup, and Bun's JIT pays an extra dispatch.
+- **`iter_chain`** — Vader native is ~1.4 × faster than Go's direct loop (2.3 ms vs 3.2 ms) after the iterator-chain fusion landed. The lowerer detects `for x in (0..<N).filter(is_even).map(square_i64) { … }` — fluent UFCS chain or struct-lit chain, both bottom out at a `RangeExpr` — and collapses the three-level lazy chain into a single counter loop with inlined `pred` and `f` calls. Same pattern Rust's iter combinators rely on. Without that, the chain is 7-8 × slower (one `Yielded(T)` heap box + one vtable dispatch per layer per iteration). Bun-TS's generator chain (~40 ms) and Java's Stream API (~44 ms) sit on the unfused side, showing what we save.
+- **`binary_trees`** — Vader native (6.9 ms) is ahead of Go (8.1 ms) and ~2.2 × faster than Bun-TS (15.0 ms). After the nullable-ref inline representation landed, `Node` dropped from 72 B → 40 B (-44 %) and GC pressure dropped accordingly, keeping Vader level with — and slightly ahead of — `gc`'s tracing collector on this allocation-heavy workload.
+- **`string_builder`** — Go (6.6 ms) is ahead of Vader native (8.8 ms), with Bun-TS (11.4 ms) and Java (39.7 ms) trailing. The Vader `StringBuilder` stores fragment refs in a `string[]` and flushes once via the `Display::to_string` intrinsic — no per-iter copy — but Go's `strings.Builder` writes straight into a `[]byte` and amortises the grow over a single buffer, which beats the array-of-refs approach when the fragments are short and many. The gap is two final-pass copies and the GC tracing cost of the ref array.
+- **`map_iter`** — Vader native (6.5 ms) now leads Go (9.5 ms) on this workload, and crushes Bun-TS (34.9 ms) and Java (52.0 ms). Earlier baselines had Vader behind Go (~23 ms, ~2.8 × slower) but GC + dispatch optims (`O(log N)` string-mark, midir vtable pruning, lower-pass O(1) symbol lookups) erased the gap and pushed ahead. Go's `for k, v := range m` allocates nothing per visit ; Vader's `for entry in m` desugars via `Into(Iterator(Entry(K, V)))` (cf. `std/collections.vader`). The `Yield(Entry)` wrapper folds into a 0-byte tag at runtime (`VADER_TYPE_KIND_INLINE_REF`) and the `Yield(T) | null` return slot folds to a raw `void*` via B1, so the dispatch is alloc-free and pointer-sized. Bun's `Map[Symbol.iterator]` and Java's `entrySet()` both box per visit.
+- **`java`** — every Java row sits at ~38-65 ms regardless of workload. That floor is JVM startup + class loading + cold JIT — measurable but bounded now that we precompile in the build phase (down from ~230 ms when each invocation also parsed the source). For steady-state Java throughput (long-running JVM, warmed JIT, millions of iterations) Java would catch up to Go ; we're benching cold script invocations on purpose because that's what `java <Class>` looks like in practice.
 
 The `mandelbrot` checksum splits three ways : Bun-TS / Java agree at 5 705 453, Vader-native lands at 5 705 449 (a 4-iteration drift, ~7 boundary pixels where clang's reassociation under `-O3` reorders a `z² + c` term and flips the escape test one iteration earlier), and Go lands at 5 689 008 because `gc` fuses `a*b + c` into a single FMA instruction with one rounding step on arm64. All three are mathematically correct ; only the rounding model differs.
 
@@ -94,9 +98,9 @@ These aren't bench bugs ; they're real Vader limits that constrain workload sizi
 ## Adding a workload
 
 1. Write the kernel in `bench/<name>/<name>.vader`. Print a one-line checksum to stdout.
-2. **Cross-language workload** — port it to `bench/<name>.ts`, `bench/<name>.go`, `bench/<name>.java`. Keep the algorithm bit-identical (the harness verifies checksum equality against the committed baseline). **Vader-only workload** (e.g. a Target-ABI micro-bench comparing branch vs `main`) — skip the ports ; the harness silently drops any implementation whose source file is absent, so the table shows only the `vader-native` column.
+2. Port it to `bench/<name>/<name>.ts`, `bench/<name>/<name>.go`, `bench/<name>/<name>.java` — all colocated in the same directory. Keep the algorithm bit-identical (the harness verifies checksum equality against the committed baseline). A port may be omitted : the harness silently drops any implementation whose source file is absent, so a Vader-only workload still works (its row just shows only the `vader-native` column).
 3. Add an entry to `WORKLOADS` in `bench/run.ts`.
-4. Add the artefacts (`bench/<name>/<name>` ; `.c` is covered by `bench/*/*.c`, and `bench/<name>_go` by `bench/*_go`) to `.gitignore`.
+4. Add the Vader binary line `bench/<name>/<name>` to `.gitignore` ; the `.c`, Go binary and `.class` artefacts are already covered by the `bench/*/*.c`, `bench/*/*_go`, `bench/*/*.class` globs.
 5. Run `bun run bench -- --update` to extend the baseline (baselines are machine-specific — a new workload simply isn't regression-gated until someone records it on the canonical machine).
 
 ## Caveats

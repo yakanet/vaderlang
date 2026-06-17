@@ -27,23 +27,9 @@
         "kind": "destructure",
         "names": [
           {
-            "name": "len",
-            "alias": null
-          },
-          {
             "name": "decode_codepoint",
             "alias": null
-          }
-        ]
-      },
-      "decorators": []
-    },
-    {
-      "kind": "ImportDecl",
-      "path": "std/utf8",
-      "binding": {
-        "kind": "destructure",
-        "names": [
+          },
           {
             "name": "codepoint_byte_len",
             "alias": null

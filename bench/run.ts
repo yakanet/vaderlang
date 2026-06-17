@@ -54,10 +54,6 @@ const WORKLOADS: readonly Workload[] = [
   { name: "binary_trees",   description: "balanced tree depth=17 (262 143 nodes)",   outputMatch: "binary_trees" },
   { name: "string_builder", description: "append a 45-char fragment 80 000 times",   outputMatch: "string_builder" },
   { name: "map_iter",       description: "1 000 outer × 1 000 inner map iter (1 M visits)", outputMatch: "map_iter" },
-  // Target-ABI micro-benches — Vader-only (no cross-language port). They isolate
-  // a single ABI primitive so a `main`-vs-branch run quantifies the migration
-  // (e.g. open-coded `arr[i]` vs the old boxed `vader_array_get`). Impls with no
-  // source file for the workload are skipped, so these show only the Vader column.
   { name: "arr_rw",         description: "1024-elt i32[] read-modify-write, 100k passes",   outputMatch: "arr_rw" },
   { name: "arr_push",       description: "20 M i32 pushes (200 × 100k), grow + GC churn",    outputMatch: "arr_push" },
   { name: "str_concat",     description: "300k × build a 13-byte string by repeated +",      outputMatch: "str_concat" },
@@ -68,8 +64,8 @@ interface Impl {
   readonly name: string;
   /** Path (relative to the repo root) to this impl's source for a workload.
    *  An impl whose source is absent is silently skipped for that workload —
-   *  this is how Vader-only ABI micro-benches (no `.ts` / `.go` / `.java`
-   *  port) coexist with the cross-language workloads in one table. */
+   *  so a workload that ships only a subset of language ports still works,
+   *  its row showing just the columns it has. */
   source: (workload: string) => string;
   /** Optional one-shot build step. Runs once per workload up-front, before
    *  any timed runs ; all `build` invocations are scheduled together via
@@ -126,25 +122,25 @@ const IMPLS: readonly Impl[] = [
   },
   {
     name: "bun-ts",
-    source: (w) => `bench/${w}.ts`,
-    run: (w) => ({ cmd: "bun", args: [`bench/${w}.ts`] }),
+    source: (w) => `bench/${w}/${w}.ts`,
+    run: (w) => ({ cmd: "bun", args: [`bench/${w}/${w}.ts`] }),
   },
   {
     name: "go",
-    source: (w) => `bench/${w}.go`,
-    build: (w) => runBuild("go", ["build", "-o", `bench/${w}_go`, `bench/${w}.go`], `go build for ${w}`),
-    run: (w) => ({ cmd: `./bench/${w}_go`, args: [] }),
+    source: (w) => `bench/${w}/${w}.go`,
+    build: (w) => runBuild("go", ["build", "-o", `bench/${w}/${w}_go`, `bench/${w}/${w}.go`], `go build for ${w}`),
+    run: (w) => ({ cmd: `./bench/${w}/${w}_go`, args: [] }),
   },
   {
     name: "java",
-    source: (w) => `bench/${w}.java`,
-    // `javac --release 25 bench/<w>.java` writes `bench/<w>.class` (and
-    // any nested-class files like `<w>$Node.class` for records) ; the
-    // measured run uses `java -cp bench <w>` so each invocation skips the
-    // single-source-file launcher's in-memory compile + class load step.
-    // JVM startup + cold JIT still apply, just not the source parse.
-    build: (w) => runBuild("javac", ["--release", "25", "-d", "bench", `bench/${w}.java`], `javac for ${w}`),
-    run: (w) => ({ cmd: "java", args: ["-cp", "bench", w] }),
+    source: (w) => `bench/${w}/${w}.java`,
+    // `javac --release 25 -d bench/<w> bench/<w>/<w>.java` writes
+    // `bench/<w>/<w>.class` (and any nested-class files like `<w>$Node.class`
+    // for records) ; the measured run uses `java -cp bench/<w> <w>` so each
+    // invocation skips the single-source-file launcher's in-memory compile +
+    // class load step. JVM startup + cold JIT still apply, just not the parse.
+    build: (w) => runBuild("javac", ["--release", "25", "-d", `bench/${w}`, `bench/${w}/${w}.java`], `javac for ${w}`),
+    run: (w) => ({ cmd: "java", args: ["-cp", `bench/${w}`, w] }),
   },
 ];
 
