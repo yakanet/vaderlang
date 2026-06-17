@@ -1,0 +1,134 @@
+// vader/lsp/document_symbol — `textDocument/documentSymbol` handler.
+//
+// Powers the editor outline, breadcrumbs and the Cmd+Shift+O / Ctrl+F12 symbol
+// picker. Maps the per-document index's file-wide `DeclEntry[]`
+// (`indexer.vader`) to a flat `DocumentSymbol[]` : every top-level declaration
+// (`scope_span == null`) — fn / struct / enum / trait / type-alias / const.
+// Intra-file bindings (params, locals, for-in vars) carry a scope and are
+// excluded. No nesting in v1 (a struct's fields aren't surfaced as children).
+//
+// Reuses `range_json` (definition.vader) and `doc_uri` (main.vader) — both
+// siblings in this folder module.
+
+module "vader/lsp"
+
+import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber, JsonArray }
+import "std/collections" { MutableMap }
+
+/// Build the `DocumentSymbol[]` response for the document named in `params`
+/// (`{ textDocument: { uri } }`).
+///
+/// @param params  the request params carrying `textDocument.uri`.
+/// @return        a `DocumentSymbol[]` JSON array ; empty when the document was
+///                never indexed (`documentSymbol` is array-typed, never null).
+export handle_document_symbol :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+    uri :: doc_uri(params)
+    idx :: state.index_for(uri)
+    match idx {
+        is null              -> { return JsonArray { .items = [] } }
+        is DocIndex as index -> { return document_symbol_json(toplevel_symbols(index)) }
+    }
+}
+
+/// The file-wide declarations an outline should list — every `DeclEntry` with
+/// no enclosing scope. Intra-file bindings (params / locals / for-in vars)
+/// carry a `scope_span` and are filtered out.
+toplevel_symbols :: fn(idx: DocIndex) -> DeclEntry[] {
+    out: DeclEntry[] = []
+    for d in idx.decls {
+        if d.scope_span == null { out.push(d) }
+    }
+    return out
+}
+
+// Map a `DeclKind` onto its LSP `SymbolKind` wire number (LSP §3.17). Top-level
+// kinds get their natural icon ; the intra-file kinds (filtered out before
+// encoding) fall back to Variable so the function stays total over the enum.
+lsp_symbol_kind :: fn(k: DeclKind) -> i32 = match k {
+    .Fn        -> 12   // Function
+    .Struct    -> 23   // Struct
+    .Enum      -> 10   // Enum
+    .Trait     -> 11   // Interface
+    .TypeAlias -> 5    // Class
+    .Const     -> 14   // Constant
+    .Param     -> 13   // Variable
+    .Local     -> 13   // Variable
+    .ForIn     -> 13   // Variable
+}
+
+document_symbol_json :: fn(entries: DeclEntry[]) -> JsonValue {
+    items: JsonValue[] = []
+    for e in entries { items.push(symbol_json(e)) }
+    return JsonArray { .items = items }
+}
+
+// `range` spans the whole declaration ; `selectionRange` is just the name (what
+// the editor reveals + selects on pick).
+symbol_json :: fn(e: DeclEntry) -> JsonValue {
+    obj :: MutableMap<string, JsonValue> {}
+    obj["name"]           = JsonString { .value = e.name }
+    obj["kind"]           = JsonNumber { .value = f64(lsp_symbol_kind(e.kind)) }
+    obj["range"]          = range_json(e.full_span.span_to_range_json())
+    obj["selectionRange"] = range_json(e.name_span.span_to_range_json())
+    return JsonObject { .entries = obj }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+
+// `name` of the i-th top-level symbol, or "" out of range — keeps the asserts
+// terse without a find helper.
+sym_name_at :: fn(syms: DeclEntry[], i: usize) -> string {
+    if i >= syms.len() { return "" }
+    return syms[i].name
+}
+
+@test
+test_toplevel_symbols_lists_decls_in_order :: fn() -> void {
+    src :: """
+Color :: enum { Red, Green }
+
+Point :: struct { x: i32, y: i32 }
+
+add :: fn(a: i32, b: i32) -> i32 {
+    sum :: a + b
+    return sum
+}
+
+MAX :: 10
+"""
+    idx :: build_index("t.vader", src)
+    syms :: toplevel_symbols(idx)
+    // The intra-fn binding `sum` (Local) must NOT appear — only the 4 decls.
+    assert_eq(syms.len(), usize(4))
+    assert_eq(sym_name_at(syms, 0), "Color")
+    assert_eq(sym_name_at(syms, 1), "Point")
+    assert_eq(sym_name_at(syms, 2), "add")
+    assert_eq(sym_name_at(syms, 3), "MAX")
+}
+
+@test
+test_lsp_symbol_kind_mapping :: fn() -> void {
+    assert_eq(lsp_symbol_kind(.Fn), i32(12))
+    assert_eq(lsp_symbol_kind(.Struct), i32(23))
+    assert_eq(lsp_symbol_kind(.Enum), i32(10))
+    assert_eq(lsp_symbol_kind(.Trait), i32(11))
+    assert_eq(lsp_symbol_kind(.TypeAlias), i32(5))
+    assert_eq(lsp_symbol_kind(.Const), i32(14))
+}
+
+@test
+test_toplevel_symbols_excludes_params_and_locals :: fn() -> void {
+    src :: """
+helper :: fn(arg: i32) -> i32 {
+    tmp :: arg + 1
+    return tmp
+}
+"""
+    idx :: build_index("t.vader", src)
+    syms :: toplevel_symbols(idx)
+    // Only `helper` — `arg` (Param) and `tmp` (Local) are scoped, not file-wide.
+    assert_eq(syms.len(), usize(1))
+    assert_eq(sym_name_at(syms, 0), "helper")
+}

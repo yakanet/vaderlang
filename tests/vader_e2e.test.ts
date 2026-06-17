@@ -65,6 +65,7 @@ function containsTestFn(dir: string): boolean {
 // `.claude/plans/target-abi-migration.md` §"native vader test gaps".
 const KNOWN_NATIVE_GAPS = new Set([
   "vader/bytecode",      // passes 223/223, but the VM run exceeds the CI per-test budget
+  "vader/lsp",           // passes 134/134, but the VM run (~196s) exceeds the CI per-test budget
 ]);
 
 // Serial (not `test.concurrent`) : each module spawns the native build/vader
