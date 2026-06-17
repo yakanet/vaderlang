@@ -201,7 +201,7 @@ fn 6 snippet$describe (i32) -> string
   return
 end
 
-fn 7 snippet$main () -> i32
+fn 7 snippet$main () -> void
   local d i32
   local __sb_0 ref
   local $call_16 string
@@ -260,7 +260,7 @@ fn 7 snippet$main () -> i32
   local.get 1
   call 3
   call 0
-  return.lit i32.const 0
+  return
 end
 
 fn 8 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
@@ -283,3 +283,6 @@ fn 10 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   buffer_write_string
   return
 end
+
+# Diagnostics
+[21:1] error[T3033] invalid `main` signature: main must return i32
