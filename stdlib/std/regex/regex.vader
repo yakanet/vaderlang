@@ -856,8 +856,8 @@ captured_groups :: fn(t: Thread, input: const u8[]) -> string[] {
     out: string[] = []
     i: usize = 0
     for i < n_groups {
-        lo_slot :: t.groups[usize(2) * i]
-        hi_slot :: t.groups[usize(2) * i + 1]
+        lo_slot :: t.groups[2 * i]
+        hi_slot :: t.groups[2 * i + 1]
         if lo_slot == SLOT_UNSET || hi_slot == SLOT_UNSET {
             out.push("")
         } else {

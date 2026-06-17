@@ -191,7 +191,7 @@ pad_sha256 :: fn(input: string) -> u8[] {
         i = i + 1
     }
     out.push(u8(0x80))
-    for out.len() % usize(64) != usize(56) {
+    for out.len() % 64 != 56 {
         out.push(u8(0))
     }
     // 8-byte big-endian length.
