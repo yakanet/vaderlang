@@ -19,6 +19,8 @@ module "main"
 
 import "std/io" { println }
 
+pi :: 3.141592653589793
+
 // A sum type — `match` must cover every variant (the compiler checks).
 Shape :: Circle | Rect
 
@@ -26,17 +28,20 @@ Circle :: struct { radius: f64 }
 Rect   :: struct { w: f64, h: f64 }
 
 area :: fn(s: Shape) -> f64 = match s {
-    is Circle as c -> 3.14159 * c.radius * c.radius
+    is Circle as c -> pi * c.radius * c.radius
     is Rect   as r -> r.w * r.h
 }
 
 main :: fn() -> i32 {
-    shapes: Shape[] = [Circle { .radius = 2.0 }, Rect { .w = 3.0, .h = 4.0 }]
+    shapes: Shape[] = [
+        Circle { .radius = 2.0 },
+        Rect { .w = 3.0, .h = 4.0 },
+    ]
     defer println("done.")
 
     total := 0.0                    // `:=` declares a mutable local; `::` is a constant
     for s in shapes {
-        total += area(s)
+        total += s.area()
     }
     println("total area of ${shapes.len()} shapes: ${total}")
     return 0
@@ -45,7 +50,7 @@ main :: fn() -> i32 {
 
 ```sh
 vader run shapes.vader
-# → total area of 2 shapes: 24.56636
+# → total area of 2 shapes: 24.566370614359172
 # → done.
 ```
 
