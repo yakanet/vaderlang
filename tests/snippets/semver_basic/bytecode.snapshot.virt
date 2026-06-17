@@ -7083,7 +7083,7 @@ fn 53 std_string$parse_int (string) -> ref
 end
 
 fn 54 std_string$is_white_byte (u8) -> bool
-  local $cast_2 u8
+  local $k_1 u8
   local or_res bool
   i32.const 32
   local.set 1
