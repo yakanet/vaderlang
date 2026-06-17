@@ -389,3 +389,48 @@ encode_delta :: fn(arr: RawToken[]) -> JsonValue {
     }
     return JsonArray { .items = out }
 }
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert_eq }
+
+// Build the full sorted RawToken list the way `produce_tokens` does, exposing
+// the pre-encoding tokens so tests can inspect classifications + overlaps.
+build_sorted_for_test :: fn(source: string, uri: string) -> RawToken[] {
+    raws: RawToken[] = []
+    collect_token_kinds(source, uri, raws)
+    collect_comment_kinds(source, raws)
+    collect_ast_idents(source, uri, raws)
+    sort_raws(raws)
+    return raws
+}
+
+// Count tokens that start inside the extent of an earlier token on the same
+// line. The LSP semantic-tokens spec forbids overlap ; clients render it
+// inconsistently, so this must stay zero.
+count_token_overlaps :: fn(toks: RawToken[]) -> i32 {
+    overlaps := 0
+    cur_line := i32(-1)
+    line_end := i32(0)
+    for t in toks {
+        if t.line != cur_line {
+            cur_line = t.line
+            line_end = t.col + t.length
+        } else {
+            if t.col < line_end { overlaps = overlaps + 1 }
+            end :: t.col + t.length
+            if end > line_end { line_end = end }
+        }
+    }
+    return overlaps
+}
+
+// Regression guard for the four shapes that used to emit a full-`span` token
+// overlapping an inner type / argument token : a decorator with args, typed
+// struct fields, typed fn params, and an intrinsic call.
+@test
+test_no_overlapping_tokens :: fn() -> void {
+    src :: "module \"t\"\n\n@extern(\"env\", \"now\")\nclock :: fn(a: i32, b: i32) -> i64\n\nPoint :: struct {\n    x: i32\n    y: i32\n}\n\nmain :: fn() -> void {\n    n :: @size_of(i32)\n    p :: Point { .x = 1, .y = 2 }\n}\n"
+    toks :: build_sorted_for_test(src, "file:///t.vader")
+    assert_eq(count_token_overlaps(toks), 0)
+}

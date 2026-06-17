@@ -118,7 +118,7 @@ put :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, value: V) -> void
 // into a linear scan of one long chain. `MINIMAL_BUCKET_COUNT` is now just the initial
 // width, not a fixed ceiling.
 maybe_grow :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>) -> void {
-    if self.size * usize(4) > self.buckets.len() * usize(3) {
+    if self.size * 4 > self.buckets.len() * 3 {
         self.grow()
     }
 }
@@ -131,7 +131,7 @@ maybe_grow :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>) -> void {
 // null deref under the bare `is Entry ->` form (codegen narrowing bug, see TODO).
 grow :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>) -> void {
     old :: self.buckets
-    new_count :: old.len() * usize(2)
+    new_count :: old.len() * 2
     fresh: (Entry<K, V> | null)[] = []
     for 0..<new_count {
         fresh.push(null)
@@ -477,7 +477,7 @@ import "std/testing" { assert, assert_eq }
     m["one"] = 1
     m["two"] = 2
     m["three"] = 3
-    assert_eq(m.len(), usize(3))
+    assert_eq(m.len(), 3)
     match m.get("two") {
         is i32 as v -> assert_eq(v, 2)
         is null -> assert(false, "expected key two")
@@ -492,7 +492,7 @@ import "std/testing" { assert, assert_eq }
     m := MutableMap<string, i32> {}
     m["k"] = 1
     m["k"] = 99
-    assert_eq(m.len(), usize(1))
+    assert_eq(m.len(), 1)
     match m.get("k") {
         is i32 as v -> assert_eq(v, 99)
         is null -> assert(false, "key k expected")
@@ -518,7 +518,7 @@ import "std/testing" { assert, assert_eq }
     s.add(10)
     s.add(20)
     s.add(10)
-    assert_eq(s.len(), usize(2))
+    assert_eq(s.len(), 2)
     assert(s.contains(10), "should contain 10")
     assert(!s.contains(99), "should not contain 99")
 }
@@ -528,11 +528,11 @@ import "std/testing" { assert, assert_eq }
     m["a"] = 1
     m["b"] = 2
     assert(m.remove("a"), "removing present key returns true")
-    assert_eq(m.len(), usize(1))
+    assert_eq(m.len(), 1)
     assert(!m.contains_key("a"), "removed key gone")
     assert(m.contains_key("b"), "untouched key stays")
     assert(!m.remove("a"), "removing absent key returns false")
-    assert_eq(m.len(), usize(1))
+    assert_eq(m.len(), 1)
 }
 
 @test test_set_remove :: fn() -> void {
@@ -540,7 +540,7 @@ import "std/testing" { assert, assert_eq }
     s.add(10)
     s.add(20)
     assert(s.remove(10), "removing present member returns true")
-    assert_eq(s.len(), usize(1))
+    assert_eq(s.len(), 1)
     assert(!s.contains(10), "removed member gone")
     assert(s.contains(20), "untouched member stays")
     assert(!s.remove(10), "removing absent member returns false")

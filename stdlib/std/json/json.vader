@@ -415,7 +415,7 @@ export parse :: fn(input: string) -> JsonValue | JsonError {
 write_string :: fn(sb: StringBuilder, s: string) -> void {
     sb.append_char('"')
     for c in s.chars() {
-        cp := i32(u32(c))
+        cp := i32(c)
         if c == '"' { sb.append("\\\"") } else
         if c == '\\' { sb.append("\\\\") } else
         if c == '\n' { sb.append("\\n") } else
@@ -436,9 +436,7 @@ write_string :: fn(sb: StringBuilder, s: string) -> void {
 // an int/float distinction), so preserving `.0` would carry no information
 // — emit the canonical short form, matching JS `JSON.stringify`, Go
 // `encoding/json`, and RFC 8785 (JCS).
-write_number :: fn(sb: StringBuilder, v: f64) -> void {
-    sb.append(v.to_compact_str())
-}
+write_number :: fn(sb: StringBuilder, v: f64) -> void = sb.append(v.to_compact_str())
 
 write_value :: fn(sb: StringBuilder, v: JsonValue, indent: i32, depth: i32) -> void {
     match v {
@@ -546,9 +544,10 @@ import "std/testing" { assert, assert_eq, fail as test_fail }
 /// @param expected  the expected decoded string body.
 expect_string :: fn(src: string, expected: string) -> void {
     parsed :: parse(src)
-    match parsed {
-        is JsonString -> { assert_eq(parsed.value, expected) return }
-        _             -> { test_fail("expected JsonString") }
+    if parsed is JsonString {
+        assert_eq(parsed.value, expected)
+    } else {
+        test_fail("expected JsonString")
     }
 }
 
@@ -557,9 +556,8 @@ expect_string :: fn(src: string, expected: string) -> void {
 /// @param src  the malformed JSON document.
 expect_error :: fn(src: string) -> void {
     parsed :: parse(src)
-    match parsed {
-        is JsonError -> { return }
-        _            -> { test_fail("expected JsonError") }
+    if parsed !is JsonError {
+        test_fail("expected JsonError")
     }
 }
 
@@ -617,16 +615,19 @@ expect_error :: fn(src: string) -> void {
     // input where one key is escape-free (fast path) and one carries an
     // escape (slow path).
     parsed :: parse("{\"key\": 1, \"k\\ny\": 2}")
-    match parsed {
-        is JsonObject -> { assert_eq(parsed.entries.len(), usize(2)) return }
-        _             -> { test_fail("expected JsonObject") }
+    if parsed is JsonObject {
+        assert_eq(parsed.entries.len(), 2)
+    } else {
+        test_fail("expected JsonObject")
     }
 }
 
 @test test_array_of_strings :: fn() -> void {
     parsed :: parse("[\"a\", \"b\\nc\", \"\"]")
-    match parsed {
-        is JsonArray -> { assert_eq(parsed.items.len(), usize(3)) return }
-        _            -> { test_fail("expected JsonArray") }
+    if parsed is JsonArray {
+        assert_eq(parsed.items.len(), 3) 
+    } else {
+        test_fail("expected JsonArray") 
     }
+    
 }

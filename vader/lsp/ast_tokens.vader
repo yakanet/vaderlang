@@ -19,7 +19,7 @@ module "vader/lsp"
 import "std/collections" { MutableMap }
 import "vader/parser" { parse_source }
 AST :: import "vader/parser"
-import "vader/diagnostics" { Span }
+import "vader/diagnostics" { Position, Span }
 import "vader/resolver" { resolve_program, ResolvedFile }
 import "vader/resolver/symbol" { Symbol, SymbolKind, new_factory }
 
@@ -143,6 +143,29 @@ push_span :: fn(out: RawToken[], sp: Span, kind: TokenType) -> void {
     })
 }
 
+/// Push a token anchored at `start`, spanning `prefix` leading chars plus
+/// the `name` text — `prefix = 1` for the `@` of a decorator / intrinsic,
+/// `0` for a bare declaration name.
+///
+/// Used where the AST node's `span` reaches past the name : a struct-field
+/// or fn-param `span` runs through the type annotation (`x: i32`), a
+/// decorator `span` runs to the closing `)` of its args (`@extern("c")`).
+/// Tagging the full span would overlap the inner type / argument tokens,
+/// which LSP forbids and clients render inconsistently — so anchor on the
+/// name alone. Length is byte-based, matching `push_span` (ASCII-safe per
+/// the `semantic_tokens.vader` header note).
+push_name_token :: fn(out: RawToken[], start: Position, prefix: i32, name: string, kind: TokenType) -> void {
+    length :: prefix + i32(name.bytes().len())
+    if length <= 0 { return }
+    out.push(RawToken {
+        .line      = start.line - 1,
+        .col       = start.column - 1,
+        .length    = length,
+        .tok_type  = i32(kind),
+        .modifiers = i32(0),
+    })
+}
+
 // Optional-arm helpers. Vader's `match` over a union doesn't auto-cover all
 // variants of an inner union (e.g. `match x : Expr | null { is Expr -> … }`
 // doesn't fire — `is Expr` isn't a one-arm match on the underlying ~30
@@ -192,7 +215,9 @@ walk_decl :: fn(d: AST.Decl, out: RawToken[]) -> void {
 
 walk_decorators :: fn(ds: AST.Decorator[], out: RawToken[]) -> void {
     for deco in ds {
-        push_span(out, deco.span, .Decorator)
+        // `deco.span` covers `@name(args)` whole ; tag only `@name` so the
+        // argument tokens (walked below) don't sit inside a Decorator token.
+        push_name_token(out, deco.span.start, 1, deco.name, .Decorator)
         for a in deco.args { walk_expr(a, out) }
     }
 }
@@ -237,7 +262,9 @@ walk_opt_block :: fn(b: AST.BlockExpr | null, out: RawToken[]) -> void {
 }
 
 walk_fn_param :: fn(p: AST.FnParam, out: RawToken[]) -> void {
-    push_span(out, p.span, .Parameter)
+    // `p.span` runs through the type annotation (`a: i32`) ; tag only the
+    // param name so the type token below doesn't overlap it.
+    push_name_token(out, p.span.start, 0, p.name, .Parameter)
     walk_opt_type(p.ty, out)
     walk_opt_expr(p.default_value, out)
 }
@@ -250,7 +277,9 @@ walk_struct_decl :: fn(d: AST.StructDecl, out: RawToken[]) -> void {
 }
 
 walk_struct_field :: fn(f: AST.StructField, out: RawToken[]) -> void {
-    push_span(out, f.span, .Variable)   // field declaration site
+    // `f.span` runs through the type annotation (`x: i32`) ; tag only the
+    // field name so the type token below doesn't overlap it.
+    push_name_token(out, f.span.start, 0, f.name, .Variable)
     walk_type_expr(f.ty, out)
     walk_opt_expr(f.default, out)
 }
@@ -399,7 +428,12 @@ walk_expr :: fn(e: AST.Expr, out: RawToken[]) -> void {
             walk_type_expr(x.callee, out)
             for a in x.type_args { walk_type_expr(a, out) }
         }
-        is AST.IntrinsicCallExpr as x -> { for a in x.args { walk_expr(a, out) } }
+        is AST.IntrinsicCallExpr as x -> {
+            // Tag `@name` as Decorator so intrinsics colour like decorators
+            // (`@test`, `@extern`) rather than falling through uncoloured.
+            push_name_token(out, x.span.start, 1, x.name, .Decorator)
+            for a in x.args { walk_expr(a, out) }
+        }
         is AST.DotVariantExpr   as x -> { push_span(out, x.span, .EnumMember) }
         is AST.FnTypeExpr       as x -> {
             for p in x.params { walk_type_expr(p, out) }

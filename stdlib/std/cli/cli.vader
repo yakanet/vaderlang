@@ -175,21 +175,21 @@ import "std/testing" { assert, assert_eq }
 @test test_bool_flag_presence :: fn() -> void {
     specs: FlagSpec[] = [FlagSpec { .name = "verbose", .kind = .Bool }]
     parsed :: parse(["--verbose"], specs)
-    assert_eq(parsed.errors.len(), usize(0))
+    assert_eq(parsed.errors.len(), 0)
     assert(parsed.bool_flag("verbose"), "presence-only --verbose should resolve to true")
 }
 
 @test test_bool_flag_explicit_value :: fn() -> void {
     specs: FlagSpec[] = [FlagSpec { .name = "verbose", .kind = .Bool }]
     parsed :: parse(["--verbose=false"], specs)
-    assert_eq(parsed.errors.len(), usize(0))
+    assert_eq(parsed.errors.len(), 0)
     assert(!parsed.bool_flag("verbose"), "--verbose=false should resolve to false")
 }
 
 @test test_bool_flag_rejects_garbage_value :: fn() -> void {
     specs: FlagSpec[] = [FlagSpec { .name = "verbose", .kind = .Bool }]
     parsed :: parse(["--verbose=maybe"], specs)
-    assert_eq(parsed.errors.len(), usize(1))
+    assert_eq(parsed.errors.len(), 1)
 }
 
 @test test_bool_flag_missing_is_false :: fn() -> void {
@@ -202,14 +202,14 @@ import "std/testing" { assert, assert_eq }
 @test test_str_flag_value :: fn() -> void {
     specs: FlagSpec[] = [FlagSpec { .name = "out", .kind = .Str }]
     parsed :: parse(["--out=/tmp/path"], specs)
-    assert_eq(parsed.errors.len(), usize(0))
+    assert_eq(parsed.errors.len(), 0)
     assert_eq(parsed.string_flag("out", ""), "/tmp/path")
 }
 
 @test test_str_flag_missing_value_errors :: fn() -> void {
     specs: FlagSpec[] = [FlagSpec { .name = "out", .kind = .Str }]
     parsed :: parse(["--out"], specs)
-    assert_eq(parsed.errors.len(), usize(1))
+    assert_eq(parsed.errors.len(), 1)
 }
 
 @test test_str_flag_default_when_absent :: fn() -> void {
@@ -221,15 +221,15 @@ import "std/testing" { assert, assert_eq }
 @test test_unknown_flag_strict_errors :: fn() -> void {
     specs: FlagSpec[] = [FlagSpec { .name = "verbose", .kind = .Bool }]
     parsed :: parse(["--unknown"], specs)
-    assert_eq(parsed.errors.len(), usize(1))
-    assert_eq(parsed.positionals.len(), usize(0))
+    assert_eq(parsed.errors.len(), 1)
+    assert_eq(parsed.positionals.len(), 0)
 }
 
 @test test_positionals_preserve_order :: fn() -> void {
     specs: FlagSpec[] = [FlagSpec { .name = "verbose", .kind = .Bool }]
     parsed :: parse(["a", "--verbose", "b", "c"], specs)
-    assert_eq(parsed.errors.len(), usize(0))
-    assert_eq(parsed.positionals.len(), usize(3))
+    assert_eq(parsed.errors.len(), 0)
+    assert_eq(parsed.positionals.len(), 3)
     assert_eq(parsed.positionals[0], "a")
     assert_eq(parsed.positionals[1], "b")
     assert_eq(parsed.positionals[2], "c")
@@ -238,9 +238,9 @@ import "std/testing" { assert, assert_eq }
 @test test_double_dash_stops_flag_parsing :: fn() -> void {
     specs: FlagSpec[] = [FlagSpec { .name = "verbose", .kind = .Bool }]
     parsed :: parse(["--verbose", "--", "--not-a-flag", "x"], specs)
-    assert_eq(parsed.errors.len(), usize(0))
+    assert_eq(parsed.errors.len(), 0)
     assert(parsed.bool_flag("verbose"), "--verbose seen before `--`")
-    assert_eq(parsed.positionals.len(), usize(2))
+    assert_eq(parsed.positionals.len(), 2)
     assert_eq(parsed.positionals[0], "--not-a-flag")
     assert_eq(parsed.positionals[1], "x")
 }
@@ -248,9 +248,9 @@ import "std/testing" { assert, assert_eq }
 @test test_parse_known_routes_unknown_to_positionals :: fn() -> void {
     specs: FlagSpec[] = [FlagSpec { .name = "verbose", .kind = .Bool }]
     parsed :: parse_known(["--unknown", "--unknown=val", "--verbose", "file"], specs)
-    assert_eq(parsed.errors.len(), usize(0))
+    assert_eq(parsed.errors.len(), 0)
     assert(parsed.bool_flag("verbose"), "known flag still consumed")
-    assert_eq(parsed.positionals.len(), usize(3))
+    assert_eq(parsed.positionals.len(), 3)
     // Unknowns pass through verbatim (with their `--` prefix), preserving
     // argv order against the trailing positional.
     assert_eq(parsed.positionals[0], "--unknown")
@@ -263,5 +263,5 @@ import "std/testing" { assert, assert_eq }
     // `--out` alone is a caller mistake regardless of strictness.
     specs: FlagSpec[] = [FlagSpec { .name = "out", .kind = .Str }]
     parsed :: parse_known(["--out"], specs)
-    assert_eq(parsed.errors.len(), usize(1))
+    assert_eq(parsed.errors.len(), 1)
 }

@@ -107,8 +107,8 @@ mul_shift_all_64 :: fn(m2: u64, mul0: u64, mul1: u64, j: i32, mm_shift: u64) -> 
 
 // Count of factors of 5 in `value` (value != 0), via the modular inverse of 5.
 pow5_factor :: fn(value_in: u64) -> i32 {
-    m_inv_5 :: 14757395258967641293_u64   // 5 * m_inv_5 == 1 (mod 2^64)
-    n_div_5 :: 3689348814741910323_u64    // floor((2^64 - 1) / 5)
+    m_inv_5: u64: 14757395258967641293   // 5 * m_inv_5 == 1 (mod 2^64)
+    n_div_5: u64: 3689348814741910323    // floor((2^64 - 1) / 5)
     value := value_in
     count: i32 = 0
     for {

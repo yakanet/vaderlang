@@ -41,7 +41,7 @@ export count :: fn<T>(arr: T[]) -> usize {
 ///
 /// @param arr  source array.
 /// @return     true when `arr.len() == 0`.
-export is_empty :: fn<T>(arr: T[]) -> bool = arr.len() == usize(0)
+export is_empty :: fn<T>(arr: T[]) -> bool = arr.len() == 0
 
 /// Clone `arr` into a fresh allocation. Elements are NOT recursively
 /// cloned — for reference types the new array shares element references
@@ -430,9 +430,9 @@ SkipIterator<T> implements Iterator<T> {
 import "std/testing" { assert, assert_eq, fail }
 
 @test test_count :: fn() -> void {
-    assert_eq([1, 2, 3].count(), usize(3))
+    assert_eq([1, 2, 3].count(), 3)
     empty: i32[] = []
-    assert_eq(empty.count(), usize(0))
+    assert_eq(empty.count(), 0)
 }
 
 @test test_sum :: fn() -> void {
@@ -443,17 +443,17 @@ import "std/testing" { assert, assert_eq, fail }
 
 @test test_map :: fn() -> void {
     out :: [1, 2, 3].map((x: i32) -> x * 2)
-    assert_eq(out.count(), usize(3))
-    assert_eq(out[usize(0)], 2)
-    assert_eq(out[usize(1)], 4)
-    assert_eq(out[usize(2)], 6)
+    assert_eq(out.count(), 3)
+    assert_eq(out[0], 2)
+    assert_eq(out[1], 4)
+    assert_eq(out[2], 6)
 }
 
 @test test_filter :: fn() -> void {
     out :: [1, 2, 3, 4, 5].filter((x: i32) -> x % 2 == 0)
-    assert_eq(out.count(), usize(2))
-    assert_eq(out[usize(0)], 2)
-    assert_eq(out[usize(1)], 4)
+    assert_eq(out.count(), 2)
+    assert_eq(out[0], 2)
+    assert_eq(out[1], 4)
 }
 
 @test test_fold :: fn() -> void {
@@ -464,27 +464,27 @@ import "std/testing" { assert, assert_eq, fail }
 }
 
 @test test_slice :: fn() -> void {
-    out :: [1, 2, 3, 4, 5].slice(usize(1), usize(4))
-    assert_eq(out.count(), usize(3))
-    assert_eq(out[usize(0)], 2)
-    assert_eq(out[usize(2)], 4)
+    out :: [1, 2, 3, 4, 5].slice(1, 4)
+    assert_eq(out.count(), 3)
+    assert_eq(out[0], 2)
+    assert_eq(out[2], 4)
 }
 
 @test test_chain :: fn() -> void {
     out :: chain([1, 2], [3, 4, 5])
-    assert_eq(out.count(), usize(5))
-    assert_eq(out[usize(0)], 1)
-    assert_eq(out[usize(4)], 5)
+    assert_eq(out.count(), 5)
+    assert_eq(out[0], 1)
+    assert_eq(out[4], 5)
 }
 
 @test test_enumerate :: fn() -> void {
     pairs :: ["a", "b", "c"].enumerate()
-    assert_eq(pairs.count(), usize(3))
-    [i0, s0] :: pairs[usize(0)]
-    assert_eq(i0, usize(0))
+    assert_eq(pairs.count(), 3)
+    [i0, s0] :: pairs[0]
+    assert_eq(i0, 0)
     assert_eq(s0, "a")
-    [i2, s2] :: pairs[usize(2)]
-    assert_eq(i2, usize(2))
+    [i2, s2] :: pairs[2]
+    assert_eq(i2, 2)
     assert_eq(s2, "c")
 }
 
