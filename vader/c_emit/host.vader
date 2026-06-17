@@ -101,6 +101,9 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
     // primitive. The backing runtime symbol is still named `vader_string_as_string`.
     if m == "std_core\$bytes_to_string" { return "${head} { return vader_string_as_string((vader_array_t*) a0.payload.obj); }" }
     if m == "std_string\$parse_float" { return "${head} { return vader_string_parse_float(a0, ${tag_u(prim_tag(types, .F64), "f64")}, ${tag_u(error_ref_tag(types), "error")}); }" }
+    // `string implements Hash` reads the FNV-1a-64 cached on the atom (a0 :
+    // vader_string_t) — O(1), no allocation. See vader.h::vader_string_hash.
+    if m == "std_core\$string\$Hash\$hash" { return "${head} { return vader_string_hash(a0); }" }
 
     // Every primitive `Display.to_string` is now pure Vader : the integer /
     // bool / char / string impls moved in Target ABI S1, and f32 / f64 in S4

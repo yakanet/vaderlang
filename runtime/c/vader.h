@@ -110,12 +110,21 @@ void           vader_cstr_free(const char* p);
 #define VADER_ATOM_FLAG_PERM  ((vader_u16_t) 0x0001u)  /* never collected */
 #define VADER_ATOM_FLAG_MARK  ((vader_u16_t) 0x0002u)  /* transient GC bit */
 
-/* Layout : 24 bytes on 64-bit (4 + 4 + 4 + 2 + 2 + 8). The `data` field
+/* Layout : 32 bytes on 64-bit (4 + 4 + 4 + 2 + 2 + 8 + 8). The `data` field
  * is materialised at insert time — for an owner atom it points at a
  * dedicated malloc'd buffer ; for a slice atom it points into the parent's
  * buffer at `parent_offset`. Owner buffers carry an inline NUL at
  * `data[len]` so `vader_atom_to_cstr` can return `data` directly without
- * a dup ; slice atoms do not provide that guarantee. */
+ * a dup ; slice atoms do not provide that guarantee.
+ *
+ * `hash` caches the FNV-1a-64 of the bytes, computed once at insert (it is a
+ * pure function of the immutable content — a slot reused after collection is
+ * overwritten by the next insert). `string implements Hash` reads it O(1) via
+ * `vader_string_hash`, so `MutableMap` bucketing pays no per-lookup hash. It is
+ * LAST in the layout so codegen's positional comptime-table literals (which omit
+ * it) zero-fill it ; `vader_atom_init_with_comptime` recomputes it. Content-
+ * based (not id-based) keeps the hash — and thus map iteration order — stable
+ * across GC, which an id-based hash would not (collected atom ids get reused). */
 typedef struct {
     vader_u32_t parent;          /* 0 if owner, else parent atom id */
     vader_u32_t parent_offset;   /* byte offset within parent.data (slice only) */
@@ -123,6 +132,7 @@ typedef struct {
     vader_u16_t flags;           /* VADER_ATOM_FLAG_* */
     vader_u16_t _pad;
     const char* data;            /* materialised pointer (owner buf or parent.data + offset) */
+    uint64_t    hash;            /* cached FNV-1a-64 of the bytes ; see above */
 } vader_atom_entry_t;
 
 /* Lookup helpers — inline, hot path. Bounds-checking on the atom id is
@@ -842,6 +852,11 @@ vader_string_t vader_spawn_last_stderr(void);
 
 /* ----------------------------------------------------------------- string */
 
+/* String `Hash` — returns the FNV-1a-64 of the bytes, cached on the atom entry
+ * at intern (computed once per unique string, not per call). O(1) field read, no
+ * loop, no allocation. Content-based so map iteration order stays GC-stable.
+ * Backs `string implements Hash` → `MutableMap` bucketing. */
+uint64_t       vader_string_hash(vader_string_t s);
 size_t         vader_string_byte_len(vader_string_t s);
 /* parse_float returns a box: ok_tag on success, err_tag on failure. */
 vader_box_t    vader_string_parse_float(vader_string_t s, uint32_t ok_tag, uint32_t err_tag);

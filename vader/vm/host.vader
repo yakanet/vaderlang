@@ -176,6 +176,15 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         if s is Trap { return s }
         return HostOk { .value = bytes_to_value(s.value, u8_array_type_id) }
     }
+    if info.mangled_name == r"std_core$string$Hash$hash" {
+        // String `Hash` reads the FNV-1a-64 cached on the interned atom. Calling
+        // `.hash()` on the Vader string here lowers to the native
+        // `vader_string_hash` intrinsic in the VM's own build, so the VM and
+        // native produce identical hashes for the same atom. u64 rides in I64Val.
+        s :: read_string(stack[arg_base], at_pc, "hash receiver")
+        if s is Trap { return s }
+        return HostOk { .value = I64Val { .value = i64(s.value.hash()) } }
+    }
     if info.mangled_name == r"std_string$index_of" {
         s    :: read_string(stack[arg_base    ], at_pc, "index_of receiver")
         c    :: read_char  (stack[arg_base + 1], at_pc, "index_of char")

@@ -1105,8 +1105,8 @@ end
 
 fn 26 std_collections$std_collections$maybe_grow__char__i32 (ref) -> void
   local $field_1 usize
-  local $cast_3 usize
-  local $cast_8 usize
+  local $k_2 usize
+  local $k_6 usize
   local.field 0 7 1
   ref.cast 4
   local.set 1
@@ -1138,8 +1138,8 @@ end
 
 fn 27 std_collections$std_collections$maybe_grow__i16__i32 (ref) -> void
   local $field_1 usize
-  local $cast_3 usize
-  local $cast_8 usize
+  local $k_2 usize
+  local $k_6 usize
   local.field 0 10 1
   ref.cast 4
   local.set 1
@@ -1171,8 +1171,8 @@ end
 
 fn 28 std_collections$std_collections$maybe_grow__i64__i32 (ref) -> void
   local $field_1 usize
-  local $cast_3 usize
-  local $cast_8 usize
+  local $k_2 usize
+  local $k_6 usize
   local.field 0 12 1
   ref.cast 4
   local.set 1
@@ -1204,8 +1204,8 @@ end
 
 fn 29 std_collections$std_collections$maybe_grow__u16__i32 (ref) -> void
   local $field_1 usize
-  local $cast_3 usize
-  local $cast_8 usize
+  local $k_2 usize
+  local $k_6 usize
   local.field 0 14 1
   ref.cast 4
   local.set 1
@@ -1237,8 +1237,8 @@ end
 
 fn 30 std_collections$std_collections$maybe_grow__u8__i32 (ref) -> void
   local $field_1 usize
-  local $cast_3 usize
-  local $cast_8 usize
+  local $k_2 usize
+  local $k_6 usize
   local.field 0 16 1
   ref.cast 4
   local.set 1
@@ -1270,8 +1270,8 @@ end
 
 fn 31 std_collections$std_collections$maybe_grow__usize__i32 (ref) -> void
   local $field_1 usize
-  local $cast_3 usize
-  local $cast_8 usize
+  local $k_2 usize
+  local $k_6 usize
   local.field 0 18 1
   ref.cast 4
   local.set 1
@@ -1304,16 +1304,16 @@ end
 fn 32 std_collections$std_collections$grow__char__i32 (ref) -> void
   local old ref
   local $len_3 usize
-  local $cast_5 usize
+  local $k_4 usize
   local fresh ref
-  local $k_14 usize
+  local $k_13 usize
   local cur ref
   local done bool
   local __scrut_4 ref
   local e ref
   local idx i32
-  local $idx_40 ref
-  local $k_41 usize
+  local $idx_39 ref
+  local $k_40 usize
   local.field 0 7 0
   local.tee 1
   array.len
@@ -1430,16 +1430,16 @@ end
 fn 33 std_collections$std_collections$grow__i16__i32 (ref) -> void
   local old ref
   local $len_3 usize
-  local $cast_5 usize
+  local $k_4 usize
   local fresh ref
-  local $k_14 usize
+  local $k_13 usize
   local cur ref
   local done bool
   local __scrut_4 ref
   local e ref
   local idx i32
-  local $idx_40 ref
-  local $k_41 usize
+  local $idx_39 ref
+  local $k_40 usize
   local.field 0 10 0
   local.tee 1
   array.len
@@ -1556,16 +1556,16 @@ end
 fn 34 std_collections$std_collections$grow__i64__i32 (ref) -> void
   local old ref
   local $len_3 usize
-  local $cast_5 usize
+  local $k_4 usize
   local fresh ref
-  local $k_14 usize
+  local $k_13 usize
   local cur ref
   local done bool
   local __scrut_4 ref
   local e ref
   local idx i32
-  local $idx_40 ref
-  local $k_41 usize
+  local $idx_39 ref
+  local $k_40 usize
   local.field 0 12 0
   local.tee 1
   array.len
@@ -1682,16 +1682,16 @@ end
 fn 35 std_collections$std_collections$grow__u16__i32 (ref) -> void
   local old ref
   local $len_3 usize
-  local $cast_5 usize
+  local $k_4 usize
   local fresh ref
-  local $k_14 usize
+  local $k_13 usize
   local cur ref
   local done bool
   local __scrut_4 ref
   local e ref
   local idx i32
-  local $idx_40 ref
-  local $k_41 usize
+  local $idx_39 ref
+  local $k_40 usize
   local.field 0 14 0
   local.tee 1
   array.len
@@ -1808,16 +1808,16 @@ end
 fn 36 std_collections$std_collections$grow__u8__i32 (ref) -> void
   local old ref
   local $len_3 usize
-  local $cast_5 usize
+  local $k_4 usize
   local fresh ref
-  local $k_14 usize
+  local $k_13 usize
   local cur ref
   local done bool
   local __scrut_4 ref
   local e ref
   local idx i32
-  local $idx_40 ref
-  local $k_41 usize
+  local $idx_39 ref
+  local $k_40 usize
   local.field 0 16 0
   local.tee 1
   array.len
@@ -1934,16 +1934,16 @@ end
 fn 37 std_collections$std_collections$grow__usize__i32 (ref) -> void
   local old ref
   local $len_3 usize
-  local $cast_5 usize
+  local $k_4 usize
   local fresh ref
-  local $k_14 usize
+  local $k_13 usize
   local cur ref
   local done bool
   local __scrut_4 ref
   local e ref
   local idx i32
-  local $idx_40 ref
-  local $k_41 usize
+  local $idx_39 ref
+  local $k_40 usize
   local.field 0 18 0
   local.tee 1
   array.len

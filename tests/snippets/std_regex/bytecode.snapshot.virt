@@ -2391,18 +2391,18 @@ fn 28 std_regex$captured_groups (ref,ref) -> ref
   local $k_4 usize
   local out ref
   local $field_12 ref
-  local $mul_15 usize
+  local $mul_14 usize
   local lo_slot usize
-  local $field_18 ref
-  local $mul_21 usize
-  local $k_22 usize
-  local $add_23 usize
+  local $field_17 ref
+  local $mul_19 usize
+  local $k_20 usize
+  local $add_21 usize
   local hi_slot usize
-  local $k_26 usize
+  local $k_24 usize
   local or_res bool
-  local $k_30 usize
-  local $call_34 string
-  local $k_35 usize
+  local $k_28 usize
+  local $call_32 string
+  local $k_33 usize
   local.field 0 22 1
   array.len
   local.set 2
@@ -2424,9 +2424,9 @@ fn 28 std_regex$captured_groups (ref,ref) -> ref
       if $L2 void
         local.field 0 22 1
         local.set 5
-        i64.const 2
+        i32.const 2
         local.get 3
-        i64.mul
+        i32.mul
         local.set 6
         local.get 5
         local.get 6
@@ -2434,9 +2434,9 @@ fn 28 std_regex$captured_groups (ref,ref) -> ref
         local.set 7
         local.field 0 22 1
         local.set 8
-        i64.const 2
+        i32.const 2
         local.get 3
-        i64.mul
+        i32.mul
         local.set 9
         i64.const 1
         local.set 10
@@ -5301,11 +5301,11 @@ end
 fn 49 std_string$decode_char_at (ref,usize) -> char
   local n usize
   local b u8
-  local $cast_7 u8
-  local $k_22 usize
-  local $cast_31 u32
-  local $cast_33 u32
-  local $cast_40 u32
+  local $k_6 u8
+  local $k_17 usize
+  local $cast_25 u32
+  local $cast_27 u32
+  local $cast_34 u32
   local b2 u8
   local b3 u8
   local.get 0
@@ -5323,8 +5323,7 @@ fn 49 std_string$decode_char_at (ref,usize) -> char
   u32.lt
   if $L0 void
     local.get 3
-    u8.to_i32
-    u32.to_char
+    u8.to_char
     return
   end $L0
   i32.const 192
@@ -5334,7 +5333,7 @@ fn 49 std_string$decode_char_at (ref,usize) -> char
   u32.lt
   if $L1 void
     i32.const 65533
-    u32.to_char
+    i32.to_char
     return
   end $L1
   local.get 2
@@ -5354,7 +5353,7 @@ fn 49 std_string$decode_char_at (ref,usize) -> char
     u64.lt
     if $L3 void
       i32.const 0
-      u32.to_char
+      i32.to_char
       return
     end $L3
     i64.const 1
@@ -5411,7 +5410,7 @@ fn 49 std_string$decode_char_at (ref,usize) -> char
     u64.lt
     if $L5 void
       i32.const 0
-      u32.to_char
+      i32.to_char
       return
     end $L5
     i64.const 1
@@ -5492,7 +5491,7 @@ fn 49 std_string$decode_char_at (ref,usize) -> char
   u64.lt
   if $L6 void
     i32.const 0
-    u32.to_char
+    i32.to_char
     return
   end $L6
   i64.const 1

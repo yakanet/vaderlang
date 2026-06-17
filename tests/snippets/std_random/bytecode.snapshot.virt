@@ -383,14 +383,14 @@ end
 
 fn 11 std_random$std_random$shuffle__i32 (ref,ref) -> void
   local n usize
-  local $cast_5 usize
-  local $cast_14 u32
-  local $k_15 usize
-  local $cast_17 u32
+  local $k_4 usize
+  local $cast_12 u32
+  local $k_13 usize
+  local $cast_15 u32
   local j usize
   local tmp i32
-  local $idx_24 i32
-  local $k_25 usize
+  local $idx_21 i32
+  local $k_22 usize
   local.get 1
   array.len
   local.set 2
