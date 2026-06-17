@@ -28,6 +28,8 @@ project rooted at the open file).
 | `textDocument/foldingRange` | `folding_range.vader` | fold multi-line top-level decl bodies (Tier 1) |
 | `textDocument/documentHighlight` | `document_highlight.vader` | name-based occurrences of the ident under cursor (Tier 1) |
 | `textDocument/formatting` | `formatting.vader` | whole-doc format via `vader/fmt` (Tier 1) |
+| `textDocument/documentLink` | `document_link.vader` | clickable `import "path"` (Tier 1) |
+| `textDocument/typeDefinition` | `type_definition.vader` | jump to a value's type decl (Tier 2) |
 
 Already on the TODO (Priority + §3.7): completion, rename, find-references,
 code-actions framework, `repair.id` structured diagnostics, semantic-token /
@@ -138,9 +140,14 @@ day-to-day responsiveness.
   prerequisite. Capability: `referencesProvider = true`.
 - **`workspace/symbol`** (infra B) — fuzzy project-wide symbol search (Cmd+T).
   Capability: `workspaceSymbolProvider = true`.
-- **`textDocument/typeDefinition`** — jump to the **type** of the value at the
-  cursor (vs its binding). Reuse the typed cache: inferred type → its decl span.
-  Capability: `typeDefinitionProvider = true`.
+- ✅ **`textDocument/typeDefinition`** (`type_definition.vader`) — jump to the
+  **type** of the value at the cursor (vs its binding). Reuses the typed cache +
+  hover's expr-finder: inferred `Type` → its declaring `Symbol` (struct / enum /
+  trait / type-param) → `Symbol.defined_at` → `Location`. A `T | null` nullable
+  unwraps to `T`. No new infra. Types with no single decl site (primitives,
+  tuples/arrays, fn types, genuine multi-member unions) yield no result.
+  Limitation: a named union alias collapses to a structural `UnionType` in the
+  type IR (no symbol), so the alias itself isn't targetable yet.
 - **`textDocument/implementation`** — from a trait (or trait method) to its
   impls, and vice-versa. High value in a trait-heavy compiler. Needs an
   impl index (trait → impls) over the typed project. Capability:

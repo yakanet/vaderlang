@@ -1,0 +1,149 @@
+// vader/lsp/type_definition — `textDocument/typeDefinition` handler.
+//
+// Where goto-`definition` jumps to a name's *binding*, typeDefinition jumps to
+// the declaration of the value's *type*. Cursor over a local, field or call
+// result → resolve its inferred `Type` from the typed-project cache, pull the
+// declaring `Symbol` off the type (struct / enum / trait / type-param), and
+// return that symbol's `defined_at` span as a `Location`.
+//
+// Reuses the typed cache + the expr-finder that power hover (`hover.vader`,
+// `state.vader`) and the `Location` encoder from `definition.vader`. A `T | null`
+// nullable unwraps to `T`. Types with no single declaration to jump to —
+// primitives, tuples/arrays, function types, genuine multi-member unions —
+// yield no result. (A named union alias collapses to a structural `UnionType`
+// in the type IR, so the alias itself has no symbol to target; that's a known
+// limitation, not handled here.)
+
+module "vader/lsp"
+
+import "std/json" { JsonValue, JsonObject, JsonNumber, JsonNull }
+import "std/string" { starts_with }
+import "vader/types" {
+    Type, StructType, EnumType, TraitType, TypeParamType, UnionType, PrimitiveType,
+    TY_VOID, mk_struct, mk_primitive, mk_union,
+}
+import "vader/resolver/symbol" { Symbol }
+
+/// Resolve typeDefinition for the position carried in `params`. Returns a
+/// `Location` (the type's declaration), or `JsonNull` when the cursor isn't on
+/// a typed value or the value's type has no declaration to jump to.
+export handle_type_definition :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+    uri :: doc_uri(params)
+    if uri == "" { return JsonNull {} }
+    file_path :: uri_to_path(uri)
+    if file_path == "" { return JsonNull {} }
+
+    cached :: typed_project_for(state, file_path)
+    entry :: cached.project.modules[cached.project.entry]
+    if entry is null { return JsonNull {} }
+    sf :: source_file_for_path(entry.module.files, file_path)
+    if sf is null { return JsonNull {} }
+
+    // LSP positions are 0-based ; the Vader AST is 1-based.
+    found :: find_expr_at(
+        sf.program.decls, cursor_field(params, "line") + i32(1),
+        cursor_field(params, "character") + i32(1), cached.result.typed,
+    )
+    if found is null { return JsonNull {} }
+    ty :: cached.result.typed.expr_types[found.id]
+    if ty is null { return JsonNull {} }
+
+    sym :: type_symbol(ty)
+    if sym == null { return JsonNull {} }
+    da :: sym.defined_at
+    if da == null { return JsonNull {} }
+    return location_json("file://${da.start.file}", da.span_to_range_json())
+}
+
+// The declaring `Symbol` carried by a named type, or null for types with no
+// declaration site (primitives, structural composites, fn types). TypeParam is
+// included so jumping to a generic param's introduction site works too. A
+// `T | null`-style union unwraps to its single non-null member — the common
+// nullable case — so the cursor still jumps to `T`'s declaration.
+type_symbol :: fn(t: Type) -> Symbol | null {
+    if t is StructType    as s  { return s.symbol }
+    if t is EnumType      as e  { return e.symbol }
+    if t is TraitType     as tr { return tr.symbol }
+    if t is TypeParamType as tp { return tp.symbol }
+    if t is UnionType     as u  { return union_symbol(u) }
+    return null
+}
+
+// Resolve the single non-null member of a union to its symbol. `T | null`
+// (one non-null member) → `T`'s symbol ; a genuine multi-member sum type has
+// no single declaration to jump to → null.
+union_symbol :: fn(u: UnionType) -> Symbol | null {
+    named: Type[] = []
+    for v in u.variants {
+        if !is_null_primitive(v) { named.push(v) }
+    }
+    if named.len() != 1 { return null }
+    return type_symbol(named[0])
+}
+
+is_null_primitive :: fn(t: Type) -> bool {
+    if t is PrimitiveType as p { return p.name == "null" }
+    return false
+}
+
+// ---- params helpers ------------------------------------------------------
+
+// Read `params.position.<key>` (0-based LSP coordinate), or 0 when absent.
+// Self-contained — the shared `get_field` / `position_*` helpers are
+// per-file-duplicated across handlers to avoid a circular dep on state's
+// private surface (see `definition.vader`).
+cursor_field :: fn(params: JsonValue, key: string) -> i32 {
+    if params is JsonObject as o {
+        pos :: o.entries["position"]
+        if pos is JsonObject as p {
+            v :: p.entries[key]
+            if v is JsonNumber as n { return i32(n.value) }
+        }
+    }
+    return 0
+}
+
+uri_to_path :: fn(uri: string) -> string {
+    prefix :: "file://"
+    if uri.starts_with(prefix) {
+        ub :: uri.bytes()
+        return ub[prefix.bytes().len()..<ub.len()].bytes_to_string()
+    }
+    return ""
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+
+@test
+test_type_symbol_extracts_named_type :: fn() -> void {
+    sym :: Symbol {
+        .id = 1, .kind = .Struct, .name = "Box", .module = "t",
+        .visibility = .Private, .defined_at = null,
+    }
+    no_args: Type[] = []
+    extracted :: type_symbol(mk_struct(sym, no_args))
+    if extracted == null { assert(false, "struct type must carry a symbol") }
+    else { assert_eq(extracted.name, "Box") }
+}
+
+@test
+test_type_symbol_null_for_primitive :: fn() -> void {
+    // Primitives have no declaration to jump to.
+    assert(type_symbol(TY_VOID) == null, "primitive yields no type definition")
+}
+
+@test
+test_type_symbol_unwraps_nullable :: fn() -> void {
+    // `User | null` resolves to `User`'s symbol — the common nullable case.
+    sym :: Symbol {
+        .id = 2, .kind = .Struct, .name = "User", .module = "t",
+        .visibility = .Private, .defined_at = null,
+    }
+    no_args: Type[] = []
+    members: Type[] = [mk_struct(sym, no_args), mk_primitive("null")]
+    extracted :: type_symbol(mk_union(members))
+    if extracted == null { assert(false, "T | null must resolve to T's symbol") }
+    else { assert_eq(extracted.name, "User") }
+}
