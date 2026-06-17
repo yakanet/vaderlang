@@ -11,7 +11,7 @@
 
 module "vader/typecheck"
 
-import "std/collections" { MutableMap, keys }
+import "std/collections" { MutableMap }
 import "vader/diagnostics" { Diagnostic, Span }
 AST :: import "vader/parser"
 import "vader/parser" { Program }
@@ -137,10 +137,8 @@ export check_project_with_bodies :: fn(
     // aliases project-wide before any fn signature is lowered.
     per_module :: MutableMap<string, TypedProgram> {}
     per_module[project.entry] = entry_typed
-    for id in project.modules.keys() {
+    for [id, other] in project.modules {
         if id == project.entry { continue }
-        other :: project.modules[id]
-        if other is null { continue }
         rm :: resolve_module_with_collected_dp_seeded(
             merge_module_program(other.module.files), id, other.module.display_path,
             project.factory, other.collected, core_seed,
@@ -153,10 +151,8 @@ export check_project_with_bodies :: fn(
     // module aliases (`Pet` imported from `./types`) need to land
     // before any fn signature consults them.
     register_aliases(entry_typed, merge_module_program(entry_loaded.module.files).decls)
-    for id in project.modules.keys() {
+    for [id, other] in project.modules {
         if id == project.entry { continue }
-        other :: project.modules[id]
-        if other is null { continue }
         other_typed :: per_module[id]
         match other_typed {
             is null -> {}
@@ -183,10 +179,8 @@ export check_project_with_bodies :: fn(
     // their usual place.
     run_orphan_rule_check_for_module(entry_loaded, project.entry,
         entry_rm.idents, wire_targets, entry_rm.diags)
-    for id in project.modules.keys() {
+    for [id, other] in project.modules {
         if id == project.entry { continue }
-        other :: project.modules[id]
-        if other is null { continue }
         other_typed :: per_module[id]
         match other_typed {
             is null -> {}
@@ -222,10 +216,8 @@ export check_project_with_bodies :: fn(
     // is self-contained (reads the target's exports from `collected.symbols` +
     // `alias_types`, not from any module's `declare_module`), so interleaving
     // prepop with declare is safe.
-    for id in project.modules.keys() {
+    for [id, other] in project.modules {
         if id == project.entry { continue }
-        other :: project.modules[id]
-        if other is null { continue }
         other_typed :: per_module[id]
         if other_typed is null { continue }
         other_typed.import_targets = wire_targets
@@ -262,10 +254,8 @@ export check_project_with_bodies :: fn(
     // .count()` inside std/string::len) doesn't see cross-module overloads.
     // The entry's overload table is populated AFTER settle so it picks up
     // the resolved return types of expr-bodied externals.
-    for id in per_module.keys() {
+    for [id, other_typed] in per_module {
         if id == project.entry { continue }
-        other_typed :: per_module[id]
-        if other_typed is null { continue }
         populate_imported_fn_overloads(other_typed, per_module)
     }
     settle_external_expr_bodied_returns(project, per_module)
@@ -301,10 +291,8 @@ export check_project_with_bodies :: fn(
     // Diagnostics route to a throwaway sink : the user-facing surface stays
     // entry-only (the resolver-diag forwarding below is likewise
     // entry-scoped). Mirrors TS, which body-checks imports.
-    for id in project.modules.keys() {
+    for [id, other] in project.modules {
         if id == project.entry { continue }
-        other :: project.modules[id]
-        if other is null { continue }
         other_typed :: per_module[id]
         if other_typed is null { continue }
         // `import_targets` and `namespace_member_types` were both set for this
@@ -429,9 +417,7 @@ populate_from :: fn(
     targets: ImportTargetTable, entry_typed: TypedProgram,
     project: LoadedProject, per_module: MutableMap<string, TypedProgram>,
 ) -> void {
-    for sym_id in targets.symbol_targets.keys() {
-        st :: targets.symbol_targets[sym_id]
-        if st is null { continue }
+    for [_, st] in targets.symbol_targets {
         external :: lookup_external_type(st, per_module)
         match external {
             is null -> {}
@@ -441,9 +427,7 @@ populate_from :: fn(
     // Namespace targets : for `name :: import "p"`, materialise an
     // `(field_name → Type)` table from `p`'s public exports so
     // `field.vader` can resolve `name.foo` accesses.
-    for sym_id in targets.namespace_targets.keys() {
-        mod_id :: targets.namespace_targets[sym_id]
-        if mod_id is null { continue }
+    for [_, mod_id] in targets.namespace_targets {
         if entry_typed.namespace_exports[mod_id] is null {
             entry_typed.namespace_exports[mod_id] = build_namespace_exports(mod_id, project, per_module)
         }
@@ -478,7 +462,7 @@ check_impl_coherence :: fn(
     // prelude/stdlib one is then the *second* seen, so R2030 lands on the user's
     // (entry-module) span — entry diags are surfaced, imported-module diags are
     // filtered by the CLI, so an error on a stdlib span would be invisible.
-    for id in project.modules.keys() {
+    for [id, _] in project.modules {
         if id == project.entry { continue }
         check_module_impl_coherence(id, project, per_module, seen, diags)
     }
@@ -524,9 +508,7 @@ merge_external_impl_methods :: fn(
     per_module: MutableMap<string, TypedProgram>,
 ) -> void {
     entry_path :: entry_typed.resolved.path
-    for id in per_module.keys() {
-        other :: per_module[id]
-        if other is null { continue }
+    for [id, other] in per_module {
         if other.resolved.path == entry_path { continue }
         loaded :: project.modules[id]
         if loaded is null { continue }
@@ -667,9 +649,7 @@ record_struct_trait_args :: fn(
 // (`Type implements Trait -> expr`) targets a trait with != 1
 // required method.
 export materialize_all_sams_pre_resolve :: fn(project: LoadedProject) -> void {
-    for id in project.modules.keys() {
-        loaded :: project.modules[id]
-        if loaded is null { continue }
+    for [_, loaded] in project.modules {
         for decl in merge_module_program(loaded.module.files).decls {
             if !(decl is AST.ImplDecl) { continue }
             found :: find_named_decl_in_project(decl.trait_name, project)
@@ -753,9 +733,7 @@ find_named_decl_in_project :: fn(
     name: string, project: LoadedProject,
 ) -> NamedDeclLookup {
     other: string = ""
-    for id in project.modules.keys() {
-        loaded :: project.modules[id]
-        if loaded is null { continue }
+    for [_, loaded] in project.modules {
         for decl in merge_module_program(loaded.module.files).decls {
             if decl is AST.TraitDecl {
                 if decl.name == name { return NamedDeclLookup { .trait_decl = decl, .other_kind = "" } }
@@ -859,30 +837,22 @@ register_aliases :: fn(typed: TypedProgram, decls: AST.Decl[]) -> void {
 broadcast_struct_decls :: fn(per_module: MutableMap<string, TypedProgram>) -> void {
     all_decls :: MutableMap<i32, AST.StructDecl> {}
     all_fields :: MutableMap<i32, MutableMap<string, Type>> {}
-    for id in per_module.keys() {
-        typed :: per_module[id]
-        if typed == null { continue }
-        for sid in typed.struct_decls.keys() {
-            d :: typed.struct_decls[sid]
-            if d != null { all_decls[sid] = d }
+    for [_, typed] in per_module {
+        for [sid, d] in typed.struct_decls {
+            all_decls[sid] = d
         }
-        for sid in typed.struct_field_types.keys() {
-            f :: typed.struct_field_types[sid]
-            if f != null { all_fields[sid] = f }
+        for [sid, f] in typed.struct_field_types {
+            all_fields[sid] = f
         }
     }
-    for id in per_module.keys() {
-        typed :: per_module[id]
-        if typed == null { continue }
-        for sid in all_decls.keys() {
-            d :: all_decls[sid]
-            if d != null && typed.struct_decls[sid] == null {
+    for [_, typed] in per_module {
+        for [sid, d] in all_decls {
+            if typed.struct_decls[sid] == null {
                 typed.struct_decls[sid] = d
             }
         }
-        for sid in all_fields.keys() {
-            f :: all_fields[sid]
-            if f != null && typed.struct_field_types[sid] == null {
+        for [sid, f] in all_fields {
+            if typed.struct_field_types[sid] == null {
                 typed.struct_field_types[sid] = f
             }
         }
@@ -891,9 +861,7 @@ broadcast_struct_decls :: fn(per_module: MutableMap<string, TypedProgram>) -> vo
 
 broadcast_enum_types :: fn(per_module: MutableMap<string, TypedProgram>, project: LoadedProject) -> void {
     collected :: MutableMap<i32, Type> {}
-    for id in per_module.keys() {
-        typed :: per_module[id]
-        if typed is null { continue }
+    for [id, typed] in per_module {
         loaded :: project.modules[id]
         if loaded is null { continue }
         by_name :: MutableMap<string, Symbol> {}
@@ -910,12 +878,8 @@ broadcast_enum_types :: fn(per_module: MutableMap<string, TypedProgram>, project
             }
         }
     }
-    for id in per_module.keys() {
-        typed :: per_module[id]
-        if typed is null { continue }
-        for sid in collected.keys() {
-            t :: collected[sid]
-            if t is null { continue }
+    for [_, typed] in per_module {
+        for [sid, t] in collected {
             typed.resolved.alias_types[sid] = t
         }
     }
@@ -967,18 +931,12 @@ merge_external_alias_types :: fn(
     entry_typed: TypedProgram, per_module: MutableMap<string, TypedProgram>,
 ) -> void {
     entry_path :: entry_typed.resolved.path
-    for id in per_module.keys() {
-        other :: per_module[id]
-        if other is null { continue }
+    for [_, other] in per_module {
         if other.resolved.path == entry_path { continue }
-        for sym_id in other.resolved.alias_types.keys() {
-            ty :: other.resolved.alias_types[sym_id]
-            if ty is null { continue }
+        for [sym_id, ty] in other.resolved.alias_types {
             entry_typed.resolved.alias_types[sym_id] = ty
         }
-        for sym_id in other.resolved.alias_decls.keys() {
-            decl :: other.resolved.alias_decls[sym_id]
-            if decl is null { continue }
+        for [sym_id, decl] in other.resolved.alias_decls {
             entry_typed.resolved.alias_decls[sym_id] = decl
         }
     }
@@ -994,12 +952,8 @@ cross_publish_trait_decls :: fn(per_module: MutableMap<string, TypedProgram>) ->
     ids: i32[] = []
     decls: AST.TraitDecl[] = []
     owners: ResolvedModule[] = []
-    for id in per_module.keys() {
-        tp :: per_module[id]
-        if tp is null { continue }
-        for sym_id in tp.trait_decls.keys() {
-            d :: tp.trait_decls[sym_id]
-            if d is null { continue }
+    for [_, tp] in per_module {
+        for [sym_id, d] in tp.trait_decls {
             o :: tp.trait_decl_owners[sym_id]
             owner_resolved: ResolvedModule = tp.resolved
             match o {
@@ -1012,9 +966,7 @@ cross_publish_trait_decls :: fn(per_module: MutableMap<string, TypedProgram>) ->
         }
     }
     // Pass 2 : write back into every typed program.
-    for id in per_module.keys() {
-        tp :: per_module[id]
-        if tp is null { continue }
+    for [_, tp] in per_module {
         for i in 0..<ids.len() {
             sid :: ids[i]
             tp.trait_decls[sid] = decls[i]
@@ -1029,19 +981,13 @@ cross_publish_trait_decls :: fn(per_module: MutableMap<string, TypedProgram>) ->
 cross_publish_fn_decls :: fn(per_module: MutableMap<string, TypedProgram>) -> void {
     ids: i32[] = []
     fdecls: AST.FnDecl[] = []
-    for id in per_module.keys() {
-        tp :: per_module[id]
-        if tp is null { continue }
-        for sym_id in tp.fn_decls.keys() {
-            d :: tp.fn_decls[sym_id]
-            if d is null { continue }
+    for [_, tp] in per_module {
+        for [sym_id, d] in tp.fn_decls {
             ids.push(sym_id)
             fdecls.push(d)
         }
     }
-    for id in per_module.keys() {
-        tp :: per_module[id]
-        if tp is null { continue }
+    for [_, tp] in per_module {
         for i in 0..<ids.len() {
             tp.fn_decls[ids[i]] = fdecls[i]
         }
@@ -1055,18 +1001,12 @@ merge_struct_decls :: fn(
     entry_typed: TypedProgram, per_module: MutableMap<string, TypedProgram>,
 ) -> void {
     entry_path :: entry_typed.resolved.path
-    for id in per_module.keys() {
-        other :: per_module[id]
-        if other is null { continue }
+    for [_, other] in per_module {
         if other.resolved.path == entry_path { continue }
-        for sym_id in other.struct_decls.keys() {
-            decl :: other.struct_decls[sym_id]
-            if decl is null { continue }
+        for [sym_id, decl] in other.struct_decls {
             entry_typed.struct_decls[sym_id] = decl
         }
-        for sym_id in other.trait_decls.keys() {
-            decl :: other.trait_decls[sym_id]
-            if decl is null { continue }
+        for [sym_id, decl] in other.trait_decls {
             entry_typed.trait_decls[sym_id] = decl
             owner :: other.trait_decl_owners[sym_id]
             match owner {
@@ -1074,9 +1014,7 @@ merge_struct_decls :: fn(
                 _ -> { entry_typed.trait_decl_owners[sym_id] = owner }
             }
         }
-        for sym_id in other.struct_field_types.keys() {
-            fmap :: other.struct_field_types[sym_id]
-            if fmap is null { continue }
+        for [sym_id, fmap] in other.struct_field_types {
             entry_typed.struct_field_types[sym_id] = fmap
             // Walk every field type for transitively-referenced named
             // types (Enum / Struct / Trait declared in other modules
@@ -1087,9 +1025,7 @@ merge_struct_decls :: fn(
             // `FlagSpec { .kind = .Str }` rejects `.Str` because
             // `FlagKind` (only reached transitively via the struct
             // field) never lands in any lookup table.
-            for fname in fmap.keys() {
-                ft :: fmap[fname]
-                if ft is null { continue }
+            for [_, ft] in fmap {
                 pull_referenced_external_types(ft, entry_typed, per_module)
             }
         }
@@ -1181,10 +1117,8 @@ settle_external_expr_bodied_returns :: fn(
     // pay for a double-walk just because a sibling module needed
     // settling.
     for pass in 0..<2 {
-        for id in project.modules.keys() {
+        for [id, loaded] in project.modules {
             if id == entry_path { continue }
-            loaded :: project.modules[id]
-            if loaded is null { continue }
             other_typed :: per_module[id]
             if other_typed is null { continue }
             if pass == 1 && !has_expr_bodied_fn(merge_module_program(loaded.module.files).decls) { continue }
@@ -1203,9 +1137,7 @@ populate_imported_fn_overloads :: fn(
     match targets {
         is null -> {}
         _ -> {
-            for sym_id in targets.symbol_targets.keys() {
-                st :: targets.symbol_targets[sym_id]
-                if st is null { continue }
+            for [sym_id, st] in targets.symbol_targets {
                 ty :: entry_typed.external_types[st.symbol.id]
                 if ty is null { continue }
                 match ty {
@@ -1235,13 +1167,9 @@ populate_imported_fn_overloads :: fn(
     // name (`len :: fn[T](self: MutableSet(T))` AND `len :: fn[K, V]
     // (self: MutableMap(K, V))`) lands in the bucket.
     entry_path :: entry_typed.resolved.path
-    for id in per_module.keys() {
-        other :: per_module[id]
-        if other is null { continue }
+    for [_, other] in per_module {
         if other.resolved.path == entry_path { continue }
-        for name in other.resolved.fn_overloads.keys() {
-            bucket :: other.resolved.fn_overloads[name]
-            if bucket is null { continue }
+        for [name, bucket] in other.resolved.fn_overloads {
             for sym in bucket {
                 ty :: other.decl_types[sym.id]
                 if ty is null { continue }
@@ -1273,9 +1201,7 @@ populate_resolver_imports :: fn(entry_typed: TypedProgram) -> void {
     match entry_typed.import_targets {
         is null -> {}
         _ -> {
-            for sym_id in entry_typed.import_targets.symbol_targets.keys() {
-                st :: entry_typed.import_targets.symbol_targets[sym_id]
-                if st is null { continue }
+            for [sym_id, st] in entry_typed.import_targets.symbol_targets {
                 entry_typed.resolved.imports_to[sym_id] = st.symbol
             }
         }
@@ -1297,13 +1223,11 @@ populate_resolver_imports_for_others :: fn(
 ) -> void {
     targets :: entry_typed.import_targets
     if targets is null { return }
-    for id in project.modules.keys() {
+    for [id, loaded] in project.modules {
         if id == project.entry { continue }
-        loaded :: project.modules[id]
-        if loaded is null { continue }
         other_typed :: per_module[id]
         if other_typed is null { continue }
-        for sym_id in loaded.collected.imports.keys() {
+        for [sym_id, _] in loaded.collected.imports {
             st :: targets.symbol_targets[sym_id]
             if st is null { continue }
             other_typed.resolved.imports_to[sym_id] = st.symbol
@@ -1316,9 +1240,7 @@ preload_core_symbols :: fn(rm: ResolvedModule, project: LoadedProject) -> void {
     if core_id is null { return }
     core_loaded :: project.modules[core_id]
     if core_loaded is null { return }
-    for name in core_loaded.collected.symbols.keys() {
-        sym :: core_loaded.collected.symbols[name]
-        if sym is null { continue }
+    for [name, sym] in core_loaded.collected.symbols {
         rm.core_symbols[name] = sym
     }
 }
@@ -1335,9 +1257,7 @@ populate_core_symbols :: fn(
     // EXPERIMENT (complete fix): seed core symbols into EVERY module's typed
     // program, not just the entry.
     populate_core_symbols_into(entry_typed, core_loaded, core_typed)
-    for id in per_module.keys() {
-        other :: per_module[id]
-        if other == null { continue }
+    for [_, other] in per_module {
         if other.resolved.path != entry_typed.resolved.path {
             populate_core_symbols_into(other, core_loaded, core_typed)
         }
@@ -1347,9 +1267,7 @@ populate_core_symbols :: fn(
 populate_core_symbols_into :: fn(
     typed: TypedProgram, core_loaded: LoadedModule, core_typed: TypedProgram | null,
 ) -> void {
-    for name in core_loaded.collected.symbols.keys() {
-        sym :: core_loaded.collected.symbols[name]
-        if sym == null { continue }
+    for [name, sym] in core_loaded.collected.symbols {
         typed.core_symbols[name] = sym
         // Mirror into the resolver's `core_symbols` table so
         // `type_from_expr` can fall back to it for bare names
@@ -1375,9 +1293,7 @@ build_namespace_exports :: fn(
     if loaded is null { return out }
     typed :: per_module[mod_id]
     if typed is null { return out }
-    for name in loaded.collected.symbols.keys() {
-        sym :: loaded.collected.symbols[name]
-        if sym is null { continue }
+    for [name, sym] in loaded.collected.symbols {
         t :: typed.decl_types[sym.id]
         if !(t is null) {
             out[name] = t
@@ -1406,9 +1322,7 @@ prepopulate_namespace_member_types :: fn(
 ) -> void {
     targets :: entry_typed.import_targets
     if targets is null { return }
-    for sym_id in targets.namespace_targets.keys() {
-        mod_id :: targets.namespace_targets[sym_id]
-        if mod_id is null { continue }
+    for [sym_id, mod_id] in targets.namespace_targets {
         members :: build_namespace_type_members(mod_id, project, per_module)
         entry_typed.resolved.namespace_member_types[sym_id] = members
     }
@@ -1422,9 +1336,7 @@ build_namespace_type_members :: fn(
     loaded :: project.modules[mod_id]
     if loaded is null { return out }
     target_typed :: per_module[mod_id]
-    for name in loaded.collected.symbols.keys() {
-        sym :: loaded.collected.symbols[name]
-        if sym is null { continue }
+    for [name, sym] in loaded.collected.symbols {
         // TypeAlias resolves to the alias's expanded union (already
         // registered on the owning module's `resolved.alias_types`
         // by `register_aliases`). Other type-kind symbols resolve via
@@ -1635,9 +1547,7 @@ lookup_trait_decl :: fn(name: string, typed: TypedProgram) -> AST.TraitDecl | nu
     // `trait_decls` map ; scan it directly by name. Mirror of TS'
     // `sourceTraitDecl(sym)` which reads the canonical decl off the
     // symbol's `source` pointer.
-    for sym_id in typed.trait_decls.keys() {
-        d :: typed.trait_decls[sym_id]
-        if d is null { continue }
+    for [_, d] in typed.trait_decls {
         if d.name == name { return d }
     }
     return null

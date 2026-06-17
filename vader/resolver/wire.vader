@@ -46,12 +46,10 @@ export wire_imports :: fn(project: LoadedProject) -> ImportTargetTable {
     // module's import-path resolution. Hoisted out of the inner loop
     // so it's built once (O(N)) rather than per-module (O(N²)).
     name_to_id :: MutableMap<string, string> {}
-    for lm in project.modules.values() {
+    for [_, lm] in project.modules {
         name_to_id[lm.module.module_name] = lm.module.id
     }
-    for module_id in project.modules.keys() {
-        loaded :: project.modules[module_id]
-        if loaded is null { continue }
+    for [_, loaded] in project.modules {
         wire_module(loaded, name_to_id, project, out)
     }
     return out
@@ -60,15 +58,11 @@ export wire_imports :: fn(project: LoadedProject) -> ImportTargetTable {
 import "vader/diagnostics" { Diagnostic, resolver_error }
 import "vader/parser" { Visibility }
 
-import "std/collections" { keys, values }
-
 wire_module :: fn(
     loaded: LoadedModule, path_index: MutableMap<string, string>,
     project: LoadedProject, out: ImportTargetTable,
 ) -> void {
-    for sym_id in loaded.collected.imports.keys() {
-        info :: loaded.collected.imports[sym_id]
-        if info is null { continue }
+    for [sym_id, info] in loaded.collected.imports {
         target_id :: path_index[info.path]
         if target_id is null {
             out.missing[sym_id] = true

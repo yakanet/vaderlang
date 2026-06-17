@@ -3,7 +3,6 @@
 
 module "vader/lower"
 
-import "std/collections" { keys }
 import "std/sort" { sort }
 import "std/string" { split }
 
@@ -20,9 +19,7 @@ collect_vtable_entries :: fn(
     project: LoweredProject, loaded: LoadedProject, typed: TypedProject,
 ) -> VtableEntry[] {
     out: VtableEntry[] = []
-    for module_id in project.modules.keys() {
-        m :: project.modules[module_id]
-        if m is null { continue }
+    for [_, m] in project.modules {
         for d in m.decls {
             if d is LoweredFnDecl as fd {
                 trait_method :: impl_trait_method_from_mangled(fd.mangled)

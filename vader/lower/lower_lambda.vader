@@ -15,7 +15,7 @@
 
 module "vader/lower"
 
-import "std/collections" { MutableMap, values }
+import "std/collections" { MutableMap }
 import "vader/diagnostics" { Span, empty_span }
 AST :: import "vader/parser"
 import "vader/resolver/symbol" { Symbol, SymbolKind }
@@ -157,7 +157,7 @@ build_lifted_params :: fn(
 
 find_param_symbol :: fn(ctx: FnLowerCtx, fn_param: AST.FnParam) -> Symbol | null {
     target_key :: fn_param.span.hash()
-    for symbol in ctx.typed.resolved.idents.values() {
+    for [_, symbol] in ctx.typed.resolved.idents {
         match symbol.defined_at {
             is null -> {}
             is Span as defined -> {

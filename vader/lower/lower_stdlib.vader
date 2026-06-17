@@ -3,7 +3,6 @@
 
 module "vader/lower"
 
-import "std/collections" { keys }
 import "std/string" { starts_with }
 
 import "vader/parser" { Decl, ImplDecl, ArrayTypeExpr, GenericInstExpr }
@@ -22,12 +21,10 @@ is_stdlib_path :: fn(path: string) = "stdlib/std/" in path
 surface_referenced_intrinsic_externs :: fn(
     loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx, project: LoweredProject,
 ) -> void {
-    for module_id in typed.modules.keys() {
+    for [module_id, module_typed] in typed.modules {
         if !is_stdlib_path(module_id) { continue }
         module_loaded :: loaded.modules[module_id]
         if module_loaded is null { continue }
-        module_typed :: typed.modules[module_id]
-        if module_typed is null { continue }
         decls_list :: module_decls(module_loaded)
         // Bracket the synth_decls the with-body members surfaced below spawn :
         // `surface_stdlib_impl_externs` / `surface_array_blanket_members` call
@@ -175,10 +172,8 @@ surface_array_blanket_members :: fn(
         // The mangle prefix that partitions this member's element instances from
         // the other array-blanket members sharing `array_blanket_elems`.
         prefix :: "${mangle_module_id(typed.resolved.display_path)}$[]$${impl_decl.trait_name}$${member.name}__"
-        for mangled in project_ctx.array_blanket_elems.keys() {
+        for [mangled, element] in project_ctx.array_blanket_elems {
             if !mangled.starts_with(prefix) { continue }
-            element :: project_ctx.array_blanket_elems[mangled]
-            if element is null { continue }
             // Dedupe against re-entrant drain-loop passes.
             dedupe_key :: "arr_blanket::${mangled}"
             if project_ctx.materialized_impl_keys.contains(dedupe_key) { continue }

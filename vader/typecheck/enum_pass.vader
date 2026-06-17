@@ -60,14 +60,11 @@ export resolve_enum_indices :: fn(
 }
 
 find_owner :: fn(out: MutableMap<string, i64>, target: i64) -> string {
-    for k in out.keys() {
-        v :: out[k]
-        if v is i64 { if v == target { return k } }
+    for [k, v] in out {
+        if v == target { return k }
     }
     return "?"
 }
-
-import "std/collections" { keys }
 
 // ---- repr ranges ----------------------------------------------------------
 

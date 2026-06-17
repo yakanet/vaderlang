@@ -232,9 +232,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
     ctx :: new_emitter_ctx()
 
     // Pass 1 — reserve CFG fns / externs / structs.
-    for module_id in cfg.modules.keys() {
-        m :: cfg.modules[module_id]
-        if m is null { continue }
+    for [_, m] in cfg.modules {
         for f in m.functions { reserve_cfg_function(f, ctx) }
         for ext in m.externs { reserve_cfg_extern(ext, ctx) }
         for s in m.struct_decls { reserve_cfg_struct(s, ctx) }
@@ -254,9 +252,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
     for s in cfg.strings { string_index_map.push(intern_string(s, ctx)) }
 
     // Pass 2 — emit fn bodies from the CFG.
-    for module_id in cfg.modules.keys() {
-        m :: cfg.modules[module_id]
-        if m is null { continue }
+    for [_, m] in cfg.modules {
         for cfg_fn in m.functions {
             if cfg_fn.is_extern { continue }
             // Resolve the reserved fn-table slot. Prefer the symbol-id
@@ -777,7 +773,7 @@ emit_range :: fn(ctx: FnEmitCfg, start: BlockId, until: BlockId) -> void {
 /// without `contains_key` (which the Vader stdlib MutableMap doesn't
 /// surface via direct field access). Walk the keys instead to know.
 loop_exit_present :: fn(ctx: FnEmitCfg, b: BlockId) -> bool {
-    for k in ctx.loop_exit.keys() { if k == b { return true } }
+    for [k, _] in ctx.loop_exit { if k == b { return true } }
     return false
 }
 

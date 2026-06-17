@@ -160,12 +160,9 @@ export resolve_module_with_collected_dp_seeded :: fn(
     // Core symbols seed — only fills slots not already taken by the
     // module's own decls. User code can still shadow `Range` / `Display`
     // by declaring its own.
-    for name in core_seed.keys() {
+    for [name, cs] in core_seed {
         existing :: root[name]
-        if existing is null {
-            core_sym :: core_seed[name]
-            if core_sym is Symbol as cs { root[name] = cs }
-        }
+        if existing is null { root[name] = cs }
     }
     file :: resolve_program(program, root, module_path, factory)
     return ResolvedModule {

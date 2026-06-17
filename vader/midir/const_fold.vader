@@ -30,9 +30,7 @@ import "vader/lower" { LoweredBinaryOp, LoweredUnaryOp }
 /// @return   a project with foldable BinOp/UnOp replaced by Const.
 export const_fold_project :: fn(p: CFGProject) -> CFGProject {
     out :: MutableMap<string, CFGModule> {}
-    for id in p.modules.keys() {
-        m :: p.modules[id]
-        if m is null { continue }
+    for [id, m] in p.modules {
         new_fns: CFGFunction[] = []
         for f in m.functions { new_fns.push(const_fold_function(f)) }
         out[id] = CFGModule {

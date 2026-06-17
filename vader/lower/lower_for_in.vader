@@ -415,7 +415,7 @@ synth_next_symbol :: fn(ctx: FnLowerCtx, name: string) -> Symbol {
 // `lookup_local_symbol` shape used elsewhere.
 export lookup_for_binding :: fn(ctx: FnLowerCtx, binding_span: Span) -> Symbol | null {
     target_key :: binding_span.hash()
-    for symbol in ctx.typed.resolved.idents.values() {
+    for [_, symbol] in ctx.typed.resolved.idents {
         match symbol.defined_at {
             is null -> {}
             is Span as defined -> {
@@ -454,7 +454,6 @@ resolve_binding_or_synth :: fn(ctx: FnLowerCtx, in_form: AST.InFor) -> Symbol {
     }
 }
 
-import "std/collections" { values }
 
 // ---- raw-array fast path --------------------------------------------------
 

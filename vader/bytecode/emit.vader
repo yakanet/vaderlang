@@ -24,7 +24,7 @@
 
 module "vader/bytecode"
 
-import "std/collections" { MutableMap, keys }
+import "std/collections" { MutableMap }
 import "vader/diagnostics" { Span }
 import "vader/types" { Type, mk_struct }
 import "vader/resolver/symbol" { Symbol }
@@ -66,9 +66,7 @@ export emit_project :: fn(lowered: Lo.LoweredProject, module_name: string, opts:
     // then structs. Mirrors `src/midir/emit.ts::emitBytecodeFromCFG`'s
     // `reserveCFGFunction → reserveCFGExtern → reserveCFGStruct` cascade
     // so the post-DCE type-table layout matches across compilers.
-    for module_id in lowered.modules.keys() {
-        m :: lowered.modules[module_id]
-        if m is null { continue }
+    for [_, m] in lowered.modules {
         for i in 0..<m.decls.len() {
             d :: m.decls[i]
             if d is Lo.LoweredFnDecl as fd {
@@ -76,9 +74,7 @@ export emit_project :: fn(lowered: Lo.LoweredProject, module_name: string, opts:
             }
         }
     }
-    for module_id in lowered.modules.keys() {
-        m :: lowered.modules[module_id]
-        if m is null { continue }
+    for [_, m] in lowered.modules {
         for i in 0..<m.decls.len() {
             d :: m.decls[i]
             if d is Lo.LoweredFnDecl as fd {
@@ -86,9 +82,7 @@ export emit_project :: fn(lowered: Lo.LoweredProject, module_name: string, opts:
             }
         }
     }
-    for module_id in lowered.modules.keys() {
-        m :: lowered.modules[module_id]
-        if m is null { continue }
+    for [_, m] in lowered.modules {
         for i in 0..<m.decls.len() {
             d :: m.decls[i]
             if !(d is Lo.LoweredFnDecl) { reserve_decl(d, ctx) }
@@ -107,9 +101,7 @@ export emit_project :: fn(lowered: Lo.LoweredProject, module_name: string, opts:
     // Pass 2 — emit each fn's body. Extern decls were routed to
     // `ctx.imports` in Pass 1, so their `lookup_function_index` miss
     // turns the body-emit into a no-op.
-    for module_id in lowered.modules.keys() {
-        m :: lowered.modules[module_id]
-        if m is null { continue }
+    for [_, m] in lowered.modules {
         for i in 0..<m.decls.len() {
             emit_decl(m.decls[i], ctx)
         }
@@ -825,11 +817,8 @@ export build_intrinsic_wrapper_body :: fn(imp: BcImport, import_index: i32) -> O
 /// when the import has no associated symbol (synth imports from
 /// elsewhere in the pipeline).
 lookup_symbol_id_for_import :: fn(ctx: EmitterCtx, import_index: i32) -> i32 {
-    for key in ctx.import_index_by_symbol_id.keys() {
-        v :: ctx.import_index_by_symbol_id[key]
-        if v is i32 as idx {
-            if idx == import_index { return key }
-        }
+    for [key, idx] in ctx.import_index_by_symbol_id {
+        if idx == import_index { return key }
     }
     return -1
 }

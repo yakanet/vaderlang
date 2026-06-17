@@ -24,7 +24,7 @@ build_fn_subst :: fn(fd: FnDecl, args: Type[], typed: TypedProgram) -> Substitut
         // Span-precise lookup : the resolver minted the TypeParam symbol
         // with `defined_at = tp.span`. Scan `idents.values()` for the
         // matching slot.
-        for s in typed.resolved.idents.values() {
+        for [_, s] in typed.resolved.idents {
             match s.defined_at {
                 is null -> {}
                 is Span as def -> {
@@ -258,7 +258,7 @@ find_type_param_in_resolved :: fn(resolved: ResolvedModule, name: string, def_sp
     // Use-site lookup : every use of `T` inside the struct's fields /
     // impl body lands in `idents` ; the value's `defined_at` points
     // back at the TypeParam's source span.
-    for s in resolved.idents.values() {
+    for [_, s] in resolved.idents {
         if s.name != name { continue }
         if i32(s.kind) != i32(SymbolKind.TypeParam) { continue }
         match s.defined_at {
@@ -270,7 +270,7 @@ find_type_param_in_resolved :: fn(resolved: ResolvedModule, name: string, def_sp
     }
     // Fallback : name-only match (no use-site exists, e.g. a generic
     // decl never instantiated in this very module).
-    for s in resolved.idents.values() {
+    for [_, s] in resolved.idents {
         if s.name == name && i32(s.kind) == i32(SymbolKind.TypeParam) { return s }
     }
     return null
@@ -426,7 +426,7 @@ lookup_type_param_symbol :: fn(resolved: ResolvedModule, name_span: Span) -> Sym
             }
         }
     }
-    for s in resolved.idents.values() {
+    for [_, s] in resolved.idents {
         match s.defined_at {
             is null -> {}
             is Span as def -> {

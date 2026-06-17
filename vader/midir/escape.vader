@@ -15,7 +15,7 @@
 
 module "vader/midir"
 
-import "std/collections" { MutableMap, MutableSet, keys, values, add }
+import "std/collections" { MutableMap, MutableSet, keys, add }
 import "std/iter" { slice }
 
 export EscapeStats :: struct {
@@ -35,7 +35,7 @@ export annotate_escape :: fn(p: CFGProject) -> AnnotatedProject {
     total_allocs := 0
     stack_promoted := 0
     modules :: MutableMap<string, CFGModule> {}
-    for m in values(p.modules) {
+    for [_, m] in p.modules {
         functions: CFGFunction[] = []
         for fn_ in m.functions {
             annotated :: annotate_function(fn_)

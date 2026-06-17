@@ -17,7 +17,7 @@
 
 module "vader/lower"
 
-import "std/collections" { MutableMap, MutableSet, contains, add, values, keys }
+import "std/collections" { MutableMap, MutableSet, contains, add }
 import "vader/diagnostics" { Span }
 AST :: import "vader/parser"
 import "vader/resolver/symbol" { Symbol, SymbolKind }
@@ -32,9 +32,7 @@ import "vader/resolver" { LoadedProject, LoadedModule }
 /// @return        the analysis result.
 export analyze_closures :: fn(loaded: LoadedProject, typed: TypedProject) -> ClosureAnalysis {
     analysis :: new_closure_analysis()
-    for module_id in typed.modules.keys() {
-        module_typed :: typed.modules[module_id]
-        if module_typed is null { continue }
+    for [module_id, module_typed] in typed.modules {
         module_loaded :: loaded.modules[module_id]
         if module_loaded is null { continue }
         analyze_module(module_loaded, module_typed, analysis)
@@ -74,7 +72,7 @@ analyze_module :: fn(loaded: LoadedModule, typed: TypedProgram, analysis: Closur
 // exists. Covers both `idents` (used bindings) and `symbols` (unused).
 build_symbol_by_span_index :: fn(typed: TypedProgram) -> MutableMap<u64, Symbol> {
     index :: MutableMap<u64, Symbol> {}
-    for symbol in typed.resolved.idents.values() {
+    for [_, symbol] in typed.resolved.idents {
         match symbol.defined_at {
             is null -> {}
             is Span as defined -> { index[defined.hash()] = symbol }
@@ -145,7 +143,7 @@ empty_scope :: fn() -> MutableSet<i32> {
 
 clone_scope :: fn(scope: MutableSet<i32>) -> MutableSet<i32> {
     out :: empty_scope()
-    for id in scope.inner.keys() { out.inner[id] = true }
+    for [id, _] in scope.inner { out.inner[id] = true }
     return out
 }
 

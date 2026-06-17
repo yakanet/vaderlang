@@ -15,7 +15,7 @@
 
 module "vader/resolver"
 
-import "std/collections" { MutableMap, keys }
+import "std/collections" { MutableMap }
 import "std/io" { exists, is_dir, read_dir, read_file }
 import "std/sort" { sort }
 import "std/string" { compare_ascending, ends_with }
@@ -46,9 +46,7 @@ export discover_modules :: fn(roots: string[], diags: Diagnostic[]) -> MutableMa
     for root in roots { walk_root(root, folder_buckets, diags) }
 
     index :: MutableMap<string, DiscoveredModule> {}
-    for folder in folder_buckets.keys() {
-        bucket :: folder_buckets[folder]
-        if bucket is null { continue }
+    for [folder, bucket] in folder_buckets {
         if bucket.name == "" { continue }   // every file in the bucket already raised R2020
         existing :: index[bucket.name]
         match existing {

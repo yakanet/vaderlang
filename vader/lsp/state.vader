@@ -9,7 +9,7 @@ module "vader/lsp"
 import "std/json" {
     JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonNull, JsonArray
 }
-import "std/collections" { MutableMap, keys }
+import "std/collections" { MutableMap }
 import "vader/resolver" { LoadedProject, SourceFile }
 import "vader/typecheck" { check_file, CheckResult }
 import "vader/diagnostics" { Diagnostic }
@@ -129,11 +129,8 @@ export source_file_for_path :: fn(files: SourceFile[], file_path: string) -> Sou
 /// documents (stored as "") are skipped.
 doc_overlay :: fn(self: ServerState) -> MutableMap<string, string> {
     overlay :: MutableMap<string, string> {}
-    for uri in self.docs.keys() {
-        text :: self.docs[uri]
-        if text != null {
-            if text != "" { overlay[uri_to_path(uri)] = text }
-        }
+    for [uri, text] in self.docs {
+        if text != "" { overlay[uri_to_path(uri)] = text }
     }
     return overlay
 }

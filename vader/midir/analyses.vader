@@ -412,10 +412,7 @@ export find_loop_exits :: fn(
 ) -> MutableMap<i32, BlockId | null> {
     out :: MutableMap<i32, BlockId | null> {}
     loops :: natural_loop_bodies(fn_, preds, idom)
-    for header in loops.keys() {
-        body_opt :: loops[header]
-        if body_opt is null { continue }
-        body :: body_opt
+    for [header, body] in loops {
         // Walk all blocks in the fn ; ask the body-set whether each is
         // a member. Skips the need to iterate the MutableSet's internal
         // bucket layout directly.

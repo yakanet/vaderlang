@@ -63,9 +63,7 @@ export dump_evaluated :: fn(project: EvaluatedProject) -> string {
 format_module_entries :: fn(module_program: EvaluatedProgram) -> string[] {
     entries: string[] = []
     typed :: module_program.typed
-    for symbol_id in module_program.comptime_decls.keys() {
-        value :: module_program.comptime_decls[symbol_id]
-        if value is null { continue }
+    for [symbol_id, value] in module_program.comptime_decls {
         name :: lookup_comptime_decl_name(typed, symbol_id)
         if name == "" { continue }
         entries.push("  @comptime  ${pad_end(name, usize(20), ' ')} = ${display_value(value)}")

@@ -41,9 +41,7 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> Lowe
     // Index every fn decl + seed the worklist with roots. Generic
     // instances (type_arguments non-empty) key by mangle ; everything
     // else keys by symbol id.
-    for module_id in lp.modules.keys() {
-        m :: lp.modules[module_id]
-        if m is null { continue }
+    for [module_id, m] in lp.modules {
         from_stdlib :: is_stdlib_path(module_id)
         for d in m.decls {
             if d is LoweredFnDecl as fn_decl {
@@ -158,9 +156,7 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> Lowe
 
     // Filter each module's fn decls ; keep structs + consts verbatim.
     out_modules :: MutableMap<string, LoweredModule> {}
-    for module_id in lp.modules.keys() {
-        m :: lp.modules[module_id]
-        if m is null { continue }
+    for [module_id, m] in lp.modules {
         kept: LoweredDecl[] = []
         for d in m.decls {
             if fn_survives(d, reachable_sym, reachable_mangle) { kept.push(d) }
@@ -234,9 +230,7 @@ is_fn_root :: fn(fn_decl: LoweredFnDecl, from_stdlib: bool, has_main: bool, keep
 /// Whether the project exposes a top-level `main` fn (a fn with a body
 /// flagged `origin.is_main`). When false, every user decl stays a root.
 project_has_main :: fn(lp: LoweredProject) -> bool {
-    for module_id in lp.modules.keys() {
-        m :: lp.modules[module_id]
-        if m is null { continue }
+    for [_, m] in lp.modules {
         for d in m.decls {
             if d is LoweredFnDecl as fn_decl {
                 if fn_decl.body != null && fn_decl.origin.is_main { return true }

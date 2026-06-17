@@ -31,7 +31,7 @@
 
 module "vader/comptime"
 
-import "std/collections" { MutableMap, keys }
+import "std/collections" { MutableMap }
 import "vader/parser" {
     Decl, FnDecl, StructDecl, ImplDecl, IdentExpr, GenericInstExpr, TypeExpr,
     ImportDecl, EnumDecl, TraitDecl, TypeAliasDecl, ConstDecl, AssertDecl,
@@ -78,7 +78,7 @@ build_dedupe_ctx :: fn(
         .member_to_impl = MutableMap<i32, ImplDecl> {},
         .struct_by_name = MutableMap<string, StructDecl> {},
     }
-    for module_id in project.modules.keys() {
+    for [module_id, _] in project.modules {
         decls_opt :: decls_of(module_id)
         if decls_opt is null { continue }
         decls :: decls_opt
@@ -164,7 +164,7 @@ any_subst_for_entry :: fn(entry: MonoEntry) -> Substitution {
     out :: new_substitution()
     src :: entry.subst.type_params
     any_ty :: mk_primitive("any")
-    for key in src.keys() {
+    for [key, _] in src {
         out.type_params[key] = any_ty
     }
     return out
@@ -321,10 +321,7 @@ redirect_inner :: fn(
 ) -> MutableMap<string, MonoEntry> {
     out :: MutableMap<string, MonoEntry> {}
     representative_for_dest: MonoEntry | null = null
-    for key in src.keys() {
-        entry_opt :: src[key]
-        if entry_opt is null { continue }
-        entry :: entry_opt
+    for [key, entry] in src {
         target_opt :: replacements.by_id[entry.id]
         if target_opt is null {
             out[key] = entry
@@ -391,10 +388,7 @@ export erasure_dedupe :: fn(
     replacements :: new_replacement_map()
     struct_rewrites :: MutableMap<i32, MonoEntry> {}
     extra_struct_entries: MonoEntry[] = []
-    for decl_id in groups.keys() {
-        group_opt :: groups[decl_id]
-        if group_opt is null { continue }
-        group :: group_opt
+    for [_, group] in groups {
         if group.entries.len() == 0 { continue }
         if !any_should_erase(group.entries, ctx) { continue }
         first :: group.entries[0]
@@ -438,10 +432,7 @@ export erasure_dedupe :: fn(
     // Rebuild the three lookup maps. Each concrete-args query that
     // used to land on a deduped entry now resolves to the
     // representative ; non-erased entries route through unchanged.
-    for key in mono.lookup_by_instance.keys() {
-        entry_opt :: mono.lookup_by_instance[key]
-        if entry_opt is null { continue }
-        entry :: entry_opt
+    for [key, entry] in mono.lookup_by_instance {
         target_opt :: replacements.by_id[entry.id]
         if target_opt is null {
             out.lookup_by_instance[key] = entry
@@ -457,10 +448,7 @@ export erasure_dedupe :: fn(
     // `symbol.id`. The bytecode emit uses this to redirect any
     // `LoweredCall` that still references the original entry's
     // symbol.
-    for id in replacements.by_id.keys() {
-        repr_opt :: replacements.by_id[id]
-        if repr_opt is null { continue }
-        repr :: repr_opt
+    for [id, repr] in replacements.by_id {
         old_entry_opt :: find_entry_by_id(mono.entries, id)
         if old_entry_opt is null { continue }
         old_entry :: old_entry_opt

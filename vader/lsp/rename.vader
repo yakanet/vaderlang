@@ -99,9 +99,7 @@ workspace_edit_json :: fn(edits: RefSite[], new_name: string) -> JsonValue {
         }
     }
     changes :: MutableMap<string, JsonValue> {}
-    for key in by_uri.keys() {
-        arr :: by_uri[key]
-        if arr == null { continue }
+    for [key, arr] in by_uri {
         changes[key] = JsonArray { .items = arr }
     }
     edit :: MutableMap<string, JsonValue> {}
@@ -121,9 +119,7 @@ text_edit_json :: fn(sp: Span, new_name: string) -> JsonValue {
 // filesystem path → current source text, across every file of every module.
 build_source_map :: fn(project: LoadedProject) -> MutableMap<string, string> {
     sources :: MutableMap<string, string> {}
-    for id in project.modules.keys() {
-        m :: project.modules[id]
-        if m == null { continue }
+    for [_, m] in project.modules {
         for f in m.module.files { sources[f.path] = f.content }
     }
     return sources

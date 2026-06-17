@@ -3,7 +3,7 @@
 
 module "vader/lower"
 
-import "std/collections" { MutableMap, keys }
+import "std/collections" { MutableMap }
 import "std/iter" { is_empty }
 
 import "vader/diagnostics" { Diagnostic, Span }
@@ -311,16 +311,13 @@ close_over_field_shapes :: fn(
     seen_pushed :: new_string_set()
     worklist: StructType[] = []
     collect :: (sub: Type) -> push_struct_shape(sub, worklist, seen_pushed)
-    for module_id in project.modules.keys() {
-        m :: project.modules[module_id]
-        if m is LoweredModule as mod {
-            for decl in mod.decls {
-                if decl is LoweredStructDecl as sd { materialized.add(sd.mangled) }
-                // Walk fields, signature AND body so a shape reachable only
-                // through a body local / expr type (e.g. a `ParsedArgs`
-                // local) is harvested alongside field / signature shapes.
-                for_each_lowered_type(decl, collect)
-            }
+    for [_, mod] in project.modules {
+        for decl in mod.decls {
+            if decl is LoweredStructDecl as sd { materialized.add(sd.mangled) }
+            // Walk fields, signature AND body so a shape reachable only
+            // through a body local / expr type (e.g. a `ParsedArgs`
+            // local) is harvested alongside field / signature shapes.
+            for_each_lowered_type(decl, collect)
         }
     }
     i: usize = 0
@@ -405,28 +402,24 @@ materialize_impl_members_for :: fn(
 ) -> void {
     // Walk every module's impls (impls can be in foreign modules) and
     // emit a synth fn for each matching impl member.
-    for module_id in typed.modules.keys() {
-        module_typed :: typed.modules[module_id]
-        if module_typed is null { continue }
-        if module_typed is TypedProgram as mt {
-            module_loaded :: loaded.modules[module_id]
-            if module_loaded is null { continue }
-            if module_loaded is LoadedModule as ml {
-                for d in module_decls(ml) {
-                    if d is ImplDecl as impl_decl {
-                        if !is_generic_impl_for(impl_decl, inst.symbol.name) { continue }
-                        materialize_impl_for_instance(
-                            impl_decl, inst, mt, owner_typed, project_ctx, project,
-                        )
-                        // The impl body virtual-calls the bound traits'
-                        // methods on the type-param (`cursor.gte(...)` /
-                        // `cursor.step()` in `Range.next`). Materialise
-                        // those bound-trait impls for the concrete args so
-                        // the vtable carries the matching entries.
-                        materialize_bound_trait_impls(
-                            impl_decl, inst, project_ctx, project, loaded, typed, diags,
-                        )
-                    }
+    for [module_id, mt] in typed.modules {
+        module_loaded :: loaded.modules[module_id]
+        if module_loaded is null { continue }
+        if module_loaded is LoadedModule as ml {
+            for d in module_decls(ml) {
+                if d is ImplDecl as impl_decl {
+                    if !is_generic_impl_for(impl_decl, inst.symbol.name) { continue }
+                    materialize_impl_for_instance(
+                        impl_decl, inst, mt, owner_typed, project_ctx, project,
+                    )
+                    // The impl body virtual-calls the bound traits'
+                    // methods on the type-param (`cursor.gte(...)` /
+                    // `cursor.step()` in `Range.next`). Materialise
+                    // those bound-trait impls for the concrete args so
+                    // the vtable carries the matching entries.
+                    materialize_bound_trait_impls(
+                        impl_decl, inst, project_ctx, project, loaded, typed, diags,
+                    )
                 }
             }
         }
@@ -590,33 +583,29 @@ materialize_bound_impl :: fn(
 ) -> void {
     dedupe_key :: "boundimpl::${type_name}::${trait_name}"
     if project_ctx.materialized_impl_keys.contains(dedupe_key) { return }
-    for module_id in typed.modules.keys() {
-        module_typed :: typed.modules[module_id]
-        if module_typed is null { continue }
-        if module_typed is TypedProgram as mt {
-            module_loaded :: loaded.modules[module_id]
-            if module_loaded is null { continue }
-            if module_loaded is LoadedModule as ml {
-                decls :: module_decls(ml)
-                for d in decls {
-                    if d is ImplDecl as impl_ {
-                        if impl_.trait_name != trait_name { continue }
-                        if !impl_targets_name(impl_.for_type, type_name) { continue }
-                        // Generic / concrete-instantiation impls go through the
-                        // struct-instance path ; this targets the non-generic
-                        // primitive (or plain struct) impls.
-                        if impl_.type_params.len() > 0 { continue }
-                        if impl_.for_type is GenericInstExpr { continue }
-                        project_ctx.materialized_impl_keys.add(dedupe_key)
-                        synth_start :: project_ctx.synth_decls.len()
-                        for m in lower_impl_member_list(impl_, mt, project_ctx, diags, decls) {
-                            push_to_module(project, mt.resolved.path, m)
-                        }
-                        // Drain lambdas/defers lifted from these member bodies
-                        // (post-module materialisation site).
-                        drain_synth_since(project, mt.resolved.path, project_ctx, synth_start)
-                        return
+    for [module_id, mt] in typed.modules {
+        module_loaded :: loaded.modules[module_id]
+        if module_loaded is null { continue }
+        if module_loaded is LoadedModule as ml {
+            decls :: module_decls(ml)
+            for d in decls {
+                if d is ImplDecl as impl_ {
+                    if impl_.trait_name != trait_name { continue }
+                    if !impl_targets_name(impl_.for_type, type_name) { continue }
+                    // Generic / concrete-instantiation impls go through the
+                    // struct-instance path ; this targets the non-generic
+                    // primitive (or plain struct) impls.
+                    if impl_.type_params.len() > 0 { continue }
+                    if impl_.for_type is GenericInstExpr { continue }
+                    project_ctx.materialized_impl_keys.add(dedupe_key)
+                    synth_start :: project_ctx.synth_decls.len()
+                    for m in lower_impl_member_list(impl_, mt, project_ctx, diags, decls) {
+                        push_to_module(project, mt.resolved.path, m)
                     }
+                    // Drain lambdas/defers lifted from these member bodies
+                    // (post-module materialisation site).
+                    drain_synth_since(project, mt.resolved.path, project_ctx, synth_start)
+                    return
                 }
             }
         }

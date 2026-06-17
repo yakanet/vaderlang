@@ -17,7 +17,7 @@
 
 module "vader/lower"
 
-import "std/collections" { MutableMap, values }
+import "std/collections" { MutableMap }
 import "vader/diagnostics" { Span }
 import "vader/parser" {
     MatchExpr, MatchArm, Pattern, WildcardPattern, BindingPattern, IsPattern,
@@ -466,7 +466,7 @@ struct_field_type :: fn(ctx: FnLowerCtx, target_type: Type, field_name: string) 
 // didn't write one — defensive against cascading diagnostics.
 resolve_pattern_symbol :: fn(ctx: FnLowerCtx, name_span: Span, name: string) -> Symbol {
     target_key :: name_span.hash()
-    for symbol in ctx.typed.resolved.idents.values() {
+    for [_, symbol] in ctx.typed.resolved.idents {
         match symbol.defined_at {
             is null -> {}
             is Span as defined -> {

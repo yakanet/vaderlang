@@ -26,9 +26,7 @@ import "std/collections" { MutableMap, MutableSet }
 /// modules with the input. Mirror of TS `eliminateDeadCFG`.
 export eliminate_dead_cfg :: fn(p: CFGProject) -> CFGProject {
     new_modules :: MutableMap<string, CFGModule> {}
-    for module_id in p.modules.keys() {
-        m :: p.modules[module_id]
-        if m is null { continue }
+    for [module_id, m] in p.modules {
         new_fns: CFGFunction[] = []
         for f in m.functions { new_fns.push(optimise_function(f)) }
         new_modules[module_id] = CFGModule {
@@ -118,7 +116,7 @@ prune_block :: fn(b: BasicBlock, live_out: MutableSet<LocalId>, local_count: usi
         while_idx := live.len()
         for while_idx <= usize(id) { live.push(false)  while_idx = while_idx + 1 }
     }
-    for k in live_out.inner.keys() {
+    for [k, _] in live_out.inner {
         grow_live_to(k)
         live[usize(k)] = true
     }
