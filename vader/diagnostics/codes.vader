@@ -76,6 +76,7 @@ export TypecheckCode :: enum(u8) {
     CannotMutateImmutableArray,         // T3042
     InvalidExternDecl,                  // T3050
     ExternMustNotHaveBody,              // T3051
+    PrivateTypeInPublicInterface,       // T3052
 }
 
 // Mirror of `PARSER` in `src/diagnostics/codes.ts`. New codes are appended ;
@@ -353,6 +354,7 @@ export typecheck_info :: fn(c: TypecheckCode) = match c {
     .CannotMutateImmutableArray         -> CodeInfo { .id = "T3042", .message = "cannot mutate an immutable array" }
     .InvalidExternDecl                  -> CodeInfo { .id = "T3050", .message = "invalid `@extern` declaration" }
     .ExternMustNotHaveBody              -> CodeInfo { .id = "T3051", .message = "`@extern` declaration must not have a body" }
+    .PrivateTypeInPublicInterface       -> CodeInfo { .id = "T3052", .message = "exported declaration exposes a non-exported type" }
 }
 
 // Note : `DiagCode` was previously a union of every phase's code enum, but

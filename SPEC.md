@@ -1506,6 +1506,23 @@ export api :: fn(x: i32) -> i32 {
 Note: the `export` keyword (visibility) is distinct from the `@export` decorator
 (ABI exposure to the host — see §12). A function may be both.
 
+#### Exported declarations cannot expose a non-exported type
+
+An `export`ed declaration must not name a non-exported type in its public
+surface — a caller in another module would receive a value of a type it cannot
+name. Mirrors Rust's E0446 (`private_interfaces`). The compiler rejects this
+with **T3052**:
+
+```vader
+Secret :: struct { value: i32 }          // private to this module
+
+export reveal :: fn() -> Secret { ... }   // T3052 — Secret is not exported
+```
+
+To fix, export the type or make the declaration private. The check currently
+covers fn **return types**; coverage of parameter types, exported struct field
+types, and type-alias right-hand sides is planned.
+
 ---
 
 ## 7. Control Flow

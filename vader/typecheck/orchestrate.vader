@@ -15,7 +15,7 @@ import "std/collections" { MutableMap, keys }
 import "vader/diagnostics" { Diagnostic, Span }
 AST :: import "vader/parser"
 import "vader/parser" { Program }
-import "vader/resolver" { LoadedProject, LoadedModule, SourceFile }
+import "vader/resolver" { LoadedProject, LoadedModule, SourceFile, load_project_with_overlay }
 import "vader/resolver" { ResolvedModule, resolve_module, resolve_module_with_collected, resolve_module_with_collected_dp, resolve_module_with_collected_dp_seeded, build_core_seed, find_core_module_id }
 import "vader/resolver/symbol" { Symbol, SymbolFactory }
 import "vader/resolver" { wire_imports, ImportTargetTable, run_orphan_rule_check_for_module }
@@ -43,6 +43,42 @@ merge_module_program :: fn(files: SourceFile[]) -> Program {
     return Program {
         .file = first.file, .span = first.span, .id = first.id,
         .module = first.module, .decls = all_decls,
+    }
+}
+
+/// Load + typecheck one entry file, returning the project, the typed result,
+/// and the *merged* diagnostic set (loader-time diagnostics first, then
+/// typecheck diagnostics). This is the single source of truth shared by the
+/// CLI typecheck stage and the LSP, so the editor never reports a diagnostic
+/// the compiler wouldn't — and vice-versa. The only thing layered on top is the
+/// LSP's per-file presentation filter (drop other files' spans).
+export FileCheck :: struct {
+    project: LoadedProject
+    result:  CheckResult
+    /// Loader diagnostics (parse / discovery / import-path / collect) followed
+    /// by typecheck diagnostics, in that order — the same merge the CLI's
+    /// `dump --stage=typed-ast` performs.
+    diags:   Diagnostic[]
+}
+
+/// Load `entry_path` and run the full multi-module typecheck, merging every
+/// diagnostic the pipeline produced.
+///
+/// @param entry_path  the entry file's filesystem path.
+/// @param overlay     filesystem path → unsaved source text, consulted before
+///                    the disk ; pass an empty map for on-disk CLI behaviour
+///                    (`load_project_with_overlay(p, {})` ≡ `load_project(p)`).
+/// @return            the loaded project, the typed result, and the merged
+///                    loader + typecheck diagnostics.
+export check_file :: fn(entry_path: string, overlay: MutableMap<string, string>) -> FileCheck {
+    project :: load_project_with_overlay(entry_path, overlay)
+    diags: Diagnostic[] = []
+    result :: check_project_with_bodies(project, diags)
+    merged: Diagnostic[] = []
+    for d in project.diags { merged.push(d) }
+    for d in diags         { merged.push(d) }
+    return FileCheck {
+        .project = project, .result = result, .diags = merged,
     }
 }
 

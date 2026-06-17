@@ -38,22 +38,18 @@ export clear_diagnostics_for_uri :: fn(uri: string) -> void {
     publish(uri, [])
 }
 
-/// Push a `publishDiagnostics` notification carrying `diags` filtered
-/// to those whose primary span belongs to `uri` (we don't want to
-/// flag std/core's errors on the user's snippet) AND whose message
-/// doesn't reference `?` (the Unresolved-type placeholder). The
-/// latter filter drops cascade noise — when an upstream UFCS lookup
-/// or generic-fn inference misses, the typechecker propagates `?`
-/// through every downstream lookup, then complains about every
-/// `match` / `is` check with "variant ? of ? | null is not covered"
-/// style messages. These cascade errors are noise on top of the
-/// single real error somewhere up the chain.
+/// Push a `publishDiagnostics` notification carrying `diags` filtered to
+/// those whose primary span belongs to `uri` — the sole presentation filter
+/// the LSP layers on the compiler's diagnostic set (we don't squiggle another
+/// file's errors on the open document). Everything else is published verbatim
+/// so the editor reports exactly what the compiler detects, cascade noise
+/// included : the diagnostics come straight from the shared `check_file`, the
+/// same path `vader dump --stage=typed-ast` uses.
 publish :: fn(uri: string, diags: Diagnostic[]) -> void {
     file_path :: uri_to_path(uri)
     items: JsonValue[] = []
     for d in diags {
         if file_path != "" && d.primary.start.file != file_path { continue }
-        if is_unresolved_cascade(d) { continue }
         items.push(encode_diagnostic(d))
     }
     params :: MutableMap<string, JsonValue> {}
@@ -61,8 +57,6 @@ publish :: fn(uri: string, diags: Diagnostic[]) -> void {
     params["diagnostics"] = JsonArray { .items = items }
     write_frame(encode_notification("textDocument/publishDiagnostics", JsonObject { .entries = params }))
 }
-
-is_unresolved_cascade :: fn(d: Diagnostic) = "?" in d.detail
 
 // ---- encoding ------------------------------------------------------------
 

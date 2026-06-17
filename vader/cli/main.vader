@@ -24,7 +24,7 @@ import "vader/resolver/symbol" { new_factory }
 import "vader/resolver" { ResolvedProject, ResolvedModule, resolve_module }
 import "vader/resolver" { LoadedModule, is_stdlib_module, resolve_module_with_collected, resolve_module_with_collected_dp_seeded, build_core_seed }
 import "vader/resolver" { dump_project }
-import "vader/typecheck" { check_module_with_bodies, check_project_with_bodies }
+import "vader/typecheck" { check_module_with_bodies, check_project_with_bodies, check_file }
 import "vader/typecheck" { CheckResult }
 import "vader/typecheck" { TypedProject, new_typed_project }
 import "vader/resolver" { load_project, resolve_sidecar }
@@ -906,18 +906,12 @@ collect_resolver_diags :: fn(project: LoadedProject, resolved: ResolvedProject) 
 // (body checking). Format matches `src/typecheck/dump-text.ts` so the
 // future parity stage can byte-diff stdout.
 run_typecheck_stage :: fn(file: string) -> i32 {
-    project :: load_project(file)
-    diags: Diagnostic[] = []
-    result :: check_project_with_bodies(project, diags)
-    println(dump_program_with_others(result.typed, true, result.others))
-    // Merge loader-time diagnostics (parse / discover / import-path /
-    // collect) so users see them at the typecheck stage too — TS's
-    // `dumpTypecheck` keeps them in the same DiagnosticCollector.
-    merged: Diagnostic[] = []
-    for d in project.diags { merged.push(d) }
-    for d in diags         { merged.push(d) }
-    if merged.len() > 0 {
-        println(merged.dump_diagnostics())
+    // `check_file` is the shared load+typecheck+merge the LSP also routes
+    // through, so the editor's squiggles and this dump never diverge.
+    fc :: check_file(file, MutableMap<string, string> {})
+    println(dump_program_with_others(fc.result.typed, true, fc.result.others))
+    if fc.diags.len() > 0 {
+        println(fc.diags.dump_diagnostics())
     }
     return 0
 }
