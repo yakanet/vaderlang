@@ -1,24 +1,23 @@
-// LSP end-to-end tests : spawn `vader lsp`, drive the JSON-RPC stream over
-// stdin/stdout, verify `textDocument/definition` and `textDocument/hover`
-// land on the right declaration and produce the expected Markdown.
+// LSP end-to-end tests : spawn the native `vader lsp`, drive the JSON-RPC
+// stream over stdin/stdout, verify `textDocument/definition` / `hover` /
+// `completion` / `codeAction` land on the right declaration and produce the
+// expected payloads.
 //
-// The server is a Vader program executed through the bytecode VM (cf.
-// `src/cli/commands/lsp.ts` shim), so each `Bun.spawn` invocation pays a
-// ~2-3 s VM-bootstrap cost. To keep `bun test` snappy this suite is
-// gated behind `RUN_LSP_TESTS=1` ; the gate skips every test rather than
-// declaring them failed when not set. We bundle every query for a given
-// source into a single server session to amortise the bootstrap.
+// The server is the compiled native binary (`build/vader lsp`) — fast enough
+// (~25 ms/session) to run unconditionally. Each session writes the source to a
+// real on-disk fixture under a fresh temp dir and points `rootUri` at it, so
+// the resolver discovers a bounded project root (NOT the entry file's folder,
+// which for a virtual `/`-rooted URI would make module discovery walk the whole
+// filesystem). Every query for a source is bundled into one session.
 
 import { test, expect } from "bun:test";
+import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
-import { MEDIUM_BUILD } from "./cli-bin.ts";
+import { CLI_BIN, MEDIUM_BUILD, ensureCliBuilt } from "./cli-bin.ts";
 
-// NOTE: still spawns the TS CLI's `lsp`. Native `vader lsp` does not yet emit
-// clean JSON-RPC the way the TS shim does (the frame parser chokes on its
-// output), so these end-to-end sessions can't drive the native binary. Flip
-// the `cmd` arrays below to `[CLI_BIN, "lsp"]` once native lsp is at parity.
-
-const ENABLED = process.env.RUN_LSP_TESTS === "1";
+ensureCliBuilt();
 
 type Json = unknown;
 
@@ -87,10 +86,16 @@ function findSeparator(buf: Uint8Array): number {
 // Run one LSP session : open `source` as a virtual document, fire every
 // query in order, return one result per query (in the same order).
 async function driveLsp(source: string, queries: Query[]): Promise<QueryResult[]> {
-  const uri = "file:///lsp-test.vader";
+  // Write the source to a real on-disk fixture under a fresh temp dir, and root
+  // the session there. The resolver then discovers a bounded project (the temp
+  // dir + the seeded std/ + vader/ roots) instead of the entry file's folder.
+  const dir = mkdtempSync(join(tmpdir(), "vlsp-"));
+  const file = join(dir, "lsp-test.vader");
+  writeFileSync(file, source);
+  const uri = `file://${file}`;
   const requests: object[] = [
     { jsonrpc: "2.0", id: 1, method: "initialize",
-      params: { rootUri: null, capabilities: {} } },
+      params: { rootUri: `file://${dir}`, capabilities: {} } },
     { jsonrpc: "2.0", method: "initialized", params: {} },
     { jsonrpc: "2.0", method: "textDocument/didOpen",
       params: { textDocument: { uri, languageId: "vader", version: 1, text: source } } },
@@ -126,16 +131,19 @@ async function driveLsp(source: string, queries: Query[]): Promise<QueryResult[]
   }
 
   const proc = Bun.spawn({
-    cmd: ["bun", "src/index.ts", "lsp"],
+    cmd: [CLI_BIN, "lsp", `--stdlib-root=${process.cwd()}/stdlib`, `--vader-root=${process.cwd()}/vader`],
     cwd: process.cwd(),
     stdin: "pipe",
     stdout: "pipe",
     stderr: "pipe",
   });
+  const killer = setTimeout(() => { try { proc.kill(9); } catch {} }, MEDIUM_BUILD);
   proc.stdin.write(stdin);
   await proc.stdin.end();
   const stdout = new Uint8Array(await new Response(proc.stdout).arrayBuffer());
   await proc.exited;
+  clearTimeout(killer);
+  rmSync(dir, { recursive: true, force: true });
 
   // Parse every frame, index by request id.
   const responses = new Map<number, Json>();
@@ -197,7 +205,6 @@ main :: fn() -> i32 {
 `;
 
 test("lsp: goto-def + hover end-to-end", async () => {
-  if (!ENABLED) return;
 
   const queries: Query[] = [
     // 0: click on `double` call site → jumps to its decl
@@ -246,7 +253,6 @@ test("lsp: goto-def + hover end-to-end", async () => {
 }, { timeout: MEDIUM_BUILD });
 
 test("lsp: completion lists in-scope identifiers + keywords", async () => {
-  if (!ENABLED) return;
 
   // Cursor inside main's body (line 16 = `    return y`).
   const results = await driveLsp(SOURCE, [
@@ -273,7 +279,9 @@ test("lsp: completion lists in-scope identifiers + keywords", async () => {
   expect(dbl?.kind).toBe(3);
 }, { timeout: MEDIUM_BUILD });
 
-const MEMBER_SOURCE = `Greeter :: trait {
+const MEMBER_SOURCE = `module "lsp_test"
+
+Greeter :: trait {
     greet :: fn(self) -> i32
 }
 
@@ -293,12 +301,11 @@ main :: fn() -> i32 {
 `;
 
 test("lsp: completion after `.` lists struct fields + impl methods", async () => {
-  if (!ENABLED) return;
 
-  // Line 15 = `    return p.x` ; the `.` is at character 12, so a cursor at
+  // Line 17 = `    return p.x` ; the `.` is at character 12, so a cursor at
   // character 13 (just past the dot) is a member-access completion on `p`.
   const results = await driveLsp(MEMBER_SOURCE, [
-    { method: "textDocument/completion", position: { line: 15, character: 13 } },
+    { method: "textDocument/completion", position: { line: 17, character: 13 } },
   ]);
   const list = results[0]!.result as CompletionList;
   const labels = new Set(list.items.map((i) => i.label));
@@ -317,7 +324,9 @@ test("lsp: completion after `.` lists struct fields + impl methods", async () =>
   expect(list.items.find((i) => i.label === "greet")?.kind).toBe(2);
 }, { timeout: MEDIUM_BUILD });
 
-const TRAILING_DOT_SOURCE = `Point :: struct {
+const TRAILING_DOT_SOURCE = `module "lsp_test"
+
+Point :: struct {
     x: i32
     y: i32
 }
@@ -330,12 +339,11 @@ main :: fn() -> i32 {
 `;
 
 test("lsp: member completion on a trailing dot (mid-edit, no member yet)", async () => {
-  if (!ENABLED) return;
 
-  // Line 7 = `    p.` ; cursor at char 6 is just past the dot, no member typed.
+  // Line 9 = `    p.` ; cursor at char 6 is just past the dot, no member typed.
   // The parser error-recovers `p.` into a FieldExpr whose target stays typed.
   const results = await driveLsp(TRAILING_DOT_SOURCE, [
-    { method: "textDocument/completion", position: { line: 7, character: 6 } },
+    { method: "textDocument/completion", position: { line: 9, character: 6 } },
   ]);
   const list = results[0]!.result as CompletionList;
   const labels = new Set(list.items.map((i) => i.label));
@@ -349,7 +357,9 @@ interface TextEditT { newText: string }
 interface WorkspaceEditT { changes: Record<string, TextEditT[]> }
 interface CodeActionT { title: string; kind: string; edit: WorkspaceEditT }
 
-const CODE_ACTION_SOURCE = `classify :: fn(x: i32) -> i32 {
+const CODE_ACTION_SOURCE = `module "lsp_test"
+
+classify :: fn(x: i32) -> i32 {
     return match x {
         0 -> 1
         _ -> 2
@@ -358,11 +368,10 @@ const CODE_ACTION_SOURCE = `classify :: fn(x: i32) -> i32 {
 `;
 
 test("lsp: code action converts a 2-arm match to if/else", async () => {
-  if (!ENABLED) return;
 
-  // Cursor on the `match` keyword (line 1 = `    return match x {`, char 11).
+  // Cursor on the `match` keyword (line 3 = `    return match x {`, char 11).
   const results = await driveLsp(CODE_ACTION_SOURCE, [
-    { method: "textDocument/codeAction", position: { line: 1, character: 11 } },
+    { method: "textDocument/codeAction", position: { line: 3, character: 11 } },
   ]);
   const actions = results[0]!.result as CodeActionT[];
   expect(Array.isArray(actions)).toBe(true);
@@ -376,7 +385,9 @@ test("lsp: code action converts a 2-arm match to if/else", async () => {
   expect(fileEdits[0]!.newText).toContain("else");
 }, { timeout: MEDIUM_BUILD });
 
-const NULL_NARROW_SOURCE = `Node :: struct { v: i32 }
+const NULL_NARROW_SOURCE = `module "lsp_test"
+
+Node :: struct { v: i32 }
 
 describe :: fn(cell: Node | null) -> i32 {
     match cell {
@@ -391,12 +402,11 @@ describe :: fn(cell: Node | null) -> i32 {
 `;
 
 test("lsp: code action converts a two-is-arm match (no wildcard) to if", async () => {
-  if (!ENABLED) return;
 
   // The null-narrowing shape: `match cell { is null -> … is Node -> … }`.
-  // Cursor on the `match` keyword (line 3 = `    match cell {`, char 4).
+  // Cursor on the `match` keyword (line 5 = `    match cell {`, char 4).
   const results = await driveLsp(NULL_NARROW_SOURCE, [
-    { method: "textDocument/codeAction", position: { line: 3, character: 4 } },
+    { method: "textDocument/codeAction", position: { line: 5, character: 4 } },
   ]);
   const actions = results[0]!.result as CodeActionT[];
   const conv = actions.find((a) => a.title === "Convert match to if");
@@ -406,7 +416,9 @@ test("lsp: code action converts a two-is-arm match (no wildcard) to if", async (
   expect(edit.newText).toContain("else");
 }, { timeout: MEDIUM_BUILD });
 
-const IF_TO_MATCH_SOURCE = `pick :: fn(v: i32 | string) -> i32 {
+const IF_TO_MATCH_SOURCE = `module "lsp_test"
+
+pick :: fn(v: i32 | string) -> i32 {
     if v is i32 as n {
         return n
     } else if v == "x" {
@@ -418,11 +430,10 @@ const IF_TO_MATCH_SOURCE = `pick :: fn(v: i32 | string) -> i32 {
 `;
 
 test("lsp: code action converts an if/else-if chain to match", async () => {
-  if (!ENABLED) return;
 
-  // Cursor on the leading `if` (line 1 = `    if v is i32 as n {`, char 4).
+  // Cursor on the leading `if` (line 3 = `    if v is i32 as n {`, char 4).
   const results = await driveLsp(IF_TO_MATCH_SOURCE, [
-    { method: "textDocument/codeAction", position: { line: 1, character: 4 } },
+    { method: "textDocument/codeAction", position: { line: 3, character: 4 } },
   ]);
   const actions = results[0]!.result as CodeActionT[];
   const conv = actions.find((a) => a.title === "Convert if to match");
@@ -434,7 +445,9 @@ test("lsp: code action converts an if/else-if chain to match", async () => {
   expect(edit.newText).toContain("_ ->");
 }, { timeout: MEDIUM_BUILD });
 
-const UFCS_SOURCE = `dbl :: fn(x: i32) -> i32 {
+const UFCS_SOURCE = `module "lsp_test"
+
+dbl :: fn(x: i32) -> i32 {
     return x * 2
 }
 
@@ -445,11 +458,10 @@ main :: fn() -> i32 {
 `;
 
 test("lsp: code action converts a free call to method syntax", async () => {
-  if (!ENABLED) return;
 
-  // Cursor on the `dbl(n)` call (line 6 = `    return dbl(n)`, char 11).
+  // Cursor on the `dbl(n)` call (line 8 = `    return dbl(n)`, char 11).
   const results = await driveLsp(UFCS_SOURCE, [
-    { method: "textDocument/codeAction", position: { line: 6, character: 11 } },
+    { method: "textDocument/codeAction", position: { line: 8, character: 11 } },
   ]);
   const actions = results[0]!.result as CodeActionT[];
   const conv = actions.find((a) => a.title === "Convert to method call");
@@ -459,7 +471,6 @@ test("lsp: code action converts a free call to method syntax", async () => {
 }, { timeout: MEDIUM_BUILD });
 
 test("lsp: empty document doesn't crash, returns null on lookups", async () => {
-  if (!ENABLED) return;
 
   const queries: Query[] = [
     { method: "textDocument/definition", position: { line: 0, character: 0 } },
@@ -490,7 +501,6 @@ main :: fn() -> i32 {
 `;
 
 test("lsp: goto-def jumps to fn param", async () => {
-  if (!ENABLED) return;
   // Position of `x` inside `y :: x * 2` at line 3.
   // Line content : "    y :: x * 2"  → `x` at character 9.
   const results = await driveLsp(BINDINGS_SOURCE, [
@@ -504,7 +514,6 @@ test("lsp: goto-def jumps to fn param", async () => {
 }, { timeout: MEDIUM_BUILD });
 
 test("lsp: hover on fn param shows its type", async () => {
-  if (!ENABLED) return;
   const results = await driveLsp(BINDINGS_SOURCE, [
     { method: "textDocument/hover", position: { line: 3, character: 9 } },
   ]);
@@ -514,7 +523,6 @@ test("lsp: hover on fn param shows its type", async () => {
 }, { timeout: MEDIUM_BUILD });
 
 test("lsp: goto-def jumps to local let-binding", async () => {
-  if (!ENABLED) return;
   // `return y` on line 4 — `y` at character 11.
   // Local `y` is declared on line 3 at character 4 : `    y :: x * 2`.
   const results = await driveLsp(BINDINGS_SOURCE, [
@@ -526,7 +534,6 @@ test("lsp: goto-def jumps to local let-binding", async () => {
 }, { timeout: MEDIUM_BUILD });
 
 test("lsp: hover on local shows its binding form", async () => {
-  if (!ENABLED) return;
   const results = await driveLsp(BINDINGS_SOURCE, [
     { method: "textDocument/hover", position: { line: 4, character: 11 } },
   ]);
@@ -535,7 +542,6 @@ test("lsp: hover on local shows its binding form", async () => {
 }, { timeout: MEDIUM_BUILD });
 
 test("lsp: goto-def jumps to for-in binding", async () => {
-  if (!ENABLED) return;
   // Inside the for body : `println("${double(n)}")` on line 10.
   // `n` sits at character 26 (inside `double(n)`).
   // The binding `n` is on line 9 : `    for n in nums {` → `n` at character 8.
@@ -548,7 +554,6 @@ test("lsp: goto-def jumps to for-in binding", async () => {
 }, { timeout: MEDIUM_BUILD });
 
 test("lsp: param goto-def is not visible outside its fn body", async () => {
-  if (!ENABLED) return;
   // `x` is a param of `double` (lines 2-5). Click on the `x` of `i32`
   // type name later in `main` — there's no `x` named there, so the
   // lookup should NOT bleed through to the param.
@@ -586,32 +591,29 @@ main :: fn() -> i32 {
 `;
 
 test("lsp: goto-def follows imports across files (std/io)", async () => {
-  if (!ENABLED) return;
   // Click on `println` call inside the body at line 4 char 4.
   const results = await driveLsp(CROSSFILE_SOURCE, [
     { method: "textDocument/definition", position: { line: 4, character: 4 } },
   ]);
   const loc = results[0]!.result as Location;
-  expect(loc.uri).toMatch(/stdlib\/std\/io\.vader$/);
-  // We don't pin the exact line — `std/io.vader` evolves and the test
+  expect(loc.uri).toMatch(/std\/io\/io\.vader$/);
+  // We don't pin the exact line — `std/io/io.vader` evolves and the test
   // would churn on every stdlib edit. The contract is "lands in
   // io.vader on a non-zero line".
   expect(loc.range.start.line).toBeGreaterThan(0);
 }, { timeout: MEDIUM_BUILD });
 
 test("lsp: goto-def follows imports across files (collections)", async () => {
-  if (!ENABLED) return;
   // Click on `MutableMap` type ref at line 6 char 12.
   const results = await driveLsp(CROSSFILE_SOURCE, [
     { method: "textDocument/definition", position: { line: 6, character: 12 } },
   ]);
   const loc = results[0]!.result as Location;
-  expect(loc.uri).toMatch(/stdlib\/std\/collections\.vader$/);
+  expect(loc.uri).toMatch(/std\/collections\/collections\.vader$/);
   expect(loc.range.start.line).toBeGreaterThan(0);
 }, { timeout: MEDIUM_BUILD });
 
 test("lsp: hover on imported symbol surfaces its origin signature", async () => {
-  if (!ENABLED) return;
   const results = await driveLsp(CROSSFILE_SOURCE, [
     { method: "textDocument/hover", position: { line: 4, character: 4 } },
   ]);
@@ -623,7 +625,6 @@ test("lsp: hover on imported symbol surfaces its origin signature", async () => 
 }, { timeout: MEDIUM_BUILD });
 
 test("lsp: cross-file resolution doesn't bleed for non-imported names", async () => {
-  if (!ENABLED) return;
   // `MutableSet` exists in `std/collections` but isn't imported here,
   // so a click on a bare `MutableSet` identifier should still miss.
   const src = `main :: fn() -> i32 {
@@ -638,7 +639,6 @@ test("lsp: cross-file resolution doesn't bleed for non-imported names", async ()
 }, { timeout: MEDIUM_BUILD });
 
 test("lsp: definition returns LocationLink when client supports it", async () => {
-  if (!ENABLED) return;
 
   // Manual run (the `driveLsp` helper sends `capabilities: {}` which
   // falls into the legacy `Location` branch — here we send the
@@ -652,10 +652,13 @@ main :: fn() -> i32 {
     return double(21)
 }
 `;
-  const URI = "file:///link-support.vader";
+  const dir = mkdtempSync(join(tmpdir(), "vlsp-"));
+  const file = join(dir, "link-support.vader");
+  writeFileSync(file, src);
+  const URI = `file://${file}`;
   const requests: object[] = [
     { jsonrpc: "2.0", id: 1, method: "initialize", params: {
-      rootUri: null,
+      rootUri: `file://${dir}`,
       capabilities: { textDocument: { definition: { linkSupport: true } } },
     } },
     { jsonrpc: "2.0", method: "initialized", params: {} },
@@ -679,14 +682,17 @@ main :: fn() -> i32 {
     offset += f.byteLength;
   }
   const proc = Bun.spawn({
-    cmd: ["bun", "src/index.ts", "lsp"],
+    cmd: [CLI_BIN, "lsp", `--stdlib-root=${process.cwd()}/stdlib`, `--vader-root=${process.cwd()}/vader`],
     cwd: process.cwd(),
     stdin: "pipe", stdout: "pipe", stderr: "pipe",
   });
+  const killer = setTimeout(() => { try { proc.kill(9); } catch {} }, MEDIUM_BUILD);
   proc.stdin.write(stdin);
   await proc.stdin.end();
   const stdout = new Uint8Array(await new Response(proc.stdout).arrayBuffer());
   await proc.exited;
+  clearTimeout(killer);
+  rmSync(dir, { recursive: true, force: true });
 
   let defResult: Json = null;
   let cursor = 0;
@@ -720,7 +726,6 @@ main :: fn() -> i32 {
 }, { timeout: MEDIUM_BUILD });
 
 test("lsp: initialize advertises definition + hover providers", async () => {
-  if (!ENABLED) return;
 
   // Drive a session with zero queries — we only care about the
   // `initialize` response.
@@ -741,16 +746,18 @@ test("lsp: initialize advertises definition + hover providers", async () => {
   }
 
   const proc = Bun.spawn({
-    cmd: ["bun", "src/index.ts", "lsp"],
+    cmd: [CLI_BIN, "lsp", `--stdlib-root=${process.cwd()}/stdlib`, `--vader-root=${process.cwd()}/vader`],
     cwd: process.cwd(),
     stdin: "pipe",
     stdout: "pipe",
     stderr: "pipe",
   });
+  const killer = setTimeout(() => { try { proc.kill(9); } catch {} }, MEDIUM_BUILD);
   proc.stdin.write(stdin);
   await proc.stdin.end();
   const stdout = new Uint8Array(await new Response(proc.stdout).arrayBuffer());
   await proc.exited;
+  clearTimeout(killer);
 
   let initResult: Json = null;
   let cursor = 0;
