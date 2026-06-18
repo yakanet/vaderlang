@@ -317,6 +317,34 @@ test("lsp: completion after `.` lists struct fields + impl methods", async () =>
   expect(list.items.find((i) => i.label === "greet")?.kind).toBe(2);
 }, { timeout: MEDIUM_BUILD });
 
+const TRAILING_DOT_SOURCE = `Point :: struct {
+    x: i32
+    y: i32
+}
+
+main :: fn() -> i32 {
+    p :: Point { .x = 1, .y = 2 }
+    p.
+    return 0
+}
+`;
+
+test("lsp: member completion on a trailing dot (mid-edit, no member yet)", async () => {
+  if (!ENABLED) return;
+
+  // Line 7 = `    p.` ; cursor at char 6 is just past the dot, no member typed.
+  // The parser error-recovers `p.` into a FieldExpr whose target stays typed.
+  const results = await driveLsp(TRAILING_DOT_SOURCE, [
+    { method: "textDocument/completion", position: { line: 7, character: 6 } },
+  ]);
+  const list = results[0]!.result as CompletionList;
+  const labels = new Set(list.items.map((i) => i.label));
+  expect(labels.has("x")).toBe(true);
+  expect(labels.has("y")).toBe(true);
+  // Still member-scoped — no keywords leak in.
+  expect(labels.has("return")).toBe(false);
+}, { timeout: MEDIUM_BUILD });
+
 interface TextEditT { newText: string }
 interface WorkspaceEditT { changes: Record<string, TextEditT[]> }
 interface CodeActionT { title: string; kind: string; edit: WorkspaceEditT }
