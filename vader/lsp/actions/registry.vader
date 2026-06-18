@@ -117,3 +117,80 @@ export reindent :: fn(text: string, indent: i32) -> string {
     }
     return out
 }
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert }
+
+// Splice an action result over its target span — byte-for-byte what the editor
+// does with the emitted `WorkspaceEdit` : replace `[start.offset, end.offset)`
+// with `new_text`. The offsets are raw UTF-8 byte offsets and the span is
+// half-open, so the byte view slices exactly the region the editor would.
+rt_splice :: fn(src: string, r: ActionResult) -> string {
+    sb :: src.bytes()
+    n :: sb.len()
+    prefix :: sb[0..<r.target_span.start.offset].bytes_to_string()
+    suffix :: sb[r.target_span.end.offset..<n].bytes_to_string()
+    return prefix + r.new_text + suffix
+}
+
+// Round-trip an action over a single source-backed node, exactly as the handler
+// would (`run_actions` → splice the result over its target span), and report
+// whether the rewritten document still reparses clean.
+//
+// A substring assert (in each action's own tests) proves a rewrite *looks*
+// right ; this proves the spliced edit is well-formed Vader. Parse-clean is the
+// meaningful machine check here : the rewrites only restructure control flow /
+// call shape and reuse every original sub-expression verbatim by span — they
+// introduce no new names or types — so type validity is preserved by
+// construction and a full typecheck would add no signal a reparse misses.
+// (A standalone typecheck isn't reachable anyway : `check_file` needs the entry
+// to sit in a scanned-root module, which a synthetic snippet doesn't.)
+rt_roundtrip_clean :: fn(src: string, node: AST.Expr) -> bool {
+    ctx :: ActionCtx { .source = src }
+    nodes: AST.Expr[] = [node]
+    results :: run_actions(nodes, ctx)
+    if results.len() == 0 { return false }
+    for i in 0..<results.len() {
+        spliced :: rt_splice(src, results[i])
+        reparsed :: AST.parse_source(spliced, "rt.vader")
+        if reparsed.errors.len() != 0 { return false }
+    }
+    return true
+}
+
+@test
+test_roundtrip_match_to_if :: fn() -> void {
+    src :: "f :: fn(x: i32) -> i32 {\n    return match x {\n        0 -> 1\n        _ -> 2\n    }\n}\n"
+    parsed :: AST.parse_source(src, "rt.vader")
+    m :: tm_find_match(parsed.program.decls)
+    if m == null {
+        assert(false, "expected a match")
+        return
+    }
+    assert(rt_roundtrip_clean(src, m), "match→if edit reparses clean")
+}
+
+@test
+test_roundtrip_if_to_match :: fn() -> void {
+    src :: "f :: fn(v: i32 | string) -> i32 {\n    return if v is i32 as n {\n        n\n    } else if v == \"\" {\n        1\n    } else {\n        2\n    }\n}\n"
+    parsed :: AST.parse_source(src, "rt.vader")
+    ifx :: tif_find_if(parsed.program.decls)
+    if ifx == null {
+        assert(false, "expected an if")
+        return
+    }
+    assert(rt_roundtrip_clean(src, ifx), "if→match edit reparses clean")
+}
+
+@test
+test_roundtrip_ufcs :: fn() -> void {
+    src :: "g :: fn() -> i32 {\n    return max(a, b)\n}\n"
+    parsed :: AST.parse_source(src, "rt.vader")
+    c :: tu_find_call(parsed.program.decls)
+    if c == null {
+        assert(false, "expected a call")
+        return
+    }
+    assert(rt_roundtrip_clean(src, c), "ufcs edit reparses clean")
+}

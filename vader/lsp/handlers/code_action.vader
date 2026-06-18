@@ -1,14 +1,15 @@
 // vader/lsp/handlers/code_action — `textDocument/codeAction` handler.
 //
-// Finds the AST node under the request's range and runs the code-action
+// Builds the enclosing-expression chain under the request's range
+// (`analysis::enclosing_exprs`, innermost first) and runs the code-action
 // registry (`vader/lsp/actions`) against it, returning one LSP `CodeAction`
 // per applicable refactoring. Each action carries a `WorkspaceEdit` that
-// replaces the node's span with the rewritten text — no `executeCommand`
+// replaces its target node's span with the rewritten text — no `executeCommand`
 // round-trip.
 //
-// v1 targets the enclosing `match` (the only registered action is match→if),
-// so the node finder is `find_enclosing_match`. As non-match actions land, the
-// handler will widen to the general enclosing-node chain.
+// Each registered action fires on the innermost node it applies to, so a single
+// request can surface several actions (match→if, if→match, UFCS, …) when the
+// cursor sits inside nested convertible constructs.
 
 module "vader/lsp/handlers"
 
