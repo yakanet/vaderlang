@@ -846,7 +846,7 @@ emit_const_decl :: fn(self: Printer, d: p.ConstDecl) -> void {
     // shape too irregular for the simple align rule to read cleanly).
     if d.ty is null && is_bitor_chain(d.value) {
         prefix_width :: usize(self.depth) * usize(4) + name_width + 4 // " :: "
-        rendered :: render_expr_for_measure(self.source, d.value)
+        rendered :: format_expr(self.source, d.value)
         if prefix_width + rendered.bytes().len() > usize(MAX_LINE) {
             self.emit_union_multiline(d.value, name_width)
             return
@@ -862,11 +862,17 @@ is_bitor_chain :: fn(e: p.Expr) -> bool = if e is p.BinaryExpr as b { b.op == .B
 // `collect_bitor_variants` now lives in `vader/parser/ast` so both the
 // formatter and the typechecker share one implementation.
 
-// Render `e` into a fresh standalone string. Used only for measuring
-// the would-be single-line width of a union RHS so `emit_const_decl`
-// can decide between the inline and multi-line layouts. Comments are
-// skipped (the measurement only cares about visible characters).
-render_expr_for_measure :: fn(source: string, e: p.Expr) -> string {
+/// Render a single expression to a standalone string. `source` is the document
+/// the expression's spans index into — leaf emitters slice verbatim literal
+/// spellings (radix, underscores) from it, so reused sub-expressions keep their
+/// exact text ; freshly synthesised nodes are emitted structurally. Comments are
+/// skipped. Used by the LSP code-action layer to render a rewritten expression,
+/// and internally to measure a union RHS width.
+///
+/// @param source  the document the expression's spans index into.
+/// @param e       the expression to render.
+/// @return        the formatted single-expression text.
+export format_expr :: fn(source: string, e: p.Expr) -> string {
     sub :: new_printer(source, CommentMap { .comments = [], .cursor = usize(0) })
     sub.emit_expr(e)
     return sub.finish()
