@@ -22,8 +22,10 @@ module "vader/lsp/actions"
 import "vader/fmt" { format_expr }
 AST :: import "vader/parser"
 
-/// The match→if code action. Registered in `registry.vader::ALL_ACTIONS`.
-match_to_if_action :: CodeAction {
+/// The match→if code action. Registered in `registry.vader::all_actions`.
+/// A factory fn (not a const) so cross-file references resolve regardless of
+/// the module's file order under the test-entry compile.
+match_to_if_action :: fn() -> CodeAction = CodeAction {
     .kind          = "refactor.rewrite",
     .title         = "Convert match to if",
     .is_applicable = mti_applicable,

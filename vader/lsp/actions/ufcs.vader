@@ -1,0 +1,165 @@
+// vader/lsp/actions/ufcs — free-call → method-call rewrite (`f(x, …)` → `x.f(…)`).
+//
+// Rewrites a free-function call into UFCS method syntax, promoting the first
+// positional argument to the receiver. The two forms are equivalent in Vader
+// (`x.f(…)` desugars to `f(x, …)`), and `f` is in scope since the call compiles,
+// so the rewrite is always valid.
+//
+//   dbl(n)        →  n.dbl()
+//   max(a, b)     →  a.max(b)
+//
+// Only the `f(x) → x.f()` direction is offered. The reverse (`x.f() → f(x)`) is
+// NOT : an impl method can't be called free-form (`b.show()` is valid but
+// `show(b)` is `unresolved identifier`), so the reverse would produce broken
+// code unless `f` is known to be a free fn — a type-aware gate left as a
+// follow-up.
+//
+// Declines when the callee isn't a bare identifier (already a method / complex
+// callee), there's no positional first argument, or the receiver would be a
+// numeric literal (`5.f()` mis-lexes as a float — see the lexer int-dot TODO).
+
+module "vader/lsp/actions"
+
+import "vader/fmt" { format_expr }
+AST :: import "vader/parser"
+
+/// The free-call → method-call action. Registered in `registry::all_actions`.
+ufcs_action :: fn() -> CodeAction = CodeAction {
+    .kind          = "refactor.rewrite",
+    .title         = "Convert to method call",
+    .is_applicable = ufcs_applicable,
+    .apply         = ufcs_apply,
+}
+
+ufcs_applicable :: fn(node: AST.Expr, _ctx: ActionCtx) -> bool {
+    if node is AST.CallExpr as c { return ufcs_ok(c) }
+    return false
+}
+
+ufcs_apply :: fn(node: AST.Expr, ctx: ActionCtx) -> string {
+    if node is AST.CallExpr as c {
+        if !ufcs_ok(c) { return "" }
+        return reindent(format_expr(ctx.source, to_method_call(c)), c.span.start.column - i32(1))
+    }
+    return ""
+}
+
+// A bare-identifier call with a usable first positional argument as receiver.
+ufcs_ok :: fn(c: AST.CallExpr) -> bool {
+    if ident_name(c.callee) == "" { return false }
+    if c.args.len() < 1 { return false }
+    first :: c.args[0]
+    if first.name != null { return false }   // a named first arg isn't a receiver
+    if first.spread { return false }
+    recv :: first.value
+    if recv is AST.IntLitExpr { return false }
+    if recv is AST.FloatLitExpr { return false }
+    return true
+}
+
+// `f(x, rest…)` → `x.f(rest…)`, reusing the receiver + remaining args verbatim.
+to_method_call :: fn(c: AST.CallExpr) -> AST.CallExpr {
+    recv :: c.args[0].value
+    rest :: c.args[1..<c.args.len()]
+    field :: AST.FieldExpr {
+        .span = c.span, .target = recv, .field = ident_name(c.callee),
+        .field_span = c.span, .is_numeric = false,
+    }
+    return AST.CallExpr { .span = c.span, .callee = field, .args = rest }
+}
+
+ident_name :: fn(e: AST.Expr) -> string {
+    if e is AST.IdentExpr as id { return id.name }
+    return ""
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert }
+
+tu_find_call :: fn(decls: AST.Decl[]) -> AST.CallExpr | null {
+    for d in decls {
+        if d is AST.FnDecl as fd {
+            match fd.body {
+                is null -> {}
+                is AST.BlockExpr as b -> {
+                    found :: tu_in_block(b)
+                    if found != null { return found }
+                }
+            }
+        }
+    }
+    return null
+}
+
+tu_in_block :: fn(b: AST.BlockExpr) -> AST.CallExpr | null {
+    for s in b.stmts {
+        found :: tu_in_stmt(s)
+        if found != null { return found }
+    }
+    match b.trailing {
+        is null -> { return null }
+        _ -> { return tu_in_expr(b.trailing) }
+    }
+}
+
+tu_in_stmt :: fn(s: AST.Stmt) -> AST.CallExpr | null {
+    match s {
+        is AST.LetStmt    as ls -> { return tu_in_expr(ls.value) }
+        is AST.ExprStmt   as es -> { return tu_in_expr(es.expr) }
+        is AST.ReturnStmt as rs -> {
+            match rs.value {
+                is null -> { return null }
+                _ -> { return tu_in_expr(rs.value) }
+            }
+        }
+        _ -> { return null }
+    }
+}
+
+tu_in_expr :: fn(e: AST.Expr) -> AST.CallExpr | null {
+    if e is AST.CallExpr as c { return c }
+    return null
+}
+
+@test
+test_ufcs_converts_free_call :: fn() -> void {
+    src :: "g :: fn() -> i32 {\n    return max(a, b)\n}\n"
+    parsed :: AST.parse_source(src, "t.vader")
+    c :: tu_find_call(parsed.program.decls)
+    if c == null {
+        assert(false, "expected a call")
+        return
+    }
+    ctx :: ActionCtx { .source = src }
+    assert(ufcs_applicable(c, ctx), "free call with a first arg converts")
+    out :: ufcs_apply(c, ctx)
+    assert("a.max(b)" in out, "promotes the first arg to the receiver")
+}
+
+@test
+test_ufcs_declines_no_args :: fn() -> void {
+    src :: "g :: fn() -> i32 {\n    return now()\n}\n"
+    parsed :: AST.parse_source(src, "t.vader")
+    c :: tu_find_call(parsed.program.decls)
+    if c == null {
+        assert(false, "expected a call")
+        return
+    }
+    ctx :: ActionCtx { .source = src }
+    assert(!ufcs_applicable(c, ctx), "a no-arg call has no receiver -> decline")
+}
+
+@test
+test_ufcs_declines_method_call :: fn() -> void {
+    // Callee is already a field access (`x.f`) — not a bare identifier.
+    src :: "g :: fn() -> i32 {\n    return x.f(y)\n}\n"
+    parsed :: AST.parse_source(src, "t.vader")
+    c :: tu_find_call(parsed.program.decls)
+    if c == null {
+        assert(false, "expected a call")
+        return
+    }
+    ctx :: ActionCtx { .source = src }
+    assert(!ufcs_applicable(c, ctx), "an existing method call -> decline")
+}

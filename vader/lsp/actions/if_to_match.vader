@@ -20,8 +20,8 @@ module "vader/lsp/actions"
 import "vader/fmt" { format_expr }
 AST :: import "vader/parser"
 
-/// The if→match code action. Registered in `registry.vader::ALL_ACTIONS`.
-if_to_match_action :: CodeAction {
+/// The if→match code action. Registered in `registry.vader::all_actions`.
+if_to_match_action :: fn() -> CodeAction = CodeAction {
     .kind          = "refactor.rewrite",
     .title         = "Convert if to match",
     .is_applicable = itm_applicable,

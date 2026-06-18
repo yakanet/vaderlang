@@ -50,9 +50,15 @@ export ActionResult :: struct {
 /// Every registered code action. Central registration — add new actions here.
 /// Entries are defined in sibling files of this folder module (e.g.
 /// `match_to_if_action` in `match_to_if.vader`).
-ALL_ACTIONS :: [
-    match_to_if_action,
-    if_to_match_action,
+///
+/// A function (not a const array) so the explicit `CodeAction[]` return type
+/// pins a homogeneous array and the cross-file action references resolve in a
+/// fn body — a top-level const literal infers a heterogeneous tuple when a
+/// sibling-file entry isn't resolved yet under the test-entry compile order.
+all_actions :: fn() -> CodeAction[] = [
+    match_to_if_action(),
+    if_to_match_action(),
+    ufcs_action(),
 ]
 
 /// Run every action against the enclosing-expression chain `nodes` (innermost
@@ -66,8 +72,13 @@ ALL_ACTIONS :: [
 /// @return       the applicable actions' results, in registration order.
 export run_actions :: fn(nodes: AST.Expr[], ctx: ActionCtx) -> ActionResult[] {
     out: ActionResult[] = []
-    for a in ALL_ACTIONS {
-        for node in nodes {
+    acts :: all_actions()
+    // Index loops (not `for x in arr`) sidestep a for-in iterator
+    // materialisation gap (GATE B1) over the erased `AST.Expr[]` element type.
+    for ai in 0..<acts.len() {
+        a :: acts[ai]
+        for ni in 0..<nodes.len() {
+            node :: nodes[ni]
             if a.is_applicable(node, ctx) {
                 text :: a.apply(node, ctx)
                 if text != "" {
