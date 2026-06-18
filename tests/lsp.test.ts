@@ -261,6 +261,50 @@ test("lsp: completion lists in-scope identifiers + keywords", async () => {
   expect(dbl?.kind).toBe(3);
 }, { timeout: MEDIUM_BUILD });
 
+const MEMBER_SOURCE = `Greeter :: trait {
+    greet :: fn(self) -> i32
+}
+
+Point :: struct {
+    x: i32
+    y: i32
+}
+
+Point implements Greeter {
+    greet :: fn(self) -> i32 { return self.x }
+}
+
+main :: fn() -> i32 {
+    p :: Point { .x = 1, .y = 2 }
+    return p.x
+}
+`;
+
+test("lsp: completion after `.` lists struct fields + impl methods", async () => {
+  if (!ENABLED) return;
+
+  // Line 15 = `    return p.x` ; the `.` is at character 12, so a cursor at
+  // character 13 (just past the dot) is a member-access completion on `p`.
+  const results = await driveLsp(MEMBER_SOURCE, [
+    { method: "textDocument/completion", position: { line: 15, character: 13 } },
+  ]);
+  const list = results[0]!.result as CompletionList;
+  const labels = new Set(list.items.map((i) => i.label));
+
+  // Struct fields of Point.
+  expect(labels.has("x")).toBe(true);
+  expect(labels.has("y")).toBe(true);
+  // Impl method on Point.
+  expect(labels.has("greet")).toBe(true);
+  // Member completion is receiver-scoped — no top-level idents / keywords leak.
+  expect(labels.has("main")).toBe(false);
+  expect(labels.has("return")).toBe(false);
+
+  // Field `x` carries CompletionItemKind.Field (5) ; method `greet` Method (2).
+  expect(list.items.find((i) => i.label === "x")?.kind).toBe(5);
+  expect(list.items.find((i) => i.label === "greet")?.kind).toBe(2);
+}, { timeout: MEDIUM_BUILD });
+
 test("lsp: empty document doesn't crash, returns null on lookups", async () => {
   if (!ENABLED) return;
 

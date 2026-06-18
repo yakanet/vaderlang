@@ -107,12 +107,15 @@ export server_capabilities :: fn() -> JsonValue {
     sig_help["triggerCharacters"]   = JsonArray { .items = triggers }
     caps["signatureHelpProvider"]   = JsonObject { .entries = sig_help }
 
-    // completionProvider : Tier 1 is scope-aware identifier + keyword
-    // completion, auto-triggered on identifier typing, so we declare no
-    // trigger characters yet. Member completion after `.` (Tier 2) will add
-    // the `.` trigger. No lazy `completionItem/resolve` round-trip.
+    // completionProvider : scope-aware identifier + keyword completion
+    // (auto-triggered on identifier typing) plus member completion after `.`
+    // (struct fields + impl methods, resolved through the typed cache). No lazy
+    // `completionItem/resolve` round-trip.
+    dot_trigger: JsonValue = JsonString { .value = "." }
+    completion_triggers: JsonValue[] = [dot_trigger]
     completion_provider :: MutableMap<string, JsonValue> {}
-    completion_provider["resolveProvider"] = JsonBool { .value = false }
+    completion_provider["resolveProvider"]   = JsonBool { .value = false }
+    completion_provider["triggerCharacters"] = JsonArray { .items = completion_triggers }
     caps["completionProvider"] = JsonObject { .entries = completion_provider }
     return JsonObject { .entries = caps }
 }
