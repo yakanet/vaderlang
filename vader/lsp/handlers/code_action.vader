@@ -1,0 +1,85 @@
+// vader/lsp/handlers/code_action — `textDocument/codeAction` handler.
+//
+// Finds the AST node under the request's range and runs the code-action
+// registry (`vader/lsp/actions`) against it, returning one LSP `CodeAction`
+// per applicable refactoring. Each action carries a `WorkspaceEdit` that
+// replaces the node's span with the rewritten text — no `executeCommand`
+// round-trip.
+//
+// v1 targets the enclosing `match` (the only registered action is match→if),
+// so the node finder is `find_enclosing_match`. As non-match actions land, the
+// handler will widen to the general enclosing-node chain.
+
+module "vader/lsp/handlers"
+
+import "std/json" { JsonValue, JsonObject, JsonString, JsonArray }
+import "std/collections" { MutableMap }
+import "vader/lsp/protocol" {
+    position_uri, uri_to_path, get_field, get_number, span_to_range_json, range_json,
+}
+import "vader/lsp/analysis" {
+    ServerState, typed_project_for, source_file_for_path, find_enclosing_match,
+}
+import "vader/lsp/actions" { ActionCtx, ActionResult, run_actions }
+
+/// Resolve code actions for the range in `params`. Returns a `CodeAction[]`
+/// (possibly empty) — never null, per the LSP array-typed response.
+///
+/// @param state   shared server state (carries the typed-project cache).
+/// @param params  request params : `{ textDocument: { uri }, range, context }`.
+/// @return        a `CodeAction[]` JSON array.
+export handle_code_action :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+    uri :: position_uri(params)
+    if uri == "" { return JsonArray { .items = [] } }
+    file_path :: uri_to_path(uri)
+    if file_path == "" { return JsonArray { .items = [] } }
+
+    cached :: typed_project_for(state, file_path)
+    entry :: cached.project.modules[cached.project.entry]
+    if entry is null { return JsonArray { .items = [] } }
+    sf :: source_file_for_path(entry.module.files, file_path)
+    if sf is null { return JsonArray { .items = [] } }
+
+    // LSP positions are 0-based ; the AST is 1-based. Anchor on the range start.
+    line :: range_start_field(params, "line") + i32(1)
+    col  :: range_start_field(params, "character") + i32(1)
+    m :: find_enclosing_match(sf.program.decls, line, col)
+    if m == null { return JsonArray { .items = [] } }
+
+    ctx :: ActionCtx { .source = sf.content }
+    results :: run_actions(m, ctx)
+
+    items: JsonValue[] = []
+    for r in results {
+        items.push(code_action_json(r, uri, range_json(span_to_range_json(m.span))))
+    }
+    return JsonArray { .items = items }
+}
+
+// Encode one `CodeAction` carrying a single-file `WorkspaceEdit` that replaces
+// `range` with the action's rewritten text.
+code_action_json :: fn(r: ActionResult, uri: string, range: JsonValue) -> JsonValue {
+    text_edit :: MutableMap<string, JsonValue> {}
+    text_edit["range"]   = range
+    text_edit["newText"] = JsonString { .value = r.new_text }
+
+    edits: JsonValue[] = [JsonObject { .entries = text_edit }]
+    changes :: MutableMap<string, JsonValue> {}
+    changes[uri] = JsonArray { .items = edits }
+
+    workspace_edit :: MutableMap<string, JsonValue> {}
+    workspace_edit["changes"] = JsonObject { .entries = changes }
+
+    obj :: MutableMap<string, JsonValue> {}
+    obj["title"] = JsonString { .value = r.title }
+    obj["kind"]  = JsonString { .value = r.kind }
+    obj["edit"]  = JsonObject { .entries = workspace_edit }
+    return JsonObject { .entries = obj }
+}
+
+// Read `params.range.start.<key>` (0-based LSP coordinate), or 0 when absent.
+range_start_field :: fn(params: JsonValue, key: string) -> i32 {
+    rng :: get_field(params, "range")
+    start :: get_field(rng, "start")
+    return get_number(start, key)
+}

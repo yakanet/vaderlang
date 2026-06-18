@@ -28,7 +28,11 @@ interface Position {
 }
 
 interface Query {
-  method: "textDocument/definition" | "textDocument/hover" | "textDocument/completion";
+  method:
+    | "textDocument/definition"
+    | "textDocument/hover"
+    | "textDocument/completion"
+    | "textDocument/codeAction";
   position: Position;
 }
 
@@ -97,7 +101,15 @@ async function driveLsp(source: string, queries: Query[]): Promise<QueryResult[]
       jsonrpc: "2.0",
       id: 100 + i,
       method: q.method,
-      params: { textDocument: { uri }, position: q.position },
+      // `position` serves hover/def/completion ; `range` + `context` serve
+      // codeAction. Sending all of them is harmless — each handler reads what
+      // it needs.
+      params: {
+        textDocument: { uri },
+        position: q.position,
+        range: { start: q.position, end: q.position },
+        context: { diagnostics: [] },
+      },
     });
   }
   requests.push({ jsonrpc: "2.0", id: 999, method: "shutdown", params: null });
@@ -303,6 +315,37 @@ test("lsp: completion after `.` lists struct fields + impl methods", async () =>
   // Field `x` carries CompletionItemKind.Field (5) ; method `greet` Method (2).
   expect(list.items.find((i) => i.label === "x")?.kind).toBe(5);
   expect(list.items.find((i) => i.label === "greet")?.kind).toBe(2);
+}, { timeout: MEDIUM_BUILD });
+
+interface TextEditT { newText: string }
+interface WorkspaceEditT { changes: Record<string, TextEditT[]> }
+interface CodeActionT { title: string; kind: string; edit: WorkspaceEditT }
+
+const CODE_ACTION_SOURCE = `classify :: fn(x: i32) -> i32 {
+    return match x {
+        0 -> 1
+        _ -> 2
+    }
+}
+`;
+
+test("lsp: code action converts a 2-arm match to if/else", async () => {
+  if (!ENABLED) return;
+
+  // Cursor on the `match` keyword (line 1 = `    return match x {`, char 11).
+  const results = await driveLsp(CODE_ACTION_SOURCE, [
+    { method: "textDocument/codeAction", position: { line: 1, character: 11 } },
+  ]);
+  const actions = results[0]!.result as CodeActionT[];
+  expect(Array.isArray(actions)).toBe(true);
+
+  const conv = actions.find((a) => a.title === "Convert match to if");
+  expect(conv).toBeDefined();
+  expect(conv!.kind).toBe("refactor.rewrite");
+
+  const fileEdits = conv!.edit.changes[Object.keys(conv!.edit.changes)[0]!]!;
+  expect(fileEdits[0]!.newText).toContain("if x == 0");
+  expect(fileEdits[0]!.newText).toContain("else");
 }, { timeout: MEDIUM_BUILD });
 
 test("lsp: empty document doesn't crash, returns null on lookups", async () => {
