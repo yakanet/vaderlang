@@ -1,23 +1,24 @@
 // vader/lsp/actions/match_to_if — the `match` → `if` rewrite action.
 //
-// Converts a two-arm `match` whose first arm is a boolean-reducible predicate
-// and whose second arm is the catch-all `_` into an `if / else`. This is the
-// cursor-driven form of the CLAUDE.md §6 "if for ≤ 2 cases" convention.
+// Converts a two-arm `match` whose first arm reduces to an `if` condition into
+// an `if / else`. The cursor-driven form of the CLAUDE.md §6 "if for ≤ 2 cases"
+// convention.
 //
-//   match x {              if x is Foo as f {
-//       is Foo as f -> A       A
-//       _           -> B   } else {
-//   }                          B
-//                          }
+//   match cell {            if cell is null {
+//       is null  -> A           A
+//       is Node  -> B   →   } else {
+//   }                           B
+//                           }
 //
-// Lossy policy = REFUSE : the action only fires when the rewrite is exact —
-// exactly two arms, no guards, the second arm a wildcard, and the first arm an
-// `is T [as y]` (no nested sub-pattern) or a literal (`scrutinee == value`).
-// Struct / tuple / binding / enum-variant patterns and guards decline.
+// Lossy policy = REFUSE : exactly two arms, no guards, the first arm an
+// `is T [as y]` (no nested sub-pattern) or a literal (→ the condition), and the
+// second arm droppable to the `else` — a `_`, a literal, or an `is T` with NO
+// `as` binding. The second arm's predicate is implied by the match's
+// exhaustiveness, so it may bind nothing its body uses ; a binding-introducing
+// second arm declines.
 
 module "vader/lsp/actions"
 
-import "std/string" { split }
 import "vader/fmt" { format_expr }
 AST :: import "vader/parser"
 
@@ -43,18 +44,31 @@ mti_apply :: fn(node: AST.Expr, ctx: ActionCtx) -> string {
     return ""
 }
 
-// Exactly two arms, no guards, second arm `_`, first arm an `is T [as y]`
-// (no nested pattern) or a literal. Everything else declines (lossy = refuse).
+// Exactly two arms, no guards, arm 0 reducible to an `if` condition, arm 1
+// droppable to the `else`. Everything else declines (lossy = refuse).
 is_convertible :: fn(m: AST.MatchExpr) -> bool {
     if m.arms.len() != 2 { return false }
     a0 :: m.arms[0]
     a1 :: m.arms[1]
     if a0.guard != null { return false }
     if a1.guard != null { return false }
-    if !(a1.pattern is AST.WildcardPattern) { return false }
-    p0 :: a0.pattern
-    if p0 is AST.IsPattern as ip { return ip.inner == null }
-    if p0 is AST.LiteralPattern { return true }
+    return cond_pattern_ok(a0.pattern) && else_pattern_ok(a1.pattern)
+}
+
+// A pattern that becomes the `if` condition : `is T [as y]` (no nested pattern)
+// or a literal.
+cond_pattern_ok :: fn(p: AST.Pattern) -> bool {
+    if p is AST.IsPattern as ip { return ip.inner == null }
+    if p is AST.LiteralPattern { return true }
+    return false
+}
+
+// A pattern that can be dropped to the `else` branch — it binds nothing the arm
+// body could reference : `_`, a literal, or `is T` with no `as` binding.
+else_pattern_ok :: fn(p: AST.Pattern) -> bool {
+    if p is AST.WildcardPattern { return true }
+    if p is AST.LiteralPattern { return true }
+    if p is AST.IsPattern as ip { return ip.inner == null && ip.bind_as == null }
     return false
 }
 
@@ -96,30 +110,6 @@ arm_block :: fn(body: AST.Expr) -> AST.BlockExpr {
     if body is AST.BlockExpr as b { return b }
     no_stmts: AST.Stmt[] = []
     return AST.BlockExpr { .span = body.span, .stmts = no_stmts, .trailing = body }
-}
-
-// `format_expr` renders from column 0 ; re-indent every line after the first by
-// the match's start column so the replacement sits correctly at its position.
-reindent :: fn(text: string, indent: i32) -> string {
-    if indent <= 0 { return text }
-    pad := ""
-    k := 0
-    for k < indent {
-        pad = pad + " "
-        k = k + 1
-    }
-    out := ""
-    i := 0
-    for line in text.split("\n") {
-        if i == 0 {
-            out = line
-        } else {
-            out = out + "\n"
-            if line != "" { out = out + pad + line }
-        }
-        i = i + 1
-    }
-    return out
 }
 
 // ---- tests ----------------------------------------------------------------
@@ -218,8 +208,10 @@ test_match_to_if_declines_three_arms :: fn() -> void {
 }
 
 @test
-test_match_to_if_declines_without_wildcard :: fn() -> void {
-    src :: "k :: fn(x: i32) -> i32 {\n    return match x {\n        0 -> 1\n        1 -> 2\n    }\n}\n"
+test_match_to_if_two_is_arms :: fn() -> void {
+    // The null-narrowing shape: both arms `is`, no wildcard. The second arm has
+    // no binding, so it drops to the `else`.
+    src :: "classify :: fn(cell: i32 | null) -> i32 {\n    match cell {\n        is null -> println(\"none\")\n        is i32 -> println(\"got value\")\n    }\n    return 0\n}\n"
     parsed :: AST.parse_source(src, "t.vader")
     m :: tm_find_match(parsed.program.decls)
     if m == null {
@@ -227,5 +219,22 @@ test_match_to_if_declines_without_wildcard :: fn() -> void {
         return
     }
     ctx :: ActionCtx { .source = src }
-    assert(!mti_applicable(m, ctx), "no wildcard second arm -> decline")
+    assert(mti_applicable(m, ctx), "two is-arms (no wildcard) convert")
+    out :: mti_apply(m, ctx)
+    assert("cell is null" in out, "renders the is-null condition")
+    assert("else" in out, "second arm becomes the else")
+}
+
+@test
+test_match_to_if_declines_binding_second_arm :: fn() -> void {
+    // The second arm binds `s` — it can't drop to a bindingless else.
+    src :: "k :: fn(v: i32 | string) -> i32 {\n    return match v {\n        is i32 -> 0\n        is string as s -> s.byte_len()\n    }\n}\n"
+    parsed :: AST.parse_source(src, "t.vader")
+    m :: tm_find_match(parsed.program.decls)
+    if m == null {
+        assert(false, "expected a match")
+        return
+    }
+    ctx :: ActionCtx { .source = src }
+    assert(!mti_applicable(m, ctx), "binding-introducing second arm -> decline")
 }

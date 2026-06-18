@@ -16,6 +16,8 @@
 
 module "vader/lsp/actions"
 
+import "std/string" { split }
+import "vader/diagnostics" { Span }
 AST :: import "vader/parser"
 
 /// What an action needs to produce its edit. Carries the document source so
@@ -36,12 +38,13 @@ export CodeAction :: struct {
     apply:         fn(AST.Expr, ActionCtx) -> string
 }
 
-/// A produced edit : the action's kind + title + the replacement text for the
-/// target node's span.
+/// A produced edit : the action's kind + title, the span of the node it targets
+/// (the edit range), and the replacement text for that span.
 export ActionResult :: struct {
-    kind:     string
-    title:    string
-    new_text: string
+    kind:        string
+    title:       string
+    target_span: Span
+    new_text:    string
 }
 
 /// Every registered code action. Central registration — add new actions here.
@@ -49,23 +52,57 @@ export ActionResult :: struct {
 /// `match_to_if_action` in `match_to_if.vader`).
 ALL_ACTIONS :: [
     match_to_if_action,
+    if_to_match_action,
 ]
 
-/// Run every applicable action against `node`, returning one result per action
-/// that both applies and produces a non-empty edit.
+/// Run every action against the enclosing-expression chain `nodes` (innermost
+/// first). Each action fires on the innermost node it applies to, producing one
+/// result whose `target_span` is that node's span. Actions that apply to no node
+/// (or decline with an empty edit) contribute nothing.
 ///
-/// @param node  the AST node under the cursor (e.g. the enclosing match).
-/// @param ctx   the action context (document source).
-/// @return      the applicable actions' results, in registration order.
-export run_actions :: fn(node: AST.Expr, ctx: ActionCtx) -> ActionResult[] {
+/// @param nodes  the containing expressions under the cursor, innermost first
+///               (`analysis/ast_walk::enclosing_exprs`).
+/// @param ctx    the action context (document source).
+/// @return       the applicable actions' results, in registration order.
+export run_actions :: fn(nodes: AST.Expr[], ctx: ActionCtx) -> ActionResult[] {
     out: ActionResult[] = []
     for a in ALL_ACTIONS {
-        if a.is_applicable(node, ctx) {
-            text :: a.apply(node, ctx)
-            if text != "" {
-                out.push(ActionResult { .kind = a.kind, .title = a.title, .new_text = text })
+        for node in nodes {
+            if a.is_applicable(node, ctx) {
+                text :: a.apply(node, ctx)
+                if text != "" {
+                    out.push(ActionResult {
+                        .kind = a.kind, .title = a.title, .target_span = node.span, .new_text = text,
+                    })
+                }
+                break
             }
         }
+    }
+    return out
+}
+
+/// `format_expr` renders from column 0 ; re-indent every line after the first by
+/// `indent` spaces so a rewritten node sits correctly at its source column.
+/// Shared by the rewrite actions.
+export reindent :: fn(text: string, indent: i32) -> string {
+    if indent <= 0 { return text }
+    pad := ""
+    k := 0
+    for k < indent {
+        pad = pad + " "
+        k = k + 1
+    }
+    out := ""
+    i := 0
+    for line in text.split("\n") {
+        if i == 0 {
+            out = line
+        } else {
+            out = out + "\n"
+            if line != "" { out = out + pad + line }
+        }
+        i = i + 1
     }
     return out
 }

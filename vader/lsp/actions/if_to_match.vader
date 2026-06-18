@@ -1,0 +1,236 @@
+// vader/lsp/actions/if_to_match — the `if` → `match` rewrite action.
+//
+// The inverse of match→if : an `if / else if / … / else` chain whose every
+// condition discriminates the SAME identifier scrutinee collapses to a `match`.
+// Requires ≥ 2 conditions (so ≥ 3 arms — the inverse threshold of match→if's
+// ≤ 2, which keeps the two actions from offering a round-trip on the same node)
+// and a final `else` (the `_` arm) so the match is exhaustive.
+//
+//   if x is A as a {        match x {
+//       …a…                     is A as a -> { …a… }
+//   } else if x == 0 {   →      0         -> { …0… }
+//       …0…                     _         -> { …e… }
+//   } else { …e… }          }
+//
+// Lossy = refuse : a non-`is`/`==` condition, a different scrutinee in any
+// branch, or a missing final `else` all decline.
+
+module "vader/lsp/actions"
+
+import "vader/fmt" { format_expr }
+AST :: import "vader/parser"
+
+/// The if→match code action. Registered in `registry.vader::ALL_ACTIONS`.
+if_to_match_action :: CodeAction {
+    .kind          = "refactor.rewrite",
+    .title         = "Convert if to match",
+    .is_applicable = itm_applicable,
+    .apply         = itm_apply,
+}
+
+itm_applicable :: fn(node: AST.Expr, _ctx: ActionCtx) -> bool {
+    if node is AST.IfExpr as ifx { return is_match_convertible(ifx) }
+    return false
+}
+
+itm_apply :: fn(node: AST.Expr, ctx: ActionCtx) -> string {
+    if node is AST.IfExpr as ifx {
+        ch :: analyze_if(ifx)
+        if ch == null { return "" }
+        if !chain_ok(ch) { return "" }
+        rendered :: format_expr(ctx.source, build_match(ifx, ch))
+        return reindent(rendered, ifx.span.start.column - i32(1))
+    }
+    return ""
+}
+
+// The collected if/else-if chain : parallel condition / block arrays plus the
+// final else block.
+IfChain :: struct {
+    conds:      AST.BinaryExpr[]
+    blocks:     AST.BlockExpr[]
+    else_block: AST.BlockExpr
+}
+
+is_match_convertible :: fn(ifx: AST.IfExpr) -> bool {
+    ch :: analyze_if(ifx)
+    if ch == null { return false }
+    return chain_ok(ch)
+}
+
+// ≥ 2 conditions all discriminating the same identifier scrutinee on the left.
+chain_ok :: fn(ch: IfChain) -> bool {
+    if ch.conds.len() < 2 { return false }
+    name :: scrutinee_name(ch.conds[0])
+    if name == "" { return false }
+    for c in ch.conds {
+        if scrutinee_name(c) != name { return false }
+    }
+    return true
+}
+
+// Left-hand identifier name of a discriminating condition, or "" when the
+// condition's left operand isn't a plain identifier.
+scrutinee_name :: fn(c: AST.BinaryExpr) -> string {
+    if c.left is AST.IdentExpr as id { return id.name }
+    return ""
+}
+
+// Descend the else-if chain : collect each `is` / `==` condition + its block,
+// and the final else block. Returns null when a condition isn't an Is/Eq binary
+// or there's no final else (can't form an exhaustive match).
+analyze_if :: fn(ifx: AST.IfExpr) -> IfChain | null {
+    conds:  AST.BinaryExpr[] = []
+    blocks: AST.BlockExpr[] = []
+    cur := ifx
+    for {
+        c :: cur.cond
+        if c is AST.BinaryExpr as b {
+            if b.op == .Is || b.op == .Eq {
+                conds.push(b)
+                blocks.push(cur.then_block)
+            } else {
+                return null
+            }
+        } else {
+            return null
+        }
+        eb :: cur.else_branch
+        if eb == null { return null }
+        if eb is AST.IfElseBlock as ebl {
+            return IfChain { .conds = conds, .blocks = blocks, .else_block = ebl.block }
+        }
+        if eb is AST.IfElseIf as eif {
+            cur = eif.branch
+        } else {
+            return null
+        }
+    }
+    return null
+}
+
+// Synthesise the match from the chain : one arm per condition (reusing each
+// block as the arm body), plus a wildcard arm for the final else.
+build_match :: fn(ifx: AST.IfExpr, ch: IfChain) -> AST.MatchExpr {
+    arms: AST.MatchArm[] = []
+    i := 0
+    for c in ch.conds {
+        arms.push(AST.MatchArm {
+            .span = c.span, .pattern = cond_to_pattern(c), .guard = null, .body = ch.blocks[i],
+        })
+        i = i + 1
+    }
+    arms.push(AST.MatchArm {
+        .span    = ch.else_block.span,
+        .pattern = AST.WildcardPattern { .span = ch.else_block.span },
+        .guard   = null,
+        .body    = ch.else_block,
+    })
+    return AST.MatchExpr {
+        .span = ifx.span, .scrutinee = ch.conds[0].left, .arms = arms,
+        .partial = false, .unreachable = false,
+    }
+}
+
+// `x is T as y` → `is T as y` ; `x == v` → the literal pattern `v`.
+cond_to_pattern :: fn(c: AST.BinaryExpr) -> AST.Pattern {
+    if c.op == .Is {
+        bound :: if c.bind_as == "" { null } else { c.bind_as }
+        return AST.IsPattern { .span = c.span, .ty = c.right, .inner = null, .bind_as = bound }
+    }
+    return AST.LiteralPattern { .span = c.span, .value = c.right }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert }
+
+// Recursively find the first `IfExpr` in a parsed program — test helper so the
+// asserts run against real (source-backed) AST nodes.
+tif_find_if :: fn(decls: AST.Decl[]) -> AST.IfExpr | null {
+    for d in decls {
+        if d is AST.FnDecl as fd {
+            match fd.body {
+                is null -> {}
+                is AST.BlockExpr as b -> {
+                    found :: tif_in_block(b)
+                    if found != null { return found }
+                }
+            }
+        }
+    }
+    return null
+}
+
+tif_in_block :: fn(b: AST.BlockExpr) -> AST.IfExpr | null {
+    for s in b.stmts {
+        found :: tif_in_stmt(s)
+        if found != null { return found }
+    }
+    match b.trailing {
+        is null -> { return null }
+        _ -> { return tif_in_expr(b.trailing) }
+    }
+}
+
+tif_in_stmt :: fn(s: AST.Stmt) -> AST.IfExpr | null {
+    match s {
+        is AST.LetStmt    as ls -> { return tif_in_expr(ls.value) }
+        is AST.ExprStmt   as es -> { return tif_in_expr(es.expr) }
+        is AST.ReturnStmt as rs -> {
+            match rs.value {
+                is null -> { return null }
+                _ -> { return tif_in_expr(rs.value) }
+            }
+        }
+        _ -> { return null }
+    }
+}
+
+tif_in_expr :: fn(e: AST.Expr) -> AST.IfExpr | null {
+    if e is AST.IfExpr as ifx { return ifx }
+    return null
+}
+
+@test
+test_if_to_match_converts :: fn() -> void {
+    src :: "f :: fn(v: i32 | string) -> i32 {\n    return if v is i32 as n {\n        n\n    } else if v == \"\" {\n        1\n    } else {\n        2\n    }\n}\n"
+    parsed :: AST.parse_source(src, "t.vader")
+    ifx :: tif_find_if(parsed.program.decls)
+    if ifx == null {
+        assert(false, "expected an if")
+        return
+    }
+    ctx :: ActionCtx { .source = src }
+    assert(itm_applicable(ifx, ctx), "2-condition chain with else converts")
+    out :: itm_apply(ifx, ctx)
+    assert("match v" in out, "renders a match on the scrutinee")
+    assert("is i32 as n" in out, "renders the is-binding arm")
+    assert("_ ->" in out, "renders the wildcard arm from the else")
+}
+
+@test
+test_if_to_match_declines_two_branches :: fn() -> void {
+    src :: "g :: fn(v: i32 | string) -> i32 {\n    return if v is i32 as n {\n        n\n    } else {\n        0\n    }\n}\n"
+    parsed :: AST.parse_source(src, "t.vader")
+    ifx :: tif_find_if(parsed.program.decls)
+    if ifx == null {
+        assert(false, "expected an if")
+        return
+    }
+    ctx :: ActionCtx { .source = src }
+    assert(!itm_applicable(ifx, ctx), "single condition stays in match→if territory")
+}
+
+@test
+test_if_to_match_declines_no_else :: fn() -> void {
+    src :: "h :: fn(v: i32 | string) -> i32 {\n    if v is i32 as n {\n        return n\n    } else if v == \"\" {\n        return 1\n    }\n    return 0\n}\n"
+    parsed :: AST.parse_source(src, "t.vader")
+    ifx :: tif_find_if(parsed.program.decls)
+    if ifx == null {
+        assert(false, "expected an if")
+        return
+    }
+    ctx :: ActionCtx { .source = src }
+    assert(!itm_applicable(ifx, ctx), "no final else -> not exhaustive -> decline")
+}
