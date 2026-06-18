@@ -98,7 +98,7 @@ export typed_project_for :: fn(self: ServerState, file_path: string) -> ProjectC
     if cached != null {
         if cached.entry_path == file_path { return cached }
     }
-    fc :: check_file(file_path, doc_overlay(self))
+    fc :: check_file(file_path, doc_overlay(self), [])
     entry :: ProjectCache {
         .entry_path = file_path, .project = fc.project, .result = fc.result, .diags = fc.diags,
     }
