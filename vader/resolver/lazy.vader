@@ -103,6 +103,29 @@ export resolve_lazy :: fn(
     return null
 }
 
+/// When `name` failed to resolve, report whether some include-path holds a
+/// folder at `name`'s canonical location that declares a DIFFERENT module — i.e.
+/// the module is misplaced. Returns that wrong declared name (for a clearer
+/// "module not found" diagnostic), else null. The folder was already scanned
+/// (any R2020 / R2022 emitted) during resolution, so this re-scan discards diags.
+///
+/// @param name   the unresolved module path.
+/// @param paths  the include-paths that were searched.
+/// @return       the wrong `module` name declared at `name`'s location, or null.
+export misplaced_module_at :: fn(name: string, paths: IncludePath[]) -> string | null {
+    discard: Diagnostic[] = []
+    for pi in 0..<paths.len() {
+        cand_opt :: rooted_candidate(paths[pi], name)
+        if cand_opt == null { continue }
+        cand :: cand_opt
+        if !is_dir(cand) { continue }
+        bucket :: scan_folder(cand, discard)
+        if bucket == null { continue }
+        if bucket.name != "" && bucket.name != name { return bucket.name }
+    }
+    return null
+}
+
 /// Seed the entry module directly from its own folder — it is the BFS root, not
 /// reached through an import, so path-mapping doesn't apply.
 ///
