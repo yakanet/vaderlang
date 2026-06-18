@@ -1,0 +1,189 @@
+// vader/resolver/lazy — import-driven (lazy) module resolution.
+//
+// The Go `go/packages` model : instead of eagerly walking every scoped root
+// (which, for a project-less entry whose folder is the filesystem root, walks
+// the whole disk — the `discover_modules` 100 % CPU hang the LSP hit on a
+// virtual `/`-rooted URI), resolve each module ON DEMAND by deterministic
+// path-mapping. A module named `a/b/c` lives at `<base>/a/b/c` for exactly one
+// base in `bases` (CLAUDE.md §7 : the module path mirrors the physical path),
+// so `import "a/b/c"` is a direct stat, never a walk.
+//
+// Load ORDER — and thus symbol-id assignment — is UNCHANGED : it is driven by
+// the BFS over imports in `loader::drain_load_queue`, not by discovery. Lazy
+// resolution returns the same `DiscoveredModule` the eager scan would have
+// indexed for a well-formed project, so the self-compile stays byte-identical.
+//
+// Sibling of `discover.vader` (the eager scanner, still used by nothing on the
+// load path once this lands ; kept for reference / direct callers).
+
+module "vader/resolver"
+
+import "std/collections" { MutableMap }
+import "std/io" { is_dir, read_dir, read_file }
+import "std/sort" { sort }
+import "std/string" { compare_ascending, ends_with, starts_with, trim_prefix }
+import "vader/diagnostics" { Diagnostic, resolver_error, empty_span }
+import "vader/parser" { ModuleHeader, parse_module_header }
+AST :: import "vader/parser"
+
+/// One module search root (GCC `-I` style). A module name maps to a folder under
+/// `dir`. `prefix` names the namespace `dir` roots : the entry declares
+/// `module "main"` in a folder physically named `namespace_const/`, so
+/// `{dir = namespace_const, prefix = "main"}` resolves `main/config` →
+/// `namespace_const/config` and `main` → `namespace_const`. The stdlib / project
+/// roots reflect the namespace in their own layout, so they use `prefix = ""`
+/// (`module "std/io"` → `<dir>/std/io`).
+export IncludePath :: struct {
+    dir:    string
+    prefix: string
+}
+
+/// The ordered include-paths for lazy resolution. The entry roots its declared
+/// namespace at its own folder (so `import "main/config"` → `<entry>/config`),
+/// then the stdlib root (`std/*`), then the project root (`vader/*`) when present.
+/// Searched in order, first match wins. P4b folds in `--include-paths` +
+/// `vader.json includePaths` + binary defaults.
+///
+/// @param entry_module  the entry's declared module name — the namespace it roots.
+/// @param entry_folder  the folder the entry file lives in (the namespace root).
+/// @param stdlib_root   `module "std/X"` lives at `<stdlib_root>/std/X`.
+/// @param project_root  the manifest root (or null) — `module "vader/X"` at
+///                      `<project_root>/vader/X`.
+export include_paths :: fn(
+    entry_module: string, entry_folder: string,
+    stdlib_root: string, project_root: string | null,
+) -> IncludePath[] {
+    paths: IncludePath[] = [
+        IncludePath { .dir = entry_folder, .prefix = entry_module },
+        IncludePath { .dir = stdlib_root, .prefix = "" },
+    ]
+    if project_root is string as pr {
+        paths.push(IncludePath { .dir = pr, .prefix = "" })
+    }
+    return paths
+}
+
+// The folder `name` maps to under `ip`, or null when `name` isn't in this root's
+// namespace. Plain root (`prefix == ""`) : `<dir>/name`. Rooted : `name == prefix`
+// → `dir` ; `name` under `prefix/` → `<dir>/<name minus prefix/>`.
+rooted_candidate :: fn(ip: IncludePath, name: string) -> string | null {
+    if ip.prefix == "" { return join_path(ip.dir, name) }
+    if name == ip.prefix { return ip.dir }
+    if name.starts_with(ip.prefix + "/") {
+        return join_path(ip.dir, name.trim_prefix(ip.prefix + "/"))
+    }
+    return null
+}
+
+/// Resolve `name` to its module by searching `paths` in order (first match wins,
+/// GCC `-I` style), memoising in `index`. Emits R2020 / R2022 for the resolved
+/// folder (mirrors `discover_modules`), only for modules actually reached.
+///
+/// @param name   the module path (== the `import "..."` path == its `module` decl).
+/// @param paths  the ordered include-paths (`include_paths`).
+/// @param index  the lazy cache, keyed by module name.
+/// @return       the resolved module, or null when no include-path hosts it (the
+///               caller — `diagnose_import_path` — turns that into R2001).
+export resolve_lazy :: fn(
+    name: string, paths: IncludePath[],
+    index: MutableMap<string, DiscoveredModule>, diags: Diagnostic[],
+) -> DiscoveredModule | null {
+    cached :: index[name]
+    if cached is DiscoveredModule as dm { return dm }
+    for pi in 0..<paths.len() {
+        cand_opt :: rooted_candidate(paths[pi], name)
+        if cand_opt == null { continue }
+        cand :: cand_opt
+        if !is_dir(cand) { continue }
+        bucket :: scan_folder(cand, diags)
+        if bucket == null { continue }
+        if bucket.name != name { continue }   // folder exists but declares another module
+        resolved :: DiscoveredModule { .name = name, .folder = cand, .files = bucket.files }
+        index[name] = resolved
+        return resolved
+    }
+    return null
+}
+
+/// Seed the entry module directly from its own folder — it is the BFS root, not
+/// reached through an import, so path-mapping doesn't apply.
+///
+/// @param entry_folder  the folder containing the entry file.
+/// @param index         the lazy cache (the entry is registered by its name).
+/// @return              the seeded module, or null for a folder with no module
+///                      decl (→ the caller emits R2001, matching the eager
+///                      `find_by_folder` miss).
+export seed_entry :: fn(
+    entry_folder: string, index: MutableMap<string, DiscoveredModule>, diags: Diagnostic[],
+) -> DiscoveredModule | null {
+    bucket :: scan_folder(entry_folder, diags)
+    if bucket == null { return null }
+    if bucket.name == "" { return null }
+    seeded :: DiscoveredModule { .name = bucket.name, .folder = entry_folder, .files = bucket.files }
+    index[bucket.name] = seeded
+    return seeded
+}
+
+/// Pre-resolve every import declared in `sources` into `index`, so the later
+/// `collect_files → diagnose_import_path` lookup finds the target instead of
+/// firing a spurious R2001 — the failure mode that reverted the earlier lazy
+/// attempt (see the note in `loader.vader`). A no-op for already-cached imports.
+///
+/// @param sources  the entry/module's parsed files.
+/// @param bases    path-mapping bases.
+/// @param index    the lazy cache to populate.
+export preresolve_imports :: fn(
+    sources: SourceFile[], paths: IncludePath[],
+    index: MutableMap<string, DiscoveredModule>, diags: Diagnostic[],
+) -> void {
+    for sf in sources {
+        for d in sf.program.decls {
+            if d is AST.ImportDecl as im {
+                _ :: resolve_lazy(im.path, paths, index, diags)
+            }
+        }
+    }
+}
+
+// Scan a single folder NON-recursively : its sorted `.vader` files, header-parsed
+// and bucketed by declared module name (R2020 missing decl / R2022 mixed names).
+// Returns null when the folder has no `.vader`. The non-recursive sibling of
+// `discover.vader::walk_dir` (which recurses) — lazy never descends.
+scan_folder :: fn(dir: string, diags: Diagnostic[]) -> FolderBucket | null {
+    entries_opt :: read_dir(dir)
+    empty_strs: string[] = []
+    raw: string[] = match entries_opt { is string[] as ss -> ss, is Error -> empty_strs }
+    if raw.len() == 0 { return null }
+    sorted :: sort(raw, (a: string, b: string) -> compare_ascending(a, b))
+    files_here: string[] = []
+    for name in sorted {
+        full :: join_path(dir, name)
+        if ends_with(name, ".vader") && !is_dir(full) { files_here.push(full) }
+    }
+    if files_here.len() == 0 { return null }
+    bucket :: FolderBucket { .name = "", .first_decl_span = empty_span(), .files = [] }
+    for path in files_here {
+        content_opt :: read_file(path)
+        content :: match content_opt { is string as s -> s, is Error -> "" }
+        if content == "" { continue }
+        bucket.files.push(path)
+        header :: parse_module_header(content, path)
+        match header {
+            is null -> {
+                diags.push(resolver_error(.ModuleDeclMissing, empty_span(), "`${path}`"))
+            }
+            is ModuleHeader as h -> {
+                if bucket.name == "" {
+                    bucket.name = h.name
+                    bucket.first_decl_span = h.name_span
+                } else {
+                    if h.name != bucket.name {
+                        diags.push(resolver_error(.MixedModuleNamesInFolder, h.name_span,
+                            "`${h.name}` declared here, but `${bucket.name}` was declared earlier in this folder"))
+                    }
+                }
+            }
+        }
+    }
+    return bucket
+}
