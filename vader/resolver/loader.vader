@@ -79,8 +79,8 @@ export LoadedModule :: struct {
 /// Build the module graph rooted at `entry_path`. Returns the loaded
 /// project ; callers feed it to `resolve_project` / `check_project`.
 /// Reads every module from disk.
-export load_project :: fn(entry_path: string) -> LoadedProject {
-    return load_project_with_overlay(entry_path, MutableMap<string, string> {})
+export load_project :: fn(entry_path: string, include_path_flags: string[]) -> LoadedProject {
+    return load_project_with_overlay(entry_path, MutableMap<string, string> {}, include_path_flags)
 }
 
 /// Like `load_project`, but consults an in-memory `overlay` (filesystem path
@@ -100,7 +100,7 @@ export load_project :: fn(entry_path: string) -> LoadedProject {
 /// @param entry_path  the entry file's path.
 /// @param overlay     filesystem path → current source text ; consulted
 ///                    before the disk in `parse_module_files`.
-export load_project_with_overlay :: fn(entry_path: string, overlay: MutableMap<string, string>) -> LoadedProject {
+export load_project_with_overlay :: fn(entry_path: string, overlay: MutableMap<string, string>, include_path_flags: string[]) -> LoadedProject {
     factory :: new_factory()
     // ONE node-id factory for the whole project so AST node ids are globally
     // unique across modules (see `parse_module_files`). Threaded into every
@@ -121,7 +121,7 @@ export load_project_with_overlay :: fn(entry_path: string, overlay: MutableMap<s
         is null          -> Manifest { .include_paths = [] }
     }
     entry_folder :: entry_folder_of(entry)
-    plain_roots :: project_include_paths(project_root, manifest)
+    plain_roots :: project_include_paths(project_root, manifest, include_path_flags)
 
     // Lazy import-driven resolution (see `lazy.vader`). No eager scan : `index`
     // is a cache filled on demand by `resolve_lazy`, which path-maps each module
@@ -303,9 +303,13 @@ parse_module_files :: fn(paths: string[], diags: Diagnostic[], overlay: MutableM
 // by their folder-relative name), then each `vader.json includePaths` entry
 // joined onto it (e.g. `"stdlib"` → `<root>/stdlib`, hosting `std/*`), then the
 // binary-adjacent stdlib default (so a deployed binary finds its bundled stdlib
-// when the entry has no manifest). P4b prepends any `--include-paths` flag.
-project_include_paths :: fn(project_root: string | null, manifest: Manifest) -> string[] {
+// when the entry has no manifest). The `--include-paths` flag entries come first
+// (highest precedence).
+project_include_paths :: fn(
+    project_root: string | null, manifest: Manifest, flag_paths: string[],
+) -> string[] {
     roots: string[] = []
+    for p in flag_paths { roots.push(p) }
     match project_root {
         is string as pr -> {
             roots.push(pr)

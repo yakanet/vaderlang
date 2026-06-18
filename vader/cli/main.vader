@@ -78,6 +78,7 @@ COMMANDS:
                                      --out=<path>       Override the default output path (- streams C to stdout)
                                      --cc=<path>        Native only: C compiler to invoke (default: cc)
                                      --ldflags="..."    Native only: raw linker flags appended to the cc invocation
+                                     --include-paths=a,b  Extra module search roots (GCC -I style), highest precedence
   fmt [path] [options]             Format Vader sources (single file or recursive directory walk)
                                      --check          Read-only ; exit 1 if any file would change
                                      --stdout         Write formatted output to stdout (single file)
@@ -172,6 +173,14 @@ first_file_arg :: fn(positionals: string[]) -> string {
         }
     }
     return ""
+}
+
+// Split a comma-separated `--include-paths=a,b,c` flag value into a list (empty
+// for an absent/empty flag). These prepend the module search order (GCC `-I`).
+parse_include_path_flag :: fn(raw: string) -> string[] {
+    out: string[] = []
+    if raw == "" { return out }
+    return raw.split(",")
 }
 
 main :: fn(argv: string[]) -> i32 {
@@ -543,6 +552,7 @@ cmd_build :: fn(args: string[]) -> i32 {
         FlagSpec { .name = "release",  .kind = .Bool },
         FlagSpec { .name = "cc",       .kind = .Str  },
         FlagSpec { .name = "ldflags",  .kind = .Str  },
+        FlagSpec { .name = "include-paths", .kind = .Str },
     ]
     parsed :: parse_known(args, specs)
     if parsed.errors.len() > 0 {
@@ -556,6 +566,7 @@ cmd_build :: fn(args: string[]) -> i32 {
     release      :: parsed.bool_flag("release")
     cc           :: parsed.string_flag("cc", "cc")
     ldflags      :: parsed.string_flag("ldflags", "")
+    include_path_flags :: parse_include_path_flag(parsed.string_flag("include-paths", ""))
 
     if target != "native" && target != "wasm" && target != "ir" && target != "c" {
         eprintln("vader build: unknown target \"${target}\"")
@@ -575,8 +586,8 @@ cmd_build :: fn(args: string[]) -> i32 {
         return 2
     }
 
-    if target == "c"      { return build_c(file, out_flag, release) }
-    if target == "native" { return build_native(file, out_flag, release, cc, ldflags) }
+    if target == "c"      { return build_c(file, out_flag, release, include_path_flags) }
+    if target == "native" { return build_native(file, out_flag, release, cc, ldflags, include_path_flags) }
 
     // TODO: --target=ir / --target=ir-text — write the binary (.vir) / text
     // (.virt) bytecode module. The bytecode already exists post
@@ -593,8 +604,8 @@ cmd_build :: fn(args: string[]) -> i32 {
 // pipeline `dump --stage=c` uses) and return the generated C. Pipeline
 // diagnostics go to stderr ; returns null when an error-severity diagnostic
 // blocks the build, so the caller emits nothing and exits non-zero.
-emit_c_source :: fn(file: string, release: bool) -> string | null {
-    b :: prepare_cfg_bytecode(file)
+emit_c_source :: fn(file: string, release: bool, include_path_flags: string[]) -> string | null {
+    b :: prepare_cfg_bytecode_with(file, include_path_flags)
     if !flush_build_diags(b.pre_diags, b.lower_diags) { return null }
     // Designate the program entry by mangled name (same source as the bytecode
     // stage's `export main N`) so the `main()` shim resolves the entry module's
@@ -617,8 +628,8 @@ flush_build_diags :: fn(pre: Diagnostic[], lower: Diagnostic[]) -> bool {
 
 // `--target=c` : write the generated C to `--out` (default `<file>.c`).
 // `--out=-` streams it to stdout — the bootstrap seed pipes that into gzip.
-build_c :: fn(file: string, out_flag: string, release: bool) -> i32 {
-    c_src :: emit_c_for_input(file, release)
+build_c :: fn(file: string, out_flag: string, release: bool, include_path_flags: string[]) -> i32 {
+    c_src :: emit_c_for_input(file, release, include_path_flags)
     if c_src is null { return 1 }
     if out_flag == "-" {
         print(c_src)
@@ -631,9 +642,9 @@ build_c :: fn(file: string, out_flag: string, release: bool) -> i32 {
 // Emit C from either a `.vader` source (full front end) or a `.virt` text
 // bytecode dump (`parse_virt_bc` → `emit_c`). A `.virt` input skips the
 // lexer/parser/typer/lower/emit pipeline — the bytecode already exists.
-emit_c_for_input :: fn(file: string, release: bool) -> string | null =
+emit_c_for_input :: fn(file: string, release: bool, include_path_flags: string[]) -> string | null =
     if file.ends_with(".virt") { emit_c_source_from_virt(file, release) }
-    else { emit_c_source(file, release) }
+    else { emit_c_source(file, release, include_path_flags) }
 
 // Read a `.virt` text dump, reconstruct its `BytecodeModule`, and hand it to
 // the C-emit. The entry fn is the module's `is_main` function (recovered from
@@ -663,8 +674,8 @@ strip_input_suffix :: fn(file: string) -> string =
 // `--target=native` : emit the C next to the binary, then invoke the C
 // compiler to link it against the external runtime (`runtime/c/`). The `.c`
 // is kept on a `cc` failure so the user can inspect the generated source.
-build_native :: fn(file: string, out_flag: string, release: bool, cc: string, ldflags: string) -> i32 {
-    c_src :: emit_c_for_input(file, release)
+build_native :: fn(file: string, out_flag: string, release: bool, cc: string, ldflags: string, include_path_flags: string[]) -> i32 {
+    c_src :: emit_c_for_input(file, release, include_path_flags)
     if c_src is null { return 1 }
     out :: if out_flag != "" { out_flag } else { strip_input_suffix(file) }
     c_file :: "${out}.c"
@@ -843,7 +854,7 @@ run_parser_stage :: fn(file: string) -> i32 {
 // R2011 from collect) and per-module body-walker R2xxx (R2006/R2019).
 // Mirrors the TS `dumpResolver` / `formatResolverDump` shape.
 run_resolver_stage :: fn(file: string) -> i32 {
-    project :: load_project(file)
+    project :: load_project(file, [])
     resolved :: resolve_loaded_project(project)
     println(dump_project(resolved))
     diags :: collect_resolver_diags(project, resolved)
@@ -901,7 +912,7 @@ collect_resolver_diags :: fn(project: LoadedProject, resolved: ResolvedProject) 
 run_typecheck_stage :: fn(file: string) -> i32 {
     // `check_file` is the shared load+typecheck+merge the LSP also routes
     // through, so the editor's squiggles and this dump never diverge.
-    fc :: check_file(file, MutableMap<string, string> {})
+    fc :: check_file(file, MutableMap<string, string> {}, [])
     println(dump_program_with_others(fc.result.typed, true, fc.result.others))
     if fc.diags.len() > 0 {
         println(fc.diags.dump_diagnostics())
@@ -975,8 +986,10 @@ LoweredEntry :: struct {
 /// CFG → bytecode tail. This is the live-set lever for `vader run` and
 /// `dump --stage=bytecode|c` : the typecheck-era maps no longer coexist with
 /// the emitter's own tables at the memory peak.
-lower_to_entry :: fn(file: string) -> LoweredEntry {
-    pipeline :: prepare_evaluated_project(file)
+lower_to_entry :: fn(file: string) -> LoweredEntry = lower_to_entry_with(file, [])
+
+lower_to_entry_with :: fn(file: string, include_path_flags: string[]) -> LoweredEntry {
+    pipeline :: prepare_evaluated_project_with(file, include_path_flags)
     lower_diags: Diagnostic[] = []
     lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
     entry :: entry_main_name(pipeline.typed, pipeline.loaded.entry)
@@ -1008,8 +1021,10 @@ CfgBytecode :: struct {
 /// consumers route through here. Const-fold is deliberately NOT run (TS's
 /// `dumpBytecode` skips it too, so arith collapse would over-shrink vs the
 /// parity snapshot).
-prepare_cfg_bytecode :: fn(file: string) -> CfgBytecode {
-    le :: lower_to_entry(file)
+prepare_cfg_bytecode :: fn(file: string) -> CfgBytecode = prepare_cfg_bytecode_with(file, [])
+
+prepare_cfg_bytecode_with :: fn(file: string, include_path_flags: string[]) -> CfgBytecode {
+    le :: lower_to_entry_with(file, include_path_flags)
     pruned :: prune_unreachable_fns(le.lowered, false)
     cfg :: build_cfg_project(pruned)
     dced :: eliminate_dead_cfg(cfg)
@@ -1153,8 +1168,13 @@ EvaluatedPipeline :: struct {
     comptime_diags:  Diagnostic[]
 }
 
-prepare_evaluated_project :: fn(file: string) -> EvaluatedPipeline {
-    loaded :: load_project(file)
+prepare_evaluated_project :: fn(file: string) -> EvaluatedPipeline = prepare_evaluated_project_with(file, [])
+
+// Like `prepare_evaluated_project`, with extra `--include-paths` search roots
+// threaded to the loader (build / run honour the flag ; dump stages use [] via
+// the no-flag wrapper above).
+prepare_evaluated_project_with :: fn(file: string, include_path_flags: string[]) -> EvaluatedPipeline {
+    loaded :: load_project(file, include_path_flags)
     typecheck_diags: Diagnostic[] = []
     result :: check_project_with_bodies(loaded, typecheck_diags)
     resolver_diags :: collect_body_diags(result)

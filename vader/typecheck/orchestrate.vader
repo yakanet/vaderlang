@@ -70,8 +70,8 @@ export FileCheck :: struct {
 ///                    (`load_project_with_overlay(p, {})` ≡ `load_project(p)`).
 /// @return            the loaded project, the typed result, and the merged
 ///                    loader + typecheck diagnostics.
-export check_file :: fn(entry_path: string, overlay: MutableMap<string, string>) -> FileCheck {
-    project :: load_project_with_overlay(entry_path, overlay)
+export check_file :: fn(entry_path: string, overlay: MutableMap<string, string>, include_path_flags: string[]) -> FileCheck {
+    project :: load_project_with_overlay(entry_path, overlay, include_path_flags)
     diags: Diagnostic[] = []
     result :: check_project_with_bodies(project, diags)
     merged: Diagnostic[] = []
