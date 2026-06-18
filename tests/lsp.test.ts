@@ -387,6 +387,8 @@ test("lsp: member completion resolves an imported struct's fields", async () => 
   const labels = new Set(list.items.map((i) => i.label));
   expect(labels.has("width")).toBe(true);
   expect(labels.has("height")).toBe(true);
+  // The field's resolved type rides along in `detail` (TS-style type hint).
+  expect(list.items.find((i) => i.label === "width")?.detail).toBe("i32");
 }, { timeout: MEDIUM_BUILD });
 
 interface TextEditT { newText: string }

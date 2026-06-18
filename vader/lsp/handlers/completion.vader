@@ -15,7 +15,7 @@ module "vader/lsp/handlers"
 
 import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonArray }
 import "std/collections" { MutableMap }
-import "vader/types" { StructType }
+import "vader/types" { StructType, display_type }
 import "vader/lsp/protocol" {
     position_uri, position_line, position_character, span_contains,
     uri_to_path, lsp_to_offset, line_start_offset,
@@ -143,11 +143,19 @@ member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i3
     // from `vader/parser`) resolves its fields too — not just entry-module structs.
     if recv_type is StructType as st {
         decl :: cached.result.typed.struct_decls[st.symbol.id]
+        fmap :: cached.result.typed.struct_field_types[st.symbol.id]
         if decl != null {
             for fld in decl.fields {
                 if seen[fld.name] != null { continue }
                 seen[fld.name] = true
-                items.push(completion_item(fld.name, .Field, ""))
+                // The field's resolved type, for the completion detail (`body:
+                // BlockExpr`-style) — read from the project-wide field-type map.
+                detail := ""
+                if fmap != null {
+                    ft :: fmap[fld.name]
+                    if ft != null { detail = display_type(ft) }
+                }
+                items.push(completion_item(fld.name, .Field, detail))
             }
         }
     }
@@ -163,7 +171,7 @@ member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i3
             for m in impl_.decl.members {
                 if seen[m.name] != null { continue }
                 seen[m.name] = true
-                items.push(completion_item(m.name, .Method, ""))
+                items.push(completion_item(m.name, .Method, render_signature_label(m)))
             }
         }
     }
