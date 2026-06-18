@@ -6,7 +6,7 @@
 > receivers) deferred to Phase 2 — no producer of `Any` types yet
 > makes the lower-side path untestable in isolation.
 >
-> Exit criterion met via `bench/poc_erasure/Makefile :: verify`:
+> Exit criterion met:
 > compiler emits per-tag vtables matching the runtime layout, and a
 > Vader binary using a user-defined trait impl compiles, links, runs.
 >
@@ -196,7 +196,7 @@ group.
 | P0-3 | C emit vtables | `src/c_emit/emit-vtable.ts` (new) + wire into `src/c_emit/emit.ts` | pending | 1-1.5 d |
 | P0-4 | `Any` Type kind (internal only) | `src/typecheck/types.ts`, `src/typecheck/dump-text.ts` | pending | 0.5 d |
 | P0-5 | `Any` method dispatch in lower (dormant, ready for Phase 2) | `src/lower/passes/expr.ts` | pending | 1 d |
-| P0-6 | Validate via POC extension consuming compiler vtables | `bench/poc_erasure/` (extension) | pending | 0.5-1 d |
+| P0-6 | Validate via POC extension consuming compiler vtables | POC extension | pending | 0.5-1 d |
 
 **Total remaining: ~3-4 days.** Original 7.5-9.5 d estimate halved by
 removing the `@erase` scaffolding (~3 d) and the Vader-level

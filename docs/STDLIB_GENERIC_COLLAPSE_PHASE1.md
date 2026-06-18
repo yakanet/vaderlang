@@ -8,8 +8,8 @@
 > per-allocation cost — `vader_string_t` already made the payload
 > union 16 bytes wide ; we just added a new view onto it.
 >
-> Exit criterion met via
-> `bench/poc_erasure/Makefile :: verify_packed` — `Pair { x: i32, y: i32 }`
+> Exit criterion met —
+> `Pair { x: i32, y: i32 }`
 > compiles, struct.new + struct.get use the packed fast path, no heap
 > alloc, binary runs correctly.
 >
@@ -185,7 +185,7 @@ to today's heap-allocated `ptr_offsets`). Out of scope here.
 | P1-2 | Runtime: add `packed[16]` to the payload union | `runtime/c/vader.h` | 0.25 d |
 | P1-3 | C emit: pack/unpack helpers + box construction at struct.new sites | `src/c_emit/body.ts`, `src/c_emit/ops.ts` | 1.5 d |
 | P1-4 | GC scan info: zero-out for packed types | `src/c_emit/emit.ts` (type info table) | 0.25 d |
-| P1-5 | Bench validation: `bench/poc_erasure/pair_inline_test.{vader,Makefile target}` | `bench/poc_erasure/` | 0.5 d |
+| P1-5 | Bench validation: `pair_inline_test.{vader,Makefile target}` | POC | 0.5 d |
 | P1-6 | Snippet smoke: confirm no regression on existing inline-variant snippets | `tests/snippets/` audit | 0.5 d |
 
 **Total: ~3.5 days.** Down from the original 1-2 weeks because no
@@ -201,7 +201,7 @@ box-grow work is needed.
 2. **Allocations**: under `VADER_GC_STRESS=1`, the 100k-insert workload
    allocates exactly 100k entry nodes — zero extra allocations for
    the boxed key payloads. Verified via the existing `poc_alloc_count`
-   pattern from `bench/poc_erasure/`.
+   pattern from the POC.
 3. **No regression**: existing snippet tests stay green.
 
 ---
@@ -247,7 +247,7 @@ later optimisation if data shows demand.
 
 - Re-run the POC bench with the new packed-payload support; confirm
   `MutableMap(Pair, i64)` allocates only entry nodes.
-- Update `bench/poc_erasure/results.md` with the Phase 1 measurement.
+- Record the Phase 1 measurement.
 - **Then Phase 2 (automatic erasure pass) starts.** Phase 0 + Phase 1
   combined give Phase 2 a clean foundation: dispatch infrastructure
   (Phase 0) + boxing efficiency (Phase 1).

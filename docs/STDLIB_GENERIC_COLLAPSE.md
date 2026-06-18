@@ -94,7 +94,7 @@ Decisions taken during the planning phase, in chronological order.
 - **2026-05-19 — No bytecode cache exists today.** Confirmed: the IR
   shape change does not invalidate any persisted artefact.
 - **2026-05-19 — Proceed to Phase 0 after POC.** The hand-written POC
-  (`docs/STDLIB_GENERIC_COLLAPSE_POC.md`, `bench/poc_erasure/`) scored
+  (`docs/STDLIB_GENERIC_COLLAPSE_POC.md`) scored
   3 PASS / 1 FAIL / 1 DEFERRED. The fail (criterion #2, get runtime
   1.15-1.20× mono vs ≤ 1.10× target) is intrinsic to indirect dispatch
   and only ~5-10 pp above threshold on a synthetic micro-bench. The
@@ -183,8 +183,7 @@ Decisions taken during the planning phase, in chronological order.
   structs ≤ 16 bytes with all-primitive fields (no string, no refs)
   now pack into the payload via a header-less mirror struct
   `vader_packed_<name>_t` that the C emit overlays onto the byte
-  array. Validated via `bench/poc_erasure/Makefile :: verify_packed`
-  on `Pair { x: i32, y: i32 }` — mirror emitted, no heap alloc,
+  array. Validated on `Pair { x: i32, y: i32 }` — mirror emitted, no heap alloc,
   binary runs correctly. 252/252 native tests pass. Ref-bearing
   packed payloads deferred (would need a GC scanner extension).
   Phase 2 can now erase generic value slots holding small PODs
@@ -193,7 +192,7 @@ Decisions taken during the planning phase, in chronological order.
   helper, P0-2 slot registry, P0-3 C emit vtables, P0-4 internal `Any`
   Type kind, P0-6 validation). P0-5 (lower dispatch on `Any` receivers)
   deferred to Phase 2 as it has no isolated test path. Exit criterion
-  met via `bench/poc_erasure/Makefile :: verify` — compiler emits
+  met — compiler emits
   per-tag vtables in `vader_virtual_dispatch`-compatible format ; a
   Vader binary using a user-defined trait impl compiles and runs.
   Self-host build re-measured: **168 s** (vs 177 s pre-Phase-0
@@ -208,8 +207,8 @@ Decisions taken during the planning phase, in chronological order.
   surface that we'd remove later is wrong direction. Phase 0 scope
   narrowed to **C-level infrastructure only** — runtime vtable + slot
   registry + C emit vtables + internal `Any` Type kind + dormant
-  lower dispatch — validated via an extension of `bench/poc_erasure/`
-  consuming compiler-emitted vtables. End-to-end Vader-level
+  lower dispatch — validated via an extension consuming
+  compiler-emitted vtables. End-to-end Vader-level
   validation (`get` regression ≤ 15 %, stdlib `MutableMap_erased`,
   pivot-test bench, etc.) moves to Phase 2, where automatic erasure
   actually runs on real Vader code. Phase 0 remaining effort cut from
