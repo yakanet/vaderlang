@@ -434,6 +434,30 @@ test("lsp: code action converts an if/else-if chain to match", async () => {
   expect(edit.newText).toContain("_ ->");
 }, { timeout: MEDIUM_BUILD });
 
+const UFCS_SOURCE = `dbl :: fn(x: i32) -> i32 {
+    return x * 2
+}
+
+main :: fn() -> i32 {
+    n :: 21
+    return dbl(n)
+}
+`;
+
+test("lsp: code action converts a free call to method syntax", async () => {
+  if (!ENABLED) return;
+
+  // Cursor on the `dbl(n)` call (line 6 = `    return dbl(n)`, char 11).
+  const results = await driveLsp(UFCS_SOURCE, [
+    { method: "textDocument/codeAction", position: { line: 6, character: 11 } },
+  ]);
+  const actions = results[0]!.result as CodeActionT[];
+  const conv = actions.find((a) => a.title === "Convert to method call");
+  expect(conv).toBeDefined();
+  const edit = conv!.edit.changes[Object.keys(conv!.edit.changes)[0]!]![0]!;
+  expect(edit.newText).toContain("n.dbl()");
+}, { timeout: MEDIUM_BUILD });
+
 test("lsp: empty document doesn't crash, returns null on lookups", async () => {
   if (!ENABLED) return;
 
