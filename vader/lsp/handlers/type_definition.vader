@@ -23,7 +23,7 @@ import "vader/types" {
 }
 import "vader/resolver/symbol" { Symbol }
 import "vader/lsp/protocol" { position_uri, uri_to_path, cursor_field, location_json, span_to_range_json }
-import "vader/lsp/analysis" { ServerState, typed_project_for, source_file_for_path }
+import "vader/lsp/analysis" { ServerState, typed_project_for, source_file_for_path, find_expr_at }
 
 /// Resolve typeDefinition for the position carried in `params`. Returns a
 /// `Location` (the type's declaration), or `JsonNull` when the cursor isn't on
