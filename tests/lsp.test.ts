@@ -28,7 +28,7 @@ interface Position {
 }
 
 interface Query {
-  method: "textDocument/definition" | "textDocument/hover";
+  method: "textDocument/definition" | "textDocument/hover" | "textDocument/completion";
   position: Position;
 }
 
@@ -154,6 +154,15 @@ interface Location {
 interface Hover {
   contents: { kind: string; value: string };
 }
+interface CompletionItem {
+  label: string;
+  kind?: number;
+  detail?: string;
+}
+interface CompletionList {
+  isIncomplete: boolean;
+  items: CompletionItem[];
+}
 
 const SOURCE = `import "std/io" { println }
 
@@ -222,6 +231,34 @@ test("lsp: goto-def + hover end-to-end", async () => {
   // 4 + 5: unknown / whitespace → null
   expect(results[4]!.result).toBeNull();
   expect(results[5]!.result).toBeNull();
+}, { timeout: MEDIUM_BUILD });
+
+test("lsp: completion lists in-scope identifiers + keywords", async () => {
+  if (!ENABLED) return;
+
+  // Cursor inside main's body (line 16 = `    return y`).
+  const results = await driveLsp(SOURCE, [
+    { method: "textDocument/completion", position: { line: 16, character: 4 } },
+  ]);
+  const list = results[0]!.result as CompletionList;
+  expect(list.isIncomplete).toBe(false);
+  const labels = new Set(list.items.map((i) => i.label));
+
+  // Top-level declarations of the file.
+  expect(labels.has("double")).toBe(true);
+  expect(labels.has("Point")).toBe(true);
+  expect(labels.has("main")).toBe(true);
+  // Imported name.
+  expect(labels.has("println")).toBe(true);
+  // In-scope locals of main.
+  expect(labels.has("p")).toBe(true);
+  expect(labels.has("y")).toBe(true);
+  // A language keyword.
+  expect(labels.has("return")).toBe(true);
+
+  // `double` is a function (CompletionItemKind.Function = 3).
+  const dbl = list.items.find((i) => i.label === "double");
+  expect(dbl?.kind).toBe(3);
 }, { timeout: MEDIUM_BUILD });
 
 test("lsp: empty document doesn't crash, returns null on lookups", async () => {

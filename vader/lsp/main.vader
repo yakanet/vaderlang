@@ -150,6 +150,12 @@ dispatch :: fn(state: A.ServerState, msg: JsonValue, shutdown_received: bool) ->
         P.log_info("hover ${doc_uri(params)}")
         return DispatchResult.Continue
     }
+    if method == "textDocument/completion" {
+        result :: H.handle_completion(state, params)
+        P.write_frame(P.encode_response(id, result))
+        P.log_info("completion ${doc_uri(params)}")
+        return DispatchResult.Continue
+    }
     if method == "textDocument/inlayHint" {
         result :: H.handle_inlay_hint(state, params)
         P.write_frame(P.encode_response(id, result))

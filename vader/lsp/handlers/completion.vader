@@ -1,0 +1,203 @@
+// vader/lsp/handlers/completion — `textDocument/completion` handler.
+//
+// Tier 1 : scope-aware identifier + keyword completion. Returns every name
+// reachable at the cursor — the file's top-level declarations, the intra-file
+// bindings (params / locals / for-in vars) whose scope covers the cursor, the
+// imported names, and the language keywords. The client does the prefix /
+// fuzzy filtering, so we return the full candidate set rather than matching the
+// typed prefix ourselves.
+//
+// Member completion after `.` (struct fields + UFCS methods, resolved through
+// the typed cache) is Tier 2 — see `LSP_COMPLETENESS.md`. Until it lands the
+// provider declares no `.` trigger, so it fires on identifier typing only.
+
+module "vader/lsp/handlers"
+
+import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonArray }
+import "std/collections" { MutableMap }
+import "vader/lsp/protocol" { position_uri, position_line, position_character, span_contains }
+import "vader/lsp/analysis" { ServerState, DocIndex, DeclEntry, DeclKind, build_index }
+
+/// Language keywords offered as completions. Mirrors
+/// `vader/lexer/keywords.vader::lookup_keyword` plus the `module` soft keyword.
+COMPLETION_KEYWORDS :: [
+    "fn", "struct", "trait", "implements", "enum", "if", "else", "match",
+    "is", "for", "in", "return", "defer", "break", "continue", "import",
+    "as", "export", "true", "false", "null", "self", "const", "module",
+]
+
+/// Build the completion response for the position in `params`. Returns a
+/// `CompletionList` (`{ isIncomplete, items }`) — empty when the document was
+/// never indexed.
+///
+/// @param state   shared server state (carries the per-document index).
+/// @param params  request params : `{ textDocument: { uri }, position }`.
+/// @return        a `CompletionList` of in-scope identifiers + keywords.
+export handle_completion :: fn(state: ServerState, params: JsonValue) -> JsonValue {
+    uri :: position_uri(params)
+    idx :: state.index_for(uri)
+    match idx {
+        is null              -> { return completion_list([]) }
+        is DocIndex as index -> {
+            // LSP positions are 0-based ; the indexer's spans are 1-based.
+            line :: position_line(params) + i32(1)
+            col  :: position_character(params) + i32(1)
+
+            items: JsonValue[] = []
+            seen :: MutableMap<string, bool> {}
+
+            for d in visible_decls(index, line, col) {
+                if seen[d.name] != null { continue }
+                seen[d.name] = true
+                items.push(completion_item(d.name, ci_kind(d.kind), d.signature))
+            }
+
+            for imp in index.imports {
+                if seen[imp.local_name] != null { continue }
+                seen[imp.local_name] = true
+                items.push(completion_item(imp.local_name, import_ci_kind(imp.local_name), "import \"${imp.module_path}\""))
+            }
+
+            for kw in COMPLETION_KEYWORDS {
+                if seen[kw] != null { continue }
+                seen[kw] = true
+                items.push(completion_item(kw, .Keyword, ""))
+            }
+
+            return completion_list(items)
+        }
+    }
+}
+
+/// Declarations reachable at `(line, col)` : every file-wide decl plus the
+/// intra-file bindings whose `scope_span` covers the cursor. 1-based coords.
+visible_decls :: fn(idx: DocIndex, line: i32, col: i32) -> DeclEntry[] {
+    out: DeclEntry[] = []
+    for d in idx.decls {
+        ss :: d.scope_span
+        if ss != null {
+            if !span_contains(ss, line, col) { continue }
+        }
+        out.push(d)
+    }
+    return out
+}
+
+/// LSP `CompletionItemKind` wire values (LSP §3.17) — the subset we emit. The
+/// backing integer is what travels on the wire, so `i32(kind)` yields the
+/// protocol number.
+CompletionItemKind :: enum(i32) {
+    Function  = 3,
+    Variable  = 6,
+    Class     = 7,
+    Interface = 8,
+    Enum      = 13,
+    Keyword   = 14,
+    Constant  = 21,
+    Struct    = 22,
+}
+
+// Map an indexer `DeclKind` to its `CompletionItemKind`.
+ci_kind :: fn(k: DeclKind) -> CompletionItemKind = match k {
+    .Fn        -> .Function
+    .Struct    -> .Struct
+    .Enum      -> .Enum
+    .Trait     -> .Interface
+    .TypeAlias -> .Class
+    .Const     -> .Constant
+    .Param     -> .Variable
+    .Local     -> .Variable
+    .ForIn     -> .Variable
+}
+
+// Imported names carry no resolved kind in the index, so guess from the
+// casing : PascalCase reads as a type (Class icon), otherwise a fn / value.
+import_ci_kind :: fn(name: string) -> CompletionItemKind {
+    nb :: name.bytes()
+    if nb.len() > 0 {
+        c :: nb[0]
+        if c >= b'A' && c <= b'Z' { return .Class }
+    }
+    return .Function
+}
+
+completion_item :: fn(label: string, kind: CompletionItemKind, detail: string) -> JsonValue {
+    obj :: MutableMap<string, JsonValue> {}
+    obj["label"] = JsonString { .value = label }
+    obj["kind"]  = JsonNumber { .value = f64(i32(kind)) }
+    if detail.bytes().len() > 0 {
+        obj["detail"] = JsonString { .value = detail }
+    }
+    return JsonObject { .entries = obj }
+}
+
+completion_list :: fn(items: JsonValue[]) -> JsonValue {
+    obj :: MutableMap<string, JsonValue> {}
+    obj["isIncomplete"] = JsonBool { .value = false }
+    obj["items"]        = JsonArray { .items = items }
+    return JsonObject { .entries = obj }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+
+// True when some visible decl is named `name`.
+has_decl :: fn(decls: DeclEntry[], name: string) -> bool {
+    for d in decls {
+        if d.name == name { return true }
+    }
+    return false
+}
+
+@test
+test_visible_decls_lists_toplevel :: fn() -> void {
+    src :: """
+add :: fn(a: i32, b: i32) -> i32 {
+    sum :: a + b
+    return sum
+}
+
+MAX :: 10
+"""
+    idx :: build_index("t.vader", src)
+    // Cursor on the `return sum` line — inside add's body, so `sum` (Local) is
+    // visible alongside the top-level decls.
+    vis :: visible_decls(idx, 3, 5)
+    assert(has_decl(vis, "add"), "top-level fn is visible")
+    assert(has_decl(vis, "MAX"), "top-level const is visible")
+    assert(has_decl(vis, "sum"), "in-scope local is visible")
+}
+
+@test
+test_visible_decls_excludes_out_of_scope_locals :: fn() -> void {
+    src :: """
+add :: fn(a: i32, b: i32) -> i32 {
+    sum :: a + b
+    return sum
+}
+
+MAX :: 10
+"""
+    idx :: build_index("t.vader", src)
+    // Cursor on the `MAX` line — outside add's body, so `sum` is not visible,
+    // but the top-level decls still are.
+    vis :: visible_decls(idx, 6, 1)
+    assert(has_decl(vis, "MAX"), "top-level const is visible")
+    assert(has_decl(vis, "add"), "top-level fn is visible")
+    assert(!has_decl(vis, "sum"), "out-of-scope local is hidden")
+}
+
+@test
+test_ci_kind_mapping :: fn() -> void {
+    assert(ci_kind(.Fn) == CompletionItemKind.Function, "Fn -> Function")
+    assert(ci_kind(.Struct) == CompletionItemKind.Struct, "Struct -> Struct")
+    assert(ci_kind(.Const) == CompletionItemKind.Constant, "Const -> Constant")
+    assert(ci_kind(.Local) == CompletionItemKind.Variable, "Local -> Variable")
+}
+
+@test
+test_import_ci_kind_casing :: fn() -> void {
+    assert(import_ci_kind("MutableMap") == CompletionItemKind.Class, "type -> Class")
+    assert(import_ci_kind("println") == CompletionItemKind.Function, "value -> Function")
+}
