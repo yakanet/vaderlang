@@ -11,9 +11,9 @@
 // filesystem). Every query for a source is bundled into one session.
 
 import { test, expect } from "bun:test";
-import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 
 import { CLI_BIN, MEDIUM_BUILD, ensureCliBuilt } from "./cli-bin.ts";
 
@@ -85,13 +85,22 @@ function findSeparator(buf: Uint8Array): number {
 
 // Run one LSP session : open `source` as a virtual document, fire every
 // query in order, return one result per query (in the same order).
-async function driveLsp(source: string, queries: Query[]): Promise<QueryResult[]> {
+async function driveLsp(
+  source: string, queries: Query[], extraFiles: Record<string, string> = {},
+): Promise<QueryResult[]> {
   // Write the source to a real on-disk fixture under a fresh temp dir, and root
   // the session there. The resolver then discovers a bounded project (the temp
   // dir + the seeded std/ + vader/ roots) instead of the entry file's folder.
+  // `extraFiles` (relative path → content) seed sibling modules for cross-module
+  // scenarios (e.g. member completion on an imported struct type).
   const dir = mkdtempSync(join(tmpdir(), "vlsp-"));
   const file = join(dir, "lsp-test.vader");
   writeFileSync(file, source);
+  for (const [rel, content] of Object.entries(extraFiles)) {
+    const p = join(dir, rel);
+    mkdirSync(dirname(p), { recursive: true });
+    writeFileSync(p, content);
+  }
   const uri = `file://${file}`;
   const requests: object[] = [
     { jsonrpc: "2.0", id: 1, method: "initialize",
@@ -351,6 +360,33 @@ test("lsp: member completion on a trailing dot (mid-edit, no member yet)", async
   expect(labels.has("y")).toBe(true);
   // Still member-scoped — no keywords leak in.
   expect(labels.has("return")).toBe(false);
+}, { timeout: MEDIUM_BUILD });
+
+// Member completion when the receiver's type is declared in an IMPORTED module
+// (not the entry file). Regression guard: the field lookup must go through the
+// project-wide struct registry, not just the entry file's struct decls.
+const CROSS_MODULE_MEMBER_SOURCE = `module "demo"
+
+import "demo/widget" { Widget }
+
+main :: fn() -> i32 {
+    w :: Widget { .width = 1, .height = 2 }
+    return w.width
+}
+`;
+
+test("lsp: member completion resolves an imported struct's fields", async () => {
+  // Line 6 = `    return w.width` ; cursor at char 13 is just past the `.` on `w`.
+  const results = await driveLsp(CROSS_MODULE_MEMBER_SOURCE, [
+    { method: "textDocument/completion", position: { line: 6, character: 13 } },
+  ], {
+    "widget/widget.vader":
+      `module "demo/widget"\n\nexport Widget :: struct {\n    width: i32\n    height: i32\n}\n`,
+  });
+  const list = results[0]!.result as CompletionList;
+  const labels = new Set(list.items.map((i) => i.label));
+  expect(labels.has("width")).toBe(true);
+  expect(labels.has("height")).toBe(true);
 }, { timeout: MEDIUM_BUILD });
 
 interface TextEditT { newText: string }

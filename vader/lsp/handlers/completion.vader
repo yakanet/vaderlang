@@ -137,17 +137,17 @@ member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i3
     items: JsonValue[] = []
     seen :: MutableMap<string, bool> {}
 
-    // Struct fields — find the receiver type's declaration in the entry module.
+    // Struct fields — look up the receiver type's decl in the project-wide
+    // `struct_decls` registry (keyed by the struct symbol's id), so a receiver
+    // whose type is declared in an IMPORTED module (e.g. `lambda : AST.LambdaExpr`
+    // from `vader/parser`) resolves its fields too — not just entry-module structs.
     if recv_type is StructType as st {
-        for d in sf.program.decls {
-            if d is AST.StructDecl as sd {
-                if sd.name == st.symbol.name {
-                    for fld in sd.fields {
-                        if seen[fld.name] != null { continue }
-                        seen[fld.name] = true
-                        items.push(completion_item(fld.name, .Field, ""))
-                    }
-                }
+        decl :: cached.result.typed.struct_decls[st.symbol.id]
+        if decl != null {
+            for fld in decl.fields {
+                if seen[fld.name] != null { continue }
+                seen[fld.name] = true
+                items.push(completion_item(fld.name, .Field, ""))
             }
         }
     }
