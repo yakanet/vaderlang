@@ -236,7 +236,7 @@ ingest_module :: fn(
     // `diagnose_import_path` finds them instead of firing a spurious R2001 —
     // the failure mode that reverted the earlier lazy attempt.
     preresolve_imports(sources, bases, index, diags)
-    collected :: collect_files(sources, m.folder, m.name, factory, index, diags)
+    collected :: collect_files(sources, m.folder, m.name, factory, index, bases, diags)
     modules[m.folder] = LoadedModule {
         .module = Module {
             .id           = m.folder,
@@ -333,14 +333,14 @@ has_module :: fn(modules: MutableMap<string, LoadedModule>, id: string) -> bool 
 collect_files :: fn(
     files: SourceFile[], module_id: string, module_name: string,
     factory: SymbolFactory,
-    index: MutableMap<string, DiscoveredModule>, diags: Diagnostic[],
+    index: MutableMap<string, DiscoveredModule>, paths: IncludePath[], diags: Diagnostic[],
 ) -> CollectedModule {
     // Multi-file collect : merge every file's collected view into one
     // module-wide table. Each file mints fresh Symbol ids through the
     // shared factory, so the maps just need their entries union'd.
-    merged :: collect_module(files[0].program, module_id, module_name, factory, index, diags)
+    merged :: collect_module(files[0].program, module_id, module_name, factory, index, paths, diags)
     for i in 1..<files.len() {
-        per_file :: collect_module(files[i].program, module_id, module_name, factory, index, diags)
+        per_file :: collect_module(files[i].program, module_id, module_name, factory, index, paths, diags)
         merge_collected(merged, per_file, diags)
     }
     return merged
