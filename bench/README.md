@@ -1,6 +1,6 @@
 # Vader benchmarks
 
-Two families of workload. The **cross-language** set (six workloads) spans float CPU, integer CPU, iterator chains, GC throughput, and string-runtime throughput so a perf change in any of those subsystems trips a regression. The **Target-ABI** set (four workloads) isolates a single ABI primitive each, so a `main`-vs-branch run quantifies the ABI migration (see [`docs/TARGET_ABI.md`](../docs/TARGET_ABI.md)).
+Six cross-language workloads spanning float CPU, integer CPU, iterator chains, GC throughput, and string-runtime throughput — so a perf change in any of those subsystems trips a regression.
 
 Every workload lives in its own directory `bench/<name>/` with all four language implementations colocated — `<name>.vader`, `<name>.ts`, `<name>.go`, `<name>.java` — alongside the compiled artefacts the harness produces.
 
@@ -13,16 +13,7 @@ Every workload lives in its own directory `bench/<name>/` with all four language
 | `string_builder` | string runtime + GC under in-flight builder     | append a 45-char fragment N times, finalise to a flat string    | N = 80 000                             |
 | `map_iter`       | hash-map entry iteration, per-visit alloc       | 1 000 outer × 1 000 inner `for entry in m` over a 1 000-entry map | 1 M map visits total                 |
 
-**Target-ABI micro-benches** — the ABI primitive each isolates doubles as a cross-language comparison point, so they ship the same four-language ports :
-
-| workload      | ABI primitive                                   | algorithm                                                       | scale                          |
-|---------------|-------------------------------------------------|-----------------------------------------------------------------|--------------------------------|
-| `arr_rw`      | open-coded `arr[i]` load / `arr[i] = v` store   | read-modify-write a fixed `i32[]`, no allocation in the loop    | 1024 elts × 100 000 passes     |
-| `arr_push`    | open-coded `push` (typed store + grow)          | build then discard a fresh `i32[]`, exercising grow + GC churn  | 100 000 × 200 (20 M pushes)    |
-| `str_concat`  | off-runtime string `+` (Buffer-backed concat)   | build a 13-byte string by repeated `+`                          | 300 000 iterations             |
-| `interp`      | off-runtime `${}` (StringBuilder + Vader fmt)   | format three integers via `${}` interpolation                   | 200 000 iterations             |
-
-Every program prints a one-line checksum so cross-language (and cross-branch) equivalence is verifiable. The ABI micro-benches sum `bytes().len()` rather than `len()` to dodge an unrelated `string.len()` codegen bug (see the repo `TODO.md`).
+Every program prints a one-line checksum so cross-language equivalence is verifiable.
 
 ## Implementations
 
@@ -64,17 +55,16 @@ We compare on `min(samples)` rather than the median because these workloads fini
 
 Captured 2026-06-16 on a 2026 Apple Silicon laptop, `bun run bench -- --runs=5 --update`:
 
-| workload         | vader-native | bun-ts  | go      | java    |
-|------------------|--------------|---------|---------|---------|
-| `mandelbrot`     | 16.2 ms      | 26.6 ms | 19.8 ms | 56.7 ms |
-| `primes`         | 24.4 ms      | 42.4 ms | 26.8 ms | 64.5 ms |
-| `iter_chain`     |  2.3 ms      | 39.8 ms |  3.2 ms | 43.7 ms |
-| `binary_trees`   |  6.9 ms      | 15.0 ms |  8.1 ms | 38.3 ms |
-| `string_builder` |  8.8 ms      | 11.4 ms |  6.6 ms | 39.7 ms |
-| `map_iter`       |  6.5 ms      | 34.9 ms |  9.5 ms | 52.0 ms |
+| workload         | vader-native | bun-ts  | go        | java    |
+|------------------|--------------|---------|-----------|---------|
+| `mandelbrot`     | 16.2 ms ★    | 26.6 ms | 19.8 ms   | 56.7 ms |
+| `primes`         | 24.4 ms ★    | 42.4 ms | 26.8 ms   | 64.5 ms |
+| `iter_chain`     |  2.3 ms ★    | 39.8 ms |  3.2 ms   | 43.7 ms |
+| `binary_trees`   |  6.9 ms ★    | 15.0 ms |  8.1 ms   | 38.3 ms |
+| `string_builder` |  8.8 ms      | 11.4 ms |  6.6 ms ★ | 39.7 ms |
+| `map_iter`       |  6.5 ms ★    | 34.9 ms |  9.5 ms   | 52.0 ms |
 
-The four Target-ABI micro-benches (`arr_rw`, `arr_push`, `str_concat`, `interp`) are baselined in `baseline.json` too, but omitted from this table : their `vader-native` numbers track the off-runtime ABI path under active migration on `feat/target-abi`, so they're a branch-relative signal rather than a stable cross-language reference.
-
+★ = fastest on the workload.
 Reading the table :
 
 - **`mandelbrot`** — Vader native (16.2 ms) beats Go (19.8 ms) and Bun-TS (26.6 ms). After the for-over-integer-range counter-loop lowering (commit `1e268fd3`), the float kernel hits a state where clang `-O3` is doing essentially the same work as `gc`, with a marginal lead from FMA-free arithmetic on this specific kernel.
@@ -86,14 +76,6 @@ Reading the table :
 - **`java`** — every Java row sits at ~38-65 ms regardless of workload. That floor is JVM startup + class loading + cold JIT — measurable but bounded now that we precompile in the build phase (down from ~230 ms when each invocation also parsed the source). For steady-state Java throughput (long-running JVM, warmed JIT, millions of iterations) Java would catch up to Go ; we're benching cold script invocations on purpose because that's what `java <Class>` looks like in practice.
 
 The `mandelbrot` checksum splits three ways : Bun-TS / Java agree at 5 705 453, Vader-native lands at 5 705 449 (a 4-iteration drift, ~7 boundary pixels where clang's reassociation under `-O3` reorders a `z² + c` term and flips the escape test one iteration earlier), and Go lands at 5 689 008 because `gc` fuses `a*b + c` into a single FMA instruction with one rounding step on arm64. All three are mathematically correct ; only the rounding model differs.
-
-## Known runtime limits surfaced by the bench
-
-These aren't bench bugs ; they're real Vader limits that constrain workload sizing.
-
-- **`bool[]` GC trap on the sieve**. The original `primes` design used Sieve of Eratosthenes (matching `examples/primes.vader`). Vader's `bool[]` stores every element as a 16-byte `vader_box_t`, so a 10 M-element sieve allocates 160 MB and exceeds the 4 MB young semi-space. Trial division sidesteps the array entirely. Follow-up : primitive-array storage + `Array.new(size)` constructor in stdlib.
-- **`StringBuilder` `parts` array doubling caps at N ≈ 131 k entries**. Past that the doubling allocates > 4 MB in one shot and trips the young semi-space cap (the 4 MB single-alloc ceiling). The final `to_string()` is its own 4 MB cap : the joined output must fit in young at once. With a 45-char fragment the bench at N = 80 000 produces a 3.6 MB string — comfortably under both caps.
-- **`vader_array_push` lost one entry at the 65 k → 131 k doubling step** (fixed 2026-05-14, commit `aecb9ce2`). The grow path triggered back-to-back minor + major GC, and after the second swap the original `a` address was recycled by the fresh-buf allocation that immediately followed — `vader_array_resolve` then walked zero steps because the forward pointer was overwritten. Fix : box `a` into a local `vader_box_t` rooted on the shadow stack across `vader_array_buf_alloc` ; the GC's `scan_box` re-updates the box's `payload.obj` through every cycle, no forward-chain walk needed. The bench was capped at N = 50 000 to dodge the bug ; now it runs at N = 80 000.
 
 ## Adding a workload
 

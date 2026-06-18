@@ -3,9 +3,7 @@
 > **Status**: superseded (2026-05-20). The POC gate was passed and Phases 0,
 > 1, and 2 (path γ) all shipped — see
 > [`STDLIB_GENERIC_COLLAPSE.md`](./STDLIB_GENERIC_COLLAPSE.md) for the final
-> state. Bench artefacts in `bench/poc_erasure/` (Makefile `verify` and
-> `verify_packed` targets) remain wired as regression checks for the vtable
-> emit and the packed-inline-box payload.
+> state.
 >
 > **Cross-refs**: `docs/STDLIB_GENERIC_COLLAPSE.md` (parent plan,
 > Decision log entry "2026-05-19 — A POC precedes Phase 0").
@@ -58,7 +56,7 @@ hand in plain Vader + C, compiled by the current TS compiler.
 
 ### 2.1 Erased map and entry — Vader source
 
-File: `bench/poc_erasure/erased_map.vader`
+File: `erased_map.vader`
 
 Hand-written equivalent of what the erasure pass would emit:
 
@@ -90,7 +88,7 @@ running the same POC under both layouts.
 
 ### 2.2 Dispatch helper — C source
 
-File: `bench/poc_erasure/vader_poc_dispatch.h` + `.c`
+File: `vader_poc_dispatch.h` + `.c`
 
 Minimal runtime helper:
 
@@ -114,7 +112,7 @@ one for `User` values. The Vader code calls
 
 ### 2.3 Bench harness — Vader source
 
-File: `bench/poc_erasure/bench.vader`
+File: `bench.vader`
 
 Three measurements over both implementations (erased and
 monomorphised baseline from `tests/snippets/mutable_map_string`):
@@ -135,14 +133,14 @@ parent plan's primary motivation is `cc` time).
 |---|---|---|---|
 | `cc -O3` on self-host monolithic TU (`bun run build:cli`) | Re-run on machine pre-POC | 161 s (TODO §3.5, last measured 2026-05) | **177 s** wall / 174 s user |
 | `bench/map_iter` Vader-native min | baseline.json | 9.7 ms | 11.1 ms |
-| Insert wall-time, monomorphised `string→user_t` (POC bench) | `bench/poc_erasure/bench` | TBD | **81.8 ns/op** (min over 5 runs) |
+| Insert wall-time, monomorphised `string→user_t` (POC bench) | `bench` | TBD | **81.8 ns/op** (min over 5 runs) |
 | Insert allocations, monomorphised | `poc_alloc` counter | TBD | 1000 (one per unique key, no extra box) |
 | Get wall-time, monomorphised `string→i64` | POC bench | TBD | **81.4 ns/op** |
 
 The 177 s is on the current machine state, slightly above the
 historical 161 s. Order of magnitude matches.
 
-Full raw output: `bench/poc_erasure/results.md`.
+Full raw output: `results.md`.
 
 ---
 
@@ -235,9 +233,9 @@ after Phase 0 lands.
 | Task | Effort |
 |---|---|
 | Re-measure baseline (`cc -O3`, runtime, allocations) | 0.5 day |
-| Write `bench/poc_erasure/erased_map.vader` | 1 day |
-| Write `bench/poc_erasure/vader_poc_dispatch.{h,c}` | 0.5 day |
-| Write `bench/poc_erasure/bench.vader` | 0.5 day |
+| Write `erased_map.vader` | 1 day |
+| Write `vader_poc_dispatch.{h,c}` | 0.5 day |
+| Write `bench.vader` | 0.5 day |
 | Run measurements, both vtable layouts | 0.5 day |
 | Analysis, fill in this doc with actuals, decision | 0.5–1 day |
 | **Total** | **3–5 days** |
@@ -301,7 +299,7 @@ By the end of the POC, this doc commits answers to:
 
 POC executed 2026-05-19. **Score: 3 PASS / 1 FAIL / 1 DEFERRED.**
 
-Files produced in `bench/poc_erasure/`:
+Files produced:
 - `shared.{h,c}`, `mono_map.{h,c}`, `erased_map.{h,c}`,
   `erased_map_inline_vt.{h,c}` — POC implementations
 - `gen_mono_burst.c`, `gen_erased_burst.c` — multi-instantiation cc -O3 stress
