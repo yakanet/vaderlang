@@ -21,7 +21,7 @@ import "vader/lsp/protocol" {
 import "vader/lsp/analysis" {
     ServerState, typed_project_for, source_file_for_path, enclosing_exprs,
 }
-import "vader/lsp/actions" { ActionCtx, ActionResult, run_actions }
+import "vader/lsp/actions" { ActionCtx, ActionResult, run_actions, run_source_actions }
 
 /// Resolve code actions for the range in `params`. Returns a `CodeAction[]`
 /// (possibly empty) — never null, per the LSP array-typed response.
@@ -44,14 +44,19 @@ export handle_code_action :: fn(state: ServerState, params: JsonValue) -> JsonVa
     // LSP positions are 0-based ; the AST is 1-based. Anchor on the range start.
     line :: range_start_field(params, "line") + i32(1)
     col  :: range_start_field(params, "character") + i32(1)
-    chain :: enclosing_exprs(sf.program.decls, line, col)
-    if chain.len() == 0 { return JsonArray { .items = [] } }
-
     ctx :: ActionCtx { .source = sf.content }
-    results :: run_actions(chain, ctx)
 
     items: JsonValue[] = []
-    for r in results {
+    // Node-driven rewrites (match→if, if→match, UFCS) on the cursor's enclosing
+    // expressions ; then file-level source actions (organize-imports), which
+    // don't depend on the cursor sitting inside an expression.
+    chain :: enclosing_exprs(sf.program.decls, line, col)
+    node_results :: run_actions(chain, ctx)
+    for r in node_results {
+        items.push(code_action_json(r, uri))
+    }
+    source_results :: run_source_actions(sf.program.decls, ctx)
+    for r in source_results {
         items.push(code_action_json(r, uri))
     }
     return JsonArray { .items = items }
