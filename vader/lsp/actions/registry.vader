@@ -93,6 +93,48 @@ export run_actions :: fn(nodes: AST.Expr[], ctx: ActionCtx) -> ActionResult[] {
     return out
 }
 
+// ---- source (file-level) actions ------------------------------------------
+
+/// A file-level code action (`source.*`) — operates on the whole file's
+/// declarations rather than a cursor node. The node-driven `CodeAction` can't
+/// express it : its target (e.g. the import block) isn't an `AST.Expr` and its
+/// edit range is computed from the decls, not a single node's span. So `apply`
+/// returns a complete `ActionResult` (its own `target_span` + text), or `null`
+/// to decline — including the no-op case where the file is already organised.
+export SourceAction :: struct {
+    /// LSP `CodeActionKind` (e.g. `"source.organizeImports"`).
+    kind:          string
+    /// Human-facing title.
+    title:         string
+    is_applicable: fn(AST.Decl[], ActionCtx) -> bool
+    apply:         fn(AST.Decl[], ActionCtx) -> ActionResult | null
+}
+
+/// Every registered source action. Central registration — add new ones here.
+/// A function (not a const) for the same reason as `all_actions`.
+all_source_actions :: fn() -> SourceAction[] = [
+    organize_imports_action(),
+]
+
+/// Run every source action against the file's `decls`. Each applicable action
+/// that produces a non-null edit contributes one result.
+///
+/// @param decls  the file's top-level declarations.
+/// @param ctx    the action context (document source).
+/// @return       the applicable source actions' results, in registration order.
+export run_source_actions :: fn(decls: AST.Decl[], ctx: ActionCtx) -> ActionResult[] {
+    out: ActionResult[] = []
+    acts :: all_source_actions()
+    for ai in 0..<acts.len() {
+        a :: acts[ai]
+        if a.is_applicable(decls, ctx) {
+            r :: a.apply(decls, ctx)
+            if r != null { out.push(r) }
+        }
+    }
+    return out
+}
+
 /// `format_expr` renders from column 0 ; re-indent every line after the first by
 /// `indent` spaces so a rewritten node sits correctly at its source column.
 /// Shared by the rewrite actions.

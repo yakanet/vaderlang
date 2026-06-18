@@ -1,0 +1,341 @@
+// vader/lsp/actions/organize_imports — the `source.organizeImports` action.
+//
+// Rewrites the file's leading import block into the canonical form CLAUDE.md §7
+// prescribes : grouped by origin (`std/` first, then `vader/`, then everything
+// else), alphabetical by path within each group, a blank line between groups,
+// and same-path destructure imports merged into one brace block with their
+// names de-duplicated and sorted.
+//
+//   import "vader/diagnostics" { Span }        import "std/string" { join, split }
+//   import "std/string" { split }          →
+//   import "std/string" { join }               import "vader/diagnostics" { Span }
+//
+// Conservative by design (lossy = refuse, like the rewrite actions). The action
+// DECLINES — contributing nothing — when it can't transform safely :
+//   - the imports aren't one contiguous run at the head of the file (a non-import
+//     decl interleaved would force moving code across declarations) ;
+//   - any import carries a decorator (unusual ; rendering it isn't modelled) ;
+//   - a comment sits between two imports (a region-replace would drop it) ;
+//   - the block is already organised (the rewrite would be a no-op).
+//
+// Namespace-alias imports (`X :: import "p"`) are reordered but never merged with
+// each other or with a brace import of the same path — distinct bindings. Drop
+// of unused imports is intentionally out of scope (it needs a whole-file
+// reference scan) ; tracked as a follow-up.
+
+module "vader/lsp/actions"
+
+import "std/collections" { MutableMap }
+import "std/string" { starts_with, join, compare_ascending }
+import "std/sort" { sort }
+import "vader/diagnostics" { Span }
+AST :: import "vader/parser"
+
+/// The organize-imports source action. Registered in `registry::all_source_actions`.
+organize_imports_action :: fn() -> SourceAction = SourceAction {
+    .kind          = "source.organizeImports",
+    .title         = "Organize imports",
+    .is_applicable = oi_applicable,
+    .apply         = oi_apply,
+}
+
+oi_applicable :: fn(decls: AST.Decl[], ctx: ActionCtx) -> bool {
+    run :: oi_import_run(decls)
+    if run.len() < 1 { return false }
+    if i32(run.len()) != oi_total_imports(decls) { return false }   // scattered -> refuse
+    if oi_has_decorators(run) { return false }
+    if oi_has_interleaved_comments(run, ctx.source) { return false }
+    return true
+}
+
+oi_apply :: fn(decls: AST.Decl[], ctx: ActionCtx) -> ActionResult | null {
+    run :: oi_import_run(decls)
+    if run.len() < 1 { return null }
+    if i32(run.len()) != oi_total_imports(decls) { return null }
+    if oi_has_decorators(run) { return null }
+    if oi_has_interleaved_comments(run, ctx.source) { return null }
+
+    rendered :: oi_render(run)
+    region :: Span { .start = run[0].span.start, .end = run[run.len() - 1].span.end }
+    original :: oi_slice(ctx.source, region)
+    if rendered == original { return null }   // already organised -> no-op
+    return ActionResult {
+        .kind = "source.organizeImports", .title = "Organize imports",
+        .target_span = region, .new_text = rendered,
+    }
+}
+
+// ---- block discovery & safety ---------------------------------------------
+
+// The contiguous run of import decls at the head of `decls` (Vader files open
+// with their imports). Stops at the first non-import.
+oi_import_run :: fn(decls: AST.Decl[]) -> AST.ImportDecl[] {
+    run: AST.ImportDecl[] = []
+    for di in 0..<decls.len() {
+        d :: decls[di]
+        if d is AST.ImportDecl as im {
+            run.push(im)
+        } else {
+            break
+        }
+    }
+    return run
+}
+
+oi_total_imports :: fn(decls: AST.Decl[]) -> i32 {
+    n: i32 = 0
+    for di in 0..<decls.len() {
+        if decls[di] is AST.ImportDecl { n = n + 1 }
+    }
+    return n
+}
+
+oi_has_decorators :: fn(run: AST.ImportDecl[]) -> bool {
+    for i in 0..<run.len() {
+        if run[i].decorators.len() > 0 { return true }
+    }
+    return false
+}
+
+// A non-whitespace byte between two consecutive imports is a comment (the only
+// thing the grammar allows there) — replacing the region would drop it, so the
+// action must decline.
+oi_has_interleaved_comments :: fn(run: AST.ImportDecl[], source: string) -> bool {
+    if run.len() < 2 { return false }
+    sb :: source.bytes()
+    for i in 0..<(run.len() - 1) {
+        j := run[i].span.end.offset
+        stop :: run[i + 1].span.start.offset
+        for j < stop {
+            b :: sb[j]
+            if b != b' ' && b != b'\t' && b != b'\n' && b != b'\r' { return true }
+            j = j + 1
+        }
+    }
+    return false
+}
+
+// ---- rendering ------------------------------------------------------------
+
+// One import to emit, after merge/dedup, with its sort key (group, then path).
+OiEntry :: struct {
+    group: i32       // 0 = std/, 1 = vader/, 2 = other
+    path:  string
+    text:  string    // the fully-rendered import line(s)
+}
+
+oi_render :: fn(run: AST.ImportDecl[]) -> string {
+    // Merge destructure imports by path ; collect namespace imports (dedup exact).
+    destructure: MutableMap<string, AST.ImportName[]> = MutableMap<string, AST.ImportName[]> {}
+    dpaths: string[] = []
+    ns_entries: OiEntry[] = []
+    ns_seen: MutableMap<string, bool> = MutableMap<string, bool> {}
+
+    for i in 0..<run.len() {
+        im :: run[i]
+        match im.binding {
+            is AST.DestructureImport as dst -> {
+                existing :: destructure[im.path]
+                if existing == null {
+                    fresh: AST.ImportName[] = []
+                    for ni in 0..<dst.names.len() { fresh.push(dst.names[ni]) }
+                    destructure[im.path] = fresh
+                    dpaths.push(im.path)
+                } else {
+                    for ni in 0..<dst.names.len() { existing.push(dst.names[ni]) }
+                }
+            }
+            is AST.NamedNamespaceImport as nn -> {
+                text :: oi_render_namespace(im.path, nn)
+                if ns_seen[text] == null {
+                    ns_seen[text] = true
+                    ns_entries.push(OiEntry { .group = oi_group(im.path), .path = im.path, .text = text })
+                }
+            }
+        }
+    }
+
+    entries: OiEntry[] = []
+    for pi in 0..<dpaths.len() {
+        p :: dpaths[pi]
+        names :: destructure[p]
+        if names != null {
+            entries.push(OiEntry { .group = oi_group(p), .path = p, .text = oi_render_destructure(p, names) })
+        }
+    }
+    for i in 0..<ns_entries.len() { entries.push(ns_entries[i]) }
+
+    sorted :: sort(entries, oi_entry_lt)
+
+    out := ""
+    prev_group: i32 = -1
+    for i in 0..<sorted.len() {
+        e :: sorted[i]
+        if i > 0 {
+            out = out + "\n"
+            if e.group != prev_group { out = out + "\n" }   // blank line between groups
+        }
+        out = out + e.text
+        prev_group = e.group
+    }
+    return out
+}
+
+oi_entry_lt :: fn(a: OiEntry, b: OiEntry) -> bool {
+    if a.group != b.group { return a.group < b.group }
+    if a.path != b.path { return compare_ascending(a.path, b.path) }
+    return compare_ascending(a.text, b.text)
+}
+
+oi_group :: fn(path: string) -> i32 {
+    if path.starts_with("std/") { return 0 }
+    if path.starts_with("vader/") { return 1 }
+    return 2
+}
+
+// `import "path" { a, b, c }` — names de-duplicated + sorted. Single-line unless
+// it would exceed the 100-column soft wrap, then one name per line.
+oi_render_destructure :: fn(path: string, names: AST.ImportName[]) -> string {
+    texts :: oi_sorted_name_texts(names)
+    single :: "import \"" + path + "\" { " + texts.join(", ") + " }"
+    if single.bytes().len() <= usize(100) { return single }
+    body := "import \"" + path + "\" {"
+    for i in 0..<texts.len() { body = body + "\n    " + texts[i] + "," }
+    return body + "\n}"
+}
+
+// `name :: import "path"` (+ a restricted brace block when scoped).
+oi_render_namespace :: fn(path: string, nn: AST.NamedNamespaceImport) -> string {
+    head :: nn.name + " :: import \"" + path + "\""
+    rn :: nn.restricted
+    if rn == null { return head }
+    return head + " { " + oi_sorted_name_texts(rn).join(", ") + " }"
+}
+
+// Render each import name to text, de-duplicate, and sort ascending. Rendering
+// first lets a plain string sort order names then aliases (`A` < `A as X` < `B`).
+oi_sorted_name_texts :: fn(names: AST.ImportName[]) -> string[] {
+    texts: string[] = []
+    seen :: MutableMap<string, bool> {}
+    for i in 0..<names.len() {
+        t :: oi_name_text(names[i])
+        if seen[t] == null {
+            seen[t] = true
+            texts.push(t)
+        }
+    }
+    return sort(texts, compare_ascending)
+}
+
+oi_name_text :: fn(n: AST.ImportName) -> string {
+    a :: n.alias
+    if a == null { return n.name }
+    return n.name + " as " + a
+}
+
+oi_slice :: fn(source: string, span: Span) -> string {
+    return source.bytes()[span.start.offset..<span.end.offset].bytes_to_string()
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert }
+
+oi_decls :: fn(src: string) -> AST.Decl[] {
+    return AST.parse_source(src, "t.vader").program.decls
+}
+
+@test
+test_organize_sorts_and_groups :: fn() -> void {
+    src :: "module \"t\"\n\nimport \"vader/diagnostics\" { Span }\nimport \"std/string\" { split }\n\nx :: fn() -> i32 = 0\n"
+    decls :: oi_decls(src)
+    ctx :: ActionCtx { .source = src }
+    assert(oi_applicable(decls, ctx), "two contiguous imports organise")
+    r :: oi_apply(decls, ctx)
+    if r == null {
+        assert(false, "expected an edit")
+        return
+    }
+    // std before vader, blank line between groups.
+    expected :: "import \"std/string\" { split }\n\nimport \"vader/diagnostics\" { Span }"
+    assert(r.new_text == expected, "groups std before vader with a blank line: got [${r.new_text}]")
+}
+
+@test
+test_organize_merges_same_path :: fn() -> void {
+    src :: "module \"t\"\n\nimport \"std/string\" { split }\nimport \"std/string\" { join }\n"
+    decls :: oi_decls(src)
+    ctx :: ActionCtx { .source = src }
+    r :: oi_apply(decls, ctx)
+    if r == null {
+        assert(false, "expected an edit")
+        return
+    }
+    assert(r.new_text == "import \"std/string\" { join, split }", "merges + sorts same-path names: got [${r.new_text}]")
+}
+
+@test
+test_organize_dedups_names :: fn() -> void {
+    src :: "module \"t\"\n\nimport \"std/string\" { split, split, join }\n"
+    decls :: oi_decls(src)
+    ctx :: ActionCtx { .source = src }
+    r :: oi_apply(decls, ctx)
+    if r == null {
+        assert(false, "expected an edit")
+        return
+    }
+    assert(r.new_text == "import \"std/string\" { join, split }", "drops duplicate names: got [${r.new_text}]")
+}
+
+@test
+test_organize_declines_already_sorted :: fn() -> void {
+    src :: "module \"t\"\n\nimport \"std/string\" { join, split }\n\nimport \"vader/diagnostics\" { Span }\n"
+    decls :: oi_decls(src)
+    ctx :: ActionCtx { .source = src }
+    assert(oi_applicable(decls, ctx), "still a valid import block")
+    assert(oi_apply(decls, ctx) == null, "already organised -> no-op edit declined")
+}
+
+@test
+test_organize_declines_interleaved_comment :: fn() -> void {
+    src :: "module \"t\"\n\nimport \"std/string\" { split }\n// keep me\nimport \"std/sort\" { sort }\n"
+    decls :: oi_decls(src)
+    ctx :: ActionCtx { .source = src }
+    assert(!oi_applicable(decls, ctx), "a comment between imports -> decline (would be dropped)")
+}
+
+@test
+test_organize_declines_scattered :: fn() -> void {
+    src :: "module \"t\"\n\nimport \"std/string\" { split }\n\nx :: fn() -> i32 = 0\n\nimport \"std/sort\" { sort }\n"
+    decls :: oi_decls(src)
+    ctx :: ActionCtx { .source = src }
+    assert(!oi_applicable(decls, ctx), "imports split by a decl -> decline")
+}
+
+@test
+test_organize_keeps_namespace_alias :: fn() -> void {
+    src :: "module \"t\"\n\nimport \"std/string\" { split }\nP :: import \"vader/parser\"\n"
+    decls :: oi_decls(src)
+    ctx :: ActionCtx { .source = src }
+    r :: oi_apply(decls, ctx)
+    if r == null {
+        assert(false, "expected an edit")
+        return
+    }
+    assert("P :: import \"vader/parser\"" in r.new_text, "namespace-alias import preserved: got [${r.new_text}]")
+}
+
+@test
+test_organize_roundtrip_reparses :: fn() -> void {
+    src :: "module \"t\"\n\nimport \"vader/diagnostics\" { Span }\nimport \"std/string\" { split }\nimport \"std/string\" { join }\n"
+    decls :: oi_decls(src)
+    ctx :: ActionCtx { .source = src }
+    r :: oi_apply(decls, ctx)
+    if r == null {
+        assert(false, "expected an edit")
+        return
+    }
+    spliced :: rt_splice(src, r)
+    reparsed :: AST.parse_source(spliced, "t.vader")
+    assert(reparsed.errors.len() == 0, "organised imports reparse clean")
+}
