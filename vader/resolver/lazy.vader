@@ -149,8 +149,10 @@ export preresolve_imports :: fn(
 // `discover.vader::walk_dir` (which recurses) — lazy never descends.
 scan_folder :: fn(dir: string, diags: Diagnostic[]) -> FolderBucket | null {
     entries_opt :: read_dir(dir)
-    empty_strs: string[] = []
-    raw: string[] = match entries_opt { is string[] as ss -> ss, is Error -> empty_strs }
+    raw: string[] = match entries_opt {
+        is string[] as ss -> ss
+        is Error -> []
+    }
     if raw.len() == 0 { return null }
     sorted :: sort(raw, (a: string, b: string) -> compare_ascending(a, b))
     files_here: string[] = []

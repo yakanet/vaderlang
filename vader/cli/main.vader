@@ -177,11 +177,8 @@ first_file_arg :: fn(positionals: string[]) -> string {
 
 // Split a comma-separated `--include-paths=a,b,c` flag value into a list (empty
 // for an absent/empty flag). These prepend the module search order (GCC `-I`).
-parse_include_path_flag :: fn(raw: string) -> string[] {
-    out: string[] = []
-    if raw == "" { return out }
-    return raw.split(",")
-}
+parse_include_path_flag :: fn(raw: string) -> string[] =
+    if raw == "" { [] } else { raw.split(",") }
 
 main :: fn(argv: string[]) -> i32 {
     // argv[0] is the binary path ; meaningful args start at index 1.
