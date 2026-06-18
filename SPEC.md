@@ -30,7 +30,7 @@ Vader is a **general-purpose application language**, **strongly typed with type 
 
 - **Simplicity over exotic features** — no feature for the feature's sake.
 - **Reading > writing** — syntax must read top to bottom. Generics use the
-  familiar `<T>` form (Java/C# style) ; the parser keeps the `<` →
+  familiar `<T>` form (Java/C# style); the parser keeps the `<` →
   generic-instantiation decision local with a hard-precedence rule
   (commits to generic only when `<…>` closes with `(` or `{`), so
   comparison `<` stays unambiguous in expression position.
@@ -54,7 +54,7 @@ Source (.vader)
   ↓ Monomorphizer    → AST with no abstract generics
   ↓ Lowerer          → Desugaring (pattern match → if/else chains, traits → static dispatch, try → match)
   ↓ DCE              → Lowered AST with stdlib decls unreachable from user code pruned
-  ↓ Mid-IR (CFG)     → Reducible CFG with basic blocks + terminators ; substrate for escape / liveness analyses
+  ↓ Mid-IR (CFG)     → Reducible CFG with basic blocks + terminators; substrate for escape / liveness analyses
   ↓ Bytecode emitter → Bytecode IR (stack-based)
   │
   ├──→ Stack-based VM   → vader run / @comptime
@@ -63,7 +63,7 @@ Source (.vader)
   └──→ WASM emitter     → .wasm (~1:1 mapping with bytecode, since WASM is also stack-based)
 ```
 
-Self-host status (Vader-side under `vader/`) : Lexer ✅, Parser ✅, Resolver ✅ (9 modules under `vader/resolver/`), Formatter 🟡 (partial — see §18), LSP ✅, VM 🟡 (`.virt` subset), Bytecode emitter 🟡 (scaffolding + literal emit landed), Type-checker / Lower / Mid-IR / C emitter not yet ported. The TS-side under `src/` remains the reference. Parity is enforced per-stage by `tests/parity.test.ts` (CLI byte-for-byte stdout diff) — currently covers `lexer`, `parser`, `resolved-ast`.
+Self-host status (Vader-side under `vader/`): Lexer ✅, Parser ✅, Resolver ✅ (9 modules under `vader/resolver/`), Formatter 🟡 (partial — see §18), LSP ✅, VM 🟡 (`.virt` subset), Bytecode emitter 🟡 (scaffolding + literal emit landed), Type-checker / Lower / Mid-IR / C emitter not yet ported. The TS-side under `src/` remains the reference. Parity is enforced per-stage by `tests/parity.test.ts` (CLI byte-for-byte stdout diff) — currently covers `lexer`, `parser`, `resolved-ast`.
 
 ### Canonical IR
 
@@ -102,15 +102,15 @@ The Lowered AST is the input to the dead-code elimination pass. It is dumpable a
 
 ### Mid-IR (CFG)
 
-Between the (DCE'd) Lowered AST and the bytecode emitter, a Mid-IR layer lowers every `LoweredFnDecl` to a **reducible CFG** of basic blocks with explicit terminators (`branch`, `cond_branch`, `return`, `unreachable`). Expressions become three-address `Instruction` sequences over named local slots ; control flow (`LoweredIf`, `LoweredLoop`, `break`, `continue`, `return`) becomes block terminators. Strings are interned into a project-level pool reused verbatim by the emitter.
+Between the (DCE'd) Lowered AST and the bytecode emitter, a Mid-IR layer lowers every `LoweredFnDecl` to a **reducible CFG** of basic blocks with explicit terminators (`branch`, `cond_branch`, `return`, `unreachable`). Expressions become three-address `Instruction` sequences over named local slots; control flow (`LoweredIf`, `LoweredLoop`, `break`, `continue`, `return`) becomes block terminators. Strings are interned into a project-level pool reused verbatim by the emitter.
 
-The CFG is the substrate for analyses that need def-use chains rather than tree walks :
+The CFG is the substrate for analyses that need def-use chains rather than tree walks:
 
 - **Escape analysis** — stack-allocates structs whose lifetime stays within the function (no SSA).
-- **Loop-carried-dependency check** — replaces the over-conservative "in loop ⇒ escapes" filter ; +95 stack-promotions on the self-host.
+- **Loop-carried-dependency check** — replaces the over-conservative "in loop ⇒ escapes" filter; +95 stack-promotions on the self-host.
 - **Dead-store elimination** — finer-grained than the AST-level DCE pass, prunes individual writes whose result is never read.
 
-The bytecode emitter consumes the CFG (not the Lowered AST), recovers WASM-style structured nesting via a structurer pass that uses immediate dominators + post-dominators, and emits the linear stack ops. CFG dumps are exposed via `vader dump --stage=cfg`. Design : `docs/MID_IR_DESIGN.md`.
+The bytecode emitter consumes the CFG (not the Lowered AST), recovers WASM-style structured nesting via a structurer pass that uses immediate dominators + post-dominators, and emits the linear stack ops. CFG dumps are exposed via `vader dump --stage=cfg`. Design: `docs/MID_IR_DESIGN.md`.
 
 ### Dead-code elimination
 
@@ -171,24 +171,24 @@ main :: fn() -> i32 { return 0 }
 */
 ```
 
-Nested block comments are supported : the lexer tracks nesting depth and only closes the outer comment when depth returns to zero.
+Nested block comments are supported: the lexer tracks nesting depth and only closes the outer comment when depth returns to zero.
 
 ### VaderDoc
 
-Doc-comments start with `///` (line form). Each successive `///` line is part of the same doc-block attached to the declaration that immediately follows. The lexer drops every comment before the parser sees it ; tooling consumes them by re-scanning the source (`vader/fmt/comments.scan_comments` and the future `vader doc` extractor). The `///` form is the only supported VaderDoc shape — `/**` block-style doc-comments are NOT recognised.
+Doc-comments start with `///` (line form). Each successive `///` line is part of the same doc-block attached to the declaration that immediately follows. The lexer drops every comment before the parser sees it; tooling consumes them by re-scanning the source (`vader/fmt/comments.scan_comments` and the future `vader doc` extractor). The `///` form is the only supported VaderDoc shape — `/**` block-style doc-comments are NOT recognised.
 
-Doc-comments may use the following tags. Tags appear one per line, after a blank-line-separated body :
+Doc-comments may use the following tags. Tags appear one per line, after a blank-line-separated body:
 
 | Tag        | Meaning                                                                          |
 |------------|----------------------------------------------------------------------------------|
-| `@param`   | Describe one named parameter. Format : `@param <name>  <description>`.           |
+| `@param`   | Describe one named parameter. Format: `@param <name>  <description>`.           |
 | `@return`  | Describe the return value. Omit for `void` returns.                              |
 | `@error`   | Describe which `Error` variant(s) can be raised and under what cause.            |
 | `@example` | A usage snippet block. Lines after the bare `@example` line are the body — the convention is to indent them with backtick-wrapped code, one example per line. |
 
 ```vader
 /// Parse `s` as a base-10 `i32`. No prefix, no underscores, no leading
-/// `+` sign ; a leading `-` is accepted.
+/// `+` sign; a leading `-` is accepted.
 ///
 /// @param s  the digits-only input.
 /// @return   the parsed integer.
@@ -218,7 +218,7 @@ const
 @<decorator>
 ```
 
-The identifier `void` is **reserved** : binding it as a fn name, struct name, parameter, local, type-param, pattern binding, or namespace-import name raises `R2019`. The name describes the type of expressions that yield no value and is never user-facing in source code.
+The identifier `void` is **reserved**: binding it as a fn name, struct name, parameter, local, type-param, pattern binding, or namespace-import name raises `R2019`. The name describes the type of expressions that yield no value and is never user-facing in source code.
 
 `Self` (capitalised) is **not** a lexical keyword — it is a reserved *type name* resolved by the typechecker, usable only inside `trait` / `implements` bodies where it denotes the implementing type. Using it elsewhere raises `T3023`. (Only lowercase `self`, the receiver parameter, is a keyword.)
 
@@ -344,11 +344,11 @@ From tightest to loosest. Higher levels bind more tightly. Non-assoc operators f
 | 12    | `\|\|`                                 | left           |
 | 13    | `=` (statement-level only)             | n/a            |
 
-Type casts (`Type(expr)`) are parsed as primary call expressions and naturally sit at level 1. The `is Type` form used in `match` arms binds at the comparison level. `!is Type` is a parser-level sugar that desugars to `!(x is Type)` ; the flow-narrower handles the wrapping `!` to flip then/else, and `as <ident>` is rejected after `!is` since the binding has no meaningful lifetime when the type check is negated.
+Type casts (`Type(expr)`) are parsed as primary call expressions and naturally sit at level 1. The `is Type` form used in `match` arms binds at the comparison level. `!is Type` is a parser-level sugar that desugars to `!(x is Type)`; the flow-narrower handles the wrapping `!` to flip then/else, and `as <ident>` is rejected after `!is` since the binding has no meaningful lifetime when the type check is negated.
 
 `is` checks the runtime *struct-tag* of the value, not a "union tag" — `x is <UnionType>` therefore always returns false. The typechecker emits `W0003` whenever the RHS of `is` resolves to a union (literal `A | B` or a `MyUnion :: A | B` alias), suggesting the user destructure into individual variants via `match v { is A -> ... is B -> ... }` instead.
 
-Flow narrowing flows through a `&&` condition: in `if x is T && <rest>` the scrutinee `x` is narrowed to `T` both in the conjunction's right operand (`<rest>`) and in the then-block, so `if x is Circle && x.radius > 0 { … x.radius … }` type-checks. The else branch of a conjunction is **not** narrowed (a false `a && b` doesn't reveal which operand failed). An `as` binding may **not** appear inside a `&&` — `if x is T as a && …` raises `R2029` because the binding's scope across the short-circuit is ambiguous ; narrow the variable in place (`if x is T && …`) or nest the checks (`if x is T as a { if … }`).
+Flow narrowing flows through a `&&` condition: in `if x is T && <rest>` the scrutinee `x` is narrowed to `T` both in the conjunction's right operand (`<rest>`) and in the then-block, so `if x is Circle && x.radius > 0 { … x.radius … }` type-checks. The else branch of a conjunction is **not** narrowed (a false `a && b` doesn't reveal which operand failed). An `as` binding may **not** appear inside a `&&` — `if x is T as a && …` raises `R2029` because the binding's scope across the short-circuit is ambiguous; narrow the variable in place (`if x is T && …`) or nest the checks (`if x is T as a { if … }`).
 
 ### Statement separators
 
@@ -364,7 +364,7 @@ Trailing commas are allowed in every comma-separated list: function arguments, f
 
 A newline terminates a statement. No `;` is required. The lexer emits a `NEWLINE` token at every line break **except** in the four cases below, where the newline is silently absorbed:
 
-1. **Inside an unclosed bracket** `(` or `[` — newlines inside parens / array construction are insignificant. (Newlines inside `{ }` blocks stay significant — they separate statements ; only a newline *immediately after* an opening `{` is absorbed, per *Statement separators* above.)
+1. **Inside an unclosed bracket** `(` or `[` — newlines inside parens / array construction are insignificant. (Newlines inside `{ }` blocks stay significant — they separate statements; only a newline *immediately after* an opening `{` is absorbed, per *Statement separators* above.)
 2. **After a binary or unary operator** that is still pending an operand: `+`, `-`, `*`, `/`, `%`, `<`, `<=`, `>`, `>=`, `==`, `!=`, `&&`, `||`, `&`, `|`, `^`, `<<`, `>>`, `..<`, `..=`, and the spread `...`. (A newline after `?` or `!` is **not** absorbed.)
 3. **After a comma** `,`.
 4. **After a token that expects a right-hand side**: `=`, `:`, `->`, `=>`, the binding operators `::` / `:=`, and the compound-assignments `+=` `-=` `*=` `/=` `%=`.
@@ -410,7 +410,7 @@ x := a + \
 | Null | `null` |
 | Metatype | `type` (comptime-only — see below) |
 
-`type` is the **metatype** : a value of static type `type` *is* a Vader type. It is **comptime-only** — values never reach runtime, so `: type` is only meaningful in comptime contexts (currently the angle-bracketed `<T: type>` generic-param head, soon `let T: type = i32` and the result type of intrinsics like `@type_of(x)`). The compiler enforces that any expression typed `type` is comptime-evaluable ; emitting one in a runtime slot is an internal-bug error in the bytecode emitter.
+`type` is the **metatype**: a value of static type `type` *is* a Vader type. It is **comptime-only** — values never reach runtime, so `: type` is only meaningful in comptime contexts (currently the angle-bracketed `<T: type>` generic-param head, soon `let T: type = i32` and the result type of intrinsics like `@type_of(x)`). The compiler enforces that any expression typed `type` is comptime-evaluable; emitting one in a runtime slot is an internal-bug error in the bytecode emitter.
 
 ### Built-in type aliases
 
@@ -434,9 +434,9 @@ Array `len()` returns `usize`, and array indexing accepts `usize` (the runtime a
 
 These are **built-in** aliases recognised by the resolver and type-checker; they are *not* user-defined type aliases. Aliases are not reserved keywords — they are identifiers that resolve to a builtin-type symbol, so user code may shadow them in local scope (though this is strongly discouraged).
 
-User-defined type aliases use the same `Foo :: <type-expr>` syntax as a regular const declaration — `type` is not a keyword in Vader. The typechecker recognises a const whose value is structurally a type expression (built from type-name references and the type operators `|` / `&` / `[]` / `fn(...) -> ...`) and promotes it to a type alias : no runtime slot is allocated and the name is usable in any type-demanding slot.
+User-defined type aliases use the same `Foo :: <type-expr>` syntax as a regular const declaration — `type` is not a keyword in Vader. The typechecker recognises a const whose value is structurally a type expression (built from type-name references and the type operators `|` / `&` / `[]` / `fn(...) -> ...`) and promotes it to a type alias: no runtime slot is allocated and the name is usable in any type-demanding slot.
 
-Generic type aliases use the LHS-angle head `Foo<T> :: <body>` — the `<...>` between the ident and `::` is unambiguous (no other decl form puts angles there), so the parser dispatches without a form-selector keyword. Type parameters are always written with angle brackets `<...>` ; there is no bracket or paren form.
+Generic type aliases use the LHS-angle head `Foo<T> :: <body>` — the `<...>` between the ident and `::` is unambiguous (no other decl form puts angles there), so the parser dispatches without a form-selector keyword. Type parameters are always written with angle brackets `<...>`; there is no bracket or paren form.
 
 ```vader
 // Non-generic implicit alias — just a const whose value is a type
@@ -471,7 +471,7 @@ There is **no implicit coercion between sized numeric types**. `i32 → i64` req
 
 ### Float ↔ bits reinterpret
 
-A `Type(expr)` cast **converts the value** (`u64(3.7)` truncates to `3` ; `f64(5)` widens to `5.0`). To reinterpret a float as its raw **IEEE 754 bit pattern** — a different operation, same bits, no value change — use the dedicated methods (NOT the cast, which would silently change meaning) :
+A `Type(expr)` cast **converts the value** (`u64(3.7)` truncates to `3`; `f64(5)` widens to `5.0`). To reinterpret a float as its raw **IEEE 754 bit pattern** — a different operation, same bits, no value change — use the dedicated methods (NOT the cast, which would silently change meaning):
 
 ```
 x: f64 = 3.0
@@ -483,9 +483,9 @@ back :: bits.from_bits()   // f64 3.0                 — round-trips bit-for-bi
 
 ### Numeric-literal context-sensitivity
 
-An unsuffixed integer literal stays as a *free* (untyped) numeric until its surrounding context provides a concrete width ; at that point it adopts the slot's type *without* a runtime conversion. This is what makes `x: usize = 5`, `Box { .size = 10 }`, `arr.slice(0, n - 1)`, `if usz == 42`, and `g: i64 = -50` all compile without explicit casts even though `5`, `10`, `0`, `42`, `50` would otherwise default to `i32`.
+An unsuffixed integer literal stays as a *free* (untyped) numeric until its surrounding context provides a concrete width; at that point it adopts the slot's type *without* a runtime conversion. This is what makes `x: usize = 5`, `Box { .size = 10 }`, `arr.slice(0, n - 1)`, `if usz == 42`, and `g: i64 = -50` all compile without explicit casts even though `5`, `10`, `0`, `42`, `50` would otherwise default to `i32`.
 
-The flow is bidirectional :
+The flow is bidirectional:
 - **Top-down (slot expected)** — typed lets, struct-field defaults, fn-arg slots, struct-lit field values, return-type-annotated `return …`, indexed `arr[i]` (slot is the impl's `I` type), comparison/arithmetic where one side has a concrete numeric type. The literal repins to the expected width.
 - **Unary `-`, `~`** — the operand inherits the operator's outer expected type, so `g: i64 = -50` lowers the inner `50` as `i64`, not `i32`.
 - **Generic call sites** — after type-parameter unification, FreeInt args adopt the substituted concrete width. Works through plain calls, generic UFCS, and namespace imports.
@@ -495,7 +495,7 @@ When no context applies, the literal falls back to its **default** (`i32` for in
 
 ### Type coercion via `Into`
 
-User-defined cross-type conversions go through the `Into<Target>` trait in `std/core`. The trait is single-method :
+User-defined cross-type conversions go through the `Into<Target>` trait in `std/core`. The trait is single-method:
 
 ```vader
 Into :: trait<Target> {
@@ -512,20 +512,20 @@ The compiler probes `S implements Into<T>` whenever a value of type `S` is about
 - A struct-literal field whose declared type differs from the argument's.
 
 **Explicit form**
-The `Target(value)` syntax doubles as the explicit coercion surface. Numeric and `char` targets keep their primitive cast semantics (`u32(x)`, `i64(c)`) ; non-numeric targets and numeric targets fed a non-numeric source route through `tryInto` and emit the matching `value.into()` call. The two paths share the same impl registry, so the implicit and explicit forms always agree on which method runs.
+The `Target(value)` syntax doubles as the explicit coercion surface. Numeric and `char` targets keep their primitive cast semantics (`u32(x)`, `i64(c)`); non-numeric targets and numeric targets fed a non-numeric source route through `tryInto` and emit the matching `value.into()` call. The two paths share the same impl registry, so the implicit and explicit forms always agree on which method runs.
 
 **Rules**
-- **Target must be concrete or a trait.** `Struct`, `Enum`, `Primitive`, and `Trait` targets trigger the probe ; `Union` and `TypeParam` slots are excluded. A union target leaves the typer unable to pick a variant ; a `TypeParam` slot resolves after mono. Direct trait widening (when `S` already implements `T`) runs first via `isAssignable`, so `tryInto` only fires for `Trait` targets when the source needs an actual conversion (the canonical case being `T[] → Iterator<T>` via the blanket `T[] implements<T> Into<Iterator<T>>`).
+- **Target must be concrete or a trait.** `Struct`, `Enum`, `Primitive`, and `Trait` targets trigger the probe; `Union` and `TypeParam` slots are excluded. A union target leaves the typer unable to pick a variant; a `TypeParam` slot resolves after mono. Direct trait widening (when `S` already implements `T`) runs first via `isAssignable`, so `tryInto` only fires for `Trait` targets when the source needs an actual conversion (the canonical case being `T[] → Iterator<T>` via the blanket `T[] implements<T> Into<Iterator<T>>`).
 - **No identity.** `T implements Into<T>` is forbidden (diagnostic **T3039** at the impl site) — it would shadow simple assignment and clutter the registry.
-- **No transitive chains.** The lookup is a single registry probe. `S → U → T` never auto-composes ; if both impls exist, the user must declare `S implements Into<T>` explicitly to bridge them. Prevents the "where did this allocation come from?" debugging trap.
+- **No transitive chains.** The lookup is a single registry probe. `S → U → T` never auto-composes; if both impls exist, the user must declare `S implements Into<T>` explicitly to bridge them. Prevents the "where did this allocation come from?" debugging trap.
 - **One impl per `(Source, Target)`.** Duplicate impls are caught by the standard resolver duplicate-impl diagnostic.
-- **Overload resolution is decided first.** When a call has overloaded candidates, the typer ranks them *without* `Into` ; the second-pass with `Into` only fires if no exact-match overload was found.
+- **Overload resolution is decided first.** When a call has overloaded candidates, the typer ranks them *without* `Into`; the second-pass with `Into` only fires if no exact-match overload was found.
 
 **Built-in coercions**
 - `T[] → Iterator<T>` — raw arrays auto-wrap into `ArrayIterator<T>` on entry to an `Iterator<T>` slot, materialised by the blanket impl `T[] implements<T> Into<Iterator<T>>` in `std/core`. Driven through the `Into` probe, not a special-cased typer rule.
 - `T → string` when `T: Display` — anything implementing `Display` flowing into a `string`-typed slot is rewritten as a call to the impl's `to_string` member, via the blanket `T implements<T: Display> Into<string>` in `std/core`. The string-interpolation path (`"${value}"`) bypasses `Into` and routes through the builder intrinsics directly.
-- `FreeInt → i32` / `FreeFloat → f64` and friends — unsuffixed literals defaulting to their canonical width at the typer level. Unrelated to `Into` ; happens before any coercion lookup.
-- Concrete `S → Trait` when `S` impl `Trait` — virtual dispatch boxing. Distinct from `Into` ; the value flows in unchanged and runtime dispatch resolves the method by tag.
+- `FreeInt → i32` / `FreeFloat → f64` and friends — unsuffixed literals defaulting to their canonical width at the typer level. Unrelated to `Into`; happens before any coercion lookup.
+- Concrete `S → Trait` when `S` impl `Trait` — virtual dispatch boxing. Distinct from `Into`; the value flows in unchanged and runtime dispatch resolves the method by tag.
 
 **Resolution order at a coercion site**
 1. `isAssignable(S, T)` — accepted (subtype, trait widening, numeric defaulting) → no work.
@@ -534,7 +534,7 @@ The `Target(value)` syntax doubles as the explicit coercion surface. Numeric and
 
 **Diagnostics**
 - `T3039` — `Into<T>` identity impl rejected (emitted at the impl site, not at the call site).
-- `T3001` / `T3020` — type mismatch ; the message indicates no coercion was found.
+- `T3001` / `T3020` — type mismatch; the message indicates no coercion was found.
 
 ### Signed overflow
 
@@ -544,11 +544,11 @@ The `Target(value)` syntax doubles as the explicit coercion surface. Numeric and
 
 - Internals: **fat value** `(ptr: rawptr, len: u32)` — 16 bytes copied on assignment, no shared reference.
 - Immutable. Concatenation allocates.
-- `len()` returns the number of Unicode codepoints (allocation-free walk via leading-byte widths). For the **byte** length, take a view and ask its length : `s.bytes().len()` — written inline like that, the lowerer folds it to an O(1) byte-length primitive (no view materialised). Byte vs. codepoint is thus explicit at the call site : `len()` for codepoint arithmetic, `s.bytes().len()` for byte arithmetic.
-- `chars()` returns an iterator of `char` (`StringChars implements Iterator<char>`) ; pair with `for c in s.chars()` for a true Unicode loop.
-- `bytes()` returns the UTF-8 byte sequence as `const u8[]` ; for ad-hoc byte processing (binary protocols carried in strings, ASCII fast paths, BOM detection). On the native target it is a **zero-copy view** aliasing the string's interned bytes (it allocates only a small array header, not the byte storage) ; the `const` is what keeps that view sound — writes are rejected at compile time (T3042) since the shared bytes are immutable. On the VM the bytes are **copied** into a materialised array (VM arrays box every slot and cannot alias a raw byte buffer) — same observable values, just not zero-copy. Iteration works through `for b in s.bytes()` via the built-in array iterator. Strings are deliberately **not** `Iterable` — there's no canonical "default" between bytes and codepoints, so `for x in s` is a compile error and the caller picks `s.bytes()` or `s.chars()` explicitly.
+- `len()` returns the number of Unicode codepoints (allocation-free walk via leading-byte widths). For the **byte** length, take a view and ask its length: `s.bytes().len()` — written inline like that, the lowerer folds it to an O(1) byte-length primitive (no view materialised). Byte vs. codepoint is thus explicit at the call site: `len()` for codepoint arithmetic, `s.bytes().len()` for byte arithmetic.
+- `chars()` returns an iterator of `char` (`StringChars implements Iterator<char>`); pair with `for c in s.chars()` for a true Unicode loop.
+- `bytes()` returns the UTF-8 byte sequence as `const u8[]`; for ad-hoc byte processing (binary protocols carried in strings, ASCII fast paths, BOM detection). On the native target it is a **zero-copy view** aliasing the string's interned bytes (it allocates only a small array header, not the byte storage); the `const` is what keeps that view sound — writes are rejected at compile time (T3042) since the shared bytes are immutable. On the VM the bytes are **copied** into a materialised array (VM arrays box every slot and cannot alias a raw byte buffer) — same observable values, just not zero-copy. Iteration works through `for b in s.bytes()` via the built-in array iterator. Strings are deliberately **not** `Iterable` — there's no canonical "default" between bytes and codepoints, so `for x in s` is a compile error and the caller picks `s.bytes()` or `s.chars()` explicitly.
 - `is_empty()` — sugar for `s.bytes().len() == 0` (codepoint count and byte count agree on emptiness).
-- **Subscript** `s[i]` returns the Unicode codepoint at *codepoint* index `i` (via `string implements Index<usize, char>` in `std/core`). Walking from the start is O(i) ; pair `chars()` with `for c in s.chars()` for O(n) iteration. For byte-cursor access, take a view with `s.bytes()` (a `const u8[]`) and index it — `s.bytes()[i] -> u8` for the raw byte, `s.bytes()[lo..<hi].as_string()` to slice a byte range back into a string (the inverse of `bytes()`, O(1) on the borrowed view). `byte_decode_at(i) -> char` decodes the UTF-8 codepoint starting at byte offset `i` (used by lexers, JSON parsers, LSP transport ; byte-view consumers that hold the view call `decode_codepoint_at(bs, i)` instead). There is no `IndexSet` impl ; strings are immutable.
+- **Subscript** `s[i]` returns the Unicode codepoint at *codepoint* index `i` (via `string implements Index<usize, char>` in `std/core`). Walking from the start is O(i); pair `chars()` with `for c in s.chars()` for O(n) iteration. For byte-cursor access, take a view with `s.bytes()` (a `const u8[]`) and index it — `s.bytes()[i] -> u8` for the raw byte, `s.bytes()[lo..<hi].as_string()` to slice a byte range back into a string (the inverse of `bytes()`, O(1) on the borrowed view). `byte_decode_at(i) -> char` decodes the UTF-8 codepoint starting at byte offset `i` (used by lexers, JSON parsers, LSP transport; byte-view consumers that hold the view call `decode_codepoint_at(bs, i)` instead). There is no `IndexSet` impl; strings are immutable.
 - Literals stored in the binary's data section.
 
 ### Arrays
@@ -556,8 +556,8 @@ The `Target(value)` syntax doubles as the explicit coercion surface. Numeric and
 - `T[]` (postfix) is a dynamic array (runtime length). `int[]`, `string[]`, `Foo<i32>[]`, ... `int[][]` is an array of int arrays.
 - **Implicit reference** semantics: `arr2 := arr` copies the reference; use `arr.clone()` (UFCS from `std/iter`) for a fresh mutable copy.
 - Indexing: `arr[i]`. Bounds-checked in debug (panic), elidable in release.
-- **Slicing**: `arr[r]` where `r : Range<integer>` returns a **zero-copy view** sharing the parent's buffer. Both literal ranges (`arr[1..<4]`, `arr[0..=2]`) and let-bound range values work — dispatch keys on the index *type*, not the AST shape. Any integer-bounded range is accepted ; bounds are coerced to `usize` at the use site. Pushing into the view detaches it into a fresh buffer so the parent is never mutated through the slice. For an independent copy use `arr[r].clone()`.
-- Postfix `[]` binds tighter than `|` ; use parens to group : `(T | U)[]` is "array of T-or-U", `T | U[]` is "T or array-of-U".
+- **Slicing**: `arr[r]` where `r: Range<integer>` returns a **zero-copy view** sharing the parent's buffer. Both literal ranges (`arr[1..<4]`, `arr[0..=2]`) and let-bound range values work — dispatch keys on the index *type*, not the AST shape. Any integer-bounded range is accepted; bounds are coerced to `usize` at the use site. Pushing into the view detaches it into a fresh buffer so the parent is never mutated through the slice. For an independent copy use `arr[r].clone()`.
+- Postfix `[]` binds tighter than `|`; use parens to group: `(T | U)[]` is "array of T-or-U", `T | U[]` is "T or array-of-U".
 
 #### `const T[]` — immutable arrays
 
@@ -568,15 +568,15 @@ read :: fn(a: const i32[]) -> i32 = a[0]            // OK to read
 write :: fn(a: const i32[]) { a[0] = 99 }           // T3042 at typecheck
 ```
 
-**Subtyping** : `T[] <: const T[]`. A mutable array passes anywhere a `const T[]` is expected (covariant), never the reverse. This lets read-only fns accept both kinds without overloads.
+**Subtyping**: `T[] <: const T[]`. A mutable array passes anywhere a `const T[]` is expected (covariant), never the reverse. This lets read-only fns accept both kinds without overloads.
 
 ```vader
 mut_arr := [1, 2, 3]
-read(mut_arr)             // OK : T[] passes for const T[]
-read([4, 5, 6])           // OK : fresh array passes
+read(mut_arr)             // OK: T[] passes for const T[]
+read([4, 5, 6])           // OK: fresh array passes
 ```
 
-**Inference** : a module-level array-literal const-decl is automatically pinned as `const T[]`. Locals stay mutable by default.
+**Inference**: a module-level array-literal const-decl is automatically pinned as `const T[]`. Locals stay mutable by default.
 
 ```vader
 KEYWORDS :: ["fn", "if", "else"]      // const string[] (module scope)
@@ -587,13 +587,13 @@ main :: fn() {
 }
 ```
 
-**Escape hatch** : `arr.clone()` produces a fresh mutable `T[]` from any `T[]` or `const T[]` source. Mutating the copy never affects the original.
+**Escape hatch**: `arr.clone()` produces a fresh mutable `T[]` from any `T[]` or `const T[]` source. Mutating the copy never affects the original.
 
-**Storage** : module-level `const T[]` literals whose elements are all primitive (fixed-width integers, floats, char, bool) and all literal-valued land in the bytecode module's data pool — the C backend emits them as `static const` `.rodata` arrays, the VM materialises them once at module load, and `data.const` op-codes resolve to those pre-built values. References share one allocation across the whole process. Non-primitive elements (struct, string) continue to fn-wrap until the pool gains the matching representation.
+**Storage**: module-level `const T[]` literals whose elements are all primitive (fixed-width integers, floats, char, bool) and all literal-valued land in the bytecode module's data pool — the C backend emits them as `static const` `.rodata` arrays, the VM materialises them once at module load, and `data.const` op-codes resolve to those pre-built values. References share one allocation across the whole process. Non-primitive elements (struct, string) continue to fn-wrap until the pool gains the matching representation.
 
 ### Tuples
 
-Heterogeneous fixed-arity sequences. The bracketed form `[T1, T2, ...]` (≥ 2 elements ; **1-tuples are forbidden**) introduces a tuple type. Tuples lower to anonymous structs at compile time — no extra runtime cost.
+Heterogeneous fixed-arity sequences. The bracketed form `[T1, T2, ...]` (≥ 2 elements; **1-tuples are forbidden**) introduces a tuple type. Tuples lower to anonymous structs at compile time — no extra runtime cost.
 
 ```vader
 divmod :: fn(a: i32, b: i32) -> [i32, i32] { return [a / b, a % b] }
@@ -603,12 +603,12 @@ println(pair.0)      // 42
 println(pair.1)      // "answer"
 ```
 
-- **Field access** : `t.0`, `t.1`, ... — numeric, in source order.
-- **Disambiguation of seq literals** is contextual :
+- **Field access**: `t.0`, `t.1`, ... — numeric, in source order.
+- **Disambiguation of seq literals** is contextual:
   - `[1, 2, 3]` → array (homogeneous, no annotation).
   - `[1, "x"]` → tuple (heterogeneous, no annotation).
-  - With an annotation, the annotation wins : `xs: int[] = [1, 2, 3]` is array ; `p: [int, string] = [1, "x"]` is tuple.
-- **Tuples are not arrays** : `[i32, i32]` is not assignable to `i32[]` even though every element type unifies.
+  - With an annotation, the annotation wins: `xs: int[] = [1, 2, 3]` is array; `p: [int, string] = [1, "x"]` is tuple.
+- **Tuples are not arrays**: `[i32, i32]` is not assignable to `i32[]` even though every element type unifies.
 
 ### Destructuring
 
@@ -635,7 +635,7 @@ A `let`-binding may end with `...rest` to collect the tail of an array source in
 ```vader
 arr :: [10, 20, 30, 40, 50]
 [first, ...rest] := arr                // first: i32, rest: i32[] = [20,30,40,50]
-[a, b, ...tail] := arr                 // a, b consume the head ; tail = [30,40,50]
+[a, b, ...tail] := arr                 // a, b consume the head; tail = [30,40,50]
 [_, _, ...short] := arr                // wildcards combine with rest
 ```
 
@@ -649,7 +649,7 @@ A `[...]` pattern applied to a value that is **neither a tuple nor an array** st
 for [k, v] in m { ... }                // m: MutableMap<K, V> yields Entry<K, V>
 ```
 
-A `MutableMap` yields `Entry<K, V>` (a struct, not a tuple), and `std/collections` ships `Entry<K, V> implements Into<[K, V]>`, so the `for [k, v] in m` form (parser-desugared to `for e in m { let [k, v] := e ; ... }`) binds `k: K`, `v: V`. The same rule applies to any user type with an `Into<[...]>` impl.
+A `MutableMap` yields `Entry<K, V>` (a struct, not a tuple), and `std/collections` ships `Entry<K, V> implements Into<[K, V]>`, so the `for [k, v] in m` form (parser-desugared to `for e in m { let [k, v] := e; ... }`) binds `k: K`, `v: V`. The same rule applies to any user type with an `Into<[...]>` impl.
 
 When the impl's `into` body is a tuple literal of plain field reads (`[self.key, self.value]`), the lowerer binds each leaf directly to the source field — no `into()` call and no transient tuple allocation. T3001 still fires when the source is a non-tuple, non-array type with no matching `Into<[...]>` impl.
 
@@ -674,7 +674,7 @@ Struct-literal field order does not have to match the declaration order — the 
 
 #### Field defaults
 
-A field declaration may carry an initialiser used when the literal omits it. Defaults are checked once at the decl site against the (unsubstituted) field type ; they are re-lowered at every literal site that uses them.
+A field declaration may carry an initialiser used when the literal omits it. Defaults are checked once at the decl site against the (unsubstituted) field type; they are re-lowered at every literal site that uses them.
 
 ```vader
 Settings :: struct {
@@ -692,7 +692,7 @@ Omitting a field that has neither a default nor a spread source raises `T3037`.
 
 #### Spread (functional update)
 
-`{ ...other, .field = v }` copies every field of `other` and overrides the listed ones. The spread source is evaluated **once** (bound to a synthetic local) regardless of how many fields inherit from it. Multiple spreads are allowed ; the last one wins for any field not explicitly named.
+`{ ...other, .field = v }` copies every field of `other` and overrides the listed ones. The spread source is evaluated **once** (bound to a synthetic local) regardless of how many fields inherit from it. Multiple spreads are allowed; the last one wins for any field not explicitly named.
 
 ```vader
 base :: P { .a = 1, .b = 2, .c = 3 }
@@ -741,7 +741,7 @@ show :: fn(r: Result) -> string {
 
 #### Common-field access
 
-When every variant of a union carries a field of the same name, the field is accessible directly on the union value — no outer `match` required :
+When every variant of a union carries a field of the same name, the field is accessible directly on the union value — no outer `match` required:
 
 ```vader
 Cat :: struct { name: string, age: i32 }
@@ -753,13 +753,13 @@ animal_name :: fn(a: Animal) -> string {
 }
 ```
 
-The resolution applies to inline unions (`a: Cat | Dog`), to `::` type-aliases (`Animal :: Cat | Dog`), and to discriminated unions of structs/tuples. When the field types match across variants (`Cat.name: string`, `Dog.name: string`), the result is that shared type. When they diverge (`Cat.age: i32`, `Pig.age: i64`), the result is their union (`i32 | i64`) — the caller narrows with `match` to discriminate.
+The resolution applies to inline unions (`a: Cat | Dog`), to `::` type-aliases (`Animal :: Cat | Dog`), and to discriminated unions of structs/tuples. When the field types match across variants (`Cat.name: string`, `Dog.name: string`), the result is that shared type. When they diverge (`Cat.age: i32`, `Dog.age: i64`), the result is their union (`i32 | i64`) — the caller narrows with `match` to discriminate.
 
 Lowering emits either a single same-offset read (when every variant stores the field at the same struct slot with the same resolved type) or a variant-dispatch cascade (`if a is Cat { (Cat) a.f } else if a is Dog { (Dog) a.f } else …`).
 
 #### Flow-narrowing on `T | null`
 
-The typechecker narrows an identifier's type inside an `if` branch whose condition discriminates against `null` :
+The typechecker narrows an identifier's type inside an `if` branch whose condition discriminates against `null`:
 
 ```vader
 greet :: fn(a: Animal | null) -> string {
@@ -776,7 +776,7 @@ must_greet :: fn(a: Animal | null) -> string {
 }
 ```
 
-Mirrors the per-arm narrowing inside `match`. Today the rule fires on `BinaryExpr(.Eq | .Neq, ident, NullLit)` where `ident` is a `local` / `param` / `binding` whose static type is a union containing `null` ; both orderings (`x == null` / `null == x`) and both branches (`if`-true and `else`) are covered. Divergent branches (then-block ends in `return` / `break` / `continue`) propagate the complement narrowing to the subsequent statements of the enclosing block.
+Mirrors the per-arm narrowing inside `match`. Today the rule fires on `BinaryExpr(.Eq | .Neq, ident, NullLit)` where `ident` is a `local` / `param` / `binding` whose static type is a union containing `null`; both orderings (`x == null` / `null == x`) and both branches (`if`-true and `else`) are covered. Divergent branches (then-block ends in `return` / `break` / `continue`) propagate the complement narrowing to the subsequent statements of the enclosing block.
 
 ### Enums
 
@@ -922,30 +922,30 @@ match value {
 ```
 
 - `is Type` for type narrowing.
-- **Literal-value patterns** : `42` / `'A'` / `"ok"` / `true` / `false` / `null` / `-1` directly match a scalar value. The literal's type is checked against the scrutinee (T3001 on mismatch) and the lowerer emits a `scrutinee == literal` predicate. Or-patterns (`'a' | 'b' -> …`) and range-patterns (`'a'..='z' -> …`) are deferred.
+- **Literal-value patterns**: `42` / `'A'` / `"ok"` / `true` / `false` / `null` / `-1` directly match a scalar value. The literal's type is checked against the scrutinee (T3001 on mismatch) and the lowerer emits a `scrutinee == literal` predicate. Or-patterns (`'a' | 'b' -> …`) and range-patterns (`'a'..='z' -> …`) are deferred.
 - Struct patterns with bindings and constraints.
-- **Binding patterns** : a bare identifier `name -> …` matches every remaining value and binds it to `name`. Combined with `is`-narrowing of prior arms, the binding sees the *narrowed* type, not the full scrutinee — `match v { is null -> {} ; pet -> use(pet) }` narrows `pet` to "scrutinee − null".
+- **Binding patterns**: a bare identifier `name -> …` matches every remaining value and binds it to `name`. Combined with `is`-narrowing of prior arms, the binding sees the *narrowed* type, not the full scrutinee — `match v { is null -> {}; pet -> use(pet) }` narrows `pet` to "scrutinee − null".
 - Guards via `if cond`.
 - Wildcard `_` — same flow-narrowing as binding arms.
-- **Flow narrowing through wildcard / binding arms** : after one or more `is X` arms (without inner struct refinement), the subsequent `_` or `name` arm sees the scrutinee narrowed to `union − matched`. Lets `match p: Pet | null { is null -> "no" ; _ -> p.name }` read the common field without a wrapping cast.
-- **`is T` reachability** (`T3040`) : an `is T` arm whose `T` can never be a value of the scrutinee's static type is rejected at compile time. `match p: Pet { is Bird -> … }` errors when `Bird` is not part of `Pet`'s union ; same rule fires for `if x is T` expressions outside `match`. The check uses the symmetric `intersects(T, scrutinee)` predicate ; unknowns (`Unresolved`, `TypeParam`) suppress cascading. **`==` / `!=` get the same check** — `if n: i32 == null` triggers T3040 with the same wording, replacing the misleading "no Eq impl" T3017. Use `is null` when you want the flow-narrowing ; both forms work but `is` is the canonical idiom.
+- **Flow narrowing through wildcard / binding arms**: after one or more `is X` arms (without inner struct refinement), the subsequent `_` or `name` arm sees the scrutinee narrowed to `union − matched`. Lets `match p: Pet | null { is null -> "no"; _ -> p.name }` read the common field without a wrapping cast.
+- **`is T` reachability** (`T3040`): an `is T` arm whose `T` can never be a value of the scrutinee's static type is rejected at compile time. `match p: Pet { is Bird -> … }` errors when `Bird` is not part of `Pet`'s union; same rule fires for `if x is T` expressions outside `match`. The check uses the symmetric `intersects(T, scrutinee)` predicate; unknowns (`Unresolved`, `TypeParam`) suppress cascading. **`==` / `!=` get the same check** — `if n: i32 == null` triggers T3040 with the same wording, replacing the misleading "no Eq impl" T3017. Use `is null` when you want the flow-narrowing; both forms work but `is` is the canonical idiom.
 - **Exhaustiveness checked** by the compiler. For union scrutinees, every variant must be covered (or matched by a wildcard `_` / binding arm). For non-union scrutinees a wildcard or binding arm is required, since the compiler cannot enumerate all values of, say, `i32`.
-- **Wildcard on a closed union, value position (`W0005`)** : a `match` that *produces a value* over a union / enum scrutinee whose catch-all is a bare `_` / binding arm earns a warning — the wildcard silences the exhaustiveness check, so a variant added later degrades silently into the catch-all instead of erroring. Enumerate every variant, or opt out explicitly with `@partial` (§ decorators) when "everything else does X" is intended. Statement matches (`_ -> {}`, no value) and non-union scrutinees (`i32` / `string` / …) are exempt. The warning does not fire on `@partial` matches.
+- **Wildcard on a closed union, value position (`W0005`)**: a `match` that *produces a value* over a union / enum scrutinee whose catch-all is a bare `_` / binding arm earns a warning — the wildcard silences the exhaustiveness check, so a variant added later degrades silently into the catch-all instead of erroring. Enumerate every variant, or opt out explicitly with `@partial` (§ decorators) when "everything else does X" is intended. Statement matches (`_ -> {}`, no value) and non-union scrutinees (`i32` / `string` / …) are exempt. The warning does not fire on `@partial` matches.
 
 ### Variable bindings
 
-Local bindings come in four shapes that share a single `LetStmt` AST node ; the syntax is symmetric on the mutability axis (`::` ↔ `:`, `:=` ↔ `=`).
+Local bindings come in four shapes that share a single `LetStmt` AST node; the syntax is symmetric on the mutability axis (`::` ↔ `:`, `:=` ↔ `=`).
 
 | Form                  | Mutability | Type        | Example                       |
 |-----------------------|------------|-------------|-------------------------------|
 | `name :: value`       | immutable  | inferred    | `pi :: 3.14`                  |
 | `name := value`       | mutable    | inferred    | `total := 0`                  |
-| `name: T : value`     | immutable  | typed       | `cap: usize : 1024`           |
+| `name: T: value`     | immutable  | typed       | `cap: usize: 1024`           |
 | `name: T = value`     | mutable    | typed       | `count: u64 = 0`              |
 
 The typed forms run the same bidirectional inference as the inferred forms — `T` is propagated as the expected type, so free numeric literals adopt it (`x: i64 = 42` ⇒ `42: i64`) and trait-typed slots trigger the implicit-coercion machinery (e.g. `T[]` → `Iterator<T>`, see §4 *Type coercion via `Into`*).
 
-Reassignment uses `=` and is only valid on mutable bindings :
+Reassignment uses `=` and is only valid on mutable bindings:
 
 ```vader
 n := 0          // mutable, inferred i32
@@ -954,7 +954,7 @@ k :: 0          // immutable
 k = 1           // ERROR — cannot reassign immutable binding
 ```
 
-Top-level constants follow the same pattern but are restricted to compile-time expressions (`PI :: 3.14`, `MAX: u64 : 1_000_000`).
+Top-level constants follow the same pattern but are restricted to compile-time expressions (`PI :: 3.14`, `MAX: u64: 1_000_000`).
 
 ### Type inference
 
@@ -975,7 +975,7 @@ y: i64 = i64(x)            // widening cast, safe
 z: u8  = u8(x)             // narrowing cast, panics in debug if overflow
 ```
 
-**`char` ↔ integer** : `char` is a `u32` codepoint at the wire level, so casts between `char` and any integer type (`i32`, `u32`, `i64`, `u64`, `usize`, …) are allowed and reinterpret the bits with a tag change. Casts between `char` and float types are rejected — go through an integer first.
+**`char` ↔ integer**: `char` is a `u32` codepoint at the wire level, so casts between `char` and any integer type (`i32`, `u32`, `i64`, `u64`, `usize`, …) are allowed and reinterpret the bits with a tag change. Casts between `char` and float types are rejected — go through an integer first.
 
 ```vader
 c   := 'A'
@@ -991,9 +991,9 @@ n: i32 | ParseError = parse_int("42")
 
 ### Generics
 
-Type parameters are introduced with the angle-bracket `<T>` form at the declaration site (Java/C# style). They compile to a `TypeParam[]` slot on the underlying `FnDecl` / `StructDecl` ; later references in the same scope are plain `IdentExpr` nodes that the resolver rebinds to the type-param symbol. Angle brackets are the only accepted form — there is no bracket `[T]` or paren `(T)` type-parameter syntax.
+Type parameters are introduced with the angle-bracket `<T>` form at the declaration site (Java/C# style). They compile to a `TypeParam[]` slot on the underlying `FnDecl` / `StructDecl`; later references in the same scope are plain `IdentExpr` nodes that the resolver rebinds to the type-param symbol. Angle brackets are the only accepted form — there is no bracket `[T]` or paren `(T)` type-parameter syntax.
 
-**Disambiguation rule (expression position).** Because `<` and `>` are also comparison operators, the parser uses a hard-precedence rule : after an `Ident`, a `<` opens a generic argument list **iff** the matching `>` is immediately followed by `(` (call) or `{` (struct literal). Any other follower leaves the `<` to Pratt as comparison. This is unambiguous in practice — `assert(v < 20, "msg")` reads as comparison because the `>` candidate is followed by `)`, not `(` or `{`.
+**Disambiguation rule (expression position).** Because `<` and `>` are also comparison operators, the parser uses a hard-precedence rule: after an `Ident`, a `<` opens a generic argument list **iff** the matching `>` is immediately followed by `(` (call) or `{` (struct literal). Any other follower leaves the `<` to Pratt as comparison. This is unambiguous in practice — `assert(v < 20, "msg")` reads as comparison because the `>` candidate is followed by `)`, not `(` or `{`.
 
 For nested generics like `Box<Box<T>>`, the lexer's fused `>>` token is split on demand at the parser level — the first `>` closes the inner level, the second the outer.
 
@@ -1020,7 +1020,7 @@ List :: struct<T> {
 list := List<i32> { .items = [1, 2, 3], .len = 3 }
 ```
 
-**Constraints**. Inline bounds with `&` for trait intersection (« satisfies both ») :
+**Constraints**. Inline bounds with `&` for trait intersection ("satisfies both"):
 
 ```vader
 sort :: fn<T: Comparable>(items: T[]) {
@@ -1032,9 +1032,9 @@ put :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, value: V) {
 }
 ```
 
-`&` mirrors `|` (union) — `K: A | B` would mean K satisfies either, `K: A & B` means K satisfies both. **Only `&` (intersection) is in MVP scope** ; `|` on bounds is post-MVP. A future predicate-bound escape hatch (`<T: @size_of <= 64>`-style ; DESIGN_TYPE_FIRST.md §13 Layer 7d) is reserved for non-trait constraints once they land.
+`&` mirrors `|` (union) — `K: A | B` would mean K satisfies either, `K: A & B` means K satisfies both. **Only `&` (intersection) is in MVP scope**; `|` on bounds is post-MVP. A future predicate-bound escape hatch (`<T: @size_of <= 64>`-style; DESIGN_TYPE_FIRST.md §13 Layer 7d) is reserved for non-trait constraints once they land.
 
-**Compile-time values** (post-MVP candidate ; the fixed-size array surface itself is not designed yet — the example below uses placeholder syntax):
+**Compile-time values** (post-MVP candidate; the fixed-size array surface itself is not designed yet — the example below uses placeholder syntax):
 
 ```vader
 make_buffer :: fn<N: i32>() -> FixedArray<u8, N> { ... }
@@ -1044,7 +1044,7 @@ make_buffer :: fn<N: i32>() -> FixedArray<u8, N> { ... }
 
 **Bound enforcement and trait-method dispatch on type parameters**: both wired since Layer 7e. The typechecker:
 - Resolves `key.hash()` inside a generic body where `key: K` and `K: Hash` to the trait method statically, then mono-substitutes it to the concrete type's impl member.
-- At every call site of a generic fn, walks the call-site type-args against each type-param's angle-bracketed bound (`<T: Trait>`). Any concrete type lacking an explicit `T implements Trait` impl yields T3006 (« trait not satisfied »).
+- At every call site of a generic fn, walks the call-site type-args against each type-param's angle-bracketed bound (`<T: Trait>`). Any concrete type lacking an explicit `T implements Trait` impl yields T3006 ("trait not satisfied").
 
 **Limitations (MVP)**:
 - **No "associated functions"** (static methods on a type) — `Type.method(args)` syntax is not parsed. Factory functions are written as free functions and called via UFCS or directly: `new_path("foo/bar")`, `MutableMap<K, V> { ... }` for struct-literal construction. Post-MVP candidate.
@@ -1131,10 +1131,10 @@ Compared to the borrowing form (`Foo<T> implements Trait<T>` without an impl-lev
 
 #### Trait composition
 
-A trait can compose other traits — i.e. require its implementor to satisfy each of them — through one of two declaration shapes :
+A trait can compose other traits — i.e. require its implementor to satisfy each of them — through one of two declaration shapes:
 
 ```vader
-// Pure alias — Numeric IS Add & Sub & Mul ; no own methods.
+// Pure alias — Numeric IS Add & Sub & Mul; no own methods.
 Numeric :: trait<T> = Add & Sub & Mul
 
 // With own methods — Hashable requires Hash and Equals, plus declares its own.
@@ -1143,7 +1143,7 @@ Hashable :: trait<T> : Hash & Equals {
 }
 ```
 
-The `=` form has no body ; the `:` form has a body for the additional methods. A single trait reference is also valid (`Foo :: trait<T> = Bar` aliases Bar). The composition expression is a type-position `&`-chain, parsed with the same precedence as type intersection ; `T: Foo` bound checking transitively applies the composed traits.
+The `=` form has no body; the `:` form has a body for the additional methods. A single trait reference is also valid (`Foo :: trait<T> = Bar` aliases Bar). The composition expression is a type-position `&`-chain, parsed with the same precedence as type intersection; `T: Foo` bound checking transitively applies the composed traits.
 
 #### Method dispatch on trait values
 
@@ -1155,7 +1155,7 @@ report :: fn(e: Error) -> string {
 }
 ```
 
-The lowerer synthesises an `is StructA -> StructA_method(...)` chain over every impl of the trait that monomorphization has materialised. Non-generic impls contribute one arm each ; generic impls (`Foo<T> implements Trait { ... }`) contribute one arm per observed concrete `(struct, args)` pair, since each instance has a distinct runtime tag (`is Foo<i32>`, `is Foo<string>`, …). Trait args on the receiver itself are substituted into the method's signature, so e.g. `it: Iterator<i32>; it.next()` returns `Yield<i32> | null` — not the unsubstituted `Yield<T> | null`. Primitive impls remain skipped (the dispatch chain assumes struct-tagged boxes).
+The lowerer synthesises an `is StructA -> StructA_method(...)` chain over every impl of the trait that monomorphization has materialised. Non-generic impls contribute one arm each; generic impls (`Foo<T> implements Trait { ... }`) contribute one arm per observed concrete `(struct, args)` pair, since each instance has a distinct runtime tag (`is Foo<i32>`, `is Foo<string>`, …). Trait args on the receiver itself are substituted into the method's signature, so e.g. `it: Iterator<i32>; it.next()` returns `Yield<i32> | null` — not the unsubstituted `Yield<T> | null`. Primitive impls remain skipped (the dispatch chain assumes struct-tagged boxes).
 
 Inside a generic body, `key.method()` where `key: T` and `T: Trait` resolves at typecheck and is monomorphised statically — each call site gets a direct call to the concrete impl member after substitution. No runtime dispatch.
 
@@ -1191,12 +1191,12 @@ ArrayIterator<T> implements Iterator<T> {
 
 - Detection: the impl body starts with `->` (arrow), or with `{` whose first significant token is **not** the start of a member declaration (`name :: fn`). Anything else inside the braces is treated as a SAM block body.
 - The classic form (`{ name :: fn(...) ... }`) remains valid and is **required** for multi-method traits.
-- "Single-method" here means a single *required* (body-less) method ; a trait can declare additional methods with default bodies (see *Default methods* below) and still accept the SAM short forms.
+- "Single-method" here means a single *required* (body-less) method; a trait can declare additional methods with default bodies (see *Default methods* below) and still accept the SAM short forms.
 - `R2016` is emitted when the short forms are used on a trait with 0 or ≥ 2 required methods.
 
 #### Default methods
 
-A trait method may carry a body :
+A trait method may carry a body:
 
 ```vader
 Equals :: trait {
@@ -1217,7 +1217,7 @@ Money implements Equals -> self.amount == other.amount
 // Money.not_equals exists implicitly, derived from the cloned default.
 ```
 
-Stdlib traits that ship with default methods :
+Stdlib traits that ship with default methods:
 - `Equals.not_equals` (derived from `equals`).
 - `Comparable.lt` / `.lte` / `.gt` / `.gte` (derived from `compare`).
 
@@ -1240,23 +1240,23 @@ Built-in operators dispatch through stdlib traits when the operand types are not
 
 Compound assignments (`+=`, `-=`, `*=`, `/=`, `%=`) desugar to `lhs = lhs <op> rhs` at parse time, so they reuse the corresponding trait dispatch.
 
-Resolution rule for **arithmetic** operators (`+ - * / %`) :
+Resolution rule for **arithmetic** operators (`+ - * / %`):
 1. If both operands are primitive numerics, use the built-in op (current behaviour).
-2. `string + string` is a built-in op (`string.concat`) ; `string implements Add` exists for SPEC completeness and is also reachable via UFCS — the compiler routes both paths to the same op (see §12 op-level intrinsics).
-3. Otherwise, look up the matching `Add`/`Sub`/`Mul`/`Div`/`Rem` impl on the left operand's type ; the right operand must be assignable to the trait's expected `Self`.
+2. `string + string` is a built-in op (`string.concat`); `string implements Add` exists for SPEC completeness and is also reachable via UFCS — the compiler routes both paths to the same op (see §12 op-level intrinsics).
+3. Otherwise, look up the matching `Add`/`Sub`/`Mul`/`Div`/`Rem` impl on the left operand's type; the right operand must be assignable to the trait's expected `Self`.
 4. If no impl matches, T3017.
 
-Resolution rule for **equality** (`==` / `!=`) :
+Resolution rule for **equality** (`==` / `!=`):
 1. Primitive operands (numerics, strings, chars, bools, null) use the built-in equality op.
-2. User-struct operands of the same type look up the `Equals` impl and dispatch through `equals` when one exists ; without an impl they fall back to **reference identity** (see §8 *Memory Model*). No error.
+2. User-struct operands of the same type look up the `Equals` impl and dispatch through `equals` when one exists; without an impl they fall back to **reference identity** (see §8 *Memory Model*). No error.
 3. Mismatched types are T3017.
 
-Resolution rule for **ordering** (`< <= > >=`) :
+Resolution rule for **ordering** (`< <= > >=`):
 1. Primitive numerics, strings, and chars use the built-in comparison ops.
-2. User-struct operands look up the `Comparable` impl ; the lowerer rewrites `a < b` to `compare(a, b) < 0` (and analogously for the other three operators) over the i32 result.
+2. User-struct operands look up the `Comparable` impl; the lowerer rewrites `a < b` to `compare(a, b) < 0` (and analogously for the other three operators) over the i32 result.
 3. If no impl matches, T3017.
 
-Index access (`a[i]`) and `in` follow the same fallback : built-in array / range first, then trait dispatch through `Index<I, T>::at` / `Contains<T>::contains` — the trait path covers struct receivers AND primitives (`string implements Index<usize, char>` enables `s[i]` without importing anything). Index assignment (`a[i] = v`) dispatches through `IndexSet<I, T>::set_at`.
+Index access (`a[i]`) and `in` follow the same fallback: built-in array / range first, then trait dispatch through `Index<I, T>::at` / `Contains<T>::contains` — the trait path covers struct receivers AND primitives (`string implements Index<usize, char>` enables `s[i]` without importing anything). Index assignment (`a[i] = v`) dispatches through `IndexSet<I, T>::set_at`.
 
 ### Nullability
 
@@ -1291,21 +1291,21 @@ To compare two structs structurally, implement `Equals` or call `equals(a, b)`.
 
 ### Binding forms
 
-Mutability is chosen by the declaration operator ; an optional `: T` annotation pins the type. The four declaration forms and the reassignment form :
+Mutability is chosen by the declaration operator; an optional `: T` annotation pins the type. The four declaration forms and the reassignment form:
 
 - **`x :: <expr>`**: **immutable**, type inferred. The binding cannot be reassigned.
 - **`x := <expr>`**: **mutable**, type inferred. The binding can be reassigned via `=`.
-- **`x: T : <expr>`**: **immutable**, typed (`:` separator before the value).
+- **`x: T: <expr>`**: **immutable**, typed (`:` separator before the value).
 - **`x: T = <expr>`**: **mutable**, typed (`=` separator before the value).
 - **`x = <expr>`**: reassignment of an existing mutable variable.
 
-So with a type annotation the separator decides mutability : `:` → immutable, `=` → mutable.
+So with a type annotation the separator decides mutability: `:` → immutable, `=` → mutable.
 
 ### Mutability = binding only
 
 `::` freezes the binding, not the contents. If `p :: Point { ... }`, you cannot `p = otherPoint`, but `p.x = 5` is allowed.
 
-For deep immutability of collections, use **stdlib convention** :
+For deep immutability of collections, use **stdlib convention**:
 - raw `T[]` arrays are mutable (`arr.push`, `arr[i] = v`)
 - read-only `List<T>` / `Map<K, V>` / `Set<T>` will pair with mutable variants when implemented (post-MVP — currently struct stubs in `std/collections`)
 
@@ -1317,7 +1317,7 @@ buffer: u8[] = []
 name: string | null = null
 ```
 
-The annotation `: T` is used when inference cannot decide or to clarify intent. Note these all use the `=` separator, so they are **mutable** typed bindings ; swap `=` for `:` (`x: i64 : 42`) for the immutable typed form.
+The annotation `: T` is used when inference cannot decide or to clarify intent. Note these all use the `=` separator, so they are **mutable** typed bindings; swap `=` for `:` (`x: i64: 42`) for the immutable typed form.
 
 ### Scoping
 
@@ -1355,14 +1355,14 @@ add_one :: fn(x: i32) -> i32 = x + 1
 
 ### `main` entry point
 
-The program entry is a fn called `main` declared at module scope. It accepts exactly one of two shapes (T3033 otherwise) :
+The program entry is a fn called `main` declared at module scope. It accepts exactly one of two shapes (T3033 otherwise):
 
 ```vader
 main :: fn() -> i32                 // ignore argv
 main :: fn(argv: string[]) -> i32   // receive process args
 ```
 
-`argv[0]` is implementation-defined : the script path under `vader run`, the binary path under a native build. User-supplied args start at `argv[1]`.
+`argv[0]` is implementation-defined: the script path under `vader run`, the binary path under a native build. User-supplied args start at `argv[1]`.
 
 ### Default parameter values
 
@@ -1394,7 +1394,7 @@ sum(1, 2, 3, 4)
 
 ### Closures / lambdas
 
-Lambdas use the form `params -> body`. The `->` is the mandatory separator between parameters and body ; the `fn` keyword is **not used** on lambdas (it remains for declarations and function types — see *Function values* below).
+Lambdas use the form `params -> body`. The `->` is the mandatory separator between parameters and body; the `fn` keyword is **not used** on lambdas (it remains for declarations and function types — see *Function values* below).
 
 ```vader
 // Single param — parens optional, expression body
@@ -1417,7 +1417,7 @@ items.map(x -> {
 })
 ```
 
-**No explicit return-type slot on lambdas.** The return type is always inferred — from the call-site signature, an enclosing struct field's fn-type, a typed `let`, or from the body itself. If you need to annotate the return type explicitly, declare a named function instead :
+**No explicit return-type slot on lambdas.** The return type is always inferred — from the call-site signature, an enclosing struct field's fn-type, a typed `let`, or from the body itself. If you need to annotate the return type explicitly, declare a named function instead:
 
 ```vader
 inc :: fn(x: i32) -> i32 { x + 1 }
@@ -1441,7 +1441,7 @@ main :: fn() -> i32 {
 }
 ```
 
-A lambda flows into a fn-type slot without any wrapping :
+A lambda flows into a fn-type slot without any wrapping:
 
 ```vader
 cb: fn(i32) -> i32 = x -> x + 1
@@ -1468,18 +1468,18 @@ plus(2, 3)
 
 `a.f(b)` is desugared to `f(a, b)` at compile time. There are **no methods** in Vader, only free functions + UFCS.
 
-UFCS dispatch works against three shapes of receiver–first-param relation, ranked weakest-wins-only-on-tie :
-1. **Concrete match** : the receiver's static type is assignable to the first param. `s.starts_with(p)` where `starts_with :: fn(s: string, prefix: string) -> bool`.
-2. **Symbolic match** : the receiver and the first param share a struct/trait symbol but differ in their type-args (e.g. `MutableList<i32>` against `fn<T>(self: MutableList<T>)`). The generic-fn-dispatch path closes over the type-args at the call site.
-3. **Trait-typed first param** : when the first param has trait type `Trait<T>` and the receiver implements that trait, UFCS dispatches to it. `source.chars().filter(is_bf_char)` resolves through `std/iter.filter :: fn<T>(it: Iterator<T>, pred) -> T[]` because `StringChars` implements `Iterator<char>`. Trait-typeparam unification happens through `unifyTraitParamWithConcrete`.
-4. **Union receivers** : `value.method()` on a union-typed `value` falls through to free-fn UFCS when no variant carries a struct field by that name. The first-param type can be the *union itself* (`fn read_i32(v: Value, …)`) — receiver and param match directly.
-5. **`Into<Target>` last-resort coercion** : strictly weaker than every other rank ; only fires when no direct candidate exists.
+UFCS dispatch works against five shapes of receiver–first-param relation, ranked weakest-wins-only-on-tie:
+1. **Concrete match**: the receiver's static type is assignable to the first param. `s.starts_with(p)` where `starts_with :: fn(s: string, prefix: string) -> bool`.
+2. **Symbolic match**: the receiver and the first param share a struct/trait symbol but differ in their type-args (e.g. `MutableList<i32>` against `fn<T>(self: MutableList<T>)`). The generic-fn-dispatch path closes over the type-args at the call site.
+3. **Trait-typed first param**: when the first param has trait type `Trait<T>` and the receiver implements that trait, UFCS dispatches to it. `source.chars().filter(is_bf_char)` resolves through `std/iter.filter :: fn<T>(it: Iterator<T>, pred) -> T[]` because `StringChars` implements `Iterator<char>`. Trait-typeparam unification happens through `unifyTraitParamWithConcrete`.
+4. **Union receivers**: `value.method()` on a union-typed `value` falls through to free-fn UFCS when no variant carries a struct field by that name. The first-param type can be the *union itself* (`fn read_i32(v: Value, …)`) — receiver and param match directly.
+5. **`Into<Target>` last-resort coercion**: strictly weaker than every other rank; only fires when no direct candidate exists.
 
-Specifically — a partial match where some variants of a union scrutinee carry the field and others don't still raises `T3009` ; the fall-through to UFCS only triggers when *no* variant has the field at all.
+Specifically — a partial match where some variants of a union scrutinee carry the field and others don't still raises `T3009`; the fall-through to UFCS only triggers when *no* variant has the field at all.
 
 #### Import requirement
 
-UFCS resolution obeys the **same import rule as a bare call** : `x.foo()` resolves only against free functions whose owning module is reachable in the program (transitively `import`ed), exactly as `foo(x)` would. `std/core` (the implicit prelude, §11) is the sole exemption — its exports are always in scope, so `s.len()`, `bs.bytes_to_string()`, `x.hash()` work with no import. A `x.foo()` whose only candidate lives in a *non-imported* module is a **compile error** (`T3008` / `T3009`), not a silently-dropped call. This keeps the type-checker's UFCS visibility aligned with the lowerer's : both dispatch against the same reachable module set, so a method that type-checks always lowers to a real call. (Historically the typer carried hardcoded per-primitive method tables that bypassed this, letting `s.split()` type-check without `import "std/string"` and then mis-compile ; those tables were removed so primitive/array methods resolve uniformly through trait impls + free-fn UFCS.)
+UFCS resolution obeys the **same import rule as a bare call**: `x.foo()` resolves only against free functions whose owning module is reachable in the program (transitively `import`ed), exactly as `foo(x)` would. `std/core` (the implicit prelude, §11) is the sole exemption — its exports are always in scope, so `s.len()`, `bs.bytes_to_string()`, `x.hash()` work with no import. A `x.foo()` whose only candidate lives in a *non-imported* module is a **compile error** (`T3008` / `T3009`), not a silently-dropped call. This keeps the type-checker's UFCS visibility aligned with the lowerer's: both dispatch against the same reachable module set, so a method that type-checks always lowers to a real call. (Historically the typer carried hardcoded per-primitive method tables that bypassed this, letting `s.split()` type-check without `import "std/string"` and then mis-compile; those tables were removed so primitive/array methods resolve uniformly through trait impls + free-fn UFCS.)
 
 #### Function overloading
 
@@ -1493,7 +1493,7 @@ p.size()            // resolves to the Path version
 m.size()            // resolves to the MutableMap version
 ```
 
-Rules :
+Rules:
 - Overload candidates must differ in their first parameter type. Differing only on later parameters is **not** an overload (post-MVP — see TODO).
 - Type-param receivers (`fn<T>(self: T)`) are wildcards and conflict with every concrete-receiver overload of the same name.
 - Resolution is performed at typecheck after the receiver type is known. Errors out with `R2004` if two candidates match.
@@ -1607,7 +1607,7 @@ for 0..<GENERATIONS {
 }
 ```
 
-The single-expression form `for <expr> { body }` is dispatched by the type of `<expr>` :
+The single-expression form `for <expr> { body }` is dispatched by the type of `<expr>`:
 - `bool` — true while-loop, body runs while the condition holds.
 - iterable (built-in array, `Iterator<T>`, `Range`, …) — equivalent to `for _ in <expr>`, body runs once per element with the value discarded.
 
@@ -1615,14 +1615,14 @@ The single-expression form `for <expr> { body }` is dispatched by the type of `<
 
 The iteration form `for x in expr` accepts three shapes for `expr`:
 1. A built-in array `T[]` — auto-wrapped in `ArrayIterator<T>`.
-2. A value of type `Iterator<T>` — used directly. Two dispatch flavours :
+2. A value of type `Iterator<T>` — used directly. Two dispatch flavours:
    - **Concrete iter** (`Range<T>`, `ArrayIterator<T>`, a user struct implementing `Iterator<T>`) — the `next()` call resolves statically against the impl-method.
    - **Trait-typed iter** (`Iterator<T>` itself, e.g. a fn param `fn count<T>(it: Iterator<T>)`) — the `next()` call dispatches through the lowerer-synthesised `is StructA -> StructA_next(...)` chain over every materialised impl (see *Method dispatch on trait values* in §4). Lets generic fns drive `for x in it { … }` against any concrete iterator the caller supplies.
 3. A value implementing `Into<Iterator<T>>` — the for-in lowerer inserts `.into()` to obtain the iterator, then drives the loop over it.
 
 Raw `T[]` arrays are auto-wrapped in `ArrayIterator<T>` (via the shipped `T[] implements Into<Iterator<T>>` impl in `std/core`), and `Range` (`0..<10`) iterates directly. User collections opt in by implementing `Into<Iterator<T>>` so `for x in coll { ... }` works without an explicit `.into()`. There is no separate `Iterable` trait today (see the planned note below).
 
-The same auto-wrap fires at any *concrete* `Iterator<T>` slot — function arguments, `return` expressions, and typed `let` bindings — so `T[]` flows transparently :
+The same auto-wrap fires at any *concrete* `Iterator<T>` slot — function arguments, `return` expressions, and typed `let` bindings — so `T[]` flows transparently:
 
 ```vader
 walk :: fn(it: Iterator<i32>) -> i32 { ... }
@@ -1631,7 +1631,7 @@ fold :: fn() -> Iterator<i32> { return [1, 2, 3] }   // return coercion
 buf: Iterator<i32> : [4, 5, 6]                // typed-let coercion
 ```
 
-The coercion is gated on **canonical symbol identity** of `std/core::Iterator` ; a user-defined trait that happens to be named `Iterator` is left alone. It does **not** fire on a generic `Iterator<T>` parameter — type-arg inference can't bind `T` from a `T[]` argument across the widening, so combinators that take `Iterator<T>` still need an explicit `ArrayIterator<T> { ... }` wrap (or an array-driven overload). Concrete trait-instance receivers (`Iterator<i32>`, `Iterator<string>`, …) are unaffected.
+The coercion is gated on **canonical symbol identity** of `std/core::Iterator`; a user-defined trait that happens to be named `Iterator` is left alone. It does **not** fire on a generic `Iterator<T>` parameter — type-arg inference can't bind `T` from a `T[]` argument across the widening, so combinators that take `Iterator<T>` still need an explicit `ArrayIterator<T> { ... }` wrap (or an array-driven overload). Concrete trait-instance receivers (`Iterator<i32>`, `Iterator<string>`, …) are unaffected.
 
 ```vader
 // Planned — not yet exported from std/core. Today user types iterate
@@ -1681,9 +1681,9 @@ Postfix, propagates the error:
 
 ```vader
 content :: read_file("a.txt")?
-// if read_file returns string | Error :
-//   - if Error : the current function returns that Error
-//   - else     : content receives the string
+// if read_file returns string | Error:
+//   - if Error: the current function returns that Error
+//   - else: content receives the string
 
 // Chainable
 first_line :: read_file("a.txt")?.lines()?.first()?
@@ -1764,7 +1764,7 @@ Interpolation expressions `${...}` are parsed and **type-checked at compile time
 - Type incompatible with `Display`
 - Malformed expression
 
-Interpolation is **desugared** into a `StringBuilder` chain. Each `${expr}` segment is appended via one of two paths :
+Interpolation is **desugared** into a `StringBuilder` chain. Each `${expr}` segment is appended via one of two paths:
 
 - **Primitive segment** (numerics, `bool`, `char`, `string`) → dedicated `builder.append_display_<T>` op. Avoids the trait round-trip and side-steps any infinite recursion when a user overrides a primitive's Display impl with a body that itself interpolates `self` (a primitive Display impl is reachable only via explicit `(value).to_string()`, never from interpolation inside its own body).
 - **Non-primitive segment** (struct, enum, …) → static call to `<T>.Display.to_string`, then `builder.append_str` of the produced string. Single source of truth with explicit `.to_string()` calls — interpolation honours user impls on user types.
@@ -1800,8 +1800,8 @@ read_file :: fn(path: string) -> string | IOError {
 A fallible function returns an explicit union of its success type and one or
 more error types — e.g. `fn parse_int(s: string) -> i32 | ParseError` or, when
 the error is the generic stdlib `Error`, `fn read_file(p: string) -> string |
-Error`. There is no postfix-`!` shorthand : write the union out. The `?`
-operator (above) propagates any member implementing the `Error` trait.
+Error`. There is no postfix-`!` shorthand: write the union out. The `?`
+operator (below) propagates any member implementing the `Error` trait.
 
 ### `Error` trait
 
@@ -1843,7 +1843,7 @@ match r {
 
 ### Module declaration
 
-Every `.vader` file declares its module on its first non-trivial line via the `module` keyword followed by a double-quoted string literal :
+Every `.vader` file declares its module on its first non-trivial line via the `module` keyword followed by a double-quoted string literal:
 
 ```vader
 #!/usr/bin/env vader            // optional shebang
@@ -1852,7 +1852,7 @@ Every `.vader` file declares its module on its first non-trivial line via the `m
 module "std/string"             // mandatory
 ```
 
-Rules :
+Rules:
 
 - Exactly one `module` declaration per file. Repeating it is a compile error.
 - Must appear before any `import`, `export`, or top-level decl. Only shebang and comments may precede it.
@@ -1866,20 +1866,20 @@ module-name ::= segment ('/' segment)*
 segment     ::= [a-z] [a-z0-9_]*
 ```
 
-Examples accepted : `main`, `std/string`, `std/string/utf8`, `vader/lexer`, `my_app/util_2`.
+Examples accepted: `main`, `std/string`, `std/string/utf8`, `vader/lexer`, `my_app/util_2`.
 
-Examples rejected : `Std/String` (uppercase), `std/1string` (segment starts with digit), `std//string` (empty segment), `std/string/` (trailing slash), `./relative` (special chars).
+Examples rejected: `Std/String` (uppercase), `std/1string` (segment starts with digit), `std//string` (empty segment), `std/string/` (trailing slash), `./relative` (special chars).
 
-The `/` inside a name is a regular character ; segment-level parsing exists only for the grammar check above.
+The `/` inside a name is a regular character; segment-level parsing exists only for the grammar check above.
 
 ### Granularity and identity
 
-Module identity is **not** derived from the filesystem. The filesystem is the storage layer ; the `module "..."` declaration is the identity. This implies :
+Module identity is **not** derived from the filesystem. The filesystem is the storage layer; the `module "..."` declaration is the identity. This implies:
 
-- A folder contains **at most one** module : all `.vader` files in the same folder must declare the same module name. Mixed declarations are a scan-time error.
+- A folder contains **at most one** module: all `.vader` files in the same folder must declare the same module name. Mixed declarations are a scan-time error.
 - A folder may contain zero `.vader` files (skipped silently by the scan).
 - Across every scoped source root (project whitelist + stdlib + future deps), each module name appears in **exactly one** folder. Two folders declaring the same module name is a compile error.
-- Sub-modules are **independent** : `std/string` and `std/string/utf8` are unrelated logical modules. Their shared prefix has no semantics — no parent-child relationship, no implicit re-export, no automatic visibility.
+- Sub-modules are **independent**: `std/string` and `std/string/utf8` are unrelated logical modules. Their shared prefix has no semantics — no parent-child relationship, no implicit re-export, no automatic visibility.
 
 ### Imports
 
@@ -1890,36 +1890,36 @@ import "std/string" { trim }                     // destructured import
 str :: import "std/string" { bytes, as_string }  // scoped namespace import
 ```
 
-A namespace import always names its binding explicitly (`name :: import "..."`) — there is no implicit last-segment binding and no `as` suffix. The destructure form (`import "..." { a, b }`) pulls names into the importing module's top-level scope. The combined form (`name :: import "..." { a, b, c }`) is **scoped** : only the listed names are reachable through `name.X` ; the rest of the target module is hidden, and the listed names are NOT also pulled into top-level scope.
+A namespace import always names its binding explicitly (`name :: import "..."`) — there is no implicit last-segment binding and no `as` suffix. The destructure form (`import "..." { a, b }`) pulls names into the importing module's top-level scope. The combined form (`name :: import "..." { a, b, c }`) is **scoped**: only the listed names are reachable through `name.X`; the rest of the target module is hidden, and the listed names are NOT also pulled into top-level scope.
 
 #### Resolution rules
 
 - The string passed to `import` is **strictly** a module name, looked up in the discovered index. No filesystem fallback.
 - Relative paths (`./foo`, `../foo`) and bareword filesystem walks are not part of the language.
 - Self-import (a file inside module `X` writing `import "X"`) is a compile error.
-- `import` declarations are **file-scoped**. Names bound in one file of a multi-file module are not visible in sibling files of the same module ; each file declares its own imports.
+- `import` declarations are **file-scoped**. Names bound in one file of a multi-file module are not visible in sibling files of the same module; each file declares its own imports.
 - Two destructured bindings of the same name in the same file — whether from two distinct modules or shadowing a prelude binding — are a compile error.
-- Import cycles (`A → … → A`) are forbidden ; the resolver emits a diagnostic.
-- **No re-exports.** A module cannot republish another module's bindings ; a façade must wrap each binding manually.
+- Import cycles (`A → … → A`) are forbidden; the resolver emits a diagnostic.
+- **No re-exports.** A module cannot republish another module's bindings; a façade must wrap each binding manually.
 
 #### Prelude
 
-`std/core` is an **implicit prelude** : every `export` from `std/core` is automatically in scope in every other module without an `import`. `Range`, `Field`, `Display`, `Iterator`, etc. are usable directly. The prelude does not apply inside `std/core` itself. Writing `import "std/core"` explicitly from any other module is a compile error (duplicate of the prelude).
+`std/core` is an **implicit prelude**: every `export` from `std/core` is automatically in scope in every other module without an `import`. `Range`, `Field`, `Display`, `Iterator`, etc. are usable directly. The prelude does not apply inside `std/core` itself. Writing `import "std/core"` explicitly from any other module is a compile error (duplicate of the prelude).
 
 ### Visibility
 
-Two levels :
+Two levels:
 
 - **`export`** — the decl is visible to importers via `import "<this-module>"`.
-- **default (no keyword)** — the decl is private to the module : visible to every file of the same module without an import, and invisible to any other module.
+- **default (no keyword)** — the decl is private to the module: visible to every file of the same module without an import, and invisible to any other module.
 
-There is no file-private level. If a decl needs to live in only one file, place it in that file alone — but sibling files of the same module can still see it ; this is by design.
+There is no file-private level. If a decl needs to live in only one file, place it in that file alone — but sibling files of the same module can still see it; this is by design.
 
 The `main` function is **always public** — the resolver promotes its visibility regardless of an explicit `export` keyword (which is then redundant). See §6.
 
 #### Intra-module collisions
 
-Two top-level decls with the same name in the same module raise a compile error :
+Two top-level decls with the same name in the same module raise a compile error:
 
 - Two structs / type aliases / consts / enums / traits with the same name across files of the module → hard error (no canonical "winner").
 - Two `fn` decls with the same name across files of the module → join the same overload set, exactly like multiple `fn` decls inside one file today. Ambiguity surfaces at the call site if parameter shapes overlap.
@@ -1928,9 +1928,9 @@ Two top-level decls with the same name in the same module raise a compile error 
 
 An `export`ed decl whose signature mentions a module-private type, alias, const, enum, or trait is a compile error. A public surface must be reachable through public types only — either `export` the referenced decl or refactor the signature.
 
-### Configuration : `vader.json`
+### Configuration: `vader.json`
 
-`vader.json` is **optional**. When present, the `modules` field declares the source roots to scan :
+`vader.json` is **optional**. When present, the `modules` field declares the source roots to scan:
 
 ```json
 {
@@ -1946,16 +1946,16 @@ The `modules` field accepts **literal folder paths only** — no glob patterns. 
 
 #### Default whitelist
 
-When `vader.json` is absent or omits `modules`, the scan covers only the entry file's containing folder, plus the stdlib (below). Single-file invocations and trivial projects need no manifest ; larger projects with multiple source roots do.
+When `vader.json` is absent or omits `modules`, the scan covers only the entry file's containing folder, plus the stdlib (below). Single-file invocations and trivial projects need no manifest; larger projects with multiple source roots do.
 
 #### Stdlib resolution
 
-The stdlib is resolved out-of-band, independently of `vader.json` :
+The stdlib is resolved out-of-band, independently of `vader.json`:
 
 - **Release** — sidecar of the binary at `<dir-of-binary>/stdlib/`.
 - **Dev** — hard-coded `<workspace>/stdlib/` when running from source.
 
-The stdlib's modules participate in the global index like any other scope ; they're simply discovered through a fixed path.
+The stdlib's modules participate in the global index like any other scope; they're simply discovered through a fixed path.
 
 #### CLI fallback for out-of-scope files
 
@@ -1965,9 +1965,9 @@ For invocations like `vader dump tests/snippets/arith/_main.vader` or `vader run
 
 ### Discovery and scan
 
-At project load, the compiler performs a single pass that scans every scoped root recursively and builds an in-memory index mapping each module name to its folder and file list. Symlinks are not followed, neither for `.vader` files nor for folders containing them. Scan order is not deterministic across platforms ; diagnostics that mention "first / second occurrence" are stable within an invocation but may swap roles between machines. The index is rebuilt on each invocation (no on-disk cache in MVP).
+At project load, the compiler performs a single pass that scans every scoped root recursively and builds an in-memory index mapping each module name to its folder and file list. Symlinks are not followed, neither for `.vader` files nor for folders containing them. Scan order is not deterministic across platforms; diagnostics that mention "first / second occurrence" are stable within an invocation but may swap roles between machines. The index is rebuilt on each invocation (no on-disk cache in MVP).
 
-The same scan + index applies to every CLI subcommand — `run`, `build`, `dump`, `test`, `fmt`, `lsp`, `check`. The contract checks (uniqueness, name grammar) and the diagnostic surface are identical across subcommands ; only the downstream work differs.
+The same scan + index applies to every CLI subcommand — `run`, `build`, `dump`, `test`, `fmt`, `lsp`, `check`. The contract checks (uniqueness, name grammar) and the diagnostic surface are identical across subcommands; only the downstream work differs.
 
 ### Compilation modes
 
@@ -1995,7 +1995,7 @@ main :: fn() -> i32 {
 
 ### What appears at the top level of a `.vader` file
 
-A source file may contain only :
+A source file may contain only:
 
 - The `module` declaration (mandatory, first non-trivial line)
 - `import` statements
@@ -2010,19 +2010,19 @@ A source file may contain only :
 
 **No executable statements at the top level** — no top-level `print(...)`, no top-level loops. Every side-effecting expression lives inside a function body, typically `main`. This keeps the parser simple, makes module loading order independent of execution order, and means `import`-ing a module never runs code.
 
-### Rationale : why module identity is decoupled from the filesystem
+### Rationale: why module identity is decoupled from the filesystem
 
-Earlier iterations of Vader used "one folder = one module" as identity : the resolver inferred a module's name from its folder path. That rule broke down on flat stdlib layouts (sibling `.vader` files each conceptually a distinct module) and pinned naming choices to filesystem structure. The explicit `module "..."` declaration :
+Earlier iterations of Vader used "one folder = one module" as identity: the resolver inferred a module's name from its folder path. That rule broke down on flat stdlib layouts (sibling `.vader` files each conceptually a distinct module) and pinned naming choices to filesystem structure. The explicit `module "..."` declaration:
 
 - Lets module names be globally unique without forcing a specific folder layout.
-- Decouples conceptual organisation from on-disk storage : a small module lives as a single file in a single-file folder ; a large module splits across siblings without changing its name.
+- Decouples conceptual organisation from on-disk storage: a small module lives as a single file in a single-file folder; a large module splits across siblings without changing its name.
 - Makes import resolution a pure name lookup, removing the need for filesystem heuristics.
 
 The folder remains the colocation unit (one folder ≤ one module), but the module's name and identity come from the source file, not the directory.
 
-### Future : programmable build API
+### Future: programmable build API
 
-Post-MVP : a `build.vader` file that drives the build via Vader code (instead of a declarative manifest).
+Post-MVP: a `build.vader` file that drives the build via Vader code (instead of a declarative manifest).
 
 ---
 
@@ -2034,19 +2034,19 @@ Decorators are **compiler instructions** prefixed with `@`. They operate at comp
 |-----------|--------|---------|
 | `@comptime` | fn / value | Forces compile-time evaluation |
 | `@extern`, `@extern("symbol")`, or `@extern("module", "symbol")` | fn (no body) | Declares a user-supplied FFI symbol — see §13 |
-| `@intrinsic` | fn (no body) / impl (no body) | Marks a stdlib function or trait impl as host-provided ; the runtime (VM / C / WASM) wires each method by mangled name |
+| `@intrinsic` | fn (no body) / impl (no body) | Marks a stdlib function or trait impl as host-provided; the runtime (VM / C / WASM) wires each method by mangled name |
 | `@export` or `@export("name")` | fn | Exposes the function with no name mangling (JS-side / lib-side) |
 | `@test` | fn | Marks as a test, executed by `vader test` |
 | `@deprecated("reason")` | any decl | Emits a `W0001` warning at every reference — code still compiles |
-| `@assert(condition)` or `@assert(condition, "message")` | top-level | Compile-time assertion ; condition must evaluate to `true` at comptime, otherwise build fails with `C4015`. The optional second argument must be a *static* string literal (no `${...}` interpolation) — when present, it is appended to the C4015 detail to surface meaningful context |
-| `@partial` | `match` expression | Opts out of exhaustiveness checking ; missing variants no longer trigger `T3013`. Use with a deliberate `_`/binding catch-all (which also silences `W0005`) for "everything else does X" |
-| `@unreachable` | `match` expression | Opts out of exhaustiveness checking like `@partial`, but asserts the *uncovered* variants can never occur : handle the possible variants explicitly (no `_` arm, no fake value) and any uncovered variant traps at runtime (`reached unreachable`). Use for "handle A/B/C, the rest are impossible". Mutually exclusive with `@partial` |
-| `@specialize` | generic struct / fn | Marks the decl as ineligible for type-erasure ; the compiler keeps a distinct monomorphisation per `(decl, typeArgs)` pair. Default behaviour for unmarked generics is erasure (one shared body, vtable dispatch on type-param method calls). Today used on stdlib iterator types (`ArrayIterator`, `Yield`, `MapIterator`, `FilterIterator`, `TakeIterator`, `SkipIterator`, `SetIterator`) whose for-in fusion inlining depends on the body being inline at the call site |
-| `@no_return` | fn | Marks the fn as **diverging** — control never returns to the caller (it panics, aborts, or loops forever). A call to it types as `never`, so it is assignable into any slot (`_ -> todo("x")` where a value is expected type-checks) and terminates control flow (the call satisfies a non-`void` fn's return obligation ; code after it is unreachable, `W0002`). Powers `panic` / `todo` / `unreachable` in `std/abort`. |
+| `@assert(condition)` or `@assert(condition, "message")` | top-level | Compile-time assertion; condition must evaluate to `true` at comptime, otherwise build fails with `C4015`. The optional second argument must be a *static* string literal (no `${...}` interpolation) — when present, it is appended to the C4015 detail to surface meaningful context |
+| `@partial` | `match` expression | Opts out of exhaustiveness checking; missing variants no longer trigger `T3013`. Use with a deliberate `_`/binding catch-all (which also silences `W0005`) for "everything else does X" |
+| `@unreachable` | `match` expression | Opts out of exhaustiveness checking like `@partial`, but asserts the *uncovered* variants can never occur: handle the possible variants explicitly (no `_` arm, no fake value) and any uncovered variant traps at runtime (`reached unreachable`). Use for "handle A/B/C, the rest are impossible". Mutually exclusive with `@partial` |
+| `@specialize` | generic struct / fn | Marks the decl as ineligible for type-erasure; the compiler keeps a distinct monomorphisation per `(decl, typeArgs)` pair. Default behaviour for unmarked generics is erasure (one shared body, vtable dispatch on type-param method calls). Today used on stdlib iterator types (`ArrayIterator`, `Yield`, `MapIterator`, `FilterIterator`, `TakeIterator`, `SkipIterator`, `SetIterator`) whose for-in fusion inlining depends on the body being inline at the call site |
+| `@no_return` | fn | Marks the fn as **diverging** — control never returns to the caller (it panics, aborts, or loops forever). A call to it types as `never`, so it is assignable into any slot (`_ -> todo("x")` where a value is expected type-checks) and terminates control flow (the call satisfies a non-`void` fn's return obligation; code after it is unreachable, `W0002`). Powers `panic` / `todo` / `unreachable` in `std/abort`. |
 
-`@extern` and `@intrinsic` are siblings — both apply to declarations the source doesn't define a body for, with the host filling in the runtime behavior. `@extern` is for **user code** crossing into FFI ; `@intrinsic` is for **stdlib code** whose implementation lives in the host runtime (e.g. `print`, `collect`, the methods of `string implements Add / Hash / Index`). The decorator is informational today — the compiler doesn't yet validate that every `@intrinsic` has a host wiring, but the marker enables that check and distinguishes intentional host-bridging from accidentally-bodyless declarations.
+`@extern` and `@intrinsic` are siblings — both apply to declarations the source doesn't define a body for, with the host filling in the runtime behavior. `@extern` is for **user code** crossing into FFI; `@intrinsic` is for **stdlib code** whose implementation lives in the host runtime (e.g. `print`, `collect`, the methods of `string implements Add / Hash / Index`). The decorator is informational today — the compiler doesn't yet validate that every `@intrinsic` has a host wiring, but the marker enables that check and distinguishes intentional host-bridging from accidentally-bodyless declarations.
 
-`@intrinsic` accepts two shapes :
+`@intrinsic` accepts two shapes:
 
 ```vader
 // Standalone fn — used for free-function host imports (I/O, GC, builders…).
@@ -2060,7 +2060,7 @@ export print :: fn(msg: string) -> void
 string implements Add
 ```
 
-A handful of `@intrinsic` impl methods are also **op-level** intrinsics : the bytecode emitter recognises calls to specific mangled names (`std_core$string$Add$add`) and emits a dedicated op (`string.concat`) instead of a regular `call.import`, so `s1 + s2` and `"a".add("b")` share a single zero-overhead path.
+A handful of `@intrinsic` impl methods are also **op-level** intrinsics: the bytecode emitter recognises calls to specific mangled names (`std_core$string$Add$add`) and emits a dedicated op (`string.concat`) instead of a regular `call.import`, so `s1 + s2` and `"a".add("b")` share a single zero-overhead path.
 
 The v1 `@load` is **replaced by `import`**.
 
@@ -2076,27 +2076,27 @@ The v1 `@load` is **replaced by `import`**.
 @extern("env", "console_log") log :: fn(p: i32, n: i32) -> void // C symbol: console_log
 ```
 
-The decorator accepts **0, 1, or 2 string arguments**. The **last** string is the foreign symbol name (the C linker symbol on the native target ; the WASM `field` on a future WASM target). The **first** of two arguments is the WASM module hint (`"env"` by convention) — ignored by the C-emit, consumed by future WASM-emit. Omitting all arguments reuses the Vader-side fn name as the C symbol. 3+ arguments or any non-string-literal argument is `T3050`.
+The decorator accepts **0, 1, or 2 string arguments**. The **last** string is the foreign symbol name (the C linker symbol on the native target; the WASM `field` on a future WASM target). The **first** of two arguments is the WASM module hint (`"env"` by convention) — ignored by the C-emit, consumed by future WASM-emit. Omitting all arguments reuses the Vader-side fn name as the C symbol. 3+ arguments or any non-string-literal argument is `T3050`.
 
 `@extern`-decorated fns **must be bodyless** — declaring a body alongside `@extern` is `T3051`.
 
 ### Allowed signature types
 
-The MVP C ABI marshals **primitives + `string` only** :
+The MVP C ABI marshals **primitives + `string` only**:
 
 ```
 i8 i16 i32 i64    u8 u16 u32 u64    isize usize
 f32 f64    bool   char    void    string
 ```
 
-Anything else (struct / array / union / fn-typed param / trait / type-param) is `T3050`. Future iterations may add :
+Anything else (struct / array / union / fn-typed param / trait / type-param) is `T3050`. Future iterations may add:
 - opaque pointer types alongside a future `unsafe` block facility (deferred — see Appendix B)
 - struct passing for `@repr(C)` Vader structs
 - callbacks (C → Vader function pointers)
 
 ### Native target — code generation
 
-For each user `@extern` the compiler emits one forward declaration at the top of the generated `.c`, then a per-call shim that the bytecode's `call.import` jumps to :
+For each user `@extern` the compiler emits one forward declaration at the top of the generated `.c`, then a per-call shim that the bytecode's `call.import` jumps to:
 
 ```c
 // Forward declaration — resolved by the linker.
@@ -2108,7 +2108,7 @@ static int32_t vader_import_0(int32_t a0, int32_t a1) {
     return add_i32(a0, a1);
 }
 static size_t vader_import_1(vader_string_t a0) {
-    // Stack-allocated NUL copy for strings < 4 KiB ; heap fallback above.
+    // Stack-allocated NUL copy for strings < 4 KiB; heap fallback above.
     char _b0[a0.len < 4096 ? a0.len + 1 : 1];
     const char* c0;
     if (a0.len < 4096) {
@@ -2124,7 +2124,7 @@ static size_t vader_import_1(vader_string_t a0) {
 }
 ```
 
-The shim is **emitted by the compiler** — the user never writes the `vader_string_t` ↔ `const char*` glue manually. `string` parameters are marshalled to NUL-terminated UTF-8 `const char*` with a frame-lifetime guarantee : the buffer is valid only during the call and freed (or discarded with the stack frame) on return.
+The shim is **emitted by the compiler** — the user never writes the `vader_string_t` ↔ `const char*` glue manually. `string` parameters are marshalled to NUL-terminated UTF-8 `const char*` with a frame-lifetime guarantee: the buffer is valid only during the call and freed (or discarded with the stack frame) on return.
 
 Two distinct `@extern` decls sharing the same C symbol (`@extern("strlen") a` + `@extern("strlen") b`) are `T3050` — the linker would resolve both calls to the same prototype, masking ABI mismatches.
 
@@ -2134,17 +2134,17 @@ Two distinct `@extern` decls sharing the same C symbol (`@extern("strlen") a` + 
 vader build prog.vader --target=native --ldflags="helper.o -lcrypto -L/usr/local/lib"
 ```
 
-`--ldflags="<raw flags>"` passes a whitespace-split string of linker flags directly to `cc` — append `.o` files, `-l<lib>` libs, `-L<dir>` paths, frameworks, etc. The MVP doesn't ship a manifest format ; everything goes through `--ldflags`.
+`--ldflags="<raw flags>"` passes a whitespace-split string of linker flags directly to `cc` — append `.o` files, `-l<lib>` libs, `-L<dir>` paths, frameworks, etc. The MVP doesn't ship a manifest format; everything goes through `--ldflags`.
 
 ### VM behaviour
 
-The VM resolves `@extern` user imports against a **host registry** keyed by `(mangledName, externName)`. Each `call.import` consults the registry and dispatches to the registered host handler ; unbound imports throw `vm: unbound host import …`. The registry is populated by callers of `vader run` (the test runner, the comptime engine, embedders) — there is no auto-discovery.
+The VM resolves `@extern` user imports against a **host registry** keyed by `(mangledName, externName)`. Each `call.import` consults the registry and dispatches to the registered host handler; unbound imports throw `vm: unbound host import …`. The registry is populated by callers of `vader run` (the test runner, the comptime engine, embedders) — there is no auto-discovery.
 
-C-emit and WASM continue to resolve `@extern` against the system linker / module import table respectively ; the same `@extern` decl compiles for all three backends, only the binding mechanism differs.
+C-emit and WASM continue to resolve `@extern` against the system linker / module import table respectively; the same `@extern` decl compiles for all three backends, only the binding mechanism differs.
 
 ### Future WASM target
 
-When the WASM emitter lands (see §17 *Compilation Targets*), `@extern` will additionally support the WASM `(module, field)` shape :
+When the WASM emitter lands (see §17 *Compilation Targets*), `@extern` will additionally support the WASM `(module, field)` shape:
 - 2-arg form `@extern("env", "console_log") log` → `(import "env" "console_log" (func …))`
 - 1-arg / 0-arg form defaults the module to `"env"`.
 
@@ -2187,7 +2187,7 @@ build_lookup_table :: fn() -> u32[] {
 TABLE :: build_lookup_table()
 ```
 
-`build_lookup_table()` runs during compilation. `TABLE` is a constant whose value is placed in the binary's data section. (This illustrates the *intended* capability ; the current comptime engine evaluates only a restricted subset — see the implementation note below — so a loop body like this is not yet evaluable and surfaces `C4001`.)
+`build_lookup_table()` runs during compilation. `TABLE` is a constant whose value is placed in the binary's data section. (This illustrates the *intended* capability; the current comptime engine evaluates only a restricted subset — see the implementation note below — so a loop body like this is not yet evaluable and surfaces `C4001`.)
 
 ### Synergy with generics
 
@@ -2199,31 +2199,31 @@ See section 2 (Compilation Model).
 
 ### Implementation note (comptime engine)
 
-In the self-hosted compiler the comptime engine is a **tree-walk AST interpreter** (`vader/comptime/`), distinct from the bytecode VM that backs `vader run`. It currently evaluates a restricted subset : expression evaluation plus calls to functions with a single `return <expr>` (or trailing-expression) body. Loops, statement-bodied functions, local mutation, and method calls are **not yet supported** — anything outside the subset surfaces `C4001`. Generic instances are still observed during comptime evaluation and fed back into the monomorphizer. (The TypeScript reference compiler used the bytecode VM for comptime ; widening the self-host engine toward that coverage is future work.)
+In the self-hosted compiler the comptime engine is a **tree-walk AST interpreter** (`vader/comptime/`), distinct from the bytecode VM that backs `vader run`. It currently evaluates a restricted subset: expression evaluation plus calls to functions with a single `return <expr>` (or trailing-expression) body. Loops, statement-bodied functions, local mutation, and method calls are **not yet supported** — anything outside the subset surfaces `C4001`. Generic instances are still observed during comptime evaluation and fed back into the monomorphizer. (The TypeScript reference compiler used the bytecode VM for comptime; widening the self-host engine toward that coverage is future work.)
 
 ### Reflection / comptime intrinsics
 
-Compiler-built `@<name>(args)` calls usable in *expression* position. Distinct from decorators, which annotate declarations. Reflection intrinsics operate on a type expression and **fold to a constant at lower time** ; the comptime-host builtin `@file` reads project state and bakes its result before the lower phase. Both shapes compose freely with `@assert(...)` and (eventually) `where` predicates to drive comptime branching on type shape, layout, or external content.
+Compiler-built `@<name>(args)` calls usable in *expression* position. Distinct from decorators, which annotate declarations. Reflection intrinsics operate on a type expression and **fold to a constant at lower time**; the comptime-host builtin `@file` reads project state and bakes its result before the lower phase. Both shapes compose freely with `@assert(...)` and (eventually) `where` predicates to drive comptime branching on type shape, layout, or external content.
 
-The « Signature » column below uses `T: type` for arguments that name a type. A bare type-ident like `i32` is a value of the metatype `type` (§4), so `@size_of(i32)` reads `i32` *as a value* — the intrinsic itself takes a value-position arg, and the typechecker validates it is `type`-typed. `@size_of` uniquely also accepts a runtime `type` value (e.g. a fn param `fn(t: type)`) ; the other reflection intrinsics require the arg to fold to a static type at the call site.
+The "Signature" column below uses `T: type` for arguments that name a type. A bare type-ident like `i32` is a value of the metatype `type` (§4), so `@size_of(i32)` reads `i32` *as a value* — the intrinsic itself takes a value-position arg, and the typechecker validates it is `type`-typed. `@size_of` uniquely also accepts a runtime `type` value (e.g. a fn param `fn(t: type)`); the other reflection intrinsics require the arg to fold to a static type at the call site.
 
 | Intrinsic | Signature | Result | Notes |
 |-----------|-----------|--------|-------|
-| `@size_of(T)` | `(T: type) -> usize` | Byte size of `T` as a runtime value. | Primitives use Vader's ABI sizes (`i8` → 1, `i32` → 4, `i64`/`usize`/`f64` → 8, `string` → 16, `null` → 0) ; aggregate or reference types are stored as `vader_box_t` (16 bytes) ; comptime-only / unresolved kinds → 0. The only intrinsic that also accepts a runtime `type` value ; the lowerer folds the static case to a literal and routes the runtime case through a `size_of.type` op. |
-| `@align_of(T)` | `(T: type) -> usize` | Alignment in bytes. | Mirrors `size_of` for primitives ; aggregates align to the pointer boundary (8). |
+| `@size_of(T)` | `(T: type) -> usize` | Byte size of `T` as a runtime value. | Primitives use Vader's ABI sizes (`i8` → 1, `i32` → 4, `i64`/`usize`/`f64` → 8, `string` → 16, `null` → 0); aggregate or reference types are stored as `vader_box_t` (16 bytes); comptime-only / unresolved kinds → 0. The only intrinsic that also accepts a runtime `type` value; the lowerer folds the static case to a literal and routes the runtime case through a `size_of.type` op. |
+| `@align_of(T)` | `(T: type) -> usize` | Alignment in bytes. | Mirrors `size_of` for primitives; aggregates align to the pointer boundary (8). |
 | `@type_name(T)` | `(T: type) -> string` | Printable name of `T`. | Same shape as the typechecker's `displayType` (`"i32"`, `"MutableMap<i32, string>"`, `"i32 \| string"`). |
-| `@type_kind(T)` | `(T: type) -> string` | Discriminator of `T`'s shape. | Stable strings : `"primitive"`, `"struct"`, `"enum"`, `"union"`, `"array"`, `"tuple"`, `"fn"`, `"trait"`, `"type"`, `"any"`, `"unknown"`. User code is expected to compare on exact match (`if @type_kind(T) == "struct" { ... }`). |
+| `@type_kind(T)` | `(T: type) -> string` | Discriminator of `T`'s shape. | Stable strings: `"primitive"`, `"struct"`, `"enum"`, `"union"`, `"array"`, `"tuple"`, `"fn"`, `"trait"`, `"type"`, `"any"`, `"unknown"`. User code is expected to compare on exact match (`if @type_kind(T) == "struct" { ... }`). |
 | `@field_count(T)` | `(T: type) -> usize` | Number of fields on a Struct, or elements on a Tuple. | Returns 0 for any other shape. |
 | `@variant_count(T)` | `(T: type) -> usize` | Number of variants on a Union or Enum. | Returns 0 for any other shape. Unions are canonicalised by `unionOf` before counting (a union of unions flattens). |
-| `@field_index(T, "name")` | `(T: type, name: string-literal) -> usize` | 0-based position of `name` in `T`'s field list. | `T` must be a `struct` (not a Tuple, not a primitive) ; `name` must be a *static* string literal naming an existing field. T3002 if either constraint is violated, T3009 if the field is unknown. |
+| `@field_index(T, "name")` | `(T: type, name: string-literal) -> usize` | 0-based position of `name` in `T`'s field list. | `T` must be a `struct` (not a Tuple, not a primitive); `name` must be a *static* string literal naming an existing field. T3002 if either constraint is violated, T3009 if the field is unknown. |
 | `@satisfies(T, Trait)` | `(T: type, Trait: type) -> bool` | True iff `T` has an explicit `T implements Trait` impl in scope. | Walks the project's impl registry. Returns `false` if `Trait` resolves to anything other than a `trait` symbol, or if no impl is found. Numeric primitives carry `@intrinsic` `Add`/`Sub`/`Mul`/`Div` impls in `std/core`, so e.g. `@satisfies(i32, Add)` is `true`. The same impls underpin the Layer 7e automatic enforcement of `<T: Trait>` bounds. |
-| `@file(path)` | `(path: string) -> string` | UTF-8 contents of the file at `path`, baked at compile time. | The path is resolved relative to the source file containing the call. `path` must be comptime-evaluable — a string literal, an ident pointing at a string-typed const, or any expression whose result the comptime VM can reduce to a string (e.g. `FILENAME + ".txt"`). The sandbox confines the resolved path to the project root ; escapes raise `C4011`. Missing file raises `C4006`. |
+| `@file(path)` | `(path: string) -> string` | UTF-8 contents of the file at `path`, baked at compile time. | The path is resolved relative to the source file containing the call. `path` must be comptime-evaluable — a string literal, an ident pointing at a string-typed const, or any expression whose result the comptime VM can reduce to a string (e.g. `FILENAME + ".txt"`). The sandbox confines the resolved path to the project root; escapes raise `C4011`. Missing file raises `C4006`. |
 | `@type_of(x)` | `(x: value) -> type` | Static type of `x` as a `type` runtime value. | Argument is **not evaluated at runtime** — only its static type is read at the call site. Useful as input to other reflection intrinsics (`@fields(@type_of(point))`). |
 | `@fields(T)` | `(T: type) -> Field[]` | Field introspection for a struct. | `Field` carries `name: string`, `offset: usize`, `ty: type`. Materialised at lower time as a `Field[]` literal in the const pool. T3002 if `T` isn't a struct. |
 | `@type_args(T)` | `(T: type) -> type[]` | Generic-argument list of a struct or trait instance. | Returns `[]` for non-generic types. |
 | `@field(x, "name")` | `(x: value, name: value) -> <field type>` | Dynamic field access by static-string-literal name. | `name` must be a static string literal (or a `f.name` access that folds to one inside `@comptime for f in @fields(T)`). Result type is the field's declared type, resolved per-call. |
 
-Composition example — comptime layout assertions :
+Composition example — comptime layout assertions:
 
 ```vader
 @assert(@size_of(MyHotStruct) <= 64,
@@ -2232,7 +2232,7 @@ Composition example — comptime layout assertions :
         "KeyType is not hashable")
 ```
 
-The condition expression is evaluated by the comptime VM ; each intrinsic appears as a literal in the bytecode (folded at lower time), so the assertion compiles to a single comparison on constants.
+The condition expression is evaluated by the comptime VM; each intrinsic appears as a literal in the bytecode (folded at lower time), so the assertion compiles to a single comparison on constants.
 
 ### `@comptime for` over reflected fields
 
@@ -2244,13 +2244,13 @@ The condition expression is evaluated by the comptime VM ; each intrinsic appear
 
 ### `std/core` (auto-imported)
 
-Traits : `Display`, `Equals`, `Comparable`, `Step`, `Into<Target>`, `Add`, `Sub`, `Mul`, `Div`, `Rem`, `Hash`, `Clone`, `Iterator<T>`, `Contains<T>`, `Index<I, T>`, `IndexSet<I, T>`, `Error`. (There is no `Iterable` trait — iteration sources implement `Into<Iterator<T>>`, see §7.)
+Traits: `Display`, `Equals`, `Comparable`, `Step`, `Into<Target>`, `Add`, `Sub`, `Mul`, `Div`, `Rem`, `Hash`, `Clone`, `Iterator<T>`, `Contains<T>`, `Index<I, T>`, `IndexSet<I, T>`, `Error`. (There is no `Iterable` trait — iteration sources implement `Into<Iterator<T>>`, see §7.)
 
-Types : `Yield<T>`, `Range`, `ArrayIterator<T>`, `Field` (reflection — see §14).
+Types: `Yield<T>`, `Range`, `ArrayIterator<T>`, `Field` (reflection — see §14).
 
-Primitive trait impls : `string implements Add` (via `string.concat` op), `string implements Hash`, `string implements Index<usize, char>` (powers `s[i]`), and `Equals`/`Hash`/`Comparable`/`Step` on the integer primitives + `char`. `Add`/`Sub`/`Mul`/`Div` on every numeric primitive. (`%` is a built-in op ; the `Rem` trait is declared for user overloading but is **not** impl'd on the primitives.) `Comparable` and `Step` impls are written in Vader (arrow form) ; the rest are `@intrinsic` and bodies are host-provided.
+Primitive trait impls: `string implements Add` (via `string.concat` op), `string implements Hash`, `string implements Index<usize, char>` (powers `s[i]`), and `Equals`/`Hash`/`Comparable`/`Step` on the integer primitives + `char`. `Add`/`Sub`/`Mul`/`Div` on every numeric primitive. (`%` is a built-in op; the `Rem` trait is declared for user overloading but is **not** impl'd on the primitives.) `Comparable` and `Step` impls are written in Vader (arrow form); the rest are `@intrinsic` and bodies are host-provided.
 
-The `Contains<T>` trait powers the `in` / `!in` operators :
+The `Contains<T>` trait powers the `in` / `!in` operators:
 
 ```vader
 Contains :: trait<T> {
@@ -2280,10 +2280,10 @@ read_dir   :: fn(path: string) -> string[] | Error  // names only (no recursion)
 current_executable_location :: fn() -> string       // absolute path of the running binary
 ```
 
-`print` / `println` / `eprint` / `eprintln` are generic over `Display` :
+`print` / `println` / `eprint` / `eprintln` are generic over `Display`:
 `println(42)` and `println(my_struct)` both monomorphise against the
 argument's type and call `msg.to_string()` (the `Display` impl member)
-before writing the bytes. No per-type wrapper, no virtual dispatch ; the
+before writing the bytes. No per-type wrapper, no virtual dispatch; the
 coercion is in the function source, not a separate lowerer pass.
 
 I/O is **synchronous blocking** only in MVP.
@@ -2295,7 +2295,7 @@ Width-based helpers (`pad_start`, `pad_end`) measure bytes, not codepoints.
 ```vader
 // Core access (intrinsics — no body in Vader).
 is_empty    :: fn(s: string) -> bool                   // sugar for s.bytes().len() == 0
-contains    :: fn(s: string, sub: string) -> bool      // the `Contains<string>` impl (powers `sub in s`) ; pure Vader, not a host intrinsic
+contains    :: fn(s: string, sub: string) -> bool      // the `Contains<string>` impl (powers `sub in s`); pure Vader, not a host intrinsic
 starts_with :: fn(s: string, prefix: string) -> bool
 ends_with   :: fn(s: string, suffix: string) -> bool
 split       :: fn(s: string, sep: string) -> string[]
@@ -2306,7 +2306,7 @@ to_lower    :: fn(s: string) -> string
 // Parsing. `ParseError` is the union arm raised on malformed / empty / overflow.
 ParseError  :: struct { msg: string }              // implements Error
 parse_int   :: fn(s: string) -> i32 | ParseError
-parse_float :: fn(s: string) -> f64 | Error          // host intrinsic : generic Error
+parse_float :: fn(s: string) -> f64 | Error          // host intrinsic: generic Error
 
 // Codepoint walkers. `s[i]` (Index impl in std/core) is the primary access form.
 len              :: fn(s: string) -> usize                      // codepoint count, allocation-free
@@ -2314,10 +2314,10 @@ chars            :: fn(s: string) -> StringChars                // StringChars i
 decode_codepoint :: fn(s: string, i: usize) -> [char, usize]    // (codepoint, byte width)
 
 // Byte access (raw UTF-8 — for ASCII / binary protocols / BOM detection).
-bytes          :: fn(s: string) -> const u8[]                   // UTF-8 bytes ; zero-copy borrowed view on native, materialised copy on the VM
-as_string      :: fn(bs: const u8[]) -> string                  // inverse of bytes() ; `s.bytes()[lo..<hi].as_string()` is the byte-indexed substring (O(1) on the borrowed view)
+bytes          :: fn(s: string) -> const u8[]                   // UTF-8 bytes; zero-copy borrowed view on native, materialised copy on the VM
+as_string      :: fn(bs: const u8[]) -> string                  // inverse of bytes(); `s.bytes()[lo..<hi].as_string()` is the byte-indexed substring (O(1) on the borrowed view)
 byte_decode_at :: fn(s: string, i: usize) -> char               // decode UTF-8 codepoint at byte offset (for byte-cursor parsers)
-decode_codepoint_at :: fn(bs: const u8[], i: usize) -> [char, usize]  // byte-view codepoint decode ; advance a held-view cursor by the returned width
+decode_codepoint_at :: fn(bs: const u8[], i: usize) -> [char, usize]  // byte-view codepoint decode; advance a held-view cursor by the returned width
 
 // Indexing helpers. `min_index` / `from` and the result use `isize` so the
 // `-1`-on-miss sentinel stays expressible without a `usize | null`.
@@ -2358,7 +2358,7 @@ UFCS-callable numeric formatting and parsing.
 ```vader
 to_hex          :: fn(self: u64) -> string         // lowercase, no `0x`, no leading zeros
 to_bin          :: fn(self: u64) -> string         // no prefix, no leading zeros
-to_compact_str  :: fn(self: f64) -> string         // strips trailing `.0` ; `(10.0).to_compact_str() = "10"`
+to_compact_str  :: fn(self: f64) -> string         // strips trailing `.0`; `(10.0).to_compact_str() = "10"`
 
 parse_int_in_base  :: fn(s: string, base: i32) -> i64 | ParseError
 parse_uint_in_base :: fn(s: string, base: i32) -> u64 | ParseError
@@ -2412,7 +2412,7 @@ land (post-MVP).
 
 ```vader
 // Hash map — chained buckets with a fixed bucket count. The public surface
-// is the trait-operator triad below ; `put` / `get` / `contains_key` are
+// is the trait-operator triad below; `put` / `get` / `contains_key` are
 // internal helpers used by the impls.
 MutableMap<K: Hash & Equals, V>
 len      :: fn(self: MutableMap<K, V>) -> usize
@@ -2433,7 +2433,7 @@ is_empty :: fn(self: MutableSet<T>) -> bool
 
 `MutableMap` carries `Index<K, V | null>` / `IndexSet<K, V>` / `Contains<K>`
 impls, so the trait operators (§4 *Operator overloading*) are the canonical
-access surface :
+access surface:
 
 ```vader
 m["a"] = 10              // IndexSet — store
@@ -2441,15 +2441,15 @@ match m["a"] { … }       // Index    — fetch, returns `V | null`
 if "a" in m { … }        // Contains — membership
 ```
 
-`MutableSet` carries a `Contains<T>` impl ; `value in set` / `value !in set`
-both work. No `Index` / `IndexSet` impl on Set : sets have no value-at-key
+`MutableSet` carries a `Contains<T>` impl; `value in set` / `value !in set`
+both work. No `Index` / `IndexSet` impl on Set: sets have no value-at-key
 semantics, and `s.add(v)` reads more clearly than `s[v] = true` ever could.
 
 ### `std/math`
 
 ```vader
 // Comparison + helpers — overloaded on `i32`, `usize`, and `f64`. A generic
-// `Comparable`-driven variant (one fn body for any `T: Comparable`) is post-MVP : the
+// `Comparable`-driven variant (one fn body for any `T: Comparable`) is post-MVP: the
 // body needs to default-init a slot of type `T` before threading it through
 // `compare`, which is gated on `Default<T>` / a `zero<T>()` intrinsic.
 min   :: fn(a: i32, b: i32) -> i32
@@ -2481,7 +2481,7 @@ e  :: 2.718281828459045
 
 ### `std/iter`
 
-The iterator trait lives in `std/core` (auto-imported). `next()` returns `Yield<T> | null` (`null` = exhausted). The `Yield` wrapper keeps iterators over nullable elements unambiguous — a yielded `null` is distinct from end-of-stream :
+The iterator trait lives in `std/core` (auto-imported). `next()` returns `Yield<T> | null` (`null` = exhausted). The `Yield` wrapper keeps iterators over nullable elements unambiguous — a yielded `null` is distinct from end-of-stream:
 
 ```vader
 Yield :: struct<T> { value: T }
@@ -2496,7 +2496,7 @@ Iterator :: trait<T> {
 
 `is_empty` / `count` / `last` are default methods (Layer 8d) — every Iterator impl inherits the bodies derived from `next`, the user only has to provide `next`.
 
-`std/iter` provides combinators on top of `Iterator<T>`. Two flavours coexist :
+`std/iter` provides combinators on top of `Iterator<T>`. Two flavours coexist:
 
 - **Eager combinators** — take a `T[]` directly (an `Iterator<T>` also drops in via the `Into` coerce), allocate a fresh array for the result, return it. Suitable for the common case of "I want a `T[]` out of this pipeline".
 
@@ -2518,7 +2518,7 @@ Iterator :: trait<T> {
   collect   :: fn<T>(it: Iterator<T>) -> T[]            // materialise an iterator (or T[]) into an array
   ```
 
-- **Lazy combinators** — return a struct (`MapIterator<T, U>`, `FilterIterator<T>`, `TakeIterator<T>`, `SkipIterator<T>`) that itself implements `Iterator<T>`. Chains fuse through `Iterator<T>` slots without allocating intermediate arrays. UFCS lets calls chain fluently :
+- **Lazy combinators** — return a struct (`MapIterator<T, U>`, `FilterIterator<T>`, `TakeIterator<T>`, `SkipIterator<T>`) that itself implements `Iterator<T>`. Chains fuse through `Iterator<T>` slots without allocating intermediate arrays. UFCS lets calls chain fluently:
 
   ```vader
   arr.filter(p).map(f).take(10).collect()
@@ -2526,11 +2526,11 @@ Iterator :: trait<T> {
 
   The auto-coerce `T[] implements<T> Into<Iterator<T>>` makes raw arrays drop into any `Iterator<T>` slot, so a raw `T[]` flows straight into the first combinator with no explicit wrap. Short-circuiting combinators (`any`, `all`, `find`, `find_map`) live in this family too — they take a single `Iterator<T>` (raw arrays auto-coerce) and stop on the first match.
 
-The eager and lazy families converge on the same `Iterator<T>` trait : an eager `collect(it)` materialises whatever the lazy chain produces ; a lazy chain accepts a raw `T[]` via the same `Into<Iterator<T>>` coercion.
+The eager and lazy families converge on the same `Iterator<T>` trait: an eager `collect(it)` materialises whatever the lazy chain produces; a lazy chain accepts a raw `T[]` via the same `Into<Iterator<T>>` coercion.
 
 ### `std/runtime`
 
-Runtime introspection and controls — currently GC-only. The module is named `runtime` since Vader has no compiler-private visibility tier today ; the surface is meant for debugging and testing rather than production code.
+Runtime introspection and controls — currently GC-only. The module is named `runtime` since Vader has no compiler-private visibility tier today; the surface is meant for debugging and testing rather than production code.
 
 ```vader
 collect      :: fn() -> void   // force a Cheney cycle
@@ -2564,7 +2564,7 @@ normalize   :: fn(self: Path)                   -> Path   // collapse `.` and `.
 ### `std/process`
 
 Synchronous external-process invocation. Native-only in MVP — the runtime
-wires `posix_spawnp` + pipes to capture stdout/stderr ; on the WASM target
+wires `posix_spawnp` + pipes to capture stdout/stderr; on the WASM target
 the imports are unbound and fail at link time (WASI preview2's process API
 is post-MVP). Used by the self-host build pipeline to drive `cc`.
 
@@ -2584,10 +2584,10 @@ spawn_last_stdout :: fn() -> string                  // captured stdout of the l
 spawn_last_stderr :: fn() -> string                  // captured stderr of the last spawn_run
 ```
 
-`argv[0]` is the program name (resolved against `PATH`) ; `argv[1..]` are
+`argv[0]` is the program name (resolved against `PATH`); `argv[1..]` are
 arguments. Stdin is inherited from the parent — no MVP need to wire a stdin
-pipe (most tooling reads its inputs from files). Single-threaded by design :
-the runtime captures the most recent run's output into module-level buffers ;
+pipe (most tooling reads its inputs from files). Single-threaded by design:
+the runtime captures the most recent run's output into module-level buffers;
 calling `spawn` again replaces them. Returns `ProcessError` when argv is
 empty, the program can't be launched, or the child is killed by a signal.
 
@@ -2622,9 +2622,9 @@ stringify_pretty :: fn(v: JsonValue, indent: i32)     -> string
 
 ### Landed in stdlib (beyond the core MVP set)
 
-The following modules ship in `stdlib/std/` today, alongside the core MVP set documented above :
+The following modules ship in `stdlib/std/` today, alongside the core MVP set documented above:
 
-- `std/abort` — `panic` / `todo` / `unreachable` (the diverging-fn primitives ; prelude-level).
+- `std/abort` — `panic` / `todo` / `unreachable` (the diverging-fn primitives; prelude-level).
 - `std/base64` — encode / decode.
 - `std/cli` — declarative flag parsing (`FlagSpec`, `parse_known`).
 - `std/crypto` — basic hashing primitives.
@@ -2682,11 +2682,11 @@ Possibly post-MVP, in `std/thread`, **not available on the WASM target** (compil
 A first-class debug/inspection target. The bytecode IR is emitted as a standalone build artifact in one of two formats:
 
 - `--target=ir` → `.vir` — **binary** module, compact, what `vader run program.vir` consumes.
-- `--target=ir-text` → `.virt` — **textual**, line-oriented, human-readable ; `vader run program.virt` re-parses it back into the in-memory bytecode without touching the original source.
+- `--target=ir-text` → `.virt` — **textual**, line-oriented, human-readable; `vader run program.virt` re-parses it back into the in-memory bytecode without touching the original source.
 
 Both formats:
-- mirror the in-memory bytecode 1:1 (stack-based) ;
-- include source positions (mapping IR ops back to `file:line:col` in the original Vader source) ;
+- mirror the in-memory bytecode 1:1 (stack-based);
+- include source positions (mapping IR ops back to `file:line:col` in the original Vader source);
 - are generated for the **whole program** post-monomorphization: every specialized generic instance is materialized.
 
 Use cases:
@@ -2713,13 +2713,13 @@ A single C native backend + a single WASM backend + IR text + IR binary emission
 | `vader build --target=wasm` | Targets WebAssembly *(not yet implemented)* |
 | `vader build --target=ir` | Emits a binary `.vir` bytecode module *(not yet implemented)* |
 | `vader build --target=c` | Emits the generated C source only |
-| `vader fmt [path]` | Single opinionated formatter, **no config** ; defaults to recursive walk under `.` |
-| `vader test [path]` | Runs all functions marked `@test` *(not yet implemented in the native CLI ; the test suite runs through the TS driver today)* |
+| `vader fmt [path]` | Single opinionated formatter, **no config**; defaults to recursive walk under `.` |
+| `vader test [path]` | Runs all functions marked `@test` *(not yet implemented in the native CLI; the test suite runs through the TS driver today)* |
 | `vader lsp` | Runs the Language Server (JSON-RPC over stdin/stdout). Spawned by VS Code / IntelliJ |
 | `vader dump --stage=<stage> file.vader` | Dumps an IR stage (text or JSON depending on stage) |
 | `vader init [name]` *(post-MVP)* | Scaffolds a new Vader project: directory, `examples/hello.vader`, default `vader.json` |
 
-`vader dump` stages, in pipeline order (`ast`, `resolved-ast`, `cfg`, `c`/`wasm` produce text ; the rest produce JSON) :
+`vader dump` stages, in pipeline order (`ast`, `resolved-ast`, `cfg`, `c`/`wasm` produce text; the rest produce JSON):
 
 | Stage | Output |
 |-------|--------|
@@ -2799,7 +2799,7 @@ DWARF emission, debuggable in Chrome DevTools / wasmtime. The VM DAP server (med
 
 ### LSP
 
-The Language Server lives in Vader under `vader/lsp/`. It's spawned by editors via `vader lsp`, speaks JSON-RPC over stdin/stdout, and exposes :
+The Language Server lives in Vader under `vader/lsp/`. It's spawned by editors via `vader lsp`, speaks JSON-RPC over stdin/stdout, and exposes:
 
 - **Hover** — type / signature for the symbol under the cursor.
 - **Go-to-definition** — resolved via the Vader resolver's span-keyed `IdentExpr → Symbol` map (`vader/resolver/body.vader::ResolvedFile.idents`).
@@ -2810,7 +2810,7 @@ VS Code and IntelliJ extensions live under `editors/vscode/` and `editors/intell
 
 ### Diagnostics
 
-Diagnostic plumbing is **MVP-mandatory** and consumed by both the CLI rendering (text + JSON) and the LSP boundary. The intent : a single structured shape feeds every consumer ; no phase produces strings that only one consumer knows how to parse.
+Diagnostic plumbing is **MVP-mandatory** and consumed by both the CLI rendering (text + JSON) and the LSP boundary. The intent: a single structured shape feeds every consumer; no phase produces strings that only one consumer knows how to parse.
 
 **Design principles**:
 
@@ -2833,7 +2833,7 @@ Diagnostic plumbing is **MVP-mandatory** and consumed by both the CLI rendering 
 
 A registry of codes lives in `src/diagnostics/codes.ts` (TypeScript) and `vader/diagnostics/codes.vader` (self-host). The two registries are kept in lockstep — same IDs, same wording, same enum order.
 
-Notable cross-pass placement rules :
+Notable cross-pass placement rules:
 - **`R2006`** (unresolved identifier) and **`R2009`** (trait name does not refer to a trait) are emitted at the resolver stage by the body-walker / project pre-resolve pass, not by the typechecker.
 - **`R2018`** (orphan impl forbidden) runs in a project-level pre-resolve pass after `wireImports` so cross-module ImportBinding redirects resolve correctly.
 - **`T3050`** / **`T3051`** validate `@extern` decls (ABI shape + body-absent) — emitted during fn-decl typing.
@@ -2872,14 +2872,14 @@ As soon as the TS compiler can compile simple functions (a syntactic subset: fns
 12. **C-emit** ✅ (`vader/c_emit/`).
 13. **WASM-emit** ⏳ (post-MVP — binary encoding, Phase 3).
 
-Legend : ✅ ported, ⏳ not yet (post-MVP).
+Legend: ✅ ported, ⏳ not yet (post-MVP).
 
 The full native pipeline is self-hosted. The only stage still TS-only is the WASM
 emitter, which is post-MVP.
 
 ### Bootstrap status — achieved
 
-The fixed point has been reached : the Vader-built compiler reproduces its own
+The fixed point has been reached: the Vader-built compiler reproduces its own
 generated C **byte-for-byte** (`stage1.c == stage2.c`), and a committed,
 gzip-compressed C seed (`bootstrap/bootstrap.c.gz`) lets any machine with a C
 compiler rebuild the entire toolchain from source with no Bun or TypeScript in
@@ -2887,7 +2887,7 @@ the cold-start path — see [`docs/BOOTSTRAP.md`](./docs/BOOTSTRAP.md). CI rebui
 from the seed on every push.
 
 The TypeScript compiler under `src/` is now only the day-to-day development
-driver and the reference the self-host port is checked against ; it is slated for
+driver and the reference the self-host port is checked against; it is slated for
 removal (TODO §2.8) once the self-host is fully sealed. Snapshot and parity tests
 run the native Vader CLI as the oracle for every stage.
 
@@ -2976,7 +2976,7 @@ import "std/string" { parse_int, trim }
 
 read_count :: fn(path: string) -> i32 | Error {
     raw := read_file(path)?            // read_file → string | Error
-    n   := parse_int(trim(raw))?       // parse_int → i32 | ParseError ; ParseError widens to Error
+    n   := parse_int(trim(raw))?       // parse_int → i32 | ParseError; ParseError widens to Error
     return n
 }
 
@@ -3015,7 +3015,7 @@ main :: fn() -> i32 {
 
 ### `@extern` — calling JS from WASM
 
-Same shape as the C path (§13) — the 2-arg form gives the WASM `(module, field)` pair. The compiler will materialise `(import "env" "alert" (func …))` in the module's import section. String parameters are still allowed and marshalled into a `(ptr: i32, len: i32)` pair pushed onto the WASM stack ; the user-side glue (JS) reads the linear memory accordingly.
+Same shape as the C path (§13) — the 2-arg form gives the WASM `(module, field)` pair. The compiler will materialise `(import "env" "alert" (func …))` in the module's import section. String parameters are still allowed and marshalled into a `(ptr: i32, len: i32)` pair pushed onto the WASM stack; the user-side glue (JS) reads the linear memory accordingly.
 
 ```vader
 @extern("env", "alert")
@@ -3062,11 +3062,11 @@ WebAssembly.instantiateStreaming(fetch("app.wasm"), imports).then(({ instance })
 4. **Type-checker**: bidirectional inference, narrowing, traits, match exhaustiveness
 5. **Comptime engine + monomorphizer**: bytecode VM, `@comptime` execution, generic instantiation
 6. **Lowerer**: pattern match → if/else chains, traits → static dispatch chain (`is StructA -> StructA_method(...)`), `?` → match
-7. **Mid-IR (CFG)**: LoweredAST → CFG converter ; substrate for escape analysis, loop-carried-dependency check, dead-store elimination
+7. **Mid-IR (CFG)**: LoweredAST → CFG converter; substrate for escape analysis, loop-carried-dependency check, dead-store elimination
 8. **Bytecode emitter**: from CFG (not directly from lowered AST)
 9. **VM**: bytecode interpretation (mode `vader run` + comptime)
-10. **IR text emitter**: serialize the bytecode into a human-readable `.vir` file with source-position annotations
-11. **IR text reader**: parse `.vir` back into in-memory bytecode for `vader run program.vir`
+10. **IR text emitter**: serialize the bytecode into a human-readable `.virt` file with source-position annotations
+11. **IR text reader**: parse `.virt` back into in-memory bytecode for `vader run program.virt`
 12. **C emitter**: from bytecode
 13. **WASM emitter**: from bytecode
 14. **Stdlib in Vader**: core, io, string, collections, math, builder, iter
@@ -3089,7 +3089,7 @@ WebAssembly.instantiateStreaming(fetch("app.wasm"), imports).then(({ instance })
 - Full array slicing
 - `vader init [name]`: project scaffolder (creates the dir, an `examples/hello.vader`, and a default `vader.json`)
 
-Already landed (cross-reference for B's reader) :
+Already landed (cross-reference for B's reader):
 - `std/json` (in MVP — §15 `std/json`)
 - LSP (`vader/lsp/`, partial — server + completion / hover / definition / semantic tokens)
 - Resolver self-host (`vader/resolver/` — 9 modules)
@@ -3106,8 +3106,8 @@ Already landed (cross-reference for B's reader) :
 - **UFCS**: Uniform Function Call Syntax. `a.f(b)` ≡ `f(a, b)`.
 - **Comptime**: Compile-Time Execution. Vader code executed during compilation.
 - **Monomorphization**: generation of specialized versions of a generic function/struct for each concrete combination of type parameters.
-- **CFG**: Control Flow Graph. Nodes are basic blocks (linear instruction sequences) ; edges are control transitions (conditional / unconditional branches). Vader's Mid-IR materialises a CFG between the Lowered AST and the bytecode emitter so analyses (escape, liveness) can use def-use chains.
+- **CFG**: Control Flow Graph. Nodes are basic blocks (linear instruction sequences); edges are control transitions (conditional / unconditional branches). Vader's Mid-IR materialises a CFG between the Lowered AST and the bytecode emitter so analyses (escape, liveness) can use def-use chains.
 - **HIR / MIR / LIR**: High/Mid/Low Intermediate Representation. Vader v1.0 has two IRs (the Lowered AST + the Mid-IR CFG) feeding the bytecode emitter.
-- **SAM**: Single Abstract Method. A trait with exactly one required method ; impls may use a short body-only form (`Foo implements Trait -> expr`) instead of the full `name :: fn(...) { ... }` decl.
+- **SAM**: Single Abstract Method. A trait with exactly one required method; impls may use a short body-only form (`Foo implements Trait -> expr`) instead of the full `name :: fn(...) { ... }` decl.
 - **VM**: the stack-based virtual machine that executes bytecode (interp + comptime modes).
 - **Bootstrap**: compilation of the Vader compiler with itself.
