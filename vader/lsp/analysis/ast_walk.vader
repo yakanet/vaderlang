@@ -1,18 +1,22 @@
 // vader/lsp/analysis/ast_walk — cursor-driven AST position finders.
 //
 // Shared "what AST node is under the cursor" traversals, factored out of the
-// individual handlers so hover, typeDefinition, signatureHelp — and the future
+// individual handlers so hover, typeDefinition, signatureHelp — and the
 // completion / code-action layers — all descend the tree the same way :
 //
-//   - `find_expr_at`            : the smallest typed expression at a position
+//   - `enclosing_exprs`         : the full containing-expression chain, innermost
+//                                 first (code actions). The base traversal that
+//                                 `find_enclosing_call` filters.
+//   - `find_enclosing_call`     : the innermost `CallExpr` containing the cursor
+//                                 (signatureHelp) — a thin filter over
+//                                 `enclosing_exprs`.
+//   - `find_expr_at`            : the smallest *typed* expression at a position
 //                                 (hover, typeDefinition, completion receiver).
 //   - `find_binding_rhs_type_at`: the inferred type of a `let` / `::` binding
 //                                 whose *name* the cursor sits on (hover).
-//   - `find_enclosing_call`     : the innermost `CallExpr` whose parenthesised
-//                                 region contains the cursor (signatureHelp).
 //
-// All three are position-targeted descents over the same Decl/Stmt/Expr shape
-// and share the `span_contains` / `span_size` geometry from `protocol/position`
+// These are position-targeted descents over the same Decl/Stmt/Expr shape and
+// share the `span_contains` / `span_size` geometry from `protocol/position`
 // (smallest-span-wins). Positions are 1-based, matching the AST `Span`.
 
 module "vader/lsp/analysis"
@@ -291,10 +295,14 @@ binding_hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindBindingStat
 
 // ---- innermost enclosing call --------------------------------------------
 
-/// Walk every fn / impl body and return the innermost `CallExpr` whose
-/// `(arg, arg, ...)` parenthesised region contains `(line, col)`. "Innermost"
-/// matters for nested calls like `f(g(|))` — we want `g` when the cursor is
-/// between its parens, not the outer `f`.
+/// The innermost `CallExpr` whose span contains `(line, col)`, or `null`.
+/// "Innermost" matters for nested calls like `f(g(|))` — we want `g` when the
+/// cursor is between its parens, not the outer `f`.
+///
+/// A thin filter over `enclosing_exprs`, which already yields the containing
+/// chain innermost-first : the first `CallExpr` in that chain is the smallest
+/// call span over the cursor. Sharing the one traversal keeps the call walker
+/// (signatureHelp) and the code-action walker from drifting apart.
 ///
 /// @param decls  the file's top-level declarations to descend.
 /// @param line   1-based cursor line.
@@ -303,143 +311,14 @@ binding_hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindBindingStat
 export find_enclosing_call :: fn(
     decls: AST.Decl[], line: i32, col: i32,
 ) -> AST.CallExpr | null {
-    state :: FindCallState { .line = line, .col = col, .best = null, .best_size = u64(0) }
-    for d in decls { sh_walk_decl(d, state) }
-    return state.best
-}
-
-FindCallState :: struct {
-    line:      i32
-    col:       i32
-    best:      AST.CallExpr | null
-    best_size: u64
-}
-
-sh_walk_decl :: fn(d: AST.Decl, st: FindCallState) -> void {
-    match d {
-        is AST.FnDecl as fd -> {
-            match fd.body {
-                is null -> {}
-                is AST.BlockExpr as b -> { sh_walk_block(b, st) }
-            }
-        }
-        is AST.ImplDecl as id -> {
-            for m in id.members {
-                match m.body {
-                    is null -> {}
-                    is AST.BlockExpr as b -> { sh_walk_block(b, st) }
-                }
-            }
-        }
-        _ -> {}
+    chain :: enclosing_exprs(decls, line, col)
+    // Index loop (not `for x in arr`) sidesteps the for-in iterator
+    // materialisation gap (GATE B1) over the erased `AST.Expr[]` element type.
+    for i in 0..<chain.len() {
+        e :: chain[i]
+        if e is AST.CallExpr as c { return c }
     }
-}
-
-sh_walk_block :: fn(b: AST.BlockExpr, st: FindCallState) -> void {
-    for s in b.stmts { sh_walk_stmt(s, st) }
-    match b.trailing {
-        is null -> {}
-        _ -> { sh_walk_expr(b.trailing, st) }
-    }
-}
-
-sh_walk_stmt :: fn(s: AST.Stmt, st: FindCallState) -> void {
-    match s {
-        is AST.LetStmt as ls -> { sh_walk_expr(ls.value, st) }
-        is AST.ExprStmt as es -> { sh_walk_expr(es.expr, st) }
-        is AST.ReturnStmt as rs -> {
-            match rs.value {
-                is null -> {}
-                _ -> { sh_walk_expr(rs.value, st) }
-            }
-        }
-        is AST.AssignStmt as as_ -> {
-            sh_walk_expr(as_.target, st)
-            sh_walk_expr(as_.value, st)
-        }
-        is AST.ForStmt as fs -> {
-            match fs.form {
-                is AST.WhileFor as w -> { sh_walk_expr(w.cond, st) }
-                is AST.InFor as i -> { sh_walk_expr(i.iter, st) }
-                is AST.InfiniteFor -> {}
-            }
-            sh_walk_block(fs.body, st)
-        }
-        is AST.BreakStmt -> {}
-        is AST.ContinueStmt -> {}
-        is AST.DeferStmt as ds -> {
-            match ds.body {
-                is AST.DeferStmtBody  as dsb -> { sh_walk_stmt(dsb.stmt, st) }
-                is AST.DeferBlockBody as dbb -> { sh_walk_block(dbb.block, st) }
-            }
-        }
-    }
-}
-
-sh_walk_expr :: fn(e: AST.Expr, st: FindCallState) -> void {
-    sh_consider(e, st)
-    match e {
-        is AST.CallExpr as c -> {
-            sh_walk_expr(c.callee, st)
-            for a in c.args { sh_walk_expr(a.value, st) }
-        }
-        is AST.FieldExpr as f -> { sh_walk_expr(f.target, st) }
-        is AST.IndexExpr as ix -> {
-            sh_walk_expr(ix.target, st)
-            sh_walk_expr(ix.index, st)
-        }
-        is AST.UnaryExpr as u -> { sh_walk_expr(u.operand, st) }
-        is AST.BinaryExpr as bn -> {
-            sh_walk_expr(bn.left, st)
-            sh_walk_expr(bn.right, st)
-        }
-        is AST.IfExpr as ifx -> {
-            sh_walk_expr(ifx.cond, st)
-            sh_walk_block(ifx.then_block, st)
-            match ifx.else_branch {
-                is null -> {}
-                is AST.IfElseIf    as ei -> { sh_walk_expr(ei.branch, st) }
-                is AST.IfElseBlock as eb -> { sh_walk_block(eb.block, st) }
-            }
-        }
-        is AST.MatchExpr as m -> {
-            sh_walk_expr(m.scrutinee, st)
-            for arm in m.arms { sh_walk_expr(arm.body, st) }
-        }
-        is AST.BlockExpr as b -> { sh_walk_block(b, st) }
-        is AST.LambdaExpr as l -> { sh_walk_block(l.body, st) }
-        is AST.StructLitExpr as sl -> {
-            for item in sl.items {
-                match item {
-                    is AST.StructLitField  as fld -> { sh_walk_expr(fld.value, st) }
-                    is AST.StructLitSpread as sp  -> { sh_walk_expr(sp.expr, st) }
-                }
-            }
-        }
-        is AST.SeqLitExpr as sq -> {
-            for el in sq.elements { sh_walk_expr(el, st) }
-        }
-        is AST.CastExpr as cx -> { sh_walk_expr(cx.value, st) }
-        is AST.TryExpr as tx -> { sh_walk_expr(tx.inner, st) }
-        is AST.IntrinsicCallExpr as ic -> {
-            for a in ic.args { sh_walk_expr(a, st) }
-        }
-        _ -> {}
-    }
-}
-
-sh_consider :: fn(e: AST.Expr, st: FindCallState) -> void {
-    match e {
-        is AST.CallExpr as c -> {
-            if !span_contains(c.span, st.line, st.col) { return }
-            size :: span_size(c.span)
-            if st.best is null || size < st.best_size {
-                st.best      = c
-                st.best_size = size
-            }
-        }
-        _ -> {}
-    }
+    return null
 }
 
 // ---- enclosing expression chain -------------------------------------------
