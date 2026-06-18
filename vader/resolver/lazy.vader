@@ -39,26 +39,24 @@ export IncludePath :: struct {
 }
 
 /// The ordered include-paths for lazy resolution. The entry roots its declared
-/// namespace at its own folder (so `import "main/config"` → `<entry>/config`),
-/// then the stdlib root (`std/*`), then the project root (`vader/*`) when present.
-/// Searched in order, first match wins. P4b folds in `--include-paths` +
-/// `vader.json includePaths` + binary defaults.
+/// namespace at its own folder (so `import "snippet/lib"` → `<entry>/lib`), then
+/// the caller-assembled plain roots (`plain`) in order. Searched in order, first
+/// match wins (GCC `-I`).
+///
+/// `plain` is assembled by the loader from the include-path layers (manifest dir,
+/// `vader.json includePaths`, binary-adjacent defaults — and, P4b, the
+/// `--include-paths` flag). Module names are RELATIVE to a plain root :
+/// `module "std/io"` lives at `<plain>/std/io`.
 ///
 /// @param entry_module  the entry's declared module name — the namespace it roots.
 /// @param entry_folder  the folder the entry file lives in (the namespace root).
-/// @param stdlib_root   `module "std/X"` lives at `<stdlib_root>/std/X`.
-/// @param project_root  the manifest root (or null) — `module "vader/X"` at
-///                      `<project_root>/vader/X`.
+/// @param plain         the ordered plain include-paths (no namespace prefix).
 export include_paths :: fn(
-    entry_module: string, entry_folder: string,
-    stdlib_root: string, project_root: string | null,
+    entry_module: string, entry_folder: string, plain: string[],
 ) -> IncludePath[] {
-    paths: IncludePath[] = [
-        IncludePath { .dir = entry_folder, .prefix = entry_module },
-        IncludePath { .dir = stdlib_root, .prefix = "" },
-    ]
-    if project_root is string as pr {
-        paths.push(IncludePath { .dir = pr, .prefix = "" })
+    paths: IncludePath[] = [IncludePath { .dir = entry_folder, .prefix = entry_module }]
+    for pi in 0..<plain.len() {
+        paths.push(IncludePath { .dir = plain[pi], .prefix = "" })
     }
     return paths
 }

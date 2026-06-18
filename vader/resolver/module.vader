@@ -231,66 +231,36 @@ import "std/json" { parse, JsonValue, JsonObject, JsonArray, JsonString }
 
 /// The loader-relevant fields of a project `vader.json`, read in one pass.
 export Manifest :: struct {
-    /// Vendored stdlib root, relative to the project root (`stdlib` key).
-    /// Null when the project relies on the executable-bundled stdlib.
-    stdlib:  string | null
-    /// Extra source roots to scan (`modules` key). Each is a literal folder
-    /// path — callers `join_path(project_root, m)` before `discover_modules`.
-    modules: string[]
+    /// Extra module search roots (`includePaths` key), each relative to the
+    /// project root. Joined onto the project root and searched (after the
+    /// manifest dir itself) by lazy resolution — GCC `-I` style. E.g.
+    /// `["stdlib"]` makes `module "std/io"` resolve at `<root>/stdlib/std/io`.
+    include_paths: string[]
 }
 
-/// Read `vader.json` at `project_root` and extract every loader-relevant
-/// field in a single read + parse. Returns an empty `Manifest` (no stdlib,
-/// no extra roots) when the file is missing / malformed / lacks the fields.
+/// Read `vader.json` at `project_root` and extract its `includePaths` in one
+/// read + parse. Returns an empty `Manifest` when the file is missing /
+/// malformed / lacks the field.
 ///
-/// One pass matters : `load_project_with_overlay` needs both `stdlib` (to
-/// pin the stdlib root's path-form) and `modules` (the scoped roots), and
-/// re-reading the manifest for each would double the I/O on every project
-/// load — which the LSP repeats on every didOpen / didChange.
+/// One pass matters : the LSP re-loads the project on every didOpen / didChange,
+/// so re-reading + re-parsing the manifest per field would double the I/O.
 export read_manifest :: fn(project_root: string) -> Manifest {
-    modules: string[] = []
+    include_paths: string[] = []
     manifest_path :: join_path(project_root, MANIFEST_FILENAME)
-    if !exists(manifest_path) { return Manifest { .stdlib = null, .modules = modules } }
+    if !exists(manifest_path) { return Manifest { .include_paths = include_paths } }
     content :: try_read(manifest_path)
     raw :: if content == null { "" } else { content }
-    if raw == "" { return Manifest { .stdlib = null, .modules = modules } }
+    if raw == "" { return Manifest { .include_paths = include_paths } }
     parsed :: parse(raw)
     if parsed is JsonObject as obj {
-        modules_entry :: obj.entries["modules"]
-        if modules_entry is JsonArray as arr {
+        entry :: obj.entries["includePaths"]
+        if entry is JsonArray as arr {
             for item in arr.items {
-                if item is JsonString as s { modules.push(s.value) }
+                if item is JsonString as s { include_paths.push(s.value) }
             }
         }
-        return Manifest { .stdlib = manifest_string_field(obj, "stdlib"), .modules = modules }
     }
-    return Manifest { .stdlib = null, .modules = modules }
-}
-
-/// Extract a top-level string field from a parsed manifest object, or null
-/// when absent / not a string.
-manifest_string_field :: fn(obj: JsonObject, key: string) -> string | null {
-    entry :: obj.entries[key]
-    if entry is JsonString as s { return s.value }
-    return null
-}
-
-/// Stdlib root for `entry`'s project : the manifest's `declared` stdlib joined
-/// onto `project_root` when present, else the executable-sidecar default.
-///
-/// Joining onto `project_root` matters because `project_root` carries the
-/// entry's path-form — relative (`""` → `"stdlib"`) for a cwd-relative
-/// entry, absolute for an editor's `file://` path. Matching forms let
-/// `is_under_any_root` recognise that the entry folder of an open stdlib
-/// file already lives under the stdlib root, so it isn't re-pushed as its
-/// own root and rescanned (which would redefine every `std/*` module —
-/// R2023/R2001). `display_path_for` strips this root prefix, so std display
-/// paths stay `std/...` regardless of the form, leaving build output
-/// byte-identical.
-export resolve_stdlib_root :: fn(project_root: string | null, declared: string | null) -> string {
-    if project_root == null { return default_stdlib_root() }
-    if declared == null { return default_stdlib_root() }
-    return join_path(project_root, declared)
+    return Manifest { .include_paths = include_paths }
 }
 
 // ---- tests ----------------------------------------------------------------
@@ -298,29 +268,22 @@ export resolve_stdlib_root :: fn(project_root: string | null, declared: string |
 import "std/testing" { assert, assert_eq }
 
 @test
-test_read_manifest_reads_repo_stdlib_and_modules :: fn() -> void {
+test_read_manifest_reads_repo_include_paths :: fn() -> void {
     // Tests run with the repo root as cwd, so `""` joins to `"vader.json"`.
-    // The Vader repo vendors its stdlib via `"stdlib": "stdlib"` and lists
-    // source roots — guards against a renamed key or a regressed parse
-    // silently disabling the manifest override (which fixes LSP R2023).
+    // The Vader repo declares its stdlib root via `"includePaths": ["stdlib"]`
+    // — guards against a renamed key or a regressed parse silently dropping the
+    // search roots (which would break every `std/*` import).
     m :: read_manifest("")
-    if m.stdlib == null { assert(false, "repo manifest must declare a stdlib") }
-    else { assert_eq(m.stdlib, "stdlib") }
-    assert(m.modules.len() > 0, "repo manifest lists source roots")
+    assert(m.include_paths.len() > 0, "repo manifest lists includePaths")
+    found_stdlib := false
+    for p in m.include_paths {
+        if p == "stdlib" { found_stdlib = true }
+    }
+    assert(found_stdlib, "repo includePaths contains `stdlib`")
 }
 
 @test
 test_read_manifest_missing_is_empty :: fn() -> void {
     m :: read_manifest("/no/such/project/root")
-    assert(m.stdlib == null, "absent manifest yields null stdlib")
-    assert(m.modules.len() == 0, "absent manifest yields no roots")
-}
-
-@test
-test_resolve_stdlib_root_joins_declared_onto_root :: fn() -> void {
-    // A relative root keeps the relative form (no drift) ; declaring `stdlib`
-    // joins to the bare `"stdlib"` historically used by the cwd-relative build.
-    // (The `null` fallbacks aren't covered : they call the native-only
-    // `current_executable_location` host import, unbound in the test runner.)
-    assert_eq(resolve_stdlib_root("", "stdlib"), "stdlib")
+    assert(m.include_paths.len() == 0, "absent manifest yields no include-paths")
 }

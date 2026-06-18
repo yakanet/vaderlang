@@ -8,15 +8,16 @@
 //
 // Include-paths (search order, first match wins ; GCC `-I` style) :
 //   - the entry folder, rooted at its declared module name ;
-//   - the stdlib root (`std/*`) ;
-//   - the project root (`vader/*`, app modules) when a manifest is found.
+//   - the manifest dir + each `vader.json includePaths` entry (project modules
+//     + stdlib) when a manifest is found ;
+//   - the binary-adjacent stdlib default (so a deployed binary finds its
+//     bundled stdlib).
 
 module "vader/resolver"
 
 import "std/collections" { MutableMap }
 import "std/io" { exists, is_dir, read_file }
 import "std/path" { to_posix }
-import "std/string" { ends_with, starts_with }
 import "vader/diagnostics" { Diagnostic, Position, Span, resolver_error }
 import "vader/parser" { NodeIdFactory, new_node_id_factory, parse_source, assign_program_ids }
 import "vader/resolver/symbol" { Symbol, SymbolKind, SymbolFactory, new_factory }
@@ -114,30 +115,23 @@ export load_project_with_overlay :: fn(entry_path: string, overlay: MutableMap<s
     modules :: MutableMap<string, LoadedModule> {}
     loader_diags: Diagnostic[] = []
     project_root :: find_manifest_root(entry)
-    // Read the project manifest once — both the stdlib root and the extra
-    // source roots come from the same `vader.json`.
+    // Read the project manifest once (the LSP re-loads on every didOpen).
     manifest :: match project_root {
         is string as pr -> read_manifest(pr)
-        is null          -> Manifest { .stdlib = null, .modules = [] }
+        is null          -> Manifest { .include_paths = [] }
     }
-    // Resolve the stdlib root from the manifest's `stdlib` when declared,
-    // joined onto `project_root` so it shares the entry's path-form (relative
-    // vs absolute). A bare exe-sidecar default (always relative `"stdlib"`)
-    // mismatches an absolute `file://` entry, so an open `stdlib/std/*` file's
-    // folder isn't seen as already-rooted and gets rescanned — redefining every
-    // `std/*` module (R2023/R2001). See `resolve_stdlib_root`.
-    stdlib_root :: resolve_stdlib_root(project_root, manifest.stdlib)
     entry_folder :: entry_folder_of(entry)
+    plain_roots :: project_include_paths(project_root, manifest)
 
-    // Lazy import-driven resolution (P4a — see `lazy.vader`). No eager scan :
-    // `index` is a cache filled on demand by `resolve_lazy`, which path-maps each
-    // module name to a folder under the include-paths. Load ORDER — and thus
-    // symbol-id assignment — is driven solely by the import BFS in
-    // `drain_load_queue`, not by discovery, so eager→lazy is byte-identical for a
-    // well-formed project. The include-paths (built once the entry's namespace is
-    // known) are : the entry folder rooted at its declared module name, then
-    // stdlib, then the project root ; P4b folds in `--include-paths` +
-    // `vader.json includePaths` + binary defaults (GCC `-I` style).
+    // Lazy import-driven resolution (see `lazy.vader`). No eager scan : `index`
+    // is a cache filled on demand by `resolve_lazy`, which path-maps each module
+    // name to a folder under the include-paths. Load ORDER — and thus symbol-id
+    // assignment — is driven solely by the import BFS in `drain_load_queue`, not
+    // by discovery, so the self-compile is byte-identical regardless of how the
+    // include-paths are sourced. The include-paths (built once the entry's
+    // namespace is known) are : the entry folder rooted at its declared module
+    // name, then `plain_roots` (manifest dir + `vader.json includePaths` +
+    // binary-adjacent stdlib default ; GCC `-I` style, first match wins).
     index: MutableMap<string, DiscoveredModule> = MutableMap<string, DiscoveredModule> {}
 
     entry_module :: seed_entry(entry_folder, index, loader_diags)
@@ -151,7 +145,7 @@ export load_project_with_overlay :: fn(entry_path: string, overlay: MutableMap<s
             }
         }
         is DiscoveredModule as em -> {
-            bases :: include_paths(em.name, em.folder, stdlib_root, project_root)
+            bases :: include_paths(em.name, em.folder, plain_roots)
             queue: DiscoveredModule[] = [em]
             core :: resolve_lazy("std/core", bases, index, loader_diags)
             match core {
@@ -160,7 +154,7 @@ export load_project_with_overlay :: fn(entry_path: string, overlay: MutableMap<s
                 }
                 _ -> {}
             }
-            drain_load_queue(queue, stdlib_root, bases, modules, factory, index, loader_diags, overlay, node_factory)
+            drain_load_queue(queue, bases, modules, factory, index, loader_diags, overlay, node_factory)
             // Force-load `std/string_builder` AFTER the natural BFS (Target ABI
             // S4): string interpolation `"${...}"` desugars to its `new_builder`/
             // `append`/`to_string` calls in the lowerer, a dependency not visible
@@ -175,7 +169,7 @@ export load_project_with_overlay :: fn(entry_path: string, overlay: MutableMap<s
                 is DiscoveredModule as sbm -> {
                     if !has_module(modules, sbm.folder) {
                         sb_queue: DiscoveredModule[] = [sbm]
-                        drain_load_queue(sb_queue, stdlib_root, bases, modules, factory, index, loader_diags, overlay, node_factory)
+                        drain_load_queue(sb_queue, bases, modules, factory, index, loader_diags, overlay, node_factory)
                     }
                 }
                 _ -> {}
@@ -199,7 +193,7 @@ export load_project_with_overlay :: fn(entry_path: string, overlay: MutableMap<s
 // std/string_builder force-load so both follow identical ingestion logic
 // (and so the force-load can run as a separate, order-preserving pass).
 drain_load_queue :: fn(
-    queue: DiscoveredModule[], stdlib_root: string, bases: IncludePath[],
+    queue: DiscoveredModule[], bases: IncludePath[],
     modules: MutableMap<string, LoadedModule>, factory: SymbolFactory,
     index: MutableMap<string, DiscoveredModule>, diags: Diagnostic[],
     overlay: MutableMap<string, string>, node_factory: NodeIdFactory,
@@ -210,7 +204,7 @@ drain_load_queue :: fn(
         cursor = cursor + 1
         id :: m.folder
         if has_module(modules, id) { continue }
-        ingest_module(m, stdlib_root, bases, modules, factory, index, diags, overlay, node_factory)
+        ingest_module(m, bases, modules, factory, index, diags, overlay, node_factory)
         ingested :: modules[id]
         match ingested {
             is null -> {}
@@ -230,7 +224,7 @@ drain_load_queue :: fn(
 }
 
 ingest_module :: fn(
-    m: DiscoveredModule, stdlib_root: string, bases: IncludePath[],
+    m: DiscoveredModule, bases: IncludePath[],
     modules: MutableMap<string, LoadedModule>, factory: SymbolFactory,
     index: MutableMap<string, DiscoveredModule>, diags: Diagnostic[],
     overlay: MutableMap<string, string>, node_factory: NodeIdFactory,
@@ -302,6 +296,25 @@ parse_module_files :: fn(paths: string[], diags: Diagnostic[], overlay: MutableM
         })
     }
     return out
+}
+
+// Assemble the plain (unrooted) include-paths for a project — GCC `-I` style,
+// first-match-wins : the manifest dir itself (so a project's own modules resolve
+// by their folder-relative name), then each `vader.json includePaths` entry
+// joined onto it (e.g. `"stdlib"` → `<root>/stdlib`, hosting `std/*`), then the
+// binary-adjacent stdlib default (so a deployed binary finds its bundled stdlib
+// when the entry has no manifest). P4b prepends any `--include-paths` flag.
+project_include_paths :: fn(project_root: string | null, manifest: Manifest) -> string[] {
+    roots: string[] = []
+    match project_root {
+        is string as pr -> {
+            roots.push(pr)
+            for p in manifest.include_paths { roots.push(join_path(pr, p)) }
+        }
+        is null -> {}
+    }
+    roots.push(default_stdlib_root())
+    return roots
 }
 
 entry_folder_of :: fn(path: string) -> string {
@@ -386,22 +399,3 @@ merge_collected :: fn(dst: CollectedModule, src: CollectedModule, diags: Diagnos
     for p in src.import_paths { dst.import_paths.push(p) }
 }
 
-/// When `root` lives under `stdlib_root`, strip the prefix and the
-/// `.vader` extension so `stdlib/std/io` renders as `std/io`.
-display_path_for :: fn(root: string, stdlib_root: string) -> string {
-    // Avoid the `"${stdlib_root}/"` interpolation alloc on every call —
-    // manual prefix check + slash byte probe.
-    n :: stdlib_root.bytes().len()
-    rootb :: root.bytes()
-    if rootb.len() > n &&
-       root.starts_with(stdlib_root) &&
-       rootb[n] == u8(0x2F) {
-        rel :: rootb[n + 1..<rootb.len()].bytes_to_string()
-        if rel.ends_with(".vader") {
-            relb :: rel.bytes()
-            return relb[0..<relb.len() - 6].bytes_to_string()
-        }
-        return rel
-    }
-    return root
-}
