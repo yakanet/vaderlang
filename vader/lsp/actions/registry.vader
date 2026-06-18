@@ -1,0 +1,71 @@
+// vader/lsp/actions/registry — the code-action framework.
+//
+// A code action is a cursor-driven source refactoring (`textDocument/codeAction`
+// → the editor lightbulb). Each action is a plain record carrying a predicate
+// and an edit producer ; `ALL_ACTIONS` is the central registration table. The
+// handler (`handlers/code_action`) finds the AST node under the cursor and calls
+// `run_actions`, which returns one `ActionResult` per applicable action.
+//
+// Edit production is server-side : an action returns the replacement *text* for
+// its node's span (rendered through `vader/fmt::format_expr`), and the handler
+// wraps it in a `WorkspaceEdit`. Declining is signalled by an empty string.
+//
+// Lossy policy : an action whose rewrite would lose information (match arms with
+// guards / destructuring, etc.) must DECLINE in `is_applicable` rather than emit
+// a partial rewrite — see `LSP_COMPLETENESS.md`.
+
+module "vader/lsp/actions"
+
+AST :: import "vader/parser"
+
+/// What an action needs to produce its edit. Carries the document source so
+/// actions can render rewrites (and slice reused sub-expressions) against it.
+export ActionCtx :: struct {
+    source: string
+}
+
+/// One cursor-driven refactoring. `is_applicable` gates the lightbulb ; `apply`
+/// returns the replacement text for the node's span (empty string = decline,
+/// e.g. on a lossy case `is_applicable` couldn't cheaply rule out).
+export CodeAction :: struct {
+    /// LSP `CodeActionKind` (e.g. `"refactor.rewrite"`).
+    kind:          string
+    /// Human-facing lightbulb title.
+    title:         string
+    is_applicable: fn(AST.Expr, ActionCtx) -> bool
+    apply:         fn(AST.Expr, ActionCtx) -> string
+}
+
+/// A produced edit : the action's kind + title + the replacement text for the
+/// target node's span.
+export ActionResult :: struct {
+    kind:     string
+    title:    string
+    new_text: string
+}
+
+/// Every registered code action. Central registration — add new actions here.
+/// Entries are defined in sibling files of this folder module (e.g.
+/// `match_to_if_action` in `match_to_if.vader`).
+ALL_ACTIONS :: [
+    match_to_if_action,
+]
+
+/// Run every applicable action against `node`, returning one result per action
+/// that both applies and produces a non-empty edit.
+///
+/// @param node  the AST node under the cursor (e.g. the enclosing match).
+/// @param ctx   the action context (document source).
+/// @return      the applicable actions' results, in registration order.
+export run_actions :: fn(node: AST.Expr, ctx: ActionCtx) -> ActionResult[] {
+    out: ActionResult[] = []
+    for a in ALL_ACTIONS {
+        if a.is_applicable(node, ctx) {
+            text :: a.apply(node, ctx)
+            if text != "" {
+                out.push(ActionResult { .kind = a.kind, .title = a.title, .new_text = text })
+            }
+        }
+    }
+    return out
+}

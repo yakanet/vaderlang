@@ -117,6 +117,14 @@ export server_capabilities :: fn() -> JsonValue {
     completion_provider["resolveProvider"]   = JsonBool { .value = false }
     completion_provider["triggerCharacters"] = JsonArray { .items = completion_triggers }
     caps["completionProvider"] = JsonObject { .entries = completion_provider }
+
+    // codeActionProvider : cursor-driven refactorings (match→if today). Advertise
+    // the kinds we emit so clients can group / filter them.
+    ca_kind: JsonValue = JsonString { .value = "refactor.rewrite" }
+    ca_kinds: JsonValue[] = [ca_kind]
+    code_action_provider :: MutableMap<string, JsonValue> {}
+    code_action_provider["codeActionKinds"] = JsonArray { .items = ca_kinds }
+    caps["codeActionProvider"] = JsonObject { .entries = code_action_provider }
     return JsonObject { .entries = caps }
 }
 

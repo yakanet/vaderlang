@@ -441,3 +441,162 @@ sh_consider :: fn(e: AST.Expr, st: FindCallState) -> void {
         _ -> {}
     }
 }
+
+// ---- innermost enclosing match --------------------------------------------
+
+/// Walk every fn / impl body and return the innermost `MatchExpr` whose span
+/// contains `(line, col)`. Used by the code-action layer to find the match the
+/// cursor sits in (e.g. for the match→if rewrite). 1-based coords.
+///
+/// @param decls  the file's top-level declarations to descend.
+/// @param line   1-based cursor line.
+/// @param col    1-based cursor column.
+/// @return       the innermost enclosing `AST.MatchExpr`, or `null`.
+export find_enclosing_match :: fn(
+    decls: AST.Decl[], line: i32, col: i32,
+) -> AST.MatchExpr | null {
+    state :: FindMatchState { .line = line, .col = col, .best = null, .best_size = u64(0) }
+    for d in decls { mw_walk_decl(d, state) }
+    return state.best
+}
+
+FindMatchState :: struct {
+    line:      i32
+    col:       i32
+    best:      AST.MatchExpr | null
+    best_size: u64
+}
+
+mw_walk_decl :: fn(d: AST.Decl, st: FindMatchState) -> void {
+    match d {
+        is AST.FnDecl as fd -> {
+            match fd.body {
+                is null -> {}
+                is AST.BlockExpr as b -> { mw_walk_block(b, st) }
+            }
+        }
+        is AST.ImplDecl as id -> {
+            for m in id.members {
+                match m.body {
+                    is null -> {}
+                    is AST.BlockExpr as b -> { mw_walk_block(b, st) }
+                }
+            }
+        }
+        is AST.ConstDecl as cd -> { mw_walk_expr(cd.value, st) }
+        _ -> {}
+    }
+}
+
+mw_walk_block :: fn(b: AST.BlockExpr, st: FindMatchState) -> void {
+    for s in b.stmts { mw_walk_stmt(s, st) }
+    match b.trailing {
+        is null -> {}
+        _ -> { mw_walk_expr(b.trailing, st) }
+    }
+}
+
+mw_walk_stmt :: fn(s: AST.Stmt, st: FindMatchState) -> void {
+    match s {
+        is AST.LetStmt as ls -> { mw_walk_expr(ls.value, st) }
+        is AST.ExprStmt as es -> { mw_walk_expr(es.expr, st) }
+        is AST.ReturnStmt as rs -> {
+            match rs.value {
+                is null -> {}
+                _ -> { mw_walk_expr(rs.value, st) }
+            }
+        }
+        is AST.AssignStmt as as_ -> {
+            mw_walk_expr(as_.target, st)
+            mw_walk_expr(as_.value, st)
+        }
+        is AST.ForStmt as fs -> {
+            match fs.form {
+                is AST.WhileFor as w -> { mw_walk_expr(w.cond, st) }
+                is AST.InFor as i -> { mw_walk_expr(i.iter, st) }
+                is AST.InfiniteFor -> {}
+            }
+            mw_walk_block(fs.body, st)
+        }
+        is AST.BreakStmt -> {}
+        is AST.ContinueStmt -> {}
+        is AST.DeferStmt as ds -> {
+            match ds.body {
+                is AST.DeferStmtBody  as dsb -> { mw_walk_stmt(dsb.stmt, st) }
+                is AST.DeferBlockBody as dbb -> { mw_walk_block(dbb.block, st) }
+            }
+        }
+    }
+}
+
+mw_walk_expr :: fn(e: AST.Expr, st: FindMatchState) -> void {
+    mw_consider(e, st)
+    match e {
+        is AST.CallExpr as c -> {
+            mw_walk_expr(c.callee, st)
+            for a in c.args { mw_walk_expr(a.value, st) }
+        }
+        is AST.FieldExpr as f -> { mw_walk_expr(f.target, st) }
+        is AST.IndexExpr as ix -> {
+            mw_walk_expr(ix.target, st)
+            mw_walk_expr(ix.index, st)
+        }
+        is AST.UnaryExpr as u -> { mw_walk_expr(u.operand, st) }
+        is AST.BinaryExpr as bn -> {
+            mw_walk_expr(bn.left, st)
+            mw_walk_expr(bn.right, st)
+        }
+        is AST.IfExpr as ifx -> {
+            mw_walk_expr(ifx.cond, st)
+            mw_walk_block(ifx.then_block, st)
+            match ifx.else_branch {
+                is null -> {}
+                is AST.IfElseIf    as ei -> { mw_walk_expr(ei.branch, st) }
+                is AST.IfElseBlock as eb -> { mw_walk_block(eb.block, st) }
+            }
+        }
+        is AST.MatchExpr as m -> {
+            mw_walk_expr(m.scrutinee, st)
+            for arm in m.arms {
+                match arm.guard {
+                    is null -> {}
+                    _ -> { mw_walk_expr(arm.guard, st) }
+                }
+                mw_walk_expr(arm.body, st)
+            }
+        }
+        is AST.BlockExpr as b -> { mw_walk_block(b, st) }
+        is AST.LambdaExpr as l -> { mw_walk_block(l.body, st) }
+        is AST.StructLitExpr as sl -> {
+            for item in sl.items {
+                match item {
+                    is AST.StructLitField  as fld -> { mw_walk_expr(fld.value, st) }
+                    is AST.StructLitSpread as sp  -> { mw_walk_expr(sp.expr, st) }
+                }
+            }
+        }
+        is AST.SeqLitExpr as sq -> {
+            for el in sq.elements { mw_walk_expr(el, st) }
+        }
+        is AST.CastExpr as cx -> { mw_walk_expr(cx.value, st) }
+        is AST.TryExpr as tx -> { mw_walk_expr(tx.inner, st) }
+        is AST.IntrinsicCallExpr as ic -> {
+            for a in ic.args { mw_walk_expr(a, st) }
+        }
+        _ -> {}
+    }
+}
+
+mw_consider :: fn(e: AST.Expr, st: FindMatchState) -> void {
+    match e {
+        is AST.MatchExpr as m -> {
+            if !span_contains(m.span, st.line, st.col) { return }
+            size :: span_size(m.span)
+            if st.best is null || size < st.best_size {
+                st.best      = m
+                st.best_size = size
+            }
+        }
+        _ -> {}
+    }
+}

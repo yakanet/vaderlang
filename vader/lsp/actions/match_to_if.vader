@@ -1,0 +1,231 @@
+// vader/lsp/actions/match_to_if — the `match` → `if` rewrite action.
+//
+// Converts a two-arm `match` whose first arm is a boolean-reducible predicate
+// and whose second arm is the catch-all `_` into an `if / else`. This is the
+// cursor-driven form of the CLAUDE.md §6 "if for ≤ 2 cases" convention.
+//
+//   match x {              if x is Foo as f {
+//       is Foo as f -> A       A
+//       _           -> B   } else {
+//   }                          B
+//                          }
+//
+// Lossy policy = REFUSE : the action only fires when the rewrite is exact —
+// exactly two arms, no guards, the second arm a wildcard, and the first arm an
+// `is T [as y]` (no nested sub-pattern) or a literal (`scrutinee == value`).
+// Struct / tuple / binding / enum-variant patterns and guards decline.
+
+module "vader/lsp/actions"
+
+import "std/string" { split }
+import "vader/fmt" { format_expr }
+AST :: import "vader/parser"
+
+/// The match→if code action. Registered in `registry.vader::ALL_ACTIONS`.
+match_to_if_action :: CodeAction {
+    .kind          = "refactor.rewrite",
+    .title         = "Convert match to if",
+    .is_applicable = mti_applicable,
+    .apply         = mti_apply,
+}
+
+mti_applicable :: fn(node: AST.Expr, _ctx: ActionCtx) -> bool {
+    if node is AST.MatchExpr as m { return is_convertible(m) }
+    return false
+}
+
+mti_apply :: fn(node: AST.Expr, ctx: ActionCtx) -> string {
+    if node is AST.MatchExpr as m {
+        if !is_convertible(m) { return "" }
+        rendered :: format_expr(ctx.source, build_if(m))
+        return reindent(rendered, m.span.start.column - i32(1))
+    }
+    return ""
+}
+
+// Exactly two arms, no guards, second arm `_`, first arm an `is T [as y]`
+// (no nested pattern) or a literal. Everything else declines (lossy = refuse).
+is_convertible :: fn(m: AST.MatchExpr) -> bool {
+    if m.arms.len() != 2 { return false }
+    a0 :: m.arms[0]
+    a1 :: m.arms[1]
+    if a0.guard != null { return false }
+    if a1.guard != null { return false }
+    if !(a1.pattern is AST.WildcardPattern) { return false }
+    p0 :: a0.pattern
+    if p0 is AST.IsPattern as ip { return ip.inner == null }
+    if p0 is AST.LiteralPattern { return true }
+    return false
+}
+
+// Synthesise the `if` from a convertible match. Sub-expressions (scrutinee,
+// pattern type, literal value, arm bodies) are reused verbatim — they keep
+// their original spans, so `format_expr` slices their exact source text.
+build_if :: fn(m: AST.MatchExpr) -> AST.IfExpr {
+    a0 :: m.arms[0]
+    a1 :: m.arms[1]
+    return AST.IfExpr {
+        .span        = m.span,
+        .cond        = build_cond(m.scrutinee, a0.pattern),
+        .then_block  = arm_block(a0.body),
+        .else_branch = AST.IfElseBlock { .block = arm_block(a1.body) },
+    }
+}
+
+// `is T as y` → `scrutinee is T as y` ; literal `v` → `scrutinee == v`.
+build_cond :: fn(scrut: AST.Expr, p: AST.Pattern) -> AST.Expr {
+    if p is AST.IsPattern as ip {
+        bound :: ip.bind_as
+        name :: if bound == null { "" } else { bound }
+        return AST.BinaryExpr {
+            .span = scrut.span, .op = .Is, .left = scrut, .right = ip.ty, .bind_as = name,
+        }
+    }
+    if p is AST.LiteralPattern as lp {
+        return AST.BinaryExpr {
+            .span = scrut.span, .op = .Eq, .left = scrut, .right = lp.value, .bind_as = "",
+        }
+    }
+    // Unreachable for a convertible match — `is_convertible` gates the kinds.
+    return scrut
+}
+
+// An arm body becomes a branch block : reuse it when it's already a block,
+// otherwise wrap the single expression as the block's trailing value.
+arm_block :: fn(body: AST.Expr) -> AST.BlockExpr {
+    if body is AST.BlockExpr as b { return b }
+    no_stmts: AST.Stmt[] = []
+    return AST.BlockExpr { .span = body.span, .stmts = no_stmts, .trailing = body }
+}
+
+// `format_expr` renders from column 0 ; re-indent every line after the first by
+// the match's start column so the replacement sits correctly at its position.
+reindent :: fn(text: string, indent: i32) -> string {
+    if indent <= 0 { return text }
+    pad := ""
+    k := 0
+    for k < indent {
+        pad = pad + " "
+        k = k + 1
+    }
+    out := ""
+    i := 0
+    for line in text.split("\n") {
+        if i == 0 {
+            out = line
+        } else {
+            out = out + "\n"
+            if line != "" { out = out + pad + line }
+        }
+        i = i + 1
+    }
+    return out
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert }
+
+// Recursively find the first `MatchExpr` in a parsed program — test helper so
+// the asserts run against real (source-backed) AST nodes.
+tm_find_match :: fn(decls: AST.Decl[]) -> AST.MatchExpr | null {
+    for d in decls {
+        if d is AST.FnDecl as fd {
+            match fd.body {
+                is null -> {}
+                is AST.BlockExpr as b -> {
+                    found :: tm_find_in_block(b)
+                    if found != null { return found }
+                }
+            }
+        }
+    }
+    return null
+}
+
+tm_find_in_block :: fn(b: AST.BlockExpr) -> AST.MatchExpr | null {
+    for s in b.stmts {
+        found :: tm_find_in_stmt(s)
+        if found != null { return found }
+    }
+    match b.trailing {
+        is null -> { return null }
+        _ -> { return tm_find_in_expr(b.trailing) }
+    }
+}
+
+tm_find_in_stmt :: fn(s: AST.Stmt) -> AST.MatchExpr | null {
+    match s {
+        is AST.LetStmt    as ls -> { return tm_find_in_expr(ls.value) }
+        is AST.ExprStmt   as es -> { return tm_find_in_expr(es.expr) }
+        is AST.ReturnStmt as rs -> {
+            match rs.value {
+                is null -> { return null }
+                _ -> { return tm_find_in_expr(rs.value) }
+            }
+        }
+        _ -> { return null }
+    }
+}
+
+tm_find_in_expr :: fn(e: AST.Expr) -> AST.MatchExpr | null {
+    if e is AST.MatchExpr as m { return m }
+    return null
+}
+
+@test
+test_match_to_if_converts_literal :: fn() -> void {
+    src :: "f :: fn(x: i32) -> i32 {\n    return match x {\n        0 -> 1\n        _ -> 2\n    }\n}\n"
+    parsed :: AST.parse_source(src, "t.vader")
+    m :: tm_find_match(parsed.program.decls)
+    if m == null {
+        assert(false, "expected a match")
+        return
+    }
+    ctx :: ActionCtx { .source = src }
+    assert(mti_applicable(m, ctx), "2-arm literal/_ match converts")
+    out :: mti_apply(m, ctx)
+    assert("if x == 0" in out, "renders the equality condition")
+    assert("else" in out, "renders an else branch")
+}
+
+@test
+test_match_to_if_converts_is_pattern :: fn() -> void {
+    src :: "g :: fn(v: i32 | string) -> i32 {\n    return match v {\n        is i32 as n -> n\n        _ -> 0\n    }\n}\n"
+    parsed :: AST.parse_source(src, "t.vader")
+    m :: tm_find_match(parsed.program.decls)
+    if m == null {
+        assert(false, "expected a match")
+        return
+    }
+    ctx :: ActionCtx { .source = src }
+    assert(mti_applicable(m, ctx), "is-pattern + wildcard converts")
+    out :: mti_apply(m, ctx)
+    assert("if v is i32 as n" in out, "renders the is-binding condition")
+}
+
+@test
+test_match_to_if_declines_three_arms :: fn() -> void {
+    src :: "h :: fn(x: i32) -> i32 {\n    return match x {\n        0 -> 1\n        1 -> 2\n        _ -> 3\n    }\n}\n"
+    parsed :: AST.parse_source(src, "t.vader")
+    m :: tm_find_match(parsed.program.decls)
+    if m == null {
+        assert(false, "expected a match")
+        return
+    }
+    ctx :: ActionCtx { .source = src }
+    assert(!mti_applicable(m, ctx), "three arms are not a clean if/else")
+}
+
+@test
+test_match_to_if_declines_without_wildcard :: fn() -> void {
+    src :: "k :: fn(x: i32) -> i32 {\n    return match x {\n        0 -> 1\n        1 -> 2\n    }\n}\n"
+    parsed :: AST.parse_source(src, "t.vader")
+    m :: tm_find_match(parsed.program.decls)
+    if m == null {
+        assert(false, "expected a match")
+        return
+    }
+    ctx :: ActionCtx { .source = src }
+    assert(!mti_applicable(m, ctx), "no wildcard second arm -> decline")
+}
