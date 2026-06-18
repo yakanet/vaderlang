@@ -1,131 +1,29 @@
-// vader/resolver/discover — scoped-root scanner that builds the module
-// index. Mirror of src/resolver/discover.ts. Walks each root recursively
-// (no symlinks), extracts each `.vader` file's `module "..."` header,
-// and returns a name → DiscoveredModule map (file paths only — full
-// parse happens lazily when the loader visits a module).
+// vader/resolver/discover — module index types.
 //
-// Scan-time validations :
-//   - missing module decl                → R2020
-//   - mixed module names in same folder  → R2022
-//   - duplicate module name globally     → R2023
-//
-// Sub-folders are walked independently — `std/string` and
-// `std/string/utf8` are unrelated modules. Scan order is platform-
-// dependent ; tests must not rely on a specific "first vs second" pick.
+// Shared records for module resolution : `DiscoveredModule` (a resolved
+// module's name + folder + file paths) and `FolderBucket` (the per-folder
+// accumulator `lazy::scan_folder` builds while header-parsing a folder's
+// `.vader` files). The eager scoped-root scanner that once lived here was
+// replaced by `lazy.vader`'s import-driven (path-mapping) resolution.
 
 module "vader/resolver"
 
-import "std/collections" { MutableMap }
-import "std/io" { exists, is_dir, read_dir, read_file }
-import "std/sort" { sort }
-import "std/string" { compare_ascending, ends_with }
-import "vader/diagnostics" { Diagnostic, Span, resolver_error, empty_span }
+import "vader/diagnostics" { Span }
 
-/// A module discovered during the scan. `files` carries the file paths
-/// only — the parsed Programs are not stashed here, since the
-/// Vader self-host's GC arenas can't hold ~170 parsed ASTs at once.
-/// The loader runs `load_module_files` on visit to get full SourceFiles.
+/// A resolved module : its declared name, its folder, and its `.vader` file
+/// paths. Files are parsed lazily by the loader on visit — not stashed as
+/// ASTs (the self-host GC arenas can't hold ~170 parsed programs at once).
 export DiscoveredModule :: struct {
     name:   string
     folder: string
     files:  string[]
 }
 
-/// Walk each scoped root, header-parse every `.vader` file, bucket by
-/// folder + declared module name, emit R2020/R2022/R2023, and return
-/// the unified index.
-///
-/// @return  a name-indexed module table keyed by the `module "name"` decl —
-///          same key shape as the `import "name"` path, so import resolution
-///          is a direct lookup. (Inlined `MutableMap<string, DiscoveredModule>`
-///          rather than a named alias : Vader has no const-alias form for a
-///          concrete generic instantiation — type params are angle-only and
-///          `<...>` doesn't parse in a const-RHS expression position.)
-export discover_modules :: fn(roots: string[], diags: Diagnostic[]) -> MutableMap<string, DiscoveredModule> {
-    folder_buckets :: MutableMap<string, FolderBucket> {}
-    for root in roots { walk_root(root, folder_buckets, diags) }
-
-    index :: MutableMap<string, DiscoveredModule> {}
-    for [folder, bucket] in folder_buckets {
-        if bucket.name == "" { continue }   // every file in the bucket already raised R2020
-        existing :: index[bucket.name]
-        match existing {
-            is DiscoveredModule -> {
-                diags.push(resolver_error(.DuplicateModuleNameGlobally, bucket.first_decl_span,
-                    "module `${bucket.name}` already declared by another folder"))
-            }
-            is null -> {
-                index[bucket.name] = DiscoveredModule {
-                    .name = bucket.name, .folder = folder, .files = bucket.files,
-                }
-            }
-        }
-    }
-    return index
-}
-
-// Per-folder accumulator used during the scan. `name` is "" until
-// the first file in the folder declares its module ; subsequent
-// files in the same folder must match that name (else R2022).
+/// Per-folder accumulator built by `lazy::scan_folder`. `name` is "" until the
+/// first file declares its module ; later files in the same folder must match
+/// it (else R2022).
 FolderBucket :: struct {
     name:            string
     first_decl_span: Span
     files:           string[]
 }
-
-walk_root :: fn(root: string, buckets: MutableMap<string, FolderBucket>, diags: Diagnostic[]) -> void {
-    if !exists(root) { return }
-    if !is_dir(root) { return }
-    walk_dir(root, buckets, diags)
-}
-
-walk_dir :: fn(dir: string, buckets: MutableMap<string, FolderBucket>, diags: Diagnostic[]) -> void {
-    entries_opt :: read_dir(dir)
-    empty_strs: string[] = []
-    raw: string[] = match entries_opt { is string[] as ss -> ss, is Error -> empty_strs }
-    if raw.len() == 0 { return }
-    sorted :: sort(raw, (a: string, b: string) -> compare_ascending(a, b))
-
-    files_here: string[] = []
-    for name in sorted {
-        full :: join_path(dir, name)
-        if is_dir(full) {
-            walk_dir(full, buckets, diags)
-            continue
-        }
-        if ends_with(name, ".vader") { files_here.push(full) }
-    }
-    if files_here.len() == 0 { return }
-
-    bucket :: FolderBucket {
-        .name = "", .first_decl_span = empty_span(),
-        .files = [],
-    }
-    for path in files_here {
-        content_opt :: read_file(path)
-        content :: match content_opt { is string as s -> s, is Error -> "" }
-        if content == "" { continue }
-        bucket.files.push(path)
-        header :: parse_module_header(content, path)
-        match header {
-            is null -> {
-                diags.push(resolver_error(.ModuleDeclMissing, empty_span(),
-                    "`${path}`"))
-            }
-            is ModuleHeader as h -> {
-                if bucket.name == "" {
-                    bucket.name = h.name
-                    bucket.first_decl_span = h.name_span
-                } else {
-                    if h.name != bucket.name {
-                        diags.push(resolver_error(.MixedModuleNamesInFolder, h.name_span,
-                            "`${h.name}` declared here, but `${bucket.name}` was declared earlier in this folder"))
-                    }
-                }
-            }
-        }
-    }
-    buckets[dir] = bucket
-}
-
-import "vader/parser" { ModuleHeader, parse_module_header }
