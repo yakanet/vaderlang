@@ -15,8 +15,16 @@ module "vader/lsp/handlers"
 
 import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonArray }
 import "std/collections" { MutableMap }
-import "vader/lsp/protocol" { position_uri, position_line, position_character, span_contains }
-import "vader/lsp/analysis" { ServerState, DocIndex, DeclEntry, DeclKind, build_index }
+import "vader/types" { StructType }
+import "vader/lsp/protocol" {
+    position_uri, position_line, position_character, span_contains,
+    uri_to_path, lsp_to_offset, line_start_offset,
+}
+import "vader/lsp/analysis" {
+    ServerState, DocIndex, DeclEntry, DeclKind, build_index,
+    typed_project_for, source_file_for_path, find_expr_at,
+}
+AST :: import "vader/parser"
 
 /// Language keywords offered as completions. Mirrors
 /// `vader/lexer/keywords.vader::lookup_keyword` plus the `module` soft keyword.
@@ -39,9 +47,20 @@ export handle_completion :: fn(state: ServerState, params: JsonValue) -> JsonVal
     match idx {
         is null              -> { return completion_list([]) }
         is DocIndex as index -> {
-            // LSP positions are 0-based ; the indexer's spans are 1-based.
-            line :: position_line(params) + i32(1)
-            col  :: position_character(params) + i32(1)
+            line0 :: position_line(params)
+            char0 :: position_character(params)
+
+            // Member access (`receiver.<cursor>`) → Tier 2 : the receiver's
+            // struct fields + impl methods, resolved through the typed cache.
+            dot :: member_context(index.source, line0, char0)
+            if dot != null {
+                return member_completion(state, uri, line0, dot)
+            }
+
+            // Tier 1 : in-scope identifiers + keywords. LSP positions are
+            // 0-based ; the indexer's spans are 1-based.
+            line :: line0 + i32(1)
+            col  :: char0 + i32(1)
 
             items: JsonValue[] = []
             seen :: MutableMap<string, bool> {}
@@ -69,6 +88,89 @@ export handle_completion :: fn(state: ServerState, params: JsonValue) -> JsonVal
     }
 }
 
+// ---- Tier 2 : member completion after `.` ---------------------------------
+
+/// Detect a member-access completion at the cursor. Scans back over any partial
+/// member identifier already typed ; if a `.` precedes it, returns that dot's
+/// 1-based column (the receiver ends just before it). Returns `null` when the
+/// cursor isn't completing a member. `line0` / `char0` are 0-based (LSP).
+member_context :: fn(source: string, line0: i32, char0: i32) -> i32 | null {
+    sb :: source.bytes()
+    i := lsp_to_offset(source, line0, char0)
+    if i > sb.len() { i = sb.len() }
+    for i > 0 {
+        if is_ident_byte(sb[i - 1]) { i = i - 1 } else { break }
+    }
+    if i == 0 { return null }
+    if sb[i - 1] != b'.' { return null }
+    dot_off :: i - 1
+    ls :: line_start_offset(source, dot_off)
+    return i32(dot_off - ls) + i32(1)
+}
+
+is_ident_byte :: fn(c: u8) -> bool {
+    if c >= b'a' && c <= b'z' { return true }
+    if c >= b'A' && c <= b'Z' { return true }
+    if c >= b'0' && c <= b'9' { return true }
+    return c == b'_'
+}
+
+// Member completions for `receiver.<cursor>` : the receiver's struct fields and
+// the methods of every entry-module impl on its type. The receiver is the
+// smallest typed expression ending at `dot_col - 1` (the char before the `.`) —
+// the parser error-recovers a trailing `.` into a `FieldExpr` whose target is
+// still typed, so the typed cache resolves the receiver even mid-edit.
+member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i32) -> JsonValue {
+    file_path :: uri_to_path(uri)
+    if file_path == "" { return completion_list([]) }
+    cached :: typed_project_for(state, file_path)
+    entry :: cached.project.modules[cached.project.entry]
+    if entry is null { return completion_list([]) }
+    sf :: source_file_for_path(entry.module.files, file_path)
+    if sf is null { return completion_list([]) }
+
+    recv :: find_expr_at(sf.program.decls, line0 + i32(1), dot_col - i32(1), cached.result.typed)
+    if recv == null { return completion_list([]) }
+    recv_type :: cached.result.typed.expr_types[recv.id]
+    if recv_type == null { return completion_list([]) }
+
+    items: JsonValue[] = []
+    seen :: MutableMap<string, bool> {}
+
+    // Struct fields — find the receiver type's declaration in the entry module.
+    if recv_type is StructType as st {
+        for d in sf.program.decls {
+            if d is AST.StructDecl as sd {
+                if sd.name == st.symbol.name {
+                    for fld in sd.fields {
+                        if seen[fld.name] != null { continue }
+                        seen[fld.name] = true
+                        items.push(completion_item(fld.name, .Field, ""))
+                    }
+                }
+            }
+        }
+    }
+
+    // Impl methods on the receiver type (UFCS). Limited to impls declared in the
+    // entry module's program — cross-module impl methods are a follow-up.
+    sym :: type_symbol(recv_type)
+    if sym != null {
+        for impl_ in cached.result.impls.all {
+            fs :: impl_.for_symbol
+            if fs == null { continue }
+            if fs.id != sym.id { continue }
+            for m in impl_.decl.members {
+                if seen[m.name] != null { continue }
+                seen[m.name] = true
+                items.push(completion_item(m.name, .Method, ""))
+            }
+        }
+    }
+
+    return completion_list(items)
+}
+
 /// Declarations reachable at `(line, col)` : every file-wide decl plus the
 /// intra-file bindings whose `scope_span` covers the cursor. 1-based coords.
 visible_decls :: fn(idx: DocIndex, line: i32, col: i32) -> DeclEntry[] {
@@ -87,7 +189,9 @@ visible_decls :: fn(idx: DocIndex, line: i32, col: i32) -> DeclEntry[] {
 /// backing integer is what travels on the wire, so `i32(kind)` yields the
 /// protocol number.
 CompletionItemKind :: enum(i32) {
+    Method    = 2,
     Function  = 3,
+    Field     = 5,
     Variable  = 6,
     Class     = 7,
     Interface = 8,
@@ -200,4 +304,25 @@ test_ci_kind_mapping :: fn() -> void {
 test_import_ci_kind_casing :: fn() -> void {
     assert(import_ci_kind("MutableMap") == CompletionItemKind.Class, "type -> Class")
     assert(import_ci_kind("println") == CompletionItemKind.Function, "value -> Function")
+}
+
+@test
+test_member_context_detects_dot :: fn() -> void {
+    // "p.x" — cursor after `x` (0-based char 3) ; the `.` sits at 1-based col 2.
+    dc :: member_context("p.x", 0, 3)
+    if dc == null { assert(false, "expected member context after a dot") }
+    else { assert_eq(dc, i32(2)) }
+}
+
+@test
+test_member_context_detects_dot_no_partial :: fn() -> void {
+    // "p." — cursor right after the dot (char 2). Dot at 1-based col 2.
+    dc :: member_context("p.", 0, 2)
+    if dc == null { assert(false, "trailing dot is a member context") }
+    else { assert_eq(dc, i32(2)) }
+}
+
+@test
+test_member_context_none_without_dot :: fn() -> void {
+    assert(member_context("foo", 0, 3) == null, "plain ident is not a member context")
 }
