@@ -4,6 +4,5 @@
   "description": "Vader compiler and standard library",
   "edition": "1.0",
   "entries": {},
-  "stdlib": "stdlib",
-  "modules": ["src/", "vader/"]
+  "includePaths": ["stdlib"]
 }
