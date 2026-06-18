@@ -18,7 +18,7 @@ import "vader/lsp/protocol" {
     position_uri, uri_to_path, get_field, get_number, span_to_range_json, range_json,
 }
 import "vader/lsp/analysis" {
-    ServerState, typed_project_for, source_file_for_path, find_enclosing_match,
+    ServerState, typed_project_for, source_file_for_path, enclosing_exprs,
 }
 import "vader/lsp/actions" { ActionCtx, ActionResult, run_actions }
 
@@ -43,24 +43,24 @@ export handle_code_action :: fn(state: ServerState, params: JsonValue) -> JsonVa
     // LSP positions are 0-based ; the AST is 1-based. Anchor on the range start.
     line :: range_start_field(params, "line") + i32(1)
     col  :: range_start_field(params, "character") + i32(1)
-    m :: find_enclosing_match(sf.program.decls, line, col)
-    if m == null { return JsonArray { .items = [] } }
+    chain :: enclosing_exprs(sf.program.decls, line, col)
+    if chain.len() == 0 { return JsonArray { .items = [] } }
 
     ctx :: ActionCtx { .source = sf.content }
-    results :: run_actions(m, ctx)
+    results :: run_actions(chain, ctx)
 
     items: JsonValue[] = []
     for r in results {
-        items.push(code_action_json(r, uri, range_json(span_to_range_json(m.span))))
+        items.push(code_action_json(r, uri))
     }
     return JsonArray { .items = items }
 }
 
 // Encode one `CodeAction` carrying a single-file `WorkspaceEdit` that replaces
-// `range` with the action's rewritten text.
-code_action_json :: fn(r: ActionResult, uri: string, range: JsonValue) -> JsonValue {
+// the action's target span with its rewritten text.
+code_action_json :: fn(r: ActionResult, uri: string) -> JsonValue {
     text_edit :: MutableMap<string, JsonValue> {}
-    text_edit["range"]   = range
+    text_edit["range"]   = range_json(span_to_range_json(r.target_span))
     text_edit["newText"] = JsonString { .value = r.new_text }
 
     edits: JsonValue[] = [JsonObject { .entries = text_edit }]

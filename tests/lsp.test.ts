@@ -376,6 +376,64 @@ test("lsp: code action converts a 2-arm match to if/else", async () => {
   expect(fileEdits[0]!.newText).toContain("else");
 }, { timeout: MEDIUM_BUILD });
 
+const NULL_NARROW_SOURCE = `Node :: struct { v: i32 }
+
+describe :: fn(cell: Node | null) -> i32 {
+    match cell {
+        is null -> {
+            return 0
+        }
+        is Node -> {
+            return 1
+        }
+    }
+}
+`;
+
+test("lsp: code action converts a two-is-arm match (no wildcard) to if", async () => {
+  if (!ENABLED) return;
+
+  // The null-narrowing shape: `match cell { is null -> … is Node -> … }`.
+  // Cursor on the `match` keyword (line 3 = `    match cell {`, char 4).
+  const results = await driveLsp(NULL_NARROW_SOURCE, [
+    { method: "textDocument/codeAction", position: { line: 3, character: 4 } },
+  ]);
+  const actions = results[0]!.result as CodeActionT[];
+  const conv = actions.find((a) => a.title === "Convert match to if");
+  expect(conv).toBeDefined();
+  const edit = conv!.edit.changes[Object.keys(conv!.edit.changes)[0]!]![0]!;
+  expect(edit.newText).toContain("cell is null");
+  expect(edit.newText).toContain("else");
+}, { timeout: MEDIUM_BUILD });
+
+const IF_TO_MATCH_SOURCE = `pick :: fn(v: i32 | string) -> i32 {
+    if v is i32 as n {
+        return n
+    } else if v == "x" {
+        return 1
+    } else {
+        return 2
+    }
+}
+`;
+
+test("lsp: code action converts an if/else-if chain to match", async () => {
+  if (!ENABLED) return;
+
+  // Cursor on the leading `if` (line 1 = `    if v is i32 as n {`, char 4).
+  const results = await driveLsp(IF_TO_MATCH_SOURCE, [
+    { method: "textDocument/codeAction", position: { line: 1, character: 4 } },
+  ]);
+  const actions = results[0]!.result as CodeActionT[];
+  const conv = actions.find((a) => a.title === "Convert if to match");
+  expect(conv).toBeDefined();
+  expect(conv!.kind).toBe("refactor.rewrite");
+  const edit = conv!.edit.changes[Object.keys(conv!.edit.changes)[0]!]![0]!;
+  expect(edit.newText).toContain("match v");
+  expect(edit.newText).toContain("is i32 as n");
+  expect(edit.newText).toContain("_ ->");
+}, { timeout: MEDIUM_BUILD });
+
 test("lsp: empty document doesn't crash, returns null on lookups", async () => {
   if (!ENABLED) return;
 
