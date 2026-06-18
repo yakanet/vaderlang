@@ -77,47 +77,13 @@ ident_name :: fn(e: AST.Expr) -> string {
 
 import "std/testing" { assert }
 
+// Find the first source-backed `CallExpr` in a parsed program — test helper so
+// the asserts run against real (source-backed) AST nodes. Shares the descent
+// with the other actions via `registry::t_find_expr`.
+tu_is_call :: fn(e: AST.Expr) -> bool = e is AST.CallExpr
+
 tu_find_call :: fn(decls: AST.Decl[]) -> AST.CallExpr | null {
-    for d in decls {
-        if d is AST.FnDecl as fd {
-            match fd.body {
-                is null -> {}
-                is AST.BlockExpr as b -> {
-                    found :: tu_in_block(b)
-                    if found != null { return found }
-                }
-            }
-        }
-    }
-    return null
-}
-
-tu_in_block :: fn(b: AST.BlockExpr) -> AST.CallExpr | null {
-    for s in b.stmts {
-        found :: tu_in_stmt(s)
-        if found != null { return found }
-    }
-    match b.trailing {
-        is null -> { return null }
-        _ -> { return tu_in_expr(b.trailing) }
-    }
-}
-
-tu_in_stmt :: fn(s: AST.Stmt) -> AST.CallExpr | null {
-    match s {
-        is AST.LetStmt    as ls -> { return tu_in_expr(ls.value) }
-        is AST.ExprStmt   as es -> { return tu_in_expr(es.expr) }
-        is AST.ReturnStmt as rs -> {
-            match rs.value {
-                is null -> { return null }
-                _ -> { return tu_in_expr(rs.value) }
-            }
-        }
-        _ -> { return null }
-    }
-}
-
-tu_in_expr :: fn(e: AST.Expr) -> AST.CallExpr | null {
+    e :: t_find_expr(decls, tu_is_call)
     if e is AST.CallExpr as c { return c }
     return null
 }
