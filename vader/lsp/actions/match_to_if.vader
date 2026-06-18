@@ -118,49 +118,13 @@ arm_block :: fn(body: AST.Expr) -> AST.BlockExpr {
 
 import "std/testing" { assert }
 
-// Recursively find the first `MatchExpr` in a parsed program — test helper so
-// the asserts run against real (source-backed) AST nodes.
+// Find the first source-backed `MatchExpr` in a parsed program — test helper so
+// the asserts run against real (source-backed) AST nodes. Shares the descent
+// with the other actions via `registry::t_find_expr`.
+tm_is_match :: fn(e: AST.Expr) -> bool = e is AST.MatchExpr
+
 tm_find_match :: fn(decls: AST.Decl[]) -> AST.MatchExpr | null {
-    for d in decls {
-        if d is AST.FnDecl as fd {
-            match fd.body {
-                is null -> {}
-                is AST.BlockExpr as b -> {
-                    found :: tm_find_in_block(b)
-                    if found != null { return found }
-                }
-            }
-        }
-    }
-    return null
-}
-
-tm_find_in_block :: fn(b: AST.BlockExpr) -> AST.MatchExpr | null {
-    for s in b.stmts {
-        found :: tm_find_in_stmt(s)
-        if found != null { return found }
-    }
-    match b.trailing {
-        is null -> { return null }
-        _ -> { return tm_find_in_expr(b.trailing) }
-    }
-}
-
-tm_find_in_stmt :: fn(s: AST.Stmt) -> AST.MatchExpr | null {
-    match s {
-        is AST.LetStmt    as ls -> { return tm_find_in_expr(ls.value) }
-        is AST.ExprStmt   as es -> { return tm_find_in_expr(es.expr) }
-        is AST.ReturnStmt as rs -> {
-            match rs.value {
-                is null -> { return null }
-                _ -> { return tm_find_in_expr(rs.value) }
-            }
-        }
-        _ -> { return null }
-    }
-}
-
-tm_find_in_expr :: fn(e: AST.Expr) -> AST.MatchExpr | null {
+    e :: t_find_expr(decls, tm_is_match)
     if e is AST.MatchExpr as m { return m }
     return null
 }

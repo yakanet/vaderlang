@@ -39,7 +39,13 @@ organize_imports_action :: fn() -> SourceAction = SourceAction {
     .apply         = oi_apply,
 }
 
-oi_applicable :: fn(decls: AST.Decl[], ctx: ActionCtx) -> bool {
+oi_applicable :: fn(decls: AST.Decl[], ctx: ActionCtx) -> bool = oi_safe(decls, ctx)
+
+// The safety gate (shared by `is_applicable` and `apply`, since `apply` may be
+// driven directly): a single contiguous import run at the head of the file, no
+// decorators, no comments interleaved between imports. The no-op check (already
+// organised) lives in `apply` — it needs the rendered text.
+oi_safe :: fn(decls: AST.Decl[], ctx: ActionCtx) -> bool {
     run :: oi_import_run(decls)
     if run.len() < 1 { return false }
     if i32(run.len()) != oi_total_imports(decls) { return false }   // scattered -> refuse
@@ -49,12 +55,8 @@ oi_applicable :: fn(decls: AST.Decl[], ctx: ActionCtx) -> bool {
 }
 
 oi_apply :: fn(decls: AST.Decl[], ctx: ActionCtx) -> ActionResult | null {
+    if !oi_safe(decls, ctx) { return null }
     run :: oi_import_run(decls)
-    if run.len() < 1 { return null }
-    if i32(run.len()) != oi_total_imports(decls) { return null }
-    if oi_has_decorators(run) { return null }
-    if oi_has_interleaved_comments(run, ctx.source) { return null }
-
     rendered :: oi_render(run)
     region :: Span { .start = run[0].span.start, .end = run[run.len() - 1].span.end }
     original :: oi_slice(ctx.source, region)
@@ -137,9 +139,9 @@ oi_render :: fn(run: AST.ImportDecl[]) -> string {
             is AST.DestructureImport as dst -> {
                 existing :: destructure[im.path]
                 if existing == null {
-                    fresh: AST.ImportName[] = []
-                    for ni in 0..<dst.names.len() { fresh.push(dst.names[ni]) }
-                    destructure[im.path] = fresh
+                    // Copy : later same-path imports push into this array, which
+                    // must not alias (and mutate) the AST node's own names.
+                    destructure[im.path] = dst.names.clone()
                     dpaths.push(im.path)
                 } else {
                     for ni in 0..<dst.names.len() { existing.push(dst.names[ni]) }

@@ -16,7 +16,7 @@
 
 module "vader/lsp/actions"
 
-import "std/string" { split }
+import "std/string" { split, repeat }
 import "vader/diagnostics" { Span }
 AST :: import "vader/parser"
 
@@ -140,12 +140,7 @@ export run_source_actions :: fn(decls: AST.Decl[], ctx: ActionCtx) -> ActionResu
 /// Shared by the rewrite actions.
 export reindent :: fn(text: string, indent: i32) -> string {
     if indent <= 0 { return text }
-    pad := ""
-    k := 0
-    for k < indent {
-        pad = pad + " "
-        k = k + 1
-    }
+    pad :: " ".repeat(usize(indent))
     out := ""
     i := 0
     for line in text.split("\n") {
@@ -199,6 +194,51 @@ rt_roundtrip_clean :: fn(src: string, node: AST.Expr) -> bool {
         if reparsed.errors.len() != 0 { return false }
     }
     return true
+}
+
+// Shared test walker : the first statement-position expression in a fn body that
+// `pred` accepts. Each action's finder (tm_find_match / tif_find_if /
+// tu_find_call) is this walk with a one-line predicate — only the accepted node
+// kind differs.
+t_find_expr :: fn(decls: AST.Decl[], pred: fn(AST.Expr) -> bool) -> AST.Expr | null {
+    for di in 0..<decls.len() {
+        d :: decls[di]
+        if d is AST.FnDecl as fd {
+            match fd.body {
+                is null -> {}
+                is AST.BlockExpr as b -> {
+                    found :: t_find_in_block(b, pred)
+                    if found != null { return found }
+                }
+            }
+        }
+    }
+    return null
+}
+
+t_find_in_block :: fn(b: AST.BlockExpr, pred: fn(AST.Expr) -> bool) -> AST.Expr | null {
+    for si in 0..<b.stmts.len() {
+        found :: t_find_in_stmt(b.stmts[si], pred)
+        if found != null { return found }
+    }
+    t :: b.trailing
+    if t == null { return null }
+    if pred(t) { return t }
+    return null
+}
+
+t_find_in_stmt :: fn(s: AST.Stmt, pred: fn(AST.Expr) -> bool) -> AST.Expr | null {
+    match s {
+        is AST.LetStmt    as ls -> { if pred(ls.value) { return ls.value } }
+        is AST.ExprStmt   as es -> { if pred(es.expr)  { return es.expr } }
+        is AST.ReturnStmt as rs -> {
+            v :: rs.value
+            if v == null { return null }
+            if pred(v) { return v }
+        }
+        _ -> {}
+    }
+    return null
 }
 
 @test
