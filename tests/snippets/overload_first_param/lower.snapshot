@@ -389,3 +389,35 @@
               arg0:
                 __sb_6 :StringBuilder
     return int(0) :i32
+  fn snippet$describe_1(b: Bag) -> string
+    return
+      block :string
+        let __sb_0: StringBuilder =
+          call :StringBuilder
+            callee:
+              new_builder :StringBuilder
+        call :void
+          callee:
+            append :void
+          arg0:
+            __sb_0 :StringBuilder
+          arg1:
+            "bag " :string
+        call :void
+          callee:
+            append :void
+          arg0:
+            __sb_0 :StringBuilder
+          arg1:
+            call :string
+              callee:
+                std_core$string$Display$to_string :string
+              arg0:
+                .v :string
+                  b :Bag
+        ~>
+          call :string
+            callee:
+              std_string_builder$StringBuilder$Display$to_string :string
+            arg0:
+              __sb_0 :StringBuilder

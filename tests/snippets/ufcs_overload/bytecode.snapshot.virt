@@ -20,7 +20,7 @@ import 1 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 2 bytes std_core$bytes (string) -> ref
 impl 7 Display
 impl 11 ByteAccess
-export main 10
+export main 9
 
 fn 0 std_io$std_io$println__string (string) -> void
   local $call_2 string
@@ -294,18 +294,7 @@ fn 8 snippet$inc (ref) -> i32
   return
 end
 
-fn 9 snippet$inc_1 (ref) -> i32
-  local $field_1 i32
-  local.field 0 13 0
-  ref.cast 3
-  local.set 1
-  local.get 1
-  i32.const 100
-  i32.add
-  return
-end
-
-fn 10 snippet$main () -> i32
+fn 9 snippet$main () -> i32
   local a ref
   local b ref
   local __sb_0 ref
@@ -331,7 +320,7 @@ fn 10 snippet$main () -> i32
   call 1
   local.set 0
   local.get 1
-  call 9
+  call 10
   call 4
   local.set 3
   local.get 0
@@ -341,6 +330,24 @@ fn 10 snippet$main () -> i32
   call 3
   call 0
   return.lit i32.const 0
+end
+
+fn 10 snippet$inc_1 (ref) -> i32
+  local $field_1 i32
+  local.field 0 13 0
+  ref.cast 3
+  local.set 1
+  local.get 1
+  i32.const 100
+  i32.add
+  return
+  local.field 0 13 0
+  ref.cast 3
+  local.set 1
+  local.get 1
+  i32.const 100
+  i32.add
+  return
 end
 
 fn 11 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref

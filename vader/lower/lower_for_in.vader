@@ -273,6 +273,12 @@ try_wrap_array_iter :: fn(
             if chars_member is null { return WrapResult { .iter = iter, .iter_type = iter_type } }
             chars_fn_ty :: lookup_fn_type_anywhere(ctx, chars_member.symbol)
             if chars_fn_ty is FnType as ft {
+                // The synthesised call bypasses `lower_call`, so harvest `chars`
+                // ourselves — its owning module (`std/string`) is lowered lazily,
+                // and nothing else references this non-generic free fn unless the
+                // surrounding code happens to call `.chars()` explicitly. Without
+                // this the call resolves to no fn-table entry → GATE B1 at emit.
+                register_nongeneric_stdlib_fn(ctx, chars_member.symbol)
                 args: LoweredExpr[] = []
                 args.push(iter)
                 chars_call :: LoweredCall {

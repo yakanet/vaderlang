@@ -57,7 +57,7 @@ import 1 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 2 bytes std_core$bytes (string) -> ref
 impl 9 Display
 impl 18 ByteAccess
-export main 3
+export main 2
 
 fn 0 std_io$std_io$println__string (string) -> void
   local $call_2 string
@@ -93,27 +93,7 @@ fn 1 snippet$describe (ref) -> string
   return
 end
 
-fn 2 snippet$describe_1 (ref) -> string
-  local __sb_0 ref
-  local $call_5 string
-  call 4
-  local.set 1
-  local.get 1
-  string.const 2
-  call 5
-  local.field 0 8 0
-  ref.cast 1
-  call 16
-  local.set 2
-  local.get 1
-  local.get 2
-  call 5
-  local.get 1
-  call 6
-  return
-end
-
-fn 3 snippet$main () -> i32
+fn 2 snippet$main () -> i32
   local a ref
   local b ref
   local $call_16 string
@@ -128,13 +108,13 @@ fn 3 snippet$main () -> i32
   call 1
   call 0
   local.get 1
-  call 2
+  call 3
   call 0
   local.get 0
   call 1
   call 0
   local.get 1
-  call 2
+  call 3
   call 0
   call 4
   local.set 0
@@ -254,6 +234,41 @@ fn 3 snippet$main () -> i32
   call 6
   call 0
   return.lit i32.const 0
+end
+
+fn 3 snippet$describe_1 (ref) -> string
+  local __sb_0 ref
+  local $call_5 string
+  call 4
+  local.set 1
+  local.get 1
+  string.const 2
+  call 5
+  local.field 0 8 0
+  ref.cast 1
+  call 16
+  local.set 2
+  local.get 1
+  local.get 2
+  call 5
+  local.get 1
+  call 6
+  return
+  call 4
+  local.set 1
+  local.get 1
+  string.const 2
+  call 5
+  local.field 0 8 0
+  ref.cast 1
+  call 16
+  local.set 2
+  local.get 1
+  local.get 2
+  call 5
+  local.get 1
+  call 6
+  return
 end
 
 fn 4 std_string_builder$new_builder () -> ref

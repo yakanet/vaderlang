@@ -81,17 +81,17 @@
     return int(0) :i32
 
 ## snippet/mod_a
-  struct snippet_mod_a$Box { id: i32 }
   fn snippet_mod_a$make_a() -> Box
     return
       Box {
         id: int(42) :i32
       }
+  struct snippet_mod_a$Box { id: i32 }
 
 ## snippet/mod_b
-  struct snippet_mod_b$Box { label: string }
   fn snippet_mod_b$make_b() -> Box
     return
       Box {
         label: "hello" :string
       }
+  struct snippet_mod_b$Box { label: string }

@@ -200,12 +200,15 @@ first_param_matches :: fn(ctx: FnLowerCtx, sym: Symbol, recv_type: Type) -> bool
     return false
 }
 
-/// Record a non-generic stdlib free fn for end-of-project
-/// materialization. No-op for user-module fns (already lowered) and for
-/// fns already harvested. Dedup by `fn_symbol.id`.
+/// Record a referenced non-generic free fn for end-of-project
+/// materialization. Every non-entry module is lowered lazily, so a referenced
+/// non-generic free fn is harvested here regardless of origin (stdlib or user).
+/// The entry module's own fns are seeded into `nongeneric_stdlib_fns` up front
+/// (`lower_project`) so they short-circuit on the seen-set check below — they
+/// are already lowered eagerly and must not be harvested a second time. Dedup
+/// by `fn_symbol.id`.
 register_nongeneric_stdlib_fn :: fn(ctx: FnLowerCtx, fn_sym: Symbol) -> void {
     if i32(fn_sym.kind) != i32(SymbolKind.Fn) { return }
-    if !is_stdlib_path(fn_sym.module) { return }
     if ctx.project.nongeneric_stdlib_fns[fn_sym.id] != null { return }
     // Generic fns route through the GenericFnInstance harvest instead.
     fn_ty :: lookup_fn_type_anywhere(ctx, fn_sym)
@@ -216,15 +219,17 @@ register_nongeneric_stdlib_fn :: fn(ctx: FnLowerCtx, fn_sym: Symbol) -> void {
     ctx.project.nongeneric_stdlib_order.push(fn_sym)
 }
 
-/// Record a stdlib module-level `const` for end-of-project
-/// materialization. No-op for user-module consts (already lowered by
-/// `lower_module`), non-const symbols, and consts already harvested.
-/// Dedup by `const_sym.id`. The reference itself keeps its `LoweredIdent` ;
-/// `materialize_nongeneric_stdlib_consts` lowers the decl so `inline_consts`
-/// can route the read site (`build_ident` would otherwise emit `unreachable`).
+/// Record a referenced module-level `const` for end-of-project
+/// materialization. Every non-entry module is lowered lazily, so a referenced
+/// const is harvested here regardless of origin (stdlib or user) ; the entry's
+/// own consts are seeded up front (`lower_project`) and lowered eagerly, so
+/// they short-circuit on the seen-set check below. No-op for non-const symbols
+/// and consts already harvested. Dedup by `const_sym.id`. The reference itself
+/// keeps its `LoweredIdent` ; `materialize_nongeneric_stdlib_consts` lowers the
+/// decl so `inline_consts` can route the read site (`build_ident` would
+/// otherwise emit `unreachable`).
 register_nongeneric_stdlib_const :: fn(ctx: FnLowerCtx, const_sym: Symbol) -> void {
     if i32(const_sym.kind) != i32(SymbolKind.Const) { return }
-    if !is_stdlib_path(const_sym.module) { return }
     if ctx.project.nongeneric_stdlib_consts[const_sym.id] != null { return }
     ctx.project.nongeneric_stdlib_consts[const_sym.id] = true
     ctx.project.nongeneric_stdlib_const_order.push(const_sym)

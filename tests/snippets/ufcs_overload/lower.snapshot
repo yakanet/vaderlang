@@ -89,3 +89,11 @@
               arg0:
                 __sb_1 :StringBuilder
     return int(0) :i32
+  fn snippet$inc_1(self: B) -> i32
+    return
+      add :i32
+        l:
+          .y :i32
+            self :B
+        r:
+          int(100) :i32
