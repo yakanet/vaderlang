@@ -108187,11 +108187,11 @@ static vader_box_t vader_lower_try_lower_namespace_const(vader_box_t l0, vader_b
     vader_box_t l3 = vader_box_null(), l6 = vader_box_null();
     vader_string_t l4;
     int32_t l5;
-    vader_box_t t0 = vader_box_null(), t1 = vader_box_null(), t2 = vader_box_null(), t4 = vader_box_null(), t6 = vader_box_null(), t7 = vader_box_null();
+    vader_box_t t0 = vader_box_null(), t1 = vader_box_null(), t2 = vader_box_null(), t4 = vader_box_null(), t6 = vader_box_null(), t7 = vader_box_null(), t8 = vader_box_null();
     vader_string_t t3;
     int32_t t5;
-    vader_box_t* gc_roots[11] = { &l0, &l1, &l2, &l3, &l6, &t0, &t1, &t2, &t4, &t6, &t7 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 11u, 0u, gc_roots };
+    vader_box_t* gc_roots[12] = { &l0, &l1, &l2, &l3, &l6, &t0, &t1, &t2, &t4, &t6, &t7, &t8 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 12u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
     t0 = ((vader_struct_vader_parser_FieldExpr_t*) l1.payload.obj)->f_target;
     l3 = t0;
@@ -108214,7 +108214,18 @@ static vader_box_t vader_lower_try_lower_namespace_const(vader_box_t l0, vader_b
     t6 = ((vader_struct_vader_parser_FieldExpr_t*) l1.payload.obj)->f_span;
     l6 = t6;
     t7 = vader_lower_fold_const_symbol(l0, l3, l2, l6);
-    { vader_box_t __vret = t7; vader_gc_top = gc_frame.prev; return __vret; }
+    l6 = t7;
+    if (!(l6.tag == 0u)) {
+        { vader_box_t __vret = l6; vader_gc_top = gc_frame.prev; return __vret; }
+    }
+    vader_lower_register_nongeneric_stdlib_const(l0, l3);
+    vader_struct_vader_lower_LoweredIdent_t* _a0_obj = (vader_struct_vader_lower_LoweredIdent_t*) vader_gc_alloc(sizeof(vader_struct_vader_lower_LoweredIdent_t));
+    vader_obj_header_init(_a0_obj, 729u);
+    _a0_obj->f_span = ((vader_struct_vader_parser_FieldExpr_t*) l1.payload.obj)->f_span;
+    _a0_obj->f_type = l2;
+    _a0_obj->f_symbol = l3;
+    t8 = vader_box_obj(729u, _a0_obj);
+    { vader_box_t __vret = t8; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
 
