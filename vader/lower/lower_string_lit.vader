@@ -42,8 +42,8 @@ begin_sb_chain :: fn(ctx: FnLowerCtx, span: Span) -> SbChain | null {
     sb_type: Type = TY_UNRESOLVED
     new_fn_ty :: lookup_fn_type_anywhere(ctx, new_sym)
     if new_fn_ty is FnType as new_ft { sb_type = new_ft.return_type } else { return null }
-    register_nongeneric_stdlib_fn(ctx, new_sym)
-    register_nongeneric_stdlib_fn(ctx, append_sym)
+    register_nongeneric_imported_fn(ctx, new_sym)
+    register_nongeneric_imported_fn(ctx, append_sym)
     sb_symbol :: fresh_synthetic_symbol(ctx, "sb")
     stmts: LoweredStmt[] = []
     stmts.push(LoweredLet {

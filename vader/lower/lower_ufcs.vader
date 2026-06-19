@@ -203,20 +203,20 @@ first_param_matches :: fn(ctx: FnLowerCtx, sym: Symbol, recv_type: Type) -> bool
 /// Record a referenced non-generic free fn for end-of-project
 /// materialization. Every non-entry module is lowered lazily, so a referenced
 /// non-generic free fn is harvested here regardless of origin (stdlib or user).
-/// The entry module's own fns are seeded into `nongeneric_stdlib_fns` up front
+/// The entry module's own fns are seeded into `nongeneric_imported_fns` up front
 /// (`lower_project`) so they short-circuit on the seen-set check below — they
 /// are already lowered eagerly and must not be harvested a second time. Dedup
 /// by `fn_symbol.id`.
-register_nongeneric_stdlib_fn :: fn(ctx: FnLowerCtx, fn_sym: Symbol) -> void {
+register_nongeneric_imported_fn :: fn(ctx: FnLowerCtx, fn_sym: Symbol) -> void {
     if i32(fn_sym.kind) != i32(SymbolKind.Fn) { return }
-    if ctx.project.nongeneric_stdlib_fns[fn_sym.id] != null { return }
+    if ctx.project.nongeneric_imported_fns[fn_sym.id] != null { return }
     // Generic fns route through the GenericFnInstance harvest instead.
     fn_ty :: lookup_fn_type_anywhere(ctx, fn_sym)
     if fn_ty is FnType as ft {
         if type_has_param(ft) { return }
     }
-    ctx.project.nongeneric_stdlib_fns[fn_sym.id] = true
-    ctx.project.nongeneric_stdlib_order.push(fn_sym)
+    ctx.project.nongeneric_imported_fns[fn_sym.id] = true
+    ctx.project.nongeneric_imported_order.push(fn_sym)
 }
 
 /// Record a referenced module-level `const` for end-of-project
@@ -225,14 +225,14 @@ register_nongeneric_stdlib_fn :: fn(ctx: FnLowerCtx, fn_sym: Symbol) -> void {
 /// own consts are seeded up front (`lower_project`) and lowered eagerly, so
 /// they short-circuit on the seen-set check below. No-op for non-const symbols
 /// and consts already harvested. Dedup by `const_sym.id`. The reference itself
-/// keeps its `LoweredIdent` ; `materialize_nongeneric_stdlib_consts` lowers the
+/// keeps its `LoweredIdent` ; `materialize_nongeneric_imported_consts` lowers the
 /// decl so `inline_consts` can route the read site (`build_ident` would
 /// otherwise emit `unreachable`).
-register_nongeneric_stdlib_const :: fn(ctx: FnLowerCtx, const_sym: Symbol) -> void {
+register_nongeneric_imported_const :: fn(ctx: FnLowerCtx, const_sym: Symbol) -> void {
     if i32(const_sym.kind) != i32(SymbolKind.Const) { return }
-    if ctx.project.nongeneric_stdlib_consts[const_sym.id] != null { return }
-    ctx.project.nongeneric_stdlib_consts[const_sym.id] = true
-    ctx.project.nongeneric_stdlib_const_order.push(const_sym)
+    if ctx.project.nongeneric_imported_consts[const_sym.id] != null { return }
+    ctx.project.nongeneric_imported_consts[const_sym.id] = true
+    ctx.project.nongeneric_imported_const_order.push(const_sym)
 }
 
 /// Register a `GenericFnInstance` for a UFCS-resolved generic free fn.
@@ -255,12 +255,12 @@ harvest_ufcs_fn_instance :: fn(
     if fn_ty is null { return null }
     if fn_ty is FnType as ft {
         if !type_has_param(ft) {
-            // Non-generic free fn. User-module ones are lowered by
-            // `lower_module` already ; stdlib ones have their bodies
-            // skipped (`is_stdlib_path`), so harvest them for
-            // `materialize_nongeneric_stdlib_fns` — otherwise the call
+            // Non-generic free fn. The entry's own are lowered eagerly by
+            // `lower_module` (and seeded into the seen-set) ; every non-entry
+            // module is lazy, so harvest its referenced fns for
+            // `materialize_nongeneric_imported_fns` — otherwise the call
             // is dropped (no fn-table entry).
-            register_nongeneric_stdlib_fn(ctx, fn_sym)
+            register_nongeneric_imported_fn(ctx, fn_sym)
             return null
         }
         if ft.params.len() == 0 { return null }

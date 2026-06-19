@@ -167,40 +167,40 @@ export LowerProjectCtx :: struct {
     /// round-trip keeps distinct fn names. Mirrors `specialize.vader`.
     seen_mangled:        MutableMap<string, bool>
 
-    /// NON-generic stdlib free fns observed at call sites (UFCS or
-    /// direct). Their module bodies are skipped by the lowerer
-    /// (`is_stdlib_path`), so unless harvested here they never reach the
-    /// bytecode emitter's `reserve_function` and every call to them is
-    /// dropped (with-body fns) or left unresolved. `materialize_nongeneric_stdlib_fns`
+    /// NON-generic free fns observed at call sites (UFCS or direct) in any
+    /// non-entry module. Such modules are lowered lazily, so unless harvested
+    /// here their bodies never reach the bytecode emitter's `reserve_function`
+    /// and every call to them is dropped (with-body fns) or left unresolved.
+    /// `materialize_nongeneric_imported_fns`
     /// emits one `LoweredFnDecl` per harvested symbol (body lowered, or
     /// `null` for `@extern` → import table). Keyed by `fn_symbol.id` for
     /// dedup ; `_order` preserves discovery order for a deterministic dump.
-    nongeneric_stdlib_fns:   MutableMap<i32, bool>
-    nongeneric_stdlib_order: Symbol[]
-    /// Resume cursor into `nongeneric_stdlib_order` for
-    /// `materialize_nongeneric_stdlib_fns`. Persisted so the
+    nongeneric_imported_fns:   MutableMap<i32, bool>
+    nongeneric_imported_order: Symbol[]
+    /// Resume cursor into `nongeneric_imported_order` for
+    /// `materialize_nongeneric_imported_fns`. Persisted so the
     /// materialise↔surface fixpoint loop drains newly-harvested fns
     /// (e.g. `decode_codepoint` pulled in by a surfaced `StringChars.next`)
     /// without re-lowering earlier entries.
-    nongeneric_stdlib_cursor: usize
+    nongeneric_imported_cursor: usize
 
-    /// Stdlib module-level `const` decls observed at reference sites
-    /// (`register_nongeneric_stdlib_const`). Like fns, a stdlib const's
-    /// owning module is skipped by the lowerer (`is_stdlib_path`), so its
-    /// decl never reaches `project.modules` and `inline_consts` can't route
+    /// Module-level `const` decls observed at reference sites in any non-entry
+    /// module (`register_nongeneric_imported_const`). Like fns, such a const's
+    /// owning module is lowered lazily, so its decl never reaches
+    /// `project.modules` and `inline_consts` can't route
     /// its read sites — `build_ident` then emits `unreachable`, truncating
-    /// the caller. `materialize_nongeneric_stdlib_consts` lowers one
+    /// the caller. `materialize_nongeneric_imported_consts` lowers one
     /// `LoweredConstDecl` per harvested symbol so `inline_consts` handles it
     /// like any user const (scalar → inline, bulky array → fn-wrap accessor).
     /// Keyed by `const_symbol.id` for dedup ; `_order` preserves discovery
     /// order for a deterministic dump.
-    nongeneric_stdlib_consts:       MutableMap<i32, bool>
-    nongeneric_stdlib_const_order:  Symbol[]
-    /// Resume cursor into `nongeneric_stdlib_const_order`, persisted across
+    nongeneric_imported_consts:       MutableMap<i32, bool>
+    nongeneric_imported_const_order:  Symbol[]
+    /// Resume cursor into `nongeneric_imported_const_order`, persisted across
     /// the materialise↔surface fixpoint so a const harvested late (e.g. one
     /// referenced only by a surfaced stdlib fn body) is lowered without
     /// re-lowering earlier entries.
-    nongeneric_stdlib_const_cursor: usize
+    nongeneric_imported_const_cursor: usize
 
     /// Erasure-dedupe of impl-member emissions — keyed by
     /// `"<impl-decl-span>::<member-name>"`. The first instance of a
@@ -316,12 +316,12 @@ export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedPr
         .fn_instances        = MutableMap<string, GenericFnInstance> {},
         .fn_instances_order  = [],
         .seen_mangled        = MutableMap<string, bool> {},
-        .nongeneric_stdlib_fns   = MutableMap<i32, bool> {},
-        .nongeneric_stdlib_order = [],
-        .nongeneric_stdlib_cursor = usize(0),
-        .nongeneric_stdlib_consts       = MutableMap<i32, bool> {},
-        .nongeneric_stdlib_const_order  = [],
-        .nongeneric_stdlib_const_cursor = usize(0),
+        .nongeneric_imported_fns   = MutableMap<i32, bool> {},
+        .nongeneric_imported_order = [],
+        .nongeneric_imported_cursor = usize(0),
+        .nongeneric_imported_consts       = MutableMap<i32, bool> {},
+        .nongeneric_imported_const_order  = [],
+        .nongeneric_imported_const_cursor = usize(0),
         .materialized_impl_keys = MutableSet<string> {
             .inner = MutableMap<string, bool> {},
         },

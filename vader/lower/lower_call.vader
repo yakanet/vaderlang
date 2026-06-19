@@ -79,11 +79,11 @@ lower_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
     }
     callee :: retype_overload_callee(ctx, call.callee, raw_callee, type)
     // Direct calls to non-generic stdlib free fns (`new_builder()`,
-    // `byte_len(s)`) : harvest so `materialize_nongeneric_stdlib_fns`
+    // `byte_len(s)`) : harvest so `materialize_nongeneric_imported_fns`
     // emits the body — the UFCS path harvests its own, this covers the
     // bare-ident-callee form.
     if callee is LoweredIdent as direct_callee {
-        register_nongeneric_stdlib_fn(ctx, direct_callee.symbol)
+        register_nongeneric_imported_fn(ctx, direct_callee.symbol)
     }
     return LoweredCall { .span = call.span, .type = type, .callee = callee, .args = args }
 }
@@ -100,7 +100,7 @@ lower_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
 // primary. Without re-pointing it the emitter mangles the call to the
 // primary body — e.g. `min(usize, usize)` would call the `min(f64, f64)`
 // body, which the VM traps as `f64.lt expected f64, got i32`. Re-pointing
-// also drives `register_nongeneric_stdlib_fn` (back in `lower_call`) to
+// also drives `register_nongeneric_imported_fn` (back in `lower_call`) to
 // materialise the picked overload's body.
 retype_overload_callee :: fn(
     ctx: FnLowerCtx, callee_ast: Expr, lowered: LoweredExpr, result_type: Type,
@@ -285,11 +285,11 @@ try_lower_namespace_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> L
                 generic_form :: emit_generic_fn_call(ctx, call, type, member_symbol, member_ft, field_expr.span)
                 if generic_form != null { return generic_form }
             }
-            // A non-generic stdlib member reached only through the namespace form
-            // (`io.println`) still needs harvesting — its body is skipped by
-            // `is_stdlib_path`, so without this it's never reserved and the
-            // call is unresolved at emit. No-op for non-stdlib members.
-            register_nongeneric_stdlib_fn(ctx, member_symbol)
+            // A non-generic member reached only through the namespace form
+            // (`io.println`) still needs harvesting — its owning module is
+            // lowered lazily (every non-entry module is), so without this its
+            // body is never reserved and the call is unresolved at emit.
+            register_nongeneric_imported_fn(ctx, member_symbol)
             args: LoweredExpr[] = []
             for call_arg in call.args { args.push(lower_expr(ctx, call_arg.value)) }
             return LoweredCall {
@@ -368,12 +368,9 @@ fold_const_symbol :: fn(ctx: FnLowerCtx, sym: Symbol, type: Type, span: Span) ->
 // A non-scalar (compound) const reached this way only folds for scalars, so it
 // is harvested + referenced by its const symbol on the fold-miss path — see the
 // body. This is the namespace-alias analogue of the bare-ident const seam in
-// `lower_ident`. (No-op for the current tree: every stdlib value-const is scalar
-// — `pi`/`e`/`SEP`/`SEP_STR` — and `register_nongeneric_stdlib_const` only
-// harvests stdlib consts until `is_stdlib_path` is removed, so this stays
-// dormant + byte-identical here. It becomes load-bearing under uniform
-// lowering, where a user module's compound const reached via `M.CONST` needs
-// the same routing as a bare reference.)
+// `lower_ident`. Load-bearing under the uniform lazy lowering: any non-entry
+// module's compound const reached via `M.CONST` needs the same routing as a
+// bare reference (its decl is materialised on demand, not lowered eagerly).
 try_lower_namespace_const :: fn(ctx: FnLowerCtx, e: FieldExpr, type: Type) -> LoweredExpr | null {
     ns_sym :: as_namespace_binding(ctx, e.target)
     if ns_sym is null { return null }
@@ -385,7 +382,7 @@ try_lower_namespace_const :: fn(ctx: FnLowerCtx, e: FieldExpr, type: Type) -> Lo
     // `inline_consts` materialises its decl, and reference it by its const
     // symbol (same shape as the bare-ident seam) so `build_ident` routes the
     // read site — instead of degrading to a field access on the alias.
-    register_nongeneric_stdlib_const(ctx, member)
+    register_nongeneric_imported_const(ctx, member)
     return LoweredIdent { .span = e.span, .type = type, .symbol = member }
 }
 

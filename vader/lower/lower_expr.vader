@@ -218,11 +218,11 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
             final_sym :: follow_import_binding(ctx, resolved)
             // A fn used as a VALUE (passed as a `fn(...)` arg, stored, etc.)
             // lowers to a `FnRef`. If it's a non-generic stdlib free fn,
-            // harvest it so `materialize_nongeneric_stdlib_fns` emits its body —
+            // harvest it so `materialize_nongeneric_imported_fns` emits its body —
             // otherwise the FnRef emit can't resolve the symbol and silently
             // drops it. Mirror of the direct-call harvest in `lower_call`.
             // Self-guards : no-op unless `final_sym` is a non-generic stdlib Fn.
-            register_nongeneric_stdlib_fn(ctx, final_sym)
+            register_nongeneric_imported_fn(ctx, final_sym)
             // Same harvest for a stdlib module-level const : reaching here
             // means the scalar fold above missed (cross-module const refs
             // resolve through an import binding, so `resolved` wasn't the
@@ -230,7 +230,7 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
             // Without the decl in `project.modules`, `inline_consts` can't
             // route it → `build_ident` emits `unreachable`. Self-guards :
             // no-op unless `final_sym` is a stdlib Const.
-            register_nongeneric_stdlib_const(ctx, final_sym)
+            register_nongeneric_imported_const(ctx, final_sym)
             return LoweredIdent { .span = ident.span, .type = type, .symbol = final_sym }
         }
     }
