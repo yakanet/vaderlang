@@ -107,19 +107,19 @@ export decode_char_at :: fn(bs: const u8[], i: usize) -> char {
     if b < 0xE0 {
         if rem < 2 { return char(0) }
         b1 :: bs[i + 1]
-        return char(((u32(b) & u32(0x1F)) << u32(6)) + (u32(b1) & u32(0x3F)))
+        return char(((u32(b) & u32(0x1F)) << 6) + (u32(b1) & u32(0x3F)))
     }
     if b < 0xF0 {
         if rem < 3 { return char(0) }
         b1 :: bs[i + 1]
         b2 :: bs[i + 2]
-        return char(((u32(b) & u32(0x0F)) << u32(12)) + ((u32(b1) & u32(0x3F)) << u32(6)) + (u32(b2) & u32(0x3F)))
+        return char(((u32(b) & u32(0x0F)) << 12) + ((u32(b1) & u32(0x3F)) << 6) + (u32(b2) & u32(0x3F)))
     }
     if rem < 4 { return char(0) }
     b1 :: bs[i + 1]
     b2 :: bs[i + 2]
     b3 :: bs[i + 3]
-    return char(((u32(b) & u32(0x07)) << u32(18)) + ((u32(b1) & u32(0x3F)) << u32(12)) + ((u32(b2) & u32(0x3F)) << u32(6)) + (u32(b3) & u32(0x3F)))
+    return char(((u32(b) & u32(0x07)) << 18) + ((u32(b1) & u32(0x3F)) << 12) + ((u32(b2) & u32(0x3F)) << 6) + (u32(b3) & u32(0x3F)))
 }
 
 /// Decode the UTF-8 sequence at byte offset `i` of a byte view into a
