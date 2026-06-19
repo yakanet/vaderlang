@@ -142,14 +142,14 @@ import "vader/parser" { parse_source }
 import "vader/resolver" { resolve_module }
 import "vader/resolver/symbol" { new_factory }
 
-stub_check_expr :: fn(
+struct_lit_check_stub :: fn(
     e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
     match e {
         is AST.IntLitExpr    as x -> { return narrow_for_expected(infer_int_lit(x), expected) }
         is AST.StringLitExpr as x -> { return infer_string_lit(x) }
         is AST.IdentExpr     as x -> { return infer_ident(x, typed) }
-        is AST.StructLitExpr as x -> { return infer_struct_lit(x, typed, diags, stub_check_expr) }
+        is AST.StructLitExpr as x -> { return infer_struct_lit(x, typed, diags, struct_lit_check_stub) }
         _ -> { return TY_UNRESOLVED }
     }
 }
@@ -211,7 +211,7 @@ f :: fn() -> Point { return Point { .x = 1, .y = 2 } }
 """
     eb :: expect_struct_lit(src)
     diags: Diagnostic[] = []
-    assert_eq(display_type(infer_struct_lit(eb.sl, eb.typed, diags, stub_check_expr)), "Point")
+    assert_eq(display_type(infer_struct_lit(eb.sl, eb.typed, diags, struct_lit_check_stub)), "Point")
     assert_eq(diags.len(), usize(0))
 }
 
@@ -223,7 +223,7 @@ f :: fn() -> Point { return Point { .x = 1, .z = 2 } }
 """
     eb :: expect_struct_lit(src)
     diags: Diagnostic[] = []
-    infer_struct_lit(eb.sl, eb.typed, diags, stub_check_expr)
+    infer_struct_lit(eb.sl, eb.typed, diags, struct_lit_check_stub)
     found := false
     for d in diags { if d.code.id == "T3009" { found = true } }
     assert(found, "expected T3009 on unknown field")
@@ -240,7 +240,7 @@ f :: fn() -> Point { return Point { .x = 1 } }
 """
     eb :: expect_struct_lit(src)
     diags: Diagnostic[] = []
-    infer_struct_lit(eb.sl, eb.typed, diags, stub_check_expr)
+    infer_struct_lit(eb.sl, eb.typed, diags, struct_lit_check_stub)
     found := false
     for d in diags { if d.code.id == "T3037" { found = true } }
     assert(found, "expected T3037 on missing field")
@@ -254,7 +254,7 @@ f :: fn() -> Point { return Point { .x = "hello" } }
 """
     eb :: expect_struct_lit(src)
     diags: Diagnostic[] = []
-    infer_struct_lit(eb.sl, eb.typed, diags, stub_check_expr)
+    infer_struct_lit(eb.sl, eb.typed, diags, struct_lit_check_stub)
     found := false
     for d in diags { if d.code.id == "T3001" { found = true } }
     assert(found, "expected T3001 on field type mismatch")

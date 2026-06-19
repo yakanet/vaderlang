@@ -1495,6 +1495,7 @@ m.size()            // resolves to the MutableMap version
 
 Rules:
 - Overload candidates must differ in their first parameter type. Differing only on later parameters is **not** an overload (post-MVP — see TODO).
+- Two functions with the same name **and the same full signature** (identical parameter types) in one module are a **redefinition**, not an overload — rejected at declaration with **T3053**, independent of whether they are ever called (so it catches an uncalled entry like `main`). A module spans **every file of its directory**, so this also fires when the same function is declared in two sibling files — e.g. two single-file programs sharing a folder, each with its own `main`.
 - Type-param receivers (`fn<T>(self: T)`) are wildcards and conflict with every concrete-receiver overload of the same name.
 - Resolution is performed at typecheck after the receiver type is known. Errors out with `R2004` if two candidates match.
 - A **local fn coexists with a same-named imported fn** as overloads. The local fn takes the primary slot in the module's symbol table (so unqualified references pick it), and the imported fn stays reachable through UFCS dispatch by receiver type. So `std/path` legally both imports `is_empty` from `std/string` and exports its own `is_empty(self: Path)` — `self.repr.is_empty()` picks the string version inside the module while `p.is_empty()` at a call site picks the Path version.

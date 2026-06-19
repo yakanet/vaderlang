@@ -357,14 +357,14 @@ import "vader/parser" { parse_source }
 import "vader/resolver" { resolve_module, ResolvedModule }
 import "vader/resolver/symbol" { new_factory }
 
-stub_check_expr :: fn(
+binary_check_stub :: fn(
     e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
     match e {
         is AST.IntLitExpr    as x -> { return narrow(infer_int_lit(x), expected) }
         is AST.StringLitExpr as x -> { return infer_string_lit(x) }
         is AST.IdentExpr     as x -> { return infer_ident(x, typed) }
-        is AST.BinaryExpr    as x -> { return infer_binary(x, typed, diags, stub_check_expr) }
+        is AST.BinaryExpr    as x -> { return infer_binary(x, typed, diags, binary_check_stub) }
         _ -> { return TY_UNRESOLVED }
     }
 }
@@ -431,7 +431,7 @@ synthetic_binary :: fn() -> AST.BinaryExpr {
 test_arith_int_returns_concrete :: fn() -> void {
     eb :: expect_binary("f :: fn(a: i32, b: i32) -> i32 { return a + b }")
     diags: Diagnostic[] = []
-    assert_eq(display_type(infer_binary(eb.bin, eb.typed, diags, stub_check_expr)), "i32")
+    assert_eq(display_type(infer_binary(eb.bin, eb.typed, diags, binary_check_stub)), "i32")
     assert_eq(diags.len(), usize(0))
 }
 
@@ -439,21 +439,21 @@ test_arith_int_returns_concrete :: fn() -> void {
 test_arith_string_concat :: fn() -> void {
     eb :: expect_binary("""f :: fn(a: string, b: string) -> string { return a + b }""")
     diags: Diagnostic[] = []
-    assert_eq(display_type(infer_binary(eb.bin, eb.typed, diags, stub_check_expr)), "string")
+    assert_eq(display_type(infer_binary(eb.bin, eb.typed, diags, binary_check_stub)), "string")
 }
 
 @test
 test_compare_returns_bool :: fn() -> void {
     eb :: expect_binary("f :: fn(a: i32, b: i32) -> bool { return a < b }")
     diags: Diagnostic[] = []
-    assert_eq(display_type(infer_binary(eb.bin, eb.typed, diags, stub_check_expr)), "bool")
+    assert_eq(display_type(infer_binary(eb.bin, eb.typed, diags, binary_check_stub)), "bool")
 }
 
 @test
 test_logical_requires_bool :: fn() -> void {
     eb :: expect_binary("f :: fn(a: i32, b: bool) -> bool { return a && b }")
     diags: Diagnostic[] = []
-    infer_binary(eb.bin, eb.typed, diags, stub_check_expr)
+    infer_binary(eb.bin, eb.typed, diags, binary_check_stub)
     found := false
     for d in diags { if d.code.id == "T3017" { found = true } }
     assert(found, "expected T3017 for `i32 && bool`")
@@ -463,7 +463,7 @@ test_logical_requires_bool :: fn() -> void {
 test_arith_width_mismatch_emits_T3017 :: fn() -> void {
     eb :: expect_binary("f :: fn(a: i32, b: i64) -> i64 { return a + b }")
     diags: Diagnostic[] = []
-    infer_binary(eb.bin, eb.typed, diags, stub_check_expr)
+    infer_binary(eb.bin, eb.typed, diags, binary_check_stub)
     found := false
     for d in diags { if d.code.id == "T3017" { found = true } }
     assert(found, "expected T3017 for `i32 + i64` (no implicit widening)")

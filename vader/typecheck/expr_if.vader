@@ -343,14 +343,14 @@ import "vader/parser" { parse_source }
 import "vader/resolver" { resolve_module }
 import "vader/resolver/symbol" { new_factory }
 
-stub_check_expr :: fn(
+expr_if_check_stub :: fn(
     e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
     match e {
         is AST.IntLitExpr  as x -> { return narrow_for_expected(infer_int_lit(x), expected) }
         is AST.BoolLitExpr as x -> { return infer_bool_lit(x) }
         is AST.IdentExpr   as x -> { return infer_ident(x, typed) }
-        is AST.IfExpr      as x -> { return infer_if(x, expected, typed, diags, null, stub_check_expr) }
+        is AST.IfExpr      as x -> { return infer_if(x, expected, typed, diags, null, expr_if_check_stub) }
         _ -> { return TY_UNRESOLVED }
     }
 }
@@ -394,7 +394,7 @@ test_if_both_branches_int_returns_int :: fn() -> void {
     ifx :: first_if_in_last_fn(src)
     if ifx is null { assert(false, "expected an if expr") return }
     diags: Diagnostic[] = []
-    ty :: infer_if(ifx, mk_primitive("i32"), typed, diags, null, stub_check_expr)
+    ty :: infer_if(ifx, mk_primitive("i32"), typed, diags, null, expr_if_check_stub)
     assert_eq(display_type(ty), "i32")
 }
 
@@ -405,7 +405,7 @@ test_if_without_else_yields_union_with_void :: fn() -> void {
     ifx :: first_if_in_last_fn(src)
     if ifx is null { assert(false, "expected an if expr") return }
     diags: Diagnostic[] = []
-    ty :: infer_if(ifx, null, typed, diags, null, stub_check_expr)
+    ty :: infer_if(ifx, null, typed, diags, null, expr_if_check_stub)
     assert_eq(display_type(ty), "void | {integer}")
 }
 
@@ -416,7 +416,7 @@ test_if_cond_not_bool_emits_T3019 :: fn() -> void {
     ifx :: first_if_in_last_fn(src)
     if ifx is null { assert(false, "expected an if expr") return }
     diags: Diagnostic[] = []
-    infer_if(ifx, null, typed, diags, null, stub_check_expr)
+    infer_if(ifx, null, typed, diags, null, expr_if_check_stub)
     found := false
     for d in diags { if d.code.id == "T3019" { found = true } }
     assert(found, "expected T3019 on non-bool cond")

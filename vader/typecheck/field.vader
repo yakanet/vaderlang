@@ -758,14 +758,14 @@ import "vader/resolver/symbol" { new_factory }
 
 // Stub that handles only the variants the field tests touch — Ident
 // (for `p` in `p.x`), Field (for nested `obj.a.b`), and Int literals.
-stub_check_expr :: fn(
+field_check_stub :: fn(
     e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
     match e {
         is AST.IntLitExpr    as x -> { return infer_int_lit(x) }
         is AST.StringLitExpr as x -> { return infer_string_lit(x) }
         is AST.IdentExpr     as x -> { return infer_ident(x, typed) }
-        is AST.FieldExpr     as x -> { return infer_field(x, typed, diags, stub_check_expr) }
+        is AST.FieldExpr     as x -> { return infer_field(x, typed, diags, field_check_stub) }
         _ -> { return TY_UNRESOLVED }
     }
 }
@@ -817,7 +817,7 @@ get_x :: fn(p: Point) -> i32 { return p.x }
         is null -> { assert(false, "expected a field expr") }
         is AST.FieldExpr as f -> {
             diags: Diagnostic[] = []
-            assert_eq(display_type(infer_field(f, fx.typed, diags, stub_check_expr)), "i32")
+            assert_eq(display_type(infer_field(f, fx.typed, diags, field_check_stub)), "i32")
             assert_eq(diags.len(), usize(0))
         }
     }
@@ -836,7 +836,7 @@ get_z :: fn(p: Point) -> i32 { return p.z }
         is null -> { assert(false, "expected a field expr") }
         is AST.FieldExpr as f -> {
             diags: Diagnostic[] = []
-            infer_field(f, fx.typed, diags, stub_check_expr)
+            infer_field(f, fx.typed, diags, field_check_stub)
             assert(diags.len() >= 1, "expected a diagnostic")
             assert_eq(diags[0].code.id, "T3009")
         }
@@ -853,7 +853,7 @@ f :: fn(n: i32) -> i32 { return n.x }
         is null -> { assert(false, "expected a field expr") }
         is AST.FieldExpr as f -> {
             diags: Diagnostic[] = []
-            infer_field(f, fx.typed, diags, stub_check_expr)
+            infer_field(f, fx.typed, diags, field_check_stub)
             assert(diags.len() >= 1, "expected a diagnostic")
             assert_eq(diags[0].code.id, "T3008")
         }
