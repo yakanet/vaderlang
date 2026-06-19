@@ -33,6 +33,11 @@ export type PhaseName = "lexer" | "parser" | "resolver" | "typecheck" | "comptim
 
 export interface TestConfig {
   readonly phases?: readonly PhaseName[];
+  /** Modules rendered by the module-filtered dumps (typecheck / comptime /
+   *  lower), passed through as `--module`. Defaults to the entry module's
+   *  subtree when absent — set this only for a snippet whose modules fall
+   *  outside the entry module's display-path prefix. */
+  readonly modules?: readonly string[];
 }
 
 export function loadConfig(dir: string): TestConfig {
@@ -552,8 +557,8 @@ function envForSnippet(entryPath: string): Record<string, string> {
   return SLOW_TYPECHECK_SNIPPETS.has(name) ? SLOW_TYPECHECK_ENV : process.env as Record<string, string>;
 }
 
-export async function dumpTypecheckViaVader(_source: string, entryPath: string): Promise<string> {
-  return runVaderDump("typed-ast", entryPath);
+export async function dumpTypecheckViaVader(_source: string, entryPath: string, modules?: readonly string[]): Promise<string> {
+  return runVaderDump("typed-ast", entryPath, modules);
 }
 
 /** Same shape as `dumpTypecheckViaVader` but for the comptime stage.
@@ -563,30 +568,32 @@ export async function dumpTypecheckViaVader(_source: string, entryPath: string):
  *  `@assert` ; fn-instance harvest is deferred to the lowerer port.
  *  Snippets relying on the deferred features will see their `## generic
  *  instances` lists shrink. */
-export async function dumpComptimeViaVader(_source: string, entryPath: string): Promise<string> {
-  return runVaderDump("evaluated-ast", entryPath);
+export async function dumpComptimeViaVader(_source: string, entryPath: string, modules?: readonly string[]): Promise<string> {
+  return runVaderDump("evaluated-ast", entryPath, modules);
 }
 
 // The native Vader CLI is the snapshot oracle for every stage it can dump.
 // These mirror the typecheck/comptime ViaVader wrappers above; the TS
 // in-process `dump*` variants are retained only for ad-hoc debugging.
-export async function dumpLexerViaVader(_source: string, entryPath: string): Promise<string> {
+export async function dumpLexerViaVader(_source: string, entryPath: string, _modules?: readonly string[]): Promise<string> {
   return runVaderDump("lexer", entryPath);
 }
 
-export async function dumpParserViaVader(_source: string, entryPath: string): Promise<string> {
+export async function dumpParserViaVader(_source: string, entryPath: string, _modules?: readonly string[]): Promise<string> {
   return runVaderDump("ast", entryPath);
 }
 
-export async function dumpLowerViaVader(_source: string, entryPath: string): Promise<string> {
-  return runVaderDump("lowered-ast", entryPath);
+export async function dumpLowerViaVader(_source: string, entryPath: string, modules?: readonly string[]): Promise<string> {
+  return runVaderDump("lowered-ast", entryPath, modules);
 }
 
-export async function dumpCfgViaVader(_source: string, entryPath: string): Promise<string> {
-  return runVaderDump("cfg", entryPath);
+// `dump --stage=cfg` stays available for on-demand debugging ; no committed
+// cfg snapshot, so this is unused by the snapshot suite.
+export async function dumpCfgViaVader(_source: string, entryPath: string, modules?: readonly string[]): Promise<string> {
+  return runVaderDump("cfg", entryPath, modules);
 }
 
-export async function dumpBytecodeViaVader(_source: string, entryPath: string): Promise<string> {
+export async function dumpBytecodeViaVader(_source: string, entryPath: string, _modules?: readonly string[]): Promise<string> {
   return runVaderDump("bytecode", entryPath);
 }
 
@@ -602,9 +609,11 @@ export async function dumpBytecodeViaVader(_source: string, entryPath: string): 
 // large self-host modules.
 const VADER_DUMP_TIMEOUT_MS = 90_000;
 
-async function runVaderDump(stage: string, entryPath: string): Promise<string> {
+async function runVaderDump(stage: string, entryPath: string, modules?: readonly string[]): Promise<string> {
   const env = envForSnippet(entryPath);
-  const proc = Bun.spawn(["./build/vader", "dump", `--stage=${stage}`, entryPath], {
+  const args = ["dump", `--stage=${stage}`, entryPath];
+  if (modules && modules.length > 0) args.push(`--module=${modules.join(",")}`);
+  const proc = Bun.spawn(["./build/vader", ...args], {
     env, stdout: "pipe", stderr: "pipe",
   });
   const killTimer = setTimeout(() => proc.kill("SIGKILL"), VADER_DUMP_TIMEOUT_MS);

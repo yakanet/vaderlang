@@ -9,15 +9,15 @@
 module "vader/midir"
 
 import "std/string_builder" { StringBuilder, new_builder, append }
+import "vader/resolver" { module_in_scope }
 import "vader/resolver/symbol" { kind_name }
 import "vader/types" { display_type }
 
 /// Optional filter / shape controls for `dump_cfg_project`.
 export DumpCfgOptions :: struct {
-    /// When non-null, modules whose `display_path` returns false are
-    /// skipped. Snapshot tests use this to elide stdlib so the captured
-    /// output stays focused on the user snippet.
-    include_module: (fn(string) -> bool) | null
+    /// Only modules in this scope are rendered (the entry's subtree by default,
+    /// `--module` to widen) ; dependencies stay out. See `module_in_scope`.
+    scope: string[]
     /// When false, the project-level string pool is not appended.
     include_strings: bool
 }
@@ -26,10 +26,7 @@ export dump_cfg_project :: fn(p: CFGProject, opts: DumpCfgOptions) -> string {
     sb :: new_builder()
     sb.append("# CFG\n")
     for [_, m] in p.modules {
-        match opts.include_module {
-            is null -> {}
-            _ -> { if !opts.include_module(m.display_path) { continue } }
-        }
+        if !module_in_scope(m.display_path, opts.scope) { continue }
         if m.functions.len() == usize(0) && m.externs.len() == usize(0) && m.struct_decls.len() == usize(0) {
             continue
         }
