@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import {
-  MAIN_FILE, dumpBytecodeViaVader, dumpCfgViaVader, dumpComptimeViaVader,
+  MAIN_FILE, dumpBytecodeViaVader, dumpComptimeViaVader,
   dumpLexerViaVader, dumpLowerViaVader, dumpParserViaVader, dumpTypecheckViaVader,
   errMsg, listSnippets, loadConfig, snapshotEquals,
 } from "./snapshot.ts";
@@ -23,7 +23,10 @@ const PHASES = [
   { name: "typecheck", snap: "typecheck.snapshot", dump: dumpTypecheckViaVader, usePath: true },
   { name: "comptime",  snap: "comptime.snapshot",  dump: dumpComptimeViaVader,  usePath: true },
   { name: "lower",     snap: "lower.snapshot",     dump: dumpLowerViaVader,     usePath: true },
-  { name: "cfg",       snap: "cfg.snapshot",       dump: dumpCfgViaVader,       usePath: true },
+  // No `cfg` phase : the CFG sits between the snapshotted `lower` and `bytecode`
+  // stages and is the only diff-only dump (nothing executes it), so its marginal
+  // coverage is bracketed by those two. `dump --stage=cfg` stays available for
+  // on-demand debugging.
   // `.virt` suffix : the bytecode snapshot is the `.virt` text-IR dump and
   // is consumed verbatim by the Vader CLI (`./build/vader run`) in the
   // `tests/vader_vm.test.ts` parity test.
@@ -44,7 +47,7 @@ for (const s of scenarios) {
       const file = p.usePath ? s.mainPath : MAIN_FILE;
       let actual: string;
       try {
-        actual = await p.dump(s.source, file);
+        actual = await p.dump(s.source, file, config.modules);
       } catch (e) {
         actual = `# internal error\n${errMsg(e)}\n`;
       }

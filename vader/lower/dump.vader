@@ -23,27 +23,24 @@ import "std/sort" { sort }
 import "std/string" { compare_ascending, to_lower, ends_with, join }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 import "vader/diagnostics" { Span }
-import "vader/resolver" { is_stdlib_module }
+import "vader/resolver" { module_in_scope }
 import "vader/resolver/symbol" { Symbol }
 import "vader/types" { Type, PrimitiveType, display_type }
 
-/// Render the project's `# Lower` dump as a single string. Stdlib
-/// modules are filtered out to match the TS dumper byte-for-byte.
+/// Render the project's `# Lower` dump as a single string. Only modules in
+/// `scope` are rendered (the entry's subtree by default, `--module` to widen),
+/// so dependencies — stdlib or otherwise — stay out of the dump.
 /// @param project  the lowered project.
+/// @param scope    in-scope module ids / prefixes (see `module_in_scope`).
 /// @return         the formatted dump (no trailing newline).
-export dump_lowered :: fn(project: LoweredProject) -> string {
+export dump_lowered :: fn(project: LoweredProject, scope: string[]) -> string {
     lines: string[] = []
     lines.push("# Lower")
     module_ids :: sort(project.modules.keys(), (a: string, b: string) -> compare_ascending(a, b))
     for module_id in module_ids {
         module :: project.modules[module_id]
         if module is null { continue }
-        if is_stdlib_module(module.display_path) { continue }
-        // The orchestrator now exposes std modules under their on-
-        // disk `stdlib/std/...` keys so the impl-by-trait query
-        // reaches them ; the dump still filters them out to match
-        // the TS snapshot format.
-        if is_stdlib_path(module.display_path) { continue }
+        if !module_in_scope(module.display_path, scope) { continue }
         lines.push("")
         lines.push("## ${module.display_path}")
         for decl in module.decls {
@@ -51,11 +48,6 @@ export dump_lowered :: fn(project: LoweredProject) -> string {
         }
     }
     return lines.join("\n")
-}
-
-
-is_stdlib_path :: fn(path: string) -> bool {
-    return path.contains("stdlib/std/")
 }
 
 emit_decl :: fn(lines: string[], decl: LoweredDecl, indent: string) -> void {
@@ -438,7 +430,7 @@ import "std/testing" { assert_eq }
 
 @test test_dump_empty_project_header_only :: fn() -> void {
     project :: empty_test_project()
-    assert_eq(dump_lowered(project), "# Lower")
+    assert_eq(dump_lowered(project, []), "# Lower")
 }
 
 empty_test_project :: fn() -> LoweredProject {

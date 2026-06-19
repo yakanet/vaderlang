@@ -29,21 +29,24 @@ import "std/sort" { sort }
 import "std/string" { compare_ascending, compare_ascending_ci, pad_end, split }
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "vader/resolver" { module_in_scope }
 import "vader/types" { display_type }
 
-/// Render a single typed module. The header omits the `# Typecheck` banner
-/// when `with_banner = false` so multi-module callers can compose without
-/// re-emitting it ; in single-module pipelines pass `true`.
+/// Render a single typed module — always in scope (its own display path).
+/// The header omits the `# Typecheck` banner when `with_banner = false` so
+/// multi-module callers can compose without re-emitting it ; in single-module
+/// pipelines pass `true`.
 export dump_program :: fn(typed: TypedProgram, with_banner: bool) -> string {
-    return dump_program_with_others(typed, with_banner, [])
+    return dump_program_with_others(typed, with_banner, [], [typed.resolved.display_path])
 }
 
 /// Same as `dump_program` but accepts a list of non-entry typed
 /// modules. Each module renders its own `## <path>` section with
 /// its own decls + exprs, sorted by module path so the entry doesn't
-/// always come first — matches TS `dumpTypecheck`.
+/// always come first. Only modules in `scope` are rendered (the entry's
+/// subtree by default, `--module` to widen), so dependencies stay out.
 export dump_program_with_others :: fn(
-    typed: TypedProgram, with_banner: bool, others: TypedProgram[],
+    typed: TypedProgram, with_banner: bool, others: TypedProgram[], scope: string[],
 ) -> string {
     sb :: new_builder()
     if with_banner { sb.append("# Typecheck") }
@@ -51,11 +54,7 @@ export dump_program_with_others :: fn(
     for o in others { sections.push(o) }
     sorted :: sort(sections, (a: TypedProgram, b: TypedProgram) -> compare_ascending(a.resolved.path, b.resolved.path))
     for mod in sorted {
-        // Skip stdlib bodies (matches TS `formatTypedDump`). TS keys
-        // on the module name (`displayPath` starts with `std/`) ; here
-        // the path is filesystem-relative (`stdlib/std/X/...`), so use
-        // substring containment.
-        if "stdlib/std/" in mod.resolved.path { continue }
+        if !module_in_scope(mod.resolved.display_path, scope) { continue }
         sb.append("\n\n## ")
         sb.append(mod.resolved.path)
         for line in build_decl_lines(mod) { sb.append("\n") sb.append(line) }
