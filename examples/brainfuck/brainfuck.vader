@@ -5,7 +5,11 @@
 // intermediate, no subprocess.
 //
 // Memory model :
-//   - One i32[] local holds 30000 zero-initialised cells.
+//   - One i32[] local holds the cell tape, grown lazily : it starts as a
+//     single zero cell and `>` appends a fresh zero whenever the pointer
+//     walks past the current end. BF's tape is conceptually infinite, so
+//     there's no point materialising a fixed 30000 cells up front — only the
+//     cells a program actually visits get allocated.
 //   - One i32 local holds the data pointer (cell index).
 //   - BF cells are i32-wide (no wrap at 256) — matches the VM's native int.
 //
@@ -38,9 +42,9 @@ import "vader/vm" {
     new_module_builder, new_function_builder,
     add_type, add_import, add_function, set_main, finish,
     block, loop_, end, br, br_if,
-    i32_const, i32_add, i32_sub, i32_eq, i32_ge,
+    i32_const, i32_add, i32_sub, i32_eq, i32_lt,
     local_get, local_set,
-    array_new, array_push, array_get, array_set,
+    array_new, array_push, array_get, array_set, array_len,
     call, call_import, return_op,
 }
 import "vader/vm" { exec, prepare }
@@ -112,10 +116,9 @@ match_brackets :: fn(tokens: char[]) -> i32[] {
 
 // ---- module emitter ------------------------------------------------------
 
-// Slot layout for `bf_main` (parameter_count = 0, local_count = 3) :
-//   slot 0 = __mem  (i32[], the 30000-cell array)
+// Slot layout for `bf_main` (parameter_count = 0, local_count = 2) :
+//   slot 0 = __mem  (i32[], the lazily-grown cell tape)
 //   slot 1 = __ptr  (i32,    the current data pointer / cell index)
-//   slot 2 = __i    (i32,    init-loop counter, also unused after init)
 //
 // Slot layout for `print_byte` (parameter_count = 1, local_count = 1) :
 //   slot 0 = byte argument (i32)
@@ -123,11 +126,25 @@ match_brackets :: fn(tokens: char[]) -> i32[] {
 
 emit_bf_char :: fn(fb: FunctionBuilder, c: char, idx: usize, partner: i32[], cells_type_id: i32, print_byte_index: i32) -> void {
     match c {
-        '>' -> { // move the data pointer one cell to the right.
+        '>' -> { // move right ; grow the tape lazily if we step past the end.
             fb.local_get(1)
             fb.i32_const(1)
             fb.i32_add()
             fb.local_set(1)
+            // The pointer only moves one cell at a time, so it reaches the
+            // tape end exactly when a new cell is due : if __ptr < the tape
+            // length the cell already exists, otherwise append a fresh zero.
+            grow_label :: "bf_grow_${idx}"
+            fb.block(grow_label)
+            fb.local_get(1)        // __ptr
+            fb.local_get(0)        // __mem
+            fb.array_len()         // current tape length
+            fb.i32_lt()
+            fb.br_if(grow_label)   // __ptr < length → cell exists, skip grow
+            fb.local_get(0)
+            fb.i32_const(0)
+            fb.array_push(cells_type_id)
+            fb.end()
         }
         '<' -> { // move the data pointer one cell to the left.
             fb.local_get(1)
@@ -249,35 +266,19 @@ compile_brainfuck :: fn(source: string) -> bc.BytecodeModule {
     print_byte_index :: module_builder.add_function(print_byte)
 
     // ---- fn bf_main() -> i32 ---------------------------------------------
-    bf_main :: new_function_builder("bf_main", 0, 3)
+    bf_main :: new_function_builder("bf_main", 0, 2)
 
-    // __mem = []
+    // __mem = [0] — start with a single zero cell ; the tape grows on demand
+    // as `>` walks past the current end (see emit_bf_char). No 30000-cell
+    // pre-fill : only the cells a program touches ever get allocated.
     bf_main.array_new(cells_type_id, 0)
     bf_main.local_set(0)
-    // __ptr = 0
-    bf_main.i32_const(0)
-    bf_main.local_set(1)
-    // __i = 0
-    bf_main.i32_const(0)
-    bf_main.local_set(2)
-
-    // Init the cells array : while __i < 30000, push 0 and increment.
-    bf_main.block("bf_init_done")
-    bf_main.loop_("bf_init_loop")
-    bf_main.local_get(2)
-    bf_main.i32_const(30000)
-    bf_main.i32_ge()
-    bf_main.br_if("bf_init_done")
     bf_main.local_get(0)
     bf_main.i32_const(0)
     bf_main.array_push(cells_type_id)
-    bf_main.local_get(2)
-    bf_main.i32_const(1)
-    bf_main.i32_add()
-    bf_main.local_set(2)
-    bf_main.br("bf_init_loop")
-    bf_main.end()  // close loop bf_init_loop
-    bf_main.end()  // close block bf_init_done
+    // __ptr = 0
+    bf_main.i32_const(0)
+    bf_main.local_set(1)
 
     // BF body
     token_index: usize = 0
