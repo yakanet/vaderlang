@@ -159,10 +159,12 @@ export lower_project :: fn(
     for draining {
         drain_generic_fn_instances(loaded, typed, project_ctx, project, diags)
         materialize_nongeneric_stdlib_fns(loaded, typed, project_ctx, project, diags)
+        materialize_nongeneric_stdlib_consts(loaded, typed, project_ctx, project, diags)
         surface_referenced_intrinsic_externs(loaded, typed, project_ctx, project)
         cur_total :: project_ctx.fn_instances_order.len() +
             project_ctx.pending_generic_impl_recv.len() +
             project_ctx.nongeneric_stdlib_order.len() +
+            project_ctx.nongeneric_stdlib_const_order.len() +
             project_ctx.referenced_impl_mangles.inner.size +
             project_ctx.virtually_dispatched_traits.inner.size +
             project_ctx.constructed_struct_symbols.inner.size

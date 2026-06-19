@@ -184,6 +184,24 @@ export LowerProjectCtx :: struct {
     /// without re-lowering earlier entries.
     nongeneric_stdlib_cursor: usize
 
+    /// Stdlib module-level `const` decls observed at reference sites
+    /// (`register_nongeneric_stdlib_const`). Like fns, a stdlib const's
+    /// owning module is skipped by the lowerer (`is_stdlib_path`), so its
+    /// decl never reaches `project.modules` and `inline_consts` can't route
+    /// its read sites — `build_ident` then emits `unreachable`, truncating
+    /// the caller. `materialize_nongeneric_stdlib_consts` lowers one
+    /// `LoweredConstDecl` per harvested symbol so `inline_consts` handles it
+    /// like any user const (scalar → inline, bulky array → fn-wrap accessor).
+    /// Keyed by `const_symbol.id` for dedup ; `_order` preserves discovery
+    /// order for a deterministic dump.
+    nongeneric_stdlib_consts:       MutableMap<i32, bool>
+    nongeneric_stdlib_const_order:  Symbol[]
+    /// Resume cursor into `nongeneric_stdlib_const_order`, persisted across
+    /// the materialise↔surface fixpoint so a const harvested late (e.g. one
+    /// referenced only by a surfaced stdlib fn body) is lowered without
+    /// re-lowering earlier entries.
+    nongeneric_stdlib_const_cursor: usize
+
     /// Erasure-dedupe of impl-member emissions — keyed by
     /// `"<impl-decl-span>::<member-name>"`. The first instance of a
     /// generic struct that lands on a given impl-member emits the
@@ -301,6 +319,9 @@ export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedPr
         .nongeneric_stdlib_fns   = MutableMap<i32, bool> {},
         .nongeneric_stdlib_order = [],
         .nongeneric_stdlib_cursor = usize(0),
+        .nongeneric_stdlib_consts       = MutableMap<i32, bool> {},
+        .nongeneric_stdlib_const_order  = [],
+        .nongeneric_stdlib_const_cursor = usize(0),
         .materialized_impl_keys = MutableSet<string> {
             .inner = MutableMap<string, bool> {},
         },

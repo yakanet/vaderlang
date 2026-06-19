@@ -1,0 +1,13 @@
+# Typecheck
+
+## tests/snippets/_diag_const_cross_module
+  FnDecl         main                 :: fn() -> i32
+  expr 24:13    StringLitExpr  :: string
+  expr 24:16    IdentExpr      :: f64
+  expr 24:5     CallExpr       :: void
+  expr 24:5     IdentExpr      :: fn(T) -> void
+  expr 25:13    StringLitExpr  :: string
+  expr 25:16    BinaryExpr     :: f64
+  expr 25:16    IdentExpr      :: f64
+  expr 25:5     CallExpr       :: void
+  expr 25:5     IdentExpr      :: fn(T) -> void

@@ -1,0 +1,27 @@
+// tests/snippets/_diag_const_cross_module/_main.vader — regression for the
+// cross-module stdlib `const` reference bug.
+//
+// A `const` imported from a stdlib module (`std/math::pi`) and used in an
+// expression used to reach `midir/build.vader::build_ident` as a bare ident
+// with no `const_inline` / `const_fn_wrap` entry: the stdlib lowerer skips the
+// owning module's decls (`is_stdlib_path`), so the const was never lowered into
+// `project.modules` and `inline_consts` couldn't route its read site. It then
+// lowered to `unreachable`, truncating the whole function to a bare `return` —
+// the program printed nothing and exited 0 (silent miscompile; the VM variant
+// trapped with `local.set on empty stack`).
+//
+// Fixed by harvesting the referenced stdlib const on demand
+// (`materialize_nongeneric_stdlib_consts`, sibling of the fn harvest) so its
+// decl reaches `project.modules` and `inline_consts` inlines the scalar.
+// Expected: prints pi and pi * 2, exits 0.
+
+module "snippet"
+
+import "std/io" { println }
+import "std/math" { pi }
+
+main :: fn() -> i32 {
+    println("${pi}")
+    println("${pi * 2.0}")
+    return 0
+}
