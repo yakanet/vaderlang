@@ -814,7 +814,7 @@ into_tuple_target :: fn(declared: Type, arity: usize, typed: TypedProgram) -> Ty
 
 // ---- tests ----------------------------------------------------------------
 //
-// Local `stub_check_expr` avoids importing `expr.vader` (would create a
+// Local `stmt_check_stub` avoids importing `expr.vader` (would create a
 // load-time cycle through `expr → stmt`). Full end-to-end coverage runs
 // via `check_module_with_bodies` in `orchestrate.vader`.
 
@@ -839,7 +839,7 @@ stub_check_module :: fn(src: string) -> StubResult {
     for decl in parsed.program.decls {
         if decl is AST.FnDecl {
             match decl.body {
-                is AST.BlockExpr as body -> { check_fn_body(decl, body, typed, diags, stub_check_expr) }
+                is AST.BlockExpr as body -> { check_fn_body(decl, body, typed, diags, stmt_check_stub) }
                 is null -> {}
             }
         }
@@ -851,7 +851,7 @@ stub_check_module :: fn(src: string) -> StubResult {
 // exercise (int / string literals + idents). FreeInt narrowing reuses
 // the shared `narrow_for_expected` so the stub matches the real
 // orchestrator's behavior.
-stub_check_expr :: fn(
+stmt_check_stub :: fn(
     e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
     match e {

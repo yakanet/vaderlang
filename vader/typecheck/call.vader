@@ -469,14 +469,14 @@ import "vader/resolver/symbol" { Symbol, new_factory }
 
 // Tiny stub : handles the variants the call tests touch. Real call sites
 // use `expr.vader::check_expr` — we can't import that here (cycle).
-stub_check_expr :: fn(
+call_check_stub :: fn(
     e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
     match e {
         is AST.IntLitExpr    as x -> { return infer_int_lit(x) }
         is AST.StringLitExpr as x -> { return infer_string_lit(x) }
         is AST.IdentExpr     as x -> { return infer_ident(x, typed) }
-        is AST.CallExpr      as x -> { return infer_call(x, typed, diags, stub_check_expr) }
+        is AST.CallExpr      as x -> { return infer_call(x, typed, diags, call_check_stub) }
         _ -> { return TY_UNRESOLVED }
     }
 }
@@ -529,7 +529,7 @@ main :: fn() -> i32 { return add(1, 2) }
         is null -> { assert(false, "expected to find a call") }
         is AST.CallExpr as c -> {
             diags: Diagnostic[] = []
-            assert_eq(display_type(infer_call(c, fx.typed, diags, stub_check_expr)), "i32")
+            assert_eq(display_type(infer_call(c, fx.typed, diags, call_check_stub)), "i32")
             assert_eq(diags.len(), usize(0))
         }
     }
@@ -546,7 +546,7 @@ main :: fn() -> i32 { return add(1) }
         is null -> { assert(false, "expected to find a call") }
         is AST.CallExpr as c -> {
             diags: Diagnostic[] = []
-            infer_call(c, fx.typed, diags, stub_check_expr)
+            infer_call(c, fx.typed, diags, call_check_stub)
             assert(diags.len() >= usize(1), "expected at least one diagnostic")
             assert_eq(diags[0].code.id, "T3003")
         }
@@ -564,7 +564,7 @@ main :: fn() -> void { greet(42) }
         is null -> { assert(false, "expected to find a call") }
         is AST.CallExpr as c -> {
             diags: Diagnostic[] = []
-            infer_call(c, fx.typed, diags, stub_check_expr)
+            infer_call(c, fx.typed, diags, call_check_stub)
             // FreeInt is not assignable to string ; T3001 fires.
             found := false
             for d in diags { if d.code.id == "T3001" { found = true } }

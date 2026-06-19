@@ -156,13 +156,6 @@ evaluate_module_decls :: fn(
     }
 }
 
-has_comptime_decorator :: fn(decl: AST.ConstDecl) -> bool {
-    for d in decl.decorators {
-        if d.name == "comptime" { return true }
-    }
-    return false
-}
-
 // Walk every decl in `decls`, find `@file("path")` IntrinsicCallExpr
 // occurrences, evaluate the path arg as a comptime string, read the
 // referenced file's content (resolved relative to the source file's

@@ -1,0 +1,11 @@
+// Redefinition guard : two `foo` with the same signature in one module is a
+// redefinition (T3053), not an overload. `main` is the special case (one
+// signature) ; since a module spans every file of its directory, the same
+// rule catches a `main` declared in two sibling files (the `vader run
+// dir/file.vader` footgun, where the directory loads as one module).
+module "snippet"
+
+foo :: fn(x: i32) -> i32 = x
+foo :: fn(x: i32) -> i32 = x + 1
+
+main :: fn() -> i32 = foo(1)

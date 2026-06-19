@@ -340,7 +340,7 @@ import "vader/resolver/symbol" { new_factory }
 import "vader/types" { TY_UNRESOLVED }
 import "vader/diagnostics" { empty_span }
 
-stub_check_expr :: fn(
+match_expr_check_stub :: fn(
     e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
     match e {
@@ -348,7 +348,7 @@ stub_check_expr :: fn(
         is AST.BoolLitExpr   as x -> { return infer_bool_lit(x) }
         is AST.StringLitExpr as x -> { return infer_string_lit(x) }
         is AST.IdentExpr     as x -> { return infer_ident(x, typed) }
-        is AST.MatchExpr     as x -> { return infer_match(x, expected, typed, diags, null, stub_check_expr) }
+        is AST.MatchExpr     as x -> { return infer_match(x, expected, typed, diags, null, match_expr_check_stub) }
         _ -> { return TY_UNRESOLVED }
     }
 }
@@ -402,7 +402,7 @@ test_match_single_arm_returns_arm_type :: fn() -> void {
     src :: "f :: fn(x: i32) -> i32 { return match x { _ -> 42 } }"
     em :: expect_match(src)
     diags: Diagnostic[] = []
-    assert_eq(display_type(infer_match(em.m, null, em.typed, diags, null, stub_check_expr)), "{integer}")
+    assert_eq(display_type(infer_match(em.m, null, em.typed, diags, null, match_expr_check_stub)), "{integer}")
 }
 
 @test
@@ -410,7 +410,7 @@ test_match_two_arms_unions :: fn() -> void {
     src :: "f :: fn(x: i32) -> string | i32 { return match x { 0 -> \"zero\", _ -> 1 } }"
     em :: expect_match(src)
     diags: Diagnostic[] = []
-    ty :: infer_match(em.m, null, em.typed, diags, null, stub_check_expr)
+    ty :: infer_match(em.m, null, em.typed, diags, null, match_expr_check_stub)
     // union_of sorts by display (`s` < `{`), so `string | {integer}`.
     assert_eq(display_type(ty), "string | {integer}")
 }
@@ -420,7 +420,7 @@ test_match_guard_non_bool_emits_T3019 :: fn() -> void {
     src :: "f :: fn(x: i32) -> i32 { return match x { _ if 1 -> 0, _ -> 1 } }"
     em :: expect_match(src)
     diags: Diagnostic[] = []
-    infer_match(em.m, null, em.typed, diags, null, stub_check_expr)
+    infer_match(em.m, null, em.typed, diags, null, match_expr_check_stub)
     found := false
     for d in diags { if d.code.id == "T3019" { found = true } }
     assert(found, "expected T3019 on non-bool guard")

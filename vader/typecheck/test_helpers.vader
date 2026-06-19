@@ -5,8 +5,8 @@
 // predicate accepts. Callers wrap with a tiny `accept_X` predicate
 // and narrow the returned `AST.Expr | null` via `match … is AST.XExpr`.
 //
-// `stub_check_expr` and the parse + resolve + check pipeline stay
-// per-file : moving them here would either create a file-level cycle
+// The per-file `*_check_stub` helpers and the parse + resolve + check pipeline
+// stay per-file : moving them here would either create a file-level cycle
 // (test_helpers would import every `infer_*`, but those files import
 // test_helpers from their test block) or force every caller to absorb
 // the exhaustive-match boilerplate for `AST.Expr | null`.

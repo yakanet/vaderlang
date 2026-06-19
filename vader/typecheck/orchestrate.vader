@@ -270,6 +270,9 @@ export check_project_with_bodies :: fn(
     // deferred — only fully-concrete receivers are checked.)
     check_impl_coherence(project, per_module, diags)
 
+    // No two functions in a module may share name + signature (a redefinition).
+    check_fn_redefinitions(project, per_module, diags)
+
     // Two-pass body walk : first pass infers expression-bodied fn
     // return types (forward-reference safe) ; second pass re-types
     // bodies with all returns settled. Diags are captured only on
@@ -494,6 +497,69 @@ check_module_impl_coherence :: fn(
             }
         }
     }
+}
+
+// No two functions in a module may share a name AND signature (resolved param
+// types) — that's a redefinition, not an overload. `main` is the special case
+// (one possible signature). Sibling files merge into one module, so this also
+// catches a `main` per file (the `vader run dir/file.vader` footgun, where the
+// directory loads as one module and the first-declared `main` silently wins).
+check_fn_redefinitions :: fn(
+    project: LoadedProject, per_module: MutableMap<string, TypedProgram>, diags: Diagnostic[],
+) -> void {
+    for [id, _] in project.modules {
+        check_module_fn_redefinitions(id, project, per_module, diags)
+    }
+}
+
+check_module_fn_redefinitions :: fn(
+    id: string, project: LoadedProject,
+    per_module: MutableMap<string, TypedProgram>, diags: Diagnostic[],
+) -> void {
+    tp :: per_module[id]
+    if tp is null { return }
+    loaded :: project.modules[id]
+    if loaded is null { return }
+    // Group fn decls by name (cheap — no type resolution) ; resolve signatures
+    // only for names with ≥2 decls. Signatures come from the AST, not
+    // `decl_types` : a cross-file duplicate at the same (line, col) is left
+    // untyped because `lookup_fn_symbol_by_span` matches spans file-blind, so the
+    // second `main` of the `vader run dir/file.vader` footgun never lands in
+    // `decl_types`. The AST is the authoritative source of declared params.
+    by_name :: MutableMap<string, AST.FnDecl[]> {}
+    for decl in merge_module_program(loaded.module.files).decls {
+        if !(decl is AST.FnDecl) { continue }
+        group :: by_name[decl.name]
+        if group == null { by_name[decl.name] = [decl] } else { group.push(decl) }
+    }
+    for [name, group] in by_name {
+        if group.len() < 2 { continue }
+        // A matching canonical signature key is a redefinition, not an overload.
+        seen :: MutableMap<string, bool> {}
+        for fd in group {
+            key :: fn_signature_key(fd, tp.resolved)
+            if key == null { continue }
+            if seen[key] != null {
+                diags.push(typecheck_error(.DuplicateFnDefinition, fd.span,
+                    "`${name}` is already defined with the same signature in this module"))
+            } else {
+                seen[key] = true
+            }
+        }
+    }
+}
+
+// Canonical key for a fn decl's resolved parameter signature, or null when a
+// param is un-annotated (only lambdas omit param types ; a named fn always has
+// them, so the null branch is a defensive skip).
+fn_signature_key :: fn(fd: AST.FnDecl, resolved: ResolvedModule) -> string | null {
+    params: Type[] = []
+    for p in fd.params {
+        pty :: p.ty
+        if pty == null { return null }
+        params.push(type_from_expr(pty, resolved, diag_sink()))
+    }
+    return canonical_args_key(params)
 }
 
 // ---- cross-module table merges --------------------------------------------

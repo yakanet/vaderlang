@@ -89,8 +89,6 @@ resolve_type_arg :: fn(expr: AST.Expr, context: ComptimeContext) -> Type | null 
     }
 }
 
-diag_sink :: fn() -> Diagnostic[] { return [] }
-
 // Primitive byte sizes match `intrinsic_assert`'s expectations
 // (`@size_of(i32) == 4`, `@size_of(string) == 16`, …). Composite
 // reference types (struct / enum / array / tuple / union / trait /
