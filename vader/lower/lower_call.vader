@@ -365,6 +365,18 @@ fold_const_symbol :: fn(ctx: FnLowerCtx, sym: Symbol, type: Type, span: Span) ->
 // enclosing expression (a struct literal `.id = AST.UNASSIGNED_NODE_ID`, …)
 // degrades to a drop. Mirror of `try_lower_namespace_call` (fn members) /
 // `try_lower_enum_field` (namespace enum variants).
+// LATENT GAP : `fold_const_symbol` only folds SCALAR consts, so a *compound*
+// stdlib const reached through a namespace alias (`M.SOME_ARRAY`) returns null
+// here and is NOT harvested for `materialize_nongeneric_stdlib_consts` — unlike
+// the bare-ident seam (`lower_ident`), which harvests. It would hit the
+// `build_ident` → `unreachable` truncation the const harvest exists to fix.
+// Unreachable today : every stdlib value-const is scalar (`pi`/`e`/`SEP`/
+// `SEP_STR`), so the compound-via-alias shape can't occur. The deep fix is the
+// planned `is_stdlib_path` removal (eager + uniform stdlib lowering deletes both
+// harvests and routes every const the same as user code) — not a second harvest
+// call here. If a non-scalar stdlib const is added before that lands, harvest
+// `member` on the fold-miss path (and verify the field-access read site routes
+// to it, which a bare register call alone may not guarantee).
 try_lower_namespace_const :: fn(ctx: FnLowerCtx, e: FieldExpr, type: Type) -> LoweredExpr | null {
     ns_sym :: as_namespace_binding(ctx, e.target)
     if ns_sym is null { return null }

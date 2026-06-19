@@ -216,6 +216,20 @@ register_nongeneric_stdlib_fn :: fn(ctx: FnLowerCtx, fn_sym: Symbol) -> void {
     ctx.project.nongeneric_stdlib_order.push(fn_sym)
 }
 
+/// Record a stdlib module-level `const` for end-of-project
+/// materialization. No-op for user-module consts (already lowered by
+/// `lower_module`), non-const symbols, and consts already harvested.
+/// Dedup by `const_sym.id`. The reference itself keeps its `LoweredIdent` ;
+/// `materialize_nongeneric_stdlib_consts` lowers the decl so `inline_consts`
+/// can route the read site (`build_ident` would otherwise emit `unreachable`).
+register_nongeneric_stdlib_const :: fn(ctx: FnLowerCtx, const_sym: Symbol) -> void {
+    if i32(const_sym.kind) != i32(SymbolKind.Const) { return }
+    if !is_stdlib_path(const_sym.module) { return }
+    if ctx.project.nongeneric_stdlib_consts[const_sym.id] != null { return }
+    ctx.project.nongeneric_stdlib_consts[const_sym.id] = true
+    ctx.project.nongeneric_stdlib_const_order.push(const_sym)
+}
+
 /// Register a `GenericFnInstance` for a UFCS-resolved generic free fn.
 /// Mirrors the harvest in `try_lower_generic_fn_call` for the
 /// ident-call path. The receiver type binds the first param ; the

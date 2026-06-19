@@ -223,6 +223,14 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
             // drops it. Mirror of the direct-call harvest in `lower_call`.
             // Self-guards : no-op unless `final_sym` is a non-generic stdlib Fn.
             register_nongeneric_stdlib_fn(ctx, final_sym)
+            // Same harvest for a stdlib module-level const : reaching here
+            // means the scalar fold above missed (cross-module const refs
+            // resolve through an import binding, so `resolved` wasn't the
+            // Const symbol), so the read site keeps a bare `LoweredIdent`.
+            // Without the decl in `project.modules`, `inline_consts` can't
+            // route it → `build_ident` emits `unreachable`. Self-guards :
+            // no-op unless `final_sym` is a stdlib Const.
+            register_nongeneric_stdlib_const(ctx, final_sym)
             return LoweredIdent { .span = ident.span, .type = type, .symbol = final_sym }
         }
     }

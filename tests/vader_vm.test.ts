@@ -221,7 +221,7 @@ const VADER_SELF_EMIT = new Set<string>([
   // never matched the `vcall Iterator.next`), and the materialised member's synth
   // id-0 symbol needed a mangle fallback to resolve its fn index.
   "iter_coerce_array", "trait_box_range_iter",
-  "_diag_const_string", "alias_union_in_array", "array_view_aliasing",
+  "_diag_const_string", "_diag_const_cross_module", "alias_union_in_array", "array_view_aliasing",
   "for_range_sugar", "b1_fn_boundary", "closure_pattern_binding", "comptime_type_value",
   "const_array_basic", "contains_op", "decorator_deprecated",
   "enum_trait_self_return", "expr_bodied_fn", "expr_bodied_recursive_typed",
