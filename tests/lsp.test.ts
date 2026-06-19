@@ -288,6 +288,46 @@ test("lsp: completion lists in-scope identifiers + keywords", async () => {
   expect(dbl?.kind).toBe(3);
 }, { timeout: MEDIUM_BUILD });
 
+// A module-declared entry (so the typed project loads its bodies) with two
+// unannotated locals — `n :: mk()` and `b :: Box {...}`. Completion should
+// surface their *inferred* type as detail (TS-style), resolved through the
+// typed cache, rather than the index's RHS source slice.
+const LOCAL_TYPE_SOURCE = `module "demo"
+
+mk :: fn() -> i32 {
+    return 7
+}
+
+Box :: struct {
+    v: i32
+}
+
+main :: fn() -> i32 {
+    n :: mk()
+    b :: Box { .v = 1 }
+    return n
+}
+`;
+
+test("lsp: completion shows a local's inferred type as detail", async () => {
+  // Line 13 = `    return n` — inside main's body, so `n` and `b` are visible.
+  const results = await driveLsp(LOCAL_TYPE_SOURCE, [
+    { method: "textDocument/completion", position: { line: 13, character: 4 } },
+  ]);
+  const list = results[0]!.result as CompletionList;
+  const labels = new Set(list.items.map((i) => i.label));
+  expect(labels.has("n")).toBe(true);
+  expect(labels.has("b")).toBe(true);
+
+  // `n :: mk()` → `i32` (the call's return type), `b :: Box {...}` → `Box`.
+  expect(list.items.find((i) => i.label === "n")?.detail).toBe("i32");
+  expect(list.items.find((i) => i.label === "b")?.detail).toBe("Box");
+
+  // A function's detail is its signature, with the redundant `<name> :: `
+  // prefix stripped — the label already carries the name.
+  expect(list.items.find((i) => i.label === "mk")?.detail).toBe("fn() -> i32");
+}, { timeout: MEDIUM_BUILD });
+
 const MEMBER_SOURCE = `module "lsp_test"
 
 Greeter :: trait {

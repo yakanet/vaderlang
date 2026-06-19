@@ -15,7 +15,9 @@ module "vader/lsp/handlers"
 
 import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonArray }
 import "std/collections" { MutableMap }
-import "vader/types" { StructType, display_type }
+import "std/string" { split }
+import "vader/types" { StructType, UnresolvedType, FreeIntType, FreeFloatType, display_type }
+import "vader/typecheck" { TypedProgram }
 import "vader/lsp/protocol" {
     position_uri, position_line, position_character, span_contains,
     uri_to_path, lsp_to_offset, line_start_offset,
@@ -23,6 +25,7 @@ import "vader/lsp/protocol" {
 import "vader/lsp/analysis" {
     ServerState, DocIndex, DeclEntry, DeclKind, build_index,
     typed_project_for, source_file_for_path, find_expr_at,
+    find_binding_rhs_type_at,
 }
 AST :: import "vader/parser"
 
@@ -65,10 +68,15 @@ export handle_completion :: fn(state: ServerState, params: JsonValue) -> JsonVal
             items: JsonValue[] = []
             seen :: MutableMap<string, bool> {}
 
+            // The typed cache lets us show a binding's *inferred* type
+            // (`x :: foo()` → `Symbol`) instead of the index's RHS source
+            // slice — see `decl_detail`.
+            ctx :: detail_ctx(state, uri_to_path(uri))
+
             for d in visible_decls(index, line, col) {
                 if seen[d.name] != null { continue }
                 seen[d.name] = true
-                items.push(completion_item(d.name, ci_kind(d.kind), d.signature))
+                items.push(completion_item(d.name, ci_kind(d.kind), decl_detail(d, ctx.decls, ctx.typed)))
             }
 
             for imp in index.imports {
@@ -86,6 +94,60 @@ export handle_completion :: fn(state: ServerState, params: JsonValue) -> JsonVal
             return completion_list(items)
         }
     }
+}
+
+// The typed program plus the entry file's top-level decls — what `decl_detail`
+// needs to resolve a binding's inferred type, from a single (cached)
+// `typed_project_for` lookup.
+DetailCtx :: struct {
+    typed: TypedProgram | null
+    decls: AST.Decl[]
+}
+
+// Resolve the `DetailCtx` for the document at `fp`. `typed` is null / `decls`
+// empty when the document has no on-disk path or its module never loaded — so
+// `decl_detail` falls back to the index's source slice. Loading the project
+// typechecks it (cached within the edit window), the same cost the
+// member-completion / hover / inlay handlers already pay.
+detail_ctx :: fn(state: ServerState, fp: string) -> DetailCtx {
+    if fp == "" { return DetailCtx { .typed = null, .decls = [] } }
+    cached :: typed_project_for(state, fp)
+    typed :: cached.result.typed
+    entry :: cached.project.modules[cached.project.entry]
+    if entry == null { return DetailCtx { .typed = typed, .decls = [] } }
+    sf :: source_file_for_path(entry.module.files, fp)
+    if sf == null { return DetailCtx { .typed = typed, .decls = [] } }
+    return DetailCtx { .typed = typed, .decls = sf.program.decls }
+}
+
+// Detail string for a scope-completion item. An unannotated local binding
+// (`x :: foo()`) carries only a RHS source slice in the index ; when the typed
+// cache resolves its inferred type, show that (`Symbol`, `i32`, …) instead —
+// matching the hover / inlay UX. The type is read from the typed project's own
+// AST (by cursor position, file-independent), since the index is a separate
+// parse. Everything else keeps the index's signature (decl heads, annotated
+// params, imports).
+decl_detail :: fn(d: DeclEntry, decls: AST.Decl[], typed: TypedProgram | null) -> string {
+    // Functions: drop the redundant `<name> :: ` prefix — the label already
+    // carries the name — leaving just the signature (`fn(ctx: …) -> Symbol`).
+    if d.kind == .Fn { return strip_binding_prefix(d.signature) }
+    if d.kind != .Local { return d.signature }
+    if typed == null { return d.signature }
+    ty :: find_binding_rhs_type_at(decls, d.name_span.start.line, d.name_span.start.column, typed)
+    if ty == null { return d.signature }
+    if ty is UnresolvedType { return d.signature }
+    if ty is FreeIntType { return d.signature }
+    if ty is FreeFloatType { return d.signature }
+    return display_type(ty)
+}
+
+// Everything in a decl-head signature after the binding operator — the type
+// without the `<name> :: ` prefix. Returns `sig` unchanged when there's no
+// ` :: ` (defensive ; every real decl head carries exactly one).
+strip_binding_prefix :: fn(sig: string) -> string {
+    parts :: sig.split(" :: ")
+    if parts.len() < 2 { return sig }
+    return parts[1]
 }
 
 // ---- Tier 2 : member completion after `.` ---------------------------------
