@@ -278,7 +278,7 @@ try_wrap_array_iter :: fn(
                 // and nothing else references this non-generic free fn unless the
                 // surrounding code happens to call `.chars()` explicitly. Without
                 // this the call resolves to no fn-table entry → GATE B1 at emit.
-                register_nongeneric_stdlib_fn(ctx, chars_member.symbol)
+                register_nongeneric_imported_fn(ctx, chars_member.symbol)
                 args: LoweredExpr[] = []
                 args.push(iter)
                 chars_call :: LoweredCall {

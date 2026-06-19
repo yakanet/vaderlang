@@ -10,8 +10,6 @@ import "vader/resolver" { LoadedProject }
 import "vader/typecheck" { TypedProject, TypedProgram, new_substitution }
 import "vader/types" { Type, StructType, mk_array, PrimitiveType }
 
-is_stdlib_path :: fn(path: string) = "stdlib/std/" in path
-
 
 /// Post-lowering pass : surface the referenced impl members of every
 /// LAZILY-lowered module (i.e. every non-entry module — stdlib and user

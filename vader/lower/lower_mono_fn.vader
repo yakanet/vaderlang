@@ -449,14 +449,14 @@ find_nongeneric_fn_decl_for_symbol :: fn(decls: Decl[], fn_sym: Symbol) -> FnDec
     }
 }
 
-// Materialise the non-generic stdlib free fns harvested at call sites
-// (`register_nongeneric_stdlib_fn`). Each is lowered once via the normal
-// `lower_fn_decl` path — with-body fns land as real fns, `@extern` ones
-// as `body = null` decls the bytecode emitter routes to the import table.
-// Without this, calls to `append` / `byte_len` / `new_builder` and other
-// non-generic stdlib fns are dropped (their module bodies are skipped by
-// `is_stdlib_path`, and only GENERIC instances are otherwise harvested).
-materialize_nongeneric_stdlib_fns :: fn(
+// Materialise the non-generic free fns harvested at call sites
+// (`register_nongeneric_imported_fn`) from lazily-lowered (non-entry) modules.
+// Each is lowered once via the normal `lower_fn_decl` path — with-body fns land
+// as real fns, `@extern` ones as `body = null` decls the bytecode emitter routes
+// to the import table. Without this, calls to `append` / `byte_len` /
+// `new_builder` and other non-generic fns of non-entry modules are dropped
+// (only GENERIC instances are otherwise harvested).
+materialize_nongeneric_imported_fns :: fn(
     loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx,
     project: LoweredProject, diags: Diagnostic[],
 ) -> void {
@@ -465,9 +465,9 @@ materialize_nongeneric_stdlib_fns :: fn(
     // Resume from a persisted cursor : the materialise↔surface fixpoint loop
     // re-enters this fn after surfacing harvests further free fns, and we must
     // not re-lower the entries already emitted on an earlier pass.
-    for project_ctx.nongeneric_stdlib_cursor < project_ctx.nongeneric_stdlib_order.len() {
-        fn_sym :: project_ctx.nongeneric_stdlib_order[project_ctx.nongeneric_stdlib_cursor]
-        project_ctx.nongeneric_stdlib_cursor += usize(1)
+    for project_ctx.nongeneric_imported_cursor < project_ctx.nongeneric_imported_order.len() {
+        fn_sym :: project_ctx.nongeneric_imported_order[project_ctx.nongeneric_imported_cursor]
+        project_ctx.nongeneric_imported_cursor += usize(1)
         module_typed :: typed.modules[fn_sym.module]
         if module_typed is null { continue }
         module_loaded :: loaded.modules[fn_sym.module]
@@ -494,14 +494,14 @@ materialize_nongeneric_stdlib_fns :: fn(
 }
 
 // Materialise the stdlib module-level consts harvested at reference sites
-// (`register_nongeneric_stdlib_const`). Each is lowered once via the normal
+// (`register_nongeneric_imported_const`). Each is lowered once via the normal
 // `lower_const_decl` path and pushed into its owning (stdlib) module so the
 // end-of-project `inline_consts` pass routes its read sites — scalars inline,
 // bulky arrays become a `__const_*` accessor fn. Without this, a referenced
 // stdlib const (`std/math::pi`) never reaches `project.modules` and
 // `build_ident` emits `unreachable`, truncating the caller. Sibling of
-// `materialize_nongeneric_stdlib_fns`.
-materialize_nongeneric_stdlib_consts :: fn(
+// `materialize_nongeneric_imported_fns`.
+materialize_nongeneric_imported_consts :: fn(
     loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx,
     project: LoweredProject, diags: Diagnostic[],
 ) -> void {
@@ -509,9 +509,9 @@ materialize_nongeneric_stdlib_consts :: fn(
     // further stdlib fns / consts it references, appending mid-loop. Resume
     // from a persisted cursor so the materialise↔surface fixpoint re-enters
     // without re-lowering earlier entries.
-    for project_ctx.nongeneric_stdlib_const_cursor < project_ctx.nongeneric_stdlib_const_order.len() {
-        const_sym :: project_ctx.nongeneric_stdlib_const_order[project_ctx.nongeneric_stdlib_const_cursor]
-        project_ctx.nongeneric_stdlib_const_cursor += usize(1)
+    for project_ctx.nongeneric_imported_const_cursor < project_ctx.nongeneric_imported_const_order.len() {
+        const_sym :: project_ctx.nongeneric_imported_const_order[project_ctx.nongeneric_imported_const_cursor]
+        project_ctx.nongeneric_imported_const_cursor += usize(1)
         module_typed :: typed.modules[const_sym.module]
         if module_typed is null { continue }
         module_loaded :: loaded.modules[const_sym.module]

@@ -55,6 +55,7 @@ export lower_project :: fn(
     // for-in / Iterator step loop.
     populate_impls(loaded, typed, project_ctx)
     project :: new_lowered_project()
+    project.entry = loaded.entry
 
     module_ids :: typed.modules.keys()
     for module_id in module_ids {
@@ -73,23 +74,23 @@ export lower_project :: fn(
         // must survive whether or not it is reached. This is uniform across
         // stdlib and user modules : the same lazy path serves both.
         if module_id != loaded.entry {
-            stdlib_loaded :: loaded.modules[module_id]
-            stdlib_typed_opt :: typed.modules[module_id]
-            stdlib_decls: LoweredDecl[] = []
-            if stdlib_loaded is LoadedModule as sl {
-                if stdlib_typed_opt is TypedProgram as stdlib_typed {
+            imported_loaded :: loaded.modules[module_id]
+            imported_typed_opt :: typed.modules[module_id]
+            imported_decls: LoweredDecl[] = []
+            if imported_loaded is LoadedModule as sl {
+                if imported_typed_opt is TypedProgram as imported_typed {
                     for d in module_decls(sl) {
                         if d is FnDecl as fd {
                             if fd.body is null && fd.type_params.len() == 0 {
-                                lowered :: lower_fn_decl(fd, stdlib_typed, project_ctx, diags)
+                                lowered :: lower_fn_decl(fd, imported_typed, project_ctx, diags)
                                 if lowered != null {
-                                    stdlib_decls.push(lowered)
+                                    imported_decls.push(lowered)
                                     // Pre-seed the call-site harvest's seen-set so
-                                    // `materialize_nongeneric_stdlib_fns` doesn't
+                                    // `materialize_nongeneric_imported_fns` doesn't
                                     // emit a duplicate decl for the same symbol.
                                     seed_harvest_seen(
                                         sl.collected.symbols, fd.name,
-                                        project_ctx.nongeneric_stdlib_fns,
+                                        project_ctx.nongeneric_imported_fns,
                                     )
                                 }
                             }
@@ -99,7 +100,7 @@ export lower_project :: fn(
                 project.modules[module_id] = LoweredModule {
                     .module_id    = module_id,
                     .display_path = sl.module.display_path,
-                    .decls        = stdlib_decls,
+                    .decls        = imported_decls,
                 }
             }
             continue
@@ -115,9 +116,9 @@ export lower_project :: fn(
         // call-site-harvest seen-sets with its non-generic fns AND consts BEFORE
         // that walk so a reference from one entry decl to another (e.g.
         // `test_x` → `strip_numeric_text`, or a read of a sibling const) does
-        // NOT also queue it into `nongeneric_stdlib_order` /
-        // `nongeneric_stdlib_const_order`. A second lowering by
-        // `materialize_nongeneric_stdlib_*` re-lifts a fn's lambdas under FRESH
+        // NOT also queue it into `nongeneric_imported_order` /
+        // `nongeneric_imported_const_order`. A second lowering by
+        // `materialize_nongeneric_imported_*` re-lifts a fn's lambdas under FRESH
         // ids (the emitted make-closure misses the surviving decl at emit →
         // make-closure GATE-B1 panic) or duplicates a const decl. The skip
         // branch above seeds each non-entry module's bodyless fns ; this is the
@@ -127,13 +128,13 @@ export lower_project :: fn(
                 if fd.type_params.len() == 0 {
                     seed_harvest_seen(
                         module_loaded.collected.symbols, fd.name,
-                        project_ctx.nongeneric_stdlib_fns,
+                        project_ctx.nongeneric_imported_fns,
                     )
                 }
             } else if d is ConstDecl as cd {
                 seed_harvest_seen(
                     module_loaded.collected.symbols, cd.name,
-                    project_ctx.nongeneric_stdlib_consts,
+                    project_ctx.nongeneric_imported_consts,
                 )
             }
         }
@@ -146,13 +147,13 @@ export lower_project :: fn(
     rep_seen :: materialize_concrete_struct_instances(loaded, typed, project_ctx, project, diags)
     // Generic-fn instances + non-generic stdlib free fns are MUTUALLY
     // recursive : a generic instance body calls stdlib fns (harvested into
-    // `nongeneric_stdlib_order`), and a harvested stdlib body calls generic
+    // `nongeneric_imported_order`), and a harvested stdlib body calls generic
     // fns (registered into `fn_instances_order` — e.g. `std/json::write_object`
     // → `MutableMap.len`). Drain all the queues in ONE joint fixpoint until
     // none grows : each pass resumes from its own persistent cursor, so
     // re-entry only processes newly-registered work (`drain_generic_fn_instances`
-    // builds into `generic_collected` ; `materialize_nongeneric_stdlib_fns`
-    // resumes from `nongeneric_stdlib_cursor` ; `surface_*` dedupes via
+    // builds into `generic_collected` ; `materialize_nongeneric_imported_fns`
+    // resumes from `nongeneric_imported_cursor` ; `surface_*` dedupes via
     // `materialized_impl_keys`). A pre-fixpoint single generic pass would
     // strand any instance a later stdlib-harvest round registers (the
     // `len__...` GATE-B1 unresolved-callee bug). The generic instances are
@@ -165,13 +166,13 @@ export lower_project :: fn(
     draining := true
     for draining {
         drain_generic_fn_instances(loaded, typed, project_ctx, project, diags)
-        materialize_nongeneric_stdlib_fns(loaded, typed, project_ctx, project, diags)
-        materialize_nongeneric_stdlib_consts(loaded, typed, project_ctx, project, diags)
+        materialize_nongeneric_imported_fns(loaded, typed, project_ctx, project, diags)
+        materialize_nongeneric_imported_consts(loaded, typed, project_ctx, project, diags)
         surface_referenced_intrinsic_externs(loaded, typed, project_ctx, project)
         cur_total :: project_ctx.fn_instances_order.len() +
             project_ctx.pending_generic_impl_recv.len() +
-            project_ctx.nongeneric_stdlib_order.len() +
-            project_ctx.nongeneric_stdlib_const_order.len() +
+            project_ctx.nongeneric_imported_order.len() +
+            project_ctx.nongeneric_imported_const_order.len() +
             project_ctx.referenced_impl_mangles.inner.size +
             project_ctx.virtually_dispatched_traits.inner.size +
             project_ctx.constructed_struct_symbols.inner.size
@@ -282,7 +283,7 @@ lower_decl :: fn(
 
 
 // Seed a decl's resolved symbol id into a harvest seen-set so the lazy
-// call-site harvest (`register_nongeneric_stdlib_{fn,const}`) treats it as
+// call-site harvest (`register_nongeneric_imported_{fn,const}`) treats it as
 // already emitted. Used both for the entry module's eagerly-lowered fns / consts
 // and for the bodyless fns the skip branch surfaces up front — either way an
 // on-demand re-materialisation of the same symbol would be a duplicate.

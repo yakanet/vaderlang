@@ -57,6 +57,12 @@ export ConstFnWrap :: struct {
 /// (bytecode emit, C emit, DCE) read this directly.
 export LoweredProject :: struct {
     modules:        MutableMap<string, LoweredModule>
+    /// Entry module id — the module being built / tested. Lowering and DCE
+    /// treat every OTHER module as a lazily-lowered dependency ; this is the
+    /// axis that replaced the old stdlib-vs-user split (a dependency is pruned
+    /// to its reachable set, the entry keeps its whole surface in a no-main
+    /// build). Set by `lower_project` ; empty for a freshly-constructed project.
+    entry:          string
     vtable_entries: VtableEntry[]
     data_pool:      DataPoolEntry[]
     /// Const symbol id → accessor fn, populated by `inline_consts` for
@@ -552,6 +558,7 @@ export INTRINSIC_SIZE_OF_TYPE :: "size_of.type"
 export new_lowered_project :: fn() -> LoweredProject {
     return LoweredProject {
         .modules        = MutableMap<string, LoweredModule> {},
+        .entry          = "",
         .vtable_entries = [],
         .data_pool      = [],
         .const_fn_wrap  = MutableMap<i32, ConstFnWrap> {},
