@@ -36,6 +36,7 @@ import "vader/lower" { dump_lowered }
 import "vader/lower" { prune_unreachable_fns }
 import "vader/lower" { mangle_module_id }
 import "vader/lower" { LoweredProject }
+import "vader/lower" { new_lowered_project }
 import "vader/bytecode" { emit_project }
 import "vader/bytecode" { BytecodeModule }
 import "vader/bytecode" { default_emit_options }
@@ -270,6 +271,13 @@ run_source :: fn(file: string, host_argv: string[]) -> i32 {
     // the lowered IR carries its own `Type`s, so emit never revisits the
     // typed-AST tables.
     le :: lower_to_entry(file)
+    // Report front-end errors and bail before executing : `lower_to_entry`
+    // returns an empty lowered project on a front-end error (it won't lower a
+    // rejected program), which would otherwise reach the VM as a "no entry
+    // function" trap that buries the real diagnostic. Gate on `pre_diags` only
+    // ([] for the lower bag) — a lower-stage diagnostic leaves runnable
+    // bytecode, so the program still executes, as it did before.
+    if !flush_build_diags(le.pre_diags, []) { return 1 }
     pruned :: prune_unreachable_fns(le.lowered, false)
     cfg :: build_cfg_project(pruned)
     dced :: eliminate_dead_cfg(cfg)
@@ -617,10 +625,7 @@ emit_c_source :: fn(file: string, release: bool, include_path_flags: string[]) -
 flush_build_diags :: fn(pre: Diagnostic[], lower: Diagnostic[]) -> bool {
     all :: merge_diagnostics(pre, lower)
     if all.len() > 0 { eprintln(all.dump_diagnostics()) }
-    for d in all {
-        if d.severity == .Error { return false }
-    }
-    return true
+    return !any_error_diag(all)
 }
 
 // `--target=c` : write the generated C to `--out` (default `<file>.c`).
@@ -987,16 +992,33 @@ lower_to_entry :: fn(file: string) -> LoweredEntry = lower_to_entry_with(file, [
 
 lower_to_entry_with :: fn(file: string, include_path_flags: string[]) -> LoweredEntry {
     pipeline :: prepare_evaluated_project_with(file, include_path_flags)
-    lower_diags: Diagnostic[] = []
-    lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
     entry :: entry_main_name(pipeline.typed, pipeline.loaded.entry)
     pre_diags :: gather_pipeline_diags(pipeline)
+    // Don't lower a program the front end rejected : feeding the bytecode
+    // emitter an ill-typed shape (e.g. a UFCS method on an unimported
+    // primitive) trips its `emit_bytecode_from_cfg` backstop panic before the
+    // caller's `flush_build_diags` gate runs — a plain user error would ICE.
+    lower_diags: Diagnostic[] = []
+    lowered :: if any_error_diag(pre_diags) {
+        new_lowered_project()
+    } else {
+        lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
+    }
     return LoweredEntry {
         .lowered     = lowered,
         .entry       = entry,
         .pre_diags   = pre_diags,
         .lower_diags = lower_diags,
     }
+}
+
+// True when any diagnostic in `diags` is error-severity — the gate that keeps
+// `lower_to_entry_with` from lowering a front-end-rejected program.
+any_error_diag :: fn(diags: Diagnostic[]) -> bool {
+    for d in diags {
+        if d.severity == .Error { return true }
+    }
+    return false
 }
 
 /// Result of `prepare_cfg_bytecode` — the canonical bytecode module plus
@@ -1037,6 +1059,16 @@ prepare_cfg_bytecode_with :: fn(file: string, include_path_flags: string[]) -> C
 
 run_bytecode_stage :: fn(file: string, annotate: bool) -> i32 {
     b :: prepare_cfg_bytecode(file)
+    // A front-end-rejected program emits no bytecode (`lower_to_entry_with`
+    // skips lowering on a front-end error) — print only the diagnostics, never
+    // a bare `module` shell for code that was never compiled. Gate on
+    // `pre_diags` (loader / resolver / typecheck / comptime) only : a
+    // lower-stage diagnostic still leaves real, runnable bytecode behind (the
+    // VM-parity corpus runs some of it), so it must not blank the dump.
+    if any_error_diag(b.pre_diags) {
+        print_merged_diags(b.pre_diags, b.lower_diags)
+        return 0
+    }
     // `dump_bytecode` already returns a trailing-newline-terminated
     // string ; use `print` (no auto-newline) to match TS
     // `process.stdout.write(writeVir(...))` byte-for-byte. `--annotate`
@@ -1050,6 +1082,12 @@ run_bytecode_stage :: fn(file: string, annotate: bool) -> i32 {
 
 run_c_stage :: fn(file: string) -> i32 {
     b :: prepare_cfg_bytecode(file)
+    // No C for a front-end-rejected program — print only the diagnostics,
+    // mirroring `run_bytecode_stage` (front-end errors only ; see its note).
+    if any_error_diag(b.pre_diags) {
+        print_merged_diags(b.pre_diags, b.lower_diags)
+        return 0
+    }
     // Designate the program entry by name (same source as the bytecode
     // stage's `export main N`) so the `main()` shim resolves the entry
     // module's `main` — a multi-module input (the compiler imports
