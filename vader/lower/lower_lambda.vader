@@ -35,7 +35,8 @@ import "vader/comptime" { MonoEntry }
 ///                      same pattern as `lower_match`).
 /// @return              the make-closure expression.
 export lower_lambda :: fn(
-    ctx: FnLowerCtx, lambda: AST.LambdaExpr,
+    ctx: FnLowerCtx, 
+    lambda: AST.LambdaExpr,
     block_lowerer: fn(FnLowerCtx, AST.BlockExpr, bool, bool) -> LoweredBlock,
 ) -> LoweredExpr {
     captures :: lookup_captures(ctx, lambda)
@@ -81,7 +82,8 @@ export lower_lambda :: fn(
     ctx.project.synth_decls.push(lifted_decl)
 
     return LoweredMakeClosure {
-        .span = lambda.span, .type = ctx.types.expr_type(lambda),
+        .span = lambda.span, 
+        .type = ctx.types.expr_type(lambda),
         .fn_symbol = lifted_symbol,
         .env = LoweredStructLit {
             .span = lambda.span, .type = env_type,

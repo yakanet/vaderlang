@@ -135,9 +135,7 @@ decl_detail :: fn(d: DeclEntry, decls: AST.Decl[], typed: TypedProgram | null) -
     if typed == null { return d.signature }
     ty :: find_binding_rhs_type_at(decls, d.name_span.start.line, d.name_span.start.column, typed)
     if ty == null { return d.signature }
-    if ty is UnresolvedType { return d.signature }
-    if ty is FreeIntType { return d.signature }
-    if ty is FreeFloatType { return d.signature }
+    if ty is UnresolvedType || ty is FreeIntType || ty is FreeFloatType { return d.signature }
     return display_type(ty)
 }
 
