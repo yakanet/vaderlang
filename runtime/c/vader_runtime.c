@@ -127,6 +127,20 @@ static size_t        g_total_copied = 0;
 static size_t        g_old_max_bytes = 0;
 static size_t        g_young_max_bytes = 0;
 
+/* Adaptive young sizing: the divisor `k` in `young_target = old_live / k`. A
+ * minor collect conservatively re-scans the whole old card table, so its cost
+ * is O(old size). With a fixed young, total scan work over a run is
+ * (churn / young) × old — quadratic in the old live set. Sizing young ∝ old
+ * keeps it linear in churn. 0 disables the heuristic (fixed young). Env-tunable
+ * via VADER_GC_YOUNG_RATIO; set once in `vader_gc_init`. */
+static size_t        g_young_ratio = 2;
+
+/* Ceiling on the adaptive young target. `young ∝ old` overshoots a roughly
+ * workload-independent working-set cliff (~128-160 MB for the self-compile):
+ * growing past it buys little and costs RSS. Cap the target here. 0 = uncapped.
+ * Env-tunable via VADER_GC_YOUNG_CAP (a byte size); set once in `vader_gc_init`. */
+static size_t        g_young_cap = 0;
+
 /* Stress mode — set via `VADER_GC_STRESS=1`. When enabled, every
  * `vader_gc_alloc` triggers a minor collect (and the string sweep that
  * runs at minor end). Forces every safepoint to exercise the full
@@ -863,6 +877,18 @@ void vader_gc_init(void) {
     g_old_max_bytes   = vader_gc_env_bytes("VADER_GC_OLD_MAX",   (size_t) VADER_GC_OLD_MAX);
     g_young_max_bytes = vader_gc_env_bytes("VADER_GC_YOUNG_MAX", (size_t) VADER_GC_YOUNG_MAX);
 
+    /* Adaptive young-sizing divisor (young_target = old_live / ratio). Default
+     * 2 (young ≈ half the old live set); 0 turns the heuristic off. A plain
+     * integer, not a byte size — read it directly rather than via env_bytes. */
+    {
+        const char* ratio_env = getenv("VADER_GC_YOUNG_RATIO");
+        if (ratio_env != NULL) g_young_ratio = (size_t) strtoul(ratio_env, NULL, 10);
+    }
+    /* Ceiling on the adaptive young target (byte size; 0 = uncapped). Default
+     * 192 MB: past the self-compile's ~128-160 MB working-set cliff, growing
+     * young further trades RSS for no speed (measured). */
+    g_young_cap = vader_gc_env_bytes("VADER_GC_YOUNG_CAP", 192u * 1024u * 1024u);
+
     /* Young: one malloc spanning both semi-spaces. */
     size_t young_bytes = vader_gc_env_bytes("VADER_GC_YOUNG_BYTES", (size_t)VADER_GC_YOUNG_BYTES);
     g_young.block = (char*) malloc(young_bytes * 2u);
@@ -988,6 +1014,26 @@ static void vader_young_grow_for(size_t aligned) {
     if (new_half > g_young.half_bytes) vader_young_grow_to(new_half);
 }
 
+/* Adaptive young sizing — call after a standalone minor collect from the
+ * allocator. Grows the young semi-space toward `old_live / g_young_ratio` so
+ * the (churn / young) × old card-scan cost stays linear in churn instead of
+ * quadratic in old. Hysteresis (target ≥ 1.5× current) avoids repeated
+ * reallocations; growth never shrinks, so an explicit VADER_GC_YOUNG_BYTES
+ * floor is preserved. Disabled when the ratio is 0. `vader_young_grow_to`
+ * relocates survivors via an internal minor collect, so this MUST run outside
+ * `vader_minor_collect` (hence the call site is the allocator, not the
+ * collector — calling it from within a collect would recurse). */
+static void vader_young_maybe_grow_adaptive(void) {
+    if (g_young_ratio == 0u) return;
+    size_t old_live = (size_t)(g_old.from.cur - g_old.from.base);
+    size_t target = old_live / g_young_ratio;
+    if (g_young_cap != 0u && target > g_young_cap) target = g_young_cap;
+    if (target > g_young_max_bytes) target = g_young_max_bytes;
+    if (target > g_young.half_bytes + g_young.half_bytes / 2u) {
+        vader_young_grow_to(target);
+    }
+}
+
 void* vader_gc_alloc(size_t bytes) {
     if (VADER_UNLIKELY(!g_gc_initialized)) vader_gc_init();
     size_t aligned = vader_gc_align(bytes);
@@ -1033,6 +1079,9 @@ void* vader_gc_alloc(size_t bytes) {
                 vader_young_grow_for(aligned);
             }
         }
+        /* A collect just ran — re-size young toward old so the next round of
+         * churn triggers far fewer (expensive, O(old)) minors. */
+        vader_young_maybe_grow_adaptive();
     }
     return vader_gc_alloc_young_unchecked(aligned);
 }
