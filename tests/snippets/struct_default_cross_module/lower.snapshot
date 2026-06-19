@@ -66,6 +66,4 @@
           n :Node
 
 ## snippet/shapes
-  const snippet_shapes$DEFAULT_ID: usize =
-    int(99) :usize
   struct snippet_shapes$Node { name: string, id: usize }

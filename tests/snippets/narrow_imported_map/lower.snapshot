@@ -72,8 +72,6 @@
     return int(0) :i32
 
 ## snippet/lib
-  struct snippet_lib$Wrap { items: i32[] }
-  struct snippet_lib$Out { first: i32 }
   fn snippet_lib$pick(m: MutableMap<i32, i32 | Wrap>, k: i32) -> null | Out
     let v: i32 | null | Wrap =
       call :i32 | null | Wrap
@@ -107,3 +105,5 @@
             ix:
               int(0) :i32
       }
+  struct snippet_lib$Wrap { items: i32[] }
+  struct snippet_lib$Out { first: i32 }

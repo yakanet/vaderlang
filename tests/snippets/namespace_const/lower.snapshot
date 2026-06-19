@@ -71,7 +71,3 @@
         int(3) :usize
 
 ## snippet/config
-  const snippet_config$MAX_RETRIES: usize =
-    int(3) :usize
-  const snippet_config$GREETING: string =
-    "hi" :string

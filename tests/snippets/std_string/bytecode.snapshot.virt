@@ -1434,7 +1434,7 @@ fn 24 std_string$decode_char_at (ref,usize) -> char
   local $k_17 usize
   local $cast_25 u32
   local $cast_27 u32
-  local $cast_34 u32
+  local $cast_33 u32
   local b2 u8
   local b3 u8
   local.get 0
@@ -1505,10 +1505,8 @@ fn 24 std_string$decode_char_at (ref,usize) -> char
     local.get 7
     i32.bitand
     local.set 6
-    i32.const 6
-    local.set 7
     local.get 6
-    local.get 7
+    i32.const 6
     i32.shl
     local.set 6
     local.get 4
@@ -1573,10 +1571,8 @@ fn 24 std_string$decode_char_at (ref,usize) -> char
     local.get 7
     i32.bitand
     local.set 6
-    i32.const 12
-    local.set 7
     local.get 6
-    local.get 7
+    i32.const 12
     i32.shl
     local.set 6
     local.get 4
@@ -1588,10 +1584,8 @@ fn 24 std_string$decode_char_at (ref,usize) -> char
     local.get 8
     i32.bitand
     local.set 7
-    i32.const 6
-    local.set 8
     local.get 7
-    local.get 8
+    i32.const 6
     i32.shl
     local.set 7
     local.get 6
@@ -1665,10 +1659,8 @@ fn 24 std_string$decode_char_at (ref,usize) -> char
   local.get 7
   i32.bitand
   local.set 6
-  i32.const 18
-  local.set 7
   local.get 6
-  local.get 7
+  i32.const 18
   i32.shl
   local.set 6
   local.get 4
@@ -1680,10 +1672,8 @@ fn 24 std_string$decode_char_at (ref,usize) -> char
   local.get 8
   i32.bitand
   local.set 7
-  i32.const 12
-  local.set 8
   local.get 7
-  local.get 8
+  i32.const 12
   i32.shl
   local.set 7
   local.get 6
@@ -1699,10 +1689,8 @@ fn 24 std_string$decode_char_at (ref,usize) -> char
   local.get 8
   i32.bitand
   local.set 7
-  i32.const 6
-  local.set 8
   local.get 7
-  local.get 8
+  i32.const 6
   i32.shl
   local.set 7
   local.get 6

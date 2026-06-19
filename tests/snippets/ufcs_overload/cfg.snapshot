@@ -68,3 +68,15 @@ fn snippet$main() -> i32
     call std_io$std_io$println__string(%15) :void
     %16 = const int(0) :i32
     return %16
+
+fn snippet$inc_1(%0: B) -> i32
+  locals:
+    %0 self: B (param self)
+    %1 $field_1: i32
+    %2 $k_2: i32
+    %3 $add_3: i32
+  bb0:
+    %1 = field_get %0.y :i32
+    %2 = const int(100) :i32
+    %3 = binop 0 %1 %2 :i32
+    return %3

@@ -58,21 +58,21 @@ export lower_project :: fn(
 
     module_ids :: typed.modules.keys()
     for module_id in module_ids {
-        // Stdlib modules: don't lower with-body fns up front (would bloat
-        // the project + pollute the synthetic-id counter), but DO surface
-        // every bodyless fn signature (`@extern` / intrinsic / declared-
-        // only) so the bytecode emitter registers them in the import
-        // table. Without this, calls to `byte_len` / `println` / … fall
-        // through `emit_call_to_symbol` without hitting the CallImport
-        // branch and silently drop. The now-wired whole-program DCE
-        // (`prune_unreachable_fns`) culls anything the user never reaches,
-        // so over-surfacing is safe.
-        // The skip is for IMPORTED stdlib modules. When a stdlib module is the
-        // ENTRY (e.g. `vader test stdlib/std/base64` or running a stdlib file
-        // directly), it's the code under test — lower it in full (with bodies)
-        // so its `@test` fns / `main` survive. Entry is never stdlib in the
-        // normal self-compile, so the fixed point is unaffected.
-        if is_stdlib_path(module_id) && module_id != loaded.entry {
+        // EVERY non-entry module is lowered lazily : don't lower its with-body
+        // fns up front (would bloat the project + pollute the synthetic-id
+        // counter), but DO surface every bodyless fn signature (`@extern` /
+        // intrinsic / declared-only) so the bytecode emitter registers them in
+        // the import table. Without this, calls to `byte_len` / `println` / …
+        // fall through `emit_call_to_symbol` without hitting the CallImport
+        // branch and silently drop. Referenced with-body fns / consts / impl
+        // members are materialised on demand by the harvest fixpoint below ;
+        // the whole-program DCE (`prune_unreachable_fns`) culls the rest.
+        //
+        // Only the ENTRY module is lowered eagerly (with bodies) — it is the
+        // code under test / built, so its `main` / `@test` / exported surface
+        // must survive whether or not it is reached. This is uniform across
+        // stdlib and user modules : the same lazy path serves both.
+        if module_id != loaded.entry {
             stdlib_loaded :: loaded.modules[module_id]
             stdlib_typed_opt :: typed.modules[module_id]
             stdlib_decls: LoweredDecl[] = []
@@ -87,10 +87,10 @@ export lower_project :: fn(
                                     // Pre-seed the call-site harvest's seen-set so
                                     // `materialize_nongeneric_stdlib_fns` doesn't
                                     // emit a duplicate decl for the same symbol.
-                                    sym :: sl.collected.symbols[fd.name]
-                                    if sym is Symbol as s {
-                                        project_ctx.nongeneric_stdlib_fns[s.id] = true
-                                    }
+                                    seed_harvest_seen(
+                                        sl.collected.symbols, fd.name,
+                                        project_ctx.nongeneric_stdlib_fns,
+                                    )
                                 }
                             }
                         }
@@ -110,24 +110,31 @@ export lower_project :: fn(
         if module_loaded is null { continue }
         decls :: module_decls(module_loaded)
         display_path :: module_loaded.module.display_path
-        // Entry IS a stdlib module (`vader test stdlib/std/numbers`, running a
-        // stdlib file) : `lower_module` lowers its fns WITH bodies (lifting any
-        // lambdas). Seed the call-site-harvest seen-set BEFORE that walk so a
-        // call to one of these fns (e.g. `test_x` → `strip_numeric_text`) does
-        // NOT also queue it into `nongeneric_stdlib_order` — a second lowering by
-        // `materialize_nongeneric_stdlib_fns` re-lifts its lambdas under FRESH
-        // ids, so the emitted make-closure (id from one copy) misses the
-        // surviving decl (the other copy) at emit → make-closure GATE-B1 panic.
-        // The imported-stdlib branch above already seeds its bodyless fns ; this
-        // is its with-body, entry analogue.
-        if is_stdlib_path(module_id) {
-            for d in decls {
-                if d is FnDecl as fd {
-                    if fd.type_params.len() == 0 {
-                        sym :: module_loaded.collected.symbols[fd.name]
-                        if sym is Symbol as s { project_ctx.nongeneric_stdlib_fns[s.id] = true }
-                    }
+        // The entry is the ONLY module lowered eagerly (`lower_module` below
+        // lowers its fns / consts WITH bodies, lifting any lambdas). Seed the
+        // call-site-harvest seen-sets with its non-generic fns AND consts BEFORE
+        // that walk so a reference from one entry decl to another (e.g.
+        // `test_x` → `strip_numeric_text`, or a read of a sibling const) does
+        // NOT also queue it into `nongeneric_stdlib_order` /
+        // `nongeneric_stdlib_const_order`. A second lowering by
+        // `materialize_nongeneric_stdlib_*` re-lifts a fn's lambdas under FRESH
+        // ids (the emitted make-closure misses the surviving decl at emit →
+        // make-closure GATE-B1 panic) or duplicates a const decl. The skip
+        // branch above seeds each non-entry module's bodyless fns ; this is the
+        // entry's with-body analogue, now that the harvest is module-agnostic.
+        for d in decls {
+            if d is FnDecl as fd {
+                if fd.type_params.len() == 0 {
+                    seed_harvest_seen(
+                        module_loaded.collected.symbols, fd.name,
+                        project_ctx.nongeneric_stdlib_fns,
+                    )
                 }
+            } else if d is ConstDecl as cd {
+                seed_harvest_seen(
+                    module_loaded.collected.symbols, cd.name,
+                    project_ctx.nongeneric_stdlib_consts,
+                )
             }
         }
         lowered_module :: lower_module(module_id, display_path, module_typed, decls, project_ctx, diags)
@@ -273,6 +280,18 @@ lower_decl :: fn(
     }
 }
 
+
+// Seed a decl's resolved symbol id into a harvest seen-set so the lazy
+// call-site harvest (`register_nongeneric_stdlib_{fn,const}`) treats it as
+// already emitted. Used both for the entry module's eagerly-lowered fns / consts
+// and for the bodyless fns the skip branch surfaces up front — either way an
+// on-demand re-materialisation of the same symbol would be a duplicate.
+seed_harvest_seen :: fn(
+    symbols: MutableMap<string, Symbol>, name: string, seen: MutableMap<i32, bool>,
+) -> void {
+    sym :: symbols[name]
+    if sym is Symbol as s { seen[s.id] = true }
+}
 
 module_decls :: fn(module_loaded: LoadedModule) -> Decl[] {
     files :: module_loaded.module.files

@@ -13,16 +13,19 @@ import "vader/types" { Type, StructType, mk_array, PrimitiveType }
 is_stdlib_path :: fn(path: string) = "stdlib/std/" in path
 
 
-/// Post-lowering pass : surface the referenced stdlib intrinsic impl
-/// members as bodyless externs, appended to their owning stdlib module's
-/// lowered decls (so the bytecode emit reserves them as imports). Gated by
-/// `referenced_impl_mangles` so only members an actual call hit are
-/// surfaced — see `surface_stdlib_impl_externs`.
+/// Post-lowering pass : surface the referenced impl members of every
+/// LAZILY-lowered module (i.e. every non-entry module — stdlib and user
+/// alike), appended to their owning module's lowered decls (intrinsic members
+/// as bodyless externs the bytecode emit reserves as imports ; with-body
+/// members as real fns). Gated by `referenced_impl_mangles` so only members an
+/// actual call hit are surfaced — see `surface_stdlib_impl_externs`. The entry
+/// module is skipped : it is lowered eagerly by `lower_module`, which already
+/// emits all its impl members (surfacing them again would double-emit).
 surface_referenced_intrinsic_externs :: fn(
     loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx, project: LoweredProject,
 ) -> void {
     for [module_id, module_typed] in typed.modules {
-        if !is_stdlib_path(module_id) { continue }
+        if module_id == loaded.entry { continue }
         module_loaded :: loaded.modules[module_id]
         if module_loaded is null { continue }
         decls_list :: module_decls(module_loaded)
