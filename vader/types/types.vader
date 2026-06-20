@@ -145,29 +145,17 @@ export STRUCT_FIELD          :: "Field"
 
 // ---- constructors ---------------------------------------------------------
 
-export mk_primitive :: fn(name: string) -> Type {
-    return PrimitiveType { .name = name }
-}
+export mk_primitive :: fn(name: string) -> Type = PrimitiveType { .name = name }
 
-export mk_struct :: fn(symbol: Symbol, args: Type[]) -> Type {
-    return StructType { .symbol = symbol, .args = args }
-}
+export mk_struct :: fn(symbol: Symbol, args: Type[]) -> Type = StructType { .symbol = symbol, .args = args }
 
-export mk_trait :: fn(symbol: Symbol, args: Type[]) -> Type {
-    return TraitType { .symbol = symbol, .args = args }
-}
+export mk_trait :: fn(symbol: Symbol, args: Type[]) -> Type = TraitType { .symbol = symbol, .args = args }
 
-export mk_enum :: fn(symbol: Symbol, repr: string, indices: MutableMap<string, i64>) -> Type {
-    return EnumType { .symbol = symbol, .repr = repr, .indices = indices }
-}
+export mk_enum :: fn(symbol: Symbol, repr: string, indices: MutableMap<string, i64>) -> Type = EnumType { .symbol = symbol, .repr = repr, .indices = indices }
 
-export mk_array :: fn(element: Type, immutable: bool) -> Type {
-    return ArrayType { .element = element, .immutable = immutable }
-}
+export mk_array :: fn(element: Type, immutable: bool) -> Type = ArrayType { .element = element, .immutable = immutable }
 
-export mk_tuple :: fn(elements: Type[]) -> Type {
-    return TupleType { .elements = elements }
-}
+export mk_tuple :: fn(elements: Type[]) -> Type = TupleType { .elements = elements }
 
 export mk_fn :: fn(params: Type[], return_type: Type) -> Type {
     return FnType { .params = params, .return_type = return_type }
@@ -175,13 +163,9 @@ export mk_fn :: fn(params: Type[], return_type: Type) -> Type {
 
 /// Raw union constructor. Callers that need flattening + dedup must go
 /// through `union_of` in `type_ops.vader`.
-export mk_union :: fn(variants: Type[]) -> Type {
-    return UnionType { .variants = variants }
-}
+export mk_union :: fn(variants: Type[]) -> Type = UnionType { .variants = variants }
 
-export mk_type_param :: fn(symbol: Symbol) -> Type {
-    return TypeParamType { .symbol = symbol }
-}
+export mk_type_param :: fn(symbol: Symbol) -> Type = TypeParamType { .symbol = symbol }
 
 export TY_TYPE       :: TypeMetaType {}
 export TY_SELF       :: SelfType {}
