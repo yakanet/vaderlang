@@ -662,6 +662,8 @@ typedef struct {
     size_t bytes_used;        /* live bytes across young+old (post-collection) */
     size_t total_collections; /* full + minor cycles run since process start */
     size_t total_copied;      /* cumulative bytes copied across all cycles */
+    size_t total_alloc_bytes; /* cumulative bytes requested via vader_gc_alloc */
+    size_t total_alloc_count; /* cumulative number of vader_gc_alloc calls */
 } vader_gc_stats_t;
 vader_gc_stats_t vader_gc_get_stats(void);
 
