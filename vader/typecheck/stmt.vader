@@ -76,12 +76,12 @@ export check_block :: fn(
     // / CallExpr / …) is what callers want to see in the dump.
     // Now keyed by AST id, so the block's id and the trailing expr's
     // id are distinct ; the null-guard remains a defence in depth.
-    if typed.expr_kinds[block.id] is null {
+    if typed.dump_types && typed.expr_kinds[block.id] is null {
         typed.expr_kinds[block.id] = "BlockExpr"
     }
     if typed.expr_types[block.id] is null {
         typed.expr_types[block.id] = result
-        typed.node_spans[block.id] = block.span
+        if typed.dump_types { typed.node_spans[block.id] = block.span }
     }
     return result
 }

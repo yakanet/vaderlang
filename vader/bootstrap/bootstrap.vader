@@ -194,7 +194,7 @@ EvaluatedPipeline :: struct {
 prepare_evaluated_project :: fn(file: string) -> EvaluatedPipeline {
     loaded :: load_project(file, [])
     typecheck_diags: Diagnostic[] = []
-    result :: check_project_with_bodies(loaded, typecheck_diags)
+    result :: check_project_with_bodies(loaded, typecheck_diags, false)
     resolver_diags :: collect_body_diags(result)
     typed :: assemble_typed_project(result)
     comptime_diags: Diagnostic[] = []
