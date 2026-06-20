@@ -14,7 +14,7 @@ Completed items (`[x]`) are kept as one-liners — see git history for implement
 
 ## Priority — next up
 
-- [ ] **Two vtable-row builders — dedup the dead one** (noted 2026-06-20, cleanup). There are TWO functions that group CFG vtable entries into `VtableRow[]` by `<trait>.<method>` key: `vader/bytecode/emit.vader::translate_vtables` (the legacy `emit_project` / `assemble_module` path) and `vader/midir/emit.vader::build_vtables_from_entries` (the active CFG path — its output reaches `emit_vtable_dispatchers` in c_emit; see `vader/bytecode/dce.vader:6`). The legacy bytecode path's own comment says it "carries no CFG vtable_entries, so it builds no vtables" (emit.vader ~line 138). Confirm `translate_vtables` is vestigial and delete it, or document why both must exist — they duplicate the same group-by-key logic, so a bug fixed in one must be mirrored in the other until then.
+- [x] **Two vtable-row builders — dead one deleted** (done 2026-06-20, `8ea29d9e`). `translate_vtables` was vestigial: it lived only in the legacy `emit_project` tree-walker, which `main.vader` imported but never called — the active pipeline goes entirely through midir's `emit_bytecode_from_cfg`. Deleted `emit_project` and its exclusively-legacy transitive closure (`assemble_module`, `translate_vtables`, `build_impl_table`, `vtable_fn_index`, `translate_data_pool`, the `reserve_*` pass, `synthesise_intrinsic_wrappers`, `lookup_symbol_id_for_import`, the extern-name helpers); `emit.vader` 1244 → 785 LoC. `vader/midir/emit.vader::build_vtables_from_entries` is now the sole `VtableRow[]` builder (output reaches `emit_vtable_dispatchers` in c_emit). Shared helpers (`emit_decl`, `emit_fn_body`, `build_signature`, `build_intrinsic_wrapper_body`, the peephole/fold passes) stayed — midir reuses them.
 
 - [x] **`get` boxed its `V` return with the array-element type-index, not the canonical V index (FIXED 2026-06-20 via the `Box` op)**. A concrete primitive read from a monomorphised `V[]` (e.g. `MutableMap(string, usize)::get` returning `evals[i] : usize` as `V | null`) was boxed at the erased return with the COARSE ValType tag (`i64`, 99) instead of the SEMANTIC type (`usize`, 29), because the C-emit's implicit return-coercion only has the coarse ValType. Result: `rows_by_key[k] is usize` in `build_vtables_from_entries` failed → 4 duplicate `vader_vt_Error__message` C dispatchers → invalid C, no fixed point. lldb root-caused (`build/vader2dbg`, python watchpoints): get found the key but `vader_box_i64(99u,…)` vs caller `tag == 29u`. Chaining never hit it (its get returns a struct FIELD, interned to 29). **FIX = new bytecode op `Box { type_id }`** emitted at `midir/emit.vader::TermReturn` when a concrete primitive flows into an erased ref/union return; c_emit boxes with the precise tag, VM no-op (coarse `I64Val` matches any I64-width `is`). Built without reseed via a 2-stage bridge (chaining+Box → compact+Box); **fixed point reached** (vaderC.c==vaderD.c byte-identical), suite 2283/0, −14% self-compile RSS. Erasure box-vs-raw / type-table dedup family ([[erasure_audit_dotnet_model]]). **(2026-06-20 correction: the "array-element type-index (99)" wording is a misdiagnosis — there is NO dual primitive index; one `BcType` entry per primitive. The bug is purely the COARSE-ValType return-coercion losing the precise primitive type. The `i64`/`usize` tag numbers were from a transient bridge build. See the RESOLVED follow-up below — Box stays, proven load-bearing.)**
   - **RESOLVED (2026-06-20): `Box` stays RETURN-ONLY — it is load-bearing, and the "dual index → delete Box" plan was based on a false premise.** Investigated this session:
@@ -403,131 +403,62 @@ Begins as soon as the TS compiler can compile a non-trivial subset. Goal : valid
       Cumulative gain on the TS side : -10.5 % file size, -77.4 % cc
       time (-O0), -86.6 % cc time (-O3).
 
-### 2.3 Port the bytecode emitter — feature-complete on current LoweredAST, plumbing dormant (2026-05-21)
+### 2.3 Port the bytecode emitter — DONE, the active self-host path (fixed point 2026-06-05)
 
-The emit walker covers all 29 `LoweredExpr` variants + all `LoweredStmt`
-shapes. `vader dump --stage=bytecode` runs through the Vader-side
-pipeline (`./build/vader`). The CLI binary builds in ~2:30 local /
-~3-4 min on CI Ubuntu.
+The Vader-side bytecode emitter is the **only** active path and
+self-hosts : midir lowers the CFG and calls `emit_bytecode_from_cfg`
+(`vader/midir/emit.vader`), which reuses the shared emit walker under
+`vader/bytecode/` — every per-shape `emit_<X>` for all `LoweredExpr` /
+`LoweredStmt` variants, static + intrinsic + import + indirect-call
+dispatch (`emit_call_to_symbol`), `FnRef`, vtable rows, `$Cell<T>`
+closure cells — then the peephole / fold / DCE / slot-coalesce passes.
+It compiles the whole compiler to a byte-identical native fixed point
+(see §2.2). The legacy standalone `emit_project` tree-walker was deleted
+2026-06-20 (`8ea29d9e`).
 
-Files :
-- `vader/bytecode/emit.vader` (561 LoC) — top-level orchestration
-  (Pass 1 reservation → Pass 1.5 intrinsic-wrapper synth → Pass 2
-  body emit → assemble), `reserve_fn` / `reserve_extern` /
-  `emit_fn_body`, `synthesise_intrinsic_wrappers`, `translate_vtables`,
-  `translate_data_pool`, `assemble_module`.
-- `vader/bytecode/emit_body.vader` (725 LoC, ≈90 % of 800 cap) —
-  every per-shape `emit_<X>` for stmts + exprs. Not splittable
-  because of Vader's mutual-import constraint (same as
-  `lower_expr.vader`'s doc note).
-- `vader/bytecode/emit_ctx.vader` — `EmitterCtx`, `intern_type`,
-  `intern_string`, `intern_cell_type` ($Cell\<T\> synth struct).
-- `vader/bytecode/emit_state.vader` — per-fn `FnEmitState` + scope
-  stack + jump_table.
-- `vader/bytecode/op_select.vader` (~290 LoC) — `binary_op_for(op,
-  lhs_val)` / `unary_op_for(op, operand_val)` selectors covering
-  I32X / I64X / U32X / U64X / F64X / Bool / Char / String op
+Files (`vader/bytecode/`) :
+- `emit.vader` (785 LoC) — peephole / fold passes (`run_bc_peephole`,
+  `run_bc_return_lit_fold`, `run_bc_const_fold_arith`,
+  `propagate_const_single_use`, `drop_dead_stores`) + the shared emit
+  helpers midir reuses (`emit_decl`, `emit_fn_body`, `build_signature`,
+  `build_intrinsic_wrapper_body`).
+- `emit_body.vader` (773 LoC, near the 800 cap) — every per-shape
+  `emit_<X>` for stmts + exprs ; call dispatch via `emit_call_to_symbol`.
+  Single file by Vader's mutual-import constraint (`emit_block ↔
+  emit_stmt ↔ emit_expr ↔ emit_if / emit_loop` form a cycle).
+- `emit_ctx.vader` (255) — `EmitterCtx`, `intern_type`, `intern_string`,
+  `intern_cell_type` ($Cell\<T\> synth struct).
+- `emit_state.vader` (277) — per-fn `FnEmitState` + scope stack + jump
+  table.
+- `op_select.vader` (464) — `binary_op_for` / `unary_op_for` selectors
+  over the I32X / I64X / U32X / U64X / F64X / Bool / Char / String op
   families with width-aliasing rules.
-- `vader/bytecode/dump.vader` (~300 LoC) — `dump_bytecode :
-  BytecodeModule → string`, `.virt`-style text writer (covers all
-  ops emitted today ; minor spelling drift from `text.vader`'s
-  canonical writer).
-- `vader/bytecode/intrinsics.vader` — `intrinsic_op_for_mangled`
-  table (raw-string keys).
+- `dce.vader` (484) — late EmitterCtx-level prunes (unused imports /
+  functions / types) ; `slot_coalesce.vader` (265) — coalesce
+  non-overlapping same-ValType slot live-ranges. Both run inside
+  `emit_bytecode_from_cfg` after body emit.
+- `dump.vader` (791) — `dump_bytecode : BytecodeModule → string`, the
+  `.virt` text writer (now the snapshot oracle, see below).
+- `intrinsics.vader` (99) — `intrinsic_op_for_mangled` table.
 
-What works end-to-end :
-- [x] All LoweredExpr variants (literals, ident, call, binary, unary,
-      if, block-as-value, struct lit, field access, array lit/len/
-      push/slice, index, cast, type_check, type_const, data_const,
-      make_closure, virtual_call, intrinsic_call, cell_new/get/set).
-- [x] All LoweredStmt variants (return, expr_stmt, let, assign,
-      loop, break, continue, cell_set).
-- [x] Static + intrinsic + import call dispatch
-      (`emit_call_to_symbol` cascade).
-- [x] Indirect calls (`CallIndirect` via fn-typed local slot or
-      complex callee expression). `FnRef` for fn taken in value
-      position.
-- [x] Vtable translation (`translate_vtables` groups
-      `LoweredProject.vtable_entries` by (trait, method) into
-      `VtableRow[]`).
-- [x] $Cell\<T\> synth struct for closure cells
-      (`intern_cell_type` materialises a `BcStruct { fields:
-      [value: T] }` ; cell_new/get/set use StructNew/Get/Set).
-- [x] Stage wired into CLI (`vader dump --stage=bytecode` produces
-      `.virt`-style text). Validated on `tests/snippets/arith`,
-      `tests/snippets/closure_counter`.
+Snapshot model : the native Vader CLI is the snapshot **oracle** for
+every stage — `tests/snapshot.test.ts` dumps bytecode via
+`dumpBytecodeViaVader` into `bytecode.snapshot.virt`. The old
+"Vader-emit vs TS-emit byte-diff" parity gap is obsolete (the model
+inverted ; the TS bytecode parity dimension + `BYTECODE_DIVERGENT_SNIPPETS`
+were deleted).
 
-Plumbed but DORMANT (require lower-side changes first) :
-- [~] `synthesise_intrinsic_wrappers` — implementation matches
-      `src/bytecode/emit.ts::synthesiseIntrinsicWrappers`. Walks
-      imports for `@intrinsic` entries, creates `<mangled>$vt`
-      wrapper fns so virtual.call on primitive receivers can land
-      on a real fn-index. **Inactive today** because the Vader-side
-      lower explicitly skips stdlib paths
-      (`lower.vader:87 is_stdlib_path`) so `@intrinsic` decls never
-      reach reservation. Activates automatically once stdlib externs
-      surface (likely via a separate emit-side enumeration pass to
-      keep the lambda counter clean).
-- [~] `translate_data_pool` — empty pass-through. The lower never
-      populates `DataPoolEntry`. The string-element parser would
-      duplicate `parse_<type>` logic ; consider mirroring the TS
-      shape (have the lower produce `u64[]` items directly) and
-      delete this fn rather than implementing the parser.
-
-Known gaps vs TS-side emit :
-- [ ] Mid-IR (CFG/DCE/escape) — not ported. Vader uses direct
-      LoweredAST → bytecode (no peephole / no slot-coalesce / no
-      DCE on the bytecode side).
-- [ ] **Lower-side stdlib surface** — the `is_stdlib_path` skip
-      (lower.vader:87) keeps stdlib `@intrinsic` / `@extern` decls
-      out of `LoweredProject.modules`. Either drop the skip (would
-      pollute the synthetic-id counter — see existing comment
-      rationale), or add a separate "enumerate-stdlib-externs" pass
-      that surfaces imports on-demand at emit time. Until then,
-      every Vader-side dump misses the import table + stdlib
-      vtable rows + intrinsic wrappers.
-- [ ] **emit_body.vader file split** — blocked by Vader's
-      mutual-import limitation. `emit_block ↔ emit_stmt ↔ emit_expr
-      ↔ emit_if / emit_loop` form a cycle ; no seam is viable
-      without cyclic imports. Same constraint forces
-      `lower_expr.vader` to live as a single 1300+ LoC file. When
-      Phase 8+ piles on more emit_* helpers, either add Vader
-      forward-decls or bump the per-file cap for this file
-      specifically.
-- [ ] **Performance** : reviewers flagged the 4-map cascade in
-      `emit_call_to_symbol` (slot → intrinsic → fn-table → import)
-      and the per-call string allocation in `intern_cell_type`.
-      Refactor candidate : a single `MutableMap(symbol_id,
-      CallTarget)` keyed at registration time. Deferred until
-      bytecode emit shows up on a profiler.
-- [ ] Snapshot-test parity (Vader-emit `.virt` vs TS-emit `.virt`).
-      Spelling drift remains in `dump.vader::format_op` (e.g.
-      `i32.mod` vs `i32.rem`, `i32.shr_u` vs `u32.shr`) ; reconcile
-      first, then byte-diff.
-
-Recent commits (this work) :
-- `5c52f364` — port synthesise_intrinsic_wrappers + extern→imports routing
-- `bb5c77a2` — Phase 7+ : CallIndirect/Import + FnRef + vtable wiring + $Cell synth struct
-- `86ec9013` — Phase 8 : LoweredBlock-as-value emit
-- `99c3c5aa` — Phase 7 : LoweredBinary + LoweredUnary emit
-- `395a1f9b` — Phase 6b : wire bytecode stage end-to-end
-- `54bdb551` — Phase 6a : closures + intrinsics + VirtualCall
-- earlier Phases 1-5 already in history.
-
-Tests : `bun src/index.ts test vader` = 314/314 pass.
-
-Pick-up checklist for next session :
-1. Decide on lower-side stdlib surface strategy (drop the skip vs
-   on-demand enumeration). Without it, every wiring downstream
-   misses externs.
-2. Once externs surface, validate intrinsic wrappers actually
-   generate, then verify VirtualCall on primitive receivers lands
-   on the wrapper fn-index.
-3. Reconcile `dump.vader::format_op` spellings with
-   `text.vader::write_op_line`, then enable per-snippet
-   bytecode parity tests (Vader-emit vs TS-emit).
-4. Split `emit_body.vader` only when forced (cap bump or Vader
-   forward-decls).
+Open (low priority) :
+- [ ] **`emit_body.vader` file split** — at 773 / 800 LoC. Blocked by
+      Vader's mutual-import limitation (the `emit_*` cycle above ; same
+      constraint that keeps `lower_expr.vader` a single file). When more
+      `emit_*` helpers pile on, either add Vader forward-decls or bump
+      the per-file cap for this file specifically.
+- [ ] **Dispatch-cascade perf** — `emit_call_to_symbol` walks a 4-way
+      cascade (slot → intrinsic → fn-table → import) and
+      `intern_cell_type` allocates a string per call. Refactor candidate :
+      a single `MutableMap(symbol_id, CallTarget)` keyed at registration
+      time. Deferred until bytecode emit shows on a profiler.
 
 ### 2.4 Port the VM
 
