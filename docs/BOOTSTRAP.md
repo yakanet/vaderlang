@@ -548,6 +548,19 @@ Trigger :
 
 Too slow for every PR run.
 
+### Validation log
+
+- **2026-06-20** — compact-dict `MutableMap` + 4 follow-up chantiers. `verify.sh`
+  green (`fixed-point OK : stage1 == stage2, seed up to date`) at all three reseed
+  gates: (1) compact-dict + `Box` op, (2) legacy `emit_project` / chaining
+  for-in fast-path removal, (3) generic struct field-default boxed-vs-raw fix.
+  Full suite **2283 pass / 0 fail / 5 skip** at each gate. The 5 skips are all
+  justified, none a regression: `defer_on_panic` / `defer_in_lambda` (VM
+  defer-unwind deferred), `extern_native_basic` (VM has no `@extern` host-fn
+  registry — permanent), and `vader/bytecode` (43/43) / `vader/lsp` (52/52)
+  whose native `@test`s pass — only their VM run is skipped for the CI time
+  budget.
+
 ---
 
 ## Seed lifecycle management
