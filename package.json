@@ -13,6 +13,7 @@
     "build:cli": "bootstrap/build.sh --dist",
     "typecheck": "tsc --noEmit",
     "bench": "bun bench/run.ts",
+    "bench:profile": "bun bench/profile-build.ts",
     "cloc": "npx cloc@latest --read-lang-def=vader-cloc.txt --vcs=git vader stdlib"
   },
   "devDependencies": {

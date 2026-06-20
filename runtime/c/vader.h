@@ -665,6 +665,17 @@ typedef struct {
 } vader_gc_stats_t;
 vader_gc_stats_t vader_gc_get_stats(void);
 
+/* ---- self-compile profiler (VADER_PROFILE) --------------------------------
+ * Per-phase wall / peak-RSS / GC accounting for the compiler's own passes.
+ * The compiler (vader/profile) brackets each pass via vader_prof_begin/end
+ * with an integer phase id; the phase names + all query helpers (RSS, GC
+ * stats) live in vader_runtime.c. Everything is a no-op unless $VADER_PROFILE
+ * is set, and the per-phase table is dumped to stderr at exit (atexit). Only
+ * begin/end/dump cross the FFI boundary (called from vader/profile via @extern). */
+void vader_prof_begin(int32_t phase_id);
+void vader_prof_end(int32_t phase_id);
+void vader_prof_dump(void);
+
 /* Type information for the GC scanner. Indexed by `vader_obj_header_t.type_index`
  * (which is the same index space as `vader_box_t.tag` and the BcType table).
  *
