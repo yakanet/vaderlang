@@ -489,7 +489,7 @@ typedef struct vader_struct_std_string_ParseError_t vader_struct_std_string_Pars
 typedef struct vader_struct___lambda_env_335_t vader_struct___lambda_env_335_t;
 typedef struct vader_struct_std_path_Path_t vader_struct_std_path_Path_t;
 typedef struct vader_struct_std_string_StringChars_t vader_struct_std_string_StringChars_t;
-typedef struct vader_struct___Tuple_779_t vader_struct___Tuple_779_t;
+typedef struct vader_struct___Tuple_780_t vader_struct___Tuple_780_t;
 typedef struct vader_struct___lambda_env_233_t vader_struct___lambda_env_233_t;
 typedef struct vader_struct___lambda_env_236_t vader_struct___lambda_env_236_t;
 typedef struct vader_struct_vader_lower_LowerProjectCtx_t vader_struct_vader_lower_LowerProjectCtx_t;
@@ -3184,7 +3184,7 @@ struct vader_struct_std_string_StringChars_t {
     size_t f_cursor;
     size_t f_length;
 };
-struct vader_struct___Tuple_779_t {
+struct vader_struct___Tuple_780_t {
     vader_obj_header_t header;
     uint32_t f__0;
     size_t f__1;
@@ -10973,7 +10973,7 @@ const vader_type_info_t vader_type_info_table[1055] = {
     [675] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_path_Path_t), NULL, 0, 1, vader_type_675_strs, 0, NULL },
     [676] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_std_string_StringChars_t), vader_type_676_ptrs, 1, 0, NULL, 0, NULL },
     [677] = { VADER_TYPE_KIND_FN, sizeof(vader_fn_t), vader_type_677_ptrs, 1, 0, NULL, 0, NULL },
-    [679] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___Tuple_779_t), NULL, 0, 0, NULL, 0, NULL },
+    [679] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___Tuple_780_t), NULL, 0, 0, NULL, 0, NULL },
     [685] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___lambda_env_233_t), vader_type_685_ptrs, 5, 0, NULL, 0, NULL },
     [686] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct___lambda_env_236_t), vader_type_686_ptrs, 2, 0, NULL, 0, NULL },
     [687] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct_vader_lower_LowerProjectCtx_t), vader_type_687_ptrs, 29, 0, NULL, 0, NULL },
@@ -99714,9 +99714,9 @@ static ptrdiff_t std_string_last_index_of(vader_string_t l0, uint32_t l1, ptrdif
             if ((l6 < l4)) {
                 t3 = std_string_decode_codepoint_at(l3, l6);
                 l7 = t3;
-                t4 = (uint32_t) ((vader_struct___Tuple_779_t*) l7.payload.obj)->f__0;
+                t4 = (uint32_t) ((vader_struct___Tuple_780_t*) l7.payload.obj)->f__0;
                 l8 = t4;
-                t5 = (size_t) ((vader_struct___Tuple_779_t*) l7.payload.obj)->f__1;
+                t5 = (size_t) ((vader_struct___Tuple_780_t*) l7.payload.obj)->f__1;
                 l9 = t5;
                 if ((((int64_t) (size_t) l6) >= l2)) {
                     t6 = l8 == l1;
@@ -99915,7 +99915,7 @@ static vader_box_t std_string_decode_codepoint_at(vader_box_t l0, size_t l1) {
     l2 = t0;
     t1 = std_string_codepoint_byte_len(l2);
     l3 = t1;
-    vader_struct___Tuple_779_t* _a0_obj = (vader_struct___Tuple_779_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_779_t));
+    vader_struct___Tuple_780_t* _a0_obj = (vader_struct___Tuple_780_t*) vader_gc_alloc(sizeof(vader_struct___Tuple_780_t));
     vader_obj_header_init(_a0_obj, 679u);
     _a0_obj->f__0 = l2;
     _a0_obj->f__1 = l3;
@@ -100529,9 +100529,9 @@ static vader_box_t std_string_StringChars_Iterator_next(vader_box_t l0) {
     l1 = t3;
     t4 = std_string_decode_codepoint_at(l3, l1);
     l3 = t4;
-    t5 = (uint32_t) ((vader_struct___Tuple_779_t*) l3.payload.obj)->f__0;
+    t5 = (uint32_t) ((vader_struct___Tuple_780_t*) l3.payload.obj)->f__0;
     l4 = t5;
-    t6 = (size_t) ((vader_struct___Tuple_779_t*) l3.payload.obj)->f__1;
+    t6 = (size_t) ((vader_struct___Tuple_780_t*) l3.payload.obj)->f__1;
     l1 = t6;
     t7 = (size_t) ((vader_struct_std_string_StringChars_t*) l0.payload.obj)->f_cursor;
     t8 = (t7 + l1);
