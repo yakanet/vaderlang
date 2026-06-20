@@ -17,7 +17,7 @@ import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, Jso
 import "std/collections" { MutableMap }
 import "std/string" { split }
 import "vader/types" { StructType, UnresolvedType, FreeIntType, FreeFloatType, display_type }
-import "vader/typecheck" { TypedProgram }
+import "vader/typecheck" { TypedProgram, ufcs_methods_for, UfcsMethod }
 import "vader/lsp/protocol" {
     position_uri, position_line, position_character, span_contains,
     uri_to_path, lsp_to_offset, line_start_offset,
@@ -234,6 +234,15 @@ member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i3
                 items.push(completion_item(m.name, .Method, render_signature_label(m)))
             }
         }
+    }
+
+    // Free-fn UFCS methods — a free `fn(self: T, …)` called as `recv.f(…)`, e.g.
+    // `mint :: fn(self: NodeIdFactory)` invoked `f.mint()`. Not in an impl block,
+    // so the loop above misses them ; match every free fn whose first param fits.
+    for um in ufcs_methods_for(recv_type, cached.result.typed) {
+        if seen[um.name] != null { continue }
+        seen[um.name] = true
+        items.push(completion_item(um.name, .Method, display_type(um.curried)))
     }
 
     return completion_list(items)

@@ -655,6 +655,47 @@ try_free_fn_ufcs_with_first :: fn(
     return null
 }
 
+/// A free function callable on a receiver type via UFCS — its name plus the
+/// curried signature (the type after the receiver is bound). Powers LSP member
+/// completion, which lists these alongside struct fields and impl methods.
+export UfcsMethod :: struct {
+    name:    string
+    curried: Type
+}
+
+/// Every free function callable on `target_ty` via UFCS (first param fits the
+/// receiver), deduplicated by name. Enumerates the module's own overloads then
+/// the imported ones — the same two buckets `try_free_fn_ufcs_with_first`
+/// resolves a single call against, but surfaced as a list for completion.
+export ufcs_methods_for :: fn(target_ty: Type, typed: TypedProgram) -> UfcsMethod[] {
+    out: UfcsMethod[] = []
+    seen :: MutableMap<string, bool> {}
+    for [name, bucket] in typed.resolved.fn_overloads {
+        for sym in bucket {
+            ft :: typed.decl_types[sym.id]
+            if ft is null { continue }
+            if !(ft is FnType) { continue }
+            curried :: try_curry_receiver(ft, target_ty, typed)
+            if curried is null { continue }
+            if seen[name] != null { continue }
+            seen[name] = true
+            out.push(UfcsMethod { .name = name, .curried = curried })
+            break
+        }
+    }
+    for [name, fts] in typed.imported_fn_overloads {
+        if seen[name] != null { continue }
+        for ft in fts {
+            curried :: try_curry_receiver(ft, target_ty, typed)
+            if curried is null { continue }
+            seen[name] = true
+            out.push(UfcsMethod { .name = name, .curried = curried })
+            break
+        }
+    }
+    return out
+}
+
 try_curry_receiver :: fn(ft: FnType, target_ty: Type, typed: TypedProgram) -> Type | null {
     if ft.params.len() == 0 { return null }
     // Non-generic fast path : skip the unify+substitute walk for
