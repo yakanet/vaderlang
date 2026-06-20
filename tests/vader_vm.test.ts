@@ -260,11 +260,6 @@ const KNOWN_DIVERGENT = new Set<string>([
   // body with `unreachable ; unresolved ident x`. Nested-capture chain
   // through the defer thunk — tracked in TODO §3.8.
   "defer_in_lambda",
-  // `for x in <string>` → codepoint iter requires the `Iterator(char)`
-  // impl on `string` to lower without B5001. The arr/map/set legs of
-  // this snippet run, but the `chars=…` line is never emitted because
-  // the chars leg traps. Tracked alongside TODO §1.5b iterators.
-  "for_in_into_iter",
 
 ]);
 
