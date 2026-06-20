@@ -294,6 +294,7 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.TypeConst as tc       -> emit_type_const(s, tc)
         is vm.TypeCheck as tc       -> emit_type_check(s, tc)
         is vm.RefCast as rc         -> emit_ref_cast(s, rc)
+        is vm.Box as bx             -> emit_box_op(s, bx)
         is vm.Unreachable as u      -> line(s, "vader_unreachable(${c_string_lit(u.reason)});")
         is vm.Convert as c          -> emit_convert(s, convert_target_val(c.target), c.from_name)
         is vm.SizeOfType            -> emit_size_of_type(s)
@@ -1519,6 +1520,20 @@ emit_ref_cast :: fn(s: FnState, op: vm.RefCast) -> void {
         "(${c_type_for_val_bare(target_val)}) ${name_of(v)}"
     }
     push_into_tmp(s, expr, target_val)
+}
+
+/// Box a concrete primitive on the stack into a `vader_box_t` tagged with the
+/// op's SEMANTIC `type_id`. Unlike the implicit return-coercion (which only has
+/// the coarse `ValType` and picks `primitive_tag_of`), this uses the precise
+/// type so a downstream `is usize` / `is i64` narrowing matches. A value that
+/// is already a ref (the erased-field case) is left as-is.
+emit_box_op :: fn(s: FnState, op: vm.Box) -> void {
+    v :: pop(s)
+    if val_of(v) == ValType.Ref || val_of(v) == ValType.Any {
+        push_into_tmp(s, name_of(v), ValType.Ref)
+        return
+    }
+    push_into_tmp(s, box_expr(name_of(v), val_of(v), op.type_id), ValType.Ref)
 }
 
 // ---- arrays ---------------------------------------------------------------

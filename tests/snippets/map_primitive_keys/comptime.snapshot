@@ -3,29 +3,37 @@
 ## tests/snippets/map_primitive_keys
 
 ## generic instances
+  Entry<i32, i32>
   Entry<K, V>
   Entry<K, V>
   Entry<K, V>
   Entry<K, V>
-  Entry<K, V>
-  Entry<K, V>
-  Entry<K, V>
-  Entry<K, V>
-  Entry<K, V>
-  Entry<K, V>
-  Entry<K, V>
-  Entry<K, V>
-  Entry<K, V>
-  Entry<K, V>
-  Entry<T, bool>
   MutableMap<char, i32>
   MutableMap<i16, i32>
   MutableMap<i32, bool>
+  MutableMap<i32, i32>
   MutableMap<i64, i32>
   MutableMap<string, i32>
   MutableMap<u16, i32>
   MutableMap<u8, i32>
   MutableMap<usize, i32>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<K, V>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
   MutableMap<K, V>
   MutableMap<K, i32>
   MutableMap<K, V>
@@ -36,22 +44,6 @@
   MutableMap<K, V>
   MutableMap<K, V>
   MutableMap<K, V>
-  MutableMap<K, V>
-  MutableMap<K, V>
-  MutableMap<K, V>
-  MutableMap<K, V>
-  MutableMap<K, V>
-  MutableMap<K, V>
-  MutableMap<K, V>
-  MutableMap<K, V>
-  MutableMap<T, bool>
-  MutableMap<T, bool>
-  MutableMap<T, bool>
-  MutableMap<T, bool>
-  MutableMap<T, bool>
-  MutableMap<T, bool>
-  MutableMap<T, bool>
-  MutableMap<T, bool>
   MapIterator<K, V>
   MapIterator<K, V>
   MapIterator<K, V>

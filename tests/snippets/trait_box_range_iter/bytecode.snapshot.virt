@@ -157,7 +157,9 @@ fn 6 std_core$Range$Iterator$next__i32 (ref) -> ref
   end $L0
   local.get 1
   if $L1 void
-    return.lit null.const
+    null.const
+    box 0
+    return
   end $L1
   local.field 0 6 3
   ref.cast 2
@@ -205,7 +207,9 @@ fn 7 std_core$Range$Iterator$next__usize (ref) -> ref
   end $L0
   local.get 1
   if $L1 void
-    return.lit null.const
+    null.const
+    box 0
+    return
   end $L1
   local.field 0 11 3
   ref.cast 10
@@ -237,7 +241,9 @@ fn 8 std_core$ArrayIterator$Iterator$next__i32 (ref) -> ref
   local.get 2
   u64.ge
   if $L0 void
-    return.lit null.const
+    null.const
+    box 0
+    return
   end $L0
   local.field 0 14 0
   local.set 3

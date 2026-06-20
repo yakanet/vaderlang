@@ -4,9 +4,15 @@
   fn snippet$main() -> i32
     let mu8: MutableMap<string, u8> =
       MutableMap<string, u8> {
-        buckets:
-          array :(Entry<K, V> | null)[]
+        ekeys:
+          array :K[]
+        evals:
+          array :V[]
+        index:
+          array :i32[]
+        mask: int(0) :usize
         size: int(0) :usize
+        tombs: int(0) :usize
       }
     call :void
       callee:
@@ -105,9 +111,15 @@
                       __sb_0 :StringBuilder
     let mbool: MutableMap<string, bool> =
       MutableMap<string, bool> {
-        buckets:
-          array :(Entry<K, V> | null)[]
+        ekeys:
+          array :K[]
+        evals:
+          array :V[]
+        index:
+          array :i32[]
+        mask: int(0) :usize
         size: int(0) :usize
+        tombs: int(0) :usize
       }
     call :void
       callee:
@@ -210,9 +222,15 @@
                       __sb_1 :StringBuilder
     let mchar: MutableMap<string, char> =
       MutableMap<string, char> {
-        buckets:
-          array :(Entry<K, V> | null)[]
+        ekeys:
+          array :K[]
+        evals:
+          array :V[]
+        index:
+          array :i32[]
+        mask: int(0) :usize
         size: int(0) :usize
+        tombs: int(0) :usize
       }
     call :void
       callee:
@@ -311,9 +329,15 @@
                       __sb_2 :StringBuilder
     let mf32: MutableMap<string, f32> =
       MutableMap<string, f32> {
-        buckets:
-          array :(Entry<K, V> | null)[]
+        ekeys:
+          array :K[]
+        evals:
+          array :V[]
+        index:
+          array :i32[]
+        mask: int(0) :usize
         size: int(0) :usize
+        tombs: int(0) :usize
       }
     call :void
       callee:
@@ -381,9 +405,15 @@
                       __sb_3 :StringBuilder
     let mf64: MutableMap<string, f64> =
       MutableMap<string, f64> {
-        buckets:
-          array :(Entry<K, V> | null)[]
+        ekeys:
+          array :K[]
+        evals:
+          array :V[]
+        index:
+          array :i32[]
+        mask: int(0) :usize
         size: int(0) :usize
+        tombs: int(0) :usize
       }
     call :void
       callee:
@@ -451,9 +481,15 @@
                       __sb_4 :StringBuilder
     let mi16: MutableMap<string, i16> =
       MutableMap<string, i16> {
-        buckets:
-          array :(Entry<K, V> | null)[]
+        ekeys:
+          array :K[]
+        evals:
+          array :V[]
+        index:
+          array :i32[]
+        mask: int(0) :usize
         size: int(0) :usize
+        tombs: int(0) :usize
       }
     call :void
       callee:
@@ -522,9 +558,15 @@
                       __sb_5 :StringBuilder
     let mu16: MutableMap<string, u16> =
       MutableMap<string, u16> {
-        buckets:
-          array :(Entry<K, V> | null)[]
+        ekeys:
+          array :K[]
+        evals:
+          array :V[]
+        index:
+          array :i32[]
+        mask: int(0) :usize
         size: int(0) :usize
+        tombs: int(0) :usize
       }
     call :void
       callee:
@@ -592,9 +634,15 @@
                       __sb_6 :StringBuilder
     let mi64: MutableMap<string, i64> =
       MutableMap<string, i64> {
-        buckets:
-          array :(Entry<K, V> | null)[]
+        ekeys:
+          array :K[]
+        evals:
+          array :V[]
+        index:
+          array :i32[]
+        mask: int(0) :usize
         size: int(0) :usize
+        tombs: int(0) :usize
       }
     let huge: i64 = int(9000000000) :i64
     call :void

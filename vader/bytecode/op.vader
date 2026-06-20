@@ -50,6 +50,7 @@ export Op :: Unreachable
     | ArraySlice
     | DataConst
     | RefCast
+    | Box
     | Convert
     | TypeCheck
     | TypeConst
@@ -301,6 +302,17 @@ export DataConst :: struct { pool_index: i32, type_id: i32 }
 /// type_id operand is intentionally dropped at parse time. Sprint 4
 /// (b2) addition (mirrors `src/vm/exec.ts` which also bumps pc).
 export RefCast :: struct { type_id: i32 }
+
+/// Box a concrete primitive value on the stack into an erased `vader_box_t`
+/// tagged with `type_id` (the value's SEMANTIC BcType). Inserted at an erasure
+/// boundary where a concrete primitive flows into an erased `ref`/union slot —
+/// e.g. a `MutableMap(K, V)::get` returning `evals[i] : usize` as `V | null`.
+/// Needed because the C-emit's implicit return-coercion only has the coarse
+/// `ValType` (`I64`) and would box with the wrong primitive tag (`i64` not
+/// `usize`), breaking a downstream `is usize`. The VM carries coarse value tags
+/// (`I64Val` matches any `is`-of-an-I64-width type) so it treats `Box` as a
+/// pc-bump no-op, mirroring `RefCast`.
+export Box :: struct { type_id: i32 }
 
 /// Numeric width conversion. The .virt format emits `<from>.to_<to>`
 /// at every cast site. `target` re-tags the stack value to the

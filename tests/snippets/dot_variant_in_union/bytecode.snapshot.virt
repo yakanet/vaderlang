@@ -1,71 +1,60 @@
 module _main
 type 0 primitive null
-type 1 primitive string
-type 2 primitive void
+type 1 primitive char
+type 2 union 3,4
 type 3 primitive i32
-type 4 primitive char
-type 5 struct std_string$ParseError { msg:1 }
-type 6 union 3,5
-string 0 "\n"
-string 1 "unknown"
-string 2 "N"
-string 3 "E"
-string 4 "S"
-string 5 "W"
-string 6 "err"
+type 4 struct std_string$ParseError { msg:5 }
+type 5 primitive string
+type 6 primitive void
+string 0 "unknown"
+string 1 "N"
+string 2 "E"
+string 3 "S"
+string 4 "W"
+string 5 "err"
+string 6 "\n"
 import 0 write std_io$write (i32,string) -> void
-export main 4
+export main 2
 
-fn 0 std_io$std_io$println__string (string) -> void
-  local $call_2 string
-  local.get 0
-  call 1
-  local.set 1
-  i32.const 0
-  local.get 1
-  call.import 0
-  i32.const 0
-  string.const 0
-  call.import 0
-  return
-end
-
-fn 1 std_core$string$Display$to_string (string) -> string
-  local.get 0
-  return
-end
-
-fn 2 snippet$parse (char) -> ref
+fn 0 snippet$parse (char) -> ref
   local.get 0
   char.const 78
   char.eq
   if $L0 void
-    return.lit i32.const 0
+    i32.const 0
+    box 3
+    return
   end $L0
   local.get 0
   char.const 69
   char.eq
   if $L1 void
-    return.lit i32.const 1
+    i32.const 1
+    box 3
+    return
   end $L1
   local.get 0
   char.const 83
   char.eq
   if $L2 void
-    return.lit i32.const 2
+    i32.const 2
+    box 3
+    return
   end $L2
   local.get 0
   char.const 87
   char.eq
   if $L3 void
-    return.lit i32.const 3
+    i32.const 3
+    box 3
+    return
   end $L3
-  string.const 1
-  struct.new 5
+  string.const 0
+  struct.new 4
   return
 end
 
-fn 3 snippet$dir_label (i32) -> string
+fn 1 snippet$dir_label (i32) -> string
   local __scrut_0 i32
   local.get 0
   local.set 1
@@ -73,85 +62,104 @@ fn 3 snippet$dir_label (i32) -> string
   i32.const 0
   i32.eq
   if $L0 void
-    return.lit string.const 2
+    return.lit string.const 1
   end $L0
   local.get 1
   i32.const 1
   i32.eq
   if $L1 void
-    return.lit string.const 3
+    return.lit string.const 2
   end $L1
   local.get 1
   i32.const 2
   i32.eq
   if $L2 void
-    return.lit string.const 4
+    return.lit string.const 3
   end $L2
   local.get 1
   i32.const 3
   i32.eq
   if $L3 void
-    return.lit string.const 5
+    return.lit string.const 4
   end $L3
   return
 end
 
-fn 4 snippet$main () -> i32
+fn 2 snippet$main () -> i32
   local __scrut_0 ref
   local __scrut_1 ref
   char.const 78
-  call 2
+  call 0
   local.tee 0
   type_check 3
   if $L0 void
     local.get 0
     ref.cast 3
-    call 3
-    call 0
+    call 1
+    call 4
     char.const 63
-    call 2
+    call 0
     local.tee 1
     type_check 3
     if $L1 void
       local.get 1
       ref.cast 3
-      call 3
-      call 0
+      call 1
+      call 4
       return.lit i32.const 0
     end $L1
     local.get 1
-    type_check 5
+    type_check 4
     if $L2 void
-      string.const 6
-      call 0
+      string.const 5
+      call 4
       return.lit i32.const 0
     end $L2
     return
   end $L0
   local.get 0
-  type_check 5
+  type_check 4
   if $L3 void
-    string.const 6
-    call 0
+    string.const 5
+    call 4
     char.const 63
-    call 2
+    call 0
     local.tee 1
     type_check 3
     if $L4 void
       local.get 1
       ref.cast 3
-      call 3
-      call 0
+      call 1
+      call 4
       return.lit i32.const 0
     end $L4
     local.get 1
-    type_check 5
+    type_check 4
     if $L5 void
-      string.const 6
-      call 0
+      string.const 5
+      call 4
       return.lit i32.const 0
     end $L5
     return
   end $L3
+  return
+end
+
+fn 3 std_core$string$Display$to_string (string) -> string
+  local.get 0
+  return
+end
+
+fn 4 std_io$std_io$println__string (string) -> void
+  local $call_2 string
+  local.get 0
+  call 3
+  local.set 1
+  i32.const 0
+  local.get 1
+  call.import 0
+  i32.const 0
+  string.const 6
+  call.import 0
   return
 end

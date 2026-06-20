@@ -423,6 +423,7 @@ parse_op_line :: fn(cleaned: string, head: string) -> bc.Op | null {
     if head == "array.slice"      { return parse_array_slice(cleaned) }
     if head == "data.const"       { return parse_data_const(cleaned) }
     if head == "ref.cast"         { return parse_ref_cast(cleaned) }
+    if head == "box"              { return parse_box(cleaned) }
     if head == "intrinsic" {
         if cleaned == "intrinsic size_of.type"            { return bc.SizeOfType {} }
         return null
@@ -908,6 +909,12 @@ parse_ref_cast :: fn(line: string) -> bc.Op | null {
     parsed :: parse_int_after_prefix(line, "ref.cast ")
     if parsed is null { return null }
     return bc.RefCast { .type_id = parsed }
+}
+
+parse_box :: fn(line: string) -> bc.Op | null {
+    parsed :: parse_int_after_prefix(line, "box ")
+    if parsed is null { return null }
+    return bc.Box { .type_id = parsed }
 }
 
 parse_type_const :: fn(line: string) -> bc.Op | null {

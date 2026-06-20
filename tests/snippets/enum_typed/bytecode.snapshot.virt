@@ -1,41 +1,22 @@
 module _main
 type 0 primitive null
-type 1 primitive string
-type 2 primitive void
+type 1 primitive u8
+type 2 primitive string
 type 3 primitive i32
-type 4 primitive u8
-string 0 "\n"
-string 1 "N"
-string 2 "S"
-string 3 "E"
-string 4 "W"
-string 5 "halt"
-string 6 "push"
-string 7 "pop"
-string 8 "add"
+type 4 primitive void
+string 0 "N"
+string 1 "S"
+string 2 "E"
+string 3 "W"
+string 4 "halt"
+string 5 "push"
+string 6 "pop"
+string 7 "add"
+string 8 "\n"
 import 0 write std_io$write (i32,string) -> void
-export main 3
+export main 1
 
-fn 0 std_io$std_io$println__string (string) -> void
-  local $call_2 string
-  local.get 0
-  call 1
-  local.set 1
-  i32.const 0
-  local.get 1
-  call.import 0
-  i32.const 0
-  string.const 0
-  call.import 0
-  return
-end
-
-fn 1 std_core$string$Display$to_string (string) -> string
-  local.get 0
-  return
-end
-
-fn 2 snippet$describe (u8) -> string
+fn 0 snippet$describe (u8) -> string
   local __scrut_0 u8
   local $k_2 u8
   local.get 0
@@ -46,7 +27,7 @@ fn 2 snippet$describe (u8) -> string
   local.get 2
   i32.eq
   if $L0 void
-    return.lit string.const 1
+    return.lit string.const 0
   end $L0
   i32.const 2
   local.set 2
@@ -54,7 +35,7 @@ fn 2 snippet$describe (u8) -> string
   local.get 2
   i32.eq
   if $L1 void
-    return.lit string.const 2
+    return.lit string.const 1
   end $L1
   i32.const 4
   local.set 2
@@ -62,7 +43,7 @@ fn 2 snippet$describe (u8) -> string
   local.get 2
   i32.eq
   if $L2 void
-    return.lit string.const 3
+    return.lit string.const 2
   end $L2
   i32.const 8
   local.set 2
@@ -70,20 +51,20 @@ fn 2 snippet$describe (u8) -> string
   local.get 2
   i32.eq
   if $L3 void
-    return.lit string.const 4
+    return.lit string.const 3
   end $L3
   return
 end
 
-fn 3 snippet$main () -> i32
+fn 1 snippet$main () -> i32
   local __scrut_0 u16
   local $k_7 u16
   i32.const 1
-  call 2
   call 0
+  call 3
   i32.const 8
-  call 2
   call 0
+  call 3
   i32.const 101
   local.set 0
   i32.const 0
@@ -92,8 +73,8 @@ fn 3 snippet$main () -> i32
   local.get 1
   i32.eq
   if $L0 void
-    string.const 5
-    call 0
+    string.const 4
+    call 3
     return.lit i32.const 0
   end $L0
   i32.const 100
@@ -102,8 +83,8 @@ fn 3 snippet$main () -> i32
   local.get 1
   i32.eq
   if $L1 void
-    string.const 6
-    call 0
+    string.const 5
+    call 3
     return.lit i32.const 0
   end $L1
   i32.const 101
@@ -112,8 +93,8 @@ fn 3 snippet$main () -> i32
   local.get 1
   i32.eq
   if $L2 void
-    string.const 7
-    call 0
+    string.const 6
+    call 3
     return.lit i32.const 0
   end $L2
   i32.const 102
@@ -122,9 +103,28 @@ fn 3 snippet$main () -> i32
   local.get 1
   i32.eq
   if $L3 void
-    string.const 8
-    call 0
+    string.const 7
+    call 3
     return.lit i32.const 0
   end $L3
+  return
+end
+
+fn 2 std_core$string$Display$to_string (string) -> string
+  local.get 0
+  return
+end
+
+fn 3 std_io$std_io$println__string (string) -> void
+  local $call_2 string
+  local.get 0
+  call 2
+  local.set 1
+  i32.const 0
+  local.get 1
+  call.import 0
+  i32.const 0
+  string.const 8
+  call.import 0
   return
 end

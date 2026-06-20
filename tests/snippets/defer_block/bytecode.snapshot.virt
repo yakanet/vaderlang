@@ -1,62 +1,62 @@
 module _main
 type 0 primitive null
-type 1 primitive string
-type 2 primitive void
-type 3 primitive i32
-type 4 struct __defer_env_2 {  }
-type 5 struct __defer_env_5 {  }
+type 1 primitive i32
+type 2 struct __defer_env_2 {  }
+type 3 primitive void
+type 4 struct __defer_env_5 {  }
+type 5 primitive string
 type 6 ref _
-string 0 "\n"
-string 1 "hi"
-string 2 "nested"
-string 3 "outer cleanup"
-string 4 "inner cleanup"
+string 0 "hi"
+string 1 "nested"
+string 2 "outer cleanup"
+string 3 "inner cleanup"
+string 4 "\n"
 import 0 write std_io$write (i32,string) -> void
-export main 2
+export main 0
 
-fn 0 std_io$std_io$println__string (string) -> void
-  local $call_2 string
-  local.get 0
-  call 1
-  local.set 1
-  i32.const 0
-  local.get 1
-  call.import 0
-  i32.const 0
+fn 0 snippet$main () -> i32
+  struct.new 2
+  make_closure 1 6
+  defer.push
   string.const 0
-  call.import 0
-  return
-end
-
-fn 1 std_core$string$Display$to_string (string) -> string
-  local.get 0
-  return
-end
-
-fn 2 snippet$main () -> i32
+  call 4
   struct.new 4
-  make_closure 3 6
+  make_closure 2 6
   defer.push
   string.const 1
-  call 0
-  struct.new 5
-  make_closure 4 6
-  defer.push
-  string.const 2
-  call 0
+  call 4
   defer.pop_exec 1
   defer.pop_exec 1
   return.lit i32.const 0
 end
 
-fn 3 __defer_1 (ref) -> void
-  string.const 3
-  call 0
+fn 1 __defer_1 (ref) -> void
+  string.const 2
+  call 4
   return
 end
 
-fn 4 __defer_4 (ref) -> void
+fn 2 __defer_4 (ref) -> void
+  string.const 3
+  call 4
+  return
+end
+
+fn 3 std_core$string$Display$to_string (string) -> string
+  local.get 0
+  return
+end
+
+fn 4 std_io$std_io$println__string (string) -> void
+  local $call_2 string
+  local.get 0
+  call 3
+  local.set 1
+  i32.const 0
+  local.get 1
+  call.import 0
+  i32.const 0
   string.const 4
-  call 0
+  call.import 0
   return
 end

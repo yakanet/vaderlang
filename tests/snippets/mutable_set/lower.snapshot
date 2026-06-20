@@ -6,9 +6,15 @@
       MutableSet<i32> {
         inner:
           MutableMap<i32, bool> {
-            buckets:
-              array :(Entry<K, V> | null)[]
+            ekeys:
+              array :K[]
+            evals:
+              array :V[]
+            index:
+              array :i32[]
+            mask: int(0) :usize
             size: int(0) :usize
+            tombs: int(0) :usize
           }
       }
     call :void

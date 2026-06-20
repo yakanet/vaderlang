@@ -1,39 +1,25 @@
 module _main
 type 0 primitive null
-type 1 primitive string
-type 2 primitive void
-type 3 primitive i32
-type 4 primitive bool
-type 5 struct snippet$DigitSet { bits:3 }
-type 6 struct std_core$Range__i32 { start:3,end:3,inclusive:4,cursor:3 }
-string 0 "\n"
-string 1 "range yes"
-string 2 "range !in yes"
-string 3 "range incl yes"
-string 4 "set has 4"
-string 5 "set lacks 5"
-string 6 "set has 7"
+type 1 struct snippet$DigitSet { bits:2 }
+type 2 primitive i32
+type 3 primitive bool
+type 4 struct std_core$Range__i32 { start:2,end:2,inclusive:3,cursor:2 }
+type 5 primitive string
+type 6 primitive void
+string 0 "range yes"
+string 1 "range !in yes"
+string 2 "range incl yes"
+string 3 "set has 4"
+string 4 "set lacks 5"
+string 5 "set has 7"
+string 6 "\n"
 import 0 write std_io$write (i32,string) -> void
-impl 5 Contains
-impl 6 Contains
-impl 6 Iterator
-export main 2
+impl 1 Contains
+impl 4 Contains
+impl 4 Iterator
+export main 1
 
-fn 0 std_io$std_io$println__string (string) -> void
-  local $call_2 string
-  local.get 0
-  call 4
-  local.set 1
-  i32.const 0
-  local.get 1
-  call.import 0
-  i32.const 0
-  string.const 0
-  call.import 0
-  return
-end
-
-fn 1 snippet$DigitSet$Contains$contains (ref,i32) -> bool
+fn 0 snippet$DigitSet$Contains$contains (ref,i32) -> bool
   local or_res bool
   local mask i32
   local.get 1
@@ -56,8 +42,8 @@ fn 1 snippet$DigitSet$Contains$contains (ref,i32) -> bool
   local.get 1
   i32.shl
   local.set 3
-  local.field 0 5 0
-  ref.cast 3
+  local.field 0 1 0
+  ref.cast 2
   local.get 3
   i32.bitand
   local.set 3
@@ -67,7 +53,7 @@ fn 1 snippet$DigitSet$Contains$contains (ref,i32) -> bool
   return
 end
 
-fn 2 snippet$main () -> i32
+fn 1 snippet$main () -> i32
   local $struct_4 ref
   local $shl_27 i32
   local $shl_30 i32
@@ -75,43 +61,43 @@ fn 2 snippet$main () -> i32
   i32.const 10
   bool.const false
   i32.const 0
-  struct.new 6
+  struct.new 4
   local.set 0
   local.get 0
   i32.const 5
-  call 3
+  call 2
   if $L0 void
-    string.const 1
-    call 0
+    string.const 0
+    call 7
   else
   end $L0
   i32.const 0
   i32.const 10
   bool.const false
   i32.const 0
-  struct.new 6
+  struct.new 4
   local.set 0
   local.get 0
   i32.const 10
-  call 3
+  call 2
   bool.not
   if $L1 void
-    string.const 2
-    call 0
+    string.const 1
+    call 7
   else
   end $L1
   i32.const 0
   i32.const 10
   bool.const true
   i32.const 0
-  struct.new 6
+  struct.new 4
   local.set 0
   local.get 0
   i32.const 10
-  call 3
+  call 2
   if $L2 void
-    string.const 3
-    call 0
+    string.const 2
+    call 7
   else
   end $L2
   i32.const 1
@@ -133,73 +119,73 @@ fn 2 snippet$main () -> i32
   local.get 1
   local.get 2
   i32.bitor
-  struct.new 5
+  struct.new 1
   local.set 0
   local.get 0
   i32.const 4
-  call 1
+  call 0
   if $L3 void
-    string.const 4
-    call 0
+    string.const 3
+    call 7
   else
   end $L3
   local.get 0
   i32.const 5
-  call 1
+  call 0
   bool.not
   if $L4 void
-    string.const 5
-    call 0
+    string.const 4
+    call 7
   else
   end $L4
   local.get 0
   i32.const 7
-  call 1
+  call 0
   if $L5 void
-    string.const 6
-    call 0
+    string.const 5
+    call 7
   else
   end $L5
   return.lit i32.const 0
 end
 
-fn 3 std_core$Range$Contains$contains__i32 (ref,i32) -> bool
+fn 2 std_core$Range$Contains$contains__i32 (ref,i32) -> bool
   local $field_2 i32
-  local.field 0 6 0
-  ref.cast 3
+  local.field 0 4 0
+  ref.cast 2
   local.set 2
   local.get 1
   local.get 2
-  call 6
+  call 5
   if $L0 void
     return.lit bool.const false
   end $L0
-  local.field 0 6 2
-  ref.cast 4
+  local.field 0 4 2
+  ref.cast 3
   if $L1 void
-    local.field 0 6 1
-    ref.cast 3
+    local.field 0 4 1
+    ref.cast 2
     local.set 2
     local.get 1
     local.get 2
-    call 7
+    call 6
     return
   end $L1
-  local.field 0 6 1
-  ref.cast 3
+  local.field 0 4 1
+  ref.cast 2
   local.set 2
   local.get 1
   local.get 2
-  call 6
+  call 5
   return
 end
 
-fn 4 std_core$string$Display$to_string (string) -> string
+fn 3 std_core$string$Display$to_string (string) -> string
   local.get 0
   return
 end
 
-fn 5 std_core$i32$Comparable$compare (i32,i32) -> i32
+fn 4 std_core$i32$Comparable$compare (i32,i32) -> i32
   local if_res i32
   local if_res i32
   local.get 0
@@ -250,11 +236,11 @@ fn 5 std_core$i32$Comparable$compare (i32,i32) -> i32
   return
 end
 
-fn 6 std_core$i32$Comparable$lt (i32,i32) -> bool
+fn 5 std_core$i32$Comparable$lt (i32,i32) -> bool
   local $call_2 i32
   local.get 0
   local.get 1
-  call 5
+  call 4
   local.set 2
   local.get 2
   i32.const 0
@@ -262,7 +248,7 @@ fn 6 std_core$i32$Comparable$lt (i32,i32) -> bool
   return
   local.get 0
   local.get 1
-  call 5
+  call 4
   local.set 2
   local.get 2
   i32.const 0
@@ -270,11 +256,11 @@ fn 6 std_core$i32$Comparable$lt (i32,i32) -> bool
   return
 end
 
-fn 7 std_core$i32$Comparable$lte (i32,i32) -> bool
+fn 6 std_core$i32$Comparable$lte (i32,i32) -> bool
   local $call_2 i32
   local.get 0
   local.get 1
-  call 5
+  call 4
   local.set 2
   local.get 2
   i32.const 0
@@ -282,10 +268,24 @@ fn 7 std_core$i32$Comparable$lte (i32,i32) -> bool
   return
   local.get 0
   local.get 1
-  call 5
+  call 4
   local.set 2
   local.get 2
   i32.const 0
   i32.le
+  return
+end
+
+fn 7 std_io$std_io$println__string (string) -> void
+  local $call_2 string
+  local.get 0
+  call 3
+  local.set 1
+  i32.const 0
+  local.get 1
+  call.import 0
+  i32.const 0
+  string.const 6
+  call.import 0
   return
 end

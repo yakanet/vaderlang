@@ -1,54 +1,40 @@
 module _main
 type 0 primitive null
-type 1 primitive string
-type 2 primitive void
+type 1 struct snippet$Money { amount:3 }
+type 2 primitive bool
 type 3 primitive i32
 type 4 primitive usize
-type 5 primitive bool
-type 6 array 1
-type 7 struct snippet$Money { amount:3 }
-type 8 struct std_string_builder$StringBuilder { parts:6 }
-type 9 array 10
-type 10 primitive u8
-type 11 struct std_core$Buffer {  }
-string 0 "\n"
-string 1 "a==b "
-string 2 "  a!=c "
-string 3 "a<c "
-string 4 "  c>a "
-string 5 "  a>=b "
-string 6 "  c<=c "
-string 7 "true"
-string 8 "false"
-import 0 write std_io$write (i32,string) -> void
-import 1 bytes std_core$bytes (string) -> ref
-impl 7 Equals
-impl 7 Comparable
-impl 8 Display
-impl 11 ByteAccess
-export main 3
+type 5 primitive string
+type 6 array 7
+type 7 primitive u8
+type 8 struct std_core$Buffer {  }
+type 9 primitive void
+type 10 array 5
+type 11 struct std_string_builder$StringBuilder { parts:10 }
+string 0 "a==b "
+string 1 "  a!=c "
+string 2 "a<c "
+string 3 "  c>a "
+string 4 "  a>=b "
+string 5 "  c<=c "
+string 6 "true"
+string 7 "false"
+string 8 "\n"
+import 0 bytes std_core$bytes (string) -> ref
+import 1 write std_io$write (i32,string) -> void
+impl 1 Equals
+impl 1 Comparable
+impl 8 ByteAccess
+impl 11 Display
+export main 2
 
-fn 0 std_io$std_io$println__string (string) -> void
-  local $call_2 string
-  local.get 0
-  call 8
-  local.set 1
-  i32.const 0
-  local.get 1
-  call.import 0
-  i32.const 0
-  string.const 0
-  call.import 0
-  return
-end
-
-fn 1 snippet$Money$Equals$equals (ref,ref) -> bool
+fn 0 snippet$Money$Equals$equals (ref,ref) -> bool
   local $field_2 i32
   local $field_3 i32
-  local.field 0 7 0
+  local.field 0 1 0
   ref.cast 3
   local.set 2
-  local.field 1 7 0
+  local.field 1 1 0
   ref.cast 3
   local.set 3
   local.get 2
@@ -57,13 +43,13 @@ fn 1 snippet$Money$Equals$equals (ref,ref) -> bool
   return
 end
 
-fn 2 snippet$Money$Comparable$compare (ref,ref) -> i32
+fn 1 snippet$Money$Comparable$compare (ref,ref) -> i32
   local $field_2 i32
   local $field_3 i32
-  local.field 0 7 0
+  local.field 0 1 0
   ref.cast 3
   local.set 2
-  local.field 1 7 0
+  local.field 1 1 0
   ref.cast 3
   local.set 3
   local.get 2
@@ -74,10 +60,10 @@ fn 2 snippet$Money$Comparable$compare (ref,ref) -> i32
     i32.neg
     return
   end $L0
-  local.field 0 7 0
+  local.field 0 1 0
   ref.cast 3
   local.set 2
-  local.field 1 7 0
+  local.field 1 1 0
   ref.cast 3
   local.set 3
   local.get 2
@@ -89,7 +75,7 @@ fn 2 snippet$Money$Comparable$compare (ref,ref) -> i32
   return.lit i32.const 0
 end
 
-fn 3 snippet$main () -> i32
+fn 2 snippet$main () -> i32
   local a ref
   local b ref
   local c ref
@@ -97,124 +83,157 @@ fn 3 snippet$main () -> i32
   local $call_13 string
   local $call_22 i32
   i32.const 100
-  struct.new 7
+  struct.new 1
   local.set 0
   i32.const 100
-  struct.new 7
+  struct.new 1
   local.set 1
   i32.const 200
-  struct.new 7
+  struct.new 1
   local.set 2
-  call 4
+  call 6
   local.set 3
   local.get 3
-  string.const 1
-  call 5
+  string.const 0
+  call 7
   local.get 0
   local.get 1
-  call 1
-  call 7
+  call 0
+  call 3
   local.set 4
   local.get 3
   local.get 4
-  call 5
+  call 7
   local.get 3
-  string.const 2
-  call 5
+  string.const 1
+  call 7
   local.get 0
   local.get 2
-  call 1
+  call 0
   bool.not
-  call 7
+  call 3
   local.set 4
   local.get 3
   local.get 4
-  call 5
+  call 7
   local.get 3
+  call 8
+  call 5
   call 6
-  call 0
-  call 4
   local.set 3
   local.get 3
-  string.const 3
-  call 5
+  string.const 2
+  call 7
   local.get 0
   local.get 2
-  call 2
+  call 1
   local.set 5
   local.get 5
   i32.const 0
   i32.lt
-  call 7
+  call 3
   local.set 4
   local.get 3
   local.get 4
-  call 5
+  call 7
   local.get 3
-  string.const 4
-  call 5
+  string.const 3
+  call 7
   local.get 2
   local.get 0
-  call 2
+  call 1
   local.set 5
   local.get 5
   i32.const 0
   i32.gt
-  call 7
+  call 3
   local.set 4
   local.get 3
   local.get 4
-  call 5
+  call 7
   local.get 3
-  string.const 5
-  call 5
+  string.const 4
+  call 7
   local.get 0
   local.get 1
-  call 2
+  call 1
   local.set 5
   local.get 5
   i32.const 0
   i32.ge
-  call 7
+  call 3
   local.set 4
   local.get 3
   local.get 4
-  call 5
+  call 7
   local.get 3
-  string.const 6
-  call 5
+  string.const 5
+  call 7
   local.get 2
   local.get 2
-  call 2
+  call 1
   local.set 5
   local.get 5
   i32.const 0
   i32.le
-  call 7
+  call 3
   local.set 4
   local.get 3
   local.get 4
-  call 5
+  call 7
   local.get 3
-  call 6
-  call 0
+  call 8
+  call 5
   return.lit i32.const 0
 end
 
-fn 4 std_string_builder$new_builder () -> ref
-  array.new 6 0
-  struct.new 8
-  return
-end
-
-fn 5 std_string_builder$append (ref,string) -> void
-  local.field 0 8 0
+fn 3 std_core$bool$Display$to_string (bool) -> string
+  local if_res string
+  local.get 0
+  if $L0 void
+    string.const 6
+    local.set 1
+  else
+    string.const 7
+    local.set 1
+  end $L0
   local.get 1
-  array.push 1
   return
 end
 
-fn 6 std_string_builder$StringBuilder$Display$to_string (ref) -> string
+fn 4 std_core$string$Display$to_string (string) -> string
+  local.get 0
+  return
+end
+
+fn 5 std_io$std_io$println__string (string) -> void
+  local $call_2 string
+  local.get 0
+  call 4
+  local.set 1
+  i32.const 0
+  local.get 1
+  call.import 1
+  i32.const 0
+  string.const 8
+  call.import 1
+  return
+end
+
+fn 6 std_string_builder$new_builder () -> ref
+  array.new 10 0
+  struct.new 11
+  return
+end
+
+fn 7 std_string_builder$append (ref,string) -> void
+  local.field 0 11 0
+  local.get 1
+  array.push 5
+  return
+end
+
+fn 8 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local total usize
   local __for_arr_0 ref
   local __for_len_1 usize
@@ -226,7 +245,7 @@ fn 6 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local $k_33 usize
   i64.const 0
   local.set 1
-  local.field 0 8 0
+  local.field 0 11 0
   local.tee 2
   array.len
   local.set 3
@@ -240,9 +259,9 @@ fn 6 std_string_builder$StringBuilder$Display$to_string (ref) -> string
       if $L2 void
         local.get 2
         local.get 4
-        array.get 6
-        ref.cast 1
-        call.import 1
+        array.get 10
+        ref.cast 5
+        call.import 0
         array.len
         local.set 5
         local.get 1
@@ -265,7 +284,7 @@ fn 6 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local.set 2
   i64.const 0
   local.set 3
-  local.field 0 8 0
+  local.field 0 11 0
   local.tee 7
   array.len
   local.set 4
@@ -279,15 +298,15 @@ fn 6 std_string_builder$StringBuilder$Display$to_string (ref) -> string
       if $L5 void
         local.get 7
         local.get 5
-        array.get 6
-        ref.cast 1
+        array.get 10
+        ref.cast 5
         local.set 8
         local.get 2
         local.get 3
         local.get 8
         call 11
         local.get 8
-        call.import 1
+        call.import 0
         array.len
         local.set 6
         local.get 3
@@ -308,25 +327,6 @@ fn 6 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local.get 2
   local.get 1
   call 10
-  return
-end
-
-fn 7 std_core$bool$Display$to_string (bool) -> string
-  local if_res string
-  local.get 0
-  if $L0 void
-    string.const 7
-    local.set 1
-  else
-    string.const 8
-    local.set 1
-  end $L0
-  local.get 1
-  return
-end
-
-fn 8 std_core$string$Display$to_string (string) -> string
-  local.get 0
   return
 end
 

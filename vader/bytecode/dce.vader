@@ -433,6 +433,7 @@ type_index_of :: fn(op: Op) -> i32 {
     if op is LocalField as l   { return l.type_id }
     if op is ArraySlice as a   { return a.type_id }
     if op is RefCast as r      { return r.type_id }
+    if op is Box as b          { return b.type_id }
     if op is DataConst as d    { return d.type_id }
     return -1
 }
@@ -477,6 +478,7 @@ remap_type_in_op :: fn(op: Op, remap: i32[]) -> Op {
     if op is LocalField as l   { return LocalField   { .slot = l.slot, .type_id = remap_idx(remap, l.type_id), .field_index = l.field_index } }
     if op is ArraySlice as a   { return ArraySlice   { .type_id = remap_idx(remap, a.type_id) } }
     if op is RefCast as r      { return RefCast      { .type_id = remap_idx(remap, r.type_id) } }
+    if op is Box as b          { return Box          { .type_id = remap_idx(remap, b.type_id) } }
     if op is DataConst as d    { return DataConst    { .pool_index = d.pool_index, .type_id = remap_idx(remap, d.type_id) } }
     return op
 }

@@ -4,9 +4,15 @@
   fn snippet$main() -> i32
     let m: MutableMap<string, i32> =
       MutableMap<string, i32> {
-        buckets:
-          array :(Entry<K, V> | null)[]
+        ekeys:
+          array :K[]
+        evals:
+          array :V[]
+        index:
+          array :i32[]
+        mask: int(0) :usize
         size: int(0) :usize
+        tombs: int(0) :usize
       }
     call :void
       callee:
@@ -38,123 +44,116 @@
     let sum: i32 = int(0) :i32
     block :void
       let __iter_src_0: MutableMap<string, i32> = m :MutableMap<string, i32>
-      let __iter_buckets_1: (Entry<string, i32> | null)[] =
-        .buckets :(Entry<string, i32> | null)[]
+      let __iter_ekeys_1: string[] =
+        .ekeys :string[]
           __iter_src_0 :MutableMap<string, i32>
-      let __iter_buckets_len_2: usize =
-        LoweredArrayLen
-      let __iter_bucket_3: usize = int(0) :usize
-      let __iter_chain_4: Entry<string, i32> | null = null
+      let __iter_evals_2: i32[] =
+        .evals :i32[]
+          __iter_src_0 :MutableMap<string, i32>
+      let __iter_size_3: usize =
+        .size :usize
+          __iter_src_0 :MutableMap<string, i32>
+      let __iter_pos_4: usize = int(0) :usize
       loop
         if :void
           cond:
-            is null :bool
-              __iter_chain_4 :Entry<string, i32> | null
+            gte :bool
+              l:
+                __iter_pos_4 :usize
+              r:
+                __iter_size_3 :usize
           then:
-            if :void
-              cond:
-                gte :bool
-                  l:
-                    __iter_bucket_3 :usize
-                  r:
-                    __iter_buckets_len_2 :usize
-              then:
-                break
-            assign
-              target:
-                __iter_chain_4 :Entry<string, i32> | null
-              value:
-                index :Entry<string, i32> | null
-                  on:
-                    __iter_buckets_1 :(Entry<string, i32> | null)[]
-                  ix:
-                    __iter_bucket_3 :usize
-            assign
-              target:
-                __iter_bucket_3 :usize
-              value:
-                add :usize
-                  l:
-                    __iter_bucket_3 :usize
-                  r:
-                    int(1) :usize
-          else:
-            let __iter_entry_5: Entry<string, i32> =
-              cast → Entry<string, i32>
-                __iter_chain_4 :Entry<string, i32> | null
-            assign
-              target:
-                __iter_chain_4 :Entry<string, i32> | null
-              value:
-                .next :Entry<string, i32> | null
-                  __iter_entry_5 :Entry<string, i32>
-            let __for_18_5: Entry<string, i32> = __iter_entry_5 :Entry<string, i32>
-            let __tup_6: Entry<string, i32> = __for_18_5 :Entry<string, i32>
-            let k: string =
-              .key :string
-                __tup_6 :Entry<string, i32>
-            let v: i32 =
-              .value :i32
-                __tup_6 :Entry<string, i32>
-            call :void
-              callee:
-                std_io$std_io$println__string :void
-              arg0:
-                block :string
-                  let __sb_7: StringBuilder =
-                    call :StringBuilder
-                      callee:
-                        new_builder :StringBuilder
-                  call :void
+            break
+        let __for_18_5: Entry<string, i32> =
+          Entry<string, i32> {
+            key:
+              index :string
+                on:
+                  __iter_ekeys_1 :string[]
+                ix:
+                  __iter_pos_4 :usize
+            value:
+              index :i32
+                on:
+                  __iter_evals_2 :i32[]
+                ix:
+                  __iter_pos_4 :usize
+          }
+        assign
+          target:
+            __iter_pos_4 :usize
+          value:
+            add :usize
+              l:
+                __iter_pos_4 :usize
+              r:
+                int(1) :usize
+        let __tup_5: Entry<string, i32> = __for_18_5 :Entry<string, i32>
+        let k: string =
+          .key :string
+            __tup_5 :Entry<string, i32>
+        let v: i32 =
+          .value :i32
+            __tup_5 :Entry<string, i32>
+        call :void
+          callee:
+            std_io$std_io$println__string :void
+          arg0:
+            block :string
+              let __sb_6: StringBuilder =
+                call :StringBuilder
+                  callee:
+                    new_builder :StringBuilder
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_6 :StringBuilder
+                arg1:
+                  call :string
                     callee:
-                      append :void
+                      std_core$string$Display$to_string :string
                     arg0:
-                      __sb_7 :StringBuilder
-                    arg1:
-                      call :string
-                        callee:
-                          std_core$string$Display$to_string :string
-                        arg0:
-                          k :string
-                  call :void
+                      k :string
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_6 :StringBuilder
+                arg1:
+                  "=" :string
+              call :void
+                callee:
+                  append :void
+                arg0:
+                  __sb_6 :StringBuilder
+                arg1:
+                  call :string
                     callee:
-                      append :void
+                      std_core$i32$Display$to_string :string
                     arg0:
-                      __sb_7 :StringBuilder
-                    arg1:
-                      "=" :string
-                  call :void
-                    callee:
-                      append :void
-                    arg0:
-                      __sb_7 :StringBuilder
-                    arg1:
-                      call :string
-                        callee:
-                          std_core$i32$Display$to_string :string
-                        arg0:
-                          v :i32
-                  ~>
-                    call :string
-                      callee:
-                        std_string_builder$StringBuilder$Display$to_string :string
-                      arg0:
-                        __sb_7 :StringBuilder
-            assign
-              target:
+                      v :i32
+              ~>
+                call :string
+                  callee:
+                    std_string_builder$StringBuilder$Display$to_string :string
+                  arg0:
+                    __sb_6 :StringBuilder
+        assign
+          target:
+            sum :i32
+          value:
+            add :i32
+              l:
                 sum :i32
-              value:
-                add :i32
-                  l:
-                    sum :i32
-                  r:
-                    v :i32
+              r:
+                v :i32
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_8: StringBuilder =
+          let __sb_7: StringBuilder =
             call :StringBuilder
               callee:
                 new_builder :StringBuilder
@@ -162,14 +161,14 @@
             callee:
               append :void
             arg0:
-              __sb_8 :StringBuilder
+              __sb_7 :StringBuilder
             arg1:
               "sum=" :string
           call :void
             callee:
               append :void
             arg0:
-              __sb_8 :StringBuilder
+              __sb_7 :StringBuilder
             arg1:
               call :string
                 callee:
@@ -181,5 +180,5 @@
               callee:
                 std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                __sb_8 :StringBuilder
+                __sb_7 :StringBuilder
     return int(0) :i32

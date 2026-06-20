@@ -1,66 +1,66 @@
 module _main
 type 0 primitive null
-type 1 primitive string
-type 2 primitive void
-type 3 primitive i32
-type 4 union 3,0,1
-string 0 "\n"
-string 1 "an int"
-string 2 "a string"
-string 3 "nothing"
-string 4 "hi"
+type 1 union 2,0,3
+type 2 primitive i32
+type 3 primitive string
+type 4 primitive void
+string 0 "an int"
+string 1 "a string"
+string 2 "nothing"
+string 3 "hi"
+string 4 "\n"
 import 0 write std_io$write (i32,string) -> void
-export main 2
+export main 1
 
-fn 0 std_io$std_io$println__string (string) -> void
+fn 0 snippet$describe (ref) -> string
+  local __scrut_0 ref
+  local.get 0
+  local.tee 1
+  type_check 2
+  if $L0 void
+    return.lit string.const 0
+  end $L0
+  local.get 1
+  type_check 3
+  if $L1 void
+    return.lit string.const 1
+  end $L1
+  local.get 1
+  type_check 0
+  if $L2 void
+    return.lit string.const 2
+  end $L2
+  return
+end
+
+fn 1 snippet$main () -> i32
+  i32.const 42
+  call 0
+  call 3
+  string.const 3
+  call 0
+  call 3
+  null.const
+  call 0
+  call 3
+  return.lit i32.const 0
+end
+
+fn 2 std_core$string$Display$to_string (string) -> string
+  local.get 0
+  return
+end
+
+fn 3 std_io$std_io$println__string (string) -> void
   local $call_2 string
   local.get 0
-  call 3
+  call 2
   local.set 1
   i32.const 0
   local.get 1
   call.import 0
   i32.const 0
-  string.const 0
-  call.import 0
-  return
-end
-
-fn 1 snippet$describe (ref) -> string
-  local __scrut_0 ref
-  local.get 0
-  local.tee 1
-  type_check 3
-  if $L0 void
-    return.lit string.const 1
-  end $L0
-  local.get 1
-  type_check 1
-  if $L1 void
-    return.lit string.const 2
-  end $L1
-  local.get 1
-  type_check 0
-  if $L2 void
-    return.lit string.const 3
-  end $L2
-  return
-end
-
-fn 2 snippet$main () -> i32
-  i32.const 42
-  call 1
-  call 0
   string.const 4
-  call 1
-  call 0
-  null.const
-  call 1
-  call 0
-  return.lit i32.const 0
-end
-
-fn 3 std_core$string$Display$to_string (string) -> string
-  local.get 0
+  call.import 0
   return
 end

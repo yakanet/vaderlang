@@ -28,9 +28,15 @@
   fn snippet$main() -> i32
     let keyed: MutableMap<i64, i32> =
       MutableMap<i64, i32> {
-        buckets:
-          array :(Entry<K, V> | null)[]
+        ekeys:
+          array :K[]
+        evals:
+          array :V[]
+        index:
+          array :i32[]
+        mask: int(0) :usize
         size: int(0) :usize
+        tombs: int(0) :usize
       }
     let anchor: i64 = int(9000000000) :i64
     call :void
@@ -87,9 +93,15 @@
                 __sb_0 :StringBuilder
     let valued: MutableMap<i32, i64> =
       MutableMap<i32, i64> {
-        buckets:
-          array :(Entry<K, V> | null)[]
+        ekeys:
+          array :K[]
+        evals:
+          array :V[]
+        index:
+          array :i32[]
+        mask: int(0) :usize
         size: int(0) :usize
+        tombs: int(0) :usize
       }
     call :void
       callee:
@@ -145,9 +157,15 @@
                 __sb_1 :StringBuilder
     let setkey: MutableMap<i64, i32> =
       MutableMap<i64, i32> {
-        buckets:
-          array :(Entry<K, V> | null)[]
+        ekeys:
+          array :K[]
+        evals:
+          array :V[]
+        index:
+          array :i32[]
+        mask: int(0) :usize
         size: int(0) :usize
+        tombs: int(0) :usize
       }
     call :void
       callee:

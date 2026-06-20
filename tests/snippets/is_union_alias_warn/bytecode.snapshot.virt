@@ -1,43 +1,24 @@
 module _main
 type 0 primitive null
-type 1 primitive string
-type 2 primitive void
-type 3 primitive i32
-type 4 primitive bool
-type 5 union 6,7,3
-type 6 struct snippet$Cat { name:1 }
-type 7 struct snippet$Dog { sound:1 }
-type 8 union 4,3,1
-type 9 union 6,7
-type 10 union 3,1
-string 0 "\n"
-string 1 "unreachable"
-string 2 "checked"
-string 3 "felix"
-string 4 "matched"
+type 1 union 2,3,4
+type 2 struct snippet$Cat { name:5 }
+type 3 struct snippet$Dog { sound:5 }
+type 4 primitive i32
+type 5 primitive string
+type 6 union 7,4,5
+type 7 primitive bool
+type 8 primitive void
+type 9 union 2,3
+type 10 union 4,5
+string 0 "unreachable"
+string 1 "checked"
+string 2 "felix"
+string 3 "matched"
+string 4 "\n"
 import 0 write std_io$write (i32,string) -> void
-export main 4
+export main 2
 
-fn 0 std_io$std_io$println__string (string) -> void
-  local $call_2 string
-  local.get 0
-  call 1
-  local.set 1
-  i32.const 0
-  local.get 1
-  call.import 0
-  i32.const 0
-  string.const 0
-  call.import 0
-  return
-end
-
-fn 1 std_core$string$Display$to_string (string) -> string
-  local.get 0
-  return
-end
-
-fn 2 snippet$classify (ref) -> string
+fn 0 snippet$classify (ref) -> string
   local and_res bool
   bool.const false
   if $L0 void
@@ -50,12 +31,12 @@ fn 2 snippet$classify (ref) -> string
   end $L0
   local.get 1
   if $L1 void
-    return.lit string.const 1
+    return.lit string.const 0
   end $L1
-  return.lit string.const 2
+  return.lit string.const 1
 end
 
-fn 3 snippet$inline_check (ref) -> bool
+fn 1 snippet$inline_check (ref) -> bool
   local and_res bool
   bool.const false
   if $L0 void
@@ -73,22 +54,41 @@ fn 3 snippet$inline_check (ref) -> bool
   return.lit bool.const false
 end
 
-fn 4 snippet$main () -> i32
-  string.const 3
-  struct.new 6
-  call 2
+fn 2 snippet$main () -> i32
+  string.const 2
+  struct.new 2
   call 0
+  call 4
   i32.const 42
-  call 2
   call 0
+  call 4
   i32.const 42
-  call 3
+  call 1
   if $L0 void
-    string.const 4
-    call 0
+    string.const 3
+    call 4
   else
   end $L0
   return.lit i32.const 0
+end
+
+fn 3 std_core$string$Display$to_string (string) -> string
+  local.get 0
+  return
+end
+
+fn 4 std_io$std_io$println__string (string) -> void
+  local $call_2 string
+  local.get 0
+  call 3
+  local.set 1
+  i32.const 0
+  local.get 1
+  call.import 0
+  i32.const 0
+  string.const 4
+  call.import 0
+  return
 end
 
 # Diagnostics

@@ -2,32 +2,32 @@ module _main
 type 0 primitive null
 type 1 primitive i32
 type 2 primitive u64
-export main 1
+export main 0
 
-fn 0 std_core$i32$Hash$hash (i32) -> u64
-  local.get 0
-  i32.to_i64
-  return
-end
-
-fn 1 snippet$main () -> i32
+fn 0 snippet$main () -> i32
   i32.const 7
-  call 2
+  call 1
   u64.to_i32
   return
 end
 
-fn 2 snippet$snippet$hash_twice__i32 (i32) -> u64
+fn 1 snippet$snippet$hash_twice__i32 (i32) -> u64
   local $call_1 u64
   local $call_2 u64
   local.get 0
-  call 0
+  call 2
   local.set 1
   local.get 0
-  call 0
+  call 2
   local.set 2
   local.get 1
   local.get 2
   i64.add
+  return
+end
+
+fn 2 std_core$i32$Hash$hash (i32) -> u64
+  local.get 0
+  i32.to_i64
   return
 end
