@@ -121,6 +121,12 @@ static vader_gen_t g_old   = { {NULL,NULL,NULL}, {NULL,NULL,NULL}, NULL, 0 };
 static int           g_gc_initialized = 0;
 static size_t        g_total_collections = 0;
 static size_t        g_total_copied = 0;
+/* Allocation volume — every vader_gc_alloc request, surviving or not. Distinct
+ * from g_total_copied (which counts only bytes that SURVIVED a collection):
+ * short-lived garbage is invisible to total_copied but shows up here. The
+ * per-pass profiler uses this to attribute raw allocation pressure. */
+static size_t        g_total_alloc_bytes = 0;
+static size_t        g_total_alloc_count = 0;
 
 /* Hard caps on auto-grow, per semi-space. Default to the compile-time defines
  * but are env-tunable (VADER_GC_OLD_MAX / VADER_GC_YOUNG_MAX) so a too-large
@@ -1038,6 +1044,10 @@ static void vader_young_maybe_grow_adaptive(void) {
 
 void* vader_gc_alloc(size_t bytes) {
     if (VADER_UNLIKELY(!g_gc_initialized)) vader_gc_init();
+    /* Count raw requested bytes (same basis as g_total_copied) so the profiler
+     * can report an alloc'd-vs-survived ratio. One increment per call. */
+    g_total_alloc_bytes += bytes;
+    g_total_alloc_count += 1;
     size_t aligned = vader_gc_align(bytes);
     /* A single object bigger than a young semi-space can never fit, however
      * much we collect — grow young to hold it (relocating the live set into a
@@ -1564,6 +1574,8 @@ vader_gc_stats_t vader_gc_get_stats(void) {
     }
     s.total_collections = g_total_collections;
     s.total_copied = g_total_copied;
+    s.total_alloc_bytes = g_total_alloc_bytes;
+    s.total_alloc_count = g_total_alloc_count;
     return s;
 }
 
@@ -1599,12 +1611,15 @@ static int       g_prof_atexit_armed = 0;
 static int64_t   g_prof_wall_ns[VADER_PROF_MAX_PHASES];
 static int64_t   g_prof_rss_growth[VADER_PROF_MAX_PHASES]; /* peak-RSS delta, bytes */
 static int64_t   g_prof_copied[VADER_PROF_MAX_PHASES];     /* GC bytes copied */
+static int64_t   g_prof_alloc[VADER_PROF_MAX_PHASES];      /* bytes requested via gc_alloc */
+static int64_t   g_prof_alloc_count[VADER_PROF_MAX_PHASES];/* gc_alloc calls */
 static int64_t   g_prof_coll[VADER_PROF_MAX_PHASES];       /* GC cycles */
 static int64_t   g_prof_calls[VADER_PROF_MAX_PHASES];      /* times entered */
 /* In-flight snapshot — passes are sequential, so one slot suffices.
  * g_prof_current holds the phase id currently bracketed (-1 = idle) so a
  * nested prof_begin trips a loud warning rather than silently misattributing. */
 static int64_t   g_prof_t0, g_prof_rss0, g_prof_copied0, g_prof_coll0;
+static int64_t   g_prof_alloc0, g_prof_alloc_count0;
 static int       g_prof_current = -1;
 
 /* All query helpers are internal — the profiler is the only consumer. The
@@ -1669,10 +1684,12 @@ void vader_prof_begin(int32_t phase_id) {
     g_prof_current = phase_id;
     /* One stats read serves both GC deltas (copied + collections). */
     vader_gc_stats_t s = vader_gc_get_stats();
-    g_prof_rss0    = vader_prof_max_rss_bytes();
-    g_prof_copied0 = (int64_t) s.total_copied;
-    g_prof_coll0   = (int64_t) s.total_collections;
-    g_prof_t0      = vader_clock_monotonic_ns();   /* start the clock last */
+    g_prof_rss0         = vader_prof_max_rss_bytes();
+    g_prof_copied0      = (int64_t) s.total_copied;
+    g_prof_coll0        = (int64_t) s.total_collections;
+    g_prof_alloc0       = (int64_t) s.total_alloc_bytes;
+    g_prof_alloc_count0 = (int64_t) s.total_alloc_count;
+    g_prof_t0           = vader_clock_monotonic_ns();   /* start the clock last */
 }
 
 void vader_prof_end(int32_t phase_id) {
@@ -1682,9 +1699,11 @@ void vader_prof_end(int32_t phase_id) {
     vader_gc_stats_t s = vader_gc_get_stats();
     g_prof_wall_ns[phase_id]    += t1 - g_prof_t0;
     g_prof_rss_growth[phase_id] += vader_prof_max_rss_bytes() - g_prof_rss0;
-    g_prof_copied[phase_id]     += (int64_t) s.total_copied - g_prof_copied0;
-    g_prof_coll[phase_id]       += (int64_t) s.total_collections - g_prof_coll0;
-    g_prof_calls[phase_id]      += 1;
+    g_prof_copied[phase_id]      += (int64_t) s.total_copied - g_prof_copied0;
+    g_prof_alloc[phase_id]       += (int64_t) s.total_alloc_bytes - g_prof_alloc0;
+    g_prof_alloc_count[phase_id] += (int64_t) s.total_alloc_count - g_prof_alloc_count0;
+    g_prof_coll[phase_id]        += (int64_t) s.total_collections - g_prof_coll0;
+    g_prof_calls[phase_id]       += 1;
     g_prof_current = -1;
 }
 
@@ -1695,33 +1714,40 @@ void vader_prof_dump(void) {
     if (g_prof_dumped) return;   /* explicit call + atexit fallback must not double-print */
     g_prof_dumped = 1;
     int64_t total_wall = 0, total_copied = 0, total_coll = 0;
+    int64_t total_alloc = 0, total_alloc_count = 0;
     for (int i = 0; i < VADER_PROF_MAX_PHASES; i++) {
-        total_wall   += g_prof_wall_ns[i];
-        total_copied += g_prof_copied[i];
-        total_coll   += g_prof_coll[i];
+        total_wall        += g_prof_wall_ns[i];
+        total_copied      += g_prof_copied[i];
+        total_alloc       += g_prof_alloc[i];
+        total_alloc_count += g_prof_alloc_count[i];
+        total_coll        += g_prof_coll[i];
     }
     if (total_wall == 0) return; /* nothing was bracketed */
     fprintf(stderr,
         "\n[VADER_PROFILE] per-pass self-compile profile\n"
-        "  %-11s %9s %6s %10s %10s %6s %5s\n",
-        "PASS", "WALL", "%WALL", "RSS-GROWTH", "GC-COPIED", "CYCLE", "CALLS");
+        "  %-11s %9s %6s %10s %10s %10s %8s %6s %5s\n",
+        "PASS", "WALL", "%WALL", "RSS-GROWTH", "GC-COPIED", "ALLOC'D", "OBJS/M", "CYCLE", "CALLS");
     for (int i = 0; i < VADER_PROF_MAX_PHASES; i++) {
         if (g_prof_calls[i] == 0) continue;
-        double ms  = (double) g_prof_wall_ns[i] / 1.0e6;
-        double pct = total_wall > 0 ? 100.0 * (double) g_prof_wall_ns[i] / (double) total_wall : 0.0;
-        double rss = (double) g_prof_rss_growth[i] / (1024.0 * 1024.0);
-        double cop = (double) g_prof_copied[i] / (1024.0 * 1024.0);
+        double ms   = (double) g_prof_wall_ns[i] / 1.0e6;
+        double pct  = total_wall > 0 ? 100.0 * (double) g_prof_wall_ns[i] / (double) total_wall : 0.0;
+        double rss  = (double) g_prof_rss_growth[i] / (1024.0 * 1024.0);
+        double cop  = (double) g_prof_copied[i] / (1024.0 * 1024.0);
+        double alc  = (double) g_prof_alloc[i] / (1024.0 * 1024.0);
+        double objs = (double) g_prof_alloc_count[i] / 1.0e6;
         fprintf(stderr,
-            "  %-11s %7.1fms %5.1f%% %+9.1fM %9.1fM %6lld %5lld\n",
+            "  %-11s %7.1fms %5.1f%% %+9.1fM %9.1fM %9.1fM %7.2fM %6lld %5lld\n",
             g_prof_names[i] ? g_prof_names[i] : "?",
-            ms, pct, rss, cop,
+            ms, pct, rss, cop, alc, objs,
             (long long) g_prof_coll[i], (long long) g_prof_calls[i]);
     }
     fprintf(stderr,
-        "  %-11s %7.1fms %5.1f%% %+9.1fM %9.1fM %6lld\n",
+        "  %-11s %7.1fms %5.1f%% %+9.1fM %9.1fM %9.1fM %7.2fM %6lld\n",
         "TOTAL", (double) total_wall / 1.0e6, 100.0,
         (double) vader_prof_max_rss_bytes() / (1024.0 * 1024.0),
         (double) total_copied / (1024.0 * 1024.0),
+        (double) total_alloc / (1024.0 * 1024.0),
+        (double) total_alloc_count / 1.0e6,
         (long long) total_coll);
     fprintf(stderr,
         "  peak-RSS %.1f MB | RSS-now %.1f MB | live-set %.1f MB\n",
