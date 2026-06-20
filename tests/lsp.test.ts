@@ -347,6 +347,8 @@ main :: fn() -> i32 {
     p :: Point { .x = 1, .y = 2 }
     return p.x
 }
+
+magnitude :: fn(self: Point) -> i32 = self.x + self.y
 `;
 
 test("lsp: completion after `.` lists struct fields + impl methods", async () => {
@@ -364,6 +366,8 @@ test("lsp: completion after `.` lists struct fields + impl methods", async () =>
   expect(labels.has("y")).toBe(true);
   // Impl method on Point.
   expect(labels.has("greet")).toBe(true);
+  // Free-fn UFCS method on Point (`magnitude :: fn(self: Point)` → `p.magnitude()`).
+  expect(labels.has("magnitude")).toBe(true);
   // Member completion is receiver-scoped — no top-level idents / keywords leak.
   expect(labels.has("main")).toBe(false);
   expect(labels.has("return")).toBe(false);
