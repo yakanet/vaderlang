@@ -75,9 +75,9 @@
     let m: MutableMap<string, i32> =
       MutableMap<string, i32> {
         ekeys:
-          array :K[]
+          array :string[]
         evals:
-          array :V[]
+          array :i32[]
         index:
           array :i32[]
         mask: int(0) :usize
@@ -197,9 +197,9 @@
         inner:
           MutableMap<i32, bool> {
             ekeys:
-              array :K[]
+              array :i32[]
             evals:
-              array :V[]
+              array :bool[]
             index:
               array :i32[]
             mask: int(0) :usize

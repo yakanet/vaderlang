@@ -28,10 +28,6 @@ type 25 array 7
 type 26 array 9
 type 27 array 13
 type 28 struct std_string_builder$StringBuilder { parts:21 }
-type 29 array 30
-type 30 ref _
-type 31 array 32
-type 32 ref _
 string 0 "u8 size="
 string 1 " k7="
 string 2 " k19="
@@ -97,9 +93,9 @@ fn 0 snippet$main () -> i32
   local $unop_91 i16
   local kbig i64
   local knegbig i64
-  array.new 29 0
+  array.new 18 0
   local.set 0
-  array.new 31 0
+  array.new 23 0
   local.set 1
   array.new 23 0
   local.set 2
@@ -211,9 +207,9 @@ fn 0 snippet$main () -> i32
   local.get 1
   call 67
   call 19
-  array.new 29 0
+  array.new 26 0
   local.set 0
-  array.new 31 0
+  array.new 23 0
   local.set 1
   array.new 23 0
   local.set 2
@@ -305,9 +301,9 @@ fn 0 snippet$main () -> i32
   local.get 1
   call 67
   call 19
-  array.new 29 0
+  array.new 24 0
   local.set 0
-  array.new 31 0
+  array.new 23 0
   local.set 1
   array.new 23 0
   local.set 2
@@ -403,9 +399,9 @@ fn 0 snippet$main () -> i32
   local.get 1
   call 67
   call 19
-  array.new 29 0
+  array.new 22 0
   local.set 0
-  array.new 31 0
+  array.new 23 0
   local.set 1
   array.new 23 0
   local.set 2
@@ -500,9 +496,9 @@ fn 0 snippet$main () -> i32
   local.get 1
   call 67
   call 19
-  array.new 29 0
+  array.new 25 0
   local.set 0
-  array.new 31 0
+  array.new 23 0
   local.set 1
   array.new 23 0
   local.set 2
@@ -568,9 +564,9 @@ fn 0 snippet$main () -> i32
   local.get 1
   call 67
   call 19
-  array.new 29 0
+  array.new 27 0
   local.set 0
-  array.new 31 0
+  array.new 23 0
   local.set 1
   array.new 23 0
   local.set 2
@@ -1135,8 +1131,8 @@ end
 fn 33 std_collections$std_collections$ensure_index__char__i32 (ref) -> void
   local $len_2 usize
   local $k_3 usize
-  local $arr_5 ref
-  local $k_14 usize
+  local idx ref
+  local $k_12 usize
   local.field 0 2 2
   array.len
   local.set 1
@@ -1146,16 +1142,6 @@ fn 33 std_collections$std_collections$ensure_index__char__i32 (ref) -> void
   local.get 2
   i64.eq
   if $L0 void
-    array.new 22 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 2 0
-    array.new 23 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 2 1
     array.new 23 0
     local.set 3
     i64.const 0
@@ -1204,8 +1190,8 @@ end
 fn 34 std_collections$std_collections$ensure_index__i16__i32 (ref) -> void
   local $len_2 usize
   local $k_3 usize
-  local $arr_5 ref
-  local $k_14 usize
+  local idx ref
+  local $k_12 usize
   local.field 0 4 2
   array.len
   local.set 1
@@ -1215,16 +1201,6 @@ fn 34 std_collections$std_collections$ensure_index__i16__i32 (ref) -> void
   local.get 2
   i64.eq
   if $L0 void
-    array.new 24 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 4 0
-    array.new 23 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 4 1
     array.new 23 0
     local.set 3
     i64.const 0
@@ -1273,8 +1249,8 @@ end
 fn 35 std_collections$std_collections$ensure_index__i64__i32 (ref) -> void
   local $len_2 usize
   local $k_3 usize
-  local $arr_5 ref
-  local $k_14 usize
+  local idx ref
+  local $k_12 usize
   local.field 0 6 2
   array.len
   local.set 1
@@ -1284,16 +1260,6 @@ fn 35 std_collections$std_collections$ensure_index__i64__i32 (ref) -> void
   local.get 2
   i64.eq
   if $L0 void
-    array.new 25 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 6 0
-    array.new 23 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 6 1
     array.new 23 0
     local.set 3
     i64.const 0
@@ -1342,8 +1308,8 @@ end
 fn 36 std_collections$std_collections$ensure_index__u16__i32 (ref) -> void
   local $len_2 usize
   local $k_3 usize
-  local $arr_5 ref
-  local $k_14 usize
+  local idx ref
+  local $k_12 usize
   local.field 0 8 2
   array.len
   local.set 1
@@ -1353,16 +1319,6 @@ fn 36 std_collections$std_collections$ensure_index__u16__i32 (ref) -> void
   local.get 2
   i64.eq
   if $L0 void
-    array.new 26 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 8 0
-    array.new 23 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 8 1
     array.new 23 0
     local.set 3
     i64.const 0
@@ -1411,8 +1367,8 @@ end
 fn 37 std_collections$std_collections$ensure_index__u8__i32 (ref) -> void
   local $len_2 usize
   local $k_3 usize
-  local $arr_5 ref
-  local $k_14 usize
+  local idx ref
+  local $k_12 usize
   local.field 0 10 2
   array.len
   local.set 1
@@ -1422,16 +1378,6 @@ fn 37 std_collections$std_collections$ensure_index__u8__i32 (ref) -> void
   local.get 2
   i64.eq
   if $L0 void
-    array.new 18 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 10 0
-    array.new 23 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 10 1
     array.new 23 0
     local.set 3
     i64.const 0
@@ -1480,8 +1426,8 @@ end
 fn 38 std_collections$std_collections$ensure_index__usize__i32 (ref) -> void
   local $len_2 usize
   local $k_3 usize
-  local $arr_5 ref
-  local $k_14 usize
+  local idx ref
+  local $k_12 usize
   local.field 0 12 2
   array.len
   local.set 1
@@ -1491,16 +1437,6 @@ fn 38 std_collections$std_collections$ensure_index__usize__i32 (ref) -> void
   local.get 2
   i64.eq
   if $L0 void
-    array.new 27 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 12 0
-    array.new 23 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 12 1
     array.new 23 0
     local.set 3
     i64.const 0

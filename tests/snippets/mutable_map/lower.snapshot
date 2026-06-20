@@ -5,9 +5,9 @@
     let m: MutableMap<i32, i32> =
       MutableMap<i32, i32> {
         ekeys:
-          array :K[]
+          array :i32[]
         evals:
-          array :V[]
+          array :i32[]
         index:
           array :i32[]
         mask: int(0) :usize

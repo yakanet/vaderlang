@@ -22,11 +22,7 @@ type 19 union 0,20
 type 20 struct snippet_lib$Out { first:1 }
 type 21 struct snippet_lib$Wrap { items:17 }
 type 22 struct std_string_builder$StringBuilder { parts:12 }
-type 23 array 24
-type 24 ref _
-type 25 array 26
-type 26 ref _
-type 27 union 1,0,21
+type 23 union 1,0,21
 string 0 "null"
 string 1 "0"
 string 2 "\n"
@@ -49,9 +45,9 @@ fn 0 snippet$main () -> i32
   local $k_4 usize
   local $k_5 usize
   local $call_23 string
-  array.new 23 0
+  array.new 17 0
   local.set 0
-  array.new 25 0
+  array.new 18 0
   local.set 1
   array.new 17 0
   local.set 2
@@ -287,8 +283,8 @@ end
 fn 10 std_collections$std_collections$ensure_index__i32__Any (ref) -> void
   local $len_2 usize
   local $k_3 usize
-  local $arr_5 ref
-  local $k_14 usize
+  local idx ref
+  local $k_12 usize
   local.field 0 15 2
   array.len
   local.set 1
@@ -298,16 +294,6 @@ fn 10 std_collections$std_collections$ensure_index__i32__Any (ref) -> void
   local.get 2
   i64.eq
   if $L0 void
-    array.new 17 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 15 0
-    array.new 18 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 15 1
     array.new 17 0
     local.set 3
     i64.const 0

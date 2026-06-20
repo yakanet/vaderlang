@@ -90,11 +90,6 @@ slot_for :: fn(h: u64, mask: usize) -> usize = usize(h) & mask
 // call from every mutating entry point. Mirrors the old `ensure_buckets`.
 ensure_index :: fn<K, V>(self: MutableMap<K, V>) -> void {
     if self.index.len() == 0 {
-        // Reassign fresh arrays on first use. (Needed for raw-key maps cross
-        // module; an erased-key map then hits a separate stale-receiver
-        // miscompile on the Index-get path — see TODO.md bug #3.)
-        self.ekeys = []
-        self.evals = []
         idx: i32[] = []
         for 0..<MINIMAL_INDEX_COUNT { idx.push(EMPTY_SLOT) }
         self.index = idx

@@ -48,11 +48,7 @@ type 45 array 6
 type 46 array 7
 type 47 array 10
 type 48 struct std_string_builder$StringBuilder { parts:19 }
-type 49 array 50
-type 50 ref _
-type 51 array 52
-type 52 ref _
-type 53 array 12
+type 49 array 12
 string 0 "x"
 string 1 "y"
 string 2 "u8 x: missing"
@@ -180,9 +176,9 @@ fn 0 snippet$main () -> i32
   local $k_93 f32
   local $unop_136 i16
   local $k_157 u16
-  array.new 49 0
+  array.new 19 0
   local.set 0
-  array.new 51 0
+  array.new 16 0
   local.set 1
   array.new 40 0
   local.set 2
@@ -248,9 +244,9 @@ fn 0 snippet$main () -> i32
     call 107
     call 47
   end $L0
-  array.new 49 0
+  array.new 19 0
   local.set 1
-  array.new 51 0
+  array.new 41 0
   local.set 2
   array.new 40 0
   local.set 8
@@ -323,9 +319,9 @@ fn 0 snippet$main () -> i32
     call 107
     call 47
   end $L2
-  array.new 49 0
+  array.new 19 0
   local.set 1
-  array.new 51 0
+  array.new 42 0
   local.set 2
   array.new 40 0
   local.set 8
@@ -387,9 +383,9 @@ fn 0 snippet$main () -> i32
     call 107
     call 47
   end $L3
-  array.new 49 0
+  array.new 19 0
   local.set 1
-  array.new 51 0
+  array.new 43 0
   local.set 2
   array.new 40 0
   local.set 8
@@ -438,9 +434,9 @@ fn 0 snippet$main () -> i32
     call 107
     call 47
   end $L4
-  array.new 49 0
+  array.new 19 0
   local.set 1
-  array.new 51 0
+  array.new 44 0
   local.set 2
   array.new 40 0
   local.set 8
@@ -487,9 +483,9 @@ fn 0 snippet$main () -> i32
     call 107
     call 47
   end $L5
-  array.new 49 0
+  array.new 19 0
   local.set 1
-  array.new 51 0
+  array.new 45 0
   local.set 2
   array.new 40 0
   local.set 8
@@ -539,9 +535,9 @@ fn 0 snippet$main () -> i32
     call 107
     call 47
   end $L6
-  array.new 49 0
+  array.new 19 0
   local.set 1
-  array.new 51 0
+  array.new 47 0
   local.set 2
   array.new 40 0
   local.set 8
@@ -590,9 +586,9 @@ fn 0 snippet$main () -> i32
     call 107
     call 47
   end $L7
-  array.new 49 0
+  array.new 19 0
   local.set 1
-  array.new 51 0
+  array.new 46 0
   local.set 2
   array.new 40 0
   local.set 8
@@ -3683,7 +3679,7 @@ fn 24 std_core$d2d (u64,u64) -> ref
     local.get 351
     local.get 352
     local.get 353
-    array.new 53 342
+    array.new 49 342
     local.set 354
     local.get 13
     i32.to_i64
@@ -4718,7 +4714,7 @@ fn 24 std_core$d2d (u64,u64) -> ref
     local.get 357
     local.get 358
     local.get 359
-    array.new 53 342
+    array.new 49 342
     local.set 354
     local.get 13
     i32.to_i64
@@ -5817,7 +5813,7 @@ fn 24 std_core$d2d (u64,u64) -> ref
     local.get 338
     local.get 339
     local.get 340
-    array.new 53 326
+    array.new 49 326
     local.set 354
     local.get 2
     i32.to_i64
@@ -6804,7 +6800,7 @@ fn 24 std_core$d2d (u64,u64) -> ref
     local.get 339
     local.get 340
     local.get 341
-    array.new 53 326
+    array.new 49 326
     local.set 354
     local.get 2
     i32.to_i64
@@ -7540,7 +7536,7 @@ fn 28 std_core$mul_pow5_inv_div_pow2 (u32,i32,i32) -> u32
   local.get 55
   local.get 56
   local.get 57
-  array.new 53 55
+  array.new 49 55
   local.set 58
   local.get 1
   i32.to_i64
@@ -7774,7 +7770,7 @@ fn 31 std_core$mul_pow5_div_pow2 (u32,i32,i32) -> u32
   local.get 47
   local.get 48
   local.get 49
-  array.new 53 47
+  array.new 49 47
   local.set 50
   local.get 1
   i32.to_i64
@@ -8946,8 +8942,8 @@ end
 fn 65 std_collections$std_collections$ensure_index__string__bool (ref) -> void
   local $len_2 usize
   local $k_3 usize
-  local $arr_5 ref
-  local $k_14 usize
+  local idx ref
+  local $k_12 usize
   local.field 0 25 2
   array.len
   local.set 1
@@ -8957,16 +8953,6 @@ fn 65 std_collections$std_collections$ensure_index__string__bool (ref) -> void
   local.get 2
   i64.eq
   if $L0 void
-    array.new 19 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 25 0
-    array.new 41 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 25 1
     array.new 40 0
     local.set 3
     i64.const 0
@@ -9015,8 +9001,8 @@ end
 fn 66 std_collections$std_collections$ensure_index__string__char (ref) -> void
   local $len_2 usize
   local $k_3 usize
-  local $arr_5 ref
-  local $k_14 usize
+  local idx ref
+  local $k_12 usize
   local.field 0 26 2
   array.len
   local.set 1
@@ -9026,16 +9012,6 @@ fn 66 std_collections$std_collections$ensure_index__string__char (ref) -> void
   local.get 2
   i64.eq
   if $L0 void
-    array.new 19 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 26 0
-    array.new 42 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 26 1
     array.new 40 0
     local.set 3
     i64.const 0
@@ -9084,8 +9060,8 @@ end
 fn 67 std_collections$std_collections$ensure_index__string__f32 (ref) -> void
   local $len_2 usize
   local $k_3 usize
-  local $arr_5 ref
-  local $k_14 usize
+  local idx ref
+  local $k_12 usize
   local.field 0 28 2
   array.len
   local.set 1
@@ -9095,16 +9071,6 @@ fn 67 std_collections$std_collections$ensure_index__string__f32 (ref) -> void
   local.get 2
   i64.eq
   if $L0 void
-    array.new 19 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 28 0
-    array.new 43 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 28 1
     array.new 40 0
     local.set 3
     i64.const 0
@@ -9153,8 +9119,8 @@ end
 fn 68 std_collections$std_collections$ensure_index__string__f64 (ref) -> void
   local $len_2 usize
   local $k_3 usize
-  local $arr_5 ref
-  local $k_14 usize
+  local idx ref
+  local $k_12 usize
   local.field 0 30 2
   array.len
   local.set 1
@@ -9164,16 +9130,6 @@ fn 68 std_collections$std_collections$ensure_index__string__f64 (ref) -> void
   local.get 2
   i64.eq
   if $L0 void
-    array.new 19 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 30 0
-    array.new 44 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 30 1
     array.new 40 0
     local.set 3
     i64.const 0
@@ -9222,8 +9178,8 @@ end
 fn 69 std_collections$std_collections$ensure_index__string__i16 (ref) -> void
   local $len_2 usize
   local $k_3 usize
-  local $arr_5 ref
-  local $k_14 usize
+  local idx ref
+  local $k_12 usize
   local.field 0 32 2
   array.len
   local.set 1
@@ -9233,16 +9189,6 @@ fn 69 std_collections$std_collections$ensure_index__string__i16 (ref) -> void
   local.get 2
   i64.eq
   if $L0 void
-    array.new 19 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 32 0
-    array.new 45 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 32 1
     array.new 40 0
     local.set 3
     i64.const 0
@@ -9291,8 +9237,8 @@ end
 fn 70 std_collections$std_collections$ensure_index__string__i64 (ref) -> void
   local $len_2 usize
   local $k_3 usize
-  local $arr_5 ref
-  local $k_14 usize
+  local idx ref
+  local $k_12 usize
   local.field 0 34 2
   array.len
   local.set 1
@@ -9302,16 +9248,6 @@ fn 70 std_collections$std_collections$ensure_index__string__i64 (ref) -> void
   local.get 2
   i64.eq
   if $L0 void
-    array.new 19 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 34 0
-    array.new 46 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 34 1
     array.new 40 0
     local.set 3
     i64.const 0
@@ -9360,8 +9296,8 @@ end
 fn 71 std_collections$std_collections$ensure_index__string__u16 (ref) -> void
   local $len_2 usize
   local $k_3 usize
-  local $arr_5 ref
-  local $k_14 usize
+  local idx ref
+  local $k_12 usize
   local.field 0 36 2
   array.len
   local.set 1
@@ -9371,16 +9307,6 @@ fn 71 std_collections$std_collections$ensure_index__string__u16 (ref) -> void
   local.get 2
   i64.eq
   if $L0 void
-    array.new 19 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 36 0
-    array.new 47 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 36 1
     array.new 40 0
     local.set 3
     i64.const 0
@@ -9429,8 +9355,8 @@ end
 fn 72 std_collections$std_collections$ensure_index__string__u8 (ref) -> void
   local $len_2 usize
   local $k_3 usize
-  local $arr_5 ref
-  local $k_14 usize
+  local idx ref
+  local $k_12 usize
   local.field 0 38 2
   array.len
   local.set 1
@@ -9440,16 +9366,6 @@ fn 72 std_collections$std_collections$ensure_index__string__u8 (ref) -> void
   local.get 2
   i64.eq
   if $L0 void
-    array.new 19 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 38 0
-    array.new 16 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 38 1
     array.new 40 0
     local.set 3
     i64.const 0

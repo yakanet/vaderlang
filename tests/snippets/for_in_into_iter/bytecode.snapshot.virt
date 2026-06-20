@@ -23,11 +23,7 @@ type 20 struct std_string$StringChars { bytes:7,cursor:3,length:3 }
 type 21 union 0,11
 type 22 struct __Tuple_56 { _0:12,_1:3 }
 type 23 struct std_string_builder$StringBuilder { parts:13 }
-type 24 array 25
-type 25 ref _
-type 26 array 27
-type 27 ref _
-type 28 union 11,0
+type 24 union 11,0
 string 0 "arr="
 string 1 "a"
 string 2 "b"
@@ -120,9 +116,9 @@ fn 0 snippet$main () -> i32
   local.get 1
   call 28
   call 6
-  array.new 24 0
+  array.new 13 0
   local.set 1
-  array.new 26 0
+  array.new 18 0
   local.set 7
   array.new 18 0
   local.set 8
@@ -212,9 +208,9 @@ fn 0 snippet$main () -> i32
   local.get 1
   call 28
   call 6
-  array.new 24 0
+  array.new 18 0
   local.set 1
-  array.new 26 0
+  array.new 19 0
   local.set 7
   array.new 18 0
   local.set 8
@@ -521,8 +517,8 @@ end
 fn 11 std_collections$std_collections$ensure_index__i32__bool (ref) -> void
   local $len_2 usize
   local $k_3 usize
-  local $arr_5 ref
-  local $k_14 usize
+  local idx ref
+  local $k_12 usize
   local.field 0 15 2
   array.len
   local.set 1
@@ -532,16 +528,6 @@ fn 11 std_collections$std_collections$ensure_index__i32__bool (ref) -> void
   local.get 2
   i64.eq
   if $L0 void
-    array.new 18 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 15 0
-    array.new 19 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 15 1
     array.new 18 0
     local.set 3
     i64.const 0
@@ -590,8 +576,8 @@ end
 fn 12 std_collections$std_collections$ensure_index__string__i32 (ref) -> void
   local $len_2 usize
   local $k_3 usize
-  local $arr_5 ref
-  local $k_14 usize
+  local idx ref
+  local $k_12 usize
   local.field 0 16 2
   array.len
   local.set 1
@@ -601,16 +587,6 @@ fn 12 std_collections$std_collections$ensure_index__string__i32 (ref) -> void
   local.get 2
   i64.eq
   if $L0 void
-    array.new 13 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 16 0
-    array.new 18 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 16 1
     array.new 18 0
     local.set 3
     i64.const 0

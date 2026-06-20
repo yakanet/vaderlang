@@ -19,10 +19,6 @@ type 16 union 0,4
 type 17 array 1
 type 18 primitive isize
 type 19 struct std_string_builder$StringBuilder { parts:10 }
-type 20 array 21
-type 21 ref _
-type 22 array 23
-type 23 ref _
 string 0 "verbose"
 string 1 "out"
 string 2 "--verbose"
@@ -534,9 +530,9 @@ fn 10 std_cli$parse_inner (ref,ref,bool) -> ref
   local $call_96 string
   local $call_98 string
   local $k_99 usize
-  array.new 20 0
+  array.new 10 0
   local.set 3
-  array.new 22 0
+  array.new 10 0
   local.set 4
   array.new 17 0
   local.set 5
@@ -913,8 +909,8 @@ end
 fn 15 std_collections$std_collections$ensure_index__string__string (ref) -> void
   local $len_2 usize
   local $k_3 usize
-  local $arr_5 ref
-  local $k_14 usize
+  local idx ref
+  local $k_12 usize
   local.field 0 15 2
   array.len
   local.set 1
@@ -924,16 +920,6 @@ fn 15 std_collections$std_collections$ensure_index__string__string (ref) -> void
   local.get 2
   i64.eq
   if $L0 void
-    array.new 10 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 15 0
-    array.new 10 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 15 1
     array.new 17 0
     local.set 3
     i64.const 0

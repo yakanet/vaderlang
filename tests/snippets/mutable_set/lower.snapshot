@@ -7,9 +7,9 @@
         inner:
           MutableMap<i32, bool> {
             ekeys:
-              array :K[]
+              array :i32[]
             evals:
-              array :V[]
+              array :bool[]
             index:
               array :i32[]
             mask: int(0) :usize

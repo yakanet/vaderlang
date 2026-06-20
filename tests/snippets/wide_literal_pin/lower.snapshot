@@ -29,9 +29,9 @@
     let keyed: MutableMap<i64, i32> =
       MutableMap<i64, i32> {
         ekeys:
-          array :K[]
+          array :i64[]
         evals:
-          array :V[]
+          array :i32[]
         index:
           array :i32[]
         mask: int(0) :usize
@@ -94,9 +94,9 @@
     let valued: MutableMap<i32, i64> =
       MutableMap<i32, i64> {
         ekeys:
-          array :K[]
+          array :i32[]
         evals:
-          array :V[]
+          array :i64[]
         index:
           array :i32[]
         mask: int(0) :usize
@@ -158,9 +158,9 @@
     let setkey: MutableMap<i64, i32> =
       MutableMap<i64, i32> {
         ekeys:
-          array :K[]
+          array :i64[]
         evals:
-          array :V[]
+          array :i32[]
         index:
           array :i32[]
         mask: int(0) :usize
