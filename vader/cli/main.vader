@@ -45,7 +45,7 @@ import "vader/midir" { build_cfg_project, dump_cfg_project, DumpCfgOptions, emit
 import "vader/c_emit" { emit_c, EmitOptions as CEmitOptions, default_emit_options as default_c_emit_options }
 import "vader/diagnostics" { Diagnostic }
 import "vader/fmt" { run_fmt }
-import "vader/vm" { run_virt, parse_virt_bc, prepare, exec, Ok, Trap }
+import "vader/vm" { run_virt, parse_virt_bc, prepare, exec_entry, Ok, Trap }
 import "vader/lsp" { run_server }
 // `vader test` (cmd_test) — native @test discovery + per-test isolated run.
 import "std/io" { read_dir, is_dir, exists }
@@ -284,17 +284,62 @@ run_source :: fn(file: string, host_argv: string[]) -> i32 {
     escaped :: annotate_escape(dced).project
     module :: emit_bytecode_from_cfg(escaped, module_name_from_file(file), default_emit_options())
     // Feed the in-hand `BytecodeModule` straight to the VM — no `.virt` text
-    // round-trip. exec consumes `BytecodeModule` now, and the former
-    // `dump_bytecode → parse_virt_bc` hop was both pointless overhead and lossy
-    // (dump_bytecode drops the data pool). `run_virt` still parses real `.virt`
-    // files ; this is the source path.
-    return match exec(prepare(module), host_argv) {
+    // round-trip. The former `dump_bytecode → parse_virt_bc` hop was both
+    // pointless overhead and lossy (dump_bytecode drops the data pool).
+    // `run_virt` still parses real `.virt` files ; this is the source path.
+    state :: prepare(module)
+    // Run the `main` declared in the NAMED file, not the VM's default first
+    // `is_main` : sibling files in one folder merge into a single module, so a
+    // folder can hold several `main` fns and `prepare`'s `main_index` would pick
+    // the first-declared one regardless of which file was named on the CLI.
+    entry_index :: entry_index_for_file(module, le.lowered, file, state.main_index)
+    return match exec_entry(state, entry_index, host_argv) {
         is Ok   as o -> o.value
         is Trap as t -> {
             eprintln("vader vm: ${t.message}")
             1
         }
     }
+}
+
+// Resolve the VM entry index for `vader run <file>`. The default entry is the
+// first `is_main` fn (`reduce_main_index`), which is blind to which file was
+// named — so with two sibling programs `a.vader` / `b.vader` in one folder,
+// `vader run b.vader` would silently run `a.vader`'s `main`. Prefer the `main`
+// DECLARED in the named file instead. Match by file basename : sibling files of
+// a folder-module can't share a basename, so it's unambiguous and sidesteps
+// path-normalisation (absolute vs relative, `./`, symlinks). Falls back to
+// `default_index` when the named file declares no `main` of its own (e.g. a
+// library file naming an entry that lives in a sibling).
+entry_index_for_file :: fn(
+    module: BytecodeModule, lowered: LoweredProject, file: string, default_index: i32,
+) -> i32 {
+    mangled :: named_file_main_mangled(lowered, file)
+    if mangled == "" { return default_index }
+    for i in 0..<module.functions.len() {
+        if module.functions[i].name == mangled { return i32(i) }
+    }
+    return default_index
+}
+
+// Mangled name of the `main` declared in the named entry file, or "" when the
+// entry module declares no `main` whose source-file basename matches `file`.
+// Reads the lowered fn's origin AST `FnDecl` for its span's file — the same
+// `LoweredFnDecl` / `origin.decl is FnDecl` shape `find_tests` walks.
+named_file_main_mangled :: fn(lowered: LoweredProject, file: string) -> string {
+    md :: lowered.modules[lowered.entry]
+    if md == null { return "" }
+    named_base :: file.to_posix().to_path().filename()
+    for d in md.decls {
+        if d is LoweredFnDecl as fd {
+            if !fd.origin.is_main { continue }
+            if fd.origin.decl is FnDecl as ast {
+                decl_base :: ast.span.start.file.to_posix().to_path().filename()
+                if decl_base == named_base { return fd.mangled }
+            }
+        }
+    }
+    return ""
 }
 
 cmd_fmt :: fn(args: string[]) -> i32 {
