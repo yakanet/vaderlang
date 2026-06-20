@@ -5,9 +5,9 @@
     let mu8: MutableMap<u8, i32> =
       MutableMap<u8, i32> {
         ekeys:
-          array :K[]
+          array :u8[]
         evals:
-          array :V[]
+          array :i32[]
         index:
           array :i32[]
         mask: int(0) :usize
@@ -164,9 +164,9 @@
     let mu16: MutableMap<u16, i32> =
       MutableMap<u16, i32> {
         ekeys:
-          array :K[]
+          array :u16[]
         evals:
-          array :V[]
+          array :i32[]
         index:
           array :i32[]
         mask: int(0) :usize
@@ -302,9 +302,9 @@
     let mi16: MutableMap<i16, i32> =
       MutableMap<i16, i32> {
         ekeys:
-          array :K[]
+          array :i16[]
         evals:
-          array :V[]
+          array :i32[]
         index:
           array :i32[]
         mask: int(0) :usize
@@ -444,9 +444,9 @@
     let mc: MutableMap<char, i32> =
       MutableMap<char, i32> {
         ekeys:
-          array :K[]
+          array :char[]
         evals:
-          array :V[]
+          array :i32[]
         index:
           array :i32[]
         mask: int(0) :usize
@@ -606,9 +606,9 @@
     let mi64: MutableMap<i64, i32> =
       MutableMap<i64, i32> {
         ekeys:
-          array :K[]
+          array :i64[]
         evals:
-          array :V[]
+          array :i32[]
         index:
           array :i32[]
         mask: int(0) :usize
@@ -709,9 +709,9 @@
     let mus: MutableMap<usize, i32> =
       MutableMap<usize, i32> {
         ekeys:
-          array :K[]
+          array :usize[]
         evals:
-          array :V[]
+          array :i32[]
         index:
           array :i32[]
         mask: int(0) :usize

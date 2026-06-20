@@ -222,6 +222,20 @@ build_struct_mixed_subst :: fn(sd: StructDecl, owner_typed: TypedProgram, args: 
 }
 
 
+// Merge `extra`'s type-param bindings over `base` (extra wins on a key clash).
+// Used to thread a generic struct instance's type-args into the subst when
+// lowering its field DEFAULTS in the owner module's view — `base` is the caller's
+// subst, `extra` binds the struct's own type-params (`K` / `V`) to the concrete
+// instance args. Without this an `ekeys: K[] = []` default lowers as the owner's
+// erased `Any[]` (boxed) while the construction is monomorphised raw.
+merge_subst :: fn(base: Substitution, extra: Substitution) -> Substitution {
+    out :: new_substitution()
+    out.self_type = base.self_type
+    for [k, v] in base.type_params { out.type_params[k] = v }
+    for [k, v] in extra.type_params { out.type_params[k] = v }
+    return out
+}
+
 resolve_field_type :: fn(
     ty: TypeExpr, owner_typed: TypedProgram, sd: StructDecl, args: Type[],
 ) -> Type {

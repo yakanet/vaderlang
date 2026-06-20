@@ -51,13 +51,9 @@ type 48 struct std_collections$MutableMap__string__Any { ekeys:16,evals:44,index
 type 49 array 3
 type 50 array 13
 type 51 array 52
-type 52 ref _
-type 53 array 54
-type 54 ref _
-type 55 array 56
-type 56 struct __Tuple_97 { _0:1,_1:29 }
-type 57 union 8,0
-type 58 array 5
+type 52 struct __Tuple_93 { _0:1,_1:29 }
+type 53 union 8,0
+type 54 array 5
 string 0 ": error: "
 string 1 ": "
 string 2 "null"
@@ -7540,9 +7536,9 @@ fn 40 std_json$parse_object (ref) -> ref
     local.get 1
     return
   end $L0
-  array.new 51 0
+  array.new 16 0
   local.set 1
-  array.new 53 0
+  array.new 44 0
   local.set 2
   array.new 49 0
   local.set 3
@@ -8394,12 +8390,12 @@ fn 46 std_json$write_object (ref,ref,i32,i32) -> void
       if $L3 void
         local.get 6
         local.get 5
-        array.get 55
+        array.get 51
         local.set 7
-        local.field 7 56 0
+        local.field 7 52 0
         ref.cast 1
         local.set 9
-        local.field 7 56 1
+        local.field 7 52 1
         local.set 10
         local.get 8
         bool.not
@@ -9881,8 +9877,8 @@ end
 fn 71 std_collections$std_collections$ensure_index__string__Any (ref) -> void
   local $len_2 usize
   local $k_3 usize
-  local $arr_5 ref
-  local $k_14 usize
+  local idx ref
+  local $k_12 usize
   local.field 0 48 2
   array.len
   local.set 1
@@ -9892,16 +9888,6 @@ fn 71 std_collections$std_collections$ensure_index__string__Any (ref) -> void
   local.get 2
   i64.eq
   if $L0 void
-    array.new 16 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 48 0
-    array.new 44 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 48 1
     array.new 49 0
     local.set 3
     i64.const 0
@@ -10484,7 +10470,7 @@ fn 78 std_numbers$to_hex (u64) -> string
   if $L0 void
     return.lit string.const 35
   end $L0
-  array.new 58 0
+  array.new 54 0
   local.set 2
   i64.const 16
   local.set 1

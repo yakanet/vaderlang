@@ -5,7 +5,7 @@ module "vader/lower"
 
 import "std/collections" { MutableMap, values }
 
-import "vader/parser" { Expr, IdentExpr, FieldExpr, StructLitExpr, StructLitField, StructLitSpread, SeqLitExpr, DotVariantExpr }
+import "vader/parser" { Expr, IdentExpr, FieldExpr, StructLitExpr, StructLitField, StructLitSpread, SeqLitExpr, DotVariantExpr, StructDecl }
 import "vader/diagnostics" { Span }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/types" { Type, TupleType, mk_primitive, StructType, EnumType }
@@ -161,17 +161,23 @@ enum_type_or_unwrap :: fn(ctx: FnLowerCtx, type: Type) -> Type {
 // module's tables instead of the construction site's. No-op (returns `ctx`)
 // when the module isn't in the project's typed set. Mirror of TS'
 // `findForeignTyped` + the `typed`/`types` swap in `lowerExprMaybeForeign`.
-ctx_in_owning_module :: fn(ctx: FnLowerCtx, module_id: string) -> FnLowerCtx {
+ctx_in_owning_module :: fn(ctx: FnLowerCtx, module_id: string, decl: StructDecl, args: Type[]) -> FnLowerCtx {
     owner_typed :: ctx.project.evaluated.typed.modules[module_id]
     if owner_typed is null { return ctx }
-    // Keeps the caller's `subst`. A GENERIC struct's default that references the
-    // struct's own type-param (`Container(T) { data: T = mk_T() }`) would need
-    // the instance's type-args merged in (TS' `extraSubst`) ; none exist in the
-    // tree today, so that's deferred — the const-default case needs no subst.
+    // Thread the instance's type-args into the subst so a field DEFAULT that
+    // references the struct's own type-param (`ekeys: K[] = []`) lowers with `K`
+    // bound to the concrete instance arg — MIXED (primitive → concrete so the
+    // array lands RAW, ref → `Any`), matching the P2 field layout
+    // (`build_struct_mixed_subst`). Without this the default lowers in the owner's
+    // ERASED view (`K = Any` → boxed array) while the construction + later usage
+    // are monomorphised (`K = i32` → raw): a box-vs-raw representation mismatch
+    // that silently corrupts the struct cross-module (this is the TS `extraSubst`).
+    merged :: merge_subst(ctx.subst, build_struct_mixed_subst(decl, owner_typed, args))
     return FnLowerCtx {
         ...ctx,
         .typed = owner_typed,
-        .types = make_entry_types(owner_typed, ctx.subst),
+        .types = make_entry_types(owner_typed, merged),
+        .subst = merged,
     }
 }
 
@@ -193,7 +199,7 @@ build_struct_lit_fields :: fn(
             // struct is built in vader/lower → the whole struct lit degrades to a
             // drop. Lower defaults with the owning module's typed view. Mirror of
             // TS' `lowerExprMaybeForeign` (src/lower/passes/expr.ts).
-            default_ctx :: ctx_in_owning_module(ctx, st.symbol.module)
+            default_ctx :: ctx_in_owning_module(ctx, st.symbol.module, decl, st.args)
             for field_decl in decl.fields {
                 // Resolve the field's declared type so a union-typed
                 // field widens literal initializers (e.g.

@@ -8,9 +8,9 @@
         by_name:
           MutableMap<string, i32> {
             ekeys:
-              array :K[]
+              array :string[]
             evals:
-              array :V[]
+              array :i32[]
             index:
               array :i32[]
             mask: int(0) :usize

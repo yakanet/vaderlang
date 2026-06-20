@@ -15,10 +15,6 @@ type 12 struct std_collections$Entry__string__i32 { key:4,value:1 }
 type 13 struct std_collections$MutableMap__string__i32 { ekeys:11,evals:14,index:14,mask:3,size:3,tombs:3 }
 type 14 array 1
 type 15 struct std_string_builder$StringBuilder { parts:11 }
-type 16 array 17
-type 17 ref _
-type 18 array 19
-type 19 ref _
 string 0 "a"
 string 1 "b"
 string 2 "c"
@@ -54,9 +50,9 @@ fn 0 snippet$main () -> i32
   local __sb_6 ref
   local $call_39 string
   local $call_41 string
-  array.new 16 0
+  array.new 11 0
   local.set 0
-  array.new 18 0
+  array.new 14 0
   local.set 1
   array.new 14 0
   local.set 2
@@ -346,8 +342,8 @@ end
 fn 8 std_collections$std_collections$ensure_index__string__i32 (ref) -> void
   local $len_2 usize
   local $k_3 usize
-  local $arr_5 ref
-  local $k_14 usize
+  local idx ref
+  local $k_12 usize
   local.field 0 13 2
   array.len
   local.set 1
@@ -357,16 +353,6 @@ fn 8 std_collections$std_collections$ensure_index__string__i32 (ref) -> void
   local.get 2
   i64.eq
   if $L0 void
-    array.new 11 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 13 0
-    array.new 14 0
-    local.set 3
-    local.get 0
-    local.get 3
-    struct.set 13 1
     array.new 14 0
     local.set 3
     i64.const 0
