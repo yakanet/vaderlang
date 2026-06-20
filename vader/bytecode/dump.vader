@@ -497,6 +497,7 @@ export write_op :: fn(out: StringBuilder, op: Op) -> void {
         is TypeConst as t           -> out.append("type.const ${t.type_id}")
         is TypeCheck as t           -> out.append("type_check ${t.type_id}")
         is RefCast as r             -> out.append("ref.cast ${r.type_id}")
+        is Box as b                 -> out.append("box ${b.type_id}")
         is Unreachable              -> out.append("unreachable")
         is Convert as c             -> out.append("${c.from_name}.to_${convert_target_name(c.target)}")
         is SizeOfType               -> out.append("intrinsic size_of.type")
@@ -658,6 +659,7 @@ annotate_op :: fn(module: BytecodeModule, locals: BcLocal[], param_count: i32, o
     if op is StructGet as s    { return "${type_label(module, s.type_id)}.${field_label(module, s.type_id, s.field_index)}" }
     if op is StructSet as s    { return "${type_label(module, s.type_id)}.${field_label(module, s.type_id, s.field_index)}" }
     if op is RefCast as r      { return "-> ${type_label(module, r.type_id)}" }
+    if op is Box as b          { return "-> ${type_label(module, b.type_id)}" }
     if op is TypeConst as t    { return type_label(module, t.type_id) }
     if op is TypeCheck as t    { return type_label(module, t.type_id) }
     if op is ArrayNew as a     { return "${type_label(module, a.type_id)}[]" }

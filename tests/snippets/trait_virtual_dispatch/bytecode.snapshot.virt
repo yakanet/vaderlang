@@ -1,118 +1,123 @@
 module _main
 type 0 primitive null
-type 1 primitive string
-type 2 primitive void
-type 3 primitive i32
+type 1 struct snippet$ParseErr { msg:2 }
+type 2 primitive string
+type 3 struct snippet$NetErr { reason:2 }
 type 4 ref Error
-type 5 primitive usize
-type 6 array 1
-type 7 struct snippet$ParseErr { msg:1 }
-type 8 struct snippet$NetErr { reason:1 }
-type 9 struct std_string_builder$StringBuilder { parts:6 }
-type 10 array 11
-type 11 primitive u8
-type 12 struct std_core$Buffer {  }
-string 0 "\n"
-string 1 "parse: "
-string 2 "net: "
-string 3 "bad token"
-string 4 "timeout"
-import 0 write std_io$write (i32,string) -> void
-import 1 bytes std_core$bytes (string) -> ref
-impl 7 Error
-impl 8 Error
-impl 9 Display
-impl 12 ByteAccess
-vtable Error.message 7 1
-vtable Error.message 8 2
-export main 4
+type 5 primitive i32
+type 6 primitive usize
+type 7 array 8
+type 8 primitive u8
+type 9 struct std_core$Buffer {  }
+type 10 primitive void
+type 11 array 2
+type 12 struct std_string_builder$StringBuilder { parts:11 }
+string 0 "parse: "
+string 1 "net: "
+string 2 "bad token"
+string 3 "timeout"
+string 4 "\n"
+import 0 bytes std_core$bytes (string) -> ref
+import 1 write std_io$write (i32,string) -> void
+impl 1 Error
+impl 3 Error
+impl 9 ByteAccess
+impl 12 Display
+vtable Error.message 1 0
+vtable Error.message 3 1
+export main 3
 
-fn 0 std_io$std_io$println__string (string) -> void
-  local $call_2 string
-  local.get 0
-  call 8
+fn 0 snippet$ParseErr$Error$message (ref) -> string
+  local __sb_0 ref
+  local $call_5 string
+  call 6
   local.set 1
-  i32.const 0
   local.get 1
-  call.import 0
-  i32.const 0
   string.const 0
-  call.import 0
+  call 7
+  local.field 0 1 0
+  ref.cast 2
+  call 4
+  local.set 2
+  local.get 1
+  local.get 2
+  call 7
+  local.get 1
+  call 8
   return
 end
 
-fn 1 snippet$ParseErr$Error$message (ref) -> string
+fn 1 snippet$NetErr$Error$message (ref) -> string
   local __sb_0 ref
   local $call_5 string
-  call 5
+  call 6
   local.set 1
   local.get 1
   string.const 1
-  call 6
-  local.field 0 7 0
-  ref.cast 1
-  call 8
+  call 7
+  local.field 0 3 0
+  ref.cast 2
+  call 4
   local.set 2
   local.get 1
   local.get 2
-  call 6
-  local.get 1
   call 7
-  return
-end
-
-fn 2 snippet$NetErr$Error$message (ref) -> string
-  local __sb_0 ref
-  local $call_5 string
-  call 5
-  local.set 1
   local.get 1
-  string.const 2
-  call 6
-  local.field 0 8 0
-  ref.cast 1
   call 8
-  local.set 2
-  local.get 1
-  local.get 2
-  call 6
-  local.get 1
-  call 7
   return
 end
 
-fn 3 snippet$report (ref) -> string
+fn 2 snippet$report (ref) -> string
   local.get 0
   virtual.call 1 Error.message
   return
 end
 
-fn 4 snippet$main () -> i32
+fn 3 snippet$main () -> i32
+  string.const 2
+  struct.new 1
+  call 2
+  call 5
   string.const 3
-  struct.new 7
-  call 3
-  call 0
-  string.const 4
-  struct.new 8
-  call 3
-  call 0
+  struct.new 3
+  call 2
+  call 5
   return.lit i32.const 0
 end
 
-fn 5 std_string_builder$new_builder () -> ref
-  array.new 6 0
-  struct.new 9
+fn 4 std_core$string$Display$to_string (string) -> string
+  local.get 0
   return
 end
 
-fn 6 std_string_builder$append (ref,string) -> void
-  local.field 0 9 0
+fn 5 std_io$std_io$println__string (string) -> void
+  local $call_2 string
+  local.get 0
+  call 4
+  local.set 1
+  i32.const 0
   local.get 1
-  array.push 1
+  call.import 1
+  i32.const 0
+  string.const 4
+  call.import 1
   return
 end
 
-fn 7 std_string_builder$StringBuilder$Display$to_string (ref) -> string
+fn 6 std_string_builder$new_builder () -> ref
+  array.new 11 0
+  struct.new 12
+  return
+end
+
+fn 7 std_string_builder$append (ref,string) -> void
+  local.field 0 12 0
+  local.get 1
+  array.push 2
+  return
+end
+
+fn 8 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local total usize
   local __for_arr_0 ref
   local __for_len_1 usize
@@ -124,7 +129,7 @@ fn 7 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local $k_33 usize
   i64.const 0
   local.set 1
-  local.field 0 9 0
+  local.field 0 12 0
   local.tee 2
   array.len
   local.set 3
@@ -138,9 +143,9 @@ fn 7 std_string_builder$StringBuilder$Display$to_string (ref) -> string
       if $L2 void
         local.get 2
         local.get 4
-        array.get 6
-        ref.cast 1
-        call.import 1
+        array.get 11
+        ref.cast 2
+        call.import 0
         array.len
         local.set 5
         local.get 1
@@ -163,7 +168,7 @@ fn 7 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local.set 2
   i64.const 0
   local.set 3
-  local.field 0 9 0
+  local.field 0 12 0
   local.tee 7
   array.len
   local.set 4
@@ -177,15 +182,15 @@ fn 7 std_string_builder$StringBuilder$Display$to_string (ref) -> string
       if $L5 void
         local.get 7
         local.get 5
-        array.get 6
-        ref.cast 1
+        array.get 11
+        ref.cast 2
         local.set 8
         local.get 2
         local.get 3
         local.get 8
         call 11
         local.get 8
-        call.import 1
+        call.import 0
         array.len
         local.set 6
         local.get 3
@@ -206,11 +211,6 @@ fn 7 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local.get 2
   local.get 1
   call 10
-  return
-end
-
-fn 8 std_core$string$Display$to_string (string) -> string
-  local.get 0
   return
 end
 

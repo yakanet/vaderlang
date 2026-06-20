@@ -1,91 +1,110 @@
 module _main
 type 0 primitive null
-type 1 primitive string
-type 2 primitive void
-type 3 primitive i32
-type 4 primitive usize
-type 5 primitive bool
-type 6 array 1
-type 7 struct std_string_builder$StringBuilder { parts:6 }
-type 8 array 9
-type 9 primitive u8
-type 10 struct std_core$Buffer {  }
-string 0 "\n"
-string 1 "true"
-string 2 "false"
-import 0 write std_io$write (i32,string) -> void
-import 1 bytes std_core$bytes (string) -> ref
-impl 7 Display
-impl 10 ByteAccess
-export main 1
+type 1 primitive i32
+type 2 primitive bool
+type 3 primitive usize
+type 4 primitive string
+type 5 array 6
+type 6 primitive u8
+type 7 struct std_core$Buffer {  }
+type 8 primitive void
+type 9 array 4
+type 10 struct std_string_builder$StringBuilder { parts:9 }
+string 0 "true"
+string 1 "false"
+string 2 "\n"
+import 0 bytes std_core$bytes (string) -> ref
+import 1 write std_io$write (i32,string) -> void
+impl 7 ByteAccess
+impl 10 Display
+export main 0
 
-fn 0 std_io$std_io$println__string (string) -> void
-  local $call_2 string
-  local.get 0
-  call 7
-  local.set 1
-  i32.const 0
-  local.get 1
-  call.import 0
-  i32.const 0
-  string.const 0
-  call.import 0
-  return
-end
-
-fn 1 snippet$main () -> i32
+fn 0 snippet$main () -> i32
   local __sb_0 ref
   local $call_5 string
-  call 3
+  call 5
   local.set 0
   i32.const 1
   i32.const 1
+  call 1
   call 2
-  call 6
   local.set 1
   local.get 0
   local.get 1
-  call 4
+  call 6
   local.get 0
+  call 7
+  call 4
   call 5
-  call 0
-  call 3
   local.set 0
   i32.const 1
   i32.const 2
+  call 1
   call 2
-  call 6
   local.set 1
   local.get 0
   local.get 1
-  call 4
+  call 6
   local.get 0
-  call 5
-  call 0
+  call 7
+  call 4
   return.lit i32.const 0
 end
 
-fn 2 snippet$snippet$are_eq__i32 (i32,i32) -> bool
+fn 1 snippet$snippet$are_eq__i32 (i32,i32) -> bool
   local.get 0
   local.get 1
   i32.eq
   return
 end
 
-fn 3 std_string_builder$new_builder () -> ref
-  array.new 6 0
-  struct.new 7
-  return
-end
-
-fn 4 std_string_builder$append (ref,string) -> void
-  local.field 0 7 0
+fn 2 std_core$bool$Display$to_string (bool) -> string
+  local if_res string
+  local.get 0
+  if $L0 void
+    string.const 0
+    local.set 1
+  else
+    string.const 1
+    local.set 1
+  end $L0
   local.get 1
-  array.push 1
   return
 end
 
-fn 5 std_string_builder$StringBuilder$Display$to_string (ref) -> string
+fn 3 std_core$string$Display$to_string (string) -> string
+  local.get 0
+  return
+end
+
+fn 4 std_io$std_io$println__string (string) -> void
+  local $call_2 string
+  local.get 0
+  call 3
+  local.set 1
+  i32.const 0
+  local.get 1
+  call.import 1
+  i32.const 0
+  string.const 2
+  call.import 1
+  return
+end
+
+fn 5 std_string_builder$new_builder () -> ref
+  array.new 9 0
+  struct.new 10
+  return
+end
+
+fn 6 std_string_builder$append (ref,string) -> void
+  local.field 0 10 0
+  local.get 1
+  array.push 4
+  return
+end
+
+fn 7 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local total usize
   local __for_arr_0 ref
   local __for_len_1 usize
@@ -97,7 +116,7 @@ fn 5 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local $k_33 usize
   i64.const 0
   local.set 1
-  local.field 0 7 0
+  local.field 0 10 0
   local.tee 2
   array.len
   local.set 3
@@ -111,9 +130,9 @@ fn 5 std_string_builder$StringBuilder$Display$to_string (ref) -> string
       if $L2 void
         local.get 2
         local.get 4
-        array.get 6
-        ref.cast 1
-        call.import 1
+        array.get 9
+        ref.cast 4
+        call.import 0
         array.len
         local.set 5
         local.get 1
@@ -136,7 +155,7 @@ fn 5 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local.set 2
   i64.const 0
   local.set 3
-  local.field 0 7 0
+  local.field 0 10 0
   local.tee 7
   array.len
   local.set 4
@@ -150,15 +169,15 @@ fn 5 std_string_builder$StringBuilder$Display$to_string (ref) -> string
       if $L5 void
         local.get 7
         local.get 5
-        array.get 6
-        ref.cast 1
+        array.get 9
+        ref.cast 4
         local.set 8
         local.get 2
         local.get 3
         local.get 8
         call 10
         local.get 8
-        call.import 1
+        call.import 0
         array.len
         local.set 6
         local.get 3
@@ -179,25 +198,6 @@ fn 5 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local.get 2
   local.get 1
   call 9
-  return
-end
-
-fn 6 std_core$bool$Display$to_string (bool) -> string
-  local if_res string
-  local.get 0
-  if $L0 void
-    string.const 1
-    local.set 1
-  else
-    string.const 2
-    local.set 1
-  end $L0
-  local.get 1
-  return
-end
-
-fn 7 std_core$string$Display$to_string (string) -> string
-  local.get 0
   return
 end
 

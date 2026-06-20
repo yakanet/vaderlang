@@ -18,152 +18,151 @@
 //   s := MutableSet(i32) {}
 //   s.add(10)
 //
-// `MutableMap` is a chaining HashMap that doubles + rehashes past a 0.75 load
-// factor ; `MutableSet` wraps it (each member a `T → true` entry).
+// `MutableMap` is a COMPACT (open-addressed) hash map : dense parallel
+// `ekeys` / `evals` arrays in insertion order, plus a sparse `i32` index
+// (hash slot → entry position). No per-entry node, no `next` pointer, no
+// nullable bucket array — ~3-4× less memory than a chained map, faster
+// insert / iterate, and far faster string-key lookups (see
+// `.claude/plans/compact-dict-mutablemap.md`). The index doubles + rehashes
+// past a 0.75 load factor. `MutableSet` wraps it (each member a `T → true`).
 
 // ===========================================================================
-// MutableMap(K, V) — chaining hash map. Each bucket holds a singly-linked
-// list of `Entry(K, V)` nodes. Lookup hashes the key, walks the bucket's
-// chain comparing keys via the `Equals` trait, and inserts at the chain head.
-//
-// `MINIMAL_BUCKET_COUNT` is the initial bucket count ; the map doubles + rehashes once
-// the load factor exceeds 0.75 (`maybe_grow`), so lookups stay ~O(1) instead of
-// degrading into a per-bucket linear scan. Lazy-initialised on first put so the
-// struct-literal constructor stays simple.
+// MutableMap(K, V) — compact open-addressed hash map. Live entries live in two
+// dense parallel arrays (`ekeys[i]` ↔ `evals[i]`) in insertion order; a sparse
+// `index` of `i32` maps a hash slot to an entry position (1-based; 0 = empty,
+// -1 = tombstone). Lookup hashes the key, probes the index (linear) skipping
+// tombstones, and compares via `Equals`. Insert appends to the dense arrays
+// (reusing a slot freed by `remove`); `remove` swaps the last entry into the
+// hole and tombstones the index slot. The index doubles + rehashes past 0.75.
 // ===========================================================================
 
 module "std/collections"
 
-MINIMAL_BUCKET_COUNT :: usize(16)
+MINIMAL_INDEX_COUNT :: usize(16)
 
+EMPTY_SLOT :: i32(0)    // index slot holds no entry
+TOMB_SLOT  :: i32(-1)   // index slot held an entry that was removed
+
+// Yielded by `for [k, v] in m` — the parser desugars the `[...]` destructure
+// over an `Entry` (a struct, not a tuple) through `Into<[K, V]>`, and the
+// lowerer inlines the tuple-literal body so `k = e.key` / `v = e.value` bind
+// with no per-iteration allocation. No `next` field — entries are not nodes.
 Entry :: struct<K, V> {
     key:   K
     value: V
-    next:  Entry<K, V> | null
 }
 
-// `for [k, v] in m` destructures each yielded `Entry`. The parser desugars
-// the form to `for e in m { let [k, v] := e ; ... }`, so the binding is a
-// `[...]` destructure over an `Entry` — a struct, not a tuple. A `[...]`
-// pattern coerces a non-tuple value through `Into<[...]>`, so this impl is
-// what lets the destructure bind `k`/`v`. The lowerer recognises the
-// tuple-literal body and binds `k = e.key`, `v = e.value` directly — no
-// per-iteration tuple allocation.
 Entry<K, V> implements<K, V> Into<[K, V]> {
     into :: fn(self) -> [K, V] = [self.key, self.value]
 }
 
-/// Chaining hash map keyed by any `K` that implements `Hash & Equals`.
-/// Buckets start `MINIMAL_BUCKET_COUNT`-wide and double + rehash past a 0.75 load
-/// factor, keeping the average chain length bounded (~O(1) lookups). `K`'s
-/// `hash()` is queried on insert / lookup / resize, `equals()` on chain walks.
+/// Compact hash map keyed by any `K` that implements `Hash & Equals`. Entries
+/// are stored in insertion order in dense `ekeys` / `evals`; a sparse `i32`
+/// `index` resolves a key's hash to its entry position. `K`'s `hash()` is
+/// queried on insert / lookup / rehash, `equals()` on probe comparisons.
 export MutableMap :: struct<K: Hash & Equals, V> {
-    /// Bucket array, lazily widened to `MINIMAL_BUCKET_COUNT` by `ensure_buckets` on
-    /// first insert. Defaults empty so `MutableMap(K, V) {}` is a valid literal.
-    buckets: (Entry<K, V> | null)[] = []
-    size:    usize = 0
+    /// Dense entry keys in insertion order. `ekeys[i]` pairs with `evals[i]`.
+    /// `[size, ekeys.len())` are spare slots freed by `remove`, reused by `put`.
+    ekeys: K[] = []
+    /// Dense entry values, parallel to `ekeys`.
+    evals: V[] = []
+    /// Open-addressed hash table : slot → entry position + 1 ; `EMPTY_SLOT`
+    /// (0) = free, `TOMB_SLOT` (-1) = tombstone. Length is a power of two,
+    /// lazily allocated to `MINIMAL_INDEX_COUNT` on first insert.
+    index: i32[] = []
+    /// `index.len() - 1` — bitmask for the power-of-two slot count.
+    mask:  usize = 0
+    /// Live entry count.
+    size:  usize = 0
+    /// Tombstone count in `index`. Counted toward the load factor so a
+    /// remove-heavy map rehashes (clearing tombstones) before the open-addressed
+    /// probe runs out of `EMPTY` slots and loops forever.
+    tombs: usize = 0
 }
 
 // Method signatures below declare just `[K, V]` (no bound repetition) — the
 // `Hash & Equals` constraint is auto-inherited from the struct decl above by
 // the typecheck `inherit-bounds` pass when the first param is `MutableMap(K, V)`.
 
-bucket_index :: fn(h: u64, count: usize) -> i32 = i32(h % u64(count))
+slot_for :: fn(h: u64, mask: usize) -> usize = usize(h) & mask
 
-/// Lazy-initialise the bucket array on the first call to `put` (or anything
-/// else that needs a populated chain head). After this the receiver carries
-/// `MINIMAL_BUCKET_COUNT` null-headed chains, ready for insertion. No-op when the
-/// buckets have already been allocated, so it's cheap to call from every
-/// mutating entry point.
-/// @param self  the map receiver whose buckets get materialised.
-ensure_buckets :: fn<K, V>(self: MutableMap<K, V>) -> void {
-    if self.buckets.len() == 0 {
-        for 0..<MINIMAL_BUCKET_COUNT {
-            self.buckets.push(null)
-        }
+// Lazy-initialise the index on first insert. No-op once allocated, so cheap to
+// call from every mutating entry point. Mirrors the old `ensure_buckets`.
+ensure_index :: fn<K, V>(self: MutableMap<K, V>) -> void {
+    if self.index.len() == 0 {
+        // Reassign fresh arrays on first use. (Needed for raw-key maps cross
+        // module; an erased-key map then hits a separate stale-receiver
+        // miscompile on the Index-get path — see TODO.md bug #3.)
+        self.ekeys = []
+        self.evals = []
+        idx: i32[] = []
+        for 0..<MINIMAL_INDEX_COUNT { idx.push(EMPTY_SLOT) }
+        self.index = idx
+        self.mask = MINIMAL_INDEX_COUNT - 1
     }
 }
 
-/// Insert or overwrite `key → value`. The chain at `bucket_index(hash(key))`
-/// is walked ; if `key` is already present its value is replaced in place,
-/// otherwise a fresh entry is prepended to the chain head.
+// Rebuild the index at `new_count` slots from the dense entries — re-probing
+// each live key. Clears all tombstones. The dense `ekeys` / `evals` are never
+// touched (entries don't move), so growth allocates no entries.
+rehash :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, new_count: usize) -> void {
+    fresh: i32[] = []
+    for 0..<new_count { fresh.push(EMPTY_SLOT) }
+    new_mask :: new_count - 1
+    for e in 0..<self.size {
+        s: usize = slot_for(self.ekeys[e].hash(), new_mask)
+        for fresh[s] != EMPTY_SLOT { s = (s + 1) & new_mask }
+        fresh[s] = i32(e + 1)
+    }
+    self.index = fresh
+    self.mask = new_mask
+    self.tombs = 0
+}
+
+// Write the (key, value) entry at logical position `self.size` — reusing a
+// spare dense slot freed by a prior `remove`, or appending.
+write_entry :: fn<K, V>(self: MutableMap<K, V>, key: K, value: V) -> void {
+    if self.size < self.ekeys.len() {
+        self.ekeys[self.size] = key
+        self.evals[self.size] = value
+    } else {
+        self.ekeys.push(key)
+        self.evals.push(value)
+    }
+}
+
+/// Insert or overwrite `key → value`. Probes the index from `hash & mask` ; an
+/// existing key has its value replaced in place, otherwise a fresh entry is
+/// appended (reusing the first tombstone seen, if any).
 /// @param self   the map receiver.
 /// @param key    key with which `value` is associated.
 /// @param value  the new value.
 put :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, value: V) -> void {
-    self.ensure_buckets()
-    h :: key.hash()
-    idx :: bucket_index(h, self.buckets.len())
-
-    // Walk the chain — update in place if the key already exists.
-    cur: Entry<K, V> | null = self.buckets[idx]
-    done := false
-    found := false
-    for !done {
-        match cur {
-            is null -> { done = true }
-            is Entry<K, V> -> {
-                if cur.key.equals(key) {
-                    cur.value = value
-                    found = true
-                    done = true
-                } else {
-                    cur = cur.next
-                }
-            }
+    self.ensure_index()
+    // Rehash when used slots (entries + tombstones) pass 0.75. Size the new
+    // table to the LIVE entry count so a tombstone-heavy map compacts (clears
+    // tombstones) instead of only ever doubling.
+    if (self.size + self.tombs + 1) * 4 > (self.mask + 1) * 3 {
+        new_count := MINIMAL_INDEX_COUNT
+        for (self.size + 1) * 4 > new_count * 3 { new_count = new_count * 2 }
+        self.rehash(new_count)
+    }
+    s: usize = slot_for(key.hash(), self.mask)
+    first_tomb: i64 = -1
+    for self.index[s] != EMPTY_SLOT {
+        if self.index[s] == TOMB_SLOT {
+            if first_tomb < 0 { first_tomb = i64(s) }
+        } else {
+            ei :: usize(self.index[s]) - 1
+            if self.ekeys[ei].equals(key) { self.evals[ei] = value  return }
         }
+        s = (s + 1) & self.mask
     }
-    if found {
-        return
-    }
-
-    // Prepend a fresh entry — chain head becomes the new node.
-    new_entry :: Entry<K, V> { .key = key, .value = value, .next = self.buckets[idx] }
-    self.buckets[idx] = new_entry
+    target :: if first_tomb >= 0 { usize(first_tomb) } else { s }
+    if first_tomb >= 0 { self.tombs = self.tombs - 1 }   // reused a tombstone slot
+    self.write_entry(key, value)
+    self.index[target] = i32(self.size + 1)
     self.size = self.size + 1
-    self.maybe_grow()
-}
-
-// Load-factor cap : double the bucket count + rehash once the chains average
-// more than 0.75 entries/bucket, so lookups stay ~O(1) instead of degrading
-// into a linear scan of one long chain. `MINIMAL_BUCKET_COUNT` is now just the initial
-// width, not a fixed ceiling.
-maybe_grow :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>) -> void {
-    if self.size * 4 > self.buckets.len() * 3 {
-        self.grow()
-    }
-}
-
-// Double the bucket array and re-link every existing entry into its new chain.
-// Entry nodes are reused (only `next` is repointed) so growth allocates no new
-// entries — but each key's `hash()` is recomputed since entries don't cache it.
-// NB: the node is bound via `as e`, not read through `cur` — this arm writes
-// through the node AND reassigns `cur`, which miscompiled the narrowed read to a
-// null deref under the bare `is Entry ->` form (codegen narrowing bug, see TODO).
-grow :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>) -> void {
-    old :: self.buckets
-    new_count :: old.len() * 2
-    fresh: (Entry<K, V> | null)[] = []
-    for 0..<new_count {
-        fresh.push(null)
-    }
-    for head in old {
-        cur: Entry<K, V> | null = head
-        done := false
-        for !done {
-            match cur {
-                is null -> { done = true }
-                is Entry<K, V> as e -> {
-                    nxt :: e.next
-                    idx :: bucket_index(e.key.hash(), new_count)
-                    e.next = fresh[idx]
-                    fresh[idx] = e
-                    cur = nxt
-                }
-            }
-        }
-    }
-    self.buckets = fresh
 }
 
 /// Look up `key`. Returns the stored value or `null` if absent.
@@ -171,28 +170,16 @@ grow :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>) -> void {
 /// @param key   key to look up.
 /// @return      `V` when present, `null` otherwise.
 get :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K) -> V | null {
-    if self.buckets.len() == 0 {
-        return null
-    }
-    h :: key.hash()
-    idx :: bucket_index(h, self.buckets.len())
-    cur: Entry<K, V> | null = self.buckets[idx]
-    result: V | null = null
-    done := false
-    for !done {
-        match cur {
-            is null -> { done = true }
-            is Entry<K, V> -> {
-                if cur.key.equals(key) {
-                    result = cur.value
-                    done = true
-                } else {
-                    cur = cur.next
-                }
-            }
+    if self.index.len() == 0 { return null }
+    s: usize = slot_for(key.hash(), self.mask)
+    for self.index[s] != EMPTY_SLOT {
+        if self.index[s] != TOMB_SLOT {
+            ei :: usize(self.index[s]) - 1
+            if self.ekeys[ei].equals(key) { return self.evals[ei] }
         }
+        s = (s + 1) & self.mask
     }
-    return result
+    return null
 }
 
 /// True iff `key` has an entry in the map. Distinguishes "key absent" from
@@ -200,68 +187,58 @@ get :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K) -> V | null {
 /// @param self  the map receiver.
 /// @param key   key to test.
 contains_key :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K) -> bool {
-    if self.buckets.len() == 0 {
-        return false
-    }
-    h :: key.hash()
-    idx :: bucket_index(h, self.buckets.len())
-    cur: Entry<K, V> | null = self.buckets[idx]
-    found := false
-    done := false
-    for !done {
-        match cur {
-            is null -> { done = true }
-            is Entry<K, V> -> {
-                if cur.key.equals(key) {
-                    found = true
-                    done = true
-                } else {
-                    cur = cur.next
-                }
-            }
+    if self.index.len() == 0 { return false }
+    s: usize = slot_for(key.hash(), self.mask)
+    for self.index[s] != EMPTY_SLOT {
+        if self.index[s] != TOMB_SLOT {
+            ei :: usize(self.index[s]) - 1
+            if self.ekeys[ei].equals(key) { return true }
         }
+        s = (s + 1) & self.mask
     }
-    return found
+    return false
 }
 
-/// Remove the entry for `key`, if present. Walks the bucket chain and unlinks
-/// the matching node, decrementing `size`. A no-op when the key is absent.
+// Find the index slot whose stored value equals `want` (a 1-based entry pos),
+// probing from `key`'s hash. Used by `remove` to re-point a swapped entry.
+slot_holding :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, want: i32) -> usize {
+    s: usize = slot_for(key.hash(), self.mask)
+    for self.index[s] != EMPTY_SLOT {
+        if self.index[s] == want { return s }
+        s = (s + 1) & self.mask
+    }
+    return self.index.len()
+}
+
+/// Remove the entry for `key`, if present. The matching entry is overwritten by
+/// the last dense entry (which is re-pointed in the index), the freed dense slot
+/// becomes spare, and the key's index slot is tombstoned. A no-op when absent.
 /// @param self  the map receiver.
 /// @param key   key whose entry to drop.
 /// @return      `true` when an entry was removed, `false` when `key` was absent.
 export remove :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K) -> bool {
-    if self.buckets.len() == 0 {
-        return false
-    }
-    h :: key.hash()
-    idx :: bucket_index(h, self.buckets.len())
-
-    // Walk the chain, tracking the predecessor so the match can be unlinked.
-    prev: Entry<K, V> | null = null
-    cur:  Entry<K, V> | null = self.buckets[idx]
-    removed := false
-    done := false
-    for !done {
-        match cur {
-            is null -> { done = true }
-            is Entry<K, V> -> {
-                if cur.key.equals(key) {
-                    if prev == null {
-                        self.buckets[idx] = cur.next
-                    } else {
-                        prev.next = cur.next
-                    }
-                    self.size = self.size - 1
-                    removed = true
-                    done = true
-                } else {
-                    prev = cur
-                    cur = cur.next
+    if self.index.len() == 0 { return false }
+    s: usize = slot_for(key.hash(), self.mask)
+    for self.index[s] != EMPTY_SLOT {
+        if self.index[s] != TOMB_SLOT {
+            ei :: usize(self.index[s]) - 1
+            if self.ekeys[ei].equals(key) {
+                last :: self.size - 1
+                if ei != last {
+                    moved_slot :: self.slot_holding(self.ekeys[last], i32(last + 1))
+                    self.ekeys[ei] = self.ekeys[last]
+                    self.evals[ei] = self.evals[last]
+                    self.index[moved_slot] = i32(ei + 1)
                 }
+                self.index[s] = TOMB_SLOT
+                self.tombs = self.tombs + 1
+                self.size = self.size - 1
+                return true
             }
         }
+        s = (s + 1) & self.mask
     }
-    return removed
+    return false
 }
 
 /// Number of `(key, value)` entries currently stored in `self`. O(1).
@@ -286,60 +263,32 @@ MutableMap<K, V> implements Contains<K> {
     contains :: fn(self, key: K) -> bool { return self.contains_key(key) }
 }
 
-/// Snapshot of every key in bucket-walk order (NOT insertion order — the
-/// hash distributes them across buckets). Allocates a fresh `[K]`.
+/// Snapshot of every key in insertion order. Allocates a fresh `[K]`.
 /// @param self  the map receiver.
 /// @return      a new array of every stored key.
 export keys :: fn<K, V>(self: MutableMap<K, V>) -> K[] {
     out: K[] = []
-    for bucket in self.buckets {
-        cur: Entry<K, V> | null = bucket
-        done := false
-        for !done {
-            match cur {
-                is null -> { done = true }
-                is Entry<K, V> -> {
-                    out.push(cur.key)
-                    cur = cur.next
-                }
-            }
-        }
-    }
+    for e in 0..<self.size { out.push(self.ekeys[e]) }
     return out
 }
 
-/// Snapshot of every value matching the order of `keys()`. Allocates a
-/// fresh `[V]`. Pairing keys and values index-by-index gives a stable
-/// view of the map's contents.
+/// Snapshot of every value in insertion order, matching `keys()`. Allocates a
+/// fresh `[V]`. Pairing keys and values index-by-index gives a stable view.
 /// @param self  the map receiver.
 /// @return      a new array of every stored value.
 export values :: fn<K, V>(self: MutableMap<K, V>) -> V[] {
     out: V[] = []
-    for bucket in self.buckets {
-        cur: Entry<K, V> | null = bucket
-        done := false
-        for !done {
-            match cur {
-                is null -> { done = true }
-                is Entry<K, V> -> {
-                    out.push(cur.value)
-                    cur = cur.next
-                }
-            }
-        }
-    }
+    for e in 0..<self.size { out.push(self.evals[e]) }
     return out
 }
 
-/// Lazy iterator over a `MutableMap`'s entries. Walks bucket-by-bucket and
-/// then chain-by-chain — no snapshot allocation, unlike `keys()` / `values()`.
-/// Iteration order follows the hash distribution, not insertion. Mutating
-/// `self` while a `MapIterator` is live yields undefined behaviour.
+/// Lazy iterator over a `MutableMap`'s entries, in insertion order. Walks the
+/// dense entry arrays by index — no snapshot allocation. Mutating `self` while
+/// a `MapIterator` is live yields undefined behaviour.
 @specialize
 export MapIterator :: struct<K: Hash & Equals, V> {
-    map:           MutableMap<K, V>
-    bucket_cursor: usize
-    chain_cursor:  Entry<K, V> | null
+    src: MutableMap<K, V>
+    pos: usize
 }
 
 // `for entry in m` works directly thanks to the `Into(Iterator(...))`
@@ -347,46 +296,28 @@ export MapIterator :: struct<K: Hash & Equals, V> {
 
 MutableMap<K, V> implements<K, V> Into<Iterator<Entry<K, V>>> {
     into :: fn(self) -> Iterator<Entry<K, V>> {
-        return MapIterator<K, V> { .map = self, .bucket_cursor = 0, .chain_cursor = null }
+        return MapIterator<K, V> { .src = self, .pos = 0 }
     }
 }
 
 MapIterator<K, V> implements Iterator<Entry<K, V>> {
     next :: fn(self) -> Yield<Entry<K, V>> | null {
-        finished := false
-        for !finished {
-            // Bind the chain cursor to a local so match narrowing applies —
-            // narrowing on a field access (`self.chain_cursor`) doesn't fire,
-            // only on plain identifiers.
-            cur :: self.chain_cursor
-            match cur {
-                is Entry<K, V> -> {
-                    self.chain_cursor = cur.next
-                    return Yield<Entry<K, V>> { .value = cur }
-                }
-                is null -> {
-                    if self.bucket_cursor >= self.map.buckets.len() {
-                        finished = true
-                    } else {
-                        self.chain_cursor = self.map.buckets[self.bucket_cursor]
-                        self.bucket_cursor = self.bucket_cursor + 1
-                    }
-                }
-            }
-        }
-        return null
+        if self.pos >= self.src.size { return null }
+        e :: Entry<K, V> { .key = self.src.ekeys[self.pos], .value = self.src.evals[self.pos] }
+        self.pos = self.pos + 1
+        return Yield<Entry<K, V>> { .value = e }
     }
 }
 
 // ===========================================================================
 // MutableSet(T) — hash-backed via a wrapping MutableMap. Each member is stored
-// as a (T → true) entry, so lookups inherit the chained-bucket O(1) behaviour
-// from MutableMap. `where T: Hash + Equals` mirrors MutableMap's own bound.
+// as a (T → true) entry, so lookups inherit the compact-map O(1) behaviour.
+// `where T: Hash + Equals` mirrors MutableMap's own bound.
 // ===========================================================================
 
 /// Hash set keyed by any `T` that implements `Hash & Equals`. Backed by a
 /// `MutableMap(T, bool)` — every member is stored as a `(T → true)` entry,
-/// so lookups inherit the chained-bucket O(1)-average behaviour.
+/// so lookups inherit the compact-map O(1)-average behaviour.
 export MutableSet :: struct<T: Hash & Equals> {
     /// Backing map. Defaults empty so `MutableSet(T) {}` is a valid literal.
     inner: MutableMap<T, bool> = MutableMap<T, bool> {}
@@ -431,17 +362,13 @@ MutableSet<T> implements Contains<T> {
     contains :: fn(self, value: T) -> bool { return value in self.inner }
 }
 
-/// Lazy iterator over a `MutableSet`'s members. Walks the backing
-/// `MutableMap(T, bool)` directly bucket-by-bucket then chain-by-chain — a
-/// `MapIterator` wrapper would force the runtime to pattern-match a generic
-/// `Yield(Entry(T, bool))` payload, which the VM's variant tag check
-/// doesn't drill into yet. Same undefined-behaviour caveat as `MapIterator` on
-/// concurrent mutation.
+/// Lazy iterator over a `MutableSet`'s members, in insertion order. Walks the
+/// backing map's dense key array by index. Same undefined-behaviour caveat as
+/// `MapIterator` on concurrent mutation.
 @specialize
 export SetIterator :: struct<T: Hash & Equals> {
-    set:           MutableSet<T>
-    bucket_cursor: usize
-    chain_cursor:  Entry<T, bool> | null
+    set: MutableSet<T>
+    pos: usize
 }
 
 // `for v in s` works directly via the `Into(Iterator(...))` impl below —
@@ -449,33 +376,16 @@ export SetIterator :: struct<T: Hash & Equals> {
 
 MutableSet<T> implements<T> Into<Iterator<T>> {
     into :: fn(self) -> Iterator<T> {
-        return SetIterator<T> { .set = self, .bucket_cursor = 0, .chain_cursor = null }
+        return SetIterator<T> { .set = self, .pos = 0 }
     }
 }
 
 SetIterator<T> implements Iterator<T> {
     next :: fn(self) -> Yield<T> | null {
-        finished := false
-        for !finished {
-            // Mirror MapIterator's narrowing dance — match needs a local binding,
-            // not a field access, for `is Entry / is null` to narrow.
-            cur :: self.chain_cursor
-            match cur {
-                is Entry<T, bool> -> {
-                    self.chain_cursor = cur.next
-                    return Yield<T> { .value = cur.key }
-                }
-                is null -> {
-                    if self.bucket_cursor >= self.set.inner.buckets.len() {
-                        finished = true
-                    } else {
-                        self.chain_cursor = self.set.inner.buckets[self.bucket_cursor]
-                        self.bucket_cursor = self.bucket_cursor + 1
-                    }
-                }
-            }
-        }
-        return null
+        if self.pos >= self.set.inner.size { return null }
+        k :: self.set.inner.ekeys[self.pos]
+        self.pos = self.pos + 1
+        return Yield<T> { .value = k }
     }
 }
 
@@ -555,4 +465,33 @@ import "std/testing" { assert, assert_eq }
     assert(!s.contains(10), "removed member gone")
     assert(s.contains(20), "untouched member stays")
     assert(!s.remove(10), "removing absent member returns false")
+}
+
+@test test_map_iteration_order :: fn() -> void {
+    m := MutableMap<i32, i32> {}
+    for i in 0..<usize(50) { m[i32(i)] = i32(i) * 2 }
+    seen := 0
+    sum := 0
+    for [k, v] in m {
+        seen = seen + 1
+        sum = sum + v
+        assert_eq(v, k * 2)
+    }
+    assert_eq(seen, 50)
+    assert_eq(sum, 2450)
+}
+
+@test test_map_remove_then_reinsert :: fn() -> void {
+    m := MutableMap<i32, i32> {}
+    for i in 0..<usize(100) { m[i32(i)] = i32(i) }
+    for i in 0..<usize(100) { if i % 3 == 0 { m.remove(i32(i)) } }
+    for i in 0..<usize(100) { if i % 3 == 0 { m[i32(i)] = i32(i) * 7 } }
+    assert_eq(m.len(), 100)
+    for i in 0..<usize(100) {
+        expected :: if i % 3 == 0 { i32(i) * 7 } else { i32(i) }
+        match m.get(i32(i)) {
+            is i32 as v -> assert_eq(v, expected)
+            is null -> assert(false, "key should be present")
+        }
+    }
 }

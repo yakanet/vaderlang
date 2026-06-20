@@ -1,48 +1,48 @@
 module _main
 type 0 primitive null
-type 1 primitive string
-type 2 primitive void
-type 3 primitive i32
-type 4 ref _
+type 1 primitive i32
+type 2 ref _
+type 3 primitive void
+type 4 primitive string
 type 5 primitive i64
-string 0 "\n"
-string 1 "ok"
+string 0 "ok"
+string 1 "\n"
 import 0 write std_io$write (i32,string) -> void
-export main 1
+export main 0
 
-fn 0 std_io$std_io$println__string (string) -> void
+fn 0 snippet$main () -> i32
+  type.const 1
+  call 1
+  type.const 5
+  call 1
+  type.const 1
+  call 1
+  type.const 4
+  call 1
+  string.const 0
+  call 3
+  return.lit i32.const 0
+end
+
+fn 1 snippet$accept_type (ref) -> void
+  return
+end
+
+fn 2 std_core$string$Display$to_string (string) -> string
+  local.get 0
+  return
+end
+
+fn 3 std_io$std_io$println__string (string) -> void
   local $call_2 string
   local.get 0
-  call 3
+  call 2
   local.set 1
   i32.const 0
   local.get 1
   call.import 0
   i32.const 0
-  string.const 0
-  call.import 0
-  return
-end
-
-fn 1 snippet$main () -> i32
-  type.const 3
-  call 2
-  type.const 5
-  call 2
-  type.const 3
-  call 2
-  type.const 1
-  call 2
   string.const 1
-  call 0
-  return.lit i32.const 0
-end
-
-fn 2 snippet$accept_type (ref) -> void
-  return
-end
-
-fn 3 std_core$string$Display$to_string (string) -> string
-  local.get 0
+  call.import 0
   return
 end

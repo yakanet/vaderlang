@@ -16,24 +16,17 @@
   SkipIterator<T>
   SkipIterator<T>
   SkipIterator<T>
+  Entry<i32, i32>
   Entry<K, V>
   Entry<K, V>
   Entry<K, V>
-  Entry<K, V>
-  Entry<K, V>
-  Entry<K, V>
-  Entry<K, V>
-  Entry<K, V>
-  Entry<K, V>
-  Entry<K, V>
-  Entry<K, V>
-  Entry<K, V>
-  Entry<K, V>
-  Entry<T, bool>
   Entry<K, V>
   MutableMap<i32, bool>
+  MutableMap<i32, i32>
   MutableMap<string, JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString>
   MutableMap<string, i32>
+  MutableMap<K, V>
+  MutableMap<K, V>
   MutableMap<K, V>
   MutableMap<K, V>
   MutableMap<K, V>
@@ -98,11 +91,11 @@
   Yield<char>
   Yield<Entry<K, V>>
   Yield<T>
-  Yield<T>
-  Yield<T>
-  Yield<T>
-  Yield<T>
   Yield<U>
+  Yield<T>
+  Yield<T>
+  Yield<T>
+  Yield<T>
   Yield<T>
   Yield<T>
   Yield<T>

@@ -9,7 +9,7 @@ string: "hello"
 escaped: "a\nb\tc\"d"
 array: [1,2,3]
 nested: [[1,2],["x","y"]]
-object: {"b":true,"a":1}
+object: {"a":1,"b":true}
 mixed: {"name":"vader","version":0.1,"flags":["-O0","-g"]}
 err: trailing: error: trailing characters after JSON value
 err: bad bool: error: expected `true` or `false`

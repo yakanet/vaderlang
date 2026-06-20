@@ -1,48 +1,34 @@
 module _main
 type 0 primitive null
-type 1 primitive string
-type 2 primitive void
+type 1 primitive char
+type 2 primitive string
 type 3 primitive i32
 type 4 primitive bool
-type 5 primitive char
-string 0 "\n"
-string 1 "right"
-string 2 "left"
-string 3 "plus"
-string 4 "other"
-string 5 "zero"
-string 6 "one"
-string 7 "two"
-string 8 "many"
-string 9 "on"
-string 10 "off"
-string 11 "?"
-string 12 "r"
-string 13 "read"
-string 14 "w"
-string 15 "write"
-string 16 "rw"
-string 17 "read-write"
-string 18 "unknown"
-string 19 "nope"
+type 5 primitive void
+string 0 "right"
+string 1 "left"
+string 2 "plus"
+string 3 "other"
+string 4 "zero"
+string 5 "one"
+string 6 "two"
+string 7 "many"
+string 8 "on"
+string 9 "off"
+string 10 "?"
+string 11 "r"
+string 12 "read"
+string 13 "w"
+string 14 "write"
+string 15 "rw"
+string 16 "read-write"
+string 17 "unknown"
+string 18 "nope"
+string 19 "\n"
 import 0 write std_io$write (i32,string) -> void
-export main 5
+export main 4
 
-fn 0 std_io$std_io$println__string (string) -> void
-  local $call_2 string
-  local.get 0
-  call 6
-  local.set 1
-  i32.const 0
-  local.get 1
-  call.import 0
-  i32.const 0
-  string.const 0
-  call.import 0
-  return
-end
-
-fn 1 snippet$describe_char (char) -> string
+fn 0 snippet$describe_char (char) -> string
   local __scrut_0 char
   local if_res string
   local if_res string
@@ -53,24 +39,24 @@ fn 1 snippet$describe_char (char) -> string
   char.const 62
   char.eq
   if $L0 void
-    string.const 1
+    string.const 0
     local.set 2
   else
     local.get 1
     char.const 60
     char.eq
     if $L1 void
-      string.const 2
+      string.const 1
       local.set 3
     else
       local.get 1
       char.const 43
       char.eq
       if $L2 void
-        string.const 3
+        string.const 2
         local.set 4
       else
-        string.const 4
+        string.const 3
         local.set 4
       end $L2
       local.get 4
@@ -83,7 +69,7 @@ fn 1 snippet$describe_char (char) -> string
   return
 end
 
-fn 2 snippet$describe_int (i32) -> string
+fn 1 snippet$describe_int (i32) -> string
   local __scrut_0 i32
   local if_res string
   local if_res string
@@ -94,24 +80,24 @@ fn 2 snippet$describe_int (i32) -> string
   i32.const 0
   i32.eq
   if $L0 void
-    string.const 5
+    string.const 4
     local.set 2
   else
     local.get 1
     i32.const 1
     i32.eq
     if $L1 void
-      string.const 6
+      string.const 5
       local.set 3
     else
       local.get 1
       i32.const 2
       i32.eq
       if $L2 void
-        string.const 7
+        string.const 6
         local.set 4
       else
-        string.const 8
+        string.const 7
         local.set 4
       end $L2
       local.get 4
@@ -124,7 +110,7 @@ fn 2 snippet$describe_int (i32) -> string
   return
 end
 
-fn 3 snippet$flag_label (bool) -> string
+fn 2 snippet$flag_label (bool) -> string
   local __scrut_0 bool
   local if_res string
   local if_res string
@@ -134,17 +120,17 @@ fn 3 snippet$flag_label (bool) -> string
   bool.const true
   bool.eq
   if $L0 void
-    string.const 9
+    string.const 8
     local.set 2
   else
     local.get 1
     bool.const false
     bool.eq
     if $L1 void
-      string.const 10
+      string.const 9
       local.set 3
     else
-      string.const 11
+      string.const 10
       local.set 3
     end $L1
     local.get 3
@@ -154,34 +140,34 @@ fn 3 snippet$flag_label (bool) -> string
   return
 end
 
-fn 4 snippet$mode_name (string) -> string
+fn 3 snippet$mode_name (string) -> string
   local __scrut_0 string
   local if_res string
   local if_res string
   local.get 0
   local.set 1
   local.get 1
-  string.const 12
+  string.const 11
   string.eq
   if $L0 void
-    string.const 13
+    string.const 12
     local.set 2
   else
     local.get 1
-    string.const 14
+    string.const 13
     string.eq
     if $L1 void
-      string.const 15
+      string.const 14
       local.set 3
     else
       local.get 1
-      string.const 16
+      string.const 15
       string.eq
       if $L2 void
-        string.const 17
+        string.const 16
         local.set 1
       else
-        string.const 18
+        string.const 17
         local.set 1
       end $L2
       local.get 1
@@ -194,44 +180,58 @@ fn 4 snippet$mode_name (string) -> string
   return
 end
 
-fn 5 snippet$main () -> i32
+fn 4 snippet$main () -> i32
   char.const 62
-  call 1
   call 0
+  call 6
   char.const 43
-  call 1
   call 0
+  call 6
   char.const 120
-  call 1
   call 0
+  call 6
   i32.const 0
-  call 2
-  call 0
+  call 1
+  call 6
   i32.const 1
-  call 2
-  call 0
+  call 1
+  call 6
   i32.const 99
-  call 2
-  call 0
+  call 1
+  call 6
   bool.const true
-  call 3
-  call 0
+  call 2
+  call 6
   bool.const false
+  call 2
+  call 6
+  string.const 11
   call 3
-  call 0
-  string.const 12
-  call 4
-  call 0
-  string.const 16
-  call 4
-  call 0
-  string.const 19
-  call 4
-  call 0
+  call 6
+  string.const 15
+  call 3
+  call 6
+  string.const 18
+  call 3
+  call 6
   return.lit i32.const 0
 end
 
-fn 6 std_core$string$Display$to_string (string) -> string
+fn 5 std_core$string$Display$to_string (string) -> string
   local.get 0
+  return
+end
+
+fn 6 std_io$std_io$println__string (string) -> void
+  local $call_2 string
+  local.get 0
+  call 5
+  local.set 1
+  i32.const 0
+  local.get 1
+  call.import 0
+  i32.const 0
+  string.const 19
+  call.import 0
   return
 end

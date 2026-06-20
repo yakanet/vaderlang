@@ -1070,6 +1070,12 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[]) -
             is bc.RefCast -> {
                 frame.pc = frame.pc + 1
             }
+            is bc.Box -> {
+                // No-op : VM values carry coarse tags (`I64Val` matches any
+                // `is`-of-an-I64-width type), so the box-tag refinement the
+                // C-emit needs is irrelevant here — just bump pc, like RefCast.
+                frame.pc = frame.pc + 1
+            }
             is bc.Unreachable as u -> {
                 return Trap { .message = "reached unreachable: ${u.reason}" }
             }

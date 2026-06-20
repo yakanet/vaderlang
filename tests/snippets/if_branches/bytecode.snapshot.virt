@@ -109,7 +109,9 @@ fn 2 std_core$Range$Iterator$next__i32 (ref) -> ref
   end $L0
   local.get 1
   if $L1 void
-    return.lit null.const
+    null.const
+    box 0
+    return
   end $L1
   local.field 0 3 3
   ref.cast 1
@@ -288,7 +290,9 @@ fn 7 std_core$Range$Iterator$next__usize (ref) -> ref
   end $L0
   local.get 1
   if $L1 void
-    return.lit null.const
+    null.const
+    box 0
+    return
   end $L1
   local.field 0 9 3
   ref.cast 7

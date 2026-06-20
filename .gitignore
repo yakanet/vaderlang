@@ -4,6 +4,10 @@ build/
 *.wasm
 *.tsbuildinfo
 
+# Scratch / throwaway POC + run dirs (not part of the tree)
+tmp_mappoc/
+tmp_vrun/
+
 # Self-host CLI build artefacts (binary + generated C from `vader build vader/cli/main.vader`)
 vader/cli/main
 vader/cli/main.c

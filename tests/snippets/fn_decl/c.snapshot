@@ -134,10 +134,10 @@ static vader_box_t std_core_Range_Iterator_next__i32(vader_box_t l0) {
     bool l1;
     int32_t l2, l3;
     bool t0, t3, t6;
-    int32_t t1, t2, t4, t5, t7, t8, t9;
-    vader_box_t t10 = vader_box_null();
-    vader_box_t* gc_roots[2] = { &l0, &t10 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 0u, gc_roots };
+    int32_t t1, t2, t4, t5, t8, t9, t10;
+    vader_box_t t7 = vader_box_null(), t11 = vader_box_null();
+    vader_box_t* gc_roots[3] = { &l0, &t7, &t11 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
     t0 = (bool) ((vader_struct_std_core_Range__i32_t*) l0.payload.obj)->f_inclusive;
     if (t0) {
@@ -156,20 +156,21 @@ static vader_box_t std_core_Range_Iterator_next__i32(vader_box_t l0) {
         l1 = t6;
     }
     if (l1) {
-        { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
+        t7 = vader_box_obj(0u, NULL);
+        { vader_box_t __vret = t7; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t7 = (int32_t) ((vader_struct_std_core_Range__i32_t*) l0.payload.obj)->f_cursor;
-    l2 = t7;
     t8 = (int32_t) ((vader_struct_std_core_Range__i32_t*) l0.payload.obj)->f_cursor;
-    t9 = std_core_i32_Step_step(t8);
-    l3 = t9;
+    l2 = t8;
+    t9 = (int32_t) ((vader_struct_std_core_Range__i32_t*) l0.payload.obj)->f_cursor;
+    t10 = std_core_i32_Step_step(t9);
+    l3 = t10;
     ((vader_struct_std_core_Range__i32_t*) l0.payload.obj)->f_cursor = l3;
     VADER_WRITE_BARRIER((vader_struct_std_core_Range__i32_t*) l0.payload.obj);
     vader_struct_std_core_Yield__i32_t* _a0_obj = (vader_struct_std_core_Yield__i32_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Yield__i32_t));
     vader_obj_header_init(_a0_obj, 6u);
     _a0_obj->f_value = l2;
-    t10 = vader_box_obj(6u, _a0_obj);
-    { vader_box_t __vret = t10; vader_gc_top = gc_frame.prev; return __vret; }
+    t11 = vader_box_obj(6u, _a0_obj);
+    { vader_box_t __vret = t11; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
 
@@ -286,10 +287,10 @@ static vader_box_t std_core_Range_Iterator_next__usize(vader_box_t l0) {
     bool l1;
     size_t l2, l3;
     bool t0, t3, t6;
-    size_t t1, t2, t4, t5, t7, t8, t9;
-    vader_box_t t10 = vader_box_null();
-    vader_box_t* gc_roots[2] = { &l0, &t10 };
-    vader_gc_frame_t gc_frame = { vader_gc_top, 2u, 0u, gc_roots };
+    size_t t1, t2, t4, t5, t8, t9, t10;
+    vader_box_t t7 = vader_box_null(), t11 = vader_box_null();
+    vader_box_t* gc_roots[3] = { &l0, &t7, &t11 };
+    vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
     t0 = (bool) ((vader_struct_std_core_Range__usize_t*) l0.payload.obj)->f_inclusive;
     if (t0) {
@@ -308,20 +309,21 @@ static vader_box_t std_core_Range_Iterator_next__usize(vader_box_t l0) {
         l1 = t6;
     }
     if (l1) {
-        { vader_gc_top = gc_frame.prev; return vader_box_obj(0u, NULL); }
+        t7 = vader_box_obj(0u, NULL);
+        { vader_box_t __vret = t7; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t7 = (size_t) ((vader_struct_std_core_Range__usize_t*) l0.payload.obj)->f_cursor;
-    l2 = t7;
     t8 = (size_t) ((vader_struct_std_core_Range__usize_t*) l0.payload.obj)->f_cursor;
-    t9 = std_core_usize_Step_step(t8);
-    l3 = t9;
+    l2 = t8;
+    t9 = (size_t) ((vader_struct_std_core_Range__usize_t*) l0.payload.obj)->f_cursor;
+    t10 = std_core_usize_Step_step(t9);
+    l3 = t10;
     ((vader_struct_std_core_Range__usize_t*) l0.payload.obj)->f_cursor = l3;
     VADER_WRITE_BARRIER((vader_struct_std_core_Range__usize_t*) l0.payload.obj);
     vader_struct_std_core_Yield__usize_t* _a0_obj = (vader_struct_std_core_Yield__usize_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Yield__usize_t));
     vader_obj_header_init(_a0_obj, 11u);
     _a0_obj->f_value = l2;
-    t10 = vader_box_obj(11u, _a0_obj);
-    { vader_box_t __vret = t10; vader_gc_top = gc_frame.prev; return __vret; }
+    t11 = vader_box_obj(11u, _a0_obj);
+    { vader_box_t __vret = t11; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
 

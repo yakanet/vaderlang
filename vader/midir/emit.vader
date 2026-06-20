@@ -40,7 +40,7 @@ import "vader/bytecode" {
     If, Else, End, Block, Loop, Branch, BranchIf, BoolNot,
     StructNew, StructGet, StructSet,
     ArrayNew, ArrayGet, ArraySet, ArrayLen, ArrayPush, ArraySlice, StringSliceCodepoints,
-    DataConst, TypeConst, TypeCheck, RefCast, Convert, ConvertTarget,
+    DataConst, TypeConst, TypeCheck, RefCast, Box, Convert, ConvertTarget,
     MakeClosure, DeferPush, DeferPopExec, SizeOfType,
 }
 import "vader/bytecode" {
@@ -791,6 +791,19 @@ emit_block_contents :: fn(ctx: FnEmitCfg, block_id: BlockId, until: BlockId) -> 
         if r.value !is null {
             if !ctx.hints.skip_terminator_get.contains(block_id) {
                 emit_get(ctx, r.value, r.span)
+            }
+            // Box a CONCRETE primitive flowing into an ERASED `ref`/union return,
+            // tagging it with its semantic type so a downstream `is T` matches.
+            // The C-emit's implicit return-coercion only sees the coarse ValType
+            // (`I64`) and would box `usize` as `i64` — breaking `is usize`. An
+            // already-ref value (erased field) keeps its tag, so it's excluded.
+            rv_type :: ctx.fn_.locals[usize(r.value)].type
+            rv_val :: val_type_of_type(rv_type)
+            ret_val :: val_type_of_type(ctx.fn_.return_type)
+            erased_return :: ret_val == ValType.Ref || ret_val == ValType.Any
+            concrete_prim :: !(rv_val == ValType.Ref || rv_val == ValType.Any || rv_val == ValType.Void)
+            if erased_return && concrete_prim {
+                push_emit(ctx, Box { .type_id = intern_type(rv_type, ctx.project) }, r.span)
             }
         }
         // Fuse `<const> + Return → ReturnLit X` post-emit. Mirrors

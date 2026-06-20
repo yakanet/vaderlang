@@ -8,21 +8,21 @@
 
 /* Compile-time atom table — see docs/ATOM_INTERNING.md. */
 static const char vader_atom_blob[] =
-    "\n" "\0"
     "ok" "\0"
+    "\n" "\0"
 ;
 
 static const vader_atom_entry_t vader_atom_comptime_table[] = {
-    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[0] },
-    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[2] },
+    { 0u, 0u, 2u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[0] },
+    { 0u, 0u, 1u, VADER_ATOM_FLAG_PERM, 0u, &vader_atom_blob[3] },
 };
 
 #define VADER_COMPTIME_ATOM_COUNT 2u
 
-static void std_io_std_io_println__string(vader_string_t l0);
 static int32_t snippet_main(void);
 static void snippet_accept_type(vader_box_t l0);
 static vader_string_t std_core_string_Display_to_string(vader_string_t l0);
+static void std_io_std_io_println__string(vader_string_t l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
@@ -33,9 +33,9 @@ const size_t vader_type_info_count = 6;
 
 const size_t vader_type_size[6] = {
     [0] = 0u,
-    [1] = 16u,
-    [2] = 0u,
-    [3] = 4u,
+    [1] = 4u,
+    [2] = 16u,
+    [3] = 0u,
     [4] = 16u,
     [5] = 8u,
 };
@@ -52,27 +52,14 @@ const vader_vtable_t* const vader_vtable_table[1] = { NULL };
 const size_t                vader_vtable_count    = 0;
 static void vader_import_0(int32_t a0, vader_string_t a1) { vader_write(a0, a1); }
 
-static void std_io_std_io_println__string(vader_string_t l0) {
-    vader_string_t l1;
-    vader_string_t t0;
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL };
-    vader_gc_top = &gc_frame;
-    t0 = std_core_string_Display_to_string(l0);
-    l1 = t0;
-    vader_import_0(INT32_C(0), l1);
-    vader_import_0(INT32_C(0), 1u);
-    { vader_gc_top = gc_frame.prev; return; }
-    vader_gc_top = gc_frame.prev;
-}
-
 static int32_t snippet_main(void) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL };
     vader_gc_top = &gc_frame;
-    snippet_accept_type(vader_box_obj(0u, (void*)(uintptr_t)3u));
-    snippet_accept_type(vader_box_obj(0u, (void*)(uintptr_t)5u));
-    snippet_accept_type(vader_box_obj(0u, (void*)(uintptr_t)3u));
     snippet_accept_type(vader_box_obj(0u, (void*)(uintptr_t)1u));
-    std_io_std_io_println__string(2u);
+    snippet_accept_type(vader_box_obj(0u, (void*)(uintptr_t)5u));
+    snippet_accept_type(vader_box_obj(0u, (void*)(uintptr_t)1u));
+    snippet_accept_type(vader_box_obj(0u, (void*)(uintptr_t)4u));
+    std_io_std_io_println__string(1u);
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
     vader_gc_top = gc_frame.prev;
 }
@@ -83,6 +70,19 @@ static void snippet_accept_type(vader_box_t l0) {
 
 static vader_string_t std_core_string_Display_to_string(vader_string_t l0) {
     return l0;
+}
+
+static void std_io_std_io_println__string(vader_string_t l0) {
+    vader_string_t l1;
+    vader_string_t t0;
+    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL };
+    vader_gc_top = &gc_frame;
+    t0 = std_core_string_Display_to_string(l0);
+    l1 = t0;
+    vader_import_0(INT32_C(0), l1);
+    vader_import_0(INT32_C(0), 2u);
+    { vader_gc_top = gc_frame.prev; return; }
+    vader_gc_top = gc_frame.prev;
 }
 
 int main(int argc, char** argv) {
