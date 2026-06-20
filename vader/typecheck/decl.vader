@@ -388,8 +388,13 @@ lookup_fn_symbol_by_span :: fn(
             for s in bucket {
                 sp :: s.defined_at
                 if sp is null { continue }
+                // Match the file too : two overloads at the same (line, column)
+                // in DIFFERENT sibling files of a module would otherwise collide,
+                // and the second's decl_types entry would never be written (the
+                // file-blind hazard `span_key` already folds the file hash for).
                 if sp.start.line == decl.name_span.start.line &&
-                   sp.start.column == decl.name_span.start.column {
+                   sp.start.column == decl.name_span.start.column &&
+                   sp.start.file == decl.name_span.start.file {
                     return s
                 }
             }
