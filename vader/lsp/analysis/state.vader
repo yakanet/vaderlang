@@ -98,7 +98,9 @@ export typed_project_for :: fn(self: ServerState, file_path: string) -> ProjectC
     if cached != null {
         if cached.entry_path == file_path { return cached }
     }
-    fc :: check_file(file_path, doc_overlay(self), [])
+    // dump_types = false : the LSP reads expr_types (hover/defs) but never the
+    // dump-only expr_kinds / node_spans tables.
+    fc :: check_file(file_path, doc_overlay(self), [], false)
     entry :: ProjectCache {
         .entry_path = file_path, .project = fc.project, .result = fc.result, .diags = fc.diags,
     }

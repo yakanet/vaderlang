@@ -38,11 +38,14 @@ export infer_binary :: fn(
     if i32(e.op) == i32(AST.BinaryOp.Is) {
         rhs_ty :: type_from_expr(e.right, typed.resolved, diags)
         typed.expr_types[e.right.id] = rhs_ty
-        typed.node_spans[e.right.id] = e.right.span
-        // Only IdentExpr's kind label is interesting at the dump
-        // level — the right side of `is` is almost always a type
-        // ident (`is i32`, `is Cat`).
-        if e.right is AST.IdentExpr { typed.expr_kinds[e.right.id] = "IdentExpr" }
+        // `node_spans` / `expr_kinds` here are dump-only (the right side of
+        // `is` is a type ident, never lowered as a value). See `dump_types`.
+        if typed.dump_types {
+            typed.node_spans[e.right.id] = e.right.span
+            // Only IdentExpr's kind label is interesting at the dump level —
+            // the right side of `is` is almost always a type ident (`is i32`).
+            if e.right is AST.IdentExpr { typed.expr_kinds[e.right.id] = "IdentExpr" }
+        }
         check_is_against_union(e, rhs_ty, diags)
         check_is_overlap(e, left, rhs_ty, diags)
         return TY_BOOL

@@ -70,10 +70,10 @@ export FileCheck :: struct {
 ///                    (`load_project_with_overlay(p, {})` ≡ `load_project(p)`).
 /// @return            the loaded project, the typed result, and the merged
 ///                    loader + typecheck diagnostics.
-export check_file :: fn(entry_path: string, overlay: MutableMap<string, string>, include_path_flags: string[]) -> FileCheck {
+export check_file :: fn(entry_path: string, overlay: MutableMap<string, string>, include_path_flags: string[], dump_types: bool) -> FileCheck {
     project :: load_project_with_overlay(entry_path, overlay, include_path_flags)
     diags: Diagnostic[] = []
-    result :: check_project_with_bodies(project, diags)
+    result :: check_project_with_bodies(project, diags, dump_types)
     merged: Diagnostic[] = []
     for d in project.diags { merged.push(d) }
     for d in diags         { merged.push(d) }
@@ -102,8 +102,11 @@ export check_module_with_bodies :: fn(
 /// its top-level decl types (for cross-module ident lookup). Wires
 /// imports across the project and patches the entry's
 /// `import_targets` + `external_types`.
+/// `dump_types` populates the dump-only `expr_kinds` / `node_spans` side-tables
+/// (set only by `check_file` for `dump --stage=typed-ast`) ; build / run /
+/// bootstrap / LSP pass `false`, since nothing reads those tables there.
 export check_project_with_bodies :: fn(
-    project: LoadedProject, diags: Diagnostic[],
+    project: LoadedProject, diags: Diagnostic[], dump_types: bool,
 ) -> CheckResult {
     entry_loaded :: project.modules[project.entry]
     if entry_loaded is null {
@@ -131,6 +134,7 @@ export check_project_with_bodies :: fn(
         project.factory, entry_loaded.collected, core_seed,
     )
     entry_typed :: new_typed_program(entry_rm)
+    entry_typed.dump_types = dump_types
     preload_core_symbols(entry_rm, project)
 
     // Pre-resolve every module first so we can register all type
@@ -145,6 +149,7 @@ export check_project_with_bodies :: fn(
         )
         preload_core_symbols(rm, project)
         typed :: new_typed_program(rm)
+        typed.dump_types = dump_types
         per_module[id] = typed
     }
     // Phase A : register every type alias project-wide. Cross-
@@ -1175,7 +1180,10 @@ settle_external_expr_bodied_returns :: fn(
     //
     // Pass 0 always runs on every module — that's the only place
     // per-module `expr_types` / `expr_kinds` get populated for the
-    // typecheck dump's `## <path>` sections.
+    // typecheck dump's `## <path>` sections. It ALSO has a load-bearing
+    // side effect: walking each imported body materialises the stdlib fns
+    // it references (e.g. `println`) for the lowerer — skipping non-expr-
+    // bodied modules here breaks that (midir/emit: unresolved callee, GATE B1).
     //
     // Pass 1 is the re-walk that picks up settled returns ; it's
     // pure waste on modules without expression-bodied fns since

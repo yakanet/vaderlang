@@ -212,11 +212,19 @@ export TypedProgram :: struct {
     /// validate against the fn's declared return type. Mutable.
     current_fn_ctx: FnContext | null
 
-    /// `AST.id → Span` reverse lookup populated alongside every write
-    /// to `expr_types` / `expr_kinds`. Lets the dump still render
-    /// `line:col` (or `undefined:undefined` for materialised spans)
-    /// once expression side-tables flip from span-keyed to id-keyed.
+    /// `AST.id → Span` reverse lookup for the typed-ast dump's `line:col`
+    /// rendering (or `undefined:undefined` for materialised spans). Populated
+    /// alongside `expr_kinds` — and, like it, only when `dump_types` is set
+    /// (see below) ; `expr_types` always populates, these two do not.
     node_spans: MutableMap<usize, Span>
+
+    /// When true, `record_expr` (+ the stmt / binary dump sites) populate the
+    /// dump-only side-tables `expr_kinds` / `node_spans`. Set only for a
+    /// `dump --stage=typed-ast` (through `check_file`) ; false on build / run /
+    /// LSP / every other dump stage, where those tables are never read — so
+    /// skipping the writes saves two map inserts per expression on every body
+    /// walk (the typecheck pass is the self-compile's biggest GC churner).
+    dump_types: bool
 
     /// C symbol name → first `@extern`-decorated FnDecl that claimed it.
     /// Lets `validate_extern` (decl.vader) emit T3050 on the second
@@ -317,6 +325,7 @@ export new_typed_program :: fn(resolved: ResolvedModule) -> TypedProgram {
         .struct_trait_args = MutableMap<string, MutableMap<string, Type[]>> {},
         .current_fn_ctx  = null,
         .node_spans      = MutableMap<usize, Span> {},
+        .dump_types      = false,
         .extern_symbols  = MutableMap<string, FnDecl> {},
         .let_type_aliases = MutableMap<i32, Type> {},
         .bounded_dispatch_trait = MutableMap<usize, string> {},

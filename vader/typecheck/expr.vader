@@ -36,13 +36,17 @@ export check_expr :: fn(
     return final
 }
 
-/// Write the final type + kind + span of `expr` into the typecheck
-/// side-tables. Centralised so every writer keeps `expr_types`,
-/// `expr_kinds`, and the `node_spans` reverse-lookup in lockstep.
+/// Write the final type of `expr` into `expr_types`, plus its kind + span
+/// into the dump-only side-tables. Centralised so every writer keeps the
+/// three in lockstep. `expr_kinds` / `node_spans` are populated only when
+/// `typed.dump_types` is set (the typed-ast dump) — they feed nothing else,
+/// so build / run / LSP skip those two inserts per expression.
 export record_expr :: fn(typed: TypedProgram, expr: AST.Expr, ty: Type) -> void {
     typed.expr_types[expr.id] = ty
-    typed.expr_kinds[expr.id] = expr_kind_name(expr)
-    typed.node_spans[expr.id] = expr.span
+    if typed.dump_types {
+        typed.expr_kinds[expr.id] = expr_kind_name(expr)
+        typed.node_spans[expr.id] = expr.span
+    }
 }
 
 /// Map an `AST.Expr` to its variant name as a string (matches the TS

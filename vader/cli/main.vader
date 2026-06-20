@@ -990,7 +990,9 @@ collect_resolver_diags :: fn(project: LoadedProject, resolved: ResolvedProject) 
 run_typecheck_stage :: fn(file: string, module_filter: string[]) -> i32 {
     // `check_file` is the shared load+typecheck+merge the LSP also routes
     // through, so the editor's squiggles and this dump never diverge.
-    fc :: check_file(file, MutableMap<string, string> {}, [])
+    // `dump_types = true` : this stage renders the `expr_kinds` / `node_spans`
+    // side-tables, so ask the typecheck to populate them (the only path that does).
+    fc :: check_file(file, MutableMap<string, string> {}, [], true)
     // No `LoadedProject` here ; the entry typed module (`fc.result.typed`)
     // carries its own display path for the default scope.
     scope :: scope_or_entry(module_filter, fc.result.typed.resolved.display_path)
@@ -1311,7 +1313,7 @@ prepare_evaluated_project_with :: fn(file: string, include_path_flags: string[])
     Prof.prof_end(Prof.PHASE_LOAD)
     typecheck_diags: Diagnostic[] = []
     Prof.prof_begin(Prof.PHASE_TYPECHECK)
-    result :: check_project_with_bodies(loaded, typecheck_diags)
+    result :: check_project_with_bodies(loaded, typecheck_diags, false)
     resolver_diags :: collect_body_diags(result)
     typed :: assemble_typed_project(result)
     Prof.prof_end(Prof.PHASE_TYPECHECK)
