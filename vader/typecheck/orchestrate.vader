@@ -308,15 +308,14 @@ export check_project_with_bodies :: fn(
         // entry) and persist — no need to re-set / rebuild them here.
         populate_resolver_imports(other_typed)
         populate_external_types(other_typed, project, per_module)
-        // Rebuild from scratch : the pre-settle populate (so settle's own UFCS
-        // sees cross-module overloads) captured expr-bodied callees' returns while
-        // still `?`, and `push_overload` APPENDS — so the stale `fn(i64) -> ?` for
-        // an overloaded expr-bodied import (`abs`) would sit BEFORE the settled
-        // `fn(i64) -> i64`, and `pick_overload` returns the first match (the `?`,
-        // which then flows as `any` and truncates wide-int compares to `i32.lt`).
-        // Follow-up : a replace-on-signature `push_overload` would make populate
-        // idempotent and drop this clear.
-        other_typed.imported_fn_overloads = MutableMap<string, FnType[]> {}
+        // The pre-settle populate (so settle's own UFCS sees cross-module
+        // overloads) captured expr-bodied callees' returns while still `?` ;
+        // re-populate now that `settle` patched the settled returns into
+        // decl_types. `push_overload` is replace-on-signature (idempotent), so it
+        // OVERWRITES the stale `fn(i64) -> ?` entry in place rather than leaving it
+        // ahead of the settled `fn(i64) -> i64` — no `clear` needed. (That
+        // stale-ahead ordering is what `pick_overload` first-matched into `?` →
+        // `any` → wide-int compares truncated to `i32.lt`, the `abs` bug.)
         populate_imported_fn_overloads(other_typed, per_module)
         merge_external_impl_methods(other_typed, project, per_module)
         other_decls :: merge_module_program(other.module.files).decls
@@ -1261,6 +1260,21 @@ push_overload :: fn(typed: TypedProgram, name: string, ft: FnType) -> void {
     match bucket {
         is null -> { typed.imported_fn_overloads[name] = [ft] }
         _       -> {
+            // Replace-on-signature : an overload is keyed by its PARAMS alone
+            // (`type_list_equals`, NOT `equals_type` — the latter ANDs return
+            // equality, so a stale `fn(i64) -> ?` would not collapse against the
+            // settled `fn(i64) -> i64`). A re-populate after `settle` rebuilds the
+            // same-param FnType with the now-settled return ; overwrite the stale
+            // entry in place (preserving declaration order / primary `[0]`) so
+            // first-match `pick_overload` lands on the settled return. Idempotent —
+            // the import loop no longer clears the bucket before re-populating.
+            for i in 0..<bucket.len() {
+                if type_list_equals(bucket[i].params, ft.params) {
+                    bucket[i] = ft
+                    typed.imported_fn_overloads[name] = bucket
+                    return
+                }
+            }
             bucket.push(ft)
             typed.imported_fn_overloads[name] = bucket
         }
