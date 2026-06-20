@@ -7,9 +7,9 @@ module "snippet"
 
 import "std/io" { println }
 import "std/collections" { MutableMap, MutableSet, add }
-// `std/string` imported for its blanket `string implements Into(Iterator(char))`
-// impl. The chars / bytes helpers aren't referenced directly — the Into
-// coercion routes through them at lowering.
+// `chars` anchors std/string's blanket `string implements Into(Iterator(char))`
+// impl into scope ; the `for _c in <string>` leg routes through it at lowering.
+import "std/string" { chars }
 
 main :: fn() -> i32 {
     // Array — direct lowerer wrap, no Into coerce. Sum every element.

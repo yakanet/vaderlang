@@ -316,13 +316,46 @@
               arg0:
                 __sb_17 :StringBuilder
     let chars: i32 = int(0) :i32
-    unreachable("no Iterator impl on string") :void
+    block :void
+      let __iter_19: StringChars =
+        call :StringChars
+          callee:
+            chars :StringChars
+          arg0:
+            "héllo 世界" :string
+      loop
+        let __step_20: Yield<char> | null =
+          call :Yield<char> | null
+            callee:
+              std_string$StringChars$Iterator$next :?
+            arg0:
+              __iter_19 :StringChars
+        if :void
+          cond:
+            is null :bool
+              __step_20 :Yield<char> | null
+          then:
+            break
+          else:
+            let _c: char =
+              .value :char
+                cast → Yield<char>
+                  __step_20 :Yield<char> | null
+            assign
+              target:
+                chars :i32
+              value:
+                add :i32
+                  l:
+                    chars :i32
+                  r:
+                    int(1) :i32
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_18: StringBuilder =
+          let __sb_21: StringBuilder =
             call :StringBuilder
               callee:
                 new_builder :StringBuilder
@@ -330,14 +363,14 @@
             callee:
               append :void
             arg0:
-              __sb_18 :StringBuilder
+              __sb_21 :StringBuilder
             arg1:
               "chars=" :string
           call :void
             callee:
               append :void
             arg0:
-              __sb_18 :StringBuilder
+              __sb_21 :StringBuilder
             arg1:
               call :string
                 callee:
@@ -349,8 +382,5 @@
               callee:
                 std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                __sb_18 :StringBuilder
+                __sb_21 :StringBuilder
     return int(0) :i32
-
-# Diagnostics
-[48:5] error[M5001] for-in receiver has no `Iterator` impl: `for x in iter` requires an Iterator impl on string
