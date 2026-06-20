@@ -37,7 +37,6 @@ import "vader/lower" { prune_unreachable_fns }
 import "vader/lower" { mangle_module_id }
 import "vader/lower" { LoweredProject }
 import "vader/lower" { new_lowered_project }
-import "vader/bytecode" { emit_project }
 import "vader/bytecode" { BytecodeModule }
 import "vader/bytecode" { default_emit_options }
 import "vader/bytecode" { dump_bytecode, dump_bytecode_annotated }
