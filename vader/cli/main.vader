@@ -42,6 +42,7 @@ import "vader/bytecode" { default_emit_options }
 import "vader/bytecode" { dump_bytecode, dump_bytecode_annotated }
 import "vader/midir" { build_cfg_project, dump_cfg_project, DumpCfgOptions, emit_bytecode_from_cfg, const_fold_project, annotate_escape, eliminate_dead_cfg }
 import "vader/c_emit" { emit_c, EmitOptions as CEmitOptions, default_emit_options as default_c_emit_options }
+Prof :: import "vader/profile"
 import "vader/diagnostics" { Diagnostic }
 import "vader/fmt" { run_fmt }
 import "vader/vm" { run_virt, parse_virt_bc, prepare, exec_entry, Ok, Trap }
@@ -660,7 +661,13 @@ emit_c_source :: fn(file: string, release: bool, include_path_flags: string[]) -
     // stage's `export main N`) so the `main()` shim resolves the entry module's
     // `main` even when a multi-module input (the compiler imports `vader/lsp`,
     // which has its own `main`) flags several fns `is_main`.
-    return emit_c(b.module, CEmitOptions { .release = release, .entry_mangled = b.entry })
+    Prof.prof_begin(Prof.PHASE_CEMIT)
+    c :: emit_c(b.module, CEmitOptions { .release = release, .entry_mangled = b.entry })
+    Prof.prof_end(Prof.PHASE_CEMIT)
+    // End of the compile pipeline — emit the per-pass profile (no-op unless
+    // $VADER_PROFILE is set ; idempotent if the atexit fallback also fires).
+    Prof.prof_dump()
+    return c
 }
 
 // Render the merged pipeline diagnostics to stderr and report whether the
@@ -1067,11 +1074,14 @@ lower_to_entry_with :: fn(file: string, include_path_flags: string[]) -> Lowered
     // primitive) trips its `emit_bytecode_from_cfg` backstop panic before the
     // caller's `flush_build_diags` gate runs — a plain user error would ICE.
     lower_diags: Diagnostic[] = []
+    // profiling bracket — inert unless $VADER_PROFILE (see prepare_evaluated_project_with).
+    Prof.prof_begin(Prof.PHASE_LOWER)
     lowered :: if any_error_diag(pre_diags) {
         new_lowered_project()
     } else {
         lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
     }
+    Prof.prof_end(Prof.PHASE_LOWER)
     return LoweredEntry {
         .lowered     = lowered,
         .entry       = entry,
@@ -1112,11 +1122,22 @@ prepare_cfg_bytecode :: fn(file: string) -> CfgBytecode = prepare_cfg_bytecode_w
 
 prepare_cfg_bytecode_with :: fn(file: string, include_path_flags: string[]) -> CfgBytecode {
     le :: lower_to_entry_with(file, include_path_flags)
+    // profiling brackets — inert unless $VADER_PROFILE (see prepare_evaluated_project_with).
+    Prof.prof_begin(Prof.PHASE_PRUNE)
     pruned :: prune_unreachable_fns(le.lowered, false)
+    Prof.prof_end(Prof.PHASE_PRUNE)
+    Prof.prof_begin(Prof.PHASE_CFG_BUILD)
     cfg :: build_cfg_project(pruned)
+    Prof.prof_end(Prof.PHASE_CFG_BUILD)
+    Prof.prof_begin(Prof.PHASE_CFG_DCE)
     dced :: eliminate_dead_cfg(cfg)
+    Prof.prof_end(Prof.PHASE_CFG_DCE)
+    Prof.prof_begin(Prof.PHASE_ESCAPE)
     escaped :: annotate_escape(dced).project
+    Prof.prof_end(Prof.PHASE_ESCAPE)
+    Prof.prof_begin(Prof.PHASE_BYTECODE)
     module :: emit_bytecode_from_cfg(escaped, module_name_from_file(file), default_emit_options())
+    Prof.prof_end(Prof.PHASE_BYTECODE)
     return CfgBytecode {
         .entry       = le.entry,
         .pre_diags   = le.pre_diags,
@@ -1277,13 +1298,27 @@ prepare_evaluated_project :: fn(file: string) -> EvaluatedPipeline = prepare_eva
 // threaded to the loader (build / run honour the flag ; dump stages use [] via
 // the no-flag wrapper above).
 prepare_evaluated_project_with :: fn(file: string, include_path_flags: string[]) -> EvaluatedPipeline {
+    // Per-pass profiling brackets (here + in lower_to_entry_with /
+    // prepare_cfg_bytecode_with / emit_c_source). `prof_begin` / `prof_end` are
+    // no-ops — one cached env check + early return — unless $VADER_PROFILE is
+    // set, in which case the runtime accumulates the per-pass wall / RSS / GC
+    // table dumped at the end of the compile. Kept in the pipeline so the
+    // self-compile profile (`bun run bench:profile`) stays one flag away ; they
+    // never read the clock when off and never touch the emitted output. See
+    // vader/profile.
+    Prof.prof_begin(Prof.PHASE_LOAD)
     loaded :: load_project(file, include_path_flags)
+    Prof.prof_end(Prof.PHASE_LOAD)
     typecheck_diags: Diagnostic[] = []
+    Prof.prof_begin(Prof.PHASE_TYPECHECK)
     result :: check_project_with_bodies(loaded, typecheck_diags)
     resolver_diags :: collect_body_diags(result)
     typed :: assemble_typed_project(result)
+    Prof.prof_end(Prof.PHASE_TYPECHECK)
     comptime_diags: Diagnostic[] = []
+    Prof.prof_begin(Prof.PHASE_COMPTIME)
     evaluated :: evaluate_project(loaded, typed, comptime_diags)
+    Prof.prof_end(Prof.PHASE_COMPTIME)
     return EvaluatedPipeline {
         .loaded          = loaded,
         .typed           = typed,

@@ -1,0 +1,65 @@
+// vader/profile/profile.vader — per-pass profiler for the self-compile.
+//
+// Thin bindings to the runtime profiler (runtime/c/vader_runtime.c). The
+// compiler brackets each pipeline pass with `prof_begin(id)` / `prof_end(id)` ;
+// the runtime accumulates wall time, peak-RSS growth, and GC churn per phase
+// and dumps a table to stderr when `$VADER_PROFILE` is set. Every call is a
+// cheap no-op otherwise, so the brackets stay in the hot path unconditionally.
+//
+// The `PHASE_*` ids below MUST stay in lockstep with `g_prof_names[]` in
+// `runtime/c/vader_runtime.c` — the runtime indexes its name table by id.
+//
+// The raw `@extern` fns are named identically to their C symbols so the
+// binding survives a bootstrap seed predating the `@extern("name")` override
+// argument (the same precaution `vader/vm/exec.vader` takes for its f64-bits
+// helpers). Callers go through the `prof_*` wrappers below.
+
+module "vader/profile"
+
+// ---- phase ids (mirror g_prof_names[] in the runtime) ---------------------
+
+/// Front-end load — resolve + parse + import wiring (`load_project`).
+export PHASE_LOAD      :: 0
+/// Type-checking with bodies (`check_project_with_bodies`).
+export PHASE_TYPECHECK :: 1
+/// Comptime evaluation + monomorphisation (`evaluate_project`).
+export PHASE_COMPTIME  :: 2
+/// Lowering to the LoweredAST (`lower_project`).
+export PHASE_LOWER     :: 3
+/// Reachability prune over the lowered project (`prune_unreachable_fns`).
+export PHASE_PRUNE     :: 4
+/// CFG construction (`build_cfg_project`).
+export PHASE_CFG_BUILD :: 5
+/// CFG-level dead-code elimination (`eliminate_dead_cfg`).
+export PHASE_CFG_DCE   :: 6
+/// Escape annotation (`annotate_escape`).
+export PHASE_ESCAPE    :: 7
+/// Bytecode emission from the CFG (`emit_bytecode_from_cfg`).
+export PHASE_BYTECODE  :: 8
+/// C emission (`emit_c`).
+export PHASE_CEMIT     :: 9
+
+// ---- raw runtime bindings (fn name == C symbol) ---------------------------
+
+@extern("vader_prof_begin")
+vader_prof_begin :: fn(id: i32) -> void
+@extern("vader_prof_end")
+vader_prof_end :: fn(id: i32) -> void
+@extern("vader_prof_dump")
+vader_prof_dump :: fn() -> void
+
+// ---- public API -----------------------------------------------------------
+
+/// Mark the start of pass `id`. Cheap no-op unless `$VADER_PROFILE` is set.
+///
+/// @param id  a `PHASE_*` constant from this module.
+export prof_begin :: fn(id: i32) -> void { vader_prof_begin(id) }
+
+/// Mark the end of pass `id`, accumulating its wall / peak-RSS / GC deltas.
+///
+/// @param id  the same `PHASE_*` constant passed to the matching `prof_begin`.
+export prof_end :: fn(id: i32) -> void { vader_prof_end(id) }
+
+/// Emit the accumulated per-pass profile to stderr (idempotent — a later
+/// atexit fallback won't double-print). No-op unless `$VADER_PROFILE` is set.
+export prof_dump :: fn() -> void { vader_prof_dump() }
