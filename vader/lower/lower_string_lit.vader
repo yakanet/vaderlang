@@ -100,18 +100,31 @@ lower_string_lit :: fn(ctx: FnLowerCtx, expr: StringLitExpr, type: Type) -> Lowe
     return finish_sb_chain(ctx, chain, expr.span)
 }
 
-// Lower `a + b` (both `string`) to the same Buffer-backed StringBuilder chain as
-// a 2-segment interpolation `"${a}${b}"` (S4a) : `sb := new_builder() ;
-// sb.append(a) ; sb.append(b) ; sb.to_string()`. Reuses the S3 StringBuilder, so
-// string `+` needs no dedicated `StringConcat` op (S6b) — the op + its host
-// `vader_string_concat` go inert (retired in S7). `left`/`right` are already
-// lowered (the operands of the source `+`).
-lower_string_concat :: fn(ctx: FnLowerCtx, left: LoweredExpr, right: LoweredExpr, span: Span) -> LoweredExpr {
+// Lower a flattened string `+` chain (`operands` are the lowered leaves, in
+// order) to a single interned string. 2..4 leaves take the fixed-arity
+// `concatN` fast path — one sized `Buffer`, no StringBuilder struct/parts array,
+// one intern for the whole chain. Longer chains fall back to one N-part
+// StringBuilder (still a single intern, just the parts-array overhead). `concatN`
+// / the builder fns live in `std/string_builder`, force-loaded into every project.
+lower_concat_chain :: fn(ctx: FnLowerCtx, operands: LoweredExpr[], span: Span) -> LoweredExpr {
+    n :: operands.len()
+    string_type :: mk_primitive("string")
+    // A 1-leaf "chain" can't arise from `+` (always ≥ 2 leaves) ; stay total.
+    if n == 1 { return operands[0] }
+    if n >= 2 && n <= 4 {
+        name :: if n == 2 { "concat2" } else if n == 3 { "concat3" } else { "concat4" }
+        sym :: resolve_string_builder_fn(ctx, name)
+        if sym == null { return unreachable_sb(span, string_type, "${name} unresolved") }
+        // Register for materialisation, like `begin_sb_chain` does for new_builder /
+        // append — else the emitted call has an unresolved (non-materialised) callee.
+        register_nongeneric_imported_fn(ctx, sym)
+        return mk_lowered_call(sym, operands, string_type, span)
+    }
     chain :: begin_sb_chain(ctx, span)
-    if chain == null { return unreachable_sb(span, mk_primitive("string"), "string builder unresolved") }
-    // both operands are already `string` → append directly (no Display coercion)
-    chain.stmts.push(sb_append_stmt(chain, left, span))
-    chain.stmts.push(sb_append_stmt(chain, right, span))
+    if chain == null { return unreachable_sb(span, string_type, "string builder unresolved") }
+    for op in operands {
+        chain.stmts.push(sb_append_stmt(chain, op, span))
+    }
     return finish_sb_chain(ctx, chain, span)
 }
 
