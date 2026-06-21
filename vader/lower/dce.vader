@@ -83,6 +83,20 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> Lowe
         }
     }
 
+    // Fn-wrapped const accessors stand in for the const decls `inline_consts`
+    // hoisted out — and const initializers always survive (the `LoweredConstDecl`
+    // arm above pushes every one). Each accessor carries a FRESH synthetic id, so
+    // the call graph can't reach it by id ; seed it as a root here (a plain loop,
+    // NOT a `visit_fn` closure capture — capturing `const_fn_wrap` in the closure
+    // corrupts under GC) so it survives and its body — the const value — is walked.
+    for [_, w] in lp.const_fn_wrap {
+        accessor :: by_sym_id[w.fn_symbol.id]
+        if accessor != null && reachable_sym[w.fn_symbol.id] == null {
+            reachable_sym[w.fn_symbol.id] = true
+            worklist.push(accessor)
+        }
+    }
+
     // Index impl fns by `"trait|method"` once so the virtual-call drain
     // is an O(1) bucket lookup, not an O(vtable) rescan per outer pass.
     impls_by_vtable_key :: MutableMap<string, Symbol[]> {}
@@ -101,10 +115,9 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> Lowe
     pending_virtual: string[] = []
     pending_seen :: MutableMap<string, bool> {}
 
-    // NB : a fn-wrapped const's accessor fn (`inline_consts`) REUSES the
-    // const's own symbol id, so a `LoweredIdent` referencing the const marks
-    // the accessor reachable through this unchanged path — no const-aware
-    // redirect needed here.
+    // Const accessors are seeded as roots above, so a `LoweredIdent` referencing
+    // a fn-wrapped const need not mark anything here (its by-id lookup misses —
+    // the accessor lives under its own synthetic id, not the const's).
     visit_fn :: fn(id: i32, name: string) -> void {
         inst :: by_mangle[name]
         if inst != null {

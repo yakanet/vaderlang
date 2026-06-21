@@ -503,6 +503,18 @@ test_logical_requires_bool :: fn() -> void {
 }
 
 @test
+test_in_requires_contains :: fn() -> void {
+    // `a in b` where `b : i32` has no `Contains` impl — a clean T3043, not a
+    // stub that lowers to an `unreachable` trap (a runtime crash).
+    eb :: expect_binary("f :: fn(a: i32, b: i32) -> bool { return a in b }")
+    diags: Diagnostic[] = []
+    infer_binary(eb.bin, eb.typed, diags, binary_check_stub)
+    found := false
+    for d in diags { if d.code.id == "T3043" { found = true } }
+    assert(found, "expected T3043 for `i32 in i32` (no Contains impl)")
+}
+
+@test
 test_arith_width_mismatch_emits_T3017 :: fn() -> void {
     eb :: expect_binary("f :: fn(a: i32, b: i64) -> i64 { return a + b }")
     diags: Diagnostic[] = []
