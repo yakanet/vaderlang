@@ -48,6 +48,7 @@ static vader_box_t std_core_Range_Iterator_next__usize(vader_box_t l0);
 static bool std_core_Range_Iterator_is_empty__usize(vader_box_t l0);
 static size_t std_core_Range_Iterator_count__usize(vader_box_t l0);
 static vader_box_t std_core_Range_Iterator_last__usize(vader_box_t l0);
+static int32_t std_core_three_way(bool l0, bool l1);
 static int32_t std_core_i32_Comparable_compare(int32_t l0, int32_t l1);
 static bool std_core_i32_Comparable_lt(int32_t l0, int32_t l1);
 static bool std_core_i32_Comparable_lte(int32_t l0, int32_t l1);
@@ -435,14 +436,14 @@ static vader_box_t std_core_Range_Iterator_last__usize(vader_box_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-static int32_t std_core_i32_Comparable_compare(int32_t l0, int32_t l1) {
+static int32_t std_core_three_way(bool l0, bool l1) {
     int32_t l2, l3;
-    int32_t t0, t1;
-    if ((l0 < l1)) {
+    int32_t t0;
+    if (l0) {
         t0 = -(INT32_C(1));
         l2 = t0;
     } else {
-        if ((l0 > l1)) {
+        if (l1) {
             l3 = INT32_C(1);
         } else {
             l3 = INT32_C(0);
@@ -450,279 +451,210 @@ static int32_t std_core_i32_Comparable_compare(int32_t l0, int32_t l1) {
         l2 = l3;
     }
     return l2;
-    if ((l0 < l1)) {
-        t1 = -(INT32_C(1));
-        l2 = t1;
-    } else {
-        if ((l0 > l1)) {
-            l3 = INT32_C(1);
-        } else {
-            l3 = INT32_C(0);
-        }
-        l2 = l3;
-    }
-    return l2;
+}
+
+static int32_t std_core_i32_Comparable_compare(int32_t l0, int32_t l1) {
+    bool l2, l3;
+    bool t0, t1, t3, t4;
+    int32_t t2, t5;
+    t0 = (l0 < l1);
+    l2 = t0;
+    t1 = (l0 > l1);
+    l3 = t1;
+    t2 = std_core_three_way(l2, l3);
+    return t2;
+    t3 = (l0 < l1);
+    l2 = t3;
+    t4 = (l0 > l1);
+    l3 = t4;
+    t5 = std_core_three_way(l2, l3);
+    return t5;
 }
 
 static bool std_core_i32_Comparable_lt(int32_t l0, int32_t l1) {
-    int32_t l2, l3;
-    int32_t t0, t1;
-    if ((l0 < l1)) {
-        t0 = -(INT32_C(1));
-        l2 = t0;
-    } else {
-        if ((l0 > l1)) {
-            l3 = INT32_C(1);
-        } else {
-            l3 = INT32_C(0);
-        }
-        l2 = l3;
-    }
-    return (l2 < INT32_C(0));
-    if ((l0 < l1)) {
-        t1 = -(INT32_C(1));
-        l2 = t1;
-    } else {
-        if ((l0 > l1)) {
-            l3 = INT32_C(1);
-        } else {
-            l3 = INT32_C(0);
-        }
-        l2 = l3;
-    }
-    return (l2 < INT32_C(0));
+    bool l2, l3;
+    int32_t l4;
+    bool t0, t1, t3, t4;
+    int32_t t2, t5;
+    t0 = (l0 < l1);
+    l2 = t0;
+    t1 = (l0 > l1);
+    l3 = t1;
+    t2 = std_core_three_way(l2, l3);
+    l4 = t2;
+    return (l4 < INT32_C(0));
+    t3 = (l0 < l1);
+    l2 = t3;
+    t4 = (l0 > l1);
+    l3 = t4;
+    t5 = std_core_three_way(l2, l3);
+    l4 = t5;
+    return (l4 < INT32_C(0));
 }
 
 static bool std_core_i32_Comparable_lte(int32_t l0, int32_t l1) {
-    int32_t l2, l3;
-    int32_t t0, t1;
-    if ((l0 < l1)) {
-        t0 = -(INT32_C(1));
-        l2 = t0;
-    } else {
-        if ((l0 > l1)) {
-            l3 = INT32_C(1);
-        } else {
-            l3 = INT32_C(0);
-        }
-        l2 = l3;
-    }
-    return (l2 <= INT32_C(0));
-    if ((l0 < l1)) {
-        t1 = -(INT32_C(1));
-        l2 = t1;
-    } else {
-        if ((l0 > l1)) {
-            l3 = INT32_C(1);
-        } else {
-            l3 = INT32_C(0);
-        }
-        l2 = l3;
-    }
-    return (l2 <= INT32_C(0));
+    bool l2, l3;
+    int32_t l4;
+    bool t0, t1, t3, t4;
+    int32_t t2, t5;
+    t0 = (l0 < l1);
+    l2 = t0;
+    t1 = (l0 > l1);
+    l3 = t1;
+    t2 = std_core_three_way(l2, l3);
+    l4 = t2;
+    return (l4 <= INT32_C(0));
+    t3 = (l0 < l1);
+    l2 = t3;
+    t4 = (l0 > l1);
+    l3 = t4;
+    t5 = std_core_three_way(l2, l3);
+    l4 = t5;
+    return (l4 <= INT32_C(0));
 }
 
 static bool std_core_i32_Comparable_gt(int32_t l0, int32_t l1) {
-    int32_t l2, l3;
-    int32_t t0, t1;
-    if ((l0 < l1)) {
-        t0 = -(INT32_C(1));
-        l2 = t0;
-    } else {
-        if ((l0 > l1)) {
-            l3 = INT32_C(1);
-        } else {
-            l3 = INT32_C(0);
-        }
-        l2 = l3;
-    }
-    return (l2 > INT32_C(0));
-    if ((l0 < l1)) {
-        t1 = -(INT32_C(1));
-        l2 = t1;
-    } else {
-        if ((l0 > l1)) {
-            l3 = INT32_C(1);
-        } else {
-            l3 = INT32_C(0);
-        }
-        l2 = l3;
-    }
-    return (l2 > INT32_C(0));
+    bool l2, l3;
+    int32_t l4;
+    bool t0, t1, t3, t4;
+    int32_t t2, t5;
+    t0 = (l0 < l1);
+    l2 = t0;
+    t1 = (l0 > l1);
+    l3 = t1;
+    t2 = std_core_three_way(l2, l3);
+    l4 = t2;
+    return (l4 > INT32_C(0));
+    t3 = (l0 < l1);
+    l2 = t3;
+    t4 = (l0 > l1);
+    l3 = t4;
+    t5 = std_core_three_way(l2, l3);
+    l4 = t5;
+    return (l4 > INT32_C(0));
 }
 
 static bool std_core_i32_Comparable_gte(int32_t l0, int32_t l1) {
-    int32_t l2, l3;
-    int32_t t0, t1;
-    if ((l0 < l1)) {
-        t0 = -(INT32_C(1));
-        l2 = t0;
-    } else {
-        if ((l0 > l1)) {
-            l3 = INT32_C(1);
-        } else {
-            l3 = INT32_C(0);
-        }
-        l2 = l3;
-    }
-    return (l2 >= INT32_C(0));
-    if ((l0 < l1)) {
-        t1 = -(INT32_C(1));
-        l2 = t1;
-    } else {
-        if ((l0 > l1)) {
-            l3 = INT32_C(1);
-        } else {
-            l3 = INT32_C(0);
-        }
-        l2 = l3;
-    }
-    return (l2 >= INT32_C(0));
+    bool l2, l3;
+    int32_t l4;
+    bool t0, t1, t3, t4;
+    int32_t t2, t5;
+    t0 = (l0 < l1);
+    l2 = t0;
+    t1 = (l0 > l1);
+    l3 = t1;
+    t2 = std_core_three_way(l2, l3);
+    l4 = t2;
+    return (l4 >= INT32_C(0));
+    t3 = (l0 < l1);
+    l2 = t3;
+    t4 = (l0 > l1);
+    l3 = t4;
+    t5 = std_core_three_way(l2, l3);
+    l4 = t5;
+    return (l4 >= INT32_C(0));
 }
 
 static int32_t std_core_usize_Comparable_compare(size_t l0, size_t l1) {
-    int32_t l2, l3;
-    int32_t t0, t1;
-    if ((l0 < l1)) {
-        t0 = -(INT32_C(1));
-        l2 = t0;
-    } else {
-        if ((l0 > l1)) {
-            l3 = INT32_C(1);
-        } else {
-            l3 = INT32_C(0);
-        }
-        l2 = l3;
-    }
-    return l2;
-    if ((l0 < l1)) {
-        t1 = -(INT32_C(1));
-        l2 = t1;
-    } else {
-        if ((l0 > l1)) {
-            l3 = INT32_C(1);
-        } else {
-            l3 = INT32_C(0);
-        }
-        l2 = l3;
-    }
-    return l2;
+    bool l2, l3;
+    bool t0, t1, t3, t4;
+    int32_t t2, t5;
+    t0 = (l0 < l1);
+    l2 = t0;
+    t1 = (l0 > l1);
+    l3 = t1;
+    t2 = std_core_three_way(l2, l3);
+    return t2;
+    t3 = (l0 < l1);
+    l2 = t3;
+    t4 = (l0 > l1);
+    l3 = t4;
+    t5 = std_core_three_way(l2, l3);
+    return t5;
 }
 
 static bool std_core_usize_Comparable_lt(size_t l0, size_t l1) {
-    int32_t l2, l3;
-    int32_t t0, t1;
-    if ((l0 < l1)) {
-        t0 = -(INT32_C(1));
-        l2 = t0;
-    } else {
-        if ((l0 > l1)) {
-            l3 = INT32_C(1);
-        } else {
-            l3 = INT32_C(0);
-        }
-        l2 = l3;
-    }
-    return (l2 < INT32_C(0));
-    if ((l0 < l1)) {
-        t1 = -(INT32_C(1));
-        l2 = t1;
-    } else {
-        if ((l0 > l1)) {
-            l3 = INT32_C(1);
-        } else {
-            l3 = INT32_C(0);
-        }
-        l2 = l3;
-    }
-    return (l2 < INT32_C(0));
+    bool l2, l3;
+    int32_t l4;
+    bool t0, t1, t3, t4;
+    int32_t t2, t5;
+    t0 = (l0 < l1);
+    l2 = t0;
+    t1 = (l0 > l1);
+    l3 = t1;
+    t2 = std_core_three_way(l2, l3);
+    l4 = t2;
+    return (l4 < INT32_C(0));
+    t3 = (l0 < l1);
+    l2 = t3;
+    t4 = (l0 > l1);
+    l3 = t4;
+    t5 = std_core_three_way(l2, l3);
+    l4 = t5;
+    return (l4 < INT32_C(0));
 }
 
 static bool std_core_usize_Comparable_lte(size_t l0, size_t l1) {
-    int32_t l2, l3;
-    int32_t t0, t1;
-    if ((l0 < l1)) {
-        t0 = -(INT32_C(1));
-        l2 = t0;
-    } else {
-        if ((l0 > l1)) {
-            l3 = INT32_C(1);
-        } else {
-            l3 = INT32_C(0);
-        }
-        l2 = l3;
-    }
-    return (l2 <= INT32_C(0));
-    if ((l0 < l1)) {
-        t1 = -(INT32_C(1));
-        l2 = t1;
-    } else {
-        if ((l0 > l1)) {
-            l3 = INT32_C(1);
-        } else {
-            l3 = INT32_C(0);
-        }
-        l2 = l3;
-    }
-    return (l2 <= INT32_C(0));
+    bool l2, l3;
+    int32_t l4;
+    bool t0, t1, t3, t4;
+    int32_t t2, t5;
+    t0 = (l0 < l1);
+    l2 = t0;
+    t1 = (l0 > l1);
+    l3 = t1;
+    t2 = std_core_three_way(l2, l3);
+    l4 = t2;
+    return (l4 <= INT32_C(0));
+    t3 = (l0 < l1);
+    l2 = t3;
+    t4 = (l0 > l1);
+    l3 = t4;
+    t5 = std_core_three_way(l2, l3);
+    l4 = t5;
+    return (l4 <= INT32_C(0));
 }
 
 static bool std_core_usize_Comparable_gt(size_t l0, size_t l1) {
-    int32_t l2, l3;
-    int32_t t0, t1;
-    if ((l0 < l1)) {
-        t0 = -(INT32_C(1));
-        l2 = t0;
-    } else {
-        if ((l0 > l1)) {
-            l3 = INT32_C(1);
-        } else {
-            l3 = INT32_C(0);
-        }
-        l2 = l3;
-    }
-    return (l2 > INT32_C(0));
-    if ((l0 < l1)) {
-        t1 = -(INT32_C(1));
-        l2 = t1;
-    } else {
-        if ((l0 > l1)) {
-            l3 = INT32_C(1);
-        } else {
-            l3 = INT32_C(0);
-        }
-        l2 = l3;
-    }
-    return (l2 > INT32_C(0));
+    bool l2, l3;
+    int32_t l4;
+    bool t0, t1, t3, t4;
+    int32_t t2, t5;
+    t0 = (l0 < l1);
+    l2 = t0;
+    t1 = (l0 > l1);
+    l3 = t1;
+    t2 = std_core_three_way(l2, l3);
+    l4 = t2;
+    return (l4 > INT32_C(0));
+    t3 = (l0 < l1);
+    l2 = t3;
+    t4 = (l0 > l1);
+    l3 = t4;
+    t5 = std_core_three_way(l2, l3);
+    l4 = t5;
+    return (l4 > INT32_C(0));
 }
 
 static bool std_core_usize_Comparable_gte(size_t l0, size_t l1) {
-    int32_t l2, l3;
-    int32_t t0, t1;
-    if ((l0 < l1)) {
-        t0 = -(INT32_C(1));
-        l2 = t0;
-    } else {
-        if ((l0 > l1)) {
-            l3 = INT32_C(1);
-        } else {
-            l3 = INT32_C(0);
-        }
-        l2 = l3;
-    }
-    return (l2 >= INT32_C(0));
-    if ((l0 < l1)) {
-        t1 = -(INT32_C(1));
-        l2 = t1;
-    } else {
-        if ((l0 > l1)) {
-            l3 = INT32_C(1);
-        } else {
-            l3 = INT32_C(0);
-        }
-        l2 = l3;
-    }
-    return (l2 >= INT32_C(0));
+    bool l2, l3;
+    int32_t l4;
+    bool t0, t1, t3, t4;
+    int32_t t2, t5;
+    t0 = (l0 < l1);
+    l2 = t0;
+    t1 = (l0 > l1);
+    l3 = t1;
+    t2 = std_core_three_way(l2, l3);
+    l4 = t2;
+    return (l4 >= INT32_C(0));
+    t3 = (l0 < l1);
+    l2 = t3;
+    t4 = (l0 > l1);
+    l3 = t4;
+    t5 = std_core_three_way(l2, l3);
+    l4 = t5;
+    return (l4 >= INT32_C(0));
 }
 
 static int32_t std_core_i32_Step_step(int32_t l0) {

@@ -31,7 +31,7 @@ impl 14 ByteAccess
 impl 16 Iterator
 vtable Iterator.next 2 2
 vtable Iterator.next 7 3
-vtable Iterator.next 16 8
+vtable Iterator.next 16 9
 export main 1
 
 fn 0 main$double (i32) -> i32
@@ -74,12 +74,12 @@ fn 1 main$main () -> i32
   end $L0
   local.get 0
   i32.to_i64
-  call 6
+  call 7
   local.set 3
   string.const 0
   local.get 3
-  call 9
-  call 7
+  call 10
+  call 8
   return.lit i32.const 0
 end
 
@@ -98,7 +98,7 @@ fn 2 std_core$Range$Iterator$next__i32 (ref) -> ref
     local.set 3
     local.get 2
     local.get 3
-    call 4
+    call 5
     local.set 2
     local.get 2
     i32.const 0
@@ -113,7 +113,7 @@ fn 2 std_core$Range$Iterator$next__i32 (ref) -> ref
     local.set 3
     local.get 2
     local.get 3
-    call 4
+    call 5
     local.set 2
     local.get 2
     i32.const 0
@@ -161,7 +161,7 @@ fn 3 std_core$Range$Iterator$next__usize (ref) -> ref
     local.set 3
     local.get 2
     local.get 3
-    call 5
+    call 6
     local.set 4
     local.get 4
     i32.const 0
@@ -176,7 +176,7 @@ fn 3 std_core$Range$Iterator$next__usize (ref) -> ref
     local.set 3
     local.get 2
     local.get 3
-    call 5
+    call 6
     local.set 4
     local.get 4
     i32.const 0
@@ -209,20 +209,16 @@ fn 3 std_core$Range$Iterator$next__usize (ref) -> ref
   return
 end
 
-fn 4 std_core$i32$Comparable$compare (i32,i32) -> i32
+fn 4 std_core$three_way (bool,bool) -> i32
   local if_res i32
   local if_res i32
   local.get 0
-  local.get 1
-  i32.lt
   if $L0 void
     i32.const 1
     i32.neg
     local.set 2
   else
-    local.get 0
     local.get 1
-    i32.gt
     if $L1 void
       i32.const 1
       local.set 3
@@ -235,83 +231,67 @@ fn 4 std_core$i32$Comparable$compare (i32,i32) -> i32
   end $L0
   local.get 2
   return
+end
+
+fn 5 std_core$i32$Comparable$compare (i32,i32) -> i32
+  local $lt_2 bool
+  local $gt_3 bool
   local.get 0
   local.get 1
   i32.lt
-  if $L2 void
-    i32.const 1
-    i32.neg
-    local.set 2
-  else
-    local.get 0
-    local.get 1
-    i32.gt
-    if $L3 void
-      i32.const 1
-      local.set 3
-    else
-      i32.const 0
-      local.set 3
-    end $L3
-    local.get 3
-    local.set 2
-  end $L2
+  local.set 2
+  local.get 0
+  local.get 1
+  i32.gt
+  local.set 3
   local.get 2
+  local.get 3
+  call 4
+  return
+  local.get 0
+  local.get 1
+  i32.lt
+  local.set 2
+  local.get 0
+  local.get 1
+  i32.gt
+  local.set 3
+  local.get 2
+  local.get 3
+  call 4
   return
 end
 
-fn 5 std_core$usize$Comparable$compare (usize,usize) -> i32
-  local if_res i32
-  local if_res i32
+fn 6 std_core$usize$Comparable$compare (usize,usize) -> i32
+  local $lt_2 bool
+  local $gt_3 bool
   local.get 0
   local.get 1
   u64.lt
-  if $L0 void
-    i32.const 1
-    i32.neg
-    local.set 2
-  else
-    local.get 0
-    local.get 1
-    u64.gt
-    if $L1 void
-      i32.const 1
-      local.set 3
-    else
-      i32.const 0
-      local.set 3
-    end $L1
-    local.get 3
-    local.set 2
-  end $L0
+  local.set 2
+  local.get 0
+  local.get 1
+  u64.gt
+  local.set 3
   local.get 2
+  local.get 3
+  call 4
   return
   local.get 0
   local.get 1
   u64.lt
-  if $L2 void
-    i32.const 1
-    i32.neg
-    local.set 2
-  else
-    local.get 0
-    local.get 1
-    u64.gt
-    if $L3 void
-      i32.const 1
-      local.set 3
-    else
-      i32.const 0
-      local.set 3
-    end $L3
-    local.get 3
-    local.set 2
-  end $L2
+  local.set 2
+  local.get 0
+  local.get 1
+  u64.gt
+  local.set 3
   local.get 2
+  local.get 3
+  call 4
   return
 end
 
-fn 6 std_core$format_signed (i64) -> string
+fn 7 std_core$format_signed (i64) -> string
   local neg bool
   local ndigits usize
   local m i64
@@ -379,7 +359,7 @@ fn 6 std_core$format_signed (i64) -> string
   end $L5
   local.get 4
   local.tee 2
-  call 10
+  call 11
   local.set 6
   local.get 2
   local.set 4
@@ -410,7 +390,7 @@ fn 6 std_core$format_signed (i64) -> string
         local.get 6
         local.get 4
         local.get 9
-        call 13
+        call 14
         local.get 0
         i64.const 10
         i64.div
@@ -429,16 +409,16 @@ fn 6 std_core$format_signed (i64) -> string
     local.get 6
     local.get 4
     local.get 7
-    call 13
+    call 14
   else
   end $L9
   local.get 6
   local.get 2
-  call 11
+  call 12
   return
 end
 
-fn 7 std_io$std_io$println__string (string) -> void
+fn 8 std_io$std_io$println__string (string) -> void
   i32.const 0
   local.get 0
   call.import 1
@@ -448,7 +428,7 @@ fn 7 std_io$std_io$println__string (string) -> void
   return
 end
 
-fn 8 std_iter$MapIterator$Iterator$next__i32__i32 (ref) -> ref
+fn 9 std_iter$MapIterator$Iterator$next__i32__i32 (ref) -> ref
   local __scrut_0 ref
   local $field_11 ref
   local.field 0 16 0
@@ -477,7 +457,7 @@ fn 8 std_iter$MapIterator$Iterator$next__i32__i32 (ref) -> ref
   return
 end
 
-fn 9 std_string_builder$concat2 (string,string) -> string
+fn 10 std_string_builder$concat2 (string,string) -> string
   local la usize
   local $len_6 usize
   local buf ref
@@ -494,38 +474,38 @@ fn 9 std_string_builder$concat2 (string,string) -> string
   local.get 3
   i64.add
   local.tee 3
-  call 10
+  call 11
   local.set 4
   i64.const 0
   local.set 5
   local.get 4
   local.get 5
   local.get 0
-  call 12
+  call 13
   local.get 4
   local.get 2
   local.get 1
-  call 12
+  call 13
   local.get 4
   local.get 3
-  call 11
+  call 12
   return
 end
 
-fn 10 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 11 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   object_new 0
   return
 end
 
-fn 11 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 12 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
   buffer_to_string
   return
 end
 
-fn 12 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 13 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0
   local.get 1
   local.get 2
@@ -533,7 +513,7 @@ fn 12 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   return
 end
 
-fn 13 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
+fn 14 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   local.get 0
   local.get 1
   local.get 2
