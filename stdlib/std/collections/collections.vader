@@ -342,8 +342,10 @@ export add :: fn<T>(self: MutableSet<T>, value: T) -> bool {
     return true
 }
 
-/// True iff `value` is a member of the set. Same dispatch path as the
-/// `value in set` infix operator (which lowers to this method).
+/// True iff `value` is a member of the set. The UFCS entry point for
+/// `set.contains(v)` (callers `import { contains }`) ; `v in set` instead
+/// lowers to the `Contains` impl below. Same body, distinct dispatch paths —
+/// like `MutableMap.contains_key` vs its `Contains` impl, but sharing the name.
 export contains :: fn<T>(self: MutableSet<T>, value: T) -> bool = value in self.inner
 
 /// Remove `value` from the set, if present. Delegates to the backing map's
@@ -367,9 +369,7 @@ export clear :: fn<T>(self: MutableSet<T>) -> void = self.inner.clear()
 // `value in set` / `value !in set` dispatch through Contains. No
 // Index/IndexSet impl — sets have no value-at-key semantics, and `s.add(v)`
 // reads more clearly than a hypothetical `s[v] = true`.
-MutableSet<T> implements Contains<T> {
-    contains :: fn(self, value: T) -> bool { return value in self.inner }
-}
+MutableSet<T> implements Contains<T> -> value in self.inner
 
 /// Lazy iterator over a `MutableSet`'s members, in insertion order. Walks the
 /// backing map's dense key array by index. Same undefined-behaviour caveat as
