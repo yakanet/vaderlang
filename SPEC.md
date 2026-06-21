@@ -666,7 +666,7 @@ p :: Point { .x = 1.0, .y = 2.0 }
 
 - Heap-allocated by default.
 - `p2 := p` copies the **reference**, not the contents.
-- `==` is reference identity by default. For structural comparison: implement the `Equals` trait, or call a free function `equals(a, b)`.
+- `==` on two structs requires an `Equals` impl — there is no silent reference-identity default; comparing structs without one is **T3043** (`` `X` does not implement `Equals` ``). For value comparison, implement the `Equals` trait (or call a free function `equals(a, b)`).
 - Field layout is **not guaranteed** (the compiler arranges fields freely).
 - The user has no access to the layout (no `@offset_of`, no `unsafe_cast` in MVP).
 
@@ -1248,13 +1248,15 @@ Resolution rule for **arithmetic** operators (`+ - * / %`):
 
 Resolution rule for **equality** (`==` / `!=`):
 1. Primitive operands (numerics, strings, chars, bools, null) use the built-in equality op.
-2. User-struct operands of the same type look up the `Equals` impl and dispatch through `equals` when one exists; without an impl they fall back to **reference identity** (see §8 *Memory Model*). No error.
+2. User-struct operands of the same type look up the `Equals` impl and dispatch through `equals` when one exists; **without an impl it is T3043** (`` `X` does not implement `Equals` ``). `==` on a struct that never opted into value equality is almost always a bug, so it is rejected rather than silently comparing references.
 3. Mismatched types are T3017.
 
 Resolution rule for **ordering** (`< <= > >=`):
 1. Primitive numerics, strings, and chars use the built-in comparison ops.
 2. User-struct operands look up the `Comparable` impl; the lowerer rewrites `a < b` to `compare(a, b) < 0` (and analogously for the other three operators) over the i32 result.
-3. If no impl matches, T3017.
+3. If no impl matches, **T3043** (`` `X` does not implement `Comparable` ``).
+
+**T3043** is the shared "operator's trait is not implemented" error — it names the missing trait (`Equals` for `==`/`!=`, `Comparable` for `< <= > >=`, `Contains` for `in`) so the fix is obvious. It is distinct from T3017, which stays for plain operand-type mismatches (e.g. `i32 && bool`, mismatched numeric widths). (Arithmetic `+ - * / %` on a type without the matching `Add`/… impl still reports T3017 for now.)
 
 Index access (`a[i]`) and `in` follow the same fallback: built-in array / range first, then trait dispatch through `Index<I, T>::at` / `Contains<T>::contains` — the trait path covers struct receivers AND primitives (`string implements Index<usize, char>` enables `s[i]` without importing anything). Index assignment (`a[i] = v`) dispatches through `IndexSet<I, T>::set_at`.
 
