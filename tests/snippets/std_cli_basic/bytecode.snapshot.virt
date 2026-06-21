@@ -54,6 +54,7 @@ import 0 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 1 bytes std_core$bytes (string) -> ref
 import 2 hash std_core$string$Hash$hash (string) -> u64
 import 3 write std_io$write (i32,string) -> void
+import 4 byte_len std_string$byte_len (string) -> usize
 impl 8 ByteAccess
 impl 15 Index
 impl 15 IndexSet
@@ -1576,13 +1577,13 @@ fn 21 std_string$split (string,string) -> ref
   local sb ref
   local n usize
   local m usize
-  local $k_11 usize
-  local $k_16 usize
-  local $add_17 usize
-  local $call_19 string
-  local $k_20 usize
+  local $k_10 usize
+  local $k_15 usize
+  local $add_16 usize
+  local $call_18 string
+  local $k_19 usize
   local found isize
-  local $k_26 isize
+  local $k_25 isize
   array.new 10 0
   local.set 2
   local.get 0
@@ -1591,8 +1592,7 @@ fn 21 std_string$split (string,string) -> ref
   array.len
   local.set 4
   local.get 1
-  call.import 1
-  array.len
+  call.import 4
   local.set 5
   i64.const 0
   local.set 6
@@ -1832,11 +1832,11 @@ fn 26 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local __for_arr_0 ref
   local __for_len_1 usize
   local __for_i_2 usize
-  local $len_13 usize
-  local $k_15 usize
+  local $call_12 usize
+  local $k_14 usize
   local __for_arr_3 ref
   local p string
-  local $k_33 usize
+  local $k_31 usize
   i64.const 0
   local.set 1
   local.field 0 19 0
@@ -1855,8 +1855,7 @@ fn 26 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         local.get 4
         array.get 10
         ref.cast 4
-        call.import 1
-        array.len
+        call.import 4
         local.set 5
         local.get 1
         local.get 5
@@ -1900,8 +1899,7 @@ fn 26 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         local.get 8
         call 30
         local.get 8
-        call.import 1
-        array.len
+        call.import 4
         local.set 6
         local.get 3
         local.get 6

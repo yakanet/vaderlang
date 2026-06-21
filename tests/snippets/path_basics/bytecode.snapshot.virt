@@ -67,6 +67,7 @@ import 0 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 1 bytes std_core$bytes (string) -> ref
 import 2 at std_core$string$Index$at (string,usize) -> char
 import 3 write std_io$write (i32,string) -> void
+import 4 byte_len std_string$byte_len (string) -> usize
 impl 10 ByteAccess
 impl 14 Display
 export main 1
@@ -679,8 +680,8 @@ end
 fn 14 std_path$join (ref,string) -> ref
   local $call_4 char
   local $field_11 string
-  local $len_14 usize
-  local $k_15 usize
+  local $call_13 usize
+  local $k_14 usize
   local __sb_0 ref
   local __sb_1 ref
   local.get 1
@@ -714,8 +715,7 @@ fn 14 std_path$join (ref,string) -> ref
   local.set 3
   local.field 0 2 0
   ref.cast 1
-  call.import 1
-  array.len
+  call.import 4
   local.set 4
   i64.const 1
   local.set 5
@@ -781,7 +781,7 @@ fn 15 std_path$starts_with (ref,ref) -> bool
   local self_len usize
   local prefix_len usize
   local and_res bool
-  local $call_24 char
+  local $call_22 char
   local.field 0 2 0
   ref.cast 1
   local.set 2
@@ -797,13 +797,11 @@ fn 15 std_path$starts_with (ref,ref) -> bool
   end $L0
   local.field 0 2 0
   ref.cast 1
-  call.import 1
-  array.len
+  call.import 4
   local.set 4
   local.field 1 2 0
   ref.cast 1
-  call.import 1
-  array.len
+  call.import 4
   local.set 5
   local.get 4
   local.get 5
@@ -858,7 +856,7 @@ fn 16 std_path$ends_with (ref,ref) -> bool
   local self_len usize
   local suffix_len usize
   local and_res bool
-  local $call_25 char
+  local $call_23 char
   local.field 0 2 0
   ref.cast 1
   local.set 2
@@ -874,13 +872,11 @@ fn 16 std_path$ends_with (ref,ref) -> bool
   end $L0
   local.field 0 2 0
   ref.cast 1
-  call.import 1
-  array.len
+  call.import 4
   local.set 4
   local.field 1 2 0
   ref.cast 1
-  call.import 1
-  array.len
+  call.import 4
   local.set 5
   local.get 4
   local.get 5
@@ -1295,11 +1291,10 @@ fn 18 std_string$last_index_of (string,char,isize) -> isize
 end
 
 fn 19 std_string$is_empty (string) -> bool
-  local $len_2 usize
-  local $k_3 usize
+  local $call_1 usize
+  local $k_2 usize
   local.get 0
-  call.import 1
-  array.len
+  call.import 4
   local.set 1
   i64.const 0
   local.set 2
@@ -1797,11 +1792,11 @@ fn 27 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local __for_arr_0 ref
   local __for_len_1 usize
   local __for_i_2 usize
-  local $len_13 usize
-  local $k_15 usize
+  local $call_12 usize
+  local $k_14 usize
   local __for_arr_3 ref
   local p string
-  local $k_33 usize
+  local $k_31 usize
   i64.const 0
   local.set 1
   local.field 0 14 0
@@ -1820,8 +1815,7 @@ fn 27 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         local.get 4
         array.get 11
         ref.cast 1
-        call.import 1
-        array.len
+        call.import 4
         local.set 5
         local.get 1
         local.get 5
@@ -1865,8 +1859,7 @@ fn 27 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         local.get 8
         call 31
         local.get 8
-        call.import 1
-        array.len
+        call.import 4
         local.set 6
         local.get 3
         local.get 6

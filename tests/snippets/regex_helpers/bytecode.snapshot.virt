@@ -33,6 +33,7 @@ string 11 "\n"
 import 0 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 1 bytes std_core$bytes (string) -> ref
 import 2 write std_io$write (i32,string) -> void
+import 3 byte_len std_string$byte_len (string) -> usize
 impl 11 ByteAccess
 impl 15 Iterator
 impl 17 Display
@@ -493,7 +494,7 @@ fn 8 std_string$trim_suffix (string,string) -> string
   local bs ref
   local $k_5 usize
   local $len_6 usize
-  local $len_8 usize
+  local $call_7 usize
   local.get 0
   local.get 1
   call 12
@@ -507,8 +508,7 @@ fn 8 std_string$trim_suffix (string,string) -> string
     array.len
     local.set 4
     local.get 1
-    call.import 1
-    array.len
+    call.import 3
     local.set 5
     local.get 4
     local.get 5
@@ -527,8 +527,8 @@ end
 
 fn 9 std_string$trim_prefix (string,string) -> string
   local bs ref
+  local $call_5 usize
   local $len_6 usize
-  local $len_7 usize
   local.get 0
   local.get 1
   call 13
@@ -537,8 +537,7 @@ fn 9 std_string$trim_prefix (string,string) -> string
     call.import 1
     local.set 2
     local.get 1
-    call.import 1
-    array.len
+    call.import 3
     local.set 3
     local.get 2
     array.len
@@ -1274,11 +1273,11 @@ fn 23 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local __for_arr_0 ref
   local __for_len_1 usize
   local __for_i_2 usize
-  local $len_13 usize
-  local $k_15 usize
+  local $call_12 usize
+  local $k_14 usize
   local __for_arr_3 ref
   local p string
-  local $k_33 usize
+  local $k_31 usize
   i64.const 0
   local.set 1
   local.field 0 17 0
@@ -1297,8 +1296,7 @@ fn 23 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         local.get 4
         array.get 13
         ref.cast 9
-        call.import 1
-        array.len
+        call.import 3
         local.set 5
         local.get 1
         local.get 5
@@ -1342,8 +1340,7 @@ fn 23 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         local.get 8
         call 26
         local.get 8
-        call.import 1
-        array.len
+        call.import 3
         local.set 6
         local.get 3
         local.get 6
