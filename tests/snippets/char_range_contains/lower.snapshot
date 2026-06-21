@@ -3,61 +3,65 @@
 ## snippet
   fn snippet$is_digit(c: char) -> bool
     return
-      call :bool
-        callee:
-          std_core$Range$Contains$contains__char :bool
-        arg0:
-          Range<char> {
-            start: char(0x30)
-            end: char(0x39)
-            inclusive: true
-            cursor: char(0x30)
-          }
-        arg1:
-          c :char
+      and :bool
+        l:
+          lte :bool
+            l:
+              char(0x30)
+            r:
+              c :char
+        r:
+          lte :bool
+            l:
+              c :char
+            r:
+              char(0x39)
   fn snippet$is_lower(c: char) -> bool
     return
-      call :bool
-        callee:
-          std_core$Range$Contains$contains__char :bool
-        arg0:
-          Range<char> {
-            start: char(0x61)
-            end: char(0x7a)
-            inclusive: true
-            cursor: char(0x61)
-          }
-        arg1:
-          c :char
+      and :bool
+        l:
+          lte :bool
+            l:
+              char(0x61)
+            r:
+              c :char
+        r:
+          lte :bool
+            l:
+              c :char
+            r:
+              char(0x7a)
   fn snippet$is_alpha(c: char) -> bool
     return
       or :bool
         l:
-          call :bool
-            callee:
-              std_core$Range$Contains$contains__char :bool
-            arg0:
-              Range<char> {
-                start: char(0x61)
-                end: char(0x7a)
-                inclusive: true
-                cursor: char(0x61)
-              }
-            arg1:
-              c :char
+          and :bool
+            l:
+              lte :bool
+                l:
+                  char(0x61)
+                r:
+                  c :char
+            r:
+              lte :bool
+                l:
+                  c :char
+                r:
+                  char(0x7a)
         r:
-          call :bool
-            callee:
-              std_core$Range$Contains$contains__char :bool
-            arg0:
-              Range<char> {
-                start: char(0x41)
-                end: char(0x5a)
-                inclusive: true
-                cursor: char(0x41)
-              }
-            arg1:
-              c :char
+          and :bool
+            l:
+              lte :bool
+                l:
+                  char(0x41)
+                r:
+                  c :char
+            r:
+              lte :bool
+                l:
+                  c :char
+                r:
+                  char(0x5a)
   fn snippet$main() -> i32
     if :void
       cond:
