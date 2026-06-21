@@ -121,6 +121,25 @@ test_lsp_symbol_kind_mapping :: fn() -> void {
 }
 
 @test
+test_sam_synthetic_impl_member_not_a_symbol :: fn() -> void {
+    // SAM-sugar impl members (`Type implements Trait -> expr`) are nameless in
+    // the AST — the method name is resolved from the trait later. They must not
+    // surface as outline symbols : an empty `DocumentSymbol.name` is falsy and
+    // crashes the whole `documentSymbol` response client-side (the bug this
+    // guards — `MutableSet<T> implements Contains<T> -> value in self.inner`).
+    src :: """
+Box :: struct { v: i32 }
+
+Box implements Contains<i32> -> value == self.v
+"""
+    idx :: build_index("t.vader", src)
+    syms :: toplevel_symbols(idx)
+    // Only `Box` — the SAM member contributes no (empty-named) symbol.
+    assert_eq(syms.len(), usize(1))
+    assert_eq(sym_name_at(syms, 0), "Box")
+}
+
+@test
 test_toplevel_symbols_excludes_params_and_locals :: fn() -> void {
     src :: """
 helper :: fn(arg: i32) -> i32 {

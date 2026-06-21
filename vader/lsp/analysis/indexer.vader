@@ -204,7 +204,15 @@ collect_decl :: fn(
             // contribute method names (for UFCS goto-def) and their
             // own params + body bindings.
             for m in ib.members {
-                entries.push(top_entry(m.name, .Fn, m.name_span, m.span, m.decorators, source, cmap))
+                // SAM-sugar members (`Type implements Trait -> expr`) are
+                // synthetic and nameless — the method name is resolved from the
+                // trait later, not in the AST. Don't surface them as outline
+                // symbols : an empty `name` is a falsy LSP `DocumentSymbol.name`
+                // and crashes the whole `documentSymbol` response client-side.
+                // Their body is still walked for intra-fn goto-def bindings.
+                if m.name != "" {
+                    entries.push(top_entry(m.name, .Fn, m.name_span, m.span, m.decorators, source, cmap))
+                }
                 ix_walk_fn_body(m, source, entries)
             }
         }
