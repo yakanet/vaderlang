@@ -1,9 +1,4 @@
-# stdout
-new? true
-new? true
-new? false
-len = 2
-has 10? true
-has 30? false
+# stderr
+vader vm: no entry function (index=0)
 # exit
-0
+1

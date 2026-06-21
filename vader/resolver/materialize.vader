@@ -21,7 +21,7 @@
 
 module "vader/resolver"
 
-import "std/collections" { MutableMap, MutableSet, add, contains }
+import "std/collections" { MutableMap, MutableSet, add }
 import "std/iter" { is_empty }
 import "std/math" { min }
 import "std/testing" { assert, assert_eq }
@@ -86,7 +86,7 @@ export materialize_default_members :: fn(
         match body {
             is null         -> {}     // not a default method
             is AST.BlockExpr as b -> {
-                if provided.contains(method.name) { continue }
+                if method.name in provided { continue }
                 no_decorators: AST.Decorator[] = []
                 cloned :: substitute_block_materialized(b, subst, host_factory, stamp)
                 impl_.members.push(synth_with_body(method, subst, no_decorators, cloned, stamp))
@@ -235,9 +235,7 @@ any_has_body :: fn(members: AST.FnDecl[]) -> bool {
 }
 
 provided_names :: fn(members: AST.FnDecl[]) -> MutableSet<string> {
-    set :: MutableSet<string> {
-        .inner = MutableMap<string, bool> {},
-    }
+    set :: MutableSet<string> {}
     for m in members { set.add(m.name) }
     return set
 }

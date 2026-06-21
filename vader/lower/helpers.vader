@@ -7,7 +7,7 @@
 
 module "vader/lower"
 
-import "std/collections" { MutableSet, MutableMap, contains }
+import "std/collections" { MutableSet, MutableMap }
 import "vader/diagnostics" { Span, empty_span }
 import "vader/parser" { Visibility }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
@@ -171,7 +171,7 @@ export CellInit :: struct {
 export lower_cell_init :: fn(
     ctx: FnLowerCtx, symbol: Symbol, value: LoweredExpr, value_type: Type, span: Span,
 ) -> CellInit {
-    captured :: ctx.project.closures.captured_symbols.contains(symbol.id)
+    captured :: symbol.id in ctx.project.closures.captured_symbols
     if !captured {
         return CellInit { .value = value, .slot_type = value_type }
     }

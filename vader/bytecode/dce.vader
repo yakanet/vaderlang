@@ -20,7 +20,7 @@
 
 module "vader/bytecode"
 
-import "std/collections" { MutableMap, MutableSet, values, add, contains }
+import "std/collections" { MutableMap, MutableSet, values, add }
 
 // ============================================================================
 // pruneUnusedImports — drop import entries no `call.import` op references
@@ -293,7 +293,7 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
 /// doesn't carry a type-id reference (just trait_name) so its
 /// reach-walk is a no-op.
 export prune_unused_types :: fn(ctx: EmitterCtx) -> void {
-    reachable :: MutableSet<i32> { .inner = MutableMap<i32, bool> {} }
+    reachable :: MutableSet<i32> {}
     reachable.add(0)   // null slot is load-bearing for the runtime
 
     // Visit transitively.
@@ -330,7 +330,7 @@ export prune_unused_types :: fn(ctx: EmitterCtx) -> void {
     kept: BcType[] = []
     i := usize(0)
     for i < n {
-        if reachable.contains(i32(i)) {
+        if i32(i) in reachable {
             remap.push(i32(kept.len()))
             kept.push(ctx.types[i])
         } else {
@@ -443,7 +443,7 @@ type_index_of :: fn(op: Op) -> i32 {
 /// inner type indices.
 visit_type :: fn(idx: i32, ctx: EmitterCtx, reachable: MutableSet<i32>) -> void {
     if idx < 0 { return }
-    if reachable.contains(idx) { return }
+    if idx in reachable { return }
     if usize(idx) >= ctx.types.len() { return }
     reachable.add(idx)
     t :: ctx.types[usize(idx)]

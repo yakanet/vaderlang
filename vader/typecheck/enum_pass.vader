@@ -12,7 +12,7 @@
 
 module "vader/typecheck"
 
-import "std/collections" { MutableMap, MutableSet, add, contains }
+import "std/collections" { MutableMap, MutableSet, add }
 import "vader/diagnostics" { Diagnostic, Span, typecheck_error }
 import "vader/parser" { EnumDecl, EnumVariant }
 
