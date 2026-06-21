@@ -14,6 +14,7 @@ string 0 "alice"
 string 1 "ten alice="
 string 2 "other"
 string 3 "\n"
+string 4 ""
 import 0 bytes std_core$bytes (string) -> ref
 import 1 write std_io$write (i32,string) -> void
 impl 7 ByteAccess
@@ -86,30 +87,55 @@ fn 4 std_string_builder$append (ref,string) -> void
 end
 
 fn 5 std_string_builder$StringBuilder$Display$to_string (ref) -> string
-  local total usize
-  local __for_arr_0 ref
-  local __for_len_1 usize
+  local n usize
+  local $k_4 usize
+  local $field_9 ref
   local __for_i_2 usize
-  local $len_13 usize
-  local $k_15 usize
+  local $len_24 usize
+  local $k_26 usize
   local __for_arr_3 ref
   local p string
-  local $k_33 usize
+  local $k_44 usize
+  local.field 0 10 0
+  array.len
+  local.set 1
+  i64.const 0
+  local.set 2
+  local.get 1
+  local.get 2
+  i64.eq
+  if $L0 void
+    return.lit string.const 4
+  end $L0
+  i64.const 1
+  local.set 2
+  local.get 1
+  local.get 2
+  i64.eq
+  if $L1 void
+    local.field 0 10 0
+    local.set 3
+    local.get 3
+    i32.const 0
+    array.get 9
+    ref.cast 3
+    return
+  end $L1
   i64.const 0
   local.set 1
   local.field 0 10 0
-  local.tee 2
+  local.tee 3
   array.len
-  local.set 3
+  local.set 2
   i64.const 0
   local.set 4
-  block $L0 void
-    loop $L1 void
+  block $L2 void
+    loop $L3 void
       local.get 4
-      local.get 3
+      local.get 2
       u64.lt
-      if $L2 void
-        local.get 2
+      if $L4 void
+        local.get 3
         local.get 4
         array.get 9
         ref.cast 3
@@ -126,57 +152,57 @@ fn 5 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         local.get 6
         i64.add
         local.set 4
-        br $L1
+        br $L3
       else
-      end $L2
-    end $L1
-  end $L0
+      end $L4
+    end $L3
+  end $L2
   local.get 1
   call 6
-  local.set 2
-  i64.const 0
   local.set 3
+  i64.const 0
+  local.set 2
   local.field 0 10 0
   local.tee 7
   array.len
   local.set 4
   i64.const 0
   local.set 5
-  block $L3 void
-    loop $L4 void
+  block $L5 void
+    loop $L6 void
       local.get 5
       local.get 4
       u64.lt
-      if $L5 void
+      if $L7 void
         local.get 7
         local.get 5
         array.get 9
         ref.cast 3
         local.set 8
-        local.get 2
         local.get 3
+        local.get 2
         local.get 8
         call 8
         local.get 8
         call.import 0
         array.len
         local.set 6
-        local.get 3
+        local.get 2
         local.get 6
         i64.add
-        local.set 3
+        local.set 2
         i64.const 1
         local.set 9
         local.get 5
         local.get 9
         i64.add
         local.set 5
-        br $L4
+        br $L6
       else
-      end $L5
-    end $L4
-  end $L3
-  local.get 2
+      end $L7
+    end $L6
+  end $L5
+  local.get 3
   local.get 1
   call 7
   return
