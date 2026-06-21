@@ -6675,7 +6675,7 @@ fn 21 std_core$format_unsigned (u64) -> string
   return
 end
 
-fn 22 std_io$std_io$println__string (string) -> void
+fn 22 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
   call.import 3
@@ -9274,7 +9274,7 @@ fn 55 std_char$is_white_char (char) -> bool
   return
 end
 
-fn 56 std_iter$std_iter$zip__string__Any (ref,ref) -> ref
+fn 56 std_iter$zip__string__Any (ref,ref) -> ref
   local out ref
   local n usize
   local m usize

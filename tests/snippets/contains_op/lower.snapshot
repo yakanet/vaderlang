@@ -55,7 +55,7 @@
       then:
         call :void
           callee:
-            std_io$std_io$println__string :void
+            std_io$println__string :void
           arg0:
             "range yes" :string
     if :void
@@ -76,7 +76,7 @@
       then:
         call :void
           callee:
-            std_io$std_io$println__string :void
+            std_io$println__string :void
           arg0:
             "range !in yes" :string
     if :void
@@ -96,7 +96,7 @@
       then:
         call :void
           callee:
-            std_io$std_io$println__string :void
+            std_io$println__string :void
           arg0:
             "range incl yes" :string
     let s: DigitSet =
@@ -136,7 +136,7 @@
       then:
         call :void
           callee:
-            std_io$std_io$println__string :void
+            std_io$println__string :void
           arg0:
             "set has 4" :string
     if :void
@@ -152,7 +152,7 @@
       then:
         call :void
           callee:
-            std_io$std_io$println__string :void
+            std_io$println__string :void
           arg0:
             "set lacks 5" :string
     if :void
@@ -167,7 +167,7 @@
       then:
         call :void
           callee:
-            std_io$std_io$println__string :void
+            std_io$println__string :void
           arg0:
             "set has 7" :string
     return int(0) :i32

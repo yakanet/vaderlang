@@ -149,7 +149,7 @@ fn 1 std_core$format_signed (i64) -> string
   return
 end
 
-fn 2 std_io$std_io$println__i32 (i32) -> void
+fn 2 std_io$println__i32 (i32) -> void
   local $call_3 string
   local.get 0
   i32.to_i64
@@ -164,7 +164,7 @@ fn 2 std_io$std_io$println__i32 (i32) -> void
   return
 end
 
-fn 3 std_io$std_io$println__string (string) -> void
+fn 3 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
   call.import 0

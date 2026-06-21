@@ -10,14 +10,14 @@
           ~>
             call :void
               callee:
-                std_io$std_io$println__string :void
+                std_io$println__string :void
               arg0:
                 name :string
         else:
           ~>
             call :void
               callee:
-                std_io$std_io$println__string :void
+                std_io$println__string :void
               arg0:
                 "BAD" :string
   fn snippet$main() -> i32

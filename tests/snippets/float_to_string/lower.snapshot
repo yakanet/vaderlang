@@ -41,7 +41,7 @@
               __for_i_2 :usize
         call :void
           callee:
-            std_io$std_io$println__string :void
+            std_io$println__string :void
           arg0:
             call :string
               callee:
@@ -60,7 +60,7 @@
     let pi: f64 = float(3.141592653589793) :f64
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -93,7 +93,7 @@
           float(0) :f64
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         block :string
           let __sb_3: StringBuilder =

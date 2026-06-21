@@ -12,7 +12,7 @@
         int(2) :i32
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -21,7 +21,7 @@
             cast → i64
               call :i32
                 callee:
-                  snippet$snippet$count_matching__i32 :i32
+                  snippet$count_matching__i32 :i32
                 arg0:
                   nums :i32[]
                 arg1:
@@ -35,7 +35,7 @@
         "foo" :string
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -44,13 +44,13 @@
             cast → i64
               call :i32
                 callee:
-                  snippet$snippet$count_matching__string :i32
+                  snippet$count_matching__string :i32
                 arg0:
                   words :string[]
                 arg1:
                   "foo" :string
     return int(0) :i32
-  fn snippet$snippet$count_matching__i32(items: i32[], target: i32) -> i32
+  fn snippet$count_matching__i32(items: i32[], target: i32) -> i32
     let n: i32 = int(0) :i32
     block :void
       let __for_arr_0: i32[] = items :i32[]
@@ -101,7 +101,7 @@
               r:
                 int(1) :usize
     return n :i32
-  fn snippet$snippet$count_matching__string(items: string[], target: string) -> i32
+  fn snippet$count_matching__string(items: string[], target: string) -> i32
     let n: i32 = int(0) :i32
     block :void
       let __for_arr_0: string[] = items :string[]

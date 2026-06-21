@@ -64,7 +64,7 @@ fn 3 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 4 std_io$std_io$println__string (string) -> void
+fn 4 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
   call.import 1

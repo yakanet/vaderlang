@@ -344,43 +344,43 @@ fn 0 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 1 snippet$snippet$unwrap__bool (ref) -> bool
+fn 1 snippet$unwrap__bool (ref) -> bool
   local.field 0 2 0
   ref.cast 3
   return
 end
 
-fn 2 snippet$snippet$unwrap__char (ref) -> char
+fn 2 snippet$unwrap__char (ref) -> char
   local.field 0 4 0
   ref.cast 5
   return
 end
 
-fn 3 snippet$snippet$unwrap__f32 (ref) -> f32
+fn 3 snippet$unwrap__f32 (ref) -> f32
   local.field 0 6 0
   ref.cast 7
   return
 end
 
-fn 4 snippet$snippet$unwrap__i16 (ref) -> i16
+fn 4 snippet$unwrap__i16 (ref) -> i16
   local.field 0 8 0
   ref.cast 9
   return
 end
 
-fn 5 snippet$snippet$unwrap__i64 (ref) -> i64
+fn 5 snippet$unwrap__i64 (ref) -> i64
   local.field 0 10 0
   ref.cast 11
   return
 end
 
-fn 6 snippet$snippet$unwrap__string (ref) -> string
+fn 6 snippet$unwrap__string (ref) -> string
   local.field 0 12 0
   ref.cast 13
   return
 end
 
-fn 7 snippet$snippet$unwrap__u8 (ref) -> u8
+fn 7 snippet$unwrap__u8 (ref) -> u8
   local.field 0 14 0
   ref.cast 15
   return
@@ -8342,7 +8342,7 @@ fn 37 std_core$pow5_factor (u64) -> i32
   return
 end
 
-fn 38 std_io$std_io$println__string (string) -> void
+fn 38 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
   call.import 2

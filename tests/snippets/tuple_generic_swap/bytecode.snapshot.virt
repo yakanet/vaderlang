@@ -46,7 +46,7 @@ fn 0 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 1 snippet$snippet$swap__i32__string (ref) -> ref
+fn 1 snippet$swap__i32__string (ref) -> ref
   local $field_1 string
   local $field_2 i32
   local.field 0 2 1
@@ -188,7 +188,7 @@ fn 2 std_core$format_signed (i64) -> string
   return
 end
 
-fn 3 std_io$std_io$println__string (string) -> void
+fn 3 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
   call.import 1

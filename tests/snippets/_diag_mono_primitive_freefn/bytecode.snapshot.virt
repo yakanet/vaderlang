@@ -38,14 +38,14 @@ fn 0 snippet$main () -> i32
   return
 end
 
-fn 1 snippet$snippet$second__Point (ref) -> ref
+fn 1 snippet$second__Point (ref) -> ref
   local.get 0
   i32.const 1
   array.get 2
   return
 end
 
-fn 2 snippet$snippet$second__i32 (ref) -> i32
+fn 2 snippet$second__i32 (ref) -> i32
   local.get 0
   i32.const 1
   load_slot_i32

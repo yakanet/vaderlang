@@ -81,7 +81,7 @@ fn 2 snippet$main () -> i32
   return
 end
 
-fn 3 snippet$snippet$count__i32 (ref) -> i32
+fn 3 snippet$count__i32 (ref) -> i32
   local n i32
   local cont bool
   local __scrut_0 ref
@@ -120,13 +120,13 @@ fn 3 snippet$snippet$count__i32 (ref) -> i32
   return
 end
 
-fn 4 snippet$snippet$invoke__i32 (ref) -> i32
+fn 4 snippet$invoke__i32 (ref) -> i32
   local.get 0
   virtual.call 1 Greeter.greet
   return
 end
 
-fn 5 snippet$snippet$twice__i32 (ref) -> i32
+fn 5 snippet$twice__i32 (ref) -> i32
   local.get 0
   virtual.call 1 Doubler.doubled
   return

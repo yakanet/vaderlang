@@ -10,7 +10,7 @@
       LoweredMakeClosure
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         "starting" :string
     let boom: i32 = int(1) :i32
@@ -30,20 +30,20 @@
   fn __defer_1(__env_0: __defer_env_2) -> void
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         "outer cleanup" :string
   struct __defer_env_5 {  }
   fn __defer_4(__env_1: __defer_env_5) -> void
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         "middle cleanup" :string
   struct __defer_env_8 {  }
   fn __defer_7(__env_2: __defer_env_8) -> void
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         "inner cleanup" :string

@@ -5,7 +5,7 @@
     ~>
       call :void
         callee:
-          std_io$std_io$println__string :void
+          std_io$println__string :void
         arg0:
           call :string
             callee:
@@ -48,7 +48,7 @@
           ~>
             call :void
               callee:
-                std_io$std_io$println__string :void
+                std_io$println__string :void
               arg0:
                 block :string
                   let __sb_0: StringBuilder =
@@ -134,7 +134,7 @@
           ~>
             call :void
               callee:
-                std_io$std_io$println__string :void
+                std_io$println__string :void
               arg0:
                 call :string
                   callee:
@@ -238,7 +238,7 @@
               "abc def ghi" :string
         call :void
           callee:
-            std_io$std_io$println__string :void
+            std_io$println__string :void
           arg0:
             call :string
               callee:
@@ -256,7 +256,7 @@
         loop while (<…>)
           call :void
             callee:
-              std_io$std_io$println__string :void
+              std_io$println__string :void
             arg0:
               call :string
                 callee:
@@ -351,7 +351,7 @@
           then:
             call :void
               callee:
-                std_io$std_io$println__string :void
+                std_io$println__string :void
               arg0:
                 call :string
                   callee:
@@ -368,7 +368,7 @@
                         int(0) :i32
             call :void
               callee:
-                std_io$std_io$println__string :void
+                std_io$println__string :void
               arg0:
                 call :string
                   callee:
@@ -385,7 +385,7 @@
                         int(1) :i32
             call :void
               callee:
-                std_io$std_io$println__string :void
+                std_io$println__string :void
               arg0:
                 call :string
                   callee:
@@ -402,7 +402,7 @@
                         int(2) :i32
             call :void
               callee:
-                std_io$std_io$println__string :void
+                std_io$println__string :void
               arg0:
                 call :string
                   callee:
@@ -553,7 +553,7 @@
       then:
         call :void
           callee:
-            std_io$std_io$println__string :void
+            std_io$println__string :void
           arg0:
             call :string
               callee:
@@ -584,7 +584,7 @@
       then:
         call :void
           callee:
-            std_io$std_io$println__string :void
+            std_io$println__string :void
           arg0:
             call :string
               callee:
@@ -615,7 +615,7 @@
       then:
         call :void
           callee:
-            std_io$std_io$println__string :void
+            std_io$println__string :void
           arg0:
             "bad-compile=caught" :string
     return int(0) :i32

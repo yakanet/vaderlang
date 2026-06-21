@@ -137,7 +137,7 @@ fn 2 std_core$format_unsigned (u64) -> string
   return
 end
 
-fn 3 std_io$std_io$println__string (string) -> void
+fn 3 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
   call.import 0

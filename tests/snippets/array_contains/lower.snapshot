@@ -21,7 +21,7 @@
       then:
         call :void
           callee:
-            std_io$std_io$println__string :void
+            std_io$println__string :void
           arg0:
             "7 is prime" :string
     if :void
@@ -37,7 +37,7 @@
       then:
         call :void
           callee:
-            std_io$std_io$println__string :void
+            std_io$println__string :void
           arg0:
             "4 is not prime" :string
     let vowels: const u8[] =
@@ -58,7 +58,7 @@
       then:
         call :void
           callee:
-            std_io$std_io$println__string :void
+            std_io$println__string :void
           arg0:
             "e is vowel" :string
     if :void
@@ -74,7 +74,7 @@
       then:
         call :void
           callee:
-            std_io$std_io$println__string :void
+            std_io$println__string :void
           arg0:
             "z is not vowel" :string
     return int(0) :i32

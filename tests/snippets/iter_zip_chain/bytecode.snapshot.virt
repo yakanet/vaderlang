@@ -509,7 +509,7 @@ fn 3 std_core$format_unsigned (u64) -> string
   return
 end
 
-fn 4 std_io$std_io$println__string (string) -> void
+fn 4 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
   call.import 1
@@ -519,13 +519,13 @@ fn 4 std_io$std_io$println__string (string) -> void
   return
 end
 
-fn 5 std_iter$std_iter$count__i32 (ref) -> usize
+fn 5 std_iter$count__i32 (ref) -> usize
   local.get 0
   array.len
   return
 end
 
-fn 6 std_iter$std_iter$collect__i32 (ref) -> ref
+fn 6 std_iter$collect__i32 (ref) -> ref
   local out ref
   local __for_arr_0 ref
   local __for_len_1 usize
@@ -568,7 +568,7 @@ fn 6 std_iter$std_iter$collect__i32 (ref) -> ref
   return
 end
 
-fn 7 std_iter$std_iter$zip__string__i32 (ref,ref) -> ref
+fn 7 std_iter$zip__string__i32 (ref,ref) -> ref
   local out ref
   local n usize
   local m usize
@@ -635,7 +635,7 @@ fn 7 std_iter$std_iter$zip__string__i32 (ref,ref) -> ref
   return
 end
 
-fn 8 std_iter$std_iter$chain__i32 (ref,ref) -> ref
+fn 8 std_iter$chain__i32 (ref,ref) -> ref
   local out ref
   local __for_arr_0 ref
   local __for_len_1 usize
@@ -767,7 +767,7 @@ fn 9 std_iter$std_iter$enumerate__string (ref) -> ref
   return
 end
 
-fn 10 std_iter$std_iter$flat_map__i32__i32 (ref,ref) -> ref
+fn 10 std_iter$flat_map__i32__i32 (ref,ref) -> ref
   local out ref
   local __for_arr_0 ref
   local __for_len_1 usize

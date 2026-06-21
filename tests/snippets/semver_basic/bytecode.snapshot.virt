@@ -7197,7 +7197,7 @@ fn 45 std_string$codepoint_byte_len (char) -> usize
   return.lit i64.const 4
 end
 
-fn 46 std_io$std_io$println__string (string) -> void
+fn 46 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
   call.import 3
@@ -7207,7 +7207,7 @@ fn 46 std_io$std_io$println__string (string) -> void
   return
 end
 
-fn 47 std_io$std_io$eprintln__string (string) -> void
+fn 47 std_io$eprintln__string (string) -> void
   i32.const 1
   local.get 0
   call.import 3

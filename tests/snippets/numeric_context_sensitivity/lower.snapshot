@@ -17,7 +17,7 @@
     let usz: usize = int(42) :usize
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         block :string
           let __sb_0: StringBuilder =
@@ -244,7 +244,7 @@
           int(1) :u64
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         block :string
           let __sb_1: StringBuilder =
@@ -342,7 +342,7 @@
           int(1) :isize
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -374,7 +374,7 @@
       }
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -409,7 +409,7 @@
       then:
         call :void
           callee:
-            std_io$std_io$println__string :void
+            std_io$println__string :void
           arg0:
             "eq ok" :string
     if :void
@@ -422,7 +422,7 @@
       then:
         call :void
           callee:
-            std_io$std_io$println__string :void
+            std_io$println__string :void
           arg0:
             "isz_neg ok" :string
     let arr: i32[] =
@@ -450,7 +450,7 @@
               int(1) :usize
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -468,7 +468,7 @@
       LoweredMakeClosure
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:

@@ -15,12 +15,12 @@ fn 0 snippet$main () -> i32
   return
 end
 
-fn 1 snippet$snippet$needs_add__string (string) -> string
+fn 1 snippet$needs_add__string (string) -> string
   local.get 0
   return
 end
 
-fn 2 snippet$snippet$bar__i32__i32 (i32,i32) -> i32
+fn 2 snippet$bar__i32__i32 (i32,i32) -> i32
   local.get 1
   return
 end

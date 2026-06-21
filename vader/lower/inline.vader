@@ -101,16 +101,15 @@ build_inline_index :: fn(project: LoweredProject) -> MutableMap<string, InlineIn
 inlineable_info :: fn(fd: LoweredFnDecl) -> InlineInfo | null {
     body :: fd.body
     if body == null { return null }
-    // Skip generic INSTANCES — guards a DOCUMENTED mangle bug, not a "match TS"
-    // reason. Generic-instance call mangles are built with a doubled module prefix
-    // (`std_iter$std_iter$…__T`, `lower_generic_call.vader`) that the canonical
-    // mono mangle (single-prefix, `comptime/mangle.vader`) does NOT share — the
-    // "double-prefix bug" flagged at `lower_mono_fn.vader:41`. A verbatim copy of
-    // such a body into another fn carries those mangles, which can fail to resolve
-    // at emit. Fixing the scheme to a single prefix (aligned with mono) would let
-    // this filter relax. The high-value targets — `Display.to_string`,
-    // `Comparable`, accessors — are impls on CONCRETE types (`type_arguments`
-    // empty), so they're unaffected.
+    // Skip generic INSTANCES — CONSERVATIVE, no longer strictly necessary. The
+    // original blocker (generic-instance call mangles carried a doubled module
+    // prefix that didn't match the single-prefix definitions) is FIXED:
+    // `lower_generic_call.vader` now emits single-prefix mangles, so a copied
+    // generic-instance body's calls resolve. Relaxing this filter to inline
+    // generic instances too is a follow-up (verify on the iterator-chain corpus
+    // that erased per-instance dispatch stays sound). The high-value targets —
+    // `Display.to_string`, `Comparable`, accessors — are impls on CONCRETE types
+    // (`type_arguments` empty), so they inline regardless.
     if !fd.origin.type_arguments.is_empty() { return null }
     result :: single_expr_result(body)
     if result == null { return null }

@@ -15,7 +15,7 @@
     let a: i32 =
       call :i32
         callee:
-          snippet$snippet$count__i32 :i32
+          snippet$count__i32 :i32
         arg0:
           Range<i32> {
             start: int(0) :i32
@@ -26,7 +26,7 @@
     let b: i32 =
       call :i32
         callee:
-          snippet$snippet$count__i32 :i32
+          snippet$count__i32 :i32
         arg0:
           ArrayIterator<i32> {
             arr:
@@ -41,14 +41,14 @@
     let c: i32 =
       call :i32
         callee:
-          snippet$snippet$invoke__i32 :i32
+          snippet$invoke__i32 :i32
         arg0:
           Hello {
           }
     let d: i32 =
       call :i32
         callee:
-          snippet$snippet$twice__i32 :i32
+          snippet$twice__i32 :i32
         arg0:
           int(7) :Doubler<i32>
     return
@@ -65,7 +65,7 @@
               c :i32
         r:
           d :i32
-  fn snippet$snippet$count__i32(it: Iterator<i32>) -> i32
+  fn snippet$count__i32(it: Iterator<i32>) -> i32
     let n: i32 = int(0) :i32
     let cont: bool = true
     loop while (cont :bool)
@@ -110,12 +110,12 @@
                       ~>
                         unreachable("non-exhaustive match (T3013 should have caught this)") :void
     return n :i32
-  fn snippet$snippet$invoke__i32(g: Greeter<i32>) -> i32
+  fn snippet$invoke__i32(g: Greeter<i32>) -> i32
     return
       vcall Greeter.greet :i32
         recv:
           g :Greeter<i32>
-  fn snippet$snippet$twice__i32(x: Doubler<i32>) -> i32
+  fn snippet$twice__i32(x: Doubler<i32>) -> i32
     return
       vcall Doubler.doubled :i32
         recv:

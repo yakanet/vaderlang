@@ -652,7 +652,7 @@ fn 10 std_core$format_unsigned (u64) -> string
   return
 end
 
-fn 11 std_io$std_io$println__bool (bool) -> void
+fn 11 std_io$println__bool (bool) -> void
   local if_res string
   local.get 0
   if $L0 void
@@ -671,7 +671,7 @@ fn 11 std_io$std_io$println__bool (bool) -> void
   return
 end
 
-fn 12 std_io$std_io$println__i32 (i32) -> void
+fn 12 std_io$println__i32 (i32) -> void
   local $call_3 string
   local.get 0
   i32.to_i64
@@ -686,7 +686,7 @@ fn 12 std_io$std_io$println__i32 (i32) -> void
   return
 end
 
-fn 13 std_io$std_io$println__string (string) -> void
+fn 13 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
   call.import 0
@@ -696,7 +696,7 @@ fn 13 std_io$std_io$println__string (string) -> void
   return
 end
 
-fn 14 std_io$std_io$println__usize (usize) -> void
+fn 14 std_io$println__usize (usize) -> void
   local $call_3 string
   local.get 0
   usize.to_i64

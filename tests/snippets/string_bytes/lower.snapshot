@@ -4,7 +4,7 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         "-- ascii --" :string
     let sum: u32 =
@@ -48,7 +48,7 @@
                 int(1) :usize
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -64,7 +64,7 @@
                   sum :u32
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         "-- multibyte --" :string
     block :void
@@ -86,7 +86,7 @@
               __for_i_5 :usize
         call :void
           callee:
-            std_io$std_io$println__string :void
+            std_io$println__string :void
           arg0:
             call :string
               callee:
@@ -112,12 +112,12 @@
           bom :string
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         "-- bom --" :string
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         block :string
           let __sb_6: StringBuilder =
@@ -201,7 +201,7 @@
                 __sb_6 :StringBuilder
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -238,7 +238,7 @@
                       int(0) :i32
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         "-- empty --" :string
     block :void
@@ -260,7 +260,7 @@
               __for_i_10 :usize
         call :void
           callee:
-            std_io$std_io$println__string :void
+            std_io$println__string :void
           arg0:
             "never" :string
         assign
@@ -274,7 +274,7 @@
                 int(1) :usize
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -290,7 +290,7 @@
                   LoweredArrayLen
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         "-- u8[] surface --" :string
     let bs: const u8[] =
@@ -301,7 +301,7 @@
           "abc" :string
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         block :string
           let __sb_11: StringBuilder =
@@ -404,7 +404,7 @@
                 __sb_11 :StringBuilder
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         "-- slice --" :string
     let sl: u8[] =
@@ -423,7 +423,7 @@
             int(4) :usize
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         block :string
           let __sb_12: StringBuilder =

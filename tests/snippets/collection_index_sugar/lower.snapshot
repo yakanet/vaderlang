@@ -62,7 +62,7 @@
             ~>
               call :void
                 callee:
-                  std_io$std_io$println__string :void
+                  std_io$println__string :void
                 arg0:
                   call :string
                     callee:
@@ -86,7 +86,7 @@
                   ~>
                     call :void
                       callee:
-                        std_io$std_io$println__string :void
+                        std_io$println__string :void
                       arg0:
                         "a missing" :string
                 else:
@@ -110,7 +110,7 @@
             ~>
               call :void
                 callee:
-                  std_io$std_io$println__string :void
+                  std_io$println__string :void
                 arg0:
                   "c found?!" :string
           else:
@@ -123,7 +123,7 @@
                   ~>
                     call :void
                       callee:
-                        std_io$std_io$println__string :void
+                        std_io$println__string :void
                       arg0:
                         "c missing" :string
                 else:
@@ -141,7 +141,7 @@
       then:
         call :void
           callee:
-            std_io$std_io$println__string :void
+            std_io$println__string :void
           arg0:
             "a in m" :string
     if :void
@@ -157,7 +157,7 @@
       then:
         call :void
           callee:
-            std_io$std_io$println__string :void
+            std_io$println__string :void
           arg0:
             "z not in m" :string
     let s: MutableSet<i32> =
@@ -201,7 +201,7 @@
       then:
         call :void
           callee:
-            std_io$std_io$println__string :void
+            std_io$println__string :void
           arg0:
             "1 in s" :string
     if :void
@@ -217,7 +217,7 @@
       then:
         call :void
           callee:
-            std_io$std_io$println__string :void
+            std_io$println__string :void
           arg0:
             "3 not in s" :string
     return int(0) :i32

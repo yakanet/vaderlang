@@ -30,7 +30,7 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 #define VADER_COMPTIME_ATOM_COUNT 5u
 
 static int32_t snippet_main(void);
-static void std_io_std_io_println__string(vader_string_t l0);
+static void std_io_println__string(vader_string_t l0);
 static vader_string_t std_string_builder_concat2(vader_string_t l0, vader_string_t l1);
 static vader_box_t std_core_usize_BufferAlloc_new_buffer_vt(size_t l0);
 static vader_string_t std_core_Buffer_ByteAccess_intern_string_vt(vader_box_t l0, size_t l1);
@@ -80,14 +80,14 @@ static int32_t snippet_main(void) {
     t1 = std_string_builder_concat2(l0, 3u);
     l0 = t1;
     if (l0 == 4u) {
-        std_io_std_io_println__string(l0);
+        std_io_println__string(l0);
         { vader_gc_top = gc_frame.prev; return INT32_C(0); }
     }
     { vader_gc_top = gc_frame.prev; return INT32_C(1); }
     vader_gc_top = gc_frame.prev;
 }
 
-static void std_io_std_io_println__string(vader_string_t l0) {
+static void std_io_println__string(vader_string_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_import_1(INT32_C(0), l0);

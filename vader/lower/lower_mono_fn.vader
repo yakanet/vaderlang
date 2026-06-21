@@ -37,10 +37,11 @@ import "vader/resolver/symbol" { Symbol }
 ///
 /// The mono pass's Pass 3 (`run_pass_3` in `specialize.vader`) also produces
 /// one entry per `(fn symbol, type_arguments)` pair via
-/// `evaluated.mono.fn_instance_entries`, but the mangled names differ
-/// (`inst.mangled` carries a double-prefix bug ; mono's is canonical single-
-/// prefix). Until reconciled we drive from `fn_instances_order` for byte-
-/// parity. TODO: drop `fn_instances_order`, read from mono entries.
+/// `evaluated.mono.fn_instance_entries`. Its mangle and the lowerer's now AGREE
+/// (both single-prefix — the lowerer's old double-prefix bug was fixed in
+/// `lower_generic_call.vader`). We still drive from `fn_instances_order` for
+/// insertion-order byte-parity. TODO: drop `fn_instances_order`, read from mono
+/// entries (now that the mangles match, this is mechanical).
 drain_generic_fn_instances :: fn(
     loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx,
     project: LoweredProject, diags: Diagnostic[],

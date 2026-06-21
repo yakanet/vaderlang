@@ -157,7 +157,7 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        std_io$std_io$println__usize :void
+        std_io$println__usize :void
       arg0:
         call :usize
           callee:
@@ -193,7 +193,7 @@
             ~>
               call :void
                 callee:
-                  std_io$std_io$println__i32 :void
+                  std_io$println__i32 :void
                 arg0:
                   v :i32
           else:
@@ -206,7 +206,7 @@
                   ~>
                     call :void
                       callee:
-                        std_io$std_io$println__string :void
+                        std_io$println__string :void
                       arg0:
                         "none" :string
                 else:
@@ -214,7 +214,7 @@
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
     call :void
       callee:
-        std_io$std_io$println__bool :void
+        std_io$println__bool :void
       arg0:
         call :bool
           callee:
@@ -228,7 +228,7 @@
             }
     call :void
       callee:
-        std_io$std_io$println__bool :void
+        std_io$println__bool :void
       arg0:
         call :bool
           callee:
@@ -242,7 +242,7 @@
             }
     call :void
       callee:
-        std_io$std_io$println__usize :void
+        std_io$println__usize :void
       arg0:
         call :usize
           callee:

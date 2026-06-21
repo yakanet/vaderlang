@@ -17,7 +17,7 @@
     let squares: i32[] =
       call :i32[]
         callee:
-          std_iter$std_iter$map__i32__i32 :i32[]
+          std_iter$map__i32__i32 :i32[]
         arg0:
           array :i32[]
             int(1) :i32
@@ -36,7 +36,7 @@
     let evens: i32[] =
       call :i32[]
         callee:
-          std_iter$std_iter$filter__i32 :i32[]
+          std_iter$filter__i32 :i32[]
         arg0:
           nums :i32[]
         arg1:
@@ -50,7 +50,7 @@
     let p: i32 =
       call :i32
         callee:
-          std_iter$std_iter$fold__i32__i32 :i32
+          std_iter$fold__i32__i32 :i32
         arg0:
           array :i32[]
             int(1) :i32
@@ -94,7 +94,7 @@
           rest :i32[]
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -110,7 +110,7 @@
                   LoweredArrayLen
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -126,7 +126,7 @@
                   LoweredArrayLen
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:

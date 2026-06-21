@@ -5,13 +5,13 @@
     let a: i32 =
       call :i32
         callee:
-          snippet$snippet$identity__i32 :i32
+          snippet$identity__i32 :i32
         arg0:
           int(10) :i32
     let b: i32 =
       call :i32
         callee:
-          snippet$snippet$swap__i32__i32 :i32
+          snippet$swap__i32__i32 :i32
         arg0:
           int(1) :i32
         arg1:
@@ -33,10 +33,10 @@
           .first :i32
             p :Pair<i32, i32>
   struct snippet$Pair__i32__i32 { first: i32, second: i32 }
-  fn snippet$snippet$identity__i32(x: i32) -> i32
+  fn snippet$identity__i32(x: i32) -> i32
     ~>
       x :i32
-  fn snippet$snippet$swap__i32__i32(a: i32, b: i32) -> i32
+  fn snippet$swap__i32__i32(a: i32, b: i32) -> i32
     ~>
       b :i32
   struct snippet$Pair__Any__Any { first: Any, second: Any }

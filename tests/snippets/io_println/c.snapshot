@@ -27,8 +27,8 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 static int32_t snippet_main(void);
 static vader_string_t std_core_format_signed(int64_t l0);
-static void std_io_std_io_println__i32(int32_t l0);
-static void std_io_std_io_println__string(vader_string_t l0);
+static void std_io_println__i32(int32_t l0);
+static void std_io_println__string(vader_string_t l0);
 static vader_box_t std_core_usize_BufferAlloc_new_buffer_vt(size_t l0);
 static void std_core_Buffer_ByteAccess_store_u8_vt(vader_box_t l0, size_t l1, uint8_t l2);
 static vader_string_t std_core_Buffer_ByteAccess_intern_string_vt(vader_box_t l0, size_t l1);
@@ -67,8 +67,8 @@ static void vader_import_0(int32_t a0, vader_string_t a1) { vader_write(a0, a1);
 static int32_t snippet_main(void) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL };
     vader_gc_top = &gc_frame;
-    std_io_std_io_println__string(1u);
-    std_io_std_io_println__i32(INT32_C(42));
+    std_io_println__string(1u);
+    std_io_println__i32(INT32_C(42));
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
     vader_gc_top = gc_frame.prev;
 }
@@ -154,7 +154,7 @@ static vader_string_t std_core_format_signed(int64_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-static void std_io_std_io_println__i32(int32_t l0) {
+static void std_io_println__i32(int32_t l0) {
     vader_string_t l1;
     vader_string_t t0;
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL };
@@ -167,7 +167,7 @@ static void std_io_std_io_println__i32(int32_t l0) {
     vader_gc_top = gc_frame.prev;
 }
 
-static void std_io_std_io_println__string(vader_string_t l0) {
+static void std_io_println__string(vader_string_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_import_0(INT32_C(0), l0);

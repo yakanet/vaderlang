@@ -74,7 +74,7 @@
     let c: Color = int(1) :i32
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -83,7 +83,7 @@
             c :Color
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -92,7 +92,7 @@
             int(0) :i32
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -101,7 +101,7 @@
             int(2) :i32
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         if :string
           cond:
@@ -120,7 +120,7 @@
               "false" :string
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         if :string
           cond:
@@ -139,7 +139,7 @@
               "false" :string
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         if :string
           cond:
@@ -156,7 +156,7 @@
               "false" :string
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         if :string
           cond:
@@ -192,7 +192,7 @@
             ~>
               call :void
                 callee:
-                  std_io$std_io$println__string :void
+                  std_io$println__string :void
                 arg0:
                   "info" :string
           else:
@@ -208,7 +208,7 @@
                   ~>
                     call :void
                       callee:
-                        std_io$std_io$println__string :void
+                        std_io$println__string :void
                       arg0:
                         "warning" :string
                 else:
@@ -224,7 +224,7 @@
                         ~>
                           call :void
                             callee:
-                              std_io$std_io$println__string :void
+                              std_io$println__string :void
                             arg0:
                               "error" :string
                       else:
@@ -250,7 +250,7 @@
             ~>
               call :void
                 callee:
-                  std_io$std_io$println__string :void
+                  std_io$println__string :void
                 arg0:
                   "info" :string
           else:
@@ -266,7 +266,7 @@
                   ~>
                     call :void
                       callee:
-                        std_io$std_io$println__string :void
+                        std_io$println__string :void
                       arg0:
                         "warning" :string
                 else:
@@ -282,7 +282,7 @@
                         ~>
                           call :void
                             callee:
-                              std_io$std_io$println__string :void
+                              std_io$println__string :void
                             arg0:
                               "error" :string
                       else:
@@ -308,7 +308,7 @@
             ~>
               call :void
                 callee:
-                  std_io$std_io$println__string :void
+                  std_io$println__string :void
                 arg0:
                   "info" :string
           else:
@@ -324,7 +324,7 @@
                   ~>
                     call :void
                       callee:
-                        std_io$std_io$println__string :void
+                        std_io$println__string :void
                       arg0:
                         "warning" :string
                 else:
@@ -340,7 +340,7 @@
                         ~>
                           call :void
                             callee:
-                              std_io$std_io$println__string :void
+                              std_io$println__string :void
                             arg0:
                               "error" :string
                       else:

@@ -186,7 +186,7 @@ fn 2 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 3 snippet$snippet$takes__i64 (i64) -> i64
+fn 3 snippet$takes__i64 (i64) -> i64
   local.get 0
   return
 end
@@ -318,7 +318,7 @@ fn 4 std_core$format_signed (i64) -> string
   return
 end
 
-fn 5 std_io$std_io$println__string (string) -> void
+fn 5 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
   call.import 1

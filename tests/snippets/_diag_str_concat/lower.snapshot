@@ -14,7 +14,7 @@
           b :string
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         c :string
     let d: string =
@@ -29,7 +29,7 @@
           "baz" :string
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         d :string
     let e: string =
@@ -42,7 +42,7 @@
           a :string
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         e :string
     return int(0) :i32

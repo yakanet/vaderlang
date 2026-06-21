@@ -43,7 +43,7 @@
         int(170) :i32
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -82,7 +82,7 @@
                 ~>
                   call :void
                     callee:
-                      std_io$std_io$println__string :void
+                      std_io$println__string :void
                     arg0:
                       "v1: missing" :string
           else:
@@ -97,7 +97,7 @@
                       ~>
                         call :void
                           callee:
-                            std_io$std_io$println__string :void
+                            std_io$println__string :void
                           arg0:
                             call :string
                               callee:
@@ -136,7 +136,7 @@
                 ~>
                   call :void
                     callee:
-                      std_io$std_io$println__string :void
+                      std_io$println__string :void
                     arg0:
                       "v17: missing" :string
           else:
@@ -151,7 +151,7 @@
                       ~>
                         call :void
                           callee:
-                            std_io$std_io$println__string :void
+                            std_io$println__string :void
                           arg0:
                             call :string
                               callee:
@@ -171,7 +171,7 @@
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -196,7 +196,7 @@
                   "false" :string
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -249,7 +249,7 @@
                 ~>
                   call :void
                     callee:
-                      std_io$std_io$println__string :void
+                      std_io$println__string :void
                     arg0:
                       "v1b: missing" :string
           else:
@@ -264,7 +264,7 @@
                       ~>
                         call :void
                           callee:
-                            std_io$std_io$println__string :void
+                            std_io$println__string :void
                           arg0:
                             call :string
                               callee:

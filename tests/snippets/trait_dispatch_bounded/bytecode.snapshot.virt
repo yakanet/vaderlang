@@ -52,7 +52,7 @@ fn 0 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 1 snippet$snippet$count_matching__i32 (ref,i32) -> i32
+fn 1 snippet$count_matching__i32 (ref,i32) -> i32
   local n i32
   local __for_arr_0 ref
   local __for_len_1 usize
@@ -120,7 +120,7 @@ fn 1 snippet$snippet$count_matching__i32 (ref,i32) -> i32
   return
 end
 
-fn 2 snippet$snippet$count_matching__string (ref,string) -> i32
+fn 2 snippet$count_matching__string (ref,string) -> i32
   local n i32
   local __for_arr_0 ref
   local __for_len_1 usize
@@ -316,7 +316,7 @@ fn 3 std_core$format_signed (i64) -> string
   return
 end
 
-fn 4 std_io$std_io$println__string (string) -> void
+fn 4 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
   call.import 1
