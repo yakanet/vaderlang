@@ -28,7 +28,7 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
     // `if x is T as alias` where the if's then-branch consumes the
     // alias — that path lives in the typechecker's narrowing logic
     // and lowers to a regular `LoweredCast` reaching the alias slot.
-    if i32(binary.op) == i32(BinaryOp.Is) {
+    if binary.op == BinaryOp.Is {
         return LoweredTypeCheck {
             .span = binary.span,
             .type = TY_BOOL,
@@ -44,7 +44,7 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
             .check_type = ctx.types.expr_type(binary.right),
         }
     }
-    if i32(binary.op) == i32(BinaryOp.In) || i32(binary.op) == i32(BinaryOp.NotIn) {
+    if binary.op == BinaryOp.In || binary.op == BinaryOp.NotIn {
         // `x in coll` → `coll.contains(x)`. `x !in coll` → `!coll.contains(x)`.
         // The Contains impl on `coll`'s type provides the `contains`
         // member ; the existing `find_impl_member_for` UFCS lookup
@@ -65,7 +65,7 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
                 },
                 .args = args,
             }
-            if i32(binary.op) == i32(BinaryOp.NotIn) {
+            if binary.op == BinaryOp.NotIn {
                 return LoweredUnary {
                     .span = binary.span, .type = TY_BOOL,
                     .op = LoweredUnaryOp.Not, .operand = call,
@@ -79,7 +79,7 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
     // The C/VM emit can't compare two `vader_box_t` directly anyway and
     // the type-check is the operation we actually want. Mirror of
     // `lowerBinary`'s null-eq branch in `expr.ts:677-693`.
-    if i32(binary.op) == i32(BinaryOp.Eq) || i32(binary.op) == i32(BinaryOp.Neq) {
+    if binary.op == BinaryOp.Eq || binary.op == BinaryOp.Neq {
         null_rewrite :: try_lower_null_eq(ctx, binary)
         match null_rewrite {
             is null -> {}
@@ -152,7 +152,7 @@ try_lower_op_overload :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> 
             call_args: LoweredExpr[] = []
             call_args.push(lowered_left)
             call_args.push(lowered_right)
-            if i32(oti.shape) == i32(OpShape.DirectCall) {
+            if oti.shape == OpShape.DirectCall {
                 // Arithmetic + Equals : returns the binary's static type.
                 return LoweredCall {
                     .span = binary.span, .type = type,
@@ -162,7 +162,7 @@ try_lower_op_overload :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> 
                     .args = call_args,
                 }
             }
-            if i32(oti.shape) == i32(OpShape.NotCall) {
+            if oti.shape == OpShape.NotCall {
                 // `a != b` → `not(equals(a, b))`.
                 equals_call :: LoweredCall {
                     .span = binary.span, .type = TY_BOOL,
@@ -214,14 +214,14 @@ lower_op_overload_via_vcall :: fn(
     ctx.project.virtually_dispatched_traits.add(oti.trait_name)
     call :: LoweredVirtualCall {
         .span = binary.span,
-        .type = if i32(oti.shape) == i32(OpShape.CompareCmp) { mk_primitive("i32") } else { TY_BOOL },
+        .type = if oti.shape == OpShape.CompareCmp { mk_primitive("i32") } else { TY_BOOL },
         .trait_name = oti.trait_name, .method = oti.method_name,
         .receiver = lowered_left, .args = args,
     }
-    if i32(oti.shape) == i32(OpShape.DirectCall) {
+    if oti.shape == OpShape.DirectCall {
         return call
     }
-    if i32(oti.shape) == i32(OpShape.NotCall) {
+    if oti.shape == OpShape.NotCall {
         return LoweredUnary {
             .span = binary.span, .type = TY_BOOL,
             .op = LoweredUnaryOp.Not, .operand = call,
@@ -269,17 +269,17 @@ OpTraitInfo :: struct {
 }
 
 op_trait_method :: fn(op: BinaryOp) -> OpTraitInfo | null {
-    if i32(op) == i32(BinaryOp.Add) { return OpTraitInfo { .trait_name = "Add", .method_name = "add", .shape = OpShape.DirectCall } }
-    if i32(op) == i32(BinaryOp.Sub) { return OpTraitInfo { .trait_name = "Sub", .method_name = "sub", .shape = OpShape.DirectCall } }
-    if i32(op) == i32(BinaryOp.Mul) { return OpTraitInfo { .trait_name = "Mul", .method_name = "mul", .shape = OpShape.DirectCall } }
-    if i32(op) == i32(BinaryOp.Div) { return OpTraitInfo { .trait_name = "Div", .method_name = "div", .shape = OpShape.DirectCall } }
-    if i32(op) == i32(BinaryOp.Mod) { return OpTraitInfo { .trait_name = "Rem", .method_name = "rem", .shape = OpShape.DirectCall } }
-    if i32(op) == i32(BinaryOp.Eq)  { return OpTraitInfo { .trait_name = "Equals", .method_name = "equals", .shape = OpShape.DirectCall } }
-    if i32(op) == i32(BinaryOp.Neq) { return OpTraitInfo { .trait_name = "Equals", .method_name = "equals", .shape = OpShape.NotCall } }
-    if i32(op) == i32(BinaryOp.Lt)  { return OpTraitInfo { .trait_name = "Comparable", .method_name = "compare", .shape = OpShape.CompareCmp } }
-    if i32(op) == i32(BinaryOp.Lte) { return OpTraitInfo { .trait_name = "Comparable", .method_name = "compare", .shape = OpShape.CompareCmp } }
-    if i32(op) == i32(BinaryOp.Gt)  { return OpTraitInfo { .trait_name = "Comparable", .method_name = "compare", .shape = OpShape.CompareCmp } }
-    if i32(op) == i32(BinaryOp.Gte) { return OpTraitInfo { .trait_name = "Comparable", .method_name = "compare", .shape = OpShape.CompareCmp } }
+    if op == BinaryOp.Add { return OpTraitInfo { .trait_name = "Add", .method_name = "add", .shape = OpShape.DirectCall } }
+    if op == BinaryOp.Sub { return OpTraitInfo { .trait_name = "Sub", .method_name = "sub", .shape = OpShape.DirectCall } }
+    if op == BinaryOp.Mul { return OpTraitInfo { .trait_name = "Mul", .method_name = "mul", .shape = OpShape.DirectCall } }
+    if op == BinaryOp.Div { return OpTraitInfo { .trait_name = "Div", .method_name = "div", .shape = OpShape.DirectCall } }
+    if op == BinaryOp.Mod { return OpTraitInfo { .trait_name = "Rem", .method_name = "rem", .shape = OpShape.DirectCall } }
+    if op == BinaryOp.Eq  { return OpTraitInfo { .trait_name = "Equals", .method_name = "equals", .shape = OpShape.DirectCall } }
+    if op == BinaryOp.Neq { return OpTraitInfo { .trait_name = "Equals", .method_name = "equals", .shape = OpShape.NotCall } }
+    if op == BinaryOp.Lt  { return OpTraitInfo { .trait_name = "Comparable", .method_name = "compare", .shape = OpShape.CompareCmp } }
+    if op == BinaryOp.Lte { return OpTraitInfo { .trait_name = "Comparable", .method_name = "compare", .shape = OpShape.CompareCmp } }
+    if op == BinaryOp.Gt  { return OpTraitInfo { .trait_name = "Comparable", .method_name = "compare", .shape = OpShape.CompareCmp } }
+    if op == BinaryOp.Gte { return OpTraitInfo { .trait_name = "Comparable", .method_name = "compare", .shape = OpShape.CompareCmp } }
     return null
 }
 
@@ -297,7 +297,7 @@ try_lower_null_eq :: fn(ctx: FnLowerCtx, binary: BinaryExpr) -> LoweredExpr | nu
         .value = lower_expr(ctx, union_operand),
         .check_type = mk_primitive("null"),
     }
-    if i32(binary.op) == i32(BinaryOp.Eq) { return check }
+    if binary.op == BinaryOp.Eq { return check }
     return LoweredUnary {
         .span = binary.span, .type = TY_BOOL,
         .op = LoweredUnaryOp.Not, .operand = check,
