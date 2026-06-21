@@ -78,7 +78,7 @@ export annotate_escape :: fn(p: CFGProject) -> AnnotatedProject {
 
 annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
     // Collect alloc-producing locals.
-    alloc_locals :: MutableSet<LocalId> { .inner = MutableMap<LocalId, bool> {} }
+    alloc_locals :: MutableSet<LocalId> {}
     struct_news: LocalId[] = []
     for b in fn_.blocks {
         for ins in b.instructions {
@@ -99,7 +99,7 @@ annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
     // Forward-propagate `barrierless` through Move/Cast. A Move/Cast
     // with any non-stack source stays out — one heap origin requires
     // the barrier.
-    stack_origin :: MutableSet<LocalId> { .inner = MutableMap<LocalId, bool> {} }
+    stack_origin :: MutableSet<LocalId> {}
     worklist: LocalId[] = []
     for dst in struct_news {
         if res.escaping.contains(dst) { continue }
@@ -203,7 +203,7 @@ annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
 compute_carried_across_loop_headers :: fn(
     fn_: CFGFunction, alias_of: MutableMap<LocalId, LocalId[]>,
 ) -> MutableSet<LocalId> {
-    carried :: MutableSet<LocalId> { .inner = MutableMap<LocalId, bool> {} }
+    carried :: MutableSet<LocalId> {}
     preds :: predecessors_of(fn_)
     idom :: compute_dominators(fn_, preds)
     loops :: natural_loop_bodies(fn_, preds, idom)
@@ -215,7 +215,7 @@ compute_carried_across_loop_headers :: fn(
     for [header, _] in loops {
         body :: loops[header]
         if body is null { continue }
-        defs_in_body :: MutableSet<LocalId> { .inner = MutableMap<LocalId, bool> {} }
+        defs_in_body :: MutableSet<LocalId> {}
         for [b_id, _] in body.inner {
             block :: fn_.blocks[b_id]
             for ins in block.instructions {
@@ -258,7 +258,7 @@ EscapeResult :: struct {
 }
 
 compute_escaping :: fn(fn_: CFGFunction, alloc_locals: MutableSet<LocalId>) -> EscapeResult {
-    escaping  :: MutableSet<LocalId> { .inner = MutableMap<LocalId, bool> {} }
+    escaping  :: MutableSet<LocalId> {}
     alias_of   :: MutableMap<LocalId, LocalId[]> {}
     alias_from :: MutableMap<LocalId, LocalId[]> {}
 
@@ -318,7 +318,7 @@ compute_escaping :: fn(fn_: CFGFunction, alloc_locals: MutableSet<LocalId>) -> E
     }
 
     // Restrict the escape set to alloc locals only.
-    alloc_escaping :: MutableSet<LocalId> { .inner = MutableMap<LocalId, bool> {} }
+    alloc_escaping :: MutableSet<LocalId> {}
     for [a, _] in alloc_locals.inner {
         if escaping.contains(a) { alloc_escaping.add(a) }
     }
