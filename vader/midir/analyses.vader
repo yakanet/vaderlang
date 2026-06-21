@@ -13,7 +13,7 @@
 
 module "vader/midir"
 
-import "std/collections" { MutableMap, MutableSet, keys, add }
+import "std/collections" { MutableMap, MutableSet, add }
 import "std/iter" { slice }
 
 // ---- successor / predecessor edges ---------------------------------------
@@ -483,11 +483,11 @@ export compute_liveness :: fn(fn_: CFGFunction) -> Liveness {
             i = i - 1
             out :: MutableSet<LocalId> { .inner = MutableMap<LocalId, bool> {} }
             for s in succs[i] {
-                for l in keys(live_in[s].inner) { out.add(l) }
+                for [l, _] in live_in[s].inner { out.add(l) }
             }
             in_set :: MutableSet<LocalId> { .inner = MutableMap<LocalId, bool> {} }
-            for l in keys(use_[i].inner) { in_set.add(l) }
-            for l in keys(out.inner) { if !def_[i].contains(l) { in_set.add(l) } }
+            for [l, _] in use_[i].inner { in_set.add(l) }
+            for [l, _] in out.inner { if !def_[i].contains(l) { in_set.add(l) } }
             if !sets_equal(out, live_out[i]) {
                 live_out[i] = out
                 changed = true
@@ -503,7 +503,7 @@ export compute_liveness :: fn(fn_: CFGFunction) -> Liveness {
 
 sets_equal :: fn(a: MutableSet<LocalId>, b: MutableSet<LocalId>) -> bool {
     if a.inner.size != b.inner.size { return false }
-    for x in keys(a.inner) { if !b.contains(x) { return false } }
+    for [x, _] in a.inner { if !b.contains(x) { return false } }
     return true
 }
 

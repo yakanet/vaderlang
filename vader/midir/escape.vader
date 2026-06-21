@@ -15,7 +15,7 @@
 
 module "vader/midir"
 
-import "std/collections" { MutableMap, MutableSet, keys, add }
+import "std/collections" { MutableMap, MutableSet, add }
 import "std/iter" { slice }
 
 export EscapeStats :: struct {
@@ -212,25 +212,25 @@ compute_carried_across_loop_headers :: fn(
     live :: compute_liveness(fn_)
 
     // Seed : intersect liveIn[header] with locals defined in the loop body.
-    for header in keys(loops) {
+    for [header, _] in loops {
         body :: loops[header]
         if body is null { continue }
         defs_in_body :: MutableSet<LocalId> { .inner = MutableMap<LocalId, bool> {} }
-        for b_id in keys(body.inner) {
+        for [b_id, _] in body.inner {
             block :: fn_.blocks[b_id]
             for ins in block.instructions {
                 d :: dst_of(ins)
                 if d != null { defs_in_body.add(d) }
             }
         }
-        for l in keys(live.live_in[header].inner) {
+        for [l, _] in live.live_in[header].inner {
             if defs_in_body.contains(l) { carried.add(l) }
         }
     }
 
     // Backward-propagate via alias_of.
     work: LocalId[] = []
-    for l in keys(carried.inner) { work.push(l) }
+    for [l, _] in carried.inner { work.push(l) }
     for work.len() > usize(0) {
         cur :: work[work.len() - 1]
         work = work.slice(0, work.len() - 1)
@@ -300,7 +300,7 @@ compute_escaping :: fn(fn_: CFGFunction, alloc_locals: MutableSet<LocalId>) -> E
 
     // Backward propagation : if dst escapes and aliases src, src escapes too.
     work: LocalId[] = []
-    for l in keys(escaping.inner) { work.push(l) }
+    for [l, _] in escaping.inner { work.push(l) }
     for work.len() > usize(0) {
         cur :: work[work.len() - 1]
         work = work.slice(0, work.len() - 1)
@@ -319,7 +319,7 @@ compute_escaping :: fn(fn_: CFGFunction, alloc_locals: MutableSet<LocalId>) -> E
 
     // Restrict the escape set to alloc locals only.
     alloc_escaping :: MutableSet<LocalId> { .inner = MutableMap<LocalId, bool> {} }
-    for a in keys(alloc_locals.inner) {
+    for [a, _] in alloc_locals.inner {
         if escaping.contains(a) { alloc_escaping.add(a) }
     }
     return EscapeResult { .escaping = alloc_escaping, .alias_of = alias_of, .alias_from = alias_from }
