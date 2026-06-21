@@ -493,46 +493,118 @@ static int32_t std_core_i32_Comparable_compare(int32_t l0, int32_t l1) {
 }
 
 static bool std_core_i32_Comparable_lt(int32_t l0, int32_t l1) {
-    int32_t l2;
+    int32_t l2, l3;
     int32_t t0, t1;
-    t0 = std_core_i32_Comparable_compare(l0, l1);
-    l2 = t0;
+    if ((l0 < l1)) {
+        t0 = -(INT32_C(1));
+        l2 = t0;
+    } else {
+        if ((l0 > l1)) {
+            l3 = INT32_C(1);
+        } else {
+            l3 = INT32_C(0);
+        }
+        l2 = l3;
+    }
     return (l2 < INT32_C(0));
-    t1 = std_core_i32_Comparable_compare(l0, l1);
-    l2 = t1;
+    if ((l0 < l1)) {
+        t1 = -(INT32_C(1));
+        l2 = t1;
+    } else {
+        if ((l0 > l1)) {
+            l3 = INT32_C(1);
+        } else {
+            l3 = INT32_C(0);
+        }
+        l2 = l3;
+    }
     return (l2 < INT32_C(0));
 }
 
 static bool std_core_i32_Comparable_lte(int32_t l0, int32_t l1) {
-    int32_t l2;
+    int32_t l2, l3;
     int32_t t0, t1;
-    t0 = std_core_i32_Comparable_compare(l0, l1);
-    l2 = t0;
+    if ((l0 < l1)) {
+        t0 = -(INT32_C(1));
+        l2 = t0;
+    } else {
+        if ((l0 > l1)) {
+            l3 = INT32_C(1);
+        } else {
+            l3 = INT32_C(0);
+        }
+        l2 = l3;
+    }
     return (l2 <= INT32_C(0));
-    t1 = std_core_i32_Comparable_compare(l0, l1);
-    l2 = t1;
+    if ((l0 < l1)) {
+        t1 = -(INT32_C(1));
+        l2 = t1;
+    } else {
+        if ((l0 > l1)) {
+            l3 = INT32_C(1);
+        } else {
+            l3 = INT32_C(0);
+        }
+        l2 = l3;
+    }
     return (l2 <= INT32_C(0));
 }
 
 static bool std_core_i32_Comparable_gt(int32_t l0, int32_t l1) {
-    int32_t l2;
+    int32_t l2, l3;
     int32_t t0, t1;
-    t0 = std_core_i32_Comparable_compare(l0, l1);
-    l2 = t0;
+    if ((l0 < l1)) {
+        t0 = -(INT32_C(1));
+        l2 = t0;
+    } else {
+        if ((l0 > l1)) {
+            l3 = INT32_C(1);
+        } else {
+            l3 = INT32_C(0);
+        }
+        l2 = l3;
+    }
     return (l2 > INT32_C(0));
-    t1 = std_core_i32_Comparable_compare(l0, l1);
-    l2 = t1;
+    if ((l0 < l1)) {
+        t1 = -(INT32_C(1));
+        l2 = t1;
+    } else {
+        if ((l0 > l1)) {
+            l3 = INT32_C(1);
+        } else {
+            l3 = INT32_C(0);
+        }
+        l2 = l3;
+    }
     return (l2 > INT32_C(0));
 }
 
 static bool std_core_i32_Comparable_gte(int32_t l0, int32_t l1) {
-    int32_t l2;
+    int32_t l2, l3;
     int32_t t0, t1;
-    t0 = std_core_i32_Comparable_compare(l0, l1);
-    l2 = t0;
+    if ((l0 < l1)) {
+        t0 = -(INT32_C(1));
+        l2 = t0;
+    } else {
+        if ((l0 > l1)) {
+            l3 = INT32_C(1);
+        } else {
+            l3 = INT32_C(0);
+        }
+        l2 = l3;
+    }
     return (l2 >= INT32_C(0));
-    t1 = std_core_i32_Comparable_compare(l0, l1);
-    l2 = t1;
+    if ((l0 < l1)) {
+        t1 = -(INT32_C(1));
+        l2 = t1;
+    } else {
+        if ((l0 > l1)) {
+            l3 = INT32_C(1);
+        } else {
+            l3 = INT32_C(0);
+        }
+        l2 = l3;
+    }
     return (l2 >= INT32_C(0));
 }
 
@@ -566,46 +638,118 @@ static int32_t std_core_usize_Comparable_compare(size_t l0, size_t l1) {
 }
 
 static bool std_core_usize_Comparable_lt(size_t l0, size_t l1) {
-    int32_t l2;
+    int32_t l2, l3;
     int32_t t0, t1;
-    t0 = std_core_usize_Comparable_compare(l0, l1);
-    l2 = t0;
+    if ((l0 < l1)) {
+        t0 = -(INT32_C(1));
+        l2 = t0;
+    } else {
+        if ((l0 > l1)) {
+            l3 = INT32_C(1);
+        } else {
+            l3 = INT32_C(0);
+        }
+        l2 = l3;
+    }
     return (l2 < INT32_C(0));
-    t1 = std_core_usize_Comparable_compare(l0, l1);
-    l2 = t1;
+    if ((l0 < l1)) {
+        t1 = -(INT32_C(1));
+        l2 = t1;
+    } else {
+        if ((l0 > l1)) {
+            l3 = INT32_C(1);
+        } else {
+            l3 = INT32_C(0);
+        }
+        l2 = l3;
+    }
     return (l2 < INT32_C(0));
 }
 
 static bool std_core_usize_Comparable_lte(size_t l0, size_t l1) {
-    int32_t l2;
+    int32_t l2, l3;
     int32_t t0, t1;
-    t0 = std_core_usize_Comparable_compare(l0, l1);
-    l2 = t0;
+    if ((l0 < l1)) {
+        t0 = -(INT32_C(1));
+        l2 = t0;
+    } else {
+        if ((l0 > l1)) {
+            l3 = INT32_C(1);
+        } else {
+            l3 = INT32_C(0);
+        }
+        l2 = l3;
+    }
     return (l2 <= INT32_C(0));
-    t1 = std_core_usize_Comparable_compare(l0, l1);
-    l2 = t1;
+    if ((l0 < l1)) {
+        t1 = -(INT32_C(1));
+        l2 = t1;
+    } else {
+        if ((l0 > l1)) {
+            l3 = INT32_C(1);
+        } else {
+            l3 = INT32_C(0);
+        }
+        l2 = l3;
+    }
     return (l2 <= INT32_C(0));
 }
 
 static bool std_core_usize_Comparable_gt(size_t l0, size_t l1) {
-    int32_t l2;
+    int32_t l2, l3;
     int32_t t0, t1;
-    t0 = std_core_usize_Comparable_compare(l0, l1);
-    l2 = t0;
+    if ((l0 < l1)) {
+        t0 = -(INT32_C(1));
+        l2 = t0;
+    } else {
+        if ((l0 > l1)) {
+            l3 = INT32_C(1);
+        } else {
+            l3 = INT32_C(0);
+        }
+        l2 = l3;
+    }
     return (l2 > INT32_C(0));
-    t1 = std_core_usize_Comparable_compare(l0, l1);
-    l2 = t1;
+    if ((l0 < l1)) {
+        t1 = -(INT32_C(1));
+        l2 = t1;
+    } else {
+        if ((l0 > l1)) {
+            l3 = INT32_C(1);
+        } else {
+            l3 = INT32_C(0);
+        }
+        l2 = l3;
+    }
     return (l2 > INT32_C(0));
 }
 
 static bool std_core_usize_Comparable_gte(size_t l0, size_t l1) {
-    int32_t l2;
+    int32_t l2, l3;
     int32_t t0, t1;
-    t0 = std_core_usize_Comparable_compare(l0, l1);
-    l2 = t0;
+    if ((l0 < l1)) {
+        t0 = -(INT32_C(1));
+        l2 = t0;
+    } else {
+        if ((l0 > l1)) {
+            l3 = INT32_C(1);
+        } else {
+            l3 = INT32_C(0);
+        }
+        l2 = l3;
+    }
     return (l2 >= INT32_C(0));
-    t1 = std_core_usize_Comparable_compare(l0, l1);
-    l2 = t1;
+    if ((l0 < l1)) {
+        t1 = -(INT32_C(1));
+        l2 = t1;
+    } else {
+        if ((l0 > l1)) {
+            l3 = INT32_C(1);
+        } else {
+            l3 = INT32_C(0);
+        }
+        l2 = l3;
+    }
     return (l2 >= INT32_C(0));
 }
 
