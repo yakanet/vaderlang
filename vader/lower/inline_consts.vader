@@ -42,6 +42,10 @@ FN_WRAP_MIN_ELEMENTS :: usize(4)
 ///
 /// @param project  the lowered project ; its `modules` + const maps are mutated.
 export inline_consts :: fn(project: LoweredProject) -> void {
+    // Fresh synthetic ids for accessor fns — negative, so they never collide
+    // with a real (non-negative) symbol id. Decrements per fn-wrap in
+    // deterministic module × decl order. (Mirror of TS `-nextSyntheticId++`.)
+    next_synth: i32 = -1
     for module_id in project.modules.keys() {
         m :: project.modules[module_id]
         if m is null { continue }
@@ -52,7 +56,8 @@ export inline_consts :: fn(project: LoweredProject) -> void {
                 sym :: cd.origin.symbol
                 if sym is Symbol as s {
                     if should_fn_wrap(cd.value) {
-                        fn_symbol :: const_accessor_symbol(s)
+                        fn_symbol :: const_accessor_symbol(s, next_synth)
+                        next_synth = next_synth - 1
                         project.const_fn_wrap[s.id] = ConstFnWrap { .fn_symbol = fn_symbol, .call_type = cd.type }
                         new_decls.push(synthesize_const_fn(cd, fn_symbol))
                         changed = true
@@ -80,14 +85,15 @@ should_fn_wrap :: fn(value: LoweredExpr) -> bool {
     return false
 }
 
-// The accessor fn's symbol. It REUSES the const's own symbol id : a
-// `LoweredIdent` referencing the const still carries that id, so DCE marks the
-// accessor reachable through its unchanged `visit_fn` path and the emitter
-// resolves the `call` via `function_index_by_symbol_id[const_id]` — no
-// const-aware redirect needed in either pass. (The const symbol itself is gone :
-// its decl is replaced by the accessor, so nothing else owns that id.)
-const_accessor_symbol :: fn(orig_sym: Symbol) -> Symbol = Symbol {
-    .id         = orig_sym.id,
+// The accessor fn's symbol, carrying a FRESH synthetic id (`synth_id`, always
+// negative) — distinct from the const's own id, so it can never collide with a
+// real symbol id in the DCE's by-id index. (Reusing the const id, the prior
+// design, let an unrelated id shift collide the accessor with another symbol,
+// so the DCE dropped it and the emit hit a dangling `__const_*` callee — GATE
+// B1.) The lowered DCE seeds every accessor as a root ; `build_const_ref` emits
+// each const reference as a 0-arg `call` to this symbol.
+const_accessor_symbol :: fn(orig_sym: Symbol, synth_id: i32) -> Symbol = Symbol {
+    .id         = synth_id,
     .kind       = SymbolKind.Fn,
     .name       = "__const_${orig_sym.name}",
     .module     = orig_sym.module,
