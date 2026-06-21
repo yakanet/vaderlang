@@ -21,7 +21,7 @@ AST :: import "vader/parser"
 import "vader/resolver/symbol" { SymbolKind }
 import "vader/types" {
     Type, PrimitiveType, FreeIntType, FreeFloatType, UnresolvedType,
-    EnumType, FnType, StructType, TraitType, UnionType,
+    EnumType, FnType, StructType, TraitType, UnionType, ArrayType,
     display_type, type_base_name, mk_primitive, TY_BOOL, TY_UNRESOLVED,
 }
 
@@ -67,12 +67,11 @@ export infer_binary :: fn(
         .Compare  -> { return check_compare(e, left, right, typed, diags) }
         .Logical  -> { return check_logical(e, left, right, diags) }
         .Bitwise  -> { return check_bitwise(e, left, right, diags) }
-        // Equality / Is / In : MVP returns `bool` unconditionally.
-        // Intersection enforcement (T3040) + Contains trait dispatch
-        // arrive with `narrow.vader` and the impl-driven passes.
+        // Equality / Is : MVP returns `bool` unconditionally (Is is a type
+        // test, not a trait dispatch ; Equality is handled separately below).
         .Equality -> { return TY_BOOL }
         .Is       -> { return TY_BOOL }
-        .In       -> { return TY_BOOL }
+        .In       -> { return check_in(e, left, right, typed, diags) }
     }
 }
 
@@ -130,6 +129,23 @@ has_impl_method :: fn(t: Type, name: string, typed: TypedProgram) -> bool {
     base :: type_base_name(t)
     if base == "" { return false }
     return !(typed.impl_methods["${base}::${name}"] is null)
+}
+
+/// `x in coll` dispatches through `coll`'s `Contains` impl (the RIGHT operand).
+/// Built-in collections — arrays (`[T]`), `string`, `Range` — register a
+/// `Contains` impl in `impl_methods`, as do `MutableMap` / `MutableSet` and any
+/// user `implements Contains`. A type with only a free `contains` fn (no
+/// `Contains` impl) — or none at all — has no `in` ; reject it with T3017 here
+/// rather than letting the lowerer stub the call into an `unreachable` trap
+/// (a runtime crash instead of a compile error).
+check_in :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram, diags: Diagnostic[]) -> Type {
+    // Arrays always support `in` via the built-in `[T] implements Contains<T>`,
+    // but `type_base_name([string])` is element-specific (`[string]`) and never
+    // matches the generic `[T]::contains` key — accept any array directly.
+    if right is ArrayType { return TY_BOOL }
+    if has_impl_method(right, "contains", typed) { return TY_BOOL }
+    push_op_undefined(e, left, right, diags)
+    return TY_BOOL
 }
 
 /// W0003 : `x is Union(...)` always returns false at runtime — `is` tests
