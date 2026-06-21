@@ -2872,6 +2872,14 @@ void vader_gc_profile_dump(void) {
     if (tally == NULL) return;
     for (size_t i = 0; i < nbuckets; i++) tally[i].type_index = (uint32_t) i;
 
+    /* ARRAY_BUF element-kind breakdown : sizing the win of an 8 B ref array
+     * kind vs today's 24 B BOXED slots. `boxed_slots` × (24-8) is the upper
+     * bound on what de-erasing pure-ref / pure-ref-union arrays could reclaim
+     * (an over-count : BOXED also covers genuine `Any[]`, which can't shrink). */
+    size_t arr_kind_bytes[16] = { 0 };
+    size_t arr_kind_count[16] = { 0 };
+    size_t arr_boxed_slots = 0;
+
     const vader_arena_t* gens[2] = { &g_young.from, &g_old.from };
     size_t totals[2] = { 0, 0 };
     for (int g = 0; g < 2; g++) {
@@ -2881,6 +2889,12 @@ void vader_gc_profile_dump(void) {
             uint32_t type_index = hdr->type_index;
             size_t bytes = vader_gc_obj_size(scan, type_index);
             if (bytes == 0) break;
+            if (type_index == VADER_TYPE_INDEX_ARRAY_BUF) {
+                vader_array_buf_t* abuf = (vader_array_buf_t*) scan;
+                uint8_t ek = abuf->element_kind;
+                if (ek < 16u) { arr_kind_bytes[ek] += bytes; arr_kind_count[ek] += 1u; }
+                if (ek == VADER_ARRAY_KIND_BOXED) arr_boxed_slots += abuf->capacity;
+            }
             // The BUFFER sentinel has no dedicated bucket — it falls into
             // bucket 0 here (a cosmetic miscount in this debug-only profile,
             // never a GC-correctness issue ; the size walk handles it above).
@@ -2933,6 +2947,27 @@ void vader_gc_profile_dump(void) {
         shown++;
     }
     free(tally);
+
+    /* ARRAY_BUF element-kind breakdown + Ref-kind ceiling. `kind_names` mirrors
+     * the `vader_array_kind_t` enum (currently 0..12) — keep it in sync and grow
+     * the array when a new kind lands (e.g. a future REF=13). */
+    static const char* kind_names[13] = {
+        "BOXED", "U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64",
+        "F32", "F64", "CHAR", "BOOL",
+    };
+    fprintf(stderr, "ARRAY_BUF by element_kind :\n");
+    for (int k = 0; k < 16; k++) {
+        if (arr_kind_count[k] == 0u) continue;
+        fprintf(stderr, "  kind %-6s : %8.2f MB  (%llu bufs)\n",
+                (k < 13 ? kind_names[k] : "?"),
+                (double) arr_kind_bytes[k] / (1024.0 * 1024.0),
+                (unsigned long long) arr_kind_count[k]);
+    }
+    fprintf(stderr,
+        "  BOXED slots = %llu  →  max Ref-kind saving (24→8 B/slot) = %.2f MB "
+        "(upper bound — includes un-shrinkable Any[])\n",
+        (unsigned long long) arr_boxed_slots,
+        (double) (arr_boxed_slots * 16u) / (1024.0 * 1024.0));
 }
 
 void vader_trap(const char* msg) {
