@@ -120,7 +120,7 @@ check_compare :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProg
     // rewrites `a < b` into `a.compare(b) < 0` ; we only need to
     // confirm the impl exists here.
     if has_impl_method(left, "compare", typed) { return TY_BOOL }
-    push_op_undefined(e, left, right, diags)
+    push_trait_missing(e, left, "Comparable", diags)
     return TY_BOOL
 }
 
@@ -130,11 +130,21 @@ has_impl_method :: fn(t: Type, name: string, typed: TypedProgram) -> bool {
     return !(typed.impl_methods["${base}::${name}"] is null)
 }
 
+/// T3043 — operand `t` must implement `trait_name` for this operator, but no
+/// such impl exists. More precise than the generic T3017 : it names the missing
+/// trait, so the fix (write the impl) is obvious. `UnresolvedType` opts out —
+/// a cascade from an earlier error, not a real missing impl.
+push_trait_missing :: fn(e: AST.BinaryExpr, t: Type, trait_name: string, diags: Diagnostic[]) -> void {
+    if t is UnresolvedType { return }
+    diags.push(typecheck_error(.OperatorTraitNotImplemented, e.span,
+        "`${display_type(t)}` does not implement `${trait_name}`"))
+}
+
 /// `x in coll` dispatches through `coll`'s `Contains` impl (the RIGHT operand).
 /// Built-in collections — arrays (`[T]`), `string`, `Range` — register a
 /// `Contains` impl in `impl_methods`, as do `MutableMap` / `MutableSet` and any
 /// user `implements Contains`. A type with only a free `contains` fn (no
-/// `Contains` impl) — or none at all — has no `in` ; reject it with T3017 here
+/// `Contains` impl) — or none at all — has no `in` ; reject it with T3043 here
 /// rather than letting the lowerer stub the call into an `unreachable` trap
 /// (a runtime crash instead of a compile error).
 check_in :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram, diags: Diagnostic[]) -> Type {
@@ -143,7 +153,7 @@ check_in :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram, 
     // matches the generic `[T]::contains` key — accept any array directly.
     if right is ArrayType { return TY_BOOL }
     if has_impl_method(right, "contains", typed) { return TY_BOOL }
-    push_op_undefined(e, left, right, diags)
+    push_trait_missing(e, right, "Contains", diags)
     return TY_BOOL
 }
 
@@ -151,13 +161,13 @@ check_in :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram, 
 /// enums, free numerics, strings, `null`, unions, arrays and unresolved /
 /// generic types all have built-in or undecidable equality — only when BOTH
 /// operands are concrete user structs do we require an `Equals` impl, so that a
-/// struct without one is a clean T3017 rather than a silent reference compare
+/// struct without one is a clean T3043 rather than a silent reference compare
 /// (which is almost never what the author means). `s == null` stays valid : the
 /// `null` side is not a `StructType`.
 check_equality :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram, diags: Diagnostic[]) -> Type {
     if left is StructType && right is StructType {
         if has_impl_method(left, "equals", typed) { return TY_BOOL }
-        push_op_undefined(e, left, right, diags)
+        push_trait_missing(e, left, "Equals", diags)
     }
     return TY_BOOL
 }
