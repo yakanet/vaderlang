@@ -591,19 +591,54 @@ fn 26 std_core$i32$Comparable$compare (i32,i32) -> i32
 end
 
 fn 27 std_core$i32$Comparable$lt (i32,i32) -> bool
-  local $call_2 i32
+  local if_res i32
+  local if_res i32
   local.get 0
   local.get 1
-  call 26
-  local.set 2
+  i32.lt
+  if $L0 void
+    i32.const 1
+    i32.neg
+    local.set 2
+  else
+    local.get 0
+    local.get 1
+    i32.gt
+    if $L1 void
+      i32.const 1
+      local.set 3
+    else
+      i32.const 0
+      local.set 3
+    end $L1
+    local.get 3
+    local.set 2
+  end $L0
   local.get 2
   i32.const 0
   i32.lt
   return
   local.get 0
   local.get 1
-  call 26
-  local.set 2
+  i32.lt
+  if $L2 void
+    i32.const 1
+    i32.neg
+    local.set 2
+  else
+    local.get 0
+    local.get 1
+    i32.gt
+    if $L3 void
+      i32.const 1
+      local.set 3
+    else
+      i32.const 0
+      local.set 3
+    end $L3
+    local.get 3
+    local.set 2
+  end $L2
   local.get 2
   i32.const 0
   i32.lt
@@ -611,19 +646,54 @@ fn 27 std_core$i32$Comparable$lt (i32,i32) -> bool
 end
 
 fn 28 std_core$i32$Comparable$lte (i32,i32) -> bool
-  local $call_2 i32
+  local if_res i32
+  local if_res i32
   local.get 0
   local.get 1
-  call 26
-  local.set 2
+  i32.lt
+  if $L0 void
+    i32.const 1
+    i32.neg
+    local.set 2
+  else
+    local.get 0
+    local.get 1
+    i32.gt
+    if $L1 void
+      i32.const 1
+      local.set 3
+    else
+      i32.const 0
+      local.set 3
+    end $L1
+    local.get 3
+    local.set 2
+  end $L0
   local.get 2
   i32.const 0
   i32.le
   return
   local.get 0
   local.get 1
-  call 26
-  local.set 2
+  i32.lt
+  if $L2 void
+    i32.const 1
+    i32.neg
+    local.set 2
+  else
+    local.get 0
+    local.get 1
+    i32.gt
+    if $L3 void
+      i32.const 1
+      local.set 3
+    else
+      i32.const 0
+      local.set 3
+    end $L3
+    local.get 3
+    local.set 2
+  end $L2
   local.get 2
   i32.const 0
   i32.le
@@ -631,19 +701,54 @@ fn 28 std_core$i32$Comparable$lte (i32,i32) -> bool
 end
 
 fn 29 std_core$i32$Comparable$gt (i32,i32) -> bool
-  local $call_2 i32
+  local if_res i32
+  local if_res i32
   local.get 0
   local.get 1
-  call 26
-  local.set 2
+  i32.lt
+  if $L0 void
+    i32.const 1
+    i32.neg
+    local.set 2
+  else
+    local.get 0
+    local.get 1
+    i32.gt
+    if $L1 void
+      i32.const 1
+      local.set 3
+    else
+      i32.const 0
+      local.set 3
+    end $L1
+    local.get 3
+    local.set 2
+  end $L0
   local.get 2
   i32.const 0
   i32.gt
   return
   local.get 0
   local.get 1
-  call 26
-  local.set 2
+  i32.lt
+  if $L2 void
+    i32.const 1
+    i32.neg
+    local.set 2
+  else
+    local.get 0
+    local.get 1
+    i32.gt
+    if $L3 void
+      i32.const 1
+      local.set 3
+    else
+      i32.const 0
+      local.set 3
+    end $L3
+    local.get 3
+    local.set 2
+  end $L2
   local.get 2
   i32.const 0
   i32.gt
@@ -651,19 +756,54 @@ fn 29 std_core$i32$Comparable$gt (i32,i32) -> bool
 end
 
 fn 30 std_core$i32$Comparable$gte (i32,i32) -> bool
-  local $call_2 i32
+  local if_res i32
+  local if_res i32
   local.get 0
   local.get 1
-  call 26
-  local.set 2
+  i32.lt
+  if $L0 void
+    i32.const 1
+    i32.neg
+    local.set 2
+  else
+    local.get 0
+    local.get 1
+    i32.gt
+    if $L1 void
+      i32.const 1
+      local.set 3
+    else
+      i32.const 0
+      local.set 3
+    end $L1
+    local.get 3
+    local.set 2
+  end $L0
   local.get 2
   i32.const 0
   i32.ge
   return
   local.get 0
   local.get 1
-  call 26
-  local.set 2
+  i32.lt
+  if $L2 void
+    i32.const 1
+    i32.neg
+    local.set 2
+  else
+    local.get 0
+    local.get 1
+    i32.gt
+    if $L3 void
+      i32.const 1
+      local.set 3
+    else
+      i32.const 0
+      local.set 3
+    end $L3
+    local.get 3
+    local.set 2
+  end $L2
   local.get 2
   i32.const 0
   i32.ge
@@ -722,19 +862,54 @@ fn 31 std_core$usize$Comparable$compare (usize,usize) -> i32
 end
 
 fn 32 std_core$usize$Comparable$lt (usize,usize) -> bool
-  local $call_2 i32
+  local if_res i32
+  local if_res i32
   local.get 0
   local.get 1
-  call 31
-  local.set 2
+  u64.lt
+  if $L0 void
+    i32.const 1
+    i32.neg
+    local.set 2
+  else
+    local.get 0
+    local.get 1
+    u64.gt
+    if $L1 void
+      i32.const 1
+      local.set 3
+    else
+      i32.const 0
+      local.set 3
+    end $L1
+    local.get 3
+    local.set 2
+  end $L0
   local.get 2
   i32.const 0
   i32.lt
   return
   local.get 0
   local.get 1
-  call 31
-  local.set 2
+  u64.lt
+  if $L2 void
+    i32.const 1
+    i32.neg
+    local.set 2
+  else
+    local.get 0
+    local.get 1
+    u64.gt
+    if $L3 void
+      i32.const 1
+      local.set 3
+    else
+      i32.const 0
+      local.set 3
+    end $L3
+    local.get 3
+    local.set 2
+  end $L2
   local.get 2
   i32.const 0
   i32.lt
@@ -742,19 +917,54 @@ fn 32 std_core$usize$Comparable$lt (usize,usize) -> bool
 end
 
 fn 33 std_core$usize$Comparable$lte (usize,usize) -> bool
-  local $call_2 i32
+  local if_res i32
+  local if_res i32
   local.get 0
   local.get 1
-  call 31
-  local.set 2
+  u64.lt
+  if $L0 void
+    i32.const 1
+    i32.neg
+    local.set 2
+  else
+    local.get 0
+    local.get 1
+    u64.gt
+    if $L1 void
+      i32.const 1
+      local.set 3
+    else
+      i32.const 0
+      local.set 3
+    end $L1
+    local.get 3
+    local.set 2
+  end $L0
   local.get 2
   i32.const 0
   i32.le
   return
   local.get 0
   local.get 1
-  call 31
-  local.set 2
+  u64.lt
+  if $L2 void
+    i32.const 1
+    i32.neg
+    local.set 2
+  else
+    local.get 0
+    local.get 1
+    u64.gt
+    if $L3 void
+      i32.const 1
+      local.set 3
+    else
+      i32.const 0
+      local.set 3
+    end $L3
+    local.get 3
+    local.set 2
+  end $L2
   local.get 2
   i32.const 0
   i32.le
@@ -762,19 +972,54 @@ fn 33 std_core$usize$Comparable$lte (usize,usize) -> bool
 end
 
 fn 34 std_core$usize$Comparable$gt (usize,usize) -> bool
-  local $call_2 i32
+  local if_res i32
+  local if_res i32
   local.get 0
   local.get 1
-  call 31
-  local.set 2
+  u64.lt
+  if $L0 void
+    i32.const 1
+    i32.neg
+    local.set 2
+  else
+    local.get 0
+    local.get 1
+    u64.gt
+    if $L1 void
+      i32.const 1
+      local.set 3
+    else
+      i32.const 0
+      local.set 3
+    end $L1
+    local.get 3
+    local.set 2
+  end $L0
   local.get 2
   i32.const 0
   i32.gt
   return
   local.get 0
   local.get 1
-  call 31
-  local.set 2
+  u64.lt
+  if $L2 void
+    i32.const 1
+    i32.neg
+    local.set 2
+  else
+    local.get 0
+    local.get 1
+    u64.gt
+    if $L3 void
+      i32.const 1
+      local.set 3
+    else
+      i32.const 0
+      local.set 3
+    end $L3
+    local.get 3
+    local.set 2
+  end $L2
   local.get 2
   i32.const 0
   i32.gt
@@ -782,19 +1027,54 @@ fn 34 std_core$usize$Comparable$gt (usize,usize) -> bool
 end
 
 fn 35 std_core$usize$Comparable$gte (usize,usize) -> bool
-  local $call_2 i32
+  local if_res i32
+  local if_res i32
   local.get 0
   local.get 1
-  call 31
-  local.set 2
+  u64.lt
+  if $L0 void
+    i32.const 1
+    i32.neg
+    local.set 2
+  else
+    local.get 0
+    local.get 1
+    u64.gt
+    if $L1 void
+      i32.const 1
+      local.set 3
+    else
+      i32.const 0
+      local.set 3
+    end $L1
+    local.get 3
+    local.set 2
+  end $L0
   local.get 2
   i32.const 0
   i32.ge
   return
   local.get 0
   local.get 1
-  call 31
-  local.set 2
+  u64.lt
+  if $L2 void
+    i32.const 1
+    i32.neg
+    local.set 2
+  else
+    local.get 0
+    local.get 1
+    u64.gt
+    if $L3 void
+      i32.const 1
+      local.set 3
+    else
+      i32.const 0
+      local.set 3
+    end $L3
+    local.get 3
+    local.set 2
+  end $L2
   local.get 2
   i32.const 0
   i32.ge

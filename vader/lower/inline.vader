@@ -4,8 +4,10 @@
 // body — user fn AND materialised stdlib impl member — is already lowered +
 // resolved), before DCE. It inlines a `LoweredCall` whose callee is a
 // SINGLE-EXPRESSION function: the body is one expression (a block with no
-// statements + a trailing expr, or a lone `return expr`), each parameter is used
-// AT MOST ONCE, and the body is not self-recursive.
+// statements + a trailing expr, or a lone `return expr`) and the body is not
+// self-recursive. A param used more than once is inlined only when its arg is
+// side-effect-free (an ident or a literal — safe to duplicate) ; otherwise the
+// call is kept (`inline_call` bails).
 //
 // That is exactly the shape every trait-impl wrapper the stdlib writes takes —
 // `i32 Display.to_string = format_signed(i64(self))`, `Comparable.lt =
@@ -18,9 +20,10 @@
 //
 // The transform is a clone-and-substitute rebuild of the body (`transform_*`):
 // `LoweredIdent(param)` → the call's arg, `LoweredCall(inlineable)` → the
-// callee's substituted body. No-locals + at-most-once-use is what makes the
-// clone safe — no callee local to collide across the N copies, no duplicated
-// side effect. A wrapper that calls another wrapper inlines transitively, capped
+// callee's substituted body. The body has no locals (single expression), so
+// nothing collides across the N copies ; the only duplication risk — a param used
+// twice — is gated by `is_pure_arg`. A wrapper that calls another wrapper inlines
+// transitively, capped
 // by `INLINE_DEPTH_CAP`. Afterwards DCE drops wrappers that lost every direct
 // caller (those still reached through a vtable for erased `${T}` dispatch stay).
 
@@ -38,6 +41,11 @@ INLINE_DEPTH_CAP :: 8
 InlineInfo :: struct {
     body:   LoweredExpr
     params: LoweredParam[]
+    /// Param `symbol.id` → number of references in `body`. A param used more than
+    /// once is inlined only when its arg is side-effect-free (safe to duplicate) ;
+    /// otherwise the call is kept (`inline_call` bails). A param used at most once
+    /// is always substituted directly.
+    use_counts: MutableMap<i32, i32>
 }
 
 /// Substitution + inline state threaded through the clone (a struct, not a
@@ -93,16 +101,22 @@ build_inline_index :: fn(project: LoweredProject) -> MutableMap<string, InlineIn
 inlineable_info :: fn(fd: LoweredFnDecl) -> InlineInfo | null {
     body :: fd.body
     if body == null { return null }
-    // Skip generic INSTANCES (`is_empty__FnDecl`, …) : their body holds
-    // generic-context-dependent calls (virtual / per-instance mangles) that a
-    // verbatim copy into another fn can't resolve (a GATE-B1 materialisation
-    // gap). The high-value targets — primitive `Display.to_string`, `Comparable`,
-    // accessors — are impls on CONCRETE types, so `type_arguments` is empty.
+    // Skip generic INSTANCES — guards a DOCUMENTED mangle bug, not a "match TS"
+    // reason. Generic-instance call mangles are built with a doubled module prefix
+    // (`std_iter$std_iter$…__T`, `lower_generic_call.vader`) that the canonical
+    // mono mangle (single-prefix, `comptime/mangle.vader`) does NOT share — the
+    // "double-prefix bug" flagged at `lower_mono_fn.vader:41`. A verbatim copy of
+    // such a body into another fn carries those mangles, which can fail to resolve
+    // at emit. Fixing the scheme to a single prefix (aligned with mono) would let
+    // this filter relax. The high-value targets — `Display.to_string`,
+    // `Comparable`, accessors — are impls on CONCRETE types (`type_arguments`
+    // empty), so they're unaffected.
     if !fd.origin.type_arguments.is_empty() { return null }
     result :: single_expr_result(body)
     if result == null { return null }
-    if !params_safe_to_inline(result, fd.params, fd.mangled) { return null }
-    return InlineInfo { .body = result, .params = fd.params }
+    counts :: param_use_counts(result, fd.params, fd.mangled)
+    if counts == null { return null }
+    return InlineInfo { .body = result, .params = fd.params, .use_counts = counts }
 }
 
 // The body's single result expression, or null when the body is not a single
@@ -118,10 +132,11 @@ single_expr_result :: fn(body: LoweredBlock) -> LoweredExpr | null {
     return null
 }
 
-// True when inlining `result` is sound: every param is referenced at most once
-// (so substituting an arg never duplicates a side effect) and the body makes no
-// call back to its own mangle (no self-recursion to unfold forever).
-params_safe_to_inline :: fn(result: LoweredExpr, params: LoweredParam[], self_mangle: string) -> bool {
+// Per-param use counts of `result` (param `symbol.id` → reference count), or null
+// when the body calls back to its own mangle (self-recursion would unfold
+// forever). Multi-use params are NOT rejected here — `inline_call` inlines them
+// when the call's arg is side-effect-free, else keeps the call.
+param_use_counts :: fn(result: LoweredExpr, params: LoweredParam[], self_mangle: string) -> MutableMap<i32, i32> | null {
     param_ids :: MutableSet<i32> {}
     for p in params { param_ids.add(p.symbol.id) }
     ctx :: CollectCtx {
@@ -129,11 +144,8 @@ params_safe_to_inline :: fn(result: LoweredExpr, params: LoweredParam[], self_ma
         .self_mangle = self_mangle, .self_call = false,
     }
     collect_expr(result, ctx)
-    if ctx.self_call { return false }
-    for [_, count] in ctx.counts {
-        if count > 1 { return false }
-    }
-    return true
+    if ctx.self_call { return null }
+    return ctx.counts
 }
 
 // ---- collect (read-only: count param uses + detect self-call) --------------
@@ -307,11 +319,8 @@ transform_expr :: fn(e: LoweredExpr, ctx: TransformCtx) -> LoweredExpr {
             if c.callee is LoweredIdent as cid {
                 info :: ctx.index[cid.symbol.name]
                 if info != null && ctx.depth < INLINE_DEPTH_CAP {
-                    inner :: TransformCtx {
-                        .index = ctx.index, .param_map = build_param_map(info.params, new_args),
-                        .depth = ctx.depth + 1,
-                    }
-                    return transform_expr(info.body, inner)
+                    inlined :: inline_call(info, new_args, ctx)
+                    if inlined != null { return inlined }
                 }
             }
             return LoweredCall { .span = c.span, .type = c.type, .callee = new_callee, .args = new_args }
@@ -399,9 +408,41 @@ transform_expr :: fn(e: LoweredExpr, ctx: TransformCtx) -> LoweredExpr {
     }
 }
 
-build_param_map :: fn(params: LoweredParam[], args: LoweredExpr[]) -> MutableMap<i32, LoweredExpr> {
-    m :: MutableMap<i32, LoweredExpr> {}
-    n :: if params.len() < args.len() { params.len() } else { args.len() }
-    for i in 0..<n { m[params[i].symbol.id] = args[i] }
-    return m
+// Inline `info`'s body at a call with `args` — substitute each param with its
+// arg, recursing. Returns null (caller keeps the call) when a param is used MORE
+// THAN ONCE and its arg has a SIDE EFFECT : duplicating that arg at every use site
+// would run the effect twice. A side-effect-free arg (an ident load or a literal)
+// is safe to duplicate, so multi-use of those still inlines — no temp needed, no
+// expression-position `let` to slot.
+inline_call :: fn(info: InlineInfo, args: LoweredExpr[], ctx: TransformCtx) -> LoweredExpr | null {
+    new_map :: MutableMap<i32, LoweredExpr> {}
+    n :: if info.params.len() < args.len() { info.params.len() } else { args.len() }
+    for i in 0..<n {
+        p :: info.params[i]
+        cnt :: info.use_counts[p.symbol.id]
+        uses :: if cnt == null { 0 } else { cnt }
+        if uses > 1 && !is_pure_arg(args[i]) { return null }
+        new_map[p.symbol.id] = args[i]
+    }
+    inner :: TransformCtx { .index = ctx.index, .param_map = new_map, .depth = ctx.depth + 1 }
+    return transform_expr(info.body, inner)
+}
+
+// True when `e` is safe to DUPLICATE at several use sites — a bare load or a
+// literal, none of which has a side effect or re-runs work. Anything else (a
+// call, field access, index, slice, …) might, so a multi-use param holding it is
+// not inlined (the call is kept).
+// @partial: only the listed load/literal variants are duplication-safe ; every
+// other LoweredExpr is conservatively treated as effectful.
+is_pure_arg :: fn(e: LoweredExpr) -> bool {
+    @partial match e {
+        is LoweredIdent     -> true
+        is LoweredIntLit    -> true
+        is LoweredFloatLit  -> true
+        is LoweredBoolLit   -> true
+        is LoweredCharLit   -> true
+        is LoweredStringLit -> true
+        is LoweredNullLit   -> true
+        _ -> false
+    }
 }

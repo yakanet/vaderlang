@@ -114,45 +114,100 @@
         y: int(4) :i32
       }
     let s: Vec =
-      call :Vec
-        callee:
-          snippet$Vec$Add$add :Vec
-        arg0:
-          a :Vec
-        arg1:
-          b :Vec
+      Vec {
+        x:
+          add :i32
+            l:
+              .x :i32
+                a :Vec
+            r:
+              .x :i32
+                b :Vec
+        y:
+          add :i32
+            l:
+              .y :i32
+                a :Vec
+            r:
+              .y :i32
+                b :Vec
+      }
     let d: Vec =
-      call :Vec
-        callee:
-          snippet$Vec$Sub$sub :Vec
-        arg0:
-          a :Vec
-        arg1:
-          b :Vec
+      Vec {
+        x:
+          sub :i32
+            l:
+              .x :i32
+                a :Vec
+            r:
+              .x :i32
+                b :Vec
+        y:
+          sub :i32
+            l:
+              .y :i32
+                a :Vec
+            r:
+              .y :i32
+                b :Vec
+      }
     let m: Vec =
-      call :Vec
-        callee:
-          snippet$Vec$Mul$mul :Vec
-        arg0:
-          a :Vec
-        arg1:
-          b :Vec
+      Vec {
+        x:
+          mul :i32
+            l:
+              .x :i32
+                a :Vec
+            r:
+              .x :i32
+                b :Vec
+        y:
+          mul :i32
+            l:
+              .y :i32
+                a :Vec
+            r:
+              .y :i32
+                b :Vec
+      }
     let q: Vec =
-      call :Vec
-        callee:
-          snippet$Vec$Div$div :Vec
-        arg0:
-          a :Vec
-        arg1:
-          b :Vec
+      Vec {
+        x:
+          div :i32
+            l:
+              .x :i32
+                a :Vec
+            r:
+              .x :i32
+                b :Vec
+        y:
+          div :i32
+            l:
+              .y :i32
+                a :Vec
+            r:
+              .y :i32
+                b :Vec
+      }
     let r: Vec =
-      call :Vec
-        callee:
-          snippet$Vec$Rem$rem :Vec
-        arg0:
-          a :Vec
-        arg1:
-          b :Vec
+      Vec {
+        x:
+          mod :i32
+            l:
+              .x :i32
+                a :Vec
+            r:
+              .x :i32
+                b :Vec
+        y:
+          mod :i32
+            l:
+              .y :i32
+                a :Vec
+            r:
+              .y :i32
+                b :Vec
+      }
     call :void
       callee:
         std_io$std_io$println__string :void
