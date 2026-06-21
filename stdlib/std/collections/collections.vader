@@ -160,6 +160,19 @@ put :: fn<K: Hash & Equals, V>(self: MutableMap<K, V>, key: K, value: V) -> void
     self.size = self.size + 1
 }
 
+/// Logically empty the map while KEEPING its backing arrays (`ekeys` / `evals` /
+/// `index`) allocated, so a subsequent refill reuses them instead of allocating
+/// a fresh map. For hot reuse loops — e.g. a dataflow fixpoint's scratch set
+/// that would otherwise mint a new map every round. The dense entries past
+/// `size` are stale but unreachable (`size = 0`), and `write_entry` overwrites
+/// them from slot 0 on the next insert. O(index slots).
+/// @param self  the map receiver.
+export clear :: fn<K, V>(self: MutableMap<K, V>) -> void {
+    self.size = 0
+    self.tombs = 0
+    for i in 0..<self.index.len() { self.index[i] = EMPTY_SLOT }
+}
+
 /// Look up `key`. Returns the stored value or `null` if absent.
 /// @param self  the map receiver.
 /// @param key   key to look up.

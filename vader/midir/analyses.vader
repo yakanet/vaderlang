@@ -160,7 +160,7 @@ export natural_loop_bodies :: fn(
             if dominates(idom, h_id, p) { back_edge_sources.push(p) }
         }
         if back_edge_sources.len() == usize(0) { continue }
-        body :: MutableSet<BlockId> { .inner = MutableMap<BlockId, bool> {} }
+        body :: MutableSet<BlockId> {}
         body.add(h_id)
         stack: BlockId[] = []
         for s in back_edge_sources { stack.push(s) }
@@ -265,7 +265,7 @@ export compute_dominators :: fn(fn_: CFGFunction, preds: BlockId[][]) -> i32[] {
 /// don't follow RPO order after CFG construction (block IDs reflect
 /// creation order in the converter, not RPO).
 export intersect_dom_tree :: fn(a: BlockId, b: BlockId, idom: i32[]) -> BlockId {
-    seen :: MutableSet<i32> { .inner = MutableMap<i32, bool> {} }
+    seen :: MutableSet<i32> {}
     x := a
     for x != -1 && !seen.contains(x) {
         seen.add(x)
@@ -449,8 +449,8 @@ export compute_liveness :: fn(fn_: CFGFunction) -> Liveness {
     def_: MutableSet<LocalId>[] = []
     for i in 0..<n {
         b :: fn_.blocks[i]
-        u :: MutableSet<LocalId> { .inner = MutableMap<LocalId, bool> {} }
-        d :: MutableSet<LocalId> { .inner = MutableMap<LocalId, bool> {} }
+        u :: MutableSet<LocalId> {}
+        d :: MutableSet<LocalId> {}
         for ins in b.instructions {
             for_each_read_local(ins, (l: LocalId) -> {
                 if !d.contains(l) { u.add(l) }
@@ -471,29 +471,41 @@ export compute_liveness :: fn(fn_: CFGFunction) -> Liveness {
     live_in:  MutableSet<LocalId>[] = []
     live_out: MutableSet<LocalId>[] = []
     for 0..<n {
-        live_in.push(MutableSet<LocalId> { .inner = MutableMap<LocalId, bool> {} })
-        live_out.push(MutableSet<LocalId> { .inner = MutableMap<LocalId, bool> {} })
+        live_in.push(MutableSet<LocalId> {})
+        live_out.push(MutableSet<LocalId> {})
     }
 
+    // Double-buffered fixpoint : recompute each block's live_out / live_in into
+    // two reusable SCRATCH sets (cleared each round), then SWAP a scratch with
+    // the stored set only when it actually changed. The old set becomes the next
+    // scratch — so the fixpoint allocates zero sets per iteration×block (it minted
+    // a fresh `out` + `in_set` every round before — millions of dead allocations
+    // once a block stabilised). The clear()ed scratch keeps its backing arrays.
+    scratch_out := MutableSet<LocalId> {}
+    scratch_in  := MutableSet<LocalId> {}
     changed := true
     for changed {
         changed = false
         i := n
         for i > usize(0) {
             i = i - 1
-            out :: MutableSet<LocalId> { .inner = MutableMap<LocalId, bool> {} }
+            scratch_out.inner.clear()
             for s in succs[i] {
-                for [l, _] in live_in[s].inner { out.add(l) }
+                for [l, _] in live_in[s].inner { scratch_out.add(l) }
             }
-            in_set :: MutableSet<LocalId> { .inner = MutableMap<LocalId, bool> {} }
-            for [l, _] in use_[i].inner { in_set.add(l) }
-            for [l, _] in out.inner { if !def_[i].contains(l) { in_set.add(l) } }
-            if !sets_equal(out, live_out[i]) {
-                live_out[i] = out
+            scratch_in.inner.clear()
+            for [l, _] in use_[i].inner { scratch_in.add(l) }
+            for [l, _] in scratch_out.inner { if !def_[i].contains(l) { scratch_in.add(l) } }
+            if !sets_equal(scratch_out, live_out[i]) {
+                old_out :: live_out[i]
+                live_out[i] = scratch_out
+                scratch_out = old_out
                 changed = true
             }
-            if !sets_equal(in_set, live_in[i]) {
-                live_in[i] = in_set
+            if !sets_equal(scratch_in, live_in[i]) {
+                old_in :: live_in[i]
+                live_in[i] = scratch_in
+                scratch_in = old_in
                 changed = true
             }
         }
