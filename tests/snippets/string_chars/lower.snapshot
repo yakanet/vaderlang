@@ -193,7 +193,11 @@
                 callee:
                   std_core$usize$Display$to_string :string
                 arg0:
-                  LoweredArrayLen
+                  call :usize
+                    callee:
+                      byte_len :fn(string) -> usize
+                    arg0:
+                      "héllo" :string
           ~>
             call :string
               callee:

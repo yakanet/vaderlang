@@ -88,7 +88,8 @@ string 50 "parse_int: overflow"
 string 51 "\n"
 import 0 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 1 bytes std_core$bytes (string) -> ref
-import 2 write std_io$write (i32,string) -> void
+import 2 byte_len std_string$byte_len (string) -> usize
+import 3 write std_io$write (i32,string) -> void
 impl 4 Contains
 impl 4 Iterator
 impl 13 ByteAccess
@@ -6430,12 +6431,10 @@ fn 40 std_semver$compare_id (string,string) -> i32
       type_check 16
       if $L10 void
         local.get 0
-        call.import 1
-        array.len
+        call.import 2
         local.set 9
         local.get 1
-        call.import 1
-        array.len
+        call.import 2
         local.set 10
         local.get 9
         local.get 10
@@ -6462,12 +6461,10 @@ fn 40 std_semver$compare_id (string,string) -> i32
     type_check 16
     if $L13 void
       local.get 0
-      call.import 1
-      array.len
+      call.import 2
       local.set 9
       local.get 1
-      call.import 1
-      array.len
+      call.import 2
       local.set 10
       local.get 9
       local.get 10
@@ -6591,11 +6588,10 @@ fn 41 std_semver$compare_lex (string,string) -> i32
 end
 
 fn 42 std_string$is_empty (string) -> bool
-  local $len_2 usize
-  local $k_3 usize
+  local $call_1 usize
+  local $k_2 usize
   local.get 0
-  call.import 1
-  array.len
+  call.import 2
   local.set 1
   i64.const 0
   local.set 2
@@ -6927,13 +6923,13 @@ fn 47 std_string$split (string,string) -> ref
   local sb ref
   local n usize
   local m usize
-  local $k_11 usize
-  local $k_16 usize
-  local $add_17 usize
-  local $call_19 string
-  local $k_20 usize
+  local $k_10 usize
+  local $k_15 usize
+  local $add_16 usize
+  local $call_18 string
+  local $k_19 usize
   local found isize
-  local $k_26 isize
+  local $k_25 isize
   array.new 20 0
   local.set 2
   local.get 0
@@ -6942,8 +6938,7 @@ fn 47 std_string$split (string,string) -> ref
   array.len
   local.set 4
   local.get 1
-  call.import 1
-  array.len
+  call.import 2
   local.set 5
   i64.const 0
   local.set 6
@@ -7559,10 +7554,10 @@ fn 55 std_io$std_io$println__string (string) -> void
   local.set 1
   i32.const 0
   local.get 1
-  call.import 2
+  call.import 3
   i32.const 0
   string.const 51
-  call.import 2
+  call.import 3
   return
 end
 
@@ -7573,10 +7568,10 @@ fn 56 std_io$std_io$eprintln__string (string) -> void
   local.set 1
   i32.const 1
   local.get 1
-  call.import 2
+  call.import 3
   i32.const 1
   string.const 51
-  call.import 2
+  call.import 3
   return
 end
 
@@ -7689,11 +7684,11 @@ fn 63 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local __for_arr_0 ref
   local __for_len_1 usize
   local __for_i_2 usize
-  local $len_13 usize
-  local $k_15 usize
+  local $call_12 usize
+  local $k_14 usize
   local __for_arr_3 ref
   local p string
-  local $k_33 usize
+  local $k_31 usize
   i64.const 0
   local.set 1
   local.field 0 32 0
@@ -7712,8 +7707,7 @@ fn 63 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         local.get 4
         array.get 20
         ref.cast 2
-        call.import 1
-        array.len
+        call.import 2
         local.set 5
         local.get 1
         local.get 5
@@ -7757,8 +7751,7 @@ fn 63 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         local.get 8
         call 66
         local.get 8
-        call.import 1
-        array.len
+        call.import 2
         local.set 6
         local.get 3
         local.get 6

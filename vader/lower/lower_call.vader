@@ -398,7 +398,12 @@ fold_bytes_len :: fn(ctx: FnLowerCtx, target: LoweredExpr, span: Span) -> Lowere
     if target is LoweredCall as lc {
         if lc.callee is LoweredIdent as ci {
             if lc.args.len() == 1 {
-                bytes_sym :: module_export(ctx.project, "std/string", "bytes")
+                // `bytes` moved to std/core in the S3 ABI reorg (std/string
+                // imports std/string_builder, which needs `bytes`, so it can't
+                // live in std/string without a cycle). The fold looked it up in
+                // std/string and silently never fired — every `s.bytes().len()`
+                // allocated a borrowed-view header just to read its length.
+                bytes_sym :: module_export(ctx.project, "std/core", "bytes")
                 byte_len_sym :: module_export(ctx.project, "std/string", "byte_len")
                 if bytes_sym == null { return null }
                 if byte_len_sym == null { return null }

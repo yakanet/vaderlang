@@ -137,7 +137,8 @@ import 0 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 1 bytes std_core$bytes (string) -> ref
 import 2 hash std_core$string$Hash$hash (string) -> u64
 import 3 write std_io$write (i32,string) -> void
-import 4 parse_float std_string$parse_float (string) -> ref
+import 4 byte_len std_string$byte_len (string) -> usize
+import 5 parse_float std_string$parse_float (string) -> ref
 impl 4 Contains
 impl 4 Iterator
 impl 18 ByteAccess
@@ -7099,15 +7100,14 @@ end
 fn 32 std_json$new_parser (string) -> ref
   local $call_1 ref
   local $k_2 usize
-  local $len_4 usize
+  local $call_3 usize
   local.get 0
   call.import 1
   local.set 1
   i64.const 0
   local.set 2
   local.get 0
-  call.import 1
-  array.len
+  call.import 4
   local.set 3
   local.get 0
   local.get 1
@@ -8083,7 +8083,7 @@ fn 44 std_json$parse_number (ref) -> ref
       local.get 18
       array.slice 10
       call.import 0
-      call.import 4
+      call.import 5
       local.tee 19
       local.tee 20
       type_check 12
@@ -8115,7 +8115,7 @@ fn 44 std_json$parse_number (ref) -> ref
     local.get 18
     array.slice 10
     call.import 0
-    call.import 4
+    call.import 5
     local.tee 19
     local.tee 20
     type_check 12
@@ -8265,7 +8265,7 @@ fn 44 std_json$parse_number (ref) -> ref
     local.get 18
     array.slice 10
     call.import 0
-    call.import 4
+    call.import 5
     local.tee 19
     local.tee 20
     type_check 12
@@ -8297,7 +8297,7 @@ fn 44 std_json$parse_number (ref) -> ref
   local.get 18
   array.slice 10
   call.import 0
-  call.import 4
+  call.import 5
   local.tee 19
   local.tee 20
   type_check 12
@@ -9376,10 +9376,9 @@ end
 fn 56 std_string$pad_start (string,usize,char) -> string
   local n usize
   local sb ref
-  local $k_11 usize
+  local $k_10 usize
   local.get 0
-  call.import 1
-  array.len
+  call.import 4
   local.tee 3
   local.get 1
   u64.ge
@@ -9766,11 +9765,11 @@ fn 68 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local __for_arr_0 ref
   local __for_len_1 usize
   local __for_i_2 usize
-  local $len_13 usize
-  local $k_15 usize
+  local $call_12 usize
+  local $k_14 usize
   local __for_arr_3 ref
   local p string
-  local $k_33 usize
+  local $k_31 usize
   i64.const 0
   local.set 1
   local.field 0 31 0
@@ -9789,8 +9788,7 @@ fn 68 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         local.get 4
         array.get 16
         ref.cast 1
-        call.import 1
-        array.len
+        call.import 4
         local.set 5
         local.get 1
         local.get 5
@@ -9834,8 +9832,7 @@ fn 68 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         local.get 8
         call 85
         local.get 8
-        call.import 1
-        array.len
+        call.import 4
         local.set 6
         local.get 3
         local.get 6

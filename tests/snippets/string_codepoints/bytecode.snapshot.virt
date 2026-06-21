@@ -38,6 +38,7 @@ string 21 "\n"
 import 0 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 1 bytes std_core$bytes (string) -> ref
 import 2 write std_io$write (i32,string) -> void
+import 3 byte_len std_string$byte_len (string) -> usize
 impl 9 ByteAccess
 impl 13 Display
 export main 0
@@ -50,9 +51,9 @@ fn 0 snippet$main () -> i32
   local c char
   local w usize
   local __sb_6 ref
-  local $call_77 string
-  local $call_79 string
-  local $call_81 string
+  local $call_71 string
+  local $call_73 string
+  local $call_75 string
   call 13
   local.set 0
   local.get 0
@@ -69,8 +70,7 @@ fn 0 snippet$main () -> i32
   string.const 2
   call 14
   string.const 1
-  call.import 1
-  array.len
+  call.import 3
   call 2
   local.set 1
   local.get 0
@@ -95,8 +95,7 @@ fn 0 snippet$main () -> i32
   string.const 2
   call 14
   string.const 4
-  call.import 1
-  array.len
+  call.import 3
   call 2
   local.set 1
   local.get 0
@@ -121,8 +120,7 @@ fn 0 snippet$main () -> i32
   string.const 2
   call 14
   string.const 6
-  call.import 1
-  array.len
+  call.import 3
   call 2
   local.set 1
   local.get 0
@@ -147,8 +145,7 @@ fn 0 snippet$main () -> i32
   string.const 2
   call 14
   string.const 8
-  call.import 1
-  array.len
+  call.import 3
   call 2
   local.set 1
   local.get 0
@@ -173,8 +170,7 @@ fn 0 snippet$main () -> i32
   string.const 2
   call 14
   string.const 10
-  call.import 1
-  array.len
+  call.import 3
   call 2
   local.set 1
   local.get 0
@@ -185,8 +181,7 @@ fn 0 snippet$main () -> i32
   call 8
   string.const 11
   local.tee 1
-  call.import 1
-  array.len
+  call.import 3
   local.set 2
   i64.const 0
   local.set 3
@@ -1054,11 +1049,11 @@ fn 15 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local __for_arr_0 ref
   local __for_len_1 usize
   local __for_i_2 usize
-  local $len_13 usize
-  local $k_15 usize
+  local $call_12 usize
+  local $k_14 usize
   local __for_arr_3 ref
   local p string
-  local $k_33 usize
+  local $k_31 usize
   i64.const 0
   local.set 1
   local.field 0 13 0
@@ -1077,8 +1072,7 @@ fn 15 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         local.get 4
         array.get 11
         ref.cast 4
-        call.import 1
-        array.len
+        call.import 3
         local.set 5
         local.get 1
         local.get 5
@@ -1122,8 +1116,7 @@ fn 15 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         local.get 8
         call 18
         local.get 8
-        call.import 1
-        array.len
+        call.import 3
         local.set 6
         local.get 3
         local.get 6
