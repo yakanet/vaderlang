@@ -8,11 +8,11 @@ type 5 primitive bool
 type 6 primitive usize
 type 7 array 8
 type 8 primitive u8
-type 9 primitive char
-type 10 struct std_core$Buffer {  }
+type 9 struct std_core$Buffer {  }
+type 10 primitive char
 type 11 array 1
 type 12 primitive isize
-type 13 struct __Tuple_29 { _0:9,_1:6 }
+type 13 struct __Tuple_29 { _0:10,_1:6 }
 type 14 struct std_string_builder$StringBuilder { parts:11 }
 string 0 "="
 string 1 "src/parser/expr.ts"
@@ -68,7 +68,7 @@ import 1 bytes std_core$bytes (string) -> ref
 import 2 at std_core$string$Index$at (string,usize) -> char
 import 3 write std_io$write (i32,string) -> void
 import 4 byte_len std_string$byte_len (string) -> usize
-impl 10 ByteAccess
+impl 9 ByteAccess
 impl 14 Display
 export main 1
 
@@ -94,7 +94,7 @@ fn 0 snippet$show_path (string,ref) -> void
   local.get 3
   call 26
   local.get 2
-  call 27
+  call 29
   call 4
   return
 end
@@ -123,7 +123,7 @@ fn 1 snippet$main () -> i32
   local.get 2
   call 26
   local.get 1
-  call 27
+  call 29
   call 4
   call 25
   local.set 1
@@ -138,7 +138,7 @@ fn 1 snippet$main () -> i32
   local.get 2
   call 26
   local.get 1
-  call 27
+  call 29
   call 4
   call 25
   local.set 1
@@ -153,7 +153,7 @@ fn 1 snippet$main () -> i32
   local.get 2
   call 26
   local.get 1
-  call 27
+  call 29
   call 4
   local.get 0
   call 10
@@ -184,7 +184,7 @@ fn 1 snippet$main () -> i32
   local.get 2
   call 26
   local.get 3
-  call 27
+  call 29
   call 4
   local.get 1
   call 10
@@ -219,7 +219,7 @@ fn 1 snippet$main () -> i32
   local.get 2
   call 26
   local.get 1
-  call 27
+  call 29
   call 4
   call 25
   local.set 1
@@ -234,7 +234,7 @@ fn 1 snippet$main () -> i32
   local.get 2
   call 26
   local.get 1
-  call 27
+  call 29
   call 4
   string.const 16
   call 6
@@ -295,7 +295,7 @@ fn 1 snippet$main () -> i32
   local.get 2
   call 26
   local.get 0
-  call 27
+  call 29
   call 4
   call 25
   local.set 0
@@ -317,7 +317,7 @@ fn 1 snippet$main () -> i32
   local.get 2
   call 26
   local.get 0
-  call 27
+  call 29
   call 4
   call 25
   local.set 0
@@ -339,7 +339,7 @@ fn 1 snippet$main () -> i32
   local.get 2
   call 26
   local.get 0
-  call 27
+  call 29
   call 4
   call 25
   local.set 0
@@ -361,7 +361,7 @@ fn 1 snippet$main () -> i32
   local.get 2
   call 26
   local.get 0
-  call 27
+  call 29
   call 4
   string.const 34
   call 6
@@ -656,7 +656,7 @@ fn 11 std_path$is_absolute (ref) -> bool
   local.set 1
   local.get 1
   i32.const 0
-  call 28
+  call 33
   local.set 2
   local.get 2
   char.const 47
@@ -682,8 +682,6 @@ fn 14 std_path$join (ref,string) -> ref
   local $field_11 string
   local $call_13 usize
   local $k_14 usize
-  local __sb_0 ref
-  local __sb_1 ref
   local.get 1
   call 19
   if $L0 void
@@ -692,7 +690,7 @@ fn 14 std_path$join (ref,string) -> ref
   end $L0
   local.get 1
   i32.const 0
-  call 28
+  call 33
   local.set 2
   local.get 2
   char.const 47
@@ -725,52 +723,26 @@ fn 14 std_path$join (ref,string) -> ref
   local.set 4
   local.get 3
   local.get 4
-  call 28
+  call 33
   local.set 2
   local.get 2
   char.const 47
   char.eq
   if $L3 void
-    call 25
-    local.set 6
     local.field 0 2 0
     ref.cast 1
-    local.set 3
-    local.get 6
-    local.get 3
-    call 26
-    local.get 6
     local.get 1
-    call 26
-    local.get 6
     call 27
     struct.new 2
     return
   end $L3
-  call 25
-  local.set 6
-  call 25
-  local.set 7
   local.field 0 2 0
   ref.cast 1
   local.set 3
-  local.get 7
   local.get 3
-  call 26
-  local.get 7
   string.const 47
-  call 26
-  local.get 7
-  call 27
-  local.set 3
-  local.get 6
-  local.get 3
-  call 26
-  local.get 6
   local.get 1
-  call 26
-  local.get 6
-  call 27
+  call 28
   struct.new 2
   return
 end
@@ -825,7 +797,7 @@ fn 15 std_path$starts_with (ref,ref) -> bool
     local.set 4
     local.get 2
     local.get 4
-    call 28
+    call 33
     local.set 7
     local.get 7
     char.const 47
@@ -842,7 +814,7 @@ fn 15 std_path$starts_with (ref,ref) -> bool
   local.field 0 2 0
   ref.cast 1
   local.get 5
-  call 28
+  call 33
   local.set 7
   local.get 7
   char.const 47
@@ -898,7 +870,7 @@ fn 16 std_path$ends_with (ref,ref) -> bool
     local.set 2
     local.get 2
     i32.const 0
-    call 28
+    call 33
     local.set 7
     local.get 7
     char.const 47
@@ -923,7 +895,7 @@ fn 16 std_path$ends_with (ref,ref) -> bool
   local.set 4
   local.get 2
   local.get 4
-  call 28
+  call 33
   local.set 7
   local.get 7
   char.const 47
@@ -1003,7 +975,7 @@ fn 17 std_path$normalize (ref) -> ref
           local.field 0 2 0
           ref.cast 1
           local.get 6
-          call 28
+          call 33
           local.set 10
           local.get 10
           char.const 47
@@ -1200,7 +1172,7 @@ fn 17 std_path$normalize (ref) -> ref
     end $L18
   end $L17
   local.get 4
-  call 27
+  call 29
   local.tee 12
   call 19
   if $L21 void
@@ -1252,7 +1224,7 @@ fn 18 std_string$last_index_of (string,char,isize) -> isize
         call 22
         local.set 7
         local.field 7 13 0
-        ref.cast 9
+        ref.cast 10
         local.set 8
         local.field 7 13 1
         ref.cast 6
@@ -1787,7 +1759,85 @@ fn 26 std_string_builder$append (ref,string) -> void
   return
 end
 
-fn 27 std_string_builder$StringBuilder$Display$to_string (ref) -> string
+fn 27 std_string_builder$concat2 (string,string) -> string
+  local la usize
+  local $call_4 usize
+  local buf ref
+  local $k_9 usize
+  local.get 0
+  call.import 4
+  local.set 2
+  local.get 1
+  call.import 4
+  local.set 3
+  local.get 2
+  local.get 3
+  i64.add
+  local.tee 3
+  call 30
+  local.set 4
+  i64.const 0
+  local.set 5
+  local.get 4
+  local.get 5
+  local.get 0
+  call 32
+  local.get 4
+  local.get 2
+  local.get 1
+  call 32
+  local.get 4
+  local.get 3
+  call 31
+  return
+end
+
+fn 28 std_string_builder$concat3 (string,string,string) -> string
+  local la usize
+  local $call_5 usize
+  local $call_8 usize
+  local buf ref
+  local $k_13 usize
+  local.get 0
+  call.import 4
+  local.set 3
+  local.get 1
+  call.import 4
+  local.set 4
+  local.get 3
+  local.get 4
+  i64.add
+  local.set 4
+  local.get 2
+  call.import 4
+  local.set 5
+  local.get 4
+  local.get 5
+  i64.add
+  local.tee 5
+  call 30
+  local.set 6
+  i64.const 0
+  local.set 7
+  local.get 6
+  local.get 7
+  local.get 0
+  call 32
+  local.get 6
+  local.get 3
+  local.get 1
+  call 32
+  local.get 6
+  local.get 4
+  local.get 2
+  call 32
+  local.get 6
+  local.get 5
+  call 31
+  return
+end
+
+fn 29 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local n usize
   local $k_4 usize
   local $field_9 ref
@@ -1858,7 +1908,7 @@ fn 27 std_string_builder$StringBuilder$Display$to_string (ref) -> string
     end $L3
   end $L2
   local.get 1
-  call 29
+  call 30
   local.set 3
   i64.const 0
   local.set 2
@@ -1882,7 +1932,7 @@ fn 27 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         local.get 3
         local.get 2
         local.get 8
-        call 31
+        call 32
         local.get 8
         call.import 4
         local.set 6
@@ -1903,34 +1953,34 @@ fn 27 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   end $L5
   local.get 3
   local.get 1
-  call 30
+  call 31
   return
 end
 
-fn 28 std_core$string$Index$at_vt (string,usize) -> char
-  local.get 0
-  local.get 1
-  call.import 2
-  return
-end
-
-fn 29 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 30 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   object_new 0
   return
 end
 
-fn 30 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 31 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
   buffer_to_string
   return
 end
 
-fn 31 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 32 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0
   local.get 1
   local.get 2
   buffer_write_string
+  return
+end
+
+fn 33 std_core$string$Index$at_vt (string,usize) -> char
+  local.get 0
+  local.get 1
+  call.import 2
   return
 end

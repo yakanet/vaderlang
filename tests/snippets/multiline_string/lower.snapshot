@@ -59,31 +59,13 @@
         escaped :string
     let prefix: string = "start" :string
     let combined: string =
-      block :string
-        let __sb_1: StringBuilder =
-          call :StringBuilder
-            callee:
-              new_builder :StringBuilder
-        call :void
-          callee:
-            append :void
-          arg0:
-            __sb_1 :StringBuilder
-          arg1:
-            prefix :string
-        call :void
-          callee:
-            append :void
-          arg0:
-            __sb_1 :StringBuilder
-          arg1:
-            " middle\nend" :string
-        ~>
-          call :string
-            callee:
-              std_string_builder$StringBuilder$Display$to_string :string
-            arg0:
-              __sb_1 :StringBuilder
+      call :string
+        callee:
+          concat2 :string
+        arg0:
+          prefix :string
+        arg1:
+          " middle\nend" :string
     call :void
       callee:
         std_io$std_io$println__string :void
