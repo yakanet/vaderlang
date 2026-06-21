@@ -37,9 +37,10 @@
           arg1:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                LoweredArrayLen
+                cast → u64
+                  LoweredArrayLen
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -52,9 +53,10 @@
           arg1:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                LoweredArrayLen
+                cast → u64
+                  LoweredArrayLen
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -81,10 +83,8 @@
           arg0:
             "verbose=" :string
           arg1:
-            call :string
-              callee:
-                std_core$bool$Display$to_string :string
-              arg0:
+            if :string
+              cond:
                 call :bool
                   callee:
                     bool_flag :bool
@@ -92,6 +92,12 @@
                     r :ParsedArgs
                   arg1:
                     "verbose" :string
+              then:
+                ~>
+                  "true" :string
+              else:
+                ~>
+                  "false" :string
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -102,10 +108,8 @@
           arg0:
             "missing=" :string
           arg1:
-            call :string
-              callee:
-                std_core$bool$Display$to_string :string
-              arg0:
+            if :string
+              cond:
                 call :bool
                   callee:
                     bool_flag :bool
@@ -113,6 +117,12 @@
                     r :ParsedArgs
                   arg1:
                     "missing" :string
+              then:
+                ~>
+                  "true" :string
+              else:
+                ~>
+                  "false" :string
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -173,9 +183,10 @@
           arg1:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                LoweredArrayLen
+                cast → u64
+                  LoweredArrayLen
     block :void
       let __for_arr_0: string[] =
         .errors :string[]

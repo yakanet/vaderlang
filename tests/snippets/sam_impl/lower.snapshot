@@ -11,9 +11,10 @@
         arg1:
           call :string
             callee:
-              std_core$i32$Display$to_string :string
+              format_signed :fn(i64) -> string
             arg0:
-              self :i32
+              cast → i64
+                self :i32
   fn snippet$i64$Describe$describe(self: i64) -> string
     let prefix: string = "i64=" :string
     return
@@ -25,7 +26,7 @@
         arg1:
           call :string
             callee:
-              std_core$i64$Display$to_string :string
+              format_signed :fn(i64) -> string
             arg0:
               self :i64
   fn snippet$i32$Tag$tag(self: i32) -> u64
@@ -41,9 +42,16 @@
       arg0:
         call :string
           callee:
-            snippet$i32$Describe$describe :string
+            concat2 :string
           arg0:
-            x :i32
+            "the answer is " :string
+          arg1:
+            call :string
+              callee:
+                format_signed :fn(i64) -> string
+              arg0:
+                cast → i64
+                  x :i32
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -59,11 +67,8 @@
       arg0:
         call :string
           callee:
-            std_core$u64$Display$to_string :string
+            format_unsigned :fn(u64) -> string
           arg0:
-            call :u64
-              callee:
-                snippet$i32$Tag$tag :u64
-              arg0:
-                x :i32
+            cast → u64
+              x :i32
     return int(0) :i32

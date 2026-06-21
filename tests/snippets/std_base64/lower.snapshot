@@ -27,12 +27,9 @@
                   arg1:
                     "=ERR:" :string
                   arg2:
-                    call :string
-                      callee:
-                        std_base64$Base64Error$Error$message :string
-                      arg0:
-                        cast → Base64Error
-                          out :Base64Error | u8[]
+                    .msg :string
+                      cast → Base64Error
+                        out :Base64Error | u8[]
         else:
           ~>
             call :void
@@ -278,10 +275,8 @@
                     arg2:
                       "=" :string
                     arg3:
-                      call :string
-                        callee:
-                          std_core$bool$Display$to_string :string
-                        arg0:
+                      if :string
+                        cond:
                           eq :bool
                             l:
                               call :string
@@ -292,6 +287,12 @@
                                     decoded :Base64Error | u8[]
                             r:
                               s :string
+                        then:
+                          ~>
+                            "true" :string
+                        else:
+                          ~>
+                            "false" :string
         assign
           target:
             __for_i_2 :usize

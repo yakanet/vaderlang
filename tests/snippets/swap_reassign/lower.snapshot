@@ -27,17 +27,19 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                a :i32
+                cast → i64
+                  a :i32
           arg2:
             " b=" :string
           arg3:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                b :i32
+                cast → i64
+                  b :i32
     let f0: i32 = int(0) :i32
     let f1: i32 = int(1) :i32
     block :void
@@ -80,17 +82,19 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                f0 :i32
+                cast → i64
+                  f0 :i32
           arg2:
             " f1=" :string
           arg3:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                f1 :i32
+                cast → i64
+                  f1 :i32
     let x: i32 = int(1) :i32
     let y: i32 = int(2) :i32
     let z: i32 = int(3) :i32
@@ -134,9 +138,10 @@
             arg1:
               call :string
                 callee:
-                  std_core$i32$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  x :i32
+                  cast → i64
+                    x :i32
           call :void
             callee:
               append :void
@@ -152,9 +157,10 @@
             arg1:
               call :string
                 callee:
-                  std_core$i32$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  y :i32
+                  cast → i64
+                    y :i32
           call :void
             callee:
               append :void
@@ -170,9 +176,10 @@
             arg1:
               call :string
                 callee:
-                  std_core$i32$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  z :i32
+                  cast → i64
+                    z :i32
           ~>
             call :string
               callee:
@@ -221,7 +228,7 @@
           arg1:
             call :string
               callee:
-                std_core$u64$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
                 g0 :u64
     return int(0) :i32

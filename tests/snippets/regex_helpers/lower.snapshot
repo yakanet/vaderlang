@@ -141,9 +141,10 @@
           arg1:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                LoweredArrayLen
+                cast → u64
+                  LoweredArrayLen
     let n: usize =
       LoweredArrayLen
     let i: usize = int(0) :usize

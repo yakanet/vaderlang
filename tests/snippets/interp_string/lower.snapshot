@@ -37,9 +37,10 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                age :i32
+                cast → i64
+                  age :i32
         call :void
           callee:
             append :void

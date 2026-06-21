@@ -41,7 +41,7 @@
                       l:
                         call :i32
                           callee:
-                            std_semver$Version$Comparable$compare :i32
+                            compare_versions :fn(Version, Version) -> i32
                           arg0:
                             ver :Version
                           arg1:
@@ -117,11 +117,8 @@
                                           arg0:
                                             "range err: " :string
                                           arg1:
-                                            call :string
-                                              callee:
-                                                std_string$ParseError$Error$message :string
-                                              arg0:
-                                                e :ParseError
+                                            .msg :string
+                                              e :ParseError
                                     return int(1) :i32
                               else:
                                 ~>
@@ -148,11 +145,8 @@
                             arg0:
                               "err: " :string
                             arg1:
-                              call :string
-                                callee:
-                                  std_string$ParseError$Error$message :string
-                                arg0:
-                                  e :ParseError
+                              .msg :string
+                                e :ParseError
                       return int(1) :i32
                 else:
                   ~>

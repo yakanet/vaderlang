@@ -167,15 +167,16 @@
             arg1:
               call :string
                 callee:
-                  std_core$i32$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  call :i32
-                    callee:
-                      snippet$Cell$Index$at :i32
-                    arg0:
-                      c :Cell
-                    arg1:
-                      "a" :string
+                  cast → i64
+                    call :i32
+                      callee:
+                        snippet$Cell$Index$at :i32
+                      arg0:
+                        c :Cell
+                      arg1:
+                        "a" :string
           call :void
             callee:
               append :void
@@ -191,15 +192,16 @@
             arg1:
               call :string
                 callee:
-                  std_core$i32$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  call :i32
-                    callee:
-                      snippet$Cell$Index$at :i32
-                    arg0:
-                      c :Cell
-                    arg1:
-                      "b" :string
+                  cast → i64
+                    call :i32
+                      callee:
+                        snippet$Cell$Index$at :i32
+                      arg0:
+                        c :Cell
+                      arg1:
+                        "b" :string
           call :void
             callee:
               append :void
@@ -215,15 +217,16 @@
             arg1:
               call :string
                 callee:
-                  std_core$i32$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  call :i32
-                    callee:
-                      snippet$Cell$Index$at :i32
-                    arg0:
-                      c :Cell
-                    arg1:
-                      "c" :string
+                  cast → i64
+                    call :i32
+                      callee:
+                        snippet$Cell$Index$at :i32
+                      arg0:
+                        c :Cell
+                      arg1:
+                        "c" :string
           ~>
             call :string
               callee:

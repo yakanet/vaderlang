@@ -15,14 +15,8 @@
     return
       add :u64
         l:
-          call :u64
-            callee:
-              std_core$i32$Hash$hash :u64
-            arg0:
-              x :i32
+          cast → u64
+            x :i32
         r:
-          call :u64
-            callee:
-              std_core$i32$Hash$hash :u64
-            arg0:
-              x :i32
+          cast → u64
+            x :i32

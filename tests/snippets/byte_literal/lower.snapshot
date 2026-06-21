@@ -18,10 +18,11 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                cast → i32
-                  a :u8
+                cast → i64
+                  cast → i32
+                    a :u8
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -34,10 +35,11 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                cast → i32
-                  nl :u8
+                cast → i64
+                  cast → i32
+                    nl :u8
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -50,10 +52,11 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                cast → i32
-                  bs :u8
+                cast → i64
+                  cast → i32
+                    bs :u8
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -66,10 +69,11 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                cast → i32
-                  sq :u8
+                cast → i64
+                  cast → i32
+                    sq :u8
     let b: u8 = int(61) :u8
     call :void
       callee:
@@ -81,13 +85,17 @@
           arg0:
             "eq=" :string
           arg1:
-            call :string
-              callee:
-                std_core$bool$Display$to_string :string
-              arg0:
+            if :string
+              cond:
                 eq :bool
                   l:
                     b :u8
                   r:
                     int(61) :u8
+              then:
+                ~>
+                  "true" :string
+              else:
+                ~>
+                  "false" :string
     return int(0) :i32

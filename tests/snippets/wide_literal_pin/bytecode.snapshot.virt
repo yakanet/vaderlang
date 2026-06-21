@@ -67,7 +67,7 @@ fn 2 snippet$main () -> i32
   local $k_3 usize
   local $k_4 usize
   local $k_5 usize
-  local $call_15 string
+  local $call_16 string
   local face3 i64
   array.new 15 0
   local.set 0
@@ -92,17 +92,18 @@ fn 2 snippet$main () -> i32
   local.get 0
   i64.const 9000000000
   i32.const 42
-  call 14
+  call 9
   local.get 0
   i64.const 9000000000
-  call 13
+  call 8
   call 0
+  i32.to_i64
   call 4
   local.set 6
   string.const 0
   local.get 6
-  call 26
-  call 10
+  call 21
+  call 5
   array.new 14 0
   local.set 0
   array.new 15 0
@@ -126,17 +127,17 @@ fn 2 snippet$main () -> i32
   local.get 0
   i32.const 1
   i64.const 9000000000
-  call 12
+  call 7
   local.get 0
   i32.const 1
-  call 11
+  call 6
   call 1
-  call 5
+  call 4
   local.set 6
   string.const 1
   local.get 6
-  call 26
-  call 10
+  call 21
+  call 5
   array.new 15 0
   local.set 0
   array.new 14 0
@@ -160,27 +161,28 @@ fn 2 snippet$main () -> i32
   local.get 0
   i64.const 9000000000
   i32.const 7
-  call 14
+  call 9
   local.get 0
   i64.const 9000000000
-  call 13
+  call 8
   call 0
+  i32.to_i64
   call 4
   local.set 6
   string.const 2
   local.get 6
-  call 26
-  call 10
+  call 21
+  call 5
   i64.const 9000000000
   call 3
   local.set 7
   local.get 7
-  call 5
+  call 4
   local.set 6
   string.const 3
   local.get 6
-  call 26
-  call 10
+  call 21
+  call 5
   return.lit i32.const 0
 end
 
@@ -189,37 +191,7 @@ fn 3 snippet$snippet$takes__i64 (i64) -> i64
   return
 end
 
-fn 4 std_core$i32$Display$to_string (i32) -> string
-  local.get 0
-  i32.to_i64
-  call 9
-  return
-end
-
-fn 5 std_core$i64$Display$to_string (i64) -> string
-  local.get 0
-  call 9
-  return
-end
-
-fn 6 std_core$string$Display$to_string (string) -> string
-  local.get 0
-  return
-end
-
-fn 7 std_core$i32$Hash$hash (i32) -> u64
-  local.get 0
-  i32.to_i64
-  return
-end
-
-fn 8 std_core$i64$Hash$hash (i64) -> u64
-  local.get 0
-  i64.to_i64
-  return
-end
-
-fn 9 std_core$format_signed (i64) -> string
+fn 4 std_core$format_signed (i64) -> string
   local neg bool
   local ndigits usize
   local m i64
@@ -287,7 +259,7 @@ fn 9 std_core$format_signed (i64) -> string
   end $L5
   local.get 4
   local.tee 2
-  call 27
+  call 22
   local.set 6
   local.get 2
   local.set 4
@@ -318,7 +290,7 @@ fn 9 std_core$format_signed (i64) -> string
         local.get 6
         local.get 4
         local.get 9
-        call 30
+        call 25
         local.get 0
         i64.const 10
         i64.div
@@ -337,22 +309,18 @@ fn 9 std_core$format_signed (i64) -> string
     local.get 6
     local.get 4
     local.get 7
-    call 30
+    call 25
   else
   end $L9
   local.get 6
   local.get 2
-  call 28
+  call 23
   return
 end
 
-fn 10 std_io$std_io$println__string (string) -> void
-  local $call_2 string
-  local.get 0
-  call 6
-  local.set 1
+fn 5 std_io$std_io$println__string (string) -> void
   i32.const 0
-  local.get 1
+  local.get 0
   call.import 1
   i32.const 0
   string.const 5
@@ -360,37 +328,37 @@ fn 10 std_io$std_io$println__string (string) -> void
   return
 end
 
-fn 11 std_collections$MutableMap$Index$at__i32__i64 (ref,i32) -> ref
+fn 6 std_collections$MutableMap$Index$at__i32__i64 (ref,i32) -> ref
   local.get 0
   local.get 1
-  call 24
+  call 19
   return
 end
 
-fn 12 std_collections$MutableMap$IndexSet$set_at__i32__i64 (ref,i32,i64) -> void
-  local.get 0
-  local.get 1
-  local.get 2
-  call 22
-  return
-end
-
-fn 13 std_collections$MutableMap$Index$at__i64__i32 (ref,i64) -> ref
-  local.get 0
-  local.get 1
-  call 25
-  return
-end
-
-fn 14 std_collections$MutableMap$IndexSet$set_at__i64__i32 (ref,i64,i32) -> void
+fn 7 std_collections$MutableMap$IndexSet$set_at__i32__i64 (ref,i32,i64) -> void
   local.get 0
   local.get 1
   local.get 2
-  call 23
+  call 17
   return
 end
 
-fn 15 std_collections$slot_for (u64,usize) -> usize
+fn 8 std_collections$MutableMap$Index$at__i64__i32 (ref,i64) -> ref
+  local.get 0
+  local.get 1
+  call 20
+  return
+end
+
+fn 9 std_collections$MutableMap$IndexSet$set_at__i64__i32 (ref,i64,i32) -> void
+  local.get 0
+  local.get 1
+  local.get 2
+  call 18
+  return
+end
+
+fn 10 std_collections$slot_for (u64,usize) -> usize
   local.get 0
   u64.to_i64
   local.get 1
@@ -398,7 +366,7 @@ fn 15 std_collections$slot_for (u64,usize) -> usize
   return
 end
 
-fn 16 std_collections$std_collections$ensure_index__i32__i64 (ref) -> void
+fn 11 std_collections$std_collections$ensure_index__i32__i64 (ref) -> void
   local $len_2 usize
   local $k_3 usize
   local idx ref
@@ -457,7 +425,7 @@ fn 16 std_collections$std_collections$ensure_index__i32__i64 (ref) -> void
   return
 end
 
-fn 17 std_collections$std_collections$ensure_index__i64__i32 (ref) -> void
+fn 12 std_collections$std_collections$ensure_index__i64__i32 (ref) -> void
   local $len_2 usize
   local $k_3 usize
   local idx ref
@@ -516,7 +484,7 @@ fn 17 std_collections$std_collections$ensure_index__i64__i32 (ref) -> void
   return
 end
 
-fn 18 std_collections$std_collections$rehash__i32__i64 (ref,usize) -> void
+fn 13 std_collections$std_collections$rehash__i32__i64 (ref,usize) -> void
   local fresh ref
   local _ usize
   local $k_8 usize
@@ -571,9 +539,9 @@ fn 18 std_collections$std_collections$rehash__i32__i64 (ref,usize) -> void
         local.field 0 12 0
         local.get 4
         load_slot_i32
-        call 7
+        i32.to_i64
         local.get 3
-        call 15
+        call 10
         local.set 6
         block $L6 void
           loop $L7 void
@@ -634,7 +602,7 @@ fn 18 std_collections$std_collections$rehash__i32__i64 (ref,usize) -> void
   return
 end
 
-fn 19 std_collections$std_collections$rehash__i64__i32 (ref,usize) -> void
+fn 14 std_collections$std_collections$rehash__i64__i32 (ref,usize) -> void
   local fresh ref
   local _ usize
   local $k_8 usize
@@ -689,9 +657,9 @@ fn 19 std_collections$std_collections$rehash__i64__i32 (ref,usize) -> void
         local.field 0 13 0
         local.get 4
         load_slot_i64
-        call 8
+        i64.to_i64
         local.get 3
-        call 15
+        call 10
         local.set 6
         block $L6 void
           loop $L7 void
@@ -752,7 +720,7 @@ fn 19 std_collections$std_collections$rehash__i64__i32 (ref,usize) -> void
   return
 end
 
-fn 20 std_collections$std_collections$write_entry__i32__i64 (ref,i32,i64) -> void
+fn 15 std_collections$std_collections$write_entry__i32__i64 (ref,i32,i64) -> void
   local $field_3 usize
   local $len_5 usize
   local $field_7 ref
@@ -795,7 +763,7 @@ fn 20 std_collections$std_collections$write_entry__i32__i64 (ref,i32,i64) -> voi
   return
 end
 
-fn 21 std_collections$std_collections$write_entry__i64__i32 (ref,i64,i32) -> void
+fn 16 std_collections$std_collections$write_entry__i64__i32 (ref,i64,i32) -> void
   local $field_3 usize
   local $len_5 usize
   local $field_7 ref
@@ -838,7 +806,7 @@ fn 21 std_collections$std_collections$write_entry__i64__i32 (ref,i64,i32) -> voi
   return
 end
 
-fn 22 std_collections$std_collections$put__i32__i64 (ref,i32,i64) -> void
+fn 17 std_collections$std_collections$put__i32__i64 (ref,i32,i64) -> void
   local $field_3 usize
   local $field_4 usize
   local $k_11 usize
@@ -848,13 +816,13 @@ fn 22 std_collections$std_collections$put__i32__i64 (ref,i32,i64) -> void
   local $k_23 usize
   local $mul_24 usize
   local $k_26 usize
-  local $call_28 u64
+  local $cast_28 u64
   local first_tomb i64
   local $idx_36 i32
   local $idx_40 i32
   local $field_70 ref
   local.get 0
-  call 16
+  call 11
   local.field 0 12 4
   ref.cast 5
   local.set 3
@@ -938,18 +906,18 @@ fn 22 std_collections$std_collections$put__i32__i64 (ref,i32,i64) -> void
     end $L1
     local.get 0
     local.get 3
-    call 18
+    call 13
   else
   end $L0
   local.get 1
-  call 7
+  i32.to_i64
   local.set 12
   local.field 0 12 3
   ref.cast 5
   local.set 3
   local.get 12
   local.get 3
-  call 15
+  call 10
   local.set 3
   i64.const 1
   i64.neg
@@ -1071,7 +1039,7 @@ fn 22 std_collections$std_collections$put__i32__i64 (ref,i32,i64) -> void
   local.get 0
   local.get 1
   local.get 2
-  call 20
+  call 15
   local.field 0 12 2
   local.set 16
   local.field 0 12 4
@@ -1103,7 +1071,7 @@ fn 22 std_collections$std_collections$put__i32__i64 (ref,i32,i64) -> void
   return
 end
 
-fn 23 std_collections$std_collections$put__i64__i32 (ref,i64,i32) -> void
+fn 18 std_collections$std_collections$put__i64__i32 (ref,i64,i32) -> void
   local $field_3 usize
   local $field_4 usize
   local $k_11 usize
@@ -1113,13 +1081,13 @@ fn 23 std_collections$std_collections$put__i64__i32 (ref,i64,i32) -> void
   local $k_23 usize
   local $mul_24 usize
   local $k_26 usize
-  local $call_28 u64
+  local $cast_28 u64
   local first_tomb i64
   local $idx_36 i32
   local $idx_40 i32
   local $field_70 ref
   local.get 0
-  call 17
+  call 12
   local.field 0 13 4
   ref.cast 5
   local.set 3
@@ -1203,18 +1171,18 @@ fn 23 std_collections$std_collections$put__i64__i32 (ref,i64,i32) -> void
     end $L1
     local.get 0
     local.get 3
-    call 19
+    call 14
   else
   end $L0
   local.get 1
-  call 8
+  i64.to_i64
   local.set 12
   local.field 0 13 3
   ref.cast 5
   local.set 3
   local.get 12
   local.get 3
-  call 15
+  call 10
   local.set 3
   i64.const 1
   i64.neg
@@ -1336,7 +1304,7 @@ fn 23 std_collections$std_collections$put__i64__i32 (ref,i64,i32) -> void
   local.get 0
   local.get 1
   local.get 2
-  call 21
+  call 16
   local.field 0 13 2
   local.set 16
   local.field 0 13 4
@@ -1368,10 +1336,10 @@ fn 23 std_collections$std_collections$put__i64__i32 (ref,i64,i32) -> void
   return
 end
 
-fn 24 std_collections$std_collections$get__i32__i64 (ref,i32) -> ref
+fn 19 std_collections$std_collections$get__i32__i64 (ref,i32) -> ref
   local $len_3 usize
   local $k_4 usize
-  local $call_7 u64
+  local $cast_7 u64
   local $idx_12 i32
   local $idx_16 i32
   local $k_22 usize
@@ -1393,14 +1361,14 @@ fn 24 std_collections$std_collections$get__i32__i64 (ref,i32) -> ref
     return
   end $L0
   local.get 1
-  call 7
+  i32.to_i64
   local.set 4
   local.field 0 12 3
   ref.cast 5
   local.set 2
   local.get 4
   local.get 2
-  call 15
+  call 10
   local.set 2
   block $L1 void
     loop $L2 void
@@ -1481,10 +1449,10 @@ fn 24 std_collections$std_collections$get__i32__i64 (ref,i32) -> ref
   return
 end
 
-fn 25 std_collections$std_collections$get__i64__i32 (ref,i64) -> ref
+fn 20 std_collections$std_collections$get__i64__i32 (ref,i64) -> ref
   local $len_3 usize
   local $k_4 usize
-  local $call_7 u64
+  local $cast_7 u64
   local $idx_12 i32
   local $idx_16 i32
   local $k_22 usize
@@ -1506,14 +1474,14 @@ fn 25 std_collections$std_collections$get__i64__i32 (ref,i64) -> ref
     return
   end $L0
   local.get 1
-  call 8
+  i64.to_i64
   local.set 4
   local.field 0 13 3
   ref.cast 5
   local.set 2
   local.get 4
   local.get 2
-  call 15
+  call 10
   local.set 2
   block $L1 void
     loop $L2 void
@@ -1594,7 +1562,7 @@ fn 25 std_collections$std_collections$get__i64__i32 (ref,i64) -> ref
   return
 end
 
-fn 26 std_string_builder$concat2 (string,string) -> string
+fn 21 std_string_builder$concat2 (string,string) -> string
   local la usize
   local $len_6 usize
   local buf ref
@@ -1611,38 +1579,38 @@ fn 26 std_string_builder$concat2 (string,string) -> string
   local.get 3
   i64.add
   local.tee 3
-  call 27
+  call 22
   local.set 4
   i64.const 0
   local.set 5
   local.get 4
   local.get 5
   local.get 0
-  call 29
+  call 24
   local.get 4
   local.get 2
   local.get 1
-  call 29
+  call 24
   local.get 4
   local.get 3
-  call 28
+  call 23
   return
 end
 
-fn 27 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 22 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   object_new 0
   return
 end
 
-fn 28 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 23 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
   buffer_to_string
   return
 end
 
-fn 29 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 24 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0
   local.get 1
   local.get 2
@@ -1650,7 +1618,7 @@ fn 29 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   return
 end
 
-fn 30 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
+fn 25 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   local.get 0
   local.get 1
   local.get 2

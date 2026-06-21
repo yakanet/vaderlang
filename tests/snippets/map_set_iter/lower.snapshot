@@ -110,9 +110,10 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                total :i32
+                cast → i64
+                  total :i32
     let s: MutableSet<i32> =
       MutableSet<i32> {
         inner:
@@ -207,7 +208,8 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                sum :i32
+                cast → i64
+                  sum :i32
     return int(0) :i32

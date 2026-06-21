@@ -8,13 +8,14 @@
       arg0:
         call :string
           callee:
-            std_core$i32$Display$to_string :string
+            format_signed :fn(i64) -> string
           arg0:
-            call :i32
-              callee:
-                snippet$snippet$run_id__i32 :i32
-              arg0:
-                int(7) :i32
+            cast → i64
+              call :i32
+                callee:
+                  snippet$snippet$run_id__i32 :i32
+                arg0:
+                  int(7) :i32
     return int(0) :i32
   fn snippet$snippet$apply__i32(x: i32, f: fn(i32) -> i32) -> i32
     ~>

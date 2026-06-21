@@ -30,10 +30,11 @@
               arg1:
                 call :string
                   callee:
-                    std_core$usize$Display$to_string :string
+                    format_unsigned :fn(u64) -> string
                   arg0:
-                    @size_of.type :usize
-                      t :type
+                    cast → u64
+                      @size_of.type :usize
+                        t :type
         assign
           target:
             __for_i_2 :usize
@@ -57,9 +58,10 @@
           arg1:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                LoweredArrayLen
+                cast → u64
+                  LoweredArrayLen
     return int(0) :i32
   struct snippet$Pair__string__i64 { key: string, value: i64 }
   struct snippet$Pair__Any__Any { key: Any, value: Any }

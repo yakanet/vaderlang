@@ -9,13 +9,14 @@
       arg0:
         call :string
           callee:
-            std_core$usize$Display$to_string :string
+            format_unsigned :fn(u64) -> string
           arg0:
-            call :usize
-              callee:
-                byte_len :fn(string) -> usize
-              arg0:
-                s :string
+            cast → u64
+              call :usize
+                callee:
+                  byte_len :fn(string) -> usize
+                arg0:
+                  s :string
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -47,25 +48,27 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            std_core$bool$Display$to_string :string
-          arg0:
+        if :string
+          cond:
             call :bool
               callee:
-                std_string$string$Contains$contains :bool
+                byte_contains :fn(string, string) -> bool
               arg0:
                 "foobar" :string
               arg1:
                 "oba" :string
+          then:
+            ~>
+              "true" :string
+          else:
+            ~>
+              "false" :string
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            std_core$bool$Display$to_string :string
-          arg0:
+        if :string
+          cond:
             call :bool
               callee:
                 starts_with :bool
@@ -73,14 +76,18 @@
                 "foobar" :string
               arg1:
                 "foo" :string
+          then:
+            ~>
+              "true" :string
+          else:
+            ~>
+              "false" :string
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            std_core$bool$Display$to_string :string
-          arg0:
+        if :string
+          cond:
             call :bool
               callee:
                 ends_with :bool
@@ -88,6 +95,12 @@
                 "foobar" :string
               arg1:
                 "bar" :string
+          then:
+            ~>
+              "true" :string
+          else:
+            ~>
+              "false" :string
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -115,60 +128,76 @@
       arg0:
         call :string
           callee:
-            std_core$char$Display$to_string :string
+            bytes_to_string :string
           arg0:
-            call :char
+            call :u8[]
               callee:
-                std_core$string$Index$at :char
+                utf8_encode :fn(char) -> u8[]
               arg0:
-                "hello" :string
-              arg1:
-                int(1) :i32
+                call :char
+                  callee:
+                    std_core$string$Index$at :char
+                  arg0:
+                    "hello" :string
+                  arg1:
+                    int(1) :i32
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
-            std_core$char$Display$to_string :string
+            bytes_to_string :string
           arg0:
-            call :char
+            call :u8[]
               callee:
-                std_core$string$Index$at :char
+                utf8_encode :fn(char) -> u8[]
               arg0:
-                "你好嗎？" :string
-              arg1:
-                int(0) :i32
+                call :char
+                  callee:
+                    std_core$string$Index$at :char
+                  arg0:
+                    "你好嗎？" :string
+                  arg1:
+                    int(0) :i32
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
-            std_core$char$Display$to_string :string
+            bytes_to_string :string
           arg0:
-            call :char
+            call :u8[]
               callee:
-                std_core$string$Index$at :char
+                utf8_encode :fn(char) -> u8[]
               arg0:
-                "你好嗎？" :string
-              arg1:
-                int(1) :i32
+                call :char
+                  callee:
+                    std_core$string$Index$at :char
+                  arg0:
+                    "你好嗎？" :string
+                  arg1:
+                    int(1) :i32
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         call :string
           callee:
-            std_core$char$Display$to_string :string
+            bytes_to_string :string
           arg0:
-            call :char
+            call :u8[]
               callee:
-                std_core$string$Index$at :char
+                utf8_encode :fn(char) -> u8[]
               arg0:
-                "你好嗎？" :string
-              arg1:
-                int(3) :i32
+                call :char
+                  callee:
+                    std_core$string$Index$at :char
+                  arg0:
+                    "你好嗎？" :string
+                  arg1:
+                    int(3) :i32
     let parts: string[] =
       call :string[]
         callee:

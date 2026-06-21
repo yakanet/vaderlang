@@ -38,10 +38,11 @@
               arg0:
                 call :string
                   callee:
-                    std_core$i32$Display$to_string :string
+                    format_signed :fn(i64) -> string
                   arg0:
-                    ._0 :i32
-                      row :[i32, string]
+                    cast → i64
+                      ._0 :i32
+                        row :[i32, string]
               arg1:
                 " -> " :string
               arg2:

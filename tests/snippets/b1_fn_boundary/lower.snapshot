@@ -124,13 +124,14 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    length :fn(Node | null) -> i32
-                  arg0:
-                    head :Node | null
+                cast → i64
+                  call :i32
+                    callee:
+                      length :fn(Node | null) -> i32
+                    arg0:
+                      head :Node | null
     block :void
       let __scrut_0: Node | null =
         call :Node | null
@@ -179,10 +180,11 @@
                               arg1:
                                 call :string
                                   callee:
-                                    std_core$i32$Display$to_string :string
+                                    format_signed :fn(i64) -> string
                                   arg0:
-                                    .value :i32
-                                      h :Node
+                                    cast → i64
+                                      .value :i32
+                                        h :Node
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -234,10 +236,11 @@
                               arg1:
                                 call :string
                                   callee:
-                                    std_core$i32$Display$to_string :string
+                                    format_signed :fn(i64) -> string
                                   arg0:
-                                    .value :i32
-                                      h :Node
+                                    cast → i64
+                                      .value :i32
+                                        h :Node
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void

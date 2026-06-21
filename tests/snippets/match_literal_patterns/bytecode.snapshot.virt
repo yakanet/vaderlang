@@ -183,52 +183,43 @@ end
 fn 4 snippet$main () -> i32
   char.const 62
   call 0
-  call 6
+  call 5
   char.const 43
   call 0
-  call 6
+  call 5
   char.const 120
   call 0
-  call 6
+  call 5
   i32.const 0
   call 1
-  call 6
+  call 5
   i32.const 1
   call 1
-  call 6
+  call 5
   i32.const 99
   call 1
-  call 6
+  call 5
   bool.const true
   call 2
-  call 6
+  call 5
   bool.const false
   call 2
-  call 6
+  call 5
   string.const 11
   call 3
-  call 6
+  call 5
   string.const 15
   call 3
-  call 6
+  call 5
   string.const 18
   call 3
-  call 6
+  call 5
   return.lit i32.const 0
 end
 
-fn 5 std_core$string$Display$to_string (string) -> string
-  local.get 0
-  return
-end
-
-fn 6 std_io$std_io$println__string (string) -> void
-  local $call_2 string
-  local.get 0
-  call 5
-  local.set 1
+fn 5 std_io$std_io$println__string (string) -> void
   i32.const 0
-  local.get 1
+  local.get 0
   call.import 0
   i32.const 0
   string.const 19

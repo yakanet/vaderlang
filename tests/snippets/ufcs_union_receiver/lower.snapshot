@@ -25,10 +25,11 @@
                   arg1:
                     call :string
                       callee:
-                        std_core$i32$Display$to_string :string
+                        format_signed :fn(i64) -> string
                       arg0:
-                        .radius :i32
-                          c :Circle
+                        cast → i64
+                          .radius :i32
+                            c :Circle
                   arg2:
                     ")" :string
             else:
@@ -50,10 +51,11 @@
                         arg1:
                           call :string
                             callee:
-                              std_core$i32$Display$to_string :string
+                              format_signed :fn(i64) -> string
                             arg0:
-                              .side :i32
-                                sq :Square
+                              cast → i64
+                                .side :i32
+                                  sq :Square
                         arg2:
                           ")" :string
                   else:
@@ -144,13 +146,14 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    area :i32
-                  arg0:
-                    a :Circle | Square
+                cast → i64
+                  call :i32
+                    callee:
+                      area :i32
+                    arg0:
+                      a :Circle | Square
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -163,11 +166,12 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    area :i32
-                  arg0:
-                    b :Circle | Square
+                cast → i64
+                  call :i32
+                    callee:
+                      area :i32
+                    arg0:
+                      b :Circle | Square
     return int(0) :i32

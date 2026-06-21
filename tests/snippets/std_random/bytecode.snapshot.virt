@@ -14,14 +14,14 @@ type 11 primitive f64
 type 12 primitive u32
 type 13 array 1
 string 0 "deterministic="
-string 1 "zero_seed_nonzero="
-string 2 "range_i32_in_bounds="
-string 3 "unit_f64_in_bounds="
-string 4 "shuffled_len="
-string 5 "shuffled_sum="
-string 6 "bool_both_seen="
-string 7 "true"
-string 8 "false"
+string 1 "true"
+string 2 "false"
+string 3 "zero_seed_nonzero="
+string 4 "range_i32_in_bounds="
+string 5 "unit_f64_in_bounds="
+string 6 "shuffled_len="
+string 7 "shuffled_sum="
+string 8 "bool_both_seen="
 string 9 "0"
 string 10 "\n"
 import 0 write std_io$write (i32,string) -> void
@@ -36,19 +36,19 @@ fn 0 snippet$main () -> i32
   local k i32
   local $call_14 u64
   local $call_15 u64
-  local $call_21 string
+  local if_res string
   local v i32
   local v f64
   local __for_len_1 usize
   local __for_i_2 usize
-  local $k_120 usize
+  local $k_129 usize
   local seen_f bool
   local bx bool
   i64.const 42
-  call 8
+  call 4
   local.set 0
   i64.const 42
-  call 8
+  call 4
   local.set 1
   bool.const true
   local.set 2
@@ -61,10 +61,10 @@ fn 0 snippet$main () -> i32
       i32.lt
       if $L2 void
         local.get 0
-        call 9
+        call 5
         local.set 4
         local.get 1
-        call 9
+        call 5
         local.set 5
         local.get 4
         local.get 5
@@ -84,154 +84,174 @@ fn 0 snippet$main () -> i32
     end $L1
   end $L0
   local.get 2
-  call 3
-  local.set 6
+  if $L4 void
+    string.const 1
+    local.set 6
+  else
+    string.const 2
+    local.set 6
+  end $L4
   string.const 0
   local.get 6
-  call 19
-  call 7
+  call 15
+  call 3
   i64.const 0
-  call 8
+  call 4
   local.set 0
   bool.const false
   local.set 2
   i32.const 0
   local.set 3
-  block $L4 void
-    loop $L5 void
+  block $L5 void
+    loop $L6 void
       local.get 3
       i32.const 4
       i32.lt
-      if $L6 void
+      if $L7 void
         local.get 0
-        call 9
+        call 5
         local.set 4
         i64.const 0
         local.set 5
         local.get 4
         local.get 5
         i64.ne
-        if $L7 void
+        if $L8 void
           bool.const true
           local.set 2
         else
-        end $L7
+        end $L8
         local.get 3
         i32.const 1
         i32.add
         local.set 3
-        br $L5
+        br $L6
       else
-      end $L6
-    end $L5
-  end $L4
+      end $L7
+    end $L6
+  end $L5
   local.get 2
-  call 3
-  local.set 6
-  string.const 1
+  if $L9 void
+    string.const 1
+    local.set 6
+  else
+    string.const 2
+    local.set 6
+  end $L9
+  string.const 3
   local.get 6
-  call 19
-  call 7
+  call 15
+  call 3
   i64.const 7
-  call 8
+  call 4
   local.set 0
   bool.const true
   local.set 2
   i32.const 0
   local.set 3
-  block $L8 void
-    loop $L9 void
+  block $L10 void
+    loop $L11 void
       local.get 3
       i32.const 100
       i32.lt
-      if $L10 void
+      if $L12 void
         local.get 0
         i32.const 10
         i32.const 20
-        call 10
+        call 6
         local.set 7
         local.get 7
         i32.const 10
         i32.lt
-        if $L11 void
+        if $L13 void
           bool.const false
           local.set 2
         else
-        end $L11
+        end $L13
         local.get 7
         i32.const 20
         i32.ge
-        if $L12 void
+        if $L14 void
           bool.const false
           local.set 2
         else
-        end $L12
+        end $L14
         local.get 3
         i32.const 1
         i32.add
         local.set 3
-        br $L9
+        br $L11
       else
-      end $L10
-    end $L9
-  end $L8
+      end $L12
+    end $L11
+  end $L10
   local.get 2
-  call 3
-  local.set 6
-  string.const 2
+  if $L15 void
+    string.const 1
+    local.set 6
+  else
+    string.const 2
+    local.set 6
+  end $L15
+  string.const 4
   local.get 6
-  call 19
-  call 7
+  call 15
+  call 3
   i64.const 123
-  call 8
+  call 4
   local.set 0
   bool.const true
   local.set 2
   i32.const 0
   local.set 3
-  block $L13 void
-    loop $L14 void
+  block $L16 void
+    loop $L17 void
       local.get 3
       i32.const 100
       i32.lt
-      if $L15 void
+      if $L18 void
         local.get 0
-        call 11
+        call 7
         local.set 8
         local.get 8
         f64.const 0.0 0
         f64.lt
-        if $L16 void
+        if $L19 void
           bool.const false
           local.set 2
         else
-        end $L16
+        end $L19
         local.get 8
         f64.const 1.0 4607182418800017408
         f64.ge
-        if $L17 void
+        if $L20 void
           bool.const false
           local.set 2
         else
-        end $L17
+        end $L20
         local.get 3
         i32.const 1
         i32.add
         local.set 3
-        br $L14
+        br $L17
       else
-      end $L15
-    end $L14
-  end $L13
+      end $L18
+    end $L17
+  end $L16
   local.get 2
-  call 3
-  local.set 6
-  string.const 3
+  if $L21 void
+    string.const 1
+    local.set 6
+  else
+    string.const 2
+    local.set 6
+  end $L21
+  string.const 5
   local.get 6
-  call 19
-  call 7
+  call 15
+  call 3
   i64.const 99
-  call 8
+  call 4
   local.set 0
   i32.const 1
   i32.const 2
@@ -245,15 +265,16 @@ fn 0 snippet$main () -> i32
   local.set 1
   local.get 0
   local.get 1
-  call 18
+  call 14
   local.get 1
   array.len
+  usize.to_i64
   call 2
   local.set 6
-  string.const 4
+  string.const 6
   local.get 6
-  call 19
-  call 7
+  call 15
+  call 3
   i32.const 0
   local.set 3
   local.get 1
@@ -262,12 +283,12 @@ fn 0 snippet$main () -> i32
   local.set 9
   i64.const 0
   local.set 10
-  block $L18 void
-    loop $L19 void
+  block $L22 void
+    loop $L23 void
       local.get 10
       local.get 9
       u64.lt
-      if $L20 void
+      if $L24 void
         local.get 0
         local.get 10
         load_slot_i32
@@ -282,20 +303,21 @@ fn 0 snippet$main () -> i32
         local.get 11
         i64.add
         local.set 10
-        br $L19
+        br $L23
       else
-      end $L20
-    end $L19
-  end $L18
+      end $L24
+    end $L23
+  end $L22
   local.get 3
+  i32.to_i64
   call 1
   local.set 6
-  string.const 5
+  string.const 7
   local.get 6
-  call 19
-  call 7
+  call 15
+  call 3
   i64.const 2026
-  call 8
+  call 4
   local.set 0
   bool.const false
   local.set 2
@@ -303,88 +325,60 @@ fn 0 snippet$main () -> i32
   local.set 12
   i32.const 0
   local.set 3
-  block $L21 void
-    loop $L22 void
+  block $L25 void
+    loop $L26 void
       local.get 3
       i32.const 64
       i32.lt
-      if $L23 void
+      if $L27 void
         local.get 0
-        call 12
+        call 8
         local.tee 13
-        if $L24 void
+        if $L28 void
           bool.const true
           local.set 2
         else
-        end $L24
+        end $L28
         local.get 13
         bool.not
-        if $L25 void
+        if $L29 void
           bool.const true
           local.set 12
         else
-        end $L25
+        end $L29
         local.get 3
         i32.const 1
         i32.add
         local.set 3
-        br $L22
+        br $L26
       else
-      end $L23
-    end $L22
-  end $L21
+      end $L27
+    end $L26
+  end $L25
   local.get 2
-  if $L26 void
+  if $L30 void
     local.get 12
     local.set 2
   else
     bool.const false
     local.set 2
-  end $L26
+  end $L30
   local.get 2
-  call 3
-  local.set 6
-  string.const 6
+  if $L31 void
+    string.const 1
+    local.set 6
+  else
+    string.const 2
+    local.set 6
+  end $L31
+  string.const 8
   local.get 6
-  call 19
-  call 7
+  call 15
+  call 3
   return.lit i32.const 0
 end
 
-fn 1 std_core$i32$Display$to_string (i32) -> string
-  local.get 0
-  i32.to_i64
-  call 5
-  return
-end
-
-fn 2 std_core$usize$Display$to_string (usize) -> string
-  local.get 0
-  usize.to_i64
-  call 6
-  return
-end
-
-fn 3 std_core$bool$Display$to_string (bool) -> string
-  local if_res string
-  local.get 0
-  if $L0 void
-    string.const 7
-    local.set 1
-  else
-    string.const 8
-    local.set 1
-  end $L0
-  local.get 1
-  return
-end
-
-fn 4 std_core$string$Display$to_string (string) -> string
-  local.get 0
-  return
-end
-
-fn 5 std_core$format_signed (i64) -> string
+fn 1 std_core$format_signed (i64) -> string
   local neg bool
   local ndigits usize
   local m i64
@@ -452,7 +446,7 @@ fn 5 std_core$format_signed (i64) -> string
   end $L5
   local.get 4
   local.tee 2
-  call 20
+  call 16
   local.set 6
   local.get 2
   local.set 4
@@ -483,7 +477,7 @@ fn 5 std_core$format_signed (i64) -> string
         local.get 6
         local.get 4
         local.get 9
-        call 23
+        call 19
         local.get 0
         i64.const 10
         i64.div
@@ -502,16 +496,16 @@ fn 5 std_core$format_signed (i64) -> string
     local.get 6
     local.get 4
     local.get 7
-    call 23
+    call 19
   else
   end $L9
   local.get 6
   local.get 2
-  call 21
+  call 17
   return
 end
 
-fn 6 std_core$format_unsigned (u64) -> string
+fn 2 std_core$format_unsigned (u64) -> string
   local $k_1 u64
   local ndigits usize
   local $k_7 u64
@@ -560,7 +554,7 @@ fn 6 std_core$format_unsigned (u64) -> string
     end $L2
   end $L1
   local.get 2
-  call 20
+  call 16
   local.set 6
   local.get 2
   local.set 4
@@ -594,7 +588,7 @@ fn 6 std_core$format_unsigned (u64) -> string
         local.get 6
         local.get 4
         local.get 10
-        call 23
+        call 19
         i64.const 10
         local.set 5
         local.get 0
@@ -608,17 +602,13 @@ fn 6 std_core$format_unsigned (u64) -> string
   end $L4
   local.get 6
   local.get 2
-  call 21
+  call 17
   return
 end
 
-fn 7 std_io$std_io$println__string (string) -> void
-  local $call_2 string
-  local.get 0
-  call 4
-  local.set 1
+fn 3 std_io$std_io$println__string (string) -> void
   i32.const 0
-  local.get 1
+  local.get 0
   call.import 0
   i32.const 0
   string.const 10
@@ -626,13 +616,13 @@ fn 7 std_io$std_io$println__string (string) -> void
   return
 end
 
-fn 8 std_random$new_seeded (u64) -> ref
+fn 4 std_random$new_seeded (u64) -> ref
   local a u64
   local b u64
   local.get 0
-  call 14
+  call 10
   local.tee 1
-  call 14
+  call 10
   local.set 2
   local.get 1
   local.get 2
@@ -640,7 +630,7 @@ fn 8 std_random$new_seeded (u64) -> ref
   return
 end
 
-fn 9 std_random$next_u64 (ref) -> u64
+fn 5 std_random$next_u64 (ref) -> u64
   local $field_1 u64
   local $field_2 u64
   local $field_14 u64
@@ -654,13 +644,13 @@ fn 9 std_random$next_u64 (ref) -> u64
   local.get 1
   local.get 2
   i64.add
-  call 15
+  call 11
   local.set 1
   i64.const 17
   local.set 2
   local.get 1
   local.get 2
-  call 16
+  call 12
   local.set 1
   local.field 0 10 0
   ref.cast 6
@@ -668,7 +658,7 @@ fn 9 std_random$next_u64 (ref) -> u64
   local.get 1
   local.get 2
   i64.add
-  call 15
+  call 11
   local.set 1
   local.field 0 10 1
   ref.cast 6
@@ -687,7 +677,7 @@ fn 9 std_random$next_u64 (ref) -> u64
   local.set 4
   local.get 3
   local.get 4
-  call 16
+  call 12
   local.get 2
   i64.bitxor
   local.set 3
@@ -696,7 +686,7 @@ fn 9 std_random$next_u64 (ref) -> u64
   local.get 2
   local.get 4
   i64.shl
-  call 15
+  call 11
   local.set 4
   local.get 3
   local.get 4
@@ -709,7 +699,7 @@ fn 9 std_random$next_u64 (ref) -> u64
   local.set 3
   local.get 2
   local.get 3
-  call 16
+  call 12
   local.set 2
   local.get 0
   local.get 2
@@ -718,7 +708,7 @@ fn 9 std_random$next_u64 (ref) -> u64
   return
 end
 
-fn 10 std_random$range_i32 (ref,i32,i32) -> i32
+fn 6 std_random$range_i32 (ref,i32,i32) -> i32
   local span u32
   local $cast_7 u32
   local $mod_10 u32
@@ -739,7 +729,7 @@ fn 10 std_random$range_i32 (ref,i32,i32) -> i32
   i32.sub
   local.set 4
   local.get 0
-  call 17
+  call 13
   local.set 5
   block $L0 void
     loop $L1 void
@@ -748,7 +738,7 @@ fn 10 std_random$range_i32 (ref,i32,i32) -> i32
       u32.gt
       if $L2 void
         local.get 0
-        call 17
+        call 13
         local.set 5
         br $L1
       else
@@ -766,13 +756,13 @@ fn 10 std_random$range_i32 (ref,i32,i32) -> i32
   return
 end
 
-fn 11 std_random$unit_f64 (ref) -> f64
+fn 7 std_random$unit_f64 (ref) -> f64
   local $call_1 u64
   local $cast_3 u64
   local $cast_5 f64
   local $cast_7 f64
   local.get 0
-  call 9
+  call 5
   local.set 1
   i64.const 12
   local.set 2
@@ -790,11 +780,11 @@ fn 11 std_random$unit_f64 (ref) -> f64
   return
 end
 
-fn 12 std_random$next_bool (ref) -> bool
+fn 8 std_random$next_bool (ref) -> bool
   local $call_1 u64
   local $cast_3 u64
   local.get 0
-  call 9
+  call 5
   local.set 1
   i64.const 63
   local.set 2
@@ -810,7 +800,7 @@ fn 12 std_random$next_bool (ref) -> bool
   return
 end
 
-fn 13 std_random$range_u32 (ref,u32,u32) -> u32
+fn 9 std_random$range_u32 (ref,u32,u32) -> u32
   local span u32
   local $cast_6 u32
   local $mod_9 u32
@@ -829,7 +819,7 @@ fn 13 std_random$range_u32 (ref,u32,u32) -> u32
   i32.sub
   local.set 4
   local.get 0
-  call 17
+  call 13
   local.set 5
   block $L0 void
     loop $L1 void
@@ -838,7 +828,7 @@ fn 13 std_random$range_u32 (ref,u32,u32) -> u32
       u32.gt
       if $L2 void
         local.get 0
-        call 17
+        call 13
         local.set 5
         br $L1
       else
@@ -855,7 +845,7 @@ fn 13 std_random$range_u32 (ref,u32,u32) -> u32
   return
 end
 
-fn 14 std_random$splitmix64 (u64) -> u64
+fn 10 std_random$splitmix64 (u64) -> u64
   local $k_1 u64
   local $cast_6 u64
   local $k_9 u64
@@ -864,7 +854,7 @@ fn 14 std_random$splitmix64 (u64) -> u64
   local.get 0
   local.get 1
   i64.add
-  call 15
+  call 11
   local.set 1
   i64.const 30
   local.set 2
@@ -881,7 +871,7 @@ fn 14 std_random$splitmix64 (u64) -> u64
   local.get 2
   local.get 3
   i64.mul
-  call 15
+  call 11
   local.set 1
   i64.const 27
   local.set 2
@@ -898,7 +888,7 @@ fn 14 std_random$splitmix64 (u64) -> u64
   local.get 2
   local.get 3
   i64.mul
-  call 15
+  call 11
   local.set 1
   i64.const 31
   local.set 2
@@ -912,7 +902,7 @@ fn 14 std_random$splitmix64 (u64) -> u64
   return
 end
 
-fn 15 std_random$mask64 (u64) -> u64
+fn 11 std_random$mask64 (u64) -> u64
   local $k_1 u64
   i64.const -1
   local.set 1
@@ -922,13 +912,13 @@ fn 15 std_random$mask64 (u64) -> u64
   return
 end
 
-fn 16 std_random$rotl (u64,u64) -> u64
+fn 12 std_random$rotl (u64,u64) -> u64
   local $call_3 u64
   local $sub_6 u64
   local.get 0
   local.get 1
   i64.shl
-  call 15
+  call 11
   local.set 2
   i64.const 64
   local.get 1
@@ -944,11 +934,11 @@ fn 16 std_random$rotl (u64,u64) -> u64
   return
 end
 
-fn 17 std_random$next_u32 (ref) -> u32
+fn 13 std_random$next_u32 (ref) -> u32
   local $call_1 u64
   local $cast_3 u64
   local.get 0
-  call 9
+  call 5
   local.set 1
   i64.const 32
   local.set 2
@@ -959,7 +949,7 @@ fn 17 std_random$next_u32 (ref) -> u32
   return
 end
 
-fn 18 std_random$std_random$shuffle__i32 (ref,ref) -> void
+fn 14 std_random$std_random$shuffle__i32 (ref,ref) -> void
   local n usize
   local $k_4 usize
   local $cast_12 u32
@@ -1006,7 +996,7 @@ fn 18 std_random$std_random$shuffle__i32 (ref,ref) -> void
         local.get 0
         local.get 4
         local.get 6
-        call 13
+        call 9
         u32.to_i64
         local.set 7
         local.get 1
@@ -1039,7 +1029,7 @@ fn 18 std_random$std_random$shuffle__i32 (ref,ref) -> void
   return
 end
 
-fn 19 std_string_builder$concat2 (string,string) -> string
+fn 15 std_string_builder$concat2 (string,string) -> string
   local la usize
   local $call_4 usize
   local buf ref
@@ -1054,38 +1044,38 @@ fn 19 std_string_builder$concat2 (string,string) -> string
   local.get 3
   i64.add
   local.tee 3
-  call 20
+  call 16
   local.set 4
   i64.const 0
   local.set 5
   local.get 4
   local.get 5
   local.get 0
-  call 22
+  call 18
   local.get 4
   local.get 2
   local.get 1
-  call 22
+  call 18
   local.get 4
   local.get 3
-  call 21
+  call 17
   return
 end
 
-fn 20 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 16 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   object_new 0
   return
 end
 
-fn 21 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 17 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
   buffer_to_string
   return
 end
 
-fn 22 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 18 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0
   local.get 1
   local.get 2
@@ -1093,7 +1083,7 @@ fn 22 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   return
 end
 
-fn 23 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
+fn 19 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   local.get 0
   local.get 1
   local.get 2

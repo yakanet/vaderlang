@@ -16,15 +16,16 @@
       arg0:
         call :string
           callee:
-            std_core$i32$Display$to_string :string
+            format_signed :fn(i64) -> string
           arg0:
-            call :i32
-              callee:
-                snippet$snippet$count_matching__i32 :i32
-              arg0:
-                nums :i32[]
-              arg1:
-                int(2) :i32
+            cast → i64
+              call :i32
+                callee:
+                  snippet$snippet$count_matching__i32 :i32
+                arg0:
+                  nums :i32[]
+                arg1:
+                  int(2) :i32
     let words: string[] =
       array :string[]
         "foo" :string
@@ -38,15 +39,16 @@
       arg0:
         call :string
           callee:
-            std_core$i32$Display$to_string :string
+            format_signed :fn(i64) -> string
           arg0:
-            call :i32
-              callee:
-                snippet$snippet$count_matching__string :i32
-              arg0:
-                words :string[]
-              arg1:
-                "foo" :string
+            cast → i64
+              call :i32
+                callee:
+                  snippet$snippet$count_matching__string :i32
+                arg0:
+                  words :string[]
+                arg1:
+                  "foo" :string
     return int(0) :i32
   fn snippet$snippet$count_matching__i32(items: i32[], target: i32) -> i32
     let n: i32 = int(0) :i32
@@ -68,17 +70,11 @@
               l:
                 eq :bool
                   l:
-                    call :u64
-                      callee:
-                        std_core$i32$Hash$hash :u64
-                      arg0:
-                        x :i32
+                    cast → u64
+                      x :i32
                   r:
-                    call :u64
-                      callee:
-                        std_core$i32$Hash$hash :u64
-                      arg0:
-                        target :i32
+                    cast → u64
+                      target :i32
               r:
                 eq :bool
                   l:

@@ -177,10 +177,11 @@
             arg1:
               call :string
                 callee:
-                  std_core$i32$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  .x :i32
-                    s :Vec
+                  cast → i64
+                    .x :i32
+                      s :Vec
           call :void
             callee:
               append :void
@@ -196,10 +197,11 @@
             arg1:
               call :string
                 callee:
-                  std_core$i32$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  .y :i32
-                    s :Vec
+                  cast → i64
+                    .y :i32
+                      s :Vec
           call :void
             callee:
               append :void
@@ -215,10 +217,11 @@
             arg1:
               call :string
                 callee:
-                  std_core$i32$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  .x :i32
-                    d :Vec
+                  cast → i64
+                    .x :i32
+                      d :Vec
           call :void
             callee:
               append :void
@@ -234,10 +237,11 @@
             arg1:
               call :string
                 callee:
-                  std_core$i32$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  .y :i32
-                    d :Vec
+                  cast → i64
+                    .y :i32
+                      d :Vec
           call :void
             callee:
               append :void
@@ -253,10 +257,11 @@
             arg1:
               call :string
                 callee:
-                  std_core$i32$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  .x :i32
-                    m :Vec
+                  cast → i64
+                    .x :i32
+                      m :Vec
           call :void
             callee:
               append :void
@@ -272,10 +277,11 @@
             arg1:
               call :string
                 callee:
-                  std_core$i32$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  .y :i32
-                    m :Vec
+                  cast → i64
+                    .y :i32
+                      m :Vec
           call :void
             callee:
               append :void
@@ -291,10 +297,11 @@
             arg1:
               call :string
                 callee:
-                  std_core$i32$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  .x :i32
-                    q :Vec
+                  cast → i64
+                    .x :i32
+                      q :Vec
           call :void
             callee:
               append :void
@@ -310,10 +317,11 @@
             arg1:
               call :string
                 callee:
-                  std_core$i32$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  .y :i32
-                    q :Vec
+                  cast → i64
+                    .y :i32
+                      q :Vec
           call :void
             callee:
               append :void
@@ -329,10 +337,11 @@
             arg1:
               call :string
                 callee:
-                  std_core$i32$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  .x :i32
-                    r :Vec
+                  cast → i64
+                    .x :i32
+                      r :Vec
           call :void
             callee:
               append :void
@@ -348,10 +357,11 @@
             arg1:
               call :string
                 callee:
-                  std_core$i32$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  .y :i32
-                    r :Vec
+                  cast → i64
+                    .y :i32
+                      r :Vec
           call :void
             callee:
               append :void

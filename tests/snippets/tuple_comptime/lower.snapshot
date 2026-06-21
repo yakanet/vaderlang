@@ -25,25 +25,27 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                ._0 :i32
-                  [i32, i32] {
-                    _0: int(10) :?
-                    _1: int(20) :?
-                  }
+                cast → i64
+                  ._0 :i32
+                    [i32, i32] {
+                      _0: int(10) :?
+                      _1: int(20) :?
+                    }
           arg2:
             "x" :string
           arg3:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                ._1 :i32
-                  [i32, i32] {
-                    _0: int(10) :?
-                    _1: int(20) :?
-                  }
+                cast → i64
+                  ._1 :i32
+                    [i32, i32] {
+                      _0: int(10) :?
+                      _1: int(20) :?
+                    }
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -68,7 +70,7 @@
             arg1:
               call :string
                 callee:
-                  std_core$f64$Display$to_string :string
+                  format_f64 :fn(f64) -> string
                 arg0:
                   ._0 :f64
                     [f64, f64, string] {
@@ -91,7 +93,7 @@
             arg1:
               call :string
                 callee:
-                  std_core$f64$Display$to_string :string
+                  format_f64 :fn(f64) -> string
                 arg0:
                   ._1 :f64
                     [f64, f64, string] {

@@ -31,9 +31,10 @@
           arg1:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                LoweredArrayLen
+                cast → u64
+                  LoweredArrayLen
     block :void
       let __for_arr_0: i32[] = s1 :i32[]
       let __for_len_1: usize =
@@ -58,9 +59,10 @@
               arg1:
                 call :string
                   callee:
-                    std_core$i32$Display$to_string :string
+                    format_signed :fn(i64) -> string
                   arg0:
-                    v :i32
+                    cast → i64
+                      v :i32
         assign
           target:
             __for_i_2 :usize
@@ -96,9 +98,10 @@
           arg1:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                LoweredArrayLen
+                cast → u64
+                  LoweredArrayLen
     block :void
       let __for_arr_3: i32[] = s2 :i32[]
       let __for_len_4: usize =
@@ -123,9 +126,10 @@
               arg1:
                 call :string
                   callee:
-                    std_core$i32$Display$to_string :string
+                    format_signed :fn(i64) -> string
                   arg0:
-                    v :i32
+                    cast → i64
+                      v :i32
         assign
           target:
             __for_i_5 :usize
@@ -182,9 +186,10 @@
           arg1:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                LoweredArrayLen
+                cast → u64
+                  LoweredArrayLen
     block :void
       let __for_arr_7: i32[] = s3 :i32[]
       let __for_len_8: usize =
@@ -209,9 +214,10 @@
               arg1:
                 call :string
                   callee:
-                    std_core$i32$Display$to_string :string
+                    format_signed :fn(i64) -> string
                   arg0:
-                    v :i32
+                    cast → i64
+                      v :i32
         assign
           target:
             __for_i_9 :usize
@@ -242,9 +248,10 @@
           arg1:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                LoweredArrayLen
+                cast → u64
+                  LoweredArrayLen
     block :void
       let __for_arr_10: i32[] = s4 :i32[]
       let __for_len_11: usize =
@@ -269,9 +276,10 @@
               arg1:
                 call :string
                   callee:
-                    std_core$i32$Display$to_string :string
+                    format_signed :fn(i64) -> string
                   arg0:
-                    v :i32
+                    cast → i64
+                      v :i32
         assign
           target:
             __for_i_12 :usize
@@ -303,7 +311,8 @@
           arg1:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                LoweredArrayLen
+                cast → u64
+                  LoweredArrayLen
     return int(0) :i32

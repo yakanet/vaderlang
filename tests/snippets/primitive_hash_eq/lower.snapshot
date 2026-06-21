@@ -17,13 +17,10 @@
           arg1:
             call :string
               callee:
-                std_core$u64$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                call :u64
-                  callee:
-                    std_core$i32$Hash$hash :u64
-                  arg0:
-                    a :i32
+                cast → u64
+                  a :i32
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -34,10 +31,8 @@
           arg0:
             "a == b : " :string
           arg1:
-            call :string
-              callee:
-                std_core$bool$Display$to_string :string
-              arg0:
+            if :string
+              cond:
                 call :bool
                   callee:
                     std_core$i32$Equals$equals :bool
@@ -45,6 +40,12 @@
                     a :i32
                   arg1:
                     b :i32
+              then:
+                ~>
+                  "true" :string
+              else:
+                ~>
+                  "false" :string
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -55,10 +56,8 @@
           arg0:
             "a == c : " :string
           arg1:
-            call :string
-              callee:
-                std_core$bool$Display$to_string :string
-              arg0:
+            if :string
+              cond:
                 call :bool
                   callee:
                     std_core$i32$Equals$equals :bool
@@ -66,6 +65,12 @@
                     a :i32
                   arg1:
                     c :i32
+              then:
+                ~>
+                  "true" :string
+              else:
+                ~>
+                  "false" :string
     let n: usize = int(100) :usize
     call :void
       callee:
@@ -79,11 +84,8 @@
           arg1:
             call :string
               callee:
-                std_core$u64$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                call :u64
-                  callee:
-                    std_core$usize$Hash$hash :u64
-                  arg0:
-                    n :usize
+                cast → u64
+                  n :usize
     return int(0) :i32

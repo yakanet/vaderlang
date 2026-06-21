@@ -16,10 +16,11 @@
         arg1:
           call :string
             callee:
-              std_core$i32$Display$to_string :string
+              format_signed :fn(i64) -> string
             arg0:
-              .value :i32
-                self :UserId
+              cast → i64
+                .value :i32
+                  self :UserId
   fn snippet$take_i32(x: i32) -> i32
     return
       add :i32
@@ -29,11 +30,8 @@
           int(1) :i32
   fn snippet$get_id(u: UserId) -> i32
     return
-      call :i32
-        callee:
-          snippet$UserId$Into$into :i32
-        arg0:
-          u :UserId
+      .value :i32
+        u :UserId
   struct snippet$Pair { tag: string, n: i32 }
   fn snippet$main() -> i32
     let u: UserId =
@@ -52,23 +50,18 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    take_i32 :fn(i32) -> i32
-                  arg0:
-                    call :i32
-                      callee:
-                        snippet$UserId$Into$into :i32
-                      arg0:
+                cast → i64
+                  call :i32
+                    callee:
+                      take_i32 :fn(i32) -> i32
+                    arg0:
+                      .value :i32
                         u :UserId
     let n: i32 =
-      call :i32
-        callee:
-          snippet$UserId$Into$into :i32
-        arg0:
-          u :UserId
+      .value :i32
+        u :UserId
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -81,9 +74,10 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                n :i32
+                cast → i64
+                  n :i32
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -96,27 +90,33 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    get_id :fn(UserId) -> i32
-                  arg0:
-                    u :UserId
+                cast → i64
+                  call :i32
+                    callee:
+                      get_id :fn(UserId) -> i32
+                    arg0:
+                      u :UserId
     let p: Pair =
       Pair {
         tag:
           call :string
             callee:
-              snippet$UserId$Into$into_1 :string
+              concat2 :string
             arg0:
-              u :UserId
+              "user_" :string
+            arg1:
+              call :string
+                callee:
+                  format_signed :fn(i64) -> string
+                arg0:
+                  cast → i64
+                    .value :i32
+                      u :UserId
         n:
-          call :i32
-            callee:
-              snippet$UserId$Into$into :i32
-            arg0:
-              u :UserId
+          .value :i32
+            u :UserId
       }
     call :void
       callee:
@@ -135,8 +135,9 @@
           arg3:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                .n :i32
-                  p :Pair
+                cast → i64
+                  .n :i32
+                    p :Pair
     return int(0) :i32

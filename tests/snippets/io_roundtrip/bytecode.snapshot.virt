@@ -14,10 +14,10 @@ type 11 union 10,0
 string 0 "/tmp/vader_io_roundtrip.txt"
 string 1 "hello from vader"
 string 2 "exists: "
-string 3 "read: "
-string 4 "read failed"
-string 5 "true"
-string 6 "false"
+string 3 "true"
+string 4 "false"
+string 5 "read: "
+string 6 "read failed"
 string 7 "\n"
 import 0 bytes std_core$bytes (string) -> ref
 import 1 write std_io$write (i32,string) -> void
@@ -29,7 +29,7 @@ export main 0
 
 fn 0 snippet$main () -> i32
   local path string
-  local $call_6 string
+  local if_res string
   local contents ref
   local __scrut_0 ref
   string.const 0
@@ -40,63 +40,45 @@ fn 0 snippet$main () -> i32
   drop
   local.get 0
   call.import 4
-  call 1
-  local.set 1
+  if $L0 void
+    string.const 3
+    local.set 1
+  else
+    string.const 4
+    local.set 1
+  end $L0
   string.const 2
   local.get 1
-  call 4
-  call 3
+  call 2
+  call 1
   local.get 0
   call.import 2
   local.tee 2
   local.tee 3
   type_check 4
-  if $L0 void
+  if $L1 void
     local.get 2
     ref.cast 4
     local.set 0
-    string.const 3
+    string.const 5
     local.get 0
-    call 4
-    call 3
-    return.lit i32.const 0
-  end $L0
-  local.get 3
-  type_check 10
-  if $L1 void
-    string.const 4
-    call 3
+    call 2
+    call 1
     return.lit i32.const 0
   end $L1
-  return
-end
-
-fn 1 std_core$bool$Display$to_string (bool) -> string
-  local if_res string
-  local.get 0
-  if $L0 void
-    string.const 5
-    local.set 1
-  else
+  local.get 3
+  type_check 10
+  if $L2 void
     string.const 6
-    local.set 1
-  end $L0
-  local.get 1
+    call 1
+    return.lit i32.const 0
+  end $L2
   return
 end
 
-fn 2 std_core$string$Display$to_string (string) -> string
-  local.get 0
-  return
-end
-
-fn 3 std_io$std_io$println__string (string) -> void
-  local $call_2 string
-  local.get 0
-  call 2
-  local.set 1
+fn 1 std_io$std_io$println__string (string) -> void
   i32.const 0
-  local.get 1
+  local.get 0
   call.import 1
   i32.const 0
   string.const 7
@@ -104,7 +86,7 @@ fn 3 std_io$std_io$println__string (string) -> void
   return
 end
 
-fn 4 std_string_builder$concat2 (string,string) -> string
+fn 2 std_string_builder$concat2 (string,string) -> string
   local la usize
   local $len_6 usize
   local buf ref
@@ -121,38 +103,38 @@ fn 4 std_string_builder$concat2 (string,string) -> string
   local.get 3
   i64.add
   local.tee 3
-  call 5
+  call 3
   local.set 4
   i64.const 0
   local.set 5
   local.get 4
   local.get 5
   local.get 0
-  call 7
+  call 5
   local.get 4
   local.get 2
   local.get 1
-  call 7
+  call 5
   local.get 4
   local.get 3
-  call 6
+  call 4
   return
 end
 
-fn 5 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 3 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   object_new 0
   return
 end
 
-fn 6 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 4 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
   buffer_to_string
   return
 end
 
-fn 7 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 5 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0
   local.get 1
   local.get 2

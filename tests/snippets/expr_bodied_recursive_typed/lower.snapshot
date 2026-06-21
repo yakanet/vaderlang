@@ -76,23 +76,25 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    fact :fn(i32) -> i32
-                  arg0:
-                    int(5) :i32
+                cast → i64
+                  call :i32
+                    callee:
+                      fact :fn(i32) -> i32
+                    arg0:
+                      int(5) :i32
           arg2:
             " fib(10)=" :string
           arg3:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    fib :fn(i32) -> i32
-                  arg0:
-                    int(10) :i32
+                cast → i64
+                  call :i32
+                    callee:
+                      fib :fn(i32) -> i32
+                    arg0:
+                      int(10) :i32
     return int(0) :i32

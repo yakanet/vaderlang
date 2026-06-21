@@ -19,13 +19,14 @@
           arg1:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                call :usize
-                  callee:
-                    std_iter$std_iter$count__i32 :usize
-                  arg0:
-                    nums :i32[]
+                cast → u64
+                  call :usize
+                    callee:
+                      std_iter$std_iter$count__i32 :usize
+                    arg0:
+                      nums :i32[]
     let cloned: i32[] =
       call :i32[]
         callee:
@@ -44,13 +45,14 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                index :i32
-                  on:
-                    cloned :i32[]
-                  ix:
-                    int(0) :i32
+                cast → i64
+                  index :i32
+                    on:
+                      cloned :i32[]
+                    ix:
+                      int(0) :i32
     let keys: string[] =
       array :string[]
         "a" :string
@@ -103,9 +105,10 @@
               arg2:
                 call :string
                   callee:
-                    std_core$i32$Display$to_string :string
+                    format_signed :fn(i64) -> string
                   arg0:
-                    v :i32
+                    cast → i64
+                      v :i32
         assign
           target:
             __for_i_2 :usize
@@ -156,9 +159,10 @@
               arg1:
                 call :string
                   callee:
-                    std_core$i32$Display$to_string :string
+                    format_signed :fn(i64) -> string
                   arg0:
-                    x :i32
+                    cast → i64
+                      x :i32
         assign
           target:
             __for_i_6 :usize
@@ -207,9 +211,10 @@
               arg0:
                 call :string
                   callee:
-                    std_core$usize$Display$to_string :string
+                    format_unsigned :fn(u64) -> string
                   arg0:
-                    i :usize
+                    cast → u64
+                      i :usize
               arg1:
                 ": " :string
               arg2:
@@ -258,9 +263,10 @@
               arg1:
                 call :string
                   callee:
-                    std_core$i32$Display$to_string :string
+                    format_signed :fn(i64) -> string
                   arg0:
-                    n :i32
+                    cast → i64
+                      n :i32
         assign
           target:
             __for_i_14 :usize

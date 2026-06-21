@@ -68,51 +68,37 @@
       "members": [
         {
           "kind": "FnDecl",
-          "name": "message",
-          "visibility": "private",
+          "name": "",
+          "visibility": "public",
           "typeParams": [],
-          "params": [
-            {
-              "name": "self",
-              "type": null,
-              "defaultValue": null,
-              "variadic": false
-            }
-          ],
-          "returnType": {
-            "kind": "IdentExpr",
-            "name": "string"
-          },
+          "params": [],
+          "returnType": null,
           "body": {
             "kind": "BlockExpr",
-            "stmts": [
-              {
-                "kind": "ReturnStmt",
-                "value": {
-                  "kind": "StringLitExpr",
-                  "parts": [
-                    {
-                      "kind": "text",
-                      "value": "parse: "
+            "stmts": [],
+            "trailing": {
+              "kind": "StringLitExpr",
+              "parts": [
+                {
+                  "kind": "text",
+                  "value": "parse: "
+                },
+                {
+                  "kind": "interp",
+                  "expr": {
+                    "kind": "FieldExpr",
+                    "target": {
+                      "kind": "IdentExpr",
+                      "name": "self"
                     },
-                    {
-                      "kind": "interp",
-                      "expr": {
-                        "kind": "FieldExpr",
-                        "target": {
-                          "kind": "IdentExpr",
-                          "name": "self"
-                        },
-                        "field": "msg"
-                      }
-                    }
-                  ]
+                    "field": "msg"
+                  }
                 }
-              }
-            ],
-            "trailing": null
+              ]
+            }
           },
-          "decorators": []
+          "decorators": [],
+          "samSynthetic": true
         }
       ],
       "decorators": []
@@ -129,51 +115,37 @@
       "members": [
         {
           "kind": "FnDecl",
-          "name": "message",
-          "visibility": "private",
+          "name": "",
+          "visibility": "public",
           "typeParams": [],
-          "params": [
-            {
-              "name": "self",
-              "type": null,
-              "defaultValue": null,
-              "variadic": false
-            }
-          ],
-          "returnType": {
-            "kind": "IdentExpr",
-            "name": "string"
-          },
+          "params": [],
+          "returnType": null,
           "body": {
             "kind": "BlockExpr",
-            "stmts": [
-              {
-                "kind": "ReturnStmt",
-                "value": {
-                  "kind": "StringLitExpr",
-                  "parts": [
-                    {
-                      "kind": "text",
-                      "value": "net: "
+            "stmts": [],
+            "trailing": {
+              "kind": "StringLitExpr",
+              "parts": [
+                {
+                  "kind": "text",
+                  "value": "net: "
+                },
+                {
+                  "kind": "interp",
+                  "expr": {
+                    "kind": "FieldExpr",
+                    "target": {
+                      "kind": "IdentExpr",
+                      "name": "self"
                     },
-                    {
-                      "kind": "interp",
-                      "expr": {
-                        "kind": "FieldExpr",
-                        "target": {
-                          "kind": "IdentExpr",
-                          "name": "self"
-                        },
-                        "field": "reason"
-                      }
-                    }
-                  ]
+                    "field": "reason"
+                  }
                 }
-              }
-            ],
-            "trailing": null
+              ]
+            }
           },
-          "decorators": []
+          "decorators": [],
+          "samSynthetic": true
         }
       ],
       "decorators": []

@@ -39,11 +39,8 @@
         callee:
           double :fn(i32) -> i32
         arg0:
-          call :i32
-            callee:
-              snippet$UserId$Into$into :i32
-            arg0:
-              u :UserId
+          .value :i32
+            u :UserId
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -56,9 +53,10 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                a :i32
+                cast → i64
+                  a :i32
     let b: i32 =
       call :i32
         callee:
@@ -77,7 +75,8 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                b :i32
+                cast → i64
+                  b :i32
     return int(0) :i32

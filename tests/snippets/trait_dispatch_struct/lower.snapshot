@@ -19,14 +19,14 @@
     return
       add :i32
         l:
-          call :i32
-            callee:
-              snippet$i32$Tagger$tag :i32
-            arg0:
+          mul :i32
+            l:
               x :i32
+            r:
+              int(10) :i32
         r:
-          call :i32
-            callee:
-              snippet$i32$Tagger$tag :i32
-            arg0:
+          mul :i32
+            l:
               x :i32
+            r:
+              int(10) :i32

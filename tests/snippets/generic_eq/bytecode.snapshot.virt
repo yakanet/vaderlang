@@ -11,16 +11,31 @@ import 0 write std_io$write (i32,string) -> void
 export main 0
 
 fn 0 snippet$main () -> i32
+  local if_res string
   i32.const 1
   i32.const 1
   call 1
+  if $L0 void
+    string.const 0
+    local.set 0
+  else
+    string.const 1
+    local.set 0
+  end $L0
+  local.get 0
   call 2
-  call 4
   i32.const 1
   i32.const 2
   call 1
+  if $L1 void
+    string.const 0
+    local.set 0
+  else
+    string.const 1
+    local.set 0
+  end $L1
+  local.get 0
   call 2
-  call 4
   return.lit i32.const 0
 end
 
@@ -31,32 +46,9 @@ fn 1 snippet$snippet$are_eq__i32 (i32,i32) -> bool
   return
 end
 
-fn 2 std_core$bool$Display$to_string (bool) -> string
-  local if_res string
-  local.get 0
-  if $L0 void
-    string.const 0
-    local.set 1
-  else
-    string.const 1
-    local.set 1
-  end $L0
-  local.get 1
-  return
-end
-
-fn 3 std_core$string$Display$to_string (string) -> string
-  local.get 0
-  return
-end
-
-fn 4 std_io$std_io$println__string (string) -> void
-  local $call_2 string
-  local.get 0
-  call 3
-  local.set 1
+fn 2 std_io$std_io$println__string (string) -> void
   i32.const 0
-  local.get 1
+  local.get 0
   call.import 0
   i32.const 0
   string.const 2

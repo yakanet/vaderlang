@@ -103,10 +103,8 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            std_core$bool$Display$to_string :string
-          arg0:
+        if :string
+          cond:
             call :bool
               callee:
                 same_color :fn(Color, Color) -> bool
@@ -114,14 +112,18 @@
                 int(0) :i32
               arg1:
                 int(0) :i32
+          then:
+            ~>
+              "true" :string
+          else:
+            ~>
+              "false" :string
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            std_core$bool$Display$to_string :string
-          arg0:
+        if :string
+          cond:
             call :bool
               callee:
                 same_color :fn(Color, Color) -> bool
@@ -129,32 +131,46 @@
                 int(0) :i32
               arg1:
                 int(2) :i32
+          then:
+            ~>
+              "true" :string
+          else:
+            ~>
+              "false" :string
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            std_core$bool$Display$to_string :string
-          arg0:
+        if :string
+          cond:
             neq :bool
               l:
                 c :Color
               r:
                 int(0) :i32
+          then:
+            ~>
+              "true" :string
+          else:
+            ~>
+              "false" :string
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            std_core$bool$Display$to_string :string
-          arg0:
+        if :string
+          cond:
             neq :bool
               l:
                 c :Color
               r:
                 int(1) :i32
+          then:
+            ~>
+              "true" :string
+          else:
+            ~>
+              "false" :string
     let s: Severity =
       call :Severity
         callee:

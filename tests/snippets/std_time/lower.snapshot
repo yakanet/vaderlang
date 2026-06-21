@@ -344,10 +344,8 @@
           arg0:
             "monotonic>=0=" :string
           arg1:
-            call :string
-              callee:
-                std_core$bool$Display$to_string :string
-              arg0:
+            if :string
+              cond:
                 gte :bool
                   l:
                     .ns :i64
@@ -355,4 +353,10 @@
                   r:
                     cast → i64
                       int(0) :i64
+              then:
+                ~>
+                  "true" :string
+              else:
+                ~>
+                  "false" :string
     return int(0) :i32

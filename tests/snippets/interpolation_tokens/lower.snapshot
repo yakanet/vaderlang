@@ -34,13 +34,17 @@
       arg1:
         call :string
           callee:
-            concat2 :string
+            std_core$string$Display$to_string :string
           arg0:
-            "inner " :string
-          arg1:
-            vcall Display.to_string :string
-              recv:
-                unreachable("unresolved ident y") :?
+            call :string
+              callee:
+                concat2 :string
+              arg0:
+                "inner " :string
+              arg1:
+                vcall Display.to_string :string
+                  recv:
+                    unreachable("unresolved ident y") :?
 
 # Diagnostics
 [3:26] error[R2006] unresolved identifier: `name`

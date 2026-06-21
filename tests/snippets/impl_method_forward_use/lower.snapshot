@@ -4,11 +4,12 @@
   struct snippet$Counter { n: i32 }
   fn snippet$run(c: Counter) -> i32
     ~>
-      call :i32
-        callee:
-          snippet$Counter$Bump$bump :i32
-        arg0:
-          c :Counter
+      add :i32
+        l:
+          .n :i32
+            c :Counter
+        r:
+          int(1) :i32
   fn snippet$Counter$Bump$bump(self: Counter) -> i32
     ~>
       add :i32
@@ -30,13 +31,14 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    run :fn(Counter) -> i32
-                  arg0:
-                    Counter {
-                      n: int(41) :i32
-                    }
+                cast → i64
+                  call :i32
+                    callee:
+                      run :fn(Counter) -> i32
+                    arg0:
+                      Counter {
+                        n: int(41) :i32
+                      }
     return int(0) :i32

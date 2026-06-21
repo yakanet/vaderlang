@@ -11,9 +11,7 @@ export IOError :: struct {
     msg: string
 }
 
-IOError implements Error {
-    message :: fn(self) -> string { return self.msg }
-}
+IOError implements Error -> self.msg
 
 // Module-private target stream picked by the four `print` / `println` /
 // `eprint` / `eprintln` wrappers below. Kept unexported : the only

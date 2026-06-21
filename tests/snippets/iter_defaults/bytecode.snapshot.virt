@@ -117,7 +117,7 @@ fn 2 snippet$main () -> i32
   i32.const 0
   struct.new 8
   call 5
-  call 20
+  call 13
   i32.const 10
   i32.const 15
   bool.const true
@@ -129,7 +129,7 @@ fn 2 snippet$main () -> i32
   if $L0 void
     local.get 0
     ref.cast 7
-    call 18
+    call 11
     i32.const 0
     local.set 1
     i32.const 0
@@ -144,7 +144,7 @@ fn 2 snippet$main () -> i32
     local.get 4
     struct.new 8
     call 4
-    call 17
+    call 10
     i32.const 0
     local.set 5
     i32.const 5
@@ -159,18 +159,18 @@ fn 2 snippet$main () -> i32
     local.get 8
     struct.new 8
     call 4
-    call 17
+    call 10
     i32.const 3
     struct.new 1
     call 1
-    call 20
+    call 13
     return.lit i32.const 0
   end $L0
   local.get 0
   type_check 0
   if $L1 void
     string.const 0
-    call 19
+    call 12
     i32.const 0
     local.set 1
     i32.const 0
@@ -185,7 +185,7 @@ fn 2 snippet$main () -> i32
     local.get 4
     struct.new 8
     call 4
-    call 17
+    call 10
     i32.const 0
     local.set 5
     i32.const 5
@@ -200,11 +200,11 @@ fn 2 snippet$main () -> i32
     local.get 8
     struct.new 8
     call 4
-    call 17
+    call 10
     i32.const 3
     struct.new 1
     call 1
-    call 20
+    call 13
     return.lit i32.const 0
   end $L1
   return
@@ -225,7 +225,11 @@ fn 3 std_core$Range$Iterator$next__i32 (ref) -> ref
     local.set 3
     local.get 2
     local.get 3
-    call 12
+    call 7
+    local.set 2
+    local.get 2
+    i32.const 0
+    i32.gt
     local.set 1
   else
     local.field 0 8 3
@@ -236,7 +240,11 @@ fn 3 std_core$Range$Iterator$next__i32 (ref) -> ref
     local.set 3
     local.get 2
     local.get 3
-    call 13
+    call 7
+    local.set 2
+    local.get 2
+    i32.const 0
+    i32.ge
     local.set 1
   end $L0
   local.get 1
@@ -250,7 +258,10 @@ fn 3 std_core$Range$Iterator$next__i32 (ref) -> ref
   local.set 2
   local.field 0 8 3
   ref.cast 7
-  call 14
+  local.set 3
+  local.get 3
+  i32.const 1
+  i32.add
   local.set 3
   local.get 0
   local.get 3
@@ -360,40 +371,7 @@ fn 6 std_core$Range$Iterator$last__i32 (ref) -> ref
   return
 end
 
-fn 7 std_core$i32$Display$to_string (i32) -> string
-  local.get 0
-  i32.to_i64
-  call 15
-  return
-end
-
-fn 8 std_core$usize$Display$to_string (usize) -> string
-  local.get 0
-  usize.to_i64
-  call 16
-  return
-end
-
-fn 9 std_core$bool$Display$to_string (bool) -> string
-  local if_res string
-  local.get 0
-  if $L0 void
-    string.const 1
-    local.set 1
-  else
-    string.const 2
-    local.set 1
-  end $L0
-  local.get 1
-  return
-end
-
-fn 10 std_core$string$Display$to_string (string) -> string
-  local.get 0
-  return
-end
-
-fn 11 std_core$i32$Comparable$compare (i32,i32) -> i32
+fn 7 std_core$i32$Comparable$compare (i32,i32) -> i32
   local if_res i32
   local if_res i32
   local.get 0
@@ -444,58 +422,7 @@ fn 11 std_core$i32$Comparable$compare (i32,i32) -> i32
   return
 end
 
-fn 12 std_core$i32$Comparable$gt (i32,i32) -> bool
-  local $call_2 i32
-  local.get 0
-  local.get 1
-  call 11
-  local.set 2
-  local.get 2
-  i32.const 0
-  i32.gt
-  return
-  local.get 0
-  local.get 1
-  call 11
-  local.set 2
-  local.get 2
-  i32.const 0
-  i32.gt
-  return
-end
-
-fn 13 std_core$i32$Comparable$gte (i32,i32) -> bool
-  local $call_2 i32
-  local.get 0
-  local.get 1
-  call 11
-  local.set 2
-  local.get 2
-  i32.const 0
-  i32.ge
-  return
-  local.get 0
-  local.get 1
-  call 11
-  local.set 2
-  local.get 2
-  i32.const 0
-  i32.ge
-  return
-end
-
-fn 14 std_core$i32$Step$step (i32) -> i32
-  local.get 0
-  i32.const 1
-  i32.add
-  return
-  local.get 0
-  i32.const 1
-  i32.add
-  return
-end
-
-fn 15 std_core$format_signed (i64) -> string
+fn 8 std_core$format_signed (i64) -> string
   local neg bool
   local ndigits usize
   local m i64
@@ -563,7 +490,7 @@ fn 15 std_core$format_signed (i64) -> string
   end $L5
   local.get 4
   local.tee 2
-  call 21
+  call 14
   local.set 6
   local.get 2
   local.set 4
@@ -594,7 +521,7 @@ fn 15 std_core$format_signed (i64) -> string
         local.get 6
         local.get 4
         local.get 9
-        call 22
+        call 15
         local.get 0
         i64.const 10
         i64.div
@@ -613,16 +540,16 @@ fn 15 std_core$format_signed (i64) -> string
     local.get 6
     local.get 4
     local.get 7
-    call 22
+    call 15
   else
   end $L9
   local.get 6
   local.get 2
-  call 23
+  call 16
   return
 end
 
-fn 16 std_core$format_unsigned (u64) -> string
+fn 9 std_core$format_unsigned (u64) -> string
   local $k_1 u64
   local ndigits usize
   local $k_7 u64
@@ -671,7 +598,7 @@ fn 16 std_core$format_unsigned (u64) -> string
     end $L2
   end $L1
   local.get 2
-  call 21
+  call 14
   local.set 6
   local.get 2
   local.set 4
@@ -705,7 +632,7 @@ fn 16 std_core$format_unsigned (u64) -> string
         local.get 6
         local.get 4
         local.get 10
-        call 22
+        call 15
         i64.const 10
         local.set 5
         local.get 0
@@ -719,15 +646,20 @@ fn 16 std_core$format_unsigned (u64) -> string
   end $L4
   local.get 6
   local.get 2
-  call 23
+  call 16
   return
 end
 
-fn 17 std_io$std_io$println__bool (bool) -> void
-  local $call_2 string
+fn 10 std_io$std_io$println__bool (bool) -> void
+  local if_res string
   local.get 0
-  call 9
-  local.set 1
+  if $L0 void
+    string.const 1
+    local.set 1
+  else
+    string.const 2
+    local.set 1
+  end $L0
   i32.const 0
   local.get 1
   call.import 0
@@ -737,37 +669,10 @@ fn 17 std_io$std_io$println__bool (bool) -> void
   return
 end
 
-fn 18 std_io$std_io$println__i32 (i32) -> void
-  local $call_2 string
+fn 11 std_io$std_io$println__i32 (i32) -> void
+  local $call_3 string
   local.get 0
-  call 7
-  local.set 1
-  i32.const 0
-  local.get 1
-  call.import 0
-  i32.const 0
-  string.const 4
-  call.import 0
-  return
-end
-
-fn 19 std_io$std_io$println__string (string) -> void
-  local $call_2 string
-  local.get 0
-  call 10
-  local.set 1
-  i32.const 0
-  local.get 1
-  call.import 0
-  i32.const 0
-  string.const 4
-  call.import 0
-  return
-end
-
-fn 20 std_io$std_io$println__usize (usize) -> void
-  local $call_2 string
-  local.get 0
+  i32.to_i64
   call 8
   local.set 1
   i32.const 0
@@ -779,13 +684,38 @@ fn 20 std_io$std_io$println__usize (usize) -> void
   return
 end
 
-fn 21 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 12 std_io$std_io$println__string (string) -> void
+  i32.const 0
+  local.get 0
+  call.import 0
+  i32.const 0
+  string.const 4
+  call.import 0
+  return
+end
+
+fn 13 std_io$std_io$println__usize (usize) -> void
+  local $call_3 string
+  local.get 0
+  usize.to_i64
+  call 9
+  local.set 1
+  i32.const 0
+  local.get 1
+  call.import 0
+  i32.const 0
+  string.const 4
+  call.import 0
+  return
+end
+
+fn 14 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   object_new 0
   return
 end
 
-fn 22 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
+fn 15 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   local.get 0
   local.get 1
   local.get 2
@@ -793,7 +723,7 @@ fn 22 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   return
 end
 
-fn 23 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 16 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
   buffer_to_string

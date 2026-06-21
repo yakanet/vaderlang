@@ -107,9 +107,10 @@
                     arg2:
                       call :string
                         callee:
-                          std_core$i32$Display$to_string :string
+                          format_signed :fn(i64) -> string
                         arg0:
-                          got :i32
+                          cast → i64
+                            got :i32
           else:
             ~>
               call :void
@@ -144,8 +145,9 @@
           arg1:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                .size :usize
-                  m :MutableMap<string, i32>
+                cast → u64
+                  .size :usize
+                    m :MutableMap<string, i32>
     return int(0) :i32

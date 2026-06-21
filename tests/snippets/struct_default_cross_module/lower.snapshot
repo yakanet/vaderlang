@@ -24,10 +24,11 @@
           arg3:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                .id :usize
-                  n :Node
+                cast → u64
+                  .id :usize
+                    n :Node
     return
       cast → i32
         .id :usize

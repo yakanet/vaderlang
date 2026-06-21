@@ -33,7 +33,7 @@ fn 0 snippet$main () -> i32
   local x any
   local n any
   local do_panic ref
-  local $call_15 string
+  local $call_16 string
   string.const 0
   struct.new 13
   local.tee 0
@@ -41,7 +41,7 @@ fn 0 snippet$main () -> i32
   make_closure 2 14
   call.indirect 14
   string.const 1
-  call 7
+  call 5
   i32.const 5
   struct.new 15
   local.set 1
@@ -52,18 +52,19 @@ fn 0 snippet$main () -> i32
   local.set 2
   local.get 2
   call.indirect 16
+  i32.to_i64
   call 4
   local.set 3
   string.const 2
   local.get 3
-  call 8
-  call 7
+  call 6
+  call 5
   return.lit i32.const 0
 end
 
 fn 1 __defer_4 (ref) -> void
   string.const 3
-  call 7
+  call 5
   return
 end
 
@@ -78,19 +79,7 @@ fn 3 __lambda_11 (ref) -> i32
   return
 end
 
-fn 4 std_core$i32$Display$to_string (i32) -> string
-  local.get 0
-  i32.to_i64
-  call 6
-  return
-end
-
-fn 5 std_core$string$Display$to_string (string) -> string
-  local.get 0
-  return
-end
-
-fn 6 std_core$format_signed (i64) -> string
+fn 4 std_core$format_signed (i64) -> string
   local neg bool
   local ndigits usize
   local m i64
@@ -158,7 +147,7 @@ fn 6 std_core$format_signed (i64) -> string
   end $L5
   local.get 4
   local.tee 2
-  call 9
+  call 7
   local.set 6
   local.get 2
   local.set 4
@@ -189,7 +178,7 @@ fn 6 std_core$format_signed (i64) -> string
         local.get 6
         local.get 4
         local.get 9
-        call 12
+        call 10
         local.get 0
         i64.const 10
         i64.div
@@ -208,22 +197,18 @@ fn 6 std_core$format_signed (i64) -> string
     local.get 6
     local.get 4
     local.get 7
-    call 12
+    call 10
   else
   end $L9
   local.get 6
   local.get 2
-  call 10
+  call 8
   return
 end
 
-fn 7 std_io$std_io$println__string (string) -> void
-  local $call_2 string
-  local.get 0
-  call 5
-  local.set 1
+fn 5 std_io$std_io$println__string (string) -> void
   i32.const 0
-  local.get 1
+  local.get 0
   call.import 1
   i32.const 0
   string.const 7
@@ -231,7 +216,7 @@ fn 7 std_io$std_io$println__string (string) -> void
   return
 end
 
-fn 8 std_string_builder$concat2 (string,string) -> string
+fn 6 std_string_builder$concat2 (string,string) -> string
   local la usize
   local $len_6 usize
   local buf ref
@@ -248,38 +233,38 @@ fn 8 std_string_builder$concat2 (string,string) -> string
   local.get 3
   i64.add
   local.tee 3
-  call 9
+  call 7
   local.set 4
   i64.const 0
   local.set 5
   local.get 4
   local.get 5
   local.get 0
-  call 11
+  call 9
   local.get 4
   local.get 2
   local.get 1
-  call 11
+  call 9
   local.get 4
   local.get 3
-  call 10
+  call 8
   return
 end
 
-fn 9 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 7 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   object_new 0
   return
 end
 
-fn 10 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 8 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
   buffer_to_string
   return
 end
 
-fn 11 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 9 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0
   local.get 1
   local.get 2
@@ -287,7 +272,7 @@ fn 11 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   return
 end
 
-fn 12 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
+fn 10 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   local.get 0
   local.get 1
   local.get 2

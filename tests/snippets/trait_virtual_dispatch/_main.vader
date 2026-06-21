@@ -9,12 +9,8 @@ import "std/io" { println }
 export ParseErr :: struct { msg: string }
 export NetErr   :: struct { reason: string }
 
-ParseErr implements Error {
-    message :: fn(self) -> string { return "parse: ${self.msg}" }
-}
-NetErr implements Error {
-    message :: fn(self) -> string { return "net: ${self.reason}" }
-}
+ParseErr implements Error -> "parse: ${self.msg}"
+NetErr implements Error -> "net: ${self.reason}"
 
 export report :: fn(e: Error) -> string {
     return e.message()

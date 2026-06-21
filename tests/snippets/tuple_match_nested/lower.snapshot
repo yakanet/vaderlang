@@ -49,9 +49,10 @@
                 arg1:
                   call :string
                     callee:
-                      std_core$i32$Display$to_string :string
+                      format_signed :fn(i64) -> string
                     arg0:
-                      id :i32
+                      cast → i64
+                        id :i32
               call :void
                 callee:
                   append :void
@@ -79,11 +80,15 @@
                 arg0:
                   __sb_1 :StringBuilder
                 arg1:
-                  call :string
-                    callee:
-                      std_core$bool$Display$to_string :string
-                    arg0:
+                  if :string
+                    cond:
                       active :bool
+                    then:
+                      ~>
+                        "true" :string
+                    else:
+                      ~>
+                        "false" :string
               ~>
                 call :string
                   callee:

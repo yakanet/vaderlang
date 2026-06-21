@@ -137,34 +137,37 @@ static int32_t snippet_mixed_loops(int32_t l0) {
 
 static bool std_core_Range_Contains_contains__i32(vader_box_t l0, int32_t l1) {
     int32_t l2;
-    int32_t t0, t3, t5;
-    bool t1, t2, t4, t6;
+    int32_t t0, t1, t3, t4, t5, t6;
+    bool t2;
     t0 = (int32_t) ((vader_struct_std_core_Range__i32_t*) l0.payload.obj)->f_start;
     l2 = t0;
-    t1 = std_core_i32_Comparable_lt(l1, l2);
-    if (t1) {
+    t1 = std_core_i32_Comparable_compare(l1, l2);
+    l2 = t1;
+    if ((l2 < INT32_C(0))) {
         return false;
     }
     t2 = (bool) ((vader_struct_std_core_Range__i32_t*) l0.payload.obj)->f_inclusive;
     if (t2) {
         t3 = (int32_t) ((vader_struct_std_core_Range__i32_t*) l0.payload.obj)->f_end;
         l2 = t3;
-        t4 = std_core_i32_Comparable_lte(l1, l2);
-        return t4;
+        t4 = std_core_i32_Comparable_compare(l1, l2);
+        l2 = t4;
+        return (l2 <= INT32_C(0));
     }
     t5 = (int32_t) ((vader_struct_std_core_Range__i32_t*) l0.payload.obj)->f_end;
     l2 = t5;
-    t6 = std_core_i32_Comparable_lt(l1, l2);
-    return t6;
+    t6 = std_core_i32_Comparable_compare(l1, l2);
+    l2 = t6;
+    return (l2 < INT32_C(0));
 }
 
 static vader_box_t std_core_Range_Iterator_next__i32(vader_box_t l0) {
     bool l1;
     int32_t l2, l3;
-    bool t0, t3, t6;
-    int32_t t1, t2, t4, t5, t8, t9, t10;
-    vader_box_t t7 = vader_box_null(), t11 = vader_box_null();
-    vader_box_t* gc_roots[3] = { &l0, &t7, &t11 };
+    bool t0, t4, t8;
+    int32_t t1, t2, t3, t5, t6, t7, t10, t11, t12;
+    vader_box_t t9 = vader_box_null(), t13 = vader_box_null();
+    vader_box_t* gc_roots[3] = { &l0, &t9, &t13 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
     t0 = (bool) ((vader_struct_std_core_Range__i32_t*) l0.payload.obj)->f_inclusive;
@@ -173,32 +176,37 @@ static vader_box_t std_core_Range_Iterator_next__i32(vader_box_t l0) {
         l2 = t1;
         t2 = (int32_t) ((vader_struct_std_core_Range__i32_t*) l0.payload.obj)->f_end;
         l3 = t2;
-        t3 = std_core_i32_Comparable_gt(l2, l3);
-        l1 = t3;
+        t3 = std_core_i32_Comparable_compare(l2, l3);
+        l2 = t3;
+        t4 = (l2 > INT32_C(0));
+        l1 = t4;
     } else {
-        t4 = (int32_t) ((vader_struct_std_core_Range__i32_t*) l0.payload.obj)->f_cursor;
-        l2 = t4;
-        t5 = (int32_t) ((vader_struct_std_core_Range__i32_t*) l0.payload.obj)->f_end;
-        l3 = t5;
-        t6 = std_core_i32_Comparable_gte(l2, l3);
-        l1 = t6;
+        t5 = (int32_t) ((vader_struct_std_core_Range__i32_t*) l0.payload.obj)->f_cursor;
+        l2 = t5;
+        t6 = (int32_t) ((vader_struct_std_core_Range__i32_t*) l0.payload.obj)->f_end;
+        l3 = t6;
+        t7 = std_core_i32_Comparable_compare(l2, l3);
+        l2 = t7;
+        t8 = (l2 >= INT32_C(0));
+        l1 = t8;
     }
     if (l1) {
-        t7 = vader_box_obj(0u, NULL);
-        { vader_box_t __vret = t7; vader_gc_top = gc_frame.prev; return __vret; }
+        t9 = vader_box_obj(0u, NULL);
+        { vader_box_t __vret = t9; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t8 = (int32_t) ((vader_struct_std_core_Range__i32_t*) l0.payload.obj)->f_cursor;
-    l2 = t8;
-    t9 = (int32_t) ((vader_struct_std_core_Range__i32_t*) l0.payload.obj)->f_cursor;
-    t10 = std_core_i32_Step_step(t9);
-    l3 = t10;
+    t10 = (int32_t) ((vader_struct_std_core_Range__i32_t*) l0.payload.obj)->f_cursor;
+    l2 = t10;
+    t11 = (int32_t) ((vader_struct_std_core_Range__i32_t*) l0.payload.obj)->f_cursor;
+    l3 = t11;
+    t12 = (l3 + INT32_C(1));
+    l3 = t12;
     ((vader_struct_std_core_Range__i32_t*) l0.payload.obj)->f_cursor = l3;
     VADER_WRITE_BARRIER((vader_struct_std_core_Range__i32_t*) l0.payload.obj);
     vader_struct_std_core_Yield__i32_t* _a0_obj = (vader_struct_std_core_Yield__i32_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Yield__i32_t));
     vader_obj_header_init(_a0_obj, 5u);
     _a0_obj->f_value = l2;
-    t11 = vader_box_obj(5u, _a0_obj);
-    { vader_box_t __vret = t11; vader_gc_top = gc_frame.prev; return __vret; }
+    t13 = vader_box_obj(5u, _a0_obj);
+    { vader_box_t __vret = t13; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
 
@@ -290,34 +298,42 @@ static vader_box_t std_core_Range_Iterator_last__i32(vader_box_t l0) {
 
 static bool std_core_Range_Contains_contains__usize(vader_box_t l0, size_t l1) {
     size_t l2;
+    int32_t l3;
     size_t t0, t3, t5;
-    bool t1, t2, t4, t6;
+    int32_t t1, t4, t6;
+    bool t2;
     t0 = (size_t) ((vader_struct_std_core_Range__usize_t*) l0.payload.obj)->f_start;
     l2 = t0;
-    t1 = std_core_usize_Comparable_lt(l1, l2);
-    if (t1) {
+    t1 = std_core_usize_Comparable_compare(l1, l2);
+    l3 = t1;
+    if ((l3 < INT32_C(0))) {
         return false;
     }
     t2 = (bool) ((vader_struct_std_core_Range__usize_t*) l0.payload.obj)->f_inclusive;
     if (t2) {
         t3 = (size_t) ((vader_struct_std_core_Range__usize_t*) l0.payload.obj)->f_end;
         l2 = t3;
-        t4 = std_core_usize_Comparable_lte(l1, l2);
-        return t4;
+        t4 = std_core_usize_Comparable_compare(l1, l2);
+        l3 = t4;
+        return (l3 <= INT32_C(0));
     }
     t5 = (size_t) ((vader_struct_std_core_Range__usize_t*) l0.payload.obj)->f_end;
     l2 = t5;
-    t6 = std_core_usize_Comparable_lt(l1, l2);
-    return t6;
+    t6 = std_core_usize_Comparable_compare(l1, l2);
+    l3 = t6;
+    return (l3 < INT32_C(0));
 }
 
 static vader_box_t std_core_Range_Iterator_next__usize(vader_box_t l0) {
     bool l1;
-    size_t l2, l3;
-    bool t0, t3, t6;
-    size_t t1, t2, t4, t5, t8, t9, t10;
-    vader_box_t t7 = vader_box_null(), t11 = vader_box_null();
-    vader_box_t* gc_roots[3] = { &l0, &t7, &t11 };
+    size_t l2, l3, l5;
+    int32_t l4;
+    bool t0, t4, t8;
+    size_t t1, t2, t5, t6, t10, t11;
+    int32_t t3, t7;
+    vader_box_t t9 = vader_box_null(), t13 = vader_box_null();
+    int64_t t12;
+    vader_box_t* gc_roots[3] = { &l0, &t9, &t13 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 3u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
     t0 = (bool) ((vader_struct_std_core_Range__usize_t*) l0.payload.obj)->f_inclusive;
@@ -326,32 +342,38 @@ static vader_box_t std_core_Range_Iterator_next__usize(vader_box_t l0) {
         l2 = t1;
         t2 = (size_t) ((vader_struct_std_core_Range__usize_t*) l0.payload.obj)->f_end;
         l3 = t2;
-        t3 = std_core_usize_Comparable_gt(l2, l3);
-        l1 = t3;
+        t3 = std_core_usize_Comparable_compare(l2, l3);
+        l4 = t3;
+        t4 = (l4 > INT32_C(0));
+        l1 = t4;
     } else {
-        t4 = (size_t) ((vader_struct_std_core_Range__usize_t*) l0.payload.obj)->f_cursor;
-        l2 = t4;
-        t5 = (size_t) ((vader_struct_std_core_Range__usize_t*) l0.payload.obj)->f_end;
-        l3 = t5;
-        t6 = std_core_usize_Comparable_gte(l2, l3);
-        l1 = t6;
+        t5 = (size_t) ((vader_struct_std_core_Range__usize_t*) l0.payload.obj)->f_cursor;
+        l2 = t5;
+        t6 = (size_t) ((vader_struct_std_core_Range__usize_t*) l0.payload.obj)->f_end;
+        l3 = t6;
+        t7 = std_core_usize_Comparable_compare(l2, l3);
+        l4 = t7;
+        t8 = (l4 >= INT32_C(0));
+        l1 = t8;
     }
     if (l1) {
-        t7 = vader_box_obj(0u, NULL);
-        { vader_box_t __vret = t7; vader_gc_top = gc_frame.prev; return __vret; }
+        t9 = vader_box_obj(0u, NULL);
+        { vader_box_t __vret = t9; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t8 = (size_t) ((vader_struct_std_core_Range__usize_t*) l0.payload.obj)->f_cursor;
-    l2 = t8;
-    t9 = (size_t) ((vader_struct_std_core_Range__usize_t*) l0.payload.obj)->f_cursor;
-    t10 = std_core_usize_Step_step(t9);
-    l3 = t10;
+    t10 = (size_t) ((vader_struct_std_core_Range__usize_t*) l0.payload.obj)->f_cursor;
+    l2 = t10;
+    t11 = (size_t) ((vader_struct_std_core_Range__usize_t*) l0.payload.obj)->f_cursor;
+    l3 = t11;
+    l5 = (size_t) (int64_t) INT64_C(1);
+    t12 = (l3 + l5);
+    l3 = (size_t) (int64_t) t12;
     ((vader_struct_std_core_Range__usize_t*) l0.payload.obj)->f_cursor = l3;
     VADER_WRITE_BARRIER((vader_struct_std_core_Range__usize_t*) l0.payload.obj);
     vader_struct_std_core_Yield__usize_t* _a0_obj = (vader_struct_std_core_Yield__usize_t*) vader_gc_alloc(sizeof(vader_struct_std_core_Yield__usize_t));
     vader_obj_header_init(_a0_obj, 10u);
     _a0_obj->f_value = l2;
-    t11 = vader_box_obj(10u, _a0_obj);
-    { vader_box_t __vret = t11; vader_gc_top = gc_frame.prev; return __vret; }
+    t13 = vader_box_obj(10u, _a0_obj);
+    { vader_box_t __vret = t13; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
 

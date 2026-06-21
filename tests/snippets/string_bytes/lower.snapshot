@@ -58,9 +58,10 @@
           arg1:
             call :string
               callee:
-                std_core$u32$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                sum :u32
+                cast → u64
+                  sum :u32
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -89,9 +90,10 @@
           arg0:
             call :string
               callee:
-                std_core$u8$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                b :u8
+                cast → u64
+                  b :u8
         assign
           target:
             __for_i_5 :usize
@@ -137,13 +139,14 @@
             arg1:
               call :string
                 callee:
-                  std_core$u8$Display$to_string :string
+                  format_unsigned :fn(u64) -> string
                 arg0:
-                  index :u8
-                    on:
-                      bb :const u8[]
-                    ix:
-                      int(0) :i32
+                  cast → u64
+                    index :u8
+                      on:
+                        bb :const u8[]
+                      ix:
+                        int(0) :i32
           call :void
             callee:
               append :void
@@ -159,13 +162,14 @@
             arg1:
               call :string
                 callee:
-                  std_core$u8$Display$to_string :string
+                  format_unsigned :fn(u64) -> string
                 arg0:
-                  index :u8
-                    on:
-                      bb :const u8[]
-                    ix:
-                      int(1) :i32
+                  cast → u64
+                    index :u8
+                      on:
+                        bb :const u8[]
+                      ix:
+                        int(1) :i32
           call :void
             callee:
               append :void
@@ -181,13 +185,14 @@
             arg1:
               call :string
                 callee:
-                  std_core$u8$Display$to_string :string
+                  format_unsigned :fn(u64) -> string
                 arg0:
-                  index :u8
-                    on:
-                      bb :const u8[]
-                    ix:
-                      int(2) :i32
+                  cast → u64
+                    index :u8
+                      on:
+                        bb :const u8[]
+                      ix:
+                        int(2) :i32
           ~>
             call :string
               callee:
@@ -206,29 +211,31 @@
           arg1:
             call :string
               callee:
-                std_core$u8$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                index :u8
-                  on:
-                    bb :const u8[]
-                  ix:
-                    int(3) :i32
+                cast → u64
+                  index :u8
+                    on:
+                      bb :const u8[]
+                    ix:
+                      int(3) :i32
           arg2:
             "=" :string
           arg3:
             call :string
               callee:
-                std_core$u8$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                index :u8
-                  on:
-                    call :const u8[]
-                      callee:
-                        bytes :const u8[]
-                      arg0:
-                        "d" :string
-                  ix:
-                    int(0) :i32
+                cast → u64
+                  index :u8
+                    on:
+                      call :const u8[]
+                        callee:
+                          bytes :const u8[]
+                        arg0:
+                          "d" :string
+                    ix:
+                      int(0) :i32
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -277,9 +284,10 @@
           arg1:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                LoweredArrayLen
+                cast → u64
+                  LoweredArrayLen
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -315,9 +323,10 @@
             arg1:
               call :string
                 callee:
-                  std_core$usize$Display$to_string :string
+                  format_unsigned :fn(u64) -> string
                 arg0:
-                  LoweredArrayLen
+                  cast → u64
+                    LoweredArrayLen
           call :void
             callee:
               append :void
@@ -333,13 +342,14 @@
             arg1:
               call :string
                 callee:
-                  std_core$u8$Display$to_string :string
+                  format_unsigned :fn(u64) -> string
                 arg0:
-                  index :u8
-                    on:
-                      bs :const u8[]
-                    ix:
-                      int(0) :i32
+                  cast → u64
+                    index :u8
+                      on:
+                        bs :const u8[]
+                      ix:
+                        int(0) :i32
           call :void
             callee:
               append :void
@@ -355,13 +365,14 @@
             arg1:
               call :string
                 callee:
-                  std_core$u8$Display$to_string :string
+                  format_unsigned :fn(u64) -> string
                 arg0:
-                  index :u8
-                    on:
-                      bs :const u8[]
-                    ix:
-                      int(1) :i32
+                  cast → u64
+                    index :u8
+                      on:
+                        bs :const u8[]
+                      ix:
+                        int(1) :i32
           call :void
             callee:
               append :void
@@ -377,13 +388,14 @@
             arg1:
               call :string
                 callee:
-                  std_core$u8$Display$to_string :string
+                  format_unsigned :fn(u64) -> string
                 arg0:
-                  index :u8
-                    on:
-                      bs :const u8[]
-                    ix:
-                      int(2) :i32
+                  cast → u64
+                    index :u8
+                      on:
+                        bs :const u8[]
+                      ix:
+                        int(2) :i32
           ~>
             call :string
               callee:
@@ -433,9 +445,10 @@
             arg1:
               call :string
                 callee:
-                  std_core$usize$Display$to_string :string
+                  format_unsigned :fn(u64) -> string
                 arg0:
-                  LoweredArrayLen
+                  cast → u64
+                    LoweredArrayLen
           call :void
             callee:
               append :void
@@ -451,13 +464,14 @@
             arg1:
               call :string
                 callee:
-                  std_core$u8$Display$to_string :string
+                  format_unsigned :fn(u64) -> string
                 arg0:
-                  index :u8
-                    on:
-                      sl :u8[]
-                    ix:
-                      int(0) :i32
+                  cast → u64
+                    index :u8
+                      on:
+                        sl :u8[]
+                      ix:
+                        int(0) :i32
           call :void
             callee:
               append :void
@@ -473,13 +487,14 @@
             arg1:
               call :string
                 callee:
-                  std_core$u8$Display$to_string :string
+                  format_unsigned :fn(u64) -> string
                 arg0:
-                  index :u8
-                    on:
-                      sl :u8[]
-                    ix:
-                      int(1) :i32
+                  cast → u64
+                    index :u8
+                      on:
+                        sl :u8[]
+                      ix:
+                        int(1) :i32
           call :void
             callee:
               append :void
@@ -495,13 +510,14 @@
             arg1:
               call :string
                 callee:
-                  std_core$u8$Display$to_string :string
+                  format_unsigned :fn(u64) -> string
                 arg0:
-                  index :u8
-                    on:
-                      sl :u8[]
-                    ix:
-                      int(2) :i32
+                  cast → u64
+                    index :u8
+                      on:
+                        sl :u8[]
+                      ix:
+                        int(2) :i32
           ~>
             call :string
               callee:

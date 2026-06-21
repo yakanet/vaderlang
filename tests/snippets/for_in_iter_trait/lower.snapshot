@@ -72,14 +72,16 @@
         callee:
           sum_iter :fn(Iterator<i32>) -> i32
         arg0:
-          call :Iterator<i32>
-            callee:
-              std_core$[]$Into$into__i32 :Iterator<i32>
-            arg0:
+          ArrayIterator<i32> {
+            arr:
               array :i32[]
                 int(10) :i32
                 int(20) :i32
                 int(30) :i32
+            cursor:
+              cast → usize
+                int(0) :usize
+          }
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -92,9 +94,10 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                a :i32
+                cast → i64
+                  a :i32
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -107,9 +110,10 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                b :i32
+                cast → i64
+                  b :i32
     let n: usize =
       call :usize
         callee:
@@ -128,7 +132,8 @@
           arg1:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                n :usize
+                cast → u64
+                  n :usize
     return int(0) :i32

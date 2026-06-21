@@ -14,13 +14,13 @@
   fn snippet$Money$Equals$not_equals(self: Money, other: Money) -> bool
     return
       not :bool
-        call :bool
-          callee:
-            snippet$Money$Equals$equals :bool
-          arg0:
-            self :Money
-          arg1:
-            other :Money
+        eq :bool
+          l:
+            .amount :i32
+              self :Money
+          r:
+            .amount :i32
+              other :Money
   fn snippet$Money$Comparable$compare(self: Money, other: Money) -> i32
     if :void
       cond:
@@ -122,32 +122,40 @@
           arg0:
             "a==b " :string
           arg1:
-            call :string
-              callee:
-                std_core$bool$Display$to_string :string
-              arg0:
-                call :bool
-                  callee:
-                    snippet$Money$Equals$equals :bool
-                  arg0:
-                    a :Money
-                  arg1:
-                    b :Money
+            if :string
+              cond:
+                eq :bool
+                  l:
+                    .amount :i32
+                      a :Money
+                  r:
+                    .amount :i32
+                      b :Money
+              then:
+                ~>
+                  "true" :string
+              else:
+                ~>
+                  "false" :string
           arg2:
             "  a!=c " :string
           arg3:
-            call :string
-              callee:
-                std_core$bool$Display$to_string :string
-              arg0:
+            if :string
+              cond:
                 not :bool
-                  call :bool
-                    callee:
-                      snippet$Money$Equals$equals :bool
-                    arg0:
-                      a :Money
-                    arg1:
-                      c :Money
+                  eq :bool
+                    l:
+                      .amount :i32
+                        a :Money
+                    r:
+                      .amount :i32
+                        c :Money
+              then:
+                ~>
+                  "true" :string
+              else:
+                ~>
+                  "false" :string
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -170,10 +178,8 @@
             arg0:
               __sb_0 :StringBuilder
             arg1:
-              call :string
-                callee:
-                  std_core$bool$Display$to_string :string
-                arg0:
+              if :string
+                cond:
                   lt :bool
                     l:
                       call :i32
@@ -185,6 +191,12 @@
                           c :Money
                     r:
                       int(0) :i32
+                then:
+                  ~>
+                    "true" :string
+                else:
+                  ~>
+                    "false" :string
           call :void
             callee:
               append :void
@@ -198,10 +210,8 @@
             arg0:
               __sb_0 :StringBuilder
             arg1:
-              call :string
-                callee:
-                  std_core$bool$Display$to_string :string
-                arg0:
+              if :string
+                cond:
                   gt :bool
                     l:
                       call :i32
@@ -213,6 +223,12 @@
                           a :Money
                     r:
                       int(0) :i32
+                then:
+                  ~>
+                    "true" :string
+                else:
+                  ~>
+                    "false" :string
           call :void
             callee:
               append :void
@@ -226,10 +242,8 @@
             arg0:
               __sb_0 :StringBuilder
             arg1:
-              call :string
-                callee:
-                  std_core$bool$Display$to_string :string
-                arg0:
+              if :string
+                cond:
                   gte :bool
                     l:
                       call :i32
@@ -241,6 +255,12 @@
                           b :Money
                     r:
                       int(0) :i32
+                then:
+                  ~>
+                    "true" :string
+                else:
+                  ~>
+                    "false" :string
           call :void
             callee:
               append :void
@@ -254,10 +274,8 @@
             arg0:
               __sb_0 :StringBuilder
             arg1:
-              call :string
-                callee:
-                  std_core$bool$Display$to_string :string
-                arg0:
+              if :string
+                cond:
                   lte :bool
                     l:
                       call :i32
@@ -269,6 +287,12 @@
                           c :Money
                     r:
                       int(0) :i32
+                then:
+                  ~>
+                    "true" :string
+                else:
+                  ~>
+                    "false" :string
           ~>
             call :string
               callee:

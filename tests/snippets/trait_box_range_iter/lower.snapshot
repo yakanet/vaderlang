@@ -28,14 +28,16 @@
         callee:
           snippet$snippet$count__i32 :i32
         arg0:
-          call :Iterator<T>
-            callee:
-              std_core$[]$Into$into__i32 :Iterator<T>
-            arg0:
+          ArrayIterator<i32> {
+            arr:
               array :i32[]
                 int(10) :i32
                 int(20) :i32
                 int(30) :i32
+            cursor:
+              cast → usize
+                int(0) :usize
+          }
     let c: i32 =
       call :i32
         callee:

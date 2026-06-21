@@ -202,6 +202,13 @@ export lower_project :: fn(
     // in the .virt — the runtime falls back to mangle-keyed dispatch
     // but the parity dump diverges.
     project.vtable_entries = collect_vtable_entries(project, loaded, typed)
+    // Inline single-expression function calls (trait-impl wrappers like
+    // `Display.to_string`, accessors, …) — clone the callee's lowered body with
+    // the args substituted, in place. Runs after vtable collection (so the
+    // wrappers stay alive for virtual `${T}` dispatch) and before `inline_consts`
+    // (so it never re-inlines the deliberately fn-wrapped bulky array consts, and
+    // inline_consts then routes any const ref the inlined bodies introduced).
+    inline_fns(project)
     // Route non-scalar const decls to their read sites : bulky array consts
     // become synthetic `__const_<name>` accessor fns (resolved by a `call` in
     // `build_ident`), every other const is recorded for inline rebuild. Runs

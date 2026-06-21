@@ -14,13 +14,14 @@
           arg1:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                sub :usize
-                  l:
-                    LoweredArrayLen
-                  r:
-                    int(1) :usize
+                cast → u64
+                  sub :usize
+                    l:
+                      LoweredArrayLen
+                    r:
+                      int(1) :usize
     let first: bool = true
     block :void
       let __for_arr_0: string[] = argv :string[]

@@ -70,15 +70,16 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    direct :fn(V01 | V02) -> i32
-                  arg0:
-                    V01 {
-                      f: int(10) :i32
-                    }
+                cast → i64
+                  call :i32
+                    callee:
+                      direct :fn(V01 | V02) -> i32
+                    arg0:
+                      V01 {
+                        f: int(10) :i32
+                      }
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -91,15 +92,16 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    direct :fn(V01 | V02) -> i32
-                  arg0:
-                    V02 {
-                      f: int(20) :i32
-                    }
+                cast → i64
+                  call :i32
+                    callee:
+                      direct :fn(V01 | V02) -> i32
+                    arg0:
+                      V02 {
+                        f: int(20) :i32
+                      }
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -112,15 +114,16 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    post_narrow :fn(V01 | V02) -> i32
-                  arg0:
-                    V01 {
-                      f: int(30) :i32
-                    }
+                cast → i64
+                  call :i32
+                    callee:
+                      post_narrow :fn(V01 | V02) -> i32
+                    arg0:
+                      V01 {
+                        f: int(30) :i32
+                      }
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -133,13 +136,14 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    post_narrow :fn(V01 | V02) -> i32
-                  arg0:
-                    V02 {
-                      f: int(40) :i32
-                    }
+                cast → i64
+                  call :i32
+                    callee:
+                      post_narrow :fn(V01 | V02) -> i32
+                    arg0:
+                      V02 {
+                        f: int(40) :i32
+                      }
     return int(0) :i32
