@@ -12,35 +12,13 @@
         arg1:
           name :string
     let full: string =
-      block :string
-        let __sb_0: StringBuilder =
-          call :StringBuilder
-            callee:
-              new_builder :StringBuilder
-        call :void
-          callee:
-            append :void
-          arg0:
-            __sb_0 :StringBuilder
-          arg1:
-            call :string
-              callee:
-                std_core$string$Display$to_string :string
-              arg0:
-                greeting :string
-        call :void
-          callee:
-            append :void
-          arg0:
-            __sb_0 :StringBuilder
-          arg1:
-            "!" :string
-        ~>
-          call :string
-            callee:
-              std_string_builder$StringBuilder$Display$to_string :string
-            arg0:
-              __sb_0 :StringBuilder
+      call :string
+        callee:
+          concat2 :string
+        arg0:
+          greeting :string
+        arg1:
+          "!" :string
     if :void
       cond:
         eq :bool

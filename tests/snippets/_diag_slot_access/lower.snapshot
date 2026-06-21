@@ -139,39 +139,21 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_1: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              "ls2=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i64$Display$to_string :string
-                arg0:
-                  index :i64
-                    on:
-                      ls :i64[]
-                    ix:
-                      int(2) :i32
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "ls2=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i64$Display$to_string :string
               arg0:
-                __sb_1 :StringBuilder
+                index :i64
+                  on:
+                    ls :i64[]
+                  ix:
+                    int(2) :i32
     let fs: f64[] =
       array :f64[]
         float(1.5) :f64
@@ -197,39 +179,21 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_2: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              "fs0=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$f64$Display$to_string :string
-                arg0:
-                  index :f64
-                    on:
-                      fs :f64[]
-                    ix:
-                      int(0) :i32
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "fs0=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$f64$Display$to_string :string
               arg0:
-                __sb_2 :StringBuilder
+                index :f64
+                  on:
+                    fs :f64[]
+                  ix:
+                    int(0) :i32
     let view: i32[] =
       slice :i32[]
         on:
@@ -244,61 +208,33 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_3: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              "view=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  index :i32
-                    on:
-                      view :i32[]
-                    ix:
-                      int(0) :i32
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              "," :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  index :i32
-                    on:
-                      view :i32[]
-                    ix:
-                      int(1) :i32
-          ~>
+        call :string
+          callee:
+            concat4 :string
+          arg0:
+            "view=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_3 :StringBuilder
+                index :i32
+                  on:
+                    view :i32[]
+                  ix:
+                    int(0) :i32
+          arg2:
+            "," :string
+          arg3:
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                index :i32
+                  on:
+                    view :i32[]
+                  ix:
+                    int(1) :i32
     let ss: string[] =
       array :string[]
         "a" :string
@@ -320,37 +256,15 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_4: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_4 :StringBuilder
-            arg1:
-              "ss0=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_4 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  index :string
-                    on:
-                      ss :string[]
-                    ix:
-                      int(0) :i32
-          ~>
-            call :string
-              callee:
-                std_string_builder$StringBuilder$Display$to_string :string
-              arg0:
-                __sb_4 :StringBuilder
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "ss0=" :string
+          arg1:
+            index :string
+              on:
+                ss :string[]
+              ix:
+                int(0) :i32
     return int(0) :i32

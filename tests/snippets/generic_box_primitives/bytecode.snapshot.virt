@@ -241,7 +241,6 @@ fn 0 snippet$main () -> i32
   call 51
   local.field 10 12 0
   ref.cast 13
-  call 16
   local.set 12
   local.get 4
   local.get 12
@@ -316,7 +315,6 @@ fn 0 snippet$main () -> i32
   call 51
   local.get 10
   call 6
-  call 16
   local.set 12
   local.get 4
   local.get 12

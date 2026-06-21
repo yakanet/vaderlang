@@ -24,28 +24,11 @@
                   callee:
                     std_io$std_io$println__string :void
                   arg0:
-                    block :string
-                      let __sb_2: StringBuilder =
-                        call :StringBuilder
-                          callee:
-                            new_builder :StringBuilder
-                      call :void
-                        callee:
-                          append :void
-                        arg0:
-                          __sb_2 :StringBuilder
-                        arg1:
-                          call :string
-                            callee:
-                              std_semver$Version$Display$to_string :string
-                            arg0:
-                              ver :Version
-                      ~>
-                        call :string
-                          callee:
-                            std_string_builder$StringBuilder$Display$to_string :string
-                          arg0:
-                            __sb_2 :StringBuilder
+                    call :string
+                      callee:
+                        std_semver$Version$Display$to_string :string
+                      arg0:
+                        ver :Version
                 let base: Version =
                   call :Version
                     callee:
@@ -73,7 +56,7 @@
                         "after 1.0.0" :string
                 ~>
                   block :void
-                    let __scrut_3: ParseError | VersionRange =
+                    let __scrut_1: ParseError | VersionRange =
                       call :ParseError | VersionRange
                         callee:
                           parse_range :fn(string) -> ParseError | VersionRange
@@ -83,11 +66,11 @@
                       if :void
                         cond:
                           is VersionRange :bool
-                            __scrut_3 :ParseError | VersionRange
+                            __scrut_1 :ParseError | VersionRange
                         then:
                           let rg: VersionRange =
                             cast → VersionRange
-                              __scrut_3 :ParseError | VersionRange
+                              __scrut_1 :ParseError | VersionRange
                           ~>
                             block :void
                               let target: Version =
@@ -117,50 +100,28 @@
                             if :void
                               cond:
                                 is ParseError :bool
-                                  __scrut_3 :ParseError | VersionRange
+                                  __scrut_1 :ParseError | VersionRange
                               then:
                                 let e: ParseError =
                                   cast → ParseError
-                                    __scrut_3 :ParseError | VersionRange
+                                    __scrut_1 :ParseError | VersionRange
                                 ~>
                                   block :void
                                     call :void
                                       callee:
                                         std_io$std_io$eprintln__string :void
                                       arg0:
-                                        block :string
-                                          let __sb_4: StringBuilder =
-                                            call :StringBuilder
-                                              callee:
-                                                new_builder :StringBuilder
-                                          call :void
-                                            callee:
-                                              append :void
-                                            arg0:
-                                              __sb_4 :StringBuilder
-                                            arg1:
-                                              "range err: " :string
-                                          call :void
-                                            callee:
-                                              append :void
-                                            arg0:
-                                              __sb_4 :StringBuilder
-                                            arg1:
-                                              call :string
-                                                callee:
-                                                  std_core$string$Display$to_string :string
-                                                arg0:
-                                                  call :string
-                                                    callee:
-                                                      std_string$ParseError$Error$message :string
-                                                    arg0:
-                                                      e :ParseError
-                                          ~>
+                                        call :string
+                                          callee:
+                                            concat2 :string
+                                          arg0:
+                                            "range err: " :string
+                                          arg1:
                                             call :string
                                               callee:
-                                                std_string_builder$StringBuilder$Display$to_string :string
+                                                std_string$ParseError$Error$message :string
                                               arg0:
-                                                __sb_4 :StringBuilder
+                                                e :ParseError
                                     return int(1) :i32
                               else:
                                 ~>
@@ -181,39 +142,17 @@
                         callee:
                           std_io$std_io$eprintln__string :void
                         arg0:
-                          block :string
-                            let __sb_1: StringBuilder =
-                              call :StringBuilder
-                                callee:
-                                  new_builder :StringBuilder
-                            call :void
-                              callee:
-                                append :void
-                              arg0:
-                                __sb_1 :StringBuilder
-                              arg1:
-                                "err: " :string
-                            call :void
-                              callee:
-                                append :void
-                              arg0:
-                                __sb_1 :StringBuilder
-                              arg1:
-                                call :string
-                                  callee:
-                                    std_core$string$Display$to_string :string
-                                  arg0:
-                                    call :string
-                                      callee:
-                                        std_string$ParseError$Error$message :string
-                                      arg0:
-                                        e :ParseError
-                            ~>
+                          call :string
+                            callee:
+                              concat2 :string
+                            arg0:
+                              "err: " :string
+                            arg1:
                               call :string
                                 callee:
-                                  std_string_builder$StringBuilder$Display$to_string :string
+                                  std_string$ParseError$Error$message :string
                                 arg0:
-                                  __sb_1 :StringBuilder
+                                  e :ParseError
                       return int(1) :i32
                 else:
                   ~>

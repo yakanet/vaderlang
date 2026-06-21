@@ -43,35 +43,17 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_3: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              "arr=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  arr_total :i32
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "arr=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_3 :StringBuilder
+                arr_total :i32
     let m: MutableMap<string, i32> =
       MutableMap<string, i32> {
         ekeys:
@@ -104,25 +86,25 @@
         int(2) :i32
     let map_total: i32 = int(0) :i32
     block :void
-      let __iter_src_4: MutableMap<string, i32> = m :MutableMap<string, i32>
-      let __iter_ekeys_5: string[] =
+      let __iter_src_3: MutableMap<string, i32> = m :MutableMap<string, i32>
+      let __iter_ekeys_4: string[] =
         .ekeys :string[]
-          __iter_src_4 :MutableMap<string, i32>
-      let __iter_evals_6: i32[] =
+          __iter_src_3 :MutableMap<string, i32>
+      let __iter_evals_5: i32[] =
         .evals :i32[]
-          __iter_src_4 :MutableMap<string, i32>
-      let __iter_size_7: usize =
+          __iter_src_3 :MutableMap<string, i32>
+      let __iter_size_6: usize =
         .size :usize
-          __iter_src_4 :MutableMap<string, i32>
-      let __iter_pos_8: usize = int(0) :usize
+          __iter_src_3 :MutableMap<string, i32>
+      let __iter_pos_7: usize = int(0) :usize
       loop
         if :void
           cond:
             gte :bool
               l:
-                __iter_pos_8 :usize
+                __iter_pos_7 :usize
               r:
-                __iter_size_7 :usize
+                __iter_size_6 :usize
           then:
             break
         let entry: Entry<string, i32> =
@@ -130,23 +112,23 @@
             key:
               index :string
                 on:
-                  __iter_ekeys_5 :string[]
+                  __iter_ekeys_4 :string[]
                 ix:
-                  __iter_pos_8 :usize
+                  __iter_pos_7 :usize
             value:
               index :i32
                 on:
-                  __iter_evals_6 :i32[]
+                  __iter_evals_5 :i32[]
                 ix:
-                  __iter_pos_8 :usize
+                  __iter_pos_7 :usize
           }
         assign
           target:
-            __iter_pos_8 :usize
+            __iter_pos_7 :usize
           value:
             add :usize
               l:
-                __iter_pos_8 :usize
+                __iter_pos_7 :usize
               r:
                 int(1) :usize
         assign
@@ -163,35 +145,17 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_9: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_9 :StringBuilder
-            arg1:
-              "map=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_9 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  map_total :i32
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "map=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_9 :StringBuilder
+                map_total :i32
     let s: MutableSet<i32> =
       MutableSet<i32> {
         inner:
@@ -223,39 +187,39 @@
         int(11) :i32
     let set_total: i32 = int(0) :i32
     block :void
-      let __iter_src_10: MutableSet<i32> = s :MutableSet<i32>
-      let __iter_ekeys_11: i32[] =
+      let __iter_src_8: MutableSet<i32> = s :MutableSet<i32>
+      let __iter_ekeys_9: i32[] =
         .ekeys :i32[]
           .inner :MutableMap<i32, bool>
-            __iter_src_10 :MutableSet<i32>
-      let __iter_size_13: usize =
+            __iter_src_8 :MutableSet<i32>
+      let __iter_size_11: usize =
         .size :usize
           .inner :MutableMap<i32, bool>
-            __iter_src_10 :MutableSet<i32>
-      let __iter_pos_14: usize = int(0) :usize
+            __iter_src_8 :MutableSet<i32>
+      let __iter_pos_12: usize = int(0) :usize
       loop
         if :void
           cond:
             gte :bool
               l:
-                __iter_pos_14 :usize
+                __iter_pos_12 :usize
               r:
-                __iter_size_13 :usize
+                __iter_size_11 :usize
           then:
             break
         let v: i32 =
           index :i32
             on:
-              __iter_ekeys_11 :i32[]
+              __iter_ekeys_9 :i32[]
             ix:
-              __iter_pos_14 :usize
+              __iter_pos_12 :usize
         assign
           target:
-            __iter_pos_14 :usize
+            __iter_pos_12 :usize
           value:
             add :usize
               l:
-                __iter_pos_14 :usize
+                __iter_pos_12 :usize
               r:
                 int(1) :usize
         assign
@@ -271,61 +235,43 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_15: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_15 :StringBuilder
-            arg1:
-              "set=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_15 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  set_total :i32
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "set=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_15 :StringBuilder
+                set_total :i32
     let chars: i32 = int(0) :i32
     block :void
-      let __iter_17: StringChars =
+      let __iter_14: StringChars =
         call :StringChars
           callee:
             chars :StringChars
           arg0:
             "héllo 世界" :string
       loop
-        let __step_18: Yield<char> | null =
+        let __step_15: Yield<char> | null =
           call :Yield<char> | null
             callee:
               std_string$StringChars$Iterator$next :?
             arg0:
-              __iter_17 :StringChars
+              __iter_14 :StringChars
         if :void
           cond:
             is null :bool
-              __step_18 :Yield<char> | null
+              __step_15 :Yield<char> | null
           then:
             break
           else:
             let _c: char =
               .value :char
                 cast → Yield<char>
-                  __step_18 :Yield<char> | null
+                  __step_15 :Yield<char> | null
             assign
               target:
                 chars :i32
@@ -339,33 +285,15 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_19: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_19 :StringBuilder
-            arg1:
-              "chars=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_19 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  chars :i32
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "chars=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_19 :StringBuilder
+                chars :i32
     return int(0) :i32

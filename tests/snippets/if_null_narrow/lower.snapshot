@@ -11,38 +11,16 @@
             a :Cat | Dog | null
       then:
         return
-          block :string
-            let __sb_0: StringBuilder =
-              call :StringBuilder
-                callee:
-                  new_builder :StringBuilder
-            call :void
-              callee:
-                append :void
-              arg0:
-                __sb_0 :StringBuilder
-              arg1:
-                "hello " :string
-            call :void
-              callee:
-                append :void
-              arg0:
-                __sb_0 :StringBuilder
-              arg1:
-                call :string
-                  callee:
-                    std_core$string$Display$to_string :string
-                  arg0:
-                    .name :string
-                      cast → Cat
-                        cast → Cat | Dog
-                          a :Cat | Dog | null
-            ~>
-              call :string
-                callee:
-                  std_string_builder$StringBuilder$Display$to_string :string
-                arg0:
-                  __sb_0 :StringBuilder
+          call :string
+            callee:
+              concat2 :string
+            arg0:
+              "hello " :string
+            arg1:
+              .name :string
+                cast → Cat
+                  cast → Cat | Dog
+                    a :Cat | Dog | null
     return "no animal" :string
   fn snippet$greet_v2(a: Cat | Dog | null) -> string
     if :void
@@ -52,38 +30,16 @@
       then:
         return "no animal" :string
     return
-      block :string
-        let __sb_0: StringBuilder =
-          call :StringBuilder
-            callee:
-              new_builder :StringBuilder
-        call :void
-          callee:
-            append :void
-          arg0:
-            __sb_0 :StringBuilder
-          arg1:
-            "hi " :string
-        call :void
-          callee:
-            append :void
-          arg0:
-            __sb_0 :StringBuilder
-          arg1:
-            call :string
-              callee:
-                std_core$string$Display$to_string :string
-              arg0:
-                .name :string
-                  cast → Cat
-                    cast → Cat | Dog
-                      a :Cat | Dog | null
-        ~>
-          call :string
-            callee:
-              std_string_builder$StringBuilder$Display$to_string :string
-            arg0:
-              __sb_0 :StringBuilder
+      call :string
+        callee:
+          concat2 :string
+        arg0:
+          "hi " :string
+        arg1:
+          .name :string
+            cast → Cat
+              cast → Cat | Dog
+                a :Cat | Dog | null
   fn snippet$greet_v3(a: Cat | Dog | null) -> string
     if :void
       cond:
@@ -92,38 +48,16 @@
             a :Cat | Dog | null
       then:
         return
-          block :string
-            let __sb_0: StringBuilder =
-              call :StringBuilder
-                callee:
-                  new_builder :StringBuilder
-            call :void
-              callee:
-                append :void
-              arg0:
-                __sb_0 :StringBuilder
-              arg1:
-                "yo " :string
-            call :void
-              callee:
-                append :void
-              arg0:
-                __sb_0 :StringBuilder
-              arg1:
-                call :string
-                  callee:
-                    std_core$string$Display$to_string :string
-                  arg0:
-                    .name :string
-                      cast → Cat
-                        cast → Cat | Dog
-                          a :Cat | Dog | null
-            ~>
-              call :string
-                callee:
-                  std_string_builder$StringBuilder$Display$to_string :string
-                arg0:
-                  __sb_0 :StringBuilder
+          call :string
+            callee:
+              concat2 :string
+            arg0:
+              "yo " :string
+            arg1:
+              .name :string
+                cast → Cat
+                  cast → Cat | Dog
+                    a :Cat | Dog | null
     return "nada" :string
   fn snippet$greet_v4(a: Cat | Dog | null) -> string
     let out: string = "" :string
@@ -135,38 +69,16 @@
               a :Cat | Dog | null
         then:
           let out2: string =
-            block :string
-              let __sb_0: StringBuilder =
-                call :StringBuilder
-                  callee:
-                    new_builder :StringBuilder
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_0 :StringBuilder
-                arg1:
-                  "ok " :string
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_0 :StringBuilder
-                arg1:
-                  call :string
-                    callee:
-                      std_core$string$Display$to_string :string
-                    arg0:
-                      .name :string
-                        cast → Cat
-                          cast → Cat | Dog
-                            a :Cat | Dog | null
-              ~>
-                call :string
-                  callee:
-                    std_string_builder$StringBuilder$Display$to_string :string
-                  arg0:
-                    __sb_0 :StringBuilder
+            call :string
+              callee:
+                concat2 :string
+              arg0:
+                "ok " :string
+              arg1:
+                .name :string
+                  cast → Cat
+                    cast → Cat | Dog
+                      a :Cat | Dog | null
           return out2 :string
         else:
           return "missing" :string
@@ -184,52 +96,21 @@
       then:
         return "second missing" :string
     return
-      block :string
-        let __sb_0: StringBuilder =
-          call :StringBuilder
-            callee:
-              new_builder :StringBuilder
-        call :void
-          callee:
-            append :void
-          arg0:
-            __sb_0 :StringBuilder
-          arg1:
-            call :string
-              callee:
-                std_core$string$Display$to_string :string
-              arg0:
-                .name :string
-                  cast → Cat
-                    cast → Cat | Dog
-                      a :Cat | Dog | null
-        call :void
-          callee:
-            append :void
-          arg0:
-            __sb_0 :StringBuilder
-          arg1:
-            " & " :string
-        call :void
-          callee:
-            append :void
-          arg0:
-            __sb_0 :StringBuilder
-          arg1:
-            call :string
-              callee:
-                std_core$string$Display$to_string :string
-              arg0:
-                .name :string
-                  cast → Cat
-                    cast → Cat | Dog
-                      b :Cat | Dog | null
-        ~>
-          call :string
-            callee:
-              std_string_builder$StringBuilder$Display$to_string :string
-            arg0:
-              __sb_0 :StringBuilder
+      call :string
+        callee:
+          concat3 :string
+        arg0:
+          .name :string
+            cast → Cat
+              cast → Cat | Dog
+                a :Cat | Dog | null
+        arg1:
+          " & " :string
+        arg2:
+          .name :string
+            cast → Cat
+              cast → Cat | Dog
+                b :Cat | Dog | null
   fn snippet$main() -> i32
     let cat: Cat | Dog | null =
       Cat {

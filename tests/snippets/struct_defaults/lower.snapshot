@@ -36,12 +36,8 @@
             arg0:
               __sb_0 :StringBuilder
             arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  .name :string
-                    s1 :Settings
+              .name :string
+                s1 :Settings
           call :void
             callee:
               append :void
@@ -101,12 +97,8 @@
             arg0:
               __sb_1 :StringBuilder
             arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  .name :string
-                    s2 :Settings
+              .name :string
+                s2 :Settings
           call :void
             callee:
               append :void
@@ -166,12 +158,8 @@
             arg0:
               __sb_2 :StringBuilder
             arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  .name :string
-                    s3 :Settings
+              .name :string
+                s3 :Settings
           call :void
             callee:
               append :void

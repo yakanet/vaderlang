@@ -57,58 +57,30 @@
             callee:
               std_io$std_io$println__string :void
             arg0:
-              block :string
-                let __sb_0: StringBuilder =
-                  call :StringBuilder
-                    callee:
-                      new_builder :StringBuilder
-                call :void
-                  callee:
-                    append :void
-                  arg0:
-                    __sb_0 :StringBuilder
-                  arg1:
-                    "u8 x=" :string
-                call :void
-                  callee:
-                    append :void
-                  arg0:
-                    __sb_0 :StringBuilder
-                  arg1:
-                    call :string
-                      callee:
-                        std_core$u8$Display$to_string :string
-                      arg0:
-                        cast → u8
-                          vx :null | u8
-                call :void
-                  callee:
-                    append :void
-                  arg0:
-                    __sb_0 :StringBuilder
-                  arg1:
-                    " y=" :string
-                call :void
-                  callee:
-                    append :void
-                  arg0:
-                    __sb_0 :StringBuilder
-                  arg1:
-                    vcall Display.to_string :string
-                      recv:
-                        call :null | u8
-                          callee:
-                            std_collections$MutableMap$Index$at__string__u8 :null | u8
-                          arg0:
-                            mu8 :MutableMap<string, u8>
-                          arg1:
-                            "y" :string
-                ~>
+              call :string
+                callee:
+                  concat4 :string
+                arg0:
+                  "u8 x=" :string
+                arg1:
                   call :string
                     callee:
-                      std_string_builder$StringBuilder$Display$to_string :string
+                      std_core$u8$Display$to_string :string
                     arg0:
-                      __sb_0 :StringBuilder
+                      cast → u8
+                        vx :null | u8
+                arg2:
+                  " y=" :string
+                arg3:
+                  vcall Display.to_string :string
+                    recv:
+                      call :null | u8
+                        callee:
+                          std_collections$MutableMap$Index$at__string__u8 :null | u8
+                        arg0:
+                          mu8 :MutableMap<string, u8>
+                        arg1:
+                          "y" :string
     let mbool: MutableMap<string, bool> =
       MutableMap<string, bool> {
         ekeys:
@@ -177,49 +149,21 @@
             callee:
               std_io$std_io$println__string :void
             arg0:
-              block :string
-                let __sb_1: StringBuilder =
-                  call :StringBuilder
-                    callee:
-                      new_builder :StringBuilder
-                call :void
-                  callee:
-                    append :void
-                  arg0:
-                    __sb_1 :StringBuilder
-                  arg1:
-                    "bool t=" :string
-                call :void
-                  callee:
-                    append :void
-                  arg0:
-                    __sb_1 :StringBuilder
-                  arg1:
-                    vcall Display.to_string :string
-                      recv:
-                        vt :bool | null
-                call :void
-                  callee:
-                    append :void
-                  arg0:
-                    __sb_1 :StringBuilder
-                  arg1:
-                    " f=" :string
-                call :void
-                  callee:
-                    append :void
-                  arg0:
-                    __sb_1 :StringBuilder
-                  arg1:
-                    vcall Display.to_string :string
-                      recv:
-                        vf :bool | null
-                ~>
-                  call :string
-                    callee:
-                      std_string_builder$StringBuilder$Display$to_string :string
-                    arg0:
-                      __sb_1 :StringBuilder
+              call :string
+                callee:
+                  concat4 :string
+                arg0:
+                  "bool t=" :string
+                arg1:
+                  vcall Display.to_string :string
+                    recv:
+                      vt :bool | null
+                arg2:
+                  " f=" :string
+                arg3:
+                  vcall Display.to_string :string
+                    recv:
+                      vf :bool | null
     let mchar: MutableMap<string, char> =
       MutableMap<string, char> {
         ekeys:
@@ -275,58 +219,30 @@
             callee:
               std_io$std_io$println__string :void
             arg0:
-              block :string
-                let __sb_2: StringBuilder =
-                  call :StringBuilder
-                    callee:
-                      new_builder :StringBuilder
-                call :void
-                  callee:
-                    append :void
-                  arg0:
-                    __sb_2 :StringBuilder
-                  arg1:
-                    "char first=" :string
-                call :void
-                  callee:
-                    append :void
-                  arg0:
-                    __sb_2 :StringBuilder
-                  arg1:
-                    call :string
-                      callee:
-                        std_core$char$Display$to_string :string
-                      arg0:
-                        cast → char
-                          vc :char | null
-                call :void
-                  callee:
-                    append :void
-                  arg0:
-                    __sb_2 :StringBuilder
-                  arg1:
-                    " accent=" :string
-                call :void
-                  callee:
-                    append :void
-                  arg0:
-                    __sb_2 :StringBuilder
-                  arg1:
-                    vcall Display.to_string :string
-                      recv:
-                        call :char | null
-                          callee:
-                            std_collections$MutableMap$Index$at__string__char :char | null
-                          arg0:
-                            mchar :MutableMap<string, char>
-                          arg1:
-                            "accent" :string
-                ~>
+              call :string
+                callee:
+                  concat4 :string
+                arg0:
+                  "char first=" :string
+                arg1:
                   call :string
                     callee:
-                      std_string_builder$StringBuilder$Display$to_string :string
+                      std_core$char$Display$to_string :string
                     arg0:
-                      __sb_2 :StringBuilder
+                      cast → char
+                        vc :char | null
+                arg2:
+                  " accent=" :string
+                arg3:
+                  vcall Display.to_string :string
+                    recv:
+                      call :char | null
+                        callee:
+                          std_collections$MutableMap$Index$at__string__char :char | null
+                        arg0:
+                          mchar :MutableMap<string, char>
+                        arg1:
+                          "accent" :string
     let mf32: MutableMap<string, f32> =
       MutableMap<string, f32> {
         ekeys:
@@ -373,36 +289,18 @@
             callee:
               std_io$std_io$println__string :void
             arg0:
-              block :string
-                let __sb_3: StringBuilder =
-                  call :StringBuilder
-                    callee:
-                      new_builder :StringBuilder
-                call :void
-                  callee:
-                    append :void
-                  arg0:
-                    __sb_3 :StringBuilder
-                  arg1:
-                    "f32 pi=" :string
-                call :void
-                  callee:
-                    append :void
-                  arg0:
-                    __sb_3 :StringBuilder
-                  arg1:
-                    call :string
-                      callee:
-                        std_core$f32$Display$to_string :string
-                      arg0:
-                        cast → f32
-                          vp :f32 | null
-                ~>
+              call :string
+                callee:
+                  concat2 :string
+                arg0:
+                  "f32 pi=" :string
+                arg1:
                   call :string
                     callee:
-                      std_string_builder$StringBuilder$Display$to_string :string
+                      std_core$f32$Display$to_string :string
                     arg0:
-                      __sb_3 :StringBuilder
+                      cast → f32
+                        vp :f32 | null
     let mf64: MutableMap<string, f64> =
       MutableMap<string, f64> {
         ekeys:
@@ -449,36 +347,18 @@
             callee:
               std_io$std_io$println__string :void
             arg0:
-              block :string
-                let __sb_4: StringBuilder =
-                  call :StringBuilder
-                    callee:
-                      new_builder :StringBuilder
-                call :void
-                  callee:
-                    append :void
-                  arg0:
-                    __sb_4 :StringBuilder
-                  arg1:
-                    "f64 e=" :string
-                call :void
-                  callee:
-                    append :void
-                  arg0:
-                    __sb_4 :StringBuilder
-                  arg1:
-                    call :string
-                      callee:
-                        std_core$f64$Display$to_string :string
-                      arg0:
-                        cast → f64
-                          ve :f64 | null
-                ~>
+              call :string
+                callee:
+                  concat2 :string
+                arg0:
+                  "f64 e=" :string
+                arg1:
                   call :string
                     callee:
-                      std_string_builder$StringBuilder$Display$to_string :string
+                      std_core$f64$Display$to_string :string
                     arg0:
-                      __sb_4 :StringBuilder
+                      cast → f64
+                        ve :f64 | null
     let mi16: MutableMap<string, i16> =
       MutableMap<string, i16> {
         ekeys:
@@ -526,36 +406,18 @@
             callee:
               std_io$std_io$println__string :void
             arg0:
-              block :string
-                let __sb_5: StringBuilder =
-                  call :StringBuilder
-                    callee:
-                      new_builder :StringBuilder
-                call :void
-                  callee:
-                    append :void
-                  arg0:
-                    __sb_5 :StringBuilder
-                  arg1:
-                    "i16 neg=" :string
-                call :void
-                  callee:
-                    append :void
-                  arg0:
-                    __sb_5 :StringBuilder
-                  arg1:
-                    call :string
-                      callee:
-                        std_core$i16$Display$to_string :string
-                      arg0:
-                        cast → i16
-                          vn :i16 | null
-                ~>
+              call :string
+                callee:
+                  concat2 :string
+                arg0:
+                  "i16 neg=" :string
+                arg1:
                   call :string
                     callee:
-                      std_string_builder$StringBuilder$Display$to_string :string
+                      std_core$i16$Display$to_string :string
                     arg0:
-                      __sb_5 :StringBuilder
+                      cast → i16
+                        vn :i16 | null
     let mu16: MutableMap<string, u16> =
       MutableMap<string, u16> {
         ekeys:
@@ -602,36 +464,18 @@
             callee:
               std_io$std_io$println__string :void
             arg0:
-              block :string
-                let __sb_6: StringBuilder =
-                  call :StringBuilder
-                    callee:
-                      new_builder :StringBuilder
-                call :void
-                  callee:
-                    append :void
-                  arg0:
-                    __sb_6 :StringBuilder
-                  arg1:
-                    "u16 big=" :string
-                call :void
-                  callee:
-                    append :void
-                  arg0:
-                    __sb_6 :StringBuilder
-                  arg1:
-                    call :string
-                      callee:
-                        std_core$u16$Display$to_string :string
-                      arg0:
-                        cast → u16
-                          vb :null | u16
-                ~>
+              call :string
+                callee:
+                  concat2 :string
+                arg0:
+                  "u16 big=" :string
+                arg1:
                   call :string
                     callee:
-                      std_string_builder$StringBuilder$Display$to_string :string
+                      std_core$u16$Display$to_string :string
                     arg0:
-                      __sb_6 :StringBuilder
+                      cast → u16
+                        vb :null | u16
     let mi64: MutableMap<string, i64> =
       MutableMap<string, i64> {
         ekeys:
@@ -679,36 +523,18 @@
             callee:
               std_io$std_io$println__string :void
             arg0:
-              block :string
-                let __sb_7: StringBuilder =
-                  call :StringBuilder
-                    callee:
-                      new_builder :StringBuilder
-                call :void
-                  callee:
-                    append :void
-                  arg0:
-                    __sb_7 :StringBuilder
-                  arg1:
-                    "i64 huge=" :string
-                call :void
-                  callee:
-                    append :void
-                  arg0:
-                    __sb_7 :StringBuilder
-                  arg1:
-                    call :string
-                      callee:
-                        std_core$i64$Display$to_string :string
-                      arg0:
-                        cast → i64
-                          vh :i64 | null
-                ~>
+              call :string
+                callee:
+                  concat2 :string
+                arg0:
+                  "i64 huge=" :string
+                arg1:
                   call :string
                     callee:
-                      std_string_builder$StringBuilder$Display$to_string :string
+                      std_core$i64$Display$to_string :string
                     arg0:
-                      __sb_7 :StringBuilder
+                      cast → i64
+                        vh :i64 | null
     let miss: null | u8 =
       call :null | u8
         callee:
@@ -734,34 +560,16 @@
             callee:
               std_io$std_io$println__string :void
             arg0:
-              block :string
-                let __sb_8: StringBuilder =
-                  call :StringBuilder
-                    callee:
-                      new_builder :StringBuilder
-                call :void
-                  callee:
-                    append :void
-                  arg0:
-                    __sb_8 :StringBuilder
-                  arg1:
-                    "miss: WRONG " :string
-                call :void
-                  callee:
-                    append :void
-                  arg0:
-                    __sb_8 :StringBuilder
-                  arg1:
-                    call :string
-                      callee:
-                        std_core$u8$Display$to_string :string
-                      arg0:
-                        cast → u8
-                          miss :null | u8
-                ~>
+              call :string
+                callee:
+                  concat2 :string
+                arg0:
+                  "miss: WRONG " :string
+                arg1:
                   call :string
                     callee:
-                      std_string_builder$StringBuilder$Display$to_string :string
+                      std_core$u8$Display$to_string :string
                     arg0:
-                      __sb_8 :StringBuilder
+                      cast → u8
+                        miss :null | u8
     return int(0) :i32

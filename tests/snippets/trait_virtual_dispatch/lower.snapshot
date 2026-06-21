@@ -5,68 +5,24 @@
   struct snippet$NetErr { reason: string }
   fn snippet$ParseErr$Error$message(self: ParseErr) -> string
     return
-      block :string
-        let __sb_0: StringBuilder =
-          call :StringBuilder
-            callee:
-              new_builder :StringBuilder
-        call :void
-          callee:
-            append :void
-          arg0:
-            __sb_0 :StringBuilder
-          arg1:
-            "parse: " :string
-        call :void
-          callee:
-            append :void
-          arg0:
-            __sb_0 :StringBuilder
-          arg1:
-            call :string
-              callee:
-                std_core$string$Display$to_string :string
-              arg0:
-                .msg :string
-                  self :ParseErr
-        ~>
-          call :string
-            callee:
-              std_string_builder$StringBuilder$Display$to_string :string
-            arg0:
-              __sb_0 :StringBuilder
+      call :string
+        callee:
+          concat2 :string
+        arg0:
+          "parse: " :string
+        arg1:
+          .msg :string
+            self :ParseErr
   fn snippet$NetErr$Error$message(self: NetErr) -> string
     return
-      block :string
-        let __sb_0: StringBuilder =
-          call :StringBuilder
-            callee:
-              new_builder :StringBuilder
-        call :void
-          callee:
-            append :void
-          arg0:
-            __sb_0 :StringBuilder
-          arg1:
-            "net: " :string
-        call :void
-          callee:
-            append :void
-          arg0:
-            __sb_0 :StringBuilder
-          arg1:
-            call :string
-              callee:
-                std_core$string$Display$to_string :string
-              arg0:
-                .reason :string
-                  self :NetErr
-        ~>
-          call :string
-            callee:
-              std_string_builder$StringBuilder$Display$to_string :string
-            arg0:
-              __sb_0 :StringBuilder
+      call :string
+        callee:
+          concat2 :string
+        arg0:
+          "net: " :string
+        arg1:
+          .reason :string
+            self :NetErr
   fn snippet$report(e: Error) -> string
     return
       vcall Error.message :string

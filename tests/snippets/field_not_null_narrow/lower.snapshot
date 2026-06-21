@@ -42,51 +42,23 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_0: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              "hit=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  hit :i32
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              " miss=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  miss :i32
-          ~>
+        call :string
+          callee:
+            concat4 :string
+          arg0:
+            "hit=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_0 :StringBuilder
+                hit :i32
+          arg2:
+            " miss=" :string
+          arg3:
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                miss :i32
     return hit :i32

@@ -26,36 +26,18 @@
                       cast → P
                         __scrut_0 :null | P | Q
                     ~>
-                      block :string
-                        let __sb_2: StringBuilder =
-                          call :StringBuilder
-                            callee:
-                              new_builder :StringBuilder
-                        call :void
-                          callee:
-                            append :void
-                          arg0:
-                            __sb_2 :StringBuilder
-                          arg1:
-                            "P.x = " :string
-                        call :void
-                          callee:
-                            append :void
-                          arg0:
-                            __sb_2 :StringBuilder
-                          arg1:
-                            call :string
-                              callee:
-                                std_core$i32$Display$to_string :string
-                              arg0:
-                                .x :i32
-                                  p :P
-                        ~>
+                      call :string
+                        callee:
+                          concat2 :string
+                        arg0:
+                          "P.x = " :string
+                        arg1:
                           call :string
                             callee:
-                              std_string_builder$StringBuilder$Display$to_string :string
+                              std_core$i32$Display$to_string :string
                             arg0:
-                              __sb_2 :StringBuilder
+                              .x :i32
+                                p :P
                   else:
                     ~>
                       if :string
@@ -67,36 +49,14 @@
                             cast → Q
                               __scrut_0 :null | P | Q
                           ~>
-                            block :string
-                              let __sb_1: StringBuilder =
-                                call :StringBuilder
-                                  callee:
-                                    new_builder :StringBuilder
-                              call :void
-                                callee:
-                                  append :void
-                                arg0:
-                                  __sb_1 :StringBuilder
-                                arg1:
-                                  "Q.y = " :string
-                              call :void
-                                callee:
-                                  append :void
-                                arg0:
-                                  __sb_1 :StringBuilder
-                                arg1:
-                                  call :string
-                                    callee:
-                                      std_core$string$Display$to_string :string
-                                    arg0:
-                                      .y :string
-                                        q :Q
-                              ~>
-                                call :string
-                                  callee:
-                                    std_string_builder$StringBuilder$Display$to_string :string
-                                  arg0:
-                                    __sb_1 :StringBuilder
+                            call :string
+                              callee:
+                                concat2 :string
+                              arg0:
+                                "Q.y = " :string
+                              arg1:
+                                .y :string
+                                  q :Q
                         else:
                           ~>
                             unreachable("non-exhaustive match (T3013 should have caught this)") :string

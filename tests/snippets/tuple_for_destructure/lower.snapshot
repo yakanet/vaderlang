@@ -39,46 +39,19 @@
           callee:
             std_io$std_io$println__string :void
           arg0:
-            block :string
-              let __sb_4: StringBuilder =
-                call :StringBuilder
-                  callee:
-                    new_builder :StringBuilder
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_4 :StringBuilder
-                arg1:
-                  call :string
-                    callee:
-                      std_core$string$Display$to_string :string
-                    arg0:
-                      k :string
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_4 :StringBuilder
-                arg1:
-                  "=" :string
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_4 :StringBuilder
-                arg1:
-                  call :string
-                    callee:
-                      std_core$i32$Display$to_string :string
-                    arg0:
-                      v :i32
-              ~>
+            call :string
+              callee:
+                concat3 :string
+              arg0:
+                k :string
+              arg1:
+                "=" :string
+              arg2:
                 call :string
                   callee:
-                    std_string_builder$StringBuilder$Display$to_string :string
+                    std_core$i32$Display$to_string :string
                   arg0:
-                    __sb_4 :StringBuilder
+                    v :i32
         assign
           target:
             __for_i_2 :usize

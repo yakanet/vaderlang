@@ -22,37 +22,19 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_2: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              "result=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  call :i32
-                    callee:
-                      do_panic :fn() -> i32
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "result=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_2 :StringBuilder
+                call :i32
+                  callee:
+                    do_panic :fn() -> i32
     return int(0) :i32
   struct __defer_env_5 {  }
   fn __defer_4(__env_0: __defer_env_5) -> void
@@ -67,35 +49,13 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_0: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              "uses outer " :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  LoweredCellGet
-          ~>
-            call :string
-              callee:
-                std_string_builder$StringBuilder$Display$to_string :string
-              arg0:
-                __sb_0 :StringBuilder
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "uses outer " :string
+          arg1:
+            LoweredCellGet
   struct __lambda_env_2 { cap_0: ? }
   fn __lambda_1(__env_0: __lambda_env_2) -> void
     defer.push
@@ -111,43 +71,21 @@
     defer.pop_exec 2
     ~>
       __block_2 :void
-  struct __defer_env_16 { cap_0: ? }
-  fn __defer_15(__env_0: __defer_env_16) -> void
+  struct __defer_env_15 { cap_0: ? }
+  fn __defer_14(__env_0: __defer_env_15) -> void
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_0: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              "panic defer in lambda saw " :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  LoweredCellGet
-          ~>
-            call :string
-              callee:
-                std_string_builder$StringBuilder$Display$to_string :string
-              arg0:
-                __sb_0 :StringBuilder
-  struct __lambda_env_13 { cap_0: ?, cap_1: ? }
-  fn __lambda_12(__env_1: __lambda_env_13) -> i32
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "panic defer in lambda saw " :string
+          arg1:
+            LoweredCellGet
+  struct __lambda_env_12 { cap_0: ?, cap_1: ? }
+  fn __lambda_11(__env_1: __lambda_env_12) -> i32
     defer.push
       LoweredMakeClosure
     call :void

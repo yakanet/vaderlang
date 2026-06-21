@@ -62,156 +62,84 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_0: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              "direct V01      : " :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  call :i32
-                    callee:
-                      direct :fn(V01 | V02) -> i32
-                    arg0:
-                      V01 {
-                        f: int(10) :i32
-                      }
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "direct V01      : " :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_0 :StringBuilder
+                call :i32
+                  callee:
+                    direct :fn(V01 | V02) -> i32
+                  arg0:
+                    V01 {
+                      f: int(10) :i32
+                    }
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_1: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              "direct V02      : " :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  call :i32
-                    callee:
-                      direct :fn(V01 | V02) -> i32
-                    arg0:
-                      V02 {
-                        f: int(20) :i32
-                      }
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "direct V02      : " :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_1 :StringBuilder
+                call :i32
+                  callee:
+                    direct :fn(V01 | V02) -> i32
+                  arg0:
+                    V02 {
+                      f: int(20) :i32
+                    }
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_2: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              "post_narrow V01 : " :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  call :i32
-                    callee:
-                      post_narrow :fn(V01 | V02) -> i32
-                    arg0:
-                      V01 {
-                        f: int(30) :i32
-                      }
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "post_narrow V01 : " :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_2 :StringBuilder
+                call :i32
+                  callee:
+                    post_narrow :fn(V01 | V02) -> i32
+                  arg0:
+                    V01 {
+                      f: int(30) :i32
+                    }
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_3: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              "post_narrow V02 : " :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  call :i32
-                    callee:
-                      post_narrow :fn(V01 | V02) -> i32
-                    arg0:
-                      V02 {
-                        f: int(40) :i32
-                      }
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "post_narrow V02 : " :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_3 :StringBuilder
+                call :i32
+                  callee:
+                    post_narrow :fn(V01 | V02) -> i32
+                  arg0:
+                    V02 {
+                      f: int(40) :i32
+                    }
     return int(0) :i32

@@ -6,35 +6,17 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_0: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              "inline=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$usize$Display$to_string :string
-                arg0:
-                  LoweredArrayLen
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "inline=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$usize$Display$to_string :string
               arg0:
-                __sb_0 :StringBuilder
+                LoweredArrayLen
     let bs: const u8[] =
       call :const u8[]
         callee:
@@ -45,55 +27,27 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_1: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              "held=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$usize$Display$to_string :string
-                arg0:
-                  LoweredArrayLen
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              " first=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$u8$Display$to_string :string
-                arg0:
-                  index :u8
-                    on:
-                      bs :const u8[]
-                    ix:
-                      int(0) :i32
-          ~>
+        call :string
+          callee:
+            concat4 :string
+          arg0:
+            "held=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$usize$Display$to_string :string
               arg0:
-                __sb_1 :StringBuilder
+                LoweredArrayLen
+          arg2:
+            " first=" :string
+          arg3:
+            call :string
+              callee:
+                std_core$u8$Display$to_string :string
+              arg0:
+                index :u8
+                  on:
+                    bs :const u8[]
+                  ix:
+                    int(0) :i32
     return int(0) :i32

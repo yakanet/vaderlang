@@ -12,69 +12,25 @@
             p :Cat | Dog
       then:
         return
-          block :string
-            let __sb_0: StringBuilder =
-              call :StringBuilder
-                callee:
-                  new_builder :StringBuilder
-            call :void
-              callee:
-                append :void
-              arg0:
-                __sb_0 :StringBuilder
-              arg1:
-                "dog says " :string
-            call :void
-              callee:
-                append :void
-              arg0:
-                __sb_0 :StringBuilder
-              arg1:
-                call :string
-                  callee:
-                    std_core$string$Display$to_string :string
-                  arg0:
-                    .sound :string
-                      cast → Dog
-                        p :Cat | Dog
-            ~>
-              call :string
-                callee:
-                  std_string_builder$StringBuilder$Display$to_string :string
-                arg0:
-                  __sb_0 :StringBuilder
-    return
-      block :string
-        let __sb_1: StringBuilder =
-          call :StringBuilder
-            callee:
-              new_builder :StringBuilder
-        call :void
-          callee:
-            append :void
-          arg0:
-            __sb_1 :StringBuilder
-          arg1:
-            "cat " :string
-        call :void
-          callee:
-            append :void
-          arg0:
-            __sb_1 :StringBuilder
-          arg1:
-            call :string
-              callee:
-                std_core$string$Display$to_string :string
-              arg0:
-                .name :string
-                  cast → Cat
-                    p :Cat | Dog
-        ~>
           call :string
             callee:
-              std_string_builder$StringBuilder$Display$to_string :string
+              concat2 :string
             arg0:
-              __sb_1 :StringBuilder
+              "dog says " :string
+            arg1:
+              .sound :string
+                cast → Dog
+                  p :Cat | Dog
+    return
+      call :string
+        callee:
+          concat2 :string
+        arg0:
+          "cat " :string
+        arg1:
+          .name :string
+            cast → Cat
+              p :Cat | Dog
   fn snippet$stringify(v: i32 | string) -> string
     if :void
       cond:
@@ -83,67 +39,27 @@
             v :i32 | string
       then:
         return
-          block :string
-            let __sb_0: StringBuilder =
-              call :StringBuilder
-                callee:
-                  new_builder :StringBuilder
-            call :void
-              callee:
-                append :void
-              arg0:
-                __sb_0 :StringBuilder
-              arg1:
-                "int " :string
-            call :void
-              callee:
-                append :void
-              arg0:
-                __sb_0 :StringBuilder
-              arg1:
-                call :string
-                  callee:
-                    std_core$i32$Display$to_string :string
-                  arg0:
-                    cast → i32
-                      v :i32 | string
-            ~>
-              call :string
-                callee:
-                  std_string_builder$StringBuilder$Display$to_string :string
-                arg0:
-                  __sb_0 :StringBuilder
-    return
-      block :string
-        let __sb_1: StringBuilder =
-          call :StringBuilder
-            callee:
-              new_builder :StringBuilder
-        call :void
-          callee:
-            append :void
-          arg0:
-            __sb_1 :StringBuilder
-          arg1:
-            "str " :string
-        call :void
-          callee:
-            append :void
-          arg0:
-            __sb_1 :StringBuilder
-          arg1:
-            call :string
-              callee:
-                std_core$string$Display$to_string :string
-              arg0:
-                cast → string
-                  v :i32 | string
-        ~>
           call :string
             callee:
-              std_string_builder$StringBuilder$Display$to_string :string
+              concat2 :string
             arg0:
-              __sb_1 :StringBuilder
+              "int " :string
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  cast → i32
+                    v :i32 | string
+    return
+      call :string
+        callee:
+          concat2 :string
+        arg0:
+          "str " :string
+        arg1:
+          cast → string
+            v :i32 | string
   fn snippet$unwrap_or(value: Cat | null, fallback: string) -> string
     if :void
       cond:
@@ -152,37 +68,15 @@
             value :Cat | null
       then:
         return
-          block :string
-            let __sb_0: StringBuilder =
-              call :StringBuilder
-                callee:
-                  new_builder :StringBuilder
-            call :void
-              callee:
-                append :void
-              arg0:
-                __sb_0 :StringBuilder
-              arg1:
-                "cat " :string
-            call :void
-              callee:
-                append :void
-              arg0:
-                __sb_0 :StringBuilder
-              arg1:
-                call :string
-                  callee:
-                    std_core$string$Display$to_string :string
-                  arg0:
-                    .name :string
-                      cast → Cat
-                        value :Cat | null
-            ~>
-              call :string
-                callee:
-                  std_string_builder$StringBuilder$Display$to_string :string
-                arg0:
-                  __sb_0 :StringBuilder
+          call :string
+            callee:
+              concat2 :string
+            arg0:
+              "cat " :string
+            arg1:
+              .name :string
+                cast → Cat
+                  value :Cat | null
     return fallback :string
   fn snippet$is_not_dog(p: Cat | Dog) -> bool
     return

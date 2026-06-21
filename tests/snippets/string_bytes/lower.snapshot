@@ -50,90 +50,55 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_3: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              "sum=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$u32$Display$to_string :string
-                arg0:
-                  sum :u32
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "sum=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$u32$Display$to_string :string
               arg0:
-                __sb_3 :StringBuilder
+                sum :u32
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         "-- multibyte --" :string
     block :void
-      let __for_arr_4: const u8[] =
+      let __for_arr_3: const u8[] =
         call :const u8[]
           callee:
             bytes :const u8[]
           arg0:
             "你" :string
-      let __for_len_5: usize =
+      let __for_len_4: usize =
         LoweredArrayLen
-      let __for_i_6: usize = int(0) :usize
+      let __for_i_5: usize = int(0) :usize
       loop while (<…>)
         let b: u8 =
           index :u8
             on:
-              __for_arr_4 :const u8[]
+              __for_arr_3 :const u8[]
             ix:
-              __for_i_6 :usize
+              __for_i_5 :usize
         call :void
           callee:
             std_io$std_io$println__string :void
           arg0:
-            block :string
-              let __sb_7: StringBuilder =
-                call :StringBuilder
-                  callee:
-                    new_builder :StringBuilder
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_7 :StringBuilder
-                arg1:
-                  call :string
-                    callee:
-                      std_core$u8$Display$to_string :string
-                    arg0:
-                      b :u8
-              ~>
-                call :string
-                  callee:
-                    std_string_builder$StringBuilder$Display$to_string :string
-                  arg0:
-                    __sb_7 :StringBuilder
+            call :string
+              callee:
+                std_core$u8$Display$to_string :string
+              arg0:
+                b :u8
         assign
           target:
-            __for_i_6 :usize
+            __for_i_5 :usize
           value:
             add :usize
               l:
-                __for_i_6 :usize
+                __for_i_5 :usize
               r:
                 int(1) :usize
     let bom: string = "﻿data" :string
@@ -153,7 +118,7 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_8: StringBuilder =
+          let __sb_6: StringBuilder =
             call :StringBuilder
               callee:
                 new_builder :StringBuilder
@@ -161,14 +126,14 @@
             callee:
               append :void
             arg0:
-              __sb_8 :StringBuilder
+              __sb_6 :StringBuilder
             arg1:
               "b0=" :string
           call :void
             callee:
               append :void
             arg0:
-              __sb_8 :StringBuilder
+              __sb_6 :StringBuilder
             arg1:
               call :string
                 callee:
@@ -183,14 +148,14 @@
             callee:
               append :void
             arg0:
-              __sb_8 :StringBuilder
+              __sb_6 :StringBuilder
             arg1:
               " b1=" :string
           call :void
             callee:
               append :void
             arg0:
-              __sb_8 :StringBuilder
+              __sb_6 :StringBuilder
             arg1:
               call :string
                 callee:
@@ -205,14 +170,14 @@
             callee:
               append :void
             arg0:
-              __sb_8 :StringBuilder
+              __sb_6 :StringBuilder
             arg1:
               " b2=" :string
           call :void
             callee:
               append :void
             arg0:
-              __sb_8 :StringBuilder
+              __sb_6 :StringBuilder
             arg1:
               call :string
                 callee:
@@ -228,92 +193,64 @@
               callee:
                 std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                __sb_8 :StringBuilder
+                __sb_6 :StringBuilder
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_9: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_9 :StringBuilder
-            arg1:
-              "after bom: " :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_9 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$u8$Display$to_string :string
-                arg0:
-                  index :u8
-                    on:
-                      bb :const u8[]
-                    ix:
-                      int(3) :i32
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_9 :StringBuilder
-            arg1:
-              "=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_9 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$u8$Display$to_string :string
-                arg0:
-                  index :u8
-                    on:
-                      call :const u8[]
-                        callee:
-                          bytes :const u8[]
-                        arg0:
-                          "d" :string
-                    ix:
-                      int(0) :i32
-          ~>
+        call :string
+          callee:
+            concat4 :string
+          arg0:
+            "after bom: " :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$u8$Display$to_string :string
               arg0:
-                __sb_9 :StringBuilder
+                index :u8
+                  on:
+                    bb :const u8[]
+                  ix:
+                    int(3) :i32
+          arg2:
+            "=" :string
+          arg3:
+            call :string
+              callee:
+                std_core$u8$Display$to_string :string
+              arg0:
+                index :u8
+                  on:
+                    call :const u8[]
+                      callee:
+                        bytes :const u8[]
+                      arg0:
+                        "d" :string
+                  ix:
+                    int(0) :i32
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
         "-- empty --" :string
     block :void
-      let __for_arr_11: const u8[] =
+      let __for_arr_8: const u8[] =
         call :const u8[]
           callee:
             bytes :const u8[]
           arg0:
             "" :string
-      let __for_len_12: usize =
+      let __for_len_9: usize =
         LoweredArrayLen
-      let __for_i_13: usize = int(0) :usize
+      let __for_i_10: usize = int(0) :usize
       loop while (<…>)
         let b: u8 =
           index :u8
             on:
-              __for_arr_11 :const u8[]
+              __for_arr_8 :const u8[]
             ix:
-              __for_i_13 :usize
+              __for_i_10 :usize
         call :void
           callee:
             std_io$std_io$println__string :void
@@ -321,46 +258,28 @@
             "never" :string
         assign
           target:
-            __for_i_13 :usize
+            __for_i_10 :usize
           value:
             add :usize
               l:
-                __for_i_13 :usize
+                __for_i_10 :usize
               r:
                 int(1) :usize
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_14: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_14 :StringBuilder
-            arg1:
-              "done bytes=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_14 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$usize$Display$to_string :string
-                arg0:
-                  LoweredArrayLen
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "done bytes=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$usize$Display$to_string :string
               arg0:
-                __sb_14 :StringBuilder
+                LoweredArrayLen
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -377,7 +296,7 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_15: StringBuilder =
+          let __sb_11: StringBuilder =
             call :StringBuilder
               callee:
                 new_builder :StringBuilder
@@ -385,14 +304,14 @@
             callee:
               append :void
             arg0:
-              __sb_15 :StringBuilder
+              __sb_11 :StringBuilder
             arg1:
               "len=" :string
           call :void
             callee:
               append :void
             arg0:
-              __sb_15 :StringBuilder
+              __sb_11 :StringBuilder
             arg1:
               call :string
                 callee:
@@ -403,14 +322,14 @@
             callee:
               append :void
             arg0:
-              __sb_15 :StringBuilder
+              __sb_11 :StringBuilder
             arg1:
               " bs[0]=" :string
           call :void
             callee:
               append :void
             arg0:
-              __sb_15 :StringBuilder
+              __sb_11 :StringBuilder
             arg1:
               call :string
                 callee:
@@ -425,14 +344,14 @@
             callee:
               append :void
             arg0:
-              __sb_15 :StringBuilder
+              __sb_11 :StringBuilder
             arg1:
               " bs[1]=" :string
           call :void
             callee:
               append :void
             arg0:
-              __sb_15 :StringBuilder
+              __sb_11 :StringBuilder
             arg1:
               call :string
                 callee:
@@ -447,14 +366,14 @@
             callee:
               append :void
             arg0:
-              __sb_15 :StringBuilder
+              __sb_11 :StringBuilder
             arg1:
               " bs[2]=" :string
           call :void
             callee:
               append :void
             arg0:
-              __sb_15 :StringBuilder
+              __sb_11 :StringBuilder
             arg1:
               call :string
                 callee:
@@ -470,7 +389,7 @@
               callee:
                 std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                __sb_15 :StringBuilder
+                __sb_11 :StringBuilder
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -495,7 +414,7 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_16: StringBuilder =
+          let __sb_12: StringBuilder =
             call :StringBuilder
               callee:
                 new_builder :StringBuilder
@@ -503,14 +422,14 @@
             callee:
               append :void
             arg0:
-              __sb_16 :StringBuilder
+              __sb_12 :StringBuilder
             arg1:
               "sl.len=" :string
           call :void
             callee:
               append :void
             arg0:
-              __sb_16 :StringBuilder
+              __sb_12 :StringBuilder
             arg1:
               call :string
                 callee:
@@ -521,14 +440,14 @@
             callee:
               append :void
             arg0:
-              __sb_16 :StringBuilder
+              __sb_12 :StringBuilder
             arg1:
               " sl0=" :string
           call :void
             callee:
               append :void
             arg0:
-              __sb_16 :StringBuilder
+              __sb_12 :StringBuilder
             arg1:
               call :string
                 callee:
@@ -543,14 +462,14 @@
             callee:
               append :void
             arg0:
-              __sb_16 :StringBuilder
+              __sb_12 :StringBuilder
             arg1:
               " sl1=" :string
           call :void
             callee:
               append :void
             arg0:
-              __sb_16 :StringBuilder
+              __sb_12 :StringBuilder
             arg1:
               call :string
                 callee:
@@ -565,14 +484,14 @@
             callee:
               append :void
             arg0:
-              __sb_16 :StringBuilder
+              __sb_12 :StringBuilder
             arg1:
               " sl2=" :string
           call :void
             callee:
               append :void
             arg0:
-              __sb_16 :StringBuilder
+              __sb_12 :StringBuilder
             arg1:
               call :string
                 callee:
@@ -588,5 +507,5 @@
               callee:
                 std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                __sb_16 :StringBuilder
+                __sb_12 :StringBuilder
     return int(0) :i32

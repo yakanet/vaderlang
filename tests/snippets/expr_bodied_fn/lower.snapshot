@@ -46,186 +46,84 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_0: StringBuilder =
-            call :StringBuilder
+        call :string
+          callee:
+            std_core$i32$Display$to_string :string
+          arg0:
+            call :i32
               callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  call :i32
-                    callee:
-                      square :fn(i32) -> i32
-                    arg0:
-                      int(7) :i32
-          ~>
-            call :string
-              callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                square :fn(i32) -> i32
               arg0:
-                __sb_0 :StringBuilder
+                int(7) :i32
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_1: StringBuilder =
-            call :StringBuilder
+        call :string
+          callee:
+            std_core$f64$Display$to_string :string
+          arg0:
+            call :f64
               callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$f64$Display$to_string :string
-                arg0:
-                  call :f64
-                    callee:
-                      max :fn(f64, f64) -> f64
-                    arg0:
-                      float(3.5) :f64
-                    arg1:
-                      float(7.2) :f64
-          ~>
-            call :string
-              callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                max :fn(f64, f64) -> f64
               arg0:
-                __sb_1 :StringBuilder
+                float(3.5) :f64
+              arg1:
+                float(7.2) :f64
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_2: StringBuilder =
-            call :StringBuilder
+        call :string
+          callee:
+            std_core$f64$Display$to_string :string
+          arg0:
+            call :f64
               callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$f64$Display$to_string :string
-                arg0:
-                  call :f64
-                    callee:
-                      max :fn(f64, f64) -> f64
-                    arg0:
-                      float(10) :f64
-                    arg1:
-                      float(4) :f64
-          ~>
-            call :string
-              callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                max :fn(f64, f64) -> f64
               arg0:
-                __sb_2 :StringBuilder
+                float(10) :f64
+              arg1:
+                float(4) :f64
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_3: StringBuilder =
-            call :StringBuilder
+        call :string
+          callee:
+            std_core$i32$Display$to_string :string
+          arg0:
+            call :i32
               callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  call :i32
-                    callee:
-                      b :fn(i32) -> i32
-                    arg0:
-                      int(5) :i32
-          ~>
-            call :string
-              callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                b :fn(i32) -> i32
               arg0:
-                __sb_3 :StringBuilder
+                int(5) :i32
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_4: StringBuilder =
-            call :StringBuilder
+        call :string
+          callee:
+            std_core$i32$Display$to_string :string
+          arg0:
+            call :i32
               callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_4 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  call :i32
-                    callee:
-                      snippet$snippet$id__i32 :i32
-                    arg0:
-                      int(42) :i32
-          ~>
-            call :string
-              callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                snippet$snippet$id__i32 :i32
               arg0:
-                __sb_4 :StringBuilder
+                int(42) :i32
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_5: StringBuilder =
-            call :StringBuilder
+        call :string
+          callee:
+            std_core$f64$Display$to_string :string
+          arg0:
+            call :f64
               callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_5 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$f64$Display$to_string :string
-                arg0:
-                  call :f64
-                    callee:
-                      snippet$snippet$id__f64 :f64
-                    arg0:
-                      float(7.5) :f64
-          ~>
-            call :string
-              callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                snippet$snippet$id__f64 :f64
               arg0:
-                __sb_5 :StringBuilder
+                float(7.5) :f64
     call :void
       callee:
         std_io$std_io$println__string :void

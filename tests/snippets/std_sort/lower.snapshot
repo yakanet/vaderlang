@@ -42,72 +42,28 @@
               target:
                 sb :string
               value:
-                block :string
-                  let __sb_3: StringBuilder =
-                    call :StringBuilder
-                      callee:
-                        new_builder :StringBuilder
-                  call :void
-                    callee:
-                      append :void
-                    arg0:
-                      __sb_3 :StringBuilder
-                    arg1:
-                      call :string
-                        callee:
-                          std_core$string$Display$to_string :string
-                        arg0:
-                          sb :string
-                  call :void
-                    callee:
-                      append :void
-                    arg0:
-                      __sb_3 :StringBuilder
-                    arg1:
-                      ", " :string
-                  ~>
-                    call :string
-                      callee:
-                        std_string_builder$StringBuilder$Display$to_string :string
-                      arg0:
-                        __sb_3 :StringBuilder
+                call :string
+                  callee:
+                    concat2 :string
+                  arg0:
+                    sb :string
+                  arg1:
+                    ", " :string
         assign
           target:
             sb :string
           value:
-            block :string
-              let __sb_4: StringBuilder =
-                call :StringBuilder
-                  callee:
-                    new_builder :StringBuilder
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_4 :StringBuilder
-                arg1:
-                  call :string
-                    callee:
-                      std_core$string$Display$to_string :string
-                    arg0:
-                      sb :string
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_4 :StringBuilder
-                arg1:
-                  call :string
-                    callee:
-                      std_core$i32$Display$to_string :string
-                    arg0:
-                      x :i32
-              ~>
+            call :string
+              callee:
+                concat2 :string
+              arg0:
+                sb :string
+              arg1:
                 call :string
                   callee:
-                    std_string_builder$StringBuilder$Display$to_string :string
+                    std_core$i32$Display$to_string :string
                   arg0:
-                    __sb_4 :StringBuilder
+                    x :i32
         assign
           target:
             i :i32
@@ -159,72 +115,24 @@
               target:
                 sb :string
               value:
-                block :string
-                  let __sb_3: StringBuilder =
-                    call :StringBuilder
-                      callee:
-                        new_builder :StringBuilder
-                  call :void
-                    callee:
-                      append :void
-                    arg0:
-                      __sb_3 :StringBuilder
-                    arg1:
-                      call :string
-                        callee:
-                          std_core$string$Display$to_string :string
-                        arg0:
-                          sb :string
-                  call :void
-                    callee:
-                      append :void
-                    arg0:
-                      __sb_3 :StringBuilder
-                    arg1:
-                      ", " :string
-                  ~>
-                    call :string
-                      callee:
-                        std_string_builder$StringBuilder$Display$to_string :string
-                      arg0:
-                        __sb_3 :StringBuilder
+                call :string
+                  callee:
+                    concat2 :string
+                  arg0:
+                    sb :string
+                  arg1:
+                    ", " :string
         assign
           target:
             sb :string
           value:
-            block :string
-              let __sb_4: StringBuilder =
-                call :StringBuilder
-                  callee:
-                    new_builder :StringBuilder
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_4 :StringBuilder
-                arg1:
-                  call :string
-                    callee:
-                      std_core$string$Display$to_string :string
-                    arg0:
-                      sb :string
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_4 :StringBuilder
-                arg1:
-                  call :string
-                    callee:
-                      std_core$string$Display$to_string :string
-                    arg0:
-                      s :string
-              ~>
-                call :string
-                  callee:
-                    std_string_builder$StringBuilder$Display$to_string :string
-                  arg0:
-                    __sb_4 :StringBuilder
+            call :string
+              callee:
+                concat2 :string
+              arg0:
+                sb :string
+              arg1:
+                s :string
         assign
           target:
             i :i32

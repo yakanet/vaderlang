@@ -6,259 +6,105 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_0: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              "sha256-empty=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  call :string
-                    callee:
-                      sha256 :fn(string) -> string
-                    arg0:
-                      "" :string
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "sha256-empty=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                sha256 :fn(string) -> string
               arg0:
-                __sb_0 :StringBuilder
+                "" :string
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_1: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              "sha256-abc=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  call :string
-                    callee:
-                      sha256 :fn(string) -> string
-                    arg0:
-                      "abc" :string
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "sha256-abc=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                sha256 :fn(string) -> string
               arg0:
-                __sb_1 :StringBuilder
+                "abc" :string
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_2: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              "sha256-quick=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  call :string
-                    callee:
-                      sha256 :fn(string) -> string
-                    arg0:
-                      "The quick brown fox jumps over the lazy dog" :string
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "sha256-quick=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                sha256 :fn(string) -> string
               arg0:
-                __sb_2 :StringBuilder
+                "The quick brown fox jumps over the lazy dog" :string
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_3: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              "sha256-long=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  call :string
-                    callee:
-                      sha256 :fn(string) -> string
-                    arg0:
-                      "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq" :string
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "sha256-long=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                sha256 :fn(string) -> string
               arg0:
-                __sb_3 :StringBuilder
+                "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq" :string
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_4: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_4 :StringBuilder
-            arg1:
-              "md5-empty=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_4 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  call :string
-                    callee:
-                      md5 :fn(string) -> string
-                    arg0:
-                      "" :string
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "md5-empty=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                md5 :fn(string) -> string
               arg0:
-                __sb_4 :StringBuilder
+                "" :string
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_5: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_5 :StringBuilder
-            arg1:
-              "md5-abc=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_5 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  call :string
-                    callee:
-                      md5 :fn(string) -> string
-                    arg0:
-                      "abc" :string
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "md5-abc=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                md5 :fn(string) -> string
               arg0:
-                __sb_5 :StringBuilder
+                "abc" :string
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_6: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_6 :StringBuilder
-            arg1:
-              "md5-quick=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_6 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  call :string
-                    callee:
-                      md5 :fn(string) -> string
-                    arg0:
-                      "The quick brown fox jumps over the lazy dog" :string
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "md5-quick=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                md5 :fn(string) -> string
               arg0:
-                __sb_6 :StringBuilder
+                "The quick brown fox jumps over the lazy dog" :string
     return int(0) :i32

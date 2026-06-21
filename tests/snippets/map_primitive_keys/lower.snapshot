@@ -641,71 +641,43 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_4: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_4 :StringBuilder
-            arg1:
-              "i64 big=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_4 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  call :i32
-                    callee:
-                      snippet$snippet$get_or__i64 :i32
-                    arg0:
-                      mi64 :MutableMap<i64, i32>
-                    arg1:
-                      kbig :i64
-                    arg2:
-                      neg :i32
-                        int(1) :i32
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_4 :StringBuilder
-            arg1:
-              " negbig=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_4 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  call :i32
-                    callee:
-                      snippet$snippet$get_or__i64 :i32
-                    arg0:
-                      mi64 :MutableMap<i64, i32>
-                    arg1:
-                      knegbig :i64
-                    arg2:
-                      neg :i32
-                        int(1) :i32
-          ~>
+        call :string
+          callee:
+            concat4 :string
+          arg0:
+            "i64 big=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_4 :StringBuilder
+                call :i32
+                  callee:
+                    snippet$snippet$get_or__i64 :i32
+                  arg0:
+                    mi64 :MutableMap<i64, i32>
+                  arg1:
+                    kbig :i64
+                  arg2:
+                    neg :i32
+                      int(1) :i32
+          arg2:
+            " negbig=" :string
+          arg3:
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                call :i32
+                  callee:
+                    snippet$snippet$get_or__i64 :i32
+                  arg0:
+                    mi64 :MutableMap<i64, i32>
+                  arg1:
+                    knegbig :i64
+                  arg2:
+                    neg :i32
+                      int(1) :i32
     let mus: MutableMap<usize, i32> =
       MutableMap<usize, i32> {
         ekeys:
@@ -749,7 +721,7 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_5: StringBuilder =
+          let __sb_4: StringBuilder =
             call :StringBuilder
               callee:
                 new_builder :StringBuilder
@@ -757,14 +729,14 @@
             callee:
               append :void
             arg0:
-              __sb_5 :StringBuilder
+              __sb_4 :StringBuilder
             arg1:
               "usize size=" :string
           call :void
             callee:
               append :void
             arg0:
-              __sb_5 :StringBuilder
+              __sb_4 :StringBuilder
             arg1:
               call :string
                 callee:
@@ -779,14 +751,14 @@
             callee:
               append :void
             arg0:
-              __sb_5 :StringBuilder
+              __sb_4 :StringBuilder
             arg1:
               " k0=" :string
           call :void
             callee:
               append :void
             arg0:
-              __sb_5 :StringBuilder
+              __sb_4 :StringBuilder
             arg1:
               call :string
                 callee:
@@ -807,14 +779,14 @@
             callee:
               append :void
             arg0:
-              __sb_5 :StringBuilder
+              __sb_4 :StringBuilder
             arg1:
               " k39=" :string
           call :void
             callee:
               append :void
             arg0:
-              __sb_5 :StringBuilder
+              __sb_4 :StringBuilder
             arg1:
               call :string
                 callee:
@@ -835,14 +807,14 @@
             callee:
               append :void
             arg0:
-              __sb_5 :StringBuilder
+              __sb_4 :StringBuilder
             arg1:
               " miss=" :string
           call :void
             callee:
               append :void
             arg0:
-              __sb_5 :StringBuilder
+              __sb_4 :StringBuilder
             arg1:
               call :string
                 callee:
@@ -864,7 +836,7 @@
               callee:
                 std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                __sb_5 :StringBuilder
+                __sb_4 :StringBuilder
     return int(0) :i32
   fn snippet$snippet$get_or__char(m: MutableMap<char, i32>, k: char, dflt: i32) -> i32
     let v: i32 | null =

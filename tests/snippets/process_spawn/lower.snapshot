@@ -24,73 +24,33 @@
                   callee:
                     std_io$std_io$println__string :void
                   arg0:
-                    block :string
-                      let __sb_2: StringBuilder =
-                        call :StringBuilder
-                          callee:
-                            new_builder :StringBuilder
-                      call :void
-                        callee:
-                          append :void
-                        arg0:
-                          __sb_2 :StringBuilder
-                        arg1:
-                          "exit=" :string
-                      call :void
-                        callee:
-                          append :void
-                        arg0:
-                          __sb_2 :StringBuilder
-                        arg1:
-                          call :string
-                            callee:
-                              std_core$i32$Display$to_string :string
-                            arg0:
-                              .exit :i32
-                                cast → ProcessResult
-                                  r :ProcessError | ProcessResult
-                      ~>
+                    call :string
+                      callee:
+                        concat2 :string
+                      arg0:
+                        "exit=" :string
+                      arg1:
                         call :string
                           callee:
-                            std_string_builder$StringBuilder$Display$to_string :string
+                            std_core$i32$Display$to_string :string
                           arg0:
-                            __sb_2 :StringBuilder
+                            .exit :i32
+                              cast → ProcessResult
+                                r :ProcessError | ProcessResult
                 ~>
                   call :void
                     callee:
                       std_io$std_io$println__string :void
                     arg0:
-                      block :string
-                        let __sb_3: StringBuilder =
-                          call :StringBuilder
-                            callee:
-                              new_builder :StringBuilder
-                        call :void
-                          callee:
-                            append :void
-                          arg0:
-                            __sb_3 :StringBuilder
-                          arg1:
-                            "out=" :string
-                        call :void
-                          callee:
-                            append :void
-                          arg0:
-                            __sb_3 :StringBuilder
-                          arg1:
-                            call :string
-                              callee:
-                                std_core$string$Display$to_string :string
-                              arg0:
-                                .stdout :string
-                                  cast → ProcessResult
-                                    r :ProcessError | ProcessResult
-                        ~>
-                          call :string
-                            callee:
-                              std_string_builder$StringBuilder$Display$to_string :string
-                            arg0:
-                              __sb_3 :StringBuilder
+                      call :string
+                        callee:
+                          concat2 :string
+                        arg0:
+                          "out=" :string
+                        arg1:
+                          .stdout :string
+                            cast → ProcessResult
+                              r :ProcessError | ProcessResult
           else:
             ~>
               if :void
@@ -103,40 +63,18 @@
                       callee:
                         std_io$std_io$println__string :void
                       arg0:
-                        block :string
-                          let __sb_1: StringBuilder =
-                            call :StringBuilder
-                              callee:
-                                new_builder :StringBuilder
-                          call :void
-                            callee:
-                              append :void
-                            arg0:
-                              __sb_1 :StringBuilder
-                            arg1:
-                              "err: " :string
-                          call :void
-                            callee:
-                              append :void
-                            arg0:
-                              __sb_1 :StringBuilder
-                            arg1:
-                              call :string
-                                callee:
-                                  std_core$string$Display$to_string :string
-                                arg0:
-                                  call :string
-                                    callee:
-                                      std_process$ProcessError$Error$message :string
-                                    arg0:
-                                      cast → ProcessError
-                                        r :ProcessError | ProcessResult
-                          ~>
+                        call :string
+                          callee:
+                            concat2 :string
+                          arg0:
+                            "err: " :string
+                          arg1:
                             call :string
                               callee:
-                                std_string_builder$StringBuilder$Display$to_string :string
+                                std_process$ProcessError$Error$message :string
                               arg0:
-                                __sb_1 :StringBuilder
+                                cast → ProcessError
+                                  r :ProcessError | ProcessResult
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void

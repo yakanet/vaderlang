@@ -14,70 +14,30 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_0: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              "a.id = " :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  .id :i32
-                    a :Box
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "a.id = " :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_0 :StringBuilder
+                .id :i32
+                  a :Box
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_1: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              "b.label = " :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  .label :string
-                    b :Box
-          ~>
-            call :string
-              callee:
-                std_string_builder$StringBuilder$Display$to_string :string
-              arg0:
-                __sb_1 :StringBuilder
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "b.label = " :string
+          arg1:
+            .label :string
+              b :Box
     return int(0) :i32
 
 ## snippet/mod_a

@@ -33,7 +33,7 @@ fn 0 snippet$main () -> i32
   local s2 ref
   local s3 ref
   local __sb_0 ref
-  local $call_18 string
+  local $field_17 string
   string.const 0
   i32.const 30
   bool.const false
@@ -53,7 +53,6 @@ fn 0 snippet$main () -> i32
   local.set 3
   local.field 0 2 0
   ref.cast 3
-  call 3
   local.set 4
   local.get 3
   local.get 4
@@ -85,7 +84,6 @@ fn 0 snippet$main () -> i32
   local.set 0
   local.field 1 2 0
   ref.cast 3
-  call 3
   local.set 4
   local.get 0
   local.get 4
@@ -117,7 +115,6 @@ fn 0 snippet$main () -> i32
   local.set 0
   local.field 2 2 0
   ref.cast 3
-  call 3
   local.set 4
   local.get 0
   local.get 4

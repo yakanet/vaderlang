@@ -116,6 +116,42 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
+        call :string
+          callee:
+            concat4 :string
+          arg0:
+            "a==b " :string
+          arg1:
+            call :string
+              callee:
+                std_core$bool$Display$to_string :string
+              arg0:
+                call :bool
+                  callee:
+                    snippet$Money$Equals$equals :bool
+                  arg0:
+                    a :Money
+                  arg1:
+                    b :Money
+          arg2:
+            "  a!=c " :string
+          arg3:
+            call :string
+              callee:
+                std_core$bool$Display$to_string :string
+              arg0:
+                not :bool
+                  call :bool
+                    callee:
+                      snippet$Money$Equals$equals :bool
+                    arg0:
+                      a :Money
+                    arg1:
+                      c :Money
+    call :void
+      callee:
+        std_io$std_io$println__string :void
+      arg0:
         block :string
           let __sb_0: StringBuilder =
             call :StringBuilder
@@ -127,76 +163,12 @@
             arg0:
               __sb_0 :StringBuilder
             arg1:
-              "a==b " :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$bool$Display$to_string :string
-                arg0:
-                  call :bool
-                    callee:
-                      snippet$Money$Equals$equals :bool
-                    arg0:
-                      a :Money
-                    arg1:
-                      b :Money
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              "  a!=c " :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$bool$Display$to_string :string
-                arg0:
-                  not :bool
-                    call :bool
-                      callee:
-                        snippet$Money$Equals$equals :bool
-                      arg0:
-                        a :Money
-                      arg1:
-                        c :Money
-          ~>
-            call :string
-              callee:
-                std_string_builder$StringBuilder$Display$to_string :string
-              arg0:
-                __sb_0 :StringBuilder
-    call :void
-      callee:
-        std_io$std_io$println__string :void
-      arg0:
-        block :string
-          let __sb_1: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
               "a<c " :string
           call :void
             callee:
               append :void
             arg0:
-              __sb_1 :StringBuilder
+              __sb_0 :StringBuilder
             arg1:
               call :string
                 callee:
@@ -217,14 +189,14 @@
             callee:
               append :void
             arg0:
-              __sb_1 :StringBuilder
+              __sb_0 :StringBuilder
             arg1:
               "  c>a " :string
           call :void
             callee:
               append :void
             arg0:
-              __sb_1 :StringBuilder
+              __sb_0 :StringBuilder
             arg1:
               call :string
                 callee:
@@ -245,14 +217,14 @@
             callee:
               append :void
             arg0:
-              __sb_1 :StringBuilder
+              __sb_0 :StringBuilder
             arg1:
               "  a>=b " :string
           call :void
             callee:
               append :void
             arg0:
-              __sb_1 :StringBuilder
+              __sb_0 :StringBuilder
             arg1:
               call :string
                 callee:
@@ -273,14 +245,14 @@
             callee:
               append :void
             arg0:
-              __sb_1 :StringBuilder
+              __sb_0 :StringBuilder
             arg1:
               "  c<=c " :string
           call :void
             callee:
               append :void
             arg0:
-              __sb_1 :StringBuilder
+              __sb_0 :StringBuilder
             arg1:
               call :string
                 callee:
@@ -302,5 +274,5 @@
               callee:
                 std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                __sb_1 :StringBuilder
+                __sb_0 :StringBuilder
     return int(0) :i32

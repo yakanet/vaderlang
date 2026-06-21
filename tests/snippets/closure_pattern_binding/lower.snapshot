@@ -30,37 +30,15 @@
                       callee:
                         std_io$std_io$println__string :void
                       arg0:
-                        block :string
-                          let __sb_4: StringBuilder =
-                            call :StringBuilder
-                              callee:
-                                new_builder :StringBuilder
-                          call :void
-                            callee:
-                              append :void
-                            arg0:
-                              __sb_4 :StringBuilder
-                            arg1:
-                              "again " :string
-                          call :void
-                            callee:
-                              append :void
-                            arg0:
-                              __sb_4 :StringBuilder
-                            arg1:
-                              call :string
-                                callee:
-                                  std_core$string$Display$to_string :string
-                                arg0:
-                                  call :string
-                                    callee:
-                                      shout :fn() -> string
-                          ~>
+                        call :string
+                          callee:
+                            concat2 :string
+                          arg0:
+                            "again " :string
+                          arg1:
                             call :string
                               callee:
-                                std_string_builder$StringBuilder$Display$to_string :string
-                              arg0:
-                                __sb_4 :StringBuilder
+                                shout :fn() -> string
             else:
               ~>
                 if :void
@@ -79,37 +57,19 @@
                             callee:
                               std_io$std_io$println__string :void
                             arg0:
-                              block :string
-                                let __sb_2: StringBuilder =
-                                  call :StringBuilder
-                                    callee:
-                                      new_builder :StringBuilder
-                                call :void
-                                  callee:
-                                    append :void
-                                  arg0:
-                                    __sb_2 :StringBuilder
-                                  arg1:
-                                    "twice = " :string
-                                call :void
-                                  callee:
-                                    append :void
-                                  arg0:
-                                    __sb_2 :StringBuilder
-                                  arg1:
-                                    call :string
-                                      callee:
-                                        std_core$i32$Display$to_string :string
-                                      arg0:
-                                        call :i32
-                                          callee:
-                                            doubled :fn() -> i32
-                                ~>
+                              call :string
+                                callee:
+                                  concat2 :string
+                                arg0:
+                                  "twice = " :string
+                                arg1:
                                   call :string
                                     callee:
-                                      std_string_builder$StringBuilder$Display$to_string :string
+                                      std_core$i32$Display$to_string :string
                                     arg0:
-                                      __sb_2 :StringBuilder
+                                      call :i32
+                                        callee:
+                                          doubled :fn() -> i32
                   else:
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -135,36 +95,14 @@
           LoweredCellGet
         r:
           LoweredCellGet
-  struct __lambda_env_7 { cap_0: ? }
-  fn __lambda_6(__env_3: __lambda_env_7) -> string
+  struct __lambda_env_6 { cap_0: ? }
+  fn __lambda_5(__env_2: __lambda_env_6) -> string
     ~>
-      block :string
-        let __sb_0: StringBuilder =
-          call :StringBuilder
-            callee:
-              new_builder :StringBuilder
-        call :void
-          callee:
-            append :void
-          arg0:
-            __sb_0 :StringBuilder
-          arg1:
-            "HELLO " :string
-        call :void
-          callee:
-            append :void
-          arg0:
-            __sb_0 :StringBuilder
-          arg1:
-            call :string
-              callee:
-                std_core$string$Display$to_string :string
-              arg0:
-                .name :string
-                  LoweredCellGet
-        ~>
-          call :string
-            callee:
-              std_string_builder$StringBuilder$Display$to_string :string
-            arg0:
-              __sb_0 :StringBuilder
+      call :string
+        callee:
+          concat2 :string
+        arg0:
+          "HELLO " :string
+        arg1:
+          .name :string
+            LoweredCellGet

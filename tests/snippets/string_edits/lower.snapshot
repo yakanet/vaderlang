@@ -67,64 +67,30 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_0: StringBuilder =
-            call :StringBuilder
+        call :string
+          callee:
+            std_core$bool$Display$to_string :string
+          arg0:
+            call :bool
               callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$bool$Display$to_string :string
-                arg0:
-                  call :bool
-                    callee:
-                      find :bool
-                    arg0:
-                      "hello" :string
-                    arg1:
-                      char(0x65)
-          ~>
-            call :string
-              callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                find :bool
               arg0:
-                __sb_0 :StringBuilder
+                "hello" :string
+              arg1:
+                char(0x65)
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_1: StringBuilder =
-            call :StringBuilder
+        call :string
+          callee:
+            std_core$bool$Display$to_string :string
+          arg0:
+            call :bool
               callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$bool$Display$to_string :string
-                arg0:
-                  call :bool
-                    callee:
-                      find :bool
-                    arg0:
-                      "hello" :string
-                    arg1:
-                      char(0x7a)
-          ~>
-            call :string
-              callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                find :bool
               arg0:
-                __sb_1 :StringBuilder
+                "hello" :string
+              arg1:
+                char(0x7a)
     return int(0) :i32

@@ -29,266 +29,128 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_0: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              "errors=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$usize$Display$to_string :string
-                arg0:
-                  LoweredArrayLen
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "errors=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$usize$Display$to_string :string
               arg0:
-                __sb_0 :StringBuilder
+                LoweredArrayLen
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_1: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              "positionals=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$usize$Display$to_string :string
-                arg0:
-                  LoweredArrayLen
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "positionals=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$usize$Display$to_string :string
               arg0:
-                __sb_1 :StringBuilder
+                LoweredArrayLen
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_2: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              "first=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  index :string
-                    on:
-                      .positionals :string[]
-                        r :ParsedArgs
-                    ix:
-                      int(0) :i32
-          ~>
-            call :string
-              callee:
-                std_string_builder$StringBuilder$Display$to_string :string
-              arg0:
-                __sb_2 :StringBuilder
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "first=" :string
+          arg1:
+            index :string
+              on:
+                .positionals :string[]
+                  r :ParsedArgs
+              ix:
+                int(0) :i32
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_3: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              "verbose=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$bool$Display$to_string :string
-                arg0:
-                  call :bool
-                    callee:
-                      bool_flag :bool
-                    arg0:
-                      r :ParsedArgs
-                    arg1:
-                      "verbose" :string
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "verbose=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$bool$Display$to_string :string
               arg0:
-                __sb_3 :StringBuilder
+                call :bool
+                  callee:
+                    bool_flag :bool
+                  arg0:
+                    r :ParsedArgs
+                  arg1:
+                    "verbose" :string
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_4: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_4 :StringBuilder
-            arg1:
-              "missing=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_4 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$bool$Display$to_string :string
-                arg0:
-                  call :bool
-                    callee:
-                      bool_flag :bool
-                    arg0:
-                      r :ParsedArgs
-                    arg1:
-                      "missing" :string
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "missing=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$bool$Display$to_string :string
               arg0:
-                __sb_4 :StringBuilder
+                call :bool
+                  callee:
+                    bool_flag :bool
+                  arg0:
+                    r :ParsedArgs
+                  arg1:
+                    "missing" :string
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_5: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_5 :StringBuilder
-            arg1:
-              "out=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_5 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  call :string
-                    callee:
-                      string_flag :string
-                    arg0:
-                      r :ParsedArgs
-                    arg1:
-                      "out" :string
-                    arg2:
-                      "" :string
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "out=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                string_flag :string
               arg0:
-                __sb_5 :StringBuilder
+                r :ParsedArgs
+              arg1:
+                "out" :string
+              arg2:
+                "" :string
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_6: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_6 :StringBuilder
-            arg1:
-              "default=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_6 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  call :string
-                    callee:
-                      string_flag :string
-                    arg0:
-                      r :ParsedArgs
-                    arg1:
-                      "absent" :string
-                    arg2:
-                      "fallback" :string
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "default=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                string_flag :string
               arg0:
-                __sb_6 :StringBuilder
+                r :ParsedArgs
+              arg1:
+                "absent" :string
+              arg2:
+                "fallback" :string
     let bad: ParsedArgs =
       call :ParsedArgs
         callee:
@@ -303,89 +165,49 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_7: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_7 :StringBuilder
-            arg1:
-              "err_count=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_7 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$usize$Display$to_string :string
-                arg0:
-                  LoweredArrayLen
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "err_count=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$usize$Display$to_string :string
               arg0:
-                __sb_7 :StringBuilder
+                LoweredArrayLen
     block :void
-      let __for_arr_8: string[] =
+      let __for_arr_0: string[] =
         .errors :string[]
           bad :ParsedArgs
-      let __for_len_9: usize =
+      let __for_len_1: usize =
         LoweredArrayLen
-      let __for_i_10: usize = int(0) :usize
+      let __for_i_2: usize = int(0) :usize
       loop while (<…>)
         let e: string =
           index :string
             on:
-              __for_arr_8 :string[]
+              __for_arr_0 :string[]
             ix:
-              __for_i_10 :usize
+              __for_i_2 :usize
         call :void
           callee:
             std_io$std_io$println__string :void
           arg0:
-            block :string
-              let __sb_11: StringBuilder =
-                call :StringBuilder
-                  callee:
-                    new_builder :StringBuilder
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_11 :StringBuilder
-                arg1:
-                  "err=" :string
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_11 :StringBuilder
-                arg1:
-                  call :string
-                    callee:
-                      std_core$string$Display$to_string :string
-                    arg0:
-                      e :string
-              ~>
-                call :string
-                  callee:
-                    std_string_builder$StringBuilder$Display$to_string :string
-                  arg0:
-                    __sb_11 :StringBuilder
+            call :string
+              callee:
+                concat2 :string
+              arg0:
+                "err=" :string
+              arg1:
+                e :string
         assign
           target:
-            __for_i_10 :usize
+            __for_i_2 :usize
           value:
             add :usize
               l:
-                __for_i_10 :usize
+                __for_i_2 :usize
               r:
                 int(1) :usize
     return int(0) :i32

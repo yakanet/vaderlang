@@ -18,36 +18,14 @@
                 cast → Cat
                   __scrut_0 :Cat | Dog
               ~>
-                block :string
-                  let __sb_2: StringBuilder =
-                    call :StringBuilder
-                      callee:
-                        new_builder :StringBuilder
-                  call :void
-                    callee:
-                      append :void
-                    arg0:
-                      __sb_2 :StringBuilder
-                    arg1:
-                      "cat " :string
-                  call :void
-                    callee:
-                      append :void
-                    arg0:
-                      __sb_2 :StringBuilder
-                    arg1:
-                      call :string
-                        callee:
-                          std_core$string$Display$to_string :string
-                        arg0:
-                          .name :string
-                            c :Cat
-                  ~>
-                    call :string
-                      callee:
-                        std_string_builder$StringBuilder$Display$to_string :string
-                      arg0:
-                        __sb_2 :StringBuilder
+                call :string
+                  callee:
+                    concat2 :string
+                  arg0:
+                    "cat " :string
+                  arg1:
+                    .name :string
+                      c :Cat
             else:
               ~>
                 if :string
@@ -59,36 +37,14 @@
                       cast → Dog
                         __scrut_0 :Cat | Dog
                     ~>
-                      block :string
-                        let __sb_1: StringBuilder =
-                          call :StringBuilder
-                            callee:
-                              new_builder :StringBuilder
-                        call :void
-                          callee:
-                            append :void
-                          arg0:
-                            __sb_1 :StringBuilder
-                          arg1:
-                            "dog " :string
-                        call :void
-                          callee:
-                            append :void
-                          arg0:
-                            __sb_1 :StringBuilder
-                          arg1:
-                            call :string
-                              callee:
-                                std_core$string$Display$to_string :string
-                              arg0:
-                                .name :string
-                                  d :Dog
-                        ~>
-                          call :string
-                            callee:
-                              std_string_builder$StringBuilder$Display$to_string :string
-                            arg0:
-                              __sb_1 :StringBuilder
+                      call :string
+                        callee:
+                          concat2 :string
+                        arg0:
+                          "dog " :string
+                        arg1:
+                          .name :string
+                            d :Dog
                   else:
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :string

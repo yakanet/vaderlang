@@ -18,58 +18,20 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_0: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  .value :i32
-                    .value :Box<i32>
-                      a :Box<Box<i32>>
-          ~>
-            call :string
-              callee:
-                std_string_builder$StringBuilder$Display$to_string :string
-              arg0:
-                __sb_0 :StringBuilder
+        call :string
+          callee:
+            std_core$i32$Display$to_string :string
+          arg0:
+            .value :i32
+              .value :Box<i32>
+                a :Box<Box<i32>>
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_1: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  .value :string
-                    .value :Box<string>
-                      b :Box<Box<string>>
-          ~>
-            call :string
-              callee:
-                std_string_builder$StringBuilder$Display$to_string :string
-              arg0:
-                __sb_1 :StringBuilder
+        .value :string
+          .value :Box<string>
+            b :Box<Box<string>>
     return int(0) :i32
   struct snippet$Box__i32 { value: i32 }
   struct snippet$Box__string { value: string }

@@ -24,48 +24,17 @@
                       callee:
                         std_io$std_io$println__string :void
                       arg0:
-                        block :string
-                          let __sb_7: StringBuilder =
-                            call :StringBuilder
-                              callee:
-                                new_builder :StringBuilder
-                          call :void
-                            callee:
-                              append :void
-                            arg0:
-                              __sb_7 :StringBuilder
-                            arg1:
-                              call :string
-                                callee:
-                                  std_core$string$Display$to_string :string
-                                arg0:
-                                  label :string
-                          call :void
-                            callee:
-                              append :void
-                            arg0:
-                              __sb_7 :StringBuilder
-                            arg1:
-                              ": error: " :string
-                          call :void
-                            callee:
-                              append :void
-                            arg0:
-                              __sb_7 :StringBuilder
-                            arg1:
-                              call :string
-                                callee:
-                                  std_core$string$Display$to_string :string
-                                arg0:
-                                  .msg :string
-                                    cast → JsonError
-                                      parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
-                          ~>
-                            call :string
-                              callee:
-                                std_string_builder$StringBuilder$Display$to_string :string
-                              arg0:
-                                __sb_7 :StringBuilder
+                        call :string
+                          callee:
+                            concat3 :string
+                          arg0:
+                            label :string
+                          arg1:
+                            ": error: " :string
+                          arg2:
+                            .msg :string
+                              cast → JsonError
+                                parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
             else:
               ~>
                 if :void
@@ -80,51 +49,20 @@
                             callee:
                               std_io$std_io$println__string :void
                             arg0:
-                              block :string
-                                let __sb_6: StringBuilder =
-                                  call :StringBuilder
-                                    callee:
-                                      new_builder :StringBuilder
-                                call :void
-                                  callee:
-                                    append :void
-                                  arg0:
-                                    __sb_6 :StringBuilder
-                                  arg1:
-                                    call :string
-                                      callee:
-                                        std_core$string$Display$to_string :string
-                                      arg0:
-                                        label :string
-                                call :void
-                                  callee:
-                                    append :void
-                                  arg0:
-                                    __sb_6 :StringBuilder
-                                  arg1:
-                                    ": " :string
-                                call :void
-                                  callee:
-                                    append :void
-                                  arg0:
-                                    __sb_6 :StringBuilder
-                                  arg1:
-                                    call :string
-                                      callee:
-                                        std_core$string$Display$to_string :string
-                                      arg0:
-                                        call :string
-                                          callee:
-                                            stringify :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
-                                          arg0:
-                                            cast → JsonString
-                                              parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
-                                ~>
+                              call :string
+                                callee:
+                                  concat3 :string
+                                arg0:
+                                  label :string
+                                arg1:
+                                  ": " :string
+                                arg2:
                                   call :string
                                     callee:
-                                      std_string_builder$StringBuilder$Display$to_string :string
+                                      stringify :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
                                     arg0:
-                                      __sb_6 :StringBuilder
+                                      cast → JsonString
+                                        parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
                   else:
                     ~>
                       if :void
@@ -139,51 +77,20 @@
                                   callee:
                                     std_io$std_io$println__string :void
                                   arg0:
-                                    block :string
-                                      let __sb_5: StringBuilder =
-                                        call :StringBuilder
-                                          callee:
-                                            new_builder :StringBuilder
-                                      call :void
-                                        callee:
-                                          append :void
-                                        arg0:
-                                          __sb_5 :StringBuilder
-                                        arg1:
-                                          call :string
-                                            callee:
-                                              std_core$string$Display$to_string :string
-                                            arg0:
-                                              label :string
-                                      call :void
-                                        callee:
-                                          append :void
-                                        arg0:
-                                          __sb_5 :StringBuilder
-                                        arg1:
-                                          ": " :string
-                                      call :void
-                                        callee:
-                                          append :void
-                                        arg0:
-                                          __sb_5 :StringBuilder
-                                        arg1:
-                                          call :string
-                                            callee:
-                                              std_core$string$Display$to_string :string
-                                            arg0:
-                                              call :string
-                                                callee:
-                                                  stringify :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
-                                                arg0:
-                                                  cast → JsonNumber
-                                                    parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
-                                      ~>
+                                    call :string
+                                      callee:
+                                        concat3 :string
+                                      arg0:
+                                        label :string
+                                      arg1:
+                                        ": " :string
+                                      arg2:
                                         call :string
                                           callee:
-                                            std_string_builder$StringBuilder$Display$to_string :string
+                                            stringify :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
                                           arg0:
-                                            __sb_5 :StringBuilder
+                                            cast → JsonNumber
+                                              parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
                         else:
                           ~>
                             if :void
@@ -198,51 +105,20 @@
                                         callee:
                                           std_io$std_io$println__string :void
                                         arg0:
-                                          block :string
-                                            let __sb_4: StringBuilder =
-                                              call :StringBuilder
-                                                callee:
-                                                  new_builder :StringBuilder
-                                            call :void
-                                              callee:
-                                                append :void
-                                              arg0:
-                                                __sb_4 :StringBuilder
-                                              arg1:
-                                                call :string
-                                                  callee:
-                                                    std_core$string$Display$to_string :string
-                                                  arg0:
-                                                    label :string
-                                            call :void
-                                              callee:
-                                                append :void
-                                              arg0:
-                                                __sb_4 :StringBuilder
-                                              arg1:
-                                                ": " :string
-                                            call :void
-                                              callee:
-                                                append :void
-                                              arg0:
-                                                __sb_4 :StringBuilder
-                                              arg1:
-                                                call :string
-                                                  callee:
-                                                    std_core$string$Display$to_string :string
-                                                  arg0:
-                                                    call :string
-                                                      callee:
-                                                        stringify :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
-                                                      arg0:
-                                                        cast → JsonBool
-                                                          parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
-                                            ~>
+                                          call :string
+                                            callee:
+                                              concat3 :string
+                                            arg0:
+                                              label :string
+                                            arg1:
+                                              ": " :string
+                                            arg2:
                                               call :string
                                                 callee:
-                                                  std_string_builder$StringBuilder$Display$to_string :string
+                                                  stringify :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
                                                 arg0:
-                                                  __sb_4 :StringBuilder
+                                                  cast → JsonBool
+                                                    parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
                               else:
                                 ~>
                                   if :void
@@ -257,51 +133,20 @@
                                               callee:
                                                 std_io$std_io$println__string :void
                                               arg0:
-                                                block :string
-                                                  let __sb_3: StringBuilder =
-                                                    call :StringBuilder
-                                                      callee:
-                                                        new_builder :StringBuilder
-                                                  call :void
-                                                    callee:
-                                                      append :void
-                                                    arg0:
-                                                      __sb_3 :StringBuilder
-                                                    arg1:
-                                                      call :string
-                                                        callee:
-                                                          std_core$string$Display$to_string :string
-                                                        arg0:
-                                                          label :string
-                                                  call :void
-                                                    callee:
-                                                      append :void
-                                                    arg0:
-                                                      __sb_3 :StringBuilder
-                                                    arg1:
-                                                      ": " :string
-                                                  call :void
-                                                    callee:
-                                                      append :void
-                                                    arg0:
-                                                      __sb_3 :StringBuilder
-                                                    arg1:
-                                                      call :string
-                                                        callee:
-                                                          std_core$string$Display$to_string :string
-                                                        arg0:
-                                                          call :string
-                                                            callee:
-                                                              stringify :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
-                                                            arg0:
-                                                              cast → JsonNull
-                                                                parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
-                                                  ~>
+                                                call :string
+                                                  callee:
+                                                    concat3 :string
+                                                  arg0:
+                                                    label :string
+                                                  arg1:
+                                                    ": " :string
+                                                  arg2:
                                                     call :string
                                                       callee:
-                                                        std_string_builder$StringBuilder$Display$to_string :string
+                                                        stringify :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
                                                       arg0:
-                                                        __sb_3 :StringBuilder
+                                                        cast → JsonNull
+                                                          parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
                                     else:
                                       ~>
                                         if :void
@@ -316,51 +161,20 @@
                                                     callee:
                                                       std_io$std_io$println__string :void
                                                     arg0:
-                                                      block :string
-                                                        let __sb_2: StringBuilder =
-                                                          call :StringBuilder
-                                                            callee:
-                                                              new_builder :StringBuilder
-                                                        call :void
-                                                          callee:
-                                                            append :void
-                                                          arg0:
-                                                            __sb_2 :StringBuilder
-                                                          arg1:
-                                                            call :string
-                                                              callee:
-                                                                std_core$string$Display$to_string :string
-                                                              arg0:
-                                                                label :string
-                                                        call :void
-                                                          callee:
-                                                            append :void
-                                                          arg0:
-                                                            __sb_2 :StringBuilder
-                                                          arg1:
-                                                            ": " :string
-                                                        call :void
-                                                          callee:
-                                                            append :void
-                                                          arg0:
-                                                            __sb_2 :StringBuilder
-                                                          arg1:
-                                                            call :string
-                                                              callee:
-                                                                std_core$string$Display$to_string :string
-                                                              arg0:
-                                                                call :string
-                                                                  callee:
-                                                                    stringify :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
-                                                                  arg0:
-                                                                    cast → JsonArray
-                                                                      parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
-                                                        ~>
+                                                      call :string
+                                                        callee:
+                                                          concat3 :string
+                                                        arg0:
+                                                          label :string
+                                                        arg1:
+                                                          ": " :string
+                                                        arg2:
                                                           call :string
                                                             callee:
-                                                              std_string_builder$StringBuilder$Display$to_string :string
+                                                              stringify :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
                                                             arg0:
-                                                              __sb_2 :StringBuilder
+                                                              cast → JsonArray
+                                                                parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
                                           else:
                                             ~>
                                               if :void
@@ -375,51 +189,20 @@
                                                           callee:
                                                             std_io$std_io$println__string :void
                                                           arg0:
-                                                            block :string
-                                                              let __sb_1: StringBuilder =
-                                                                call :StringBuilder
-                                                                  callee:
-                                                                    new_builder :StringBuilder
-                                                              call :void
-                                                                callee:
-                                                                  append :void
-                                                                arg0:
-                                                                  __sb_1 :StringBuilder
-                                                                arg1:
-                                                                  call :string
-                                                                    callee:
-                                                                      std_core$string$Display$to_string :string
-                                                                    arg0:
-                                                                      label :string
-                                                              call :void
-                                                                callee:
-                                                                  append :void
-                                                                arg0:
-                                                                  __sb_1 :StringBuilder
-                                                                arg1:
-                                                                  ": " :string
-                                                              call :void
-                                                                callee:
-                                                                  append :void
-                                                                arg0:
-                                                                  __sb_1 :StringBuilder
-                                                                arg1:
-                                                                  call :string
-                                                                    callee:
-                                                                      std_core$string$Display$to_string :string
-                                                                    arg0:
-                                                                      call :string
-                                                                        callee:
-                                                                          stringify :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
-                                                                        arg0:
-                                                                          cast → JsonObject
-                                                                            parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
-                                                              ~>
+                                                            call :string
+                                                              callee:
+                                                                concat3 :string
+                                                              arg0:
+                                                                label :string
+                                                              arg1:
+                                                                ": " :string
+                                                              arg2:
                                                                 call :string
                                                                   callee:
-                                                                    std_string_builder$StringBuilder$Display$to_string :string
+                                                                    stringify :fn(JsonArray | JsonBool | JsonNull | JsonNumber | JsonObject | JsonString) -> string
                                                                   arg0:
-                                                                    __sb_1 :StringBuilder
+                                                                    cast → JsonObject
+                                                                      parsed :JsonArray | JsonBool | JsonError | JsonNull | JsonNumber | JsonObject | JsonString
                                                 else:
                                                   ~>
                                                     unreachable("non-exhaustive match (T3013 should have caught this)") :void

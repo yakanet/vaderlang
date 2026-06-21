@@ -6,32 +6,15 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_0: StringBuilder =
-            call :StringBuilder
+        call :string
+          callee:
+            std_core$i32$Display$to_string :string
+          arg0:
+            call :i32
               callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  call :i32
-                    callee:
-                      snippet$snippet$run_id__i32 :i32
-                    arg0:
-                      int(7) :i32
-          ~>
-            call :string
-              callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                snippet$snippet$run_id__i32 :i32
               arg0:
-                __sb_0 :StringBuilder
+                int(7) :i32
     return int(0) :i32
   fn snippet$snippet$apply__i32(x: i32, f: fn(i32) -> i32) -> i32
     ~>
@@ -51,7 +34,7 @@
           x :i32
         arg1:
           id :fn(i32) -> i32
-  struct __lambda_env_9 {  }
-  fn __lambda_8(__env_0: __lambda_env_9, v: i32) -> i32
+  struct __lambda_env_8 {  }
+  fn __lambda_7(__env_0: __lambda_env_8, v: i32) -> i32
     ~>
       v :i32

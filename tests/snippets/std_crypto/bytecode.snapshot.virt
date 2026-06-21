@@ -32,112 +32,55 @@ impl 11 Display
 export main 0
 
 fn 0 snippet$main () -> i32
-  local __sb_0 ref
-  local $call_5 string
-  call 15
-  local.set 0
-  local.get 0
-  string.const 0
-  call 16
+  local $call_2 string
   string.const 1
   call 4
-  call 2
-  local.set 1
-  local.get 0
-  local.get 1
-  call 16
-  local.get 0
-  call 18
-  call 3
-  call 15
   local.set 0
+  string.const 0
   local.get 0
-  string.const 2
-  call 16
+  call 15
+  call 3
   string.const 3
   call 4
-  call 2
-  local.set 1
-  local.get 0
-  local.get 1
-  call 16
-  local.get 0
-  call 18
-  call 3
-  call 15
   local.set 0
+  string.const 2
   local.get 0
-  string.const 4
-  call 16
+  call 15
+  call 3
   string.const 5
   call 4
-  call 2
-  local.set 1
-  local.get 0
-  local.get 1
-  call 16
-  local.get 0
-  call 18
-  call 3
-  call 15
   local.set 0
+  string.const 4
   local.get 0
-  string.const 6
-  call 16
+  call 15
+  call 3
   string.const 7
   call 4
-  call 2
-  local.set 1
-  local.get 0
-  local.get 1
-  call 16
-  local.get 0
-  call 18
-  call 3
-  call 15
   local.set 0
+  string.const 6
   local.get 0
-  string.const 8
-  call 16
+  call 15
+  call 3
   string.const 1
   call 5
-  call 2
-  local.set 1
-  local.get 0
-  local.get 1
-  call 16
-  local.get 0
-  call 18
-  call 3
-  call 15
   local.set 0
+  string.const 8
   local.get 0
-  string.const 9
-  call 16
+  call 15
+  call 3
   string.const 3
   call 5
-  call 2
-  local.set 1
-  local.get 0
-  local.get 1
-  call 16
-  local.get 0
-  call 18
-  call 3
-  call 15
   local.set 0
+  string.const 9
   local.get 0
-  string.const 10
-  call 16
+  call 15
+  call 3
   string.const 5
   call 5
-  call 2
-  local.set 1
+  local.set 0
+  string.const 10
   local.get 0
-  local.get 1
-  call 16
-  local.get 0
-  call 18
+  call 15
   call 3
   return.lit i32.const 0
 end
@@ -1238,7 +1181,7 @@ fn 4 std_crypto$sha256 (string) -> string
       end $L2
     end $L1
   end $L0
-  call 15
+  call 16
   local.tee 9
   local.get 1
   call 9
@@ -2255,7 +2198,7 @@ fn 5 std_crypto$md5 (string) -> string
       end $L2
     end $L1
   end $L0
-  call 15
+  call 16
   local.tee 5
   local.get 1
   call 12
@@ -2739,16 +2682,44 @@ fn 14 std_crypto$append_hex_u8 (ref,u8) -> void
   return
 end
 
-fn 15 std_string_builder$new_builder () -> ref
-  array.new 9 0
-  struct.new 11
+fn 15 std_string_builder$concat2 (string,string) -> string
+  local la usize
+  local $len_6 usize
+  local buf ref
+  local $k_11 usize
+  local.get 0
+  call.import 1
+  array.len
+  local.set 2
+  local.get 1
+  call.import 1
+  array.len
+  local.set 3
+  local.get 2
+  local.get 3
+  i64.add
+  local.tee 3
+  call 19
+  local.set 4
+  i64.const 0
+  local.set 5
+  local.get 4
+  local.get 5
+  local.get 0
+  call 21
+  local.get 4
+  local.get 2
+  local.get 1
+  call 21
+  local.get 4
+  local.get 3
+  call 20
   return
 end
 
-fn 16 std_string_builder$append (ref,string) -> void
-  local.field 0 11 0
-  local.get 1
-  array.push 6
+fn 16 std_string_builder$new_builder () -> ref
+  array.new 9 0
+  struct.new 11
   return
 end
 

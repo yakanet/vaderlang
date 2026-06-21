@@ -6,52 +6,34 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_0: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              "argc=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$usize$Display$to_string :string
-                arg0:
-                  sub :usize
-                    l:
-                      LoweredArrayLen
-                    r:
-                      int(1) :usize
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "argc=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$usize$Display$to_string :string
               arg0:
-                __sb_0 :StringBuilder
+                sub :usize
+                  l:
+                    LoweredArrayLen
+                  r:
+                    int(1) :usize
     let first: bool = true
     block :void
-      let __for_arr_1: string[] = argv :string[]
-      let __for_len_2: usize =
+      let __for_arr_0: string[] = argv :string[]
+      let __for_len_1: usize =
         LoweredArrayLen
-      let __for_i_3: usize = int(0) :usize
+      let __for_i_2: usize = int(0) :usize
       loop while (<…>)
         let s: string =
           index :string
             on:
-              __for_arr_1 :string[]
+              __for_arr_0 :string[]
             ix:
-              __for_i_3 :usize
+              __for_i_2 :usize
         if :void
           cond:
             first :bool
@@ -70,11 +52,11 @@
                   s :string
         assign
           target:
-            __for_i_3 :usize
+            __for_i_2 :usize
           value:
             add :usize
               l:
-                __for_i_3 :usize
+                __for_i_2 :usize
               r:
                 int(1) :usize
     return int(0) :i32

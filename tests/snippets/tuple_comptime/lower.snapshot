@@ -17,6 +17,37 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
+        call :string
+          callee:
+            concat4 :string
+          arg0:
+            "dim " :string
+          arg1:
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                ._0 :i32
+                  [i32, i32] {
+                    _0: int(10) :?
+                    _1: int(20) :?
+                  }
+          arg2:
+            "x" :string
+          arg3:
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                ._1 :i32
+                  [i32, i32] {
+                    _0: int(10) :?
+                    _1: int(20) :?
+                  }
+    call :void
+      callee:
+        std_io$std_io$println__string :void
+      arg0:
         block :string
           let __sb_0: StringBuilder =
             call :StringBuilder
@@ -28,71 +59,12 @@
             arg0:
               __sb_0 :StringBuilder
             arg1:
-              "dim " :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  ._0 :i32
-                    [i32, i32] {
-                      _0: int(10) :?
-                      _1: int(20) :?
-                    }
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              "x" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  ._1 :i32
-                    [i32, i32] {
-                      _0: int(10) :?
-                      _1: int(20) :?
-                    }
-          ~>
-            call :string
-              callee:
-                std_string_builder$StringBuilder$Display$to_string :string
-              arg0:
-                __sb_0 :StringBuilder
-    call :void
-      callee:
-        std_io$std_io$println__string :void
-      arg0:
-        block :string
-          let __sb_1: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
               "origin (" :string
           call :void
             callee:
               append :void
             arg0:
-              __sb_1 :StringBuilder
+              __sb_0 :StringBuilder
             arg1:
               call :string
                 callee:
@@ -108,14 +80,14 @@
             callee:
               append :void
             arg0:
-              __sb_1 :StringBuilder
+              __sb_0 :StringBuilder
             arg1:
               ", " :string
           call :void
             callee:
               append :void
             arg0:
-              __sb_1 :StringBuilder
+              __sb_0 :StringBuilder
             arg1:
               call :string
                 callee:
@@ -131,31 +103,27 @@
             callee:
               append :void
             arg0:
-              __sb_1 :StringBuilder
+              __sb_0 :StringBuilder
             arg1:
               ") = " :string
           call :void
             callee:
               append :void
             arg0:
-              __sb_1 :StringBuilder
+              __sb_0 :StringBuilder
             arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  ._2 :string
-                    [f64, f64, string] {
-                      _0: float(0) :?
-                      _1: float(0) :?
-                      _2: "origin" :string
-                    }
+              ._2 :string
+                [f64, f64, string] {
+                  _0: float(0) :?
+                  _1: float(0) :?
+                  _2: "origin" :string
+                }
           ~>
             call :string
               callee:
                 std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                __sb_1 :StringBuilder
+                __sb_0 :StringBuilder
     return
       ._0 :i32
         [i32, i32] {

@@ -34,132 +34,86 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_2: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              "first=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  first :i32
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              " rest.len=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$usize$Display$to_string :string
-                arg0:
-                  LoweredArrayLen
-          ~>
+        call :string
+          callee:
+            concat4 :string
+          arg0:
+            "first=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_2 :StringBuilder
+                first :i32
+          arg2:
+            " rest.len=" :string
+          arg3:
+            call :string
+              callee:
+                std_core$usize$Display$to_string :string
+              arg0:
+                LoweredArrayLen
     block :void
-      let __for_arr_3: i32[] = rest :i32[]
-      let __for_len_4: usize =
+      let __for_arr_2: i32[] = rest :i32[]
+      let __for_len_3: usize =
         LoweredArrayLen
-      let __for_i_5: usize = int(0) :usize
+      let __for_i_4: usize = int(0) :usize
       loop while (<…>)
         let x: i32 =
           index :i32
             on:
-              __for_arr_3 :i32[]
+              __for_arr_2 :i32[]
             ix:
-              __for_i_5 :usize
+              __for_i_4 :usize
         call :void
           callee:
             std_io$std_io$println__string :void
           arg0:
-            block :string
-              let __sb_6: StringBuilder =
-                call :StringBuilder
-                  callee:
-                    new_builder :StringBuilder
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_6 :StringBuilder
-                arg1:
-                  "  " :string
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_6 :StringBuilder
-                arg1:
-                  call :string
-                    callee:
-                      std_core$i32$Display$to_string :string
-                    arg0:
-                      x :i32
-              ~>
+            call :string
+              callee:
+                concat2 :string
+              arg0:
+                "  " :string
+              arg1:
                 call :string
                   callee:
-                    std_string_builder$StringBuilder$Display$to_string :string
+                    std_core$i32$Display$to_string :string
                   arg0:
-                    __sb_6 :StringBuilder
+                    x :i32
         assign
           target:
-            __for_i_5 :usize
+            __for_i_4 :usize
           value:
             add :usize
               l:
-                __for_i_5 :usize
+                __for_i_4 :usize
               r:
                 int(1) :usize
-    let __tup_7: i32[] = arr :i32[]
+    let __tup_5: i32[] = arr :i32[]
     let a: i32 =
       index :i32
         on:
-          __tup_7 :i32[]
+          __tup_5 :i32[]
         ix:
           int(0) :usize
     let b: i32 =
       index :i32
         on:
-          __tup_7 :i32[]
+          __tup_5 :i32[]
         ix:
           int(1) :usize
     let tail: i32[] =
       array :i32[]
-    let __i_8: usize = int(2) :usize
+    let __i_6: usize = int(2) :usize
     loop while (<…>)
       LoweredArrayPush
       assign
         target:
-          __i_8 :usize
+          __i_6 :usize
         value:
           add :usize
             l:
-              __i_8 :usize
+              __i_6 :usize
             r:
               int(1) :usize
     call :void
@@ -167,7 +121,7 @@
         std_io$std_io$println__string :void
       arg0:
         block :string
-          let __sb_9: StringBuilder =
+          let __sb_7: StringBuilder =
             call :StringBuilder
               callee:
                 new_builder :StringBuilder
@@ -175,14 +129,14 @@
             callee:
               append :void
             arg0:
-              __sb_9 :StringBuilder
+              __sb_7 :StringBuilder
             arg1:
               "a=" :string
           call :void
             callee:
               append :void
             arg0:
-              __sb_9 :StringBuilder
+              __sb_7 :StringBuilder
             arg1:
               call :string
                 callee:
@@ -193,14 +147,14 @@
             callee:
               append :void
             arg0:
-              __sb_9 :StringBuilder
+              __sb_7 :StringBuilder
             arg1:
               " b=" :string
           call :void
             callee:
               append :void
             arg0:
-              __sb_9 :StringBuilder
+              __sb_7 :StringBuilder
             arg1:
               call :string
                 callee:
@@ -211,14 +165,14 @@
             callee:
               append :void
             arg0:
-              __sb_9 :StringBuilder
+              __sb_7 :StringBuilder
             arg1:
               " tail.len=" :string
           call :void
             callee:
               append :void
             arg0:
-              __sb_9 :StringBuilder
+              __sb_7 :StringBuilder
             arg1:
               call :string
                 callee:
@@ -230,107 +184,71 @@
               callee:
                 std_string_builder$StringBuilder$Display$to_string :string
               arg0:
-                __sb_9 :StringBuilder
-    let __tup_10: i32[] = arr :i32[]
+                __sb_7 :StringBuilder
+    let __tup_8: i32[] = arr :i32[]
     let short: i32[] =
       array :i32[]
-    let __i_11: usize = int(3) :usize
+    let __i_9: usize = int(3) :usize
     loop while (<…>)
       LoweredArrayPush
       assign
         target:
-          __i_11 :usize
+          __i_9 :usize
         value:
           add :usize
             l:
-              __i_11 :usize
+              __i_9 :usize
             r:
               int(1) :usize
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_12: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_12 :StringBuilder
-            arg1:
-              "short.len=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_12 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$usize$Display$to_string :string
-                arg0:
-                  LoweredArrayLen
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "short.len=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$usize$Display$to_string :string
               arg0:
-                __sb_12 :StringBuilder
+                LoweredArrayLen
     block :void
-      let __for_arr_13: i32[] = short :i32[]
-      let __for_len_14: usize =
+      let __for_arr_10: i32[] = short :i32[]
+      let __for_len_11: usize =
         LoweredArrayLen
-      let __for_i_15: usize = int(0) :usize
+      let __for_i_12: usize = int(0) :usize
       loop while (<…>)
         let x: i32 =
           index :i32
             on:
-              __for_arr_13 :i32[]
+              __for_arr_10 :i32[]
             ix:
-              __for_i_15 :usize
+              __for_i_12 :usize
         call :void
           callee:
             std_io$std_io$println__string :void
           arg0:
-            block :string
-              let __sb_16: StringBuilder =
-                call :StringBuilder
-                  callee:
-                    new_builder :StringBuilder
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_16 :StringBuilder
-                arg1:
-                  "  " :string
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_16 :StringBuilder
-                arg1:
-                  call :string
-                    callee:
-                      std_core$i32$Display$to_string :string
-                    arg0:
-                      x :i32
-              ~>
+            call :string
+              callee:
+                concat2 :string
+              arg0:
+                "  " :string
+              arg1:
                 call :string
                   callee:
-                    std_string_builder$StringBuilder$Display$to_string :string
+                    std_core$i32$Display$to_string :string
                   arg0:
-                    __sb_16 :StringBuilder
+                    x :i32
         assign
           target:
-            __for_i_15 :usize
+            __for_i_12 :usize
           value:
             add :usize
               l:
-                __for_i_15 :usize
+                __for_i_12 :usize
               r:
                 int(1) :usize
     return int(0) :i32

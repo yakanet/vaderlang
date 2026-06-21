@@ -8,36 +8,18 @@
         self :UserId
   fn snippet$UserId$Into$into_1(self: UserId) -> string
     return
-      block :string
-        let __sb_0: StringBuilder =
-          call :StringBuilder
-            callee:
-              new_builder :StringBuilder
-        call :void
-          callee:
-            append :void
-          arg0:
-            __sb_0 :StringBuilder
-          arg1:
-            "user_" :string
-        call :void
-          callee:
-            append :void
-          arg0:
-            __sb_0 :StringBuilder
-          arg1:
-            call :string
-              callee:
-                std_core$i32$Display$to_string :string
-              arg0:
-                .value :i32
-                  self :UserId
-        ~>
+      call :string
+        callee:
+          concat2 :string
+        arg0:
+          "user_" :string
+        arg1:
           call :string
             callee:
-              std_string_builder$StringBuilder$Display$to_string :string
+              std_core$i32$Display$to_string :string
             arg0:
-              __sb_0 :StringBuilder
+              .value :i32
+                self :UserId
   fn snippet$take_i32(x: i32) -> i32
     return
       add :i32
@@ -62,43 +44,25 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_0: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              "call " :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  call :i32
-                    callee:
-                      take_i32 :fn(i32) -> i32
-                    arg0:
-                      call :i32
-                        callee:
-                          snippet$UserId$Into$into :i32
-                        arg0:
-                          u :UserId
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "call " :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_0 :StringBuilder
+                call :i32
+                  callee:
+                    take_i32 :fn(i32) -> i32
+                  arg0:
+                    call :i32
+                      callee:
+                        snippet$UserId$Into$into :i32
+                      arg0:
+                        u :UserId
     let n: i32 =
       call :i32
         callee:
@@ -109,72 +73,36 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_1: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              "let " :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  n :i32
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "let " :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_1 :StringBuilder
+                n :i32
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_2: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              "ret " :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  call :i32
-                    callee:
-                      get_id :fn(UserId) -> i32
-                    arg0:
-                      u :UserId
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "ret " :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_2 :StringBuilder
+                call :i32
+                  callee:
+                    get_id :fn(UserId) -> i32
+                  arg0:
+                    u :UserId
     let p: Pair =
       Pair {
         tag:
@@ -194,53 +122,21 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_3: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              "field tag=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  .tag :string
-                    p :Pair
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              " n=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  .n :i32
-                    p :Pair
-          ~>
+        call :string
+          callee:
+            concat4 :string
+          arg0:
+            "field tag=" :string
+          arg1:
+            .tag :string
+              p :Pair
+          arg2:
+            " n=" :string
+          arg3:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_3 :StringBuilder
+                .n :i32
+                  p :Pair
     return int(0) :i32

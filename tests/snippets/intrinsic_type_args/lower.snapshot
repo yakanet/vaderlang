@@ -22,36 +22,18 @@
           callee:
             std_io$std_io$println__string :void
           arg0:
-            block :string
-              let __sb_3: StringBuilder =
-                call :StringBuilder
-                  callee:
-                    new_builder :StringBuilder
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_3 :StringBuilder
-                arg1:
-                  "pair-arg size=" :string
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_3 :StringBuilder
-                arg1:
-                  call :string
-                    callee:
-                      std_core$usize$Display$to_string :string
-                    arg0:
-                      @size_of.type :usize
-                        t :type
-              ~>
+            call :string
+              callee:
+                concat2 :string
+              arg0:
+                "pair-arg size=" :string
+              arg1:
                 call :string
                   callee:
-                    std_string_builder$StringBuilder$Display$to_string :string
+                    std_core$usize$Display$to_string :string
                   arg0:
-                    __sb_3 :StringBuilder
+                    @size_of.type :usize
+                      t :type
         assign
           target:
             __for_i_2 :usize
@@ -67,35 +49,17 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_4: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_4 :StringBuilder
-            arg1:
-              "wrapper-arg count=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_4 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$usize$Display$to_string :string
-                arg0:
-                  LoweredArrayLen
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "wrapper-arg count=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$usize$Display$to_string :string
               arg0:
-                __sb_4 :StringBuilder
+                LoweredArrayLen
     return int(0) :i32
   struct snippet$Pair__string__i64 { key: string, value: i64 }
   struct snippet$Pair__Any__Any { key: Any, value: Any }

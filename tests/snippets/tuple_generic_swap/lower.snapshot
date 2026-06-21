@@ -15,55 +15,23 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_0: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              "first=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  ._0 :string
-                    s :[string, i32]
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              " second=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  ._1 :i32
-                    s :[string, i32]
-          ~>
+        call :string
+          callee:
+            concat4 :string
+          arg0:
+            "first=" :string
+          arg1:
+            ._0 :string
+              s :[string, i32]
+          arg2:
+            " second=" :string
+          arg3:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_0 :StringBuilder
+                ._1 :i32
+                  s :[string, i32]
     return int(0) :i32
   fn snippet$snippet$swap__i32__string(p: [i32, string]) -> [string, i32]
     return

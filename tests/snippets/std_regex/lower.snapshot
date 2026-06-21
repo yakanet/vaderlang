@@ -7,52 +7,25 @@
         callee:
           std_io$std_io$println__string :void
         arg0:
-          block :string
-            let __sb_0: StringBuilder =
-              call :StringBuilder
-                callee:
-                  new_builder :StringBuilder
-            call :void
-              callee:
-                append :void
-              arg0:
-                __sb_0 :StringBuilder
-              arg1:
-                call :string
-                  callee:
-                    std_core$string$Display$to_string :string
-                  arg0:
-                    label :string
-            call :void
-              callee:
-                append :void
-              arg0:
-                __sb_0 :StringBuilder
-              arg1:
-                "=" :string
-            call :void
-              callee:
-                append :void
-              arg0:
-                __sb_0 :StringBuilder
-              arg1:
-                call :string
-                  callee:
-                    std_core$bool$Display$to_string :string
-                  arg0:
-                    call :bool
-                      callee:
-                        matches :bool
-                      arg0:
-                        p :Pattern
-                      arg1:
-                        input :string
-            ~>
+          call :string
+            callee:
+              concat3 :string
+            arg0:
+              label :string
+            arg1:
+              "=" :string
+            arg2:
               call :string
                 callee:
-                  std_string_builder$StringBuilder$Display$to_string :string
+                  std_core$bool$Display$to_string :string
                 arg0:
-                  __sb_0 :StringBuilder
+                  call :bool
+                    callee:
+                      matches :bool
+                    arg0:
+                      p :Pattern
+                    arg1:
+                      input :string
   fn snippet$run_find(label: string, p: Pattern, input: string) -> void
     let r: Match | null =
       call :Match | null
@@ -84,11 +57,7 @@
                     arg0:
                       __sb_0 :StringBuilder
                     arg1:
-                      call :string
-                        callee:
-                          std_core$string$Display$to_string :string
-                        arg0:
-                          label :string
+                      label :string
                   call :void
                     callee:
                       append :void
@@ -142,17 +111,13 @@
                     arg0:
                       __sb_0 :StringBuilder
                     arg1:
-                      call :string
-                        callee:
-                          std_core$string$Display$to_string :string
-                        arg0:
-                          index :string
-                            on:
-                              .groups :string[]
-                                cast → Match
-                                  r :Match | null
-                            ix:
-                              int(0) :i32
+                      index :string
+                        on:
+                          .groups :string[]
+                            cast → Match
+                              r :Match | null
+                        ix:
+                          int(0) :i32
                   ~>
                     call :string
                       callee:
@@ -165,35 +130,13 @@
               callee:
                 std_io$std_io$println__string :void
               arg0:
-                block :string
-                  let __sb_1: StringBuilder =
-                    call :StringBuilder
-                      callee:
-                        new_builder :StringBuilder
-                  call :void
-                    callee:
-                      append :void
-                    arg0:
-                      __sb_1 :StringBuilder
-                    arg1:
-                      call :string
-                        callee:
-                          std_core$string$Display$to_string :string
-                        arg0:
-                          label :string
-                  call :void
-                    callee:
-                      append :void
-                    arg0:
-                      __sb_1 :StringBuilder
-                    arg1:
-                      "=null" :string
-                  ~>
-                    call :string
-                      callee:
-                        std_string_builder$StringBuilder$Display$to_string :string
-                      arg0:
-                        __sb_1 :StringBuilder
+                call :string
+                  callee:
+                    concat2 :string
+                  arg0:
+                    label :string
+                  arg1:
+                    "=null" :string
   fn snippet$main() -> i32
     let p_lit: Pattern | RegexError =
       call :Pattern | RegexError
@@ -291,97 +234,47 @@
           callee:
             std_io$std_io$println__string :void
           arg0:
-            block :string
-              let __sb_0: StringBuilder =
-                call :StringBuilder
-                  callee:
-                    new_builder :StringBuilder
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_0 :StringBuilder
-                arg1:
-                  "word-count=" :string
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_0 :StringBuilder
-                arg1:
-                  call :string
-                    callee:
-                      std_core$usize$Display$to_string :string
-                    arg0:
-                      LoweredArrayLen
-              ~>
+            call :string
+              callee:
+                concat2 :string
+              arg0:
+                "word-count=" :string
+              arg1:
                 call :string
                   callee:
-                    std_string_builder$StringBuilder$Display$to_string :string
+                    std_core$usize$Display$to_string :string
                   arg0:
-                    __sb_0 :StringBuilder
+                    LoweredArrayLen
         let i: usize = int(0) :usize
         loop while (<…>)
           call :void
             callee:
               std_io$std_io$println__string :void
             arg0:
-              block :string
-                let __sb_1: StringBuilder =
-                  call :StringBuilder
-                    callee:
-                      new_builder :StringBuilder
-                call :void
-                  callee:
-                    append :void
-                  arg0:
-                    __sb_1 :StringBuilder
-                  arg1:
-                    "word[" :string
-                call :void
-                  callee:
-                    append :void
-                  arg0:
-                    __sb_1 :StringBuilder
-                  arg1:
-                    call :string
-                      callee:
-                        std_core$usize$Display$to_string :string
-                      arg0:
-                        i :usize
-                call :void
-                  callee:
-                    append :void
-                  arg0:
-                    __sb_1 :StringBuilder
-                  arg1:
-                    "]=" :string
-                call :void
-                  callee:
-                    append :void
-                  arg0:
-                    __sb_1 :StringBuilder
-                  arg1:
-                    call :string
-                      callee:
-                        std_core$string$Display$to_string :string
-                      arg0:
-                        index :string
-                          on:
-                            .groups :string[]
-                              index :Match
-                                on:
-                                  all :Match[]
-                                ix:
-                                  i :usize
-                          ix:
-                            int(0) :i32
-                ~>
+              call :string
+                callee:
+                  concat4 :string
+                arg0:
+                  "word[" :string
+                arg1:
                   call :string
                     callee:
-                      std_string_builder$StringBuilder$Display$to_string :string
+                      std_core$usize$Display$to_string :string
                     arg0:
-                      __sb_1 :StringBuilder
+                      i :usize
+                arg2:
+                  "]=" :string
+                arg3:
+                  index :string
+                    on:
+                      .groups :string[]
+                        index :Match
+                          on:
+                            all :Match[]
+                          ix:
+                            i :usize
+                    ix:
+                      int(0) :i32
           assign
             target:
               i :usize
@@ -452,158 +345,70 @@
               callee:
                 std_io$std_io$println__string :void
               arg0:
-                block :string
-                  let __sb_2: StringBuilder =
-                    call :StringBuilder
-                      callee:
-                        new_builder :StringBuilder
-                  call :void
-                    callee:
-                      append :void
-                    arg0:
-                      __sb_2 :StringBuilder
-                    arg1:
-                      "email-match=" :string
-                  call :void
-                    callee:
-                      append :void
-                    arg0:
-                      __sb_2 :StringBuilder
-                    arg1:
-                      call :string
-                        callee:
-                          std_core$string$Display$to_string :string
-                        arg0:
-                          index :string
-                            on:
-                              .groups :string[]
-                                cast → Match
-                                  r :Match | null
-                            ix:
-                              int(0) :i32
-                  ~>
-                    call :string
-                      callee:
-                        std_string_builder$StringBuilder$Display$to_string :string
-                      arg0:
-                        __sb_2 :StringBuilder
+                call :string
+                  callee:
+                    concat2 :string
+                  arg0:
+                    "email-match=" :string
+                  arg1:
+                    index :string
+                      on:
+                        .groups :string[]
+                          cast → Match
+                            r :Match | null
+                      ix:
+                        int(0) :i32
             call :void
               callee:
                 std_io$std_io$println__string :void
               arg0:
-                block :string
-                  let __sb_3: StringBuilder =
-                    call :StringBuilder
-                      callee:
-                        new_builder :StringBuilder
-                  call :void
-                    callee:
-                      append :void
-                    arg0:
-                      __sb_3 :StringBuilder
-                    arg1:
-                      "email-user=" :string
-                  call :void
-                    callee:
-                      append :void
-                    arg0:
-                      __sb_3 :StringBuilder
-                    arg1:
-                      call :string
-                        callee:
-                          std_core$string$Display$to_string :string
-                        arg0:
-                          index :string
-                            on:
-                              .groups :string[]
-                                cast → Match
-                                  r :Match | null
-                            ix:
-                              int(1) :i32
-                  ~>
-                    call :string
-                      callee:
-                        std_string_builder$StringBuilder$Display$to_string :string
-                      arg0:
-                        __sb_3 :StringBuilder
+                call :string
+                  callee:
+                    concat2 :string
+                  arg0:
+                    "email-user=" :string
+                  arg1:
+                    index :string
+                      on:
+                        .groups :string[]
+                          cast → Match
+                            r :Match | null
+                      ix:
+                        int(1) :i32
             call :void
               callee:
                 std_io$std_io$println__string :void
               arg0:
-                block :string
-                  let __sb_4: StringBuilder =
-                    call :StringBuilder
-                      callee:
-                        new_builder :StringBuilder
-                  call :void
-                    callee:
-                      append :void
-                    arg0:
-                      __sb_4 :StringBuilder
-                    arg1:
-                      "email-host=" :string
-                  call :void
-                    callee:
-                      append :void
-                    arg0:
-                      __sb_4 :StringBuilder
-                    arg1:
-                      call :string
-                        callee:
-                          std_core$string$Display$to_string :string
-                        arg0:
-                          index :string
-                            on:
-                              .groups :string[]
-                                cast → Match
-                                  r :Match | null
-                            ix:
-                              int(2) :i32
-                  ~>
-                    call :string
-                      callee:
-                        std_string_builder$StringBuilder$Display$to_string :string
-                      arg0:
-                        __sb_4 :StringBuilder
+                call :string
+                  callee:
+                    concat2 :string
+                  arg0:
+                    "email-host=" :string
+                  arg1:
+                    index :string
+                      on:
+                        .groups :string[]
+                          cast → Match
+                            r :Match | null
+                      ix:
+                        int(2) :i32
             call :void
               callee:
                 std_io$std_io$println__string :void
               arg0:
-                block :string
-                  let __sb_5: StringBuilder =
-                    call :StringBuilder
-                      callee:
-                        new_builder :StringBuilder
-                  call :void
-                    callee:
-                      append :void
-                    arg0:
-                      __sb_5 :StringBuilder
-                    arg1:
-                      "email-tld=" :string
-                  call :void
-                    callee:
-                      append :void
-                    arg0:
-                      __sb_5 :StringBuilder
-                    arg1:
-                      call :string
-                        callee:
-                          std_core$string$Display$to_string :string
-                        arg0:
-                          index :string
-                            on:
-                              .groups :string[]
-                                cast → Match
-                                  r :Match | null
-                            ix:
-                              int(3) :i32
-                  ~>
-                    call :string
-                      callee:
-                        std_string_builder$StringBuilder$Display$to_string :string
-                      arg0:
-                        __sb_5 :StringBuilder
+                call :string
+                  callee:
+                    concat2 :string
+                  arg0:
+                    "email-tld=" :string
+                  arg1:
+                    index :string
+                      on:
+                        .groups :string[]
+                          cast → Match
+                            r :Match | null
+                      ix:
+                        int(3) :i32
     let p_alt: Pattern | RegexError =
       call :Pattern | RegexError
         callee:
@@ -742,44 +547,22 @@
           callee:
             std_io$std_io$println__string :void
           arg0:
-            block :string
-              let __sb_6: StringBuilder =
-                call :StringBuilder
-                  callee:
-                    new_builder :StringBuilder
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_6 :StringBuilder
-                arg1:
-                  "swap=" :string
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_6 :StringBuilder
-                arg1:
-                  call :string
-                    callee:
-                      std_core$string$Display$to_string :string
-                    arg0:
-                      call :string
-                        callee:
-                          replace_all :string
-                        arg0:
-                          cast → Pattern
-                            p_swap :Pattern | RegexError
-                        arg1:
-                          "Mathieu Broutin" :string
-                        arg2:
-                          "$2 $1" :string
-              ~>
+            call :string
+              callee:
+                concat2 :string
+              arg0:
+                "swap=" :string
+              arg1:
                 call :string
                   callee:
-                    std_string_builder$StringBuilder$Display$to_string :string
+                    replace_all :string
                   arg0:
-                    __sb_6 :StringBuilder
+                    cast → Pattern
+                      p_swap :Pattern | RegexError
+                  arg1:
+                    "Mathieu Broutin" :string
+                  arg2:
+                    "$2 $1" :string
     let p_redact: Pattern | RegexError =
       call :Pattern | RegexError
         callee:
@@ -795,44 +578,22 @@
           callee:
             std_io$std_io$println__string :void
           arg0:
-            block :string
-              let __sb_7: StringBuilder =
-                call :StringBuilder
-                  callee:
-                    new_builder :StringBuilder
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_7 :StringBuilder
-                arg1:
-                  "redact=" :string
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_7 :StringBuilder
-                arg1:
-                  call :string
-                    callee:
-                      std_core$string$Display$to_string :string
-                    arg0:
-                      call :string
-                        callee:
-                          replace_all :string
-                        arg0:
-                          cast → Pattern
-                            p_redact :Pattern | RegexError
-                        arg1:
-                          "a1b22c333" :string
-                        arg2:
-                          "X" :string
-              ~>
+            call :string
+              callee:
+                concat2 :string
+              arg0:
+                "redact=" :string
+              arg1:
                 call :string
                   callee:
-                    std_string_builder$StringBuilder$Display$to_string :string
+                    replace_all :string
                   arg0:
-                    __sb_7 :StringBuilder
+                    cast → Pattern
+                      p_redact :Pattern | RegexError
+                  arg1:
+                    "a1b22c333" :string
+                  arg2:
+                    "X" :string
     let bad: Pattern | RegexError =
       call :Pattern | RegexError
         callee:

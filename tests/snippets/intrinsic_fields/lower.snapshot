@@ -35,49 +35,22 @@
           callee:
             std_io$std_io$println__string :void
           arg0:
-            block :string
-              let __sb_3: StringBuilder =
-                call :StringBuilder
-                  callee:
-                    new_builder :StringBuilder
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_3 :StringBuilder
-                arg1:
-                  call :string
-                    callee:
-                      std_core$string$Display$to_string :string
-                    arg0:
-                      .name :string
-                        f :Field
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_3 :StringBuilder
-                arg1:
-                  " size=" :string
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_3 :StringBuilder
-                arg1:
-                  call :string
-                    callee:
-                      std_core$usize$Display$to_string :string
-                    arg0:
-                      @size_of.type :usize
-                        .type :type
-                          f :Field
-              ~>
+            call :string
+              callee:
+                concat3 :string
+              arg0:
+                .name :string
+                  f :Field
+              arg1:
+                " size=" :string
+              arg2:
                 call :string
                   callee:
-                    std_string_builder$StringBuilder$Display$to_string :string
+                    std_core$usize$Display$to_string :string
                   arg0:
-                    __sb_3 :StringBuilder
+                    @size_of.type :usize
+                      .type :type
+                        f :Field
         assign
           target:
             __for_i_2 :usize
@@ -88,7 +61,7 @@
               r:
                 int(1) :usize
     block :void
-      let __for_arr_4: Field[] =
+      let __for_arr_3: Field[] =
         array :Field[]
           Field {
             name: "key" :string
@@ -100,77 +73,45 @@
             type:
               LoweredTypeConst
           }
-      let __for_len_5: usize =
+      let __for_len_4: usize =
         LoweredArrayLen
-      let __for_i_6: usize = int(0) :usize
+      let __for_i_5: usize = int(0) :usize
       loop while (<…>)
         let f: Field =
           index :Field
             on:
-              __for_arr_4 :Field[]
+              __for_arr_3 :Field[]
             ix:
-              __for_i_6 :usize
+              __for_i_5 :usize
         call :void
           callee:
             std_io$std_io$println__string :void
           arg0:
-            block :string
-              let __sb_7: StringBuilder =
-                call :StringBuilder
-                  callee:
-                    new_builder :StringBuilder
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_7 :StringBuilder
-                arg1:
-                  "pair." :string
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_7 :StringBuilder
-                arg1:
-                  call :string
-                    callee:
-                      std_core$string$Display$to_string :string
-                    arg0:
-                      .name :string
-                        f :Field
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_7 :StringBuilder
-                arg1:
-                  " size=" :string
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_7 :StringBuilder
-                arg1:
-                  call :string
-                    callee:
-                      std_core$usize$Display$to_string :string
-                    arg0:
-                      @size_of.type :usize
-                        .type :type
-                          f :Field
-              ~>
+            call :string
+              callee:
+                concat4 :string
+              arg0:
+                "pair." :string
+              arg1:
+                .name :string
+                  f :Field
+              arg2:
+                " size=" :string
+              arg3:
                 call :string
                   callee:
-                    std_string_builder$StringBuilder$Display$to_string :string
+                    std_core$usize$Display$to_string :string
                   arg0:
-                    __sb_7 :StringBuilder
+                    @size_of.type :usize
+                      .type :type
+                        f :Field
         assign
           target:
-            __for_i_6 :usize
+            __for_i_5 :usize
           value:
             add :usize
               l:
-                __for_i_6 :usize
+                __for_i_5 :usize
               r:
                 int(1) :usize
     return int(0) :i32

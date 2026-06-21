@@ -65,11 +65,7 @@
                 arg0:
                   __sb_1 :StringBuilder
                 arg1:
-                  call :string
-                    callee:
-                      std_core$string$Display$to_string :string
-                    arg0:
-                      label :string
+                  label :string
               call :void
                 callee:
                   append :void

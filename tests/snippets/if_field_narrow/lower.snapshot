@@ -20,40 +20,22 @@
               callee:
                 std_io$std_io$println__string :void
               arg0:
-                block :string
-                  let __sb_0: StringBuilder =
-                    call :StringBuilder
-                      callee:
-                        new_builder :StringBuilder
-                  call :void
-                    callee:
-                      append :void
-                    arg0:
-                      __sb_0 :StringBuilder
-                    arg1:
-                      "count=" :string
-                  call :void
-                    callee:
-                      append :void
-                    arg0:
-                      __sb_0 :StringBuilder
-                    arg1:
-                      call :string
-                        callee:
-                          std_core$i32$Display$to_string :string
-                        arg0:
-                          call :i32
-                            callee:
-                              count :fn(i32[]) -> i32
-                            arg0:
-                              .items :i32[]
-                                b :Bag
-                  ~>
+                call :string
+                  callee:
+                    concat2 :string
+                  arg0:
+                    "count=" :string
+                  arg1:
                     call :string
                       callee:
-                        std_string_builder$StringBuilder$Display$to_string :string
+                        std_core$i32$Display$to_string :string
                       arg0:
-                        __sb_0 :StringBuilder
+                        call :i32
+                          callee:
+                            count :fn(i32[]) -> i32
+                          arg0:
+                            .items :i32[]
+                              b :Bag
         else:
           ~>
             call :void
@@ -105,74 +87,38 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_0: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              "total=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  call :i32
-                    callee:
-                      total :fn(Bag) -> i32
-                    arg0:
-                      full :Bag
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "total=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_0 :StringBuilder
+                call :i32
+                  callee:
+                    total :fn(Bag) -> i32
+                  arg0:
+                    full :Bag
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_1: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              "total=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  call :i32
-                    callee:
-                      total :fn(Bag) -> i32
-                    arg0:
-                      empty :Bag
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "total=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_1 :StringBuilder
+                call :i32
+                  callee:
+                    total :fn(Bag) -> i32
+                  arg0:
+                    empty :Bag
     return int(0) :i32

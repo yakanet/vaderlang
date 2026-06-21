@@ -6,297 +6,157 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_0: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              "ascii  cp=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$usize$Display$to_string :string
-                arg0:
-                  call :usize
-                    callee:
-                      len :fn(string) -> usize
-                    arg0:
-                      "vader" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              " bytes=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$usize$Display$to_string :string
-                arg0:
-                  call :usize
-                    callee:
-                      byte_len :fn(string) -> usize
-                    arg0:
-                      "vader" :string
-          ~>
+        call :string
+          callee:
+            concat4 :string
+          arg0:
+            "ascii  cp=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$usize$Display$to_string :string
               arg0:
-                __sb_0 :StringBuilder
+                call :usize
+                  callee:
+                    len :fn(string) -> usize
+                  arg0:
+                    "vader" :string
+          arg2:
+            " bytes=" :string
+          arg3:
+            call :string
+              callee:
+                std_core$usize$Display$to_string :string
+              arg0:
+                call :usize
+                  callee:
+                    byte_len :fn(string) -> usize
+                  arg0:
+                    "vader" :string
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_1: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              "mixed  cp=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$usize$Display$to_string :string
-                arg0:
-                  call :usize
-                    callee:
-                      len :fn(string) -> usize
-                    arg0:
-                      "héllo" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              " bytes=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$usize$Display$to_string :string
-                arg0:
-                  call :usize
-                    callee:
-                      byte_len :fn(string) -> usize
-                    arg0:
-                      "héllo" :string
-          ~>
+        call :string
+          callee:
+            concat4 :string
+          arg0:
+            "mixed  cp=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$usize$Display$to_string :string
               arg0:
-                __sb_1 :StringBuilder
+                call :usize
+                  callee:
+                    len :fn(string) -> usize
+                  arg0:
+                    "héllo" :string
+          arg2:
+            " bytes=" :string
+          arg3:
+            call :string
+              callee:
+                std_core$usize$Display$to_string :string
+              arg0:
+                call :usize
+                  callee:
+                    byte_len :fn(string) -> usize
+                  arg0:
+                    "héllo" :string
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_2: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              "cjk    cp=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$usize$Display$to_string :string
-                arg0:
-                  call :usize
-                    callee:
-                      len :fn(string) -> usize
-                    arg0:
-                      "你好嗎？" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              " bytes=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$usize$Display$to_string :string
-                arg0:
-                  call :usize
-                    callee:
-                      byte_len :fn(string) -> usize
-                    arg0:
-                      "你好嗎？" :string
-          ~>
+        call :string
+          callee:
+            concat4 :string
+          arg0:
+            "cjk    cp=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$usize$Display$to_string :string
               arg0:
-                __sb_2 :StringBuilder
+                call :usize
+                  callee:
+                    len :fn(string) -> usize
+                  arg0:
+                    "你好嗎？" :string
+          arg2:
+            " bytes=" :string
+          arg3:
+            call :string
+              callee:
+                std_core$usize$Display$to_string :string
+              arg0:
+                call :usize
+                  callee:
+                    byte_len :fn(string) -> usize
+                  arg0:
+                    "你好嗎？" :string
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_3: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              "emoji  cp=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$usize$Display$to_string :string
-                arg0:
-                  call :usize
-                    callee:
-                      len :fn(string) -> usize
-                    arg0:
-                      "a😀b" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              " bytes=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$usize$Display$to_string :string
-                arg0:
-                  call :usize
-                    callee:
-                      byte_len :fn(string) -> usize
-                    arg0:
-                      "a😀b" :string
-          ~>
+        call :string
+          callee:
+            concat4 :string
+          arg0:
+            "emoji  cp=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$usize$Display$to_string :string
               arg0:
-                __sb_3 :StringBuilder
+                call :usize
+                  callee:
+                    len :fn(string) -> usize
+                  arg0:
+                    "a😀b" :string
+          arg2:
+            " bytes=" :string
+          arg3:
+            call :string
+              callee:
+                std_core$usize$Display$to_string :string
+              arg0:
+                call :usize
+                  callee:
+                    byte_len :fn(string) -> usize
+                  arg0:
+                    "a😀b" :string
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_4: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_4 :StringBuilder
-            arg1:
-              "empty  cp=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_4 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$usize$Display$to_string :string
-                arg0:
-                  call :usize
-                    callee:
-                      len :fn(string) -> usize
-                    arg0:
-                      "" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_4 :StringBuilder
-            arg1:
-              " bytes=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_4 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$usize$Display$to_string :string
-                arg0:
-                  call :usize
-                    callee:
-                      byte_len :fn(string) -> usize
-                    arg0:
-                      "" :string
-          ~>
+        call :string
+          callee:
+            concat4 :string
+          arg0:
+            "empty  cp=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$usize$Display$to_string :string
               arg0:
-                __sb_4 :StringBuilder
+                call :usize
+                  callee:
+                    len :fn(string) -> usize
+                  arg0:
+                    "" :string
+          arg2:
+            " bytes=" :string
+          arg3:
+            call :string
+              callee:
+                std_core$usize$Display$to_string :string
+              arg0:
+                call :usize
+                  callee:
+                    byte_len :fn(string) -> usize
+                  arg0:
+                    "" :string
     let s: string = "你好" :string
     let n: usize =
       call :usize
@@ -306,7 +166,7 @@
           s :string
     let i: usize = int(0) :usize
     loop while (<…>)
-      let __tup_5: [char, usize] =
+      let __tup_0: [char, usize] =
         call :[char, usize]
           callee:
             decode_codepoint :fn(string, usize) -> [char, usize]
@@ -316,16 +176,16 @@
             i :usize
       let c: char =
         ._0 :char
-          __tup_5 :[char, usize]
+          __tup_0 :[char, usize]
       let w: usize =
         ._1 :usize
-          __tup_5 :[char, usize]
+          __tup_0 :[char, usize]
       call :void
         callee:
           std_io$std_io$println__string :void
         arg0:
           block :string
-            let __sb_6: StringBuilder =
+            let __sb_1: StringBuilder =
               call :StringBuilder
                 callee:
                   new_builder :StringBuilder
@@ -333,14 +193,14 @@
               callee:
                 append :void
               arg0:
-                __sb_6 :StringBuilder
+                __sb_1 :StringBuilder
               arg1:
                 "at " :string
             call :void
               callee:
                 append :void
               arg0:
-                __sb_6 :StringBuilder
+                __sb_1 :StringBuilder
               arg1:
                 call :string
                   callee:
@@ -351,14 +211,14 @@
               callee:
                 append :void
               arg0:
-                __sb_6 :StringBuilder
+                __sb_1 :StringBuilder
               arg1:
                 ": '" :string
             call :void
               callee:
                 append :void
               arg0:
-                __sb_6 :StringBuilder
+                __sb_1 :StringBuilder
               arg1:
                 call :string
                   callee:
@@ -369,14 +229,14 @@
               callee:
                 append :void
               arg0:
-                __sb_6 :StringBuilder
+                __sb_1 :StringBuilder
               arg1:
                 "' (" :string
             call :void
               callee:
                 append :void
               arg0:
-                __sb_6 :StringBuilder
+                __sb_1 :StringBuilder
               arg1:
                 call :string
                   callee:
@@ -387,7 +247,7 @@
               callee:
                 append :void
               arg0:
-                __sb_6 :StringBuilder
+                __sb_1 :StringBuilder
               arg1:
                 " bytes)" :string
             ~>
@@ -395,7 +255,7 @@
                 callee:
                   std_string_builder$StringBuilder$Display$to_string :string
                 arg0:
-                  __sb_6 :StringBuilder
+                  __sb_1 :StringBuilder
       assign
         target:
           i :usize
@@ -409,148 +269,76 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_7: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_7 :StringBuilder
-            arg1:
-              "'a' width=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_7 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$usize$Display$to_string :string
-                arg0:
-                  call :usize
-                    callee:
-                      codepoint_byte_len :fn(char) -> usize
-                    arg0:
-                      char(0x61)
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "'a' width=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$usize$Display$to_string :string
               arg0:
-                __sb_7 :StringBuilder
+                call :usize
+                  callee:
+                    codepoint_byte_len :fn(char) -> usize
+                  arg0:
+                    char(0x61)
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_8: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_8 :StringBuilder
-            arg1:
-              "'é' width=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_8 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$usize$Display$to_string :string
-                arg0:
-                  call :usize
-                    callee:
-                      codepoint_byte_len :fn(char) -> usize
-                    arg0:
-                      char(0xe9)
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "'é' width=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$usize$Display$to_string :string
               arg0:
-                __sb_8 :StringBuilder
+                call :usize
+                  callee:
+                    codepoint_byte_len :fn(char) -> usize
+                  arg0:
+                    char(0xe9)
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_9: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_9 :StringBuilder
-            arg1:
-              "'你' width=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_9 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$usize$Display$to_string :string
-                arg0:
-                  call :usize
-                    callee:
-                      codepoint_byte_len :fn(char) -> usize
-                    arg0:
-                      char(0x4f60)
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "'你' width=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$usize$Display$to_string :string
               arg0:
-                __sb_9 :StringBuilder
+                call :usize
+                  callee:
+                    codepoint_byte_len :fn(char) -> usize
+                  arg0:
+                    char(0x4f60)
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_10: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_10 :StringBuilder
-            arg1:
-              "emoji width=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_10 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$usize$Display$to_string :string
-                arg0:
-                  call :usize
-                    callee:
-                      codepoint_byte_len :fn(char) -> usize
-                    arg0:
-                      char(0x1f600)
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "emoji width=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$usize$Display$to_string :string
               arg0:
-                __sb_10 :StringBuilder
+                call :usize
+                  callee:
+                    codepoint_byte_len :fn(char) -> usize
+                  arg0:
+                    char(0x1f600)
     return int(0) :i32

@@ -73,168 +73,109 @@ impl 14 Display
 export main 1
 
 fn 0 snippet$show_path (string,ref) -> void
-  local __sb_0 ref
-  local $call_4 string
-  call 25
-  local.set 2
-  local.get 0
-  call 3
-  local.set 3
-  local.get 2
-  local.get 3
-  call 26
-  local.get 2
-  string.const 0
-  call 26
+  local $call_3 string
   local.get 1
   call 5
-  call 3
-  local.set 3
+  local.set 2
+  local.get 0
+  string.const 0
   local.get 2
-  local.get 3
-  call 26
-  local.get 2
-  call 29
+  call 25
   call 4
   return
 end
 
 fn 1 snippet$main () -> i32
   local p ref
-  local __sb_0 ref
-  local $call_8 string
-  local __sb_3 ref
+  local $call_5 string
+  local $call_14 ref
+  local $call_26 ref
   string.const 1
   call 6
   local.set 0
   string.const 2
   local.get 0
   call 0
-  call 25
-  local.set 1
-  local.get 1
-  string.const 3
-  call 26
   local.get 0
   call 7
-  call 3
-  local.set 2
-  local.get 1
-  local.get 2
-  call 26
-  local.get 1
-  call 29
-  call 4
-  call 25
   local.set 1
+  string.const 3
   local.get 1
-  string.const 4
   call 26
+  call 4
   local.get 0
   call 8
-  call 3
-  local.set 2
-  local.get 1
-  local.get 2
-  call 26
-  local.get 1
-  call 29
-  call 4
-  call 25
   local.set 1
+  string.const 4
   local.get 1
-  string.const 5
   call 26
+  call 4
   local.get 0
   call 9
-  call 3
-  local.set 2
+  local.set 1
+  string.const 5
   local.get 1
-  local.get 2
   call 26
-  local.get 1
-  call 29
   call 4
   local.get 0
   call 10
-  local.set 1
+  local.set 2
   string.const 6
-  local.get 1
+  local.get 2
   call 0
   local.get 0
   call 10
   call 10
-  local.set 1
+  local.set 2
   string.const 7
-  local.get 1
+  local.get 2
   call 0
   string.const 8
   call 6
-  local.set 1
-  call 25
-  local.set 3
-  local.get 3
-  string.const 9
-  call 26
-  local.get 1
+  local.set 2
+  local.get 2
   call 11
   call 2
-  local.set 2
-  local.get 3
-  local.get 2
-  call 26
-  local.get 3
-  call 29
-  call 4
+  local.set 1
+  string.const 9
   local.get 1
+  call 26
+  call 4
+  local.get 2
   call 10
   local.set 3
   string.const 10
   local.get 3
   call 0
-  local.get 1
+  local.get 2
   call 7
   call 6
   local.set 3
   string.const 11
   local.get 3
   call 0
-  local.get 1
+  local.get 2
   call 10
   call 10
-  local.set 1
+  local.set 2
   string.const 12
-  local.get 1
+  local.get 2
   call 0
-  call 25
-  local.set 1
-  local.get 1
-  string.const 13
-  call 26
   call 12
   call 13
   call 2
-  local.set 2
-  local.get 1
-  local.get 2
-  call 26
-  local.get 1
-  call 29
-  call 4
-  call 25
   local.set 1
+  string.const 13
   local.get 1
-  string.const 14
   call 26
+  call 4
   local.get 0
   call 13
   call 2
-  local.set 2
+  local.set 1
+  string.const 14
   local.get 1
-  local.get 2
   call 26
-  local.get 1
-  call 29
   call 4
   string.const 16
   call 6
@@ -275,93 +216,65 @@ fn 1 snippet$main () -> i32
   string.const 22
   local.get 0
   call 0
-  call 25
-  local.set 0
-  local.get 0
-  string.const 24
-  call 26
   string.const 25
   call 6
-  local.set 1
+  local.set 0
   string.const 26
   call 6
-  local.set 3
-  local.get 1
-  local.get 3
-  call 15
-  call 2
   local.set 2
   local.get 0
   local.get 2
+  call 15
+  call 2
+  local.set 1
+  string.const 24
+  local.get 1
   call 26
-  local.get 0
-  call 29
   call 4
-  call 25
-  local.set 0
-  local.get 0
-  string.const 27
-  call 26
   string.const 28
   call 6
-  local.set 1
+  local.set 0
   string.const 26
   call 6
-  local.set 3
-  local.get 1
-  local.get 3
+  local.set 2
+  local.get 0
+  local.get 2
   call 15
   call 2
-  local.set 2
-  local.get 0
-  local.get 2
+  local.set 1
+  string.const 27
+  local.get 1
   call 26
-  local.get 0
-  call 29
   call 4
-  call 25
-  local.set 0
-  local.get 0
-  string.const 29
-  call 26
   string.const 25
   call 6
-  local.set 1
+  local.set 0
   string.const 30
   call 6
-  local.set 3
-  local.get 1
-  local.get 3
-  call 16
-  call 2
   local.set 2
   local.get 0
   local.get 2
+  call 16
+  call 2
+  local.set 1
+  string.const 29
+  local.get 1
   call 26
-  local.get 0
-  call 29
   call 4
-  call 25
-  local.set 0
-  local.get 0
-  string.const 31
-  call 26
   string.const 25
   call 6
-  local.set 1
+  local.set 0
   string.const 32
   call 6
-  local.set 3
-  local.get 1
-  local.get 3
-  call 16
-  call 2
   local.set 2
   local.get 0
   local.get 2
+  call 16
+  call 2
+  local.set 1
+  string.const 31
+  local.get 1
   call 26
-  local.get 0
-  call 29
   call 4
   string.const 34
   call 6
@@ -732,7 +645,7 @@ fn 14 std_path$join (ref,string) -> ref
     local.field 0 2 0
     ref.cast 1
     local.get 1
-    call 27
+    call 26
     struct.new 2
     return
   end $L3
@@ -742,7 +655,7 @@ fn 14 std_path$join (ref,string) -> ref
   local.get 3
   string.const 47
   local.get 1
-  call 28
+  call 25
   struct.new 2
   return
 end
@@ -1124,13 +1037,13 @@ fn 17 std_path$normalize (ref) -> ref
       end $L4
     end $L3
   end $L2
-  call 25
+  call 27
   local.set 4
   local.get 1
   if $L16 void
     local.get 4
     string.const 47
-    call 26
+    call 28
   else
   end $L16
   i64.const 0
@@ -1149,7 +1062,7 @@ fn 17 std_path$normalize (ref) -> ref
         if $L20 void
           local.get 4
           string.const 47
-          call 26
+          call 28
         else
         end $L20
         local.get 2
@@ -1159,7 +1072,7 @@ fn 17 std_path$normalize (ref) -> ref
         local.set 12
         local.get 4
         local.get 12
-        call 26
+        call 28
         i64.const 1
         local.set 7
         local.get 5
@@ -1746,53 +1659,7 @@ fn 24 std_string$codepoint_byte_len (char) -> usize
   return.lit i64.const 4
 end
 
-fn 25 std_string_builder$new_builder () -> ref
-  array.new 11 0
-  struct.new 14
-  return
-end
-
-fn 26 std_string_builder$append (ref,string) -> void
-  local.field 0 14 0
-  local.get 1
-  array.push 1
-  return
-end
-
-fn 27 std_string_builder$concat2 (string,string) -> string
-  local la usize
-  local $call_4 usize
-  local buf ref
-  local $k_9 usize
-  local.get 0
-  call.import 4
-  local.set 2
-  local.get 1
-  call.import 4
-  local.set 3
-  local.get 2
-  local.get 3
-  i64.add
-  local.tee 3
-  call 30
-  local.set 4
-  i64.const 0
-  local.set 5
-  local.get 4
-  local.get 5
-  local.get 0
-  call 32
-  local.get 4
-  local.get 2
-  local.get 1
-  call 32
-  local.get 4
-  local.get 3
-  call 31
-  return
-end
-
-fn 28 std_string_builder$concat3 (string,string,string) -> string
+fn 25 std_string_builder$concat3 (string,string,string) -> string
   local la usize
   local $call_5 usize
   local $call_8 usize
@@ -1834,6 +1701,52 @@ fn 28 std_string_builder$concat3 (string,string,string) -> string
   local.get 6
   local.get 5
   call 31
+  return
+end
+
+fn 26 std_string_builder$concat2 (string,string) -> string
+  local la usize
+  local $call_4 usize
+  local buf ref
+  local $k_9 usize
+  local.get 0
+  call.import 4
+  local.set 2
+  local.get 1
+  call.import 4
+  local.set 3
+  local.get 2
+  local.get 3
+  i64.add
+  local.tee 3
+  call 30
+  local.set 4
+  i64.const 0
+  local.set 5
+  local.get 4
+  local.get 5
+  local.get 0
+  call 32
+  local.get 4
+  local.get 2
+  local.get 1
+  call 32
+  local.get 4
+  local.get 3
+  call 31
+  return
+end
+
+fn 27 std_string_builder$new_builder () -> ref
+  array.new 11 0
+  struct.new 14
+  return
+end
+
+fn 28 std_string_builder$append (ref,string) -> void
+  local.field 0 14 0
+  local.get 1
+  array.push 1
   return
 end
 
