@@ -5,7 +5,7 @@ module "vader/lower"
 
 import "std/collections" { MutableMap }
 
-import "vader/parser" { Expr, NullLitExpr, FieldExpr, BinaryExpr, BinaryOp }
+import "vader/parser" { Expr, NullLitExpr, FieldExpr, BinaryExpr, BinaryOp, RangeExpr, IdentExpr }
 import "vader/types" { Type, PrimitiveType, UnionType, TypeParamType, AnyType, TY_BOOL, mk_primitive }
 
 // Peel a narrowing `LoweredCast` off a type-check operand. `lower_ident`
@@ -45,6 +45,41 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
         }
     }
     if binary.op == BinaryOp.In || binary.op == BinaryOp.NotIn {
+        // Fast-path : `x in lo..=hi` / `x in lo..<hi` over a LITERAL range with a
+        // primitive, side-effect-free `x` → inline `lo <= x && x <= hi` (or `< hi`),
+        // bypassing the `Range` heap allocation + `contains` call. The hot case is
+        // the char predicates (`c in 'a'..='z'`) — otherwise a fresh `Range` is
+        // built per call just to bounds-check (2.3M+ allocs/self-compile). `x` is
+        // re-lowered (not a shared IR node) so the ident loads twice ; restricting
+        // to IdentExpr keeps that duplication side-effect-free.
+        if binary.right is RangeExpr as range_lit {
+            if binary.left is IdentExpr {
+                if ctx.types.expr_type(binary.left) is PrimitiveType {
+                    lo :: lower_expr(ctx, range_lit.lower)
+                    hi :: lower_expr(ctx, range_lit.upper)
+                    cmp_lo :: LoweredBinary {
+                        .span = binary.span, .type = TY_BOOL, .op = LoweredBinaryOp.Lte,
+                        .left = lo, .right = lower_expr(ctx, binary.left),
+                    }
+                    hi_op :: if range_lit.inclusive { LoweredBinaryOp.Lte } else { LoweredBinaryOp.Lt }
+                    cmp_hi :: LoweredBinary {
+                        .span = binary.span, .type = TY_BOOL, .op = hi_op,
+                        .left = lower_expr(ctx, binary.left), .right = hi,
+                    }
+                    anded :: LoweredBinary {
+                        .span = binary.span, .type = TY_BOOL, .op = LoweredBinaryOp.And,
+                        .left = cmp_lo, .right = cmp_hi,
+                    }
+                    if binary.op == BinaryOp.NotIn {
+                        return LoweredUnary {
+                            .span = binary.span, .type = TY_BOOL,
+                            .op = LoweredUnaryOp.Not, .operand = anded,
+                        }
+                    }
+                    return anded
+                }
+            }
+        }
         // `x in coll` → `coll.contains(x)`. `x !in coll` → `!coll.contains(x)`.
         // The Contains impl on `coll`'s type provides the `contains`
         // member ; the existing `find_impl_member_for` UFCS lookup
