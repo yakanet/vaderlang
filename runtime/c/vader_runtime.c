@@ -1042,12 +1042,62 @@ static void vader_young_maybe_grow_adaptive(void) {
     }
 }
 
+/* ---- per-call-site alloc profiler (VADER_PROFILE_ALLOC_SITES) -------------
+ * Compile-time-gated dynamic alloc profiler : which call sites drive the
+ * allocation count. Build with `-DVADER_PROFILE_ALLOC_SITES` (e.g. via
+ * STAGE0_CFLAGS for a bootstrap stage) and run with VADER_ALLOC_SITES=1.
+ * Keyed by the return-address OFFSET from vader_gc_alloc (slide-invariant →
+ * ASLR-proof) at three stack depths so runtime wrappers (vader_array_new,
+ * the bytes() trampoline, …) can be cracked to the real .vader site.
+ * Symbolise offline against an `-O0` build's `nm -n`:
+ *   site_static_addr = nm(vader_gc_alloc) + offset
+ * Inert — zero code, zero static arrays, zero hot-path cost — unless the macro
+ * is defined, so it lives in-tree permanently instead of being re-added per
+ * measurement. */
+#ifdef VADER_PROFILE_ALLOC_SITES
+#define VADER_ASITE_SLOTS (1u << 16)
+static int64_t  g_asite_off[3][VADER_ASITE_SLOTS];
+static uint64_t g_asite_cnt[3][VADER_ASITE_SLOTS];
+static int      g_asite_enabled = -1;
+static int      g_asite_armed   = 0;
+void vader_asite_dump(void);
+static int vader_asite_on(void) {
+    if (g_asite_enabled < 0) g_asite_enabled = vader_gc_env_bool("VADER_ALLOC_SITES");
+    return g_asite_enabled;
+}
+static void vader_asite_tick(int depth, void* ra) {
+    if (ra == NULL) return;
+    int64_t off = (int64_t)((char*) ra - (char*) (void*) vader_gc_alloc);
+    uint64_t h = ((uint64_t) off ^ 0x9e3779b97f4a7c15ULL) * 1099511628211ULL;
+    int64_t* offs = g_asite_off[depth];
+    uint64_t* cnts = g_asite_cnt[depth];
+    for (uint32_t i = 0; i < VADER_ASITE_SLOTS; i++) {
+        uint32_t s = (uint32_t)((h >> 16) + i) & (VADER_ASITE_SLOTS - 1u);
+        if (cnts[s] == 0) { offs[s] = off; cnts[s] = 1; return; }
+        if (offs[s] == off) { cnts[s] += 1; return; }
+    }
+}
+/* Inlined at the alloc call site so the captured return addresses are measured
+ * from vader_gc_alloc itself (a helper frame would shift every depth by one). */
+#define VADER_ASITE_CAPTURE() do {                                           \
+    if (VADER_UNLIKELY(vader_asite_on())) {                                  \
+        if (!g_asite_armed) { atexit(vader_asite_dump); g_asite_armed = 1; } \
+        vader_asite_tick(0, __builtin_return_address(0));                    \
+        vader_asite_tick(1, __builtin_return_address(1));                    \
+        vader_asite_tick(2, __builtin_return_address(2));                    \
+    }                                                                        \
+} while (0)
+#else
+#define VADER_ASITE_CAPTURE() ((void) 0)
+#endif
+
 void* vader_gc_alloc(size_t bytes) {
     if (VADER_UNLIKELY(!g_gc_initialized)) vader_gc_init();
     /* Count raw requested bytes (same basis as g_total_copied) so the profiler
      * can report an alloc'd-vs-survived ratio. One increment per call. */
     g_total_alloc_bytes += bytes;
     g_total_alloc_count += 1;
+    VADER_ASITE_CAPTURE();
     size_t aligned = vader_gc_align(bytes);
     /* A single object bigger than a young semi-space can never fit, however
      * much we collect — grow young to hold it (relocating the live set into a
@@ -2969,6 +3019,42 @@ void vader_gc_profile_dump(void) {
         (unsigned long long) arr_boxed_slots,
         (double) (arr_boxed_slots * 16u) / (1024.0 * 1024.0));
 }
+
+#ifdef VADER_PROFILE_ALLOC_SITES
+typedef struct { int64_t off; uint64_t cnt; } vader_asite_row_t;
+static int vader_asite_cmp(const void* a, const void* b) {
+    uint64_t ca = ((const vader_asite_row_t*) a)->cnt, cb = ((const vader_asite_row_t*) b)->cnt;
+    return (ca < cb) - (ca > cb);
+}
+static void vader_asite_dump_one(int depth, const char* label) {
+    const int64_t* offs = g_asite_off[depth];
+    const uint64_t* cnts = g_asite_cnt[depth];
+    size_t n = 0; uint64_t total = 0;
+    for (uint32_t i = 0; i < VADER_ASITE_SLOTS; i++) { if (cnts[i]) { n++; total += cnts[i]; } }
+    if (n == 0) return;
+    vader_asite_row_t* rows = (vader_asite_row_t*) malloc(n * sizeof(vader_asite_row_t));
+    if (rows == NULL) return;
+    size_t j = 0;
+    for (uint32_t i = 0; i < VADER_ASITE_SLOTS; i++) { if (cnts[i]) { rows[j].off = offs[i]; rows[j].cnt = cnts[i]; j++; } }
+    qsort(rows, n, sizeof(vader_asite_row_t), vader_asite_cmp);
+    fprintf(stderr, "\n=== VADER_ALLOC_SITES (%s) : total=%llu across %zu sites ===\n",
+            label, (unsigned long long) total, n);
+    size_t top = n < 40u ? n : 40u;
+    for (size_t i = 0; i < top; i++)
+        fprintf(stderr, "  %14lld %14llu  %5.1f%%\n", (long long) rows[i].off,
+                (unsigned long long) rows[i].cnt, 100.0 * (double) rows[i].cnt / (double) total);
+    free(rows);
+}
+void vader_asite_dump(void) {
+    if (!vader_asite_on()) return;
+    static int dumped = 0;
+    if (dumped) return;
+    dumped = 1;
+    vader_asite_dump_one(0, "depth0");
+    vader_asite_dump_one(1, "depth1");
+    vader_asite_dump_one(2, "depth2");
+}
+#endif /* VADER_PROFILE_ALLOC_SITES */
 
 void vader_trap(const char* msg) {
     fprintf(stderr, "vader: trap — %s\n", msg);
