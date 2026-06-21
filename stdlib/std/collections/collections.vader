@@ -342,12 +342,6 @@ export add :: fn<T>(self: MutableSet<T>, value: T) -> bool {
     return true
 }
 
-/// True iff `value` is a member of the set. The UFCS entry point for
-/// `set.contains(v)` (callers `import { contains }`) ; `v in set` instead
-/// lowers to the `Contains` impl below. Same body, distinct dispatch paths —
-/// like `MutableMap.contains_key` vs its `Contains` impl, but sharing the name.
-export contains :: fn<T>(self: MutableSet<T>, value: T) -> bool = value in self.inner
-
 /// Remove `value` from the set, if present. Delegates to the backing map's
 /// `remove`. A no-op when `value` is not a member.
 /// @param self   the set receiver.

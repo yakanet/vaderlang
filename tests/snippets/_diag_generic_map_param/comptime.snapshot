@@ -16,7 +16,6 @@
   MutableSet<T>
   MutableSet<T>
   MutableSet<T>
-  MutableSet<T>
   SetIterator<T>
   SetIterator<T>
   SetIterator<T>
@@ -49,7 +48,6 @@
   MutableMap<i32, bool>
   MutableMap<i32, i32>
   MutableMap<string, i32>
-  MutableMap<T, bool>
   MutableMap<T, bool>
   MutableMap<T, bool>
   MutableMap<T, bool>

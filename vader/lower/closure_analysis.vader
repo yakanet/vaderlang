@@ -17,7 +17,7 @@
 
 module "vader/lower"
 
-import "std/collections" { MutableMap, MutableSet, contains, add }
+import "std/collections" { MutableMap, MutableSet, add }
 import "vader/diagnostics" { Span }
 AST :: import "vader/parser"
 import "vader/resolver/symbol" { Symbol, SymbolKind }
@@ -129,21 +129,19 @@ collect_owned_scope_for_params :: fn(params: AST.FnParam[], symbol_index: Mutabl
         symbol :: lookup_symbol_by_span(symbol_index, ast_param.span)
         match symbol {
             is null -> {}
-            is Symbol as resolved -> { scope.inner[resolved.id] = true }
+            is Symbol as resolved -> { _ :: scope.add(resolved.id) }
         }
     }
     return scope
 }
 
 empty_scope :: fn() -> MutableSet<i32> {
-    return MutableSet<i32> {
-        .inner = MutableMap<i32, bool> {},
-    }
+    return MutableSet<i32> {}
 }
 
 clone_scope :: fn(scope: MutableSet<i32>) -> MutableSet<i32> {
     out :: empty_scope()
-    for [id, _] in scope.inner { out.inner[id] = true }
+    for [id, _] in scope.inner { out.add(id) }
     return out
 }
 
@@ -206,9 +204,7 @@ walk_stmt :: fn(
             // still need heap-promotion). Mirrors the per-lambda
             // shape at line 499.
             defer_captures: Capture[] = []
-            defer_seen :: MutableSet<i32> {
-                .inner = MutableMap<i32, bool> {},
-            }
+            defer_seen :: MutableSet<i32> {}
             match defer_stmt.body {
                 is AST.DeferStmtBody as dsb -> { walk_stmt(dsb.stmt, scope, defer_captures, defer_seen, ctx) }
                 is AST.DeferBlockBody as dbb -> { walk_body(dbb.block, scope, defer_captures, defer_seen, ctx) }
@@ -220,14 +216,13 @@ walk_stmt :: fn(
             if out_captures != null {
                 if out_seen != null {
                     for cap in defer_captures {
-                        if out_seen.inner.contains(cap.symbol.id) { continue }
-                        out_seen.inner[cap.symbol.id] = true
+                        if !out_seen.add(cap.symbol.id) { continue }
                         out_captures.push(cap)
                     }
                 }
             }
             for cap in defer_captures {
-                ctx.analysis.captured_symbols.inner[cap.symbol.id] = true
+                ctx.analysis.captured_symbols.add(cap.symbol.id)
             }
         }
     }
@@ -245,7 +240,7 @@ walk_for :: fn(
             binding :: lookup_symbol_by_span(ctx.symbol_index, inf.binding_span)
             match binding {
                 is null -> {}
-                is Symbol as resolved -> { scope.inner[resolved.id] = true }
+                is Symbol as resolved -> { _ :: scope.add(resolved.id) }
             }
         }
     }
@@ -364,7 +359,7 @@ record_ident_capture :: fn(
         is null -> {}
         is Symbol as resolved -> {
             if !is_capturable(resolved) { return }
-            if scope.contains(resolved.id) { return }
+            if resolved.id in scope { return }
             add_capture(resolved, ident, out_captures, out_seen, ctx.typed)
         }
     }
@@ -382,8 +377,7 @@ add_capture :: fn(
     symbol: Symbol, ident: AST.IdentExpr,
     captures: Capture[], seen: MutableSet<i32>, typed: TypedProgram,
 ) -> void {
-    if seen.contains(symbol.id) { return }
-    seen.inner[symbol.id] = true
+    if !seen.add(symbol.id) { return }
     captures.push(Capture {
         .symbol = symbol,
         .type   = type_of_captured_symbol(symbol, ident, typed),
@@ -393,8 +387,7 @@ add_capture :: fn(
 add_capture_value :: fn(
     capture: Capture, captures: Capture[], seen: MutableSet<i32>,
 ) -> void {
-    if seen.contains(capture.symbol.id) { return }
-    seen.inner[capture.symbol.id] = true
+    if !seen.add(capture.symbol.id) { return }
     captures.push(capture)
 }
 
@@ -429,7 +422,7 @@ add_local_to_scope :: fn(binding: AST.LetBinding, scope: MutableSet<i32>, symbol
             symbol :: lookup_symbol_by_span(symbol_index, simple.name_span)
             match symbol {
                 is null -> {}
-                is Symbol as resolved -> { scope.inner[resolved.id] = true }
+                is Symbol as resolved -> { _ :: scope.add(resolved.id) }
             }
         }
         is AST.TupleBinding as tup -> {
@@ -440,7 +433,7 @@ add_local_to_scope :: fn(binding: AST.LetBinding, scope: MutableSet<i32>, symbol
             symbol :: lookup_symbol_by_span(symbol_index, rest.name_span)
             match symbol {
                 is null -> {}
-                is Symbol as resolved -> { scope.inner[resolved.id] = true }
+                is Symbol as resolved -> { _ :: scope.add(resolved.id) }
             }
         }
     }
@@ -455,8 +448,7 @@ walk_pattern_for_bindings :: fn(
             match symbol {
                 is null -> {}
                 is Symbol as resolved -> {
-                    if !scope.contains(resolved.id) {
-                        scope.inner[resolved.id] = true
+                    if scope.add(resolved.id) {
                         added.push(resolved.id)
                     }
                 }
@@ -470,8 +462,7 @@ walk_pattern_for_bindings :: fn(
                     match symbol {
                         is null -> {}
                         is Symbol as resolved -> {
-                            if !scope.contains(resolved.id) {
-                                scope.inner[resolved.id] = true
+                            if scope.add(resolved.id) {
                                 added.push(resolved.id)
                             }
                         }
@@ -491,8 +482,7 @@ walk_pattern_for_bindings :: fn(
                         match symbol {
                             is null -> {}
                             is Symbol as resolved -> {
-                                if !scope.contains(resolved.id) {
-                                    scope.inner[resolved.id] = true
+                                if scope.add(resolved.id) {
                                     added.push(resolved.id)
                                 }
                             }
@@ -522,7 +512,7 @@ process_lambda :: fn(
     seen :: empty_scope()
     walk_body(lambda.body, own_scope, captures, seen, ctx)
 
-    for capture in captures { ctx.analysis.captured_symbols.inner[capture.symbol.id] = true }
+    for capture in captures { ctx.analysis.captured_symbols.add(capture.symbol.id) }
     ctx.analysis.lambda_captures[capture_key(ctx.typed.resolved.path, lambda.id)] = captures
 
     // Fold this lambda's captures into the enclosing lambda's, skipping
@@ -530,7 +520,7 @@ process_lambda :: fn(
     if outer_captures is null { return }
     if outer_seen is null { return }
     for capture in captures {
-        if outer_scope.contains(capture.symbol.id) { continue }
+        if capture.symbol.id in outer_scope { continue }
         add_capture_value(capture, outer_captures, outer_seen)
     }
 }
