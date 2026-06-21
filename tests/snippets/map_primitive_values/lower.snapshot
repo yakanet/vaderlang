@@ -48,14 +48,14 @@
         ~>
           call :void
             callee:
-              std_io$std_io$println__string :void
+              std_io$println__string :void
             arg0:
               "u8 x: missing" :string
       else:
         ~>
           call :void
             callee:
-              std_io$std_io$println__string :void
+              std_io$println__string :void
             arg0:
               call :string
                 callee:
@@ -141,14 +141,14 @@
         ~>
           call :void
             callee:
-              std_io$std_io$println__string :void
+              std_io$println__string :void
             arg0:
               "bool: missing" :string
       else:
         ~>
           call :void
             callee:
-              std_io$std_io$println__string :void
+              std_io$println__string :void
             arg0:
               call :string
                 callee:
@@ -211,14 +211,14 @@
         ~>
           call :void
             callee:
-              std_io$std_io$println__string :void
+              std_io$println__string :void
             arg0:
               "char: missing" :string
       else:
         ~>
           call :void
             callee:
-              std_io$std_io$println__string :void
+              std_io$println__string :void
             arg0:
               call :string
                 callee:
@@ -285,14 +285,14 @@
         ~>
           call :void
             callee:
-              std_io$std_io$println__string :void
+              std_io$println__string :void
             arg0:
               "f32: missing" :string
       else:
         ~>
           call :void
             callee:
-              std_io$std_io$println__string :void
+              std_io$println__string :void
             arg0:
               call :string
                 callee:
@@ -343,14 +343,14 @@
         ~>
           call :void
             callee:
-              std_io$std_io$println__string :void
+              std_io$println__string :void
             arg0:
               "f64: missing" :string
       else:
         ~>
           call :void
             callee:
-              std_io$std_io$println__string :void
+              std_io$println__string :void
             arg0:
               call :string
                 callee:
@@ -402,14 +402,14 @@
         ~>
           call :void
             callee:
-              std_io$std_io$println__string :void
+              std_io$println__string :void
             arg0:
               "i16: missing" :string
       else:
         ~>
           call :void
             callee:
-              std_io$std_io$println__string :void
+              std_io$println__string :void
             arg0:
               call :string
                 callee:
@@ -461,14 +461,14 @@
         ~>
           call :void
             callee:
-              std_io$std_io$println__string :void
+              std_io$println__string :void
             arg0:
               "u16: missing" :string
       else:
         ~>
           call :void
             callee:
-              std_io$std_io$println__string :void
+              std_io$println__string :void
             arg0:
               call :string
                 callee:
@@ -521,14 +521,14 @@
         ~>
           call :void
             callee:
-              std_io$std_io$println__string :void
+              std_io$println__string :void
             arg0:
               "i64: missing" :string
       else:
         ~>
           call :void
             callee:
-              std_io$std_io$println__string :void
+              std_io$println__string :void
             arg0:
               call :string
                 callee:
@@ -558,14 +558,14 @@
         ~>
           call :void
             callee:
-              std_io$std_io$println__string :void
+              std_io$println__string :void
             arg0:
               "miss: ok" :string
       else:
         ~>
           call :void
             callee:
-              std_io$std_io$println__string :void
+              std_io$println__string :void
             arg0:
               call :string
                 callee:

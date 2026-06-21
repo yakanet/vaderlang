@@ -63,7 +63,7 @@ static vader_string_t snippet_greet_v3(vader_box_t l0);
 static vader_string_t snippet_greet_v4(vader_box_t l0);
 static vader_string_t snippet_combine(vader_box_t l0, vader_box_t l1);
 static int32_t snippet_main(void);
-static void std_io_std_io_println__string(vader_string_t l0);
+static void std_io_println__string(vader_string_t l0);
 static vader_string_t std_string_builder_concat2(vader_string_t l0, vader_string_t l1);
 static vader_string_t std_string_builder_concat3(vader_string_t l0, vader_string_t l1, vader_string_t l2);
 static vader_box_t std_core_usize_BufferAlloc_new_buffer_vt(size_t l0);
@@ -217,32 +217,32 @@ static int32_t snippet_main(void) {
     l1 = t1;
     l2 = vader_box_obj(0u, NULL);
     t2 = snippet_greet(l0);
-    std_io_std_io_println__string(t2);
+    std_io_println__string(t2);
     t3 = snippet_greet(l2);
-    std_io_std_io_println__string(t3);
+    std_io_println__string(t3);
     t4 = snippet_greet_v2(l0);
-    std_io_std_io_println__string(t4);
+    std_io_println__string(t4);
     t5 = snippet_greet_v2(l2);
-    std_io_std_io_println__string(t5);
+    std_io_println__string(t5);
     t6 = snippet_greet_v3(l0);
-    std_io_std_io_println__string(t6);
+    std_io_println__string(t6);
     t7 = snippet_greet_v3(l2);
-    std_io_std_io_println__string(t7);
+    std_io_println__string(t7);
     t8 = snippet_greet_v4(l0);
-    std_io_std_io_println__string(t8);
+    std_io_println__string(t8);
     t9 = snippet_greet_v4(l2);
-    std_io_std_io_println__string(t9);
+    std_io_println__string(t9);
     t10 = snippet_combine(l0, l1);
-    std_io_std_io_println__string(t10);
+    std_io_println__string(t10);
     t11 = snippet_combine(l2, l1);
-    std_io_std_io_println__string(t11);
+    std_io_println__string(t11);
     t12 = snippet_combine(l0, l2);
-    std_io_std_io_println__string(t12);
+    std_io_println__string(t12);
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
     vader_gc_top = gc_frame.prev;
 }
 
-static void std_io_std_io_println__string(vader_string_t l0) {
+static void std_io_println__string(vader_string_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_import_1(INT32_C(0), l0);

@@ -86,7 +86,7 @@
     ~>
       call :void
         callee:
-          std_io$std_io$println__string :void
+          std_io$println__string :void
         arg0:
           sb :string
   fn snippet$print_strings(arr: string[]) -> void
@@ -155,14 +155,14 @@
     ~>
       call :void
         callee:
-          std_io$std_io$println__string :void
+          std_io$println__string :void
         arg0:
           sb :string
   fn snippet$main() -> i32
     let one: i32[] =
       call :i32[]
         callee:
-          std_sort$std_sort$sort__i32 :i32[]
+          std_sort$sort__i32 :i32[]
         arg0:
           array :i32[]
             int(42) :i32
@@ -176,7 +176,7 @@
     let asc: i32[] =
       call :i32[]
         callee:
-          std_sort$std_sort$sort__i32 :i32[]
+          std_sort$sort__i32 :i32[]
         arg0:
           array :i32[]
             int(1) :i32
@@ -194,7 +194,7 @@
     let desc: i32[] =
       call :i32[]
         callee:
-          std_sort$std_sort$sort__i32 :i32[]
+          std_sort$sort__i32 :i32[]
         arg0:
           array :i32[]
             int(5) :i32
@@ -212,7 +212,7 @@
     let rand: i32[] =
       call :i32[]
         callee:
-          std_sort$std_sort$sort__i32 :i32[]
+          std_sort$sort__i32 :i32[]
         arg0:
           array :i32[]
             int(3) :i32
@@ -236,7 +236,7 @@
     let descending: i32[] =
       call :i32[]
         callee:
-          std_sort$std_sort$sort__i32 :i32[]
+          std_sort$sort__i32 :i32[]
         arg0:
           array :i32[]
             int(1) :i32
@@ -254,7 +254,7 @@
     let big: i32[] =
       call :i32[]
         callee:
-          std_sort$std_sort$sort__i32 :i32[]
+          std_sort$sort__i32 :i32[]
         arg0:
           array :i32[]
             int(10) :i32
@@ -297,7 +297,7 @@
     let strs: string[] =
       call :string[]
         callee:
-          std_sort$std_sort$sort__string :string[]
+          std_sort$sort__string :string[]
         arg0:
           array :string[]
             "banana" :string
@@ -319,7 +319,7 @@
     let out: i32[] =
       call :i32[]
         callee:
-          std_sort$std_sort$sort__i32 :i32[]
+          std_sort$sort__i32 :i32[]
         arg0:
           input :i32[]
         arg1:

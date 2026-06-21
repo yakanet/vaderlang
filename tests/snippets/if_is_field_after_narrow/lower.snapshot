@@ -66,7 +66,7 @@
       }
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -86,7 +86,7 @@
                       s :ArrayVal | IntVal | StructVal
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -106,7 +106,7 @@
                       a :ArrayVal | IntVal | StructVal
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -126,7 +126,7 @@
                       i :ArrayVal | IntVal | StructVal
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:

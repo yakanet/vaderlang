@@ -41,38 +41,38 @@ fn 0 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 1 snippet$snippet$inner__i32 (i32) -> i32
+fn 1 snippet$inner__i32 (i32) -> i32
   local.get 0
   return
 end
 
-fn 2 snippet$snippet$inner__string (string) -> string
+fn 2 snippet$inner__string (string) -> string
   local.get 0
   return
 end
 
-fn 3 snippet$snippet$middle__i32 (i32) -> ref
+fn 3 snippet$middle__i32 (i32) -> ref
   local.get 0
   call 1
   struct.new 3
   return
 end
 
-fn 4 snippet$snippet$middle__string (string) -> ref
+fn 4 snippet$middle__string (string) -> ref
   local.get 0
   call 2
   struct.new 4
   return
 end
 
-fn 5 snippet$snippet$outer__i32 (i32) -> ref
+fn 5 snippet$outer__i32 (i32) -> ref
   local.get 0
   call 3
   struct.new 5
   return
 end
 
-fn 6 snippet$snippet$outer__string (string) -> ref
+fn 6 snippet$outer__string (string) -> ref
   local.get 0
   call 4
   struct.new 6
@@ -206,7 +206,7 @@ fn 7 std_core$format_signed (i64) -> string
   return
 end
 
-fn 8 std_io$std_io$println__string (string) -> void
+fn 8 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
   call.import 0

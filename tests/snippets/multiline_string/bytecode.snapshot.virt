@@ -170,14 +170,14 @@ fn 1 std_core$format_signed (i64) -> string
   return
 end
 
-fn 2 std_io$std_io$print__string (string) -> void
+fn 2 std_io$print__string (string) -> void
   i32.const 0
   local.get 0
   call.import 1
   return
 end
 
-fn 3 std_io$std_io$println__string (string) -> void
+fn 3 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
   call.import 1

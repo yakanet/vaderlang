@@ -5,7 +5,7 @@
     ~>
       call :void
         callee:
-          std_io$std_io$println__string :void
+          std_io$println__string :void
         arg0:
           call :string
             callee:
@@ -36,7 +36,7 @@
         p :Path
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -51,7 +51,7 @@
                 p :Path
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -66,7 +66,7 @@
                 p :Path
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -113,7 +113,7 @@
           "/usr/local/bin/vader" :string
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -177,7 +177,7 @@
                 abs :Path
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -202,7 +202,7 @@
                   "false" :string
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -291,7 +291,7 @@
             "foo" :string
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -324,7 +324,7 @@
                   "false" :string
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -357,7 +357,7 @@
                   "false" :string
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -390,7 +390,7 @@
                   "false" :string
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:

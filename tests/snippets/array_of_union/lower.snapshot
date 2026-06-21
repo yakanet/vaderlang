@@ -8,7 +8,7 @@
     LoweredArrayPush
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -39,7 +39,7 @@
             ~>
               call :void
                 callee:
-                  std_io$std_io$println__string :void
+                  std_io$println__string :void
                 arg0:
                   "none" :string
           else:
@@ -52,7 +52,7 @@
                   ~>
                     call :void
                       callee:
-                        std_io$std_io$println__string :void
+                        std_io$println__string :void
                       arg0:
                         "got value" :string
                 else:

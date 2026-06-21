@@ -298,7 +298,7 @@ fn 4 std_core$format_unsigned (u64) -> string
   return
 end
 
-fn 5 std_io$std_io$println__string (string) -> void
+fn 5 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
   call.import 1
@@ -352,7 +352,7 @@ fn 6 std_iter$sum (ref) -> i32
   return
 end
 
-fn 7 std_iter$std_iter$map__i32__i32 (ref,ref) -> ref
+fn 7 std_iter$map__i32__i32 (ref,ref) -> ref
   local out ref
   local __for_arr_0 ref
   local __for_len_1 usize
@@ -397,7 +397,7 @@ fn 7 std_iter$std_iter$map__i32__i32 (ref,ref) -> ref
   return
 end
 
-fn 8 std_iter$std_iter$filter__i32 (ref,ref) -> ref
+fn 8 std_iter$filter__i32 (ref,ref) -> ref
   local out ref
   local __for_arr_0 ref
   local __for_len_1 usize
@@ -445,7 +445,7 @@ fn 8 std_iter$std_iter$filter__i32 (ref,ref) -> ref
   return
 end
 
-fn 9 std_iter$std_iter$fold__i32__i32 (ref,i32,ref) -> i32
+fn 9 std_iter$fold__i32__i32 (ref,i32,ref) -> i32
   local acc i32
   local __for_arr_0 ref
   local __for_len_1 usize
@@ -490,7 +490,7 @@ fn 9 std_iter$std_iter$fold__i32__i32 (ref,i32,ref) -> i32
   return
 end
 
-fn 10 std_iter$std_iter$slice__i32 (ref,usize,usize) -> ref
+fn 10 std_iter$slice__i32 (ref,usize,usize) -> ref
   local.get 0
   local.get 1
   local.get 2

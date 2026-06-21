@@ -4,7 +4,7 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         "-- ascii --" :string
     block :void
@@ -34,7 +34,7 @@
                   __step_1 :Yield<char> | null
             call :void
               callee:
-                std_io$std_io$println__string :void
+                std_io$println__string :void
               arg0:
                 call :string
                   callee:
@@ -47,7 +47,7 @@
                         c :char
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         "-- multibyte --" :string
     block :void
@@ -77,7 +77,7 @@
                   __step_3 :Yield<char> | null
             call :void
               callee:
-                std_io$std_io$println__string :void
+                std_io$println__string :void
               arg0:
                 call :string
                   callee:
@@ -125,7 +125,7 @@
                     int(1) :i32
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -154,7 +154,7 @@
                       "héllo" :string
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         "-- empty --" :string
     block :void
@@ -184,12 +184,12 @@
                   __step_9 :Yield<char> | null
             call :void
               callee:
-                std_io$std_io$println__string :void
+                std_io$println__string :void
               arg0:
                 "never" :string
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         "done" :string
     return int(0) :i32

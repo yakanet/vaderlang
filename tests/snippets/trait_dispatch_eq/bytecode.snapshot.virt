@@ -30,7 +30,7 @@ fn 0 snippet$main () -> i32
   return
 end
 
-fn 1 snippet$snippet$both_equal__i32 (i32,i32,i32) -> i32
+fn 1 snippet$both_equal__i32 (i32,i32,i32) -> i32
   local n i32
   i32.const 0
   local.set 3

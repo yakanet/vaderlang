@@ -30,7 +30,7 @@
                 int(2) :i32
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         block :string
           let __sb_0: StringBuilder =
@@ -140,7 +140,7 @@
                 int(1) :i32
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -180,7 +180,7 @@
             float(2) :f64
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -209,7 +209,7 @@
             int(3) :i32
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -259,7 +259,7 @@
             int(1) :i32
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:

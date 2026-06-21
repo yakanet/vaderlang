@@ -4,12 +4,12 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         "hello" :string
     call :void
       callee:
-        std_io$std_io$println__i32 :void
+        std_io$println__i32 :void
       arg0:
         int(42) :i32
     return int(0) :i32

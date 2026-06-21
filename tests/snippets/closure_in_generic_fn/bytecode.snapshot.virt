@@ -24,14 +24,14 @@ fn 0 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 1 snippet$snippet$apply__i32 (i32,ref) -> i32
+fn 1 snippet$apply__i32 (i32,ref) -> i32
   local.get 0
   local.get 1
   call.indirect 2
   return
 end
 
-fn 2 snippet$snippet$run_id__i32 (i32) -> i32
+fn 2 snippet$run_id__i32 (i32) -> i32
   local id ref
   struct.new 3
   make_closure 3 2
@@ -174,7 +174,7 @@ fn 4 std_core$format_signed (i64) -> string
   return
 end
 
-fn 5 std_io$std_io$println__string (string) -> void
+fn 5 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
   call.import 0

@@ -4,7 +4,7 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -37,7 +37,7 @@
                       "vader" :string
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -70,7 +70,7 @@
                       "héllo" :string
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -103,7 +103,7 @@
                       "你好嗎？" :string
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -136,7 +136,7 @@
                       "a😀b" :string
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -192,7 +192,7 @@
           __tup_0 :[char, usize]
       call :void
         callee:
-          std_io$std_io$println__string :void
+          std_io$println__string :void
         arg0:
           block :string
             let __sb_1: StringBuilder =
@@ -283,7 +283,7 @@
               w :usize
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -303,7 +303,7 @@
                       char(0x61)
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -323,7 +323,7 @@
                       char(0xe9)
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -343,7 +343,7 @@
                       char(0x4f60)
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:

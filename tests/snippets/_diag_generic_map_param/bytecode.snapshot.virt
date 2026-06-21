@@ -58,7 +58,7 @@ fn 0 snippet$main () -> i32
   return
 end
 
-fn 1 snippet$snippet$bump__string__i32 (ref,string,i32) -> void
+fn 1 snippet$bump__string__i32 (ref,string,i32) -> void
   local.get 0
   local.get 1
   local.get 2

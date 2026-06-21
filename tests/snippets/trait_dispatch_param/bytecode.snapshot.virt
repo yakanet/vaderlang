@@ -11,7 +11,7 @@ fn 0 snippet$main () -> i32
   return
 end
 
-fn 1 snippet$snippet$hash_twice__i32 (i32) -> u64
+fn 1 snippet$hash_twice__i32 (i32) -> u64
   local $cast_1 u64
   local $cast_2 u64
   local.get 0

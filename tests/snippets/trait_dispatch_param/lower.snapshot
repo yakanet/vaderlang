@@ -5,13 +5,13 @@
     let n: u64 =
       call :u64
         callee:
-          snippet$snippet$hash_twice__i32 :u64
+          snippet$hash_twice__i32 :u64
         arg0:
           int(7) :i32
     return
       cast → i32
         n :u64
-  fn snippet$snippet$hash_twice__i32(x: i32) -> u64
+  fn snippet$hash_twice__i32(x: i32) -> u64
     return
       add :u64
         l:

@@ -9,7 +9,7 @@
         int(30) :i32
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -24,18 +24,18 @@
                 cast → u64
                   call :usize
                     callee:
-                      std_iter$std_iter$count__i32 :usize
+                      std_iter$count__i32 :usize
                     arg0:
                       nums :i32[]
     let cloned: i32[] =
       call :i32[]
         callee:
-          std_iter$std_iter$collect__i32 :i32[]
+          std_iter$collect__i32 :i32[]
         arg0:
           nums :i32[]
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -67,7 +67,7 @@
     let pairs: [string, i32][] =
       call :[string, i32][]
         callee:
-          std_iter$std_iter$zip__string__i32 :[string, i32][]
+          std_iter$zip__string__i32 :[string, i32][]
         arg0:
           keys :string[]
         arg1:
@@ -93,7 +93,7 @@
             __tup_3 :[string, i32]
         call :void
           callee:
-            std_io$std_io$println__string :void
+            std_io$println__string :void
           arg0:
             call :string
               callee:
@@ -130,7 +130,7 @@
     let joined: i32[] =
       call :i32[]
         callee:
-          std_iter$std_iter$chain__i32 :i32[]
+          std_iter$chain__i32 :i32[]
         arg0:
           head :i32[]
         arg1:
@@ -149,7 +149,7 @@
               __for_i_6 :usize
         call :void
           callee:
-            std_io$std_io$println__string :void
+            std_io$println__string :void
           arg0:
             call :string
               callee:
@@ -203,7 +203,7 @@
             __tup_10 :[usize, string]
         call :void
           callee:
-            std_io$std_io$println__string :void
+            std_io$println__string :void
           arg0:
             call :string
               callee:
@@ -231,7 +231,7 @@
     let bursts: i32[] =
       call :i32[]
         callee:
-          std_iter$std_iter$flat_map__i32__i32 :i32[]
+          std_iter$flat_map__i32__i32 :i32[]
         arg0:
           array :i32[]
             int(1) :i32
@@ -253,7 +253,7 @@
               __for_i_14 :usize
         call :void
           callee:
-            std_io$std_io$println__string :void
+            std_io$println__string :void
           arg0:
             call :string
               callee:

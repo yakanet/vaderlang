@@ -42,7 +42,7 @@
                 int(1) :i32
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         block :string
           let __sb_0: StringBuilder =
@@ -92,7 +92,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        snippet$snippet$get_or__u8 :i32
+                        snippet$get_or__u8 :i32
                       arg0:
                         mu8 :MutableMap<u8, i32>
                       arg1:
@@ -121,7 +121,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        snippet$snippet$get_or__u8 :i32
+                        snippet$get_or__u8 :i32
                       arg0:
                         mu8 :MutableMap<u8, i32>
                       arg1:
@@ -150,7 +150,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        snippet$snippet$get_or__u8 :i32
+                        snippet$get_or__u8 :i32
                       arg0:
                         mu8 :MutableMap<u8, i32>
                       arg1:
@@ -206,7 +206,7 @@
         int(300) :i32
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         block :string
           let __sb_1: StringBuilder =
@@ -233,7 +233,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        snippet$snippet$get_or__u16 :i32
+                        snippet$get_or__u16 :i32
                       arg0:
                         mu16 :MutableMap<u16, i32>
                       arg1:
@@ -262,7 +262,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        snippet$snippet$get_or__u16 :i32
+                        snippet$get_or__u16 :i32
                       arg0:
                         mu16 :MutableMap<u16, i32>
                       arg1:
@@ -291,7 +291,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        snippet$snippet$get_or__u16 :i32
+                        snippet$get_or__u16 :i32
                       arg0:
                         mu16 :MutableMap<u16, i32>
                       arg1:
@@ -349,7 +349,7 @@
         int(33) :i32
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         block :string
           let __sb_2: StringBuilder =
@@ -376,7 +376,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        snippet$snippet$get_or__i16 :i32
+                        snippet$get_or__i16 :i32
                       arg0:
                         mi16 :MutableMap<i16, i32>
                       arg1:
@@ -406,7 +406,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        snippet$snippet$get_or__i16 :i32
+                        snippet$get_or__i16 :i32
                       arg0:
                         mi16 :MutableMap<i16, i32>
                       arg1:
@@ -435,7 +435,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        snippet$snippet$get_or__i16 :i32
+                        snippet$get_or__i16 :i32
                       arg0:
                         mi16 :MutableMap<i16, i32>
                       arg1:
@@ -492,7 +492,7 @@
         int(99) :i32
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         block :string
           let __sb_3: StringBuilder =
@@ -519,7 +519,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        snippet$snippet$get_or__char :i32
+                        snippet$get_or__char :i32
                       arg0:
                         mc :MutableMap<char, i32>
                       arg1:
@@ -547,7 +547,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        snippet$snippet$get_or__char :i32
+                        snippet$get_or__char :i32
                       arg0:
                         mc :MutableMap<char, i32>
                       arg1:
@@ -575,7 +575,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        snippet$snippet$get_or__char :i32
+                        snippet$get_or__char :i32
                       arg0:
                         mc :MutableMap<char, i32>
                       arg1:
@@ -603,7 +603,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        snippet$snippet$get_or__char :i32
+                        snippet$get_or__char :i32
                       arg0:
                         mc :MutableMap<char, i32>
                       arg1:
@@ -653,7 +653,7 @@
         int(8) :i32
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -668,7 +668,7 @@
                 cast → i64
                   call :i32
                     callee:
-                      snippet$snippet$get_or__i64 :i32
+                      snippet$get_or__i64 :i32
                     arg0:
                       mi64 :MutableMap<i64, i32>
                     arg1:
@@ -686,7 +686,7 @@
                 cast → i64
                   call :i32
                     callee:
-                      snippet$snippet$get_or__i64 :i32
+                      snippet$get_or__i64 :i32
                     arg0:
                       mi64 :MutableMap<i64, i32>
                     arg1:
@@ -734,7 +734,7 @@
                 int(1) :i32
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         block :string
           let __sb_4: StringBuilder =
@@ -784,7 +784,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        snippet$snippet$get_or__usize :i32
+                        snippet$get_or__usize :i32
                       arg0:
                         mus :MutableMap<usize, i32>
                       arg1:
@@ -813,7 +813,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        snippet$snippet$get_or__usize :i32
+                        snippet$get_or__usize :i32
                       arg0:
                         mus :MutableMap<usize, i32>
                       arg1:
@@ -842,7 +842,7 @@
                   cast → i64
                     call :i32
                       callee:
-                        snippet$snippet$get_or__usize :i32
+                        snippet$get_or__usize :i32
                       arg0:
                         mus :MutableMap<usize, i32>
                       arg1:
@@ -858,7 +858,7 @@
               arg0:
                 __sb_4 :StringBuilder
     return int(0) :i32
-  fn snippet$snippet$get_or__char(m: MutableMap<char, i32>, k: char, dflt: i32) -> i32
+  fn snippet$get_or__char(m: MutableMap<char, i32>, k: char, dflt: i32) -> i32
     let v: i32 | null =
       call :i32 | null
         callee:
@@ -876,7 +876,7 @@
     return
       cast → i32
         v :i32 | null
-  fn snippet$snippet$get_or__i16(m: MutableMap<i16, i32>, k: i16, dflt: i32) -> i32
+  fn snippet$get_or__i16(m: MutableMap<i16, i32>, k: i16, dflt: i32) -> i32
     let v: i32 | null =
       call :i32 | null
         callee:
@@ -894,7 +894,7 @@
     return
       cast → i32
         v :i32 | null
-  fn snippet$snippet$get_or__i64(m: MutableMap<i64, i32>, k: i64, dflt: i32) -> i32
+  fn snippet$get_or__i64(m: MutableMap<i64, i32>, k: i64, dflt: i32) -> i32
     let v: i32 | null =
       call :i32 | null
         callee:
@@ -912,7 +912,7 @@
     return
       cast → i32
         v :i32 | null
-  fn snippet$snippet$get_or__u16(m: MutableMap<u16, i32>, k: u16, dflt: i32) -> i32
+  fn snippet$get_or__u16(m: MutableMap<u16, i32>, k: u16, dflt: i32) -> i32
     let v: i32 | null =
       call :i32 | null
         callee:
@@ -930,7 +930,7 @@
     return
       cast → i32
         v :i32 | null
-  fn snippet$snippet$get_or__u8(m: MutableMap<u8, i32>, k: u8, dflt: i32) -> i32
+  fn snippet$get_or__u8(m: MutableMap<u8, i32>, k: u8, dflt: i32) -> i32
     let v: i32 | null =
       call :i32 | null
         callee:
@@ -948,7 +948,7 @@
     return
       cast → i32
         v :i32 | null
-  fn snippet$snippet$get_or__usize(m: MutableMap<usize, i32>, k: usize, dflt: i32) -> i32
+  fn snippet$get_or__usize(m: MutableMap<usize, i32>, k: usize, dflt: i32) -> i32
     let v: i32 | null =
       call :i32 | null
         callee:

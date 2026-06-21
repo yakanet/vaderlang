@@ -59,7 +59,7 @@
     let d: Direction = int(0) :i32
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         block :string
           let __scrut_0: Direction = d :Direction
@@ -115,7 +115,7 @@
                                     unreachable("non-exhaustive match (T3013 should have caught this)") :string
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         block :string
           let __scrut_0: Direction = int(1) :i32
@@ -172,7 +172,7 @@
     let s: Direction = int(2) :i32
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         block :string
           let __scrut_0: Direction = s :Direction

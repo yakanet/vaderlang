@@ -42,7 +42,7 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 static void snippet_push_pet(vader_box_t l0, vader_box_t l1);
 static vader_string_t snippet_describe(vader_box_t l0);
 static int32_t snippet_main(void);
-static void std_io_std_io_println__string(vader_string_t l0);
+static void std_io_println__string(vader_string_t l0);
 static vader_string_t std_string_builder_concat2(vader_string_t l0, vader_string_t l1);
 static vader_box_t std_core_usize_BufferAlloc_new_buffer_vt(size_t l0);
 static vader_string_t std_core_Buffer_ByteAccess_intern_string_vt(vader_box_t l0, size_t l1);
@@ -168,7 +168,7 @@ static int32_t snippet_main(void) {
                 if ((size_t) l3 >= _a3_slotarr->length) { vader_trap("array index out of bounds"); }
                 t5 = vader_array_box_slots(_a3_slotarr->buf)[_a3_slotarr->offset + (size_t) l3];
                 t6 = snippet_describe(t5);
-                std_io_std_io_println__string(t6);
+                std_io_println__string(t6);
                 l4 = (size_t) (int64_t) INT64_C(1);
                 t7 = (l3 + l4);
                 l3 = (size_t) (int64_t) t7;
@@ -181,7 +181,7 @@ static int32_t snippet_main(void) {
     vader_gc_top = gc_frame.prev;
 }
 
-static void std_io_std_io_println__string(vader_string_t l0) {
+static void std_io_println__string(vader_string_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_import_1(INT32_C(0), l0);

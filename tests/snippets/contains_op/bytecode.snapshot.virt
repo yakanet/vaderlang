@@ -245,7 +245,7 @@ fn 4 std_core$i32$Comparable$compare (i32,i32) -> i32
   return
 end
 
-fn 5 std_io$std_io$println__string (string) -> void
+fn 5 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
   call.import 0

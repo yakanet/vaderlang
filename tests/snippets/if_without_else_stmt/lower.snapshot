@@ -28,7 +28,7 @@
       then:
         call :void
           callee:
-            std_io$std_io$println__string :void
+            std_io$println__string :void
           arg0:
             "not matched" :string
     return int(0) :i32

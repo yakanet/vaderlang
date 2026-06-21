@@ -43,7 +43,7 @@ static vader_string_t snippet_ParseErr_Error_message(vader_box_t l0);
 static vader_string_t snippet_NetErr_Error_message(vader_box_t l0);
 static vader_string_t snippet_report(vader_box_t l0);
 static int32_t snippet_main(void);
-static void std_io_std_io_println__string(vader_string_t l0);
+static void std_io_println__string(vader_string_t l0);
 static vader_string_t std_string_builder_concat2(vader_string_t l0, vader_string_t l1);
 static vader_box_t std_core_usize_BufferAlloc_new_buffer_vt(size_t l0);
 static vader_string_t std_core_Buffer_ByteAccess_intern_string_vt(vader_box_t l0, size_t l1);
@@ -150,18 +150,18 @@ static int32_t snippet_main(void) {
     _a0_obj->f_msg = 3u;
     t0 = vader_box_obj(1u, _a0_obj);
     t1 = snippet_report(t0);
-    std_io_std_io_println__string(t1);
+    std_io_println__string(t1);
     vader_struct_snippet_NetErr_t* _a1_obj = (vader_struct_snippet_NetErr_t*) vader_gc_alloc(sizeof(vader_struct_snippet_NetErr_t));
     vader_obj_header_init(_a1_obj, 3u);
     _a1_obj->f_reason = 4u;
     t2 = vader_box_obj(3u, _a1_obj);
     t3 = snippet_report(t2);
-    std_io_std_io_println__string(t3);
+    std_io_println__string(t3);
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
     vader_gc_top = gc_frame.prev;
 }
 
-static void std_io_std_io_println__string(vader_string_t l0) {
+static void std_io_println__string(vader_string_t l0) {
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL };
     vader_gc_top = &gc_frame;
     vader_import_1(INT32_C(0), l0);

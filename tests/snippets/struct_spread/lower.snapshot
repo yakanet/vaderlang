@@ -24,7 +24,7 @@
           }
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         block :string
           let __sb_1: StringBuilder =
@@ -99,7 +99,7 @@
                 __sb_1 :StringBuilder
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         block :string
           let __sb_2: StringBuilder =
@@ -194,7 +194,7 @@
           }
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         block :string
           let __sb_5: StringBuilder =

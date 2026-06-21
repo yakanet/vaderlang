@@ -12,10 +12,10 @@
     return
       call :i32
         callee:
-          snippet$snippet$apply_tag__i32 :i32
+          snippet$apply_tag__i32 :i32
         arg0:
           int(7) :i32
-  fn snippet$snippet$apply_tag__i32(x: i32) -> i32
+  fn snippet$apply_tag__i32(x: i32) -> i32
     return
       add :i32
         l:

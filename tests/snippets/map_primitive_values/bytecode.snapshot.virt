@@ -8653,7 +8653,7 @@ fn 45 std_core$pow5_factor (u64) -> i32
   return
 end
 
-fn 46 std_io$std_io$println__string (string) -> void
+fn 46 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
   call.import 3

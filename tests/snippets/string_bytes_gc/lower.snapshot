@@ -162,7 +162,7 @@
       then:
         call :void
           callee:
-            std_io$std_io$println__string :void
+            std_io$println__string :void
           arg0:
             "byte-view GC corruption after major cycles" :string
         return int(1) :i32
@@ -182,7 +182,7 @@
           sd :u64
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:

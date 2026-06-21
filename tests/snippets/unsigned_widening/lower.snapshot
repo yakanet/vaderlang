@@ -5,7 +5,7 @@
     let big: u32 = int(4000000000) :u32
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -32,7 +32,7 @@
     let pow31: u32 = int(2147483648) :u32
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -59,7 +59,7 @@
     let s16: u16 = int(65000) :u16
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -86,7 +86,7 @@
     let sz: usize = int(9000000000) :usize
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:

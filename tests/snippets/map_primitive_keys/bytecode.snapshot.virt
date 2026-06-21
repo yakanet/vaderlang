@@ -690,7 +690,7 @@ fn 0 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 1 snippet$snippet$get_or__char (ref,char,i32) -> i32
+fn 1 snippet$get_or__char (ref,char,i32) -> i32
   local v ref
   local.get 0
   local.get 1
@@ -706,7 +706,7 @@ fn 1 snippet$snippet$get_or__char (ref,char,i32) -> i32
   return
 end
 
-fn 2 snippet$snippet$get_or__i16 (ref,i16,i32) -> i32
+fn 2 snippet$get_or__i16 (ref,i16,i32) -> i32
   local v ref
   local.get 0
   local.get 1
@@ -722,7 +722,7 @@ fn 2 snippet$snippet$get_or__i16 (ref,i16,i32) -> i32
   return
 end
 
-fn 3 snippet$snippet$get_or__i64 (ref,i64,i32) -> i32
+fn 3 snippet$get_or__i64 (ref,i64,i32) -> i32
   local v ref
   local.get 0
   local.get 1
@@ -738,7 +738,7 @@ fn 3 snippet$snippet$get_or__i64 (ref,i64,i32) -> i32
   return
 end
 
-fn 4 snippet$snippet$get_or__u16 (ref,u16,i32) -> i32
+fn 4 snippet$get_or__u16 (ref,u16,i32) -> i32
   local v ref
   local.get 0
   local.get 1
@@ -754,7 +754,7 @@ fn 4 snippet$snippet$get_or__u16 (ref,u16,i32) -> i32
   return
 end
 
-fn 5 snippet$snippet$get_or__u8 (ref,u8,i32) -> i32
+fn 5 snippet$get_or__u8 (ref,u8,i32) -> i32
   local v ref
   local.get 0
   local.get 1
@@ -770,7 +770,7 @@ fn 5 snippet$snippet$get_or__u8 (ref,u8,i32) -> i32
   return
 end
 
-fn 6 snippet$snippet$get_or__usize (ref,usize,i32) -> i32
+fn 6 snippet$get_or__usize (ref,usize,i32) -> i32
   local v ref
   local.get 0
   local.get 1
@@ -1014,7 +1014,7 @@ fn 8 std_core$format_unsigned (u64) -> string
   return
 end
 
-fn 9 std_io$std_io$println__string (string) -> void
+fn 9 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
   call.import 1

@@ -4,7 +4,7 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -13,24 +13,24 @@
             cast → i64
               call :i32
                 callee:
-                  snippet$snippet$run_id__i32 :i32
+                  snippet$run_id__i32 :i32
                 arg0:
                   int(7) :i32
     return int(0) :i32
-  fn snippet$snippet$apply__i32(x: i32, f: fn(i32) -> i32) -> i32
+  fn snippet$apply__i32(x: i32, f: fn(i32) -> i32) -> i32
     ~>
       call :i32
         callee:
           f :fn(i32) -> i32
         arg0:
           x :i32
-  fn snippet$snippet$run_id__i32(x: i32) -> i32
+  fn snippet$run_id__i32(x: i32) -> i32
     let id: fn(i32) -> i32 =
       LoweredMakeClosure
     return
       call :i32
         callee:
-          snippet$snippet$apply__i32 :i32
+          snippet$apply__i32 :i32
         arg0:
           x :i32
         arg1:

@@ -20,7 +20,7 @@
       }
     call :void
       callee:
-        snippet$snippet$bump__string__i32 :void
+        snippet$bump__string__i32 :void
       arg0:
         .counts :MutableMap<string, i32>
           c :Counter
@@ -33,7 +33,7 @@
         .size :usize
           .counts :MutableMap<string, i32>
             c :Counter
-  fn snippet$snippet$bump__string__i32(m: MutableMap<string, i32>, k: string, v: i32) -> void
+  fn snippet$bump__string__i32(m: MutableMap<string, i32>, k: string, v: i32) -> void
     call :void
       callee:
         std_collections$MutableMap$IndexSet$set_at__string__i32 :void

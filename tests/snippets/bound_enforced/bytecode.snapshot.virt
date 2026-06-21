@@ -17,7 +17,7 @@ fn 0 snippet$main () -> i32
   return.lit i32.const 1
 end
 
-fn 1 snippet$snippet$needs_hash__string (string) -> bool
+fn 1 snippet$needs_hash__string (string) -> bool
   local h u64
   local $cast_4 u64
   local.get 0

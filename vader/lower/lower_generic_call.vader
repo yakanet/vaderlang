@@ -153,7 +153,7 @@ emit_generic_fn_call :: fn(
     display :: lookup_module_display_path(ctx, module_id)
     mod_mangle :: mangle_module_id(if display == null { module_id } else { display })
     suffix :: call_site_instance_suffix(ctx, fn_sym, concrete_args)
-    base_mangled :: "${mod_mangle}$${mod_mangle}$${fn_sym.name}${suffix}"
+    base_mangled :: "${mod_mangle}$${fn_sym.name}${suffix}"
     // Register the instance for materialisation at the end of `lower_project`.
     // Dedup by `<symbol.id>::<suffix>` ; `register_fn_instance_mangle` uniq-
     // disambiguates the mangle and preserves insertion order.
@@ -191,7 +191,8 @@ emit_generic_fn_call :: fn(
 
 // Register (once per `inst_key`) the monomorphic instance for
 // `fn_sym<concrete_args>` and return its mangle. The base mangle
-// (`<module>$<module>$<name>__<args>`) is run through `uniq` so two same-name /
+// (`<module>$<name>__<args>`, single module prefix — aligned with the canonical
+// mono mangle in `comptime/mangle.vader`) is run through `uniq` so two same-name /
 // same-arity overloads (`collect(arr: T[])` vs `collect(it: Iterator<T>)`)
 // don't collide on one fn name — the second to register gets a `_1` suffix,
 // keeping the `dump_bytecode → parse_virt → exec` round-trip's fn names
@@ -236,7 +237,7 @@ register_and_emit_generic_call :: fn(
     display :: lookup_module_display_path(ctx, module_id)
     mod_mangle :: mangle_module_id(if display == null { module_id } else { display })
     suffix :: call_site_instance_suffix(ctx, fn_sym, concrete_args)
-    base_mangled :: "${mod_mangle}$${mod_mangle}$${fn_sym.name}${suffix}"
+    base_mangled :: "${mod_mangle}$${fn_sym.name}${suffix}"
     inst_key :: "${fn_sym.id}::${suffix}"
     mangled :: register_fn_instance_mangle(ctx, fn_sym, concrete_args, module_id, base_mangled, inst_key)
     lowered_args: LoweredExpr[] = []

@@ -4,7 +4,7 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -13,7 +13,7 @@
             cast → i64
               call :i32
                 callee:
-                  snippet$snippet$outer__i32 :i32
+                  snippet$outer__i32 :i32
                 arg0:
                   array :i32[]
                     int(1) :i32
@@ -23,7 +23,7 @@
                     int(5) :i32
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -32,14 +32,14 @@
             cast → i64
               call :i32
                 callee:
-                  snippet$snippet$outer__string :i32
+                  snippet$outer__string :i32
                 arg0:
                   array :string[]
                     "a" :string
                     "b" :string
                     "c" :string
     return int(0) :i32
-  fn snippet$snippet$inner_count__i32(arr: i32[]) -> i32
+  fn snippet$inner_count__i32(arr: i32[]) -> i32
     let n: i32 = int(0) :i32
     block :void
       let __for_arr_1: i32[] = arr :i32[]
@@ -72,7 +72,7 @@
               r:
                 int(1) :usize
     return n :i32
-  fn snippet$snippet$inner_count__string(arr: string[]) -> i32
+  fn snippet$inner_count__string(arr: string[]) -> i32
     let n: i32 = int(0) :i32
     block :void
       let __for_arr_1: string[] = arr :string[]
@@ -105,17 +105,17 @@
               r:
                 int(1) :usize
     return n :i32
-  fn snippet$snippet$outer__i32(arr: i32[]) -> i32
+  fn snippet$outer__i32(arr: i32[]) -> i32
     return
       call :i32
         callee:
-          snippet$snippet$inner_count__i32 :i32
+          snippet$inner_count__i32 :i32
         arg0:
           arr :i32[]
-  fn snippet$snippet$outer__string(arr: string[]) -> i32
+  fn snippet$outer__string(arr: string[]) -> i32
     return
       call :i32
         callee:
-          snippet$snippet$inner_count__string :i32
+          snippet$inner_count__string :i32
         arg0:
           arr :string[]

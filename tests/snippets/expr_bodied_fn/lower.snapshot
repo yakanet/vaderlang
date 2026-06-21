@@ -44,7 +44,7 @@
   fn snippet$main() -> i32
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -58,7 +58,7 @@
                   int(7) :i32
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -73,7 +73,7 @@
                 float(7.2) :f64
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -88,7 +88,7 @@
                 float(4) :f64
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -102,7 +102,7 @@
                   int(5) :i32
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -111,12 +111,12 @@
             cast → i64
               call :i32
                 callee:
-                  snippet$snippet$id__i32 :i32
+                  snippet$id__i32 :i32
                 arg0:
                   int(42) :i32
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
@@ -124,25 +124,25 @@
           arg0:
             call :f64
               callee:
-                snippet$snippet$id__f64 :f64
+                snippet$id__f64 :f64
               arg0:
                 float(7.5) :f64
     call :void
       callee:
-        std_io$std_io$println__string :void
+        std_io$println__string :void
       arg0:
         call :string
           callee:
-            snippet$snippet$id__string :string
+            snippet$id__string :string
           arg0:
             "hello" :string
     return int(0) :i32
-  fn snippet$snippet$id__f64(x: f64) -> f64
+  fn snippet$id__f64(x: f64) -> f64
     ~>
       x :f64
-  fn snippet$snippet$id__i32(x: i32) -> i32
+  fn snippet$id__i32(x: i32) -> i32
     ~>
       x :i32
-  fn snippet$snippet$id__string(x: string) -> string
+  fn snippet$id__string(x: string) -> string
     ~>
       x :string

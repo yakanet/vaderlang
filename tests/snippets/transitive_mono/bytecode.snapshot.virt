@@ -40,7 +40,7 @@ fn 0 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 1 snippet$snippet$inner_count__i32 (ref) -> i32
+fn 1 snippet$inner_count__i32 (ref) -> i32
   local n i32
   local __for_len_2 usize
   local __for_i_3 usize
@@ -77,7 +77,7 @@ fn 1 snippet$snippet$inner_count__i32 (ref) -> i32
   return
 end
 
-fn 2 snippet$snippet$inner_count__string (ref) -> i32
+fn 2 snippet$inner_count__string (ref) -> i32
   local n i32
   local __for_len_2 usize
   local __for_i_3 usize
@@ -114,13 +114,13 @@ fn 2 snippet$snippet$inner_count__string (ref) -> i32
   return
 end
 
-fn 3 snippet$snippet$outer__i32 (ref) -> i32
+fn 3 snippet$outer__i32 (ref) -> i32
   local.get 0
   call 1
   return
 end
 
-fn 4 snippet$snippet$outer__string (ref) -> i32
+fn 4 snippet$outer__string (ref) -> i32
   local.get 0
   call 2
   return
@@ -253,7 +253,7 @@ fn 5 std_core$format_signed (i64) -> string
   return
 end
 
-fn 6 std_io$std_io$println__string (string) -> void
+fn 6 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
   call.import 0
