@@ -7,50 +7,19 @@
         callee:
           std_io$std_io$println__string :void
         arg0:
-          block :string
-            let __sb_0: StringBuilder =
-              call :StringBuilder
-                callee:
-                  new_builder :StringBuilder
-            call :void
-              callee:
-                append :void
-              arg0:
-                __sb_0 :StringBuilder
-              arg1:
-                call :string
-                  callee:
-                    std_core$string$Display$to_string :string
-                  arg0:
-                    label :string
-            call :void
-              callee:
-                append :void
-              arg0:
-                __sb_0 :StringBuilder
-              arg1:
-                "=" :string
-            call :void
-              callee:
-                append :void
-              arg0:
-                __sb_0 :StringBuilder
-              arg1:
-                call :string
-                  callee:
-                    std_core$string$Display$to_string :string
-                  arg0:
-                    call :string
-                      callee:
-                        as_string :string
-                      arg0:
-                        p :Path
-            ~>
+          call :string
+            callee:
+              concat3 :string
+            arg0:
+              label :string
+            arg1:
+              "=" :string
+            arg2:
               call :string
                 callee:
-                  std_string_builder$StringBuilder$Display$to_string :string
+                  as_string :string
                 arg0:
-                  __sb_0 :StringBuilder
+                  p :Path
   fn snippet$main() -> i32
     let p: Path =
       call :Path
@@ -69,113 +38,47 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_0: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              "filename=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  call :string
-                    callee:
-                      filename :string
-                    arg0:
-                      p :Path
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "filename=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                filename :string
               arg0:
-                __sb_0 :StringBuilder
+                p :Path
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_1: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              "stem=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  call :string
-                    callee:
-                      stem :string
-                    arg0:
-                      p :Path
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "stem=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                stem :string
               arg0:
-                __sb_1 :StringBuilder
+                p :Path
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_2: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              "extension=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  call :string
-                    callee:
-                      extension :string
-                    arg0:
-                      p :Path
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "extension=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                extension :string
               arg0:
-                __sb_2 :StringBuilder
+                p :Path
     call :void
       callee:
         show_path :fn(string, Path) -> void
@@ -212,39 +115,21 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_3: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              "abs is_absolute=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$bool$Display$to_string :string
-                arg0:
-                  call :bool
-                    callee:
-                      is_absolute :bool
-                    arg0:
-                      abs :Path
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "abs is_absolute=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$bool$Display$to_string :string
               arg0:
-                __sb_3 :StringBuilder
+                call :bool
+                  callee:
+                    is_absolute :bool
+                  arg0:
+                    abs :Path
     call :void
       callee:
         show_path :fn(string, Path) -> void
@@ -290,78 +175,42 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_4: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_4 :StringBuilder
-            arg1:
-              "empty.is_empty=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_4 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$bool$Display$to_string :string
-                arg0:
-                  call :bool
-                    callee:
-                      is_empty :bool
-                    arg0:
-                      call :Path
-                        callee:
-                          empty_path :fn() -> Path
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "empty.is_empty=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$bool$Display$to_string :string
               arg0:
-                __sb_4 :StringBuilder
+                call :bool
+                  callee:
+                    is_empty :bool
+                  arg0:
+                    call :Path
+                      callee:
+                        empty_path :fn() -> Path
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_5: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_5 :StringBuilder
-            arg1:
-              "p.is_empty=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_5 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$bool$Display$to_string :string
-                arg0:
-                  call :bool
-                    callee:
-                      is_empty :bool
-                    arg0:
-                      p :Path
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "p.is_empty=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$bool$Display$to_string :string
               arg0:
-                __sb_5 :StringBuilder
+                call :bool
+                  callee:
+                    is_empty :bool
+                  arg0:
+                    p :Path
     call :void
       callee:
         show_path :fn(string, Path) -> void
@@ -432,190 +281,118 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_6: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_6 :StringBuilder
-            arg1:
-              "a/b/c starts_with a/b: " :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_6 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$bool$Display$to_string :string
-                arg0:
-                  call :bool
-                    callee:
-                      starts_with :bool
-                    arg0:
-                      call :Path
-                        callee:
-                          to_path :Path
-                        arg0:
-                          "a/b/c" :string
-                    arg1:
-                      call :Path
-                        callee:
-                          to_path :Path
-                        arg0:
-                          "a/b" :string
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "a/b/c starts_with a/b: " :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$bool$Display$to_string :string
               arg0:
-                __sb_6 :StringBuilder
+                call :bool
+                  callee:
+                    starts_with :bool
+                  arg0:
+                    call :Path
+                      callee:
+                        to_path :Path
+                      arg0:
+                        "a/b/c" :string
+                  arg1:
+                    call :Path
+                      callee:
+                        to_path :Path
+                      arg0:
+                        "a/b" :string
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_7: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_7 :StringBuilder
-            arg1:
-              "a/bc starts_with a/b: " :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_7 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$bool$Display$to_string :string
-                arg0:
-                  call :bool
-                    callee:
-                      starts_with :bool
-                    arg0:
-                      call :Path
-                        callee:
-                          to_path :Path
-                        arg0:
-                          "a/bc" :string
-                    arg1:
-                      call :Path
-                        callee:
-                          to_path :Path
-                        arg0:
-                          "a/b" :string
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "a/bc starts_with a/b: " :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$bool$Display$to_string :string
               arg0:
-                __sb_7 :StringBuilder
+                call :bool
+                  callee:
+                    starts_with :bool
+                  arg0:
+                    call :Path
+                      callee:
+                        to_path :Path
+                      arg0:
+                        "a/bc" :string
+                  arg1:
+                    call :Path
+                      callee:
+                        to_path :Path
+                      arg0:
+                        "a/b" :string
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_8: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_8 :StringBuilder
-            arg1:
-              "a/b/c ends_with b/c: " :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_8 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$bool$Display$to_string :string
-                arg0:
-                  call :bool
-                    callee:
-                      ends_with :bool
-                    arg0:
-                      call :Path
-                        callee:
-                          to_path :Path
-                        arg0:
-                          "a/b/c" :string
-                    arg1:
-                      call :Path
-                        callee:
-                          to_path :Path
-                        arg0:
-                          "b/c" :string
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "a/b/c ends_with b/c: " :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$bool$Display$to_string :string
               arg0:
-                __sb_8 :StringBuilder
+                call :bool
+                  callee:
+                    ends_with :bool
+                  arg0:
+                    call :Path
+                      callee:
+                        to_path :Path
+                      arg0:
+                        "a/b/c" :string
+                  arg1:
+                    call :Path
+                      callee:
+                        to_path :Path
+                      arg0:
+                        "b/c" :string
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_9: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_9 :StringBuilder
-            arg1:
-              "a/b/c ends_with /c: " :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_9 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$bool$Display$to_string :string
-                arg0:
-                  call :bool
-                    callee:
-                      ends_with :bool
-                    arg0:
-                      call :Path
-                        callee:
-                          to_path :Path
-                        arg0:
-                          "a/b/c" :string
-                    arg1:
-                      call :Path
-                        callee:
-                          to_path :Path
-                        arg0:
-                          "/c" :string
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "a/b/c ends_with /c: " :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$bool$Display$to_string :string
               arg0:
-                __sb_9 :StringBuilder
+                call :bool
+                  callee:
+                    ends_with :bool
+                  arg0:
+                    call :Path
+                      callee:
+                        to_path :Path
+                      arg0:
+                        "a/b/c" :string
+                  arg1:
+                    call :Path
+                      callee:
+                        to_path :Path
+                      arg0:
+                        "/c" :string
     call :void
       callee:
         show_path :fn(string, Path) -> void

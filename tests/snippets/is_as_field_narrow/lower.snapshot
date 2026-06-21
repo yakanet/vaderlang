@@ -25,81 +25,45 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_0: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              "hit=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  call :i32
-                    callee:
-                      probe :fn(Wrapper) -> i32
-                    arg0:
-                      Wrapper {
-                        payload:
-                          Inner {
-                            kind: int(42) :i32
-                          }
-                      }
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "hit=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_0 :StringBuilder
+                call :i32
+                  callee:
+                    probe :fn(Wrapper) -> i32
+                  arg0:
+                    Wrapper {
+                      payload:
+                        Inner {
+                          kind: int(42) :i32
+                        }
+                    }
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_1: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              "miss=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  call :i32
-                    callee:
-                      probe :fn(Wrapper) -> i32
-                    arg0:
-                      Wrapper {
-                        payload: null
-                      }
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "miss=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_1 :StringBuilder
+                call :i32
+                  callee:
+                    probe :fn(Wrapper) -> i32
+                  arg0:
+                    Wrapper {
+                      payload: null
+                    }
     return int(0) :i32

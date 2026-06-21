@@ -5,7 +5,7 @@ module "vader/lower"
 
 import "std/collections" { MutableMap }
 
-import "vader/parser" { Expr, IdentExpr, CallExpr, GenericInstExpr, ArrayTypeExpr, Visibility, ImplDecl }
+import "vader/parser" { Expr, IdentExpr, CallExpr, GenericInstExpr, ArrayTypeExpr, Visibility, ImplDecl, FnDecl }
 import "vader/diagnostics" { Span }
 import "vader/typecheck" { ImplEntry }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
@@ -14,6 +14,39 @@ import "vader/comptime" { GenericInstance }
 
 UfcsMember :: struct {
     symbol: Symbol
+    /// True when the member is the identity `fn(self) = self` (e.g. string's
+    /// `Display.to_string`). `build_member_call_or_inline` then inlines the call
+    /// to the receiver instead of emitting a real call. Defaults `false`.
+    is_identity: bool = false
+}
+
+// True when `m` is the trivial identity `fn(self) = self` — expression-bodied,
+// exactly one param (`self`), body a bare reference to that param. Such a member
+// is inlined to its receiver at the call site (`build_member_call_or_inline`).
+is_identity_member :: fn(m: FnDecl) -> bool {
+    if !m.is_expression_bodied { return false }
+    if m.params.len() != 1 { return false }
+    b :: m.body
+    if b == null { return false }
+    if !b.stmts.is_empty() { return false }
+    t :: b.trailing
+    if t == null { return false }
+    if t is IdentExpr as id { return id.name == m.params[0].name }
+    return false
+}
+
+/// Build a call to a resolved impl member, OR inline its body when trivial.
+/// Today (P1) only the identity `fn(self) = self` is inlined — the call collapses
+/// to the receiver (`args[0]`), eliminating the call (e.g. every `string`-part
+/// `${…}` interpolation's no-op `to_string`). All other members emit the direct
+/// `LoweredCall` exactly as before. The single hook every "resolve impl member +
+/// build call" site should route through (P2 will extend it to general
+/// expression bodies via value-substitution).
+build_member_call_or_inline :: fn(member: UfcsMember, args: LoweredExpr[], ret: Type, span: Span) -> LoweredExpr {
+    // Identity uses `self` exactly once, so returning the (already-lowered)
+    // receiver evaluates it once — no temp / double-eval concern.
+    if member.is_identity && args.len() == 1 { return args[0] }
+    return mk_lowered_call(member.symbol, args, ret, span)
 }
 
 // Queue a generic-struct instance for impl-member materialisation : its members
@@ -74,21 +107,22 @@ find_impl_member_for :: fn(ctx: FnLowerCtx, target_type: Type, method_name: stri
         for m in decl.members {
             if m.name != method_name { continue }
             if !impl_is_intrinsic(decl) {
-                return build_ufcs_member(ctx, target_type, target_name, method_name, entry)
+                return build_ufcs_member(ctx, target_type, target_name, method_name, entry, is_identity_member(m))
             }
             if fallback == null { fallback = entry }
             break
         }
     }
+    // An `@intrinsic` fallback is bodyless → never an inlineable identity.
     if fallback != null {
-        return build_ufcs_member(ctx, target_type, target_name, method_name, fallback)
+        return build_ufcs_member(ctx, target_type, target_name, method_name, fallback, false)
     }
     return null
 }
 
 /// Build the `UfcsMember` for `method_name` on `entry`'s impl of `target_type` :
 /// the deterministic mangle, plus the side-tables that surface / materialise it.
-build_ufcs_member :: fn(ctx: FnLowerCtx, target_type: Type, target_name: string, method_name: string, entry: ImplEntry) -> UfcsMember {
+build_ufcs_member :: fn(ctx: FnLowerCtx, target_type: Type, target_name: string, method_name: string, entry: ImplEntry, is_identity: bool) -> UfcsMember {
     decl :: entry.decl
     // Synthesise a Fn symbol carrying the member's deterministic mangle so the
     // call site resolves to the synth decl's mangle index
@@ -163,6 +197,7 @@ build_ufcs_member :: fn(ctx: FnLowerCtx, target_type: Type, target_name: string,
             .visibility = Visibility.Private,
             .defined_at = null,
         },
+        .is_identity = is_identity,
     }
 }
 

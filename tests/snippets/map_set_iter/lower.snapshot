@@ -102,35 +102,17 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_5: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_5 :StringBuilder
-            arg1:
-              "map_sum=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_5 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  total :i32
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "map_sum=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_5 :StringBuilder
+                total :i32
     let s: MutableSet<i32> =
       MutableSet<i32> {
         inner:
@@ -169,39 +151,39 @@
         int(30) :i32
     let sum: i32 = int(0) :i32
     block :void
-      let __iter_src_6: MutableSet<i32> = s :MutableSet<i32>
-      let __iter_ekeys_7: i32[] =
+      let __iter_src_5: MutableSet<i32> = s :MutableSet<i32>
+      let __iter_ekeys_6: i32[] =
         .ekeys :i32[]
           .inner :MutableMap<i32, bool>
-            __iter_src_6 :MutableSet<i32>
-      let __iter_size_9: usize =
+            __iter_src_5 :MutableSet<i32>
+      let __iter_size_8: usize =
         .size :usize
           .inner :MutableMap<i32, bool>
-            __iter_src_6 :MutableSet<i32>
-      let __iter_pos_10: usize = int(0) :usize
+            __iter_src_5 :MutableSet<i32>
+      let __iter_pos_9: usize = int(0) :usize
       loop
         if :void
           cond:
             gte :bool
               l:
-                __iter_pos_10 :usize
+                __iter_pos_9 :usize
               r:
-                __iter_size_9 :usize
+                __iter_size_8 :usize
           then:
             break
         let v: i32 =
           index :i32
             on:
-              __iter_ekeys_7 :i32[]
+              __iter_ekeys_6 :i32[]
             ix:
-              __iter_pos_10 :usize
+              __iter_pos_9 :usize
         assign
           target:
-            __iter_pos_10 :usize
+            __iter_pos_9 :usize
           value:
             add :usize
               l:
-                __iter_pos_10 :usize
+                __iter_pos_9 :usize
               r:
                 int(1) :usize
         assign
@@ -217,33 +199,15 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_11: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_11 :StringBuilder
-            arg1:
-              "set_sum=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_11 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  sum :i32
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "set_sum=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_11 :StringBuilder
+                sum :i32
     return int(0) :i32

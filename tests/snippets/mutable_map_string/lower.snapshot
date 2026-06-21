@@ -45,39 +45,21 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_0: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              "size = " :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$usize$Display$to_string :string
-                arg0:
-                  call :usize
-                    callee:
-                      std_collections$std_collections$len__string__i32 :usize
-                    arg0:
-                      m :MutableMap<string, i32>
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "size = " :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$usize$Display$to_string :string
               arg0:
-                __sb_0 :StringBuilder
+                call :usize
+                  callee:
+                    std_collections$std_collections$len__string__i32 :usize
+                  arg0:
+                    m :MutableMap<string, i32>
     let v1: i32 | null =
       call :i32 | null
         callee:
@@ -87,12 +69,12 @@
         arg1:
           "hello" :string
     block :void
-      let __scrut_1: i32 | null = v1 :i32 | null
+      let __scrut_0: i32 | null = v1 :i32 | null
       ~>
         if :void
           cond:
             is null :bool
-              __scrut_1 :i32 | null
+              __scrut_0 :i32 | null
           then:
             ~>
               block :void
@@ -107,7 +89,7 @@
               if :void
                 cond:
                   is i32 :bool
-                    __scrut_1 :i32 | null
+                    __scrut_0 :i32 | null
                 then:
                   ~>
                     block :void
@@ -116,36 +98,18 @@
                           callee:
                             std_io$std_io$println__string :void
                           arg0:
-                            block :string
-                              let __sb_2: StringBuilder =
-                                call :StringBuilder
-                                  callee:
-                                    new_builder :StringBuilder
-                              call :void
-                                callee:
-                                  append :void
-                                arg0:
-                                  __sb_2 :StringBuilder
-                                arg1:
-                                  "hello = " :string
-                              call :void
-                                callee:
-                                  append :void
-                                arg0:
-                                  __sb_2 :StringBuilder
-                                arg1:
-                                  call :string
-                                    callee:
-                                      std_core$i32$Display$to_string :string
-                                    arg0:
-                                      cast → i32
-                                        v1 :i32 | null
-                              ~>
+                            call :string
+                              callee:
+                                concat2 :string
+                              arg0:
+                                "hello = " :string
+                              arg1:
                                 call :string
                                   callee:
-                                    std_string_builder$StringBuilder$Display$to_string :string
+                                    std_core$i32$Display$to_string :string
                                   arg0:
-                                    __sb_2 :StringBuilder
+                                    cast → i32
+                                      v1 :i32 | null
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -158,12 +122,12 @@
         arg1:
           "world" :string
     block :void
-      let __scrut_3: i32 | null = v2 :i32 | null
+      let __scrut_1: i32 | null = v2 :i32 | null
       ~>
         if :void
           cond:
             is null :bool
-              __scrut_3 :i32 | null
+              __scrut_1 :i32 | null
           then:
             ~>
               block :void
@@ -178,7 +142,7 @@
               if :void
                 cond:
                   is i32 :bool
-                    __scrut_3 :i32 | null
+                    __scrut_1 :i32 | null
                 then:
                   ~>
                     block :void
@@ -187,36 +151,18 @@
                           callee:
                             std_io$std_io$println__string :void
                           arg0:
-                            block :string
-                              let __sb_4: StringBuilder =
-                                call :StringBuilder
-                                  callee:
-                                    new_builder :StringBuilder
-                              call :void
-                                callee:
-                                  append :void
-                                arg0:
-                                  __sb_4 :StringBuilder
-                                arg1:
-                                  "world = " :string
-                              call :void
-                                callee:
-                                  append :void
-                                arg0:
-                                  __sb_4 :StringBuilder
-                                arg1:
-                                  call :string
-                                    callee:
-                                      std_core$i32$Display$to_string :string
-                                    arg0:
-                                      cast → i32
-                                        v2 :i32 | null
-                              ~>
+                            call :string
+                              callee:
+                                concat2 :string
+                              arg0:
+                                "world = " :string
+                              arg1:
                                 call :string
                                   callee:
-                                    std_string_builder$StringBuilder$Display$to_string :string
+                                    std_core$i32$Display$to_string :string
                                   arg0:
-                                    __sb_4 :StringBuilder
+                                    cast → i32
+                                      v2 :i32 | null
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -229,12 +175,12 @@
         arg1:
           "vader" :string
     block :void
-      let __scrut_5: i32 | null = v3 :i32 | null
+      let __scrut_2: i32 | null = v3 :i32 | null
       ~>
         if :void
           cond:
             is null :bool
-              __scrut_5 :i32 | null
+              __scrut_2 :i32 | null
           then:
             ~>
               block :void
@@ -249,7 +195,7 @@
               if :void
                 cond:
                   is i32 :bool
-                    __scrut_5 :i32 | null
+                    __scrut_2 :i32 | null
                 then:
                   ~>
                     block :void
@@ -258,36 +204,18 @@
                           callee:
                             std_io$std_io$println__string :void
                           arg0:
-                            block :string
-                              let __sb_6: StringBuilder =
-                                call :StringBuilder
-                                  callee:
-                                    new_builder :StringBuilder
-                              call :void
-                                callee:
-                                  append :void
-                                arg0:
-                                  __sb_6 :StringBuilder
-                                arg1:
-                                  "vader = " :string
-                              call :void
-                                callee:
-                                  append :void
-                                arg0:
-                                  __sb_6 :StringBuilder
-                                arg1:
-                                  call :string
-                                    callee:
-                                      std_core$i32$Display$to_string :string
-                                    arg0:
-                                      cast → i32
-                                        v3 :i32 | null
-                              ~>
+                            call :string
+                              callee:
+                                concat2 :string
+                              arg0:
+                                "vader = " :string
+                              arg1:
                                 call :string
                                   callee:
-                                    std_string_builder$StringBuilder$Display$to_string :string
+                                    std_core$i32$Display$to_string :string
                                   arg0:
-                                    __sb_6 :StringBuilder
+                                    cast → i32
+                                      v3 :i32 | null
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -295,80 +223,44 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_7: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_7 :StringBuilder
-            arg1:
-              "has hello? " :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_7 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$bool$Display$to_string :string
-                arg0:
-                  call :bool
-                    callee:
-                      std_collections$MutableMap$Contains$contains__string__i32 :bool
-                    arg0:
-                      m :MutableMap<string, i32>
-                    arg1:
-                      "hello" :string
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "has hello? " :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$bool$Display$to_string :string
               arg0:
-                __sb_7 :StringBuilder
+                call :bool
+                  callee:
+                    std_collections$MutableMap$Contains$contains__string__i32 :bool
+                  arg0:
+                    m :MutableMap<string, i32>
+                  arg1:
+                    "hello" :string
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_8: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_8 :StringBuilder
-            arg1:
-              "has missing? " :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_8 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$bool$Display$to_string :string
-                arg0:
-                  call :bool
-                    callee:
-                      std_collections$MutableMap$Contains$contains__string__i32 :bool
-                    arg0:
-                      m :MutableMap<string, i32>
-                    arg1:
-                      "missing" :string
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "has missing? " :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$bool$Display$to_string :string
               arg0:
-                __sb_8 :StringBuilder
+                call :bool
+                  callee:
+                    std_collections$MutableMap$Contains$contains__string__i32 :bool
+                  arg0:
+                    m :MutableMap<string, i32>
+                  arg1:
+                    "missing" :string
     call :void
       callee:
         std_collections$MutableMap$IndexSet$set_at__string__i32 :void
@@ -387,12 +279,12 @@
         arg1:
           "hello" :string
     block :void
-      let __scrut_9: i32 | null = v1b :i32 | null
+      let __scrut_3: i32 | null = v1b :i32 | null
       ~>
         if :void
           cond:
             is null :bool
-              __scrut_9 :i32 | null
+              __scrut_3 :i32 | null
           then:
             ~>
               block :void
@@ -407,7 +299,7 @@
               if :void
                 cond:
                   is i32 :bool
-                    __scrut_9 :i32 | null
+                    __scrut_3 :i32 | null
                 then:
                   ~>
                     block :void
@@ -416,36 +308,18 @@
                           callee:
                             std_io$std_io$println__string :void
                           arg0:
-                            block :string
-                              let __sb_10: StringBuilder =
-                                call :StringBuilder
-                                  callee:
-                                    new_builder :StringBuilder
-                              call :void
-                                callee:
-                                  append :void
-                                arg0:
-                                  __sb_10 :StringBuilder
-                                arg1:
-                                  "hello updated = " :string
-                              call :void
-                                callee:
-                                  append :void
-                                arg0:
-                                  __sb_10 :StringBuilder
-                                arg1:
-                                  call :string
-                                    callee:
-                                      std_core$i32$Display$to_string :string
-                                    arg0:
-                                      cast → i32
-                                        v1b :i32 | null
-                              ~>
+                            call :string
+                              callee:
+                                concat2 :string
+                              arg0:
+                                "hello updated = " :string
+                              arg1:
                                 call :string
                                   callee:
-                                    std_string_builder$StringBuilder$Display$to_string :string
+                                    std_core$i32$Display$to_string :string
                                   arg0:
-                                    __sb_10 :StringBuilder
+                                    cast → i32
+                                      v1b :i32 | null
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void

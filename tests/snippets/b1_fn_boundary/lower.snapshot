@@ -116,39 +116,76 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_0: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              "length=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  call :i32
-                    callee:
-                      length :fn(Node | null) -> i32
-                    arg0:
-                      head :Node | null
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "length=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_0 :StringBuilder
+                call :i32
+                  callee:
+                    length :fn(Node | null) -> i32
+                  arg0:
+                    head :Node | null
+    block :void
+      let __scrut_0: Node | null =
+        call :Node | null
+          callee:
+            find :fn(Node | null, i32) -> Node | null
+          arg0:
+            head :Node | null
+          arg1:
+            int(2) :i32
+      ~>
+        if :void
+          cond:
+            is null :bool
+              __scrut_0 :Node | null
+          then:
+            ~>
+              block :void
+                ~>
+                  call :void
+                    callee:
+                      std_io$std_io$println__string :void
+                    arg0:
+                      "not found" :string
+          else:
+            ~>
+              if :void
+                cond:
+                  is Node :bool
+                    __scrut_0 :Node | null
+                then:
+                  let h: Node =
+                    cast → Node
+                      __scrut_0 :Node | null
+                  ~>
+                    block :void
+                      ~>
+                        call :void
+                          callee:
+                            std_io$std_io$println__string :void
+                          arg0:
+                            call :string
+                              callee:
+                                concat2 :string
+                              arg0:
+                                "found " :string
+                              arg1:
+                                call :string
+                                  callee:
+                                    std_core$i32$Display$to_string :string
+                                  arg0:
+                                    .value :i32
+                                      h :Node
+                else:
+                  ~>
+                    unreachable("non-exhaustive match (T3013 should have caught this)") :void
     block :void
       let __scrut_1: Node | null =
         call :Node | null
@@ -157,7 +194,7 @@
           arg0:
             head :Node | null
           arg1:
-            int(2) :i32
+            int(42) :i32
       ~>
         if :void
           cond:
@@ -189,109 +226,18 @@
                           callee:
                             std_io$std_io$println__string :void
                           arg0:
-                            block :string
-                              let __sb_2: StringBuilder =
-                                call :StringBuilder
-                                  callee:
-                                    new_builder :StringBuilder
-                              call :void
-                                callee:
-                                  append :void
-                                arg0:
-                                  __sb_2 :StringBuilder
-                                arg1:
-                                  "found " :string
-                              call :void
-                                callee:
-                                  append :void
-                                arg0:
-                                  __sb_2 :StringBuilder
-                                arg1:
-                                  call :string
-                                    callee:
-                                      std_core$i32$Display$to_string :string
-                                    arg0:
-                                      .value :i32
-                                        h :Node
-                              ~>
+                            call :string
+                              callee:
+                                concat2 :string
+                              arg0:
+                                "found " :string
+                              arg1:
                                 call :string
                                   callee:
-                                    std_string_builder$StringBuilder$Display$to_string :string
+                                    std_core$i32$Display$to_string :string
                                   arg0:
-                                    __sb_2 :StringBuilder
-                else:
-                  ~>
-                    unreachable("non-exhaustive match (T3013 should have caught this)") :void
-    block :void
-      let __scrut_3: Node | null =
-        call :Node | null
-          callee:
-            find :fn(Node | null, i32) -> Node | null
-          arg0:
-            head :Node | null
-          arg1:
-            int(42) :i32
-      ~>
-        if :void
-          cond:
-            is null :bool
-              __scrut_3 :Node | null
-          then:
-            ~>
-              block :void
-                ~>
-                  call :void
-                    callee:
-                      std_io$std_io$println__string :void
-                    arg0:
-                      "not found" :string
-          else:
-            ~>
-              if :void
-                cond:
-                  is Node :bool
-                    __scrut_3 :Node | null
-                then:
-                  let h: Node =
-                    cast → Node
-                      __scrut_3 :Node | null
-                  ~>
-                    block :void
-                      ~>
-                        call :void
-                          callee:
-                            std_io$std_io$println__string :void
-                          arg0:
-                            block :string
-                              let __sb_4: StringBuilder =
-                                call :StringBuilder
-                                  callee:
-                                    new_builder :StringBuilder
-                              call :void
-                                callee:
-                                  append :void
-                                arg0:
-                                  __sb_4 :StringBuilder
-                                arg1:
-                                  "found " :string
-                              call :void
-                                callee:
-                                  append :void
-                                arg0:
-                                  __sb_4 :StringBuilder
-                                arg1:
-                                  call :string
-                                    callee:
-                                      std_core$i32$Display$to_string :string
-                                    arg0:
-                                      .value :i32
-                                        h :Node
-                              ~>
-                                call :string
-                                  callee:
-                                    std_string_builder$StringBuilder$Display$to_string :string
-                                  arg0:
-                                    __sb_4 :StringBuilder
+                                    .value :i32
+                                      h :Node
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void

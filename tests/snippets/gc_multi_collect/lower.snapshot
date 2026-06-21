@@ -58,35 +58,17 @@
           callee:
             std_io$std_io$println__string :void
           arg0:
-            block :string
-              let __sb_0: StringBuilder =
-                call :StringBuilder
-                  callee:
-                    new_builder :StringBuilder
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_0 :StringBuilder
-                arg1:
-                  "expected 3 collections, got " :string
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_0 :StringBuilder
-                arg1:
-                  call :string
-                    callee:
-                      std_core$i32$Display$to_string :string
-                    arg0:
-                      diff :i32
-              ~>
+            call :string
+              callee:
+                concat2 :string
+              arg0:
+                "expected 3 collections, got " :string
+              arg1:
                 call :string
                   callee:
-                    std_string_builder$StringBuilder$Display$to_string :string
+                    std_core$i32$Display$to_string :string
                   arg0:
-                    __sb_0 :StringBuilder
+                    diff :i32
         return int(1) :i32
     let sum: i32 = int(0) :i32
     let cur: null | Pair = head :null | Pair
@@ -94,12 +76,12 @@
     loop while (<…>)
       ~>
         block :void
-          let __scrut_1: null | Pair = cur :null | Pair
+          let __scrut_0: null | Pair = cur :null | Pair
           ~>
             if :void
               cond:
                 is null :bool
-                  __scrut_1 :null | Pair
+                  __scrut_0 :null | Pair
               then:
                 ~>
                   block :void
@@ -113,7 +95,7 @@
                   if :void
                     cond:
                       is Pair :bool
-                        __scrut_1 :null | Pair
+                        __scrut_0 :null | Pair
                     then:
                       ~>
                         block :void
@@ -160,85 +142,39 @@
           callee:
             std_io$std_io$println__string :void
           arg0:
-            block :string
-              let __sb_2: StringBuilder =
-                call :StringBuilder
-                  callee:
-                    new_builder :StringBuilder
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_2 :StringBuilder
-                arg1:
-                  "sum mismatch after 3 collections: " :string
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_2 :StringBuilder
-                arg1:
-                  call :string
-                    callee:
-                      std_core$i32$Display$to_string :string
-                    arg0:
-                      sum :i32
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_2 :StringBuilder
-                arg1:
-                  " vs " :string
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_2 :StringBuilder
-                arg1:
-                  call :string
-                    callee:
-                      std_core$i32$Display$to_string :string
-                    arg0:
-                      expected :i32
-              ~>
+            call :string
+              callee:
+                concat4 :string
+              arg0:
+                "sum mismatch after 3 collections: " :string
+              arg1:
                 call :string
                   callee:
-                    std_string_builder$StringBuilder$Display$to_string :string
+                    std_core$i32$Display$to_string :string
                   arg0:
-                    __sb_2 :StringBuilder
+                    sum :i32
+              arg2:
+                " vs " :string
+              arg3:
+                call :string
+                  callee:
+                    std_core$i32$Display$to_string :string
+                  arg0:
+                    expected :i32
         return int(2) :i32
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_3: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              "ok: 50 nodes survived 3 collections; sum=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  sum :i32
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "ok: 50 nodes survived 3 collections; sum=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_3 :StringBuilder
+                sum :i32
     return int(0) :i32

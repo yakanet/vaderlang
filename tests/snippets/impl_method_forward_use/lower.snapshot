@@ -22,39 +22,21 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_0: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              "bumped=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  call :i32
-                    callee:
-                      run :fn(Counter) -> i32
-                    arg0:
-                      Counter {
-                        n: int(41) :i32
-                      }
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "bumped=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_0 :StringBuilder
+                call :i32
+                  callee:
+                    run :fn(Counter) -> i32
+                  arg0:
+                    Counter {
+                      n: int(41) :i32
+                    }
     return int(0) :i32

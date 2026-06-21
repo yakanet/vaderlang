@@ -17,38 +17,16 @@
                 "no pet" :string
             else:
               ~>
-                block :string
-                  let __sb_1: StringBuilder =
-                    call :StringBuilder
-                      callee:
-                        new_builder :StringBuilder
-                  call :void
-                    callee:
-                      append :void
-                    arg0:
-                      __sb_1 :StringBuilder
-                    arg1:
-                      "hello " :string
-                  call :void
-                    callee:
-                      append :void
-                    arg0:
-                      __sb_1 :StringBuilder
-                    arg1:
-                      call :string
-                        callee:
-                          std_core$string$Display$to_string :string
-                        arg0:
-                          .name :string
-                            cast → Cat
-                              cast → Cat | Dog
-                                p :Cat | Dog | null
-                  ~>
-                    call :string
-                      callee:
-                        std_string_builder$StringBuilder$Display$to_string :string
-                      arg0:
-                        __sb_1 :StringBuilder
+                call :string
+                  callee:
+                    concat2 :string
+                  arg0:
+                    "hello " :string
+                  arg1:
+                    .name :string
+                      cast → Cat
+                        cast → Cat | Dog
+                          p :Cat | Dog | null
   fn snippet$greet_binding(p: Cat | Dog | null) -> string
     return
       block :string
@@ -64,37 +42,15 @@
             else:
               let pet: Cat | Dog | null = __scrut_0 :Cat | Dog | null
               ~>
-                block :string
-                  let __sb_1: StringBuilder =
-                    call :StringBuilder
-                      callee:
-                        new_builder :StringBuilder
-                  call :void
-                    callee:
-                      append :void
-                    arg0:
-                      __sb_1 :StringBuilder
-                    arg1:
-                      "howdy " :string
-                  call :void
-                    callee:
-                      append :void
-                    arg0:
-                      __sb_1 :StringBuilder
-                    arg1:
-                      call :string
-                        callee:
-                          std_core$string$Display$to_string :string
-                        arg0:
-                          .name :string
-                            cast → Cat
-                              pet :Cat | Dog
-                  ~>
-                    call :string
-                      callee:
-                        std_string_builder$StringBuilder$Display$to_string :string
-                      arg0:
-                        __sb_1 :StringBuilder
+                call :string
+                  callee:
+                    concat2 :string
+                  arg0:
+                    "howdy " :string
+                  arg1:
+                    .name :string
+                      cast → Cat
+                        pet :Cat | Dog
   fn snippet$main() -> i32
     call :void
       callee:

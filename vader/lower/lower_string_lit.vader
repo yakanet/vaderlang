@@ -79,25 +79,25 @@ lower_string_lit :: fn(ctx: FnLowerCtx, expr: StringLitExpr, type: Type) -> Lowe
         return LoweredStringLit { .span = expr.span, .type = string_type, .value = body }
     }
 
-    // Desugar to a StringBuilder chain : `sb := new_builder()`, then one
-    // `sb.append(...)` per part (text appended verbatim, `${value}` appended as
-    // `value.to_string()`), closed by `sb.to_string()`.
-    chain :: begin_sb_chain(ctx, expr.span)
-    if chain == null { return unreachable_sb(expr.span, string_type, "string builder unresolved") }
+    // Collect the parts as string operands — text verbatim, `${value}` as
+    // `value.to_string()` (identity-inlined to `value` itself when it is already
+    // a string, via `build_member_call_or_inline`) — then concat them through the
+    // SAME `lower_concat_chain` as `+` : a fixed-arity `concatN` (one Buffer, one
+    // intern) for 2..4 parts, a StringBuilder for longer. One fast path for all
+    // string building, instead of a dedicated StringBuilder per interpolation.
+    operands: LoweredExpr[] = []
     for part in expr.parts {
         match part {
             is StringLitText as text -> {
-                lit :: LoweredStringLit { .span = text.span, .type = string_type, .value = text.value }
-                chain.stmts.push(sb_append_stmt(chain, lit, text.span))
+                operands.push(LoweredStringLit { .span = text.span, .type = string_type, .value = text.value })
             }
             is StringLitInterp as interp -> {
                 inner :: lower_expr(ctx, interp.expr)
-                str_call :: build_display_to_string_call(ctx, inner, interp.span)
-                chain.stmts.push(sb_append_stmt(chain, str_call, interp.span))
+                operands.push(build_display_to_string_call(ctx, inner, interp.span))
             }
         }
     }
-    return finish_sb_chain(ctx, chain, expr.span)
+    return lower_concat_chain(ctx, operands, expr.span)
 }
 
 // Lower a flattened string `+` chain (`operands` are the lowered leaves, in
@@ -206,13 +206,11 @@ try_direct_display_call :: fn(ctx: FnLowerCtx, value: LoweredExpr, span: Span) -
     // generic-T / trait receiver) falls back to a `LoweredVirtualCall`.
     member :: find_impl_member_for(ctx, source_type, "to_string")
     if member is null { return null }
+    // Build the direct `to_string(value)` call — or, when the member is the
+    // identity `fn(self) = self` (string's `Display`), inline to `value` itself.
     call_args: LoweredExpr[] = []
     call_args.push(value)
-    return LoweredCall {
-        .span = span, .type = string_type,
-        .callee = LoweredIdent { .span = span, .type = string_type, .symbol = member.symbol },
-        .args = call_args,
-    }
+    return build_member_call_or_inline(member, call_args, string_type, span)
 }
 
 has_interp_part :: fn(expr: StringLitExpr) -> bool {

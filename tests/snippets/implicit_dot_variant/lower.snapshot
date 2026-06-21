@@ -107,37 +107,19 @@
                 callee:
                   std_io$std_io$println__string :void
                 arg0:
-                  block :string
-                    let __sb_4: StringBuilder =
-                      call :StringBuilder
-                        callee:
-                          new_builder :StringBuilder
-                    call :void
-                      callee:
-                        append :void
-                      arg0:
-                        __sb_4 :StringBuilder
-                      arg1:
-                        "got=" :string
-                    call :void
-                      callee:
-                        append :void
-                      arg0:
-                        __sb_4 :StringBuilder
-                      arg1:
-                        call :string
-                          callee:
-                            std_core$i32$Display$to_string :string
-                          arg0:
-                            .value :i32
-                              cast → Some
-                                m :None | Some
-                    ~>
+                  call :string
+                    callee:
+                      concat2 :string
+                    arg0:
+                      "got=" :string
+                    arg1:
                       call :string
                         callee:
-                          std_string_builder$StringBuilder$Display$to_string :string
+                          std_core$i32$Display$to_string :string
                         arg0:
-                          __sb_4 :StringBuilder
+                          .value :i32
+                            cast → Some
+                              m :None | Some
           else:
             ~>
               if :void
@@ -158,55 +140,37 @@
       None {
       }
     block :void
-      let __scrut_5: None | Some = n :None | Some
+      let __scrut_4: None | Some = n :None | Some
       ~>
         if :void
           cond:
             is Some :bool
-              __scrut_5 :None | Some
+              __scrut_4 :None | Some
           then:
             ~>
               call :void
                 callee:
                   std_io$std_io$println__string :void
                 arg0:
-                  block :string
-                    let __sb_6: StringBuilder =
-                      call :StringBuilder
-                        callee:
-                          new_builder :StringBuilder
-                    call :void
-                      callee:
-                        append :void
-                      arg0:
-                        __sb_6 :StringBuilder
-                      arg1:
-                        "got=" :string
-                    call :void
-                      callee:
-                        append :void
-                      arg0:
-                        __sb_6 :StringBuilder
-                      arg1:
-                        call :string
-                          callee:
-                            std_core$i32$Display$to_string :string
-                          arg0:
-                            .value :i32
-                              cast → Some
-                                n :None | Some
-                    ~>
+                  call :string
+                    callee:
+                      concat2 :string
+                    arg0:
+                      "got=" :string
+                    arg1:
                       call :string
                         callee:
-                          std_string_builder$StringBuilder$Display$to_string :string
+                          std_core$i32$Display$to_string :string
                         arg0:
-                          __sb_6 :StringBuilder
+                          .value :i32
+                            cast → Some
+                              n :None | Some
           else:
             ~>
               if :void
                 cond:
                   is None :bool
-                    __scrut_5 :None | Some
+                    __scrut_4 :None | Some
                 then:
                   ~>
                     call :void

@@ -64,18 +64,17 @@ export main 0
 fn 0 snippet$main () -> i32
   local a ref
   local b ref
-  local __sb_0 ref
-  local $call_38 string
-  local __scrut_5 ref
+  local $call_35 string
+  local __scrut_1 ref
+  local __scrut_2 ref
   local start ref
   local spin i32
-  local $k_96 i32
-  local $k_98 i32
+  local $k_87 i32
+  local $k_89 i32
   local e ref
-  local __sb_6 ref
-  local $field_105 i64
-  local $cast_107 i64
-  local $call_109 string
+  local $field_94 i64
+  local $cast_96 i64
+  local $call_98 string
   i64.const 500
   call 7
   call 8
@@ -107,39 +106,23 @@ fn 0 snippet$main () -> i32
   i64.const 50
   call 10
   local.set 1
-  call 26
-  local.set 2
-  local.get 2
-  string.const 0
-  call 27
   local.get 0
   local.get 1
   call 12
   call 8
-  call 4
-  local.set 3
-  local.get 2
-  local.get 3
-  call 27
-  local.get 2
-  call 29
-  call 6
-  call 26
   local.set 2
+  string.const 0
   local.get 2
-  string.const 1
-  call 27
+  call 26
+  call 6
   local.get 0
   local.get 1
   call 13
   call 8
-  call 4
-  local.set 3
+  local.set 2
+  string.const 1
   local.get 2
-  local.get 3
-  call 27
-  local.get 2
-  call 29
+  call 26
   call 6
   i64.const 0
   struct.new 13
@@ -153,20 +136,12 @@ fn 0 snippet$main () -> i32
   local.get 0
   call 15
   local.set 1
-  call 26
-  local.set 2
-  local.get 2
-  string.const 2
-  call 27
   local.get 1
   call 8
-  call 4
-  local.set 3
+  local.set 2
+  string.const 2
   local.get 2
-  local.get 3
-  call 27
-  local.get 2
-  call 29
+  call 26
   call 6
   local.get 0
   call 16
@@ -183,7 +158,7 @@ fn 0 snippet$main () -> i32
     string.const 5
     call 17
     local.tee 0
-    local.tee 2
+    local.tee 3
     type_check 13
     if $L1 void
       local.get 0
@@ -222,28 +197,21 @@ fn 0 snippet$main () -> i32
         local.get 5
         call 19
         local.set 9
-        call 26
-        local.set 10
         string.const 10
-        local.set 3
-        local.get 10
-        local.get 3
-        call 27
+        local.set 2
         local.field 9 12 0
         ref.cast 7
-        local.set 11
+        local.set 10
         i64.const 0
-        local.set 12
+        local.set 11
+        local.get 10
         local.get 11
-        local.get 12
         i64.ge
         call 3
-        local.set 13
-        local.get 10
-        local.get 13
-        call 27
-        local.get 10
-        call 29
+        local.set 12
+        local.get 2
+        local.get 12
+        call 26
         call 6
         return.lit i32.const 0
       end $L2
@@ -278,34 +246,27 @@ fn 0 snippet$main () -> i32
         local.get 5
         call 19
         local.set 9
-        call 26
-        local.set 10
         string.const 10
-        local.set 3
-        local.get 10
-        local.get 3
-        call 27
+        local.set 2
         local.field 9 12 0
         ref.cast 7
-        local.set 11
+        local.set 10
         i64.const 0
-        local.set 12
+        local.set 11
+        local.get 10
         local.get 11
-        local.get 12
         i64.ge
         call 3
-        local.set 13
-        local.get 10
-        local.get 13
-        call 27
-        local.get 10
-        call 29
+        local.set 12
+        local.get 2
+        local.get 12
+        call 26
         call 6
         return.lit i32.const 0
       end $L6
       return
     end $L1
-    local.get 2
+    local.get 3
     type_check 15
     if $L10 void
       string.const 6
@@ -343,28 +304,21 @@ fn 0 snippet$main () -> i32
         local.get 5
         call 19
         local.set 9
-        call 26
-        local.set 10
         string.const 10
-        local.set 3
-        local.get 10
-        local.get 3
-        call 27
+        local.set 2
         local.field 9 12 0
         ref.cast 7
-        local.set 11
+        local.set 10
         i64.const 0
-        local.set 12
+        local.set 11
+        local.get 10
         local.get 11
-        local.get 12
         i64.ge
         call 3
-        local.set 13
-        local.get 10
-        local.get 13
-        call 27
-        local.get 10
-        call 29
+        local.set 12
+        local.get 2
+        local.get 12
+        call 26
         call 6
         return.lit i32.const 0
       end $L11
@@ -399,28 +353,21 @@ fn 0 snippet$main () -> i32
         local.get 5
         call 19
         local.set 9
-        call 26
-        local.set 10
         string.const 10
-        local.set 3
-        local.get 10
-        local.get 3
-        call 27
+        local.set 2
         local.field 9 12 0
         ref.cast 7
-        local.set 11
+        local.set 10
         i64.const 0
-        local.set 12
+        local.set 11
+        local.get 10
         local.get 11
-        local.get 12
         i64.ge
         call 3
-        local.set 13
-        local.get 10
-        local.get 13
-        call 27
-        local.get 10
-        call 29
+        local.set 12
+        local.get 2
+        local.get 12
+        call 26
         call 6
         return.lit i32.const 0
       end $L15
@@ -436,7 +383,7 @@ fn 0 snippet$main () -> i32
     string.const 5
     call 17
     local.tee 0
-    local.tee 2
+    local.tee 3
     type_check 13
     if $L20 void
       local.get 0
@@ -475,28 +422,21 @@ fn 0 snippet$main () -> i32
         local.get 5
         call 19
         local.set 9
-        call 26
-        local.set 10
         string.const 10
-        local.set 3
-        local.get 10
-        local.get 3
-        call 27
+        local.set 2
         local.field 9 12 0
         ref.cast 7
-        local.set 11
+        local.set 10
         i64.const 0
-        local.set 12
+        local.set 11
+        local.get 10
         local.get 11
-        local.get 12
         i64.ge
         call 3
-        local.set 13
-        local.get 10
-        local.get 13
-        call 27
-        local.get 10
-        call 29
+        local.set 12
+        local.get 2
+        local.get 12
+        call 26
         call 6
         return.lit i32.const 0
       end $L21
@@ -531,34 +471,27 @@ fn 0 snippet$main () -> i32
         local.get 5
         call 19
         local.set 9
-        call 26
-        local.set 10
         string.const 10
-        local.set 3
-        local.get 10
-        local.get 3
-        call 27
+        local.set 2
         local.field 9 12 0
         ref.cast 7
-        local.set 11
+        local.set 10
         i64.const 0
-        local.set 12
+        local.set 11
+        local.get 10
         local.get 11
-        local.get 12
         i64.ge
         call 3
-        local.set 13
-        local.get 10
-        local.get 13
-        call 27
-        local.get 10
-        call 29
+        local.set 12
+        local.get 2
+        local.get 12
+        call 26
         call 6
         return.lit i32.const 0
       end $L25
       return
     end $L20
-    local.get 2
+    local.get 3
     type_check 15
     if $L29 void
       string.const 6
@@ -596,28 +529,21 @@ fn 0 snippet$main () -> i32
         local.get 5
         call 19
         local.set 9
-        call 26
-        local.set 10
         string.const 10
-        local.set 3
-        local.get 10
-        local.get 3
-        call 27
+        local.set 2
         local.field 9 12 0
         ref.cast 7
-        local.set 11
+        local.set 10
         i64.const 0
-        local.set 12
+        local.set 11
+        local.get 10
         local.get 11
-        local.get 12
         i64.ge
         call 3
-        local.set 13
-        local.get 10
-        local.get 13
-        call 27
-        local.get 10
-        call 29
+        local.set 12
+        local.get 2
+        local.get 12
+        call 26
         call 6
         return.lit i32.const 0
       end $L30
@@ -652,28 +578,21 @@ fn 0 snippet$main () -> i32
         local.get 5
         call 19
         local.set 9
-        call 26
-        local.set 10
         string.const 10
-        local.set 3
-        local.get 10
-        local.get 3
-        call 27
+        local.set 2
         local.field 9 12 0
         ref.cast 7
-        local.set 11
+        local.set 10
         i64.const 0
-        local.set 12
+        local.set 11
+        local.get 10
         local.get 11
-        local.get 12
         i64.ge
         call 3
-        local.set 13
-        local.get 10
-        local.get 13
-        call 27
-        local.get 10
-        call 29
+        local.set 12
+        local.get 2
+        local.get 12
+        call 26
         call 6
         return.lit i32.const 0
       end $L34
@@ -941,7 +860,7 @@ fn 5 std_core$format_signed (i64) -> string
   end $L5
   local.get 4
   local.tee 2
-  call 30
+  call 32
   local.set 6
   local.get 2
   local.set 4
@@ -972,7 +891,7 @@ fn 5 std_core$format_signed (i64) -> string
         local.get 6
         local.get 4
         local.get 9
-        call 31
+        call 35
         local.get 0
         i64.const 10
         i64.div
@@ -991,12 +910,12 @@ fn 5 std_core$format_signed (i64) -> string
     local.get 6
     local.get 4
     local.get 7
-    call 31
+    call 35
   else
   end $L9
   local.get 6
   local.get 2
-  call 32
+  call 33
   return
 end
 
@@ -1024,8 +943,7 @@ fn 8 std_time$format (ref) -> string
   local n i64
   local a i64
   local if_res string
-  local __sb_0 ref
-  local $call_17 string
+  local $call_15 string
   local.field 0 12 0
   ref.cast 7
   local.tee 1
@@ -1047,102 +965,54 @@ fn 8 std_time$format (ref) -> string
   i64.const 1000
   i64.lt
   if $L1 void
-    call 26
-    local.set 4
-    local.get 3
-    call 4
-    local.set 5
-    local.get 4
-    local.get 5
-    call 27
     local.get 2
     call 2
-    local.set 5
-    local.get 4
-    local.get 5
-    call 27
+    local.set 4
+    local.get 3
     local.get 4
     string.const 17
     call 27
-    local.get 4
-    call 29
     return
   end $L1
   local.get 2
   i64.const 1000000
   i64.lt
   if $L2 void
-    call 26
-    local.set 4
-    local.get 3
-    call 4
-    local.set 5
-    local.get 4
-    local.get 5
-    call 27
     local.get 2
     i64.const 1000
     i64.div
     call 2
-    local.set 5
-    local.get 4
-    local.get 5
-    call 27
+    local.set 4
+    local.get 3
     local.get 4
     string.const 18
     call 27
-    local.get 4
-    call 29
     return
   end $L2
   local.get 2
   i64.const 1000000000
   i64.lt
   if $L3 void
-    call 26
-    local.set 4
-    local.get 3
-    call 4
-    local.set 5
-    local.get 4
-    local.get 5
-    call 27
     local.get 2
     i64.const 1000000
     i64.div
     call 2
-    local.set 5
-    local.get 4
-    local.get 5
-    call 27
+    local.set 4
+    local.get 3
     local.get 4
     string.const 19
     call 27
-    local.get 4
-    call 29
     return
   end $L3
-  call 26
-  local.set 4
-  local.get 3
-  call 4
-  local.set 3
-  local.get 4
-  local.get 3
-  call 27
   local.get 2
   i64.const 1000000000
   i64.div
   call 2
-  local.set 3
-  local.get 4
+  local.set 4
   local.get 3
-  call 27
   local.get 4
   string.const 20
   call 27
-  local.get 4
-  call 29
   return
 end
 
@@ -1244,9 +1114,8 @@ fn 16 std_time$format_iso8601 (ref) -> string
   local $mul_37 i64
   local $mul_46 i64
   local $mul_55 i64
-  local __sb_2 ref
-  local $call_62 string
-  local $cast_65 usize
+  local $call_60 string
+  local $cast_62 usize
   local.field 0 13 0
   ref.cast 7
   local.set 1
@@ -1333,185 +1202,122 @@ fn 16 std_time$format_iso8601 (ref) -> string
   local.get 9
   i64.sub
   local.set 1
-  call 26
+  call 28
   local.set 5
-  call 26
-  local.set 10
   local.get 2
   call 2
-  local.set 11
-  local.get 10
-  local.get 11
-  call 27
-  local.get 10
-  call 29
-  local.set 11
+  local.set 10
   i64.const 4
-  local.set 12
+  local.set 11
+  local.get 10
   local.get 11
-  local.get 12
   char.const 48
   call 24
-  call 4
-  local.set 11
+  local.set 10
   local.get 5
-  local.get 11
-  call 27
+  local.get 10
+  call 29
   local.get 5
   string.const 15
-  call 27
-  call 26
-  local.set 10
+  call 29
   local.get 3
   call 2
-  local.set 11
-  local.get 10
-  local.get 11
-  call 27
-  local.get 10
-  call 29
-  local.set 11
+  local.set 10
   i64.const 2
-  local.set 12
+  local.set 11
+  local.get 10
   local.get 11
-  local.get 12
   char.const 48
   call 24
-  call 4
-  local.set 11
+  local.set 10
   local.get 5
-  local.get 11
-  call 27
+  local.get 10
+  call 29
   local.get 5
   string.const 15
-  call 27
-  call 26
-  local.set 10
+  call 29
   local.get 4
   call 2
-  local.set 11
-  local.get 10
-  local.get 11
-  call 27
-  local.get 10
-  call 29
-  local.set 11
+  local.set 10
   i64.const 2
-  local.set 12
+  local.set 11
+  local.get 10
   local.get 11
-  local.get 12
   char.const 48
   call 24
-  call 4
-  local.set 11
+  local.set 10
   local.get 5
-  local.get 11
-  call 27
+  local.get 10
+  call 29
   local.get 5
   string.const 21
-  call 27
-  call 26
-  local.set 10
+  call 29
   local.get 6
   call 2
-  local.set 11
-  local.get 10
-  local.get 11
-  call 27
-  local.get 10
-  call 29
-  local.set 11
+  local.set 10
   i64.const 2
-  local.set 12
+  local.set 11
+  local.get 10
   local.get 11
-  local.get 12
   char.const 48
   call 24
-  call 4
-  local.set 11
+  local.set 10
   local.get 5
-  local.get 11
-  call 27
+  local.get 10
+  call 29
   local.get 5
   string.const 22
-  call 27
-  call 26
-  local.set 10
+  call 29
   local.get 7
   call 2
-  local.set 11
-  local.get 10
-  local.get 11
-  call 27
-  local.get 10
-  call 29
-  local.set 11
+  local.set 10
   i64.const 2
-  local.set 12
+  local.set 11
+  local.get 10
   local.get 11
-  local.get 12
   char.const 48
   call 24
-  call 4
-  local.set 11
+  local.set 10
   local.get 5
-  local.get 11
-  call 27
+  local.get 10
+  call 29
   local.get 5
   string.const 22
-  call 27
-  call 26
-  local.set 10
+  call 29
   local.get 8
   call 2
-  local.set 11
-  local.get 10
-  local.get 11
-  call 27
-  local.get 10
-  call 29
-  local.set 11
+  local.set 10
   i64.const 2
-  local.set 12
+  local.set 11
+  local.get 10
   local.get 11
-  local.get 12
   char.const 48
   call 24
-  call 4
-  local.set 11
+  local.set 10
   local.get 5
-  local.get 11
-  call 27
+  local.get 10
+  call 29
   local.get 5
   string.const 23
-  call 27
-  call 26
-  local.set 10
+  call 29
   local.get 1
   call 2
-  local.set 11
-  local.get 10
-  local.get 11
-  call 27
-  local.get 10
-  call 29
-  local.set 11
+  local.set 10
   i64.const 3
-  local.set 12
+  local.set 11
+  local.get 10
   local.get 11
-  local.get 12
   char.const 48
   call 24
-  call 4
-  local.set 11
+  local.set 10
   local.get 5
-  local.get 11
-  call 27
+  local.get 10
+  call 29
   local.get 5
   string.const 24
-  call 27
-  local.get 5
   call 29
+  local.get 5
+  call 31
   return
 end
 
@@ -2514,7 +2320,7 @@ fn 24 std_string$pad_start (string,usize,char) -> string
     local.get 0
     return
   end $L0
-  call 26
+  call 28
   local.set 4
   local.get 3
   local.set 3
@@ -2526,7 +2332,7 @@ fn 24 std_string$pad_start (string,usize,char) -> string
       if $L3 void
         local.get 4
         local.get 2
-        call 28
+        call 30
         i64.const 1
         local.set 5
         local.get 3
@@ -2540,9 +2346,9 @@ fn 24 std_string$pad_start (string,usize,char) -> string
   end $L1
   local.get 4
   local.get 0
-  call 27
-  local.get 4
   call 29
+  local.get 4
+  call 31
   return
 end
 
@@ -2563,20 +2369,98 @@ fn 25 std_math$abs_2 (i64) -> i64
   return
 end
 
-fn 26 std_string_builder$new_builder () -> ref
+fn 26 std_string_builder$concat2 (string,string) -> string
+  local la usize
+  local $call_4 usize
+  local buf ref
+  local $k_9 usize
+  local.get 0
+  call.import 4
+  local.set 2
+  local.get 1
+  call.import 4
+  local.set 3
+  local.get 2
+  local.get 3
+  i64.add
+  local.tee 3
+  call 32
+  local.set 4
+  i64.const 0
+  local.set 5
+  local.get 4
+  local.get 5
+  local.get 0
+  call 34
+  local.get 4
+  local.get 2
+  local.get 1
+  call 34
+  local.get 4
+  local.get 3
+  call 33
+  return
+end
+
+fn 27 std_string_builder$concat3 (string,string,string) -> string
+  local la usize
+  local $call_5 usize
+  local $call_8 usize
+  local buf ref
+  local $k_13 usize
+  local.get 0
+  call.import 4
+  local.set 3
+  local.get 1
+  call.import 4
+  local.set 4
+  local.get 3
+  local.get 4
+  i64.add
+  local.set 4
+  local.get 2
+  call.import 4
+  local.set 5
+  local.get 4
+  local.get 5
+  i64.add
+  local.tee 5
+  call 32
+  local.set 6
+  i64.const 0
+  local.set 7
+  local.get 6
+  local.get 7
+  local.get 0
+  call 34
+  local.get 6
+  local.get 3
+  local.get 1
+  call 34
+  local.get 6
+  local.get 4
+  local.get 2
+  call 34
+  local.get 6
+  local.get 5
+  call 33
+  return
+end
+
+fn 28 std_string_builder$new_builder () -> ref
   array.new 11 0
   struct.new 20
   return
 end
 
-fn 27 std_string_builder$append (ref,string) -> void
+fn 29 std_string_builder$append (ref,string) -> void
   local.field 0 20 0
   local.get 1
   array.push 8
   return
 end
 
-fn 28 std_string_builder$append_char (ref,char) -> void
+fn 30 std_string_builder$append_char (ref,char) -> void
   local $field_2 ref
   local $call_4 string
   local.field 0 20 0
@@ -2591,7 +2475,7 @@ fn 28 std_string_builder$append_char (ref,char) -> void
   return
 end
 
-fn 29 std_string_builder$StringBuilder$Display$to_string (ref) -> string
+fn 31 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local n usize
   local $k_4 usize
   local $field_9 ref
@@ -2662,7 +2546,7 @@ fn 29 std_string_builder$StringBuilder$Display$to_string (ref) -> string
     end $L3
   end $L2
   local.get 1
-  call 30
+  call 32
   local.set 3
   i64.const 0
   local.set 2
@@ -2686,7 +2570,7 @@ fn 29 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         local.get 3
         local.get 2
         local.get 8
-        call 33
+        call 34
         local.get 8
         call.import 4
         local.set 6
@@ -2707,35 +2591,35 @@ fn 29 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   end $L5
   local.get 3
   local.get 1
-  call 32
+  call 33
   return
 end
 
-fn 30 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 32 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   object_new 0
   return
 end
 
-fn 31 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
-  local.get 0
-  local.get 1
-  local.get 2
-  store_u8
-  return
-end
-
-fn 32 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 33 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
   buffer_to_string
   return
 end
 
-fn 33 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 34 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0
   local.get 1
   local.get 2
   buffer_write_string
+  return
+end
+
+fn 35 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
+  local.get 0
+  local.get 1
+  local.get 2
+  store_u8
   return
 end

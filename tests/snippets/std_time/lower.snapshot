@@ -105,88 +105,44 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_0: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              "plus=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  call :string
-                    callee:
-                      format :string
-                    arg0:
-                      call :Duration
-                        callee:
-                          plus :Duration
-                        arg0:
-                          a :Duration
-                        arg1:
-                          b :Duration
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "plus=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                format :string
               arg0:
-                __sb_0 :StringBuilder
+                call :Duration
+                  callee:
+                    plus :Duration
+                  arg0:
+                    a :Duration
+                  arg1:
+                    b :Duration
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_1: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              "minus=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  call :string
-                    callee:
-                      format :string
-                    arg0:
-                      call :Duration
-                        callee:
-                          minus :Duration
-                        arg0:
-                          a :Duration
-                        arg1:
-                          b :Duration
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "minus=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                format :string
               arg0:
-                __sb_1 :StringBuilder
+                call :Duration
+                  callee:
+                    minus :Duration
+                  arg0:
+                    a :Duration
+                  arg1:
+                    b :Duration
     let epoch: Instant =
       Instant {
         ns_since_epoch:
@@ -218,39 +174,17 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_2: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              "delta=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  call :string
-                    callee:
-                      format :string
-                    arg0:
-                      delta :Duration
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "delta=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                format :string
               arg0:
-                __sb_2 :StringBuilder
+                delta :Duration
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -268,12 +202,12 @@
         arg0:
           iso :string
     block :void
-      let __scrut_3: Instant | TimeError = parsed :Instant | TimeError
+      let __scrut_0: Instant | TimeError = parsed :Instant | TimeError
       ~>
         if :void
           cond:
             is Instant :bool
-              __scrut_3 :Instant | TimeError
+              __scrut_0 :Instant | TimeError
           then:
             ~>
               call :void
@@ -291,7 +225,7 @@
               if :void
                 cond:
                   is TimeError :bool
-                    __scrut_3 :Instant | TimeError
+                    __scrut_0 :Instant | TimeError
                 then:
                   ~>
                     call :void
@@ -309,12 +243,12 @@
         arg0:
           "1900-01-01T00:00:00.000Z" :string
     block :void
-      let __scrut_4: Instant | TimeError = pre :Instant | TimeError
+      let __scrut_1: Instant | TimeError = pre :Instant | TimeError
       ~>
         if :void
           cond:
             is Instant :bool
-              __scrut_4 :Instant | TimeError
+              __scrut_1 :Instant | TimeError
           then:
             ~>
               call :void
@@ -332,7 +266,7 @@
               if :void
                 cond:
                   is TimeError :bool
-                    __scrut_4 :Instant | TimeError
+                    __scrut_1 :Instant | TimeError
                 then:
                   ~>
                     call :void
@@ -350,12 +284,12 @@
         arg0:
           "not a timestamp" :string
     block :void
-      let __scrut_5: Instant | TimeError = bad :Instant | TimeError
+      let __scrut_2: Instant | TimeError = bad :Instant | TimeError
       ~>
         if :void
           cond:
             is TimeError :bool
-              __scrut_5 :Instant | TimeError
+              __scrut_2 :Instant | TimeError
           then:
             ~>
               call :void
@@ -368,7 +302,7 @@
               if :void
                 cond:
                   is Instant :bool
-                    __scrut_5 :Instant | TimeError
+                    __scrut_2 :Instant | TimeError
                 then:
                   ~>
                     call :void
@@ -404,39 +338,21 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_6: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_6 :StringBuilder
-            arg1:
-              "monotonic>=0=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_6 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$bool$Display$to_string :string
-                arg0:
-                  gte :bool
-                    l:
-                      .ns :i64
-                        e :Duration
-                    r:
-                      cast → i64
-                        int(0) :i64
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "monotonic>=0=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$bool$Display$to_string :string
               arg0:
-                __sb_6 :StringBuilder
+                gte :bool
+                  l:
+                    .ns :i64
+                      e :Duration
+                  r:
+                    cast → i64
+                      int(0) :i64
     return int(0) :i32

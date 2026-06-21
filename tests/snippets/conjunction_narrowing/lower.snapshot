@@ -20,37 +20,19 @@
                 int(0) :i32
       then:
         return
-          block :string
-            let __sb_0: StringBuilder =
-              call :StringBuilder
-                callee:
-                  new_builder :StringBuilder
-            call :void
-              callee:
-                append :void
-              arg0:
-                __sb_0 :StringBuilder
-              arg1:
-                "circle r=" :string
-            call :void
-              callee:
-                append :void
-              arg0:
-                __sb_0 :StringBuilder
-              arg1:
-                call :string
-                  callee:
-                    std_core$i32$Display$to_string :string
-                  arg0:
-                    .radius :i32
-                      cast → Circle
-                        shape :Circle | Square
-            ~>
+          call :string
+            callee:
+              concat2 :string
+            arg0:
+              "circle r=" :string
+            arg1:
               call :string
                 callee:
-                  std_string_builder$StringBuilder$Display$to_string :string
+                  std_core$i32$Display$to_string :string
                 arg0:
-                  __sb_0 :StringBuilder
+                  .radius :i32
+                    cast → Circle
+                      shape :Circle | Square
     return "other" :string
   fn snippet$main() -> i32
     call :void

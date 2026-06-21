@@ -17,7 +17,6 @@ type 14 struct std_collections$MutableMap__string__i32 { ekeys:11,evals:16,index
 type 15 struct std_collections$MutableSet__i32 { inner:13 }
 type 16 array 1
 type 17 array 2
-type 18 struct std_string_builder$StringBuilder { parts:11 }
 string 0 "a"
 string 1 "b"
 string 2 "c"
@@ -25,7 +24,6 @@ string 3 "map_sum="
 string 4 "set_sum="
 string 5 "0"
 string 6 "\n"
-string 7 ""
 import 0 bytes std_core$bytes (string) -> ref
 import 1 hash std_core$string$Hash$hash (string) -> u64
 import 2 write std_io$write (i32,string) -> void
@@ -41,7 +39,6 @@ impl 14 Contains
 impl 14 Into
 impl 15 Contains
 impl 15 Into
-impl 18 Display
 export main 0
 
 fn 0 snippet$main () -> i32
@@ -137,19 +134,12 @@ fn 0 snippet$main () -> i32
       end $L2
     end $L1
   end $L0
-  call 20
-  local.set 0
-  local.get 0
-  string.const 3
-  call 21
   local.get 6
   call 1
   local.set 7
-  local.get 0
+  string.const 3
   local.get 7
-  call 21
-  local.get 0
-  call 22
+  call 20
   call 5
   array.new 16 0
   local.set 0
@@ -222,19 +212,12 @@ fn 0 snippet$main () -> i32
       end $L5
     end $L4
   end $L3
-  call 20
-  local.set 0
-  local.get 0
-  string.const 4
-  call 21
   local.get 6
   call 1
   local.set 7
-  local.get 0
+  string.const 4
   local.get 7
-  call 21
-  local.get 0
-  call 22
+  call 20
   call 5
   return.lit i32.const 0
 end
@@ -325,7 +308,7 @@ fn 4 std_core$format_signed (i64) -> string
   end $L5
   local.get 4
   local.tee 2
-  call 24
+  call 21
   local.set 6
   local.get 2
   local.set 4
@@ -380,7 +363,7 @@ fn 4 std_core$format_signed (i64) -> string
   end $L9
   local.get 6
   local.get 2
-  call 26
+  call 22
   return
 end
 
@@ -721,7 +704,7 @@ fn 13 std_collections$std_collections$rehash__string__i32 (ref,usize) -> void
         local.get 4
         array.get 11
         ref.cast 4
-        call 23
+        call 24
         local.get 3
         call 9
         local.set 6
@@ -1239,7 +1222,7 @@ fn 17 std_collections$std_collections$put__string__i32 (ref,string,i32) -> void
   else
   end $L0
   local.get 1
-  call 23
+  call 24
   local.set 12
   local.field 0 14 3
   ref.cast 3
@@ -1523,150 +1506,65 @@ fn 19 std_collections$std_collections$add__i32 (ref,i32) -> bool
   return.lit bool.const true
 end
 
-fn 20 std_string_builder$new_builder () -> ref
-  array.new 11 0
-  struct.new 18
-  return
-end
-
-fn 21 std_string_builder$append (ref,string) -> void
-  local.field 0 18 0
-  local.get 1
-  array.push 4
-  return
-end
-
-fn 22 std_string_builder$StringBuilder$Display$to_string (ref) -> string
-  local n usize
-  local $k_4 usize
-  local $field_9 ref
-  local __for_i_2 usize
-  local $len_24 usize
-  local $k_26 usize
-  local __for_arr_3 ref
-  local p string
-  local $k_44 usize
-  local.field 0 18 0
-  array.len
-  local.set 1
-  i64.const 0
-  local.set 2
-  local.get 1
-  local.get 2
-  i64.eq
-  if $L0 void
-    return.lit string.const 7
-  end $L0
-  i64.const 1
-  local.set 2
-  local.get 1
-  local.get 2
-  i64.eq
-  if $L1 void
-    local.field 0 18 0
-    local.set 3
-    local.get 3
-    i32.const 0
-    array.get 11
-    ref.cast 4
-    return
-  end $L1
-  i64.const 0
-  local.set 1
-  local.field 0 18 0
-  local.tee 3
+fn 20 std_string_builder$concat2 (string,string) -> string
+  local la usize
+  local $len_6 usize
+  local buf ref
+  local $k_11 usize
+  local.get 0
+  call.import 0
   array.len
   local.set 2
-  i64.const 0
-  local.set 4
-  block $L2 void
-    loop $L3 void
-      local.get 4
-      local.get 2
-      u64.lt
-      if $L4 void
-        local.get 3
-        local.get 4
-        array.get 11
-        ref.cast 4
-        call.import 0
-        array.len
-        local.set 5
-        local.get 1
-        local.get 5
-        i64.add
-        local.set 1
-        i64.const 1
-        local.set 6
-        local.get 4
-        local.get 6
-        i64.add
-        local.set 4
-        br $L3
-      else
-      end $L4
-    end $L3
-  end $L2
   local.get 1
-  call 24
+  call.import 0
+  array.len
   local.set 3
-  i64.const 0
-  local.set 2
-  local.field 0 18 0
-  local.tee 7
-  array.len
+  local.get 2
+  local.get 3
+  i64.add
+  local.tee 3
+  call 21
   local.set 4
   i64.const 0
   local.set 5
-  block $L5 void
-    loop $L6 void
-      local.get 5
-      local.get 4
-      u64.lt
-      if $L7 void
-        local.get 7
-        local.get 5
-        array.get 11
-        ref.cast 4
-        local.set 8
-        local.get 3
-        local.get 2
-        local.get 8
-        call 27
-        local.get 8
-        call.import 0
-        array.len
-        local.set 6
-        local.get 2
-        local.get 6
-        i64.add
-        local.set 2
-        i64.const 1
-        local.set 9
-        local.get 5
-        local.get 9
-        i64.add
-        local.set 5
-        br $L6
-      else
-      end $L7
-    end $L6
-  end $L5
-  local.get 3
-  local.get 1
-  call 26
-  return
-end
-
-fn 23 std_core$string$Hash$hash_vt (string) -> u64
+  local.get 4
+  local.get 5
   local.get 0
-  call.import 1
+  call 23
+  local.get 4
+  local.get 2
+  local.get 1
+  call 23
+  local.get 4
+  local.get 3
+  call 22
   return
 end
 
-fn 24 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 21 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   object_new 0
+  return
+end
+
+fn 22 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+  local.get 0
+  local.get 1
+  buffer_to_string
+  return
+end
+
+fn 23 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+  local.get 0
+  local.get 1
+  local.get 2
+  buffer_write_string
+  return
+end
+
+fn 24 std_core$string$Hash$hash_vt (string) -> u64
+  local.get 0
+  call.import 1
   return
 end
 
@@ -1675,20 +1573,5 @@ fn 25 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   local.get 1
   local.get 2
   store_u8
-  return
-end
-
-fn 26 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
-  local.get 0
-  local.get 1
-  buffer_to_string
-  return
-end
-
-fn 27 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
-  local.get 0
-  local.get 1
-  local.get 2
-  buffer_write_string
   return
 end

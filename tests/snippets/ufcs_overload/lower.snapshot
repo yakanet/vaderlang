@@ -32,62 +32,28 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_0: StringBuilder =
-            call :StringBuilder
+        call :string
+          callee:
+            std_core$i32$Display$to_string :string
+          arg0:
+            call :i32
               callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  call :i32
-                    callee:
-                      inc :i32
-                    arg0:
-                      a :A
-          ~>
-            call :string
-              callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                inc :i32
               arg0:
-                __sb_0 :StringBuilder
+                a :A
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_1: StringBuilder =
-            call :StringBuilder
+        call :string
+          callee:
+            std_core$i32$Display$to_string :string
+          arg0:
+            call :i32
               callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  call :i32
-                    callee:
-                      inc :i32
-                    arg0:
-                      b :B
-          ~>
-            call :string
-              callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                inc :i32
               arg0:
-                __sb_1 :StringBuilder
+                b :B
     return int(0) :i32
   fn snippet$inc_1(self: B) -> i32
     return

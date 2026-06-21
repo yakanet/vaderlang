@@ -7,216 +7,104 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_0: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              "u64: " :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$u64$Display$to_string :string
-                arg0:
-                  cast → u64
-                    big :u32
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              " i64: " :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i64$Display$to_string :string
-                arg0:
-                  cast → i64
-                    big :u32
-          ~>
+        call :string
+          callee:
+            concat4 :string
+          arg0:
+            "u64: " :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$u64$Display$to_string :string
               arg0:
-                __sb_0 :StringBuilder
+                cast → u64
+                  big :u32
+          arg2:
+            " i64: " :string
+          arg3:
+            call :string
+              callee:
+                std_core$i64$Display$to_string :string
+              arg0:
+                cast → i64
+                  big :u32
     let max32: u32 = int(4294967295) :u32
     let pow31: u32 = int(2147483648) :u32
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_1: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              "max: " :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$u64$Display$to_string :string
-                arg0:
-                  cast → u64
-                    max32 :u32
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              " pow31: " :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$u64$Display$to_string :string
-                arg0:
-                  cast → u64
-                    pow31 :u32
-          ~>
+        call :string
+          callee:
+            concat4 :string
+          arg0:
+            "max: " :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$u64$Display$to_string :string
               arg0:
-                __sb_1 :StringBuilder
+                cast → u64
+                  max32 :u32
+          arg2:
+            " pow31: " :string
+          arg3:
+            call :string
+              callee:
+                std_core$u64$Display$to_string :string
+              arg0:
+                cast → u64
+                  pow31 :u32
     let b8: u8 = int(200) :u8
     let s16: u16 = int(65000) :u16
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_2: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              "u8: " :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$u64$Display$to_string :string
-                arg0:
-                  cast → u64
-                    b8 :u8
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              " u16: " :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$u64$Display$to_string :string
-                arg0:
-                  cast → u64
-                    s16 :u16
-          ~>
+        call :string
+          callee:
+            concat4 :string
+          arg0:
+            "u8: " :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$u64$Display$to_string :string
               arg0:
-                __sb_2 :StringBuilder
+                cast → u64
+                  b8 :u8
+          arg2:
+            " u16: " :string
+          arg3:
+            call :string
+              callee:
+                std_core$u64$Display$to_string :string
+              arg0:
+                cast → u64
+                  s16 :u16
     let umax: u64 = int(18446744073709551615) :u64
     let sz: usize = int(9000000000) :usize
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_3: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              "u64max: " :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$u64$Display$to_string :string
-                arg0:
-                  umax :u64
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              " usize: " :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$usize$Display$to_string :string
-                arg0:
-                  sz :usize
-          ~>
+        call :string
+          callee:
+            concat4 :string
+          arg0:
+            "u64max: " :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$u64$Display$to_string :string
               arg0:
-                __sb_3 :StringBuilder
+                umax :u64
+          arg2:
+            " usize: " :string
+          arg3:
+            call :string
+              callee:
+                std_core$usize$Display$to_string :string
+              arg0:
+                sz :usize
     return int(0) :i32

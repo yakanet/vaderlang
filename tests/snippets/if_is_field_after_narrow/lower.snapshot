@@ -68,148 +68,76 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_0: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              "type_id(s)=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  call :i32
-                    callee:
-                      type_id_of :fn(ArrayVal | IntVal | StructVal) -> i32
-                    arg0:
-                      s :ArrayVal | IntVal | StructVal
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "type_id(s)=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_0 :StringBuilder
+                call :i32
+                  callee:
+                    type_id_of :fn(ArrayVal | IntVal | StructVal) -> i32
+                  arg0:
+                    s :ArrayVal | IntVal | StructVal
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_1: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              "type_id(a)=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  call :i32
-                    callee:
-                      type_id_of :fn(ArrayVal | IntVal | StructVal) -> i32
-                    arg0:
-                      a :ArrayVal | IntVal | StructVal
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "type_id(a)=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_1 :StringBuilder
+                call :i32
+                  callee:
+                    type_id_of :fn(ArrayVal | IntVal | StructVal) -> i32
+                  arg0:
+                    a :ArrayVal | IntVal | StructVal
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_2: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              "type_id(i)=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  call :i32
-                    callee:
-                      type_id_of :fn(ArrayVal | IntVal | StructVal) -> i32
-                    arg0:
-                      i :ArrayVal | IntVal | StructVal
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "type_id(i)=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_2 :StringBuilder
+                call :i32
+                  callee:
+                    type_id_of :fn(ArrayVal | IntVal | StructVal) -> i32
+                  arg0:
+                    i :ArrayVal | IntVal | StructVal
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_3: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              "first(a)=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  call :i32
-                    callee:
-                      first_item :fn(ArrayVal | IntVal | StructVal) -> i32
-                    arg0:
-                      a :ArrayVal | IntVal | StructVal
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "first(a)=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_3 :StringBuilder
+                call :i32
+                  callee:
+                    first_item :fn(ArrayVal | IntVal | StructVal) -> i32
+                  arg0:
+                    a :ArrayVal | IntVal | StructVal
     return int(0) :i32

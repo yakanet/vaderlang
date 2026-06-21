@@ -53,35 +53,17 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_0: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              "deterministic=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$bool$Display$to_string :string
-                arg0:
-                  same :bool
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "deterministic=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$bool$Display$to_string :string
               arg0:
-                __sb_0 :StringBuilder
+                same :bool
     let z: Rng =
       call :Rng
         callee:
@@ -123,35 +105,17 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_1: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              "zero_seed_nonzero=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$bool$Display$to_string :string
-                arg0:
-                  nonzero :bool
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "zero_seed_nonzero=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$bool$Display$to_string :string
               arg0:
-                __sb_1 :StringBuilder
+                nonzero :bool
     let r: Rng =
       call :Rng
         callee:
@@ -211,35 +175,17 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_2: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              "range_i32_in_bounds=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$bool$Display$to_string :string
-                arg0:
-                  in_range :bool
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "range_i32_in_bounds=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$bool$Display$to_string :string
               arg0:
-                __sb_2 :StringBuilder
+                in_range :bool
     let u: Rng =
       call :Rng
         callee:
@@ -295,35 +241,17 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_3: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              "unit_f64_in_bounds=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$bool$Display$to_string :string
-                arg0:
-                  f_in_range :bool
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "unit_f64_in_bounds=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$bool$Display$to_string :string
               arg0:
-                __sb_3 :StringBuilder
+                f_in_range :bool
     let s: Rng =
       call :Rng
         callee:
@@ -352,48 +280,30 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_4: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_4 :StringBuilder
-            arg1:
-              "shuffled_len=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_4 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$usize$Display$to_string :string
-                arg0:
-                  LoweredArrayLen
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "shuffled_len=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$usize$Display$to_string :string
               arg0:
-                __sb_4 :StringBuilder
+                LoweredArrayLen
     let sum: i32 = int(0) :i32
     block :void
-      let __for_arr_5: i32[] = arr :i32[]
-      let __for_len_6: usize =
+      let __for_arr_0: i32[] = arr :i32[]
+      let __for_len_1: usize =
         LoweredArrayLen
-      let __for_i_7: usize = int(0) :usize
+      let __for_i_2: usize = int(0) :usize
       loop while (<…>)
         let x: i32 =
           index :i32
             on:
-              __for_arr_5 :i32[]
+              __for_arr_0 :i32[]
             ix:
-              __for_i_7 :usize
+              __for_i_2 :usize
         assign
           target:
             sum :i32
@@ -405,46 +315,28 @@
                 x :i32
         assign
           target:
-            __for_i_7 :usize
+            __for_i_2 :usize
           value:
             add :usize
               l:
-                __for_i_7 :usize
+                __for_i_2 :usize
               r:
                 int(1) :usize
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_8: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_8 :StringBuilder
-            arg1:
-              "shuffled_sum=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_8 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  sum :i32
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "shuffled_sum=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_8 :StringBuilder
+                sum :i32
     let bs: Rng =
       call :Rng
         callee:
@@ -494,37 +386,19 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_9: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_9 :StringBuilder
-            arg1:
-              "bool_both_seen=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_9 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$bool$Display$to_string :string
-                arg0:
-                  and :bool
-                    l:
-                      seen_t :bool
-                    r:
-                      seen_f :bool
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "bool_both_seen=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$bool$Display$to_string :string
               arg0:
-                __sb_9 :StringBuilder
+                and :bool
+                  l:
+                    seen_t :bool
+                  r:
+                    seen_f :bool
     return int(0) :i32

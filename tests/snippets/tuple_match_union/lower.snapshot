@@ -57,53 +57,21 @@
                       callee:
                         std_io$std_io$println__string :void
                       arg0:
-                        block :string
-                          let __sb_1: StringBuilder =
-                            call :StringBuilder
-                              callee:
-                                new_builder :StringBuilder
-                          call :void
-                            callee:
-                              append :void
-                            arg0:
-                              __sb_1 :StringBuilder
-                            arg1:
-                              "n=" :string
-                          call :void
-                            callee:
-                              append :void
-                            arg0:
-                              __sb_1 :StringBuilder
-                            arg1:
-                              call :string
-                                callee:
-                                  std_core$i32$Display$to_string :string
-                                arg0:
-                                  n :i32
-                          call :void
-                            callee:
-                              append :void
-                            arg0:
-                              __sb_1 :StringBuilder
-                            arg1:
-                              " s=" :string
-                          call :void
-                            callee:
-                              append :void
-                            arg0:
-                              __sb_1 :StringBuilder
-                            arg1:
-                              call :string
-                                callee:
-                                  std_core$string$Display$to_string :string
-                                arg0:
-                                  s :string
-                          ~>
+                        call :string
+                          callee:
+                            concat4 :string
+                          arg0:
+                            "n=" :string
+                          arg1:
                             call :string
                               callee:
-                                std_string_builder$StringBuilder$Display$to_string :string
+                                std_core$i32$Display$to_string :string
                               arg0:
-                                __sb_1 :StringBuilder
+                                n :i32
+                          arg2:
+                            " s=" :string
+                          arg3:
+                            s :string
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -114,12 +82,12 @@
         arg0:
           "missing" :string
     block :void
-      let __scrut_2: [i32, string] | null = b :[i32, string] | null
+      let __scrut_1: [i32, string] | null = b :[i32, string] | null
       ~>
         if :void
           cond:
             is null :bool
-              __scrut_2 :[i32, string] | null
+              __scrut_1 :[i32, string] | null
           then:
             ~>
               call :void
@@ -132,68 +100,36 @@
               if :void
                 cond:
                   is [i32, string] :bool
-                    __scrut_2 :[i32, string] | null
+                    __scrut_1 :[i32, string] | null
                 then:
                   let n: i32 =
                     ._0 :i32
                       cast → [i32, string]
-                        __scrut_2 :[i32, string] | null
+                        __scrut_1 :[i32, string] | null
                   let s: string =
                     ._1 :string
                       cast → [i32, string]
-                        __scrut_2 :[i32, string] | null
+                        __scrut_1 :[i32, string] | null
                   ~>
                     call :void
                       callee:
                         std_io$std_io$println__string :void
                       arg0:
-                        block :string
-                          let __sb_3: StringBuilder =
-                            call :StringBuilder
-                              callee:
-                                new_builder :StringBuilder
-                          call :void
-                            callee:
-                              append :void
-                            arg0:
-                              __sb_3 :StringBuilder
-                            arg1:
-                              "n=" :string
-                          call :void
-                            callee:
-                              append :void
-                            arg0:
-                              __sb_3 :StringBuilder
-                            arg1:
-                              call :string
-                                callee:
-                                  std_core$i32$Display$to_string :string
-                                arg0:
-                                  n :i32
-                          call :void
-                            callee:
-                              append :void
-                            arg0:
-                              __sb_3 :StringBuilder
-                            arg1:
-                              " s=" :string
-                          call :void
-                            callee:
-                              append :void
-                            arg0:
-                              __sb_3 :StringBuilder
-                            arg1:
-                              call :string
-                                callee:
-                                  std_core$string$Display$to_string :string
-                                arg0:
-                                  s :string
-                          ~>
+                        call :string
+                          callee:
+                            concat4 :string
+                          arg0:
+                            "n=" :string
+                          arg1:
                             call :string
                               callee:
-                                std_string_builder$StringBuilder$Display$to_string :string
+                                std_core$i32$Display$to_string :string
                               arg0:
-                                __sb_3 :StringBuilder
+                                n :i32
+                          arg2:
+                            " s=" :string
+                          arg3:
+                            s :string
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void

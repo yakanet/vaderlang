@@ -49,35 +49,17 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_3: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              "map_sum=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  total :i32
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "map_sum=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_3 :StringBuilder
+                total :i32
     let is_even: fn(i32) -> bool =
       LoweredMakeClosure
     let fi: FilterIterator<i32> =
@@ -94,25 +76,25 @@
     let even_count: i32 = int(0) :i32
     let even_sum: i32 = int(0) :i32
     block :void
-      let __iter_5: FilterIterator<i32> = fi :FilterIterator<i32>
+      let __iter_4: FilterIterator<i32> = fi :FilterIterator<i32>
       loop
-        let __step_6: Yield<i32> | null =
+        let __step_5: Yield<i32> | null =
           call :Yield<i32> | null
             callee:
               std_iter$FilterIterator$Iterator$next__i32 :?
             arg0:
-              __iter_5 :FilterIterator<i32>
+              __iter_4 :FilterIterator<i32>
         if :void
           cond:
             is null :bool
-              __step_6 :Yield<i32> | null
+              __step_5 :Yield<i32> | null
           then:
             break
           else:
             let v: i32 =
               .value :i32
                 cast → Yield<i32>
-                  __step_6 :Yield<i32> | null
+                  __step_5 :Yield<i32> | null
             assign
               target:
                 even_count :i32
@@ -135,53 +117,25 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_7: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_7 :StringBuilder
-            arg1:
-              "evens count=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_7 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  even_count :i32
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_7 :StringBuilder
-            arg1:
-              " sum=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_7 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  even_sum :i32
-          ~>
+        call :string
+          callee:
+            concat4 :string
+          arg0:
+            "evens count=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_7 :StringBuilder
+                even_count :i32
+          arg2:
+            " sum=" :string
+          arg3:
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                even_sum :i32
     let ti: TakeIterator<i32> =
       TakeIterator<i32> {
         source:
@@ -197,25 +151,25 @@
       }
     let take_sum: i32 = int(0) :i32
     block :void
-      let __iter_8: TakeIterator<i32> = ti :TakeIterator<i32>
+      let __iter_6: TakeIterator<i32> = ti :TakeIterator<i32>
       loop
-        let __step_9: Yield<i32> | null =
+        let __step_7: Yield<i32> | null =
           call :Yield<i32> | null
             callee:
               std_iter$TakeIterator$Iterator$next__i32 :?
             arg0:
-              __iter_8 :TakeIterator<i32>
+              __iter_6 :TakeIterator<i32>
         if :void
           cond:
             is null :bool
-              __step_9 :Yield<i32> | null
+              __step_7 :Yield<i32> | null
           then:
             break
           else:
             let v: i32 =
               .value :i32
                 cast → Yield<i32>
-                  __step_9 :Yield<i32> | null
+                  __step_7 :Yield<i32> | null
             assign
               target:
                 take_sum :i32
@@ -229,35 +183,17 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_10: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_10 :StringBuilder
-            arg1:
-              "take_sum=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_10 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  take_sum :i32
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "take_sum=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_10 :StringBuilder
+                take_sum :i32
     let si: SkipIterator<i32> =
       SkipIterator<i32> {
         source:
@@ -276,25 +212,25 @@
       neg :{integer}
         int(1) :i32
     block :void
-      let __iter_11: SkipIterator<i32> = si :SkipIterator<i32>
+      let __iter_8: SkipIterator<i32> = si :SkipIterator<i32>
       loop
-        let __step_12: Yield<i32> | null =
+        let __step_9: Yield<i32> | null =
           call :Yield<i32> | null
             callee:
               std_iter$SkipIterator$Iterator$next__i32 :?
             arg0:
-              __iter_11 :SkipIterator<i32>
+              __iter_8 :SkipIterator<i32>
         if :void
           cond:
             is null :bool
-              __step_12 :Yield<i32> | null
+              __step_9 :Yield<i32> | null
           then:
             break
           else:
             let v: i32 =
               .value :i32
                 cast → Yield<i32>
-                  __step_12 :Yield<i32> | null
+                  __step_9 :Yield<i32> | null
             if :void
               cond:
                 lt :bool
@@ -321,53 +257,25 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_13: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_13 :StringBuilder
-            arg1:
-              "skip count=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_13 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  skip_count :i32
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_13 :StringBuilder
-            arg1:
-              " first=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_13 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  skip_first :i32
-          ~>
+        call :string
+          callee:
+            concat4 :string
+          arg0:
+            "skip count=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_13 :StringBuilder
+                skip_count :i32
+          arg2:
+            " first=" :string
+          arg3:
+            call :string
+              callee:
+                std_core$i32$Display$to_string :string
+              arg0:
+                skip_first :i32
     return int(0) :i32
   struct __lambda_env_2 {  }
   fn __lambda_1(__env_0: __lambda_env_2, x: i32) -> i32
@@ -377,8 +285,8 @@
           x :i32
         r:
           x :i32
-  struct __lambda_env_8 {  }
-  fn __lambda_7(__env_4: __lambda_env_8, x: i32) -> bool
+  struct __lambda_env_7 {  }
+  fn __lambda_6(__env_3: __lambda_env_7, x: i32) -> bool
     return
       eq :bool
         l:

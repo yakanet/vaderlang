@@ -2,52 +2,24 @@ module _main
 type 0 primitive null
 type 1 primitive i32
 type 2 primitive bool
-type 3 primitive usize
-type 4 primitive string
-type 5 array 6
-type 6 primitive u8
-type 7 struct std_core$Buffer {  }
-type 8 primitive void
-type 9 array 4
-type 10 struct std_string_builder$StringBuilder { parts:9 }
+type 3 primitive string
+type 4 primitive void
 string 0 "true"
 string 1 "false"
 string 2 "\n"
-string 3 ""
-import 0 bytes std_core$bytes (string) -> ref
-import 1 write std_io$write (i32,string) -> void
-impl 7 ByteAccess
-impl 10 Display
+import 0 write std_io$write (i32,string) -> void
 export main 0
 
 fn 0 snippet$main () -> i32
-  local __sb_0 ref
-  local $call_5 string
-  call 5
-  local.set 0
   i32.const 1
   i32.const 1
   call 1
   call 2
-  local.set 1
-  local.get 0
-  local.get 1
-  call 6
-  local.get 0
-  call 7
   call 4
-  call 5
-  local.set 0
   i32.const 1
   i32.const 2
   call 1
   call 2
-  local.set 1
-  local.get 0
-  local.get 1
-  call 6
-  local.get 0
-  call 7
   call 4
   return.lit i32.const 0
 end
@@ -85,165 +57,9 @@ fn 4 std_io$std_io$println__string (string) -> void
   local.set 1
   i32.const 0
   local.get 1
-  call.import 1
+  call.import 0
   i32.const 0
   string.const 2
-  call.import 1
-  return
-end
-
-fn 5 std_string_builder$new_builder () -> ref
-  array.new 9 0
-  struct.new 10
-  return
-end
-
-fn 6 std_string_builder$append (ref,string) -> void
-  local.field 0 10 0
-  local.get 1
-  array.push 4
-  return
-end
-
-fn 7 std_string_builder$StringBuilder$Display$to_string (ref) -> string
-  local n usize
-  local $k_4 usize
-  local $field_9 ref
-  local __for_i_2 usize
-  local $len_24 usize
-  local $k_26 usize
-  local __for_arr_3 ref
-  local p string
-  local $k_44 usize
-  local.field 0 10 0
-  array.len
-  local.set 1
-  i64.const 0
-  local.set 2
-  local.get 1
-  local.get 2
-  i64.eq
-  if $L0 void
-    return.lit string.const 3
-  end $L0
-  i64.const 1
-  local.set 2
-  local.get 1
-  local.get 2
-  i64.eq
-  if $L1 void
-    local.field 0 10 0
-    local.set 3
-    local.get 3
-    i32.const 0
-    array.get 9
-    ref.cast 4
-    return
-  end $L1
-  i64.const 0
-  local.set 1
-  local.field 0 10 0
-  local.tee 3
-  array.len
-  local.set 2
-  i64.const 0
-  local.set 4
-  block $L2 void
-    loop $L3 void
-      local.get 4
-      local.get 2
-      u64.lt
-      if $L4 void
-        local.get 3
-        local.get 4
-        array.get 9
-        ref.cast 4
-        call.import 0
-        array.len
-        local.set 5
-        local.get 1
-        local.get 5
-        i64.add
-        local.set 1
-        i64.const 1
-        local.set 6
-        local.get 4
-        local.get 6
-        i64.add
-        local.set 4
-        br $L3
-      else
-      end $L4
-    end $L3
-  end $L2
-  local.get 1
-  call 8
-  local.set 3
-  i64.const 0
-  local.set 2
-  local.field 0 10 0
-  local.tee 7
-  array.len
-  local.set 4
-  i64.const 0
-  local.set 5
-  block $L5 void
-    loop $L6 void
-      local.get 5
-      local.get 4
-      u64.lt
-      if $L7 void
-        local.get 7
-        local.get 5
-        array.get 9
-        ref.cast 4
-        local.set 8
-        local.get 3
-        local.get 2
-        local.get 8
-        call 10
-        local.get 8
-        call.import 0
-        array.len
-        local.set 6
-        local.get 2
-        local.get 6
-        i64.add
-        local.set 2
-        i64.const 1
-        local.set 9
-        local.get 5
-        local.get 9
-        i64.add
-        local.set 5
-        br $L6
-      else
-      end $L7
-    end $L6
-  end $L5
-  local.get 3
-  local.get 1
-  call 9
-  return
-end
-
-fn 8 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
-  local.get 0
-  object_new 0
-  return
-end
-
-fn 9 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
-  local.get 0
-  local.get 1
-  buffer_to_string
-  return
-end
-
-fn 10 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
-  local.get 0
-  local.get 1
-  local.get 2
-  buffer_write_string
+  call.import 0
   return
 end

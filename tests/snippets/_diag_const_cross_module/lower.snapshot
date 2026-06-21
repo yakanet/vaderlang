@@ -6,56 +6,22 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_0: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$f64$Display$to_string :string
-                arg0:
-                  pi :f64
-          ~>
-            call :string
-              callee:
-                std_string_builder$StringBuilder$Display$to_string :string
-              arg0:
-                __sb_0 :StringBuilder
+        call :string
+          callee:
+            std_core$f64$Display$to_string :string
+          arg0:
+            pi :f64
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_1: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$f64$Display$to_string :string
-                arg0:
-                  mul :f64
-                    l:
-                      pi :f64
-                    r:
-                      float(2) :f64
-          ~>
-            call :string
-              callee:
-                std_string_builder$StringBuilder$Display$to_string :string
-              arg0:
-                __sb_1 :StringBuilder
+        call :string
+          callee:
+            std_core$f64$Display$to_string :string
+          arg0:
+            mul :f64
+              l:
+                pi :f64
+              r:
+                float(2) :f64
     return int(0) :i32

@@ -3,35 +3,17 @@
 ## snippet
   fn snippet$view_of(seed: i32) -> const u8[]
     let s: string =
-      block :string
-        let __sb_0: StringBuilder =
-          call :StringBuilder
-            callee:
-              new_builder :StringBuilder
-        call :void
-          callee:
-            append :void
-          arg0:
-            __sb_0 :StringBuilder
-          arg1:
-            "vader-byte-view-payload-" :string
-        call :void
-          callee:
-            append :void
-          arg0:
-            __sb_0 :StringBuilder
-          arg1:
-            call :string
-              callee:
-                std_core$i32$Display$to_string :string
-              arg0:
-                seed :i32
-        ~>
+      call :string
+        callee:
+          concat2 :string
+        arg0:
+          "vader-byte-view-payload-" :string
+        arg1:
           call :string
             callee:
-              std_string_builder$StringBuilder$Display$to_string :string
+              std_core$i32$Display$to_string :string
             arg0:
-              __sb_0 :StringBuilder
+              seed :i32
     return
       call :const u8[]
         callee:
@@ -201,33 +183,15 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_0: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              "ok: 4 byte views survived 2 major GCs; sum=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$u64$Display$to_string :string
-                arg0:
-                  total :u64
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "ok: 4 byte views survived 2 major GCs; sum=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$u64$Display$to_string :string
               arg0:
-                __sb_0 :StringBuilder
+                total :u64
     return int(0) :i32

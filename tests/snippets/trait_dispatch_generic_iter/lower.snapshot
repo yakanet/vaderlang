@@ -65,76 +65,40 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_0: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              "repeat=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  call :i32
-                    callee:
-                      walk :fn(Iterator<i32>) -> i32
-                    arg0:
-                      r :Repeat<i32>
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "repeat=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_0 :StringBuilder
+                call :i32
+                  callee:
+                    walk :fn(Iterator<i32>) -> i32
+                  arg0:
+                    r :Repeat<i32>
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_1: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              "once=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  call :i32
-                    callee:
-                      walk :fn(Iterator<i32>) -> i32
-                    arg0:
-                      o :Once<i32>
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "once=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_1 :StringBuilder
+                call :i32
+                  callee:
+                    walk :fn(Iterator<i32>) -> i32
+                  arg0:
+                    o :Once<i32>
     return int(0) :i32
   struct snippet$Repeat__i32 { value: i32, remaining: i32 }
   fn snippet$Repeat$Iterator$next__i32(self: Repeat<i32>) -> null | Yield<i32>

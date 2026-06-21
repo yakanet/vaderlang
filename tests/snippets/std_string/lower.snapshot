@@ -7,32 +7,15 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_0: StringBuilder =
-            call :StringBuilder
+        call :string
+          callee:
+            std_core$usize$Display$to_string :string
+          arg0:
+            call :usize
               callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$usize$Display$to_string :string
-                arg0:
-                  call :usize
-                    callee:
-                      byte_len :fn(string) -> usize
-                    arg0:
-                      s :string
-          ~>
-            call :string
-              callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                byte_len :fn(string) -> usize
               arg0:
-                __sb_0 :StringBuilder
+                s :string
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -64,98 +47,47 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_1: StringBuilder =
-            call :StringBuilder
+        call :string
+          callee:
+            std_core$bool$Display$to_string :string
+          arg0:
+            call :bool
               callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$bool$Display$to_string :string
-                arg0:
-                  call :bool
-                    callee:
-                      std_string$string$Contains$contains :bool
-                    arg0:
-                      "foobar" :string
-                    arg1:
-                      "oba" :string
-          ~>
-            call :string
-              callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_string$string$Contains$contains :bool
               arg0:
-                __sb_1 :StringBuilder
+                "foobar" :string
+              arg1:
+                "oba" :string
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_2: StringBuilder =
-            call :StringBuilder
+        call :string
+          callee:
+            std_core$bool$Display$to_string :string
+          arg0:
+            call :bool
               callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$bool$Display$to_string :string
-                arg0:
-                  call :bool
-                    callee:
-                      starts_with :bool
-                    arg0:
-                      "foobar" :string
-                    arg1:
-                      "foo" :string
-          ~>
-            call :string
-              callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                starts_with :bool
               arg0:
-                __sb_2 :StringBuilder
+                "foobar" :string
+              arg1:
+                "foo" :string
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_3: StringBuilder =
-            call :StringBuilder
+        call :string
+          callee:
+            std_core$bool$Display$to_string :string
+          arg0:
+            call :bool
               callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$bool$Display$to_string :string
-                arg0:
-                  call :bool
-                    callee:
-                      ends_with :bool
-                    arg0:
-                      "foobar" :string
-                    arg1:
-                      "bar" :string
-          ~>
-            call :string
-              callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                ends_with :bool
               arg0:
-                __sb_3 :StringBuilder
+                "foobar" :string
+              arg1:
+                "bar" :string
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -181,130 +113,62 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_4: StringBuilder =
-            call :StringBuilder
+        call :string
+          callee:
+            std_core$char$Display$to_string :string
+          arg0:
+            call :char
               callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_4 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$char$Display$to_string :string
-                arg0:
-                  call :char
-                    callee:
-                      std_core$string$Index$at :char
-                    arg0:
-                      "hello" :string
-                    arg1:
-                      int(1) :i32
-          ~>
-            call :string
-              callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$string$Index$at :char
               arg0:
-                __sb_4 :StringBuilder
+                "hello" :string
+              arg1:
+                int(1) :i32
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_5: StringBuilder =
-            call :StringBuilder
+        call :string
+          callee:
+            std_core$char$Display$to_string :string
+          arg0:
+            call :char
               callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_5 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$char$Display$to_string :string
-                arg0:
-                  call :char
-                    callee:
-                      std_core$string$Index$at :char
-                    arg0:
-                      "你好嗎？" :string
-                    arg1:
-                      int(0) :i32
-          ~>
-            call :string
-              callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$string$Index$at :char
               arg0:
-                __sb_5 :StringBuilder
+                "你好嗎？" :string
+              arg1:
+                int(0) :i32
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_6: StringBuilder =
-            call :StringBuilder
+        call :string
+          callee:
+            std_core$char$Display$to_string :string
+          arg0:
+            call :char
               callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_6 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$char$Display$to_string :string
-                arg0:
-                  call :char
-                    callee:
-                      std_core$string$Index$at :char
-                    arg0:
-                      "你好嗎？" :string
-                    arg1:
-                      int(1) :i32
-          ~>
-            call :string
-              callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$string$Index$at :char
               arg0:
-                __sb_6 :StringBuilder
+                "你好嗎？" :string
+              arg1:
+                int(1) :i32
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_7: StringBuilder =
-            call :StringBuilder
+        call :string
+          callee:
+            std_core$char$Display$to_string :string
+          arg0:
+            call :char
               callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_7 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$char$Display$to_string :string
-                arg0:
-                  call :char
-                    callee:
-                      std_core$string$Index$at :char
-                    arg0:
-                      "你好嗎？" :string
-                    arg1:
-                      int(3) :i32
-          ~>
-            call :string
-              callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$string$Index$at :char
               arg0:
-                __sb_7 :StringBuilder
+                "你好嗎？" :string
+              arg1:
+                int(3) :i32
     let parts: string[] =
       call :string[]
         callee:

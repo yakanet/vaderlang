@@ -26,11 +26,7 @@
             arg0:
               __sb_0 :StringBuilder
             arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  name :string
+              name :string
           call :void
             callee:
               append :void

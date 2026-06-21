@@ -277,12 +277,8 @@
             arg0:
               __sb_1 :StringBuilder
             arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  .v :string
-                    bs :Box<string>
+              .v :string
+                bs :Box<string>
           ~>
             call :string
               callee:
@@ -445,13 +441,9 @@
             arg1:
               call :string
                 callee:
-                  std_core$string$Display$to_string :string
+                  snippet$snippet$unwrap__string :string
                 arg0:
-                  call :string
-                    callee:
-                      snippet$snippet$unwrap__string :string
-                    arg0:
-                      bs :Box<string>
+                  bs :Box<string>
           ~>
             call :string
               callee:

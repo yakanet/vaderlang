@@ -2,121 +2,45 @@
 
 ## snippet
   const snippet$simple: string =
-    block :string
-      let __sb_0: StringBuilder =
-        call :StringBuilder
-          callee:
-            new_builder :StringBuilder
-      call :void
-        callee:
-          append :void
-        arg0:
-          __sb_0 :StringBuilder
-        arg1:
-          "hello " :string
-      call :void
-        callee:
-          append :void
-        arg0:
-          __sb_0 :StringBuilder
-        arg1:
-          vcall Display.to_string :string
-            recv:
-              unreachable("unresolved ident name") :?
-      ~>
-        call :string
-          callee:
-            std_string_builder$StringBuilder$Display$to_string :string
-          arg0:
-            __sb_0 :StringBuilder
+    call :string
+      callee:
+        concat2 :string
+      arg0:
+        "hello " :string
+      arg1:
+        vcall Display.to_string :string
+          recv:
+            unreachable("unresolved ident name") :?
   const snippet$expr: string =
-    block :string
-      let __sb_0: StringBuilder =
-        call :StringBuilder
-          callee:
-            new_builder :StringBuilder
-      call :void
-        callee:
-          append :void
-        arg0:
-          __sb_0 :StringBuilder
-        arg1:
-          "result: " :string
-      call :void
-        callee:
-          append :void
-        arg0:
-          __sb_0 :StringBuilder
-        arg1:
-          vcall Display.to_string :string
-            recv:
-              add :?
-                l:
-                  unreachable("unresolved ident x") :?
-                r:
-                  int(1) :i32
-      ~>
-        call :string
-          callee:
-            std_string_builder$StringBuilder$Display$to_string :string
-          arg0:
-            __sb_0 :StringBuilder
+    call :string
+      callee:
+        concat2 :string
+      arg0:
+        "result: " :string
+      arg1:
+        vcall Display.to_string :string
+          recv:
+            add :?
+              l:
+                unreachable("unresolved ident x") :?
+              r:
+                int(1) :i32
   const snippet$nested: string =
-    block :string
-      let __sb_0: StringBuilder =
-        call :StringBuilder
-          callee:
-            new_builder :StringBuilder
-      call :void
-        callee:
-          append :void
-        arg0:
-          __sb_0 :StringBuilder
-        arg1:
-          "outer " :string
-      call :void
-        callee:
-          append :void
-        arg0:
-          __sb_0 :StringBuilder
-        arg1:
-          call :string
-            callee:
-              std_core$string$Display$to_string :string
-            arg0:
-              block :string
-                let __sb_1: StringBuilder =
-                  call :StringBuilder
-                    callee:
-                      new_builder :StringBuilder
-                call :void
-                  callee:
-                    append :void
-                  arg0:
-                    __sb_1 :StringBuilder
-                  arg1:
-                    "inner " :string
-                call :void
-                  callee:
-                    append :void
-                  arg0:
-                    __sb_1 :StringBuilder
-                  arg1:
-                    vcall Display.to_string :string
-                      recv:
-                        unreachable("unresolved ident y") :?
-                ~>
-                  call :string
-                    callee:
-                      std_string_builder$StringBuilder$Display$to_string :string
-                    arg0:
-                      __sb_1 :StringBuilder
-      ~>
+    call :string
+      callee:
+        concat2 :string
+      arg0:
+        "outer " :string
+      arg1:
         call :string
           callee:
-            std_string_builder$StringBuilder$Display$to_string :string
+            concat2 :string
           arg0:
-            __sb_0 :StringBuilder
+            "inner " :string
+          arg1:
+            vcall Display.to_string :string
+              recv:
+                unreachable("unresolved ident y") :?
 
 # Diagnostics
 [3:26] error[R2006] unresolved identifier: `name`

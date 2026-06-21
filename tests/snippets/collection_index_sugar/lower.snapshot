@@ -64,35 +64,17 @@
                 callee:
                   std_io$std_io$println__string :void
                 arg0:
-                  block :string
-                    let __sb_1: StringBuilder =
-                      call :StringBuilder
-                        callee:
-                          new_builder :StringBuilder
-                    call :void
-                      callee:
-                        append :void
-                      arg0:
-                        __sb_1 :StringBuilder
-                      arg1:
-                        "a=" :string
-                    call :void
-                      callee:
-                        append :void
-                      arg0:
-                        __sb_1 :StringBuilder
-                      arg1:
-                        call :string
-                          callee:
-                            std_core$i32$Display$to_string :string
-                          arg0:
-                            v :i32
-                    ~>
+                  call :string
+                    callee:
+                      concat2 :string
+                    arg0:
+                      "a=" :string
+                    arg1:
                       call :string
                         callee:
-                          std_string_builder$StringBuilder$Display$to_string :string
+                          std_core$i32$Display$to_string :string
                         arg0:
-                          __sb_1 :StringBuilder
+                          v :i32
           else:
             ~>
               if :void
@@ -110,7 +92,7 @@
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
     block :void
-      let __scrut_2: i32 | null =
+      let __scrut_1: i32 | null =
         call :i32 | null
           callee:
             std_collections$MutableMap$Index$at__string__i32 :i32 | null
@@ -122,7 +104,7 @@
         if :void
           cond:
             is i32 :bool
-              __scrut_2 :i32 | null
+              __scrut_1 :i32 | null
           then:
             ~>
               call :void
@@ -135,7 +117,7 @@
               if :void
                 cond:
                   is null :bool
-                    __scrut_2 :i32 | null
+                    __scrut_1 :i32 | null
                 then:
                   ~>
                     call :void

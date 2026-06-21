@@ -23,35 +23,17 @@
           callee:
             std_io$std_io$println__string :void
           arg0:
-            block :string
-              let __sb_3: StringBuilder =
-                call :StringBuilder
-                  callee:
-                    new_builder :StringBuilder
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_3 :StringBuilder
-                arg1:
-                  "score=" :string
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_3 :StringBuilder
-                arg1:
-                  call :string
-                    callee:
-                      std_core$i32$Display$to_string :string
-                    arg0:
-                      s :i32
-              ~>
+            call :string
+              callee:
+                concat2 :string
+              arg0:
+                "score=" :string
+              arg1:
                 call :string
                   callee:
-                    std_string_builder$StringBuilder$Display$to_string :string
+                    std_core$i32$Display$to_string :string
                   arg0:
-                    __sb_3 :StringBuilder
+                    s :i32
         assign
           target:
             __for_i_2 :usize
@@ -70,68 +52,28 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_4: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_4 :StringBuilder
-            arg1:
-              "id=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_4 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$i32$Display$to_string :string
-                arg0:
-                  ._0 :i32
-                    entry :[i32, string]
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "id=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                std_core$i32$Display$to_string :string
               arg0:
-                __sb_4 :StringBuilder
+                ._0 :i32
+                  entry :[i32, string]
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_5: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_5 :StringBuilder
-            arg1:
-              "label=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_5 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  ._1 :string
-                    entry :[i32, string]
-          ~>
-            call :string
-              callee:
-                std_string_builder$StringBuilder$Display$to_string :string
-              arg0:
-                __sb_5 :StringBuilder
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "label=" :string
+          arg1:
+            ._1 :string
+              entry :[i32, string]
     return int(0) :i32

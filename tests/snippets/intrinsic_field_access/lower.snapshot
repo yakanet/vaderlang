@@ -8,92 +8,34 @@
         callee:
           std_io$std_io$println__string :void
         arg0:
-          block :string
-            let __sb_0: StringBuilder =
-              call :StringBuilder
-                callee:
-                  new_builder :StringBuilder
-            call :void
-              callee:
-                append :void
-              arg0:
-                __sb_0 :StringBuilder
-              arg1:
-                call :string
-                  callee:
-                    std_core$string$Display$to_string :string
-                  arg0:
-                    "name" :string
-            call :void
-              callee:
-                append :void
-              arg0:
-                __sb_0 :StringBuilder
-              arg1:
-                ": " :string
-            call :void
-              callee:
-                append :void
-              arg0:
-                __sb_0 :StringBuilder
-              arg1:
-                call :string
-                  callee:
-                    std_core$string$Display$to_string :string
-                  arg0:
-                    .name :string
-                      self :User
-            ~>
-              call :string
-                callee:
-                  std_string_builder$StringBuilder$Display$to_string :string
-                arg0:
-                  __sb_0 :StringBuilder
+          call :string
+            callee:
+              concat3 :string
+            arg0:
+              "name" :string
+            arg1:
+              ": " :string
+            arg2:
+              .name :string
+                self :User
       call :void
         callee:
           std_io$std_io$println__string :void
         arg0:
-          block :string
-            let __sb_1: StringBuilder =
-              call :StringBuilder
-                callee:
-                  new_builder :StringBuilder
-            call :void
-              callee:
-                append :void
-              arg0:
-                __sb_1 :StringBuilder
-              arg1:
-                call :string
-                  callee:
-                    std_core$string$Display$to_string :string
-                  arg0:
-                    "age" :string
-            call :void
-              callee:
-                append :void
-              arg0:
-                __sb_1 :StringBuilder
-              arg1:
-                ": " :string
-            call :void
-              callee:
-                append :void
-              arg0:
-                __sb_1 :StringBuilder
-              arg1:
-                call :string
-                  callee:
-                    std_core$i32$Display$to_string :string
-                  arg0:
-                    .age :i32
-                      self :User
-            ~>
+          call :string
+            callee:
+              concat3 :string
+            arg0:
+              "age" :string
+            arg1:
+              ": " :string
+            arg2:
               call :string
                 callee:
-                  std_string_builder$StringBuilder$Display$to_string :string
+                  std_core$i32$Display$to_string :string
                 arg0:
-                  __sb_1 :StringBuilder
+                  .age :i32
+                    self :User
   fn snippet$main() -> i32
     let u: User =
       User {
@@ -122,12 +64,8 @@
             arg0:
               __sb_0 :StringBuilder
             arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  .name :string
-                    u :User
+              .name :string
+                u :User
           call :void
             callee:
               append :void

@@ -19,349 +19,155 @@
               callee:
                 std_io$std_io$println__string :void
               arg0:
-                block :string
-                  let __sb_0: StringBuilder =
-                    call :StringBuilder
-                      callee:
-                        new_builder :StringBuilder
-                  call :void
-                    callee:
-                      append :void
-                    arg0:
-                      __sb_0 :StringBuilder
-                    arg1:
-                      call :string
-                        callee:
-                          std_core$string$Display$to_string :string
-                        arg0:
-                          label :string
-                  call :void
-                    callee:
-                      append :void
-                    arg0:
-                      __sb_0 :StringBuilder
-                    arg1:
-                      "=ERR:" :string
-                  call :void
-                    callee:
-                      append :void
-                    arg0:
-                      __sb_0 :StringBuilder
-                    arg1:
-                      call :string
-                        callee:
-                          std_core$string$Display$to_string :string
-                        arg0:
-                          call :string
-                            callee:
-                              std_base64$Base64Error$Error$message :string
-                            arg0:
-                              cast → Base64Error
-                                out :Base64Error | u8[]
-                  ~>
+                call :string
+                  callee:
+                    concat3 :string
+                  arg0:
+                    label :string
+                  arg1:
+                    "=ERR:" :string
+                  arg2:
                     call :string
                       callee:
-                        std_string_builder$StringBuilder$Display$to_string :string
+                        std_base64$Base64Error$Error$message :string
                       arg0:
-                        __sb_0 :StringBuilder
+                        cast → Base64Error
+                          out :Base64Error | u8[]
         else:
           ~>
             call :void
               callee:
                 std_io$std_io$println__string :void
               arg0:
-                block :string
-                  let __sb_1: StringBuilder =
-                    call :StringBuilder
-                      callee:
-                        new_builder :StringBuilder
-                  call :void
-                    callee:
-                      append :void
-                    arg0:
-                      __sb_1 :StringBuilder
-                    arg1:
-                      call :string
-                        callee:
-                          std_core$string$Display$to_string :string
-                        arg0:
-                          label :string
-                  call :void
-                    callee:
-                      append :void
-                    arg0:
-                      __sb_1 :StringBuilder
-                    arg1:
-                      "=" :string
-                  call :void
-                    callee:
-                      append :void
-                    arg0:
-                      __sb_1 :StringBuilder
-                    arg1:
-                      call :string
-                        callee:
-                          std_core$string$Display$to_string :string
-                        arg0:
-                          call :string
-                            callee:
-                              bytes_to_string :string
-                            arg0:
-                              cast → u8[]
-                                out :Base64Error | u8[]
-                  ~>
+                call :string
+                  callee:
+                    concat3 :string
+                  arg0:
+                    label :string
+                  arg1:
+                    "=" :string
+                  arg2:
                     call :string
                       callee:
-                        std_string_builder$StringBuilder$Display$to_string :string
+                        bytes_to_string :string
                       arg0:
-                        __sb_1 :StringBuilder
+                        cast → u8[]
+                          out :Base64Error | u8[]
   fn snippet$main() -> i32
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_0: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              "enc-f=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  call :string
-                    callee:
-                      encode :fn(const u8[]) -> string
-                    arg0:
-                      call :const u8[]
-                        callee:
-                          bytes :const u8[]
-                        arg0:
-                          "f" :string
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "enc-f=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                encode :fn(const u8[]) -> string
               arg0:
-                __sb_0 :StringBuilder
+                call :const u8[]
+                  callee:
+                    bytes :const u8[]
+                  arg0:
+                    "f" :string
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_1: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              "enc-fo=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  call :string
-                    callee:
-                      encode :fn(const u8[]) -> string
-                    arg0:
-                      call :const u8[]
-                        callee:
-                          bytes :const u8[]
-                        arg0:
-                          "fo" :string
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "enc-fo=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                encode :fn(const u8[]) -> string
               arg0:
-                __sb_1 :StringBuilder
+                call :const u8[]
+                  callee:
+                    bytes :const u8[]
+                  arg0:
+                    "fo" :string
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_2: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              "enc-foo=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  call :string
-                    callee:
-                      encode :fn(const u8[]) -> string
-                    arg0:
-                      call :const u8[]
-                        callee:
-                          bytes :const u8[]
-                        arg0:
-                          "foo" :string
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "enc-foo=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                encode :fn(const u8[]) -> string
               arg0:
-                __sb_2 :StringBuilder
+                call :const u8[]
+                  callee:
+                    bytes :const u8[]
+                  arg0:
+                    "foo" :string
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_3: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              "enc-foob=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  call :string
-                    callee:
-                      encode :fn(const u8[]) -> string
-                    arg0:
-                      call :const u8[]
-                        callee:
-                          bytes :const u8[]
-                        arg0:
-                          "foob" :string
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "enc-foob=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                encode :fn(const u8[]) -> string
               arg0:
-                __sb_3 :StringBuilder
+                call :const u8[]
+                  callee:
+                    bytes :const u8[]
+                  arg0:
+                    "foob" :string
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_4: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_4 :StringBuilder
-            arg1:
-              "enc-fooba=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_4 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  call :string
-                    callee:
-                      encode :fn(const u8[]) -> string
-                    arg0:
-                      call :const u8[]
-                        callee:
-                          bytes :const u8[]
-                        arg0:
-                          "fooba" :string
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "enc-fooba=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                encode :fn(const u8[]) -> string
               arg0:
-                __sb_4 :StringBuilder
+                call :const u8[]
+                  callee:
+                    bytes :const u8[]
+                  arg0:
+                    "fooba" :string
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        block :string
-          let __sb_5: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_5 :StringBuilder
-            arg1:
-              "enc-foobar=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_5 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  call :string
-                    callee:
-                      encode :fn(const u8[]) -> string
-                    arg0:
-                      call :const u8[]
-                        callee:
-                          bytes :const u8[]
-                        arg0:
-                          "foobar" :string
-          ~>
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "enc-foobar=" :string
+          arg1:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                encode :fn(const u8[]) -> string
               arg0:
-                __sb_5 :StringBuilder
+                call :const u8[]
+                  callee:
+                    bytes :const u8[]
+                  arg0:
+                    "foobar" :string
     call :void
       callee:
         show_decode :fn(string, string) -> void
@@ -412,17 +218,17 @@
         "ab" :string
         "The quick brown fox" :string
     block :void
-      let __for_arr_6: string[] = inputs :string[]
-      let __for_len_7: usize =
+      let __for_arr_0: string[] = inputs :string[]
+      let __for_len_1: usize =
         LoweredArrayLen
-      let __for_i_8: usize = int(0) :usize
+      let __for_i_2: usize = int(0) :usize
       loop while (<…>)
         let s: string =
           index :string
             on:
-              __for_arr_6 :string[]
+              __for_arr_0 :string[]
             ix:
-              __for_i_8 :usize
+              __for_i_2 :usize
         let decoded: Base64Error | u8[] =
           call :Base64Error | u8[]
             callee:
@@ -447,111 +253,52 @@
                 callee:
                   std_io$std_io$println__string :void
                 arg0:
-                  block :string
-                    let __sb_9: StringBuilder =
-                      call :StringBuilder
-                        callee:
-                          new_builder :StringBuilder
-                    call :void
-                      callee:
-                        append :void
-                      arg0:
-                        __sb_9 :StringBuilder
-                      arg1:
-                        "roundtrip-" :string
-                    call :void
-                      callee:
-                        append :void
-                      arg0:
-                        __sb_9 :StringBuilder
-                      arg1:
-                        call :string
-                          callee:
-                            std_core$string$Display$to_string :string
-                          arg0:
-                            s :string
-                    call :void
-                      callee:
-                        append :void
-                      arg0:
-                        __sb_9 :StringBuilder
-                      arg1:
-                        "=ERR" :string
-                    ~>
-                      call :string
-                        callee:
-                          std_string_builder$StringBuilder$Display$to_string :string
-                        arg0:
-                          __sb_9 :StringBuilder
+                  call :string
+                    callee:
+                      concat3 :string
+                    arg0:
+                      "roundtrip-" :string
+                    arg1:
+                      s :string
+                    arg2:
+                      "=ERR" :string
           else:
             ~>
               call :void
                 callee:
                   std_io$std_io$println__string :void
                 arg0:
-                  block :string
-                    let __sb_10: StringBuilder =
-                      call :StringBuilder
-                        callee:
-                          new_builder :StringBuilder
-                    call :void
-                      callee:
-                        append :void
-                      arg0:
-                        __sb_10 :StringBuilder
-                      arg1:
-                        "roundtrip-" :string
-                    call :void
-                      callee:
-                        append :void
-                      arg0:
-                        __sb_10 :StringBuilder
-                      arg1:
-                        call :string
-                          callee:
-                            std_core$string$Display$to_string :string
-                          arg0:
-                            s :string
-                    call :void
-                      callee:
-                        append :void
-                      arg0:
-                        __sb_10 :StringBuilder
-                      arg1:
-                        "=" :string
-                    call :void
-                      callee:
-                        append :void
-                      arg0:
-                        __sb_10 :StringBuilder
-                      arg1:
-                        call :string
-                          callee:
-                            std_core$bool$Display$to_string :string
-                          arg0:
-                            eq :bool
-                              l:
-                                call :string
-                                  callee:
-                                    bytes_to_string :string
-                                  arg0:
-                                    cast → u8[]
-                                      decoded :Base64Error | u8[]
-                              r:
-                                s :string
-                    ~>
+                  call :string
+                    callee:
+                      concat4 :string
+                    arg0:
+                      "roundtrip-" :string
+                    arg1:
+                      s :string
+                    arg2:
+                      "=" :string
+                    arg3:
                       call :string
                         callee:
-                          std_string_builder$StringBuilder$Display$to_string :string
+                          std_core$bool$Display$to_string :string
                         arg0:
-                          __sb_10 :StringBuilder
+                          eq :bool
+                            l:
+                              call :string
+                                callee:
+                                  bytes_to_string :string
+                                arg0:
+                                  cast → u8[]
+                                    decoded :Base64Error | u8[]
+                            r:
+                              s :string
         assign
           target:
-            __for_i_8 :usize
+            __for_i_2 :usize
           value:
             add :usize
               l:
-                __for_i_8 :usize
+                __for_i_2 :usize
               r:
                 int(1) :usize
     call :void

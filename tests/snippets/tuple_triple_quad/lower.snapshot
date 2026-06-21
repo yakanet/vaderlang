@@ -42,12 +42,8 @@
             arg0:
               __sb_0 :StringBuilder
             arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  ._1 :string
-                    triple :[i32, string, bool]
+              ._1 :string
+                triple :[i32, string, bool]
           call :void
             callee:
               append :void
@@ -114,12 +110,8 @@
             arg0:
               __sb_1 :StringBuilder
             arg1:
-              call :string
-                callee:
-                  std_core$string$Display$to_string :string
-                arg0:
-                  ._1 :string
-                    quad :[i32, string, bool, f64]
+              ._1 :string
+                quad :[i32, string, bool, f64]
           call :void
             callee:
               append :void

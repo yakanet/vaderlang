@@ -11,69 +11,25 @@
           p :Cat | Dog
       then:
         return
-          block :string
-            let __sb_0: StringBuilder =
-              call :StringBuilder
-                callee:
-                  new_builder :StringBuilder
-            call :void
-              callee:
-                append :void
-              arg0:
-                __sb_0 :StringBuilder
-              arg1:
-                "cat " :string
-            call :void
-              callee:
-                append :void
-              arg0:
-                __sb_0 :StringBuilder
-              arg1:
-                call :string
-                  callee:
-                    std_core$string$Display$to_string :string
-                  arg0:
-                    .name :string
-                      cast → Cat
-                        p :Cat | Dog
-            ~>
-              call :string
-                callee:
-                  std_string_builder$StringBuilder$Display$to_string :string
-                arg0:
-                  __sb_0 :StringBuilder
-    return
-      block :string
-        let __sb_1: StringBuilder =
-          call :StringBuilder
-            callee:
-              new_builder :StringBuilder
-        call :void
-          callee:
-            append :void
-          arg0:
-            __sb_1 :StringBuilder
-          arg1:
-            "dog says " :string
-        call :void
-          callee:
-            append :void
-          arg0:
-            __sb_1 :StringBuilder
-          arg1:
-            call :string
-              callee:
-                std_core$string$Display$to_string :string
-              arg0:
-                .sound :string
-                  cast → Dog
-                    p :Cat | Dog
-        ~>
           call :string
             callee:
-              std_string_builder$StringBuilder$Display$to_string :string
+              concat2 :string
             arg0:
-              __sb_1 :StringBuilder
+              "cat " :string
+            arg1:
+              .name :string
+                cast → Cat
+                  p :Cat | Dog
+    return
+      call :string
+        callee:
+          concat2 :string
+        arg0:
+          "dog says " :string
+        arg1:
+          .sound :string
+            cast → Dog
+              p :Cat | Dog
   fn snippet$negated(p: Cat | Dog) -> string
     if :void
       cond:
@@ -82,69 +38,25 @@
             p :Cat | Dog
       then:
         return
-          block :string
-            let __sb_0: StringBuilder =
-              call :StringBuilder
-                callee:
-                  new_builder :StringBuilder
-            call :void
-              callee:
-                append :void
-              arg0:
-                __sb_0 :StringBuilder
-              arg1:
-                "dog says " :string
-            call :void
-              callee:
-                append :void
-              arg0:
-                __sb_0 :StringBuilder
-              arg1:
-                call :string
-                  callee:
-                    std_core$string$Display$to_string :string
-                  arg0:
-                    .sound :string
-                      cast → Dog
-                        p :Cat | Dog
-            ~>
-              call :string
-                callee:
-                  std_string_builder$StringBuilder$Display$to_string :string
-                arg0:
-                  __sb_0 :StringBuilder
-    return
-      block :string
-        let __sb_1: StringBuilder =
-          call :StringBuilder
-            callee:
-              new_builder :StringBuilder
-        call :void
-          callee:
-            append :void
-          arg0:
-            __sb_1 :StringBuilder
-          arg1:
-            "cat " :string
-        call :void
-          callee:
-            append :void
-          arg0:
-            __sb_1 :StringBuilder
-          arg1:
-            call :string
-              callee:
-                std_core$string$Display$to_string :string
-              arg0:
-                .name :string
-                  cast → Cat
-                    p :Cat | Dog
-        ~>
           call :string
             callee:
-              std_string_builder$StringBuilder$Display$to_string :string
+              concat2 :string
             arg0:
-              __sb_1 :StringBuilder
+              "dog says " :string
+            arg1:
+              .sound :string
+                cast → Dog
+                  p :Cat | Dog
+    return
+      call :string
+        callee:
+          concat2 :string
+        arg0:
+          "cat " :string
+        arg1:
+          .name :string
+            cast → Cat
+              p :Cat | Dog
   fn snippet$cascade(p: Cat | Dog | Pig) -> string
     if :void
       cond:
@@ -152,113 +64,46 @@
           p :Cat | Dog | Pig
       then:
         return
-          block :string
-            let __sb_0: StringBuilder =
-              call :StringBuilder
-                callee:
-                  new_builder :StringBuilder
-            call :void
-              callee:
-                append :void
-              arg0:
-                __sb_0 :StringBuilder
-              arg1:
-                "cat " :string
-            call :void
-              callee:
-                append :void
-              arg0:
-                __sb_0 :StringBuilder
-              arg1:
-                call :string
-                  callee:
-                    std_core$string$Display$to_string :string
-                  arg0:
-                    .name :string
-                      cast → Cat
-                        p :Cat | Dog | Pig
-            ~>
-              call :string
-                callee:
-                  std_string_builder$StringBuilder$Display$to_string :string
-                arg0:
-                  __sb_0 :StringBuilder
+          call :string
+            callee:
+              concat2 :string
+            arg0:
+              "cat " :string
+            arg1:
+              .name :string
+                cast → Cat
+                  p :Cat | Dog | Pig
     if :void
       cond:
         is Dog :bool
           p :Cat | Dog | Pig
       then:
         return
-          block :string
-            let __sb_1: StringBuilder =
-              call :StringBuilder
-                callee:
-                  new_builder :StringBuilder
-            call :void
-              callee:
-                append :void
-              arg0:
-                __sb_1 :StringBuilder
-              arg1:
-                "dog says " :string
-            call :void
-              callee:
-                append :void
-              arg0:
-                __sb_1 :StringBuilder
-              arg1:
-                call :string
-                  callee:
-                    std_core$string$Display$to_string :string
-                  arg0:
-                    .sound :string
-                      cast → Dog
-                        p :Cat | Dog | Pig
-            ~>
-              call :string
-                callee:
-                  std_string_builder$StringBuilder$Display$to_string :string
-                arg0:
-                  __sb_1 :StringBuilder
-    return
-      block :string
-        let __sb_2: StringBuilder =
-          call :StringBuilder
-            callee:
-              new_builder :StringBuilder
-        call :void
-          callee:
-            append :void
-          arg0:
-            __sb_2 :StringBuilder
-          arg1:
-            "pig of " :string
-        call :void
-          callee:
-            append :void
-          arg0:
-            __sb_2 :StringBuilder
-          arg1:
-            call :string
-              callee:
-                std_core$i32$Display$to_string :string
-              arg0:
-                .weight :i32
-                  cast → Pig
-                    p :Cat | Dog | Pig
-        call :void
-          callee:
-            append :void
-          arg0:
-            __sb_2 :StringBuilder
-          arg1:
-            " kg" :string
-        ~>
           call :string
             callee:
-              std_string_builder$StringBuilder$Display$to_string :string
+              concat2 :string
             arg0:
-              __sb_2 :StringBuilder
+              "dog says " :string
+            arg1:
+              .sound :string
+                cast → Dog
+                  p :Cat | Dog | Pig
+    return
+      call :string
+        callee:
+          concat3 :string
+        arg0:
+          "pig of " :string
+        arg1:
+          call :string
+            callee:
+              std_core$i32$Display$to_string :string
+            arg0:
+              .weight :i32
+                cast → Pig
+                  p :Cat | Dog | Pig
+        arg2:
+          " kg" :string
   fn snippet$primitive_is(v: i32 | string) -> string
     if :void
       cond:
@@ -266,67 +111,27 @@
           v :i32 | string
       then:
         return
-          block :string
-            let __sb_0: StringBuilder =
-              call :StringBuilder
-                callee:
-                  new_builder :StringBuilder
-            call :void
-              callee:
-                append :void
-              arg0:
-                __sb_0 :StringBuilder
-              arg1:
-                "int " :string
-            call :void
-              callee:
-                append :void
-              arg0:
-                __sb_0 :StringBuilder
-              arg1:
-                call :string
-                  callee:
-                    std_core$i32$Display$to_string :string
-                  arg0:
-                    cast → i32
-                      v :i32 | string
-            ~>
-              call :string
-                callee:
-                  std_string_builder$StringBuilder$Display$to_string :string
-                arg0:
-                  __sb_0 :StringBuilder
-    return
-      block :string
-        let __sb_1: StringBuilder =
-          call :StringBuilder
-            callee:
-              new_builder :StringBuilder
-        call :void
-          callee:
-            append :void
-          arg0:
-            __sb_1 :StringBuilder
-          arg1:
-            "str " :string
-        call :void
-          callee:
-            append :void
-          arg0:
-            __sb_1 :StringBuilder
-          arg1:
-            call :string
-              callee:
-                std_core$string$Display$to_string :string
-              arg0:
-                cast → string
-                  v :i32 | string
-        ~>
           call :string
             callee:
-              std_string_builder$StringBuilder$Display$to_string :string
+              concat2 :string
             arg0:
-              __sb_1 :StringBuilder
+              "int " :string
+            arg1:
+              call :string
+                callee:
+                  std_core$i32$Display$to_string :string
+                arg0:
+                  cast → i32
+                    v :i32 | string
+    return
+      call :string
+        callee:
+          concat2 :string
+        arg0:
+          "str " :string
+        arg1:
+          cast → string
+            v :i32 | string
   fn snippet$main() -> i32
     call :void
       callee:

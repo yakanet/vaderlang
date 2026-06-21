@@ -32,48 +32,21 @@
           callee:
             std_io$std_io$println__string :void
           arg0:
-            block :string
-              let __sb_3: StringBuilder =
-                call :StringBuilder
-                  callee:
-                    new_builder :StringBuilder
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_3 :StringBuilder
-                arg1:
-                  call :string
-                    callee:
-                      std_core$i32$Display$to_string :string
-                    arg0:
-                      ._0 :i32
-                        row :[i32, string]
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_3 :StringBuilder
-                arg1:
-                  " -> " :string
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_3 :StringBuilder
-                arg1:
-                  call :string
-                    callee:
-                      std_core$string$Display$to_string :string
-                    arg0:
-                      ._1 :string
-                        row :[i32, string]
-              ~>
+            call :string
+              callee:
+                concat3 :string
+              arg0:
                 call :string
                   callee:
-                    std_string_builder$StringBuilder$Display$to_string :string
+                    std_core$i32$Display$to_string :string
                   arg0:
-                    __sb_3 :StringBuilder
+                    ._0 :i32
+                      row :[i32, string]
+              arg1:
+                " -> " :string
+              arg2:
+                ._1 :string
+                  row :[i32, string]
         assign
           target:
             __for_i_2 :usize
