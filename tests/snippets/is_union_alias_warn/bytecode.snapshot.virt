@@ -58,32 +58,23 @@ fn 2 snippet$main () -> i32
   string.const 2
   struct.new 2
   call 0
-  call 4
+  call 3
   i32.const 42
   call 0
-  call 4
+  call 3
   i32.const 42
   call 1
   if $L0 void
     string.const 3
-    call 4
+    call 3
   else
   end $L0
   return.lit i32.const 0
 end
 
-fn 3 std_core$string$Display$to_string (string) -> string
-  local.get 0
-  return
-end
-
-fn 4 std_io$std_io$println__string (string) -> void
-  local $call_2 string
-  local.get 0
-  call 3
-  local.set 1
+fn 3 std_io$std_io$println__string (string) -> void
   i32.const 0
-  local.get 1
+  local.get 0
   call.import 0
   i32.const 0
   string.const 4

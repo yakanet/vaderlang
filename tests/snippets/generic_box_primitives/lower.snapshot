@@ -74,10 +74,11 @@
             arg1:
               call :string
                 callee:
-                  std_core$u8$Display$to_string :string
+                  format_unsigned :fn(u64) -> string
                 arg0:
-                  .v :u8
-                    bu8 :Box<u8>
+                  cast → u64
+                    .v :u8
+                      bu8 :Box<u8>
           call :void
             callee:
               append :void
@@ -91,12 +92,16 @@
             arg0:
               __sb_0 :StringBuilder
             arg1:
-              call :string
-                callee:
-                  std_core$bool$Display$to_string :string
-                arg0:
+              if :string
+                cond:
                   .v :bool
                     bb :Box<bool>
+                then:
+                  ~>
+                    "true" :string
+                else:
+                  ~>
+                    "false" :string
           call :void
             callee:
               append :void
@@ -112,10 +117,14 @@
             arg1:
               call :string
                 callee:
-                  std_core$char$Display$to_string :string
+                  bytes_to_string :string
                 arg0:
-                  .v :char
-                    bc :Box<char>
+                  call :u8[]
+                    callee:
+                      utf8_encode :fn(char) -> u8[]
+                    arg0:
+                      .v :char
+                        bc :Box<char>
           call :void
             callee:
               append :void
@@ -131,7 +140,7 @@
             arg1:
               call :string
                 callee:
-                  std_core$f32$Display$to_string :string
+                  format_f32 :fn(f32) -> string
                 arg0:
                   .v :f32
                     bf32 :Box<f32>
@@ -150,7 +159,7 @@
             arg1:
               call :string
                 callee:
-                  std_core$f64$Display$to_string :string
+                  format_f64 :fn(f64) -> string
                 arg0:
                   .v :f64
                     bf64 :Box<f64>
@@ -184,10 +193,11 @@
             arg1:
               call :string
                 callee:
-                  std_core$i16$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  .v :i16
-                    bi16 :Box<i16>
+                  cast → i64
+                    .v :i16
+                      bi16 :Box<i16>
           call :void
             callee:
               append :void
@@ -203,10 +213,11 @@
             arg1:
               call :string
                 callee:
-                  std_core$u16$Display$to_string :string
+                  format_unsigned :fn(u64) -> string
                 arg0:
-                  .v :u16
-                    bu16 :Box<u16>
+                  cast → u64
+                    .v :u16
+                      bu16 :Box<u16>
           call :void
             callee:
               append :void
@@ -222,7 +233,7 @@
             arg1:
               call :string
                 callee:
-                  std_core$i64$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
                   .v :i64
                     bi64 :Box<i64>
@@ -241,10 +252,11 @@
             arg1:
               call :string
                 callee:
-                  std_core$usize$Display$to_string :string
+                  format_unsigned :fn(u64) -> string
                 arg0:
-                  .v :usize
-                    bus :Box<usize>
+                  cast → u64
+                    .v :usize
+                      bus :Box<usize>
           call :void
             callee:
               append :void
@@ -260,10 +272,11 @@
             arg1:
               call :string
                 callee:
-                  std_core$i32$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  .v :i32
-                    bi32 :Box<i32>
+                  cast → i64
+                    .v :i32
+                      bi32 :Box<i32>
           call :void
             callee:
               append :void
@@ -309,13 +322,14 @@
             arg1:
               call :string
                 callee:
-                  std_core$u8$Display$to_string :string
+                  format_unsigned :fn(u64) -> string
                 arg0:
-                  call :u8
-                    callee:
-                      snippet$snippet$unwrap__u8 :u8
-                    arg0:
-                      bu8 :Box<u8>
+                  cast → u64
+                    call :u8
+                      callee:
+                        snippet$snippet$unwrap__u8 :u8
+                      arg0:
+                        bu8 :Box<u8>
           call :void
             callee:
               append :void
@@ -329,15 +343,19 @@
             arg0:
               __sb_2 :StringBuilder
             arg1:
-              call :string
-                callee:
-                  std_core$bool$Display$to_string :string
-                arg0:
+              if :string
+                cond:
                   call :bool
                     callee:
                       snippet$snippet$unwrap__bool :bool
                     arg0:
                       bb :Box<bool>
+                then:
+                  ~>
+                    "true" :string
+                else:
+                  ~>
+                    "false" :string
           call :void
             callee:
               append :void
@@ -353,13 +371,17 @@
             arg1:
               call :string
                 callee:
-                  std_core$char$Display$to_string :string
+                  bytes_to_string :string
                 arg0:
-                  call :char
+                  call :u8[]
                     callee:
-                      snippet$snippet$unwrap__char :char
+                      utf8_encode :fn(char) -> u8[]
                     arg0:
-                      bc :Box<char>
+                      call :char
+                        callee:
+                          snippet$snippet$unwrap__char :char
+                        arg0:
+                          bc :Box<char>
           call :void
             callee:
               append :void
@@ -375,7 +397,7 @@
             arg1:
               call :string
                 callee:
-                  std_core$f32$Display$to_string :string
+                  format_f32 :fn(f32) -> string
                 arg0:
                   call :f32
                     callee:
@@ -397,13 +419,14 @@
             arg1:
               call :string
                 callee:
-                  std_core$i16$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  call :i16
-                    callee:
-                      snippet$snippet$unwrap__i16 :i16
-                    arg0:
-                      bi16 :Box<i16>
+                  cast → i64
+                    call :i16
+                      callee:
+                        snippet$snippet$unwrap__i16 :i16
+                      arg0:
+                        bi16 :Box<i16>
           call :void
             callee:
               append :void
@@ -419,7 +442,7 @@
             arg1:
               call :string
                 callee:
-                  std_core$i64$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
                   call :i64
                     callee:

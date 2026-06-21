@@ -59,11 +59,15 @@
           arg0:
             "deterministic=" :string
           arg1:
-            call :string
-              callee:
-                std_core$bool$Display$to_string :string
-              arg0:
+            if :string
+              cond:
                 same :bool
+              then:
+                ~>
+                  "true" :string
+              else:
+                ~>
+                  "false" :string
     let z: Rng =
       call :Rng
         callee:
@@ -111,11 +115,15 @@
           arg0:
             "zero_seed_nonzero=" :string
           arg1:
-            call :string
-              callee:
-                std_core$bool$Display$to_string :string
-              arg0:
+            if :string
+              cond:
                 nonzero :bool
+              then:
+                ~>
+                  "true" :string
+              else:
+                ~>
+                  "false" :string
     let r: Rng =
       call :Rng
         callee:
@@ -181,11 +189,15 @@
           arg0:
             "range_i32_in_bounds=" :string
           arg1:
-            call :string
-              callee:
-                std_core$bool$Display$to_string :string
-              arg0:
+            if :string
+              cond:
                 in_range :bool
+              then:
+                ~>
+                  "true" :string
+              else:
+                ~>
+                  "false" :string
     let u: Rng =
       call :Rng
         callee:
@@ -247,11 +259,15 @@
           arg0:
             "unit_f64_in_bounds=" :string
           arg1:
-            call :string
-              callee:
-                std_core$bool$Display$to_string :string
-              arg0:
+            if :string
+              cond:
                 f_in_range :bool
+              then:
+                ~>
+                  "true" :string
+              else:
+                ~>
+                  "false" :string
     let s: Rng =
       call :Rng
         callee:
@@ -288,9 +304,10 @@
           arg1:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                LoweredArrayLen
+                cast → u64
+                  LoweredArrayLen
     let sum: i32 = int(0) :i32
     block :void
       let __for_arr_0: i32[] = arr :i32[]
@@ -334,9 +351,10 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                sum :i32
+                cast → i64
+                  sum :i32
     let bs: Rng =
       call :Rng
         callee:
@@ -392,13 +410,17 @@
           arg0:
             "bool_both_seen=" :string
           arg1:
-            call :string
-              callee:
-                std_core$bool$Display$to_string :string
-              arg0:
+            if :string
+              cond:
                 and :bool
                   l:
                     seen_t :bool
                   r:
                     seen_f :bool
+              then:
+                ~>
+                  "true" :string
+              else:
+                ~>
+                  "false" :string
     return int(0) :i32

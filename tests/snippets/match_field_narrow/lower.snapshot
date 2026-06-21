@@ -49,14 +49,15 @@
                         arg1:
                           call :string
                             callee:
-                              std_core$i32$Display$to_string :string
+                              format_signed :fn(i64) -> string
                             arg0:
-                              call :i32
-                                callee:
-                                  count :fn(i32[]) -> i32
-                                arg0:
-                                  .items :i32[]
-                                    b :Bag
+                              cast → i64
+                                call :i32
+                                  callee:
+                                    count :fn(i32[]) -> i32
+                                  arg0:
+                                    .items :i32[]
+                                      b :Bag
     let empty: Bag =
       Bag {
         items: null
@@ -95,12 +96,13 @@
                         arg1:
                           call :string
                             callee:
-                              std_core$i32$Display$to_string :string
+                              format_signed :fn(i64) -> string
                             arg0:
-                              call :i32
-                                callee:
-                                  count :fn(i32[]) -> i32
-                                arg0:
-                                  .items :i32[]
-                                    empty :Bag
+                              cast → i64
+                                call :i32
+                                  callee:
+                                    count :fn(i32[]) -> i32
+                                  arg0:
+                                    .items :i32[]
+                                      empty :Bag
     return int(0) :i32

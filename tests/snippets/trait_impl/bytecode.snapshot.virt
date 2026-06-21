@@ -32,7 +32,11 @@ fn 1 std_core$Range$Contains$contains__i32 (ref,i32) -> bool
   local.set 2
   local.get 1
   local.get 2
-  call 12
+  call 11
+  local.set 2
+  local.get 2
+  i32.const 0
+  i32.lt
   if $L0 void
     return.lit bool.const false
   end $L0
@@ -44,7 +48,11 @@ fn 1 std_core$Range$Contains$contains__i32 (ref,i32) -> bool
     local.set 2
     local.get 1
     local.get 2
-    call 13
+    call 11
+    local.set 2
+    local.get 2
+    i32.const 0
+    i32.le
     return
   end $L1
   local.field 0 4 1
@@ -52,7 +60,11 @@ fn 1 std_core$Range$Contains$contains__i32 (ref,i32) -> bool
   local.set 2
   local.get 1
   local.get 2
-  call 12
+  call 11
+  local.set 2
+  local.get 2
+  i32.const 0
+  i32.lt
   return
 end
 
@@ -71,7 +83,11 @@ fn 2 std_core$Range$Iterator$next__i32 (ref) -> ref
     local.set 3
     local.get 2
     local.get 3
-    call 14
+    call 11
+    local.set 2
+    local.get 2
+    i32.const 0
+    i32.gt
     local.set 1
   else
     local.field 0 4 3
@@ -82,7 +98,11 @@ fn 2 std_core$Range$Iterator$next__i32 (ref) -> ref
     local.set 3
     local.get 2
     local.get 3
-    call 15
+    call 11
+    local.set 2
+    local.get 2
+    i32.const 0
+    i32.ge
     local.set 1
   end $L0
   local.get 1
@@ -96,7 +116,10 @@ fn 2 std_core$Range$Iterator$next__i32 (ref) -> ref
   local.set 2
   local.field 0 4 3
   ref.cast 5
-  call 21
+  local.set 3
+  local.get 3
+  i32.const 1
+  i32.add
   local.set 3
   local.get 0
   local.get 3
@@ -208,12 +231,17 @@ end
 
 fn 6 std_core$Range$Contains$contains__usize (ref,usize) -> bool
   local $field_2 usize
+  local $call_3 i32
   local.field 0 11 0
   ref.cast 9
   local.set 2
   local.get 1
   local.get 2
-  call 17
+  call 16
+  local.set 3
+  local.get 3
+  i32.const 0
+  i32.lt
   if $L0 void
     return.lit bool.const false
   end $L0
@@ -225,7 +253,11 @@ fn 6 std_core$Range$Contains$contains__usize (ref,usize) -> bool
     local.set 2
     local.get 1
     local.get 2
-    call 18
+    call 16
+    local.set 3
+    local.get 3
+    i32.const 0
+    i32.le
     return
   end $L1
   local.field 0 11 1
@@ -233,7 +265,11 @@ fn 6 std_core$Range$Contains$contains__usize (ref,usize) -> bool
   local.set 2
   local.get 1
   local.get 2
-  call 17
+  call 16
+  local.set 3
+  local.get 3
+  i32.const 0
+  i32.lt
   return
 end
 
@@ -241,6 +277,8 @@ fn 7 std_core$Range$Iterator$next__usize (ref) -> ref
   local if_res bool
   local $field_3 usize
   local $field_4 usize
+  local $call_5 i32
+  local $k_18 usize
   local.field 0 11 2
   ref.cast 6
   if $L0 void
@@ -252,7 +290,11 @@ fn 7 std_core$Range$Iterator$next__usize (ref) -> ref
     local.set 3
     local.get 2
     local.get 3
-    call 19
+    call 16
+    local.set 4
+    local.get 4
+    i32.const 0
+    i32.gt
     local.set 1
   else
     local.field 0 11 3
@@ -263,7 +305,11 @@ fn 7 std_core$Range$Iterator$next__usize (ref) -> ref
     local.set 3
     local.get 2
     local.get 3
-    call 20
+    call 16
+    local.set 4
+    local.get 4
+    i32.const 0
+    i32.ge
     local.set 1
   end $L0
   local.get 1
@@ -277,7 +323,12 @@ fn 7 std_core$Range$Iterator$next__usize (ref) -> ref
   local.set 2
   local.field 0 11 3
   ref.cast 9
-  call 22
+  local.set 3
+  i64.const 1
+  local.set 5
+  local.get 3
+  local.get 5
+  i64.add
   local.set 3
   local.get 0
   local.get 3

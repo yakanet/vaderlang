@@ -22,10 +22,10 @@ fn 0 snippet$check (string,bool) -> void
   local.get 1
   if $L0 void
     local.get 0
-    call 3
+    call 2
   else
     string.const 0
-    call 3
+    call 2
   end $L0
   return
 end
@@ -158,18 +158,9 @@ fn 1 snippet$main () -> i32
   return.lit i32.const 0
 end
 
-fn 2 std_core$string$Display$to_string (string) -> string
-  local.get 0
-  return
-end
-
-fn 3 std_io$std_io$println__string (string) -> void
-  local $call_2 string
-  local.get 0
-  call 2
-  local.set 1
+fn 2 std_io$std_io$println__string (string) -> void
   i32.const 0
-  local.get 1
+  local.get 0
   call.import 0
   i32.const 0
   string.const 10

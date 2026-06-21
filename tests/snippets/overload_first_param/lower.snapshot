@@ -13,10 +13,11 @@
         arg1:
           call :string
             callee:
-              std_core$i32$Display$to_string :string
+              format_signed :fn(i64) -> string
             arg0:
-              .v :i32
-                b :Box
+              cast → i64
+                .v :i32
+                  b :Box
   fn snippet$describe_1(b: Bag) -> string
     return
       call :string
@@ -84,15 +85,16 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    min :i32
-                  arg0:
-                    int(3) :i32
-                  arg1:
-                    int(5) :i32
+                cast → i64
+                  call :i32
+                    callee:
+                      min :i32
+                    arg0:
+                      int(3) :i32
+                    arg1:
+                      int(5) :i32
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -105,7 +107,7 @@
           arg1:
             call :string
               callee:
-                std_core$f64$Display$to_string :string
+                format_f64 :fn(f64) -> string
               arg0:
                 call :f64
                   callee:
@@ -126,16 +128,17 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    max :i32
-                  arg0:
-                    neg :i32
-                      int(2) :i32
-                  arg1:
-                    int(8) :i32
+                cast → i64
+                  call :i32
+                    callee:
+                      max :i32
+                    arg0:
+                      neg :i32
+                        int(2) :i32
+                    arg1:
+                      int(8) :i32
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -148,14 +151,15 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    abs :i32
-                  arg0:
-                    neg :i32
-                      int(7) :i32
+                cast → i64
+                  call :i32
+                    callee:
+                      abs :i32
+                    arg0:
+                      neg :i32
+                        int(7) :i32
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -168,7 +172,7 @@
           arg1:
             call :string
               callee:
-                std_core$f64$Display$to_string :string
+                format_f64 :fn(f64) -> string
               arg0:
                 call :f64
                   callee:
@@ -188,17 +192,18 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    clamp :i32
-                  arg0:
-                    int(15) :i32
-                  arg1:
-                    int(0) :i32
-                  arg2:
-                    int(10) :i32
+                cast → i64
+                  call :i32
+                    callee:
+                      clamp :i32
+                    arg0:
+                      int(15) :i32
+                    arg1:
+                      int(0) :i32
+                    arg2:
+                      int(10) :i32
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -211,7 +216,7 @@
           arg1:
             call :string
               callee:
-                std_core$f64$Display$to_string :string
+                format_f64 :fn(f64) -> string
               arg0:
                 call :f64
                   callee:

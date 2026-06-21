@@ -76,13 +76,14 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    type_id_of :fn(ArrayVal | IntVal | StructVal) -> i32
-                  arg0:
-                    s :ArrayVal | IntVal | StructVal
+                cast → i64
+                  call :i32
+                    callee:
+                      type_id_of :fn(ArrayVal | IntVal | StructVal) -> i32
+                    arg0:
+                      s :ArrayVal | IntVal | StructVal
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -95,13 +96,14 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    type_id_of :fn(ArrayVal | IntVal | StructVal) -> i32
-                  arg0:
-                    a :ArrayVal | IntVal | StructVal
+                cast → i64
+                  call :i32
+                    callee:
+                      type_id_of :fn(ArrayVal | IntVal | StructVal) -> i32
+                    arg0:
+                      a :ArrayVal | IntVal | StructVal
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -114,13 +116,14 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    type_id_of :fn(ArrayVal | IntVal | StructVal) -> i32
-                  arg0:
-                    i :ArrayVal | IntVal | StructVal
+                cast → i64
+                  call :i32
+                    callee:
+                      type_id_of :fn(ArrayVal | IntVal | StructVal) -> i32
+                    arg0:
+                      i :ArrayVal | IntVal | StructVal
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -133,11 +136,12 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    first_item :fn(ArrayVal | IntVal | StructVal) -> i32
-                  arg0:
-                    a :ArrayVal | IntVal | StructVal
+                cast → i64
+                  call :i32
+                    callee:
+                      first_item :fn(ArrayVal | IntVal | StructVal) -> i32
+                    arg0:
+                      a :ArrayVal | IntVal | StructVal
     return int(0) :i32

@@ -41,13 +41,14 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    snippet$Stack$Stackable$len__i32 :i32
-                  arg0:
-                    s :Stack<i32>
+                cast → i64
+                  call :i32
+                    callee:
+                      snippet$Stack$Stackable$len__i32 :i32
+                    arg0:
+                      s :Stack<i32>
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -60,13 +61,14 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    snippet$Stack$Stackable$pop__i32 :i32
-                  arg0:
-                    s :Stack<i32>
+                cast → i64
+                  call :i32
+                    callee:
+                      snippet$Stack$Stackable$pop__i32 :i32
+                    arg0:
+                      s :Stack<i32>
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -79,13 +81,14 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    snippet$Stack$Stackable$len__i32 :i32
-                  arg0:
-                    s :Stack<i32>
+                cast → i64
+                  call :i32
+                    callee:
+                      snippet$Stack$Stackable$len__i32 :i32
+                    arg0:
+                      s :Stack<i32>
     return int(0) :i32
   struct snippet$Stack__i32 { data: i32[], size: i32 }
   fn snippet$Stack$Stackable$push__i32(self: Stack<i32>, value: i32) -> void

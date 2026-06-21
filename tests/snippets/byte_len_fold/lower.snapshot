@@ -14,9 +14,10 @@
           arg1:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                LoweredArrayLen
+                cast → u64
+                  LoweredArrayLen
     let bs: const u8[] =
       call :const u8[]
         callee:
@@ -35,19 +36,21 @@
           arg1:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                LoweredArrayLen
+                cast → u64
+                  LoweredArrayLen
           arg2:
             " first=" :string
           arg3:
             call :string
               callee:
-                std_core$u8$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                index :u8
-                  on:
-                    bs :const u8[]
-                  ix:
-                    int(0) :i32
+                cast → u64
+                  index :u8
+                    on:
+                      bs :const u8[]
+                    ix:
+                      int(0) :i32
     return int(0) :i32

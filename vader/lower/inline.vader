@@ -1,0 +1,407 @@
+// vader/lower/inline — post-lowering inliner for single-expression functions.
+//
+// Runs once over the whole `LoweredProject` after materialisation (so every
+// body — user fn AND materialised stdlib impl member — is already lowered +
+// resolved), before DCE. It inlines a `LoweredCall` whose callee is a
+// SINGLE-EXPRESSION function: the body is one expression (a block with no
+// statements + a trailing expr, or a lone `return expr`), each parameter is used
+// AT MOST ONCE, and the body is not self-recursive.
+//
+// That is exactly the shape every trait-impl wrapper the stdlib writes takes —
+// `i32 Display.to_string = format_signed(i64(self))`, `Comparable.lt =
+// self.compare(other) < 0`, field accessors, `Equals.not_equals` — so the pass
+// "leans on the trait declarations" by construction while staying GENERAL (any
+// function of this shape, not a Display special case). The lower-time identity
+// hook (`build_member_call_or_inline`) handles the one zero-substitution case
+// (`= self`); this pass handles the rest, where the body's symbols live in the
+// callee's OWN module and can only be substituted once everything is lowered.
+//
+// The transform is a clone-and-substitute rebuild of the body (`transform_*`):
+// `LoweredIdent(param)` → the call's arg, `LoweredCall(inlineable)` → the
+// callee's substituted body. No-locals + at-most-once-use is what makes the
+// clone safe — no callee local to collide across the N copies, no duplicated
+// side effect. A wrapper that calls another wrapper inlines transitively, capped
+// by `INLINE_DEPTH_CAP`. Afterwards DCE drops wrappers that lost every direct
+// caller (those still reached through a vtable for erased `${T}` dispatch stay).
+
+module "vader/lower"
+
+import "std/collections" { MutableMap, MutableSet }
+
+// Transitive-inline depth ceiling — a wrapper-calls-wrapper chain past this many
+// levels stops inlining (a mutual-recursion backstop; real wrapper chains are 1).
+INLINE_DEPTH_CAP :: 8
+
+/// A resolved inline candidate: the single result expression to clone at each
+/// call site, plus the params whose `symbol.id` the body references (mapped to
+/// the call's args during the clone).
+InlineInfo :: struct {
+    body:   LoweredExpr
+    params: LoweredParam[]
+}
+
+/// Substitution + inline state threaded through the clone (a struct, not a
+/// closure — `WalkCtx` documents why fn-fields misbehave in the self-host typer).
+/// `param_map` is fresh per inlined call (callee param id → already-cloned arg) ;
+/// it is empty while cloning a top-level body that is merely being scanned for
+/// inlineable calls.
+TransformCtx :: struct {
+    index:     MutableMap<string, InlineInfo>
+    param_map: MutableMap<i32, LoweredExpr>
+    depth:     i32
+}
+
+/// Inline every single-expression-function call in the project, in place.
+/// Runs after materialisation + `inline_consts`, before DCE. Mutates each
+/// `LoweredFnDecl.body` to its inlined form ; bodies with no inlineable call
+/// come out structurally identical (the clone is a no-op on them).
+export inline_fns :: fn(project: LoweredProject) -> void {
+    index :: build_inline_index(project)
+    if index.size == 0 { return }
+    empty_map :: MutableMap<i32, LoweredExpr> {}
+    for [_, m] in project.modules {
+        for d in m.decls {
+            if d is LoweredFnDecl as fd {
+                body :: fd.body
+                if body != null {
+                    ctx :: TransformCtx { .index = index, .param_map = empty_map, .depth = 0 }
+                    fd.body = transform_block(body, ctx)
+                }
+            }
+        }
+    }
+}
+
+// ---- index ----------------------------------------------------------------
+
+// Collect every inlineable single-expression function, keyed by mangle (the
+// callee `LoweredIdent.symbol.name` carries the same mangle for the synthetic
+// impl members — `build_ufcs_member`).
+build_inline_index :: fn(project: LoweredProject) -> MutableMap<string, InlineInfo> {
+    index :: MutableMap<string, InlineInfo> {}
+    for [_, m] in project.modules {
+        for d in m.decls {
+            if d is LoweredFnDecl as fd {
+                info :: inlineable_info(fd)
+                if info != null { index[fd.mangled] = info }
+            }
+        }
+    }
+    return index
+}
+
+inlineable_info :: fn(fd: LoweredFnDecl) -> InlineInfo | null {
+    body :: fd.body
+    if body == null { return null }
+    // Skip generic INSTANCES (`is_empty__FnDecl`, …) : their body holds
+    // generic-context-dependent calls (virtual / per-instance mangles) that a
+    // verbatim copy into another fn can't resolve (a GATE-B1 materialisation
+    // gap). The high-value targets — primitive `Display.to_string`, `Comparable`,
+    // accessors — are impls on CONCRETE types, so `type_arguments` is empty.
+    if !fd.origin.type_arguments.is_empty() { return null }
+    result :: single_expr_result(body)
+    if result == null { return null }
+    if !params_safe_to_inline(result, fd.params, fd.mangled) { return null }
+    return InlineInfo { .body = result, .params = fd.params }
+}
+
+// The body's single result expression, or null when the body is not a single
+// expression (has statements other than a lone `return`, or is void).
+single_expr_result :: fn(body: LoweredBlock) -> LoweredExpr | null {
+    if body.stmts.is_empty() { return body.trailing }
+    if body.stmts.len() == 1 {
+        s :: body.stmts[0]
+        if s is LoweredReturn as ret {
+            if body.trailing == null { return ret.value }
+        }
+    }
+    return null
+}
+
+// True when inlining `result` is sound: every param is referenced at most once
+// (so substituting an arg never duplicates a side effect) and the body makes no
+// call back to its own mangle (no self-recursion to unfold forever).
+params_safe_to_inline :: fn(result: LoweredExpr, params: LoweredParam[], self_mangle: string) -> bool {
+    param_ids :: MutableSet<i32> {}
+    for p in params { param_ids.add(p.symbol.id) }
+    ctx :: CollectCtx {
+        .param_ids = param_ids, .counts = MutableMap<i32, i32> {},
+        .self_mangle = self_mangle, .self_call = false,
+    }
+    collect_expr(result, ctx)
+    if ctx.self_call { return false }
+    for [_, count] in ctx.counts {
+        if count > 1 { return false }
+    }
+    return true
+}
+
+// ---- collect (read-only: count param uses + detect self-call) --------------
+
+CollectCtx :: struct {
+    param_ids:   MutableSet<i32>
+    counts:      MutableMap<i32, i32>
+    self_mangle: string
+    self_call:   bool
+}
+
+collect_block :: fn(b: LoweredBlock, ctx: CollectCtx) -> void {
+    for s in b.stmts { collect_stmt(s, ctx) }
+    t :: b.trailing
+    if t != null { collect_expr(t, ctx) }
+}
+
+collect_stmt :: fn(s: LoweredStmt, ctx: CollectCtx) -> void {
+    match s {
+        is LoweredLet as st -> { collect_expr(st.value, ctx) }
+        is LoweredAssign as st -> {
+            collect_expr(st.target, ctx)
+            collect_expr(st.value, ctx)
+        }
+        is LoweredCellSet as st -> {
+            collect_expr(st.target, ctx)
+            collect_expr(st.value, ctx)
+        }
+        is LoweredExprStmt as st -> { collect_expr(st.expr, ctx) }
+        is LoweredReturn as st -> {
+            v :: st.value
+            if v != null { collect_expr(v, ctx) }
+        }
+        is LoweredLoop as st -> {
+            c :: st.cond
+            if c != null { collect_expr(c, ctx) }
+            collect_block(st.body, ctx)
+        }
+        is LoweredBreak -> {}
+        is LoweredContinue -> {}
+        is LoweredDeferPush as st -> { collect_expr(st.thunk, ctx) }
+        is LoweredDeferPopExec -> {}
+    }
+}
+
+collect_expr :: fn(e: LoweredExpr, ctx: CollectCtx) -> void {
+    match e {
+        is LoweredIdent as id -> {
+            if ctx.param_ids.contains(id.symbol.id) {
+                prev :: ctx.counts[id.symbol.id]
+                ctx.counts[id.symbol.id] = if prev == null { 1 } else { prev + 1 }
+            }
+        }
+        is LoweredCall as c -> {
+            if c.callee is LoweredIdent as cid {
+                if cid.symbol.name == ctx.self_mangle { ctx.self_call = true }
+            }
+            collect_expr(c.callee, ctx)
+            for a in c.args { collect_expr(a, ctx) }
+        }
+        is LoweredVirtualCall as v -> {
+            collect_expr(v.receiver, ctx)
+            for a in v.args { collect_expr(a, ctx) }
+        }
+        is LoweredFieldAccess as fa -> { collect_expr(fa.target, ctx) }
+        is LoweredIndex as ix -> {
+            collect_expr(ix.target, ctx)
+            collect_expr(ix.index, ctx)
+        }
+        is LoweredUnary as u -> { collect_expr(u.operand, ctx) }
+        is LoweredBinary as b -> {
+            collect_expr(b.left, ctx)
+            collect_expr(b.right, ctx)
+        }
+        is LoweredIf as ie -> {
+            collect_expr(ie.cond, ctx)
+            collect_block(ie.then_block, ctx)
+            eb :: ie.else_block
+            if eb != null { collect_block(eb, ctx) }
+        }
+        is LoweredBlock as bl -> { collect_block(bl, ctx) }
+        is LoweredStructLit as sl -> { for f in sl.fields { collect_expr(f.value, ctx) } }
+        is LoweredArrayLit as al -> { for el in al.elements { collect_expr(el, ctx) } }
+        is LoweredArrayLen as al -> { collect_expr(al.target, ctx) }
+        is LoweredArrayPush as ap -> {
+            collect_expr(ap.target, ctx)
+            collect_expr(ap.value, ctx)
+        }
+        is LoweredArraySlice as asl -> {
+            collect_expr(asl.target, ctx)
+            collect_expr(asl.lo, ctx)
+            collect_expr(asl.hi, ctx)
+        }
+        is LoweredStringSlice as ssl -> {
+            collect_expr(ssl.target, ctx)
+            collect_expr(ssl.lo, ctx)
+            collect_expr(ssl.hi, ctx)
+        }
+        is LoweredCast as cs -> { collect_expr(cs.value, ctx) }
+        is LoweredTypeCheck as tc -> { collect_expr(tc.value, ctx) }
+        is LoweredIntrinsicCall as ic -> { for a in ic.args { collect_expr(a, ctx) } }
+        is LoweredCellNew as cn -> { collect_expr(cn.value, ctx) }
+        is LoweredCellGet as cg -> { collect_expr(cg.target, ctx) }
+        is LoweredMakeClosure as mc -> { collect_expr(mc.env, ctx) }
+        is LoweredIntLit -> {}
+        is LoweredFloatLit -> {}
+        is LoweredBoolLit -> {}
+        is LoweredNullLit -> {}
+        is LoweredCharLit -> {}
+        is LoweredStringLit -> {}
+        is LoweredDataConst -> {}
+        is LoweredTypeConst -> {}
+        is LoweredUnreachable -> {}
+    }
+}
+
+// ---- transform (clone + substitute params + inline calls) ------------------
+
+transform_block :: fn(b: LoweredBlock, ctx: TransformCtx) -> LoweredBlock {
+    new_stmts: LoweredStmt[] = []
+    for s in b.stmts { new_stmts.push(transform_stmt(s, ctx)) }
+    new_trailing :: transform_opt(b.trailing, ctx)
+    return LoweredBlock { .span = b.span, .type = b.type, .stmts = new_stmts, .trailing = new_trailing }
+}
+
+transform_opt :: fn(e: LoweredExpr | null, ctx: TransformCtx) -> LoweredExpr | null {
+    if e == null { return null }
+    return transform_expr(e, ctx)
+}
+
+transform_stmt :: fn(s: LoweredStmt, ctx: TransformCtx) -> LoweredStmt {
+    match s {
+        is LoweredLet as st -> LoweredLet {
+            .span = st.span, .name = st.name, .symbol = st.symbol, .type = st.type,
+            .value = transform_expr(st.value, ctx),
+        }
+        is LoweredAssign as st -> LoweredAssign {
+            .span = st.span, .target = transform_expr(st.target, ctx), .value = transform_expr(st.value, ctx),
+        }
+        is LoweredCellSet as st -> LoweredCellSet {
+            .span = st.span, .target = transform_expr(st.target, ctx),
+            .value = transform_expr(st.value, ctx), .value_type = st.value_type,
+        }
+        is LoweredExprStmt as st -> LoweredExprStmt { .span = st.span, .expr = transform_expr(st.expr, ctx) }
+        is LoweredReturn as st -> LoweredReturn { .span = st.span, .value = transform_opt(st.value, ctx) }
+        is LoweredLoop as st -> LoweredLoop {
+            .span = st.span, .label = st.label, .cond = transform_opt(st.cond, ctx),
+            .body = transform_block(st.body, ctx),
+        }
+        is LoweredBreak as st -> st
+        is LoweredContinue as st -> st
+        is LoweredDeferPush as st -> LoweredDeferPush { .span = st.span, .thunk = transform_expr(st.thunk, ctx) }
+        is LoweredDeferPopExec as st -> st
+    }
+}
+
+transform_expr :: fn(e: LoweredExpr, ctx: TransformCtx) -> LoweredExpr {
+    match e {
+        is LoweredIdent as id -> {
+            if ctx.param_map.size > 0 {
+                sub :: ctx.param_map[id.symbol.id]
+                if sub != null { return sub }
+            }
+            return id
+        }
+        is LoweredCall as c -> {
+            new_callee :: transform_expr(c.callee, ctx)
+            new_args: LoweredExpr[] = []
+            for a in c.args { new_args.push(transform_expr(a, ctx)) }
+            // Inline when the (original) callee names an inlineable single-expr fn.
+            if c.callee is LoweredIdent as cid {
+                info :: ctx.index[cid.symbol.name]
+                if info != null && ctx.depth < INLINE_DEPTH_CAP {
+                    inner :: TransformCtx {
+                        .index = ctx.index, .param_map = build_param_map(info.params, new_args),
+                        .depth = ctx.depth + 1,
+                    }
+                    return transform_expr(info.body, inner)
+                }
+            }
+            return LoweredCall { .span = c.span, .type = c.type, .callee = new_callee, .args = new_args }
+        }
+        is LoweredVirtualCall as v -> {
+            new_args: LoweredExpr[] = []
+            for a in v.args { new_args.push(transform_expr(a, ctx)) }
+            return LoweredVirtualCall {
+                .span = v.span, .type = v.type, .trait_name = v.trait_name, .method = v.method,
+                .receiver = transform_expr(v.receiver, ctx), .args = new_args,
+            }
+        }
+        is LoweredFieldAccess as fa -> LoweredFieldAccess {
+            .span = fa.span, .type = fa.type, .target = transform_expr(fa.target, ctx), .field = fa.field,
+        }
+        is LoweredIndex as ix -> LoweredIndex {
+            .span = ix.span, .type = ix.type,
+            .target = transform_expr(ix.target, ctx), .index = transform_expr(ix.index, ctx),
+        }
+        is LoweredUnary as u -> LoweredUnary {
+            .span = u.span, .type = u.type, .op = u.op, .operand = transform_expr(u.operand, ctx),
+        }
+        is LoweredBinary as b -> LoweredBinary {
+            .span = b.span, .type = b.type, .op = b.op,
+            .left = transform_expr(b.left, ctx), .right = transform_expr(b.right, ctx),
+        }
+        is LoweredIf as ie -> {
+            eb :: ie.else_block
+            new_else :: if eb == null { null } else { transform_block(eb, ctx) }
+            return LoweredIf {
+                .span = ie.span, .type = ie.type, .cond = transform_expr(ie.cond, ctx),
+                .then_block = transform_block(ie.then_block, ctx), .else_block = new_else,
+            }
+        }
+        is LoweredBlock as bl -> transform_block(bl, ctx)
+        is LoweredStructLit as sl -> {
+            new_fields: LoweredStructLitField[] = []
+            for f in sl.fields { new_fields.push(LoweredStructLitField { .name = f.name, .value = transform_expr(f.value, ctx) }) }
+            return LoweredStructLit { .span = sl.span, .type = sl.type, .fields = new_fields }
+        }
+        is LoweredArrayLit as al -> {
+            new_elements: LoweredExpr[] = []
+            for el in al.elements { new_elements.push(transform_expr(el, ctx)) }
+            return LoweredArrayLit { .span = al.span, .type = al.type, .elements = new_elements }
+        }
+        is LoweredArrayLen as al -> LoweredArrayLen { .span = al.span, .type = al.type, .target = transform_expr(al.target, ctx) }
+        is LoweredArrayPush as ap -> LoweredArrayPush {
+            .span = ap.span, .type = ap.type, .target = transform_expr(ap.target, ctx), .value = transform_expr(ap.value, ctx),
+        }
+        is LoweredArraySlice as asl -> LoweredArraySlice {
+            .span = asl.span, .type = asl.type, .target = transform_expr(asl.target, ctx),
+            .lo = transform_expr(asl.lo, ctx), .hi = transform_expr(asl.hi, ctx),
+        }
+        is LoweredStringSlice as ssl -> LoweredStringSlice {
+            .span = ssl.span, .type = ssl.type, .target = transform_expr(ssl.target, ctx),
+            .lo = transform_expr(ssl.lo, ctx), .hi = transform_expr(ssl.hi, ctx),
+        }
+        is LoweredCast as cs -> LoweredCast { .span = cs.span, .type = cs.type, .value = transform_expr(cs.value, ctx) }
+        is LoweredTypeCheck as tc -> LoweredTypeCheck {
+            .span = tc.span, .type = tc.type, .value = transform_expr(tc.value, ctx), .check_type = tc.check_type,
+        }
+        is LoweredIntrinsicCall as ic -> {
+            new_args: LoweredExpr[] = []
+            for a in ic.args { new_args.push(transform_expr(a, ctx)) }
+            return LoweredIntrinsicCall { .span = ic.span, .type = ic.type, .name = ic.name, .args = new_args }
+        }
+        is LoweredCellNew as cn -> LoweredCellNew {
+            .span = cn.span, .type = cn.type, .value = transform_expr(cn.value, ctx), .value_type = cn.value_type,
+        }
+        is LoweredCellGet as cg -> LoweredCellGet {
+            .span = cg.span, .type = cg.type, .target = transform_expr(cg.target, ctx), .value_type = cg.value_type,
+        }
+        is LoweredMakeClosure as mc -> LoweredMakeClosure {
+            .span = mc.span, .type = mc.type, .fn_symbol = mc.fn_symbol, .env = transform_expr(mc.env, ctx),
+        }
+        is LoweredIntLit as l -> l
+        is LoweredFloatLit as l -> l
+        is LoweredBoolLit as l -> l
+        is LoweredNullLit as l -> l
+        is LoweredCharLit as l -> l
+        is LoweredStringLit as l -> l
+        is LoweredDataConst as l -> l
+        is LoweredTypeConst as l -> l
+        is LoweredUnreachable as l -> l
+    }
+}
+
+build_param_map :: fn(params: LoweredParam[], args: LoweredExpr[]) -> MutableMap<i32, LoweredExpr> {
+    m :: MutableMap<i32, LoweredExpr> {}
+    n :: if params.len() < args.len() { params.len() } else { args.len() }
+    for i in 0..<n { m[params[i].symbol.id] = args[i] }
+    return m
+}

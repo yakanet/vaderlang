@@ -38,9 +38,13 @@
               arg0:
                 call :string
                   callee:
-                    std_core$char$Display$to_string :string
+                    bytes_to_string :string
                   arg0:
-                    c :char
+                    call :u8[]
+                      callee:
+                        utf8_encode :fn(char) -> u8[]
+                      arg0:
+                        c :char
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -77,9 +81,13 @@
               arg0:
                 call :string
                   callee:
-                    std_core$char$Display$to_string :string
+                    bytes_to_string :string
                   arg0:
-                    c :char
+                    call :u8[]
+                      callee:
+                        utf8_encode :fn(char) -> u8[]
+                      arg0:
+                        c :char
     let n: i32 = int(0) :i32
     block :void
       let __iter_5: StringChars =
@@ -127,21 +135,23 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                n :i32
+                cast → i64
+                  n :i32
           arg2:
             " bytes=" :string
           arg3:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                call :usize
-                  callee:
-                    byte_len :fn(string) -> usize
-                  arg0:
-                    "héllo" :string
+                cast → u64
+                  call :usize
+                    callee:
+                      byte_len :fn(string) -> usize
+                    arg0:
+                      "héllo" :string
     call :void
       callee:
         std_io$std_io$println__string :void

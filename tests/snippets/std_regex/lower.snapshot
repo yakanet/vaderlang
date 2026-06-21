@@ -15,10 +15,8 @@
             arg1:
               "=" :string
             arg2:
-              call :string
-                callee:
-                  std_core$bool$Display$to_string :string
-                arg0:
+              if :string
+                cond:
                   call :bool
                     callee:
                       matches :bool
@@ -26,6 +24,12 @@
                       p :Pattern
                     arg1:
                       input :string
+                then:
+                  ~>
+                    "true" :string
+                else:
+                  ~>
+                    "false" :string
   fn snippet$run_find(label: string, p: Pattern, input: string) -> void
     let r: Match | null =
       call :Match | null
@@ -73,11 +77,12 @@
                     arg1:
                       call :string
                         callee:
-                          std_core$usize$Display$to_string :string
+                          format_unsigned :fn(u64) -> string
                         arg0:
-                          .start :usize
-                            cast → Match
-                              r :Match | null
+                          cast → u64
+                            .start :usize
+                              cast → Match
+                                r :Match | null
                   call :void
                     callee:
                       append :void
@@ -93,11 +98,12 @@
                     arg1:
                       call :string
                         callee:
-                          std_core$usize$Display$to_string :string
+                          format_unsigned :fn(u64) -> string
                         arg0:
-                          .end :usize
-                            cast → Match
-                              r :Match | null
+                          cast → u64
+                            .end :usize
+                              cast → Match
+                                r :Match | null
                   call :void
                     callee:
                       append :void
@@ -242,9 +248,10 @@
               arg1:
                 call :string
                   callee:
-                    std_core$usize$Display$to_string :string
+                    format_unsigned :fn(u64) -> string
                   arg0:
-                    LoweredArrayLen
+                    cast → u64
+                      LoweredArrayLen
         let i: usize = int(0) :usize
         loop while (<…>)
           call :void
@@ -259,9 +266,10 @@
                 arg1:
                   call :string
                     callee:
-                      std_core$usize$Display$to_string :string
+                      format_unsigned :fn(u64) -> string
                     arg0:
-                      i :usize
+                      cast → u64
+                        i :usize
                 arg2:
                   "]=" :string
                 arg3:

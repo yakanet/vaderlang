@@ -25,10 +25,11 @@
           arg1:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                .retries :usize
-                  b :Budget
+                cast → u64
+                  .retries :usize
+                    b :Budget
           arg2:
             " label=" :string
           arg3:

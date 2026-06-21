@@ -39,9 +39,10 @@
             arg1:
               call :string
                 callee:
-                  std_core$i8$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  a8 :i8
+                  cast → i64
+                    a8 :i8
           call :void
             callee:
               append :void
@@ -57,9 +58,10 @@
             arg1:
               call :string
                 callee:
-                  std_core$i16$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  b16 :i16
+                  cast → i64
+                    b16 :i16
           call :void
             callee:
               append :void
@@ -75,9 +77,10 @@
             arg1:
               call :string
                 callee:
-                  std_core$i32$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  c32 :i32
+                  cast → i64
+                    c32 :i32
           call :void
             callee:
               append :void
@@ -93,7 +96,7 @@
             arg1:
               call :string
                 callee:
-                  std_core$i64$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
                   d64 :i64
           call :void
@@ -111,9 +114,10 @@
             arg1:
               call :string
                 callee:
-                  std_core$u8$Display$to_string :string
+                  format_unsigned :fn(u64) -> string
                 arg0:
-                  e8 :u8
+                  cast → u64
+                    e8 :u8
           call :void
             callee:
               append :void
@@ -129,9 +133,10 @@
             arg1:
               call :string
                 callee:
-                  std_core$u16$Display$to_string :string
+                  format_unsigned :fn(u64) -> string
                 arg0:
-                  f16 :u16
+                  cast → u64
+                    f16 :u16
           call :void
             callee:
               append :void
@@ -147,9 +152,10 @@
             arg1:
               call :string
                 callee:
-                  std_core$u32$Display$to_string :string
+                  format_unsigned :fn(u64) -> string
                 arg0:
-                  g32 :u32
+                  cast → u64
+                    g32 :u32
           call :void
             callee:
               append :void
@@ -165,7 +171,7 @@
             arg1:
               call :string
                 callee:
-                  std_core$u64$Display$to_string :string
+                  format_unsigned :fn(u64) -> string
                 arg0:
                   h64 :u64
           call :void
@@ -183,9 +189,10 @@
             arg1:
               call :string
                 callee:
-                  std_core$isize$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  isz :isize
+                  cast → i64
+                    isz :isize
           call :void
             callee:
               append :void
@@ -201,9 +208,10 @@
             arg1:
               call :string
                 callee:
-                  std_core$usize$Display$to_string :string
+                  format_unsigned :fn(u64) -> string
                 arg0:
-                  usz :usize
+                  cast → u64
+                    usz :usize
           ~>
             call :string
               callee:
@@ -258,9 +266,10 @@
             arg1:
               call :string
                 callee:
-                  std_core$isize$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  isz2 :isize
+                  cast → i64
+                    isz2 :isize
           call :void
             callee:
               append :void
@@ -276,9 +285,10 @@
             arg1:
               call :string
                 callee:
-                  std_core$usize$Display$to_string :string
+                  format_unsigned :fn(u64) -> string
                 arg0:
-                  usz2 :usize
+                  cast → u64
+                    usz2 :usize
           call :void
             callee:
               append :void
@@ -294,7 +304,7 @@
             arg1:
               call :string
                 callee:
-                  std_core$i64$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
                   d64_2 :i64
           call :void
@@ -312,7 +322,7 @@
             arg1:
               call :string
                 callee:
-                  std_core$u64$Display$to_string :string
+                  format_unsigned :fn(u64) -> string
                 arg0:
                   h64_2 :u64
           ~>
@@ -342,17 +352,19 @@
           arg1:
             call :string
               callee:
-                std_core$isize$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                neg :isize
+                cast → i64
+                  neg :isize
           arg2:
             " " :string
           arg3:
             call :string
               callee:
-                std_core$isize$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                neg2 :isize
+                cast → i64
+                  neg2 :isize
     let c: Counter =
       Counter {
         n: int(0) :usize
@@ -372,19 +384,21 @@
           arg1:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                .n :usize
-                  c :Counter
+                cast → u64
+                  .n :usize
+                    c :Counter
           arg2:
             " delta=" :string
           arg3:
             call :string
               callee:
-                std_core$isize$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                .delta :isize
-                  c :Counter
+                cast → i64
+                  .delta :isize
+                    c :Counter
     if :void
       cond:
         eq :bool
@@ -446,9 +460,10 @@
           arg1:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                LoweredArrayLen
+                cast → u64
+                  LoweredArrayLen
     let forty_two: fn() -> usize =
       LoweredMakeClosure
     call :void
@@ -463,11 +478,12 @@
           arg1:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                call :usize
-                  callee:
-                    forty_two :fn() -> usize
+                cast → u64
+                  call :usize
+                    callee:
+                      forty_two :fn() -> usize
     return int(0) :i32
   struct __lambda_env_4 {  }
   fn __lambda_3(__env_2: __lambda_env_4) -> usize

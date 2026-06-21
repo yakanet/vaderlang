@@ -27,10 +27,8 @@
           arg0:
             "new? " :string
           arg1:
-            call :string
-              callee:
-                std_core$bool$Display$to_string :string
-              arg0:
+            if :string
+              cond:
                 call :bool
                   callee:
                     std_collections$std_collections$add__i32 :bool
@@ -38,6 +36,12 @@
                     s :MutableSet<i32>
                   arg1:
                     int(10) :i32
+              then:
+                ~>
+                  "true" :string
+              else:
+                ~>
+                  "false" :string
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -48,10 +52,8 @@
           arg0:
             "new? " :string
           arg1:
-            call :string
-              callee:
-                std_core$bool$Display$to_string :string
-              arg0:
+            if :string
+              cond:
                 call :bool
                   callee:
                     std_collections$std_collections$add__i32 :bool
@@ -59,6 +61,12 @@
                     s :MutableSet<i32>
                   arg1:
                     int(20) :i32
+              then:
+                ~>
+                  "true" :string
+              else:
+                ~>
+                  "false" :string
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -69,10 +77,8 @@
           arg0:
             "new? " :string
           arg1:
-            call :string
-              callee:
-                std_core$bool$Display$to_string :string
-              arg0:
+            if :string
+              cond:
                 call :bool
                   callee:
                     std_collections$std_collections$add__i32 :bool
@@ -80,6 +86,12 @@
                     s :MutableSet<i32>
                   arg1:
                     int(10) :i32
+              then:
+                ~>
+                  "true" :string
+              else:
+                ~>
+                  "false" :string
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -92,13 +104,14 @@
           arg1:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                call :usize
-                  callee:
-                    std_collections$std_collections$len__i32 :usize
-                  arg0:
-                    s :MutableSet<i32>
+                cast → u64
+                  call :usize
+                    callee:
+                      std_collections$std_collections$len__i32 :usize
+                    arg0:
+                      s :MutableSet<i32>
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -109,10 +122,8 @@
           arg0:
             "has 10? " :string
           arg1:
-            call :string
-              callee:
-                std_core$bool$Display$to_string :string
-              arg0:
+            if :string
+              cond:
                 call :bool
                   callee:
                     std_collections$MutableSet$Contains$contains__i32 :bool
@@ -120,6 +131,12 @@
                     s :MutableSet<i32>
                   arg1:
                     int(10) :i32
+              then:
+                ~>
+                  "true" :string
+              else:
+                ~>
+                  "false" :string
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -130,10 +147,8 @@
           arg0:
             "has 30? " :string
           arg1:
-            call :string
-              callee:
-                std_core$bool$Display$to_string :string
-              arg0:
+            if :string
+              cond:
                 call :bool
                   callee:
                     std_collections$MutableSet$Contains$contains__i32 :bool
@@ -141,6 +156,12 @@
                     s :MutableSet<i32>
                   arg1:
                     int(30) :i32
+              then:
+                ~>
+                  "true" :string
+              else:
+                ~>
+                  "false" :string
     return int(0) :i32
 
 # Diagnostics

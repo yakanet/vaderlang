@@ -15,17 +15,12 @@ export main 0
 
 fn 0 snippet$main () -> i32
   string.const 0
-  call 2
-  call 4
+  call 1
+  call 3
   return.lit i32.const 0
 end
 
-fn 1 std_core$string$Display$to_string (string) -> string
-  local.get 0
-  return
-end
-
-fn 2 std_string$trim (string) -> string
+fn 1 std_string$trim (string) -> string
   local sb ref
   local n usize
   local lo usize
@@ -50,7 +45,7 @@ fn 2 std_string$trim (string) -> string
         local.get 3
         array.get 4
         ref.cast 5
-        call 3
+        call 2
         local.set 4
       else
         bool.const false
@@ -87,7 +82,7 @@ fn 2 std_string$trim (string) -> string
         local.get 6
         array.get 4
         ref.cast 5
-        call 3
+        call 2
         local.set 4
       else
         bool.const false
@@ -114,7 +109,7 @@ fn 2 std_string$trim (string) -> string
   return
 end
 
-fn 3 std_string$is_white_byte (u8) -> bool
+fn 2 std_string$is_white_byte (u8) -> bool
   local $k_1 u8
   local or_res bool
   i32.const 32
@@ -161,13 +156,9 @@ fn 3 std_string$is_white_byte (u8) -> bool
   return
 end
 
-fn 4 std_io$std_io$println__string (string) -> void
-  local $call_2 string
-  local.get 0
-  call 1
-  local.set 1
+fn 3 std_io$std_io$println__string (string) -> void
   i32.const 0
-  local.get 1
+  local.get 0
   call.import 2
   i32.const 0
   string.const 1

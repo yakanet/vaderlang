@@ -145,15 +145,19 @@
           arg0:
             "ws_space=" :string
           arg1:
-            call :string
-              callee:
-                std_core$bool$Display$to_string :string
-              arg0:
+            if :string
+              cond:
                 call :bool
                   callee:
                     is_white_char :bool
                   arg0:
                     char(0x20)
+              then:
+                ~>
+                  "true" :string
+              else:
+                ~>
+                  "false" :string
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -164,15 +168,19 @@
           arg0:
             "ws_a=" :string
           arg1:
-            call :string
-              callee:
-                std_core$bool$Display$to_string :string
-              arg0:
+            if :string
+              cond:
                 call :bool
                   callee:
                     is_white_char :bool
                   arg0:
                     char(0x61)
+              then:
+                ~>
+                  "true" :string
+              else:
+                ~>
+                  "false" :string
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -183,13 +191,17 @@
           arg0:
             "ws_tab=" :string
           arg1:
-            call :string
-              callee:
-                std_core$bool$Display$to_string :string
-              arg0:
+            if :string
+              cond:
                 call :bool
                   callee:
                     is_white_char :bool
                   arg0:
                     char(0x9)
+              then:
+                ~>
+                  "true" :string
+              else:
+                ~>
+                  "false" :string
     return int(0) :i32

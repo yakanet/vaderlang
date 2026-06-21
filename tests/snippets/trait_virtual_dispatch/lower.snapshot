@@ -4,7 +4,7 @@
   struct snippet$ParseErr { msg: string }
   struct snippet$NetErr { reason: string }
   fn snippet$ParseErr$Error$message(self: ParseErr) -> string
-    return
+    ~>
       call :string
         callee:
           concat2 :string
@@ -14,7 +14,7 @@
           .msg :string
             self :ParseErr
   fn snippet$NetErr$Error$message(self: NetErr) -> string
-    return
+    ~>
       call :string
         callee:
           concat2 :string

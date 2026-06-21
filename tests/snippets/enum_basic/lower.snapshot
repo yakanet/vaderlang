@@ -111,15 +111,19 @@
           arg0:
             "Is EAST: " :string
           arg1:
-            call :string
-              callee:
-                std_core$bool$Display$to_string :string
-              arg0:
+            if :string
+              cond:
                 eq :bool
                   l:
                     d :Direction
                   r:
                     int(2) :i32
+              then:
+                ~>
+                  "true" :string
+              else:
+                ~>
+                  "false" :string
     ~>
       call :void
         callee:
@@ -131,15 +135,19 @@
             arg0:
               "Is WEST: " :string
             arg1:
-              call :string
-                callee:
-                  std_core$bool$Display$to_string :string
-                arg0:
+              if :string
+                cond:
                   eq :bool
                     l:
                       d :Direction
                     r:
                       int(3) :i32
+                then:
+                  ~>
+                    "true" :string
+                else:
+                  ~>
+                    "false" :string
 
 # Diagnostics
 [21:1] error[T3033] invalid `main` signature: main must return i32

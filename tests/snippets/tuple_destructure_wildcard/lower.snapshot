@@ -31,9 +31,10 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                a :i32
+                cast → i64
+                  a :i32
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -44,9 +45,13 @@
           arg0:
             "c = " :string
           arg1:
-            call :string
-              callee:
-                std_core$bool$Display$to_string :string
-              arg0:
+            if :string
+              cond:
                 c :bool
+              then:
+                ~>
+                  "true" :string
+              else:
+                ~>
+                  "false" :string
     return int(0) :i32

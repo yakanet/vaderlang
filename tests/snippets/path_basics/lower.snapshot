@@ -121,15 +121,19 @@
           arg0:
             "abs is_absolute=" :string
           arg1:
-            call :string
-              callee:
-                std_core$bool$Display$to_string :string
-              arg0:
+            if :string
+              cond:
                 call :bool
                   callee:
                     is_absolute :bool
                   arg0:
                     abs :Path
+              then:
+                ~>
+                  "true" :string
+              else:
+                ~>
+                  "false" :string
     call :void
       callee:
         show_path :fn(string, Path) -> void
@@ -181,10 +185,8 @@
           arg0:
             "empty.is_empty=" :string
           arg1:
-            call :string
-              callee:
-                std_core$bool$Display$to_string :string
-              arg0:
+            if :string
+              cond:
                 call :bool
                   callee:
                     is_empty :bool
@@ -192,6 +194,12 @@
                     call :Path
                       callee:
                         empty_path :fn() -> Path
+              then:
+                ~>
+                  "true" :string
+              else:
+                ~>
+                  "false" :string
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -202,15 +210,19 @@
           arg0:
             "p.is_empty=" :string
           arg1:
-            call :string
-              callee:
-                std_core$bool$Display$to_string :string
-              arg0:
+            if :string
+              cond:
                 call :bool
                   callee:
                     is_empty :bool
                   arg0:
                     p :Path
+              then:
+                ~>
+                  "true" :string
+              else:
+                ~>
+                  "false" :string
     call :void
       callee:
         show_path :fn(string, Path) -> void
@@ -287,10 +299,8 @@
           arg0:
             "a/b/c starts_with a/b: " :string
           arg1:
-            call :string
-              callee:
-                std_core$bool$Display$to_string :string
-              arg0:
+            if :string
+              cond:
                 call :bool
                   callee:
                     starts_with :bool
@@ -306,6 +316,12 @@
                         to_path :Path
                       arg0:
                         "a/b" :string
+              then:
+                ~>
+                  "true" :string
+              else:
+                ~>
+                  "false" :string
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -316,10 +332,8 @@
           arg0:
             "a/bc starts_with a/b: " :string
           arg1:
-            call :string
-              callee:
-                std_core$bool$Display$to_string :string
-              arg0:
+            if :string
+              cond:
                 call :bool
                   callee:
                     starts_with :bool
@@ -335,6 +349,12 @@
                         to_path :Path
                       arg0:
                         "a/b" :string
+              then:
+                ~>
+                  "true" :string
+              else:
+                ~>
+                  "false" :string
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -345,10 +365,8 @@
           arg0:
             "a/b/c ends_with b/c: " :string
           arg1:
-            call :string
-              callee:
-                std_core$bool$Display$to_string :string
-              arg0:
+            if :string
+              cond:
                 call :bool
                   callee:
                     ends_with :bool
@@ -364,6 +382,12 @@
                         to_path :Path
                       arg0:
                         "b/c" :string
+              then:
+                ~>
+                  "true" :string
+              else:
+                ~>
+                  "false" :string
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -374,10 +398,8 @@
           arg0:
             "a/b/c ends_with /c: " :string
           arg1:
-            call :string
-              callee:
-                std_core$bool$Display$to_string :string
-              arg0:
+            if :string
+              cond:
                 call :bool
                   callee:
                     ends_with :bool
@@ -393,6 +415,12 @@
                         to_path :Path
                       arg0:
                         "/c" :string
+              then:
+                ~>
+                  "true" :string
+              else:
+                ~>
+                  "false" :string
     call :void
       callee:
         show_path :fn(string, Path) -> void

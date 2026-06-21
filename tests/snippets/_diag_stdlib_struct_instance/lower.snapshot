@@ -55,10 +55,11 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                cast → i32
-                  v :i32 | null
+                cast → i64
+                  cast → i32
+                    v :i32 | null
     return
       cast → i32
         v :i32 | null

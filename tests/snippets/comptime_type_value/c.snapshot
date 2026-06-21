@@ -21,7 +21,6 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 
 static int32_t snippet_main(void);
 static void snippet_accept_type(vader_box_t l0);
-static vader_string_t std_core_string_Display_to_string(vader_string_t l0);
 static void std_io_std_io_println__string(vader_string_t l0);
 
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
@@ -68,18 +67,10 @@ static void snippet_accept_type(vader_box_t l0) {
     return;
 }
 
-static vader_string_t std_core_string_Display_to_string(vader_string_t l0) {
-    return l0;
-}
-
 static void std_io_std_io_println__string(vader_string_t l0) {
-    vader_string_t l1;
-    vader_string_t t0;
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = std_core_string_Display_to_string(l0);
-    l1 = t0;
-    vader_import_0(INT32_C(0), l1);
+    vader_import_0(INT32_C(0), l0);
     vader_import_0(INT32_C(0), 2u);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;

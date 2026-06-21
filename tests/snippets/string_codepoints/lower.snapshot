@@ -14,25 +14,27 @@
           arg1:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                call :usize
-                  callee:
-                    len :fn(string) -> usize
-                  arg0:
-                    "vader" :string
+                cast → u64
+                  call :usize
+                    callee:
+                      len :fn(string) -> usize
+                    arg0:
+                      "vader" :string
           arg2:
             " bytes=" :string
           arg3:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                call :usize
-                  callee:
-                    byte_len :fn(string) -> usize
-                  arg0:
-                    "vader" :string
+                cast → u64
+                  call :usize
+                    callee:
+                      byte_len :fn(string) -> usize
+                    arg0:
+                      "vader" :string
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -45,25 +47,27 @@
           arg1:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                call :usize
-                  callee:
-                    len :fn(string) -> usize
-                  arg0:
-                    "héllo" :string
+                cast → u64
+                  call :usize
+                    callee:
+                      len :fn(string) -> usize
+                    arg0:
+                      "héllo" :string
           arg2:
             " bytes=" :string
           arg3:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                call :usize
-                  callee:
-                    byte_len :fn(string) -> usize
-                  arg0:
-                    "héllo" :string
+                cast → u64
+                  call :usize
+                    callee:
+                      byte_len :fn(string) -> usize
+                    arg0:
+                      "héllo" :string
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -76,25 +80,27 @@
           arg1:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                call :usize
-                  callee:
-                    len :fn(string) -> usize
-                  arg0:
-                    "你好嗎？" :string
+                cast → u64
+                  call :usize
+                    callee:
+                      len :fn(string) -> usize
+                    arg0:
+                      "你好嗎？" :string
           arg2:
             " bytes=" :string
           arg3:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                call :usize
-                  callee:
-                    byte_len :fn(string) -> usize
-                  arg0:
-                    "你好嗎？" :string
+                cast → u64
+                  call :usize
+                    callee:
+                      byte_len :fn(string) -> usize
+                    arg0:
+                      "你好嗎？" :string
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -107,25 +113,27 @@
           arg1:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                call :usize
-                  callee:
-                    len :fn(string) -> usize
-                  arg0:
-                    "a😀b" :string
+                cast → u64
+                  call :usize
+                    callee:
+                      len :fn(string) -> usize
+                    arg0:
+                      "a😀b" :string
           arg2:
             " bytes=" :string
           arg3:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                call :usize
-                  callee:
-                    byte_len :fn(string) -> usize
-                  arg0:
-                    "a😀b" :string
+                cast → u64
+                  call :usize
+                    callee:
+                      byte_len :fn(string) -> usize
+                    arg0:
+                      "a😀b" :string
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -138,25 +146,27 @@
           arg1:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                call :usize
-                  callee:
-                    len :fn(string) -> usize
-                  arg0:
-                    "" :string
+                cast → u64
+                  call :usize
+                    callee:
+                      len :fn(string) -> usize
+                    arg0:
+                      "" :string
           arg2:
             " bytes=" :string
           arg3:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                call :usize
-                  callee:
-                    byte_len :fn(string) -> usize
-                  arg0:
-                    "" :string
+                cast → u64
+                  call :usize
+                    callee:
+                      byte_len :fn(string) -> usize
+                    arg0:
+                      "" :string
     let s: string = "你好" :string
     let n: usize =
       call :usize
@@ -204,9 +214,10 @@
               arg1:
                 call :string
                   callee:
-                    std_core$usize$Display$to_string :string
+                    format_unsigned :fn(u64) -> string
                   arg0:
-                    i :usize
+                    cast → u64
+                      i :usize
             call :void
               callee:
                 append :void
@@ -222,9 +233,13 @@
               arg1:
                 call :string
                   callee:
-                    std_core$char$Display$to_string :string
+                    bytes_to_string :string
                   arg0:
-                    c :char
+                    call :u8[]
+                      callee:
+                        utf8_encode :fn(char) -> u8[]
+                      arg0:
+                        c :char
             call :void
               callee:
                 append :void
@@ -240,9 +255,10 @@
               arg1:
                 call :string
                   callee:
-                    std_core$usize$Display$to_string :string
+                    format_unsigned :fn(u64) -> string
                   arg0:
-                    w :usize
+                    cast → u64
+                      w :usize
             call :void
               callee:
                 append :void
@@ -277,13 +293,14 @@
           arg1:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                call :usize
-                  callee:
-                    codepoint_byte_len :fn(char) -> usize
-                  arg0:
-                    char(0x61)
+                cast → u64
+                  call :usize
+                    callee:
+                      codepoint_byte_len :fn(char) -> usize
+                    arg0:
+                      char(0x61)
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -296,13 +313,14 @@
           arg1:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                call :usize
-                  callee:
-                    codepoint_byte_len :fn(char) -> usize
-                  arg0:
-                    char(0xe9)
+                cast → u64
+                  call :usize
+                    callee:
+                      codepoint_byte_len :fn(char) -> usize
+                    arg0:
+                      char(0xe9)
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -315,13 +333,14 @@
           arg1:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                call :usize
-                  callee:
-                    codepoint_byte_len :fn(char) -> usize
-                  arg0:
-                    char(0x4f60)
+                cast → u64
+                  call :usize
+                    callee:
+                      codepoint_byte_len :fn(char) -> usize
+                    arg0:
+                      char(0x4f60)
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -334,11 +353,12 @@
           arg1:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                call :usize
-                  callee:
-                    codepoint_byte_len :fn(char) -> usize
-                  arg0:
-                    char(0x1f600)
+                cast → u64
+                  call :usize
+                    callee:
+                      codepoint_byte_len :fn(char) -> usize
+                    arg0:
+                      char(0x1f600)
     return int(0) :i32

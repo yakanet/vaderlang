@@ -96,7 +96,7 @@ fn 2 snippet$main () -> i32
     local.get 0
     ref.cast 3
     call 1
-    call 4
+    call 3
     char.const 63
     call 0
     local.tee 1
@@ -105,14 +105,14 @@ fn 2 snippet$main () -> i32
       local.get 1
       ref.cast 3
       call 1
-      call 4
+      call 3
       return.lit i32.const 0
     end $L1
     local.get 1
     type_check 4
     if $L2 void
       string.const 5
-      call 4
+      call 3
       return.lit i32.const 0
     end $L2
     return
@@ -121,7 +121,7 @@ fn 2 snippet$main () -> i32
   type_check 4
   if $L3 void
     string.const 5
-    call 4
+    call 3
     char.const 63
     call 0
     local.tee 1
@@ -130,14 +130,14 @@ fn 2 snippet$main () -> i32
       local.get 1
       ref.cast 3
       call 1
-      call 4
+      call 3
       return.lit i32.const 0
     end $L4
     local.get 1
     type_check 4
     if $L5 void
       string.const 5
-      call 4
+      call 3
       return.lit i32.const 0
     end $L5
     return
@@ -145,18 +145,9 @@ fn 2 snippet$main () -> i32
   return
 end
 
-fn 3 std_core$string$Display$to_string (string) -> string
-  local.get 0
-  return
-end
-
-fn 4 std_io$std_io$println__string (string) -> void
-  local $call_2 string
-  local.get 0
-  call 3
-  local.set 1
+fn 3 std_io$std_io$println__string (string) -> void
   i32.const 0
-  local.get 1
+  local.get 0
   call.import 0
   i32.const 0
   string.const 6

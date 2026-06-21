@@ -150,22 +150,22 @@ export len :: fn(s: string) -> usize {
     return n
 }
 
-i8     implements Display { to_string :: fn(self) -> string = format_signed(i64(self)) }
-i16    implements Display { to_string :: fn(self) -> string = format_signed(i64(self)) }
-i32    implements Display { to_string :: fn(self) -> string = format_signed(i64(self)) }
-i64    implements Display { to_string :: fn(self) -> string = format_signed(self) }
-isize  implements Display { to_string :: fn(self) -> string = format_signed(i64(self)) }
-u8     implements Display { to_string :: fn(self) -> string = format_unsigned(u64(self)) }
-u16    implements Display { to_string :: fn(self) -> string = format_unsigned(u64(self)) }
-u32    implements Display { to_string :: fn(self) -> string = format_unsigned(u64(self)) }
-u64    implements Display { to_string :: fn(self) -> string = format_unsigned(self) }
-usize  implements Display { to_string :: fn(self) -> string = format_unsigned(u64(self)) }
-bool   implements Display { to_string :: fn(self) -> string = if self { "true" } else { "false" } }
-char   implements Display { to_string :: fn(self) -> string = utf8_encode(self).bytes_to_string() }
-string implements Display { to_string :: fn(self) -> string = self }
+i8     implements Display -> format_signed(i64(self))
+i16    implements Display -> format_signed(i64(self))
+i32    implements Display -> format_signed(i64(self))
+i64    implements Display -> format_signed(self)
+isize  implements Display -> format_signed(i64(self))
+u8     implements Display -> format_unsigned(u64(self))
+u16    implements Display -> format_unsigned(u64(self))
+u32    implements Display -> format_unsigned(u64(self))
+u64    implements Display -> format_unsigned(self)
+usize  implements Display -> format_unsigned(u64(self))
+bool   implements Display -> if self { "true" } else { "false" }
+char   implements Display -> utf8_encode(self).bytes_to_string()
+string implements Display -> self
 
-f32 implements Display { to_string :: fn(self) -> string = format_f32(self) }
-f64 implements Display { to_string :: fn(self) -> string = format_f64(self) }
+f32 implements Display -> format_f32(self)
+f64 implements Display -> format_f64(self)
 
 // ---- bit reinterpret (float ↔ raw IEEE bits) ------------------------------
 //

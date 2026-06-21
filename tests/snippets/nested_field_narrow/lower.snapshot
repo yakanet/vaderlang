@@ -69,13 +69,14 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    count_match :fn(Outer) -> i32
-                  arg0:
-                    set :Outer
+                cast → i64
+                  call :i32
+                    callee:
+                      count_match :fn(Outer) -> i32
+                    arg0:
+                      set :Outer
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -88,13 +89,14 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    count_match :fn(Outer) -> i32
-                  arg0:
-                    unset :Outer
+                cast → i64
+                  call :i32
+                    callee:
+                      count_match :fn(Outer) -> i32
+                    arg0:
+                      unset :Outer
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -107,13 +109,14 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    unwrap :fn(Outer) -> i32
-                  arg0:
-                    set :Outer
+                cast → i64
+                  call :i32
+                    callee:
+                      unwrap :fn(Outer) -> i32
+                    arg0:
+                      set :Outer
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -126,13 +129,14 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    unwrap :fn(Outer) -> i32
-                  arg0:
-                    unset :Outer
+                cast → i64
+                  call :i32
+                    callee:
+                      unwrap :fn(Outer) -> i32
+                    arg0:
+                      unset :Outer
     return int(0) :i32
 
 # Diagnostics

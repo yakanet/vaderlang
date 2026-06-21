@@ -10,22 +10,13 @@ export main 0
 
 fn 0 snippet$main () -> i32
   string.const 0
-  call 2
+  call 1
   return.lit i32.const 0
 end
 
-fn 1 std_core$string$Display$to_string (string) -> string
-  local.get 0
-  return
-end
-
-fn 2 std_io$std_io$println__string (string) -> void
-  local $call_2 string
-  local.get 0
-  call 1
-  local.set 1
+fn 1 std_io$std_io$println__string (string) -> void
   i32.const 0
-  local.get 1
+  local.get 0
   call.import 0
   i32.const 0
   string.const 1

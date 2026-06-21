@@ -53,10 +53,11 @@
             arg1:
               call :string
                 callee:
-                  std_core$i32$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  .timeout :i32
-                    s1 :Settings
+                  cast → i64
+                    .timeout :i32
+                      s1 :Settings
           call :void
             callee:
               append :void
@@ -70,12 +71,16 @@
             arg0:
               __sb_0 :StringBuilder
             arg1:
-              call :string
-                callee:
-                  std_core$bool$Display$to_string :string
-                arg0:
+              if :string
+                cond:
                   .debug :bool
                     s1 :Settings
+                then:
+                  ~>
+                    "true" :string
+                else:
+                  ~>
+                    "false" :string
           ~>
             call :string
               callee:
@@ -114,10 +119,11 @@
             arg1:
               call :string
                 callee:
-                  std_core$i32$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  .timeout :i32
-                    s2 :Settings
+                  cast → i64
+                    .timeout :i32
+                      s2 :Settings
           call :void
             callee:
               append :void
@@ -131,12 +137,16 @@
             arg0:
               __sb_1 :StringBuilder
             arg1:
-              call :string
-                callee:
-                  std_core$bool$Display$to_string :string
-                arg0:
+              if :string
+                cond:
                   .debug :bool
                     s2 :Settings
+                then:
+                  ~>
+                    "true" :string
+                else:
+                  ~>
+                    "false" :string
           ~>
             call :string
               callee:
@@ -175,10 +185,11 @@
             arg1:
               call :string
                 callee:
-                  std_core$i32$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  .timeout :i32
-                    s3 :Settings
+                  cast → i64
+                    .timeout :i32
+                      s3 :Settings
           call :void
             callee:
               append :void
@@ -192,12 +203,16 @@
             arg0:
               __sb_2 :StringBuilder
             arg1:
-              call :string
-                callee:
-                  std_core$bool$Display$to_string :string
-                arg0:
+              if :string
+                cond:
                   .debug :bool
                     s3 :Settings
+                then:
+                  ~>
+                    "true" :string
+                else:
+                  ~>
+                    "false" :string
           ~>
             call :string
               callee:

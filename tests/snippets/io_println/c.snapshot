@@ -26,8 +26,6 @@ static const vader_atom_entry_t vader_atom_comptime_table[] = {
 #define VADER_COMPTIME_ATOM_COUNT 3u
 
 static int32_t snippet_main(void);
-static vader_string_t std_core_i32_Display_to_string(int32_t l0);
-static vader_string_t std_core_string_Display_to_string(vader_string_t l0);
 static vader_string_t std_core_format_signed(int64_t l0);
 static void std_io_std_io_println__i32(int32_t l0);
 static void std_io_std_io_println__string(vader_string_t l0);
@@ -73,19 +71,6 @@ static int32_t snippet_main(void) {
     std_io_std_io_println__i32(INT32_C(42));
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }
     vader_gc_top = gc_frame.prev;
-}
-
-static vader_string_t std_core_i32_Display_to_string(int32_t l0) {
-    vader_string_t t0;
-    vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL };
-    vader_gc_top = &gc_frame;
-    t0 = std_core_format_signed(((int64_t) (int32_t) l0));
-    { vader_string_t __vret = t0; vader_gc_top = gc_frame.prev; return __vret; }
-    vader_gc_top = gc_frame.prev;
-}
-
-static vader_string_t std_core_string_Display_to_string(vader_string_t l0) {
-    return l0;
 }
 
 static vader_string_t std_core_format_signed(int64_t l0) {
@@ -174,7 +159,7 @@ static void std_io_std_io_println__i32(int32_t l0) {
     vader_string_t t0;
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = std_core_i32_Display_to_string(l0);
+    t0 = std_core_format_signed(((int64_t) (int32_t) l0));
     l1 = t0;
     vader_import_0(INT32_C(0), l1);
     vader_import_0(INT32_C(0), 3u);
@@ -183,13 +168,9 @@ static void std_io_std_io_println__i32(int32_t l0) {
 }
 
 static void std_io_std_io_println__string(vader_string_t l0) {
-    vader_string_t l1;
-    vader_string_t t0;
     vader_gc_frame_t gc_frame = { vader_gc_top, 0u, 0u, NULL };
     vader_gc_top = &gc_frame;
-    t0 = std_core_string_Display_to_string(l0);
-    l1 = t0;
-    vader_import_0(INT32_C(0), l1);
+    vader_import_0(INT32_C(0), l0);
     vader_import_0(INT32_C(0), 3u);
     { vader_gc_top = gc_frame.prev; return; }
     vader_gc_top = gc_frame.prev;

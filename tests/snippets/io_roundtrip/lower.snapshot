@@ -20,15 +20,19 @@
           arg0:
             "exists: " :string
           arg1:
-            call :string
-              callee:
-                std_core$bool$Display$to_string :string
-              arg0:
+            if :string
+              cond:
                 call :bool
                   callee:
                     exists :fn(string) -> bool
                   arg0:
                     path :string
+              then:
+                ~>
+                  "true" :string
+              else:
+                ~>
+                  "false" :string
     let contents: Error | string =
       call :Error | string
         callee:

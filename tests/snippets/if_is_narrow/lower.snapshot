@@ -97,11 +97,12 @@
         arg1:
           call :string
             callee:
-              std_core$i32$Display$to_string :string
+              format_signed :fn(i64) -> string
             arg0:
-              .weight :i32
-                cast → Pig
-                  p :Cat | Dog | Pig
+              cast → i64
+                .weight :i32
+                  cast → Pig
+                    p :Cat | Dog | Pig
         arg2:
           " kg" :string
   fn snippet$primitive_is(v: i32 | string) -> string
@@ -119,10 +120,11 @@
             arg1:
               call :string
                 callee:
-                  std_core$i32$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  cast → i32
-                    v :i32 | string
+                  cast → i64
+                    cast → i32
+                      v :i32 | string
     return
       call :string
         callee:

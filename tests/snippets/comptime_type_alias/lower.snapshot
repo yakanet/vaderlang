@@ -14,9 +14,10 @@
           arg1:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                int(4) :usize
+                cast → u64
+                  int(4) :usize
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -29,9 +30,10 @@
           arg1:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                int(8) :usize
+                cast → u64
+                  int(8) :usize
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -44,7 +46,8 @@
           arg1:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                int(16) :usize
+                cast → u64
+                  int(16) :usize
     return int(0) :i32

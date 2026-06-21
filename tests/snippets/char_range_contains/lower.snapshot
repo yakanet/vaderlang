@@ -245,9 +245,10 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                n :i32
+                cast → i64
+                  n :i32
     let m: i32 = int(0) :i32
     block :void
       let __iter_4: Range<char> =
@@ -296,7 +297,8 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                m :i32
+                cast → i64
+                  m :i32
     return int(0) :i32

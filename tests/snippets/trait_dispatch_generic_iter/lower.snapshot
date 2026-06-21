@@ -73,13 +73,14 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    walk :fn(Iterator<i32>) -> i32
-                  arg0:
-                    r :Repeat<i32>
+                cast → i64
+                  call :i32
+                    callee:
+                      walk :fn(Iterator<i32>) -> i32
+                    arg0:
+                      r :Repeat<i32>
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -92,13 +93,14 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    walk :fn(Iterator<i32>) -> i32
-                  arg0:
-                    o :Once<i32>
+                cast → i64
+                  call :i32
+                    callee:
+                      walk :fn(Iterator<i32>) -> i32
+                    arg0:
+                      o :Once<i32>
     return int(0) :i32
   struct snippet$Repeat__i32 { value: i32, remaining: i32 }
   fn snippet$Repeat$Iterator$next__i32(self: Repeat<i32>) -> null | Yield<i32>

@@ -57,9 +57,10 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                total :i32
+                cast → i64
+                  total :i32
     let is_even: fn(i32) -> bool =
       LoweredMakeClosure
     let fi: FilterIterator<i32> =
@@ -125,17 +126,19 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                even_count :i32
+                cast → i64
+                  even_count :i32
           arg2:
             " sum=" :string
           arg3:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                even_sum :i32
+                cast → i64
+                  even_sum :i32
     let ti: TakeIterator<i32> =
       TakeIterator<i32> {
         source:
@@ -191,9 +194,10 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                take_sum :i32
+                cast → i64
+                  take_sum :i32
     let si: SkipIterator<i32> =
       SkipIterator<i32> {
         source:
@@ -265,17 +269,19 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                skip_count :i32
+                cast → i64
+                  skip_count :i32
           arg2:
             " first=" :string
           arg3:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                skip_first :i32
+                cast → i64
+                  skip_first :i32
     return int(0) :i32
   struct __lambda_env_2 {  }
   fn __lambda_1(__env_0: __lambda_env_2, x: i32) -> i32

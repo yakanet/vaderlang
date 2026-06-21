@@ -32,10 +32,11 @@
             arg2:
               call :string
                 callee:
-                  std_core$i32$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  .age :i32
-                    self :User
+                  cast → i64
+                    .age :i32
+                      self :User
   fn snippet$main() -> i32
     let u: User =
       User {
@@ -81,10 +82,11 @@
             arg1:
               call :string
                 callee:
-                  std_core$i32$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  .age :i32
-                    u :User
+                  cast → i64
+                    .age :i32
+                      u :User
           call :void
             callee:
               append :void

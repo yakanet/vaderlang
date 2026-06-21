@@ -5,24 +5,24 @@
   StructDecl     NetErr               :: NetErr
   StructDecl     ParseErr             :: ParseErr
   FnDecl         report               :: fn(Error) -> string
-  expr 13:44    StringLitExpr  :: string
-  expr 13:54    FieldExpr      :: string
-  expr 13:54    IdentExpr      :: ParseErr
-  expr 16:44    StringLitExpr  :: string
-  expr 16:52    FieldExpr      :: string
-  expr 16:52    IdentExpr      :: NetErr
-  expr 20:12    CallExpr       :: string
-  expr 20:12    FieldExpr      :: fn() -> string
-  expr 20:12    IdentExpr      :: Error
-  expr 24:13    CallExpr       :: string
-  expr 24:13    IdentExpr      :: fn(Error) -> string
-  expr 24:20    StructLitExpr  :: ParseErr
-  expr 24:38    StringLitExpr  :: string
-  expr 24:5     CallExpr       :: void
-  expr 24:5     IdentExpr      :: fn(T) -> void
-  expr 25:13    CallExpr       :: string
-  expr 25:13    IdentExpr      :: fn(Error) -> string
-  expr 25:20    StructLitExpr  :: NetErr
-  expr 25:41    StringLitExpr  :: string
-  expr 25:5     CallExpr       :: void
-  expr 25:5     IdentExpr      :: fn(T) -> void
+  expr 12:30    StringLitExpr  :: string
+  expr 12:40    FieldExpr      :: string
+  expr 12:40    IdentExpr      :: ParseErr
+  expr 13:28    StringLitExpr  :: string
+  expr 13:36    FieldExpr      :: string
+  expr 13:36    IdentExpr      :: NetErr
+  expr 16:12    CallExpr       :: string
+  expr 16:12    FieldExpr      :: fn() -> string
+  expr 16:12    IdentExpr      :: Error
+  expr 20:13    CallExpr       :: string
+  expr 20:13    IdentExpr      :: fn(Error) -> string
+  expr 20:20    StructLitExpr  :: ParseErr
+  expr 20:38    StringLitExpr  :: string
+  expr 20:5     CallExpr       :: void
+  expr 20:5     IdentExpr      :: fn(T) -> void
+  expr 21:13    CallExpr       :: string
+  expr 21:13    IdentExpr      :: fn(Error) -> string
+  expr 21:20    StructLitExpr  :: NetErr
+  expr 21:41    StringLitExpr  :: string
+  expr 21:5     CallExpr       :: void
+  expr 21:5     IdentExpr      :: fn(T) -> void

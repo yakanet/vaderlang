@@ -19,12 +19,12 @@ fn 0 snippet$main () -> i32
   make_closure 1 6
   defer.push
   string.const 0
-  call 4
+  call 3
   struct.new 4
   make_closure 2 6
   defer.push
   string.const 1
-  call 4
+  call 3
   defer.pop_exec 1
   defer.pop_exec 1
   return.lit i32.const 0
@@ -32,28 +32,19 @@ end
 
 fn 1 __defer_1 (ref) -> void
   string.const 2
-  call 4
+  call 3
   return
 end
 
 fn 2 __defer_4 (ref) -> void
   string.const 3
-  call 4
-  return
-end
-
-fn 3 std_core$string$Display$to_string (string) -> string
-  local.get 0
-  return
-end
-
-fn 4 std_io$std_io$println__string (string) -> void
-  local $call_2 string
-  local.get 0
   call 3
-  local.set 1
+  return
+end
+
+fn 3 std_io$std_io$println__string (string) -> void
   i32.const 0
-  local.get 1
+  local.get 0
   call.import 0
   i32.const 0
   string.const 4

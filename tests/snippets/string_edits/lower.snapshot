@@ -67,10 +67,8 @@
       callee:
         std_io$std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            std_core$bool$Display$to_string :string
-          arg0:
+        if :string
+          cond:
             call :bool
               callee:
                 find :bool
@@ -78,14 +76,18 @@
                 "hello" :string
               arg1:
                 char(0x65)
+          then:
+            ~>
+              "true" :string
+          else:
+            ~>
+              "false" :string
     call :void
       callee:
         std_io$std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            std_core$bool$Display$to_string :string
-          arg0:
+        if :string
+          cond:
             call :bool
               callee:
                 find :bool
@@ -93,4 +95,10 @@
                 "hello" :string
               arg1:
                 char(0x7a)
+          then:
+            ~>
+              "true" :string
+          else:
+            ~>
+              "false" :string
     return int(0) :i32

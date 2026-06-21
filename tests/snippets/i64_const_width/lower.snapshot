@@ -41,7 +41,7 @@
             arg1:
               call :string
                 callee:
-                  std_core$i64$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
                   call :i64
                     callee:
@@ -61,7 +61,7 @@
             arg1:
               call :string
                 callee:
-                  std_core$i64$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
                   call :i64
                     callee:
@@ -81,7 +81,7 @@
             arg1:
               call :string
                 callee:
-                  std_core$i64$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
                   call :i64
                     callee:
@@ -101,7 +101,7 @@
             arg1:
               call :string
                 callee:
-                  std_core$i64$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
                   call :i64
                     callee:

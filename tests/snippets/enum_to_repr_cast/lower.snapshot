@@ -37,9 +37,10 @@
             arg1:
               call :string
                 callee:
-                  std_core$u8$Display$to_string :string
+                  format_unsigned :fn(u64) -> string
                 arg0:
-                  a :u8
+                  cast → u64
+                    a :u8
           call :void
             callee:
               append :void
@@ -55,9 +56,10 @@
             arg1:
               call :string
                 callee:
-                  std_core$u32$Display$to_string :string
+                  format_unsigned :fn(u64) -> string
                 arg0:
-                  b :u32
+                  cast → u64
+                    b :u32
           call :void
             callee:
               append :void
@@ -73,9 +75,10 @@
             arg1:
               call :string
                 callee:
-                  std_core$i32$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  c :i32
+                  cast → i64
+                    c :i32
           call :void
             callee:
               append :void
@@ -91,9 +94,10 @@
             arg1:
               call :string
                 callee:
-                  std_core$i32$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  d :i32
+                  cast → i64
+                    d :i32
           call :void
             callee:
               append :void
@@ -109,7 +113,7 @@
             arg1:
               call :string
                 callee:
-                  std_core$u64$Display$to_string :string
+                  format_unsigned :fn(u64) -> string
                 arg0:
                   e :u64
           call :void
@@ -127,9 +131,10 @@
             arg1:
               call :string
                 callee:
-                  std_core$i32$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  f :i32
+                  cast → i64
+                    f :i32
           ~>
             call :string
               callee:

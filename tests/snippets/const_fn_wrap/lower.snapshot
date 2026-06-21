@@ -71,13 +71,14 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    lookup :fn(string) -> i32
-                  arg0:
-                    "gamma" :string
+                cast → i64
+                  call :i32
+                    callee:
+                      lookup :fn(string) -> i32
+                    arg0:
+                      "gamma" :string
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -90,11 +91,12 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    lookup :fn(string) -> i32
-                  arg0:
-                    "zeta" :string
+                cast → i64
+                  call :i32
+                    callee:
+                      lookup :fn(string) -> i32
+                    arg0:
+                      "zeta" :string
     return int(0) :i32

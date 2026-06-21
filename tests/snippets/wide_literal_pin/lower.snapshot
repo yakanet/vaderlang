@@ -60,19 +60,20 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    unwrap :fn(i32 | null) -> i32
-                  arg0:
-                    call :i32 | null
-                      callee:
-                        std_collections$MutableMap$Index$at__i64__i32 :i32 | null
-                      arg0:
-                        keyed :MutableMap<i64, i32>
-                      arg1:
-                        int(9000000000) :i64
+                cast → i64
+                  call :i32
+                    callee:
+                      unwrap :fn(i32 | null) -> i32
+                    arg0:
+                      call :i32 | null
+                        callee:
+                          std_collections$MutableMap$Index$at__i64__i32 :i32 | null
+                        arg0:
+                          keyed :MutableMap<i64, i32>
+                        arg1:
+                          int(9000000000) :i64
     let valued: MutableMap<i32, i64> =
       MutableMap<i32, i64> {
         ekeys:
@@ -106,7 +107,7 @@
           arg1:
             call :string
               callee:
-                std_core$i64$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
                 call :i64
                   callee:
@@ -153,19 +154,20 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    unwrap :fn(i32 | null) -> i32
-                  arg0:
-                    call :i32 | null
-                      callee:
-                        std_collections$MutableMap$Index$at__i64__i32 :i32 | null
-                      arg0:
-                        setkey :MutableMap<i64, i32>
-                      arg1:
-                        probe :i64
+                cast → i64
+                  call :i32
+                    callee:
+                      unwrap :fn(i32 | null) -> i32
+                    arg0:
+                      call :i32 | null
+                        callee:
+                          std_collections$MutableMap$Index$at__i64__i32 :i32 | null
+                        arg0:
+                          setkey :MutableMap<i64, i32>
+                        arg1:
+                          probe :i64
     let face3: i64 =
       call :i64
         callee:
@@ -184,7 +186,7 @@
           arg1:
             call :string
               callee:
-                std_core$i64$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
                 face3 :i64
     return int(0) :i32

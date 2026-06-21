@@ -50,15 +50,16 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    unwrap :fn(Box | null) -> i32
-                  arg0:
-                    Box {
-                      v: int(42) :i32
-                    }
+                cast → i64
+                  call :i32
+                    callee:
+                      unwrap :fn(Box | null) -> i32
+                    arg0:
+                      Box {
+                        v: int(42) :i32
+                      }
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -71,13 +72,14 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    unwrap_logged :fn(Box | null) -> i32
-                  arg0:
-                    Box {
-                      v: int(7) :i32
-                    }
+                cast → i64
+                  call :i32
+                    callee:
+                      unwrap_logged :fn(Box | null) -> i32
+                    arg0:
+                      Box {
+                        v: int(7) :i32
+                      }
     return int(0) :i32

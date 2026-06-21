@@ -43,31 +43,22 @@ fn 1 snippet$main () -> i32
   type_check 3
   if $L0 void
     string.const 1
-    call 3
+    call 2
     return.lit i32.const 0
   end $L0
   local.get 0
   type_check 0
   if $L1 void
     string.const 2
-    call 3
+    call 2
     return.lit i32.const 0
   end $L1
   return
 end
 
-fn 2 std_core$string$Display$to_string (string) -> string
-  local.get 0
-  return
-end
-
-fn 3 std_io$std_io$println__string (string) -> void
-  local $call_2 string
-  local.get 0
-  call 2
-  local.set 1
+fn 2 std_io$std_io$println__string (string) -> void
   i32.const 0
-  local.get 1
+  local.get 0
   call.import 0
   i32.const 0
   string.const 3

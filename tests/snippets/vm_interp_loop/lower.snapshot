@@ -26,17 +26,19 @@
             arg1:
               call :string
                 callee:
-                  std_core$i32$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  i :i32
+                  cast → i64
+                    i :i32
             arg2:
               " sum=" :string
             arg3:
               call :string
                 callee:
-                  std_core$i32$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  sum :i32
+                  cast → i64
+                    sum :i32
       assign
         target:
           i :i32

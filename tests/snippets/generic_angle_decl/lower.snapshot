@@ -36,9 +36,10 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                n :i32
+                cast → i64
+                  n :i32
     let e: i32 =
       call :i32
         callee:
@@ -57,9 +58,10 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                e :i32
+                cast → i64
+                  e :i32
     let b: Box<i32> =
       call :Box<i32>
         callee:
@@ -78,10 +80,11 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                .value :i32
-                  b :Box<i32>
+                cast → i64
+                  .value :i32
+                    b :Box<i32>
     let nested: Box<Box<i32>> =
       call :Box<Box<i32>>
         callee:
@@ -100,11 +103,12 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                .value :i32
-                  .value :Box<i32>
-                    nested :Box<Box<i32>>
+                cast → i64
+                  .value :i32
+                    .value :Box<i32>
+                      nested :Box<Box<i32>>
     let c: bool =
       call :bool
         callee:
@@ -119,11 +123,15 @@
           arg0:
             "c = " :string
           arg1:
-            call :string
-              callee:
-                std_core$bool$Display$to_string :string
-              arg0:
+            if :string
+              cond:
                 c :bool
+              then:
+                ~>
+                  "true" :string
+              else:
+                ~>
+                  "false" :string
     return int(0) :i32
   struct snippet$Box__i32 { value: i32 }
   struct snippet$Box__Box_i32_ { value: Any }

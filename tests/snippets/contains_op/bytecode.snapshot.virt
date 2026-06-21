@@ -68,7 +68,7 @@ fn 1 snippet$main () -> i32
   call 2
   if $L0 void
     string.const 0
-    call 7
+    call 4
   else
   end $L0
   i32.const 0
@@ -83,7 +83,7 @@ fn 1 snippet$main () -> i32
   bool.not
   if $L1 void
     string.const 1
-    call 7
+    call 4
   else
   end $L1
   i32.const 0
@@ -97,7 +97,7 @@ fn 1 snippet$main () -> i32
   call 2
   if $L2 void
     string.const 2
-    call 7
+    call 4
   else
   end $L2
   i32.const 1
@@ -126,7 +126,7 @@ fn 1 snippet$main () -> i32
   call 0
   if $L3 void
     string.const 3
-    call 7
+    call 4
   else
   end $L3
   local.get 0
@@ -135,7 +135,7 @@ fn 1 snippet$main () -> i32
   bool.not
   if $L4 void
     string.const 4
-    call 7
+    call 4
   else
   end $L4
   local.get 0
@@ -143,7 +143,7 @@ fn 1 snippet$main () -> i32
   call 0
   if $L5 void
     string.const 5
-    call 7
+    call 4
   else
   end $L5
   return.lit i32.const 0
@@ -156,7 +156,11 @@ fn 2 std_core$Range$Contains$contains__i32 (ref,i32) -> bool
   local.set 2
   local.get 1
   local.get 2
-  call 5
+  call 3
+  local.set 2
+  local.get 2
+  i32.const 0
+  i32.lt
   if $L0 void
     return.lit bool.const false
   end $L0
@@ -168,7 +172,11 @@ fn 2 std_core$Range$Contains$contains__i32 (ref,i32) -> bool
     local.set 2
     local.get 1
     local.get 2
-    call 6
+    call 3
+    local.set 2
+    local.get 2
+    i32.const 0
+    i32.le
     return
   end $L1
   local.field 0 4 1
@@ -176,16 +184,15 @@ fn 2 std_core$Range$Contains$contains__i32 (ref,i32) -> bool
   local.set 2
   local.get 1
   local.get 2
-  call 5
+  call 3
+  local.set 2
+  local.get 2
+  i32.const 0
+  i32.lt
   return
 end
 
-fn 3 std_core$string$Display$to_string (string) -> string
-  local.get 0
-  return
-end
-
-fn 4 std_core$i32$Comparable$compare (i32,i32) -> i32
+fn 3 std_core$i32$Comparable$compare (i32,i32) -> i32
   local if_res i32
   local if_res i32
   local.get 0
@@ -236,53 +243,9 @@ fn 4 std_core$i32$Comparable$compare (i32,i32) -> i32
   return
 end
 
-fn 5 std_core$i32$Comparable$lt (i32,i32) -> bool
-  local $call_2 i32
-  local.get 0
-  local.get 1
-  call 4
-  local.set 2
-  local.get 2
+fn 4 std_io$std_io$println__string (string) -> void
   i32.const 0
-  i32.lt
-  return
   local.get 0
-  local.get 1
-  call 4
-  local.set 2
-  local.get 2
-  i32.const 0
-  i32.lt
-  return
-end
-
-fn 6 std_core$i32$Comparable$lte (i32,i32) -> bool
-  local $call_2 i32
-  local.get 0
-  local.get 1
-  call 4
-  local.set 2
-  local.get 2
-  i32.const 0
-  i32.le
-  return
-  local.get 0
-  local.get 1
-  call 4
-  local.set 2
-  local.get 2
-  i32.const 0
-  i32.le
-  return
-end
-
-fn 7 std_io$std_io$println__string (string) -> void
-  local $call_2 string
-  local.get 0
-  call 3
-  local.set 1
-  i32.const 0
-  local.get 1
   call.import 0
   i32.const 0
   string.const 6

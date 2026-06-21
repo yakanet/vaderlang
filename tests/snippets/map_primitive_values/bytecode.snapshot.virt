@@ -167,13 +167,13 @@ fn 0 snippet$main () -> i32
   local $k_4 usize
   local $k_5 usize
   local $k_9 u8
-  local $call_19 string
-  local $vcall_23 string
-  local $arr_27 ref
+  local $call_20 string
+  local $vcall_24 string
+  local $arr_28 ref
   local or_res bool
-  local $k_87 f32
-  local $unop_126 i16
-  local $k_145 u16
+  local $k_89 f32
+  local $unop_128 i16
+  local $k_148 u16
   array.new 19 0
   local.set 0
   array.new 16 0
@@ -217,7 +217,8 @@ fn 0 snippet$main () -> i32
   else
     local.get 1
     ref.cast 9
-    call 6
+    u8.to_i64
+    call 17
     local.set 7
     local.get 0
     string.const 1
@@ -334,7 +335,8 @@ fn 0 snippet$main () -> i32
   else
     local.get 2
     ref.cast 13
-    call 12
+    call 18
+    call.import 0
     local.set 7
     local.get 1
     string.const 11
@@ -385,7 +387,7 @@ fn 0 snippet$main () -> i32
   else
     local.get 1
     ref.cast 14
-    call 14
+    call 19
     local.set 7
     string.const 17
     local.get 7
@@ -427,7 +429,7 @@ fn 0 snippet$main () -> i32
   else
     local.get 1
     ref.cast 15
-    call 15
+    call 20
     local.set 7
     string.const 20
     local.get 7
@@ -472,7 +474,8 @@ fn 0 snippet$main () -> i32
   else
     local.get 1
     ref.cast 6
-    call 2
+    i16.to_i64
+    call 16
     local.set 7
     string.const 23
     local.get 7
@@ -516,7 +519,8 @@ fn 0 snippet$main () -> i32
   else
     local.get 1
     ref.cast 10
-    call 7
+    u16.to_i64
+    call 17
     local.set 7
     string.const 26
     local.get 7
@@ -558,7 +562,7 @@ fn 0 snippet$main () -> i32
   else
     local.get 1
     ref.cast 7
-    call 4
+    call 16
     local.set 7
     string.const 29
     local.get 7
@@ -576,7 +580,8 @@ fn 0 snippet$main () -> i32
   else
     local.get 0
     ref.cast 9
-    call 6
+    u8.to_i64
+    call 17
     local.set 7
     string.const 32
     local.get 7
@@ -8649,12 +8654,8 @@ fn 45 std_core$pow5_factor (u64) -> i32
 end
 
 fn 46 std_io$std_io$println__string (string) -> void
-  local $call_2 string
-  local.get 0
-  call 13
-  local.set 1
   i32.const 0
-  local.get 1
+  local.get 0
   call.import 3
   i32.const 0
   string.const 56

@@ -46,11 +46,12 @@
               arg2:
                 call :string
                   callee:
-                    std_core$usize$Display$to_string :string
+                    format_unsigned :fn(u64) -> string
                   arg0:
-                    @size_of.type :usize
-                      .type :type
-                        f :Field
+                    cast → u64
+                      @size_of.type :usize
+                        .type :type
+                          f :Field
         assign
           target:
             __for_i_2 :usize
@@ -100,11 +101,12 @@
               arg3:
                 call :string
                   callee:
-                    std_core$usize$Display$to_string :string
+                    format_unsigned :fn(u64) -> string
                   arg0:
-                    @size_of.type :usize
-                      .type :type
-                        f :Field
+                    cast → u64
+                      @size_of.type :usize
+                        .type :type
+                          f :Field
         assign
           target:
             __for_i_5 :usize

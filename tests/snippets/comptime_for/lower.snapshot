@@ -15,9 +15,10 @@
             arg1:
               call :string
                 callee:
-                  std_core$usize$Display$to_string :string
+                  format_unsigned :fn(u64) -> string
                 arg0:
-                  int(4) :usize
+                  cast → u64
+                    int(4) :usize
       call :void
         callee:
           std_io$std_io$println__string :void
@@ -30,9 +31,10 @@
             arg1:
               call :string
                 callee:
-                  std_core$usize$Display$to_string :string
+                  format_unsigned :fn(u64) -> string
                 arg0:
-                  int(16) :usize
+                  cast → u64
+                    int(16) :usize
     block :void
       call :void
         callee:
@@ -48,9 +50,10 @@
             arg2:
               call :string
                 callee:
-                  std_core$usize$Display$to_string :string
+                  format_unsigned :fn(u64) -> string
                 arg0:
-                  int(4) :usize
+                  cast → u64
+                    int(4) :usize
       call :void
         callee:
           std_io$std_io$println__string :void
@@ -65,9 +68,10 @@
             arg2:
               call :string
                 callee:
-                  std_core$usize$Display$to_string :string
+                  format_unsigned :fn(u64) -> string
                 arg0:
-                  int(16) :usize
+                  cast → u64
+                    int(16) :usize
     return int(0) :i32
   struct snippet$Pair__i32__string { key: i32, value: string }
   struct snippet$Pair__Any__Any { key: Any, value: Any }

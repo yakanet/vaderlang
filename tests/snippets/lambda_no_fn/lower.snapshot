@@ -35,15 +35,16 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    call_it :fn(fn(i32) -> i32, i32) -> i32
-                  arg0:
-                    LoweredMakeClosure
-                  arg1:
-                    int(5) :i32
+                cast → i64
+                  call :i32
+                    callee:
+                      call_it :fn(fn(i32) -> i32, i32) -> i32
+                    arg0:
+                      LoweredMakeClosure
+                    arg1:
+                      int(5) :i32
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -56,15 +57,16 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    call_it :fn(fn(i32) -> i32, i32) -> i32
-                  arg0:
-                    LoweredMakeClosure
-                  arg1:
-                    int(5) :i32
+                cast → i64
+                  call :i32
+                    callee:
+                      call_it :fn(fn(i32) -> i32, i32) -> i32
+                    arg0:
+                      LoweredMakeClosure
+                    arg1:
+                      int(5) :i32
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -77,15 +79,16 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    call_it :fn(fn(i32) -> i32, i32) -> i32
-                  arg0:
-                    LoweredMakeClosure
-                  arg1:
-                    int(5) :i32
+                cast → i64
+                  call :i32
+                    callee:
+                      call_it :fn(fn(i32) -> i32, i32) -> i32
+                    arg0:
+                      LoweredMakeClosure
+                    arg1:
+                      int(5) :i32
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -98,17 +101,18 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    call_two :fn(fn(i32, i32) -> i32, i32, i32) -> i32
-                  arg0:
-                    LoweredMakeClosure
-                  arg1:
-                    int(3) :i32
-                  arg2:
-                    int(4) :i32
+                cast → i64
+                  call :i32
+                    callee:
+                      call_two :fn(fn(i32, i32) -> i32, i32, i32) -> i32
+                    arg0:
+                      LoweredMakeClosure
+                    arg1:
+                      int(3) :i32
+                    arg2:
+                      int(4) :i32
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -121,13 +125,14 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                call :i32
-                  callee:
-                    call_none :fn(fn() -> i32) -> i32
-                  arg0:
-                    LoweredMakeClosure
+                cast → i64
+                  call :i32
+                    callee:
+                      call_none :fn(fn() -> i32) -> i32
+                    arg0:
+                      LoweredMakeClosure
     let r: i32 =
       call :i32
         callee:
@@ -148,9 +153,10 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                r :i32
+                cast → i64
+                  r :i32
     return int(0) :i32
   struct __lambda_env_2 {  }
   fn __lambda_1(__env_0: __lambda_env_2, x: i32) -> i32

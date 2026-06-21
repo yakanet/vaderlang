@@ -30,9 +30,12 @@
     let s: string =
       call :string
         callee:
-          snippet$Cat$Greet$greet :string
+          concat2 :string
         arg0:
-          c :Cat
+          "G:" :string
+        arg1:
+          .name :string
+            c :Cat
     return int(0) :i32
 
 # Diagnostics

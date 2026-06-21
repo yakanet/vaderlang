@@ -65,10 +65,11 @@
                 arg1:
                   call :string
                     callee:
-                      std_core$u8$Display$to_string :string
+                      format_unsigned :fn(u64) -> string
                     arg0:
-                      cast → u8
-                        vx :null | u8
+                      cast → u64
+                        cast → u8
+                          vx :null | u8
                 arg2:
                   " y=" :string
                 arg3:
@@ -227,10 +228,14 @@
                 arg1:
                   call :string
                     callee:
-                      std_core$char$Display$to_string :string
+                      bytes_to_string :string
                     arg0:
-                      cast → char
-                        vc :char | null
+                      call :u8[]
+                        callee:
+                          utf8_encode :fn(char) -> u8[]
+                        arg0:
+                          cast → char
+                            vc :char | null
                 arg2:
                   " accent=" :string
                 arg3:
@@ -297,7 +302,7 @@
                 arg1:
                   call :string
                     callee:
-                      std_core$f32$Display$to_string :string
+                      format_f32 :fn(f32) -> string
                     arg0:
                       cast → f32
                         vp :f32 | null
@@ -355,7 +360,7 @@
                 arg1:
                   call :string
                     callee:
-                      std_core$f64$Display$to_string :string
+                      format_f64 :fn(f64) -> string
                     arg0:
                       cast → f64
                         ve :f64 | null
@@ -414,10 +419,11 @@
                 arg1:
                   call :string
                     callee:
-                      std_core$i16$Display$to_string :string
+                      format_signed :fn(i64) -> string
                     arg0:
-                      cast → i16
-                        vn :i16 | null
+                      cast → i64
+                        cast → i16
+                          vn :i16 | null
     let mu16: MutableMap<string, u16> =
       MutableMap<string, u16> {
         ekeys:
@@ -472,10 +478,11 @@
                 arg1:
                   call :string
                     callee:
-                      std_core$u16$Display$to_string :string
+                      format_unsigned :fn(u64) -> string
                     arg0:
-                      cast → u16
-                        vb :null | u16
+                      cast → u64
+                        cast → u16
+                          vb :null | u16
     let mi64: MutableMap<string, i64> =
       MutableMap<string, i64> {
         ekeys:
@@ -531,7 +538,7 @@
                 arg1:
                   call :string
                     callee:
-                      std_core$i64$Display$to_string :string
+                      format_signed :fn(i64) -> string
                     arg0:
                       cast → i64
                         vh :i64 | null
@@ -568,8 +575,9 @@
                 arg1:
                   call :string
                     callee:
-                      std_core$u8$Display$to_string :string
+                      format_unsigned :fn(u64) -> string
                     arg0:
-                      cast → u8
-                        miss :null | u8
+                      cast → u64
+                        cast → u8
+                          miss :null | u8
     return int(0) :i32

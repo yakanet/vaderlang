@@ -8,7 +8,7 @@
       arg0:
         call :string
           callee:
-            std_core$f64$Display$to_string :string
+            format_f64 :fn(f64) -> string
           arg0:
             call :f64
               callee:
@@ -21,7 +21,7 @@
       arg0:
         call :string
           callee:
-            std_core$f64$Display$to_string :string
+            format_f64 :fn(f64) -> string
           arg0:
             call :f64
               callee:
@@ -36,7 +36,7 @@
       arg0:
         call :string
           callee:
-            std_core$f64$Display$to_string :string
+            format_f64 :fn(f64) -> string
           arg0:
             call :f64
               callee:
@@ -49,7 +49,7 @@
       arg0:
         call :string
           callee:
-            std_core$f64$Display$to_string :string
+            format_f64 :fn(f64) -> string
           arg0:
             call :f64
               callee:
@@ -62,7 +62,7 @@
       arg0:
         call :string
           callee:
-            std_core$f64$Display$to_string :string
+            format_f64 :fn(f64) -> string
           arg0:
             call :f64
               callee:

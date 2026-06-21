@@ -25,10 +25,11 @@
             arg1:
               call :string
                 callee:
-                  std_core$i32$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  ._0 :i32
-                    triple :[i32, string, bool]
+                  cast → i64
+                    ._0 :i32
+                      triple :[i32, string, bool]
           call :void
             callee:
               append :void
@@ -57,12 +58,16 @@
             arg0:
               __sb_0 :StringBuilder
             arg1:
-              call :string
-                callee:
-                  std_core$bool$Display$to_string :string
-                arg0:
+              if :string
+                cond:
                   ._2 :bool
                     triple :[i32, string, bool]
+                then:
+                  ~>
+                    "true" :string
+                else:
+                  ~>
+                    "false" :string
           ~>
             call :string
               callee:
@@ -93,10 +98,11 @@
             arg1:
               call :string
                 callee:
-                  std_core$i32$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  ._0 :i32
-                    quad :[i32, string, bool, f64]
+                  cast → i64
+                    ._0 :i32
+                      quad :[i32, string, bool, f64]
           call :void
             callee:
               append :void
@@ -125,12 +131,16 @@
             arg0:
               __sb_1 :StringBuilder
             arg1:
-              call :string
-                callee:
-                  std_core$bool$Display$to_string :string
-                arg0:
+              if :string
+                cond:
                   ._2 :bool
                     quad :[i32, string, bool, f64]
+                then:
+                  ~>
+                    "true" :string
+                else:
+                  ~>
+                    "false" :string
           call :void
             callee:
               append :void
@@ -146,7 +156,7 @@
             arg1:
               call :string
                 callee:
-                  std_core$f64$Display$to_string :string
+                  format_f64 :fn(f64) -> string
                 arg0:
                   ._3 :f64
                     quad :[i32, string, bool, f64]

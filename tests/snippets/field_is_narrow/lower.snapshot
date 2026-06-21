@@ -99,9 +99,10 @@
             arg1:
               call :string
                 callee:
-                  std_core$i32$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  hit :i32
+                  cast → i64
+                    hit :i32
           call :void
             callee:
               append :void
@@ -117,9 +118,10 @@
             arg1:
               call :string
                 callee:
-                  std_core$i32$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  miss :i32
+                  cast → i64
+                    miss :i32
           call :void
             callee:
               append :void
@@ -135,9 +137,10 @@
             arg1:
               call :string
                 callee:
-                  std_core$i32$Display$to_string :string
+                  format_signed :fn(i64) -> string
                 arg0:
-                  via :i32
+                  cast → i64
+                    via :i32
           ~>
             call :string
               callee:

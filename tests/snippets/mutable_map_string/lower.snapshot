@@ -53,13 +53,14 @@
           arg1:
             call :string
               callee:
-                std_core$usize$Display$to_string :string
+                format_unsigned :fn(u64) -> string
               arg0:
-                call :usize
-                  callee:
-                    std_collections$std_collections$len__string__i32 :usize
-                  arg0:
-                    m :MutableMap<string, i32>
+                cast → u64
+                  call :usize
+                    callee:
+                      std_collections$std_collections$len__string__i32 :usize
+                    arg0:
+                      m :MutableMap<string, i32>
     let v1: i32 | null =
       call :i32 | null
         callee:
@@ -106,10 +107,11 @@
                               arg1:
                                 call :string
                                   callee:
-                                    std_core$i32$Display$to_string :string
+                                    format_signed :fn(i64) -> string
                                   arg0:
-                                    cast → i32
-                                      v1 :i32 | null
+                                    cast → i64
+                                      cast → i32
+                                        v1 :i32 | null
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -159,10 +161,11 @@
                               arg1:
                                 call :string
                                   callee:
-                                    std_core$i32$Display$to_string :string
+                                    format_signed :fn(i64) -> string
                                   arg0:
-                                    cast → i32
-                                      v2 :i32 | null
+                                    cast → i64
+                                      cast → i32
+                                        v2 :i32 | null
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -212,10 +215,11 @@
                               arg1:
                                 call :string
                                   callee:
-                                    std_core$i32$Display$to_string :string
+                                    format_signed :fn(i64) -> string
                                   arg0:
-                                    cast → i32
-                                      v3 :i32 | null
+                                    cast → i64
+                                      cast → i32
+                                        v3 :i32 | null
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -229,10 +233,8 @@
           arg0:
             "has hello? " :string
           arg1:
-            call :string
-              callee:
-                std_core$bool$Display$to_string :string
-              arg0:
+            if :string
+              cond:
                 call :bool
                   callee:
                     std_collections$MutableMap$Contains$contains__string__i32 :bool
@@ -240,6 +242,12 @@
                     m :MutableMap<string, i32>
                   arg1:
                     "hello" :string
+              then:
+                ~>
+                  "true" :string
+              else:
+                ~>
+                  "false" :string
     call :void
       callee:
         std_io$std_io$println__string :void
@@ -250,10 +258,8 @@
           arg0:
             "has missing? " :string
           arg1:
-            call :string
-              callee:
-                std_core$bool$Display$to_string :string
-              arg0:
+            if :string
+              cond:
                 call :bool
                   callee:
                     std_collections$MutableMap$Contains$contains__string__i32 :bool
@@ -261,6 +267,12 @@
                     m :MutableMap<string, i32>
                   arg1:
                     "missing" :string
+              then:
+                ~>
+                  "true" :string
+              else:
+                ~>
+                  "false" :string
     call :void
       callee:
         std_collections$MutableMap$IndexSet$set_at__string__i32 :void
@@ -316,10 +328,11 @@
                               arg1:
                                 call :string
                                   callee:
-                                    std_core$i32$Display$to_string :string
+                                    format_signed :fn(i64) -> string
                                   arg0:
-                                    cast → i32
-                                      v1b :i32 | null
+                                    cast → i64
+                                      cast → i32
+                                        v1b :i32 | null
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void

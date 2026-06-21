@@ -34,11 +34,12 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                .age :i32
-                  cast → Cat
-                    a :Cat | Dog
+                cast → i64
+                  .age :i32
+                    cast → Cat
+                      a :Cat | Dog
     let b: Cat | Dog =
       Dog {
         name: "Rex" :string
@@ -69,9 +70,10 @@
           arg1:
             call :string
               callee:
-                std_core$i32$Display$to_string :string
+                format_signed :fn(i64) -> string
               arg0:
-                .age :i32
-                  cast → Cat
-                    b :Cat | Dog
+                cast → i64
+                  .age :i32
+                    cast → Cat
+                      b :Cat | Dog
     return int(0) :i32
