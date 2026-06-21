@@ -28,15 +28,12 @@ $ccAbs = $ccCmd.Source
 $stage0cflags = if ($env:STAGE0_CFLAGS) { $env:STAGE0_CFLAGS } else { '-O0' }
 $runtime = "runtime\c\vader_runtime.c"
 
-# Speed up the two self-compiles. The compiler allocates ~37M objects per build
-# and is GC-bound : the default 32 MB young / 256 MB old Cheney arenas force a
-# storm of minor (and some major) collections that scan live data over and over.
-# Bigger starting arenas cut the emit step ~3x (the arenas auto-grow anyway, so
-# this only sets a saner initial size -- no correctness or output change). These
-# are inherited by the stage0/stage1 child processes and ignored by cc. A value
-# the caller already exported wins, so it stays overridable.
-if (-not $env:VADER_GC_YOUNG_BYTES) { $env:VADER_GC_YOUNG_BYTES = [string](256 * 1024 * 1024) }
-if (-not $env:VADER_GC_OLD_BYTES)   { $env:VADER_GC_OLD_BYTES   = [string](512 * 1024 * 1024) }
+# Arena sizing is RAM-proportional (runtime\c\vader_runtime.c::vader_gc_init --
+# old init + cap derived from physical RAM, single VADER_GC_RAM_PERCENT knob), so
+# the bootstrap self-compiles at a saner initial size on any machine with no manual
+# override. This used to pin VADER_GC_YOUNG_BYTES / VADER_GC_OLD_BYTES to avoid the
+# default-256-MB-old GC thrash; the RAM model + auto-grow now handle that. Any
+# VADER_GC_* value the caller exports still wins (advanced escape hatch).
 
 function Step($msg) { Write-Host "==> $msg" -ForegroundColor Cyan }
 New-Item -ItemType Directory -Force build | Out-Null

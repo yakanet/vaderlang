@@ -47,13 +47,12 @@ function parseArgs(): Args {
   return { input, vader, cc, gcProfile };
 }
 
-// GC arenas matching bootstrap/build.sh — big enough that the self-compile
-// isn't dominated by collection storms (the arenas auto-grow anyway). A value
-// already in the environment wins, so the report stays tunable.
-const GC_ENV = {
-  VADER_GC_YOUNG_BYTES: process.env.VADER_GC_YOUNG_BYTES ?? String(256 * 1024 * 1024),
-  VADER_GC_OLD_BYTES: process.env.VADER_GC_OLD_BYTES ?? String(512 * 1024 * 1024),
-};
+// Arena sizing is RAM-proportional (runtime/c/vader_runtime.c::vader_gc_init),
+// matching bootstrap/build.sh — no manual pin, so the profile reflects the real
+// shipped default. A VADER_GC_* value already in the environment still wins.
+const GC_ENV: Record<string, string> = {};
+if (process.env.VADER_GC_YOUNG_BYTES) GC_ENV.VADER_GC_YOUNG_BYTES = process.env.VADER_GC_YOUNG_BYTES;
+if (process.env.VADER_GC_OLD_BYTES) GC_ENV.VADER_GC_OLD_BYTES = process.env.VADER_GC_OLD_BYTES;
 
 interface TimeStats {
   realSec: number | null;
@@ -158,7 +157,7 @@ function main(): void {
   console.log(`\n=== Vader self-compile profile ===`);
   console.log(`  binary : ${args.vader}`);
   console.log(`  input  : ${args.input}`);
-  console.log(`  GC     : young=${(+GC_ENV.VADER_GC_YOUNG_BYTES / 1048576) | 0}MB old=${(+GC_ENV.VADER_GC_OLD_BYTES / 1048576) | 0}MB\n`);
+  console.log(`  GC     : ${GC_ENV.VADER_GC_OLD_BYTES ? `old=${(+GC_ENV.VADER_GC_OLD_BYTES / 1048576) | 0}MB (override)` : "RAM-proportional (auto)"}\n`);
 
   // --- Stage 1: front-end → C, with the in-compiler per-pass profiler on. ----
   // `build --target=c --out=-` routes through the fully-instrumented

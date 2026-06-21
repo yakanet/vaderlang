@@ -864,6 +864,27 @@ void vader_atom_gc_collect(void) {
     vader_atom_sweep();
 }
 
+/* Total physical RAM in bytes, or 0 if it can't be determined (caller then
+ * falls back to the fixed compile-time arena defaults). Portable: Win32
+ * `GlobalMemoryStatusEx`, POSIX (Linux + macOS) `sysconf(_SC_PHYS_PAGES)`. */
+static size_t vader_physical_ram_bytes(void) {
+#if defined(_WIN32)
+    MEMORYSTATUSEX s;
+    s.dwLength = sizeof(s);
+    if (GlobalMemoryStatusEx(&s)) return (size_t) s.ullTotalPhys;
+    return 0;
+#else
+    long pages = sysconf(_SC_PHYS_PAGES);
+    long psize = sysconf(_SC_PAGESIZE);
+    if (pages > 0 && psize > 0) return (size_t) pages * (size_t) psize;
+    return 0;
+#endif
+}
+
+static size_t vader_clamp_size(size_t x, size_t lo, size_t hi) {
+    return x < lo ? lo : (x > hi ? hi : x);
+}
+
 void vader_gc_init(void) {
     if (g_gc_initialized) return;
 
@@ -881,8 +902,35 @@ void vader_gc_init(void) {
         atexit(vader_gc_profile_dump);
     }
 
-    /* Auto-grow ceilings (env-tunable, default to the compile-time caps). */
-    g_old_max_bytes   = vader_gc_env_bytes("VADER_GC_OLD_MAX",   (size_t) VADER_GC_OLD_MAX);
+    /* RAM-proportional defaults (the zero-tuning primary interface; the absolute
+     * VADER_GC_OLD_BYTES / *_MAX env vars below still override). Derive the old
+     * arena's initial size and its auto-grow cap from physical RAM, so the same
+     * binary self-compiles on an 8 GB laptop and a 64 GB box. Fall back to the
+     * fixed #defines when RAM can't be read. Young is NOT scaled (its cap is a
+     * per-minor cost cliff, not a memory limit). */
+    size_t ram = vader_physical_ram_bytes();
+    size_t old_max_default  = (size_t) VADER_GC_OLD_MAX;
+    size_t old_init_default = (size_t) VADER_GC_OLD_BYTES;
+    if (ram > 0) {
+        double pct = (double) VADER_GC_RAM_PERCENT;
+        const char* pct_env = getenv("VADER_GC_RAM_PERCENT");
+        if (pct_env != NULL && pct_env[0] != '\0') {
+            double v = strtod(pct_env, NULL);
+            if (v > 0.0 && v <= 100.0) pct = v;
+        }
+        /* budget = the committed ceiling the GC may reach. Both arenas are doubled
+         * (from+to), so reserve young's worst-case commit (its cap × 2) then halve
+         * the rest for old's per-semi-space cap → committed ≈ budget. */
+        size_t budget        = (size_t) ((double) ram * pct / 100.0);
+        size_t young_reserve = (size_t) VADER_GC_YOUNG_CAP_DEFAULT * 2u;
+        size_t old_budget    = budget > young_reserve ? budget - young_reserve : budget / 2u;
+        old_max_default  = vader_clamp_size(old_budget / 2u, VADER_GC_OLD_CAP_MIN, (size_t) VADER_GC_OLD_MAX);
+        old_init_default = vader_clamp_size(ram * VADER_GC_OLD_INIT_PERCENT / 100u,
+                                            VADER_GC_OLD_INIT_MIN, VADER_GC_OLD_INIT_MAX);
+    }
+
+    /* Auto-grow ceilings (env-tunable, default to the RAM-derived / compile-time caps). */
+    g_old_max_bytes   = vader_gc_env_bytes("VADER_GC_OLD_MAX",   old_max_default);
     g_young_max_bytes = vader_gc_env_bytes("VADER_GC_YOUNG_MAX", (size_t) VADER_GC_YOUNG_MAX);
 
     /* Adaptive young-sizing divisor (young_target = old_live / ratio). Default
@@ -895,7 +943,7 @@ void vader_gc_init(void) {
     /* Ceiling on the adaptive young target (byte size; 0 = uncapped). Default
      * 192 MB: past the self-compile's ~128-160 MB working-set cliff, growing
      * young further trades RSS for no speed (measured). */
-    g_young_cap = vader_gc_env_bytes("VADER_GC_YOUNG_CAP", 192u * 1024u * 1024u);
+    g_young_cap = vader_gc_env_bytes("VADER_GC_YOUNG_CAP", VADER_GC_YOUNG_CAP_DEFAULT);
 
     /* Young: one malloc spanning both semi-spaces. */
     size_t young_bytes = vader_gc_env_bytes("VADER_GC_YOUNG_BYTES", (size_t)VADER_GC_YOUNG_BYTES);
@@ -911,7 +959,7 @@ void vader_gc_init(void) {
 
     /* Old: one malloc spanning both semi-spaces, contiguous to ease the
      * card-table indexing. */
-    size_t old_bytes = vader_gc_env_bytes("VADER_GC_OLD_BYTES", (size_t)VADER_GC_OLD_BYTES);
+    size_t old_bytes = vader_gc_env_bytes("VADER_GC_OLD_BYTES", old_init_default);
     g_old.block = (char*) malloc(old_bytes * 2u);
     if (g_old.block == NULL) vader_trap("vader_gc_init: old arena malloc failed");
     g_old.half_bytes = old_bytes;
