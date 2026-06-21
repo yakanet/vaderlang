@@ -29,6 +29,7 @@
   MutableMap<T, bool>
   MutableMap<T, bool>
   MutableMap<T, bool>
+  MutableMap<T, bool>
   MutableMap<K, V>
   MutableMap<K, V>
   MutableMap<K, V>
@@ -43,6 +44,7 @@
   MapIterator<K, V>
   MapIterator<K, V>
   MutableSet<i32>
+  MutableSet<T>
   MutableSet<T>
   MutableSet<T>
   MutableSet<T>

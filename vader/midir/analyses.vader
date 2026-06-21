@@ -489,11 +489,11 @@ export compute_liveness :: fn(fn_: CFGFunction) -> Liveness {
         i := n
         for i > usize(0) {
             i = i - 1
-            scratch_out.inner.clear()
+            scratch_out.clear()
             for s in succs[i] {
                 for [l, _] in live_in[s].inner { scratch_out.add(l) }
             }
-            scratch_in.inner.clear()
+            scratch_in.clear()
             for [l, _] in use_[i].inner { scratch_in.add(l) }
             for [l, _] in scratch_out.inner { if !def_[i].contains(l) { scratch_in.add(l) } }
             if !sets_equal(scratch_out, live_out[i]) {
