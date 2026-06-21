@@ -47,8 +47,8 @@ impl 26 Iterator
 vtable Iterator.next 7 4
 vtable Iterator.next 10 5
 vtable Iterator.next 13 6
-vtable Iterator.next 22 12
-vtable Iterator.next 26 16
+vtable Iterator.next 22 13
+vtable Iterator.next 26 17
 export main 3
 
 fn 0 snippet$sum_iter (ref) -> i32
@@ -95,14 +95,14 @@ fn 2 snippet$count_ls (string) -> usize
   local $call_1 ref
   local $fn_ref_2 ref
   local.get 0
-  call 15
+  call 16
   local.set 1
   fn.ref 1 25
   local.set 2
   local.get 1
   local.get 2
+  call 15
   call 14
-  call 13
   return
 end
 
@@ -133,31 +133,31 @@ fn 3 snippet$main () -> i32
   local.set 3
   local.get 0
   i32.to_i64
-  call 9
+  call 10
   local.set 4
   string.const 0
   local.get 4
-  call 20
-  call 11
+  call 21
+  call 12
   local.get 3
   i32.to_i64
-  call 9
+  call 10
   local.set 4
   string.const 1
   local.get 4
-  call 20
-  call 11
+  call 21
+  call 12
   string.const 2
   call 2
   local.set 2
   local.get 2
   usize.to_i64
-  call 10
+  call 11
   local.set 4
   string.const 3
   local.get 4
-  call 20
-  call 11
+  call 21
+  call 12
   return.lit i32.const 0
 end
 
@@ -176,7 +176,7 @@ fn 4 std_core$Range$Iterator$next__i32 (ref) -> ref
     local.set 3
     local.get 2
     local.get 3
-    call 7
+    call 8
     local.set 2
     local.get 2
     i32.const 0
@@ -191,7 +191,7 @@ fn 4 std_core$Range$Iterator$next__i32 (ref) -> ref
     local.set 3
     local.get 2
     local.get 3
-    call 7
+    call 8
     local.set 2
     local.get 2
     i32.const 0
@@ -239,7 +239,7 @@ fn 5 std_core$Range$Iterator$next__usize (ref) -> ref
     local.set 3
     local.get 2
     local.get 3
-    call 8
+    call 9
     local.set 4
     local.get 4
     i32.const 0
@@ -254,7 +254,7 @@ fn 5 std_core$Range$Iterator$next__usize (ref) -> ref
     local.set 3
     local.get 2
     local.get 3
-    call 8
+    call 9
     local.set 4
     local.get 4
     i32.const 0
@@ -332,20 +332,16 @@ fn 6 std_core$ArrayIterator$Iterator$next__i32 (ref) -> ref
   return
 end
 
-fn 7 std_core$i32$Comparable$compare (i32,i32) -> i32
+fn 7 std_core$three_way (bool,bool) -> i32
   local if_res i32
   local if_res i32
   local.get 0
-  local.get 1
-  i32.lt
   if $L0 void
     i32.const 1
     i32.neg
     local.set 2
   else
-    local.get 0
     local.get 1
-    i32.gt
     if $L1 void
       i32.const 1
       local.set 3
@@ -358,83 +354,67 @@ fn 7 std_core$i32$Comparable$compare (i32,i32) -> i32
   end $L0
   local.get 2
   return
+end
+
+fn 8 std_core$i32$Comparable$compare (i32,i32) -> i32
+  local $lt_2 bool
+  local $gt_3 bool
   local.get 0
   local.get 1
   i32.lt
-  if $L2 void
-    i32.const 1
-    i32.neg
-    local.set 2
-  else
-    local.get 0
-    local.get 1
-    i32.gt
-    if $L3 void
-      i32.const 1
-      local.set 3
-    else
-      i32.const 0
-      local.set 3
-    end $L3
-    local.get 3
-    local.set 2
-  end $L2
+  local.set 2
+  local.get 0
+  local.get 1
+  i32.gt
+  local.set 3
   local.get 2
+  local.get 3
+  call 7
+  return
+  local.get 0
+  local.get 1
+  i32.lt
+  local.set 2
+  local.get 0
+  local.get 1
+  i32.gt
+  local.set 3
+  local.get 2
+  local.get 3
+  call 7
   return
 end
 
-fn 8 std_core$usize$Comparable$compare (usize,usize) -> i32
-  local if_res i32
-  local if_res i32
+fn 9 std_core$usize$Comparable$compare (usize,usize) -> i32
+  local $lt_2 bool
+  local $gt_3 bool
   local.get 0
   local.get 1
   u64.lt
-  if $L0 void
-    i32.const 1
-    i32.neg
-    local.set 2
-  else
-    local.get 0
-    local.get 1
-    u64.gt
-    if $L1 void
-      i32.const 1
-      local.set 3
-    else
-      i32.const 0
-      local.set 3
-    end $L1
-    local.get 3
-    local.set 2
-  end $L0
+  local.set 2
+  local.get 0
+  local.get 1
+  u64.gt
+  local.set 3
   local.get 2
+  local.get 3
+  call 7
   return
   local.get 0
   local.get 1
   u64.lt
-  if $L2 void
-    i32.const 1
-    i32.neg
-    local.set 2
-  else
-    local.get 0
-    local.get 1
-    u64.gt
-    if $L3 void
-      i32.const 1
-      local.set 3
-    else
-      i32.const 0
-      local.set 3
-    end $L3
-    local.get 3
-    local.set 2
-  end $L2
+  local.set 2
+  local.get 0
+  local.get 1
+  u64.gt
+  local.set 3
   local.get 2
+  local.get 3
+  call 7
   return
 end
 
-fn 9 std_core$format_signed (i64) -> string
+fn 10 std_core$format_signed (i64) -> string
   local neg bool
   local ndigits usize
   local m i64
@@ -502,7 +482,7 @@ fn 9 std_core$format_signed (i64) -> string
   end $L5
   local.get 4
   local.tee 2
-  call 21
+  call 22
   local.set 6
   local.get 2
   local.set 4
@@ -533,7 +513,7 @@ fn 9 std_core$format_signed (i64) -> string
         local.get 6
         local.get 4
         local.get 9
-        call 24
+        call 25
         local.get 0
         i64.const 10
         i64.div
@@ -552,16 +532,16 @@ fn 9 std_core$format_signed (i64) -> string
     local.get 6
     local.get 4
     local.get 7
-    call 24
+    call 25
   else
   end $L9
   local.get 6
   local.get 2
-  call 22
+  call 23
   return
 end
 
-fn 10 std_core$format_unsigned (u64) -> string
+fn 11 std_core$format_unsigned (u64) -> string
   local $k_1 u64
   local ndigits usize
   local $k_7 u64
@@ -610,7 +590,7 @@ fn 10 std_core$format_unsigned (u64) -> string
     end $L2
   end $L1
   local.get 2
-  call 21
+  call 22
   local.set 6
   local.get 2
   local.set 4
@@ -644,7 +624,7 @@ fn 10 std_core$format_unsigned (u64) -> string
         local.get 6
         local.get 4
         local.get 10
-        call 24
+        call 25
         i64.const 10
         local.set 5
         local.get 0
@@ -658,11 +638,11 @@ fn 10 std_core$format_unsigned (u64) -> string
   end $L4
   local.get 6
   local.get 2
-  call 22
+  call 23
   return
 end
 
-fn 11 std_io$std_io$println__string (string) -> void
+fn 12 std_io$std_io$println__string (string) -> void
   i32.const 0
   local.get 0
   call.import 1
@@ -672,7 +652,7 @@ fn 11 std_io$std_io$println__string (string) -> void
   return
 end
 
-fn 12 std_iter$FilterIterator$Iterator$next__char (ref) -> ref
+fn 13 std_iter$FilterIterator$Iterator$next__char (ref) -> ref
   local finished bool
   local __scrut_0 ref
   local y ref
@@ -722,7 +702,7 @@ fn 12 std_iter$FilterIterator$Iterator$next__char (ref) -> ref
   return
 end
 
-fn 13 std_iter$FilterIterator$Iterator$count__char (ref) -> usize
+fn 14 std_iter$FilterIterator$Iterator$count__char (ref) -> usize
   local total any
   local finished any
   local __scrut_0 ref
@@ -737,7 +717,7 @@ fn 13 std_iter$FilterIterator$Iterator$count__char (ref) -> usize
       bool.not
       if $L2 void
         local.get 0
-        call 12
+        call 13
         local.tee 3
         type_check 0
         if $L3 void
@@ -765,14 +745,14 @@ fn 13 std_iter$FilterIterator$Iterator$count__char (ref) -> usize
   return
 end
 
-fn 14 std_iter$std_iter$filter__char (ref,ref) -> ref
+fn 15 std_iter$std_iter$filter__char (ref,ref) -> ref
   local.get 0
   local.get 1
   struct.new 22
   return
 end
 
-fn 15 std_string$chars (string) -> ref
+fn 16 std_string$chars (string) -> ref
   local bs ref
   local $cast_4 usize
   local $len_5 usize
@@ -791,7 +771,7 @@ fn 15 std_string$chars (string) -> ref
   return
 end
 
-fn 16 std_string$StringChars$Iterator$next (ref) -> ref
+fn 17 std_string$StringChars$Iterator$next (ref) -> ref
   local $field_1 usize
   local $field_2 usize
   local $field_5 ref
@@ -817,7 +797,7 @@ fn 16 std_string$StringChars$Iterator$next (ref) -> ref
   local.set 1
   local.get 3
   local.get 1
-  call 17
+  call 18
   local.set 3
   local.field 3 27 0
   ref.cast 3
@@ -838,14 +818,14 @@ fn 16 std_string$StringChars$Iterator$next (ref) -> ref
   return
 end
 
-fn 17 std_string$decode_codepoint_at (ref,usize) -> ref
+fn 18 std_string$decode_codepoint_at (ref,usize) -> ref
   local c char
   local $call_4 usize
   local.get 0
   local.get 1
-  call 18
-  local.tee 2
   call 19
+  local.tee 2
+  call 20
   local.set 3
   local.get 2
   local.get 3
@@ -853,7 +833,7 @@ fn 17 std_string$decode_codepoint_at (ref,usize) -> ref
   return
 end
 
-fn 18 std_string$decode_char_at (ref,usize) -> char
+fn 19 std_string$decode_char_at (ref,usize) -> char
   local n usize
   local b u8
   local $k_6 u8
@@ -1139,7 +1119,7 @@ fn 18 std_string$decode_char_at (ref,usize) -> char
   return
 end
 
-fn 19 std_string$codepoint_byte_len (char) -> usize
+fn 20 std_string$codepoint_byte_len (char) -> usize
   local cp u32
   local $cast_4 u32
   local.get 0
@@ -1172,7 +1152,7 @@ fn 19 std_string$codepoint_byte_len (char) -> usize
   return.lit i64.const 4
 end
 
-fn 20 std_string_builder$concat2 (string,string) -> string
+fn 21 std_string_builder$concat2 (string,string) -> string
   local la usize
   local $call_4 usize
   local buf ref
@@ -1187,38 +1167,38 @@ fn 20 std_string_builder$concat2 (string,string) -> string
   local.get 3
   i64.add
   local.tee 3
-  call 21
+  call 22
   local.set 4
   i64.const 0
   local.set 5
   local.get 4
   local.get 5
   local.get 0
-  call 23
+  call 24
   local.get 4
   local.get 2
   local.get 1
-  call 23
+  call 24
   local.get 4
   local.get 3
-  call 22
+  call 23
   return
 end
 
-fn 21 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 22 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   object_new 0
   return
 end
 
-fn 22 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 23 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
   buffer_to_string
   return
 end
 
-fn 23 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 24 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0
   local.get 1
   local.get 2
@@ -1226,7 +1206,7 @@ fn 23 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   return
 end
 
-fn 24 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
+fn 25 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   local.get 0
   local.get 1
   local.get 2

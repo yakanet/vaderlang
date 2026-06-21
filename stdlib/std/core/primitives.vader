@@ -222,23 +222,28 @@ char  implements Hash -> u64(self)
 
 // ---- Comparable -----------------------------------------------------------
 //
-// Three-way `compare` for every integer width plus `char`. Floats are
-// excluded — IEEE-754's NaN breaks total ordering, so an `Ord`-style trait
-// is the right shape for f32/f64 and is deferred. `lt`/`lte`/`gt`/`gte`
-// come from Comparable's default-method injection ; impls only provide
-// `compare`.
+// Three-way `compare` for every integer width plus `char`, factored through the
+// shared `three_way` helper so the if-chain lives in ONE place. Floats are
+// excluded — IEEE-754's NaN breaks total ordering, so an `Ord`-style trait is the
+// right shape for f32/f64 and is deferred. `lt`/`lte`/`gt`/`gte` come from
+// Comparable's default-method injection ; impls only provide `compare`. Each
+// `-> three_way(…)` is single-expression, so the post-lowering inliner folds it
+// back at every `compare` site — DRY with no call overhead.
 
-i8    implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
-i16   implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
-i32   implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
-i64   implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
-isize implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
-u8    implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
-u16   implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
-u32   implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
-u64   implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
-usize implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
-char  implements Comparable -> if self < other { -1 } else if self > other { 1 } else { 0 }
+// Collapse the two primitive comparisons into a three-way result : -1 / 0 / +1.
+three_way :: fn(less: bool, greater: bool) -> i32 = if less { -1 } else if greater { 1 } else { 0 }
+
+i8    implements Comparable -> three_way(self < other, self > other)
+i16   implements Comparable -> three_way(self < other, self > other)
+i32   implements Comparable -> three_way(self < other, self > other)
+i64   implements Comparable -> three_way(self < other, self > other)
+isize implements Comparable -> three_way(self < other, self > other)
+u8    implements Comparable -> three_way(self < other, self > other)
+u16   implements Comparable -> three_way(self < other, self > other)
+u32   implements Comparable -> three_way(self < other, self > other)
+u64   implements Comparable -> three_way(self < other, self > other)
+usize implements Comparable -> three_way(self < other, self > other)
+char  implements Comparable -> three_way(self < other, self > other)
 
 // ---- Step -----------------------------------------------------------------
 //
