@@ -73,6 +73,13 @@ StringBuilder implements Display {
     /// the total byte length, copy each part in via `write_string`, intern the
     /// result. The byte movement is a single bulk pass — no per-append copy.
     to_string :: fn(self) -> string {
+        // 0 / 1 parts need no buffer : an empty builder is the empty string, and
+        // a single part is already an interned atom — return it verbatim, skipping
+        // the `Buffer` alloc + byte copy + re-intern the general path would pay
+        // (each is ~12 % of self-compile allocs).
+        n :: self.parts.len()
+        if n == 0 { return "" }
+        if n == 1 { return self.parts[0] }
         total: usize = 0
         for p in self.parts {
             total = total + p.bytes().len()

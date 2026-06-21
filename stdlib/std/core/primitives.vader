@@ -42,46 +42,58 @@ module "std/core"
 /// `dtoa.vader` ; the integer formatters below emit digit *bytes* directly.
 DECIMAL_DIGITS :: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 
-// Reverse `digits` (a LSB-first decimal byte buffer) into MSB-first order, with a
-// leading `'-'` when `negative`, and intern the result.
-finish_digits :: fn(digits: u8[], negative: bool) -> string {
-    out: u8[] = []
-    if negative { out.push(b'-') }
-    k :: digits.len()
-    for i in 0..<k {
-        out.push(digits[k - 1 - i])
-    }
-    return out.bytes_to_string()
-}
-
 // Render a signed value working entirely in NON-POSITIVE space, because
 // `abs(i64 min)` overflows i64 (|i64 min| = i64 max + 1). So rather than negate
 // n into positive space and extract digits there, only POSITIVE inputs are
 // shifted negative (`if n > 0 { n = -n }` — always safe) ; i64 min, already
 // negative, is never negated. With n <= 0, `n % 10` (I64Mod, C-truncating) is a
 // non-positive remainder, so the actual digit is `-(n % 10)`, in 0..9.
+//
+// A first pass counts the digits so the second can fill a single right-sized
+// `Buffer` from the least-significant end and intern it — one allocation, no
+// growable array and no reversal pass (the old `digits[] + finish_digits out[]`
+// minted two arrays plus their push-growth per format).
 format_signed :: fn(n: i64) -> string {
     if n == 0 { return "0" }
     neg :: n < 0
     if n > 0 { n = -n }                       // shift into non-positive space ; -(i64 min) never evaluated
-    digits: u8[] = []
+    ndigits: usize = 0
+    m := n
+    for m != 0 {
+        ndigits = ndigits + 1
+        m = m / 10
+    }
+    total :: if neg { ndigits + 1 } else { ndigits }
+    buf :: total.new_buffer()
+    i: usize = total
     for n != 0 {
-        digits.push(b'0' + u8(-(n % 10)))
+        i = i - 1
+        buf.store_u8(i, b'0' + u8(-(n % 10)))
         n = n / 10
     }
-    return finish_digits(digits, neg)
+    if neg { buf.store_u8(0, b'-') }
+    return buf.intern_string(total)
 }
 
 // Render an unsigned value. `% 10` / `/ 10` lower to U64Mod / U64Div
-// (op_select), so high-bit-set values don't format as negative.
+// (op_select), so high-bit-set values don't format as negative. Same
+// count-then-fill single-`Buffer` shape as `format_signed`, with no sign slot.
 format_unsigned :: fn(n: u64) -> string {
     if n == 0 { return "0" }
-    digits: u8[] = []
+    ndigits: usize = 0
+    m := n
+    for m != 0 {
+        ndigits = ndigits + 1
+        m = m / 10
+    }
+    buf :: ndigits.new_buffer()
+    i: usize = ndigits
     for n != 0 {
-        digits.push(b'0' + u8(n % 10))
+        i = i - 1
+        buf.store_u8(i, b'0' + u8(n % 10))
         n = n / 10
     }
-    return finish_digits(digits, false)
+    return buf.intern_string(ndigits)
 }
 
 /// Encode a Unicode codepoint to its UTF-8 bytes (pure arithmetic), for
