@@ -569,21 +569,50 @@ static inline size_t vader_array_len(vader_array_t* a) { return a->length; }
  * containing that object, so the next minor scans only marked cards as
  * additional roots instead of the entire old space. */
 
-/* Heap sizing — tunable at compile time via `-D` flags. */
-/* Both generations auto-grow (see `vader_old_grow_to` / `vader_young_grow_to`
- * in the runtime), so these are only the *initial* semi-space sizes. Arenas
- * are malloc'd in full but bump-allocated, so untouched pages never commit —
- * a high default costs virtual address space, not RSS, and a small program
- * pays only for what it touches. The defaults are therefore sized generously
- * so the compiler self-compiles (`dump --stage=bytecode vader/cli/main.vader`,
- * live old ~352 MB, largest single young object ~48 MB) without any manual
- * VADER_GC_* override and without paying a slow grow ramp: old needs at most
- * one grow (352 > 256), young grows on demand for the rare oversized object. */
+/* Heap sizing.
+ *
+ * The PRIMARY interface is RAM-proportional and needs no manual tuning: at GC
+ * init the runtime detects physical RAM (`vader_physical_ram_bytes`) and derives
+ * the old arena's initial size and its auto-grow cap as fractions of it — the
+ * same binary self-compiles on an 8 GB laptop and a 64 GB workstation. This is
+ * the model the JVM (`MaxRAMPercentage`) and Go (`GOMEMLIMIT`) converged on once
+ * absolute `Xms`/`Xmx`-style sizes proved too fiddly per machine. See `vader_gc_init`.
+ *
+ *   VADER_GC_RAM_PERCENT   commit ceiling the GC may reach, as % of RAM (default 50)
+ *   old cap   = clamp((RAM × PERCENT% − young_committed) / 2, 256 MB, VADER_GC_OLD_MAX)
+ *   old init  = clamp(RAM × 3%, 128 MB, 768 MB)
+ *
+ * Both generations are doubled (from+to semi-spaces) and auto-grow, so the
+ * `*_BYTES` #defines below are only *fallbacks* — used when RAM detection fails,
+ * or overridden by the absolute `VADER_GC_OLD_BYTES` / `*_MAX` env vars (advanced
+ * escape hatch, still honoured). Arenas are malloc'd in full but bump-allocated:
+ * untouched pages don't reside on POSIX, and are committed-but-demand-zero on
+ * Windows. Young is NOT RAM-scaled — its 192 MB cap is a per-minor cost cliff,
+ * not a memory limit. */
 #ifndef VADER_GC_YOUNG_BYTES
 #define VADER_GC_YOUNG_BYTES (32u * 1024u * 1024u)   /* 32 MB initial young semi-space; auto-grows */
 #endif
+#ifndef VADER_GC_YOUNG_CAP_DEFAULT
+#define VADER_GC_YOUNG_CAP_DEFAULT (192u * 1024u * 1024u) /* default adaptive-young ceiling (per-minor cost cliff) */
+#endif
 #ifndef VADER_GC_OLD_BYTES
-#define VADER_GC_OLD_BYTES   (256u * 1024u * 1024u)  /* 256 MB initial old semi-space; auto-grows */
+#define VADER_GC_OLD_BYTES   (256u * 1024u * 1024u)  /* fallback initial old (used iff RAM detection fails) */
+#endif
+/* RAM-proportional old-arena sizing policy (see `vader_gc_init`). All `-D`-tunable. */
+#ifndef VADER_GC_RAM_PERCENT
+#define VADER_GC_RAM_PERCENT     50u                   /* GC commit ceiling as % of physical RAM */
+#endif
+#ifndef VADER_GC_OLD_INIT_PERCENT
+#define VADER_GC_OLD_INIT_PERCENT 3u                   /* initial old = this % of RAM (then clamped) */
+#endif
+#ifndef VADER_GC_OLD_INIT_MIN
+#define VADER_GC_OLD_INIT_MIN    (128u * 1024u * 1024u) /* floor on the RAM-derived initial old */
+#endif
+#ifndef VADER_GC_OLD_INIT_MAX
+#define VADER_GC_OLD_INIT_MAX    (768u * 1024u * 1024u) /* ceiling on the RAM-derived initial old */
+#endif
+#ifndef VADER_GC_OLD_CAP_MIN
+#define VADER_GC_OLD_CAP_MIN     (256u * 1024u * 1024u) /* floor on the RAM-derived old auto-grow cap */
 #endif
 #ifndef VADER_TENURE_AGE
 #define VADER_TENURE_AGE     2u                      /* minor cycles before promotion */
