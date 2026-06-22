@@ -52,8 +52,7 @@ fn 0 snippet$main () -> i32
   i32.const 1
   call 1
   local.field 0 5 0
-  struct.get 2 4
-  ref.cast 6
+  call 4
   usize.to_i32
   return
 end
@@ -70,7 +69,7 @@ fn 2 std_collections$MutableMap$IndexSet$set_at__string__i32 (ref,string,i32) ->
   local.get 0
   local.get 1
   local.get 2
-  call 7
+  call 8
   return
 end
 
@@ -82,7 +81,13 @@ fn 3 std_collections$slot_for (u64,usize) -> usize
   return
 end
 
-fn 4 std_collections$std_collections$ensure_index__string__i32 (ref) -> void
+fn 4 std_collections$std_collections$len__string__i32 (ref) -> usize
+  local.field 0 2 4
+  ref.cast 6
+  return
+end
+
+fn 5 std_collections$std_collections$ensure_index__string__i32 (ref) -> void
   local $len_2 usize
   local $k_3 usize
   local idx ref
@@ -141,7 +146,7 @@ fn 4 std_collections$std_collections$ensure_index__string__i32 (ref) -> void
   return
 end
 
-fn 5 std_collections$std_collections$rehash__string__i32 (ref,usize) -> void
+fn 6 std_collections$std_collections$rehash__string__i32 (ref,usize) -> void
   local fresh ref
   local _ usize
   local $k_8 usize
@@ -197,7 +202,7 @@ fn 5 std_collections$std_collections$rehash__string__i32 (ref,usize) -> void
         local.get 4
         array.get 9
         ref.cast 3
-        call 8
+        call 9
         local.get 3
         call 3
         local.set 6
@@ -260,7 +265,7 @@ fn 5 std_collections$std_collections$rehash__string__i32 (ref,usize) -> void
   return
 end
 
-fn 6 std_collections$std_collections$write_entry__string__i32 (ref,string,i32) -> void
+fn 7 std_collections$std_collections$write_entry__string__i32 (ref,string,i32) -> void
   local $field_3 usize
   local $len_5 usize
   local $field_7 ref
@@ -303,7 +308,7 @@ fn 6 std_collections$std_collections$write_entry__string__i32 (ref,string,i32) -
   return
 end
 
-fn 7 std_collections$std_collections$put__string__i32 (ref,string,i32) -> void
+fn 8 std_collections$std_collections$put__string__i32 (ref,string,i32) -> void
   local $field_3 usize
   local $field_4 usize
   local $k_11 usize
@@ -319,7 +324,7 @@ fn 7 std_collections$std_collections$put__string__i32 (ref,string,i32) -> void
   local $idx_40 i32
   local $field_70 ref
   local.get 0
-  call 4
+  call 5
   local.field 0 2 4
   ref.cast 6
   local.set 3
@@ -403,11 +408,11 @@ fn 7 std_collections$std_collections$put__string__i32 (ref,string,i32) -> void
     end $L1
     local.get 0
     local.get 3
-    call 5
+    call 6
   else
   end $L0
   local.get 1
-  call 8
+  call 9
   local.set 12
   local.field 0 2 3
   ref.cast 6
@@ -537,7 +542,7 @@ fn 7 std_collections$std_collections$put__string__i32 (ref,string,i32) -> void
   local.get 0
   local.get 1
   local.get 2
-  call 6
+  call 7
   local.field 0 2 2
   local.set 16
   local.field 0 2 4
@@ -569,7 +574,7 @@ fn 7 std_collections$std_collections$put__string__i32 (ref,string,i32) -> void
   return
 end
 
-fn 8 std_core$string$Hash$hash_vt (string) -> u64
+fn 9 std_core$string$Hash$hash_vt (string) -> u64
   local.get 0
   call.import 0
   return

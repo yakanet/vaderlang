@@ -491,11 +491,11 @@ export compute_liveness :: fn(fn_: CFGFunction) -> Liveness {
             i = i - 1
             scratch_out.clear()
             for s in succs[i] {
-                for [l, _] in live_in[s].inner { scratch_out.add(l) }
+                for l in live_in[s] { scratch_out.add(l) }
             }
             scratch_in.clear()
-            for [l, _] in use_[i].inner { scratch_in.add(l) }
-            for [l, _] in scratch_out.inner { if !def_[i].contains(l) { scratch_in.add(l) } }
+            for l in use_[i] { scratch_in.add(l) }
+            for l in scratch_out { if !def_[i].contains(l) { scratch_in.add(l) } }
             if !sets_equal(scratch_out, live_out[i]) {
                 old_out :: live_out[i]
                 live_out[i] = scratch_out
@@ -514,8 +514,8 @@ export compute_liveness :: fn(fn_: CFGFunction) -> Liveness {
 }
 
 sets_equal :: fn(a: MutableSet<LocalId>, b: MutableSet<LocalId>) -> bool {
-    if a.inner.size != b.inner.size { return false }
-    for [x, _] in a.inner { if !b.contains(x) { return false } }
+    if a.len() != b.len() { return false }
+    for x in a { if !b.contains(x) { return false } }
     return true
 }
 

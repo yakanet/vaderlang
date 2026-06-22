@@ -30,9 +30,12 @@
         int(1) :i32
     return
       cast → i32
-        .size :usize
-          .counts :MutableMap<string, i32>
-            c :Counter
+        call :usize
+          callee:
+            std_collections$std_collections$len__string__i32 :usize
+          arg0:
+            .counts :MutableMap<string, i32>
+              c :Counter
   fn snippet$bump__string__i32(m: MutableMap<string, i32>, k: string, v: i32) -> void
     call :void
       callee:

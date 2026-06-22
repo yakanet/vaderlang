@@ -43,7 +43,7 @@
             "kind": "IdentExpr",
             "name": "K"
           },
-          "visibility": "private",
+          "visibility": "public",
           "default": null
         },
         {
@@ -52,7 +52,7 @@
             "kind": "IdentExpr",
             "name": "V"
           },
-          "visibility": "private",
+          "visibility": "public",
           "default": null
         }
       ],

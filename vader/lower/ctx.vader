@@ -70,9 +70,7 @@ export capture_key :: fn(module_path: string, node_id: usize) -> string = "${mod
 /// @return  a fresh analysis with no captures recorded.
 export new_closure_analysis :: fn() -> ClosureAnalysis {
     return ClosureAnalysis {
-        .captured_symbols = MutableSet<i32> {
-            .inner = MutableMap<i32, bool> {},
-        },
+        .captured_symbols = MutableSet<i32> {},
         .lambda_captures  = MutableMap<string, Capture[]> {},
         .defer_captures   = MutableMap<string, Capture[]> {},
     }
@@ -322,23 +320,13 @@ export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedPr
         .nongeneric_imported_consts       = MutableMap<i32, bool> {},
         .nongeneric_imported_const_order  = [],
         .nongeneric_imported_const_cursor = usize(0),
-        .materialized_impl_keys = MutableSet<string> {
-            .inner = MutableMap<string, bool> {},
-        },
-        .referenced_impl_mangles = MutableSet<string> {
-            .inner = MutableMap<string, bool> {},
-        },
-        .virtually_dispatched_traits = MutableSet<string> {
-            .inner = MutableMap<string, bool> {},
-        },
-        .constructed_struct_symbols = MutableSet<i32> {
-            .inner = MutableMap<i32, bool> {},
-        },
+        .materialized_impl_keys = MutableSet<string> {},
+        .referenced_impl_mangles = MutableSet<string> {},
+        .virtually_dispatched_traits = MutableSet<string> {},
+        .constructed_struct_symbols = MutableSet<i32> {},
         .array_blanket_elems = MutableMap<string, Type> {},
         .pending_generic_impl_recv = [],
-        .seen_generic_impl_recv = MutableSet<string> {
-            .inner = MutableMap<string, bool> {},
-        },
+        .seen_generic_impl_recv = MutableSet<string> {},
         .generic_collected   = [],
         .generic_processed   = MutableMap<string, bool> {},
         .generic_fn_cursor   = 0,
@@ -473,7 +461,7 @@ import "vader/resolver" { empty_loaded_project }
 @test test_new_lower_project_ctx_is_empty :: fn() -> void {
     evaluated :: new_evaluated_project(new_typed_project())
     project :: new_lower_project_ctx(evaluated, empty_loaded_project(), new_typed_project())
-    assert_eq(project.core_symbols.size, usize(0))
+    assert_eq(project.core_symbols.len(), usize(0))
     assert_eq(project.synth_decls.len(), usize(0))
     assert_eq(project.next_synthetic_id, i32(-1))
     assert_eq(project.diags.len(), usize(0))
@@ -481,8 +469,8 @@ import "vader/resolver" { empty_loaded_project }
 
 @test test_new_closure_analysis_is_empty :: fn() -> void {
     analysis :: new_closure_analysis()
-    assert_eq(analysis.captured_symbols.inner.size, usize(0))
-    assert_eq(analysis.lambda_captures.size, usize(0))
+    assert_eq(analysis.captured_symbols.len(), usize(0))
+    assert_eq(analysis.lambda_captures.len(), usize(0))
 }
 
 @test test_new_block_ctx_sets_flags :: fn() -> void {

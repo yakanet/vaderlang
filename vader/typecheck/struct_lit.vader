@@ -73,6 +73,10 @@ check_field :: fn(
 ) -> void {
     expected: Type | null = null
     if decl is AST.StructDecl {
+        // T3054 : reject setting an `@internal` field at construction from
+        // outside its declaring module (the field's default still applies, so
+        // `T {}` keeps working cross-module).
+        check_internal_field(st, decl, f.name, f.name_span, typed, diags)
         // Prefer the pre-resolved field type (handles cross-module
         // structs where the field type references another module's
         // type-params). Fall back to walking the AST locally.

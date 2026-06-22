@@ -28,7 +28,7 @@ main :: fn() -> i32 {
     if "z" !in m { println("z not in m") }
 
     // MutableSet — only Contains, no Index/IndexSet.
-    s := MutableSet<i32> { .inner = MutableMap<i32, bool> {} }
+    s := MutableSet<i32> {}
     s.add(1)
     s.add(2)
     if 1 in s  { println("1 in s") }

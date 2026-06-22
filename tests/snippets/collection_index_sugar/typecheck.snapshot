@@ -45,7 +45,6 @@
   expr 28:8     BinaryExpr     :: bool
   expr 28:8     StringLitExpr  :: string
   expr 31:10    StructLitExpr  :: MutableSet<i32>
-  expr 31:37    StructLitExpr  :: MutableMap<i32, bool>
   expr 32:5     CallExpr       :: bool
   expr 32:5     FieldExpr      :: fn(i32) -> bool
   expr 32:5     IdentExpr      :: MutableSet<i32>

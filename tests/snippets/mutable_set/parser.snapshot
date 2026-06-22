@@ -39,10 +39,6 @@
             "alias": null
           },
           {
-            "name": "contains",
-            "alias": null
-          },
-          {
             "name": "len",
             "alias": null
           }
@@ -86,33 +82,7 @@
                   }
                 ]
               },
-              "items": [
-                {
-                  "kind": "field",
-                  "name": "inner",
-                  "value": {
-                    "kind": "StructLitExpr",
-                    "typeName": {
-                      "kind": "GenericInstExpr",
-                      "callee": {
-                        "kind": "IdentExpr",
-                        "name": "MutableMap"
-                      },
-                      "typeArgs": [
-                        {
-                          "kind": "IdentExpr",
-                          "name": "i32"
-                        },
-                        {
-                          "kind": "IdentExpr",
-                          "name": "bool"
-                        }
-                      ]
-                    },
-                    "items": []
-                  }
-                }
-              ]
+              "items": []
             }
           },
           {
@@ -326,26 +296,17 @@
                       {
                         "kind": "interp",
                         "expr": {
-                          "kind": "CallExpr",
-                          "callee": {
-                            "kind": "FieldExpr",
-                            "target": {
-                              "kind": "IdentExpr",
-                              "name": "s"
-                            },
-                            "field": "contains"
+                          "kind": "BinaryExpr",
+                          "op": "in",
+                          "left": {
+                            "kind": "IntLitExpr",
+                            "value": "10n",
+                            "suffix": null
                           },
-                          "args": [
-                            {
-                              "name": null,
-                              "value": {
-                                "kind": "IntLitExpr",
-                                "value": "10n",
-                                "suffix": null
-                              },
-                              "spread": false
-                            }
-                          ]
+                          "right": {
+                            "kind": "IdentExpr",
+                            "name": "s"
+                          }
                         }
                       }
                     ]
@@ -376,26 +337,17 @@
                       {
                         "kind": "interp",
                         "expr": {
-                          "kind": "CallExpr",
-                          "callee": {
-                            "kind": "FieldExpr",
-                            "target": {
-                              "kind": "IdentExpr",
-                              "name": "s"
-                            },
-                            "field": "contains"
+                          "kind": "BinaryExpr",
+                          "op": "in",
+                          "left": {
+                            "kind": "IntLitExpr",
+                            "value": "30n",
+                            "suffix": null
                           },
-                          "args": [
-                            {
-                              "name": null,
-                              "value": {
-                                "kind": "IntLitExpr",
-                                "value": "30n",
-                                "suffix": null
-                              },
-                              "spread": false
-                            }
-                          ]
+                          "right": {
+                            "kind": "IdentExpr",
+                            "name": "s"
+                          }
                         }
                       }
                     ]

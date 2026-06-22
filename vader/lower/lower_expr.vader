@@ -152,7 +152,7 @@ lower_ident :: fn(ctx: FnLowerCtx, ident: IdentExpr, type: Type) -> LoweredExpr 
             // Size short-circuit : `comptime_bindings` is empty for
             // every fn that doesn't use `@comptime for`, so skip the
             // hash probe in the 99% case. Per-ident hot path.
-            if ctx.comptime_bindings.size > 0 {
+            if !ctx.comptime_bindings.is_empty() {
                 comptime_val :: ctx.comptime_bindings[resolved.id]
                 if !(comptime_val is null) { return comptime_val }
             }

@@ -471,33 +471,7 @@
                   }
                 ]
               },
-              "items": [
-                {
-                  "kind": "field",
-                  "name": "inner",
-                  "value": {
-                    "kind": "StructLitExpr",
-                    "typeName": {
-                      "kind": "GenericInstExpr",
-                      "callee": {
-                        "kind": "IdentExpr",
-                        "name": "MutableMap"
-                      },
-                      "typeArgs": [
-                        {
-                          "kind": "IdentExpr",
-                          "name": "i32"
-                        },
-                        {
-                          "kind": "IdentExpr",
-                          "name": "bool"
-                        }
-                      ]
-                    },
-                    "items": []
-                  }
-                }
-              ]
+              "items": []
             }
           },
           {

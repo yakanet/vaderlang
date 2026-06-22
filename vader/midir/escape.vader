@@ -91,7 +91,7 @@ annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
             }
         }
     }
-    if alloc_locals.inner.size == usize(0) { return fn_ }
+    if alloc_locals.is_empty() { return fn_ }
 
     res :: compute_escaping(fn_, alloc_locals)
     carried :: compute_carried_across_loop_headers(fn_, res.alias_of)
@@ -207,7 +207,7 @@ compute_carried_across_loop_headers :: fn(
     preds :: predecessors_of(fn_)
     idom :: compute_dominators(fn_, preds)
     loops :: natural_loop_bodies(fn_, preds, idom)
-    if loops.size == usize(0) { return carried }
+    if loops.is_empty() { return carried }
 
     live :: compute_liveness(fn_)
 
@@ -216,21 +216,21 @@ compute_carried_across_loop_headers :: fn(
         body :: loops[header]
         if body is null { continue }
         defs_in_body :: MutableSet<LocalId> {}
-        for [b_id, _] in body.inner {
+        for b_id in body {
             block :: fn_.blocks[b_id]
             for ins in block.instructions {
                 d :: dst_of(ins)
                 if d != null { defs_in_body.add(d) }
             }
         }
-        for [l, _] in live.live_in[header].inner {
+        for l in live.live_in[header] {
             if defs_in_body.contains(l) { carried.add(l) }
         }
     }
 
     // Backward-propagate via alias_of.
     work: LocalId[] = []
-    for [l, _] in carried.inner { work.push(l) }
+    for l in carried { work.push(l) }
     for work.len() > usize(0) {
         cur :: work[work.len() - 1]
         work = work.slice(0, work.len() - 1)
@@ -300,7 +300,7 @@ compute_escaping :: fn(fn_: CFGFunction, alloc_locals: MutableSet<LocalId>) -> E
 
     // Backward propagation : if dst escapes and aliases src, src escapes too.
     work: LocalId[] = []
-    for [l, _] in escaping.inner { work.push(l) }
+    for l in escaping { work.push(l) }
     for work.len() > usize(0) {
         cur :: work[work.len() - 1]
         work = work.slice(0, work.len() - 1)
@@ -319,7 +319,7 @@ compute_escaping :: fn(fn_: CFGFunction, alloc_locals: MutableSet<LocalId>) -> E
 
     // Restrict the escape set to alloc locals only.
     alloc_escaping :: MutableSet<LocalId> {}
-    for [a, _] in alloc_locals.inner {
+    for a in alloc_locals {
         if escaping.contains(a) { alloc_escaping.add(a) }
     }
     return EscapeResult { .escaping = alloc_escaping, .alias_of = alias_of, .alias_from = alias_from }

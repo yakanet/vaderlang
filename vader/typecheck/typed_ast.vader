@@ -394,11 +394,11 @@ fresh_module :: fn() -> ResolvedModule {
 @test
 test_new_typed_program_has_empty_tables :: fn() -> void {
     tp :: new_typed_program(fresh_module())
-    assert_eq(tp.expr_types.size, usize(0))
-    assert_eq(tp.local_types.size, usize(0))
-    assert_eq(tp.decl_types.size, usize(0))
-    assert_eq(tp.param_types.size, usize(0))
-    assert_eq(tp.type_expr_types.size, usize(0))
+    assert_eq(tp.expr_types.len(), usize(0))
+    assert_eq(tp.local_types.len(), usize(0))
+    assert_eq(tp.decl_types.len(), usize(0))
+    assert_eq(tp.param_types.len(), usize(0))
+    assert_eq(tp.type_expr_types.len(), usize(0))
 }
 
 @test
@@ -416,5 +416,5 @@ test_typed_program_stores_and_recovers_type :: fn() -> void {
 @test
 test_typed_project_initially_empty :: fn() -> void {
     proj :: new_typed_project()
-    assert_eq(proj.modules.size, usize(0))
+    assert_eq(proj.modules.len(), usize(0))
 }

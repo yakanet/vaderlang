@@ -32,7 +32,7 @@
             "kind": "IdentExpr",
             "name": "i32"
           },
-          "visibility": "private",
+          "visibility": "public",
           "default": null
         }
       ],
@@ -249,7 +249,7 @@
             "kind": "IdentExpr",
             "name": "string"
           },
-          "visibility": "private",
+          "visibility": "public",
           "default": null
         },
         {
@@ -258,7 +258,7 @@
             "kind": "IdentExpr",
             "name": "i32"
           },
-          "visibility": "private",
+          "visibility": "public",
           "default": null
         }
       ],

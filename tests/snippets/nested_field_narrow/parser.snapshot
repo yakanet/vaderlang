@@ -40,7 +40,7 @@
               "name": "null"
             }
           },
-          "visibility": "private",
+          "visibility": "public",
           "default": null
         }
       ],
@@ -58,7 +58,7 @@
             "kind": "IdentExpr",
             "name": "Inner"
           },
-          "visibility": "private",
+          "visibility": "public",
           "default": null
         }
       ],

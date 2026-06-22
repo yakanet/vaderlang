@@ -59,7 +59,7 @@
               }
             ]
           },
-          "visibility": "private",
+          "visibility": "public",
           "default": null
         }
       ],

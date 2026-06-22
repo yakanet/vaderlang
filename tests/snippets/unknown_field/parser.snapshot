@@ -18,7 +18,7 @@
             "kind": "IdentExpr",
             "name": "f64"
           },
-          "visibility": "private",
+          "visibility": "public",
           "default": null
         },
         {
@@ -27,7 +27,7 @@
             "kind": "IdentExpr",
             "name": "f64"
           },
-          "visibility": "private",
+          "visibility": "public",
           "default": null
         }
       ],

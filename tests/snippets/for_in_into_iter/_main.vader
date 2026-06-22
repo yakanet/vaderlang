@@ -31,7 +31,7 @@ main :: fn() -> i32 {
     println("map=${map_total}")
 
     // MutableSet — member iter.
-    s := MutableSet<i32> { .inner = MutableMap<i32, bool> {} }
+    s := MutableSet<i32> {}
     s.add(7)
     s.add(11)
     set_total := 0

@@ -173,9 +173,9 @@ export lower_project :: fn(
             project_ctx.pending_generic_impl_recv.len() +
             project_ctx.nongeneric_imported_order.len() +
             project_ctx.nongeneric_imported_const_order.len() +
-            project_ctx.referenced_impl_mangles.inner.size +
-            project_ctx.virtually_dispatched_traits.inner.size +
-            project_ctx.constructed_struct_symbols.inner.size
+            project_ctx.referenced_impl_mangles.len() +
+            project_ctx.virtually_dispatched_traits.len() +
+            project_ctx.constructed_struct_symbols.len()
         if cur_total == prev_total { draining = false } else { prev_total = cur_total }
     }
     // INVARIANT : anything that can register a generic fn instance or harvest a
@@ -337,7 +337,7 @@ import "vader/resolver/symbol" { new_factory, SymbolFactory }
     evaluated :: new_evaluated_project(typed)
     diags: Diagnostic[] = []
     project :: lower_project(loaded, typed, evaluated, diags)
-    assert_eq(project.modules.size, usize(0))
+    assert_eq(project.modules.len(), usize(0))
 }
 
 factory_for_test :: fn() -> SymbolFactory { return new_factory() }

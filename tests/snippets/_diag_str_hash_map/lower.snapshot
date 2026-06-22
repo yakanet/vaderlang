@@ -148,6 +148,9 @@
                 format_unsigned :fn(u64) -> string
               arg0:
                 cast → u64
-                  .size :usize
-                    m :MutableMap<string, i32>
+                  call :usize
+                    callee:
+                      std_collections$std_collections$len__string__i32 :usize
+                    arg0:
+                      m :MutableMap<string, i32>
     return int(0) :i32

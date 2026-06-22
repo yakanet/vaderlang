@@ -359,9 +359,7 @@ push_struct_shape :: fn(t: Type, out: StructType[], seen: MutableSet<string>) ->
     }
 }
 
-new_string_set :: fn() = MutableSet<string> {
-    .inner = MutableMap<string, bool> {},
-}
+new_string_set :: fn() = MutableSet<string> {}
 
 /// Mangled name a `materialize_shape` call would emit for `s`, or null
 /// when the struct's owning module has no `TypedProgram`. Matches

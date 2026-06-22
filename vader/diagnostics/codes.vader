@@ -78,6 +78,7 @@ export TypecheckCode :: enum(u8) {
     ExternMustNotHaveBody,              // T3051
     PrivateTypeInPublicInterface,       // T3052
     DuplicateFnDefinition,              // T3053
+    InternalFieldAccess,                // T3054
     OperatorTraitNotImplemented,        // T3043
 }
 
@@ -358,6 +359,7 @@ export typecheck_info :: fn(c: TypecheckCode) = match c {
     .ExternMustNotHaveBody              -> CodeInfo { .id = "T3051", .message = "`@extern` declaration must not have a body" }
     .PrivateTypeInPublicInterface       -> CodeInfo { .id = "T3052", .message = "exported declaration exposes a non-exported type" }
     .DuplicateFnDefinition              -> CodeInfo { .id = "T3053", .message = "function defined more than once with the same signature in a module" }
+    .InternalFieldAccess                -> CodeInfo { .id = "T3054", .message = "access to a struct field marked `@internal` from outside its declaring module" }
     .OperatorTraitNotImplemented        -> CodeInfo { .id = "T3043", .message = "operand type does not implement the trait this operator requires" }
 }
 

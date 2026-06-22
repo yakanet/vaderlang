@@ -65,7 +65,7 @@ TransformCtx :: struct {
 /// come out structurally identical (the clone is a no-op on them).
 export inline_fns :: fn(project: LoweredProject) -> void {
     index :: build_inline_index(project)
-    if index.size == 0 { return }
+    if index.is_empty() { return }
     empty_map :: MutableMap<i32, LoweredExpr> {}
     for [_, m] in project.modules {
         for d in m.decls {
@@ -304,7 +304,7 @@ transform_stmt :: fn(s: LoweredStmt, ctx: TransformCtx) -> LoweredStmt {
 transform_expr :: fn(e: LoweredExpr, ctx: TransformCtx) -> LoweredExpr {
     match e {
         is LoweredIdent as id -> {
-            if ctx.param_map.size > 0 {
+            if !ctx.param_map.is_empty() {
                 sub :: ctx.param_map[id.symbol.id]
                 if sub != null { return sub }
             }

@@ -1,0 +1,29 @@
+# Typecheck
+
+## tests/snippets/internal_field
+  FnDecl         bump                 :: fn(Counter) -> void
+  StructDecl     Counter              :: Counter
+  FnDecl         main                 :: fn() -> i32
+  expr 17:34    FieldExpr      :: i32
+  expr 17:34    IdentExpr      :: Counter
+  expr 17:44    BinaryExpr     :: i32
+  expr 17:44    FieldExpr      :: i32
+  expr 17:44    IdentExpr      :: Counter
+  expr 20:10    StructLitExpr  :: Counter
+  expr 20:29    StringLitExpr  :: string
+  expr 21:10    IdentExpr      :: Counter
+  expr 21:5     CallExpr       :: void
+  expr 21:5     IdentExpr      :: fn(Counter) -> void
+  expr 22:10    IdentExpr      :: Counter
+  expr 22:5     CallExpr       :: void
+  expr 22:5     IdentExpr      :: fn(Counter) -> void
+  expr 23:10    IdentExpr      :: Counter
+  expr 23:5     CallExpr       :: void
+  expr 23:5     IdentExpr      :: fn(Counter) -> void
+  expr 24:13    StringLitExpr  :: string
+  expr 24:16    FieldExpr      :: string
+  expr 24:16    IdentExpr      :: Counter
+  expr 24:28    FieldExpr      :: i32
+  expr 24:28    IdentExpr      :: Counter
+  expr 24:5     CallExpr       :: void
+  expr 24:5     IdentExpr      :: fn(T) -> void

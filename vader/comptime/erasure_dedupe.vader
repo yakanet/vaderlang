@@ -538,7 +538,7 @@ any_should_erase :: fn(entries: MonoEntry[], ctx: DedupeCtx) -> bool {
 pick_seed_with_bound_subst :: fn(entries: MonoEntry[]) -> MonoEntry {
     i: usize = 0
     for i < entries.len() {
-        if entries[i].subst.type_params.size > 0 {
+        if !entries[i].subst.type_params.is_empty() {
             return entries[i]
         }
         i += 1

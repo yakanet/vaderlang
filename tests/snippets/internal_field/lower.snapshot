@@ -1,0 +1,58 @@
+# Lower
+
+## snippet
+  struct snippet$Counter { label: string, count: i32 }
+  fn snippet$bump(c: Counter) -> void
+    assign
+      target:
+        .count :i32
+          c :Counter
+      value:
+        add :i32
+          l:
+            .count :i32
+              c :Counter
+          r:
+            int(1) :i32
+  fn snippet$main() -> i32
+    let c: Counter =
+      Counter {
+        label: "hits" :string
+        count: int(0) :i32
+      }
+    call :void
+      callee:
+        bump :fn(Counter) -> void
+      arg0:
+        c :Counter
+    call :void
+      callee:
+        bump :fn(Counter) -> void
+      arg0:
+        c :Counter
+    call :void
+      callee:
+        bump :fn(Counter) -> void
+      arg0:
+        c :Counter
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            concat3 :string
+          arg0:
+            .label :string
+              c :Counter
+          arg1:
+            ": " :string
+          arg2:
+            call :string
+              callee:
+                format_signed :fn(i64) -> string
+              arg0:
+                cast → i64
+                  .count :i32
+                    c :Counter
+    return int(0) :i32

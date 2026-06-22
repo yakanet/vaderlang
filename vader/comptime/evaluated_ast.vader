@@ -122,8 +122,8 @@ import "vader/typecheck" { new_typed_project }
 
 @test test_new_evaluated_project_is_empty :: fn() -> void {
     project :: new_evaluated_project(new_typed_project())
-    assert_eq(project.modules.size, usize(0))
-    assert_eq(project.file_exprs.size, usize(0))
+    assert_eq(project.modules.len(), usize(0))
+    assert_eq(project.file_exprs.len(), usize(0))
     assert_eq(project.into_members.len(), usize(0))
     assert_eq(project.mono.entries.len(), usize(0))
 }

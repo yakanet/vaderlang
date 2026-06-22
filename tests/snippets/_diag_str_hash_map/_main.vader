@@ -15,6 +15,6 @@ main :: fn() -> i32 {
         v :: m[k]
         if v is i32 as got { println("${k}=${got}") } else { println("${k}=MISS") }
     }
-    println("size=${m.size}")
+    println("size=${m.len()}")
     return 0
 }

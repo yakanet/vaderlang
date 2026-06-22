@@ -445,7 +445,7 @@ export propagate_const_single_use :: fn(function: BcFunction) -> BcFunction {
         k = k + 1
     }
 
-    if to_delete_set.size == 0 { return function }
+    if to_delete_set.is_empty() { return function }
 
     // Rewrite the body : skip deleted indices, replace `local.get` sites.
     new_body: Op[] = []

@@ -512,8 +512,9 @@ emit_struct_decl :: fn(self: Printer, d: p.StructDecl) -> void {
     }
     // Inline rendering when the source was single-line — matches the
     // stdlib idiom `export Foo :: struct { value: string }` for small
-    // newtype-style declarations.
-    if d.span.start.line == d.span.end.line {
+    // newtype-style declarations. An `@internal` field renders on its own
+    // line, so a struct carrying one falls through to the multi-line form.
+    if d.span.start.line == d.span.end.line && !has_internal_field(d.fields) {
         self.write(" { ")
         i: usize = 0
         for i < d.fields.len() {
@@ -535,8 +536,20 @@ emit_struct_decl :: fn(self: Printer, d: p.StructDecl) -> void {
     self.write("}")
 }
 
+// True when any field opts out of the public default via `@internal`
+// (`.Private`) — such a struct can't use the inline single-line form.
+has_internal_field :: fn(fields: p.StructField[]) -> bool {
+    for f in fields { if f.visibility == p.Visibility.Private { return true } }
+    return false
+}
+
 emit_struct_field :: fn(self: Printer, f: p.StructField) -> void {
-    self.emit_visibility(f.visibility)
+    // Fields are public by default ; a `.Private` field carries the
+    // `@internal` decorator, emitted on its own line above the field.
+    if f.visibility == p.Visibility.Private {
+        self.write("@internal")
+        self.nl_indent()
+    }
     self.write(f.name)
     self.write(": ")
     self.emit_type_expr(f.ty)

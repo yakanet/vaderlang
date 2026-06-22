@@ -214,7 +214,7 @@ prepare_evaluated_project :: fn(file: string) -> EvaluatedPipeline {
 // `check_project_with_bodies` into `typecheck_diags`.
 collect_body_diags :: fn(result: CheckResult) -> Diagnostic[] {
     out: Diagnostic[] = []
-    if result.all_modules.size == 0 { return out }
+    if result.all_modules.is_empty() { return out }
     for module_id in result.all_modules.keys() {
         if module_id == result.typed.resolved.path { continue }
         module_typed :: result.all_modules[module_id]
@@ -231,7 +231,7 @@ assemble_typed_project :: fn(result: CheckResult) -> TypedProject {
     project.modules[result.typed.resolved.path] = result.typed
     // Drain every typed module the orchestrator built — entry + direct imports
     // + std/* — so downstream passes (lower, bytecode emit) see std-defined impls.
-    if result.all_modules.size > 0 {
+    if !result.all_modules.is_empty() {
         for module_id in result.all_modules.keys() {
             module_typed :: result.all_modules[module_id]
             if module_typed is null { continue }
