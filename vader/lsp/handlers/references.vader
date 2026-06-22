@@ -9,7 +9,7 @@ module "vader/lsp/handlers"
 
 import "std/json" { JsonValue, JsonArray, JsonBool }
 import "vader/lsp/protocol" {
-    uri_to_path, position_uri, cursor_field, location_json, span_to_range_json, get_field
+    uri_to_path, position_uri, cursor_field, location_json, span_to_range_json, get_field, path_to_uri
 }
 import "vader/lsp/analysis" {
     ServerState, typed_project_for, build_reference_index, ReferenceIndex, cursor_in_span
@@ -36,7 +36,7 @@ export handle_references :: fn(state: ServerState, params: JsonValue) -> JsonVal
     for s in index.sites {
         if s.symbol_id != target { continue }
         if s.is_decl && !include_decl { continue }
-        items.push(location_json("file://${s.span.start.file}", s.span.span_to_range_json()))
+        items.push(location_json(path_to_uri(s.span.start.file), s.span.span_to_range_json()))
     }
     return JsonArray { .items = items }
 }

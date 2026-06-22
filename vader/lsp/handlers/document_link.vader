@@ -20,7 +20,7 @@ import "std/io" { exists }
 import "vader/diagnostics" { Span, Position }
 import "vader/parser" { parse_source, ImportDecl }
 import "vader/resolver" { list_vader_files }
-import "vader/lsp/protocol" { position_uri, range_json, span_to_range_json, SpanRange }
+import "vader/lsp/protocol" { position_uri, range_json, span_to_range_json, SpanRange, path_to_uri }
 import "vader/lsp/analysis" { ServerState, module_path_to_absolute, ensure_vader_ext }
 
 /// Build the `DocumentLink[]` response for the document named in `params`
@@ -59,7 +59,7 @@ import_link :: fn(imp: ImportDecl, source: string, state: ServerState, from_uri:
     if range == null { return null }
     obj :: MutableMap<string, JsonValue> {}
     obj["range"]  = range_json(range)
-    obj["target"] = JsonString { .value = "file://${target}" }
+    obj["target"] = JsonString { .value = path_to_uri(target) }
     return JsonObject { .entries = obj }
 }
 

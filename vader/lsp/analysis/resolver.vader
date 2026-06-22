@@ -16,7 +16,7 @@ module "vader/lsp/analysis"
 import "std/io" { read_file, read_dir, is_dir }
 import "std/string" { starts_with }
 import "vader/resolver" { default_stdlib_root, find_manifest_root }
-import "vader/lsp/protocol" { uri_to_path }
+import "vader/lsp/protocol" { uri_to_path, path_to_uri }
 
 /// Where a cross-file goto-def landed : a file URI + the target's
 /// `name_span` so the handler can encode an LSP `Location`. Returns
@@ -110,7 +110,7 @@ lookup_in_file :: fn(path: string, name: string) -> ExternalHit | null {
     match src_or {
         is Error -> { return null }
         is string as src -> {
-            uri :: "file://" + path
+            uri :: path_to_uri(path)
             sub :: build_index(uri, src)
             d :: sub.find_toplevel(name)
             if d == null { return null }

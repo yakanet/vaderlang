@@ -22,7 +22,7 @@ import "vader/types" {
     TY_VOID, mk_struct, mk_primitive, mk_union,
 }
 import "vader/resolver/symbol" { Symbol }
-import "vader/lsp/protocol" { position_uri, uri_to_path, cursor_field, location_json, span_to_range_json }
+import "vader/lsp/protocol" { position_uri, uri_to_path, cursor_field, location_json, span_to_range_json, path_to_uri }
 import "vader/lsp/analysis" { ServerState, typed_project_for, source_file_for_path, find_expr_at }
 
 /// Resolve typeDefinition for the position carried in `params`. Returns a
@@ -53,7 +53,7 @@ export handle_type_definition :: fn(state: ServerState, params: JsonValue) -> Js
     if sym == null { return JsonNull {} }
     da :: sym.defined_at
     if da == null { return JsonNull {} }
-    return location_json("file://${da.start.file}", da.span_to_range_json())
+    return location_json(path_to_uri(da.start.file), da.span_to_range_json())
 }
 
 // The declaring `Symbol` carried by a named type, or null for types with no

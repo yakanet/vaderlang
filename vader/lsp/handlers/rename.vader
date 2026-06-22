@@ -19,7 +19,7 @@ import "std/json" { JsonValue, JsonObject, JsonString, JsonArray, JsonNull }
 import "std/collections" { MutableMap }
 import "vader/diagnostics" { Span, Position }
 import "vader/resolver" { LoadedProject }
-import "vader/lsp/protocol" { position_uri, uri_to_path, cursor_field, range_json, span_to_range_json }
+import "vader/lsp/protocol" { position_uri, uri_to_path, cursor_field, range_json, span_to_range_json, path_to_uri }
 import "vader/lsp/analysis" {
     ServerState, typed_project_for, build_reference_index, ReferenceIndex, RefSite, cursor_in_span,
 }
@@ -91,7 +91,7 @@ sites_to_rename :: fn(index: ReferenceIndex, symbol_id: i32, old_name: string, s
 workspace_edit_json :: fn(edits: RefSite[], new_name: string) -> JsonValue {
     by_uri :: MutableMap<string, JsonValue[]> {}
     for e in edits {
-        key :: "file://${e.span.start.file}"
+        key :: path_to_uri(e.span.start.file)
         te :: text_edit_json(e.span, new_name)
         cur :: by_uri[key]
         if cur == null {

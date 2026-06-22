@@ -3,19 +3,113 @@
 // LSP identifies documents by URI (`file:///abs/path.vader`) ; the compiler
 // loader, resolver and overlay all work in plain filesystem paths. This one
 // conversion was copy-pasted across ~8 handlers before this module.
+//
+// Windows-aware. A POSIX URI is `file:///abs/f` ↔ `/abs/f` ; a Windows URI is
+// `file:///c:/dir/f` ↔ `c:/dir/f`. The drive form carries an EXTRA leading
+// slash after the scheme (the path is `/c:/...`, not `c:/...`), so the two
+// conversions add / strip that slash. Without this, `uri_to_path` leaves a
+// stray leading `/` before the drive (`/c:/...`) — an invalid Windows path that
+// fails `exists()`, so `find_manifest_root` can't locate `vader.json` and the
+// whole project resolves against the binary-adjacent stdlib instead of the
+// workspace ; and `file://` + a Windows path yields `file://c:\...`, which the
+// client reads as the UNC host `c:`.
 
 module "vader/lsp/protocol"
 
 import "std/string" { starts_with }
+import "std/path" { to_posix }
 
-/// Strip the `file://` scheme to recover the filesystem path. Returns `""`
-/// for any non-`file://` URI (untitled buffers, `vader:` virtual docs, …),
-/// which every caller treats as "no on-disk file".
+/// Recover the filesystem path from a `file://` URI. Returns `""` for any
+/// non-`file://` URI (untitled buffers, `vader:` virtual docs, …), which every
+/// caller treats as "no on-disk file". Percent-escapes are decoded — VS Code
+/// sends the Windows drive colon as `%3A` (`file:///c%3A/dir`), and any path
+/// with spaces / unicode arrives encoded. On Windows the decoded
+/// `file:///c:/dir` → `c:/dir` (the leading slash before the drive is dropped) ;
+/// POSIX `file:///abs` → `/abs` unchanged.
 export uri_to_path :: fn(uri: string) -> string {
     prefix :: "file://"
-    if uri.starts_with(prefix) {
-        ub :: uri.bytes()
-        return ub[prefix.bytes().len()..<ub.len()].bytes_to_string()
+    if !uri.starts_with(prefix) { return "" }
+    ub :: uri.bytes()
+    raw :: ub[prefix.bytes().len()..<ub.len()].bytes_to_string()
+    rest :: percent_decode(raw)
+    if is_drive_after_slash(rest) {
+        rb :: rest.bytes()
+        return rb[1..<rb.len()].bytes_to_string()
     }
-    return ""
+    return rest
+}
+
+// Decode `%XX` escapes byte-by-byte. A lone or malformed `%` (no two hex digits
+// after it) passes through literally. Operates on bytes so multi-byte UTF-8
+// escapes reassemble correctly.
+percent_decode :: fn(s: string) -> string {
+    sb :: s.bytes()
+    n :: sb.len()
+    out: u8[] = []
+    i: usize = 0
+    for i < n {
+        b :: sb[i]
+        if b == 0x25_u8 && i + 2 < n {                       // '%'
+            hi :: hex_val(sb[i + 1])
+            lo :: hex_val(sb[i + 2])
+            if hi >= 0 && lo >= 0 {
+                out.push(u8(hi * 16 + lo))
+                i += 3
+                continue
+            }
+        }
+        out.push(b)
+        i += 1
+    }
+    return out.bytes_to_string()
+}
+
+// Hex digit value for an ASCII byte, or -1 when not a hex digit.
+hex_val :: fn(b: u8) -> i32 {
+    if b >= 0x30_u8 && b <= 0x39_u8 { return i32(b) - 0x30 }        // 0-9
+    if b >= 0x41_u8 && b <= 0x46_u8 { return i32(b) - 0x41 + 10 }   // A-F
+    if b >= 0x61_u8 && b <= 0x66_u8 { return i32(b) - 0x61 + 10 }   // a-f
+    return -1
+}
+
+/// Build a `file://` URI from a filesystem path. POSIX `/abs/f` → `file:///abs/f`
+/// (the path's own leading slash supplies the third) ; a Windows drive path
+/// `c:\dir\f` / `c:/dir/f` → `file:///c:/dir/f` (backslashes normalised, the
+/// extra leading slash prepended). The inverse of `uri_to_path`.
+export path_to_uri :: fn(path: string) -> string {
+    p :: to_posix(path)
+    if p.starts_with("/") { return "file://" + p }
+    return "file:///" + p
+}
+
+// `/c:/...` — a leading slash, an ASCII letter, then `:` (a Windows drive path
+// that picked up the URL's extra leading slash).
+is_drive_after_slash :: fn(s: string) -> bool {
+    sb :: s.bytes()
+    if sb.len() < 3 { return false }
+    if sb[0] != 0x2F_u8 { return false }                                  // '/'
+    c :: sb[1]
+    if !((c >= 0x41_u8 && c <= 0x5A_u8) || (c >= 0x61_u8 && c <= 0x7A_u8)) { return false }
+    return sb[2] == 0x3A_u8                                               // ':'
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert_eq }
+
+@test test_uri_path_roundtrip_posix :: fn() -> void {
+    assert_eq(uri_to_path("file:///abs/path.vader"), "/abs/path.vader")
+    assert_eq(path_to_uri("/abs/path.vader"), "file:///abs/path.vader")
+    assert_eq(uri_to_path("untitled:foo"), "")
+}
+
+@test test_uri_path_roundtrip_windows :: fn() -> void {
+    assert_eq(uri_to_path("file:///c:/dev/path.vader"), "c:/dev/path.vader")
+    // VS Code percent-encodes the drive colon as %3A — decode it
+    assert_eq(uri_to_path("file:///c%3A/dev/path.vader"), "c:/dev/path.vader")
+    // and spaces as %20
+    assert_eq(uri_to_path("file:///c%3A/my%20app/x.vader"), "c:/my app/x.vader")
+    assert_eq(path_to_uri("c:/dev/path.vader"), "file:///c:/dev/path.vader")
+    // backslashes normalise on the way out
+    assert_eq(path_to_uri("c:\\dev\\path.vader"), "file:///c:/dev/path.vader")
 }
