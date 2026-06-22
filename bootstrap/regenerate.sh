@@ -16,8 +16,6 @@ fi
 if ! command -v vader >/dev/null && [ ! -x ./build/vader ]; then
   echo "error: no vader binary available. Build one first:" >&2
   echo "  bootstrap/build.sh                 # from the committed C seed" >&2
-  echo "  (pre-seed only, via the legacy TS compiler:" >&2
-  echo "   bun src/index.ts build vader/cli/main.vader --release --target=native --out=build/vader)" >&2
   exit 1
 fi
 VADER="${VADER:-$(command -v vader || echo ./build/vader)}"

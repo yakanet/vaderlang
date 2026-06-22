@@ -3,22 +3,14 @@
   "version": "0.0.0-pre-mvp",
   "description": "Vader compiler and standard library",
   "type": "module",
-  "module": "src/index.ts",
   "scripts": {
-    "vader": "bun src/index.ts",
     "test": "bun test --preload ./tests/setup.ts --parallel",
     "test:update": "UPDATE_SNAPSHOTS=1 bun test --update-snapshots --preload ./tests/setup.ts",
     "test:leak": "bun run ./tests/leaks_check.ts",
     "build": "bootstrap/build.sh",
     "build:cli": "bootstrap/build.sh --dist",
-    "typecheck": "tsc --noEmit",
     "bench": "bun bench/run.ts",
     "bench:profile": "bun bench/profile-build.ts",
     "cloc": "npx cloc@latest --read-lang-def=vader-cloc.txt --vcs=git vader stdlib"
-  },
-  "devDependencies": {
-    "@types/bun": "latest",
-    "typescript": "^5.5.0"
-  },
-  "trustedDependencies": []
+  }
 }
