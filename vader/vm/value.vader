@@ -430,13 +430,13 @@ prefix_before_double_underscore :: fn(s: string) -> string {
     last_dollar: i32 = -1
     i: usize = 0
     for i < n {
-        if sb[i] == b'$' { last_dollar = i32(i) }
+        if sb[i] == '$' { last_dollar = i32(i) }
         i += 1
     }
     start: usize = if last_dollar < 0 { 0 } else { usize(last_dollar) + 1 }
     j: usize = start
     for j + 1 < n {
-        if sb[j] == b'_' && sb[j + 1] == b'_' {
+        if sb[j] == '_' && sb[j + 1] == '_' {
             return sb[0..<j].bytes_to_string()
         }
         j += 1

@@ -153,7 +153,7 @@ parse_alternation :: fn(p: Parser) -> RegexError | null {
     branch_start :: p.insts.len()
     err1 :: parse_concat(p)
     if err1 is RegexError { return err1 }
-    if p.cursor >= p.bytes.len() || p.bytes[p.cursor] != b'|' {
+    if p.cursor >= p.bytes.len() || p.bytes[p.cursor] != '|' {
         return null
     }
 
@@ -166,7 +166,7 @@ parse_alternation :: fn(p: Parser) -> RegexError | null {
     branch_offsets.push(branches_buf.len())
     p.insts = truncate_to(p.insts, branch_start)
 
-    for p.cursor < p.bytes.len() && p.bytes[p.cursor] == b'|' {
+    for p.cursor < p.bytes.len() && p.bytes[p.cursor] == '|' {
         p.cursor = p.cursor + 1
         next_start :: p.insts.len()
         err :: parse_concat(p)
@@ -221,7 +221,7 @@ copy_slice :: fn(dst: Inst[], src: Inst[], lo: usize, hi: usize) -> void {
 parse_concat :: fn(p: Parser) -> RegexError | null {
     for p.cursor < p.bytes.len() {
         b :: p.bytes[p.cursor]
-        if b == b')' || b == b'|' { break }
+        if b == ')' || b == '|' { break }
         err :: parse_atom_with_quantifier(p)
         if err is RegexError { return err }
     }
@@ -234,22 +234,22 @@ parse_atom_with_quantifier :: fn(p: Parser) -> RegexError | null {
     if err is RegexError { return err }
     if p.cursor >= p.bytes.len() { return null }
     q :: p.bytes[p.cursor]
-    if q == b'*' {
+    if q == '*' {
         p.cursor = p.cursor + 1
         apply_star(p, atom_start)
         return null
     }
-    if q == b'+' {
+    if q == '+' {
         p.cursor = p.cursor + 1
         apply_plus(p, atom_start)
         return null
     }
-    if q == b'?' {
+    if q == '?' {
         p.cursor = p.cursor + 1
         apply_optional(p, atom_start)
         return null
     }
-    if q == b'{' { return apply_counted(p, atom_start) }
+    if q == '{' { return apply_counted(p, atom_start) }
     return null
 }
 
@@ -297,7 +297,7 @@ apply_optional :: fn(p: Parser, atom_start: usize) -> void {
 }
 
 apply_counted :: fn(p: Parser, atom_start: usize) -> RegexError | null {
-    if p.bytes[p.cursor] != b'{' { return null }
+    if p.bytes[p.cursor] != '{' { return null }
     save_cursor :: p.cursor
     p.cursor = p.cursor + 1
     n_outcome :: parse_decimal_usize(p)
@@ -306,17 +306,17 @@ apply_counted :: fn(p: Parser, atom_start: usize) -> RegexError | null {
     m: usize = n
     has_comma: bool = false
     has_upper: bool = false
-    if p.cursor < p.bytes.len() && p.bytes[p.cursor] == b',' {
+    if p.cursor < p.bytes.len() && p.bytes[p.cursor] == ',' {
         p.cursor = p.cursor + 1
         has_comma = true
-        if p.cursor < p.bytes.len() && p.bytes[p.cursor] != b'}' {
+        if p.cursor < p.bytes.len() && p.bytes[p.cursor] != '}' {
             m_outcome :: parse_decimal_usize(p)
             if m_outcome is RegexError { return m_outcome }
             m = m_outcome
             has_upper = true
         }
     }
-    if p.cursor >= p.bytes.len() || p.bytes[p.cursor] != b'}' {
+    if p.cursor >= p.bytes.len() || p.bytes[p.cursor] != '}' {
         return RegexError { .msg = "unterminated {n,m}", .position = save_cursor }
     }
     p.cursor = p.cursor + 1
@@ -372,39 +372,39 @@ parse_atom :: fn(p: Parser) -> RegexError | null {
         return RegexError { .msg = "unexpected end of pattern", .position = p.cursor }
     }
     b :: p.bytes[p.cursor]
-    if b == b'(' {
+    if b == '(' {
         p.cursor = p.cursor + 1
         group_id :: p.next_group_id
         p.next_group_id = p.next_group_id + 1
         p.insts.push(InstSave { .slot = usize(2) * group_id })
         err :: parse_alternation(p)
         if err is RegexError { return err }
-        if p.cursor >= p.bytes.len() || p.bytes[p.cursor] != b')' {
+        if p.cursor >= p.bytes.len() || p.bytes[p.cursor] != ')' {
             return RegexError { .msg = "unterminated group", .position = p.cursor }
         }
         p.cursor = p.cursor + 1
         p.insts.push(InstSave { .slot = usize(2) * group_id + 1 })
         return null
     }
-    if b == b'.' {
+    if b == '.' {
         p.cursor = p.cursor + 1
         p.insts.push(InstAny {})
         return null
     }
-    if b == b'^' {
+    if b == '^' {
         p.cursor = p.cursor + 1
         p.insts.push(InstAnchorStart {})
         return null
     }
-    if b == b'$' {
+    if b == '$' {
         p.cursor = p.cursor + 1
         p.insts.push(InstAnchorEnd {})
         return null
     }
-    if b == b'[' {
+    if b == '[' {
         return parse_char_class(p)
     }
-    if b == b'\\' {
+    if b == '\\' {
         return parse_escape(p)
     }
     // Otherwise : a literal byte. Decode the codepoint at this offset to
@@ -422,39 +422,39 @@ parse_escape :: fn(p: Parser) -> RegexError | null {
     }
     e :: p.bytes[p.cursor]
     p.cursor = p.cursor + 1
-    if e == b'n' {
+    if e == 'n' {
         p.insts.push(InstChar { .c = '\n' })
         return null
     }
-    if e == b't' {
+    if e == 't' {
         p.insts.push(InstChar { .c = '\t' })
         return null
     }
-    if e == b'r' {
+    if e == 'r' {
         p.insts.push(InstChar { .c = '\r' })
         return null
     }
-    if e == b'd' {
+    if e == 'd' {
         p.insts.push(InstClass { .ranges = [CharRange { .lo = '0', .hi = '9' }], .negated = false })
         return null
     }
-    if e == b'D' {
+    if e == 'D' {
         p.insts.push(InstClass { .ranges = [CharRange { .lo = '0', .hi = '9' }], .negated = true })
         return null
     }
-    if e == b'w' {
+    if e == 'w' {
         p.insts.push(InstClass { .ranges = word_class_ranges(), .negated = false })
         return null
     }
-    if e == b'W' {
+    if e == 'W' {
         p.insts.push(InstClass { .ranges = word_class_ranges(), .negated = true })
         return null
     }
-    if e == b's' {
+    if e == 's' {
         p.insts.push(InstClass { .ranges = space_class_ranges(), .negated = false })
         return null
     }
-    if e == b'S' {
+    if e == 'S' {
         p.insts.push(InstClass { .ranges = space_class_ranges(), .negated = true })
         return null
     }
@@ -467,15 +467,15 @@ parse_char_class :: fn(p: Parser) -> RegexError | null {
     start_pos :: p.cursor
     p.cursor = p.cursor + 1
     negated: bool = false
-    if p.cursor < p.bytes.len() && p.bytes[p.cursor] == b'^' {
+    if p.cursor < p.bytes.len() && p.bytes[p.cursor] == '^' {
         negated = true
         p.cursor = p.cursor + 1
     }
     ranges: CharRange[] = []
-    for p.cursor < p.bytes.len() && p.bytes[p.cursor] != b']' {
+    for p.cursor < p.bytes.len() && p.bytes[p.cursor] != ']' {
         lo_c :: read_class_char(p)
         if lo_c is RegexError { return lo_c }
-        is_range :: p.cursor < p.bytes.len() && p.bytes[p.cursor] == b'-' && p.cursor + 1 < p.bytes.len() && p.bytes[p.cursor + 1] != b']'
+        is_range :: p.cursor < p.bytes.len() && p.bytes[p.cursor] == '-' && p.cursor + 1 < p.bytes.len() && p.bytes[p.cursor + 1] != ']'
         if is_range {
             p.cursor = p.cursor + 1
             hi_c :: read_class_char(p)
@@ -498,16 +498,16 @@ read_class_char :: fn(p: Parser) -> char | RegexError {
         return RegexError { .msg = "unexpected end inside character class", .position = p.cursor }
     }
     b :: p.bytes[p.cursor]
-    if b == b'\\' {
+    if b == '\\' {
         p.cursor = p.cursor + 1
         if p.cursor >= p.bytes.len() {
             return RegexError { .msg = "trailing backslash inside class", .position = p.cursor }
         }
         e :: p.bytes[p.cursor]
         p.cursor = p.cursor + 1
-        if e == b'n' { return '\n' }
-        if e == b't' { return '\t' }
-        if e == b'r' { return '\r' }
+        if e == 'n' { return '\n' }
+        if e == 't' { return '\t' }
+        if e == 'r' { return '\r' }
         return char(u32(e))
     }
     [c, advance] :: p.bytes.decode_codepoint_at(p.cursor)
@@ -516,12 +516,12 @@ read_class_char :: fn(p: Parser) -> char | RegexError {
 }
 
 parse_decimal_usize :: fn(p: Parser) -> usize | RegexError {
-    if p.cursor >= p.bytes.len() || p.bytes[p.cursor] < b'0' || p.bytes[p.cursor] > b'9' {
+    if p.cursor >= p.bytes.len() || p.bytes[p.cursor] < '0' || p.bytes[p.cursor] > '9' {
         return RegexError { .msg = "expected digit", .position = p.cursor }
     }
     acc: usize = 0
-    for p.cursor < p.bytes.len() && p.bytes[p.cursor] >= b'0' && p.bytes[p.cursor] <= b'9' {
-        acc = acc * 10 + usize(p.bytes[p.cursor] - b'0')
+    for p.cursor < p.bytes.len() && p.bytes[p.cursor] >= '0' && p.bytes[p.cursor] <= '9' {
+        acc = acc * 10 + usize(p.bytes[p.cursor] - '0')
         p.cursor = p.cursor + 1
     }
     return acc
@@ -665,10 +665,10 @@ expand_replacement :: fn(sb: StringBuilder, rb: const u8[], m: Match) -> void {
     i: usize = 0
     for i < n {
         b :: rb[i]
-        if b == b'$' && i + 1 < n {
+        if b == '$' && i + 1 < n {
             d :: rb[i + 1]
-            if d >= b'0' && d <= b'9' {
-                gi :: usize(d - b'0')
+            if d >= '0' && d <= '9' {
+                gi :: usize(d - '0')
                 if gi < m.groups.len() {
                     sb.append(m.groups[gi])
                 }
@@ -714,7 +714,7 @@ clone_thread :: fn(t: Thread) -> Thread {
 // Sentinel for "this slot was never written". `_u64` is mandatory :
 // without it the literal defaults to a signed type and rounds through
 // f64, so the sentinel collides with valid offsets on native.
-SLOT_UNSET :: usize(0xFFFF_FFFF_FFFF_FFFF_u64)
+SLOT_UNSET :: usize(0xFFFF_FFFF_FFFF_FFFF)
 
 run_at :: fn(p: Pattern, input: const u8[], start: usize) -> Match | null {
     slots :: usize(2) * (p.group_count + 1)

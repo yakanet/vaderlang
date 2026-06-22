@@ -86,7 +86,7 @@ path_string_range :: fn(imp: ImportDecl, source: string) -> SpanRange | null {
     sb :: source.bytes()
     n :: sb.len()
     start_off :: imp.span.start.offset
-    quote :: b'"'
+    quote :: '"'
     q := start_off
     found := false
     for i in start_off..<n {
@@ -96,7 +96,7 @@ path_string_range :: fn(imp: ImportDecl, source: string) -> SpanRange | null {
             found = true
             break
         }
-        if b == b'\n' { break }
+        if b == '\n' { break }
     }
     if !found { return null }
     interior_off :: q + 1

@@ -68,10 +68,10 @@ format_signed :: fn(n: i64) -> string {
     i: usize = total
     for n != 0 {
         i = i - 1
-        buf.store_u8(i, b'0' + u8(-(n % 10)))
+        buf.store_u8(i, '0' + u8(-(n % 10)))
         n = n / 10
     }
-    if neg { buf.store_u8(0, b'-') }
+    if neg { buf.store_u8(0, '-') }
     return buf.intern_string(total)
 }
 
@@ -90,7 +90,7 @@ format_unsigned :: fn(n: u64) -> string {
     i: usize = ndigits
     for n != 0 {
         i = i - 1
-        buf.store_u8(i, b'0' + u8(n % 10))
+        buf.store_u8(i, '0' + u8(n % 10))
         n = n / 10
     }
     return buf.intern_string(ndigits)

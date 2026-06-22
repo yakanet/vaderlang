@@ -26,7 +26,7 @@
   expr 24:11    StringLitExpr  :: string
   expr 24:23    BinaryExpr     :: bool
   expr 24:23    BinaryExpr     :: u32
-  expr 24:42    IdentExpr      :: u32
+  expr 24:34    IdentExpr      :: u32
   expr 24:5     CallExpr       :: void
   expr 24:5     IdentExpr      :: fn(string, bool) -> void
   expr 25:11    StringLitExpr  :: string
@@ -59,7 +59,7 @@
   expr 33:11    StringLitExpr  :: string
   expr 33:23    BinaryExpr     :: bool
   expr 33:23    UnaryExpr      :: u32
-  expr 33:33    IdentExpr      :: u32
+  expr 33:29    IdentExpr      :: u32
   expr 33:5     CallExpr       :: void
   expr 33:5     IdentExpr      :: fn(string, bool) -> void
   expr 34:11    StringLitExpr  :: string

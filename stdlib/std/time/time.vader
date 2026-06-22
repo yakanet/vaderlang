@@ -256,10 +256,10 @@ parse_digits :: fn(s: string, start: usize, count: usize) -> i64 | TimeError {
     i: usize = 0
     for i < count {
         b :: sb[start + i]
-        if b < b'0' || b > b'9' {
+        if b < '0' || b > '9' {
             return TimeError { .msg = "expected digit" }
         }
-        acc = acc * i64(10) + i64(b - b'0')
+        acc = acc * i64(10) + i64(b - '0')
         i = i + 1
     }
     return acc
@@ -292,26 +292,26 @@ export parse_iso8601 :: fn(s: string) -> Instant | TimeError {
         return TimeError { .msg = "iso8601: too short" }
     }
     year   :: parse_digits(s, usize(0),  usize(4))?
-    expect_byte(s, usize(4),  b'-')?
+    expect_byte(s, usize(4),  '-')?
     month  :: parse_digits(s, usize(5),  usize(2))?
-    expect_byte(s, usize(7),  b'-')?
+    expect_byte(s, usize(7),  '-')?
     day    :: parse_digits(s, usize(8),  usize(2))?
-    expect_byte(s, usize(10), b'T')?
+    expect_byte(s, usize(10), 'T')?
     hours  :: parse_digits(s, usize(11), usize(2))?
-    expect_byte(s, usize(13), b':')?
+    expect_byte(s, usize(13), ':')?
     minutes :: parse_digits(s, usize(14), usize(2))?
-    expect_byte(s, usize(16), b':')?
+    expect_byte(s, usize(16), ':')?
     seconds_part :: parse_digits(s, usize(17), usize(2))?
 
     // Fractional seconds : optional `.fff` block, then required `Z`.
     cursor: usize = 19
     ms_part: i64 = 0
-    if cursor < sb.len() && sb[cursor] == b'.' {
+    if cursor < sb.len() && sb[cursor] == '.' {
         cursor = cursor + 1
         // Consume up to 3 digits — truncate further fractional detail.
         consumed: usize = 0
-        for consumed < 3 && cursor < sb.len() && sb[cursor] >= b'0' && sb[cursor] <= b'9' {
-            ms_part = ms_part * i64(10) + i64(sb[cursor] - b'0')
+        for consumed < 3 && cursor < sb.len() && sb[cursor] >= '0' && sb[cursor] <= '9' {
+            ms_part = ms_part * i64(10) + i64(sb[cursor] - '0')
             cursor = cursor + 1
             consumed = consumed + 1
         }
@@ -324,11 +324,11 @@ export parse_iso8601 :: fn(s: string) -> Instant | TimeError {
         }
         ms_part = ms_part * scale
         // Drop any additional fractional digits the caller supplied.
-        for cursor < sb.len() && sb[cursor] >= b'0' && sb[cursor] <= b'9' {
+        for cursor < sb.len() && sb[cursor] >= '0' && sb[cursor] <= '9' {
             cursor = cursor + 1
         }
     }
-    expect_byte(s, cursor, b'Z')?
+    expect_byte(s, cursor, 'Z')?
 
     if month < i64(1) || month > i64(12) {
         return TimeError { .msg = "iso8601: month out of range" }

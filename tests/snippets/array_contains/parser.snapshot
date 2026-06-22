@@ -198,9 +198,8 @@
                 "kind": "BinaryExpr",
                 "op": "in",
                 "left": {
-                  "kind": "IntLitExpr",
-                  "value": "101n",
-                  "suffix": "u8"
+                  "kind": "CharLitExpr",
+                  "value": 101
                 },
                 "right": {
                   "kind": "IdentExpr",
@@ -244,9 +243,8 @@
                 "kind": "BinaryExpr",
                 "op": "not_in",
                 "left": {
-                  "kind": "IntLitExpr",
-                  "value": "122n",
-                  "suffix": "u8"
+                  "kind": "CharLitExpr",
+                  "value": 122
                 },
                 "right": {
                   "kind": "IdentExpr",

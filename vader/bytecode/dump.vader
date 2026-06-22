@@ -125,12 +125,12 @@ is_simple_ident :: fn(s: string) -> bool {
     for i < n {
         b :: sb[i]
         ok := false
-        if b >= 0x41_u8 && b <= 0x5A_u8 { ok = true }     // A-Z
-        if b >= 0x61_u8 && b <= 0x7A_u8 { ok = true }     // a-z
-        if b >= 0x30_u8 && b <= 0x39_u8 { ok = true }     // 0-9
-        if b == 0x5F_u8 { ok = true }                     // _
-        if b == 0x24_u8 { ok = true }                     // $
-        if b == 0x2E_u8 { ok = true }                     // .
+        if b >= 0x41 && b <= 0x5A { ok = true }     // A-Z
+        if b >= 0x61 && b <= 0x7A { ok = true }     // a-z
+        if b >= 0x30 && b <= 0x39 { ok = true }     // 0-9
+        if b == 0x5F { ok = true }                     // _
+        if b == 0x24 { ok = true }                     // $
+        if b == 0x2E { ok = true }                     // .
         if !ok { return false }
         i += usize(1)
     }
@@ -149,8 +149,8 @@ json_escape :: fn(s: string) -> string {
     i: usize = 0
     for i < n {
         b :: bytes[i]
-        if b == 0x22_u8 { sb.append("\\\"") }
-        else if b == 0x5C_u8 { sb.append("\\\\") }
+        if b == 0x22 { sb.append("\\\"") }
+        else if b == 0x5C { sb.append("\\\\") }
         else { sb.append_char(char(u32(b))) }
         i += usize(1)
     }
@@ -749,11 +749,11 @@ export quote_string :: fn(value: string) -> string {
     i: usize = 0
     for i < n {
         b :: vb[i]
-        if      b == b'\\' { out.append("\\\\") }
-        else if b == b'"'  { out.append("\\\"") }
-        else if b == b'\n' { out.append("\\n") }
-        else if b == b'\r' { out.append("\\r") }
-        else if b == b'\t' { out.append("\\t") }
+        if      b == '\\' { out.append("\\\\") }
+        else if b == '"'  { out.append("\\\"") }
+        else if b == '\n' { out.append("\\n") }
+        else if b == '\r' { out.append("\\r") }
+        else if b == '\t' { out.append("\\t") }
         else if b == 0     { out.append("\\0") }
         else {
             // Copy the raw byte verbatim — `char(u32(b))` would re-encode it

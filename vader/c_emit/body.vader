@@ -153,22 +153,22 @@ export c_string_lit :: fn(s: string) -> string {
     i: usize = 0
     for i < n {
         b :: sbytes[i]
-        if b == b'\\' {
+        if b == '\\' {
             sb.append("\\\\")
-        } else if b == b'"' {
+        } else if b == '"' {
             sb.append("\\\"")
-        } else if b == b'\n' {
+        } else if b == '\n' {
             sb.append("\\n")
-        } else if b == b'\r' {
+        } else if b == '\r' {
             sb.append("\\r")
-        } else if b == b'\t' {
+        } else if b == '\t' {
             sb.append("\\t")
-        } else if b < 0x20_u8 || b >= 0x7F_u8 {
+        } else if b < 0x20 || b >= 0x7F {
             // `\x<hh>` escape — two-digit lowercase hex appended directly to
             // the outer builder (avoids a per-byte StringBuilder allocation).
             sb.append("\\x")
-            sb.append_char(hex_digit_lower(u32(b) >> 4_u32))
-            sb.append_char(hex_digit_lower(u32(b) & 0xF_u32))
+            sb.append_char(hex_digit_lower(u32(b) >> 4))
+            sb.append_char(hex_digit_lower(u32(b) & 0xF))
             // Close the escape so a following hex digit doesn't extend it.
             next_idx :: i + 1
             if next_idx < n {
@@ -189,10 +189,10 @@ export c_string_lit :: fn(s: string) -> string {
 /// Lower-case hex digit for a value `0..15`. Values out of range
 /// fall through to `'0'` — caller validates.
 hex_digit_lower :: fn(n: u32) -> char {
-    if n <= 9_u32 {
+    if n <= 9 {
         return char(u32('0') + n)
     }
-    return char(u32('a') + n - 10_u32)
+    return char(u32('a') + n - 10)
 }
 
 // =========================================================================
@@ -337,12 +337,12 @@ export prefix_before_double_underscore :: fn(s: string) -> string {
     if n < 2 { return "" }
     last_dollar: i32 = -1
     for i in 0..<n {
-        if sb[i] == b'$' { last_dollar = i32(i) }
+        if sb[i] == '$' { last_dollar = i32(i) }
     }
     start: usize = if last_dollar < 0 { 0 } else { usize(last_dollar) + 1 }
     j: usize = start
     for j + 1 < n {
-        if sb[j] == b'_' && sb[j + 1] == b'_' {
+        if sb[j] == '_' && sb[j + 1] == '_' {
             return sb[0..<j].bytes_to_string()
         }
         j += 1

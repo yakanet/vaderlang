@@ -69,13 +69,13 @@ strip_comment :: fn(line: string) -> string {
     i: usize = 0
     for i < n {
         b :: lb[i]
-        if b == b'\\' && in_quote && i + 1 < n {
+        if b == '\\' && in_quote && i + 1 < n {
             // Skip the escaped byte so `\"` doesn't close the string.
             i += 2
             continue
         }
-        if b == b'"' { in_quote = !in_quote }
-        else if b == b';' && !in_quote { return lb[0..<i].bytes_to_string().trim() }
+        if b == '"' { in_quote = !in_quote }
+        else if b == ';' && !in_quote { return lb[0..<i].bytes_to_string().trim() }
         i += 1
     }
     return line.trim()
@@ -173,7 +173,7 @@ last_index_of_space :: fn(s: string) -> i32 {
     n :: i32(sb.len())
     i: i32 = n - 1
     for i >= 0 {
-        if sb[usize(i)] == b' ' { return i }
+        if sb[usize(i)] == ' ' { return i }
         i -= 1
     }
     return -1
@@ -749,19 +749,19 @@ export parse_decimal_f64 :: fn(s: string) -> f64 | null {
     cursor: usize = 0
     negative := false
     first_byte :: s.bytes()[0]
-    if first_byte == b'-' {
+    if first_byte == '-' {
         negative = true
         cursor = 1
     }
-    if first_byte == b'+' { cursor = 1 }
+    if first_byte == '+' { cursor = 1 }
     dot_index: i32 = -1
     exp_index: i32 = -1
     i: usize = cursor
     for i < n {
         b :: s.bytes()[i]
-        if b == b'.' { if dot_index < 0 { if exp_index < 0 { dot_index = i32(i) } } }
-        if b == b'e' { if exp_index < 0 { exp_index = i32(i) } }
-        if b == b'E' { if exp_index < 0 { exp_index = i32(i) } }
+        if b == '.' { if dot_index < 0 { if exp_index < 0 { dot_index = i32(i) } } }
+        if b == 'e' { if exp_index < 0 { exp_index = i32(i) } }
+        if b == 'E' { if exp_index < 0 { exp_index = i32(i) } }
         i += 1
     }
     int_end: usize = n

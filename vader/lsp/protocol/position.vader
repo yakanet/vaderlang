@@ -55,7 +55,7 @@ export lsp_to_offset :: fn(source: string, line: i32, character: i32) -> usize {
         if cur_line == line { break }
         b :: sb[cursor]
         cursor = cursor + 1
-        if b == b'\n' { cur_line = cur_line + 1 }
+        if b == '\n' { cur_line = cur_line + 1 }
     }
     if character <= 0 { return cursor }
     return cursor + usize(character)
@@ -89,7 +89,7 @@ export line_start_offset :: fn(source: string, pos: usize) -> usize {
     sb :: source.bytes()
     i: i32 = i32(pos) - 1
     for i >= 0 {
-        if sb[usize(i)] == b'\n' { return usize(i) + 1 }
+        if sb[usize(i)] == '\n' { return usize(i) + 1 }
         i = i - 1
     }
     return 0

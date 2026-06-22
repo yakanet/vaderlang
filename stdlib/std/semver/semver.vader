@@ -102,7 +102,7 @@ export parse :: fn(s: string) -> Version | ParseError {
     // identifiers cannot themselves contain `+`).
     plus_pos: usize = n
     for i in 0..<n {
-        if sb[i] == b'+' { plus_pos = i }
+        if sb[i] == '+' { plus_pos = i }
     }
 
     // Locate the first `-` that lives in the pre-release slot — i.e.
@@ -113,8 +113,8 @@ export parse :: fn(s: string) -> Version | ParseError {
     dots_seen: i32 = 0
     for j in 0..<plus_pos {
         b :: sb[j]
-        if b == b'.' { dots_seen += 1 }
-        else if b == b'-' && dots_seen >= 2 {
+        if b == '.' { dots_seen += 1 }
+        else if b == '-' && dots_seen >= 2 {
             dash_pos = j
             break
         }
@@ -133,7 +133,7 @@ export parse :: fn(s: string) -> Version | ParseError {
     cb :: core.bytes()
     cn :: cb.len()
     for k in 0..<cn {
-        if cb[k] == b'.' {
+        if cb[k] == '.' {
             if fill >= 3 { return ParseError { .msg = "too many '.' in version core" } }
             piece :: cb[start..<k].bytes_to_string()
             v :: parse_numeric_id(piece)
@@ -231,7 +231,7 @@ parse_numeric_id :: fn(s: string) -> i32 | ParseError {
     if s.is_empty()      { return ParseError { .msg = "empty numeric identifier" } }
     if !is_all_digits(s) { return ParseError { .msg = "non-digit in numeric identifier" } }
     sb :: s.bytes()
-    if sb.len() > 1 && sb[0] == b'0' {
+    if sb.len() > 1 && sb[0] == '0' {
         return ParseError { .msg = "leading zero in numeric identifier" }
     }
     match parse_int(s) {
@@ -250,7 +250,7 @@ validate_prerelease_id :: fn(id: string) -> string {
         if !is_digit(c) { only_digits = false }
     }
     idb :: id.bytes()
-    if only_digits && idb.len() > 1 && idb[0] == b'0' {
+    if only_digits && idb.len() > 1 && idb[0] == '0' {
         return "leading zero in numeric prerelease identifier"
     }
     return ""
@@ -261,7 +261,7 @@ validate_prerelease :: fn(s: string) -> string {
     n :: sb.len()
     start: usize = 0
     for i in 0..<n {
-        if sb[i] == b'.' {
+        if sb[i] == '.' {
             id :: sb[start..<i].bytes_to_string()
             err :: validate_prerelease_id(id)
             if !err.is_empty() { return err }
@@ -286,7 +286,7 @@ validate_build :: fn(s: string) -> string {
     n :: sb.len()
     start: usize = 0
     for i in 0..<n {
-        if sb[i] == b'.' {
+        if sb[i] == '.' {
             id :: sb[start..<i].bytes_to_string()
             err :: validate_build_id(id)
             if !err.is_empty() { return err }
@@ -401,7 +401,7 @@ split_or :: fn(s: string) -> string[] {
     }
     start: usize = 0
     for i in 0..<(n - 1) {
-        if sb[i] == b'|' && sb[i + 1] == b'|' {
+        if sb[i] == '|' && sb[i + 1] == '|' {
             out.push(sb[start..<i].bytes_to_string())
             start = i + 2
         }
@@ -462,14 +462,14 @@ parse_partial :: fn(s: string) -> PartialVersion | ParseError {
     // Locate `+` (last) and the first `-` after two `.`.
     plus_pos: usize = n
     for i in 0..<n {
-        if sb[i] == b'+' { plus_pos = i }
+        if sb[i] == '+' { plus_pos = i }
     }
     dash_pos: usize = plus_pos
     dots_seen: i32 = 0
     for j in 0..<plus_pos {
         b :: sb[j]
-        if b == b'.' { dots_seen += 1 }
-        else if b == b'-' && dots_seen >= 2 {
+        if b == '.' { dots_seen += 1 }
+        else if b == '-' && dots_seen >= 2 {
             dash_pos = j
             break
         }
@@ -659,24 +659,24 @@ parse_token :: fn(t: string) -> RangeTerm[] | ParseError {
     // Primitive comparators ; check longer (`>=` / `<=`) before short.
     tb :: t.bytes()
     n :: tb.len()
-    if n >= 2 && tb[0] == b'>' && tb[1] == b'=' {
+    if n >= 2 && tb[0] == '>' && tb[1] == '=' {
         return parse_comparator_token(.Gte, tb[2..<n].bytes_to_string())
     }
-    if n >= 2 && tb[0] == b'<' && tb[1] == b'=' {
+    if n >= 2 && tb[0] == '<' && tb[1] == '=' {
         return parse_comparator_token(.Lte, tb[2..<n].bytes_to_string())
     }
     b0   :: tb[0]
     rest :: tb[1..<n].bytes_to_string()
-    if b0 == b'>' { return parse_comparator_token(.Gt, rest) }
-    if b0 == b'<' { return parse_comparator_token(.Lt, rest) }
-    if b0 == b'=' { return parse_comparator_token(.Eq, rest) }
-    if b0 == b'^' {
+    if b0 == '>' { return parse_comparator_token(.Gt, rest) }
+    if b0 == '<' { return parse_comparator_token(.Lt, rest) }
+    if b0 == '=' { return parse_comparator_token(.Eq, rest) }
+    if b0 == '^' {
         match parse_partial(rest) {
             is PartialVersion as p -> { return expand_caret(p) }
             is ParseError     as e -> { return ParseError { .msg = "caret: ${e.message()}" } }
         }
     }
-    if b0 == b'~' {
+    if b0 == '~' {
         match parse_partial(rest) {
             is PartialVersion as p -> { return expand_tilde(p) }
             is ParseError     as e -> { return ParseError { .msg = "tilde: ${e.message()}" } }

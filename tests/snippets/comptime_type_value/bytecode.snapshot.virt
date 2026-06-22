@@ -5,6 +5,7 @@ type 2 ref _
 type 3 primitive void
 type 4 primitive string
 type 5 primitive i64
+type 6 ref _
 string 0 "ok"
 string 1 "\n"
 import 0 write std_io$write (i32,string) -> void
@@ -15,7 +16,7 @@ fn 0 snippet$main () -> i32
   call 1
   type.const 5
   call 1
-  type.const 1
+  type.const 6
   call 1
   type.const 4
   call 1

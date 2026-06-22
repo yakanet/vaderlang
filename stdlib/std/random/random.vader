@@ -26,7 +26,7 @@ export Rng :: struct {
 
 // u64 ops explicitly mask to 64 bits — the TS VM stores u64 as BigInt
 // and won't wrap on overflow.
-MASK_U64 :: 0xFFFF_FFFF_FFFF_FFFF_u64
+MASK_U64: u64: 0xFFFF_FFFF_FFFF_FFFF
 
 mask64 :: fn(x: u64) -> u64 {
     return x & MASK_U64
@@ -36,9 +36,9 @@ mask64 :: fn(x: u64) -> u64 {
 // Constants from the original SplitMix64 paper. Each call advances
 // the input by GOLDEN_GAMMA and applies an avalanche mix.
 splitmix64 :: fn(seed: u64) -> u64 {
-    z := mask64(seed + 0x9E3779B97F4A7C15_u64)
-    z = mask64((z ^ (z >> u64(30))) * 0xBF58476D1CE4E5B9_u64)
-    z = mask64((z ^ (z >> u64(27))) * 0x94D049BB133111EB_u64)
+    z := mask64(seed + 0x9E3779B97F4A7C15)
+    z = mask64((z ^ (z >> u64(30))) * 0xBF58476D1CE4E5B9)
+    z = mask64((z ^ (z >> u64(27))) * 0x94D049BB133111EB)
     return z ^ (z >> u64(31))
 }
 
@@ -122,7 +122,7 @@ export range_u32 :: fn(self: Rng, lo: u32, hi: u32) -> u32 {
 /// rounding up to exactly `1.0` (which `(2^53 - 1) / 2^53` does on
 /// IEEE 754 round-to-nearest).
 export unit_f64 :: fn(self: Rng) -> f64 {
-    return f64(self.next_u64() >> u64(12)) / f64(0x10_0000_0000_0000_u64)
+    return f64(self.next_u64() >> u64(12)) / f64(u64(0x10_0000_0000_0000))
 }
 
 /// In-place Fisher-Yates shuffle. Visits each element once in O(n) ;

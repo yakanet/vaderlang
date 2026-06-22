@@ -119,10 +119,12 @@ def validate():
 
 
 def emit_array(name: str, values, out):
-    out.append(f"{name} :: [")
+    # Typed const array (`NAME: u64[]: [...]`) with bare values — the element
+    # annotation coerces each literal to u64 (typed numeric suffixes were removed).
+    out.append(f"{name}: u64[]: [")
     line = "    "
     for idx, v in enumerate(values):
-        tok = f"{v}_u64,"
+        tok = f"{v},"
         if len(line) + len(tok) + 1 > 96 and line.strip():
             out.append(line.rstrip())
             line = "    "

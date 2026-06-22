@@ -65,19 +65,19 @@ export scan_comments :: fn(source: string) -> CommentMap {
         b :: sb[i]
 
         // Newline tracking. `\n` only — CR is normalised elsewhere.
-        if b == b'\n' {
+        if b == '\n' {
             line = line + 1
             i = i + 1
             continue
         }
 
         // `//` line comment (or `///` vaderdoc line).
-        if b == b'/' && i + 1 < n && sb[i + 1] == b'/' {
+        if b == '/' && i + 1 < n && sb[i + 1] == '/' {
             start :: i
             start_line :: line
-            is_doc :: i + 2 < n && sb[i + 2] == b'/'
+            is_doc :: i + 2 < n && sb[i + 2] == '/'
             j: usize = i + 2
-            for j < n && sb[j] != b'\n' {
+            for j < n && sb[j] != '\n' {
                 j = j + 1
             }
             text :: sb[start..<j].bytes_to_string()
@@ -97,24 +97,24 @@ export scan_comments :: fn(source: string) -> CommentMap {
         // `/* … */` block comment, nesting-aware. SPEC §3 dropped the
         // `/** … */` doc-comment form ; `/**` is treated as a plain block
         // comment to keep round-trip semantics for any legacy source.
-        if b == b'/' && i + 1 < n && sb[i + 1] == b'*' {
+        if b == '/' && i + 1 < n && sb[i + 1] == '*' {
             start :: i
             start_line :: line
             j: usize = i + 2
             depth: i32 = 1
             for j < n && depth > 0 {
                 cur :: sb[j]
-                if cur == b'\n' {
+                if cur == '\n' {
                     line = line + 1
                     j = j + 1
                     continue
                 }
-                if cur == b'/' && j + 1 < n && sb[j + 1] == b'*' {
+                if cur == '/' && j + 1 < n && sb[j + 1] == '*' {
                     depth = depth + 1
                     j = j + 2
                     continue
                 }
-                if cur == b'*' && j + 1 < n && sb[j + 1] == b'/' {
+                if cur == '*' && j + 1 < n && sb[j + 1] == '/' {
                     depth = depth - 1
                     j = j + 2
                     continue
@@ -138,16 +138,16 @@ export scan_comments :: fn(source: string) -> CommentMap {
         // String literals — skip the entire span so embedded `//` / `/*` don't
         // confuse the scanner. We don't handle interpolation specially since
         // we don't care what's *inside* the literal, only the closing quote.
-        if b == b'"' {
+        if b == '"' {
             // Triple-quoted ?
-            if i + 2 < n && sb[i + 1] == b'"' && sb[i + 2] == b'"' {
+            if i + 2 < n && sb[i + 1] == '"' && sb[i + 2] == '"' {
                 j: usize = i + 3
                 for j + 2 < n {
-                    if sb[j] == b'"' && sb[j + 1] == b'"' && sb[j + 2] == b'"' {
+                    if sb[j] == '"' && sb[j + 1] == '"' && sb[j + 2] == '"' {
                         j = j + 3
                         break
                     }
-                    if sb[j] == b'\n' { line = line + 1 }
+                    if sb[j] == '\n' { line = line + 1 }
                     j = j + 1
                 }
                 i = j
@@ -160,15 +160,15 @@ export scan_comments :: fn(source: string) -> CommentMap {
             j: usize = i + 1
             for j < n {
                 c :: sb[j]
-                if c == b'\\' && j + 1 < n {
+                if c == '\\' && j + 1 < n {
                     j = j + 2
                     continue
                 }
-                if c == b'"' {
+                if c == '"' {
                     j = j + 1
                     break
                 }
-                if c == b'\n' { line = line + 1 }
+                if c == '\n' { line = line + 1 }
                 j = j + 1
             }
             i = j
@@ -176,15 +176,15 @@ export scan_comments :: fn(source: string) -> CommentMap {
         }
 
         // Raw string `r"…"`.
-        if b == b'r' && i + 1 < n && sb[i + 1] == b'"' {
+        if b == 'r' && i + 1 < n && sb[i + 1] == '"' {
             j: usize = i + 2
             for j < n {
                 c :: sb[j]
-                if c == b'"' {
+                if c == '"' {
                     j = j + 1
                     break
                 }
-                if c == b'\n' { line = line + 1 }
+                if c == '\n' { line = line + 1 }
                 j = j + 1
             }
             i = j
@@ -192,15 +192,15 @@ export scan_comments :: fn(source: string) -> CommentMap {
         }
 
         // Char literal `'…'`. Same escape rules as strings.
-        if b == b'\'' {
+        if b == '\'' {
             j: usize = i + 1
             for j < n {
                 c :: sb[j]
-                if c == b'\\' && j + 1 < n {
+                if c == '\\' && j + 1 < n {
                     j = j + 2
                     continue
                 }
-                if c == b'\'' {
+                if c == '\'' {
                     j = j + 1
                     break
                 }

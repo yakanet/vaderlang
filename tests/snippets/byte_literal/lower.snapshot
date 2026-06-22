@@ -2,10 +2,10 @@
 
 ## snippet
   fn snippet$main() -> i32
-    let a: u8 = int(123) :u8
-    let nl: u8 = int(10) :u8
-    let bs: u8 = int(92) :u8
-    let sq: u8 = int(39) :u8
+    let a: char = char(0x7b)
+    let nl: char = char(0xa)
+    let bs: char = char(0x5c)
+    let sq: char = char(0x27)
     call :void
       callee:
         std_io$println__string :void
@@ -22,7 +22,7 @@
               arg0:
                 cast → i64
                   cast → i32
-                    a :u8
+                    a :char
     call :void
       callee:
         std_io$println__string :void
@@ -39,7 +39,7 @@
               arg0:
                 cast → i64
                   cast → i32
-                    nl :u8
+                    nl :char
     call :void
       callee:
         std_io$println__string :void
@@ -56,7 +56,7 @@
               arg0:
                 cast → i64
                   cast → i32
-                    bs :u8
+                    bs :char
     call :void
       callee:
         std_io$println__string :void
@@ -73,8 +73,8 @@
               arg0:
                 cast → i64
                   cast → i32
-                    sq :u8
-    let b: u8 = int(61) :u8
+                    sq :char
+    let b: char = char(0x3d)
     call :void
       callee:
         std_io$println__string :void
@@ -89,7 +89,7 @@
               cond:
                 eq :bool
                   l:
-                    b :u8
+                    b :char
                   r:
                     int(61) :u8
               then:

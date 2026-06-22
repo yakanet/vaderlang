@@ -2658,15 +2658,13 @@ fn 12 std_crypto$hex_digit (u32) -> char
   local.get 1
   u32.lt
   if $L0 void
-    char.const 48
-    char.to_i32
+    i32.const 48
     local.get 0
     i32.add
     u32.to_char
     return
   end $L0
-  char.const 97
-  char.to_i32
+  i32.const 97
   local.get 0
   i32.add
   local.set 1

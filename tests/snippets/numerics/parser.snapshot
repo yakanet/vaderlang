@@ -82,11 +82,14 @@
       "kind": "ConstDecl",
       "name": "g",
       "visibility": "public",
-      "type": null,
+      "type": {
+        "kind": "IdentExpr",
+        "name": "i64"
+      },
       "value": {
         "kind": "IntLitExpr",
         "value": "42n",
-        "suffix": "i64"
+        "suffix": null
       },
       "decorators": []
     },
@@ -94,11 +97,14 @@
       "kind": "ConstDecl",
       "name": "h",
       "visibility": "public",
-      "type": null,
+      "type": {
+        "kind": "IdentExpr",
+        "name": "u32"
+      },
       "value": {
         "kind": "IntLitExpr",
         "value": "100n",
-        "suffix": "u32"
+        "suffix": null
       },
       "decorators": []
     },
@@ -130,11 +136,14 @@
       "kind": "ConstDecl",
       "name": "k",
       "visibility": "public",
-      "type": null,
+      "type": {
+        "kind": "IdentExpr",
+        "name": "f32"
+      },
       "value": {
         "kind": "FloatLitExpr",
         "value": 3.14,
-        "suffix": "f32"
+        "suffix": null
       },
       "decorators": []
     },
@@ -142,11 +151,14 @@
       "kind": "ConstDecl",
       "name": "l",
       "visibility": "public",
-      "type": null,
+      "type": {
+        "kind": "IdentExpr",
+        "name": "f64"
+      },
       "value": {
         "kind": "FloatLitExpr",
         "value": 0.5,
-        "suffix": "f64"
+        "suffix": null
       },
       "decorators": []
     }

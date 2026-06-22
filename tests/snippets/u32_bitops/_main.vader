@@ -13,25 +13,25 @@ check :: fn(name: string, ok: bool) -> void {
 }
 
 main :: fn() -> i32 {
-    a: u32 = 0xFFFFFFFF_u32
-    b: u32 = 0x80000000_u32
+    a: u32 = 0xFFFFFFFF
+    b: u32 = 0x80000000
 
     // shr — must zero-fill, not sign-extend.
-    check("shr_high",    a >> 1_u32 == 0x7FFFFFFF_u32)
-    check("shr_top_bit", b >> 31_u32 == 1_u32)
+    check("shr_high",    a >> 1 == 0x7FFFFFFF)
+    check("shr_top_bit", b >> 31 == 1)
 
     // shl — must wrap modulo 2^32, not sign-flip.
-    check("shl_top",  1_u32 << 31_u32 == b)
-    check("shl_wrap", b << 1_u32 == 0_u32)
+    check("shl_top",  1 << 31 == b)
+    check("shl_wrap", b << 1 == 0)
 
     // bitand / bitor / bitxor — high-bit values must round-trip.
     check("and", a & a == a)
-    check("or",  b | 1_u32 == 0x80000001_u32)
-    check("xor", a ^ b == 0x7FFFFFFF_u32)
+    check("or",  b | 1 == 0x80000001)
+    check("xor", a ^ b == 0x7FFFFFFF)
 
     // bitnot — `~0u32` must equal 0xFFFFFFFF (not -1).
-    check("not_zero", ~0_u32 == a)
-    check("not_top",  ~b == 0x7FFFFFFF_u32)
+    check("not_zero", ~0 == a)
+    check("not_top",  ~b == 0x7FFFFFFF)
 
     return 0
 }

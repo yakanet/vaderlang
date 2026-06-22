@@ -21,13 +21,27 @@ import "vader/parser" { Expr, IntLitExpr, FloatLitExpr, BoolLitExpr, NullLitExpr
 import "vader/diagnostics" { Span }
 import "vader/typecheck" { primitive_from_name, default_if_free, equals_type, substitute, new_substitution }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/types" { Type, UnionType, ArrayType, TypeMetaType, TY_BOOL, TY_VOID, TY_UNRESOLVED, mk_primitive, is_primitive_name, StructType }
+import "vader/types" { Type, PrimitiveType, UnionType, ArrayType, TypeMetaType, TY_BOOL, TY_VOID, TY_UNRESOLVED, mk_primitive, is_primitive_name, StructType }
 import "vader/comptime" { ComptimeValue, IntValue, FloatValue, BoolValue, CharValue, StringValue, NullValue, VoidValue, ArrayValue, StructValue, TypeValue }
 
 /// Lower an `AST.Expr` to its `LoweredExpr` form.
 /// @param ctx   the fn-body context.
 /// @param expr  the source expression.
 /// @return      the lowered expression.
+// A char literal pinned to an integer (free-char coercion) lowers like a byte
+// literal once was — a `LoweredIntLit` of that width carrying the codepoint — so
+// `bytes[i] == '/'` emits identically to the old `b'/'`. A char-typed literal
+// (no integer context) stays a `LoweredCharLit`. `ty` is already defaulted
+// (FreeChar → char).
+lower_char_lit :: fn(e: CharLitExpr, ty: Type) -> LoweredExpr {
+    if ty is PrimitiveType as p {
+        if p.name != "char" {
+            return LoweredIntLit { .span = e.span, .type = ty, .value = i64(e.value) }
+        }
+    }
+    return LoweredCharLit { .span = e.span, .type = mk_primitive("char"), .value = e.value }
+}
+
 export lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
     type :: ctx.types.expr_type(expr)
     match expr {
@@ -35,7 +49,7 @@ export lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
         is FloatLitExpr   as e -> { return LoweredFloatLit { .span = e.span, .type = default_if_free(type), .value = e.value } }
         is BoolLitExpr    as e -> { return LoweredBoolLit { .span = e.span, .type = TY_BOOL, .value = e.value } }
         is NullLitExpr    as e -> { return LoweredNullLit { .span = e.span, .type = mk_primitive("null") } }
-        is CharLitExpr    as e -> { return LoweredCharLit { .span = e.span, .type = mk_primitive("char"), .value = e.value } }
+        is CharLitExpr    as e -> { return lower_char_lit(e, default_if_free(type)) }
         is StringLitExpr  as e -> { return lower_string_lit(ctx, e, type) }
         is IdentExpr      as e -> { return lower_ident(ctx, e, type) }
         is CallExpr       as e -> { return lower_call(ctx, e, type) }

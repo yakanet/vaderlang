@@ -10484,8 +10484,7 @@ fn 76 std_numbers$hex_digit_value (char) -> i32
     local.get 0
     char.to_i32
     local.set 2
-    char.const 48
-    char.to_i32
+    i32.const 48
     local.set 3
     local.get 2
     local.get 3
@@ -10510,8 +10509,7 @@ fn 76 std_numbers$hex_digit_value (char) -> i32
     local.get 0
     char.to_i32
     local.set 2
-    char.const 97
-    char.to_i32
+    i32.const 97
     local.set 3
     local.get 2
     local.get 3
@@ -10542,8 +10540,7 @@ fn 76 std_numbers$hex_digit_value (char) -> i32
     local.get 0
     char.to_i32
     local.set 2
-    char.const 65
-    char.to_i32
+    i32.const 65
     local.set 3
     local.get 2
     local.get 3
@@ -10572,8 +10569,7 @@ fn 77 std_numbers$hex_digit (u64) -> char
   local.get 1
   u64.le
   if $L0 void
-    char.const 48
-    char.to_i32
+    i32.const 48
     local.set 2
     local.get 0
     u64.to_i32
@@ -10584,8 +10580,7 @@ fn 77 std_numbers$hex_digit (u64) -> char
     u32.to_char
     return
   end $L0
-  char.const 65
-  char.to_i32
+  i32.const 65
   local.set 2
   local.get 0
   u64.to_i32
