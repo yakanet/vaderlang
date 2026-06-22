@@ -48,7 +48,7 @@
             "kind": "IdentExpr",
             "name": "string"
           },
-          "visibility": "private",
+          "visibility": "public",
           "default": null
         }
       ],
@@ -66,7 +66,7 @@
             "kind": "IdentExpr",
             "name": "string"
           },
-          "visibility": "private",
+          "visibility": "public",
           "default": null
         }
       ],
@@ -139,7 +139,7 @@
             "kind": "IdentExpr",
             "name": "T"
           },
-          "visibility": "private",
+          "visibility": "public",
           "default": null
         }
       ],

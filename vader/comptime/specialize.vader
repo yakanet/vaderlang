@@ -821,7 +821,7 @@ import "std/testing" { assert_eq }
     state :: new_state()
     assert_eq(state.entry_id, i32(0))
     assert_eq(state.synth_id, i32(1_000_000))
-    assert_eq(state.seen_mangled.size, usize(0))
+    assert_eq(state.seen_mangled.len(), usize(0))
 }
 
 @test test_next_entry_id_is_monotonic :: fn() -> void {

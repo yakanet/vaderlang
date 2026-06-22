@@ -1054,8 +1054,19 @@ parse_struct_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibili
     p.skip_newlines()
     fields: StructField[] = []
     for !p.check(.RBrace) && !p.check(.Eof) {
-        field_visibility: Visibility = .Private
-        if p.match_kind(.KwExport) != null { field_visibility = .Public }
+        // Fields are PUBLIC by default ; an `@internal` decorator restricts a
+        // field to its declaring module (typecheck enforces, T3054). Any other
+        // decorator is rejected here — `@internal` is the only field decorator.
+        field_decos :: p.parse_decorators()
+        field_visibility: Visibility = .Public
+        for d in field_decos {
+            if d.name == "internal" {
+                field_visibility = .Private
+            } else {
+                p.error(.UnknownDecoratorPlacement, d.span,
+                    "`@${d.name}` does not apply to a struct field ; only `@internal` does")
+            }
+        }
         start :: p.peek()
         fname :: p.expect(.Ident, "field name")
         p.expect(.Colon, "`:` after field name")

@@ -378,7 +378,7 @@ cmd_test :: fn(args: string[]) -> i32 {
         return 2
     }
     reps :: pick_module_representatives(files)
-    ran :: MutableSet<string> { .inner = MutableMap<string, bool> {} }
+    ran :: MutableSet<string> {}
     total_pass := 0
     total_fail := 0
     files_with_tests := 0
@@ -1338,7 +1338,7 @@ prepare_evaluated_project_with :: fn(file: string, include_path_flags: string[])
 /// here too.
 collect_body_diags :: fn(result: CheckResult) -> Diagnostic[] {
     out: Diagnostic[] = []
-    if result.all_modules.size == 0 { return out }
+    if result.all_modules.is_empty() { return out }
     for [module_id, module_typed] in result.all_modules {
         if module_id == result.typed.resolved.path { continue }
         for d in module_typed.resolved.diags { out.push(d) }
@@ -1354,7 +1354,7 @@ assemble_typed_project :: fn(result: CheckResult) -> TypedProject {
     // Drain every typed module the orchestrator built — entry + direct
     // imports + std/* — so downstream passes that need impl-by-trait
     // queries (lower, bytecode emit) see std-defined impls.
-    if result.all_modules.size > 0 {
+    if !result.all_modules.is_empty() {
         for [module_id, module_typed] in result.all_modules {
             project.modules[module_id] = module_typed
         }

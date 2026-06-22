@@ -116,7 +116,7 @@ prune_block :: fn(b: BasicBlock, live_out: MutableSet<LocalId>, local_count: usi
         while_idx := live.len()
         for while_idx <= usize(id) { live.push(false)  while_idx = while_idx + 1 }
     }
-    for [k, _] in live_out.inner {
+    for k in live_out {
         grow_live_to(k)
         live[usize(k)] = true
     }
@@ -167,10 +167,8 @@ prune_block :: fn(b: BasicBlock, live_out: MutableSet<LocalId>, local_count: usi
 
 fold_moves :: fn(f: CFGFunction) -> CFGFunction {
     use_count :: count_uses(f)
-    param_locals: MutableSet<LocalId> = MutableSet<LocalId> {
-        .inner = MutableMap<LocalId, bool> {},
-    }
-    for p in f.params { param_locals.inner[p.local] = true }
+    param_locals: MutableSet<LocalId> = MutableSet<LocalId> {}
+    for p in f.params { param_locals.add(p.local) }
 
     new_blocks: BasicBlock[] = []
     for b in f.blocks {

@@ -1,15 +1,15 @@
 module "snippet"
 
 import "std/io" { println }
-import "std/collections" { MutableMap, MutableSet, add, contains, len }
+import "std/collections" { MutableMap, MutableSet, add, len }
 
 main :: fn() -> i32 {
-    s := MutableSet<i32> { .inner = MutableMap<i32, bool> {} }
+    s := MutableSet<i32> {}
     println("new? ${s.add(10)}")
     println("new? ${s.add(20)}")
     println("new? ${s.add(10)}")  // duplicate
     println("len = ${s.len()}")
-    println("has 10? ${s.contains(10)}")
-    println("has 30? ${s.contains(30)}")
+    println("has 10? ${10 in s}")
+    println("has 30? ${30 in s}")
     return 0
 }

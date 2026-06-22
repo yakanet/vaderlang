@@ -583,9 +583,7 @@ emit_cfg_function_body :: fn(
         .loop_exit            = loop_exit,
         .scopes               = [],
         .pending              = [],
-        .wrapped_loop_headers = MutableSet<i32> {
-            .inner = MutableMap<i32, bool> {},
-        },
+        .wrapped_loop_headers = MutableSet<i32> {},
         .hints                = hints,
     }
 

@@ -45,7 +45,7 @@
               }
             ]
           },
-          "visibility": "private",
+          "visibility": "public",
           "default": null
         }
       ],
@@ -253,16 +253,20 @@
                 {
                   "name": null,
                   "value": {
-                    "kind": "FieldExpr",
-                    "target": {
+                    "kind": "CallExpr",
+                    "callee": {
                       "kind": "FieldExpr",
                       "target": {
-                        "kind": "IdentExpr",
-                        "name": "c"
+                        "kind": "FieldExpr",
+                        "target": {
+                          "kind": "IdentExpr",
+                          "name": "c"
+                        },
+                        "field": "counts"
                       },
-                      "field": "counts"
+                      "field": "len"
                     },
-                    "field": "size"
+                    "args": []
                   },
                   "spread": false
                 }

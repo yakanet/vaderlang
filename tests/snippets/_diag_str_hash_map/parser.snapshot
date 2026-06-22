@@ -380,12 +380,16 @@
                       {
                         "kind": "interp",
                         "expr": {
-                          "kind": "FieldExpr",
-                          "target": {
-                            "kind": "IdentExpr",
-                            "name": "m"
+                          "kind": "CallExpr",
+                          "callee": {
+                            "kind": "FieldExpr",
+                            "target": {
+                              "kind": "IdentExpr",
+                              "name": "m"
+                            },
+                            "field": "len"
                           },
-                          "field": "size"
+                          "args": []
                         }
                       }
                     ]

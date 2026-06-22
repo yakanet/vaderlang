@@ -141,7 +141,7 @@ empty_scope :: fn() -> MutableSet<i32> {
 
 clone_scope :: fn(scope: MutableSet<i32>) -> MutableSet<i32> {
     out :: empty_scope()
-    for [id, _] in scope.inner { out.add(id) }
+    for id in scope { out.add(id) }
     return out
 }
 

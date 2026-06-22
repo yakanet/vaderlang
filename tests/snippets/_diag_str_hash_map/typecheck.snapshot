@@ -25,7 +25,8 @@
   expr 16:73    IdentExpr      :: string
   expr 16:9     IfExpr         :: void
   expr 18:13    StringLitExpr  :: string
-  expr 18:21    FieldExpr      :: usize
+  expr 18:21    CallExpr       :: usize
+  expr 18:21    FieldExpr      :: fn() -> usize
   expr 18:21    IdentExpr      :: MutableMap<string, i32>
   expr 18:5     CallExpr       :: void
   expr 18:5     IdentExpr      :: fn(T) -> void

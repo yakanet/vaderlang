@@ -33,7 +33,7 @@ export infer_match :: fn(
         // Re-bind the pattern types against the narrowed `remaining`
         // so wildcard/binding arms see only the still-possible
         // variants ("union − matched").
-        bind_pattern_types(arm.pattern, remaining, typed)
+        bind_pattern_types(arm.pattern, remaining, typed, diags)
         // Per-arm narrowing — `is T` arms see just T, wildcard /
         // binding arms see `remaining` (subset of `scrut_ty` after
         // earlier arms removed their matched variants).
@@ -241,7 +241,7 @@ scrutinee_field_key :: fn(scrut: AST.Expr, typed: TypedProgram) -> string {
 /// no-ops at MVP — adding StructPattern field binding support
 /// requires the resolver to expose field-name → Symbol mappings,
 /// which lands with the deeper narrowing work.
-bind_pattern_types :: fn(p: AST.Pattern, scrut: Type, typed: TypedProgram) -> void {
+bind_pattern_types :: fn(p: AST.Pattern, scrut: Type, typed: TypedProgram, diags: Diagnostic[]) -> void {
     match p {
         is AST.TuplePattern as tp -> {
             tu :: pick_tuple_variant(scrut, tp.elements.len())
@@ -249,7 +249,7 @@ bind_pattern_types :: fn(p: AST.Pattern, scrut: Type, typed: TypedProgram) -> vo
                 is null -> {}
                 _ -> {
                     for i in 0..<tp.elements.len() {
-                        bind_pattern_types(tp.elements[i], tu.elements[i], typed)
+                        bind_pattern_types(tp.elements[i], tu.elements[i], typed, diags)
                     }
                 }
             }
@@ -271,22 +271,25 @@ bind_pattern_types :: fn(p: AST.Pattern, scrut: Type, typed: TypedProgram) -> vo
             // pick up T's field types.
             match ip.inner {
                 is null -> {}
-                _ -> { bind_pattern_types(ip.inner, narrowed, typed) }
+                _ -> { bind_pattern_types(ip.inner, narrowed, typed, diags) }
             }
         }
-        is AST.StructPattern as sp -> { bind_struct_pattern(sp, scrut, typed) }
+        is AST.StructPattern as sp -> { bind_struct_pattern(sp, scrut, typed, diags) }
         _ -> {}
     }
 }
 
 bind_struct_pattern :: fn(
-    sp: AST.StructPattern, scrut: Type, typed: TypedProgram,
+    sp: AST.StructPattern, scrut: Type, typed: TypedProgram, diags: Diagnostic[],
 ) -> void {
     match scrut {
         is StructType as st -> {
             decl :: typed.struct_decls[st.symbol.id]
             if decl is null { return }
             for field in sp.fields {
+                // T3054 : reject binding an `@internal` field in a struct
+                // pattern from outside its declaring module.
+                check_internal_field(st, decl, field.name, field.name_span, typed, diags)
                 match field.value {
                     is AST.PatternBinding as pb -> {
                         ft :: find_struct_field_type(decl, field.name, typed.resolved, scratch_diags())

@@ -27,7 +27,7 @@
               "name": "i32"
             }
           },
-          "visibility": "private",
+          "visibility": "public",
           "default": null
         }
       ],

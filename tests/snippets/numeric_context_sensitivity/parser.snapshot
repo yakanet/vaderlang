@@ -46,7 +46,7 @@
             "kind": "IdentExpr",
             "name": "usize"
           },
-          "visibility": "private",
+          "visibility": "public",
           "default": {
             "kind": "IntLitExpr",
             "value": "0n",
@@ -59,7 +59,7 @@
             "kind": "IdentExpr",
             "name": "isize"
           },
-          "visibility": "private",
+          "visibility": "public",
           "default": {
             "kind": "UnaryExpr",
             "op": "neg",

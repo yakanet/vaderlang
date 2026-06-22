@@ -35,7 +35,7 @@
               "name": "string"
             }
           },
-          "visibility": "private",
+          "visibility": "public",
           "default": null
         },
         {
@@ -47,7 +47,7 @@
               "name": "i32"
             }
           },
-          "visibility": "private",
+          "visibility": "public",
           "default": null
         }
       ],

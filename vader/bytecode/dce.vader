@@ -38,7 +38,7 @@ export prune_unused_imports :: fn(ctx: EmitterCtx) -> void {
             if op is CallImport as ci { used[ci.index] = true }
         }
     }
-    if used.size == ctx.imports.len() { return }
+    if used.len() == ctx.imports.len() { return }
 
     remap: i32[] = []
     kept: BcImport[] = []
@@ -130,7 +130,7 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
     // — a `redefinition of …` is a correctness bug regardless of pruning — so a
     // main-less library / object build with a doubly-materialised impl member
     // (e.g. force-loaded `string_builder` pulling `Range` in) still links.
-    keep_all :: reachable.size == usize(0)
+    keep_all :: reachable.is_empty()
 
     // Collapse duplicate mangles. Two kept fns can share a (non-empty) mangle
     // when an impl member is materialised twice — once empty (dead, kept only as
@@ -163,7 +163,7 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
     }
 
     // Nothing to drop and no duplicate mangle → leave the table untouched.
-    if !has_dup_mangle && (keep_all || reachable.size == n) { return }
+    if !has_dup_mangle && (keep_all || reachable.len() == n) { return }
 
     // Resolve each fn's canonical old index once : a folded duplicate maps to its
     // canonical, everything else to itself (empty-mangle fns — lambdas / closures
@@ -322,7 +322,7 @@ export prune_unused_types :: fn(ctx: EmitterCtx) -> void {
     }
     for r in roots { visit_type(r, ctx, reachable) }
 
-    if reachable.inner.size == ctx.types.len() { return }
+    if reachable.len() == ctx.types.len() { return }
 
     // Build remap table : surviving slots dense from 0.
     n :: ctx.types.len()

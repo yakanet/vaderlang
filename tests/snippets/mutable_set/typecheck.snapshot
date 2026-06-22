@@ -15,19 +15,16 @@
   expr 11:5     CallExpr       :: void
   expr 11:5     IdentExpr      :: fn(T) -> void
   expr 12:13    StringLitExpr  :: string
-  expr 12:24    CallExpr       :: bool
-  expr 12:24    FieldExpr      :: fn(i32) -> bool
-  expr 12:24    IdentExpr      :: MutableSet<i32>
+  expr 12:24    BinaryExpr     :: bool
+  expr 12:30    IdentExpr      :: MutableSet<i32>
   expr 12:5     CallExpr       :: void
   expr 12:5     IdentExpr      :: fn(T) -> void
   expr 13:13    StringLitExpr  :: string
-  expr 13:24    CallExpr       :: bool
-  expr 13:24    FieldExpr      :: fn(i32) -> bool
-  expr 13:24    IdentExpr      :: MutableSet<i32>
+  expr 13:24    BinaryExpr     :: bool
+  expr 13:30    IdentExpr      :: MutableSet<i32>
   expr 13:5     CallExpr       :: void
   expr 13:5     IdentExpr      :: fn(T) -> void
   expr 7:10     StructLitExpr  :: MutableSet<i32>
-  expr 7:37     StructLitExpr  :: MutableMap<i32, bool>
   expr 8:13     StringLitExpr  :: string
   expr 8:21     CallExpr       :: bool
   expr 8:21     FieldExpr      :: fn(i32) -> bool
@@ -40,6 +37,3 @@
   expr 9:21     IdentExpr      :: MutableSet<i32>
   expr 9:5      CallExpr       :: void
   expr 9:5      IdentExpr      :: fn(T) -> void
-
-# Diagnostics
-[4:57] error[R2003] imported name not exported by module: `contains` from `std/collections`

@@ -50,7 +50,7 @@
             "kind": "IdentExpr",
             "name": "i32"
           },
-          "visibility": "private",
+          "visibility": "public",
           "default": null
         },
         {
@@ -67,7 +67,7 @@
               "name": "null"
             }
           },
-          "visibility": "private",
+          "visibility": "public",
           "default": null
         }
       ],

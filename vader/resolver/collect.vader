@@ -244,7 +244,7 @@ diagnose_import_path :: fn(
     // Empty index = mono-file caller (no module graph) ; skip the
     // module-not-found check so legacy single-file tests aren't
     // flooded with R2001 they never used to see.
-    if index.size == usize(0) { return null }
+    if index.is_empty() { return null }
     target :: index[raw_path]
     match target {
         is DiscoveredModule as dm -> { return dm.folder }

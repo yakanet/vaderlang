@@ -19,7 +19,6 @@
   expr 17:5     CallExpr       :: void
   expr 17:5     IdentExpr      :: fn(T) -> void
   expr 20:10    StructLitExpr  :: MutableSet<i32>
-  expr 20:37    StructLitExpr  :: MutableMap<i32, bool>
   expr 21:5     CallExpr       :: bool
   expr 21:5     FieldExpr      :: fn(i32) -> bool
   expr 21:5     IdentExpr      :: MutableSet<i32>

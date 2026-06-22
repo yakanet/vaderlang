@@ -63,20 +63,26 @@ Entry<K, V> implements<K, V> Into<[K, V]> {
 export MutableMap :: struct<K: Hash & Equals, V> {
     /// Dense entry keys in insertion order. `ekeys[i]` pairs with `evals[i]`.
     /// `[size, ekeys.len())` are spare slots freed by `remove`, reused by `put`.
+    @internal
     ekeys: K[] = []
     /// Dense entry values, parallel to `ekeys`.
+    @internal
     evals: V[] = []
     /// Open-addressed hash table : slot → entry position + 1 ; `EMPTY_SLOT`
     /// (0) = free, `TOMB_SLOT` (-1) = tombstone. Length is a power of two,
     /// lazily allocated to `MINIMAL_INDEX_COUNT` on first insert.
+    @internal
     index: i32[] = []
     /// `index.len() - 1` — bitmask for the power-of-two slot count.
+    @internal
     mask:  usize = 0
     /// Live entry count.
+    @internal
     size:  usize = 0
     /// Tombstone count in `index`. Counted toward the load factor so a
     /// remove-heavy map rehashes (clearing tombstones) before the open-addressed
     /// probe runs out of `EMPTY` slots and loops forever.
+    @internal
     tombs: usize = 0
 }
 
@@ -328,6 +334,7 @@ MapIterator<K, V> implements Iterator<Entry<K, V>> {
 /// so lookups inherit the compact-map O(1)-average behaviour.
 export MutableSet :: struct<T: Hash & Equals> {
     /// Backing map. Defaults empty so `MutableSet(T) {}` is a valid literal.
+    @internal
     inner: MutableMap<T, bool> = MutableMap<T, bool> {}
 }
 

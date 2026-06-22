@@ -17,7 +17,7 @@
 module "vader/typecheck"
 
 import "std/string" { join }
-import "vader/diagnostics" { Diagnostic, typecheck_error }
+import "vader/diagnostics" { Diagnostic, Span, typecheck_error }
 AST :: import "vader/parser"
 import "vader/resolver" { ResolvedModule }
 import "vader/types" {
@@ -236,6 +236,9 @@ resolve_struct_field :: fn(
         // reference before wire.vader lands, typically).
         return TY_UNRESOLVED
     }
+    // T3054 : reject reads (and assignment LHS, which types through here too)
+    // of an `@internal` field from outside its declaring module.
+    check_internal_field(target_ty, decl, e.field, e.field_span, typed, diags)
     // Cross-module : `struct_field_types` carries already-resolved
     // field types using the OWNING module's resolved.idents.
     pre_resolved :: lookup_pre_resolved_field(target_ty.symbol.id, e.field, typed)
@@ -256,6 +259,41 @@ resolve_struct_field :: fn(
     }
 }
 
+/// Enforce `@internal` field visibility (T3054). A field parsed as
+/// `Visibility.Private` (the `@internal` decorator) is readable, writable,
+/// constructible, and pattern-bindable only from its declaring module. Fields
+/// are public by default, so this fires only for the rare opt-in field.
+///
+/// Same-module access is always allowed — the test mirrors the established
+/// cross-module comparison `sym.module != typed.resolved.path`
+/// (`vader/typecheck/expr_ident.vader`). Shared by the read site
+/// (`resolve_struct_field`), the construction site (`struct_lit.vader`), and
+/// the pattern site (`match_expr.vader`).
+///
+/// @param st          the struct type whose field is being accessed.
+/// @param decl        the struct's AST decl, carrying per-field visibility
+///                    (present even for imported structs via
+///                    `broadcast_struct_decls`).
+/// @param field_name  the field being touched.
+/// @param span        where to point the diagnostic.
+/// @error             T3054 when `field_name` is `@internal` and the access is
+///                    from a different module than `st.symbol.module`.
+export check_internal_field :: fn(
+    st: StructType, decl: AST.StructDecl, field_name: string,
+    span: Span, typed: TypedProgram, diags: Diagnostic[],
+) -> void {
+    if st.symbol.module == typed.resolved.path { return }
+    for field in decl.fields {
+        if field.name == field_name {
+            if field.visibility == AST.Visibility.Private {
+                diags.push(typecheck_error(.InternalFieldAccess, span,
+                    "`${field_name}` is `@internal` to module `${st.symbol.module}`"))
+            }
+            return
+        }
+    }
+}
+
 /// Look up `${root_sym.id}#path` for this FieldExpr's chain in
 /// `narrowed_fields` and return that type ; falls through to `declared`
 /// when no chain narrowing is active.
@@ -264,7 +302,7 @@ narrow_field_if_active :: fn(
 ) -> Type {
     // Fast path : the common case is no live field narrowings at all,
     // so dodge the chain walk + key build entirely.
-    if typed.narrowed_fields.size == 0 { return declared }
+    if typed.narrowed_fields.is_empty() { return declared }
     key :: field_chain_key(e, typed)
     if key == "" { return declared }
     return narrow_for_field(typed, key, declared)

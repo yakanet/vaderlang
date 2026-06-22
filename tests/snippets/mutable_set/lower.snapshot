@@ -163,6 +163,3 @@
                 ~>
                   "false" :string
     return int(0) :i32
-
-# Diagnostics
-[4:57] error[R2003] imported name not exported by module: `contains` from `std/collections`

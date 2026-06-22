@@ -78,7 +78,7 @@
             "kind": "IdentExpr",
             "name": "string"
           },
-          "visibility": "private",
+          "visibility": "public",
           "default": null
         }
       ],

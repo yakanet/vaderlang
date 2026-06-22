@@ -99,7 +99,7 @@ export init_fn_emit_state :: fn(function_decl: LoweredFnDecl) -> FnEmitState {
 /// @param val     the local's stack class.
 /// @return        the slot index assigned to this symbol.
 export allocate_local_slot :: fn(state: FnEmitState, symbol: Symbol, name: string, val: ValType) -> i32 {
-    new_slot :: i32(state.slot_by_symbol_id.size)
+    new_slot :: i32(state.slot_by_symbol_id.len())
     state.slot_by_symbol_id[symbol.id] = new_slot
     state.locals.push(BcLocal { .name = name, .val = val })
     return new_slot

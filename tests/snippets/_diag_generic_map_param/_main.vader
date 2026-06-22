@@ -28,5 +28,5 @@ bump :: fn<K, V>(m: MutableMap<K, V>, k: K, v: V) -> void {
 main :: fn() -> i32 {
     c :: Counter { .counts = MutableMap<string, i32> {} }
     bump(c.counts, "a", 1)
-    return i32(c.counts.size)
+    return i32(c.counts.len())
 }

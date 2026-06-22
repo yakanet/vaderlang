@@ -27,9 +27,7 @@ export resolve_enum_indices :: fn(
     decl: EnumDecl, repr: string, diags: Diagnostic[],
 ) -> MutableMap<string, i64> {
     out :: MutableMap<string, i64> {}
-    seen_values :: MutableSet<i64> {
-        .inner = MutableMap<i64, bool> {},
-    }
+    seen_values :: MutableSet<i64> {}
     range :: repr_range(repr)
     cursor: i64 = 0
     for variant in decl.variants {

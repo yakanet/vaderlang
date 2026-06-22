@@ -193,10 +193,10 @@ import "vader/diagnostics" { Position, Span }
 @test test_new_mono_project_is_empty :: fn() -> void {
     project :: new_mono_project()
     assert_eq(project.entries.len(), usize(0))
-    assert_eq(project.lookup_by_instance.size, usize(0))
-    assert_eq(project.impl_method_entries.size, usize(0))
-    assert_eq(project.fn_instance_entries.size, usize(0))
-    assert_eq(project.symbol_redirects.size, usize(0))
+    assert_eq(project.lookup_by_instance.len(), usize(0))
+    assert_eq(project.impl_method_entries.len(), usize(0))
+    assert_eq(project.fn_instance_entries.len(), usize(0))
+    assert_eq(project.symbol_redirects.len(), usize(0))
 }
 
 @test test_erased_key_is_distinct_sentinel :: fn() -> void {

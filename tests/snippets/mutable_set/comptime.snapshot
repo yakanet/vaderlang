@@ -75,6 +75,3 @@
   ArrayIterator<T>
   ArrayIterator<T>
   ArrayIterator<T>
-
-# Diagnostics
-[4:57] error[R2003] imported name not exported by module: `contains` from `std/collections`
