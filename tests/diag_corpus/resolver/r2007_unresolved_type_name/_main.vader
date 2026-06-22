@@ -1,5 +1,6 @@
 module "snippet"
 
+@allow_unused
 f :: fn() -> NonExistentType {
     return 0
 }

@@ -291,13 +291,3 @@ try_lower_index_set_assign :: fn(ctx: FnLowerCtx, assign_stmt: AssignStmt) -> Lo
     }
 }
 
-synth_set_at_symbol :: fn(ctx: FnLowerCtx) -> Symbol {
-    return Symbol {
-        .id         = i32(0),
-        .kind       = SymbolKind.Fn,
-        .name       = "set_at",
-        .module     = ctx.typed.resolved.path,
-        .visibility = Visibility.Private,
-        .defined_at = null,
-    }
-}

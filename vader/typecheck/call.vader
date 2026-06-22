@@ -442,14 +442,6 @@ fn_has_type_params :: fn(f: FnType) -> bool {
     return type_contains_type_param(f.return_type)
 }
 
-/// Apply `default_if_free` recursively to the top-level Type after
-/// substitution. For a simple return like `T` bound to FreeInt this
-/// turns the substituted result into `i32`. Compound shapes (Array,
-/// Tuple, Fn, Struct, Trait, Union) are walked element-wise.
-default_each_typeparam :: fn(t: Type) -> Type {
-    return default_if_free(t)
-}
-
 // Walk the args once for their side-effects only — type them in a
 // fresh-position context so inner literals get a sensible type even
 // when the callee itself didn't resolve to a Fn (already errored).

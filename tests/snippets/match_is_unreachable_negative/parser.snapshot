@@ -22,7 +22,12 @@
           "default": null
         }
       ],
-      "decorators": []
+      "decorators": [
+        {
+          "name": "allow_unused",
+          "args": []
+        }
+      ]
     },
     {
       "kind": "StructDecl",
@@ -40,7 +45,12 @@
           "default": null
         }
       ],
-      "decorators": []
+      "decorators": [
+        {
+          "name": "allow_unused",
+          "args": []
+        }
+      ]
     },
     {
       "kind": "StructDecl",
@@ -58,7 +68,12 @@
           "default": null
         }
       ],
-      "decorators": []
+      "decorators": [
+        {
+          "name": "allow_unused",
+          "args": []
+        }
+      ]
     },
     {
       "kind": "ConstDecl",
@@ -77,7 +92,12 @@
           "name": "Dog"
         }
       },
-      "decorators": []
+      "decorators": [
+        {
+          "name": "allow_unused",
+          "args": []
+        }
+      ]
     },
     {
       "kind": "FnDecl",
@@ -143,7 +163,12 @@
         ],
         "trailing": null
       },
-      "decorators": []
+      "decorators": [
+        {
+          "name": "allow_unused",
+          "args": []
+        }
+      ]
     },
     {
       "kind": "FnDecl",
@@ -209,7 +234,12 @@
         ],
         "trailing": null
       },
-      "decorators": []
+      "decorators": [
+        {
+          "name": "allow_unused",
+          "args": []
+        }
+      ]
     },
     {
       "kind": "FnDecl",
@@ -275,7 +305,12 @@
         ],
         "trailing": null
       },
-      "decorators": []
+      "decorators": [
+        {
+          "name": "allow_unused",
+          "args": []
+        }
+      ]
     },
     {
       "kind": "FnDecl",
@@ -341,7 +376,12 @@
         ],
         "trailing": null
       },
-      "decorators": []
+      "decorators": [
+        {
+          "name": "allow_unused",
+          "args": []
+        }
+      ]
     },
     {
       "kind": "FnDecl",

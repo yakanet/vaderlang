@@ -256,15 +256,16 @@ walk_decorators :: fn(self: ResolveState, decs: AST.Decorator[]) -> void {
 /// Whitelist mirroring `src/parser/decorators.ts::KNOWN_DECORATORS`.
 /// Update both sides together when SPEC §12 grows a new decorator.
 is_known_decorator :: fn(name: string) -> bool {
-    return name == "comptime" ||
-        name == "extern" ||
-        name == "export" ||
-        name == "test" ||
-        name == "intrinsic" ||
-        name == "deprecated" ||
-        name == "assert" ||
-        name == "specialize" ||
-        name == "no_return"
+    return name == "comptime"
+        || name == "extern"
+        || name == "export"
+        || name == "test"
+        || name == "intrinsic"
+        || name == "deprecated"
+        || name == "assert"
+        || name == "specialize"
+        || name == "no_return"
+        || name == "allow_unused"
 }
 
 walk_opt_expr :: fn(self: ResolveState, e: AST.Expr | null) -> void {

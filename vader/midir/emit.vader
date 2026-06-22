@@ -659,11 +659,6 @@ cf_br :: fn(ctx: FnEmitCfg, span: Span, target_blk: BlockId) -> void {
     defer_or_resolve_branch(ctx, target_blk, pc)
 }
 
-cf_br_if :: fn(ctx: FnEmitCfg, span: Span, target_blk: BlockId) -> void {
-    pc :: push_op_with_span(ctx, BranchIf {}, span)
-    defer_or_resolve_branch(ctx, target_blk, pc)
-}
-
 defer_or_resolve_branch :: fn(ctx: FnEmitCfg, target_blk: BlockId, pc: i32) -> void {
     // Walk the scope stack for a matching target. CRITICAL : LOOP scopes
     // are preferred over enclosing IF/BLOCK scopes whose `target_blk`

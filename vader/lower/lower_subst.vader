@@ -15,31 +15,6 @@ import "vader/types" { UnresolvedType, Type, StructType, ArrayType, mk_struct, T
 import "vader/comptime" { mangle_type_arg }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 
-build_fn_subst :: fn(fd: FnDecl, args: Type[], typed: TypedProgram) -> Substitution {
-    subst :: new_substitution()
-    for i in 0..<fd.type_params.len() {
-        if i >= args.len() { break }
-        tp_span :: fd.type_params[i].span
-        target_key :: tp_span.hash()
-        // Span-precise lookup : the resolver minted the TypeParam symbol
-        // with `defined_at = tp.span`. Scan `idents.values()` for the
-        // matching slot.
-        for [_, s] in typed.resolved.idents {
-            match s.defined_at {
-                is null -> {}
-                is Span as def -> {
-                    if def.hash() == target_key {
-                        if i32(s.kind) == i32(SymbolKind.TypeParam) {
-                            subst.type_params[s.id] = args[i]
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return subst
-}
-
 /// Erasure variant of `build_fn_subst` — maps every type-parameter
 /// of `fd` to `TY_ANY` so the materialised instance's body / signature
 /// renders with `Any` slots regardless of the concrete call-site type

@@ -11,11 +11,16 @@
 
 module "snippet"
 
+@allow_unused
 Cat  :: struct { name: string }
+@allow_unused
 Dog  :: struct { name: string }
+@allow_unused
 Bird :: struct { song: string }
+@allow_unused
 Pet  :: Cat | Dog
 
+@allow_unused
 m1 :: fn(p: Pet) -> bool {
     return match p {
         is null -> false
@@ -23,6 +28,7 @@ m1 :: fn(p: Pet) -> bool {
     }
 }
 
+@allow_unused
 m2 :: fn(p: Pet) -> bool {
     return match p {
         is Bird -> false
@@ -30,6 +36,7 @@ m2 :: fn(p: Pet) -> bool {
     }
 }
 
+@allow_unused
 m3 :: fn(n: i32) -> bool {
     return match n {
         is null -> false
@@ -37,6 +44,7 @@ m3 :: fn(n: i32) -> bool {
     }
 }
 
+@allow_unused
 m4 :: fn(p: Pet) -> bool {
     if p is null { return false }
     return true

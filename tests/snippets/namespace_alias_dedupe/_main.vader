@@ -17,10 +17,12 @@ module "snippet"
 import "vader/parser" { Decl }
 P :: import "vader/parser"
 
+@allow_unused
 via_folder :: fn(d: P.Decl) -> i32 {
     return 0
 }
 
+@allow_unused
 via_file :: fn(d: Decl) -> i32 {
     return via_folder(d)
 }

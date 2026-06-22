@@ -12,6 +12,7 @@
 module "vader/typecheck"
 
 import "std/collections" { MutableMap }
+import "vader/lint" { check_dead_code }
 import "vader/diagnostics" { Diagnostic, Span }
 AST :: import "vader/parser"
 import "vader/parser" { Program }
@@ -288,6 +289,11 @@ export check_project_with_bodies :: fn(
     }
     walk_bodies(merge_module_program(entry_loaded.module.files).decls, entry_typed, diags)
 
+    // W0007 dead-code lint : private top-level decls never reached from the
+    // module's public surface. Entry-module-only (like W0004), so it lints the
+    // module being compiled. Name-based reachability — see dead_code.vader.
+    check_dead_code(merge_module_program(entry_loaded.module.files).decls, diags)
+
     // Body-check every imported module too, so the lowerer sees the
     // expression types of imported fn bodies. The whole-program lowerer
     // (vader/lower) lowers EVERY module's bodies to emit their bytecode ;
@@ -324,6 +330,12 @@ export check_project_with_bodies :: fn(
             reset_expr_tables(other_typed)
         }
         walk_bodies(other_decls, other_typed, diag_sink())
+        // W0007 is the ONE imported-module diagnostic we forward (unlike the
+        // body-check diags above, dropped to avoid library W0004/W0005 noise) :
+        // dead private code is worth flagging project-wide, not just in the entry.
+        // Spans point at each module's own file, so the LSP still filters to the
+        // open document.
+        check_dead_code(other_decls, diags)
     }
 
     // Forward resolver-side R-codes (unresolved-ident, reserved-name, …)
@@ -816,14 +828,6 @@ find_named_decl_in_project :: fn(
         }
     }
     return NamedDeclLookup { .trait_decl = null, .other_kind = other }
-}
-
-// Back-compat shim — kept for the bytecode emit + other consumers
-// that only need the trait branch.
-find_trait_decl_in_project :: fn(
-    name: string, project: LoadedProject,
-) -> AST.TraitDecl | null {
-    return find_named_decl_in_project(name, project).trait_decl
 }
 
 import "vader/resolver" {
@@ -1723,21 +1727,6 @@ param_type :: fn(
         // method clone calling it (`self.compare(other)`, `other` already
         // substituted to `for_ty`) mismatches `expected Self, got <for_ty>`.
         _ -> { return substitute_self(type_from_expr(p.ty, typed.resolved, diags), for_ty) }
-    }
-}
-
-declare_return :: fn(
-    fd: AST.FnDecl, typed: TypedProgram, diags: Diagnostic[],
-) -> Type {
-    match fd.return_type {
-        is null -> {
-            // Expression-bodied fns without an annotation defer their
-            // return type to body inference (`check_fn_body` flips on
-            // `inferred_return` when this comes back as Unresolved).
-            if fd.is_expression_bodied { return TY_UNRESOLVED }
-            return TY_VOID
-        }
-        _ -> { return type_from_expr(fd.return_type, typed.resolved, diags) }
     }
 }
 

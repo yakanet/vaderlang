@@ -4,6 +4,7 @@
 module "snippet"
 
 Color :: enum { Red, Green, Blue }
+@allow_unused
 Fruit :: enum { Apple, Banana, Cherry }
 
 take_color :: fn(c: Color) -> i32 {

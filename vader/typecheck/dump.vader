@@ -63,15 +63,6 @@ export dump_program_with_others :: fn(
     return sb.to_string()
 }
 
-append_expr_lines :: fn(typed: TypedProgram, out: string[]) -> void {
-    for [id, kind] in typed.expr_kinds {
-        if is_skipped_kind(kind) { continue }
-        ty_str :: lookup_expr_type_str(typed, id)
-        loc :: start_loc_for_id(typed, id)
-        out.push("  expr ${loc.pad_end(8, ' ')} ${kind.pad_end(14, ' ')} :: ${ty_str}")
-    }
-}
-
 build_decl_lines :: fn(typed: TypedProgram) -> string[] {
     // Sort by symbol name (case-insensitive, matches TS
     // `name.localeCompare`) rather than by the formatted line —

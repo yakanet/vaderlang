@@ -61,13 +61,3 @@ pick_bound_or_default :: fn(t: Type) -> Type {
 import "vader/resolver/symbol" { Symbol }
 import "vader/types" { mk_struct, mk_primitive }
 
-pick_bound :: fn(t: Type) -> Type | null {
-    match t {
-        is FreeIntType   -> { return null }
-        is PrimitiveType as p -> {
-            if is_int_name(p.name) { return p }
-            return null
-        }
-        _ -> { return null }
-    }
-}

@@ -22,9 +22,9 @@
   ArrayIterator<T>
 
 # Diagnostics
-[20:12] warning[W0005] wildcard arm on a closed union silences exhaustiveness checking ; enumerate the variants or mark the match `@partial`: wildcard arm on closed union `Cat | Dog` — enumerate its variants or mark the match `@partial`
-[21:9] error[T3040] test can never match — operands have no overlapping values: `null` is never a value of `Cat | Dog`
-[27:12] warning[W0005] wildcard arm on a closed union silences exhaustiveness checking ; enumerate the variants or mark the match `@partial`: wildcard arm on closed union `Cat | Dog` — enumerate its variants or mark the match `@partial`
-[28:9] error[T3040] test can never match — operands have no overlapping values: `Bird` is never a value of `Cat | Dog`
-[35:9] error[T3040] test can never match — operands have no overlapping values: `null` is never a value of `i32`
-[41:13] error[T3040] test can never match — operands have no overlapping values: `null` is never a value of `Cat | Dog`
+[25:12] warning[W0005] wildcard arm on a closed union silences exhaustiveness checking ; enumerate the variants or mark the match `@partial`: wildcard arm on closed union `Cat | Dog` — enumerate its variants or mark the match `@partial`
+[26:9] error[T3040] test can never match — operands have no overlapping values: `null` is never a value of `Cat | Dog`
+[33:12] warning[W0005] wildcard arm on a closed union silences exhaustiveness checking ; enumerate the variants or mark the match `@partial`: wildcard arm on closed union `Cat | Dog` — enumerate its variants or mark the match `@partial`
+[34:9] error[T3040] test can never match — operands have no overlapping values: `Bird` is never a value of `Cat | Dog`
+[42:9] error[T3040] test can never match — operands have no overlapping values: `null` is never a value of `i32`
+[49:13] error[T3040] test can never match — operands have no overlapping values: `null` is never a value of `Cat | Dog`
