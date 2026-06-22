@@ -3,6 +3,6 @@
 ## tests/snippets/namespace_alias_dedupe
   FnDecl         via_file             :: fn(AssertDecl | ConstDecl | EnumDecl | FnDecl | ImplDecl | ImportDecl | StructDecl | TraitDecl | TypeAliasDecl) -> i32
   FnDecl         via_folder           :: fn(AssertDecl | ConstDecl | EnumDecl | FnDecl | ImplDecl | ImportDecl | StructDecl | TraitDecl | TypeAliasDecl) -> i32
-  expr 25:12    CallExpr       :: i32
-  expr 25:12    IdentExpr      :: fn(AssertDecl | ConstDecl | EnumDecl | FnDecl | ImplDecl | ImportDecl | StructDecl | TraitDecl | TypeAliasDecl) -> i32
-  expr 25:23    IdentExpr      :: AssertDecl | ConstDecl | EnumDecl | FnDecl | ImplDecl | ImportDecl | StructDecl | TraitDecl | TypeAliasDecl
+  expr 27:12    CallExpr       :: i32
+  expr 27:12    IdentExpr      :: fn(AssertDecl | ConstDecl | EnumDecl | FnDecl | ImplDecl | ImportDecl | StructDecl | TraitDecl | TypeAliasDecl) -> i32
+  expr 27:23    IdentExpr      :: AssertDecl | ConstDecl | EnumDecl | FnDecl | ImplDecl | ImportDecl | StructDecl | TraitDecl | TypeAliasDecl

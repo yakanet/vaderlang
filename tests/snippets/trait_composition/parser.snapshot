@@ -38,7 +38,12 @@
         }
       },
       "members": [],
-      "decorators": []
+      "decorators": [
+        {
+          "name": "allow_unused",
+          "args": []
+        }
+      ]
     },
     {
       "kind": "TraitDecl",
@@ -88,7 +93,12 @@
           "decorators": []
         }
       ],
-      "decorators": []
+      "decorators": [
+        {
+          "name": "allow_unused",
+          "args": []
+        }
+      ]
     },
     {
       "kind": "TraitDecl",
@@ -106,7 +116,12 @@
         "name": "Numeric"
       },
       "members": [],
-      "decorators": []
+      "decorators": [
+        {
+          "name": "allow_unused",
+          "args": []
+        }
+      ]
     },
     {
       "kind": "FnDecl",

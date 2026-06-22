@@ -72,7 +72,12 @@
           "default": null
         }
       ],
-      "decorators": []
+      "decorators": [
+        {
+          "name": "allow_unused",
+          "args": []
+        }
+      ]
     },
     {
       "kind": "FnDecl",

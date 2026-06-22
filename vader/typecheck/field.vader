@@ -644,17 +644,6 @@ type_from_expr_opt_in :: fn(e: AST.TypeExpr | null, resolved: ResolvedModule) ->
     return type_from_expr(e, resolved, [])
 }
 
-type_from_expr_opt :: fn(e: AST.TypeExpr | null, typed: TypedProgram) -> Type {
-    if e is null { return TY_VOID }
-    return type_from_expr(e, typed.resolved, [])
-}
-
-try_free_fn_ufcs :: fn(name: string, target_ty: Type, typed: TypedProgram) -> Type | null {
-    result :: try_free_fn_ufcs_with_first(name, target_ty, typed)
-    if result is null { return null }
-    return result.curried
-}
-
 UfcsResult :: struct {
     curried:     Type
     first_param: Type

@@ -8,14 +8,17 @@
 // Pure alias — Numeric requires Add, Sub, Mul (no own methods).
 module "snippet"
 
+@allow_unused
 Numeric :: trait<T> = Add & Sub & Mul
 
 // With own methods — Hashable requires Hash and Equals, plus declares its own.
+@allow_unused
 Hashable :: trait<T> : Hash & Equals {
     fingerprint :: fn(self: T) -> u64
 }
 
 // Single-trait alias is also valid (no `&`).
+@allow_unused
 Aliased :: trait<T> = Numeric
 
 main :: fn() -> i32 { return 0 }

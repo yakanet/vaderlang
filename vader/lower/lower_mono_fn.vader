@@ -166,31 +166,6 @@ PendingFnInstance :: struct {
 
 pending_fn_instance_less :: fn(a: PendingFnInstance, b: PendingFnInstance) = compare_ascending(a.key, b.key)
 
-/// True when `evaluated.mono` carries a FnDecl-kind MonoEntry whose
-/// symbol id matches `inst.fn_symbol.id` and whose `type_arguments`
-/// matches `inst.type_args`. The mono pass already filters out
-/// degenerate instances, so missing entries here mean the lowerer
-/// should also skip.
-mono_has_fn_instance_for :: fn(project_ctx: LowerProjectCtx, inst: GenericFnInstance) -> bool {
-    entries :: project_ctx.evaluated.mono.entries
-    i: usize = 0
-    for i < entries.len() {
-        entry :: entries[i]
-        if entry.type_arguments.len() != inst.type_args.len() {
-            i += 1
-            continue
-        }
-        match entry.symbol {
-            is Symbol as s -> {
-                if s.id == inst.fn_symbol.id { return true }
-            }
-            _ -> {}
-        }
-        i += 1
-    }
-    return false
-}
-
 fn_instance_key :: fn(inst: GenericFnInstance) -> string {
     sb := new_builder()
     sb.append("${inst.fn_symbol.id}::")

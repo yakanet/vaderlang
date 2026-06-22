@@ -411,30 +411,6 @@ write_indent :: fn(sb: StringBuilder, depth: i32) -> void {
     for d > 0 { sb.append("  ")  d = d - 1 }
 }
 
-peek_and_drop_label :: fn(stack: string[]) -> [string, string[]] {
-    n :: stack.len()
-    if n == 0 { return ["", stack] }
-    label :: stack[n - 1]
-    shrunk: string[] = []
-    for i in 0..<(n - 1) { shrunk.push(stack[i]) }
-    return [label, shrunk]
-}
-
-peek_label :: fn(stack: string[]) -> string {
-    n :: stack.len()
-    if n == 0 { return "" }
-    return stack[n - 1]
-}
-
-// `br N` / `br_if N` carry a wasm-style outward depth — 0 = innermost
-// enclosing scope. Translate to the label that scope opened with.
-label_at_depth :: fn(stack: string[], depth: i32) -> string {
-    n :: stack.len()
-    idx :: i32(n) - depth - 1
-    if idx < 0 || idx >= i32(n) { return "" }
-    return stack[usize(idx)]
-}
-
 /// Render an op as its `.virt`-style name + operands (when any).
 /// Not yet byte-for-byte aligned with the TS `writeVir` rendering ;
 /// good enough for human-readable debug output of the bytecode.

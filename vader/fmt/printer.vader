@@ -1520,12 +1520,6 @@ emit_block_expr :: fn(self: Printer, b: p.BlockExpr) -> void {
     self.write("}")
 }
 
-// Newline + indent only — caller emits the content after. Used by the
-// per-stmt loop in `emit_block_expr`.
-nl_indent_before :: fn(self: Printer, _next_offset: usize) -> void {
-    self.newline()
-}
-
 // Same shape as `flush_leading_comments` but for in-block use. `node_line`
 // is the line of the stmt / trailing expr the comments precede.
 flush_leading_comments_inline :: fn(self: Printer, before: usize, node_line: i32) -> void {

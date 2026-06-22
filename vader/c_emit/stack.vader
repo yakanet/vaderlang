@@ -183,14 +183,6 @@ pop :: fn(s: FnState) -> StackVal {
     return top
 }
 
-/// Read the top of the operand stack without removing it. Unused until
-/// T1b / T2 (branch / block-result boundaries) ; declared with the model.
-peek :: fn(s: FnState) -> StackVal {
-    n :: s.stack.len()
-    if n == 0 { unreachable("c-emit: operand stack underflow (peek)") }
-    return s.stack[n - 1]
-}
-
 /// Discard the top of the operand stack — the `drop` op. An empty stack
 /// means a dead `drop` in unreachable code (see `pop`) ; no-op rather than
 /// trap. Mirrors TS `drop`'s `s.stack.pop()` (no-op on empty).

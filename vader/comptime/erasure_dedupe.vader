@@ -259,15 +259,6 @@ join_displays :: fn(types: Type[], sep: string) -> string {
 // Group projection + representative
 // =========================================================================
 
-/// One redirected entry pointing at its group's representative.
-/// Carries the original `MonoEntry` (for the per-shape rows the
-/// vtable collector needs) plus the representative's Symbol so the
-/// fn-index-by-symbol lookup resolves.
-RedirectedEntry :: struct {
-    original:        MonoEntry
-    representative:  MonoEntry
-}
-
 /// `MonoEntry.id → its replacement (representative)`. Built once
 /// during the group walk ; consumed by `redirect_inner` to rewrite
 /// the three lookup maps and by the entry-list projection.
@@ -473,13 +464,6 @@ export erasure_dedupe :: fn(
 // =========================================================================
 // Internal helpers
 // =========================================================================
-
-/// `decl.id → list of entries sharing that origin`. Decl.id is
-/// minted by `assign_node_ids` and stable across the pipeline so the
-/// grouping doesn't drift between passes.
-DeclGroups :: struct {
-    by_decl_id: MutableMap<i32, DeclGroup>
-}
 
 DeclGroup :: struct {
     entries: MonoEntry[]
