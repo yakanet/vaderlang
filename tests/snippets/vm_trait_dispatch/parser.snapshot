@@ -255,8 +255,7 @@
               "guard": null,
               "body": {
                 "kind": "IntLitExpr",
-                "value": "1n",
-                "suffix": null
+                "value": "1n"
               }
             },
             {
@@ -266,8 +265,7 @@
               "guard": null,
               "body": {
                 "kind": "IntLitExpr",
-                "value": "0n",
-                "suffix": null
+                "value": "0n"
               }
             }
           ]
@@ -335,8 +333,7 @@
               "guard": null,
               "body": {
                 "kind": "IntLitExpr",
-                "value": "1n",
-                "suffix": null
+                "value": "1n"
               }
             },
             {
@@ -346,8 +343,7 @@
               "guard": null,
               "body": {
                 "kind": "IntLitExpr",
-                "value": "0n",
-                "suffix": null
+                "value": "0n"
               }
             }
           ]
@@ -459,8 +455,7 @@
                   "name": "inner",
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "42n",
-                    "suffix": null
+                    "value": "42n"
                   }
                 }
               ]
@@ -660,8 +655,7 @@
                     },
                     "right": {
                       "kind": "IntLitExpr",
-                      "value": "2n",
-                      "suffix": null
+                      "value": "2n"
                     }
                   }
                 },
@@ -674,8 +668,7 @@
                   },
                   "right": {
                     "kind": "IntLitExpr",
-                    "value": "4n",
-                    "suffix": null
+                    "value": "4n"
                   }
                 }
               },
@@ -688,8 +681,7 @@
                 },
                 "right": {
                   "kind": "IntLitExpr",
-                  "value": "8n",
-                  "suffix": null
+                  "value": "8n"
                 }
               }
             }

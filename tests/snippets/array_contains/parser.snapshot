@@ -46,28 +46,23 @@
               "elements": [
                 {
                   "kind": "IntLitExpr",
-                  "value": "2n",
-                  "suffix": null
+                  "value": "2n"
                 },
                 {
                   "kind": "IntLitExpr",
-                  "value": "3n",
-                  "suffix": null
+                  "value": "3n"
                 },
                 {
                   "kind": "IntLitExpr",
-                  "value": "5n",
-                  "suffix": null
+                  "value": "5n"
                 },
                 {
                   "kind": "IntLitExpr",
-                  "value": "7n",
-                  "suffix": null
+                  "value": "7n"
                 },
                 {
                   "kind": "IntLitExpr",
-                  "value": "11n",
-                  "suffix": null
+                  "value": "11n"
                 }
               ]
             }
@@ -81,8 +76,7 @@
                 "op": "in",
                 "left": {
                   "kind": "IntLitExpr",
-                  "value": "7n",
-                  "suffix": null
+                  "value": "7n"
                 },
                 "right": {
                   "kind": "IdentExpr",
@@ -127,8 +121,7 @@
                 "op": "not_in",
                 "left": {
                   "kind": "IntLitExpr",
-                  "value": "4n",
-                  "suffix": null
+                  "value": "4n"
                 },
                 "right": {
                   "kind": "IdentExpr",
@@ -284,8 +277,7 @@
             "kind": "ReturnStmt",
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           }
         ],

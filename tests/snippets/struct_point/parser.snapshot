@@ -66,8 +66,7 @@
                   "name": "x",
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "3n",
-                    "suffix": null
+                    "value": "3n"
                   }
                 },
                 {
@@ -75,8 +74,7 @@
                   "name": "y",
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "4n",
-                    "suffix": null
+                    "value": "4n"
                   }
                 }
               ]
@@ -105,8 +103,7 @@
               },
               "right": {
                 "kind": "IntLitExpr",
-                "value": "10n",
-                "suffix": null
+                "value": "10n"
               }
             }
           },

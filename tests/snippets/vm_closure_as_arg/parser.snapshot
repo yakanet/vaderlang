@@ -95,8 +95,7 @@
             "type": null,
             "value": {
               "kind": "IntLitExpr",
-              "value": "5n",
-              "suffix": null
+              "value": "5n"
             }
           },
           {
@@ -168,8 +167,7 @@
                   "name": null,
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "7n",
-                    "suffix": null
+                    "value": "7n"
                   },
                   "spread": false
                 }

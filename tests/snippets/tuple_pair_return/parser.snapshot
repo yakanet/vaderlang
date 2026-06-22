@@ -49,8 +49,7 @@
               "elements": [
                 {
                   "kind": "IntLitExpr",
-                  "value": "42n",
-                  "suffix": null
+                  "value": "42n"
                 },
                 {
                   "kind": "StringLitExpr",
@@ -177,8 +176,7 @@
             "kind": "ReturnStmt",
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           }
         ],

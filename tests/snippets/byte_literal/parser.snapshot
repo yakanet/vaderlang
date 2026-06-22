@@ -306,9 +306,8 @@
                             "name": "b"
                           },
                           "right": {
-                            "kind": "IntLitExpr",
-                            "value": "61n",
-                            "suffix": "u8"
+                            "kind": "CharLitExpr",
+                            "value": 61
                           }
                         }
                       }
@@ -323,8 +322,7 @@
             "kind": "ReturnStmt",
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           }
         ],

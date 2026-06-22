@@ -29,8 +29,7 @@
             "type": null,
             "value": {
               "kind": "IntLitExpr",
-              "value": "7n",
-              "suffix": null
+              "value": "7n"
             }
           },
           {
@@ -43,8 +42,7 @@
             "type": null,
             "value": {
               "kind": "IntLitExpr",
-              "value": "5n",
-              "suffix": null
+              "value": "5n"
             }
           },
           {
@@ -69,14 +67,12 @@
                 },
                 "right": {
                   "kind": "IntLitExpr",
-                  "value": "3n",
-                  "suffix": null
+                  "value": "3n"
                 }
               },
               "right": {
                 "kind": "IntLitExpr",
-                "value": "2n",
-                "suffix": null
+                "value": "2n"
               }
             }
           }

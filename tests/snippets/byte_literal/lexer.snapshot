@@ -100,10 +100,10 @@
 [20:17-20:19] interp_open    "${"
 [20:19-20:20] ident          "b"
 [20:21-20:23] eq             "=="
-[20:24-20:28] int_literal    "b'='" =61n :u8
-[20:28-20:29] interp_close   "}"
-[20:29-20:30] string_end     "\""
-[20:30-20:31] rparen         ")"
+[20:24-20:27] char_literal   "'='" =U+003D
+[20:27-20:28] interp_close   "}"
+[20:28-20:29] string_end     "\""
+[20:29-20:30] rparen         ")"
 [21:1-21:1  ] newline        "\n"
 [21:5-21:11 ] kw_return      "return"
 [21:12-21:13] int_literal    "0" =0n

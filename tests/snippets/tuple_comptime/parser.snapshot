@@ -42,13 +42,11 @@
         "elements": [
           {
             "kind": "IntLitExpr",
-            "value": "10n",
-            "suffix": null
+            "value": "10n"
           },
           {
             "kind": "IntLitExpr",
-            "value": "20n",
-            "suffix": null
+            "value": "20n"
           }
         ]
       },
@@ -85,13 +83,11 @@
         "elements": [
           {
             "kind": "FloatLitExpr",
-            "value": 0,
-            "suffix": null
+            "value": 0
           },
           {
             "kind": "FloatLitExpr",
-            "value": 0,
-            "suffix": null
+            "value": 0
           },
           {
             "kind": "StringLitExpr",

@@ -24,7 +24,6 @@ export main 0
 
 fn 0 snippet$main () -> i32
   local $call_11 string
-  local $k_31 u8
   char.const 123
   char.to_i32
   i32.to_i64
@@ -61,10 +60,8 @@ fn 0 snippet$main () -> i32
   local.get 0
   call 3
   call 2
-  i32.const 61
-  local.set 1
   char.const 61
-  local.get 1
+  char.const 61
   char.eq
   if $L0 void
     string.const 5

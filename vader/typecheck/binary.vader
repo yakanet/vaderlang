@@ -521,7 +521,7 @@ ExpectedBinary :: struct {
 synthetic_binary :: fn() -> AST.BinaryExpr {
     sp :: empty_span()
     int_lit: AST.Expr = AST.IntLitExpr {
-        .span = sp, .id = AST.UNASSIGNED_NODE_ID, .value = 0, .suffix = null,
+        .span = sp, .id = AST.UNASSIGNED_NODE_ID, .value = 0,
     }
     return AST.BinaryExpr {
         .span = sp, .id = AST.UNASSIGNED_NODE_ID,

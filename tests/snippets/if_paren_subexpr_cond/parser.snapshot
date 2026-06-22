@@ -61,8 +61,7 @@
             "type": null,
             "value": {
               "kind": "IntLitExpr",
-              "value": "7n",
-              "suffix": null
+              "value": "7n"
             }
           },
           {
@@ -84,20 +83,17 @@
                     },
                     "right": {
                       "kind": "IntLitExpr",
-                      "value": "1n",
-                      "suffix": null
+                      "value": "1n"
                     }
                   },
                   "right": {
                     "kind": "IntLitExpr",
-                    "value": "4n",
-                    "suffix": null
+                    "value": "4n"
                   }
                 },
                 "right": {
                   "kind": "IntLitExpr",
-                  "value": "0n",
-                  "suffix": null
+                  "value": "0n"
                 }
               },
               "then": {
@@ -142,8 +138,7 @@
                 },
                 "right": {
                   "kind": "IntLitExpr",
-                  "value": "3n",
-                  "suffix": null
+                  "value": "3n"
                 }
               },
               "then": {
@@ -188,8 +183,7 @@
                 },
                 "right": {
                   "kind": "IntLitExpr",
-                  "value": "3n",
-                  "suffix": null
+                  "value": "3n"
                 }
               },
               "then": {
@@ -242,8 +236,7 @@
                         "name": "x",
                         "value": {
                           "kind": "IntLitExpr",
-                          "value": "5n",
-                          "suffix": null
+                          "value": "5n"
                         }
                       }
                     ]
@@ -252,8 +245,7 @@
                 },
                 "right": {
                   "kind": "IntLitExpr",
-                  "value": "0n",
-                  "suffix": null
+                  "value": "0n"
                 }
               },
               "then": {
@@ -289,8 +281,7 @@
             "kind": "ReturnStmt",
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           }
         ],

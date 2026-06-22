@@ -99,8 +99,7 @@
                         "name": "v",
                         "value": {
                           "kind": "IntLitExpr",
-                          "value": "7n",
-                          "suffix": null
+                          "value": "7n"
                         }
                       }
                     ]

@@ -55,8 +55,7 @@
               "op": "add",
               "left": {
                 "kind": "IntLitExpr",
-                "value": "1n",
-                "suffix": null
+                "value": "1n"
               },
               "right": {
                 "kind": "NullLitExpr"

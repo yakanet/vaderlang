@@ -419,7 +419,6 @@ test_value_position_expr_emits_T3002 :: fn() -> void {
         .span = span,
         .id = AST.UNASSIGNED_NODE_ID,
         .value = 42,
-        .suffix = "",
     }
     rm :: resolve_test_module("")
     diags: Diagnostic[] = []

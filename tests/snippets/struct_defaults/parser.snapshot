@@ -44,8 +44,7 @@
           "visibility": "public",
           "default": {
             "kind": "IntLitExpr",
-            "value": "30n",
-            "suffix": null
+            "value": "30n"
           }
         },
         {
@@ -179,8 +178,7 @@
                   "name": "timeout",
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "5n",
-                    "suffix": null
+                    "value": "5n"
                   }
                 },
                 {
@@ -384,8 +382,7 @@
             "kind": "ReturnStmt",
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           }
         ],

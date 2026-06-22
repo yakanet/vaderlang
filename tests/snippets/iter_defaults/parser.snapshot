@@ -107,8 +107,7 @@
                     },
                     "right": {
                       "kind": "IntLitExpr",
-                      "value": "0n",
-                      "suffix": null
+                      "value": "0n"
                     }
                   },
                   "then": {
@@ -166,8 +165,7 @@
                   },
                   "right": {
                     "kind": "IntLitExpr",
-                    "value": "1n",
-                    "suffix": null
+                    "value": "1n"
                   }
                 }
               },
@@ -241,13 +239,11 @@
                         "inclusive": false,
                         "lower": {
                           "kind": "IntLitExpr",
-                          "value": "0n",
-                          "suffix": null
+                          "value": "0n"
                         },
                         "upper": {
                           "kind": "IntLitExpr",
-                          "value": "5n",
-                          "suffix": null
+                          "value": "5n"
                         }
                       },
                       "field": "count"
@@ -272,13 +268,11 @@
                     "inclusive": true,
                     "lower": {
                       "kind": "IntLitExpr",
-                      "value": "10n",
-                      "suffix": null
+                      "value": "10n"
                     },
                     "upper": {
                       "kind": "IntLitExpr",
-                      "value": "15n",
-                      "suffix": null
+                      "value": "15n"
                     }
                   },
                   "field": "last"
@@ -372,13 +366,11 @@
                         "inclusive": false,
                         "lower": {
                           "kind": "IntLitExpr",
-                          "value": "0n",
-                          "suffix": null
+                          "value": "0n"
                         },
                         "upper": {
                           "kind": "IntLitExpr",
-                          "value": "0n",
-                          "suffix": null
+                          "value": "0n"
                         }
                       },
                       "field": "is_empty"
@@ -410,13 +402,11 @@
                         "inclusive": false,
                         "lower": {
                           "kind": "IntLitExpr",
-                          "value": "0n",
-                          "suffix": null
+                          "value": "0n"
                         },
                         "upper": {
                           "kind": "IntLitExpr",
-                          "value": "5n",
-                          "suffix": null
+                          "value": "5n"
                         }
                       },
                       "field": "is_empty"
@@ -455,8 +445,7 @@
                             "name": "remaining",
                             "value": {
                               "kind": "IntLitExpr",
-                              "value": "3n",
-                              "suffix": null
+                              "value": "3n"
                             }
                           }
                         ]
@@ -474,8 +463,7 @@
             "kind": "ReturnStmt",
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           }
         ],

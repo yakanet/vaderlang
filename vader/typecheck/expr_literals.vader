@@ -10,36 +10,24 @@ module "vader/typecheck"
 AST :: import "vader/parser"
 import "vader/types" { Type, mk_primitive, TY_BOOL, TY_FREE_INT, TY_FREE_FLOAT, TY_FREE_CHAR, TY_UNRESOLVED }
 
-/// `42` → FreeInt ; `42i64` → i64. Unknown suffix → Unresolved (the
-/// lexer already rejected unknown suffixes ; this is defensive).
-export infer_int_lit :: fn(e: AST.IntLitExpr) -> Type {
-    suffix :: e.suffix
-    if suffix is null { return TY_FREE_INT }
-    ty :: primitive_from_name(suffix)
-    if ty is null { return TY_UNRESOLVED }
-    return ty
-}
+/// `42` → FreeInt — a bare integer literal is always free, coercing to the
+/// concrete width of its context (there is no suffix form anymore).
+export infer_int_lit :: fn(_: AST.IntLitExpr) -> Type = TY_FREE_INT
 
-/// `3.14` → FreeFloat ; `3.14f32` → f32.
-export infer_float_lit :: fn(e: AST.FloatLitExpr) -> Type {
-    suffix :: e.suffix
-    if suffix is null { return TY_FREE_FLOAT }
-    ty :: primitive_from_name(suffix)
-    if ty is null { return TY_UNRESOLVED }
-    return ty
-}
+/// `3.14` → FreeFloat — a bare float literal is always free.
+export infer_float_lit :: fn(_: AST.FloatLitExpr) -> Type = TY_FREE_FLOAT
 
-export infer_bool_lit :: fn(_: AST.BoolLitExpr) -> Type { return TY_BOOL }
-export infer_null_lit :: fn(_: AST.NullLitExpr) -> Type { return mk_primitive("null") }
+export infer_bool_lit :: fn(_: AST.BoolLitExpr) -> Type = TY_BOOL
+export infer_null_lit :: fn(_: AST.NullLitExpr) -> Type = mk_primitive("null")
 /// A char LITERAL is free — it coerces to an integer type in a numeric context
 /// (bounds-checked at the pin site) and defaults to `char` otherwise. Only
 /// literals get FreeChar ; a `char` variable keeps the concrete `char`.
-export infer_char_lit :: fn(_: AST.CharLitExpr) -> Type { return TY_FREE_CHAR }
+export infer_char_lit :: fn(_: AST.CharLitExpr) -> Type = TY_FREE_CHAR
 
 /// MVP : string literals (with or without interpolation) all carry
 /// `string` as their static type. Interpolated-expression `Display`
 /// checking lands with Phase 3.4 (post Call inference).
-export infer_string_lit :: fn(_: AST.StringLitExpr) -> Type { return mk_primitive("string") }
+export infer_string_lit :: fn(_: AST.StringLitExpr) -> Type = mk_primitive("string")
 
 // ---- tests ----------------------------------------------------------------
 
@@ -51,25 +39,16 @@ import "vader/types" { display_type, FreeIntType, FreeFloatType }
 test_int_lit_without_suffix_is_free :: fn() -> void {
     e :: AST.IntLitExpr {
         .span = empty_span(), .id = AST.UNASSIGNED_NODE_ID,
-        .value = 42, .suffix = null,
+        .value = 42,
     }
     assert(infer_int_lit(e) is FreeIntType, "bare int literal must be FreeInt")
-}
-
-@test
-test_int_lit_with_suffix_folds_to_primitive :: fn() -> void {
-    e :: AST.IntLitExpr {
-        .span = empty_span(), .id = AST.UNASSIGNED_NODE_ID,
-        .value = 42, .suffix = "i64",
-    }
-    assert_eq(display_type(infer_int_lit(e)), "i64")
 }
 
 @test
 test_float_lit_without_suffix_is_free :: fn() -> void {
     e :: AST.FloatLitExpr {
         .span = empty_span(), .id = AST.UNASSIGNED_NODE_ID,
-        .value = 3.14, .suffix = null,
+        .value = 3.14,
     }
     assert(infer_float_lit(e) is FreeFloatType, "bare float literal must be FreeFloat")
 }

@@ -91,7 +91,7 @@
                   l:
                     b :char
                   r:
-                    int(61) :u8
+                    char(0x3d)
               then:
                 ~>
                   "true" :string

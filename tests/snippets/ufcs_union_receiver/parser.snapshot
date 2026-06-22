@@ -255,8 +255,7 @@
                     },
                     "right": {
                       "kind": "IntLitExpr",
-                      "value": "3n",
-                      "suffix": null
+                      "value": "3n"
                     }
                   }
                 },
@@ -336,8 +335,7 @@
                   "name": "radius",
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "5n",
-                    "suffix": null
+                    "value": "5n"
                   }
                 }
               ]
@@ -366,8 +364,7 @@
                   "name": "side",
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "4n",
-                    "suffix": null
+                    "value": "4n"
                   }
                 }
               ]
@@ -513,8 +510,7 @@
             "kind": "ReturnStmt",
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           }
         ],

@@ -84,8 +84,7 @@
                   "name": null,
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "1n",
-                    "suffix": null
+                    "value": "1n"
                   },
                   "spread": false
                 }

@@ -43,14 +43,12 @@
               },
               "index": {
                 "kind": "IntLitExpr",
-                "value": "0n",
-                "suffix": null
+                "value": "0n"
               }
             },
             "value": {
               "kind": "IntLitExpr",
-              "value": "99n",
-              "suffix": null
+              "value": "99n"
             }
           }
         ],
@@ -84,18 +82,15 @@
               "elements": [
                 {
                   "kind": "IntLitExpr",
-                  "value": "10n",
-                  "suffix": null
+                  "value": "10n"
                 },
                 {
                   "kind": "IntLitExpr",
-                  "value": "20n",
-                  "suffix": null
+                  "value": "20n"
                 },
                 {
                   "kind": "IntLitExpr",
-                  "value": "30n",
-                  "suffix": null
+                  "value": "30n"
                 }
               ]
             }
@@ -124,8 +119,7 @@
             "kind": "ReturnStmt",
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           }
         ],

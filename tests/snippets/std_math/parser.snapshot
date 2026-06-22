@@ -90,8 +90,7 @@
                               "name": null,
                               "value": {
                                 "kind": "FloatLitExpr",
-                                "value": 4,
-                                "suffix": null
+                                "value": 4
                               },
                               "spread": false
                             }
@@ -132,8 +131,7 @@
                               "name": null,
                               "value": {
                                 "kind": "FloatLitExpr",
-                                "value": 2,
-                                "suffix": null
+                                "value": 2
                               },
                               "spread": false
                             },
@@ -141,8 +139,7 @@
                               "name": null,
                               "value": {
                                 "kind": "FloatLitExpr",
-                                "value": 10,
-                                "suffix": null
+                                "value": 10
                               },
                               "spread": false
                             }
@@ -183,8 +180,7 @@
                               "name": null,
                               "value": {
                                 "kind": "FloatLitExpr",
-                                "value": 3.7,
-                                "suffix": null
+                                "value": 3.7
                               },
                               "spread": false
                             }
@@ -225,8 +221,7 @@
                               "name": null,
                               "value": {
                                 "kind": "FloatLitExpr",
-                                "value": 3.2,
-                                "suffix": null
+                                "value": 3.2
                               },
                               "spread": false
                             }
@@ -267,8 +262,7 @@
                               "name": null,
                               "value": {
                                 "kind": "FloatLitExpr",
-                                "value": 2.5,
-                                "suffix": null
+                                "value": 2.5
                               },
                               "spread": false
                             }
@@ -286,8 +280,7 @@
             "kind": "ReturnStmt",
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           }
         ],

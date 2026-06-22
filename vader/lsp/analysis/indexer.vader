@@ -399,13 +399,9 @@ local_sig :: fn(
     return slice_to_eol(source, decl_start, scope_end)
 }
 
-// Best-effort type hint for a `LetStmt` without consulting the
-// typechecker :
-//   1. Explicit annotation `let a: T = …` → slice `T` from the AST.
-//   2. Literal RHS with numeric suffix (`1_u64`, `2.5_f32`, …) → use
-//      the suffix as the type name.
-//   3. Otherwise return `""` — the caller falls back to a source
-//      slice that includes the expression.
+// Best-effort type hint for a `LetStmt` without consulting the typechecker :
+// an explicit annotation `let a: T = …` slices `T` from the AST ; otherwise
+// `""` and the caller falls back to a source slice that includes the expression.
 local_type_hint :: fn(l: LetStmt, source: string) -> string {
     match l.ty {
         is null -> {}
@@ -413,7 +409,7 @@ local_type_hint :: fn(l: LetStmt, source: string) -> string {
             return type_expr_slice(ty, source)
         }
     }
-    return literal_suffix_type(l.value, source)
+    return ""
 }
 
 // Slice the source for a `TypeExpr` reference. The parser tags every
@@ -454,26 +450,6 @@ type_expr_slice :: fn(t: Expr, source: string) -> string {
         return source.bytes()[sp.start.offset..<sp.end.offset].bytes_to_string().trim()
     }
     return ""
-}
-
-// Extract `suffix` from `1_u64` / `2.5_f32` style literals. Other
-// expr shapes return `""` — caller falls back to the source slice.
-literal_suffix_type :: fn(e: Expr, _source: string) -> string {
-    match e {
-        is IntLitExpr as x -> {
-            match x.suffix {
-                is null            -> { return "" }
-                is string as suf   -> { return suf }
-            }
-        }
-        is FloatLitExpr as x -> {
-            match x.suffix {
-                is null            -> { return "" }
-                is string as suf   -> { return suf }
-            }
-        }
-        _ -> { return "" }
-    }
 }
 
 ix_walk_for :: fn(f: ForStmt, source: string, entries: DeclEntry[]) -> void {

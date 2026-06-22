@@ -807,8 +807,7 @@
                               "name": "weight",
                               "value": {
                                 "kind": "IntLitExpr",
-                                "value": "200n",
-                                "suffix": null
+                                "value": "200n"
                               }
                             }
                           ]
@@ -844,8 +843,7 @@
                         "name": null,
                         "value": {
                           "kind": "IntLitExpr",
-                          "value": "42n",
-                          "suffix": null
+                          "value": "42n"
                         },
                         "spread": false
                       }
@@ -898,8 +896,7 @@
             "kind": "ReturnStmt",
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           }
         ],

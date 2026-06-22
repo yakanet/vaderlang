@@ -405,14 +405,12 @@ export IntLitExpr :: struct {
     // trailing `n` so 0..u64.MAX all round-trip losslessly). Negative
     // literals are wrapped by the parser in `UnaryExpr.neg`.
     value:  u64
-    suffix: string | null
 }
 
 export FloatLitExpr :: struct {
     span:   Span
     id:   usize = UNASSIGNED_NODE_ID
     value:  f64
-    suffix: string | null
 }
 
 export BoolLitExpr :: struct {

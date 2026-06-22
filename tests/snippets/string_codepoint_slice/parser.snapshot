@@ -73,13 +73,11 @@
                       "inclusive": false,
                       "lower": {
                         "kind": "IntLitExpr",
-                        "value": "0n",
-                        "suffix": null
+                        "value": "0n"
                       },
                       "upper": {
                         "kind": "IntLitExpr",
-                        "value": "2n",
-                        "suffix": null
+                        "value": "2n"
                       }
                     }
                   },
@@ -110,13 +108,11 @@
                       "inclusive": false,
                       "lower": {
                         "kind": "IntLitExpr",
-                        "value": "1n",
-                        "suffix": null
+                        "value": "1n"
                       },
                       "upper": {
                         "kind": "IntLitExpr",
-                        "value": "3n",
-                        "suffix": null
+                        "value": "3n"
                       }
                     }
                   },
@@ -147,13 +143,11 @@
                       "inclusive": false,
                       "lower": {
                         "kind": "IntLitExpr",
-                        "value": "0n",
-                        "suffix": null
+                        "value": "0n"
                       },
                       "upper": {
                         "kind": "IntLitExpr",
-                        "value": "5n",
-                        "suffix": null
+                        "value": "5n"
                       }
                     }
                   },
@@ -184,13 +178,11 @@
                       "inclusive": true,
                       "lower": {
                         "kind": "IntLitExpr",
-                        "value": "2n",
-                        "suffix": null
+                        "value": "2n"
                       },
                       "upper": {
                         "kind": "IntLitExpr",
-                        "value": "4n",
-                        "suffix": null
+                        "value": "4n"
                       }
                     }
                   },
@@ -221,13 +213,11 @@
                       "inclusive": false,
                       "lower": {
                         "kind": "IntLitExpr",
-                        "value": "0n",
-                        "suffix": null
+                        "value": "0n"
                       },
                       "upper": {
                         "kind": "IntLitExpr",
-                        "value": "99n",
-                        "suffix": null
+                        "value": "99n"
                       }
                     }
                   },
@@ -258,13 +248,11 @@
                       "inclusive": false,
                       "lower": {
                         "kind": "IntLitExpr",
-                        "value": "99n",
-                        "suffix": null
+                        "value": "99n"
                       },
                       "upper": {
                         "kind": "IntLitExpr",
-                        "value": "99n",
-                        "suffix": null
+                        "value": "99n"
                       }
                     }
                   },
@@ -313,13 +301,11 @@
                       "inclusive": false,
                       "lower": {
                         "kind": "IntLitExpr",
-                        "value": "1n",
-                        "suffix": null
+                        "value": "1n"
                       },
                       "upper": {
                         "kind": "IntLitExpr",
-                        "value": "4n",
-                        "suffix": null
+                        "value": "4n"
                       }
                     }
                   },
@@ -332,8 +318,7 @@
             "kind": "ReturnStmt",
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           }
         ],

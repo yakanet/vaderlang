@@ -150,8 +150,7 @@
               },
               "right": {
                 "kind": "IntLitExpr",
-                "value": "1n",
-                "suffix": null
+                "value": "1n"
               }
             }
           },
@@ -215,8 +214,7 @@
                                     "name": "n",
                                     "value": {
                                       "kind": "IntLitExpr",
-                                      "value": "41n",
-                                      "suffix": null
+                                      "value": "41n"
                                     }
                                   }
                                 ]
@@ -237,8 +235,7 @@
             "kind": "ReturnStmt",
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           }
         ],

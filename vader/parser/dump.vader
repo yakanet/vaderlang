@@ -742,13 +742,6 @@ write_expr :: fn(sb: StringBuilder, e: Expr | null, level: i32) -> void {
             sb.kind_entry(level + 1, "IntLitExpr")
             sb.entry(false, level + 1, "value")
             sb.write_bigint(e.value)
-            sb.entry(false, level + 1, "suffix")
-            suffix :: e.suffix
-
-            match suffix {
-                is null        -> { sb.write_null() }
-                is string -> { sb.write_string(suffix) }
-            }
             sb.close_obj(level)
         }
         is FloatLitExpr -> {
@@ -756,13 +749,6 @@ write_expr :: fn(sb: StringBuilder, e: Expr | null, level: i32) -> void {
             sb.kind_entry(level + 1, "FloatLitExpr")
             sb.entry(false, level + 1, "value")
             sb.write_f64(e.value)
-            sb.entry(false, level + 1, "suffix")
-            suffix :: e.suffix
-
-            match suffix {
-                is null        -> { sb.write_null() }
-                is string -> { sb.write_string(suffix) }
-            }
             sb.close_obj(level)
         }
         is BoolLitExpr -> {

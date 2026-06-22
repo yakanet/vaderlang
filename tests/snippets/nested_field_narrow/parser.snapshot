@@ -115,8 +115,7 @@
               "guard": null,
               "body": {
                 "kind": "IntLitExpr",
-                "value": "0n",
-                "suffix": null
+                "value": "0n"
               }
             },
             {
@@ -141,8 +140,7 @@
                 },
                 "right": {
                   "kind": "IntLitExpr",
-                  "value": "1n",
-                  "suffix": null
+                  "value": "1n"
                 }
               }
             }
@@ -207,8 +205,7 @@
                       "op": "neg",
                       "operand": {
                         "kind": "IntLitExpr",
-                        "value": "1n",
-                        "suffix": null
+                        "value": "1n"
                       }
                     }
                   }
@@ -281,8 +278,7 @@
                         "name": "flag",
                         "value": {
                           "kind": "IntLitExpr",
-                          "value": "42n",
-                          "suffix": null
+                          "value": "42n"
                         }
                       }
                     ]
@@ -513,8 +509,7 @@
             "kind": "ReturnStmt",
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           }
         ],

@@ -141,8 +141,7 @@
               "op": "neg",
               "operand": {
                 "kind": "IntLitExpr",
-                "value": "1n",
-                "suffix": null
+                "value": "1n"
               }
             }
           }
@@ -203,8 +202,7 @@
                               "name": "tag",
                               "value": {
                                 "kind": "IntLitExpr",
-                                "value": "7n",
-                                "suffix": null
+                                "value": "7n"
                               }
                             }
                           ]

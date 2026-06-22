@@ -261,7 +261,6 @@ consume_closing_angle :: fn(p: Parser) -> Token {
             .text = ">",
             .span = cur.span,
             .value = null,
-            .numeric_suffix = "",
         }
         p.shr_pending_half = synth
         if p.pos < i32(p.tokens.len()) - 1 { p.pos = p.pos + 1 }
@@ -2463,16 +2462,14 @@ parse_prefix :: fn(p: Parser) -> Expr {
         v: u64 = u64(0)
         val :: t.value
         if val is u64 { v = val }
-        suffix: string | null = if !t.numeric_suffix.is_empty() { t.numeric_suffix } else { null }
-        return IntLitExpr { .span = t.span, .value = v, .suffix = suffix }
+        return IntLitExpr { .span = t.span, .value = v }
     }
     if t.kind == .FloatLit {
         p.advance()
         v: f64 = 0.0
         val :: t.value
         if val is f64 { v = val }
-        suffix: string | null = if !t.numeric_suffix.is_empty() { t.numeric_suffix } else { null }
-        return FloatLitExpr { .span = t.span, .value = v, .suffix = suffix }
+        return FloatLitExpr { .span = t.span, .value = v }
     }
     if t.kind == .CharLit {
         p.advance()

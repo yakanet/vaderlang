@@ -123,8 +123,7 @@
                               "name": null,
                               "value": {
                                 "kind": "IntLitExpr",
-                                "value": "5n",
-                                "suffix": null
+                                "value": "5n"
                               },
                               "spread": false
                             },
@@ -190,8 +189,7 @@
                               "name": null,
                               "value": {
                                 "kind": "IntLitExpr",
-                                "value": "5n",
-                                "suffix": null
+                                "value": "5n"
                               },
                               "spread": false
                             },
@@ -257,8 +255,7 @@
                               "name": null,
                               "value": {
                                 "kind": "IntLitExpr",
-                                "value": "3n",
-                                "suffix": null
+                                "value": "3n"
                               },
                               "spread": false
                             },
@@ -297,8 +294,7 @@
             },
             "value": {
               "kind": "IntLitExpr",
-              "value": "255n",
-              "suffix": null
+              "value": "255n"
             }
           },
           {
@@ -424,8 +420,7 @@
                               "name": null,
                               "value": {
                                 "kind": "IntLitExpr",
-                                "value": "4n",
-                                "suffix": null
+                                "value": "4n"
                               },
                               "spread": false
                             },
@@ -460,8 +455,7 @@
             },
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           },
           {
@@ -628,8 +622,7 @@
             "kind": "ReturnStmt",
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           }
         ],

@@ -89,8 +89,7 @@
                   "name": "id",
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "1n",
-                    "suffix": null
+                    "value": "1n"
                   }
                 },
                 {
@@ -101,13 +100,11 @@
                     "elements": [
                       {
                         "kind": "FloatLitExpr",
-                        "value": 3.5,
-                        "suffix": null
+                        "value": 3.5
                       },
                       {
                         "kind": "FloatLitExpr",
-                        "value": 7.25,
-                        "suffix": null
+                        "value": 7.25
                       }
                     ]
                   }
@@ -195,8 +192,7 @@
             "kind": "ReturnStmt",
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           }
         ],

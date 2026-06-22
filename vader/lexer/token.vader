@@ -76,7 +76,6 @@ export Token :: struct {
     text: string
     span: Span
     value: i64 | u64 | f64 | u32 | string | null
-    numeric_suffix: string
 }
 
 export empty_span :: fn(file: string) -> Span {
@@ -89,5 +88,4 @@ export make_token :: fn(kind: TokenKind, text: string, span: Span) = Token {
     .text = text,
     .span = span,
     .value = null,
-    .numeric_suffix = "",
 }

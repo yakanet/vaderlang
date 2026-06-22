@@ -136,8 +136,7 @@
                   "name": "v",
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "200n",
-                    "suffix": null
+                    "value": "200n"
                   }
                 }
               ]
@@ -242,8 +241,7 @@
                   "name": "v",
                   "value": {
                     "kind": "FloatLitExpr",
-                    "value": 3.5,
-                    "suffix": null
+                    "value": 3.5
                   }
                 }
               ]
@@ -278,8 +276,7 @@
                   "name": "v",
                   "value": {
                     "kind": "FloatLitExpr",
-                    "value": 2.25,
-                    "suffix": null
+                    "value": 2.25
                   }
                 }
               ]
@@ -317,8 +314,7 @@
                     "op": "neg",
                     "operand": {
                       "kind": "IntLitExpr",
-                      "value": "1000n",
-                      "suffix": null
+                      "value": "1000n"
                     }
                   }
                 }
@@ -354,8 +350,7 @@
                   "name": "v",
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "50000n",
-                    "suffix": null
+                    "value": "50000n"
                   }
                 }
               ]
@@ -390,8 +385,7 @@
                   "name": "v",
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "9000000000n",
-                    "suffix": null
+                    "value": "9000000000n"
                   }
                 }
               ]
@@ -426,8 +420,7 @@
                   "name": "v",
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "42n",
-                    "suffix": null
+                    "value": "42n"
                   }
                 }
               ]
@@ -465,8 +458,7 @@
                     "op": "neg",
                     "operand": {
                       "kind": "IntLitExpr",
-                      "value": "7n",
-                      "suffix": null
+                      "value": "7n"
                     }
                   }
                 }
@@ -913,8 +905,7 @@
             "kind": "ReturnStmt",
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           }
         ],

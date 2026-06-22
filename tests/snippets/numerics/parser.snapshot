@@ -13,8 +13,7 @@
       "type": null,
       "value": {
         "kind": "IntLitExpr",
-        "value": "42n",
-        "suffix": null
+        "value": "42n"
       },
       "decorators": []
     },
@@ -25,8 +24,7 @@
       "type": null,
       "value": {
         "kind": "IntLitExpr",
-        "value": "1000000n",
-        "suffix": null
+        "value": "1000000n"
       },
       "decorators": []
     },
@@ -37,8 +35,7 @@
       "type": null,
       "value": {
         "kind": "IntLitExpr",
-        "value": "255n",
-        "suffix": null
+        "value": "255n"
       },
       "decorators": []
     },
@@ -49,8 +46,7 @@
       "type": null,
       "value": {
         "kind": "IntLitExpr",
-        "value": "65535n",
-        "suffix": null
+        "value": "65535n"
       },
       "decorators": []
     },
@@ -61,8 +57,7 @@
       "type": null,
       "value": {
         "kind": "IntLitExpr",
-        "value": "10n",
-        "suffix": null
+        "value": "10n"
       },
       "decorators": []
     },
@@ -73,8 +68,7 @@
       "type": null,
       "value": {
         "kind": "IntLitExpr",
-        "value": "493n",
-        "suffix": null
+        "value": "493n"
       },
       "decorators": []
     },
@@ -88,8 +82,7 @@
       },
       "value": {
         "kind": "IntLitExpr",
-        "value": "42n",
-        "suffix": null
+        "value": "42n"
       },
       "decorators": []
     },
@@ -103,8 +96,7 @@
       },
       "value": {
         "kind": "IntLitExpr",
-        "value": "100n",
-        "suffix": null
+        "value": "100n"
       },
       "decorators": []
     },
@@ -115,8 +107,7 @@
       "type": null,
       "value": {
         "kind": "FloatLitExpr",
-        "value": 3.14,
-        "suffix": null
+        "value": 3.14
       },
       "decorators": []
     },
@@ -127,8 +118,7 @@
       "type": null,
       "value": {
         "kind": "FloatLitExpr",
-        "value": 1.5e-10,
-        "suffix": null
+        "value": 1.5e-10
       },
       "decorators": []
     },
@@ -142,8 +132,7 @@
       },
       "value": {
         "kind": "FloatLitExpr",
-        "value": 3.14,
-        "suffix": null
+        "value": 3.14
       },
       "decorators": []
     },
@@ -157,8 +146,7 @@
       },
       "value": {
         "kind": "FloatLitExpr",
-        "value": 0.5,
-        "suffix": null
+        "value": 0.5
       },
       "decorators": []
     }

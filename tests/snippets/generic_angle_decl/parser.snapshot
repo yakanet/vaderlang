@@ -305,8 +305,7 @@
             "type": null,
             "value": {
               "kind": "IntLitExpr",
-              "value": "10n",
-              "suffix": null
+              "value": "10n"
             }
           },
           {
@@ -329,8 +328,7 @@
                     },
                     "right": {
                       "kind": "IntLitExpr",
-                      "value": "20n",
-                      "suffix": null
+                      "value": "20n"
                     }
                   },
                   "spread": false
@@ -427,8 +425,7 @@
                 "kind": "FieldExpr",
                 "target": {
                   "kind": "IntLitExpr",
-                  "value": "42n",
-                  "suffix": null
+                  "value": "42n"
                 },
                 "field": "identity"
               },
@@ -495,8 +492,7 @@
                   "name": null,
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "42n",
-                    "suffix": null
+                    "value": "42n"
                   },
                   "spread": false
                 }
@@ -549,8 +545,7 @@
                 "kind": "FieldExpr",
                 "target": {
                   "kind": "IntLitExpr",
-                  "value": "7n",
-                  "suffix": null
+                  "value": "7n"
                 },
                 "field": "make_box"
               },
@@ -607,8 +602,7 @@
                 "kind": "FieldExpr",
                 "target": {
                   "kind": "IntLitExpr",
-                  "value": "99n",
-                  "suffix": null
+                  "value": "99n"
                 },
                 "field": "make_nested"
               },
@@ -708,8 +702,7 @@
             "kind": "ReturnStmt",
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           }
         ],
