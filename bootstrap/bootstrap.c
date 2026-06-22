@@ -30369,30 +30369,21 @@ static void vader_lexer_push_error(vader_box_t l0, uint8_t l1, vader_box_t l2, v
 }
 
 static size_t vader_lexer_utf8_lead_byte_len(uint8_t l0) {
-    uint32_t l1, l2;
-    int32_t t0, t1, t2, t3;
-    t0 = ((int32_t) (uint8_t) l0);
-    l1 = (uint32_t) (int32_t) t0;
-    l2 = (uint32_t) (int32_t) INT32_C(128);
-    if ((l1 < l2)) {
+    uint8_t l1;
+    l1 = (uint8_t) (int32_t) INT32_C(128);
+    if ((l0 < l1)) {
         return (size_t) (int64_t) INT64_C(1);
     }
-    t1 = ((int32_t) (uint8_t) l0);
-    l1 = (uint32_t) (int32_t) t1;
-    l2 = (uint32_t) (int32_t) INT32_C(192);
-    if ((l1 < l2)) {
+    l1 = (uint8_t) (int32_t) INT32_C(192);
+    if ((l0 < l1)) {
         return (size_t) (int64_t) INT64_C(1);
     }
-    t2 = ((int32_t) (uint8_t) l0);
-    l1 = (uint32_t) (int32_t) t2;
-    l2 = (uint32_t) (int32_t) INT32_C(224);
-    if ((l1 < l2)) {
+    l1 = (uint8_t) (int32_t) INT32_C(224);
+    if ((l0 < l1)) {
         return (size_t) (int64_t) INT64_C(2);
     }
-    t3 = ((int32_t) (uint8_t) l0);
-    l1 = (uint32_t) (int32_t) t3;
-    l2 = (uint32_t) (int32_t) INT32_C(240);
-    if ((l1 < l2)) {
+    l1 = (uint8_t) (int32_t) INT32_C(240);
+    if ((l0 < l1)) {
         return (size_t) (int64_t) INT64_C(3);
     }
     return (size_t) (int64_t) INT64_C(4);
