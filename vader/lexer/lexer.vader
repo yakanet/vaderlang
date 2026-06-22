@@ -122,23 +122,6 @@ suppresses_newline_after :: fn(k: TokenKind) = @partial match k {
     _          -> false
 }
 
-// Tokens that "eat" a preceding newline — when this token is emitted
-// and the previous token is a `Newline`, the newline is dropped. Lets
-// type-position `|` / `&` appear as leading tokens on a new line :
-//   T ::
-//       | A
-//       | B
-//       | C
-// without the parser having to thread newline-skipping through every
-// continuation. Mirrors how the suppress-after set drops the newline
-// immediately AFTER themselves.
-// @partial: only the listed tokens suppress a preceding newline; every other token → false.
-suppresses_newline_before :: fn(k: TokenKind) = @partial match k {
-    .Pipe -> true
-    .Amp  -> true
-    _     -> false
-}
-
 // ---- cursor helpers -------------------------------------------------------
 
 at_end :: fn(l: Lexer) = l.pos >= l.bytes.len()
@@ -256,11 +239,10 @@ handle_newline :: fn(l: Lexer) -> void {
     if l.paren_depth > 0 { return }
     if l.last_kind.suppresses_newline_after() { return }
     if l.last_kind == .Newline { return }
-    // Lookahead-suppress : if the next non-whitespace character starts a
-    // `suppresses_newline_before` token (`|`, `&`), don't emit the
-    // newline so a leading-pipe / leading-amp continues the previous
-    // expression. Mirrors the trailing-pipe rule on the suppress-after
-    // side.
+    // Lookahead-suppress : if the next non-whitespace line opens with a
+    // leading `|` / `||` / `&` / `&&`, don't emit the newline so the operator
+    // continues the previous expression (see `peeks_leading_continuation`).
+    // Mirrors the trailing-operator rule on the suppress-after side.
     if l.peeks_leading_continuation() { return }
 
     here := l.position_here()
@@ -268,25 +250,26 @@ handle_newline :: fn(l: Lexer) -> void {
     l.emit(make_token(.Newline, "\n", span))
 }
 
-// Look past spaces / tabs / cross-line whitespace to see whether the
-// next significant character would emit a `suppresses_newline_before`
-// token. Multi-character ops (`||`, `&&`) are filtered out so a
-// short-circuit operator on the next line doesn't suppress the
-// statement terminator — only the bare `|` / `&` continuation forms
-// count.
+// Look past spaces / tabs / cross-line whitespace to see whether the next
+// significant line *opens* with `|`, `||`, `&`, or `&&`. None of these four
+// has a prefix / unary form (`parse_prefix` only knows `-` / `!` / `~`), so a
+// line opening with one can only continue the previous expression — the
+// newline before it is absorbed rather than terminating the statement :
+//   T ::                       cond := a == 1
+//       | A                        && b == 2
+//       | B                        && c == 3
+// (a leading `|` / `&` continues a type union / intersection, a leading
+// `||` / `&&` continues a boolean condition broken across lines). This is the
+// "before" mirror of `suppresses_newline_after`, but it must peek raw chars :
+// at newline-handling time the next operator hasn't been lexed into a token
+// yet, so there's no `TokenKind` to match on. The `!= '='` guard is "not a
+// compound-assign" — `|=` / `&=` can't lead a continuation.
 peeks_leading_continuation :: fn(l: Lexer) -> bool {
     i: usize = 0
     for {
         c :: l.peek_at(i)
         if c == ' ' || c == '\t' || c == '\r' || c == '\n' { i = i + 1  continue }
-        if c == '|' {
-            next :: l.peek_at(i + 1)
-            return next != '|' && next != '='
-        }
-        if c == '&' {
-            next :: l.peek_at(i + 1)
-            return next != '&' && next != '='
-        }
+        if c == '|' || c == '&' { return l.peek_at(i + 1) != '=' }
         return false
     }
 }
@@ -1075,4 +1058,41 @@ import "std/testing" { assert, assert_eq }
 @test test_tokenize_no_errors_on_valid_source :: fn() -> void {
     l :: tokenize("fn foo() { return 42 }", "test.vader")
     assert_eq(l.errors.len(), usize(0))
+}
+
+// ---- newline continuation (leading operators) ----------------------------
+
+// Count `.Newline` tokens in a lexed stream — a statement terminator survived
+// only where these helpers expect it to.
+count_newlines :: fn(l: Lexer) -> usize {
+    n: usize = 0
+    for t in l.tokens {
+        if t.kind == .Newline { n += 1 }
+    }
+    return n
+}
+
+@test test_leading_andand_continues :: fn() -> void {
+    // A boolean condition split across lines with a leading `&&` is ONE
+    // statement : the newline before each `&&` is absorbed, not a terminator.
+    l :: tokenize("a == 1\n    && b == 2\n    && c == 3", "test.vader")
+    assert_eq(l.errors.len(), usize(0))
+    assert_eq(count_newlines(l), usize(0))
+}
+
+@test test_leading_oror_continues :: fn() -> void {
+    l :: tokenize("a == 1\n    || b == 2", "test.vader")
+    assert_eq(count_newlines(l), usize(0))
+}
+
+@test test_leading_pipe_still_continues :: fn() -> void {
+    // The pre-existing leading single-`|` type-union continuation is intact.
+    l :: tokenize("T ::\n    | A\n    | B", "test.vader")
+    assert_eq(count_newlines(l), usize(0))
+}
+
+@test test_complete_lines_keep_newline :: fn() -> void {
+    // Two complete statements stay separated : nothing suppresses the break.
+    l :: tokenize("a = 1\nb = 2", "test.vader")
+    assert_eq(count_newlines(l), usize(1))
 }
