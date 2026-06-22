@@ -26,7 +26,9 @@ module "std/string_builder"
 /// reference ; `to_string` (and `${sb}` interpolation) concatenates them into a
 /// single interned string in one pass.
 export StringBuilder :: struct {
-    /// Appended fragments, in order. Concatenated at `to_string`.
+    /// Appended fragments, in order. Concatenated at `to_string`. `@internal`:
+    /// callers go through `append` / `to_string`, never the backing array.
+    @internal
     parts: string[]
 }
 
