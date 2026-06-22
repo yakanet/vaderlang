@@ -547,6 +547,22 @@ export LoweredMakeClosure :: struct {
 /// dispatch table can key directly off the wire form.
 export INTRINSIC_SIZE_OF_TYPE :: "size_of.type"
 
+/// Array construction / bulk-mutation intrinsics. Each maps to a dedicated
+/// parameterless bytecode op (`intrinsic_op_for_name`) backed by a GC-coupled
+/// runtime fn — they ride the intrinsic channel (generic operand walking) so no
+/// per-pass Lowered/Instr node is needed. The runtime reads the element kind/tag
+/// off the array buf, so none of these need a static element type_id.
+/// `[lhs] * n` — repeat / preallocate (`[] * n` reserves n, length 0).
+export INTRINSIC_ARRAY_REPEAT :: "array.repeat"
+/// `dst.push_all(src)` — append every element of `src` to `dst` (grows dst).
+export INTRINSIC_ARRAY_PUSH_ALL :: "array.push_all"
+/// `src.copy_to(src_start, dst, dst_start, len)` — overlap-safe positional copy.
+export INTRINSIC_ARRAY_COPY :: "array.copy"
+/// `arr.remove_last()` — pop + return the last element as `T | null`.
+export INTRINSIC_ARRAY_REMOVE_LAST :: "array.remove_last"
+/// `arr.clear()` — drop every element (length 0, keep buf + capacity).
+export INTRINSIC_ARRAY_CLEAR :: "array.clear"
+
 // ============================================================================
 // Constructors
 // ============================================================================

@@ -40,6 +40,7 @@ import "vader/bytecode" {
     If, Else, End, Block, Loop, Branch, BranchIf, BoolNot,
     StructNew, StructGet, StructSet,
     ArrayNew, ArrayGet, ArraySet, ArrayLen, ArrayPush, ArraySlice, StringSliceCodepoints,
+    ArrayRepeat, ArrayPushAll, ArrayCopy, ArrayRemoveLast, ArrayClear,
     DataConst, TypeConst, TypeCheck, RefCast, Box, Convert, ConvertTarget,
     MakeClosure, DeferPush, DeferPopExec, SizeOfType,
 }
@@ -1310,7 +1311,12 @@ convert_eligible :: fn(v: ValType) -> bool = match v {
 /// null when the name doesn't map to a known intrinsic ; the sole caller
 /// panics on `null` rather than emitting a function-truncating stub.
 intrinsic_op_for_name :: fn(name: string) -> Op | null {
-    if name == "size_of.type" { return SizeOfType {} }
+    if name == "size_of.type"      { return SizeOfType {} }
+    if name == "array.repeat"      { return ArrayRepeat {} }
+    if name == "array.push_all"    { return ArrayPushAll {} }
+    if name == "array.copy"        { return ArrayCopy {} }
+    if name == "array.remove_last" { return ArrayRemoveLast {} }
+    if name == "array.clear"       { return ArrayClear {} }
     return null
 }
 

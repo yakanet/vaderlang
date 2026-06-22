@@ -281,7 +281,7 @@ MutableMap<K, V> implements Contains<K> {
 /// @param self  the map receiver.
 /// @return      a new array of every stored key.
 export keys :: fn<K, V>(self: MutableMap<K, V>) -> K[] {
-    out: K[] = []
+    out: K[] = [] * self.size
     for e in 0..<self.size { out.push(self.ekeys[e]) }
     return out
 }
@@ -291,7 +291,7 @@ export keys :: fn<K, V>(self: MutableMap<K, V>) -> K[] {
 /// @param self  the map receiver.
 /// @return      a new array of every stored value.
 export values :: fn<K, V>(self: MutableMap<K, V>) -> V[] {
-    out: V[] = []
+    out: V[] = [] * self.size
     for e in 0..<self.size { out.push(self.evals[e]) }
     return out
 }

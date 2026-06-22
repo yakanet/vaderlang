@@ -100,6 +100,8 @@ op_allocates :: fn(op: vm.Op) -> bool {
     if op is vm.ObjectNew { return true }
     if op is vm.ArrayNew { return true }
     if op is vm.ArrayPush { return true }
+    if op is vm.ArrayRepeat { return true }
+    if op is vm.ArrayPushAll { return true }
     if op is vm.StringSliceCodepoints { return true }
     if op is vm.BufferToString { return true }
     if op is vm.MakeClosure { return true }
@@ -290,6 +292,11 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.ArrayGet as a         -> emit_array_get(s, a)
         is vm.ArraySet as a         -> emit_array_set(s, a)
         is vm.ArraySlice as a       -> emit_array_slice(s, a)
+        is vm.ArrayRepeat           -> emit_array_repeat(s)
+        is vm.ArrayPushAll          -> emit_array_push_all(s)
+        is vm.ArrayCopy             -> emit_array_copy(s)
+        is vm.ArrayRemoveLast       -> emit_array_remove_last(s)
+        is vm.ArrayClear            -> emit_array_clear(s)
         is vm.DataConst             -> todo("emit_op: data.const (needs emit_data_pool ; module.data_pool is empty today — the lowerer routes every literal to array.new)")
         is vm.TypeConst as tc       -> emit_type_const(s, tc)
         is vm.TypeCheck as tc       -> emit_type_check(s, tc)
@@ -1860,6 +1867,57 @@ emit_array_slice :: fn(s: FnState, op: vm.ArraySlice) -> void {
     name :: fresh_tmp(s, .Ref)
     line(s, "${name} = vader_box_obj(${op.type_id}u, ${arr_buf});")
     push_tmp(s, name, .Ref)
+}
+
+/// `[lhs] * n` — pop `n` then the source array ; push a fresh array repeating
+/// the source's elements n times (`[] * n` reserves n slots, length 0). The
+/// result is boxed with the runtime array's OWN `header.type_index` (set by the
+/// runtime from the source), so no static element type_id is threaded through
+/// the op. Allocating + GC-coupled, hence a runtime call (not open-coded).
+emit_array_repeat :: fn(s: FnState) -> void {
+    n :: pop(s)
+    src :: pop(s)
+    arr_buf :: aux(s, "arr")
+    line(s, "vader_array_t* ${arr_buf} = vader_array_repeat((vader_array_t*) ${name_of(src)}.payload.obj, (size_t) ${name_of(n)});")
+    name :: fresh_tmp(s, .Ref)
+    line(s, "${name} = vader_box_obj(${arr_buf}->header.type_index, ${arr_buf});")
+    push_tmp(s, name, .Ref)
+}
+
+/// `dst.push_all(src)` — pop `src` then `dst` ; append every element of `src` to
+/// `dst`. Statement-form, no value pushed back. Runtime call (grows + GC).
+emit_array_push_all :: fn(s: FnState) -> void {
+    src :: pop(s)
+    dst :: pop(s)
+    line(s, "vader_array_push_all((vader_array_t*) ${name_of(dst)}.payload.obj, (vader_array_t*) ${name_of(src)}.payload.obj);")
+}
+
+/// `src.copy_to(src_start, dst, dst_start, len)` — pop `len` / `dst_start` /
+/// `dst` / `src_start` / `src` (top-to-bottom) ; overlap-safe positional copy.
+/// Statement-form. No allocation in the runtime fn, but a plain runtime call.
+emit_array_copy :: fn(s: FnState) -> void {
+    len :: pop(s)
+    dst_start :: pop(s)
+    dst :: pop(s)
+    src_start :: pop(s)
+    src :: pop(s)
+    line(s, "vader_array_copy((vader_array_t*) ${name_of(src)}.payload.obj, (size_t) ${name_of(src_start)}, (vader_array_t*) ${name_of(dst)}.payload.obj, (size_t) ${name_of(dst_start)}, (size_t) ${name_of(len)});")
+}
+
+/// `arr.remove_last()` — pop an array ; push the removed last element as a boxed
+/// `T | null` (the runtime returns `vader_box_null()` when empty, else a box
+/// pre-tagged with the element's static tag — so `.Any`, no follow-up cast).
+emit_array_remove_last :: fn(s: FnState) -> void {
+    arr :: pop(s)
+    name :: fresh_tmp(s, .Any)
+    line(s, "${name} = vader_array_remove_last((vader_array_t*) ${name_of(arr)}.payload.obj);")
+    push_tmp(s, name, .Any)
+}
+
+/// `arr.clear()` — pop an array ; set its length to 0. Statement-form.
+emit_array_clear :: fn(s: FnState) -> void {
+    arr :: pop(s)
+    line(s, "vader_array_clear((vader_array_t*) ${name_of(arr)}.payload.obj);")
 }
 
 /// Element BcType index of array type `type_index` (the `BcArray.element`),

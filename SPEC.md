@@ -589,6 +589,39 @@ main :: fn() {
 
 **Storage**: module-level `const T[]` literals whose elements are all primitive (fixed-width integers, floats, char, bool) and all literal-valued land in the bytecode module's data pool — the C backend emits them as `static const` `.rodata` arrays, the VM materialises them once at module load, and `data.const` op-codes resolve to those pre-built values. References share one allocation across the whole process. Non-primitive elements (struct, string) continue to fn-wrap until the pool gains the matching representation.
 
+#### Repeat / preallocate — `[lhs] * n`
+
+The repeat operator builds a fresh array by repeating an array literal's elements `n` times. The array is always on the **left**, an integer count on the right:
+
+```vader
+zeros := [0] * 3          // [0, 0, 0]
+pair  := [7, 9] * 2       // [7, 9, 7, 9]   (length = len(lhs) * n)
+```
+
+Result length is `len(lhs) * n`; capacity is reserved for at least `max(len(lhs) * n, n)` elements. The empty-LHS form is the **preallocation** primitive (there is no named `with_capacity`):
+
+```vader
+buf: i32[] = [] * 1024    // length 0, capacity 1024 reserved
+for x in src { buf.push(x) }   // no reallocation up to 1024 elements
+```
+
+- `[] * n` yields an **empty** array (length 0) whose reserved tail is uninitialised. Indexing is bounds-checked against **length**, so `([] * n)[0]` traps — the reserved slots become readable only as `push` / `push_all` grow the length past them. (Identical to Rust `Vec::with_capacity`.) Use `[v] * n` when you want `n` *readable* slots; `[] * n` only to preallocate before pushing.
+- For a **reference** element type, the LHS is evaluated **once** and the same reference is repeated (shallow): `[obj] * 3` holds three references to the one `obj`.
+- The element type is inferred from the LHS, or from the assignment slot when the LHS is empty / a free literal (`[] * n` / `[0] * n` against an annotated `T[]`).
+
+#### Mutation methods
+
+Beyond `push(v)`, mutable arrays expose:
+
+| Method | Effect |
+|---|---|
+| `dst.push_all(src)` | Append every element of `src` (a `const T[]`) to `dst`, growing it. |
+| `src.copy_to(src_start, dst, dst_start, len)` | Overlap-safe positional copy of `len` elements from `src[src_start..]` into the **existing** `dst[dst_start..]` region (`dst` must already be long enough — traps otherwise). |
+| `arr.remove_last()` | Remove and return the last element as `T \| null` (`null` when empty). |
+| `arr.clear()` | Drop every element (length 0; keeps capacity). |
+
+All four reject a borrowed `const u8[]` view at runtime (mutation of a `bytes()` view is forbidden, as with `push`). `remove_last` returns the nullable through the usual `T | null` union, narrowed by `if x == null`.
+
 ### Tuples
 
 Heterogeneous fixed-arity sequences. The bracketed form `[T1, T2, ...]` (≥ 2 elements; **1-tuples are forbidden**) introduces a tuple type. Tuples lower to anonymous structs at compile time — no extra runtime cost.

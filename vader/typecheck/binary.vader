@@ -31,7 +31,12 @@ export infer_binary :: fn(
     e: AST.BinaryExpr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
-    left := check_expr_fn(e.left, null, typed, diags)
+    // `[lhs] * n` array-repeat : when an array result is expected, thread the
+    // expectation into the LHS so an empty `[]` (or a `[lit]` whose element is a
+    // free literal) recovers its element type from the slot — extends `[]`'s
+    // existing context-typing across the `*`. See `check_arith`'s Mul/array case.
+    left_ctx :: if e.op == .Mul && expected is ArrayType { expected } else { null }
+    left := check_expr_fn(e.left, left_ctx, typed, diags)
     // `x is T` — right side is a type expression. Record its
     // resolved type directly so dump entries match TS (e.g. `i32`
     // instead of the `type` metatype).
@@ -91,6 +96,18 @@ export infer_binary :: fn(
 // ---- per-op-class checkers ------------------------------------------------
 
 check_arith :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram, diags: Diagnostic[]) -> Type {
+    // `[lhs] * n` — array repeat / preallocation. The array must be on the LEFT,
+    // the count an integer on the right ; the result is the array type. Must
+    // precede the numeric check below (the integer right operand would otherwise
+    // route the whole expression into `numeric_result`). Lowers to the
+    // `array.repeat` intrinsic (see `lower_binary.vader`).
+    if e.op == .Mul && left is ArrayType {
+        if !is_numeric(right) {
+            diags.push(typecheck_error(.OperatorNotDefined, e.right.span,
+                "array repeat `[…] * n` needs an integer count, found `${display_type(right)}`"))
+        }
+        return left
+    }
     if e.op == .Add && is_string(left) && is_string(right) { return mk_primitive("string") }
     if is_numeric(left) || is_numeric(right) {
         return numeric_result(e, left, right, diags)

@@ -458,6 +458,42 @@ try_lower_array_op :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowered
                             .value  = lower_expr(ctx, call.args[0].value),
                         }
                     }
+                    // `push_all` / `copy_to` / `remove_last` / `clear` lower to
+                    // `array.*` intrinsics : the receiver is args[0], the rest are
+                    // the call args in source order (the bytecode op pops them in
+                    // reverse). `type` is the typer's result type (void, or `T |
+                    // null` for remove_last). Backed by parameterless ops — the
+                    // runtime reads the element kind/tag off the array buf.
+                    if field_expr.field == "push_all" && call.args.len() == 1 {
+                        return LoweredIntrinsicCall {
+                            .span = call.span, .type = type, .name = INTRINSIC_ARRAY_PUSH_ALL,
+                            .args = [lower_expr(ctx, field_expr.target), lower_expr(ctx, call.args[0].value)],
+                        }
+                    }
+                    if field_expr.field == "copy_to" && call.args.len() == 4 {
+                        return LoweredIntrinsicCall {
+                            .span = call.span, .type = type, .name = INTRINSIC_ARRAY_COPY,
+                            .args = [
+                                lower_expr(ctx, field_expr.target),
+                                lower_expr(ctx, call.args[0].value),
+                                lower_expr(ctx, call.args[1].value),
+                                lower_expr(ctx, call.args[2].value),
+                                lower_expr(ctx, call.args[3].value),
+                            ],
+                        }
+                    }
+                    if field_expr.field == "remove_last" && call.args.len() == 0 {
+                        return LoweredIntrinsicCall {
+                            .span = call.span, .type = type, .name = INTRINSIC_ARRAY_REMOVE_LAST,
+                            .args = [lower_expr(ctx, field_expr.target)],
+                        }
+                    }
+                    if field_expr.field == "clear" && call.args.len() == 0 {
+                        return LoweredIntrinsicCall {
+                            .span = call.span, .type = type, .name = INTRINSIC_ARRAY_CLEAR,
+                            .args = [lower_expr(ctx, field_expr.target)],
+                        }
+                    }
                     return null
                 }
                 _ -> { return null }

@@ -137,7 +137,7 @@ fn 0 snippet$run_match (string,ref,string) -> void
   local.get 0
   string.const 0
   local.get 3
-  call 42
+  call 41
   call 5
   return
 end
@@ -152,13 +152,13 @@ fn 1 snippet$run_find (string,ref,string) -> void
   local.tee 3
   type_check 14
   if $L0 void
-    call 43
+    call 42
     local.tee 4
     local.get 0
-    call 44
+    call 43
     local.get 4
     string.const 0
-    call 44
+    call 43
     local.get 3
     struct.get 14 0
     ref.cast 7
@@ -167,10 +167,10 @@ fn 1 snippet$run_find (string,ref,string) -> void
     local.set 5
     local.get 4
     local.get 5
-    call 44
+    call 43
     local.get 4
     string.const 3
-    call 44
+    call 43
     local.get 3
     struct.get 14 1
     ref.cast 7
@@ -179,10 +179,10 @@ fn 1 snippet$run_find (string,ref,string) -> void
     local.set 5
     local.get 4
     local.get 5
-    call 44
+    call 43
     local.get 4
     string.const 4
-    call 44
+    call 43
     local.get 3
     struct.get 14 2
     local.set 3
@@ -193,14 +193,14 @@ fn 1 snippet$run_find (string,ref,string) -> void
     local.set 5
     local.get 4
     local.get 5
-    call 44
+    call 43
     local.get 4
-    call 48
+    call 47
     call 5
   else
     local.get 0
     string.const 5
-    call 45
+    call 44
     call 5
   end $L0
   return
@@ -276,7 +276,7 @@ fn 2 snippet$main () -> i32
     local.set 2
     string.const 18
     local.get 2
-    call 45
+    call 44
     call 5
     i64.const 0
     local.set 3
@@ -307,7 +307,7 @@ fn 2 snippet$main () -> i32
           local.get 2
           string.const 20
           local.get 5
-          call 46
+          call 45
           call 5
           i64.const 1
           local.set 6
@@ -364,7 +364,7 @@ fn 2 snippet$main () -> i32
       local.set 2
       string.const 28
       local.get 2
-      call 45
+      call 44
       call 5
       local.get 0
       struct.get 14 2
@@ -376,7 +376,7 @@ fn 2 snippet$main () -> i32
       local.set 2
       string.const 29
       local.get 2
-      call 45
+      call 44
       call 5
       local.get 0
       struct.get 14 2
@@ -388,7 +388,7 @@ fn 2 snippet$main () -> i32
       local.set 2
       string.const 30
       local.get 2
-      call 45
+      call 44
       call 5
       local.get 0
       struct.get 14 2
@@ -400,7 +400,7 @@ fn 2 snippet$main () -> i32
       local.set 2
       string.const 31
       local.get 2
-      call 45
+      call 44
       call 5
     else
     end $L8
@@ -495,7 +495,7 @@ fn 2 snippet$main () -> i32
     local.set 2
     string.const 53
     local.get 2
-    call 45
+    call 44
     call 5
   else
   end $L12
@@ -513,7 +513,7 @@ fn 2 snippet$main () -> i32
     local.set 2
     string.const 57
     local.get 2
-    call 45
+    call 44
     call 5
   else
   end $L13
@@ -785,7 +785,7 @@ fn 4 std_core$format_unsigned (u64) -> string
     end $L2
   end $L1
   local.get 2
-  call 49
+  call 48
   local.set 6
   local.get 2
   local.set 4
@@ -819,7 +819,7 @@ fn 4 std_core$format_unsigned (u64) -> string
         local.get 6
         local.get 4
         local.get 10
-        call 52
+        call 51
         i64.const 10
         local.set 5
         local.get 0
@@ -833,7 +833,7 @@ fn 4 std_core$format_unsigned (u64) -> string
   end $L4
   local.get 6
   local.get 2
-  call 50
+  call 49
   return
 end
 
@@ -994,14 +994,14 @@ fn 8 std_regex$compile (string) -> ref
     local.set 2
     local.get 3
     local.get 2
-    call 39
+    call 38
     call 3
     call.import 0
     local.set 6
     string.const 64
     local.get 6
     string.const 65
-    call 42
+    call 41
     local.set 6
     local.field 1 18 1
     ref.cast 7
@@ -1159,7 +1159,7 @@ fn 10 std_regex$replace_all (ref,string,string) -> string
   local.get 2
   call.import 1
   local.set 4
-  call 43
+  call 42
   local.set 5
   i64.const 0
   local.set 6
@@ -1192,7 +1192,7 @@ fn 10 std_regex$replace_all (ref,string,string) -> string
         local.set 12
         local.get 5
         local.get 12
-        call 44
+        call 43
         local.get 5
         local.get 4
         local.get 10
@@ -1229,11 +1229,11 @@ fn 10 std_regex$replace_all (ref,string,string) -> string
     local.set 12
     local.get 5
     local.get 12
-    call 44
+    call 43
   else
   end $L3
   local.get 5
-  call 48
+  call 47
   return
 end
 
@@ -1342,7 +1342,7 @@ fn 11 std_regex$run_at (ref,ref,usize) -> ref
         if $L3 void
           local.get 1
           local.get 3
-          call 40
+          call 39
           local.set 11
           local.field 11 39 0
           ref.cast 5
@@ -1696,7 +1696,7 @@ end
 fn 12 std_regex$codepoint_byte_advance (ref,usize) -> usize
   local.get 0
   local.get 1
-  call 40
+  call 39
   struct.get 39 1
   ref.cast 7
   return
@@ -1821,11 +1821,11 @@ fn 13 std_regex$parse_alternation (ref) -> ref
   local.get 9
   local.get 1
   local.get 3
-  call 24
+  call 23
   local.set 9
   local.get 2
   local.get 9
-  call 23
+  array.push_all
   local.get 2
   array.len
   local.set 3
@@ -1834,7 +1834,7 @@ fn 13 std_regex$parse_alternation (ref) -> ref
   array.push 7
   local.field 0 18 2
   local.get 1
-  call 25
+  call 24
   local.set 9
   local.get 0
   local.get 9
@@ -1902,11 +1902,11 @@ fn 13 std_regex$parse_alternation (ref) -> ref
           local.get 15
           local.get 13
           local.get 16
-          call 24
+          call 23
           local.set 17
           local.get 2
           local.get 17
-          call 23
+          array.push_all
           local.get 2
           array.len
           local.set 18
@@ -1915,7 +1915,7 @@ fn 13 std_regex$parse_alternation (ref) -> ref
           array.push 7
           local.field 0 18 2
           local.get 13
-          call 25
+          call 24
           local.set 19
           local.get 0
           local.get 19
@@ -1987,7 +1987,7 @@ fn 13 std_regex$parse_alternation (ref) -> ref
               local.get 2
               local.get 34
               local.get 37
-              call 26
+              call 25
               local.field 0 18 2
               array.len
               local.set 38
@@ -2052,7 +2052,7 @@ fn 13 std_regex$parse_alternation (ref) -> ref
         local.get 2
         local.get 48
         local.get 51
-        call 26
+        call 25
         local.field 0 18 2
         array.len
         local.set 52
@@ -2208,7 +2208,7 @@ fn 14 std_regex$expand_replacement (ref,ref,ref) -> void
               local.set 18
               local.get 0
               local.get 18
-              call 44
+              call 43
             else
             end $L7
             i64.const 2
@@ -2221,7 +2221,7 @@ fn 14 std_regex$expand_replacement (ref,ref,ref) -> void
           end $L6
           local.get 1
           local.get 4
-          call 40
+          call 39
           local.set 20
           local.field 20 39 0
           ref.cast 5
@@ -2231,7 +2231,7 @@ fn 14 std_regex$expand_replacement (ref,ref,ref) -> void
           local.set 22
           local.get 0
           local.get 21
-          call 47
+          call 46
           local.get 4
           local.get 22
           i64.add
@@ -2240,7 +2240,7 @@ fn 14 std_regex$expand_replacement (ref,ref,ref) -> void
         end $L4
         local.get 1
         local.get 4
-        call 40
+        call 39
         local.set 20
         local.field 20 39 0
         ref.cast 5
@@ -2250,7 +2250,7 @@ fn 14 std_regex$expand_replacement (ref,ref,ref) -> void
         local.set 22
         local.get 0
         local.get 21
-        call 47
+        call 46
         local.get 4
         local.get 22
         i64.add
@@ -2834,7 +2834,7 @@ fn 22 std_regex$parse_concat (ref) -> ref
         if $L4 void
         else
           local.get 0
-          call 27
+          call 26
           local.tee 9
           type_check 16
           if $L5 void
@@ -2852,118 +2852,42 @@ fn 22 std_regex$parse_concat (ref) -> ref
   return
 end
 
-fn 23 std_regex$push_all (ref,ref) -> void
-  local __for_hi_0 usize
-  local i usize
-  local $idx_7 ref
-  local $k_8 usize
+fn 23 std_regex$extract_range (ref,usize,usize) -> ref
+  local view ref
+  local $arr_5 ref
+  local $len_6 usize
+  local.get 0
   local.get 1
-  array.len
-  local.set 2
-  i64.const 0
-  local.set 3
-  block $L0 void
-    loop $L1 void
-      local.get 3
-      local.get 2
-      u64.lt
-      if $L2 void
-        local.get 1
-        local.get 3
-        array.get 24
-        local.set 4
-        local.get 0
-        local.get 4
-        array.push 25
-        i64.const 1
-        local.set 5
-        local.get 3
-        local.get 5
-        i64.add
-        local.set 3
-        br $L1
-      else
-      end $L2
-    end $L1
-  end $L0
-  return
-end
-
-fn 24 std_regex$extract_range (ref,usize,usize) -> ref
-  local out ref
-  local i usize
-  local $idx_7 ref
-  local $k_8 usize
-  array.new 24 0
-  local.set 3
-  local.get 1
-  local.set 4
-  block $L0 void
-    loop $L1 void
-      local.get 4
-      local.get 2
-      u64.lt
-      if $L2 void
-        local.get 0
-        local.get 4
-        array.get 24
-        local.set 5
-        local.get 3
-        local.get 5
-        array.push 25
-        i64.const 1
-        local.set 6
-        local.get 4
-        local.get 6
-        i64.add
-        local.set 4
-        br $L1
-      else
-      end $L2
-    end $L1
-  end $L0
-  local.get 3
-  return
-end
-
-fn 25 std_regex$truncate_to (ref,usize) -> ref
-  local out ref
-  local i usize
-  local $idx_7 ref
-  local $k_8 usize
-  array.new 24 0
-  local.set 2
-  i64.const 0
-  local.set 3
-  block $L0 void
-    loop $L1 void
-      local.get 3
-      local.get 1
-      u64.lt
-      if $L2 void
-        local.get 0
-        local.get 3
-        array.get 24
-        local.set 4
-        local.get 2
-        local.get 4
-        array.push 25
-        i64.const 1
-        local.set 5
-        local.get 3
-        local.get 5
-        i64.add
-        local.set 3
-        br $L1
-      else
-      end $L2
-    end $L1
-  end $L0
   local.get 2
+  array.slice 24
+  local.set 3
+  array.new 24 0
+  local.set 4
+  local.get 3
+  array.len
+  local.set 5
+  local.get 4
+  local.get 5
+  array.repeat
+  local.tee 4
+  local.get 3
+  array.push_all
+  local.get 4
   return
 end
 
-fn 26 std_regex$copy_slice (ref,ref,usize,usize) -> void
+fn 24 std_regex$truncate_to (ref,usize) -> ref
+  local $k_2 usize
+  i64.const 0
+  local.set 2
+  local.get 0
+  local.get 2
+  local.get 1
+  call 23
+  return
+end
+
+fn 25 std_regex$copy_slice (ref,ref,usize,usize) -> void
   local i usize
   local $idx_6 ref
   local $k_7 usize
@@ -2996,7 +2920,7 @@ fn 26 std_regex$copy_slice (ref,ref,usize,usize) -> void
   return
 end
 
-fn 27 std_regex$parse_atom_with_quantifier (ref) -> ref
+fn 26 std_regex$parse_atom_with_quantifier (ref) -> ref
   local atom_start usize
   local err ref
   local $field_8 usize
@@ -3007,7 +2931,7 @@ fn 27 std_regex$parse_atom_with_quantifier (ref) -> ref
   array.len
   local.set 1
   local.get 0
-  call 28
+  call 27
   local.tee 2
   type_check 16
   if $L0 void
@@ -3058,7 +2982,7 @@ fn 27 std_regex$parse_atom_with_quantifier (ref) -> ref
     struct.set 18 1
     local.get 0
     local.get 1
-    call 29
+    call 28
     null.const
     box 0
     return
@@ -3083,7 +3007,7 @@ fn 27 std_regex$parse_atom_with_quantifier (ref) -> ref
     struct.set 18 1
     local.get 0
     local.get 1
-    call 30
+    call 29
     null.const
     box 0
     return
@@ -3108,7 +3032,7 @@ fn 27 std_regex$parse_atom_with_quantifier (ref) -> ref
     struct.set 18 1
     local.get 0
     local.get 1
-    call 31
+    call 30
     null.const
     box 0
     return
@@ -3121,7 +3045,7 @@ fn 27 std_regex$parse_atom_with_quantifier (ref) -> ref
   if $L5 void
     local.get 0
     local.get 1
-    call 32
+    call 31
     return
   end $L5
   null.const
@@ -3129,7 +3053,7 @@ fn 27 std_regex$parse_atom_with_quantifier (ref) -> ref
   return
 end
 
-fn 28 std_regex$parse_atom (ref) -> ref
+fn 27 std_regex$parse_atom (ref) -> ref
   local $field_1 usize
   local $len_3 usize
   local $field_8 ref
@@ -3385,7 +3309,7 @@ fn 28 std_regex$parse_atom (ref) -> ref
   i32.eq
   if $L8 void
     local.get 0
-    call 33
+    call 32
     return
   end $L8
   i32.const 92
@@ -3395,7 +3319,7 @@ fn 28 std_regex$parse_atom (ref) -> ref
   i32.eq
   if $L9 void
     local.get 0
-    call 34
+    call 33
     return
   end $L9
   local.field 0 18 0
@@ -3405,7 +3329,7 @@ fn 28 std_regex$parse_atom (ref) -> ref
   local.set 1
   local.get 3
   local.get 1
-  call 40
+  call 39
   local.set 3
   local.field 3 39 0
   ref.cast 5
@@ -3434,7 +3358,7 @@ fn 28 std_regex$parse_atom (ref) -> ref
   return
 end
 
-fn 29 std_regex$apply_star (ref,usize) -> void
+fn 28 std_regex$apply_star (ref,usize) -> void
   local $field_2 ref
   local $len_4 usize
   local $call_8 ref
@@ -3449,11 +3373,11 @@ fn 29 std_regex$apply_star (ref,usize) -> void
   local.get 2
   local.get 1
   local.get 3
-  call 24
+  call 23
   local.set 2
   local.field 0 18 2
   local.get 1
-  call 25
+  call 24
   local.set 4
   local.get 0
   local.get 4
@@ -3479,7 +3403,7 @@ fn 29 std_regex$apply_star (ref,usize) -> void
   local.set 5
   local.field 0 18 2
   local.get 2
-  call 23
+  array.push_all
   local.field 0 18 2
   local.set 2
   local.get 3
@@ -3504,7 +3428,7 @@ fn 29 std_regex$apply_star (ref,usize) -> void
   return
 end
 
-fn 30 std_regex$apply_plus (ref,usize) -> void
+fn 29 std_regex$apply_plus (ref,usize) -> void
   local split_pos usize
   local $field_5 ref
   local $k_6 usize
@@ -3542,7 +3466,7 @@ fn 30 std_regex$apply_plus (ref,usize) -> void
   return
 end
 
-fn 31 std_regex$apply_optional (ref,usize) -> void
+fn 30 std_regex$apply_optional (ref,usize) -> void
   local $field_2 ref
   local $len_4 usize
   local $call_8 ref
@@ -3557,11 +3481,11 @@ fn 31 std_regex$apply_optional (ref,usize) -> void
   local.get 2
   local.get 1
   local.get 3
-  call 24
+  call 23
   local.set 2
   local.field 0 18 2
   local.get 1
-  call 25
+  call 24
   local.set 4
   local.get 0
   local.get 4
@@ -3585,7 +3509,7 @@ fn 31 std_regex$apply_optional (ref,usize) -> void
   array.push 33
   local.field 0 18 2
   local.get 2
-  call 23
+  array.push_all
   local.field 0 18 2
   array.len
   local.set 3
@@ -3608,7 +3532,7 @@ fn 31 std_regex$apply_optional (ref,usize) -> void
   return
 end
 
-fn 32 std_regex$apply_counted (ref,usize) -> ref
+fn 31 std_regex$apply_counted (ref,usize) -> ref
   local $field_2 ref
   local $field_3 usize
   local $idx_4 u8
@@ -3694,7 +3618,7 @@ fn 32 std_regex$apply_counted (ref,usize) -> ref
   local.get 6
   struct.set 18 1
   local.get 0
-  call 35
+  call 34
   local.tee 2
   type_check 16
   if $L1 void
@@ -3788,7 +3712,7 @@ fn 32 std_regex$apply_counted (ref,usize) -> ref
     local.get 12
     if $L5 void
       local.get 0
-      call 35
+      call 34
       local.tee 2
       type_check 16
       if $L6 void
@@ -3857,11 +3781,11 @@ fn 32 std_regex$apply_counted (ref,usize) -> ref
       local.get 17
       local.get 1
       local.get 18
-      call 24
+      call 23
       local.set 19
       local.field 0 18 2
       local.get 1
-      call 25
+      call 24
       local.set 20
       local.get 0
       local.get 20
@@ -3876,7 +3800,7 @@ fn 32 std_regex$apply_counted (ref,usize) -> ref
           if $L11 void
             local.field 0 18 2
             local.get 19
-            call 23
+            array.push_all
             i64.const 1
             local.set 22
             local.get 21
@@ -3925,7 +3849,7 @@ fn 32 std_regex$apply_counted (ref,usize) -> ref
               array.push 33
               local.field 0 18 2
               local.get 19
-              call 23
+              array.push_all
               i64.const 1
               local.set 31
               local.get 25
@@ -4004,7 +3928,7 @@ fn 32 std_regex$apply_counted (ref,usize) -> ref
           local.set 45
           local.field 0 18 2
           local.get 19
-          call 23
+          array.push_all
           local.field 0 18 2
           local.set 46
           local.get 40
@@ -4090,11 +4014,11 @@ fn 32 std_regex$apply_counted (ref,usize) -> ref
     local.get 17
     local.get 1
     local.get 18
-    call 24
+    call 23
     local.set 19
     local.field 0 18 2
     local.get 1
-    call 25
+    call 24
     local.set 20
     local.get 0
     local.get 20
@@ -4109,7 +4033,7 @@ fn 32 std_regex$apply_counted (ref,usize) -> ref
         if $L24 void
           local.field 0 18 2
           local.get 19
-          call 23
+          array.push_all
           i64.const 1
           local.set 22
           local.get 21
@@ -4158,7 +4082,7 @@ fn 32 std_regex$apply_counted (ref,usize) -> ref
             array.push 33
             local.field 0 18 2
             local.get 19
-            call 23
+            array.push_all
             i64.const 1
             local.set 31
             local.get 25
@@ -4237,7 +4161,7 @@ fn 32 std_regex$apply_counted (ref,usize) -> ref
         local.set 45
         local.field 0 18 2
         local.get 19
-        call 23
+        array.push_all
         local.field 0 18 2
         local.set 46
         local.get 40
@@ -4323,11 +4247,11 @@ fn 32 std_regex$apply_counted (ref,usize) -> ref
   local.get 17
   local.get 1
   local.get 18
-  call 24
+  call 23
   local.set 19
   local.field 0 18 2
   local.get 1
-  call 25
+  call 24
   local.set 20
   local.get 0
   local.get 20
@@ -4342,7 +4266,7 @@ fn 32 std_regex$apply_counted (ref,usize) -> ref
       if $L37 void
         local.field 0 18 2
         local.get 19
-        call 23
+        array.push_all
         i64.const 1
         local.set 22
         local.get 21
@@ -4391,7 +4315,7 @@ fn 32 std_regex$apply_counted (ref,usize) -> ref
           array.push 33
           local.field 0 18 2
           local.get 19
-          call 23
+          array.push_all
           i64.const 1
           local.set 31
           local.get 25
@@ -4470,7 +4394,7 @@ fn 32 std_regex$apply_counted (ref,usize) -> ref
       local.set 45
       local.field 0 18 2
       local.get 19
-      call 23
+      array.push_all
       local.field 0 18 2
       local.set 46
       local.get 40
@@ -4500,7 +4424,7 @@ fn 32 std_regex$apply_counted (ref,usize) -> ref
   return
 end
 
-fn 33 std_regex$parse_char_class (ref) -> ref
+fn 32 std_regex$parse_char_class (ref) -> ref
   local start_pos usize
   local $field_3 usize
   local $k_4 usize
@@ -4650,7 +4574,7 @@ fn 33 std_regex$parse_char_class (ref) -> ref
       local.get 5
       if $L5 void
         local.get 0
-        call 36
+        call 35
         local.tee 11
         type_check 16
         if $L6 void
@@ -4750,7 +4674,7 @@ fn 33 std_regex$parse_char_class (ref) -> ref
             local.get 33
             struct.set 18 1
             local.get 0
-            call 36
+            call 35
             local.tee 34
             type_check 16
             if $L11 void
@@ -4834,7 +4758,7 @@ fn 33 std_regex$parse_char_class (ref) -> ref
   return
 end
 
-fn 34 std_regex$parse_escape (ref) -> ref
+fn 33 std_regex$parse_escape (ref) -> ref
   local $field_1 usize
   local $k_2 usize
   local $field_11 ref
@@ -5003,7 +4927,7 @@ fn 34 std_regex$parse_escape (ref) -> ref
   if $L6 void
     local.field 0 18 2
     local.set 3
-    call 37
+    call 36
     local.set 6
     local.get 6
     bool.const false
@@ -5024,7 +4948,7 @@ fn 34 std_regex$parse_escape (ref) -> ref
   if $L7 void
     local.field 0 18 2
     local.set 3
-    call 37
+    call 36
     local.set 6
     local.get 6
     bool.const true
@@ -5045,7 +4969,7 @@ fn 34 std_regex$parse_escape (ref) -> ref
   if $L8 void
     local.field 0 18 2
     local.set 3
-    call 38
+    call 37
     local.set 6
     local.get 6
     bool.const false
@@ -5066,7 +4990,7 @@ fn 34 std_regex$parse_escape (ref) -> ref
   if $L9 void
     local.field 0 18 2
     local.set 3
-    call 38
+    call 37
     local.set 6
     local.get 6
     bool.const true
@@ -5094,7 +5018,7 @@ fn 34 std_regex$parse_escape (ref) -> ref
   return
 end
 
-fn 35 std_regex$parse_decimal_usize (ref) -> ref
+fn 34 std_regex$parse_decimal_usize (ref) -> ref
   local $field_1 usize
   local $len_3 usize
   local or_res bool
@@ -5287,7 +5211,7 @@ fn 35 std_regex$parse_decimal_usize (ref) -> ref
   return
 end
 
-fn 36 std_regex$read_class_char (ref) -> ref
+fn 35 std_regex$read_class_char (ref) -> ref
   local $field_1 usize
   local $len_3 usize
   local $field_8 ref
@@ -5417,7 +5341,7 @@ fn 36 std_regex$read_class_char (ref) -> ref
   local.set 1
   local.get 3
   local.get 1
-  call 40
+  call 39
   local.set 3
   local.field 3 39 0
   ref.cast 5
@@ -5438,7 +5362,7 @@ fn 36 std_regex$read_class_char (ref) -> ref
   return
 end
 
-fn 37 std_regex$word_class_ranges () -> ref
+fn 36 std_regex$word_class_ranges () -> ref
   local $struct_2 ref
   local $struct_5 ref
   local $struct_8 ref
@@ -5467,7 +5391,7 @@ fn 37 std_regex$word_class_ranges () -> ref
   return
 end
 
-fn 38 std_regex$space_class_ranges () -> ref
+fn 37 std_regex$space_class_ranges () -> ref
   local $struct_2 ref
   local $struct_5 ref
   local $struct_8 ref
@@ -5496,7 +5420,7 @@ fn 38 std_regex$space_class_ranges () -> ref
   return
 end
 
-fn 39 std_string$decode_char_at (ref,usize) -> char
+fn 38 std_string$decode_char_at (ref,usize) -> char
   local n usize
   local b u8
   local $k_6 u8
@@ -5794,14 +5718,14 @@ fn 39 std_string$decode_char_at (ref,usize) -> char
   return
 end
 
-fn 40 std_string$decode_codepoint_at (ref,usize) -> ref
+fn 39 std_string$decode_codepoint_at (ref,usize) -> ref
   local c char
   local $call_4 usize
   local.get 0
   local.get 1
-  call 39
+  call 38
   local.tee 2
-  call 41
+  call 40
   local.set 3
   local.get 2
   local.get 3
@@ -5809,7 +5733,7 @@ fn 40 std_string$decode_codepoint_at (ref,usize) -> ref
   return
 end
 
-fn 41 std_string$codepoint_byte_len (char) -> usize
+fn 40 std_string$codepoint_byte_len (char) -> usize
   local cp u32
   local $k_3 u32
   local.get 0
@@ -5842,7 +5766,7 @@ fn 41 std_string$codepoint_byte_len (char) -> usize
   return.lit i64.const 4
 end
 
-fn 42 std_string_builder$concat3 (string,string,string) -> string
+fn 41 std_string_builder$concat3 (string,string,string) -> string
   local la usize
   local $call_5 usize
   local $call_8 usize
@@ -5865,42 +5789,42 @@ fn 42 std_string_builder$concat3 (string,string,string) -> string
   local.get 5
   i64.add
   local.tee 5
-  call 49
+  call 48
   local.set 6
   i64.const 0
   local.set 7
   local.get 6
   local.get 7
   local.get 0
-  call 51
+  call 50
   local.get 6
   local.get 3
   local.get 1
-  call 51
+  call 50
   local.get 6
   local.get 4
   local.get 2
-  call 51
+  call 50
   local.get 6
   local.get 5
-  call 50
+  call 49
   return
 end
 
-fn 43 std_string_builder$new_builder () -> ref
+fn 42 std_string_builder$new_builder () -> ref
   array.new 12 0
   struct.new 20
   return
 end
 
-fn 44 std_string_builder$append (ref,string) -> void
+fn 43 std_string_builder$append (ref,string) -> void
   local.field 0 20 0
   local.get 1
   array.push 1
   return
 end
 
-fn 45 std_string_builder$concat2 (string,string) -> string
+fn 44 std_string_builder$concat2 (string,string) -> string
   local la usize
   local $call_4 usize
   local buf ref
@@ -5915,25 +5839,25 @@ fn 45 std_string_builder$concat2 (string,string) -> string
   local.get 3
   i64.add
   local.tee 3
-  call 49
+  call 48
   local.set 4
   i64.const 0
   local.set 5
   local.get 4
   local.get 5
   local.get 0
-  call 51
+  call 50
   local.get 4
   local.get 2
   local.get 1
-  call 51
+  call 50
   local.get 4
   local.get 3
-  call 50
+  call 49
   return
 end
 
-fn 46 std_string_builder$concat4 (string,string,string,string) -> string
+fn 45 std_string_builder$concat4 (string,string,string,string) -> string
   local la usize
   local $call_6 usize
   local $call_9 usize
@@ -5964,33 +5888,33 @@ fn 46 std_string_builder$concat4 (string,string,string,string) -> string
   local.get 7
   i64.add
   local.tee 7
-  call 49
+  call 48
   local.set 8
   i64.const 0
   local.set 9
   local.get 8
   local.get 9
   local.get 0
-  call 51
+  call 50
   local.get 8
   local.get 4
   local.get 1
-  call 51
+  call 50
   local.get 8
   local.get 5
   local.get 2
-  call 51
+  call 50
   local.get 8
   local.get 6
   local.get 3
-  call 51
+  call 50
   local.get 8
   local.get 7
-  call 50
+  call 49
   return
 end
 
-fn 47 std_string_builder$append_char (ref,char) -> void
+fn 46 std_string_builder$append_char (ref,char) -> void
   local $field_2 ref
   local $call_4 string
   local.field 0 20 0
@@ -6005,7 +5929,7 @@ fn 47 std_string_builder$append_char (ref,char) -> void
   return
 end
 
-fn 48 std_string_builder$StringBuilder$Display$to_string (ref) -> string
+fn 47 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local n usize
   local $k_4 usize
   local $field_9 ref
@@ -6076,7 +6000,7 @@ fn 48 std_string_builder$StringBuilder$Display$to_string (ref) -> string
     end $L3
   end $L2
   local.get 1
-  call 49
+  call 48
   local.set 3
   i64.const 0
   local.set 2
@@ -6100,7 +6024,7 @@ fn 48 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         local.get 3
         local.get 2
         local.get 8
-        call 51
+        call 50
         local.get 8
         call.import 3
         local.set 6
@@ -6121,24 +6045,24 @@ fn 48 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   end $L5
   local.get 3
   local.get 1
-  call 50
+  call 49
   return
 end
 
-fn 49 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 48 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   object_new 0
   return
 end
 
-fn 50 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 49 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
   buffer_to_string
   return
 end
 
-fn 51 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 50 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0
   local.get 1
   local.get 2
@@ -6146,7 +6070,7 @@ fn 51 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   return
 end
 
-fn 52 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
+fn 51 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   local.get 0
   local.get 1
   local.get 2
