@@ -51,7 +51,7 @@ export const_fold_project :: fn(p: CFGProject) -> CFGProject {
 }
 
 const_fold_function :: fn(fn_: CFGFunction) -> CFGFunction {
-    new_blocks: BasicBlock[] = []
+    new_blocks: BasicBlock[] = [] * fn_.blocks.len()
     for b in fn_.blocks {
         folded :: const_fold_block(b)
         new_blocks.push(BasicBlock {
@@ -77,7 +77,7 @@ const_fold_function :: fn(fn_: CFGFunction) -> CFGFunction {
 
 const_fold_block :: fn(b: BasicBlock) -> Instruction[] {
     consts :: MutableMap<i32, ConstValue> {}
-    out: Instruction[] = []
+    out: Instruction[] = [] * b.instructions.len()
     for ins in b.instructions {
         if ins is InstrConst as c {
             consts[c.dst] = c.value

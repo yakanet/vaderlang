@@ -31,7 +31,7 @@ export successors_of :: fn(b: BasicBlock) -> BlockId[] {
 /// Predecessor lists keyed by BlockId. The returned array is dense
 /// (one entry per block, possibly empty).
 export predecessors_of :: fn(fn_: CFGFunction) -> BlockId[][] {
-    out: BlockId[][] = []
+    out: BlockId[][] = [] * fn_.blocks.len()
     for _ in fn_.blocks { out.push([]) }
     for b in fn_.blocks {
         for succ in successors_of(b) { out[succ].push(b.id) }
@@ -207,11 +207,10 @@ export count_uses :: fn(fn_: CFGFunction) -> MutableMap<LocalId, i32> {
 /// before predecessors (backward).
 export reverse_postorder :: fn(fn_: CFGFunction) -> BlockId[] {
     order: BlockId[] = []
-    visited: bool[] = []
-    for _ in fn_.blocks { visited.push(false) }
+    visited: bool[] = [false] * fn_.blocks.len()
     walk_rpo(fn_, fn_.entry, visited, order)
     // Reverse in place.
-    out: BlockId[] = []
+    out: BlockId[] = [] * order.len()
     i := order.len()
     for i > 0 {
         i = i - 1
@@ -232,8 +231,7 @@ walk_rpo :: fn(fn_: CFGFunction, b: BlockId, visited: bool[], order: BlockId[]) 
 /// unreachable blocks return -1 — interpreted as "no known idom").
 export compute_dominators :: fn(fn_: CFGFunction, preds: BlockId[][]) -> i32[] {
     n :: fn_.blocks.len()
-    idom: i32[] = []
-    for 0..<n { idom.push(-1) }
+    idom: i32[] = [-1] * n
     idom[fn_.entry] = fn_.entry
     rpo :: reverse_postorder(fn_)
     changed := true
@@ -311,18 +309,18 @@ export dominates :: fn(idom: i32[], a: BlockId, b: BlockId) -> bool {
 export compute_post_dominators :: fn(fn_: CFGFunction) -> i32[] {
     n :: fn_.blocks.len()
     // Build successors + fake successors / predecessors graphs.
-    succs: BlockId[][] = []
+    succs: BlockId[][] = [] * n
     for b in fn_.blocks { succs.push(successors_of(b)) }
     exits: BlockId[] = []
     for i in 0..<n {
         if succs[i].len() == 0 { exits.push(i32(i)) }
     }
     se :: i32(n)            // synthetic exit node index
-    fake_succs: BlockId[][] = []
-    for s in succs { fake_succs.push(s) }
+    fake_succs: BlockId[][] = [] * (n + 1)
+    fake_succs.push_all(succs)
     empty_se: BlockId[] = []
     fake_succs.push(empty_se)
-    fake_preds: BlockId[][] = []
+    fake_preds: BlockId[][] = [] * (n + 1)
     for j in 0..=n {
         empty: BlockId[] = []
         fake_preds.push(empty)
@@ -336,16 +334,10 @@ export compute_post_dominators :: fn(fn_: CFGFunction) -> i32[] {
     }
     // RPO on reverse graph from SE.
     order: BlockId[] = []
-    visited: bool[] = []
-    for m in 0..=n {
-        visited.push(false)
-    }
+    visited: bool[] = [false] * (n + 1)
     walk_rpo_reverse(fake_preds, se, visited, order)
     // Iterative post-dominator solve.
-    ipdom: i32[] = []
-    for p in 0..=n {
-        ipdom.push(-1)
-    }
+    ipdom: i32[] = [-1] * (n + 1)
     ipdom[usize(se)] = se
     changed := true
     for changed {
@@ -371,7 +363,7 @@ export compute_post_dominators :: fn(fn_: CFGFunction) -> i32[] {
         }
     }
     // Strip the synthetic SE — translate "ipdom = SE" → -1 for caller.
-    out: i32[] = []
+    out: i32[] = [] * n
     for q in 0..<n {
         v :: ipdom[q]
         if v == se { out.push(-1) } else { out.push(v) }
@@ -431,8 +423,8 @@ export Liveness :: struct {
 
 export compute_liveness :: fn(fn_: CFGFunction) -> Liveness {
     n :: fn_.blocks.len()
-    use_: MutableSet<LocalId>[] = []
-    def_: MutableSet<LocalId>[] = []
+    use_: MutableSet<LocalId>[] = [] * n
+    def_: MutableSet<LocalId>[] = [] * n
     for i in 0..<n {
         b :: fn_.blocks[i]
         u :: MutableSet<LocalId> {}
@@ -451,11 +443,11 @@ export compute_liveness :: fn(fn_: CFGFunction) -> Liveness {
         def_.push(d)
     }
 
-    succs: BlockId[][] = []
+    succs: BlockId[][] = [] * n
     for b in fn_.blocks { succs.push(successors_of(b)) }
 
-    live_in:  MutableSet<LocalId>[] = []
-    live_out: MutableSet<LocalId>[] = []
+    live_in:  MutableSet<LocalId>[] = [] * n
+    live_out: MutableSet<LocalId>[] = [] * n
     for 0..<n {
         live_in.push(MutableSet<LocalId> {})
         live_out.push(MutableSet<LocalId> {})
