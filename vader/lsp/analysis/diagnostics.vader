@@ -67,7 +67,23 @@ encode_diagnostic :: fn(d: Diagnostic) -> JsonValue {
     obj["code"]     = JsonString { .value = d.code.id }
     obj["source"]   = JsonString { .value = "vader" }
     obj["message"]  = JsonString { .value = format_message(d) }
+    // LSP DiagnosticTag : fades dead code / strikes through deprecated refs so
+    // the editor renders them softly instead of as a harsh warning squiggle.
+    tag :: lsp_diag_tag(d.code.id)
+    if tag > 0 {
+        obj["tags"] = JsonArray { .items = [JsonNumber { .value = f64(tag) }] }
+    }
     return JsonObject { .entries = obj }
+}
+
+/// LSP `DiagnosticTag` for a diagnostic code (LSP §3.17.16) : `1` = Unnecessary
+/// (the editor renders the range faded — for dead code), `2` = Deprecated
+/// (struck through), `0` = no tag. `W0007` (dead-code lint) fades the unused
+/// declaration ; `W0001` (use of a `@deprecated` decl) strikes the reference.
+lsp_diag_tag :: fn(code_id: string) -> i32 {
+    if code_id == "W0007" { return 1 }
+    if code_id == "W0001" { return 2 }
+    return 0
 }
 
 format_message :: fn(d: Diagnostic) -> string {
@@ -83,4 +99,15 @@ lsp_severity :: fn(s: Severity) -> i32 = match s {
     .Warning -> i32(2)
     .Info    -> i32(3)
     .Hint    -> i32(4)
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert_eq }
+
+@test test_lsp_diag_tag :: fn() -> void {
+    assert_eq(lsp_diag_tag("W0007"), i32(1))   // dead code → Unnecessary (faded)
+    assert_eq(lsp_diag_tag("W0001"), i32(2))   // deprecated → Deprecated (struck)
+    assert_eq(lsp_diag_tag("T3054"), i32(0))   // ordinary error → no tag
+    assert_eq(lsp_diag_tag("W0004"), i32(0))   // ordinary warning → no tag
 }
