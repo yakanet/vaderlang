@@ -48,13 +48,7 @@ export is_empty :: fn<T>(arr: T[]) -> bool = arr.len() == 0
 /// with the input. Symmetric with the future Iterator-driven `collect(it)`.
 /// @param arr  source array.
 /// @return     a fresh array with the same elements in the same order.
-export collect :: fn<T>(arr: T[]) -> T[] {
-    out: T[] = []
-    for x in arr {
-        out.push(x)
-    }
-    return out
-}
+export collect :: fn<T>(arr: T[]) -> T[] = arr.clone()
 
 /// Drain `it` into a fresh array. Pair with the lazy combinators
 /// (`it.filter(p).map(f).collect()`) when a snapshot is required ;
@@ -73,7 +67,7 @@ export collect :: fn<T>(it: Iterator<T>) -> T[] {
 /// @param f    mapper applied to each element.
 /// @return     a new array with `f` applied per element.
 export map :: fn<T, U>(arr: T[], f: fn(T) -> U) -> U[] {
-    out: U[] = []
+    out: U[] = [] * arr.len()
     for x in arr {
         out.push(f(x))
     }
@@ -85,7 +79,9 @@ export map :: fn<T, U>(arr: T[], f: fn(T) -> U) -> U[] {
 /// @param pred  predicate invoked on each element ; truthy → kept.
 /// @return      a fresh array of the kept elements.
 export filter :: fn<T>(arr: T[], pred: fn(T) -> bool) -> T[] {
-    out: T[] = []
+    // Reserve the upper bound (every element kept) — over-allocates when the
+    // predicate rejects some, but avoids repeated grows in the common case.
+    out: T[] = [] * arr.len()
     for x in arr {
         if pred(x) {
             out.push(x)
@@ -156,11 +152,8 @@ export slice :: fn<T>(arr: const T[], start: usize, end: usize) -> const T[] {
 /// without implementors). When `T[] implements Clone` lands, this free
 /// fn becomes the impl — `arr.clone()` resolves identically either way.
 export clone :: fn<T>(arr: const T[]) -> T[] {
-    n :: arr.len()
-    out: T[] = []
-    for i in 0..< n {
-        out.push(arr[i])
-    }
+    out: T[] = [] * arr.len()
+    out.push_all(arr)
     return out
 }
 
@@ -171,10 +164,10 @@ export clone :: fn<T>(arr: const T[]) -> T[] {
 /// @param b  right source array.
 /// @return   `[a[0], b[0]], [a[1], b[1]], …` capped at `min(len(a), len(b))`.
 export zip :: fn<T, U>(a: T[], b: U[]) -> [T, U][] {
-    out: [T, U][] = []
     n :: a.len()
     m :: b.len()
     k :: if n < m { n } else { m }
+    out: [T, U][] = [] * k
     for i in 0..<k {
         out.push([a[i], b[i]])
     }
@@ -187,9 +180,9 @@ export zip :: fn<T, U>(a: T[], b: U[]) -> [T, U][] {
 /// @param b  second source array, appended after `a`.
 /// @return   a fresh array of `a.len() + b.len()` elements.
 export chain :: fn<T>(a: T[], b: T[]) -> T[] {
-    out: T[] = []
-    for x in a { out.push(x) }
-    for x in b { out.push(x) }
+    out: T[] = [] * (a.len() + b.len())
+    out.push_all(a)
+    out.push_all(b)
     return out
 }
 
@@ -198,7 +191,7 @@ export chain :: fn<T>(a: T[], b: T[]) -> T[] {
 /// @param arr  source array.
 /// @return     `[[0, arr[0]], [1, arr[1]], …]`.
 export enumerate :: fn<T>(arr: T[]) -> [usize, T][] {
-    out: [usize, T][] = []
+    out: [usize, T][] = [] * arr.len()
     i: usize = 0
     for x in arr {
         out.push([i, x])

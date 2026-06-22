@@ -1049,6 +1049,123 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[]) -
                 frame.sp = frame.sp - 2
                 frame.pc = frame.pc + 1
             }
+            is bc.ArrayRepeat -> {
+                if frame.sp < 2 {
+                    return Trap { .message = "array.repeat needs array + count on stack at pc=${frame.pc}" }
+                }
+                count_unwrap :: read_i32(frame.stack[frame.sp - 1], frame.pc, "array.repeat count")
+                if count_unwrap is Trap { return count_unwrap }
+                array_unwrap :: read_array(frame.stack[frame.sp - 2], frame.pc, "array.repeat receiver")
+                if array_unwrap is Trap { return array_unwrap }
+                count: usize = if count_unwrap.value < 0 { 0 } else { usize(count_unwrap.value) }
+                // No capacity concept in the VM (capacity is a native-only perf
+                // hint) : `[] * n` yields a length-0 array, `[v] * n` n copies.
+                repeated: Value[] = []
+                for _ in 0..<count {
+                    for j in 0..<array_unwrap.length {
+                        repeated.push(array_unwrap.elements[array_unwrap.offset + j])
+                    }
+                }
+                frame.stack[frame.sp - 2] = ArrayVal {
+                    .type_id  = array_unwrap.type_id,
+                    .elements = repeated,
+                    .offset   = 0,
+                    .length   = repeated.len(),
+                }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
+            }
+            is bc.ArrayPushAll -> {
+                if frame.sp < 2 {
+                    return Trap { .message = "array.push_all needs dst + src on stack at pc=${frame.pc}" }
+                }
+                src_unwrap :: read_array(frame.stack[frame.sp - 1], frame.pc, "array.push_all source")
+                if src_unwrap is Trap { return src_unwrap }
+                dst_unwrap :: read_array(frame.stack[frame.sp - 2], frame.pc, "array.push_all receiver")
+                if dst_unwrap is Trap { return dst_unwrap }
+                // Detach a view before growing (mirror of array.push).
+                if is_array_view(dst_unwrap) {
+                    fresh: Value[] = []
+                    for j in 0..<dst_unwrap.length {
+                        fresh.push(dst_unwrap.elements[dst_unwrap.offset + j])
+                    }
+                    dst_unwrap.elements = fresh
+                    dst_unwrap.offset = 0
+                }
+                // `src_unwrap.length` is the range bound, evaluated once, so
+                // `push_all(x, x)` (src aliases dst) doubles correctly.
+                add :: src_unwrap.length
+                for j in 0..<add {
+                    dst_unwrap.elements.push(src_unwrap.elements[src_unwrap.offset + j])
+                }
+                dst_unwrap.length = dst_unwrap.length + add
+                frame.sp = frame.sp - 2
+                frame.pc = frame.pc + 1
+            }
+            is bc.ArrayCopy -> {
+                if frame.sp < 5 {
+                    return Trap { .message = "array.copy needs src + src_start + dst + dst_start + len on stack at pc=${frame.pc}" }
+                }
+                len_unwrap :: read_i32(frame.stack[frame.sp - 1], frame.pc, "array.copy len")
+                if len_unwrap is Trap { return len_unwrap }
+                dst_start_unwrap :: read_i32(frame.stack[frame.sp - 2], frame.pc, "array.copy dst_start")
+                if dst_start_unwrap is Trap { return dst_start_unwrap }
+                dst_unwrap :: read_array(frame.stack[frame.sp - 3], frame.pc, "array.copy dst")
+                if dst_unwrap is Trap { return dst_unwrap }
+                src_start_unwrap :: read_i32(frame.stack[frame.sp - 4], frame.pc, "array.copy src_start")
+                if src_start_unwrap is Trap { return src_start_unwrap }
+                src_unwrap :: read_array(frame.stack[frame.sp - 5], frame.pc, "array.copy src")
+                if src_unwrap is Trap { return src_unwrap }
+                n:  usize = if len_unwrap.value < 0 { 0 } else { usize(len_unwrap.value) }
+                ss: usize = if src_start_unwrap.value < 0 { 0 } else { usize(src_start_unwrap.value) }
+                ds: usize = if dst_start_unwrap.value < 0 { 0 } else { usize(dst_start_unwrap.value) }
+                if ss + n > src_unwrap.length {
+                    return Trap { .message = "array.copy source range out of bounds at pc=${frame.pc}" }
+                }
+                if ds + n > dst_unwrap.length {
+                    return Trap { .message = "array.copy destination range out of bounds (dst must already be long enough) at pc=${frame.pc}" }
+                }
+                // Overlap-safe : snapshot the source window before writing.
+                window: Value[] = []
+                for j in 0..<n {
+                    window.push(src_unwrap.elements[src_unwrap.offset + ss + j])
+                }
+                for j in 0..<n {
+                    dst_unwrap.elements[dst_unwrap.offset + ds + j] = window[j]
+                }
+                frame.sp = frame.sp - 5
+                frame.pc = frame.pc + 1
+            }
+            is bc.ArrayRemoveLast -> {
+                if frame.sp == 0 {
+                    return Trap { .message = "array.remove_last on empty stack at pc=${frame.pc}" }
+                }
+                array_unwrap :: read_array(frame.stack[frame.sp - 1], frame.pc, "array.remove_last receiver")
+                if array_unwrap is Trap { return array_unwrap }
+                if array_unwrap.length == 0 {
+                    frame.stack[frame.sp - 1] = NullVal {}
+                } else {
+                    last :: array_unwrap.elements[array_unwrap.offset + array_unwrap.length - 1]
+                    array_unwrap.length = array_unwrap.length - 1
+                    frame.stack[frame.sp - 1] = last
+                }
+                frame.pc = frame.pc + 1
+            }
+            is bc.ArrayClear -> {
+                if frame.sp == 0 {
+                    return Trap { .message = "array.clear on empty stack at pc=${frame.pc}" }
+                }
+                array_unwrap :: read_array(frame.stack[frame.sp - 1], frame.pc, "array.clear receiver")
+                if array_unwrap is Trap { return array_unwrap }
+                // Reset to a fresh empty backing : the VM tracks logical length
+                // via `elements.len()` on push, so reusing the old backing would
+                // resurrect cleared elements on the next push.
+                array_unwrap.elements = []
+                array_unwrap.offset = 0
+                array_unwrap.length = 0
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
+            }
             is bc.DataConst -> {
                 if instr.pool_index < 0 || usize(instr.pool_index) >= state.data_pool.len() {
                     return Trap { .message = "data.const pool_index ${instr.pool_index} out of range at pc=${frame.pc}" }

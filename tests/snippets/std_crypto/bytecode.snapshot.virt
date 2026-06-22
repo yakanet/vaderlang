@@ -2667,44 +2667,20 @@ fn 13 std_crypto$append_hex_u8 (ref,u8) -> void
 end
 
 fn 14 std_iter$std_iter$clone__u8 (ref) -> ref
-  local n usize
-  local out ref
-  local i usize
-  local $idx_8 u8
-  local $k_9 usize
+  local $arr_1 ref
+  local $len_2 usize
+  array.new 4 0
+  local.set 1
   local.get 0
   array.len
-  local.set 1
-  array.new 4 0
   local.set 2
-  i64.const 0
-  local.set 3
-  block $L0 void
-    loop $L1 void
-      local.get 3
-      local.get 1
-      u64.lt
-      if $L2 void
-        local.get 0
-        local.get 3
-        array.get 4
-        ref.cast 5
-        local.set 4
-        local.get 2
-        local.get 4
-        array.push 5
-        i64.const 1
-        local.set 5
-        local.get 3
-        local.get 5
-        i64.add
-        local.set 3
-        br $L1
-      else
-      end $L2
-    end $L1
-  end $L0
+  local.get 1
   local.get 2
+  array.repeat
+  local.tee 1
+  local.get 0
+  array.push_all
+  local.get 1
   return
 end
 

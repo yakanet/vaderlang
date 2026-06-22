@@ -547,6 +547,22 @@ void           vader_array_push(vader_array_t* a, vader_box_t v);
  * `[lo,len]`). */
 vader_array_t* vader_array_slice(vader_array_t* a, size_t lo, size_t hi);
 
+/* `[lhs] * n` — fresh array repeating `src`'s elements n times. `length =
+ * src.length * n`, `capacity = max(length, n)` (so `[] * n` reserves n slots
+ * with length 0 — the preallocation case). Ref elements are repeated by
+ * reference (shallow, evaluate-once). Result reuses `src`'s type / kind / tag. */
+vader_array_t* vader_array_repeat(vader_array_t* src, size_t n);
+/* `dst.push_all(src)` — append every element of `src` to `dst` (grows dst). */
+void           vader_array_push_all(vader_array_t* dst, vader_array_t* src);
+/* `src.copy_to(src_start, dst, dst_start, len)` — overlap-safe positional copy
+ * into an existing `dst` region (traps if `dst` isn't already long enough). */
+void           vader_array_copy(vader_array_t* src, size_t src_start, vader_array_t* dst, size_t dst_start, size_t len);
+/* `arr.remove_last()` — pop + return the last element as a pre-tagged box, or
+ * `vader_box_null()` when empty (the `T | null` channel). */
+vader_box_t    vader_array_remove_last(vader_array_t* a);
+/* `arr.clear()` — length 0, keep buf + capacity. */
+void           vader_array_clear(vader_array_t* a);
+
 /* `len` is hot enough — and trivial enough — to live in the header so
  * every translation unit can fold the indirection. Callers usually
  * follow `len()` with an iteration whose bounds the compiler can then

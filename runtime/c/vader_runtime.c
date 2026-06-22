@@ -1898,38 +1898,15 @@ static vader_array_buf_t* vader_array_buf_alloc(size_t capacity, uint8_t element
     return buf;
 }
 
+/* Forward decl — the explicit length≠capacity allocator (defined with the array
+ * construction ops further down). `vader_array_new` is its `cap = max(length, 4)`
+ * special case. */
+static vader_array_t* vader_array_alloc_cap(uint32_t type_index, size_t length, size_t capacity, uint8_t element_kind, uint32_t element_tag);
+
 vader_array_t* vader_array_new(uint32_t type_index, size_t length, uint8_t element_kind, uint32_t element_tag) {
-    /* Single-block initial allocation: struct followed by an inline buf in
-     * the same GC alloc. Two-step allocation has a window where one half is
-     * unreachable from the shadow stack — a collection mid-construction
-     * would lose the orphan. The combined block sidesteps it.
-     *
-     * Push later allocates a *separate* fresh buf and rebinds `a->buf`; from
-     * the GC's point of view the two halves are independent objects (the
-     * struct has kind=ARRAY pointing at a kind=ARRAY_BUF), so subsequent
-     * cycles relocate them separately without surprise. */
-    size_t cap = length > 0 ? length : 4;
-    size_t struct_bytes = vader_gc_align(sizeof(vader_array_t));
-    size_t buf_bytes    = vader_array_buf_bytes(cap, element_kind);
-    if (struct_bytes > SIZE_MAX - buf_bytes) {
-        vader_trap("vader_array: total alloc size overflows size_t");
-    }
-    char* block = (char*) vader_gc_alloc(struct_bytes + buf_bytes);
-    vader_array_t* a = (vader_array_t*) block;
-    vader_array_buf_t* buf = (vader_array_buf_t*) (block + struct_bytes);
-
-    vader_obj_header_init(a, type_index);
-    a->length   = length;
-    a->capacity = cap;
-    a->offset   = 0;
-    a->buf      = buf;
-
-    vader_obj_header_init(buf, VADER_TYPE_INDEX_ARRAY_BUF);
-    buf->capacity     = cap;
-    buf->length       = length;
-    buf->element_kind = element_kind;
-    buf->element_tag  = element_tag;
-    return a;
+    /* `cap = max(length, 4)` — the historical default. The single-block alloc +
+     * GC-orphan rationale lives on `vader_array_alloc_cap`. */
+    return vader_array_alloc_cap(type_index, length, length > 0 ? length : 4, element_kind, element_tag);
 }
 
 static vader_array_t* vader_array_resolve(vader_array_t* a);
@@ -2095,6 +2072,251 @@ void vader_array_push(vader_array_t* a, vader_box_t v) {
         a->buf->length = a->offset + a->length;
     }
     VADER_WRITE_BARRIER(a->buf);
+}
+
+/* Allocate an owning array with an explicit `length` AND `capacity`. The single
+ * source of truth for array construction — `vader_array_new` is the
+ * `cap = max(length, 4)` case, `vader_array_repeat` passes `length 0, capacity n`
+ * for `[] * n` reserve.
+ *
+ * Single-block alloc: the struct is followed by an inline buf in the same GC
+ * alloc. A two-step alloc has a window where one half is unreachable from the
+ * shadow stack — a collection mid-construction would lose the orphan; the
+ * combined block sidesteps it. (Push later allocates a *separate* fresh buf and
+ * rebinds `a->buf`; the GC then relocates the two halves independently.)
+ *
+ * Slots `[0, length)` are left uninitialised — the caller fills them with no
+ * intervening allocation (memcpy is not a safepoint), so the GC never scans a
+ * garbage slot; `buf->length` is set to `length` so a BOXED tail beyond
+ * `length` is never walked. */
+static vader_array_t* vader_array_alloc_cap(uint32_t type_index, size_t length, size_t capacity, uint8_t element_kind, uint32_t element_tag) {
+    if (capacity < length) capacity = length;
+    size_t struct_bytes = vader_gc_align(sizeof(vader_array_t));
+    size_t buf_bytes    = vader_array_buf_bytes(capacity, element_kind);
+    if (struct_bytes > SIZE_MAX - buf_bytes) {
+        vader_trap("vader_array: total alloc size overflows size_t");
+    }
+    char* block = (char*) vader_gc_alloc(struct_bytes + buf_bytes);
+    vader_array_t* a = (vader_array_t*) block;
+    vader_array_buf_t* buf = (vader_array_buf_t*) (block + struct_bytes);
+    vader_obj_header_init(a, type_index);
+    a->length   = length;
+    a->capacity = capacity;
+    a->offset   = 0;
+    a->buf      = buf;
+    vader_obj_header_init(buf, VADER_TYPE_INDEX_ARRAY_BUF);
+    buf->capacity     = capacity;
+    buf->length       = length;
+    buf->element_kind = element_kind;
+    buf->element_tag  = element_tag;
+    return a;
+}
+
+/* Resolve `src` to a contiguous source byte region + its element metadata,
+ * unifying the owning and borrowed-view cases : a `const u8[]` view reads the
+ * owner atom's bytes (1-byte slots), an owning array reads its buf slots at the
+ * view offset. Both are contiguous, so a single `memcpy` per repetition serves
+ * primitive AND boxed kinds (boxes copy verbatim). `extra` advances the start
+ * by `extra` elements (for `copy_to`'s `src_start`). Caller must have resolved
+ * any pending forward on `src` first ; this does NOT cross a safepoint. */
+static const uint8_t* vader_array_src_region(vader_array_t* src, size_t extra, uint8_t* out_kind, uint32_t* out_tag, size_t* out_elem_size) {
+    uint8_t  kind;
+    uint32_t tag;
+    size_t   esz;
+    const uint8_t* data;
+    if (vader_array_is_borrowed(src)) {
+        kind = VADER_ARRAY_KIND_U8;          /* borrowed views are const u8[] */
+        tag  = vader_array_borrowed_tag(src);
+        esz  = 1;
+        data = (const uint8_t*) vader_atom_data(vader_array_borrowed_owner(src)) + (src->offset + extra);
+    } else {
+        vader_array_resolve_buf(src);
+        kind = src->buf->element_kind;
+        tag  = src->buf->element_tag;
+        esz  = vader_array_element_size(kind);
+        data = src->buf->slots + (src->offset + extra) * esz;
+    }
+    *out_kind = kind;
+    *out_tag  = tag;
+    *out_elem_size = esz;
+    return data;
+}
+
+/* `[lhs] * n` — fresh array repeating `src`'s elements `n` times. `length =
+ * src.length * n`, `capacity = max(length, n)` so `[] * n` (src.length 0) yields
+ * an empty array with n slots reserved (the preallocation case — no named
+ * `with_capacity`). The result reuses `src`'s array type / element kind / tag.
+ * For a ref element the SAME reference is repeated n times (shallow, evaluate-
+ * once — the documented semantics). */
+vader_array_t* vader_array_repeat(vader_array_t* src, size_t n) {
+    src = vader_array_resolve(src);
+    uint32_t type_index = src->header.type_index;
+    size_t src_len = src->length;
+    if (src_len != 0 && n > SIZE_MAX / src_len) {
+        vader_trap("vader_array: repeat length overflows size_t");
+    }
+    size_t out_len = src_len * n;
+    size_t cap = out_len > n ? out_len : n;
+    /* Read the element metadata before the alloc (it may relocate `src`). */
+    uint8_t kind; uint32_t tag; size_t esz;
+    vader_array_src_region(src, 0, &kind, &tag, &esz);
+    /* Root `src` across the result allocation — a collection there forwards it. */
+    vader_box_t src_box; src_box.tag = type_index; src_box._pad = 0; src_box.payload.obj = src;
+    VADER_GC_PUSH1(src_box);
+    vader_array_t* out = vader_array_alloc_cap(type_index, out_len, cap, kind, tag);
+    VADER_GC_POP();
+    src = (vader_array_t*) src_box.payload.obj;
+    if (out_len == 0) return out;          /* `[] * n` reserve-only, or n == 0 */
+    /* Recompute the source region after the possible relocation, then stamp the
+     * src block into the result n times. No safepoint between here and return. */
+    const uint8_t* src_data = vader_array_src_region(src, 0, &kind, &tag, &esz);
+    uint8_t* dst_data = out->buf->slots;
+    size_t block = src_len * esz;
+    for (size_t i = 0; i < n; i++) {
+        memcpy(dst_data + i * block, src_data, block);
+    }
+    if (kind == VADER_ARRAY_KIND_BOXED) {
+        VADER_WRITE_BARRIER(out->buf);   /* coarse card covers the whole buf */
+    }
+    return out;
+}
+
+/* `dst.push_all(src)` — append every element of `src` to `dst`, growing `dst`
+ * once if needed. Mirrors `vader_array_push`'s grow + rooting (the buf alloc may
+ * collect twice, forwarding both arrays and `dst`'s old buf). Handles
+ * `push_all(x, x)` : after a grow `src` reads the fresh buf whose head holds the
+ * copied originals, and the append range never overlaps the source range. */
+void vader_array_push_all(vader_array_t* dst, vader_array_t* src) {
+    if (VADER_UNLIKELY(vader_array_is_borrowed(dst))) {
+        vader_trap("cannot push_all to a borrowed `const u8[]` byte view");
+    }
+    dst = vader_array_resolve(dst);
+    src = vader_array_resolve(src);
+    size_t add = src->length;
+    if (add == 0) return;
+    size_t need = dst->length + add;
+    if (need < dst->length) vader_trap("vader_array: push_all length overflows size_t");
+    bool is_view = dst->offset != 0 || dst->offset + dst->length < dst->buf->length;
+    if (need > dst->capacity || is_view) {
+        uint32_t dtag    = dst->header.type_index;
+        uint8_t  kind    = dst->buf->element_kind;
+        size_t   esz     = vader_array_element_size(kind);
+        uint32_t btag    = dst->buf->element_tag;
+        size_t   src_off = dst->offset;
+        vader_box_t d_box; d_box.tag = dtag; d_box._pad = 0; d_box.payload.obj = dst;
+        vader_box_t s_box; s_box.tag = src->header.type_index; s_box._pad = 0; s_box.payload.obj = src;
+        vader_box_t* roots[2] = { &d_box, &s_box };
+        vader_gc_frame_t frame = { vader_gc_top, 2u, 0u, roots };
+        vader_gc_top = &frame;
+        size_t cap = dst->capacity == 0 ? 4 : dst->capacity * 2;
+        if (cap < need) cap = need;
+        vader_array_buf_t* fresh = vader_array_buf_alloc(cap, kind, btag);
+        dst = (vader_array_t*) d_box.payload.obj;
+        src = (vader_array_t*) s_box.payload.obj;
+        vader_array_buf_t* old = dst->buf;
+        while (old != NULL && old->header.forward != NULL) old = (vader_array_buf_t*) old->header.forward;
+        if (dst->length > 0 && old != NULL) {
+            memcpy(fresh->slots, old->slots + src_off * esz, dst->length * esz);
+        }
+        fresh->length = dst->length;
+        dst->buf      = fresh;
+        dst->capacity = cap;
+        dst->offset   = 0;
+        VADER_WRITE_BARRIER(dst);
+        vader_gc_top = frame.prev;
+    }
+    /* Append src[0..add) at dst[length..). Recompute the source region after any
+     * relocation. No safepoint from here to return, so the pointers are stable. */
+    uint8_t kind; uint32_t tag; size_t esz;
+    const uint8_t* src_data = vader_array_src_region(src, 0, &kind, &tag, &esz);
+    uint8_t* dst_data = dst->buf->slots + (dst->offset + dst->length) * esz;
+    memcpy(dst_data, src_data, add * esz);
+    dst->length += add;
+    if (dst->offset + dst->length > dst->buf->length) {
+        dst->buf->length = dst->offset + dst->length;
+    }
+    if (dst->buf->element_kind == VADER_ARRAY_KIND_BOXED) {
+        VADER_WRITE_BARRIER(dst->buf);
+    }
+}
+
+/* `src.copy_to(src_start, dst, dst_start, len)` — positional, overlap-safe
+ * (`memmove`) copy of `len` elements from `src[src_start..]` into an EXISTING
+ * `dst[dst_start..]` region. `dst` must already be long enough (traps otherwise)
+ * — this overwrites, it does not grow. The basis for future `insert`/`remove`.
+ * No allocation anywhere, hence no GC / no rooting : the argument pointers are
+ * stable for the whole call. */
+void vader_array_copy(vader_array_t* src, size_t src_start, vader_array_t* dst, size_t dst_start, size_t len) {
+    if (len == 0) return;
+    if (VADER_UNLIKELY(vader_array_is_borrowed(dst))) {
+        vader_trap("cannot copy into a borrowed `const u8[]` byte view");
+    }
+    src = vader_array_resolve(src);
+    dst = vader_array_resolve(dst);
+    if (src_start > src->length || len > src->length - src_start) {
+        vader_trap("vader_array_copy: source range out of bounds");
+    }
+    if (dst_start > dst->length || len > dst->length - dst_start) {
+        vader_trap("vader_array_copy: destination range out of bounds (dst must already be long enough)");
+    }
+    vader_array_resolve_buf(dst);
+    uint8_t  kind = dst->buf->element_kind;
+    size_t   esz  = vader_array_element_size(kind);
+    uint8_t  skind; uint32_t stag; size_t sesz;
+    const uint8_t* src_data = vader_array_src_region(src, src_start, &skind, &stag, &sesz);
+    uint8_t* dst_data = dst->buf->slots + (dst->offset + dst_start) * esz;
+    memmove(dst_data, src_data, len * esz);
+    if (kind == VADER_ARRAY_KIND_BOXED) {
+        VADER_WRITE_BARRIER(dst->buf);
+    }
+}
+
+/* `arr.remove_last()` — pop the last element, shrink the length by one, and
+ * return the element as a pre-tagged box (the boxed kind's slot box verbatim ;
+ * a primitive read boxed with the static `element_tag`). Returns `vader_box_null`
+ * on an empty array — the `T | null` null variant. Rejects borrowed views (a
+ * `const u8[]` is read-only, T3042). No allocation, so no rooting. */
+vader_box_t vader_array_remove_last(vader_array_t* a) {
+    if (VADER_UNLIKELY(vader_array_is_borrowed(a))) {
+        vader_trap("cannot remove_last from a borrowed `const u8[]` byte view");
+    }
+    a = vader_array_resolve(a);
+    if (a->length == 0) return vader_box_null();
+    vader_array_resolve_buf(a);
+    size_t idx = a->offset + a->length - 1;
+    vader_array_buf_t* buf = a->buf;
+    uint32_t tag = buf->element_tag;
+    uint8_t* base = buf->slots;
+    vader_box_t out;
+    out._pad = 0;
+    switch (buf->element_kind) {
+        case VADER_ARRAY_KIND_BOXED: out = vader_array_box_slots(buf)[idx]; break;
+        case VADER_ARRAY_KIND_U8:   out.tag = tag; out.payload.i = ((uint8_t*)  base)[idx]; break;
+        case VADER_ARRAY_KIND_U16:  out.tag = tag; out.payload.i = ((uint16_t*) base)[idx]; break;
+        case VADER_ARRAY_KIND_U32:  out.tag = tag; out.payload.i = ((uint32_t*) base)[idx]; break;
+        case VADER_ARRAY_KIND_U64:  out.tag = tag; out.payload.i = (vader_i64_t) ((uint64_t*) base)[idx]; break;
+        case VADER_ARRAY_KIND_I8:   out.tag = tag; out.payload.i = ((int8_t*)   base)[idx]; break;
+        case VADER_ARRAY_KIND_I16:  out.tag = tag; out.payload.i = ((int16_t*)  base)[idx]; break;
+        case VADER_ARRAY_KIND_I32:  out.tag = tag; out.payload.i = ((int32_t*)  base)[idx]; break;
+        case VADER_ARRAY_KIND_I64:  out.tag = tag; out.payload.i = ((int64_t*)  base)[idx]; break;
+        case VADER_ARRAY_KIND_F32:  out.tag = tag; out.payload.f = (vader_f64_t) ((float*)  base)[idx]; break;
+        case VADER_ARRAY_KIND_F64:  out.tag = tag; out.payload.f = ((double*)   base)[idx]; break;
+        case VADER_ARRAY_KIND_CHAR: out.tag = tag; out.payload.i = ((uint32_t*) base)[idx]; break;
+        case VADER_ARRAY_KIND_BOOL: out.tag = tag; out.payload.b = ((uint8_t*)  base)[idx] != 0; break;
+        default: vader_trap("vader_array_remove_last: unknown element kind");
+    }
+    a->length -= 1;
+    return out;
+}
+
+/* `arr.clear()` — drop every element (length 0), keeping the buf + capacity for
+ * reuse. Rejects borrowed views (read-only, T3042). */
+void vader_array_clear(vader_array_t* a) {
+    if (VADER_UNLIKELY(vader_array_is_borrowed(a))) {
+        vader_trap("cannot clear a borrowed `const u8[]` byte view");
+    }
+    a = vader_array_resolve(a);
+    a->length = 0;
 }
 
 /* ----------------------------------------------------------------- std/string */

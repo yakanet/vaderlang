@@ -390,7 +390,7 @@ import "std/collections" { MutableMap }
 import "std/math" { min }
 import "vader/types" {
     FnType, TypeParamType,
-    mk_array, mk_fn, mk_struct, mk_trait, mk_tuple,
+    mk_array, mk_fn, mk_struct, mk_trait, mk_tuple, mk_union,
 }
 import "vader/types" { mk_primitive, TY_VOID }
 
@@ -398,23 +398,36 @@ import "vader/types" { mk_primitive, TY_VOID }
 /// per-method `FnType` synthesised from the element type, or `null`
 /// when the method isn't a known array method. Mirrors the stdlib
 /// `T[]` free fns the lowerer wires in :
-///   - `len()`       → `usize`
-///   - `push(T)`     → `void`
-///   - `pop()`       → `T | null`
-///   - `is_empty()`  → `bool`
+///   - `len()`               → `usize`
+///   - `push(T)`             → `void`
+///   - `push_all(const T[])` → `void`
+///   - `copy_to(...)`        → `void`
+///   - `remove_last()`       → `T | null`
+///   - `clear()`            → `void`
 array_method_type :: fn(name: string, arr: ArrayType) -> Type | null {
-    // Only the two ops with dedicated lowering are typed here : `len` and
-    // `push` lower to `LoweredArrayLen` / `LoweredArrayPush` opcodes
-    // (`lower_call.vader::try_lower_array_op`) and have no free-fn / trait
-    // fallback, so the typer must supply their signature.
+    // The ops with dedicated lowering are typed here : `len` / `push` lower to
+    // `LoweredArrayLen` / `LoweredArrayPush`, and `push_all` / `copy_to` /
+    // `remove_last` / `clear` lower to `LoweredIntrinsicCall`s backed by
+    // parameterless bytecode ops (`lower_call.vader::try_lower_array_op`). None
+    // have a free-fn / trait fallback, so the typer must supply their signature.
     //
     // Everything else resolves elsewhere (import required, per the UFCS policy) :
     // `is_empty` ⟶ `std/iter::is_empty(arr: T[])`, `slice` ⟶ `std/iter::slice`,
     // `contains` ⟶ the `Contains` trait, `reverse`/`first`/`last` ⟶ std/iter free
-    // fns. `pop` / `clear` had no opcode, no free fn and no call sites — they were
-    // dead table landmines and were dropped.
+    // fns.
     if name == "len"  { return mk_fn([], mk_primitive("usize")) }
     if name == "push" { return mk_fn([arr.element], TY_VOID) }
+    // `push_all` reads its source, so a `const T[]` param accepts both a
+    // mutable and a borrowed source (mirrors `std/iter::clone`).
+    if name == "push_all" { return mk_fn([mk_array(arr.element, true)], TY_VOID) }
+    // `copy_to(src_start, dst, dst_start, len)` — `dst` is written, so it must
+    // be a mutable `T[]` ; the three cursors are `usize`.
+    if name == "copy_to" {
+        usize_t :: mk_primitive("usize")
+        return mk_fn([usize_t, mk_array(arr.element, false), usize_t, usize_t], TY_VOID)
+    }
+    if name == "remove_last" { return mk_fn([], mk_union([arr.element, mk_primitive("null")])) }
+    if name == "clear" { return mk_fn([], TY_VOID) }
     return null
 }
 

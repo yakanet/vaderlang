@@ -417,6 +417,11 @@ parse_op_line :: fn(cleaned: string, head: string) -> bc.Op | null {
     if head == "array.set"        { return parse_array_set(cleaned) }
     if head == "array.len"        { return bc.ArrayLen {} }
     if head == "array.slice"      { return parse_array_slice(cleaned) }
+    if head == "array.repeat"      { return bc.ArrayRepeat {} }
+    if head == "array.push_all"    { return bc.ArrayPushAll {} }
+    if head == "array.copy"        { return bc.ArrayCopy {} }
+    if head == "array.remove_last" { return bc.ArrayRemoveLast {} }
+    if head == "array.clear"       { return bc.ArrayClear {} }
     if head == "data.const"       { return parse_data_const(cleaned) }
     if head == "ref.cast"         { return parse_ref_cast(cleaned) }
     if head == "box"              { return parse_box(cleaned) }

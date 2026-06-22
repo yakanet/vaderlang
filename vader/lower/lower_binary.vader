@@ -6,7 +6,7 @@ module "vader/lower"
 import "std/collections" { MutableMap }
 
 import "vader/parser" { Expr, NullLitExpr, FieldExpr, BinaryExpr, BinaryOp, RangeExpr, IdentExpr }
-import "vader/types" { Type, PrimitiveType, UnionType, TypeParamType, AnyType, TY_BOOL, mk_primitive }
+import "vader/types" { Type, PrimitiveType, UnionType, TypeParamType, AnyType, ArrayType, TY_BOOL, mk_primitive }
 
 // Peel a narrowing `LoweredCast` off a type-check operand. `lower_ident`
 // inserts such a cast (`LoweredCast { value: LoweredIdent : <union> }`) when the
@@ -119,6 +119,19 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
         match null_rewrite {
             is null -> {}
             _ -> { return null_rewrite }
+        }
+    }
+    // `[lhs] * n` — array repeat / preallocation. A numeric `*` never yields an
+    // array, so an array result type uniquely marks this case. Lower to the
+    // `array.repeat` intrinsic : args = [source array, count]. The runtime
+    // reuses the source's type / element kind / tag, so no static element type
+    // is threaded through. `[] * n` (empty source) reserves n slots, length 0.
+    if binary.op == BinaryOp.Mul && type is ArrayType {
+        return LoweredIntrinsicCall {
+            .span = binary.span,
+            .type = type,
+            .name = INTRINSIC_ARRAY_REPEAT,
+            .args = [lower_expr(ctx, binary.left), lower_expr(ctx, binary.right)],
         }
     }
     // Arithmetic + / − / × / ÷ on a user struct with a matching impl

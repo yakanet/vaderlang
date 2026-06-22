@@ -353,27 +353,34 @@ fn 6 std_iter$sum (ref) -> i32
 end
 
 fn 7 std_iter$map__i32__i32 (ref,ref) -> ref
-  local out ref
+  local $arr_2 ref
+  local $len_3 usize
   local __for_arr_0 ref
-  local __for_len_1 usize
   local __for_i_2 usize
-  local $call_ind_12 i32
-  local $k_13 usize
+  local $call_ind_14 i32
+  local $k_15 usize
   array.new 13 0
   local.set 2
   local.get 0
-  local.tee 3
   array.len
-  local.set 4
+  local.set 3
+  local.get 2
+  local.get 3
+  array.repeat
+  local.set 2
+  local.get 0
+  local.tee 4
+  array.len
+  local.set 3
   i64.const 0
   local.set 5
   block $L0 void
     loop $L1 void
       local.get 5
-      local.get 4
+      local.get 3
       u64.lt
       if $L2 void
-        local.get 3
+        local.get 4
         local.get 5
         load_slot_i32
         local.get 1
@@ -398,27 +405,34 @@ fn 7 std_iter$map__i32__i32 (ref,ref) -> ref
 end
 
 fn 8 std_iter$filter__i32 (ref,ref) -> ref
-  local out ref
+  local $arr_2 ref
+  local $len_3 usize
   local __for_arr_0 ref
-  local __for_len_1 usize
   local __for_i_2 usize
   local x i32
-  local $k_13 usize
+  local $k_15 usize
   array.new 13 0
   local.set 2
   local.get 0
-  local.tee 3
   array.len
-  local.set 4
+  local.set 3
+  local.get 2
+  local.get 3
+  array.repeat
+  local.set 2
+  local.get 0
+  local.tee 4
+  array.len
+  local.set 3
   i64.const 0
   local.set 5
   block $L0 void
     loop $L1 void
       local.get 5
-      local.get 4
+      local.get 3
       u64.lt
       if $L2 void
-        local.get 3
+        local.get 4
         local.get 5
         load_slot_i32
         local.tee 6

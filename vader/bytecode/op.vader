@@ -172,6 +172,11 @@ export Op :: Unreachable
     | BitsToF64
     | F32ToBits
     | BitsToF32
+    | ArrayRepeat
+    | ArrayPushAll
+    | ArrayCopy
+    | ArrayRemoveLast
+    | ArrayClear
 
 /// Trap unconditionally — the bytecode reached a point the compiler proved
 /// (or asserted, via `@unreachable match`) can never execute. Carries a
@@ -286,6 +291,33 @@ export ArrayLen :: struct {}
 /// self-host VM the underlying storage is `Value[]` so the slice copies
 /// (no shared mutability) ; the C runtime version views.
 export ArraySlice :: struct { type_id: i32 }
+
+// Array construction / bulk-mutation ops — all parameterless : each backing
+// runtime fn reads the element kind/tag off the array buf, and the repeat
+// result is boxed with the runtime array's own `header.type_index`, so none
+// needs a static element type_id. Reached via the intrinsic channel
+// (`intrinsic_op_for_name`), not a dedicated Lowered/Instr node.
+
+/// `[lhs] * n` — pop `n` (usize) then the source array ; push a fresh array
+/// repeating the source's elements n times. `length = src.length * n`,
+/// `capacity = max(length, n)` (so `[] * n` reserves n slots with length 0, the
+/// preallocation case). Ref elements are repeated by reference (shallow). The
+/// C runtime calls `vader_array_repeat` ; the VM copies into a fresh `ArrayVal`.
+export ArrayRepeat :: struct {}
+/// `dst.push_all(src)` — pop `src` then `dst` ; append every element of `src`
+/// to `dst` (grows dst). Statement-form, no value pushed back.
+export ArrayPushAll :: struct {}
+/// `src.copy_to(src_start, dst, dst_start, len)` — pop `len` / `dst_start` /
+/// `dst` / `src_start` / `src` (top-to-bottom) ; overlap-safe positional copy of
+/// `len` elements into the existing `dst` region. Statement-form, no push back.
+export ArrayCopy :: struct {}
+/// `arr.remove_last()` — pop an array ; shrink its length by one and push the
+/// removed last element as a boxed `T | null` (null when empty). The runtime
+/// pre-tags the box (element_tag off the buf), so no static type_id is needed.
+export ArrayRemoveLast :: struct {}
+/// `arr.clear()` — pop an array ; set its length to 0 (keeps buf + capacity).
+/// Statement-form, no value pushed back.
+export ArrayClear :: struct {}
 
 /// Push the pre-materialised array at `module.data_pool[pool_index]`.
 /// `type_id` is the BcType index of the resulting `const T[]` array.
