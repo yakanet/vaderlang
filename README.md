@@ -104,7 +104,7 @@ tar -xzf vader-linux-x64.tar.gz && ./vader-linux-x64/vader --version
 tar -xf vader-windows-x64.zip && vader-windows-x64\vader.exe --version
 ```
 
-The prebuilt `vader` is, for now, the legacy TypeScript compiler bundled as a standalone Bun executable — no Bun install needed, but it loads `stdlib/`, `runtime/c/`, and `vader-src/` from next to itself, so keep the extracted folder intact. Once the self-host is sealed, releases will ship the native self-hosted binary instead.
+The prebuilt `vader` is the native self-hosted compiler, built from the committed C seed (see [Build from source](#build-from-source)) and packaged as a self-contained bundle — it loads `stdlib/` and `runtime/c/` from next to itself, so keep the extracted folder intact.
 
 On macOS, Gatekeeper blocks the unsigned binary on first launch — strip the quarantine attribute:
 
@@ -222,7 +222,6 @@ npm install -g @vscode/vsce && cd editors/vscode && vsce package && code --insta
 ```sh
 bun run test                               # full test suite (snapshots + CLI; wires up --parallel)
 bun run test:update                        # refresh snapshots after intentional output changes
-bun run typecheck                          # TypeScript check (no emit)
 bun run bench                              # measure + compare to bench/baseline.json (exits non-zero on >15% regression)
 RUN_FMT_TESTS=1 bun run test               # also exercise the Vader formatter end-to-end (slow, ~2 min)
 ```
@@ -239,7 +238,7 @@ The live, item-by-item roadmap is in [`TODO.md`](./TODO.md). High-level mileston
 |-------|------|--------|
 | **0 — Bootstrap** | Project scaffold, test runner, CLI stub | ✓ done |
 | **1 — MVP** | Full TypeScript pipeline: lexer → … → midir CFG/SSA → bytecode VM (`vader run`) + C emitter with a precise Cheney GC (`vader build`). Traits, tuples, typed enums, `@comptime`, `vader test`, `vader fmt`, and `std/` (io / string / math / collections / iter / sort / json / path / process / runtime / testing) all landed. | shipped |
-| **2 — Self-hosting** | Port the compiler to Vader and reach the fixed point (the Vader-built compiler reproduces its own generated C byte-for-byte). The full pipeline is self-hosted and a committed C seed rebuilds the toolchain from a stock C compiler. Remaining: retire the legacy TypeScript `src/`. | mostly done |
+| **2 — Self-hosting** | Port the compiler to Vader and reach the fixed point (the Vader-built compiler reproduces its own generated C byte-for-byte). The full pipeline is self-hosted, a committed C seed rebuilds the toolchain from a stock C compiler, and the legacy TypeScript `src/` has been retired. | ✓ done |
 | **3 — Post-MVP** | WASM emitter (bytecode → WASM with GC types), concurrency, networking, richer editor support, multi-platform CI. | pending |
 
 ## Further reading

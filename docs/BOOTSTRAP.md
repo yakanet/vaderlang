@@ -627,6 +627,14 @@ storage strategy (see *Migration paths* below).
 
 ## TS compiler deletion (§2.8)
 
+> **Status — done (2026-06-22), branch `chore/delete-ts-compiler`.** `src/`
+> (136 files), `tsconfig.json`, `tests/cli.test.ts`, and `bun.lock` removed;
+> `package.json` devDeps emptied and the `vader` / `typecheck` scripts + the
+> `module` field dropped; `tests/snapshot.ts` decoupled from the TS pipeline
+> (the native CLI is the sole snapshot oracle); the CI `Typecheck` step
+> removed; README updated. The pre-deletion state is tagged
+> `v0.0.0-pre-mvp-final-ts`. The original plan follows, for the record.
+
 Once Phases 0-4 are green and `bootstrap.c.gz` is committed, §2.8 is
 unblocked. The deletion is a single PR :
 
