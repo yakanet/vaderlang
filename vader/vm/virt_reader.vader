@@ -120,11 +120,9 @@ parse_int_list :: fn(csv: string) -> i32[] {
     if csv.bytes().len() == 0 { return ids }
     parts :: csv.split(",")
     n :: parts.len()
-    i: usize = 0
-    for i < n {
+    for i in 0..<n {
         parsed :: parse_int_in_base(parts[i].trim(), 10)
         if !(parsed is ParseError) { ids.push(i32(parsed)) }
-        i += 1
     }
     return ids
 }
@@ -319,8 +317,7 @@ defer_or_resolve_branch :: fn(state: ParserState, cleaned: string, prefix: strin
 drain_pending :: fn(state: ParserState, label: string, is_loop: bool, opener_pc: i32, end_pc: i32) -> void {
     psp :: state.pending_sp[0]
     new_sp: usize = 0
-    i: usize = 0
-    for i < psp {
+    for i in 0..<psp {
         entry :: state.pending[i]
         if entry.target_label == label {
             if is_loop {
@@ -332,7 +329,6 @@ drain_pending :: fn(state: ParserState, label: string, is_loop: bool, opener_pc:
             state.pending[new_sp] = entry
             new_sp += 1
         }
-        i += 1
     }
     state.pending_sp[0] = new_sp
 }
@@ -756,13 +752,11 @@ export parse_decimal_f64 :: fn(s: string) -> f64 | null {
     if first_byte == '+' { cursor = 1 }
     dot_index: i32 = -1
     exp_index: i32 = -1
-    i: usize = cursor
-    for i < n {
+    for i in cursor..<n {
         b :: s.bytes()[i]
         if b == '.' { if dot_index < 0 { if exp_index < 0 { dot_index = i32(i) } } }
         if b == 'e' { if exp_index < 0 { exp_index = i32(i) } }
         if b == 'E' { if exp_index < 0 { exp_index = i32(i) } }
-        i += 1
     }
     int_end: usize = n
     if dot_index >= 0 { int_end = usize(dot_index) }
@@ -780,10 +774,8 @@ export parse_decimal_f64 :: fn(s: string) -> f64 | null {
             if frac_part is ParseError { return null }
             divisor: f64 = 1.0
             frac_ten :: f64(10)
-            d: usize = 0
-            for d < frac_text.bytes().len() {
+            for d in 0..<frac_text.bytes().len() {
                 divisor = divisor * frac_ten
-                d += 1
             }
             result = result + f64(frac_part) / divisor
         }
@@ -800,10 +792,8 @@ export parse_decimal_f64 :: fn(s: string) -> f64 | null {
         // `ten` is hoisted to skip the int→f64 cast inside the loop.
         ten :: f64(10)
         scale: f64 = 1.0
-        k: i64 = 0
-        for k < abs_exp {
+        for k in 0..<abs_exp {
             scale = scale * ten
-            k = k + 1
         }
         if exp_part >= 0 { result = result * scale }
         if exp_part < 0 { result = result / scale }

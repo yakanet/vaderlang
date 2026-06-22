@@ -88,11 +88,9 @@ format_bc_type :: fn(t: BcType) -> string = match t {
 /// `name:idx` joined by `,`. Matches TS `formatType` for struct fields.
 format_fields :: fn(fields: BcField[]) -> string {
     sb :: new_builder()
-    i: usize = 0
-    for i < fields.len() {
+    for i in 0..<fields.len() {
         if i > 0 { sb.append(",") }
         sb.append("${fields[i].name}:${fields[i].type_index}")
-        i += 1
     }
     return "${sb}"
 }
@@ -100,11 +98,9 @@ format_fields :: fn(fields: BcField[]) -> string {
 /// Type-indices joined by `,`. Used by union and fn param/return formats.
 format_variants :: fn(items: i32[]) -> string {
     sb :: new_builder()
-    i: usize = 0
-    for i < items.len() {
+    for i in 0..<items.len() {
         if i > 0 { sb.append(",") }
         sb.append("${items[i]}")
-        i += 1
     }
     return "${sb}"
 }
@@ -121,8 +117,7 @@ is_simple_ident :: fn(s: string) -> bool {
     sb :: s.bytes()
     n :: sb.len()
     if n == 0 { return false }
-    i: usize = 0
-    for i < n {
+    for i in 0..<n {
         b :: sb[i]
         ok := false
         if b >= 0x41 && b <= 0x5A { ok = true }     // A-Z
@@ -132,7 +127,6 @@ is_simple_ident :: fn(s: string) -> bool {
         if b == 0x24 { ok = true }                     // $
         if b == 0x2E { ok = true }                     // .
         if !ok { return false }
-        i += 1
     }
     return true
 }
@@ -146,13 +140,11 @@ json_escape :: fn(s: string) -> string {
     sb.append_char('"')
     bytes :: s.bytes()
     n :: bytes.len()
-    i: usize = 0
-    for i < n {
+    for i in 0..<n {
         b :: bytes[i]
         if b == 0x22 { sb.append("\\\"") }
         else if b == 0x5C { sb.append("\\\\") }
         else { sb.append_char(char(u32(b))) }
-        i += 1
     }
     sb.append_char('"')
     return "${sb}"
@@ -263,9 +255,8 @@ write_body_with_scopes :: fn(sb: StringBuilder, module: BytecodeModule, function
     psp: usize = 0
     // pc → resolved label string (filled lazily for Branch/BranchIf).
     branch_target_label: string[] = []
-    init_label: usize = 0
     n :: body.len()
-    for init_label < n { branch_target_label.push("")  init_label = init_label + 1 }
+    for init_label in 0..<n { branch_target_label.push("") }
 
     next_label: i32 = 0
     depth: i32 = 1
@@ -277,8 +268,7 @@ write_body_with_scopes :: fn(sb: StringBuilder, module: BytecodeModule, function
             // Resolve any pending branches whose target scope is this
             // one — they branch to the End's label.
             new_psp: usize = 0
-            j: usize = 0
-            for j < psp {
+            for j in 0..<psp {
                 if pending_label[j] == label {
                     branch_target_label[usize(pending_pc[j])] = label
                 } else {
@@ -286,7 +276,6 @@ write_body_with_scopes :: fn(sb: StringBuilder, module: BytecodeModule, function
                     pending_label[new_psp] = pending_label[j]
                     new_psp = new_psp + 1
                 }
-                j = j + 1
             }
             psp = new_psp
             sp = sp - 1
@@ -746,8 +735,7 @@ export quote_string :: fn(value: string) -> string {
     out.append("\"")
     vb :: value.bytes()
     n :: vb.len()
-    i: usize = 0
-    for i < n {
+    for i in 0..<n {
         b :: vb[i]
         if      b == '\\' { out.append("\\\\") }
         else if b == '"'  { out.append("\\\"") }
@@ -760,7 +748,6 @@ export quote_string :: fn(value: string) -> string {
             // as UTF-8 and double-encode any byte >= 0x80.
             out.append(vb[i..<i + 1].bytes_to_string())
         }
-        i += 1
     }
     out.append("\"")
     return "${out}"

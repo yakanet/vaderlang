@@ -113,10 +113,8 @@ export to_hex :: fn(self: u64) -> string {
     }
     sb := new_builder()
     n :: rev.len()
-    k: usize = 0
-    for k < n {
+    for k in 0..<n {
         sb.append_char(rev[n - 1 - k])
-        k = k + 1
     }
     return sb.to_string()
 }
@@ -142,10 +140,8 @@ export to_bin :: fn(self: u64) -> string {
     }
     sb := new_builder()
     n :: rev.len()
-    k: usize = 0
-    for k < n {
+    for k in 0..<n {
         sb.append_char(rev[n - 1 - k])
-        k = k + 1
     }
     return sb.to_string()
 }

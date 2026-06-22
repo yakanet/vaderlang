@@ -186,8 +186,7 @@ parse_alternation :: fn(p: Parser) -> RegexError | null {
     //   end:
     n :: branch_offsets.len() - 1
     end_jumps: usize[] = []
-    i: usize = 0
-    for i < n - 1 {
+    for i in 0..<n - 1 {
         split_pos :: p.insts.len()
         p.insts.push(InstSplit { .a = 0, .b = 0 })
         body_pos :: p.insts.len()
@@ -197,24 +196,19 @@ parse_alternation :: fn(p: Parser) -> RegexError | null {
         end_jumps.push(jump_pos)
         next_split_pos :: p.insts.len()
         p.insts[split_pos] = InstSplit { .a = body_pos, .b = next_split_pos }
-        i = i + 1
     }
     last :: n - 1
     copy_slice(p.insts, branches_buf, branch_offsets[last], branch_offsets[last + 1])
     end_pos :: p.insts.len()
-    k: usize = 0
-    for k < end_jumps.len() {
+    for k in 0..<end_jumps.len() {
         p.insts[end_jumps[k]] = InstJump { .target = end_pos }
-        k = k + 1
     }
     return null
 }
 
 copy_slice :: fn(dst: Inst[], src: Inst[], lo: usize, hi: usize) -> void {
-    i: usize = lo
-    for i < hi {
+    for i in lo..<hi {
         dst.push(src[i])
-        i = i + 1
     }
 }
 
@@ -326,30 +320,24 @@ apply_counted :: fn(p: Parser, atom_start: usize) -> RegexError | null {
     p.insts = truncate_to(p.insts, atom_start)
 
     // Mandatory N copies.
-    i: usize = 0
-    for i < n {
+    for _ in 0..<n {
         push_all(p.insts, atom)
-        i = i + 1
     }
 
     if has_upper {
         // {n,m} : up to (m - n) optional copies. Each one : Split atom, after.
         diff :: m - n
         splits: usize[] = []
-        j: usize = 0
-        for j < diff {
+        for _ in 0..<diff {
             split_pos :: p.insts.len()
             splits.push(split_pos)
             p.insts.push(InstSplit { .a = 0, .b = 0 })
             push_all(p.insts, atom)
-            j = j + 1
         }
         after :: p.insts.len()
-        k: usize = 0
-        for k < splits.len() {
+        for k in 0..<splits.len() {
             sp :: splits[k]
             p.insts[sp] = InstSplit { .a = sp + 1, .b = after }
-            k = k + 1
         }
     } else {
         if has_comma {
@@ -557,29 +545,23 @@ codepoint_byte_advance :: fn(bs: const u8[], offset: usize) -> usize {
 // `Thread[]` in the current compiler. Keep these locally typed.
 extract_range :: fn(arr: Inst[], start: usize, end: usize) -> Inst[] {
     out: Inst[] = []
-    i: usize = start
-    for i < end {
+    for i in start..<end {
         out.push(arr[i])
-        i = i + 1
     }
     return out
 }
 
 truncate_to :: fn(arr: Inst[], n: usize) -> Inst[] {
     out: Inst[] = []
-    i: usize = 0
-    for i < n {
+    for i in 0..<n {
         out.push(arr[i])
-        i = i + 1
     }
     return out
 }
 
 push_all :: fn(target: Inst[], src: Inst[]) -> void {
-    i: usize = 0
-    for i < src.len() {
+    for i in 0..<src.len() {
         target.push(src[i])
-        i = i + 1
     }
 }
 
@@ -644,15 +626,13 @@ export replace_all :: fn(self: Pattern, input: string, repl: string) -> string {
     sb := new_builder()
     cursor: usize = 0
     matches_found :: self.find_all(input)
-    i: usize = 0
-    for i < matches_found.len() {
+    for i in 0..<matches_found.len() {
         m :: matches_found[i]
         // Append the gap before this match.
         sb.append(ib[cursor..<m.start].bytes_to_string())
         // Expand backrefs in the replacement.
         expand_replacement(sb, rb, m)
         cursor = m.end
-        i = i + 1
     }
     if cursor < ib.len() {
         sb.append(ib[cursor..<ib.len()].bytes_to_string())
@@ -693,20 +673,16 @@ Thread :: struct {
 
 new_thread :: fn(pc: usize, slots: usize) -> Thread {
     g: usize[] = []
-    i: usize = 0
-    for i < slots {
+    for _ in 0..<slots {
         g.push(SLOT_UNSET)
-        i = i + 1
     }
     return Thread { .pc = pc, .groups = g }
 }
 
 clone_thread :: fn(t: Thread) -> Thread {
     g: usize[] = []
-    i: usize = 0
-    for i < t.groups.len() {
+    for i in 0..<t.groups.len() {
         g.push(t.groups[i])
-        i = i + 1
     }
     return Thread { .pc = t.pc, .groups = g }
 }
@@ -791,14 +767,12 @@ run_at :: fn(p: Pattern, input: const u8[], start: usize) -> Match | null {
 
 class_matches :: fn(inst: InstClass, c: char) -> bool {
     n :: inst.ranges.len()
-    i: usize = 0
-    for i < n {
+    for i in 0..<n {
         r :: inst.ranges[i]
         if c in r.lo..=r.hi {
             if inst.negated { return false }
             return true
         }
-        i = i + 1
     }
     return inst.negated
 }
@@ -856,8 +830,7 @@ resolve_slot :: fn(slot_value: usize, fallback: usize) -> usize {
 captured_groups :: fn(t: Thread, input: const u8[]) -> string[] {
     n_groups :: t.groups.len() / 2
     out: string[] = []
-    i: usize = 0
-    for i < n_groups {
+    for i in 0..<n_groups {
         lo_slot :: t.groups[2 * i]
         hi_slot :: t.groups[2 * i + 1]
         if lo_slot == SLOT_UNSET || hi_slot == SLOT_UNSET {
@@ -865,17 +838,14 @@ captured_groups :: fn(t: Thread, input: const u8[]) -> string[] {
         } else {
             out.push(input[lo_slot..<hi_slot].bytes_to_string())
         }
-        i = i + 1
     }
     return out
 }
 
 truncate_threads :: fn(threads: Thread[], cutoff: usize) -> Thread[] {
     out: Thread[] = []
-    i: usize = 0
-    for i < cutoff {
+    for i in 0..<cutoff {
         out.push(threads[i])
-        i = i + 1
     }
     return out
 }

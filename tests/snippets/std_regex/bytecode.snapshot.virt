@@ -1147,12 +1147,12 @@ fn 10 std_regex$replace_all (ref,string,string) -> string
   local sb ref
   local cursor usize
   local matches_found ref
+  local __for_hi_0 usize
   local i usize
-  local $len_15 usize
   local m ref
-  local $field_19 usize
-  local $call_21 string
-  local $k_23 usize
+  local $field_20 usize
+  local $call_22 string
+  local $k_24 usize
   local.get 1
   call.import 1
   local.set 3
@@ -1166,20 +1166,19 @@ fn 10 std_regex$replace_all (ref,string,string) -> string
   local.get 0
   local.get 1
   call 9
-  local.set 7
-  i64.const 0
+  local.tee 7
+  array.len
   local.set 8
+  i64.const 0
+  local.set 9
   block $L0 void
     loop $L1 void
-      local.get 7
-      array.len
-      local.set 9
-      local.get 8
       local.get 9
+      local.get 8
       u64.lt
       if $L2 void
         local.get 7
-        local.get 8
+        local.get 9
         array.get 17
         local.set 10
         local.field 10 14 0
@@ -1203,10 +1202,10 @@ fn 10 std_regex$replace_all (ref,string,string) -> string
         local.set 6
         i64.const 1
         local.set 13
-        local.get 8
+        local.get 9
         local.get 13
         i64.add
-        local.set 8
+        local.set 9
         br $L1
       else
       end $L2
@@ -1727,41 +1726,41 @@ fn 13 std_regex$parse_alternation (ref) -> ref
   local $k_61 usize
   local n usize
   local end_jumps ref
+  local $k_66 usize
+  local __for_hi_0 usize
   local i usize
-  local $k_68 usize
-  local $sub_69 usize
   local split_pos usize
-  local $field_74 ref
-  local $k_75 usize
+  local $field_75 ref
   local $k_76 usize
-  local $struct_77 ref
+  local $k_77 usize
+  local $struct_78 ref
   local body_pos usize
-  local $field_81 ref
-  local $idx_82 usize
-  local $k_83 usize
-  local $add_84 usize
-  local $idx_85 usize
+  local $field_82 ref
+  local $idx_83 usize
+  local $k_84 usize
+  local $add_85 usize
+  local $idx_86 usize
   local jump_pos usize
-  local $field_89 ref
-  local $struct_91 ref
+  local $field_90 ref
+  local $struct_92 ref
   local next_split_pos usize
-  local $field_95 ref
-  local $struct_96 ref
-  local $k_97 usize
-  local $k_99 usize
+  local $field_96 ref
+  local $struct_97 ref
+  local $k_98 usize
+  local $k_100 usize
   local last usize
-  local $field_102 ref
-  local $idx_103 usize
-  local $k_104 usize
-  local $add_105 usize
-  local $idx_106 usize
+  local $field_103 ref
+  local $idx_104 usize
+  local $k_105 usize
+  local $add_106 usize
+  local $idx_107 usize
   local end_pos usize
+  local __for_hi_1 usize
   local k usize
-  local $len_112 usize
-  local $field_114 ref
-  local $idx_115 usize
-  local $struct_116 ref
-  local $k_117 usize
+  local $field_116 ref
+  local $idx_117 usize
+  local $struct_118 ref
+  local $k_119 usize
   local.field 0 18 2
   array.len
   local.set 1
@@ -1935,18 +1934,18 @@ fn 13 std_regex$parse_alternation (ref) -> ref
         local.set 22
         array.new 38 0
         local.set 23
-        i64.const 0
+        i64.const 1
         local.set 24
+        local.get 22
+        local.get 24
+        i64.sub
+        local.set 25
+        i64.const 0
+        local.set 26
         block $L8 void
           loop $L9 void
-            i64.const 1
-            local.set 25
-            local.get 22
-            local.get 25
-            i64.sub
-            local.set 26
-            local.get 24
             local.get 26
+            local.get 25
             u64.lt
             if $L10 void
               local.field 0 18 2
@@ -1971,12 +1970,12 @@ fn 13 std_regex$parse_alternation (ref) -> ref
               local.field 0 18 2
               local.set 33
               local.get 8
-              local.get 24
+              local.get 26
               load_slot_i64
               local.set 34
               i64.const 1
               local.set 35
-              local.get 24
+              local.get 26
               local.get 35
               i64.add
               local.set 36
@@ -2018,10 +2017,10 @@ fn 13 std_regex$parse_alternation (ref) -> ref
               array.set 24
               i64.const 1
               local.set 44
-              local.get 24
+              local.get 26
               local.get 44
               i64.add
-              local.set 24
+              local.set 26
               br $L9
             else
             end $L10
@@ -2057,21 +2056,21 @@ fn 13 std_regex$parse_alternation (ref) -> ref
         local.field 0 18 2
         array.len
         local.set 52
-        i64.const 0
+        local.get 23
+        array.len
         local.set 53
+        i64.const 0
+        local.set 54
         block $L11 void
           loop $L12 void
-            local.get 23
-            array.len
-            local.set 54
-            local.get 53
             local.get 54
+            local.get 53
             u64.lt
             if $L13 void
               local.field 0 18 2
               local.set 55
               local.get 23
-              local.get 53
+              local.get 54
               load_slot_i64
               local.set 56
               local.get 52
@@ -2083,10 +2082,10 @@ fn 13 std_regex$parse_alternation (ref) -> ref
               array.set 24
               i64.const 1
               local.set 58
-              local.get 53
+              local.get 54
               local.get 58
               i64.add
-              local.set 53
+              local.set 54
               br $L12
             else
             end $L13
@@ -2266,7 +2265,7 @@ end
 
 fn 15 std_regex$new_thread (usize,usize) -> ref
   local g ref
-  local i usize
+  local _ usize
   local $k_7 usize
   local $k_8 usize
   array.new 38 0
@@ -2741,25 +2740,25 @@ end
 
 fn 21 std_regex$clone_thread (ref) -> ref
   local g ref
+  local __for_hi_0 usize
   local i usize
-  local $len_6 usize
-  local $idx_9 usize
-  local $k_10 usize
+  local $idx_10 usize
+  local $k_11 usize
   array.new 38 0
   local.set 1
-  i64.const 0
+  local.field 0 21 1
+  array.len
   local.set 2
+  i64.const 0
+  local.set 3
   block $L0 void
     loop $L1 void
-      local.field 0 21 1
-      array.len
-      local.set 3
-      local.get 2
       local.get 3
+      local.get 2
       u64.lt
       if $L2 void
         local.field 0 21 1
-        local.get 2
+        local.get 3
         load_slot_i64
         local.set 4
         local.get 1
@@ -2767,10 +2766,10 @@ fn 21 std_regex$clone_thread (ref) -> ref
         array.push 7
         i64.const 1
         local.set 5
-        local.get 2
+        local.get 3
         local.get 5
         i64.add
-        local.set 2
+        local.set 3
         br $L1
       else
       end $L2
@@ -2854,23 +2853,23 @@ fn 22 std_regex$parse_concat (ref) -> ref
 end
 
 fn 23 std_regex$push_all (ref,ref) -> void
+  local __for_hi_0 usize
   local i usize
-  local $len_4 usize
-  local $idx_6 ref
-  local $k_7 usize
-  i64.const 0
+  local $idx_7 ref
+  local $k_8 usize
+  local.get 1
+  array.len
   local.set 2
+  i64.const 0
+  local.set 3
   block $L0 void
     loop $L1 void
-      local.get 1
-      array.len
-      local.set 3
-      local.get 2
       local.get 3
+      local.get 2
       u64.lt
       if $L2 void
         local.get 1
-        local.get 2
+        local.get 3
         array.get 24
         local.set 4
         local.get 0
@@ -2878,10 +2877,10 @@ fn 23 std_regex$push_all (ref,ref) -> void
         array.push 25
         i64.const 1
         local.set 5
-        local.get 2
+        local.get 3
         local.get 5
         i64.add
-        local.set 2
+        local.set 3
         br $L1
       else
       end $L2
@@ -3629,11 +3628,11 @@ fn 32 std_regex$apply_counted (ref,usize) -> ref
   local $len_74 usize
   local atom ref
   local $call_78 ref
-  local i usize
+  local _ usize
   local $k_83 usize
   local diff usize
   local splits ref
-  local j usize
+  local _ usize
   local split_pos usize
   local $field_95 ref
   local $k_96 usize
@@ -3641,24 +3640,24 @@ fn 32 std_regex$apply_counted (ref,usize) -> ref
   local $struct_98 ref
   local $k_100 usize
   local after usize
+  local __for_hi_2 usize
   local k usize
-  local $len_107 usize
   local sp usize
-  local $field_111 ref
-  local $k_112 usize
-  local $struct_114 ref
-  local $k_115 usize
+  local $field_112 ref
+  local $k_113 usize
+  local $struct_115 ref
+  local $k_116 usize
   local sp usize
-  local $field_120 ref
-  local $k_121 usize
+  local $field_121 ref
   local $k_122 usize
-  local $struct_123 ref
+  local $k_123 usize
+  local $struct_124 ref
   local body_start usize
-  local $field_128 ref
-  local $struct_129 ref
+  local $field_129 ref
+  local $struct_130 ref
   local after usize
-  local $field_133 ref
-  local $struct_134 ref
+  local $field_134 ref
+  local $struct_135 ref
   local.field 0 18 0
   local.set 2
   local.field 0 18 1
@@ -3941,19 +3940,19 @@ fn 32 std_regex$apply_counted (ref,usize) -> ref
         local.field 0 18 2
         array.len
         local.set 32
-        i64.const 0
+        local.get 24
+        array.len
         local.set 33
+        i64.const 0
+        local.set 34
         block $L16 void
           loop $L17 void
-            local.get 24
-            array.len
-            local.set 34
-            local.get 33
             local.get 34
+            local.get 33
             u64.lt
             if $L18 void
               local.get 24
-              local.get 33
+              local.get 34
               load_slot_i64
               local.set 35
               local.field 0 18 2
@@ -3972,10 +3971,10 @@ fn 32 std_regex$apply_counted (ref,usize) -> ref
               array.set 24
               i64.const 1
               local.set 39
-              local.get 33
+              local.get 34
               local.get 39
               i64.add
-              local.set 33
+              local.set 34
               br $L17
             else
             end $L18
@@ -4174,19 +4173,19 @@ fn 32 std_regex$apply_counted (ref,usize) -> ref
       local.field 0 18 2
       array.len
       local.set 32
-      i64.const 0
+      local.get 24
+      array.len
       local.set 33
+      i64.const 0
+      local.set 34
       block $L29 void
         loop $L30 void
-          local.get 24
-          array.len
-          local.set 34
-          local.get 33
           local.get 34
+          local.get 33
           u64.lt
           if $L31 void
             local.get 24
-            local.get 33
+            local.get 34
             load_slot_i64
             local.set 35
             local.field 0 18 2
@@ -4205,10 +4204,10 @@ fn 32 std_regex$apply_counted (ref,usize) -> ref
             array.set 24
             i64.const 1
             local.set 39
-            local.get 33
+            local.get 34
             local.get 39
             i64.add
-            local.set 33
+            local.set 34
             br $L30
           else
           end $L31
@@ -4407,19 +4406,19 @@ fn 32 std_regex$apply_counted (ref,usize) -> ref
     local.field 0 18 2
     array.len
     local.set 32
-    i64.const 0
+    local.get 24
+    array.len
     local.set 33
+    i64.const 0
+    local.set 34
     block $L42 void
       loop $L43 void
-        local.get 24
-        array.len
-        local.set 34
-        local.get 33
         local.get 34
+        local.get 33
         u64.lt
         if $L44 void
           local.get 24
-          local.get 33
+          local.get 34
           load_slot_i64
           local.set 35
           local.field 0 18 2
@@ -4438,10 +4437,10 @@ fn 32 std_regex$apply_counted (ref,usize) -> ref
           array.set 24
           i64.const 1
           local.set 39
-          local.get 33
+          local.get 34
           local.get 39
           i64.add
-          local.set 33
+          local.set 34
           br $L43
         else
         end $L44

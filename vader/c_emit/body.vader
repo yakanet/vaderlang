@@ -49,15 +49,13 @@ export sanitise :: fn(raw: string) -> string {
     sb :: new_builder()
     rawb :: raw.bytes()
     n :: rawb.len()
-    i: usize = 0
-    for i < n {
+    for i in 0..<n {
         b :: rawb[i]
         if is_ident_byte(b) {
             sb.append_char(char(u32(b)))
         } else {
             sb.append_char('_')
         }
-        i += 1
     }
     out :: "${sb}"
     if is_c_reserved(out) {
@@ -150,8 +148,7 @@ export c_string_lit :: fn(s: string) -> string {
     sb.append_char('"')
     sbytes :: s.bytes()
     n :: sbytes.len()
-    i: usize = 0
-    for i < n {
+    for i in 0..<n {
         b :: sbytes[i]
         if b == '\\' {
             sb.append("\\\\")
@@ -180,7 +177,6 @@ export c_string_lit :: fn(s: string) -> string {
         } else {
             sb.append_char(char(u32(b)))
         }
-        i += 1
     }
     sb.append_char('"')
     return "${sb}"

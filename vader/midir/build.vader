@@ -231,13 +231,11 @@ make_struct_decl :: fn(d: LoweredStructDecl) -> CFGStructDecl {
 make_extern_decl :: fn(d: LoweredFnDecl) -> CFGExternDecl {
     meta :: fn_metadata(d)
     params: CFGParam[] = []
-    i: usize = 0
-    for i < d.params.len() {
+    for i in 0..<d.params.len() {
         p :: d.params[i]
         params.push(CFGParam {
             .name = p.name, .symbol = p.symbol, .type = p.type, .local = i32(i),
         })
-        i += 1
     }
     return CFGExternDecl {
         .mangled     = d.mangled,
@@ -487,10 +485,8 @@ build_loop :: fn(fn_ctx: FnCtx, s: LoweredLoop) -> void {
     }
     // pop loop frame
     new_stack: LoopFrame[] = []
-    i: usize = 0
-    for i < fn_ctx.loop_stack.len() - 1 {
+    for i in 0..<fn_ctx.loop_stack.len() - 1 {
         new_stack.push(fn_ctx.loop_stack[i])
-        i += 1
     }
     fn_ctx.loop_stack = new_stack
 

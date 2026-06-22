@@ -257,13 +257,11 @@ export normalize :: fn(self: Path) -> Path {
     if abs {
         sb.append(SEP_STR)
     }
-    j: usize = 0
-    for j < count {
+    for j in 0..<count {
         if j > 0 {
             sb.append(SEP_STR)
         }
         sb.append(segments[j])
-        j = j + 1
     }
     out := sb.to_string()
     if out.is_empty() && !abs {

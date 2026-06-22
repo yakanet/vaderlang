@@ -16,11 +16,9 @@ main :: fn(argv: string[]) -> i32 {
     // goto-def can resolve `std/*` / `vader/*` imports to absolute
     // paths.
     args: string[] = []
-    i: usize = 1
     n :: argv.len()
-    for i < n {
+    for i in 1..<n {
         args.push(argv[i])
-        i = i + 1
     }
     return run_server(args)
 }

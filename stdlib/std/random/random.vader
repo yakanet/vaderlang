@@ -149,10 +149,8 @@ import "std/testing" { assert_eq, assert }
 @test test_new_seeded_deterministic :: fn() -> void {
     a := new_seeded(42)
     b := new_seeded(42)
-    k: i32 = 0
-    for k < 16 {
+    for k in 0..<16 {
         assert_eq(a.next_u64(), b.next_u64())
-        k = k + 1
     }
 }
 
@@ -160,10 +158,8 @@ import "std/testing" { assert_eq, assert }
     r := new_seeded(0)
     // Sum a small batch — must not be all zeros (would mean a degenerate state).
     acc: u64 = 0
-    k: i32 = 0
-    for k < 8 {
+    for k in 0..<8 {
         acc = acc | r.next_u64()
-        k = k + 1
     }
     assert(acc != 0, "seed=0 produced all zeros")
 }
@@ -176,23 +172,19 @@ import "std/testing" { assert_eq, assert }
 
 @test test_range_i32_within_bounds :: fn() -> void {
     r := new_seeded(7)
-    k: i32 = 0
-    for k < 200 {
+    for k in 0..<200 {
         v :: r.range_i32(10, 20)
         assert(v >= 10, "range_i32 below lo")
         assert(v < 20, "range_i32 at or above hi")
-        k = k + 1
     }
 }
 
 @test test_unit_f64_within_bounds :: fn() -> void {
     r := new_seeded(123)
-    k: i32 = 0
-    for k < 200 {
+    for k in 0..<200 {
         v :: r.unit_f64()
         assert(v >= 0.0, "unit_f64 below 0")
         assert(v < 1.0, "unit_f64 at or above 1")
-        k = k + 1
     }
 }
 
@@ -213,12 +205,10 @@ import "std/testing" { assert_eq, assert }
     r := new_seeded(2026)
     seen_true: bool = false
     seen_false: bool = false
-    k: i32 = 0
-    for k < 64 {
+    for k in 0..<64 {
         b :: r.next_bool()
         if b { seen_true = true }
         if !b { seen_false = true }
-        k = k + 1
     }
     assert(seen_true, "next_bool never returned true")
     assert(seen_false, "next_bool never returned false")

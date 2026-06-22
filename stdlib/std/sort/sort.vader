@@ -53,15 +53,12 @@ merge_sort_range :: fn<T>(arr: T[], buf: T[], lo: usize, hi: usize, compare: fn(
     merge_sort_range(arr, buf, mid, hi, compare)
     // Mirror arr[lo..hi) into buf, then merge back into arr[lo..hi). The
     // two halves are already sorted within themselves.
-    i := lo
-    for i < hi {
+    for i in lo..<hi {
         buf[i] = arr[i]
-        i = i + 1
     }
     a := lo
     b := mid
-    k := lo
-    for k < hi {
+    for k in lo..<hi {
         if a >= mid {
             arr[k] = buf[b]
             b = b + 1
@@ -78,13 +75,11 @@ merge_sort_range :: fn<T>(arr: T[], buf: T[], lo: usize, hi: usize, compare: fn(
             arr[k] = buf[a]
             a = a + 1
         }
-        k = k + 1
     }
 }
 
 insertion_sort_range :: fn<T>(arr: T[], lo: usize, hi: usize, compare: fn(T, T) -> bool) -> void {
-    i := lo + 1
-    for i < hi {
+    for i in (lo + 1)..<hi {
         x :: arr[i]
         j := i
         for j > lo && compare(x, arr[j - 1]) {
@@ -92,7 +87,6 @@ insertion_sort_range :: fn<T>(arr: T[], lo: usize, hi: usize, compare: fn(T, T) 
             j = j - 1
         }
         arr[j] = x
-        i = i + 1
     }
 }
 

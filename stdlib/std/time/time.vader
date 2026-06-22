@@ -253,14 +253,12 @@ parse_digits :: fn(s: string, start: usize, count: usize) -> i64 | TimeError {
         return TimeError { .msg = "unexpected end of input" }
     }
     acc: i64 = 0
-    i: usize = 0
-    for i < count {
+    for i in 0..<count {
         b :: sb[start + i]
         if b < '0' || b > '9' {
             return TimeError { .msg = "expected digit" }
         }
         acc = acc * 10 + i64(b - '0')
-        i = i + 1
     }
     return acc
 }
@@ -317,10 +315,8 @@ export parse_iso8601 :: fn(s: string) -> Instant | TimeError {
         }
         scale_loop :: 3 - consumed
         scale: i64 = 1
-        k: usize = 0
-        for k < scale_loop {
+        for k in 0..<scale_loop {
             scale = scale * 10
-            k = k + 1
         }
         ms_part = ms_part * scale
         // Drop any additional fractional digits the caller supplied.
@@ -426,10 +422,7 @@ import "std/testing" { assert_eq, assert }
     start :: monotonic()
     // Tiny busy-loop : we don't want to depend on the actual timing,
     // just that `since` returns a non-negative duration.
-    spin: i32 = 0
-    for spin < 1000 {
-        spin = spin + 1
-    }
+    for _ in 0..<1000 {}
     elapsed_dur :: start.since()
     assert(elapsed_dur.ns >= 0, "monotonic clock ran backwards")
 }

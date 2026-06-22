@@ -71,10 +71,8 @@ export lower_block :: fn(
     // Pop the BlockCtx — mirror TS by maintaining the stack depth
     // invariant so nested blocks see only their own defers.
     new_blocks: BlockCtx[] = []
-    i: usize = 0
-    for i < entry_depth {
+    for i in 0..<entry_depth {
         new_blocks.push(ctx.blocks[i])
-        i = i + 1
     }
     ctx.blocks = new_blocks
     return LoweredBlock {

@@ -319,8 +319,7 @@ doc_col_offset :: fn(text_bytes: const u8[], byte_off: usize) -> i32 {
 // Insertion sort suffices — token count per file is small (≤ a few k).
 sort_raws :: fn(arr: RawToken[]) -> void {
     n :: arr.len()
-    i: usize = 1
-    for i < n {
+    for i in 1..<n {
         x :: arr[i]
         j := i
         for j > 0 {
@@ -331,7 +330,6 @@ sort_raws :: fn(arr: RawToken[]) -> void {
             j = j - 1
         }
         arr[j] = x
-        i = i + 1
     }
 }
 

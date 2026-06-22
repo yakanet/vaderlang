@@ -54,11 +54,9 @@ export mangle :: fn(decl_name: string, module_path: string, type_arguments: Type
     sb :: new_builder()
     sb.append(head)
     sb.append("__")
-    i: usize = 0
-    for i < type_arguments.len() {
+    for i in 0..<type_arguments.len() {
         if i > 0 { sb.append("__") }
         sb.append(mangle_type_arg(type_arguments[i]))
-        i += 1
     }
     return "${sb}"
 }
@@ -82,15 +80,13 @@ export sanitise_ident :: fn(raw: string) -> string {
     sb :: new_builder()
     rb :: raw.bytes()
     n :: rb.len()
-    i: usize = 0
-    for i < n {
+    for i in 0..<n {
         b :: rb[i]
         if is_ident_byte(b) {
             sb.append_char(char(u32(b)))
         } else {
             sb.append_char('_')
         }
-        i += 1
     }
     return "${sb}"
 }
