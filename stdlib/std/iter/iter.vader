@@ -158,10 +158,8 @@ export slice :: fn<T>(arr: const T[], start: usize, end: usize) -> const T[] {
 export clone :: fn<T>(arr: const T[]) -> T[] {
     n :: arr.len()
     out: T[] = []
-    i: usize = 0
-    for i < n {
+    for i in 0..< n {
         out.push(arr[i])
-        i = i + 1
     }
     return out
 }
