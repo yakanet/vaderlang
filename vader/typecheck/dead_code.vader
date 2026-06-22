@@ -1,4 +1,4 @@
-// vader/lint/dead_code — W0007 : private declarations never used in a module.
+// vader/typecheck/dead_code — W0007 : private declarations never used in a module.
 //
 // A reference-reachability lint. For every top-level declaration of the (merged,
 // all-files) module, collect the NAMES it references — in bodies, signatures,
@@ -17,7 +17,7 @@
 // dead-code needs : `FieldExpr.field` (UFCS `recv.foo()`) and string-interpolation
 // parts (`"${foo()}"`).
 
-module "vader/lint"
+module "vader/typecheck"
 
 import "std/collections" { MutableMap, MutableSet }
 import "vader/diagnostics" { Diagnostic, Span, warning }

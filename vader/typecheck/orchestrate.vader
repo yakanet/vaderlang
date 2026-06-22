@@ -12,7 +12,6 @@
 module "vader/typecheck"
 
 import "std/collections" { MutableMap }
-import "vader/lint" { check_dead_code }
 import "vader/diagnostics" { Diagnostic, Span }
 AST :: import "vader/parser"
 import "vader/parser" { Program }
@@ -863,6 +862,11 @@ reset_expr_tables :: fn(typed: TypedProgram) -> void {
     typed.ufcs_receiver_types = MutableMap<usize, Type> {}
     typed.local_types = MutableMap<u64, Type> {}
     typed.narrowed_bindings = MutableMap<i32, Type> {}
+    // Field-narrowings are block-scoped (push/pop), so this should be empty
+    // between passes — but clear it for the same reason as `narrowed_bindings`:
+    // any residue from a throwaway settle pass would otherwise survive into the
+    // real pass and mis-type a later field-chain `is` test (spurious T3040).
+    typed.narrowed_fields = MutableMap<string, Type> {}
 }
 
 // Walk a module's top-level decls and register every type alias
