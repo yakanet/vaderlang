@@ -19,19 +19,16 @@
           "op": "add",
           "left": {
             "kind": "IntLitExpr",
-            "value": "40n",
-            "suffix": null
+            "value": "40n"
           },
           "right": {
             "kind": "IntLitExpr",
-            "value": "2n",
-            "suffix": null
+            "value": "2n"
           }
         },
         "right": {
           "kind": "IntLitExpr",
-          "value": "1n",
-          "suffix": null
+          "value": "1n"
         }
       },
       "decorators": [

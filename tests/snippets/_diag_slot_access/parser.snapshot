@@ -52,18 +52,15 @@
               "elements": [
                 {
                   "kind": "IntLitExpr",
-                  "value": "1n",
-                  "suffix": null
+                  "value": "1n"
                 },
                 {
                   "kind": "IntLitExpr",
-                  "value": "2n",
-                  "suffix": null
+                  "value": "2n"
                 },
                 {
                   "kind": "IntLitExpr",
-                  "value": "3n",
-                  "suffix": null
+                  "value": "3n"
                 }
               ]
             }
@@ -78,8 +75,7 @@
               },
               "index": {
                 "kind": "IntLitExpr",
-                "value": "1n",
-                "suffix": null
+                "value": "1n"
               }
             },
             "value": {
@@ -93,8 +89,7 @@
                 },
                 "index": {
                   "kind": "IntLitExpr",
-                  "value": "0n",
-                  "suffix": null
+                  "value": "0n"
                 }
               },
               "right": {
@@ -105,8 +100,7 @@
                 },
                 "index": {
                   "kind": "IntLitExpr",
-                  "value": "2n",
-                  "suffix": null
+                  "value": "2n"
                 }
               }
             }
@@ -139,8 +133,7 @@
                           },
                           "index": {
                             "kind": "IntLitExpr",
-                            "value": "0n",
-                            "suffix": null
+                            "value": "0n"
                           }
                         }
                       },
@@ -158,8 +151,7 @@
                           },
                           "index": {
                             "kind": "IntLitExpr",
-                            "value": "1n",
-                            "suffix": null
+                            "value": "1n"
                           }
                         }
                       },
@@ -177,8 +169,7 @@
                           },
                           "index": {
                             "kind": "IntLitExpr",
-                            "value": "2n",
-                            "suffix": null
+                            "value": "2n"
                           }
                         }
                       }
@@ -208,18 +199,15 @@
               "elements": [
                 {
                   "kind": "IntLitExpr",
-                  "value": "10n",
-                  "suffix": null
+                  "value": "10n"
                 },
                 {
                   "kind": "IntLitExpr",
-                  "value": "20n",
-                  "suffix": null
+                  "value": "20n"
                 },
                 {
                   "kind": "IntLitExpr",
-                  "value": "30n",
-                  "suffix": null
+                  "value": "30n"
                 }
               ]
             }
@@ -234,8 +222,7 @@
               },
               "index": {
                 "kind": "IntLitExpr",
-                "value": "2n",
-                "suffix": null
+                "value": "2n"
               }
             },
             "value": {
@@ -249,8 +236,7 @@
                 },
                 "index": {
                   "kind": "IntLitExpr",
-                  "value": "0n",
-                  "suffix": null
+                  "value": "0n"
                 }
               },
               "right": {
@@ -261,8 +247,7 @@
                 },
                 "index": {
                   "kind": "IntLitExpr",
-                  "value": "1n",
-                  "suffix": null
+                  "value": "1n"
                 }
               }
             }
@@ -295,8 +280,7 @@
                           },
                           "index": {
                             "kind": "IntLitExpr",
-                            "value": "2n",
-                            "suffix": null
+                            "value": "2n"
                           }
                         }
                       }
@@ -326,13 +310,11 @@
               "elements": [
                 {
                   "kind": "FloatLitExpr",
-                  "value": 1.5,
-                  "suffix": null
+                  "value": 1.5
                 },
                 {
                   "kind": "FloatLitExpr",
-                  "value": 2.5,
-                  "suffix": null
+                  "value": 2.5
                 }
               ]
             }
@@ -347,8 +329,7 @@
               },
               "index": {
                 "kind": "IntLitExpr",
-                "value": "0n",
-                "suffix": null
+                "value": "0n"
               }
             },
             "value": {
@@ -362,14 +343,12 @@
                 },
                 "index": {
                   "kind": "IntLitExpr",
-                  "value": "1n",
-                  "suffix": null
+                  "value": "1n"
                 }
               },
               "right": {
                 "kind": "FloatLitExpr",
-                "value": 2,
-                "suffix": null
+                "value": 2
               }
             }
           },
@@ -401,8 +380,7 @@
                           },
                           "index": {
                             "kind": "IntLitExpr",
-                            "value": "0n",
-                            "suffix": null
+                            "value": "0n"
                           }
                         }
                       }
@@ -432,13 +410,11 @@
                 "inclusive": false,
                 "lower": {
                   "kind": "IntLitExpr",
-                  "value": "1n",
-                  "suffix": null
+                  "value": "1n"
                 },
                 "upper": {
                   "kind": "IntLitExpr",
-                  "value": "3n",
-                  "suffix": null
+                  "value": "3n"
                 }
               }
             }
@@ -471,8 +447,7 @@
                           },
                           "index": {
                             "kind": "IntLitExpr",
-                            "value": "0n",
-                            "suffix": null
+                            "value": "0n"
                           }
                         }
                       },
@@ -490,8 +465,7 @@
                           },
                           "index": {
                             "kind": "IntLitExpr",
-                            "value": "1n",
-                            "suffix": null
+                            "value": "1n"
                           }
                         }
                       }
@@ -550,8 +524,7 @@
               },
               "index": {
                 "kind": "IntLitExpr",
-                "value": "0n",
-                "suffix": null
+                "value": "0n"
               }
             },
             "value": {
@@ -562,8 +535,7 @@
               },
               "index": {
                 "kind": "IntLitExpr",
-                "value": "1n",
-                "suffix": null
+                "value": "1n"
               }
             }
           },
@@ -595,8 +567,7 @@
                           },
                           "index": {
                             "kind": "IntLitExpr",
-                            "value": "0n",
-                            "suffix": null
+                            "value": "0n"
                           }
                         }
                       }
@@ -611,8 +582,7 @@
             "kind": "ReturnStmt",
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           }
         ],

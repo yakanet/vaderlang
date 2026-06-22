@@ -13,8 +13,7 @@
       "type": null,
       "value": {
         "kind": "IntLitExpr",
-        "value": "10n",
-        "suffix": null
+        "value": "10n"
       },
       "decorators": [
         {
@@ -37,8 +36,7 @@
         },
         "right": {
           "kind": "IntLitExpr",
-          "value": "2n",
-          "suffix": null
+          "value": "2n"
         }
       },
       "decorators": [

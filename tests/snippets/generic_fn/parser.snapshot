@@ -123,8 +123,7 @@
                 },
                 "right": {
                   "kind": "IntLitExpr",
-                  "value": "0n",
-                  "suffix": null
+                  "value": "0n"
                 }
               },
               "then": {
@@ -140,8 +139,7 @@
                       },
                       "index": {
                         "kind": "IntLitExpr",
-                        "value": "0n",
-                        "suffix": null
+                        "value": "0n"
                       }
                     }
                   }
@@ -190,8 +188,7 @@
                 "kind": "FieldExpr",
                 "target": {
                   "kind": "IntLitExpr",
-                  "value": "42n",
-                  "suffix": null
+                  "value": "42n"
                 },
                 "field": "identity"
               },
@@ -243,18 +240,15 @@
               "elements": [
                 {
                   "kind": "IntLitExpr",
-                  "value": "10n",
-                  "suffix": null
+                  "value": "10n"
                 },
                 {
                   "kind": "IntLitExpr",
-                  "value": "20n",
-                  "suffix": null
+                  "value": "20n"
                 },
                 {
                   "kind": "IntLitExpr",
-                  "value": "30n",
-                  "suffix": null
+                  "value": "30n"
                 }
               ]
             }
@@ -282,8 +276,7 @@
                   "name": null,
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "0n",
-                    "suffix": null
+                    "value": "0n"
                   },
                   "spread": false
                 }
@@ -326,8 +319,7 @@
             "kind": "ReturnStmt",
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           }
         ],

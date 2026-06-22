@@ -230,17 +230,15 @@ The identifier `void` is **reserved**: binding it as a fn name, struct name, par
 - Hexadecimal: `0xFF`, `0xff`, `0xFF_FF` (case-insensitive after `0x`)
 - Binary: `0b1010`, `0b1010_1010`
 - Octal: `0o755`, `0o7_5_5`
-- Suffix: `42i32`, `42u64`, `42_i32` (an optional underscore between magnitude and suffix is allowed for readability)
-- Default type: `i32` if no suffix and no inferred context.
+- Default type: `i32` when no surrounding context pins a width. A literal is *free* (untyped) until its context provides a concrete integer type — there is **no typed-suffix form** (`42i32` / `42_i32` are errors); write a typed slot, annotation, or cast instead.
 - Underscore rules: never two in a row (`1__000` is an error), never leading or trailing on the digits (`_42`, `42_` are errors).
 
 #### Float literals
 
 - Standard: `3.14`, `0.5`, `00.5` (leading zeros allowed), `1.0e-10`, `1.5E+3`
-- Suffix: `3.14f32`, `3.14f64`, `3.14_f32` (optional underscore before suffix allowed)
 - A trailing point with no fractional digits is forbidden: `5.` is an error — write `5.0`.
 - A bare `.5` is forbidden — write `0.5`.
-- Default type: `f64` if no suffix.
+- Default type: `f64`. Like integers, a float literal is *free* until context pins a width ; there is **no typed-suffix form** (`3.14f32` is an error — annotate the slot for `f32`).
 - Same underscore rules as integers.
 
 #### Boolean / null
@@ -258,15 +256,7 @@ The identifier `void` is **reserved**: binding it as a fn name, struct name, par
 
 - Escape set: `\n`, `\t`, `\r`, `\\`, `\'`, `\0`, `\u{HHHH}` (1–6 hex digits).
 - Exactly **one** logical codepoint per literal. `''` and `'ab'` are lexical errors.
-
-#### Byte literals
-
-```vader
-b'A'       // a single byte, typed u8 (value 65)
-b'\n'      // escapes allowed, same set as char literals
-```
-
-- `b'X'` is a `u8` literal carrying one byte. A codepoint above `0xFF` (e.g. `b'é'`) or more than one byte is a lexical error — use a char literal `'…'` for codepoints.
+- A char **literal** is *free*: in an integer context it coerces to that integer type, carrying its codepoint, bounds-checked at compile time (`b == '/'` with `b: u8` works ; `b == '💩'` is rejected — U+1F4A9 doesn't fit `u8`). With no integer context it defaults to `char`. This replaces the old `b'X'` byte literal — write `'X'`, not `b'X'`. (There is no `b'…'` form anymore.) A char **variable** keeps the concrete `char` type and never auto-coerces: convert it explicitly with `u8(c)` (which truncates codepoints above `0xFF`).
 
 #### String literals
 
@@ -467,15 +457,15 @@ opt: Maybe<i32> = 42
 
 ### Default integer
 
-A literal integer with no suffix **infers to `i32`** (`x := 42` ⇒ `x: i32`).
+A literal integer with no concrete context **infers to `i32`** (`x := 42` ⇒ `x: i32`).
 
 ### Default float
 
-A literal float with no suffix **infers to `f64`** (`x := 3.14` ⇒ `x: f64`).
+A literal float with no concrete context **infers to `f64`** (`x := 3.14` ⇒ `x: f64`).
 
 ### Implicit numeric coercion
 
-There is **no implicit coercion between sized numeric types**. `i32 → i64` requires an explicit cast (`i64(x)`). The exception is unsuffixed numeric literals: `x: i64 = 42` works because `42` is left flexible until it lands in a typed context.
+There is **no implicit coercion between sized numeric types**. `i32 → i64` requires an explicit cast (`i64(x)`). The exception is numeric literals: `x: i64 = 42` works because `42` is left flexible until it lands in a typed context.
 
 ### Float ↔ bits reinterpret
 
@@ -491,7 +481,7 @@ back :: bits.from_bits()   // f64 3.0                 — round-trips bit-for-bi
 
 ### Numeric-literal context-sensitivity
 
-An unsuffixed integer literal stays as a *free* (untyped) numeric until its surrounding context provides a concrete width; at that point it adopts the slot's type *without* a runtime conversion. This is what makes `x: usize = 5`, `Box { .size = 10 }`, `arr.slice(0, n - 1)`, `if usz == 42`, and `g: i64 = -50` all compile without explicit casts even though `5`, `10`, `0`, `42`, `50` would otherwise default to `i32`.
+An integer literal stays as a *free* (untyped) numeric until its surrounding context provides a concrete width; at that point it adopts the slot's type *without* a runtime conversion. This is what makes `x: usize = 5`, `Box { .size = 10 }`, `arr.slice(0, n - 1)`, `if usz == 42`, and `g: i64 = -50` all compile without explicit casts even though `5`, `10`, `0`, `42`, `50` would otherwise default to `i32`.
 
 The flow is bidirectional:
 - **Top-down (slot expected)** — typed lets, struct-field defaults, fn-arg slots, struct-lit field values, return-type-annotated `return …`, indexed `arr[i]` (slot is the impl's `I` type), comparison/arithmetic where one side has a concrete numeric type. The literal repins to the expected width.
@@ -532,7 +522,7 @@ The `Target(value)` syntax doubles as the explicit coercion surface. Numeric and
 **Built-in coercions**
 - `T[] → Iterator<T>` — raw arrays auto-wrap into `ArrayIterator<T>` on entry to an `Iterator<T>` slot, materialised by the blanket impl `T[] implements<T> Into<Iterator<T>>` in `std/core`. Driven through the `Into` probe, not a special-cased typer rule.
 - `T → string` when `T: Display` — anything implementing `Display` flowing into a `string`-typed slot is rewritten as a call to the impl's `to_string` member, via the blanket `T implements<T: Display> Into<string>` in `std/core`. The string-interpolation path (`"${value}"`) bypasses `Into` and routes through the builder intrinsics directly.
-- `FreeInt → i32` / `FreeFloat → f64` and friends — unsuffixed literals defaulting to their canonical width at the typer level. Unrelated to `Into`; happens before any coercion lookup.
+- `FreeInt → i32` / `FreeFloat → f64` and friends — free literals defaulting to their canonical width at the typer level. Unrelated to `Into`; happens before any coercion lookup.
 - Concrete `S → Trait` when `S` impl `Trait` — virtual dispatch boxing. Distinct from `Into`; the value flows in unchanged and runtime dispatch resolves the method by tag.
 
 **Resolution order at a coercion site**
@@ -2378,7 +2368,7 @@ parse_uint_in_base :: fn(s: string, base: i32) -> u64 | ParseError
 hex_digit_value    :: fn(c: char) -> i32           // -1 if not a hex digit
 is_hex_digit       :: fn(c: char) -> bool
 is_digit_in_base   :: fn(c: char, base: i32) -> bool
-strip_numeric_text :: fn(s: string) -> string      // drop `_` separators + an optional type suffix
+strip_numeric_text :: fn(text: string, base: i32) -> string  // drop the base prefix + `_` digit separators
 
 // Numeric type-suffix predicates — for DSLs parsing typed literals.
 is_int_suffix   :: fn(s: string) -> bool           // i8/i16/i32/i64/u8/u16/u32/u64

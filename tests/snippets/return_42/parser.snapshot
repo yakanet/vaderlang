@@ -23,8 +23,7 @@
             "kind": "ReturnStmt",
             "value": {
               "kind": "IntLitExpr",
-              "value": "42n",
-              "suffix": null
+              "value": "42n"
             }
           }
         ],

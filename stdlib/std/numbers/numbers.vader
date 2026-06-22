@@ -172,50 +172,23 @@ export to_compact_str :: fn(self: f64) -> string {
     return s
 }
 
-/// True when `s` names one of Vader's integer types — `i8`, `i16`, `i32`,
-/// `i64`, `u8`, `u16`, `u32`, `u64`. Useful for DSLs that recognise typed
-/// numeric literals (e.g. `42i32`).
-/// @param s  the candidate suffix.
-/// @return   `true` iff `s` is a recognised integer type name.
-export is_int_suffix :: fn(s: string) =
-    s == "i8" || s == "i16" || s == "i32" || s == "i64" ||
-    s == "u8" || s == "u16" || s == "u32" || s == "u64"
-
-/// True when `s` names one of Vader's float types — `f32` or `f64`.
-/// @param s  the candidate suffix.
-/// @return   `true` iff `s` is `"f32"` or `"f64"`.
-export is_float_suffix :: fn(s: string) = s == "f32" || s == "f64"
-
-/// Strip the base prefix (`0x` / `0b` / `0o`), the trailing type suffix
-/// (`u8`, `i32`, `f64`, …), an optional `_` separator immediately before
-/// the suffix, and every `_` digit separator from a literal's source
-/// text. The result is a pure digit string ready for `parse_int_in_base`
-/// / `parse_uint_in_base` / `parse_float`.
+/// Strip the base prefix (`0x` / `0b` / `0o`) and every `_` digit separator
+/// from a literal's source text. The result is a pure digit string ready for
+/// `parse_int_in_base` / `parse_uint_in_base` / `parse_float`.
 ///
-/// @param text    the original literal text (e.g. `"0xFF_u8"` / `"1_000"`).
+/// @param text    the original literal text (e.g. `"0xFF_FF"` / `"1_000"`).
 /// @param base    the literal's base — 10 leaves the leading bytes
 ///                untouched, anything else strips the two-byte `0x` /
 ///                `0b` / `0o` prefix.
-/// @param suffix  the type suffix the caller already classified, or `""`
-///                when the literal has none. Used to peel back the
-///                trailing tag without re-running the lexer.
 /// @return        the digit-only payload, suitable for the base-aware
 ///                numeric parsers in this module.
 /// @example
-///   `strip_numeric_text("0xFF_u8", 16, "u8")  // "FF"`
-///   `strip_numeric_text("1_000",   10, "")    // "1000"`
-///   `strip_numeric_text("3.14_f64", 10, "f64") // "3.14"`
-export strip_numeric_text :: fn(text: string, base: i32, suffix: string) -> string {
+///   `strip_numeric_text("0xFF", 16)  // "FF"`
+///   `strip_numeric_text("1_000", 10)  // "1000"`
+export strip_numeric_text :: fn(text: string, base: i32) -> string {
     start: usize = if base == 10 { 0 } else { 2 }
-    has_suffix :: !suffix.is_empty()
     tb :: text.bytes()
-    end_no_suffix :: tb.len() - suffix.bytes().len()
-    end :: if has_suffix && end_no_suffix > start && text[end_no_suffix - 1] == '_' {
-        end_no_suffix - 1
-    } else {
-        end_no_suffix
-    }
-    body :: tb[start..<end].bytes_to_string()
+    body :: tb[start..<tb.len()].bytes_to_string()
     // Fast path : no `_` to filter → return the slice directly.
     if !body.contains("_") { return body }
     return body.replace_chars_where((c: char) -> c == '_', "")
@@ -226,11 +199,10 @@ export strip_numeric_text :: fn(text: string, base: i32, suffix: string) -> stri
 import "std/testing" { assert_eq }
 
 @test test_strip_numeric_text :: fn() -> void {
-    assert_eq(strip_numeric_text("0xFF_u8",  16, "u8"),  "FF")
-    assert_eq(strip_numeric_text("0xFFu8",   16, "u8"),  "FF")     // suffix without `_`
-    assert_eq(strip_numeric_text("0b1010",   2,  ""),    "1010")
-    assert_eq(strip_numeric_text("1_000",    10, ""),    "1000")
-    assert_eq(strip_numeric_text("3.14_f64", 10, "f64"), "3.14")
-    assert_eq(strip_numeric_text("42",       10, ""),    "42")     // fast path
-    assert_eq(strip_numeric_text("42u8",     10, "u8"),  "42")     // suffix-only, no `_`
+    assert_eq(strip_numeric_text("0xFF",    16),  "FF")
+    assert_eq(strip_numeric_text("0xFF_FF", 16),  "FFFF")   // hex with digit separator
+    assert_eq(strip_numeric_text("0b1010",  2),   "1010")
+    assert_eq(strip_numeric_text("1_000",   10),  "1000")
+    assert_eq(strip_numeric_text("3.14",    10),  "3.14")
+    assert_eq(strip_numeric_text("42",      10),  "42")     // fast path
 }

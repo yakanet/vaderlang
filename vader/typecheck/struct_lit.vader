@@ -196,7 +196,7 @@ import "vader/diagnostics" { empty_span }
 synthetic_sl :: fn() -> AST.StructLitExpr {
     sp :: empty_span()
     int_lit: AST.Expr = AST.IntLitExpr {
-        .span = sp, .id = AST.UNASSIGNED_NODE_ID, .value = 0, .suffix = null,
+        .span = sp, .id = AST.UNASSIGNED_NODE_ID, .value = 0,
     }
     return AST.StructLitExpr {
         .span = sp, .id = AST.UNASSIGNED_NODE_ID,

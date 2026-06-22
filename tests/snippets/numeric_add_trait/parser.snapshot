@@ -169,8 +169,7 @@
                   "name": null,
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "7n",
-                    "suffix": null
+                    "value": "7n"
                   },
                   "spread": false
                 }
@@ -196,8 +195,7 @@
                   "name": null,
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "8n",
-                    "suffix": null
+                    "value": "8n"
                   },
                   "spread": false
                 }
@@ -223,8 +221,7 @@
                   "name": null,
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "2n",
-                    "suffix": null
+                    "value": "2n"
                   },
                   "spread": false
                 }

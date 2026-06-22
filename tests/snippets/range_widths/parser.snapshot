@@ -46,8 +46,7 @@
             },
             "value": {
               "kind": "IntLitExpr",
-              "value": "3n",
-              "suffix": null
+              "value": "3n"
             }
           },
           {
@@ -63,8 +62,7 @@
             },
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           },
           {
@@ -78,8 +76,7 @@
                 "inclusive": false,
                 "lower": {
                   "kind": "IntLitExpr",
-                  "value": "0n",
-                  "suffix": null
+                  "value": "0n"
                 },
                 "upper": {
                   "kind": "IdentExpr",
@@ -159,8 +156,7 @@
             },
             "value": {
               "kind": "IntLitExpr",
-              "value": "4n",
-              "suffix": null
+              "value": "4n"
             }
           },
           {
@@ -176,8 +172,7 @@
             },
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           },
           {
@@ -191,8 +186,7 @@
                 "inclusive": false,
                 "lower": {
                   "kind": "IntLitExpr",
-                  "value": "0n",
-                  "suffix": null
+                  "value": "0n"
                 },
                 "upper": {
                   "kind": "IdentExpr",
@@ -272,8 +266,7 @@
             },
             "value": {
               "kind": "IntLitExpr",
-              "value": "5n",
-              "suffix": null
+              "value": "5n"
             }
           },
           {
@@ -289,8 +282,7 @@
             },
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           },
           {
@@ -304,8 +296,7 @@
                 "inclusive": false,
                 "lower": {
                   "kind": "IntLitExpr",
-                  "value": "0n",
-                  "suffix": null
+                  "value": "0n"
                 },
                 "upper": {
                   "kind": "IdentExpr",
@@ -385,8 +376,7 @@
             },
             "value": {
               "kind": "IntLitExpr",
-              "value": "6n",
-              "suffix": null
+              "value": "6n"
             }
           },
           {
@@ -402,8 +392,7 @@
             },
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           },
           {
@@ -426,8 +415,7 @@
                       "name": null,
                       "value": {
                         "kind": "IntLitExpr",
-                        "value": "0n",
-                        "suffix": null
+                        "value": "0n"
                       },
                       "spread": false
                     }
@@ -524,8 +512,7 @@
             },
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           },
           {
@@ -548,8 +535,7 @@
                       "name": null,
                       "value": {
                         "kind": "IntLitExpr",
-                        "value": "1n",
-                        "suffix": null
+                        "value": "1n"
                       },
                       "spread": false
                     }
@@ -566,8 +552,7 @@
                       "name": null,
                       "value": {
                         "kind": "IntLitExpr",
-                        "value": "4n",
-                        "suffix": null
+                        "value": "4n"
                       },
                       "spread": false
                     }
@@ -651,8 +636,7 @@
             "kind": "ReturnStmt",
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           }
         ],

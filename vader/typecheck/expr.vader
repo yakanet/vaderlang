@@ -158,7 +158,7 @@ test_check_expr_writes_into_expr_types :: fn() -> void {
     typed :: empty_typed_program()
     e :: AST.IntLitExpr {
         .span = empty_span(), .id = AST.UNASSIGNED_NODE_ID,
-        .value = 42, .suffix = null,
+        .value = 42,
     }
     diags: Diagnostic[] = []
     check_expr(e, null, typed, diags)
@@ -176,7 +176,7 @@ test_check_expr_narrows_free_int_to_expected_primitive :: fn() -> void {
     typed :: empty_typed_program()
     e :: AST.IntLitExpr {
         .span = empty_span(), .id = AST.UNASSIGNED_NODE_ID,
-        .value = 42, .suffix = null,
+        .value = 42,
     }
     diags: Diagnostic[] = []
     expected: Type = mk_primitive("i64")
@@ -189,7 +189,7 @@ test_check_expr_keeps_free_float_when_no_expected :: fn() -> void {
     typed :: empty_typed_program()
     e :: AST.FloatLitExpr {
         .span = empty_span(), .id = AST.UNASSIGNED_NODE_ID,
-        .value = 1.5, .suffix = null,
+        .value = 1.5,
     }
     diags: Diagnostic[] = []
     result :: check_expr(e, null, typed, diags)
@@ -206,7 +206,7 @@ test_check_expr_narrows_through_block :: fn() -> void {
     typed :: empty_typed_program()
     inner :: AST.IntLitExpr {
         .span = empty_span(), .id = AST.UNASSIGNED_NODE_ID,
-        .value = 42, .suffix = null,
+        .value = 42,
     }
     block :: AST.BlockExpr {
         .span = empty_span(), .id = AST.UNASSIGNED_NODE_ID,

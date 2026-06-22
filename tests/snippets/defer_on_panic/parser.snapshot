@@ -152,8 +152,7 @@
             "type": null,
             "value": {
               "kind": "IntLitExpr",
-              "value": "1n",
-              "suffix": null
+              "value": "1n"
             }
           },
           {
@@ -171,8 +170,7 @@
               },
               "right": {
                 "kind": "IntLitExpr",
-                "value": "0n",
-                "suffix": null
+                "value": "0n"
               }
             }
           },

@@ -94,8 +94,7 @@
                         "name": "v",
                         "value": {
                           "kind": "IntLitExpr",
-                          "value": "10n",
-                          "suffix": null
+                          "value": "10n"
                         }
                       }
                     ]
@@ -116,8 +115,7 @@
                         "name": "v",
                         "value": {
                           "kind": "IntLitExpr",
-                          "value": "32n",
-                          "suffix": null
+                          "value": "32n"
                         }
                       }
                     ]

@@ -396,8 +396,7 @@
                                 "kind": "ReturnStmt",
                                 "value": {
                                   "kind": "IntLitExpr",
-                                  "value": "1n",
-                                  "suffix": null
+                                  "value": "1n"
                                 }
                               }
                             ],
@@ -466,8 +465,7 @@
                         "kind": "ReturnStmt",
                         "value": {
                           "kind": "IntLitExpr",
-                          "value": "1n",
-                          "suffix": null
+                          "value": "1n"
                         }
                       }
                     ],
@@ -481,8 +479,7 @@
             "kind": "ReturnStmt",
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           }
         ],
@@ -586,8 +583,7 @@
                           "name": "major",
                           "value": {
                             "kind": "IntLitExpr",
-                            "value": "0n",
-                            "suffix": null
+                            "value": "0n"
                           }
                         },
                         {
@@ -595,8 +591,7 @@
                           "name": "minor",
                           "value": {
                             "kind": "IntLitExpr",
-                            "value": "0n",
-                            "suffix": null
+                            "value": "0n"
                           }
                         },
                         {
@@ -604,8 +599,7 @@
                           "name": "patch",
                           "value": {
                             "kind": "IntLitExpr",
-                            "value": "0n",
-                            "suffix": null
+                            "value": "0n"
                           }
                         }
                       ]

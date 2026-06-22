@@ -158,8 +158,7 @@
                           "op": "neg",
                           "operand": {
                             "kind": "IntLitExpr",
-                            "value": "1n",
-                            "suffix": null
+                            "value": "1n"
                           }
                         }
                       }
@@ -200,8 +199,7 @@
                         "kind": "ReturnStmt",
                         "value": {
                           "kind": "IntLitExpr",
-                          "value": "1n",
-                          "suffix": null
+                          "value": "1n"
                         }
                       }
                     ],
@@ -214,8 +212,7 @@
                 "kind": "ReturnStmt",
                 "value": {
                   "kind": "IntLitExpr",
-                  "value": "0n",
-                  "suffix": null
+                  "value": "0n"
                 }
               }
             ],
@@ -259,8 +256,7 @@
                   "name": "amount",
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "100n",
-                    "suffix": null
+                    "value": "100n"
                   }
                 }
               ]
@@ -286,8 +282,7 @@
                   "name": "amount",
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "100n",
-                    "suffix": null
+                    "value": "100n"
                   }
                 }
               ]
@@ -313,8 +308,7 @@
                   "name": "amount",
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "200n",
-                    "suffix": null
+                    "value": "200n"
                   }
                 }
               ]
@@ -480,8 +474,7 @@
             "kind": "ReturnStmt",
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           }
         ],

@@ -80,8 +80,7 @@
                   "name": "x",
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "10n",
-                    "suffix": null
+                    "value": "10n"
                   }
                 },
                 {
@@ -125,8 +124,7 @@
                             "kind": "literal",
                             "value": {
                               "kind": "IntLitExpr",
-                              "value": "10n",
-                              "suffix": null
+                              "value": "10n"
                             }
                           }
                         },
@@ -207,8 +205,7 @@
             "kind": "ReturnStmt",
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           }
         ],

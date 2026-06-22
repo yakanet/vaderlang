@@ -176,8 +176,7 @@
                       "op": "neg",
                       "operand": {
                         "kind": "IntLitExpr",
-                        "value": "1n",
-                        "suffix": null
+                        "value": "1n"
                       }
                     }
                   }
@@ -213,8 +212,7 @@
                       "op": "neg",
                       "operand": {
                         "kind": "IntLitExpr",
-                        "value": "2n",
-                        "suffix": null
+                        "value": "2n"
                       }
                     }
                   }
@@ -254,8 +252,7 @@
                       "op": "neg",
                       "operand": {
                         "kind": "IntLitExpr",
-                        "value": "3n",
-                        "suffix": null
+                        "value": "3n"
                       }
                     }
                   }
@@ -323,8 +320,7 @@
                         "name": "params",
                         "value": {
                           "kind": "IntLitExpr",
-                          "value": "42n",
-                          "suffix": null
+                          "value": "42n"
                         }
                       }
                     ]
@@ -363,8 +359,7 @@
                         "name": "o",
                         "value": {
                           "kind": "IntLitExpr",
-                          "value": "9n",
-                          "suffix": null
+                          "value": "9n"
                         }
                       }
                     ]

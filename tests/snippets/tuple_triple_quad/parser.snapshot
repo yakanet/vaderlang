@@ -62,8 +62,7 @@
               "elements": [
                 {
                   "kind": "IntLitExpr",
-                  "value": "1n",
-                  "suffix": null
+                  "value": "1n"
                 },
                 {
                   "kind": "StringLitExpr",
@@ -179,8 +178,7 @@
               "elements": [
                 {
                   "kind": "IntLitExpr",
-                  "value": "9n",
-                  "suffix": null
+                  "value": "9n"
                 },
                 {
                   "kind": "StringLitExpr",
@@ -197,8 +195,7 @@
                 },
                 {
                   "kind": "FloatLitExpr",
-                  "value": 3.14,
-                  "suffix": null
+                  "value": 3.14
                 }
               ]
             }
@@ -288,8 +285,7 @@
             "kind": "ReturnStmt",
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           }
         ],

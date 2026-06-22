@@ -70,8 +70,7 @@
                   "guard": null,
                   "body": {
                     "kind": "IntLitExpr",
-                    "value": "1n",
-                    "suffix": null
+                    "value": "1n"
                   }
                 },
                 {
@@ -87,8 +86,7 @@
                   "guard": null,
                   "body": {
                     "kind": "IntLitExpr",
-                    "value": "2n",
-                    "suffix": null
+                    "value": "2n"
                   }
                 }
               ]
@@ -125,8 +123,7 @@
             },
             "value": {
               "kind": "IntLitExpr",
-              "value": "42n",
-              "suffix": null
+              "value": "42n"
             }
           },
           {

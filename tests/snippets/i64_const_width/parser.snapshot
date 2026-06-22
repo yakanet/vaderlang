@@ -38,8 +38,7 @@
           "op": "neg",
           "operand": {
             "kind": "IntLitExpr",
-            "value": "2147483648n",
-            "suffix": null
+            "value": "2147483648n"
           }
         }
       },
@@ -64,8 +63,7 @@
           "op": "neg",
           "operand": {
             "kind": "IntLitExpr",
-            "value": "2147483647n",
-            "suffix": null
+            "value": "2147483647n"
           }
         }
       },
@@ -90,8 +88,7 @@
           "op": "neg",
           "operand": {
             "kind": "IntLitExpr",
-            "value": "2147483649n",
-            "suffix": null
+            "value": "2147483649n"
           }
         }
       },
@@ -113,8 +110,7 @@
         "stmts": [],
         "trailing": {
           "kind": "IntLitExpr",
-          "value": "4294967296n",
-          "suffix": null
+          "value": "4294967296n"
         }
       },
       "decorators": [],
@@ -218,8 +214,7 @@
             "kind": "ReturnStmt",
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           }
         ],

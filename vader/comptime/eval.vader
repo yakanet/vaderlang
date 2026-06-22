@@ -100,7 +100,7 @@ import "vader/typecheck" { empty_typed_program }
 import "vader/diagnostics" { empty_span }
 
 @test test_evaluate_int_literal :: fn() -> void {
-    expr :: AST.IntLitExpr { .span = empty_span(), .id = usize(0), .value = u64(42), .suffix = null }
+    expr :: AST.IntLitExpr { .span = empty_span(), .id = 0, .value = 42 }
     context :: empty_context()
     result :: evaluate_expr(expr, context)
     match result.value {
@@ -111,8 +111,8 @@ import "vader/diagnostics" { empty_span }
 
 @test test_evaluate_unsupported_emits_c4001 :: fn() -> void {
     // `CallExpr` falls through to vm_required at this MVP.
-    callee :: AST.IdentExpr { .span = empty_span(), .id = usize(0), .name = "f", .implicit_dot = false, .is_type_param_intro = false }
-    expr :: AST.CallExpr { .span = empty_span(), .id = usize(0), .callee = callee, .args = [] }
+    callee :: AST.IdentExpr { .span = empty_span(), .id = 0, .name = "f", .implicit_dot = false, .is_type_param_intro = false }
+    expr :: AST.CallExpr { .span = empty_span(), .id = 0, .callee = callee, .args = [] }
     context :: empty_context()
     result :: evaluate_expr(expr, context)
     match result.diag {

@@ -22,7 +22,7 @@ import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 import "std/iter" { slice as slice_array }
 import "std/numbers" {
     hex_digit_value, is_hex_digit, is_digit_in_base,
-    parse_uint_in_base, is_int_suffix, is_float_suffix,
+    parse_uint_in_base,
     strip_numeric_text,
 }
 import "vader/diagnostics" { Diagnostic, lexer_error }
@@ -288,27 +288,6 @@ lex_ident :: fn(l: Lexer) -> void {
 
 // ---- numbers --------------------------------------------------------------
 
-// Read trailing identifier-shaped text after a digit run. Returns "" if no
-// suffix is present. Accepts both forms `42i32` and `42_i32`.
-read_numeric_suffix :: fn(l: Lexer) -> string {
-    start := l.pos
-    if l.peek() == '_' && l.peek_at(1).is_ident_start() {
-        l.advance(1)
-        suff_start := l.pos
-        for !l.at_end() && l.peek().is_ident_continue() {
-            l.advance(1)
-        }
-        return l.bytes[suff_start..<l.pos].bytes_to_string()
-    }
-    if l.peek().is_ident_start() {
-        for !l.at_end() && l.peek().is_ident_continue() {
-            l.advance(1)
-        }
-        return l.bytes[start..<l.pos].bytes_to_string()
-    }
-    return ""
-}
-
 // Consume a digit run in the given base with `_` separators. Validates that
 // underscores don't appear consecutively or trail. `start_anchor` is for
 // diagnostic spans. Returns void — callers detecting "no digits after base
@@ -392,34 +371,29 @@ lex_number :: fn(l: Lexer) -> void {
         }
     }
 
-    suffix := l.read_numeric_suffix()
-    has_suffix := !suffix.is_empty()
-
-    if has_suffix && !suffix.is_int_suffix() && !suffix.is_float_suffix() {
-        l.push_error(.MalformedNumericLiteral, l.error_span(start), "unknown numeric suffix \"${suffix}\"")
-    }
-    if has_suffix && suffix.is_float_suffix() {
-        is_float = true
-    }
-    if has_suffix && suffix.is_int_suffix() && is_float {
-        l.push_error(.MalformedNumericLiteral, l.error_span(start), "integer suffix \"${suffix}\" on a float literal")
-    }
-
     text := l.bytes[start.offset..<l.pos].bytes_to_string()
+    // Typed numeric suffixes were removed — the literal coerces from context.
+    // A trailing identifier here is a leftover suffix ; reject it with a clear
+    // message instead of letting it lex as a separate token and fail downstream.
+    if (l.peek() == '_' && l.peek_at(1).is_ident_start()) || l.peek().is_ident_start() {
+        if l.peek() == '_' { l.advance(1) }
+        suff_start := l.pos
+        for !l.at_end() && l.peek().is_ident_continue() { l.advance(1) }
+        suff :: l.bytes[suff_start..<l.pos].bytes_to_string()
+        l.push_error(.MalformedNumericLiteral, l.error_span(start),
+            "typed numeric suffix `${suff}` is no longer supported — the literal coerces from context")
+    }
     span := Span { .start = start, .end = l.position_here() }
     kind: TokenKind = .IntLit
     if is_float {
         kind = .FloatLit
     }
     t := make_token(kind, text, span)
-    if has_suffix {
-        t.numeric_suffix = suffix
-    }
     // Digit shape was already validated by the scan above, so any parse
     // failure here is "shouldn't happen" — swallow into 0 / 0.0 so the
     // Token carries a placeholder value instead of bubbling a Trap up
     // through every caller that just wants the textual span.
-    digits :: strip_numeric_text(text, base, suffix)
+    digits :: strip_numeric_text(text, base)
     if is_float {
         parsed :: digits.parse_float()
         t.value = match parsed {
@@ -503,54 +477,6 @@ lex_unicode_escape :: fn(l: Lexer, esc_start: Position) -> u32 {
         return u32(0)
     }
     return cp
-}
-
-// ---- byte literals --------------------------------------------------------
-
-/// Byte literal `b'X'` — a single ASCII codepoint typed `u8`. Rides
-/// through the int-literal channel with an implicit `u8` suffix so
-/// downstream consumers (parser, typechecker) treat it like any other
-/// `0x7B_u8` ; no new AST node, no new ValType case.
-lex_byte_lit :: fn(l: Lexer) -> void {
-    start :: l.position_here()
-    l.advance(2)  // consume `b'`
-
-    cp: u32 = u32(0)
-    if l.peek() == '\\' {
-        cp = l.lex_escape()
-    } else if l.peek() == '\'' || l.peek() == '\n' || l.at_end() {
-        l.push_error(.InvalidCharacterLiteral, l.error_span(start),
-            "byte literal must contain exactly one ASCII character")
-        text :: l.bytes[start.offset..<l.pos].bytes_to_string()
-        t := make_token(.IntLit, text, l.error_span(start))
-        t.value = u64(0)
-        t.numeric_suffix = "u8"
-        l.emit(t)
-        return
-    } else {
-        c :: l.peek()
-        cp = u32(c)
-        l.advance(codepoint_byte_len(c))
-    }
-
-    if cp > u32(0xFF) {
-        l.push_error(.InvalidCharacterLiteral, l.error_span(start),
-            "byte literal must fit in u8")
-    }
-
-    if l.peek() == '\'' {
-        l.advance(1)
-    } else {
-        l.push_error(.InvalidCharacterLiteral, l.error_span(start),
-            "byte literal must contain exactly one byte")
-    }
-
-    text :: l.bytes[start.offset..<l.pos].bytes_to_string()
-    span :: Span { .start = start, .end = l.position_here() }
-    t := make_token(.IntLit, text, span)
-    t.value = u64(cp & u32(0xFF))
-    t.numeric_suffix = "u8"
-    l.emit(t)
 }
 
 // ---- char literals --------------------------------------------------------
@@ -935,10 +861,6 @@ lex_one :: fn(l: Lexer) -> void {
     // `r` is otherwise an identifier start.
     if c == 'r' && l.peek_at(1) == '"' {
         l.lex_string(true)
-        return
-    }
-    if c == 'b' && l.peek_at(1) == '\'' {
-        l.lex_byte_lit()
         return
     }
     if c.is_ident_start() {

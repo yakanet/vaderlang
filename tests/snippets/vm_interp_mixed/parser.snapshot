@@ -43,8 +43,7 @@
             "type": null,
             "value": {
               "kind": "IntLitExpr",
-              "value": "7n",
-              "suffix": null
+              "value": "7n"
             }
           },
           {
@@ -75,8 +74,7 @@
             "type": null,
             "value": {
               "kind": "IntLitExpr",
-              "value": "30n",
-              "suffix": null
+              "value": "30n"
             }
           },
           {
@@ -141,8 +139,7 @@
             "kind": "ReturnStmt",
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           }
         ],

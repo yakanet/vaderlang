@@ -76,10 +76,6 @@ append_token_detail :: fn(sb: StringBuilder, t: Token) -> void {
                 _      -> { sb.append("?") }
             }
             sb.append_char('n')
-            if !t.numeric_suffix.is_empty() {
-                sb.append(" :")
-                sb.append(t.numeric_suffix)
-            }
         }
         .FloatLit -> {
             sb.append(" =")
@@ -87,10 +83,6 @@ append_token_detail :: fn(sb: StringBuilder, t: Token) -> void {
             match v {
                 is f64 -> { sb.append("${v}") }
                 _      -> { sb.append("?") }
-            }
-            if !t.numeric_suffix.is_empty() {
-                sb.append(" :")
-                sb.append(t.numeric_suffix)
             }
         }
         .CharLit -> {

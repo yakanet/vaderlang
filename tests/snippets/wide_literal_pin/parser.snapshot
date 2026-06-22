@@ -127,8 +127,7 @@
                       "op": "neg",
                       "operand": {
                         "kind": "IntLitExpr",
-                        "value": "1n",
-                        "suffix": null
+                        "value": "1n"
                       }
                     }
                   }
@@ -206,8 +205,7 @@
                       "op": "neg",
                       "operand": {
                         "kind": "IntLitExpr",
-                        "value": "1n",
-                        "suffix": null
+                        "value": "1n"
                       }
                     }
                   }
@@ -285,8 +283,7 @@
             },
             "value": {
               "kind": "IntLitExpr",
-              "value": "9000000000n",
-              "suffix": null
+              "value": "9000000000n"
             }
           },
           {
@@ -304,8 +301,7 @@
             },
             "value": {
               "kind": "IntLitExpr",
-              "value": "42n",
-              "suffix": null
+              "value": "42n"
             }
           },
           {
@@ -345,8 +341,7 @@
                                 },
                                 "index": {
                                   "kind": "IntLitExpr",
-                                  "value": "9000000000n",
-                                  "suffix": null
+                                  "value": "9000000000n"
                                 }
                               },
                               "spread": false
@@ -401,14 +396,12 @@
               },
               "index": {
                 "kind": "IntLitExpr",
-                "value": "1n",
-                "suffix": null
+                "value": "1n"
               }
             },
             "value": {
               "kind": "IntLitExpr",
-              "value": "9000000000n",
-              "suffix": null
+              "value": "9000000000n"
             }
           },
           {
@@ -448,8 +441,7 @@
                                 },
                                 "index": {
                                   "kind": "IntLitExpr",
-                                  "value": "1n",
-                                  "suffix": null
+                                  "value": "1n"
                                 }
                               },
                               "spread": false
@@ -504,14 +496,12 @@
               },
               "index": {
                 "kind": "IntLitExpr",
-                "value": "9000000000n",
-                "suffix": null
+                "value": "9000000000n"
               }
             },
             "value": {
               "kind": "IntLitExpr",
-              "value": "7n",
-              "suffix": null
+              "value": "7n"
             }
           },
           {
@@ -527,8 +517,7 @@
             },
             "value": {
               "kind": "IntLitExpr",
-              "value": "9000000000n",
-              "suffix": null
+              "value": "9000000000n"
             }
           },
           {
@@ -611,8 +600,7 @@
                   "name": null,
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "9000000000n",
-                    "suffix": null
+                    "value": "9000000000n"
                   },
                   "spread": false
                 }
@@ -655,8 +643,7 @@
             "kind": "ReturnStmt",
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           }
         ],

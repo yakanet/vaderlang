@@ -145,8 +145,7 @@
                   "name": null,
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "4n",
-                    "suffix": null
+                    "value": "4n"
                   },
                   "spread": false
                 },
@@ -154,8 +153,7 @@
                   "name": null,
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "5n",
-                    "suffix": null
+                    "value": "5n"
                   },
                   "spread": false
                 }

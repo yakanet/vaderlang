@@ -89,8 +89,7 @@
                   "name": "a",
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "1n",
-                    "suffix": null
+                    "value": "1n"
                   }
                 },
                 {
@@ -98,8 +97,7 @@
                   "name": "b",
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "2n",
-                    "suffix": null
+                    "value": "2n"
                   }
                 },
                 {
@@ -107,8 +105,7 @@
                   "name": "c",
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "3n",
-                    "suffix": null
+                    "value": "3n"
                   }
                 }
               ]
@@ -141,8 +138,7 @@
                   "name": "b",
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "99n",
-                    "suffix": null
+                    "value": "99n"
                   }
                 }
               ]
@@ -300,8 +296,7 @@
                   "name": "a",
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "10n",
-                    "suffix": null
+                    "value": "10n"
                   }
                 },
                 {
@@ -309,8 +304,7 @@
                   "name": "b",
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "20n",
-                    "suffix": null
+                    "value": "20n"
                   }
                 },
                 {
@@ -318,8 +312,7 @@
                   "name": "c",
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "30n",
-                    "suffix": null
+                    "value": "30n"
                   }
                 }
               ]
@@ -359,8 +352,7 @@
                   "name": "b",
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "7n",
-                    "suffix": null
+                    "value": "7n"
                   }
                 }
               ]
@@ -436,8 +428,7 @@
             "kind": "ReturnStmt",
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           }
         ],

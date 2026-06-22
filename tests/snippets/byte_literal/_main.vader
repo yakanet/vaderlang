@@ -17,6 +17,6 @@ main :: fn() -> i32 {
     println("bs=${i32(bs)}")        // 92
     println("sq=${i32(sq)}")        // 39
     b := '='
-    println("eq=${b == b'='}")      // true
+    println("eq=${b == '='}")      // true
     return 0
 }

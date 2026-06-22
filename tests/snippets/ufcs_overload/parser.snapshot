@@ -94,8 +94,7 @@
               },
               "right": {
                 "kind": "IntLitExpr",
-                "value": "1n",
-                "suffix": null
+                "value": "1n"
               }
             }
           }
@@ -142,8 +141,7 @@
               },
               "right": {
                 "kind": "IntLitExpr",
-                "value": "100n",
-                "suffix": null
+                "value": "100n"
               }
             }
           }
@@ -185,8 +183,7 @@
                   "name": "x",
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "5n",
-                    "suffix": null
+                    "value": "5n"
                   }
                 }
               ]
@@ -212,8 +209,7 @@
                   "name": "y",
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "5n",
-                    "suffix": null
+                    "value": "5n"
                   }
                 }
               ]
@@ -295,8 +291,7 @@
             "kind": "ReturnStmt",
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           }
         ],

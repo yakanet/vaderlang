@@ -46,8 +46,7 @@
               },
               "right": {
                 "kind": "IntLitExpr",
-                "value": "1n",
-                "suffix": null
+                "value": "1n"
               }
             }
           },
@@ -138,8 +137,7 @@
                 },
                 "right": {
                   "kind": "IntLitExpr",
-                  "value": "2n",
-                  "suffix": null
+                  "value": "2n"
                 }
               },
               "right": {

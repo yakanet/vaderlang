@@ -1,0 +1,8 @@
+// Typed numeric suffixes were removed — a literal coerces from context.
+// `42i32` / `100_u64` / `b'A'` are now lexical errors (L0006).
+module "snippet"
+
+main :: fn() -> i32 {
+    x :: 42i32
+    return x
+}

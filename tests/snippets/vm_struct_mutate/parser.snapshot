@@ -57,8 +57,7 @@
                   "name": "value",
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "0n",
-                    "suffix": null
+                    "value": "0n"
                   }
                 }
               ]
@@ -76,8 +75,7 @@
             },
             "value": {
               "kind": "IntLitExpr",
-              "value": "100n",
-              "suffix": null
+              "value": "100n"
             }
           },
           {

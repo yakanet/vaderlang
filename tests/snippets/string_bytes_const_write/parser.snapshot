@@ -55,8 +55,7 @@
               },
               "index": {
                 "kind": "IntLitExpr",
-                "value": "0n",
-                "suffix": null
+                "value": "0n"
               }
             },
             "value": {
@@ -70,8 +69,7 @@
                   "name": null,
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "120n",
-                    "suffix": null
+                    "value": "120n"
                   },
                   "spread": false
                 }
@@ -82,8 +80,7 @@
             "kind": "ReturnStmt",
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           }
         ],

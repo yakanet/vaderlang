@@ -40,8 +40,7 @@
               },
               "right": {
                 "kind": "IntLitExpr",
-                "value": "1n",
-                "suffix": null
+                "value": "1n"
               }
             }
           }
@@ -84,8 +83,7 @@
               },
               "right": {
                 "kind": "IntLitExpr",
-                "value": "2n",
-                "suffix": null
+                "value": "2n"
               }
             }
           }
@@ -144,8 +142,7 @@
                   },
                   "index": {
                     "kind": "IntLitExpr",
-                    "value": "0n",
-                    "suffix": null
+                    "value": "0n"
                   }
                 },
                 "args": [
@@ -153,8 +150,7 @@
                     "name": null,
                     "value": {
                       "kind": "IntLitExpr",
-                      "value": "7n",
-                      "suffix": null
+                      "value": "7n"
                     },
                     "spread": false
                   }
@@ -170,8 +166,7 @@
                   },
                   "index": {
                     "kind": "IntLitExpr",
-                    "value": "1n",
-                    "suffix": null
+                    "value": "1n"
                   }
                 },
                 "args": [
@@ -179,8 +174,7 @@
                     "name": null,
                     "value": {
                       "kind": "IntLitExpr",
-                      "value": "3n",
-                      "suffix": null
+                      "value": "3n"
                     },
                     "spread": false
                   }

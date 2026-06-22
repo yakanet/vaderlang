@@ -18,22 +18,12 @@ AST :: import "vader/parser"
 /// is `i32` to match the typechecker's free-int defaulting.
 /// @param literal  the literal node.
 /// @return         the wrapped int value.
-export evaluate_int_lit :: fn(literal: AST.IntLitExpr) -> EvalResult {
-    match literal.suffix {
-        is null    -> { return ok(int_val(i64(literal.value))) }
-        is string  -> { return ok(int_val_typed(i64(literal.value), literal.suffix)) }
-    }
-}
+export evaluate_int_lit :: fn(literal: AST.IntLitExpr) -> EvalResult = ok(int_val(i64(literal.value)))
 
-/// Evaluate a `FloatLitExpr`. Suffix-aware ; default `f64`.
+/// Evaluate a `FloatLitExpr` — always a free `f64` value (no suffix form).
 /// @param literal  the literal node.
 /// @return         the wrapped float value.
-export evaluate_float_lit :: fn(literal: AST.FloatLitExpr) -> EvalResult {
-    match literal.suffix {
-        is null   -> { return ok(float_val(literal.value)) }
-        is string -> { return ok(float_val_typed(literal.value, literal.suffix)) }
-    }
-}
+export evaluate_float_lit :: fn(literal: AST.FloatLitExpr) -> EvalResult = ok(float_val(literal.value))
 
 /// Evaluate a `BoolLitExpr` (`true` / `false`).
 export evaluate_bool_lit :: fn(literal: AST.BoolLitExpr) -> EvalResult {

@@ -716,8 +716,7 @@
                   "name": "age",
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "3n",
-                    "suffix": null
+                    "value": "3n"
                   }
                 }
               ]
@@ -767,8 +766,7 @@
                   "name": "age",
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "7n",
-                    "suffix": null
+                    "value": "7n"
                   }
                 }
               ]
@@ -1188,8 +1186,7 @@
             "kind": "ReturnStmt",
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           }
         ],

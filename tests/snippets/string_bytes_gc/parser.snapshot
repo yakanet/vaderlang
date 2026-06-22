@@ -155,8 +155,7 @@
                   "name": null,
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "0n",
-                    "suffix": null
+                    "value": "0n"
                   },
                   "spread": false
                 }
@@ -258,8 +257,7 @@
                   "name": null,
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "1n",
-                    "suffix": null
+                    "value": "1n"
                   },
                   "spread": false
                 }
@@ -285,8 +283,7 @@
                   "name": null,
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "22n",
-                    "suffix": null
+                    "value": "22n"
                   },
                   "spread": false
                 }
@@ -312,8 +309,7 @@
                   "name": null,
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "333n",
-                    "suffix": null
+                    "value": "333n"
                   },
                   "spread": false
                 }
@@ -339,8 +335,7 @@
                   "name": null,
                   "value": {
                     "kind": "IntLitExpr",
-                    "value": "4444n",
-                    "suffix": null
+                    "value": "4444n"
                   },
                   "spread": false
                 }
@@ -621,8 +616,7 @@
                     "kind": "ReturnStmt",
                     "value": {
                       "kind": "IntLitExpr",
-                      "value": "1n",
-                      "suffix": null
+                      "value": "1n"
                     }
                   }
                 ],
@@ -704,8 +698,7 @@
             "kind": "ReturnStmt",
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           }
         ],

@@ -90,8 +90,7 @@
             "type": null,
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           },
           {
@@ -290,13 +289,11 @@
                     "inclusive": false,
                     "lower": {
                       "kind": "IntLitExpr",
-                      "value": "0n",
-                      "suffix": null
+                      "value": "0n"
                     },
                     "upper": {
                       "kind": "IntLitExpr",
-                      "value": "5n",
-                      "suffix": null
+                      "value": "5n"
                     }
                   },
                   "spread": false
@@ -326,18 +323,15 @@
                     "elements": [
                       {
                         "kind": "IntLitExpr",
-                        "value": "10n",
-                        "suffix": null
+                        "value": "10n"
                       },
                       {
                         "kind": "IntLitExpr",
-                        "value": "20n",
-                        "suffix": null
+                        "value": "20n"
                       },
                       {
                         "kind": "IntLitExpr",
-                        "value": "30n",
-                        "suffix": null
+                        "value": "30n"
                       }
                     ]
                   },
@@ -477,8 +471,7 @@
             "kind": "ReturnStmt",
             "value": {
               "kind": "IntLitExpr",
-              "value": "0n",
-              "suffix": null
+              "value": "0n"
             }
           }
         ],
