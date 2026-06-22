@@ -90,6 +90,8 @@ fn 1 std_core$utf8_encode (char) -> ref
   local out ref
   local $k_5 u32
   local $cast_7 u8
+  local $k_11 u32
+  local $k_30 u32
   local.get 0
   char.to_i32
   local.set 1
@@ -114,24 +116,32 @@ fn 1 std_core$utf8_encode (char) -> ref
     local.get 3
     u32.lt
     if $L1 void
-      local.get 1
-      i32.const 6
-      u32.shr
-      local.set 3
       i32.const 192
+      local.set 3
+      i32.const 6
+      local.set 5
+      local.get 1
+      local.get 5
+      u32.shr
+      local.set 5
       local.get 3
+      local.get 5
       i32.bitor
       u32.to_i32
       local.set 4
       local.get 2
       local.get 4
       array.push 5
-      local.get 1
-      i32.const 63
-      i32.bitand
-      local.set 3
       i32.const 128
+      local.set 3
+      i32.const 63
+      local.set 5
+      local.get 1
+      local.get 5
+      i32.bitand
+      local.set 5
       local.get 3
+      local.get 5
       i32.bitor
       u32.to_i32
       local.set 4
@@ -145,40 +155,54 @@ fn 1 std_core$utf8_encode (char) -> ref
       local.get 3
       u32.lt
       if $L2 void
-        local.get 1
-        i32.const 12
-        u32.shr
-        local.set 3
         i32.const 224
-        local.get 3
-        i32.bitor
-        u32.to_i32
-        local.set 4
-        local.get 2
-        local.get 4
-        array.push 5
+        local.set 3
+        i32.const 12
+        local.set 5
         local.get 1
-        i32.const 6
+        local.get 5
         u32.shr
-        local.set 3
+        local.set 5
         local.get 3
-        i32.const 63
-        i32.bitand
-        local.set 3
-        i32.const 128
-        local.get 3
+        local.get 5
         i32.bitor
         u32.to_i32
         local.set 4
         local.get 2
         local.get 4
         array.push 5
-        local.get 1
-        i32.const 63
-        i32.bitand
-        local.set 3
         i32.const 128
+        local.set 3
+        i32.const 6
+        local.set 5
+        local.get 1
+        local.get 5
+        u32.shr
+        local.set 5
+        i32.const 63
+        local.set 6
+        local.get 5
+        local.get 6
+        i32.bitand
+        local.set 5
         local.get 3
+        local.get 5
+        i32.bitor
+        u32.to_i32
+        local.set 4
+        local.get 2
+        local.get 4
+        array.push 5
+        i32.const 128
+        local.set 3
+        i32.const 63
+        local.set 5
+        local.get 1
+        local.get 5
+        i32.bitand
+        local.set 5
+        local.get 3
+        local.get 5
         i32.bitor
         u32.to_i32
         local.set 4
@@ -186,55 +210,75 @@ fn 1 std_core$utf8_encode (char) -> ref
         local.get 4
         array.push 5
       else
-        local.get 1
-        i32.const 18
-        u32.shr
-        local.set 3
         i32.const 240
+        local.set 3
+        i32.const 18
+        local.set 5
+        local.get 1
+        local.get 5
+        u32.shr
+        local.set 5
         local.get 3
+        local.get 5
         i32.bitor
         u32.to_i32
         local.set 4
         local.get 2
         local.get 4
         array.push 5
-        local.get 1
+        i32.const 128
+        local.set 3
         i32.const 12
+        local.set 5
+        local.get 1
+        local.get 5
         u32.shr
-        local.set 3
-        local.get 3
+        local.set 5
         i32.const 63
+        local.set 6
+        local.get 5
+        local.get 6
         i32.bitand
-        local.set 3
-        i32.const 128
+        local.set 5
         local.get 3
+        local.get 5
         i32.bitor
         u32.to_i32
         local.set 4
         local.get 2
         local.get 4
         array.push 5
-        local.get 1
+        i32.const 128
+        local.set 3
         i32.const 6
+        local.set 5
+        local.get 1
+        local.get 5
         u32.shr
-        local.set 3
-        local.get 3
+        local.set 5
         i32.const 63
+        local.set 6
+        local.get 5
+        local.get 6
         i32.bitand
-        local.set 3
-        i32.const 128
+        local.set 5
         local.get 3
+        local.get 5
         i32.bitor
         u32.to_i32
         local.set 4
         local.get 2
         local.get 4
         array.push 5
-        local.get 1
+        i32.const 128
+        local.set 3
         i32.const 63
+        local.set 5
+        local.get 1
+        local.get 5
         i32.bitand
         local.set 1
-        i32.const 128
+        local.get 3
         local.get 1
         i32.bitor
         u32.to_i32
@@ -1652,9 +1696,9 @@ fn 4 std_crypto$md5 (string) -> string
                   local.get 60
                   i32.bitor
                   local.set 53
-                  i32.const 5
+                  i64.const 5
                   local.get 51
-                  i32.mul
+                  i64.mul
                   local.set 61
                   i64.const 1
                   local.set 62
@@ -1681,9 +1725,9 @@ fn 4 std_crypto$md5 (string) -> string
                     local.get 50
                     i32.bitxor
                     local.set 53
-                    i32.const 3
+                    i64.const 3
                     local.get 51
-                    i32.mul
+                    i64.mul
                     local.set 66
                     i64.const 5
                     local.set 67
@@ -1710,9 +1754,9 @@ fn 4 std_crypto$md5 (string) -> string
                     local.get 71
                     i32.bitxor
                     local.set 53
-                    i32.const 7
+                    i64.const 7
                     local.get 51
-                    i32.mul
+                    i64.mul
                     local.set 72
                     i64.const 16
                     local.set 73

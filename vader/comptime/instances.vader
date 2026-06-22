@@ -15,7 +15,7 @@ import "std/string" { compare_ascending }
 import "vader/resolver/symbol" { Symbol }
 import "vader/types" {
     Type, PrimitiveType, StructType, EnumType, TraitType, ArrayType, TupleType,
-    FnType, TypeParamType, UnionType, UnresolvedType, FreeIntType, FreeFloatType,
+    FnType, TypeParamType, UnionType, UnresolvedType, FreeIntType, FreeCharType, FreeFloatType,
     SelfType, TypeMetaType, NeverType, AnyType, display_type,
 }
 
@@ -121,6 +121,7 @@ is_concrete_enough :: fn(t: Type) -> bool {
     match t {
         is UnresolvedType -> { return false }
         is FreeIntType    -> { return false }
+        is FreeCharType   -> { return false }
         is FreeFloatType  -> { return false }
         is SelfType       -> { return false }
         _ -> { return true }
@@ -170,6 +171,7 @@ canonical_type_key :: fn(t: Type) -> string = match t {
     is SelfType             -> "Sf:"
     is UnresolvedType       -> "Ur:"
     is FreeIntType          -> "Fi:"
+    is FreeCharType         -> "Fc:"
     is FreeFloatType        -> "Ff:"
     is NeverType            -> "Nv:"
     is AnyType              -> "Y:"

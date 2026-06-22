@@ -1,0 +1,9 @@
+// A char literal whose codepoint exceeds the target integer is rejected (T3055):
+// a single u8 byte can never equal a multi-byte character.
+module "snippet"
+
+main :: fn() -> i32 {
+    bs :: "x".bytes()
+    if bs[0] == '💩' { return 1 }
+    return 0
+}

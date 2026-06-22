@@ -16,12 +16,13 @@ module "vader/typecheck"
 import "std/collections" { MutableMap }
 import "vader/types" {
     Type, ArrayType, TupleType, StructType, TraitType, FnType, UnionType,
-    TypeParamType, FreeIntType, FreeFloatType,
+    TypeParamType, FreeIntType, FreeCharType, FreeFloatType,
 }
 
 is_free_numeric :: fn(t: Type) -> bool {
     match t {
         is FreeIntType -> { return true }
+        is FreeCharType -> { return true }
         is FreeFloatType -> { return true }
         _ -> { return false }
     }

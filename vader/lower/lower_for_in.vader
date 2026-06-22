@@ -709,11 +709,12 @@ is_integer_type :: fn(t: Type) -> bool {
             return false
         }
         is FreeIntType -> { return true }
+        is FreeCharType -> { return true }
         _ -> { return false }
     }
 }
 
-import "vader/types" { FreeIntType }
+import "vader/types" { FreeIntType, FreeCharType }
 import "vader/typecheck" { default_if_free }
 
 cmp_op_for_inclusive :: fn(inclusive: bool) -> LoweredBinaryOp {

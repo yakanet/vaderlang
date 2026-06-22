@@ -75,6 +75,12 @@ export AnyType :: struct {}
 export FreeIntType :: struct {}
 /// Untyped float literal — flexible until placed in a typed context.
 export FreeFloatType :: struct {}
+/// Untyped char LITERAL — flexible until placed in a typed context. A char
+/// literal carries a compile-time codepoint, so it coerces to an integer type
+/// (with a bounds check) the same way a free int does ; absent any numeric
+/// context it defaults to `char`. Note: only LITERALS get this type — a `char`
+/// variable stays the concrete `char` and never auto-coerces to an integer.
+export FreeCharType :: struct {}
 /// Bottom type for `return` / `panic` etc. — assignable to anything.
 export NeverType :: struct {}
 
@@ -94,6 +100,7 @@ export Type ::
     | UnresolvedType
     | FreeIntType
     | FreeFloatType
+    | FreeCharType
     | NeverType
     | AnyType
 
@@ -172,6 +179,7 @@ export TY_SELF       :: SelfType {}
 export TY_UNRESOLVED :: UnresolvedType {}
 export TY_FREE_INT   :: FreeIntType {}
 export TY_FREE_FLOAT :: FreeFloatType {}
+export TY_FREE_CHAR  :: FreeCharType {}
 export TY_NEVER      :: NeverType {}
 export TY_ANY        :: AnyType {}
 export TY_VOID       :: PrimitiveType { .name = "void" }
@@ -198,6 +206,7 @@ export display_type :: fn(t: Type) -> string {
         is NeverType           -> { return "never" }
         is FreeIntType         -> { return "{integer}" }
         is FreeFloatType       -> { return "{float}" }
+        is FreeCharType        -> { return "{char}" }
         is SelfType            -> { return "Self" }
         is TypeMetaType        -> { return "type" }
         is AnyType             -> { return "Any" }
@@ -235,6 +244,7 @@ write_type :: fn(sb: StringBuilder, t: Type) -> void {
         is NeverType          -> { sb.append("never") }
         is FreeIntType        -> { sb.append("{integer}") }
         is FreeFloatType      -> { sb.append("{float}") }
+        is FreeCharType       -> { sb.append("{char}") }
         is ArrayType as x -> {
             if x.immutable { sb.append("const ") }
             // `(A | B)[]` is unambiguous ; bare `A | B[]` would read as
@@ -304,6 +314,7 @@ export canonical_key :: fn(t: Type) -> string {
         is UnresolvedType      -> { return "?" }
         is NeverType           -> { return "!" }
         is FreeIntType         -> { return "FI" }
+        is FreeCharType        -> { return "FC" }
         is FreeFloatType       -> { return "FF" }
         is AnyType             -> { return "A" }
     }

@@ -19,9 +19,9 @@
 
 module "vader/typecheck"
 
-import "vader/diagnostics" { Diagnostic, warning }
+import "vader/diagnostics" { Diagnostic, warning, typecheck_error }
 AST :: import "vader/parser"
-import "vader/types" { Type, FreeIntType, FreeFloatType, TY_UNRESOLVED }
+import "vader/types" { Type, PrimitiveType, FreeIntType, FreeCharType, FreeFloatType, TY_UNRESOLVED }
 
 /// Type-check `expr`. `expected` provides bidirectional context — pass
 /// `null` for fresh-position uses. The returned `Type` is the post-
@@ -32,6 +32,16 @@ export check_expr :: fn(
 ) -> Type {
     got :: infer_expr(expr, expected, typed, diags)
     final :: narrow_for_expected(got, expected)
+    // A char literal that coerced to a concrete integer must fit it — `b == '💩'`
+    // (u8) is rejected here, where both the codepoint and the pinned type are known.
+    if expr is AST.CharLitExpr as cl {
+        if final is PrimitiveType as p {
+            if is_int_name(p.name) && !char_fits(cl.value, p.name) {
+                diags.push(typecheck_error(.CharLiteralOutOfRange, cl.span,
+                    "character literal (codepoint ${cl.value}) does not fit in `${p.name}`"))
+            }
+        }
+    }
     record_expr(typed, expr, final)
     return final
 }
@@ -116,7 +126,7 @@ infer_expr :: fn(
         is AST.IfExpr        as e -> { return infer_if(e, expected, typed, diags, null, check_expr) }
         is AST.MatchExpr     as e -> { return infer_match(e, expected, typed, diags, null, check_expr) }
         is AST.CallExpr      as e -> { return infer_call(e, typed, diags, check_expr) }
-        is AST.BinaryExpr    as e -> { return infer_binary(e, typed, diags, check_expr) }
+        is AST.BinaryExpr    as e -> { return infer_binary(e, expected, typed, diags, check_expr) }
         is AST.FieldExpr     as e -> { return infer_field(e, typed, diags, check_expr) }
         is AST.StructLitExpr as e -> { return infer_struct_lit(e, typed, diags, check_expr) }
         is AST.SeqLitExpr    as e -> { return infer_seq_lit(e, expected, typed, diags, check_expr) }
@@ -156,6 +166,7 @@ test_check_expr_writes_into_expr_types :: fn() -> void {
     match hit {
         is null -> { assert(false, "expr_types should have an entry") }
         is FreeIntType -> {}
+        is FreeCharType -> {}
         _ -> { assert(false, "expected FreeInt") }
     }
 }

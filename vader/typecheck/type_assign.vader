@@ -17,7 +17,7 @@ module "vader/typecheck"
 import "vader/types" {
     Type, PrimitiveType, StructType, EnumType, TraitType, UnionType,
     FnType, ArrayType, TupleType, TypeParamType, TypeMetaType, SelfType,
-    UnresolvedType, FreeIntType, FreeFloatType, NeverType,
+    UnresolvedType, FreeIntType, FreeCharType, FreeFloatType, NeverType,
 }
 
 /// Whether `from` can flow into a slot expecting `to` without explicit
@@ -44,6 +44,7 @@ export is_assignable :: fn(from: Type, to: Type, oracle: TraitOracle | null) -> 
         is FnType        as f -> is_assignable_fn(from, f, to, oracle)
         is UnionType     as u -> is_assignable_union(from, u, to, oracle)
         is FreeIntType        -> is_assignable_freeint(from, to, oracle)
+        is FreeCharType       -> is_assignable_freechar(from, to, oracle)
         is FreeFloatType      -> is_assignable_freefloat(from, to, oracle)
         _ -> check_common(from, to, oracle)
     }
@@ -165,6 +166,16 @@ export is_assignable_union :: fn(from: Type, self: UnionType, to: Type, oracle: 
 export is_assignable_freeint :: fn(from: Type, to: Type, oracle: TraitOracle | null) -> bool {
     match to {
         is PrimitiveType as tp -> { if is_int_name(tp.name) { return true } }
+        _ -> {}
+    }
+    return check_common(from, to, oracle)
+}
+
+/// `from is FreeCharType` (a char literal). Widens to any integer primitive
+/// (the codepoint, bounds-checked separately at the pin site) or to `char`.
+export is_assignable_freechar :: fn(from: Type, to: Type, oracle: TraitOracle | null) -> bool {
+    match to {
+        is PrimitiveType as tp -> { if is_int_name(tp.name) || tp.name == "char" { return true } }
         _ -> {}
     }
     return check_common(from, to, oracle)

@@ -10,7 +10,7 @@ import "vader/diagnostics" { Diagnostic, Span }
 import "vader/parser" { Decl, StructDecl, ImplDecl, IdentExpr, GenericInstExpr, TypeExpr, BinaryExpr, BinaryOp }
 import "vader/resolver" { LoadedProject, LoadedModule }
 import "vader/typecheck" { TypedProject, TypedProgram, substitute, is_empty_substitution, ImplEntry }
-import "vader/types" { UnresolvedType, Type, FnType, StructType, TypeMetaType, TypeParamType, ArrayType, TraitType, TupleType, UnionType, SelfType, FreeIntType, FreeFloatType, NeverType, AnyType, display_type, for_each_type, EnumType, PrimitiveType }
+import "vader/types" { UnresolvedType, Type, FnType, StructType, TypeMetaType, TypeParamType, ArrayType, TraitType, TupleType, UnionType, SelfType, FreeIntType, FreeCharType, FreeFloatType, NeverType, AnyType, display_type, for_each_type, EnumType, PrimitiveType }
 import "vader/comptime" { MonoEntry, GenericInstance }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 
@@ -218,6 +218,7 @@ has_type_param :: fn(t: Type) -> bool {
         is SelfType       -> { return false }
         is UnresolvedType -> { return false }
         is FreeIntType    -> { return false }
+        is FreeCharType   -> { return false }
         is FreeFloatType  -> { return false }
         is NeverType      -> { return false }
         is AnyType        -> { return false }
