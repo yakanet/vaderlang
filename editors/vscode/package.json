@@ -4,6 +4,7 @@
   "description": "Syntax highlighting + LSP semantic tokens for the Vader programming language",
   "version": "0.1.0",
   "publisher": "vaderlang",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/yakanet/vaderlang.git",
