@@ -99,7 +99,7 @@ token_to_raw :: fn(t: Token) -> RawToken | null {
         .col       = sp.start.column - 1,
         .length    = span_token_length(sp),
         .tok_type  = tt,
-        .modifiers = i32(0),
+        .modifiers = 0,
     }
 }
 
@@ -186,14 +186,14 @@ comment_to_raw :: fn(c: Comment, source: string) -> RawToken[] {
     // Base case : non-doc comments emit a single comment-typed token.
     match c.kind {
         .Line -> {
-            out.push(make_comment_token(c, source, i32(0)))
+            out.push(make_comment_token(c, source, 0))
             return out
         }
         .Block -> {
             // Multi-line block comments need one token per line so the
             // delta-encoding works cleanly ; emit the whole span as a
             // single token and let the client re-wrap.
-            out.push(make_comment_token(c, source, i32(0)))
+            out.push(make_comment_token(c, source, 0))
             return out
         }
         .DocLine -> {
@@ -383,8 +383,8 @@ doc_token_col :: fn(toks: RawToken[], line: i32, tok_type: i32) -> i32 {
 // inconsistently, so this must stay zero.
 count_token_overlaps :: fn(toks: RawToken[]) -> i32 {
     overlaps := 0
-    cur_line := i32(-1)
-    line_end := i32(0)
+    cur_line: i32 = -1
+    line_end: i32 = 0
     for t in toks {
         if t.line != cur_line {
             cur_line = t.line

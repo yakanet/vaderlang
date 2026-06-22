@@ -858,7 +858,7 @@ emit_const_decl :: fn(self: Printer, d: p.ConstDecl) -> void {
     // Typed constants skip this path (the `: T :` segment makes the prefix
     // shape too irregular for the simple align rule to read cleanly).
     if d.ty is null && is_bitor_chain(d.value) {
-        prefix_width :: usize(self.depth) * usize(4) + name_width + 4 // " :: "
+        prefix_width :: usize(self.depth) * 4 + name_width + 4 // " :: "
         rendered :: format_expr(self.source, d.value)
         if prefix_width + rendered.bytes().len() > usize(MAX_LINE) {
             self.emit_union_multiline(d.value, name_width)
@@ -886,7 +886,7 @@ is_bitor_chain :: fn(e: p.Expr) -> bool = if e is p.BinaryExpr as b { b.op == .B
 /// @param e       the expression to render.
 /// @return        the formatted single-expression text.
 export format_expr :: fn(source: string, e: p.Expr) -> string {
-    sub :: new_printer(source, CommentMap { .comments = [], .cursor = usize(0) })
+    sub :: new_printer(source, CommentMap { .comments = [], .cursor = 0 })
     sub.emit_expr(e)
     return sub.finish()
 }
@@ -903,7 +903,7 @@ emit_union_multiline :: fn(self: Printer, value: p.Expr, name_width: usize) -> v
     // Leading-pipe indent : `depth*4` for the base indent + `name_width`
     // to step past the name column + 2 more cols so the `|` lands one
     // space before each variant's column (matches the first variant).
-    pad :: usize(self.depth) * usize(4) + name_width + 2
+    pad :: usize(self.depth) * 4 + name_width + 2
     i: usize = 1
     for i < variants.len() {
         self.newline()

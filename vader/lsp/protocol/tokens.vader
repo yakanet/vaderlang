@@ -60,7 +60,7 @@ export TokenModifier :: enum(u8) {
 /// Bitmask value for a single modifier.
 export modifier_bit :: fn(m: TokenModifier) -> i32 {
     match m {
-        .Documentation -> { return i32(1) }
+        .Documentation -> { return 1 }
     }
 }
 

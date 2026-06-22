@@ -45,7 +45,7 @@ export write_le :: fn(bytes: u8[], offset: usize, width: usize, value: u64) -> v
     // the loop index needs no cast.
     v := value
     for i in 0..<width {
-        bytes[offset + i] = u8(v & u64(0xff))
+        bytes[offset + i] = u8(v & 0xff)
         v = v >> 8
     }
 }

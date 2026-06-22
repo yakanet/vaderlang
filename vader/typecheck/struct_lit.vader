@@ -122,7 +122,7 @@ check_missing_fields :: fn(
     }
     if missing.len() == 0 { return }
     label := "fields"
-    if missing.len() == usize(1) { label = "field" }
+    if missing.len() == 1 { label = "field" }
     diags.push(typecheck_error(.MissingRequiredFieldInStructLit, e.span,
         "missing required ${label} on ${display_type(st)}: ${missing.join(", ")}"))
 }
@@ -216,7 +216,7 @@ f :: fn() -> Point { return Point { .x = 1, .y = 2 } }
     eb :: expect_struct_lit(src)
     diags: Diagnostic[] = []
     assert_eq(display_type(infer_struct_lit(eb.sl, eb.typed, diags, struct_lit_check_stub)), "Point")
-    assert_eq(diags.len(), usize(0))
+    assert_eq(diags.len(), 0)
 }
 
 @test

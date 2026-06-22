@@ -161,7 +161,7 @@ export clone :: fn<T>(arr: const T[]) -> T[] {
     i: usize = 0
     for i < n {
         out.push(arr[i])
-        i = i + usize(1)
+        i = i + 1
     }
     return out
 }

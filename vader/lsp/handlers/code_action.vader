@@ -42,8 +42,8 @@ export handle_code_action :: fn(state: ServerState, params: JsonValue) -> JsonVa
     if sf is null { return JsonArray { .items = [] } }
 
     // LSP positions are 0-based ; the AST is 1-based. Anchor on the range start.
-    line :: range_start_field(params, "line") + i32(1)
-    col  :: range_start_field(params, "character") + i32(1)
+    line :: range_start_field(params, "line") + 1
+    col  :: range_start_field(params, "character") + 1
     ctx :: ActionCtx { .source = sf.content }
 
     items: JsonValue[] = []

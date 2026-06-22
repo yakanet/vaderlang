@@ -120,7 +120,7 @@ export allocate_local_slot :: fn(state: FnEmitState, symbol: Symbol, name: strin
 export push_op :: fn(state: FnEmitState, op: Op) -> void {
     state.body.push(op)
     state.debug.push(null)
-    state.jump_table.push(i32(-1))
+    state.jump_table.push(-1)
 }
 
 /// Patch the jump_table entry at `pc` to point at `target_pc`.
@@ -140,9 +140,9 @@ export set_jump_target :: fn(state: FnEmitState, pc: i32, target_pc: i32) -> voi
 /// exceeds single-digit depth so the per-pop cost is irrelevant.
 export pop_scope :: fn(state: FnEmitState) -> void {
     n :: state.scope_stack.len()
-    if n == usize(0) { return }
+    if n == 0 { return }
     new_stack: ScopeEntry[] = []
-    for i in 0..<(n - usize(1)) {
+    for i in 0..<(n - 1) {
         new_stack.push(state.scope_stack[i])
     }
     state.scope_stack = new_stack
@@ -176,8 +176,8 @@ export find_continue_target :: fn(state: FnEmitState, label: string | null) -> i
 /// kind wins.
 find_target_scope :: fn(state: FnEmitState, kind: ScopeKind, label: string | null) -> i32 {
     n :: state.scope_stack.len()
-    if n == usize(0) { return -1 }
-    i: i32 = i32(n) - i32(1)
+    if n == 0 { return -1 }
+    i: i32 = i32(n) - 1
     for i >= 0 {
         scope :: state.scope_stack[usize(i)]
         if scope.kind == kind {
@@ -216,7 +216,7 @@ import "std/testing" { assert_eq }
         .scope_stack       = [],
     }
     pop_scope(state)
-    assert_eq(state.scope_stack.len(), usize(0))
+    assert_eq(state.scope_stack.len(), 0)
 }
 
 @test test_push_op_grows_arrays_in_lock_step :: fn() -> void {
@@ -229,10 +229,10 @@ import "std/testing" { assert_eq }
         .scope_stack       = [],
     }
     push_op(state, Return {})
-    assert_eq(state.body.len(), usize(1))
-    assert_eq(state.debug.len(), usize(1))
-    assert_eq(state.jump_table.len(), usize(1))
-    assert_eq(state.jump_table[0], i32(-1))
+    assert_eq(state.body.len(), 1)
+    assert_eq(state.debug.len(), 1)
+    assert_eq(state.jump_table.len(), 1)
+    assert_eq(state.jump_table[0], -1)
 }
 
 @test test_set_jump_target_overwrites_sentinel :: fn() -> void {
@@ -245,8 +245,8 @@ import "std/testing" { assert_eq }
         .scope_stack       = [],
     }
     push_op(state, Branch {})
-    set_jump_target(state, i32(0), i32(42))
-    assert_eq(state.jump_table[0], i32(42))
+    set_jump_target(state, 0, 42)
+    assert_eq(state.jump_table[0], 42)
 }
 
 @test test_find_break_target_finds_innermost_block :: fn() -> void {
@@ -259,9 +259,9 @@ import "std/testing" { assert_eq }
         .slot_by_symbol_id = MutableMap<i32, i32> {},
         .scope_stack       = [],
     }
-    state.scope_stack.push(ScopeEntry { .kind = ScopeKind.Block, .opener_pc = i32(0), .label = null, .pending_breaks = no_pending })
-    state.scope_stack.push(ScopeEntry { .kind = ScopeKind.Loop, .opener_pc = i32(1), .label = null, .pending_breaks = no_pending })
-    assert_eq(find_break_target(state, null), i32(0))
+    state.scope_stack.push(ScopeEntry { .kind = ScopeKind.Block, .opener_pc = 0, .label = null, .pending_breaks = no_pending })
+    state.scope_stack.push(ScopeEntry { .kind = ScopeKind.Loop, .opener_pc = 1, .label = null, .pending_breaks = no_pending })
+    assert_eq(find_break_target(state, null), 0)
 }
 
 @test test_find_break_target_empty_stack_returns_minus_one :: fn() -> void {
@@ -273,5 +273,5 @@ import "std/testing" { assert_eq }
         .slot_by_symbol_id = MutableMap<i32, i32> {},
         .scope_stack       = [],
     }
-    assert_eq(find_break_target(state, null), i32(-1))
+    assert_eq(find_break_target(state, null), -1)
 }

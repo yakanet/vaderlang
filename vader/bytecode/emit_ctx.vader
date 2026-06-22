@@ -105,7 +105,7 @@ export new_emitter_ctx :: fn() -> EmitterCtx {
     types: BcType[] = []
     types.push(BcPrimitive { .val = ValType.Null })
     type_key :: MutableMap<string, i32> {}
-    type_key["null"] = i32(0)
+    type_key["null"] = 0
     return EmitterCtx {
         .types                       = types,
         .type_key                    = type_key,
@@ -200,7 +200,7 @@ export intern_cell_type :: fn(slot_type: Type, ctx: EmitterCtx) -> i32 {
     ctx.types.push(BcStruct {
         .name      = "\$Cell_${type_intern_key(slot_type)}",
         .fields    = fields,
-        .symbol_id = i32(-1),
+        .symbol_id = -1,
     })
     ctx.type_key[key] = new_index
     return new_index
@@ -213,10 +213,10 @@ import "vader/types" { mk_primitive }
 
 @test test_new_emitter_ctx_reserves_null_slot :: fn() -> void {
     ctx :: new_emitter_ctx()
-    assert_eq(ctx.types.len(), usize(1))
+    assert_eq(ctx.types.len(), 1)
     null_idx :: ctx.type_key["null"]
     match null_idx {
-        is i32 as i -> assert_eq(i, i32(0))
+        is i32 as i -> assert_eq(i, 0)
         _ -> assert_eq("null missing", "")
     }
 }

@@ -42,7 +42,7 @@ end
 fn 2 snippet$main () -> i32
   local a i32
   local $arr_10 ref
-  local $cast_12 usize
+  local $k_11 usize
   local b i32
   local c i32
   local d i32

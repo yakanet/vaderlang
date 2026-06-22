@@ -119,7 +119,7 @@ rest_leaf_index :: fn(binding: TupleBinding) -> i64 {
     for i in 0..<binding.elements.len() {
         if binding.elements[i] is RestBinding { return i64(i) }
     }
-    return i64(-1)
+    return -1
 }
 
 // Desugar `[a, ...rest] := arr` (array target) : fixed leaves before the
@@ -186,7 +186,7 @@ emit_rest_loop :: fn(
         .value = LoweredBinary {
             .span = span, .type = mk_primitive("usize"), .op = LoweredBinaryOp.Add,
             .left = idx_ref,
-            .right = LoweredIntLit { .span = span, .type = mk_primitive("usize"), .value = i64(1) },
+            .right = LoweredIntLit { .span = span, .type = mk_primitive("usize"), .value = 1 },
         },
     }
     loop_stmts: LoweredStmt[] = []

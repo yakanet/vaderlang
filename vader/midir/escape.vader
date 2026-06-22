@@ -107,7 +107,7 @@ annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
         stack_origin.add(dst)
         worklist.push(dst)
     }
-    for worklist.len() > usize(0) {
+    for worklist.len() > 0 {
         src :: worklist[worklist.len() - 1]
         worklist = worklist.slice(0, worklist.len() - 1)
         consumers :: res.alias_from[src]
@@ -231,7 +231,7 @@ compute_carried_across_loop_headers :: fn(
     // Backward-propagate via alias_of.
     work: LocalId[] = []
     for l in carried { work.push(l) }
-    for work.len() > usize(0) {
+    for work.len() > 0 {
         cur :: work[work.len() - 1]
         work = work.slice(0, work.len() - 1)
         producers :: alias_of[cur]
@@ -301,7 +301,7 @@ compute_escaping :: fn(fn_: CFGFunction, alloc_locals: MutableSet<LocalId>) -> E
     // Backward propagation : if dst escapes and aliases src, src escapes too.
     work: LocalId[] = []
     for l in escaping { work.push(l) }
-    for work.len() > usize(0) {
+    for work.len() > 0 {
         cur :: work[work.len() - 1]
         work = work.slice(0, work.len() - 1)
         sources :: alias_of[cur]

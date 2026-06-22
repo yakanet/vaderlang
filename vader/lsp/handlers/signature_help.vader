@@ -39,8 +39,8 @@ export handle_signature_help :: fn(state: ServerState, params: JsonValue) -> Jso
     if sf is null { return JsonNull {} }
 
     // LSP positions are 0-based ; AST spans are 1-based.
-    target_line :: line + i32(1)
-    target_col  :: char + i32(1)
+    target_line :: line + 1
+    target_col  :: char + 1
     call :: find_enclosing_call(sf.program.decls, target_line, target_col)
     if call is null { return JsonNull {} }
 
@@ -51,7 +51,7 @@ export handle_signature_help :: fn(state: ServerState, params: JsonValue) -> Jso
     sigs: JsonValue[] = [sig]
     obj :: MutableMap<string, JsonValue> {}
     obj["signatures"]      = JsonArray { .items = sigs }
-    obj["activeSignature"] = JsonNumber { .value = f64(0) }
+    obj["activeSignature"] = JsonNumber { .value = 0.0 }
     obj["activeParameter"] = JsonNumber { .value = f64(active) }
     return JsonObject { .entries = obj }
 }
@@ -174,11 +174,11 @@ active_param_index :: fn(call: AST.CallExpr, line: i32, col: i32) -> i32 {
         if before(line, col, a.span.start.line, a.span.start.column) { break }
         active = i
         if before_or_at(line, col, a.span.end.line, a.span.end.column) { return active }
-        i = i + i32(1)
+        i = i + 1
     }
     // Cursor past all args (typed args + a trailing comma waiting for
     // the next one) — bump to the next slot.
-    return active + i32(1)
+    return active + 1
 }
 
 before :: fn(line_a: i32, col_a: i32, line_b: i32, col_b: i32) -> bool {

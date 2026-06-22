@@ -129,7 +129,7 @@ prune_block :: fn(b: BasicBlock, live_out: MutableSet<LocalId>, local_count: usi
     n :: b.instructions.len()
     keep: bool[] = []
     for _ in 0..<n { keep.push(false) }
-    i: i64 = i64(n) - i64(1)
+    i: i64 = i64(n) - 1
     for i >= 0 {
         ins :: b.instructions[usize(i)]
         dst_opt :: dst_of(ins)
@@ -203,7 +203,7 @@ fold_moves_in_block :: fn(
         if ins is InstrMove as m {
             if param_locals.contains(m.src) { folded.push(ins)  continue }
             count_opt :: use_count[m.src]
-            count :: if count_opt is i32 as c { c } else { i32(0) }
+            count :: if count_opt is i32 as c { c } else { 0 }
             if count != 1 { folded.push(ins)  continue }
             // Walk back through folded to find the producer of `m.src`.
             // Folding rewrites the producer to write `m.dst` at the

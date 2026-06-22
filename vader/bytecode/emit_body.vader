@@ -420,10 +420,10 @@ needs_ref_cast :: fn(t: Type) -> bool {
 // `LocalField`. Returns true iff fusion fired.
 try_fuse_local_field :: fn(state: FnEmitState, type_id: i32, field_index: i32) -> bool {
     n :: state.body.len()
-    if n == usize(0) { return false }
-    last :: state.body[n - usize(1)]
+    if n == 0 { return false }
+    last :: state.body[n - 1]
     if !(last is LocalGet) { return false }
-    state.body[n - usize(1)] = LocalField {
+    state.body[n - 1] = LocalField {
         .slot = last.slot, .type_id = type_id, .field_index = field_index,
     }
     return true
@@ -607,7 +607,7 @@ emit_virtual_call :: fn(v_call: LoweredVirtualCall, state: FnEmitState, ctx: Emi
     for i in 0..<v_call.args.len() {
         emit_expr(v_call.args[i], state, ctx)
     }
-    parameter_count :: i32(v_call.args.len() + usize(1))     // +1 for receiver
+    parameter_count :: i32(v_call.args.len() + 1)     // +1 for receiver
     push_op(state, VirtualCall {
         .parameter_count = parameter_count,
         .vtable_key      = "${v_call.trait_name}.${v_call.method}",
@@ -650,8 +650,8 @@ emit_cell_new :: fn(cell_new: LoweredCellNew, state: FnEmitState, ctx: EmitterCt
 emit_cell_get :: fn(cell_get: LoweredCellGet, state: FnEmitState, ctx: EmitterCtx) -> void {
     cell_type_id :: intern_cell_type(cell_get.value_type, ctx)
     emit_expr(cell_get.target, state, ctx)
-    if try_fuse_local_field(state, cell_type_id, i32(0)) { return }
-    push_op(state, StructGet { .type_id = cell_type_id, .field_index = i32(0) })
+    if try_fuse_local_field(state, cell_type_id, 0) { return }
+    push_op(state, StructGet { .type_id = cell_type_id, .field_index = 0 })
 }
 
 /// Update a closure cell's contents : emit the target + the new value,
@@ -661,7 +661,7 @@ emit_cell_set :: fn(cell_set: LoweredCellSet, state: FnEmitState, ctx: EmitterCt
     cell_type_id :: intern_cell_type(cell_set.value_type, ctx)
     emit_expr(cell_set.target, state, ctx)
     emit_expr(cell_set.value, state, ctx)
-    push_op(state, StructSet { .type_id = cell_type_id, .field_index = i32(0), .stack = false })
+    push_op(state, StructSet { .type_id = cell_type_id, .field_index = 0, .stack = false })
 }
 
 
@@ -731,14 +731,14 @@ emit_loop :: fn(loop_stmt: LoweredLoop, state: FnEmitState, ctx: EmitterCtx) -> 
     continue_branch_pc :: i32(state.body.len())
     push_op(state, Branch {})
     loop_scope :: state.scope_stack[loop_index]
-    set_jump_target(state, continue_branch_pc, loop_scope.opener_pc + i32(1))
+    set_jump_target(state, continue_branch_pc, loop_scope.opener_pc + 1)
 
     // Close Loop scope.
     push_op(state, End {})
     pop_scope(state)
 
     // Close Block scope — patch all pending forward branches.
-    block_end_target :: i32(state.body.len()) + i32(1)
+    block_end_target :: i32(state.body.len()) + 1
     push_op(state, End {})
     block_scope :: state.scope_stack[block_index]
     for i in 0..<block_scope.pending_breaks.len() {
@@ -769,5 +769,5 @@ emit_continue :: fn(continue_stmt: LoweredContinue, state: FnEmitState) -> void 
     target_scope :: state.scope_stack[usize(target_index)]
     branch_pc :: i32(state.body.len())
     push_op(state, Branch {})
-    set_jump_target(state, branch_pc, target_scope.opener_pc + i32(1))
+    set_jump_target(state, branch_pc, target_scope.opener_pc + 1)
 }

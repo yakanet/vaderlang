@@ -89,7 +89,7 @@ lower_intrinsic :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type)
 /// see). Returns null when the pattern doesn't match ; caller falls
 /// through to the runtime `LoweredIntrinsicCall`.
 try_late_fold_type_arg :: fn(name: string, args: LoweredExpr[], span: Span, type: Type) -> LoweredExpr | null {
-    if args.len() != usize(1) { return null }
+    if args.len() != 1 { return null }
     arg :: args[0]
     tc: LoweredTypeConst | null = null
     if arg is LoweredTypeConst as t { tc = t }
@@ -144,7 +144,7 @@ try_fold_static_intrinsic :: fn(
     if name != "size_of" && name != "align_of" && name != "type_name" && name != "type_kind" {
         return null
     }
-    if intrinsic.args.len() != usize(1) { return null }
+    if intrinsic.args.len() != 1 { return null }
     arg_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0])
     if arg_or_null is null { return null }
     ty :: arg_ty_or_unresolved(arg_or_null)
@@ -171,7 +171,7 @@ try_fold_static_intrinsic :: fn(
 try_fold_type_of :: fn(
     ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type,
 ) -> LoweredExpr | null {
-    if intrinsic.args.len() != usize(1) { return null }
+    if intrinsic.args.len() != 1 { return null }
     arg_type :: expr_type(ctx.types, intrinsic.args[0])
     return LoweredTypeConst {
         .span = intrinsic.span, .type = type, .value = arg_type,
@@ -185,7 +185,7 @@ try_fold_type_of :: fn(
 try_fold_type_args :: fn(
     ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type,
 ) -> LoweredExpr | null {
-    if intrinsic.args.len() != usize(1) { return null }
+    if intrinsic.args.len() != 1 { return null }
     arg_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0])
     args: Type[] = []
     if !(arg_or_null is null) {
@@ -220,7 +220,7 @@ try_fold_type_args :: fn(
 try_fold_fields :: fn(
     ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type,
 ) -> LoweredExpr | null {
-    if intrinsic.args.len() != usize(1) { return null }
+    if intrinsic.args.len() != 1 { return null }
     arg_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0])
     if arg_or_null is null { return null }
     target_ty :: arg_ty_or_unresolved(arg_or_null)
@@ -303,7 +303,7 @@ try_fold_fields :: fn(
 try_fold_satisfies :: fn(
     ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type,
 ) -> LoweredExpr | null {
-    if intrinsic.args.len() != usize(2) { return null }
+    if intrinsic.args.len() != 2 { return null }
     target_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0])
     trait_or_null  :: resolve_intrinsic_type_arg(ctx, intrinsic.args[1])
     value: bool = false

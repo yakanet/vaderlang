@@ -37,13 +37,13 @@ mask64 :: fn(x: u64) -> u64 {
 // the input by GOLDEN_GAMMA and applies an avalanche mix.
 splitmix64 :: fn(seed: u64) -> u64 {
     z := mask64(seed + 0x9E3779B97F4A7C15)
-    z = mask64((z ^ (z >> u64(30))) * 0xBF58476D1CE4E5B9)
-    z = mask64((z ^ (z >> u64(27))) * 0x94D049BB133111EB)
-    return z ^ (z >> u64(31))
+    z = mask64((z ^ (z >> 30)) * 0xBF58476D1CE4E5B9)
+    z = mask64((z ^ (z >> 27)) * 0x94D049BB133111EB)
+    return z ^ (z >> 31)
 }
 
 rotl :: fn(x: u64, k: u64) -> u64 {
-    return mask64(x << k) | (x >> (u64(64) - k))
+    return mask64(x << k) | (x >> (64 - k))
 }
 
 /// Build an Rng seeded from a single 64-bit value. The seed is fanned
@@ -70,10 +70,10 @@ export new_from_clock :: fn() -> Rng {
 /// Advances the RNG state.
 export next_u64 :: fn(self: Rng) -> u64 {
     sum    :: mask64(self.s0 + self.s1)
-    result :: mask64(rotl(sum, u64(17)) + self.s0)
+    result :: mask64(rotl(sum, 17) + self.s0)
     t      :: self.s1 ^ self.s0
-    self.s0 = rotl(self.s0, u64(49)) ^ t ^ mask64(t << u64(21))
-    self.s1 = rotl(t, u64(28))
+    self.s0 = rotl(self.s0, 49) ^ t ^ mask64(t << 21)
+    self.s1 = rotl(t, 28)
     return result
 }
 
@@ -81,12 +81,12 @@ export next_u64 :: fn(self: Rng) -> u64 {
 /// upper bits of xoroshiro128++ pass BigCrush, the lower bits are
 /// slightly weaker on certain tests.
 export next_u32 :: fn(self: Rng) -> u32 {
-    return u32(self.next_u64() >> u64(32))
+    return u32(self.next_u64() >> 32)
 }
 
 /// Uniform random boolean (50/50). Advances the RNG state.
 export next_bool :: fn(self: Rng) -> bool {
-    return (self.next_u64() >> u64(63)) == u64(1)
+    return (self.next_u64() >> 63) == 1
 }
 
 /// Uniform i32 in the half-open range `[lo, hi)`. Caller must pass
@@ -96,7 +96,7 @@ export next_bool :: fn(self: Rng) -> bool {
 /// modulo bias when `(hi - lo)` doesn't divide `2^32`.
 export range_i32 :: fn(self: Rng, lo: i32, hi: i32) -> i32 {
     span :: u32(hi - lo)
-    limit :: u32(0xFFFFFFFF) - (u32(0xFFFFFFFF) % span)
+    limit :: 0xFFFFFFFF - (0xFFFFFFFF % span)
     x: u32 = self.next_u32()
     for x > limit {
         x = self.next_u32()
@@ -108,7 +108,7 @@ export range_i32 :: fn(self: Rng, lo: i32, hi: i32) -> i32 {
 /// `lo < hi`.
 export range_u32 :: fn(self: Rng, lo: u32, hi: u32) -> u32 {
     span :: hi - lo
-    limit :: u32(0xFFFFFFFF) - (u32(0xFFFFFFFF) % span)
+    limit :: 0xFFFFFFFF - (0xFFFFFFFF % span)
     x: u32 = self.next_u32()
     for x > limit {
         x = self.next_u32()
@@ -122,7 +122,7 @@ export range_u32 :: fn(self: Rng, lo: u32, hi: u32) -> u32 {
 /// rounding up to exactly `1.0` (which `(2^53 - 1) / 2^53` does on
 /// IEEE 754 round-to-nearest).
 export unit_f64 :: fn(self: Rng) -> f64 {
-    return f64(self.next_u64() >> u64(12)) / f64(u64(0x10_0000_0000_0000))
+    return f64(self.next_u64() >> 12) / f64(u64(0x10_0000_0000_0000))
 }
 
 /// In-place Fisher-Yates shuffle. Visits each element once in O(n) ;
@@ -134,7 +134,7 @@ export shuffle :: fn<T>(self: Rng, arr: T[]) -> void {
     i: usize = n - 1
     for i > 0 {
         // Uniform [0, i].
-        j :: usize(self.range_u32(u32(0), u32(i + 1)))
+        j :: usize(self.range_u32(0, u32(i + 1)))
         tmp :: arr[i]
         arr[i] = arr[j]
         arr[j] = tmp
@@ -147,8 +147,8 @@ export shuffle :: fn<T>(self: Rng, arr: T[]) -> void {
 import "std/testing" { assert_eq, assert }
 
 @test test_new_seeded_deterministic :: fn() -> void {
-    a := new_seeded(u64(42))
-    b := new_seeded(u64(42))
+    a := new_seeded(42)
+    b := new_seeded(42)
     k: i32 = 0
     for k < 16 {
         assert_eq(a.next_u64(), b.next_u64())
@@ -157,25 +157,25 @@ import "std/testing" { assert_eq, assert }
 }
 
 @test test_new_seeded_zero_produces_nonzero :: fn() -> void {
-    r := new_seeded(u64(0))
+    r := new_seeded(0)
     // Sum a small batch — must not be all zeros (would mean a degenerate state).
-    acc: u64 = u64(0)
+    acc: u64 = 0
     k: i32 = 0
     for k < 8 {
         acc = acc | r.next_u64()
         k = k + 1
     }
-    assert(acc != u64(0), "seed=0 produced all zeros")
+    assert(acc != 0, "seed=0 produced all zeros")
 }
 
 @test test_different_seeds_produce_different_streams :: fn() -> void {
-    a := new_seeded(u64(1))
-    b := new_seeded(u64(2))
+    a := new_seeded(1)
+    b := new_seeded(2)
     assert(a.next_u64() != b.next_u64(), "different seeds collided on first draw")
 }
 
 @test test_range_i32_within_bounds :: fn() -> void {
-    r := new_seeded(u64(7))
+    r := new_seeded(7)
     k: i32 = 0
     for k < 200 {
         v :: r.range_i32(10, 20)
@@ -186,7 +186,7 @@ import "std/testing" { assert_eq, assert }
 }
 
 @test test_unit_f64_within_bounds :: fn() -> void {
-    r := new_seeded(u64(123))
+    r := new_seeded(123)
     k: i32 = 0
     for k < 200 {
         v :: r.unit_f64()
@@ -197,10 +197,10 @@ import "std/testing" { assert_eq, assert }
 }
 
 @test test_shuffle_preserves_length :: fn() -> void {
-    r := new_seeded(u64(99))
+    r := new_seeded(99)
     arr: i32[] = [1, 2, 3, 4, 5, 6, 7, 8]
     r.shuffle(arr)
-    assert_eq(arr.len(), usize(8))
+    assert_eq(arr.len(), 8)
     // Sum is preserved (multiset preservation, weak check).
     s: i32 = 0
     for x in arr {
@@ -210,7 +210,7 @@ import "std/testing" { assert_eq, assert }
 }
 
 @test test_next_bool_both_observed :: fn() -> void {
-    r := new_seeded(u64(2026))
+    r := new_seeded(2026)
     seen_true: bool = false
     seen_false: bool = false
     k: i32 = 0

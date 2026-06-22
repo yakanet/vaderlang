@@ -41,7 +41,7 @@ mti_apply :: fn(node: AST.Expr, ctx: ActionCtx) -> string {
     if node is AST.MatchExpr as m {
         if !is_convertible(m) { return "" }
         rendered :: format_expr(ctx.source, build_if(m))
-        return reindent(rendered, m.span.start.column - i32(1))
+        return reindent(rendered, m.span.start.column - 1)
     }
     return ""
 }

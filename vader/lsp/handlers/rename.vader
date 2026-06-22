@@ -34,7 +34,7 @@ export handle_prepare_rename :: fn(state: ServerState, params: JsonValue) -> Jso
     if file_path == "" { return JsonNull {} }
     cached :: typed_project_for(state, file_path)
     index :: build_reference_index(cached.project, cached.result)
-    site :: site_at(index, cursor_field(params, "line") + i32(1), cursor_field(params, "character") + i32(1))
+    site :: site_at(index, cursor_field(params, "line") + 1, cursor_field(params, "character") + 1)
     if site == null { return JsonNull {} }
     return range_json(site.span.span_to_range_json())
 }
@@ -52,7 +52,7 @@ export handle_rename :: fn(state: ServerState, params: JsonValue) -> JsonValue {
 
     cached :: typed_project_for(state, file_path)
     index :: build_reference_index(cached.project, cached.result)
-    site :: site_at(index, cursor_field(params, "line") + i32(1), cursor_field(params, "character") + i32(1))
+    site :: site_at(index, cursor_field(params, "line") + 1, cursor_field(params, "character") + 1)
     if site == null { return JsonNull {} }
 
     sources :: build_source_map(cached.project)
@@ -176,8 +176,8 @@ test_span_text_slices_identifier :: fn() -> void {
     sources :: test_sources("t.vader", "let foo = 1")
     // "foo" sits at byte offset 4, length 3.
     sp :: Span {
-        .start = Position { .file = "t.vader", .offset = usize(4), .line = 1, .column = 5 },
-        .end   = Position { .file = "t.vader", .offset = usize(7), .line = 1, .column = 8 },
+        .start = Position { .file = "t.vader", .offset = 4, .line = 1, .column = 5 },
+        .end   = Position { .file = "t.vader", .offset = 7, .line = 1, .column = 8 },
     }
     assert_eq(span_text(sources, sp), "foo")
 }
@@ -186,14 +186,14 @@ test_span_text_slices_identifier :: fn() -> void {
 test_sites_to_rename_filters_by_symbol_and_text :: fn() -> void {
     // Source: `foo + foo + bar`, two `foo` (offsets 0, 6) and one `bar` (12).
     sources :: test_sources("t.vader", "foo + foo + bar")
-    foo_a :: mk_site("t.vader", usize(0), usize(3), 1)
-    foo_b :: mk_site("t.vader", usize(6), usize(3), 1)
-    bar   :: mk_site("t.vader", usize(12), usize(3), 2)
+    foo_a :: mk_site("t.vader", 0, 3, 1)
+    foo_b :: mk_site("t.vader", 6, 3, 1)
+    bar   :: mk_site("t.vader", 12, 3, 2)
     // A site claiming symbol 1 but covering `bar` text — must be filtered out.
-    decoy :: mk_site("t.vader", usize(12), usize(3), 1)
+    decoy :: mk_site("t.vader", 12, 3, 1)
     index :: ReferenceIndex { .sites = [foo_a, foo_b, bar, decoy] }
     picked :: sites_to_rename(index, 1, "foo", sources)
-    assert_eq(picked.len(), usize(2))
+    assert_eq(picked.len(), 2)
 }
 
 @test

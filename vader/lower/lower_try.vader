@@ -92,7 +92,7 @@ build_error_predicate :: fn(span: Span, ident: LoweredExpr, variants: Type[]) ->
             .value = ident, .check_type = variant,
         })
     }
-    if checks.len() == usize(0) {
+    if checks.len() == 0 {
         return LoweredBoolLit { .span = span, .type = TY_BOOL, .value = false }
     }
     return or_all(span, checks)

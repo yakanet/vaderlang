@@ -83,14 +83,14 @@ export observe :: fn(registry: InstanceRegistry, t: Type) -> void {
 walk_type :: fn(registry: InstanceRegistry, t: Type) -> void {
     match t {
         is StructType as s -> {
-            if s.args.len() > usize(0) && all_concrete_enough(s.args) {
+            if s.args.len() > 0 && all_concrete_enough(s.args) {
                 registry.add(s.symbol, s.args)
             }
             for arg in s.args { walk_type(registry, arg) }
         }
         is EnumType -> {}
         is TraitType as t2 -> {
-            if t2.args.len() > usize(0) && all_concrete_enough(t2.args) {
+            if t2.args.len() > 0 && all_concrete_enough(t2.args) {
                 registry.add(t2.symbol, t2.args)
             }
             for arg in t2.args { walk_type(registry, arg) }
@@ -148,7 +148,7 @@ build_display_key :: fn(symbol: Symbol, args: Type[]) -> string {
 export canonical_args_key :: fn(args: Type[]) -> string {
     out := ""
     for i in 0..<args.len() {
-        if i > usize(0) { out = "${out}," }
+        if i > 0 { out = "${out}," }
         out = "${out}${canonical_type_key(args[i])}"
     }
     return out
@@ -192,7 +192,7 @@ export sorted_instances :: fn(registry: InstanceRegistry) -> GenericInstance[] {
 export render_instance :: fn(instance: GenericInstance) -> string {
     parts := ""
     for i in 0..<instance.args.len() {
-        if i > usize(0) { parts = "${parts}, " }
+        if i > 0 { parts = "${parts}, " }
         parts = "${parts}${display_type(instance.args[i])}"
     }
     return "${instance.symbol.name}<${parts}>"
@@ -212,7 +212,7 @@ import "vader/parser" { Visibility }
     args: Type[] = [i32_type]
     registry.add(sym, args)
     registry.add(sym, args)
-    assert_eq(registry.order.len(), usize(1))
+    assert_eq(registry.order.len(), 1)
 }
 
 @test test_observe_struct_instance :: fn() -> void {
@@ -221,7 +221,7 @@ import "vader/parser" { Visibility }
     args: Type[] = [mk_primitive("i32")]
     list_type :: mk_struct(sym, args)
     registry.observe(list_type)
-    assert_eq(registry.order.len(), usize(1))
+    assert_eq(registry.order.len(), 1)
     assert_eq(render_instance(registry.order[0]), "List<i32>")
 }
 

@@ -115,7 +115,7 @@ synthesise_cfg_intrinsic_wrappers :: fn(cfg: CFGProject, ctx: EmitterCtx) -> voi
         debug: (DebugPos | null)[] = []
         for _d in 0..<body.len() { debug.push(null) }
         jump_table: i32[] = []
-        for _j in 0..<body.len() { jump_table.push(i32(-1)) }
+        for _j in 0..<body.len() { jump_table.push(-1) }
         no_locals: BcLocal[] = []
         fn_index :: i32(ctx.functions.len())
         ctx.functions.push(BcFunction {
@@ -258,7 +258,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             // Resolve the reserved fn-table slot. Prefer the symbol-id
             // map ; fall back to mangle for synth fns (impl members,
             // lifted lambdas) whose `origin.symbol` is null.
-            fn_idx := i32(-1)
+            fn_idx: i32 = -1
             if cfg_fn.origin.symbol is Symbol as sym {
                 idx_opt :: ctx.function_index_by_symbol_id[sym.id]
                 if idx_opt is i32 as i { fn_idx = i }
@@ -277,7 +277,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
     // `vader/bytecode/emit.vader::emit_project` runs on the legacy
     // Lowered→bytecode path. Gated by `opts.optimize`.
     if opts.optimize {
-        i := usize(0)
+        i: usize = 0
         for i < ctx.functions.len() {
             // First-pass peephole : LocalSet+LocalGet → LocalTee, const+Return
             // → ReturnLit, BoolNot folds. Returns the rewritten body — Vader
@@ -548,7 +548,7 @@ emit_cfg_function_body :: fn(
     // n_params offset added when pushing.)
     local_to_slot: i32[] = []
     n_params :: cfg_fn.params.len()
-    i := usize(0)
+    i: usize = 0
     for i < cfg_fn.locals.len() {
         if i < n_params {
             local_to_slot.push(i32(i))
@@ -616,13 +616,13 @@ cf_if :: fn(ctx: FnEmitCfg, span: Span, target_blk: BlockId) -> void {
 cf_else :: fn(ctx: FnEmitCfg, span: Span) -> void {
     pc :: push_op_with_span(ctx, Else {}, span)
     sp :: ctx.scopes.len()
-    if sp == usize(0) { return }
-    top :: ctx.scopes[sp - usize(1)]
+    if sp == 0 { return }
+    top :: ctx.scopes[sp - 1]
     // The `if` opener jumps past the matching `else` op when its cond
     // is false ; the matching `end` will set the else opener's target.
     ctx.slot.jump_table[usize(top.opener_pc)] = pc + 1
     // Repurpose the same entry as an "else scope".
-    ctx.scopes[sp - usize(1)] = ScopeFrame {
+    ctx.scopes[sp - 1] = ScopeFrame {
         .kind = "if", 
         .target_blk = top.target_blk, 
         .opener_pc = pc,
@@ -632,12 +632,12 @@ cf_else :: fn(ctx: FnEmitCfg, span: Span) -> void {
 cf_end :: fn(ctx: FnEmitCfg, span: Span) -> void {
     pc :: push_op_with_span(ctx, End {}, span)
     sp :: ctx.scopes.len()
-    if sp == usize(0) { return }
-    top :: ctx.scopes[sp - usize(1)]
+    if sp == 0 { return }
+    top :: ctx.scopes[sp - 1]
     // Pop top scope.
     new_scopes: ScopeFrame[] = []
-    j := usize(0)
-    for j < sp - usize(1) {
+    j: usize = 0
+    for j < sp - 1 {
         new_scopes.push(ctx.scopes[j])
         j = j + 1
     }
@@ -669,7 +669,7 @@ defer_or_resolve_branch :: fn(ctx: FnEmitCfg, target_blk: BlockId, pc: i32) -> v
     // target), but Vader's `cond_branch_merge` can return the loop's
     // own header for back-edge-only branches.
     sp :: ctx.scopes.len()
-    iL := i64(sp) - i64(1)
+    iL := i64(sp) - 1
     for iL >= 0 {
         scope :: ctx.scopes[usize(iL)]
         if scope.kind == "loop" && scope.target_blk == target_blk {
@@ -678,7 +678,7 @@ defer_or_resolve_branch :: fn(ctx: FnEmitCfg, target_blk: BlockId, pc: i32) -> v
         }
         iL = iL - 1
     }
-    i := i64(sp) - i64(1)
+    i := i64(sp) - 1
     for i >= 0 {
         scope :: ctx.scopes[usize(i)]
         if scope.target_blk == target_blk {
@@ -733,12 +733,12 @@ emit_range :: fn(ctx: FnEmitCfg, start: BlockId, until: BlockId) -> void {
         }
         if is_loop_header {
             exit_opt :: ctx.loop_exit[cur]
-            exit_target := i32(-1)
+            exit_target: i32 = -1
             if exit_opt is BlockId as e { exit_target = e }
             cf_block(ctx, block.span, exit_target)
             cf_loop(ctx, block.span, cur)
             ctx.wrapped_loop_headers.add(cur)
-            inner_until := i32(-1)
+            inner_until: i32 = -1
             if exit_opt is BlockId as e { inner_until = e }
             emit_range(ctx, cur, inner_until)
             // Unmark on the way out so a sibling loop that reuses this block
@@ -802,11 +802,11 @@ emit_block_contents :: fn(ctx: FnEmitCfg, block_id: BlockId, until: BlockId) -> 
         // Fuse `<const> + Return → ReturnLit X` post-emit. Mirrors
         // `midir/emit.ts:283-293`.
         body :: ctx.slot.body
-        if body.len() > usize(0) {
-            last :: body[body.len() - usize(1)]
+        if body.len() > 0 {
+            last :: body[body.len() - 1]
             cv :: const_op_of(last)
             if cv !is null {
-                body[body.len() - usize(1)] = ReturnLit { .value = cv }
+                body[body.len() - 1] = ReturnLit { .value = cv }
                 return -1
             }
         }
@@ -852,8 +852,8 @@ emit_block_contents :: fn(ctx: FnEmitCfg, block_id: BlockId, until: BlockId) -> 
         body :: ctx.slot.body
         body_len :: body.len()
         then_exits := false
-        if body_len > usize(0) {
-            last :: body[body_len - usize(1)]
+        if body_len > 0 {
+            last :: body[body_len - 1]
             if last is Return                  { then_exits = true }
             if last is ReturnLit               { then_exits = true }
             if last is Branch                  { then_exits = true }
@@ -922,7 +922,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
             pins.push(intern_type(ctx.fn_.locals[usize(cdst)].type, ctx.project))
         }
         for ai in 0..<c.args.len() {
-            if ai == usize(0) { emit_first_get(ctx, pos, c.args[ai], c.span) }
+            if ai == 0 { emit_first_get(ctx, pos, c.args[ai], c.span) }
             else              { emit_get(ctx, c.args[ai], c.span) }
         }
         // Direct fn call → `Call` ; @extern/@intrinsic import → `CallImport`.
@@ -978,10 +978,10 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
     }
     if ins is InstrCallIndirect as ci {
         for ai in 0..<ci.args.len() {
-            if ai == usize(0) { emit_first_get(ctx, pos, ci.args[ai], ci.span) }
+            if ai == 0 { emit_first_get(ctx, pos, ci.args[ai], ci.span) }
             else              { emit_get(ctx, ci.args[ai], ci.span) }
         }
-        if ci.args.len() == usize(0) {
+        if ci.args.len() == 0 {
             emit_first_get(ctx, pos, ci.callee, ci.span)
         } else {
             emit_get(ctx, ci.callee, ci.span)
@@ -1007,17 +1007,17 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
     }
     if ins is InstrVirtualCall as vc {
         for ai in 0..<vc.args.len() {
-            if ai == usize(0) { emit_first_get(ctx, pos, vc.args[ai], vc.span) }
+            if ai == 0 { emit_first_get(ctx, pos, vc.args[ai], vc.span) }
             else              { emit_get(ctx, vc.args[ai], vc.span) }
         }
-        if vc.args.len() == usize(0) {
+        if vc.args.len() == 0 {
             emit_first_get(ctx, pos, vc.receiver, vc.span)
         } else {
             emit_get(ctx, vc.receiver, vc.span)
         }
         push_emit(ctx, VirtualCall {
             .vtable_key = "${vc.trait_name}.${vc.method}",
-            .parameter_count = i32(vc.args.len() + usize(1)),
+            .parameter_count = i32(vc.args.len() + 1),
         }, vc.span)
         emit_result_if_any(ctx, pos, vc.dst, vc.span)
         return
@@ -1150,7 +1150,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
     if ins is InstrStructNew as sn {
         type_index :: intern_type(sn.type, ctx.project)
         for fi in 0..<sn.fields.len() {
-            if fi == usize(0) { emit_first_get(ctx, pos, sn.fields[fi], sn.span) }
+            if fi == 0 { emit_first_get(ctx, pos, sn.fields[fi], sn.span) }
             else              { emit_get(ctx, sn.fields[fi], sn.span) }
         }
         push_emit(ctx, StructNew { .type_id = type_index, .stack = sn.stack }, sn.span)
@@ -1160,7 +1160,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
     if ins is InstrArrayNew as an {
         type_index :: intern_type(an.type, ctx.project)
         for ei in 0..<an.elements.len() {
-            if ei == usize(0) { emit_first_get(ctx, pos, an.elements[ei], an.span) }
+            if ei == 0 { emit_first_get(ctx, pos, an.elements[ei], an.span) }
             else              { emit_get(ctx, an.elements[ei], an.span) }
         }
         push_emit(ctx, ArrayNew { .type_id = type_index, .length = an.length }, an.span)
@@ -1223,10 +1223,10 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         emit_first_get(ctx, pos, cg.cell, cg.span)
         fused := false
         if !skipped_receiver_get {
-            fused = try_fuse_local_field(ctx, cell_type_idx, i32(0))
+            fused = try_fuse_local_field(ctx, cell_type_idx, 0)
         }
         if !fused {
-            push_emit(ctx, StructGet { .type_id = cell_type_idx, .field_index = i32(0) }, cg.span)
+            push_emit(ctx, StructGet { .type_id = cell_type_idx, .field_index = 0 }, cg.span)
         }
         emit_result(ctx, pos, cg.dst, cg.span)
         return
@@ -1235,7 +1235,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         cell_type_idx :: intern_cell_type(cse.value_type, ctx.project)
         emit_first_get(ctx, pos, cse.cell, cse.span)
         emit_get(ctx, cse.value, cse.span)
-        push_emit(ctx, StructSet { .type_id = cell_type_idx, .field_index = i32(0), .stack = false }, cse.span)
+        push_emit(ctx, StructSet { .type_id = cell_type_idx, .field_index = 0, .stack = false }, cse.span)
         return
     }
     if ins is InstrMakeClosure as mc {
@@ -1260,7 +1260,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         // generic Intrinsic Op — every name maps to one. Args push in
         // order ; the per-name Op handles its own stack discipline.
         for ai in 0..<i.args.len() {
-            if ai == usize(0) { emit_first_get(ctx, pos, i.args[ai], i.span) }
+            if ai == 0 { emit_first_get(ctx, pos, i.args[ai], i.span) }
             else              { emit_get(ctx, i.args[ai], i.span) }
         }
         op_opt :: intrinsic_op_for_name(i.name)
@@ -1423,11 +1423,11 @@ try_fuse_local_field :: fn(
     ctx: FnEmitCfg, type_id: i32, field_index: i32,
 ) -> bool {
     n :: ctx.slot.body.len()
-    if n == usize(0) { return false }
-    last :: ctx.slot.body[n - usize(1)]
+    if n == 0 { return false }
+    last :: ctx.slot.body[n - 1]
     if !(last is LocalGet) { return false }
     slot :: last.slot
-    ctx.slot.body[n - usize(1)] = LocalField {
+    ctx.slot.body[n - 1] = LocalField {
         .slot = slot, .type_id = type_id, .field_index = field_index,
     }
     return true

@@ -40,7 +40,7 @@ export Formatted :: struct {
 ///   }
 export format_source :: fn(source: string, path: string) -> FormatResult {
     pr :: parse_source(source, path)
-    if pr.errors.len() > usize(0) {
+    if pr.errors.len() > 0 {
         // Don't format files with parse errors — round-trip parity cannot
         // hold when the AST is partial.
         return ParseFailure { .diagnostics = pr.errors }

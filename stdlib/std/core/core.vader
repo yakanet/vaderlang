@@ -303,7 +303,7 @@ ArrayIterator<T> implements Iterator<T> {
 
 T[] implements<T> Into<Iterator<T>> {
     into :: fn(self) -> Iterator<T> {
-        return ArrayIterator<T> { .arr = self, .cursor = usize(0) }
+        return ArrayIterator<T> { .arr = self, .cursor = 0 }
     }
 }
 

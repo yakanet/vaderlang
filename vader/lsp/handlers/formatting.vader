@@ -41,11 +41,11 @@ export handle_formatting :: fn(state: ServerState, params: JsonValue) -> JsonVal
 // the canonical "replace everything" range.
 full_doc_edit_json :: fn(src: string, formatted: string) -> JsonValue {
     start :: MutableMap<string, JsonValue> {}
-    start["line"]      = JsonNumber { .value = f64(0) }
-    start["character"] = JsonNumber { .value = f64(0) }
+    start["line"]      = JsonNumber { .value = 0.0 }
+    start["character"] = JsonNumber { .value = 0.0 }
     end :: MutableMap<string, JsonValue> {}
     end["line"]        = JsonNumber { .value = f64(count_lines(src)) }
-    end["character"]   = JsonNumber { .value = f64(0) }
+    end["character"]   = JsonNumber { .value = 0.0 }
     range :: MutableMap<string, JsonValue> {}
     range["start"] = JsonObject { .entries = start }
     range["end"]   = JsonObject { .entries = end }
@@ -71,10 +71,10 @@ import "std/testing" { assert, assert_eq }
 
 @test
 test_count_lines :: fn() -> void {
-    assert_eq(count_lines("abc"), i32(1))
-    assert_eq(count_lines("a\nb"), i32(2))
-    assert_eq(count_lines("a\nb\n"), i32(3))
-    assert_eq(count_lines(""), i32(1))
+    assert_eq(count_lines("abc"), 1)
+    assert_eq(count_lines("a\nb"), 2)
+    assert_eq(count_lines("a\nb\n"), 3)
+    assert_eq(count_lines(""), 1)
 }
 
 @test

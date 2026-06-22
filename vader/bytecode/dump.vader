@@ -92,7 +92,7 @@ format_fields :: fn(fields: BcField[]) -> string {
     for i < fields.len() {
         if i > 0 { sb.append(",") }
         sb.append("${fields[i].name}:${fields[i].type_index}")
-        i += usize(1)
+        i += 1
     }
     return "${sb}"
 }
@@ -104,7 +104,7 @@ format_variants :: fn(items: i32[]) -> string {
     for i < items.len() {
         if i > 0 { sb.append(",") }
         sb.append("${items[i]}")
-        i += usize(1)
+        i += 1
     }
     return "${sb}"
 }
@@ -132,7 +132,7 @@ is_simple_ident :: fn(s: string) -> bool {
         if b == 0x24 { ok = true }                     // $
         if b == 0x2E { ok = true }                     // .
         if !ok { return false }
-        i += usize(1)
+        i += 1
     }
     return true
 }
@@ -152,7 +152,7 @@ json_escape :: fn(s: string) -> string {
         if b == 0x22 { sb.append("\\\"") }
         else if b == 0x5C { sb.append("\\\\") }
         else { sb.append_char(char(u32(b))) }
-        i += usize(1)
+        i += 1
     }
     sb.append_char('"')
     return "${sb}"
@@ -198,7 +198,7 @@ write_vtable_rows :: fn(sb: StringBuilder, vtables: VtableRow[]) -> void {
 // `vader_cli$main`). `entry_mangled == ""` (no known entry) emits nothing.
 write_entry_main :: fn(sb: StringBuilder, functions: BcFunction[], entry_mangled: string) -> void {
     if entry_mangled == "" { return }
-    entry_idx := i32(-1)
+    entry_idx: i32 = -1
     for i in 0..<functions.len() {
         if entry_idx < 0 && functions[i].name == entry_mangled { entry_idx = i32(i) }
     }

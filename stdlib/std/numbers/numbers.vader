@@ -30,9 +30,9 @@ export is_digit_in_base :: fn(c: char, base: i32) -> bool {
 /// @param c  codepoint to decode.
 /// @return   the digit's numeric value, or `-1` if `c` isn't `0..9a..fA..F`.
 export hex_digit_value :: fn(c: char) -> i32 {
-    if c in '0'..='9' { return i32(u32(c) - u32('0')) }
-    if c in 'a'..='f' { return i32(u32(c) - u32('a') + u32(10)) }
-    if c in 'A'..='F' { return i32(u32(c) - u32('A') + u32(10)) }
+    if c in '0'..='9' { return i32(u32(c) - '0') }
+    if c in 'a'..='f' { return i32(u32(c) - 'a' + 10) }
+    if c in 'A'..='F' { return i32(u32(c) - 'A' + 10) }
     return -1
 }
 
@@ -47,7 +47,7 @@ export parse_int_in_base :: fn(s: string, base: i32) -> i64 | ParseError {
     if s.is_empty() {
         return ParseError { .msg = "empty input" }
     }
-    acc: i64 = i64(0)
+    acc: i64 = 0
     b: i64 = i64(base)
     for c in s.chars() {
         d := hex_digit_value(c)
@@ -72,7 +72,7 @@ export parse_uint_in_base :: fn(s: string, base: i32) -> u64 | ParseError {
     if s.is_empty() {
         return ParseError { .msg = "empty input" }
     }
-    acc: u64 = u64(0)
+    acc: u64 = 0
     b: u64 = u64(base)
     for c in s.chars() {
         d := hex_digit_value(c)
@@ -85,10 +85,10 @@ export parse_uint_in_base :: fn(s: string, base: i32) -> u64 | ParseError {
 }
 
 hex_digit :: fn(n: u64) -> char {
-    if n <= u64(9) {
-        return char(u32('0') + u32(n))
+    if n <= 9 {
+        return char('0' + u32(n))
     }
-    return char(u32('A') + u32(n) - u32(10))
+    return char('A' + u32(n) - 10)
 }
 
 /// Hexadecimal stringification of a `u64` — uppercase, no `0x` prefix, no

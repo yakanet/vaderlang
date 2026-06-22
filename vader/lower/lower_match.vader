@@ -509,8 +509,8 @@ import "std/testing" { assert_eq, assert }
 import "vader/diagnostics" { empty_span }
 
 @test test_fill_unresolved_emits_unresolved_array :: fn() -> void {
-    types :: fill_unresolved(usize(3))
-    assert_eq(types.len(), usize(3))
+    types :: fill_unresolved(3)
+    assert_eq(types.len(), 3)
 }
 
 // `test_enum_variant_literal_unknown` removed : `enum_variant_literal`
@@ -521,6 +521,6 @@ import "vader/diagnostics" { empty_span }
 @test test_tuple_element_types_falls_back_to_unresolved :: fn() -> void {
     // Non-tuple target widens to an all-unresolved slot list ; matches
     // the typecheck's recovery semantics for arity mismatches.
-    types :: tuple_element_types(TY_UNRESOLVED, usize(2))
-    assert_eq(types.len(), usize(2))
+    types :: tuple_element_types(TY_UNRESOLVED, 2)
+    assert_eq(types.len(), 2)
 }

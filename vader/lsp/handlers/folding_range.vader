@@ -79,7 +79,7 @@ Point :: struct {
     idx :: build_index("t.vader", src)
     folds :: foldable_decls(idx)
     // `add` (3-line fn) + `Point` (4-line struct) fold ; `MAX` (one line) doesn't.
-    assert_eq(folds.len(), usize(2))
+    assert_eq(folds.len(), 2)
 }
 
 @test
@@ -91,5 +91,5 @@ greet :: fn() -> i32 = 0
 """
     idx :: build_index("t.vader", src)
     // All three are one-liners — nothing to fold.
-    assert_eq(foldable_decls(idx).len(), usize(0))
+    assert_eq(foldable_decls(idx).len(), 0)
 }

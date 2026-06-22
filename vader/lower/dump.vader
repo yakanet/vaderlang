@@ -338,10 +338,10 @@ import "std/numbers" { to_hex }
 format_int_value :: fn(value: i64, t: Type) -> string {
     if t is PrimitiveType as p {
         if p.name == "u64" || p.name == "usize" {
-            if value < i64(0) { return "${u64(value)}" }
+            if value < 0 { return "${u64(value)}" }
         }
         if p.name == "u32" {
-            if value < i64(0) { return "${u32(value)}" }
+            if value < 0 { return "${u32(value)}" }
         }
     }
     return "${value}"

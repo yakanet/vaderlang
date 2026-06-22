@@ -152,12 +152,12 @@ fold_int_bin_op :: fn(op: LoweredBinaryOp, l: i64, r: i64) -> ConstValue | null 
     .Add -> ConstInt { .value = l + r }
     .Sub -> ConstInt { .value = l - r }
     .Mul -> ConstInt { .value = l * r }
-    .Div -> if r == i64(0) { null } else { ConstInt { .value = l / r } }
-    .Mod -> if r == i64(0) { null } else { ConstInt { .value = l - (l / r) * r } }
+    .Div -> if r == 0 { null } else { ConstInt { .value = l / r } }
+    .Mod -> if r == 0 { null } else { ConstInt { .value = l - (l / r) * r } }
     // Shifts < 0 or ≥ 64 are runtime-defined ; skip so the VM/runtime (which
     // knows the type width) handles them.
-    .Shl -> if r < i64(0) || r >= i64(64) { null } else { ConstInt { .value = l << r } }
-    .Shr -> if r < i64(0) || r >= i64(64) { null } else { ConstInt { .value = l >> r } }
+    .Shl -> if r < 0 || r >= 64 { null } else { ConstInt { .value = l << r } }
+    .Shr -> if r < 0 || r >= 64 { null } else { ConstInt { .value = l >> r } }
     .BitAnd -> ConstInt { .value = l & r }
     .BitOr  -> ConstInt { .value = l | r }
     .BitXor -> ConstInt { .value = l ^ r }
@@ -207,9 +207,9 @@ fold_char_bin_op :: fn(op: LoweredBinaryOp, l: i32, r: i32) -> ConstValue | null
 
 fold_un_op :: fn(op: LoweredUnaryOp, v: ConstValue) -> ConstValue | null = match op {
     .Neg -> if v is ConstInt as iv {
-        ConstInt { .value = i64(0) - iv.value }
+        ConstInt { .value = 0 - iv.value }
     } else if v is ConstFloat as fv {
-        ConstFloat { .value = f64(0) - fv.value }
+        ConstFloat { .value = 0.0 - fv.value }
     } else { null }
     .Not    -> if v is ConstBool as bv { ConstBool { .value = !bv.value } } else { null }
     .BitNot -> if v is ConstInt as iv { ConstInt { .value = ~iv.value } } else { null }

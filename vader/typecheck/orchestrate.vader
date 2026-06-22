@@ -35,7 +35,7 @@ import "vader/types" {
 // (line, column) no longer collide in the merged per-module map.
 merge_module_program :: fn(files: SourceFile[]) -> Program {
     first :: files[0].program
-    if files.len() == usize(1) { return first }
+    if files.len() == 1 { return first }
     all_decls: AST.Decl[] = []
     for f in files {
         for d in f.program.decls { all_decls.push(d) }
@@ -778,7 +778,7 @@ check_short_impl_arity :: fn(
     impl_: AST.ImplDecl, trait_: AST.TraitDecl, diags: Diagnostic[],
 ) -> bool {
     required :: required_methods(trait_.members).len()
-    if required == usize(1) { return true }
+    if required == 1 { return true }
     fired := false
     for i in 0..<impl_.members.len() {
         m :: impl_.members[i]

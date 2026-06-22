@@ -139,7 +139,7 @@ export display_value :: fn(value: ComptimeValue) -> string = match value {
     is IntValue    as x -> "${x.value}_${x.type_name}"
     is FloatValue  as x -> "${x.value}_${x.type_name}"
     is BoolValue   as x -> "${x.value}"
-    is CharValue   as x -> "'\\u${pad_start(to_hex(u64(x.value)), usize(4), '0')}'"
+    is CharValue   as x -> "'\\u${pad_start(to_hex(u64(x.value)), 4, '0')}'"
     is StringValue as x -> "\"${x.value}\""
     is NullValue        -> "null"
     is VoidValue        -> "void"
@@ -165,7 +165,7 @@ render_array :: fn(array: ArrayValue) -> string {
     truncated :: n > usize(ARRAY_DISPLAY_CAP)
     shown :: if truncated { usize(ARRAY_DISPLAY_HEAD) } else { n }
     for i in 0..<shown {
-        if i > usize(0) { sb.append(", ") }
+        if i > 0 { sb.append(", ") }
         sb.append(display_value(array.elements[i]))
     }
     if truncated {
@@ -188,7 +188,7 @@ render_struct :: fn(struct_value: StructValue) -> string {
         name :: names[i]
         field_value :: struct_value.fields[name]
         if field_value is null { continue }
-        if i > usize(0) { sb.append(", ") }
+        if i > 0 { sb.append(", ") }
         sb.append_char('.')
         sb.append(name)
         sb.append(" = ")

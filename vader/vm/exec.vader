@@ -207,7 +207,7 @@ build_callee_frame :: fn(function_index: i32, callee: bc.BcFunction, args_source
         .sp             = 0,
         .pc             = 0,
         .defers         = [],
-        .defer_count    = usize(0),
+        .defer_count    = 0,
     }
 }
 
@@ -383,7 +383,7 @@ apply_i64_div_mod :: fn(frame: Frame, op_label: string, apply: fn(i64, i64) -> i
     right :: read_i64(frame.stack[frame.sp - 1], frame.pc, op_label)
     if left  is Trap { return left  }
     if right is Trap { return right }
-    if right.value == i64(0) { return Trap { .message = "${op_label} by zero at pc=${frame.pc}" } }
+    if right.value == 0 { return Trap { .message = "${op_label} by zero at pc=${frame.pc}" } }
     frame.stack[frame.sp - 2] = I64Val { .value = apply(left.value, right.value) }
     frame.sp = frame.sp - 1
     frame.pc = frame.pc + 1
@@ -972,16 +972,16 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[]) -
                 // clobbered. Owning arrays push in place.
                 if is_array_view(array_unwrap) {
                     fresh: Value[] = []
-                    j: usize = usize(0)
+                    j: usize = 0
                     for j < array_unwrap.length {
                         fresh.push(array_unwrap.elements[array_unwrap.offset + j])
-                        j = j + usize(1)
+                        j = j + 1
                     }
                     array_unwrap.elements = fresh
-                    array_unwrap.offset = usize(0)
+                    array_unwrap.offset = 0
                 }
                 array_unwrap.elements.push(frame.stack[frame.sp - 1])
-                array_unwrap.length = array_unwrap.length + usize(1)
+                array_unwrap.length = array_unwrap.length + 1
                 frame.sp = frame.sp - 2
                 frame.pc = frame.pc + 1
             }
@@ -1039,9 +1039,9 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[]) -
                 array_unwrap :: read_array(frame.stack[frame.sp - 3], frame.pc, "array.slice receiver")
                 if array_unwrap is Trap { return array_unwrap }
                 len :: array_unwrap.length
-                lo_clamped: usize = if lo_unwrap.value < 0 { usize(0) } else { usize(lo_unwrap.value) }
+                lo_clamped: usize = if lo_unwrap.value < 0 { 0 } else { usize(lo_unwrap.value) }
                 if lo_clamped > len { lo_clamped = len }
-                hi_clamped: usize = if hi_unwrap.value < 0 { usize(0) } else { usize(hi_unwrap.value) }
+                hi_clamped: usize = if hi_unwrap.value < 0 { 0 } else { usize(hi_unwrap.value) }
                 if hi_clamped < lo_clamped { hi_clamped = lo_clamped }
                 if hi_clamped > len { hi_clamped = len }
                 // A7 unified view : share `elements`, adjust bounds. Writes
@@ -1063,7 +1063,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[]) -
                 // Re-stamp the call-site's type_id onto a fresh header sharing
                 // the pool entry's `elements` ; mirrors `.rodata` sharing in
                 // the native runtime.
-                push_value(frame.stack, frame.sp, ArrayVal { .type_id = instr.type_id, .elements = entry.elements, .offset = usize(0), .length = entry.elements.len() })
+                push_value(frame.stack, frame.sp, ArrayVal { .type_id = instr.type_id, .elements = entry.elements, .offset = 0, .length = entry.elements.len() })
                 frame.sp = frame.sp + 1
                 frame.pc = frame.pc + 1
             }
@@ -1539,7 +1539,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[]) -
                 push_value(frame.defers, frame.defer_count, closure)
                 frame.sp = frame.sp - 1
                 frame.pc = frame.pc + 1
-                frame.defer_count = frame.defer_count + usize(1)
+                frame.defer_count = frame.defer_count + 1
             }
             is bc.DeferPopExec as instr -> {
                 if instr.count <= 0 {
@@ -1569,7 +1569,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[]) -
                     callee_index_check :: validate_fn_index(fn_unwrap.function_index, state.bc.functions, frame.pc, "defer.pop_exec")
                     if callee_index_check is Trap { return callee_index_check }
                     callee :: state.bc.functions[usize(fn_unwrap.function_index)]
-                    if callee.signature.params.len() != usize(1) {
+                    if callee.signature.params.len() != 1 {
                         return Trap { .message = "defer thunk '${callee.name}' must take exactly one env param at pc=${frame.pc}" }
                     }
                     callee_frame :: build_callee_frame(fn_unwrap.function_index, callee, frame.stack, frame.sp, fn_unwrap.env)
@@ -1577,7 +1577,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[]) -
                     if frame_count[0] > usize(MAX_FRAME_DEPTH) {
                         return Trap { .message = "call stack overflow (depth > ${MAX_FRAME_DEPTH}) at function '${callee.name}' during defer drain" }
                     }
-                    drain_index += usize(1)
+                    drain_index += 1
                 }
                 frame.pc = frame.pc + 1
             }
@@ -1830,7 +1830,7 @@ build_array :: fn(type_id: i32, length: i32, frame: Frame) -> Trap | null {
         elements.push(frame.stack[arg_base + element_index])
         element_index += 1
     }
-    new_array :: ArrayVal { .type_id = type_id, .elements = elements, .offset = usize(0), .length = elements.len() }
+    new_array :: ArrayVal { .type_id = type_id, .elements = elements, .offset = 0, .length = elements.len() }
     push_value(frame.stack, arg_base, new_array)
     frame.sp = arg_base + 1
     frame.pc = frame.pc + 1
@@ -1909,7 +1909,7 @@ build_object :: fn(type_id: i32, frame: Frame, handle_cell: i32[]) -> Trap | nul
     }
     bytes: u8[] = []
     for _ in 0..<usize(size_unwrap.value) {
-        bytes.push(u8(0))
+        bytes.push(0)
     }
     handle_cell[0] = handle_cell[0] + 1
     frame.stack[frame.sp - 1] = ObjVal { .handle = handle_cell[0], .type_id = type_id, .bytes = bytes, .slots = [] }

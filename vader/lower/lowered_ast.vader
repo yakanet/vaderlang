@@ -572,11 +572,11 @@ import "std/testing" { assert_eq }
 
 @test test_new_lowered_project_is_empty :: fn() -> void {
     project :: new_lowered_project()
-    assert_eq(project.modules.len(), usize(0))
-    assert_eq(project.vtable_entries.len(), usize(0))
-    assert_eq(project.data_pool.len(), usize(0))
-    assert_eq(project.const_fn_wrap.len(), usize(0))
-    assert_eq(project.const_inline.len(), usize(0))
+    assert_eq(project.modules.len(), 0)
+    assert_eq(project.vtable_entries.len(), 0)
+    assert_eq(project.data_pool.len(), 0)
+    assert_eq(project.const_fn_wrap.len(), 0)
+    assert_eq(project.const_inline.len(), 0)
 }
 
 @test test_intrinsic_constants_are_stable :: fn() -> void {

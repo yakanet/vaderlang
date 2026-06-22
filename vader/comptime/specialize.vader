@@ -111,12 +111,12 @@ run_pass_1 :: fn(
         decl :: decls[i]
         match decl {
             is FnDecl as f -> {
-                if f.type_params.len() == usize(0) {
+                if f.type_params.len() == 0 {
                     push_entry(project, make_entry(decl, f.name, module_typed, state))
                 }
             }
             is StructDecl as s -> {
-                if s.type_params.len() == usize(0) {
+                if s.type_params.len() == 0 {
                     push_entry(project, make_entry(decl, s.name, module_typed, state))
                 }
             }
@@ -286,7 +286,7 @@ materialise_struct_instance :: fn(
             j += 1
             continue
         }
-        subst :: if impl_decl.type_params.len() > usize(0) {
+        subst :: if impl_decl.type_params.len() > 0 {
             build_subst(impl_decl.type_params, inst.args, impl_program.resolved)
         } else {
             build_subst(struct_decl.type_params, inst.args, program.resolved)
@@ -460,7 +460,7 @@ materialise_fn_instance :: fn(
     fn_decl_opt :: find_fn_decl_for_symbol(loaded, inst.symbol)
     if fn_decl_opt is null { return }
     fn_decl :: fn_decl_opt
-    if fn_decl.type_params.len() == usize(0) { return }
+    if fn_decl.type_params.len() == 0 { return }
     if fn_decl.type_params.len() != inst.args.len() { return }
     subst :: build_subst(fn_decl.type_params, inst.args, program.resolved)
     entry :: make_impl_member_entry(fn_decl, inst.symbol.name, program, subst, inst.args, state)
@@ -547,7 +547,7 @@ materialise_into_member :: fn(
     impl_decl_opt :: find_owning_impl(loaded, obs.program, obs.member)
     if impl_decl_opt is null { return }
     impl_decl :: impl_decl_opt
-    subst :: if obs.type_arguments.len() > usize(0) {
+    subst :: if obs.type_arguments.len() > 0 {
         build_subst(impl_decl.type_params, obs.type_arguments, obs.program.resolved)
     } else {
         new_substitution()
@@ -688,7 +688,7 @@ symbol_for_fn :: fn(decl: FnDecl, module_typed: TypedProgram) -> Symbol | null {
     }
     // No span-match — fall back to the first overload. Single
     // declarations always satisfy this branch.
-    if syms.len() > usize(0) { return syms[0] }
+    if syms.len() > 0 { return syms[0] }
     return null
 }
 
@@ -780,7 +780,7 @@ put_impl_entry :: fn(
 }
 
 args_key :: fn(args: Type[]) -> string {
-    if args.len() == usize(0) { return "" }
+    if args.len() == 0 { return "" }
     return canonical_args_key(args)
 }
 
@@ -800,8 +800,8 @@ module_decls_for :: fn(loaded: LoadedProject, module_id: string) -> Decl[] | nul
     module_loaded :: loaded.modules[module_id]
     if module_loaded is null { return null }
     files :: module_loaded.module.files
-    if files.len() == usize(0) { return null }
-    if files.len() == usize(1) { return files[0].program.decls }   // common case — zero-copy
+    if files.len() == 0 { return null }
+    if files.len() == 1 { return files[0].program.decls }   // common case — zero-copy
     // All files of the module, not just files[0] — a multi-file module's later
     // files carry decls too (mirror `lookup_module_decls` / `module_decls`).
     out: Decl[] = []
@@ -819,16 +819,16 @@ import "std/testing" { assert_eq }
 
 @test test_pass_state_starts_clean :: fn() -> void {
     state :: new_state()
-    assert_eq(state.entry_id, i32(0))
-    assert_eq(state.synth_id, i32(1_000_000))
-    assert_eq(state.seen_mangled.len(), usize(0))
+    assert_eq(state.entry_id, 0)
+    assert_eq(state.synth_id, 1_000_000)
+    assert_eq(state.seen_mangled.len(), 0)
 }
 
 @test test_next_entry_id_is_monotonic :: fn() -> void {
     state :: new_state()
-    assert_eq(next_entry_id(state), i32(0))
-    assert_eq(next_entry_id(state), i32(1))
-    assert_eq(next_entry_id(state), i32(2))
+    assert_eq(next_entry_id(state), 0)
+    assert_eq(next_entry_id(state), 1)
+    assert_eq(next_entry_id(state), 2)
 }
 
 @test test_args_key_empty_for_no_args :: fn() -> void {
@@ -856,7 +856,7 @@ import "std/testing" { assert_eq }
         .instances         = [],
     }
     project :: monomorphize_project(loaded, evaluated)
-    assert_eq(project.entries.len(), usize(0))
+    assert_eq(project.entries.len(), 0)
 }
 
 import "vader/typecheck" { new_typed_project }

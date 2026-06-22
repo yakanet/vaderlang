@@ -586,27 +586,27 @@ fn 5 std_base64$decode (string) -> ref
   local or_res bool
   local $call_70 string
   local $cast_73 u32
-  local $cast_75 u32
-  local $shl_76 u32
-  local $cast_77 u32
-  local $cast_79 u32
-  local $shl_80 u32
-  local $bitor_81 u32
-  local $cast_82 u32
+  local $k_74 u32
+  local $shl_75 u32
+  local $cast_76 u32
+  local $k_77 u32
+  local $shl_78 u32
+  local $bitor_79 u32
+  local $cast_80 u32
+  local $k_81 u32
+  local $shl_82 u32
+  local $bitor_83 u32
   local $cast_84 u32
-  local $shl_85 u32
-  local $bitor_86 u32
-  local $cast_87 u32
   local triple u32
-  local $cast_91 u32
-  local $shr_92 u32
-  local $cast_94 u32
-  local $cast_98 u32
-  local $shr_99 u32
-  local $cast_101 u32
-  local $cast_105 u32
-  local $cast_107 u8
-  local $k_108 usize
+  local $k_87 u32
+  local $shr_88 u32
+  local $k_89 u32
+  local $k_92 u32
+  local $shr_93 u32
+  local $k_94 u32
+  local $k_97 u32
+  local $cast_99 u8
+  local $k_100 usize
   local.get 0
   call.import 1
   local.tee 1
@@ -1124,30 +1124,30 @@ fn 6 std_base64$encode (ref) -> string
   local $k_19 usize
   local $add_20 usize
   local b2 u32
-  local $cast_25 u32
-  local $shl_26 u32
-  local $cast_28 u32
-  local $shl_29 u32
+  local $k_24 u32
+  local $shl_25 u32
+  local $k_26 u32
+  local $shl_27 u32
   local triple u32
-  local $cast_35 u32
-  local $shr_36 u32
-  local $cast_38 u32
-  local $cast_40 usize
-  local $call_41 char
-  local $cast_44 u32
-  local $shr_45 u32
-  local $cast_47 u32
-  local $cast_49 usize
-  local $call_50 char
-  local $cast_53 u32
-  local $shr_54 u32
-  local $cast_56 u32
-  local $cast_58 usize
-  local $call_59 char
-  local $cast_62 u32
-  local $cast_64 usize
-  local $call_65 char
-  local $k_66 usize
+  local $k_32 u32
+  local $shr_33 u32
+  local $k_34 u32
+  local $cast_36 usize
+  local $call_37 char
+  local $k_39 u32
+  local $shr_40 u32
+  local $k_41 u32
+  local $cast_43 usize
+  local $call_44 char
+  local $k_46 u32
+  local $shr_47 u32
+  local $k_48 u32
+  local $cast_50 usize
+  local $call_51 char
+  local $k_53 u32
+  local $cast_55 usize
+  local $call_56 char
+  local $k_57 usize
   local.get 0
   local.tee 1
   array.len

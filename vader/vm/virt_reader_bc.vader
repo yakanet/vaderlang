@@ -500,7 +500,7 @@ reduce_data_pool :: fn(entries: bc.BcDataEntry[]) -> ArrayVal[] {
     for e in entries {
         elements: Value[] = []
         for item in e.items { elements.push(value_from_bits(e.kind, item)) }
-        out.push(ArrayVal { .type_id = 0, .elements = elements, .offset = usize(0), .length = elements.len() })
+        out.push(ArrayVal { .type_id = 0, .elements = elements, .offset = 0, .length = elements.len() })
     }
     return out
 }
@@ -510,16 +510,16 @@ reduce_data_pool :: fn(entries: bc.BcDataEntry[]) -> ArrayVal[] {
 // a hex byte slice. f32/f64 bit-cast the low bits (f32 held in an `F64Val`, as
 // elsewhere in the VM) ; `Boxed` never appears in a primitive data pool.
 value_from_bits :: fn(kind: bc.ArrayKind, bits: u64) -> Value {
-    if kind == bc.ArrayKind.U8   { return I32Val { .value = i32(bits & u64(0xff)) } }
+    if kind == bc.ArrayKind.U8   { return I32Val { .value = i32(bits & 0xff) } }
     if kind == bc.ArrayKind.I8   {
-        b :: bits & u64(0xff)
-        return I32Val { .value = if b >= u64(0x80) { i32(b) - 256 } else { i32(b) } }
+        b :: bits & 0xff
+        return I32Val { .value = if b >= 0x80 { i32(b) - 256 } else { i32(b) } }
     }
-    if kind == bc.ArrayKind.Bool { return BoolVal { .value = bits != u64(0) } }
-    if kind == bc.ArrayKind.U16  { return I32Val { .value = i32(bits & u64(0xffff)) } }
+    if kind == bc.ArrayKind.Bool { return BoolVal { .value = bits != 0 } }
+    if kind == bc.ArrayKind.U16  { return I32Val { .value = i32(bits & 0xffff) } }
     if kind == bc.ArrayKind.I16  {
-        v :: bits & u64(0xffff)
-        return I32Val { .value = if v >= u64(0x8000) { i32(v) - 65536 } else { i32(v) } }
+        v :: bits & 0xffff
+        return I32Val { .value = if v >= 0x8000 { i32(v) - 65536 } else { i32(v) } }
     }
     if kind == bc.ArrayKind.U32  { return I32Val { .value = i32(u32(bits)) } }
     if kind == bc.ArrayKind.I32  { return I32Val { .value = i32(u32(bits)) } }
@@ -542,33 +542,33 @@ import "std/testing" { assert_eq, assert }
     src :: "module demo\ntype 0 primitive i32\ntype 1 primitive void\ntype 2 struct Pair { lhs:0, rhs:0 }\nfn 0 add (i32,i32) -> i32\n  local acc i32\n  local.get 0\n  local.get 1\n  i32.add\n  return\nend\nexport main 0\n"
     m :: parse_virt_bc(src)
     assert_eq(m.name, "demo")
-    assert_eq(m.types.len(), usize(3))
+    assert_eq(m.types.len(), 3)
     // struct fields recovered (the VM reader keeps only a count)
     if m.types[2] is bc.BcStruct as s {
         assert_eq(s.name, "Pair")
-        assert_eq(s.fields.len(), usize(2))
+        assert_eq(s.fields.len(), 2)
         assert_eq(s.fields[0].name, "lhs")
         assert_eq(s.fields[0].type_index, 0)
     } else {
         assert(false, "types[2] should parse as a BcStruct")
     }
-    assert_eq(m.functions.len(), usize(1))
+    assert_eq(m.functions.len(), 1)
     f :: m.functions[0]
     assert_eq(f.name, "add")
     assert_eq(f.is_main, true)
     // signature ValTypes parsed, indices reconstructed (i32 -> type 0).
     // `assert(==)` not `assert_eq` : ValType has the built-in `==` but no
     // `Equals` trait impl (which `assert_eq`'s generic bound requires).
-    assert_eq(f.signature.params.len(), usize(2))
+    assert_eq(f.signature.params.len(), 2)
     assert(f.signature.params[0] == bc.ValType.I32, "param 0 should be i32")
     assert_eq(f.signature.param_types[0], 0)
     assert(f.signature.result == bc.ValType.I32, "result should be i32")
     assert_eq(f.signature.result_type, 0)
     // local ValType recovered
-    assert_eq(f.locals.len(), usize(1))
+    assert_eq(f.locals.len(), 1)
     assert_eq(f.locals[0].name, "acc")
     assert(f.locals[0].val == bc.ValType.I32, "local acc should be i32")
     // body wired (4 ops) + parallel debug nulls
-    assert_eq(f.body.len(), usize(4))
-    assert_eq(f.debug.len(), usize(4))
+    assert_eq(f.body.len(), 4)
+    assert_eq(f.debug.len(), 4)
 }

@@ -575,7 +575,7 @@ import "std/testing" { assert, assert_eq }
 // A zero-width span at `(line, column)` in `file` — enough for `span_key`,
 // which reads only `start.file` / `start.line` / `start.column`.
 span_at :: fn(file: string, line: i32, column: i32) -> Span {
-    pos :: Position { .file = file, .offset = usize(0), .line = line, .column = column }
+    pos :: Position { .file = file, .offset = 0, .line = line, .column = column }
     return Span { .start = pos, .end = pos }
 }
 

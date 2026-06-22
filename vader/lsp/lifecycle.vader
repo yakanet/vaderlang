@@ -60,7 +60,7 @@ read_definition_link_support :: fn(params: JsonValue) -> bool {
 export server_capabilities :: fn() -> JsonValue {
     // textDocumentSync = 1 (full). The numeric form is wire-cheaper than
     // the equivalent object form `{ openClose: true, change: 1 }`.
-    text_document_sync :: JsonNumber { .value = f64(1) }
+    text_document_sync :: JsonNumber { .value = 1.0 }
 
     // semanticTokensProvider : we declare full-document tokenisation and
     // omit `range` / `delta` for the MVP.

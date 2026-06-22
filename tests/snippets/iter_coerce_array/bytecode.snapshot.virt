@@ -86,7 +86,7 @@ end
 
 fn 1 snippet$make_iter () -> ref
   local arr ref
-  local $cast_6 usize
+  local $k_5 usize
   i32.const 100
   i32.const 200
   i32.const 300
@@ -102,12 +102,12 @@ end
 
 fn 2 snippet$main () -> i32
   local $arr_3 ref
-  local $cast_5 usize
+  local $k_4 usize
   local a i32
-  local $arr_21 ref
-  local $call_26 i32
-  local $call_27 i32
-  local $call_37 string
+  local $arr_19 ref
+  local $call_23 i32
+  local $call_24 i32
+  local $call_34 string
   i32.const 10
   i32.const 20
   i32.const 30

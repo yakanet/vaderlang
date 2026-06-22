@@ -705,9 +705,9 @@ fn 7 std_numbers$to_bin (u64) -> string
 end
 
 fn 8 std_numbers$hex_digit (u64) -> char
-  local $cast_2 u64
-  local $cast_5 u32
-  local $cast_6 u32
+  local $k_1 u64
+  local $k_3 u32
+  local $cast_4 u32
   i64.const 9
   local.set 1
   local.get 0

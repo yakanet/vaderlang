@@ -423,6 +423,6 @@ test_value_position_expr_emits_T3002 :: fn() -> void {
     rm :: resolve_test_module("")
     diags: Diagnostic[] = []
     type_from_expr(int_lit, rm, diags)
-    assert_eq(diags.len(), usize(1))
+    assert_eq(diags.len(), 1)
     assert_eq(diags[0].code.id, "T3002")
 }

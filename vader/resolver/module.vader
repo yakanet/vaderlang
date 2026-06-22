@@ -206,7 +206,7 @@ export join_path :: fn(base: string, seg: string) -> string {
     s :: trim_prefix(seg, "./")
     if base == "" { return s }
     baseb :: base.bytes()
-    if baseb[baseb.len() - 1] == u8(0x2F) {
+    if baseb[baseb.len() - 1] == 0x2F {
         return "${base}${s}"
     }
     return "${base}/${s}"

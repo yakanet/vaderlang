@@ -42,8 +42,8 @@ export handle_type_definition :: fn(state: ServerState, params: JsonValue) -> Js
 
     // LSP positions are 0-based ; the Vader AST is 1-based.
     found :: find_expr_at(
-        sf.program.decls, cursor_field(params, "line") + i32(1),
-        cursor_field(params, "character") + i32(1), cached.result.typed,
+        sf.program.decls, cursor_field(params, "line") + 1,
+        cursor_field(params, "character") + 1, cached.result.typed,
     )
     if found is null { return JsonNull {} }
     ty :: cached.result.typed.expr_types[found.id]

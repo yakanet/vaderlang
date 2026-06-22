@@ -219,11 +219,11 @@ adjust_hi_inclusive_dynamic :: fn(hi: LoweredExpr, inclusive: LoweredExpr, span:
         .span = span, .type = usize_ty, .cond = inclusive,
         .then_block = LoweredBlock {
             .span = span, .type = usize_ty, .stmts = [],
-            .trailing = LoweredIntLit { .span = span, .type = usize_ty, .value = i64(1) },
+            .trailing = LoweredIntLit { .span = span, .type = usize_ty, .value = 1 },
         },
         .else_block = LoweredBlock {
             .span = span, .type = usize_ty, .stmts = [],
-            .trailing = LoweredIntLit { .span = span, .type = usize_ty, .value = i64(0) },
+            .trailing = LoweredIntLit { .span = span, .type = usize_ty, .value = 0 },
         },
     }
     return LoweredBinary {
@@ -247,7 +247,7 @@ adjust_hi_inclusive :: fn(hi: LoweredExpr, inclusive: bool, span: Span) -> Lower
     return LoweredBinary {
         .span = span, .type = mk_primitive("usize"), .op = LoweredBinaryOp.Add,
         .left = hi,
-        .right = LoweredIntLit { .span = span, .type = mk_primitive("usize"), .value = i64(1) },
+        .right = LoweredIntLit { .span = span, .type = mk_primitive("usize"), .value = 1 },
     }
 }
 

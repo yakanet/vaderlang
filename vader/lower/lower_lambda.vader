@@ -184,7 +184,7 @@ lambda_return_type :: fn(ctx: FnLowerCtx, lambda: AST.LambdaExpr) -> Type {
 /// `__defer_N` names would drift apart per fn).
 export next_synthetic_id :: fn(ctx: FnLowerCtx) -> i32 {
     id :: ctx.project.next_synthetic_id
-    ctx.project.next_synthetic_id = id - i32(1)
+    ctx.project.next_synthetic_id = id - 1
     return id
 }
 
@@ -193,7 +193,7 @@ export next_synthetic_id :: fn(ctx: FnLowerCtx) -> i32 {
 /// symbol-id pool the `__lambda_N` / `__defer_N` naming uses.
 export next_mono_entry_id :: fn(ctx: FnLowerCtx) -> i32 {
     id :: ctx.project.next_mono_entry_id
-    ctx.project.next_mono_entry_id = id + i32(1)
+    ctx.project.next_mono_entry_id = id + 1
     return id
 }
 
@@ -235,8 +235,8 @@ export fresh_lifted_symbol_with_prefix :: fn(
 /// Synthetic IDs walk negative ; render as an unsigned magnitude for
 /// readability so dumps don't show `-3`-style suffixes.
 export render_id_for_name :: fn(id: i32) -> string {
-    if id < i32(0) {
-        return "${i32(0) - id}"
+    if id < 0 {
+        return "${0 - id}"
     }
     return "${id}"
 }

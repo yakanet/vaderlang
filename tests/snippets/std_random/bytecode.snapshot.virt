@@ -633,8 +633,8 @@ end
 fn 5 std_random$next_u64 (ref) -> u64
   local $field_1 u64
   local $field_2 u64
-  local $field_14 u64
-  local $cast_19 u64
+  local $field_13 u64
+  local $k_17 u64
   local.field 0 10 0
   ref.cast 6
   local.set 1
@@ -710,9 +710,9 @@ end
 
 fn 6 std_random$range_i32 (ref,i32,i32) -> i32
   local span u32
-  local $cast_7 u32
-  local $mod_10 u32
-  local $cast_18 i32
+  local $k_6 u32
+  local $mod_8 u32
+  local $cast_16 i32
   local.get 2
   local.get 1
   i32.sub
@@ -758,9 +758,9 @@ end
 
 fn 7 std_random$unit_f64 (ref) -> f64
   local $call_1 u64
-  local $cast_3 u64
-  local $cast_5 f64
-  local $cast_8 f64
+  local $k_2 u64
+  local $cast_4 f64
+  local $cast_7 f64
   local.get 0
   call 5
   local.set 1
@@ -782,7 +782,7 @@ end
 
 fn 8 std_random$next_bool (ref) -> bool
   local $call_1 u64
-  local $cast_3 u64
+  local $k_2 u64
   local.get 0
   call 5
   local.set 1
@@ -802,8 +802,8 @@ end
 
 fn 9 std_random$range_u32 (ref,u32,u32) -> u32
   local span u32
-  local $cast_6 u32
-  local $mod_9 u32
+  local $k_5 u32
+  local $mod_7 u32
   local.get 2
   local.get 1
   i32.sub
@@ -847,8 +847,8 @@ end
 
 fn 10 std_random$splitmix64 (u64) -> u64
   local $k_1 u64
-  local $cast_6 u64
-  local $k_9 u64
+  local $k_5 u64
+  local $k_8 u64
   i64.const -7046029254386353131
   local.set 1
   local.get 0
@@ -914,7 +914,7 @@ end
 
 fn 12 std_random$rotl (u64,u64) -> u64
   local $call_3 u64
-  local $sub_6 u64
+  local $sub_5 u64
   local.get 0
   local.get 1
   i64.shl
@@ -936,7 +936,7 @@ end
 
 fn 13 std_random$next_u32 (ref) -> u32
   local $call_1 u64
-  local $cast_3 u64
+  local $k_2 u64
   local.get 0
   call 5
   local.set 1
@@ -952,13 +952,13 @@ end
 fn 14 std_random$std_random$shuffle__i32 (ref,ref) -> void
   local n usize
   local $k_4 usize
-  local $cast_12 u32
-  local $k_13 usize
-  local $cast_15 u32
+  local $k_11 u32
+  local $k_12 usize
+  local $cast_14 u32
   local j usize
   local tmp i32
-  local $idx_21 i32
-  local $k_22 usize
+  local $idx_20 i32
+  local $k_21 usize
   local.get 1
   array.len
   local.set 2

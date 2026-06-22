@@ -68,9 +68,9 @@ export ends_with :: fn(s: string, suffix: string) -> bool {
 /// @return   its UTF-8 encoded length in bytes (1, 2, 3, or 4).
 export codepoint_byte_len :: fn(c: char) -> usize {
     cp :: u32(c)
-    if cp < u32(0x80)    { return 1 }
-    if cp < u32(0x800)   { return 2 }
-    if cp < u32(0x10000) { return 3 }
+    if cp < 0x80    { return 1 }
+    if cp < 0x800   { return 2 }
+    if cp < 0x10000 { return 3 }
     return 4
 }
 
@@ -107,19 +107,19 @@ export decode_char_at :: fn(bs: const u8[], i: usize) -> char {
     if b < 0xE0 {
         if rem < 2 { return char(0) }
         b1 :: bs[i + 1]
-        return char(((u32(b) & u32(0x1F)) << 6) + (u32(b1) & u32(0x3F)))
+        return char(((u32(b) & 0x1F) << 6) + (u32(b1) & 0x3F))
     }
     if b < 0xF0 {
         if rem < 3 { return char(0) }
         b1 :: bs[i + 1]
         b2 :: bs[i + 2]
-        return char(((u32(b) & u32(0x0F)) << 12) + ((u32(b1) & u32(0x3F)) << 6) + (u32(b2) & u32(0x3F)))
+        return char(((u32(b) & 0x0F) << 12) + ((u32(b1) & 0x3F) << 6) + (u32(b2) & 0x3F))
     }
     if rem < 4 { return char(0) }
     b1 :: bs[i + 1]
     b2 :: bs[i + 2]
     b3 :: bs[i + 3]
-    return char(((u32(b) & u32(0x07)) << 18) + ((u32(b1) & u32(0x3F)) << 12) + ((u32(b2) & u32(0x3F)) << 6) + (u32(b3) & u32(0x3F)))
+    return char(((u32(b) & 0x07) << 18) + ((u32(b1) & 0x3F) << 12) + ((u32(b2) & 0x3F) << 6) + (u32(b3) & 0x3F))
 }
 
 /// Decode the UTF-8 sequence at byte offset `i` of a byte view into a
@@ -173,7 +173,7 @@ StringChars implements Iterator<char> {
 /// @return   a `StringChars` iterator over its codepoints.
 export chars :: fn(s: string) -> StringChars {
     bs :: s.bytes()
-    return StringChars { .bytes = bs, .cursor = usize(0), .length = bs.len() }
+    return StringChars { .bytes = bs, .cursor = 0, .length = bs.len() }
 }
 
 // `for c in s` desugars to `for c in s.into()` via this impl — codepoints
@@ -181,7 +181,7 @@ export chars :: fn(s: string) -> StringChars {
 string implements Into<Iterator<char>> {
     into :: fn(self) -> Iterator<char> {
         bs :: self.bytes()
-        return StringChars { .bytes = bs, .cursor = usize(0), .length = bs.len() }
+        return StringChars { .bytes = bs, .cursor = 0, .length = bs.len() }
     }
 }
 
@@ -443,7 +443,7 @@ export find :: fn(s: string, c: char) = s.index_of(c, 0) >= 0
 export trim :: fn(s: string) -> string {
     sb :: s.bytes()
     n :: sb.len()
-    lo := usize(0)
+    lo: usize = 0
     for lo < n && is_white_byte(sb[lo]) { lo = lo + 1 }
     hi := n
     for hi > lo && is_white_byte(sb[hi - 1]) { hi = hi - 1 }
@@ -457,7 +457,7 @@ export trim :: fn(s: string) -> string {
 export left_trim :: fn(s: string) -> string {
     sb :: s.bytes()
     n :: sb.len()
-    lo := usize(0)
+    lo: usize = 0
     for lo < n && is_white_byte(sb[lo]) { lo = lo + 1 }
     return sb[lo..<n].bytes_to_string()
 }
@@ -478,19 +478,19 @@ export right_trim :: fn(s: string) -> string {
 // gaps ; `ß` has no single-codepoint uppercase and passes through. Scripts
 // beyond Latin-1 pass through unchanged — no full Unicode case tables.
 to_upper_cp :: fn(cp: u32) -> u32 {
-    if cp >= u32(0x61) && cp <= u32(0x7A) { return cp - u32(0x20) }   // a-z
-    if cp >= u32(0xE0) && cp <= u32(0xF6) { return cp - u32(0x20) }   // à-ö
-    if cp >= u32(0xF8) && cp <= u32(0xFE) { return cp - u32(0x20) }   // ø-þ
-    if cp == u32(0xFF)                    { return u32(0x178) }       // ÿ → Ÿ
+    if cp >= 0x61 && cp <= 0x7A { return cp - 0x20 }   // a-z
+    if cp >= 0xE0 && cp <= 0xF6 { return cp - 0x20 }   // à-ö
+    if cp >= 0xF8 && cp <= 0xFE { return cp - 0x20 }   // ø-þ
+    if cp == 0xFF               { return 0x178 }       // ÿ → Ÿ
     return cp
 }
 
 // Codepoint-level lowercase, the inverse of `to_upper_cp`.
 to_lower_cp :: fn(cp: u32) -> u32 {
-    if cp >= u32(0x41) && cp <= u32(0x5A) { return cp + u32(0x20) }   // A-Z
-    if cp >= u32(0xC0) && cp <= u32(0xD6) { return cp + u32(0x20) }   // À-Ö
-    if cp >= u32(0xD8) && cp <= u32(0xDE) { return cp + u32(0x20) }   // Ø-Þ
-    if cp == u32(0x178)                   { return u32(0xFF) }        // Ÿ → ÿ
+    if cp >= 0x41 && cp <= 0x5A { return cp + 0x20 }   // A-Z
+    if cp >= 0xC0 && cp <= 0xD6 { return cp + 0x20 }   // À-Ö
+    if cp >= 0xD8 && cp <= 0xDE { return cp + 0x20 }   // Ø-Þ
+    if cp == 0x178              { return 0xFF }        // Ÿ → ÿ
     return cp
 }
 
@@ -503,7 +503,7 @@ export to_upper :: fn(s: string) -> string {
     sb :: new_builder()
     bs :: s.bytes()
     n  :: bs.len()
-    i := usize(0)
+    i: usize = 0
     for i < n {
         [c, w] :: bs.decode_codepoint_at(i)
         // Re-emitting an unchanged codepoint via `append_char` reproduces its
@@ -523,7 +523,7 @@ export to_lower :: fn(s: string) -> string {
     sb :: new_builder()
     bs :: s.bytes()
     n  :: bs.len()
-    i := usize(0)
+    i: usize = 0
     for i < n {
         [c, w] :: bs.decode_codepoint_at(i)
         // See `to_upper` — `append_char` re-emits the canonical bytes.
@@ -557,11 +557,11 @@ export parse_int :: fn(s: string) -> i32 | ParseError {
     bs :: s.bytes()
     n :: bs.len()
     if n == 0 { return ParseError { .msg = "parse_int: empty string" } }
-    i := usize(0)
+    i: usize = 0
     neg := false
     if bs[0] == '-' {
         neg = true
-        i = usize(1)
+        i = 1
     }
     if i >= n { return ParseError { .msg = "parse_int: no digits" } }
     // Accumulate in i64 so i32 overflow is detectable before truncation.
@@ -571,11 +571,11 @@ export parse_int :: fn(s: string) -> i32 | ParseError {
         if b < '0' || b > '9' {
             return ParseError { .msg = "parse_int: invalid digit" }
         }
-        acc = acc * i64(10) + i64(b - '0')
+        acc = acc * 10 + i64(b - '0')
         if neg {
-            if acc > i64(2147483647) + i64(1) { return ParseError { .msg = "parse_int: overflow" } }
+            if acc > 2147483647 + 1 { return ParseError { .msg = "parse_int: overflow" } }
         } else {
-            if acc > i64(2147483647) { return ParseError { .msg = "parse_int: overflow" } }
+            if acc > 2147483647 { return ParseError { .msg = "parse_int: overflow" } }
         }
         i = i + 1
     }
@@ -690,7 +690,7 @@ export decode_escapes :: fn(body: string) -> string {
         }
         if i + 1 >= n {
             out.append("\\")
-            i += usize(1)
+            i += 1
             continue
         }
         next :: bs[i + 1]
@@ -704,10 +704,10 @@ export decode_escapes :: fn(body: string) -> string {
             // Unknown escape — drop the backslash, copy the following codepoint.
             [c, w] :: bs.decode_codepoint_at(i + 1)
             out.append_char(c)
-            i += usize(1) + w
+            i += 1 + w
             continue
         }
-        i += usize(2)
+        i += 2
     }
     return out.to_string()
 }
@@ -769,9 +769,9 @@ export split_where :: fn(s: string, pred: fn(char) -> bool) -> string[] {
 import "std/testing" { assert, assert_eq, assert_close }
 
 @test test_byte_len :: fn() -> void {
-    assert_eq(byte_len(""), usize(0))
-    assert_eq(byte_len("abc"), usize(3))
-    assert_eq(byte_len("héllo"), usize(6))
+    assert_eq(byte_len(""), 0)
+    assert_eq(byte_len("abc"), 3)
+    assert_eq(byte_len("héllo"), 6)
 }
 
 @test test_is_empty :: fn() -> void {
@@ -782,32 +782,32 @@ import "std/testing" { assert, assert_eq, assert_close }
 @test test_bytes :: fn() -> void {
     // ASCII : one byte per codepoint, indexing + len.
     bs :: "abc".bytes()
-    assert_eq(bs.len(), usize(3))
-    assert_eq(bs[0], u8(97))
-    assert_eq(bs[1], u8(98))
-    assert_eq(bs[2], u8(99))
+    assert_eq(bs.len(), 3)
+    assert_eq(bs[0], 97)
+    assert_eq(bs[1], 98)
+    assert_eq(bs[2], 99)
 
     // Iteration matches a manual byte_at sum.
-    sum: u32 = u32(0)
+    sum: u32 = 0
     for b in "vader".bytes() { sum = sum + u32(b) }
-    assert_eq(sum, u32(530))
+    assert_eq(sum, 530)
 
     // Empty string : zero-length view.
-    assert_eq("".bytes().len(), usize(0))
+    assert_eq("".bytes().len(), 0)
 
     // Multi-byte UTF-8 : surface the raw bytes (你 = E4 BD A0).
     cjk :: "你".bytes()
-    assert_eq(cjk.len(), usize(3))
-    assert_eq(cjk[0], u8(228))
-    assert_eq(cjk[1], u8(189))
-    assert_eq(cjk[2], u8(160))
+    assert_eq(cjk.len(), 3)
+    assert_eq(cjk[0], 228)
+    assert_eq(cjk[1], 189)
+    assert_eq(cjk[2], 160)
 
     // Slicing a byte view stays a byte view over the same bytes.
     sl :: "abcde".bytes()[1..<4]
-    assert_eq(sl.len(), usize(3))
-    assert_eq(sl[0], u8(98))
-    assert_eq(sl[1], u8(99))
-    assert_eq(sl[2], u8(100))
+    assert_eq(sl.len(), 3)
+    assert_eq(sl[0], 98)
+    assert_eq(sl[1], 99)
+    assert_eq(sl[2], 100)
 }
 
 
@@ -898,28 +898,28 @@ import "std/testing" { assert, assert_eq, assert_close }
 
 @test test_byte_decode_at :: fn() -> void {
     // "héllo" = h C3 A9 l l o : offset 1 is the lead byte of 'é'.
-    assert_eq(byte_decode_at("héllo", usize(0)), 'h')
-    assert_eq(byte_decode_at("héllo", usize(1)), 'é')
+    assert_eq(byte_decode_at("héllo", 0), 'h')
+    assert_eq(byte_decode_at("héllo", 1), 'é')
     // Offset 2 lands on a continuation byte → U+FFFD.
-    assert_eq(byte_decode_at("héllo", usize(2)), char(0xFFFD))
+    assert_eq(byte_decode_at("héllo", 2), char(0xFFFD))
 }
 
 @test test_split_edge :: fn() -> void {
     // Empty input → a single empty segment.
     parts_empty :: split("", ",")
-    assert_eq(parts_empty.len(), usize(1))
+    assert_eq(parts_empty.len(), 1)
     assert_eq(parts_empty[0], "")
     // Consecutive separators preserve empty segments.
     parts_mid :: split("a,,b", ",")
-    assert_eq(parts_mid.len(), usize(3))
+    assert_eq(parts_mid.len(), 3)
     assert_eq(parts_mid[1], "")
     // Empty separator → one segment per byte.
     parts_bytes :: split("abc", "")
-    assert_eq(parts_bytes.len(), usize(3))
+    assert_eq(parts_bytes.len(), 3)
     assert_eq(parts_bytes[0], "a")
     // Multi-char separator.
     parts_multi :: split("a::b::c", "::")
-    assert_eq(parts_multi.len(), usize(3))
+    assert_eq(parts_multi.len(), 3)
     assert_eq(parts_multi[2], "c")
 }
 
@@ -958,9 +958,9 @@ import "std/testing" { assert, assert_eq, assert_close }
 }
 
 @test test_pad :: fn() -> void {
-    assert_eq(pad_start("42", usize(5), '0'), "00042")
-    assert_eq(pad_end("hi", usize(5), '.'), "hi...")
-    assert_eq(pad_start("already long", usize(3), 'x'), "already long")
+    assert_eq(pad_start("42", 5, '0'), "00042")
+    assert_eq(pad_end("hi", 5, '.'), "hi...")
+    assert_eq(pad_start("already long", 3, 'x'), "already long")
 }
 
 @test test_trim_prefix_suffix :: fn() -> void {
@@ -971,14 +971,14 @@ import "std/testing" { assert, assert_eq, assert_close }
 }
 
 @test test_len :: fn() -> void {
-    assert_eq(len(""), usize(0))
-    assert_eq(len("abc"), usize(3))
-    assert_eq(len("héllo"), usize(5))
+    assert_eq(len(""), 0)
+    assert_eq(len("abc"), 3)
+    assert_eq(len("héllo"), 5)
 }
 
 @test test_last_index_of :: fn() -> void {
-    assert_eq(last_index_of("a/b/c", '/', isize(-1)), isize(3))
-    assert_eq(last_index_of("none", '/', isize(-1)), isize(-1))
+    assert_eq(last_index_of("a/b/c", '/', -1), 3)
+    assert_eq(last_index_of("none", '/', -1), -1)
 }
 
 @test test_decode_escapes :: fn() -> void {

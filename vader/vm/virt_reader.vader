@@ -604,8 +604,8 @@ parse_int_const_text :: fn(rest: string, width: string) -> bc.Op | null {
     if rest.starts_with("-") {
         mag :: parse_uint_in_base(rest.bytes()[1..<rest.bytes().len()].bytes_to_string(), 10)
         if mag is ParseError { return null }
-        signed :: i64(0) - i64(mag)
-        if !is_wide && signed >= i64(-0x80000000) && signed <= i64(0x7fffffff) {
+        signed :: 0 - i64(mag)
+        if !is_wide && signed >= -0x80000000 && signed <= 0x7fffffff {
             return bc.I32Const { .value = i32(signed) }
         }
         return bc.I64Const { .value = signed }
@@ -617,7 +617,7 @@ parse_int_const_text :: fn(rest: string, width: string) -> bc.Op | null {
     // the op sequence that surrounds the const.
     parsed :: parse_uint_in_base(rest, 10)
     if parsed is ParseError { return null }
-    if !is_wide && parsed <= u64(0x7fffffff) {
+    if !is_wide && parsed <= 0x7fffffff {
         return bc.I32Const { .value = i32(parsed) }
     }
     return bc.I64Const { .value = i64(parsed) }
@@ -778,7 +778,7 @@ export parse_decimal_f64 :: fn(s: string) -> f64 | null {
         if frac_text.bytes().len() > 0 {
             frac_part :: parse_int_in_base(frac_text, 10)
             if frac_part is ParseError { return null }
-            divisor: f64 = f64(1)
+            divisor: f64 = 1.0
             frac_ten :: f64(10)
             d: usize = 0
             for d < frac_text.bytes().len() {
@@ -799,7 +799,7 @@ export parse_decimal_f64 :: fn(s: string) -> f64 | null {
         // literal's exponent — typical `.virt` snippets stay under 1e10.
         // `ten` is hoisted to skip the int→f64 cast inside the loop.
         ten :: f64(10)
-        scale: f64 = f64(1)
+        scale: f64 = 1.0
         k: i64 = 0
         for k < abs_exp {
             scale = scale * ten

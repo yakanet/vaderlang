@@ -290,16 +290,16 @@ fn 2 std_string$parse_int (string) -> ref
   local n usize
   local $k_5 usize
   local neg bool
-  local $idx_15 u8
-  local $k_16 u8
+  local $idx_14 u8
+  local $k_15 u8
   local acc i64
   local or_res bool
-  local $k_33 u8
-  local $mul_39 i64
-  local $k_40 u8
-  local $cast_42 i64
-  local $add_48 i64
-  local $k_57 usize
+  local $k_31 u8
+  local $mul_36 i64
+  local $k_37 u8
+  local $cast_39 i64
+  local $add_43 i64
+  local $k_51 usize
   local.get 0
   call.import 0
   local.tee 1
