@@ -106,8 +106,7 @@ run_pass_1 :: fn(
     decls: Decl[], module_typed: TypedProgram,
     project: MonoProject, state: PassState,
 ) -> void {
-    i: usize = 0
-    for i < decls.len() {
+    for i in 0..<decls.len() {
         decl :: decls[i]
         match decl {
             is FnDecl as f -> {
@@ -128,7 +127,6 @@ run_pass_1 :: fn(
             }
             _ -> {}
         }
-        i += 1
     }
 }
 
@@ -145,16 +143,14 @@ run_pass_1_impl :: fn(
     // structural : if the for-type is a `Foo[T]` GenericInstExpr,
     // the impl is generic.
     if is_generic_for_type(impl_decl) { return }
-    i: usize = 0
     for_name :: for_type_name(impl_decl.for_type)
     no_args: Type[] = []
-    for i < impl_decl.members.len() {
+    for i in 0..<impl_decl.members.len() {
         member :: impl_decl.members[i]
         base :: "${for_name}\$${impl_decl.trait_name}\$${member.name}"
         entry :: make_impl_member_entry(member, base, module_typed, new_substitution(), no_args, state)
         push_entry(project, entry)
         put_impl_entry(project.impl_method_entries, member, no_args, entry)
-        i += 1
     }
 }
 
@@ -200,8 +196,7 @@ build_generic_impls_by_struct :: fn(loaded: LoadedProject, typed: TypedProject) 
         decls_opt :: module_decls_for(loaded, module_id)
         if decls_opt is null { continue }
         decls :: decls_opt
-        i: usize = 0
-        for i < decls.len() {
+        for i in 0..<decls.len() {
             d :: decls[i]
             match d {
                 is ImplDecl as impl_decl -> {
@@ -221,7 +216,6 @@ build_generic_impls_by_struct :: fn(loaded: LoadedProject, typed: TypedProject) 
                 }
                 _ -> {}
             }
-            i += 1
         }
     }
     return table
@@ -233,11 +227,9 @@ run_pass_2 :: fn(
     generic_impls: GenericImplsByStruct,
 ) -> void {
     instances :: evaluated.instances
-    i: usize = 0
-    for i < instances.len() {
+    for i in 0..<instances.len() {
         inst :: instances[i]
         materialise_struct_instance(loaded, evaluated, inst, project, state, generic_impls)
-        i += 1
     }
 }
 
@@ -291,14 +283,12 @@ materialise_struct_instance :: fn(
         } else {
             build_subst(struct_decl.type_params, inst.args, program.resolved)
         }
-        k: usize = 0
-        for k < impl_decl.members.len() {
+        for k in 0..<impl_decl.members.len() {
             member :: impl_decl.members[k]
             base :: "${inst.symbol.name}\$${impl_decl.trait_name}\$${member.name}"
             member_entry :: make_impl_member_entry(member, base, impl_program, subst, inst.args, state)
             push_entry(project, member_entry)
             put_impl_entry(project.impl_method_entries, member, inst.args, member_entry)
-            k += 1
         }
         j += 1
     }
@@ -312,8 +302,7 @@ find_struct_decl :: fn(loaded: LoadedProject, module_id: string, name: string) -
     decls_opt :: module_decls_for(loaded, module_id)
     if decls_opt is null { return null }
     decls :: decls_opt
-    i: usize = 0
-    for i < decls.len() {
+    for i in 0..<decls.len() {
         d :: decls[i]
         match d {
             is StructDecl as s -> {
@@ -321,7 +310,6 @@ find_struct_decl :: fn(loaded: LoadedProject, module_id: string, name: string) -
             }
             _ -> {}
         }
-        i += 1
     }
     return null
 }
@@ -340,14 +328,12 @@ build_subst :: fn(type_params: TypeParam[], args: Type[], program: ResolvedModul
     subst :: new_substitution()
     n :: type_params.len()
     if args.len() < n { return subst }
-    i: usize = 0
-    for i < n {
+    for i in 0..<n {
         tp :: type_params[i]
         sym :: find_type_param_symbol(program, tp)
         if sym is Symbol {
             subst.type_params[sym.id] = args[i]
         }
-        i += 1
     }
     return subst
 }
@@ -358,19 +344,15 @@ build_subst :: fn(type_params: TypeParam[], args: Type[], program: ResolvedModul
 /// spans drift.
 find_type_param_symbol :: fn(program: ResolvedModule, tp: TypeParam) -> Symbol | null {
     syms :: program.symbols
-    i: usize = 0
-    for i < syms.len() {
+    for i in 0..<syms.len() {
         sym :: syms[i]
         if sym.kind == SymbolKind.TypeParam && sym.name == tp.name {
             if symbol_defines_span(sym, tp.span) { return sym }
         }
-        i += 1
     }
-    j: usize = 0
-    for j < syms.len() {
+    for j in 0..<syms.len() {
         sym :: syms[j]
         if sym.kind == SymbolKind.TypeParam && sym.name == tp.name { return sym }
-        j += 1
     }
     return null
 }
@@ -383,12 +365,10 @@ impl_for_type_matches :: fn(for_type: TypeExpr, inst_args: Type[], program: Reso
     match for_type {
         is GenericInstExpr as gi -> {
             if gi.type_args.len() != inst_args.len() { return false }
-            i: usize = 0
-            for i < gi.type_args.len() {
+            for i in 0..<gi.type_args.len() {
                 decl_arg :: gi.type_args[i]
                 query_arg :: inst_args[i]
                 if !for_type_arg_matches(decl_arg, query_arg, program) { return false }
-                i += 1
             }
             return true
         }
@@ -412,11 +392,9 @@ for_type_arg_matches :: fn(decl_arg: TypeExpr, query_arg: Type, program: Resolve
 
 is_type_param_name :: fn(program: ResolvedModule, name: string) -> bool {
     syms :: program.symbols
-    i: usize = 0
-    for i < syms.len() {
+    for i in 0..<syms.len() {
         sym :: syms[i]
         if sym.kind == SymbolKind.TypeParam && sym.name == name { return true }
-        i += 1
     }
     return false
 }
@@ -483,8 +461,7 @@ find_fn_decl_for_symbol :: fn(loaded: LoadedProject, sym: Symbol) -> FnDecl | nu
 }
 
 find_first_fn_named :: fn(decls: Decl[], name: string) -> FnDecl | null {
-    i: usize = 0
-    for i < decls.len() {
+    for i in 0..<decls.len() {
         d :: decls[i]
         match d {
             is FnDecl as f -> {
@@ -492,14 +469,12 @@ find_first_fn_named :: fn(decls: Decl[], name: string) -> FnDecl | null {
             }
             _ -> {}
         }
-        i += 1
     }
     return null
 }
 
 find_fn_by_span :: fn(decls: Decl[], sym: Symbol) -> FnDecl | null {
-    i: usize = 0
-    for i < decls.len() {
+    for i in 0..<decls.len() {
         d :: decls[i]
         match d {
             is FnDecl as f -> {
@@ -507,7 +482,6 @@ find_fn_by_span :: fn(decls: Decl[], sym: Symbol) -> FnDecl | null {
             }
             _ -> {}
         }
-        i += 1
     }
     return null
 }
@@ -532,11 +506,9 @@ run_pass_4 :: fn(
     project: MonoProject, state: PassState,
 ) -> void {
     observations :: evaluated.into_members
-    i: usize = 0
-    for i < observations.len() {
+    for i in 0..<observations.len() {
         obs :: observations[i]
         materialise_into_member(loaded, obs, project, state)
-        i += 1
     }
 }
 
@@ -566,8 +538,7 @@ find_owning_impl :: fn(loaded: LoadedProject, program: TypedProgram, member: FnD
     decls_opt :: module_decls_for(loaded, program.resolved.path)
     if decls_opt is null { return null }
     decls :: decls_opt
-    i: usize = 0
-    for i < decls.len() {
+    for i in 0..<decls.len() {
         d :: decls[i]
         match d {
             is ImplDecl as impl_decl -> {
@@ -575,16 +546,13 @@ find_owning_impl :: fn(loaded: LoadedProject, program: TypedProgram, member: FnD
             }
             _ -> {}
         }
-        i += 1
     }
     return null
 }
 
 impl_includes_member :: fn(impl_decl: ImplDecl, member: FnDecl) -> bool {
-    i: usize = 0
-    for i < impl_decl.members.len() {
+    for i in 0..<impl_decl.members.len() {
         if impl_decl.members[i].id == member.id { return true }
-        i += 1
     }
     return false
 }
@@ -680,11 +648,9 @@ symbol_for_fn :: fn(decl: FnDecl, module_typed: TypedProgram) -> Symbol | null {
         return symbol_for_kind(decl.name, SymbolKind.Fn, module_typed)
     }
     syms :: bucket
-    i: usize = 0
-    for i < syms.len() {
+    for i in 0..<syms.len() {
         sym :: syms[i]
         if symbol_defines_span(sym, decl.name_span) { return sym }
-        i += 1
     }
     // No span-match — fall back to the first overload. Single
     // declarations always satisfy this branch.
@@ -694,11 +660,9 @@ symbol_for_fn :: fn(decl: FnDecl, module_typed: TypedProgram) -> Symbol | null {
 
 symbol_for_kind :: fn(name: string, kind: SymbolKind, module_typed: TypedProgram) -> Symbol | null {
     syms :: module_typed.resolved.symbols
-    i: usize = 0
-    for i < syms.len() {
+    for i in 0..<syms.len() {
         sym :: syms[i]
         if sym.name == name && sym.kind == kind { return sym }
-        i += 1
     }
     return null
 }

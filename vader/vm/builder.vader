@@ -449,8 +449,7 @@ defer_or_resolve_branch :: fn(self: FunctionBuilder, target_label: string, pc: i
 drain_pending :: fn(self: FunctionBuilder, label: string, is_loop: bool, opener_pc: i32, end_pc: i32) -> void {
     psp :: self.pending_sp[0]
     new_sp: usize = 0
-    i: usize = 0
-    for i < psp {
+    for i in 0..<psp {
         entry :: self.pending[i]
         if entry.target_label == label {
             if is_loop {
@@ -462,7 +461,6 @@ drain_pending :: fn(self: FunctionBuilder, label: string, is_loop: bool, opener_
             self.pending[new_sp] = entry
             new_sp += 1
         }
-        i += 1
     }
     self.pending_sp[0] = new_sp
 }

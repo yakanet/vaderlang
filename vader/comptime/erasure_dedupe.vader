@@ -82,16 +82,13 @@ build_dedupe_ctx :: fn(
         decls_opt :: decls_of(module_id)
         if decls_opt is null { continue }
         decls :: decls_opt
-        i: usize = 0
-        for i < decls.len() {
+        for i in 0..<decls.len() {
             d :: decls[i]
             match d {
                 is ImplDecl as impl_decl -> {
-                    j: usize = 0
-                    for j < impl_decl.members.len() {
+                    for j in 0..<impl_decl.members.len() {
                         member :: impl_decl.members[j]
                         ctx.member_to_impl[i32(member.id)] = impl_decl
-                        j += 1
                     }
                 }
                 is StructDecl as s -> {
@@ -99,7 +96,6 @@ build_dedupe_ctx :: fn(
                 }
                 _ -> {}
             }
-            i += 1
         }
     }
     return ctx
@@ -214,10 +210,8 @@ any_leaves_of :: fn(t: Type) -> Type = @partial match t {
 
 any_leaves_of_each :: fn(types: Type[]) -> Type[] {
     out: Type[] = []
-    i: usize = 0
-    for i < types.len() {
+    for i in 0..<types.len() {
         out.push(any_leaves_of(types[i]))
-        i += 1
     }
     return out
 }
@@ -246,11 +240,9 @@ display_args_name :: fn(name: string, args: Type[]) -> string {
 
 join_displays :: fn(types: Type[], sep: string) -> string {
     out: string = ""
-    i: usize = 0
-    for i < types.len() {
+    for i in 0..<types.len() {
         if i > 0 { out = "${out}${sep}" }
         out = "${out}${display_any_arg(types[i])}"
-        i += 1
     }
     return out
 }
@@ -282,10 +274,8 @@ new_replacement_map :: fn() -> ReplacementMap {
 make_representative :: fn(first: MonoEntry) -> MonoEntry {
     any_ty :: mk_primitive("any")
     erased_args: Type[] = []
-    i: usize = 0
-    for i < first.type_arguments.len() {
+    for i in 0..<first.type_arguments.len() {
         erased_args.push(any_ty)
-        i += 1
     }
     return MonoEntry {
         .id              = first.id,
@@ -390,10 +380,8 @@ export erasure_dedupe :: fn(
             _ -> {
                 seed :: pick_seed_with_bound_subst(group.entries)
                 repr :: make_representative(seed)
-                i: usize = 0
-                for i < group.entries.len() {
+                for i in 0..<group.entries.len() {
                     replacements.by_id[group.entries[i].id] = repr
-                    i += 1
                 }
             }
         }
@@ -404,20 +392,16 @@ export erasure_dedupe :: fn(
     // erasable entries pass through unchanged. Append extra
     // Any-flavoured struct entries at the end.
     seen_id :: MutableMap<i32, bool> {}
-    j: usize = 0
-    for j < mono.entries.len() {
+    for j in 0..<mono.entries.len() {
         entry :: mono.entries[j]
         target :: pick_redirect_target(entry, replacements, struct_rewrites)
         if seen_id[target.id] is null {
             seen_id[target.id] = true
             out.entries.push(target)
         }
-        j += 1
     }
-    e: usize = 0
-    for e < extra_struct_entries.len() {
+    for e in 0..<extra_struct_entries.len() {
         out.entries.push(extra_struct_entries[e])
-        e += 1
     }
 
     // Rebuild the three lookup maps. Each concrete-args query that
@@ -471,8 +455,7 @@ DeclGroup :: struct {
 
 group_by_decl :: fn(entries: MonoEntry[]) -> MutableMap<i32, DeclGroup> {
     out :: MutableMap<i32, DeclGroup> {}
-    i: usize = 0
-    for i < entries.len() {
+    for i in 0..<entries.len() {
         entry :: entries[i]
         decl_id :: decl_id_of(entry.decl)
         existing :: out[decl_id]
@@ -482,7 +465,6 @@ group_by_decl :: fn(entries: MonoEntry[]) -> MutableMap<i32, DeclGroup> {
         } else {
             existing.entries.push(entry)
         }
-        i += 1
     }
     return out
 }
@@ -506,10 +488,8 @@ import "vader/parser" {
 /// True when at least one of `entries` qualifies for erasure. Lets
 /// the main loop skip whole groups quickly.
 any_should_erase :: fn(entries: MonoEntry[], ctx: DedupeCtx) -> bool {
-    i: usize = 0
-    for i < entries.len() {
+    for i in 0..<entries.len() {
         if should_erase(entries[i], ctx) { return true }
-        i += 1
     }
     return false
 }
@@ -520,12 +500,10 @@ any_should_erase :: fn(entries: MonoEntry[], ctx: DedupeCtx) -> bool {
 /// subst. An empty-subst seed would leave the body's TypeParam
 /// unsubstituted.
 pick_seed_with_bound_subst :: fn(entries: MonoEntry[]) -> MonoEntry {
-    i: usize = 0
-    for i < entries.len() {
+    for i in 0..<entries.len() {
         if !entries[i].subst.type_params.is_empty() {
             return entries[i]
         }
-        i += 1
     }
     return entries[0]
 }
@@ -556,8 +534,7 @@ rewrite_struct_group :: fn(
     extra_struct_entries: MonoEntry[],
     ctx: DedupeCtx,
 ) -> void {
-    i: usize = 0
-    for i < group.entries.len() {
+    for i in 0..<group.entries.len() {
         entry :: group.entries[i]
         if should_erase(entry, ctx) {
             rewritten :: MonoEntry {
@@ -572,12 +549,10 @@ rewrite_struct_group :: fn(
             }
             struct_rewrites[entry.id] = rewritten
         }
-        i += 1
     }
     first :: group.entries[0]
     seen_extra :: MutableMap<string, bool> {}
-    j: usize = 0
-    for j < group.entries.len() {
+    for j in 0..<group.entries.len() {
         entry :: group.entries[j]
         any_args :: any_leaves_of_each(entry.type_arguments)
         base :: strip_mangled_tail(first.mangled)
@@ -596,7 +571,6 @@ rewrite_struct_group :: fn(
             }
             extra_struct_entries.push(extra)
         }
-        j += 1
     }
 }
 
@@ -620,10 +594,8 @@ strip_mangled_tail :: fn(mangled: string) -> string {
 
 
 find_entry_by_id :: fn(entries: MonoEntry[], id: i32) -> MonoEntry | null {
-    i: usize = 0
-    for i < entries.len() {
+    for i in 0..<entries.len() {
         if entries[i].id == id { return entries[i] }
-        i += 1
     }
     return null
 }

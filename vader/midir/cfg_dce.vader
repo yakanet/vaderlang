@@ -50,12 +50,10 @@ optimise_function :: fn(f: CFGFunction) -> CFGFunction {
     cur := fold_moves(f)
     // Run dieOnce to fixpoint (capped) — each iteration may unblock
     // more by shrinking the live set.
-    iter: i32 = 0
-    for iter < 8 {
+    for iter in 0..<8 {
         next :: die_once(cur)
         if !changed_blocks(cur, next) { break }
         cur = next
-        iter = iter + 1
     }
     return compact_locals(cur)
 }
@@ -286,8 +284,7 @@ compact_locals :: fn(f: CFGFunction) -> CFGFunction {
 
     // Short-circuit when nothing drops.
     dropped_any := false
-    pc := f.params.len()
-    for pc < n { if !referenced[pc] { dropped_any = true  break }  pc = pc + 1 }
+    for pc in f.params.len()..<n { if !referenced[pc] { dropped_any = true  break } }
     if !dropped_any { return f }
 
     // Build remap + new locals.

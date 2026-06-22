@@ -177,10 +177,8 @@ export is_specialized :: fn(decl: Decl) -> bool = match decl {
 
 /// Linear scan over a `Decorator[]` for one whose name is `"specialize"`.
 has_specialize_decorator :: fn(decorators: Decorator[]) -> bool {
-    i: usize = 0
-    for i < decorators.len() {
+    for i in 0..<decorators.len() {
         if decorators[i].name == "specialize" { return true }
-        i += 1
     }
     return false
 }

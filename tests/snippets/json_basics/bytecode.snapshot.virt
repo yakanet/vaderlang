@@ -8413,18 +8413,18 @@ fn 44 std_json$parse_string_with_escapes (ref,ref) -> ref
   local $field_49 usize
   local cp i32
   local k usize
-  local $k_57 usize
-  local $field_59 ref
-  local $add_61 usize
+  local $k_58 usize
+  local $field_60 ref
+  local $add_62 usize
   local d i32
-  local $k_72 usize
-  local $field_74 usize
-  local $k_75 usize
-  local $add_76 usize
-  local $cast_77 char
-  local $field_80 usize
-  local $call_81 usize
-  local $add_82 usize
+  local $k_73 usize
+  local $field_75 usize
+  local $k_76 usize
+  local $add_77 usize
+  local $cast_78 char
+  local $field_81 usize
+  local $call_82 usize
+  local $add_83 usize
   block $L0 void
     loop $L1 void
       local.get 0

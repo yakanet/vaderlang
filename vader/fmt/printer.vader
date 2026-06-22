@@ -88,10 +88,8 @@ write_name_padded :: fn(self: Printer, name: string) -> void {
     n :: name.bytes().len()
     if target > n {
         pad :: target - n
-        k: usize = 0
-        for k < pad {
+        for k in 0..<pad {
             self.write(" ")
-            k = k + 1
         }
     }
 }
@@ -145,8 +143,7 @@ export emit_program :: fn(self: Printer, prog: p.Program) -> string {
     // `emit_const_decl` can look up their group's max-name width without
     // re-scanning siblings each time.
     align_widths :: compute_decl_alignment_widths(decls)
-    i: usize = 0
-    for i < decls.len() {
+    for i in 0..<decls.len() {
         d :: decls[i]
         span :: decl_span(d)
         before :: span.start.offset
@@ -169,7 +166,6 @@ export emit_program :: fn(self: Printer, prog: p.Program) -> string {
         self.align_name_width = align_widths[i]
         self.emit_decl(d)
         self.align_name_width = 0
-        i = i + 1
     }
     self.flush_remaining_comments()
     self.newline()
@@ -222,10 +218,8 @@ decl_alignable_name :: fn(d: p.Decl) -> string {
 // Walks both lists in lock-step — no intermediate `string[]` allocation.
 decorators_equal :: fn(a: p.Decorator[], b: p.Decorator[]) -> bool {
     if a.len() != b.len() { return false }
-    i: usize = 0
-    for i < a.len() {
+    for i in 0..<a.len() {
         if a[i].name != b[i].name { return false }
-        i = i + 1
     }
     return true
 }
@@ -332,18 +326,15 @@ decl_first_line :: fn(d: p.Decl) -> i32 {
 // of the decl's first non-decorator token — the printer's call site picks
 // it (`name_span.start.line` for named decls, fallback to `span.start.line`).
 emit_decorators :: fn(self: Printer, decos: p.Decorator[], decl_start_line: i32) -> void {
-    i: usize = 0
-    for i < decos.len() {
+    for i in 0..<decos.len() {
         deco :: decos[i]
         self.write("@")
         self.write(deco.name)
         if deco.args.len() > 0 {
             self.write("(")
-            j: usize = 0
-            for j < deco.args.len() {
+            for j in 0..<deco.args.len() {
                 if j > 0 { self.write(", ") }
                 self.emit_expr(deco.args[j])
-                j = j + 1
             }
             self.write(")")
         }
@@ -360,7 +351,6 @@ emit_decorators :: fn(self: Printer, decos: p.Decorator[], decl_start_line: i32)
             self.newline()
             self.indent()
         }
-        i = i + 1
     }
 }
 
@@ -402,23 +392,19 @@ emit_import_name_block :: fn(self: Printer, d: p.ImportDecl, names: p.ImportName
     if multi {
         self.write(" {")
         self.depth = self.depth + 1
-        i: usize = 0
-        for i < names.len() {
+        for i in 0..<names.len() {
             self.nl_indent()
             self.emit_import_name(names[i])
             self.write(",")
-            i = i + 1
         }
         self.depth = self.depth - 1
         self.nl_indent()
         self.write("}")
     } else {
         self.write(" { ")
-        i: usize = 0
-        for i < names.len() {
+        for i in 0..<names.len() {
             if i > 0 { self.write(", ") }
             self.emit_import_name(names[i])
-            i = i + 1
         }
         self.write(" }")
     }
@@ -469,24 +455,20 @@ emit_fn_decl :: fn(self: Printer, d: p.FnDecl) -> void {
 emit_type_params :: fn(self: Printer, params: p.TypeParam[]) -> void {
     if params.len() == 0 { return }
     self.write("<")
-    i: usize = 0
-    for i < params.len() {
+    for i in 0..<params.len() {
         if i > 0 { self.write(", ") }
         tp :: params[i]
         self.write(tp.name)
         self.emit_type_expr_with_prefix(": ", tp.bound)
-        i = i + 1
     }
     self.write(">")
 }
 
 emit_fn_params :: fn(self: Printer, params: p.FnParam[]) -> void {
     self.write("(")
-    i: usize = 0
-    for i < params.len() {
+    for i in 0..<params.len() {
         if i > 0 { self.write(", ") }
         self.emit_fn_param(params[i])
-        i = i + 1
     }
     self.write(")")
 }
@@ -516,11 +498,9 @@ emit_struct_decl :: fn(self: Printer, d: p.StructDecl) -> void {
     // line, so a struct carrying one falls through to the multi-line form.
     if d.span.start.line == d.span.end.line && !has_internal_field(d.fields) {
         self.write(" { ")
-        i: usize = 0
-        for i < d.fields.len() {
+        for i in 0..<d.fields.len() {
             if i > 0 { self.write(", ") }
             self.emit_struct_field(d.fields[i])
-            i = i + 1
         }
         self.write(" }")
         return
@@ -579,11 +559,9 @@ emit_enum_decl :: fn(self: Printer, d: p.EnumDecl) -> void {
     // idiom `Color :: enum { Red, Green, Blue }`. No trailing comma.
     if d.span.start.line == d.span.end.line {
         self.write(" { ")
-        i: usize = 0
-        for i < d.variants.len() {
+        for i in 0..<d.variants.len() {
             if i > 0 { self.write(", ") }
             self.emit_enum_variant(d.variants[i])
-            i = i + 1
         }
         self.write(" }")
         return
@@ -636,8 +614,7 @@ emit_trait_decl :: fn(self: Printer, d: p.TraitDecl) -> void {
     self.write(" {")
     self.depth = self.depth + 1
     member_widths :: compute_fn_alignment_widths(d.members)
-    i: usize = 0
-    for i < d.members.len() {
+    for i in 0..<d.members.len() {
         m :: d.members[i]
         first :: m.span.start
         // Preserve blank lines between members + interleave inner comments.
@@ -653,7 +630,6 @@ emit_trait_decl :: fn(self: Printer, d: p.TraitDecl) -> void {
         self.align_name_width = member_widths[i]
         self.emit_fn_decl(m)
         self.align_name_width = 0
-        i = i + 1
     }
     // Trailing comments before the closing brace.
     inner_trailing :: self.comments.has_before(d.span.end.offset)
@@ -714,8 +690,7 @@ emit_impl_decl :: fn(self: Printer, d: p.ImplDecl) -> void {
     // (here `implements`), mirroring `fn<T>` / `struct<T>` / `trait<T>`.
     if d.type_params.len() > 0 {
         self.write("<")
-        i: usize = 0
-        for i < d.type_params.len() {
+        for i in 0..<d.type_params.len() {
             if i > 0 { self.write(", ") }
             tp :: d.type_params[i]
             self.write(tp.name)
@@ -726,7 +701,6 @@ emit_impl_decl :: fn(self: Printer, d: p.ImplDecl) -> void {
                     self.emit_type_expr(tp.bound)
                 }
             }
-            i = i + 1
         }
         self.write(">")
     }
@@ -734,11 +708,9 @@ emit_impl_decl :: fn(self: Printer, d: p.ImplDecl) -> void {
     self.write(d.trait_name)
     if d.trait_args.len() > 0 {
         self.write("<")
-        i: usize = 0
-        for i < d.trait_args.len() {
+        for i in 0..<d.trait_args.len() {
             if i > 0 { self.write(", ") }
             self.emit_type_expr(d.trait_args[i])
-            i = i + 1
         }
         self.write(">")
     }
@@ -788,8 +760,7 @@ emit_impl_decl :: fn(self: Printer, d: p.ImplDecl) -> void {
     self.write(" {")
     self.depth = self.depth + 1
     impl_widths :: compute_fn_alignment_widths(d.members)
-    i: usize = 0
-    for i < d.members.len() {
+    for i in 0..<d.members.len() {
         m :: d.members[i]
         first :: m.span.start
         if i > 0 {
@@ -804,7 +775,6 @@ emit_impl_decl :: fn(self: Printer, d: p.ImplDecl) -> void {
         self.align_name_width = impl_widths[i]
         self.emit_fn_decl(m)
         self.align_name_width = 0
-        i = i + 1
     }
     inner_trailing :: self.comments.has_before(d.span.end.offset)
     self.flush_leading_comments_inline(d.span.end.offset, d.span.end.line)
@@ -904,17 +874,13 @@ emit_union_multiline :: fn(self: Printer, value: p.Expr, name_width: usize) -> v
     // to step past the name column + 2 more cols so the `|` lands one
     // space before each variant's column (matches the first variant).
     pad :: usize(self.depth) * 4 + name_width + 2
-    i: usize = 1
-    for i < variants.len() {
+    for i in 1..<variants.len() {
         self.newline()
-        k: usize = 0
-        for k < pad {
+        for k in 0..<pad {
             self.buf.append(" ")
-            k = k + 1
         }
         self.write("| ")
         self.emit_binary_operand(variants[i], .BitOr, false)
-        i = i + 1
     }
 }
 
@@ -952,11 +918,9 @@ emit_let_binding :: fn(self: Printer, b: p.LetBinding) -> void {
         }
         is p.TupleBinding    as x -> {
             self.write("[")
-            i: usize = 0
-            for i < x.elements.len() {
+            for i in 0..<x.elements.len() {
                 if i > 0 { self.write(", ") }
                 self.emit_let_binding(x.elements[i])
-                i = i + 1
             }
             self.write("]")
         }
@@ -1254,8 +1218,7 @@ emit_ident :: fn(self: Printer, x: p.IdentExpr) -> void {
 emit_call :: fn(self: Printer, x: p.CallExpr) -> void {
     self.emit_expr(x.callee)
     self.write("(")
-    i: usize = 0
-    for i < x.args.len() {
+    for i in 0..<x.args.len() {
         if i > 0 { self.write(", ") }
         a :: x.args[i]
         if a.spread { self.write("...") }
@@ -1267,7 +1230,6 @@ emit_call :: fn(self: Printer, x: p.CallExpr) -> void {
             }
         }
         self.emit_expr(a.value)
-        i = i + 1
     }
     self.write(")")
 }
@@ -1572,8 +1534,7 @@ emit_struct_lit :: fn(self: Printer, x: p.StructLitExpr) -> void {
         return
     }
     self.write(" ")
-    i: usize = 0
-    for i < x.items.len() {
+    for i in 0..<x.items.len() {
         if i > 0 { self.write(", ") }
         it :: x.items[i]
         match it {
@@ -1588,18 +1549,15 @@ emit_struct_lit :: fn(self: Printer, x: p.StructLitExpr) -> void {
                 self.emit_expr(s.expr)
             }
         }
-        i = i + 1
     }
     self.write(" }")
 }
 
 emit_seq_lit :: fn(self: Printer, x: p.SeqLitExpr) -> void {
     self.write("[")
-    i: usize = 0
-    for i < x.elements.len() {
+    for i in 0..<x.elements.len() {
         if i > 0 { self.write(", ") }
         self.emit_expr(x.elements[i])
-        i = i + 1
     }
     self.write("]")
 }
@@ -1635,22 +1593,18 @@ emit_intrinsic_call :: fn(self: Printer, x: p.IntrinsicCallExpr) -> void {
     self.write("@")
     self.write(x.name)
     self.write("(")
-    i: usize = 0
-    for i < x.args.len() {
+    for i in 0..<x.args.len() {
         if i > 0 { self.write(", ") }
         self.emit_expr(x.args[i])
-        i = i + 1
     }
     self.write(")")
 }
 
 emit_fn_type :: fn(self: Printer, x: p.FnTypeExpr) -> void {
     self.write("fn(")
-    i: usize = 0
-    for i < x.params.len() {
+    for i in 0..<x.params.len() {
         if i > 0 { self.write(", ") }
         self.emit_type_expr(x.params[i])
-        i = i + 1
     }
     self.write(")")
     self.emit_type_expr_with_prefix(" -> ", x.return_type)
@@ -1717,8 +1671,7 @@ emit_is_pattern :: fn(self: Printer, x: p.IsPattern) -> void {
 
 emit_struct_pattern :: fn(self: Printer, x: p.StructPattern) -> void {
     self.write("{ ")
-    i: usize = 0
-    for i < x.fields.len() {
+    for i in 0..<x.fields.len() {
         if i > 0 { self.write(", ") }
         f :: x.fields[i]
         self.write(f.name)
@@ -1734,18 +1687,15 @@ emit_struct_pattern :: fn(self: Printer, x: p.StructPattern) -> void {
                 self.emit_expr(pl.value)
             }
         }
-        i = i + 1
     }
     self.write(" }")
 }
 
 emit_tuple_pattern :: fn(self: Printer, x: p.TuplePattern) -> void {
     self.write("[")
-    i: usize = 0
-    for i < x.elements.len() {
+    for i in 0..<x.elements.len() {
         if i > 0 { self.write(", ") }
         self.emit_pattern(x.elements[i])
-        i = i + 1
     }
     self.write("]")
 }

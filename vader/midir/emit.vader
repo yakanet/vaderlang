@@ -277,8 +277,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
     // `vader/bytecode/emit.vader::emit_project` runs on the legacy
     // Lowered→bytecode path. Gated by `opts.optimize`.
     if opts.optimize {
-        i: usize = 0
-        for i < ctx.functions.len() {
+        for i in 0..<ctx.functions.len() {
             // First-pass peephole : LocalSet+LocalGet → LocalTee, const+Return
             // → ReturnLit, BoolNot folds. Returns the rewritten body — Vader
             // structs pass by value so `function.body = X` inside the helper
@@ -345,7 +344,6 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             // identities ; their gates depend on per-slot set/get
             // counts which coalescing would corrupt.
             ctx.functions[i] = coalesce_slots(ctx.functions[i])
-            i = i + 1
         }
         // Pass 4 — whole-program prunes on the EmitterCtx. Mirrors
         // the late-emit prune cascade in `src/midir/emit.ts:125-133`.
@@ -548,8 +546,7 @@ emit_cfg_function_body :: fn(
     // n_params offset added when pushing.)
     local_to_slot: i32[] = []
     n_params :: cfg_fn.params.len()
-    i: usize = 0
-    for i < cfg_fn.locals.len() {
+    for i in 0..<cfg_fn.locals.len() {
         if i < n_params {
             local_to_slot.push(i32(i))
         } else {
@@ -560,7 +557,6 @@ emit_cfg_function_body :: fn(
             })
             local_to_slot.push(slot_idx)
         }
-        i = i + 1
     }
 
     preds :: predecessors_of(cfg_fn)
@@ -636,10 +632,8 @@ cf_end :: fn(ctx: FnEmitCfg, span: Span) -> void {
     top :: ctx.scopes[sp - 1]
     // Pop top scope.
     new_scopes: ScopeFrame[] = []
-    j: usize = 0
-    for j < sp - 1 {
+    for j in 0..<sp - 1 {
         new_scopes.push(ctx.scopes[j])
-        j = j + 1
     }
     ctx.scopes = new_scopes
     // Block/if/else fall-through target = past the end. Loops don't

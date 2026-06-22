@@ -393,12 +393,10 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         argv :: read_array(stack[arg_base], at_pc, "spawn_run argv")
         if argv is Trap { return argv }
         argv_strings: string[] = []
-        i: usize = 0
-        for i < argv.length {
+        for i in 0..<argv.length {
             element :: read_string(argv.elements[argv.offset + i], at_pc, "spawn_run argv element")
             if element is Trap { return element }
             argv_strings.push(element.value)
-            i += 1
         }
         code :: spawn_run(argv_strings)
         return HostOk { .value = I32Val { .value = code } }

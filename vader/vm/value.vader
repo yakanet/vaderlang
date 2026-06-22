@@ -428,10 +428,8 @@ prefix_before_double_underscore :: fn(s: string) -> string {
     n :: sb.len()
     if n < 2 { return "" }
     last_dollar: i32 = -1
-    i: usize = 0
-    for i < n {
+    for i in 0..<n {
         if sb[i] == '$' { last_dollar = i32(i) }
-        i += 1
     }
     start: usize = if last_dollar < 0 { 0 } else { usize(last_dollar) + 1 }
     j: usize = start
@@ -480,24 +478,18 @@ export ref_type_matches :: fn(state: VmState, v: Value, trait_name: string) -> b
 /// method bodies are reachable. Falls back to scanning `state.bc.vtables`
 /// for legacy modules whose .virt predates the directive.
 export trait_implemented_by :: fn(state: VmState, trait_name: string, type_id: i32) -> bool {
-    i: usize = 0
-    for i < state.bc.impl_table.len() {
+    for i in 0..<state.bc.impl_table.len() {
         if state.bc.impl_table[i].struct_type_index == type_id && state.bc.impl_table[i].trait_name == trait_name {
             return true
         }
-        i += 1
     }
     prefix :: "${trait_name}."
-    j: usize = 0
-    for j < state.bc.vtables.len() {
+    for j in 0..<state.bc.vtables.len() {
         if state.bc.vtables[j].key.starts_with(prefix) {
-            k: usize = 0
-            for k < state.bc.vtables[j].entries.len() {
+            for k in 0..<state.bc.vtables[j].entries.len() {
                 if state.bc.vtables[j].entries[k].receiver_type_index == type_id { return true }
-                k += 1
             }
         }
-        j += 1
     }
     return false
 }
@@ -521,13 +513,11 @@ export receiver_type_id_of :: fn(state: VmState, v: Value) -> i32 {
 /// methods implemented on primitives (e.g. `i32 implements Doubler`).
 export primitive_type_id :: fn(state: VmState, v: Value) -> i32 {
     tag :: describe_value_tag(v)
-    i: usize = 0
-    for i < state.bc.types.len() {
+    for i in 0..<state.bc.types.len() {
         match state.bc.types[i] {
             is bc.BcPrimitive as p -> { if bc.val_type_name(p.val) == tag { return i32(i) } }
             _                        -> { }
         }
-        i += 1
     }
     return -1
 }
@@ -535,18 +525,14 @@ export primitive_type_id :: fn(state: VmState, v: Value) -> i32 {
 /// Look up the function index in the vtable for `key` by receiver
 /// `type_id`. Returns `-1` when either the key or the type_id is missing.
 export lookup_vtable :: fn(vtables: bc.VtableRow[], key: string, type_id: i32) -> i32 {
-    i: usize = 0
-    for i < vtables.len() {
+    for i in 0..<vtables.len() {
         if vtables[i].key == key {
-            j: usize = 0
-            for j < vtables[i].entries.len() {
+            for j in 0..<vtables[i].entries.len() {
                 entry :: vtables[i].entries[j]
                 if entry.receiver_type_index == type_id { return entry.fn_index }
-                j += 1
             }
             return -1
         }
-        i += 1
     }
     return -1
 }
@@ -599,10 +585,8 @@ export is_integer_alias :: fn(val: bc.ValType) -> bool = match val {
 /// Match a value against a union's set of variant type ids by recursing
 /// through `type_matches` on each.
 export union_matches :: fn(state: VmState, v: Value, variant_type_ids: i32[]) -> bool {
-    i: usize = 0
-    for i < variant_type_ids.len() {
+    for i in 0..<variant_type_ids.len() {
         if type_matches(state, v, variant_type_ids[i]) { return true }
-        i += 1
     }
     return false
 }
@@ -801,11 +785,9 @@ StructVal implements Display {
     to_string :: fn(self) -> string {
         sb :: new_builder()
         sb.append("${self.type_id}{ ")
-        i: usize = 0
-        for i < self.fields.len() {
+        for i in 0..<self.fields.len() {
             if i > 0 { sb.append(", ") }
             sb.append(display_value(self.fields[i]))
-            i += 1
         }
         sb.append(" }")
         return "${sb}"
@@ -818,11 +800,9 @@ ArrayVal implements Display {
     to_string :: fn(self) -> string {
         sb :: new_builder()
         sb.append("[")
-        i: usize = 0
-        for i < self.length {
+        for i in 0..<self.length {
             if i > 0 { sb.append(", ") }
             sb.append(display_value(self.elements[self.offset + i]))
-            i += 1
         }
         sb.append("]")
         return "${sb}"

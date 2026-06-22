@@ -606,10 +606,8 @@ export pad_start :: fn(s: string, width: usize, fill: char) -> string {
         return s
     }
     sb := new_builder()
-    i := n
-    for i < width {
+    for i in n..<width {
         sb.append_char(fill)
-        i = i + 1
     }
     sb.append(s)
     return sb.to_string()
@@ -624,10 +622,8 @@ export pad_end :: fn(s: string, width: usize, fill: char) -> string {
     }
     sb := new_builder()
     sb.append(s)
-    i := n
-    for i < width {
+    for i in n..<width {
         sb.append_char(fill)
-        i = i + 1
     }
     return sb.to_string()
 }

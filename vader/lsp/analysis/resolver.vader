@@ -235,12 +235,10 @@ ends_with_vader :: fn(s: string) -> bool {
     sufb :: suffix.bytes()
     sn :: sufb.len()
     if n < sn { return false }
-    i: usize = 0
-    for i < sn {
+    for i in 0..<sn {
         if sb[n - sn + i] != sufb[i] {
             return false
         }
-        i = i + 1
     }
     return true
 }

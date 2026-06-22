@@ -95,13 +95,11 @@ export EmitCtx :: struct {
 
 new_ctx :: fn(m: BytecodeModule, release: bool) -> EmitCtx {
     names: string[] = []
-    i: usize = 0
-    for i < m.types.len() {
+    for i in 0..<m.types.len() {
         match m.types[i] {
             is BcStruct as s -> names.push(struct_c_name(s.name))
             _ -> names.push("")
         }
-        i += 1
     }
     string_tag :: string_primitive_tag(m.types)
     return EmitCtx {
@@ -188,23 +186,19 @@ export emit_c :: fn(m: BytecodeModule, opts: EmitOptions) -> string {
 emit_type_decls :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
     // Forward decls for every struct so field references compile in
     // any declaration order.
-    i: usize = 0
-    for i < ctx.module.types.len() {
+    for i in 0..<ctx.module.types.len() {
         if ctx.module.types[i] is BcStruct {
             cname :: ctx.struct_c_names[i]
             out.append("typedef struct ${cname} ${cname};\n")
         }
-        i += 1
     }
     out.append("\n")
 
     // Struct bodies — `vader_obj_header_t` first then one field per
     // line. Phase 2 skips the packed-payload mirror twin (which TS
     // emits next to the regular typedef for inline-variant POD shapes).
-    j: usize = 0
-    for j < ctx.module.types.len() {
+    for j in 0..<ctx.module.types.len() {
         if ctx.module.types[j] is BcStruct as s { emit_struct_body(ctx, s, j, out) }
-        j += 1
     }
     out.append("\n")
 
@@ -290,12 +284,10 @@ emit_struct_body :: fn(ctx: EmitCtx, s: BcStruct, type_index: usize, out: String
     cname :: ctx.struct_c_names[type_index]
     out.append("struct ${cname} {\n")
     out.append("    vader_obj_header_t header;\n")
-    i: usize = 0
-    for i < s.fields.len() {
+    for i in 0..<s.fields.len() {
         f :: s.fields[i]
         ftype :: ctx.module.types[usize(f.type_index)]
         out.append("    ${c_type_for(ftype)} f_${sanitise(f.name)};\n")
-        i += 1
     }
     out.append("};\n")
 }
@@ -372,8 +364,7 @@ emit_fn_sig_typedefs :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
 /// for an empty type table so the 0-arity typedef is always emitted.
 max_fn_arity :: fn(types: BcType[]) -> i32 {
     best: i32 = 0
-    i: usize = 0
-    for i < types.len() {
+    for i in 0..<types.len() {
         match types[i] {
             is BcFn as f -> {
                 arity :: i32(f.params.len())
@@ -381,7 +372,6 @@ max_fn_arity :: fn(types: BcType[]) -> i32 {
             }
             _ -> {}
         }
-        i += 1
     }
     return best
 }
@@ -391,10 +381,8 @@ max_fn_arity :: fn(types: BcType[]) -> i32 {
 erased_sig_params :: fn(n: i32) -> string {
     sb :: new_builder()
     sb.append("void* env")
-    j: i32 = 0
-    for j < n {
+    for j in 0..<n {
         sb.append(", vader_box_t a${j}")
-        j += 1
     }
     return "${sb}"
 }
@@ -425,8 +413,7 @@ emit_type_info_table :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
     // offset lists once ; the info row downstream reads only the
     // lengths. Non-struct kinds emit their fixed `_ptrs[]` immediately.
     struct_offsets: StructOffsets[] = []
-    i: usize = 0
-    for i < count {
+    for i in 0..<count {
         match types[i] {
             is BcStruct as s -> {
                 offs :: classify_struct_fields(ctx, s, i)
@@ -443,7 +430,6 @@ emit_type_info_table :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
             }
             _ -> struct_offsets.push(empty_struct_offsets())
         }
-        i += 1
     }
 
     out.append("\n")
@@ -452,15 +438,13 @@ emit_type_info_table :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
     // explicit row ; primitives / unions / refs leave the slot at its
     // zero-init `VADER_TYPE_KIND_NONE` (so the GC scanner short-
     // circuits without reading the payload).
-    j: usize = 0
-    for j < count {
+    for j in 0..<count {
         match types[j] {
             is BcStruct as s -> emit_struct_info_row(ctx, s, struct_offsets[j], j, out)
             is BcFn -> out.append("    [${j}] = { VADER_TYPE_KIND_FN, sizeof(vader_fn_t), vader_type_${j}_ptrs, 1, 0, NULL, 0, NULL },\n")
             is BcArray -> out.append("    [${j}] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_${j}_ptrs, 1, 0, NULL, 0, NULL },\n")
             _ -> {}
         }
-        j += 1
     }
     out.append("};\n")
     out.append("const size_t vader_type_info_count = ${count};\n")
@@ -470,10 +454,8 @@ emit_type_info_table :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
     // so the `type.const N` payload's size lookup stays valid even
     // when user code doesn't actually read it.
     out.append("const size_t vader_type_size[${count}] = {\n")
-    k: usize = 0
-    for k < count {
+    for k in 0..<count {
         out.append("    [${k}] = ${size_of_bc_type(types[k])}u,\n")
-        k += 1
     }
     out.append("};\n")
     out.append("\n")
@@ -511,8 +493,7 @@ empty_struct_offsets :: fn() -> StructOffsets {
 classify_struct_fields :: fn(ctx: EmitCtx, s: BcStruct, type_index: usize) -> StructOffsets {
     cname :: ctx.struct_c_names[type_index]
     offsets :: empty_struct_offsets()
-    i: usize = 0
-    for i < s.fields.len() {
+    for i in 0..<s.fields.len() {
         f :: s.fields[i]
         ftype :: ctx.module.types[usize(f.type_index)]
         sanitised :: sanitise(f.name)
@@ -531,7 +512,6 @@ classify_struct_fields :: fn(ctx: EmitCtx, s: BcStruct, type_index: usize) -> St
             is BcRef -> { offsets.ptr_offsets.push(offset) }
             is BcUnion -> { offsets.ptr_offsets.push(offset) }
         }
-        i += 1
     }
     return offsets
 }

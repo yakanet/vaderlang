@@ -61,14 +61,11 @@ export coalesce_slots :: fn(function: BcFunction) -> BcFunction {
     // Pass 1 — per-slot first/last touch.
     ranges: SlotRange[] = []
     has_range: bool[] = []
-    s: usize = 0
-    for s < total_slots {
+    for s in 0..<total_slots {
         ranges.push(SlotRange { .first = -1, .last = -1 })
         has_range.push(false)
-        s = s + 1
     }
-    i: usize = 0
-    for i < body_len {
+    for i in 0..<body_len {
         slot :: slot_touched(body[i])
         if slot >= 0 {
             us :: usize(slot)
@@ -79,7 +76,6 @@ export coalesce_slots :: fn(function: BcFunction) -> BcFunction {
                 ranges[us] = SlotRange { .first = ranges[us].first, .last = i32(i) }
             }
         }
-        i = i + 1
     }
 
     // Pass 1b — extend ranges through loop bodies. Iterate to fixpoint
@@ -94,26 +90,20 @@ export coalesce_slots :: fn(function: BcFunction) -> BcFunction {
 
     // Params live the whole call frame — pin so they never accept a
     // coalesced peer.
-    p: usize = 0
-    for p < param_count {
+    for p in 0..<param_count {
         ranges[p] = SlotRange { .first = 0, .last = i32(body_len) }
         has_range[p] = true
-        p = p + 1
     }
 
     // Pass 2 — assign each non-param slot to a compatible physical
     // slot. Same-ValType only ; first non-overlapping wins.
     new_locals: BcLocal[] = []
     remap: i32[] = []
-    rem_init: usize = 0
-    for rem_init < total_slots {
+    for rem_init in 0..<total_slots {
         remap.push(-1)
-        rem_init = rem_init + 1
     }
-    pp: usize = 0
-    for pp < param_count {
+    for pp in 0..<param_count {
         remap[pp] = i32(pp)
-        pp = pp + 1
     }
 
     // `phys_ranges` tracks the union of live ranges currently mapped
@@ -121,10 +111,8 @@ export coalesce_slots :: fn(function: BcFunction) -> BcFunction {
     // prefix carries the original param ranges ; the tail grows as
     // new non-param physical slots are minted.
     phys_ranges: SlotRange[] = []
-    phys_init: usize = 0
-    for phys_init < param_count {
+    for phys_init in 0..<param_count {
         phys_ranges.push(ranges[phys_init])
-        phys_init = phys_init + 1
     }
 
     src := param_count
@@ -137,8 +125,7 @@ export coalesce_slots :: fn(function: BcFunction) -> BcFunction {
         range :: ranges[src]
         want :: function.locals[src - param_count].val
         chosen: i32 = -1
-        phys := param_count
-        for phys < phys_ranges.len() {
+        for phys in param_count..<phys_ranges.len() {
             // Non-param phys slots map 1:1 onto `new_locals` ; index
             // adjusts by `- param_count`.
             cand :: new_locals[phys - param_count]
@@ -148,7 +135,6 @@ export coalesce_slots :: fn(function: BcFunction) -> BcFunction {
                     break
                 }
             }
-            phys = phys + 1
         }
         if chosen < 0 {
             chosen = i32(phys_ranges.len())
@@ -167,17 +153,14 @@ export coalesce_slots :: fn(function: BcFunction) -> BcFunction {
     // Identity check : if every non-param slot mapped to itself the
     // body rewrite is a no-op. Return the original to skip work.
     identity := true
-    id_chk := param_count
-    for id_chk < total_slots {
+    for id_chk in param_count..<total_slots {
         if remap[id_chk] != i32(id_chk) { identity = false  break }
-        id_chk = id_chk + 1
     }
     if identity { return function }
 
     // Pass 3 — rewrite body slot refs.
     new_body: Op[] = []
-    j: usize = 0
-    for j < body_len {
+    for j in 0..<body_len {
         op :: body[j]
         slot :: slot_touched(op)
         if slot >= 0 {
@@ -190,7 +173,6 @@ export coalesce_slots :: fn(function: BcFunction) -> BcFunction {
         } else {
             new_body.push(op)
         }
-        j = j + 1
     }
 
     return BcFunction {
@@ -209,8 +191,7 @@ extend_into_loops :: fn(
     ranges: SlotRange[], has_range: bool[], total_slots: usize, loops: SlotRange[],
 ) -> bool {
     changed := false
-    s: usize = 0
-    for s < total_slots {
+    for s in 0..<total_slots {
         if has_range[s] {
             r := ranges[s]
             for lp in loops {
@@ -221,7 +202,6 @@ extend_into_loops :: fn(
             }
             ranges[s] = r
         }
-        s = s + 1
     }
     return changed
 }
@@ -234,9 +214,8 @@ find_loop_ranges :: fn(body: Op[]) -> SlotRange[] {
     kinds: string[] = []
     starts: i32[] = []
     sp: usize = 0
-    pc: usize = 0
     n :: body.len()
-    for pc < n {
+    for pc in 0..<n {
         op :: body[pc]
         if op is Block { push_scope(kinds, starts, sp, "block", i32(pc))  sp = sp + 1 }
         else if op is Loop { push_scope(kinds, starts, sp, "loop", i32(pc))  sp = sp + 1 }
@@ -249,7 +228,6 @@ find_loop_ranges :: fn(body: Op[]) -> SlotRange[] {
                 }
             }
         }
-        pc = pc + 1
     }
     return out
 }

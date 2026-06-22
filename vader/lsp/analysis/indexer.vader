@@ -652,8 +652,7 @@ leading_doc :: fn(cmap: CommentMap, decl_start: usize, source: string) -> string
     }
     if first_idx < 0 { return "" }
     out := ""
-    j: usize = usize(first_idx)
-    for j < n {
+    for j in usize(first_idx)..<n {
         c :: cmap.comments[j]
         if c.kind != .DocLine { break }
         if c.offset >= decl_start { break }
@@ -663,20 +662,17 @@ leading_doc :: fn(cmap: CommentMap, decl_start: usize, source: string) -> string
         } else {
             out = out + "\n" + line
         }
-        j = j + 1
     }
     return out
 }
 
 whitespace_between :: fn(source: string, start: usize, end: usize) -> bool {
     sb :: source.bytes()
-    cursor: usize = start
-    for cursor < end {
+    for cursor in start..<end {
         b :: sb[cursor]
         if b != ' ' && b != '\t' && b != '\n' && b != '\r' {
             return false
         }
-        cursor = cursor + 1
     }
     return true
 }

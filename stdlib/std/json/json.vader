@@ -237,8 +237,7 @@ parse_number :: fn(p: Parser) -> JsonNumber | JsonError {
 parse_string :: fn(p: Parser) -> string | JsonError {
     expect_byte(p, '"')?
     start :: p.pos
-    scan: usize = p.pos
-    for scan < p.eof {
+    for scan in p.pos..<p.eof {
         b :: p.bytes[scan]
         if b == '"' {
             p.pos = scan + 1
@@ -250,7 +249,6 @@ parse_string :: fn(p: Parser) -> string | JsonError {
             p.pos = scan
             return parse_string_with_escapes(p, sb)
         }
-        scan += 1
     }
     return fail(p, "unterminated string")
 }
@@ -302,14 +300,12 @@ parse_string_with_escapes :: fn(p: Parser, sb: StringBuilder) -> string | JsonEr
                     return fail(p, "incomplete \\u escape")
                 }
                 cp := 0
-                k: usize = 0
-                for k < 4 {
+                for k in usize(0)..<4 {
                     d := hex_digit_value(p.bytes.decode_char_at(p.pos + k))
                     if d < 0 {
                         return fail(p, "invalid hex digit in \\u escape")
                     }
                     cp = cp * 16 + d
-                    k = k + 1
                 }
                 p.pos = p.pos + 4
                 sb.append_char(char(cp))

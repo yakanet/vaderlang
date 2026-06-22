@@ -56,8 +56,7 @@ export run_bc_return_lit_fold :: fn(function: BcFunction) -> BcPeepholeOut {
     out: Op[] = []
     out_len: usize = 0
     old_to_new: i32[] = []
-    p: usize = 0
-    for p < n { old_to_new.push(-1)  p = p + 1 }
+    for p in 0..<n { old_to_new.push(-1) }
     i: usize = 0
     for i < n {
         op :: body[i]
@@ -89,8 +88,7 @@ export run_bc_return_lit_fold :: fn(function: BcFunction) -> BcPeepholeOut {
 /// New entries default to -1.
 remap_jump_table :: fn(old_jt: i32[], old_to_new: i32[], new_len: usize) -> i32[] {
     new_jt: i32[] = []
-    p: usize = 0
-    for p < new_len { new_jt.push(-1)  p = p + 1 }
+    for p in 0..<new_len { new_jt.push(-1) }
     old_n :: old_jt.len()
     i: usize = 0
     for i < old_n {
@@ -106,11 +104,9 @@ remap_jump_table :: fn(old_jt: i32[], old_to_new: i32[], new_len: usize) -> i32[
         // does implicitly because its branch encoding is a stack depth
         // rather than an absolute PC.
         new_pc_target: i32 = -1
-        t: usize = usize(target)
-        for t < old_to_new.len() {
+        for t in usize(target)..<old_to_new.len() {
             cand :: old_to_new[t]
             if cand >= 0 { new_pc_target = cand  break }
-            t = t + 1
         }
         if new_pc_target < 0 { new_pc_target = i32(new_len) }
         if usize(new_pc_branch) < new_len {
@@ -146,10 +142,8 @@ export run_bc_const_fold_arith :: fn(function: BcFunction) -> BcPeepholeOut {
     out: Op[] = []
     out_len: usize = 0
     old_to_new: i32[] = []
-    pp: usize = 0
-    for pp < n { old_to_new.push(-1)  pp = pp + 1 }
-    i: usize = 0
-    for i < n {
+    for pp in 0..<n { old_to_new.push(-1) }
+    for i in 0..<n {
         op :: body[i]
         folded :: try_fold_arith(op, out, out_len)
         if folded is null {
@@ -162,7 +156,6 @@ export run_bc_const_fold_arith :: fn(function: BcFunction) -> BcPeepholeOut {
             old_to_new[i] = i32(out_len)
             out_len = out_len + 1
         }
-        i = i + 1
     }
     new_body :: out[0..<out_len]
     new_jt :: remap_jump_table(function.jump_table, old_to_new, out_len)
@@ -241,8 +234,7 @@ export run_bc_peephole :: fn(function: BcFunction) -> BcPeepholeOut {
     out_len: usize = 0
     // Per-old-PC : new PC in `out` (or -1 when the op was dropped).
     old_to_new: i32[] = []
-    p: usize = 0
-    for p < n { old_to_new.push(-1)  p = p + 1 }
+    for p in 0..<n { old_to_new.push(-1) }
     i: usize = 0
     for i < n {
         op :: body[i]
@@ -381,19 +373,16 @@ export propagate_const_single_use :: fn(function: BcFunction) -> BcFunction {
     tee_count: i32[] = []
     set_idx:   i32[] = []
     get_idx:   i32[] = []
-    s: usize = 0
-    for s < total_slots {
+    for s in 0..<total_slots {
         set_count.push(0)
         get_count.push(0)
         tee_count.push(0)
         set_idx.push(-1)
         get_idx.push(-1)
-        s = s + 1
     }
     body :: function.body
-    i: usize = 0
     n :: body.len()
-    for i < n {
+    for i in 0..<n {
         op :: body[i]
         if op is LocalSet as ls {
             slot :: usize(ls.slot)
@@ -406,14 +395,12 @@ export propagate_const_single_use :: fn(function: BcFunction) -> BcFunction {
             get_count[slot] += 1
             get_idx[slot] = i32(i)
         }
-        i = i + 1
     }
 
     // Decide which (set_pc, get_pc) pairs to rewrite.
     to_delete_set: MutableMap<i32, bool> = MutableMap<i32, bool> {}
     replace_with: MutableMap<i32, Op> = MutableMap<i32, Op> {}
-    k := param_count
-    for k < total_slots {
+    for k in param_count..<total_slots {
         valid := true
         if tee_count[k] != 0 { valid = false }
         if set_count[k] != 1 { valid = false }
@@ -442,7 +429,6 @@ export propagate_const_single_use :: fn(function: BcFunction) -> BcFunction {
                 }
             }
         }
-        k = k + 1
     }
 
     if to_delete_set.is_empty() { return function }
@@ -451,8 +437,7 @@ export propagate_const_single_use :: fn(function: BcFunction) -> BcFunction {
     new_body: Op[] = []
     new_debug: (DebugPos | null)[] = []
     old_to_new: i32[] = []
-    pp: usize = 0
-    for pp < n { old_to_new.push(-1)  pp = pp + 1 }
+    for pp in 0..<n { old_to_new.push(-1) }
     j: usize = 0
     for j < n {
         if to_delete_set[i32(j)] is bool {
@@ -503,10 +488,8 @@ export drop_dead_stores :: fn(function: BcFunction) -> BcFunction {
     param_count :: function.signature.params.len()
     total_slots :: param_count + function.locals.len()
     reads: i32[] = []
-    s: usize = 0
-    for s < total_slots {
+    for s in 0..<total_slots {
         reads.push(0)
-        s += 1
     }
     // Count slot reads — `local.get` plus the fused composite
     // `local.field` (midir/emit.vader::try_fuse_local_field).
@@ -520,37 +503,29 @@ export drop_dead_stores :: fn(function: BcFunction) -> BcFunction {
     }
     // Mark dead = non-param local slots with zero reads.
     dead: bool[] = []
-    j: usize = 0
-    for j < total_slots {
+    for j in 0..<total_slots {
         dead.push(false)
-        j += 1
     }
     has_dead := false
-    k: usize = param_count
-    for k < total_slots {
+    for k in param_count..<total_slots {
         if reads[k] == 0 {
             dead[k] = true
             has_dead = true
         }
-        k += 1
     }
     if !has_dead { return function }
 
     // Build slot remap : surviving slots stay dense from 0 upward.
     remap: i32[] = []
-    n: usize = 0
-    for n < total_slots {
+    for n in 0..<total_slots {
         remap.push(-1)
-        n += 1
     }
     next: i32 = 0
-    p: usize = 0
-    for p < total_slots {
+    for p in 0..<total_slots {
         if !dead[p] {
             remap[p] = next
             next += 1
         }
-        p += 1
     }
 
     // Rewrite the body : drop dead writes, renumber surviving accesses.
@@ -559,8 +534,7 @@ export drop_dead_stores :: fn(function: BcFunction) -> BcFunction {
     out: Op[] = []
     body_len :: function.body.len()
     old_to_new_pc: i32[] = []
-    init_pc: usize = 0
-    for init_pc < body_len { old_to_new_pc.push(-1)  init_pc = init_pc + 1 }
+    for init_pc in 0..<body_len { old_to_new_pc.push(-1) }
     pc: usize = 0
     for pc < body_len {
         op :: function.body[pc]
@@ -612,10 +586,8 @@ export drop_dead_stores :: fn(function: BcFunction) -> BcFunction {
     // (they live in `signature.params`), so we only filter the per-fn
     // locals tail.
     new_locals: BcLocal[] = []
-    q: usize = param_count
-    for q < total_slots {
+    for q in param_count..<total_slots {
         if !dead[q] { new_locals.push(function.locals[q - param_count]) }
-        q += 1
     }
     return BcFunction {
         .name = function.name, .is_main = function.is_main,

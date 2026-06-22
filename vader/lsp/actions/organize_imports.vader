@@ -106,12 +106,10 @@ oi_has_interleaved_comments :: fn(run: AST.ImportDecl[], source: string) -> bool
     if run.len() < 2 { return false }
     sb :: source.bytes()
     for i in 0..<(run.len() - 1) {
-        j := run[i].span.end.offset
         stop :: run[i + 1].span.start.offset
-        for j < stop {
+        for j in run[i].span.end.offset..<stop {
             b :: sb[j]
             if b != ' ' && b != '\t' && b != '\n' && b != '\r' { return true }
-            j = j + 1
         }
     }
     return false

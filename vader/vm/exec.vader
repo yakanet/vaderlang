@@ -190,15 +190,11 @@ build_callee_frame :: fn(function_index: i32, callee: bc.BcFunction, args_source
         slots.push(env)
         user_arg_count = callee.signature.params.len() - 1
     }
-    parameter_index: usize = 0
-    for parameter_index < user_arg_count {
+    for parameter_index in 0..<user_arg_count {
         slots.push(args_source[args_offset + parameter_index])
-        parameter_index += 1
     }
-    local_index: usize = 0
-    for local_index < callee.locals.len() {
+    for local_index in 0..<callee.locals.len() {
         slots.push(zero_value())
-        local_index += 1
     }
     return Frame {
         .function_index = function_index,
@@ -972,10 +968,8 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[]) -
                 // clobbered. Owning arrays push in place.
                 if is_array_view(array_unwrap) {
                     fresh: Value[] = []
-                    j: usize = 0
-                    for j < array_unwrap.length {
+                    for j in 0..<array_unwrap.length {
                         fresh.push(array_unwrap.elements[array_unwrap.offset + j])
-                        j = j + 1
                     }
                     array_unwrap.elements = fresh
                     array_unwrap.offset = 0
@@ -1561,8 +1555,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[]) -
                 // recently pushed defer (top of frame stack) executes first.
                 // Bound on the captured `old_defer_count` — `frame.defer_count`
                 // has already been shrunk to `new_defer_count` above.
-                drain_index := new_defer_count
-                for drain_index < old_defer_count {
+                for drain_index in new_defer_count..<old_defer_count {
                     closure_val :: frame.defers[drain_index]
                     fn_unwrap :: read_fn(closure_val, frame.pc, "defer.pop_exec entry")
                     if fn_unwrap is Trap { return fn_unwrap }
@@ -1577,7 +1570,6 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[]) -
                     if frame_count[0] > usize(MAX_FRAME_DEPTH) {
                         return Trap { .message = "call stack overflow (depth > ${MAX_FRAME_DEPTH}) at function '${callee.name}' during defer drain" }
                     }
-                    drain_index += 1
                 }
                 frame.pc = frame.pc + 1
             }
@@ -1825,10 +1817,8 @@ build_array :: fn(type_id: i32, length: i32, frame: Frame) -> Trap | null {
     }
     arg_base :: frame.sp - needed
     elements: Value[] = []
-    element_index: usize = 0
-    for element_index < needed {
+    for element_index in 0..<needed {
         elements.push(frame.stack[arg_base + element_index])
-        element_index += 1
     }
     new_array :: ArrayVal { .type_id = type_id, .elements = elements, .offset = 0, .length = elements.len() }
     push_value(frame.stack, arg_base, new_array)
@@ -1864,10 +1854,8 @@ build_struct :: fn(types: bc.BcType[], type_id: i32, frame: Frame) -> Trap | nul
     }
     arg_base :: frame.sp - field_count
     fields: Value[] = []
-    field_index: usize = 0
-    for field_index < field_count {
+    for field_index in 0..<field_count {
         fields.push(frame.stack[arg_base + field_index])
-        field_index += 1
     }
     new_struct :: StructVal { .type_id = type_id, .fields = fields }
     push_value(frame.stack, arg_base, new_struct)

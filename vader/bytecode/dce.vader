@@ -42,25 +42,21 @@ export prune_unused_imports :: fn(ctx: EmitterCtx) -> void {
 
     remap: i32[] = []
     kept: BcImport[] = []
-    i: usize = 0
-    for i < ctx.imports.len() {
+    for i in 0..<ctx.imports.len() {
         if used[i32(i)] is bool {
             remap.push(i32(kept.len()))
             kept.push(ctx.imports[i])
         } else {
             remap.push(-1)
         }
-        i = i + 1
     }
     // Rewrite surviving `call.import` indices.
     for fn_ in ctx.functions {
-        j: usize = 0
-        for j < fn_.body.len() {
+        for j in 0..<fn_.body.len() {
             op :: fn_.body[j]
             if op is CallImport as ci {
                 fn_.body[j] = CallImport { .index = remap[usize(ci.index)] }
             }
-            j = j + 1
         }
     }
     ctx.imports = kept
@@ -86,12 +82,10 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
     // Roots : main, @export entries, vtable-target fns, and any explicit
     // keep-mangle (e.g. the `@test` fns under `vader test`, which nothing calls
     // but must survive to be run by name).
-    i: usize = 0
-    for i < n {
+    for i in 0..<n {
         f :: ctx.functions[i]
         if f.is_main { reachable[i32(i)] = true }
         if f.name in keep_mangles { reachable[i32(i)] = true }
-        i = i + 1
     }
     for e in ctx.exports { reachable[e.fn_index] = true }
     for vt in vtable_roots { if vt >= 0 && vt < i32(n) { reachable[vt] = true } }
@@ -105,10 +99,8 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
         idx :: work[work.len() - 1]
         // pop
         new_work: i32[] = []
-        w: usize = 0
-        for w < work.len() - 1 {
+        for w in 0..<work.len() - 1 {
             new_work.push(work[w])
-            w = w + 1
         }
         work = new_work
         if usize(idx) >= n { continue }
@@ -143,8 +135,7 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
     // with no duplicate still takes the no-op fast path below.
     canonical_old_by_mangle :: MutableMap<string, i32> {}
     has_dup_mangle := false
-    ci: usize = 0
-    for ci < n {
+    for ci in 0..<n {
         if keep_all || reachable[i32(ci)] is bool {
             mangle :: ctx.functions[ci].name
             if mangle != "" {
@@ -159,7 +150,6 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
                 }
             }
         }
-        ci = ci + 1
     }
 
     // Nothing to drop and no duplicate mangle → leave the table untouched.
@@ -169,8 +159,7 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
     // canonical, everything else to itself (empty-mangle fns — lambdas / closures
     // — are never deduped). Reused by the kept / remap passes below.
     canon: i32[] = []
-    ki: usize = 0
-    for ki < n {
+    for ki in 0..<n {
         mangle :: ctx.functions[ki].name
         c := i32(ki)
         if mangle != "" {
@@ -178,7 +167,6 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
             if canon_opt is i32 as cv { c = cv }
         }
         canon.push(c)
-        ki = ki + 1
     }
 
     // Remap : kept (canonical) fns stay dense from 0 ; every reference to a
@@ -187,30 +175,25 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
     // reachable set.
     new_idx_by_old :: MutableMap<i32, i32> {}
     kept: BcFunction[] = []
-    j: usize = 0
-    for j < n {
+    for j in 0..<n {
         if (keep_all || reachable[i32(j)] is bool) && canon[j] == i32(j) {
             new_idx_by_old[i32(j)] = i32(kept.len())
             kept.push(ctx.functions[j])
         }
-        j = j + 1
     }
     remap: i32[] = []
-    r: usize = 0
-    for r < n {
+    for r in 0..<n {
         target: i32 = -1
         if keep_all || reachable[i32(r)] is bool {
             ni_opt :: new_idx_by_old[canon[r]]
             if ni_opt is i32 as ni { target = ni }
         }
         remap.push(target)
-        r = r + 1
     }
 
     // Rewrite fn-index references in surviving bodies.
     for fn_ in kept {
-        bj: usize = 0
-        for bj < fn_.body.len() {
+        for bj in 0..<fn_.body.len() {
             op :: fn_.body[bj]
             if op is Call as c {
                 fn_.body[bj] = Call { .function_index = remap[usize(c.function_index)] }
@@ -224,7 +207,6 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
                     .env_type_id    = mc.env_type_id,
                 }
             }
-            bj = bj + 1
         }
     }
 
@@ -328,15 +310,13 @@ export prune_unused_types :: fn(ctx: EmitterCtx) -> void {
     n :: ctx.types.len()
     remap: i32[] = []
     kept: BcType[] = []
-    i: usize = 0
-    for i < n {
+    for i in 0..<n {
         if i32(i) in reachable {
             remap.push(i32(kept.len()))
             kept.push(ctx.types[i])
         } else {
             remap.push(-1)
         }
-        i = i + 1
     }
 
     // Rewrite composite types' inner type indices.
@@ -382,10 +362,8 @@ export prune_unused_types :: fn(ctx: EmitterCtx) -> void {
             .param_types = new_param_types,
             .result_type = remap_idx(remap, fn_.signature.result_type),
         }
-        bj: usize = 0
-        for bj < fn_.body.len() {
+        for bj in 0..<fn_.body.len() {
             fn_.body[bj] = remap_type_in_op(fn_.body[bj], remap)
-            bj = bj + 1
         }
     }
     // Same for imports.

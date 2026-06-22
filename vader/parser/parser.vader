@@ -656,17 +656,15 @@ expect_string_literal :: fn(p: Parser, what: string) -> StringLitInfo {
 }
 
 is_impl_decl :: fn(p: Parser) -> bool {
-    i := p.pos
     depth := 0
     n :: i32(p.tokens.len())
-    for i < n {
+    for i in p.pos..<n {
         t :: p.tokens[usize(i)]
         if t.kind == .Eof || t.kind == .Newline { return false }
         if t.kind == .KwImplements && depth == 0 { return true }
         if t.kind == .LParen || t.kind == .LBracket || t.kind == .LBrace { depth = depth + 1 }
         if t.kind == .RParen || t.kind == .RBracket || t.kind == .RBrace { depth = depth - 1 }
         if depth < 0 { return false }
-        i = i + 1
     }
     return false
 }
@@ -679,10 +677,9 @@ is_impl_decl :: fn(p: Parser) -> bool {
 peek_is_lhs_generic_alias_head :: fn(p: Parser) -> bool {
     n :: i32(p.tokens.len())
     // Caller already verified ident + `<`.
-    i := p.pos + 2     // skip ident, skip `<`
     depth := 1         // open angle count
     other_depth := 0   // any other paren/bracket/brace nesting
-    for i < n {
+    for i in (p.pos + 2)..<n {     // skip ident, skip `<`
         t :: p.tokens[usize(i)]
         if t.kind == .Eof || t.kind == .Newline { return false }
         if t.kind == .Lt && other_depth == 0 {
@@ -706,7 +703,6 @@ peek_is_lhs_generic_alias_head :: fn(p: Parser) -> bool {
             other_depth = other_depth - 1
             if other_depth < 0 { return false }
         }
-        i = i + 1
     }
     return false
 }
@@ -2781,8 +2777,7 @@ scan_angle_generic :: fn(p: Parser, lt_pos: i32) -> bool {
     angle_depth := 1
     paren_depth := 0
     bracket_depth := 0
-    i := lt_pos + 1
-    for i < n {
+    for i in (lt_pos + 1)..<n {
         t :: p.tokens[usize(i)]
         if t.kind == .Eof { return false }
         at_outer :: paren_depth == 0 && bracket_depth == 0
@@ -2819,7 +2814,6 @@ scan_angle_generic :: fn(p: Parser, lt_pos: i32) -> bool {
             if bracket_depth == 0 { return false }
             bracket_depth = bracket_depth - 1
         }
-        i = i + 1
     }
     return false
 }
