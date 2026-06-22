@@ -179,7 +179,7 @@ test_substitute_recurses_into_fn_type :: fn() -> void {
     result :: substitute_type_expr(src, subst)
     match result {
         is AST.FnTypeExpr as r -> {
-            assert_eq(r.params.len(), usize(1))
+            assert_eq(r.params.len(), 1)
             first :: r.params[0]
             match first {
                 is AST.IdentExpr as id -> { assert_eq(id.name, "i32") }
@@ -215,7 +215,7 @@ test_substitute_recurses_into_generic_inst :: fn() -> void {
     result :: substitute_type_expr(src, subst)
     match result {
         is AST.GenericInstExpr as r -> {
-            assert_eq(r.type_args.len(), usize(1))
+            assert_eq(r.type_args.len(), 1)
             arg0 :: r.type_args[0]
             match arg0 {
                 is AST.IdentExpr as id -> { assert_eq(id.name, "i32") }

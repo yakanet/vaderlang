@@ -34,9 +34,7 @@
                 int(10) :i32
                 int(20) :i32
                 int(30) :i32
-            cursor:
-              cast → usize
-                int(0) :usize
+            cursor: int(0) :usize
           }
     let c: i32 =
       call :i32

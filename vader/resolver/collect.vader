@@ -323,6 +323,6 @@ foo :: fn(x: string) -> string { return x }
     bucket :: collected.fn_overloads["foo"]
     match bucket {
         is null -> { assert(false, "foo should be in overload bucket") }
-        _       -> { assert_eq(bucket.len(), usize(2)) }
+        _       -> { assert_eq(bucket.len(), 2) }
     }
 }

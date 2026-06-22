@@ -127,7 +127,7 @@ export parse :: fn(s: string) -> Version | ParseError {
 
     // Core must be M.N.P with exactly three numeric identifiers,
     // each free of leading zeros.
-    triple := [i32(0), i32(0), i32(0)]
+    triple := [0, 0, 0]
     fill: usize = 0
     start: usize = 0
     cb :: core.bytes()

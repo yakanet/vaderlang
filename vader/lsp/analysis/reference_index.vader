@@ -442,14 +442,14 @@ test_collect_idents_skips_literals :: fn() -> void {
     // Top-level const : its name comes from resolved.symbols, not the walker ;
     // the body is only literals, so the walker collects nothing.
     src :: "module \"t\"\nc :: 1 + 2\n"
-    assert_eq(collect_count(src), usize(0))
+    assert_eq(collect_count(src), 0)
 }
 
 @test
 test_cursor_in_span_half_open :: fn() -> void {
     sp :: Span {
-        .start = Position { .file = "t", .offset = usize(0), .line = 3, .column = 5 },
-        .end   = Position { .file = "t", .offset = usize(0), .line = 3, .column = 10 },
+        .start = Position { .file = "t", .offset = 0, .line = 3, .column = 5 },
+        .end   = Position { .file = "t", .offset = 0, .line = 3, .column = 10 },
     }
     assert(cursor_in_span(sp, 3, 5), "start column is inside")
     assert(cursor_in_span(sp, 3, 9), "last column is inside")

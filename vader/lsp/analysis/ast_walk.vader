@@ -41,7 +41,7 @@ AST :: import "vader/parser"
 export find_expr_at :: fn(
     decls: AST.Decl[], line: i32, col: i32, typed: TypedProgram,
 ) -> AST.Expr | null {
-    state :: FindState { .line = line, .col = col, .best = null, .best_size = u64(0) }
+    state :: FindState { .line = line, .col = col, .best = null, .best_size = 0 }
     for d in decls { hv_walk_decl(d, typed, state) }
     return state.best
 }

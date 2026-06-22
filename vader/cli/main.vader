@@ -512,7 +512,7 @@ pick_module_representatives :: fn(files: string[]) -> string[] {
     }
     out: string[] = []
     for [d, group] in by_dir {
-        if group.len() <= usize(1) {
+        if group.len() <= 1 {
             out.push(group[0])
         } else if is_folder_module(group) {
             out.push(d)
@@ -526,7 +526,7 @@ pick_module_representatives :: fn(files: string[]) -> string[] {
     return out
 }
 
-is_folder_module :: fn(group: string[]) -> bool = collect_sibling_imports(group).len() == usize(0)
+is_folder_module :: fn(group: string[]) -> bool = collect_sibling_imports(group).len() == 0
 
 /// Basenames (no `.vader`) of files in `group` that some sibling imports by
 /// name. An empty result means the dir is a folder module (siblings share one

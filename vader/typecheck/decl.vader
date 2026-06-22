@@ -289,7 +289,7 @@ validate_extern :: fn(
             "`@extern` fn `${decl.name}` cannot have a body — drop the `= ...` / `{ ... }`"))
     }
     args :: extern_decorator_args(decl.decorators)
-    if args.len() > usize(2) {
+    if args.len() > 2 {
         diags.push(typecheck_error(.InvalidExternDecl, decl.span,
             "`@extern` accepts 0, 1, or 2 string arguments — got ${args.len()}"))
         return
@@ -337,7 +337,7 @@ extern_decorator_args :: fn(decs: AST.Decorator[]) -> AST.Expr[] {
 
 is_plain_string_literal :: fn(e: AST.Expr) -> bool {
     if !(e is AST.StringLitExpr) { return false }
-    if e.parts.len() != usize(1) { return false }
+    if e.parts.len() != 1 { return false }
     return e.parts[0] is AST.StringLitText
 }
 
@@ -352,10 +352,10 @@ is_plain_string_literal :: fn(e: AST.Expr) -> bool {
 extern_symbol_name_for :: fn(decl: AST.FnDecl) -> string {
     for d in decl.decorators {
         if d.name != "extern" { continue }
-        if d.args.len() == usize(0) { continue }
-        last :: d.args[d.args.len() - usize(1)]
+        if d.args.len() == 0 { continue }
+        last :: d.args[d.args.len() - 1]
         if last is AST.StringLitExpr as s {
-            if s.parts.len() == usize(1) {
+            if s.parts.len() == 1 {
                 if s.parts[0] is AST.StringLitText as t { return t.value }
             }
         }

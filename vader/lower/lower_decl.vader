@@ -118,7 +118,7 @@ synth_param_or :: fn(symbol_or_null: Symbol | null, name: string, typed: TypedPr
         is Symbol as s -> { return s }
         is null -> {
             return Symbol {
-                .id         = i32(0),
+                .id         = 0,
                 .kind       = SymbolKind.Param,
                 .name       = name,
                 .module     = typed.resolved.path,
@@ -158,10 +158,10 @@ impl_member_overload_suffix :: fn(
                 for m in other.members {
                     if m.name != member.name { continue }
                     if m.name_span.start.offset == target_offset {
-                        if counter == i32(0) { return "" }
+                        if counter == 0 { return "" }
                         return "_${counter}"
                     }
-                    counter = counter + i32(1)
+                    counter = counter + 1
                 }
             }
             _ -> {}
@@ -213,7 +213,7 @@ synth_impl_entry :: fn(member: FnDecl, typed: TypedProgram, mangled: string) -> 
     // resolve the impl-member's fn-table slot and the impl directive
     // unable to land in `BcModule.impl_table`.
     return MonoEntry {
-        .id             = i32(0),
+        .id             = 0,
         .is_main        = false,
         .mangled        = mangled,
         .decl           = member,
@@ -433,7 +433,7 @@ stub_entry :: fn(decl: Decl, typed: TypedProgram) -> MonoEntry {
     // a name-only lookup would mis-route.
     resolved_symbol :: symbol_for_decl(decl, typed)
     return MonoEntry {
-        .id             = i32(0),
+        .id             = 0,
         .is_main        = is_main_decl(decl),
         .mangled        = mangled,
         .decl           = decl,

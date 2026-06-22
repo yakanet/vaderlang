@@ -259,7 +259,7 @@ try_wrap_array_iter :: fn(
             fields.push(LoweredStructLitField {
                 .name = "cursor",
                 .value = LoweredIntLit {
-                    .span = span, .type = mk_primitive("usize"), .value = i64(0),
+                    .span = span, .type = mk_primitive("usize"), .value = 0,
                 },
             })
             wrapped :: LoweredStructLit {
@@ -318,16 +318,16 @@ resolve_element_type :: fn(ctx: FnLowerCtx, raw_iter_type: Type, iter_type: Type
     }
     match iter_type {
         is StructType as st -> {
-            if st.args.len() > usize(0) { return st.args[0] }
+            if st.args.len() > 0 { return st.args[0] }
         }
         _ -> {}
     }
     match raw_iter_type {
         is StructType as st -> {
-            if st.args.len() > usize(0) { return st.args[0] }
+            if st.args.len() > 0 { return st.args[0] }
         }
         is TraitType as tt -> {
-            if tt.args.len() > usize(0) { return tt.args[0] }
+            if tt.args.len() > 0 { return tt.args[0] }
         }
         _ -> {}
     }
@@ -407,7 +407,7 @@ build_step_call :: fn(
 
 synth_next_symbol :: fn(ctx: FnLowerCtx, name: string) -> Symbol {
     return Symbol {
-        .id         = i32(0),
+        .id         = 0,
         .kind       = SymbolKind.Fn,
         .name       = name,
         .module     = ctx.typed.resolved.path,
@@ -500,7 +500,7 @@ try_lower_for_in_raw_array :: fn(
     }
     idx_init :: LoweredLet {
         .span = span, .name = idx_sym.name, .symbol = idx_sym, .type = usize_type,
-        .value = LoweredIntLit { .span = span, .type = usize_type, .value = i64(0) },
+        .value = LoweredIntLit { .span = span, .type = usize_type, .value = 0 },
     }
     idx_ref :: LoweredIdent { .span = span, .type = usize_type, .symbol = idx_sym }
     len_ref :: LoweredIdent { .span = span, .type = usize_type, .symbol = len_sym }
@@ -522,7 +522,7 @@ try_lower_for_in_raw_array :: fn(
         .value = LoweredBinary {
             .span = span, .type = usize_type, .op = LoweredBinaryOp.Add,
             .left = idx_ref,
-            .right = LoweredIntLit { .span = span, .type = usize_type, .value = i64(1) },
+            .right = LoweredIntLit { .span = span, .type = usize_type, .value = 1 },
         },
     }
 
@@ -635,7 +635,7 @@ try_lower_for_in_int_range :: fn(
             .span = span, .type = bound_type, .op = LoweredBinaryOp.Add,
             .left = counter_ref,
             .right = LoweredIntLit {
-                .span = span, .type = bound_type, .value = i64(1),
+                .span = span, .type = bound_type, .value = 1,
             },
         },
     }
@@ -970,7 +970,7 @@ descend_chain :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
             match struct_type {
                 is StructType as st -> {
                     if matches_iter_symbol(map_symbol_opt, st.symbol.id) {
-                        if st.args.len() < usize(2) { return null }
+                        if st.args.len() < 2 { return null }
                         return IterChain {
                             .kind = IterChainKind.Map,
                             .range_lower = null, .range_upper = null, .inclusive = false,
@@ -1017,13 +1017,13 @@ unpack_fluent_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> FluentCom
         is AST.FieldExpr as fe -> {
             recv_ty :: ctx.typed.ufcs_receiver_types[fe.id]
             if recv_ty is null { return null }
-            if call.args.len() < usize(1) { return null }
+            if call.args.len() < 1 { return null }
             return FluentCombinator { .receiver = fe.target, .fn_arg = call.args[0].value }
         }
         // Direct-call form `map(it, f)` : first arg is the receiver, second
         // is the transform / predicate.
         is AST.IdentExpr -> {
-            if call.args.len() < usize(2) { return null }
+            if call.args.len() < 2 { return null }
             return FluentCombinator { .receiver = call.args[0].value, .fn_arg = call.args[1].value }
         }
         _ -> { return null }
@@ -1044,7 +1044,7 @@ descend_map :: fn(ctx: FnLowerCtx, struct_lit: AST.StructLitExpr, struct_type: S
     if map_fn is null { return null }
     inner :: descend_chain(ctx, source_expr)
     if inner is null { return null }
-    if struct_type.args.len() < usize(2) { return null }
+    if struct_type.args.len() < 2 { return null }
     output_type :: struct_type.args[1]
     return IterChain {
         .kind = IterChainKind.Map,
@@ -1253,7 +1253,7 @@ emit_fused_range :: fn(
         .value = LoweredBinary {
             .span = span, .type = int_type, .op = LoweredBinaryOp.Add,
             .left = counter_ref,
-            .right = LoweredIntLit { .span = span, .type = int_type, .value = i64(1) },
+            .right = LoweredIntLit { .span = span, .type = int_type, .value = 1 },
         },
     }
 
@@ -1293,11 +1293,11 @@ try_lower_for_in_map_set :: fn(
         if is_map {
             for a in source.args { entry_args.push(a) }
         } else {
-            if source.args.len() == usize(0) { return null }
+            if source.args.len() == 0 { return null }
             entry_args.push(source.args[0])
             entry_args.push(TY_BOOL)
         }
-        if entry_args.len() != usize(2) { return null }
+        if entry_args.len() != 2 { return null }
         // Compact-dict map/set fast-path : dense index walk over `ekeys` / `evals`.
         return lower_map_set_compact(ctx, for_stmt, in_form, src_value, src_type, span,
             block_lowerer, source, entry_sym, is_map, is_set, entry_args)
@@ -1361,7 +1361,7 @@ lower_map_set_compact :: fn(
     pos_ref :: LoweredIdent { .span = span, .type = usize_ty, .symbol = pos_sym }
     pos_let :: LoweredLet {
         .span = span, .name = pos_sym.name, .symbol = pos_sym, .type = usize_ty,
-        .value = LoweredIntLit { .span = span, .type = usize_ty, .value = i64(0) },
+        .value = LoweredIntLit { .span = span, .type = usize_ty, .value = 0 },
     }
     // loop body : if pos >= size break ; bind ; pos += 1 ; <user body>
     oob_if :: LoweredExprStmt {
@@ -1397,7 +1397,7 @@ lower_map_set_compact :: fn(
         .span = span, .target = pos_ref,
         .value = LoweredBinary {
             .span = span, .type = usize_ty, .op = LoweredBinaryOp.Add,
-            .left = pos_ref, .right = LoweredIntLit { .span = span, .type = usize_ty, .value = i64(1) },
+            .left = pos_ref, .right = LoweredIntLit { .span = span, .type = usize_ty, .value = 1 },
         },
     }
     user_body :: block_lowerer(ctx, for_stmt.body, false, true)

@@ -134,7 +134,7 @@ topo_sort :: fn(nodes: Nodes) -> ComptimeOrder {
     cyclic :: MutableMap<usize, bool> {}
     for id in nodes.order { color[id] = 0 }
     path: usize[] = []
-    for id in nodes.order { visit(id, nodes, color, cyclic, path, usize(0), order, diags) }
+    for id in nodes.order { visit(id, nodes, color, cyclic, path, 0, order, diags) }
     return ComptimeOrder { .order = order, .cycle_diags = diags }
 }
 
@@ -161,7 +161,7 @@ visit :: fn(
     record :: nodes.by_id[id]
     if !(record is null) {
         for dependency_id in record.dependency_ids {
-            visit(dependency_id, nodes, color, cyclic, path, depth + usize(1), order, diags)
+            visit(dependency_id, nodes, color, cyclic, path, depth + 1, order, diags)
         }
     }
     color[id] = 2
@@ -205,7 +205,7 @@ cycle_names :: fn(start: usize, depth: usize, path: usize[], id: usize, nodes: N
     if !(rec_tail is null) { parts.push(rec_tail.decl.name) }
     sb := ""
     for i in 0..<parts.len() {
-        if i > usize(0) { sb = "${sb} → " }
+        if i > 0 { sb = "${sb} → " }
         sb = "${sb}${parts[i]}"
     }
     return sb
@@ -349,8 +349,8 @@ build_order :: fn(src: string) -> ComptimeOrder {
 @comptime C :: 1
 """
     out :: build_order(src)
-    assert_eq(out.cycle_diags.len(), usize(0))
-    assert_eq(out.order.len(), usize(3))
+    assert_eq(out.cycle_diags.len(), 0)
+    assert_eq(out.order.len(), 3)
     assert_eq(out.order[0].name, "C")
     assert_eq(out.order[1].name, "B")
     assert_eq(out.order[2].name, "A")
@@ -362,8 +362,8 @@ build_order :: fn(src: string) -> ComptimeOrder {
 @comptime B :: A
 """
     out :: build_order(src)
-    assert(out.cycle_diags.len() > usize(0), "cycle should surface as a diagnostic")
+    assert(out.cycle_diags.len() > 0, "cycle should surface as a diagnostic")
     // Decls inside the cycle drop out of `order` ; the order list is
     // empty in this two-cycle case.
-    assert_eq(out.order.len(), usize(0))
+    assert_eq(out.order.len(), 0)
 }

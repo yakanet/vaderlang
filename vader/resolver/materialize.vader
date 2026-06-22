@@ -155,7 +155,7 @@ substitute_params_stamped :: fn(params: AST.FnParam[], subst: Subst, stamp: Stam
 /// source span (real spans are 1-based) ; the minted factory id rides in
 /// `column` so each call yields a distinct `Span.hash()`.
 synth_clone_span :: fn(factory: NodeIdFactory) -> Span {
-    pos :: Position { .file = "", .offset = usize(0), .line = 0, .column = i32(factory.mint()) }
+    pos :: Position { .file = "", .offset = 0, .line = 0, .column = i32(factory.mint()) }
     return Span { .start = pos, .end = pos }
 }
 
@@ -374,10 +374,10 @@ Iter :: trait {
                 is null -> { assert(false, "i32 implements Iter should be parsed") }
                 is AST.ImplDecl as im -> {
                     before :: im.members.len()
-                    assert_eq(before, usize(0))
+                    assert_eq(before, 0)
                     materialize_intrinsic_members(im, t)
                     after :: im.members.len()
-                    assert_eq(after, usize(1))
+                    assert_eq(after, 1)
                     assert_eq(im.members[0].name, "next")
                 }
             }

@@ -419,18 +419,18 @@ lex_escape :: fn(l: Lexer) -> u32 {
     l.advance(1)  // consume `\`
     if l.at_end() {
         l.push_error(.InvalidEscapeSequence, l.error_span(esc_start), "incomplete escape sequence")
-        return u32(0)
+        return 0
     }
     c :: l.peek()
     l.advance(1)
-    if c == 'n'  { return u32(0x0A) }
-    if c == 't'  { return u32(0x09) }
-    if c == 'r'  { return u32(0x0D) }
-    if c == '\\' { return u32(0x5C) }
-    if c == '\'' { return u32(0x27) }
-    if c == '"'  { return u32(0x22) }
-    if c == '$'  { return u32(0x24) }
-    if c == '0'  { return u32(0x00) }
+    if c == 'n'  { return 0x0A }
+    if c == 't'  { return 0x09 }
+    if c == 'r'  { return 0x0D }
+    if c == '\\' { return 0x5C }
+    if c == '\'' { return 0x27 }
+    if c == '"'  { return 0x22 }
+    if c == '$'  { return 0x24 }
+    if c == '0'  { return 0x00 }
     if c == 'u'  { return l.lex_unicode_escape(esc_start) }
     l.push_error(.InvalidEscapeSequence, l.error_span(esc_start), "unknown escape \\${c}")
     return u32(c)
@@ -441,7 +441,7 @@ lex_escape :: fn(l: Lexer) -> u32 {
 lex_unicode_escape :: fn(l: Lexer, esc_start: Position) -> u32 {
     if l.peek() != '{' {
         l.push_error(.InvalidUnicodeCodepointEscape, l.error_span(esc_start), "expected '{' after \\u")
-        return u32(0)
+        return 0
     }
     l.advance(1)  // consume `{`
     hex_start :: l.pos
@@ -464,17 +464,17 @@ lex_unicode_escape :: fn(l: Lexer, esc_start: Position) -> u32 {
     if hex_len == 0 || hex_len > 6 {
         l.push_error(.InvalidUnicodeCodepointEscape, l.error_span(esc_start),
             "codepoint escape must have 1–6 hex digits")
-        return u32(0)
+        return 0
     }
-    cp: u32 = u32(0)
+    cp: u32 = 0
     for i in 0..<hex_len {
         d :: hex_digit_value(l.bytes.decode_char_at(hex_start + i))
-        cp = cp * u32(16) + u32(d)
+        cp = cp * 16 + u32(d)
     }
-    if cp > u32(0x10FFFF) {
+    if cp > 0x10FFFF {
         l.push_error(.InvalidUnicodeCodepointEscape, l.error_span(esc_start),
             "codepoint exceeds U+10FFFF")
-        return u32(0)
+        return 0
     }
     return cp
 }
@@ -495,7 +495,7 @@ lex_char :: fn(l: Lexer) -> void {
         return
     }
 
-    cp: u32 = u32(0)
+    cp: u32 = 0
     if l.peek() == '\\' {
         cp = l.lex_escape()
     } else if l.peek() == '\n' || l.at_end() {
@@ -900,11 +900,11 @@ lex_one :: fn(l: Lexer) -> void {
 // UTF-8 leading-byte → encoded length in bytes (1, 2, 3, or 4).
 // Continuation / invalid bytes fall back to 1 (best-effort recovery).
 utf8_lead_byte_len :: fn(b: u8) -> usize {
-    if u32(b) < u32(0x80)    { return usize(1) }    // 0xxxxxxx
-    if u32(b) < u32(0xC0)    { return usize(1) }    // continuation — invalid lead
-    if u32(b) < u32(0xE0)    { return usize(2) }    // 110xxxxx
-    if u32(b) < u32(0xF0)    { return usize(3) }    // 1110xxxx
-    return usize(4)                                 // 11110xxx
+    if b < 0x80    { return 1 }    // 0xxxxxxx
+    if b < 0xC0    { return 1 }    // continuation — invalid lead
+    if b < 0xE0    { return 2 }    // 110xxxxx
+    if b < 0xF0    { return 3 }    // 1110xxxx
+    return 4                       // 11110xxx
 }
 
 // ---- public entry ---------------------------------------------------------
@@ -913,9 +913,9 @@ export tokenize :: fn(source: string, file: string) -> Lexer {
     l := new_lexer(source, file)
     // UTF-8 BOM (EF BB BF) — if present, must be the very first thing.
     if l.bytes.len() >= 3 &&
-        l.bytes[0] == u8(0xEF) &&
-        l.bytes[1] == u8(0xBB) &&
-        l.bytes[2] == u8(0xBF) {
+        l.bytes[0] == 0xEF &&
+        l.bytes[1] == 0xBB &&
+        l.bytes[2] == 0xBF {
         l.advance(3)
     }
     // Shebang: only allowed on line 1 and silently dropped.
@@ -939,19 +939,19 @@ import "std/testing" { assert, assert_eq }
 
 @test test_tokenize_ident :: fn() -> void {
     l :: tokenize("foo", "test.vader")
-    assert_eq(l.tokens.len(), usize(2)) // ident + eof
+    assert_eq(l.tokens.len(), 2) // ident + eof
     assert_eq(l.tokens[0].text, "foo")
 }
 
 @test test_tokenize_int :: fn() -> void {
     l :: tokenize("42", "test.vader")
-    assert_eq(l.tokens.len(), usize(2)) // int + eof
+    assert_eq(l.tokens.len(), 2) // int + eof
     assert_eq(l.tokens[0].text, "42")
 }
 
 @test test_tokenize_keyword :: fn() -> void {
     l :: tokenize("fn", "test.vader")
-    assert_eq(l.tokens.len(), usize(2)) // fn + eof
+    assert_eq(l.tokens.len(), 2) // fn + eof
     assert_eq(l.tokens[0].text, "fn")
 }
 
@@ -963,7 +963,7 @@ import "std/testing" { assert, assert_eq }
 
 @test test_tokenize_empty :: fn() -> void {
     l :: tokenize("", "test.vader")
-    assert_eq(l.tokens.len(), usize(1)) // just eof
+    assert_eq(l.tokens.len(), 1) // just eof
 }
 
 @test test_tokenize_arith :: fn() -> void {
@@ -979,7 +979,7 @@ import "std/testing" { assert, assert_eq }
 
 @test test_tokenize_no_errors_on_valid_source :: fn() -> void {
     l :: tokenize("fn foo() { return 42 }", "test.vader")
-    assert_eq(l.errors.len(), usize(0))
+    assert_eq(l.errors.len(), 0)
 }
 
 // ---- newline continuation (leading operators) ----------------------------
@@ -998,23 +998,23 @@ count_newlines :: fn(l: Lexer) -> usize {
     // A boolean condition split across lines with a leading `&&` is ONE
     // statement : the newline before each `&&` is absorbed, not a terminator.
     l :: tokenize("a == 1\n    && b == 2\n    && c == 3", "test.vader")
-    assert_eq(l.errors.len(), usize(0))
-    assert_eq(count_newlines(l), usize(0))
+    assert_eq(l.errors.len(), 0)
+    assert_eq(count_newlines(l), 0)
 }
 
 @test test_leading_oror_continues :: fn() -> void {
     l :: tokenize("a == 1\n    || b == 2", "test.vader")
-    assert_eq(count_newlines(l), usize(0))
+    assert_eq(count_newlines(l), 0)
 }
 
 @test test_leading_pipe_still_continues :: fn() -> void {
     // The pre-existing leading single-`|` type-union continuation is intact.
     l :: tokenize("T ::\n    | A\n    | B", "test.vader")
-    assert_eq(count_newlines(l), usize(0))
+    assert_eq(count_newlines(l), 0)
 }
 
 @test test_complete_lines_keep_newline :: fn() -> void {
     // Two complete statements stay separated : nothing suppresses the break.
     l :: tokenize("a = 1\nb = 2", "test.vader")
-    assert_eq(count_newlines(l), usize(1))
+    assert_eq(count_newlines(l), 1)
 }

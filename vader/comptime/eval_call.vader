@@ -38,7 +38,7 @@ export evaluate_call_expr :: fn(
     // → bucket_index's `h % BUCKET_COUNT` drops). Int→int casts preserve the
     // comptime value, so fold by passing the argument's IntValue through.
     if callee is AST.IdentExpr as cid {
-        if expr.args.len() == usize(1) && is_primitive_int_name(cid.name) {
+        if expr.args.len() == 1 && is_primitive_int_name(cid.name) {
             arg_result :: evaluate_expr(expr.args[0].value, context)
             if arg_result.value is null { return arg_result }
             av :: arg_result.value

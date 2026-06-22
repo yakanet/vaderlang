@@ -105,7 +105,7 @@ remap_jump_table :: fn(old_jt: i32[], old_to_new: i32[], new_len: usize) -> i32[
         // until we find one (or the end of the body). Mirrors what TS
         // does implicitly because its branch encoding is a stack depth
         // rather than an absolute PC.
-        new_pc_target := i32(-1)
+        new_pc_target: i32 = -1
         t: usize = usize(target)
         for t < old_to_new.len() {
             cand :: old_to_new[t]

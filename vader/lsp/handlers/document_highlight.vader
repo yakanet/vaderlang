@@ -80,11 +80,11 @@ main :: fn() -> i32 {
 """
     idx :: build_index("t.vader", src)
     // `add` : the decl name + two call sites = 3 identifier tokens.
-    assert_eq(ident_occurrences(idx, "add").len(), usize(3))
+    assert_eq(ident_occurrences(idx, "add").len(), 3)
 }
 
 @test
 test_ident_occurrences_none_for_unknown :: fn() -> void {
     idx :: build_index("t.vader", "x :: 1\n")
-    assert_eq(ident_occurrences(idx, "nonexistent").len(), usize(0))
+    assert_eq(ident_occurrences(idx, "nonexistent").len(), 0)
 }

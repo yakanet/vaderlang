@@ -250,7 +250,7 @@ parse_string :: fn(p: Parser) -> string | JsonError {
             p.pos = scan
             return parse_string_with_escapes(p, sb)
         }
-        scan += usize(1)
+        scan += 1
     }
     return fail(p, "unterminated string")
 }

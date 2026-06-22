@@ -21,13 +21,13 @@ export NodeIdFactory :: struct { next: usize }
 /// Build a fresh factory. IDs start at 1 — `0` is reserved for
 /// `UNASSIGNED_NODE_ID` so `node.id == 0` reliably detects un-walked nodes.
 export new_node_id_factory :: fn() -> NodeIdFactory {
-    return NodeIdFactory { .next = usize(1) }
+    return NodeIdFactory { .next = 1 }
 }
 
 /// Mint the next ID and advance the counter. Pure side-effect on `self`.
 export mint :: fn(self: NodeIdFactory) -> usize {
     id :: self.next
-    self.next = id + usize(1)
+    self.next = id + 1
     return id
 }
 
@@ -435,9 +435,9 @@ import "std/testing" { assert, assert_eq }
 @test
 test_mint_starts_at_one_and_increments :: fn() -> void {
     f :: new_node_id_factory()
-    assert_eq(f.mint(), usize(1))
-    assert_eq(f.mint(), usize(2))
-    assert_eq(f.mint(), usize(3))
+    assert_eq(f.mint(), 1)
+    assert_eq(f.mint(), 2)
+    assert_eq(f.mint(), 3)
 }
 
 @test

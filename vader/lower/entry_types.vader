@@ -180,14 +180,14 @@ import "vader/parser" { Visibility }
     typed :: empty_typed_program()
     subst :: new_substitution()
     symbol :: Symbol {
-        .id         = i32(11),
+        .id         = 11,
         .kind       = SymbolKind.TypeParam,
         .name       = "T",
         .module     = "test",
         .visibility = Visibility.Private,
         .defined_at = null,
     }
-    subst.type_params[i32(11)] = mk_primitive("string")
+    subst.type_params[11] = mk_primitive("string")
     view :: make_entry_types(typed, subst)
     rewritten :: apply(view, mk_array(mk_type_param(symbol), false))
     assert_eq(display_type(rewritten), "string[]")

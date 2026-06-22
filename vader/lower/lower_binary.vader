@@ -253,7 +253,7 @@ try_lower_op_overload :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> 
                 .op    = lower_binary_op(binary.op),
                 .left  = compare_call,
                 .right = LoweredIntLit {
-                    .span = binary.span, .type = mk_primitive("i32"), .value = i64(0),
+                    .span = binary.span, .type = mk_primitive("i32"), .value = 0,
                 },
             }
         }
@@ -296,7 +296,7 @@ lower_op_overload_via_vcall :: fn(
         .op    = lower_binary_op(binary.op),
         .left  = call,
         .right = LoweredIntLit {
-            .span = binary.span, .type = mk_primitive("i32"), .value = i64(0),
+            .span = binary.span, .type = mk_primitive("i32"), .value = 0,
         },
     }
 }

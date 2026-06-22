@@ -73,7 +73,7 @@ add :: fn(a: i32, b: i32) -> i32 { return a + b }
 Point :: struct { x: i32 }
 """
     result :: run_check(src)
-    assert_eq(result.typed.decl_types.len(), usize(2))
+    assert_eq(result.typed.decl_types.len(), 2)
 }
 
 @test
@@ -84,12 +84,12 @@ Point   :: struct { x: i32 }
 Point implements Display -> "point"
 """
     result :: run_check(src)
-    assert_eq(result.impls.all.len(), usize(1))
+    assert_eq(result.impls.all.len(), 1)
 }
 
 @test
 test_check_module_handles_empty_program :: fn() -> void {
     result :: run_check("")
-    assert_eq(result.typed.decl_types.len(), usize(0))
-    assert_eq(result.impls.all.len(), usize(0))
+    assert_eq(result.typed.decl_types.len(), 0)
+    assert_eq(result.impls.all.len(), 0)
 }

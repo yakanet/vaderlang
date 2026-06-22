@@ -216,7 +216,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
             cursor = cursor + width
             seen   = seen + 1
         }
-        return HostOk { .value = CharVal { .value = char(u32(0)) } }
+        return HostOk { .value = CharVal { .value = char(0) } }
     }
     if info.mangled_name == r"std_string$last_index_of" {
         s         :: read_string(stack[arg_base    ], at_pc, "last_index_of receiver")
@@ -297,7 +297,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     if info.mangled_name == r"std_math$floor" { return host_f64_unary(stack, arg_base, at_pc, "floor", (a) -> floor(a)) }
     if info.mangled_name == r"std_math$ceil"  { return host_f64_unary(stack, arg_base, at_pc, "ceil",  (a) -> ceil(a)) }
     if info.mangled_name == r"std_math$round" { return host_f64_unary(stack, arg_base, at_pc, "round", (a) -> round(a)) }
-    if info.mangled_name == r"std_math$abs"   { return host_f64_unary(stack, arg_base, at_pc, "abs", (a) -> if a < f64(0) { -a } else { a }) }
+    if info.mangled_name == r"std_math$abs"   { return host_f64_unary(stack, arg_base, at_pc, "abs", (a) -> if a < 0.0 { -a } else { a }) }
     if info.mangled_name == r"std_math$pow"   { return host_f64_binary(stack, arg_base, at_pc, "pow", (a, b) -> pow(a, b)) }
     if info.mangled_name == r"std_math$min"   { return host_f64_binary(stack, arg_base, at_pc, "min", (a, b) -> if a < b { a } else { b }) }
     if info.mangled_name == r"std_math$max"   { return host_f64_binary(stack, arg_base, at_pc, "max", (a, b) -> if a > b { a } else { b }) }

@@ -27,7 +27,7 @@ export dump_cfg_project :: fn(p: CFGProject, opts: DumpCfgOptions) -> string {
     sb.append("# CFG\n")
     for [_, m] in p.modules {
         if !module_in_scope(m.display_path, opts.scope) { continue }
-        if m.functions.len() == usize(0) && m.externs.len() == usize(0) && m.struct_decls.len() == usize(0) {
+        if m.functions.len() == 0 && m.externs.len() == 0 && m.struct_decls.len() == 0 {
             continue
         }
         sb.append("\n## ${m.display_path}\n")
@@ -36,7 +36,7 @@ export dump_cfg_project :: fn(p: CFGProject, opts: DumpCfgOptions) -> string {
             dump_function(fn_, sb)
         }
     }
-    if opts.include_strings && p.strings.len() > usize(0) {
+    if opts.include_strings && p.strings.len() > 0 {
         sb.append("\n## strings\n")
         for i in 0..<p.strings.len() {
             sb.append("  ${i}: \"${p.strings[i]}\"\n")
@@ -82,7 +82,7 @@ dump_instr :: fn(ins: Instruction) -> string {
         is InstrCallIndirect as i -> { return "${dump_dst(i.dst)}call_indirect %${i.callee}(${dump_args(i.args)}) :${display_type(i.type)}" }
         is InstrFnRef        as i -> { return "%${i.dst} = fn_ref ${i.fn_symbol.name} :${display_type(i.type)}" }
         is InstrVirtualCall  as i -> {
-            extra :: if i.args.len() > usize(0) { ", ${dump_args(i.args)}" } else { "" }
+            extra :: if i.args.len() > 0 { ", ${dump_args(i.args)}" } else { "" }
             return "${dump_dst(i.dst)}vcall ${i.trait_name}.${i.method}(recv=%${i.receiver}${extra}) :${display_type(i.type)}"
         }
         is InstrFieldGet     as i -> { return "%${i.dst} = field_get %${i.target}.${i.field} :${display_type(i.type)}" }

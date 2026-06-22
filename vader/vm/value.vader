@@ -46,7 +46,7 @@ export zero_value :: fn() -> Value { return I32Val { .value = 0 } }
 export string_array_to_value :: fn(items: string[], type_id: i32) -> ArrayVal {
     elements: Value[] = []
     for s in items { elements.push(StringVal { .value = s }) }
-    return ArrayVal { .type_id = type_id, .elements = elements, .offset = usize(0), .length = elements.len() }
+    return ArrayVal { .type_id = type_id, .elements = elements, .offset = 0, .length = elements.len() }
 }
 
 /// Box a string's UTF-8 bytes as an `ArrayVal` of `u8` values — the VM's
@@ -63,7 +63,7 @@ export string_array_to_value :: fn(items: string[], type_id: i32) -> ArrayVal {
 export bytes_to_value :: fn(s: string, type_id: i32) -> ArrayVal {
     elements: Value[] = []
     for b in s.bytes() { elements.push(I32Val { .value = i32(b) }) }
-    return ArrayVal { .type_id = type_id, .elements = elements, .offset = usize(0), .length = elements.len() }
+    return ArrayVal { .type_id = type_id, .elements = elements, .offset = 0, .length = elements.len() }
 }
 
 /// Locate the module's `string[]` `ArrayType` index — the type id a
@@ -291,7 +291,7 @@ export describe_obj :: fn(o: ObjVal) -> string = "<obj#${o.handle} type=${o.type
 /// shared with another `ArrayVal`. Used by `array.push` to decide
 /// whether to detach into a fresh buffer before extending.
 export is_array_view :: fn(a: ArrayVal) -> bool {
-    return a.offset != usize(0) || a.offset + a.length < a.elements.len()
+    return a.offset != 0 || a.offset + a.length < a.elements.len()
 }
 
 /// Unwrap a `BoolVal` from a `Value`. Used by the boolean op arms.

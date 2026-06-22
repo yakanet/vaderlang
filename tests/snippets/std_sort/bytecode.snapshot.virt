@@ -1194,7 +1194,7 @@ fn 14 std_iter$std_iter$clone__i32 (ref) -> ref
   local out ref
   local i usize
   local $idx_8 i32
-  local $cast_10 usize
+  local $k_9 usize
   local.get 0
   array.len
   local.set 1
@@ -1235,7 +1235,7 @@ fn 15 std_iter$std_iter$clone__string (ref) -> ref
   local out ref
   local i usize
   local $idx_8 string
-  local $cast_10 usize
+  local $k_9 usize
   local.get 0
   array.len
   local.set 1

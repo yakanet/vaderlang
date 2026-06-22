@@ -614,7 +614,7 @@ strip_mangled_tail :: fn(mangled: string) -> string {
         }
         i += 1
     }
-    if last_double_underscore < isize(0) { return mangled }
+    if last_double_underscore < 0 { return mangled }
     return mb[0..<usize(last_double_underscore)].bytes_to_string()
 }
 
@@ -660,7 +660,7 @@ no_decls_callback :: fn(module_id: string) -> Decl[] | null {
     mono :: new_mono_project()
     project :: new_typed_project()
     result :: erasure_dedupe(mono, project, no_decls_callback)
-    assert_eq(result.entries.len(), usize(0))
+    assert_eq(result.entries.len(), 0)
 }
 
 import "vader/typecheck" { new_typed_project }

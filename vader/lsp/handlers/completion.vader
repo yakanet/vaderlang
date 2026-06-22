@@ -62,8 +62,8 @@ export handle_completion :: fn(state: ServerState, params: JsonValue) -> JsonVal
 
             // Tier 1 : in-scope identifiers + keywords. LSP positions are
             // 0-based ; the indexer's spans are 1-based.
-            line :: line0 + i32(1)
-            col  :: char0 + i32(1)
+            line :: line0 + 1
+            col  :: char0 + 1
 
             items: JsonValue[] = []
             seen :: MutableMap<string, bool> {}
@@ -165,7 +165,7 @@ member_context :: fn(source: string, line0: i32, char0: i32) -> i32 | null {
     if sb[i - 1] != '.' { return null }
     dot_off :: i - 1
     ls :: line_start_offset(source, dot_off)
-    return i32(dot_off - ls) + i32(1)
+    return i32(dot_off - ls) + 1
 }
 
 is_ident_byte :: fn(c: u8) -> bool {
@@ -189,7 +189,7 @@ member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i3
     sf :: source_file_for_path(entry.module.files, file_path)
     if sf is null { return completion_list([]) }
 
-    recv :: find_expr_at(sf.program.decls, line0 + i32(1), dot_col - i32(1), cached.result.typed)
+    recv :: find_expr_at(sf.program.decls, line0 + 1, dot_col - 1, cached.result.typed)
     if recv == null { return completion_list([]) }
     recv_type :: cached.result.typed.expr_types[recv.id]
     if recv_type == null { return completion_list([]) }
@@ -388,7 +388,7 @@ test_member_context_detects_dot :: fn() -> void {
     // "p.x" — cursor after `x` (0-based char 3) ; the `.` sits at 1-based col 2.
     dc :: member_context("p.x", 0, 3)
     if dc == null { assert(false, "expected member context after a dot") }
-    else { assert_eq(dc, i32(2)) }
+    else { assert_eq(dc, 2) }
 }
 
 @test
@@ -396,7 +396,7 @@ test_member_context_detects_dot_no_partial :: fn() -> void {
     // "p." — cursor right after the dot (char 2). Dot at 1-based col 2.
     dc :: member_context("p.", 0, 2)
     if dc == null { assert(false, "trailing dot is a member context") }
-    else { assert_eq(dc, i32(2)) }
+    else { assert_eq(dc, 2) }
 }
 
 @test

@@ -337,7 +337,7 @@ import "vader/resolver/symbol" { new_factory, SymbolFactory }
     evaluated :: new_evaluated_project(typed)
     diags: Diagnostic[] = []
     project :: lower_project(loaded, typed, evaluated, diags)
-    assert_eq(project.modules.len(), usize(0))
+    assert_eq(project.modules.len(), 0)
 }
 
 factory_for_test :: fn() -> SymbolFactory { return new_factory() }

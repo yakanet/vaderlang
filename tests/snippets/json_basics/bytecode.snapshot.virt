@@ -7124,7 +7124,7 @@ fn 32 std_json$parse_string (ref) -> ref
   local $add_19 usize
   local $k_23 u8
   local $call_29 string
-  local $cast_32 usize
+  local $k_31 usize
   local.get 0
   char.const 34
   call 43
@@ -8778,8 +8778,8 @@ fn 47 std_string$decode_char_at (ref,usize) -> char
   local $k_6 u8
   local $k_17 usize
   local $cast_25 u32
-  local $cast_27 u32
-  local $cast_33 u32
+  local $k_26 u32
+  local $k_31 u32
   local b2 u8
   local b3 u8
   local.get 0
@@ -9072,8 +9072,8 @@ end
 
 fn 48 std_string$chars (string) -> ref
   local bs ref
-  local $cast_4 usize
-  local $len_5 usize
+  local $k_3 usize
+  local $len_4 usize
   local.get 0
   call.import 1
   local.set 1
@@ -9136,7 +9136,7 @@ end
 
 fn 50 std_string$codepoint_byte_len (char) -> usize
   local cp u32
-  local $cast_4 u32
+  local $k_3 u32
   local.get 0
   char.to_i32
   local.set 1
@@ -10466,7 +10466,7 @@ end
 fn 76 std_numbers$hex_digit_value (char) -> i32
   local and_res bool
   local $cast_7 u32
-  local $cast_9 u32
+  local $k_8 u32
   char.const 48
   local.get 0
   i32.le
@@ -10560,9 +10560,9 @@ fn 76 std_numbers$hex_digit_value (char) -> i32
 end
 
 fn 77 std_numbers$hex_digit (u64) -> char
-  local $cast_2 u64
-  local $cast_5 u32
-  local $cast_6 u32
+  local $k_1 u64
+  local $k_3 u32
+  local $cast_4 u32
   i64.const 9
   local.set 1
   local.get 0

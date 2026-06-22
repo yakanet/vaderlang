@@ -188,8 +188,8 @@ try_typed_hover :: fn(self: ServerState, uri: string, line: i32, character: i32)
     sf :: source_file_for_path(entry.module.files, file_path)
     if sf is null { return null }
     // LSP positions are 0-based ; the Vader AST is 1-based.
-    target_line :: line + i32(1)
-    target_col  :: character + i32(1)
+    target_line :: line + 1
+    target_col  :: character + 1
     // Binding-name hover first : when the cursor sits on a `let` /
     // `::` binding name, show the RHS's inferred type instead of the
     // (often `?` placeholder) declared type. Useful when the user

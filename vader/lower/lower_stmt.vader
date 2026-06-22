@@ -71,7 +71,7 @@ export lower_block :: fn(
     // Pop the BlockCtx — mirror TS by maintaining the stack depth
     // invariant so nested blocks see only their own defers.
     new_blocks: BlockCtx[] = []
-    i := usize(0)
+    i: usize = 0
     for i < entry_depth {
         new_blocks.push(ctx.blocks[i])
         i = i + 1
@@ -244,7 +244,7 @@ lower_let_into :: fn(ctx: FnLowerCtx, let_stmt: LetStmt, out: LoweredStmt[]) -> 
 /// @return          the resolver-minted symbol, or `null` if absent.
 synth_unused_local :: fn(ctx: FnLowerCtx, name: string) -> Symbol {
     next_id :: ctx.project.next_synthetic_id
-    ctx.project.next_synthetic_id = next_id - i32(1)
+    ctx.project.next_synthetic_id = next_id - 1
     return Symbol {
         .id         = next_id,
         .kind       = SymbolKind.Local,
@@ -358,7 +358,7 @@ drain_all_defers :: fn(ctx: FnLowerCtx, span: Span, out: LoweredStmt[]) -> void 
 // scope, not the fn.
 drain_defers_to_loop :: fn(ctx: FnLowerCtx, span: Span, out: LoweredStmt[]) -> void {
     total: i32 = 0
-    i := i64(ctx.blocks.len()) - i64(1)
+    i := i64(ctx.blocks.len()) - 1
     for i >= 0 {
         b :: ctx.blocks[usize(i)]
         total += i32(b.defers.len())

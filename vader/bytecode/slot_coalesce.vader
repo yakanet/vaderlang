@@ -61,7 +61,7 @@ export coalesce_slots :: fn(function: BcFunction) -> BcFunction {
     // Pass 1 — per-slot first/last touch.
     ranges: SlotRange[] = []
     has_range: bool[] = []
-    s := usize(0)
+    s: usize = 0
     for s < total_slots {
         ranges.push(SlotRange { .first = -1, .last = -1 })
         has_range.push(false)
@@ -85,7 +85,7 @@ export coalesce_slots :: fn(function: BcFunction) -> BcFunction {
     // Pass 1b — extend ranges through loop bodies. Iterate to fixpoint
     // so nested / sibling loops settle.
     loops :: find_loop_ranges(body)
-    if loops.len() > usize(0) {
+    if loops.len() > 0 {
         changed := true
         for changed {
             changed = extend_into_loops(ranges, has_range, total_slots, loops)
@@ -209,7 +209,7 @@ extend_into_loops :: fn(
     ranges: SlotRange[], has_range: bool[], total_slots: usize, loops: SlotRange[],
 ) -> bool {
     changed := false
-    s := usize(0)
+    s: usize = 0
     for s < total_slots {
         if has_range[s] {
             r := ranges[s]
@@ -242,7 +242,7 @@ find_loop_ranges :: fn(body: Op[]) -> SlotRange[] {
         else if op is Loop { push_scope(kinds, starts, sp, "loop", i32(pc))  sp = sp + 1 }
         else if op is If   { push_scope(kinds, starts, sp, "if",   i32(pc))  sp = sp + 1 }
         else if op is End  {
-            if sp > usize(0) {
+            if sp > 0 {
                 sp = sp - 1
                 if kinds[sp] == "loop" {
                     out.push(SlotRange { .first = starts[sp], .last = i32(pc) })

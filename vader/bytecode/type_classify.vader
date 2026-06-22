@@ -73,7 +73,7 @@ symbol_key :: fn(sym: Symbol) -> string = match sym.defined_at {
 type_key_join :: fn(args: Type[], sep: string) -> string {
     out := ""
     for i in 0..<args.len() {
-        prefix :: if i > usize(0) { sep } else { "" }
+        prefix :: if i > 0 { sep } else { "" }
         out = "${out}${prefix}${type_intern_key(args[i])}"
     }
     return out
@@ -182,7 +182,7 @@ export bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx, slot_index: i32) -> B
             return BcStruct {
                 .name      = "__Tuple_${slot_index}",
                 .fields    = fields,
-                .symbol_id = i32(-1),
+                .symbol_id = -1,
             }
         }
         // No first-class bytecode shape — opaque `ref`. Listed explicitly
@@ -248,7 +248,7 @@ import "vader/diagnostics" { Position, Span }
 @test test_type_of_int_literal :: fn() -> void {
     p :: Position { .file = "<test>", .offset = 0, .line = 1, .column = 1 }
     sp :: Span { .start = p, .end = p }
-    lit :: LoweredIntLit { .span = sp, .type = mk_primitive("i32"), .value = i64(42) }
+    lit :: LoweredIntLit { .span = sp, .type = mk_primitive("i32"), .value = 42 }
     t :: type_of(lit)
     match t {
         is PrimitiveType as prim -> assert_eq(prim.name, "i32")

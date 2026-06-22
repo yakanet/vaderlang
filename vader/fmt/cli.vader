@@ -106,7 +106,7 @@ export run_fmt :: fn(args: string[]) -> i32 {
 
     // `--stdout` is single-file only.
     if opts.mode == Mode.Stdout {
-        if opts.paths.len() != usize(1) {
+        if opts.paths.len() != 1 {
             eprintln("vader fmt: --stdout requires exactly one file path")
             return i32(FileResult.Drift)
         }

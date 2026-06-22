@@ -95,10 +95,10 @@ format_message :: fn(d: Diagnostic) -> string {
 /// 4=Hint per LSP §3.17 DiagnosticSeverity). Our enum already lays out
 /// in this order ; the explicit match keeps the mapping intentional.
 lsp_severity :: fn(s: Severity) -> i32 = match s {
-    .Error   -> i32(1)
-    .Warning -> i32(2)
-    .Info    -> i32(3)
-    .Hint    -> i32(4)
+    .Error   -> 1
+    .Warning -> 2
+    .Info    -> 3
+    .Hint    -> 4
 }
 
 // ---- tests ----------------------------------------------------------------
@@ -106,8 +106,8 @@ lsp_severity :: fn(s: Severity) -> i32 = match s {
 import "std/testing" { assert_eq }
 
 @test test_lsp_diag_tag :: fn() -> void {
-    assert_eq(lsp_diag_tag("W0007"), i32(1))   // dead code → Unnecessary (faded)
-    assert_eq(lsp_diag_tag("W0001"), i32(2))   // deprecated → Deprecated (struck)
-    assert_eq(lsp_diag_tag("T3054"), i32(0))   // ordinary error → no tag
-    assert_eq(lsp_diag_tag("W0004"), i32(0))   // ordinary warning → no tag
+    assert_eq(lsp_diag_tag("W0007"), 1)   // dead code → Unnecessary (faded)
+    assert_eq(lsp_diag_tag("W0001"), 2)   // deprecated → Deprecated (struck)
+    assert_eq(lsp_diag_tag("T3054"), 0)   // ordinary error → no tag
+    assert_eq(lsp_diag_tag("W0004"), 0)   // ordinary warning → no tag
 }

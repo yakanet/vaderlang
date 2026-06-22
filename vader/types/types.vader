@@ -323,7 +323,7 @@ export canonical_key :: fn(t: Type) -> string {
 /// Compose an arg-list canonical key — used as the inner key in
 /// mono-instance DCE and impl-method indexing.
 export canonical_args_key :: fn(args: Type[]) -> string {
-    if args.len() == usize(0) { return "" }
+    if args.len() == 0 { return "" }
     sb :: new_builder()
     first := true
     for a in args {

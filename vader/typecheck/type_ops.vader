@@ -305,7 +305,7 @@ test_union_of_dedup :: fn() -> void {
     // A | B | A should collapse to A | B
     u :: union_of([i32_t, str_t, i32_t])
     match u {
-        is UnionType as un -> { assert_eq(un.variants.len(), usize(2)) }
+        is UnionType as un -> { assert_eq(un.variants.len(), 2) }
         _ -> { assert(false, "expected a Union after dedup") }
     }
 }
@@ -330,7 +330,7 @@ test_union_of_flattens :: fn() -> void {
     inner :: mk_union([i32_t, str_t])
     u :: union_of([inner, bool_t])
     match u {
-        is UnionType as un -> { assert_eq(un.variants.len(), usize(3)) }
+        is UnionType as un -> { assert_eq(un.variants.len(), 3) }
         _ -> { assert(false, "flattened union should have 3 variants") }
     }
 }

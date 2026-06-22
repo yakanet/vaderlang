@@ -25,9 +25,9 @@ fn 1 std_string$trim (string) -> string
   local n usize
   local lo usize
   local and_res bool
-  local $k_13 usize
-  local $sub_19 usize
-  local $k_23 usize
+  local $k_12 usize
+  local $sub_18 usize
+  local $k_22 usize
   local.get 0
   call.import 1
   local.tee 1

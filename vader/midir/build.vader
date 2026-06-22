@@ -198,10 +198,10 @@ fn_metadata :: fn(d: LoweredFnDecl) -> FnMetadata {
 extern_symbol_name :: fn(fn_decl: FnDecl) -> string {
     for dec in fn_decl.decorators {
         if dec.name != "extern" { continue }
-        if dec.args.len() < usize(2) { continue }
-        last :: dec.args[dec.args.len() - usize(1)]
+        if dec.args.len() < 2 { continue }
+        last :: dec.args[dec.args.len() - 1]
         if last is StringLitExpr as s {
-            if s.parts.len() == usize(1) {
+            if s.parts.len() == 1 {
                 if s.parts[0] is StringLitText as t { return t.value }
             }
         }
@@ -237,7 +237,7 @@ make_extern_decl :: fn(d: LoweredFnDecl) -> CFGExternDecl {
         params.push(CFGParam {
             .name = p.name, .symbol = p.symbol, .type = p.type, .local = i32(i),
         })
-        i += usize(1)
+        i += 1
     }
     return CFGExternDecl {
         .mangled     = d.mangled,
@@ -487,10 +487,10 @@ build_loop :: fn(fn_ctx: FnCtx, s: LoweredLoop) -> void {
     }
     // pop loop frame
     new_stack: LoopFrame[] = []
-    i := usize(0)
-    for i < fn_ctx.loop_stack.len() - usize(1) {
+    i: usize = 0
+    for i < fn_ctx.loop_stack.len() - 1 {
         new_stack.push(fn_ctx.loop_stack[i])
-        i += usize(1)
+        i += 1
     }
     fn_ctx.loop_stack = new_stack
 
@@ -499,14 +499,14 @@ build_loop :: fn(fn_ctx: FnCtx, s: LoweredLoop) -> void {
 
 resolve_loop_frame :: fn(fn_ctx: FnCtx, label: string | null) -> LoopFrame | null {
     if label is null {
-        if fn_ctx.loop_stack.len() == usize(0) { return null }
-        return fn_ctx.loop_stack[fn_ctx.loop_stack.len() - usize(1)]
+        if fn_ctx.loop_stack.len() == 0 { return null }
+        return fn_ctx.loop_stack[fn_ctx.loop_stack.len() - 1]
     }
     // Extract the non-null label once — the c-emit's `string | null`
     // comparison currently mis-boxes when crossing a field vs a param
     // boundary ; comparing two `string` locals is unambiguous.
     needle :: label
-    i := i64(fn_ctx.loop_stack.len()) - i64(1)
+    i := i64(fn_ctx.loop_stack.len()) - 1
     for i >= 0 {
         frame :: fn_ctx.loop_stack[usize(i)]
         if frame.label !is null {

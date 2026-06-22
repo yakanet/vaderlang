@@ -310,16 +310,16 @@ export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedPr
         .comptime_value_by_symbol_id = MutableMap<i32, ComptimeValue> {},
         .local_symbol_indices = MutableMap<string, MutableMap<u64, Symbol>> {},
         .closures            = new_closure_analysis(),
-        .next_mono_entry_id  = i32(1_000_000),
+        .next_mono_entry_id  = 1_000_000,
         .fn_instances        = MutableMap<string, GenericFnInstance> {},
         .fn_instances_order  = [],
         .seen_mangled        = MutableMap<string, bool> {},
         .nongeneric_imported_fns   = MutableMap<i32, bool> {},
         .nongeneric_imported_order = [],
-        .nongeneric_imported_cursor = usize(0),
+        .nongeneric_imported_cursor = 0,
         .nongeneric_imported_consts       = MutableMap<i32, bool> {},
         .nongeneric_imported_const_order  = [],
-        .nongeneric_imported_const_cursor = usize(0),
+        .nongeneric_imported_const_cursor = 0,
         .materialized_impl_keys = MutableSet<string> {},
         .referenced_impl_mangles = MutableSet<string> {},
         .virtually_dispatched_traits = MutableSet<string> {},
@@ -332,7 +332,7 @@ export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedPr
         .generic_fn_cursor   = 0,
         .generic_recv_cursor = 0,
         .synth_decls         = [],
-        .next_synthetic_id   = i32(-1),
+        .next_synthetic_id   = -1,
         .diags               = [],
     }
 }
@@ -445,7 +445,7 @@ export new_fn_lower_ctx :: fn(
         .return_type       = return_type,
         .self_type         = self_type,
         .blocks            = [],
-        .uniq              = i32(0),
+        .uniq              = 0,
         .lifted_context    = null,
         .comptime_bindings = MutableMap<i32, LoweredExpr> {},
     }
@@ -461,21 +461,21 @@ import "vader/resolver" { empty_loaded_project }
 @test test_new_lower_project_ctx_is_empty :: fn() -> void {
     evaluated :: new_evaluated_project(new_typed_project())
     project :: new_lower_project_ctx(evaluated, empty_loaded_project(), new_typed_project())
-    assert_eq(project.core_symbols.len(), usize(0))
-    assert_eq(project.synth_decls.len(), usize(0))
-    assert_eq(project.next_synthetic_id, i32(-1))
-    assert_eq(project.diags.len(), usize(0))
+    assert_eq(project.core_symbols.len(), 0)
+    assert_eq(project.synth_decls.len(), 0)
+    assert_eq(project.next_synthetic_id, -1)
+    assert_eq(project.diags.len(), 0)
 }
 
 @test test_new_closure_analysis_is_empty :: fn() -> void {
     analysis :: new_closure_analysis()
-    assert_eq(analysis.captured_symbols.len(), usize(0))
-    assert_eq(analysis.lambda_captures.len(), usize(0))
+    assert_eq(analysis.captured_symbols.len(), 0)
+    assert_eq(analysis.lambda_captures.len(), 0)
 }
 
 @test test_new_block_ctx_sets_flags :: fn() -> void {
     block :: new_block_ctx(true, false)
     assert(block.is_fn_root, "expected is_fn_root to be true")
     assert(!block.is_loop_body, "expected is_loop_body to be false")
-    assert_eq(block.defers.len(), usize(0))
+    assert_eq(block.defers.len(), 0)
 }

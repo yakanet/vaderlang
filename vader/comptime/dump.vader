@@ -49,7 +49,7 @@ export dump_evaluated :: fn(project: EvaluatedProject, scope: string[]) -> strin
             sb.append(line)
         }
     }
-    if project.instances.len() > usize(0) {
+    if project.instances.len() > 0 {
         sb.append_char('\n')
         sb.append_char('\n')
         sb.append("## generic instances")
@@ -70,7 +70,7 @@ format_module_entries :: fn(module_program: EvaluatedProgram) -> string[] {
     for [symbol_id, value] in module_program.comptime_decls {
         name :: lookup_comptime_decl_name(typed, symbol_id)
         if name == "" { continue }
-        entries.push("  @comptime  ${pad_end(name, usize(20), ' ')} = ${display_value(value)}")
+        entries.push("  @comptime  ${pad_end(name, 20, ' ')} = ${display_value(value)}")
     }
     return sort(entries, (a: string, b: string) -> compare_ascending(a, b))
 }

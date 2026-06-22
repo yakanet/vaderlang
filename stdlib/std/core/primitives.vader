@@ -261,7 +261,7 @@ u16   implements Step -> self + 1
 u32   implements Step -> self + 1
 u64   implements Step -> self + 1
 usize implements Step -> self + 1
-char  implements Step -> char(u32(self) + u32(1))
+char  implements Step -> char(u32(self) + 1)
 
 // ---- Numeric arithmetic ---------------------------------------------------
 //

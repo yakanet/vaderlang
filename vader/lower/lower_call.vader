@@ -331,7 +331,7 @@ resolve_namespace_member :: fn(ctx: FnLowerCtx, namespace_symbol: Symbol, name: 
         }
     }
     return Symbol {
-        .id         = i32(0),
+        .id         = 0,
         .kind       = SymbolKind.Fn,
         .name       = name,
         .module     = ctx.typed.resolved.path,

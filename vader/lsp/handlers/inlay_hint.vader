@@ -161,8 +161,8 @@ collect_from_expr :: fn(e: AST.Expr, typed: TypedProgram, out: JsonValue[]) -> v
 /// column `- 2`, i.e. 0-based column `value.column - 3` — exactly where the hint
 /// must insert to land between the two operator chars.
 emit_operator_hint :: fn(value_span: Span, label: string, out: JsonValue[]) -> void {
-    line :: value_span.start.line - i32(1)
-    col  :: value_span.start.column - i32(3)
+    line :: value_span.start.line - 1
+    col  :: value_span.start.column - 3
     out.push(build_hint(line, col, label))
 }
 
@@ -215,7 +215,7 @@ build_hint :: fn(line: i32, character: i32, label: string) -> JsonValue {
     hint["position"]     = JsonObject { .entries = position }
     hint["label"]        = JsonString { .value = label }
     // InlayHintKind.Type = 1 (LSP §3.17.21).
-    hint["kind"]         = JsonNumber { .value = f64(1) }
+    hint["kind"]         = JsonNumber { .value = 1.0 }
     // The hint nests between the two operator chars (`:<type>:` / `:<type>=`),
     // so it must hug them with no padding on either side.
     hint["paddingLeft"]  = JsonBool { .value = false }

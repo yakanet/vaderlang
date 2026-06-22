@@ -190,7 +190,7 @@ build_ufcs_member :: fn(ctx: FnLowerCtx, target_type: Type, target_name: string,
     }
     return UfcsMember {
         .symbol = Symbol {
-            .id         = i32(0),
+            .id         = 0,
             .kind       = SymbolKind.Fn,
             .name       = mangled,
             .module     = ctx.typed.resolved.path,
@@ -263,7 +263,7 @@ impl_targets_name :: fn(for_type: Expr, name: string) -> bool {
 /// through `tryInto` ; we emit the lowered arg verbatim. Mirror of
 /// `lowerCall`'s cast branch in `src/lower/passes/expr.ts:62-83`.
 try_lower_cast_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
-    if call.args.len() != usize(1) { return null }
+    if call.args.len() != 1 { return null }
     callee_ident :: as_ident(call.callee)
     if callee_ident is null { return null }
     callee_symbol :: ctx.typed.resolved.idents[callee_ident.span.hash()]
@@ -307,7 +307,7 @@ mk_into_call :: fn(
         .callee = LoweredIdent {
             .span = span, .type = result_type,
             .symbol = Symbol {
-                .id = i32(0), .kind = SymbolKind.Fn, .name = callee_name,
+                .id = 0, .kind = SymbolKind.Fn, .name = callee_name,
                 .module = callee_module,
                 .visibility = Visibility.Private, .defined_at = null,
             },
@@ -336,7 +336,7 @@ try_array_iter_coercion :: fn(
     if arg_type is ArrayType as arr {
         if target_type is TraitType as tt {
             if tt.symbol.name != "Iterator" { return null }
-            if tt.args.len() != usize(1) { return null }
+            if tt.args.len() != 1 { return null }
             // Guard : the blanket wraps into `ArrayIterator<element>` — bail if
             // std/core's struct isn't loaded (nothing to materialise).
             wrapped :: find_core_type(ctx, STRUCT_ARRAY_ITERATOR, [arr.element])

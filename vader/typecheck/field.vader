@@ -121,7 +121,7 @@ try_typeparam_bound_method :: fn(
     // Attribute the dispatch to the enclosing fn so the lowerer keeps its
     // generic instances concrete (no Any-erasure) — see `fn_trait_dispatches`.
     if typed.current_fn_ctx is FnContext as fctx {
-        if fctx.fn_id != usize(0) { typed.fn_trait_dispatches[fctx.fn_id] = true }
+        if fctx.fn_id != 0 { typed.fn_trait_dispatches[fctx.fn_id] = true }
     }
     tm :: dispatch_bounded_method(bound, e.field, typed)
     if tm is null { return null }
@@ -886,7 +886,7 @@ get_x :: fn(p: Point) -> i32 { return p.x }
         is AST.FieldExpr as f -> {
             diags: Diagnostic[] = []
             assert_eq(display_type(infer_field(f, fx.typed, diags, field_check_stub)), "i32")
-            assert_eq(diags.len(), usize(0))
+            assert_eq(diags.len(), 0)
         }
     }
 }

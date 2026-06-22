@@ -360,7 +360,7 @@ export StampCtx :: struct { base_line: i32, counter: i32, file: string }
 export next_clone_span :: fn(stamp: StampCtx) -> Span {
     col :: stamp.counter
     stamp.counter = stamp.counter + 1
-    pos :: Position { .file = stamp.file, .offset = usize(0), .line = stamp.base_line, .column = col }
+    pos :: Position { .file = stamp.file, .offset = 0, .line = stamp.base_line, .column = col }
     return Span { .start = pos, .end = pos }
 }
 

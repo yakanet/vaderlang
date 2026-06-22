@@ -200,7 +200,7 @@ oi_group :: fn(path: string) -> i32 {
 oi_render_destructure :: fn(path: string, names: AST.ImportName[]) -> string {
     texts :: oi_sorted_name_texts(names)
     single :: "import \"" + path + "\" { " + texts.join(", ") + " }"
-    if single.bytes().len() <= usize(100) { return single }
+    if single.bytes().len() <= 100 { return single }
     body := "import \"" + path + "\" {"
     for i in 0..<texts.len() { body = body + "\n    " + texts[i] + "," }
     return body + "\n}"

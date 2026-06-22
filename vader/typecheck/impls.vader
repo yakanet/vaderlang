@@ -118,7 +118,7 @@ collect_impl :: fn(
 /// (`Wrapper<i32> implements …`) resolve their for-type args to non-
 /// TypeParam symbols and return false.
 impl_is_generic :: fn(impl_: ImplDecl, resolved: ResolvedModule) -> bool {
-    if impl_.type_params.len() > usize(0) { return true }
+    if impl_.type_params.len() > 0 { return true }
     match impl_.for_type {
         is GenericInstExpr as gi -> {
             for ta in gi.type_args {
@@ -218,7 +218,7 @@ Point   :: struct { x: i32 }
 Point implements Display -> "point"
 """
     reg :: build_test_registry(src)
-    assert_eq(reg.all.len(), usize(1))
+    assert_eq(reg.all.len(), 1)
 }
 
 @test
@@ -254,7 +254,7 @@ test_registry_empty_when_no_impls :: fn() -> void {
 add :: fn(a: i32, b: i32) -> i32 { return a + b }
 """
     reg :: build_test_registry(src)
-    assert_eq(reg.all.len(), usize(0))
+    assert_eq(reg.all.len(), 0)
 }
 
 lookup_named :: fn(rm: ResolvedModule, name: string) -> Symbol | null {

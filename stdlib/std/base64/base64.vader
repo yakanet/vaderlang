@@ -27,29 +27,29 @@ export encode :: fn(input: const u8[]) -> string {
         b0 :: u32(bs[i])
         b1 :: u32(bs[i + 1])
         b2 :: u32(bs[i + 2])
-        triple :: (b0 << u32(16)) | (b1 << u32(8)) | b2
-        sb.append_char(ALPHABET[usize((triple >> u32(18)) & u32(0x3F))])
-        sb.append_char(ALPHABET[usize((triple >> u32(12)) & u32(0x3F))])
-        sb.append_char(ALPHABET[usize((triple >> u32(6))  & u32(0x3F))])
-        sb.append_char(ALPHABET[usize(triple & u32(0x3F))])
+        triple :: (b0 << 16) | (b1 << 8) | b2
+        sb.append_char(ALPHABET[usize((triple >> 18) & 0x3F)])
+        sb.append_char(ALPHABET[usize((triple >> 12) & 0x3F)])
+        sb.append_char(ALPHABET[usize((triple >> 6)  & 0x3F)])
+        sb.append_char(ALPHABET[usize(triple & 0x3F)])
         i = i + 3
     }
     // Tail : 1 or 2 leftover bytes need padding.
     remainder :: n - i
     if remainder == 1 {
         b0 :: u32(bs[i])
-        triple :: b0 << u32(16)
-        sb.append_char(ALPHABET[usize((triple >> u32(18)) & u32(0x3F))])
-        sb.append_char(ALPHABET[usize((triple >> u32(12)) & u32(0x3F))])
+        triple :: b0 << 16
+        sb.append_char(ALPHABET[usize((triple >> 18) & 0x3F)])
+        sb.append_char(ALPHABET[usize((triple >> 12) & 0x3F)])
         sb.append_char('=')
         sb.append_char('=')
     } else if remainder == 2 {
         b0 :: u32(bs[i])
         b1 :: u32(bs[i + 1])
-        triple :: (b0 << u32(16)) | (b1 << u32(8))
-        sb.append_char(ALPHABET[usize((triple >> u32(18)) & u32(0x3F))])
-        sb.append_char(ALPHABET[usize((triple >> u32(12)) & u32(0x3F))])
-        sb.append_char(ALPHABET[usize((triple >> u32(6))  & u32(0x3F))])
+        triple :: (b0 << 16) | (b1 << 8)
+        sb.append_char(ALPHABET[usize((triple >> 18) & 0x3F)])
+        sb.append_char(ALPHABET[usize((triple >> 12) & 0x3F)])
+        sb.append_char(ALPHABET[usize((triple >> 6)  & 0x3F)])
         sb.append_char('=')
     }
     return sb.to_string()
@@ -118,10 +118,10 @@ export decode :: fn(input: string) -> u8[] | Base64Error {
         if v0 < 0 || v1 < 0 || v2 < 0 || v3 < 0 {
             return Base64Error { .msg = "base64: invalid character at offset ${i}" }
         }
-        triple :: (u32(v0) << u32(18)) | (u32(v1) << u32(12)) | (u32(v2) << u32(6)) | u32(v3)
-        out.push(u8((triple >> u32(16)) & u32(0xFF)))
-        out.push(u8((triple >> u32(8))  & u32(0xFF)))
-        out.push(u8(triple & u32(0xFF)))
+        triple :: (u32(v0) << 18) | (u32(v1) << 12) | (u32(v2) << 6) | u32(v3)
+        out.push(u8((triple >> 16) & 0xFF))
+        out.push(u8((triple >> 8)  & 0xFF))
+        out.push(u8(triple & 0xFF))
         i = i + 4
     }
 
@@ -131,24 +131,24 @@ export decode :: fn(input: string) -> u8[] | Base64Error {
     if v0 < 0 || v1 < 0 {
         return Base64Error { .msg = "base64: invalid character in final quad" }
     }
-    triple_lead :: (u32(v0) << u32(18)) | (u32(v1) << u32(12))
-    out.push(u8((triple_lead >> u32(16)) & u32(0xFF)))
+    triple_lead :: (u32(v0) << 18) | (u32(v1) << 12)
+    out.push(u8((triple_lead >> 16) & 0xFF))
     if pad_count == 0 {
         v2 :: decode_byte(bs[i + 2])
         v3 :: decode_byte(bs[i + 3])
         if v2 < 0 || v3 < 0 {
             return Base64Error { .msg = "base64: invalid character in final quad" }
         }
-        triple :: triple_lead | (u32(v2) << u32(6)) | u32(v3)
-        out.push(u8((triple >> u32(8)) & u32(0xFF)))
-        out.push(u8(triple & u32(0xFF)))
+        triple :: triple_lead | (u32(v2) << 6) | u32(v3)
+        out.push(u8((triple >> 8) & 0xFF))
+        out.push(u8(triple & 0xFF))
     } else if pad_count == 1 {
         v2 :: decode_byte(bs[i + 2])
         if v2 < 0 {
             return Base64Error { .msg = "base64: invalid character before padding" }
         }
-        triple :: triple_lead | (u32(v2) << u32(6))
-        out.push(u8((triple >> u32(8)) & u32(0xFF)))
+        triple :: triple_lead | (u32(v2) << 6)
+        out.push(u8((triple >> 8) & 0xFF))
     }
     return out
 }
@@ -237,10 +237,10 @@ expect_decode :: fn(encoded: string, expected: string) -> void {
     if out is Base64Error {
         assert(false, "binary roundtrip failed")
     } else {
-        assert_eq(out.len(), usize(6))
-        assert_eq(i32(out[1]), i32(128))
-        assert_eq(i32(out[2]), i32(255))
-        assert_eq(i32(out[3]), i32(195))
-        assert_eq(i32(out[5]), i32(169))
+        assert_eq(out.len(), 6)
+        assert_eq(i32(out[1]), 128)
+        assert_eq(i32(out[2]), 255)
+        assert_eq(i32(out[3]), 195)
+        assert_eq(i32(out[5]), 169)
     }
 }

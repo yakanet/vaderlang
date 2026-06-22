@@ -154,7 +154,7 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> Lowe
     for {
         for cursor < worklist.len() {
             d :: worklist[cursor]
-            cursor += usize(1)
+            cursor += 1
             for_each_lowered_ref(d, visit_fn, visit_virtual)
         }
         before :: worklist.len()
@@ -194,7 +194,7 @@ export prune_unreachable_fns :: fn(lp: LoweredProject, keep_tests: bool) -> Lowe
 /// keyed / marked / checked by mangle ; everything else by symbol id.
 /// The three sites that branch on this (index, mark, survive) must agree
 /// or DCE-survival ⟺ emit-resolvable silently breaks.
-is_generic_instance :: fn(fn_decl: LoweredFnDecl) = fn_decl.origin.type_arguments.len() > usize(0)
+is_generic_instance :: fn(fn_decl: LoweredFnDecl) = fn_decl.origin.type_arguments.len() > 0
 
 /// Mark a root fn reachable in the index keyed to its kind (mangle for
 /// generic instances, symbol id otherwise).

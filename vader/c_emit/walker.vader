@@ -1382,7 +1382,7 @@ push_struct_field :: fn(s: FnState, type_index: i32, field_index: i32, recv: str
         // call, where it keeps the concrete array type ; Vader's array is erased
         // to `ref`, so the per-read form is the Vader-appropriate equivalent.)
         sibs :: find_erased_siblings(types, type_index)
-        if sibs.len() == usize(0) {
+        if sibs.len() == 0 {
             push_expr(s, fval, concrete)
         } else {
             // One tag test per erased sibling, falling back to the concrete
@@ -1390,7 +1390,7 @@ push_struct_field :: fn(s: FnState, type_index: i32, field_index: i32, recv: str
             // unexpected — matches no sibling tag, so it lands on `concrete`).
             acc := concrete
             for k in 0..<sibs.len() {
-                sib :: sibs[sibs.len() - usize(1) - k]
+                sib :: sibs[sibs.len() - 1 - k]
                 read :: erased_sibling_field_read(s, sib, field_index, fval, recv)
                 acc = "(${recv}.tag == ${sib}u ? ${read} : ${acc})"
             }
@@ -1408,7 +1408,7 @@ is_ref_like_val :: fn(v: ValType) -> bool = v == ValType.Ref || v == ValType.Any
 /// True when every field of `st` is an open `ref` — the erased all-`Any` form
 /// an erased-generic body materialises.
 struct_all_ref :: fn(types: BcType[], st: BcStruct) -> bool {
-    if st.fields.len() == usize(0) { return false }
+    if st.fields.len() == 0 { return false }
     for f in st.fields {
         if usize(f.type_index) >= types.len() { return false }
         if !(types[usize(f.type_index)] is BcRef) { return false }

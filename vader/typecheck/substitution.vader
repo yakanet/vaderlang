@@ -128,7 +128,7 @@ fresh_type_param :: fn(symbol_id: i32, name: string) -> Symbol {
 @test test_substitute_type_param :: fn() -> void {
     sym :: fresh_type_param(7, "T")
     subst :: new_substitution()
-    subst.type_params[i32(7)] = mk_primitive("i64")
+    subst.type_params[7] = mk_primitive("i64")
     rewritten :: substitute(mk_type_param(sym), subst)
     assert_eq(display_type(rewritten), "i64")
 }
@@ -136,7 +136,7 @@ fresh_type_param :: fn(symbol_id: i32, name: string) -> Symbol {
 @test test_substitute_into_array :: fn() -> void {
     sym :: fresh_type_param(3, "T")
     subst :: new_substitution()
-    subst.type_params[i32(3)] = mk_primitive("string")
+    subst.type_params[3] = mk_primitive("string")
     rewritten :: substitute(mk_array(mk_type_param(sym), false), subst)
     assert_eq(display_type(rewritten), "string[]")
 }

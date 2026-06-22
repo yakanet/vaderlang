@@ -281,7 +281,7 @@ unary_bit_not :: fn(expr: AST.UnaryExpr, inner: ComptimeValue) -> EvalResult {
 }
 
 // Vader doesn't expose `~` as a builtin yet ; emulate via `xor` with -1.
-bit_not_i64 :: fn(value: i64) -> i64 { return value ^ i64(-1) }
+bit_not_i64 :: fn(value: i64) -> i64 { return value ^ -1 }
 
 // ---- error helpers --------------------------------------------------------
 

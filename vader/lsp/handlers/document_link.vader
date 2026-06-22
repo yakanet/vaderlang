@@ -131,9 +131,9 @@ test_path_range_covers_quoted_path :: fn() -> void {
             r :: path_string_range(imp, src)
             if r == null { assert(false, "expected a path range") }
             else {
-                assert_eq(r.start_line, i32(1))
-                assert_eq(r.start_character, i32(8))
-                assert_eq(r.end_character, i32(14))
+                assert_eq(r.start_line, 1)
+                assert_eq(r.start_character, 8)
+                assert_eq(r.end_character, 14)
                 saw = true
             }
         }
@@ -154,8 +154,8 @@ test_path_range_handles_namespace_import :: fn() -> void {
             if r == null { assert(false, "expected a path range") }
             else {
                 // `Lo :: import "` is 14 chars, so the path starts at 0-based 14.
-                assert_eq(r.start_character, i32(14))
-                assert_eq(r.end_character, i32(14 + 11))   // len("vader/lower")
+                assert_eq(r.start_character, 14)
+                assert_eq(r.end_character, 14 + 11)   // len("vader/lower")
                 saw = true
             }
         }

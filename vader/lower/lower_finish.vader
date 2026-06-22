@@ -33,7 +33,7 @@ collect_vtable_entries :: fn(
                 sym :: fd.origin.symbol
                 fn_sym :: if sym is Symbol { sym } else {
                     Symbol {
-                        .id = i32(0), .kind = SymbolKind.Fn, .name = fd.mangled,
+                        .id = 0, .kind = SymbolKind.Fn, .name = fd.mangled,
                         .module = "", .visibility = Visibility.Private, .defined_at = null,
                     }
                 }
@@ -78,7 +78,7 @@ split_dollar :: fn(s: string) -> string[] {
     sb :: s.bytes()
     for i in 0..<sb.len() {
         b :: sb[i]
-        if b == u8(0x24) { out.push(cur)  cur = "" }
+        if b == 0x24 { out.push(cur)  cur = "" }
         else { cur = "${cur}${char(u32(b))}" }
     }
     out.push(cur)

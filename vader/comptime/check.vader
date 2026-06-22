@@ -96,8 +96,8 @@ lookup_module_decls :: fn(loaded: LoadedProject, module_id: string) -> AST.Decl[
     module_loaded :: loaded.modules[module_id]
     if module_loaded is null { return null }
     files :: module_loaded.module.files
-    if files.len() == usize(0) { return null }
-    if files.len() == usize(1) { return files[0].program.decls }   // common case — zero-copy
+    if files.len() == 0 { return null }
+    if files.len() == 1 { return files[0].program.decls }   // common case — zero-copy
     out: AST.Decl[] = []
     for source_file in files {
         for decl in source_file.program.decls {
@@ -318,7 +318,7 @@ collect_in_stmt :: fn(s: AST.Stmt, out: AST.IntrinsicCallExpr[]) -> void {
 
 collect_in_expr :: fn(e: AST.Expr, out: AST.IntrinsicCallExpr[]) -> void {
     if e is AST.IntrinsicCallExpr as ic {
-        if ic.name == "file" && ic.args.len() == usize(1) { out.push(ic) }
+        if ic.name == "file" && ic.args.len() == 1 { out.push(ic) }
     }
     match e {
         is AST.BlockExpr as b -> { collect_in_block(b, out) }

@@ -376,14 +376,14 @@ parse_atom :: fn(p: Parser) -> RegexError | null {
         p.cursor = p.cursor + 1
         group_id :: p.next_group_id
         p.next_group_id = p.next_group_id + 1
-        p.insts.push(InstSave { .slot = usize(2) * group_id })
+        p.insts.push(InstSave { .slot = 2 * group_id })
         err :: parse_alternation(p)
         if err is RegexError { return err }
         if p.cursor >= p.bytes.len() || p.bytes[p.cursor] != ')' {
             return RegexError { .msg = "unterminated group", .position = p.cursor }
         }
         p.cursor = p.cursor + 1
-        p.insts.push(InstSave { .slot = usize(2) * group_id + 1 })
+        p.insts.push(InstSave { .slot = 2 * group_id + 1 })
         return null
     }
     if b == '.' {
@@ -717,7 +717,7 @@ clone_thread :: fn(t: Thread) -> Thread {
 SLOT_UNSET :: usize(0xFFFF_FFFF_FFFF_FFFF)
 
 run_at :: fn(p: Pattern, input: const u8[], start: usize) -> Match | null {
-    slots :: usize(2) * (p.group_count + 1)
+    slots :: 2 * (p.group_count + 1)
     current: Thread[] = []
     next: Thread[] = []
 

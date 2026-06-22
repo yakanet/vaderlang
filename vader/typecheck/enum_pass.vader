@@ -142,7 +142,7 @@ Color :: enum {
             expect_index(indices, "Red",   0)
             expect_index(indices, "Green", 1)
             expect_index(indices, "Blue",  2)
-            assert_eq(diags.len(), usize(0))
+            assert_eq(diags.len(), 0)
         }
     }
 }
@@ -187,7 +187,7 @@ Bad :: enum {
         is EnumDecl as e -> {
             diags: Diagnostic[] = []
             resolve_enum_indices(e, "i32", diags)
-            assert_eq(diags.len(), usize(1))
+            assert_eq(diags.len(), 1)
             assert_eq(diags[0].code.id, "T3031")
         }
     }
@@ -207,7 +207,7 @@ Overflow :: enum {
         is EnumDecl as e -> {
             diags: Diagnostic[] = []
             resolve_enum_indices(e, "u8", diags)
-            assert_eq(diags.len(), usize(1))
+            assert_eq(diags.len(), 1)
             assert_eq(diags[0].code.id, "T3030")
         }
     }

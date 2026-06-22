@@ -33,8 +33,8 @@ import "vader/resolver/symbol" { Symbol, SymbolKind, SymbolFactory, new_factory 
 /// blocks naive reuse. Land a single `empty_span(file: string)` in
 /// `vader/diagnostics/` and migrate every caller.
 zero_span :: fn(path: string) = Span {
-    .start = Position { .file = path, .offset = usize(0), .line = 1, .column = 1 },
-    .end   = Position { .file = path, .offset = usize(0), .line = 1, .column = 1 },
+    .start = Position { .file = path, .offset = 0, .line = 1, .column = 1 },
+    .end   = Position { .file = path, .offset = 0, .line = 1, .column = 1 },
 }
 
 /// Output of one project load : the entry module's id, the full set

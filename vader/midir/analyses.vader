@@ -159,12 +159,12 @@ export natural_loop_bodies :: fn(
         for p in preds[h] {
             if dominates(idom, h_id, p) { back_edge_sources.push(p) }
         }
-        if back_edge_sources.len() == usize(0) { continue }
+        if back_edge_sources.len() == 0 { continue }
         body :: MutableSet<BlockId> {}
         body.add(h_id)
         stack: BlockId[] = []
         for s in back_edge_sources { stack.push(s) }
-        for stack.len() > usize(0) {
+        for stack.len() > 0 {
             cur :: stack[stack.len() - 1]
             stack = stack.slice(0, stack.len() - 1)
             if body.contains(cur) { continue }
@@ -213,7 +213,7 @@ export reverse_postorder :: fn(fn_: CFGFunction) -> BlockId[] {
     // Reverse in place.
     out: BlockId[] = []
     i := order.len()
-    for i > usize(0) {
+    for i > 0 {
         i = i - 1
         out.push(order[i])
     }
@@ -314,9 +314,9 @@ export compute_post_dominators :: fn(fn_: CFGFunction) -> i32[] {
     succs: BlockId[][] = []
     for b in fn_.blocks { succs.push(successors_of(b)) }
     exits: BlockId[] = []
-    i := usize(0)
+    i: usize = 0
     for i < n {
-        if succs[i].len() == usize(0) { exits.push(i32(i)) }
+        if succs[i].len() == 0 { exits.push(i32(i)) }
         i = i + 1
     }
     se :: i32(n)            // synthetic exit node index
@@ -325,13 +325,13 @@ export compute_post_dominators :: fn(fn_: CFGFunction) -> i32[] {
     empty_se: BlockId[] = []
     fake_succs.push(empty_se)
     fake_preds: BlockId[][] = []
-    j := usize(0)
-    for j < n + usize(1) {
+    j: usize = 0
+    for j < n + 1 {
         empty: BlockId[] = []
         fake_preds.push(empty)
         j = j + 1
     }
-    k := usize(0)
+    k: usize = 0
     for k < n {
         for s in fake_succs[k] { fake_preds[usize(s)].push(i32(k)) }
         k = k + 1
@@ -343,16 +343,16 @@ export compute_post_dominators :: fn(fn_: CFGFunction) -> i32[] {
     // RPO on reverse graph from SE.
     order: BlockId[] = []
     visited: bool[] = []
-    m := usize(0)
-    for m < n + usize(1) {
+    m: usize = 0
+    for m < n + 1 {
         visited.push(false)
         m = m + 1
     }
     walk_rpo_reverse(fake_preds, se, visited, order)
     // Iterative post-dominator solve.
     ipdom: i32[] = []
-    p := usize(0)
-    for p < n + usize(1) {
+    p: usize = 0
+    for p < n + 1 {
         ipdom.push(-1)
         p = p + 1
     }
@@ -360,12 +360,12 @@ export compute_post_dominators :: fn(fn_: CFGFunction) -> i32[] {
     changed := true
     for changed {
         changed = false
-        ii := i64(order.len()) - i64(1)
+        ii := i64(order.len()) - 1
         for ii >= 0 {
             b :: order[usize(ii)]
             ii = ii - 1
             if b == se { continue }
-            new_pdom := i32(-1)
+            new_pdom: i32 = -1
             for s in fake_succs[usize(b)] {
                 if ipdom[usize(s)] == -1 { continue }
                 if new_pdom == -1 {
@@ -382,7 +382,7 @@ export compute_post_dominators :: fn(fn_: CFGFunction) -> i32[] {
     }
     // Strip the synthetic SE — translate "ipdom = SE" → -1 for caller.
     out: i32[] = []
-    q := usize(0)
+    q: usize = 0
     for q < n {
         v :: ipdom[q]
         if v == se { out.push(-1) } else { out.push(v) }
@@ -417,7 +417,7 @@ export find_loop_exits :: fn(
         // a member. Skips the need to iterate the MutableSet's internal
         // bucket layout directly.
         exit: BlockId | null = null
-        b := i32(0)
+        b: i32 = 0
         for b < i32(fn_.blocks.len()) {
             if body.contains(b) {
                 for s in successors_of(fn_.blocks[usize(b)]) {
@@ -487,7 +487,7 @@ export compute_liveness :: fn(fn_: CFGFunction) -> Liveness {
     for changed {
         changed = false
         i := n
-        for i > usize(0) {
+        for i > 0 {
             i = i - 1
             scratch_out.clear()
             for s in succs[i] {

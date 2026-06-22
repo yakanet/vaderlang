@@ -240,7 +240,7 @@ build_fn_instance_decl :: fn(
     // one decl per symbol id via the erasure-dedupe below.
     entry_symbol: Symbol | null = if force_concrete { null } else { inst.fn_symbol }
     entry :: MonoEntry {
-        .id             = i32(0),
+        .id             = 0,
         .is_main        = false,
         .mangled        = inst.mangled,
         .decl           = entry_decl,
@@ -414,7 +414,7 @@ find_nongeneric_fn_decl_for_symbol :: fn(decls: Decl[], fn_sym: Symbol) -> FnDec
             for d in decls {
                 if d is FnDecl as f {
                     if f.name != fn_sym.name { continue }
-                    if f.type_params.len() != usize(0) { continue }
+                    if f.type_params.len() != 0 { continue }
                     if f.name_span.hash() == want.hash() { return f }
                 }
             }
@@ -443,7 +443,7 @@ materialize_nongeneric_imported_fns :: fn(
     // not re-lower the entries already emitted on an earlier pass.
     for project_ctx.nongeneric_imported_cursor < project_ctx.nongeneric_imported_order.len() {
         fn_sym :: project_ctx.nongeneric_imported_order[project_ctx.nongeneric_imported_cursor]
-        project_ctx.nongeneric_imported_cursor += usize(1)
+        project_ctx.nongeneric_imported_cursor += 1
         module_typed :: typed.modules[fn_sym.module]
         if module_typed is null { continue }
         module_loaded :: loaded.modules[fn_sym.module]
@@ -487,7 +487,7 @@ materialize_nongeneric_imported_consts :: fn(
     // without re-lowering earlier entries.
     for project_ctx.nongeneric_imported_const_cursor < project_ctx.nongeneric_imported_const_order.len() {
         const_sym :: project_ctx.nongeneric_imported_const_order[project_ctx.nongeneric_imported_const_cursor]
-        project_ctx.nongeneric_imported_const_cursor += usize(1)
+        project_ctx.nongeneric_imported_const_cursor += 1
         module_typed :: typed.modules[const_sym.module]
         if module_typed is null { continue }
         module_loaded :: loaded.modules[const_sym.module]
