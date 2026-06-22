@@ -30771,11 +30771,11 @@ static bool vader_lexer_suppresses_newline_after(uint8_t l0) {
 
 static bool vader_lexer_peeks_leading_continuation(vader_box_t l0) {
     size_t l1, l6;
-    uint32_t l2, l7;
+    uint32_t l2;
     bool l3, l4, l5;
-    uint32_t t0, t6, t9;
-    bool t1, t2, t3, t7, t10;
-    int64_t t4, t5, t8;
+    uint32_t t0, t7;
+    bool t1, t2, t3, t5;
+    int64_t t4, t6;
     l1 = (size_t) (int64_t) INT64_C(0);
     {
         loop_3: {
@@ -30809,32 +30809,18 @@ static bool vader_lexer_peeks_leading_continuation(vader_box_t l0) {
         }
     }
     if (l2 == 124u) {
-        l6 = (size_t) (int64_t) INT64_C(1);
-        t5 = (l1 + l6);
-        l6 = (size_t) (int64_t) t5;
-        t6 = vader_lexer_peek_at(l0, l6);
-        l7 = t6;
-        if (l7 != 124u) {
-            t7 = l7 != 61u;
-            l3 = t7;
-        } else {
-            l3 = false;
-        }
-        return l3;
+        l3 = true;
+    } else {
+        t5 = l2 == 38u;
+        l3 = t5;
     }
-    if (l2 == 38u) {
+    if (l3) {
         l6 = (size_t) (int64_t) INT64_C(1);
-        t8 = (l1 + l6);
-        l1 = (size_t) (int64_t) t8;
-        t9 = vader_lexer_peek_at(l0, l1);
-        l2 = t9;
-        if (l2 != 38u) {
-            t10 = l2 != 61u;
-            l3 = t10;
-        } else {
-            l3 = false;
-        }
-        return l3;
+        t6 = (l1 + l6);
+        l1 = (size_t) (int64_t) t6;
+        t7 = vader_lexer_peek_at(l0, l1);
+        l2 = t7;
+        return l2 != 61u;
     }
     return false;
 }
