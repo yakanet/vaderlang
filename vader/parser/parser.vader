@@ -1311,7 +1311,7 @@ parse_const_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibilit
     //       | A
     //       | B
     //       | C
-    // The lexer's `suppresses_newline_before` drops the newlines before
+    // The lexer's `peeks_leading_continuation` drops the newlines before
     // each `|`, so the token stream looks like `T :: | A | B | C`.
     // Consume the optional leading `|` so the infix-Pratt path picks up
     // the rest as a left-associative `bitor` chain.
@@ -1367,8 +1367,8 @@ parse_type :: fn(p: Parser) -> TypeExpr {
     // `[]` (tightest), then `&` intersection, then `|` union
     // (loosest). Mirrors the value-side Pratt table.
     // Optional leading `|` lets multi-line unions read cleanly in the
-    // Haskell / Rust style. The lexer's `suppresses_newline_before` on
-    // `Pipe` drops the newline before each leading `|` so the tokens
+    // Haskell / Rust style. The lexer's `peeks_leading_continuation`
+    // drops the newline before each leading `|` so the tokens
     // look identical to `T :: | A | B | C`.
     p.match_kind(.Pipe)
     const_tok :: p.match_kind(.KwConst)
