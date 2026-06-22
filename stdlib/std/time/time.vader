@@ -17,6 +17,7 @@ import "std/math" { abs }
 /// daylight-saving when the OS exposes local time). Use `Monotonic` for
 /// elapsed measurements.
 export Instant :: struct {
+    @internal
     ns_since_epoch: i64
 }
 
@@ -26,12 +27,14 @@ export Instant :: struct {
 /// elapsed-time measurement. NOT comparable across processes ; NOT
 /// convertible to wall-clock time.
 export Monotonic :: struct {
+    @internal
     ns: i64
 }
 
 /// Signed time interval with nanosecond precision. May be negative
 /// (e.g. `b.sub(a)` when `b < a`). Range : ±~292 years (i64 ns).
 export Duration :: struct {
+    @internal
     ns: i64
 }
 
@@ -84,6 +87,20 @@ export now :: fn() -> Instant {
 export monotonic :: fn() -> Monotonic {
     return Monotonic { .ns = monotonic_ns() }
 }
+
+// ---- construction / readout (Unix epoch) ---------------------------------
+
+/// Construct a wall-clock `Instant` from a Unix-epoch nanosecond count
+/// (nanoseconds since 1970-01-01 UTC ; negative for pre-epoch instants).
+/// The inverse of `to_unix_nanos`. Use for deterministic timestamps that
+/// don't come from the host clock.
+/// @param ns  nanoseconds since the Unix epoch.
+export from_unix_nanos :: fn(ns: i64) -> Instant = Instant { .ns_since_epoch = ns }
+
+/// Unix-epoch nanoseconds for this `Instant` (since 1970-01-01 UTC ;
+/// negative for pre-epoch). The inverse of `from_unix_nanos`.
+/// @param self  the instant to read.
+export to_unix_nanos :: fn(self: Instant) -> i64 = self.ns_since_epoch
 
 // ---- arithmetic ----------------------------------------------------------
 
@@ -415,4 +432,21 @@ import "std/testing" { assert_eq, assert }
     }
     elapsed_dur :: start.since()
     assert(elapsed_dur.ns >= i64(0), "monotonic clock ran backwards")
+}
+
+@test test_instant_arithmetic :: fn() -> void {
+    epoch :: from_unix_nanos(i64(0))
+    later :: epoch.add(seconds(i64(60)))
+    delta :: later.sub(epoch)
+    assert_eq(delta.to_seconds(), i64(60))
+    assert_eq(delta.format(), "60 s")
+}
+
+@test test_instant_unix_nanos :: fn() -> void {
+    // from_unix_nanos / to_unix_nanos round-trip, including a pre-epoch value.
+    assert_eq(from_unix_nanos(i64(1_700_000_000_000_000_000)).to_unix_nanos(),
+              i64(1_700_000_000_000_000_000))
+    assert_eq(from_unix_nanos(i64(-500)).to_unix_nanos(), i64(-500))
+    // `now()` agrees with its own readout.
+    assert(now().to_unix_nanos() >= i64(0), "now is non-negative")
 }

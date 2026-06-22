@@ -18,7 +18,9 @@ import "std/time" { monotonic_ns }
 /// one of them is non-zero (a fully-zero state would lock xoroshiro to
 /// emitting zeros forever).
 export Rng :: struct {
+    @internal
     s0: u64
+    @internal
     s1: u64
 }
 
