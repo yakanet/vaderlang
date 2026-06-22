@@ -32,7 +32,9 @@ import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 
 /// Compiled regex. Treat as opaque — the field layout may change.
 export Pattern :: struct {
+    @internal
     insts:       Inst[]
+    @internal
     group_count: usize
 }
 

@@ -31,6 +31,7 @@ export to_posix :: fn(s: string) -> string = s.replace_chars_where((c: char) -> 
 /// An immutable filesystem path. The underlying `repr` is a UTF-8 string ;
 /// every combinator returns a fresh `Path` rather than mutating in place.
 export Path :: struct {
+    @internal
     repr: string
 }
 
