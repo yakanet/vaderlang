@@ -1,0 +1,117 @@
+# Lower
+
+## snippet
+  fn snippet$main() -> i32
+    let bs: const u8[] =
+      call :const u8[]
+        callee:
+          bytes :const u8[]
+        arg0:
+          "a/9" :string
+    if :void
+      cond:
+        eq :bool
+          l:
+            index :u8
+              on:
+                bs :const u8[]
+              ix:
+                int(1) :i32
+          r:
+            char(0x2f)
+      then:
+        call :void
+          callee:
+            std_io$println__string :void
+          arg0:
+            "slash" :string
+    if :void
+      cond:
+        and :bool
+          l:
+            gte :bool
+              l:
+                index :u8
+                  on:
+                    bs :const u8[]
+                  ix:
+                    int(2) :i32
+              r:
+                char(0x30)
+          r:
+            lte :bool
+              l:
+                index :u8
+                  on:
+                    bs :const u8[]
+                  ix:
+                    int(2) :i32
+              r:
+                char(0x39)
+      then:
+        call :void
+          callee:
+            std_io$println__string :void
+          arg0:
+            "digit" :string
+    let top: u32 =
+      shl :u32
+        l:
+          int(1) :u32
+        r:
+          int(31) :u32
+    if :void
+      cond:
+        eq :bool
+          l:
+            top :u32
+          r:
+            int(2147483648) :u32
+      then:
+        call :void
+          callee:
+            std_io$println__string :void
+          arg0:
+            "u32 top bit" :string
+    let delta: u8 =
+      sub :u8
+        l:
+          index :u8
+            on:
+              bs :const u8[]
+            ix:
+              int(2) :i32
+        r:
+          char(0x30)
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "delta = " :string
+          arg1:
+            call :string
+              callee:
+                format_unsigned :fn(u64) -> string
+              arg0:
+                cast → u64
+                  delta :u8
+    let c: char = char(0x41)
+    if :void
+      cond:
+        eq :bool
+          l:
+            cast → u8
+              c :char
+          r:
+            int(65) :u8
+      then:
+        call :void
+          callee:
+            std_io$println__string :void
+          arg0:
+            "A is 65" :string
+    return int(0) :i32

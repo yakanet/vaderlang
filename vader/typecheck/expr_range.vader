@@ -11,7 +11,7 @@ module "vader/typecheck"
 
 import "vader/diagnostics" { Diagnostic }
 import "vader/types" {
-    Type, PrimitiveType, FreeIntType, TY_UNRESOLVED,
+    Type, PrimitiveType, FreeIntType, FreeCharType, TY_UNRESOLVED,
 }
 AST :: import "vader/parser"
 
@@ -49,6 +49,7 @@ export infer_range :: fn(
 pick_bound_or_default :: fn(t: Type) -> Type {
     match t {
         is FreeIntType -> { return mk_primitive("i32") }
+        is FreeCharType -> { return mk_primitive("char") }
         is PrimitiveType as p -> {
             if is_int_name(p.name) { return p }
             if p.name == "char" { return p }

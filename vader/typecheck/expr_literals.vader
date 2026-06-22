@@ -8,7 +8,7 @@
 module "vader/typecheck"
 
 AST :: import "vader/parser"
-import "vader/types" { Type, mk_primitive, TY_BOOL, TY_FREE_INT, TY_FREE_FLOAT, TY_UNRESOLVED }
+import "vader/types" { Type, mk_primitive, TY_BOOL, TY_FREE_INT, TY_FREE_FLOAT, TY_FREE_CHAR, TY_UNRESOLVED }
 
 /// `42` → FreeInt ; `42i64` → i64. Unknown suffix → Unresolved (the
 /// lexer already rejected unknown suffixes ; this is defensive).
@@ -31,7 +31,10 @@ export infer_float_lit :: fn(e: AST.FloatLitExpr) -> Type {
 
 export infer_bool_lit :: fn(_: AST.BoolLitExpr) -> Type { return TY_BOOL }
 export infer_null_lit :: fn(_: AST.NullLitExpr) -> Type { return mk_primitive("null") }
-export infer_char_lit :: fn(_: AST.CharLitExpr) -> Type { return mk_primitive("char") }
+/// A char LITERAL is free — it coerces to an integer type in a numeric context
+/// (bounds-checked at the pin site) and defaults to `char` otherwise. Only
+/// literals get FreeChar ; a `char` variable keeps the concrete `char`.
+export infer_char_lit :: fn(_: AST.CharLitExpr) -> Type { return TY_FREE_CHAR }
 
 /// MVP : string literals (with or without interpolation) all carry
 /// `string` as their static type. Interpolated-expression `Display`

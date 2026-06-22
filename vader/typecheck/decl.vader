@@ -26,7 +26,7 @@ import "vader/parser" { Visibility }
 import "vader/types" {
     Type, ArrayType, PrimitiveType, UnresolvedType, display_type,
     StructType, EnumType, TraitType, UnionType, FnType, TupleType,
-    TypeParamType, TypeMetaType, SelfType, FreeIntType, FreeFloatType,
+    TypeParamType, TypeMetaType, SelfType, FreeIntType, FreeCharType, FreeFloatType,
     NeverType, AnyType,
     mk_struct, mk_trait, mk_fn, mk_enum, mk_type_param,
     TY_UNRESOLVED, TY_VOID,
@@ -250,6 +250,7 @@ first_unexported_type :: fn(t: Type) -> Symbol | null {
         is SelfType       -> { return null }
         is UnresolvedType -> { return null }
         is FreeIntType    -> { return null }
+        is FreeCharType   -> { return null }
         is FreeFloatType  -> { return null }
         is NeverType      -> { return null }
         is AnyType        -> { return null }

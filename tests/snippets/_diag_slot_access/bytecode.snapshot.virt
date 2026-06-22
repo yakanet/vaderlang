@@ -369,7 +369,7 @@ end
 
 fn 2 std_core$format_f64 (f64) -> string
   local bits u64
-  local $shr_4 u64
+  local $k_3 u64
   local $k_5 u64
   local sign bool
   local if_res string
@@ -379,8 +379,10 @@ fn 2 std_core$format_f64 (f64) -> string
   local.get 0
   call 32
   local.set 1
+  i64.const 63
+  local.set 2
   local.get 1
-  i32.const 63
+  local.get 2
   u64.shr
   local.set 2
   i64.const 0
@@ -395,8 +397,10 @@ fn 2 std_core$format_f64 (f64) -> string
   local.get 2
   i64.bitand
   local.set 2
+  i64.const 52
+  local.set 3
   local.get 1
-  i32.const 52
+  local.get 3
   u64.shr
   local.set 1
   i64.const 2047
@@ -481,7 +485,7 @@ fn 3 std_core$d2d (u64,u64) -> ref
   local m2 u64
   local $sub_12 i32
   local $k_22 u64
-  local $k_28 u64
+  local $k_23 u64
   local accept_bounds bool
   local or_res bool
   local vr u64
@@ -873,15 +877,19 @@ fn 3 std_core$d2d (u64,u64) -> ref
     local.set 2
     i64.const 1
     local.set 5
+    i64.const 52
+    local.set 6
     local.get 5
-    i32.const 52
+    local.get 6
     i64.shl
     local.get 0
     i64.bitor
     local.set 3
   end $L0
+  i64.const 1
+  local.set 5
   local.get 3
-  i32.const 1
+  local.get 5
   i64.bitand
   local.set 5
   i64.const 0
@@ -5655,8 +5663,10 @@ fn 6 std_core$log10_pow2 (i32) -> i32
   local.get 2
   i64.mul
   local.set 1
+  i64.const 18
+  local.set 2
   local.get 1
-  i32.const 18
+  local.get 2
   u64.shr
   u64.to_i32
   return
@@ -5688,8 +5698,10 @@ fn 8 std_core$pow5bits (i32) -> i32
   local.get 2
   i64.mul
   local.set 1
+  i64.const 19
+  local.set 2
   local.get 1
-  i32.const 19
+  local.get 2
   u64.shr
   local.set 1
   i64.const 1
@@ -5702,7 +5714,7 @@ fn 8 std_core$pow5bits (i32) -> i32
 end
 
 fn 9 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
-  local m u64
+  local $k_5 u64
   local __tup_0 ref
   local tmp u64
   local lo u64
@@ -5713,8 +5725,10 @@ fn 9 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
   local $sub_50 u64
   local $cast_63 u64
   local $sub_79 u64
+  i64.const 1
+  local.set 5
   local.get 0
-  i32.const 1
+  local.get 5
   i64.shl
   local.tee 5
   local.get 1
@@ -5938,8 +5952,10 @@ fn 11 std_core$log10_pow5 (i32) -> i32
   local.get 2
   i64.mul
   local.set 1
+  i64.const 20
+  local.set 2
   local.get 1
-  i32.const 20
+  local.get 2
   u64.shr
   u64.to_i32
   return
@@ -6253,9 +6269,9 @@ end
 
 fn 15 std_core$umul128 (u64,u64) -> ref
   local $k_2 u64
-  local a_hi u64
+  local $k_5 u64
   local $k_8 u64
-  local b_hi u64
+  local $k_11 u64
   local b00 u64
   i64.const 4294967295
   local.set 2
@@ -6263,8 +6279,10 @@ fn 15 std_core$umul128 (u64,u64) -> ref
   local.get 2
   i64.bitand
   local.set 2
+  i64.const 32
+  local.set 3
   local.get 0
-  i32.const 32
+  local.get 3
   u64.shr
   local.set 3
   i64.const 4294967295
@@ -6273,8 +6291,10 @@ fn 15 std_core$umul128 (u64,u64) -> ref
   local.get 4
   i64.bitand
   local.set 4
+  i64.const 32
+  local.set 5
   local.get 1
-  i32.const 32
+  local.get 5
   u64.shr
   local.set 5
   local.get 2
@@ -6293,8 +6313,10 @@ fn 15 std_core$umul128 (u64,u64) -> ref
   local.get 5
   i64.mul
   local.set 3
+  i64.const 32
+  local.set 5
   local.get 6
-  i32.const 32
+  local.get 5
   u64.shr
   local.set 5
   local.get 4
@@ -6311,16 +6333,20 @@ fn 15 std_core$umul128 (u64,u64) -> ref
   local.get 5
   i64.add
   local.set 2
+  i64.const 32
+  local.set 5
   local.get 4
-  i32.const 32
+  local.get 5
   u64.shr
   local.set 4
   local.get 3
   local.get 4
   i64.add
   local.set 3
+  i64.const 32
+  local.set 4
   local.get 2
-  i32.const 32
+  local.get 4
   u64.shr
   local.set 4
   local.get 3
@@ -6333,8 +6359,10 @@ fn 15 std_core$umul128 (u64,u64) -> ref
   local.get 4
   i64.bitand
   local.set 2
+  i64.const 32
+  local.set 4
   local.get 2
-  i32.const 32
+  local.get 4
   i64.shl
   local.set 2
   i64.const 4294967295
@@ -6356,9 +6384,9 @@ end
 fn 16 std_core$shiftright128 (u64,u64,u64) -> u64
   local $sub_4 u64
   local $shr_6 u64
-  i32.const 64
+  i64.const 64
   local.get 2
-  i32.sub
+  i64.sub
   local.set 3
   local.get 1
   local.get 3

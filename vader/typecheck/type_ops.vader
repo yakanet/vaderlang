@@ -14,7 +14,7 @@ import "std/sort" { sort }
 import "vader/types" {
     Type, PrimitiveType, StructType, EnumType, TraitType, UnionType,
     FnType, ArrayType, TupleType, TypeParamType, TypeMetaType, SelfType,
-    UnresolvedType, FreeIntType, FreeFloatType, NeverType, AnyType,
+    UnresolvedType, FreeIntType, FreeFloatType, FreeCharType, NeverType, AnyType,
     TY_NEVER, display_type, mk_primitive, mk_union, type_base_name,
 }
 
@@ -35,6 +35,16 @@ export is_float_name        :: fn(name: string) -> bool { return contains_name(F
 export is_int_name          :: fn(name: string) -> bool { return is_signed_int_name(name) || is_unsigned_int_name(name) }
 export is_numeric_name      :: fn(name: string) -> bool { return is_int_name(name) || is_float_name(name) }
 
+/// Whether a Unicode codepoint fits the integer primitive `type_name`. A char
+/// literal coerces to an integer only when its codepoint is representable —
+/// `b == '💩'` (u8) is rejected. Delegates to the authoritative per-repr range
+/// table (`repr_range` / `contains`), so the byte/short bounds stay in one place.
+/// Non-integer names return false (a char never coerces to e.g. f64).
+export char_fits :: fn(codepoint: u32, type_name: string) -> bool {
+    if !is_int_name(type_name) { return false }
+    return contains(repr_range(type_name), i64(codepoint))
+}
+
 contains_name :: fn(names: const string[], target: string) -> bool {
     for n in names { if n == target { return true } }
     return false
@@ -51,6 +61,7 @@ export equals_type :: fn(a: Type, b: Type) -> bool = match a {
     is NeverType      -> b is NeverType
     is FreeIntType    -> b is FreeIntType
     is FreeFloatType  -> b is FreeFloatType
+    is FreeCharType   -> b is FreeCharType
     is AnyType        -> b is AnyType
     is PrimitiveType as ax  -> if b is PrimitiveType as bx { ax.name == bx.name } else { false }
     is TypeParamType as ax  -> if b is TypeParamType as bx { ax.symbol.id == bx.symbol.id } else { false }
@@ -143,13 +154,14 @@ collect_variant :: fn(v: Type, into: Type[]) -> void {
 
 // ---- free-type defaulting -------------------------------------------------
 
-/// Replace FreeInt with `i32` and FreeFloat with `f64`. Used when a free
-/// numeric literal escapes its bidirectional context and needs a
+/// Replace FreeInt with `i32`, FreeFloat with `f64`, FreeChar with `char`.
+/// Used when a free literal escapes its bidirectional context and needs a
 /// concrete type to flow into downstream phases.
 export default_if_free :: fn(t: Type) -> Type {
     match t {
         is FreeIntType   -> { return mk_primitive("i32") }
         is FreeFloatType -> { return mk_primitive("f64") }
+        is FreeCharType  -> { return mk_primitive("char") }
         _ -> { return t }
     }
 }
@@ -198,6 +210,11 @@ export narrow_for_expected :: fn(got: Type, expected: Type | null) -> Type {
     if !(expected is PrimitiveType) { return got }
     if got is FreeIntType   && is_int_name(expected.name)   { return expected }
     if got is FreeFloatType && is_float_name(expected.name) { return expected }
+    // A char LITERAL folds to an integer (codepoint, bounds-checked at the pin
+    // site) or stays `char`. Runtime `char` values are concrete and never hit
+    // this arm.
+    if got is FreeCharType  && is_int_name(expected.name)   { return expected }
+    if got is FreeCharType  && expected.name == "char"      { return expected }
     return got
 }
 

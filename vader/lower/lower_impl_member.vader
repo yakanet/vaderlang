@@ -9,7 +9,7 @@ import "vader/parser" { Expr, IdentExpr, CallExpr, GenericInstExpr, ArrayTypeExp
 import "vader/diagnostics" { Span }
 import "vader/typecheck" { ImplEntry }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/types" { Type, FnType, PrimitiveType, FreeIntType, FreeFloatType, UnionType, TraitType, TypeParamType, ArrayType, TupleType, TypeMetaType, AnyType, SelfType, NeverType, mk_primitive, STRUCT_ARRAY_ITERATOR, StructType, EnumType, UnresolvedType }
+import "vader/types" { Type, FnType, PrimitiveType, FreeIntType, FreeCharType, FreeFloatType, UnionType, TraitType, TypeParamType, ArrayType, TupleType, TypeMetaType, AnyType, SelfType, NeverType, mk_primitive, STRUCT_ARRAY_ITERATOR, StructType, EnumType, UnresolvedType }
 import "vader/comptime" { GenericInstance }
 
 UfcsMember :: struct {
@@ -233,6 +233,7 @@ type_surface_name :: fn(t: Type) -> string = match t {
     is SelfType           -> ""
     is UnresolvedType     -> ""
     is FreeIntType        -> ""
+    is FreeCharType       -> ""
     is FreeFloatType      -> ""
     is NeverType          -> ""
     is AnyType            -> ""

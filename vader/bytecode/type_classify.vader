@@ -22,7 +22,7 @@ module "vader/bytecode"
 import "vader/types" {
     Type, PrimitiveType, StructType, EnumType, TraitType, ArrayType,
     UnionType, FnType, TupleType, TypeParamType, TypeMetaType, SelfType,
-    UnresolvedType, FreeIntType, FreeFloatType, NeverType, AnyType,
+    UnresolvedType, FreeIntType, FreeCharType, FreeFloatType, NeverType, AnyType,
     display_type,
 }
 import "vader/resolver/symbol" { Symbol }
@@ -55,6 +55,7 @@ export type_intern_key :: fn(t: Type) -> string = match t {
     is SelfType           -> display_type(t)
     is UnresolvedType     -> display_type(t)
     is FreeIntType        -> display_type(t)
+    is FreeCharType       -> display_type(t)
     is FreeFloatType      -> display_type(t)
     is NeverType          -> display_type(t)
     is AnyType            -> "Any"
@@ -103,6 +104,7 @@ export val_type_of_type :: fn(t: Type) -> ValType = match t {
     is SelfType           -> ValType.Ref
     is UnresolvedType     -> ValType.Any
     is FreeIntType        -> ValType.I32
+    is FreeCharType       -> ValType.Char
     is FreeFloatType      -> ValType.F64
     is NeverType          -> ValType.Void
     is AnyType            -> ValType.Ref
@@ -190,6 +192,7 @@ export bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx, slot_index: i32) -> B
         is SelfType       -> { return OPAQUE_REF }
         is UnresolvedType -> { return OPAQUE_REF }
         is FreeIntType    -> { return OPAQUE_REF }
+        is FreeCharType   -> { return OPAQUE_REF }
         is FreeFloatType  -> { return OPAQUE_REF }
         is NeverType      -> { return OPAQUE_REF }
         is AnyType        -> { return OPAQUE_REF }

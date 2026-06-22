@@ -20,7 +20,7 @@ import "vader/diagnostics" { Diagnostic, typecheck_error }
 AST :: import "vader/parser"
 import "vader/resolver/symbol" { SymbolKind }
 import "vader/types" {
-    Type, PrimitiveType, FreeIntType, FreeFloatType, UnresolvedType,
+    Type, PrimitiveType, FreeIntType, FreeCharType, FreeFloatType, UnresolvedType,
     EnumType, FnType, StructType, TraitType, UnionType, ArrayType,
     display_type, type_base_name, mk_primitive, TY_BOOL, TY_UNRESOLVED,
 }
@@ -28,10 +28,10 @@ import "vader/types" {
 /// Type-check a `BinaryExpr`. `check_expr_fn` is threaded to break the
 /// cyclic import with `expr.vader::check_expr`.
 export infer_binary :: fn(
-    e: AST.BinaryExpr, typed: TypedProgram, diags: Diagnostic[],
+    e: AST.BinaryExpr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
-    left :: check_expr_fn(e.left, null, typed, diags)
+    left := check_expr_fn(e.left, null, typed, diags)
     // `x is T` — right side is a type expression. Record its
     // resolved type directly so dump entries match TS (e.g. `i32`
     // instead of the `type` metatype).
@@ -59,8 +59,22 @@ export infer_binary :: fn(
     cond_narrows: IsNarrow[] = []
     if i32(e.op) == i32(AST.BinaryOp.And) { cond_narrows = collect_and_narrows(e.left, typed) }
     pushed :: push_then_narrows(cond_narrows, typed)
-    right :: check_expr_fn(e.right, right_ctx, typed, diags)
+    right := check_expr_fn(e.right, right_ctx, typed, diags)
     pop_then_narrows(pushed, typed)
+
+    // Symmetric repin : a free literal operand adopts the CONCRETE counterpart's
+    // type first (so `4 * i` with `i: i32` stays i32, not the outer expected),
+    // repinning its recorded type (and any inner shift / bitwise leaves) and
+    // bounds-checking a char literal at its pin.
+    left = repin_operand(e.left, left, right, typed, diags, check_expr_fn)
+    right = repin_operand(e.right, right, left, typed, diags, check_expr_fn)
+    // Only when BOTH operands are still free does the outer `expected` decide the
+    // width — `x: u32 = 1 << 31` pins both `1` and `31` to u32.
+    oc :: op_expected_ctx(e.op, expected)
+    if oc != null && is_free_numeric(left) && is_free_numeric(right) {
+        left = check_expr_fn(e.left, oc, typed, diags)
+        right = check_expr_fn(e.right, oc, typed, diags)
+    }
 
     match classify(e.op) {
         .Arith    -> { return check_arith(e, left, right, typed, diags) }
@@ -279,7 +293,9 @@ numeric_propagation :: fn(op: AST.BinaryOp, left: Type) -> Type | null {
         .Compare  -> true
         .Equality -> true
         .Logical  -> false
-        .Bitwise  -> false
+        // Bitwise / shift propagate the concrete LEFT to the RIGHT so a bare
+        // shift amount / mask repins (`u32(b) >> 4`, `mask & 0xFF`).
+        .Bitwise  -> true
         .Is       -> false
         .In       -> false
     }
@@ -299,6 +315,36 @@ is_enum_like :: fn(t: Type) -> bool {
     }
 }
 
+// The outer `expected` as an operand context — only for Arith / Bitwise, where
+// the result type equals the operand type, so a concrete numeric `expected`
+// flows into free literal leaves (`x: u32 = 1 << 31`). Compare / Equality
+// produce `bool`, so their operands are coerced by the symmetric repin instead.
+op_expected_ctx :: fn(op: AST.BinaryOp, expected: Type | null) -> Type | null {
+    if expected is null { return null }
+    width_carrying :: match classify(op) {
+        .Arith   -> true
+        .Bitwise -> true
+        _        -> false
+    }
+    if !width_carrying { return null }
+    if expected is PrimitiveType as p {
+        if is_numeric_name(p.name) { return expected }
+    }
+    return null
+}
+
+// Re-check a free literal operand against a concrete counterpart so its recorded
+// type (and inner shift / bitwise leaves) land on the concrete type. A no-op when
+// `got` is not a free literal that narrows to `other`. The re-check routes back
+// through check_expr, which bounds-checks a char literal at the pin (T3055).
+repin_operand :: fn(
+    operand: AST.Expr, got: Type, other: Type, typed: TypedProgram, diags: Diagnostic[],
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+) -> Type {
+    if equals_type(narrow_for_expected(got, other), got) { return got }
+    return check_expr_fn(operand, other, typed, diags)
+}
+
 // Compute the result type of a numeric binary op. Both operands must
 // be numeric AND in the same family (int / float) — Free* folds to a
 // concrete operand of its own family only. No implicit widening.
@@ -310,6 +356,7 @@ numeric_result :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnost
     // Same Free kind on both sides : keep the free kind.
     if left is FreeIntType   && right is FreeIntType   { return left }
     if left is FreeFloatType && right is FreeFloatType { return left }
+    if left is FreeCharType  && right is FreeCharType  { return left }
     // FreeInt + concrete int → concrete. FreeInt + float (free or concrete)
     // is an error : free numeric only folds to a primitive of its own family.
     if left is FreeIntType {
@@ -329,6 +376,18 @@ numeric_result :: fn(e: AST.BinaryExpr, left: Type, right: Type, diags: Diagnost
     }
     if right is FreeFloatType {
         if is_float(left) { return left }
+        push_op_undefined(e, left, right, diags)
+        return TY_UNRESOLVED
+    }
+    // A char literal that survived without repinning to a concrete int folds
+    // to the integer counterpart, like a free int.
+    if left is FreeCharType {
+        if is_integer(right) { return right }
+        push_op_undefined(e, left, right, diags)
+        return TY_UNRESOLVED
+    }
+    if right is FreeCharType {
+        if is_integer(left) { return left }
         push_op_undefined(e, left, right, diags)
         return TY_UNRESOLVED
     }
@@ -354,7 +413,7 @@ is_float :: fn(t: Type) -> bool {
 
 is_numeric :: fn(t: Type) -> bool {
     if t is UnresolvedType { return true }       // suppress cascade
-    if t is FreeIntType || t is FreeFloatType { return true }
+    if t is FreeIntType || t is FreeFloatType || t is FreeCharType { return true }
     if t is PrimitiveType { return is_numeric_name(t.name) }
     return false
 }
@@ -370,7 +429,7 @@ import "vader/types" { TypeMetaType }
 
 is_integer :: fn(t: Type) -> bool {
     if t is UnresolvedType { return true }
-    if t is FreeIntType { return true }
+    if t is FreeIntType || t is FreeCharType { return true }
     if t is PrimitiveType { return is_int_name(t.name) }
     return false
 }
@@ -407,7 +466,7 @@ binary_check_stub :: fn(
         is AST.IntLitExpr    as x -> { return narrow(infer_int_lit(x), expected) }
         is AST.StringLitExpr as x -> { return infer_string_lit(x) }
         is AST.IdentExpr     as x -> { return infer_ident(x, typed) }
-        is AST.BinaryExpr    as x -> { return infer_binary(x, typed, diags, binary_check_stub) }
+        is AST.BinaryExpr    as x -> { return infer_binary(x, null, typed, diags, binary_check_stub) }
         _ -> { return TY_UNRESOLVED }
     }
 }
@@ -474,7 +533,7 @@ synthetic_binary :: fn() -> AST.BinaryExpr {
 test_arith_int_returns_concrete :: fn() -> void {
     eb :: expect_binary("f :: fn(a: i32, b: i32) -> i32 { return a + b }")
     diags: Diagnostic[] = []
-    assert_eq(display_type(infer_binary(eb.bin, eb.typed, diags, binary_check_stub)), "i32")
+    assert_eq(display_type(infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)), "i32")
     assert_eq(diags.len(), usize(0))
 }
 
@@ -482,21 +541,21 @@ test_arith_int_returns_concrete :: fn() -> void {
 test_arith_string_concat :: fn() -> void {
     eb :: expect_binary("""f :: fn(a: string, b: string) -> string { return a + b }""")
     diags: Diagnostic[] = []
-    assert_eq(display_type(infer_binary(eb.bin, eb.typed, diags, binary_check_stub)), "string")
+    assert_eq(display_type(infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)), "string")
 }
 
 @test
 test_compare_returns_bool :: fn() -> void {
     eb :: expect_binary("f :: fn(a: i32, b: i32) -> bool { return a < b }")
     diags: Diagnostic[] = []
-    assert_eq(display_type(infer_binary(eb.bin, eb.typed, diags, binary_check_stub)), "bool")
+    assert_eq(display_type(infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)), "bool")
 }
 
 @test
 test_logical_requires_bool :: fn() -> void {
     eb :: expect_binary("f :: fn(a: i32, b: bool) -> bool { return a && b }")
     diags: Diagnostic[] = []
-    infer_binary(eb.bin, eb.typed, diags, binary_check_stub)
+    infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)
     found := false
     for d in diags { if d.code.id == "T3017" { found = true } }
     assert(found, "expected T3017 for `i32 && bool`")
@@ -508,7 +567,7 @@ test_in_requires_contains :: fn() -> void {
     // stub that lowers to an `unreachable` trap (a runtime crash).
     eb :: expect_binary("f :: fn(a: i32, b: i32) -> bool { return a in b }")
     diags: Diagnostic[] = []
-    infer_binary(eb.bin, eb.typed, diags, binary_check_stub)
+    infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)
     found := false
     for d in diags { if d.code.id == "T3043" { found = true } }
     assert(found, "expected T3043 for `i32 in i32` (no Contains impl)")
@@ -518,7 +577,7 @@ test_in_requires_contains :: fn() -> void {
 test_arith_width_mismatch_emits_T3017 :: fn() -> void {
     eb :: expect_binary("f :: fn(a: i32, b: i64) -> i64 { return a + b }")
     diags: Diagnostic[] = []
-    infer_binary(eb.bin, eb.typed, diags, binary_check_stub)
+    infer_binary(eb.bin, null, eb.typed, diags, binary_check_stub)
     found := false
     for d in diags { if d.code.id == "T3017" { found = true } }
     assert(found, "expected T3017 for `i32 + i64` (no implicit widening)")

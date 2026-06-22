@@ -36,10 +36,10 @@
   expr 23:8     BinaryExpr     :: bool
   expr 25:10    StructLitExpr  :: DigitSet
   expr 25:30    BinaryExpr     :: i32
-  expr 25:30    BinaryExpr     :: {integer}
-  expr 25:30    BinaryExpr     :: {integer}
-  expr 25:41    BinaryExpr     :: {integer}
-  expr 25:52    BinaryExpr     :: {integer}
+  expr 25:30    BinaryExpr     :: i32
+  expr 25:30    BinaryExpr     :: i32
+  expr 25:41    BinaryExpr     :: i32
+  expr 25:52    BinaryExpr     :: i32
   expr 26:13    IdentExpr      :: DigitSet
   expr 26:17    CallExpr       :: void
   expr 26:17    IdentExpr      :: fn(T) -> void

@@ -1,0 +1,27 @@
+// Char literals are "free" — they coerce to the integer type of their context
+// (bounds-checked), so byte-parsing reads naturally without `b'A'` or a cast.
+// A char VARIABLE stays `char` and needs an explicit `u8(c)`.
+
+module "snippet"
+
+import "std/io" { println }
+
+main :: fn() -> i32 {
+    bs :: "a/9".bytes()
+    // char literal coerces to u8 against the byte
+    if bs[1] == '/' { println("slash") }
+    if bs[2] >= '0' && bs[2] <= '9' { println("digit") }
+
+    // both-free bitwise: the outer expected pins the width (u32 wrap, not i32)
+    top: u32 = 1 << 31
+    if top == 0x80000000 { println("u32 top bit") }
+
+    // free char in a typed arithmetic context
+    delta :: bs[2] - '0'
+    println("delta = ${delta}")
+
+    // char variable: explicit cast required (no auto-coerce)
+    c :: 'A'
+    if u8(c) == 65 { println("A is 65") }
+    return 0
+}
