@@ -110,7 +110,7 @@ oi_has_interleaved_comments :: fn(run: AST.ImportDecl[], source: string) -> bool
         stop :: run[i + 1].span.start.offset
         for j < stop {
             b :: sb[j]
-            if b != b' ' && b != b'\t' && b != b'\n' && b != b'\r' { return true }
+            if b != ' ' && b != '\t' && b != '\n' && b != '\r' { return true }
             j = j + 1
         }
     }

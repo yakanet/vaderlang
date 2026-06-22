@@ -162,17 +162,17 @@ member_context :: fn(source: string, line0: i32, char0: i32) -> i32 | null {
         if is_ident_byte(sb[i - 1]) { i = i - 1 } else { break }
     }
     if i == 0 { return null }
-    if sb[i - 1] != b'.' { return null }
+    if sb[i - 1] != '.' { return null }
     dot_off :: i - 1
     ls :: line_start_offset(source, dot_off)
     return i32(dot_off - ls) + i32(1)
 }
 
 is_ident_byte :: fn(c: u8) -> bool {
-    if c >= b'a' && c <= b'z' { return true }
-    if c >= b'A' && c <= b'Z' { return true }
-    if c >= b'0' && c <= b'9' { return true }
-    return c == b'_'
+    if c >= 'a' && c <= 'z' { return true }
+    if c >= 'A' && c <= 'Z' { return true }
+    if c >= '0' && c <= '9' { return true }
+    return c == '_'
 }
 
 // Member completions for `receiver.<cursor>` : the receiver's struct fields and
@@ -297,7 +297,7 @@ import_ci_kind :: fn(name: string) -> CompletionItemKind {
     nb :: name.bytes()
     if nb.len() > 0 {
         c :: nb[0]
-        if c >= b'A' && c <= b'Z' { return .Class }
+        if c >= 'A' && c <= 'Z' { return .Class }
     }
     return .Function
 }

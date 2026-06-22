@@ -559,7 +559,7 @@ export parse_int :: fn(s: string) -> i32 | ParseError {
     if n == 0 { return ParseError { .msg = "parse_int: empty string" } }
     i := usize(0)
     neg := false
-    if bs[0] == b'-' {
+    if bs[0] == '-' {
         neg = true
         i = usize(1)
     }
@@ -568,10 +568,10 @@ export parse_int :: fn(s: string) -> i32 | ParseError {
     acc: i64 = 0
     for i < n {
         b :: bs[i]
-        if b < b'0' || b > b'9' {
+        if b < '0' || b > '9' {
             return ParseError { .msg = "parse_int: invalid digit" }
         }
-        acc = acc * i64(10) + i64(b - b'0')
+        acc = acc * i64(10) + i64(b - '0')
         if neg {
             if acc > i64(2147483647) + i64(1) { return ParseError { .msg = "parse_int: overflow" } }
         } else {
@@ -680,7 +680,7 @@ export decode_escapes :: fn(body: string) -> string {
     i: usize = 0
     for i < n {
         b :: bs[i]
-        if b != b'\\' {
+        if b != '\\' {
             // Not a backslash — copy the whole codepoint (it may be multibyte ;
             // a per-byte slice would split a UTF-8 sequence).
             [c, w] :: bs.decode_codepoint_at(i)
@@ -694,12 +694,12 @@ export decode_escapes :: fn(body: string) -> string {
             continue
         }
         next :: bs[i + 1]
-        if      next == b'n'  { out.append("\n") }
-        else if next == b't'  { out.append("\t") }
-        else if next == b'r'  { out.append("\r") }
-        else if next == b'"'  { out.append("\"") }
-        else if next == b'\\' { out.append("\\") }
-        else if next == b'0'  { out.append("\0") }
+        if      next == 'n'  { out.append("\n") }
+        else if next == 't'  { out.append("\t") }
+        else if next == 'r'  { out.append("\r") }
+        else if next == '"'  { out.append("\"") }
+        else if next == '\\' { out.append("\\") }
+        else if next == '0'  { out.append("\0") }
         else {
             // Unknown escape — drop the backslash, copy the following codepoint.
             [c, w] :: bs.decode_codepoint_at(i + 1)

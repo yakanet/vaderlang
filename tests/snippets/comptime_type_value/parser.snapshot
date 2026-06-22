@@ -107,7 +107,7 @@
                       {
                         "kind": "IntLitExpr",
                         "value": "42n",
-                        "suffix": "i32"
+                        "suffix": null
                       }
                     ]
                   },

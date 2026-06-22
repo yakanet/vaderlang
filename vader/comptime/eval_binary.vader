@@ -141,7 +141,7 @@ int_div_check :: fn(
     int_op: fn(i64, i64) -> i64,
 ) -> EvalResult {
     if right is IntValue as ri {
-        if ri.value == 0_i64 { return division_by_zero(expr, "/") }
+        if ri.value == 0 { return division_by_zero(expr, "/") }
     }
     return arithmetic(expr, left, right, int_op)
 }
@@ -151,7 +151,7 @@ int_mod_check :: fn(
     int_op: fn(i64, i64) -> i64,
 ) -> EvalResult {
     if right is IntValue as ri {
-        if ri.value == 0_i64 { return division_by_zero(expr, "%") }
+        if ri.value == 0 { return division_by_zero(expr, "%") }
     }
     return arithmetic_int(expr, left, right, int_op)
 }

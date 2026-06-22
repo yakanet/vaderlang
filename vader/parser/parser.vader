@@ -1289,7 +1289,7 @@ parse_enum_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility
             // don't validate here.
             match val {
                 is u64 -> { value = i64(val) }
-                _      -> { value = 0i64 }
+                _      -> { value = 0 }
             }
             value_span = lit_tok.span
         }
@@ -2476,7 +2476,7 @@ parse_prefix :: fn(p: Parser) -> Expr {
     }
     if t.kind == .CharLit {
         p.advance()
-        v: u32 = 0u32
+        v: u32 = 0
         val :: t.value
         if val is u32 { v = val }
         return CharLitExpr { .span = t.span, .value = v }

@@ -18,7 +18,7 @@
               ix:
                 int(1) :i32
           r:
-            char(0x2f)
+            int(47) :u8
       then:
         call :void
           callee:
@@ -37,7 +37,7 @@
                   ix:
                     int(2) :i32
               r:
-                char(0x30)
+                int(48) :u8
           r:
             lte :bool
               l:
@@ -47,7 +47,7 @@
                   ix:
                     int(2) :i32
               r:
-                char(0x39)
+                int(57) :u8
       then:
         call :void
           callee:
@@ -82,7 +82,7 @@
             ix:
               int(2) :i32
         r:
-          char(0x30)
+          int(48) :u8
     call :void
       callee:
         std_io$println__string :void

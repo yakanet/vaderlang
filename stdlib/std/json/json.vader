@@ -240,11 +240,11 @@ parse_string :: fn(p: Parser) -> string | JsonError {
     scan: usize = p.pos
     for scan < p.eof {
         b :: p.bytes[scan]
-        if b == b'"' {
+        if b == '"' {
             p.pos = scan + 1
             return p.bytes[start..<scan].bytes_to_string()
         }
-        if b == b'\\' {
+        if b == '\\' {
             sb :: new_builder()
             sb.append(p.bytes[start..<scan].bytes_to_string())
             p.pos = scan

@@ -186,7 +186,7 @@ dirname_path :: fn(p: string) -> string {
     n :: pb.len()
     if n == 0 { return p }
     i: i32 = i32(n) - 1
-    sep :: b'/'
+    sep :: '/'
     for i >= 0 {
         if pb[usize(i)] == sep {
             if i == 0 { return "/" }
@@ -205,7 +205,7 @@ path_join :: fn(a: string, b: string) -> string {
     bb :: b.bytes()
     if ab.len() == 0 { return b }
     if bb.len() == 0 { return a }
-    sep :: b'/'
+    sep :: '/'
     a_ends_sep :: ab[ab.len() - 1] == sep
     b_starts_sep :: bb[0] == sep
     if a_ends_sep && b_starts_sep {

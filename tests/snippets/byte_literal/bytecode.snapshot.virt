@@ -23,71 +23,58 @@ impl 7 ByteAccess
 export main 0
 
 fn 0 snippet$main () -> i32
-  local a u8
-  local nl u8
-  local bs u8
-  local sq u8
   local $call_11 string
-  i32.const 123
-  local.set 0
-  i32.const 10
-  local.set 1
-  i32.const 92
-  local.set 2
-  i32.const 39
-  local.set 3
-  local.get 0
-  u8.to_i32
+  local $k_31 u8
+  char.const 123
+  char.to_i32
   i32.to_i64
   call 1
-  local.set 4
+  local.set 0
   string.const 0
-  local.get 4
+  local.get 0
   call 3
   call 2
-  local.get 1
-  u8.to_i32
+  char.const 10
+  char.to_i32
   i32.to_i64
   call 1
-  local.set 4
-  string.const 1
-  local.get 4
-  call 3
-  call 2
-  local.get 2
-  u8.to_i32
-  i32.to_i64
-  call 1
-  local.set 4
-  string.const 2
-  local.get 4
-  call 3
-  call 2
-  local.get 3
-  u8.to_i32
-  i32.to_i64
-  call 1
-  local.set 4
-  string.const 3
-  local.get 4
-  call 3
-  call 2
-  i32.const 61
   local.set 0
+  string.const 1
+  local.get 0
+  call 3
+  call 2
+  char.const 92
+  char.to_i32
+  i32.to_i64
+  call 1
+  local.set 0
+  string.const 2
+  local.get 0
+  call 3
+  call 2
+  char.const 39
+  char.to_i32
+  i32.to_i64
+  call 1
+  local.set 0
+  string.const 3
+  local.get 0
+  call 3
+  call 2
   i32.const 61
   local.set 1
-  local.get 0
+  char.const 61
   local.get 1
-  i32.eq
+  char.eq
   if $L0 void
     string.const 5
-    local.set 4
+    local.set 0
   else
     string.const 6
-    local.set 4
+    local.set 0
   end $L0
   string.const 4
-  local.get 4
+  local.get 0
   call 3
   call 2
   return.lit i32.const 0

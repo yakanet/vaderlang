@@ -26,17 +26,18 @@ static void std_io_println__string(vader_string_t l0);
 typedef vader_box_t (*vader_fn_erased_sig_0_t)(void* env);
 
 
-const vader_type_info_t vader_type_info_table[6] = {
+const vader_type_info_t vader_type_info_table[7] = {
 };
-const size_t vader_type_info_count = 6;
+const size_t vader_type_info_count = 7;
 
-const size_t vader_type_size[6] = {
+const size_t vader_type_size[7] = {
     [0] = 0u,
     [1] = 4u,
     [2] = 16u,
     [3] = 0u,
     [4] = 16u,
     [5] = 8u,
+    [6] = 16u,
 };
 
 
@@ -56,7 +57,7 @@ static int32_t snippet_main(void) {
     vader_gc_top = &gc_frame;
     snippet_accept_type(vader_box_obj(0u, (void*)(uintptr_t)1u));
     snippet_accept_type(vader_box_obj(0u, (void*)(uintptr_t)5u));
-    snippet_accept_type(vader_box_obj(0u, (void*)(uintptr_t)1u));
+    snippet_accept_type(vader_box_obj(0u, (void*)(uintptr_t)6u));
     snippet_accept_type(vader_box_obj(0u, (void*)(uintptr_t)4u));
     std_io_println__string(1u);
     { vader_gc_top = gc_frame.prev; return INT32_C(0); }

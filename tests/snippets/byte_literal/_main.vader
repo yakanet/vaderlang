@@ -8,15 +8,15 @@ module "snippet"
 import "std/io" { println }
 
 main :: fn() -> i32 {
-    a :: b'{'
-    nl :: b'\n'
-    bs :: b'\\'
-    sq :: b'\''
+    a :: '{'
+    nl :: '\n'
+    bs :: '\\'
+    sq :: '\''
     println("a=${i32(a)}")          // 123
     println("nl=${i32(nl)}")        // 10
     println("bs=${i32(bs)}")        // 92
     println("sq=${i32(sq)}")        // 39
-    b := b'='
+    b := '='
     println("eq=${b == b'='}")      // true
     return 0
 }

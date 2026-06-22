@@ -6,8 +6,8 @@ import "std/io" { println }
  * Simple implementation of fibonacci numbers
  */
 export fibonacci :: fn(n: i32) -> u64 {
-    a := 0_u64
-    b := 1_u64
+    a: u64 = 0
+    b: u64 = 1
     for i in 0..<n {
         c :: a + b
         a = b

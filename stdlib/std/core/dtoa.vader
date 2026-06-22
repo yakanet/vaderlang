@@ -28,8 +28,8 @@ DOUBLE_BIAS              :: 1023
 DOUBLE_POW5_INV_BITCOUNT :: 125
 DOUBLE_POW5_BITCOUNT     :: 125
 
-MASK32 :: 0xFFFFFFFF_u64
-MASK52 :: 0xFFFFFFFFFFFFF_u64
+MASK32: u64: 0xFFFFFFFF
+MASK52: u64: 0xFFFFFFFFFFFFF
 
 // Shortest decimal as `mantissa * 10^exp`.
 Dec64 :: struct {
@@ -120,7 +120,7 @@ pow5_factor :: fn(value_in: u64) -> i32 {
 }
 
 multiple_of_power_of_5 :: fn(value: u64, p: i32) -> bool = pow5_factor(value) >= p
-multiple_of_power_of_2 :: fn(value: u64, p: i32) -> bool = (value & ((1_u64 << u64(p)) - 1)) == 0
+multiple_of_power_of_2 :: fn(value: u64, p: i32) -> bool = (value & ((1 << u64(p)) - 1)) == 0
 
 // ---- the shortest-decimal core (Ryu d2s.c::d2d) ---------------------------
 
@@ -135,7 +135,7 @@ d2d :: fn(ieee_mantissa: u64, ieee_exponent: u64) -> Dec64 {
         m2 = ieee_mantissa
     } else {
         e2 = i32(ieee_exponent) - DOUBLE_BIAS - DOUBLE_MANTISSA_BITS - 2
-        m2 = (1_u64 << 52) | ieee_mantissa
+        m2 = (1 << 52) | ieee_mantissa
     }
     even :: (m2 & 1) == 0
     accept_bounds :: even
@@ -356,8 +356,8 @@ format_f64 :: fn(x: f64) -> string {
     bits :: x.to_bits()
     sign :: (bits >> 63) != 0
     mantissa :: bits & MASK52
-    exponent :: (bits >> 52) & 0x7FF_u64
-    if exponent == 0x7FF_u64 {
+    exponent :: (bits >> 52) & 0x7FF
+    if exponent == 0x7FF {
         if mantissa != 0 { return "nan" }
         return if sign { "-inf" } else { "inf" }
     }

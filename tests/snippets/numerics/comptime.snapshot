@@ -7,11 +7,11 @@
   @comptime  d                    = 65535_i32
   @comptime  e                    = 10_i32
   @comptime  f                    = 493_i32
-  @comptime  g                    = 42_i64
-  @comptime  h                    = 100_u32
+  @comptime  g                    = 42_i32
+  @comptime  h                    = 100_i32
   @comptime  i                    = 3.14_f64
   @comptime  j                    = 1.5e-10_f64
-  @comptime  k                    = 3.14_f32
+  @comptime  k                    = 3.14_f64
   @comptime  l                    = 0.5_f64
 
 ## generic instances

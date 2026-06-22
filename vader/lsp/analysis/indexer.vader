@@ -617,9 +617,9 @@ head_signature :: fn(span: Span, source: string) -> string {
     cursor: usize = start
     for cursor < upper {
         b :: sb[cursor]
-        if b == b'{' { break }
-        if b == b'=' { break }
-        if b == b'\n' { break }
+        if b == '{' { break }
+        if b == '=' { break }
+        if b == '\n' { break }
         cursor = cursor + 1
     }
     return sb[start..<cursor].bytes_to_string().trim()
@@ -635,7 +635,7 @@ slice_to_eol :: fn(source: string, start: usize, upper: usize) -> string {
     cursor: usize = start
     for cursor < up {
         b :: sb[cursor]
-        if b == b'\n' { break }
+        if b == '\n' { break }
         cursor = cursor + 1
     }
     return sb[start..<cursor].bytes_to_string().trim()
@@ -697,7 +697,7 @@ whitespace_between :: fn(source: string, start: usize, end: usize) -> bool {
     cursor: usize = start
     for cursor < end {
         b :: sb[cursor]
-        if b != b' ' && b != b'\t' && b != b'\n' && b != b'\r' {
+        if b != ' ' && b != '\t' && b != '\n' && b != '\r' {
             return false
         }
         cursor = cursor + 1
@@ -710,7 +710,7 @@ strip_doc_prefix :: fn(text: string) -> string {
     n :: tb.len()
     if n < 3 { return text }
     cursor: usize = 3
-    if cursor < n && tb[cursor] == b' ' {
+    if cursor < n && tb[cursor] == ' ' {
         cursor = cursor + 1
     }
     return tb[cursor..<n].bytes_to_string()

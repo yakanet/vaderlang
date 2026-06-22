@@ -44,8 +44,8 @@ main :: fn() -> i32 {
     println("rotate x=${x} y=${y} z=${z}")    // expect x=2 y=3 z=1
 
     // 64-bit fibonacci — the original example used u64 ; guard the wide path.
-    g0 := 0_u64
-    g1 := 1_u64
+    g0: u64 = 0
+    g1: u64 = 1
     for i in 0..<50 {
         g :: g0 + g1
         g0 = g1

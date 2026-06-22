@@ -63,7 +63,7 @@ pow5_factor_32 :: fn(value_in: u32) -> i32 {
 }
 
 multiple_of_power_of_5_32 :: fn(value: u32, p: i32) -> bool = pow5_factor_32(value) >= p
-multiple_of_power_of_2_32 :: fn(value: u32, p: i32) -> bool = (value & ((1_u32 << u32(p)) - 1)) == 0
+multiple_of_power_of_2_32 :: fn(value: u32, p: i32) -> bool = (value & ((1 << u32(p)) - 1)) == 0
 
 // ---- the shortest-decimal core (Ryu f2s.c::f2d) ---------------------------
 
@@ -77,7 +77,7 @@ f2d :: fn(ieee_mantissa: u32, ieee_exponent: u32) -> FloatDec32 {
         m2 = ieee_mantissa
     } else {
         e2 = i32(ieee_exponent) - FLOAT_BIAS - FLOAT_MANTISSA_BITS - 2
-        m2 = (1_u32 << 23) | ieee_mantissa
+        m2 = (1 << 23) | ieee_mantissa
     }
     even :: (m2 & 1) == 0
     accept_bounds :: even
@@ -197,9 +197,9 @@ f2d :: fn(ieee_mantissa: u32, ieee_exponent: u32) -> FloatDec32 {
 format_f32 :: fn(x: f32) -> string {
     bits :: x.to_bits()
     sign :: (bits >> 31) != 0
-    mantissa :: bits & 0x7FFFFF_u32
-    exponent :: (bits >> 23) & 0xFF_u32
-    if exponent == 0xFF_u32 {
+    mantissa :: bits & 0x7FFFFF
+    exponent :: (bits >> 23) & 0xFF
+    if exponent == 0xFF {
         if mantissa != 0 { return "nan" }
         return if sign { "-inf" } else { "inf" }
     }

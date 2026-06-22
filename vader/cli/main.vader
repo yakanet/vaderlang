@@ -581,7 +581,7 @@ last_index_of_slash :: fn(s: string) -> i32 {
     sb :: s.bytes()
     i: i32 = i32(sb.len()) - 1
     for i >= 0 {
-        if sb[usize(i)] == b'/' { return i }
+        if sb[usize(i)] == '/' { return i }
         i -= 1
     }
     return -1

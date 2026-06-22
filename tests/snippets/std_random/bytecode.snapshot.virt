@@ -760,7 +760,7 @@ fn 7 std_random$unit_f64 (ref) -> f64
   local $call_1 u64
   local $cast_3 u64
   local $cast_5 f64
-  local $cast_7 f64
+  local $cast_8 f64
   local.get 0
   call 5
   local.set 1

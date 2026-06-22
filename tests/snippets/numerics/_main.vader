@@ -6,9 +6,9 @@ export c :: 0xFF
 export d :: 0xFF_FF
 export e :: 0b1010
 export f :: 0o755
-export g :: 42i64
-export h :: 100_u32
+export g: i64: 42
+export h: u32: 100
 export i :: 3.14
 export j :: 1.5e-10
-export k :: 3.14f32
-export l :: 0.5_f64
+export k: f32: 3.14
+export l: f64: 0.5

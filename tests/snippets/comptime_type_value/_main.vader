@@ -12,7 +12,7 @@ import "std/io" { println }
 main :: fn() -> i32 {
     accept_type(alias_int)
     accept_type(i64)
-    accept_type(@type_of(42_i32))
+    accept_type(@type_of(42))
     accept_type(@type_of("hello"))
     println("ok")
     return 0

@@ -431,11 +431,14 @@
               "kind": "SimpleBinding",
               "name": "g0"
             },
-            "type": null,
+            "type": {
+              "kind": "IdentExpr",
+              "name": "u64"
+            },
             "value": {
               "kind": "IntLitExpr",
               "value": "0n",
-              "suffix": "u64"
+              "suffix": null
             }
           },
           {
@@ -445,11 +448,14 @@
               "kind": "SimpleBinding",
               "name": "g1"
             },
-            "type": null,
+            "type": {
+              "kind": "IdentExpr",
+              "name": "u64"
+            },
             "value": {
               "kind": "IntLitExpr",
               "value": "1n",
-              "suffix": "u64"
+              "suffix": null
             }
           },
           {

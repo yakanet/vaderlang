@@ -10,8 +10,8 @@ main :: fn() -> i32 {
     if 4 !in primes { println("4 is not prime") }
 
     vowels :: "aeiou".bytes()
-    if b'e' in vowels  { println("e is vowel") }
-    if b'z' !in vowels { println("z is not vowel") }
+    if 'e' in vowels  { println("e is vowel") }
+    if 'z' !in vowels { println("z is not vowel") }
 
     return 0
 }

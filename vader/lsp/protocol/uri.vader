@@ -49,7 +49,7 @@ percent_decode :: fn(s: string) -> string {
     i: usize = 0
     for i < n {
         b :: sb[i]
-        if b == 0x25_u8 && i + 2 < n {                       // '%'
+        if b == 0x25 && i + 2 < n {                       // '%'
             hi :: hex_val(sb[i + 1])
             lo :: hex_val(sb[i + 2])
             if hi >= 0 && lo >= 0 {
@@ -66,9 +66,9 @@ percent_decode :: fn(s: string) -> string {
 
 // Hex digit value for an ASCII byte, or -1 when not a hex digit.
 hex_val :: fn(b: u8) -> i32 {
-    if b >= 0x30_u8 && b <= 0x39_u8 { return i32(b) - 0x30 }        // 0-9
-    if b >= 0x41_u8 && b <= 0x46_u8 { return i32(b) - 0x41 + 10 }   // A-F
-    if b >= 0x61_u8 && b <= 0x66_u8 { return i32(b) - 0x61 + 10 }   // a-f
+    if b >= 0x30 && b <= 0x39 { return i32(b) - 0x30 }        // 0-9
+    if b >= 0x41 && b <= 0x46 { return i32(b) - 0x41 + 10 }   // A-F
+    if b >= 0x61 && b <= 0x66 { return i32(b) - 0x61 + 10 }   // a-f
     return -1
 }
 
@@ -87,10 +87,10 @@ export path_to_uri :: fn(path: string) -> string {
 is_drive_after_slash :: fn(s: string) -> bool {
     sb :: s.bytes()
     if sb.len() < 3 { return false }
-    if sb[0] != 0x2F_u8 { return false }                                  // '/'
+    if sb[0] != 0x2F { return false }                                  // '/'
     c :: sb[1]
-    if !((c >= 0x41_u8 && c <= 0x5A_u8) || (c >= 0x61_u8 && c <= 0x7A_u8)) { return false }
-    return sb[2] == 0x3A_u8                                               // ':'
+    if !((c >= 0x41 && c <= 0x5A) || (c >= 0x61 && c <= 0x7A)) { return false }
+    return sb[2] == 0x3A                                               // ':'
 }
 
 // ---- tests ----------------------------------------------------------------
