@@ -108,8 +108,7 @@ prune_block :: fn(b: BasicBlock, live_out: MutableSet<LocalId>, local_count: usi
     // does not propagate the new backing buffer back, so a grow from inside
     // a closure would silently no-op and the next `live[id]` index OOBs.
     // Pre-sizing keeps the buffer stable, so every closure shares it.
-    live: bool[] = []
-    for _ in 0..<local_count { live.push(false) }
+    live: bool[] = [false] * local_count
     grow_live_to :: (id: LocalId) -> {
         while_idx := live.len()
         for while_idx <= usize(id) { live.push(false)  while_idx = while_idx + 1 }
@@ -125,8 +124,7 @@ prune_block :: fn(b: BasicBlock, live_out: MutableSet<LocalId>, local_count: usi
     })
 
     n :: b.instructions.len()
-    keep: bool[] = []
-    for _ in 0..<n { keep.push(false) }
+    keep: bool[] = [false] * n
     i: i64 = i64(n) - 1
     for i >= 0 {
         ins :: b.instructions[usize(i)]
@@ -288,8 +286,8 @@ compact_locals :: fn(f: CFGFunction) -> CFGFunction {
     if !dropped_any { return f }
 
     // Build remap + new locals.
-    remap: i32[] = []
-    new_locals: CFGLocal[] = []
+    remap: i32[] = [] * n
+    new_locals: CFGLocal[] = [] * n
     for i in 0..<n {
         if !referenced[i] { remap.push(-1)  continue }
         remap.push(i32(new_locals.len()))
@@ -297,7 +295,7 @@ compact_locals :: fn(f: CFGFunction) -> CFGFunction {
     }
 
     // Remap params via the same map.
-    new_params: CFGParam[] = []
+    new_params: CFGParam[] = [] * f.params.len()
     for p in f.params {
         new_params.push(CFGParam {
             .name = p.name, .symbol = p.symbol, .type = p.type,
@@ -306,9 +304,9 @@ compact_locals :: fn(f: CFGFunction) -> CFGFunction {
     }
 
     // Drop pure instructions whose dst → -1 ; remap survivors.
-    new_blocks: BasicBlock[] = []
+    new_blocks: BasicBlock[] = [] * f.blocks.len()
     for b in f.blocks {
-        out: Instruction[] = []
+        out: Instruction[] = [] * b.instructions.len()
         for ins in b.instructions {
             d :: dst_of(ins)
             if d is LocalId as dd {
