@@ -1,0 +1,35 @@
+// W0007 — private top-level declarations never reached from the module's public
+// surface are dead. Exported decls (public API), the `main` entry, and
+// `@allow_unused`-tagged decls are reachability roots and are never flagged ; a
+// private decl reached from a root (here `greeting`, called by `main`) stays
+// live. Exercises the fn / const / struct decl kinds in one pass.
+
+module "snippet"
+
+import "std/io" { println }
+
+// dead : private fn, referenced nowhere → W0007.
+stale_fn :: fn() -> i32 = 41
+
+// dead : private const, referenced nowhere → W0007.
+STALE_CONST :: 7
+
+// dead : private struct type, referenced nowhere → W0007.
+StaleType :: struct {
+    x: i32
+}
+
+// live : private fn reached from `main` → not flagged.
+greeting :: fn() -> string = "hi"
+
+// root : exported (public API), unused in-module → not flagged.
+export public_api :: fn() -> i32 = 1
+
+// root : author opt-out for intentional dead code → not flagged.
+@allow_unused
+intentional :: fn() -> i32 = 2
+
+main :: fn() -> i32 {
+    println(greeting())
+    return 0
+}
