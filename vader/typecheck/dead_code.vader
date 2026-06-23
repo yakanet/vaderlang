@@ -353,3 +353,45 @@ register_refs :: fn(m: MutableMap<string, string[]>, name: string, refs: string[
     if cur == null { m[name] = refs }
     else { for r in refs { cur.push(r) } }
 }
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert_eq }
+
+// Parse `src` as a single-file module and return the number of W0007 the pass
+// raises — the reachability BFS exercised end to end on a synthetic graph.
+dead_count :: fn(src: string) -> usize {
+    parsed :: AST.parse_source(src, "t.vader")
+    diags: Diagnostic[] = []
+    check_dead_code(parsed.program.decls, diags)
+    return diags.len()
+}
+
+@test
+test_flags_unreachable_private :: fn() -> void {
+    // `helper` is private and reached by nothing → flagged.
+    src :: "module \"t\"\nhelper :: fn() -> i32 = 1\nmain :: fn() -> i32 = 0\n"
+    assert_eq(dead_count(src), 1)
+}
+
+@test
+test_keeps_reachable_private :: fn() -> void {
+    // `helper` is reached from `main` → not flagged.
+    src :: "module \"t\"\nhelper :: fn() -> i32 = 1\nmain :: fn() -> i32 = helper()\n"
+    assert_eq(dead_count(src), 0)
+}
+
+@test
+test_exported_is_root :: fn() -> void {
+    // An exported decl is the public surface ; never flagged even when unused.
+    src :: "module \"t\"\nexport helper :: fn() -> i32 = 1\n"
+    assert_eq(dead_count(src), 0)
+}
+
+@test
+test_transitive_dead_flags_both :: fn() -> void {
+    // `a` references `b`, but nothing live reaches `a` → both are dead. A plain
+    // "has a caller" check would wrongly spare `b`; root-reachability flags both.
+    src :: "module \"t\"\na :: fn() -> i32 = b()\nb :: fn() -> i32 = 2\nmain :: fn() -> i32 = 0\n"
+    assert_eq(dead_count(src), 2)
+}

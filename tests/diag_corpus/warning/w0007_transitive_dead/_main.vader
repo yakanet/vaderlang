@@ -1,0 +1,11 @@
+// W0007 — reachability is measured from the public surface, NOT "is referenced
+// by something". `orphan_a` calls `orphan_b`, but nothing live reaches
+// `orphan_a`, so BOTH are dead. A plain call-graph "has a caller" check would
+// wrongly keep `orphan_b` alive — the root-reachability BFS flags both.
+
+module "snippet"
+
+orphan_a :: fn() -> i32 = orphan_b() + 1
+orphan_b :: fn() -> i32 = 2
+
+main :: fn() -> i32 = 0
