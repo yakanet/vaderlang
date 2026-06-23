@@ -1166,12 +1166,13 @@ register_external :: fn(
 // stdlib helper without requiring the user to re-implement it
 // locally. Walks `external_types` (already populated with the
 // imported name's resolved Type) and buckets by symbol name.
-/// Pre-walk every non-entry, non-stdlib module's bodies so that
-/// expression-bodied fns get their return-type patched into the
-/// owning module's decl_types (used by `populate_imported_fn_overloads`)
-/// AND so the per-module `expr_types` / `expr_kinds` populate for
-/// the typecheck dump — every loaded user module gets its own
-/// `## <path>` section with its body's expr lines.
+/// Pre-walk every non-entry module's expression-bodied fns so their return
+/// types get patched into the owning module's `decl_types` before the
+/// resolution env is wired from those types (`populate_external_types` /
+/// `populate_imported_fn_overloads`). A `.ReturnsOnly` walk : it touches only
+/// `needs_return_inference` fns and builds NO `expr_types`. The full per-module
+/// `expr_types` + stdlib-fn materialisation (GATE B1) are produced later, by the
+/// import-loop's real `.Full` walk in `check_project_with_bodies`.
 settle_external_expr_bodied_returns :: fn(
     project: LoadedProject, per_module: MutableMap<string, TypedProgram>,
 ) -> void {
@@ -1184,18 +1185,11 @@ settle_external_expr_bodied_returns :: fn(
     // is itself expr-bodied) settle to the concrete return type
     // instead of `?`.
     //
-    // Pass 0 always runs on every module — that's the only place
-    // per-module `expr_types` / `expr_kinds` get populated for the
-    // typecheck dump's `## <path>` sections. It ALSO has a load-bearing
-    // side effect: walking each imported body materialises the stdlib fns
-    // it references (e.g. `println`) for the lowerer — skipping non-expr-
-    // bodied modules here breaks that (midir/emit: unresolved callee, GATE B1).
-    //
-    // Pass 1 is the re-walk that picks up settled returns ; it's
-    // pure waste on modules without expression-bodied fns since
-    // there's nothing to re-settle. Gate it so std/iter et al. don't
-    // pay for a double-walk just because a sibling module needed
-    // settling.
+    // Both passes are `.ReturnsOnly` : they settle returns and nothing else.
+    // `expr_types` + materialisation come from the import-loop `.Full` walk that
+    // runs over every module afterwards, so settle skips every non-settling body.
+    // Pass 1 only re-settles forward refs, so it's gated to expr-bodied modules
+    // (std/iter et al. don't pay a second pass for a sibling's settling).
     for pass in 0..<2 {
         for [id, loaded] in project.modules {
             if id == entry_path { continue }
@@ -1206,10 +1200,7 @@ settle_external_expr_bodied_returns :: fn(
             // across the gate + the walk (mirrors the import loop's `other_decls`).
             decls :: merge_module_program(loaded.module.files).decls
             if pass == 1 && !has_expr_bodied_fn(decls) { continue }
-            // Pass 0 is the full walk (materialisation + expr_types) ; pass 1
-            // only re-settles forward-reference expr-bodied returns.
-            mode: WalkMode = if pass == 1 { .ReturnsOnly } else { .Full }
-            walk_bodies(decls, other_typed, diag_sink(), mode)
+            walk_bodies(decls, other_typed, diag_sink(), .ReturnsOnly)
         }
     }
 }
@@ -1472,10 +1463,12 @@ lookup_external_type :: fn(
 export WalkMode :: enum(u8) {
     /// Type-check every body — populate `expr_types`, materialise stdlib fns.
     Full
-    /// Forward-reference re-walk : walk ONLY `needs_return_inference` fns to
-    /// re-settle their returns ; skip every other body (its return is already
-    /// final). Valid ONLY where a following `Full` walk resets/overwrites
-    /// `expr_types` — see the contract on `walk_fn_body`.
+    /// Settle returns only : walk ONLY `needs_return_inference` fns to patch
+    /// their return into `decl_types` ; skip every other body (its return is
+    /// already final). Used by `settle_external_expr_bodied_returns` + the
+    /// forward-reference throwaway re-walks. Valid ONLY where a following
+    /// `Full` walk resets/overwrites `expr_types` — see the `walk_fn_body`
+    /// contract.
     ReturnsOnly
 }
 
@@ -1618,9 +1611,9 @@ walk_fn_body :: fn(
     // the resolver bound their `self`, and their body's expr_types feed
     // the lowerer (otherwise every node lands on `:?`).
     if fd.materialized && fd.sam_synthetic { return }
-    // Return-only mode (the forward-reference re-walks : settle pass 1 +
-    // the import-loop / entry throwaway passes). Their sole job is to
-    // re-settle expression-bodied fn returns into `decl_types` — and only
+    // Return-only mode (the `settle_external_expr_bodied_returns` passes + the
+    // import-loop / entry throwaway re-walks). Their sole job is to settle
+    // expression-bodied fn returns into `decl_types` — and only
     // `needs_return_inference` fns ever call `patch_fn_return_type`
     // (stmt.vader). Every other fn's return is already final from
     // `declare_module`, so walking its body re-does full inference for
