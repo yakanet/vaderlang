@@ -43982,10 +43982,10 @@ static void vader_typecheck_populate_imported_fn_overloads(vader_box_t l0, vader
 static void vader_typecheck_settle_external_expr_bodied_returns(vader_box_t l0, vader_box_t l1) {
     vader_string_t l2, l9, l13;
     int32_t l3;
-    vader_box_t l4 = vader_box_null(), l5 = vader_box_null(), l6 = vader_box_null(), l10 = vader_box_null(), l12 = vader_box_null(), l14 = vader_box_null(), l15 = vader_box_null(), l16 = vader_box_null(), l20 = vader_box_null(), l21 = vader_box_null();
+    vader_box_t l4 = vader_box_null(), l5 = vader_box_null(), l6 = vader_box_null(), l10 = vader_box_null(), l12 = vader_box_null(), l14 = vader_box_null(), l15 = vader_box_null(), l16 = vader_box_null(), l18 = vader_box_null(), l19 = vader_box_null();
     size_t l7, l8, l11;
     bool l17;
-    uint8_t l18, l19;
+    uint8_t l20;
     vader_string_t t0, t6, t10;
     vader_box_t t1 = vader_box_null(), t2 = vader_box_null(), t3 = vader_box_null(), t8 = vader_box_null(), t11 = vader_box_null(), t12 = vader_box_null(), t13 = vader_box_null(), t14 = vader_box_null(), t17 = vader_box_null();
     size_t t4;
@@ -43993,7 +43993,7 @@ static void vader_typecheck_settle_external_expr_bodied_returns(vader_box_t l0, 
     int64_t t9;
     bool t15, t16;
     int32_t t18;
-    vader_box_t* gc_roots[23] = { &l0, &l1, &l4, &l5, &l6, &l10, &l12, &l14, &l15, &l16, &l20, &l21, &t1, &t2, &t3, &t8, &t11, &t12, &t13, &t14, &t17, &t5, &t7 };
+    vader_box_t* gc_roots[23] = { &l0, &l1, &l4, &l5, &l6, &l10, &l12, &l14, &l15, &l16, &l18, &l19, &t1, &t2, &t3, &t8, &t11, &t12, &t13, &t14, &t17, &t5, &t7 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 23u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
     t0 = (vader_string_t) ((vader_struct_vader_resolver_LoadedProject_t*) l0.payload.obj)->f_entry;
@@ -44061,16 +44061,11 @@ static void vader_typecheck_settle_external_expr_bodied_returns(vader_box_t l0, 
                             if (l17) {
                                 goto loop_23;
                             }
-                            if (l3 == INT32_C(1)) {
-                                l18 = (uint8_t) (int32_t) INT32_C(1);
-                            } else {
-                                l18 = (uint8_t) (int32_t) INT32_C(0);
-                            }
-                            l19 = l18;
-                            l20 = l15;
+                            l18 = l15;
                             t17 = vader_typecheck_diag_sink();
-                            l21 = t17;
-                            vader_typecheck_walk_bodies(l16, l20, l21, l19);
+                            l19 = t17;
+                            l20 = (uint8_t) (int32_t) INT32_C(1);
+                            vader_typecheck_walk_bodies(l16, l18, l19, l20);
                             goto loop_23;
                         }
                     }
