@@ -153,6 +153,12 @@ export join :: fn(self: Path, other: string) -> Path {
     return Path { .repr = self.repr + SEP_STR + other }
 }
 
+// `path / "child"` — operator sugar for `join`. The `/` mirrors the path
+// separator and reads naturally when building child paths.
+Path implements Div<string> {
+    div :: fn(self, other: string) -> Path = self.join(other)
+}
+
 // ---- predicates -----------------------------------------------------------
 
 /// True when `self` starts with `prefix` on a segment boundary — so
