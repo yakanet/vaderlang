@@ -99,9 +99,17 @@ export decode :: fn(input: string) -> u8[] | Base64Error {
         return Base64Error { .msg = "base64: input length must be a multiple of 4" }
     }
 
+    // `=` padding is only canonical at the very end : one or two trailing
+    // `=`. A `=` at `n - 2` while `n - 1` is a data byte (e.g. "ab=c") is
+    // malformed and must be rejected — otherwise pad_count would wrongly read
+    // 2 and the trailing data byte would be silently dropped.
     pad_count: usize = 0
-    if bs[n - 1] == '=' { pad_count = 1 }
-    if bs[n - 2] == '=' { pad_count = 2 }
+    if bs[n - 1] == '=' {
+        pad_count = 1
+        if bs[n - 2] == '=' { pad_count = 2 }
+    } else if bs[n - 2] == '=' {
+        return Base64Error { .msg = "base64: '=' padding is only allowed at the end of input" }
+    }
 
     // Accumulate the decoded octets into a `u8[]` and return them raw. An
     // earlier version returned a `string` built via `char()` + StringBuilder,
@@ -213,6 +221,18 @@ expect_decode :: fn(encoded: string, expected: string) -> void {
         assert(true, "invalid char caught")
     } else {
         assert(false, "should have rejected `!`")
+    }
+}
+
+@test test_decode_rejects_misplaced_padding :: fn() -> void {
+    // A `=` before the final position must not be read as padding : "ab=c"
+    // has a real data byte after the `=`, which an earlier version silently
+    // dropped (pad_count wrongly read 2).
+    bad :: decode("ab=c")
+    if bad is Base64Error {
+        assert(true, "misplaced padding caught")
+    } else {
+        assert(false, "should have rejected a `=` followed by data")
     }
 }
 
