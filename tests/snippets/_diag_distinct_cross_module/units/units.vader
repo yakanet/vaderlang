@@ -1,0 +1,16 @@
+// Owning module for the cross-module `@distinct` regression — exports the
+// distinct `Instant` + a wrapper constructor + an `elapsed` that uses the
+// in-module `Sub` impl (`Instant - Instant -> Duration`).
+
+module "snippet/units"
+
+export Instant :: i64
+export Duration :: i64
+
+export make_instant :: fn(ns: i64) -> Instant = Instant(ns)
+
+Instant implements Sub<Instant, Duration> {
+    sub :: fn(self, other: Instant) -> Duration = Duration(i64(self) - i64(other))
+}
+
+export elapsed :: fn(start: Instant, end: Instant) -> i64 = i64(end - start)

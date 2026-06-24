@@ -18,6 +18,7 @@ import "vader/types" {
     Type, PrimitiveType, StructType, EnumType, TraitType, UnionType,
     FnType, ArrayType, TupleType, TypeParamType, TypeMetaType, SelfType,
     UnresolvedType, FreeIntType, FreeCharType, FreeFloatType, NeverType,
+    DistinctType,
 }
 
 /// Whether `from` can flow into a slot expecting `to` without explicit

@@ -16,7 +16,7 @@ import "vader/resolver/symbol" { Symbol }
 import "vader/types" {
     Type, PrimitiveType, StructType, EnumType, TraitType, ArrayType, TupleType,
     FnType, TypeParamType, UnionType, UnresolvedType, FreeIntType, FreeCharType, FreeFloatType,
-    SelfType, TypeMetaType, NeverType, AnyType, display_type,
+    SelfType, TypeMetaType, NeverType, AnyType, DistinctType, display_type, strip_distinct_each,
 }
 
 /// One registered instantiation. `args` carries the concrete (or
@@ -52,7 +52,12 @@ export new_registry :: fn() -> InstanceRegistry {
 /// @param symbol    the generic decl's resolver symbol.
 /// @param args      the concrete type arguments.
 /// @return          the registered instance.
-export add :: fn(registry: InstanceRegistry, symbol: Symbol, args: Type[]) -> GenericInstance {
+export add :: fn(registry: InstanceRegistry, symbol: Symbol, raw_args: Type[]) -> GenericInstance {
+    // Distinct→backing before this instance is keyed or stored: a distinct has
+    // no runtime identity, so `MutableMap<BlockId>` must register as the same
+    // raw instance as `MutableMap<i32>`, never a separate erased one. This is
+    // the central struct/trait instance source (via `observe`/`walk_type`).
+    args :: strip_distinct_each(raw_args)
     key :: build_display_key(symbol, args)
     existing :: registry.by_key[key]
     match existing {
@@ -158,6 +163,10 @@ canonical_type_key :: fn(t: Type) -> string = match t {
     is PrimitiveType  as p  -> "P:${p.name}"
     is StructType     as s  -> "S:${s.symbol.id}(${canonical_args_key(s.args)})"
     is EnumType       as e  -> "E:${e.symbol.id}"
+    // A distinct has no backend identity — its dedup key is the backing's, so a
+    // display_key built from a distinct-bearing type reconciles with the
+    // source-stripped instance entries (no separate slot, no name desync).
+    is DistinctType   as d  -> canonical_type_key(d.backing)
     is TraitType      as r  -> "T:${r.symbol.id}(${canonical_args_key(r.args)})"
     is ArrayType      as a  -> "A:${canonical_type_key(a.element)}"
     is TupleType      as tu -> "U:(${canonical_args_key(tu.elements)})"

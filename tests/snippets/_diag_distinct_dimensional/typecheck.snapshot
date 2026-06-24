@@ -1,0 +1,76 @@
+# Typecheck
+
+## tests/snippets/_diag_distinct_dimensional
+  ConstDecl      Duration             :: type
+  ConstDecl      Instant              :: type
+  FnDecl         main                 :: fn() -> i32
+  expr 16:51    CallExpr       :: Duration
+  expr 16:51    IdentExpr      :: type
+  expr 16:60    BinaryExpr     :: i64
+  expr 16:60    CallExpr       :: i64
+  expr 16:60    IdentExpr      :: type
+  expr 16:64    IdentExpr      :: Instant
+  expr 16:72    CallExpr       :: i64
+  expr 16:72    IdentExpr      :: type
+  expr 16:76    IdentExpr      :: Instant
+  expr 19:52    CallExpr       :: Duration
+  expr 19:52    IdentExpr      :: type
+  expr 19:61    BinaryExpr     :: i64
+  expr 19:61    CallExpr       :: i64
+  expr 19:61    IdentExpr      :: type
+  expr 19:65    IdentExpr      :: Duration
+  expr 19:73    CallExpr       :: i64
+  expr 19:73    IdentExpr      :: type
+  expr 19:77    IdentExpr      :: Duration
+  expr 21524:13 BinaryExpr     :: bool
+  expr 21524:14 CallExpr       :: i32
+  expr 21524:15 FieldExpr      :: fn(Instant) -> i32
+  expr 21524:16 IdentExpr      :: Instant
+  expr 21524:18 IdentExpr      :: Instant
+  expr 21524:2  BinaryExpr     :: bool
+  expr 21524:24 BinaryExpr     :: bool
+  expr 21524:25 CallExpr       :: i32
+  expr 21524:26 FieldExpr      :: fn(Instant) -> i32
+  expr 21524:27 IdentExpr      :: Instant
+  expr 21524:29 IdentExpr      :: Instant
+  expr 21524:3  CallExpr       :: i32
+  expr 21524:35 BinaryExpr     :: bool
+  expr 21524:36 CallExpr       :: i32
+  expr 21524:37 FieldExpr      :: fn(Instant) -> i32
+  expr 21524:38 IdentExpr      :: Instant
+  expr 21524:4  FieldExpr      :: fn(Instant) -> i32
+  expr 21524:40 IdentExpr      :: Instant
+  expr 21524:5  IdentExpr      :: Instant
+  expr 21524:7  IdentExpr      :: Instant
+  expr 23:14    CallExpr       :: i64
+  expr 23:14    IdentExpr      :: type
+  expr 23:18    IdentExpr      :: Instant
+  expr 24:14    CallExpr       :: i64
+  expr 24:14    IdentExpr      :: type
+  expr 24:18    IdentExpr      :: Instant
+  expr 25:12    BinaryExpr     :: bool
+  expr 25:12    IdentExpr      :: i64
+  expr 25:16    IdentExpr      :: i64
+  expr 25:27    UnaryExpr      :: i32
+  expr 25:9     IfExpr         :: void
+  expr 26:12    BinaryExpr     :: bool
+  expr 26:12    IdentExpr      :: i64
+  expr 26:16    IdentExpr      :: i64
+  expr 26:9     IfExpr         :: void
+  expr 32:11    CallExpr       :: Instant
+  expr 32:11    IdentExpr      :: type
+  expr 33:11    CallExpr       :: Instant
+  expr 33:11    IdentExpr      :: type
+  expr 34:10    BinaryExpr     :: Duration
+  expr 34:10    IdentExpr      :: Instant
+  expr 34:15    IdentExpr      :: Instant
+  expr 35:13    IdentExpr      :: Instant
+  expr 35:25    CallExpr       :: i32
+  expr 35:25    IdentExpr      :: type
+  expr 35:29    CallExpr       :: i64
+  expr 35:29    IdentExpr      :: type
+  expr 35:33    IdentExpr      :: Duration
+  expr 35:5     IfExpr         :: void
+  expr 35:8     BinaryExpr     :: bool
+  expr 35:8     IdentExpr      :: Instant
+  expr 36:12    UnaryExpr      :: i32

@@ -9,7 +9,7 @@ import "vader/parser" { Expr, IdentExpr, CallExpr, GenericInstExpr, ArrayTypeExp
 import "vader/diagnostics" { Span }
 import "vader/typecheck" { ImplEntry }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/types" { Type, FnType, PrimitiveType, FreeIntType, FreeCharType, FreeFloatType, UnionType, TraitType, TypeParamType, ArrayType, TupleType, TypeMetaType, AnyType, SelfType, NeverType, mk_primitive, STRUCT_ARRAY_ITERATOR, StructType, EnumType, UnresolvedType }
+import "vader/types" { Type, FnType, PrimitiveType, FreeIntType, FreeCharType, FreeFloatType, UnionType, TraitType, TypeParamType, ArrayType, TupleType, TypeMetaType, AnyType, SelfType, NeverType, mk_primitive, STRUCT_ARRAY_ITERATOR, StructType, EnumType, UnresolvedType, DistinctType, strip_distinct_each }
 import "vader/comptime" { GenericInstance }
 
 UfcsMember :: struct {
@@ -55,11 +55,15 @@ build_member_call_or_inline :: fn(member: UfcsMember, args: LoweredExpr[], ret: 
 // `seen_generic_impl_recv`. Shared by the erased-receiver path
 // (`find_impl_member_for`) and the array→Iterator wrap (`try_array_iter_coercion`).
 queue_generic_impl_receiver :: fn(ctx: FnLowerCtx, recv: StructType) -> void {
-    recv_key :: "${recv.symbol.name}${mixed_any_suffix(recv.args)}"
+    // Distinct→backing on the receiver's args before keying/queuing — the
+    // queued instance must match the registry's raw backing instance, not a
+    // separate distinct one. Distinct ends at the lowering boundary.
+    mono_args :: strip_distinct_each(recv.args)
+    recv_key :: "${recv.symbol.name}${mixed_any_suffix(mono_args)}"
     if ctx.project.seen_generic_impl_recv.contains(recv_key) { return }
     ctx.project.seen_generic_impl_recv.add(recv_key)
     ctx.project.pending_generic_impl_recv.push(GenericInstance {
-        .symbol = recv.symbol, .args = recv.args, .display_key = recv_key,
+        .symbol = recv.symbol, .args = mono_args, .display_key = recv_key,
     })
 }
 
@@ -221,6 +225,9 @@ type_surface_name :: fn(t: Type) -> string = match t {
     is PrimitiveType as p -> p.name
     is StructType    as s -> s.symbol.name
     is EnumType      as e -> e.symbol.name
+    // Distinct (newtype) dispatches operators / UFCS under its own nominal
+    // name (opaque — an impl on the distinct, never the backing's).
+    is DistinctType  as d -> d.symbol.name
     // Generic-shape pattern + concrete receiver agree on a canonical token :
     // `T[]` and `i32[]` both surface as `[]` for UFCS lookup.
     is ArrayType          -> "[]"
@@ -275,7 +282,16 @@ try_lower_cast_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
         .TypeAlias   -> true
         _            -> false
     }
-    if !is_type_shaped { return null }
+    // A non-generic type alias (`Foo :: i64`) or a distinct newtype is a
+    // ConstDecl, so its symbol kind is `.Const` — but it resolves into
+    // `alias_types`. Recognise such a type-valued const as a cast/wrap callee
+    // too (without this, `Foo(x)` / `Instant(x)` lowers to a bogus call).
+    // Follow an import binding first : a cross-module distinct lives in
+    // `alias_types` under its DEFINING symbol's id, not the import binding's.
+    type_redir :: ctx.typed.resolved.imports_to[callee_symbol.id]
+    type_sym :: if type_redir is null { callee_symbol } else { type_redir }
+    is_type_const :: !(ctx.typed.resolved.alias_types[type_sym.id] is null)
+    if !is_type_shaped && !is_type_const { return null }
     arg :: lower_expr(ctx, call.args[0].value)
     arg_type :: type_of(arg)
     // `Target(value)` probes for `value : Source` where
@@ -291,6 +307,11 @@ try_lower_cast_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Lowere
         }
         return LoweredCast { .span = call.span, .type = type, .value = inner }
     }
+    // Distinct `X :: P` wrap — `X(v)` is a pure representation no-op (X shares
+    // P's backend repr) ; stamp the distinct type so the lowered tree stays
+    // well-typed. `bc_type_of(distinct) == bc_type_of(backing)`, so the cast
+    // emit is a no-op too. (Unwrap `P(x)` rides the `PrimitiveType` arm above.)
+    if type is DistinctType { return LoweredCast { .span = call.span, .type = type, .value = inner } }
     return inner
 }
 

@@ -10,7 +10,7 @@ import "vader/parser" { IdentExpr, CallExpr, GenericInstExpr, Visibility, FnDecl
 import "vader/diagnostics" { Span }
 import "vader/typecheck" { type_from_expr, default_if_free, lookup_struct_trait_args, substitute, find_unused_equal }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/types" { Type, FnType, TraitType, TypeParamType, ArrayType, TupleType, StructType, UnionType, UnresolvedType }
+import "vader/types" { Type, FnType, TraitType, TypeParamType, ArrayType, TupleType, StructType, UnionType, UnresolvedType, strip_distinct_each }
 import "vader/comptime" { mangle_type_arg, uniq }
 import "vader/resolver" { ImportTargetTable, SymbolTarget }
 
@@ -143,7 +143,10 @@ emit_generic_fn_call :: fn(
     // the generic shape) with the call arg's inferred concrete type. Each unique
     // TypeParam symbol in the fn's signature contributes one entry to
     // `concrete_args` in source-declared order.
-    concrete_args :: infer_type_args(ft, call, ctx)
+    // Strip distinct→backing before this list keys any instance (suffix, body
+    // subst, erasure): a distinct has no runtime identity, so its instance must
+    // BE the backing's, not a separate erased one that collides with it.
+    concrete_args :: strip_distinct_each(infer_type_args(ft, call, ctx))
     if !all_concrete(concrete_args) { return null }
     // `module_id` is the fn's defining module, NOT the caller's (see
     // `register_and_emit_generic_call`). Cross-module generic calls (snippet's
@@ -233,13 +236,16 @@ register_and_emit_generic_call :: fn(
     // `main`) sends the lookup to the wrong module → returns null →
     // instance never materialises → `emit_call_to_symbol` misses and
     // the call drops. Mirrors the harvest path at line 1372.
+    // Strip distinct→backing so this instance keys/dedups as the backing's (see
+    // `emit_generic_fn_call`). Distinct ends at the lowering boundary.
+    mono_args :: strip_distinct_each(concrete_args)
     module_id :: fn_sym.module
     display :: lookup_module_display_path(ctx, module_id)
     mod_mangle :: mangle_module_id(if display == null { module_id } else { display })
-    suffix :: call_site_instance_suffix(ctx, fn_sym, concrete_args)
+    suffix :: call_site_instance_suffix(ctx, fn_sym, mono_args)
     base_mangled :: "${mod_mangle}$${fn_sym.name}${suffix}"
     inst_key :: "${fn_sym.id}::${suffix}"
-    mangled :: register_fn_instance_mangle(ctx, fn_sym, concrete_args, module_id, base_mangled, inst_key)
+    mangled :: register_fn_instance_mangle(ctx, fn_sym, mono_args, module_id, base_mangled, inst_key)
     lowered_args: LoweredExpr[] = []
     for ca in call.args { lowered_args.push(lower_expr(ctx, ca.value)) }
     mono_sym :: Symbol {

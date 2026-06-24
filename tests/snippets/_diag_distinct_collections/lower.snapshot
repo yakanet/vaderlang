@@ -1,0 +1,77 @@
+# Lower
+
+## snippet
+  fn snippet$sum_ids(ids: UserId[]) -> i32
+    let total: i32 = int(0) :i32
+    block :void
+      let __for_arr_0: UserId[] = ids :UserId[]
+      let __for_len_1: usize =
+        LoweredArrayLen
+      let __for_i_2: usize = int(0) :usize
+      loop while (<…>)
+        let id: UserId =
+          index :UserId
+            on:
+              __for_arr_0 :UserId[]
+            ix:
+              __for_i_2 :usize
+        assign
+          target:
+            total :i32
+          value:
+            add :i32
+              l:
+                total :i32
+              r:
+                cast → i32
+                  cast → i64
+                    id :UserId
+        assign
+          target:
+            __for_i_2 :usize
+          value:
+            add :usize
+              l:
+                __for_i_2 :usize
+              r:
+                int(1) :usize
+    return total :i32
+  fn snippet$unwrap_or(x: null | UserId, fallback: i32) -> i32
+    if :void
+      cond:
+        is null :bool
+          x :null | UserId
+      then:
+        return fallback :i32
+    return
+      cast → i32
+        cast → i64
+          cast → UserId
+            x :null | UserId
+  fn snippet$main() -> i32
+    let ids: UserId[] =
+      array :UserId[]
+        cast → UserId
+          int(10) :i32
+        cast → UserId
+          int(20) :i32
+    let present: i32 =
+      call :i32
+        callee:
+          unwrap_or :fn(null | UserId, i32) -> i32
+        arg0:
+          cast → UserId
+            int(12) :i32
+        arg1:
+          neg :i32
+            int(1) :i32
+    return
+      add :i32
+        l:
+          call :i32
+            callee:
+              sum_ids :fn(UserId[]) -> i32
+            arg0:
+              ids :UserId[]
+        r:
+          present :i32

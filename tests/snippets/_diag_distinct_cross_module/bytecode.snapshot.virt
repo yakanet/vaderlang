@@ -1,0 +1,39 @@
+module _main
+type 0 primitive null
+type 1 primitive i32
+type 2 primitive i64
+export main 0
+
+fn 0 snippet$main () -> i32
+  local a i64
+  local b i64
+  i64.const 100
+  call 1
+  local.set 0
+  i32.const 250
+  i32.to_i64
+  local.set 1
+  local.get 0
+  local.get 1
+  call 2
+  i64.to_i32
+  return
+end
+
+fn 1 snippet_units$make_instant (i64) -> i64
+  local.get 0
+  return
+end
+
+fn 2 snippet_units$elapsed (i64,i64) -> i64
+  local $cast_2 i64
+  local $cast_3 i64
+  local.get 1
+  local.set 2
+  local.get 0
+  local.set 3
+  local.get 2
+  local.get 3
+  i64.sub
+  return
+end

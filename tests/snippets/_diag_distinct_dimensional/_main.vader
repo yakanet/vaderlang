@@ -1,0 +1,37 @@
+// Diagnostic regression for `@distinct` newtypes (TEMPORARY opt-in) — the
+// dimensional showcase: `Instant - Instant -> Duration` (Sub with Out != Self),
+// `Comparable` (`<`), and methods via `impl`, all on a distinct over i64.
+// Exercises wrap (`Instant(n)`) / unwrap (`i64(x)`) no-ops inside impl bodies.
+//
+// `_diag_` = no snapshot sidecars (the `@distinct` gate is temporary scaffolding;
+// promote to a full feature snapshot once the auto-on-primitive rule lands and
+// these are reseeded). Expected exit: 150.
+
+module "snippet"
+
+Instant :: i64
+Duration :: i64
+
+Instant implements Sub<Instant, Duration> {
+    sub :: fn(self, other: Instant) -> Duration = Duration(i64(self) - i64(other))
+}
+Duration implements Add {
+    add :: fn(self, other: Duration) -> Duration = Duration(i64(self) + i64(other))
+}
+Instant implements Comparable {
+    compare :: fn(self, other: Instant) -> i32 {
+        a :: i64(self)
+        b :: i64(other)
+        if a < b { return -1 }
+        if a > b { return 1 }
+        return 0
+    }
+}
+
+main :: fn() -> i32 {
+    t0 :: Instant(100)
+    t1 :: Instant(250)
+    d :: t1 - t0
+    if t0 < t1 { return i32(i64(d)) }
+    return -1
+}

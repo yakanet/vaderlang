@@ -965,9 +965,12 @@ broadcast_enum_types :: fn(per_module: MutableMap<string, TypedProgram>, project
 register_alias_const :: fn(cd: AST.ConstDecl, typed: TypedProgram) -> bool {
     if !is_alias_value_expr(cd.value, typed.resolved) { return false }
     aliased :: type_from_expr(cd.value, typed.resolved, diag_sink())
+    // `alias_for` (decl.vader, same module) is the shared primitive-RHS distinct
+    // promotion rule ; this cross-project pass is the authoritative writer of
+    // `alias_types`.
     for s in typed.resolved.symbols {
         if s.name == cd.name {
-            typed.resolved.alias_types[s.id] = aliased
+            typed.resolved.alias_types[s.id] = alias_for(s, aliased, cd.decorators)
         }
     }
     return true
@@ -1777,7 +1780,11 @@ check_const_value :: fn(cd: AST.ConstDecl, typed: TypedProgram, diags: Diagnosti
             typed.decl_types[sym.id] = TY_TYPE
         }
         alias_ty :: type_from_expr(cd.value, typed.resolved, diags)
-        typed.resolved.alias_types[sym.id] = alias_ty
+        // Same promotion as `register_alias_const`, via `alias_for` — this
+        // body-typing pass ALSO writes `alias_types`, so without it the
+        // transparent backing would clobber the DistinctType earlier passes
+        // registered.
+        typed.resolved.alias_types[sym.id] = alias_for(sym, alias_ty, cd.decorators)
         return
     }
     got :: check_expr(cd.value, expected, typed, diags)

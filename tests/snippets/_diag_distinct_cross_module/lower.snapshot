@@ -1,0 +1,49 @@
+# Lower
+
+## snippet
+  fn snippet$main() -> i32
+    let a: Instant =
+      call :Instant
+        callee:
+          make_instant :fn(i64) -> Instant
+        arg0:
+          int(100) :i64
+    let b: Instant =
+      cast → Instant
+        int(250) :i32
+    return
+      cast → i32
+        call :i64
+          callee:
+            elapsed :fn(Instant, Instant) -> i64
+          arg0:
+            a :Instant
+          arg1:
+            b :Instant
+
+## snippet/units
+  fn snippet_units$make_instant(ns: i64) -> Instant
+    ~>
+      cast → Instant
+        ns :i64
+  fn snippet_units$elapsed(start: Instant, end: Instant) -> i64
+    ~>
+      cast → i64
+        cast → Duration
+          sub :i64
+            l:
+              cast → i64
+                end :Instant
+            r:
+              cast → i64
+                start :Instant
+  fn snippet_units$Instant$Sub$sub(self: Instant, other: Instant) -> Duration
+    ~>
+      cast → Duration
+        sub :i64
+          l:
+            cast → i64
+              self :Instant
+          r:
+            cast → i64
+              other :Instant

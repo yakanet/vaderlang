@@ -23,7 +23,7 @@ import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 import "vader/parser" {
     TypeExpr, IdentExpr, GenericInstExpr,
 }
-import "vader/types" { Type, display_type }
+import "vader/types" { Type, display_type, strip_distinct }
 
 /// Mangled name for a `(decl_name, module_path, type_arguments)` triple.
 /// Format mirrors TS `mangle` exactly so the bytecode emitter, the C
@@ -66,7 +66,11 @@ export mangle :: fn(decl_name: string, module_path: string, type_arguments: Type
 /// struct-instance suffixes so erased args render `Any` and nested
 /// generics survive (`Box<Box<i32>>` → `Box_i32_`). A bare type-name
 /// fallback collapses `Any`/nested args and breaks dedup parity.
-export mangle_type_arg :: fn(t: Type) -> string = sanitise_ident(display_type(t))
+// A distinct (newtype) has no backend identity — it mangles as its backing so
+// every instance name (call site, struct literal, allocation, dispatch) is
+// consistent with the source-stripped instance entries. `strip_distinct`
+// handles nesting (`MutableMap<BlockId>` → `MutableMap<i32>`).
+export mangle_type_arg :: fn(t: Type) -> string = sanitise_ident(display_type(strip_distinct(t)))
 
 /// Replace every byte outside `[A-Za-z0-9_]` with `_`. Distinct from
 /// `vader/c_emit/body.sanitise` — the C-emit variant additionally

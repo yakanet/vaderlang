@@ -1,0 +1,32 @@
+// Diagnostic regression for `@distinct` newtypes in collections / unions —
+// an array of distinct values (boxing as storage) and a `Distinct | null`
+// union (boxing + null-narrowing). Both are sound today.
+//
+// NOTE (v1 limitation): a distinct type as a *map key* (`MutableMap<Distinct, V>`
+// with custom Hash/Equals impls) is NOT supported — its runtime vtable dispatch
+// needs an identity the distinct's "backend = backing, no runtime identity"
+// model erases, producing a duplicate-case in the emitted C. See
+// `.claude/plans/distinct-types.md` §8.
+//
+// `_diag_` = no snapshot sidecars (temporary `@distinct` gate). Expected exit: 42.
+
+module "snippet"
+
+UserId :: i64
+
+sum_ids :: fn(ids: UserId[]) -> i32 {
+    total := 0
+    for id in ids { total = total + i32(i64(id)) }
+    return total
+}
+
+unwrap_or :: fn(x: UserId | null, fallback: i32) -> i32 {
+    if x == null { return fallback }
+    return i32(i64(x))
+}
+
+main :: fn() -> i32 {
+    ids: UserId[] = [UserId(10), UserId(20)]
+    present :: unwrap_or(UserId(12), -1)
+    return sum_ids(ids) + present
+}

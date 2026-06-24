@@ -23,6 +23,7 @@ import "vader/types" {
     Type, PrimitiveType, StructType, EnumType, TraitType, ArrayType,
     UnionType, FnType, TupleType, TypeParamType, TypeMetaType, SelfType,
     UnresolvedType, FreeIntType, FreeCharType, FreeFloatType, NeverType, AnyType,
+    DistinctType,
     display_type,
 }
 import "vader/resolver/symbol" { Symbol }
@@ -46,6 +47,10 @@ export type_intern_key :: fn(t: Type) -> string = match t {
     is TraitType as tr    -> "Trait#${symbol_key(tr.symbol)}<${type_key_join(tr.args, "|")}>"
     // Enums lower to their `repr` primitive — share the bare primitive's slot.
     is EnumType as e      -> e.repr
+    // Distinct (newtype) shares its backing primitive's slot, exactly like an
+    // enum shares its `repr` — no separate type-table entry, so it rides the
+    // backing's zero-cost representation end to end.
+    is DistinctType as d  -> type_intern_key(d.backing)
     is ArrayType as a     -> "Array<${type_intern_key(a.element)}>"
     is UnionType as u     -> "Union<${type_key_join(u.variants, "|")}>"
     is TupleType as p     -> "Tuple<${type_key_join(p.elements, "|")}>"
@@ -91,6 +96,10 @@ export val_type_of_type :: fn(t: Type) -> ValType = match t {
     // Enums ride the operand stack as their backing integer repr, not a boxed
     // ref — mirrors `src/bytecode/emit.ts::valTypeOf`'s `case "Enum"`.
     is EnumType      as e -> val_type_of_primitive_name(e.repr)
+    // Distinct (newtype) rides its backing primitive's stack repr — zero-cost,
+    // exactly like an enum rides its `repr`. This is what makes `x :: i64`
+    // a register scalar, not a boxed `Ref`.
+    is DistinctType  as d -> val_type_of_type(d.backing)
     is TraitType          -> ValType.Ref
     is ArrayType          -> ValType.Ref
     is UnionType          -> ValType.Ref
@@ -151,6 +160,7 @@ export bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx, slot_index: i32) -> B
     match t {
         is PrimitiveType as p -> { return BcPrimitive { .val = val_type_of_primitive_name(p.name) } }
         is EnumType as e      -> { return BcPrimitive { .val = val_type_of_primitive_name(e.repr) } }
+        is DistinctType as d  -> { return bc_type_of_with_ctx(d.backing, ctx, slot_index) }
         is StructType as s    -> { return BcRef { .trait_name = s.symbol.name } }
         is TraitType as tt    -> { return BcRef { .trait_name = tt.symbol.name } }
         is ArrayType as a     -> { return BcArray { .element = intern_type(a.element, ctx) } }

@@ -15,6 +15,7 @@ import "vader/types" {
     Type, PrimitiveType, StructType, EnumType, TraitType, UnionType,
     FnType, ArrayType, TupleType, TypeParamType, TypeMetaType, SelfType,
     UnresolvedType, FreeIntType, FreeFloatType, FreeCharType, NeverType, AnyType,
+    DistinctType,
     TY_NEVER, display_type, mk_primitive, mk_union, type_base_name,
 }
 
@@ -84,6 +85,10 @@ export equals_type :: fn(a: Type, b: Type) -> bool = match a {
     is TupleType     as ax  -> if b is TupleType as bx { type_list_equals(ax.elements, bx.elements) } else { false }
     is FnType        as ax  -> if b is FnType as bx { type_list_equals(ax.params, bx.params) && equals_type(ax.return_type, bx.return_type) } else { false }
     is UnionType     as ax  -> if b is UnionType as bx { type_list_equals(ax.variants, bx.variants) } else { false }
+    // Distinct (newtype) types : nominal identity by symbol id. A distinct
+    // type equals only itself, never its backing primitive nor another
+    // distinct over the same backing — that's the whole point.
+    is DistinctType  as ax  -> if b is DistinctType as bx { ax.symbol.id == bx.symbol.id } else { false }
 }
 
 nominal_eq :: fn(a_id: i32, a_args: Type[], b_id: i32, b_args: Type[]) -> bool {

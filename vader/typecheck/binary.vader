@@ -21,7 +21,7 @@ AST :: import "vader/parser"
 import "vader/resolver/symbol" { SymbolKind }
 import "vader/types" {
     Type, PrimitiveType, FreeIntType, FreeCharType, FreeFloatType, UnresolvedType,
-    EnumType, FnType, StructType, TraitType, UnionType, ArrayType,
+    EnumType, FnType, StructType, TraitType, UnionType, ArrayType, DistinctType,
     display_type, type_base_name, mk_primitive, TY_BOOL, TY_UNRESOLVED,
 }
 
@@ -108,9 +108,16 @@ check_arith :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgra
         }
         return left
     }
-    if e.op == .Add && is_string(left) && is_string(right) { return mk_primitive("string") }
-    if is_numeric(left) || is_numeric(right) {
-        return numeric_result(e, left, right, diags)
+    // A distinct (newtype) operand is nominal — never take the built-in
+    // string / numeric path (that would silently compute on the backing
+    // integer, e.g. `instant + 5`). Fall through to the trait-impl lookup
+    // below ; `instant + instant` with no `Add` impl is then a clean error,
+    // mirroring how a user struct without `Add` is handled.
+    if !(left is DistinctType) && !(right is DistinctType) {
+        if e.op == .Add && is_string(left) && is_string(right) { return mk_primitive("string") }
+        if is_numeric(left) || is_numeric(right) {
+            return numeric_result(e, left, right, diags)
+        }
     }
     // Operator overloading via traits — `a + b` on user structs
     // dispatches through the matching Add/Sub/Mul/Div/Rem impl. We
