@@ -710,9 +710,16 @@ end
 
 fn 6 std_random$range_i32 (ref,i32,i32) -> i32
   local span u32
-  local $k_6 u32
-  local $mod_8 u32
-  local $cast_16 i32
+  local $k_7 u32
+  local $mod_9 u32
+  local $cast_17 i32
+  local.get 2
+  local.get 1
+  i32.le
+  if $L0 void
+    local.get 1
+    return
+  end $L0
   local.get 2
   local.get 1
   i32.sub
@@ -731,20 +738,20 @@ fn 6 std_random$range_i32 (ref,i32,i32) -> i32
   local.get 0
   call 13
   local.set 5
-  block $L0 void
-    loop $L1 void
+  block $L1 void
+    loop $L2 void
       local.get 5
       local.get 4
       u32.gt
-      if $L2 void
+      if $L3 void
         local.get 0
         call 13
         local.set 5
-        br $L1
+        br $L2
       else
-      end $L2
-    end $L1
-  end $L0
+      end $L3
+    end $L2
+  end $L1
   local.get 5
   local.get 3
   u32.rem
@@ -802,8 +809,15 @@ end
 
 fn 9 std_random$range_u32 (ref,u32,u32) -> u32
   local span u32
-  local $k_5 u32
-  local $mod_7 u32
+  local $k_6 u32
+  local $mod_8 u32
+  local.get 2
+  local.get 1
+  u32.le
+  if $L0 void
+    local.get 1
+    return
+  end $L0
   local.get 2
   local.get 1
   i32.sub
@@ -821,20 +835,20 @@ fn 9 std_random$range_u32 (ref,u32,u32) -> u32
   local.get 0
   call 13
   local.set 5
-  block $L0 void
-    loop $L1 void
+  block $L1 void
+    loop $L2 void
       local.get 5
       local.get 4
       u32.gt
-      if $L2 void
+      if $L3 void
         local.get 0
         call 13
         local.set 5
-        br $L1
+        br $L2
       else
-      end $L2
-    end $L1
-  end $L0
+      end $L3
+    end $L2
+  end $L1
   local.get 5
   local.get 3
   u32.rem

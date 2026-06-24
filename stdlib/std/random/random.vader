@@ -26,11 +26,7 @@ export Rng :: struct {
 
 // u64 ops explicitly mask to 64 bits — the TS VM stores u64 as BigInt
 // and won't wrap on overflow.
-MASK_U64: u64: 0xFFFF_FFFF_FFFF_FFFF
-
-mask64 :: fn(x: u64) -> u64 {
-    return x & MASK_U64
-}
+mask64 :: fn(x: u64) -> u64 = x & 0xFFFF_FFFF_FFFF_FFFF
 
 // splitmix64 — used to expand a 64-bit seed into the 128-bit state.
 // Constants from the original SplitMix64 paper. Each call advances
@@ -42,9 +38,7 @@ splitmix64 :: fn(seed: u64) -> u64 {
     return z ^ (z >> 31)
 }
 
-rotl :: fn(x: u64, k: u64) -> u64 {
-    return mask64(x << k) | (x >> (64 - k))
-}
+rotl :: fn(x: u64, k: u64) -> u64 = mask64(x << k) | (x >> (64 - k))
 
 /// Build an Rng seeded from a single 64-bit value. The seed is fanned
 /// out via splitmix64 to populate both state words ; a `seed == 0`
@@ -62,9 +56,7 @@ export new_seeded :: fn(seed: u64) -> Rng {
 /// a single process two close-together calls may produce overlapping
 /// streams (monotonic resolution is bounded) ; mix in a counter at
 /// the call site if you need stronger separation.
-export new_from_clock :: fn() -> Rng {
-    return new_seeded(u64(monotonic_ns()))
-}
+export new_from_clock :: fn() -> Rng = new_seeded(u64(monotonic_ns()))
 
 /// Draw the next u64. The full 64 bits are uniformly distributed.
 /// Advances the RNG state.
@@ -80,21 +72,19 @@ export next_u64 :: fn(self: Rng) -> u64 {
 /// Draw the next u32 by taking the upper 32 bits of `next_u64` — the
 /// upper bits of xoroshiro128++ pass BigCrush, the lower bits are
 /// slightly weaker on certain tests.
-export next_u32 :: fn(self: Rng) -> u32 {
-    return u32(self.next_u64() >> 32)
-}
+export next_u32 :: fn(self: Rng) -> u32 = u32(self.next_u64() >> 32)
 
 /// Uniform random boolean (50/50). Advances the RNG state.
-export next_bool :: fn(self: Rng) -> bool {
-    return (self.next_u64() >> 63) == 1
-}
+export next_bool :: fn(self: Rng) -> bool = (self.next_u64() >> 63) == 1
 
-/// Uniform i32 in the half-open range `[lo, hi)`. Caller must pass
-/// `lo < hi` — equal bounds panic (division by zero in the modulus).
+/// Uniform i32 in the half-open range `[lo, hi)`. A degenerate range
+/// (`hi <= lo`) is empty and returns `lo` — without this guard the
+/// modulus would divide by zero.
 ///
 /// Implementation uses rejection sampling on the top 32 bits to avoid
 /// modulo bias when `(hi - lo)` doesn't divide `2^32`.
 export range_i32 :: fn(self: Rng, lo: i32, hi: i32) -> i32 {
+    if hi <= lo { return lo }
     span :: u32(hi - lo)
     limit :: 0xFFFFFFFF - (0xFFFFFFFF % span)
     x: u32 = self.next_u32()
@@ -104,9 +94,11 @@ export range_i32 :: fn(self: Rng, lo: i32, hi: i32) -> i32 {
     return lo + i32(x % span)
 }
 
-/// Uniform u32 in the half-open range `[lo, hi)`. Caller must pass
-/// `lo < hi`.
+/// Uniform u32 in the half-open range `[lo, hi)`. A degenerate range
+/// (`hi <= lo`) is empty and returns `lo` — without this guard the
+/// modulus would divide by zero.
 export range_u32 :: fn(self: Rng, lo: u32, hi: u32) -> u32 {
+    if hi <= lo { return lo }
     span :: hi - lo
     limit :: 0xFFFFFFFF - (0xFFFFFFFF % span)
     x: u32 = self.next_u32()
@@ -177,6 +169,16 @@ import "std/testing" { assert_eq, assert }
         assert(v >= 10, "range_i32 below lo")
         assert(v < 20, "range_i32 at or above hi")
     }
+}
+
+@test test_range_degenerate_returns_lo :: fn() -> void {
+    // An empty range (`hi <= lo`) returns `lo` instead of dividing by zero
+    // in the modulus.
+    r := new_seeded(7)
+    assert_eq(r.range_i32(5, 5), 5)
+    assert_eq(r.range_i32(8, 3), 8)
+    assert_eq(i32(r.range_u32(4, 4)), 4)
+    assert_eq(i32(r.range_u32(9, 2)), 9)
 }
 
 @test test_unit_f64_within_bounds :: fn() -> void {

@@ -1457,7 +1457,6 @@ fn 4 std_crypto$md5 (string) -> string
   local $call_261 u32
   local $k_264 usize
   local $k_274 usize
-  local $k_276 usize
   i32.const 1732584193
   local.set 1
   i32.const -271733879
@@ -2227,12 +2226,6 @@ fn 4 std_crypto$md5 (string) -> string
         local.set 210
         local.get 7
         local.get 210
-        i64.add
-        local.set 7
-        i64.const 1
-        local.set 211
-        local.get 7
-        local.get 211
         i64.add
         local.set 7
         br $L1

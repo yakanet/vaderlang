@@ -1,9 +1,11 @@
-// std/crypto — non-cryptographic-grade hash functions.
+// std/crypto — hashing & digest functions (SHA-256, MD5).
 //
-// MVP scope : SHA-256 and MD5. Both are widely used for content
-// fingerprinting / integrity checking ; **neither is suitable for
-// password hashing** (use a dedicated KDF — bcrypt / scrypt / argon2
-// when those land).
+// MVP scope : SHA-256 and MD5, for content fingerprinting and integrity
+// checking. SHA-256 is a real cryptographic hash and reproduces
+// `shasum -a 256` ; MD5 is kept for legacy interop only — it is
+// collision-broken, so never rely on it where collision resistance matters.
+// **Neither is a password hash** : for credentials use a dedicated KDF
+// (bcrypt / scrypt / argon2 when those land).
 //
 // Pure Vader, zero host imports — WASM-ready as-is. Operates on
 // the UTF-8 byte view (`bytes()`) of the input ; output is the
@@ -252,7 +254,6 @@ export md5 :: fn(input: string) -> string {
         b0 = mask32(b0 + b)
         c0 = mask32(c0 + c)
         d0 = mask32(d0 + d)
-        block_idx = block_idx + 1
     }
 
     // Output : a0, b0, c0, d0 as 16 bytes little-endian.
