@@ -1623,9 +1623,11 @@ parse_type_list_until_angle :: fn(p: Parser) -> TypeExpr[] {
 // so call sites with optional type-bearing slots can dispatch directly
 // without an outer match.
 collect_type_params :: fn(t: TypeExpr | null, out: TypeParam[]) -> void {
-    // Other Expr variants never appear in the subset that `parse_type`
-    // produces, so they're effective no-ops here.
-    @partial match t {
+    // Other TypeExpr variants are no-ops here. This MUST stay a plain
+    // `match … _ -> {}`, NOT `@partial` : `parse_type` does produce variants
+    // beyond the listed set on real input (the self-compile hits them), so a
+    // `@partial` trapping fallback would abort instead of no-op.
+    match t {
         is null -> {}
         is IdentExpr -> {
             if !t.is_type_param_intro { return }
@@ -1661,6 +1663,7 @@ collect_type_params :: fn(t: TypeExpr | null, out: TypeParam[]) -> void {
         is GenericInstExpr -> {
             for a in t.type_args { collect_type_params(a, out) }
         }
+        _ -> {}
     }
 }
 

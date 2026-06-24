@@ -436,10 +436,15 @@ emit_type_info_table :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
     // zero-init `VADER_TYPE_KIND_NONE` (so the GC scanner short-
     // circuits without reading the payload).
     for j in 0..<count {
-        @partial match types[j] {
+        match types[j] {
             is BcStruct as s -> emit_struct_info_row(ctx, s, struct_offsets[j], j, out)
             is BcFn -> out.append("    [${j}] = { VADER_TYPE_KIND_FN, sizeof(vader_fn_t), vader_type_${j}_ptrs, 1, 0, NULL, 0, NULL },\n")
             is BcArray -> out.append("    [${j}] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_${j}_ptrs, 1, 0, NULL, 0, NULL },\n")
+            // primitives / unions / refs leave the slot at its zero-init
+            // VADER_TYPE_KIND_NONE. MUST stay `_ -> {}`, not `@partial` — those
+            // slots are reachable (e.g. an enum/distinct interning under its
+            // backing primitive's key), and a trapping fallback would abort.
+            _ -> {}
         }
     }
     out.append("};\n")
