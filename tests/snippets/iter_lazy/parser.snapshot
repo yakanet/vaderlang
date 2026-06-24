@@ -27,7 +27,7 @@
         "kind": "destructure",
         "names": [
           {
-            "name": "MapIterator",
+            "name": "MappedIterator",
             "alias": null
           },
           {
@@ -121,7 +121,7 @@
                 "kind": "GenericInstExpr",
                 "callee": {
                   "kind": "IdentExpr",
-                  "name": "MapIterator"
+                  "name": "MappedIterator"
                 },
                 "typeArgs": [
                   {

@@ -15,8 +15,8 @@
   expr 15:44    IdentExpr      :: type
   expr 15:48    IdentExpr      :: i32
   expr 19:15    CallExpr       :: FilterIterator<i32>
-  expr 19:15    CallExpr       :: MapIterator<i32, i64>
-  expr 19:15    FieldExpr      :: fn(fn(T) -> U) -> MapIterator<T, U>
+  expr 19:15    CallExpr       :: MappedIterator<i32, i64>
+  expr 19:15    FieldExpr      :: fn(fn(T) -> U) -> MappedIterator<T, U>
   expr 19:15    FieldExpr      :: fn(fn(T) -> bool) -> FilterIterator<T>
   expr 19:15    RangeExpr      :: Range<i32>
   expr 19:30    IdentExpr      :: fn(i32) -> bool

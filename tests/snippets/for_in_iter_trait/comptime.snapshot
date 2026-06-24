@@ -3,9 +3,9 @@
 ## tests/snippets/for_in_iter_trait
 
 ## generic instances
-  MapIterator<T, U>
-  MapIterator<T, U>
-  MapIterator<T, U>
+  MappedIterator<T, U>
+  MappedIterator<T, U>
+  MappedIterator<T, U>
   FilterIterator<char>
   FilterIterator<T>
   FilterIterator<T>

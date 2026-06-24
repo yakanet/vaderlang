@@ -5,9 +5,9 @@
 ## generic instances
   Into<Target>
   Add<Rhs, Out>
-  MapIterator<T, U>
-  MapIterator<T, U>
-  MapIterator<T, U>
+  MappedIterator<T, U>
+  MappedIterator<T, U>
+  MappedIterator<T, U>
   FilterIterator<T>
   FilterIterator<T>
   FilterIterator<T>

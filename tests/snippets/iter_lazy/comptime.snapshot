@@ -3,10 +3,10 @@
 ## tests/snippets/iter_lazy
 
 ## generic instances
-  MapIterator<i32, i32>
-  MapIterator<T, U>
-  MapIterator<T, U>
-  MapIterator<T, U>
+  MappedIterator<i32, i32>
+  MappedIterator<T, U>
+  MappedIterator<T, U>
+  MappedIterator<T, U>
   FilterIterator<i32>
   FilterIterator<T>
   FilterIterator<T>

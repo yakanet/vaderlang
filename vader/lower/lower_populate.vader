@@ -13,7 +13,7 @@ import "vader/resolver/symbol" { Symbol }
 // Populate `core_symbols` from std/core's resolved view so the lowerer can
 // resolve `Range`, `Yield`, `ArrayIterator`, `Iterator`, `Display`, `Error`,
 // … without re-walking the project per call. Per-module export lookups
-// (std/iter's `MapIterator`, std/string's `bytes`, …) go through the lazy
+// (std/iter's `MappedIterator`, std/string's `bytes`, …) go through the lazy
 // `module_export` below instead of dedicated per-module tables.
 populate_core_symbols :: fn(typed: TypedProject, project_ctx: LowerProjectCtx) -> void {
     for [_, module_typed] in typed.modules {
@@ -29,7 +29,7 @@ populate_core_symbols :: fn(typed: TypedProject, project_ctx: LowerProjectCtx) -
 }
 
 // Resolve a top-level export of a stdlib module by display path + name, e.g.
-// `module_export(ctx, "std/iter", "MapIterator")`. Backs the for-in chain
+// `module_export(ctx, "std/iter", "MappedIterator")`. Backs the for-in chain
 // fusion + MutableMap/Set inline + `s.bytes().len()` peephole + `${…}`→
 // StringBuilder desugar, which each used to carry a hardcoded per-module
 // symbol table. Lazily caches one `name -> Symbol` map per path (merging

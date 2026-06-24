@@ -3,9 +3,9 @@
 ## tests/snippets/numeric_context_sensitivity
 
 ## generic instances
-  MapIterator<T, U>
-  MapIterator<T, U>
-  MapIterator<T, U>
+  MappedIterator<T, U>
+  MappedIterator<T, U>
+  MappedIterator<T, U>
   FilterIterator<T>
   FilterIterator<T>
   FilterIterator<T>

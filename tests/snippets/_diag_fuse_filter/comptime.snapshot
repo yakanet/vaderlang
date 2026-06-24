@@ -3,9 +3,9 @@
 ## tests/snippets/_diag_fuse_filter
 
 ## generic instances
-  MapIterator<T, U>
-  MapIterator<T, U>
-  MapIterator<T, U>
+  MappedIterator<T, U>
+  MappedIterator<T, U>
+  MappedIterator<T, U>
   FilterIterator<i32>
   FilterIterator<T>
   FilterIterator<T>

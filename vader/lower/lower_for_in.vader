@@ -46,7 +46,7 @@ export lower_for_in :: fn(
 ) -> LoweredStmt {
     span :: for_stmt.span
     // Fast path : `for x in <chain>` where `<chain>` is one or more
-    // `std/iter` lazy combinators (`MapIterator` / `FilterIterator`,
+    // `std/iter` lazy combinators (`MappedIterator` / `FilterIterator`,
     // struct-literal form) wrapping a literal integer range — fuse
     // the whole pipeline into a single counter loop. Skipped when the
     // bottom isn't an int range, when any layer references its source
@@ -82,7 +82,7 @@ export lower_for_in :: fn(
 
     // Fast path : `for entry in m` over `MutableMap(K, V)` (or
     // `for v in s` over `MutableSet(T)`) inlines the bucket-walk +
-    // chain-traversal, skipping the MapIterator allocation and the
+    // chain-traversal, skipping the MappedIterator allocation and the
     // per-iter `next()` + `Yield` allocations. Mirror of TS'
     // `tryLowerForInMapSetIterInline`.
     map_set :: try_lower_for_in_map_set(ctx, for_stmt, in_form, iter_lowered_raw, iter_type_raw, span, block_lowerer)
@@ -301,7 +301,7 @@ try_wrap_array_iter :: fn(
 //    its span in `local_types`. This is authoritative : the typer resolves
 //    the `Iterator(T)` impl and substitutes the iterator's concrete type
 //    args, so it correctly handles combinators whose element type is NOT
-//    the first type arg — `MapIterator(i32, i64)` yields `i64` (the impl's
+//    the first type arg — `MappedIterator(i32, i64)` yields `i64` (the impl's
 //    `Iterator(U)`), not the source `i32` ; a `MutableMap` iterator yields
 //    `Entry(K, V)`. The structural heuristics below cannot, so they must
 //    only run when the typer left no usable entry.
@@ -938,7 +938,7 @@ descend_chain :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
             }
         }
         is AST.StructLitExpr as struct_lit -> {
-            map_symbol_opt    :: module_export(ctx.project, "std/iter", "MapIterator")
+            map_symbol_opt    :: module_export(ctx.project, "std/iter", "MappedIterator")
             filter_symbol_opt :: module_export(ctx.project, "std/iter", "FilterIterator")
             struct_type :: ctx.types.expr_type(struct_lit)
             match struct_type {
@@ -959,7 +959,7 @@ descend_chain :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
         // std/iter constructors, so we recognise the call directly rather
         // than waiting for inlining — mirror of the struct-lit arm above.
         is AST.CallExpr as call -> {
-            map_symbol_opt    :: module_export(ctx.project, "std/iter", "MapIterator")
+            map_symbol_opt    :: module_export(ctx.project, "std/iter", "MappedIterator")
             filter_symbol_opt :: module_export(ctx.project, "std/iter", "FilterIterator")
             if map_symbol_opt == null && filter_symbol_opt == null { return null }
             fluent :: unpack_fluent_combinator(ctx, call)
@@ -1273,7 +1273,7 @@ emit_fused_range :: fn(
 
 // `for entry in m` over `MutableMap(K, V)` / `for v in s` over
 // `MutableSet(T)` — inline the bucket-walk + chain-traversal so the loop
-// skips the MapIterator struct, the per-iter `next()` call, and the
+// skips the MappedIterator struct, the per-iter `next()` call, and the
 // per-iter `Yield` allocation. Returns null when the iter type isn't a
 // recognised map/set or std/collections isn't loaded. Mirror of TS'
 // `tryLowerForInMapSetIterInline` (src/lower/passes/for-in.ts:795).

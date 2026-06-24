@@ -8,13 +8,13 @@
 //      one-shot transformations where the result lives anyway.
 //
 //   2. **Lazy** : the `*Iterator` structs at the bottom of this file
-//      (`MapIterator`, `FilterIterator`, `TakeIterator`, `SkipIterator`)
+//      (`MappedIterator`, `FilterIterator`, `TakeIterator`, `SkipIterator`)
 //      wrap a source `Iterator(T)` and produce one element at a time via
 //      their `Iterator(U)` impl. Useful when chaining transformations
 //      without materialising intermediate arrays. Construct directly
 //      with the struct literal :
 //
-//          mi :: MapIterator(i32, i32) {
+//          mi :: MappedIterator(i32, i32) {
 //              .source = 0..<10,
 //              .f      = fn(x: i32) -> i32 { return x * x },
 //          }
@@ -287,7 +287,7 @@ export find_map :: fn<T, U>(it: Iterator<T>, f: fn(T) -> U | null) -> U | null {
 // element only flows through the chain when the downstream consumer calls
 // `next()` (or `for x in chain {…}` does).
 //
-// Two construction shapes : the struct literal (`MapIterator(T, U) { … }`)
+// Two construction shapes : the struct literal (`MappedIterator(T, U) { … }`)
 // and the fluent free fns below. The fluent shape (`it.map(f).filter(p)`)
 // reads like an Iterator pipeline and dispatches via UFCS through the
 // first param's type — overload-resolved against the eager `T[]`-first-
@@ -304,8 +304,8 @@ export filter :: fn<T>(self: Iterator<T>, pred: fn(T) -> bool) -> FilterIterator
 
 /// Fluent lazy `map`. Mirror of `filter` for transforms ; element type
 /// can change (`T` → `U`).
-export map :: fn<T, U>(self: Iterator<T>, f: fn(T) -> U) -> MapIterator<T, U> {
-    return MapIterator<T, U> { .source = self, .f = f }
+export map :: fn<T, U>(self: Iterator<T>, f: fn(T) -> U) -> MappedIterator<T, U> {
+    return MappedIterator<T, U> { .source = self, .f = f }
 }
 
 /// Fluent lazy `take`. Yields the first `n` items from `self`, then ends.
@@ -321,14 +321,14 @@ export skip :: fn<T>(self: Iterator<T>, n: usize) -> SkipIterator<T> {
 
 /// Lazy map. `next()` pulls one item from `source`, transforms it via `f`,
 /// and yields it. Stops when the source is exhausted.
-/// Construct as `MapIterator(T, U) { .source = it, .f = mapper }`.
+/// Construct as `MappedIterator(T, U) { .source = it, .f = mapper }`.
 @specialize
-export MapIterator :: struct<T, U> {
+export MappedIterator :: struct<T, U> {
     source: Iterator<T>
     f:      fn(T) -> U
 }
 
-MapIterator<T, U> implements Iterator<U> {
+MappedIterator<T, U> implements Iterator<U> {
     next :: fn(self) -> Yield<U> | null {
         match self.source.next() {
             is null         -> { return null }
