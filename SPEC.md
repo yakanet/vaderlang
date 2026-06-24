@@ -1024,6 +1024,8 @@ n: i32 | ParseError = parse_int("42")
 
 Type parameters are introduced with the angle-bracket `<T>` form at the declaration site (Java/C# style). They compile to a `TypeParam[]` slot on the underlying `FnDecl` / `StructDecl`; later references in the same scope are plain `IdentExpr` nodes that the resolver rebinds to the type-param symbol. Angle brackets are the only accepted form — there is no bracket `[T]` or paren `(T)` type-parameter syntax.
 
+A type parameter may declare a **default** with `<T = Default>` (after the optional `: bound`, e.g. `<Rhs: Numeric = Self>`). When a generic is used with fewer arguments than it declares, the trailing parameters fill from their defaults; a `Self` default resolves to the implementing / receiver type. Defaults are currently honored on the **impl→trait-arg path** — `i32 implements Add` and a `where T: Add` bound both resolve `Add<Rhs = Self, Out = Self>` to `Add<Self, Self>` — which is what lets the arithmetic operator traits be generic without forcing every existing impl/bound to spell the params. Defaults on struct / fn / type-alias parameters parse but are not yet filled at their use sites (those instantiations error rather than default).
+
 **Disambiguation rule (expression position).** Because `<` and `>` are also comparison operators, the parser uses a hard-precedence rule: after an `Ident`, a `<` opens a generic argument list **iff** the matching `>` is immediately followed by `(` (call) or `{` (struct literal). Any other follower leaves the `<` to Pratt as comparison. This is unambiguous in practice — `assert(v < 20, "msg")` reads as comparison because the `>` candidate is followed by `)`, not `(` or `{`.
 
 For nested generics like `Box<Box<T>>`, the lexer's fused `>>` token is split on demand at the parser level — the first `>` closes the inner level, the second the outer.
@@ -1258,23 +1260,23 @@ Built-in operators dispatch through stdlib traits when the operand types are not
 
 | Operator        | Trait              | Method                                      |
 |-----------------|--------------------|---------------------------------------------|
-| `a + b`         | `Add`              | `add :: fn(self, other: Self) -> Self`      |
-| `a - b`         | `Sub`              | `sub :: fn(self, other: Self) -> Self`      |
-| `a * b`         | `Mul`              | `mul :: fn(self, other: Self) -> Self`      |
-| `a / b`         | `Div`              | `div :: fn(self, other: Self) -> Self`      |
-| `a % b`         | `Rem`              | `rem :: fn(self, other: Self) -> Self`      |
+| `a + b`         | `Add<Rhs = Self, Out = Self>` | `add :: fn(self, other: Rhs) -> Out`        |
+| `a - b`         | `Sub<Rhs = Self, Out = Self>` | `sub :: fn(self, other: Rhs) -> Out`        |
+| `a * b`         | `Mul<Rhs = Self, Out = Self>` | `mul :: fn(self, other: Rhs) -> Out`        |
+| `a / b`         | `Div<Rhs = Self, Out = Self>` | `div :: fn(self, other: Rhs) -> Out`        |
+| `a % b`         | `Rem<Rhs = Self, Out = Self>` | `rem :: fn(self, other: Rhs) -> Out`        |
 | `a == b`        | `Equals`           | `equals :: fn(self, other: Self) -> bool`   |
 | `a < b` / `<=` / `>` / `>=` | `Comparable` | `compare :: fn(self, other: Self) -> i32` |
 | `a[i]`          | `Index<I, T>`      | `at :: fn(self, i: I) -> T`                 |
 | `a[i] = v`      | `IndexSet<I, T>`   | `set_at :: fn(self, i: I, v: T)`            |
 | `v in a`        | `Contains<T>`      | `contains :: fn(self, v: T) -> bool`        |
 
-Compound assignments (`+=`, `-=`, `*=`, `/=`, `%=`) desugar to `lhs = lhs <op> rhs` at parse time, so they reuse the corresponding trait dispatch.
+Compound assignments (`+=`, `-=`, `*=`, `/=`, `%=`) desugar to `lhs = lhs <op> rhs` at parse time, so they reuse the corresponding trait dispatch. Because the result is rebound to `lhs`, a compound assignment requires the operator's `Out` to be assignable to `lhs`'s type — always true in the homogeneous `Out = Self` case; a heterogeneous `Out` (e.g. `Instant - Instant -> Duration`) simply can't be used with the compound form.
 
 Resolution rule for **arithmetic** operators (`+ - * / %`):
 1. If both operands are primitive numerics, use the built-in op (current behaviour).
 2. `string + string` is a built-in op (`string.concat`); `string implements Add` exists for SPEC completeness and is also reachable via UFCS — the compiler routes both paths to the same op (see §12 op-level intrinsics).
-3. Otherwise, look up the matching `Add`/`Sub`/`Mul`/`Div`/`Rem` impl on the left operand's type; the right operand must be assignable to the trait's expected `Self`.
+3. Otherwise, look up the matching `Add`/`Sub`/`Mul`/`Div`/`Rem` impl on the left operand's type; the right operand must be assignable to that impl's `Rhs`, and the result type is the impl's `Out`. `Rhs` and `Out` default to `Self`, so the homogeneous case needs only `implements Add`; a heterogeneous operator (e.g. `Instant implements Add<Duration, Instant>`) spells them. The defaults fill at impl materialization, so existing `i32 implements Add` and `where T: Add` keep meaning `Add<Self, Self>`.
 4. If no impl matches, T3017.
 
 Resolution rule for **equality** (`==` / `!=`):

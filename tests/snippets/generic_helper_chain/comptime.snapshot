@@ -4,6 +4,9 @@
 
 ## generic instances
   Into<Target>
+  Add<Rhs, Out>
+  Sub<Rhs, Out>
+  Mul<Rhs, Out>
   Box<i32>
   Box<string>
   Box<Box<i32>>
@@ -12,6 +15,8 @@
   Box<T>
   Box<T>
   Box<T>
+  Div<Rhs, Out>
+  Rem<Rhs, Out>
   Index<I, T>
   IndexSet<I, T>
   Contains<T>

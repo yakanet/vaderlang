@@ -625,6 +625,24 @@ lookup_trait_symbol :: fn(name: string, typed: TypedProgram) -> Symbol | null {
     }
 }
 
+// Pad a trait's use-site args with declared `<T = Default>` defaults when the
+// site (e.g. a `T: Add` bound, which carries no explicit trait-args) supplies
+// fewer than the trait declares. A `Self` default resolves to `TY_SELF` here ;
+// the caller's `substitute_self(target_ty)` then maps it to the receiver type.
+pad_trait_default_args :: fn(
+    args: Type[], tps: AST.TypeParam[], resolved: ResolvedModule,
+) -> Type[] {
+    if args.len() >= tps.len() { return args }
+    out: Type[] = [] * tps.len()   // final size is args + filled defaults, ≤ tps.len()
+    out.push_all(args)
+    for i in args.len()..<tps.len() {
+        d :: tps[i].default
+        if d is null { break }
+        out.push(type_from_expr(d, resolved, []))
+    }
+    return out
+}
+
 try_trait_method :: fn(t: TraitType, name: string, typed: TypedProgram) -> Type | null {
     decl :: typed.trait_decls[t.symbol.id]
     if decl is null { return null }
@@ -647,7 +665,8 @@ try_trait_method :: fn(t: TraitType, name: string, typed: TypedProgram) -> Type 
             params.push(type_from_expr_opt_in(p.ty, owner_resolved))
         }
         ret :: type_from_expr_opt_in(m.return_type, owner_resolved)
-        return substitute_by_name(mk_fn(params, ret), decl.type_params, t.args)
+        padded :: pad_trait_default_args(t.args, decl.type_params, owner_resolved)
+        return substitute_by_name(mk_fn(params, ret), decl.type_params, padded)
     }
     return null
 }
