@@ -22,6 +22,7 @@ AST :: import "vader/parser"
 import "vader/resolver" { ResolvedModule }
 import "vader/types" {
     Type, ArrayType, EnumType, PrimitiveType, StructType, TraitType, TupleType, UnionType, UnresolvedType,
+    FreeIntType, FreeFloatType, FreeCharType,
     display_type, type_base_name, TY_UNRESOLVED,
 }
 
@@ -55,7 +56,13 @@ export infer_field :: fn(
     candidate = try_typeparam_bound_method(target_ty, e, typed)
     match candidate { is null -> {} _ -> { return candidate } }
     candidate = try_free_fn_ufcs_dispatch(target_ty, e, typed)
-    match candidate { is null -> {} _ -> { return candidate } }
+    match candidate {
+        is null -> {}
+        _ -> {
+            repin_free_ufcs_receiver(target_ty, e, typed, check_expr_fn)
+            return candidate
+        }
+    }
     candidate = try_trait_method_dispatch(target_ty, e, typed)
     match candidate { is null -> {} _ -> { return candidate } }
     candidate = try_default_trait_method_dispatch(target_ty, e, typed)
@@ -163,6 +170,28 @@ try_free_fn_ufcs_dispatch :: fn(
             return free_ufcs.curried
         }
     }
+}
+
+// When a free-numeric receiver resolves to a free-fn UFCS call, re-pin it to
+// the fn's first-param type (just recorded in `ufcs_receiver_types`) so it
+// lowers AS that type — mirrors how a regular call pins its args to the param
+// types (call.vader). Without this, `50.millis()` types the receiver as a free
+// int, lowers it as i32, and the lowerer can't match `millis`'s i64 first param
+// (→ midir panic, see bug_ufcs_primitive_literal_freefn).
+repin_free_ufcs_receiver :: fn(
+    target_ty: Type, e: AST.FieldExpr, typed: TypedProgram,
+    check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
+) -> void {
+    if !(target_ty is FreeIntType || target_ty is FreeFloatType || target_ty is FreeCharType) { return }
+    first_param :: typed.ufcs_receiver_types[e.id]
+    if first_param == null { return }
+    // Re-check the receiver with the first-param type as `expected` — pins the
+    // free literal (propagating to sub-expressions) by recording its pinned
+    // type in `expr_types`. Diagnostics already fired on the first
+    // (no-expectation) check at infer_field's head, so a fresh `[]` sinks them.
+    // The bound result is the pinned receiver type ; we want only the side
+    // effect on `expr_types`, so it's bound (not a trailing value-return).
+    repinned :: check_expr_fn(e.target, first_param, typed, [])
 }
 
 try_trait_method_dispatch :: fn(

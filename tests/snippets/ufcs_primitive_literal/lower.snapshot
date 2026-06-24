@@ -1,0 +1,39 @@
+# Lower
+
+## ufcs_primitive_literal
+  fn ufcs_primitive_literal$main() -> i32
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            format_signed :fn(i64) -> string
+          arg0:
+            call :i64
+              callee:
+                to_millis :i64
+              arg0:
+                call :Duration
+                  callee:
+                    millis :Duration
+                  arg0:
+                    int(50) :i64
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            format_signed :fn(i64) -> string
+          arg0:
+            call :i64
+              callee:
+                to_seconds :i64
+              arg0:
+                call :Duration
+                  callee:
+                    seconds :Duration
+                  arg0:
+                    int(60) :i64
+    return int(0) :i32
