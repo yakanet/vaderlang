@@ -16,77 +16,57 @@ import "std/math" { abs }
 /// forwards or backwards (NTP corrections, manual clock adjustments,
 /// daylight-saving when the OS exposes local time). Use `Monotonic` for
 /// elapsed measurements.
-export Instant :: struct {
-    @internal
-    ns_since_epoch: i64
-}
+export Instant :: i64
 
 /// Monotonic instant — nanoseconds since an opaque, process-stable epoch.
 /// Guaranteed never to decrease across observations within a single
 /// process. Use for micro-benchmarks, timeouts, deadlines, and any
 /// elapsed-time measurement. NOT comparable across processes ; NOT
 /// convertible to wall-clock time.
-export Monotonic :: struct {
-    @internal
-    ns: i64
-}
+export Monotonic :: i64
 
 /// Signed time interval with nanosecond precision. May be negative
 /// (e.g. `b - a` when `b < a`). Range : ±~292 years (i64 ns).
-export Duration :: struct {
-    @internal
-    ns: i64
-}
+export Duration :: i64
 
-// ---- intrinsics ----------------------------------------------------------
+// ---- intrinsics (module-private : the raw clock primitives ; callers use
+//      `now()` / `monotonic()` / `StopWatch`, never the bare i64) -----------
 
-/// Wall-clock milliseconds since the Unix epoch (1970-01-01 UTC).
-/// Millisecond resolution everywhere — the wall clock is intentionally
-/// coarser than `monotonic_ns` so different host backends agree.
+// Wall-clock milliseconds since the Unix epoch (1970-01-01 UTC).
+// Millisecond resolution everywhere — the wall clock is intentionally
+// coarser than `monotonic_ns` so different host backends agree.
 @intrinsic
-export now_unix_ms :: fn() -> i64
+now_unix_ms :: fn() -> i64
 
-/// Monotonic nanoseconds since an arbitrary, process-stable epoch.
-/// Resolution on the TS VM is ~5 µs (`performance.now()` is browser-
-/// throttled when run outside Bun/Node) ; ~10 ns on native.
+// Monotonic nanoseconds since an arbitrary, process-stable epoch.
+// Resolution on the TS VM is ~5 µs (`performance.now()` is browser-
+// throttled when run outside Bun/Node) ; ~10 ns on native.
 @intrinsic
-export monotonic_ns :: fn() -> i64
+monotonic_ns :: fn() -> i64
 
 // ---- Duration constructors -----------------------------------------------
 
 /// Construct a Duration from a count of nanoseconds.
-export nanos :: fn(n: i64) -> Duration {
-    return Duration { .ns = n }
-}
+export nanos :: fn(n: i64) -> Duration = Duration(n)
 
 /// Construct a Duration from a count of microseconds.
-export micros :: fn(n: i64) -> Duration {
-    return Duration { .ns = n * 1000 }
-}
+export micros :: fn(n: i64) -> Duration = Duration(n * 1000)
 
 /// Construct a Duration from a count of milliseconds.
-export millis :: fn(n: i64) -> Duration {
-    return Duration { .ns = n * 1_000_000 }
-}
+export millis :: fn(n: i64) -> Duration = Duration(n * 1_000_000)
 
 /// Construct a Duration from a count of seconds.
-export seconds :: fn(n: i64) -> Duration {
-    return Duration { .ns = n * 1_000_000_000 }
-}
+export seconds :: fn(n: i64) -> Duration = Duration(n * 1_000_000_000)
 
 // ---- clocks --------------------------------------------------------------
 
 /// Current wall-clock time. Reads the host clock — successive calls may
 /// observe non-monotonic jumps (NTP, manual adjustments).
-export now :: fn() -> Instant {
-    return Instant { .ns_since_epoch = now_unix_ms() * 1_000_000 }
-}
+export now :: fn() -> Instant = Instant(now_unix_ms() * 1_000_000)
 
 /// Current monotonic instant. Never decreases across calls within a
 /// single process.
-export monotonic :: fn() -> Monotonic {
-    return Monotonic { .ns = monotonic_ns() }
-}
+export monotonic :: fn() -> Monotonic = Monotonic(monotonic_ns())
 
 // ---- construction / readout (Unix epoch) ---------------------------------
 
@@ -95,12 +75,12 @@ export monotonic :: fn() -> Monotonic {
 /// The inverse of `to_unix_nanos`. Use for deterministic timestamps that
 /// don't come from the host clock.
 /// @param ns  nanoseconds since the Unix epoch.
-export from_unix_nanos :: fn(ns: i64) -> Instant = Instant { .ns_since_epoch = ns }
+export from_unix_nanos :: fn(ns: i64) -> Instant = Instant(ns)
 
 /// Unix-epoch nanoseconds for this `Instant` (since 1970-01-01 UTC ;
 /// negative for pre-epoch). The inverse of `from_unix_nanos`.
 /// @param self  the instant to read.
-export to_unix_nanos :: fn(self: Instant) -> i64 = self.ns_since_epoch
+export to_unix_nanos :: fn(self: Instant) -> i64 = i64(self)
 
 // ---- arithmetic ----------------------------------------------------------
 
@@ -109,50 +89,52 @@ export to_unix_nanos :: fn(self: Instant) -> i64 = self.ns_since_epoch
 /// `monotonic()`. Returns a non-negative Duration in normal operation.
 ///
 /// UFCS-callable as `start.since()`.
-export since :: fn(self: Monotonic) -> Duration {
-    return Duration { .ns = monotonic_ns() - self.ns }
-}
+export since :: fn(self: Monotonic) -> Duration = Duration(monotonic_ns() - i64(self))
 
 // `instant + duration` — shift an Instant forward (a negative Duration shifts
 // back). Heterogeneous : right operand is a Duration, result is an Instant.
 Instant implements Add<Duration, Instant> {
-    add :: fn(self, other: Duration) -> Instant = Instant { .ns_since_epoch = self.ns_since_epoch + other.ns }
+    add :: fn(self, other: Duration) -> Instant = Instant(i64(self) + i64(other))
 }
 
 // `instant_a - instant_b` — signed elapsed time between two instants. The
 // result type (`Out`) is a Duration, distinct from `Self`.
 Instant implements Sub<Instant, Duration> {
-    sub :: fn(self, other: Instant) -> Duration = Duration { .ns = self.ns_since_epoch - other.ns_since_epoch }
+    sub :: fn(self, other: Instant) -> Duration = Duration(i64(self) - i64(other))
 }
+
+// Human-readable form — the ISO 8601 UTC timestamp. Drives `"${instant}"`
+// interpolation and `println(instant)`.
+Instant implements Display -> format_iso8601(self)
 
 // `monotonic + duration` — shift a Monotonic instant forward.
 Monotonic implements Add<Duration, Monotonic> {
-    add :: fn(self, other: Duration) -> Monotonic = Monotonic { .ns = self.ns + other.ns }
+    add :: fn(self, other: Duration) -> Monotonic = Monotonic(i64(self) + i64(other))
 }
 
 // `duration + duration` / `duration - duration` — homogeneous, so `Rhs`/`Out`
 // both default to `Self` (Duration).
 Duration implements Add {
-    add :: fn(self, other: Duration) -> Duration = Duration { .ns = self.ns + other.ns }
+    add :: fn(self, other: Duration) -> Duration = Duration(i64(self) + i64(other))
 }
 
 Duration implements Sub {
-    sub :: fn(self, other: Duration) -> Duration = Duration { .ns = self.ns - other.ns }
+    sub :: fn(self, other: Duration) -> Duration = Duration(i64(self) - i64(other))
 }
 
 // ---- Duration accessors --------------------------------------------------
 
 /// Whole nanoseconds.
-export to_nanos :: fn(self: Duration) -> i64 { return self.ns }
+export to_nanos :: fn(self: Duration) -> i64 { return i64(self) }
 
 /// Whole microseconds (truncated towards zero).
-export to_micros :: fn(self: Duration) -> i64 { return self.ns / 1000 }
+export to_micros :: fn(self: Duration) -> i64 { return i64(self) / 1000 }
 
 /// Whole milliseconds (truncated towards zero).
-export to_millis :: fn(self: Duration) -> i64 { return self.ns / 1_000_000 }
+export to_millis :: fn(self: Duration) -> i64 { return i64(self) / 1_000_000 }
 
 /// Whole seconds (truncated towards zero).
-export to_seconds :: fn(self: Duration) -> i64 { return self.ns / 1_000_000_000 }
+export to_seconds :: fn(self: Duration) -> i64 { return i64(self) / 1_000_000_000 }
 
 // ---- Duration formatting -------------------------------------------------
 
@@ -166,7 +148,7 @@ export to_seconds :: fn(self: Duration) -> i64 { return self.ns / 1_000_000_000 
 ///   `millis(42).format()`     // "42 ms"
 ///   `seconds(-3).format()`    // "-3 s"
 export format :: fn(self: Duration) -> string {
-    n :: self.ns
+    n :: i64(self)
     a :: abs(n)
     sign :: if n < 0 { "-" } else { "" }
     if a < 1000              { return "${sign}${a} ns" }
@@ -215,7 +197,7 @@ civil_from_days :: fn(z: i64) -> [i64, i64, i64] {
 /// MVP host clock only provides millisecond resolution for the wall
 /// clock, and emitting trailing zero-noise would mislead the reader.
 export format_iso8601 :: fn(self: Instant) -> string {
-    total_ms :: self.ns_since_epoch / 1_000_000
+    total_ms :: i64(self) / 1_000_000
     ms_per_day :: i64(86_400_000)
 
     // Floor-divide towards negative infinity so pre-epoch instants land
@@ -344,7 +326,7 @@ export parse_iso8601 :: fn(s: string) -> Instant | TimeError {
                 minutes * 60_000 +
                 seconds_part * 1000 +
                 ms_part
-    return Instant { .ns_since_epoch = total_ms * 1_000_000 }
+    return Instant(total_ms * 1_000_000)
 }
 
 // ---------------------------------------------------------------------- tests
@@ -352,17 +334,17 @@ export parse_iso8601 :: fn(s: string) -> Instant | TimeError {
 import "std/testing" { assert_eq, assert }
 
 @test test_duration_constructors :: fn() -> void {
-    assert_eq(nanos(500).ns, 500)
-    assert_eq(micros(2).ns, 2000)
-    assert_eq(millis(3).ns, 3_000_000)
-    assert_eq(seconds(4).ns, 4_000_000_000)
+    assert_eq(i64(nanos(500)), 500)
+    assert_eq(i64(micros(2)), 2000)
+    assert_eq(i64(millis(3)), 3_000_000)
+    assert_eq(i64(seconds(4)), 4_000_000_000)
 }
 
 @test test_duration_arithmetic :: fn() -> void {
     a :: 100.millis()
     b :: 50.millis()
-    assert_eq((a + b).ns, 150_000_000)
-    assert_eq((a - b).ns, 50_000_000)
+    assert_eq(i64(a + b), 150_000_000)
+    assert_eq(i64(a - b), 50_000_000)
 }
 
 @test test_duration_format :: fn() -> void {
@@ -382,8 +364,13 @@ import "std/testing" { assert_eq, assert }
 }
 
 @test test_iso8601_epoch :: fn() -> void {
-    s :: format_iso8601(Instant { .ns_since_epoch = 0 })
+    s :: format_iso8601(Instant(0))
     assert_eq(s, "1970-01-01T00:00:00.000Z")
+}
+
+@test test_instant_display :: fn() -> void {
+    // `Display` drives `"${…}"` interpolation — an Instant renders as ISO 8601.
+    assert_eq("${Instant(0)}", "1970-01-01T00:00:00.000Z")
 }
 
 @test test_iso8601_known_timestamp :: fn() -> void {
@@ -394,7 +381,7 @@ import "std/testing" { assert_eq, assert }
                 34 * 60_000 +
                 56 * 1000 +
                 789
-    inst :: Instant { .ns_since_epoch = total_ms * 1_000_000 }
+    inst :: Instant(total_ms * 1_000_000)
     assert_eq(format_iso8601(inst), "2026-05-15T12:34:56.789Z")
 }
 
@@ -426,7 +413,7 @@ import "std/testing" { assert_eq, assert }
     // just that `since` returns a non-negative duration.
     for _ in 0..<1000 {}
     elapsed_dur :: start.since()
-    assert(elapsed_dur.ns >= 0, "monotonic clock ran backwards")
+    assert(i64(elapsed_dur) >= 0, "monotonic clock ran backwards")
 }
 
 @test test_instant_arithmetic :: fn() -> void {

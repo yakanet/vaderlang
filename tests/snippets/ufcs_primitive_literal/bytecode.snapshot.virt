@@ -7,7 +7,6 @@ type 4 primitive string
 type 5 primitive u8
 type 6 struct std_core$Buffer {  }
 type 7 primitive void
-type 8 struct std_time$Duration { ns:3 }
 string 0 "0"
 string 1 "\n"
 import 0 write std_io$write (i32,string) -> void
@@ -165,18 +164,16 @@ fn 2 std_io$println__string (string) -> void
   return
 end
 
-fn 3 std_time$millis (i64) -> ref
+fn 3 std_time$millis (i64) -> i64
   local.get 0
   i64.const 1000000
   i64.mul
-  struct.new 8
   return
 end
 
-fn 4 std_time$to_millis (ref) -> i64
-  local $field_1 i64
-  local.field 0 8 0
-  ref.cast 3
+fn 4 std_time$to_millis (i64) -> i64
+  local $cast_1 i64
+  local.get 0
   local.set 1
   local.get 1
   i64.const 1000000
@@ -184,18 +181,16 @@ fn 4 std_time$to_millis (ref) -> i64
   return
 end
 
-fn 5 std_time$seconds (i64) -> ref
+fn 5 std_time$seconds (i64) -> i64
   local.get 0
   i64.const 1000000000
   i64.mul
-  struct.new 8
   return
 end
 
-fn 6 std_time$to_seconds (ref) -> i64
-  local $field_1 i64
-  local.field 0 8 0
-  ref.cast 3
+fn 6 std_time$to_seconds (i64) -> i64
+  local $cast_1 i64
+  local.get 0
   local.set 1
   local.get 1
   i64.const 1000000000

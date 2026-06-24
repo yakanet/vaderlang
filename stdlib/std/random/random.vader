@@ -4,7 +4,7 @@
 // period, passes the BigCrush statistical battery. Fast on every modern
 // CPU and trivially portable to WASM (no SIMD intrinsics, no platform
 // primitives). Pure Vader — no host imports unless `new_from_clock` is
-// used, in which case the seed comes from `std/time.monotonic_ns`.
+// used, in which case the seed comes from `std/time.monotonic()`.
 //
 // NOT suitable for cryptography — the output is reversible from any
 // 256 consecutive u64s. For a cryptographic PRNG plug `std/crypto`
@@ -12,7 +12,7 @@
 
 module "std/random"
 
-import "std/time" { monotonic_ns }
+import "std/time" { monotonic }
 
 /// Mutable RNG state. Two 64-bit words ; the seeder guarantees at least
 /// one of them is non-zero (a fully-zero state would lock xoroshiro to
@@ -51,12 +51,12 @@ export new_seeded :: fn(seed: u64) -> Rng {
     return Rng { .s0 = a, .s1 = b }
 }
 
-/// Seed from `std/time.monotonic_ns` — useful for tests that don't
+/// Seed from `std/time.monotonic()` — useful for tests that don't
 /// need determinism but want a different stream each process. Within
 /// a single process two close-together calls may produce overlapping
 /// streams (monotonic resolution is bounded) ; mix in a counter at
 /// the call site if you need stronger separation.
-export new_from_clock :: fn() -> Rng = new_seeded(u64(monotonic_ns()))
+export new_from_clock :: fn() -> Rng = new_seeded(u64(i64(monotonic())))
 
 /// Draw the next u64. The full 64 bits are uniformly distributed.
 /// Advances the RNG state.
