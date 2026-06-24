@@ -32,7 +32,7 @@ export Monotonic :: struct {
 }
 
 /// Signed time interval with nanosecond precision. May be negative
-/// (e.g. `b.sub(a)` when `b < a`). Range : ±~292 years (i64 ns).
+/// (e.g. `b - a` when `b < a`). Range : ±~292 years (i64 ns).
 export Duration :: struct {
     @internal
     ns: i64
@@ -113,29 +113,31 @@ export since :: fn(self: Monotonic) -> Duration {
     return Duration { .ns = monotonic_ns() - self.ns }
 }
 
-/// Add a Duration to an Instant. `Duration` may be negative to subtract.
-export add :: fn(self: Instant, d: Duration) -> Instant {
-    return Instant { .ns_since_epoch = self.ns_since_epoch + d.ns }
+// `instant + duration` — shift an Instant forward (a negative Duration shifts
+// back). Heterogeneous : right operand is a Duration, result is an Instant.
+Instant implements Add<Duration, Instant> {
+    add :: fn(self, other: Duration) -> Instant = Instant { .ns_since_epoch = self.ns_since_epoch + other.ns }
 }
 
-/// Difference between two instants — `self - other`, signed.
-export sub :: fn(self: Instant, other: Instant) -> Duration {
-    return Duration { .ns = self.ns_since_epoch - other.ns_since_epoch }
+// `instant_a - instant_b` — signed elapsed time between two instants. The
+// result type (`Out`) is a Duration, distinct from `Self`.
+Instant implements Sub<Instant, Duration> {
+    sub :: fn(self, other: Instant) -> Duration = Duration { .ns = self.ns_since_epoch - other.ns_since_epoch }
 }
 
-/// Add a Duration to a Monotonic instant.
-export add_monotonic :: fn(self: Monotonic, d: Duration) -> Monotonic {
-    return Monotonic { .ns = self.ns + d.ns }
+// `monotonic + duration` — shift a Monotonic instant forward.
+Monotonic implements Add<Duration, Monotonic> {
+    add :: fn(self, other: Duration) -> Monotonic = Monotonic { .ns = self.ns + other.ns }
 }
 
-/// Add two durations. Negative arguments subtract.
-export plus :: fn(self: Duration, other: Duration) -> Duration {
-    return Duration { .ns = self.ns + other.ns }
+// `duration + duration` / `duration - duration` — homogeneous, so `Rhs`/`Out`
+// both default to `Self` (Duration).
+Duration implements Add {
+    add :: fn(self, other: Duration) -> Duration = Duration { .ns = self.ns + other.ns }
 }
 
-/// Subtract `other` from `self`.
-export minus :: fn(self: Duration, other: Duration) -> Duration {
-    return Duration { .ns = self.ns - other.ns }
+Duration implements Sub {
+    sub :: fn(self, other: Duration) -> Duration = Duration { .ns = self.ns - other.ns }
 }
 
 // ---- Duration accessors --------------------------------------------------
@@ -359,8 +361,8 @@ import "std/testing" { assert_eq, assert }
 @test test_duration_arithmetic :: fn() -> void {
     a :: millis(100)
     b :: millis(50)
-    assert_eq(a.plus(b).ns, 150_000_000)
-    assert_eq(a.minus(b).ns, 50_000_000)
+    assert_eq((a + b).ns, 150_000_000)
+    assert_eq((a - b).ns, 50_000_000)
 }
 
 @test test_duration_format :: fn() -> void {
@@ -429,8 +431,8 @@ import "std/testing" { assert_eq, assert }
 
 @test test_instant_arithmetic :: fn() -> void {
     epoch :: from_unix_nanos(0)
-    later :: epoch.add(seconds(60))
-    delta :: later.sub(epoch)
+    later :: epoch + seconds(60)
+    delta :: later - epoch
     assert_eq(delta.to_seconds(), 60)
     assert_eq(delta.format(), "60 s")
 }
