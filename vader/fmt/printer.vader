@@ -143,6 +143,21 @@ export emit_program :: fn(self: Printer, prog: p.Program) -> string {
     // `emit_const_decl` can look up their group's max-name width without
     // re-scanning siblings each time.
     align_widths :: compute_decl_alignment_widths(decls)
+    // The `module "..."` declaration opens the file, before any decl. Its
+    // leading `//` header comment flushes first ; the blank-line separation
+    // down to the first decl is handled by the loop's `has_module` branch.
+    module_end_line: i32 = 0
+    has_module: bool = false
+    match prog.module {
+        is null -> {}
+        is p.ModuleDecl as m -> {
+            self.flush_leading_comments(m.span.start.offset, m.span.start.line)
+            self.indent()
+            self.write("module \"${m.name}\"")
+            module_end_line = m.span.end.line
+            has_module = true
+        }
+    }
     for i in 0..<decls.len() {
         d :: decls[i]
         span :: decl_span(d)
@@ -150,10 +165,12 @@ export emit_program :: fn(self: Printer, prog: p.Program) -> string {
         // Layout between decls : preserve the source's blank-line decision.
         //   prev_end_line + 1 == this_decl_start_line  → contiguous, single \n
         //   gap >= 2                                    → one blank line, \n\n
-        // The first decl starts at the file head, no separator.
-        if i > 0 {
+        // The first decl follows the module line (or the file head when there
+        // is no module decl, in which case no separator).
+        if i > 0 || has_module {
             self.newline()
-            prev_end_line :: decl_span(decls[i - 1]).end.line
+            prev_end_line := module_end_line
+            if i > 0 { prev_end_line = decl_span(decls[i - 1]).end.line }
             first_line := decl_first_line(d)
             if self.comments.has_before(before) {
                 cs :: self.comments.peek_before(before)
