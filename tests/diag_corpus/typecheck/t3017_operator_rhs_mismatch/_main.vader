@@ -1,0 +1,20 @@
+// An arithmetic operator whose left type HAS an `Add` impl, but whose right
+// operand doesn't match the impl's `Rhs` (here `other: Vec`), is a T3017 —
+// now caught at typecheck instead of panicking at lowering. `check_arith`
+// checks `right` against the impl method's first (post-`self`) param.
+module "snippet"
+
+Vec :: struct { x: i32 }
+
+Vec implements Add {
+    add :: fn(self, other: Vec) -> Vec = Vec { .x = self.x + other.x }
+}
+
+Other :: struct { y: i32 }
+
+main :: fn() -> i32 {
+    v :: Vec { .x = 1 }
+    o :: Other { .y = 2 }
+    w :: v + o
+    return w.x
+}

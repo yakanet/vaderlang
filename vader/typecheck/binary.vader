@@ -121,7 +121,19 @@ check_arith :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgra
     base :: type_base_name(left)
     method :: typed.impl_methods["${base}::${method_name}"]
     match method {
-        is FnType as ft -> { return substitute_self_in(ft.return_type, left) }
+        is FnType as ft -> {
+            // Check the right operand against the impl's `other` (Rhs) param —
+            // `ufcs_method_type` drops `self`, so the Rhs is `params[0]`. Without
+            // this, a wrong-typed RHS passes the typer and panics at lowering.
+            if ft.params.len() > 0 {
+                rhs :: substitute_self_in(ft.params[0], left)
+                if !is_assignable(right, rhs, null) {
+                    diags.push(typecheck_error(.OperatorNotDefined, e.right.span,
+                        "operator ${method_name} on ${display_type(left)} expects ${display_type(rhs)} on the right, found ${display_type(right)}"))
+                }
+            }
+            return substitute_self_in(ft.return_type, left)
+        }
         _ -> { return numeric_result(e, left, right, diags) }
     }
 }
