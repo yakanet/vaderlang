@@ -2,7 +2,7 @@
 
 ## tests/snippets/iter_lazy
   FnDecl         main                 :: fn() -> i32
-  expr 11:14    IdentExpr      :: MapIterator<i32, i32>
+  expr 11:14    IdentExpr      :: MappedIterator<i32, i32>
   expr 12:17    BinaryExpr     :: i32
   expr 12:17    IdentExpr      :: i32
   expr 12:25    IdentExpr      :: i32
@@ -67,6 +67,6 @@
   expr 8:38     BinaryExpr     :: i32
   expr 8:38     IdentExpr      :: i32
   expr 8:42     IdentExpr      :: i32
-  expr 9:11     StructLitExpr  :: MapIterator<i32, i32>
-  expr 9:45     RangeExpr      :: Range<i32>
-  expr 9:57     IdentExpr      :: fn(i32) -> i32
+  expr 9:11     StructLitExpr  :: MappedIterator<i32, i32>
+  expr 9:48     RangeExpr      :: Range<i32>
+  expr 9:60     IdentExpr      :: fn(i32) -> i32

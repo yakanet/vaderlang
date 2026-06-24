@@ -418,7 +418,7 @@ struct_name_at :: fn(state: VmState, type_id: i32) -> string = match state.bc.ty
 /// Slice `s` up to the first `__` byte pair occurring *after* the last
 /// `$`. That's the type-arg separator the lowerer emits for
 /// monomorphised generics (`std_core$Yield__Any`,
-/// `std_iter$MapIterator__i32__i32`). For non-generic structs there is
+/// `std_iter$MappedIterator__i32__i32`). For non-generic structs there is
 /// no such `__`, and we return the empty string to signal "no sibling
 /// family" — using the full mangled name would false-match other
 /// non-generic structs declared in a path whose folder name contains

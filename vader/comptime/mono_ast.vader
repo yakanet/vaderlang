@@ -143,7 +143,7 @@ export new_mono_project :: fn() -> MonoProject {
 //
 // `is_specialized` answers "should this decl opt out of post-typecheck
 // erasure ?". Iterator types in stdlib (`ArrayIterator`, `Yield`,
-// `MapIterator`, …) carry `@specialize` because for-in fusion (see
+// `MappedIterator`, …) carry `@specialize` because for-in fusion (see
 // `vader/lower/lower_for_in`) inlines their bodies and needs the
 // per-instantiation source.
 //

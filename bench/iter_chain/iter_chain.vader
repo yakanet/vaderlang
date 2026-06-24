@@ -7,7 +7,7 @@
 /// The lowerer's iter-chain fusion path recognises the chain and folds
 /// the three layers into a single counter loop — no `Yielded(T)` heap
 /// allocs, no `Iterator.next()` vtable hops. Same end result as the
-/// struct-lit-direct form (`MapIterator { source = FilterIterator { … } }`)
+/// struct-lit-direct form (`MappedIterator { source = FilterIterator { … } }`)
 /// but reads as an iterator pipeline.
 
 module "main"

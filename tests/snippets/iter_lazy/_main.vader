@@ -1,12 +1,12 @@
 module "snippet"
 
 import "std/io" { println }
-import "std/iter" { MapIterator, FilterIterator, TakeIterator, SkipIterator }
+import "std/iter" { MappedIterator, FilterIterator, TakeIterator, SkipIterator }
 
 main :: fn() -> i32 {
     // Lazy map : square 0..<5 → 0, 1, 4, 9, 16. Sum via for-in.
     sq :: fn(x: i32) -> i32 { return x * x }
-    mi := MapIterator<i32, i32> { .source = 0..<5, .f = sq }
+    mi := MappedIterator<i32, i32> { .source = 0..<5, .f = sq }
     total := 0
     for v in mi {
         total = total + v

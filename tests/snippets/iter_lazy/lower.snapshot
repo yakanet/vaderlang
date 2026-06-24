@@ -4,8 +4,8 @@
   fn snippet$main() -> i32
     let sq: fn(i32) -> i32 =
       LoweredMakeClosure
-    let mi: MapIterator<i32, i32> =
-      MapIterator<i32, i32> {
+    let mi: MappedIterator<i32, i32> =
+      MappedIterator<i32, i32> {
         source:
           Range<i32> {
             start: int(0) :i32
@@ -17,14 +17,14 @@
       }
     let total: i32 = int(0) :i32
     block :void
-      let __iter_1: MapIterator<i32, i32> = mi :MapIterator<i32, i32>
+      let __iter_1: MappedIterator<i32, i32> = mi :MappedIterator<i32, i32>
       loop
         let __step_2: Yield<i32> | null =
           call :Yield<i32> | null
             callee:
-              std_iter$MapIterator$Iterator$next__i32__i32 :?
+              std_iter$MappedIterator$Iterator$next__i32__i32 :?
             arg0:
-              __iter_1 :MapIterator<i32, i32>
+              __iter_1 :MappedIterator<i32, i32>
         if :void
           cond:
             is null :bool

@@ -15,7 +15,7 @@ type 12 array 13
 type 13 primitive u8
 type 14 struct std_core$Buffer {  }
 type 15 primitive void
-type 16 struct std_iter$MapIterator__i32__i32 { source:17,f:18 }
+type 16 struct std_iter$MappedIterator__i32__i32 { source:17,f:18 }
 type 17 ref Iterator
 type 18 fn (1) -> 1
 string 0 "fuse_map total="
@@ -428,7 +428,7 @@ fn 8 std_io$println__string (string) -> void
   return
 end
 
-fn 9 std_iter$MapIterator$Iterator$next__i32__i32 (ref) -> ref
+fn 9 std_iter$MappedIterator$Iterator$next__i32__i32 (ref) -> ref
   local __scrut_0 ref
   local $field_11 ref
   local.field 0 16 0

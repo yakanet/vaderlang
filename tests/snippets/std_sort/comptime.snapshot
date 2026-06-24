@@ -7,9 +7,9 @@
   Add<Rhs, Out>
   Sub<Rhs, Out>
   Mul<Rhs, Out>
-  MapIterator<T, U>
-  MapIterator<T, U>
-  MapIterator<T, U>
+  MappedIterator<T, U>
+  MappedIterator<T, U>
+  MappedIterator<T, U>
   FilterIterator<T>
   FilterIterator<T>
   FilterIterator<T>
