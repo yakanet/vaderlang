@@ -1,0 +1,24 @@
+# Comptime
+
+## tests/snippets/default_type_param
+
+## generic instances
+  Into<Target>
+  Adder<Rhs>
+  Index<I, T>
+  IndexSet<I, T>
+  Contains<T>
+  Iterator<T>
+  Iterator<T>
+  Yield<T>
+  Yield<T>
+  Yield<T>
+  Range<i32>
+  Range<usize>
+  Range<T>
+  Range<T>
+  Range<T>
+  ArrayIterator<T>
+  ArrayIterator<T>
+  ArrayIterator<T>
+  Counter<Step>

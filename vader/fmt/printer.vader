@@ -460,6 +460,7 @@ emit_type_params :: fn(self: Printer, params: p.TypeParam[]) -> void {
         tp :: params[i]
         self.write(tp.name)
         self.emit_type_expr_with_prefix(": ", tp.bound)
+        self.emit_type_expr_with_prefix(" = ", tp.default)
     }
     self.write(">")
 }
@@ -694,13 +695,8 @@ emit_impl_decl :: fn(self: Printer, d: p.ImplDecl) -> void {
             if i > 0 { self.write(", ") }
             tp :: d.type_params[i]
             self.write(tp.name)
-            match tp.bound {
-                is null -> {}
-                _ -> {
-                    self.write(": ")
-                    self.emit_type_expr(tp.bound)
-                }
-            }
+            self.emit_type_expr_with_prefix(": ", tp.bound)
+            self.emit_type_expr_with_prefix(" = ", tp.default)
         }
         self.write(">")
     }

@@ -88,6 +88,13 @@ export TypeParam :: struct {
     id:               usize = UNASSIGNED_NODE_ID
     name:               string
     bound:              TypeExpr | null
+    /// Default type for this parameter, from `<T = Default>`. Honored when an
+    /// impl supplies fewer trait-args than the trait declares — the trailing
+    /// params fill from their defaults at impl materialization
+    /// (`resolver/materialize.vader::build_subst`). Defaults on struct / fn /
+    /// alias params parse but are not yet filled at their use sites (those
+    /// instantiations error rather than default). `null` = no default.
+    default:            TypeExpr | null = null
     is_comptime_value:  bool
 }
 

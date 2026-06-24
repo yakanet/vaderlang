@@ -1,0 +1,44 @@
+// tests/snippets/default_type_param — `<T = Default>` type-param defaults.
+//
+// When an impl supplies fewer trait-args than the trait has params, the
+// trailing params fill from their `= Default`. Covers a `Self` default
+// (resolves to the impl's for-type) and a concrete default (`i32`). Both
+// traits carry a default-bodied method whose synthesized signature uses
+// the defaulted param, so the value only typechecks if the default fired.
+
+module "default_type_param"
+
+import "std/io" { println }
+
+Adder :: trait<Rhs = Self> {
+    add_to :: fn(self, other: Rhs) -> i32
+    twice :: fn(self, other: Rhs) -> i32 = self.add_to(other) + self.add_to(other)
+}
+
+N :: struct { v: i32 }
+
+N implements Adder {
+    add_to :: fn(self, other: N) -> i32 = self.v + other.v
+}
+
+Counter :: trait<Step = i32> {
+    current :: fn(self) -> Step
+    bumped :: fn(self) -> i32 = self.current() + self.current()
+}
+
+Tick :: struct { c: i32 }
+
+Tick implements Counter {
+    current :: fn(self) -> i32 = self.c
+}
+
+main :: fn() -> i32 {
+    a :: N { .v = 10 }
+    b :: N { .v = 5 }
+    println("${a.twice(b)}")
+    // 30 — Rhs = Self = N
+    t :: Tick { .c = 7 }
+    println("${t.bumped()}")
+    // 14 — Step = i32 default
+    return 0
+}
