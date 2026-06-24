@@ -31,6 +31,22 @@ export EnumType :: struct {
     indices: MutableMap<string, i64>
 }
 
+/// Distinct (newtype) over a primitive — nominal at typecheck, but its
+/// backend representation IS the backing primitive (zero-cost, register
+/// scalar, no box). Declared as `Name :: <primitive>` ; constructed via
+/// `Name(v)` (wrap) and unwrapped via `Backing(d)` — both no-op at runtime.
+/// Operators and methods are opaque : only impls on the distinct type
+/// apply, nothing is inherited from the backing (`Instant + Instant` is a
+/// type error unless an `Add` impl exists). Modeled on `EnumType` — it rides
+/// its backing's `ValType` — not on `StructType` (which is a boxed `Ref`).
+export DistinctType :: struct {
+    symbol:  Symbol
+    /// The underlying type the value is represented as. Always a
+    /// `PrimitiveType` in v1 ; the resolver enforces this at the
+    /// const→distinct promotion site.
+    backing: Type
+}
+
 export TraitType :: struct {
     symbol: Symbol
     args:   Type[]
@@ -103,6 +119,7 @@ export Type ::
     | FreeCharType
     | NeverType
     | AnyType
+    | DistinctType
 
 // ---- name registries ------------------------------------------------------
 
@@ -160,6 +177,10 @@ export mk_trait :: fn(symbol: Symbol, args: Type[]) -> Type = TraitType { .symbo
 
 export mk_enum :: fn(symbol: Symbol, repr: string, indices: MutableMap<string, i64>) -> Type = EnumType { .symbol = symbol, .repr = repr, .indices = indices }
 
+/// Distinct (newtype) over `backing` — see `DistinctType`. `backing` must be
+/// a `PrimitiveType` ; callers (the resolver) guarantee this in v1.
+export mk_distinct :: fn(symbol: Symbol, backing: Type) -> Type = DistinctType { .symbol = symbol, .backing = backing }
+
 export mk_array :: fn(element: Type, immutable: bool) -> Type = ArrayType { .element = element, .immutable = immutable }
 
 export mk_tuple :: fn(elements: Type[]) -> Type = TupleType { .elements = elements }
@@ -202,6 +223,7 @@ export display_type :: fn(t: Type) -> string {
         is PrimitiveType  as p -> { return p.name }
         is TypeParamType  as p -> { return p.symbol.name }
         is EnumType       as e -> { return e.symbol.name }
+        is DistinctType   as d -> { return d.symbol.name }
         is UnresolvedType      -> { return "?" }
         is NeverType           -> { return "never" }
         is FreeIntType         -> { return "{integer}" }
@@ -223,9 +245,10 @@ export display_type :: fn(t: Type) -> string {
 /// the same entry as the underlying impl.
 export type_base_name :: fn(t: Type) -> string {
     match t {
-        is StructType as st -> { return st.symbol.name }
-        is TraitType  as tr -> { return tr.symbol.name }
-        is EnumType   as en -> { return en.symbol.name }
+        is StructType   as st -> { return st.symbol.name }
+        is TraitType    as tr -> { return tr.symbol.name }
+        is EnumType     as en -> { return en.symbol.name }
+        is DistinctType as dt -> { return dt.symbol.name }
         _ -> { return display_type(t) }
     }
 }
@@ -236,6 +259,7 @@ write_type :: fn(sb: StringBuilder, t: Type) -> void {
         is PrimitiveType as x -> { sb.append(x.name) }
         is StructType    as x -> { sb.write_named(x.symbol.name, x.args) }
         is EnumType      as x -> { sb.append(x.symbol.name) }
+        is DistinctType  as x -> { sb.append(x.symbol.name) }
         is TraitType     as x -> { sb.write_named(x.symbol.name, x.args) }
         is TypeParamType as x -> { sb.append(x.symbol.name) }
         is TypeMetaType       -> { sb.append("type") }
@@ -309,6 +333,7 @@ export canonical_key :: fn(t: Type) -> string {
         is UnionType      as u -> { return "U<${canonical_args_key(u.variants)}>" }
         is TypeParamType  as p -> { return "P${p.symbol.id}" }
         is EnumType       as e -> { return "e${e.symbol.id}" }
+        is DistinctType   as d -> { return "d${d.symbol.id}" }
         is TypeMetaType        -> { return "M" }
         is SelfType            -> { return "S" }
         is UnresolvedType      -> { return "?" }
@@ -349,6 +374,7 @@ export for_each_type :: fn(t: Type, visit: fn(Type) -> void) -> void {
             for_each_type(f.return_type, visit)
         }
         is UnionType  as u -> { for v in u.variants { for_each_type(v, visit) } }
+        is DistinctType as d -> { for_each_type(d.backing, visit) }
         _ -> {}
     }
 }

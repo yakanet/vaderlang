@@ -31,29 +31,19 @@ export evaluate_assert_decls :: fn(
         .bindings = MutableMap<i32, ComptimeValue> {},
     }
     for decl in decls {
-        match decl {
-            is AST.AssertDecl as assert_decl -> {
-                result :: evaluate_expr(assert_decl.condition, context)
-                // Skip C4001 (cannot-evaluate, needs VM) silently — asserts
-                // that fall back to the VM-execution placeholder are expected
-                // to silently succeed at the dump layer. The compiler-emit
-                // chantier will run them through the VM properly.
-                match result.diag {
-                    is null -> {}
-                    is Diagnostic as d -> {
-                        if d.code.id != "C4001" { diags.push(d) }
-                    }
-                }
-                match result.value {
-                    is BoolValue as b -> {
-                        if !b.value {
-                            diags.push(comptime_error(.AssertFailed, assert_decl.span, assert_message(assert_decl)))
-                        }
-                    }
-                    _ -> {}
+        if decl is AST.AssertDecl as assert_decl {
+            result :: evaluate_expr(assert_decl.condition, context)
+            match result.diag {
+                is null -> {}
+                is Diagnostic as d -> {
+                    if d.code.id != "C4001" { diags.push(d) }
                 }
             }
-            _ -> {}
+            if result.value is BoolValue as b {
+                if !b.value {
+                    diags.push(comptime_error(.AssertFailed, assert_decl.span, assert_message(assert_decl)))
+                }
+            }
         }
     }
 }
