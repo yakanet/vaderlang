@@ -15,7 +15,7 @@ bc :: import "vader/bytecode"
 import "std/io" { read_file, write_file, exists, is_dir, read_dir, print, eprint }
 import "std/process" { spawn_run, spawn_last_stdout, spawn_last_stderr }
 import "std/math" { sqrt, pow, floor, ceil, round }
-import "std/time" { monotonic_ns, now_unix_ms }
+import "std/time" { now, monotonic }
 import "std/string" { trim, index_of, last_index_of, starts_with, ends_with }
 
 /// Outcome of a successful host call. `value` is unused when the import
@@ -290,8 +290,11 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     if info.mangled_name == r"std_runtime$bytes_used"   { return HostOk { .value = I32Val { .value = 0 } } }
     if info.mangled_name == r"std_runtime$bytes_copied" { return HostOk { .value = I32Val { .value = 0 } } }
     // ---- std/time --------------------------------------------------------
-    if info.mangled_name == r"std_time$now_unix_ms"  { return HostOk { .value = I64Val { .value = now_unix_ms()  } } }
-    if info.mangled_name == r"std_time$monotonic_ns" { return HostOk { .value = I64Val { .value = monotonic_ns() } } }
+    // `now_unix_ms` / `monotonic_ns` are module-private in std/time now ; reach
+    // the native clock through the public `now()` / `monotonic()` (this host is
+    // native, so these are native calls — no VM re-dispatch, no recursion).
+    if info.mangled_name == r"std_time$now_unix_ms"  { return HostOk { .value = I64Val { .value = i64(now()) / 1_000_000 } } }
+    if info.mangled_name == r"std_time$monotonic_ns" { return HostOk { .value = I64Val { .value = i64(monotonic()) } } }
     // ---- std/math --------------------------------------------------------
     if info.mangled_name == r"std_math$sqrt"  { return host_f64_unary(stack, arg_base, at_pc, "sqrt",  (a) -> sqrt(a)) }
     if info.mangled_name == r"std_math$floor" { return host_f64_unary(stack, arg_base, at_pc, "floor", (a) -> floor(a)) }

@@ -1,0 +1,40 @@
+// std/time/stopwatch — a monotonic stopwatch for measuring elapsed time.
+//
+// Wraps a `Monotonic` start instant ; `stop()` reads the monotonic clock
+// again and returns the elapsed `Duration`. Built on the monotonic clock,
+// so it is immune to wall-clock jumps (NTP, manual adjustments). Sibling of
+// `time.vader`, which owns the clocks and the `Instant` / `Duration` types.
+
+module "std/time"
+
+/// A monotonic stopwatch. Construct with `start()`, read elapsed time with
+/// `stop()`. Cheap to copy (it holds a single zero-cost `Monotonic`).
+export StopWatch :: struct {
+    /// The monotonic instant the stopwatch was started at.
+    @internal
+    started: Monotonic
+}
+
+/// Start a stopwatch from the current monotonic instant.
+/// @return  a `StopWatch` anchored at `monotonic()`.
+export start :: fn() -> StopWatch = StopWatch { .started = monotonic() }
+
+/// Elapsed `Duration` since the stopwatch was started. Re-reads the monotonic
+/// clock on every call, so repeated `stop()`s report time since `start()`,
+/// not since the previous `stop()` ; the stopwatch is never consumed.
+/// @param self  the running stopwatch.
+/// @return      a non-negative `Duration` in normal operation.
+export stop :: fn(self: StopWatch) -> Duration = self.started.since()
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert }
+
+@test test_stopwatch_non_negative_elapsed :: fn() -> void {
+    sw :: start()
+    // Tiny busy-loop : we don't depend on the actual timing, only that the
+    // monotonic clock never runs backwards.
+    for _ in 0..<1000 {}
+    elapsed :: sw.stop()
+    assert(i64(elapsed) >= 0, "stopwatch elapsed must be non-negative")
+}
