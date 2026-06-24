@@ -1,0 +1,97 @@
+module _main
+type 0 primitive null
+type 1 array 2
+type 2 primitive i64
+type 3 primitive i32
+type 4 union 0,2
+export main 2
+
+fn 0 snippet$sum_ids (ref) -> i32
+  local total i32
+  local __for_arr_0 ref
+  local __for_len_1 usize
+  local __for_i_2 usize
+  local $cast_12 i32
+  local $k_14 usize
+  i32.const 0
+  local.set 1
+  local.get 0
+  local.tee 2
+  array.len
+  local.set 3
+  i64.const 0
+  local.set 4
+  block $L0 void
+    loop $L1 void
+      local.get 4
+      local.get 3
+      u64.lt
+      if $L2 void
+        local.get 2
+        local.get 4
+        load_slot_i64
+        i64.to_i32
+        local.set 5
+        local.get 1
+        local.get 5
+        i32.add
+        local.set 1
+        i64.const 1
+        local.set 6
+        local.get 4
+        local.get 6
+        i64.add
+        local.set 4
+        br $L1
+      else
+      end $L2
+    end $L1
+  end $L0
+  local.get 1
+  return
+end
+
+fn 1 snippet$unwrap_or (ref,i32) -> i32
+  local.get 0
+  type_check 0
+  if $L0 void
+    local.get 1
+    return
+  end $L0
+  local.get 0
+  ref.cast 2
+  i64.to_i32
+  return
+end
+
+fn 2 snippet$main () -> i32
+  local $cast_1 i64
+  local $cast_3 i64
+  local ids ref
+  local $unop_9 i32
+  i32.const 10
+  i32.to_i64
+  local.set 0
+  i32.const 20
+  i32.to_i64
+  local.set 1
+  local.get 0
+  local.get 1
+  array.new 1 2
+  local.set 2
+  i32.const 12
+  i32.to_i64
+  local.set 0
+  i32.const 1
+  i32.neg
+  local.set 3
+  local.get 0
+  local.get 3
+  call 1
+  local.set 3
+  local.get 2
+  call 0
+  local.get 3
+  i32.add
+  return
+end

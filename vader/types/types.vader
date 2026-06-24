@@ -379,6 +379,63 @@ export for_each_type :: fn(t: Type, visit: fn(Type) -> void) -> void {
     }
 }
 
+/// True when `t` carries a `DistinctType` anywhere in its tree. Guards
+/// `strip_distinct` so the common (distinct-free) type returns unchanged
+/// without a rebuild.
+export contains_distinct :: fn(t: Type) -> bool {
+    if t is DistinctType { return true }
+    if t is StructType as s { for a in s.args { if contains_distinct(a) { return true } } }
+    if t is TraitType  as r { for a in r.args { if contains_distinct(a) { return true } } }
+    if t is ArrayType  as a { return contains_distinct(a.element) }
+    if t is TupleType  as p { for el in p.elements { if contains_distinct(el) { return true } } }
+    if t is FnType     as f {
+        for p in f.params { if contains_distinct(p) { return true } }
+        return contains_distinct(f.return_type)
+    }
+    if t is UnionType  as u { for v in u.variants { if contains_distinct(v) { return true } } }
+    return false
+}
+
+/// Replace every `DistinctType` in `t` with its backing, recursively.
+///
+/// A distinct (newtype) has no runtime identity (Axe E) — it monomorphises,
+/// boxes and lays out exactly as its backing primitive, so the backend must
+/// never see one inside a monomorphisation instance key. Applied to type-args
+/// at every instance-registration source (`lower_generic_call`, `lower_ufcs`,
+/// `instances.add`, the direct `GenericInstance` builders) so `MutableMap<BlockId>`
+/// IS `MutableMap<i32>` for the whole lowerer / comptime / emit pipeline — one
+/// raw instance, no separate erased instance to collide with the genuine one.
+/// Nominal distinctness is a typechecker-only concept; it ends here, at the
+/// lowering boundary.
+///
+/// @param t  any type, possibly carrying distincts nested anywhere.
+/// @return   the structurally-identical type with all distincts collapsed
+///           (returns `t` unchanged when it carries none).
+export strip_distinct :: fn(t: Type) -> Type {
+    // Fast path : a primitive (the common type-arg) can't carry a distinct, so
+    // skip the structural `contains_distinct` walk on the hot classifier path.
+    if t is PrimitiveType { return t }
+    if !contains_distinct(t) { return t }
+    if t is DistinctType as d { return strip_distinct(d.backing) }
+    if t is StructType as s { return mk_struct(s.symbol, strip_distinct_each(s.args)) }
+    if t is TraitType  as r { return mk_trait(r.symbol, strip_distinct_each(r.args)) }
+    if t is ArrayType  as a { return mk_array(strip_distinct(a.element), a.immutable) }
+    if t is TupleType  as p { return mk_tuple(strip_distinct_each(p.elements)) }
+    if t is FnType     as f { return mk_fn(strip_distinct_each(f.params), strip_distinct(f.return_type)) }
+    if t is UnionType  as u { return mk_union(strip_distinct_each(u.variants)) }
+    return t
+}
+
+/// Map `strip_distinct` over a type-arg list. Returns a fresh array only when
+/// some element changed; otherwise the same elements (each unchanged).
+/// @param args  the concrete type arguments.
+/// @return      `args` with every distinct collapsed to its backing.
+export strip_distinct_each :: fn(args: Type[]) -> Type[] {
+    out: Type[] = []
+    for a in args { out.push(strip_distinct(a)) }
+    return out
+}
+
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing" { assert, assert_eq }

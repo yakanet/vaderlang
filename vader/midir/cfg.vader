@@ -33,6 +33,11 @@ export BlockId :: i32
 /// mutable named storage cells, like bytecode locals.
 export LocalId :: i32
 
+BlockId implements Hash   -> i32(self).hash()
+BlockId implements Equals -> i32(self) == i32(other)
+LocalId implements Hash   -> i32(self).hash()
+LocalId implements Equals -> i32(self) == i32(other)
+
 // ---- function / decl shapes ----------------------------------------------
 
 /// A function's CFG — entry block, all blocks, all locals/params.

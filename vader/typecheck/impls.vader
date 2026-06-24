@@ -20,7 +20,7 @@ import "std/collections" { MutableMap }
 import "vader/parser" { ImplDecl, Decl, IdentExpr, GenericInstExpr, TypeExpr }
 import "vader/resolver" { ResolvedModule }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/types" { Type, StructType, EnumType, TraitType }
+import "vader/types" { Type, StructType, EnumType, TraitType, DistinctType }
 
 /// One `T implements Trait { ... }` block, indexed by the registry.
 export ImplEntry :: struct {
@@ -182,11 +182,14 @@ export find_user :: fn(self: ImplRegistry, for_sym: Symbol, trait_sym: Symbol) -
 
 /// Resolve the for-type's nominal symbol from a typecheck `Type` ; null
 /// for shapes that can't carry an impl (Primitive, Array, Fn, TypeParam,
-/// Union, …). Used by `is_assignable`'s trait-widening branch.
+/// Union, …). A distinct (newtype) is nominal — it carries its OWN impls
+/// (`MyId implements Hash`), not the backing's — so it resolves to its own
+/// symbol. Used by `is_assignable`'s trait-widening branch.
 export type_to_target_symbol :: fn(t: Type) -> Symbol | null {
     match t {
-        is StructType as st -> { return st.symbol }
-        is EnumType   as et -> { return et.symbol }
+        is StructType   as st -> { return st.symbol }
+        is EnumType     as et -> { return et.symbol }
+        is DistinctType as d  -> { return d.symbol }
         _ -> { return null }
     }
 }

@@ -27,8 +27,8 @@ import "vader/types" {
     Type, ArrayType, PrimitiveType, UnresolvedType, display_type,
     StructType, EnumType, TraitType, UnionType, FnType, TupleType,
     TypeParamType, TypeMetaType, SelfType, FreeIntType, FreeCharType, FreeFloatType,
-    NeverType, AnyType,
-    mk_struct, mk_trait, mk_fn, mk_enum, mk_type_param,
+    NeverType, AnyType, DistinctType,
+    mk_struct, mk_trait, mk_fn, mk_enum, mk_type_param, mk_distinct,
     TY_UNRESOLVED, TY_VOID,
 }
 
@@ -231,6 +231,13 @@ first_unexported_type :: fn(t: Type) -> Symbol | null {
             // recurse into them here like StructType / TraitType.
             if is_private_user_type(e.symbol) { return e.symbol }
             return null
+        }
+        is DistinctType as d -> {
+            // A private distinct leaking through an exported signature is an
+            // error just like a private struct ; the backing is a primitive
+            // (always public) but recurse for generality.
+            if is_private_user_type(d.symbol) { return d.symbol }
+            return first_unexported_type(d.backing)
         }
         is TraitType as tr -> {
             if is_private_user_type(tr.symbol) { return tr.symbol }
@@ -521,12 +528,34 @@ declare_const :: fn(
         is null -> {
             if is_type_position_value(decl.value, resolved) {
                 alias_ty :: type_from_expr(decl.value, resolved, diags)
-                resolved.alias_types[sym.id] = alias_ty
+                resolved.alias_types[sym.id] = alias_for(sym, alias_ty, decl.decorators)
                 typed.decl_types[sym.id] = TY_TYPE
             }
         }
         _ -> { typed.decl_types[sym.id] = type_from_expr(annotation, resolved, diags) }
     }
+}
+
+/// Resolve the type a `Name :: <type-expr>` declaration registers. A
+/// **primitive** RHS (`Name :: i64`) becomes a zero-cost `DistinctType`
+/// (nominal newtype) ; a composite RHS (union / struct / array / fn) stays a
+/// transparent alias. See `.claude/plans/distinct-types.md`.
+alias_for :: fn(sym: Symbol, alias_ty: Type, decorators: AST.Decorator[]) -> Type {
+    if distinct_backing(alias_ty, decorators) { return mk_distinct(sym, alias_ty) }
+    return alias_ty
+}
+
+/// True when a `Name :: <type>` const should become a `DistinctType` rather
+/// than a transparent alias : iff the RHS is a real primitive (not void/null)
+/// AND the decl is not `@comptime`. `@comptime Name :: <type>` is the existing
+/// compile-time TYPE ALIAS (resolves through `constTypeAliases`, e.g. used by
+/// `@size_of`) — it stays transparent, never a newtype. Shared by the three
+/// `alias_types` writers — `declare_const` (here), `register_alias_const`, and
+/// `check_const_value` (both in orchestrate.vader).
+distinct_backing :: fn(alias_ty: Type, decorators: AST.Decorator[]) -> bool {
+    for d in decorators { if d.name == "comptime" { return false } }
+    if alias_ty is PrimitiveType as p { return p.name != "void" && p.name != "null" }
+    return false
 }
 
 lookup_sym_by_name :: fn(resolved: ResolvedModule, name: string) -> Symbol | null {

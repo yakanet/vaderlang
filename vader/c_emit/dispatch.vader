@@ -190,7 +190,17 @@ emit_vtable_dispatchers :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
         helper :: vtable_helper_name(row.key)
         out.append("static ${c_type_for_val_bare(sig.result)} ${helper}(${dispatcher_formal(sig)}) {\n")
         out.append("    switch (recv.tag) {\n")
+        // A distinct (newtype) over a primitive shares its backing's runtime
+        // tag, so several entries can map to one tag (e.g. i32 + a distinct
+        // BlockId/LocalId → tag 4). Emit one `case` per tag : the first (the
+        // backing's, whose delegating impl is equivalent) wins. Without this
+        // the C carries a `duplicate case value`.
+        seen_tags: i32[] = []
         for e in row.entries {
+            dup := false
+            for st in seen_tags { if st == e.receiver_type_index { dup = true } }
+            if dup { continue }
+            seen_tags.push(e.receiver_type_index)
             callee :: ctx.module.functions[usize(e.fn_index)]
             csig :: callee.signature
             args: string[] = [coerce_expr(types, "recv", .Any, csig.params[0])]

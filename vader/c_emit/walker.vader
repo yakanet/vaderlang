@@ -625,7 +625,13 @@ emit_convert :: fn(s: FnState, target_val: ValType, from_name: string) -> void {
     } else {
         stack_val
     }
-    if from_val == target_val {
+    if is_ref_val(stack_val) {
+        // The value is still BOXED (an erased `any`/`ref` slot — e.g. a
+        // `Distinct | null` field narrowed to its raw member) flowing into a
+        // numeric convert. Unbox it to the target primitive, like `coerce_expr`
+        // — a plain `(int64_t)(vader_box_t)x` cast of a box is invalid C.
+        push_expr(s, target_val, unbox_expr(name_of(v), target_val))
+    } else if from_val == target_val {
         push_expr(s, target_val, name_of(v))
     } else {
         push_expr(s, target_val, "((${c_type_for_val_bare(target_val)}) (${c_type_for_val_bare(from_val)}) ${name_of(v)})")

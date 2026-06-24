@@ -1,0 +1,140 @@
+# Lower
+
+## snippet
+  fn snippet$Instant$Sub$sub(self: Instant, other: Instant) -> Duration
+    ~>
+      cast → Duration
+        sub :i64
+          l:
+            cast → i64
+              self :Instant
+          r:
+            cast → i64
+              other :Instant
+  fn snippet$Duration$Add$add(self: Duration, other: Duration) -> Duration
+    ~>
+      cast → Duration
+        add :i64
+          l:
+            cast → i64
+              self :Duration
+          r:
+            cast → i64
+              other :Duration
+  fn snippet$Instant$Comparable$compare(self: Instant, other: Instant) -> i32
+    let a: i64 =
+      cast → i64
+        self :Instant
+    let b: i64 =
+      cast → i64
+        other :Instant
+    if :void
+      cond:
+        lt :bool
+          l:
+            a :i64
+          r:
+            b :i64
+      then:
+        return
+          neg :i32
+            int(1) :i32
+    if :void
+      cond:
+        gt :bool
+          l:
+            a :i64
+          r:
+            b :i64
+      then:
+        return int(1) :i32
+    return int(0) :i32
+  fn snippet$Instant$Comparable$lt(self: Instant, other: Instant) -> bool
+    return
+      lt :bool
+        l:
+          call :i32
+            callee:
+              snippet$Instant$Comparable$compare :i32
+            arg0:
+              self :Instant
+            arg1:
+              other :Instant
+        r:
+          int(0) :i32
+  fn snippet$Instant$Comparable$lte(self: Instant, other: Instant) -> bool
+    return
+      lte :bool
+        l:
+          call :i32
+            callee:
+              snippet$Instant$Comparable$compare :i32
+            arg0:
+              self :Instant
+            arg1:
+              other :Instant
+        r:
+          int(0) :i32
+  fn snippet$Instant$Comparable$gt(self: Instant, other: Instant) -> bool
+    return
+      gt :bool
+        l:
+          call :i32
+            callee:
+              snippet$Instant$Comparable$compare :i32
+            arg0:
+              self :Instant
+            arg1:
+              other :Instant
+        r:
+          int(0) :i32
+  fn snippet$Instant$Comparable$gte(self: Instant, other: Instant) -> bool
+    return
+      gte :bool
+        l:
+          call :i32
+            callee:
+              snippet$Instant$Comparable$compare :i32
+            arg0:
+              self :Instant
+            arg1:
+              other :Instant
+        r:
+          int(0) :i32
+  fn snippet$main() -> i32
+    let t0: Instant =
+      cast → Instant
+        int(100) :i32
+    let t1: Instant =
+      cast → Instant
+        int(250) :i32
+    let d: Duration =
+      cast → Duration
+        sub :i64
+          l:
+            cast → i64
+              t1 :Instant
+          r:
+            cast → i64
+              t0 :Instant
+    if :void
+      cond:
+        lt :bool
+          l:
+            call :i32
+              callee:
+                snippet$Instant$Comparable$compare :i32
+              arg0:
+                t0 :Instant
+              arg1:
+                t1 :Instant
+          r:
+            int(0) :i32
+      then:
+        return
+          cast → i32
+            cast → i64
+              d :Duration
+    return
+      neg :i32
+        int(1) :i32

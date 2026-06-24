@@ -1,0 +1,17 @@
+// Diagnostic regression for a `@distinct` newtype used ACROSS modules — the
+// distinct `Instant` + its `Sub` impl live in `snippet/units`, consumed here.
+// Guards the cross-module path: `try_lower_cast_call` must follow the import
+// binding (via `imports_to`) to find the distinct in `alias_types` under its
+// DEFINING symbol id — without it `Instant(250)` lowered to a bogus call and
+// `main` truncated to `unreachable`.
+//
+// `_diag_` = no snapshot sidecars (temporary `@distinct` gate). Expected exit: 150.
+
+module "snippet"
+import "snippet/units" { Instant, make_instant, elapsed }
+
+main :: fn() -> i32 {
+    a :: make_instant(100)
+    b :: Instant(250)
+    return i32(elapsed(a, b))
+}

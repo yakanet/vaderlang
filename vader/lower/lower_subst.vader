@@ -11,7 +11,7 @@ import "vader/diagnostics" { Diagnostic, Span }
 import "vader/parser" { Decl, FnDecl, StructDecl, ImplDecl, IdentExpr, GenericInstExpr, TypeExpr }
 import "vader/resolver" { ResolvedModule }
 import "vader/typecheck" { TypedProgram, Substitution, new_substitution, substitute, type_from_expr }
-import "vader/types" { UnresolvedType, Type, StructType, ArrayType, mk_struct, TraitType, TupleType, UnionType, mk_trait, mk_array, mk_union, mk_tuple, TY_ANY, PrimitiveType }
+import "vader/types" { UnresolvedType, Type, StructType, ArrayType, mk_struct, TraitType, TupleType, UnionType, mk_trait, mk_array, mk_union, mk_tuple, TY_ANY, PrimitiveType, strip_distinct }
 import "vader/comptime" { mangle_type_arg }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 
@@ -61,7 +61,10 @@ build_fn_mixed_subst :: fn(fd: FnDecl, typed: TypedProgram, type_args: Type[]) -
         if i >= type_args.len() { break }
         tp_sym :: find_type_param_in_resolved(typed.resolved, tp.name, tp.span)
         if tp_sym is Symbol as s {
-            arg :: type_args[i]
+            // Distinct→backing: a distinct (newtype) over a primitive keeps the
+            // backing's RAW slot, never `__Any` — mirrors the stripped method
+            // instances + `mixed_any_suffix` so layout and mangle stay in lockstep.
+            arg :: strip_distinct(type_args[i])
             if arg is PrimitiveType { subst.type_params[s.id] = arg } else { subst.type_params[s.id] = TY_ANY }
         }
         i += 1
@@ -188,7 +191,11 @@ build_struct_mixed_subst :: fn(sd: StructDecl, owner_typed: TypedProgram, args: 
         if i >= args.len() { break }
         tp_symbol :: find_type_param_in_resolved(owner_typed.resolved, tp.name, tp.span)
         if !(tp_symbol is null) {
-            arg :: args[i]
+            // Distinct→backing: collapse a newtype-over-primitive to its backing
+            // so the FIELD lands RAW (`evals: i32[]`), matching the stripped
+            // `put`/`get` instances. Without this the field stays `Any[]` (boxed)
+            // while the accessors read packed i32 → a representation mismatch.
+            arg :: strip_distinct(args[i])
             if arg is PrimitiveType { subst.type_params[tp_symbol.id] = arg } else { subst.type_params[tp_symbol.id] = TY_ANY }
         }
         i += 1
@@ -347,7 +354,9 @@ map_type_params_mixed :: fn(subst: Substitution, scope: Symbol[], names: string[
         if idx < 0 { continue }
         target: Type = TY_ANY
         if usize(idx) < args.len() {
-            arg :: args[usize(idx)]
+            // Distinct→backing: keep a newtype-over-primitive concrete (its
+            // backing) so the materialised impl body devirtualises like the prim.
+            arg :: strip_distinct(args[usize(idx)])
             if arg is PrimitiveType { target = arg }
         }
         subst.type_params[s.id] = target
@@ -367,7 +376,9 @@ build_impl_mixed_subst :: fn(
 
 /// Erase a type arg for the impl-member self-type, but KEEP primitives concrete.
 keep_primitive_or_erase :: fn(t: Type) -> Type {
-    if t is PrimitiveType { return t }
+    // Distinct→backing: a newtype over a primitive keeps its backing concrete.
+    st :: strip_distinct(t)
+    if st is PrimitiveType { return st }
     return any_leaves_of(t)
 }
 
@@ -383,7 +394,9 @@ keep_primitive_or_erase :: fn(t: Type) -> Type {
 // are byte-unchanged.
 has_any_primitive_arg :: fn(type_args: Type[]) -> bool {
     for a in type_args {
-        if a is PrimitiveType { return true }
+        // Distinct→backing: a distinct-over-primitive arg counts as primitive,
+        // so an all-distinct instance still monomorphizes MIXED (raw fields).
+        if strip_distinct(a) is PrimitiveType { return true }
     }
     return false
 }
@@ -449,7 +462,12 @@ args_suffix :: fn(args: Type[]) -> string {
 export mixed_any_suffix :: fn(args: Type[]) -> string {
     sb := new_builder()
     for a in args {
-        if a is PrimitiveType as p {
+        // Distinct→backing: a distinct (newtype) over a primitive keeps the
+        // backing's RAW slot (`__i32`), never `__Any`. This is the convergence
+        // point for the erased-receiver mangle — call site AND materialised body
+        // both route here, so collapsing the distinct keeps them in lockstep.
+        sa :: strip_distinct(a)
+        if sa is PrimitiveType as p {
             sb.append("__")
             sb.append(p.name)
         } else {

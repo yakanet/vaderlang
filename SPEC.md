@@ -455,6 +455,44 @@ fits :: fn(x: Mixed) -> bool {
 opt: Maybe<i32> = 42
 ```
 
+#### Distinct types (newtypes over a primitive)
+
+A `Name :: <type-expr>` whose RHS resolves to a **primitive** (`i32`, `u8`,
+`f64`, `bool`, `char`, `string`, … — anything but `void` / `null`) is **not** a
+transparent alias: it is a **distinct type** (a nominal newtype, à la Nim
+`distinct` / Go defined-types). A composite RHS (`union` / `&` / `[]` / `fn`)
+stays a transparent alias as above. There is no decorator — the primitive RHS
+*is* the trigger.
+
+```vader
+Celsius :: f64        // distinct — NOT interchangeable with f64
+Handle  :: i32        // distinct
+Mixed   :: i32 | string   // transparent alias (composite RHS)
+```
+
+A distinct type is **nominal** at typecheck and **zero-cost** at runtime — it
+is represented exactly as its backing primitive (a register scalar, no heap
+box; the same mechanism `enum` uses for its `repr`). Distinct exists only in the
+typechecker; the backend never sees one (it is stripped to the backing at the
+lowering boundary).
+
+- **Conversions are explicit and symmetric**, both runtime no-ops:
+  `Celsius(x)` wraps an `f64`, `f64(c)` unwraps. An *implicit* coercion either
+  way is rejected (`T3001`) — that is the whole point of the newtype.
+- **Operators are opaque by default.** A distinct does **not** inherit its
+  backing's `Add` / `Comparable` / `Equals` / `Hash` impls (Vader has no
+  auto-derive). Arithmetic, comparison, equality, hashing and map-key use each
+  require an explicit `Celsius implements Add { … }` / `Comparable` / `Equals` /
+  `Hash` on the distinct — typically delegating to the backing
+  (`-> i32(self) == i32(other)`). Using an operator with no matching impl is
+  the usual `T3043` / `T3017`. This is what enables dimensional types
+  (`Instant - Instant -> Duration`).
+- **`@comptime Name :: <type>` is the exception** — it stays a transparent
+  compile-time type alias (it resolves through the comptime type-alias channel,
+  e.g. `@size_of(Name)`), never a newtype.
+- **Reflection follows the backing**: `@size_of`, `@align_of` and `@type_kind`
+  of a distinct report its backing primitive's size / alignment / `"primitive"`.
+
 ### Default integer
 
 A literal integer with no concrete context **infers to `i32`** (`x := 42` ⇒ `x: i32`).

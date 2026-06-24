@@ -8,7 +8,7 @@ import "std/collections" { MutableMap }
 import "vader/parser" { Expr, CallExpr, FieldExpr, CallArg, Visibility, StructDecl }
 import "vader/typecheck" { type_from_expr, default_if_free, is_assignable, substitute_by_name, try_array_to_iter }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/types" { Type, FnType, UnionType, TraitType, TypeParamType, TY_UNRESOLVED, StructType, EnumType }
+import "vader/types" { Type, FnType, UnionType, TraitType, TypeParamType, TY_UNRESOLVED, StructType, EnumType, strip_distinct_each }
 import "vader/comptime" { EvaluatedProgram, uniq }
 
 as_field_expr :: fn(expr: Expr) -> FieldExpr | null {
@@ -283,7 +283,10 @@ harvest_ufcs_fn_instance :: fn(
             }
         }
         if !all_concrete(concrete_args) { return null }
-        suffix :: call_site_instance_suffix(ctx, fn_sym, concrete_args)
+        // Strip distinct→backing before keying the instance — distinct ends at
+        // the lowering boundary (see `lower_generic_call::emit_generic_fn_call`).
+        mono_args :: strip_distinct_each(concrete_args)
+        suffix :: call_site_instance_suffix(ctx, fn_sym, mono_args)
         inst_key :: "${fn_sym.id}::${suffix}"
         owner_module :: fn_sym.module
         // Use the owning module's *display* path (the declared
@@ -297,7 +300,7 @@ harvest_ufcs_fn_instance :: fn(
         // Record the instance once ; return the (uniq-disambiguated) mangle on
         // every call so the call site can target it even when a sibling call
         // already harvested.
-        return register_fn_instance_mangle(ctx, fn_sym, concrete_args, owner_module, base_mangled, inst_key)
+        return register_fn_instance_mangle(ctx, fn_sym, mono_args, owner_module, base_mangled, inst_key)
     }
     return null
 }

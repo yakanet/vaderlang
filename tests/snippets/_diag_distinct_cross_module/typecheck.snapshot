@@ -1,0 +1,14 @@
+# Typecheck
+
+## tests/snippets/_diag_distinct_cross_module
+  FnDecl         main                 :: fn() -> i32
+  expr 14:10    CallExpr       :: Instant
+  expr 14:10    IdentExpr      :: fn(i64) -> Instant
+  expr 15:10    CallExpr       :: Instant
+  expr 15:10    IdentExpr      :: type
+  expr 16:12    CallExpr       :: i32
+  expr 16:12    IdentExpr      :: type
+  expr 16:16    CallExpr       :: i64
+  expr 16:16    IdentExpr      :: fn(Instant, Instant) -> i64
+  expr 16:24    IdentExpr      :: Instant
+  expr 16:27    IdentExpr      :: Instant

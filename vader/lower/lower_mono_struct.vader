@@ -10,7 +10,7 @@ import "vader/diagnostics" { Diagnostic, Span }
 import "vader/parser" { Decl, StructDecl, ImplDecl, IdentExpr, GenericInstExpr, TypeExpr, BinaryExpr, BinaryOp }
 import "vader/resolver" { LoadedProject, LoadedModule }
 import "vader/typecheck" { TypedProject, TypedProgram, substitute, is_empty_substitution, ImplEntry }
-import "vader/types" { UnresolvedType, Type, FnType, StructType, TypeMetaType, TypeParamType, ArrayType, TraitType, TupleType, UnionType, SelfType, FreeIntType, FreeCharType, FreeFloatType, NeverType, AnyType, display_type, for_each_type, EnumType, PrimitiveType }
+import "vader/types" { UnresolvedType, Type, FnType, StructType, TypeMetaType, TypeParamType, ArrayType, TraitType, TupleType, UnionType, SelfType, FreeIntType, FreeCharType, FreeFloatType, NeverType, AnyType, display_type, for_each_type, EnumType, PrimitiveType, DistinctType, strip_distinct_each }
 import "vader/comptime" { MonoEntry, GenericInstance }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 
@@ -214,6 +214,7 @@ has_type_param :: fn(t: Type) -> bool {
         // variant trips T3013 here instead of silently reading as concrete.
         is PrimitiveType  -> { return false }
         is EnumType       -> { return false }
+        is DistinctType   -> { return false }
         is TypeMetaType   -> { return false }
         is SelfType       -> { return false }
         is UnresolvedType -> { return false }
@@ -387,7 +388,9 @@ materialize_shape :: fn(
     if owner_typed is null { return [] }
     if owner_typed is TypedProgram as ot {
         if owner_module is LoadedModule as ol {
-            inst :: GenericInstance { .symbol = sym, .args = args, .display_key = "" }
+            // Distinct→backing: this builds an instance directly (bypassing the
+            // registry's strip), so collapse here too — distinct ends at lowering.
+            inst :: GenericInstance { .symbol = sym, .args = strip_distinct_each(args), .display_key = "" }
             return materialize_struct_instance(inst, module_decls(ol), ot, project_ctx, project)
         }
     }
