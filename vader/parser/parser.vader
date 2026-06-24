@@ -1180,10 +1180,19 @@ parse_angle_type_params :: fn(p: Parser) -> TypeParam[] {
             p.skip_newlines()
             bound = p.parse_type()
         }
+        // Optional default type — `<T = Default>`. Honored when an impl supplies
+        // fewer trait-args than the trait declares : the trailing params fill from
+        // their defaults (see `build_subst` in vader/resolver/materialize.vader).
+        default_ty: TypeExpr | null = null
+        if p.match_kind(.Assign) != null {
+            p.skip_newlines()
+            default_ty = p.parse_type()
+        }
         out.push(TypeParam {
             .span              = p.span_of(start, p.peek_at(-1)),
             .name              = name.text,
             .bound             = bound,
+            .default           = default_ty,
             .is_comptime_value = false,
         })
     }
