@@ -365,12 +365,9 @@ emit_fn_sig_typedefs :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
 max_fn_arity :: fn(types: BcType[]) -> i32 {
     best: i32 = 0
     for i in 0..<types.len() {
-        match types[i] {
-            is BcFn as f -> {
-                arity :: i32(f.params.len())
-                if arity > best { best = arity }
-            }
-            _ -> {}
+        if types[i] is BcFn as f {
+            arity :: i32(f.params.len())
+            if arity > best { best = arity }
         }
     }
     return best
@@ -439,11 +436,10 @@ emit_type_info_table :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
     // zero-init `VADER_TYPE_KIND_NONE` (so the GC scanner short-
     // circuits without reading the payload).
     for j in 0..<count {
-        match types[j] {
+        @partial match types[j] {
             is BcStruct as s -> emit_struct_info_row(ctx, s, struct_offsets[j], j, out)
             is BcFn -> out.append("    [${j}] = { VADER_TYPE_KIND_FN, sizeof(vader_fn_t), vader_type_${j}_ptrs, 1, 0, NULL, 0, NULL },\n")
             is BcArray -> out.append("    [${j}] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_${j}_ptrs, 1, 0, NULL, 0, NULL },\n")
-            _ -> {}
         }
     }
     out.append("};\n")

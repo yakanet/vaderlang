@@ -82,9 +82,8 @@ export build_impl_registry :: fn(
         }
     }
     for d in program_decls {
-        match d {
-            is ImplDecl as impl_ -> { reg.collect_impl(impl_, by_name, resolved) }
-            _ -> {}
+        if d is ImplDecl as impl_ {
+            reg.collect_impl(impl_, by_name, resolved)
         }
     }
     return reg
@@ -118,19 +117,15 @@ collect_impl :: fn(
 /// (`Wrapper<i32> implements …`) resolve their for-type args to non-
 /// TypeParam symbols and return false.
 impl_is_generic :: fn(impl_: ImplDecl, resolved: ResolvedModule) -> bool {
-    if impl_.type_params.len() > 0 { return true }
-    match impl_.for_type {
-        is GenericInstExpr as gi -> {
-            for ta in gi.type_args {
-                match ta {
-                    is IdentExpr as id -> {
-                        if name_is_type_param(resolved, id.name) { return true }
-                    }
-                    _ -> {}
-                }
+    if impl_.type_params.len() > 0 {
+        return true
+    }
+    if impl_.for_type is GenericInstExpr as gi {
+        for ta in gi.type_args {
+            if ta is IdentExpr as id {
+                if name_is_type_param(resolved, id.name) { return true }
             }
         }
-        _ -> {}
     }
     return false
 }

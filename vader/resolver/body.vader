@@ -313,7 +313,7 @@ walk_defer :: fn(self: ResolveState, d: AST.DeferStmt) -> void {
 }
 
 mark_binding_immutable :: fn(self: ResolveState, b: AST.LetBinding) -> void {
-    match b {
+    @partial match b {
         is AST.SimpleBinding as sb -> {
             sym :: self.scope.lookup(sb.name)
             match sym {
@@ -326,12 +326,10 @@ mark_binding_immutable :: fn(self: ResolveState, b: AST.LetBinding) -> void {
         }
         is AST.RestBinding as rb -> {
             sym :: self.scope.lookup(rb.name)
-            match sym {
-                is Symbol as s -> { self.immutable_locals[s.id] = true }
-                is null -> {}
+            if sym is Symbol as s {
+                self.immutable_locals[s.id] = true
             }
         }
-        _ -> {}
     }
 }
 
