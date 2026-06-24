@@ -4,6 +4,10 @@
 
 ## generic instances
   Into<Target>
+  Add<Rhs, Out>
+  Sub<Rhs, Out>
+  Mul<Rhs, Out>
+  Div<Rhs, Out>
   MapIterator<T, U>
   MapIterator<T, U>
   MapIterator<T, U>
@@ -16,6 +20,7 @@
   SkipIterator<T>
   SkipIterator<T>
   SkipIterator<T>
+  Rem<Rhs, Out>
   Entry<i32, i32>
   Entry<K, V>
   Entry<K, V>

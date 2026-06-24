@@ -20,16 +20,16 @@
   MutableMap<K, V>
   MutableMap<K, V>
   MutableMap<K, V>
-  MutableMap<T, bool>
-  MutableMap<T, bool>
-  MutableMap<T, bool>
-  MutableMap<T, bool>
-  MutableMap<T, bool>
-  MutableMap<T, bool>
-  MutableMap<T, bool>
-  MutableMap<T, bool>
   MutableMap<K, V>
   MutableMap<K, V>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
+  MutableMap<T, bool>
   MutableMap<K, V>
   MutableMap<K, V>
   MutableMap<K, V>
@@ -55,6 +55,11 @@
   SetIterator<T>
   SetIterator<T>
   Into<Target>
+  Add<Rhs, Out>
+  Sub<Rhs, Out>
+  Mul<Rhs, Out>
+  Div<Rhs, Out>
+  Rem<Rhs, Out>
   Index<I, T>
   IndexSet<I, T>
   Contains<T>

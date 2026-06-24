@@ -4,9 +4,14 @@
 
 ## generic instances
   Into<Target>
+  Add<Rhs, Out>
+  Sub<Rhs, Out>
+  Mul<Rhs, Out>
+  Div<Rhs, Out>
   Repeat<i32>
   Repeat<T>
   Repeat<T>
+  Rem<Rhs, Out>
   Index<I, T>
   IndexSet<I, T>
   Contains<T>

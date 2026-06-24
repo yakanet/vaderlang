@@ -93,16 +93,19 @@ export Into :: trait<Target> {
 }
 
 /// `+` dispatch. Numeric primitives use the built-in bytecode op directly ;
-/// user types implement `Add` to opt into the operator form.
-export Add :: trait { add :: fn(self, other: Self) -> Self }
+/// user types implement `Add` to opt into the operator form. `Rhs` is the
+/// right-operand type and `Out` the result — both default to `Self`, so the
+/// common homogeneous case is just `implements Add`; heterogeneous operators
+/// (e.g. `Instant implements Add<Duration, Instant>`) spell the params.
+export Add :: trait<Rhs = Self, Out = Self> { add :: fn(self, other: Rhs) -> Out }
 /// `-` dispatch. See `Add`.
-export Sub :: trait { sub :: fn(self, other: Self) -> Self }
+export Sub :: trait<Rhs = Self, Out = Self> { sub :: fn(self, other: Rhs) -> Out }
 /// `*` dispatch. See `Add`.
-export Mul :: trait { mul :: fn(self, other: Self) -> Self }
+export Mul :: trait<Rhs = Self, Out = Self> { mul :: fn(self, other: Rhs) -> Out }
 /// `/` dispatch. See `Add`.
-export Div :: trait { div :: fn(self, other: Self) -> Self }
+export Div :: trait<Rhs = Self, Out = Self> { div :: fn(self, other: Rhs) -> Out }
 /// `%` dispatch. See `Add`.
-export Rem :: trait { rem :: fn(self, other: Self) -> Self }
+export Rem :: trait<Rhs = Self, Out = Self> { rem :: fn(self, other: Rhs) -> Out }
 
 /// Bit-level view of a float as its raw IEEE 754 integer pattern. This is NOT a
 /// numeric conversion : `u64(x)` truncates the VALUE (`3.7 → 3`), whereas

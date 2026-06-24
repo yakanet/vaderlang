@@ -4,6 +4,11 @@
 
 ## generic instances
   Into<Target>
+  Add<Rhs, Out>
+  Sub<Rhs, Out>
+  Mul<Rhs, Out>
+  Div<Rhs, Out>
+  Rem<Rhs, Out>
   Pair<string, i64>
   Pair<K, V>
   Index<I, T>
