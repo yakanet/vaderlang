@@ -1,0 +1,19 @@
+// tests/snippets/ufcs_primitive_literal — UFCS method-call on a primitive
+// literal for a free fn whose first param is NOT `self` (`millis(n: i64)`).
+//
+// The typer re-pins the free-int receiver to the fn's first-param type
+// (`repin_free_ufcs_receiver`, typecheck/field.vader) so it lowers AS that type
+// — `50.millis()` desugars to `millis(50)` with `50 : i64`. Before the fix the
+// receiver lowered as i32 and the lowerer panicked ("method reference on a
+// primitive isn't a first-class value").
+
+module "ufcs_primitive_literal"
+
+import "std/io" { println }
+import "std/time" { millis, seconds, to_millis, to_seconds }
+
+main :: fn() -> i32 {
+    println("${50.millis().to_millis()}")     // 50
+    println("${60.seconds().to_seconds()}")   // 60
+    return 0
+}

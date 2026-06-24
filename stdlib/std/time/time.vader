@@ -359,8 +359,8 @@ import "std/testing" { assert_eq, assert }
 }
 
 @test test_duration_arithmetic :: fn() -> void {
-    a :: millis(100)
-    b :: millis(50)
+    a :: 100.millis()
+    b :: 50.millis()
     assert_eq((a + b).ns, 150_000_000)
     assert_eq((a - b).ns, 50_000_000)
 }
@@ -431,7 +431,7 @@ import "std/testing" { assert_eq, assert }
 
 @test test_instant_arithmetic :: fn() -> void {
     epoch :: from_unix_nanos(0)
-    later :: epoch + seconds(60)
+    later :: epoch + 60.seconds()
     delta :: later - epoch
     assert_eq(delta.to_seconds(), 60)
     assert_eq(delta.format(), "60 s")

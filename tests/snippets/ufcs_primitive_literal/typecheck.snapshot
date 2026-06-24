@@ -1,0 +1,18 @@
+# Typecheck
+
+## tests/snippets/ufcs_primitive_literal
+  FnDecl         main                 :: fn() -> i32
+  expr 16:13    StringLitExpr  :: string
+  expr 16:16    CallExpr       :: Duration
+  expr 16:16    CallExpr       :: i64
+  expr 16:16    FieldExpr      :: fn() -> Duration
+  expr 16:16    FieldExpr      :: fn() -> i64
+  expr 16:5     CallExpr       :: void
+  expr 16:5     IdentExpr      :: fn(T) -> void
+  expr 17:13    StringLitExpr  :: string
+  expr 17:16    CallExpr       :: Duration
+  expr 17:16    CallExpr       :: i64
+  expr 17:16    FieldExpr      :: fn() -> Duration
+  expr 17:16    FieldExpr      :: fn() -> i64
+  expr 17:5     CallExpr       :: void
+  expr 17:5     IdentExpr      :: fn(T) -> void
