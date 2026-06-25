@@ -1,0 +1,194 @@
+module _main
+type 0 primitive null
+type 1 primitive u8
+type 2 primitive bool
+type 3 primitive i32
+type 4 union 2,3,5
+type 5 primitive string
+type 6 union 2,3
+string 0 "x"
+export main 3
+
+fn 0 snippet$can_go (u8) -> bool
+  local __scrut_0 u8
+  local $k_2 u8
+  local or_res bool
+  local.get 0
+  local.set 1
+  i32.const 2
+  local.set 2
+  local.get 1
+  local.get 2
+  i32.eq
+  if $L0 void
+    return.lit bool.const true
+  end $L0
+  i32.const 0
+  local.set 2
+  local.get 1
+  local.get 2
+  i32.eq
+  if $L1 void
+    bool.const true
+    local.set 3
+  else
+    i32.const 1
+    local.set 2
+    local.get 1
+    local.get 2
+    i32.eq
+    local.set 3
+  end $L1
+  local.get 3
+  if $L2 void
+    bool.const true
+    local.set 3
+  else
+    i32.const 3
+    local.set 2
+    local.get 1
+    local.get 2
+    i32.eq
+    local.set 3
+  end $L2
+  local.get 3
+  if $L3 void
+    return.lit bool.const false
+  end $L3
+  return
+end
+
+fn 1 snippet$points (i32) -> i32
+  local __scrut_0 i32
+  local or_res bool
+  local if_res i32
+  local.get 0
+  local.set 1
+  local.get 1
+  i32.const 1
+  i32.eq
+  if $L0 void
+    bool.const true
+    local.set 2
+  else
+    local.get 1
+    i32.const 6
+    i32.eq
+    local.set 2
+  end $L0
+  local.get 2
+  if $L1 void
+    i32.const 10
+    local.set 3
+  else
+    local.get 1
+    i32.const 2
+    i32.eq
+    if $L2 void
+      bool.const true
+      local.set 2
+    else
+      local.get 1
+      i32.const 3
+      i32.eq
+      local.set 2
+    end $L2
+    local.get 2
+    if $L3 void
+      bool.const true
+      local.set 2
+    else
+      local.get 1
+      i32.const 4
+      i32.eq
+      local.set 2
+    end $L3
+    local.get 2
+    if $L4 void
+      i32.const 5
+      local.set 1
+    else
+      i32.const 0
+      local.set 1
+    end $L4
+    local.get 1
+    local.set 3
+  end $L1
+  local.get 3
+  return
+end
+
+fn 2 snippet$kind (ref) -> i32
+  local __scrut_0 ref
+  local.get 0
+  local.tee 1
+  type_check 6
+  if $L0 void
+    return.lit i32.const 1
+  end $L0
+  local.get 1
+  type_check 5
+  if $L1 void
+    return.lit i32.const 2
+  end $L1
+  return
+end
+
+fn 3 snippet$main () -> i32
+  local if_res i32
+  local if_res i32
+  i32.const 2
+  call 0
+  if $L0 void
+    i32.const 100
+    local.set 0
+  else
+    i32.const 0
+    local.set 0
+  end $L0
+  local.get 0
+  local.set 0
+  i32.const 0
+  call 0
+  if $L1 void
+    i32.const 0
+    local.set 1
+  else
+    i32.const 10
+    local.set 1
+  end $L1
+  local.get 1
+  local.set 1
+  local.get 0
+  local.get 1
+  i32.add
+  local.set 0
+  i32.const 6
+  call 1
+  local.set 1
+  local.get 0
+  local.get 1
+  i32.add
+  local.set 0
+  i32.const 3
+  call 1
+  local.set 1
+  local.get 0
+  local.get 1
+  i32.add
+  local.set 0
+  bool.const true
+  call 2
+  local.set 1
+  local.get 0
+  local.get 1
+  i32.add
+  local.set 0
+  string.const 0
+  call 2
+  local.set 1
+  local.get 0
+  local.get 1
+  i32.add
+  return
+end

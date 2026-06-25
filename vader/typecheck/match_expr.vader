@@ -30,6 +30,11 @@ export infer_match :: fn(
     covered_enum_variants: string[] = []
     for arm in e.arms {
         if arm.pattern is AST.LiteralPattern as lp { check_expr_fn(lp.value, null, typed, diags) }
+        if arm.pattern is AST.OrPattern as op {
+            for sub in op.patterns {
+                if sub is AST.LiteralPattern as lp { check_expr_fn(lp.value, null, typed, diags) }
+            }
+        }
         // Re-bind the pattern types against the narrowed `remaining`
         // so wildcard/binding arms see only the still-possible
         // variants ("union − matched").
@@ -109,6 +114,17 @@ export infer_match :: fn(
             is AST.BindingPattern -> {
                 has_wildcard = true
                 remaining = TY_NEVER
+            }
+            is AST.OrPattern as op -> {
+                // Each alternative consumes its own variant — enum variants add
+                // to the covered set, `is T` alternatives subtract their type.
+                // Literal alternatives exhaust nothing (open domain).
+                for sub in op.patterns {
+                    if sub is AST.EnumVariantPattern as ev { covered_enum_variants.push(ev.variant) }
+                    if sub is AST.IsPattern as ip {
+                        remaining = subtract_type(remaining, type_from_expr(ip.ty, typed.resolved, scratch_diags()))
+                    }
+                }
             }
             _ -> {}
         }
@@ -283,6 +299,7 @@ bind_pattern_types :: fn(p: AST.Pattern, scrut: Type, typed: TypedProgram, diags
             }
         }
         is AST.StructPattern as sp -> { bind_struct_pattern(sp, scrut, typed, diags) }
+        is AST.OrPattern as op -> { for sub in op.patterns { bind_pattern_types(sub, scrut, typed, diags) } }
         _ -> {}
     }
 }

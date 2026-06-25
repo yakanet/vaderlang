@@ -339,6 +339,7 @@ collect_pattern :: fn(p: AST.Pattern, out: Span[]) -> void {
         is AST.BindingPattern     as x -> { out.push(x.span) }
         is AST.EnumVariantPattern      -> {}
         is AST.LiteralPattern     as x -> { collect_expr(x.value, out) }
+        is AST.OrPattern          as x -> { for alt in x.patterns { collect_pattern(alt, out) } }
     }
 }
 

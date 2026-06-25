@@ -983,6 +983,7 @@ match value {
     is Point { x, y }    -> "($x, $y)"
     is null              -> "nothing"
     42                   -> "the answer"
+    1 | 2 | 3            -> "small"
     'A'                  -> "letter A"
     "ok"                 -> "literal ok"
     rest                 -> "anything else, bound as `rest`"
@@ -991,7 +992,8 @@ match value {
 ```
 
 - `is Type` for type narrowing.
-- **Literal-value patterns**: `42` / `'A'` / `"ok"` / `true` / `false` / `null` / `-1` directly match a scalar value. The literal's type is checked against the scrutinee (T3001 on mismatch) and the lowerer emits a `scrutinee == literal` predicate. Or-patterns (`'a' | 'b' -> …`) and range-patterns (`'a'..='z' -> …`) are deferred.
+- **Literal-value patterns**: `42` / `'A'` / `"ok"` / `true` / `false` / `null` / `-1` directly match a scalar value. The literal's type is checked against the scrutinee (T3001 on mismatch) and the lowerer emits a `scrutinee == literal` predicate. Range-patterns (`'a'..='z' -> …`) are deferred.
+- **Or-patterns**: pipe-separated alternatives in one arm — `.North | .South -> …` (enum variants), `1 | 2 | 3 -> …` (literals). The arm matches when *any* alternative does (lowered to `p1 || p2 || …`); each alternative is checked against the scrutinee, and every enum variant listed counts toward exhaustiveness. Alternatives are value-level and bind nothing. **Type tests don't need an or-pattern**: `is A | B -> …` is already a single `is` over the union type `A | B` (no parentheses required) — it narrows to `A | B` and covers both for exhaustiveness.
 - Struct patterns with bindings and constraints.
 - **Binding patterns**: a bare identifier `name -> …` matches every remaining value and binds it to `name`. Combined with `is`-narrowing of prior arms, the binding sees the *narrowed* type, not the full scrutinee — `match v { is null -> {}; pet -> use(pet) }` narrows `pet` to "scrutinee − null".
 - Guards via `if cond`.

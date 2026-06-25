@@ -34,7 +34,7 @@ export StringLitPart :: StringLitText | StringLitInterp
 
 export IfElse :: IfElseIf | IfElseBlock
 
-export Pattern :: IsPattern | StructPattern | TuplePattern | WildcardPattern | BindingPattern | EnumVariantPattern | LiteralPattern
+export Pattern :: IsPattern | StructPattern | TuplePattern | WildcardPattern | BindingPattern | EnumVariantPattern | LiteralPattern | OrPattern
 
 export LetBinding :: SimpleBinding | TupleBinding | WildcardBinding | RestBinding
 
@@ -729,6 +729,17 @@ export LiteralPattern :: struct {
     span:  Span
     id:    usize = UNASSIGNED_NODE_ID
     value: Expr
+}
+
+/// Or-pattern : `.A | .B -> …`, `1 | 2 | 3 -> …`. Matches when ANY alternative
+/// matches. Parsed from pipe-separated patterns in a match arm. The `is A | B`
+/// form does NOT produce this — there the type parser folds `A | B` into a
+/// single union `IsPattern` (equivalent narrowing + exhaustiveness). The
+/// alternatives are value-level (enum variants / literals) and bind nothing.
+export OrPattern :: struct {
+    span:     Span
+    id:       usize = UNASSIGNED_NODE_ID
+    patterns: Pattern[]
 }
 
 // ============================================================================

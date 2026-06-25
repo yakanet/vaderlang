@@ -1,0 +1,39 @@
+# Typecheck
+
+## tests/snippets/or_pattern
+  FnDecl         can_go               :: fn(Light) -> bool
+  FnDecl         kind                 :: fn(bool | i32 | string) -> i32
+  EnumDecl       Light                :: Light
+  FnDecl         main                 :: fn() -> i32
+  FnDecl         points               :: fn(i32) -> i32
+  ConstDecl      Shape                :: type
+  expr 12:34    MatchExpr      :: i32
+  expr 12:40    IdentExpr      :: i32
+  expr 21:31    MatchExpr      :: i32
+  expr 21:37    IdentExpr      :: bool | i32 | string
+  expr 27:13    IfExpr         :: {integer}
+  expr 27:16    CallExpr       :: bool
+  expr 27:16    IdentExpr      :: fn(Light) -> bool
+  expr 27:23    DotVariantExpr :: Light
+  expr 28:13    IfExpr         :: {integer}
+  expr 28:16    CallExpr       :: bool
+  expr 28:16    IdentExpr      :: fn(Light) -> bool
+  expr 28:23    DotVariantExpr :: Light
+  expr 29:12    BinaryExpr     :: i32
+  expr 29:12    BinaryExpr     :: i32
+  expr 29:12    BinaryExpr     :: i32
+  expr 29:12    BinaryExpr     :: i32
+  expr 29:12    BinaryExpr     :: i32
+  expr 29:12    IdentExpr      :: i32
+  expr 29:17    IdentExpr      :: i32
+  expr 29:24    CallExpr       :: i32
+  expr 29:24    IdentExpr      :: fn(i32) -> i32
+  expr 29:36    CallExpr       :: i32
+  expr 29:36    IdentExpr      :: fn(i32) -> i32
+  expr 29:48    CallExpr       :: i32
+  expr 29:48    IdentExpr      :: fn(bool | i32 | string) -> i32
+  expr 29:61    CallExpr       :: i32
+  expr 29:61    IdentExpr      :: fn(bool | i32 | string) -> i32
+  expr 29:66    StringLitExpr  :: string
+  expr 6:34     MatchExpr      :: bool
+  expr 6:40     IdentExpr      :: Light

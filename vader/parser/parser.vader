@@ -3096,7 +3096,19 @@ parse_match_expr :: fn(p: Parser, partial: bool, unreachable: bool) -> MatchExpr
 
 parse_match_arm :: fn(p: Parser) -> MatchArm {
     start :: p.peek()
-    pattern :: p.parse_pattern()
+    first :: p.parse_pattern()
+    // Or-pattern : `.A | .B`, `1 | 2`. Pipe-separated alternatives collected into
+    // an `OrPattern`. (`is A | B` never reaches here as an or-pattern — the type
+    // parser already folded `A | B` into a single union `IsPattern`.)
+    pattern: Pattern = first
+    if p.check(.Pipe) {
+        alts: Pattern[] = [first]
+        for p.match_kind(.Pipe) != null {
+            p.skip_newlines()
+            alts.push(p.parse_pattern())
+        }
+        pattern = OrPattern { .span = p.span_of(start, p.peek_at(-1)), .patterns = alts }
+    }
     guard: Expr | null = null
     if p.match_kind(.KwIf) != null {
         saved_allow :: p.allow_struct_lit
@@ -3188,11 +3200,11 @@ parse_pattern :: fn(p: Parser) -> Pattern {
     }
     if is_literal_start(t) {
         // `'a' -> …` / `42 -> …` / `true -> …` / `null -> …` / `-1 -> …`.
-        // Delegate to the regular expression parser so each literal flavour
-        // (int / float / char / string / bool / null / unary-neg) is recognised
-        // exactly once. `parse_expr` stops at `->` because the arrow isn't an
-        // infix op — the arm's predicate stays the literal alone.
-        value :: p.parse_expr(0)
+        // `parse_prefix` (NOT `parse_expr`) parses exactly one literal / unary
+        // and stops at any infix — crucially at `|`, so a literal or-pattern
+        // `1 | 6 -> …` parses as two `LiteralPattern`s the arm loop folds into an
+        // `OrPattern`, rather than the bitor expression `(1 | 6)`.
+        value :: p.parse_prefix()
         return LiteralPattern {
             .span  = p.span_of(t, p.peek_at(-1)),
             .value = value,

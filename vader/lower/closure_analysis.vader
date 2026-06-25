@@ -498,6 +498,9 @@ walk_pattern_for_bindings :: fn(
         is AST.WildcardPattern -> {}
         is AST.EnumVariantPattern -> {}
         is AST.LiteralPattern -> {}
+        is AST.OrPattern as or_pattern -> {
+            for sub in or_pattern.patterns { walk_pattern_for_bindings(sub, scope, symbol_index, added) }
+        }
     }
 }
 
