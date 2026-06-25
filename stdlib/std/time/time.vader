@@ -93,34 +93,23 @@ export since :: fn(self: Monotonic) -> Duration = Duration(monotonic_ns() - i64(
 
 // `instant + duration` — shift an Instant forward (a negative Duration shifts
 // back). Heterogeneous : right operand is a Duration, result is an Instant.
-Instant implements Add<Duration, Instant> {
-    add :: fn(self, other: Duration) -> Instant = Instant(i64(self) + i64(other))
-}
+Instant implements Add<Duration, Instant> -> Instant(i64(self) + i64(other))
 
 // `instant_a - instant_b` — signed elapsed time between two instants. The
 // result type (`Out`) is a Duration, distinct from `Self`.
-Instant implements Sub<Instant, Duration> {
-    sub :: fn(self, other: Instant) -> Duration = Duration(i64(self) - i64(other))
-}
+Instant implements Sub<Instant, Duration> -> Duration(i64(self) - i64(other))
 
 // Human-readable form — the ISO 8601 UTC timestamp. Drives `"${instant}"`
 // interpolation and `println(instant)`.
 Instant implements Display -> format_iso8601(self)
 
 // `monotonic + duration` — shift a Monotonic instant forward.
-Monotonic implements Add<Duration, Monotonic> {
-    add :: fn(self, other: Duration) -> Monotonic = Monotonic(i64(self) + i64(other))
-}
+Monotonic implements Add<Duration, Monotonic> -> Monotonic(i64(self) + i64(other))
 
 // `duration + duration` / `duration - duration` — homogeneous, so `Rhs`/`Out`
 // both default to `Self` (Duration).
-Duration implements Add {
-    add :: fn(self, other: Duration) -> Duration = Duration(i64(self) + i64(other))
-}
-
-Duration implements Sub {
-    sub :: fn(self, other: Duration) -> Duration = Duration(i64(self) - i64(other))
-}
+Duration implements Add -> Duration(i64(self) + i64(other))
+Duration implements Sub -> Duration(i64(self) - i64(other))
 
 // ---- Duration accessors --------------------------------------------------
 
