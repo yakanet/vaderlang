@@ -146,9 +146,9 @@ fold_bin_op :: fn(op: LoweredBinaryOp, l: ConstValue, r: ConstValue) -> ConstVal
     return null
 }
 
-// @partial: folds the arithmetic / bitwise / comparison ops; logical And/Or are
-// bool-only (never reach here with int operands) so any other op → null (unfolded).
-fold_int_bin_op :: fn(op: LoweredBinaryOp, l: i64, r: i64) -> ConstValue | null = @partial match op {
+// Folds the arithmetic / bitwise / comparison ops; logical And/Or are
+// bool-only (never reach here with int operands) so they stay unfolded (→ null).
+fold_int_bin_op :: fn(op: LoweredBinaryOp, l: i64, r: i64) -> ConstValue | null = match op {
     .Add -> ConstInt { .value = l + r }
     .Sub -> ConstInt { .value = l - r }
     .Mul -> ConstInt { .value = l * r }
@@ -167,7 +167,7 @@ fold_int_bin_op :: fn(op: LoweredBinaryOp, l: i64, r: i64) -> ConstValue | null 
     .Lte -> ConstBool { .value = l <= r }
     .Gt  -> ConstBool { .value = l >  r }
     .Gte -> ConstBool { .value = l >= r }
-    _ -> null
+    .And | .Or -> null
 }
 
 // @partial: folds float arithmetic + comparisons; any other op → null (unfolded).

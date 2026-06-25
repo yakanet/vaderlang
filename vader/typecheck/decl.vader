@@ -63,30 +63,30 @@ register_deprecated :: fn(
 }
 
 decorated_decl_name :: fn(d: AST.Decl) -> string {
-    // @partial: only the named decl kinds carry a name; Impl / Assert / Import
-    // are anonymous → "" (no symbol to attach a deprecation message to).
-    @partial match d {
+    // Only the named decl kinds carry a name; Impl / Assert / Import are
+    // anonymous → "" (no symbol to attach a deprecation message to).
+    match d {
         is AST.FnDecl as x        -> { return x.name }
         is AST.StructDecl as x    -> { return x.name }
         is AST.EnumDecl as x      -> { return x.name }
         is AST.TraitDecl as x     -> { return x.name }
         is AST.TypeAliasDecl as x -> { return x.name }
         is AST.ConstDecl as x     -> { return x.name }
-        _ -> { return "" }
+        is AST.ImportDecl | AST.ImplDecl | AST.AssertDecl -> { return "" }
     }
 }
 
 decorated_decl_decorators :: fn(d: AST.Decl) -> AST.Decorator[] {
-    // @partial: only the named decl kinds carry decorators we read here; Impl /
-    // Assert / Import contribute none → empty list.
-    @partial match d {
+    // Only the named decl kinds carry decorators we read here; Impl / Assert /
+    // Import contribute none → empty list.
+    match d {
         is AST.FnDecl as x        -> { return x.decorators }
         is AST.StructDecl as x    -> { return x.decorators }
         is AST.EnumDecl as x      -> { return x.decorators }
         is AST.TraitDecl as x     -> { return x.decorators }
         is AST.TypeAliasDecl as x -> { return x.decorators }
         is AST.ConstDecl as x     -> { return x.decorators }
-        _ -> { return [] }
+        is AST.ImportDecl | AST.ImplDecl | AST.AssertDecl -> { return [] }
     }
 }
 

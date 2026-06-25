@@ -94,9 +94,9 @@ infer_expr :: fn(
     expr: AST.Expr, expected: Type | null,
     typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
-    // @partial: every Expr variant has a dedicated arm above; the `_` is a
-    // defensive fallback (the Expr union is closed) → unresolved, never hit.
-    @partial match expr {
+    // Every Expr variant has a dedicated arm — the match is exhaustive, so
+    // T3013 now guards it: a new Expr variant trips the check here.
+    match expr {
         is AST.IntLitExpr    as e -> { return infer_int_lit(e) }
         is AST.FloatLitExpr  as e -> { return infer_float_lit(e) }
         is AST.BoolLitExpr   as e -> { return infer_bool_lit(e) }
@@ -143,9 +143,6 @@ infer_expr :: fn(
         is AST.GenericInstExpr as e -> { return infer_generic_inst(e, typed, diags, check_expr) }
         is AST.ArrayTypeExpr as e -> { return infer_array_type_value(e, typed, diags) }
         is AST.FnTypeExpr    as e -> { return infer_fn_type_value(e, typed, diags) }
-        // All expression variants are now typed. The catch-all here is
-        // defensive — Vader's `Expr` union enumeration is closed.
-        _ -> { return TY_UNRESOLVED }
     }
 }
 
