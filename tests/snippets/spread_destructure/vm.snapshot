@@ -8,5 +8,7 @@ a=10 b=20 tail.len=3
 short.len=2
   40
   50
+c_first=10 c_rest.len=4
+only=99 empty.len=0
 # exit
 0

@@ -17,5 +17,13 @@ main :: fn() -> i32 {
     println("short.len=${short.len()}")
     for x in short { println("  ${x}") }
 
+    // const-binding form (`::`) destructures the same way
+    [c_first, ...c_rest] :: arr
+    println("c_first=${c_first} c_rest.len=${c_rest.len()}")
+
+    // rest captures an empty tail when the leading bindings consume every slot
+    [only, ...empty] :: [99]
+    println("only=${only} empty.len=${empty.len()}")
+
     return 0
 }

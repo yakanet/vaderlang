@@ -259,4 +259,98 @@
                 __for_i_12 :usize
               r:
                 int(1) :usize
+    let __tup_13: i32[] = arr :i32[]
+    let c_first: i32 =
+      index :i32
+        on:
+          __tup_13 :i32[]
+        ix:
+          int(0) :usize
+    let c_rest: i32[] =
+      array :i32[]
+    let __i_14: usize = int(1) :usize
+    loop while (<…>)
+      LoweredArrayPush
+      assign
+        target:
+          __i_14 :usize
+        value:
+          add :usize
+            l:
+              __i_14 :usize
+            r:
+              int(1) :usize
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            concat4 :string
+          arg0:
+            "c_first=" :string
+          arg1:
+            call :string
+              callee:
+                format_signed :fn(i64) -> string
+              arg0:
+                cast → i64
+                  c_first :i32
+          arg2:
+            " c_rest.len=" :string
+          arg3:
+            call :string
+              callee:
+                format_unsigned :fn(u64) -> string
+              arg0:
+                cast → u64
+                  LoweredArrayLen
+    let __tup_15: i32[] =
+      array :i32[]
+        int(99) :i32
+    let only: i32 =
+      index :i32
+        on:
+          __tup_15 :i32[]
+        ix:
+          int(0) :usize
+    let empty: i32[] =
+      array :i32[]
+    let __i_16: usize = int(1) :usize
+    loop while (<…>)
+      LoweredArrayPush
+      assign
+        target:
+          __i_16 :usize
+        value:
+          add :usize
+            l:
+              __i_16 :usize
+            r:
+              int(1) :usize
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            concat4 :string
+          arg0:
+            "only=" :string
+          arg1:
+            call :string
+              callee:
+                format_signed :fn(i64) -> string
+              arg0:
+                cast → i64
+                  only :i32
+          arg2:
+            " empty.len=" :string
+          arg3:
+            call :string
+              callee:
+                format_unsigned :fn(u64) -> string
+              arg0:
+                cast → u64
+                  LoweredArrayLen
     return int(0) :i32
