@@ -1640,6 +1640,7 @@ emit_pattern :: fn(self: Printer, pat: p.Pattern) -> void {
             self.write(x.variant)
         }
         is p.LiteralPattern as x -> self.emit_expr(x.value)
+        is p.OrPattern      as x -> self.emit_or_pattern(x)
     }
 }
 
@@ -1672,6 +1673,10 @@ emit_is_pattern :: fn(self: Printer, x: p.IsPattern) -> void {
         is p.LiteralPattern as inner -> {
             self.write(" ")
             self.emit_expr(inner.value)
+        }
+        is p.OrPattern as inner -> {
+            self.write(" ")
+            self.emit_or_pattern(inner)
         }
     }
     match x.bind_as {
@@ -1712,4 +1717,11 @@ emit_tuple_pattern :: fn(self: Printer, x: p.TuplePattern) -> void {
         self.emit_pattern(x.elements[i])
     }
     self.write("]")
+}
+
+emit_or_pattern :: fn(self: Printer, x: p.OrPattern) -> void {
+    for i in 0..<x.patterns.len() {
+        if i > 0 { self.write(" | ") }
+        self.emit_pattern(x.patterns[i])
+    }
 }

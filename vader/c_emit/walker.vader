@@ -14,7 +14,7 @@ module "vader/c_emit"
 import "std/string" { join }
 import "std/string_builder" { StringBuilder, new_builder, append }
 import "std/abort" { todo }
-import "vader/bytecode" { BcFunction, BcSignature, BcStruct, BcArray, BcFn, BcRef, BcType, ValType }
+import "vader/bytecode" { BcFunction, BcSignature, BcStruct, BcArray, BcFn, BcRef, BcUnion, BcType, ValType }
 import "vader/bytecode" { array_kind_of, array_kind_index, ArrayKind }
 // The opcode union pulls in ~120 names ; the namespace form keeps the
 // import to one line and tags every op site as `vm.<Op>` at the match.
@@ -1234,21 +1234,34 @@ emit_type_check :: fn(s: FnState, op: vm.TypeCheck) -> void {
     val :: val_of(v)
     if is_ref_val(val) {
         target :: s.ctx.module.types[usize(op.type_id)]
-        if target is BcRef as r {
-            if r.trait_name != "" {
-                push_expr(s, .Bool, trait_check_expr(s.ctx, name_of(v), r.trait_name, op.type_id))
-                return
-            }
-        }
-        if target is BcStruct as st {
-            push_expr(s, .Bool, struct_check_expr(s.ctx.module.types, name_of(v), op.type_id, st.name))
+        if target is BcUnion as u {
+            // `x is (A | B)` — a boxed value never carries a union's own tag, so
+            // OR the per-variant checks (mirrors the VM's `union_matches`). This
+            // makes `is <union>` correct on native, matching the VM.
+            parts: string[] = []
+            for vid in u.variants { parts.push(one_variant_check(s, name_of(v), vid)) }
+            push_expr(s, .Bool, "(${parts.join(" || ")})")
             return
         }
-        push_expr(s, .Bool, "${name_of(v)}.tag == ${op.type_id}u")
+        push_expr(s, .Bool, one_variant_check(s, name_of(v), op.type_id))
     } else {
         matches :: primitive_matches_type(s.ctx.module.types, val, op.type_id)
         push_lit(s, .Bool, if matches { "true" } else { "false" })
     }
+}
+
+// The C bool expr for `v_name is <single type_id>` : a trait ref expands to a
+// disjunction over its implementers, a struct compares its sibling-aware tag,
+// anything else is a plain tag compare.
+one_variant_check :: fn(s: FnState, v_name: string, type_id: i32) -> string {
+    target :: s.ctx.module.types[usize(type_id)]
+    if target is BcRef as r {
+        if r.trait_name != "" { return trait_check_expr(s.ctx, v_name, r.trait_name, type_id) }
+    }
+    if target is BcStruct as st {
+        return struct_check_expr(s.ctx.module.types, v_name, type_id, st.name)
+    }
+    return "${v_name}.tag == ${type_id}u"
 }
 
 /// The C boolean expression testing whether `v_name`'s tag matches struct type

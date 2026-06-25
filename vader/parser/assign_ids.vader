@@ -425,6 +425,10 @@ walk_pattern :: fn(p: Pattern, f: NodeIdFactory) -> void {
             x.id = f.mint()
             walk_expr(x.value, f)
         }
+        is OrPattern as x -> {
+            x.id = f.mint()
+            for sub in x.patterns { walk_pattern(sub, f) }
+        }
     }
 }
 

@@ -1,0 +1,30 @@
+module "snippet"
+
+Light :: enum(u8) { Red, Yellow, Green, Off }
+
+// enum or-pattern : pipe-separated variants share one arm.
+can_go :: fn(l: Light) -> bool = match l {
+    .Green                -> true
+    .Red | .Yellow | .Off -> false
+}
+
+// literal or-pattern.
+points :: fn(roll: i32) -> i32 = match roll {
+    1 | 6     -> 10
+    2 | 3 | 4 -> 5
+    _         -> 0
+}
+
+Shape :: i32 | string | bool
+
+// type or-pattern : `is A | B` (a union the `is` already accepts — no parens).
+kind :: fn(s: Shape) -> i32 = match s {
+    is i32 | bool -> 1
+    is string     -> 2
+}
+
+export main :: fn() -> i32 {
+    go   :: if can_go(.Green) { 100 } else { 0 }
+    stop :: if can_go(.Red)   { 0 }   else { 10 }
+    return go + stop + points(6) + points(3) + kind(true) + kind("x")
+}
