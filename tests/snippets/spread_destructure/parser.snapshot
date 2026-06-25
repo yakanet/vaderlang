@@ -388,6 +388,157 @@
             "isComptime": false
           },
           {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "TupleBinding",
+              "elements": [
+                {
+                  "kind": "SimpleBinding",
+                  "name": "c_first"
+                },
+                {
+                  "kind": "RestBinding",
+                  "name": "c_rest"
+                }
+              ]
+            },
+            "type": null,
+            "value": {
+              "kind": "IdentExpr",
+              "name": "arr"
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "c_first="
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IdentExpr",
+                          "name": "c_first"
+                        }
+                      },
+                      {
+                        "kind": "text",
+                        "value": " c_rest.len="
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "CallExpr",
+                          "callee": {
+                            "kind": "FieldExpr",
+                            "target": {
+                              "kind": "IdentExpr",
+                              "name": "c_rest"
+                            },
+                            "field": "len"
+                          },
+                          "args": []
+                        }
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
+            "kind": "LetStmt",
+            "mutable": false,
+            "binding": {
+              "kind": "TupleBinding",
+              "elements": [
+                {
+                  "kind": "SimpleBinding",
+                  "name": "only"
+                },
+                {
+                  "kind": "RestBinding",
+                  "name": "empty"
+                }
+              ]
+            },
+            "type": null,
+            "value": {
+              "kind": "SeqLitExpr",
+              "elements": [
+                {
+                  "kind": "IntLitExpr",
+                  "value": "99n"
+                }
+              ]
+            }
+          },
+          {
+            "kind": "ExprStmt",
+            "expr": {
+              "kind": "CallExpr",
+              "callee": {
+                "kind": "IdentExpr",
+                "name": "println"
+              },
+              "args": [
+                {
+                  "name": null,
+                  "value": {
+                    "kind": "StringLitExpr",
+                    "parts": [
+                      {
+                        "kind": "text",
+                        "value": "only="
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "IdentExpr",
+                          "name": "only"
+                        }
+                      },
+                      {
+                        "kind": "text",
+                        "value": " empty.len="
+                      },
+                      {
+                        "kind": "interp",
+                        "expr": {
+                          "kind": "CallExpr",
+                          "callee": {
+                            "kind": "FieldExpr",
+                            "target": {
+                              "kind": "IdentExpr",
+                              "name": "empty"
+                            },
+                            "field": "len"
+                          },
+                          "args": []
+                        }
+                      }
+                    ]
+                  },
+                  "spread": false
+                }
+              ]
+            }
+          },
+          {
             "kind": "ReturnStmt",
             "value": {
               "kind": "IntLitExpr",
