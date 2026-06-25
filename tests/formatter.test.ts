@@ -45,6 +45,7 @@ const SNIPPETS = [
   "expr_bodied_fn",
   "format_helpers",
   "implicit_dot_variant",
+  "not_paren",
 ];
 
 function fmtStdout(path: string): string {

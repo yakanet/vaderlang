@@ -1,0 +1,35 @@
+# Typecheck
+
+## tests/snippets/not_paren
+  FnDecl         f                    :: fn(bool, bool) -> bool
+  FnDecl         g                    :: fn(i32) -> bool
+  FnDecl         h                    :: fn(bool, bool) -> bool
+  FnDecl         main                 :: fn() -> i32
+  expr 11:10    IfExpr         :: {integer}
+  expr 11:13    CallExpr       :: bool
+  expr 11:13    IdentExpr      :: fn(bool, bool) -> bool
+  expr 12:10    IfExpr         :: {integer}
+  expr 12:13    CallExpr       :: bool
+  expr 12:13    IdentExpr      :: fn(i32) -> bool
+  expr 13:10    IfExpr         :: {integer}
+  expr 13:13    CallExpr       :: bool
+  expr 13:13    IdentExpr      :: fn(bool, bool) -> bool
+  expr 14:12    BinaryExpr     :: i32
+  expr 14:12    BinaryExpr     :: i32
+  expr 14:12    IdentExpr      :: i32
+  expr 14:16    IdentExpr      :: i32
+  expr 14:20    IdentExpr      :: i32
+  expr 5:37     UnaryExpr      :: bool
+  expr 5:39     BinaryExpr     :: bool
+  expr 5:39     IdentExpr      :: bool
+  expr 5:44     IdentExpr      :: bool
+  expr 6:27     UnaryExpr      :: bool
+  expr 6:29     BinaryExpr     :: bool
+  expr 6:29     BinaryExpr     :: bool
+  expr 6:29     IdentExpr      :: i32
+  expr 6:39     BinaryExpr     :: bool
+  expr 6:39     IdentExpr      :: i32
+  expr 7:37     UnaryExpr      :: bool
+  expr 7:39     BinaryExpr     :: bool
+  expr 7:39     IdentExpr      :: bool
+  expr 7:44     IdentExpr      :: bool

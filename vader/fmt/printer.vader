@@ -1284,7 +1284,17 @@ emit_unary :: fn(self: Printer, x: p.UnaryExpr) -> void {
         }
     }
     self.write(unary_op_symbol(x.op))
-    self.emit_expr(x.operand)
+    // A binary operand binds looser than the unary, so it must be parenthesised
+    // to preserve precedence — `!(a || b)`, `-(a + b)` — otherwise the re-emitted
+    // source reparses as `(!a) || b`. (The `!is` sugar above already handled the
+    // one binary case that needs no parens.)
+    if x.operand is p.BinaryExpr {
+        self.write("(")
+        self.emit_expr(x.operand)
+        self.write(")")
+    } else {
+        self.emit_expr(x.operand)
+    }
 }
 
 emit_binary :: fn(self: Printer, x: p.BinaryExpr) -> void {

@@ -1,0 +1,15 @@
+module "snippet"
+
+// Regression guard: `vader fmt` must keep the parens on `!(<binary>)`. Without
+// them the re-emitted source reparses as `(!a) op b` — a precedence change.
+f :: fn(a: bool, b: bool) -> bool = !(a || b)
+g :: fn(x: i32) -> bool = !(x == 0 || x == 1)
+h :: fn(a: bool, b: bool) -> bool = !(a && b)
+
+export main :: fn() -> i32 {
+    // !(false || false) = true ; !(5==0 || 5==1) = true ; !(true && false) = true
+    a :: if f(false, false) { 1 } else { 0 }
+    b :: if g(5)            { 2 } else { 0 }
+    c :: if h(true, false)  { 4 } else { 0 }
+    return a + b + c
+}
