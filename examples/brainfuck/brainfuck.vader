@@ -110,7 +110,9 @@ match_brackets :: fn(tokens: char[]) -> i32[] {
             partner[j]        = i32(open_idx)
         }
     }
-    if sp != 0 { return [] }
+    if sp != 0 {
+        return []
+    }
     return partner
 }
 
@@ -197,7 +199,7 @@ emit_bf_char :: fn(fb: FunctionBuilder, c: char, idx: usize, partner: i32[], cel
             fb.br_if(block_label)
         }
         ']' -> { // jump back to the matching `[`
-            open_idx   :: usize(partner[idx])
+            open_idx   :: partner[idx]
             loop_label :: "bf_loop_${open_idx}"
             fb.br(loop_label)
             fb.end()  // close loop
