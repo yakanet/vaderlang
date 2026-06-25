@@ -13,7 +13,7 @@
 
 module "vader/lsp/protocol"
 
-import "std/io" { read_stdin, print, eprintln }
+import "std/io" { read_stdin, print, eprintln, poll_stdin, lsp_init_stdin }
 import "std/string" { byte_decode_at, starts_with, parse_int, ParseError }
 import "std/string_builder" { new_builder, append }
 
@@ -109,6 +109,25 @@ trim_ascii :: fn(s: string) -> string {
     }
     return sb[start..<end].bytes_to_string()
 }
+
+/// Make stdin unbuffered — call once at server startup, **before any
+/// `read_frame`**, so `poll_pending` reflects the bytes actually queued on the
+/// pipe rather than being fooled by `read_stdin`'s readahead buffer. Thin
+/// wrapper over the `std/io` intrinsic, kept here so the LSP reaches all stdin
+/// plumbing through this one module.
+export init_stdin :: fn() -> void = lsp_init_stdin()
+
+/// True iff a frame's first byte is already available within `timeout_ms`
+/// (`0` = non-blocking probe). The event loop uses it twice : `poll_pending(0)`
+/// to drain a burst of queued frames, and `poll_pending(DEBOUNCE_MS)` to wait
+/// out a quiescent edit window before the debounced typecheck. Requires
+/// `init_stdin` first. A `true` only guarantees the first byte is ready —
+/// `read_frame` may still block briefly to finish a partially-arrived frame,
+/// which is fine (the remainder is already in flight).
+/// @param timeout_ms  max wait in milliseconds ; `0` polls without blocking.
+/// @return            `true` if `read_frame` won't block on the first byte
+///                    (data ready, or peer hangup so the read sees EOF).
+export poll_pending :: fn(timeout_ms: i32) -> bool = poll_stdin(timeout_ms)
 
 /// Write one JSON-RPC frame to stdout. Encodes the `Content-Length`
 /// header from the body's byte length, emits the `\r\n\r\n` separator,

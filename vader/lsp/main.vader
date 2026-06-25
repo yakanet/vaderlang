@@ -50,35 +50,72 @@ export run_server :: fn(args: string[]) -> i32 {
         }
     }
     state :: A.new_state(stdlib_root, vader_root)
+    // Unbuffered stdin so `poll_pending` reflects the bytes actually queued on
+    // the pipe (the debounce relies on it). Must run before any `read_frame`.
+    P.init_stdin()
     shutdown_received := false
     for {
-        frame :: P.read_frame()
-        match frame {
-            is P.TransportError -> {
-                eprintln("lsp: transport error, exiting")
-                return 1
+        // Block for the next message, then process it.
+        rc :: read_and_process(state, shutdown_received)
+        if rc == DispatchResult.Exit         { return 0 }
+        if rc == DispatchResult.ExitAbnormal { return 1 }
+        if rc == DispatchResult.ShutdownRequested { shutdown_received = true }
+
+        // Drain the rest of the burst : every frame already queued is processed
+        // now. A run of `didChange` notifications (one per keystroke) collapses
+        // into repeated dirty marks rather than one typecheck each.
+        for P.poll_pending(0) {
+            rc2 :: read_and_process(state, shutdown_received)
+            if rc2 == DispatchResult.Exit         { return 0 }
+            if rc2 == DispatchResult.ExitAbnormal { return 1 }
+            if rc2 == DispatchResult.ShutdownRequested { shutdown_received = true }
+        }
+
+        // Burst settled. If a didChange left diagnostics dirty, wait out a short
+        // quiescent window before the (single) typecheck : if the user is still
+        // typing, more input arrives within DEBOUNCE_MS and we loop back to drain
+        // it — type-checking a buffer that's about to change again is wasted work
+        // and the source of the per-keystroke freeze.
+        if A.has_dirty(state) {
+            if !P.poll_pending(DEBOUNCE_MS) {
+                A.flush_dirty_diagnostics(state)
             }
-            is string as body -> {
-                msg :: parse(body)
-                // JSON-RPC frames are always top-level objects ; non-object
-                // payloads are protocol violations — drop with a warning.
-                match msg {
-                    is JsonObject as obj -> {
-                        rc :: dispatch(state, obj, shutdown_received)
-                        if rc == DispatchResult.Exit         { return 0 }
-                        if rc == DispatchResult.ExitAbnormal { return 1 }
-                        if rc == DispatchResult.ShutdownRequested {
-                            shutdown_received = true
-                        }
-                    }
-                    is JsonError -> { eprintln("lsp: malformed JSON, dropping frame") }
-                    is JsonString  -> { eprintln("lsp: top-level non-object payload, dropping") }
-                    is JsonNumber  -> { eprintln("lsp: top-level non-object payload, dropping") }
-                    is JsonBool    -> { eprintln("lsp: top-level non-object payload, dropping") }
-                    is JsonNull    -> { eprintln("lsp: top-level non-object payload, dropping") }
-                    is JsonArray   -> { eprintln("lsp: top-level non-object payload, dropping") }
-                }
-            }
+        }
+    }
+}
+
+// Milliseconds of input silence before a debounced diagnostics typecheck fires.
+// Below the threshold of perception, above the inter-keystroke interval — so a
+// burst of edits coalesces into a single typecheck once typing pauses.
+DEBOUNCE_MS :: 200
+
+// Read one frame (blocking) and process it. Transport errors (incl. EOF) map to
+// `ExitAbnormal` so the caller tears down. Shared by the blocking first read and
+// the non-blocking burst drain.
+read_and_process :: fn(state: A.ServerState, shutdown_received: bool) -> DispatchResult {
+    frame :: P.read_frame()
+    match frame {
+        is P.TransportError -> {
+            eprintln("lsp: transport error, exiting")
+            return DispatchResult.ExitAbnormal
+        }
+        is string as body -> { return process_frame(state, body, shutdown_received) }
+    }
+}
+
+// Parse a frame body and dispatch it. JSON-RPC frames are always top-level
+// objects ; non-object payloads are protocol violations, dropped with a warning.
+process_frame :: fn(state: A.ServerState, body: string, shutdown_received: bool) -> DispatchResult {
+    msg :: parse(body)
+    match msg {
+        is JsonObject as obj -> { return dispatch(state, obj, shutdown_received) }
+        is JsonError -> {
+            eprintln("lsp: malformed JSON, dropping frame")
+            return DispatchResult.Continue
+        }
+        is JsonString | JsonNumber | JsonBool | JsonNull | JsonArray -> {
+            eprintln("lsp: top-level non-object payload, dropping")
+            return DispatchResult.Continue
         }
     }
 }

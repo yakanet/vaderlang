@@ -34,13 +34,23 @@ export ProjectCache :: struct {
 export ServerState :: struct {
     /// uri → current document text. Empty string for closed documents.
     docs:                       MutableMap<string, string>
-    /// Last load+typecheck, reused while no document changes ; `null` after
-    /// any didOpen / didChange / didClose. See `typed_project_for`.
+    /// Last load+typecheck, reused across typed requests. `null` after didOpen /
+    /// didClose and after `flush_dirty_diagnostics` rebuilds it ; deliberately
+    /// KEPT (stale) across a didChange, so the typed requests that arrive
+    /// mid-edit-burst don't each re-typecheck the project — the burst's single
+    /// rebuild happens once it settles. See `typed_project_for` +
+    /// `flush_dirty_diagnostics`.
     cache:                      ProjectCache | null
     /// uri → per-document goto-def + hover index. Rebuilt on every
     /// didOpen / didChange ; entry is removed (not just emptied) on
     /// didClose so a stale index never serves a closed-doc request.
     indices:                    MutableMap<string, DocIndex>
+    /// uri → "diagnostics need a (re)publish". Set `true` by `handle_did_change`,
+    /// `false` by `handle_did_close` (suppresses a closed doc), drained by
+    /// `flush_dirty_diagnostics` once an edit burst settles (see
+    /// vader/lsp/main.vader). Decouples the per-keystroke typecheck from the
+    /// quiescent-window typecheck — the whole point of the debounce.
+    dirty:                      MutableMap<string, bool>
     /// Absolute path to the standard-library root (the dir that
     /// contains `std/io/io.vader` etc.). Empty when the host didn't
     /// supply `--stdlib-root` — cross-file goto-def on `std/*`
@@ -62,6 +72,7 @@ export new_state :: fn(stdlib_root: string, vader_root: string) -> ServerState {
         .docs                    = MutableMap<string, string> {},
         .cache                   = null,
         .indices                 = MutableMap<string, DocIndex> {},
+        .dirty                   = MutableMap<string, bool> {},
         .stdlib_root             = stdlib_root,
         .vader_root              = vader_root,
         .definition_link_support = false,
@@ -167,8 +178,11 @@ export handle_did_change :: fn(self: ServerState, params: JsonValue) -> void {
                 text :: get_string(first, "text")
                 self.docs[uri] = text
                 self.indices[uri] = build_index(uri, text)
-                self.cache = null
-                publish_diagnostics_for_uri(self, uri)
+                // Debounced (see vader/lsp/main.vader). Keep the now-stale typed
+                // cache so requests during the edit burst don't each re-typecheck ;
+                // just mark diagnostics dirty. The single rebuild + publish fires
+                // at the burst settle point via `flush_dirty_diagnostics`.
+                self.dirty[uri] = true
             }
         }
         _ -> {}
@@ -184,11 +198,43 @@ export handle_did_close :: fn(self: ServerState, params: JsonValue) -> void {
     if uri.bytes().len() == 0 { return }
     self.docs[uri] = ""
     self.cache = null
+    // Suppress any pending debounced publish for this now-closed doc — a later
+    // flush must not re-squiggle a file we just cleared. MutableMap has no
+    // remove ; `false` is the "don't publish" marker `flush_dirty_diagnostics`
+    // skips.
+    self.dirty[uri] = false
     // Indices map carries the parsed AST + tokens — drop the entry so
     // a stale index never serves a closed-doc request. MutableMap has
     // no remove ; rebuilding an empty index would still pin memory, so
     // we substitute a tiny placeholder built from "".
     self.indices[uri] = build_index(uri, "")
     clear_diagnostics_for_uri(uri)
+}
+
+/// Recompute + publish diagnostics for every document a didChange marked dirty
+/// since the last flush, then clear the dirty set. The event loop
+/// (vader/lsp/main.vader) calls this once an edit burst settles — so the project
+/// is type-checked once per quiescent window instead of once per keystroke.
+/// Nulls the cache before each publish so diagnostics reflect the current text,
+/// not the stale typed project served during the burst. Entries marked `false`
+/// (a doc closed mid-burst) are skipped.
+export flush_dirty_diagnostics :: fn(self: ServerState) -> void {
+    for [uri, needs_publish] in self.dirty {
+        if needs_publish {
+            self.cache = null
+            publish_diagnostics_for_uri(self, uri)
+        }
+    }
+    self.dirty.clear()
+}
+
+/// True iff a didChange has left some document's diagnostics pending a publish.
+/// Drives the debounce gate in the event loop. Walks the map because closed
+/// docs leave `false` markers that don't count as dirty.
+export has_dirty :: fn(self: ServerState) -> bool {
+    for [_, needs_publish] in self.dirty {
+        if needs_publish { return true }
+    }
+    return false
 }
 
