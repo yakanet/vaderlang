@@ -12,10 +12,8 @@ import "vader/types" { Type, FnType, UnionType, TraitType, TypeParamType, TY_UNR
 import "vader/comptime" { EvaluatedProgram, uniq }
 
 as_field_expr :: fn(expr: Expr) -> FieldExpr | null {
-    match expr {
-        is FieldExpr as f -> { return f }
-        _ -> { return null }
-    }
+    if expr is FieldExpr as f { return f }
+    return null
 }
 
 /// `recv.method(args)` against a concrete-typed receiver (primitive,

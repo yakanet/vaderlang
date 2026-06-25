@@ -20,7 +20,9 @@ import "std/json" {
 /// Pluck the field `key` from a JSON object. Returns `JsonNull{}` when `v`
 /// is not an object, or the field is absent.
 export get_field :: fn(v: JsonValue, key: string) -> JsonValue {
-    match v {
+    // @partial: only an object carries fields ; every scalar / array JSON
+    // variant has no `key` to pluck, so `JsonNull{}` is the right answer.
+    @partial match v {
         is JsonObject as o -> {
             f :: o.entries[key]
             match f {
@@ -40,7 +42,9 @@ export get_field :: fn(v: JsonValue, key: string) -> JsonValue {
 /// Read `key` as a string, or `""` when absent / non-string.
 export get_string :: fn(v: JsonValue, key: string) -> string {
     f :: get_field(v, key)
-    match f {
+    // @partial: only a `JsonString` yields a string ; any other JSON variant
+    // (number, bool, null, array, object) defaults to "".
+    @partial match f {
         is JsonString as s -> { return s.value }
         _ -> { return "" }
     }
@@ -50,7 +54,9 @@ export get_string :: fn(v: JsonValue, key: string) -> string {
 /// `f64` on the wire ; LSP positions / counts are always integral.
 export get_number :: fn(v: JsonValue, key: string) -> i32 {
     f :: get_field(v, key)
-    match f {
+    // @partial: only a `JsonNumber` yields a number ; any other JSON variant
+    // (string, bool, null, array, object) defaults to 0.
+    @partial match f {
         is JsonNumber as n -> { return i32(n.value) }
         _ -> { return 0 }
     }
@@ -60,7 +66,9 @@ export get_number :: fn(v: JsonValue, key: string) -> i32 {
 /// `false` is the safer LSP default (a missing capability is unsupported).
 export get_bool :: fn(v: JsonValue, key: string) -> bool {
     f :: get_field(v, key)
-    match f {
+    // @partial: only a `JsonBool` yields a bool ; any other JSON variant
+    // (string, number, null, array, object) defaults to false.
+    @partial match f {
         is JsonBool as b -> { return b.value }
         _ -> { return false }
     }

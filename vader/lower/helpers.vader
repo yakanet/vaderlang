@@ -104,7 +104,9 @@ export block_stmts_with_trailing :: fn(block: LoweredBlock) -> LoweredStmt[] {
 /// @param span       span of the reference site (kept on the lowered node).
 /// @return           an int-lit lowered expression, or unreachable on miss.
 export lowered_enum_variant :: fn(enum_type: Type, name: string, span: Span) -> LoweredExpr {
-    match enum_type {
+    // @partial: only EnumType resolves a `.Variant` reference; every other Type
+    // is unresolved here (cascaded earlier diagnostics) → unreachable.
+    @partial match enum_type {
         is EnumType as e -> {
             index :: e.indices[name]
             match index {

@@ -47,14 +47,15 @@ lookup_subst :: fn(self: Subst, name: string) -> AST.TypeExpr | null {
 /// applied. The input is untouched ; every visited node is reconstructed
 /// (allocation cost is the trade-off for not having structuredClone or
 /// in-place mutation).
+// @partial: only type-position Expr variants are reconstructed; all value-level
+// variants pass through unchanged (a type-position walker never reaches them — see
+// the trailing `_ -> expr` comment).
 export substitute_type_expr :: fn(expr: AST.TypeExpr, subst: Subst) -> AST.TypeExpr {
-    match expr {
+    @partial match expr {
         is AST.IdentExpr as e -> {
             replacement :: lookup_subst(subst, e.name)
-            match replacement {
-                is null  -> { return clone_ident(e) }
-                _        -> { return substitute_type_expr(replacement, new_subst()) }
-            }
+            if replacement == null { return clone_ident(e) }
+            return substitute_type_expr(replacement, new_subst())
         }
         is AST.BinaryExpr as e -> {
             // Type-position `bitor` chain (`A | B`). Substitute both sides ;

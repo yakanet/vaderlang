@@ -429,15 +429,10 @@ materialize_impl_members_for :: fn(
 }
 
 is_generic_impl_for :: fn(impl_decl: ImplDecl, struct_name: string) -> bool {
-    match impl_decl.for_type {
-        is GenericInstExpr as gi -> {
-            match gi.callee {
-                is IdentExpr as id -> { return id.name == struct_name }
-                _ -> { return false }
-            }
-        }
-        _ -> { return false }
+    if impl_decl.for_type is GenericInstExpr as gi {
+        if gi.callee is IdentExpr as id { return id.name == struct_name }
     }
+    return false
 }
 
 materialize_impl_for_instance :: fn(

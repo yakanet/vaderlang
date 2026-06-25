@@ -299,7 +299,7 @@ compact_locals :: fn(f: CFGFunction) -> CFGFunction {
     for p in f.params {
         new_params.push(CFGParam {
             .name = p.name, .symbol = p.symbol, .type = p.type,
-            .local = remap[usize(p.local)],
+            .local = LocalId(remap[usize(p.local)]),
         })
     }
 
@@ -338,7 +338,7 @@ compact_locals :: fn(f: CFGFunction) -> CFGFunction {
 }
 
 remap_local :: fn(m: i32[], l: LocalId) -> LocalId {
-    if usize(l) < m.len() { return m[usize(l)] }
+    if usize(l) < m.len() { return LocalId(m[usize(l)]) }
     return l
 }
 

@@ -121,10 +121,8 @@ dump_terminator :: fn(t: Terminator) -> string {
         is TermBranch      as br -> { return "branch -> bb${br.target}" }
         is TermCondBranch  as cb -> { return "cond_branch %${cb.cond} ? bb${cb.then_block} : bb${cb.else_block}" }
         is TermReturn      as r  -> {
-            match r.value {
-                is null -> { return "return" }
-                _ -> { return "return %${r.value}" }
-            }
+            if r.value == null { return "return" }
+            return "return %${r.value}"
         }
         is TermUnreachable as u  -> { return "unreachable ; ${u.reason}" }
     }
@@ -142,10 +140,8 @@ dump_const :: fn(v: ConstValue) -> string {
 }
 
 dump_dst :: fn(d: LocalId | null) -> string {
-    match d {
-        is null -> { return "" }
-        _ -> { return "%${d} = " }
-    }
+    if d == null { return "" }
+    return "%${d} = "
 }
 
 dump_args :: fn(a: LocalId[]) -> string {

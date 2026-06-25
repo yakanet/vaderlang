@@ -47,7 +47,9 @@ export infer_range :: fn(
 }
 
 pick_bound_or_default :: fn(t: Type) -> Type {
-    match t {
+    // @partial: a range bound is only ever a free-int / free-char literal or an
+    // integer / char primitive; every other type kind defaults to i32.
+    @partial match t {
         is FreeIntType -> { return mk_primitive("i32") }
         is FreeCharType -> { return mk_primitive("char") }
         is PrimitiveType as p -> {

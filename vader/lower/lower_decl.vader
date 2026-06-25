@@ -171,13 +171,13 @@ impl_member_overload_suffix :: fn(
 }
 
 for_type_name_of :: fn(for_type: TypeExpr) -> string {
-    match for_type {
+    // @partial: only Ident / GenericInst(Ident) shapes name a nominal target;
+    // every other TypeExpr → "" (no nominal name).
+    @partial match for_type {
         is IdentExpr as e -> { return e.name }
         is GenericInstExpr as gi -> {
-            match gi.callee {
-                is IdentExpr as inner -> { return inner.name }
-                _ -> { return "" }
-            }
+            if gi.callee is IdentExpr as inner { return inner.name }
+            return ""
         }
         _ -> { return "" }
     }
@@ -188,13 +188,13 @@ for_type_name_of :: fn(for_type: TypeExpr) -> string {
 // surface as nominal impls today ; anything else falls back to the
 // raw display string (defensive — never expected to fire).
 for_type_name :: fn(for_type: TypeExpr, typed: TypedProgram) -> string {
-    match for_type {
+    // @partial: only Ident / GenericInst(Ident) shapes surface as nominal impls;
+    // every other TypeExpr falls back to "<unknown>" (defensive — never expected).
+    @partial match for_type {
         is IdentExpr as e -> { return e.name }
         is GenericInstExpr as e -> {
-            match e.callee {
-                is IdentExpr as inner -> { return inner.name }
-                _ -> { return "<unknown>" }
-            }
+            if e.callee is IdentExpr as inner { return inner.name }
+            return "<unknown>"
         }
         _ -> { return "<unknown>" }
     }
@@ -266,13 +266,9 @@ lower_fn_body :: fn(
     fn_decl: FnDecl, typed: TypedProgram, project_ctx: LowerProjectCtx,
     entry: MonoEntry, subst: Substitution, return_type: Type,
 ) -> LoweredBlock | null {
-    match fn_decl.body {
-        is null -> { return null }
-        _ -> {
-            fn_ctx :: new_fn_lower_ctx(project_ctx, entry, typed, subst, return_type, null)
-            return lower_block(fn_ctx, fn_decl.body, true, false)
-        }
-    }
+    if fn_decl.body == null { return null }
+    fn_ctx :: new_fn_lower_ctx(project_ctx, entry, typed, subst, return_type, null)
+    return lower_block(fn_ctx, fn_decl.body, true, false)
 }
 
 // StructDecl → `LoweredStructDecl` with resolved field types. Phase 2
@@ -323,16 +319,10 @@ lookup_struct_field_table :: fn(
 resolve_field_type :: fn(
     types: EntryTypes, field: StructField, table: MutableMap<string, Type> | null,
 ) -> Type {
-    match table {
-        is null -> { return types.type_expr_type(field.ty) }
-        _ -> {
-            from_table :: table[field.name]
-            match from_table {
-                is null -> { return types.type_expr_type(field.ty) }
-                _ -> { return from_table }
-            }
-        }
-    }
+    if table == null { return types.type_expr_type(field.ty) }
+    from_table :: table[field.name]
+    if from_table == null { return types.type_expr_type(field.ty) }
+    return from_table
 }
 
 // ConstDecl → `LoweredConstDecl`. Phase 3 wires the value to the
@@ -370,10 +360,8 @@ lower_const_value :: fn(
     fn_ctx: FnLowerCtx, type_val: Type,
 ) -> LoweredExpr {
     baked :: lookup_comptime_value(const_decl, typed, project_ctx)
-    match baked {
-        is null -> { return lower_expr(fn_ctx, const_decl.value) }
-        _ -> { return comptime_value_to_lowered(baked, default_if_free(type_val), const_decl.span) }
-    }
+    if baked == null { return lower_expr(fn_ctx, const_decl.value) }
+    return comptime_value_to_lowered(baked, default_if_free(type_val), const_decl.span)
 }
 
 lookup_comptime_value :: fn(
@@ -474,10 +462,15 @@ overload_suffix_for :: fn(decl: Decl, typed: TypedProgram) -> string {
 
 decl_name_span :: fn(decl: Decl) -> Span | null {
     match decl {
-        is FnDecl     as f -> { return f.name_span }
-        is StructDecl as s -> { return s.name_span }
-        is ConstDecl  as c -> { return c.name_span }
-        _ -> { return null }
+        is FnDecl        as f -> { return f.name_span }
+        is StructDecl    as s -> { return s.name_span }
+        is ConstDecl     as c -> { return c.name_span }
+        is ImportDecl         -> { return null }
+        is EnumDecl           -> { return null }
+        is TraitDecl          -> { return null }
+        is ImplDecl           -> { return null }
+        is TypeAliasDecl      -> { return null }
+        is AssertDecl         -> { return null }
     }
 }
 
@@ -498,8 +491,6 @@ decl_name :: fn(decl: Decl) -> string = match decl {
 }
 
 is_main_decl :: fn(decl: Decl) -> bool {
-    match decl {
-        is FnDecl as f -> { return f.name == "main" }
-        _ -> { return false }
-    }
+    if decl is FnDecl as f { return f.name == "main" }
+    return false
 }

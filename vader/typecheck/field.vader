@@ -104,13 +104,9 @@ try_impl_method_ufcs :: fn(
         }
     }
     base_impl :: typed.impl_methods["${type_base_name(target_ty)}::${e.field}"]
-    match base_impl {
-        is null -> { return null }
-        _ -> {
-            check_trait_ambiguity(e, target_ty, typed, diags)
-            return substitute_impl_method(base_impl, target_ty, typed)
-        }
-    }
+    if base_impl == null { return null }
+    check_trait_ambiguity(e, target_ty, typed, diags)
+    return substitute_impl_method(base_impl, target_ty, typed)
 }
 
 try_typeparam_bound_method :: fn(
@@ -163,13 +159,9 @@ try_free_fn_ufcs_dispatch :: fn(
     target_ty: Type, e: AST.FieldExpr, typed: TypedProgram,
 ) -> Type | null {
     free_ufcs :: try_free_fn_ufcs_with_first(e.field, target_ty, typed)
-    match free_ufcs {
-        is null -> { return null }
-        _ -> {
-            typed.ufcs_receiver_types[e.id] = free_ufcs.first_param
-            return free_ufcs.curried
-        }
-    }
+    if free_ufcs == null { return null }
+    typed.ufcs_receiver_types[e.id] = free_ufcs.first_param
+    return free_ufcs.curried
 }
 
 // When a free-numeric receiver resolves to a free-fn UFCS call, re-pin it to
@@ -275,17 +267,13 @@ resolve_struct_field :: fn(
     if found is null {
         found = find_struct_field_type(decl, e.field, typed.resolved, diags)
     }
-    match found {
-        is null -> {
-            diags.push(typecheck_error(.FieldDoesNotExist, e.field_span,
-                "`${e.field}` on ${display_type(target_ty)}"))
-            return TY_UNRESOLVED
-        }
-        _ -> {
-            substituted :: substitute_struct_field(found, decl, target_ty)
-            return narrow_field_if_active(e, substituted, typed)
-        }
+    if found == null {
+        diags.push(typecheck_error(.FieldDoesNotExist, e.field_span,
+            "`${e.field}` on ${display_type(target_ty)}"))
+        return TY_UNRESOLVED
     }
+    substituted :: substitute_struct_field(found, decl, target_ty)
+    return narrow_field_if_active(e, substituted, typed)
 }
 
 /// Enforce `@internal` field visibility (T3054). A field parsed as
@@ -376,7 +364,9 @@ substitute_struct_field :: fn(
 export substitute_by_name :: fn(
     t: Type, tps: AST.TypeParam[], args: Type[],
 ) -> Type {
-    match t {
+    // @partial: only TypeParam and the composite variants can carry a param to
+    // rewrite; every scalar / primitive variant has no inner type → return as-is.
+    @partial match t {
         is TypeParamType as tp -> {
             for i in 0..<min(tps.len(), args.len()) {
                 if tps[i].name == tp.symbol.name { return args[i] }
@@ -527,7 +517,9 @@ union_common_field :: fn(
 // trait-method signatures at the receiver's type (`fn(Self) -> Self`
 // → `fn(T) -> T` when called on a `T`).
 substitute_self :: fn(t: Type, self_ty: Type) -> Type {
-    match t {
+    // @partial: only SelfType and the composite variants can contain a `Self`
+    // leaf; every scalar / primitive variant has no `Self` to replace.
+    @partial match t {
         is SelfType -> { return self_ty }
         is ArrayType as a -> { return mk_array(substitute_self(a.element, self_ty), a.immutable) }
         is StructType as s -> {
@@ -890,7 +882,9 @@ import "vader/resolver/symbol" { new_factory }
 field_check_stub :: fn(
     e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
-    match e {
+    // @partial: test stub — only the ident / field / literal expr kinds the
+    // field tests build are typed; every other Expr is irrelevant → unresolved.
+    @partial match e {
         is AST.IntLitExpr    as x -> { return infer_int_lit(x) }
         is AST.StringLitExpr as x -> { return infer_string_lit(x) }
         is AST.IdentExpr     as x -> { return infer_ident(x, typed) }
@@ -916,20 +910,18 @@ first_field_in_last_fn :: fn(src: string) -> FieldFixture {
     diags: Diagnostic[] = []
     result :: check_module(parsed.program, rm, factory, diags)
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
-    match last {
-        is AST.FnDecl as f -> {
-            match f.body {
-                is null -> { return FieldFixture { .typed = result.typed, .field = null } }
-                is AST.BlockExpr as b -> {
-                    hit :: find_first_in_block(b, accept_field)
-                    field: AST.FieldExpr | null = null
-                    if hit is AST.FieldExpr { field = hit }
-                    return FieldFixture { .typed = result.typed, .field = field }
-                }
+    if last is AST.FnDecl as f {
+        match f.body {
+            is null -> { return FieldFixture { .typed = result.typed, .field = null } }
+            is AST.BlockExpr as b -> {
+                hit :: find_first_in_block(b, accept_field)
+                field: AST.FieldExpr | null = null
+                if hit is AST.FieldExpr { field = hit }
+                return FieldFixture { .typed = result.typed, .field = field }
             }
         }
-        _ -> { return FieldFixture { .typed = result.typed, .field = null } }
     }
+    return FieldFixture { .typed = result.typed, .field = null }
 }
 
 @test

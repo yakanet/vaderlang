@@ -39,7 +39,9 @@ export infer_seq_lit :: fn(
         }
         _ -> {}
     }
-    match expected {
+    // @partial: only a tuple- or array-shaped expectation drives contextual
+    // disambiguation; for every other (or absent) slot type we infer freely.
+    @partial match expected {
         is TupleType as tup -> { return infer_against_tuple(e, tup, typed, diags, check_expr_fn) }
         is ArrayType as arr -> { return infer_against_array(e, arr, typed, diags, check_expr_fn) }
         _ -> { return infer_no_expected(e, typed, diags, check_expr_fn) }
@@ -100,11 +102,9 @@ infer_no_expected :: fn(
     if elem_types.len() == 0 { return mk_array(TY_UNRESOLVED, false) }
     widened :: default_each(elem_types)
     merged :: union_of(widened)
-    match merged {
-        // Heterogeneous elements stay UnionType → treat as a tuple.
-        is UnionType -> { return mk_tuple(widened) }
-        _ -> { return mk_array(merged, false) }
-    }
+    // Heterogeneous elements stay UnionType → treat as a tuple.
+    if merged is UnionType { return mk_tuple(widened) }
+    return mk_array(merged, false)
 }
 
 // ---- helpers -------------------------------------------------------------
@@ -147,7 +147,9 @@ import "vader/diagnostics" { empty_span }
 seq_lit_check_stub :: fn(
     e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
-    match e {
+    // @partial: test stub — only the literal / ident / seq expr kinds the seq
+    // tests build are typed; every other Expr is irrelevant → unresolved.
+    @partial match e {
         is AST.IntLitExpr    as x -> { return narrow_for_expected(infer_int_lit(x), expected) }
         is AST.StringLitExpr as x -> { return infer_string_lit(x) }
         is AST.IdentExpr     as x -> { return infer_ident(x, typed) }

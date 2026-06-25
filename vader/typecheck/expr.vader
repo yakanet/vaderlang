@@ -94,7 +94,9 @@ infer_expr :: fn(
     expr: AST.Expr, expected: Type | null,
     typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
-    match expr {
+    // @partial: every Expr variant has a dedicated arm above; the `_` is a
+    // defensive fallback (the Expr union is closed) → unresolved, never hit.
+    @partial match expr {
         is AST.IntLitExpr    as e -> { return infer_int_lit(e) }
         is AST.FloatLitExpr  as e -> { return infer_float_lit(e) }
         is AST.BoolLitExpr   as e -> { return infer_bool_lit(e) }

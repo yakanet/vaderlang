@@ -83,14 +83,9 @@ arithmetic_or_concat :: fn(
     expr: AST.BinaryExpr, left: ComptimeValue, right: ComptimeValue,
     int_op: fn(i64, i64) -> i64,
 ) -> EvalResult {
-    match left {
-        is StringValue as ls -> {
-            match right {
-                is StringValue as rs -> { return ok(string_val("${ls.value}${rs.value}")) }
-                _ -> { return type_mismatch(expr, "string + non-string") }
-            }
-        }
-        _ -> {}
+    if left is StringValue as ls {
+        if right is StringValue as rs { return ok(string_val("${ls.value}${rs.value}")) }
+        return type_mismatch(expr, "string + non-string")
     }
     return arithmetic(expr, left, right, int_op)
 }
@@ -256,7 +251,8 @@ bool_value :: fn(b: bool) -> ComptimeValue {
 // ---- unary helpers --------------------------------------------------------
 
 unary_neg :: fn(expr: AST.UnaryExpr, inner: ComptimeValue) -> EvalResult {
-    match inner {
+    // @partial: only Int / Float negate; every other value kind is a type mismatch.
+    @partial match inner {
         is IntValue   as i -> { return ok(int_val_typed(-i.value, i.type_name)) }
         is FloatValue as f -> { return ok(float_val_typed(-f.value, f.type_name)) }
         _                  -> { return unary_type_mismatch(expr, "`-` requires numeric") }
@@ -264,20 +260,16 @@ unary_neg :: fn(expr: AST.UnaryExpr, inner: ComptimeValue) -> EvalResult {
 }
 
 unary_not :: fn(expr: AST.UnaryExpr, inner: ComptimeValue) -> EvalResult {
-    match inner {
-        is BoolValue as b -> {
-            if b.value { return ok(VAL_FALSE) }
-            return ok(VAL_TRUE)
-        }
-        _ -> { return unary_type_mismatch(expr, "`!` requires bool") }
+    if inner is BoolValue as b {
+        if b.value { return ok(VAL_FALSE) }
+        return ok(VAL_TRUE)
     }
+    return unary_type_mismatch(expr, "`!` requires bool")
 }
 
 unary_bit_not :: fn(expr: AST.UnaryExpr, inner: ComptimeValue) -> EvalResult {
-    match inner {
-        is IntValue as i -> { return ok(int_val_typed(bit_not_i64(i.value), i.type_name)) }
-        _                -> { return unary_type_mismatch(expr, "`~` requires int") }
-    }
+    if inner is IntValue as i { return ok(int_val_typed(bit_not_i64(i.value), i.type_name)) }
+    return unary_type_mismatch(expr, "`~` requires int")
 }
 
 // Vader doesn't expose `~` as a builtin yet ; emulate via `xor` with -1.

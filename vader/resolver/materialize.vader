@@ -314,10 +314,8 @@ substitute_params :: fn(params: AST.FnParam[], subst: Subst) -> AST.FnParam[] {
 }
 
 substitute_opt_type :: fn(t: AST.TypeExpr | null, subst: Subst) -> AST.TypeExpr | null {
-    match t {
-        is null -> { return null }
-        _       -> { return substitute_type_expr(t, subst) }
-    }
+    if t == null { return null }
+    return substitute_type_expr(t, subst)
 }
 
 intrinsic_decorator :: fn(span: Span) -> AST.Decorator[] {

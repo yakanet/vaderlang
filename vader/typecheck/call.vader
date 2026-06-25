@@ -403,7 +403,9 @@ callee_is_no_return :: fn(callee: AST.Expr, typed: TypedProgram) -> bool {
 }
 
 callee_name :: fn(callee: AST.Expr) -> string {
-    match callee {
+    // @partial: only ident / field / generic-inst callees carry a source name;
+    // any other callee shape is anonymous → the "<callee>" placeholder.
+    @partial match callee {
         is AST.IdentExpr as e -> { return e.name }
         is AST.FieldExpr as e -> { return e.field }
         is AST.GenericInstExpr as e -> { return callee_name(e.callee) }
@@ -414,10 +416,8 @@ callee_name :: fn(callee: AST.Expr) -> string {
 import "vader/resolver" { resolve_import_redirect }
 
 redirect_import_typed :: fn(sym: Symbol, typed: TypedProgram) -> Symbol {
-    match typed.import_targets {
-        is null -> { return sym }
-        _ -> { return resolve_import_redirect(sym, typed.import_targets) }
-    }
+    if typed.import_targets == null { return sym }
+    return resolve_import_redirect(sym, typed.import_targets)
 }
 
 /// When `param` is `Trait(T, U, …)` and `arg` is a struct (or
@@ -464,7 +464,9 @@ import "vader/resolver/symbol" { Symbol, new_factory }
 call_check_stub :: fn(
     e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
-    match e {
+    // @partial: test stub — only the literal / ident / call expr kinds the call
+    // tests build are typed; every other Expr is irrelevant → unresolved.
+    @partial match e {
         is AST.IntLitExpr    as x -> { return infer_int_lit(x) }
         is AST.StringLitExpr as x -> { return infer_string_lit(x) }
         is AST.IdentExpr     as x -> { return infer_ident(x, typed) }
@@ -484,20 +486,18 @@ first_call_in_last_fn :: fn(src: string) -> CallFixture {
     diags: Diagnostic[] = []
     result :: check_module(parsed.program, rm, factory, diags)
     last :: parsed.program.decls[parsed.program.decls.len() - 1]
-    match last {
-        is AST.FnDecl as f -> {
-            match f.body {
-                is null -> { return CallFixture { .typed = result.typed, .call = null } }
-                is AST.BlockExpr as b -> {
-                    hit :: find_first_in_block(b, accept_call)
-                    call: AST.CallExpr | null = null
-                    if hit is AST.CallExpr { call = hit }
-                    return CallFixture { .typed = result.typed, .call = call }
-                }
+    if last is AST.FnDecl as f {
+        match f.body {
+            is null -> { return CallFixture { .typed = result.typed, .call = null } }
+            is AST.BlockExpr as b -> {
+                hit :: find_first_in_block(b, accept_call)
+                call: AST.CallExpr | null = null
+                if hit is AST.CallExpr { call = hit }
+                return CallFixture { .typed = result.typed, .call = call }
             }
         }
-        _ -> { return CallFixture { .typed = result.typed, .call = null } }
     }
+    return CallFixture { .typed = result.typed, .call = null }
 }
 
 accept_call :: fn(e: AST.Expr) -> AST.Expr | null {

@@ -37,10 +37,8 @@ intrinsic_size_of :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -
         return arg_count_error(expr, "size_of", 1)
     }
     arg_type :: resolve_type_arg(expr.args[0], context)
-    match arg_type {
-        is null -> { return arg_error(expr, "size_of: argument is not a type") }
-        _       -> { return ok(int_val_typed(byte_size(arg_type), "usize")) }
-    }
+    if arg_type == null { return arg_error(expr, "size_of: argument is not a type") }
+    return ok(int_val_typed(byte_size(arg_type), "usize"))
 }
 
 intrinsic_align_of :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -> EvalResult {
@@ -48,10 +46,8 @@ intrinsic_align_of :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) 
         return arg_count_error(expr, "align_of", 1)
     }
     arg_type :: resolve_type_arg(expr.args[0], context)
-    match arg_type {
-        is null -> { return arg_error(expr, "align_of: argument is not a type") }
-        _       -> { return ok(int_val_typed(byte_align(arg_type), "usize")) }
-    }
+    if arg_type == null { return arg_error(expr, "align_of: argument is not a type") }
+    return ok(int_val_typed(byte_align(arg_type), "usize"))
 }
 
 intrinsic_type_name :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -> EvalResult {
@@ -59,10 +55,8 @@ intrinsic_type_name :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext)
         return arg_count_error(expr, "type_name", 1)
     }
     arg_type :: resolve_type_arg(expr.args[0], context)
-    match arg_type {
-        is null -> { return arg_error(expr, "type_name: argument is not a type") }
-        _       -> { return ok(string_val(display_type(arg_type))) }
-    }
+    if arg_type == null { return arg_error(expr, "type_name: argument is not a type") }
+    return ok(string_val(display_type(arg_type)))
 }
 
 intrinsic_type_kind :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -> EvalResult {
@@ -70,10 +64,8 @@ intrinsic_type_kind :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext)
         return arg_count_error(expr, "type_kind", 1)
     }
     arg_type :: resolve_type_arg(expr.args[0], context)
-    match arg_type {
-        is null -> { return arg_error(expr, "type_kind: argument is not a type") }
-        _       -> { return ok(string_val(type_kind_label(arg_type))) }
-    }
+    if arg_type == null { return arg_error(expr, "type_kind: argument is not a type") }
+    return ok(string_val(type_kind_label(arg_type)))
 }
 
 // ---- helpers --------------------------------------------------------------
@@ -83,10 +75,8 @@ intrinsic_type_kind :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext)
 // C4011 with a friendly message.
 resolve_type_arg :: fn(expr: AST.Expr, context: ComptimeContext) -> Type | null {
     raw :: type_from_expr(expr, context.typed.resolved, diag_sink())
-    match raw {
-        is UnresolvedType -> { return null }
-        _                 -> { return raw }
-    }
+    if raw is UnresolvedType { return null }
+    return raw
 }
 
 // Primitive byte sizes match `intrinsic_assert`'s expectations

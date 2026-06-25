@@ -33,7 +33,9 @@ import "vader/types" {
 export type_from_expr :: fn(
     expr: AST.Expr, resolved: ResolvedModule, diags: Diagnostic[],
 ) -> Type {
-    match expr {
+    // @partial: only the type-shaped expr kinds below denote a type; every other
+    // (value-position) Expr is illegal in a type slot → T3002, handled by `_`.
+    @partial match expr {
         is AST.IdentExpr as e -> { return lower_ident(e, resolved) }
         is AST.GenericInstExpr as e -> { return lower_generic_inst(e, resolved, diags) }
         // `Iterator(i32)` / `Pair(K, V)` parsed as CallExpr in type
@@ -128,7 +130,9 @@ substitute_alias_args :: fn(t: Type, params: AST.TypeParam[], args: Type[]) -> T
 }
 
 walk_substitute :: fn(t: Type, params: AST.TypeParam[], args: Type[]) -> Type {
-    match t {
+    // @partial: only TypeParam and the composite variants can carry a param to
+    // substitute; every scalar / primitive variant has no inner type → as-is.
+    @partial match t {
         is TypeParamType as tp -> {
             n :: min(params.len(), args.len())
             for i in 0..<n {
@@ -190,26 +194,24 @@ lower_call_in_type_position :: fn(
 ) -> Type {
     args: Type[] = []
     for a in e.args { args.push(type_from_expr(a.value, resolved, diags)) }
-    match e.callee {
-        is AST.IdentExpr as id -> {
-            target :: lookup_type_name(id, resolved)
-            match target {
-                is null -> { return TY_UNRESOLVED }
-                is Symbol as s -> {
-                    aliased :: resolved.alias_types[s.id]
-                    if !(aliased is null) {
-                        alias_decl :: resolved.alias_decls[s.id]
-                        if !(alias_decl is null) {
-                            return substitute_alias_args(aliased, alias_decl.type_params, args)
-                        }
-                        return aliased
+    if e.callee is AST.IdentExpr as id {
+        target :: lookup_type_name(id, resolved)
+        match target {
+            is null -> { return TY_UNRESOLVED }
+            is Symbol as s -> {
+                aliased :: resolved.alias_types[s.id]
+                if !(aliased is null) {
+                    alias_decl :: resolved.alias_decls[s.id]
+                    if !(alias_decl is null) {
+                        return substitute_alias_args(aliased, alias_decl.type_params, args)
                     }
-                    return type_from_symbol(s, args)
+                    return aliased
                 }
+                return type_from_symbol(s, args)
             }
         }
-        _ -> { return TY_UNRESOLVED }
     }
+    return TY_UNRESOLVED
 }
 
 lower_generic_inst :: fn(
@@ -217,26 +219,24 @@ lower_generic_inst :: fn(
 ) -> Type {
     args: Type[] = []
     for a in e.type_args { args.push(type_from_expr(a, resolved, diags)) }
-    match e.callee {
-        is AST.IdentExpr as id -> {
-            target :: lookup_type_name(id, resolved)
-            match target {
-                is null -> { return TY_UNRESOLVED }
-                is Symbol as s -> {
-                    aliased :: resolved.alias_types[s.id]
-                    if !(aliased is null) {
-                        alias_decl :: resolved.alias_decls[s.id]
-                        if !(alias_decl is null) {
-                            return substitute_alias_args(aliased, alias_decl.type_params, args)
-                        }
-                        return aliased
+    if e.callee is AST.IdentExpr as id {
+        target :: lookup_type_name(id, resolved)
+        match target {
+            is null -> { return TY_UNRESOLVED }
+            is Symbol as s -> {
+                aliased :: resolved.alias_types[s.id]
+                if !(aliased is null) {
+                    alias_decl :: resolved.alias_decls[s.id]
+                    if !(alias_decl is null) {
+                        return substitute_alias_args(aliased, alias_decl.type_params, args)
                     }
-                    return type_from_symbol(s, args)
+                    return aliased
                 }
+                return type_from_symbol(s, args)
             }
         }
-        _ -> { return TY_UNRESOLVED }
     }
+    return TY_UNRESOLVED
 }
 
 /// Resolve a type-position ident to its Symbol : prefer the
@@ -273,23 +273,21 @@ lower_binary :: fn(
 opt_or_void :: fn(
     ret: AST.TypeExpr | null, resolved: ResolvedModule, diags: Diagnostic[],
 ) -> Type {
-    match ret {
-        is null -> { return TY_VOID }
-        _ -> { return type_from_expr(ret, resolved, diags) }
-    }
+    if ret == null { return TY_VOID }
+    return type_from_expr(ret, resolved, diags)
 }
 
 /// Map a resolved symbol to its Type. MVP : builds a fresh constructor
 /// each call — `decl.vader` (Phase 2.3) will route through `decl_types`
 /// for the canonical instance.
 export type_from_symbol :: fn(sym: Symbol, args: Type[]) -> Type {
-    match sym.kind {
+    // @partial: only the type-introducing kinds below map to a Type; every other
+    // SymbolKind (Fn, Local, Param, …) names a value, not a type → unresolved.
+    @partial match sym.kind {
         .BuiltinType -> {
             builtin :: primitive_from_name(sym.name)
-            match builtin {
-                is null -> { return TY_UNRESOLVED }
-                _ -> { return builtin }
-            }
+            if builtin == null { return TY_UNRESOLVED }
+            return builtin
         }
         .Struct    -> { return mk_struct(sym, args) }
         .Trait     -> { return mk_trait(sym, args) }
@@ -342,19 +340,13 @@ lower_first_param_type :: fn(src: string) -> string {
     rm :: resolve_test_module(src)
     parsed :: parse_source(src, "t.vader")
     fn_decl :: parsed.program.decls[0]
-    match fn_decl {
-        is AST.FnDecl as f -> {
-            ty :: f.params[0].ty
-            match ty {
-                is null -> { return "<no annotation>" }
-                _ -> {
-                    diags: Diagnostic[] = []
-                    return display_type(type_from_expr(ty, rm, diags))
-                }
-            }
-        }
-        _ -> { return "<not a FnDecl>" }
+    if fn_decl is AST.FnDecl as f {
+        ty :: f.params[0].ty
+        if ty == null { return "<no annotation>" }
+        diags: Diagnostic[] = []
+        return display_type(type_from_expr(ty, rm, diags))
     }
+    return "<not a FnDecl>"
 }
 
 @test

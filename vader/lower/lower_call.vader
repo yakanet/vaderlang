@@ -26,35 +26,17 @@ import "vader/resolver" { ImportTargetTable }
 //   namespace prefix is purely a source-level concept.
 lower_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
     array_form :: try_lower_array_op(ctx, call, type)
-    match array_form {
-        is null -> {}
-        _ -> { return array_form }
-    }
+    if array_form != null { return array_form }
     namespace_form :: try_lower_namespace_call(ctx, call, type)
-    match namespace_form {
-        is null -> {}
-        _ -> { return namespace_form }
-    }
+    if namespace_form != null { return namespace_form }
     cast_form :: try_lower_cast_call(ctx, call, type)
-    match cast_form {
-        is null -> {}
-        _ -> { return cast_form }
-    }
+    if cast_form != null { return cast_form }
     vcall_form :: try_lower_virtual_call(ctx, call, type)
-    match vcall_form {
-        is null -> {}
-        _ -> { return vcall_form }
-    }
+    if vcall_form != null { return vcall_form }
     ufcs_form :: try_lower_ufcs_call(ctx, call, type)
-    match ufcs_form {
-        is null -> {}
-        _ -> { return ufcs_form }
-    }
+    if ufcs_form != null { return ufcs_form }
     generic_form :: try_lower_generic_fn_call(ctx, call, type)
-    match generic_form {
-        is null -> {}
-        _ -> { return generic_form }
-    }
+    if generic_form != null { return generic_form }
     raw_callee :: lower_expr(ctx, call.callee)
     // Widen literal args to the matching param's union type so the dump
     // shows `int(42) :i32 | null` for `describe(42)` against
@@ -69,10 +51,7 @@ lower_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
         if i < param_types.len() {
             widened :: widen_literal_to_context(arg, param_types[i])
             coerced :: try_emit_into_coercion(ctx, widened, type_of(widened), param_types[i], call.args[i].value.span)
-            match coerced {
-                is null -> { args.push(widened) }
-                _ -> { args.push(coerced) }
-            }
+            if coerced == null { args.push(widened) } else { args.push(coerced) }
         } else {
             args.push(arg)
         }
@@ -163,7 +142,8 @@ match_overload_in_bucket :: fn(typed: TypedProgram, name: string, picked: FnType
 }
 
 param_types_of :: fn(callee_type: Type) -> Type[] {
-    match callee_type {
+    // @partial: only a FnType carries param types; every other Type → no params.
+    @partial match callee_type {
         is FnType as ft -> { return ft.params }
         _ -> {
             empty: Type[] = []
@@ -268,47 +248,43 @@ impl_trait_first_arg_is :: fn(decl: ImplDecl, name: string) -> bool {
 // namespace-prefixed calls.
 try_lower_namespace_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
     callee :: call.callee
-    match callee {
-        is FieldExpr as field_expr -> {
-            namespace_symbol :: as_namespace_binding(ctx, field_expr.target)
-            if namespace_symbol is null { return null }
-            member_symbol :: resolve_namespace_member(ctx, namespace_symbol, field_expr.field)
-            // A GENERIC member (`io.println` → `println<T: Display>`) must harvest
-            // its monomorphic instance + point the callee at the mangle, exactly
-            // as the direct-ident path does — otherwise the bare member symbol is
-            // unresolved at emit (GATE-B1). The member's generic signature lives in
-            // its OWN module's `decl_types` (the namespace member-type table holds
-            // only type-kind members, not fns), reached cross-module via
-            // `lookup_fn_type_anywhere`.
-            member_ty :: lookup_fn_type_anywhere(ctx, member_symbol)
-            if member_ty is FnType as member_ft {
-                generic_form :: emit_generic_fn_call(ctx, call, type, member_symbol, member_ft, field_expr.span)
-                if generic_form != null { return generic_form }
-            }
-            // A non-generic member reached only through the namespace form
-            // (`io.println`) still needs harvesting — its owning module is
-            // lowered lazily (every non-entry module is), so without this its
-            // body is never reserved and the call is unresolved at emit.
-            register_nongeneric_imported_fn(ctx, member_symbol)
-            args: LoweredExpr[] = []
-            for call_arg in call.args { args.push(lower_expr(ctx, call_arg.value)) }
-            return LoweredCall {
-                .span = call.span, .type = type,
-                .callee = LoweredIdent {
-                    .span = field_expr.span, .type = type, .symbol = member_symbol,
-                },
-                .args = args,
-            }
+    if callee is FieldExpr as field_expr {
+        namespace_symbol :: as_namespace_binding(ctx, field_expr.target)
+        if namespace_symbol is null { return null }
+        member_symbol :: resolve_namespace_member(ctx, namespace_symbol, field_expr.field)
+        // A GENERIC member (`io.println` → `println<T: Display>`) must harvest
+        // its monomorphic instance + point the callee at the mangle, exactly
+        // as the direct-ident path does — otherwise the bare member symbol is
+        // unresolved at emit (GATE-B1). The member's generic signature lives in
+        // its OWN module's `decl_types` (the namespace member-type table holds
+        // only type-kind members, not fns), reached cross-module via
+        // `lookup_fn_type_anywhere`.
+        member_ty :: lookup_fn_type_anywhere(ctx, member_symbol)
+        if member_ty is FnType as member_ft {
+            generic_form :: emit_generic_fn_call(ctx, call, type, member_symbol, member_ft, field_expr.span)
+            if generic_form != null { return generic_form }
         }
-        _ -> { return null }
+        // A non-generic member reached only through the namespace form
+        // (`io.println`) still needs harvesting — its owning module is
+        // lowered lazily (every non-entry module is), so without this its
+        // body is never reserved and the call is unresolved at emit.
+        register_nongeneric_imported_fn(ctx, member_symbol)
+        args: LoweredExpr[] = []
+        for call_arg in call.args { args.push(lower_expr(ctx, call_arg.value)) }
+        return LoweredCall {
+            .span = call.span, .type = type,
+            .callee = LoweredIdent {
+                .span = field_expr.span, .type = type, .symbol = member_symbol,
+            },
+            .args = args,
+        }
     }
+    return null
 }
 
 as_ident :: fn(expr: Expr) -> IdentExpr | null {
-    match expr {
-        is IdentExpr as ident -> { return ident }
-        _ -> { return null }
-    }
+    if expr is IdentExpr as ident { return ident }
+    return null
 }
 
 // Resolve `<namespace>.<name>` to the member's REAL symbol in the namespace's
@@ -432,10 +408,14 @@ fold_bytes_len :: fn(ctx: FnLowerCtx, target: LoweredExpr, span: Span) -> Lowere
 // array intrinsic — caller falls back to the generic call path.
 try_lower_array_op :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
     callee :: call.callee
-    match callee {
+    // @partial: only a `recv.field(args)` (FieldExpr callee) can be an array op;
+    // every other Expr callee → null (caller falls back to the generic path).
+    @partial match callee {
         is FieldExpr as field_expr -> {
             target_type :: ctx.types.expr_type(field_expr.target)
-            match target_type {
+            // @partial: only an ArrayType receiver carries the array intrinsics;
+            // every other Type → null.
+            @partial match target_type {
                 is ArrayType -> {
                     if field_expr.field == "len" && call.args.len() == 0 {
                         len_target :: lower_expr(ctx, field_expr.target)

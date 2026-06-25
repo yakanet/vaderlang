@@ -38,8 +38,6 @@ strip_error_variants :: fn(t: Type, typed: TypedProgram) -> Type {
 // `TraitType` is handled separately because trait symbols don't live in
 // `struct_implemented_traits` — only their concrete implementers do.
 is_error_like :: fn(t: Type, typed: TypedProgram) -> bool {
-    match t {
-        is TraitType as tr -> { return tr.symbol.name == TRAIT_ERROR }
-        _ -> { return struct_implements_trait(t, TRAIT_ERROR, typed) }
-    }
+    if t is TraitType as tr { return tr.symbol.name == TRAIT_ERROR }
+    return struct_implements_trait(t, TRAIT_ERROR, typed)
 }

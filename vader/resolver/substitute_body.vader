@@ -43,8 +43,11 @@ export substitute_block :: fn(b: AST.BlockExpr, subst: Subst) -> AST.BlockExpr {
 /// Clone an Expr, dispatching to `substitute_type_expr` for variants
 /// already handled there (type-position shapes), recursing into
 /// value-position children for the rest.
+// @partial: sketch coverage — the TODO'd value variants (LambdaExpr, StructLitExpr,
+// SeqLitExpr, RangeExpr, TryExpr, CastExpr, IntrinsicCallExpr, DotVariantExpr,
+// StringLitExpr) pass through unchanged until the walker is completed.
 export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
-    match e {
+    @partial match e {
         // Leaves : reuse the original. No TypeParam refs possible.
         is AST.IntLitExpr -> { return e }
         is AST.FloatLitExpr -> { return e }
@@ -171,8 +174,10 @@ export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
 }
 
 /// Clone a Stmt, recursing into child Exprs.
+// @partial: sketch coverage — the TODO'd DeferStmt passes through unchanged until
+// the walker is completed.
 export substitute_stmt :: fn(s: AST.Stmt, subst: Subst) -> AST.Stmt {
-    match s {
+    @partial match s {
         is AST.LetStmt as ls -> {
             new_ty: AST.TypeExpr | null = null
             match ls.ty {
@@ -273,8 +278,11 @@ clone_let_binding :: fn(b: AST.LetBinding) -> AST.LetBinding {
 }
 
 /// Clone a Pattern, substituting TypeExprs inside `is T` patterns.
+// @partial: sketch coverage — the TODO'd patterns (StructPattern, TuplePattern,
+// LiteralPattern, EnumVariantPattern) and the childless WildcardPattern /
+// BindingPattern pass through unchanged.
 export substitute_pattern :: fn(p: AST.Pattern, subst: Subst) -> AST.Pattern {
-    match p {
+    @partial match p {
         is AST.IsPattern as ip -> {
             new_inner: AST.Pattern | null = null
             match ip.inner {

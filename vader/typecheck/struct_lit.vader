@@ -24,16 +24,12 @@ export infer_struct_lit :: fn(
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> Type {
     ty :: type_from_expr(e.type_name, typed.resolved, diags)
-    match ty {
-        is StructType as st -> { return check_struct_body(e, st, typed, diags, check_expr_fn) }
-        _ -> {
-            diags.push(typecheck_error(.TypeMismatch, e.type_name.span,
-                "${display_type(ty)} is not a struct"))
-            // Still type every item so nested diagnostics surface.
-            for item in e.items { check_item_no_expected(item, typed, diags, check_expr_fn) }
-            return ty
-        }
-    }
+    if ty is StructType as st { return check_struct_body(e, st, typed, diags, check_expr_fn) }
+    diags.push(typecheck_error(.TypeMismatch, e.type_name.span,
+        "${display_type(ty)} is not a struct"))
+    // Still type every item so nested diagnostics surface.
+    for item in e.items { check_item_no_expected(item, typed, diags, check_expr_fn) }
+    return ty
 }
 
 check_struct_body :: fn(
@@ -149,7 +145,9 @@ import "vader/resolver/symbol" { new_factory }
 struct_lit_check_stub :: fn(
     e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
-    match e {
+    // @partial: test stub — only the literal / ident / struct-lit expr kinds the
+    // struct-lit tests build are typed; every other Expr is irrelevant → unresolved.
+    @partial match e {
         is AST.IntLitExpr    as x -> { return narrow_for_expected(infer_int_lit(x), expected) }
         is AST.StringLitExpr as x -> { return infer_string_lit(x) }
         is AST.IdentExpr     as x -> { return infer_ident(x, typed) }

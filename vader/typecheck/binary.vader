@@ -127,22 +127,20 @@ check_arith :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgra
     if method_name == "" { return numeric_result(e, left, right, diags) }
     base :: type_base_name(left)
     method :: typed.impl_methods["${base}::${method_name}"]
-    match method {
-        is FnType as ft -> {
-            // Check the right operand against the impl's `other` (Rhs) param —
-            // `ufcs_method_type` drops `self`, so the Rhs is `params[0]`. Without
-            // this, a wrong-typed RHS passes the typer and panics at lowering.
-            if ft.params.len() > 0 {
-                rhs :: substitute_self_in(ft.params[0], left)
-                if !is_assignable(right, rhs, null) {
-                    diags.push(typecheck_error(.OperatorNotDefined, e.right.span,
-                        "operator ${method_name} on ${display_type(left)} expects ${display_type(rhs)} on the right, found ${display_type(right)}"))
-                }
+    if method is FnType as ft {
+        // Check the right operand against the impl's `other` (Rhs) param —
+        // `ufcs_method_type` drops `self`, so the Rhs is `params[0]`. Without
+        // this, a wrong-typed RHS passes the typer and panics at lowering.
+        if ft.params.len() > 0 {
+            rhs :: substitute_self_in(ft.params[0], left)
+            if !is_assignable(right, rhs, null) {
+                diags.push(typecheck_error(.OperatorNotDefined, e.right.span,
+                    "operator ${method_name} on ${display_type(left)} expects ${display_type(rhs)} on the right, found ${display_type(right)}"))
             }
-            return substitute_self_in(ft.return_type, left)
         }
-        _ -> { return numeric_result(e, left, right, diags) }
+        return substitute_self_in(ft.return_type, left)
     }
+    return numeric_result(e, left, right, diags)
 }
 
 arith_trait_method :: fn(op: AST.BinaryOp) -> string {
@@ -155,10 +153,8 @@ arith_trait_method :: fn(op: AST.BinaryOp) -> string {
 }
 
 substitute_self_in :: fn(t: Type, self_ty: Type) -> Type {
-    match t {
-        is SelfType -> { return self_ty }
-        _ -> { return t }
-    }
+    if t is SelfType { return self_ty }
+    return t
 }
 
 import "vader/types" { SelfType }
@@ -252,7 +248,9 @@ check_is_overlap :: fn(
 }
 
 is_resolved_enough :: fn(t: Type) -> bool {
-    match t {
+    // @partial: overlap is undecidable only for the four open / abstract
+    // variants below; every concrete variant is resolved enough to check.
+    @partial match t {
         is UnresolvedType -> { return false }
         is TypeParamType -> { return false }
         is TypeMetaType  -> { return false }
@@ -344,11 +342,9 @@ numeric_propagation :: fn(op: AST.BinaryOp, left: Type) -> Type | null {
 }
 
 is_enum_like :: fn(t: Type) -> bool {
-    match t {
-        is EnumType -> { return true }
-        is StructType as st -> { return i32(st.symbol.kind) == i32(SymbolKind.Enum) }
-        _ -> { return false }
-    }
+    if t is EnumType { return true }
+    if t is StructType as st { return i32(st.symbol.kind) == i32(SymbolKind.Enum) }
+    return false
 }
 
 // The outer `expected` as an operand context — only for Arith / Bitwise, where
@@ -358,9 +354,13 @@ is_enum_like :: fn(t: Type) -> bool {
 op_expected_ctx :: fn(op: AST.BinaryOp, expected: Type | null) -> Type | null {
     if expected is null { return null }
     width_carrying :: match classify(op) {
-        .Arith   -> true
-        .Bitwise -> true
-        _        -> false
+        .Arith    -> true
+        .Bitwise  -> true
+        .Compare  -> false
+        .Equality -> false
+        .Logical  -> false
+        .Is       -> false
+        .In       -> false
     }
     if !width_carrying { return null }
     if expected is PrimitiveType as p {
@@ -455,10 +455,8 @@ is_numeric :: fn(t: Type) -> bool {
 }
 
 is_metatype :: fn(t: Type) -> bool {
-    match t {
-        is TypeMetaType -> { return true }
-        _ -> { return false }
-    }
+    if t is TypeMetaType { return true }
+    return false
 }
 
 import "vader/types" { TypeMetaType }
@@ -498,7 +496,9 @@ import "vader/resolver/symbol" { new_factory }
 binary_check_stub :: fn(
     e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
-    match e {
+    // @partial: test stub — only the literal / ident / binary expr kinds the
+    // binary tests build are typed; every other Expr is irrelevant → unresolved.
+    @partial match e {
         is AST.IntLitExpr    as x -> { return narrow(infer_int_lit(x), expected) }
         is AST.StringLitExpr as x -> { return infer_string_lit(x) }
         is AST.IdentExpr     as x -> { return infer_ident(x, typed) }

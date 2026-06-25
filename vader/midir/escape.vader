@@ -19,13 +19,13 @@ import "std/collections" { MutableMap, MutableSet, add }
 import "std/iter" { slice }
 
 export EscapeStats :: struct {
-    total_allocs:    i32
-    stack_promoted:  i32
+    total_allocs: i32
+    stack_promoted: i32
 }
 
 export AnnotatedProject :: struct {
     project: CFGProject
-    stats:   EscapeStats
+    stats: EscapeStats
 }
 
 /// Walk every fn in `p`, escape-analyse it, and rewrite StructNew /
@@ -35,7 +35,8 @@ export annotate_escape :: fn(p: CFGProject) -> AnnotatedProject {
     total_allocs := 0
     stack_promoted := 0
     modules :: MutableMap<string, CFGModule> {}
-    for [_, m] in p.modules {
+    for __for_38_5 in p.modules {
+        [_, m] :: __for_38_5
         functions: CFGFunction[] = []
         for fn_ in m.functions {
             annotated :: annotate_function(fn_)
@@ -56,24 +57,9 @@ export annotate_escape :: fn(p: CFGProject) -> AnnotatedProject {
             }
             functions.push(annotated)
         }
-        modules[m.module_id] = CFGModule {
-            .module_id    = m.module_id,
-            .display_path = m.display_path,
-            .functions    = functions,
-            .externs      = m.externs,
-            .struct_decls = m.struct_decls,
-        }
+        modules[m.module_id] = CFGModule { .module_id = m.module_id, .display_path = m.display_path, .functions = functions, .externs = m.externs, .struct_decls = m.struct_decls }
     }
-    return AnnotatedProject {
-        .project = CFGProject {
-            .modules          = modules,
-            .vtable_entries   = p.vtable_entries,
-            .strings          = p.strings,
-            .data_pool        = p.data_pool,
-            .symbol_redirects = p.symbol_redirects,
-        },
-        .stats = EscapeStats { .total_allocs = total_allocs, .stack_promoted = stack_promoted },
-    }
+    return AnnotatedProject { .project = CFGProject { .modules = modules, .vtable_entries = p.vtable_entries, .strings = p.strings, .data_pool = p.data_pool, .symbol_redirects = p.symbol_redirects }, .stats = EscapeStats { .total_allocs = total_allocs, .stack_promoted = stack_promoted } }
 }
 
 annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
@@ -82,20 +68,21 @@ annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
     struct_news: LocalId[] = []
     for b in fn_.blocks {
         for ins in b.instructions {
-            // @partial: only struct/array allocs seed alloc_locals; other instrs are irrelevant.
             @partial match ins {
-                is InstrStructNew as s -> { alloc_locals.add(s.dst)
-                struct_news.push(s.dst) }
-                is InstrArrayNew  as a -> { alloc_locals.add(a.dst) }
+                is InstrStructNew as s -> {
+                    // @partial: only struct/array allocs seed alloc_locals; other instrs are irrelevant.
+
+                    alloc_locals.add(s.dst)
+                    struct_news.push(s.dst)
+                }
+                is InstrArrayNew as a -> { alloc_locals.add(a.dst) }
                 _ -> {}
             }
         }
     }
     if alloc_locals.is_empty() { return fn_ }
-
     res :: compute_escaping(fn_, alloc_locals)
     carried :: compute_carried_across_loop_headers(fn_, res.alias_of)
-
     // Forward-propagate `barrierless` through Move/Cast. A Move/Cast
     // with any non-stack source stays out — one heap origin requires
     // the barrier.
@@ -111,31 +98,26 @@ annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
         src :: worklist[worklist.len() - 1]
         worklist = worklist.slice(0, worklist.len() - 1)
         consumers :: res.alias_from[src]
-        match consumers {
-            is null -> {}
-            _ -> {
-                for dst in consumers {
-                    if stack_origin.contains(dst) { continue }
-                    sources :: res.alias_of[dst]
-                    match sources {
-                        is null -> {}
-                        _ -> {
-                            all_stack := true
-                            for s in sources {
-                                if !stack_origin.contains(s) { all_stack = false
-                break }
-                            }
-                            if all_stack {
-                                stack_origin.add(dst)
-                                worklist.push(dst)
-                            }
+        if consumers !is null {
+            for dst in consumers {
+                if stack_origin.contains(dst) { continue }
+                sources :: res.alias_of[dst]
+                if sources !is null {
+                    all_stack := true
+                    for s in sources {
+                        if !stack_origin.contains(s) {
+                            all_stack = false
+                            break
                         }
+                    }
+                    if all_stack {
+                        stack_origin.add(dst)
+                        worklist.push(dst)
                     }
                 }
             }
         }
     }
-
     // Rewrite blocks if any flag changed.
     mutated := false
     new_blocks: BasicBlock[] = []
@@ -145,89 +127,80 @@ annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
         for ins in b.instructions {
             match ins {
                 is InstrStructNew as s -> {
-                    if !alloc_locals.contains(s.dst) { new_instrs.push(s)
-                continue }
+                    if !alloc_locals.contains(s.dst) {
+                        new_instrs.push(s)
+                        continue
+                    }
                     new_stack :: !res.escaping.contains(s.dst) && !carried.contains(s.dst)
-                    if new_stack == s.stack { new_instrs.push(s)
-                continue }
+                    if new_stack == s.stack {
+                        new_instrs.push(s)
+                        continue
+                    }
                     block_mutated = true
-                    new_instrs.push(InstrStructNew {
-                        .span   = s.span, .dst = s.dst, .type = s.type,
-                        .fields = s.fields, .stack = new_stack,
-                    })
+                    new_instrs.push(InstrStructNew { .span = s.span, .dst = s.dst, .type = s.type, .fields = s.fields, .stack = new_stack })
                 }
                 is InstrArrayNew as a -> {
-                    if !alloc_locals.contains(a.dst) { new_instrs.push(a)
-                continue }
+                    if !alloc_locals.contains(a.dst) {
+                        new_instrs.push(a)
+                        continue
+                    }
                     new_stack :: !res.escaping.contains(a.dst) && !carried.contains(a.dst)
-                    if new_stack == a.stack { new_instrs.push(a)
-                continue }
+                    if new_stack == a.stack {
+                        new_instrs.push(a)
+                        continue
+                    }
                     block_mutated = true
-                    new_instrs.push(InstrArrayNew {
-                        .span     = a.span, .dst = a.dst, .type = a.type,
-                        .length   = a.length, .elements = a.elements, .stack = new_stack,
-                    })
+                    new_instrs.push(InstrArrayNew { .span = a.span, .dst = a.dst, .type = a.type, .length = a.length, .elements = a.elements, .stack = new_stack })
                 }
                 is InstrFieldSet as f -> {
                     barrierless :: stack_origin.contains(f.target)
-                    if barrierless == f.barrierless { new_instrs.push(f)
-                continue }
+                    if barrierless == f.barrierless {
+                        new_instrs.push(f)
+                        continue
+                    }
                     block_mutated = true
-                    new_instrs.push(InstrFieldSet {
-                        .span = f.span, .target = f.target, .field = f.field,
-                        .value = f.value, .barrierless = barrierless,
-                    })
+                    new_instrs.push(InstrFieldSet { .span = f.span, .target = f.target, .field = f.field, .value = f.value, .barrierless = barrierless })
                 }
                 _ -> { new_instrs.push(ins) }
             }
         }
-        if !block_mutated { new_blocks.push(b)
-                continue }
+        if !block_mutated {
+            new_blocks.push(b)
+            continue
+        }
         mutated = true
-        new_blocks.push(BasicBlock {
-            .id = b.id, .instructions = new_instrs, .terminator = b.terminator, .span = b.span,
-        })
+        new_blocks.push(BasicBlock { .id = b.id, .instructions = new_instrs, .terminator = b.terminator, .span = b.span })
     }
     if !mutated { return fn_ }
-    return CFGFunction {
-        .mangled     = fn_.mangled,     .params      = fn_.params,
-        .return_type = fn_.return_type, .locals      = fn_.locals,
-        .blocks      = new_blocks,       .entry       = fn_.entry,
-        .origin      = fn_.origin,       .extern_name = fn_.extern_name,
-        .is_extern   = fn_.is_extern,    .is_exported = fn_.is_exported,
-    }
+    return CFGFunction { .mangled = fn_.mangled, .params = fn_.params, .return_type = fn_.return_type, .locals = fn_.locals, .blocks = new_blocks, .entry = fn_.entry, .origin = fn_.origin, .extern_name = fn_.extern_name, .is_extern = fn_.is_extern, .is_exported = fn_.is_exported }
 }
 
 // ---- loop-carried detection ----------------------------------------------
 
-compute_carried_across_loop_headers :: fn(
-    fn_: CFGFunction, alias_of: MutableMap<LocalId, LocalId[]>,
-) -> MutableSet<LocalId> {
+compute_carried_across_loop_headers :: fn(fn_: CFGFunction, alias_of: MutableMap<LocalId, LocalId[]>) -> MutableSet<LocalId> {
     carried :: MutableSet<LocalId> {}
     preds :: predecessors_of(fn_)
     idom :: compute_dominators(fn_, preds)
     loops :: natural_loop_bodies(fn_, preds, idom)
     if loops.is_empty() { return carried }
-
     live :: compute_liveness(fn_)
-
     // Seed : intersect liveIn[header] with locals defined in the loop body.
-    for [header, _] in loops {
+    for __for_236_5 in loops {
+        [header, _] :: __for_236_5
         body :: loops[header]
         if body is null { continue }
         defs_in_body :: MutableSet<LocalId> {}
         for b_id in body {
-            block :: fn_.blocks[b_id]
+            block :: fn_.blocks[i32(b_id)]
             for ins in block.instructions {
                 d :: dst_of(ins)
                 if d != null { defs_in_body.add(d) }
             }
         }
-        for l in live.live_in[header] {
+        for l in live.live_in[i32(header)] {
             if defs_in_body.contains(l) { carried.add(l) }
         }
     }
-
     // Backward-propagate via alias_of.
     work: LocalId[] = []
     for l in carried { work.push(l) }
@@ -235,14 +208,11 @@ compute_carried_across_loop_headers :: fn(
         cur :: work[work.len() - 1]
         work = work.slice(0, work.len() - 1)
         producers :: alias_of[cur]
-        match producers {
-            is null -> {}
-            _ -> {
-                for p in producers {
-                    if carried.contains(p) { continue }
-                    carried.add(p)
-                    work.push(p)
-                }
+        if producers !is null {
+            for p in producers {
+                if carried.contains(p) { continue }
+                carried.add(p)
+                work.push(p)
             }
         }
     }
@@ -252,44 +222,54 @@ compute_carried_across_loop_headers :: fn(
 // ---- escape worklist ------------------------------------------------------
 
 EscapeResult :: struct {
-    escaping:   MutableSet<LocalId>
-    alias_of:   MutableMap<LocalId, LocalId[]>
+    escaping: MutableSet<LocalId>
+    alias_of: MutableMap<LocalId, LocalId[]>
     alias_from: MutableMap<LocalId, LocalId[]>
 }
 
 compute_escaping :: fn(fn_: CFGFunction, alloc_locals: MutableSet<LocalId>) -> EscapeResult {
-    escaping  :: MutableSet<LocalId> {}
-    alias_of   :: MutableMap<LocalId, LocalId[]> {}
+    escaping :: MutableSet<LocalId> {}
+    alias_of :: MutableMap<LocalId, LocalId[]> {}
     alias_from :: MutableMap<LocalId, LocalId[]> {}
-
     for b in fn_.blocks {
         for ins in b.instructions {
-            // @partial: only reference-carrying instrs have an escape effect; others have none.
             @partial match ins {
-                is InstrMove      as m -> { record_alias(alias_of, alias_from, m.dst, m.src) }
-                is InstrCast      as c -> { record_alias(alias_of, alias_from, c.dst, c.value) }
-                is InstrFieldSet  as f -> { escaping.add(f.value) }
-                is InstrArraySet  as a -> { escaping.add(a.value)
-                escaping.add(a.target) }
-                is InstrArrayPush as a -> { escaping.add(a.value)
-                escaping.add(a.target) }
+                is InstrMove as m -> { record_alias(alias_of, alias_from, m.dst, m.src) }
+                is InstrCast as c -> { record_alias(alias_of, alias_from, c.dst, c.value) }
+                is InstrFieldSet as f -> { escaping.add(f.value) }
+                is InstrArraySet as a -> {
+                    // @partial: only reference-carrying instrs have an escape effect; others have none.
+
+                    escaping.add(a.value)
+                    escaping.add(a.target)
+                }
+                is InstrArrayPush as a -> {
+                    escaping.add(a.value)
+                    escaping.add(a.target)
+                }
                 is InstrArraySlice as s -> {
                     escaping.add(s.target)
-                escaping.add(s.lo)
-                escaping.add(s.hi)
+                    escaping.add(s.lo)
+                    escaping.add(s.hi)
                 }
-                is InstrCellNew  as c -> { escaping.add(c.value) }
-                is InstrCellSet  as c -> { escaping.add(c.value)
-                escaping.add(c.cell) }
-                is InstrCall          as c -> { for a in c.args { escaping.add(a) } }
-                is InstrCallIndirect  as c -> { escaping.add(c.callee)
-                for a in c.args { escaping.add(a) } }
-                is InstrVirtualCall   as c -> { escaping.add(c.receiver)
-                for a in c.args { escaping.add(a) } }
-                is InstrIntrinsic     as c -> { for a in c.args { escaping.add(a) } }
-                is InstrMakeClosure   as c -> { escaping.add(c.env) }
-                is InstrStructNew     as s -> { for f in s.fields { append_alias(alias_of, s.dst, f) } }
-                is InstrArrayNew      as a -> { for e in a.elements { append_alias(alias_of, a.dst, e) } }
+                is InstrCellNew as c -> { escaping.add(c.value) }
+                is InstrCellSet as c -> {
+                    escaping.add(c.value)
+                    escaping.add(c.cell)
+                }
+                is InstrCall as c -> { for a in c.args { escaping.add(a) } }
+                is InstrCallIndirect as c -> {
+                    escaping.add(c.callee)
+                    for a in c.args { escaping.add(a) }
+                }
+                is InstrVirtualCall as c -> {
+                    escaping.add(c.receiver)
+                    for a in c.args { escaping.add(a) }
+                }
+                is InstrIntrinsic as c -> { for a in c.args { escaping.add(a) } }
+                is InstrMakeClosure as c -> { escaping.add(c.env) }
+                is InstrStructNew as s -> { for f in s.fields { append_alias(alias_of, s.dst, f) } }
+                is InstrArrayNew as a -> { for e in a.elements { append_alias(alias_of, a.dst, e) } }
                 _ -> {}
             }
         }
@@ -297,7 +277,6 @@ compute_escaping :: fn(fn_: CFGFunction, alloc_locals: MutableSet<LocalId>) -> E
             if r.value != null { escaping.add(r.value) }
         }
     }
-
     // Backward propagation : if dst escapes and aliases src, src escapes too.
     work: LocalId[] = []
     for l in escaping { work.push(l) }
@@ -305,18 +284,14 @@ compute_escaping :: fn(fn_: CFGFunction, alloc_locals: MutableSet<LocalId>) -> E
         cur :: work[work.len() - 1]
         work = work.slice(0, work.len() - 1)
         sources :: alias_of[cur]
-        match sources {
-            is null -> {}
-            _ -> {
-                for s in sources {
-                    if escaping.contains(s) { continue }
-                    escaping.add(s)
-                    work.push(s)
-                }
+        if sources !is null {
+            for s in sources {
+                if escaping.contains(s) { continue }
+                escaping.add(s)
+                work.push(s)
             }
         }
     }
-
     // Restrict the escape set to alloc locals only.
     alloc_escaping :: MutableSet<LocalId> {}
     for a in alloc_locals {
@@ -333,10 +308,7 @@ append_alias :: fn(map: MutableMap<LocalId, LocalId[]>, dst: LocalId, src: Local
     }
 }
 
-record_alias :: fn(
-    alias_of: MutableMap<LocalId, LocalId[]>, alias_from: MutableMap<LocalId, LocalId[]>,
-    dst: LocalId, src: LocalId,
-) -> void {
+record_alias :: fn(alias_of: MutableMap<LocalId, LocalId[]>, alias_from: MutableMap<LocalId, LocalId[]>, dst: LocalId, src: LocalId) -> void {
     append_alias(alias_of, dst, src)
     append_alias(alias_from, src, dst)
 }

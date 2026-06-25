@@ -136,14 +136,17 @@ export infer_match :: fn(
     }
     // W0005 — a wildcard arm on a closed union silences the T3013 check above,
     // so a newly added variant degrades silently into `_` instead of erroring
-    // (the bug class CLAUDE.md §6 forbids). A value-producing match must
-    // enumerate every variant, or opt out with `@partial`. Statement matches
-    // (arms all return / do nothing → void/never result) and open scrutinees
-    // (i32 / string / …) are exempt.
+    // (the bug class CLAUDE.md §6 forbids). Any match that CONTRIBUTES A VALUE
+    // must enumerate every variant or opt out with `@partial`. This includes the
+    // `return`-per-arm form (every arm diverges → result_ty is `never`), which is
+    // the dominant compiler style and the one that hid the `type_base_name` /
+    // `bc_type_of` footguns — so `never` is NOT exempt. Only a genuine void
+    // statement match (`_ -> {}`, side-effects only) and open scrutinees
+    // (i32 / string / …) stay out of scope.
     result_ty :: union_of(arm_types)
     // `has_wildcard` is only set by a wildcard / binding arm, so it already
     // implies ≥ 1 arm — no explicit arm-count guard needed.
-    if has_wildcard && !e.partial && !e.unreachable && !is_void(result_ty) && !is_never(result_ty) {
+    if has_wildcard && !e.partial && !e.unreachable && !is_void(result_ty) {
         if scrut_ty is UnionType || scrut_ty is EnumType {
             diags.push(warning(.WildcardOnClosedUnion, e.span,
                 "wildcard arm on closed union `${display_type(scrut_ty)}` — enumerate its variants or mark the match `@partial`"))
@@ -193,13 +196,16 @@ missing_enum_variant_name :: fn(
 }
 
 is_never :: fn(t: Type) -> bool {
-    match t { is NeverType -> { return true } _ -> { return false } }
+    if t is NeverType { return true }
+    return false
 }
 
 import "vader/types" { NeverType, TY_NEVER }
 
 arm_narrow_for :: fn(p: AST.Pattern, remaining: Type, typed: TypedProgram) -> Type | null {
-    match p {
+    // @partial: only `is T` / wildcard / binding arms narrow the scrutinee;
+    // literal / enum-variant / struct / tuple patterns carry no slot narrowing.
+    @partial match p {
         is AST.IsPattern as ip -> { return type_from_expr(ip.ty, typed.resolved, scratch_diags()) }
         is AST.WildcardPattern -> { return remaining }
         is AST.BindingPattern  -> { return remaining }
@@ -209,7 +215,9 @@ arm_narrow_for :: fn(p: AST.Pattern, remaining: Type, typed: TypedProgram) -> Ty
 
 
 is_overlap_checkable :: fn(t: Type) -> bool {
-    match t {
+    // @partial: overlap is undecidable only for the four open / abstract
+    // variants below; every concrete variant has a checkable value domain.
+    @partial match t {
         is UnresolvedType -> { return false }
         is TypeParamType -> { return false }
         is TypeMetaType -> { return false }
@@ -312,7 +320,9 @@ scratch_diags :: fn() -> Diagnostic[] { return [] }
 /// `arity` elements. Falls back to the bare `TupleType` when `t` is
 /// one ; returns null when neither path matches.
 pick_tuple_variant :: fn(t: Type, arity: usize) -> TupleType | null {
-    match t {
+    // @partial: a tuple variant of the given arity can only live in a bare
+    // TupleType or a union of them; no other type kind carries one.
+    @partial match t {
         is TupleType as tu -> {
             if tu.elements.len() == arity { return tu }
             return null
@@ -346,7 +356,9 @@ import "vader/diagnostics" { empty_span }
 match_expr_check_stub :: fn(
     e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
-    match e {
+    // @partial: test stub — only the literal / ident / match expr kinds the
+    // match tests build are typed; every other Expr is irrelevant → unresolved.
+    @partial match e {
         is AST.IntLitExpr    as x -> { return narrow_for_expected(infer_int_lit(x), expected) }
         is AST.BoolLitExpr   as x -> { return infer_bool_lit(x) }
         is AST.StringLitExpr as x -> { return infer_string_lit(x) }

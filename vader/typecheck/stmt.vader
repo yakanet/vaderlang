@@ -196,7 +196,9 @@ lookup_decl_symbol_stmt :: fn(resolved: ResolvedModule, fd: AST.FnDecl) -> Symbo
 }
 
 contains_unresolved :: fn(t: Type) -> bool {
-    match t {
+    // @partial: only the composite type variants can carry an Unresolved leaf;
+    // every scalar / primitive variant is unresolved-free, so `false` is right.
+    @partial match t {
         is UnresolvedType -> { return true }
         is UnionType as u -> {
             for v in u.variants { if contains_unresolved(v) { return true } }
@@ -684,26 +686,24 @@ diag_sink_stmt :: fn() -> Diagnostic[] { return [] }
 // Iterator(T) wrappers). Otherwise probes `typed.iter_element_types`
 // for the indexed `X implements Iterator(T)` impl.
 for_in_element :: fn(iter_ty: Type, typed: TypedProgram) -> Type {
-    match iter_ty {
+    // @partial: only arrays and structs (T[], Range, Iterator(T) wrappers) are
+    // iterable here; every other type yields an unresolved element.
+    @partial match iter_ty {
         is ArrayType as a -> { return a.element }
         is StructType as st -> {
             elem :: typed.iter_element_types[st.symbol.name]
-            match elem {
-                is null -> {
-                    if st.args.len() >= 1 { return st.args[0] }
-                    return TY_UNRESOLVED
-                }
-                _ -> {
-                    // Substitute the impl's TypeParam against the
-                    // struct's declared type_params + concrete args
-                    // (`Range[T] implements Iterator[T]` records the
-                    // impl-side `T` — substitute_by_name swaps it
-                    // for the call-site's concrete arg by name).
-                    decl :: typed.struct_decls[st.symbol.id]
-                    if decl is null { return elem }
-                    return substitute_by_name(elem, decl.type_params, st.args)
-                }
+            if elem == null {
+                if st.args.len() >= 1 { return st.args[0] }
+                return TY_UNRESOLVED
             }
+            // Substitute the impl's TypeParam against the
+            // struct's declared type_params + concrete args
+            // (`Range[T] implements Iterator[T]` records the
+            // impl-side `T` — substitute_by_name swaps it
+            // for the call-site's concrete arg by name).
+            decl :: typed.struct_decls[st.symbol.id]
+            if decl is null { return elem }
+            return substitute_by_name(elem, decl.type_params, st.args)
         }
         _ -> { return TY_UNRESOLVED }
     }
@@ -717,10 +717,8 @@ lookup_return_type :: fn(fn_decl: AST.FnDecl, typed: TypedProgram) -> Type {
         is null        -> typed.impl_method_decl_types[fn_decl.name_span.hash()]
     }
     if decl_ty is null { return TY_UNRESOLVED }
-    match decl_ty {
-        is FnType as f -> { return f.return_type }
-        _ -> { return TY_UNRESOLVED }
-    }
+    if decl_ty is FnType as f { return f.return_type }
+    return TY_UNRESOLVED
 }
 
 /// Walk a let-binding tree and write the inferred / declared type into
@@ -854,7 +852,9 @@ stub_check_module :: fn(src: string) -> StubResult {
 stmt_check_stub :: fn(
     e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
-    match e {
+    // @partial: test stub — only the literal / ident expr kinds the inline
+    // tests build are typed; every other Expr is irrelevant here → unresolved.
+    @partial match e {
         is AST.IntLitExpr    as x -> { return narrow_for_expected(infer_int_lit(x), expected) }
         is AST.StringLitExpr as x -> { return infer_string_lit(x) }
         is AST.IdentExpr     as x -> { return infer_ident(x, typed) }

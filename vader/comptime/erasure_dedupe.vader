@@ -113,32 +113,30 @@ build_dedupe_ctx :: fn(
 should_erase :: fn(entry: MonoEntry, ctx: DedupeCtx) -> bool {
     if entry.type_arguments.len() == 0 { return false }
     if is_specialized(entry.decl) { return false }
-    match entry.decl {
-        is FnDecl as f -> {
-            host_impl_opt :: ctx.member_to_impl[i32(f.id)]
-            if host_impl_opt is null { return true }
-            host_impl :: host_impl_opt
-            host_struct_opt :: resolve_host_struct(host_impl, ctx)
-            if host_struct_opt is null { return true }
-            host_struct :: host_struct_opt
-            if is_specialized(host_struct) { return false }
-            return true
-        }
-        _ -> { return true }
+    if entry.decl is FnDecl as f {
+        host_impl_opt :: ctx.member_to_impl[i32(f.id)]
+        if host_impl_opt is null { return true }
+        host_impl :: host_impl_opt
+        host_struct_opt :: resolve_host_struct(host_impl, ctx)
+        if host_struct_opt is null { return true }
+        host_struct :: host_struct_opt
+        if is_specialized(host_struct) { return false }
+        return true
     }
+    return true
 }
 
 /// Recover the host `StructDecl` from an impl's `for_type` clause.
 /// Handles both bare-ident form (`impl Foo`) and generic-inst form
 /// (`impl Foo[T]`). Returns `null` for the rare degenerate shapes.
 resolve_host_struct :: fn(impl_decl: ImplDecl, ctx: DedupeCtx) -> StructDecl | null {
-    match impl_decl.for_type {
+    // @partial: only bare-ident (`impl Foo`) and generic-inst (`impl Foo[T]`)
+    // for-types name a host struct; every other type-expr shape resolves to null.
+    @partial match impl_decl.for_type {
         is IdentExpr as ident -> { return ctx.struct_by_name[ident.name] }
         is GenericInstExpr as gi -> {
-            match gi.callee {
-                is IdentExpr as inner -> { return ctx.struct_by_name[inner.name] }
-                _ -> { return null }
-            }
+            if gi.callee is IdentExpr as inner { return ctx.struct_by_name[inner.name] }
+            return null
         }
         _ -> { return null }
     }

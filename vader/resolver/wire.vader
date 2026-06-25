@@ -105,10 +105,8 @@ wire_module :: fn(
 export resolve_import_redirect :: fn(sym: Symbol, table: ImportTargetTable) -> Symbol {
     if i32(sym.kind) != i32(import_binding_kind()) { return sym }
     st :: table.symbol_targets[sym.id]
-    match st {
-        is null -> { return sym }
-        _ -> { return st.symbol }
-    }
+    if st == null { return sym }
+    return st.symbol
 }
 
 import "vader/resolver/symbol" { SymbolKind }

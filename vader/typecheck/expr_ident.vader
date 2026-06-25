@@ -48,10 +48,8 @@ import "vader/resolver" { resolve_import_redirect }
 /// Follow an ImportBinding to its concrete export when the wire
 /// pass populated `typed.import_targets`. Other symbols pass through.
 redirect :: fn(sym: Symbol, typed: TypedProgram) -> Symbol {
-    match typed.import_targets {
-        is null -> { return sym }
-        _ -> { return resolve_import_redirect(sym, typed.import_targets) }
-    }
+    if typed.import_targets == null { return sym }
+    return resolve_import_redirect(sym, typed.import_targets)
 }
 
 /// Look up the value-position type of a resolved symbol via `typed`'s
@@ -110,14 +108,12 @@ lookup_decl :: fn(sym: Symbol, typed: TypedProgram) -> Type {
         return ext
     }
     local :: lookup_decl_in(sym, typed.decl_types)
-    match local {
-        is UnresolvedType -> {
-            ext :: typed.external_types[sym.id]
-            if ext is null { return TY_UNRESOLVED }
-            return ext
-        }
-        _ -> { return local }
+    if local is UnresolvedType {
+        ext :: typed.external_types[sym.id]
+        if ext is null { return TY_UNRESOLVED }
+        return ext
     }
+    return local
 }
 
 import "vader/types" { UnresolvedType }
@@ -152,19 +148,17 @@ check_test_module :: fn(src: string) -> CheckedSrc {
 // for the test fixtures here.
 infer_ident_in_first_fn :: fn(src: string, target: string) -> string {
     checked :: check_test_module(src)
-    match checked.program.decls[0] {
-        is AST.FnDecl as f -> {
-            match f.body {
-                is null -> { return "<no body>" }
-                is AST.BlockExpr as b -> {
-                    found :: scan_block_for_ident(b, target)
-                    if found is null { return "<not found>" }
-                    return display_type(infer_ident(found, checked.typed))
-                }
+    if checked.program.decls[0] is AST.FnDecl as f {
+        match f.body {
+            is null -> { return "<no body>" }
+            is AST.BlockExpr as b -> {
+                found :: scan_block_for_ident(b, target)
+                if found is null { return "<not found>" }
+                return display_type(infer_ident(found, checked.typed))
             }
         }
-        _ -> { return "<not a FnDecl>" }
     }
+    return "<not a FnDecl>"
 }
 
 // Name-keyed walker — kept local because `find_first_in_block`'s
@@ -187,12 +181,12 @@ scan_block_for_ident :: fn(b: AST.BlockExpr, target: string) -> AST.IdentExpr | 
 }
 
 scan_stmt_for_ident :: fn(s: AST.Stmt, target: string) -> AST.IdentExpr | null {
-    match s {
+    // @partial: test walker — only return / expr statements carry a scannable
+    // expression; let / assign / for / break / continue / defer are skipped.
+    @partial match s {
         is AST.ReturnStmt as r -> {
-            match r.value {
-                is null -> { return null }
-                _ -> { return scan_expr_for_ident(r.value, target) }
-            }
+            if r.value == null { return null }
+            return scan_expr_for_ident(r.value, target)
         }
         is AST.ExprStmt as es -> { return scan_expr_for_ident(es.expr, target) }
         _ -> { return null }

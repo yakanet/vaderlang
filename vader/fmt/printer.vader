@@ -212,22 +212,28 @@ emit_decl :: fn(self: Printer, d: p.Decl) -> void {
 // fns with a body (block or expression) don't — the existing stdlib
 // convention is single-space `::` for those.
 decl_is_alignable :: fn(d: p.Decl) -> bool {
-    match d {
+    // @partial: only signature-only fns and consts get column-aligned `::`
+    // slots ; imports, structs, enums, traits, impls, type aliases and
+    // asserts are never alignable, so any other decl kind → false.
+    @partial match d {
         is p.FnDecl as x -> {
             if x.sam_synthetic        { return false }
             if x.is_expression_bodied { return false }
             return x.body == null
         }
         is p.ConstDecl -> { return true }
-        _            -> { return false }
+        _              -> { return false }
     }
 }
 
 decl_alignable_name :: fn(d: p.Decl) -> string {
-    match d {
-        is p.FnDecl     as x -> { return x.name }
-        is p.ConstDecl  as x -> { return x.name }
-        _                  -> { return "" }
+    // @partial: only fns and consts have a name in an alignable `::` slot ;
+    // every other decl kind (import, struct, enum, trait, impl, type alias,
+    // assert) is never part of an alignment group, so it has no name → "".
+    @partial match d {
+        is p.FnDecl     -> { return d.name }
+        is p.ConstDecl  -> { return d.name }
+        _               -> { return "" }
     }
 }
 
@@ -249,24 +255,23 @@ decls_in_same_group :: fn(prev: p.Decl, cur: p.Decl) -> bool {
     if !decl_is_alignable(prev) { return false }
     if !decl_is_alignable(cur)  { return false }
     if decl_first_line(cur) != decl_span(prev).end.line + 1 { return false }
-    match prev {
+    // @partial: only fn and const groups are alignable (guarded above by
+    // `decl_is_alignable`) ; any other `prev` kind can never anchor a group,
+    // so it → false. `cur` must additionally match `prev`'s kind to extend.
+    @partial match prev {
         is p.FnDecl as pf -> {
-            match cur {
-                is p.FnDecl as cf -> {
-                    if pf.visibility != cf.visibility { return false }
-                    return decorators_equal(pf.decorators, cf.decorators)
-                }
-                _ -> { return false }
+            if cur is p.FnDecl as cf {
+                if pf.visibility != cf.visibility { return false }
+                return decorators_equal(pf.decorators, cf.decorators)
             }
+            return false
         }
         is p.ConstDecl as pc -> {
-            match cur {
-                is p.ConstDecl as cc -> {
-                    if pc.visibility != cc.visibility { return false }
-                    return decorators_equal(pc.decorators, cc.decorators)
-                }
-                _ -> { return false }
+            if cur is p.ConstDecl as cc {
+                if pc.visibility != cc.visibility { return false }
+                return decorators_equal(pc.decorators, cc.decorators)
             }
+            return false
         }
         _ -> { return false }
     }
@@ -1410,45 +1415,41 @@ emit_match :: fn(self: Printer, x: p.MatchExpr) -> void {
 emit_block_expr :: fn(self: Printer, b: p.BlockExpr) -> void {
     // Empty block.
     if b.stmts.len() == 0 {
-        match b.trailing {
-            is null -> {
-                // If the source carried an inner comment (e.g. `{ // skip
-                // }`), render it as a multi-line block so the comment
-                // survives. `flush_leading_comments_inline` ends each
-                // comment with `\n`, so the closing `}` only needs indent
-                // (no leading newline).
-                if self.comments.has_before(b.span.end.offset) && b.span.start.line != b.span.end.line {
-                    self.write("{")
-                    self.depth = self.depth + 1
-                    self.newline()
-                    self.flush_leading_comments_inline(b.span.end.offset, b.span.end.line)
-                    self.depth = self.depth - 1
-                    self.indent()
-                    self.write("}")
-                    return
-                }
-                self.write("{}")
-                return
-            }
-            _ -> {
-                // Single trailing expression — inline iff the source was
-                // single-line.
-                if b.span.start.line == b.span.end.line {
-                    self.write("{ ")
-                    self.emit_expr(b.trailing)
-                    self.write(" }")
-                    return
-                }
+        if b.trailing == null {
+            // If the source carried an inner comment (e.g. `{ // skip
+            // }`), render it as a multi-line block so the comment
+            // survives. `flush_leading_comments_inline` ends each
+            // comment with `\n`, so the closing `}` only needs indent
+            // (no leading newline).
+            if self.comments.has_before(b.span.end.offset) && b.span.start.line != b.span.end.line {
                 self.write("{")
                 self.depth = self.depth + 1
-                self.nl_indent()
-                self.emit_expr(b.trailing)
+                self.newline()
+                self.flush_leading_comments_inline(b.span.end.offset, b.span.end.line)
                 self.depth = self.depth - 1
-                self.nl_indent()
+                self.indent()
                 self.write("}")
                 return
             }
+            self.write("{}")
+            return
         }
+        // Single trailing expression — inline iff the source was
+        // single-line.
+        if b.span.start.line == b.span.end.line {
+            self.write("{ ")
+            self.emit_expr(b.trailing)
+            self.write(" }")
+            return
+        }
+        self.write("{")
+        self.depth = self.depth + 1
+        self.nl_indent()
+        self.emit_expr(b.trailing)
+        self.depth = self.depth - 1
+        self.nl_indent()
+        self.write("}")
+        return
     }
     // Single-stmt no-trailing block — render inline iff the source was
     // single-line. Matches stdlib idiom `{ return self.foo }`.

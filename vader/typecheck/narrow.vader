@@ -49,10 +49,8 @@ export pop_narrow :: fn(typed: TypedProgram, sym_id: i32, prev: Type | null, sta
 /// `static_ty` when no narrowing is active for that binding.
 export narrow_for_binding :: fn(typed: TypedProgram, sym_id: i32, static_ty: Type) -> Type {
     cur :: typed.narrowed_bindings[sym_id]
-    match cur {
-        is null -> { return static_ty }
-        _ -> { return cur }
-    }
+    if cur == null { return static_ty }
+    return cur
 }
 
 /// Build the slot key for a `root.f1.f2.…` chain : `${root_sym.id}#f1#f2…`.
@@ -170,8 +168,6 @@ export pop_field_narrow :: fn(typed: TypedProgram, key: string, prev: Type | nul
 /// `static_ty` when no narrowing is active for that field slot.
 export narrow_for_field :: fn(typed: TypedProgram, key: string, static_ty: Type) -> Type {
     cur :: typed.narrowed_fields[key]
-    match cur {
-        is null -> { return static_ty }
-        _ -> { return cur }
-    }
+    if cur == null { return static_ty }
+    return cur
 }

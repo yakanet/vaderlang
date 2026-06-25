@@ -39,7 +39,9 @@ export infer_index :: fn(
             return mk_primitive("char")
         }
     }
-    match target {
+    // @partial: arrays index by element and structs by their Index impl; the
+    // string case is handled above, and every other type kind is not indexable.
+    @partial match target {
         is ArrayType as arr -> {
             // `arr[r]` where `r: Range(T)` slices and returns `T[]`.
             if is_range_type(index) { return mk_array(arr.element, false) }
@@ -100,15 +102,11 @@ resolve_index_param :: fn(st: StructType, tmpl: Type | null, typed: TypedProgram
 
 is_integer_index :: fn(t: Type) -> bool {
     if t is FreeIntType { return true }
-    match t {
-        is PrimitiveType as p -> { return is_int_name(p.name) }
-        _ -> { return false }
-    }
+    if t is PrimitiveType as p { return is_int_name(p.name) }
+    return false
 }
 
 is_range_type :: fn(t: Type) -> bool {
-    match t {
-        is StructType as st -> { return st.symbol.name == "Range" }
-        _ -> { return false }
-    }
+    if t is StructType as st { return st.symbol.name == "Range" }
+    return false
 }

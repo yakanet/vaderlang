@@ -53,19 +53,13 @@ export lower_for_in :: fn(
     // via a variable, or when a `f` / `pred` field isn't a bare fn
     // reference (the slow path handles those).
     chain_form :: try_lower_chain_fusion(ctx, for_stmt, in_form, recurse, block_lowerer)
-    match chain_form {
-        is null -> {}
-        _ -> { return chain_form }
-    }
+    if chain_form != null { return chain_form }
     // Fast path : `for x in lo..<hi` / `for x in lo..=hi` over an
     // integer range lowers to a direct counter loop ; no Range
     // allocation, no `Iterator.next` dispatch. Falls through to the
     // slow path when the range bound isn't an integer.
     int_range :: try_lower_for_in_int_range(ctx, for_stmt, in_form, recurse, block_lowerer)
-    match int_range {
-        is null -> {}
-        _ -> { return int_range }
-    }
+    if int_range != null { return int_range }
     iter_lowered_raw :: recurse(ctx, in_form.iter)
     iter_type_raw :: type_of(iter_lowered_raw)
 
@@ -75,10 +69,7 @@ export lower_for_in :: fn(
     // isn't a plain array. Mirrors TS `lowerForInRawArray` in
     // `src/lower/passes/for-in.ts:346`.
     raw_array :: try_lower_for_in_raw_array(ctx, for_stmt, in_form, iter_lowered_raw, iter_type_raw, recurse, block_lowerer)
-    match raw_array {
-        is null -> {}
-        _ -> { return raw_array }
-    }
+    if raw_array != null { return raw_array }
 
     // Fast path : `for entry in m` over `MutableMap(K, V)` (or
     // `for v in s` over `MutableSet(T)`) inlines the bucket-walk +
@@ -86,10 +77,7 @@ export lower_for_in :: fn(
     // per-iter `next()` + `Yield` allocations. Mirror of TS'
     // `tryLowerForInMapSetIterInline`.
     map_set :: try_lower_for_in_map_set(ctx, for_stmt, in_form, iter_lowered_raw, iter_type_raw, span, block_lowerer)
-    match map_set {
-        is null -> {}
-        _ -> { return map_set }
-    }
+    if map_set != null { return map_set }
 
     // Auto-wrap `T[]` → ArrayIterator(T) so the step-loop can dispatch
     // through the standard Iterator impl. Falls through to the raw
@@ -248,7 +236,9 @@ WrapResult :: struct {
 try_wrap_array_iter :: fn(
     ctx: FnLowerCtx, iter: LoweredExpr, iter_type: Type, span: Span,
 ) -> WrapResult {
-    match iter_type {
+    // @partial: only arrays and `string` need wrapping; every other Type is
+    // returned verbatim (already an iterator or handled upstream).
+    @partial match iter_type {
         is ArrayType as arr -> {
             wrapped_type :: find_core_type(ctx, STRUCT_ARRAY_ITERATOR, [arr.element])
             if wrapped_type is null { return WrapResult { .iter = iter, .iter_type = iter_type } }
@@ -663,10 +653,8 @@ try_lower_for_in_int_range :: fn(
 }
 
 extract_range :: fn(iter: AST.Expr) -> AST.RangeExpr | null {
-    match iter {
-        is AST.RangeExpr as r -> { return r }
-        _ -> { return null }
-    }
+    if iter is AST.RangeExpr as r { return r }
+    return null
 }
 
 // When a Range bound is a bare integer literal (e.g. `0` in
@@ -693,7 +681,9 @@ is_cheap_invariant :: fn(e: LoweredExpr) -> bool {
 }
 
 is_integer_type :: fn(t: Type) -> bool {
-    match t {
+    // @partial: only primitive integers and the free int/char types are
+    // integers; every other Type → false.
+    @partial match t {
         is PrimitiveType as p -> {
             // Mirrors `isInteger` in `typecheck/types.ts`.
             if p.name == "i8"    { return true }
@@ -922,7 +912,9 @@ BodyTemplate :: struct {
 // inline) or bottoms at an integer-typed `RangeExpr`. Anything else
 // returns null.
 descend_chain :: fn(ctx: FnLowerCtx, expr: AST.Expr) -> IterChain | null {
-    match expr {
+    // @partial: only a Range / iter-combinator struct-lit / fluent call forms a
+    // fusible chain; every other Expr → null (not a recognised combinator).
+    @partial match expr {
         is AST.RangeExpr as range -> {
             bound :: ctx.types.expr_type(range.lower)
             if !is_integer_type(bound) { return null }
@@ -1010,7 +1002,9 @@ FluentCombinator :: struct {
 // null when the call isn't one of the two fusible combinators. Mirror of
 // `src/lower/passes/for-in.ts::unpackFluentCombinator`.
 unpack_fluent_combinator :: fn(ctx: FnLowerCtx, call: AST.CallExpr) -> FluentCombinator | null {
-    match call.callee {
+    // @partial: only a FieldExpr (UFCS) or IdentExpr (direct call) callee can be
+    // a fusible combinator; every other Expr callee → null.
+    @partial match call.callee {
         // UFCS form `it.map(f)` : the FieldExpr resolved as a free-fn UFCS
         // dispatch (the typer stashed the receiver type under its id). The
         // callee's target is the receiver ; the first arg is the transform.

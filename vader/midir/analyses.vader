@@ -34,7 +34,7 @@ export predecessors_of :: fn(fn_: CFGFunction) -> BlockId[][] {
     out: BlockId[][] = [] * fn_.blocks.len()
     for _ in fn_.blocks { out.push([]) }
     for b in fn_.blocks {
-        for succ in successors_of(b) { out[succ].push(b.id) }
+        for succ in successors_of(b) { out[i32(succ)].push(b.id) }
     }
     return out
 }
@@ -44,7 +44,10 @@ export predecessors_of :: fn(fn_: CFGFunction) -> BlockId[][] {
 /// True when the instruction has observable effect outside its `dst`
 /// slot. DCE keeps these alive even when their result local is unread.
 export instruction_has_side_effect :: fn(ins: Instruction) -> bool {
-    match ins {
+    // @partial: only the effectful instructions are listed ; every other
+    // instruction is a pure value producer (writes only its `dst`), so a new
+    // pure variant correctly defaults to false here.
+    @partial match ins {
         is InstrCall         -> { return true }
         is InstrCallIndirect -> { return true }
         is InstrVirtualCall  -> { return true }
@@ -154,7 +157,7 @@ export natural_loop_bodies :: fn(
 ) -> MutableMap<BlockId, MutableSet<BlockId>> {
     out :: MutableMap<BlockId, MutableSet<BlockId>> {}
     for h in 0..<fn_.blocks.len() {
-        h_id :: i32(h)
+        h_id :: BlockId(h)
         back_edge_sources: BlockId[] = []
         for p in preds[h] {
             if dominates(idom, h_id, p) { back_edge_sources.push(p) }
@@ -169,7 +172,7 @@ export natural_loop_bodies :: fn(
             stack = stack.slice(0, stack.len() - 1)
             if body.contains(cur) { continue }
             body.add(cur)
-            for p in preds[cur] {
+            for p in preds[i32(cur)] {
                 if p != h_id { stack.push(p) }
             }
         }
@@ -220,9 +223,9 @@ export reverse_postorder :: fn(fn_: CFGFunction) -> BlockId[] {
 }
 
 walk_rpo :: fn(fn_: CFGFunction, b: BlockId, visited: bool[], order: BlockId[]) -> void {
-    if visited[b] { return }
-    visited[b] = true
-    for s in successors_of(fn_.blocks[b]) { walk_rpo(fn_, s, visited, order) }
+    if visited[i32(b)] { return }
+    visited[i32(b)] = true
+    for s in successors_of(fn_.blocks[i32(b)]) { walk_rpo(fn_, s, visited, order) }
     order.push(b)
 }
 
@@ -232,7 +235,7 @@ walk_rpo :: fn(fn_: CFGFunction, b: BlockId, visited: bool[], order: BlockId[]) 
 export compute_dominators :: fn(fn_: CFGFunction, preds: BlockId[][]) -> i32[] {
     n :: fn_.blocks.len()
     idom: i32[] = [-1] * n
-    idom[fn_.entry] = fn_.entry
+    idom[i32(fn_.entry)] = i32(fn_.entry)
     rpo :: reverse_postorder(fn_)
     changed := true
     for changed {
@@ -240,16 +243,16 @@ export compute_dominators :: fn(fn_: CFGFunction, preds: BlockId[][]) -> i32[] {
         for b in rpo {
             if b == fn_.entry { continue }
             new_idom := -1
-            for p in preds[b] {
-                if idom[p] == -1 { continue }
+            for p in preds[i32(b)] {
+                if idom[i32(p)] == -1 { continue }
                 if new_idom == -1 {
-                    new_idom = p
+                    new_idom = i32(p)
                 } else {
-                    new_idom = intersect_dom_tree(p, new_idom, idom)
+                    new_idom = i32(intersect_dom_tree(p, BlockId(new_idom), idom))
                 }
             }
-            if new_idom != -1 && idom[b] != new_idom {
-                idom[b] = new_idom
+            if new_idom != -1 && idom[i32(b)] != new_idom {
+                idom[i32(b)] = new_idom
                 changed = true
             }
         }
@@ -265,20 +268,20 @@ export compute_dominators :: fn(fn_: CFGFunction, preds: BlockId[][]) -> i32[] {
 export intersect_dom_tree :: fn(a: BlockId, b: BlockId, idom: i32[]) -> BlockId {
     seen :: MutableSet<i32> {}
     x := a
-    for x != -1 && !seen.contains(x) {
-        seen.add(x)
-        next :: idom[x]
+    for x != -1 && !seen.contains(i32(x)) {
+        seen.add(i32(x))
+        next :: BlockId(idom[i32(x)])
         if next == x { break }
         x = next
     }
     y := b
     for y != -1 {
-        if seen.contains(y) { return y }
-        next :: idom[y]
+        if seen.contains(i32(y)) { return y }
+        next :: BlockId(idom[i32(y)])
         if next == y { break }
         y = next
     }
-    return -1
+    return BlockId(-1)
 }
 
 /// True iff `a` dominates `b` (every path from entry to `b` passes
@@ -287,7 +290,7 @@ export dominates :: fn(idom: i32[], a: BlockId, b: BlockId) -> bool {
     cur := b
     for cur != -1 {
         if cur == a { return true }
-        next :: idom[cur]
+        next :: BlockId(idom[i32(cur)])
         if next == cur { return cur == a }
         cur = next
     }
@@ -313,7 +316,7 @@ export compute_post_dominators :: fn(fn_: CFGFunction) -> i32[] {
     for b in fn_.blocks { succs.push(successors_of(b)) }
     exits: BlockId[] = []
     for i in 0..<n {
-        if succs[i].len() == 0 { exits.push(i32(i)) }
+        if succs[i].len() == 0 { exits.push(BlockId(i)) }
     }
     se :: i32(n)            // synthetic exit node index
     fake_succs: BlockId[][] = [] * (n + 1)
@@ -326,16 +329,16 @@ export compute_post_dominators :: fn(fn_: CFGFunction) -> i32[] {
         fake_preds.push(empty)
     }
     for k in 0..<n {
-        for s in fake_succs[k] { fake_preds[usize(s)].push(i32(k)) }
+        for s in fake_succs[k] { fake_preds[usize(s)].push(BlockId(k)) }
     }
     for e in exits {
-        fake_succs[usize(e)].push(se)
+        fake_succs[usize(e)].push(BlockId(se))
         fake_preds[usize(se)].push(e)
     }
     // RPO on reverse graph from SE.
     order: BlockId[] = []
     visited: bool[] = [false] * (n + 1)
-    walk_rpo_reverse(fake_preds, se, visited, order)
+    walk_rpo_reverse(fake_preds, BlockId(se), visited, order)
     // Iterative post-dominator solve.
     ipdom: i32[] = [-1] * (n + 1)
     ipdom[usize(se)] = se
@@ -346,14 +349,14 @@ export compute_post_dominators :: fn(fn_: CFGFunction) -> i32[] {
         for ii >= 0 {
             b :: order[usize(ii)]
             ii = ii - 1
-            if b == se { continue }
+            if i32(b) == se { continue }
             new_pdom: i32 = -1
             for s in fake_succs[usize(b)] {
                 if ipdom[usize(s)] == -1 { continue }
                 if new_pdom == -1 {
-                    new_pdom = s
+                    new_pdom = i32(s)
                 } else {
-                    new_pdom = intersect_dom_tree(s, new_pdom, ipdom)
+                    new_pdom = i32(intersect_dom_tree(s, BlockId(new_pdom), ipdom))
                 }
             }
             if new_pdom != -1 && ipdom[usize(b)] != new_pdom {
@@ -398,7 +401,7 @@ export find_loop_exits :: fn(
         // bucket layout directly.
         exit: BlockId | null = null
         for b in 0..<i32(fn_.blocks.len()) {
-            if body.contains(b) {
+            if body.contains(BlockId(b)) {
                 for s in successors_of(fn_.blocks[usize(b)]) {
                     if !body.contains(s) {
                         if exit is null { exit = s }
@@ -469,7 +472,7 @@ export compute_liveness :: fn(fn_: CFGFunction) -> Liveness {
             i = i - 1
             scratch_out.clear()
             for s in succs[i] {
-                for l in live_in[s] { scratch_out.add(l) }
+                for l in live_in[i32(s)] { scratch_out.add(l) }
             }
             scratch_in.clear()
             for l in use_[i] { scratch_in.add(l) }

@@ -123,7 +123,9 @@ all_concrete_enough :: fn(args: Type[]) -> bool {
 }
 
 is_concrete_enough :: fn(t: Type) -> bool {
-    match t {
+    // @partial: only the "not yet pinned" kinds (Unresolved / Free* / Self) are
+    // rejected; every other type — concrete or generic — counts as concrete enough.
+    @partial match t {
         is UnresolvedType -> { return false }
         is FreeIntType    -> { return false }
         is FreeCharType   -> { return false }

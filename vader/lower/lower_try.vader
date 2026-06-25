@@ -114,18 +114,16 @@ error_variants_of :: fn(operand_type: Type, project: LowerProjectCtx) -> Type[] 
 }
 
 variants_of :: fn(t: Type) -> Type[] {
-    match t {
-        is UnionType as un -> { return un.variants }
-        _ -> {
-            single: Type[] = []
-            single.push(t)
-            return single
-        }
-    }
+    if t is UnionType as un { return un.variants }
+    single: Type[] = []
+    single.push(t)
+    return single
 }
 
 is_error_variant :: fn(variant: Type, project: LowerProjectCtx) -> bool {
-    match variant {
+    // @partial: only trait / struct / enum types can carry an Error impl; every
+    // other Type → not an error variant.
+    @partial match variant {
         is TraitType as tt -> { return tt.symbol.name == "Error" }
         is StructType as st -> {
             entry :: find_impl_for(project, variant, "Error")

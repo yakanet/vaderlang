@@ -39,7 +39,9 @@ export find_first_in_block :: fn(
 find_first_in_stmt :: fn(
     s: AST.Stmt, pred: fn(AST.Expr) -> AST.Expr | null,
 ) -> AST.Expr | null {
-    match s {
+    // @partial: the walker descends only into return / expr statements; every
+    // other statement kind carries no expression to search → null.
+    @partial match s {
         is AST.ReturnStmt as r -> {
             v :: r.value
             if v is null { return null }
@@ -55,7 +57,9 @@ find_first_in_expr :: fn(
 ) -> AST.Expr | null {
     hit :: pred(e)
     if hit !is null { return hit }
-    match e {
+    // @partial: the walker recurses only through the composite expr kinds with
+    // child expressions; every other (leaf) Expr kind is a dead end → null.
+    @partial match e {
         is AST.BinaryExpr as b -> {
             l :: find_first_in_expr(b.left, pred)
             if l !is null { return l }

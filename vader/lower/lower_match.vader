@@ -132,20 +132,12 @@ arm_predicate :: fn(
     span :: arm.pattern.span
     scrut_ident :: LoweredIdent { .span = span, .type = scrut_type, .symbol = scrut_symbol }
     core :: pattern_predicate(ctx, arm.pattern, scrut_ident, scrut_type, span, recurse)
-    match arm.guard {
-        is null -> { return core }
-        _ -> {
-            guard :: recurse(ctx, arm.guard)
-            match core {
-                is null -> { return guard }
-                _ -> {
-                    return LoweredBinary {
-                        .span = arm.span, .type = TY_BOOL, .op = LoweredBinaryOp.And,
-                        .left = core, .right = guard,
-                    }
-                }
-            }
-        }
+    if arm.guard == null { return core }
+    guard :: recurse(ctx, arm.guard)
+    if core == null { return guard }
+    return LoweredBinary {
+        .span = arm.span, .type = TY_BOOL, .op = LoweredBinaryOp.And,
+        .left = core, .right = guard,
     }
 }
 
@@ -301,7 +293,9 @@ enum_variant_literal :: fn(target_type: Type, name: string, span: Span, ctx: FnL
     // the variant index lookup works regardless of which entry point
     // resolved the target's type.
     resolved :: unwrap_enum_type(target_type, ctx)
-    match resolved {
+    // @partial: only EnumType carries variant indices; every other Type is
+    // unresolved here (earlier diagnostics apply) → unreachable.
+    @partial match resolved {
         is EnumType as enum_type -> {
             index :: enum_type.indices[name]
             match index {
@@ -330,15 +324,15 @@ enum_variant_literal :: fn(target_type: Type, name: string, span: Span, ctx: FnL
 import "vader/resolver/symbol" { SymbolKind }
 
 unwrap_enum_type :: fn(target_type: Type, ctx: FnLowerCtx) -> Type {
-    match target_type {
+    // @partial: only an EnumType or an enum-kind StructType placeholder needs
+    // unwrapping; every other Type is returned verbatim.
+    @partial match target_type {
         is EnumType -> { return target_type }
         is StructType as st -> {
             if i32(st.symbol.kind) != i32(SymbolKind.Enum) { return target_type }
             real :: ctx.typed.decl_types[st.symbol.id]
-            match real {
-                is EnumType -> { return real }
-                _ -> { return target_type }
-            }
+            if real is EnumType { return real }
+            return target_type
         }
         _ -> { return target_type }
     }

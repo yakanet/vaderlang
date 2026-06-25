@@ -244,7 +244,11 @@ export display_type :: fn(t: Type) -> string {
 /// `index_target_types`) so generic instantiations dispatch through
 /// the same entry as the underlying impl.
 export type_base_name :: fn(t: Type) -> string {
-    match t {
+    // @partial: only nominal types (Struct/Trait/Enum/Distinct) carry a symbol
+    // name ; every other Type variant (PrimitiveType, ArrayType, TupleType,
+    // FnType, UnionType, …) has no nominal base name, so its full display is
+    // the correct lookup key.
+    @partial match t {
         is StructType   as st -> { return st.symbol.name }
         is TraitType    as tr -> { return tr.symbol.name }
         is EnumType     as en -> { return en.symbol.name }

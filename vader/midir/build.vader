@@ -234,7 +234,7 @@ make_extern_decl :: fn(d: LoweredFnDecl) -> CFGExternDecl {
     for i in 0..<d.params.len() {
         p :: d.params[i]
         params.push(CFGParam {
-            .name = p.name, .symbol = p.symbol, .type = p.type, .local = i32(i),
+            .name = p.name, .symbol = p.symbol, .type = p.type, .local = LocalId(i32(i)),
         })
     }
     return CFGExternDecl {
@@ -265,7 +265,7 @@ convert_function :: fn(d: LoweredFnDecl, project: ProjectCtx) -> CFGFunction | n
         locals.push(CFGLocal { .name = p.name, .type = p.type, .symbol = p.symbol })
         local_by_sym_id[p.symbol.id] = slot
         params.push(CFGParam {
-            .name = p.name, .symbol = p.symbol, .type = p.type, .local = slot,
+            .name = p.name, .symbol = p.symbol, .type = p.type, .local = LocalId(slot),
         })
     }
 
@@ -974,7 +974,7 @@ terminate :: fn(fn_ctx: FnCtx, t: Terminator) -> void {
 }
 
 new_block :: fn(fn_ctx: FnCtx, span: Span) -> BlockId {
-    id :: i32(fn_ctx.blocks.len())
+    id :: BlockId(i32(fn_ctx.blocks.len()))
     fn_ctx.blocks.push(MutableBlock {
         .id = id, .instructions = [], .terminator = null, .span = span,
     })
@@ -982,7 +982,7 @@ new_block :: fn(fn_ctx: FnCtx, span: Span) -> BlockId {
 }
 
 declare_local :: fn(fn_ctx: FnCtx, name: string, type: Type, symbol: Symbol | null) -> LocalId {
-    id :: i32(fn_ctx.locals.len())
+    id :: LocalId(i32(fn_ctx.locals.len()))
     fn_ctx.locals.push(CFGLocal { .name = name, .type = type, .symbol = symbol })
     return id
 }

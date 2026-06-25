@@ -1011,7 +1011,7 @@ run_comptime_stage :: fn(file: string, module_filter: string[]) -> i32 {
     // TS reference (`dumpComptime` in `tests/snapshot.ts`) accumulates
     // resolve + typecheck + comptime into one collector, so the parity
     // snapshots only line up when this stage does the same.
-    print_pipeline_diags(pipeline, [])
+    print_pipeline_diags(pipeline, [], dump_scope(module_filter, pipeline.loaded))
     return 0
 }
 
@@ -1026,7 +1026,7 @@ run_cfg_stage :: fn(file: string, module_filter: string[]) -> i32 {
         .scope = dump_scope(module_filter, pipeline.loaded), .include_strings = false,
     }
     print(dump_cfg_project(cfg, opts))
-    print_pipeline_diags(pipeline, lower_diags)
+    print_pipeline_diags(pipeline, lower_diags, dump_scope(module_filter, pipeline.loaded))
     return 0
 }
 
@@ -1038,7 +1038,7 @@ run_bytecode_cfg_stage :: fn(file: string) -> i32 {
     folded :: const_fold_project(cfg)
     module :: emit_bytecode_from_cfg(folded, module_name_from_file(file), default_emit_options())
     print(dump_bytecode(module, entry_main_name(pipeline.typed, pipeline.loaded.entry)))
-    print_pipeline_diags(pipeline, lower_diags)
+    print_pipeline_diags(pipeline, lower_diags, dump_scope([], pipeline.loaded))
     return 0
 }
 
@@ -1057,6 +1057,10 @@ LoweredEntry :: struct {
     /// canonical order (`gather_pipeline_diags`).
     pre_diags:   Diagnostic[]
     lower_diags: Diagnostic[]
+    /// Files of the modules in the entry's subtree — lets the bytecode / C dump
+    /// stages filter diagnostics to the code under inspection once the
+    /// `LoadedProject` is released. `build` ignores it (it surfaces all modules).
+    in_scope_files: string[]
 }
 
 /// Run load → typecheck → comptime → lower, resolve the entry-fn name and
@@ -1089,6 +1093,7 @@ lower_to_entry_with :: fn(file: string, include_path_flags: string[]) -> Lowered
         .entry       = entry,
         .pre_diags   = pre_diags,
         .lower_diags = lower_diags,
+        .in_scope_files = in_scope_diag_files(pipeline.loaded, dump_scope([], pipeline.loaded)),
     }
 }
 
@@ -1109,6 +1114,8 @@ CfgBytecode :: struct {
     /// Loader + resolver + typecheck + comptime diags, canonical order.
     pre_diags:   Diagnostic[]
     lower_diags: Diagnostic[]
+    /// Entry-subtree file set for the dump diagnostic filter (see `LoweredEntry`).
+    in_scope_files: string[]
     module:      BytecodeModule
 }
 
@@ -1144,6 +1151,7 @@ prepare_cfg_bytecode_with :: fn(file: string, include_path_flags: string[]) -> C
         .entry       = le.entry,
         .pre_diags   = le.pre_diags,
         .lower_diags = le.lower_diags,
+        .in_scope_files = le.in_scope_files,
         .module      = module,
     }
 }
@@ -1157,7 +1165,7 @@ run_bytecode_stage :: fn(file: string, annotate: bool) -> i32 {
     // lower-stage diagnostic still leaves real, runnable bytecode behind (the
     // VM-parity corpus runs some of it), so it must not blank the dump.
     if any_error_diag(b.pre_diags) {
-        print_merged_diags(b.pre_diags, b.lower_diags)
+        print_dump_diags(b)
         return 0
     }
     // `dump_bytecode` already returns a trailing-newline-terminated
@@ -1167,7 +1175,7 @@ run_bytecode_stage :: fn(file: string, annotate: bool) -> i32 {
     // never feeds `parse_virt` or the parity snapshots.
     out_text :: if annotate { dump_bytecode_annotated(b.module, b.entry) } else { dump_bytecode(b.module, b.entry) }
     print(out_text)
-    print_merged_diags(b.pre_diags, b.lower_diags)
+    print_dump_diags(b)
     return 0
 }
 
@@ -1176,7 +1184,7 @@ run_c_stage :: fn(file: string) -> i32 {
     // No C for a front-end-rejected program — print only the diagnostics,
     // mirroring `run_bytecode_stage` (front-end errors only ; see its note).
     if any_error_diag(b.pre_diags) {
-        print_merged_diags(b.pre_diags, b.lower_diags)
+        print_dump_diags(b)
         return 0
     }
     // Designate the program entry by name (same source as the bytecode
@@ -1187,7 +1195,7 @@ run_c_stage :: fn(file: string) -> i32 {
     // `print` (no auto-newline) to match the TS `Bun.write(emitC(...))`
     // output byte-for-byte.
     print(emit_c(b.module, CEmitOptions { .release = false, .entry_mangled = b.entry }))
-    print_merged_diags(b.pre_diags, b.lower_diags)
+    print_dump_diags(b)
     return 0
 }
 
@@ -1217,7 +1225,7 @@ run_lower_stage :: fn(file: string, module_filter: string[]) -> i32 {
     lower_diags: Diagnostic[] = []
     lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
     println(dump_lowered(lowered, dump_scope(module_filter, pipeline.loaded)))
-    print_pipeline_diags(pipeline, lower_diags)
+    print_pipeline_diags(pipeline, lower_diags, dump_scope(module_filter, pipeline.loaded))
     return 0
 }
 
@@ -1231,7 +1239,7 @@ run_dced_stage :: fn(file: string, module_filter: string[]) -> i32 {
     lowered :: lower_project(pipeline.loaded, pipeline.typed, pipeline.evaluated, lower_diags)
     pruned :: prune_unreachable_fns(lowered, false)
     println(dump_lowered(pruned, dump_scope(module_filter, pipeline.loaded)))
-    print_pipeline_diags(pipeline, lower_diags)
+    print_pipeline_diags(pipeline, lower_diags, dump_scope(module_filter, pipeline.loaded))
     return 0
 }
 
@@ -1241,8 +1249,42 @@ run_dced_stage :: fn(file: string, module_filter: string[]) -> i32 {
 // import-path / collect), then typecheck (with resolver-side
 // forwards via orchestrate.vader:168), then comptime, then `extra`
 // (the per-stage tail — currently lower).
-print_pipeline_diags :: fn(pipeline: EvaluatedPipeline, extra: Diagnostic[]) -> void {
-    print_merged_diags(gather_pipeline_diags(pipeline), extra)
+// Collection is total (build surfaces every module's diagnostics — see
+// `orchestrate.vader`), but a `dump` stage shows only the modules under
+// inspection. These two helpers implement that per-caller scoping: gather the
+// file paths of the in-scope modules, then drop any diagnostic anchored outside
+// them. `build` never calls these — `flush_build_diags` shows the full set.
+in_scope_diag_files :: fn(loaded: LoadedProject, scope: string[]) -> string[] {
+    out: string[] = []
+    for [id, lm] in loaded.modules {
+        if module_in_scope(lm.module.display_path, scope) {
+            for f in lm.module.files { out.push(f.path) }
+        }
+    }
+    return out
+}
+
+filter_diags_in_scope :: fn(diags: Diagnostic[], files: string[]) -> Diagnostic[] {
+    out: Diagnostic[] = []
+    for d in diags {
+        if d.primary.start.file in files { out.push(d) }
+    }
+    return out
+}
+
+print_pipeline_diags :: fn(pipeline: EvaluatedPipeline, extra: Diagnostic[], scope: string[]) -> void {
+    all :: merge_diagnostics(gather_pipeline_diags(pipeline), extra)
+    files :: in_scope_diag_files(pipeline.loaded, scope)
+    print_merged_diags(filter_diags_in_scope(all, files), [])
+}
+
+// Render a bytecode / C dump's diagnostics, scoped to the modules under
+// inspection via the file set snapshotted in `CfgBytecode.in_scope_files`.
+print_dump_diags :: fn(b: CfgBytecode) -> void {
+    print_merged_diags(
+        filter_diags_in_scope(b.pre_diags, b.in_scope_files),
+        filter_diags_in_scope(b.lower_diags, b.in_scope_files),
+    )
 }
 
 // Flatten the loader + resolver + typecheck + comptime diagnostic bags into one

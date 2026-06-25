@@ -248,13 +248,13 @@ type_surface_name :: fn(t: Type) -> string = match t {
 
 
 impl_targets_name :: fn(for_type: Expr, name: string) -> bool {
-    match for_type {
+    // @partial: only Ident / GenericInst(Ident) / ArrayTypeExpr name an impl
+    // target; every other Expr → false.
+    @partial match for_type {
         is IdentExpr        as e -> { return e.name == name }
         is GenericInstExpr  as gi -> {
-            match gi.callee {
-                is IdentExpr as inner -> { return inner.name == name }
-                _ -> { return false }
-            }
+            if gi.callee is IdentExpr as inner { return inner.name == name }
+            return false
         }
         // Blanket array impl (`T[] implements ...`) — its for_type is an
         // ArrayTypeExpr ; `type_surface_name` maps every array to `"[]"`.

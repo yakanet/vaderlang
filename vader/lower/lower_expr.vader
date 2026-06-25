@@ -80,10 +80,7 @@ export lower_expr :: fn(ctx: FnLowerCtx, expr: Expr) -> LoweredExpr {
             // `src/lower/passes/expr.ts:1072-1080`.
             target_type :: ctx.types.expr_type(e.target)
             shortcut :: try_lower_common_union_field(ctx, e, type, target_type, field_name)
-            match shortcut {
-                is null -> {}
-                _ -> { return shortcut }
-            }
+            if shortcut != null { return shortcut }
             lowered_target :: lower_expr(ctx, e.target)
             // Comptime fold : `<LoweredStructLit>.field` resolves to
             // the field's value when the struct lit was synthesised
@@ -419,7 +416,8 @@ is_scalar_comptime :: fn(v: ComptimeValue) -> bool {
         // shape. Revisit when data-pool / fn-wrap lands.
         is StructValue -> { return true }
         is ArrayValue  -> { return true }
-        _              -> { return false }
+        is VoidValue   -> { return false }
+        is TypeValue   -> { return false }
     }
 }
 
@@ -466,29 +464,26 @@ declared_type_of_symbol :: fn(ctx: FnLowerCtx, symbol: Symbol) -> Type | null {
 try_lower_common_union_field :: fn(
     ctx: FnLowerCtx, expr: FieldExpr, expr_type: Type, target_type: Type, field_name: string,
 ) -> LoweredExpr | null {
-    if !(target_type is UnionType) { return null }
-    match target_type {
-        is UnionType as u -> {
-            if u.variants.len() == 0 { return null }
-            first_variant :: u.variants[0]
-            if !(first_variant is StructType) { return null }
-            // Every variant must be a struct exposing the same field
-            // name with the same resolved type. Bail out otherwise — the
-            // general per-variant cascade isn't ported yet.
-            for v in u.variants {
-                if !(v is StructType) { return null }
-            }
-            cast_target :: LoweredCast {
-                .span = expr.span, .type = first_variant,
-                .value = lower_expr(ctx, expr.target),
-            }
-            return LoweredFieldAccess {
-                .span = expr.span, .type = expr_type,
-                .target = cast_target, .field = field_name,
-            }
+    if target_type is UnionType as u {
+        if u.variants.len() == 0 { return null }
+        first_variant :: u.variants[0]
+        if !(first_variant is StructType) { return null }
+        // Every variant must be a struct exposing the same field
+        // name with the same resolved type. Bail out otherwise — the
+        // general per-variant cascade isn't ported yet.
+        for v in u.variants {
+            if !(v is StructType) { return null }
         }
-        _ -> { return null }
+        cast_target :: LoweredCast {
+            .span = expr.span, .type = first_variant,
+            .value = lower_expr(ctx, expr.target),
+        }
+        return LoweredFieldAccess {
+            .span = expr.span, .type = expr_type,
+            .target = cast_target, .field = field_name,
+        }
     }
+    return null
 }
 
 try_route_through_env :: fn(

@@ -180,18 +180,14 @@ export list_vader_files :: fn(root_path: string) -> string[] {
 
 try_read :: fn(path: string) -> string | null {
     result :: read_file(path)
-    match result {
-        is string as s -> { return s }
-        _ -> { return null }
-    }
+    if result is string as s { return s }
+    return null
 }
 
 try_read_dir :: fn(path: string) -> string[] | null {
     result :: read_dir(path)
-    match result {
-        is string[] as ss -> { return ss }
-        _ -> { return null }
-    }
+    if result is string[] as ss { return ss }
+    return null
 }
 
 // ---------------------------------------------------------------- path utils

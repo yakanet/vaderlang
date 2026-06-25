@@ -56,10 +56,7 @@ lower_intrinsic :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type)
     // the arg's underlying Type. Mirror of `lowerIntrinsic`'s
     // `targetTy`-based branches in `src/lower/passes/expr.ts:380-402`.
     folded :: try_fold_static_intrinsic(ctx, intrinsic, type)
-    match folded {
-        is null -> {}
-        _ -> { return folded }
-    }
+    if folded != null { return folded }
     args: LoweredExpr[] = []
     for arg_expr in intrinsic.args {
         args.push(lower_expr(ctx, arg_expr))
@@ -340,10 +337,8 @@ impl_exists_for :: fn(ctx: FnLowerCtx, target_ty: Type, trait_sym: Symbol) -> bo
 }
 
 arg_ty_or_unresolved :: fn(t: Type | null) -> Type {
-    match t {
-        is null -> { return TY_UNRESOLVED }
-        _ -> { return t }
-    }
+    if t == null { return TY_UNRESOLVED }
+    return t
 }
 
 resolve_intrinsic_type_arg :: fn(ctx: FnLowerCtx, arg: Expr) -> Type | null {

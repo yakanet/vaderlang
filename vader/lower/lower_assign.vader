@@ -14,18 +14,12 @@ lower_assign :: fn(ctx: FnLowerCtx, assign_stmt: AssignStmt) -> LoweredStmt {
     // off the LHS shape : `target` is an IndexExpr whose receiver
     // type has a user-defined IndexSet impl.
     via_index_set :: try_lower_index_set_assign(ctx, assign_stmt)
-    match via_index_set {
-        is null -> {}
-        _ -> { return via_index_set }
-    }
+    if via_index_set != null { return via_index_set }
     // Reassignment to a captured local : write into its cell rather than
     // overwriting the slot. Mirror of `lowerStmt`'s captured-symbol
     // branch in `src/lower/passes/block.ts:159-169`.
     via_cell :: try_lower_cell_set_assign(ctx, assign_stmt)
-    match via_cell {
-        is null -> {}
-        _ -> { return via_cell }
-    }
+    if via_cell != null { return via_cell }
     return LoweredAssign {
         .span = assign_stmt.span,
         .target = lower_assign_target(ctx, assign_stmt.target),
@@ -253,7 +247,9 @@ adjust_hi_inclusive :: fn(hi: LoweredExpr, inclusive: bool, span: Span) -> Lower
 
 try_lower_index_set_assign :: fn(ctx: FnLowerCtx, assign_stmt: AssignStmt) -> LoweredStmt | null {
     target :: assign_stmt.target
-    match target {
+    // @partial: only an `m[k]` (IndexExpr) LHS can be an IndexSet assign; every
+    // other Expr target → null (handled by the regular assign path).
+    @partial match target {
         is IndexExpr as idx -> {
             target_type :: ctx.types.expr_type(idx.target)
             // Resolve `set_at` through the canonical impl-member path so the
