@@ -24,7 +24,9 @@ import "std/collections" { MutableMap }
 
 /// Pluck the `method` field. Returns `""` when absent or non-string.
 export method_name :: fn(msg: JsonValue) -> string {
-    match msg {
+    // @partial: a JSON-RPC message is always an object ; any other variant has
+    // no `method` field, so "" is the right answer.
+    @partial match msg {
         is JsonObject as o -> { return obj_string(o, "method") }
         _ -> { return "" }
     }
@@ -33,7 +35,9 @@ export method_name :: fn(msg: JsonValue) -> string {
 /// Pluck the `id` field. Returns `JsonNull{}` for notifications. The
 /// response encoder echoes the same shape regardless.
 export request_id :: fn(msg: JsonValue) -> JsonValue {
-    match msg {
+    // @partial: a JSON-RPC message is always an object ; any other variant has
+    // no `id` field, so the notification sentinel `JsonNull{}` is correct.
+    @partial match msg {
         is JsonObject as o -> { return get_field_or_null(o, "id") }
         _ -> { return JsonNull {} }
     }
@@ -41,19 +45,16 @@ export request_id :: fn(msg: JsonValue) -> JsonValue {
 
 /// Pluck the `params` field. Returns `JsonNull{}` when absent.
 export params_value :: fn(msg: JsonValue) -> JsonValue {
-    match msg {
+    // @partial: a JSON-RPC message is always an object ; any other variant has
+    // no `params` field, so `JsonNull{}` is correct.
+    @partial match msg {
         is JsonObject as o -> { return get_field_or_null(o, "params") }
         _ -> { return JsonNull {} }
     }
 }
 
 /// True iff `v` represents JSON null (or is the absent sentinel `JsonNull`).
-export is_json_null :: fn(v: JsonValue) -> bool {
-    match v {
-        is JsonNull -> { return true }
-        _ -> { return false }
-    }
-}
+export is_json_null :: fn(v: JsonValue) -> bool = v is JsonNull
 
 // ---- response encoders ----------------------------------------------------
 

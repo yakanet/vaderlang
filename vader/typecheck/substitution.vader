@@ -51,19 +51,17 @@ export is_empty_substitution :: fn(subst: Substitution) -> bool {
 /// @return       the rewritten type (may be `t` itself when nothing changed).
 export substitute :: fn(t: Type, subst: Substitution) -> Type {
     if is_empty_substitution(subst) { return t }
-    match t {
+    // @partial: only TypeParam / Self and the composite variants can be rewritten;
+    // every scalar / primitive variant has no inner binding → returned unchanged.
+    @partial match t {
         is TypeParamType as tp -> {
             replacement :: subst.type_params[tp.symbol.id]
-            match replacement {
-                is null -> { return t }
-                _       -> { return replacement }
-            }
+            if replacement == null { return t }
+            return replacement
         }
         is SelfType -> {
-            match subst.self_type {
-                is null -> { return t }
-                _       -> { return subst.self_type }
-            }
+            if subst.self_type == null { return t }
+            return subst.self_type
         }
         is StructType as st -> {
             new_args :: substitute_each(st.args, subst)

@@ -425,7 +425,9 @@ type_has_param :: fn(ft: FnType) -> bool {
 }
 
 type_contains_param :: fn(t: Type) -> bool {
-    match t {
+    // @partial: only a TypeParam or an arg-bearing composite can contain a type
+    // param; every other Type is a leaf with no params → false.
+    @partial match t {
         is TypeParamType -> { return true }
         is StructType as s -> {
             for a in s.args { if type_contains_param(a) { return true } }

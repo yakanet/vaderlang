@@ -115,29 +115,23 @@ is_ident_byte :: fn(b: u8) -> bool {
 /// @return            a fresh name (either `candidate` or `candidate_N`).
 export uniq :: fn(seen: MutableMap<string, bool>, candidate: string) -> string {
     existing :: seen[candidate]
-    match existing {
-        is bool -> {
-            // collision — find the next free `candidate_N`.
-            i: i32 = 1
-            for i < 1_000_000 {     // hard-stop for malformed input
-                fresh :: "${candidate}_${i}"
-                taken :: seen[fresh]
-                match taken {
-                    is bool -> { i += 1 }
-                    _       -> {
-                        seen[fresh] = true
-                        return fresh
-                    }
-                }
-            }
-            // unreachable in practice ; defensive fall-through.
-            return candidate
-        }
-        _ -> {
-            seen[candidate] = true
-            return candidate
-        }
+    if existing == null {
+        seen[candidate] = true
+        return candidate
     }
+    // collision — find the next free `candidate_N`.
+    i: i32 = 1
+    for i < 1_000_000 {     // hard-stop for malformed input
+        fresh :: "${candidate}_${i}"
+        taken :: seen[fresh]
+        if taken == null {
+            seen[fresh] = true
+            return fresh
+        }
+        i += 1
+    }
+    // unreachable in practice ; defensive fall-through.
+    return candidate
 }
 
 /// Name part used for impl-member mangling (`<for_type>$<trait>$<method>`).

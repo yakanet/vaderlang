@@ -63,7 +63,9 @@ register_deprecated :: fn(
 }
 
 decorated_decl_name :: fn(d: AST.Decl) -> string {
-    match d {
+    // @partial: only the named decl kinds carry a name; Impl / Assert / Import
+    // are anonymous → "" (no symbol to attach a deprecation message to).
+    @partial match d {
         is AST.FnDecl as x        -> { return x.name }
         is AST.StructDecl as x    -> { return x.name }
         is AST.EnumDecl as x      -> { return x.name }
@@ -75,7 +77,9 @@ decorated_decl_name :: fn(d: AST.Decl) -> string {
 }
 
 decorated_decl_decorators :: fn(d: AST.Decl) -> AST.Decorator[] {
-    match d {
+    // @partial: only the named decl kinds carry decorators we read here; Impl /
+    // Assert / Import contribute none → empty list.
+    @partial match d {
         is AST.FnDecl as x        -> { return x.decorators }
         is AST.StructDecl as x    -> { return x.decorators }
         is AST.EnumDecl as x      -> { return x.decorators }
@@ -374,7 +378,9 @@ extern_symbol_name_for :: fn(decl: AST.FnDecl) -> string {
 /// return position (the caller passes `allow_void = true` for return types).
 /// `null` is rejected everywhere — it's not a marshallable value.
 is_extern_abi_type :: fn(t: Type, allow_void: bool) -> bool {
-    match t {
+    // @partial: only primitives (and `string`, itself a PrimitiveType) cross the
+    // C ABI; every aggregate / ref / synthetic variant is rejected.
+    @partial match t {
         is UnresolvedType -> { return true }       // upstream error, don't pile on
         is PrimitiveType as p -> {
             if p.name == "void" { return allow_void }
@@ -435,46 +441,38 @@ check_main_signature :: fn(
 }
 
 is_primitive_named :: fn(t: Type, name: string) -> bool {
-    match t {
-        is PrimitiveType as p -> { return p.name == name }
-        _ -> { return false }
-    }
+    if t is PrimitiveType as p { return p.name == name }
+    return false
 }
 
 declare_fn_param :: fn(
     p: AST.FnParam, resolved: ResolvedModule, typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
     ty :: p.ty
-    match ty {
-        is null -> {
-            // SPEC §4 : top-level fn signatures must be fully annotated, except
-            // `self` which carries the implicit `Self` type, bound at body time.
-            if p.name == "self" { return TY_UNRESOLVED }
-            diags.push(typecheck_error(.FnSignatureMustBeAnnotated, p.span,
-                "parameter ${p.name} lacks a type"))
-            return TY_UNRESOLVED
-        }
-        _ -> {
-            resolved_ty :: type_from_expr(ty, resolved, diags)
-            typed.param_types[p.span.hash()] = resolved_ty
-            return resolved_ty
-        }
+    if ty == null {
+        // SPEC §4 : top-level fn signatures must be fully annotated, except
+        // `self` which carries the implicit `Self` type, bound at body time.
+        if p.name == "self" { return TY_UNRESOLVED }
+        diags.push(typecheck_error(.FnSignatureMustBeAnnotated, p.span,
+            "parameter ${p.name} lacks a type"))
+        return TY_UNRESOLVED
     }
+    resolved_ty :: type_from_expr(ty, resolved, diags)
+    typed.param_types[p.span.hash()] = resolved_ty
+    return resolved_ty
 }
 
 declare_fn_return :: fn(
     decl: AST.FnDecl, resolved: ResolvedModule, diags: Diagnostic[],
 ) -> Type {
     rt :: decl.return_type
-    match rt {
-        is null -> {
-            // Expression-bodied without annotation : inference defers to body
-            // checking. Block-bodied without annotation : default to void.
-            if decl.is_expression_bodied { return TY_UNRESOLVED }
-            return TY_VOID
-        }
-        _ -> { return type_from_expr(rt, resolved, diags) }
+    if rt == null {
+        // Expression-bodied without annotation : inference defers to body
+        // checking. Block-bodied without annotation : default to void.
+        if decl.is_expression_bodied { return TY_UNRESOLVED }
+        return TY_VOID
     }
+    return type_from_expr(rt, resolved, diags)
 }
 
 declare_enum :: fn(
@@ -568,7 +566,9 @@ is_type_position_value :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
         if !(primitive_from_name(e.name) is null) { return true }
         sym :: resolved.idents[e.span.hash()]
         if sym is null { return false }
-        match sym.kind {
+        // @partial: only type-introducing kinds name a type-position value; every
+        // other SymbolKind (Fn, Local, Param, …) is a value, not a type.
+        @partial match sym.kind {
             .Struct -> { return true }
             .Trait  -> { return true }
             .Enum   -> { return true }
@@ -598,19 +598,15 @@ resolve_repr :: fn(
 ) -> string {
     if repr is null { return "i32" }
     repr_ty :: type_from_expr(repr, resolved, diags)
-    match repr_ty {
-        is PrimitiveType as p -> {
-            if is_int_name(p.name) { return p.name }
-            diags.push(typecheck_error(.EnumReprMustBePrimitiveInt, repr.span,
-                "got ${p.name}"))
-            return "i32"
-        }
-        _ -> {
-            diags.push(typecheck_error(.EnumReprMustBePrimitiveInt, repr.span,
-                "got ${display_type(repr_ty)}"))
-            return "i32"
-        }
+    if repr_ty is PrimitiveType as p {
+        if is_int_name(p.name) { return p.name }
+        diags.push(typecheck_error(.EnumReprMustBePrimitiveInt, repr.span,
+            "got ${p.name}"))
+        return "i32"
     }
+    diags.push(typecheck_error(.EnumReprMustBePrimitiveInt, repr.span,
+        "got ${display_type(repr_ty)}"))
+    return "i32"
 }
 
 

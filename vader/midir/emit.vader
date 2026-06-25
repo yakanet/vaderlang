@@ -25,31 +25,106 @@ import "vader/diagnostics" { Span }
 import "vader/types" { Type, PrimitiveType, ArrayType, mk_struct, display_type }
 import "vader/lower" { VtableEntry as LoweredVtableEntry }
 import "vader/bytecode" {
-    EmitterCtx, BytecodeModule, BcFunction, BcSignature, BcLocal, BcImport,
-    BcField, BcStruct, BcRef, BcDataEntry, DebugPos, ImplEntry,
-    VtableRow, VtableEntry as BcVtableEntry,
-    new_emitter_ctx, intern_type, intern_string,
-    val_type_of_type, ValType, is_64_bit_int_val,
-    binary_op_for, unary_op_for, default_emit_options, EmitOptions,
-    typed_slot_load_op_for, typed_slot_store_op_for,
+    EmitterCtx,
+    BytecodeModule,
+    BcFunction,
+    BcSignature,
+    BcLocal,
+    BcImport,
+    BcField,
+    BcStruct,
+    BcRef,
+    BcDataEntry,
+    DebugPos,
+    ImplEntry,
+    VtableRow,
+    VtableEntry as BcVtableEntry,
+    new_emitter_ctx,
+    intern_type,
+    intern_string,
+    val_type_of_type,
+    ValType,
+    is_64_bit_int_val,
+    binary_op_for,
+    unary_op_for,
+    default_emit_options,
+    EmitOptions,
+    typed_slot_load_op_for,
+    typed_slot_store_op_for,
 }
 import "vader/bytecode" {
-    Op, Unreachable, I32Const, I64Const, F64Const, BoolConst, CharConst, StringConst,
-    NullConst, LocalGet, LocalSet, LocalTee, LocalField, Return, ReturnLit, ConstOp,
-    const_op_of, Drop, Call, CallImport, CallIndirect, FnRef, VirtualCall,
-    If, Else, End, Block, Loop, Branch, BranchIf, BoolNot,
-    StructNew, StructGet, StructSet,
-    ArrayNew, ArrayGet, ArraySet, ArrayLen, ArrayPush, ArraySlice, StringSliceCodepoints,
-    ArrayRepeat, ArrayPushAll, ArrayCopy, ArrayRemoveLast, ArrayClear,
-    DataConst, TypeConst, TypeCheck, RefCast, Box, Convert, ConvertTarget,
-    MakeClosure, DeferPush, DeferPopExec, SizeOfType,
+    Op,
+    Unreachable,
+    I32Const,
+    I64Const,
+    F64Const,
+    BoolConst,
+    CharConst,
+    StringConst,
+    NullConst,
+    LocalGet,
+    LocalSet,
+    LocalTee,
+    LocalField,
+    Return,
+    ReturnLit,
+    ConstOp,
+    const_op_of,
+    Drop,
+    Call,
+    CallImport,
+    CallIndirect,
+    FnRef,
+    VirtualCall,
+    If,
+    Else,
+    End,
+    Block,
+    Loop,
+    Branch,
+    BranchIf,
+    BoolNot,
+    StructNew,
+    StructGet,
+    StructSet,
+    ArrayNew,
+    ArrayGet,
+    ArraySet,
+    ArrayLen,
+    ArrayPush,
+    ArraySlice,
+    StringSliceCodepoints,
+    ArrayRepeat,
+    ArrayPushAll,
+    ArrayCopy,
+    ArrayRemoveLast,
+    ArrayClear,
+    DataConst,
+    TypeConst,
+    TypeCheck,
+    RefCast,
+    Box,
+    Convert,
+    ConvertTarget,
+    MakeClosure,
+    DeferPush,
+    DeferPopExec,
+    SizeOfType,
 }
 import "vader/bytecode" {
-    intern_cell_type, run_bc_peephole, run_bc_return_lit_fold,
+    intern_cell_type,
+    run_bc_peephole,
+    run_bc_return_lit_fold,
     run_bc_const_fold_arith,
-    propagate_const_single_use, drop_dead_stores, coalesce_slots,
-    prune_unused_functions, prune_unused_imports, prune_unused_types,
-    type_intern_key, val_type_name, convert_target_of,
+    propagate_const_single_use,
+    drop_dead_stores,
+    coalesce_slots,
+    prune_unused_functions,
+    prune_unused_imports,
+    prune_unused_types,
+    type_intern_key,
+    val_type_name,
+    convert_target_of,
     build_intrinsic_wrapper_body,
 }
 import "vader/resolver/symbol" { Symbol }
@@ -67,15 +142,7 @@ reserve_cfg_function :: fn(cfg_fn: CFGFunction, ctx: EmitterCtx) -> void {
     empty_debug: (DebugPos | null)[] = []
     empty_jump_table: i32[] = []
     empty_locals: BcLocal[] = []
-    ctx.functions.push(BcFunction {
-        .name       = cfg_fn.mangled,
-        .is_main    = cfg_fn.origin.is_main,
-        .signature  = signature,
-        .locals     = empty_locals,
-        .body       = empty_body,
-        .debug      = empty_debug,
-        .jump_table = empty_jump_table,
-    })
+    ctx.functions.push(BcFunction { .name = cfg_fn.mangled, .is_main = cfg_fn.origin.is_main, .signature = signature, .locals = empty_locals, .body = empty_body, .debug = empty_debug, .jump_table = empty_jump_table })
     if cfg_fn.origin.symbol is Symbol as sym {
         ctx.function_index_by_symbol_id[sym.id] = function_index
     }
@@ -119,15 +186,7 @@ synthesise_cfg_intrinsic_wrappers :: fn(cfg: CFGProject, ctx: EmitterCtx) -> voi
         for _j in 0..<body.len() { jump_table.push(-1) }
         no_locals: BcLocal[] = []
         fn_index :: i32(ctx.functions.len())
-        ctx.functions.push(BcFunction {
-            .name       = "${imp.mangled_name}_vt",
-            .is_main    = false,
-            .signature  = imp.signature,
-            .locals     = no_locals,
-            .body       = body,
-            .debug      = debug,
-            .jump_table = jump_table,
-        })
+        ctx.functions.push(BcFunction { .name = "${imp.mangled_name}_vt", .is_main = false, .signature = imp.signature, .locals = no_locals, .body = body, .debug = debug, .jump_table = jump_table })
         ctx.function_index_by_mangle[imp.mangled_name] = fn_index
     }
 }
@@ -135,12 +194,7 @@ synthesise_cfg_intrinsic_wrappers :: fn(cfg: CFGProject, ctx: EmitterCtx) -> voi
 reserve_cfg_extern :: fn(ext: CFGExternDecl, ctx: EmitterCtx) -> void {
     signature :: build_cfg_signature(ext.params, ext.return_type, ctx)
     import_index :: i32(ctx.imports.len())
-    ctx.imports.push(BcImport {
-        .extern_name   = ext.extern_name,
-        .mangled_name  = ext.mangled,
-        .signature     = signature,
-        .is_extern     = ext.is_extern,
-    })
+    ctx.imports.push(BcImport { .extern_name = ext.extern_name, .mangled_name = ext.mangled, .signature = signature, .is_extern = ext.is_extern })
     if ext.origin.symbol is Symbol as sym {
         ctx.import_index_by_symbol_id[sym.id] = import_index
     }
@@ -151,7 +205,7 @@ reserve_cfg_extern :: fn(ext: CFGExternDecl, ctx: EmitterCtx) -> void {
 }
 
 reserve_cfg_struct :: fn(s: CFGStructDecl, ctx: EmitterCtx) -> void {
-    sym_id :i32 = -1
+    sym_id: i32 = -1
     if s.origin.symbol is Symbol as sym { sym_id = sym.id }
     // Key on the struct *type*'s intern key (display_type), not the
     // mangled name — `intern_type` for a `StructType` derives the same
@@ -208,12 +262,7 @@ build_cfg_signature :: fn(params: CFGParam[], return_type: Type, ctx: EmitterCtx
         params_val.push(val_type_of_type(p.type))
         param_types.push(intern_type(p.type, ctx))
     }
-    return BcSignature {
-        .params       = params_val,
-        .result       = val_type_of_type(return_type),
-        .param_types  = param_types,
-        .result_type  = intern_type(return_type, ctx),
-    }
+    return BcSignature { .params = params_val, .result = val_type_of_type(return_type), .param_types = param_types, .result_type = intern_type(return_type, ctx) }
 }
 
 // ============================================================================
@@ -231,14 +280,13 @@ build_cfg_signature :: fn(params: CFGParam[], return_type: Type, ctx: EmitterCtx
 /// @return             a fresh `BytecodeModule`.
 export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: EmitOptions) -> BytecodeModule {
     ctx :: new_emitter_ctx()
-
     // Pass 1 — reserve CFG fns / externs / structs.
-    for [_, m] in cfg.modules {
+    for __for_236_5 in cfg.modules {
+        [_, m] :: __for_236_5
         for f in m.functions { reserve_cfg_function(f, ctx) }
         for ext in m.externs { reserve_cfg_extern(ext, ctx) }
         for s in m.struct_decls { reserve_cfg_struct(s, ctx) }
     }
-
     // Pass 1.5 — synthesise wrapper fns for `@intrinsic` impl-member imports
     // that a vtable entry references. A `virtual.call` dispatches through the
     // vtable to a real fn index, but an intrinsic impl member (e.g. `string
@@ -247,13 +295,12 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
     // VM traps "no impl for type N". The wrapper forwards to the host import
     // via `CallImport`. Mirror of vader/bytecode/emit.vader::synthesise_intrinsic_wrappers.
     synthesise_cfg_intrinsic_wrappers(cfg, ctx)
-
     // Pre-translate CFG string indices into bytecode pool indices.
     string_index_map: i32[] = []
     for s in cfg.strings { string_index_map.push(intern_string(s, ctx)) }
-
     // Pass 2 — emit fn bodies from the CFG.
-    for [_, m] in cfg.modules {
+    for __for_256_5 in cfg.modules {
+        [_, m] :: __for_256_5
         for cfg_fn in m.functions {
             if cfg_fn.is_extern { continue }
             // Resolve the reserved fn-table slot. Prefer the symbol-id
@@ -273,7 +320,6 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             }
         }
     }
-
     // Pass 3 — bytecode peephole + DCE. Mirrors the post-emit pass
     // `vader/bytecode/emit.vader::emit_project` runs on the legacy
     // Lowered→bytecode path. Gated by `opts.optimize`.
@@ -298,11 +344,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             // post-propagate and over-folds compared to TS.
             phr :: run_bc_peephole(ctx.functions[i])
             f :: ctx.functions[i]
-            ctx.functions[i] = BcFunction {
-                .name = f.name, .is_main = f.is_main, .signature = f.signature,
-                .locals = f.locals, .body = phr.body, .debug = f.debug,
-                .jump_table = phr.jump_table,
-            }
+            ctx.functions[i] = BcFunction { .name = f.name, .is_main = f.is_main, .signature = f.signature, .locals = f.locals, .body = phr.body, .debug = f.debug, .jump_table = phr.jump_table }
             // Iterate propagate to fixpoint : inlining slot N's const may
             // expose slot M (whose set was preceded by `LocalGet N`, now
             // an inlined const) as the next propagateable slot. Mirrors
@@ -320,11 +362,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             // (src/bytecode/peephole.ts:54-67).
             cfa :: run_bc_const_fold_arith(ctx.functions[i])
             cf :: ctx.functions[i]
-            ctx.functions[i] = BcFunction {
-                .name = cf.name, .is_main = cf.is_main, .signature = cf.signature,
-                .locals = cf.locals, .body = cfa.body, .debug = cf.debug,
-                .jump_table = cfa.jump_table,
-            }
+            ctx.functions[i] = BcFunction { .name = cf.name, .is_main = cf.is_main, .signature = cf.signature, .locals = cf.locals, .body = cfa.body, .debug = cf.debug, .jump_table = cfa.jump_table }
             ctx.functions[i] = drop_dead_stores(ctx.functions[i])
             // Second-pass : ONLY the Rule 5 (`<Const> ; Return` → ReturnLit)
             // fold. drop_dead_stores opens new const-before-return windows
@@ -333,11 +371,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             // slot-renumbering made adjacent, over-folding compared to TS.
             rlf :: run_bc_return_lit_fold(ctx.functions[i])
             g :: ctx.functions[i]
-            ctx.functions[i] = BcFunction {
-                .name = g.name, .is_main = g.is_main, .signature = g.signature,
-                .locals = g.locals, .body = rlf.body, .debug = g.debug,
-                .jump_table = rlf.jump_table,
-            }
+            ctx.functions[i] = BcFunction { .name = g.name, .is_main = g.is_main, .signature = g.signature, .locals = g.locals, .body = rlf.body, .debug = g.debug, .jump_table = rlf.jump_table }
             // Final pass — same-ValType non-overlapping live ranges
             // coalesce onto shared physical slots. Mirror of TS
             // `coalesceSlots` (src/midir/emit.ts:109). Runs LAST so the
@@ -366,7 +400,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
         vtable_roots: i32[] = []
         for ve in cfg.vtable_entries {
             key :: "${ve.trait_name}.${ve.method_name}"
-            if !(used_vt_keys[key] is bool) { continue }
+            if used_vt_keys[key] !is bool { continue }
             // Pin the receiver struct type — TS roots impl_table keys
             // in pruneUnusedTypes (dce.ts:623), so structs only kept
             // through an impl row survive when the row's trait is
@@ -381,18 +415,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
         prune_unused_imports(ctx)
         prune_unused_types(ctx)
     }
-
-    return BytecodeModule {
-        .name        = module_name,
-        .types       = ctx.types,
-        .strings     = ctx.strings,
-        .data_pool   = cfg.data_pool,
-        .functions   = ctx.functions,
-        .imports     = ctx.imports,
-        .exports     = ctx.exports,
-        .impl_table  = build_impl_table_from_vtable(cfg.vtable_entries, ctx),
-        .vtables     = build_vtables_from_entries(cfg.vtable_entries, ctx),
-    }
+    return BytecodeModule { .name = module_name, .types = ctx.types, .strings = ctx.strings, .data_pool = cfg.data_pool, .functions = ctx.functions, .imports = ctx.imports, .exports = ctx.exports, .impl_table = build_impl_table_from_vtable(cfg.vtable_entries, ctx), .vtables = build_vtables_from_entries(cfg.vtable_entries, ctx) }
 }
 
 /// Resolve a vtable entry's target fn symbol to its (post-prune) function
@@ -429,15 +452,13 @@ build_vtables_from_entries :: fn(entries: LoweredVtableEntry[], ctx: EmitterCtx)
     out: VtableRow[] = []
     for ve in entries {
         key :: "${ve.trait_name}.${ve.method_name}"
-        if !(used_keys[key] is bool) { continue }
+        if used_keys[key] !is bool { continue }
         fn_idx :: resolve_vtable_fn_index(ve.fn_symbol, ctx)
         if fn_idx < 0 { continue }
         receiver_idx :: intern_type(ve.struct_type, ctx)
         existing :: rows_by_key[key]
         if existing is usize as ei {
-            out[ei].entries.push(BcVtableEntry {
-                .receiver_type_index = receiver_idx, .fn_index = fn_idx,
-            })
+            out[ei].entries.push(BcVtableEntry { .receiver_type_index = receiver_idx, .fn_index = fn_idx })
         } else {
             new_idx :: out.len()
             entries_arr: BcVtableEntry[] = []
@@ -464,18 +485,15 @@ build_impl_table_from_vtable :: fn(entries: LoweredVtableEntry[], ctx: EmitterCt
         // Into<Foo>` rejected by typecheck — TS drops Foo entirely).
         key_str :: type_intern_key(entry.struct_type)
         existing :: ctx.type_key[key_str]
-        if !(existing is i32) { continue }
+        if existing !is i32 { continue }
         type_index :: existing
         if usize(type_index) < ctx.types.len() {
-            if !(ctx.types[usize(type_index)] is BcStruct) { continue }
+            if ctx.types[usize(type_index)] !is BcStruct { continue }
         }
         key :: "${type_index}|${entry.trait_name}"
         if seen[key] is bool { continue }
         seen[key] = true
-        out.push(ImplEntry {
-            .struct_type_index = type_index,
-            .trait_name        = entry.trait_name,
-        })
+        out.push(ImplEntry { .struct_type_index = type_index, .trait_name = entry.trait_name })
     }
     return out
 }
@@ -490,56 +508,55 @@ build_impl_table_from_vtable :: fn(entries: LoweredVtableEntry[], ctx: EmitterCt
 /// to fill `jump_table[opener_pc]` at `end` (block/if) or right away
 /// (loop : target = opener_pc + 1).
 ScopeFrame :: struct {
-    kind:        string        // "block" | "loop" | "if"
-    target_blk:  BlockId       // source-CFG target for matching br
-    opener_pc:   i32
+    kind: string
+    target_blk: BlockId
+    opener_pc: i32
 }
+// "block" | "loop" | "if"
+// source-CFG target for matching br
 
 /// A `Branch` / `BranchIf` op whose target scope hasn't been opened
 /// yet — wait, in a forward jump *out of* a still-open block. Held
 /// in a side list, drained at the matching end.
 PendingBranch :: struct {
-    branch_pc:  i32
+    branch_pc: i32
     target_blk: BlockId
 }
 
 /// Per-fn structurer state.
 FnEmitCfg :: struct {
-    fn_:                 CFGFunction
-    /// Arg/result type pins for this function's calls — the SAME array that's
-    /// stored under this fn's index in `project.pinned_types_by_fn`, cached
-    /// here so the per-call emit appends to it without a per-op map lookup.
+    fn_: CFGFunction
     pinned_types_bucket: i32[]
-    slot:                BcFunction
-    project:             EmitterCtx
-    string_index_map:    i32[]
-    local_to_slot:       i32[]
-    preds:               BlockId[][]
-    idom:                i32[]
-    ipostdom:            i32[]
-    loop_exit:           MutableMap<i32, BlockId | null>
-    scopes:              ScopeFrame[]
-    pending:             PendingBranch[]
+    slot: BcFunction
+    project: EmitterCtx
+    string_index_map: i32[]
+    local_to_slot: i32[]
+    preds: BlockId[][]
+    idom: i32[]
+    ipostdom: i32[]
+    loop_exit: MutableMap<i32, BlockId | null>
+    scopes: ScopeFrame[]
+    pending: PendingBranch[]
     wrapped_loop_headers: MutableSet<i32>
-    /// Stack-pass-through hints — see vader/midir/scheduler. Queried by
-    /// emit_get / emit_set / TermReturn to elide the local.set + local.get
-    /// pair when an instruction's single-use result flows directly to the
-    /// next consumer. Mirrors TS's `scheduler.skipSet / skipFirstGet /
-    /// skipTerminatorGet`.
-    hints:               ScheduleHints
+    hints: ScheduleHints
 }
+/// Arg/result type pins for this function's calls — the SAME array that's
+/// stored under this fn's index in `project.pinned_types_by_fn`, cached
+/// here so the per-call emit appends to it without a per-op map lookup.
 
-emit_cfg_function_body :: fn(
-    cfg_fn: CFGFunction, fn_idx: i32, ctx: EmitterCtx, string_index_map: i32[],
-) -> void {
+/// Stack-pass-through hints — see vader/midir/scheduler. Queried by
+/// emit_get / emit_set / TermReturn to elide the local.set + local.get
+/// pair when an instruction's single-use result flows directly to the
+/// next consumer. Mirrors TS's `scheduler.skipSet / skipFirstGet /
+/// skipTerminatorGet`.
+
+emit_cfg_function_body :: fn(cfg_fn: CFGFunction, fn_idx: i32, ctx: EmitterCtx, string_index_map: i32[]) -> void {
     slot :: ctx.functions[usize(fn_idx)]
-
     // Open this function's per-call type-pin bucket (see `pinned_types_by_fn`) ;
     // the same array is cached on `fn_ctx.pinned_types_bucket` below so the
     // per-call emit appends to it directly (no per-op map lookup).
     pins_bucket: i32[] = []
     ctx.pinned_types_by_fn[fn_idx] = pins_bucket
-
     // Map CFG locals to bytecode slots. Params take slots 0..N-1 ;
     // additional locals get fresh slots indexed AFTER the params.
     // (slot.locals only contains the non-param locals — params live
@@ -552,39 +569,17 @@ emit_cfg_function_body :: fn(
             local_to_slot.push(i32(i))
         } else {
             slot_idx :: i32(n_params) + i32(slot.locals.len())
-            slot.locals.push(BcLocal {
-                .name = cfg_fn.locals[i].name,
-                .val  = val_type_of_type(cfg_fn.locals[i].type),
-            })
+            slot.locals.push(BcLocal { .name = cfg_fn.locals[i].name, .val = val_type_of_type(cfg_fn.locals[i].type) })
             local_to_slot.push(slot_idx)
         }
     }
-
     preds :: predecessors_of(cfg_fn)
     idom :: compute_dominators(cfg_fn, preds)
     ipostdom :: compute_post_dominators(cfg_fn)
     loop_exit :: find_loop_exits(cfg_fn, preds, idom)
-
     hints :: schedule_stack(cfg_fn)
-
-    fn_ctx :: FnEmitCfg {
-        .fn_                  = cfg_fn,
-        .pinned_types_bucket  = pins_bucket,
-        .slot                 = slot,
-        .project              = ctx,
-        .string_index_map     = string_index_map,
-        .local_to_slot        = local_to_slot,
-        .preds                = preds,
-        .idom                 = idom,
-        .ipostdom             = ipostdom,
-        .loop_exit            = loop_exit,
-        .scopes               = [],
-        .pending              = [],
-        .wrapped_loop_headers = MutableSet<i32> {},
-        .hints                = hints,
-    }
-
-    emit_range(fn_ctx, cfg_fn.entry, -1)
+    fn_ctx :: FnEmitCfg { .fn_ = cfg_fn, .pinned_types_bucket = pins_bucket, .slot = slot, .project = ctx, .string_index_map = string_index_map, .local_to_slot = local_to_slot, .preds = preds, .idom = idom, .ipostdom = ipostdom, .loop_exit = loop_exit, .scopes = [], .pending = [], .wrapped_loop_headers = MutableSet<i32> {}, .hints = hints }
+    emit_range(fn_ctx, cfg_fn.entry, BlockId(-1))
 }
 
 // ============================================================================
@@ -619,11 +614,7 @@ cf_else :: fn(ctx: FnEmitCfg, span: Span) -> void {
     // is false ; the matching `end` will set the else opener's target.
     ctx.slot.jump_table[usize(top.opener_pc)] = pc + 1
     // Repurpose the same entry as an "else scope".
-    ctx.scopes[sp - 1] = ScopeFrame {
-        .kind = "if", 
-        .target_blk = top.target_blk, 
-        .opener_pc = pc,
-    }
+    ctx.scopes[sp - 1] = ScopeFrame { .kind = "if", .target_blk = top.target_blk, .opener_pc = pc }
 }
 
 cf_end :: fn(ctx: FnEmitCfg, span: Span) -> void {
@@ -713,27 +704,27 @@ emit_range :: fn(ctx: FnEmitCfg, start: BlockId, until: BlockId) -> void {
     cur := start
     for cur != -1 && cur != until {
         block :: ctx.fn_.blocks[usize(cur)]
-
         // First visit to a loop header → wrap in block + loop. Subsequent
         // visits (back-edges, nested control flow inside the body) see
         // this header as already wrapped and emit it as a plain block.
         is_loop_header := false
-        if !ctx.wrapped_loop_headers.contains(cur) {
-            // `loop_exit[cur]` is present iff `cur` is a loop header.
-            // Defaults to null lookup — we treat both "missing" and
-            // "value=null" as "no loop here" to avoid the MutableMap
-            // contains_key surrogate question (null is a legitimate
-            // map value here so plain [] doesn't suffice).
+        if !ctx.wrapped_loop_headers.contains(i32(cur)) {
             if loop_exit_present(ctx, cur) { is_loop_header = true }
         }
+        // `loop_exit[cur]` is present iff `cur` is a loop header.
+        // Defaults to null lookup — we treat both "missing" and
+        // "value=null" as "no loop here" to avoid the MutableMap
+        // contains_key surrogate question (null is a legitimate
+        // map value here so plain [] doesn't suffice).
+
         if is_loop_header {
-            exit_opt :: ctx.loop_exit[cur]
-            exit_target: i32 = -1
+            exit_opt :: ctx.loop_exit[i32(cur)]
+            exit_target: BlockId = BlockId(-1)
             if exit_opt is BlockId as e { exit_target = e }
             cf_block(ctx, block.span, exit_target)
             cf_loop(ctx, block.span, cur)
-            ctx.wrapped_loop_headers.add(cur)
-            inner_until: i32 = -1
+            ctx.wrapped_loop_headers.add(i32(cur))
+            inner_until: BlockId = BlockId(-1)
             if exit_opt is BlockId as e { inner_until = e }
             emit_range(ctx, cur, inner_until)
             // Unmark on the way out so a sibling loop that reuses this block
@@ -741,9 +732,11 @@ emit_range :: fn(ctx: FnEmitCfg, start: BlockId, until: BlockId) -> void {
             // Without this the header stays marked forever — re-encountered
             // back-edges then emit inline with no loop scope and the structurer
             // recurses without bound (mirror of TS `wrappedLoopHeaders.delete`).
-            ctx.wrapped_loop_headers.remove(cur)
-            cf_end(ctx, block.span)        // close loop scope
-            cf_end(ctx, block.span)        // close block scope
+            ctx.wrapped_loop_headers.remove(i32(cur))
+            cf_end(ctx, block.span)
+            // close loop scope
+            cf_end(ctx, block.span)
+            // close block scope
             if exit_opt is BlockId as e {
                 cur = e
             } else {
@@ -751,7 +744,6 @@ emit_range :: fn(ctx: FnEmitCfg, start: BlockId, until: BlockId) -> void {
             }
             continue
         }
-
         cur = emit_block_contents(ctx, cur, until)
     }
 }
@@ -761,7 +753,10 @@ emit_range :: fn(ctx: FnEmitCfg, start: BlockId, until: BlockId) -> void {
 /// without `contains_key` (which the Vader stdlib MutableMap doesn't
 /// surface via direct field access). Walk the keys instead to know.
 loop_exit_present :: fn(ctx: FnEmitCfg, b: BlockId) -> bool {
-    for [k, _] in ctx.loop_exit { if k == b { return true } }
+    for __for_764_5 in ctx.loop_exit {
+        [k, _] :: __for_764_5
+        if k == b { return true }
+    }
     return false
 }
 
@@ -773,7 +768,6 @@ emit_block_contents :: fn(ctx: FnEmitCfg, block_id: BlockId, until: BlockId) -> 
     for i in 0..<block.instructions.len() {
         emit_instr(ctx, block.instructions[i], pos_key(block_id, i))
     }
-
     t :: block.terminator
     if t is TermReturn as r {
         if r.value !is null {
@@ -802,11 +796,11 @@ emit_block_contents :: fn(ctx: FnEmitCfg, block_id: BlockId, until: BlockId) -> 
             cv :: const_op_of(last)
             if cv !is null {
                 body[body.len() - 1] = ReturnLit { .value = cv }
-                return -1
+                return BlockId(-1)
             }
         }
         push_emit(ctx, Return {}, r.span)
-        return -1
+        return BlockId(-1)
     }
     if t is TermUnreachable as u {
         // Reachable fall-through (`@partial` / `@unreachable`) → the trapping
@@ -818,16 +812,16 @@ emit_block_contents :: fn(ctx: FnEmitCfg, block_id: BlockId, until: BlockId) -> 
         } else {
             push_emit(ctx, Return {}, u.span)
         }
-        return -1
+        return BlockId(-1)
     }
     if t is TermBranch as b {
-        if b.target == until { return -1 }
+        if b.target == until { return BlockId(-1) }
         // Walk scope stack for matching target. If found → cf_br
         // resolves to the scope (immediate for loop, deferred for
         // block/if). Otherwise fall through linearly.
         if scope_contains_target(ctx, b.target) {
             cf_br(ctx, b.span, b.target)
-            return -1
+            return BlockId(-1)
         }
         return b.target
     }
@@ -849,9 +843,9 @@ emit_block_contents :: fn(ctx: FnEmitCfg, block_id: BlockId, until: BlockId) -> 
         then_exits := false
         if body_len > 0 {
             last :: body[body_len - 1]
-            if last is Return                  { then_exits = true }
-            if last is ReturnLit               { then_exits = true }
-            if last is Branch                  { then_exits = true }
+            if last is Return { then_exits = true }
+            if last is ReturnLit { then_exits = true }
+            if last is Branch { then_exits = true }
         }
         if then_exits && cb.else_block != merge {
             cf_end(ctx, cb.span)
@@ -862,7 +856,7 @@ emit_block_contents :: fn(ctx: FnEmitCfg, block_id: BlockId, until: BlockId) -> 
         cf_end(ctx, cb.span)
         return merge
     }
-    return -1
+    return BlockId(-1)
 }
 
 scope_contains_target :: fn(ctx: FnEmitCfg, target: BlockId) -> bool {
@@ -873,8 +867,8 @@ scope_contains_target :: fn(ctx: FnEmitCfg, target: BlockId) -> bool {
 cond_branch_merge :: fn(ctx: FnEmitCfg, block_id: BlockId, until: BlockId) -> BlockId {
     post :: ctx.ipostdom[usize(block_id)]
     if post < 0 { return until }
-    if ctx.wrapped_loop_headers.contains(post) { return -1 }
-    return post
+    if ctx.wrapped_loop_headers.contains(post) { return BlockId(-1) }
+    return BlockId(post)
 }
 
 // ============================================================================
@@ -918,7 +912,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         }
         for ai in 0..<c.args.len() {
             if ai == 0 { emit_first_get(ctx, pos, c.args[ai], c.span) }
-            else              { emit_get(ctx, c.args[ai], c.span) }
+            else { emit_get(ctx, c.args[ai], c.span) }
         }
         // Direct fn call → `Call` ; @extern/@intrinsic import → `CallImport`.
         // Resolve the callee by mangle FIRST : impl-member calls carry the
@@ -949,15 +943,15 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
                     if imp_mangle_opt is i32 as imp_m {
                         push_emit(ctx, CallImport { .index = imp_m }, c.span)
                     } else {
-                        // No resolution path for the callee. Previously this
-                        // emitted a bare `Return` — which silently dropped the
-                        // call and returned whatever was on the stack (e.g. a
-                        // for-in over a cross-module Iterator impl returned the
-                        // iterator struct itself). Fail loudly instead: an
-                        // unresolved callee is a materialisation gap (GATE B1),
-                        // not something to paper over at runtime.
                         panic("midir/emit: unresolved callee '${c.callee.name}' (id=${c.callee.id}) in '${ctx.fn_.mangled}' — impl-member/for-in materialisation gap (GATE B1)")
-                    }
+                    }                    // No resolution path for the callee. Previously this
+                    // emitted a bare `Return` — which silently dropped the
+                    // call and returned whatever was on the stack (e.g. a
+                    // for-in over a cross-module Iterator impl returned the
+                    // iterator struct itself). Fail loudly instead: an
+                    // unresolved callee is a materialisation gap (GATE B1),
+                    // not something to paper over at runtime.
+
                 }
             }
         }
@@ -974,7 +968,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
     if ins is InstrCallIndirect as ci {
         for ai in 0..<ci.args.len() {
             if ai == 0 { emit_first_get(ctx, pos, ci.args[ai], ci.span) }
-            else              { emit_get(ctx, ci.args[ai], ci.span) }
+            else { emit_get(ctx, ci.args[ai], ci.span) }
         }
         if ci.args.len() == 0 {
             emit_first_get(ctx, pos, ci.callee, ci.span)
@@ -992,28 +986,26 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
             type_index :: intern_type(fr.type, ctx.project)
             push_emit(ctx, FnRef { .function_index = fn_idx, .type_id = type_index }, fr.span)
         } else {
-            // Same materialisation-gap class as the InstrCall fallback above —
-            // a fn used as a value (FnRef) whose target was never materialised.
-            // Fail loud rather than silently returning an unresolved fn pointer.
             panic("midir/emit: unresolved fn-ref '${fr.fn_symbol.name}' (id=${fr.fn_symbol.id}) — fn-as-value materialisation gap (GATE B1)")
         }
+        // Same materialisation-gap class as the InstrCall fallback above —
+        // a fn used as a value (FnRef) whose target was never materialised.
+        // Fail loud rather than silently returning an unresolved fn pointer.
+
         emit_result(ctx, pos, fr.dst, fr.span)
         return
     }
     if ins is InstrVirtualCall as vc {
         for ai in 0..<vc.args.len() {
             if ai == 0 { emit_first_get(ctx, pos, vc.args[ai], vc.span) }
-            else              { emit_get(ctx, vc.args[ai], vc.span) }
+            else { emit_get(ctx, vc.args[ai], vc.span) }
         }
         if vc.args.len() == 0 {
             emit_first_get(ctx, pos, vc.receiver, vc.span)
         } else {
             emit_get(ctx, vc.receiver, vc.span)
         }
-        push_emit(ctx, VirtualCall {
-            .vtable_key = "${vc.trait_name}.${vc.method}",
-            .parameter_count = i32(vc.args.len() + 1),
-        }, vc.span)
+        push_emit(ctx, VirtualCall { .vtable_key = "${vc.trait_name}.${vc.method}", .parameter_count = i32(vc.args.len() + 1) }, vc.span)
         emit_result_if_any(ctx, pos, vc.dst, vc.span)
         return
     }
@@ -1028,15 +1020,16 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         emit_first_get(ctx, pos, fg.target, fg.span)
         field_slot :: find_struct_field_index(ctx.project, type_index, fg.field)
         if field_slot == null {
-            // No such struct field at emit time — the upstream pass produced a
-            // field access that isn't a real load. The classic source is a
-            // primitive method reference taken as a first-class value (`s.hash`
-            // with no backing free fn) ; the old code emitted a silent
-            // `Drop ; Return` here, which truncated the whole function and
-            // mis-compiled in silence. Fail loud, like the FnRef / MakeClosure
-            // materialisation-gap panics above.
             panic("midir/emit: no field `${fg.field}` on `${display_type(target_type)}` in '${ctx.fn_.mangled}' — a method reference on a primitive isn't a first-class value ; call it directly or wrap it in a lambda")
         }
+        // No such struct field at emit time — the upstream pass produced a
+        // field access that isn't a real load. The classic source is a
+        // primitive method reference taken as a first-class value (`s.hash`
+        // with no backing free fn) ; the old code emitted a silent
+        // `Drop ; Return` here, which truncated the whole function and
+        // mis-compiled in silence. Fail loud, like the FnRef / MakeClosure
+        // materialisation-gap panics above.
+
         field_index :: i32(field_slot)
         // Fuse `local.get N ; struct.get T F` → `local.field N T F`
         // when the just-emitted op is the receiver's slot read. Mirrors
@@ -1065,11 +1058,12 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         emit_get(ctx, fs.value, fs.span)
         field_slot :: find_struct_field_index(ctx.project, type_index, fs.field)
         if field_slot == null {
-            // Mirror the field-get guard : a field-set whose target isn't a real
-            // struct member is an upstream lowering bug. The old code emitted a
-            // silent `Drop ; Drop` and dropped the store on the floor. Fail loud.
             panic("midir/emit: no field `${fs.field}` on `${display_type(target_type)}` in '${ctx.fn_.mangled}' — field-set target isn't a real struct member ; upstream lowering bug")
         }
+        // Mirror the field-get guard : a field-set whose target isn't a real
+        // struct member is an upstream lowering bug. The old code emitted a
+        // silent `Drop ; Drop` and dropped the store on the floor. Fail loud.
+
         push_emit(ctx, StructSet { .type_id = type_index, .field_index = i32(field_slot), .stack = fs.barrierless }, fs.span)
         return
     }
@@ -1146,7 +1140,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         type_index :: intern_type(sn.type, ctx.project)
         for fi in 0..<sn.fields.len() {
             if fi == 0 { emit_first_get(ctx, pos, sn.fields[fi], sn.span) }
-            else              { emit_get(ctx, sn.fields[fi], sn.span) }
+            else { emit_get(ctx, sn.fields[fi], sn.span) }
         }
         push_emit(ctx, StructNew { .type_id = type_index, .stack = sn.stack }, sn.span)
         emit_result(ctx, pos, sn.dst, sn.span)
@@ -1156,7 +1150,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         type_index :: intern_type(an.type, ctx.project)
         for ei in 0..<an.elements.len() {
             if ei == 0 { emit_first_get(ctx, pos, an.elements[ei], an.span) }
-            else              { emit_get(ctx, an.elements[ei], an.span) }
+            else { emit_get(ctx, an.elements[ei], an.span) }
         }
         push_emit(ctx, ArrayNew { .type_id = type_index, .length = an.length }, an.span)
         emit_result(ctx, pos, an.dst, an.span)
@@ -1243,10 +1237,11 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         if fn_idx_opt is i32 as fn_idx {
             push_emit(ctx, MakeClosure { .function_index = fn_idx, .env_type_id = closure_type_id }, mc.span)
         } else {
-            // Materialisation gap (GATE B1) — a closure over a fn that was never
-            // materialised. Fail loud, consistent with the InstrCall/FnRef paths.
             panic("midir/emit: unresolved closure fn '${mc.fn_symbol.name}' (id=${mc.fn_symbol.id}) — make-closure materialisation gap (GATE B1)")
         }
+        // Materialisation gap (GATE B1) — a closure over a fn that was never
+        // materialised. Fail loud, consistent with the InstrCall/FnRef paths.
+
         emit_result(ctx, pos, mc.dst, mc.span)
         return
     }
@@ -1256,15 +1251,16 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         // order ; the per-name Op handles its own stack discipline.
         for ai in 0..<i.args.len() {
             if ai == 0 { emit_first_get(ctx, pos, i.args[ai], i.span) }
-            else              { emit_get(ctx, i.args[ai], i.span) }
+            else { emit_get(ctx, i.args[ai], i.span) }
         }
         op_opt :: intrinsic_op_for_name(i.name)
         if op_opt == null {
-            // Unknown intrinsic at emit time — the args were already pushed and
-            // a bare `Return` would truncate the function in silence. Fail loud,
-            // like the field-get / FnRef / MakeClosure gaps above.
             panic("midir/emit: unhandled intrinsic `${i.name}` in '${ctx.fn_.mangled}' — no dedicated Op ; add a case to intrinsic_op_for_name")
         }
+        // Unknown intrinsic at emit time — the args were already pushed and
+        // a bare `Return` would truncate the function in silence. Fail loud,
+        // like the field-get / FnRef / MakeClosure gaps above.
+
         push_emit(ctx, op_opt, i.span)
         emit_result_if_any(ctx, pos, i.dst, i.span)
         return
@@ -1311,12 +1307,12 @@ convert_eligible :: fn(v: ValType) -> bool = match v {
 /// null when the name doesn't map to a known intrinsic ; the sole caller
 /// panics on `null` rather than emitting a function-truncating stub.
 intrinsic_op_for_name :: fn(name: string) -> Op | null {
-    if name == "size_of.type"      { return SizeOfType {} }
-    if name == "array.repeat"      { return ArrayRepeat {} }
-    if name == "array.push_all"    { return ArrayPushAll {} }
-    if name == "array.copy"        { return ArrayCopy {} }
+    if name == "size_of.type" { return SizeOfType {} }
+    if name == "array.repeat" { return ArrayRepeat {} }
+    if name == "array.push_all" { return ArrayPushAll {} }
+    if name == "array.copy" { return ArrayCopy {} }
     if name == "array.remove_last" { return ArrayRemoveLast {} }
-    if name == "array.clear"       { return ArrayClear {} }
+    if name == "array.clear" { return ArrayClear {} }
     return null
 }
 
@@ -1341,12 +1337,6 @@ find_struct_field_index :: fn(ctx: EmitterCtx, type_index: i32, field_name: stri
 emit_const_instr :: fn(ctx: FnEmitCfg, c: InstrConst, pos: i64) -> void {
     v :: c.value
     if v is ConstInt as iv {
-        // Pick the const width from the literal's type : a 64-bit integer
-        // (`i64`/`u64`/`isize`/`usize`) keeps its full `u64` payload via
-        // `I64Const` ; narrower types truncate to `I32Const`. Without the
-        // width check, a value ≥ 2^31 (e.g. `i32`-min's magnitude `2147483648`
-        // wrapped in a `-`) truncated to i32 and the following `i64.neg` then
-        // produced the wrong sign. Mirror of `emit_body.vader::emit_int_lit`.
         if is_64_bit_int_val(val_type_of_type(c.type)) {
             push_emit(ctx, I64Const { .value = iv.value }, c.span)
         } else {
@@ -1361,6 +1351,13 @@ emit_const_instr :: fn(ctx: FnEmitCfg, c: InstrConst, pos: i64) -> void {
     } else if v is ConstNull {
         push_emit(ctx, NullConst {}, c.span)
     } else if v is ConstString as sv {
+        // Pick the const width from the literal's type : a 64-bit integer
+        // (`i64`/`u64`/`isize`/`usize`) keeps its full `u64` payload via
+        // `I64Const` ; narrower types truncate to `I32Const`. Without the
+        // width check, a value ≥ 2^31 (e.g. `i32`-min's magnitude `2147483648`
+        // wrapped in a `-`) truncated to i32 and the following `i64.neg` then
+        // produced the wrong sign. Mirror of `emit_body.vader::emit_int_lit`.
+
         // Translate CFG string index → bytecode pool index.
         pool_idx :: ctx.string_index_map[usize(sv.index)]
         push_emit(ctx, StringConst { .index = pool_idx }, c.span)
@@ -1403,7 +1400,7 @@ emit_result_if_any :: fn(ctx: FnEmitCfg, pos: i64, dst: LocalId | null, span: Sp
 // ref-class statics (ref/any/void) where no narrowing is meaningful.
 // Mirror of TS `valTypeOf(t) !== "ref" && !== "any" && !== "void"`.
 needs_ref_cast :: fn(t: Type) -> bool {
-    if !(t is PrimitiveType) { return false }
+    if t !is PrimitiveType { return false }
     return t.name != "void"
 }
 
@@ -1419,17 +1416,13 @@ array_element_val_type :: fn(t: Type) -> ValType {
 
 // Pop the trailing `local.get N` from the body and replace with a fused
 // `local.field N type_id field_index`. Returns true iff fusion fired.
-try_fuse_local_field :: fn(
-    ctx: FnEmitCfg, type_id: i32, field_index: i32,
-) -> bool {
+try_fuse_local_field :: fn(ctx: FnEmitCfg, type_id: i32, field_index: i32) -> bool {
     n :: ctx.slot.body.len()
     if n == 0 { return false }
     last :: ctx.slot.body[n - 1]
-    if !(last is LocalGet) { return false }
+    if last !is LocalGet { return false }
     slot :: last.slot
-    ctx.slot.body[n - 1] = LocalField {
-        .slot = slot, .type_id = type_id, .field_index = field_index,
-    }
+    ctx.slot.body[n - 1] = LocalField { .slot = slot, .type_id = type_id, .field_index = field_index }
     return true
 }
 

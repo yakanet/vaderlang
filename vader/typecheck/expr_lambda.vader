@@ -82,34 +82,26 @@ pick_return :: fn(
         is null -> {}
         _ -> { return type_from_expr(annot, resolved, diags) }
     }
-    match expected_fn {
-        is FnType as f -> { return f.return_type }
-        _ -> { return null }
-    }
+    if expected_fn is FnType as f { return f.return_type }
+    return null
 }
 
 pick_ctx_return :: fn(expected: Type | null) -> Type {
-    match expected {
-        is null -> { return TY_UNRESOLVED }
-        _ -> { return expected }
-    }
+    if expected == null { return TY_UNRESOLVED }
+    return expected
 }
 
 pick_final_return :: fn(expected: Type | null, body: Type) -> Type {
-    match expected {
-        is null -> { return default_if_free(body) }
-        _ -> {
-            // Expected might still carry unbound TypeParams (`U`,
-            // `U[]`, `Yield(U)`, …) or a Free* leftover from a
-            // tentative unify. Fall back to the body's defaulted type
-            // in those cases so the lambda's signature reports the
-            // concrete shape its body actually produces.
-            if type_contains_type_param(expected) { return default_if_free(body) }
-            if expected is FreeIntType   { return default_if_free(body) }
-            if expected is FreeFloatType { return default_if_free(body) }
-            return expected
-        }
-    }
+    if expected == null { return default_if_free(body) }
+    // Expected might still carry unbound TypeParams (`U`,
+    // `U[]`, `Yield(U)`, …) or a Free* leftover from a
+    // tentative unify. Fall back to the body's defaulted type
+    // in those cases so the lambda's signature reports the
+    // concrete shape its body actually produces.
+    if type_contains_type_param(expected) { return default_if_free(body) }
+    if expected is FreeIntType   { return default_if_free(body) }
+    if expected is FreeFloatType { return default_if_free(body) }
+    return expected
 }
 
 import "vader/types" { FreeIntType, FreeFloatType }

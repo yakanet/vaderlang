@@ -37,10 +37,7 @@ export evaluate_ident :: fn(expr: AST.IdentExpr, context: ComptimeContext) -> Ev
     // accidentally surface as `TypeVal(?)`.
     if is_type_symbol_kind(symbol.kind) {
         type_value :: type_from_expr_safe(expr, context)
-        match type_value {
-            is null -> {}
-            _       -> { return ok(type_val(type_value)) }
-        }
+        if type_value != null { return ok(type_val(type_value)) }
     }
     return vm_required(expr.span, "IdentExpr (${kind_name(symbol.kind)})")
 }
@@ -69,8 +66,6 @@ type_from_expr_safe :: fn(expr: AST.IdentExpr, context: ComptimeContext) -> Type
 diag_sink :: fn() -> Diagnostic[] { return [] }
 
 is_resolved :: fn(t: Type) -> bool {
-    match t {
-        is UnresolvedType -> { return false }
-        _                 -> { return true }
-    }
+    if t is UnresolvedType { return false }
+    return true
 }

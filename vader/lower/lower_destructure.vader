@@ -297,7 +297,9 @@ tuple_or_array_element_type :: fn(
         is UnresolvedType -> {}
         _ -> { return from_typed }
     }
-    match target_type {
+    // @partial: only tuple / array targets have positional element types;
+    // every other Type → unresolved.
+    @partial match target_type {
         is TupleType as tup -> {
             if index < tup.elements.len() { return tup.elements[index] }
             return TY_UNRESOLVED
@@ -316,21 +318,17 @@ build_leaf_access :: fn(
     target: LoweredExpr, target_type: Type, elem_type: Type, span: Span, index: usize,
     field_names: string[] | null,
 ) -> LoweredExpr {
-    match target_type {
-        is ArrayType -> {
-            return LoweredIndex {
-                .span = span, .type = elem_type, .target = target,
-                .index = LoweredIntLit {
-                    .span = span, .type = mk_primitive("usize"), .value = i64(index),
-                },
-            }
+    if target_type is ArrayType {
+        return LoweredIndex {
+            .span = span, .type = elem_type, .target = target,
+            .index = LoweredIntLit {
+                .span = span, .type = mk_primitive("usize"), .value = i64(index),
+            },
         }
-        _ -> {
-            return LoweredFieldAccess {
-                .span = span, .type = elem_type, .target = target,
-                .field = leaf_field_name(field_names, index),
-            }
-        }
+    }
+    return LoweredFieldAccess {
+        .span = span, .type = elem_type, .target = target,
+        .field = leaf_field_name(field_names, index),
     }
 }
 

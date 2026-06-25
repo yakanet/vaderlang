@@ -82,16 +82,17 @@ build_signature :: fn(call: AST.CallExpr, typed: TypedProgram) -> JsonValue | nu
 }
 
 lookup_fn_decl :: fn(callee: AST.Expr, typed: TypedProgram) -> AST.FnDecl | null {
-    match callee {
+    // @partial: only a bare `IdentExpr` callee resolves to a fn-decl here.
+    // FieldExpr (UFCS-style `x.f()`) and every other expression shape : the
+    // resolver currently doesn't bind the FieldExpr's span, so fn-decl
+    // recovery would need a second-pass field-resolution table. Out of scope
+    // for this MVP, so those callees yield no signature.
+    @partial match callee {
         is AST.IdentExpr as id -> {
             sym :: typed.resolved.idents[id.span.hash()]
             if sym is null { return null }
             return typed.fn_decls[sym.id]
         }
-        // FieldExpr (UFCS-style `x.f()`) and other shapes : the
-        // resolver currently doesn't bind the FieldExpr's span, so
-        // fn-decl recovery would need a second-pass field-resolution
-        // table. Out of scope for this MVP.
         _ -> { return null }
     }
 }
@@ -113,14 +114,15 @@ render_signature_label :: fn(fd: AST.FnDecl) -> string {
 }
 
 render_param_label :: fn(p: AST.FnParam) -> string {
-    match p.ty {
-        is null -> { return p.name }
-        _ -> { return "${p.name}: ${render_type_expr(p.ty)}" }
-    }
+    if p.ty == null { return p.name }
+    return "${p.name}: ${render_type_expr(p.ty)}"
 }
 
 render_type_expr :: fn(e: AST.TypeExpr) -> string {
-    match e {
+    // @partial: only the renderable type-expr shapes are listed ; any other
+    // expression form a parser might surface in type position falls back to
+    // "?" so the caller still gets a label instead of failing.
+    @partial match e {
         is AST.IdentExpr as id -> { return id.name }
         is AST.GenericInstExpr as g -> {
             base :: render_type_expr(g.callee)

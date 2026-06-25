@@ -196,10 +196,8 @@ find_target_scope :: fn(state: FnEmitState, kind: ScopeKind, label: string | nul
 /// True iff a scope's stored label (possibly null) matches the
 /// queried name. Unlabelled scopes never match a named query.
 scope_label_matches :: fn(scope_label: string | null, query: string) -> bool {
-    match scope_label {
-        is string as actual -> { return actual == query }
-        _ -> { return false }
-    }
+    if scope_label == null { return false }
+    return scope_label == query
 }
 
 // ---- tests ----------------------------------------------------------------

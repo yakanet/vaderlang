@@ -163,7 +163,9 @@ collect_variant :: fn(v: Type, into: Type[]) -> void {
 /// Used when a free literal escapes its bidirectional context and needs a
 /// concrete type to flow into downstream phases.
 export default_if_free :: fn(t: Type) -> Type {
-    match t {
+    // @partial: only the three Free* literal variants default to a concrete
+    // primitive; every other type is already concrete → returned unchanged.
+    @partial match t {
         is FreeIntType   -> { return mk_primitive("i32") }
         is FreeFloatType -> { return mk_primitive("f64") }
         is FreeCharType  -> { return mk_primitive("char") }
@@ -242,10 +244,8 @@ export types_overlap :: fn(a: Type, b: Type) -> bool {
 }
 
 union_variants :: fn(t: Type) -> Type[] | null {
-    match t {
-        is UnionType as u -> { return u.variants }
-        _ -> { return null }
-    }
+    if t is UnionType as u { return u.variants }
+    return null
 }
 
 /// Subtract a single variant from a type. Returns the remaining type

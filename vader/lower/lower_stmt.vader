@@ -81,17 +81,13 @@ export lower_block :: fn(
 }
 
 lower_trailing :: fn(ctx: FnLowerCtx, trailing: Expr | null) -> LoweredExpr | null {
-    match trailing {
-        is null -> { return null }
-        _ -> { return lower_expr(ctx, trailing) }
-    }
+    if trailing == null { return null }
+    return lower_expr(ctx, trailing)
 }
 
 trailing_type :: fn(trailing: LoweredExpr | null) -> Type {
-    match trailing {
-        is null -> { return TY_VOID }
-        _ -> { return type_of(trailing) }
-    }
+    if trailing == null { return TY_VOID }
+    return type_of(trailing)
 }
 
 // Lower a single stmt and push its lowered form(s) onto `out`. Most
@@ -298,24 +294,22 @@ ensure_local_symbol_index :: fn(
 
 
 lower_return :: fn(ctx: FnLowerCtx, return_stmt: ReturnStmt) -> LoweredStmt {
-    match return_stmt.value {
-        is null -> { return LoweredReturn { .span = return_stmt.span, .value = null } }
-        _ -> {
-            lowered :: lower_expr(ctx, return_stmt.value)
-            // Widen a literal-shaped return value to the fn's declared
-            // return type when the return type is a union and the literal
-            // currently carries its narrow inferred type. The typer in
-            // Vader doesn't propagate context types into literals ; this
-            // late widening matches the TS dump which always records the
-            // wider expected type at the use site.
-            retyped :: widen_literal_to_context(lowered, ctx.return_type)
-            // Auto-Into coercion when the return type doesn't match the
-            // value's type AND an `Into[return_type]` impl exists.
-            coerced :: try_emit_into_coercion(ctx, retyped, type_of(retyped), ctx.return_type, return_stmt.span)
-            final :: if coerced == null { retyped } else { coerced }
-            return LoweredReturn { .span = return_stmt.span, .value = final }
-        }
+    if return_stmt.value == null {
+        return LoweredReturn { .span = return_stmt.span, .value = null }
     }
+    lowered :: lower_expr(ctx, return_stmt.value)
+    // Widen a literal-shaped return value to the fn's declared
+    // return type when the return type is a union and the literal
+    // currently carries its narrow inferred type. The typer in
+    // Vader doesn't propagate context types into literals ; this
+    // late widening matches the TS dump which always records the
+    // wider expected type at the use site.
+    retyped :: widen_literal_to_context(lowered, ctx.return_type)
+    // Auto-Into coercion when the return type doesn't match the
+    // value's type AND an `Into[return_type]` impl exists.
+    coerced :: try_emit_into_coercion(ctx, retyped, type_of(retyped), ctx.return_type, return_stmt.span)
+    final :: if coerced == null { retyped } else { coerced }
+    return LoweredReturn { .span = return_stmt.span, .value = final }
 }
 
 // True when `s` will exit its enclosing block (control flow never
@@ -375,7 +369,9 @@ widen_literal_to_context :: fn(expr: LoweredExpr, context_type: Type) -> Lowered
     // i32 / repr type is NOT a variant — leave it alone.
     inner :: type_of(expr)
     if !union_contains_variant(context_type, inner) { return expr }
-    match expr {
+    // @partial: only scalar-literal nodes get retyped to the union context;
+    // every other LoweredExpr is returned unchanged.
+    @partial match expr {
         is LoweredIntLit    as lit -> { return LoweredIntLit    { .span = lit.span, .type = context_type, .value = lit.value } }
         is LoweredFloatLit  as lit -> { return LoweredFloatLit  { .span = lit.span, .type = context_type, .value = lit.value } }
         is LoweredStringLit as lit -> { return LoweredStringLit { .span = lit.span, .type = context_type, .value = lit.value } }
@@ -386,15 +382,13 @@ widen_literal_to_context :: fn(expr: LoweredExpr, context_type: Type) -> Lowered
 }
 
 union_contains_variant :: fn(union: Type, variant: Type) -> bool {
-    match union {
-        is UnionType as u -> {
-            for v in u.variants {
-                if equals_type(v, variant) { return true }
-            }
-            return false
+    if union is UnionType as u {
+        for v in u.variants {
+            if equals_type(v, variant) { return true }
         }
-        _ -> { return false }
+        return false
     }
+    return false
 }
 
 // Phase 3 covers infinite-for and while-for. for-in collapses to an

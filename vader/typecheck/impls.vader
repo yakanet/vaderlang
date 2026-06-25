@@ -146,13 +146,13 @@ name_is_type_param :: fn(resolved: ResolvedModule, name: string) -> bool {
 for_type_symbol :: fn(
     for_type: TypeExpr, by_name: MutableMap<string, Symbol>,
 ) -> Symbol | null {
-    match for_type {
+    // @partial: an impl target is a nominal name, optionally generic-instantiated;
+    // every other type-expr shape (array / fn / tuple / …) carries no impl symbol.
+    @partial match for_type {
         is IdentExpr as id -> { return resolve_target(id.name, by_name) }
         is GenericInstExpr as gi -> {
-            match gi.callee {
-                is IdentExpr as id -> { return resolve_target(id.name, by_name) }
-                _ -> { return null }
-            }
+            if gi.callee is IdentExpr as id { return resolve_target(id.name, by_name) }
+            return null
         }
         _ -> { return null }
     }
@@ -186,7 +186,9 @@ export find_user :: fn(self: ImplRegistry, for_sym: Symbol, trait_sym: Symbol) -
 /// (`MyId implements Hash`), not the backing's — so it resolves to its own
 /// symbol. Used by `is_assignable`'s trait-widening branch.
 export type_to_target_symbol :: fn(t: Type) -> Symbol | null {
-    match t {
+    // @partial: only the three nominal variants carry an impl target symbol;
+    // every structural / primitive variant (Array, Fn, Union, …) carries none.
+    @partial match t {
         is StructType   as st -> { return st.symbol }
         is EnumType     as et -> { return et.symbol }
         is DistinctType as d  -> { return d.symbol }

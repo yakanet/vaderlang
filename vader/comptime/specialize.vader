@@ -362,18 +362,16 @@ find_type_param_symbol :: fn(program: ResolvedModule, tp: TypeParam) -> Symbol |
 /// generic-arg impls (`Foo[T]`) match any concrete instantiation.
 /// Mirrors `implForTypeMatches` in `src/comptime/specialize.ts:400`.
 impl_for_type_matches :: fn(for_type: TypeExpr, inst_args: Type[], program: ResolvedModule) -> bool {
-    match for_type {
-        is GenericInstExpr as gi -> {
-            if gi.type_args.len() != inst_args.len() { return false }
-            for i in 0..<gi.type_args.len() {
-                decl_arg :: gi.type_args[i]
-                query_arg :: inst_args[i]
-                if !for_type_arg_matches(decl_arg, query_arg, program) { return false }
-            }
-            return true
+    if for_type is GenericInstExpr as gi {
+        if gi.type_args.len() != inst_args.len() { return false }
+        for i in 0..<gi.type_args.len() {
+            decl_arg :: gi.type_args[i]
+            query_arg :: inst_args[i]
+            if !for_type_arg_matches(decl_arg, query_arg, program) { return false }
         }
-        _ -> { return true }
+        return true
     }
+    return true
 }
 
 /// Per-arg matcher for `impl_for_type_matches`. A `decl_arg` that's
@@ -381,13 +379,11 @@ impl_for_type_matches :: fn(for_type: TypeExpr, inst_args: Type[], program: Reso
 /// otherwise we require name-level compatibility (concrete primitive
 /// or struct).
 for_type_arg_matches :: fn(decl_arg: TypeExpr, query_arg: Type, program: ResolvedModule) -> bool {
-    match decl_arg {
-        is IdentExpr as ident -> {
-            if is_type_param_name(program, ident.name) { return true }
-            return query_arg_matches_name(query_arg, ident.name)
-        }
-        _ -> { return false }
+    if decl_arg is IdentExpr as ident {
+        if is_type_param_name(program, ident.name) { return true }
+        return query_arg_matches_name(query_arg, ident.name)
     }
+    return false
 }
 
 is_type_param_name :: fn(program: ResolvedModule, name: string) -> bool {
@@ -668,12 +664,10 @@ symbol_for_kind :: fn(name: string, kind: SymbolKind, module_typed: TypedProgram
 }
 
 symbol_defines_span :: fn(sym: Symbol, name_span: Span) -> bool {
-    match sym.defined_at {
-        is Span as s -> {
-            return s.start.offset == name_span.start.offset && s.start.file == name_span.start.file
-        }
-        _ -> { return false }
+    if sym.defined_at is Span as s {
+        return s.start.offset == name_span.start.offset && s.start.file == name_span.start.file
     }
+    return false
 }
 
 /// Synthesise a `Symbol` for an impl member. Impl members aren't

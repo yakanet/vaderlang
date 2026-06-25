@@ -35,8 +35,10 @@ export LocalId :: i32
 
 BlockId implements Hash   -> i32(self).hash()
 BlockId implements Equals -> i32(self) == i32(other)
+BlockId implements Comparable -> i32(self).compare(i32(other))
 LocalId implements Hash   -> i32(self).hash()
 LocalId implements Equals -> i32(self) == i32(other)
+LocalId implements Comparable -> i32(self).compare(i32(other))
 
 // ---- function / decl shapes ----------------------------------------------
 

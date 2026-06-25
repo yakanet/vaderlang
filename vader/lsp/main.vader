@@ -243,13 +243,16 @@ dispatch :: fn(state: A.ServerState, msg: JsonValue, shutdown_received: bool) ->
 // Returns "" when params doesn't carry a textDocument, which keeps the
 // log line readable rather than aborting the dispatch.
 doc_uri :: fn(params: JsonValue) -> string {
-    match params {
+    // @partial: best-effort walk of the `{ textDocument: { uri } }` shape ;
+    // any other JSON variant (or a missing/non-object/non-string entry) has
+    // no URI, so "" is the right answer for every case but the matched one.
+    @partial match params {
         is JsonObject as o -> {
             td :: o.entries["textDocument"]
-            match td {
+            @partial match td {
                 is JsonObject as tdo -> {
                     uri :: tdo.entries["uri"]
-                    match uri {
+                    @partial match uri {
                         is JsonString as s -> { return s.value }
                         _ -> { return "" }
                     }

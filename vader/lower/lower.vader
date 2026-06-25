@@ -276,7 +276,9 @@ lower_decl :: fn(
     decl: Decl, typed: TypedProgram, project_ctx: LowerProjectCtx, diags: Diagnostic[],
     module_decls: Decl[],
 ) -> LoweredDecl | null {
-    match decl {
+    // @partial: only Fn/Struct/Const/Impl produce runtime slots; every other
+    // decl kind (Enum, Trait, TypeAlias, Import, Assert) lowers to null.
+    @partial match decl {
         is FnDecl     as fn_decl     -> { return lower_fn_decl(fn_decl, typed, project_ctx, diags) }
         is StructDecl as struct_decl -> { return lower_struct_decl(struct_decl, typed, project_ctx, diags) }
         is ConstDecl  as const_decl  -> { return lower_const_decl(const_decl, typed, project_ctx, diags) }

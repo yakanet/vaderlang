@@ -170,15 +170,11 @@ emit_stmt :: fn(lines: string[], stmt: LoweredStmt, indent: string) -> void {
 }
 
 render_loop_cond :: fn(cond: LoweredExpr | null) -> string {
-    match cond {
-        is null -> { return "" }
-        _ -> {
-            inline_value :: expr_inline(cond)
-            match inline_value {
-                is string as single -> { return " while (${single})" }
-                is null -> { return " while (<…>)" }
-            }
-        }
+    if cond == null { return "" }
+    inline_value :: expr_inline(cond)
+    match inline_value {
+        is string as single -> { return " while (${single})" }
+        is null -> { return " while (<…>)" }
     }
 }
 
@@ -316,7 +312,9 @@ emit_expr_compound :: fn(lines: string[], expr: LoweredExpr, indent: string) -> 
 // `exprInline` table : literals, ident, unreachable → single line ;
 // everything else returns null.
 expr_inline :: fn(expr: LoweredExpr) -> string | null {
-    match expr {
+    // @partial: only literals / ident / unreachable render on a single line;
+    // every other LoweredExpr needs vertical expansion → null.
+    @partial match expr {
         is LoweredIntLit as lit    -> { return "int(${format_int_value(lit.value, lit.type)}) :${display_type(lit.type)}" }
         is LoweredFloatLit as lit  -> { return "float(${format_float(lit.value)}) :${display_type(lit.type)}" }
         is LoweredBoolLit as lit   -> { return "${lit.value}" }

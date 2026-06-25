@@ -328,12 +328,12 @@ export check_project_with_bodies :: fn(
             walk_bodies(other_decls, other_typed, diag_sink(), .ReturnsOnly)
             reset_expr_tables(other_typed)
         }
-        walk_bodies(other_decls, other_typed, diag_sink(), .Full)
-        // W0007 is the ONE imported-module diagnostic we forward (unlike the
-        // body-check diags above, dropped to avoid library W0004/W0005 noise) :
-        // dead private code is worth flagging project-wide, not just in the entry.
-        // Spans point at each module's own file, so the LSP still filters to the
-        // open document.
+        walk_bodies(other_decls, other_typed, other_typed.resolved.diags, .Full)
+        // Imported-module body-check diagnostics are forwarded (not dropped) :
+        // library W0004/W0005 etc. are real lines to fix, worth surfacing
+        // project-wide rather than only in the entry module. Likewise W0007
+        // (dead private code) below. Spans point at each module's own file, so
+        // the LSP still filters to the open document.
         check_dead_code(other_decls, diags)
     }
 
@@ -384,16 +384,12 @@ empty_impls :: fn() -> ImplRegistry { return new_registry() }
 
 empty_fallback :: fn(project: LoadedProject) -> TypedProgram {
     loaded :: project.modules[project.entry]
-    match loaded {
-        is null -> {
-            // Defensive — load_project guarantees entry is loaded.
-            return new_typed_program(synth_resolved())
-        }
-        _ -> {
-            rm :: resolve_module(loaded.module.files[0].program, project.entry, project.factory)
-            return new_typed_program(rm)
-        }
+    if loaded == null {
+        // Defensive — load_project guarantees entry is loaded.
+        return new_typed_program(synth_resolved())
     }
+    rm :: resolve_module(loaded.module.files[0].program, project.entry, project.factory)
+    return new_typed_program(rm)
 }
 
 synth_resolved :: fn() -> ResolvedModule {
@@ -981,7 +977,9 @@ export is_alias_value_expr :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool 
         if is_primitive_name(e.name) { return true }
         sym :: resolved.idents[e.span.hash()]
         if sym is null { return false }
-        match sym.kind {
+        // @partial: only type-introducing kinds name an alias RHS; every
+        // other SymbolKind (Fn, Local, Param, …) is a value, not a type.
+        @partial match sym.kind {
             .Struct -> { return true }
             .Trait  -> { return true }
             .Enum   -> { return true }
@@ -1751,18 +1749,16 @@ declare_impl_return :: fn(
 param_type :: fn(
     p: AST.FnParam, for_ty: Type, typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
-    match p.ty {
-        is null -> {
-            if p.name == "self" { return for_ty }
-            return TY_UNRESOLVED
-        }
-        // Substitute `Self` → `for_ty` so an explicit `Self`-typed param (e.g.
-        // `Comparable.compare(self, other: Self)`) records the concrete carrier
-        // — otherwise the impl method's type keeps `other: Self`, and a default-
-        // method clone calling it (`self.compare(other)`, `other` already
-        // substituted to `for_ty`) mismatches `expected Self, got <for_ty>`.
-        _ -> { return substitute_self(type_from_expr(p.ty, typed.resolved, diags), for_ty) }
+    if p.ty == null {
+        if p.name == "self" { return for_ty }
+        return TY_UNRESOLVED
     }
+    // Substitute `Self` → `for_ty` so an explicit `Self`-typed param (e.g.
+    // `Comparable.compare(self, other: Self)`) records the concrete carrier
+    // — otherwise the impl method's type keeps `other: Self`, and a default-
+    // method clone calling it (`self.compare(other)`, `other` already
+    // substituted to `for_ty`) mismatches `expected Self, got <for_ty>`.
+    return substitute_self(type_from_expr(p.ty, typed.resolved, diags), for_ty)
 }
 
 

@@ -99,21 +99,13 @@ can_pass_through_stack :: fn(
     use_count: MutableMap<LocalId, i32>,
 ) -> bool {
     dst :: dst_of(cur)
-    match dst {
-        is null -> { return false }
-        _ -> {
-            count :: use_count[dst]
-            match count {
-                is null -> { return false }
-                _ -> { if count != 1 { return false } }
-            }
-            first_op :: first_stack_operand(next)
-            match first_op {
-                is null -> { return false }
-                _ -> { return first_op == dst }
-            }
-        }
-    }
+    if dst == null { return false }
+    count :: use_count[dst]
+    if count == null { return false }
+    if count != 1 { return false }
+    first_op :: first_stack_operand(next)
+    if first_op == null { return false }
+    return first_op == dst
 }
 
 can_pass_through_terminator :: fn(
@@ -121,21 +113,13 @@ can_pass_through_terminator :: fn(
     use_count: MutableMap<LocalId, i32>,
 ) -> bool {
     dst :: dst_of(cur)
-    match dst {
-        is null -> { return false }
-        _ -> {
-            count :: use_count[dst]
-            match count {
-                is null -> { return false }
-                _ -> { if count != 1 { return false } }
-            }
-            first_op :: first_terminator_operand(t)
-            match first_op {
-                is null -> { return false }
-                _ -> { return first_op == dst }
-            }
-        }
-    }
+    if dst == null { return false }
+    count :: use_count[dst]
+    if count == null { return false }
+    if count != 1 { return false }
+    first_op :: first_terminator_operand(t)
+    if first_op == null { return false }
+    return first_op == dst
 }
 
 /// First operand pushed onto the stack by the instruction's emit

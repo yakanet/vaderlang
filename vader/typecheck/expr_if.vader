@@ -346,7 +346,9 @@ import "vader/resolver/symbol" { new_factory }
 expr_if_check_stub :: fn(
     e: AST.Expr, expected: Type | null, typed: TypedProgram, diags: Diagnostic[],
 ) -> Type {
-    match e {
+    // @partial: test stub — only the literal / ident / if expr kinds the if
+    // tests build are typed; every other Expr is irrelevant → unresolved.
+    @partial match e {
         is AST.IntLitExpr  as x -> { return narrow_for_expected(infer_int_lit(x), expected) }
         is AST.BoolLitExpr as x -> { return infer_bool_lit(x) }
         is AST.IdentExpr   as x -> { return infer_ident(x, typed) }

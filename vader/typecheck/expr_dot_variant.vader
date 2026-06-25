@@ -37,23 +37,19 @@ export infer_dot_variant :: fn(
             }
         }
     }
-    match lifted {
-        is EnumType as en -> {
-            // MutableMap lookup returns i64 | null ; null = unknown variant.
-            idx :: en.indices[e.variant]
-            if idx is null {
-                diags.push(typecheck_error(.UnknownEnumVariant, e.variant_span,
-                    "`${e.variant}` is not a variant of ${display_type(en)}"))
-                return TY_UNRESOLVED
-            }
-            return en
-        }
-        _ -> {
-            diags.push(typecheck_error(.CannotInferEnumType, e.span,
-                "`.${e.variant}` expects an enum-typed slot, got ${display_type(expected)}"))
+    if lifted is EnumType as en {
+        // MutableMap lookup returns i64 | null ; null = unknown variant.
+        idx :: en.indices[e.variant]
+        if idx is null {
+            diags.push(typecheck_error(.UnknownEnumVariant, e.variant_span,
+                "`${e.variant}` is not a variant of ${display_type(en)}"))
             return TY_UNRESOLVED
         }
+        return en
     }
+    diags.push(typecheck_error(.CannotInferEnumType, e.span,
+        "`.${e.variant}` expects an enum-typed slot, got ${display_type(expected)}"))
+    return TY_UNRESOLVED
 }
 
 // `type_from_expr` returns a `StructType(EnumSym)` placeholder for enum
@@ -63,20 +59,13 @@ export infer_dot_variant :: fn(
 // back to the cross-module `external_types` cache so enums defined in
 // other modules (e.g. `FlagKind` from std/cli) still lift.
 export lift_enum_placeholder :: fn(t: Type, typed: TypedProgram) -> Type {
-    match t {
-        is StructType as st -> {
-            if i32(st.symbol.kind) != i32(SymbolKind.Enum) { return t }
-            real :: typed.decl_types[st.symbol.id]
-            match real {
-                is EnumType -> { return real }
-                _ -> {}
-            }
-            ext :: typed.external_types[st.symbol.id]
-            match ext {
-                is EnumType -> { return ext }
-                _ -> { return t }
-            }
-        }
-        _ -> { return t }
+    if t is StructType as st {
+        if i32(st.symbol.kind) != i32(SymbolKind.Enum) { return t }
+        real :: typed.decl_types[st.symbol.id]
+        if real is EnumType { return real }
+        ext :: typed.external_types[st.symbol.id]
+        if ext is EnumType { return ext }
+        return t
     }
+    return t
 }

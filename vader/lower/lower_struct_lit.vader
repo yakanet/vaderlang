@@ -73,7 +73,9 @@ lower_struct_lit :: fn(ctx: FnLowerCtx, lit: StructLitExpr, type: Type) -> Lower
 // diagnostics should have caught the bad use).
 lower_dot_variant :: fn(ctx: FnLowerCtx, expr: DotVariantExpr, type: Type) -> LoweredExpr {
     resolved :: enum_type_or_unwrap(ctx, type)
-    match resolved {
+    // @partial: only EnumType carries variant indices; every other Type is a
+    // non-enum context here → stub (earlier diagnostics apply).
+    @partial match resolved {
         is EnumType as enum_type -> {
             index :: enum_type.indices[expr.variant]
             match index {
@@ -141,15 +143,15 @@ as_namespace_binding :: fn(ctx: FnLowerCtx, expr: Expr) -> Symbol | null {
 // Unwrap the StructType-as-Enum placeholder if needed (same trick as
 // `lower_match::unwrap_enum_type`).
 enum_type_or_unwrap :: fn(ctx: FnLowerCtx, type: Type) -> Type {
-    match type {
+    // @partial: only an EnumType or an enum-kind StructType placeholder needs
+    // unwrapping; every other Type is returned verbatim.
+    @partial match type {
         is EnumType -> { return type }
         is StructType as st -> {
             if i32(st.symbol.kind) != i32(SymbolKind.Enum) { return type }
             real :: ctx.typed.decl_types[st.symbol.id]
-            match real {
-                is EnumType -> { return real }
-                _ -> { return type }
-            }
+            if real is EnumType { return real }
+            return type
         }
         _ -> { return type }
     }
@@ -187,7 +189,9 @@ build_struct_lit_fields :: fn(
     spread_sym: Symbol | null,
 ) -> LoweredStructLitField[] {
     out: LoweredStructLitField[] = []
-    match type {
+    // @partial: only a StructType drives declared-order field building; every
+    // other Type degrades to source order (defensive fallback).
+    @partial match type {
         is StructType as st -> {
             decl :: ctx.typed.struct_decls[st.symbol.id]
             if decl is null { return fallback_provided_order(ctx, lit) }
@@ -251,10 +255,8 @@ lower_field_value :: fn(
     lowered :: lower_expr(ctx, value)
     widened :: widen_literal_to_context(lowered, field_type)
     coerced :: try_emit_into_coercion(ctx, widened, type_of(widened), field_type, span)
-    match coerced {
-        is null -> { return widened }
-        _ -> { return coerced }
-    }
+    if coerced == null { return widened }
+    return coerced
 }
 
 // Defensive fallback : when the struct decl can't be reached, emit
@@ -279,21 +281,18 @@ lower_seq_lit :: fn(ctx: FnLowerCtx, lit: SeqLitExpr, type: Type) -> LoweredExpr
     // by the resolved type. Tuple-typed literals become struct lits with
     // synthetic `_0` / `_1` / ... fields ; the bytecode emit reads them
     // off the same struct layout the typer pins.
-    match type {
-        is TupleType -> {
-            fields: LoweredStructLitField[] = []
-            for i in 0..<lit.elements.len() {
-                fields.push(LoweredStructLitField {
-                    .name = "_${i}",
-                    .value = lower_expr(ctx, lit.elements[i]),
-                })
-            }
-            return LoweredStructLit { .span = lit.span, .type = type, .fields = fields }
+    if type is TupleType {
+        fields: LoweredStructLitField[] = []
+        for i in 0..<lit.elements.len() {
+            fields.push(LoweredStructLitField {
+                .name = "_${i}",
+                .value = lower_expr(ctx, lit.elements[i]),
+            })
         }
-        _ -> {
-            elements: LoweredExpr[] = []
-            for element in lit.elements { elements.push(lower_expr(ctx, element)) }
-            return LoweredArrayLit { .span = lit.span, .type = type, .elements = elements }
-        }
+        return LoweredStructLit { .span = lit.span, .type = type, .fields = fields }
+    } else {
+        elements: LoweredExpr[] = []
+        for element in lit.elements { elements.push(lower_expr(ctx, element)) }
+        return LoweredArrayLit { .span = lit.span, .type = type, .elements = elements }
     }
 }

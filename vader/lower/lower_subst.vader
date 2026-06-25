@@ -402,10 +402,8 @@ has_any_primitive_arg :: fn(type_args: Type[]) -> bool {
 }
 
 type_expr_simple_name :: fn(e: TypeExpr) -> string {
-    match e {
-        is IdentExpr as id -> { return id.name }
-        _ -> { return "" }
-    }
+    if e is IdentExpr as id { return id.name }
+    return ""
 }
 
 find_struct_decl_by_name :: fn(decls: Decl[], name: string) -> StructDecl | null {

@@ -20,7 +20,9 @@ import "vader/types" {
 }
 
 is_free_numeric :: fn(t: Type) -> bool {
-    match t {
+    // @partial: only the three Free* literal variants are free numerics; every
+    // other type (concrete or composite) is not.
+    @partial match t {
         is FreeIntType -> { return true }
         is FreeCharType -> { return true }
         is FreeFloatType -> { return true }
@@ -111,7 +113,9 @@ export unify_type_param :: fn(
 /// shape. Generic-fn dispatch uses this to decide whether the
 /// argument types must drive substitution.
 export type_contains_type_param :: fn(t: Type) -> bool {
-    match t {
+    // @partial: only TypeParam and the composite variants can hold a type-param;
+    // every scalar / primitive variant has no inner type → false.
+    @partial match t {
         is TypeParamType -> { return true }
         is ArrayType as a -> { return type_contains_type_param(a.element) }
         is TupleType as tu -> {
@@ -188,7 +192,9 @@ import "vader/types" { mk_array, mk_tuple, mk_struct, mk_trait, mk_fn }
 /// `substitution.vader` — both share the same first-param type so the
 /// resolver's UFCS dispatch can't tell them apart in an overload set.
 export substitute_map :: fn(t: Type, subst: MutableMap<i32, Type>) -> Type {
-    match t {
+    // @partial: only TypeParam and the composite variants can carry a binding to
+    // substitute; every scalar / primitive variant is returned unchanged.
+    @partial match t {
         is TypeParamType as tp -> {
             repl :: subst[tp.symbol.id]
             if repl is null { return t }

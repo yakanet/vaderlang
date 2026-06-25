@@ -166,10 +166,7 @@ build_display_to_string_call :: fn(ctx: FnLowerCtx, value: LoweredExpr, span: Sp
     string_type :: mk_primitive("string")
     no_args: LoweredExpr[] = []
     direct :: try_direct_display_call(ctx, value, span)
-    match direct {
-        is null -> {}
-        _ -> { return direct }
-    }
+    if direct != null { return direct }
     // Erased Display dispatch (generic-`T` receiver) : record the trait so
     // every primitive `Display` impl enters the vtable (the boxed tag picks
     // the impl at runtime). See `virtually_dispatched_traits`.

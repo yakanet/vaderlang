@@ -756,7 +756,10 @@ export ConstOp ::
 /// @return   the same op upcast to `ConstOp`, or `null` when `o` is
 ///           not a literal-producing op.
 export const_op_of :: fn(o: Op) -> ConstOp | null {
-    match o {
+    // @partial: only the seven literal-producing ops are `ConstOp` ; every
+    // other `Op` variant (arithmetic, control flow, memory, calls, …) carries
+    // no inner literal, so `null` is the right answer for all of them.
+    @partial match o {
         is I32Const    as v -> { return v }
         is I64Const    as v -> { return v }
         is F64Const    as v -> { return v }
