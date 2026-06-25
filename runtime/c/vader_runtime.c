@@ -31,6 +31,7 @@
 #  include <spawn.h>
 #  include <sys/wait.h>
 #  include <unistd.h>
+#  include <poll.h>     /* poll — stdin readiness for the LSP debounce */
 #  include <sys/resource.h> /* getrusage — peak RSS for the profiler */
 #  if defined(__APPLE__)
 #    include <mach-o/dyld.h> /* _NSGetExecutablePath */
@@ -2607,6 +2608,66 @@ vader_box_t vader_read_stdin(size_t n, uint32_t ok_tag, uint32_t err_tag) {
         got += r;
     }
     return vader_box_string(ok_tag, vader_atom_intern_take(buf, n));
+}
+
+/* Switch stdin to unbuffered so `fread` (used by `vader_read_stdin`) issues an
+ * exact `read()` with no readahead — keeping `poll(STDIN_FILENO)` consistent
+ * with what the next `read_stdin` will consume. Without this, fread's userspace
+ * buffer can swallow a queued frame and hide it from `poll()`, breaking the LSP
+ * debounce (poll reports "idle" while a full frame already sits in the buffer).
+ * The LSP calls this once at startup, BEFORE any stdin read — gated to the LSP
+ * so the streaming `vader run prog.virt` stdin path keeps its buffering. */
+void vader_lsp_init_stdin(void) {
+    setvbuf(stdin, NULL, _IONBF, 0);
+}
+
+/* Return true iff stdin has data ready within `timeout_ms` (0 = poll, no wait).
+ * Used by the LSP event loop to detect a quiescent edit window: drain the burst
+ * of `didChange` notifications, then run the typecheck once. Relies on stdin
+ * being unbuffered (`vader_lsp_init_stdin`) so the raw fd reflects the real
+ * pending bytes. A hangup (peer closed the pipe) reports ready so the caller's
+ * next read observes EOF rather than spinning. */
+vader_bool_t vader_poll_stdin(int32_t timeout_ms) {
+#if defined(_WIN32)
+    /* LSP stdin is a pipe (the editor's anonymous pipe). PeekNamedPipe reports
+     * bytes available WITHOUT consuming them — it works on anonymous pipes too,
+     * despite the name. It's instantaneous, so emulate the timeout by polling in
+     * small Sleep slices; this loop only runs during the debounce settle window
+     * (once per burst), never per byte. With unbuffered stdin
+     * (`vader_lsp_init_stdin`) the kernel pipe PeekNamedPipe inspects matches
+     * what the next `fread` will consume. */
+    HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
+    if (h == INVALID_HANDLE_VALUE || h == NULL) return 1; /* let the read attempt observe the state */
+    DWORD waited = 0;
+    for (;;) {
+        DWORD avail = 0;
+        if (!PeekNamedPipe(h, NULL, 0, NULL, &avail, NULL)) {
+            /* Not a pipe (console / redirected file) or peer closed the pipe —
+             * report ready so the next read proceeds or observes EOF, as the
+             * pre-debounce code did. Never reports a false "idle" that could
+             * spin. */
+            return 1;
+        }
+        if (avail > 0) return 1;
+        if (timeout_ms >= 0 && waited >= (DWORD) timeout_ms) return 0;
+        DWORD slice = 5;
+        if (timeout_ms >= 0) {
+            DWORD remaining = (DWORD) timeout_ms - waited;
+            if (remaining < slice) slice = remaining;
+        }
+        Sleep(slice);
+        waited += slice;
+    }
+#else
+    struct pollfd pfd;
+    pfd.fd      = STDIN_FILENO;
+    pfd.events  = POLLIN;
+    pfd.revents = 0;
+    int r = poll(&pfd, 1, timeout_ms);
+    /* r < 0 (e.g. EINTR) → treat as "nothing pending": the caller proceeds to
+     * flush, which is harmless. r == 0 → timeout. r > 0 → data or hangup. */
+    return r > 0;
+#endif
 }
 
 /* `exists` / `is_dir` / `read_dir` — filesystem queries split across POSIX

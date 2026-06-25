@@ -82,6 +82,24 @@ export eprintln :: fn<T: Display>(msg: T) -> void {
 /// @error       `IOError` on EOF, partial read, or stream error.
 @intrinsic export read_stdin :: fn(n: usize) -> string | Error
 
+/// Switch stdin to unbuffered mode. Call once at startup, **before any stdin
+/// read**, so a later `poll_stdin` reflects the real pending bytes instead of
+/// being fooled by `read_stdin`'s readahead buffer. Intended for the LSP /
+/// length-prefixed RPC servers ; a streaming reader that wants buffering should
+/// not call this.
+@intrinsic export lsp_init_stdin :: fn() -> void
+
+/// True iff stdin has data ready within `timeout_ms` (`0` = non-blocking
+/// probe). Lets a length-prefixed server detect a quiescent input window —
+/// e.g. drain a burst of notifications, then do expensive work once. Requires
+/// `lsp_init_stdin` to have run first (unbuffered stdin), else the result may
+/// lag what `read_stdin` will actually consume. A closed peer (pipe hangup)
+/// reports ready so the next read observes EOF rather than spinning.
+/// @param timeout_ms  max wait in milliseconds ; `0` polls without blocking.
+/// @return            `true` if a subsequent `read_stdin` won't block on the
+///                    first byte (data ready, or EOF/hangup pending).
+@intrinsic export poll_stdin :: fn(timeout_ms: i32) -> bool
+
 /// Read a file fully into a UTF-8 string.
 /// @param path  filesystem path (absolute or cwd-relative).
 /// @return      file contents as a UTF-8 string.
