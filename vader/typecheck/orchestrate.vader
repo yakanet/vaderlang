@@ -1818,12 +1818,7 @@ is_type_value_expr :: fn(e: AST.Expr, typed: TypedProgram) -> bool {
 
 // @partial: only type-introducing kinds are type kinds; every other SymbolKind → false.
 is_type_kind :: fn(k: SymbolKind) -> bool = @partial match k {
-    .Struct    -> true
-    .Trait     -> true
-    .Enum      -> true
-    .TypeAlias -> true
-    .TypeParam -> true
-    .BuiltinType -> true
+    .Struct | .Trait | .Enum | .TypeAlias | .TypeParam | .BuiltinType -> true
     _ -> false
 }
 

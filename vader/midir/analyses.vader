@@ -48,15 +48,8 @@ export instruction_has_side_effect :: fn(ins: Instruction) -> bool {
     // instruction is a pure value producer (writes only its `dst`), so a new
     // pure variant correctly defaults to false here.
     @partial match ins {
-        is InstrCall         -> { return true }
-        is InstrCallIndirect -> { return true }
-        is InstrVirtualCall  -> { return true }
-        is InstrIntrinsic    -> { return true }
-        is InstrFieldSet     -> { return true }
-        is InstrArraySet     -> { return true }
-        is InstrArrayPush    -> { return true }
-        is InstrCellSet      -> { return true }
-        _                    -> { return false }
+        is InstrCall | InstrCallIndirect | InstrVirtualCall | InstrIntrinsic | InstrFieldSet | InstrArraySet | InstrArrayPush | InstrCellSet -> { return true }
+        _ -> { return false }
     }
 }
 

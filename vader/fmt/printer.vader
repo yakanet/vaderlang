@@ -231,9 +231,8 @@ decl_alignable_name :: fn(d: p.Decl) -> string {
     // every other decl kind (import, struct, enum, trait, impl, type alias,
     // assert) is never part of an alignment group, so it has no name → "".
     @partial match d {
-        is p.FnDecl     -> { return d.name }
-        is p.ConstDecl  -> { return d.name }
-        _               -> { return "" }
+        is p.FnDecl | p.ConstDecl -> { return d.name }
+        _ -> { return "" }
     }
 }
 

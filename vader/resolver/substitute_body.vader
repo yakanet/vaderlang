@@ -49,11 +49,7 @@ export substitute_block :: fn(b: AST.BlockExpr, subst: Subst) -> AST.BlockExpr {
 export substitute_expr_full :: fn(e: AST.Expr, subst: Subst) -> AST.Expr {
     @partial match e {
         // Leaves : reuse the original. No TypeParam refs possible.
-        is AST.IntLitExpr -> { return e }
-        is AST.FloatLitExpr -> { return e }
-        is AST.BoolLitExpr -> { return e }
-        is AST.NullLitExpr -> { return e }
-        is AST.CharLitExpr -> { return e }
+        is AST.IntLitExpr | AST.FloatLitExpr | AST.BoolLitExpr | AST.NullLitExpr | AST.CharLitExpr -> { return e }
 
         // IdentExpr : the heart of TypeParam substitution. Delegated to
         // substitute_type_expr which already handles the rebind.

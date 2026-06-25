@@ -90,30 +90,16 @@ resolve_type_arg :: fn(expr: AST.Expr, context: ComptimeContext) -> Type | null 
 export byte_size :: fn(t: Type) -> i64 = @partial match t {
     is PrimitiveType as p -> primitive_size(p.name)
     is DistinctType as d -> byte_size(d.backing)
-    is StructType  -> 16
-    is EnumType    -> 16
-    is ArrayType   -> 16
-    is TupleType   -> 16
-    is UnionType   -> 16
-    is TraitType   -> 16
-    is FnType      -> 16
-    is AnyType     -> 16
-    _              -> 0
+    is StructType | EnumType | ArrayType | TupleType | UnionType | TraitType | FnType | AnyType -> 16
+    _ -> 0
 }
 
 // @partial: representable types have a fixed alignment; abstract types → 0.
 export byte_align :: fn(t: Type) -> i64 = @partial match t {
     is PrimitiveType as p -> primitive_align(p.name)
     is DistinctType as d -> byte_align(d.backing)
-    is StructType  -> 8
-    is EnumType    -> 8
-    is ArrayType   -> 8
-    is TupleType   -> 8
-    is UnionType   -> 8
-    is TraitType   -> 8
-    is FnType      -> 8
-    is AnyType     -> 8
-    _              -> 0
+    is StructType | EnumType | ArrayType | TupleType | UnionType | TraitType | FnType | AnyType -> 8
+    _ -> 0
 }
 
 primitive_size :: fn(name: string) -> i64 {
