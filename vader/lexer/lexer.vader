@@ -83,43 +83,15 @@ is_ident_continue :: fn(c: char) = c.is_alnum() || c == '_'
 // physical newline is NOT a statement terminator.
 // @partial: only the listed operators/separators suppress a following newline; every other token → false.
 suppresses_newline_after :: fn(k: TokenKind) = @partial match k {
-    .Plus      -> true
-    .Minus     -> true
-    .Star      -> true
-    .Slash     -> true
-    .Percent   -> true
-    .Amp       -> true
-    .Pipe      -> true
-    .Caret     -> true
-    .Shl       -> true
-    .Shr       -> true
-    .Eq        -> true
-    .Neq       -> true
-    .Lt        -> true
-    .Lte       -> true
-    .Gt        -> true
-    .Gte       -> true
-    .AndAnd    -> true
-    .OrOr      -> true
-    .RangeExcl -> true
-    .RangeIncl -> true
-    .DotDotDot -> true
-    .Assign        -> true
-    .PlusAssign    -> true
-    .MinusAssign   -> true
-    .StarAssign    -> true
-    .SlashAssign   -> true
-    .PercentAssign -> true
-    .Colon     -> true
-    .Arrow     -> true
-    .FatArrow  -> true
-    .Comma     -> true
-    // `T ::\n    A | B | C` — let the RHS of a `::` / `:=` binding wrap
-    // onto the next line. Mirrors the existing pipe / arrow continuation
-    // so multi-line union declarations read cleanly.
-    .DeclConst -> true
-    .DeclVar   -> true
-    _          -> false
+    // `T ::\n    A | B | C` — `.DeclConst` / `.DeclVar` let the RHS of a `::` /
+    // `:=` binding wrap onto the next line, mirroring the pipe / arrow
+    // continuation so multi-line union declarations read cleanly.
+    .Plus | .Minus | .Star | .Slash | .Percent | .Amp | .Pipe | .Caret
+        | .Shl | .Shr | .Eq | .Neq | .Lt | .Lte | .Gt | .Gte | .AndAnd
+        | .OrOr | .RangeExcl | .RangeIncl | .DotDotDot | .Assign | .PlusAssign
+        | .MinusAssign | .StarAssign | .SlashAssign | .PercentAssign | .Colon
+        | .Arrow | .FatArrow | .Comma | .DeclConst | .DeclVar -> true
+    _ -> false
 }
 
 // ---- cursor helpers -------------------------------------------------------

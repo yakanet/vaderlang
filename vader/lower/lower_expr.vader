@@ -323,12 +323,7 @@ find_const_decl_by_name :: fn(decls: Decl[], name: string) -> ConstDecl | null {
 // `fmt/printer.vader::is_bitor_chain` — a non-literal Expr is correctly false.
 // @partial: only the literal-shaped Expr forms are scalar literals; every other Expr is not.
 is_scalar_literal_expr :: fn(e: Expr) -> bool = @partial match e {
-    is IntLitExpr    -> true
-    is FloatLitExpr  -> true
-    is BoolLitExpr   -> true
-    is NullLitExpr   -> true
-    is CharLitExpr   -> true
-    is StringLitExpr -> true
+    is IntLitExpr | FloatLitExpr | BoolLitExpr | NullLitExpr | CharLitExpr | StringLitExpr -> true
     // `usize(0)` / `i32(N)` — a primitive numeric conversion of a scalar
     // literal parses as a CallExpr. It folds just as safely (the arg is a
     // literal, so no dependency on another unbaked const), so a const like
