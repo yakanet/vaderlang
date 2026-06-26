@@ -10,4 +10,4 @@
   expr 8:12     IdentExpr      :: fn(i32, i32) -> i32
 
 # Diagnostics
-[8:12] error[T3003] wrong number of arguments: expected 2, got 1
+[8:12] error[T3005] missing required argument: missing required argument `b`
