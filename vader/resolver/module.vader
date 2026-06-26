@@ -1,18 +1,21 @@
 // vader/resolver/module — module discovery + path resolution.
 //
-// A `Module` represents one resolved-on-disk unit. The MVP loader
-// supports two import forms :
+// A `Module` represents one resolved-on-disk unit. Imports resolve by
+// *name* against an ordered set of include-path roots (GCC `-I` style),
+// never relative to the importing file. SPEC §11 disavows relative imports :
+// `import "./foo"` / `import "../foo"` are not a language form and are
+// rejected (R2025).
 //
 //   - `import "std/foo"`  — resolves against the stdlib root (probed
 //     next to the executable, then `<cwd>/stdlib` — see `resolve_sidecar`).
-//   - `import "./foo"` or `import "../foo"` — resolves relative to
-//     the importing file's directory.
+//   - `import "vader/parser"` — a bare name resolved against the project
+//     root and each `includePaths` entry, first match wins.
 //
 // Each candidate path is probed first as a directory (multi-file
 // module : every `*.vader` inside contributes), then as a single
 // `*.vader` file. The `displayPath` is what shows up in diagnostics
-// and dumps — for stdlib this is the raw `std/...` text ; for local
-// imports it's the path relative to the project / entry root.
+// and dumps — for stdlib this is the raw `std/...` text ; for a project
+// module it's the module's declared `module "..."` name.
 
 module "vader/resolver"
 
@@ -84,8 +87,11 @@ export resolve_import_path :: fn(
     if raw_path.starts_with(STDLIB_PREFIX) {
         return resolve_on_disk(join_path(stdlib_root, raw_path))
     }
+    // Relative imports are not a language form (SPEC §11) — the live loader
+    // rejects them with R2025. Reject here too rather than probing a sibling
+    // file, so this path can't silently resolve a `./foo` the loader refused.
     if raw_path.starts_with("./") || raw_path.starts_with("../") {
-        return resolve_on_disk(join_path(dir_of(from_file), raw_path))
+        return null
     }
     // Project-rooted mode wins when a manifest was found ; matches
     // TS `src/resolver/module.ts::resolveImportPath`. A miss here
