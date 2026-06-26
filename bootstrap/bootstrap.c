@@ -34222,9 +34222,9 @@ static vader_string_t vader_resolver_default_stdlib_root(void) {
 static vader_box_t vader_resolver_resolve_import_path(vader_string_t l0, vader_string_t l1, vader_string_t l2, vader_box_t l3) {
     bool l4;
     bool t0, t3, t4;
-    vader_string_t t1, t5, t6, t8, t9, t11, t12;
-    vader_box_t t2 = vader_box_null(), t7 = vader_box_null(), t10 = vader_box_null(), t13 = vader_box_null();
-    vader_box_t* gc_roots[5] = { &l3, &t2, &t7, &t10, &t13 };
+    vader_string_t t1, t6, t7, t9, t10;
+    vader_box_t t2 = vader_box_null(), t5 = vader_box_null(), t8 = vader_box_null(), t11 = vader_box_null();
+    vader_box_t* gc_roots[5] = { &l3, &t2, &t5, &t8, &t11 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 5u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
     t0 = std_string_starts_with(l0, 233u);
@@ -34241,21 +34241,19 @@ static vader_box_t vader_resolver_resolve_import_path(vader_string_t l0, vader_s
         l4 = t4;
     }
     if (l4) {
-        t5 = vader_resolver_dir_of(l1);
-        t6 = vader_resolver_join_path(t5, l0);
-        t7 = vader_resolver_resolve_on_disk(t6);
-        { vader_box_t __vret = t7; vader_gc_top = gc_frame.prev; return __vret; }
+        t5 = vader_box_obj(0u, NULL);
+        { vader_box_t __vret = t5; vader_gc_top = gc_frame.prev; return __vret; }
     }
     if (!(l3.tag == 0u)) {
-        t8 = l3.payload.s;
-        t9 = vader_resolver_join_path(t8, l0);
-        t10 = vader_resolver_resolve_on_disk(t9);
-        { vader_box_t __vret = t10; vader_gc_top = gc_frame.prev; return __vret; }
+        t6 = l3.payload.s;
+        t7 = vader_resolver_join_path(t6, l0);
+        t8 = vader_resolver_resolve_on_disk(t7);
+        { vader_box_t __vret = t8; vader_gc_top = gc_frame.prev; return __vret; }
     }
-    t11 = vader_resolver_dir_of(l1);
-    t12 = vader_resolver_join_path(t11, l0);
-    t13 = vader_resolver_resolve_on_disk(t12);
-    { vader_box_t __vret = t13; vader_gc_top = gc_frame.prev; return __vret; }
+    t9 = vader_resolver_dir_of(l1);
+    t10 = vader_resolver_join_path(t9, l0);
+    t11 = vader_resolver_resolve_on_disk(t10);
+    { vader_box_t __vret = t11; vader_gc_top = gc_frame.prev; return __vret; }
     vader_gc_top = gc_frame.prev;
 }
 
