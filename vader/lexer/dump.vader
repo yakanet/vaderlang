@@ -13,9 +13,10 @@
 // and the StringBuilder surface ; we only need the extras here.
 module "vader/lexer"
 
-import "std/string" { chars, pad_start, pad_end, compare_ascending as string_less }
+import "std/string" { pad_start, pad_end, compare_ascending as string_less }
 import "std/numbers" { to_hex }
 import "std/sort" { sort }
+import "vader/text" { quote_simple }
 // Diagnostic info is now resolved at construction time — see vader/diagnostics.
 
 export dump_tokens :: fn(l: Lexer) -> string {
@@ -107,27 +108,6 @@ append_token_detail :: fn(sb: StringBuilder, t: Token) -> void {
         }
         _ -> { }
     }
-}
-
-// Wrap in `"…"` and escape `"`, `\`, `\n`, `\t`, `\r`. Matches `quoteSimple`
-// in `tests/snapshot.ts`. Other bytes (incl. multi-byte UTF-8 and non-ASCII
-// control bytes) pass through ; the TS reference does the same so the
-// dumps stay byte-identical.
-quote_simple :: fn(s: string) -> string {
-    sb := new_builder()
-    sb.append_char('"')
-    // Walk by codepoint so multi-byte sequences pass through cleanly
-    // (byte-walking would synthesise U+FFFD on continuation bytes).
-    for c in s.chars() {
-        if c == '"'  { sb.append("\\\"") }
-        else if c == '\\' { sb.append("\\\\") }
-        else if c == '\n' { sb.append("\\n") }
-        else if c == '\t' { sb.append("\\t") }
-        else if c == '\r' { sb.append("\\r") }
-        else { sb.append_char(c) }
-    }
-    sb.append_char('"')
-    return sb.to_string()
 }
 
 // TokenKind → the snake_case name that matches `src/lexer/token.ts` so the

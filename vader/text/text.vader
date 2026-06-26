@@ -1,15 +1,38 @@
-// vader/text/text — low-level byte/text classifiers shared across the
-// compiler.
+// vader/text/text — low-level byte/text helpers shared across the compiler.
 //
-// Byte-level ASCII predicates the passes need over raw `bytes()` views —
-// name mangling (`c_emit`, `comptime`) and identifier-boundary scans
-// (`lsp`). Distinct from `std/char` (codepoint-typed) and from the lexer's
-// `is_ident_start` / `is_ident_continue`, which classify `char`, not bytes.
+// Byte-level ASCII predicates over raw `bytes()` views — name mangling
+// (`c_emit`, `comptime`) and identifier-boundary scans (`lsp`) — plus small
+// dump/text helpers. Distinct from `std/char` (codepoint-typed) and from the
+// lexer's `is_ident_start` / `is_ident_continue`, which classify `char`.
 
 module "vader/text"
+
+import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 
 /// Identifier byte — `[A-Za-z0-9_]` (regex `\w`). The byte-level classifier
 /// for raw UTF-8 / ASCII `bytes()` views ; bytes outside the class are what
 /// `sanitise`-style helpers replace with `_`.
 export is_ident_byte :: fn(b: u8) = (b >= 'A' && b <= 'Z') || (b >= 'a' && b <= 'z')
     || (b >= '0' && b <= '9') || b == '_'
+
+/// JSON-style simple escape : wrap `s` in double quotes and escape `"`, `\`,
+/// `\n`, `\t`, `\r`. Walks by codepoint so multi-byte UTF-8 passes through
+/// unchanged (byte-walking would synthesise U+FFFD on continuation bytes).
+/// Shared by the lexer and lower dump formatters.
+///
+/// @param s  the raw string to quote.
+/// @return   `s` wrapped in `"…"` with the five C/JSON escapes applied.
+export quote_simple :: fn(s: string) -> string {
+    sb :: new_builder()
+    sb.append_char('"')
+    for c in s {
+        if c == '"' { sb.append("\\\"") }
+        else if c == '\\' { sb.append("\\\\") }
+        else if c == '\n' { sb.append("\\n") }
+        else if c == '\t' { sb.append("\\t") }
+        else if c == '\r' { sb.append("\\r") }
+        else { sb.append_char(c) }
+    }
+    sb.append_char('"')
+    return sb.to_string()
+}
