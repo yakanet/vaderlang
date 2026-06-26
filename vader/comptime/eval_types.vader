@@ -25,6 +25,12 @@ import "vader/typecheck" { TypedProgram }
 export ComptimeContext :: struct {
     typed:    TypedProgram
     bindings: MutableMap<i32, ComptimeValue>
+    /// Current evaluator nesting depth. Bounds the tree-walk recursion so a
+    /// cyclic / non-terminating comptime expression reports C4001 instead of
+    /// overflowing the C stack (which silently corrupts memory). Mutated by
+    /// `evaluate_expr` ; shared across operand recursion so it tracks the live
+    /// level.
+    depth:    i64 = 0
 }
 
 /// Result of evaluating one expression. Three states :

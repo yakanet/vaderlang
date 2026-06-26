@@ -70,7 +70,9 @@ export evaluate_call_expr :: fn(
         }
         bindings[param_sym.id] = arg_result.value
     }
-    call_context :: ComptimeContext { .typed = context.typed, .bindings = bindings }
+    // Carry the caller's depth so the recursion guard also bounds cyclic
+    // comptime fn calls (a fresh `bindings`, but the same depth budget).
+    call_context :: ComptimeContext { .typed = context.typed, .bindings = bindings, .depth = context.depth }
     return evaluate_fn_body(fn_decl, call_context, expr.span)
 }
 
