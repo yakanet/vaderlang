@@ -60,7 +60,7 @@ export infer_dot_variant :: fn(
 // other modules (e.g. `FlagKind` from std/cli) still lift.
 export lift_enum_placeholder :: fn(t: Type, typed: TypedProgram) -> Type {
     if t is StructType as st {
-        if i32(st.symbol.kind) != i32(SymbolKind.Enum) { return t }
+        if st.symbol.kind != SymbolKind.Enum { return t }
         real :: typed.decl_types[st.symbol.id]
         if real is EnumType { return real }
         ext :: typed.external_types[st.symbol.id]

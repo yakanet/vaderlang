@@ -379,7 +379,7 @@ lookup_comptime_value :: fn(
 
 lookup_const_symbol :: fn(const_decl: ConstDecl, typed: TypedProgram) -> Symbol | null {
     for symbol in typed.resolved.symbols {
-        if i32(symbol.kind) != i32(SymbolKind.Const) { continue }
+        if symbol.kind != SymbolKind.Const { continue }
         if symbol.name == const_decl.name { return symbol }
     }
     return null

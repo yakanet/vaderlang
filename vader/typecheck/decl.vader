@@ -356,10 +356,9 @@ is_plain_string_literal :: fn(e: AST.Expr) -> bool {
 /// name. Last string arg is the C symbol (2-arg form reserves the
 /// first slot for a future WASM module hint).
 ///
-/// Distinct from `vader/midir/build.vader::extern_symbol_name` (which
-/// reads the **first** arg) : that helper runs post-lowering on the
-/// `LoweredFnDecl` shape and predates the 2-arg form ; both should
-/// converge on this last-arg convention once midir is rebased.
+/// `vader/midir/build.vader::extern_symbol_name` is the post-lowering twin
+/// (it runs on the `LoweredFnDecl` shape) and follows the same last-arg
+/// convention, so the linked C symbol stays consistent across stages.
 extern_symbol_name_for :: fn(decl: AST.FnDecl) -> string {
     for d in decl.decorators {
         if d.name != "extern" { continue }
@@ -579,7 +578,7 @@ is_type_position_value :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool {
         }
     }
     if e is AST.BinaryExpr {
-        if i32(e.op) == i32(AST.BinaryOp.BitOr) {
+        if e.op == AST.BinaryOp.BitOr {
             return is_type_position_value(e.left, resolved) && is_type_position_value(e.right, resolved)
         }
     }

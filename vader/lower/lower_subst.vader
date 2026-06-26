@@ -256,7 +256,7 @@ find_type_param_in_resolved :: fn(resolved: ResolvedModule, name: string, def_sp
     // back at the TypeParam's source span.
     for [_, s] in resolved.idents {
         if s.name != name { continue }
-        if i32(s.kind) != i32(SymbolKind.TypeParam) { continue }
+        if s.kind != SymbolKind.TypeParam { continue }
         match s.defined_at {
             is null -> {}
             is Span as def -> {
@@ -267,7 +267,7 @@ find_type_param_in_resolved :: fn(resolved: ResolvedModule, name: string, def_sp
     // Fallback : name-only match (no use-site exists, e.g. a generic
     // decl never instantiated in this very module).
     for [_, s] in resolved.idents {
-        if s.name == name && i32(s.kind) == i32(SymbolKind.TypeParam) { return s }
+        if s.name == name && s.kind == SymbolKind.TypeParam { return s }
     }
     return null
 }
@@ -299,7 +299,7 @@ build_impl_subst :: fn(
                 tp_name :: type_expr_simple_name(gi.type_args[i])
                 if tp_name == "" { continue }
                 for s in impl_typed.resolved.symbols {
-                    if s.name == tp_name && i32(s.kind) == i32(SymbolKind.TypeParam) {
+                    if s.name == tp_name && s.kind == SymbolKind.TypeParam {
                         subst.type_params[s.id] = args[i]
                         break
                     }
@@ -343,7 +343,7 @@ collect_impl_type_param_names :: fn(impl_decl: ImplDecl) -> string[] {
 /// dispatch devirtualises), else to `Any`. `names[i]` corresponds to `args[i]`.
 map_type_params_mixed :: fn(subst: Substitution, scope: Symbol[], names: string[], args: Type[]) -> void {
     for s in scope {
-        if i32(s.kind) != i32(SymbolKind.TypeParam) { continue }
+        if s.kind != SymbolKind.TypeParam { continue }
         idx: i32 = -1
         for i in 0..<names.len() {
             if s.name == names[i] {

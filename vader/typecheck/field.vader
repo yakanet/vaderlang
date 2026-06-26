@@ -137,7 +137,7 @@ dispatch_bounded_method_trait :: fn(
     bound: AST.Expr, name: string, typed: TypedProgram,
 ) -> string {
     if bound is AST.BinaryExpr {
-        if i32(bound.op) == i32(AST.BinaryOp.BitAnd) {
+        if bound.op == AST.BinaryOp.BitAnd {
             l :: dispatch_bounded_method_trait(bound.left, name, typed)
             if l != "" { return l }
             return dispatch_bounded_method_trait(bound.right, name, typed)
@@ -555,7 +555,7 @@ dispatch_bounded_method :: fn(
 ) -> Type | null {
     // Intersection : `A & B` — recurse on each side.
     if bound is AST.BinaryExpr {
-        if i32(bound.op) == i32(AST.BinaryOp.BitAnd) {
+        if bound.op == AST.BinaryOp.BitAnd {
             l :: dispatch_bounded_method(bound.left, name, typed)
             if !(l is null) { return l }
             return dispatch_bounded_method(bound.right, name, typed)

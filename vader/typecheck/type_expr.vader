@@ -180,7 +180,7 @@ import "vader/types" {
 // counterpart via `resolved.imports_to`. Other symbol kinds pass
 // through unchanged.
 redirect_import :: fn(sym: Symbol, resolved: ResolvedModule) -> Symbol {
-    if i32(sym.kind) != i32(SymbolKind.ImportBinding) { return sym }
+    if sym.kind != SymbolKind.ImportBinding { return sym }
     target :: resolved.imports_to[sym.id]
     match target {
         is null -> { return sym }

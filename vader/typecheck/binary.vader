@@ -40,7 +40,7 @@ export infer_binary :: fn(
     // `x is T` — right side is a type expression. Record its
     // resolved type directly so dump entries match TS (e.g. `i32`
     // instead of the `type` metatype).
-    if i32(e.op) == i32(AST.BinaryOp.Is) {
+    if e.op == AST.BinaryOp.Is {
         rhs_ty :: type_from_expr(e.right, typed.resolved, diags)
         typed.expr_types[e.right.id] = rhs_ty
         // `node_spans` / `expr_kinds` here are dump-only (the right side of
@@ -62,7 +62,7 @@ export infer_binary :: fn(
     // scrutinee / field narrowings, so a flow-narrowed access type-checks.
     // Conjunction only — `||` can't narrow its right (the left may be false).
     cond_narrows: IsNarrow[] = []
-    if i32(e.op) == i32(AST.BinaryOp.And) { cond_narrows = collect_and_narrows(e.left, typed) }
+    if e.op == AST.BinaryOp.And { cond_narrows = collect_and_narrows(e.left, typed) }
     pushed :: push_then_narrows(cond_narrows, typed)
     right := check_expr_fn(e.right, right_ctx, typed, diags)
     pop_then_narrows(pushed, typed)
@@ -144,11 +144,11 @@ check_arith :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgra
 }
 
 arith_trait_method :: fn(op: AST.BinaryOp) -> string {
-    if i32(op) == i32(AST.BinaryOp.Add) { return "add" }
-    if i32(op) == i32(AST.BinaryOp.Sub) { return "sub" }
-    if i32(op) == i32(AST.BinaryOp.Mul) { return "mul" }
-    if i32(op) == i32(AST.BinaryOp.Div) { return "div" }
-    if i32(op) == i32(AST.BinaryOp.Mod) { return "rem" }
+    if op == AST.BinaryOp.Add { return "add" }
+    if op == AST.BinaryOp.Sub { return "sub" }
+    if op == AST.BinaryOp.Mul { return "mul" }
+    if op == AST.BinaryOp.Div { return "div" }
+    if op == AST.BinaryOp.Mod { return "rem" }
     return ""
 }
 
@@ -343,7 +343,7 @@ numeric_propagation :: fn(op: AST.BinaryOp, left: Type) -> Type | null {
 
 is_enum_like :: fn(t: Type) -> bool {
     if t is EnumType { return true }
-    if t is StructType as st { return i32(st.symbol.kind) == i32(SymbolKind.Enum) }
+    if t is StructType as st { return st.symbol.kind == SymbolKind.Enum }
     return false
 }
 

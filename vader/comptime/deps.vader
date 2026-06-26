@@ -116,7 +116,7 @@ populate_deps :: fn(nodes: Nodes, typed: TypedProgram) -> void {
 // sees.
 lookup_const_symbol :: fn(decl: AST.ConstDecl, typed: TypedProgram) -> Symbol | null {
     for symbol in typed.resolved.symbols {
-        if i32(symbol.kind) != i32(SymbolKind.Const) { continue }
+        if symbol.kind != SymbolKind.Const { continue }
         if symbol.name == decl.name { return symbol }
     }
     return null
@@ -225,7 +225,7 @@ collect_expr_deps :: fn(
         is AST.IdentExpr as x -> {
             symbol :: typed.resolved.idents[x.span.hash()]
             if symbol is null { return }
-            if i32(symbol.kind) != i32(SymbolKind.Const) { return }
+            if symbol.kind != SymbolKind.Const { return }
             dependency_id :: nodes.by_symbol[symbol.id]
             if dependency_id is null { return }
             if seen[dependency_id] is bool { return }

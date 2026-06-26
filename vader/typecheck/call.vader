@@ -310,7 +310,7 @@ widen_empty_array_on_push :: fn(c: AST.CallExpr, typed: TypedProgram) -> void {
     target_ident :: field_callee.target
     symbol :: typed.resolved.idents[target_ident.span.hash()]
     if symbol is null { return }
-    if i32(symbol.kind) != i32(SymbolKind.Local) { return }
+    if symbol.kind != SymbolKind.Local { return }
     binding_span :: symbol.defined_at
     if binding_span is null { return }
     binding_key :: binding_span.hash()

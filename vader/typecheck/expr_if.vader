@@ -64,7 +64,7 @@ export infer_if :: fn(
     // (`if a is T && a.f { … }`) ; its else can't narrow (we don't know which
     // operand was false). A single (non-`&&`) condition keeps the existing
     // then + inverse-else narrowing.
-    is_and :: if e.cond is AST.BinaryExpr as bc { i32(bc.op) == i32(AST.BinaryOp.And) } else { false }
+    is_and :: if e.cond is AST.BinaryExpr as bc { bc.op == AST.BinaryOp.And } else { false }
     then_narrows: IsNarrow[] = []
     else_narrowing: IsNarrow | null = null
     if is_and {
@@ -179,7 +179,7 @@ PushedNarrow :: struct {
 // so `detect_is_narrow` routes its own here to a sink.
 collect_and_narrows :: fn(cond: AST.Expr, typed: TypedProgram) -> IsNarrow[] {
     if cond is AST.BinaryExpr as x {
-        if i32(x.op) == i32(AST.BinaryOp.And) {
+        if x.op == AST.BinaryOp.And {
             out :: collect_and_narrows(x.left, typed)
             for n in collect_and_narrows(x.right, typed) { out.push(n) }
             return out
@@ -224,7 +224,7 @@ detect_is_narrow :: fn(
     // (field_key "") and `b.opt.<sub>` in the then-block keeps the union type
     // and degrades (the compiler's own `build_if` `e.else_block.span`).
     if cond is AST.UnaryExpr {
-        if i32(cond.op) == i32(AST.UnaryOp.Not) {
+        if cond.op == AST.UnaryOp.Not {
             inner :: detect_is_narrow(cond.operand, typed, diags)
             if inner is null { return null }
             return IsNarrow {
@@ -239,7 +239,7 @@ detect_is_narrow :: fn(
     if !(cond is AST.BinaryExpr) { return null }
     // `x == null` / `x != null` / `null == x` / `null != x` — both
     // orderings flip the same way.
-    if i32(cond.op) == i32(AST.BinaryOp.Eq) || i32(cond.op) == i32(AST.BinaryOp.Neq) {
+    if cond.op == AST.BinaryOp.Eq || cond.op == AST.BinaryOp.Neq {
         ident_side :: pick_ident_vs_null(cond.left, cond.right)
         if !(ident_side is null) {
             sym :: typed.resolved.idents[ident_side.span.hash()]
@@ -258,7 +258,7 @@ detect_is_narrow :: fn(
             if base is UnresolvedType { return null }
             null_ty :: mk_primitive("null")
             non_null :: subtract_type(base, null_ty)
-            if i32(cond.op) == i32(AST.BinaryOp.Eq) {
+            if cond.op == AST.BinaryOp.Eq {
                 return IsNarrow { .sym_id = sym.id, .static_ty = base, .then_ty = null_ty, .else_ty = non_null }
             }
             return IsNarrow { .sym_id = sym.id, .static_ty = base, .then_ty = non_null, .else_ty = null_ty }
@@ -269,16 +269,20 @@ detect_is_narrow :: fn(
             field_info :: resolve_field_chain_static(field_side, typed)
             if !(field_info is null) {
                 null_ty :: mk_primitive("null")
-                non_null :: subtract_type(field_info.static_ty, null_ty)
-                if i32(cond.op) == i32(AST.BinaryOp.Eq) {
+                // Compose against the field's current flow-narrowed type (like
+                // the ident path below and stmt.vader) so sequential field
+                // guards refine instead of resetting to the declared union.
+                base :: narrow_for_field(typed, field_info.field_key, field_info.static_ty)
+                non_null :: subtract_type(base, null_ty)
+                if cond.op == AST.BinaryOp.Eq {
                     return IsNarrow {
-                        .sym_id = 0, .static_ty = field_info.static_ty,
+                        .sym_id = 0, .static_ty = base,
                         .then_ty = null_ty, .else_ty = non_null,
                         .field_key = field_info.field_key,
                     }
                 }
                 return IsNarrow {
-                    .sym_id = 0, .static_ty = field_info.static_ty,
+                    .sym_id = 0, .static_ty = base,
                     .then_ty = non_null, .else_ty = null_ty,
                     .field_key = field_info.field_key,
                 }
@@ -286,7 +290,7 @@ detect_is_narrow :: fn(
         }
         return null
     }
-    if i32(cond.op) != i32(AST.BinaryOp.Is) { return null }
+    if cond.op != AST.BinaryOp.Is { return null }
     narrowed :: type_from_expr(cond.right, typed.resolved, diags)
     // `if <scrut> is T as a { … }` — write the bind's type into `local_types`
     // so `IdentExpr` lookups inside the then-block resolve `a` to T. Recorded
@@ -324,11 +328,15 @@ detect_is_narrow :: fn(
     if cond.left is AST.FieldExpr as field_lhs {
         field_info :: resolve_field_chain_static(field_lhs, typed)
         if field_info is null { return null }
+        // Compose against the field's current flow-narrowed type so chained
+        // `if x.f is A {…} else if x.f is B {…}` guards refine instead of
+        // resetting to the declared type (mirrors the ident path / stmt.vader).
+        base :: narrow_for_field(typed, field_info.field_key, field_info.static_ty)
         return IsNarrow {
             .sym_id    = 0,
-            .static_ty = field_info.static_ty,
+            .static_ty = base,
             .then_ty   = narrowed,
-            .else_ty   = subtract_type(field_info.static_ty, narrowed),
+            .else_ty   = subtract_type(base, narrowed),
             .field_key = field_info.field_key,
         }
     }

@@ -424,7 +424,7 @@ is_scalar_comptime :: fn(v: ComptimeValue) -> bool {
 resolve_type_meta_symbol :: fn(ctx: FnLowerCtx, symbol: Symbol) -> Type | null {
     aliased :: ctx.typed.resolved.alias_types[symbol.id]
     if !(aliased is null) { return aliased }
-    if i32(symbol.kind) == i32(SymbolKind.BuiltinType) {
+    if symbol.kind == SymbolKind.BuiltinType {
         return primitive_from_name(symbol.name)
     }
     return null
@@ -447,7 +447,7 @@ declared_type_of_symbol :: fn(ctx: FnLowerCtx, symbol: Symbol) -> Type | null {
     // type — otherwise an unerased `T | null` declared type spuriously
     // differs from the read type and injects a redundant cast in
     // generic-impl default-method bodies.
-    raw :: if i32(symbol.kind) == i32(SymbolKind.Param) {
+    raw :: if symbol.kind == SymbolKind.Param {
         ctx.typed.param_types[key]
     } else {
         ctx.typed.local_types[key]
@@ -550,7 +550,7 @@ lower_then_with_binding :: fn(ctx: FnLowerCtx, if_expr: IfExpr) -> LoweredBlock 
     cond :: if_expr.cond
     if !(cond is BinaryExpr) { return block }
     if cond is BinaryExpr as bin {
-        if i32(bin.op) != i32(BinaryOp.Is) { return block }
+        if bin.op != BinaryOp.Is { return block }
         if bin.bind_as == "" { return block }
         scrut_type :: ctx.types.expr_type(bin.left)
         inner_type :: resolve_pattern_type(ctx, bin.right)

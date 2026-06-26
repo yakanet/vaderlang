@@ -127,9 +127,9 @@ find_free_fn_ufcs :: fn(ctx: FnLowerCtx, recv_type: Type, name: string) -> UfcsM
     // the import target to the source symbol and probe its signature.
     for candidate in ctx.typed.resolved.symbols {
         if candidate.name != name { continue }
-        if i32(candidate.kind) != i32(SymbolKind.ImportBinding) { continue }
+        if candidate.kind != SymbolKind.ImportBinding { continue }
         target :: follow_import_binding(ctx, candidate)
-        if i32(target.kind) == i32(SymbolKind.Fn) {
+        if target.kind == SymbolKind.Fn {
             if first_param_matches(ctx, target, recv_type) {
                 return UfcsMember { .symbol = target }
             }
@@ -206,7 +206,7 @@ first_param_matches :: fn(ctx: FnLowerCtx, sym: Symbol, recv_type: Type) -> bool
 /// are already lowered eagerly and must not be harvested a second time. Dedup
 /// by `fn_symbol.id`.
 register_nongeneric_imported_fn :: fn(ctx: FnLowerCtx, fn_sym: Symbol) -> void {
-    if i32(fn_sym.kind) != i32(SymbolKind.Fn) { return }
+    if fn_sym.kind != SymbolKind.Fn { return }
     if ctx.project.nongeneric_imported_fns[fn_sym.id] != null { return }
     // Generic fns route through the GenericFnInstance harvest instead.
     fn_ty :: lookup_fn_type_anywhere(ctx, fn_sym)
@@ -227,7 +227,7 @@ register_nongeneric_imported_fn :: fn(ctx: FnLowerCtx, fn_sym: Symbol) -> void {
 /// decl so `inline_consts` can route the read site (`build_ident` would
 /// otherwise emit `unreachable`).
 register_nongeneric_imported_const :: fn(ctx: FnLowerCtx, const_sym: Symbol) -> void {
-    if i32(const_sym.kind) != i32(SymbolKind.Const) { return }
+    if const_sym.kind != SymbolKind.Const { return }
     if ctx.project.nongeneric_imported_consts[const_sym.id] != null { return }
     ctx.project.nongeneric_imported_consts[const_sym.id] = true
     ctx.project.nongeneric_imported_const_order.push(const_sym)

@@ -191,14 +191,15 @@ fn_metadata :: fn(d: LoweredFnDecl) -> FnMetadata {
     }
 }
 
-/// `@extern("module", "c_name")` reader — returns the trailing string-lit
-/// arg (the host symbol). Falls back to the source name when the decorator
-/// is absent or carries fewer than 2 args. Mirrors the legacy bytecode
-/// emit's `extern_name_arg` (`vader/bytecode/emit.vader`).
+/// `@extern("c_name")` / `@extern("module", "c_name")` reader — returns the
+/// trailing string-lit arg (the host symbol). Falls back to the source name
+/// only when the decorator is absent or carries no args. Mirrors
+/// `vader/typecheck/decl.vader::extern_symbol_name_for` (last-arg convention),
+/// so the linked C symbol stays consistent between the typer and codegen.
 extern_symbol_name :: fn(fn_decl: FnDecl) -> string {
     for dec in fn_decl.decorators {
         if dec.name != "extern" { continue }
-        if dec.args.len() < 2 { continue }
+        if dec.args.len() == 0 { continue }
         last :: dec.args[dec.args.len() - 1]
         if last is StringLitExpr as s {
             if s.parts.len() == 1 {
@@ -578,7 +579,7 @@ build_ident :: fn(fn_ctx: FnCtx, e: LoweredIdent) -> LocalId | null {
         }
         return slot_opt
     }
-    if i32(e.symbol.kind) == i32(SymbolKind.Fn) {
+    if e.symbol.kind == SymbolKind.Fn {
         dst :: fresh_tmp(fn_ctx, "fn_ref", e.type)
         emit(fn_ctx, InstrFnRef {
             .dst = dst, .fn_symbol = e.symbol, .type = e.type, .span = e.span,
@@ -606,7 +607,7 @@ build_ident :: fn(fn_ctx: FnCtx, e: LoweredIdent) -> LocalId | null {
 
 build_call :: fn(fn_ctx: FnCtx, e: LoweredCall) -> LocalId | null {
     if e.callee is LoweredIdent as callee_id {
-        if i32(callee_id.symbol.kind) == i32(SymbolKind.Fn) {
+        if callee_id.symbol.kind == SymbolKind.Fn {
             args :: build_args(fn_ctx, e.args)
             if args is null { return null }
             dst :: if is_void(e.type) { null } else { fresh_tmp(fn_ctx, "call", e.type) }
@@ -684,8 +685,8 @@ build_unary :: fn(fn_ctx: FnCtx, e: LoweredUnary) -> LocalId | null {
 }
 
 build_binary :: fn(fn_ctx: FnCtx, e: LoweredBinary) -> LocalId | null {
-    if i32(e.op) == i32(LoweredBinaryOp.And) { return build_short_circuit(fn_ctx, e) }
-    if i32(e.op) == i32(LoweredBinaryOp.Or)  { return build_short_circuit(fn_ctx, e) }
+    if e.op == LoweredBinaryOp.And { return build_short_circuit(fn_ctx, e) }
+    if e.op == LoweredBinaryOp.Or  { return build_short_circuit(fn_ctx, e) }
     lhs :: build_expr(fn_ctx, e.left)
     if lhs is null { return null }
     rhs :: build_expr(fn_ctx, e.right)
@@ -701,7 +702,7 @@ build_short_circuit :: fn(fn_ctx: FnCtx, e: LoweredBinary) -> LocalId | null {
     lhs :: build_expr(fn_ctx, e.left)
     if lhs is null { return null }
 
-    is_and :: i32(e.op) == i32(LoweredBinaryOp.And)
+    is_and :: e.op == LoweredBinaryOp.And
     result_name :: if is_and { "and_res" } else { "or_res" }
     result :: declare_local(fn_ctx, result_name, e.type, null)
 

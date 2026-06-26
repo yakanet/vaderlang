@@ -84,7 +84,7 @@ wire_module :: fn(
                             info.binding_span, "`${imported}` from `${info.path}`"))
                     }
                     is Symbol as e -> {
-                        if i32(e.visibility) == i32(Visibility.Private) {
+                        if e.visibility == Visibility.Private {
                             out.missing[sym_id] = true
                             project.diags.push(resolver_error(.SymbolNotExported,
                                 info.binding_span, "`${imported}`"))

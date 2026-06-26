@@ -26,7 +26,7 @@ import "vader/resolver" { ImportTargetTable, SymbolTarget }
 /// isn't an ImportBinding, or when the target lookup fails (let the
 /// caller's kind-check filter the wrong shape).
 follow_import_binding :: fn(ctx: FnLowerCtx, sym: Symbol) -> Symbol {
-    if i32(sym.kind) != i32(SymbolKind.ImportBinding) { return sym }
+    if sym.kind != SymbolKind.ImportBinding { return sym }
     targets :: ctx.typed.import_targets
     if targets is null { return sym }
     if targets is ImportTargetTable as t {
@@ -66,7 +66,7 @@ try_lower_generic_fn_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> 
             sym_or_null :: ctx.typed.resolved.idents[inner_id.span.hash()]
             if sym_or_null is Symbol as raw_sym {
                 fn_sym :: follow_import_binding(ctx, raw_sym)
-                if i32(fn_sym.kind) == i32(SymbolKind.Fn) {
+                if fn_sym.kind == SymbolKind.Fn {
                     type_args: Type[] = []
                     for ta in gi.type_args {
                         resolved :: ctx.types.type_expr_type(ta)
@@ -90,7 +90,7 @@ try_lower_generic_fn_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> 
         if raw_sym is null { return null }
         if raw_sym is Symbol as raw_resolved {
             fn_sym :: follow_import_binding(ctx, raw_resolved)
-            if i32(fn_sym.kind) != i32(SymbolKind.Fn) { return null }
+            if fn_sym.kind != SymbolKind.Fn { return null }
             // Probe the callee's recorded signature (substituted — unchanged
             // for every call site).
             callee_ty :: ctx.types.expr_type(id)

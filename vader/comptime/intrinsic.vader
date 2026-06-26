@@ -11,7 +11,8 @@ module "vader/comptime"
 import "vader/typecheck" { type_from_expr }
 import "vader/types" {
     Type, PrimitiveType, StructType, EnumType, TraitType, ArrayType, TupleType,
-    FnType, TypeParamType, UnionType, UnresolvedType, AnyType, DistinctType, display_type,
+    FnType, TypeParamType, TypeMetaType, UnionType, UnresolvedType, AnyType, DistinctType,
+    SelfType, FreeIntType, FreeCharType, FreeFloatType, NeverType, display_type,
 }
 import "vader/diagnostics" { Diagnostic, comptime_error }
 import "vader/diagnostics" { ComptimeCode }
@@ -126,20 +127,31 @@ primitive_align :: fn(name: string) -> i64 {
     return primitive_size(name)
 }
 
-// @partial: only the 9 user-facing kinds are named; sentinel/meta variants
-// intentionally report "unknown".
-type_kind_label :: fn(t: Type) -> string = @partial match t {
+// Stable `@type_kind(T)` discriminator. EXHAUSTIVE over `Type` (no `_`) and
+// kept in lock-step — same arms, same strings — with
+// `vader/lower/lower_intrinsic.vader::kind_string_of_type` and the stable set
+// in SPEC §14 (`@type_kind`). The non-user-facing variants (TypeParam, Self,
+// Unresolved, Free*, Never) report "unknown". Listing every variant trips
+// T3013 at BOTH sites on a new Type kind, so the two can't silently diverge.
+type_kind_label :: fn(t: Type) -> string = match t {
     is PrimitiveType  -> "primitive"
     is DistinctType as d -> type_kind_label(d.backing)
     is StructType     -> "struct"
     is EnumType       -> "enum"
-    is TraitType      -> "trait"
+    is UnionType      -> "union"
     is ArrayType      -> "array"
     is TupleType      -> "tuple"
     is FnType         -> "fn"
-    is TypeParamType  -> "type_param"
-    is UnionType      -> "union"
-    _                 -> "unknown"
+    is TraitType      -> "trait"
+    is TypeMetaType   -> "type"
+    is TypeParamType  -> "unknown"
+    is SelfType       -> "unknown"
+    is UnresolvedType -> "unknown"
+    is FreeIntType    -> "unknown"
+    is FreeCharType   -> "unknown"
+    is FreeFloatType  -> "unknown"
+    is NeverType      -> "unknown"
+    is AnyType        -> "any"
 }
 
 arg_count_error :: fn(expr: AST.IntrinsicCallExpr, name: string, expected: usize) -> EvalResult {

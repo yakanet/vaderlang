@@ -94,7 +94,7 @@ collect_impl :: fn(
 ) -> void {
     trait_sym :: by_name[impl_.trait_name]
     if trait_sym is null { return }
-    if i32(trait_sym.kind) != i32(SymbolKind.Trait) { return }
+    if trait_sym.kind != SymbolKind.Trait { return }
     for_sym :: for_type_symbol(impl_.for_type, by_name)
     entry :: ImplEntry {
         .decl = impl_,
@@ -132,10 +132,10 @@ impl_is_generic :: fn(impl_: ImplDecl, resolved: ResolvedModule) -> bool {
 
 name_is_type_param :: fn(resolved: ResolvedModule, name: string) -> bool {
     for s in resolved.symbols {
-        if s.name == name && i32(s.kind) == i32(SymbolKind.TypeParam) { return true }
+        if s.name == name && s.kind == SymbolKind.TypeParam { return true }
     }
     for [_, s] in resolved.idents {
-        if s.name == name && i32(s.kind) == i32(SymbolKind.TypeParam) { return true }
+        if s.name == name && s.kind == SymbolKind.TypeParam { return true }
     }
     return false
 }

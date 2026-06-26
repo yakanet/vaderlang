@@ -341,7 +341,7 @@ unwrap_enum_type :: fn(target_type: Type, ctx: FnLowerCtx) -> Type {
     @partial match target_type {
         is EnumType -> { return target_type }
         is StructType as st -> {
-            if i32(st.symbol.kind) != i32(SymbolKind.Enum) { return target_type }
+            if st.symbol.kind != SymbolKind.Enum { return target_type }
             real :: ctx.typed.decl_types[st.symbol.id]
             if real is EnumType { return real }
             return target_type

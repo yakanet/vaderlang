@@ -346,9 +346,7 @@ cmd_fmt :: fn(args: string[]) -> i32 {
     return run_fmt(args)
 }
 
-cmd_lsp :: fn(args: string[]) -> i32 {
-    return run_server(args)
-}
+cmd_lsp :: fn(args: string[]) -> i32 = run_server(args)
 
 // Directories never descended into during `@test` discovery (mirror of TS
 // `test.ts::SKIP_DIRS`).
@@ -618,9 +616,9 @@ cmd_build :: fn(args: string[]) -> i32 {
     ldflags      :: parsed.string_flag("ldflags", "")
     include_path_flags :: parse_include_path_flag(parsed.string_flag("include-paths", ""))
 
-    if target != "native" && target != "wasm" && target != "ir" && target != "c" {
+    if target != "native" && target != "wasm" && target != "ir" && target != "ir-text" && target != "c" {
         eprintln("vader build: unknown target \"${target}\"")
-        eprintln("targets: native, wasm, ir, c")
+        eprintln("targets: native, wasm, ir, ir-text, c")
         return 1
     }
 

@@ -24,7 +24,7 @@ export infer_unary :: fn(
     // through so `i64(-250)` types the `-` as i64. `!x` stays bool, no
     // narrowing helpful.
     operand_hint: Type | null = null
-    if i32(e.op) != i32(AST.UnaryOp.Not) { operand_hint = expected }
+    if e.op != AST.UnaryOp.Not { operand_hint = expected }
     operand :: check_expr_fn(e.operand, operand_hint, typed, diags)
     if operand is UnresolvedType { return TY_UNRESOLVED }
     match e.op {

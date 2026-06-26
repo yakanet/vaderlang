@@ -68,7 +68,7 @@ test_builtin_scope_includes_i32 :: fn() -> void {
     match sym {
         is Symbol as s -> {
             assert_eq(s.name, "i32")
-            assert(i32(s.kind) == i32(SymbolKind.BuiltinType), "i32 must be BuiltinType")
+            assert(s.kind == SymbolKind.BuiltinType, "i32 must be BuiltinType")
             assert_eq(s.module, BUILTIN_MODULE_ID)
         }
         is null -> { assert(false, "i32 should be in builtin scope") }

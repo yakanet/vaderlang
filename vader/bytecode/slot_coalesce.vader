@@ -129,7 +129,7 @@ export coalesce_slots :: fn(function: BcFunction) -> BcFunction {
             // Non-param phys slots map 1:1 onto `new_locals` ; index
             // adjusts by `- param_count`.
             cand :: new_locals[phys - param_count]
-            if i32(cand.val) == i32(want) {
+            if cand.val == want {
                 if !ranges_overlap(phys_ranges[phys], range) {
                     chosen = i32(phys)
                     break

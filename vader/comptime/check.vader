@@ -361,7 +361,7 @@ collect_in_expr :: fn(e: AST.Expr, out: AST.IntrinsicCallExpr[]) -> void {
 // write decl name_spans into `idents`, so walk `resolved.symbols`.
 lookup_decl_symbol :: fn(decl: AST.ConstDecl, typed: TypedProgram) -> Symbol | null {
     for symbol in typed.resolved.symbols {
-        if i32(symbol.kind) != i32(SymbolKind.Const) { continue }
+        if symbol.kind != SymbolKind.Const { continue }
         if symbol.name == decl.name { return symbol }
     }
     return null

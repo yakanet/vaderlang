@@ -121,7 +121,7 @@ add_fn :: fn(self: CollectedModule, d: FnDecl, module_path: string, factory: Sym
         is Symbol as e -> {
             // Local fn coexisting with a same-named import : local takes
             // the primary slot so unqualified refs resolve to it.
-            if i32(e.kind) == i32(SymbolKind.ImportBinding) {
+            if e.kind == SymbolKind.ImportBinding {
                 self.symbols[d.name] = sym
             }
             // For two fn decls with the same name, the FIRST wins as primary —
@@ -203,7 +203,7 @@ bind_import :: fn(
             // `collect.ts:219` — same §1.5 deviation as `add_fn`'s non-fn
             // branches). R2011 fires only when the import shadows a
             // *non-import* binding ; that's a genuine duplicate.
-            if i32(e.kind) != i32(SymbolKind.ImportBinding) {
+            if e.kind != SymbolKind.ImportBinding {
                 diags.push(resolver_error(.DuplicateImportBinding, span,
                     "`${local}`"))
             }
@@ -283,13 +283,13 @@ main :: fn() -> i32 { return 0 }
     match greet {
         is Symbol as s -> {
             assert_eq(s.name, "greet")
-            assert(i32(s.visibility) == i32(Visibility.Public), "exported fn should be public")
+            assert(s.visibility == Visibility.Public, "exported fn should be public")
         }
         is null -> { assert(false, "greet should be collected") }
     }
     main_sym :: collected.symbols["main"]
     match main_sym {
-        is Symbol as s -> { assert(i32(s.visibility) == i32(Visibility.Public), "main is implicitly public") }
+        is Symbol as s -> { assert(s.visibility == Visibility.Public, "main is implicitly public") }
         is null        -> { assert(false, "main should be collected") }
     }
 }
@@ -305,7 +305,7 @@ import "x" { a, b, c }
     for name in ["a", "b", "c"] {
         hit :: collected.symbols[name]
         match hit {
-            is Symbol as s -> { assert(i32(s.kind) == i32(SymbolKind.ImportBinding), "should be import-binding") }
+            is Symbol as s -> { assert(s.kind == SymbolKind.ImportBinding, "should be import-binding") }
             is null        -> { assert(false, "${name} should be a destructured import binding") }
         }
     }
