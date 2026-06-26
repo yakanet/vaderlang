@@ -177,6 +177,101 @@ seed_explicit_type_args :: fn(
     }
 }
 
+// ---- named-arg + default-value normalisation -----------------------------
+
+// Reorder `c`'s args into positional parameter order, filling omitted params
+// from their `default_value`. The result replaces `c.args` in place (see
+// `infer_call`), so a reordered / defaulted call flows positionally through
+// every downstream pass — the lowerer needs no special handling.
+//
+// Returns null (leaving `c.args` untouched) when the call can't be normalised :
+// a variadic param (the slot model can't express `...rest`), or an error —
+// T3003 too many / positional-after-named, T3004 unknown name, T3005 missing
+// required, T3025 a named arg duplicating a filled slot.
+normalize_call_args :: fn(params: AST.FnParam[], c: AST.CallExpr, diags: Diagnostic[]) -> AST.CallArg[] | null {
+    for pr in params { if pr.variadic { return null } }
+    // Fast path : already positional + full arity → nothing to reorder.
+    only_positional := true
+    for a in c.args { if a.name != null { only_positional = false } }
+    if only_positional && c.args.len() == params.len() { return c.args }
+
+    slots: (AST.CallArg | null)[] = []
+    for i in 0..<params.len() { slots.push(null) }
+    seen_named := false
+    next_pos: usize = 0
+    ok := true
+    for a in c.args {
+        arg_name :: a.name
+        if arg_name == null {
+            if seen_named {
+                diags.push(typecheck_error(.WrongArgCount, a.span,
+                    "positional argument after a named argument"))
+                ok = false
+            } else if next_pos >= params.len() {
+                diags.push(typecheck_error(.WrongArgCount, a.span,
+                    "too many arguments : expected ${params.len()}"))
+                ok = false
+            } else {
+                slots[next_pos] = a
+                next_pos = next_pos + 1
+            }
+        } else {
+            seen_named = true
+            idx :: param_index_by_name(params, arg_name)
+            if idx < 0 {
+                diags.push(typecheck_error(.UnknownNamedArg, a.span,
+                    "no parameter named `${arg_name}`"))
+                ok = false
+            } else if slots[usize(idx)] != null {
+                diags.push(typecheck_error(.NamedArgDuplicatesPositional, a.span,
+                    "argument for `${arg_name}` was already supplied"))
+                ok = false
+            } else {
+                slots[usize(idx)] = a
+            }
+        }
+    }
+    out: AST.CallArg[] = []
+    for i in 0..<params.len() {
+        slot :: slots[i]
+        if slot is AST.CallArg as s {
+            out.push(s)
+        } else {
+            dv :: params[i].default_value
+            if dv != null {
+                out.push(AST.CallArg { .span = dv.span, .name = null, .value = dv, .spread = false })
+            } else {
+                diags.push(typecheck_error(.MissingRequiredArg, c.span,
+                    "missing required argument `${params[i].name}`"))
+                ok = false
+            }
+        }
+    }
+    if !ok { return null }
+    return out
+}
+
+param_index_by_name :: fn(params: AST.FnParam[], name: string) -> isize {
+    for i in 0..<params.len() {
+        if params[i].name == name { return isize(i) }
+    }
+    return -1
+}
+
+// Resolve a direct call's callee to its declaration, so its parameter names +
+// defaults are available for `normalize_call_args`. Returns null for callees
+// without a known decl (fn-values, UFCS methods) — those stay positional.
+resolve_callee_fn_decl :: fn(c: AST.CallExpr, typed: TypedProgram) -> AST.FnDecl | null {
+    if c.callee is AST.IdentExpr as ie {
+        sym :: typed.resolved.idents[ie.span.hash()]
+        if sym is Symbol as s {
+            decl :: typed.fn_decls[s.id]
+            if decl is AST.FnDecl as fd { return fd }
+        }
+    }
+    return null
+}
+
 /// Type-check a `CallExpr`. `check_expr_fn` is threaded the same way as
 /// in `expr_block.vader` to dodge the cyclic import.
 export infer_call :: fn(
@@ -206,7 +301,28 @@ export infer_call :: fn(
         check_args_no_expected(c, typed, diags, check_expr_fn)
         return TY_UNRESOLVED
     }
-    if c.args.len() != callee_ty.params.len() {
+    // Reorder named args + fill defaults in place, so the positional checks
+    // below and the lowerer both see a normalised call. Only direct calls to a
+    // known fn decl carry param names ; fn-value calls stay positional.
+    normalised := false
+    fndecl :: resolve_callee_fn_decl(c, typed)
+    if fndecl is AST.FnDecl as fd {
+        // Only normalise when the resolved decl's arity matches the picked
+        // callee type — otherwise `resolved.idents` points at a different
+        // overload than `pick_overload` chose, and its names / count don't
+        // apply. Mismatched overloads stay positional (handled in a later
+        // step) ; same-arity calls (incl. those filling trailing defaults)
+        // get named-arg + default normalisation.
+        if fd.params.len() == callee_ty.params.len() {
+            norm :: normalize_call_args(fd.params, c, diags)
+            // normalize_call_args owns arity/named diagnostics here ; skip the
+            // positional check below to avoid double-reporting. A null result
+            // (variadic / error) leaves `c.args` untouched for recovery.
+            normalised = true
+            if norm is AST.CallArg[] as na { c.args = na }
+        }
+    }
+    if !normalised && c.args.len() != callee_ty.params.len() {
         diags.push(typecheck_error(.WrongArgCount, c.span,
             "expected ${callee_ty.params.len()}, got ${c.args.len()}"))
     }
@@ -528,7 +644,7 @@ main :: fn() -> i32 { return add(1, 2) }
 }
 
 @test
-test_call_arity_mismatch_emits_T3003 :: fn() -> void {
+test_call_missing_required_emits_T3005 :: fn() -> void {
     src :: """
 add :: fn(a: i32, b: i32) -> i32 { return a + b }
 main :: fn() -> i32 { return add(1) }
@@ -540,7 +656,43 @@ main :: fn() -> i32 { return add(1) }
             diags: Diagnostic[] = []
             infer_call(c, fx.typed, diags, call_check_stub)
             assert(diags.len() >= 1, "expected at least one diagnostic")
+            assert_eq(diags[0].code.id, "T3005")
+        }
+    }
+}
+
+@test
+test_call_too_many_emits_T3003 :: fn() -> void {
+    src :: """
+add :: fn(a: i32, b: i32) -> i32 { return a + b }
+main :: fn() -> i32 { return add(1, 2, 3) }
+"""
+    fx :: first_call_in_last_fn(src)
+    match fx.call {
+        is null -> { assert(false, "expected to find a call") }
+        is AST.CallExpr as c -> {
+            diags: Diagnostic[] = []
+            infer_call(c, fx.typed, diags, call_check_stub)
+            assert(diags.len() >= 1, "expected at least one diagnostic")
             assert_eq(diags[0].code.id, "T3003")
+        }
+    }
+}
+
+@test
+test_default_arg_fills_in_place :: fn() -> void {
+    src :: """
+greet :: fn(name: i32, prefix: i32 = 7) -> i32 { return name }
+main :: fn() -> i32 { return greet(1) }
+"""
+    fx :: first_call_in_last_fn(src)
+    match fx.call {
+        is null -> { assert(false, "expected to find a call") }
+        is AST.CallExpr as c -> {
+            diags: Diagnostic[] = []
+            infer_call(c, fx.typed, diags, call_check_stub)
+            // The omitted trailing param is filled from its default.
+            assert_eq(c.args.len(), 2)
         }
     }
 }

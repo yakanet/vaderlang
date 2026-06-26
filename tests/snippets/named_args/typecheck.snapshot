@@ -1,0 +1,45 @@
+# Typecheck
+
+## tests/snippets/named_args
+  FnDecl         combine              :: fn(i32, i32, i32) -> i32
+  FnDecl         greet                :: fn(string, string) -> string
+  FnDecl         main                 :: fn() -> i32
+  expr 10:12    StringLitExpr  :: string
+  expr 10:15    IdentExpr      :: string
+  expr 10:26    IdentExpr      :: string
+  expr 15:12    BinaryExpr     :: i32
+  expr 15:12    BinaryExpr     :: i32
+  expr 15:12    BinaryExpr     :: i32
+  expr 15:12    IdentExpr      :: i32
+  expr 15:22    BinaryExpr     :: i32
+  expr 15:22    IdentExpr      :: i32
+  expr 15:31    IdentExpr      :: i32
+  expr 19:11    CallExpr       :: string
+  expr 19:11    IdentExpr      :: fn(string, string) -> string
+  expr 19:17    StringLitExpr  :: string
+  expr 20:11    CallExpr       :: string
+  expr 20:11    IdentExpr      :: fn(string, string) -> string
+  expr 20:17    StringLitExpr  :: string
+  expr 20:24    StringLitExpr  :: string
+  expr 21:11    CallExpr       :: string
+  expr 21:11    IdentExpr      :: fn(string, string) -> string
+  expr 21:17    StringLitExpr  :: string
+  expr 21:33    StringLitExpr  :: string
+  expr 22:10    CallExpr       :: i32
+  expr 22:10    IdentExpr      :: fn(i32, i32, i32) -> i32
+  expr 23:12    BinaryExpr     :: i32
+  expr 23:12    CallExpr       :: i32
+  expr 23:12    IdentExpr      :: type
+  expr 23:16    BinaryExpr     :: usize
+  expr 23:16    BinaryExpr     :: usize
+  expr 23:16    CallExpr       :: usize
+  expr 23:16    FieldExpr      :: fn() -> usize
+  expr 23:16    IdentExpr      :: string
+  expr 23:27    CallExpr       :: usize
+  expr 23:27    FieldExpr      :: fn() -> usize
+  expr 23:27    IdentExpr      :: string
+  expr 23:38    CallExpr       :: usize
+  expr 23:38    FieldExpr      :: fn() -> usize
+  expr 23:38    IdentExpr      :: string
+  expr 23:50    IdentExpr      :: i32
+  expr 9:44     StringLitExpr  :: string
