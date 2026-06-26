@@ -141,6 +141,32 @@ import "vader/diagnostics" { empty_span }
     }
 }
 
+// Recursion guard : a cyclic / non-terminating comptime expression must report
+// C4001 instead of overflowing the C stack (which silently corrupts memory).
+// Pre-loading `depth` to the ceiling exercises the guard without a real
+// 2000-deep recursion (which could overflow the test runner's own stack).
+@test test_evaluate_recursion_guard_trips_at_ceiling :: fn() -> void {
+    expr :: AST.IntLitExpr { .span = empty_span(), .id = 0, .value = 1 }
+    over :: empty_context()
+    over.depth = COMPTIME_MAX_EVAL_DEPTH
+    result :: evaluate_expr(expr, over)
+    match result.diag {
+        is null -> { assert_eq("expected recursion-guard C4001", "got null") }
+        _       -> {}
+    }
+}
+
+@test test_evaluate_below_ceiling_still_evaluates :: fn() -> void {
+    expr :: AST.IntLitExpr { .span = empty_span(), .id = 0, .value = 7 }
+    under :: empty_context()
+    under.depth = COMPTIME_MAX_EVAL_DEPTH - 2
+    result :: evaluate_expr(expr, under)
+    match result.value {
+        is null -> { assert_eq("expected a value below the ceiling", "got null") }
+        _       -> { assert_eq(display_value(result.value), "7_i32") }
+    }
+}
+
 empty_context :: fn() -> ComptimeContext {
     return ComptimeContext {
         .typed    = empty_typed_program(),
