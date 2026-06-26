@@ -1,7 +1,7 @@
-// vader/typecheck/types — the Type IR.
+// vader/types/types — the Type IR.
 //
 // Every Vader value gets exactly one
-// Type. The discriminated union has 15 variants ; constructors are
+// Type. The discriminated union has 18 variants ; constructors are
 // plain factories (no hash-consing for MVP — `equals_type` in
 // `type_ops.vader` walks structurally instead of relying on reference
 // identity). Interning lands when a downstream hot path needs it.
