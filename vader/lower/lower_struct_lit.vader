@@ -136,7 +136,7 @@ as_namespace_binding :: fn(ctx: FnLowerCtx, expr: Expr) -> Symbol | null {
     if ident is null { return null }
     sym :: ctx.typed.resolved.idents[ident.span.hash()]
     if sym is null { return null }
-    if i32(sym.kind) == i32(SymbolKind.ImportBinding) { return sym }
+    if sym.kind == SymbolKind.ImportBinding { return sym }
     return null
 }
 
@@ -148,7 +148,7 @@ enum_type_or_unwrap :: fn(ctx: FnLowerCtx, type: Type) -> Type {
     @partial match type {
         is EnumType -> { return type }
         is StructType as st -> {
-            if i32(st.symbol.kind) != i32(SymbolKind.Enum) { return type }
+            if st.symbol.kind != SymbolKind.Enum { return type }
             real :: ctx.typed.decl_types[st.symbol.id]
             if real is EnumType { return real }
             return type

@@ -63,7 +63,7 @@ Source (.vader)
   └──→ WASM emitter     → .wasm (~1:1 mapping with bytecode, since WASM is also stack-based)
 ```
 
-Self-host status (Vader-side under `vader/`): Lexer ✅, Parser ✅, Resolver ✅ (9 modules under `vader/resolver/`), Formatter 🟡 (partial — see §18), LSP ✅, VM 🟡 (`.virt` subset), Bytecode emitter 🟡 (scaffolding + literal emit landed), Type-checker / Lower / Mid-IR / C emitter not yet ported. The TS-side under `src/` remains the reference. Parity is enforced per-stage by `tests/parity.test.ts` (CLI byte-for-byte stdout diff) — currently covers `lexer`, `parser`, `resolved-ast`.
+Self-host status (Vader-side under `vader/`): the full native pipeline is self-hosted — Lexer ✅, Parser ✅, Resolver ✅ (9 modules under `vader/resolver/`), Type-checker ✅, Comptime/monomorphizer ✅, Lowerer ✅, Mid-IR (CFG/SSA/DCE/escape/scheduler) ✅, Bytecode emitter ✅, C emitter ✅, LSP ✅, Formatter 🟡 (partial — see §18), VM 🟡 (`.virt` subset). WASM emitter ⏳ (post-MVP — see §19). The legacy TypeScript bootstrap under `src/` has been removed; self-host correctness is verified by the bootstrap fixed-point check (`bootstrap/verify.sh`) and the snapshot suite, not by cross-toolchain parity.
 
 ### Canonical IR
 
@@ -584,7 +584,7 @@ The `Target(value)` syntax doubles as the explicit coercion surface. Numeric and
 - `chars()` returns an iterator of `char` (`StringChars implements Iterator<char>`); pair with `for c in s.chars()` for a true Unicode loop.
 - `bytes()` returns the UTF-8 byte sequence as `const u8[]`; for ad-hoc byte processing (binary protocols carried in strings, ASCII fast paths, BOM detection). On the native target it is a **zero-copy view** aliasing the string's interned bytes (it allocates only a small array header, not the byte storage); the `const` is what keeps that view sound — writes are rejected at compile time (T3042) since the shared bytes are immutable. On the VM the bytes are **copied** into a materialised array (VM arrays box every slot and cannot alias a raw byte buffer) — same observable values, just not zero-copy. Iteration works through `for b in s.bytes()` via the built-in array iterator. Strings are deliberately **not** `Iterable` — there's no canonical "default" between bytes and codepoints, so `for x in s` is a compile error and the caller picks `s.bytes()` or `s.chars()` explicitly.
 - `is_empty()` — sugar for `s.bytes().len() == 0` (codepoint count and byte count agree on emptiness).
-- **Subscript** `s[i]` returns the Unicode codepoint at *codepoint* index `i` (via `string implements Index<usize, char>` in `std/core`). Walking from the start is O(i); pair `chars()` with `for c in s.chars()` for O(n) iteration. For byte-cursor access, take a view with `s.bytes()` (a `const u8[]`) and index it — `s.bytes()[i] -> u8` for the raw byte, `s.bytes()[lo..<hi].as_string()` to slice a byte range back into a string (the inverse of `bytes()`, O(1) on the borrowed view). `byte_decode_at(i) -> char` decodes the UTF-8 codepoint starting at byte offset `i` (used by lexers, JSON parsers, LSP transport; byte-view consumers that hold the view call `decode_codepoint_at(bs, i)` instead). There is no `IndexSet` impl; strings are immutable.
+- **Subscript** `s[i]` returns the Unicode codepoint at *codepoint* index `i` (via `string implements Index<usize, char>` in `std/core`). Walking from the start is O(i); pair `chars()` with `for c in s.chars()` for O(n) iteration. For byte-cursor access, take a view with `s.bytes()` (a `const u8[]`) and index it — `s.bytes()[i] -> u8` for the raw byte, `s.bytes()[lo..<hi].bytes_to_string()` to slice a byte range back into a string (the inverse of `bytes()`, O(1) on the borrowed view). `byte_decode_at(i) -> char` decodes the UTF-8 codepoint starting at byte offset `i` (used by lexers, JSON parsers, LSP transport; byte-view consumers that hold the view call `decode_codepoint_at(bs, i)` instead). There is no `IndexSet` impl; strings are immutable.
 - Literals stored in the binary's data section.
 
 ### Arrays
@@ -1963,7 +1963,7 @@ Module identity is **not** derived from the filesystem. The filesystem is the st
 import "std/string"                              // pure namespace import
 str :: import "std/string"                       // named namespace import
 import "std/string" { trim }                     // destructured import
-str :: import "std/string" { bytes, as_string }  // scoped namespace import
+str :: import "std/string" { trim, chars }       // scoped namespace import
 ```
 
 A namespace import always names its binding explicitly (`name :: import "..."`) — there is no implicit last-segment binding and no `as` suffix. The destructure form (`import "..." { a, b }`) pulls names into the importing module's top-level scope. The combined form (`name :: import "..." { a, b, c }`) is **scoped**: only the listed names are reachable through `name.X`; the rest of the target module is hidden, and the listed names are NOT also pulled into top-level scope.
@@ -2393,7 +2393,7 @@ decode_codepoint :: fn(s: string, i: usize) -> [char, usize]    // (codepoint, b
 
 // Byte access (raw UTF-8 — for ASCII / binary protocols / BOM detection).
 bytes          :: fn(s: string) -> const u8[]                   // UTF-8 bytes; zero-copy borrowed view on native, materialised copy on the VM
-as_string      :: fn(bs: const u8[]) -> string                  // inverse of bytes(); `s.bytes()[lo..<hi].as_string()` is the byte-indexed substring (O(1) on the borrowed view)
+bytes_to_string :: fn(bs: const u8[]) -> string                 // inverse of bytes(); `s.bytes()[lo..<hi].bytes_to_string()` is the byte-indexed substring (O(1) on the borrowed view)
 byte_decode_at :: fn(s: string, i: usize) -> char               // decode UTF-8 codepoint at byte offset (for byte-cursor parsers)
 decode_codepoint_at :: fn(bs: const u8[], i: usize) -> [char, usize]  // byte-view codepoint decode; advance a held-view cursor by the returned width
 

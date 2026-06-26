@@ -8,7 +8,7 @@ import "std/collections" { MutableMap }
 import "vader/parser" { Expr, IdentExpr, CallExpr, FieldExpr, Visibility, Decl, ImplDecl }
 import "vader/diagnostics" { Span }
 import "vader/typecheck" { type_list_equals, TypedProgram }
-import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "vader/resolver/symbol" { Symbol }
 import "vader/types" { Type, FnType, PrimitiveType, TraitType, ArrayType, AnyType, mk_primitive, mk_fn }
 import "vader/comptime" { EvaluatedProgram }
 import "vader/resolver" { ImportTargetTable }
@@ -308,7 +308,7 @@ resolve_namespace_member :: fn(ctx: FnLowerCtx, namespace_symbol: Symbol, name: 
     }
     return Symbol {
         .id         = 0,
-        .kind       = SymbolKind.Fn,
+        .kind       = .Fn,
         .name       = name,
         .module     = ctx.typed.resolved.path,
         .visibility = Visibility.Private,
@@ -326,7 +326,7 @@ fold_const_symbol :: fn(ctx: FnLowerCtx, sym: Symbol, type: Type, span: Span) ->
     if baked == null {
         // Bake missed. Gate on Const kind so the common baked-miss (every
         // local / param read) skips `try_fold_unbaked_const`'s module lookups.
-        if i32(sym.kind) == i32(SymbolKind.Const) { return try_fold_unbaked_const(ctx, sym, type) }
+        if sym.kind == .Const { return try_fold_unbaked_const(ctx, sym, type) }
         return null
     }
     if is_scalar_comptime(baked) { return comptime_value_to_lowered(baked, type, span) }
@@ -351,7 +351,7 @@ try_lower_namespace_const :: fn(ctx: FnLowerCtx, e: FieldExpr, type: Type) -> Lo
     ns_sym :: as_namespace_binding(ctx, e.target)
     if ns_sym is null { return null }
     member :: resolve_namespace_member(ctx, ns_sym, e.field)
-    if i32(member.kind) != i32(SymbolKind.Const) { return null }
+    if member.kind != .Const { return null }
     folded :: fold_const_symbol(ctx, member, type, e.span)
     if folded != null { return folded }
     // Compound const : the scalar fold missed. Harvest the const so

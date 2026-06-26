@@ -58,7 +58,7 @@ materialize_representative :: fn(
 ) -> void {
     if !all_concrete_args(inst.args) { return }
     sym :: inst.symbol
-    if i32(sym.kind) != i32(SymbolKind.Struct) { return }
+    if sym.kind != SymbolKind.Struct { return }
     owner_module_id :: sym.module
     owner_module :: loaded.modules[owner_module_id]
     if owner_module is null { return }
@@ -118,7 +118,7 @@ materialize_representative :: fn(
 /// skip instances that the mono pass already rejected (TypeParam-only,
 /// stdlib-only, etc.) without re-deriving the filter logic.
 mono_has_struct_entry_for :: fn(project_ctx: LowerProjectCtx, inst: GenericInstance) -> bool {
-    if i32(inst.symbol.kind) != i32(SymbolKind.Struct) { return false }
+    if inst.symbol.kind != SymbolKind.Struct { return false }
     entries :: project_ctx.evaluated.mono.entries
     i: usize = 0
     for i < entries.len() {
@@ -161,7 +161,7 @@ materialize_one_instance :: fn(
             // empty stdlib lowered module created above so the bytecode
             // type table carries the concrete shape instead of an orphan
             // `ref`. (Filtered from the lower dump, so byte-match is safe.)
-            if i32(sym.kind) == i32(SymbolKind.Struct) {
+            if sym.kind == SymbolKind.Struct {
                 materialize_struct_instance(inst, owner_decls, owner_typed_ok, project_ctx, project)
                 // (2) For every generic impl whose for_type targets the
                 // same struct symbol, materialize each member — including
@@ -555,7 +555,7 @@ flatten_trait_bound :: fn(bound: TypeExpr, out: string[]) -> void {
     match bound {
         is IdentExpr as id -> { out.push(id.name) }
         is BinaryExpr as b -> {
-            if i32(b.op) == i32(BinaryOp.BitAnd) {
+            if b.op == BinaryOp.BitAnd {
                 flatten_trait_bound(b.left, out)
                 flatten_trait_bound(b.right, out)
             }

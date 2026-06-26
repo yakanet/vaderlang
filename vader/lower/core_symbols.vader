@@ -33,7 +33,7 @@ export find_core_type :: fn(ctx: FnLowerCtx, name: string, args: Type[]) -> Type
     match symbol {
         is null -> { return null }
         is Symbol as s -> {
-            if i32(s.kind) != i32(SymbolKind.Struct) { return null }
+            if s.kind != SymbolKind.Struct { return null }
             return mk_struct(s, args)
         }
     }
@@ -52,7 +52,7 @@ export find_core_trait :: fn(ctx: LowerProjectCtx, name: string) -> Symbol | nul
     match raw {
         is null -> { return null }
         is Symbol as s -> {
-            if i32(s.kind) != i32(SymbolKind.Trait) { return null }
+            if s.kind != SymbolKind.Trait { return null }
             return s
         }
     }

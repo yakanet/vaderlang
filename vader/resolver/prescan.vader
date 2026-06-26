@@ -59,12 +59,12 @@ check_orphan_rule :: fn(
 ) -> void {
     trait_sym :: lookup_trait_sym(decl, module_symbols, wire_targets)
     if trait_sym is null { return }
-    if i32(trait_sym.kind) != i32(SymbolKind.Trait) { return }
+    if trait_sym.kind != SymbolKind.Trait { return }
     for_sym :: for_type_owner_sym(decl.for_type, idents, wire_targets)
     for_is_primitive := false
     for_is_local := false
     if for_sym is Symbol as fs {
-        for_is_primitive = i32(fs.kind) == i32(SymbolKind.BuiltinType)
+        for_is_primitive = fs.kind == SymbolKind.BuiltinType
         for_is_local = fs.module == module_id
     }
     trait_is_local :: trait_sym.module == module_id

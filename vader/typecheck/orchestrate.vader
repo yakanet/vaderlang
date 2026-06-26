@@ -990,7 +990,7 @@ export is_alias_value_expr :: fn(e: AST.Expr, resolved: ResolvedModule) -> bool 
         }
     }
     if e is AST.BinaryExpr {
-        if i32(e.op) == i32(AST.BinaryOp.BitOr) {
+        if e.op == AST.BinaryOp.BitOr {
             return is_alias_value_expr(e.left, resolved) && is_alias_value_expr(e.right, resolved)
         }
     }
@@ -1806,7 +1806,7 @@ is_type_value_expr :: fn(e: AST.Expr, typed: TypedProgram) -> bool {
     }
     if e is AST.BinaryExpr {
         // Treat `T | U` chains as types.
-        if i32(e.op) == i32(AST.BinaryOp.BitOr) {
+        if e.op == AST.BinaryOp.BitOr {
             return is_type_value_expr(e.left, typed) && is_type_value_expr(e.right, typed)
         }
     }

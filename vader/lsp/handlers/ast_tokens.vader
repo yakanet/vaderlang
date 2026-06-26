@@ -115,19 +115,19 @@ refine_via_resolver :: fn(program: AST.Program, uri: string, out: RawToken[]) ->
 /// Map a `SymbolKind` to the LSP token type the wire format expects.
 /// Falls back to `Variable` for kinds without a meaningful LSP analogue.
 token_type_of_symbol :: fn(k: SymbolKind) -> TokenType {
-    if i32(k) == i32(SymbolKind.Fn)            { return .Function }
-    if i32(k) == i32(SymbolKind.Struct)        { return .Type }
-    if i32(k) == i32(SymbolKind.Enum)          { return .Type }
-    if i32(k) == i32(SymbolKind.Trait)         { return .Type }
-    if i32(k) == i32(SymbolKind.TypeAlias)     { return .Type }
-    if i32(k) == i32(SymbolKind.BuiltinType)   { return .Type }
-    if i32(k) == i32(SymbolKind.TypeParam)     { return .Type }
-    if i32(k) == i32(SymbolKind.BuiltinFn)     { return .Function }
-    if i32(k) == i32(SymbolKind.Param)         { return .Parameter }
-    if i32(k) == i32(SymbolKind.Local)         { return .Variable }
-    if i32(k) == i32(SymbolKind.Binding)       { return .Variable }
-    if i32(k) == i32(SymbolKind.Const)         { return .Variable }
-    if i32(k) == i32(SymbolKind.ImportBinding) { return .Variable }
+    if k == SymbolKind.Fn            { return .Function }
+    if k == SymbolKind.Struct        { return .Type }
+    if k == SymbolKind.Enum          { return .Type }
+    if k == SymbolKind.Trait         { return .Type }
+    if k == SymbolKind.TypeAlias     { return .Type }
+    if k == SymbolKind.BuiltinType   { return .Type }
+    if k == SymbolKind.TypeParam     { return .Type }
+    if k == SymbolKind.BuiltinFn     { return .Function }
+    if k == SymbolKind.Param         { return .Parameter }
+    if k == SymbolKind.Local         { return .Variable }
+    if k == SymbolKind.Binding       { return .Variable }
+    if k == SymbolKind.Const         { return .Variable }
+    if k == SymbolKind.ImportBinding { return .Variable }
     return .Variable
 }
 

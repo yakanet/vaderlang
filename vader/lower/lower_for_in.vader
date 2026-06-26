@@ -881,7 +881,7 @@ try_lower_chain_fusion :: fn(
     if chain is null { return null }
     // Bare ranges already hit the int-range fast path ; bypassing
     // would lose `default_if_free` + counter-name fidelity vs TS.
-    if i32(chain.kind) == i32(IterChainKind.Range) { return null }
+    if chain.kind == IterChainKind.Range { return null }
     binding_symbol :: resolve_binding_or_synth(ctx, in_form)
     user_body :: block_lowerer(ctx, for_stmt.body, false, true)
     body_template :: BodyTemplate {
@@ -1080,8 +1080,8 @@ find_inline_field :: fn(struct_lit: AST.StructLitExpr, name: string) -> AST.Expr
 }
 
 chain_element_type :: fn(chain: IterChain) -> Type {
-    if i32(chain.kind) == i32(IterChainKind.Range) { return chain.element_type }
-    if i32(chain.kind) == i32(IterChainKind.Map) { return chain.output_type }
+    if chain.kind == IterChainKind.Range { return chain.element_type }
+    if chain.kind == IterChainKind.Map { return chain.output_type }
     // Filter : element type comes from the source.
     if chain.source is null { return TY_UNRESOLVED }
     return chain_element_type(chain.source)
@@ -1096,10 +1096,10 @@ emit_fused_chain :: fn(
     template: BodyTemplate,
     recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
 ) -> LoweredStmt[] {
-    if i32(chain.kind) == i32(IterChainKind.Range) {
+    if chain.kind == IterChainKind.Range {
         return emit_fused_range(ctx, chain, loop_label, outer_span, template, recurse)
     }
-    if i32(chain.kind) == i32(IterChainKind.Map) {
+    if chain.kind == IterChainKind.Map {
         return emit_fused_chain_map(ctx, chain, loop_label, outer_span, template, recurse)
     }
     return emit_fused_chain_filter(ctx, chain, loop_label, outer_span, template, recurse)
