@@ -283,7 +283,7 @@ export TypedProgram :: struct {
     /// the `Bag` overload while the resolver bound the `Box` primary).
     /// The lowerer emits the call's *result* type on the callee ident
     /// for these, matching TS' `calleeSym !== resolverSym` branch
-    /// (`src/lower/passes/expr.ts:101`). Direct calls to the primary
+    /// Direct calls to the primary
     /// (or non-overloaded names) keep the fn-type display.
     overload_result_callees: MutableMap<usize, bool>
 

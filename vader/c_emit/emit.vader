@@ -1,6 +1,6 @@
 // vader/c_emit/emit — BytecodeModule → C source.
 //
-// Self-host port of `src/c_emit/emit.ts`. Phases land incrementally :
+// Phases land incrementally :
 //   Phase 1 — scaffolding + trivial-module byte-parity ;
 //   Phase 2 — `emit_type_decls` (struct decls, string pool, struct
 //             type-info entries) ;

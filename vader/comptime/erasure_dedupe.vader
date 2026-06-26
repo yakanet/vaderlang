@@ -1,6 +1,6 @@
 // vader/comptime/erasure_dedupe — post-typecheck generic erasure pass.
 //
-// Mirror of `src/comptime/erasure-dedupe.ts`. Post-process of
+// Post-process of
 // `monomorphize_project`'s output : groups `MonoEntry` items by their
 // origin decl, and for each non-`@specialize`d generic group :
 //

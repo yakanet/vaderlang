@@ -1,6 +1,6 @@
 // vader/midir/lowered_walk — RefVisitor walks over LoweredDecl.
 //
-// Mirror of `src/midir/lowered_walk.ts`. Visits every symbol / type
+// Visits every symbol / type
 // reference inside a LoweredDecl. The whole-program DCE in
 // `dce.vader` uses it to walk struct/const decls (which the CFG
 // passes through unchanged) and to seed externs that aren't in the

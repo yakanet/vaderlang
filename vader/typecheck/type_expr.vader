@@ -1,7 +1,7 @@
 // vader/typecheck/type_expr — lower a TypeExpr (AST.Expr in type position)
 // to a `Type`.
 //
-// Mirror of `src/typecheck/passes/type-expr.ts`. Since `TypeExpr` aliases
+// Since `TypeExpr` aliases
 // `Expr` after Layer 1.D, the parser produces both type-shaped and value-
 // shaped nodes from the same grammar — dispatch happens on `expr.kind`.
 // Resolves named types via the resolver's idents map, builds Primitive /

@@ -1,6 +1,6 @@
 // vader/lower/helpers — AST construction helpers shared across passes.
 //
-// Mirror of `src/lower/passes/helpers.ts`. Synthetic-symbol minting,
+// Synthetic-symbol minting,
 // block wrapping, OR-chain assembly, enum-variant index lookup, cell
 // initialisation. Kept on the lower side rather than the typecheck side
 // since every consumer lives in `vader/lower/`.

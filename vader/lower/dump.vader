@@ -1,6 +1,6 @@
 // vader/lower/dump — `# Lower` snapshot dump.
 //
-// Mirror of `tests/snapshot.ts::dumpLower`. Walks every non-stdlib
+// Walks every non-stdlib
 // `LoweredModule`, sorts module ids alphabetically, and renders each
 // module's decls in a compact tree form :
 //
@@ -13,8 +13,8 @@
 //     const <mangled>: <type> =
 //       <expr…>
 //
-// Expression rendering follows the same indent rules as the TS dumper
-// so byte-for-byte parity holds once Phase 3 fills the bodies.
+// Expression rendering uses a fixed indent scheme so the `# Lower` dump
+// stays stable across runs.
 
 module "vader/lower"
 
@@ -126,9 +126,8 @@ emit_stmt :: fn(lines: string[], stmt: LoweredStmt, indent: string) -> void {
             emit_expr(lines, assign.value, "${indent}    ")
         }
         is LoweredCellSet -> {
-            // TS's `emitStmt` doesn't render `LoweredCellSet` (falls
-            // through the switch silently — `tests/snapshot.ts:332-369`).
-            // Match the omission so byte-for-byte snapshots stay aligned.
+            // `LoweredCellSet` is intentionally not rendered — it carries no
+            // surface syntax, so the dump omits it to stay readable.
         }
         is LoweredExprStmt as expr_stmt -> {
             emit_expr(lines, expr_stmt.expr, indent)

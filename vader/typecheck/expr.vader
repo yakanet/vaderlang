@@ -1,6 +1,6 @@
 // vader/typecheck/expr — bidirectional expression inference orchestrator.
 //
-// Mirror of `src/typecheck/passes/expr.ts::checkExpr`. The entry point
+// The entry point
 // is `check_expr(expr, expected, t, diags) -> Type` :
 //   - bottom-up : compute the natural type of `expr` via per-variant
 //     handlers in `expr_literals.vader` (and later expr_ident /

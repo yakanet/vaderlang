@@ -1,8 +1,7 @@
 // vader/typecheck/dump — text formatter for the typecheck stage.
 //
-// Mirror of `src/typecheck/dump-text.ts::formatTypedDump`. Output must
-// stay byte-for-byte aligned with the TS reference so `tests/parity.test.ts`
-// can diff stdout across both compilers.
+// Output is stable so the snapshot suite can diff it against the recorded
+// `# Typecheck` fixtures.
 //
 // Format :
 //

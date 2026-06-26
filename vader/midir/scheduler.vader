@@ -1,6 +1,6 @@
 // vader/midir/scheduler — stack-pass-through hints.
 //
-// Mirror of `src/midir/scheduler.ts`. Recognises CFG patterns where an
+// Recognises CFG patterns where an
 // instruction's result is consumed immediately by its single successor's
 // first operand, and hints the bytecode emitter to leave the value on
 // the operand stack instead of round-tripping through a named local.

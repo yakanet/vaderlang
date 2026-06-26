@@ -1,6 +1,6 @@
 // vader/midir/build — LoweredAST → CFG converter.
 //
-// Mirror of `src/midir/build.ts`. Walks each `LoweredFnDecl` in the
+// Walks each `LoweredFnDecl` in the
 // project and produces a `CFGFunction` : expressions become
 // three-address `Instruction` sequences with named tmp locals ;
 // control flow (`LoweredIf`, `LoweredLoop`, `break`, `continue`,

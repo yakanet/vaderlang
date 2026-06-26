@@ -1,6 +1,6 @@
 // vader/comptime/dump — `# Comptime` snapshot dump.
 //
-// Mirror of `tests/snapshot.ts::dumpComptime`. Walks every non-stdlib
+// Walks every non-stdlib
 // `EvaluatedProgram` in the project, sorts module ids alphabetically,
 // sorts each module's `@comptime` decl lines alphabetically, and
 // renders the body in the form

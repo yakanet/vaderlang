@@ -1,6 +1,6 @@
 // vader/resolver/materialize — synthetic trait method injection.
 //
-// Mirror of `src/resolver/materialize.ts`. Three entry points each
+// Three entry points each
 // expand an `ImplDecl.members` array with synthesised method declarations
 // drawn from the trait :
 //

@@ -1,6 +1,6 @@
 // vader/midir/const_fold — constant folding on the Mid-IR CFG.
 //
-// Mirror of `src/midir/const_fold.ts`. Walks each basic block in
+// Walks each basic block in
 // order ; tracks `LocalId → ConstValue` for every `Const` instruction
 // seen so far in the block. When a `BinOp` (or `UnOp`) reads two
 // (resp. one) tracked operands and the op is foldable, replaces the

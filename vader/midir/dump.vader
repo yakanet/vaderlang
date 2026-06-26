@@ -1,6 +1,6 @@
 // vader/midir/dump — pretty-printer for the Mid-IR CFG.
 //
-// Mirror of `src/midir/dump.ts`. Produces a stable, human-readable
+// Produces a stable, human-readable
 // text rendering used by `vader dump --stage=cfg <file>` and by
 // snapshot tests. Locals are referenced as `%<index>` ; blocks as
 // `bb<index>`. Spans are omitted to keep the output focused on the

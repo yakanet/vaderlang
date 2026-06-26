@@ -1,6 +1,6 @@
 // vader/lower/entry_types — type-table accessor for a lowering pass.
 //
-// Mirror of `src/lower/entry-types.ts`. Hides the `(TypedProgram,
+// Hides the `(TypedProgram,
 // Substitution)` pair behind a single accessor — lower passes call
 // `expr_type(view, e)` rather than `substitute(typed.expr_types[e.id]
 // ?? TY_UNRESOLVED, subst)`. The boundary lets future changes (e.g.

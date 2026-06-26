@@ -129,13 +129,13 @@ export BcPeepholeOut :: struct {
 /// (trap on rhs=0), shifts (UB on shift ≥ width), and floats (NaN +
 /// signed-zero + precision drift). Returns the folded `Op` (an
 /// `I32Const` / `I64Const`) on a hit, null otherwise. Mirror of TS
-/// `tryFoldArith` (src/bytecode/peephole.ts:143).
+/// `tryFoldArith`.
 /// Standalone const-fold-arith pass. Runs AFTER propagate_const_single_use
 /// so chains like `const ; set N ; get N ; const ; <op>` (post-propagate :
 /// `const ; const ; <op>`) collapse to a single folded const. Returns the
 /// rewritten body + remapped jump_table (in case future variants of this
 /// pass touch jump_table entries — currently no jump_table is involved).
-/// Mirror of TS `constFoldArith` (src/bytecode/peephole.ts:119).
+/// Mirror of TS `constFoldArith`.
 export run_bc_const_fold_arith :: fn(function: BcFunction) -> BcPeepholeOut {
     body :: function.body
     n :: body.len()

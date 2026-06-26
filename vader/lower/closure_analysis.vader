@@ -1,6 +1,6 @@
 // vader/lower/closure_analysis — free-variable walker for closures.
 //
-// Mirror of `src/lower/passes/closures.ts::analyzeClosures`. For every
+// For every
 // `AST.LambdaExpr` in the project, computes the ordered list of captures —
 // symbols defined in an enclosing scope that the lambda's body
 // references. The lowerer's lambda-lifting pass consumes this to :

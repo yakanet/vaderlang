@@ -76,7 +76,7 @@ pick_overload :: fn(
             typed.expr_types[c.callee.id] = ft
             // Mark non-primary picks so the lowerer emits the call's
             // result type on the callee ident — mirrors TS' branch on
-            // `calleeSym !== resolverSym` (src/lower/passes/expr.ts:101).
+            // `calleeSym !== resolverSym`.
             // Imported overloads have no local primary signature
             // (`primary_ft == null`) and are always non-primary.
             if is_nonprimary_pick(ft, primary_ft) {

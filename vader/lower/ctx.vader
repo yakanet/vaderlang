@@ -1,6 +1,6 @@
 // vader/lower/ctx — shared context threaded through every lowering pass.
 //
-// Mirror of `src/lower/ctx.ts`. `LowerProjectCtx` is built once per
+// `LowerProjectCtx` is built once per
 // `lower_project` call and holds the inputs every pass reads — mono
 // entries, impl registry, std/core symbol caches, closure-analysis
 // output. `FnLowerCtx` is pushed per fn body — it carries the active

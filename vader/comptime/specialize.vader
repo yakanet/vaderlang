@@ -1,6 +1,6 @@
 // vader/comptime/specialize — monomorphizer pass.
 //
-// Mirror of `src/comptime/specialize.ts::monomorphizeProject`. Flattens
+// Flattens
 // the comptime engine's instance registry into a list of concrete
 // `MonoEntry` items the lowerer / bytecode emit / c_emit consume :
 //

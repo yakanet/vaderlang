@@ -174,7 +174,7 @@ push_local_ref :: fn(s: FnState, slot: i32, val: ValType) -> void {
 /// a `drop` / `call` past an exhaustive-returning match), and the walker
 /// tracks no reachability (T2). Return a defensive dummy so the dead op
 /// emits harmless (never-executed) C rather than trapping. Mirrors TS
-/// `pop`'s `{ name: "0", val: "i32" }` fallback (`src/c_emit/body.ts`).
+/// `pop`'s `{ name: "0", val: "i32" }` fallback.
 pop :: fn(s: FnState) -> StackVal {
     n :: s.stack.len()
     if n == 0 { return StackLit { .text = "0", .val = .I32 } }

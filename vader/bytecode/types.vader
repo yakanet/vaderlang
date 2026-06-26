@@ -1,6 +1,6 @@
 // vader/bytecode/types — bytecode-level type primitives.
 //
-// Mirror of `src/bytecode/types.ts`. This is the single type-table shape :
+// This is the single type-table shape :
 // the self-host VM consumes it directly (the former runtime-only
 // `vader/vm/op.TypeDecl` was retired in the VM consolidation). It carries
 // every field name, every typeIndex, every symbolId required to lower a

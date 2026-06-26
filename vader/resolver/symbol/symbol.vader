@@ -1,6 +1,6 @@
 // vader/resolver/symbol — symbol table primitives.
 //
-// Mirror of `src/resolver/symbol.ts`. Symbols are minted by the resolver as
+// Symbols are minted by the resolver as
 // it walks the AST and consumed by every later phase. The MVP carries the
 // kind, name, visibility and the source span ; the AST-decl back-reference
 // the TS resolver stores is deferred until typecheck/lower needs it.

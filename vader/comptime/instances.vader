@@ -1,6 +1,6 @@
 // vader/comptime/instances — passive registry of generic instantiations.
 //
-// Mirror of `src/comptime/instances.ts`. The typechecker already
+// The typechecker already
 // represents `List(i32)` as `Struct { symbol, args }` ; this pass
 // scans every typed-AST type-expression, normalises each instance,
 // and registers it under a canonical key. Sorted output goes into

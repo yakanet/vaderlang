@@ -1,6 +1,6 @@
 // vader/resolver/builtins — primitive type symbols + builtin module id.
 //
-// Mirror of `src/resolver/builtins.ts`. Primitive type names are minted
+// Primitive type names are minted
 // as `.BuiltinType` symbols in a synthetic `<builtin>` module so the
 // resolver can place them at the root of every per-file scope without
 // special-casing a "if name is a primitive" branch through the walker.

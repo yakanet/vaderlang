@@ -1,6 +1,6 @@
 // vader/typecheck/types — the Type IR.
 //
-// Mirror of `src/typecheck/types.ts`. Every Vader value gets exactly one
+// Every Vader value gets exactly one
 // Type. The discriminated union has 15 variants ; constructors are
 // plain factories (no hash-consing for MVP — `equals_type` in
 // `type_ops.vader` walks structurally instead of relying on reference

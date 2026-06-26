@@ -595,7 +595,7 @@ try_lower_for_in_int_range :: fn(
     // single slot per iteration instead of re-evaluating the
     // expression. Cheap shapes (Ident / FieldAccess / IntLit /
     // CharLit) skip the hoist. Mirror of TS' `isCheapInvariant`
-    // gate (`src/lower/passes/for-in.ts:694-699`).
+    // gate.
     hoist_stmts: LoweredStmt[] = []
     hi: LoweredExpr = hi_raw
     if !is_cheap_invariant(hi_raw) {
@@ -1270,7 +1270,7 @@ emit_fused_range :: fn(
 // skips the MappedIterator struct, the per-iter `next()` call, and the
 // per-iter `Yield` allocation. Returns null when the iter type isn't a
 // recognised map/set or std/collections isn't loaded. Mirror of TS'
-// `tryLowerForInMapSetIterInline` (src/lower/passes/for-in.ts:795).
+// `tryLowerForInMapSetIterInline`.
 try_lower_for_in_map_set :: fn(
     ctx: FnLowerCtx, for_stmt: AST.ForStmt, in_form: AST.InFor,
     src_value: LoweredExpr, src_type: Type, span: Span,

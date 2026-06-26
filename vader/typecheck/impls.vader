@@ -1,6 +1,6 @@
 // vader/typecheck/impls — registry of `T implements Trait { ... }` blocks.
 //
-// Mirror of `src/typecheck/impls.ts`. The type-checker queries this when
+// The type-checker queries this when
 // validating `where T: Trait` bounds, trait dispatch (operator resolution,
 // UFCS method dispatch on trait-typed receivers), and `Into`-coercion.
 //
