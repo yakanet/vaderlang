@@ -24,6 +24,7 @@ import "vader/parser" {
     TypeExpr, IdentExpr, GenericInstExpr,
 }
 import "vader/types" { Type, display_type, strip_distinct }
+import "vader/text" { is_ident_byte }
 
 /// Mangled name for a `(decl_name, module_path, type_arguments)` triple.
 /// Format mirrors TS `mangle` exactly so the bytecode emitter, the C
@@ -93,16 +94,6 @@ export sanitise_ident :: fn(raw: string) -> string {
         }
     }
     return "${sb}"
-}
-
-/// True when `b` is a `[A-Za-z0-9_]` byte. Bytes outside this class
-/// are replaced with `_` by `sanitise_ident`.
-is_ident_byte :: fn(b: u8) -> bool {
-    if b >= 0x41 && b <= 0x5A { return true }     // A-Z
-    if b >= 0x61 && b <= 0x7A { return true }     // a-z
-    if b >= 0x30 && b <= 0x39 { return true }     // 0-9
-    if b == 0x5F { return true }                     // _
-    return false
 }
 
 /// Return a candidate name that's not yet in `seen`, suffixing with
