@@ -1041,7 +1041,7 @@ fn 7 std_images_ppm$scan_uint (ref,usize) -> ref
 end
 
 fn 8 std_images_ppm$is_ws_byte (u8) -> bool
-  local $cast_2 u8
+  local $k_1 u8
   local or_res bool
   i32.const 32
   local.set 1

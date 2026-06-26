@@ -1,0 +1,15 @@
+// vader/text/text — low-level byte/text classifiers shared across the
+// compiler.
+//
+// Byte-level ASCII predicates the passes need over raw `bytes()` views —
+// name mangling (`c_emit`, `comptime`) and identifier-boundary scans
+// (`lsp`). Distinct from `std/char` (codepoint-typed) and from the lexer's
+// `is_ident_start` / `is_ident_continue`, which classify `char`, not bytes.
+
+module "vader/text"
+
+/// Identifier byte — `[A-Za-z0-9_]` (regex `\w`). The byte-level classifier
+/// for raw UTF-8 / ASCII `bytes()` views ; bytes outside the class are what
+/// `sanitise`-style helpers replace with `_`.
+export is_ident_byte :: fn(b: u8) = (b >= 'A' && b <= 'Z') || (b >= 'a' && b <= 'z')
+    || (b >= '0' && b <= '9') || b == '_'

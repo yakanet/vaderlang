@@ -46,8 +46,8 @@ export bytes_per_sample :: fn(maxval: u32) -> usize = if maxval < 256 { 1 } else
 
 // True for the six ASCII whitespace bytes the PPM spec allows between header
 // tokens: space, TAB, LF, VT, FF, CR.
-is_ws_byte :: fn(b: u8) = b == u8(0x20) || b == u8(0x09) || b == u8(0x0a)
-    || b == u8(0x0b) || b == u8(0x0c) || b == u8(0x0d)
+is_ws_byte :: fn(b: u8) = b == ' ' || b == '\t' || b == '\n'
+    || b == 0x0b || b == 0x0c || b == '\r'
 
 // True for an ASCII decimal digit. A char literal coerces to u8 in the
 // comparison (the byte data IS ASCII here), mirroring std/base64's decode_byte.

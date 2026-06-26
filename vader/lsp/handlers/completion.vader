@@ -17,6 +17,7 @@ import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, Jso
 import "std/collections" { MutableMap }
 import "std/string" { split }
 import "vader/types" { StructType, UnresolvedType, FreeIntType, FreeFloatType, display_type }
+import "vader/text" { is_ident_byte }
 import "vader/typecheck" { TypedProgram, ufcs_methods_for, UfcsMethod }
 import "vader/lsp/protocol" {
     position_uri, position_line, position_character, span_contains,
@@ -166,13 +167,6 @@ member_context :: fn(source: string, line0: i32, char0: i32) -> i32 | null {
     dot_off :: i - 1
     ls :: line_start_offset(source, dot_off)
     return i32(dot_off - ls) + 1
-}
-
-is_ident_byte :: fn(c: u8) -> bool {
-    if c >= 'a' && c <= 'z' { return true }
-    if c >= 'A' && c <= 'Z' { return true }
-    if c >= '0' && c <= '9' { return true }
-    return c == '_'
 }
 
 // Member completions for `receiver.<cursor>` : the receiver's struct fields and
