@@ -1,0 +1,105 @@
+module _main
+type 0 primitive null
+type 1 primitive i32
+type 2 primitive bool
+type 3 array 1
+export main 0
+
+fn 0 snippet$main () -> i32
+  local a i32
+  local $lt_4 bool
+  local if_res i32
+  local if_res i32
+  i32.const 1
+  local.set 0
+  local.get 0
+  i32.const 2
+  i32.lt
+  local.set 1
+  local.get 1
+  bool.const true
+  bool.eq
+  if $L0 void
+    i32.const 1
+    local.set 2
+  else
+    i32.const 0
+    local.set 2
+  end $L0
+  local.get 2
+  local.set 2
+  i32.const 1
+  i32.const 2
+  i32.const 3
+  array.new 3 3
+  local.get 0
+  call 1
+  local.set 1
+  local.get 1
+  bool.const true
+  bool.eq
+  if $L1 void
+    i32.const 2
+    local.set 0
+  else
+    i32.const 0
+    local.set 0
+  end $L1
+  local.get 0
+  local.set 0
+  bool.const true
+  if $L2 void
+    i32.const 4
+    local.set 3
+  else
+    i32.const 0
+    local.set 3
+  end $L2
+  local.get 3
+  local.set 3
+  local.get 2
+  local.get 0
+  i32.add
+  local.get 3
+  i32.add
+  return
+end
+
+fn 1 std_core$[]$Contains$contains__i32 (ref,i32) -> bool
+  local __for_arr_0 ref
+  local __for_len_1 usize
+  local __for_i_2 usize
+  local $k_12 usize
+  local.get 0
+  local.tee 2
+  array.len
+  local.set 3
+  i64.const 0
+  local.set 4
+  block $L0 void
+    loop $L1 void
+      local.get 4
+      local.get 3
+      u64.lt
+      if $L2 void
+        local.get 2
+        local.get 4
+        load_slot_i32
+        local.get 1
+        i32.eq
+        if $L3 void
+          return.lit bool.const true
+        end $L3
+        i64.const 1
+        local.set 5
+        local.get 4
+        local.get 5
+        i64.add
+        local.set 4
+        br $L1
+      else
+      end $L2
+    end $L1
+  end $L0
+  return.lit bool.const false
+end
