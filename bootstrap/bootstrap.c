@@ -667,7 +667,7 @@ typedef struct vader_struct__Cell_Struct_stdlib_std_collections_collections_vade
 typedef struct vader_struct__Cell_Array_Union_Struct_vader_lower_lowered_ast_vader_4496___Struct_vader_lower_lowered_ast_vader_4151___Struct_vader_lower_lowered_ast_vader_4379_____t vader_struct__Cell_Array_Union_Struct_vader_lower_lowered_ast_vader_4496___Struct_vader_lower_lowered_ast_vader_4151___Struct_vader_lower_lowered_ast_vader_4379_____t;
 typedef struct vader_struct__Cell_Array_string__t vader_struct__Cell_Array_string__t;
 typedef struct vader_struct__Cell_Struct_stdlib_std_collections_collections_vader_14185_string__t vader_struct__Cell_Struct_stdlib_std_collections_collections_vader_14185_string__t;
-typedef struct vader_struct__Cell_Array_Struct_vader_types_types_vader_680____t vader_struct__Cell_Array_Struct_vader_types_types_vader_680____t;
+typedef struct vader_struct__Cell_Array_Struct_vader_types_types_vader_676____t vader_struct__Cell_Array_Struct_vader_types_types_vader_676____t;
 typedef struct vader_struct__Cell_usize_t vader_struct__Cell_usize_t;
 typedef struct vader_struct__Cell_Array_bool__t vader_struct__Cell_Array_bool__t;
 typedef struct vader_struct__Cell_Struct_stdlib_std_collections_collections_vader_2966_i32_i32__t vader_struct__Cell_Struct_stdlib_std_collections_collections_vader_2966_i32_i32__t;
@@ -4580,7 +4580,7 @@ struct vader_struct__Cell_Struct_stdlib_std_collections_collections_vader_14185_
     vader_obj_header_t header;
     vader_box_t f_value;
 };
-struct vader_struct__Cell_Array_Struct_vader_types_types_vader_680____t {
+struct vader_struct__Cell_Array_Struct_vader_types_types_vader_676____t {
     vader_obj_header_t header;
     vader_box_t f_value;
 };
@@ -10805,7 +10805,7 @@ static const uint16_t vader_type_964_ptrs[] = { offsetof(vader_array_t, buf) };
 static const uint16_t vader_type_965_ptrs[] = { offsetof(vader_struct__Cell_Array_string__t, f_value) };
 static const uint16_t vader_type_966_ptrs[] = { offsetof(vader_array_t, buf) };
 static const uint16_t vader_type_968_ptrs[] = { offsetof(vader_struct__Cell_Struct_stdlib_std_collections_collections_vader_14185_string__t, f_value) };
-static const uint16_t vader_type_969_ptrs[] = { offsetof(vader_struct__Cell_Array_Struct_vader_types_types_vader_680____t, f_value) };
+static const uint16_t vader_type_969_ptrs[] = { offsetof(vader_struct__Cell_Array_Struct_vader_types_types_vader_676____t, f_value) };
 static const uint16_t vader_type_982_ptrs[] = { offsetof(vader_array_t, buf) };
 static const uint16_t vader_type_985_ptrs[] = { offsetof(vader_struct__Cell_Array_bool__t, f_value) };
 static const uint16_t vader_type_986_ptrs[] = { offsetof(vader_struct__Cell_Struct_stdlib_std_collections_collections_vader_2966_i32_i32__t, f_value) };
@@ -11608,7 +11608,7 @@ const vader_type_info_t vader_type_info_table[1001] = {
     [965] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct__Cell_Array_string__t), vader_type_965_ptrs, 1, 0, NULL, 0, NULL },
     [966] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_966_ptrs, 1, 0, NULL, 0, NULL },
     [968] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct__Cell_Struct_stdlib_std_collections_collections_vader_14185_string__t), vader_type_968_ptrs, 1, 0, NULL, 0, NULL },
-    [969] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct__Cell_Array_Struct_vader_types_types_vader_680____t), vader_type_969_ptrs, 1, 0, NULL, 0, NULL },
+    [969] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct__Cell_Array_Struct_vader_types_types_vader_676____t), vader_type_969_ptrs, 1, 0, NULL, 0, NULL },
     [982] = { VADER_TYPE_KIND_ARRAY, sizeof(vader_array_t), vader_type_982_ptrs, 1, 0, NULL, 0, NULL },
     [984] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct__Cell_usize_t), NULL, 0, 0, NULL, 0, NULL },
     [985] = { VADER_TYPE_KIND_STRUCT, sizeof(vader_struct__Cell_Array_bool__t), vader_type_985_ptrs, 1, 0, NULL, 0, NULL },
@@ -82847,7 +82847,7 @@ static void vader_lower_close_over_field_shapes(vader_box_t l0, vader_box_t l1, 
     l5 = t2;
     vader_array_t* _a1_arr = vader_array_new(416u, 0u, 0u, 291u);
     t3 = vader_box_obj(416u, _a1_arr);
-    vader_struct__Cell_Array_Struct_vader_types_types_vader_680____t* _a2_obj = (vader_struct__Cell_Array_Struct_vader_types_types_vader_680____t*) vader_gc_alloc(sizeof(vader_struct__Cell_Array_Struct_vader_types_types_vader_680____t));
+    vader_struct__Cell_Array_Struct_vader_types_types_vader_676____t* _a2_obj = (vader_struct__Cell_Array_Struct_vader_types_types_vader_676____t*) vader_gc_alloc(sizeof(vader_struct__Cell_Array_Struct_vader_types_types_vader_676____t));
     vader_obj_header_init(_a2_obj, 969u);
     _a2_obj->f_value = t3;
     t4 = vader_box_obj(969u, _a2_obj);
@@ -82933,12 +82933,12 @@ static void vader_lower_close_over_field_shapes(vader_box_t l0, vader_box_t l1, 
     l22 = INT32_C(0);
     {
         loop_101: {
-            t22 = ((vader_array_t*) ((vader_struct__Cell_Array_Struct_vader_types_types_vader_680____t*) l6.payload.obj)->f_value.payload.obj)->length;
+            t22 = ((vader_array_t*) ((vader_struct__Cell_Array_Struct_vader_types_types_vader_676____t*) l6.payload.obj)->f_value.payload.obj)->length;
             l12 = t22;
             if ((l11 < l12)) {
                 if ((l22 >= INT32_C(4096))) {
                 } else {
-                    vader_array_t* _a10_slotarr = ((vader_array_t*) ((vader_struct__Cell_Array_Struct_vader_types_types_vader_680____t*) l6.payload.obj)->f_value.payload.obj);
+                    vader_array_t* _a10_slotarr = ((vader_array_t*) ((vader_struct__Cell_Array_Struct_vader_types_types_vader_676____t*) l6.payload.obj)->f_value.payload.obj);
                     while (_a10_slotarr->buf != NULL && _a10_slotarr->buf->header.forward != NULL) { _a10_slotarr->buf = (vader_array_buf_t*) _a10_slotarr->buf->header.forward; }
                     if ((size_t) l11 >= _a10_slotarr->length) { vader_trap("array index out of bounds"); }
                     t23 = vader_array_box_slots(_a10_slotarr->buf)[_a10_slotarr->offset + (size_t) l11];
@@ -83003,7 +83003,7 @@ static void __lambda_393(vader_box_t l0, vader_box_t l1) {
     vader_box_t* gc_roots[6] = { &l0, &l1, &l2, &l3, &t0, &t1 };
     vader_gc_frame_t gc_frame = { vader_gc_top, 6u, 0u, gc_roots };
     vader_gc_top = &gc_frame;
-    t0 = ((vader_struct__Cell_Array_Struct_vader_types_types_vader_680____t*) ((vader_struct___lambda_env_394_t*) l0.payload.obj)->f_cap_0.payload.obj)->f_value;
+    t0 = ((vader_struct__Cell_Array_Struct_vader_types_types_vader_676____t*) ((vader_struct___lambda_env_394_t*) l0.payload.obj)->f_cap_0.payload.obj)->f_value;
     l2 = t0;
     t1 = ((vader_struct__Cell_Struct_stdlib_std_collections_collections_vader_14185_string__t*) ((vader_struct___lambda_env_394_t*) l0.payload.obj)->f_cap_1.payload.obj)->f_value;
     l3 = t1;
