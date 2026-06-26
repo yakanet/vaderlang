@@ -30,7 +30,74 @@ export evaluate_intrinsic_call :: fn(
     if expr.name == "align_of"  { return intrinsic_align_of(expr, context) }
     if expr.name == "type_name" { return intrinsic_type_name(expr, context) }
     if expr.name == "type_kind" { return intrinsic_type_kind(expr, context) }
+    if expr.name == "field_count"   { return intrinsic_field_count(expr, context) }
+    if expr.name == "variant_count" { return intrinsic_variant_count(expr, context) }
+    if expr.name == "field_index"   { return intrinsic_field_index(expr, context) }
     return vm_required(expr.span, "@${expr.name}")
+}
+
+// `@field_count(T)` — fields on a Struct, elements on a Tuple, 0 otherwise.
+intrinsic_field_count :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -> EvalResult {
+    if expr.args.len() != 1 { return arg_count_error(expr, "field_count", 1) }
+    arg_type :: resolve_type_arg(expr.args[0], context)
+    if arg_type == null { return arg_error(expr, "field_count: argument is not a type") }
+    return ok(int_val_typed(type_field_count(arg_type, context), "usize"))
+}
+
+type_field_count :: fn(t: Type, context: ComptimeContext) -> i64 {
+    if t is StructType as s {
+        decl :: context.typed.struct_decls[s.symbol.id]
+        if decl is AST.StructDecl as d { return i64(d.fields.len()) }
+        return 0
+    }
+    if t is TupleType as p { return i64(p.elements.len()) }
+    return 0
+}
+
+// `@variant_count(T)` — variants on a Union or Enum, 0 otherwise.
+intrinsic_variant_count :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -> EvalResult {
+    if expr.args.len() != 1 { return arg_count_error(expr, "variant_count", 1) }
+    arg_type :: resolve_type_arg(expr.args[0], context)
+    if arg_type == null { return arg_error(expr, "variant_count: argument is not a type") }
+    return ok(int_val_typed(type_variant_count(arg_type), "usize"))
+}
+
+type_variant_count :: fn(t: Type) -> i64 {
+    if t is UnionType as u { return i64(u.variants.len()) }
+    if t is EnumType as e { return i64(e.indices.len()) }
+    return 0
+}
+
+// `@field_index(T, "name")` — 0-based position of `name` in struct `T`'s field
+// list. `T` must be a struct and `name` a static string literal naming a field.
+intrinsic_field_index :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -> EvalResult {
+    if expr.args.len() != 2 { return arg_count_error(expr, "field_index", 2) }
+    arg_type :: resolve_type_arg(expr.args[0], context)
+    if arg_type == null { return arg_error(expr, "field_index: first argument is not a type") }
+    name :: static_string_arg(expr.args[1])
+    if name == null { return arg_error(expr, "field_index: field name must be a static string literal") }
+    if arg_type is StructType as st {
+        decl :: context.typed.struct_decls[st.symbol.id]
+        if decl is AST.StructDecl as d {
+            for i in 0..<d.fields.len() {
+                if d.fields[i].name == name { return ok(int_val_typed(i64(i), "usize")) }
+            }
+            return arg_error(expr, "field_index: `${display_type(arg_type)}` has no field named `${name}`")
+        }
+        return arg_error(expr, "field_index: struct declaration for `${display_type(arg_type)}` not found")
+    }
+    return arg_error(expr, "field_index: `${display_type(arg_type)}` is not a struct")
+}
+
+// Extract a single-part string literal's text, or null when the arg isn't a
+// static string literal.
+static_string_arg :: fn(e: AST.Expr) -> string | null {
+    if e is AST.StringLitExpr as s {
+        if s.parts.len() == 1 {
+            if s.parts[0] is AST.StringLitText as t { return t.value }
+        }
+    }
+    return null
 }
 
 intrinsic_size_of :: fn(expr: AST.IntrinsicCallExpr, context: ComptimeContext) -> EvalResult {
