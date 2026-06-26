@@ -1,0 +1,53 @@
+// Capturing a for-in loop variable, or a lambda's own parameter, promotes that
+// binding to a per-iteration / per-call heap cell so each closure observes its
+// own value rather than the final one. These are the same captured-binding bug
+// class as `defer_capture_param`, on the binding sites that aren't plain `let`
+// locals : for-in element bindings, the range counter, the fused iterator-chain
+// (map / filter) bindings, and a lambda parameter captured by a further-nested
+// lambda. The strongest shape — closures stashed during the loop and invoked
+// afterward — pins the per-iteration semantics.
+
+module "snippet"
+
+import "std/io" { println }
+import "std/iter" { map, filter }
+
+tenfold :: fn(v: i32) -> i32 = v * 10
+is_even :: fn(v: i32) -> bool = v % 2 == 0
+
+main :: fn() -> i32 {
+    // Array loop var captured into closures invoked AFTER the loop.
+    labels :: ["a", "b", "c"]
+    thunks: (fn() -> void)[] = []
+    for label in labels {
+        thunks.push(() -> { println("thunk ${label}") })
+    }
+    for t in thunks { t() }
+
+    // Range counter captured by a `defer` (fires at end of each iteration).
+    for i in 0..<3 {
+        defer { println("range defer i=${i}") }
+        println("range body i=${i}")
+    }
+
+    // Fused map chain : loop var captured into stashed closures.
+    mapped: (fn() -> void)[] = []
+    for y in (0..<3).map(tenfold) {
+        mapped.push(() -> { println("mapped ${y}") })
+    }
+    for t in mapped { t() }
+
+    // Fused filter chain : loop var captured by a `defer`.
+    for z in (0..<5).filter(is_even) {
+        defer { println("filtered defer z=${z}") }
+    }
+
+    // A lambda's own parameter captured by a further-nested lambda.
+    apply :: (n: i64) -> {
+        twice :: () -> { println("nested n=${n}") }
+        twice()
+    }
+    apply(7)
+    apply(8)
+    return 0
+}

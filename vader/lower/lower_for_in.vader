@@ -145,10 +145,7 @@ export lower_for_in :: fn(
     value_access :: LoweredFieldAccess {
         .span = span, .type = element_type, .target = yield_cast, .field = "value",
     }
-    bind_let :: LoweredLet {
-        .span = span, .name = in_form.binding, .symbol = binding_symbol,
-        .type = element_type, .value = value_access,
-    }
+    bind_let :: bind_loop_var(ctx, binding_symbol, in_form.binding, value_access, element_type, span)
 
     user_body :: block_lowerer(ctx, for_stmt.body, false, true)
     body_stmts :: build_body_stmts(bind_let, user_body)
@@ -203,6 +200,21 @@ build_break_stmts :: fn(span: Span) -> LoweredStmt[] {
     out: LoweredStmt[] = []
     out.push(LoweredBreak { .span = span, .label = null })
     return out
+}
+
+// Build the per-iteration loop-var binding, cell-promoting it when a closure in
+// the body captures it (mints a fresh cell each iteration, so each closure sees
+// its own value). `lower_cell_init` is a no-op when uncaptured, so this is the
+// same shape every for-in binding site uses.
+bind_loop_var :: fn(
+    ctx: FnLowerCtx, binding_symbol: Symbol, name: string,
+    value: LoweredExpr, value_type: Type, span: Span,
+) -> LoweredStmt {
+    init :: lower_cell_init(ctx, binding_symbol, value, value_type, span)
+    return LoweredLet {
+        .span = span, .name = name, .symbol = binding_symbol,
+        .type = init.slot_type, .value = init.value,
+    }
 }
 
 build_body_stmts :: fn(bind_let: LoweredStmt, user_body: LoweredBlock) -> LoweredStmt[] {
@@ -499,14 +511,11 @@ try_lower_for_in_raw_array :: fn(
         .span = span, .type = TY_BOOL, .op = LoweredBinaryOp.Lt,
         .left = idx_ref, .right = len_ref,
     }
-    bind_stmt :: LoweredLet {
-        .span = span, .name = in_form.binding, .symbol = binding_symbol,
-        .type = array_elem_type,
-        .value = LoweredIndex {
-            .span = span, .type = array_elem_type,
-            .target = arr_ref, .index = idx_ref,
-        },
+    elem_access :: LoweredIndex {
+        .span = span, .type = array_elem_type,
+        .target = arr_ref, .index = idx_ref,
     }
+    bind_stmt :: bind_loop_var(ctx, binding_symbol, in_form.binding, elem_access, array_elem_type, span)
     inc_stmt :: LoweredAssign {
         .span = span, .target = idx_ref,
         .value = LoweredBinary {
@@ -607,12 +616,20 @@ try_lower_for_in_int_range :: fn(
         hi = LoweredIdent { .span = span, .type = bound_type, .symbol = hi_sym }
     }
 
+    // When a closure in the body captures the loop counter, the raw mutable
+    // counter can't be captured directly (it's reassigned in place). Run the
+    // counter on a fresh synthetic symbol and rebind the user's loop var to a
+    // fresh per-iteration cell at the top of the body, so each captured closure
+    // sees that iteration's value. Uncaptured loops keep the counter on
+    // `binding_symbol` itself — byte-identical to before.
+    captured :: binding_symbol.id in ctx.project.closures.captured_symbols
+    counter_symbol :: if captured { fresh_synthetic_symbol(ctx, in_form.binding) } else { binding_symbol }
     counter_init :: LoweredLet {
-        .span = span, .name = in_form.binding, .symbol = binding_symbol,
+        .span = span, .name = in_form.binding, .symbol = counter_symbol,
         .type = bound_type, .value = lo,
     }
     counter_ref :: LoweredIdent {
-        .span = span, .type = bound_type, .symbol = binding_symbol,
+        .span = span, .type = bound_type, .symbol = counter_symbol,
     }
     op :: cmp_op_for_inclusive(range.inclusive)
     cond :: LoweredBinary {
@@ -630,7 +647,13 @@ try_lower_for_in_int_range :: fn(
         },
     }
 
-    user_body :: block_lowerer(ctx, for_stmt.body, false, true)
+    raw_user_body :: block_lowerer(ctx, for_stmt.body, false, true)
+    user_body :: if !captured { raw_user_body } else {
+        // The counter runs on `counter_symbol` ; rebind the user's loop var to a
+        // fresh per-iteration cell over the current counter value.
+        bind_let :: bind_loop_var(ctx, binding_symbol, in_form.binding, counter_ref, bound_type, span)
+        prepend_stmts_to_block([bind_let], raw_user_body)
+    }
     loop_stmts :: build_int_range_body(user_body, inc_stmt, for_stmt.label)
     loop_stmt :: LoweredLoop {
         .span = span, .label = for_stmt.label, .cond = cond,
@@ -1171,10 +1194,7 @@ wrap_with_map :: fn(
         .span = span, .type = output_type,
         .callee = callee, .args = call_args,
     }
-    let_stmt :: LoweredLet {
-        .span = span, .name = template.binding_name, .symbol = template.binding_symbol,
-        .type = output_type, .value = mapped_call,
-    }
+    let_stmt :: bind_loop_var(ctx, template.binding_symbol, template.binding_name, mapped_call, output_type, span)
     out_stmts: LoweredStmt[] = []
     out_stmts.push(let_stmt)
     for stmt in template.user_body.stmts { out_stmts.push(stmt) }
@@ -1189,10 +1209,10 @@ wrap_with_filter :: fn(
     recurse: fn(FnLowerCtx, AST.Expr) -> LoweredExpr,
 ) -> LoweredBlock {
     callee :: recurse(ctx, pred_fn)
-    arg_ref :: LoweredIdent {
-        .span = span, .type = template.element_type,
-        .symbol = template.binding_symbol,
-    }
+    // Cell-aware : when the loop var is captured (and thus cell-promoted at the
+    // top of the range body), the predicate must read its value through the cell
+    // rather than treating the slot's cell as the raw element.
+    arg_ref :: read_local_cell_aware(ctx, template.binding_symbol, template.element_type, span)
     call_args: LoweredExpr[] = []
     call_args.push(arg_ref)
     cond :: LoweredCall {
@@ -1231,12 +1251,17 @@ emit_fused_range :: fn(
     lo :: recurse(ctx, range_chain.range_lower)
     hi :: recurse(ctx, range_chain.range_upper)
 
+    // Same captured-counter handling as the non-fused int-range path : when the
+    // loop var is captured, run the counter on a synthetic symbol and rebind the
+    // user var to a fresh per-iteration cell. Uncaptured → byte-identical.
+    captured :: template.binding_symbol.id in ctx.project.closures.captured_symbols
+    counter_symbol :: if captured { fresh_synthetic_symbol(ctx, template.binding_name) } else { template.binding_symbol }
     counter_init :: LoweredLet {
-        .span = span, .name = template.binding_name, .symbol = template.binding_symbol,
+        .span = span, .name = template.binding_name, .symbol = counter_symbol,
         .type = int_type, .value = lo,
     }
     counter_ref :: LoweredIdent {
-        .span = span, .type = int_type, .symbol = template.binding_symbol,
+        .span = span, .type = int_type, .symbol = counter_symbol,
     }
     op :: cmp_op_for_inclusive(range_chain.inclusive)
     cond :: LoweredBinary {
@@ -1251,7 +1276,11 @@ emit_fused_range :: fn(
         },
     }
 
-    body_stmts :: build_int_range_body(template.user_body, inc_stmt, loop_label)
+    range_body :: if !captured { template.user_body } else {
+        bind_let :: bind_loop_var(ctx, template.binding_symbol, template.binding_name, counter_ref, int_type, span)
+        prepend_stmts_to_block([bind_let], template.user_body)
+    }
+    body_stmts :: build_int_range_body(range_body, inc_stmt, loop_label)
     loop_stmt :: LoweredLoop {
         .span = outer_span, .label = loop_label, .cond = cond,
         .body = LoweredBlock {
@@ -1383,10 +1412,7 @@ lower_map_set_compact :: fn(
         bind_value = LoweredStructLit { .span = span, .type = entry_type, .fields = fields }
     }
     binding_symbol :: resolve_binding_or_synth(ctx, in_form)
-    binding_let :: LoweredLet {
-        .span = span, .name = in_form.binding, .symbol = binding_symbol,
-        .type = binding_value_type, .value = bind_value,
-    }
+    binding_let :: bind_loop_var(ctx, binding_symbol, in_form.binding, bind_value, binding_value_type, span)
     pos_inc :: LoweredAssign {
         .span = span, .target = pos_ref,
         .value = LoweredBinary {

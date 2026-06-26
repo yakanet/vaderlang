@@ -183,6 +183,25 @@ export lower_cell_init :: fn(
     return CellInit { .value = cell, .slot_type = TY_UNRESOLVED }
 }
 
+/// Return a copy of `block` with `prefix` spliced in before its statements,
+/// preserving the block's `span` / `type` / `trailing`. Used to splice a
+/// fn-entry or loop-entry prologue (captured-param / loop-var cell promotion)
+/// ahead of an already-lowered body.
+/// @param prefix  statements to run first, in order.
+/// @param block   the body to prepend onto.
+/// @return        a fresh `LoweredBlock` ; `block` is returned untouched when
+///                `prefix` is empty.
+export prepend_stmts_to_block :: fn(prefix: LoweredStmt[], block: LoweredBlock) -> LoweredBlock {
+    if prefix.len() == 0 { return block }
+    stmts: LoweredStmt[] = []
+    stmts.push_all(prefix)
+    stmts.push_all(block.stmts)
+    return LoweredBlock {
+        .span = block.span, .type = block.type,
+        .stmts = stmts, .trailing = block.trailing,
+    }
+}
+
 // ---- internal helpers -----------------------------------------------------
 
 // Union types in Vader auto-promote a field only when every variant

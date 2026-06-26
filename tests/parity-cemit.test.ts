@@ -127,6 +127,12 @@ const C_PARITY = new Set<string>([
   // make_closure with a non-empty env + the lifted body's `struct.get` cell
   // read in the C emitter. The run oracle (matches vm.snapshot) is the guard.
   "defer_capture_param",
+  // Captured loop bindings : a for-in element/range loop var and a lambda's own
+  // param captured by a nested lambda promote to per-iteration / per-call cells
+  // (`lower_cell_init` at the for-in binding sites + `promote_captured_params`
+  // in the lifted lambda body). Closures stashed in the loop and run after it
+  // must each see their own iteration's value — the run oracle is the guard.
+  "capture_loop_var",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));

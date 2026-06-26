@@ -206,9 +206,15 @@ emit_rest_loop :: fn(
     })
 }
 
-// Read a local respecting closure-cell promotion (mirror of `readLocal`
-// in `src/lower/passes/block.ts`).
-read_local_cell_aware :: fn(ctx: FnLowerCtx, sym: Symbol, type: Type, span: Span) -> LoweredExpr {
+/// Read a local respecting closure-cell promotion : a captured symbol's slot
+/// holds a cell, so its value lives behind a `LoweredCellGet` ; an uncaptured
+/// one reads straight. Mirror of `readLocal` in `src/lower/passes/block.ts`.
+/// @param ctx   the fn-body lower context (carries the closure analysis).
+/// @param sym   the binding to read.
+/// @param type  the value type the read yields.
+/// @param span  span for the emitted nodes.
+/// @return      a `LoweredCellGet` when `sym` is captured, else a plain ident.
+export read_local_cell_aware :: fn(ctx: FnLowerCtx, sym: Symbol, type: Type, span: Span) -> LoweredExpr {
     if ctx.project.closures.captured_symbols.contains(sym.id) {
         cell_ref :: LoweredIdent { .span = span, .type = TY_UNRESOLVED, .symbol = sym }
         return LoweredCellGet { .span = span, .type = type, .target = cell_ref, .value_type = type }

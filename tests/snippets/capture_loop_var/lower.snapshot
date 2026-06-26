@@ -1,0 +1,284 @@
+# Lower
+
+## snippet
+  fn snippet$tenfold(v: i32) -> i32
+    ~>
+      mul :i32
+        l:
+          v :i32
+        r:
+          int(10) :i32
+  fn snippet$is_even(v: i32) -> bool
+    ~>
+      eq :bool
+        l:
+          mod :i32
+            l:
+              v :i32
+            r:
+              int(2) :i32
+        r:
+          int(0) :i32
+  fn snippet$main() -> i32
+    let labels: string[] =
+      array :string[]
+        "a" :string
+        "b" :string
+        "c" :string
+    let thunks: (fn() -> void)[] =
+      array :(fn() -> void)[]
+    block :void
+      let __for_arr_0: string[] = labels :string[]
+      let __for_len_1: usize =
+        LoweredArrayLen
+      let __for_i_2: usize = int(0) :usize
+      loop while (<…>)
+        let label: ? =
+          LoweredCellNew
+        LoweredArrayPush
+        assign
+          target:
+            __for_i_2 :usize
+          value:
+            add :usize
+              l:
+                __for_i_2 :usize
+              r:
+                int(1) :usize
+    block :void
+      let __for_arr_4: (fn() -> void)[] = thunks :(fn() -> void)[]
+      let __for_len_5: usize =
+        LoweredArrayLen
+      let __for_i_6: usize = int(0) :usize
+      loop while (<…>)
+        let t: fn() -> void =
+          index :fn() -> void
+            on:
+              __for_arr_4 :(fn() -> void)[]
+            ix:
+              __for_i_6 :usize
+        call :void
+          callee:
+            t :fn() -> void
+        assign
+          target:
+            __for_i_6 :usize
+          value:
+            add :usize
+              l:
+                __for_i_6 :usize
+              r:
+                int(1) :usize
+    block :void
+      let i: i32 = int(0) :i32
+      loop while (<…>)
+        let i: ? =
+          LoweredCellNew
+        defer.push
+          LoweredMakeClosure
+        let __block_9: void =
+          call :void
+            callee:
+              std_io$println__string :void
+            arg0:
+              call :string
+                callee:
+                  concat2 :string
+                arg0:
+                  "range body i=" :string
+                arg1:
+                  call :string
+                    callee:
+                      format_signed :fn(i64) -> string
+                    arg0:
+                      cast → i64
+                        LoweredCellGet
+        defer.pop_exec 1
+        __block_9 :void
+        assign
+          target:
+            __i_7 :i32
+          value:
+            add :i32
+              l:
+                __i_7 :i32
+              r:
+                int(1) :i32
+    let mapped: (fn() -> void)[] =
+      array :(fn() -> void)[]
+    block :void
+      let __src_11: i32 = int(0) :i32
+      loop while (<…>)
+        let y: ? =
+          LoweredCellNew
+        LoweredArrayPush
+        assign
+          target:
+            __src_11 :i32
+          value:
+            add :i32
+              l:
+                __src_11 :i32
+              r:
+                int(1) :i32
+    block :void
+      let __for_arr_12: (fn() -> void)[] = mapped :(fn() -> void)[]
+      let __for_len_13: usize =
+        LoweredArrayLen
+      let __for_i_14: usize = int(0) :usize
+      loop while (<…>)
+        let t: fn() -> void =
+          index :fn() -> void
+            on:
+              __for_arr_12 :(fn() -> void)[]
+            ix:
+              __for_i_14 :usize
+        call :void
+          callee:
+            t :fn() -> void
+        assign
+          target:
+            __for_i_14 :usize
+          value:
+            add :usize
+              l:
+                __for_i_14 :usize
+              r:
+                int(1) :usize
+    block :void
+      let z: i32 = int(0) :i32
+      loop while (<…>)
+        let z: ? =
+          LoweredCellNew
+        if :void
+          cond:
+            call :bool
+              callee:
+                is_even :fn(i32) -> bool
+              arg0:
+                LoweredCellGet
+          then:
+            defer.push
+              LoweredMakeClosure
+            defer.pop_exec 1
+        assign
+          target:
+            __z_16 :i32
+          value:
+            add :i32
+              l:
+                __z_16 :i32
+              r:
+                int(1) :i32
+    let apply: fn(i64) -> void =
+      LoweredMakeClosure
+    call :void
+      callee:
+        apply :fn(i64) -> void
+      arg0:
+        int(7) :i64
+    call :void
+      callee:
+        apply :fn(i64) -> void
+      arg0:
+        int(8) :i64
+    return int(0) :i32
+  struct __lambda_env_5 { cap_0: ? }
+  fn __lambda_4(__env_3: __lambda_env_5) -> void
+    ~>
+      call :void
+        callee:
+          std_io$println__string :void
+        arg0:
+          call :string
+            callee:
+              concat2 :string
+            arg0:
+              "thunk " :string
+            arg1:
+              LoweredCellGet
+  struct __defer_env_12 { cap_0: ? }
+  fn __defer_11(__env_8: __defer_env_12) -> void
+    ~>
+      call :void
+        callee:
+          std_io$println__string :void
+        arg0:
+          call :string
+            callee:
+              concat2 :string
+            arg0:
+              "range defer i=" :string
+            arg1:
+              call :string
+                callee:
+                  format_signed :fn(i64) -> string
+                arg0:
+                  cast → i64
+                    LoweredCellGet
+  struct __lambda_env_16 { cap_0: ? }
+  fn __lambda_15(__env_10: __lambda_env_16) -> void
+    ~>
+      call :void
+        callee:
+          std_io$println__string :void
+        arg0:
+          call :string
+            callee:
+              concat2 :string
+            arg0:
+              "mapped " :string
+            arg1:
+              call :string
+                callee:
+                  format_signed :fn(i64) -> string
+                arg0:
+                  cast → i64
+                    LoweredCellGet
+  struct __defer_env_23 { cap_0: ? }
+  fn __defer_22(__env_15: __defer_env_23) -> void
+    ~>
+      call :void
+        callee:
+          std_io$println__string :void
+        arg0:
+          call :string
+            callee:
+              concat2 :string
+            arg0:
+              "filtered defer z=" :string
+            arg1:
+              call :string
+                callee:
+                  format_signed :fn(i64) -> string
+                arg0:
+                  cast → i64
+                    LoweredCellGet
+  struct __lambda_env_30 { cap_0: ? }
+  fn __lambda_29(__env_0: __lambda_env_30) -> void
+    ~>
+      call :void
+        callee:
+          std_io$println__string :void
+        arg0:
+          call :string
+            callee:
+              concat2 :string
+            arg0:
+              "nested n=" :string
+            arg1:
+              call :string
+                callee:
+                  format_signed :fn(i64) -> string
+                arg0:
+                  LoweredCellGet
+  struct __lambda_env_27 {  }
+  fn __lambda_26(__env_17: __lambda_env_27, n: i64) -> void
+    let n: ? =
+      LoweredCellNew
+    let twice: fn() -> void =
+      LoweredMakeClosure
+    ~>
+      call :void
+        callee:
+          twice :fn() -> void

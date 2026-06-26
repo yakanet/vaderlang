@@ -1,0 +1,59 @@
+# Comptime
+
+## tests/snippets/capture_loop_var
+
+## generic instances
+  MappedIterator<i32, i32>
+  MappedIterator<T, U>
+  MappedIterator<T, U>
+  MappedIterator<T, U>
+  FilterIterator<i32>
+  FilterIterator<T>
+  FilterIterator<T>
+  FilterIterator<T>
+  TakeIterator<T>
+  TakeIterator<T>
+  TakeIterator<T>
+  SkipIterator<T>
+  SkipIterator<T>
+  SkipIterator<T>
+  Into<Target>
+  Add<Rhs, Out>
+  Sub<Rhs, Out>
+  Mul<Rhs, Out>
+  Div<Rhs, Out>
+  Rem<Rhs, Out>
+  Index<I, T>
+  IndexSet<I, T>
+  Contains<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Iterator<T>
+  Yield<T>
+  Yield<U>
+  Yield<T>
+  Yield<T>
+  Yield<T>
+  Yield<T>
+  Yield<T>
+  Yield<T>
+  Range<i32>
+  Range<usize>
+  Range<T>
+  Range<T>
+  Range<T>
+  ArrayIterator<T>
+  ArrayIterator<T>
+  ArrayIterator<T>
