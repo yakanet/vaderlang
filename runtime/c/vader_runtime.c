@@ -2625,16 +2625,23 @@ vader_box_t vader_read_stdin(size_t n, uint32_t ok_tag, uint32_t err_tag) {
  * with what the next `read_stdin` will consume. Without this, fread's userspace
  * buffer can swallow a queued frame and hide it from `poll()`, breaking the LSP
  * debounce (poll reports "idle" while a full frame already sits in the buffer).
- * The LSP calls this once at startup, BEFORE any stdin read — gated to the LSP
- * so the streaming `vader run prog.virt` stdin path keeps its buffering. */
-void vader_lsp_init_stdin(void) {
+ * A length-prefixed RPC server calls this once at startup, BEFORE any stdin
+ * read — the streaming `vader run prog.virt` stdin path keeps its buffering. */
+void vader_set_stdin_unbuffered(void) {
     setvbuf(stdin, NULL, _IONBF, 0);
+}
+
+/* Transitional alias for the former `vader_lsp_init_stdin` name. Kept only so
+ * the pre-rename seed still links during the bridge reseed; removed once the
+ * regenerated seed no longer references it (rename reseed 2). */
+void vader_lsp_init_stdin(void) {
+    vader_set_stdin_unbuffered();
 }
 
 /* Return true iff stdin has data ready within `timeout_ms` (0 = poll, no wait).
  * Used by the LSP event loop to detect a quiescent edit window: drain the burst
  * of `didChange` notifications, then run the typecheck once. Relies on stdin
- * being unbuffered (`vader_lsp_init_stdin`) so the raw fd reflects the real
+ * being unbuffered (`vader_set_stdin_unbuffered`) so the raw fd reflects the real
  * pending bytes. A hangup (peer closed the pipe) reports ready so the caller's
  * next read observes EOF rather than spinning. */
 vader_bool_t vader_poll_stdin(int32_t timeout_ms) {
@@ -2644,7 +2651,7 @@ vader_bool_t vader_poll_stdin(int32_t timeout_ms) {
      * despite the name. It's instantaneous, so emulate the timeout by polling in
      * small Sleep slices; this loop only runs during the debounce settle window
      * (once per burst), never per byte. With unbuffered stdin
-     * (`vader_lsp_init_stdin`) the kernel pipe PeekNamedPipe inspects matches
+     * (`vader_set_stdin_unbuffered`) the kernel pipe PeekNamedPipe inspects matches
      * what the next `fread` will consume. */
     HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
     if (h == INVALID_HANDLE_VALUE || h == NULL) return 1; /* let the read attempt observe the state */

@@ -894,10 +894,13 @@ vader_string_t vader_current_executable_location(void);
  * the LSP transport's Content-Length framing relies on this contract. */
 vader_box_t    vader_read_stdin(size_t n, uint32_t ok_tag, uint32_t err_tag);
 /* Make stdin unbuffered so `poll(STDIN_FILENO)` stays consistent with what
- * `vader_read_stdin` will consume. LSP-only; call once before any stdin read. */
+ * `vader_read_stdin` will consume. Call once before any stdin read; intended
+ * for length-prefixed RPC servers (e.g. the LSP). */
+void           vader_set_stdin_unbuffered(void);
+/* Transitional alias for the former name; removed in rename reseed 2. */
 void           vader_lsp_init_stdin(void);
 /* True iff stdin has data ready within `timeout_ms` (0 = non-blocking poll).
- * Backs the LSP debounce; requires `vader_lsp_init_stdin` first. */
+ * Backs the LSP debounce; requires `vader_set_stdin_unbuffered` first. */
 vader_bool_t   vader_poll_stdin(int32_t timeout_ms);
 /* `read_dir` lists the immediate entries of `path` as a `[string]`. Entries
  * are returned in OS-provided order (POSIX `readdir`, Windows `FindNextFileA`)
