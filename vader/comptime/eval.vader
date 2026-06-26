@@ -18,20 +18,40 @@ AST :: import "vader/parser"
 /// @return         the evaluation result.
 // @partial: the tree-walk MVP evaluates a subset of Expr kinds; every other
 // variant is intentionally routed to `vm_required`.
-export evaluate_expr :: fn(expr: AST.Expr, context: ComptimeContext) -> EvalResult = @partial match expr {
-    is AST.IntLitExpr    as x -> evaluate_int_lit(x)
-    is AST.FloatLitExpr  as x -> evaluate_float_lit(x)
-    is AST.BoolLitExpr   as x -> evaluate_bool_lit(x)
-    is AST.CharLitExpr   as x -> evaluate_char_lit(x)
-    is AST.NullLitExpr   as x -> evaluate_null_lit(x)
-    is AST.StringLitExpr as x -> evaluate_string_lit(x, context, evaluate_expr)
-    is AST.IdentExpr     as x -> evaluate_ident(x, context)
-    is AST.BinaryExpr        as x -> evaluate_binary_expr(x, context, evaluate_expr)
-    is AST.UnaryExpr         as x -> evaluate_unary_expr(x, context, evaluate_expr)
-    is AST.IntrinsicCallExpr as x -> evaluate_intrinsic_call(x, context)
-    is AST.CallExpr          as x -> evaluate_call_expr(x, context)
-    is AST.SeqLitExpr        as x -> evaluate_seq_lit(x, context, evaluate_expr)
-    _                             -> vm_required(span_of(expr), expr_kind_label(expr))
+/// Hard ceiling on the evaluator's nesting depth. A cyclic / non-terminating
+/// comptime expression (e.g. a const whose value resolves back to itself) would
+/// otherwise recurse until the C stack overflows — silently corrupting memory
+/// (it surfaced as a bogus lexer "unterminated string" far from the real fault).
+/// Well above any legitimate comptime expression, well below the native stack
+/// capacity (which overflows a few thousand evaluator frames in), so the bound
+/// trips on cycles before the C stack does.
+COMPTIME_MAX_EVAL_DEPTH :: 2000
+
+export evaluate_expr :: fn(expr: AST.Expr, context: ComptimeContext) -> EvalResult {
+    // Depth guard — `context` is shared across operand recursion
+    // (`evaluate_binary_expr` passes it straight through), so `depth` tracks the
+    // live nesting level. Report a clean C4001 instead of overflowing.
+    context.depth = context.depth + 1
+    defer { context.depth = context.depth - 1 }
+    if context.depth > COMPTIME_MAX_EVAL_DEPTH {
+        return vm_required(span_of(expr),
+            "a cyclic or non-terminating comptime expression (exceeded ${COMPTIME_MAX_EVAL_DEPTH} nested levels)")
+    }
+    return @partial match expr {
+        is AST.IntLitExpr    as x -> evaluate_int_lit(x)
+        is AST.FloatLitExpr  as x -> evaluate_float_lit(x)
+        is AST.BoolLitExpr   as x -> evaluate_bool_lit(x)
+        is AST.CharLitExpr   as x -> evaluate_char_lit(x)
+        is AST.NullLitExpr   as x -> evaluate_null_lit(x)
+        is AST.StringLitExpr as x -> evaluate_string_lit(x, context, evaluate_expr)
+        is AST.IdentExpr     as x -> evaluate_ident(x, context)
+        is AST.BinaryExpr        as x -> evaluate_binary_expr(x, context, evaluate_expr)
+        is AST.UnaryExpr         as x -> evaluate_unary_expr(x, context, evaluate_expr)
+        is AST.IntrinsicCallExpr as x -> evaluate_intrinsic_call(x, context)
+        is AST.CallExpr          as x -> evaluate_call_expr(x, context)
+        is AST.SeqLitExpr        as x -> evaluate_seq_lit(x, context, evaluate_expr)
+        _                             -> vm_required(span_of(expr), expr_kind_label(expr))
+    }
 }
 
 /// Recover the span of any expression variant for diagnostic emission.
