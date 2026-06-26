@@ -68,24 +68,37 @@ pick_overload :: fn(
     // The resolver bound `c.callee` to a primary overload ; its
     // signature is what a non-overloaded display would show.
     primary_ft :: primary_overload_ft(c.callee, typed)
+    // First prefer a candidate whose arity matches the call — this lets a
+    // named-arg / arity-disambiguated overload resolve (`size(a = 1, b = 2)`
+    // vs `size(a = 1)`) where the arg0-type heuristic alone can't tell two
+    // same-first-param overloads apart.
+    for ft in candidates {
+        if ft.params.len() == 0 { continue }
+        if ft.params.len() == c.args.len() && is_assignable(arg0_ty, ft.params[0], null) {
+            return commit_overload_pick(ft, c, typed, primary_ft)
+        }
+    }
+    // Fall back to the first whose first param accepts arg0 (the original
+    // arg0-type heuristic — handles default-filled / variadic arities).
     for ft in candidates {
         if ft.params.len() == 0 { continue }
         if is_assignable(arg0_ty, ft.params[0], null) {
-            // Patch the callee's IdentExpr type so the dump shows
-            // the picked overload's signature instead of the primary.
-            typed.expr_types[c.callee.id] = ft
-            // Mark non-primary picks so the lowerer emits the call's
-            // result type on the callee ident — mirrors TS' branch on
-            // `calleeSym !== resolverSym`.
-            // Imported overloads have no local primary signature
-            // (`primary_ft == null`) and are always non-primary.
-            if is_nonprimary_pick(ft, primary_ft) {
-                typed.overload_result_callees[c.callee.id] = true
-            }
-            return ft
+            return commit_overload_pick(ft, c, typed, primary_ft)
         }
     }
     return initial
+}
+
+// Record a chosen overload : patch the callee IdentExpr's type so the dump
+// shows the picked signature, and mark non-primary picks so the lowerer emits
+// the call's result type on the callee ident (mirrors TS' `calleeSym !==
+// resolverSym` branch ; imported overloads carry no primary, so always non-primary).
+commit_overload_pick :: fn(ft: FnType, c: AST.CallExpr, typed: TypedProgram, primary_ft: Type | null) -> FnType {
+    typed.expr_types[c.callee.id] = ft
+    if is_nonprimary_pick(ft, primary_ft) {
+        typed.overload_result_callees[c.callee.id] = true
+    }
+    return ft
 }
 
 // True when `picked` differs from the resolver-bound primary. An
@@ -258,15 +271,74 @@ param_index_by_name :: fn(params: AST.FnParam[], name: string) -> isize {
     return -1
 }
 
-// Resolve a direct call's callee to its declaration, so its parameter names +
-// defaults are available for `normalize_call_args`. Returns null for callees
-// without a known decl (fn-values, UFCS methods) — those stay positional.
-resolve_callee_fn_decl :: fn(c: AST.CallExpr, typed: TypedProgram) -> AST.FnDecl | null {
+// Find the declared parameters that line up positionally with `callee_ty`'s
+// params, so `normalize_call_args` can reorder named args + fill defaults.
+// Covers every call shape that carries param names :
+//   - direct call : the resolved symbol's decl (arity must match) ;
+//   - overloaded name : the bucket candidate whose signature is the one
+//     `pick_overload` chose ;
+//   - UFCS free-fn method (`x.m(args)`) : the method's decl minus its `self`
+//     param, which lines up with the curried callee type.
+// Returns null when no decl is reachable (fn-values, imported overloads,
+// impl-block methods) — those stay positional.
+callee_param_decls :: fn(c: AST.CallExpr, callee_ty: FnType, typed: TypedProgram) -> AST.FnParam[] | null {
     if c.callee is AST.IdentExpr as ie {
         sym :: typed.resolved.idents[ie.span.hash()]
         if sym is Symbol as s {
             decl :: typed.fn_decls[s.id]
-            if decl is AST.FnDecl as fd { return fd }
+            if decl is AST.FnDecl as fd {
+                if fd.params.len() == callee_ty.params.len() { return fd.params }
+            }
+        }
+        return overload_params_matching(ie.name, callee_ty, typed)
+    }
+    if c.callee is AST.FieldExpr as fe {
+        // Only genuine UFCS dispatch (the receiver type was stashed when the
+        // FieldExpr was typed) — not namespace member calls (`mod.foo(...)`),
+        // which carry no `self` and stay positional for now.
+        if typed.ufcs_receiver_types[fe.id] != null {
+            return ufcs_method_params(fe.field, callee_ty, typed)
+        }
+    }
+    return null
+}
+
+// Scan the local overload bucket for the candidate whose fn-type the
+// resolver picked, returning its declared params (arity-aligned with the
+// pick). Prefers an exact type match, falling back to the first same-arity
+// candidate so a substituted generic pick still lands.
+overload_params_matching :: fn(name: string, callee_ty: FnType, typed: TypedProgram) -> AST.FnParam[] | null {
+    bucket :: typed.resolved.fn_overloads[name]
+    if bucket is null { return null }
+    fallback: AST.FnParam[] | null = null
+    for sym in bucket {
+        decl :: typed.fn_decls[sym.id]
+        if decl is AST.FnDecl as fd {
+            if fd.params.len() != callee_ty.params.len() { continue }
+            ft :: typed.decl_types[sym.id]
+            if ft is FnType as f {
+                if equals_type(f, callee_ty) { return fd.params }
+            }
+            if fallback == null { fallback = fd.params }
+        }
+    }
+    return fallback
+}
+
+// UFCS dispatch curries away the receiver (`self`), so the call's `callee_ty`
+// has one fewer param than the method's decl. Return the method decl's params
+// minus `self`, when a same-(curried-)arity free fn named `method` exists.
+ufcs_method_params :: fn(method: string, callee_ty: FnType, typed: TypedProgram) -> AST.FnParam[] | null {
+    bucket :: typed.resolved.fn_overloads[method]
+    if bucket is null { return null }
+    for sym in bucket {
+        decl :: typed.fn_decls[sym.id]
+        if decl is AST.FnDecl as fd {
+            if fd.params.len() == callee_ty.params.len() + 1 {
+                tail: AST.FnParam[] = []
+                for i in 1..<fd.params.len() { tail.push(fd.params[i]) }
+                return tail
+            }
         }
     }
     return null
@@ -302,25 +374,19 @@ export infer_call :: fn(
         return TY_UNRESOLVED
     }
     // Reorder named args + fill defaults in place, so the positional checks
-    // below and the lowerer both see a normalised call. Only direct calls to a
-    // known fn decl carry param names ; fn-value calls stay positional.
+    // below and the lowerer both see a normalised call. `callee_param_decls`
+    // returns the declared params (arity-aligned with the picked callee type)
+    // for direct / overloaded / UFCS calls ; fn-values + imported overloads
+    // have no decl and stay positional.
     normalised := false
-    fndecl :: resolve_callee_fn_decl(c, typed)
-    if fndecl is AST.FnDecl as fd {
-        // Only normalise when the resolved decl's arity matches the picked
-        // callee type — otherwise `resolved.idents` points at a different
-        // overload than `pick_overload` chose, and its names / count don't
-        // apply. Mismatched overloads stay positional (handled in a later
-        // step) ; same-arity calls (incl. those filling trailing defaults)
-        // get named-arg + default normalisation.
-        if fd.params.len() == callee_ty.params.len() {
-            norm :: normalize_call_args(fd.params, c, diags)
-            // normalize_call_args owns arity/named diagnostics here ; skip the
-            // positional check below to avoid double-reporting. A null result
-            // (variadic / error) leaves `c.args` untouched for recovery.
-            normalised = true
-            if norm is AST.CallArg[] as na { c.args = na }
-        }
+    decl_params :: callee_param_decls(c, callee_ty, typed)
+    if decl_params is AST.FnParam[] as ps {
+        norm :: normalize_call_args(ps, c, diags)
+        // normalize_call_args owns arity/named diagnostics here ; skip the
+        // positional check below to avoid double-reporting. A null result
+        // (variadic / error) leaves `c.args` untouched for recovery.
+        normalised = true
+        if norm is AST.CallArg[] as na { c.args = na }
     }
     if !normalised && c.args.len() != callee_ty.params.len() {
         diags.push(typecheck_error(.WrongArgCount, c.span,

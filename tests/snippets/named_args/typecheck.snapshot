@@ -1,12 +1,17 @@
 # Typecheck
 
 ## tests/snippets/named_args
+  StructDecl     Box                  :: Box
   FnDecl         combine              :: fn(i32, i32, i32) -> i32
   FnDecl         greet                :: fn(string, string) -> string
   FnDecl         main                 :: fn() -> i32
-  expr 10:12    StringLitExpr  :: string
-  expr 10:15    IdentExpr      :: string
-  expr 10:26    IdentExpr      :: string
+  FnDecl         pick                 :: fn(i32) -> i32
+  FnDecl         pick                 :: fn(i32, i32) -> i32
+  FnDecl         scale                :: fn(Box, i32, i32) -> i32
+  expr 10:44    StringLitExpr  :: string
+  expr 11:12    StringLitExpr  :: string
+  expr 11:15    IdentExpr      :: string
+  expr 11:26    IdentExpr      :: string
   expr 15:12    BinaryExpr     :: i32
   expr 15:12    BinaryExpr     :: i32
   expr 15:12    BinaryExpr     :: i32
@@ -14,32 +19,44 @@
   expr 15:22    BinaryExpr     :: i32
   expr 15:22    IdentExpr      :: i32
   expr 15:31    IdentExpr      :: i32
-  expr 19:11    CallExpr       :: string
-  expr 19:11    IdentExpr      :: fn(string, string) -> string
-  expr 19:17    StringLitExpr  :: string
-  expr 20:11    CallExpr       :: string
-  expr 20:11    IdentExpr      :: fn(string, string) -> string
-  expr 20:17    StringLitExpr  :: string
-  expr 20:24    StringLitExpr  :: string
-  expr 21:11    CallExpr       :: string
-  expr 21:11    IdentExpr      :: fn(string, string) -> string
-  expr 21:17    StringLitExpr  :: string
-  expr 21:33    StringLitExpr  :: string
-  expr 22:10    CallExpr       :: i32
-  expr 22:10    IdentExpr      :: fn(i32, i32, i32) -> i32
-  expr 23:12    BinaryExpr     :: i32
-  expr 23:12    CallExpr       :: i32
-  expr 23:12    IdentExpr      :: type
-  expr 23:16    BinaryExpr     :: usize
-  expr 23:16    BinaryExpr     :: usize
-  expr 23:16    CallExpr       :: usize
-  expr 23:16    FieldExpr      :: fn() -> usize
-  expr 23:16    IdentExpr      :: string
-  expr 23:27    CallExpr       :: usize
-  expr 23:27    FieldExpr      :: fn() -> usize
-  expr 23:27    IdentExpr      :: string
-  expr 23:38    CallExpr       :: usize
-  expr 23:38    FieldExpr      :: fn() -> usize
-  expr 23:38    IdentExpr      :: string
-  expr 23:50    IdentExpr      :: i32
-  expr 9:44     StringLitExpr  :: string
+  expr 19:36    IdentExpr      :: i32
+  expr 20:44    BinaryExpr     :: i32
+  expr 20:44    BinaryExpr     :: i32
+  expr 20:44    IdentExpr      :: i32
+  expr 20:53    IdentExpr      :: i32
+  expr 26:12    BinaryExpr     :: i32
+  expr 26:12    BinaryExpr     :: i32
+  expr 26:12    FieldExpr      :: i32
+  expr 26:12    IdentExpr      :: Box
+  expr 26:21    IdentExpr      :: i32
+  expr 26:26    IdentExpr      :: i32
+  expr 30:11    CallExpr       :: string
+  expr 30:11    IdentExpr      :: fn(string, string) -> string
+  expr 30:17    StringLitExpr  :: string
+  expr 31:11    CallExpr       :: string
+  expr 31:11    IdentExpr      :: fn(string, string) -> string
+  expr 31:17    StringLitExpr  :: string
+  expr 31:33    StringLitExpr  :: string
+  expr 32:10    CallExpr       :: i32
+  expr 32:10    IdentExpr      :: fn(i32, i32, i32) -> i32
+  expr 33:10    CallExpr       :: i32
+  expr 33:10    IdentExpr      :: fn(i32, i32) -> i32
+  expr 34:10    StructLitExpr  :: Box
+  expr 35:10    CallExpr       :: i32
+  expr 35:10    FieldExpr      :: fn(i32, i32) -> i32
+  expr 35:10    IdentExpr      :: Box
+  expr 36:12    BinaryExpr     :: i32
+  expr 36:12    BinaryExpr     :: i32
+  expr 36:12    BinaryExpr     :: i32
+  expr 36:12    CallExpr       :: i32
+  expr 36:12    IdentExpr      :: type
+  expr 36:16    BinaryExpr     :: usize
+  expr 36:16    CallExpr       :: usize
+  expr 36:16    FieldExpr      :: fn() -> usize
+  expr 36:16    IdentExpr      :: string
+  expr 36:27    CallExpr       :: usize
+  expr 36:27    FieldExpr      :: fn() -> usize
+  expr 36:27    IdentExpr      :: string
+  expr 36:39    IdentExpr      :: i32
+  expr 36:43    IdentExpr      :: i32
+  expr 36:47    IdentExpr      :: i32
