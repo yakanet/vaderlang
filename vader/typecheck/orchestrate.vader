@@ -356,14 +356,20 @@ collect_direct_imports :: fn(
     per_module: MutableMap<string, TypedProgram>,
 ) -> TypedProgram[] {
     out: TypedProgram[] = []
-    from_file :: entry_loaded.module.files[0].path
-    stdlib_root :: default_stdlib_root()
+    // The loader already resolved every import. A module imported as
+    // `import "path"` declares `module "path"` (module-system invariant), so
+    // map each loaded module's declared name to its id and look the import up
+    // there — using the loader's own result instead of re-resolving through the
+    // now-deleted parallel resolver (#11).
+    id_by_name :: MutableMap<string, string> {}
+    for [id, lm] in project.modules {
+        id_by_name[lm.module.module_name] = id
+    }
     seen :: MutableMap<string, bool> {}
     for raw in entry_loaded.collected.import_paths {
         if starts_with(raw, "std/") { continue }
-        target :: resolve_import_path(raw, from_file, stdlib_root, project.project_root)
-        if target is null { continue }
-        target_id :: module_id_from_root(target)
+        target_id :: id_by_name[raw]
+        if target_id == null { continue }
         if target_id == project.entry { continue }
         if !(seen[target_id] is null) { continue }
         seen[target_id] = true
@@ -377,7 +383,6 @@ collect_direct_imports :: fn(
 }
 
 import "std/string" { starts_with, ends_with }
-import "vader/resolver" { default_stdlib_root, module_id_from_root, resolve_import_path }
 
 
 empty_impls :: fn() -> ImplRegistry { return new_registry() }

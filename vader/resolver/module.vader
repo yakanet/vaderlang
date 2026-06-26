@@ -75,36 +75,6 @@ export Module :: struct {
 
 // ---------------------------------------------------------------- discovery
 
-/// Resolve a raw `import "<path>"` string to an on-disk location,
-/// or null. `from_file` is the absolute path of the file containing
-/// the import ; `stdlib_root` is where `std/...` lives ; `project_root`
-/// (when non-null) is the directory of the nearest `vader.json` and
-/// anchors bare-name imports like `import "vader/parser"`.
-export resolve_import_path :: fn(
-    raw_path: string, from_file: string, stdlib_root: string,
-    project_root: string | null,
-) -> string | null {
-    if raw_path.starts_with(STDLIB_PREFIX) {
-        return resolve_on_disk(join_path(stdlib_root, raw_path))
-    }
-    // Relative imports are not a language form (SPEC §11) — the live loader
-    // rejects them with R2025. Reject here too rather than probing a sibling
-    // file, so this path can't silently resolve a `./foo` the loader refused.
-    if raw_path.starts_with("./") || raw_path.starts_with("../") {
-        return null
-    }
-    // Project-rooted mode wins when a manifest was found ; matches
-    // TS `src/resolver/module.ts::resolveImportPath`. A miss here
-    // returns null rather than falling through to a relative probe —
-    // bare-name imports should never accidentally hit a sibling file.
-    if !(project_root is null) {
-        return resolve_on_disk(join_path(project_root, raw_path))
-    }
-    // Single-file mode fallback : no manifest, try the importing
-    // file's dir as a courtesy.
-    return resolve_on_disk(join_path(dir_of(from_file), raw_path))
-}
-
 /// Walk up from `start` looking for `MANIFEST_FILENAME`. Returns
 /// the containing directory, or null if no manifest is found up to
 /// the filesystem root. Used to anchor `import "vader/parser"`
@@ -127,21 +97,6 @@ export find_manifest_root :: fn(start: string) -> string | null {
     }
 }
 
-/// Returns the absolute path when `path` exists as a directory or
-/// when `path` (or `path + ".vader"`) exists as a file. Null
-/// otherwise.
-export resolve_on_disk :: fn(path: string) -> string | null {
-    if exists(path) {
-        if is_dir(path) { return path }
-        if ends_with(path, ".vader") { return path }
-    }
-    // If path already ends in .vader we already probed it above ;
-    // appending another `.vader` would yield `foo.vader.vader` so skip.
-    if ends_with(path, ".vader") { return null }
-    with_ext :: "${path}.vader"
-    if exists(with_ext) { return with_ext }
-    return null
-}
 
 /// Canonical module id : just the resolved root path. Same physical
 /// location always maps to the same id.

@@ -12,3 +12,26 @@
   expr 16:16    IdentExpr      :: fn(Instant, Instant) -> i64
   expr 16:24    IdentExpr      :: Instant
   expr 16:27    IdentExpr      :: Instant
+
+## tests/snippets/_diag_distinct_cross_module/units
+  ConstDecl      Duration             :: type
+  FnDecl         elapsed              :: fn(Instant, Instant) -> i64
+  ConstDecl      Instant              :: type
+  FnDecl         make_instant         :: fn(i64) -> Instant
+  expr 10:49    CallExpr       :: Instant
+  expr 10:49    IdentExpr      :: type
+  expr 10:57    IdentExpr      :: i64
+  expr 13:51    CallExpr       :: Duration
+  expr 13:51    IdentExpr      :: type
+  expr 13:60    BinaryExpr     :: i64
+  expr 13:60    CallExpr       :: i64
+  expr 13:60    IdentExpr      :: type
+  expr 13:64    IdentExpr      :: Instant
+  expr 13:72    CallExpr       :: i64
+  expr 13:72    IdentExpr      :: type
+  expr 13:76    IdentExpr      :: Instant
+  expr 16:61    CallExpr       :: i64
+  expr 16:61    IdentExpr      :: type
+  expr 16:65    BinaryExpr     :: Duration
+  expr 16:65    IdentExpr      :: Instant
+  expr 16:71    IdentExpr      :: Instant

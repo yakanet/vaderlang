@@ -19,3 +19,10 @@
   expr 25:12    CallExpr       :: i32
   expr 25:12    IdentExpr      :: type
   expr 25:16    FieldExpr      :: usize
+
+## tests/snippets/namespace_const/config
+  ConstDecl      GREETING             :: string
+  ConstDecl      MAX_RETRIES          :: usize
+  expr 6:23     CallExpr       :: usize
+  expr 6:23     IdentExpr      :: type
+  expr 7:20     StringLitExpr  :: string

@@ -33,3 +33,8 @@
   expr 33:26    IdentExpr      :: Cat | Dog
   expr 33:9     CallExpr       :: void
   expr 33:9     IdentExpr      :: fn(T) -> void
+
+## tests/snippets/alias_union_in_array/types
+  StructDecl     Cat                  :: Cat
+  StructDecl     Dog                  :: Dog
+  ConstDecl      Pet                  :: type
