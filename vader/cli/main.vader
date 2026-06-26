@@ -106,9 +106,6 @@ COMMANDS:
                                      field/type names) — a disassembly view, not re-parsable
 
 GLOBAL OPTIONS:
-  --diagnostics=text|json          Output diagnostics in plain text (default) or JSON for tooling
-  --allow-env                      Permit @comptime to read process env
-  --no-bytecode-opt                Disable bytecode peephole optimisations (debug)
   --help, -h                       Show this message
   --version, -v                    Show the compiler version
 """
@@ -116,8 +113,9 @@ GLOBAL OPTIONS:
 // Reused for every dump-stage error path so the wording stays in sync.
 STAGES_LIST :: "stages: lexer, ast, resolved-ast, typed-ast, evaluated-ast, lowered-ast, dced-ast, cfg, bytecode, bytecode-cfg, c, wasm"
 
-// Mirrors `GlobalOpts` in `src/cli/options.ts`. Parsed but unused today —
-// the only stage that runs (lexer) doesn't consume any of these.
+// Reserved global flags : parsed and stripped from args (so they don't break
+// invocation) but not yet wired into any pass, so they're kept out of HELP
+// until they actually do something.
 export GlobalOpts :: struct {
     diagnostics:  string
     allow_env:    bool
@@ -130,7 +128,6 @@ export ParseGlobalsResult :: struct {
     errors: string[]
 }
 
-// Mirror of `parseGlobalOpts` in `src/cli/options.ts`.
 parse_global_opts :: fn(args: string[]) -> ParseGlobalsResult {
     specs: FlagSpec[] = [
         FlagSpec { .name = "diagnostics",     .kind = .Str },
