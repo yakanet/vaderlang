@@ -3,7 +3,7 @@
 
 module "vader/lower"
 
-import "vader/parser" { Expr, IdentExpr, IntrinsicCallExpr }
+import "vader/parser" { Expr, IdentExpr, IntrinsicCallExpr, StructDecl, StringLitExpr, StringLitText }
 import "vader/diagnostics" { Span, Diagnostic }
 import "vader/typecheck" { type_from_expr, type_to_target_symbol, has_user, substitute }
 import "vader/resolver/symbol" { Symbol }
@@ -138,6 +138,18 @@ try_fold_static_intrinsic :: fn(
     if name == "fields" {
         return try_fold_fields(ctx, intrinsic, type)
     }
+    if name == "field_count" || name == "variant_count" {
+        if intrinsic.args.len() != 1 { return null }
+        arg_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0])
+        if arg_or_null is null { return null }
+        ty :: arg_ty_or_unresolved(arg_or_null)
+        if ty is UnresolvedType { return null }
+        cnt :: if name == "field_count" { lower_field_count(ctx, ty) } else { lower_variant_count(ty) }
+        return LoweredIntLit { .span = intrinsic.span, .type = type, .value = cnt }
+    }
+    if name == "field_index" {
+        return try_fold_field_index(ctx, intrinsic, type)
+    }
     if name != "size_of" && name != "align_of" && name != "type_name" && name != "type_kind" {
         return null
     }
@@ -157,6 +169,62 @@ try_fold_static_intrinsic :: fn(
     }
     if name == "type_kind" {
         return LoweredStringLit { .span = intrinsic.span, .type = mk_primitive("string"), .value = kind_string_of_type(ty) }
+    }
+    return null
+}
+
+// `@field_count` / `@variant_count` / `@field_index` folds — count the parts of
+// a structured type (fields for Struct/Tuple, variants for Union/Enum) or the
+// 0-based position of a named field. Mirror of the comptime intrinsics so the
+// same value lands whether the call is folded at comptime or here.
+lower_field_count :: fn(ctx: FnLowerCtx, t: Type) -> i64 {
+    if t is StructType as s {
+        decl :: struct_decl_for(ctx, s)
+        if decl == null { return 0 }
+        return i64(decl.fields.len())
+    }
+    if t is TupleType as p { return i64(p.elements.len()) }
+    return 0
+}
+
+lower_variant_count :: fn(t: Type) -> i64 {
+    if t is UnionType as u { return i64(u.variants.len()) }
+    if t is EnumType as e { return i64(e.indices.len()) }
+    return 0
+}
+
+// Resolve a struct type to its declaration via its owning module's loaded view.
+struct_decl_for :: fn(ctx: FnLowerCtx, st: StructType) -> StructDecl | null {
+    owner_loaded :: ctx.project.loaded.modules[st.symbol.module]
+    if owner_loaded is null { return null }
+    return find_struct_decl_by_name(module_decls(owner_loaded), st.symbol.name)
+}
+
+try_fold_field_index :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type) -> LoweredExpr | null {
+    if intrinsic.args.len() != 2 { return null }
+    arg_or_null :: resolve_intrinsic_type_arg(ctx, intrinsic.args[0])
+    if arg_or_null is null { return null }
+    ty :: arg_ty_or_unresolved(arg_or_null)
+    name :: static_string_lit(intrinsic.args[1])
+    if name == null { return null }
+    if ty is StructType as st {
+        decl :: struct_decl_for(ctx, st)
+        if decl == null { return null }
+        for i in 0..<decl.fields.len() {
+            if decl.fields[i].name == name {
+                return LoweredIntLit { .span = intrinsic.span, .type = type, .value = i64(i) }
+            }
+        }
+    }
+    return null
+}
+
+// Single-part string-literal text, or null when the arg isn't a static string.
+static_string_lit :: fn(e: Expr) -> string | null {
+    if e is StringLitExpr as s {
+        if s.parts.len() == 1 {
+            if s.parts[0] is StringLitText as t { return t.value }
+        }
     }
     return null
 }
