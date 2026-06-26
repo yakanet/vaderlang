@@ -2,7 +2,7 @@
 //
 // `emit_expr` / `emit_type_expr` accept `Expr | null` directly (with `null`
 // being a no-op) — the Vader typechecker flattens the union-alias `Expr` into
-// its 25 individual variants for exhaustiveness purposes, so passing
+// its 26 individual variants for exhaustiveness purposes, so passing
 // `TypeExpr | null` through a generic dispatch is only practical when the
 // dispatcher itself enumerates every variant in one place.
 

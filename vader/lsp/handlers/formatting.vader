@@ -60,7 +60,7 @@ full_doc_edit_json :: fn(src: string, formatted: string) -> JsonValue {
 count_lines :: fn(src: string) -> i32 {
     n: i32 = 1
     for b in src.bytes() {
-        if b == 10 { n = n + 1 }
+        if b == '\n' { n = n + 1 }
     }
     return n
 }

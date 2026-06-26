@@ -126,7 +126,7 @@ advance :: fn(l: Lexer, n: usize) -> void {
             return
         }
         b :: i32(u32(l.bytes[l.pos]))
-        if b == 10 {                       // '\n' (0x0A)
+        if b == '\n' {
             l.line = l.line + 1
             l.col = 1
         } else if b < 128 || b >= 192 {    // ASCII or UTF-8 leading byte

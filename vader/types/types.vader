@@ -430,8 +430,8 @@ export strip_distinct :: fn(t: Type) -> Type {
     return t
 }
 
-/// Map `strip_distinct` over a type-arg list. Returns a fresh array only when
-/// some element changed; otherwise the same elements (each unchanged).
+/// Map `strip_distinct` over a type-arg list. Always returns a fresh array
+/// with each element passed through `strip_distinct`.
 /// @param args  the concrete type arguments.
 /// @return      `args` with every distinct collapsed to its backing.
 export strip_distinct_each :: fn(args: Type[]) -> Type[] {

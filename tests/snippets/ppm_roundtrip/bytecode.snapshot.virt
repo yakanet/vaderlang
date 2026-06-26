@@ -856,9 +856,9 @@ fn 6 std_images_ppm$skip_ws (ref,usize) -> usize
   local $k_8 u8
   local and_res bool
   local $idx_12 u8
-  local $cast_14 u8
-  local $k_17 usize
-  local $k_20 usize
+  local $k_13 u8
+  local $k_16 usize
+  local $k_19 usize
   local.get 0
   array.len
   local.set 2
