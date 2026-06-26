@@ -149,24 +149,34 @@ fold_bin_op :: fn(op: LoweredBinaryOp, l: ConstValue, r: ConstValue) -> ConstVal
 // Folds the arithmetic / bitwise / comparison ops; logical And/Or are
 // bool-only (never reach here with int operands) so they stay unfolded (→ null).
 fold_int_bin_op :: fn(op: LoweredBinaryOp, l: i64, r: i64) -> ConstValue | null = match op {
+    // Sign/width-independent ops fold safely : the result bits are identical
+    // for signed and unsigned operands (the value is a bare i64 — the width +
+    // signedness aren't carried here).
     .Add -> ConstInt { .value = l + r }
     .Sub -> ConstInt { .value = l - r }
     .Mul -> ConstInt { .value = l * r }
-    .Div -> if r == 0 { null } else { ConstInt { .value = l / r } }
-    .Mod -> if r == 0 { null } else { ConstInt { .value = l - (l / r) * r } }
-    // Shifts < 0 or ≥ 64 are runtime-defined ; skip so the VM/runtime (which
-    // knows the type width) handles them.
-    .Shl -> if r < 0 || r >= 64 { null } else { ConstInt { .value = l << r } }
-    .Shr -> if r < 0 || r >= 64 { null } else { ConstInt { .value = l >> r } }
     .BitAnd -> ConstInt { .value = l & r }
     .BitOr  -> ConstInt { .value = l | r }
     .BitXor -> ConstInt { .value = l ^ r }
     .Eq  -> ConstBool { .value = l == r }
     .Neq -> ConstBool { .value = l != r }
-    .Lt  -> ConstBool { .value = l <  r }
-    .Lte -> ConstBool { .value = l <= r }
-    .Gt  -> ConstBool { .value = l >  r }
-    .Gte -> ConstBool { .value = l >= r }
+    // Shifts < 0 or ≥ 64 are runtime-defined ; skip so the runtime (which knows
+    // the type width) handles them. Left shift is sign-independent at a fixed
+    // width, so it stays.
+    .Shl -> if r < 0 || r >= 64 { null } else { ConstInt { .value = l << r } }
+    // Sign-DEPENDENT ops can't fold here without the operand signedness :
+    // division / remainder differ signed vs unsigned, `>>` is arithmetic on a
+    // signed i64 but logical on an unsigned operand, and ordered comparisons
+    // flip for a value ≥ 2^63. Folding any of these against the wrong sign would
+    // diverge from the runtime (`op_select` routes u64/u32 to the unsigned ops),
+    // so leave them unfolded — the VM / native runtime computes them correctly.
+    .Div -> null
+    .Mod -> null
+    .Shr -> null
+    .Lt  -> null
+    .Lte -> null
+    .Gt  -> null
+    .Gte -> null
     .And | .Or -> null
 }
 
