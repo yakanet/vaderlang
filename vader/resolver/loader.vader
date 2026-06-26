@@ -16,7 +16,7 @@
 module "vader/resolver"
 
 import "std/collections" { MutableMap }
-import "std/io" { exists, is_dir, read_file }
+import "std/io" { exists, is_dir, read_file_string }
 import "std/path" { to_posix }
 import "vader/diagnostics" { Diagnostic, Position, Span, resolver_error }
 import "vader/parser" { NodeIdFactory, new_node_id_factory, parse_source, assign_program_ids }
@@ -266,7 +266,7 @@ ingest_module :: fn(
 read_with_overlay :: fn(overlay: MutableMap<string, string>, path: string) -> string {
     buffered :: overlay[path]
     if buffered != null { return buffered }
-    disk :: read_file(path)
+    disk :: read_file_string(path)
     if disk is string { return disk }
     return ""
 }

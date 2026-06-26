@@ -5,7 +5,7 @@
     let path: string = "/tmp/vader_io_roundtrip.txt" :string
     call :Error | null
       callee:
-        write_file :fn(string, string) -> Error | null
+        write_file_string :fn(string, string) -> Error | null
       arg0:
         path :string
       arg1:
@@ -36,7 +36,7 @@
     let contents: Error | string =
       call :Error | string
         callee:
-          read_file :fn(string) -> Error | string
+          read_file_string :fn(string) -> Error | string
         arg0:
           path :string
     block :void

@@ -30,7 +30,7 @@ module "vader/vm"
 
 bc :: import "vader/bytecode"
 
-import "std/io" { read_file, eprintln }
+import "std/io" { read_file_string, eprintln }
 import "std/string" { index_of, decode_codepoint_at, join }
 
 // IEEE 754 bit reinterpret for the F64ToBits / BitsToF64 arms. The VM's own
@@ -2204,7 +2204,7 @@ do_memory_copy :: fn(frame: Frame) -> Trap | null {
 ///              message goes to stderr in both cases.
 /// @error       missing file ; any VM trap surfaced by `exec`.
 export run_virt :: fn(path: string, host_argv: string[]) -> i32 {
-    source :: read_file(path)
+    source :: read_file_string(path)
     if source is Error {
         eprintln("vader run: cannot read ${path}")
         return 1

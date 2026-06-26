@@ -33,7 +33,7 @@
 
 module "main"
 
-import "std/io" { eprintln, read_file }
+import "std/io" { eprintln, read_file_string }
 import "std/string" { chars }
 import "std/testing" { assert }
 bc :: import "vader/bytecode"
@@ -303,7 +303,7 @@ compile_brainfuck :: fn(source: string) -> bc.BytecodeModule {
 
 main :: fn(argv: string[]) -> i32 {
     path :: if argv.len() > 1 { argv[1] } else { DEFAULT_PATH }
-    src :: read_file(path)
+    src :: read_file_string(path)
     if src is Error {
         eprintln("brainfuck: cannot read ${path}")
         return 1

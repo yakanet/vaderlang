@@ -12,7 +12,7 @@ module "vader/vm"
 
 bc :: import "vader/bytecode"
 
-import "std/io" { read_file, write_file, exists, is_dir, read_dir, print, eprint }
+import "std/io" { read_file_bytes, write_file_bytes, exists, is_dir, read_dir, print, eprint }
 import "std/process" { spawn_run, spawn_last_stdout, spawn_last_stderr }
 import "std/math" { sqrt, pow, floor, ceil, round }
 import "std/time" { now, monotonic }
@@ -341,31 +341,36 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         return HostOk { .value = F64Val { .value = parsed } }
     }
     // ---- std/io fallible file ops ---------------------------------------
-    if info.mangled_name == r"std_io$read_file" {
-        path :: read_string(stack[arg_base], at_pc, "read_file")
+    // `read_file` / `write_file` are gone — `read_file_string` /
+    // `write_file_string` are now pure-Vader wrappers over the byte
+    // intrinsics below, so the VM executes their bytecode directly (which
+    // calls `std_io$read_file_bytes` / `std_io$write_file_bytes`) — no
+    // dedicated host arm.
+    if info.mangled_name == r"std_io$read_file_bytes" {
+        path :: read_string(stack[arg_base], at_pc, "read_file_bytes")
         if path is Trap { return path }
-        result :: read_file(path.value)
-        // `e.message()` would dispatch through the Error trait vtable,
-        // but DCE strips most `Error` impls that aren't called elsewhere
-        // in the VM. Interpolate the path so the snippet output at least
-        // names the missing file — the trait-method dispatch can land
-        // once DCE preserves cross-impl `Error.message()` (TODO §2.4-err).
-        return match result {
-            is string as s -> HostOk { .value = StringVal { .value = s } }
-            is Error       -> HostOk { .value = ErrorVal  { .message = "read_file failed: ${path.value}" } }
+        result :: read_file_bytes(path.value)
+        // Early-return narrows `result` to `u8[]` on the success path. The
+        // bytes are boxed as `u8` slots (riding in `I32Val`) tagged so they
+        // narrow under `is u8[]` — mirrors the `bytes` arm above.
+        if result is Error {
+            return HostOk { .value = ErrorVal { .message = "read_file_bytes failed: ${path.value}" } }
         }
+        return HostOk { .value = u8_array_to_value(result, u8_array_type_id) }
     }
-    if info.mangled_name == r"std_io$write_file" {
-        path    :: read_string(stack[arg_base    ], at_pc, "write_file path")
-        content :: read_string(stack[arg_base + 1], at_pc, "write_file content")
-        if path    is Trap { return path }
-        if content is Trap { return content }
-        result :: write_file(path.value, content.value)
-        // The C-emitter assigns a non-zero tag to the `null` type, but
-        // `vader_box_null` (used by the runtime for `null | Error` success
-        // returns) emits tag 0, so `is null` would miss. Match the
-        // failure path explicitly and fall through to success.
-        if result is Error { return HostOk { .value = ErrorVal { .message = "write_file failed: ${path.value}" } } }
+    if info.mangled_name == r"std_io$write_file_bytes" {
+        path :: read_string(stack[arg_base], at_pc, "write_file_bytes path")
+        if path is Trap { return path }
+        arr :: read_array(stack[arg_base + 1], at_pc, "write_file_bytes content")
+        if arr is Trap { return arr }
+        content: u8[] = [] * arr.length
+        for i in 0..<arr.length {
+            b :: read_i32(arr.elements[arr.offset + i], at_pc, "write_file_bytes byte")
+            if b is Trap { return b }
+            content.push(u8(b.value))
+        }
+        result :: write_file_bytes(path.value, content)
+        if result is Error { return HostOk { .value = ErrorVal { .message = "write_file_bytes failed: ${path.value}" } } }
         return HostOk { .value = NullVal {} }
     }
     if info.mangled_name == r"std_io$exists" {

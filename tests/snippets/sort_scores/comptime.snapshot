@@ -3,10 +3,10 @@
 ## tests/snippets/sort_scores
 
 ## generic instances
-  MappedIterator<T, U>
-  MappedIterator<T, U>
-  MappedIterator<T, U>
   Into<Target>
+  MappedIterator<T, U>
+  MappedIterator<T, U>
+  MappedIterator<T, U>
   FilterIterator<T>
   FilterIterator<T>
   FilterIterator<T>

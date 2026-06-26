@@ -1,0 +1,304 @@
+// std/images/ppm/ppm.vader — PPM (Portable Pixmap, P6) encode + decode.
+//
+// Converts between a raw byte stream in the binary P6 format and a structured
+// `Ppm` value. P6 is an ASCII header (`P6 width height maxval`) followed by the
+// raw RGB raster: 3 samples per pixel, row-major, top-to-bottom. A sample is 1
+// byte when `maxval < 256` (8-bit) and 2 bytes — most-significant byte first
+// (big-endian) — when `maxval >= 256` (16-bit). `pixels` always holds the raster
+// exactly as it appears on disk, so encode/decode round-trip byte-for-byte and
+// the 16-bit byte order is preserved without reinterpretation.
+//
+// Scope: P6 binary only (no P3 ASCII variant). The header may carry `#` comment
+// lines between tokens, per the netpbm spec.
+
+module "std/images/ppm"
+
+// ---- types ----------------------------------------------------------------
+
+/// An RGB pixmap decoded from / to be encoded as binary PPM (P6).
+export Ppm :: struct {
+    width:  u32
+    height: u32
+    /// Maximum sample value, in `1..=65535`. `< 256` ⇒ 8-bit (1 byte/sample),
+    /// otherwise 16-bit (2 bytes/sample, most-significant byte first).
+    maxval: u32
+    /// Raw raster, row-major, exactly as stored on disk:
+    /// `width*height*3` bytes when 8-bit, `width*height*6` (MSB-first pairs)
+    /// when 16-bit.
+    pixels: u8[]
+}
+
+/// Error raised by `decode` (malformed stream) or `encode` (inconsistent `Ppm`).
+export PpmError :: struct {
+    msg: string
+}
+
+PpmError implements Error {
+    message :: fn(self) -> string { return self.msg }
+}
+
+/// Bytes per colour sample for a given maxval: 1 when `maxval < 256`, else 2.
+/// Exposed so callers can index `Ppm.pixels` correctly for 16-bit images.
+/// @param maxval  the image's maximum sample value.
+export bytes_per_sample :: fn(maxval: u32) -> usize = if maxval < 256 { 1 } else { 2 }
+
+// ---- header scanning ------------------------------------------------------
+
+// True for the six ASCII whitespace bytes the PPM spec allows between header
+// tokens: space, TAB, LF, VT, FF, CR.
+is_ws_byte :: fn(b: u8) = b == u8(0x20) || b == u8(0x09) || b == u8(0x0a)
+    || b == u8(0x0b) || b == u8(0x0c) || b == u8(0x0d)
+
+// True for an ASCII decimal digit. A char literal coerces to u8 in the
+// comparison (the byte data IS ASCII here), mirroring std/base64's decode_byte.
+is_digit_byte :: fn(b: u8) = b >= '0' && b <= '9'
+
+// Result of scanning one unsigned decimal integer from the header. `found` is
+// false when no digit was read at `from` or when the value overflowed u32 (both
+// surface as a malformed-header error at the call site).
+ScanInt :: struct {
+    value: u32
+    pos:   usize
+    found: bool
+}
+
+// Advance past whitespace and `# … <LF>` comment lines, returning the index of
+// the next significant byte (or `bs.len()` at end of input).
+skip_ws :: fn(bs: const u8[], from: usize) -> usize {
+    n :: bs.len()
+    p: usize = from
+    for p < n {
+        b :: bs[p]
+        if b == '#' {
+            for p < n && bs[p] != u8(0x0a) { p = p + 1 }
+        } else if is_ws_byte(b) {
+            p = p + 1
+        } else {
+            return p
+        }
+    }
+    return p
+}
+
+// Read a run of ASCII digits as a u32 starting at `from`. Stops at the first
+// non-digit. Guards against u32 overflow so a malformed huge run errors rather
+// than wrapping.
+scan_uint :: fn(bs: const u8[], from: usize) -> ScanInt {
+    n :: bs.len()
+    p: usize = from
+    v: u32 = 0
+    for p < n && is_digit_byte(bs[p]) {
+        d :: u32(bs[p] - '0')
+        // Bail (found = false) rather than wrap on a malformed huge run.
+        if v > (u32(4294967295) - d) / u32(10) {
+            return ScanInt { .value = v, .pos = p, .found = false }
+        }
+        v = v * u32(10) + d
+        p = p + 1
+    }
+    return ScanInt { .value = v, .pos = p, .found = p > from }
+}
+
+// ---- decode ---------------------------------------------------------------
+
+/// Decode a binary P6 PPM byte stream into a `Ppm`.
+///
+/// Validates the `P6` magic, parses the `width height maxval` header (skipping
+/// whitespace and `#` comments), consumes exactly one whitespace byte after
+/// `maxval`, and checks the remaining raster length against
+/// `width * height * 3 * bytes_per_sample(maxval)`. `pixels` is an owned copy of
+/// that raster.
+///
+/// @param data  the full P6 byte stream.
+/// @return      the decoded `Ppm` on success.
+/// @error       `PpmError` on a bad magic, a missing/invalid header integer, a
+///              maxval outside `1..=65535`, a missing whitespace after maxval,
+///              or a raster whose length disagrees with the header.
+export decode :: fn(data: const u8[]) -> Ppm | PpmError {
+    if data.len() < 2 || data[0] != 'P' || data[1] != '6' {
+        return PpmError { .msg = "ppm: not a P6 stream (bad magic)" }
+    }
+
+    p0 :: skip_ws(data, 2)
+    w :: scan_uint(data, p0)
+    if !w.found { return PpmError { .msg = "ppm: missing or invalid width" } }
+
+    p1 :: skip_ws(data, w.pos)
+    h :: scan_uint(data, p1)
+    if !h.found { return PpmError { .msg = "ppm: missing or invalid height" } }
+
+    p2 :: skip_ws(data, h.pos)
+    mv :: scan_uint(data, p2)
+    if !mv.found { return PpmError { .msg = "ppm: missing or invalid maxval" } }
+    if mv.value == 0 || mv.value > u32(65535) {
+        return PpmError { .msg = "ppm: maxval must be in 1..=65535, got ${mv.value}" }
+    }
+
+    // Exactly one whitespace byte separates maxval from the raster.
+    if mv.pos >= data.len() || !is_ws_byte(data[mv.pos]) {
+        return PpmError { .msg = "ppm: missing whitespace after maxval" }
+    }
+    raster_start :: mv.pos + 1
+
+    bps :: bytes_per_sample(mv.value)
+    expected :: usize(w.value) * usize(h.value) * 3 * bps
+    raster_len :: data.len() - raster_start
+    if raster_len != expected {
+        return PpmError { .msg = "ppm: raster is ${raster_len} bytes, expected ${expected}" }
+    }
+
+    pixels: u8[] = [] * raster_len
+    pixels.push_all(data[raster_start..<data.len()])
+    return Ppm { .width = w.value, .height = h.value, .maxval = mv.value, .pixels = pixels }
+}
+
+// ---- encode ---------------------------------------------------------------
+
+/// Encode a `Ppm` as a binary P6 byte stream (ASCII header + raw raster).
+///
+/// @param img  the image to encode ; `img.pixels.len()` must equal
+///             `width * height * 3 * bytes_per_sample(maxval)`.
+/// @return     the P6 byte stream.
+/// @error      `PpmError` when `maxval` is outside `1..=65535`, or when
+///             `pixels.len()` disagrees with the dimensions.
+export encode :: fn(img: Ppm) -> u8[] | PpmError {
+    if img.maxval == 0 || img.maxval > u32(65535) {
+        return PpmError { .msg = "ppm: maxval must be in 1..=65535, got ${img.maxval}" }
+    }
+    bps :: bytes_per_sample(img.maxval)
+    expected :: usize(img.width) * usize(img.height) * 3 * bps
+    if img.pixels.len() != expected {
+        return PpmError { .msg = "ppm: pixels is ${img.pixels.len()} bytes, expected ${expected}" }
+    }
+
+    header :: "P6\n${img.width} ${img.height}\n${img.maxval}\n"
+    hb :: header.bytes()
+    out: u8[] = [] * (hb.len() + img.pixels.len())
+    out.push_all(hb)
+    out.push_all(img.pixels)
+    return out
+}
+
+// ---- display ---------------------------------------------------------------
+
+Ppm implements Display {
+    // Concise summary — dimensions, maxval, raster size, bit depth. Never dumps
+    // the raster.
+    to_string :: fn(self) -> string {
+        depth :: if bytes_per_sample(self.maxval) == 1 { "8-bit" } else { "16-bit" }
+        return "Ppm ${self.width}x${self.height} maxval=${self.maxval} (${self.pixels.len()} bytes, ${depth})"
+    }
+}
+
+// ---- tests ----------------------------------------------------------------
+
+import "std/testing" { assert, assert_eq }
+
+@test test_encode_header_and_raster :: fn() -> void {
+    px: u8[] = [10, 20, 30, 40, 50, 60]
+    img :: Ppm { .width = 2, .height = 1, .maxval = 255, .pixels = px }
+    out :: encode(img)
+    if out is PpmError {
+        assert(false, "encode failed: ${out.msg}")
+    } else {
+        hdr :: "P6\n2 1\n255\n"
+        hlen :: hdr.bytes().len()
+        assert_eq(out[0..<hlen].bytes_to_string(), hdr)
+        assert_eq(out.len(), hlen + 6)
+        assert_eq(i32(out[hlen]), i32(10))
+        assert_eq(i32(out[hlen + 5]), i32(60))
+    }
+}
+
+@test test_roundtrip_8bit :: fn() -> void {
+    px: u8[] = [0, 64, 128, 255, 1, 2, 3, 4, 5, 250, 200, 100]
+    img :: Ppm { .width = 2, .height = 2, .maxval = 255, .pixels = px }
+    enc :: encode(img)
+    if enc is PpmError {
+        assert(false, "encode failed")
+        return
+    }
+    dec :: decode(enc)
+    if dec is PpmError {
+        assert(false, "decode failed: ${dec.msg}")
+    } else {
+        assert_eq(dec.width, u32(2))
+        assert_eq(dec.height, u32(2))
+        assert_eq(dec.maxval, u32(255))
+        assert_eq(dec.pixels.len(), usize(12))
+        for i in 0..<dec.pixels.len() {
+            assert_eq(i32(dec.pixels[i]), i32(px[i]))
+        }
+    }
+}
+
+@test test_roundtrip_16bit :: fn() -> void {
+    px: u8[] = [0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc]
+    img :: Ppm { .width = 1, .height = 1, .maxval = 65535, .pixels = px }
+    enc :: encode(img)
+    if enc is PpmError {
+        assert(false, "encode 16-bit failed")
+        return
+    }
+    dec :: decode(enc)
+    if dec is PpmError {
+        assert(false, "decode 16-bit failed: ${dec.msg}")
+    } else {
+        assert_eq(dec.maxval, u32(65535))
+        assert_eq(dec.pixels.len(), usize(6))
+        assert_eq(i32(dec.pixels[0]), i32(0x12))
+        assert_eq(i32(dec.pixels[5]), i32(0xbc))
+    }
+}
+
+@test test_decode_with_comment :: fn() -> void {
+    src :: "P6\n# a comment\n2 1\n255\n"
+    full: u8[] = [] * (src.bytes().len() + 6)
+    full.push_all(src.bytes())
+    tail: u8[] = [11, 22, 33, 44, 55, 66]
+    full.push_all(tail)
+    dec :: decode(full)
+    if dec is PpmError {
+        assert(false, "decode with comment failed: ${dec.msg}")
+    } else {
+        assert_eq(dec.width, u32(2))
+        assert_eq(dec.height, u32(1))
+        assert_eq(i32(dec.pixels[0]), i32(11))
+    }
+}
+
+@test test_decode_rejects_bad_magic :: fn() -> void {
+    bad: u8[] = ['P', '3', u8(0x0a)]
+    r :: decode(bad)
+    if r is PpmError { assert(true, "rejected") } else { assert(false, "P3 must be rejected") }
+}
+
+@test test_decode_rejects_size_mismatch :: fn() -> void {
+    src :: "P6\n2 2\n255\n"
+    full: u8[] = [] * (src.bytes().len() + 3)
+    full.push_all(src.bytes())
+    tail: u8[] = [1, 2, 3]
+    full.push_all(tail)
+    r :: decode(full)
+    if r is PpmError { assert(true, "rejected") } else { assert(false, "size mismatch must be rejected") }
+}
+
+@test test_encode_rejects_bad_maxval :: fn() -> void {
+    empty: u8[] = []
+    r0 :: encode(Ppm { .width = 0, .height = 0, .maxval = 0, .pixels = empty })
+    if r0 is PpmError { assert(true, "rejected") } else { assert(false, "maxval 0 must be rejected") }
+    r1 :: encode(Ppm { .width = 1, .height = 1, .maxval = 70000, .pixels = empty })
+    if r1 is PpmError { assert(true, "rejected") } else { assert(false, "maxval 70000 must be rejected") }
+}
+
+@test test_encode_rejects_pixel_mismatch :: fn() -> void {
+    px: u8[] = [1, 2, 3]
+    r :: encode(Ppm { .width = 2, .height = 2, .maxval = 255, .pixels = px })
+    if r is PpmError { assert(true, "rejected") } else { assert(false, "pixel mismatch must be rejected") }
+}
+
+@test test_display :: fn() -> void {
+    px: u8[] = [10, 20, 30, 40, 50, 60]
+    img :: Ppm { .width = 2, .height = 1, .maxval = 255, .pixels = px }
+    assert_eq("${img}", "Ppm 2x1 maxval=255 (6 bytes, 8-bit)")
+}

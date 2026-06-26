@@ -16,7 +16,7 @@
 
 module "vader/resolver"
 
-import "std/io" { exists, is_dir, read_dir, read_file, current_executable_location }
+import "std/io" { exists, is_dir, read_dir, read_file_string, current_executable_location }
 import "std/path" { Path, to_path, as_string, parent }
 import "std/sort" { sort }
 import "std/string" { trim_prefix, compare_ascending, ends_with, starts_with }
@@ -179,7 +179,7 @@ export list_vader_files :: fn(root_path: string) -> string[] {
 }
 
 try_read :: fn(path: string) -> string | null {
-    result :: read_file(path)
+    result :: read_file_string(path)
     if result is string as s { return s }
     return null
 }

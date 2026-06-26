@@ -26,7 +26,7 @@ type 23 union 0,21
 type 24 ref Iterator
 type 25 fn (3) -> 4
 type 26 struct std_string$StringChars { bytes:17,cursor:6,length:6 }
-type 27 struct __Tuple_41 { _0:3,_1:6 }
+type 27 struct __Tuple_42 { _0:3,_1:6 }
 string 0 "range sum  = "
 string 1 "array sum  = "
 string 2 "hello, world!"

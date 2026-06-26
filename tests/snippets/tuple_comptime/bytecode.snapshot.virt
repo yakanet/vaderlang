@@ -16,8 +16,8 @@ type 13 primitive u8
 type 14 struct std_core$Buffer {  }
 type 15 primitive void
 type 16 struct std_string_builder$StringBuilder { parts:10 }
-type 17 struct __Tuple_31 { _0:1,_1:1 }
-type 18 struct __Tuple_32 { _0:5,_1:5,_2:4 }
+type 17 struct __Tuple_32 { _0:1,_1:1 }
+type 18 struct __Tuple_33 { _0:5,_1:5,_2:4 }
 type 19 array 7
 string 0 "dim "
 string 1 "x"

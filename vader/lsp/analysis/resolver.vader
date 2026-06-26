@@ -13,7 +13,7 @@
 
 module "vader/lsp/analysis"
 
-import "std/io" { read_file, read_dir, is_dir }
+import "std/io" { read_file_string, read_dir, is_dir }
 import "std/string" { starts_with }
 import "vader/resolver" { default_stdlib_root, find_manifest_root }
 import "vader/lsp/protocol" { uri_to_path, path_to_uri }
@@ -106,7 +106,7 @@ resolve_imported :: fn(state: ServerState, idx: DocIndex, imp: ImportEntry) -> E
 // to read, or doesn't export `name`. The returned URI is `file://`
 // + the absolute path so editors jump correctly.
 lookup_in_file :: fn(path: string, name: string) -> ExternalHit | null {
-    src_or :: read_file(path)
+    src_or :: read_file_string(path)
     match src_or {
         is Error -> { return null }
         is string as src -> {

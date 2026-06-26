@@ -8,9 +8,10 @@ type 5 array 6
 type 6 primitive u8
 type 7 struct std_core$Buffer {  }
 type 8 primitive void
-type 9 union 10,4
+type 9 union 10,0
 type 10 ref Error
-type 11 union 10,0
+type 11 union 10,4
+type 12 union 10,5
 string 0 "/tmp/vader_io_roundtrip.txt"
 string 1 "hello from vader"
 string 2 "exists: "
@@ -19,11 +20,12 @@ string 4 "false"
 string 5 "read: "
 string 6 "read failed"
 string 7 "\n"
-import 0 bytes std_core$bytes (string) -> ref
-import 1 write std_io$write (i32,string) -> void
-import 2 read_file std_io$read_file (string) -> ref
-import 3 write_file std_io$write_file (string,string) -> ref
-import 4 exists std_io$exists (string) -> bool
+import 0 bytes_to_string std_core$bytes_to_string (ref) -> string
+import 1 bytes std_core$bytes (string) -> ref
+import 2 write std_io$write (i32,string) -> void
+import 3 read_file_bytes std_io$read_file_bytes (string) -> ref
+import 4 write_file_bytes std_io$write_file_bytes (string,ref) -> ref
+import 5 exists std_io$exists (string) -> bool
 impl 7 ByteAccess
 export main 0
 
@@ -36,10 +38,10 @@ fn 0 snippet$main () -> i32
   local.set 0
   local.get 0
   string.const 1
-  call.import 3
+  call 1
   drop
   local.get 0
-  call.import 4
+  call.import 5
   if $L0 void
     string.const 3
     local.set 1
@@ -49,10 +51,10 @@ fn 0 snippet$main () -> i32
   end $L0
   string.const 2
   local.get 1
-  call 2
-  call 1
+  call 4
+  call 3
   local.get 0
-  call.import 2
+  call 2
   local.tee 2
   local.tee 3
   type_check 4
@@ -62,79 +64,106 @@ fn 0 snippet$main () -> i32
     local.set 0
     string.const 5
     local.get 0
-    call 2
-    call 1
+    call 4
+    call 3
     return.lit i32.const 0
   end $L1
   local.get 3
   type_check 10
   if $L2 void
     string.const 6
-    call 1
+    call 3
     return.lit i32.const 0
   end $L2
   return
 end
 
-fn 1 std_io$println__string (string) -> void
-  i32.const 0
+fn 1 std_io$write_file_string (string,string) -> ref
+  local $call_2 ref
+  local.get 1
+  call.import 1
+  local.set 2
   local.get 0
-  call.import 1
-  i32.const 0
-  string.const 7
-  call.import 1
+  local.get 2
+  call.import 4
   return
 end
 
-fn 2 std_string_builder$concat2 (string,string) -> string
+fn 2 std_io$read_file_string (string) -> ref
+  local r ref
+  local.get 0
+  call.import 3
+  local.tee 1
+  type_check 10
+  if $L0 void
+    local.get 1
+    return
+  end $L0
+  local.get 1
+  call.import 0
+  box 4
+  return
+end
+
+fn 3 std_io$println__string (string) -> void
+  i32.const 0
+  local.get 0
+  call.import 2
+  i32.const 0
+  string.const 7
+  call.import 2
+  return
+end
+
+fn 4 std_string_builder$concat2 (string,string) -> string
   local la usize
   local $len_6 usize
   local buf ref
   local $k_11 usize
   local.get 0
-  call.import 0
+  call.import 1
   array.len
   local.set 2
   local.get 1
-  call.import 0
+  call.import 1
   array.len
   local.set 3
   local.get 2
   local.get 3
   i64.add
   local.tee 3
-  call 3
+  call 5
   local.set 4
   i64.const 0
   local.set 5
   local.get 4
   local.get 5
   local.get 0
-  call 5
+  call 7
   local.get 4
   local.get 2
   local.get 1
-  call 5
+  call 7
   local.get 4
   local.get 3
-  call 4
+  call 6
   return
 end
 
-fn 3 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 5 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   object_new 0
   return
 end
 
-fn 4 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 6 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
   buffer_to_string
   return
 end
 
-fn 5 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 7 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0
   local.get 1
   local.get 2

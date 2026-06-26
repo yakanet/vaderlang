@@ -7,7 +7,7 @@
         let __try_0: Error | string =
           call :Error | string
             callee:
-              read_file :fn(string) -> Error | string
+              read_file_string :fn(string) -> Error | string
             arg0:
               path :string
         ~>
