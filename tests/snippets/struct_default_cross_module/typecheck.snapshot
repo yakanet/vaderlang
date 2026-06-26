@@ -15,3 +15,10 @@
   expr 18:12    IdentExpr      :: type
   expr 18:16    FieldExpr      :: usize
   expr 18:16    IdentExpr      :: Node
+
+## tests/snippets/struct_default_cross_module/shapes
+  ConstDecl      DEFAULT_ID           :: usize
+  StructDecl     Node                 :: Node
+  expr 11:19    IdentExpr      :: usize
+  expr 7:22     CallExpr       :: usize
+  expr 7:22     IdentExpr      :: type

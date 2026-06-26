@@ -16,3 +16,14 @@
   expr 20:26    IdentExpr      :: Box
   expr 20:5     CallExpr       :: void
   expr 20:5     IdentExpr      :: fn(T) -> void
+
+## tests/snippets/struct_name_collision/mod_a
+  StructDecl     Box                  :: Box
+  FnDecl         make_a               :: fn() -> Box
+  expr 9:12     StructLitExpr  :: Box
+
+## tests/snippets/struct_name_collision/mod_b
+  StructDecl     Box                  :: Box
+  FnDecl         make_b               :: fn() -> Box
+  expr 11:12    StructLitExpr  :: Box
+  expr 11:27    StringLitExpr  :: string

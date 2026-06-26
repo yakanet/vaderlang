@@ -20,3 +20,24 @@
   expr 24:16    IdentExpr      :: Out
   expr 24:5     CallExpr       :: void
   expr 24:5     IdentExpr      :: fn(T) -> void
+
+## tests/snippets/narrow_imported_map/lib
+  StructDecl     Out                  :: Out
+  FnDecl         pick                 :: fn(MutableMap<i32, i32 | Wrap>, i32) -> null | Out
+  ConstDecl      Thing                :: type
+  StructDecl     Wrap                 :: Wrap
+  expr 14:10    IdentExpr      :: MutableMap<i32, i32 | Wrap>
+  expr 14:10    IndexExpr      :: i32 | null | Wrap
+  expr 14:12    IdentExpr      :: i32
+  expr 15:5     IfExpr         :: void
+  expr 15:8     BinaryExpr     :: bool
+  expr 15:8     IdentExpr      :: i32 | null | Wrap
+  expr 16:10    BinaryExpr     :: bool
+  expr 16:10    IdentExpr      :: i32 | Wrap
+  expr 16:15    IdentExpr      :: Wrap
+  expr 16:5     IfExpr         :: void
+  expr 16:8     UnaryExpr      :: bool
+  expr 17:12    StructLitExpr  :: Out
+  expr 17:27    FieldExpr      :: i32[]
+  expr 17:27    IdentExpr      :: Wrap
+  expr 17:27    IndexExpr      :: i32

@@ -33,3 +33,6 @@
   expr 26:29    FieldExpr      :: Color
   expr 26:5     CallExpr       :: void
   expr 26:5     IdentExpr      :: fn(T) -> void
+
+## tests/snippets/namespace_enum_variant/palette
+  EnumDecl       Color                :: Color
