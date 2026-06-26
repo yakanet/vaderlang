@@ -17,7 +17,7 @@
             "alias": null
           },
           {
-            "name": "read_file",
+            "name": "read_file_string",
             "alias": null
           }
         ]
@@ -63,7 +63,7 @@
                 "kind": "CallExpr",
                 "callee": {
                   "kind": "IdentExpr",
-                  "name": "read_file"
+                  "name": "read_file_string"
                 },
                 "args": [
                   {

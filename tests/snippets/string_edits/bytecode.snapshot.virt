@@ -11,7 +11,7 @@ type 8 primitive void
 type 9 primitive char
 type 10 array 4
 type 11 primitive isize
-type 12 struct __Tuple_28 { _0:9,_1:3 }
+type 12 struct __Tuple_29 { _0:9,_1:3 }
 type 13 struct std_string_builder$StringBuilder { parts:10 }
 string 0 "hello world"
 string 1 "o"

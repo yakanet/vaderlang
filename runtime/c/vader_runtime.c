@@ -2501,9 +2501,12 @@ void vader_write(int32_t stream_tag, vader_string_t s) {
     fflush(f);
 }
 
-/* Tag-aware variants — the emitter passes the BcType indices for the success
- * and error variants. Caller-side boxing keeps the runtime tag-agnostic. */
-vader_box_t vader_read_file(vader_string_t path, uint32_t ok_tag, uint32_t err_tag) {
+/* Byte-oriented file I/O. `read_file_bytes` reads the whole file into a fresh
+ * owned `u8[]` (no intern, no UTF-8 reinterpretation) — `fread` lands directly
+ * in the array's slots. No Vader allocation runs between `vader_array_new` and
+ * the return, so `arr` cannot move before it is boxed. */
+vader_box_t vader_read_file_bytes(vader_string_t path, uint32_t arr_type,
+                                  uint32_t elem_tag, uint32_t err_tag) {
     const char* p = vader_atom_to_cstr(path);
     FILE* f = fopen(p, "rb");
     vader_atom_cstr_free(p);
@@ -2514,9 +2517,6 @@ vader_box_t vader_read_file(vader_string_t path, uint32_t ok_tag, uint32_t err_t
     }
     long size = ftell(f);
     if (size < 0) { fclose(f); return vader_box_string(err_tag, vader_string_new("ftell failed", 12)); }
-    /* Refuse files we can't safely allocate. The `SIZE_MAX/2` headroom keeps
-     * downstream `(size_t) size` arithmetic from wrapping anywhere we add a
-     * small offset (e.g. NUL terminators in scratch buffers). */
     if ((unsigned long) size > SIZE_MAX / 2) {
         fclose(f); return vader_box_string(err_tag, vader_string_new("file too large", 14));
     }
@@ -2524,29 +2524,39 @@ vader_box_t vader_read_file(vader_string_t path, uint32_t ok_tag, uint32_t err_t
         fclose(f); return vader_box_string(err_tag, vader_string_new("fseek failed", 12));
     }
 
-    char* buf = (char*) malloc((size_t) size + 1u);
-    if (buf == NULL) { fclose(f); vader_trap("read_file: malloc failed"); }
-    size_t n = fread(buf, 1, (size_t) size, f);
+    vader_array_t* arr = vader_array_new(arr_type, (size_t) size, VADER_ARRAY_KIND_U8, elem_tag);
+    size_t n = (size_t) size > 0 ? fread(arr->buf->slots, 1, (size_t) size, f) : 0;
     fclose(f);
     if (n != (size_t) size) {
-        free(buf);
         return vader_box_string(err_tag, vader_string_new("short read", 10));
     }
-    return vader_box_string(ok_tag, vader_atom_intern_take(buf, (size_t) size));
+    return vader_box_obj(arr_type, arr);
 }
 
-vader_box_t vader_write_file(vader_string_t path, vader_string_t content,
-                             uint32_t ok_tag, uint32_t err_tag) {
+/* Write a `u8[]`'s raw bytes verbatim. Handles both a borrowed view (bytes live
+ * in the owner atom) and a materialised buffer — mirrors `vader_string_as_string`. */
+vader_box_t vader_write_file_bytes(vader_string_t path, vader_array_t* content,
+                                   uint32_t err_tag) {
     const char* p = vader_atom_to_cstr(path);
     FILE* f = fopen(p, "wb");
     vader_atom_cstr_free(p);
     if (f == NULL) return vader_box_string(err_tag, vader_string_new("open failed", 11));
-    size_t clen = vader_atom_len(content);
-    size_t n = fwrite(vader_atom_data(content), 1, clen, f);
+
+    content = vader_array_resolve(content);
+    size_t len = content->length;
+    size_t n = len;
+    if (len > 0) {
+        if (vader_array_is_borrowed(content)) {
+            const uint8_t* src = (const uint8_t*) vader_atom_data(vader_array_borrowed_owner(content));
+            n = fwrite(src + content->offset, 1, len, f);
+        } else {
+            vader_array_resolve_buf(content);
+            const uint8_t* src = (const uint8_t*) content->buf->slots;
+            n = fwrite(src + content->offset, 1, len, f);
+        }
+    }
     fclose(f);
-    if (n != clen) return vader_box_string(err_tag, vader_string_new("short write", 11));
-    /* `void!` returns null on success per stdlib convention. */
-    (void) ok_tag;
+    if (n != len) return vader_box_string(err_tag, vader_string_new("short write", 11));
     return vader_box_null();
 }
 

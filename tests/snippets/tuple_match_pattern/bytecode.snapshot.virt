@@ -8,7 +8,7 @@ type 5 array 6
 type 6 primitive u8
 type 7 struct std_core$Buffer {  }
 type 8 primitive void
-type 9 struct __Tuple_25 { _0:1,_1:3 }
+type 9 struct __Tuple_26 { _0:1,_1:3 }
 string 0 "match"
 string 1 "n="
 string 2 " s="

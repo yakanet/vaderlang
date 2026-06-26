@@ -1,11 +1,11 @@
 module "snippet"
 
-import "std/io" { println, read_file }
+import "std/io" { println, read_file_string }
 
 // Exercise the `?` operator end-to-end: read_file returns string | Error, the
 // `?` propagates an Error; on the happy path we receive the file content.
 export read_or_default :: fn(path: string) -> string | Error {
-    return read_file(path)?
+    return read_file_string(path)?
 }
 
 export show :: fn(res: string | Error) -> void {

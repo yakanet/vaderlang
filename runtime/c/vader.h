@@ -874,9 +874,15 @@ float            vader_bits_to_f32(uint32_t b);
 /* ----------------------------------------------------------------- I/O */
 
 void           vader_write(int32_t stream_tag, vader_string_t s);
-vader_box_t    vader_read_file(vader_string_t path, uint32_t ok_tag, uint32_t err_tag);
-vader_box_t    vader_write_file(vader_string_t path, vader_string_t content,
-                                uint32_t ok_tag, uint32_t err_tag);
+/* Byte-oriented file I/O — lossless for arbitrary binary (unlike the string
+ * variants, which are codepoint/UTF-8 based). `read_file_bytes` materialises a
+ * fresh owned `u8[]` (arr_type / elem_tag are its BcType indices) ; the success
+ * box carries the array, the error box a message string. `write_file_bytes`
+ * writes `content`'s raw bytes (borrowed view or owned buffer), null on success. */
+vader_box_t    vader_read_file_bytes(vader_string_t path, uint32_t arr_type,
+                                     uint32_t elem_tag, uint32_t err_tag);
+vader_box_t    vader_write_file_bytes(vader_string_t path, vader_array_t* content,
+                                      uint32_t err_tag);
 vader_box_t    vader_read_line(uint32_t ok_tag, uint32_t err_tag);
 vader_bool_t   vader_exists(vader_string_t path);
 vader_bool_t   vader_is_dir(vader_string_t path);

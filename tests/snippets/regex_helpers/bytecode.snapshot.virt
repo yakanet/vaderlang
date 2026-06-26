@@ -15,7 +15,7 @@ type 12 primitive void
 type 13 array 9
 type 14 fn (1) -> 2
 type 15 struct std_string$StringChars { bytes:7,cursor:6,length:6 }
-type 16 struct __Tuple_33 { _0:1,_1:6 }
+type 16 struct __Tuple_34 { _0:1,_1:6 }
 type 17 struct std_string_builder$StringBuilder { parts:13 }
 type 18 union 5,0
 string 0 "foo.vader"

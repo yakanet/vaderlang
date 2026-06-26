@@ -1,0 +1,101 @@
+# Typecheck
+
+## tests/snippets/ppm_roundtrip
+  FnDecl         main                 :: fn() -> i32
+  expr 10:13    StringLitExpr  :: string
+  expr 11:16    SeqLitExpr     :: u8[]
+  expr 12:12    StructLitExpr  :: Ppm
+  expr 12:68    IdentExpr      :: u8[]
+  expr 14:12    CallExpr       :: PpmError | u8[]
+  expr 14:12    IdentExpr      :: fn(Ppm) -> PpmError | u8[]
+  expr 14:19    IdentExpr      :: Ppm
+  expr 15:15    IdentExpr      :: PpmError
+  expr 15:5     IfExpr         :: void
+  expr 15:8     BinaryExpr     :: bool
+  expr 15:8     IdentExpr      :: PpmError | u8[]
+  expr 16:17    StringLitExpr  :: string
+  expr 16:9     CallExpr       :: void
+  expr 16:9     IdentExpr      :: fn(T) -> void
+  expr 19:11    CallExpr       :: Error | null
+  expr 19:11    IdentExpr      :: fn(string, const u8[]) -> Error | null
+  expr 19:28    IdentExpr      :: string
+  expr 19:34    IdentExpr      :: u8[]
+  expr 20:14    IdentExpr      :: Error
+  expr 20:5     IfExpr         :: void
+  expr 20:8     BinaryExpr     :: bool
+  expr 20:8     IdentExpr      :: Error | null
+  expr 21:17    StringLitExpr  :: string
+  expr 21:9     CallExpr       :: void
+  expr 21:9     IdentExpr      :: fn(T) -> void
+  expr 24:12    CallExpr       :: Error | u8[]
+  expr 24:12    IdentExpr      :: fn(string) -> Error | u8[]
+  expr 24:28    IdentExpr      :: string
+  expr 25:15    IdentExpr      :: Error
+  expr 25:5     IfExpr         :: void
+  expr 25:8     BinaryExpr     :: bool
+  expr 25:8     IdentExpr      :: Error | u8[]
+  expr 26:17    StringLitExpr  :: string
+  expr 26:9     CallExpr       :: void
+  expr 26:9     IdentExpr      :: fn(T) -> void
+  expr 29:12    CallExpr       :: Ppm | PpmError
+  expr 29:12    IdentExpr      :: fn(const u8[]) -> Ppm | PpmError
+  expr 29:19    IdentExpr      :: u8[]
+  expr 30:15    IdentExpr      :: PpmError
+  expr 30:5     IfExpr         :: void
+  expr 30:8     BinaryExpr     :: bool
+  expr 30:8     IdentExpr      :: Ppm | PpmError
+  expr 31:17    StringLitExpr  :: string
+  expr 31:9     CallExpr       :: void
+  expr 31:9     IdentExpr      :: fn(T) -> void
+  expr 35:11    BinaryExpr     :: bool
+  expr 35:11    BinaryExpr     :: bool
+  expr 35:11    BinaryExpr     :: bool
+  expr 35:11    BinaryExpr     :: bool
+  expr 35:11    FieldExpr      :: u32
+  expr 35:11    IdentExpr      :: Ppm
+  expr 35:24    CallExpr       :: u32
+  expr 35:24    IdentExpr      :: type
+  expr 35:34    BinaryExpr     :: bool
+  expr 35:34    FieldExpr      :: u32
+  expr 35:34    IdentExpr      :: Ppm
+  expr 35:48    CallExpr       :: u32
+  expr 35:48    IdentExpr      :: type
+  expr 36:12    BinaryExpr     :: bool
+  expr 36:12    FieldExpr      :: u32
+  expr 36:12    IdentExpr      :: Ppm
+  expr 36:26    CallExpr       :: u32
+  expr 36:26    IdentExpr      :: type
+  expr 36:38    BinaryExpr     :: bool
+  expr 36:38    CallExpr       :: usize
+  expr 36:38    FieldExpr      :: fn() -> usize
+  expr 36:38    FieldExpr      :: u8[]
+  expr 36:38    IdentExpr      :: Ppm
+  expr 36:58    CallExpr       :: usize
+  expr 36:58    IdentExpr      :: type
+  expr 37:14    RangeExpr      :: Range<usize>
+  expr 37:18    CallExpr       :: usize
+  expr 37:18    FieldExpr      :: fn() -> usize
+  expr 37:18    FieldExpr      :: u8[]
+  expr 37:18    IdentExpr      :: Ppm
+  expr 38:12    BinaryExpr     :: bool
+  expr 38:12    FieldExpr      :: u8[]
+  expr 38:12    IdentExpr      :: Ppm
+  expr 38:12    IndexExpr      :: u8
+  expr 38:23    IdentExpr      :: usize
+  expr 38:29    IdentExpr      :: u8[]
+  expr 38:29    IndexExpr      :: u8
+  expr 38:32    IdentExpr      :: usize
+  expr 38:37    IdentExpr      :: bool
+  expr 38:9     IfExpr         :: void
+  expr 40:13    StringLitExpr  :: string
+  expr 40:16    IdentExpr      :: Ppm
+  expr 40:5     CallExpr       :: void
+  expr 40:5     IdentExpr      :: fn(T) -> void
+  expr 41:13    CallExpr       :: void
+  expr 41:13    IdentExpr      :: fn(T) -> void
+  expr 41:21    StringLitExpr  :: string
+  expr 41:36    CallExpr       :: void
+  expr 41:36    IdentExpr      :: fn(T) -> void
+  expr 41:44    StringLitExpr  :: string
+  expr 41:5     IfExpr         :: void
+  expr 41:8     IdentExpr      :: bool

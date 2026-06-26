@@ -242,12 +242,12 @@ read_relative_file :: fn(raw_path: string, source_dir: string) -> string | null 
     } else {
         "${source_dir}/${raw_path}"
     }
-    result :: read_file(abs)
+    result :: read_file_string(abs)
     if result is string as s { return s }
     return null
 }
 
-import "std/io" { read_file }
+import "std/io" { read_file_string }
 import "std/string" { starts_with }
 
 // Recursive expression walker that collects every IntrinsicCallExpr

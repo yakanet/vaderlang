@@ -9,7 +9,7 @@ type 6 primitive u8
 type 7 struct std_core$Buffer {  }
 type 8 primitive void
 type 9 array 1
-type 10 struct __Tuple_26 { _0:1,_1:3 }
+type 10 struct __Tuple_27 { _0:1,_1:3 }
 string 0 "score="
 string 1 "answer"
 string 2 "id="

@@ -82,8 +82,14 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
         if ctx.string_array_tag < 0 { return "${head} { vader_trap(\"read_dir: no [string] type\"); }" }
         return "${head} { return vader_read_dir(a0, ${ctx.string_array_tag}u, ${ctx.string_tag}u, ${tag_u(error_ref_tag(types), "error")}); }"
     }
-    if m == "std_io\$read_file"  { return "${head} { return vader_read_file(a0, ${tag_u(ctx.string_tag, "string")}, ${tag_u(error_ref_tag(types), "error")}); }" }
-    if m == "std_io\$write_file" { return "${head} { return vader_write_file(a0, a1, 0u, ${tag_u(error_ref_tag(types), "error")}); }" }
+    if m == "std_io\$read_file_bytes" {
+        u8 :: prim_tag(types, .U8)
+        if u8 < 0 { return "${head} { vader_trap(\"read_file_bytes: no u8 type\"); }" }
+        u8arr :: array_tag(types, u8)
+        if u8arr < 0 { return "${head} { vader_trap(\"read_file_bytes: no u8[] type\"); }" }
+        return "${head} { return vader_read_file_bytes(a0, ${u8arr}u, ${u8}u, ${tag_u(error_ref_tag(types), "error")}); }"
+    }
+    if m == "std_io\$write_file_bytes" { return "${head} { return vader_write_file_bytes(a0, (vader_array_t*) a1.payload.obj, ${tag_u(error_ref_tag(types), "error")}); }" }
     if m == "std_io\$read_line"  { return "${head} { return vader_read_line(${tag_u(ctx.string_tag, "string")}, ${tag_u(error_ref_tag(types), "error")}); }" }
     if m == "std_io\$read_stdin" { return "${head} { return vader_read_stdin(a0, ${tag_u(ctx.string_tag, "string")}, ${tag_u(error_ref_tag(types), "error")}); }" }
     if m == "std_io\$poll_stdin" { return "${head} { return vader_poll_stdin(a0); }" }

@@ -1,16 +1,16 @@
 module "snippet"
 
-import "std/io" { println, write_file, read_file, exists }
+import "std/io" { println, write_file_string, read_file_string, exists }
 
 main :: fn() -> i32 {
     path :: "/tmp/vader_io_roundtrip.txt"
 
     // Ignore the null | Error result — the side effect (file written) is what we test.
-    write_file(path, "hello from vader")
+    write_file_string(path, "hello from vader")
 
     println("exists: ${exists(path)}")
 
-    contents :: read_file(path)
+    contents :: read_file_string(path)
     match contents {
         is string -> println("read: ${contents}")
         is Error  -> println("read failed")

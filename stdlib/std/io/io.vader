@@ -100,17 +100,39 @@ export eprintln :: fn<T: Display>(msg: T) -> void {
 ///                    first byte (data ready, or EOF/hangup pending).
 @intrinsic export poll_stdin :: fn(timeout_ms: i32) -> bool
 
-/// Read a file fully into a UTF-8 string.
+/// Read a file fully into a fresh owned byte array. Lossless for arbitrary
+/// binary — the bytes are taken verbatim, no UTF-8 reinterpretation. This is
+/// the canonical file-read primitive ; `read_file_string` decodes on top.
+/// @param path  filesystem path (absolute or cwd-relative).
+/// @return      the file's raw bytes.
+/// @error       `IOError` if the file can't be opened or read.
+@intrinsic export read_file_bytes :: fn(path: string) -> u8[] | Error
+
+/// Write raw bytes to `path`, replacing any existing file. Lossless for
+/// arbitrary binary. The canonical file-write primitive.
+/// @param path     filesystem path.
+/// @param content  the raw bytes to write.
+/// @error          `IOError` if the file can't be opened or written.
+@intrinsic export write_file_bytes :: fn(path: string, content: const u8[]) -> null | Error
+
+/// Read a file fully into a UTF-8 string — a thin text decode over
+/// `read_file_bytes`. Use `read_file_bytes` directly for binary data.
 /// @param path  filesystem path (absolute or cwd-relative).
 /// @return      file contents as a UTF-8 string.
 /// @error       `IOError` if the file can't be opened or read.
-@intrinsic export read_file :: fn(path: string) -> string | Error
+export read_file_string :: fn(path: string) -> string | Error {
+    r :: read_file_bytes(path)
+    if r is Error { return r }
+    return r.bytes_to_string()
+}
 
-/// Write `content` to `path`, replacing any existing file.
+/// Write a UTF-8 string to `path`, replacing any existing file — a thin
+/// encode over `write_file_bytes`. Use `write_file_bytes` directly for binary.
 /// @param path     filesystem path.
 /// @param content  the UTF-8 string to write.
 /// @error          `IOError` if the file can't be opened or written.
-@intrinsic export write_file :: fn(path: string, content: string) -> null | Error
+export write_file_string :: fn(path: string, content: string) -> null | Error =
+    write_file_bytes(path, content.bytes())
 
 /// True iff `path` resolves to an existing filesystem entry (file or
 /// directory). Errors (e.g. permission denied) collapse to `false`.

@@ -8,7 +8,7 @@
 
 module "vader/fmt"
 
-import "std/io" { read_file, write_file, exists, is_dir, read_dir, print, eprintln }
+import "std/io" { read_file_string, write_file_string, exists, is_dir, read_dir, print, eprintln }
 import "std/string" { ends_with, starts_with }
 import "std/path" { Path, join, to_path, as_string }
 import "vader/diagnostics" { Diagnostic, render }
@@ -137,7 +137,7 @@ export run_fmt :: fn(args: string[]) -> i32 {
 // Format one file. Returns a FileResult.
 run_one :: fn(path: string, mode: Mode) -> FileResult {
     src := ""
-    r :: read_file(path)
+    r :: read_file_string(path)
     match r {
         is Error -> {
             eprintln("vader fmt: cannot read ${path}")
@@ -164,7 +164,7 @@ run_one :: fn(path: string, mode: Mode) -> FileResult {
                 return FileResult.Drift
             }
             // In-place. (Stdout case routes to run_one_stdout above.)
-            w :: write_file(path, f.output)
+            w :: write_file_string(path, f.output)
             match w {
                 is Error -> {
                     eprintln("vader fmt: cannot write ${path}")
@@ -178,7 +178,7 @@ run_one :: fn(path: string, mode: Mode) -> FileResult {
 
 run_one_stdout :: fn(path: string) -> FileResult {
     src := ""
-    r :: read_file(path)
+    r :: read_file_string(path)
     match r {
         is Error -> {
             eprintln("vader fmt: cannot read ${path}")

@@ -11,8 +11,8 @@ type 8 struct std_core$Buffer {  }
 type 9 primitive void
 type 10 array 4
 type 11 struct std_string_builder$StringBuilder { parts:10 }
-type 12 struct __Tuple_26 { _0:1,_1:4 }
-type 13 struct __Tuple_27 { _0:12,_1:2 }
+type 12 struct __Tuple_27 { _0:1,_1:4 }
+type 13 struct __Tuple_28 { _0:12,_1:2 }
 string 0 "answer"
 string 1 "id="
 string 2 " label="

@@ -13,7 +13,7 @@ type 10 primitive void
 type 11 struct std_core$Yield__char { value:4 }
 type 12 struct std_string$StringChars { bytes:7,cursor:2,length:2 }
 type 13 union 0,11
-type 14 struct __Tuple_31 { _0:4,_1:2 }
+type 14 struct __Tuple_32 { _0:4,_1:2 }
 type 15 union 11,0
 string 0 "-- ascii --"
 string 1 "vader"

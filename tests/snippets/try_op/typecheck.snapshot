@@ -25,4 +25,4 @@
   expr 8:12     CallExpr       :: Error | string
   expr 8:12     IdentExpr      :: fn(string) -> Error | string
   expr 8:12     TryExpr        :: string
-  expr 8:22     IdentExpr      :: string
+  expr 8:29     IdentExpr      :: string
