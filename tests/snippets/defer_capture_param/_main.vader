@@ -1,0 +1,43 @@
+// A `defer` (or lambda) body that reads or mutates one of its enclosing
+// function's PARAMETERS captures it. Unlike a `let` local — which the lowerer
+// already routes through a heap cell — a parameter arrives in its slot as the
+// raw ABI value, so the capture has to promote it to a cell at fn entry. Before
+// that promotion landed, closure analysis recorded no capture (the env came out
+// empty and the lifted body was dropped) and, once it did, the lifted body read
+// the raw scalar back as a struct. This snippet pins all three shapes : a defer
+// reading a param, a defer mutating an outer struct through a captured param,
+// and a lambda capturing a param.
+
+module "snippet"
+
+import "std/io" { println }
+
+Counter :: struct { hits: i64 = 0 }
+
+// defer reads a scalar param
+log_at_exit :: fn(label: string, code: i64) -> void {
+    defer { println("exit ${label} with code=${code}") }
+    println("running ${label}")
+}
+
+// defer mutates an outer struct through a captured param ref
+bump_at_exit :: fn(counter: Counter, by: i64) -> void {
+    defer { counter.hits = counter.hits + by }
+    println("bumping by ${by}")
+}
+
+// lambda captures a param
+make_greeter :: fn(name: string) -> void {
+    greet :: () -> { println("hello ${name}") }
+    greet()
+}
+
+main :: fn() -> i32 {
+    log_at_exit("task", 7)
+    counter :: Counter {}
+    bump_at_exit(counter, 3)
+    bump_at_exit(counter, 4)
+    println("counter.hits=${counter.hits}")
+    make_greeter("world")
+    return 0
+}

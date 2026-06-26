@@ -1,0 +1,9 @@
+# stdout
+running task
+exit task with code=7
+bumping by 3
+bumping by 4
+counter.hits=7
+hello world
+# exit
+0

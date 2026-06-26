@@ -30,14 +30,21 @@ COMPTIME_MAX_EVAL_DEPTH :: 2000
 export evaluate_expr :: fn(expr: AST.Expr, context: ComptimeContext) -> EvalResult {
     // Depth guard — `context` is shared across operand recursion
     // (`evaluate_binary_expr` passes it straight through), so `depth` tracks the
-    // live nesting level. Report a clean C4001 instead of overflowing.
-    context.depth = context.depth + 1
-    defer { context.depth = context.depth - 1 }
-    if context.depth > COMPTIME_MAX_EVAL_DEPTH {
+    // live nesting level. Check the ceiling BEFORE incrementing, so the
+    // rejecting path never touches `depth` ; the accepted path restores it by
+    // hand before its single return. This is deliberately not a `defer` : a
+    // `defer` here would capture `context` and lift to a fresh closure + env
+    // struct on every call — an allocation on the evaluator's hottest path. (It
+    // was also long a silent no-op : capturing `defer`s dropped their body, so
+    // `depth` never decremented and accumulated into a per-module evaluation
+    // counter — std/core reached ~1465. That codegen gap is fixed now, but
+    // manual restore stays for the allocation reason.)
+    if context.depth >= COMPTIME_MAX_EVAL_DEPTH {
         return vm_required(span_of(expr),
             "a cyclic or non-terminating comptime expression (exceeded ${COMPTIME_MAX_EVAL_DEPTH} nested levels)")
     }
-    return @partial match expr {
+    context.depth = context.depth + 1
+    result :: @partial match expr {
         is AST.IntLitExpr    as x -> evaluate_int_lit(x)
         is AST.FloatLitExpr  as x -> evaluate_float_lit(x)
         is AST.BoolLitExpr   as x -> evaluate_bool_lit(x)
@@ -52,6 +59,8 @@ export evaluate_expr :: fn(expr: AST.Expr, context: ComptimeContext) -> EvalResu
         is AST.SeqLitExpr        as x -> evaluate_seq_lit(x, context, evaluate_expr)
         _                             -> vm_required(span_of(expr), expr_kind_label(expr))
     }
+    context.depth = context.depth - 1
+    return result
 }
 
 /// Recover the span of any expression variant for diagnostic emission.
