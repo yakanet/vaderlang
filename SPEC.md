@@ -1469,7 +1469,7 @@ sum(1, 2, 3, 4)
 
 ### Closures / lambdas
 
-Lambdas use the form `params -> body`. The `->` is the mandatory separator between parameters and body; the `fn` keyword is **not used** on lambdas (it remains for declarations and function types — see *Function values* below).
+Lambdas use the form `params -> body`. The `->` is the mandatory separator between parameters and body; the `fn` keyword is **not used** on lambdas (it remains for declarations and function types — see *Function values* below). As a leniency the parser also accepts an explicit `fn(params) -> R { body }` expression directly in value position — an anonymous function literal, semantically identical to the `->` form — but `params -> body` is the canonical lambda syntax and the only one used across the stdlib and the compiler. (This is distinct from `name :: fn(...) { ... }`, which is a named function *declaration*, top-level or local — see below.)
 
 ```vader
 // Single param — parens optional, expression body
