@@ -269,28 +269,40 @@ lower_fn_body :: fn(
     if fn_decl.body == null { return null }
     fn_ctx :: new_fn_lower_ctx(project_ctx, entry, typed, subst, return_type, null)
     block :: lower_block(fn_ctx, fn_decl.body, true, false)
-    return promote_captured_params(fn_ctx, fn_decl, block)
+    return promote_captured_params(fn_ctx, fn_decl.params, block)
 }
 
-// When a parameter is captured by an inner lambda or a `defer` body, the
-// closure reads it through a heap cell (`LoweredCellGet` off the param's
-// slot) and the env materialisation stores that cell — but a parameter,
-// unlike a `let` local (which routes through `lower_cell_init`), arrives in
-// its slot as the raw ABI value, never wrapped. Prepend a prologue that
-// rebinds each captured param's slot to a fresh cell over the incoming
-// value, so the slot holds a cell from the first capture onward. The inner
-// read is a RAW `LoweredIdent` (built here, not via `lower_expr`) so it
-// loads the ABI value rather than re-entering the cell path. Without this
-// the env captured the raw scalar and the lifted body read it back as a
-// struct (`struct.get … expected struct, got i64`).
-promote_captured_params :: fn(
-    fn_ctx: FnLowerCtx, fn_decl: FnDecl, block: LoweredBlock,
+/// Prepend a fn-entry prologue that cell-promotes every captured parameter.
+///
+/// When a parameter is captured by an inner lambda or a `defer` body, the
+/// closure reads it through a heap cell (`LoweredCellGet` off the param's slot)
+/// and the env materialisation stores that cell — but a parameter, unlike a
+/// `let` local (which routes through `lower_cell_init`), arrives in its slot as
+/// the raw ABI value, never wrapped. The prologue rebinds each captured param's
+/// slot to a fresh cell over the incoming value, so the slot holds a cell from
+/// the first capture onward. The inner read is a RAW `LoweredIdent` (built here,
+/// not via `lower_expr`) so it loads the ABI value rather than re-entering the
+/// cell path. Without this the env captured the raw scalar and the lifted body
+/// read it back as a struct (`struct.get … expected struct, got i64`).
+///
+/// Shared by every fn-root body : `lower_fn_body` (top-level fns + generic
+/// instances + impl members) and `lower_lambda` (a lambda's own param can be
+/// captured by a further-nested lambda).
+///
+/// @param fn_ctx  the fn-body lower context (carries the closure analysis).
+/// @param params  the source param list ; the env param of a lifted lambda is
+///                not in it, so it's never promoted.
+/// @param block   the already-lowered fn-root body.
+/// @return        `block` unchanged when no param is captured, else a new block
+///                with the cell-promoting prologue prepended.
+export promote_captured_params :: fn(
+    fn_ctx: FnLowerCtx, params: FnParam[], block: LoweredBlock,
 ) -> LoweredBlock {
     // Common case — a closure-free project never promotes anything, so skip the
     // per-param symbol lookups entirely.
     if fn_ctx.project.closures.captured_symbols.len() == 0 { return block }
     prologue: LoweredStmt[] = []
-    for ast_param in fn_decl.params {
+    for ast_param in params {
         sym :: lookup_local_symbol(fn_ctx.project, fn_ctx.typed.resolved, ast_param.span)
         if sym is null { continue }
         if !(sym.id in fn_ctx.project.closures.captured_symbols) { continue }
@@ -304,12 +316,7 @@ promote_captured_params :: fn(
             .type = init.slot_type, .value = init.value,
         })
     }
-    if prologue.len() == 0 { return block }
-    prologue.push_all(block.stmts)
-    return LoweredBlock {
-        .span = block.span, .type = block.type,
-        .stmts = prologue, .trailing = block.trailing,
-    }
+    return prepend_stmts_to_block(prologue, block)
 }
 
 // StructDecl → `LoweredStructDecl` with resolved field types. Phase 2

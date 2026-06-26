@@ -55,7 +55,12 @@ export lower_lambda :: fn(ctx: FnLowerCtx, lambda: AST.LambdaExpr, block_lowerer
     // locals that don't exist in the lifted scope.
     lifted_ctx :: new_fn_lower_ctx(ctx.project, lifted_entry, ctx.typed, ctx.subst, return_type, null)
     lifted_ctx.lifted_context = LiftedFnContext { .env_symbol = env_param_symbol, .env_type = env_type, .capture_fields = capture_fields_map }
-    body :: block_lowerer(lifted_ctx, lambda.body, true, false)
+    raw_body :: block_lowerer(lifted_ctx, lambda.body, true, false)
+    // A lambda's OWN param can itself be captured by a further-nested lambda ;
+    // cell-promote it at the lifted fn's entry, exactly as `lower_fn_body` does
+    // for a top-level fn. (Captures FROM the outer scope route through the env,
+    // not this prologue.)
+    body :: promote_captured_params(lifted_ctx, lambda.params, raw_body)
     lifted_decl :: LoweredFnDecl { .mangled = lifted_symbol.name, .params = lifted_params, .return_type = return_type, .body = body, .origin = lifted_entry }
     ctx.project.synth_decls.push(env_decl)
     ctx.project.synth_decls.push(lifted_decl)

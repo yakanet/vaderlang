@@ -1,0 +1,20 @@
+# stdout
+thunk a
+thunk b
+thunk c
+range body i=0
+range defer i=0
+range body i=1
+range defer i=1
+range body i=2
+range defer i=2
+mapped 0
+mapped 10
+mapped 20
+filtered defer z=0
+filtered defer z=2
+filtered defer z=4
+nested n=7
+nested n=8
+# exit
+0
