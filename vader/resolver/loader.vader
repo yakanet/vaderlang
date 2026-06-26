@@ -174,6 +174,7 @@ export load_project_with_overlay :: fn(entry_path: string, overlay: MutableMap<s
                 }
                 _ -> {}
             }
+            detect_import_cycles(modules, index, loader_diags)
             return LoadedProject {
                 .entry = em.folder, .modules = modules, .factory = factory,
                 .project_root = project_root, .diags = loader_diags,
@@ -221,6 +222,46 @@ drain_load_queue :: fn(
             }
         }
     }
+}
+
+// Detect import cycles once every module is loaded — R2005. The load BFS only
+// dedupes (a back-edge to an already-loaded module is silently dropped), so the
+// cycle is invisible there ; a separate three-colour DFS over the resolved
+// import graph surfaces it. SPEC §11 forbids cyclic imports.
+detect_import_cycles :: fn(
+    modules: MutableMap<string, LoadedModule>,
+    index: MutableMap<string, DiscoveredModule>,
+    diags: Diagnostic[],
+) -> void {
+    // Per module : absent = unvisited, 1 = on the current DFS stack, 2 = done.
+    state :: MutableMap<string, i32> {}
+    for [id, _] in modules {
+        if state[id] == null { walk_import_cycle(id, modules, index, state, diags) }
+    }
+}
+
+walk_import_cycle :: fn(
+    id: string, modules: MutableMap<string, LoadedModule>,
+    index: MutableMap<string, DiscoveredModule>,
+    state: MutableMap<string, i32>, diags: Diagnostic[],
+) -> void {
+    state[id] = 1
+    lm :: modules[id]
+    if lm is LoadedModule as m {
+        for raw in m.collected.import_paths {
+            target :: index[raw]
+            if target is DiscoveredModule as t {
+                st :: state[t.folder]
+                if st == null {
+                    walk_import_cycle(t.folder, modules, index, state, diags)
+                } else if st == 1 {
+                    diags.push(resolver_error(.ImportCycle, zero_span(m.module.display_path),
+                        "`${m.module.display_path}` imports `${raw}`, closing an import cycle"))
+                }
+            }
+        }
+    }
+    state[id] = 2
 }
 
 ingest_module :: fn(
