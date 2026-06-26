@@ -70,7 +70,7 @@ export parse_module_header :: fn(source: string, file: string) -> ModuleHeader |
     n :: sb.len()
     i: usize = 0
     // Optional shebang on first line.
-    if i + 1 < n && sb[i] == 0x23 && sb[i + 1] == 0x21 {
+    if i + 1 < n && sb[i] == '#' && sb[i + 1] == '!' {
         i = skip_to_eol(sb, i, n)
     }
     // Skip whitespace + line/block comments until we hit the first
@@ -79,17 +79,17 @@ export parse_module_header :: fn(source: string, file: string) -> ModuleHeader |
     budget :: header_budget(n)
     for i < budget {
         c :: sb[i]
-        if c == 0x20 || c == 0x09 || c == 0x0A || c == 0x0D {
+        if c == ' ' || c == '\t' || c == '\n' || c == '\r' {
             i = i + 1
             continue
         }
         // Line comment `// ...`
-        if c == 0x2F && i + 1 < n && sb[i + 1] == 0x2F {
+        if c == '/' && i + 1 < n && sb[i + 1] == '/' {
             i = skip_to_eol(sb, i, n)
             continue
         }
         // Block comment `/* ... */`
-        if c == 0x2F && i + 1 < n && sb[i + 1] == 0x2A {
+        if c == '/' && i + 1 < n && sb[i + 1] == '*' {
             i = skip_block_comment(sb, i + 2, n)
             continue
         }
@@ -99,26 +99,26 @@ export parse_module_header :: fn(source: string, file: string) -> ModuleHeader |
     // means no header decl (callers may still treat it as a tolerant
     // pre-Phase-7 file).
     if i + 7 > n { return null }
-    if sb[i]     != 0x6D { return null }     // m
-    if sb[i + 1] != 0x6F { return null }     // o
-    if sb[i + 2] != 0x64 { return null }     // d
-    if sb[i + 3] != 0x75 { return null }     // u
-    if sb[i + 4] != 0x6C { return null }     // l
-    if sb[i + 5] != 0x65 { return null }     // e
+    if sb[i]     != 'm' { return null }
+    if sb[i + 1] != 'o' { return null }
+    if sb[i + 2] != 'd' { return null }
+    if sb[i + 3] != 'u' { return null }
+    if sb[i + 4] != 'l' { return null }
+    if sb[i + 5] != 'e' { return null }
     i = i + 6
     // Whitespace between `module` and the string literal.
     for i < n {
         c :: sb[i]
-        if c == 0x20 || c == 0x09 {
+        if c == ' ' || c == '\t' {
             i = i + 1
             continue
         }
         break
     }
-    if i >= n || sb[i] != 0x22 { return null }      // opening "
+    if i >= n || sb[i] != '"' { return null }      // opening "
     i = i + 1
     name_start :: i
-    for i < n && sb[i] != 0x22 { i = i + 1 }
+    for i < n && sb[i] != '"' { i = i + 1 }
     if i >= n { return null }                                       // unterminated
     name :: sb[name_start..<i].bytes_to_string()
     return ModuleHeader { .name = name, .name_span = empty_span(file) }
@@ -135,7 +135,7 @@ header_budget :: fn(n: usize) -> usize {
 
 skip_to_eol :: fn(sb: const u8[], from: usize, n: usize) -> usize {
     i := from
-    for i < n && sb[i] != 0x0A { i = i + 1 }
+    for i < n && sb[i] != '\n' { i = i + 1 }
     if i < n { i = i + 1 }
     return i
 }
@@ -146,12 +146,12 @@ skip_block_comment :: fn(sb: const u8[], from: usize, n: usize) -> usize {
     for i + 1 < n && depth > 0 {
         c0 :: sb[i]
         c1 :: sb[i + 1]
-        if c0 == 0x2F && c1 == 0x2A {
+        if c0 == '/' && c1 == '*' {
             depth = depth + 1
             i = i + 2
             continue
         }
-        if c0 == 0x2A && c1 == 0x2F {
+        if c0 == '*' && c1 == '/' {
             depth = depth - 1
             i = i + 2
             continue

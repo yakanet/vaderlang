@@ -78,7 +78,7 @@ split_dollar :: fn(s: string) -> string[] {
     sb :: s.bytes()
     for i in 0..<sb.len() {
         b :: sb[i]
-        if b == 0x24 { out.push(cur)  cur = "" }
+        if b == '$' { out.push(cur)  cur = "" }
         else { cur = "${cur}${char(u32(b))}" }
     }
     out.push(cur)

@@ -355,11 +355,11 @@ parse_data_decl_bc :: fn(cleaned: string, data_pool: bc.BcDataEntry[]) -> void {
     rest :: ab[usize(sp2) + 1..<ab.len()].bytes_to_string()
     rb :: rest.bytes()
     if rb.len() < 5 { return }
-    if rb[0] != u8('h') { return }
-    if rb[1] != u8('e') { return }
-    if rb[2] != u8('x') { return }
-    if rb[3] != u8('"') { return }
-    if rb[rb.len() - 1] != u8('"') { return }
+    if rb[0] != 'h' { return }
+    if rb[1] != 'e' { return }
+    if rb[2] != 'x' { return }
+    if rb[3] != '"' { return }
+    if rb[rb.len() - 1] != '"' { return }
     hex_body :: rb[4..<rb.len() - 1].bytes_to_string()
     kind :: kind_from_name(kind_name)
     esz :: usize(bc.array_kind_element_size(kind))
