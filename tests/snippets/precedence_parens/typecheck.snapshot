@@ -1,0 +1,23 @@
+# Typecheck
+
+## tests/snippets/precedence_parens
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Point                :: Point
+  expr 18:11    IfExpr         :: {integer}
+  expr 18:15    BinaryExpr     :: bool
+  expr 18:15    BinaryExpr     :: bool
+  expr 18:15    IdentExpr      :: i32
+  expr 18:19    IdentExpr      :: i32
+  expr 20:11    IfExpr         :: {integer}
+  expr 20:15    BinaryExpr     :: bool
+  expr 20:15    BinaryExpr     :: bool
+  expr 20:15    IdentExpr      :: i32
+  expr 20:20    SeqLitExpr     :: i32[]
+  expr 22:11    IfExpr         :: {integer}
+  expr 22:15    FieldExpr      :: bool
+  expr 22:15    StructLitExpr  :: Point
+  expr 23:12    BinaryExpr     :: i32
+  expr 23:12    BinaryExpr     :: i32
+  expr 23:12    IdentExpr      :: i32
+  expr 23:17    IdentExpr      :: i32
+  expr 23:22    IdentExpr      :: i32

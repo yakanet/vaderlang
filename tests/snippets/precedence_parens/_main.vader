@@ -1,0 +1,24 @@
+module "snippet"
+
+// Regression guard: `vader fmt` must keep the parens that preserve precedence.
+// Comparisons, `is` and `in` share one non-associative rank, so a same-rank
+// operand must stay parenthesised — `a == b == c` is even a parse error. A
+// struct literal in condition position must also keep its parens, else its
+// `{` is read as the block opener.
+
+Point :: struct {
+    x:  i32
+    ok: bool
+}
+
+export main :: fn() -> i32 {
+    a :: 1
+    b :: 2
+    // Non-associative `==` over a same-rank `<` operand keeps its parens.
+    r1 :: if (a < b) == true { 1 } else { 0 }
+    // `in` shares the comparison rank (non-associative) — parens preserved.
+    r2 :: if (a in [1, 2, 3]) == true { 2 } else { 0 }
+    // Struct literal in condition position keeps its parens.
+    r3 :: if (Point { .x = 9, .ok = true }).ok { 4 } else { 0 }
+    return r1 + r2 + r3
+}

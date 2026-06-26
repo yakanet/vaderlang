@@ -1045,7 +1045,7 @@ emit_for_stmt :: fn(self: Printer, s: p.ForStmt) -> void {
         is p.InfiniteFor -> {}
         is p.WhileFor as w -> {
             self.write(" ")
-            self.emit_expr(w.cond)
+            self.emit_condition(w.cond)
         }
         is p.InFor as f -> {
             // Only recover the `for <range>` sugar when the binding was
@@ -1061,7 +1061,7 @@ emit_for_stmt :: fn(self: Printer, s: p.ForStmt) -> void {
                 self.write(" ")
                 self.write(f.binding)
                 self.write(" in ")
-                self.emit_expr(f.iter)
+                self.emit_condition(f.iter)
             }
         }
     }
@@ -1315,16 +1315,19 @@ emit_binary :: fn(self: Printer, x: p.BinaryExpr) -> void {
 // Emit an operand wrapped in parentheses iff the child is a `BinaryExpr`
 // whose precedence rank is strictly lower than the parent's (so that the
 // rendered source would otherwise re-parse with a different grouping).
-// `is_left` controls the equal-rank case : with the same precedence the
-// parser is left-associative, so a right-hand BinaryExpr of the same rank
-// must be parenthesised to preserve evaluation order, but a left-hand one
-// doesn't.
+// `is_left` controls the equal-rank case : associative ops are left-assoc, so
+// only a right-hand same-rank child needs parens ; non-associative ops
+// (comparisons, `is`, `in`) reject chaining entirely, so a same-rank child on
+// either side is parenthesised.
 emit_binary_operand :: fn(self: Printer, operand: p.Expr, parent_op: p.BinaryOp, is_left: bool) -> void {
     match operand {
         is p.BinaryExpr as inner -> {
             parent_rank :: binary_precedence(parent_op)
             child_rank  :: binary_precedence(inner.op)
-            need_parens :: child_rank < parent_rank || (child_rank == parent_rank && !is_left)
+            // Equal-rank child needs parens on the right (left-assoc), or on
+            // either side when the parent is non-associative.
+            equal_needs :: !is_left || is_non_assoc_binop(parent_op)
+            need_parens :: child_rank < parent_rank || (child_rank == parent_rank && equal_needs)
             if need_parens {
                 self.write("(")
                 self.emit_expr(inner)
@@ -1337,10 +1340,12 @@ emit_binary_operand :: fn(self: Printer, operand: p.Expr, parent_op: p.BinaryOp,
     }
 }
 
-// Precedence ranking : higher = tighter binding. Matches the Pratt table
-// in `vader/parser/parser.vader::infix_bp` (the only authority on what
-// the parser actually accepts). Vader has no or-patterns so each variant
-// gets its own arm.
+// Precedence ranking : higher = tighter binding. Mirrors the Pratt table in
+// `vader/parser/parser.vader::infix_for` (the only authority on what the
+// parser accepts) : comparisons AND `is` / `in` / `!in` share one rank
+// (parser bp 20, non-associative). Rank 4 is reserved for ranges (parser bp
+// 30) and consulted by `range_operand_needs_parens`. Adding a `BinaryOp`
+// variant trips T3013 here, forcing a rank decision.
 binary_precedence :: fn(op: p.BinaryOp) -> i32 {
     match op {
         .Or     -> 1
@@ -1351,9 +1356,9 @@ binary_precedence :: fn(op: p.BinaryOp) -> i32 {
         .Lte    -> 3
         .Gt     -> 3
         .Gte    -> 3
-        .Is     -> 4
-        .In     -> 4
-        .NotIn  -> 4
+        .Is     -> 3
+        .In     -> 3
+        .NotIn  -> 3
         .BitOr  -> 5
         .BitXor -> 6
         .BitAnd -> 7
@@ -1367,11 +1372,45 @@ binary_precedence :: fn(op: p.BinaryOp) -> i32 {
     }
 }
 
+// Non-associative binary ops (parser bp 20, `non_assoc = true`) — a chained
+// `a == b == c` / `a is T is U` is a parse error, so a same-rank operand on
+// EITHER side must be parenthesised, not just the right-hand one.
+is_non_assoc_binop :: fn(op: p.BinaryOp) = op == .Eq || op == .Neq || op == .Lt
+    || op == .Lte || op == .Gt || op == .Gte || op == .Is || op == .In || op == .NotIn
+
 // ---- control-flow expressions ----
+
+// Emit a condition / scrutinee / for-iterable. The parser disables struct
+// literals in these positions (`allow_struct_lit = false`), so a `Point { … }`
+// whose `{` would otherwise be read as the block opener must be wrapped in
+// parens — which re-enables struct literals inside (`parse_paren`) and
+// reparses to the same AST (`if (Point { .x = 1 }).ok { … }`).
+emit_condition :: fn(self: Printer, cond: p.Expr) -> void {
+    if expr_head_is_struct_lit(cond) {
+        self.write("(")
+        self.emit_expr(cond)
+        self.write(")")
+    } else {
+        self.emit_expr(cond)
+    }
+}
+
+// True when `e`'s leftmost atom is a struct literal, possibly behind a field /
+// index / call / binary / range / try chain (`Point { … }.ok`, `Point { … } + x`).
+expr_head_is_struct_lit :: fn(e: p.Expr) -> bool {
+    if e is p.StructLitExpr     { return true }
+    if e is p.FieldExpr  as f   { return expr_head_is_struct_lit(f.target) }
+    if e is p.IndexExpr  as ix  { return expr_head_is_struct_lit(ix.target) }
+    if e is p.CallExpr   as c    { return expr_head_is_struct_lit(c.callee) }
+    if e is p.BinaryExpr as b   { return expr_head_is_struct_lit(b.left) }
+    if e is p.RangeExpr  as r   { return expr_head_is_struct_lit(r.lower) }
+    if e is p.TryExpr    as t    { return expr_head_is_struct_lit(t.inner) }
+    return false
+}
 
 emit_if :: fn(self: Printer, x: p.IfExpr) -> void {
     self.write("if ")
-    self.emit_expr(x.cond)
+    self.emit_condition(x.cond)
     self.write(" ")
     self.emit_block_expr(x.then_block)
     match x.else_branch {
@@ -1406,7 +1445,7 @@ emit_match :: fn(self: Printer, x: p.MatchExpr) -> void {
     if x.partial { self.write("@partial ") }
     if x.unreachable { self.write("@unreachable ") }
     self.write("match ")
-    self.emit_expr(x.scrutinee)
+    self.emit_condition(x.scrutinee)
     self.write(" {")
     self.depth = self.depth + 1
     for arm in x.arms {
@@ -1586,9 +1625,30 @@ emit_seq_lit :: fn(self: Printer, x: p.SeqLitExpr) -> void {
 }
 
 emit_range :: fn(self: Printer, x: p.RangeExpr) -> void {
-    self.emit_expr(x.lower)
+    self.emit_range_operand(x.lower)
     if x.inclusive { self.write("..=") } else { self.write("..<") }
-    self.emit_expr(x.upper)
+    self.emit_range_operand(x.upper)
+}
+
+// A range binds at parser bp 30 (rank 4 here) — tighter than comparisons /
+// `is` / `in` / `and` / `or`, looser than bitwise + arithmetic. An operand
+// that is a looser binary, or another range (range is non-associative), must
+// be parenthesised : otherwise `(a < b)..<c` re-emits as `a < b..<c` and
+// reparses as `a < (b..<c)`.
+emit_range_operand :: fn(self: Printer, operand: p.Expr) -> void {
+    if range_operand_needs_parens(operand) {
+        self.write("(")
+        self.emit_expr(operand)
+        self.write(")")
+    } else {
+        self.emit_expr(operand)
+    }
+}
+
+range_operand_needs_parens :: fn(operand: p.Expr) -> bool {
+    if operand is p.BinaryExpr as b { return binary_precedence(b.op) < 4 }
+    if operand is p.RangeExpr { return true }
+    return false
 }
 
 // ---- error / cast / generic / variant ----
