@@ -2040,7 +2040,7 @@ For invocations like `vader dump tests/snippets/arith/_main.vader` or `vader run
 
 At project load, the compiler performs a single pass that scans every scoped root recursively and builds an in-memory index mapping each module name to its folder and file list. Symlinks are not followed, neither for `.vader` files nor for folders containing them. Scan order is not deterministic across platforms; diagnostics that mention "first / second occurrence" are stable within an invocation but may swap roles between machines. The index is rebuilt on each invocation (no on-disk cache in MVP).
 
-The same scan + index applies to every CLI subcommand — `run`, `build`, `dump`, `test`, `fmt`, `lsp`, `check`. The contract checks (uniqueness, name grammar) and the diagnostic surface are identical across subcommands; only the downstream work differs.
+The same scan + index applies to every CLI subcommand — `run`, `build`, `dump`, `test`, `fmt`, `lsp` (and the post-MVP `check`). The contract checks (uniqueness, name grammar) and the diagnostic surface are identical across subcommands; only the downstream work differs.
 
 ### Compilation modes
 
@@ -2440,10 +2440,6 @@ hex_digit_value    :: fn(c: char) -> i32           // -1 if not a hex digit
 is_hex_digit       :: fn(c: char) -> bool
 is_digit_in_base   :: fn(c: char, base: i32) -> bool
 strip_numeric_text :: fn(text: string, base: i32) -> string  // drop the base prefix + `_` digit separators
-
-// Numeric type-suffix predicates — for DSLs parsing typed literals.
-is_int_suffix   :: fn(s: string) -> bool           // i8/i16/i32/i64/u8/u16/u32/u64
-is_float_suffix :: fn(s: string) -> bool           // f32/f64
 ```
 
 Caller pads via `pad_start` (`n.to_hex().pad_start(8, '0')`).
