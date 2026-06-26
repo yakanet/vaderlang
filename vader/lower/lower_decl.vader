@@ -8,7 +8,7 @@ import "std/collections" { MutableMap }
 import "vader/diagnostics" { Diagnostic, Span }
 import "vader/parser" { Decl, FnDecl, FnParam, StructDecl, ConstDecl, ImportDecl, EnumDecl, TraitDecl, TypeAliasDecl, AssertDecl, ImplDecl, Visibility, IdentExpr, GenericInstExpr, TypeExpr, StructField }
 import "vader/typecheck" { TypedProgram, Substitution, new_substitution, substitute, default_if_free, type_from_expr, lookup_const_symbol }
-import "vader/types" { Type, FnType, TypeMetaType, TY_VOID, PrimitiveType }
+import "vader/types" { Type, FnType, TypeMetaType, TY_VOID, TY_UNRESOLVED, PrimitiveType }
 import "vader/comptime" { ComptimeValue, MonoEntry, symbol_for_decl }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 
@@ -268,7 +268,48 @@ lower_fn_body :: fn(
 ) -> LoweredBlock | null {
     if fn_decl.body == null { return null }
     fn_ctx :: new_fn_lower_ctx(project_ctx, entry, typed, subst, return_type, null)
-    return lower_block(fn_ctx, fn_decl.body, true, false)
+    block :: lower_block(fn_ctx, fn_decl.body, true, false)
+    return promote_captured_params(fn_ctx, fn_decl, block)
+}
+
+// When a parameter is captured by an inner lambda or a `defer` body, the
+// closure reads it through a heap cell (`LoweredCellGet` off the param's
+// slot) and the env materialisation stores that cell — but a parameter,
+// unlike a `let` local (which routes through `lower_cell_init`), arrives in
+// its slot as the raw ABI value, never wrapped. Prepend a prologue that
+// rebinds each captured param's slot to a fresh cell over the incoming
+// value, so the slot holds a cell from the first capture onward. The inner
+// read is a RAW `LoweredIdent` (built here, not via `lower_expr`) so it
+// loads the ABI value rather than re-entering the cell path. Without this
+// the env captured the raw scalar and the lifted body read it back as a
+// struct (`struct.get … expected struct, got i64`).
+promote_captured_params :: fn(
+    fn_ctx: FnLowerCtx, fn_decl: FnDecl, block: LoweredBlock,
+) -> LoweredBlock {
+    // Common case — a closure-free project never promotes anything, so skip the
+    // per-param symbol lookups entirely.
+    if fn_ctx.project.closures.captured_symbols.len() == 0 { return block }
+    prologue: LoweredStmt[] = []
+    for ast_param in fn_decl.params {
+        sym :: lookup_local_symbol(fn_ctx.project, fn_ctx.typed.resolved, ast_param.span)
+        if sym is null { continue }
+        if !(sym.id in fn_ctx.project.closures.captured_symbols) { continue }
+        param_type :: fn_ctx.types.param_type(ast_param)
+        raw_read :: LoweredIdent { .span = ast_param.span, .type = param_type, .symbol = sym }
+        // `lower_cell_init` is the canonical cell-wrap (same path `let` locals
+        // take) ; the gate above means it always wraps here.
+        init :: lower_cell_init(fn_ctx, sym, raw_read, param_type, ast_param.span)
+        prologue.push(LoweredLet {
+            .span = ast_param.span, .name = sym.name, .symbol = sym,
+            .type = init.slot_type, .value = init.value,
+        })
+    }
+    if prologue.len() == 0 { return block }
+    prologue.push_all(block.stmts)
+    return LoweredBlock {
+        .span = block.span, .type = block.type,
+        .stmts = prologue, .trailing = block.trailing,
+    }
 }
 
 // StructDecl → `LoweredStructDecl` with resolved field types. Phase 2

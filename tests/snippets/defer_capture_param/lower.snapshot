@@ -1,0 +1,158 @@
+# Lower
+
+## snippet
+  struct snippet$Counter { hits: i64 }
+  fn snippet$log_at_exit(label: string, code: i64) -> void
+    let label: ? =
+      LoweredCellNew
+    let code: ? =
+      LoweredCellNew
+    defer.push
+      LoweredMakeClosure
+    let __block_1: void =
+      call :void
+        callee:
+          std_io$println__string :void
+        arg0:
+          call :string
+            callee:
+              concat2 :string
+            arg0:
+              "running " :string
+            arg1:
+              LoweredCellGet
+    defer.pop_exec 1
+    ~>
+      __block_1 :void
+  fn snippet$bump_at_exit(counter: Counter, by: i64) -> void
+    let counter: ? =
+      LoweredCellNew
+    let by: ? =
+      LoweredCellNew
+    defer.push
+      LoweredMakeClosure
+    let __block_1: void =
+      call :void
+        callee:
+          std_io$println__string :void
+        arg0:
+          call :string
+            callee:
+              concat2 :string
+            arg0:
+              "bumping by " :string
+            arg1:
+              call :string
+                callee:
+                  format_signed :fn(i64) -> string
+                arg0:
+                  LoweredCellGet
+    defer.pop_exec 1
+    ~>
+      __block_1 :void
+  fn snippet$make_greeter(name: string) -> void
+    let name: ? =
+      LoweredCellNew
+    let greet: fn() -> void =
+      LoweredMakeClosure
+    ~>
+      call :void
+        callee:
+          greet :fn() -> void
+  fn snippet$main() -> i32
+    call :void
+      callee:
+        log_at_exit :fn(string, i64) -> void
+      arg0:
+        "task" :string
+      arg1:
+        int(7) :i64
+    let counter: Counter =
+      Counter {
+        hits: int(0) :i64
+      }
+    call :void
+      callee:
+        bump_at_exit :fn(Counter, i64) -> void
+      arg0:
+        counter :Counter
+      arg1:
+        int(3) :i64
+    call :void
+      callee:
+        bump_at_exit :fn(Counter, i64) -> void
+      arg0:
+        counter :Counter
+      arg1:
+        int(4) :i64
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            concat2 :string
+          arg0:
+            "counter.hits=" :string
+          arg1:
+            call :string
+              callee:
+                format_signed :fn(i64) -> string
+              arg0:
+                .hits :i64
+                  counter :Counter
+    call :void
+      callee:
+        make_greeter :fn(string) -> void
+      arg0:
+        "world" :string
+    return int(0) :i32
+  struct __defer_env_2 { cap_0: ?, cap_1: ? }
+  fn __defer_1(__env_0: __defer_env_2) -> void
+    ~>
+      call :void
+        callee:
+          std_io$println__string :void
+        arg0:
+          call :string
+            callee:
+              concat4 :string
+            arg0:
+              "exit " :string
+            arg1:
+              LoweredCellGet
+            arg2:
+              " with code=" :string
+            arg3:
+              call :string
+                callee:
+                  format_signed :fn(i64) -> string
+                arg0:
+                  LoweredCellGet
+  struct __defer_env_6 { cap_0: ?, cap_1: ? }
+  fn __defer_5(__env_0: __defer_env_6) -> void
+    assign
+      target:
+        .hits :i64
+          LoweredCellGet
+      value:
+        add :i64
+          l:
+            .hits :i64
+              LoweredCellGet
+          r:
+            LoweredCellGet
+  struct __lambda_env_10 { cap_0: ? }
+  fn __lambda_9(__env_0: __lambda_env_10) -> void
+    ~>
+      call :void
+        callee:
+          std_io$println__string :void
+        arg0:
+          call :string
+            callee:
+              concat2 :string
+            arg0:
+              "hello " :string
+            arg1:
+              LoweredCellGet

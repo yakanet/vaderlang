@@ -194,30 +194,36 @@ walk_stmt :: fn(
         is AST.BreakStmt -> {}
         is AST.ContinueStmt -> {}
         is AST.DeferStmt as defer_stmt -> {
-            // The defer body lifts to a synthetic fn with its own env
-            // struct, so it has a distinct capture set from the
-            // enclosing fn. Walk into the body with FRESH `captures`
-            // + `seen` slots so any outer ident the body references
-            // lands on the defer's own capture list. Then merge the
-            // collected captures into the parent's capture set
-            // (closures captured by an outer fn through a defer body
-            // still need heap-promotion). Mirrors the per-lambda
-            // shape at line 499.
+            // The defer body lifts to a synthetic fn with its own env struct
+            // and no params of its own, so it has a distinct capture set from
+            // the enclosing fn. Walk it under a FRESH (empty) scope plus FRESH
+            // `captures` / `seen` slots — every outer ident it references is
+            // then a capture (mirrors `process_lambda`'s `own_scope`). Walking
+            // it under the enclosing `scope` saw those idents as in-scope and
+            // recorded nothing : the env came out empty and the lifted body
+            // silently dropped every statement that read a capture (the
+            // comptime depth guard's `defer` was a no-op for exactly this
+            // reason). The collected captures then merge into the parent's set
+            // (an outer closure capturing through a defer body still needs the
+            // heap-promotion).
+            defer_scope :: empty_scope()
             defer_captures: Capture[] = []
             defer_seen :: MutableSet<i32> {}
             match defer_stmt.body {
-                is AST.DeferStmtBody as dsb -> { walk_stmt(dsb.stmt, scope, defer_captures, defer_seen, ctx) }
-                is AST.DeferBlockBody as dbb -> { walk_body(dbb.block, scope, defer_captures, defer_seen, ctx) }
+                is AST.DeferStmtBody as dsb -> { walk_stmt(dsb.stmt, defer_scope, defer_captures, defer_seen, ctx) }
+                is AST.DeferBlockBody as dbb -> { walk_body(dbb.block, defer_scope, defer_captures, defer_seen, ctx) }
             }
             ctx.analysis.defer_captures[capture_key(ctx.typed.resolved.path, defer_stmt.id)] = defer_captures
             // Bubble each captured symbol into the parent's lists so
             // the enclosing fn sees them (it needs to read the cell
-            // value to materialise the env at defer-push time).
+            // value to materialise the env at defer-push time). Skip
+            // symbols the enclosing scope already owns — those aren't
+            // captures of the parent (mirrors `process_lambda`).
             if out_captures != null {
                 if out_seen != null {
                     for cap in defer_captures {
-                        if !out_seen.add(cap.symbol.id) { continue }
-                        out_captures.push(cap)
+                        if cap.symbol.id in scope { continue }
+                        add_capture_value(cap, out_captures, out_seen)
                     }
                 }
             }

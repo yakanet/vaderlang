@@ -121,6 +121,12 @@ const C_PARITY = new Set<string>([
   // The native-run oracle here is the regression guard — the snapshot/VM
   // dimensions stay green even when the native field read is wrong.
   "iter_zip_chain",
+  // Captured parameters : a `defer` / lambda body that reads or mutates one of
+  // its enclosing fn's PARAMS promotes that param to a heap cell at fn entry
+  // (`promote_captured_params`). Exercises cell-new over an ABI param +
+  // make_closure with a non-empty env + the lifted body's `struct.get` cell
+  // read in the C emitter. The run oracle (matches vm.snapshot) is the guard.
+  "defer_capture_param",
 ]);
 
 const scenarios = listSnippets("tests/snippets").filter((s) => C_PARITY.has(s.name));
