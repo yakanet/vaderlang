@@ -8,7 +8,7 @@
 module "vader/typecheck"
 
 import "vader/diagnostics" { Diagnostic, typecheck_error, warning }
-import "vader/types" { Type, UnionType, EnumType, PrimitiveType, display_type, TY_BOOL }
+import "vader/types" { Type, UnionType, EnumType, display_type, TY_BOOL }
 AST :: import "vader/parser"
 
 /// Type-check a `MatchExpr`. `expected` flows into every arm body so
@@ -169,11 +169,6 @@ export infer_match :: fn(
         }
     }
     return result_ty
-}
-
-is_void :: fn(t: Type) -> bool {
-    if t is PrimitiveType as p { return p.name == "void" }
-    return false
 }
 
 // First enum variant name absent from `covered`. Uses the EnumType's

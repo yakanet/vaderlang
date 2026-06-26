@@ -7,7 +7,7 @@ import "std/collections" { MutableMap }
 
 import "vader/diagnostics" { Diagnostic, Span }
 import "vader/parser" { Decl, FnDecl, FnParam, StructDecl, ConstDecl, ImportDecl, EnumDecl, TraitDecl, TypeAliasDecl, AssertDecl, ImplDecl, Visibility, IdentExpr, GenericInstExpr, TypeExpr, StructField }
-import "vader/typecheck" { TypedProgram, Substitution, new_substitution, substitute, default_if_free, type_from_expr }
+import "vader/typecheck" { TypedProgram, Substitution, new_substitution, substitute, default_if_free, type_from_expr, lookup_const_symbol }
 import "vader/types" { Type, FnType, TypeMetaType, TY_VOID, PrimitiveType }
 import "vader/comptime" { ComptimeValue, MonoEntry, symbol_for_decl }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
@@ -373,14 +373,6 @@ lookup_comptime_value :: fn(
     if symbol is null { return null }
     if symbol is Symbol as s {
         return program.comptime_decls[s.id]
-    }
-    return null
-}
-
-lookup_const_symbol :: fn(const_decl: ConstDecl, typed: TypedProgram) -> Symbol | null {
-    for symbol in typed.resolved.symbols {
-        if symbol.kind != SymbolKind.Const { continue }
-        if symbol.name == const_decl.name { return symbol }
     }
     return null
 }

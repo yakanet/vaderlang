@@ -13,8 +13,24 @@ import "std/collections" { MutableMap }
 import "vader/parser" { FnDecl, StructDecl, TraitDecl, TypeAliasDecl }
 AST :: import "vader/parser"
 import "vader/resolver" { ResolvedModule }
-import "vader/resolver/symbol" { Symbol }
+import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/types" { Type }
+
+/// Find the resolved `Const` symbol matching `decl` by name. The typed AST
+/// only indexes `IdentExpr` use sites, so this scans `resolved.symbols` by
+/// name + kind — linear, called once per const reference ; negligible at the
+/// module sizes the comptime / lower passes see.
+///
+/// @param decl   the const declaration whose backing symbol is wanted.
+/// @param typed  the typechecked program carrying the resolved symbol table.
+/// @return       the matching `Const` `Symbol`, or `null` when none is found.
+export lookup_const_symbol :: fn(decl: AST.ConstDecl, typed: TypedProgram) -> Symbol | null {
+    for symbol in typed.resolved.symbols {
+        if symbol.kind != SymbolKind.Const { continue }
+        if symbol.name == decl.name { return symbol }
+    }
+    return null
+}
 
 /// Per-module typechecker output. Every span-keyed side-table uses the
 /// `i64` key produced by `scope.node.span.hash()` — packed

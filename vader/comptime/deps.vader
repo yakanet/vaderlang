@@ -10,8 +10,8 @@ module "vader/comptime"
 import "std/collections" { MutableMap, keys }
 import "vader/diagnostics" { Diagnostic, comptime_error }
 import "vader/diagnostics" { ComptimeCode }
-import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/typecheck" { TypedProgram }
+import "vader/resolver/symbol" { SymbolKind }
+import "vader/typecheck" { TypedProgram, lookup_const_symbol }
 AST :: import "vader/parser"
 
 /// Result of dependency analysis : the `@comptime const` decls in
@@ -107,19 +107,6 @@ populate_deps :: fn(nodes: Nodes, typed: TypedProgram) -> void {
         collect_expr_deps(record.decl.value, typed, nodes, deps_seen, record)
         nodes.by_id[id] = record
     }
-}
-
-// The resolver doesn't write decl name_spans into `idents` (that table
-// holds IdentExpr use sites only), so we scan `resolved.symbols` for a
-// matching name+kind. Linear in symbol count, called once per
-// `@comptime const` — negligible at module sizes the comptime engine
-// sees.
-lookup_const_symbol :: fn(decl: AST.ConstDecl, typed: TypedProgram) -> Symbol | null {
-    for symbol in typed.resolved.symbols {
-        if symbol.kind != SymbolKind.Const { continue }
-        if symbol.name == decl.name { return symbol }
-    }
-    return null
 }
 
 // DFS topological sort with three-colour marking. Grey hit → cycle.

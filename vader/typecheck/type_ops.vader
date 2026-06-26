@@ -19,6 +19,13 @@ import "vader/types" {
     TY_NEVER, display_type, mk_primitive, mk_union, type_base_name,
 }
 
+/// True when `t` is the `void` primitive. The canonical void test, shared by
+/// match-exhaustiveness (typecheck) and return-type checks (midir).
+export is_void :: fn(t: Type) -> bool {
+    if t is PrimitiveType as p { return p.name == "void" }
+    return false
+}
+
 // ---- numeric registries (used by Free* defaulting + assignable) -----------
 //
 // Vader has no array-spread `[...A, ...B]` yet, so `ALL_INTS` / `NUMERIC`

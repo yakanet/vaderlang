@@ -26,6 +26,7 @@ import "vader/diagnostics" { Span }
 import "vader/resolver" { module_in_scope }
 import "vader/resolver/symbol" { Symbol }
 import "vader/types" { Type, PrimitiveType, display_type }
+import "vader/text" { quote_simple }
 
 /// Render the project's `# Lower` dump as a single string. Only modules in
 /// `scope` are rendered (the entry's subtree by default, `--module` to widen),
@@ -361,24 +362,6 @@ format_float :: fn(value: f64) -> string {
         return rb[0..<rb.len() - 2].bytes_to_string()
     }
     return raw
-}
-
-// Simple-escape mirror of the TS `quoteSimple` helper. Doubles up `"`
-// and `\`, encodes `\n` / `\t` / `\r` ; passes everything else through
-// codepoint-by-codepoint so multi-byte UTF-8 sequences round-trip.
-quote_simple :: fn(value: string) -> string {
-    sb := new_builder()
-    sb.append_char('"')
-    for c in value {
-        if c == '"' { sb.append("\\\"") }
-        else if c == '\\' { sb.append("\\\\") }
-        else if c == '\n' { sb.append("\\n") }
-        else if c == '\t' { sb.append("\\t") }
-        else if c == '\r' { sb.append("\\r") }
-        else { sb.append_char(c) }
-    }
-    sb.append_char('"')
-    return sb.to_string()
 }
 
 unary_op_name :: fn(op: LoweredUnaryOp) -> string = match op {

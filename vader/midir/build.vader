@@ -34,9 +34,9 @@ import "vader/lower" {
 }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/types" {
-    Type, PrimitiveType, UnionType,
+    Type, UnionType,
 }
-import "vader/typecheck" { equals_type }
+import "vader/typecheck" { equals_type, is_void }
 
 /// Project-level interning context — accumulates strings into a single
 /// pool shared by every fn's CFG. Mirrors `ProjectCtx` in `build.ts`.
@@ -990,10 +990,5 @@ declare_local :: fn(fn_ctx: FnCtx, name: string, type: Type, symbol: Symbol | nu
 
 fresh_tmp :: fn(fn_ctx: FnCtx, hint: string, type: Type) -> LocalId {
     return declare_local(fn_ctx, "\$${hint}_${fn_ctx.locals.len()}", type, null)
-}
-
-is_void :: fn(t: Type) -> bool {
-    if t is PrimitiveType as p { return p.name == "void" }
-    return false
 }
 
