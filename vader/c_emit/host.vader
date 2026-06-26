@@ -94,9 +94,6 @@ import_shim :: fn(ctx: EmitCtx, imp: BcImport, idx: i32) -> string {
     if m == "std_io\$read_stdin" { return "${head} { return vader_read_stdin(a0, ${tag_u(ctx.string_tag, "string")}, ${tag_u(error_ref_tag(types), "error")}); }" }
     if m == "std_io\$poll_stdin" { return "${head} { return vader_poll_stdin(a0); }" }
     if m == "std_io\$set_stdin_unbuffered" { return "${head} { vader_set_stdin_unbuffered(); }" }
-    // Transitional: the former `lsp_init_stdin` mangled name still routes to the
-    // new C symbol so the pre-rename seed keeps building. Dropped in reseed 2.
-    if m == "std_io\$lsp_init_stdin" { return "${head} { vader_set_stdin_unbuffered(); }" }
 
     // std/string internals.
     if m == "std_string\$byte_len" { return "${head} { return vader_string_byte_len(a0); }" }

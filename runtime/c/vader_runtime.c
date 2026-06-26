@@ -2631,13 +2631,6 @@ void vader_set_stdin_unbuffered(void) {
     setvbuf(stdin, NULL, _IONBF, 0);
 }
 
-/* Transitional alias for the former `vader_lsp_init_stdin` name. Kept only so
- * the pre-rename seed still links during the bridge reseed; removed once the
- * regenerated seed no longer references it (rename reseed 2). */
-void vader_lsp_init_stdin(void) {
-    vader_set_stdin_unbuffered();
-}
-
 /* Return true iff stdin has data ready within `timeout_ms` (0 = poll, no wait).
  * Used by the LSP event loop to detect a quiescent edit window: drain the burst
  * of `didChange` notifications, then run the typecheck once. Relies on stdin
