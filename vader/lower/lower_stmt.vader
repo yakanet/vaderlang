@@ -178,7 +178,7 @@ lower_let_into :: fn(ctx: FnLowerCtx, let_stmt: LetStmt, out: LoweredStmt[]) -> 
             // `let t: type = …` is an in-fn type alias — no runtime
             // slot, the typer pre-resolved the type. Skip emit so the
             // dump matches the TS lowerer's `letTypeAliases`
-            // short-circuit (`src/lower/passes/block.ts:101-103`).
+            // short-circuit.
             if binding_type is TypeMetaType { return }
             raw_value :: lower_expr(ctx, let_stmt.value)
             widened :: widen_literal_to_context(raw_value, binding_type)

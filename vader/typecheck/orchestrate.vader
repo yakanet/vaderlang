@@ -30,7 +30,7 @@ import "vader/types" {
 
 // Concatenate every file of a (possibly multi-file) module into one
 // synthetic Program so the resolver body-walks ALL files, not just
-// files[0]. Mirror of TS `mergeFilePrograms` (src/resolver/index.ts).
+// files[0]. Mirror of TS `mergeFilePrograms`.
 // `span_key` is file-aware, so idents from sibling files at the same
 // (line, column) no longer collide in the merged per-module map.
 merge_module_program :: fn(files: SourceFile[]) -> Program {

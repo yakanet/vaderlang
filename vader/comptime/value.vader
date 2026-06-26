@@ -1,6 +1,6 @@
 // vader/comptime/value — comptime value IR.
 //
-// Mirror of `src/comptime/value.ts`. Tagged union holding everything the
+// Tagged union holding everything the
 // comptime evaluator can produce : primitive ints / floats / bools /
 // chars / strings, the sentinel `Null` + `Void`, composite arrays and
 // structs, plus type-valued slots (`@comptime t :: i32`). `display_value`

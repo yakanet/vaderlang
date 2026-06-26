@@ -1,6 +1,6 @@
 // vader/lexer/token — token shapes for the self-hosted lexer.
 //
-// Mirror of `src/lexer/token.ts`. One enum variant per kind so downstream
+// One enum variant per kind so downstream
 // passes get exhaustive `match` checking. `Position` and `Span` live in
 // `vader/diagnostics/diagnostic` so tokens and diagnostics share the same
 // canonical source-location types.

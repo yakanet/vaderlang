@@ -1,6 +1,6 @@
 // vader/typecheck/binary — BinaryExpr inference.
 //
-// Mirror of `src/typecheck/passes/binary.ts::inferBinary`. Each operand
+// Each operand
 // is recursively checked ; the result type is derived per `OpKind`
 // classification (see `classify` below for the op → kind mapping).
 //

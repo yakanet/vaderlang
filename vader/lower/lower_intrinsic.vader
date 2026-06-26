@@ -32,7 +32,7 @@ lower_intrinsic :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type)
     }
     // `@field(target, "name")` folds to `target.name` when the name
     // arg is a static string literal. Mirror of `lowerIntrinsic`'s
-    // `case "field"` (`src/lower/passes/expr.ts:453-487`). Comptime-for
+    // `case "field"`. Comptime-for
     // unrolling can substitute the name slot with a LoweredStringLit
     // — we lower the args here so post-substitution literals get
     // picked up. When the typer left the result type unresolved,

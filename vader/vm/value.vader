@@ -792,8 +792,7 @@ ObjVal implements Display {
 /// Renders as `<type_id>{ field0, field1, … }` — type_id is the ordinal
 /// from `Module.types` (the executor doesn't carry the type table here,
 /// so field names aren't available). Example : `5{ 1, 2 }` for a 2-field
-/// struct of type id 5 with fields `1` and `2`. Matches `displayValue`
-/// in `src/vm/value.ts` so the cross-VM parity stays.
+/// struct of type id 5 with fields `1` and `2`.
 StructVal implements Display {
     to_string :: fn(self) -> string {
         sb :: new_builder()

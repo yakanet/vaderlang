@@ -307,7 +307,7 @@ emit_call :: fn(call: LoweredCall, state: FnEmitState, ctx: EmitterCtx) -> void 
 /// Vader side : that pass double-registers intrinsic symbols in BOTH
 /// the fn-table and the import table. The intrinsic-name check has
 /// to fire first or we'd emit `Call <wrapper>` instead of inlining
-/// the op. The TS dispatcher (`src/midir/emit.ts:emitCallInstr`)
+/// the op. The TS dispatcher
 /// gates the intrinsic check on the import map for the same reason.
 emit_call_to_symbol :: fn(symbol: Symbol, state: FnEmitState, ctx: EmitterCtx) -> void {
     intrinsic :: intrinsic_op_for_symbol_name(symbol)

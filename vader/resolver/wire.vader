@@ -1,7 +1,7 @@
 // vader/resolver/wire — resolve each ImportBinding symbol to its
 // concrete export target across the module graph.
 //
-// Mirror of `src/resolver/wire.ts::wireImports`. Produces a
+// Produces a
 // side-table keyed by Symbol.id so the symbol graph stays
 // immutable.
 

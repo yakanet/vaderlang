@@ -880,9 +880,9 @@ read_source :: fn(file: string) -> string | null {
     }
 }
 
-// Token + diagnostic dump go to stdout — the parity test
-// (`tests/parity.test.ts`) snapshots stdout only, so this stays unchanged.
-// Only the file-read failure path moves to stderr, matching TS.
+// Token + diagnostic dump go to stdout — the snapshot suite snapshots
+// stdout only, so this stays unchanged. Only the file-read failure path
+// moves to stderr.
 run_lexer_stage :: fn(file: string) -> i32 {
     src :: read_source(file)
     if src is null { return 1 }
@@ -1005,10 +1005,9 @@ run_comptime_stage :: fn(file: string, module_filter: string[]) -> i32 {
     pipeline :: prepare_evaluated_project(file)
     println(dump_evaluated(pipeline.evaluated, dump_scope(module_filter, pipeline.loaded)))
     // Mirror `run_lower_stage` / `run_bytecode_stage` : surface the merged
-    // typecheck + comptime diags as a single `# Diagnostics` block. The
-    // TS reference (`dumpComptime` in `tests/snapshot.ts`) accumulates
-    // resolve + typecheck + comptime into one collector, so the parity
-    // snapshots only line up when this stage does the same.
+    // typecheck + comptime diags as a single `# Diagnostics` block —
+    // resolve + typecheck + comptime accumulate into one collector, so the
+    // recorded snapshots only line up when this stage does the same.
     print_pipeline_diags(pipeline, [], dump_scope(module_filter, pipeline.loaded))
     return 0
 }
@@ -1118,9 +1117,9 @@ CfgBytecode :: struct {
 }
 
 /// Lower `file` to a `BytecodeModule` via the CFG midir → bytecode path
-/// (the canonical bytecode the bytecode stage, the C stage, and TS all
-/// share). The CFG path materialises 3-address `local.set` / `local.get`
-/// temps byte-for-byte with TS ; the legacy `emit_project` tree-walker
+/// (the canonical bytecode shared by the bytecode stage and the C stage).
+/// The CFG path materialises 3-address `local.set` / `local.get`
+/// temps ; the legacy `emit_project` tree-walker
 /// elides them and diverges on ~150 snippets, so both `dump --stage`
 /// consumers route through here. Const-fold is deliberately NOT run (TS's
 /// `dumpBytecode` skips it too, so arith collapse would over-shrink vs the
@@ -1242,8 +1241,8 @@ run_dced_stage :: fn(file: string, module_filter: string[]) -> i32 {
 }
 
 // Print the merged loader + typecheck + comptime + caller-supplied
-// diags as a single `# Diagnostics` block, matching `dumpLower` in
-// `tests/snapshot.ts`. Order : loader first (parse / discover /
+// diags as a single `# Diagnostics` block.
+// Order : loader first (parse / discover /
 // import-path / collect), then typecheck (with resolver-side
 // forwards via orchestrate.vader:168), then comptime, then `extra`
 // (the per-stage tail — currently lower).
@@ -1308,7 +1307,7 @@ merge_diagnostics :: fn(head: Diagnostic[], extra: Diagnostic[]) -> Diagnostic[]
 }
 
 // Print `head` then `extra` as a single `# Diagnostics` block (nothing when
-// both are empty), matching `dumpLower` in `tests/snapshot.ts` byte-for-byte.
+// both are empty).
 print_merged_diags :: fn(head: Diagnostic[], extra: Diagnostic[]) -> void {
     all_diags :: merge_diagnostics(head, extra)
     if all_diags.len() > 0 {

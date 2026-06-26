@@ -1,6 +1,6 @@
 // vader/lower/core_symbols — stdlib symbol cache lookups.
 //
-// Mirror of `src/lower/passes/core.ts`. The for-in / try / display
+// The for-in / try / display
 // passes need to resolve `std/core` traits + structs by name without
 // re-walking the loaded module map. `LowerProjectCtx.core_symbols` is
 // populated once at project entry ; these helpers wrap the lookups and

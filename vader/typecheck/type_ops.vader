@@ -1,6 +1,6 @@
 // vader/typecheck/type_ops — equality, assignability, union canonicalisation.
 //
-// Mirror of the operations on Type defined in `src/typecheck/types.ts`. The
+// The
 // **trait-widening** branch of `is_assignable` and the `intersects` helper
 // both need an `ImplRegistry` to query "does T implement Trait?" — that
 // dependency lives in `impls.vader` (Phase 2.4). Until that lands, the

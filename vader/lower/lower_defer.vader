@@ -1,6 +1,6 @@
 // vader/lower/lower_defer — defer-thunk lifting.
 //
-// Mirror of `src/lower/passes/defer.ts`. Each `DeferStmt` becomes :
+// Each `DeferStmt` becomes :
 //   1. A synthesised top-level fn (the "lifted defer fn") whose only
 //      param is an env struct carrying captured locals.
 //   2. A synthesised env struct decl with one `cap_<N>` field per

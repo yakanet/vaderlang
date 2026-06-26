@@ -1,6 +1,6 @@
 // vader/lower/lower_try — `expr?` operator lowering.
 //
-// Mirror of `src/lower/passes/try.ts`. Splits the operand's type into
+// Splits the operand's type into
 // error / ok variants and emits an early-return for the error half :
 //
 //   let __try_n :: <inner>

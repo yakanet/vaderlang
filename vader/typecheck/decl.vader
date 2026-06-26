@@ -1,6 +1,6 @@
 // vader/typecheck/decl — top-level type collection.
 //
-// Mirror of `src/typecheck/passes/decl.ts::declareType`. Walks every
+// Walks every
 // top-level decl in source order, mints its declared `Type`, and stores
 // the result in `typed.decl_types` keyed by the decl's `name_span`.
 // Later passes (body checking, ImplRegistry building) read this side

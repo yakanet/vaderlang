@@ -24,7 +24,7 @@ import "vader/resolver/symbol" { Symbol }
 /// per concrete generic instance. Structs land as
 /// `Symbol__T1__T2 { field: ConcreteT }` ; generic-impl members
 /// follow as `Symbol$Trait$method__T1__T2(...)`. Mirror of TS's
-/// `monomorphizeProject` (`src/comptime/specialize.ts`) pass-2.
+/// `monomorphizeProject` pass-2.
 /// Build phase of generic-fn-instance materialisation. Drains the
 /// `fn_instances_order` + `pending_generic_impl_recv` queues into
 /// `project_ctx.generic_collected`, lowering each instance body against a
@@ -112,7 +112,7 @@ flush_generic_fn_instances :: fn(project_ctx: LowerProjectCtx, project: LoweredP
     // group to a single decl keyed by `fn_symbol.id`, keeping the first
     // by sort order (`outer<i32>` + `outer<string>` -> one `outer__i32`).
     // Mirror of TS' `erasureDedupe` collapsing each fn group to one
-    // representative (`src/comptime/erasure-dedupe.ts`). Impl-member
+    // representative. Impl-member
     // instances never reach `fn_instances` (they route through the mono
     // / vtable path), so this only collapses free generic fns.
     //

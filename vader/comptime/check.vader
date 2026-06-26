@@ -1,6 +1,6 @@
 // vader/comptime/check — comptime orchestrator entry point.
 //
-// Mirror of `src/comptime/evaluate.ts::evaluateProject`. For Phase 4 of
+// For Phase 4 of
 // the comptime port this drives the tree-walk evaluator over every
 // module's `@comptime const` decls in topological order, accumulating
 // values into `EvaluatedProgram.comptime_decls` keyed by Symbol id.

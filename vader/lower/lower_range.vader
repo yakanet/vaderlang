@@ -1,6 +1,6 @@
 // vader/lower/lower_range — `a..<b` / `a..=b` range lowering.
 //
-// Mirror of `src/lower/passes/for-in.ts::lowerRangeExpr`. Desugars an
+// Desugars an
 // `AST.RangeExpr` into a `Range { .start, .end, .inclusive, .cursor }`
 // struct literal so for-in can dispatch through the standard Iterator
 // impl rather than a bespoke fast path.

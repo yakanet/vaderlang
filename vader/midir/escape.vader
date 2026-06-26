@@ -1,6 +1,6 @@
 // vader/midir/escape — intra-procedural escape analysis.
 //
-// Mirror of `src/midir/escape.ts`. For each StructNew / ArrayNew
+// For each StructNew / ArrayNew
 // allocation, decides whether the value can escape its fn. Escapes :
 //   - Returned (Return.value)
 //   - Passed as Call / CallIndirect / VirtualCall arg (no inter-

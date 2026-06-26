@@ -1,6 +1,6 @@
 // vader/comptime/evaluated_ast — output shapes of the comptime engine.
 //
-// Mirror of `src/comptime/evaluated-ast.ts`. The comptime pass reads a
+// The comptime pass reads a
 // `TypedProject` and produces an `EvaluatedProject` carrying one
 // `EvaluatedProgram` per module plus the cross-module monomorphizer
 // view and a few host-side side-tables (file contents, blanket-Into

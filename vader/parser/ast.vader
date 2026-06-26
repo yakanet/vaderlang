@@ -5,7 +5,7 @@
 // union alias can sit before or after the variant structs it lists.
 // Type-bearing fields are renamed `ty` (since `type` was historically a
 // keyword) ; the dumper emits the JSON key as `"type"` so snapshots
-// stay byte-identical with TS.
+// stay stable.
 
 module "vader/parser"
 
@@ -13,7 +13,7 @@ import "vader/diagnostics" { Span }
 
 // Sentinel id used at parser construction time, before a future
 // `assign_node_ids` walker replaces it with a fresh unique value (≥ 1).
-// Mirrors `UNASSIGNED_NODE_ID = 0` on the TS side (src/parser/ast.ts) so
+// Mirrors `UNASSIGNED_NODE_ID = 0` on the TS side so
 // the construct/walk pattern is identical across both implementations.
 // Used as a struct-field default so node constructions can omit `.id`.
 export UNASSIGNED_NODE_ID :: usize(0)

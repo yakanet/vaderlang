@@ -1,8 +1,7 @@
 // vader/resolver/dump — text formatter for ResolvedProject.
 //
-// Mirror of `dumpResolver` in `tests/snapshot.ts` — both must emit
-// byte-identical text so `tests/parity.test.ts` can diff stdout against
-// the snapshot. Format spec :
+// Output is stable so the snapshot suite can diff it against the recorded
+// fixtures. Format spec :
 //
 //     # Modules
 //

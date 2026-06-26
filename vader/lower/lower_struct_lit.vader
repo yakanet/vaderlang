@@ -202,7 +202,7 @@ build_struct_lit_fields :: fn(
             // like `UNASSIGNED_NODE_ID` (vader/parser) is unresolved when the
             // struct is built in vader/lower → the whole struct lit degrades to a
             // drop. Lower defaults with the owning module's typed view. Mirror of
-            // TS' `lowerExprMaybeForeign` (src/lower/passes/expr.ts).
+            // TS' `lowerExprMaybeForeign`.
             default_ctx :: ctx_in_owning_module(ctx, st.symbol.module, decl, st.args)
             for field_decl in decl.fields {
                 // Resolve the field's declared type so a union-typed

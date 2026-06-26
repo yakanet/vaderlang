@@ -243,7 +243,7 @@ ingest_module :: fn(
             // Display path mirrors TS `src/resolver/loader.ts:94` —
             // the module's declared name (`module "..."`), NOT the
             // filesystem folder. Keeps `# Lower` / `# Comptime` /
-            // `# Typecheck` dumps byte-identical with TS snapshots.
+            // `# Typecheck` dumps stable.
             .display_path = m.name,
             .module_name  = m.name,
             .root_dir     = m.folder,

@@ -1,6 +1,6 @@
 // vader/midir/emit — CFG → bytecode emitter (Phase 2 of the Mid-IR refactor).
 //
-// Mirror of `src/midir/emit.ts`. Reuses the LoweredAST → bytecode
+// Reuses the LoweredAST → bytecode
 // emitter's project context (`EmitterCtx`) for everything *outside*
 // the function body. Function bodies come from the CFG : we run a
 // recursive structurer that recovers WASM-style `block` / `loop` /
@@ -335,7 +335,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             // rewritten body / fn and the caller threads it back into
             // `ctx.functions[i]`.
             //
-            // Order mirrors TS (`src/bytecode/peephole.ts::runPeepholes`) :
+            // Order mirrors TS :
             // applyLocalRules → propagateConstSingleUse → dropDeadStores.
             // Running propagate AFTER Rule 1 leaves slots Rule 1 didn't
             // fold (non-adjacent set+get because the CFG interleaves
@@ -374,7 +374,7 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
             ctx.functions[i] = BcFunction { .name = g.name, .is_main = g.is_main, .signature = g.signature, .locals = g.locals, .body = rlf.body, .debug = g.debug, .jump_table = rlf.jump_table }
             // Final pass — same-ValType non-overlapping live ranges
             // coalesce onto shared physical slots. Mirror of TS
-            // `coalesceSlots` (src/midir/emit.ts:109). Runs LAST so the
+            // `coalesceSlots`. Runs LAST so the
             // peephole / propagate / DCE passes see the original slot
             // identities ; their gates depend on per-slot set/get
             // counts which coalescing would corrupt.
@@ -1015,7 +1015,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         // Remember whether the scheduler elided our receiver get BEFORE
         // emitting it ; if it did, the tail op belongs to the producer
         // instruction, not us, and `try_fuse_local_field` would corrupt
-        // it. Mirrors TS `skippedReceiverGet` (src/midir/emit.ts:556).
+        // it. Mirrors TS `skippedReceiverGet`.
         skipped_receiver_get :: ctx.hints.skip_first_get.contains(pos)
         emit_first_get(ctx, pos, fg.target, fg.span)
         field_slot :: find_struct_field_index(ctx.project, type_index, fg.field)
@@ -1033,7 +1033,7 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         field_index :: i32(field_slot)
         // Fuse `local.get N ; struct.get T F` → `local.field N T F`
         // when the just-emitted op is the receiver's slot read. Mirrors
-        // the TS midir emit (src/midir/emit.ts:552).
+        // the TS midir emit.
         fused := false
         if !skipped_receiver_get {
             fused = try_fuse_local_field(ctx, type_index, field_index)
@@ -1303,7 +1303,7 @@ convert_eligible :: fn(v: ValType) -> bool = match v {
 }
 
 /// Map an InstrIntrinsic's canonical name onto its dedicated Op.
-/// Mirror of TS `INTRINSIC_TABLE` (src/bytecode/ops.ts:242). Returns
+/// Mirror of TS `INTRINSIC_TABLE`. Returns
 /// null when the name doesn't map to a known intrinsic ; the sole caller
 /// panics on `null` rather than emitting a function-truncating stub.
 intrinsic_op_for_name :: fn(name: string) -> Op | null {

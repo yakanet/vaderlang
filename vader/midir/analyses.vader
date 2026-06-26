@@ -1,6 +1,6 @@
 // vader/midir/analyses — shared CFG analyses + traversals.
 //
-// Mirror of `src/midir/analyses.ts`. Pure data — no IO, no diagnostics.
+// Pure data — no IO, no diagnostics.
 // Used by the structurer (`emit.vader`), DCE (`dce.vader`), and any
 // future Mid-IR pass (SSA, escape).
 //

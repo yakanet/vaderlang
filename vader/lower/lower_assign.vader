@@ -115,7 +115,7 @@ lower_index :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type) -> LoweredExpr {
     // Index trait routing : `s[i]` on a `string` / user struct with an
     // `Index<I, T>` impl rewrites to a direct `at(s, i)` call. Mirror of
     // TS' `indexResolutions` consumed by `lowerIndexTraitCall`
-    // (`src/lower/passes/expr.ts:295`). Skip for ArrayType (built-in
+    // Skip for ArrayType (built-in
     // path above) and for Range-typed indices (slicing handled above).
     if !(target_type is ArrayType) && !is_range {
         member :: find_impl_member_for(ctx, target_type, "at")
@@ -174,7 +174,7 @@ try_lower_range_slice :: fn(ctx: FnLowerCtx, expr: IndexExpr, type: Type, as_str
     // Range-typed *value* index (`let r = 0..<n ; arr[r]`) — bind the
     // range to a temp so the three field reads (`.start`, `.end`,
     // `.inclusive`) share one evaluation, then emit the slice. Mirrors
-    // TS' `lowerRangeSlice` second branch (`src/lower/passes/expr.ts`).
+    // TS' `lowerRangeSlice` second branch.
     idx_type :: ctx.types.expr_type(expr.index)
     if idx_type is StructType as st {
         if st.symbol.name != "Range" { return null }

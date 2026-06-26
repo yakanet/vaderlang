@@ -1,6 +1,6 @@
 // vader/midir/cfg — CFG / Instruction / Terminator data types.
 //
-// Mirror of `src/midir/cfg.ts`. Pure type declarations ; no behaviour.
+// Pure type declarations ; no behaviour.
 // The Lowered ↔ CFG ↔ bytecode pipeline keeps the two IRs distinct :
 // the build pass (`build.vader`) walks LoweredProject into CFGProject ;
 // CFG-private types (this file) include BasicBlock / Instruction /

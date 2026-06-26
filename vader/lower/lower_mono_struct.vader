@@ -340,7 +340,7 @@ close_over_field_shapes :: fn(
 
 /// Cap on representative field shapes materialised per project — guards
 /// against a pathological generic that grows its type at each level.
-/// Matches TS' `MAX_INSTANCES` (`src/comptime/evaluate.ts`).
+/// Matches TS' `MAX_INSTANCES`.
 MAX_FIELD_SHAPES :: 4096
 
 /// `for_each_type` visitor : push a struct shape onto `out` the first

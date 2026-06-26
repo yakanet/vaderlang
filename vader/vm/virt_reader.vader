@@ -826,7 +826,7 @@ parse_call :: fn(line: string) -> bc.Op | null {
 }
 
 /// Parse `bool.const true` / `bool.const false`. The TS bytecode
-/// writer (`src/bytecode/text.ts`) only emits the textual literal —
+/// writer only emits the textual literal —
 /// no numeric path to support.
 ///
 /// @param line  the .virt line (comment-stripped).

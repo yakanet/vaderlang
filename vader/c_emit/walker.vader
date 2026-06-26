@@ -535,7 +535,7 @@ push_unop :: fn(s: FnState, op: string, val: ValType) -> void {
 /// `-INT64_MIN` wraps back to `INT64_MIN` on two's-complement — exactly
 /// the value the source denotes — fold the pair to a bare `INT64_MIN`,
 /// identical to how a plain `i64.const INT64_MIN` is spelled. Mirror of
-/// the TS i64-neg fold (`src/c_emit/ops.ts`). Any other operand negates
+/// the TS i64-neg fold. Any other operand negates
 /// normally.
 push_i64_neg :: fn(s: FnState) -> void {
     v :: pop(s)

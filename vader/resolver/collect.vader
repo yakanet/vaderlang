@@ -1,6 +1,6 @@
 // vader/resolver/collect — top-level symbol minting pass.
 //
-// Mirror of `src/resolver/collect.ts`. Walks a Program's top-level decls
+// Walks a Program's top-level decls
 // once and mints one Symbol per name into a `MutableMap`. The same pass
 // emits multi-name destructure imports (`import "m" { a, b, c }` → 3
 // `import-binding` symbols) and groups fn overloads.

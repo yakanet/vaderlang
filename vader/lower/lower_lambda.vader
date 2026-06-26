@@ -1,6 +1,6 @@
 // vader/lower/lower_lambda — lambda lifting (consumes closure analysis).
 //
-// Mirror of `src/lower/passes/lambda.ts`. Turns each `LambdaExpr` into :
+// Turns each `LambdaExpr` into :
 //   1. A synthesised top-level fn (the "lifted fn") whose params are
 //      `env` first + the lambda's own params.
 //   2. A synthesised env struct decl carrying one `cap_<N>` field per

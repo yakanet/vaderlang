@@ -2,7 +2,7 @@
 //
 // Phase 6b minimum : produces a readable summary of the module that
 // surfaces every fn's name + signature + body op list. Not yet
-// byte-for-byte aligned with the TS `writeVir` output ; that
+// stable `writeVir` output ; that
 // alignment ships in a follow-up commit alongside the snapshot
 // regeneration (`bytecode.snapshot.virt` files will need refresh).
 //
@@ -198,7 +198,7 @@ write_entry_main :: fn(sb: StringBuilder, functions: BcFunction[], entry_mangled
 }
 
 write_exports :: fn(sb: StringBuilder, exports: BcExport[], functions: BcFunction[]) -> void {
-    // Mirror TS `writeVir` (`src/bytecode/text.ts:58`) — iterate the
+    // Mirror TS `writeVir` — iterate the
     // emitted exports list only, no implicit `export main`. The host
     // recognises the entry via `BcFunction.is_main`, not via an export
     // directive.
@@ -401,8 +401,8 @@ write_indent :: fn(sb: StringBuilder, depth: i32) -> void {
 }
 
 /// Render an op as its `.virt`-style name + operands (when any).
-/// Not yet byte-for-byte aligned with the TS `writeVir` rendering ;
-/// good enough for human-readable debug output of the bytecode.
+/// A `writeVir`-style rendering, good enough for human-readable debug
+/// output of the bytecode.
 convert_target_name :: fn(t: ConvertTarget) -> string = match t {
     .I32  -> "i32"
     .I64  -> "i64"

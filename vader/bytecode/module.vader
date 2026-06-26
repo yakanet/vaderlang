@@ -2,7 +2,7 @@
 // franca shared by the bytecode emitter (T2), the VM, and the C / WASM
 // emitters (T1 / T4).
 //
-// Mirror of `src/bytecode/module.ts`. This is the single in-memory module
+// This is the single in-memory module
 // shape : the self-host VM consumes it directly (the former runtime-only
 // `vader/vm/op.Module` + its parsers were retired in the VM consolidation).
 // It carries the full information the bytecode emitter writes and the C-emit

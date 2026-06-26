@@ -1,5 +1,4 @@
-// vader/parser/dump — AST → JSON pretty-printer that mirrors the TS
-// `formatProgram` (`tests/snapshot.ts`).
+// vader/parser/dump — AST → JSON pretty-printer for the `# AST` snapshot.
 //
 // Snapshot format : `# AST\n` header + 2-space-indented JSON. Spans are
 // stripped (they're noisy and span numbers shift across tiny edits) ; ints
@@ -18,7 +17,7 @@ export dump_program :: fn(prog: Program) -> string {
     sb.append("# AST\n")
     sb.write_program(prog, 0)
     // The CLI wrapper adds the trailing newline via `println`. Returning a
-    // value without one keeps the snapshot byte-for-byte with TS where
+    // value without one keeps the snapshot stable where
     // `formatProgram` returns `# AST\n<json>\n`.
     return sb.to_string()
 }
@@ -120,8 +119,7 @@ write_program :: fn(sb: StringBuilder, prog: Program, level: i32) -> void {
     sb.open_obj()
     sb.kind_entry(level + 1, "Program")
     // The `module` field is suppressed when null so pre-migration files
-    // (still in tolerant mode) keep their existing AST dump byte-for-byte.
-    // Mirrors the TS-side suppression in `tests/snapshot.ts::formatProgram`.
+    // (still in tolerant mode) keep their existing AST dump unchanged.
     match prog.module {
         is null       -> { }
         is ModuleDecl -> {

@@ -1,6 +1,6 @@
 // vader/lower/lowered_ast — output shape of the lowering pass.
 //
-// Mirror of `src/lower/lowered-ast.ts`. The lowerer reads an
+// The lowerer reads an
 // `EvaluatedProject` (typed AST + comptime values + mono entries) and
 // emits a `LoweredProject` — a flatter IR consumed by the bytecode
 // emitter, the C emitter, and the DCE / CFG passes. Every expression

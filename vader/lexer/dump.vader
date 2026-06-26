@@ -1,9 +1,7 @@
 // vader/lexer/dump — render a Lexer's tokens / diagnostics as text.
 //
-// Output format mirrors `tests/snapshot.ts:formatTokens` / `formatDiagnostics`
-// byte-for-byte so the parity rig (`tests/parity.test.ts`) can diff Vader-CLI
-// output against the existing `lexer.snapshot` files. When the TS compiler
-// retires post-bootstrap, this file becomes the sole snapshot producer.
+// This is the sole producer of the `lexer.snapshot` fixtures ; the output
+// format is stable so the snapshot suite can diff it against them.
 //
 // Lives in the lexer module rather than the CLI : the TokenKind→snake_case
 // table belongs next to the enum it indexes, and the dump is a primitive
@@ -30,9 +28,8 @@ export dump_tokens :: fn(l: Lexer) -> string {
 }
 
 export dump_diagnostics :: fn(diags: Diagnostic[]) -> string {
-    // Mirror `DiagnosticCollector.sorted()` in `src/diagnostics/collector.ts`
-    // — order by (file, offset, code) so the parity rig stays byte-identical
-    // when several diagnostics share a line:col.
+    // Order by (file, offset, code) so the output stays stable when several
+    // diagnostics share a line:col.
     sorted :: sort(diags, diag_less)
     sb := new_builder()
     sb.append("\n# Diagnostics")
@@ -46,7 +43,7 @@ export dump_diagnostics :: fn(diags: Diagnostic[]) -> string {
 diag_less :: fn(a: Diagnostic, b: Diagnostic) -> bool {
     // Diagnostics in a single dump-stage run come from one file, so we skip
     // the file-name tie-breaker that `DiagnosticCollector.sorted()` uses.
-    // Order by (offset, code) is sufficient for parity with the TS rig.
+    // Order by (offset, code) is sufficient for a stable dump.
     if a.primary.start.offset < b.primary.start.offset { return true }
     if a.primary.start.offset > b.primary.start.offset { return false }
     return string_less(a.code.id, b.code.id)
@@ -111,7 +108,7 @@ append_token_detail :: fn(sb: StringBuilder, t: Token) -> void {
 }
 
 // TokenKind → the snake_case name that matches `src/lexer/token.ts` so the
-// dump output stays byte-identical with the TS reference. Public so the
+// dump output stays stable. Public so the
 // parser's `describe_token` can reuse it (folder-modules ignore `private`
 // across files but the explicit visibility documents intent).
 export kind_name :: fn(k: TokenKind) = match k {

@@ -1,6 +1,6 @@
 // vader/lower/lower_match — match-expression lowerer.
 //
-// Mirror of `src/lower/passes/match.ts`. Flattens `match scrutinee { arm... }`
+// Flattens `match scrutinee { arm... }`
 // to a let-bind on the scrutinee + a chain of `if (predicate) <arm-body>`
 // blocks. Pattern bindings (`x is T as alias`, `BindingPattern("name")`,
 // struct destructure, tuple destructure) are introduced inside the arm
