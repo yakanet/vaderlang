@@ -929,7 +929,7 @@ Direction :: enum(u8) {
 }
 ```
 
-Allowed backing types: `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`. Omitting the suffix is equivalent to `enum(i32)`.
+Allowed backing types: `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, plus the word-width `isize` / `usize` (range-checked as `i64` / `u64`). Omitting the suffix is equivalent to `enum(i32)`.
 
 ##### Variant indices
 
