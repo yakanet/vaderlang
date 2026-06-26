@@ -582,7 +582,7 @@ The `Target(value)` syntax doubles as the explicit coercion surface. Numeric and
 - Immutable. Concatenation allocates.
 - `len()` returns the number of Unicode codepoints (allocation-free walk via leading-byte widths). For the **byte** length, take a view and ask its length: `s.bytes().len()` — written inline like that, the lowerer folds it to an O(1) byte-length primitive (no view materialised). Byte vs. codepoint is thus explicit at the call site: `len()` for codepoint arithmetic, `s.bytes().len()` for byte arithmetic.
 - `chars()` returns an iterator of `char` (`StringChars implements Iterator<char>`); pair with `for c in s.chars()` for a true Unicode loop.
-- `bytes()` returns the UTF-8 byte sequence as `const u8[]`; for ad-hoc byte processing (binary protocols carried in strings, ASCII fast paths, BOM detection). On the native target it is a **zero-copy view** aliasing the string's interned bytes (it allocates only a small array header, not the byte storage); the `const` is what keeps that view sound — writes are rejected at compile time (T3042) since the shared bytes are immutable. On the VM the bytes are **copied** into a materialised array (VM arrays box every slot and cannot alias a raw byte buffer) — same observable values, just not zero-copy. Iteration works through `for b in s.bytes()` via the built-in array iterator. Strings are deliberately **not** `Iterable` — there's no canonical "default" between bytes and codepoints, so `for x in s` is a compile error and the caller picks `s.bytes()` or `s.chars()` explicitly.
+- `bytes()` returns the UTF-8 byte sequence as `const u8[]`; for ad-hoc byte processing (binary protocols carried in strings, ASCII fast paths, BOM detection). On the native target it is a **zero-copy view** aliasing the string's interned bytes (it allocates only a small array header, not the byte storage); the `const` is what keeps that view sound — writes are rejected at compile time (T3042) since the shared bytes are immutable. On the VM the bytes are **copied** into a materialised array (VM arrays box every slot and cannot alias a raw byte buffer) — same observable values, just not zero-copy. Iteration works through `for b in s.bytes()` via the built-in array iterator. Strings iterate by **codepoint** by default — `string implements Into<Iterator<char>>`, so `for c in s` is the codepoint loop (equivalent to `for c in s.chars()`); use `for b in s.bytes()` to walk raw bytes.
 - `is_empty()` — sugar for `s.bytes().len() == 0` (codepoint count and byte count agree on emptiness).
 - **Subscript** `s[i]` returns the Unicode codepoint at *codepoint* index `i` (via `string implements Index<usize, char>` in `std/core`). Walking from the start is O(i); pair `chars()` with `for c in s.chars()` for O(n) iteration. For byte-cursor access, take a view with `s.bytes()` (a `const u8[]`) and index it — `s.bytes()[i] -> u8` for the raw byte, `s.bytes()[lo..<hi].bytes_to_string()` to slice a byte range back into a string (the inverse of `bytes()`, O(1) on the borrowed view). `byte_decode_at(i) -> char` decodes the UTF-8 codepoint starting at byte offset `i` (used by lexers, JSON parsers, LSP transport; byte-view consumers that hold the view call `decode_codepoint_at(bs, i)` instead). There is no `IndexSet` impl; strings are immutable.
 - Literals stored in the binary's data section.
@@ -1840,10 +1840,7 @@ Interpolation expressions `${...}` are parsed and **type-checked at compile time
 - Type incompatible with `Display`
 - Malformed expression
 
-Interpolation is **desugared** into a `StringBuilder` chain. Each `${expr}` segment is appended via one of two paths:
-
-- **Primitive segment** (numerics, `bool`, `char`, `string`) → dedicated `builder.append_display_<T>` op. Avoids the trait round-trip and side-steps any infinite recursion when a user overrides a primitive's Display impl with a body that itself interpolates `self` (a primitive Display impl is reachable only via explicit `(value).to_string()`, never from interpolation inside its own body).
-- **Non-primitive segment** (struct, enum, …) → static call to `<T>.Display.to_string`, then `builder.append_str` of the produced string. Single source of truth with explicit `.to_string()` calls — interpolation honours user impls on user types.
+Interpolation is **desugared** into a string-concatenation chain. Each `${expr}` segment is rendered to a string through its `Display.to_string` (string-typed segments pass straight through), and the literal pieces + rendered segments are joined uniformly: a short interpolation folds to `concat2` / `concat3` / `concat4`, a longer one to a `StringBuilder` chain. There is no primitive vs. non-primitive split — every non-string segment goes through `to_string`, so interpolation honours user `Display` impls on any type.
 
 ### `Display` trait
 
@@ -2350,8 +2347,10 @@ eprint     :: fn<T: Display>(msg: T) -> void
 eprintln   :: fn<T: Display>(msg: T) -> void
 read_line  :: fn() -> string | Error
 read_stdin :: fn(n: usize) -> string | Error  // read up to n bytes from stdin
-read_file  :: fn(path: string) -> string | Error
-write_file :: fn(path: string, content: string) -> null | Error
+read_file_string  :: fn(path: string) -> string | Error
+write_file_string :: fn(path: string, content: string) -> null | Error
+read_file_bytes   :: fn(path: string) -> u8[] | Error
+write_file_bytes  :: fn(path: string, content: const u8[]) -> null | Error
 exists     :: fn(path: string) -> bool
 is_dir     :: fn(path: string) -> bool
 read_dir   :: fn(path: string) -> string[] | Error  // names only (no recursion)
@@ -2413,11 +2412,8 @@ join       :: fn(parts: string[], sep: string) -> string
 left_trim  :: fn(s: string) -> string
 right_trim :: fn(s: string) -> string
 
-// Char predicates (universal — useful for any DSL or text scanner).
-is_alpha         :: fn(c: char) -> bool                         // a-z, A-Z
-is_alnum         :: fn(c: char) -> bool                         // a-z, A-Z, 0-9
-is_digit         :: fn(c: char) -> bool                         // 0-9
-is_white_char    :: fn(c: char) -> bool                         // space, tab, newline, CR
+// UTF-8 codepoint width (powers `chars()` / `len`).
+codepoint_byte_len :: fn(c: char) -> usize                      // 1..4 — UTF-8 width of a codepoint
 
 // Pattern / scanner helpers (ad-hoc — no real regex engine in MVP).
 trim_prefix         :: fn(s: string, prefix: string) -> string
@@ -2452,15 +2448,18 @@ is_float_suffix :: fn(s: string) -> bool           // f32/f64
 
 Caller pads via `pad_start` (`n.to_hex().pad_start(8, '0')`).
 
-### `std/utf8`
+### `std/char`
 
-UTF-8 byte-width helper that powers `std/string.chars()` and `len`.
-To append a decoded codepoint to a `StringBuilder`, call
-`sb.append_char(char(cp))` directly — `append_char` UTF-8-encodes the
-codepoint canonically, no `append_codepoint` wrapper needed.
+ASCII character predicates (universal — useful for any DSL or text scanner).
+They operate on `char` (codepoints), not bytes. To append a decoded codepoint
+to a `StringBuilder`, call `sb.append_char(char(cp))` directly — `append_char`
+UTF-8-encodes the codepoint canonically, no `append_codepoint` wrapper needed.
 
 ```vader
-codepoint_byte_len :: fn(c: char) -> usize         // 1..4 — UTF-8 width of a codepoint
+is_white_char :: fn(c: char) -> bool                  // space, tab, newline, CR
+is_digit      :: fn(c: char) -> bool                  // 0-9
+is_alpha      :: fn(c: char) -> bool                  // a-z, A-Z
+is_alnum      :: fn(c: char) -> bool                  // a-z, A-Z, 0-9
 ```
 
 ### `std/string_builder`
@@ -2797,10 +2796,11 @@ A single C native backend + a single WASM backend + IR text + IR binary emission
 | `vader dump --stage=<stage> file.vader` | Dumps an IR stage (text or JSON depending on stage) |
 | `vader init [name]` *(post-MVP)* | Scaffolds a new Vader project: directory, `examples/hello.vader`, default `vader.json` |
 
-`vader dump` stages, in pipeline order (`ast`, `resolved-ast`, `cfg`, `c`/`wasm` produce text; the rest produce JSON):
+`vader dump` stages, in pipeline order (`lexer`, `resolved-ast`, `cfg`, `bytecode-cfg`, `c`/`wasm` produce text; the rest produce JSON):
 
 | Stage | Output |
 |-------|--------|
+| `lexer` | Token stream + diagnostics (text) |
 | `ast` | Parser AST, spans elided |
 | `resolved-ast` | Per-module symbol table + import wiring (text — byte-aligned with `vader/resolver/dump.vader`) |
 | `typed-ast` | Per-decl + per-expression types |
@@ -2809,6 +2809,7 @@ A single C native backend + a single WASM backend + IR text + IR binary emission
 | `dced-ast` | Lowered tree post-stdlib reachability prune |
 | `cfg` | Mid-IR CFG (post-DCE + escape-annotated) |
 | `bytecode` | Stack-machine ops + type/string/import tables |
+| `bytecode-cfg` | Bytecode with CFG-level const-folding (text) |
 | `c` | Generated C source |
 | `wasm` *(planned)* | WebAssembly module |
 

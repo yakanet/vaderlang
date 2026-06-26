@@ -89,6 +89,7 @@ COMMANDS:
                                    Spawned by VSCode and IntelliJ via their LSP clients ;
                                    provides semantic-tokens highlighting for `.vader` files.
   dump --stage=<stage> <file>      Dump an IR stage as JSON/text
+                                     lexer          Token stream + diagnostics (text)
                                      ast            Parser AST (JSON, spans elided)
                                      resolved-ast   Per-module symbol table + import wiring
                                      typed-ast      Per-decl + per-expression types
@@ -97,6 +98,7 @@ COMMANDS:
                                      dced-ast       Lowered tree post stdlib reachability prune
                                      cfg            Mid-IR CFG (post DCE + escape annotation)
                                      bytecode       Stack-machine ops + type/string/import tables
+                                     bytecode-cfg   Bytecode with CFG-level const-folding (text)
                                      c              Generated C source
                                      wasm           WebAssembly module (not yet implemented)
                                    --annotate (bytecode only) resolves each op's table
@@ -112,7 +114,7 @@ GLOBAL OPTIONS:
 """
 
 // Reused for every dump-stage error path so the wording stays in sync.
-STAGES_LIST :: "stages: ast, resolved-ast, typed-ast, evaluated-ast, lowered-ast, dced-ast, cfg, bytecode, c, wasm"
+STAGES_LIST :: "stages: lexer, ast, resolved-ast, typed-ast, evaluated-ast, lowered-ast, dced-ast, cfg, bytecode, bytecode-cfg, c, wasm"
 
 // Mirrors `GlobalOpts` in `src/cli/options.ts`. Parsed but unused today —
 // the only stage that runs (lexer) doesn't consume any of these.

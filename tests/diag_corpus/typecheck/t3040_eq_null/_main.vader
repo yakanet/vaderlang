@@ -1,0 +1,8 @@
+// `==` / `!=` against `null` on a non-nullable operand can never match — T3040.
+module "snippet"
+
+main :: fn() -> i32 {
+    n :: 5
+    if n == null { return 1 }
+    return 0
+}

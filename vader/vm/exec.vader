@@ -1781,11 +1781,11 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[]) -
                 frame.pc = frame.pc + 1
             }
             is bc.LoadF64 -> {
-                // f64 byte codec needs an f64↔bits reinterpret (no Vader-pure
-                // form) ; wired in S5 with the float-array tranche, alongside
-                // de-stubbing read_data_item. Trap loudly until then rather
-                // than push a silently-wrong value.
-                return Trap { .message = "load_f64: f64 byte codec lands with the float-array tranche (S5; see read_data_item) at pc=${frame.pc}" }
+                raw :: load_bytes_op(frame, 8, "load_f64")
+                if raw is Trap { return raw }
+                frame.stack[frame.sp - 2] = F64Val { .value = vader_bits_to_f64(u64(raw)) }
+                frame.sp = frame.sp - 1
+                frame.pc = frame.pc + 1
             }
             is bc.StoreU8 -> {
                 if frame.sp < 3 { return Trap { .message = "store_u8 needs object + offset + value on stack at pc=${frame.pc}" } }
@@ -1809,8 +1809,11 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[]) -
                 if outcome is Trap { return outcome }
             }
             is bc.StoreF64 -> {
-                // See LoadF64 — deferred to S5 ; trap rather than corrupt.
-                return Trap { .message = "store_f64: f64 byte codec lands with the float-array tranche (S5; see read_data_item) at pc=${frame.pc}" }
+                if frame.sp < 3 { return Trap { .message = "store_f64 needs object + offset + value on stack at pc=${frame.pc}" } }
+                val_unwrap :: read_f64(frame.stack[frame.sp - 1], frame.pc, "store_f64 value")
+                if val_unwrap is Trap { return val_unwrap }
+                outcome :: store_bytes_op(frame, 8, vader_f64_to_bits(val_unwrap.value), "store_f64")
+                if outcome is Trap { return outcome }
             }
             // Slot ops — the VM stores every element as a uniform `Value` in
             // `slots` (no byte packing), so the native width-typed primitive
