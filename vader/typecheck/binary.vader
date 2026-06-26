@@ -211,11 +211,23 @@ check_in :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram, 
 /// (which is almost never what the author means). `s == null` stays valid : the
 /// `null` side is not a `StructType`.
 check_equality :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram, diags: Diagnostic[]) -> Type {
+    // `==` / `!=` against `null` gets the same unreachable check as `is null`
+    // (SPEC §1002 ; T3040) — an operand that can never be null makes the
+    // comparison statically false. Scoped to the null operand so a free-literal
+    // compare like `x == 0` (FreeInt vs i32, which don't structurally overlap)
+    // is not flagged.
+    if is_null_type(right) { check_is_overlap(e, left, right, diags) }
+    else if is_null_type(left) { check_is_overlap(e, right, left, diags) }
     if left is StructType && right is StructType {
         if has_impl_method(left, "equals", typed) { return TY_BOOL }
         push_trait_missing(e, left, "Equals", diags)
     }
     return TY_BOOL
+}
+
+is_null_type :: fn(t: Type) -> bool {
+    if t is PrimitiveType as p { return p.name == "null" }
+    return false
 }
 
 /// W0003 : `x is Union(...)` always returns false at runtime — `is` tests

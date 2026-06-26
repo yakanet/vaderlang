@@ -143,7 +143,13 @@ hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindState) -> void {
         }
         is AST.MatchExpr as m -> {
             hv_walk_expr(m.scrutinee, typed, st)
-            for arm in m.arms { hv_walk_expr(arm.body, typed, st) }
+            for arm in m.arms {
+                match arm.guard {
+                    is null -> {}
+                    _ -> { hv_walk_expr(arm.guard, typed, st) }
+                }
+                hv_walk_expr(arm.body, typed, st)
+            }
         }
         is AST.BlockExpr as b -> { hv_walk_block(b, typed, st) }
         is AST.LambdaExpr as l -> { hv_walk_block(l.body, typed, st) }
