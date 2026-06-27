@@ -1,13 +1,17 @@
 /* Vader native runtime — implementation. See `vader.h` for the public API.
  *
- * Memory model: generational Cheney copying GC. Two generations (young, old);
- * each is itself a pair of Cheney semi-spaces. `vader_gc_alloc` bumps the
- * young from-space; on overflow, `vader_minor_collect` copies young survivors
- * to young to-space (or to old if their `age` has reached the tenure
- * threshold). When promotion would overflow old, a `vader_major_collect`
- * drains young into old, then Cheney-collects old itself. Cross-generation
- * references are tracked by a card table written from the C-emit-issued
- * `VADER_WRITE_BARRIER` macro and consumed as additional roots by minor.
+ * Memory model: generational GC — a copying (Cheney) young generation and a
+ * NON-MOVING mark-sweep old generation. Young is a pair of semi-spaces;
+ * `vader_gc_alloc` bumps the young from-space; on overflow, `vader_minor_collect`
+ * copies young survivors to young to-space (or promotes them, once `age` reaches
+ * the tenure threshold, into the old slab — a single lazily-committed reservation
+ * carved into size-class regions, see "slab old-gen" below). A
+ * `vader_major_collect` drains young, then marks the live old set (roots + young
+ * survivors + a conservative C-stack scan) and sweeps the dead in place — old
+ * objects never move. `vader_old_maybe_major` fires a major once dead old
+ * accumulates past a headroom factor. Cross-generation references are tracked by
+ * a card table written from the C-emit-issued `VADER_WRITE_BARRIER` macro and
+ * consumed as additional roots by minor.
  */
 
 #include "vader.h"
@@ -18,6 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
+#include <setjmp.h>   /* setjmp — flush callee-saved registers for the conservative old-gen stack scan */
 
 #include <errno.h>
 
@@ -33,6 +38,10 @@
 #  include <unistd.h>
 #  include <poll.h>     /* poll — stdin readiness for the LSP debounce */
 #  include <sys/resource.h> /* getrusage — peak RSS for the profiler */
+#  include <sys/mman.h> /* mmap / munmap / madvise — non-moving old-gen reservation */
+#  ifndef MAP_ANONYMOUS
+#    define MAP_ANONYMOUS MAP_ANON
+#  endif
 #  if defined(__APPLE__)
 #    include <mach-o/dyld.h> /* _NSGetExecutablePath */
 #    include <mach/mach.h>   /* task_info — current RSS for the profiler */
@@ -117,7 +126,71 @@ typedef struct {
 } vader_gen_t;
 
 static vader_gen_t g_young = { {NULL,NULL,NULL}, {NULL,NULL,NULL}, NULL, 0 };
-static vader_gen_t g_old   = { {NULL,NULL,NULL}, {NULL,NULL,NULL}, NULL, 0 };
+
+/* ---------- non-moving mark-sweep old generation (slab) ----------
+ *
+ * The old generation is NOT a copying semi-space pair. It is a single big
+ * address-space reservation (mmap / VirtualAlloc, lazily committed: untouched
+ * pages cost ~0 RSS) carved into class-homogeneous regions by a global bump.
+ * Objects never move, so:
+ *   - membership is one range check over [g_old_block, g_old_bump);
+ *   - there is no 2× to-space and no survivor-copy major pause;
+ *   - the card table covers the fixed reservation once — no grow-time reslice.
+ *
+ * Small objects (≤ VADER_OLD_SMALL_MAX) use 16 B size classes; each class owns
+ * regions (bump-carved) + a free list threaded through freed slots' `forward`
+ * field. Large objects get a one-object region each, reused best-fit and
+ * `madvise`-released on free. Reclamation is mark (toggle `g_mark_value`,
+ * trace from roots + young survivors via a gray worklist) + sweep (rebuild the
+ * free lists from unmarked slots). See `vader_major_collect`. */
+
+#define VADER_OLD_CLASS_GRAN   16u
+#define VADER_OLD_SMALL_MAX    1024u
+#define VADER_OLD_NUM_CLASSES  (VADER_OLD_SMALL_MAX / VADER_OLD_CLASS_GRAN)  /* 64 */
+#define VADER_OLD_REGION_BYTES (256u * 1024u)   /* small-class region granularity */
+#define VADER_OLD_MADVISE_MIN  (64u * 1024u)    /* only madvise freed large regions ≥ this */
+
+/* One carved extent of the reservation. Small regions hold many fixed-size
+ * slots of one class; large regions hold exactly one object. */
+typedef struct vader_old_region {
+    char*  base;          /* region start within the reservation */
+    char*  cur;           /* bump high-water: next never-used slot (== end of used run) */
+    char*  end;           /* region end (base + capacity) */
+    size_t slot_size;     /* class slot size; for large = the object's aligned size */
+    int    class_idx;     /* small: 0..NUM_CLASSES-1 ; large: -1 */
+    uint8_t freed;        /* large only: currently on the large free list */
+    struct vader_old_region* next;       /* global region list (sweep + walks) */
+    struct vader_old_region* free_next;  /* large free list link */
+} vader_old_region_t;
+
+typedef struct {
+    char*               free_head;   /* free list: link via each slot's `forward` */
+    vader_old_region_t* current;     /* region we bump-allocate from */
+} vader_old_class_t;
+
+static char*  g_old_block     = NULL;   /* reservation base */
+static char*  g_old_bump      = NULL;   /* global region-carve cursor (never retreats) */
+static char*  g_old_block_end = NULL;   /* g_old_block + reservation capacity */
+static size_t g_old_capacity  = 0;      /* reservation size in bytes (== the cap) */
+static size_t g_old_live_bytes = 0;     /* slot bytes held by live old objects (accumulates promotions; recomputed exact at sweep) */
+static size_t g_old_live_after_major = 0;  /* g_old_live_bytes right after the last sweep — the reclamation-trigger baseline */
+static int    g_old_alloc_failed_at_cap = 0;  /* set when a carve hit the cap with empty free lists */
+
+static vader_old_class_t   g_old_classes[VADER_OLD_NUM_CLASSES];
+static vader_old_region_t* g_old_regions    = NULL;   /* all regions, carve order */
+static vader_old_region_t* g_old_large_free = NULL;   /* freed large regions, best-fit reuse */
+
+/* Old-gen mark bit value for the CURRENT epoch. Toggles 1↔2 each major so a
+ * previous epoch's marks read as "unmarked" without a clear pass; a FREE slot
+ * carries 0 (never equal to g_mark_value). `vader_old_alloc` stamps live=this. */
+static uint8_t g_mark_value = 1u;
+
+/* Gray worklist — objects whose slots still need scanning. Reused by both
+ * cycles: minor pushes freshly-promoted old objects (to forward their young
+ * refs); major pushes freshly-marked old objects (to mark their children). */
+static char**  g_gray_stack = NULL;
+static size_t  g_gray_len   = 0;
+static size_t  g_gray_cap   = 0;
 
 static int           g_gc_initialized = 0;
 static size_t        g_total_collections = 0;
@@ -159,6 +232,13 @@ static size_t        g_young_cap = 0;
  * Captured once on init; the env var has no effect mid-run. */
 static int g_gc_stress = 0;
 
+/* Major-stress mode — set via `VADER_GC_STRESS_MAJOR=1`. The mark-sweep analog
+ * of VADER_GC_STRESS: every `vader_gc_alloc` forces a FULL major (mark + sweep),
+ * so the non-moving old gen's trace, free-list rebuild, and promotion-into-slab
+ * paths run at every safepoint — turning intermittent old-gen rooting / sweep
+ * bugs into deterministic failures. Even slower than STRESS; debug-only. */
+static int g_gc_stress_major = 0;
+
 /* Box-tag corruption check — set via `VADER_GC_CHECK_BOX=1`. When enabled,
  * `vader_gc_scan_box` traps the first time it meets a box whose `tag` is
  * neither NULL (0) nor a valid type index (< vader_type_info_count). Such a
@@ -182,24 +262,18 @@ typedef enum {
     VADER_CYCLE_NONE = 0,         /* no cycle running */
     VADER_CYCLE_MINOR,            /* standalone minor */
     VADER_CYCLE_MAJOR_DRAIN,      /* minor running as the first step of a major */
-    VADER_CYCLE_MAJOR,            /* old→old Cheney pass of a major */
+    VADER_CYCLE_MAJOR,            /* mark phase of a major (old objects marked in place, never copied) */
 } vader_cycle_t;
 static vader_cycle_t g_cycle = VADER_CYCLE_NONE;
 
-/* Card table — one byte per VADER_CARD_BYTES of contiguous old-gen memory.
- * Sized to cover both old semi-spaces so an entry indexes either side after
- * a swap. Exposed (non-static) because the inline `VADER_WRITE_BARRIER` macro
- * needs the address from emitted C code. */
+/* Card table — one byte per VADER_CARD_BYTES of the old-gen reservation. The old
+ * gen is non-moving, so the table is sized once over the whole reservation and
+ * never relocated. Exposed (non-static) because the inline `VADER_WRITE_BARRIER`
+ * macro needs the address from emitted C code. */
 uint8_t*   vader_card_table = NULL;
 uintptr_t  vader_old_base   = 0;
 uintptr_t  vader_old_end    = 0;
 static size_t g_card_count = 0;
-
-/* Card-table entry count covering both old semi-spaces of `half_bytes` each,
- * one byte per VADER_CARD_BYTES, rounded up. Shared by init and auto-grow. */
-static size_t vader_card_count_for(size_t half_bytes) {
-    return (half_bytes * 2u + VADER_CARD_BYTES - 1u) / VADER_CARD_BYTES;
-}
 
 /* Shadow-stack head. Each emitted C function pushes/pops a frame chained
  * through `prev`; the GC walks this list at collection time to enumerate
@@ -214,18 +288,20 @@ static int vader_in_young_from(const void* p) {
     return (const char*)p >= g_young.from.base && (const char*)p < g_young.from.end;
 }
 
-static int vader_in_old_from(const void* p) {
-    return (const char*)p >= g_old.from.base && (const char*)p < g_old.from.end;
-}
-
-static int vader_in_old_any(const void* p) {
-    return (const char*)p >= (const char*)vader_old_base
-        && (const char*)p < (const char*)vader_old_end;
+/* Membership in the non-moving old gen: a pointer is an old object iff it falls
+ * in the carved span [g_old_block, g_old_bump). Pointers in [g_old_bump,
+ * g_old_block_end) address uncommitted reservation tail — never a live object —
+ * so they're correctly excluded (a stray ref there is treated as immortal, not
+ * marked/written). Old objects never move, so there is no from/to distinction —
+ * one predicate covers both the minor (old is stable) and the major (old is
+ * sweepable). */
+static int vader_in_old(const void* p) {
+    return (const char*)p >= g_old_block && (const char*)p < g_old_bump;
 }
 
 /* Read a positive byte-count from `env_name`. Returns `fallback` when the
  * variable is unset, empty, non-numeric, or parses to zero. Lets users tune
- * the heap (e.g. `VADER_GC_OLD_BYTES=134217728` for 128 MB old) without
+ * the heap (e.g. `VADER_GC_OLD_MAX=536870912` for a 512 MB old cap) without
  * rebuilding the runtime. */
 static size_t vader_gc_env_bytes(const char* env_name, size_t fallback) {
     const char* raw = getenv(env_name);
@@ -245,6 +321,266 @@ static int vader_gc_env_bool(const char* env_name) {
 
 static int g_gc_profile = 0;
 void vader_gc_profile_dump(void);
+
+/* ---------- slab old-gen: reservation, allocation, sweep ----------
+ *
+ * Defined here (after the env helpers, before everything that uses them:
+ * vader_gc_init, vader_gc_forward, vader_major_collect). Pure address-space
+ * machinery — no dependency on the type-info table or vader_gc_obj_size. */
+
+/* Reserve `bytes` of address space, lazily committed (untouched pages cost no
+ * RSS). POSIX: MAP_ANONYMOUS mmap. Windows: VirtualAlloc MEM_RESERVE (pages are
+ * committed per-region in vader_old_commit). Returns NULL on failure. */
+static char* vader_old_reserve(size_t bytes) {
+#if defined(_WIN32)
+    return (char*) VirtualAlloc(NULL, bytes, MEM_RESERVE, PAGE_READWRITE);
+#else
+    void* p = mmap(NULL, bytes, PROT_READ | PROT_WRITE,
+                   MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    return (p == MAP_FAILED) ? NULL : (char*) p;
+#endif
+}
+
+/* Make [ptr, ptr+bytes) usable. POSIX mmap is demand-paged, so this is a no-op;
+ * Windows must explicitly commit the reserved pages before first write. */
+static void vader_old_commit(char* ptr, size_t bytes) {
+#if defined(_WIN32)
+    if (VirtualAlloc(ptr, bytes, MEM_COMMIT, PAGE_READWRITE) == NULL) {
+        vader_trap("vader_old_commit: VirtualAlloc(MEM_COMMIT) failed (out of commit charge)");
+    }
+#else
+    (void) ptr; (void) bytes;   /* demand-paged */
+#endif
+}
+
+/* Release the physical pages backing a freed large region while keeping its
+ * address range reserved for reuse. POSIX: madvise (RSS drops; next write
+ * re-faults). Windows: no-op for now. Only the page-aligned interior is touched
+ * so a non-page-aligned region base/end is handled cleanly. */
+static void vader_old_madvise_region(vader_old_region_t* r) {
+#if !defined(_WIN32)
+    size_t page = (size_t) sysconf(_SC_PAGESIZE);
+    if (page == 0u) return;
+    uintptr_t a = ((uintptr_t) r->base + page - 1u) & ~(uintptr_t)(page - 1u);
+    uintptr_t b = (uintptr_t) r->end & ~(uintptr_t)(page - 1u);
+    if (b > a) {
+#  if defined(MADV_FREE)
+        madvise((void*) a, (size_t)(b - a), MADV_FREE);
+#  elif defined(MADV_DONTNEED)
+        madvise((void*) a, (size_t)(b - a), MADV_DONTNEED);
+#  endif
+    }
+#else
+    (void) r;
+#endif
+}
+
+/* Carve a fresh region of `region_bytes` from the global bump and dedicate it to
+ * `slot_size` (class_idx ≥ 0 for small, -1 for a one-object large region).
+ * Returns NULL when the reservation is exhausted (the real OOM ceiling). */
+static vader_old_region_t* vader_old_carve_region(size_t region_bytes, size_t slot_size, int class_idx) {
+    if (g_old_bump + region_bytes > g_old_block_end) return NULL;
+    vader_old_region_t* r = (vader_old_region_t*) malloc(sizeof(vader_old_region_t));
+    if (r == NULL) vader_trap("vader_old_carve_region: region metadata malloc failed");
+    vader_old_commit(g_old_bump, region_bytes);
+    r->base      = g_old_bump;
+    r->cur       = g_old_bump;
+    r->end       = g_old_bump + region_bytes;
+    r->slot_size = slot_size;
+    r->class_idx = class_idx;
+    r->freed     = 0u;
+    r->free_next = NULL;
+    r->next      = g_old_regions;
+    g_old_regions = r;
+    g_old_bump   += region_bytes;
+    return r;
+}
+
+/* Allocate `bytes` of old-gen storage (the promotion path). Returns raw,
+ * uninitialised slot memory (caller writes the object + header) or NULL when the
+ * reservation is exhausted at the cap (caller keeps the object in young). */
+static void* vader_old_alloc(size_t bytes) {
+    size_t aligned = vader_gc_align(bytes);
+    if (aligned <= VADER_OLD_SMALL_MAX) {
+        size_t ci = (aligned - 1u) / VADER_OLD_CLASS_GRAN;     /* 0..NUM_CLASSES-1 */
+        size_t slot_size = (ci + 1u) * VADER_OLD_CLASS_GRAN;
+        vader_old_class_t* c = &g_old_classes[ci];
+        if (c->free_head != NULL) {
+            char* slot = c->free_head;
+            c->free_head = (char*) ((vader_obj_header_t*) slot)->forward;
+            g_old_live_bytes += slot_size;
+            return slot;
+        }
+        if (c->current == NULL || c->current->cur + slot_size > c->current->end) {
+            vader_old_region_t* r = vader_old_carve_region(VADER_OLD_REGION_BYTES, slot_size, (int) ci);
+            if (r == NULL) { g_old_alloc_failed_at_cap = 1; return NULL; }
+            c->current = r;
+        }
+        char* slot = c->current->cur;
+        c->current->cur += slot_size;
+        g_old_live_bytes += slot_size;
+        return slot;
+    }
+    /* Large: best-fit over freed large regions (smallest with slot_size ≥ aligned). */
+    vader_old_region_t** best = NULL;
+    for (vader_old_region_t** pp = &g_old_large_free; *pp != NULL; pp = &(*pp)->free_next) {
+        if ((*pp)->slot_size >= aligned &&
+            (best == NULL || (*pp)->slot_size < (*best)->slot_size)) {
+            best = pp;
+        }
+    }
+    if (best != NULL) {
+        vader_old_region_t* r = *best;
+        *best = r->free_next;
+        r->free_next = NULL;
+        r->freed = 0u;
+        g_old_live_bytes += r->slot_size;
+        return r->base;   /* pages re-fault on the caller's memcpy */
+    }
+    vader_old_region_t* r = vader_old_carve_region(aligned, aligned, -1);
+    if (r == NULL) { g_old_alloc_failed_at_cap = 1; return NULL; }
+    r->cur = r->base + aligned;       /* the single slot is now in use */
+    g_old_live_bytes += aligned;
+    return r->base;
+}
+
+/* Push an object onto the gray worklist (geometric growth). */
+static void vader_gray_push(char* obj) {
+    if (g_gray_len == g_gray_cap) {
+        size_t new_cap = g_gray_cap == 0u ? 4096u : g_gray_cap * 2u;
+        char** ns = (char**) realloc(g_gray_stack, new_cap * sizeof(char*));
+        if (ns == NULL) vader_trap("vader_gray_push: realloc failed");
+        g_gray_stack = ns;
+        g_gray_cap   = new_cap;
+    }
+    g_gray_stack[g_gray_len++] = obj;
+}
+
+/* Walk every LIVE old object (mark == g_mark_value) and invoke `fn`. Used by the
+ * atom-GC heap walk, the histogram, and the profiler — every consumer that needs
+ * to enumerate the old live set now that it is no longer one contiguous arena. */
+static void vader_old_foreach_live(void (*fn)(char* obj, uint32_t type_index, void* ctx), void* ctx) {
+    for (vader_old_region_t* r = g_old_regions; r != NULL; r = r->next) {
+        for (char* slot = r->base; slot < r->cur; slot += r->slot_size) {
+            vader_obj_header_t* h = (vader_obj_header_t*) slot;
+            if (h->mark == g_mark_value) fn(slot, h->type_index, ctx);
+        }
+    }
+}
+
+/* Sweep: rebuild every free list from the unmarked slots. A slot survives iff
+ * `mark == g_mark_value` (set during the mark phase). Dead small slots are
+ * stamped FREE (mark 0) and pushed to their class free list; dead large regions
+ * are madvise-released and queued for best-fit reuse. Recomputes g_old_live_bytes. */
+static void vader_old_sweep(void) {
+    for (size_t i = 0; i < VADER_OLD_NUM_CLASSES; i++) g_old_classes[i].free_head = NULL;
+    g_old_large_free = NULL;
+    size_t live = 0;
+    for (vader_old_region_t* r = g_old_regions; r != NULL; r = r->next) {
+        if (r->class_idx < 0) {
+            /* Large: one object at r->base (live iff r->cur > r->base). */
+            if (r->cur == r->base) continue;
+            vader_obj_header_t* h = (vader_obj_header_t*) r->base;
+            if (h->mark == g_mark_value) {
+                r->freed = 0u;
+                live += r->slot_size;
+            } else {
+                h->mark = 0u;
+                h->type_index = VADER_TYPE_INDEX_FREE;
+                if (!r->freed && r->slot_size >= VADER_OLD_MADVISE_MIN) vader_old_madvise_region(r);
+                r->freed = 1u;
+                r->free_next = g_old_large_free;
+                g_old_large_free = r;
+            }
+            continue;
+        }
+        vader_old_class_t* c = &g_old_classes[r->class_idx];
+        for (char* slot = r->base; slot < r->cur; slot += r->slot_size) {
+            vader_obj_header_t* h = (vader_obj_header_t*) slot;
+            if (h->mark == g_mark_value) {
+                live += r->slot_size;
+            } else {
+                h->mark = 0u;
+                h->type_index = VADER_TYPE_INDEX_FREE;
+                h->forward = c->free_head;
+                c->free_head = slot;
+            }
+        }
+    }
+    g_old_live_bytes = live;
+}
+
+/* Highest address of the current (main) thread's C stack — the scan upper bound.
+ * The stack grows DOWN, so [current sp, base) covers every live frame. */
+static char* vader_cstack_base(void) {
+#if defined(_WIN32)
+    ULONG_PTR lo = 0, hi = 0;
+    GetCurrentThreadStackLimits(&lo, &hi);
+    return (char*) hi;
+#elif defined(__APPLE__)
+    return (char*) pthread_get_stackaddr_np(pthread_self());
+#else
+    pthread_attr_t attr;
+    if (pthread_getattr_np(pthread_self(), &attr) != 0) return NULL;
+    void* addr = NULL; size_t size = 0;
+    pthread_attr_getstack(&attr, &addr, &size);
+    pthread_attr_destroy(&attr);
+    if (addr == NULL) return NULL;
+    return (char*) addr + size;
+#endif
+}
+
+/* Map an interior old-gen pointer to the start of its containing slot, or NULL
+ * if it falls in a region's never-used tail. Regions partition [g_old_block,
+ * g_old_bump); within one, slots are fixed `slot_size`-strided. Linear over
+ * regions — only reached for the few stack words that point into old. */
+static char* vader_old_slot_of(void* p) {
+    char* a = (char*) p;
+    for (vader_old_region_t* r = g_old_regions; r != NULL; r = r->next) {
+        if (a >= r->base && a < r->cur) {
+            size_t off = (size_t)(a - r->base);
+            return r->base + (off / r->slot_size) * r->slot_size;
+        }
+    }
+    return NULL;
+}
+
+/* Conservative C-stack root scan for the OLD generation's major mark.
+ *
+ * The precise shadow stack does not root every live OLD pointer at every
+ * safepoint (minors never free old, so the c-emit was never required to — a live
+ * old ref can sit only in a C local / register). The copying old gen masked this
+ * via deferred reuse; the non-moving mark-sweep gen reuses freed slots eagerly,
+ * so it must find those refs. We do it conservatively: flush callee-saved
+ * registers (setjmp), then walk the C stack word-by-word and MARK every old
+ * object any word points at (interior pointers map to their slot). Old objects
+ * never move, so a false positive merely retains a dead object — no pinning, no
+ * correctness risk. Found objects are gray-pushed so their closure is marked too.
+ *
+ * Young is deliberately NOT scanned conservatively: its rooting is already
+ * precise (minors require it) and young objects MOVE, which a conservative
+ * (maybe-not-a-pointer) root cannot tolerate. */
+static void vader_gc_mark_cstack_conservative(void) {
+    jmp_buf regs;
+    (void) setjmp(regs);                 /* spill callee-saved registers onto the stack */
+    char* base = vader_cstack_base();
+    if (base == NULL) return;
+    char* lo = (char*) &regs;            /* approx current stack top (this frame) */
+    if (lo >= base) return;
+    /* Align down to a pointer boundary, then scan word-aligned slots. */
+    lo = (char*) ((uintptr_t) lo & ~(uintptr_t)(sizeof(void*) - 1u));
+    for (char* p = lo; p + sizeof(void*) <= base; p += sizeof(void*)) {
+        void* w = *(void* volatile*) p;
+        if ((char*) w < g_old_block || (char*) w >= g_old_bump) continue;
+        char* slot = vader_old_slot_of(w);
+        if (slot == NULL) continue;
+        vader_obj_header_t* h = (vader_obj_header_t*) slot;
+        if (h->mark != g_mark_value && h->type_index != VADER_TYPE_INDEX_FREE) {
+            h->mark = g_mark_value;
+            vader_gray_push(slot);
+        }
+    }
+}
 
 /* ============================================================
  * Atom-based string interning — see `docs/ATOM_INTERNING.md`.
@@ -712,7 +1048,7 @@ static size_t vader_gc_obj_size(void* obj, uint32_t type_index);
 
 /* ---- atom GC mark + sweep (Phase 4) ----
  *
- * Integrates with the Cheney major cycle. Reachable atoms are found
+ * Integrates with the major collection cycle. Reachable atoms are found
  * through three channels :
  *   - shadow stack `vader_box_t**` roots (conservative : the lower 4
  *     bytes of every box payload are treated as a candidate atom id)
@@ -746,6 +1082,28 @@ static void vader_atom_mark_box(const vader_box_t* bp) {
     vader_atom_mark((vader_atom_t) (uint32_t) bp->payload.i);
 }
 
+/* Conservatively mark atoms reachable only from a C local / register. A
+ * `vader_string_t` is a bare `u32` atom id, so unlike object refs it never
+ * appears in the shadow stack or as a heap pointer — held in a C local it is
+ * invisible to the precise roots and the heap walk. Flush registers (setjmp),
+ * then read every 4-byte-aligned stack word as a candidate atom id and mark it
+ * (`vader_atom_mark` bounds-checks; false positives only retain a small atom).
+ * The non-moving old gen reuses freed slots eagerly, so — as for objects — a
+ * live atom held only in a C local must be found here or its bytes get reclaimed
+ * under a still-live `bytes()` view (the copying gen masked this via deferred
+ * reuse). Scanned 4-byte-aligned because a u32 local need not be 8-aligned. */
+static void vader_atom_mark_cstack_conservative(void) {
+    jmp_buf regs;
+    (void) setjmp(regs);
+    char* base = vader_cstack_base();
+    if (base == NULL) return;
+    char* lo = (char*) ((uintptr_t) &regs & ~(uintptr_t)3u);
+    if (lo >= base) return;
+    for (char* p = lo; p + sizeof(uint32_t) <= base; p += sizeof(uint32_t)) {
+        vader_atom_mark((vader_atom_t) *(uint32_t volatile*) p);
+    }
+}
+
 static void vader_atom_mark_roots(void) {
     for (vader_gc_frame_t* fr = vader_gc_top; fr != NULL; fr = fr->prev) {
         if (fr->ptrs == NULL) continue;
@@ -756,56 +1114,63 @@ static void vader_atom_mark_roots(void) {
     for (size_t i = 0; i < g_defer_len; i++) {
         vader_atom_mark_box(&g_defer_stack[i]);
     }
+    vader_atom_mark_cstack_conservative();
+}
+
+/* Mark every atom referenced by one heap object's slots (string fields, borrowed
+ * byte-view owner, conservative box payloads). Shared by the young contiguous
+ * walk and the old region walk. */
+static void vader_atom_mark_object(char* scan, uint32_t type_index, void* ctx) {
+    (void) ctx;
+    if (type_index == VADER_TYPE_INDEX_ARRAY_BUF) {
+        vader_array_buf_t* buf = (vader_array_buf_t*) scan;
+        if (buf->element_kind == VADER_ARRAY_KIND_BOXED) {
+            vader_box_t* slots = vader_array_box_slots(buf);
+            for (size_t i = 0; i < buf->length; i++) {
+                vader_atom_mark_box(&slots[i]);
+            }
+        }
+    } else if (type_index < vader_type_info_count) {
+        const vader_type_info_t* info = &vader_type_info_table[type_index];
+        /* Precise : string fields from the type_info table. */
+        for (uint16_t i = 0; i < info->string_count; i++) {
+            vader_string_t* sp = (vader_string_t*) (scan + info->string_offsets[i]);
+            vader_atom_mark(*sp);
+        }
+        /* Borrowed `const u8[]` byte view (`vader_string_bytes_view`) : the array
+         * header carries no string field, but its `capacity` low 32 bits hold the
+         * owner atom id whose interned bytes the view aliases. Mark it so the
+         * bytes aren't swept under us. */
+        if (info->kind == VADER_TYPE_KIND_ARRAY) {
+            vader_array_t* arr = (vader_array_t*) scan;
+            if (vader_array_is_borrowed(arr)) {
+                vader_atom_mark(vader_array_borrowed_owner(arr));
+            }
+        }
+        /* Conservative : box fields. The payload's lower 4 bytes may be an atom
+         * (for string-tagged variants) or any other primitive ; conservativeness
+         * keeps the latter from accidentally collecting a live atom. */
+        if (info->kind != VADER_TYPE_KIND_FN
+            && info->kind != VADER_TYPE_KIND_ARRAY) {
+            for (uint16_t i = 0; i < info->ptr_count; i++) {
+                vader_atom_mark_box((vader_box_t*) (scan + info->ptr_offsets[i]));
+            }
+        }
+    }
 }
 
 static void vader_atom_mark_heap(void) {
-    const vader_arena_t* arenas[2] = { &g_young.from, &g_old.from };
-    for (int g = 0; g < 2; g++) {
-        char* scan = arenas[g]->base;
-        while (scan < arenas[g]->cur) {
-            vader_obj_header_t* hdr = (vader_obj_header_t*) scan;
-            uint32_t type_index = hdr->type_index;
-            size_t bytes = vader_gc_obj_size(scan, type_index);
-            if (bytes == 0) break;
-            if (type_index == VADER_TYPE_INDEX_ARRAY_BUF) {
-                vader_array_buf_t* buf = (vader_array_buf_t*) scan;
-                if (buf->element_kind == VADER_ARRAY_KIND_BOXED) {
-                    vader_box_t* slots = vader_array_box_slots(buf);
-                    for (size_t i = 0; i < buf->length; i++) {
-                        vader_atom_mark_box(&slots[i]);
-                    }
-                }
-            } else if (type_index < vader_type_info_count) {
-                const vader_type_info_t* info = &vader_type_info_table[type_index];
-                /* Precise : string fields from the type_info table. */
-                for (uint16_t i = 0; i < info->string_count; i++) {
-                    vader_string_t* sp = (vader_string_t*) (scan + info->string_offsets[i]);
-                    vader_atom_mark(*sp);
-                }
-                /* Borrowed `const u8[]` byte view (`vader_string_bytes_view`) :
-                 * the array header carries no string field, but its `capacity`
-                 * low 32 bits hold the owner atom id whose interned bytes the
-                 * view aliases. Mark it so the bytes aren't swept under us. */
-                if (info->kind == VADER_TYPE_KIND_ARRAY) {
-                    vader_array_t* arr = (vader_array_t*) scan;
-                    if (vader_array_is_borrowed(arr)) {
-                        vader_atom_mark(vader_array_borrowed_owner(arr));
-                    }
-                }
-                /* Conservative : box fields. The payload's lower 4 bytes
-                 * may be an atom (for string-tagged variants) or any
-                 * other primitive ; conservativeness keeps the latter
-                 * from accidentally collecting a live atom. */
-                if (info->kind != VADER_TYPE_KIND_FN
-                    && info->kind != VADER_TYPE_KIND_ARRAY) {
-                    for (uint16_t i = 0; i < info->ptr_count; i++) {
-                        vader_atom_mark_box((vader_box_t*) (scan + info->ptr_offsets[i]));
-                    }
-                }
-            }
-            scan += vader_gc_align(bytes);
-        }
+    /* Young: one contiguous from-space walk. */
+    char* scan = g_young.from.base;
+    while (scan < g_young.from.cur) {
+        vader_obj_header_t* hdr = (vader_obj_header_t*) scan;
+        size_t bytes = vader_gc_obj_size(scan, hdr->type_index);
+        if (bytes == 0) break;
+        vader_atom_mark_object(scan, hdr->type_index, NULL);
+        scan += vader_gc_align(bytes);
     }
+    /* Old: the non-moving slab is not one arena — walk live slots by region. */
+    vader_old_foreach_live(vader_atom_mark_object, NULL);
 }
 
 static void vader_atom_free_list_push(vader_u32_t id) {
@@ -890,6 +1255,7 @@ void vader_gc_init(void) {
     if (g_gc_initialized) return;
 
     g_gc_stress       = vader_gc_env_bool("VADER_GC_STRESS");
+    g_gc_stress_major = vader_gc_env_bool("VADER_GC_STRESS_MAJOR");
     g_gc_check_box    = vader_gc_env_bool("VADER_GC_CHECK_BOX");
     g_gc_scan_all_old = vader_gc_env_bool("VADER_GC_SCAN_ALL_OLD");
 
@@ -904,14 +1270,13 @@ void vader_gc_init(void) {
     }
 
     /* RAM-proportional defaults (the zero-tuning primary interface; the absolute
-     * VADER_GC_OLD_BYTES / *_MAX env vars below still override). Derive the old
-     * arena's initial size and its auto-grow cap from physical RAM, so the same
+     * VADER_GC_OLD_MAX env var below still overrides). Derive the old reservation
+     * cap from physical RAM, so the same
      * binary self-compiles on an 8 GB laptop and a 64 GB box. Fall back to the
      * fixed #defines when RAM can't be read. Young is NOT scaled (its cap is a
      * per-minor cost cliff, not a memory limit). */
     size_t ram = vader_physical_ram_bytes();
     size_t old_max_default  = (size_t) VADER_GC_OLD_MAX;
-    size_t old_init_default = (size_t) VADER_GC_OLD_BYTES;
     if (ram > 0) {
         double pct = (double) VADER_GC_RAM_PERCENT;
         const char* pct_env = getenv("VADER_GC_RAM_PERCENT");
@@ -919,15 +1284,14 @@ void vader_gc_init(void) {
             double v = strtod(pct_env, NULL);
             if (v > 0.0 && v <= 100.0) pct = v;
         }
-        /* budget = the committed ceiling the GC may reach. Both arenas are doubled
-         * (from+to), so reserve young's worst-case commit (its cap × 2) then halve
-         * the rest for old's per-semi-space cap → committed ≈ budget. */
+        /* budget = the committed ceiling the GC may reach. The old gen is now a
+         * single non-moving reservation (lazily committed: untouched pages cost
+         * no RSS), so it no longer needs a 2× to-space — reserve young's worst-
+         * case commit (its cap × 2) then give the rest to the old reservation. */
         size_t budget        = (size_t) ((double) ram * pct / 100.0);
         size_t young_reserve = (size_t) VADER_GC_YOUNG_CAP_DEFAULT * 2u;
         size_t old_budget    = budget > young_reserve ? budget - young_reserve : budget / 2u;
-        old_max_default  = vader_clamp_size(old_budget / 2u, VADER_GC_OLD_CAP_MIN, (size_t) VADER_GC_OLD_MAX);
-        old_init_default = vader_clamp_size(ram * VADER_GC_OLD_INIT_PERCENT / 100u,
-                                            VADER_GC_OLD_INIT_MIN, VADER_GC_OLD_INIT_MAX);
+        old_max_default  = vader_clamp_size(old_budget, VADER_GC_OLD_CAP_MIN, (size_t) VADER_GC_OLD_MAX);
     }
 
     /* Auto-grow ceilings (env-tunable, default to the RAM-derived / compile-time caps). */
@@ -958,27 +1322,34 @@ void vader_gc_init(void) {
     g_young.to.cur    = g_young.to.base;
     g_young.to.end    = g_young.to.base + young_bytes;
 
-    /* Old: one malloc spanning both semi-spaces, contiguous to ease the
-     * card-table indexing. */
-    size_t old_bytes = vader_gc_env_bytes("VADER_GC_OLD_BYTES", old_init_default);
-    g_old.block = (char*) malloc(old_bytes * 2u);
-    if (g_old.block == NULL) vader_trap("vader_gc_init: old arena malloc failed");
-    g_old.half_bytes = old_bytes;
-    g_old.from.base = g_old.block;
-    g_old.from.cur  = g_old.block;
-    g_old.from.end  = g_old.block + old_bytes;
-    g_old.to.base   = g_old.block + old_bytes;
-    g_old.to.cur    = g_old.to.base;
-    g_old.to.end    = g_old.to.base + old_bytes;
+    /* Old: a single non-moving reservation at the cap, lazily committed. Objects
+     * are bump-carved into class regions and never move, so there is no to-space
+     * and no grow-time relocation. The reservation size IS the cap (the old
+     * auto-grow ceiling); untouched pages stay uncommitted, so RSS tracks the
+     * live working set, not the reservation. VADER_GC_OLD_BYTES (the old initial
+     * size) is obsolete under lazy commit — only the cap matters now. */
+    g_old_capacity  = g_old_max_bytes;
+    g_old_block     = vader_old_reserve(g_old_capacity);
+    if (g_old_block == NULL) vader_trap("vader_gc_init: old-gen reservation failed (out of address space)");
+    g_old_bump      = g_old_block;
+    g_old_block_end = g_old_block + g_old_capacity;
+    for (size_t i = 0; i < VADER_OLD_NUM_CLASSES; i++) {
+        g_old_classes[i].free_head = NULL;
+        g_old_classes[i].current   = NULL;
+    }
+    g_old_regions    = NULL;
+    g_old_large_free = NULL;
+    g_old_live_bytes = 0;
+    g_old_live_after_major = 0;
+    g_mark_value     = 1u;
 
-    /* Card table covers both old semi-spaces so an entry remains valid after
-     * a major swap. Total old span = 2 * old_bytes, sized at one byte per
-     * VADER_CARD_BYTES. */
-    g_card_count = vader_card_count_for(old_bytes);
+    /* Card table covers the whole reservation, one byte per VADER_CARD_BYTES.
+     * Old objects never move, so it is sized once and never relocated. */
+    g_card_count = (g_old_capacity + VADER_CARD_BYTES - 1u) / VADER_CARD_BYTES;
     vader_card_table = (uint8_t*) calloc(g_card_count, 1u);
-    if (vader_card_table == NULL) vader_trap("vader_gc_init: card-table malloc failed");
-    vader_old_base = (uintptr_t) g_old.block;
-    vader_old_end  = (uintptr_t) (g_old.block + old_bytes * 2u);
+    if (vader_card_table == NULL) vader_trap("vader_gc_init: card-table calloc failed");
+    vader_old_base = (uintptr_t) g_old_block;
+    vader_old_end  = (uintptr_t) g_old_block_end;
 
     g_gc_initialized = 1;
 }
@@ -986,14 +1357,34 @@ void vader_gc_init(void) {
 void vader_gc_shutdown(void) {
     if (!g_gc_initialized) return;
     free(g_young.block);
-    free(g_old.block);
+    /* Release the old-gen reservation and its region metadata. */
+    if (g_old_block != NULL) {
+#if defined(_WIN32)
+        VirtualFree(g_old_block, 0, MEM_RELEASE);
+#else
+        munmap(g_old_block, g_old_capacity);
+#endif
+    }
+    for (vader_old_region_t* r = g_old_regions; r != NULL; ) {
+        vader_old_region_t* next = r->next;
+        free(r);
+        r = next;
+    }
+    free(g_gray_stack);
     free(vader_card_table);
     g_young.block = NULL;
-    g_old.block   = NULL;
     g_young.from.base = g_young.from.cur = g_young.from.end = NULL;
     g_young.to.base   = g_young.to.cur   = g_young.to.end   = NULL;
-    g_old.from.base   = g_old.from.cur   = g_old.from.end   = NULL;
-    g_old.to.base     = g_old.to.cur     = g_old.to.end     = NULL;
+    g_old_block = g_old_bump = g_old_block_end = NULL;
+    g_old_capacity = g_old_live_bytes = g_old_live_after_major = 0;
+    g_old_regions = NULL;
+    g_old_large_free = NULL;
+    for (size_t i = 0; i < VADER_OLD_NUM_CLASSES; i++) {
+        g_old_classes[i].free_head = NULL;
+        g_old_classes[i].current   = NULL;
+    }
+    g_gray_stack = NULL;
+    g_gray_len = g_gray_cap = 0;
     vader_card_table  = NULL;
     vader_old_base    = 0;
     vader_old_end     = 0;
@@ -1082,12 +1473,30 @@ static void vader_young_grow_for(size_t aligned) {
  * collector — calling it from within a collect would recurse). */
 static void vader_young_maybe_grow_adaptive(void) {
     if (g_young_ratio == 0u) return;
-    size_t old_live = (size_t)(g_old.from.cur - g_old.from.base);
+    size_t old_live = g_old_live_bytes;
     size_t target = old_live / g_young_ratio;
     if (g_young_cap != 0u && target > g_young_cap) target = g_young_cap;
     if (target > g_young_max_bytes) target = g_young_max_bytes;
     if (target > g_young.half_bytes + g_young.half_bytes / 2u) {
         vader_young_grow_to(target);
+    }
+}
+
+/* Reclamation trigger for the non-moving old gen — call after a minor from the
+ * allocator (a safe point: not re-entrant into a collect). The slab never
+ * compacts and `vader_major_collect`'s old auto-grow is gone, so without this the
+ * old footprint would equal the TOTAL promotion volume (dead never swept) instead
+ * of the live set — bounded for a one-shot self-compile, but unbounded for a
+ * long-running program. Fire a major (which sweeps dead old) once the old
+ * footprint has grown past `live_after_last_major × HEADROOM`, never below
+ * VADER_GC_OLD_MAJOR_FLOOR (so small programs never major). This mirrors the
+ * copying gen's auto-grow cadence but reclaims in place instead of growing. */
+static void vader_old_maybe_major(void) {
+    size_t threshold = g_old_live_after_major
+        * (size_t) VADER_GC_OLD_HEADROOM_NUM / (size_t) VADER_GC_OLD_HEADROOM_DEN;
+    if (threshold < (size_t) VADER_GC_OLD_MAJOR_FLOOR) threshold = (size_t) VADER_GC_OLD_MAJOR_FLOOR;
+    if (g_old_live_bytes > threshold) {
+        vader_major_collect();
     }
 }
 
@@ -1154,6 +1563,8 @@ void* vader_gc_alloc(size_t bytes) {
     if (VADER_UNLIKELY(aligned > g_young.half_bytes)) {
         vader_young_grow_for(aligned);
     }
+    /* Major-stress forces a full mark+sweep at every safepoint (debug-only). */
+    if (VADER_UNLIKELY(g_gc_stress_major)) vader_major_collect();
     int young_full = (g_young.from.cur + aligned > g_young.from.end);
     if (VADER_UNLIKELY(young_full || g_gc_stress)) {
         vader_minor_collect();
@@ -1162,28 +1573,28 @@ void* vader_gc_alloc(size_t bytes) {
              * lived young objects (tenuring will fix it on the next cycle).
              * Force a major to age survivors into old and retry. */
             vader_major_collect();
-            /* The major's preliminary minor runs *before* its auto-grow, so
-             * when old was full it couldn't promote and young stayed full —
-             * the grow then enlarged old too late for that minor. Run one more
-             * minor now that old has fresh room, to drain those survivors. */
+            /* The major sweeps dead old objects, opening promotion room. Retry a
+             * minor (now that old has room) to drain the survivors that couldn't
+             * promote during the major's preliminary minor. Reset the cap-failure
+             * flag first so it reflects only this post-sweep promotion attempt. */
+            g_old_alloc_failed_at_cap = 0;
             if (VADER_UNLIKELY(g_young.from.cur + aligned > g_young.from.end)) {
                 vader_minor_collect();
             }
             if (VADER_UNLIKELY(g_young.from.cur + aligned > g_young.from.end)) {
                 /* Even a full collection left no room. Two causes: a young
-                 * working set larger than the semi-space (grow young), or old
-                 * exhausted at its cap so survivors can't promote and pile up
-                 * in young (the real ceiling — trap, don't grow young forever).
-                 * Distinguish: if old is at OLD_MAX and >~94% full, it's old. */
-                size_t old_free = (size_t)(g_old.from.end - g_old.from.cur);
-                if (VADER_UNLIKELY(g_old.half_bytes >= g_old_max_bytes
-                                   && old_free < g_old.half_bytes / 16u)) {
+                 * working set larger than the semi-space (grow young), or the old
+                 * reservation exhausted at its cap so survivors can't promote and
+                 * pile up in young (the real ceiling — trap, don't grow young
+                 * forever). The flag distinguishes them: it is set when a
+                 * post-sweep promotion failed to carve at the reservation cap. */
+                if (VADER_UNLIKELY(g_old_alloc_failed_at_cap)) {
                     fprintf(stderr,
-                        "vader_gc_alloc: out of memory — old arena full at cap %zu MB "
+                        "vader_gc_alloc: out of memory — old reservation full at cap %zu MB "
                         "(VADER_GC_OLD_MAX); survivors cannot promote\n",
-                        g_old_max_bytes / (1024u * 1024u));
+                        g_old_capacity / (1024u * 1024u));
                     if (g_gc_profile) vader_gc_profile_dump();
-                    vader_trap("vader_gc_alloc: old arena exhausted at cap");
+                    vader_trap("vader_gc_alloc: old reservation exhausted at cap");
                 }
                 /* Otherwise the young working set genuinely exceeds the semi-
                  * space — grow young to fit it (capped) rather than failing. */
@@ -1193,11 +1604,14 @@ void* vader_gc_alloc(size_t bytes) {
         /* A collect just ran — re-size young toward old so the next round of
          * churn triggers far fewer (expensive, O(old)) minors. */
         vader_young_maybe_grow_adaptive();
+        /* Reclaim dead old in place once it has grown past live×headroom (the
+         * non-moving slab never compacts, so nothing else frees it). */
+        vader_old_maybe_major();
     }
     return vader_gc_alloc_young_unchecked(aligned);
 }
 
-/* ---------- generational Cheney copying GC ---------- */
+/* ---------- generational GC: copying young, mark-sweep old ---------- */
 
 /* Size of an object in a from-space, in bytes. For variable-length buffers
  * (ARRAY_BUF sentinel) the size is read off the object itself; for
@@ -1236,34 +1650,39 @@ static void* vader_gc_copy_into(void* obj, size_t bytes, vader_arena_t* target) 
     return dst;
 }
 
-/* Forward-copy `obj` (typed by `type_index`) following `g_cycle`:
+/* Forward-process `obj` (typed by `type_index`) following `g_cycle`:
  *
- *   minor or major-drain : young objects move to young.to (or promote to
- *     old.from once age ≥ tenure); old objects are stable.
- *   major (Cheney on old)  : old.from objects move to old.to.
+ *   minor or major-drain : young objects move to young.to (or promote into the
+ *     slab old gen via `vader_old_alloc` once age ≥ tenure); old objects are
+ *     stable (non-moving) — returned unchanged.
+ *   major : the mark phase. An old object is MARKED (mark = g_mark_value) and
+ *     enqueued on the gray worklist (so its children get scanned); it does not
+ *     move, so the slot value is returned unchanged.
  *
  * Pointers outside any GC arena are immortal — static compile-time data
- * (lookup tables, interned constants) lives in the C data segment and is
- * never copied. The C-emit may emit such tables for fns matching the
+ * (lookup tables, interned constants) lives in the C data segment and is never
+ * copied or marked (it carries no refs into the arena, so it's a trace
+ * dead-end). The C-emit may emit such tables for fns matching the
  * `match enum -> StructLit constant` pattern (TODO §3.5 Prop 2).
  * Constraint: a static object MUST NOT contain any pointer to a dynamic
- * (arena-allocated) object — the Cheney scan never visits it, so any inner
- * dynamic ref would be missed and freed under your feet. */
+ * (arena-allocated) object — the trace never visits it, so any inner dynamic
+ * ref would be missed and freed under your feet. */
 static void* vader_gc_forward(void* obj, uint32_t type_index) {
     if (obj == NULL) return NULL;
 
     if (g_cycle == VADER_CYCLE_MAJOR) {
-        if (!vader_in_old_from(obj)) return obj;        /* immortal or stale young */
+        /* Mark phase: only old objects are sweepable. Young survivors and
+         * immortals are dead-ends here (young is kept whole during the old
+         * pass; immortals are read-only — never write a mark to them). */
+        if (!vader_in_old(obj)) return obj;
         vader_obj_header_t* hdr = (vader_obj_header_t*) obj;
-        if (hdr->forward != NULL) return hdr->forward;
-        size_t bytes = vader_gc_obj_size(obj, type_index);
-        if (bytes == 0) return obj;
-        void* dst = vader_gc_copy_into(obj, bytes, &g_old.to);
-        if (dst == NULL) vader_trap("vader_gc: old to-space overflow during major");
-        return dst;
+        if (hdr->mark == g_mark_value) return obj;      /* already marked */
+        hdr->mark = g_mark_value;
+        vader_gray_push((char*) obj);
+        return obj;
     }
 
-    if (vader_in_old_any(obj)) return obj;              /* stable during minor */
+    if (vader_in_old(obj)) return obj;                 /* non-moving — stable during minor */
     if (!vader_in_young_from(obj)) return obj;          /* immortal */
 
     vader_obj_header_t* hdr = (vader_obj_header_t*) obj;
@@ -1272,15 +1691,24 @@ static void* vader_gc_forward(void* obj, uint32_t type_index) {
     size_t bytes = vader_gc_obj_size(obj, type_index);
     if (bytes == 0) return obj;
 
-    /* Promote into old.from once the object has earned its tenure. If old
-     * can't fit it, fall back to surviving another cycle in young.to — the
-     * retry path in vader_gc_alloc will escalate to a major. */
+    /* Promote into the slab old gen once the object has earned its tenure. If the
+     * old reservation is exhausted, fall back to surviving another cycle in
+     * young.to — the retry path in vader_gc_alloc escalates to a major (whose
+     * sweep frees old room) and traps only at the true cap. */
     if (hdr->age + 1u >= VADER_TENURE_AGE) {
-        void* promoted = vader_gc_copy_into(obj, bytes, &g_old.from);
-        if (promoted != NULL) {
-            ((vader_obj_header_t*) promoted)->age = (uint8_t)(hdr->age + 1u);
-            return promoted;
+        void* dst = vader_old_alloc(bytes);
+        if (dst != NULL) {
+            memcpy(dst, obj, bytes);
+            hdr->forward = dst;                          /* source forwards to promoted */
+            vader_obj_header_t* dh = (vader_obj_header_t*) dst;
+            dh->forward = NULL;
+            dh->age  = (uint8_t)(hdr->age + 1u);
+            dh->mark = g_mark_value;                     /* live in the current old epoch */
+            g_total_copied += bytes;
+            vader_gray_push((char*) dst);                /* scan its slots for young refs */
+            return dst;
         }
+        /* else: old full — keep in young.to this cycle. */
     }
 
     void* dst = vader_gc_copy_into(obj, bytes, &g_young.to);
@@ -1301,15 +1729,14 @@ static void vader_gc_scan_raw(void** slot);
 static void vader_gc_box_tag_corrupt(const vader_box_t* boxp) {
     const char* box_loc =
         vader_in_young_from(boxp) ? "young-from" :
-        vader_in_old_from(boxp)   ? "old-from"   :
-        vader_in_old_any(boxp)    ? "old-to"     : "off-heap (root/stack/to-space)";
+        vader_in_old(boxp)        ? "old"        : "off-heap (root/stack)";
     void* payload = boxp->payload.obj;
     int pl_live = payload != NULL
-        && (vader_in_young_from(payload) || vader_in_old_any(payload));
+        && (vader_in_young_from(payload) || vader_in_old(payload));
     const char* pl_loc =
         payload == NULL              ? "NULL" :
         vader_in_young_from(payload) ? "young-from" :
-        vader_in_old_any(payload)    ? "old" : "off-heap/garbage";
+        vader_in_old(payload)        ? "old" : "off-heap/garbage";
     fprintf(stderr,
         "\n[VADER_GC_CHECK_BOX] corrupt box tag during scan (cycle=%d)\n"
         "  box @ %p (%s)\n"
@@ -1349,7 +1776,7 @@ static void vader_gc_scan_box(vader_box_t* boxp) {
         boxp->payload.obj = vader_gc_forward(boxp->payload.obj, VADER_TYPE_INDEX_BUFFER);
         if ((uintptr_t)boxp >= vader_old_base && (uintptr_t)boxp < vader_old_end
             && boxp->payload.obj != NULL
-            && !vader_in_old_any(boxp->payload.obj)) {
+            && !vader_in_old(boxp->payload.obj)) {
             VADER_WRITE_BARRIER(boxp);
         }
         return;
@@ -1369,7 +1796,7 @@ static void vader_gc_scan_box(vader_box_t* boxp) {
         vader_gc_scan_raw(&boxp->payload.obj);
         if ((uintptr_t)boxp >= vader_old_base && (uintptr_t)boxp < vader_old_end
             && boxp->payload.obj != NULL
-            && !vader_in_old_any(boxp->payload.obj)) {
+            && !vader_in_old(boxp->payload.obj)) {
             VADER_WRITE_BARRIER(boxp);
         }
         return;
@@ -1377,7 +1804,7 @@ static void vader_gc_scan_box(vader_box_t* boxp) {
     boxp->payload.obj = vader_gc_forward(boxp->payload.obj, boxp->tag);
     if ((uintptr_t)boxp >= vader_old_base && (uintptr_t)boxp < vader_old_end
         && boxp->payload.obj != NULL
-        && !vader_in_old_any(boxp->payload.obj)) {
+        && !vader_in_old(boxp->payload.obj)) {
         VADER_WRITE_BARRIER(boxp);
     }
 }
@@ -1391,7 +1818,7 @@ static void vader_gc_scan_raw(void** slot) {
     if (hdr->forward != NULL) { *slot = hdr->forward; }
     else { *slot = vader_gc_forward(*slot, hdr->type_index); }
     if ((uintptr_t)slot >= vader_old_base && (uintptr_t)slot < vader_old_end
-        && *slot != NULL && !vader_in_old_any(*slot)) {
+        && *slot != NULL && !vader_in_old(*slot)) {
         VADER_WRITE_BARRIER(slot);
     }
 }
@@ -1464,31 +1891,24 @@ static void vader_gc_scan_roots(void) {
  * memory reads, while clearing in minor would require rescanning to
  * decide whether the card still has a live old→young reference. */
 static void vader_gc_scan_old_dirty_cards(void) {
-    char*     base   = g_old.block;
-    uintptr_t arena0 = (uintptr_t) base;
-    char*     scan   = g_old.from.base;
-    while (scan < g_old.from.cur) {
-        vader_obj_header_t* hdr = (vader_obj_header_t*) scan;
-        uint32_t type_index = hdr->type_index;
-        size_t bytes = vader_gc_obj_size(scan, type_index);
-        if (bytes == 0) return;                         /* corrupt header — bail */
-        size_t step = vader_gc_align(bytes);
+    for (vader_old_region_t* r = g_old_regions; r != NULL; r = r->next) {
+        for (char* slot = r->base; slot < r->cur; slot += r->slot_size) {
+            vader_obj_header_t* hdr = (vader_obj_header_t*) slot;
+            if (hdr->mark != g_mark_value) continue;    /* free slot — stale pointers, skip */
 
-        /* An object's slot writes mark whichever card holds the object header;
-         * arrays whose buf lives elsewhere mark the buf separately. So the
-         * relevant cards for this object are the ones spanning [scan, scan+bytes). */
-        uintptr_t off_start = (uintptr_t) scan - arena0;
-        uintptr_t off_end   = off_start + bytes - 1u;
-        size_t card_start = off_start / VADER_CARD_BYTES;
-        size_t card_end   = off_end   / VADER_CARD_BYTES;
-        int dirty = g_gc_scan_all_old;
-        for (size_t c = card_start; c <= card_end && !dirty; c++) {
-            if (vader_card_table[c]) { dirty = 1; break; }
+            /* The slot's object spans at most [slot, slot + slot_size). Scan it
+             * if any covering card is dirty (a slot write marks the card holding
+             * the object header; arrays mark their buf's card separately). */
+            uintptr_t off_start = (uintptr_t) slot - vader_old_base;
+            uintptr_t off_end   = off_start + r->slot_size - 1u;
+            size_t card_start = off_start / VADER_CARD_BYTES;
+            size_t card_end   = off_end   / VADER_CARD_BYTES;
+            int dirty = g_gc_scan_all_old;
+            for (size_t c = card_start; c <= card_end && !dirty; c++) {
+                if (vader_card_table[c]) { dirty = 1; break; }
+            }
+            if (dirty) (void) vader_gc_scan_object(slot);
         }
-        if (dirty) {
-            (void) vader_gc_scan_object(scan);
-        }
-        scan += step;
     }
 }
 
@@ -1512,21 +1932,27 @@ void vader_minor_collect(void) {
     /* MAJOR_DRAIN is preserved if the caller is `vader_major_collect`. */
 
     g_young.to.cur = g_young.to.base;
-    char* young_scan       = g_young.to.base;
-    char* old_promote_scan = g_old.from.cur;            /* promotions land past here */
+    char* young_scan = g_young.to.base;
+    g_gray_len = 0;                                      /* promotions queue here */
 
     vader_gc_scan_roots();
     vader_gc_scan_old_dirty_cards();
 
-    /* Drain both cursors until neither advances — forwarding a young root
-     * can promote into old, and forwarding an old promote can pull more
-     * young objects across, so the two sources feed each other. */
+    /* Drain young.to and the gray worklist until neither advances — forwarding a
+     * young root can promote into the (scattered, non-contiguous) slab, and
+     * scanning a promoted object can pull more young objects across, so the two
+     * sources feed each other. Promoted objects can't be drained by a cursor
+     * (they're spread across class regions), so they go through the gray stack. */
     for (;;) {
         char* y0 = young_scan;
-        char* o0 = old_promote_scan;
-        young_scan       = vader_gc_drain(young_scan, &g_young.to);
-        old_promote_scan = vader_gc_drain(old_promote_scan, &g_old.from);
-        if (young_scan == y0 && old_promote_scan == o0) break;
+        young_scan = vader_gc_drain(young_scan, &g_young.to);
+        int drained_gray = 0;
+        while (g_gray_len > 0) {
+            char* obj = g_gray_stack[--g_gray_len];
+            (void) vader_gc_scan_object(obj);           /* forward its young refs into young.to */
+            drained_gray = 1;
+        }
+        if (young_scan == y0 && !drained_gray) break;
     }
 
     vader_arena_t tmp = g_young.from;
@@ -1544,110 +1970,101 @@ void vader_minor_collect(void) {
      * naturally ignores them. */
 }
 
-/* Grow the old generation in the one window where it is safe: a major's
- * to-space is empty (no object copied yet), so we can swap in a fresh, larger
- * block before the Cheney drain and let forwarding relocate every survivor
- * into it for free. mallocs `new_half * 2` and points `g_old.to` at the new
- * block's first half; `g_old.from` is left on the current block so the drain
- * copies old→new across blocks. Returns the *current* block pointer for the
- * caller to free after the swap — the caller then re-slices `g_old.to` onto
- * the new block's second half, resizes the card table, and re-points the
- * write-barrier bounds. A NULL malloc is the real RAM ceiling: trap clearly. */
-static char* vader_old_grow_to(size_t new_half) {
-    char* new_block = (char*) malloc(new_half * 2u);
-    if (new_block == NULL) {
-        fprintf(stderr,
-            "vader_old_grow: malloc failed growing old arena to %zu MB × 2 "
-            "(cap VADER_GC_OLD_MAX = %zu MB) — out of RAM\n",
-            new_half / (1024u * 1024u),
-            g_old_max_bytes / (1024u * 1024u));
-        vader_trap("vader_old_grow: out of memory (RAM ceiling)");
+/* VADER_GC_HISTOGRAM : before/after measurement of the old live set. Walks the
+ * non-moving slab's live slots (mark == g_mark_value) after a sweep and reports
+ * object count + byte distribution across size buckets, plus the address-space
+ * bump high-water vs the reservation. Prints only when the live set hits a new
+ * high, so the LAST line is the steady-state worst case. Read-only. */
+static const size_t VADER_HISTO_EDGES[7] = { 32, 64, 128, 256, 512, 1024, 4096 };
+typedef struct { size_t bcount[8]; size_t bbytes[8]; size_t total_objs; size_t total_bytes; } vader_histo_ctx_t;
+static void vader_histo_tally(char* slot, uint32_t type_index, void* vctx) {
+    vader_histo_ctx_t* c = (vader_histo_ctx_t*) vctx;
+    size_t sz = vader_gc_obj_size(slot, type_index);
+    if (sz == 0) return;
+    c->total_objs++; c->total_bytes += sz;
+    int bi = 7;
+    for (int i = 0; i < 7; i++) { if (sz <= VADER_HISTO_EDGES[i]) { bi = i; break; } }
+    c->bcount[bi]++; c->bbytes[bi] += sz;
+}
+static int    g_histo_enabled = -1;
+static size_t g_histo_max_occ = 0;
+static void vader_gc_old_histogram(void) {
+    if (g_histo_enabled < 0) g_histo_enabled = vader_gc_env_bool("VADER_GC_HISTOGRAM");
+    if (!g_histo_enabled) return;
+    if (g_old_live_bytes <= g_histo_max_occ) return;
+    g_histo_max_occ = g_old_live_bytes;
+
+    static const char* labels[8] = { "<=32","<=64","<=128","<=256","<=512","<=1K","<=4K",">4K" };
+    vader_histo_ctx_t ctx = {0};
+    vader_old_foreach_live(vader_histo_tally, &ctx);
+    size_t total_objs = ctx.total_objs, total_bytes = ctx.total_bytes;
+    size_t* bcount = ctx.bcount; size_t* bbytes = ctx.bbytes;
+    if (total_bytes == 0) return;
+    size_t bump_used = (size_t)(g_old_bump - g_old_block);
+    fprintf(stderr, "[GC-HISTO] old live-set: %zu objs, %.1f MB live ; bump=%.1f MB / reservation %.0f MB ; collections=%zu\n",
+            total_objs, total_bytes / 1048576.0, bump_used / 1048576.0,
+            g_old_capacity / 1048576.0, g_total_collections);
+    for (int i = 0; i < 8; i++) {
+        if (bcount[i] == 0) continue;
+        fprintf(stderr, "[GC-HISTO]   %-5s : %8zu objs  %7.1f MB  (%.1f%% bytes)\n",
+                labels[i], bcount[i], bbytes[i] / 1048576.0, 100.0 * bbytes[i] / total_bytes);
     }
-    char* current_block = g_old.block;
-    /* Point the major's to-space at the new block's first half. g_old.from is
-     * deliberately untouched (still the current block) — the drain copies from
-     * there into here, and forwarding rewrites every pointer. */
-    g_old.to.base = new_block;
-    g_old.to.cur  = new_block;
-    g_old.to.end  = new_block + new_half;
-    return current_block;
 }
 
 void vader_major_collect(void) {
     if (!g_gc_initialized) return;
 
-    /* Drain young first so old can be Cheney-collected as a self-contained
-     * set. Surviving young objects (those that didn't promote) are treated
-     * as immortal during the old pass — old can only reach young via the
-     * card table, which the minor consumed. */
+    /* 1. Drain young (a minor). Survivors that earned tenure promote into the
+     * slab via vader_old_alloc; the rest stay in young.from. */
     g_cycle = VADER_CYCLE_MAJOR_DRAIN;
     vader_minor_collect();
 
-    g_cycle = VADER_CYCLE_MAJOR;
+    /* 2. Toggle the epoch mark value. Last epoch's live objects carry the old
+     * value, so they now read as "unmarked" with no clear pass; the mark phase
+     * re-marks every reachable old object to the new value. (Objects promoted in
+     * step 1 carry the pre-toggle value and are likewise re-marked below.) */
+    g_mark_value = (g_mark_value == 1u) ? 2u : 1u;
 
-    /* Auto-grow decision — taken here, while `g_old.to` is still empty (the
-     * only safe moment to relocate it). Survivors of the coming Cheney pass
-     * are bounded by the current old.from occupancy, so sizing the to-space to
-     * `occ × headroom` guarantees the drain fits (occ ≤ half ≤ OLD_MAX, so a
-     * clamped new_half still ≥ occ — the `:996` overflow trap stays
-     * unreachable on this path). The grow is carried through the swap by
-     * `grew_old_block`; if no grow, the existing to-space is reused as-is. */
-    size_t occ    = (size_t)(g_old.from.cur - g_old.from.base);
-    size_t needed = occ * (size_t) VADER_GC_OLD_HEADROOM_NUM / (size_t) VADER_GC_OLD_HEADROOM_DEN;
-    char*  grew_old_block = NULL;
-    size_t grew_new_half  = 0;
-    if (needed > g_old.half_bytes) {
-        size_t new_half = g_old.half_bytes * 2u;
-        if (new_half < needed)                   new_half = needed;
-        if (new_half > g_old_max_bytes) new_half = g_old_max_bytes;
-        if (new_half > g_old.half_bytes) {
-            grew_old_block = vader_old_grow_to(new_half);
-            grew_new_half  = new_half;
+    /* 3. Mark. Old objects don't move — vader_gc_forward sets the mark bit and
+     * pushes to the gray worklist instead of copying. Seed from roots + every
+     * young survivor (kept whole during the old pass; scanning them marks the
+     * old objects they reference), then drain the gray worklist for the
+     * transitive old→old closure. */
+    g_cycle = VADER_CYCLE_MAJOR;
+    g_gray_len = 0;
+    vader_gc_scan_roots();
+    {
+        char* scan = g_young.from.base;
+        while (scan < g_young.from.cur) {
+            size_t step = vader_gc_scan_object(scan);   /* marks this survivor's old refs */
+            if (step == 0) break;
+            scan += step;
         }
     }
-
-    g_old.to.cur = g_old.to.base;
-
-    vader_gc_scan_roots();
-    (void) vader_gc_drain(g_young.from.base, &g_young.from);
-    (void) vader_gc_drain(g_old.to.base, &g_old.to);
-
-    vader_arena_t tmp = g_old.from;
-    g_old.from   = g_old.to;
-    g_old.to     = tmp;
-    g_old.to.cur = g_old.to.base;
-
-    if (grew_old_block != NULL) {
-        /* Survivors now live in the new block's first half (it became
-         * `g_old.from` in the swap above). Free the old block, re-slice the
-         * spare to-space onto the new block's second half, and re-point every
-         * old-arena descriptor at the new block. Card-table indexing and the
-         * write barrier key off `g_old.block` / `vader_old_base`, so they must
-         * move together — done before the `memset` re-dirties the table. */
-        free(grew_old_block);
-        char* new_block  = g_old.from.base;          /* == the block we grew into */
-        g_old.block      = new_block;
-        g_old.half_bytes = grew_new_half;
-        g_old.to.base    = new_block + grew_new_half;
-        g_old.to.cur     = g_old.to.base;
-        g_old.to.end     = g_old.to.base + grew_new_half;
-
-        size_t   new_card_count = vader_card_count_for(grew_new_half);
-        uint8_t* new_cards = (uint8_t*) realloc(vader_card_table, new_card_count);
-        if (new_cards == NULL) vader_trap("vader_old_grow: card-table realloc failed");
-        vader_card_table = new_cards;
-        g_card_count     = new_card_count;
-        vader_old_base   = (uintptr_t) new_block;
-        vader_old_end    = (uintptr_t) (new_block + grew_new_half * 2u);
+    /* Conservatively mark old objects reachable only from C locals / registers
+     * (the shadow stack doesn't precisely root old refs — see the function). */
+    vader_gc_mark_cstack_conservative();
+    while (g_gray_len > 0) {
+        char* obj = g_gray_stack[--g_gray_len];
+        (void) vader_gc_scan_object(obj);
     }
 
-    /* Conservatively mark all cards dirty rather than clearing. The drain
-     * passes above may have forwarded young-pointing refs back into the
-     * fresh old.from copies without writing a barrier, so any old→young
-     * reference's card would be lost if we cleared. Scanning a few extra
-     * cards on the next minor is far cheaper than missing a root. (After a
-     * grow this also covers the cards the resized table never re-armed.) */
-    memset(vader_card_table, 1, g_card_count);
+    /* 4. Sweep: rebuild every free list from the unmarked slots. */
+    vader_old_sweep();
+    g_old_live_after_major = g_old_live_bytes;   /* reclamation-trigger baseline */
+    vader_gc_old_histogram();
+
+    /* 5. Re-arm cards over the USED old span only. The mark pass may have observed
+     * old→young edges (a marked old object referencing a young survivor) without
+     * our separately recording each card; clearing would risk losing such a root,
+     * so conservatively dirty every in-use card. Only the carved prefix
+     * [g_old_block, g_old_bump) holds objects (the minor walks slots, never the
+     * uncommitted reservation tail), so memset just that prefix — touching the
+     * whole-reservation table would needlessly commit pages for cards that are
+     * never read. */
+    size_t used_cards = ((size_t)(g_old_bump - g_old_block) + VADER_CARD_BYTES - 1u)
+                        / VADER_CARD_BYTES;
+    memset(vader_card_table, 1, used_cards);
 
     g_cycle = VADER_CYCLE_NONE;
     g_total_collections++;
@@ -1655,19 +2072,18 @@ void vader_major_collect(void) {
 }
 
 /* Public alias. `runtime.collect()` in Vader maps here; tests rely on it
- * forcing a full collection (Cheney over old, not just minor). */
+ * forcing a full collection (mark-sweep over old, not just minor). */
 void vader_gc_collect(void) {
     vader_major_collect();
 }
 
 vader_gc_stats_t vader_gc_get_stats(void) {
     vader_gc_stats_t s;
-    /* Live semi-space size — reflects auto-grow, not the initial #define. */
-    s.arena_size = g_gc_initialized ? g_old.half_bytes : (size_t) VADER_GC_OLD_BYTES;
+    /* Old "arena size" now reports the lazily-committed reservation (the cap). */
+    s.arena_size = g_gc_initialized ? g_old_capacity : (size_t) VADER_GC_OLD_BYTES;
     if (g_gc_initialized) {
         size_t young_used = (size_t)(g_young.from.cur - g_young.from.base);
-        size_t old_used   = (size_t)(g_old.from.cur   - g_old.from.base);
-        s.bytes_used = young_used + old_used;
+        s.bytes_used = young_used + g_old_live_bytes;
     } else {
         s.bytes_used = 0;
     }
@@ -3248,6 +3664,35 @@ static int vader_gc_prof_cmp(const void* a, const void* b) {
     return 0;
 }
 
+/* Per-object tally — shared by the young contiguous walk and the old region walk
+ * (via vader_old_foreach_live), since the old gen is no longer one arena. */
+typedef struct {
+    vader_gc_prof_entry_t* tally;
+    size_t  array_buf_bucket;
+    size_t* arr_kind_bytes;
+    size_t* arr_kind_count;
+    size_t* arr_boxed_slots;
+    size_t* total;
+} vader_gc_prof_ctx_t;
+
+static void vader_gc_prof_tally(char* scan, uint32_t type_index, void* vctx) {
+    vader_gc_prof_ctx_t* c = (vader_gc_prof_ctx_t*) vctx;
+    size_t bytes = vader_gc_obj_size(scan, type_index);
+    if (bytes == 0) return;
+    if (type_index == VADER_TYPE_INDEX_ARRAY_BUF) {
+        vader_array_buf_t* abuf = (vader_array_buf_t*) scan;
+        uint8_t ek = abuf->element_kind;
+        if (ek < 16u) { c->arr_kind_bytes[ek] += bytes; c->arr_kind_count[ek] += 1u; }
+        if (ek == VADER_ARRAY_KIND_BOXED) *c->arr_boxed_slots += abuf->capacity;
+    }
+    size_t bucket = (type_index == VADER_TYPE_INDEX_ARRAY_BUF)
+        ? c->array_buf_bucket
+        : (type_index < vader_type_info_count ? type_index : 0);
+    c->tally[bucket].count += 1u;
+    c->tally[bucket].bytes += bytes;
+    *c->total += bytes;
+}
+
 /* Walk both arenas' from-spaces and tally objects bucketed by type_index.
  * Sort by total bytes, print top-20. Called via atexit when
  * VADER_GC_PROFILE is set, and inline from the OOM trap (abort() skips
@@ -3271,42 +3716,32 @@ void vader_gc_profile_dump(void) {
     size_t arr_kind_count[16] = { 0 };
     size_t arr_boxed_slots = 0;
 
-    const vader_arena_t* gens[2] = { &g_young.from, &g_old.from };
+    /* Young: one contiguous from-space walk. Old: the non-moving slab's live
+     * slots, by region. The BUFFER sentinel has no dedicated bucket — it falls
+     * into bucket 0 (a cosmetic miscount in this debug-only profile, never a
+     * GC-correctness issue ; the size walk handles its bytes correctly). */
     size_t totals[2] = { 0, 0 };
-    for (int g = 0; g < 2; g++) {
-        char* scan = gens[g]->base;
-        while (scan < gens[g]->cur) {
-            vader_obj_header_t* hdr = (vader_obj_header_t*) scan;
-            uint32_t type_index = hdr->type_index;
-            size_t bytes = vader_gc_obj_size(scan, type_index);
-            if (bytes == 0) break;
-            if (type_index == VADER_TYPE_INDEX_ARRAY_BUF) {
-                vader_array_buf_t* abuf = (vader_array_buf_t*) scan;
-                uint8_t ek = abuf->element_kind;
-                if (ek < 16u) { arr_kind_bytes[ek] += bytes; arr_kind_count[ek] += 1u; }
-                if (ek == VADER_ARRAY_KIND_BOXED) arr_boxed_slots += abuf->capacity;
-            }
-            // The BUFFER sentinel has no dedicated bucket — it falls into
-            // bucket 0 here (a cosmetic miscount in this debug-only profile,
-            // never a GC-correctness issue ; the size walk handles it above).
-            size_t bucket = (type_index == VADER_TYPE_INDEX_ARRAY_BUF)
-                ? array_buf_bucket
-                : (type_index < vader_type_info_count ? type_index : 0);
-            tally[bucket].count += 1u;
-            tally[bucket].bytes += bytes;
-            totals[g] += bytes;
-            scan += vader_gc_align(bytes);
-        }
+    vader_gc_prof_ctx_t cy = { tally, array_buf_bucket, arr_kind_bytes, arr_kind_count, &arr_boxed_slots, &totals[0] };
+    char* scan = g_young.from.base;
+    while (scan < g_young.from.cur) {
+        vader_obj_header_t* hdr = (vader_obj_header_t*) scan;
+        size_t bytes = vader_gc_obj_size(scan, hdr->type_index);
+        if (bytes == 0) break;
+        vader_gc_prof_tally(scan, hdr->type_index, &cy);
+        scan += vader_gc_align(bytes);
     }
+    vader_gc_prof_ctx_t co = { tally, array_buf_bucket, arr_kind_bytes, arr_kind_count, &arr_boxed_slots, &totals[1] };
+    vader_old_foreach_live(vader_gc_prof_tally, &co);
     qsort(tally, nbuckets, sizeof(vader_gc_prof_entry_t), vader_gc_prof_cmp);
 
     fprintf(stderr, "\n=== vader_gc_profile : live-set breakdown ===\n");
     fprintf(stderr, "young from-space : %.2f MB live (of %zu MB arena)\n",
             (double) totals[0] / (1024.0 * 1024.0),
             g_young.half_bytes / (1024u * 1024u));
-    fprintf(stderr, "old   from-space : %.2f MB live (of %zu MB arena)\n",
+    fprintf(stderr, "old   slab       : %.2f MB live (bump %.2f MB / reservation %.0f MB)\n",
             (double) totals[1] / (1024.0 * 1024.0),
-            g_old.half_bytes / (1024u * 1024u));
+            (double) (size_t)(g_old_bump - g_old_block) / (1024.0 * 1024.0),
+            g_old_capacity / (1024.0 * 1024.0));
     fprintf(stderr, "top-20 buckets (by bytes) :\n");
     fprintf(stderr, "  %-12s %-10s %-12s %-12s %s\n",
             "type_index", "kind", "obj_size", "count", "total_bytes");
