@@ -361,7 +361,7 @@ parse_data_decl_bc :: fn(cleaned: string, data_pool: bc.BcDataEntry[]) -> void {
     if rb[3] != '"' { return }
     if rb[rb.len() - 1] != '"' { return }
     hex_body :: rb[4..<rb.len() - 1].bytes_to_string()
-    kind :: kind_from_name(kind_name)
+    kind :: bc.array_kind_from_name(kind_name)
     esz :: usize(bc.array_kind_element_size(kind))
     items: u64[] = []
     if esz > 0 {
@@ -372,21 +372,6 @@ parse_data_decl_bc :: fn(cleaned: string, data_pool: bc.BcDataEntry[]) -> void {
     data_pool.push(bc.BcDataEntry { .kind = kind, .items = items })
 }
 
-kind_from_name :: fn(s: string) -> bc.ArrayKind {
-    if s == "u8"   { return bc.ArrayKind.U8 }
-    if s == "i8"   { return bc.ArrayKind.I8 }
-    if s == "bool" { return bc.ArrayKind.Bool }
-    if s == "u16"  { return bc.ArrayKind.U16 }
-    if s == "i16"  { return bc.ArrayKind.I16 }
-    if s == "u32"  { return bc.ArrayKind.U32 }
-    if s == "i32"  { return bc.ArrayKind.I32 }
-    if s == "f32"  { return bc.ArrayKind.F32 }
-    if s == "char" { return bc.ArrayKind.Char }
-    if s == "u64"  { return bc.ArrayKind.U64 }
-    if s == "i64"  { return bc.ArrayKind.I64 }
-    if s == "f64"  { return bc.ArrayKind.F64 }
-    return bc.ArrayKind.Boxed
-}
 
 // ---- function header / signature ------------------------------------------
 

@@ -303,7 +303,7 @@ MD5_S: u32[]: [
 @comptime
 MD5_K :: build_md5_k()
 
-build_md5_k :: fn() -> u32[] {
+build_md5_k :: fn() -> const u32[] {
     k: u32[] = []
     for i in 0..<64 {
         s :: abs(sin(f64(i) + 1.0))

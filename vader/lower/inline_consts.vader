@@ -30,6 +30,7 @@ import "std/collections" { MutableMap }
 AST :: import "vader/parser"
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/comptime" { MonoEntry }
+import "vader/types" { ArrayType, display_type }
 
 // Break-even point : the `call` at each read site is cheaper than re-emitting
 // `2 * N` ops to rebuild the literal once N passes this threshold. Matches
@@ -55,6 +56,17 @@ export inline_consts :: fn(project: LoweredProject) -> void {
             if d is LoweredConstDecl as cd {
                 sym :: cd.origin.symbol
                 if sym is Symbol as s {
+                    // Data-pool bucket : an immutable `const T[]` of primitive
+                    // literals is materialised once into `.rodata` (native) /
+                    // a data segment (wasm) / an in-memory const buffer (VM),
+                    // and every read site lowers to a zero-copy `data.const`
+                    // view — never rebuilt. Takes priority over fn-wrap, which
+                    // would `array.new` + refill at each call. Mutable / non-
+                    // primitive arrays fall through to the existing buckets.
+                    if try_data_pool(cd, s, project) {
+                        changed = true
+                        continue
+                    }
                     if should_fn_wrap(cd.value) {
                         fn_symbol :: const_accessor_symbol(s, next_synth)
                         next_synth = next_synth - 1
@@ -83,6 +95,57 @@ export inline_consts :: fn(project: LoweredProject) -> void {
 should_fn_wrap :: fn(value: LoweredExpr) -> bool {
     if value is LoweredArrayLit as a { return a.elements.len() >= FN_WRAP_MIN_ELEMENTS }
     return false
+}
+
+// Route an immutable `const T[]` of primitive literals into the project data
+// pool : register a `DataPoolEntry`, point the const's read sites at a
+// `LoweredDataConst` (via `const_inline`, which `build_ident` rebuilds as the
+// `data.const` op), and report success so the caller drops the decl. Returns
+// false for any non-eligible shape (mutable array, non-primitive element,
+// non-array) — those keep the fn-wrap / inline buckets.
+//
+// Phase A: integer / char / bool elements only (all fit an `i64` bit pattern) ;
+// float arrays are not yet pooled.
+try_data_pool :: fn(cd: LoweredConstDecl, symbol: Symbol, project: LoweredProject) -> bool {
+    if cd.type is ArrayType as arr_type {
+        if !arr_type.immutable { return false }
+        if cd.value is LoweredArrayLit as lit {
+            rendered :: render_data_items(lit)
+            if rendered != null {
+                pool_index :: project.data_pool.len()
+                project.data_pool.push(DataPoolEntry {
+                    .type_name         = display_type(cd.type),
+                    .element_type_name = display_type(arr_type.element),
+                    .items             = rendered,
+                })
+                project.const_inline[symbol.id] = LoweredDataConst {
+                    .span = lit.span, .type = cd.type, .pool_index = pool_index,
+                }
+                return true
+            }
+        }
+    }
+    return false
+}
+
+// Collect every element's raw bit pattern as `i64`, or null when any element
+// isn't a poolable primitive literal (int / char / bool).
+render_data_items :: fn(lit: LoweredArrayLit) -> i64[] | null {
+    out: i64[] = []
+    for el in lit.elements {
+        bits :: data_item_bits(el)
+        if bits == null { return null }
+        out.push(bits)
+    }
+    return out
+}
+
+// Raw `i64` bit pattern of a poolable primitive literal, or null otherwise.
+data_item_bits :: fn(el: LoweredExpr) -> i64 | null {
+    if el is LoweredIntLit as i  { return i.value }
+    if el is LoweredCharLit as c { return i64(c.value) }
+    if el is LoweredBoolLit as b { return if b.value { 1 } else { 0 } }
+    return null
 }
 
 // The accessor fn's symbol, carrying a FRESH synthetic id (`synth_id`, always

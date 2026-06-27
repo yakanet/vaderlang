@@ -18,7 +18,7 @@ import "std/collections" { MutableMap }
 import "vader/diagnostics" { Span, empty_span }
 import "vader/lower" {
     LoweredProject, LoweredModule, LoweredDecl, LoweredFnDecl, LoweredStructDecl,
-    LoweredConstDecl, ConstFnWrap,
+    LoweredConstDecl, ConstFnWrap, DataPoolEntry,
     LoweredBlock, LoweredStmt, LoweredLet, LoweredAssign, LoweredExprStmt,
     LoweredReturn, LoweredLoop, LoweredBreak, LoweredContinue,
     LoweredCellSet,
@@ -145,21 +145,35 @@ export build_cfg_project :: fn(lp: LoweredProject) -> CFGProject {
             .struct_decls = struct_decls,
         }
     }
-    // CFGProject expects `BcDataEntry[]` and `symbol_redirects` which
-    // LoweredProject doesn't carry directly today ; pass empty for now
-    // until those side-tables get plumbed through the lower port.
-    empty_data: BcDataEntry[] = []
+    // `symbol_redirects` isn't carried by LoweredProject yet ; pass empty until
+    // it gets plumbed through the lower port.
     empty_redirects :: MutableMap<i32, i32> {}
     return CFGProject {
         .modules         = modules,
         .vtable_entries  = lp.vtable_entries,
         .strings         = ctx.strings,
-        .data_pool       = empty_data,
+        .data_pool       = convert_data_pool(lp.data_pool),
         .symbol_redirects = empty_redirects,
     }
 }
 
-import "vader/bytecode" { BcDataEntry }
+import "vader/bytecode" { BcDataEntry, ArrayKind, array_kind_from_name }
+
+// Convert lower-side `DataPoolEntry` (i64 bit patterns + element type name) into
+// bytecode `BcDataEntry` (u64 items + ArrayKind). Done here, at the lower→CFG
+// boundary, because `vader/lower` can't import `vader/bytecode` (it would close
+// the bytecode→lower import cycle). `u64(i64)` reinterprets the bits — the
+// runtime reads each element at its natural width (low bits).
+convert_data_pool :: fn(entries: DataPoolEntry[]) -> BcDataEntry[] {
+    out: BcDataEntry[] = []
+    for e in entries {
+        items: u64[] = []
+        for v in e.items { items.push(u64(v)) }
+        out.push(BcDataEntry { .kind = array_kind_from_name(e.element_type_name), .items = items })
+    }
+    return out
+}
+
 
 // ============================================================================
 // Function-level conversion

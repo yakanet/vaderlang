@@ -297,7 +297,7 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
         is vm.ArrayCopy             -> emit_array_copy(s)
         is vm.ArrayRemoveLast       -> emit_array_remove_last(s)
         is vm.ArrayClear            -> emit_array_clear(s)
-        is vm.DataConst             -> todo("emit_op: data.const (needs emit_data_pool ; module.data_pool is empty today — the lowerer routes every literal to array.new)")
+        is vm.DataConst as dc       -> emit_data_const_op(s, dc)
         is vm.TypeConst as tc       -> emit_type_const(s, tc)
         is vm.TypeCheck as tc       -> emit_type_check(s, tc)
         is vm.RefCast as rc         -> emit_ref_cast(s, rc)
@@ -1764,6 +1764,15 @@ typed_array_fill_for :: fn(k: ArrayKind) -> SlotFill | null = match k {
     .I16   -> SlotFill { .cty = "int16_t",  .val = .I32 }
     .F32   -> SlotFill { .cty = "float",    .val = .F32 }
     .Boxed -> null
+}
+
+// `data.const N` — push a zero-copy box over the immortal `.rodata` array
+// `vader_data_N` (emitted by `emit_data_pool`). Re-stamps the call-site type_id
+// onto the box, mirroring the VM's `DataConst` arm + the static-fn-ref box.
+emit_data_const_op :: fn(s: FnState, op: vm.DataConst) -> void {
+    name :: fresh_tmp(s, .Ref)
+    line(s, "${name} = vader_box_obj(${op.type_id}u, (void*) &vader_data_${op.pool_index});")
+    push_tmp(s, name, .Ref)
 }
 
 emit_array_new :: fn(s: FnState, op: vm.ArrayNew) -> void {

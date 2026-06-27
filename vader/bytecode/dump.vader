@@ -22,6 +22,8 @@
 module "vader/bytecode"
 
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
+import "std/numbers" { to_hex }
+import "std/string" { pad_start }
 
 /// Render a `BytecodeModule` as a `.virt`-style text dump. The resulting
 /// string carries a trailing newline ; pipe to stdout directly. This is the
@@ -58,6 +60,7 @@ dump_bytecode_impl :: fn(module: BytecodeModule, entry_mangled: string, annotate
     sb.append("module ${module.name}\n")
     write_types(sb, module.types)
     write_strings(sb, module.strings)
+    write_data_pool(sb, module.data_pool)
     write_imports(sb, module.imports)
     write_impl_table(sb, module.impl_table)
     write_vtable_rows(sb, module.vtables)
@@ -75,6 +78,30 @@ write_types :: fn(sb: StringBuilder, types: BcType[]) -> void {
         sb.append("type ${i} ${format_bc_type(types[i])}\n")
     }
 }
+
+// Data pool — one `data N <kind> hex"<le-bytes>"` line per pre-materialised
+// `const T[]`. Round-trips through `virt_reader_bc::parse_data_decl_bc` so the
+// VM reconstructs the pool ; without this the `.virt` carries `data.const N`
+// ops with no backing entry (pool_index out of range).
+write_data_pool :: fn(sb: StringBuilder, data_pool: BcDataEntry[]) -> void {
+    for i in 0..<data_pool.len() {
+        sb.append("data ${i} ${array_kind_name(data_pool[i].kind)} hex\"${data_items_hex(data_pool[i])}\"\n")
+    }
+}
+
+// Little-endian hex of every element's bit pattern (`element_size` bytes each).
+data_items_hex :: fn(entry: BcDataEntry) -> string {
+    esz :: usize(array_kind_element_size(entry.kind))
+    out :: new_builder()
+    for item in entry.items {
+        for b in 0..<esz {
+            byte :: (item >> u64(8 * b)) & 0xFF
+            out.append(pad_start(to_hex(byte), 2, '0'))
+        }
+    }
+    return "${out}"
+}
+
 
 format_bc_type :: fn(t: BcType) -> string = match t {
     is BcPrimitive as p -> "primitive ${val_type_name(p.val)}"
