@@ -13,6 +13,30 @@ import "std/collections" { MutableMap }
 import "vader/parser" { FnDecl }
 import "vader/types" { Type }
 import "vader/typecheck" { TypedProgram, TypedProject }
+import "vader/diagnostics" { Span }
+
+/// A `@comptime` decl the tree-walk evaluator deferred to the VM (it returned
+/// `vm_required` rather than a value). `evaluate_project` records these instead
+/// of erroring with C4001 ; the `vader/comptime_vm` pass (above the import
+/// cycle, run from `bootstrap` between `evaluate_project` and `lower_project`)
+/// stages the decl's callee to bytecode, executes it, bridges the result and
+/// injects it into the owning module's `comptime_decls`.
+///
+/// Scope (V1): the decl RHS must be a nullary call `f()` — `callee_name` is `f`.
+export VmRequiredDecl :: struct {
+    /// Symbol id of the comptime const — where the bridged value is injected.
+    symbol_id:   i32
+    /// Canonical module path owning the const (keys `EvaluatedProject.modules`
+    /// / `TypedProject.modules`). Used to mangle the callee + locate the program.
+    module_id:   string
+    /// Name of the nullary callee fn to execute (e.g. `build_md5_k`).
+    callee_name: string
+    /// Typechecker-resolved type of the const — drives the `Value`→`ComptimeValue`
+    /// bridge (scalar widths, array element name).
+    decl_type:   Type
+    /// The const decl's span, attached to any staging / evaluation diagnostic.
+    span:        Span
+}
 
 /// One blanket-Into impl member observation. The typer records a coercion
 /// site that needs the impl's `into` member specialised with these type
@@ -85,6 +109,12 @@ export EvaluatedProject :: struct {
     /// instances` section of the comptime.snapshot dump. Sorted by
     /// `display_key` so ordering is deterministic across runs.
     instances: GenericInstance[]
+
+    /// `@comptime` decls the tree-walk deferred to the VM. Populated by
+    /// `evaluate_project` ; consumed by the `comptime_vm` pass (run from
+    /// `bootstrap`) which bakes each into the owning module's `comptime_decls`.
+    /// Empty for projects with no VM-required comptime decls.
+    vm_required: VmRequiredDecl[]
 }
 
 /// Construct an empty `EvaluatedProgram` bound to `typed`. Used by the
@@ -112,6 +142,7 @@ export new_evaluated_project :: fn(typed: TypedProject) -> EvaluatedProject {
         .file_baked_consts = MutableMap<i32, ComptimeValue> {},
         .into_members      = [],
         .instances         = [],
+        .vm_required       = [],
     }
 }
 

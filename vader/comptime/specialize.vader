@@ -812,6 +812,7 @@ import "std/testing" { assert_eq }
         .file_baked_consts = MutableMap<i32, ComptimeValue> {},
         .into_members      = [],
         .instances         = [],
+        .vm_required       = [],
     }
     project :: monomorphize_project(loaded, evaluated)
     assert_eq(project.entries.len(), 0)

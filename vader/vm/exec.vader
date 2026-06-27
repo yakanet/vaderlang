@@ -65,6 +65,12 @@ vader_bits_to_f32 :: fn(b: u32) -> f32
 // before the host runs out of memory.
 MAX_FRAME_DEPTH :: 1024
 
+// Step ceiling for comptime VM runs (`exec_fn_value`, capture != null) — a
+// non-terminating `@comptime` loop must error, not hang the build. Generous
+// enough for real computed tables (MD5_K is ~640 ops) ; a true infinite loop
+// trips it in ~1s. Normal main / test runs are unbounded.
+COMPTIME_STEP_BUDGET :: 100_000_000
+
 /// A single call frame on the VM's frame stack. `slots[0..parameter_count]`
 /// hold the params bound at `Call` time, followed by `local_count` zero-
 /// initialised locals. `stack` is per-frame ; `sp` is the logical top
@@ -248,13 +254,25 @@ const_op_value :: fn(c: bc.ConstOp, strings: string[], pc: i32) -> Value | Trap 
 /// @param frame_count   1-element cursor — `[0]` is the logical top.
 /// @param main_label    short label used in the i32-unwrap Trap (e.g.
 ///                      `"return from main"`, `"return.lit from main"`).
+/// @param capture       when non-null, a 1-cell box the entry frame's raw
+///                      return `Value` is published into (the i32 coercion is
+///                      then skipped). Used by `exec_fn_value` for the comptime
+///                      VM fallback ; `null` for the ordinary main / test path.
 /// @return              `Ok` / `Trap` when the callee was main and the
 ///                      executor should stop ; `null` when execution
 ///                      should continue with the caller frame.
 /// @error               main returned a non-i32 value.
-finalise_return :: fn(return_value: Value, has_value: bool, at_pc: i32, frames: Frame[], frame_count: usize[], main_label: string) -> VmResult | null {
+finalise_return :: fn(return_value: Value, has_value: bool, at_pc: i32, frames: Frame[], frame_count: usize[], main_label: string, capture: Value[] | null) -> VmResult | null {
     pop_frame(frame_count)
     if frame_count[0] == 0 {
+        // Value-capturing entry (`exec_fn_value`, comptime VM fallback) : publish
+        // the raw return `Value` and skip the i32 coercion the main / exit-code
+        // path requires — a comptime fn typically returns a non-i32 (array, …),
+        // which `read_i32` would Trap on.
+        if capture != null {
+            if has_value { capture[0] = return_value }
+            return Ok { .value = 0 }
+        }
         if has_value {
             unwrapped :: read_i32(return_value, at_pc, main_label)
             if unwrapped is Trap { return unwrapped }
@@ -605,7 +623,7 @@ build_main_args :: fn(parameter_count: usize, host_argv: string[], string_array_
 ///                call to a non-existent function index ; call stack
 ///                deeper than `MAX_FRAME_DEPTH`.
 /// Run `main`. Thin wrapper over `exec_entry`.
-export exec :: fn(state: VmState, host_argv: string[]) -> VmResult = exec_entry(state, state.main_index, host_argv)
+export exec :: fn(state: VmState, host_argv: string[]) -> VmResult = exec_entry(state, state.main_index, host_argv, null, false)
 
 /// Run the fn named `mangled` as the entry — used by `vader test` to run each
 /// `@test` fn in isolation. A `Trap` (e.g. a failed `assert`) is the test
@@ -618,15 +636,41 @@ export exec_fn :: fn(state: VmState, mangled: string) -> VmResult {
     for i in 0..<state.bc.functions.len() {
         if state.bc.functions[i].name == mangled {
             no_args: string[] = []
-            return exec_entry(state, i32(i), no_args)
+            return exec_entry(state, i32(i), no_args, null, false)
         }
     }
     return Trap { .message = "exec_fn: no function named '${mangled}'" }
 }
 
+/// Run the no-arg fn named `mangled` and return its full `Value` — the
+/// primitive the VM-backed comptime fallback needs (the callee typically
+/// returns an array / struct / wide int, which `exec_fn`'s i32 `VmResult`
+/// cannot carry). Threads a 1-cell capture box through `exec_entry` ;
+/// `finalise_return` publishes the entry frame's raw return value into it.
+///
+/// The capture box is a live local across the run, so it (and the captured
+/// value once written) stays a GC root through any collection inside the loop.
+///
+/// @param state    the prepared VM state.
+/// @param mangled  the target fn's mangled name. Must take no arguments.
+/// @return         `ValueOk { value }` carrying the return value, or `Trap`
+///                 (no such fn, or a VM-level error during the run).
+export exec_fn_value :: fn(state: VmState, mangled: string) -> ValueResult {
+    for i in 0..<state.bc.functions.len() {
+        if state.bc.functions[i].name == mangled {
+            no_args: string[] = []
+            capture: Value[] = [zero_value()]
+            outcome :: exec_entry(state, i32(i), no_args, capture, true)
+            if outcome is Trap { return outcome }
+            return ValueOk { .value = capture[0] }
+        }
+    }
+    return Trap { .message = "exec_fn_value: no function named '${mangled}'" }
+}
+
 /// Core interpreter loop, entered at `entry_index`. `exec` / `exec_fn` pick the
 /// entry (main vs a named `@test`).
-export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[]) -> VmResult {
+export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], capture: Value[] | null, is_comptime: bool) -> VmResult {
     if entry_index < 0 || usize(entry_index) >= state.bc.functions.len() {
         return Trap { .message = "no entry function (index=${entry_index})" }
     }
@@ -688,8 +732,20 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[]) -
     // address). A 1-cell array so element mutation survives the `::` binding.
     obj_handles :: [0]
 
+    // Comptime runs (`is_comptime`) are step-bounded so a non-terminating
+    // `@comptime` loop errors instead of hanging the build. Normal runs (main /
+    // tests) are unbounded — the increment is gated behind `is_comptime` so they
+    // pay only one predictable branch per op.
+    steps: i64 = 0
+
     for frame_count[0] > 0 {
         top :: frame_count[0] - 1
+        if is_comptime {
+            steps += 1
+            if steps > COMPTIME_STEP_BUDGET {
+                return Trap { .message = "comptime evaluation exceeded ${COMPTIME_STEP_BUDGET} steps (non-terminating @comptime?)" }
+            }
+        }
         if top != cur_top {
             frame = frames[top]
             body = state.bc.functions[usize(frame.function_index)]
@@ -760,7 +816,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[]) -
                     return Trap { .message = "call.import '${info.mangled_name}' needs ${arg_count} arg(s) but stack has ${frame.sp} at pc=${frame.pc}" }
                 }
                 arg_base :: frame.sp - arg_count
-                dispatch_outcome :: dispatch_import(info, frame.stack, arg_base, gc_state, frame.pc, string_array_type_id, u8_array_type_id)
+                dispatch_outcome :: dispatch_import(info, frame.stack, arg_base, gc_state, frame.pc, string_array_type_id, u8_array_type_id, is_comptime)
                 if dispatch_outcome is Trap {
                     return dispatch_outcome
                 }
@@ -856,7 +912,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[]) -
                             },
                             .is_extern    = false,
                         }
-                        host_outcome :: dispatch_import(synth_info, frame.stack, arg_base, gc_state, frame.pc, string_array_type_id, u8_array_type_id)
+                        host_outcome :: dispatch_import(synth_info, frame.stack, arg_base, gc_state, frame.pc, string_array_type_id, u8_array_type_id, is_comptime)
                         if host_outcome is Trap { return host_outcome }
                         if host_outcome is HostOk as hok {
                             frame.stack[arg_base] = hok.value
@@ -1745,13 +1801,13 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[]) -
                 has_value :: frame.sp > 0
                 return_value: Value = I32Val { .value = 0 }
                 if has_value { return_value = frame.stack[frame.sp - 1] }
-                outcome :: finalise_return(return_value, has_value, frame.pc, frames, frame_count, "return from main")
+                outcome :: finalise_return(return_value, has_value, frame.pc, frames, frame_count, "return from main", capture)
                 if !(outcome is null) { return outcome }
             }
             is bc.ReturnLit -> {
                 return_value :: const_op_value(instr.value, state.bc.strings, frame.pc)
                 if return_value is Trap { return return_value }
-                outcome :: finalise_return(return_value, true, frame.pc, frames, frame_count, "return.lit from main")
+                outcome :: finalise_return(return_value, true, frame.pc, frames, frame_count, "return.lit from main", capture)
                 if !(outcome is null) { return outcome }
             }
             // ---- memory opcodes (Target ABI) — inert until S3 -----------

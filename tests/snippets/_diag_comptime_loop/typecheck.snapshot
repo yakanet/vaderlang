@@ -1,0 +1,29 @@
+# Typecheck
+
+## tests/snippets/_diag_comptime_loop
+  FnDecl         build_squares        :: fn() -> u32[]
+  FnDecl         main                 :: fn() -> i32
+  ConstDecl      SQUARES              :: u32[]
+  expr 15:12    CallExpr       :: u32[]
+  expr 15:12    IdentExpr      :: fn() -> u32[]
+  expr 18:16    SeqLitExpr     :: u32[]
+  expr 19:14    RangeExpr      :: Range<i32>
+  expr 20:16    CallExpr       :: u32
+  expr 20:16    IdentExpr      :: type
+  expr 20:20    BinaryExpr     :: i32
+  expr 20:20    IdentExpr      :: i32
+  expr 20:24    IdentExpr      :: i32
+  expr 20:9     CallExpr       :: void
+  expr 20:9     FieldExpr      :: fn(u32) -> void
+  expr 20:9     IdentExpr      :: u32[]
+  expr 22:12    IdentExpr      :: u32[]
+  expr 26:13    StringLitExpr  :: string
+  expr 26:16    IdentExpr      :: u32[]
+  expr 26:16    IndexExpr      :: u32
+  expr 26:5     CallExpr       :: void
+  expr 26:5     IdentExpr      :: fn(T) -> void
+  expr 27:13    StringLitExpr  :: string
+  expr 27:16    IdentExpr      :: u32[]
+  expr 27:16    IndexExpr      :: u32
+  expr 27:5     CallExpr       :: void
+  expr 27:5     IdentExpr      :: fn(T) -> void

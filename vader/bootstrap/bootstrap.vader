@@ -27,6 +27,7 @@ import "vader/lexer" { dump_diagnostics }
 import "vader/resolver" { load_project, LoadedProject }
 import "vader/typecheck" { check_project_with_bodies, CheckResult, TypedProject, new_typed_project }
 import "vader/comptime" { evaluate_project, EvaluatedProject }
+import "vader/comptime_vm" { resolve_vm_required_decls }
 import "vader/lower" { lower_project, prune_unreachable_fns, mangle_module_id, LoweredProject }
 import "vader/midir" { build_cfg_project, emit_bytecode_from_cfg, annotate_escape, eliminate_dead_cfg }
 import "vader/bytecode" { BytecodeModule, default_emit_options }
@@ -199,6 +200,9 @@ prepare_evaluated_project :: fn(file: string) -> EvaluatedPipeline {
     typed :: assemble_typed_project(result)
     comptime_diags: Diagnostic[] = []
     evaluated :: evaluate_project(loaded, typed, comptime_diags)
+    // VM-backed comptime : bake any loop-bearing `@comptime` decls the tree-walk
+    // deferred (S2 two-pass — see vader/comptime_vm). No-op when none deferred.
+    resolve_vm_required_decls(loaded, typed, evaluated, comptime_diags)
     return EvaluatedPipeline {
         .loaded          = loaded,
         .typed           = typed,

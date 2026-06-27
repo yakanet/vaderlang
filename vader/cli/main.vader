@@ -31,6 +31,7 @@ import "vader/resolver" { load_project, resolve_sidecar }
 import "vader/typecheck" { dump_program as dump_typed, dump_program_with_others }
 import "vader/comptime" { evaluate_project }
 import "vader/comptime" { dump_evaluated }
+import "vader/comptime_vm" { resolve_vm_required_decls }
 import "vader/lower" { lower_project }
 import "vader/lower" { dump_lowered }
 import "vader/lower" { prune_unreachable_fns }
@@ -292,7 +293,7 @@ run_source :: fn(file: string, host_argv: string[]) -> i32 {
     // folder can hold several `main` fns and `prepare`'s `main_index` would pick
     // the first-declared one regardless of which file was named on the CLI.
     entry_index :: entry_index_for_file(module, le.lowered, file, state.main_index)
-    return match exec_entry(state, entry_index, host_argv) {
+    return match exec_entry(state, entry_index, host_argv, null, false) {
         is Ok   as o -> o.value
         is Trap as t -> {
             eprintln("vader vm: ${t.message}")
@@ -1358,6 +1359,9 @@ prepare_evaluated_project_with :: fn(file: string, include_path_flags: string[])
     comptime_diags: Diagnostic[] = []
     Prof.prof_begin(Prof.PHASE_COMPTIME)
     evaluated :: evaluate_project(loaded, typed, comptime_diags)
+    // VM-backed comptime : bake any loop-bearing `@comptime` decls the tree-walk
+    // deferred (S2 two-pass — see vader/comptime_vm). No-op when none deferred.
+    resolve_vm_required_decls(loaded, typed, evaluated, comptime_diags)
     Prof.prof_end(Prof.PHASE_COMPTIME)
     return EvaluatedPipeline {
         .loaded          = loaded,

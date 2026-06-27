@@ -14,7 +14,7 @@ bc :: import "vader/bytecode"
 
 import "std/io" { read_file_bytes, write_file_bytes, exists, is_dir, read_dir, print, eprint }
 import "std/process" { spawn_run, spawn_last_stdout, spawn_last_stderr }
-import "std/math" { sqrt, pow, floor, ceil, round }
+import "std/math" { sqrt, pow, floor, ceil, round, sin }
 import "std/time" { now, monotonic }
 import "std/string" { trim, index_of, last_index_of, starts_with, ends_with }
 
@@ -23,6 +23,15 @@ import "std/string" { trim, index_of, last_index_of, starts_with, ends_with }
 /// before pushing.
 export HostCallResult :: HostOk | Trap
 export HostOk :: struct { value: Value }
+
+// Hosts denied during comptime evaluation : the clock (`std/time` — non-
+// deterministic), process spawning (`std/process`) and all filesystem / stream
+// I/O (`std/io` — external state + side effects). Everything else (pure compute:
+// `std/math`, `std/string`) is allowed ; `@file` / `@env` are baked through a
+// separate comptime-host path, not this VM dispatcher. Determinism is load-
+// bearing — comptime output must be reproducible across runs.
+comptime_host_denied :: fn(mangled: string) -> bool =
+    mangled.starts_with("std_time$") || mangled.starts_with("std_process$") || mangled.starts_with("std_io$")
 
 /// Pop two strings, run a binary predicate, wrap as `BoolVal`. Used
 /// by `starts_with` / `ends_with` / `contains`.
@@ -127,9 +136,19 @@ host_int_pair_to_bool :: fn(stack: Value[], arg_base: usize, at_pc: i32, label: 
 /// @param u8_array_type_id  the module's `u8[]` ArrayType index (see
 ///                  `find_u8_array_type_id`), stamped onto the array `bytes`
 ///                  materialises so it narrows to `is u8[]`.
+/// @param is_comptime  true when this call runs inside a comptime VM evaluation
+///                  (`exec_fn_value`). Non-deterministic / side-effecting hosts
+///                  (clock, process, I/O) are denied to keep comptime output
+///                  reproducible — the bootstrap fixed-point compares emitted C
+///                  byte-for-byte. Pure compute (`std/math`, `std/string`) is
+///                  allowed ; `@file` / `@env` are baked outside this path.
 /// @return          `HostOk { value }` on success ; `Trap` on a missing
-///                  import, malformed arg, or host-level failure.
-export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, gc_state: usize[], at_pc: i32, string_array_type_id: i32, u8_array_type_id: i32) -> HostCallResult {
+///                  import, malformed arg, host-level failure, or a comptime
+///                  sandbox denial.
+export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize, gc_state: usize[], at_pc: i32, string_array_type_id: i32, u8_array_type_id: i32, is_comptime: bool) -> HostCallResult {
+    if is_comptime && comptime_host_denied(info.mangled_name) {
+        return Trap { .message = "host call '${info.mangled_name}' is not allowed at compile time (non-deterministic or side-effecting)" }
+    }
     if info.mangled_name == r"std_io$write" {
         // arg_base + 0 : Stream tag ; arg_base + 1 : the string payload.
         STDOUT :: i32(0)
@@ -297,6 +316,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
     if info.mangled_name == r"std_time$monotonic_ns" { return HostOk { .value = I64Val { .value = i64(monotonic()) } } }
     // ---- std/math --------------------------------------------------------
     if info.mangled_name == r"std_math$sqrt"  { return host_f64_unary(stack, arg_base, at_pc, "sqrt",  (a) -> sqrt(a)) }
+    if info.mangled_name == r"std_math$sin"   { return host_f64_unary(stack, arg_base, at_pc, "sin",   (a) -> sin(a)) }
     if info.mangled_name == r"std_math$floor" { return host_f64_unary(stack, arg_base, at_pc, "floor", (a) -> floor(a)) }
     if info.mangled_name == r"std_math$ceil"  { return host_f64_unary(stack, arg_base, at_pc, "ceil",  (a) -> ceil(a)) }
     if info.mangled_name == r"std_math$round" { return host_f64_unary(stack, arg_base, at_pc, "round", (a) -> round(a)) }
