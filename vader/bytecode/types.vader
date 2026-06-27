@@ -411,9 +411,10 @@ export array_kind_from_name :: fn(name: string) -> ArrayKind = match name {
 
 /// One pre-materialised `const T[]` literal. Built once at module-load time on
 /// the VM, baked into `.rodata` on native. `data.const N` references the parent
-/// module's `data_pool[N]`. Either a primitive-element array (`BcPrimData`) or a
-/// string array (`BcStrData`).
-export BcDataEntry :: BcPrimData | BcStrData
+/// module's `data_pool[N]`. A flat primitive array (`BcPrimData`), a flat string
+/// array (`BcStrData`), or a recursive aggregate (`BcAggregateData`) — struct /
+/// tuple / nested-array elements.
+export BcDataEntry :: BcPrimData | BcStrData | BcAggregateData
 
 /// A pooled array of primitive elements. `items` carries one u64 entry per
 /// element — the raw bit pattern at the element's natural width (low bits used).
@@ -431,6 +432,51 @@ export BcPrimData :: struct {
 /// is a `vader_string_t` atom id, never an inline primitive.
 export BcStrData :: struct {
     values: string[]
+}
+
+/// A pooled aggregate `const T[]` — a struct / tuple array, or any array whose
+/// elements aren't uniformly flat primitives / strings. `elements` are recursive
+/// `BcDataValue`s (each itself a struct, array, string, or primitive). Stored as
+/// a Boxed slot buffer at runtime (each element a `vader_box_t` pointing at its
+/// own materialised object). `element_type_name` is the array element type's
+/// display name (for the runtime element tag).
+export BcAggregateData :: struct {
+    element_type_name: string
+    elements: BcDataValue[]
+}
+
+/// A single recursive baked value — the element of a `BcAggregateData` or a field
+/// of a `BcValStruct` / element of a `BcValArray`. Type identity is carried by KEY
+/// (struct `symbol_id`, element type name) and resolved to a type-index at each
+/// backend from `module.types` — the type table doesn't exist at the lower→CFG
+/// boundary where these are built.
+export BcDataValue :: BcValPrim | BcValStr | BcValStruct | BcValArray
+
+/// A primitive leaf — a raw `u64` bit pattern at the element's natural width.
+export BcValPrim :: struct {
+    kind: ArrayKind
+    bits: u64
+}
+
+/// A string leaf — the value verbatim ; resolved to an atom id at the backend
+/// (interned into `module.strings` by `midir::emit`).
+export BcValStr :: struct {
+    value: string
+}
+
+/// A struct (or tuple) value. `symbol_id` keys the struct decl ; the backend
+/// finds the `BcStruct` in `module.types` with this `symbol_id`. `fields` are in
+/// declared order, parallel to the struct's field list.
+export BcValStruct :: struct {
+    symbol_id: i32
+    fields: BcDataValue[]
+}
+
+/// A nested array value. `element_type_name` gives the element kind ; `elements`
+/// are the recursive element values.
+export BcValArray :: struct {
+    element_type_name: string
+    elements: BcDataValue[]
 }
 
 // =========================================================================

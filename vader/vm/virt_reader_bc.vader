@@ -360,6 +360,10 @@ parse_data_decl_bc :: fn(cleaned: string, data_pool: bc.BcDataEntry[]) -> void {
         data_pool.push(bc.BcStrData { .values = parse_quoted_strings(payload) })
         return
     }
+    if kind_name == "agg" {
+        data_pool.push(parse_agg_decl(payload))
+        return
+    }
     rb :: payload.bytes()
     if rb.len() < 5 { return }
     if rb[0] != 'h' { return }
@@ -406,6 +410,99 @@ parse_quoted_strings :: fn(s: string) -> string[] {
         body :: sb[start..<i].bytes_to_string()
         out.push(decode_escapes(body))
         i += 1
+    }
+    return out
+}
+
+// Parse the `agg` payload `<elemname> <count> <value>…` into a `BcAggregateData`.
+// Values are count-prefixed (no paren balancing) — see `dump::write_data_value`.
+parse_agg_decl :: fn(payload: string) -> bc.BcAggregateData {
+    tokens :: tokenize_agg(payload)
+    if tokens.len() < 2 {
+        return bc.BcAggregateData { .element_type_name = "", .elements = [] }
+    }
+    element_type_name :: tokens[0]
+    count :: token_to_int(tokens[1])
+    pos: i32[] = [2]
+    elements: bc.BcDataValue[] = []
+    for _ in 0..<count { elements.push(parse_data_value(tokens, pos)) }
+    return bc.BcAggregateData { .element_type_name = element_type_name, .elements = elements }
+}
+
+// Recursive descent over the token stream (`pos` is a 1-element mutable cursor).
+parse_data_value :: fn(tokens: string[], pos: i32[]) -> bc.BcDataValue {
+    tag :: take_token(tokens, pos)
+    if tag == "prim" {
+        kind :: bc.array_kind_from_name(take_token(tokens, pos))
+        esz :: usize(bc.array_kind_element_size(kind))
+        bytes_arr :: hex_to_bytes(take_token(tokens, pos))
+        bits :: if esz > 0 { read_le(bytes_arr, 0, esz) } else { u64(0) }
+        return bc.BcValPrim { .kind = kind, .bits = bits }
+    }
+    if tag == "str" { return bc.BcValStr { .value = take_token(tokens, pos) } }
+    if tag == "struct" {
+        symbol_id :: token_to_int(take_token(tokens, pos))
+        nfields :: token_to_int(take_token(tokens, pos))
+        fields: bc.BcDataValue[] = []
+        for _ in 0..<nfields { fields.push(parse_data_value(tokens, pos)) }
+        return bc.BcValStruct { .symbol_id = symbol_id, .fields = fields }
+    }
+    if tag == "array" {
+        element_type_name :: take_token(tokens, pos)
+        n :: token_to_int(take_token(tokens, pos))
+        elems: bc.BcDataValue[] = []
+        for _ in 0..<n { elems.push(parse_data_value(tokens, pos)) }
+        return bc.BcValArray { .element_type_name = element_type_name, .elements = elems }
+    }
+    return bc.BcValPrim { .kind = bc.ArrayKind.I32, .bits = 0 }
+}
+
+// Read the token at the cursor and advance it ; "" past the end.
+take_token :: fn(tokens: string[], pos: i32[]) -> string {
+    if usize(pos[0]) >= tokens.len() { return "" }
+    t :: tokens[usize(pos[0])]
+    pos[0] = pos[0] + 1
+    return t
+}
+
+token_to_int :: fn(s: string) -> i32 {
+    r :: parse_int_in_base(s, 10)
+    if r is i64 as v { return i32(v) }
+    return 0
+}
+
+// Quoted-aware whitespace tokeniser : a `"…"` run (escape-decoded) is one token.
+tokenize_agg :: fn(s: string) -> string[] {
+    out: string[] = []
+    sb :: s.bytes()
+    n :: sb.len()
+    i: usize = 0
+    for i < n {
+        if sb[i] == ' ' {
+            i += 1
+            continue
+        }
+        if sb[i] == '"' {
+            i += 1
+            start :: i
+            for i < n {
+                if sb[i] == '\\' {
+                    i += 2
+                    continue
+                }
+                if sb[i] == '"' { break }
+                i += 1
+            }
+            out.push(decode_escapes(sb[start..<i].bytes_to_string()))
+            i += 1
+        } else {
+            start :: i
+            for i < n {
+                if sb[i] == ' ' { break }
+                i += 1
+            }
+            out.push(sb[start..<i].bytes_to_string())
+        }
     }
     return out
 }
@@ -518,7 +615,7 @@ reduce_main_index :: fn(funcs: bc.BcFunction[]) -> i32 {
     return 0
 }
 
-reduce_data_pool :: fn(entries: bc.BcDataEntry[]) -> ArrayVal[] {
+reduce_data_pool :: fn(entries: bc.BcDataEntry[], types: bc.BcType[]) -> ArrayVal[] {
     out: ArrayVal[] = []
     for e in entries {
         elements: Value[] = []
@@ -526,10 +623,44 @@ reduce_data_pool :: fn(entries: bc.BcDataEntry[]) -> ArrayVal[] {
             for v in sd.values { elements.push(StringVal { .value = v }) }
         } else if e is bc.BcPrimData as pd {
             for item in pd.items { elements.push(value_from_bits(pd.kind, item)) }
+        } else if e is bc.BcAggregateData as ad {
+            for v in ad.elements { elements.push(bc_value_to_vm(v, types)) }
         }
         out.push(ArrayVal { .type_id = 0, .elements = elements, .offset = 0, .length = elements.len() })
     }
     return out
+}
+
+// Materialise one recursive baked value into a VM `Value`. Struct identity is
+// resolved from `symbol_id` against the module type table ; nested arrays carry
+// type_id 0 (the VM is loosely typed — field access reads positionally).
+bc_value_to_vm :: fn(v: bc.BcDataValue, types: bc.BcType[]) -> Value {
+    if v is bc.BcValStr as s { return StringVal { .value = s.value } }
+    if v is bc.BcValPrim as p { return value_from_bits(p.kind, p.bits) }
+    if v is bc.BcValStruct as st {
+        fields: Value[] = []
+        for f in st.fields { fields.push(bc_value_to_vm(f, types)) }
+        return StructVal { .type_id = type_id_for_symbol(types, st.symbol_id), .fields = fields }
+    }
+    if v is bc.BcValArray as a {
+        elems: Value[] = []
+        for e in a.elements { elems.push(bc_value_to_vm(e, types)) }
+        return ArrayVal { .type_id = 0, .elements = elems, .offset = 0, .length = elems.len() }
+    }
+    return I32Val { .value = 0 }
+}
+
+// Type-table index of the `BcStruct` declared by `symbol_id`, or 0 when absent.
+// 0 is harmless for the VM : a `StructVal` is read positionally, so its `type_id`
+// is not load-bearing — and a `.virt`-parsed type table carries `symbol_id = -1`
+// for every struct (`parse_struct_type_bc`), so this legitimately misses there.
+type_id_for_symbol :: fn(types: bc.BcType[], symbol_id: i32) -> i32 {
+    for i in 0..<types.len() {
+        if types[i] is bc.BcStruct as s {
+            if s.symbol_id == symbol_id { return i32(i) }
+        }
+    }
+    return 0
 }
 
 // Reinterpret an element's raw `u64` bit pattern per its `ArrayKind`. Mirrors

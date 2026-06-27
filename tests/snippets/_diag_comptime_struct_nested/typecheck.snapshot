@@ -1,0 +1,41 @@
+# Typecheck
+
+## tests/snippets/_diag_comptime_struct_nested
+  EnumDecl       Kind                 :: Kind
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Spec                 :: Spec
+  ConstDecl      SPECS                :: const Spec[]
+  expr 20:22    SeqLitExpr     :: const Spec[]
+  expr 21:20    StringLitExpr  :: string
+  expr 21:39    SeqLitExpr     :: Kind[]
+  expr 21:40    DotVariantExpr :: Kind
+  expr 21:5     StructLitExpr  :: Spec
+  expr 21:59    StringLitExpr  :: string
+  expr 22:20    StringLitExpr  :: string
+  expr 22:36    SeqLitExpr     :: Kind[]
+  expr 22:37    DotVariantExpr :: Kind
+  expr 22:44    DotVariantExpr :: Kind
+  expr 22:5     StructLitExpr  :: Spec
+  expr 22:63    StringLitExpr  :: string
+  expr 26:13    FieldExpr      :: string
+  expr 26:13    IdentExpr      :: const Spec[]
+  expr 26:13    IndexExpr      :: Spec
+  expr 26:5     CallExpr       :: void
+  expr 26:5     IdentExpr      :: fn(T) -> void
+  expr 27:13    StringLitExpr  :: string
+  expr 27:16    CallExpr       :: usize
+  expr 27:16    FieldExpr      :: Kind[]
+  expr 27:16    FieldExpr      :: fn() -> usize
+  expr 27:16    IdentExpr      :: const Spec[]
+  expr 27:16    IndexExpr      :: Spec
+  expr 27:5     CallExpr       :: void
+  expr 27:5     IdentExpr      :: fn(T) -> void
+  expr 28:13    StringLitExpr  :: string
+  expr 28:16    CallExpr       :: i32
+  expr 28:16    IdentExpr      :: type
+  expr 28:20    FieldExpr      :: Kind[]
+  expr 28:20    IdentExpr      :: const Spec[]
+  expr 28:20    IndexExpr      :: Kind
+  expr 28:20    IndexExpr      :: Spec
+  expr 28:5     CallExpr       :: void
+  expr 28:5     IdentExpr      :: fn(T) -> void

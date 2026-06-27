@@ -1,0 +1,46 @@
+# Lower
+
+## snippet
+  struct snippet$Spec { name: string, args: Kind[], result: string }
+  fn snippet$main() -> i32
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        .name :string
+          index :Spec
+            on:
+              SPECS :const Spec[]
+            ix:
+              int(1) :i32
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            format_unsigned :fn(u64) -> string
+          arg0:
+            cast → u64
+              LoweredArrayLen
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            format_signed :fn(i64) -> string
+          arg0:
+            cast → i64
+              cast → i32
+                index :Kind
+                  on:
+                    .args :Kind[]
+                      index :Spec
+                        on:
+                          SPECS :const Spec[]
+                        ix:
+                          int(1) :i32
+                  ix:
+                    int(1) :i32
+    return int(0) :i32

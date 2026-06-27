@@ -39,7 +39,7 @@ export VtableEntry :: struct {
 /// `BcDataEntry` variant at the CFG boundary (lower can't import
 /// `vader/bytecode` — it would close the bytecode→lower import cycle). Produced
 /// by `inline_consts::try_data_pool`.
-export DataPoolEntry :: PrimDataPoolEntry | StrDataPoolEntry
+export DataPoolEntry :: PrimDataPoolEntry | StrDataPoolEntry | AggregateDataPoolEntry
 
 /// A pooled array of primitive elements. Carries raw bit patterns as `i64`
 /// (the natural width's low bits ; signed view) — `midir` reinterprets per
@@ -54,6 +54,16 @@ export PrimDataPoolEntry :: struct {
 /// atom table covers them) and lowers to a `BcStrData { values }`.
 export StrDataPoolEntry :: struct {
     values: string[]
+}
+
+/// A pooled aggregate `const T[]` — struct / tuple / nested-array elements.
+/// Carries the raw array literal ; `midir::convert_data_pool` recursively lowers
+/// it to a `BcAggregateData` (resolving struct symbol-ids + element kinds). The
+/// `LoweredExpr` tree IS the recursive value — no doubled lower-side type. The
+/// producer's `is_bakeable` gate guarantees every node is a constant literal.
+export AggregateDataPoolEntry :: struct {
+    element_type_name: string
+    literal: LoweredArrayLit
 }
 
 /// A module-level const routed to a synthetic 0-arg accessor fn by the

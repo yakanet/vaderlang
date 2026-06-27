@@ -101,6 +101,11 @@ import "vader/bytecode" {
     ArrayClear,
     DataConst,
     BcStrData,
+    BcAggregateData,
+    BcDataValue,
+    BcValStr,
+    BcValStruct,
+    BcValArray,
     TypeConst,
     TypeCheck,
     RefCast,
@@ -306,6 +311,8 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
     for data_entry in cfg.data_pool {
         if data_entry is BcStrData as sd {
             for v in sd.values { intern_string(v, ctx) }
+        } else if data_entry is BcAggregateData as ad {
+            for v in ad.elements { intern_data_value_strings(v, ctx) }
         }
     }
     // Pass 2 — emit fn bodies from the CFG.
@@ -553,6 +560,19 @@ FnEmitCfg :: struct {
 /// Arg/result type pins for this function's calls — the SAME array that's
 /// stored under this fn's index in `project.pinned_types_by_fn`, cached
 /// here so the per-call emit appends to it without a per-op map lookup.
+
+// Recursively intern every string leaf of a baked aggregate value into the
+// module string table, so the comptime atom table covers them (the native
+// backend reads each value's atom there). Side-effect only.
+intern_data_value_strings :: fn(v: BcDataValue, ctx: EmitterCtx) -> void {
+    if v is BcValStr as s {
+        _ :: intern_string(s.value, ctx)
+    } else if v is BcValStruct as st {
+        for f in st.fields { intern_data_value_strings(f, ctx) }
+    } else if v is BcValArray as a {
+        for e in a.elements { intern_data_value_strings(e, ctx) }
+    }
+}
 
 /// Stack-pass-through hints — see vader/midir/scheduler. Queried by
 /// emit_get / emit_set / TermReturn to elide the local.set + local.get

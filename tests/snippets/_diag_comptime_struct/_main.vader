@@ -1,0 +1,23 @@
+// Diag snippet: an immutable `const Pair[]` (named struct, prim + string fields)
+// bakes into the data pool as a recursive aggregate value — no per-use struct.new
+// + array.new. Expected: prints "beta" then "10", exits 0.
+
+module "snippet"
+
+import "std/io" { println }
+
+Pair :: struct {
+    name: string
+    code: i32
+}
+
+PAIRS: const Pair[]: [
+    Pair { .name = "alpha", .code = 10 },
+    Pair { .name = "beta", .code = 20 },
+]
+
+main :: fn() -> i32 {
+    println(PAIRS[1].name)
+    println("${PAIRS[0].code}")
+    return 0
+}
