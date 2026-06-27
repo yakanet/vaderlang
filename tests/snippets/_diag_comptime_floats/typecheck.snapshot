@@ -1,0 +1,18 @@
+# Typecheck
+
+## tests/snippets/_diag_comptime_floats
+  FnDecl         main                 :: fn() -> i32
+  ConstDecl      NARROW               :: const f32[]
+  ConstDecl      WIDE                 :: const f64[]
+  expr 11:22    SeqLitExpr     :: const f32[]
+  expr 14:13    StringLitExpr  :: string
+  expr 14:16    IdentExpr      :: const f64[]
+  expr 14:16    IndexExpr      :: f64
+  expr 14:5     CallExpr       :: void
+  expr 14:5     IdentExpr      :: fn(T) -> void
+  expr 15:13    StringLitExpr  :: string
+  expr 15:16    IdentExpr      :: const f32[]
+  expr 15:16    IndexExpr      :: f32
+  expr 15:5     CallExpr       :: void
+  expr 15:5     IdentExpr      :: fn(T) -> void
+  expr 9:20     SeqLitExpr     :: const f64[]

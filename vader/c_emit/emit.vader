@@ -36,7 +36,8 @@ import "vader/bytecode" {
     BcType, BcPrimitive, BcStruct, BcArray, BcUnion, BcRef, BcFn,
     ValType, size_of_bc_type, is_string_val,
 }
-import "vader/bytecode" { Op, DataConst, ArrayKind, array_kind_index }
+import "vader/bytecode" { Op, DataConst, ArrayKind, array_kind_index, BcDataEntry, BcPrimData, BcStrData }
+import "std/collections" { MutableMap }
 
 /// Options threaded through the emit. Mirrors TS `EmitOptions`.
 ///
@@ -293,39 +294,93 @@ emit_struct_body :: fn(ctx: EmitCtx, s: BcStruct, type_index: usize, out: String
     out.append("};\n")
 }
 
-/// Data pool — module-level `const T[]` literals emitted as `.rodata`
-/// statics. Phase 2 : skipped when `data_pool.len() == 0` ; Phase 3
-/// will land per-entry `vader_array_buf_t` + `vader_array_t` wrappers.
+/// Data pool — module-level `const T[]` literals emitted as `.rodata` statics.
+/// Skipped when `data_pool.len() == 0`. Primitive arrays bake a concrete-typed
+/// element buffer ; string arrays bake a `vader_box_t` slot buffer holding the
+/// elements' atom ids.
 emit_data_pool :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
     if ctx.module.data_pool.len() == 0 { return }
-    out.append("/* Comptime data pool — immutable primitive `const T[]` arrays in\n")
-    out.append(" * `.rodata`. Out-of-arena pointers are immortal to the GC (it never\n")
-    out.append(" * copies/relocates them), so `data.const` boxes a zero-copy view. */\n")
+    out.append("/* Comptime data pool — immutable `const T[]` arrays in `.rodata`.\n")
+    out.append(" * Out-of-arena pointers are immortal to the GC (it never copies /\n")
+    out.append(" * relocates them), so `data.const` boxes a zero-copy view. */\n")
     // The `BcDataEntry` carries no array type_id (the op does) ; recover it by
     // scanning the module's `data.const` ops once, pool_index → type_id.
     type_ids :: data_pool_type_ids(ctx.module)
+    // The value→atom map scans the whole module string table ; only string
+    // arrays need it, so skip the build when the pool is all primitive.
+    atom_of :: if has_str_data(ctx.module.data_pool) { build_string_atom_map(ctx) } else { MutableMap<string, i32> {} }
     for i in 0..<ctx.module.data_pool.len() {
         entry :: ctx.module.data_pool[i]
         array_type_id :: type_ids[i]
         elem_tag :: array_element_tag(ctx.module.types, array_type_id)
-        cty :: c_type_for_array_kind(entry.kind)
-        n :: entry.items.len()
-        kind_idx :: array_kind_index(entry.kind)
-        // Buffer : concrete-typed slots so the `.rodata` initialiser is a plain
-        // C aggregate (vader_array_buf_t's `slots[]` is a flexible member).
-        out.append("static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; ${cty} slots[${n}]; } vader_data_${i}_buf = {\n")
-        out.append("    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, ${n}u, ${n}u, ${elem_tag}u, ${kind_idx}u, { 0u, 0u, 0u },\n")
-        out.append("    {")
-        for k in 0..<n {
-            if k > 0 { out.append(",") }
-            out.append(" (${cty}) UINT64_C(${entry.items[k]})")
+        if entry is BcStrData as sd {
+            emit_str_data_entry(out, i, sd, array_type_id, elem_tag, atom_of)
+        } else if entry is BcPrimData as pd {
+            emit_prim_data_entry(out, i, pd, array_type_id, elem_tag)
         }
-        out.append(" }\n")
-        out.append("};\n")
-        // Array header : shares the buf, length == capacity, offset 0.
-        out.append("static const vader_array_t vader_data_${i} = { { ${array_type_id}u, 0u, 0u, 0u, NULL }, ${n}u, ${n}u, 0u, (vader_array_buf_t*) &vader_data_${i}_buf };\n")
     }
     out.append("\n")
+}
+
+// One primitive-element `.rodata` buffer + array header. Concrete-typed slots so
+// the initialiser is a plain C aggregate (`vader_array_buf_t.slots[]` is a
+// flexible member).
+emit_prim_data_entry :: fn(out: StringBuilder, i: usize, pd: BcPrimData, array_type_id: i32, elem_tag: i32) -> void {
+    cty :: c_type_for_array_kind(pd.kind)
+    n :: pd.items.len()
+    kind_idx :: array_kind_index(pd.kind)
+    out.append("static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; ${cty} slots[${n}]; } vader_data_${i}_buf = {\n")
+    out.append("    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, ${n}u, ${n}u, ${elem_tag}u, ${kind_idx}u, { 0u, 0u, 0u },\n")
+    out.append("    {")
+    for k in 0..<n {
+        if k > 0 { out.append(",") }
+        out.append(" ${data_slot_c(pd.kind, pd.items[k], cty)}")
+    }
+    out.append(" }\n")
+    out.append("};\n")
+    out.append("static const vader_array_t vader_data_${i} = { { ${array_type_id}u, 0u, 0u, 0u, NULL }, ${n}u, ${n}u, 0u, (vader_array_buf_t*) &vader_data_${i}_buf };\n")
+}
+
+// One string-array `.rodata` buffer + array header. A string is a `vader_string_t`
+// atom id, so the elements live in `vader_box_t` slots (element_kind Boxed) — each
+// box tagged with the string element type, payload `.s` = the interned atom id.
+emit_str_data_entry :: fn(out: StringBuilder, i: usize, sd: BcStrData, array_type_id: i32, elem_tag: i32, atom_of: MutableMap<string, i32>) -> void {
+    n :: sd.values.len()
+    boxed_kind :: array_kind_index(ArrayKind.Boxed)
+    out.append("static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[${n}]; } vader_data_${i}_buf = {\n")
+    out.append("    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, ${n}u, ${n}u, ${elem_tag}u, ${boxed_kind}u, { 0u, 0u, 0u },\n")
+    out.append("    {")
+    for k in 0..<n {
+        if k > 0 { out.append(",") }
+        out.append(" { ${elem_tag}u, 0u, { .s = ${atom_for(atom_of, sd.values[k])}u } }")
+    }
+    out.append(" }\n")
+    out.append("};\n")
+    out.append("static const vader_array_t vader_data_${i} = { { ${array_type_id}u, 0u, 0u, 0u, NULL }, ${n}u, ${n}u, 0u, (vader_array_buf_t*) &vader_data_${i}_buf };\n")
+}
+
+// Value → comptime atom id, parallel to `module.strings` / `atom_ids`. Every
+// data-pool string is interned into `module.strings` by `midir::emit`, so each
+// element resolves here ; `atom_for` defaults a stray miss to the empty atom.
+build_string_atom_map :: fn(ctx: EmitCtx) -> MutableMap<string, i32> {
+    m :: MutableMap<string, i32> {}
+    strings :: ctx.module.strings
+    for i in 0..<strings.len() { m[strings[i]] = ctx.atom_ids[i] }
+    return m
+}
+
+// Does the pool hold any string array ? Gates the (whole-string-table) map build.
+has_str_data :: fn(data_pool: BcDataEntry[]) -> bool {
+    for e in data_pool {
+        if e is BcStrData { return true }
+    }
+    return false
+}
+
+atom_for :: fn(atom_of: MutableMap<string, i32>, value: string) -> i32 {
+    a :: atom_of[value]
+    if a is i32 as id { return id }
+    return 0
 }
 
 // Recover each data-pool entry's array type_id by scanning every fn's ops for
@@ -343,6 +398,17 @@ data_pool_type_ids :: fn(module: BytecodeModule) -> i32[] {
         }
     }
     return out
+}
+
+// One `.rodata` slot initialiser for a data-pool element. Integer / char / bool
+// kinds store the raw bit pattern verbatim (`(cty) UINT64_C(bits)`). Float kinds
+// must NOT numerically convert the bits — they reinterpret via `from_bits` and
+// re-render the value as a C float literal (`float_lit`), so `2.5` lands as the
+// double `2.5`, not the integer `0x4004…` cast to double.
+data_slot_c :: fn(kind: ArrayKind, bits: u64, cty: string) -> string {
+    if kind == ArrayKind.F64 { return "(${cty}) ${float_lit(bits.from_bits())}" }
+    if kind == ArrayKind.F32 { return "(${cty}) ${float_lit(f64(u32(bits).from_bits()))}" }
+    return "(${cty}) UINT64_C(${bits})"
 }
 
 // C slot type for a primitive `ArrayKind`. Mirrors `vader_array_element_size`

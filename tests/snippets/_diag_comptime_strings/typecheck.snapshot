@@ -1,0 +1,27 @@
+# Typecheck
+
+## tests/snippets/_diag_comptime_strings
+  FnDecl         main                 :: fn() -> i32
+  ConstDecl      TRICKY               :: const string[]
+  ConstDecl      WORDS                :: const string[]
+  expr 10:24    SeqLitExpr     :: const string[]
+  expr 10:25    StringLitExpr  :: string
+  expr 10:34    StringLitExpr  :: string
+  expr 10:42    StringLitExpr  :: string
+  expr 12:25    SeqLitExpr     :: const string[]
+  expr 12:26    StringLitExpr  :: string
+  expr 12:34    StringLitExpr  :: string
+  expr 15:13    IdentExpr      :: const string[]
+  expr 15:13    IndexExpr      :: string
+  expr 15:5     CallExpr       :: void
+  expr 15:5     IdentExpr      :: fn(T) -> void
+  expr 16:13    IdentExpr      :: const string[]
+  expr 16:13    IndexExpr      :: string
+  expr 16:5     CallExpr       :: void
+  expr 16:5     IdentExpr      :: fn(T) -> void
+  expr 17:13    StringLitExpr  :: string
+  expr 17:16    CallExpr       :: usize
+  expr 17:16    FieldExpr      :: fn() -> usize
+  expr 17:16    IdentExpr      :: const string[]
+  expr 17:5     CallExpr       :: void
+  expr 17:5     IdentExpr      :: fn(T) -> void

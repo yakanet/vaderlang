@@ -79,18 +79,28 @@ write_types :: fn(sb: StringBuilder, types: BcType[]) -> void {
     }
 }
 
-// Data pool — one `data N <kind> hex"<le-bytes>"` line per pre-materialised
-// `const T[]`. Round-trips through `virt_reader_bc::parse_data_decl_bc` so the
-// VM reconstructs the pool ; without this the `.virt` carries `data.const N`
-// ops with no backing entry (pool_index out of range).
+// Data pool — one line per pre-materialised `const T[]`. Primitive arrays dump
+// as `data N <kind> hex"<le-bytes>"` ; string arrays as `data N str "v0" "v1" …`
+// (each value `quote_string`-escaped, mirroring the `string N "…"` section).
+// Round-trips through `virt_reader_bc::parse_data_decl_bc` so the VM reconstructs
+// the pool ; without this the `.virt` carries `data.const N` ops with no backing
+// entry (pool_index out of range).
 write_data_pool :: fn(sb: StringBuilder, data_pool: BcDataEntry[]) -> void {
     for i in 0..<data_pool.len() {
-        sb.append("data ${i} ${array_kind_name(data_pool[i].kind)} hex\"${data_items_hex(data_pool[i])}\"\n")
+        e :: data_pool[i]
+        if e is BcStrData as sd {
+            out :: new_builder()
+            out.append("data ${i} str")
+            for v in sd.values { out.append(" ${quote_string(v)}") }
+            sb.append("${out}\n")
+        } else if e is BcPrimData as pd {
+            sb.append("data ${i} ${array_kind_name(pd.kind)} hex\"${data_items_hex(pd)}\"\n")
+        }
     }
 }
 
 // Little-endian hex of every element's bit pattern (`element_size` bytes each).
-data_items_hex :: fn(entry: BcDataEntry) -> string {
+data_items_hex :: fn(entry: BcPrimData) -> string {
     esz :: usize(array_kind_element_size(entry.kind))
     out :: new_builder()
     for item in entry.items {

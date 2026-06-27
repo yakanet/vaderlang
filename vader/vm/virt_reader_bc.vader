@@ -340,20 +340,27 @@ parse_export_decl_bc :: fn(cleaned: string, exports: bc.BcExport[]) -> i32 {
     return -1
 }
 
-/// Parse `data N <kind> hex"…"` into a `BcDataEntry` (raw `u64` bits per
-/// element). Mirrors `virt_reader::parse_data_decl` but keeps the unmaterialised
-/// bit form `emit_c` lowers to `.rodata` (the VM reader materialises to values).
+/// Parse a data-pool line into a `BcDataEntry`. Primitive arrays take the form
+/// `data N <kind> hex"…"` (raw `u64` bits per element) ; string arrays take
+/// `data N str "v0" "v1" …` (each value `quote_string`-escaped). Mirrors
+/// `virt_reader::parse_data_decl` but keeps the unmaterialised form `emit_c`
+/// lowers to `.rodata` (the VM reader materialises to values in `reduce_data_pool`).
 parse_data_decl_bc :: fn(cleaned: string, data_pool: bc.BcDataEntry[]) -> void {
     cb :: cleaned.bytes()
     after :: cb["data ".bytes().len()..<cb.len()].bytes_to_string()
     sp1 :: after.index_of(' ', 0)
     if sp1 < 0 { return }
-    sp2 :: after.index_of(' ', usize(sp1) + 1)
-    if sp2 < 0 { return }
     ab :: after.bytes()
-    kind_name :: ab[usize(sp1) + 1..<usize(sp2)].bytes_to_string()
-    rest :: ab[usize(sp2) + 1..<ab.len()].bytes_to_string()
-    rb :: rest.bytes()
+    kind_payload :: ab[usize(sp1) + 1..<ab.len()].bytes_to_string()
+    kind_payload_bytes :: kind_payload.bytes()
+    sp2 :: kind_payload.index_of(' ', 0)
+    kind_name :: if sp2 < 0 { kind_payload } else { kind_payload_bytes[0..<usize(sp2)].bytes_to_string() }
+    payload :: if sp2 < 0 { "" } else { kind_payload_bytes[usize(sp2) + 1..<kind_payload_bytes.len()].bytes_to_string() }
+    if kind_name == "str" {
+        data_pool.push(bc.BcStrData { .values = parse_quoted_strings(payload) })
+        return
+    }
+    rb :: payload.bytes()
     if rb.len() < 5 { return }
     if rb[0] != 'h' { return }
     if rb[1] != 'e' { return }
@@ -369,7 +376,38 @@ parse_data_decl_bc :: fn(cleaned: string, data_pool: bc.BcDataEntry[]) -> void {
         count :: bytes_arr.len() / esz
         for i in 0..<count { items.push(read_le(bytes_arr, i * esz, esz)) }
     }
-    data_pool.push(bc.BcDataEntry { .kind = kind, .items = items })
+    data_pool.push(bc.BcPrimData { .kind = kind, .items = items })
+}
+
+/// Tokenise a `"v0" "v1" …` sequence into the decoded string values. Each token
+/// is `quote_string`-escaped ; `\"` / `\\` / `\n` … are honoured via the same
+/// `decode_escapes` the `string N "…"` section uses, so a value containing a
+/// quote round-trips. Whitespace between tokens is skipped.
+parse_quoted_strings :: fn(s: string) -> string[] {
+    out: string[] = []
+    sb :: s.bytes()
+    n :: sb.len()
+    i: usize = 0
+    for i < n {
+        if sb[i] != '"' {
+            i += 1
+            continue
+        }
+        i += 1
+        start :: i
+        for i < n {
+            if sb[i] == '\\' {
+                i += 2
+                continue
+            }
+            if sb[i] == '"' { break }
+            i += 1
+        }
+        body :: sb[start..<i].bytes_to_string()
+        out.push(decode_escapes(body))
+        i += 1
+    }
+    return out
 }
 
 
@@ -484,7 +522,11 @@ reduce_data_pool :: fn(entries: bc.BcDataEntry[]) -> ArrayVal[] {
     out: ArrayVal[] = []
     for e in entries {
         elements: Value[] = []
-        for item in e.items { elements.push(value_from_bits(e.kind, item)) }
+        if e is bc.BcStrData as sd {
+            for v in sd.values { elements.push(StringVal { .value = v }) }
+        } else if e is bc.BcPrimData as pd {
+            for item in pd.items { elements.push(value_from_bits(pd.kind, item)) }
+        }
         out.push(ArrayVal { .type_id = 0, .elements = elements, .offset = 0, .length = elements.len() })
     }
     return out

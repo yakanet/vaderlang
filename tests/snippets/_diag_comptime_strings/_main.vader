@@ -1,0 +1,19 @@
+// Diag snippet: an immutable `const string[]` bakes into the data pool as a
+// boxed atom-id buffer (native) / a `StringVal` array (VM). `TRICKY[0]` carries
+// a backslash to exercise the `.virt` escape round-trip.
+// Expected: prints "beta", then "a\b", then "3", exits 0.
+
+module "snippet"
+
+import "std/io" { println }
+
+WORDS: const string[]: ["alpha", "beta", "gamma"]
+
+TRICKY: const string[]: [r"a\b", "x"]
+
+main :: fn() -> i32 {
+    println(WORDS[1])
+    println(TRICKY[0])
+    println("${WORDS.len()}")
+    return 0
+}

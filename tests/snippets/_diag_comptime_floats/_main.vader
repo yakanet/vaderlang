@@ -1,0 +1,17 @@
+// Diag snippet: an immutable `const f64[]` (and `const f32[]`) bakes into the
+// data pool — the producer reinterprets each float literal's IEEE-754 bits at
+// the element's natural width. Expected: prints "2.5" then "0.25", exits 0.
+
+module "snippet"
+
+import "std/io" { println }
+
+WIDE: const f64[]: [1.5, 2.5, 3.5]
+
+NARROW: const f32[]: [0.25, 0.5]
+
+main :: fn() -> i32 {
+    println("${WIDE[1]}")
+    println("${NARROW[0]}")
+    return 0
+}
