@@ -35,22 +35,23 @@ string 13 "inf"
 string 14 "-0.0"
 string 15 "0.0"
 string 16 "-"
-string 17 "1"
-string 18 "2"
-string 19 "3"
-string 20 "4"
-string 21 "5"
-string 22 "6"
-string 23 "7"
-string 24 "8"
-string 25 "9"
-string 26 ".0"
-string 27 "."
-string 28 "0."
-string 29 "+"
-string 30 "e"
-string 31 ""
-string 32 "\n"
+string 17 ".0"
+string 18 "."
+string 19 "0."
+string 20 "+"
+string 21 "e"
+string 22 ""
+string 23 "\n"
+string 24 "1"
+string 25 "2"
+string 26 "3"
+string 27 "4"
+string 28 "5"
+string 29 "6"
+string 30 "7"
+string 31 "8"
+string 32 "9"
+data 0 str "0" "1" "2" "3" "4" "5" "6" "7" "8" "9"
 import 0 bytes std_core$bytes (string) -> ref
 import 1 write std_io$write (i32,string) -> void
 impl 16 ByteAccess
@@ -5940,15 +5941,15 @@ fn 15 std_core$digits_of (u64) -> ref
   local $k_1 u64
   local rev ref
   local $k_8 u64
-  local $arr_20 ref
-  local $k_21 u64
-  local $cast_23 usize
-  local $idx_24 string
-  local $k_25 u64
+  local $data_const_10 ref
+  local $k_11 u64
+  local $cast_13 usize
+  local $idx_14 string
+  local $k_15 u64
   local i usize
-  local $k_34 usize
-  local $sub_36 usize
-  local $k_38 usize
+  local $k_24 usize
+  local $sub_26 usize
+  local $k_28 usize
   i64.const 0
   local.set 1
   local.get 0
@@ -5971,17 +5972,7 @@ fn 15 std_core$digits_of (u64) -> ref
       local.get 3
       i64.ne
       if $L3 void
-        string.const 10
-        string.const 17
-        string.const 18
-        string.const 19
-        string.const 20
-        string.const 21
-        string.const 22
-        string.const 23
-        string.const 24
-        string.const 25
-        array.new 12 10
+        data.const 0 12
         local.set 4
         i64.const 10
         local.set 5
@@ -6086,7 +6077,7 @@ fn 16 std_core$format_decimal (ref,i32,i32) -> string
     local.set 5
     local.get 4
     local.get 5
-    string.const 26
+    string.const 17
     call 33
     return
   end $L1
@@ -6115,7 +6106,7 @@ fn 16 std_core$format_decimal (ref,i32,i32) -> string
     call 20
     local.set 5
     local.get 4
-    string.const 27
+    string.const 18
     local.get 5
     call 33
     return
@@ -6144,7 +6135,7 @@ fn 16 std_core$format_decimal (ref,i32,i32) -> string
     local.get 1
     call 20
     local.set 5
-    string.const 28
+    string.const 19
     local.get 4
     local.get 5
     call 33
@@ -6169,7 +6160,7 @@ fn 16 std_core$format_decimal (ref,i32,i32) -> string
     call 20
     local.set 5
     local.get 4
-    string.const 27
+    string.const 18
     local.get 5
     call 33
     local.set 4
@@ -6182,7 +6173,7 @@ fn 16 std_core$format_decimal (ref,i32,i32) -> string
     string.const 16
     local.set 5
   else
-    string.const 29
+    string.const 20
     local.set 5
   end $L7
   local.get 5
@@ -6205,7 +6196,7 @@ fn 16 std_core$format_decimal (ref,i32,i32) -> string
   call 22
   local.set 8
   local.get 4
-  string.const 30
+  string.const 21
   local.get 5
   local.get 8
   call 34
@@ -6387,7 +6378,7 @@ fn 20 std_core$join_range (ref,i32,i32) -> string
   local i i32
   local $cast_7 usize
   local $idx_8 string
-  string.const 31
+  string.const 22
   local.set 3
   local.get 1
   local.set 4
@@ -6425,7 +6416,7 @@ end
 fn 21 std_core$zeros (i32) -> string
   local out string
   local _ i32
-  string.const 31
+  string.const 22
   local.set 1
   i32.const 0
   local.set 2
@@ -6558,7 +6549,7 @@ fn 23 std_io$println__string (string) -> void
   local.get 0
   call.import 1
   i32.const 0
-  string.const 32
+  string.const 23
   call.import 1
   return
 end

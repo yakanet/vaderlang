@@ -350,7 +350,7 @@ cmd_lsp :: fn(args: string[]) -> i32 = run_server(args)
 
 // Directories never descended into during `@test` discovery (mirror of TS
 // `test.ts::SKIP_DIRS`).
-SKIP_TEST_DIRS :: ["node_modules", "dist", "build", ".git", "target"]
+SKIP_TEST_DIRS: const string[]: ["node_modules", "dist", "build", ".git", "target"]
 
 /// One discovered `@test` fn : its mangled name (the VM entry) + the display
 /// name shown in the report (the fn's source name).
