@@ -1,0 +1,31 @@
+// Diag snippet: the inline `@comptime <expr>` sugar (Passe 2, parser desugar).
+//
+// `NAME :: @comptime { ... }` / `NAME :: @comptime f()` desugar to a synthetic
+// `__comptime_NAME` fn + a `@comptime`-decorated const calling it — reusing the
+// VM-backed comptime path with no new AST node. A trailing `return` in the block
+// is lifted to the block's trailing expression so the synthetic expression-bodied
+// fn infers its return type.
+//
+// Expected: prints "9" then "42".
+
+module "snippet"
+
+import "std/io" { println }
+
+// Block form with an imperative `return`.
+SQUARES :: @comptime {
+    r: u32[] = []
+    for i in 0..<6 { r.push(u32(i * i)) }
+    return r
+}
+
+build_answer :: fn() -> i32 = 41 + 1
+
+// Bare-call form.
+ANSWER :: @comptime build_answer()
+
+main :: fn() -> i32 {
+    println("${SQUARES[3]}")
+    println("${ANSWER}")
+    return 0
+}

@@ -1,0 +1,29 @@
+# Comptime
+
+## tests/snippets/_diag_comptime_inline
+  @comptime  ANSWER               = 42_i32
+  @comptime  SQUARES              = [0_u32, 1_u32, 4_u32, 9_u32, 16_u32, 25_u32]
+
+## generic instances
+  Into<Target>
+  Add<Rhs, Out>
+  Sub<Rhs, Out>
+  Mul<Rhs, Out>
+  Div<Rhs, Out>
+  Rem<Rhs, Out>
+  Index<I, T>
+  IndexSet<I, T>
+  Contains<T>
+  Iterator<T>
+  Iterator<T>
+  Yield<T>
+  Yield<T>
+  Yield<T>
+  Range<i32>
+  Range<usize>
+  Range<T>
+  Range<T>
+  Range<T>
+  ArrayIterator<T>
+  ArrayIterator<T>
+  ArrayIterator<T>

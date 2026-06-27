@@ -178,6 +178,12 @@ export Parser :: struct {
     // `consume_closing_angle` returns it without touching `pos`. Lets
     // `Box<Box<T>>` close two angle levels with the single `Shr` token.
     shr_pending_half: Token | null
+    // Synthetic top-level decls produced by desugaring (currently the
+    // `NAME :: @comptime <expr>` sugar → a `__comptime_NAME` fn). `parse_program`
+    // flushes these into the decl list after each parsed decl. Avoids a
+    // dedicated `ComptimeExpr` AST node (which would ripple a T3013 arm across
+    // every exhaustive `match expr` in the compiler).
+    pending_decls: Decl[] = []
 }
 
 new_parser :: fn(tokens: Token[], file: string) = Parser {
@@ -351,6 +357,13 @@ parse_program :: fn(p: Parser) -> Program {
     p.skip_newlines()
     for !p.check(.Eof) {
         d :: p.parse_decl()
+        // Flush any synthetic decls the parse produced (e.g. `__comptime_NAME`
+        // fns from the `@comptime <expr>` desugar) ahead of the decl itself.
+        // Guarded so the common (no-sugar) decl pays only a length check.
+        if p.pending_decls.len() > 0 {
+            for synth in p.pending_decls { decls.push(synth) }
+            p.pending_decls = []
+        }
         match d {
             is null           -> { p.advance() }
             is ImportDecl     -> { decls.push(d) }
@@ -1331,6 +1344,14 @@ parse_const_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibilit
     // Consume the optional leading `|` so the infix-Pratt path picks up
     // the rest as a left-associative `bitor` chain.
     p.match_kind(.Pipe)
+    // `NAME :: @comptime <expr>` sugar : desugar to a synthetic nullary fn
+    // `__comptime_NAME` carrying the inner block/expr + a `@comptime`-decorated
+    // const that calls it. Reuses the whole decorator → VM-staging → bake path
+    // ; no `ComptimeExpr` AST node (which would ripple a T3013 arm across every
+    // exhaustive `match expr`).
+    if p.check(.At) && p.peek_at(1).kind == .Ident && p.peek_at(1).text == "comptime" {
+        return p.desugar_comptime_const(decorators, visibility, name_tok, null)
+    }
     value :: p.parse_expr(0)
     return ConstDecl {
         .span       = p.span_of(name_tok, p.peek_at(-1)),
@@ -1343,6 +1364,81 @@ parse_const_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibilit
     }
 }
 
+// Desugar `NAME :: @comptime <expr>` (the `@comptime` already lookahead-confirmed,
+// not yet consumed). Emits a synthetic `__comptime_NAME :: fn() { <block> }`
+// (queued in `pending_decls`, flushed by `parse_program`) and returns the const
+// rewritten to `@comptime NAME :: __comptime_NAME()`. A block inner is used
+// verbatim as the fn body (so a `return` inside it works) ; any other expression
+// is wrapped as the block's trailing expression.
+desugar_comptime_const :: fn(p: Parser, decorators: Decorator[], visibility: Visibility, name_tok: Token, ty: TypeExpr | null) -> ConstDecl {
+    at_tok :: p.advance()   // `@`
+    p.advance()             // `comptime`
+    // A `{ … }` block isn't an expression-position prefix, so parse it directly ;
+    // anything else goes through the expression parser. `wrap_as_block` is a
+    // no-op on a block and wraps a bare expr as its trailing.
+    raw :: if p.check(.LBrace) { p.parse_block() } else { p.parse_expr(0) }
+    body :: lift_trailing_return(wrap_as_block(raw))
+    end_tok :: p.peek_at(-1)
+    synth_name :: "__comptime_${name_tok.text}"
+    // Expression-bodied so an absent `ty` is INFERRED from the (possibly lifted)
+    // trailing expression — Vader infers a fn's return type from a block's
+    // trailing, not from `return` statements. A present `ty` is the declared
+    // return type (and lets the typed-const form `.rodata`-bake).
+    synth_fn :: FnDecl {
+        .span                 = p.span_of(at_tok, end_tok),
+        .name                 = synth_name,
+        .name_span            = name_tok.span,
+        .visibility           = Visibility.Private,
+        .type_params          = [],
+        .params               = [],
+        .return_type          = ty,
+        .body                 = body,
+        .decorators           = [],
+        .sam_synthetic        = false,
+        .is_expression_bodied = true,
+        .materialized         = false,
+    }
+    p.pending_decls.push(synth_fn)
+    call :: CallExpr {
+        .span   = p.span_of(at_tok, end_tok),
+        .callee = ident_expr(name_tok.span, synth_name),
+        .args   = [],
+    }
+    decos: Decorator[] = []
+    for d in decorators { decos.push(d) }
+    decos.push(Decorator { .span = name_tok.span, .name = "comptime", .args = [] })
+    return ConstDecl {
+        .span       = p.span_of(name_tok, end_tok),
+        .name       = name_tok.text,
+        .name_span  = name_tok.span,
+        .visibility = visibility,
+        .ty         = ty,
+        .value      = call,
+        .decorators = decos,
+    }
+}
+
+// When a `@comptime { … }` block ends in `return <e>` and has no trailing
+// expression, lift `<e>` into the trailing slot so the synthetic expression-
+// bodied fn infers its return type from it (the typer infers from a block's
+// trailing, not from `return` statements). The user's imperative `return k`
+// thus works exactly like a trailing `k`. Blocks already ending in a trailing
+// expression, or not ending in a value-`return`, pass through unchanged.
+lift_trailing_return :: fn(block: BlockExpr) -> BlockExpr {
+    if block.trailing != null { return block }
+    n :: block.stmts.len()
+    if n == 0 { return block }
+    last :: block.stmts[n - 1]
+    if last is ReturnStmt as rs {
+        if rs.value != null {
+            kept: Stmt[] = []
+            for i in 0..<(n - 1) { kept.push(block.stmts[i]) }
+            return BlockExpr { .span = block.span, .stmts = kept, .trailing = rs.value }
+        }
+    }
+    return block
+}
+
 // `name : Type : value` — typed top-level const, mirrors the local
 // `name : Type : value` immutable-let form for surface uniformity.
 parse_typed_const_decl :: fn(p: Parser, decorators: Decorator[], visibility: Visibility) -> ConstDecl {
@@ -1350,6 +1446,12 @@ parse_typed_const_decl :: fn(p: Parser, decorators: Decorator[], visibility: Vis
     p.advance()  // first `:`
     ty :: p.parse_type()
     p.expect(.Colon, "`:` between type annotation and value")
+    // `NAME: T: @comptime <expr>` — same desugar as the untyped form, but the
+    // declared `T` becomes the synthetic fn's return type (so e.g.
+    // `K: const u32[]: @comptime { … }` evaluates AND `.rodata`-bakes).
+    if p.check(.At) && p.peek_at(1).kind == .Ident && p.peek_at(1).text == "comptime" {
+        return p.desugar_comptime_const(decorators, visibility, name_tok, ty)
+    }
     value :: p.parse_expr(0)
     return ConstDecl {
         .span       = p.span_of(name_tok, p.peek_at(-1)),
