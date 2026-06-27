@@ -329,6 +329,18 @@ fold_const_symbol :: fn(ctx: FnLowerCtx, sym: Symbol, type: Type, span: Span) ->
         if sym.kind == .Const { return try_fold_unbaked_const(ctx, sym, type) }
         return null
     }
+    // An IMMUTABLE array const is not inlined at the use site (which would
+    // `array.new` + refill on every read). Returning null leaves a bare const
+    // reference that `inline_consts` routes to the data pool — one shared
+    // `.rodata` entry, a cheap `data.const` view at each read. Mutable arrays
+    // and structs keep the inline path (Phase A : arrays only). Safe vs the
+    // pool eligibility check : a const that isn't poolable falls back to
+    // `const_inline` (array.new), never to `unreachable`.
+    if baked is ArrayValue {
+        if type is ArrayType as at {
+            if at.immutable { return null }
+        }
+    }
     if is_scalar_comptime(baked) { return comptime_value_to_lowered(baked, type, span) }
     return null
 }

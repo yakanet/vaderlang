@@ -36,6 +36,7 @@ import "vader/bytecode" {
     BcType, BcPrimitive, BcStruct, BcArray, BcUnion, BcRef, BcFn,
     ValType, size_of_bc_type, is_string_val,
 }
+import "vader/bytecode" { Op, DataConst, ArrayKind, array_kind_index }
 
 /// Options threaded through the emit. Mirrors TS `EmitOptions`.
 ///
@@ -297,9 +298,69 @@ emit_struct_body :: fn(ctx: EmitCtx, s: BcStruct, type_index: usize, out: String
 /// will land per-entry `vader_array_buf_t` + `vader_array_t` wrappers.
 emit_data_pool :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
     if ctx.module.data_pool.len() == 0 { return }
-    // T7 : per-entry .rodata wrapper + vader_array_t header.
-    // TS reference : `emitDataPool` in `src/c_emit/emit.ts`.
-    todo("emit_data_pool: per-entry .rodata wrapper + vader_array_t header")
+    out.append("/* Comptime data pool — immutable primitive `const T[]` arrays in\n")
+    out.append(" * `.rodata`. Out-of-arena pointers are immortal to the GC (it never\n")
+    out.append(" * copies/relocates them), so `data.const` boxes a zero-copy view. */\n")
+    // The `BcDataEntry` carries no array type_id (the op does) ; recover it by
+    // scanning the module's `data.const` ops once, pool_index → type_id.
+    type_ids :: data_pool_type_ids(ctx.module)
+    for i in 0..<ctx.module.data_pool.len() {
+        entry :: ctx.module.data_pool[i]
+        array_type_id :: type_ids[i]
+        elem_tag :: array_element_tag(ctx.module.types, array_type_id)
+        cty :: c_type_for_array_kind(entry.kind)
+        n :: entry.items.len()
+        kind_idx :: array_kind_index(entry.kind)
+        // Buffer : concrete-typed slots so the `.rodata` initialiser is a plain
+        // C aggregate (vader_array_buf_t's `slots[]` is a flexible member).
+        out.append("static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; ${cty} slots[${n}]; } vader_data_${i}_buf = {\n")
+        out.append("    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, ${n}u, ${n}u, ${elem_tag}u, ${kind_idx}u, { 0u, 0u, 0u },\n")
+        out.append("    {")
+        for k in 0..<n {
+            if k > 0 { out.append(",") }
+            out.append(" (${cty}) UINT64_C(${entry.items[k]})")
+        }
+        out.append(" }\n")
+        out.append("};\n")
+        // Array header : shares the buf, length == capacity, offset 0.
+        out.append("static const vader_array_t vader_data_${i} = { { ${array_type_id}u, 0u, 0u, 0u, NULL }, ${n}u, ${n}u, 0u, (vader_array_buf_t*) &vader_data_${i}_buf };\n")
+    }
+    out.append("\n")
+}
+
+// Recover each data-pool entry's array type_id by scanning every fn's ops for
+// the `data.const` that references it (the entry struct doesn't store it).
+data_pool_type_ids :: fn(module: BytecodeModule) -> i32[] {
+    out: i32[] = []
+    for _ in 0..<module.data_pool.len() { out.push(0) }
+    for f in module.functions {
+        for op in f.body {
+            if op is DataConst as dc {
+                if dc.pool_index >= 0 && usize(dc.pool_index) < out.len() {
+                    out[usize(dc.pool_index)] = dc.type_id
+                }
+            }
+        }
+    }
+    return out
+}
+
+// C slot type for a primitive `ArrayKind`. Mirrors `vader_array_element_size`
+// widths ; `Boxed` never reaches here (data pool is primitive-only).
+c_type_for_array_kind :: fn(k: ArrayKind) -> string = match k {
+    .U8    -> "uint8_t"
+    .U16   -> "uint16_t"
+    .U32   -> "uint32_t"
+    .U64   -> "uint64_t"
+    .I8    -> "int8_t"
+    .I16   -> "int16_t"
+    .I32   -> "int32_t"
+    .I64   -> "int64_t"
+    .F32   -> "float"
+    .F64   -> "double"
+    .Char  -> "uint32_t"
+    .Bool  -> "uint8_t"
+    .Boxed -> "vader_box_t"
 }
 
 /// `static <sig>;` forward decl for every fn in the module so call sites

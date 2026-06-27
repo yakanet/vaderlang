@@ -34,10 +34,15 @@ export VtableEntry :: struct {
 /// on native, pre-materialised `ArrayVal` in the VM). The `inline-consts`
 /// pass populates this for eligible primitive-element const arrays ;
 /// references become `LoweredDataConst` nodes carrying the pool index.
+/// One pooled `const T[]` of primitive elements, lower-side. Carries raw bit
+/// patterns as `i64` (the natural width's low bits ; signed view) — `midir`
+/// reinterprets per `element_type_name` into a `BcDataEntry { items: u64[] }`
+/// at the CFG boundary (lower can't import `vader/bytecode` — it would close
+/// the bytecode→lower import cycle). Produced by `inline_consts::try_data_pool`.
 export DataPoolEntry :: struct {
     type_name: string
     element_type_name: string
-    elements:  string[]
+    items: i64[]
 }
 
 /// A module-level const routed to a synthetic 0-arg accessor fn by the
