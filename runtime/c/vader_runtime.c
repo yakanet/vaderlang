@@ -275,6 +275,22 @@ uintptr_t  vader_old_base   = 0;
 uintptr_t  vader_old_end    = 0;
 static size_t g_card_count = 0;
 
+/* Per-minor snapshot of the card table (same size as `vader_card_table`). The
+ * minor card scan copies the live dirty set here, clears the live table, and
+ * scans the objects under cards marked dirty in this snapshot; the forwarding
+ * path (`vader_gc_scan_box`/`_raw`) re-dirties the LIVE table for any slot that
+ * still points young after forwarding. Snapshotting decouples the clear from
+ * the scan so a redirty can never be wiped by clearing a later card the same
+ * object spans — see `vader_gc_scan_old_dirty_cards`. */
+static uint8_t* g_card_shadow = NULL;
+
+/* Cards spanning the carved old prefix [g_old_block, g_old_bump) — the live part
+ * of the table. The minor scan and the major's card re-arm both bound their
+ * table sweeps to this (uncommitted reservation tail holds no objects). */
+static inline size_t vader_old_used_cards(void) {
+    return ((size_t)(g_old_bump - g_old_block) + VADER_CARD_BYTES - 1u) / VADER_CARD_BYTES;
+}
+
 /* Shadow-stack head. Each emitted C function pushes/pops a frame chained
  * through `prev`; the GC walks this list at collection time to enumerate
  * precise roots. */
@@ -1348,6 +1364,8 @@ void vader_gc_init(void) {
     g_card_count = (g_old_capacity + VADER_CARD_BYTES - 1u) / VADER_CARD_BYTES;
     vader_card_table = (uint8_t*) calloc(g_card_count, 1u);
     if (vader_card_table == NULL) vader_trap("vader_gc_init: card-table calloc failed");
+    g_card_shadow = (uint8_t*) malloc(g_card_count);
+    if (g_card_shadow == NULL) vader_trap("vader_gc_init: card-shadow malloc failed");
     vader_old_base = (uintptr_t) g_old_block;
     vader_old_end  = (uintptr_t) g_old_block_end;
 
@@ -1372,6 +1390,7 @@ void vader_gc_shutdown(void) {
     }
     free(g_gray_stack);
     free(vader_card_table);
+    free(g_card_shadow);
     g_young.block = NULL;
     g_young.from.base = g_young.from.cur = g_young.from.end = NULL;
     g_young.to.base   = g_young.to.cur   = g_young.to.end   = NULL;
@@ -1386,6 +1405,7 @@ void vader_gc_shutdown(void) {
     g_gray_stack = NULL;
     g_gray_len = g_gray_cap = 0;
     vader_card_table  = NULL;
+    g_card_shadow     = NULL;
     vader_old_base    = 0;
     vader_old_end     = 0;
     g_card_count      = 0;
@@ -1881,33 +1901,69 @@ static void vader_gc_scan_roots(void) {
     }
 }
 
-/* Walk old.from and forward pointer-bearing slots of every object that
- * sits in (or spans) a dirty card. Clean cards are skipped wholesale: those
- * objects can't reference young, by the write-barrier invariant.
+/* Forward every old→young pointer, then leave the card table holding EXACTLY
+ * the cards whose old objects still point young — the second half of the
+ * standard generational card protocol (HotSpot Serial/Parallel, .NET CoreCLR,
+ * GC Handbook): the write barrier MARKS, the minor CLEANS + REDIRTIES.
  *
- * The card table is *not* cleared by minor. A card stays dirty until the
- * next major resets the whole table — that's deliberate: scanning a still-
- * dirty card across multiple minors costs at most O(card_count) extra
- * memory reads, while clearing in minor would require rescanning to
- * decide whether the card still has a live old→young reference. */
+ * Snapshot the live dirty set into `g_card_shadow`, clear the live table, and
+ * card-drive the scan: per region, skip clean (snapshot) cards without touching
+ * their slots, and scan only the live objects under dirty cards. Forwarding a
+ * slot that still references young re-dirties its LIVE card via the barrier in
+ * `vader_gc_scan_box`/`_raw`; a slot whose referent tenured to old leaves its
+ * card clean. So after the scan a card is dirty iff a live old object in it
+ * still holds a young pointer — the dirty set collapses to the true old→young
+ * edges instead of accreting until the next major (the old "rescan most of the
+ * old heap every minor" cost: O(old slots) → O(dirty cards + live edges)).
+ *
+ * Snapshot-then-scan (rather than clear-as-you-go) is load-bearing: an object
+ * can span two cards, and a redirty written while scanning the first card must
+ * not be wiped when the second card is cleared. Reading the immutable snapshot
+ * while only ever SETTING the live table removes that race; a per-region cursor
+ * scans each spanning object at most once.
+ *
+ * Invariant: the mutator write barrier dirties a field's card on every
+ * old→young store, so before the minor every live old→young field sits under a
+ * dirty snapshot card — none is missed. (VADER_GC_SCAN_ALL_OLD keeps every card
+ * dirty and skips the clear — the missing-barrier A/B probe scans all of old.) */
 static void vader_gc_scan_old_dirty_cards(void) {
-    for (vader_old_region_t* r = g_old_regions; r != NULL; r = r->next) {
-        for (char* slot = r->base; slot < r->cur; slot += r->slot_size) {
-            vader_obj_header_t* hdr = (vader_obj_header_t*) slot;
-            if (hdr->mark != g_mark_value) continue;    /* free slot — stale pointers, skip */
+    if (g_old_regions == NULL || g_old_bump == g_old_block) return;
+    size_t used_cards = vader_old_used_cards();
 
-            /* The slot's object spans at most [slot, slot + slot_size). Scan it
-             * if any covering card is dirty (a slot write marks the card holding
-             * the object header; arrays mark their buf's card separately). */
-            uintptr_t off_start = (uintptr_t) slot - vader_old_base;
-            uintptr_t off_end   = off_start + r->slot_size - 1u;
-            size_t card_start = off_start / VADER_CARD_BYTES;
-            size_t card_end   = off_end   / VADER_CARD_BYTES;
-            int dirty = g_gc_scan_all_old;
-            for (size_t c = card_start; c <= card_end && !dirty; c++) {
-                if (vader_card_table[c]) { dirty = 1; break; }
+    /* Snapshot, then clear. Clearing here is safe because the only forwarding
+     * done earlier in the minor — vader_gc_scan_roots — touches off-heap root /
+     * defer cells (below the barrier's [old_base, old_end) guard), so it cannot
+     * dirty a card the clear would wipe; every card-redirtying forward (this
+     * scan + the gray drain that follows it) runs at or after this clear. */
+    const uint8_t* dirty = NULL;
+    if (!g_gc_scan_all_old) {
+        memcpy(g_card_shadow, vader_card_table, used_cards);
+        memset(vader_card_table, 0, used_cards);
+        dirty = g_card_shadow;                          /* what to scan; live table = redirty target */
+    }
+
+    for (vader_old_region_t* r = g_old_regions; r != NULL; r = r->next) {
+        if (r->cur == r->base) continue;                /* nothing carved yet */
+        uintptr_t rbase_off = (uintptr_t) r->base - vader_old_base;
+        size_t    card_lo   = rbase_off / VADER_CARD_BYTES;
+        size_t    card_hi   = ((uintptr_t) r->cur - 1u - vader_old_base) / VADER_CARD_BYTES;
+        char*     cursor    = r->base;                  /* slots below are already scanned */
+        for (size_t c = card_lo; c <= card_hi; c++) {
+            if (dirty != NULL && !dirty[c]) continue;   /* clean card — skip its slots wholesale */
+
+            /* First slot of `r` overlapping card c, clamped past already-scanned
+             * slots. Slots start at r->base + k*slot_size, so the slot covering
+             * the card's first byte may have begun in an earlier card. */
+            uintptr_t card_start_off = (uintptr_t) c * VADER_CARD_BYTES;
+            size_t into = card_start_off > rbase_off ? (size_t)(card_start_off - rbase_off) : 0u;
+            char* s = r->base + (into / r->slot_size) * r->slot_size;
+            if (s < cursor) s = cursor;
+            char* card_end = (char*)(vader_old_base + card_start_off + VADER_CARD_BYTES);
+            for (; s < card_end && s < r->cur; s += r->slot_size) {
+                vader_obj_header_t* hdr = (vader_obj_header_t*) s;
+                if (hdr->mark == g_mark_value) (void) vader_gc_scan_object(s);
             }
-            if (dirty) (void) vader_gc_scan_object(slot);
+            cursor = s;
         }
     }
 }
@@ -2062,9 +2118,7 @@ void vader_major_collect(void) {
      * uncommitted reservation tail), so memset just that prefix — touching the
      * whole-reservation table would needlessly commit pages for cards that are
      * never read. */
-    size_t used_cards = ((size_t)(g_old_bump - g_old_block) + VADER_CARD_BYTES - 1u)
-                        / VADER_CARD_BYTES;
-    memset(vader_card_table, 1, used_cards);
+    memset(vader_card_table, 1, vader_old_used_cards());
 
     g_cycle = VADER_CYCLE_NONE;
     g_total_collections++;
