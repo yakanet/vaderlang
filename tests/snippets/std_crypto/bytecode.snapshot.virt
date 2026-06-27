@@ -24,7 +24,9 @@ string 8 "md5-empty="
 string 9 "md5-abc="
 string 10 "md5-quick="
 string 11 "\n"
-data 0 u32 hex"78A46AD756B7C7E8DB702024EECEBDC1AF0F7CF52AC68747134630A8019546FDD8988069AFF7448BB15BFFFFBED75C892211906B937198FD8E4379A62108B44962251EF640B340C0515A5E26AAC7B6E95D102FD65314440281E6A1D8C8FBD3E7E6CDE121D60737C3870DD5F4ED145A4505E9E3A9F8A3EFFCD9026F678A4C2A8D4239FAFF81F6718722619D6D0C38E5FD44EABEA4A9CFDE4B604BBBF670BCBFBEC67E9B28FA27A1EA8530EFD4051D880439D0D4D9E599DBE6F87CA21F6556ACC4442229F497FF2A43A72394AB39A093FCC3595B6592CC0C8F7DF4EFFFD15D84854F7EA86FE0E62CFE144301A3A111084E827E53F735F23ABDBBD2D72A91D386EB"
+data 0 u32 hex"982F8A4291443771CFFBC0B5A5DBB5E95BC25639F111F159A4823F92D55E1CAB98AA07D8015B8312BE853124C37D0C55745DBE72FEB1DE80A706DC9B74F19BC1C1699BE48647BEEFC69DC10FCCA10C246F2CE92DAA84744ADCA9B05CDA88F97652513E986DC631A8C82703B0C77F59BFF30BE0C64791A7D55163CA0667292914850AB72738211B2EFC6D2C4D130D385354730A65BB0A6A762EC9C281852C7292A1E8BFA24B661AA8708B4BC2A3516CC719E892D1240699D685350EF470A06A1016C1A419086C371E4C774827B5BCB034B30C1C394AAAD84E4FCA9C5BF36F2E68EE828F746F63A5781478C8840802C78CFAFFBE90EB6C50A4F7A3F9BEF27871C6"
+data 1 u32 hex"78A46AD756B7C7E8DB702024EECEBDC1AF0F7CF52AC68747134630A8019546FDD8988069AFF7448BB15BFFFFBED75C892211906B937198FD8E4379A62108B44962251EF640B340C0515A5E26AAC7B6E95D102FD65314440281E6A1D8C8FBD3E7E6CDE121D60737C3870DD5F4ED145A4505E9E3A9F8A3EFFCD9026F678A4C2A8D4239FAFF81F6718722619D6D0C38E5FD44EABEA4A9CFDE4B604BBBF670BCBFBEC67E9B28FA27A1EA8530EFD4051D880439D0D4D9E599DBE6F87CA21F6556ACC4442229F497FF2A43A72394AB39A093FCC3595B6592CC0C8F7DF4EFFFD15D84854F7EA86FE0E62CFE144301A3A111084E827E53F735F23ABDBBD2D72A91D386EB"
+data 2 u32 hex"070000000C0000001100000016000000070000000C0000001100000016000000070000000C0000001100000016000000070000000C000000110000001600000005000000090000000E0000001400000005000000090000000E0000001400000005000000090000000E0000001400000005000000090000000E00000014000000040000000B0000001000000017000000040000000B0000001000000017000000040000000B0000001000000017000000040000000B0000001000000017000000060000000A0000000F00000015000000060000000A0000000F00000015000000060000000A0000000F00000015000000060000000A0000000F00000015000000"
 import 0 bytes_to_string std_core$bytes_to_string (ref) -> string
 import 1 bytes std_core$bytes (string) -> ref
 import 2 write std_io$write (i32,string) -> void
@@ -408,90 +410,26 @@ fn 3 std_crypto$sha256 (string) -> string
   local $bitand_148 u32
   local ch_efg u32
   local $add_152 u32
-  local $k_153 u32
-  local $k_154 u32
-  local $k_155 u32
-  local $k_156 u32
-  local $k_157 u32
-  local $k_158 u32
-  local $k_159 u32
-  local $k_160 u32
-  local $k_161 u32
-  local $k_162 u32
-  local $k_163 u32
-  local $k_164 u32
-  local $k_165 u32
-  local $k_166 u32
-  local $k_167 u32
-  local $k_168 u32
-  local $k_169 u32
-  local $k_170 u32
-  local $k_171 u32
-  local $k_172 u32
-  local $k_173 u32
-  local $k_174 u32
-  local $k_175 u32
-  local $k_176 u32
-  local $k_177 u32
-  local $k_178 u32
-  local $k_179 u32
-  local $k_180 u32
-  local $k_181 u32
-  local $k_182 u32
-  local $k_183 u32
-  local $k_184 u32
-  local $k_185 u32
-  local $k_186 u32
-  local $k_187 u32
-  local $k_188 u32
-  local $k_189 u32
-  local $k_190 u32
-  local $k_191 u32
-  local $k_192 u32
-  local $k_193 u32
-  local $k_194 u32
-  local $k_195 u32
-  local $k_196 u32
-  local $k_197 u32
-  local $k_198 u32
-  local $k_199 u32
-  local $k_200 u32
-  local $k_201 u32
-  local $k_202 u32
-  local $k_203 u32
-  local $k_204 u32
-  local $k_205 u32
-  local $k_206 u32
-  local $k_207 u32
-  local $k_208 u32
-  local $k_209 u32
-  local $k_210 u32
-  local $k_211 u32
-  local $k_212 u32
-  local $k_213 u32
-  local $k_214 u32
-  local $k_215 u32
-  local $k_216 u32
-  local $idx_218 u32
-  local $add_219 u32
-  local $idx_220 u32
+  local $idx_154 u32
+  local $add_155 u32
+  local $idx_156 u32
   local t1 u32
-  local $k_224 u32
-  local $call_225 u32
-  local $k_226 u32
-  local $call_227 u32
-  local $bitxor_228 u32
-  local $k_229 u32
-  local $call_230 u32
+  local $k_160 u32
+  local $call_161 u32
+  local $k_162 u32
+  local $call_163 u32
+  local $bitxor_164 u32
+  local $k_165 u32
+  local $call_166 u32
   local sig0 u32
-  local $bitand_233 u32
-  local $bitand_234 u32
-  local $bitxor_235 u32
-  local $bitand_236 u32
+  local $bitand_169 u32
+  local $bitand_170 u32
+  local $bitxor_171 u32
+  local $bitand_172 u32
   local maj_abc u32
   local t2 u32
-  local $k_246 usize
-  local $k_264 usize
+  local $k_182 usize
+  local $k_200 usize
   i32.const 1779033703
   local.set 1
   i32.const -1150833019
@@ -873,266 +811,74 @@ fn 3 std_crypto$sha256 (string) -> string
               local.get 102
               i32.add
               local.set 103
-              i32.const 1116352408
-              local.set 104
-              i32.const 1899447441
-              local.set 105
-              i32.const -1245643825
-              local.set 106
-              i32.const -373957723
-              local.set 107
-              i32.const 961987163
-              local.set 108
-              i32.const 1508970993
-              local.set 109
-              i32.const -1841331548
-              local.set 110
-              i32.const -1424204075
-              local.set 111
-              i32.const -670586216
-              local.set 112
-              i32.const 310598401
-              local.set 113
-              i32.const 607225278
-              local.set 114
-              i32.const 1426881987
-              local.set 115
-              i32.const 1925078388
-              local.set 116
-              i32.const -2132889090
-              local.set 117
-              i32.const -1680079193
-              local.set 118
-              i32.const -1046744716
-              local.set 119
-              i32.const -459576895
-              local.set 120
-              i32.const -272742522
-              local.set 121
-              i32.const 264347078
-              local.set 122
-              i32.const 604807628
-              local.set 123
-              i32.const 770255983
-              local.set 124
-              i32.const 1249150122
-              local.set 125
-              i32.const 1555081692
-              local.set 126
-              i32.const 1996064986
-              local.set 127
-              i32.const -1740746414
-              local.set 128
-              i32.const -1473132947
-              local.set 129
-              i32.const -1341970488
-              local.set 130
-              i32.const -1084653625
-              local.set 131
-              i32.const -958395405
-              local.set 132
-              i32.const -710438585
-              local.set 133
-              i32.const 113926993
-              local.set 134
-              i32.const 338241895
-              local.set 135
-              i32.const 666307205
-              local.set 136
-              i32.const 773529912
-              local.set 137
-              i32.const 1294757372
-              local.set 138
-              i32.const 1396182291
-              local.set 139
-              i32.const 1695183700
-              local.set 140
-              i32.const 1986661051
-              local.set 141
-              i32.const -2117940946
-              local.set 142
-              i32.const -1838011259
-              local.set 143
-              i32.const -1564481375
-              local.set 144
-              i32.const -1474664885
-              local.set 145
-              i32.const -1035236496
-              local.set 146
-              i32.const -949202525
-              local.set 147
-              i32.const -778901479
-              local.set 148
-              i32.const -694614492
-              local.set 149
-              i32.const -200395387
-              local.set 150
-              i32.const 275423344
-              local.set 151
-              i32.const 430227734
-              local.set 152
-              i32.const 506948616
-              local.set 153
-              i32.const 659060556
-              local.set 154
-              i32.const 883997877
-              local.set 155
-              i32.const 958139571
-              local.set 156
-              i32.const 1322822218
-              local.set 157
-              i32.const 1537002063
-              local.set 158
-              i32.const 1747873779
-              local.set 159
-              i32.const 1955562222
-              local.set 160
-              i32.const 2024104815
-              local.set 161
-              i32.const -2067236844
-              local.set 162
-              i32.const -1933114872
-              local.set 163
-              i32.const -1866530822
-              local.set 164
-              i32.const -1538233109
-              local.set 165
-              i32.const -1090935817
-              local.set 166
-              i32.const -965641998
-              local.set 167
-              local.get 104
-              local.get 105
-              local.get 106
-              local.get 107
-              local.get 108
-              local.get 109
-              local.get 110
-              local.get 111
-              local.get 112
-              local.get 113
-              local.get 114
-              local.get 115
-              local.get 116
-              local.get 117
-              local.get 118
-              local.get 119
-              local.get 120
-              local.get 121
-              local.get 122
-              local.get 123
-              local.get 124
-              local.get 125
-              local.get 126
-              local.get 127
-              local.get 128
-              local.get 129
-              local.get 130
-              local.get 131
-              local.get 132
-              local.get 133
-              local.get 134
-              local.get 135
-              local.get 136
-              local.get 137
-              local.get 138
-              local.get 139
-              local.get 140
-              local.get 141
-              local.get 142
-              local.get 143
-              local.get 144
-              local.get 145
-              local.get 146
-              local.get 147
-              local.get 148
-              local.get 149
-              local.get 150
-              local.get 151
-              local.get 152
-              local.get 153
-              local.get 154
-              local.get 155
-              local.get 156
-              local.get 157
-              local.get 158
-              local.get 159
-              local.get 160
-              local.get 161
-              local.get 162
-              local.get 163
-              local.get 164
-              local.get 165
-              local.get 166
-              local.get 167
-              array.new 12 64
+              data.const 0 12
               local.get 90
               load_slot_i32
-              local.set 168
+              local.set 104
               local.get 103
-              local.get 168
+              local.get 104
               i32.add
-              local.set 169
+              local.set 105
               local.get 14
               local.get 90
               load_slot_i32
-              local.set 170
-              local.get 169
-              local.get 170
+              local.set 106
+              local.get 105
+              local.get 106
               i32.add
               call 6
-              local.set 171
+              local.set 107
               i32.const 2
-              local.set 172
+              local.set 108
               local.get 82
-              local.get 172
+              local.get 108
               call 7
-              local.set 173
+              local.set 109
               i32.const 13
-              local.set 174
+              local.set 110
               local.get 82
-              local.get 174
+              local.get 110
               call 7
-              local.set 175
-              local.get 173
-              local.get 175
+              local.set 111
+              local.get 109
+              local.get 111
               i32.bitxor
-              local.set 176
+              local.set 112
               i32.const 22
-              local.set 177
+              local.set 113
               local.get 82
-              local.get 177
+              local.get 113
               call 7
-              local.set 178
-              local.get 176
-              local.get 178
+              local.set 114
+              local.get 112
+              local.get 114
               i32.bitxor
-              local.set 179
+              local.set 115
               local.get 82
               local.get 83
               i32.bitand
-              local.set 180
+              local.set 116
               local.get 82
               local.get 84
               i32.bitand
-              local.set 181
-              local.get 180
-              local.get 181
+              local.set 117
+              local.get 116
+              local.get 117
               i32.bitxor
-              local.set 182
+              local.set 118
               local.get 83
               local.get 84
               i32.bitand
-              local.set 183
-              local.get 182
-              local.get 183
+              local.set 119
+              local.get 118
+              local.get 119
               i32.bitxor
-              local.set 184
-              local.get 179
-              local.get 184
+              local.set 120
+              local.get 115
+              local.get 120
               i32.add
               call 6
-              local.set 185
+              local.set 121
               local.get 88
               local.set 89
               local.get 87
@@ -1140,7 +886,7 @@ fn 3 std_crypto$sha256 (string) -> string
               local.get 86
               local.set 87
               local.get 85
-              local.get 171
+              local.get 107
               i32.add
               call 6
               local.set 86
@@ -1150,15 +896,15 @@ fn 3 std_crypto$sha256 (string) -> string
               local.set 84
               local.get 82
               local.set 83
-              local.get 171
-              local.get 185
+              local.get 107
+              local.get 121
               i32.add
               call 6
               local.set 82
               i64.const 1
-              local.set 186
+              local.set 122
               local.get 90
-              local.get 186
+              local.get 122
               i64.add
               local.set 90
               br $L10
@@ -1207,9 +953,9 @@ fn 3 std_crypto$sha256 (string) -> string
         call 6
         local.set 8
         i64.const 1
-        local.set 187
+        local.set 123
         local.get 11
-        local.get 187
+        local.get 123
         i64.add
         local.set 11
         br $L1
@@ -1326,74 +1072,10 @@ fn 4 std_crypto$md5 (string) -> string
   local $add_126 u32
   local $idx_127 u32
   local tmp u32
-  local $k_131 u32
-  local $k_132 u32
-  local $k_133 u32
-  local $k_134 u32
-  local $k_135 u32
-  local $k_136 u32
-  local $k_137 u32
-  local $k_138 u32
-  local $k_139 u32
-  local $k_140 u32
-  local $k_141 u32
-  local $k_142 u32
-  local $k_143 u32
-  local $k_144 u32
-  local $k_145 u32
-  local $k_146 u32
-  local $k_147 u32
-  local $k_148 u32
-  local $k_149 u32
-  local $k_150 u32
-  local $k_151 u32
-  local $k_152 u32
-  local $k_153 u32
-  local $k_154 u32
-  local $k_155 u32
-  local $k_156 u32
-  local $k_157 u32
-  local $k_158 u32
-  local $k_159 u32
-  local $k_160 u32
-  local $k_161 u32
-  local $k_162 u32
-  local $k_163 u32
-  local $k_164 u32
-  local $k_165 u32
-  local $k_166 u32
-  local $k_167 u32
-  local $k_168 u32
-  local $k_169 u32
-  local $k_170 u32
-  local $k_171 u32
-  local $k_172 u32
-  local $k_173 u32
-  local $k_174 u32
-  local $k_175 u32
-  local $k_176 u32
-  local $k_177 u32
-  local $k_178 u32
-  local $k_179 u32
-  local $k_180 u32
-  local $k_181 u32
-  local $k_182 u32
-  local $k_183 u32
-  local $k_184 u32
-  local $k_185 u32
-  local $k_186 u32
-  local $k_187 u32
-  local $k_188 u32
-  local $k_189 u32
-  local $k_190 u32
-  local $k_191 u32
-  local $k_192 u32
-  local $k_193 u32
-  local $k_194 u32
-  local $idx_196 u32
-  local $call_197 u32
-  local $k_200 usize
-  local $k_210 usize
+  local $idx_132 u32
+  local $call_133 u32
+  local $k_136 usize
+  local $k_146 usize
   i32.const 1732584193
   local.set 1
   i32.const -271733879
@@ -1708,7 +1390,7 @@ fn 4 std_crypto$md5 (string) -> string
               local.get 53
               i32.add
               local.set 74
-              data.const 0 12
+              data.const 1 12
               local.get 51
               load_slot_i32
               local.set 75
@@ -1731,215 +1413,23 @@ fn 4 std_crypto$md5 (string) -> string
               local.set 50
               local.get 48
               local.set 49
-              i32.const 7
-              local.set 79
-              i32.const 12
-              local.set 80
-              i32.const 17
-              local.set 81
-              i32.const 22
-              local.set 82
-              i32.const 7
-              local.set 83
-              i32.const 12
-              local.set 84
-              i32.const 17
-              local.set 85
-              i32.const 22
-              local.set 86
-              i32.const 7
-              local.set 87
-              i32.const 12
-              local.set 88
-              i32.const 17
-              local.set 89
-              i32.const 22
-              local.set 90
-              i32.const 7
-              local.set 91
-              i32.const 12
-              local.set 92
-              i32.const 17
-              local.set 93
-              i32.const 22
-              local.set 94
-              i32.const 5
-              local.set 95
-              i32.const 9
-              local.set 96
-              i32.const 14
-              local.set 97
-              i32.const 20
-              local.set 98
-              i32.const 5
-              local.set 99
-              i32.const 9
-              local.set 100
-              i32.const 14
-              local.set 101
-              i32.const 20
-              local.set 102
-              i32.const 5
-              local.set 103
-              i32.const 9
-              local.set 104
-              i32.const 14
-              local.set 105
-              i32.const 20
-              local.set 106
-              i32.const 5
-              local.set 107
-              i32.const 9
-              local.set 108
-              i32.const 14
-              local.set 109
-              i32.const 20
-              local.set 110
-              i32.const 4
-              local.set 111
-              i32.const 11
-              local.set 112
-              i32.const 16
-              local.set 113
-              i32.const 23
-              local.set 114
-              i32.const 4
-              local.set 115
-              i32.const 11
-              local.set 116
-              i32.const 16
-              local.set 117
-              i32.const 23
-              local.set 118
-              i32.const 4
-              local.set 119
-              i32.const 11
-              local.set 120
-              i32.const 16
-              local.set 121
-              i32.const 23
-              local.set 122
-              i32.const 4
-              local.set 123
-              i32.const 11
-              local.set 124
-              i32.const 16
-              local.set 125
-              i32.const 23
-              local.set 126
-              i32.const 6
-              local.set 127
-              i32.const 10
-              local.set 128
-              i32.const 15
-              local.set 129
-              i32.const 21
-              local.set 130
-              i32.const 6
-              local.set 131
-              i32.const 10
-              local.set 132
-              i32.const 15
-              local.set 133
-              i32.const 21
-              local.set 134
-              i32.const 6
-              local.set 135
-              i32.const 10
-              local.set 136
-              i32.const 15
-              local.set 137
-              i32.const 21
-              local.set 138
-              i32.const 6
-              local.set 139
-              i32.const 10
-              local.set 140
-              i32.const 15
-              local.set 141
-              i32.const 21
-              local.set 142
-              local.get 79
-              local.get 80
-              local.get 81
-              local.get 82
-              local.get 83
-              local.get 84
-              local.get 85
-              local.get 86
-              local.get 87
-              local.get 88
-              local.get 89
-              local.get 90
-              local.get 91
-              local.get 92
-              local.get 93
-              local.get 94
-              local.get 95
-              local.get 96
-              local.get 97
-              local.get 98
-              local.get 99
-              local.get 100
-              local.get 101
-              local.get 102
-              local.get 103
-              local.get 104
-              local.get 105
-              local.get 106
-              local.get 107
-              local.get 108
-              local.get 109
-              local.get 110
-              local.get 111
-              local.get 112
-              local.get 113
-              local.get 114
-              local.get 115
-              local.get 116
-              local.get 117
-              local.get 118
-              local.get 119
-              local.get 120
-              local.get 121
-              local.get 122
-              local.get 123
-              local.get 124
-              local.get 125
-              local.get 126
-              local.get 127
-              local.get 128
-              local.get 129
-              local.get 130
-              local.get 131
-              local.get 132
-              local.get 133
-              local.get 134
-              local.get 135
-              local.get 136
-              local.get 137
-              local.get 138
-              local.get 139
-              local.get 140
-              local.get 141
-              local.get 142
-              array.new 12 64
+              data.const 2 12
               local.get 51
               load_slot_i32
-              local.set 143
+              local.set 79
               local.get 78
-              local.get 143
+              local.get 79
               call 10
-              local.set 144
+              local.set 80
               local.get 48
-              local.get 144
+              local.get 80
               i32.add
               call 6
               local.set 48
               i64.const 1
-              local.set 145
+              local.set 81
               local.get 51
-              local.get 145
+              local.get 81
               i64.add
               local.set 51
               br $L7
@@ -1968,9 +1458,9 @@ fn 4 std_crypto$md5 (string) -> string
         call 6
         local.set 4
         i64.const 1
-        local.set 146
+        local.set 82
         local.get 7
-        local.get 146
+        local.get 82
         i64.add
         local.set 7
         br $L1
