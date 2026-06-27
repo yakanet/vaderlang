@@ -1,0 +1,29 @@
+// Diag snippet: VM-backed comptime computes a small table via a loop.
+//
+// `build_squares` has a loop + local mutation + `push`, so the comptime
+// tree-walk gives up (`vm_required`). The `vader/comptime_vm` S2 pass stages
+// it to bytecode, runs it in the embedded VM, and bakes the result into
+// `SQUARES` — exactly the capability this chantier adds (SPEC §2253 example).
+//
+// Expected: prints "9" then "49" and exits 0.
+
+module "snippet"
+
+import "std/io" { println }
+
+@comptime
+SQUARES :: build_squares()
+
+build_squares :: fn() -> u32[] {
+    r: u32[] = []
+    for i in 0..<8 {
+        r.push(u32(i * i))
+    }
+    return r
+}
+
+main :: fn() -> i32 {
+    println("${SQUARES[3]}")
+    println("${SQUARES[7]}")
+    return 0
+}

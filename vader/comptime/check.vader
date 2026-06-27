@@ -10,6 +10,7 @@ module "vader/comptime"
 
 import "std/collections" { MutableMap }
 import "vader/diagnostics" { Diagnostic }
+import "vader/types" { Type }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/resolver" { LoadedProject }
 import "vader/typecheck" { TypedProject, TypedProgram }
@@ -36,7 +37,7 @@ export evaluate_project :: fn(
         match decls {
             is null -> {}
             _       -> {
-                evaluate_module_decls(decls, module_typed, program, diags)
+                evaluate_module_decls(decls, module_typed, program, project, module_id, diags)
                 evaluate_assert_decls(decls, module_typed, diags)
                 bake_file_exprs(decls, module_typed, project, program, diags)
             }
@@ -108,7 +109,8 @@ lookup_module_decls :: fn(loaded: LoadedProject, module_id: string) -> AST.Decl[
 }
 
 evaluate_module_decls :: fn(
-    decls: AST.Decl[], typed: TypedProgram, program: EvaluatedProgram, diags: Diagnostic[],
+    decls: AST.Decl[], typed: TypedProgram, program: EvaluatedProgram,
+    project: EvaluatedProject, module_id: string, diags: Diagnostic[],
 ) -> void {
     order :: sort_comptime_decls(decls, typed)
     for diagnostic in order.cycle_diags { diags.push(diagnostic) }
@@ -118,6 +120,23 @@ evaluate_module_decls :: fn(
     }
     for decl in order.order {
         result :: evaluate_expr(decl.value, context)
+        // The tree-walk gave up on a VM-evaluable shape (loop / mutation /
+        // statement-bodied callee). Record the decl for the `comptime_vm` VM
+        // pass (run from bootstrap, where `evaluated` is complete) and suppress
+        // the C4001 — unless the RHS isn't a stageable nullary call, in which
+        // case the diagnostic stands.
+        if result.vm_required {
+            symbol :: lookup_decl_symbol(decl, typed)
+            if symbol is Symbol as s {
+                record :: build_vm_required(decl, s, typed, module_id)
+                if record is VmRequiredDecl as vr {
+                    project.vm_required.push(vr)
+                    continue
+                }
+            }
+            if !(result.diag is null) { diags.push(result.diag) }
+            continue
+        }
         match result.value {
             is null -> {}
             _       -> {
@@ -355,6 +374,29 @@ collect_in_expr :: fn(e: AST.Expr, out: AST.IntrinsicCallExpr[]) -> void {
         }
         _ -> {}
     }
+}
+
+// Build a `VmRequiredDecl` when a deferred `@comptime` decl's RHS is a stageable
+// nullary call `f()` ; returns null for any other shape (the caller keeps the
+// C4001). The callee `f` is staged + executed by the `comptime_vm` pass.
+build_vm_required :: fn(decl: AST.ConstDecl, symbol: Symbol, typed: TypedProgram, module_id: string) -> VmRequiredDecl | null {
+    if decl.value is AST.CallExpr as call {
+        if call.callee is AST.IdentExpr as callee_id {
+            if call.args.len() == 0 {
+                decl_type :: typed.decl_types[symbol.id]
+                if decl_type != null {
+                    return VmRequiredDecl {
+                        .symbol_id   = symbol.id,
+                        .module_id   = module_id,
+                        .callee_name = callee_id.name,
+                        .decl_type   = decl_type,
+                        .span        = decl.span,
+                    }
+                }
+            }
+        }
+    }
+    return null
 }
 
 // Same lookup as `deps.vader::lookup_const_symbol` — resolver doesn't

@@ -1,0 +1,112 @@
+// vader/comptime_vm/resolve — VM-backed comptime fallback (S2 two-pass).
+//
+// Runs from `bootstrap`, BETWEEN `evaluate_project` and `lower_project`, where
+// the `EvaluatedProject` is complete (mono + instances built). For every
+// `@comptime` decl the tree-walk deferred (`evaluated.vm_required`), this pass:
+//
+//   1. stages the whole project to bytecode (pass-1 lower → cfg → emit). The
+//      deferred const is still un-baked, so `lower` inlines its RHS call
+//      `f()` at each use site — making the callee `f` reachable and lowered
+//      (see `lower/inline_consts.vader`).
+//   2. runs `f` via `exec_fn_value` and bridges the result `Value` into a
+//      `ComptimeValue` (`bridge.vader`).
+//   3. injects it into the owning module's `comptime_decls`.
+//
+// The normal `lower_project` (pass-2, run afterwards by `lower_to_entry`) then
+// sees the baked value and inlines the literal table at every use site.
+//
+// `vader/comptime_vm` sits ABOVE the import cycle `comptime → vm → bytecode →
+// lower → comptime` (it imports comptime + vm + lower + midir + bytecode) and
+// is imported only by `bootstrap`, so no cycle forms.
+
+module "vader/comptime_vm"
+
+import "std/string" { ends_with }
+import "vader/diagnostics" { Diagnostic, comptime_error }
+import "vader/resolver" { LoadedProject }
+import "vader/typecheck" { TypedProject }
+import "vader/lower" { lower_project, prune_unreachable_fns }
+import "vader/midir" { build_cfg_project, emit_bytecode_from_cfg, annotate_escape, eliminate_dead_cfg }
+import "vader/bytecode" { BytecodeModule, default_emit_options }
+Ct :: import "vader/comptime"
+Vm :: import "vader/vm"
+
+/// Bake every VM-required `@comptime` decl into its module's `comptime_decls`.
+/// No-op when `evaluated.vm_required` is empty (the common case — most projects
+/// have no loop-bearing comptime const). Mutates `evaluated` in place.
+///
+/// @param loaded     the loaded project (staging lower input).
+/// @param typed      the typed project (staging lower input).
+/// @param evaluated  the complete evaluated project ; its `vm_required` list is
+///                   consumed and `modules[...].comptime_decls` mutated.
+/// @param diags      comptime diagnostics — a failed staging / VM run appends
+///                   C4002 (panic) here ; the decl is left un-baked.
+/// @error            C4002 when the staged callee traps in the VM ; C4001 when
+///                   its result `Value` can't be bridged (cf. `bridge.vader`).
+export resolve_vm_required_decls :: fn(
+    loaded: LoadedProject, typed: TypedProject, evaluated: Ct.EvaluatedProject, diags: Diagnostic[],
+) -> void {
+    if evaluated.vm_required.len() == 0 { return }
+
+    // Pass-1 staging : lower + emit the whole project with the deferred consts
+    // still un-baked. Diagnostics are throwaway — the real pass-2 lower reports
+    // any genuine errors.
+    stage_diags: Diagnostic[] = []
+    module :: stage_to_bytecode(loaded, typed, evaluated, stage_diags)
+    state :: Vm.prepare(module)
+
+    for vr in evaluated.vm_required {
+        mangle :: find_callee_mangle(module, vr.callee_name)
+        // Not lowered ⇒ the const is unused (nothing inlined its RHS call), so
+        // its value is genuinely unneeded — skip silently.
+        if mangle == "" { continue }
+
+        outcome :: Vm.exec_fn_value(state, mangle)
+        if outcome is Vm.Trap as trap {
+            diags.push(comptime_error(.EvaluationPanic, vr.span, trap.message))
+            continue
+        }
+        if outcome is Vm.ValueOk as ok {
+            bridged :: value_to_comptime(ok.value, vr.decl_type, vr.span)
+            if bridged is Diagnostic as d {
+                diags.push(d)
+                continue
+            }
+            inject(evaluated, vr, bridged)
+        }
+    }
+}
+
+// Run the canonical lower → cfg → dce → escape → emit tail over the (still
+// un-baked) project. Mirror of `bootstrap.vader::prepare_cfg_bytecode`'s tail.
+stage_to_bytecode :: fn(
+    loaded: LoadedProject, typed: TypedProject, evaluated: Ct.EvaluatedProject, diags: Diagnostic[],
+) -> BytecodeModule {
+    lowered :: lower_project(loaded, typed, evaluated, diags)
+    pruned :: prune_unreachable_fns(lowered, false)
+    cfg :: build_cfg_project(pruned)
+    dced :: eliminate_dead_cfg(cfg)
+    escaped :: annotate_escape(dced).project
+    return emit_bytecode_from_cfg(escaped, "comptime", default_emit_options())
+}
+
+// Locate the lowered fn whose mangled name ends in `$<callee_name>`. Returns ""
+// when absent (the fn wasn't lowered → its const is unused). MVP: a bare suffix
+// match ; unambiguous for the nullary in-module helpers this path targets.
+find_callee_mangle :: fn(module: BytecodeModule, callee_name: string) -> string {
+    suffix :: "\$${callee_name}"
+    for f in module.functions {
+        if f.name.ends_with(suffix) { return f.name }
+    }
+    return ""
+}
+
+// Inject the bridged value into the owning module's `comptime_decls`, keyed by
+// the const's symbol id — exactly where the tree-walk would have put it. The
+// pass-2 lower's `lookup_const_baked_value` then inlines the literal.
+inject :: fn(evaluated: Ct.EvaluatedProject, vr: Ct.VmRequiredDecl, value: Ct.ComptimeValue) -> void {
+    program :: evaluated.modules[vr.module_id]
+    if program is Ct.EvaluatedProgram as p {
+        p.comptime_decls[vr.symbol_id] = value
+    }
+}

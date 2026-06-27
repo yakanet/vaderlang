@@ -42,6 +42,11 @@ export ComptimeContext :: struct {
 export EvalResult :: struct {
     value: ComptimeValue | null
     diag:  Diagnostic | null
+    /// True when the tree-walk gave up on a shape the embedded VM can handle
+    /// (loop / mutation / statement-bodied callee). The decl-level driver in
+    /// `check.vader` records the decl for the `comptime_vm` VM pass and
+    /// suppresses `diag` rather than reporting C4001. Set only by `vm_required`.
+    vm_required: bool = false
 }
 
 /// Build an `EvalResult` carrying a value.
@@ -58,5 +63,9 @@ export fail :: fn(diag: Diagnostic) -> EvalResult {
 /// describing the unsupported expression. Standardised helper so every
 /// "needs the VM" call site uses the same wording.
 export vm_required :: fn(span: Span, kind_label: string) -> EvalResult {
-    return fail(comptime_error(.CannotEvaluate, span, kind_label))
+    return EvalResult {
+        .value       = null,
+        .diag        = comptime_error(.CannotEvaluate, span, kind_label),
+        .vm_required = true,
+    }
 }
