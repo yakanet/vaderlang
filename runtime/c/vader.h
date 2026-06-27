@@ -1,16 +1,14 @@
 /* Vader native runtime — public API consumed by the C emitter (§1.9).
  *
- * Memory: generational Cheney copying GC backs structs, arrays, fn closures.
+ * Memory: a generational GC — a copying (Cheney) young generation plus a
+ * non-moving mark-sweep old generation — backs structs, arrays, fn closures.
  * See `vader_gc_*` below and the implementation header in `vader_runtime.c`
- * for the two-generation arena layout, shadow-stack root enumeration, card
- * table, and the per-module `vader_type_info_table` the scanner consults.
+ * for the generation layout, shadow-stack root enumeration, card table, and
+ * the per-module `vader_type_info_table` the scanner consults.
  *
- * String buffers (the `char*` behind every `vader_string_t`) live OUTSIDE
- * the GC arenas — a moving GC would need a back-mapping from char-ptr to
- * header on every scan, and `vader_string_t` is a fat ptr-len value copied
- * at every assignment. They're tracked separately in a non-moving mark-
- * sweep arena that runs after each Cheney cycle (see `vader_string_alloc`
- * in the implementation).
+ * Strings are interned `vader_string_t` atom ids (see the atom table below);
+ * their bytes live in the global atom table, not the GC heap, and are reclaimed
+ * by the major cycle's atom mark phase (`vader_atom_gc_collect`).
  *
  * Boxes (`vader_box_t`) carry a runtime tag that maps 1:1 to a `BcType` index
  * in the originating bytecode module. `type_check` pattern matches against
@@ -82,7 +80,7 @@ typedef vader_u32_t vader_atom_t;
  * The bytes behind a string atom live in the global `vader_atom_table_t`
  * (see further down). Comptime literals are PERM-flagged and never
  * collected ; runtime-minted atoms (concat, format, read_file) are
- * tracked by the Cheney major cycle's atom mark phase. */
+ * tracked by the major cycle's atom mark phase. */
 typedef vader_atom_t vader_string_t;
 
 vader_string_t vader_string_new(const char* p, size_t n);
@@ -196,7 +194,7 @@ void vader_atom_shutdown(void);
  * set ; can also be called manually from tests. */
 void vader_atom_profile_dump(void);
 
-/* GC hook — invoked by the major Cheney cycle. Marks atoms reachable
+/* GC hook — invoked by the major collection cycle. Marks atoms reachable
  * from the shadow stack, defer stack, and live heap objects (using
  * `vader_type_info.string_offsets[]` for precision and a conservative
  * pass over `ptr_offsets[]` boxes), then sweeps unmarked non-PERM
@@ -286,17 +284,22 @@ static inline void* vader_box_to_b1(vader_box_t b) {
  * slots. Only the header layout is fixed by the runtime; everything else is
  * code-generated.
  *
- * GC convention (generational Cheney copying):
+ * GC convention (copying young, mark-sweep old):
  *   - `type_index` identifies the layout (size + pointer offsets) via the
  *     per-module type info table emitted alongside.
  *   - `age` counts the number of minor cycles the object has survived in
  *     the young generation. Once it reaches VADER_TENURE_AGE the next minor
  *     promotes the object to the old generation.
- *   - `mark` is reserved for future use (string-GC currently keeps its own
- *     mark bit on its arena headers).
- *   - `forward` is NULL for live objects in from-space and non-NULL when the
- *     object has been copied to to-space during a collection. The GC walks
- *     forwards transparently when scanning roots. */
+ *   - `mark` is the old-gen mark bit. The old generation is a non-moving
+ *     mark-sweep heap (see vader_runtime.c "slab old gen"): a live old object
+ *     carries `mark == g_mark_value` (a per-major toggle ∈ {1,2}); a free slot
+ *     carries `mark == 0`. Young objects don't use it. (The atom string-GC
+ *     keeps its own mark bit on the atom table, unrelated to this one.)
+ *   - `forward` is NULL for live objects in young from-space and non-NULL when
+ *     the object has been copied to young to-space during a minor (the GC walks
+ *     forwards transparently when scanning roots). For a FREE old slot it is
+ *     repurposed as the size-class free-list link (old objects never forward —
+ *     the old gen is non-moving). */
 typedef struct {
     uint32_t type_index;
     uint8_t  age;
@@ -468,6 +471,13 @@ static inline vader_box_t vader_array_read_u8(vader_array_t* a, size_t slot, uin
  * Array in a later stage ; until then those opcodes have no C-emit. */
 #define VADER_TYPE_INDEX_BUFFER UINT32_C(0xFFFFFFFD)
 
+/* Sentinel index stamped on a FREE old-gen slot by the mark-sweep collector
+ * (vader_runtime.c "slab old gen"). A freed slot also carries `mark == 0` and
+ * threads the class free list through its `forward` field. The sentinel is a
+ * belt-and-suspenders marker: `vader_gc_obj_size` returns 0 for it, so any heap
+ * walk that keys off object size skips it; the region walks key off `mark`. */
+#define VADER_TYPE_INDEX_FREE UINT32_C(0xFFFFFFFC)
+
 typedef struct {
     vader_obj_header_t header;
     size_t             byte_count;
@@ -569,16 +579,18 @@ void           vader_array_clear(vader_array_t* a);
  * keep in registers. */
 static inline size_t vader_array_len(vader_array_t* a) { return a->length; }
 
-/* Generational Cheney copying GC.
+/* Generational GC: copying young, mark-sweep old.
  *
  * Two generations: a small young (Eden + Survivor) collected often by minor
- * cycles, and a larger old collected rarely by major cycles. Each generation
- * is its own Cheney semi-space pair, so the algorithmic core stays uniform.
- * Allocation always lands in young from-space; on minor, surviving objects
- * are forwarded to young to-space (or promoted to old once they've reached
- * `VADER_TENURE_AGE`). A major runs a minor first to drain young, then
- * Cheney-collects old. Roots are enumerated via the shadow stack emitted by
- * the C codegen (see `vader_gc_frame_t` below).
+ * cycles, and a larger old collected rarely by major cycles. Young is a Cheney
+ * semi-space pair (copying); old is a single non-moving mark-sweep slab (a
+ * lazily-committed reservation carved into size-class regions). Allocation
+ * always lands in young from-space; on minor, surviving objects are forwarded to
+ * young to-space (or promoted into the old slab once they've reached
+ * `VADER_TENURE_AGE`). A major runs a minor first to drain young, then marks the
+ * live old set (from roots + young survivors, plus a conservative C-stack scan)
+ * and sweeps the dead in place. Roots are enumerated via the shadow stack
+ * emitted by the C codegen (see `vader_gc_frame_t` below).
  *
  * Cross-generation references from old to young are tracked by a card
  * table: every write of a pointer field into an old object marks the card
@@ -589,21 +601,20 @@ static inline size_t vader_array_len(vader_array_t* a) { return a->length; }
  *
  * The PRIMARY interface is RAM-proportional and needs no manual tuning: at GC
  * init the runtime detects physical RAM (`vader_physical_ram_bytes`) and derives
- * the old arena's initial size and its auto-grow cap as fractions of it — the
- * same binary self-compiles on an 8 GB laptop and a 64 GB workstation. This is
- * the model the JVM (`MaxRAMPercentage`) and Go (`GOMEMLIMIT`) converged on once
- * absolute `Xms`/`Xmx`-style sizes proved too fiddly per machine. See `vader_gc_init`.
+ * the old reservation cap as a fraction of it — the same binary self-compiles on
+ * an 8 GB laptop and a 64 GB workstation. This is the model the JVM
+ * (`MaxRAMPercentage`) and Go (`GOMEMLIMIT`) converged on once absolute
+ * `Xms`/`Xmx`-style sizes proved too fiddly per machine. See `vader_gc_init`.
  *
  *   VADER_GC_RAM_PERCENT   commit ceiling the GC may reach, as % of RAM (default 50)
- *   old cap   = clamp((RAM × PERCENT% − young_committed) / 2, 256 MB, VADER_GC_OLD_MAX)
- *   old init  = clamp(RAM × 3%, 128 MB, 768 MB)
+ *   old cap   = clamp(RAM × PERCENT% − young_committed, 256 MB, VADER_GC_OLD_MAX)
  *
- * Both generations are doubled (from+to semi-spaces) and auto-grow, so the
- * `*_BYTES` #defines below are only *fallbacks* — used when RAM detection fails,
- * or overridden by the absolute `VADER_GC_OLD_BYTES` / `*_MAX` env vars (advanced
- * escape hatch, still honoured). Arenas are malloc'd in full but bump-allocated:
- * untouched pages don't reside on POSIX, and are committed-but-demand-zero on
- * Windows. Young is NOT RAM-scaled — its 192 MB cap is a per-minor cost cliff,
+ * The old gen is ONE non-moving reservation sized at the cap, lazily committed
+ * (no initial size, no 2× to-space, no relocation): untouched pages don't reside
+ * on POSIX, and are reserved-not-committed on Windows. Young is a doubled
+ * (from+to) malloc'd pair that auto-grows. The `VADER_GC_OLD_MAX` env var
+ * overrides the cap (advanced escape hatch); the `*_BYTES` #defines are young
+ * fallbacks. Young is NOT RAM-scaled — its 192 MB cap is a per-minor cost cliff,
  * not a memory limit. */
 #ifndef VADER_GC_YOUNG_BYTES
 #define VADER_GC_YOUNG_BYTES (32u * 1024u * 1024u)   /* 32 MB initial young semi-space; auto-grows */
@@ -612,23 +623,16 @@ static inline size_t vader_array_len(vader_array_t* a) { return a->length; }
 #define VADER_GC_YOUNG_CAP_DEFAULT (192u * 1024u * 1024u) /* default adaptive-young ceiling (per-minor cost cliff) */
 #endif
 #ifndef VADER_GC_OLD_BYTES
-#define VADER_GC_OLD_BYTES   (256u * 1024u * 1024u)  /* fallback initial old (used iff RAM detection fails) */
+#define VADER_GC_OLD_BYTES   (256u * 1024u * 1024u)  /* only a pre-init `vader_gc_stats_t.arena_size` fallback */
 #endif
-/* RAM-proportional old-arena sizing policy (see `vader_gc_init`). All `-D`-tunable. */
+/* RAM-proportional old-reservation sizing policy (see `vader_gc_init`). The old
+ * gen is a single lazily-committed reservation == the cap; there is no separate
+ * initial size. All `-D`-tunable. */
 #ifndef VADER_GC_RAM_PERCENT
 #define VADER_GC_RAM_PERCENT     50u                   /* GC commit ceiling as % of physical RAM */
 #endif
-#ifndef VADER_GC_OLD_INIT_PERCENT
-#define VADER_GC_OLD_INIT_PERCENT 3u                   /* initial old = this % of RAM (then clamped) */
-#endif
-#ifndef VADER_GC_OLD_INIT_MIN
-#define VADER_GC_OLD_INIT_MIN    (128u * 1024u * 1024u) /* floor on the RAM-derived initial old */
-#endif
-#ifndef VADER_GC_OLD_INIT_MAX
-#define VADER_GC_OLD_INIT_MAX    (768u * 1024u * 1024u) /* ceiling on the RAM-derived initial old */
-#endif
 #ifndef VADER_GC_OLD_CAP_MIN
-#define VADER_GC_OLD_CAP_MIN     (256u * 1024u * 1024u) /* floor on the RAM-derived old auto-grow cap */
+#define VADER_GC_OLD_CAP_MIN     (256u * 1024u * 1024u) /* floor on the RAM-derived old reservation cap */
 #endif
 #ifndef VADER_TENURE_AGE
 #define VADER_TENURE_AGE     2u                      /* minor cycles before promotion */
@@ -637,19 +641,26 @@ static inline size_t vader_array_len(vader_array_t* a) { return a->length; }
 #define VADER_CARD_BYTES     512u                    /* one card per 512 bytes of old */
 #endif
 
-/* Old-arena auto-grow policy. On each major, if the live old set times the
- * headroom fraction exceeds the current semi-space, the arena flips into a
- * fresh block sized `max(2 × current, live × headroom)`, capped at OLD_MAX.
- * Headroom defaults to 3/2 (1.5×) — enough slack that the next major isn't
- * immediately back at the grow threshold. */
+/* Old-gen reclamation headroom. The non-moving slab never compacts, so a major
+ * (which sweeps dead old in place) fires once the old footprint exceeds
+ * `live_after_last_major × headroom` (see `vader_old_maybe_major`). Headroom
+ * defaults to 3/2 (1.5×) — enough slack that the next major isn't immediately
+ * back at the trigger. */
 #ifndef VADER_GC_OLD_HEADROOM_NUM
 #define VADER_GC_OLD_HEADROOM_NUM 3u
 #endif
 #ifndef VADER_GC_OLD_HEADROOM_DEN
 #define VADER_GC_OLD_HEADROOM_DEN 2u
 #endif
+/* Reclamation-trigger floor for the non-moving mark-sweep old gen: a major (which
+ * sweeps dead old) fires once the old footprint exceeds
+ * `live_after_last_major × HEADROOM`, but never before it passes this floor — so
+ * small programs never pay a major. Below the floor, the slab simply bumps. */
+#ifndef VADER_GC_OLD_MAJOR_FLOOR
+#define VADER_GC_OLD_MAJOR_FLOOR (64u * 1024u * 1024u)
+#endif
 #ifndef VADER_GC_OLD_MAX
-#define VADER_GC_OLD_MAX (4ull * 1024ull * 1024ull * 1024ull)  /* 4 GB hard cap per old semi-space */
+#define VADER_GC_OLD_MAX (4ull * 1024ull * 1024ull * 1024ull)  /* 4 GB hard cap on the old reservation */
 #endif
 /* Young grows to fit an oversized single object (one bigger than the current
  * semi-space) or a working set the minor can't drain, capped here. */
@@ -660,7 +671,7 @@ static inline size_t vader_array_len(vader_array_t* a) { return a->length; }
 void vader_gc_init(void);
 void vader_gc_shutdown(void);
 
-/* Run a full collection (minor + Cheney on old). Exposed to user Vader code
+/* Run a full collection (minor + mark-sweep on old). Exposed to user Vader code
  * via the `runtime.collect()` intrinsic, and used by stress tests that want
  * to force reclamation between allocations. */
 void vader_gc_collect(void);
@@ -670,7 +681,7 @@ void vader_gc_collect(void);
  * `VADER_TENURE_AGE` into old. */
 void vader_minor_collect(void);
 
-/* Major: drain young (via a minor) then Cheney-collect old. Triggered when
+/* Major: drain young (via a minor) then mark-sweep old. Triggered when
  * promotion would overflow old, and when the user explicitly calls collect. */
 void vader_major_collect(void);
 
@@ -703,7 +714,7 @@ extern uintptr_t  vader_old_end;
 
 /* Stats — exposed for tests / `runtime_gc_stats()` in stdlib. */
 typedef struct {
-    size_t arena_size;        /* size of each old semi-space, in bytes */
+    size_t arena_size;        /* size of the old-gen reservation (the cap), in bytes */
     size_t bytes_used;        /* live bytes across young+old (post-collection) */
     size_t total_collections; /* full + minor cycles run since process start */
     size_t total_copied;      /* cumulative bytes copied across all cycles */
