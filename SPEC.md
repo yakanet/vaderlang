@@ -2262,7 +2262,22 @@ build_lookup_table :: fn() -> u32[] {
 TABLE :: build_lookup_table()
 ```
 
-`build_lookup_table()` runs during compilation. `TABLE` is a constant whose value is placed in the binary's data section. (This illustrates the *intended* capability; the current comptime engine evaluates only a restricted subset — see the implementation note below — so a loop body like this is not yet evaluable and surfaces `C4001`.)
+`build_lookup_table()` runs during compilation — loops, local mutation and calls are evaluated by the embedded bytecode VM (see the implementation note). `TABLE` is a constant whose value is computed once at compile time. When typed as an immutable `const T[]` of primitive elements it is **materialised into the binary's read-only data section** (`.rodata` natively, a data segment under wasm) and referenced by a zero-copy view — never rebuilt at runtime ; otherwise the value is inlined at each use site.
+
+**Inline form.** `@comptime` also works as an expression prefix on a const's right-hand side, so the builder can be written at the const instead of as a separate fn:
+
+```vader
+TABLE :: @comptime {
+    result: u32[] = []
+    for i in 0..<256 { result.push(u32(i * i)) }
+    return result
+}
+
+// typed form — materialised into .rodata :
+SQUARES: const u32[]: @comptime { … }
+```
+
+`NAME :: @comptime <expr>` desugars to a synthetic nullary fn holding `<expr>` plus a `@comptime`-decorated `NAME` that calls it ; a trailing `return` inside a block behaves as the block's value.
 
 ### Synergy with generics
 
@@ -2274,7 +2289,7 @@ See section 2 (Compilation Model).
 
 ### Implementation note (comptime engine)
 
-In the self-hosted compiler the comptime engine is a **tree-walk AST interpreter** (`vader/comptime/`), distinct from the bytecode VM that backs `vader run`. It currently evaluates a restricted subset: expression evaluation plus calls to functions with a single `return <expr>` (or trailing-expression) body. Loops, statement-bodied functions, local mutation, and method calls are **not yet supported** — anything outside the subset surfaces `C4001`. Generic instances are still observed during comptime evaluation and fed back into the monomorphizer. (The TypeScript reference compiler used the bytecode VM for comptime; widening the self-host engine toward that coverage is future work.)
+In the self-hosted compiler the comptime engine is a **tree-walk AST interpreter** (`vader/comptime/`) for the common case — expression evaluation plus calls to functions with a single `return <expr>` / trailing-expression body. A decl the tree-walk can't evaluate (loop, statement-bodied callee, local mutation) is **staged to bytecode and run by the embedded VM** (`vader/comptime_vm`, between `evaluate_project` and `lower_project`) — the model the TypeScript reference compiler always used. The VM result is bridged back to a comptime value and injected. Guards keep this deterministic: a step budget bounds non-terminating loops (`C4004`), a sandbox denies non-deterministic / side-effecting hosts at comptime (clock, process, I/O), and a VM trap surfaces `C4002` ; a genuinely unevaluable shape still surfaces `C4001`. Generic instances are observed during evaluation and fed to the monomorphizer.
 
 ### Reflection / comptime intrinsics
 
