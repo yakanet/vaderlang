@@ -293,17 +293,14 @@ MD5_S: u32[]: [
 
 // MD5 round constants : floor(2^32 * abs(sin(i + 1))) for i = 0..63.
 //
-// Computed at compile time via the VM-backed comptime engine — `build_md5_k`
-// runs in the embedded VM during compilation (its loop / `push` / `sin` are
-// outside the tree-walk subset, so the comptime fallback stages + executes it)
-// and the resulting table is baked into the binary as a literal. Never
-// recomputed at runtime ; the builder is dead-code-eliminated from the runtime
-// image. The known-answer tests (`test_md5_*`) guard the baked values against
-// host-libm `sin` drift across platforms.
-@comptime
-MD5_K :: build_md5_k()
-
-build_md5_k :: fn() -> const u32[] {
+// Computed at compile time via the VM-backed comptime engine (the loop / `push`
+// / `sin` are outside the tree-walk subset, so the comptime fallback stages +
+// executes the block in the embedded VM). Typed `const u32[]`, so the result is
+// materialised into the binary's read-only data section and read through a
+// zero-copy view — never recomputed at runtime. The known-answer tests
+// (`test_md5_*`) guard the baked values against host-libm `sin` drift across
+// platforms.
+MD5_K: const u32[]: @comptime {
     k: u32[] = []
     for i in 0..<64 {
         s :: abs(sin(f64(i) + 1.0))
