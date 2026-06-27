@@ -23,7 +23,7 @@ import "vader/types" { display_type, type_base_name, canonical_key, canonical_ar
 import "vader/diagnostics" { typecheck_error }
 import "vader/types" {
     Type, ArrayType, EnumType, FnType, SelfType, StructType, TraitType,
-    TupleType, UnionType,
+    TupleType, UnionType, PrimitiveType,
     mk_array, mk_fn, mk_struct, mk_tuple, mk_union, mk_enum,
     TY_UNRESOLVED, TY_TYPE, TY_VOID,
 }
@@ -1790,8 +1790,29 @@ check_const_value :: fn(cd: AST.ConstDecl, typed: TypedProgram, diags: Diagnosti
     }
     got :: check_expr(cd.value, expected, typed, diags)
     if annot is null {
-        typed.decl_types[sym.id] = default_if_free(got)
+        typed.decl_types[sym.id] = auto_const_comptime_array(cd, default_if_free(got))
     }
+}
+
+// A `@comptime` const value is computed once and frozen — and when it's a
+// primitive array it is materialised into read-only `.rodata` (mutating it would
+// segfault). So an UNANNOTATED `@comptime` const whose inferred type is a
+// mutable primitive array is auto-typed `const T[]` (immutable → Phase-A
+// bakeable). Explicit annotations are respected (this only runs when `annot is
+// null`), so `X: u32[]: @comptime …` stays a mutable, non-baked opt-out.
+auto_const_comptime_array :: fn(cd: AST.ConstDecl, t: Type) -> Type {
+    if !decl_is_comptime(cd.decorators) { return t }
+    if t is ArrayType as a {
+        if !a.immutable {
+            if a.element is PrimitiveType { return mk_array(a.element, true) }
+        }
+    }
+    return t
+}
+
+decl_is_comptime :: fn(decorators: AST.Decorator[]) -> bool {
+    for d in decorators { if d.name == "comptime" { return true } }
+    return false
 }
 
 lookup_sym_by_name_orch :: fn(resolved: ResolvedModule, name: string) -> Symbol | null {
