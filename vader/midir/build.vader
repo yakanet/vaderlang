@@ -18,7 +18,7 @@ import "std/collections" { MutableMap }
 import "vader/diagnostics" { Span, empty_span }
 import "vader/lower" {
     LoweredProject, LoweredModule, LoweredDecl, LoweredFnDecl, LoweredStructDecl,
-    LoweredConstDecl, ConstFnWrap, DataPoolEntry,
+    LoweredConstDecl, ConstFnWrap, DataPoolEntry, PrimDataPoolEntry, StrDataPoolEntry,
     LoweredBlock, LoweredStmt, LoweredLet, LoweredAssign, LoweredExprStmt,
     LoweredReturn, LoweredLoop, LoweredBreak, LoweredContinue,
     LoweredCellSet,
@@ -157,19 +157,24 @@ export build_cfg_project :: fn(lp: LoweredProject) -> CFGProject {
     }
 }
 
-import "vader/bytecode" { BcDataEntry, ArrayKind, array_kind_from_name }
+import "vader/bytecode" { BcDataEntry, BcPrimData, BcStrData, ArrayKind, array_kind_from_name }
 
-// Convert lower-side `DataPoolEntry` (i64 bit patterns + element type name) into
-// bytecode `BcDataEntry` (u64 items + ArrayKind). Done here, at the lower→CFG
-// boundary, because `vader/lower` can't import `vader/bytecode` (it would close
-// the bytecode→lower import cycle). `u64(i64)` reinterprets the bits — the
-// runtime reads each element at its natural width (low bits).
+// Convert each lower-side `DataPoolEntry` into its bytecode `BcDataEntry`
+// variant. Done here, at the lower→CFG boundary, because `vader/lower` can't
+// import `vader/bytecode` (it would close the bytecode→lower import cycle).
+// Primitive arrays reinterpret their `i64` bits as `u64` (`u64(i64)` — the
+// runtime reads each element at its natural width, low bits) ; string arrays
+// carry their values through to `midir::emit`, which interns them.
 convert_data_pool :: fn(entries: DataPoolEntry[]) -> BcDataEntry[] {
     out: BcDataEntry[] = []
     for e in entries {
-        items: u64[] = []
-        for v in e.items { items.push(u64(v)) }
-        out.push(BcDataEntry { .kind = array_kind_from_name(e.element_type_name), .items = items })
+        if e is StrDataPoolEntry as se {
+            out.push(BcStrData { .values = se.values })
+        } else if e is PrimDataPoolEntry as pe {
+            items: u64[] = []
+            for v in pe.items { items.push(u64(v)) }
+            out.push(BcPrimData { .kind = array_kind_from_name(pe.element_type_name), .items = items })
+        }
     }
     return out
 }

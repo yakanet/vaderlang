@@ -1,0 +1,31 @@
+# Lower
+
+## snippet
+  fn snippet$main() -> i32
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            format_f64 :fn(f64) -> string
+          arg0:
+            index :f64
+              on:
+                WIDE :const f64[]
+              ix:
+                int(1) :i32
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            format_f32 :fn(f32) -> string
+          arg0:
+            index :f32
+              on:
+                NARROW :const f32[]
+              ix:
+                int(0) :i32
+    return int(0) :i32

@@ -409,18 +409,28 @@ export array_kind_from_name :: fn(name: string) -> ArrayKind = match name {
 // Data pool — module-level static arrays of primitive elements
 // =========================================================================
 
-/// One pre-materialised `const T[]` literal. Built once at module-load
-/// time on the VM, baked into `.rodata` on native. `data.const N`
-/// references the parent module's `data_pool[N]`.
-///
-/// `items` carries one u64 entry per element — the raw bit pattern at
-/// the element's natural width (low bits used). For signed integers,
-/// callers reinterpret the u64 as `iN` ; for floats, as the IEEE 754
-/// bit pattern. The host TS code uses `bigint` for the same role —
-/// Vader's u64 is wide enough.
-export BcDataEntry :: struct {
+/// One pre-materialised `const T[]` literal. Built once at module-load time on
+/// the VM, baked into `.rodata` on native. `data.const N` references the parent
+/// module's `data_pool[N]`. Either a primitive-element array (`BcPrimData`) or a
+/// string array (`BcStrData`).
+export BcDataEntry :: BcPrimData | BcStrData
+
+/// A pooled array of primitive elements. `items` carries one u64 entry per
+/// element — the raw bit pattern at the element's natural width (low bits used).
+/// For signed integers, callers reinterpret the u64 as `iN` ; for floats, as the
+/// IEEE 754 bit pattern.
+export BcPrimData :: struct {
     kind: ArrayKind         // never Boxed — primitive arrays only
     items: u64[]
+}
+
+/// A pooled `const string[]`. `values` carries the element string values ; each
+/// backend resolves them its own way (native : a boxed atom-id slot in `.rodata`
+/// once `midir` has interned them into the module string table ; VM : a
+/// `StringVal` sharing the value). Stored as Boxed slots at runtime — a string
+/// is a `vader_string_t` atom id, never an inline primitive.
+export BcStrData :: struct {
+    values: string[]
 }
 
 // =========================================================================

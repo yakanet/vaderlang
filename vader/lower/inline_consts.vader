@@ -97,27 +97,25 @@ should_fn_wrap :: fn(value: LoweredExpr) -> bool {
     return false
 }
 
-// Route an immutable `const T[]` of primitive literals into the project data
-// pool : register a `DataPoolEntry`, point the const's read sites at a
-// `LoweredDataConst` (via `const_inline`, which `build_ident` rebuilds as the
-// `data.const` op), and report success so the caller drops the decl. Returns
-// false for any non-eligible shape (mutable array, non-primitive element,
-// non-array) — those keep the fn-wrap / inline buckets.
+// Route an immutable `const T[]` into the project data pool : register a
+// `DataPoolEntry`, point the const's read sites at a `LoweredDataConst` (via
+// `const_inline`, which `build_ident` rebuilds as the `data.const` op), and
+// report success so the caller drops the decl. Returns false for any
+// non-eligible shape (mutable array, non-poolable element, non-array) — those
+// keep the fn-wrap / inline buckets.
 //
-// Phase A: integer / char / bool elements only (all fit an `i64` bit pattern) ;
-// float arrays are not yet pooled.
+// Poolable elements : integer / char / bool / float literals (each reduced to an
+// `i64` bit pattern) and string literals (kept verbatim). Struct arrays route
+// through later phases.
 try_data_pool :: fn(cd: LoweredConstDecl, symbol: Symbol, project: LoweredProject) -> bool {
     if cd.type is ArrayType as arr_type {
         if !arr_type.immutable { return false }
         if cd.value is LoweredArrayLit as lit {
-            rendered :: render_data_items(lit)
-            if rendered != null {
+            element_type_name :: display_type(arr_type.element)
+            entry :: render_data_pool_entry(lit, element_type_name)
+            if entry != null {
                 pool_index :: project.data_pool.len()
-                project.data_pool.push(DataPoolEntry {
-                    .type_name         = display_type(cd.type),
-                    .element_type_name = display_type(arr_type.element),
-                    .items             = rendered,
-                })
+                project.data_pool.push(entry)
                 project.const_inline[symbol.id] = LoweredDataConst {
                     .span = lit.span, .type = cd.type, .pool_index = pool_index,
                 }
@@ -128,12 +126,38 @@ try_data_pool :: fn(cd: LoweredConstDecl, symbol: Symbol, project: LoweredProjec
     return false
 }
 
+// Build the pooled entry for an immutable array literal, or null when an element
+// isn't poolable. A `string[]` becomes a `StrDataPoolEntry` (values verbatim) ;
+// every other element type takes the primitive bit-pattern path.
+render_data_pool_entry :: fn(lit: LoweredArrayLit, element_name: string) -> DataPoolEntry | null {
+    if element_name == "string" {
+        values :: render_string_items(lit)
+        if values == null { return null }
+        return StrDataPoolEntry { .values = values }
+    }
+    rendered :: render_data_items(lit, element_name)
+    if rendered == null { return null }
+    return PrimDataPoolEntry { .element_type_name = element_name, .items = rendered }
+}
+
+// Collect every element's string value, or null when any element isn't a plain
+// string literal (interpolation lowers to a builder, never reaching here).
+render_string_items :: fn(lit: LoweredArrayLit) -> string[] | null {
+    out: string[] = []
+    for el in lit.elements {
+        if el is LoweredStringLit as s { out.push(s.value) } else { return null }
+    }
+    return out
+}
+
 // Collect every element's raw bit pattern as `i64`, or null when any element
-// isn't a poolable primitive literal (int / char / bool).
-render_data_items :: fn(lit: LoweredArrayLit) -> i64[] | null {
+// isn't a poolable primitive literal (int / char / bool / float). `element_name`
+// is the array's element type name — needed to pick the f32 vs f64 width when
+// reinterpreting a float literal's IEEE-754 bits.
+render_data_items :: fn(lit: LoweredArrayLit, element_name: string) -> i64[] | null {
     out: i64[] = []
     for el in lit.elements {
-        bits :: data_item_bits(el)
+        bits :: data_item_bits(el, element_name)
         if bits == null { return null }
         out.push(bits)
     }
@@ -141,10 +165,16 @@ render_data_items :: fn(lit: LoweredArrayLit) -> i64[] | null {
 }
 
 // Raw `i64` bit pattern of a poolable primitive literal, or null otherwise.
-data_item_bits :: fn(el: LoweredExpr) -> i64 | null {
+// Floats are reinterpreted via `to_bits()` at the element's natural width
+// (`f32` keeps the low 32 bits), matching `vm/virt_reader_bc::value_from_bits`.
+data_item_bits :: fn(el: LoweredExpr, element_name: string) -> i64 | null {
     if el is LoweredIntLit as i  { return i.value }
     if el is LoweredCharLit as c { return i64(c.value) }
     if el is LoweredBoolLit as b { return if b.value { 1 } else { 0 } }
+    if el is LoweredFloatLit as f {
+        if element_name == "f32" { return i64(u64(f32(f.value).to_bits())) }
+        return i64(f.value.to_bits())
+    }
     return null
 }
 

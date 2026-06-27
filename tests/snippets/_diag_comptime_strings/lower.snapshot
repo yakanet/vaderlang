@@ -1,0 +1,33 @@
+# Lower
+
+## snippet
+  fn snippet$main() -> i32
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        index :string
+          on:
+            WORDS :const string[]
+          ix:
+            int(1) :i32
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        index :string
+          on:
+            TRICKY :const string[]
+          ix:
+            int(0) :i32
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        call :string
+          callee:
+            format_unsigned :fn(u64) -> string
+          arg0:
+            cast → u64
+              LoweredArrayLen
+    return int(0) :i32

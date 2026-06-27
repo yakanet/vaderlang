@@ -100,6 +100,7 @@ import "vader/bytecode" {
     ArrayRemoveLast,
     ArrayClear,
     DataConst,
+    BcStrData,
     TypeConst,
     TypeCheck,
     RefCast,
@@ -298,6 +299,15 @@ export emit_bytecode_from_cfg :: fn(cfg: CFGProject, module_name: string, opts: 
     // Pre-translate CFG string indices into bytecode pool indices.
     string_index_map: i32[] = []
     for s in cfg.strings { string_index_map.push(intern_string(s, ctx)) }
+    // Intern each pooled `const string[]`'s values into the module string table
+    // so the comptime atom table (built from `module.strings`) covers them — the
+    // native backend resolves each value's atom there, and the `.virt` dump
+    // references them by table index. Side-effect only ; the entry keeps values.
+    for data_entry in cfg.data_pool {
+        if data_entry is BcStrData as sd {
+            for v in sd.values { intern_string(v, ctx) }
+        }
+    }
     // Pass 2 — emit fn bodies from the CFG.
     for __for_256_5 in cfg.modules {
         [_, m] :: __for_256_5
