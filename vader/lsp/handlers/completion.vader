@@ -32,7 +32,7 @@ AST :: import "vader/parser"
 
 /// Language keywords offered as completions. Mirrors
 /// `vader/lexer/keywords.vader::lookup_keyword` plus the `module` soft keyword.
-COMPLETION_KEYWORDS :: [
+COMPLETION_KEYWORDS: const string[]: [
     "fn", "struct", "trait", "implements", "enum", "if", "else", "match",
     "is", "for", "in", "return", "defer", "break", "continue", "import",
     "as", "export", "true", "false", "null", "self", "const", "module",

@@ -128,7 +128,7 @@ lookup_expr_type_str :: fn(typed: TypedProgram, id: usize) -> string {
     return display_type(ty)
 }
 
-SKIPPED_KINDS :: [
+SKIPPED_KINDS: const string[]: [
     "IntLitExpr", "FloatLitExpr", "BoolLitExpr",
     "NullLitExpr", "CharLitExpr", "BlockExpr",
 ]

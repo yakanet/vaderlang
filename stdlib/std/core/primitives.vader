@@ -40,7 +40,7 @@ module "std/core"
 
 /// One-char strings per decimal digit. Used by the f64 digit collector in
 /// `dtoa.vader` ; the integer formatters below emit digit *bytes* directly.
-DECIMAL_DIGITS :: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+DECIMAL_DIGITS: const string[]: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
 
 // Render a signed value working entirely in NON-POSITIVE space, because
 // `abs(i64 min)` overflows i64 (|i64 min| = i64 max + 1). So rather than negate
