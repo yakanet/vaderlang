@@ -40,7 +40,7 @@ export VmState :: struct {
 export prepare :: fn(bc_mod: bc.BytecodeModule) -> VmState {
     return VmState {
         .bc         = bc_mod,
-        .data_pool  = reduce_data_pool(bc_mod.data_pool),
+        .data_pool  = reduce_data_pool(bc_mod.data_pool, bc_mod.types),
         .main_index = reduce_main_index(bc_mod.functions),
     }
 }

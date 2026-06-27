@@ -95,8 +95,43 @@ write_data_pool :: fn(sb: StringBuilder, data_pool: BcDataEntry[]) -> void {
             sb.append("${out}\n")
         } else if e is BcPrimData as pd {
             sb.append("data ${i} ${array_kind_name(pd.kind)} hex\"${data_items_hex(pd)}\"\n")
+        } else if e is BcAggregateData as ad {
+            // Count-prefixed token stream (no paren balancing) :
+            //   data N agg <elemname> <count> <value>…
+            // where <value> is `prim <kind> <hex>` | `str "…"` |
+            //   `struct <symid> <nfields> <value>…` | `array <elemname> <n> <value>…`.
+            out :: new_builder()
+            out.append("data ${i} agg ${ad.element_type_name} ${ad.elements.len()}")
+            for v in ad.elements { write_data_value(out, v) }
+            sb.append("${out}\n")
         }
     }
+}
+
+// Serialise one recursive baked value into the count-prefixed `.virt` form.
+write_data_value :: fn(out: StringBuilder, v: BcDataValue) -> void {
+    if v is BcValPrim as p {
+        out.append(" prim ${array_kind_name(p.kind)} ${data_value_hex(p.kind, p.bits)}")
+    } else if v is BcValStr as s {
+        out.append(" str ${quote_string(s.value)}")
+    } else if v is BcValStruct as st {
+        out.append(" struct ${st.symbol_id} ${st.fields.len()}")
+        for f in st.fields { write_data_value(out, f) }
+    } else if v is BcValArray as a {
+        out.append(" array ${a.element_type_name} ${a.elements.len()}")
+        for e in a.elements { write_data_value(out, e) }
+    }
+}
+
+// Little-endian hex of a single bit pattern at the kind's natural width.
+data_value_hex :: fn(kind: ArrayKind, bits: u64) -> string {
+    esz :: usize(array_kind_element_size(kind))
+    out :: new_builder()
+    for b in 0..<esz {
+        byte :: (bits >> u64(8 * b)) & 0xFF
+        out.append(pad_start(to_hex(byte), 2, '0'))
+    }
+    return "${out}"
 }
 
 // Little-endian hex of every element's bit pattern (`element_size` bytes each).

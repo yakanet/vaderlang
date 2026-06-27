@@ -30,7 +30,7 @@ import "std/collections" { MutableMap }
 AST :: import "vader/parser"
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/comptime" { MonoEntry }
-import "vader/types" { ArrayType, display_type }
+import "vader/types" { ArrayType, StructType, display_type }
 
 // Break-even point : the `call` at each read site is cheaper than re-emitting
 // `2 * N` ops to rebuild the literal once N passes this threshold. Matches
@@ -136,8 +136,52 @@ render_data_pool_entry :: fn(lit: LoweredArrayLit, element_name: string) -> Data
         return StrDataPoolEntry { .values = values }
     }
     rendered :: render_data_items(lit, element_name)
-    if rendered == null { return null }
-    return PrimDataPoolEntry { .element_type_name = element_name, .items = rendered }
+    if rendered != null {
+        return PrimDataPoolEntry { .element_type_name = element_name, .items = rendered }
+    }
+    // Aggregate (struct / nested-array elements) : bakeable only when every leaf
+    // is a constant literal and every struct is a named, non-generic struct (its
+    // symbol-id keys the baked value ; `midir` recurses over the same literal).
+    if is_bakeable_array(lit) {
+        return AggregateDataPoolEntry { .element_type_name = element_name, .literal = lit }
+    }
+    return null
+}
+
+// Recursive bakeability gate. Mirrors `midir/build::lowered_to_bc_value` exactly :
+// a node accepted here must be convertible there. Conservative — anything not a
+// constant literal / named-struct / array falls through to fn-wrap.
+is_bakeable_array :: fn(lit: LoweredArrayLit) -> bool {
+    for el in lit.elements {
+        if !is_bakeable_value(el) { return false }
+    }
+    return true
+}
+
+is_bakeable_value :: fn(el: LoweredExpr) -> bool {
+    if el is LoweredIntLit    { return true }
+    if el is LoweredFloatLit  { return true }
+    if el is LoweredBoolLit   { return true }
+    if el is LoweredCharLit   { return true }
+    if el is LoweredStringLit { return true }
+    if el is LoweredArrayLit  as a { return is_bakeable_array(a) }
+    if el is LoweredStructLit as s { return is_bakeable_struct(s) }
+    return false
+}
+
+// A named, non-generic struct literal whose fields are all bakeable. Tuples
+// (`TupleType`) and generic instances are rejected — the baked struct is resolved
+// at the backend by `symbol_id` alone, which a tuple lacks and a generic shares
+// across monomorphized instances.
+is_bakeable_struct :: fn(s: LoweredStructLit) -> bool {
+    if s.type is StructType as st {
+        if st.args.len() > 0 { return false }
+        for f in s.fields {
+            if !is_bakeable_value(f.value) { return false }
+        }
+        return true
+    }
+    return false
 }
 
 // Collect every element's string value, or null when any element isn't a plain

@@ -1,0 +1,30 @@
+// Diag snippet: INTRINSICS-shaped — a `const Spec[]` whose struct has a STRING
+// field, a NESTED ARRAY-of-enum field, and another string. Exercises recursive
+// aggregate baking at depth > 1. Expected: prints "cast", "2", "1", exits 0.
+
+module "snippet"
+
+import "std/io" { println }
+
+Kind :: enum(u8) {
+    Type,
+    Value,
+}
+
+Spec :: struct {
+    name:   string
+    args:   Kind[]
+    result: string
+}
+
+SPECS: const Spec[]: [
+    Spec { .name = "size_of", .args = [.Value], .result = "usize" },
+    Spec { .name = "cast", .args = [.Type, .Value], .result = "T" },
+]
+
+main :: fn() -> i32 {
+    println(SPECS[1].name)
+    println("${SPECS[1].args.len()}")
+    println("${i32(SPECS[1].args[1])}")
+    return 0
+}

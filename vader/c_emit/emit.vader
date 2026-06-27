@@ -30,13 +30,17 @@ module "vader/c_emit"
 
 import "std/string" { join }
 import "std/string_builder" { StringBuilder, new_builder, append }
-import "std/abort" { todo }
+import "std/abort" { todo, panic }
 import "vader/bytecode" { BytecodeModule, BcFunction }
 import "vader/bytecode" {
     BcType, BcPrimitive, BcStruct, BcArray, BcUnion, BcRef, BcFn,
     ValType, size_of_bc_type, is_string_val,
 }
-import "vader/bytecode" { Op, DataConst, ArrayKind, array_kind_index, BcDataEntry, BcPrimData, BcStrData }
+import "vader/bytecode" {
+    Op, DataConst, ArrayKind, array_kind_index, array_kind_from_name,
+    BcDataEntry, BcPrimData, BcStrData, BcAggregateData,
+    BcDataValue, BcValPrim, BcValStr, BcValStruct, BcValArray,
+}
 import "std/collections" { MutableMap }
 
 /// Options threaded through the emit. Mirrors TS `EmitOptions`.
@@ -317,9 +321,156 @@ emit_data_pool :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
             emit_str_data_entry(out, i, sd, array_type_id, elem_tag, atom_of)
         } else if entry is BcPrimData as pd {
             emit_prim_data_entry(out, i, pd, array_type_id, elem_tag)
+        } else if entry is BcAggregateData as ad {
+            emit_agg_data_entry(out, i, ad, array_type_id, elem_tag, atom_of, ctx)
         }
     }
     out.append("\n")
+}
+
+// One aggregate (struct / tuple / nested) `.rodata` array : a boxed slot buffer
+// of pointers to each element's own materialised static, emitted depth-first
+// (children before parents) so the C forward-refs resolve.
+emit_agg_data_entry :: fn(out: StringBuilder, i: usize, ad: BcAggregateData, array_type_id: i32, elem_tag: i32, atom_of: MutableMap<string, i32>, ctx: EmitCtx) -> void {
+    n :: ad.elements.len()
+    boxed_kind :: array_kind_index(ArrayKind.Boxed)
+    slot_exprs: string[] = []
+    for k in 0..<n {
+        slot_exprs.push(box_slot_c(ctx, out, ad.elements[k], "vader_data_${i}_e${k}", elem_tag, atom_of))
+    }
+    out.append("static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[${n}]; } vader_data_${i}_buf = {\n")
+    out.append("    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, ${n}u, ${n}u, ${elem_tag}u, ${boxed_kind}u, { 0u, 0u, 0u },\n")
+    out.append("    { ${join_commas(slot_exprs)} }\n")
+    out.append("};\n")
+    out.append("static const vader_array_t vader_data_${i} = { { ${array_type_id}u, 0u, 0u, 0u, NULL }, ${n}u, ${n}u, 0u, (vader_array_buf_t*) &vader_data_${i}_buf };\n")
+}
+
+// Materialise one recursive baked value, emitting any prerequisite statics, and
+// return the C init expression to place in the parent slot/field. Prim leaves
+// inline their literal ; string leaves inline their atom id ; structs and nested
+// arrays emit their own static and return its address (cast to the slot type).
+emit_data_value :: fn(ctx: EmitCtx, out: StringBuilder, v: BcDataValue, name: string, atom_of: MutableMap<string, i32>) -> string {
+    if v is BcValPrim as p { return data_slot_c(p.kind, p.bits, c_type_for_array_kind(p.kind)) }
+    if v is BcValStr as s { return "${atom_for(atom_of, s.value)}u" }
+    if v is BcValStruct as st {
+        type_id :: type_id_for_struct_symbol(ctx.module.types, st.symbol_id)
+        cname :: ctx.struct_c_names[usize(type_id)]
+        parts: string[] = ["{ ${type_id}u, 0u, 0u, 0u, NULL }"]
+        if ctx.module.types[usize(type_id)] is BcStruct as bcs {
+            for k in 0..<st.fields.len() {
+                field_tid :: if k < bcs.fields.len() { bcs.fields[k].type_index } else { 0 }
+                parts.push(struct_field_init(ctx, out, st.fields[k], "${name}_f${k}", field_tid, atom_of))
+            }
+        }
+        out.append("static const struct ${cname} ${name} = { ${join_commas(parts)} };\n")
+        return "(struct ${cname}*) &${name}"
+    }
+    if v is BcValArray as a {
+        return emit_nested_array(ctx, out, a, name, atom_of)
+    }
+    return "0"
+}
+
+// A nested array field (e.g. a struct's `T[]` field). Primitive-element arrays
+// inline concrete-typed slots ; otherwise a boxed slot buffer of element statics.
+emit_nested_array :: fn(ctx: EmitCtx, out: StringBuilder, a: BcValArray, name: string, atom_of: MutableMap<string, i32>) -> string {
+    // The storage kind comes from the ELEMENTS (an enum array's name resolves to
+    // Boxed, but its values are prim leaves at the repr width), not the type name.
+    elem_kind :: element_storage_kind(a.elements)
+    n :: a.elements.len()
+    elem_tag :: type_index_for_name(ctx.module.types, a.element_type_name)
+    arr_tid :: array_type_index_for_element(ctx.module.types, elem_tag)
+    if elem_kind == ArrayKind.Boxed {
+        slot_exprs: string[] = []
+        for k in 0..<n {
+            slot_exprs.push(box_slot_c(ctx, out, a.elements[k], "${name}_x${k}", elem_tag, atom_of))
+        }
+        out.append("static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; vader_box_t slots[${n}]; } ${name}_buf = {\n")
+        out.append("    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, ${n}u, ${n}u, ${elem_tag}u, ${array_kind_index(ArrayKind.Boxed)}u, { 0u, 0u, 0u },\n")
+        out.append("    { ${join_commas(slot_exprs)} }\n};\n")
+    } else {
+        cty :: c_type_for_array_kind(elem_kind)
+        slots: string[] = []
+        for el in a.elements {
+            if el is BcValPrim as p { slots.push(data_slot_c(p.kind, p.bits, cty)) }
+        }
+        out.append("static const struct { vader_obj_header_t header; size_t capacity; size_t length; uint32_t element_tag; uint8_t element_kind; uint8_t _pad[3]; ${cty} slots[${n}]; } ${name}_buf = {\n")
+        out.append("    { VADER_TYPE_INDEX_ARRAY_BUF, 0u, 0u, 0u, NULL }, ${n}u, ${n}u, ${elem_tag}u, ${array_kind_index(elem_kind)}u, { 0u, 0u, 0u },\n")
+        out.append("    { ${join_commas(slots)} }\n};\n")
+    }
+    out.append("static const vader_array_t ${name} = { { ${arr_tid}u, 0u, 0u, 0u, NULL }, ${n}u, ${n}u, 0u, (vader_array_buf_t*) &${name}_buf };\n")
+    return "(vader_array_t*) &${name}"
+}
+
+// One struct field initialiser. Primitive fields inline their literal, string
+// fields inline their atom id (a `vader_string_t` slot), and struct / array
+// fields are stored as a `vader_box_t` ref slot — a pointer to the field value's
+// own static, tagged with the declared field type index.
+struct_field_init :: fn(ctx: EmitCtx, out: StringBuilder, v: BcDataValue, name: string, field_tid: i32, atom_of: MutableMap<string, i32>) -> string {
+    if v is BcValPrim as p { return data_slot_c(p.kind, p.bits, c_type_for_array_kind(p.kind)) }
+    if v is BcValStr as s { return "${atom_for(atom_of, s.value)}u" }
+    expr :: emit_data_value(ctx, out, v, name, atom_of)
+    return "{ ${field_tid}u, 0u, { .obj = (void*) ${expr} } }"
+}
+
+// One `vader_box_t` slot for a boxed-array element : a string boxes its atom in
+// `.s`, a struct / nested array boxes a pointer to its static in `.obj`.
+box_slot_c :: fn(ctx: EmitCtx, out: StringBuilder, v: BcDataValue, name: string, tag: i32, atom_of: MutableMap<string, i32>) -> string {
+    if v is BcValStr as s { return "{ ${tag}u, 0u, { .s = ${atom_for(atom_of, s.value)}u } }" }
+    expr :: emit_data_value(ctx, out, v, name, atom_of)
+    return "{ ${tag}u, 0u, { .obj = (void*) ${expr} } }"
+}
+
+// Storage kind of an array's elements — the first element's prim kind (enum/prim
+// arrays store at the repr width), or Boxed for struct / string / array elements.
+element_storage_kind :: fn(elements: BcDataValue[]) -> ArrayKind {
+    if elements.len() == 0 { return ArrayKind.Boxed }
+    if elements[0] is BcValPrim as p { return p.kind }
+    return ArrayKind.Boxed
+}
+
+// Type-table index of the `BcStruct` declared by `symbol_id`. Load-bearing here
+// (it picks the static's C struct type + header tag), and a baked struct is
+// always declared in the same module — so a miss is an upstream bug, not a
+// degraded-to-primitive-0 silent corruption.
+type_id_for_struct_symbol :: fn(types: BcType[], symbol_id: i32) -> i32 {
+    for i in 0..<types.len() {
+        if types[i] is BcStruct as s {
+            if s.symbol_id == symbol_id { return i32(i) }
+        }
+    }
+    panic("c_emit: baked struct symbol_id ${symbol_id} not in the module type table")
+    return 0
+}
+
+// Type-table index of a `BcStruct` by display name, or 0 (nested-array element).
+type_index_for_name :: fn(types: BcType[], name: string) -> i32 {
+    for i in 0..<types.len() {
+        if types[i] is BcStruct as s {
+            if struct_c_name(s.name) == struct_c_name(name) { return i32(i) }
+        }
+    }
+    return 0
+}
+
+// Type-table index of the `BcArray` whose element is `elem_index`, or 0.
+array_type_index_for_element :: fn(types: BcType[], elem_index: i32) -> i32 {
+    for i in 0..<types.len() {
+        if types[i] is BcArray as ar {
+            if ar.element == elem_index { return i32(i) }
+        }
+    }
+    return 0
+}
+
+// Comma-join C initialiser fragments.
+join_commas :: fn(parts: string[]) -> string {
+    out :: new_builder()
+    for k in 0..<parts.len() {
+        if k > 0 { out.append(", ") }
+        out.append(parts[k])
+    }
+    return "${out}"
 }
 
 // One primitive-element `.rodata` buffer + array header. Concrete-typed slots so
@@ -373,6 +524,7 @@ build_string_atom_map :: fn(ctx: EmitCtx) -> MutableMap<string, i32> {
 has_str_data :: fn(data_pool: BcDataEntry[]) -> bool {
     for e in data_pool {
         if e is BcStrData { return true }
+        if e is BcAggregateData { return true }
     }
     return false
 }

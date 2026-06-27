@@ -1,0 +1,22 @@
+# Typecheck
+
+## tests/snippets/_diag_comptime_struct
+  FnDecl         main                 :: fn() -> i32
+  StructDecl     Pair                 :: Pair
+  ConstDecl      PAIRS                :: const Pair[]
+  expr 14:22    SeqLitExpr     :: const Pair[]
+  expr 15:20    StringLitExpr  :: string
+  expr 15:5     StructLitExpr  :: Pair
+  expr 16:20    StringLitExpr  :: string
+  expr 16:5     StructLitExpr  :: Pair
+  expr 20:13    FieldExpr      :: string
+  expr 20:13    IdentExpr      :: const Pair[]
+  expr 20:13    IndexExpr      :: Pair
+  expr 20:5     CallExpr       :: void
+  expr 20:5     IdentExpr      :: fn(T) -> void
+  expr 21:13    StringLitExpr  :: string
+  expr 21:16    FieldExpr      :: i32
+  expr 21:16    IdentExpr      :: const Pair[]
+  expr 21:16    IndexExpr      :: Pair
+  expr 21:5     CallExpr       :: void
+  expr 21:5     IdentExpr      :: fn(T) -> void

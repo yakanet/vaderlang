@@ -19,6 +19,7 @@ import "vader/diagnostics" { Span, empty_span }
 import "vader/lower" {
     LoweredProject, LoweredModule, LoweredDecl, LoweredFnDecl, LoweredStructDecl,
     LoweredConstDecl, ConstFnWrap, DataPoolEntry, PrimDataPoolEntry, StrDataPoolEntry,
+    AggregateDataPoolEntry, LoweredStructLitField,
     LoweredBlock, LoweredStmt, LoweredLet, LoweredAssign, LoweredExprStmt,
     LoweredReturn, LoweredLoop, LoweredBreak, LoweredContinue,
     LoweredCellSet,
@@ -34,9 +35,10 @@ import "vader/lower" {
 }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/types" {
-    Type, UnionType,
+    Type, UnionType, StructType, ArrayType, display_type,
 }
 import "vader/typecheck" { equals_type, is_void }
+import "std/abort" { panic }
 
 /// Project-level interning context — accumulates strings into a single
 /// pool shared by every fn's CFG. Mirrors `ProjectCtx` in `build.ts`.
@@ -157,26 +159,88 @@ export build_cfg_project :: fn(lp: LoweredProject) -> CFGProject {
     }
 }
 
-import "vader/bytecode" { BcDataEntry, BcPrimData, BcStrData, ArrayKind, array_kind_from_name }
+import "vader/bytecode" {
+    BcDataEntry, BcPrimData, BcStrData, BcAggregateData,
+    BcDataValue, BcValPrim, BcValStr, BcValStruct, BcValArray,
+    ArrayKind, array_kind_from_name,
+}
 
 // Convert each lower-side `DataPoolEntry` into its bytecode `BcDataEntry`
 // variant. Done here, at the lower→CFG boundary, because `vader/lower` can't
 // import `vader/bytecode` (it would close the bytecode→lower import cycle).
 // Primitive arrays reinterpret their `i64` bits as `u64` (`u64(i64)` — the
 // runtime reads each element at its natural width, low bits) ; string arrays
-// carry their values through to `midir::emit`, which interns them.
+// carry their values through to `midir::emit`, which interns them ; aggregate
+// arrays recurse over the carried literal into a `BcAggregateData`.
 convert_data_pool :: fn(entries: DataPoolEntry[]) -> BcDataEntry[] {
     out: BcDataEntry[] = []
     for e in entries {
-        if e is StrDataPoolEntry as se {
-            out.push(BcStrData { .values = se.values })
-        } else if e is PrimDataPoolEntry as pe {
-            items: u64[] = []
-            for v in pe.items { items.push(u64(v)) }
-            out.push(BcPrimData { .kind = array_kind_from_name(pe.element_type_name), .items = items })
+        match e {
+            is StrDataPoolEntry as se -> { out.push(BcStrData { .values = se.values }) }
+            is PrimDataPoolEntry as pe -> {
+                items: u64[] = []
+                for v in pe.items { items.push(u64(v)) }
+                out.push(BcPrimData { .kind = array_kind_from_name(pe.element_type_name), .items = items })
+            }
+            is AggregateDataPoolEntry as ae -> {
+                elements: BcDataValue[] = []
+                for el in ae.literal.elements { elements.push(lowered_to_bc_value(el)) }
+                out.push(BcAggregateData { .element_type_name = ae.element_type_name, .elements = elements })
+            }
         }
     }
     return out
+}
+
+// Recursively lower one constant literal into a baked `BcDataValue`. Mirrors
+// `lower/inline_consts::is_bakeable_value` — the producer only routes shapes this
+// handles, so an unexpected node is an internal error (a primitive leaf falls
+// through to the `BcValPrim` tail). Struct identity is carried by `symbol_id`
+// (resolved to a type-index at each backend) ; arrays/leaves by element kind name.
+lowered_to_bc_value :: fn(el: LoweredExpr) -> BcDataValue {
+    if el is LoweredStringLit as s { return BcValStr { .value = s.value } }
+    if el is LoweredStructLit as st {
+        fields: BcDataValue[] = []
+        for f in st.fields { fields.push(lowered_to_bc_value(f.value)) }
+        return BcValStruct { .symbol_id = struct_symbol_id(st.type), .fields = fields }
+    }
+    if el is LoweredArrayLit as a {
+        elements: BcDataValue[] = []
+        for e in a.elements { elements.push(lowered_to_bc_value(e)) }
+        return BcValArray { .element_type_name = array_element_name(a.type), .elements = elements }
+    }
+    name :: display_type(type_of(el))
+    return BcValPrim { .kind = array_kind_from_name(name), .bits = bc_value_bits(el, name) }
+}
+
+// `symbol_id` of a named struct type (the producer rejects non-`StructType`s).
+struct_symbol_id :: fn(t: Type) -> i32 {
+    if t is StructType as st { return st.symbol.id }
+    return -1
+}
+
+// Element type display name of an array type (for the runtime element kind).
+array_element_name :: fn(t: Type) -> string {
+    if t is ArrayType as at { return display_type(at.element) }
+    return ""
+}
+
+// Raw `u64` bit pattern of a primitive leaf — int/char/bool verbatim, floats
+// reinterpreted via `to_bits` at the element's natural width. Mirrors
+// `inline_consts::data_item_bits`.
+bc_value_bits :: fn(el: LoweredExpr, name: string) -> u64 {
+    if el is LoweredIntLit as i  { return u64(i.value) }
+    if el is LoweredCharLit as c { return u64(c.value) }
+    if el is LoweredBoolLit as b { return if b.value { 1 } else { 0 } }
+    if el is LoweredFloatLit as f {
+        if name == "f32" { return u64(f32(f.value).to_bits()) }
+        return f.value.to_bits()
+    }
+    // Unreachable : the producer's `is_bakeable_value` only admits int/char/bool/
+    // float leaves here (string/struct/array are handled before this tail). A hit
+    // means the gate and this converter drifted out of sync.
+    panic("midir: lowered_to_bc_value reached a non-primitive leaf — is_bakeable/converter drift")
+    return 0
 }
 
 
