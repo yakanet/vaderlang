@@ -6,7 +6,7 @@
   ConstDecl      ANSWER               :: i32
   FnDecl         build_answer         :: fn() -> i32
   FnDecl         main                 :: fn() -> i32
-  ConstDecl      SQUARES              :: u32[]
+  ConstDecl      SQUARES              :: const u32[]
   expr 16:1     IdentExpr      :: fn() -> u32[]
   expr 16:12    CallExpr       :: u32[]
   expr 17:16    SeqLitExpr     :: u32[]
@@ -26,7 +26,7 @@
   expr 25:21    CallExpr       :: i32
   expr 25:21    IdentExpr      :: fn() -> i32
   expr 28:13    StringLitExpr  :: string
-  expr 28:16    IdentExpr      :: u32[]
+  expr 28:16    IdentExpr      :: const u32[]
   expr 28:16    IndexExpr      :: u32
   expr 28:5     CallExpr       :: void
   expr 28:5     IdentExpr      :: fn(T) -> void
