@@ -78,7 +78,7 @@ export parse_virt_bc :: fn(source: string) -> bc.BytecodeModule {
             if head == "module" { module_name = parse_module_name(cleaned) continue }
             if head == "type"   { parse_type_decl_bc(cleaned, types) continue }
             if head == "string" { parse_string_decl(cleaned, strings) continue }
-            if head == "data"   { parse_data_decl_bc(cleaned, data_pool) continue }
+            if head == "data"   { parse_data_decl_bc(cleaned, data_pool, strings) continue }
             if head == "import" { parse_import_decl_bc(cleaned, imports, types) continue }
             if head == "impl"   { parse_impl_decl_bc(cleaned, impl_table) continue }
             if head == "vtable" { parse_vtable_decl_bc(cleaned, vtables) continue }
@@ -345,7 +345,7 @@ parse_export_decl_bc :: fn(cleaned: string, exports: bc.BcExport[]) -> i32 {
 /// `data N str "v0" "v1" …` (each value `quote_string`-escaped). Mirrors
 /// `virt_reader::parse_data_decl` but keeps the unmaterialised form `emit_c`
 /// lowers to `.rodata` (the VM reader materialises to values in `reduce_data_pool`).
-parse_data_decl_bc :: fn(cleaned: string, data_pool: bc.BcDataEntry[]) -> void {
+parse_data_decl_bc :: fn(cleaned: string, data_pool: bc.BcDataEntry[], strings: string[]) -> void {
     cb :: cleaned.bytes()
     after :: cb["data ".bytes().len()..<cb.len()].bytes_to_string()
     sp1 :: after.index_of(' ', 0)
@@ -361,7 +361,11 @@ parse_data_decl_bc :: fn(cleaned: string, data_pool: bc.BcDataEntry[]) -> void {
         return
     }
     if kind_name == "agg" {
-        data_pool.push(parse_agg_decl(payload))
+        data_pool.push(parse_agg_decl(payload, strings))
+        return
+    }
+    if kind_name == "structs" {
+        data_pool.push(parse_structs_decl(payload, strings))
         return
     }
     rb :: payload.bytes()
@@ -416,7 +420,8 @@ parse_quoted_strings :: fn(s: string) -> string[] {
 
 // Parse the `agg` payload `<elemname> <count> <value>…` into a `BcAggregateData`.
 // Values are count-prefixed (no paren balancing) — see `dump::write_data_value`.
-parse_agg_decl :: fn(payload: string) -> bc.BcAggregateData {
+// `strings` resolves any `strref <i>` leaf back to its pooled value.
+parse_agg_decl :: fn(payload: string, strings: string[]) -> bc.BcAggregateData {
     tokens :: tokenize_agg(payload)
     if tokens.len() < 2 {
         return bc.BcAggregateData { .element_type_name = "", .elements = [] }
@@ -425,36 +430,65 @@ parse_agg_decl :: fn(payload: string) -> bc.BcAggregateData {
     count :: token_to_int(tokens[1])
     pos: i32[] = [2]
     elements: bc.BcDataValue[] = []
-    for _ in 0..<count { elements.push(parse_data_value(tokens, pos)) }
+    for _ in 0..<count { elements.push(parse_data_value(tokens, pos, strings)) }
     return bc.BcAggregateData { .element_type_name = element_type_name, .elements = elements }
 }
 
-// Recursive descent over the token stream (`pos` is a 1-element mutable cursor).
-parse_data_value :: fn(tokens: string[], pos: i32[]) -> bc.BcDataValue {
-    tag :: take_token(tokens, pos)
-    if tag == "prim" {
-        kind :: bc.array_kind_from_name(take_token(tokens, pos))
-        esz :: usize(bc.array_kind_element_size(kind))
-        bytes_arr :: hex_to_bytes(take_token(tokens, pos))
-        bits :: if esz > 0 { read_le(bytes_arr, 0, esz) } else { u64(0) }
-        return bc.BcValPrim { .kind = kind, .bits = bits }
+// Parse the compact homogeneous-struct form `<symid> <nfields> <count> <field>…`
+// (the dumper's `structs` header). Every element is a `BcValStruct` with the
+// hoisted `symid` ; its `nfields` field values are read flat from the stream.
+// The reconstructed aggregate's top-level `element_type_name` is left "" — it is
+// informational only (both the VM's `bc_value_to_vm` and c-emit resolve struct
+// identity from each element's `symbol_id`, never the aggregate name ; only a
+// nested `BcValArray.element_type_name` is read).
+parse_structs_decl :: fn(payload: string, strings: string[]) -> bc.BcAggregateData {
+    tokens :: tokenize_agg(payload)
+    if tokens.len() < 3 {
+        return bc.BcAggregateData { .element_type_name = "", .elements = [] }
     }
+    symbol_id :: token_to_int(tokens[0])
+    nfields :: token_to_int(tokens[1])
+    count :: token_to_int(tokens[2])
+    pos: i32[] = [3]
+    elements: bc.BcDataValue[] = []
+    for _ in 0..<count {
+        fields: bc.BcDataValue[] = []
+        for _ in 0..<nfields { fields.push(parse_data_value(tokens, pos, strings)) }
+        elements.push(bc.BcValStruct { .symbol_id = symbol_id, .fields = fields })
+    }
+    return bc.BcAggregateData { .element_type_name = "", .elements = elements }
+}
+
+// Recursive descent over the token stream (`pos` is a 1-element mutable cursor).
+// `strings` resolves a `strref <i>` leaf to the `string N` pool value.
+parse_data_value :: fn(tokens: string[], pos: i32[], strings: string[]) -> bc.BcDataValue {
+    tag :: take_token(tokens, pos)
     if tag == "str" { return bc.BcValStr { .value = take_token(tokens, pos) } }
+    if tag == "strref" {
+        idx :: token_to_int(take_token(tokens, pos))
+        value :: if idx >= 0 && usize(idx) < strings.len() { strings[usize(idx)] } else { "" }
+        return bc.BcValStr { .value = value }
+    }
     if tag == "struct" {
         symbol_id :: token_to_int(take_token(tokens, pos))
         nfields :: token_to_int(take_token(tokens, pos))
         fields: bc.BcDataValue[] = []
-        for _ in 0..<nfields { fields.push(parse_data_value(tokens, pos)) }
+        for _ in 0..<nfields { fields.push(parse_data_value(tokens, pos, strings)) }
         return bc.BcValStruct { .symbol_id = symbol_id, .fields = fields }
     }
     if tag == "array" {
         element_type_name :: take_token(tokens, pos)
         n :: token_to_int(take_token(tokens, pos))
         elems: bc.BcDataValue[] = []
-        for _ in 0..<n { elems.push(parse_data_value(tokens, pos)) }
+        for _ in 0..<n { elems.push(parse_data_value(tokens, pos, strings)) }
         return bc.BcValArray { .element_type_name = element_type_name, .elements = elems }
     }
-    return bc.BcValPrim { .kind = bc.ArrayKind.I32, .bits = 0 }
+    // Fall-through : a primitive leaf `<kind> <hex>` ; `tag` is the kind name.
+    kind :: bc.array_kind_from_name(tag)
+    esz :: usize(bc.array_kind_element_size(kind))
+    bytes_arr :: hex_to_bytes(take_token(tokens, pos))
+    bits :: if esz > 0 { read_le(bytes_arr, 0, esz) } else { u64(0) }
+    return bc.BcValPrim { .kind = kind, .bits = bits }
 }
 
 // Read the token at the cursor and advance it ; "" past the end.

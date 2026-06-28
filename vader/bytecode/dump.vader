@@ -24,6 +24,7 @@ module "vader/bytecode"
 import "std/string_builder" { StringBuilder, new_builder, append, append_char }
 import "std/numbers" { to_hex }
 import "std/string" { pad_start }
+import "std/collections" { MutableMap }
 
 /// Render a `BytecodeModule` as a `.virt`-style text dump. The resulting
 /// string carries a trailing newline ; pipe to stdout directly. This is the
@@ -60,7 +61,7 @@ dump_bytecode_impl :: fn(module: BytecodeModule, entry_mangled: string, annotate
     sb.append("module ${module.name}\n")
     write_types(sb, module.types)
     write_strings(sb, module.strings)
-    write_data_pool(sb, module.data_pool)
+    write_data_pool(sb, module.data_pool, module.strings)
     write_imports(sb, module.imports)
     write_impl_table(sb, module.impl_table)
     write_vtable_rows(sb, module.vtables)
@@ -85,7 +86,11 @@ write_types :: fn(sb: StringBuilder, types: BcType[]) -> void {
 // Round-trips through `virt_reader_bc::parse_data_decl_bc` so the VM reconstructs
 // the pool ; without this the `.virt` carries `data.const N` ops with no backing
 // entry (pool_index out of range).
-write_data_pool :: fn(sb: StringBuilder, data_pool: BcDataEntry[]) -> void {
+write_data_pool :: fn(sb: StringBuilder, data_pool: BcDataEntry[], strings: string[]) -> void {
+    // Only aggregate entries reference the pool via `strref` ; skip the index
+    // build for pools without one (const string[] / primitive tables) so a dump
+    // over a large `module.strings` stays free.
+    str_index :: if data_pool_has_aggregate(data_pool) { build_string_index(strings) } else { MutableMap<string, i32> {} }
     for i in 0..<data_pool.len() {
         e :: data_pool[i]
         if e is BcStrData as sd {
@@ -96,30 +101,91 @@ write_data_pool :: fn(sb: StringBuilder, data_pool: BcDataEntry[]) -> void {
         } else if e is BcPrimData as pd {
             sb.append("data ${i} ${array_kind_name(pd.kind)} hex\"${data_items_hex(pd)}\"\n")
         } else if e is BcAggregateData as ad {
-            // Count-prefixed token stream (no paren balancing) :
+            // Count-prefixed token stream (no paren balancing). String leaves dump
+            // as `strref <i>` (a `string N` pool index) instead of inline `str "…"`
+            // — the value is interned once in the pool, so the inline copy was a
+            // textual redundancy. A HOMOGENEOUS struct array hoists its element type
+            // + field count to the header and drops the per-element `struct <symid>
+            // <nfields>` prefix :
+            //   data N structs <symid> <nfields> <count> <field-value>…
+            // Heterogeneous / nested arrays keep the general per-element form :
             //   data N agg <elemname> <count> <value>…
-            // where <value> is `prim <kind> <hex>` | `str "…"` |
+            // where <value> is `<kind> <hex>` (primitive) | `str "…"` | `strref <i>` |
             //   `struct <symid> <nfields> <value>…` | `array <elemname> <n> <value>…`.
             out :: new_builder()
-            out.append("data ${i} agg ${ad.element_type_name} ${ad.elements.len()}")
-            for v in ad.elements { write_data_value(out, v) }
+            hs :: homogeneous_struct(ad)
+            if hs.symbol_id >= 0 {
+                out.append("data ${i} structs ${hs.symbol_id} ${hs.nfields} ${ad.elements.len()}")
+                for v in ad.elements {
+                    if v is BcValStruct as st { for f in st.fields { write_data_value(out, f, str_index) } }
+                }
+            } else {
+                out.append("data ${i} agg ${ad.element_type_name} ${ad.elements.len()}")
+                for v in ad.elements { write_data_value(out, v, str_index) }
+            }
             sb.append("${out}\n")
         }
     }
 }
 
+// Result of the homogeneity probe : `symbol_id >= 0` (with its `nfields`) when
+// every element is a `BcValStruct` sharing that `symbol_id` — so the array is
+// homogeneous and the header can hoist both once — else `symbol_id = -1`.
+HomogeneousAgg :: struct {
+    symbol_id: i32
+    nfields:   i32
+}
+
+HETEROGENEOUS :: HomogeneousAgg { .symbol_id = -1, .nfields = 0 }
+
+// Same symbol_id ⇒ same struct decl ⇒ same field count, so one probe yields both.
+homogeneous_struct :: fn(ad: BcAggregateData) -> HomogeneousAgg {
+    if ad.elements.len() == 0 { return HETEROGENEOUS }
+    first :: ad.elements[0]
+    if first is BcValStruct as s0 {
+        for e in ad.elements {
+            if e is BcValStruct as s { if s.symbol_id != s0.symbol_id { return HETEROGENEOUS } } else { return HETEROGENEOUS }
+        }
+        return HomogeneousAgg { .symbol_id = s0.symbol_id, .nfields = i32(s0.fields.len()) }
+    }
+    return HETEROGENEOUS
+}
+
+// True when the pool has an aggregate entry — the only kind that dumps `strref`
+// (and so the only reason to build the string→index map).
+data_pool_has_aggregate :: fn(data_pool: BcDataEntry[]) -> bool {
+    for e in data_pool { if e is BcAggregateData { return true } }
+    return false
+}
+
+// Map each pooled string value to its `string N` index, so string leaves dump as
+// `strref <i>` rather than re-emitting the value inline.
+build_string_index :: fn(strings: string[]) -> MutableMap<string, i32> {
+    m :: MutableMap<string, i32> {}
+    for i in 0..<strings.len() { m[strings[i]] = i32(i) }
+    return m
+}
+
 // Serialise one recursive baked value into the count-prefixed `.virt` form.
-write_data_value :: fn(out: StringBuilder, v: BcDataValue) -> void {
+write_data_value :: fn(out: StringBuilder, v: BcDataValue, str_index: MutableMap<string, i32>) -> void {
     if v is BcValPrim as p {
-        out.append(" prim ${array_kind_name(p.kind)} ${data_value_hex(p.kind, p.bits)}")
+        // No `prim` tag : a primitive leaf is `<kind> <hex>`. The kind name
+        // (i32, u8, f64, …) never collides with the str/strref/struct/array tags,
+        // so the parser dispatches a primitive as the fall-through case.
+        out.append(" ${array_kind_name(p.kind)} ${data_value_hex(p.kind, p.bits)}")
     } else if v is BcValStr as s {
-        out.append(" str ${quote_string(s.value)}")
+        hit :: str_index[s.value]
+        if hit is i32 as idx {
+            out.append(" strref ${idx}")
+        } else {
+            out.append(" str ${quote_string(s.value)}")
+        }
     } else if v is BcValStruct as st {
         out.append(" struct ${st.symbol_id} ${st.fields.len()}")
-        for f in st.fields { write_data_value(out, f) }
+        for f in st.fields { write_data_value(out, f, str_index) }
     } else if v is BcValArray as a {
         out.append(" array ${a.element_type_name} ${a.elements.len()}")
-        for e in a.elements { write_data_value(out, e) }
+        for e in a.elements { write_data_value(out, e, str_index) }
     }
 }
 
