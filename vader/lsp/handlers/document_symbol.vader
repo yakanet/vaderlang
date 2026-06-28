@@ -14,7 +14,7 @@ module "vader/lsp/handlers"
 
 import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber, JsonArray }
 import "std/collections" { MutableMap }
-import "vader/lsp/protocol" { position_uri, range_json, span_to_range_json }
+import "vader/lsp/protocol" { position_uri, range_json, span_to_range_json, span_encloses }
 import "vader/lsp/analysis" { ServerState, DocIndex, DeclEntry, DeclKind, build_index }
 
 /// Build the `DocumentSymbol[]` response for the document named in `params`
@@ -71,7 +71,13 @@ symbol_json :: fn(e: DeclEntry) -> JsonValue {
     obj["name"]           = JsonString { .value = e.name }
     obj["kind"]           = JsonNumber { .value = f64(lsp_symbol_kind(e.kind)) }
     obj["range"]          = range_json(e.full_span.span_to_range_json())
-    obj["selectionRange"] = range_json(e.name_span.span_to_range_json())
+    // The LSP requires `selectionRange ⊆ range`. A malformed `name_span` (a
+    // synthetic decl whose name span sits outside its full span) would otherwise
+    // make the client reject the ENTIRE `documentSymbol` response — fall back to
+    // the full span when the name span isn't contained. Belt-and-suspenders: the
+    // indexer already drops the known offender (`__comptime_*` synthetic fns).
+    sel :: if span_encloses(e.full_span, e.name_span) { e.name_span } else { e.full_span }
+    obj["selectionRange"] = range_json(sel.span_to_range_json())
     return JsonObject { .entries = obj }
 }
 
@@ -137,6 +143,29 @@ Box implements Contains<i32> -> value == self.v
     // Only `Box` — the SAM member contributes no (empty-named) symbol.
     assert_eq(syms.len(), 1)
     assert_eq(sym_name_at(syms, 0), "Box")
+}
+
+@test
+test_comptime_const_synthetic_fn_not_a_symbol :: fn() -> void {
+    // `NAME :: @comptime { … }` desugars to a synthetic `__comptime_NAME` fn whose
+    // `name_span` (the const name) sits OUTSIDE its `@comptime`-block `span`. It
+    // must not surface as an outline symbol — else the bad span trips the client's
+    // "selectionRange must be contained in fullRange" check and drops the whole
+    // response (the bug this guards — observed on `std/crypto::MD5_K`).
+    src :: """
+K :: @comptime {
+    1 + 2
+}
+"""
+    idx :: build_index("t.vader", src)
+    syms :: toplevel_symbols(idx)
+    // Only the const `K` — the synthetic `__comptime_K` fn is excluded.
+    assert_eq(syms.len(), 1)
+    assert_eq(sym_name_at(syms, 0), "K")
+    // And every surfaced symbol's name span is contained in its full span.
+    for s in syms {
+        assert(span_encloses(s.full_span, s.name_span), "name_span ⊆ full_span")
+    }
 }
 
 @test
