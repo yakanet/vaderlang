@@ -413,12 +413,19 @@ remap_instr :: fn(ins: Instruction, m: i32[]) -> Instruction {
         return InstrArrayGet {
             .span = ag.span, .dst = remap_local(m, ag.dst),
             .target = remap_local(m, ag.target), .index = remap_local(m, ag.index), .type = ag.type,
+            .base = remap_local_opt(m, ag.base),
         }
     }
     if ins is InstrArraySet as ase {
         return InstrArraySet {
             .span = ase.span, .target = remap_local(m, ase.target),
             .index = remap_local(m, ase.index), .value = remap_local(m, ase.value),
+            .base = remap_local_opt(m, ase.base),
+        }
+    }
+    if ins is InstrArrayBase as ab {
+        return InstrArrayBase {
+            .span = ab.span, .dst = remap_local(m, ab.dst), .target = remap_local(m, ab.target),
         }
     }
     if ins is InstrArrayLen as al {
@@ -538,7 +545,10 @@ with_dst :: fn(ins: Instruction, new_dst: LocalId) -> Instruction {
         return InstrFieldGet { .span = fg.span, .dst = new_dst, .target = fg.target, .field = fg.field, .type = fg.type }
     }
     if ins is InstrArrayGet as ag {
-        return InstrArrayGet { .span = ag.span, .dst = new_dst, .target = ag.target, .index = ag.index, .type = ag.type }
+        return InstrArrayGet { .span = ag.span, .dst = new_dst, .target = ag.target, .index = ag.index, .type = ag.type, .base = ag.base }
+    }
+    if ins is InstrArrayBase as ab {
+        return InstrArrayBase { .span = ab.span, .dst = new_dst, .target = ab.target }
     }
     if ins is InstrArrayLen as al {
         return InstrArrayLen { .span = al.span, .dst = new_dst, .target = al.target }
