@@ -216,7 +216,7 @@ export TY_BOOL       :: PrimitiveType { .name = "bool" }
 /// string skip the builder entirely. Profiling showed `display_type`
 /// was the top source of small-string allocs (`string` 66×, `void`
 /// 20×, every primitive 5–10× per typecheck) because each call went
-/// through `new_builder + append + to_string` even for primitives
+/// through `StringBuilder {} + append + to_string` even for primitives
 /// whose name was already a canonical `.rodata` literal.
 export display_type :: fn(t: Type) -> string {
     match t {

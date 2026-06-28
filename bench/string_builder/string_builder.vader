@@ -9,13 +9,13 @@
 module "main"
 
 import "std/io" { println }
-import "std/string_builder" { new_builder, append }
+import "std/string_builder" { StringBuilder, append }
 
 N :: 80_000
 FRAGMENT :: "The quick brown fox jumps over the lazy dog.\n"
 
 main :: fn() -> i32 {
-    sb :: new_builder()
+    sb :: StringBuilder {}
     for _ in 0..<N {
         sb.append(FRAGMENT)
     }

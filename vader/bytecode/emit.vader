@@ -1,22 +1,10 @@
 // vader/bytecode/emit — LoweredProject → BytecodeModule.
 //
-// Mirror of `src/bytecode/emit.ts` + portions of `src/midir/emit.ts`.
-// Self-host port lands incrementally :
-//
-//   Phase 1 — scaffolding + trivial-program emit (this file as it
-//             stands today) : `main :: fn() -> i32 = <int_lit>`
-//             produces a `BytecodeModule` with one `BcFunction`
-//             holding `[I32Const, Return]`.
-//   Phase 2 — full LoweredExpr / LoweredStmt walk + struct / const
-//             decls + impl members + intrinsic routing.
-//   Phase 3 — vtables, data pool, peephole pass, mid-IR
-//             (CFG / DCE / escape) integration.
-//
-// The TS reference is split across `src/bytecode/emit.ts` (reservation
-// + interning + helpers) and `src/midir/emit.ts` (per-op codegen). This
-// file collapses both ; the eventual mid-IR detour can land later as
-// a separate pass that mutates `LoweredProject` rather than re-routing
-// emit.
+// Emits a complete `BytecodeModule` from a `LoweredProject` : the full
+// LoweredExpr / LoweredStmt walk, struct / const decls, impl members +
+// intrinsic routing, vtables, the data pool, and the mid-IR (CFG / DCE /
+// escape) integration — reservation + interning + per-op codegen collapsed
+// into one pass. The compiler self-hosts through this path.
 //
 // Operand stack discipline matches WASM-style stack machine semantics
 // the VM + the C emitter both consume. Each expr emit pushes one

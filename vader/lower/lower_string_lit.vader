@@ -168,7 +168,7 @@ mk_lowered_call :: fn(sym: Symbol, args: LoweredExpr[], ret: Type, span: Span) -
 sb_ident :: fn(sym: Symbol, ty: Type, span: Span) -> LoweredExpr =
     LoweredIdent { .span = span, .type = ty, .symbol = sym }
 
-// Resolve a `std/string_builder` free fn (`new_builder` / `append`) by name
+// Resolve a `std/string_builder` free fn (`append` / `concat2`…`concat4`) by name
 // via the generic `module_export` lookup. Returns `null` only if
 // `std/string_builder` wasn't loaded ; since it is force-loaded into every
 // project, the caller treats a null as a compiler invariant violation (panics).
