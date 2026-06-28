@@ -89,22 +89,64 @@
                 cast → Dog
                   p :Cat | Dog | Pig
     return
-      call :string
-        callee:
-          concat3 :string
-        arg0:
-          "pig of " :string
-        arg1:
+      block :string
+        let __buf_0: Buffer =
+          call :Buffer
+            callee:
+              new_byte_buffer :Buffer
+            arg0:
+              int(30) :usize
+        let __off_1: usize = int(0) :usize
+        assign
+          target:
+            __off_1 :usize
+          value:
+            call :usize
+              callee:
+                write_string_at :usize
+              arg0:
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
+              arg2:
+                "pig of " :string
+        assign
+          target:
+            __off_1 :usize
+          value:
+            call :usize
+              callee:
+                write_int :usize
+              arg0:
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
+              arg2:
+                cast → i64
+                  .weight :i32
+                    cast → Pig
+                      p :Cat | Dog | Pig
+        assign
+          target:
+            __off_1 :usize
+          value:
+            call :usize
+              callee:
+                write_string_at :usize
+              arg0:
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
+              arg2:
+                " kg" :string
+        ~>
           call :string
             callee:
-              format_signed :fn(i64) -> string
+              finish_buffer :string
             arg0:
-              cast → i64
-                .weight :i32
-                  cast → Pig
-                    p :Cat | Dog | Pig
-        arg2:
-          " kg" :string
+              __buf_0 :Buffer
+            arg1:
+              __off_1 :usize
   fn snippet$primitive_is(v: i32 | string) -> string
     if :void
       cond:
@@ -112,19 +154,50 @@
           v :i32 | string
       then:
         return
-          call :string
-            callee:
-              concat2 :string
-            arg0:
-              "int " :string
-            arg1:
+          block :string
+            let __buf_0: Buffer =
+              call :Buffer
+                callee:
+                  new_byte_buffer :Buffer
+                arg0:
+                  int(24) :usize
+            let __off_1: usize = int(0) :usize
+            assign
+              target:
+                __off_1 :usize
+              value:
+                call :usize
+                  callee:
+                    write_string_at :usize
+                  arg0:
+                    __buf_0 :Buffer
+                  arg1:
+                    __off_1 :usize
+                  arg2:
+                    "int " :string
+            assign
+              target:
+                __off_1 :usize
+              value:
+                call :usize
+                  callee:
+                    write_int :usize
+                  arg0:
+                    __buf_0 :Buffer
+                  arg1:
+                    __off_1 :usize
+                  arg2:
+                    cast → i64
+                      cast → i32
+                        v :i32 | string
+            ~>
               call :string
                 callee:
-                  format_signed :fn(i64) -> string
+                  finish_buffer :string
                 arg0:
-                  cast → i64
-                    cast → i32
-                      v :i32 | string
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
     return
       call :string
         callee:

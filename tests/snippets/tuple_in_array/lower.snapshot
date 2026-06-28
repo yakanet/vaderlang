@@ -32,22 +32,74 @@
           callee:
             std_io$println__string :void
           arg0:
-            call :string
-              callee:
-                concat3 :string
-              arg0:
-                call :string
-                  callee:
-                    format_signed :fn(i64) -> string
-                  arg0:
-                    cast → i64
-                      ._0 :i32
-                        row :[i32, string]
-              arg1:
-                " -> " :string
-              arg2:
+            block :string
+              let __p_3: string =
                 ._1 :string
                   row :[i32, string]
+              let __buf_4: Buffer =
+                call :Buffer
+                  callee:
+                    new_byte_buffer :Buffer
+                  arg0:
+                    add :usize
+                      l:
+                        int(24) :usize
+                      r:
+                        call :usize
+                          callee:
+                            byte_len :usize
+                          arg0:
+                            __p_3 :string
+              let __off_5: usize = int(0) :usize
+              assign
+                target:
+                  __off_5 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_int :usize
+                    arg0:
+                      __buf_4 :Buffer
+                    arg1:
+                      __off_5 :usize
+                    arg2:
+                      cast → i64
+                        ._0 :i32
+                          row :[i32, string]
+              assign
+                target:
+                  __off_5 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_string_at :usize
+                    arg0:
+                      __buf_4 :Buffer
+                    arg1:
+                      __off_5 :usize
+                    arg2:
+                      " -> " :string
+              assign
+                target:
+                  __off_5 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_string_at :usize
+                    arg0:
+                      __buf_4 :Buffer
+                    arg1:
+                      __off_5 :usize
+                    arg2:
+                      __p_3 :string
+              ~>
+                call :string
+                  callee:
+                    finish_buffer :string
+                  arg0:
+                    __buf_4 :Buffer
+                  arg1:
+                    __off_5 :usize
         assign
           target:
             __for_i_2 :usize

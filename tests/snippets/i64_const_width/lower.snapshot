@@ -22,95 +22,131 @@
         std_io$println__string :void
       arg0:
         block :string
-          let __sb_0: StringBuilder =
-            StringBuilder {
-              parts:
-                array :string[]
-            }
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              "min=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
+          let __buf_0: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(101) :usize
+          let __off_1: usize = int(0) :usize
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
                 callee:
-                  format_signed :fn(i64) -> string
+                  write_string_at :usize
                 arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  "min=" :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
                   call :i64
                     callee:
                       min_i32 :fn() -> i64
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              " near=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
                 callee:
-                  format_signed :fn(i64) -> string
+                  write_string_at :usize
                 arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  " near=" :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
                   call :i64
                     callee:
                       near :fn() -> i64
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              " over=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
                 callee:
-                  format_signed :fn(i64) -> string
+                  write_string_at :usize
                 arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  " over=" :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
                   call :i64
                     callee:
                       over :fn() -> i64
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              " big=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
                 callee:
-                  format_signed :fn(i64) -> string
+                  write_string_at :usize
                 arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  " big=" :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
                   call :i64
                     callee:
                       big_pos :fn() -> i64
           ~>
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                finish_buffer :string
               arg0:
-                __sb_0 :StringBuilder
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
     return int(0) :i32

@@ -34,89 +34,169 @@
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            concat4 :string
-          arg0:
-            "first=" :string
-          arg1:
+        block :string
+          let __buf_2: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(56) :usize
+          let __off_3: usize = int(0) :usize
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  "first=" :string
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  cast → i64
+                    first :i32
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  " rest.len=" :string
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  cast → u64
+                    LoweredArrayLen
+          ~>
             call :string
               callee:
-                format_signed :fn(i64) -> string
+                finish_buffer :string
               arg0:
-                cast → i64
-                  first :i32
-          arg2:
-            " rest.len=" :string
-          arg3:
-            call :string
-              callee:
-                format_unsigned :fn(u64) -> string
-              arg0:
-                cast → u64
-                  LoweredArrayLen
+                __buf_2 :Buffer
+              arg1:
+                __off_3 :usize
     block :void
-      let __for_arr_2: i32[] = rest :i32[]
-      let __for_len_3: usize =
+      let __for_arr_4: i32[] = rest :i32[]
+      let __for_len_5: usize =
         LoweredArrayLen
-      let __for_i_4: usize = int(0) :usize
+      let __for_i_6: usize = int(0) :usize
       loop while (<…>)
         let x: i32 =
           index :i32
             on:
-              __for_arr_2 :i32[]
+              __for_arr_4 :i32[]
             ix:
-              __for_i_4 :usize
+              __for_i_6 :usize
         call :void
           callee:
             std_io$println__string :void
           arg0:
-            call :string
-              callee:
-                concat2 :string
-              arg0:
-                "  " :string
-              arg1:
+            block :string
+              let __buf_7: Buffer =
+                call :Buffer
+                  callee:
+                    new_byte_buffer :Buffer
+                  arg0:
+                    int(22) :usize
+              let __off_8: usize = int(0) :usize
+              assign
+                target:
+                  __off_8 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_string_at :usize
+                    arg0:
+                      __buf_7 :Buffer
+                    arg1:
+                      __off_8 :usize
+                    arg2:
+                      "  " :string
+              assign
+                target:
+                  __off_8 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_int :usize
+                    arg0:
+                      __buf_7 :Buffer
+                    arg1:
+                      __off_8 :usize
+                    arg2:
+                      cast → i64
+                        x :i32
+              ~>
                 call :string
                   callee:
-                    format_signed :fn(i64) -> string
+                    finish_buffer :string
                   arg0:
-                    cast → i64
-                      x :i32
+                    __buf_7 :Buffer
+                  arg1:
+                    __off_8 :usize
         assign
           target:
-            __for_i_4 :usize
+            __for_i_6 :usize
           value:
             add :usize
               l:
-                __for_i_4 :usize
+                __for_i_6 :usize
               r:
                 int(1) :usize
-    let __tup_5: i32[] = arr :i32[]
+    let __tup_9: i32[] = arr :i32[]
     let a: i32 =
       index :i32
         on:
-          __tup_5 :i32[]
+          __tup_9 :i32[]
         ix:
           int(0) :usize
     let b: i32 =
       index :i32
         on:
-          __tup_5 :i32[]
+          __tup_9 :i32[]
         ix:
           int(1) :usize
     let tail: i32[] =
       array :i32[]
-    let __i_6: usize = int(2) :usize
+    let __i_10: usize = int(2) :usize
     loop while (<…>)
       LoweredArrayPush
       assign
         target:
-          __i_6 :usize
+          __i_10 :usize
         value:
           add :usize
             l:
-              __i_6 :usize
+              __i_10 :usize
             r:
               int(1) :usize
     call :void
@@ -124,152 +204,106 @@
         std_io$println__string :void
       arg0:
         block :string
-          let __sb_7: StringBuilder =
-            StringBuilder {
-              parts:
-                array :string[]
-            }
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_7 :StringBuilder
-            arg1:
-              "a=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_7 :StringBuilder
-            arg1:
-              call :string
+          let __buf_11: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(75) :usize
+          let __off_12: usize = int(0) :usize
+          assign
+            target:
+              __off_12 :usize
+            value:
+              call :usize
                 callee:
-                  format_signed :fn(i64) -> string
+                  write_string_at :usize
                 arg0:
+                  __buf_11 :Buffer
+                arg1:
+                  __off_12 :usize
+                arg2:
+                  "a=" :string
+          assign
+            target:
+              __off_12 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_11 :Buffer
+                arg1:
+                  __off_12 :usize
+                arg2:
                   cast → i64
                     a :i32
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_7 :StringBuilder
-            arg1:
-              " b=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_7 :StringBuilder
-            arg1:
-              call :string
+          assign
+            target:
+              __off_12 :usize
+            value:
+              call :usize
                 callee:
-                  format_signed :fn(i64) -> string
+                  write_string_at :usize
                 arg0:
+                  __buf_11 :Buffer
+                arg1:
+                  __off_12 :usize
+                arg2:
+                  " b=" :string
+          assign
+            target:
+              __off_12 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_11 :Buffer
+                arg1:
+                  __off_12 :usize
+                arg2:
                   cast → i64
                     b :i32
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_7 :StringBuilder
-            arg1:
-              " tail.len=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_7 :StringBuilder
-            arg1:
-              call :string
+          assign
+            target:
+              __off_12 :usize
+            value:
+              call :usize
                 callee:
-                  format_unsigned :fn(u64) -> string
+                  write_string_at :usize
                 arg0:
+                  __buf_11 :Buffer
+                arg1:
+                  __off_12 :usize
+                arg2:
+                  " tail.len=" :string
+          assign
+            target:
+              __off_12 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_11 :Buffer
+                arg1:
+                  __off_12 :usize
+                arg2:
                   cast → u64
                     LoweredArrayLen
           ~>
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                finish_buffer :string
               arg0:
-                __sb_7 :StringBuilder
-    let __tup_8: i32[] = arr :i32[]
+                __buf_11 :Buffer
+              arg1:
+                __off_12 :usize
+    let __tup_13: i32[] = arr :i32[]
     let short: i32[] =
       array :i32[]
-    let __i_9: usize = int(3) :usize
-    loop while (<…>)
-      LoweredArrayPush
-      assign
-        target:
-          __i_9 :usize
-        value:
-          add :usize
-            l:
-              __i_9 :usize
-            r:
-              int(1) :usize
-    call :void
-      callee:
-        std_io$println__string :void
-      arg0:
-        call :string
-          callee:
-            concat2 :string
-          arg0:
-            "short.len=" :string
-          arg1:
-            call :string
-              callee:
-                format_unsigned :fn(u64) -> string
-              arg0:
-                cast → u64
-                  LoweredArrayLen
-    block :void
-      let __for_arr_10: i32[] = short :i32[]
-      let __for_len_11: usize =
-        LoweredArrayLen
-      let __for_i_12: usize = int(0) :usize
-      loop while (<…>)
-        let x: i32 =
-          index :i32
-            on:
-              __for_arr_10 :i32[]
-            ix:
-              __for_i_12 :usize
-        call :void
-          callee:
-            std_io$println__string :void
-          arg0:
-            call :string
-              callee:
-                concat2 :string
-              arg0:
-                "  " :string
-              arg1:
-                call :string
-                  callee:
-                    format_signed :fn(i64) -> string
-                  arg0:
-                    cast → i64
-                      x :i32
-        assign
-          target:
-            __for_i_12 :usize
-          value:
-            add :usize
-              l:
-                __for_i_12 :usize
-              r:
-                int(1) :usize
-    let __tup_13: i32[] = arr :i32[]
-    let c_first: i32 =
-      index :i32
-        on:
-          __tup_13 :i32[]
-        ix:
-          int(0) :usize
-    let c_rest: i32[] =
-      array :i32[]
-    let __i_14: usize = int(1) :usize
+    let __i_14: usize = int(3) :usize
     loop while (<…>)
       LoweredArrayPush
       assign
@@ -285,73 +319,307 @@
       callee:
         std_io$println__string :void
       arg0:
-        call :string
+        block :string
+          let __buf_15: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(30) :usize
+          let __off_16: usize = int(0) :usize
+          assign
+            target:
+              __off_16 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_15 :Buffer
+                arg1:
+                  __off_16 :usize
+                arg2:
+                  "short.len=" :string
+          assign
+            target:
+              __off_16 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_15 :Buffer
+                arg1:
+                  __off_16 :usize
+                arg2:
+                  cast → u64
+                    LoweredArrayLen
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_15 :Buffer
+              arg1:
+                __off_16 :usize
+    block :void
+      let __for_arr_17: i32[] = short :i32[]
+      let __for_len_18: usize =
+        LoweredArrayLen
+      let __for_i_19: usize = int(0) :usize
+      loop while (<…>)
+        let x: i32 =
+          index :i32
+            on:
+              __for_arr_17 :i32[]
+            ix:
+              __for_i_19 :usize
+        call :void
           callee:
-            concat4 :string
+            std_io$println__string :void
           arg0:
-            "c_first=" :string
-          arg1:
-            call :string
-              callee:
-                format_signed :fn(i64) -> string
-              arg0:
-                cast → i64
-                  c_first :i32
-          arg2:
-            " c_rest.len=" :string
-          arg3:
-            call :string
-              callee:
-                format_unsigned :fn(u64) -> string
-              arg0:
-                cast → u64
-                  LoweredArrayLen
-    let __tup_15: i32[] =
-      array :i32[]
-        int(99) :i32
-    let only: i32 =
+            block :string
+              let __buf_20: Buffer =
+                call :Buffer
+                  callee:
+                    new_byte_buffer :Buffer
+                  arg0:
+                    int(22) :usize
+              let __off_21: usize = int(0) :usize
+              assign
+                target:
+                  __off_21 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_string_at :usize
+                    arg0:
+                      __buf_20 :Buffer
+                    arg1:
+                      __off_21 :usize
+                    arg2:
+                      "  " :string
+              assign
+                target:
+                  __off_21 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_int :usize
+                    arg0:
+                      __buf_20 :Buffer
+                    arg1:
+                      __off_21 :usize
+                    arg2:
+                      cast → i64
+                        x :i32
+              ~>
+                call :string
+                  callee:
+                    finish_buffer :string
+                  arg0:
+                    __buf_20 :Buffer
+                  arg1:
+                    __off_21 :usize
+        assign
+          target:
+            __for_i_19 :usize
+          value:
+            add :usize
+              l:
+                __for_i_19 :usize
+              r:
+                int(1) :usize
+    let __tup_22: i32[] = arr :i32[]
+    let c_first: i32 =
       index :i32
         on:
-          __tup_15 :i32[]
+          __tup_22 :i32[]
         ix:
           int(0) :usize
-    let empty: i32[] =
+    let c_rest: i32[] =
       array :i32[]
-    let __i_16: usize = int(1) :usize
+    let __i_23: usize = int(1) :usize
     loop while (<…>)
       LoweredArrayPush
       assign
         target:
-          __i_16 :usize
+          __i_23 :usize
         value:
           add :usize
             l:
-              __i_16 :usize
+              __i_23 :usize
             r:
               int(1) :usize
     call :void
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            concat4 :string
-          arg0:
-            "only=" :string
-          arg1:
+        block :string
+          let __buf_24: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(60) :usize
+          let __off_25: usize = int(0) :usize
+          assign
+            target:
+              __off_25 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_24 :Buffer
+                arg1:
+                  __off_25 :usize
+                arg2:
+                  "c_first=" :string
+          assign
+            target:
+              __off_25 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_24 :Buffer
+                arg1:
+                  __off_25 :usize
+                arg2:
+                  cast → i64
+                    c_first :i32
+          assign
+            target:
+              __off_25 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_24 :Buffer
+                arg1:
+                  __off_25 :usize
+                arg2:
+                  " c_rest.len=" :string
+          assign
+            target:
+              __off_25 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_24 :Buffer
+                arg1:
+                  __off_25 :usize
+                arg2:
+                  cast → u64
+                    LoweredArrayLen
+          ~>
             call :string
               callee:
-                format_signed :fn(i64) -> string
+                finish_buffer :string
               arg0:
-                cast → i64
-                  only :i32
-          arg2:
-            " empty.len=" :string
-          arg3:
+                __buf_24 :Buffer
+              arg1:
+                __off_25 :usize
+    let __tup_26: i32[] =
+      array :i32[]
+        int(99) :i32
+    let only: i32 =
+      index :i32
+        on:
+          __tup_26 :i32[]
+        ix:
+          int(0) :usize
+    let empty: i32[] =
+      array :i32[]
+    let __i_27: usize = int(1) :usize
+    loop while (<…>)
+      LoweredArrayPush
+      assign
+        target:
+          __i_27 :usize
+        value:
+          add :usize
+            l:
+              __i_27 :usize
+            r:
+              int(1) :usize
+    call :void
+      callee:
+        std_io$println__string :void
+      arg0:
+        block :string
+          let __buf_28: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(56) :usize
+          let __off_29: usize = int(0) :usize
+          assign
+            target:
+              __off_29 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_28 :Buffer
+                arg1:
+                  __off_29 :usize
+                arg2:
+                  "only=" :string
+          assign
+            target:
+              __off_29 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_28 :Buffer
+                arg1:
+                  __off_29 :usize
+                arg2:
+                  cast → i64
+                    only :i32
+          assign
+            target:
+              __off_29 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_28 :Buffer
+                arg1:
+                  __off_29 :usize
+                arg2:
+                  " empty.len=" :string
+          assign
+            target:
+              __off_29 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_28 :Buffer
+                arg1:
+                  __off_29 :usize
+                arg2:
+                  cast → u64
+                    LoweredArrayLen
+          ~>
             call :string
               callee:
-                format_unsigned :fn(u64) -> string
+                finish_buffer :string
               arg0:
-                cast → u64
-                  LoweredArrayLen
+                __buf_28 :Buffer
+              arg1:
+                __off_29 :usize
     return int(0) :i32

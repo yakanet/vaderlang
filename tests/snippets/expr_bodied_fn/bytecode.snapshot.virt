@@ -5,25 +5,25 @@ type 2 primitive f64
 type 3 primitive string
 type 4 primitive bool
 type 5 primitive usize
-type 6 primitive i64
-type 7 primitive u64
-type 8 struct std_core$Dec64 { mantissa:7,exp:1 }
-type 9 struct __Tuple_17 { _0:7,_1:7,_2:7 }
-type 10 array 3
-type 11 struct __Tuple_19 { _0:7,_1:7 }
-type 12 array 13
-type 13 primitive u8
-type 14 struct std_core$Buffer {  }
+type 6 struct std_core$Buffer {  }
+type 7 primitive i64
+type 8 primitive u64
+type 9 struct std_core$Dec64 { mantissa:8,exp:1 }
+type 10 struct __Tuple_18 { _0:8,_1:8,_2:8 }
+type 11 array 3
+type 12 struct __Tuple_20 { _0:8,_1:8 }
+type 13 array 14
+type 14 primitive u8
 type 15 primitive void
-type 16 array 7
+type 16 array 8
 string 0 "hello"
-string 1 "0"
-string 2 "nan"
-string 3 "-inf"
-string 4 "inf"
-string 5 "-0.0"
-string 6 "0.0"
-string 7 "-"
+string 1 "nan"
+string 2 "-inf"
+string 3 "inf"
+string 4 "-0.0"
+string 5 "0.0"
+string 6 "-"
+string 7 "0"
 string 8 ".0"
 string 9 "."
 string 10 "0."
@@ -43,7 +43,7 @@ string 23 "9"
 data 0 str "0" "1" "2" "3" "4" "5" "6" "7" "8" "9"
 import 0 bytes std_core$bytes (string) -> ref
 import 1 write std_io$write (i32,string) -> void
-impl 14 ByteAccess
+impl 6 ByteAccess
 export main 4
 
 fn 0 snippet$square (i32) -> i32
@@ -88,38 +88,80 @@ fn 3 snippet$a (i32) -> i32
 end
 
 fn 4 snippet$main () -> i32
+  local __buf_0 ref
+  local __off_1 usize
+  local $cast_7 i64
+  i64.const 20
+  call 8
+  local.set 0
+  i64.const 0
+  local.set 1
   i32.const 7
   call 0
   i32.to_i64
-  call 8
-  call 28
+  local.set 2
+  local.get 0
+  local.get 1
+  local.get 2
+  call 10
+  local.set 1
+  local.get 0
+  local.get 1
+  call 9
+  call 30
   f64.const 3.5 4615063718147915776
   f64.const 7.2 4619792497756654797
   call 1
-  call 9
-  call 28
+  call 11
+  call 30
   f64.const 10.0 4621819117588971520
   f64.const 4.0 4616189618054758400
   call 1
-  call 9
-  call 28
+  call 11
+  call 30
+  i64.const 20
+  call 8
+  local.set 0
+  i64.const 0
+  local.set 1
   i32.const 5
   call 2
   i32.to_i64
+  local.set 2
+  local.get 0
+  local.get 1
+  local.get 2
+  call 10
+  local.set 1
+  local.get 0
+  local.get 1
+  call 9
+  call 30
+  i64.const 20
   call 8
-  call 28
+  local.set 0
+  i64.const 0
+  local.set 1
   i32.const 42
   call 6
   i32.to_i64
-  call 8
-  call 28
+  local.set 2
+  local.get 0
+  local.get 1
+  local.get 2
+  call 10
+  local.set 1
+  local.get 0
+  local.get 1
+  call 9
+  call 30
   f64.const 7.5 4620130267728707584
   call 5
-  call 9
-  call 28
+  call 11
+  call 30
   string.const 0
   call 7
-  call 28
+  call 30
   return.lit i32.const 0
 end
 
@@ -138,134 +180,155 @@ fn 7 snippet$id__string (string) -> string
   return
 end
 
-fn 8 std_core$format_signed (i64) -> string
-  local neg bool
-  local ndigits usize
-  local m i64
-  local $k_15 usize
-  local $k_20 usize
-  local buf ref
-  local $k_30 u8
-  local $cast_34 u8
-  local $add_35 u8
+fn 8 std_core$new_byte_buffer (usize) -> ref
   local.get 0
+  call 34
+  return
+end
+
+fn 9 std_core$finish_buffer (ref,usize) -> string
+  local.get 0
+  local.get 1
+  call 36
+  return
+end
+
+fn 10 std_core$write_int (ref,usize,i64) -> usize
+  local $k_5 u8
+  local $k_6 usize
+  local neg bool
+  local m i64
+  local $k_19 usize
+  local $k_24 usize
+  local $cast_37 u8
+  local $add_38 u8
+  local.get 2
   i64.const 0
   i64.eq
   if $L0 void
-    return.lit string.const 1
+    i32.const 48
+    local.set 3
+    local.get 0
+    local.get 1
+    local.get 3
+    call 35
+    i64.const 1
+    local.set 4
+    local.get 1
+    local.get 4
+    i64.add
+    return
   end $L0
-  local.get 0
+  local.get 2
   i64.const 0
   i64.lt
-  local.set 1
-  local.get 0
+  local.set 5
+  local.get 2
   i64.const 0
   i64.gt
   if $L1 void
-    local.get 0
+    local.get 2
     i64.neg
-    local.set 0
+    local.set 2
   else
   end $L1
   i64.const 0
-  local.set 2
-  local.get 0
-  local.set 3
+  local.set 4
+  local.get 2
+  local.set 6
   block $L2 void
     loop $L3 void
-      local.get 3
+      local.get 6
       i64.const 0
       i64.ne
       if $L4 void
         i64.const 1
-        local.set 4
-        local.get 2
+        local.set 7
         local.get 4
+        local.get 7
         i64.add
-        local.set 2
-        local.get 3
+        local.set 4
+        local.get 6
         i64.const 10
         i64.div
-        local.set 3
+        local.set 6
         br $L3
       else
       end $L4
     end $L3
   end $L2
-  local.get 1
+  local.get 5
   if $L5 void
     i64.const 1
-    local.set 5
-    local.get 2
-    local.get 5
+    local.set 8
+    local.get 4
+    local.get 8
     i64.add
-    local.set 4
+    local.set 7
   else
-    local.get 2
-    local.set 4
+    local.get 4
+    local.set 7
   end $L5
-  local.get 4
-  local.tee 2
-  call 32
-  local.set 6
-  local.get 2
+  local.get 7
   local.set 4
+  local.get 1
+  local.get 4
+  i64.add
+  local.set 7
   block $L6 void
     loop $L7 void
-      local.get 0
+      local.get 2
       i64.const 0
       i64.ne
       if $L8 void
         i64.const 1
-        local.set 5
-        local.get 4
-        local.get 5
+        local.set 8
+        local.get 7
+        local.get 8
         i64.sub
-        local.set 4
-        i32.const 48
         local.set 7
-        local.get 0
+        i32.const 48
+        local.set 3
+        local.get 2
         i64.const 10
         i64.rem
         i64.neg
         i64.to_i32
-        local.set 8
-        local.get 7
-        local.get 8
-        i32.add
         local.set 9
-        local.get 6
-        local.get 4
+        local.get 3
         local.get 9
-        call 33
+        i32.add
+        local.set 10
         local.get 0
+        local.get 7
+        local.get 10
+        call 35
+        local.get 2
         i64.const 10
         i64.div
-        local.set 0
+        local.set 2
         br $L7
       else
       end $L8
     end $L7
   end $L6
-  local.get 1
+  local.get 5
   if $L9 void
-    i64.const 0
-    local.set 4
     i32.const 45
-    local.set 7
-    local.get 6
-    local.get 4
-    local.get 7
-    call 33
+    local.set 3
+    local.get 0
+    local.get 1
+    local.get 3
+    call 35
   else
   end $L9
-  local.get 6
-  local.get 2
-  call 34
+  local.get 1
+  local.get 4
+  i64.add
   return
 end
 
-fn 9 std_core$format_f64 (f64) -> string
+fn 11 std_core$format_f64 (f64) -> string
   local bits u64
   local $k_3 u64
   local $k_5 u64
@@ -275,7 +338,7 @@ fn 9 std_core$format_f64 (f64) -> string
   local d ref
   local $field_36 i32
   local.get 0
-  call 36
+  call 38
   local.set 1
   i64.const 63
   local.set 2
@@ -319,14 +382,14 @@ fn 9 std_core$format_f64 (f64) -> string
     local.get 3
     i64.ne
     if $L1 void
-      return.lit string.const 2
+      return.lit string.const 1
     end $L1
     local.get 4
     if $L2 void
-      string.const 3
+      string.const 2
       local.set 5
     else
-      string.const 4
+      string.const 3
       local.set 5
     end $L2
     local.get 5
@@ -352,10 +415,10 @@ fn 9 std_core$format_f64 (f64) -> string
   if $L4 void
     local.get 4
     if $L5 void
-      string.const 5
+      string.const 4
       local.set 5
     else
-      string.const 6
+      string.const 5
       local.set 5
     end $L5
     local.get 5
@@ -363,22 +426,22 @@ fn 9 std_core$format_f64 (f64) -> string
   end $L4
   local.get 2
   local.get 1
-  call 10
+  call 12
   local.set 7
-  local.field 7 8 0
-  ref.cast 7
+  local.field 7 9 0
+  ref.cast 8
   local.set 1
-  local.field 7 8 1
+  local.field 7 9 1
   ref.cast 1
   local.set 8
   local.get 1
   local.get 8
   local.get 4
-  call 11
+  call 13
   return
 end
 
-fn 10 std_core$d2d (u64,u64) -> ref
+fn 12 std_core$d2d (u64,u64) -> ref
   local e2 i32
   local m2 u64
   local $sub_12 i32
@@ -819,7 +882,7 @@ fn 10 std_core$d2d (u64,u64) -> ref
     local.set 8
   end $L1
   local.get 8
-  call 12
+  call 14
   local.set 6
   bool.const false
   local.set 8
@@ -830,12 +893,12 @@ fn 10 std_core$d2d (u64,u64) -> ref
   i32.ge
   if $L2 void
     local.get 2
-    call 13
+    call 15
     local.set 13
     local.get 2
     i32.const 3
     i32.gt
-    call 14
+    call 16
     local.set 14
     local.get 13
     local.get 14
@@ -843,7 +906,7 @@ fn 10 std_core$d2d (u64,u64) -> ref
     local.tee 13
     local.set 4
     local.get 13
-    call 15
+    call 17
     local.set 14
     i32.const 125
     local.get 14
@@ -2935,16 +2998,16 @@ fn 10 std_core$d2d (u64,u64) -> ref
     local.get 16
     local.get 14
     local.get 6
-    call 16
+    call 18
     local.set 354
-    local.field 354 9 0
-    ref.cast 7
+    local.field 354 10 0
+    ref.cast 8
     local.set 9
-    local.field 354 9 1
-    ref.cast 7
+    local.field 354 10 1
+    ref.cast 8
     local.set 10
-    local.field 354 9 2
-    ref.cast 7
+    local.field 354 10 2
+    ref.cast 8
     local.set 11
     local.get 13
     i32.const 21
@@ -2974,7 +3037,7 @@ fn 10 std_core$d2d (u64,u64) -> ref
       if $L4 void
         local.get 5
         local.get 13
-        call 17
+        call 19
         local.set 12
       else
         local.get 7
@@ -2987,7 +3050,7 @@ fn 10 std_core$d2d (u64,u64) -> ref
           local.get 6
           i64.sub
           local.get 13
-          call 17
+          call 19
           local.set 8
         else
           i64.const 2
@@ -2996,8 +3059,8 @@ fn 10 std_core$d2d (u64,u64) -> ref
           local.get 15
           i64.add
           local.get 13
-          call 17
-          call 12
+          call 19
+          call 14
           local.set 15
           local.get 10
           local.get 15
@@ -3010,7 +3073,7 @@ fn 10 std_core$d2d (u64,u64) -> ref
   else
     local.get 2
     i32.neg
-    call 18
+    call 20
     local.set 13
     local.get 2
     i32.neg
@@ -3018,7 +3081,7 @@ fn 10 std_core$d2d (u64,u64) -> ref
     local.get 14
     i32.const 1
     i32.gt
-    call 14
+    call 16
     local.set 14
     local.get 13
     local.get 14
@@ -3032,7 +3095,7 @@ fn 10 std_core$d2d (u64,u64) -> ref
     local.get 13
     i32.sub
     local.tee 2
-    call 15
+    call 17
     local.set 14
     local.get 14
     i32.const 125
@@ -5021,16 +5084,16 @@ fn 10 std_core$d2d (u64,u64) -> ref
     local.get 16
     local.get 14
     local.get 6
-    call 16
+    call 18
     local.set 354
-    local.field 354 9 0
-    ref.cast 7
+    local.field 354 10 0
+    ref.cast 8
     local.set 9
-    local.field 354 9 1
-    ref.cast 7
+    local.field 354 10 1
+    ref.cast 8
     local.set 10
-    local.field 354 9 2
-    ref.cast 7
+    local.field 354 10 2
+    ref.cast 8
     local.set 11
     local.get 13
     i32.const 1
@@ -5061,7 +5124,7 @@ fn 10 std_core$d2d (u64,u64) -> ref
       if $L8 void
         local.get 5
         local.get 13
-        call 19
+        call 21
         local.set 12
       else
       end $L8
@@ -5320,7 +5383,7 @@ fn 10 std_core$d2d (u64,u64) -> ref
       local.set 7
     end $L26
     local.get 7
-    call 12
+    call 14
     local.set 5
     local.get 9
     local.get 5
@@ -5445,7 +5508,7 @@ fn 10 std_core$d2d (u64,u64) -> ref
       local.set 8
     end $L31
     local.get 8
-    call 12
+    call 14
     local.set 5
     local.get 9
     local.get 5
@@ -5458,11 +5521,11 @@ fn 10 std_core$d2d (u64,u64) -> ref
   local.set 2
   local.get 3
   local.get 2
-  struct.new 8
+  struct.new 9
   return
 end
 
-fn 11 std_core$render (u64,i32,bool) -> string
+fn 13 std_core$render (u64,i32,bool) -> string
   local mantissa u64
   local exp i32
   local $k_5 u64
@@ -5507,7 +5570,7 @@ fn 11 std_core$render (u64,i32,bool) -> string
     end $L1
   end $L0
   local.get 3
-  call 20
+  call 22
   local.tee 9
   array.len
   usize.to_i32
@@ -5519,13 +5582,13 @@ fn 11 std_core$render (u64,i32,bool) -> string
   local.get 9
   local.get 10
   local.get 4
-  call 21
+  call 23
   local.set 11
   local.get 2
   if $L3 void
-    string.const 7
+    string.const 6
     local.get 11
-    call 29
+    call 31
     local.set 12
   else
     local.get 11
@@ -5535,7 +5598,7 @@ fn 11 std_core$render (u64,i32,bool) -> string
   return
 end
 
-fn 12 std_core$b2u (bool) -> u64
+fn 14 std_core$b2u (bool) -> u64
   local if_res u64
   local.get 0
   if $L0 void
@@ -5549,7 +5612,7 @@ fn 12 std_core$b2u (bool) -> u64
   return
 end
 
-fn 13 std_core$log10_pow2 (i32) -> i32
+fn 15 std_core$log10_pow2 (i32) -> i32
   local $cast_1 u64
   local $k_2 u64
   local.get 0
@@ -5570,7 +5633,7 @@ fn 13 std_core$log10_pow2 (i32) -> i32
   return
 end
 
-fn 14 std_core$b2i (bool) -> i32
+fn 16 std_core$b2i (bool) -> i32
   local if_res i32
   local.get 0
   if $L0 void
@@ -5584,7 +5647,7 @@ fn 14 std_core$b2i (bool) -> i32
   return
 end
 
-fn 15 std_core$pow5bits (i32) -> i32
+fn 17 std_core$pow5bits (i32) -> i32
   local $cast_1 u64
   local $k_2 u64
   local.get 0
@@ -5611,7 +5674,7 @@ fn 15 std_core$pow5bits (i32) -> i32
   return
 end
 
-fn 16 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
+fn 18 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
   local $k_5 u64
   local __tup_0 ref
   local tmp u64
@@ -5630,23 +5693,23 @@ fn 16 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
   i64.shl
   local.tee 5
   local.get 1
-  call 22
+  call 24
   local.set 6
-  local.field 6 11 0
-  ref.cast 7
+  local.field 6 12 0
+  ref.cast 8
   local.set 7
-  local.field 6 11 1
-  ref.cast 7
+  local.field 6 12 1
+  ref.cast 8
   local.set 8
   local.get 5
   local.get 2
-  call 22
+  call 24
   local.set 6
-  local.field 6 11 0
-  ref.cast 7
+  local.field 6 12 0
+  ref.cast 8
   local.set 5
-  local.field 6 11 1
-  ref.cast 7
+  local.field 6 12 1
+  ref.cast 8
   local.set 9
   local.get 7
   local.get 9
@@ -5654,7 +5717,7 @@ fn 16 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
   local.tee 9
   local.get 7
   u64.lt
-  call 12
+  call 14
   local.set 7
   local.get 5
   local.get 7
@@ -5671,7 +5734,7 @@ fn 16 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
   local.get 7
   local.get 8
   u64.lt
-  call 12
+  call 14
   local.set 7
   local.get 10
   local.get 7
@@ -5679,7 +5742,7 @@ fn 16 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
   local.tee 7
   local.get 9
   u64.lt
-  call 12
+  call 14
   local.set 10
   local.get 5
   local.get 10
@@ -5697,7 +5760,7 @@ fn 16 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
   local.get 7
   local.get 10
   local.get 12
-  call 23
+  call 25
   local.set 7
   i64.const 1
   local.set 12
@@ -5716,7 +5779,7 @@ fn 16 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
     local.get 12
     local.get 8
     u64.gt
-    call 12
+    call 14
     local.set 12
     local.get 13
     local.get 12
@@ -5724,7 +5787,7 @@ fn 16 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
     local.tee 12
     local.get 9
     u64.gt
-    call 12
+    call 14
     local.set 13
     local.get 5
     local.get 13
@@ -5742,7 +5805,7 @@ fn 16 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
     local.get 12
     local.get 13
     local.get 14
-    call 23
+    call 25
     local.set 10
   else
     local.get 8
@@ -5756,7 +5819,7 @@ fn 16 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
     local.get 12
     local.get 8
     u64.lt
-    call 12
+    call 14
     local.set 8
     local.get 13
     local.get 8
@@ -5769,7 +5832,7 @@ fn 16 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
     local.get 8
     local.get 9
     u64.lt
-    call 12
+    call 14
     local.set 14
     local.get 13
     local.get 14
@@ -5786,7 +5849,7 @@ fn 16 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
     local.get 14
     local.get 12
     u64.gt
-    call 12
+    call 14
     local.set 12
     local.get 15
     local.get 12
@@ -5794,7 +5857,7 @@ fn 16 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
     local.tee 12
     local.get 8
     u64.gt
-    call 12
+    call 14
     local.set 8
     local.get 13
     local.get 8
@@ -5808,7 +5871,7 @@ fn 16 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
     local.get 12
     local.get 8
     local.get 13
-    call 23
+    call 25
     local.set 10
   end $L0
   local.get 3
@@ -5823,22 +5886,22 @@ fn 16 std_core$mul_shift_all_64 (u64,u64,u64,i32,u64) -> ref
   local.get 9
   local.get 5
   local.get 8
-  call 23
+  call 25
   local.get 7
   local.get 10
-  struct.new 9
+  struct.new 10
   return
 end
 
-fn 17 std_core$multiple_of_power_of_5 (u64,i32) -> bool
+fn 19 std_core$multiple_of_power_of_5 (u64,i32) -> bool
   local.get 0
-  call 24
+  call 26
   local.get 1
   i32.ge
   return
 end
 
-fn 18 std_core$log10_pow5 (i32) -> i32
+fn 20 std_core$log10_pow5 (i32) -> i32
   local $cast_1 u64
   local $k_2 u64
   local.get 0
@@ -5859,7 +5922,7 @@ fn 18 std_core$log10_pow5 (i32) -> i32
   return
 end
 
-fn 19 std_core$multiple_of_power_of_2 (u64,i32) -> bool
+fn 21 std_core$multiple_of_power_of_2 (u64,i32) -> bool
   local $k_2 u64
   local $cast_3 u64
   i64.const 1
@@ -5889,7 +5952,7 @@ fn 19 std_core$multiple_of_power_of_2 (u64,i32) -> bool
   return
 end
 
-fn 20 std_core$digits_of (u64) -> ref
+fn 22 std_core$digits_of (u64) -> ref
   local $k_1 u64
   local rev ref
   local $k_8 u64
@@ -5908,11 +5971,11 @@ fn 20 std_core$digits_of (u64) -> ref
   local.get 1
   i64.eq
   if $L0 void
-    string.const 1
-    array.new 10 1
+    string.const 7
+    array.new 11 1
     return
   end $L0
-  array.new 10 0
+  array.new 11 0
   local.set 2
   local.get 0
   local.set 1
@@ -5924,7 +5987,7 @@ fn 20 std_core$digits_of (u64) -> ref
       local.get 3
       i64.ne
       if $L3 void
-        data.const 0 10
+        data.const 0 11
         local.set 4
         i64.const 10
         local.set 5
@@ -5935,7 +5998,7 @@ fn 20 std_core$digits_of (u64) -> ref
         local.set 6
         local.get 4
         local.get 6
-        array.get 10
+        array.get 11
         ref.cast 3
         local.set 7
         local.get 2
@@ -5952,7 +6015,7 @@ fn 20 std_core$digits_of (u64) -> ref
       end $L3
     end $L2
   end $L1
-  array.new 10 0
+  array.new 11 0
   local.set 4
   local.get 2
   array.len
@@ -5975,7 +6038,7 @@ fn 20 std_core$digits_of (u64) -> ref
         local.set 11
         local.get 2
         local.get 11
-        array.get 10
+        array.get 11
         ref.cast 3
         local.set 7
         local.get 4
@@ -5996,7 +6059,7 @@ fn 20 std_core$digits_of (u64) -> ref
   return
 end
 
-fn 21 std_core$format_decimal (ref,i32,i32) -> string
+fn 23 std_core$format_decimal (ref,i32,i32) -> string
   local and_res bool
   local $call_9 string
   local $call_11 string
@@ -6020,17 +6083,17 @@ fn 21 std_core$format_decimal (ref,i32,i32) -> string
     local.get 0
     i32.const 0
     local.get 1
-    call 25
+    call 27
     local.set 4
     local.get 2
     local.get 1
     i32.sub
-    call 26
+    call 28
     local.set 5
     local.get 4
     local.get 5
     string.const 8
-    call 30
+    call 32
     return
   end $L1
   i32.const 0
@@ -6050,17 +6113,17 @@ fn 21 std_core$format_decimal (ref,i32,i32) -> string
     local.get 0
     i32.const 0
     local.get 2
-    call 25
+    call 27
     local.set 4
     local.get 0
     local.get 2
     local.get 1
-    call 25
+    call 27
     local.set 5
     local.get 4
     string.const 9
     local.get 5
-    call 30
+    call 32
     return
   end $L3
   i32.const 6
@@ -6080,17 +6143,17 @@ fn 21 std_core$format_decimal (ref,i32,i32) -> string
   if $L5 void
     local.get 2
     i32.neg
-    call 26
+    call 28
     local.set 4
     local.get 0
     i32.const 0
     local.get 1
-    call 25
+    call 27
     local.set 5
     string.const 10
     local.get 4
     local.get 5
-    call 30
+    call 32
     return
   end $L5
   local.get 2
@@ -6100,7 +6163,7 @@ fn 21 std_core$format_decimal (ref,i32,i32) -> string
   local.get 0
   i32.const 0
   i32.const 1
-  call 25
+  call 27
   local.set 4
   local.get 1
   i32.const 1
@@ -6109,12 +6172,12 @@ fn 21 std_core$format_decimal (ref,i32,i32) -> string
     local.get 0
     i32.const 1
     local.get 1
-    call 25
+    call 27
     local.set 5
     local.get 4
     string.const 9
     local.get 5
-    call 30
+    call 32
     local.set 4
   else
   end $L6
@@ -6122,7 +6185,7 @@ fn 21 std_core$format_decimal (ref,i32,i32) -> string
   i32.const 0
   i32.lt
   if $L7 void
-    string.const 7
+    string.const 6
     local.set 5
   else
     string.const 11
@@ -6145,17 +6208,17 @@ fn 21 std_core$format_decimal (ref,i32,i32) -> string
   local.set 6
   local.get 6
   i32.to_i64
-  call 27
+  call 29
   local.set 8
   local.get 4
   string.const 12
   local.get 5
   local.get 8
-  call 31
+  call 33
   return
 end
 
-fn 22 std_core$umul128 (u64,u64) -> ref
+fn 24 std_core$umul128 (u64,u64) -> ref
   local $k_2 u64
   local $k_5 u64
   local $k_8 u64
@@ -6265,11 +6328,11 @@ fn 22 std_core$umul128 (u64,u64) -> ref
   local.set 2
   local.get 3
   local.get 2
-  struct.new 11
+  struct.new 12
   return
 end
 
-fn 23 std_core$shiftright128 (u64,u64,u64) -> u64
+fn 25 std_core$shiftright128 (u64,u64,u64) -> u64
   local $sub_4 u64
   local $shr_6 u64
   i64.const 64
@@ -6290,7 +6353,7 @@ fn 23 std_core$shiftright128 (u64,u64,u64) -> u64
   return
 end
 
-fn 24 std_core$pow5_factor (u64) -> i32
+fn 26 std_core$pow5_factor (u64) -> i32
   local m_inv_5 u64
   local n_div_5 u64
   local value u64
@@ -6325,7 +6388,7 @@ fn 24 std_core$pow5_factor (u64) -> i32
   return
 end
 
-fn 25 std_core$join_range (ref,i32,i32) -> string
+fn 27 std_core$join_range (ref,i32,i32) -> string
   local out string
   local i i32
   local $cast_7 usize
@@ -6345,12 +6408,12 @@ fn 25 std_core$join_range (ref,i32,i32) -> string
         local.set 5
         local.get 0
         local.get 5
-        array.get 10
+        array.get 11
         ref.cast 3
         local.set 6
         local.get 3
         local.get 6
-        call 29
+        call 31
         local.set 3
         local.get 4
         i32.const 1
@@ -6365,7 +6428,7 @@ fn 25 std_core$join_range (ref,i32,i32) -> string
   return
 end
 
-fn 26 std_core$zeros (i32) -> string
+fn 28 std_core$zeros (i32) -> string
   local out string
   local _ i32
   string.const 13
@@ -6379,8 +6442,8 @@ fn 26 std_core$zeros (i32) -> string
       i32.lt
       if $L2 void
         local.get 1
-        string.const 1
-        call 29
+        string.const 7
+        call 31
         local.set 1
         local.get 2
         i32.const 1
@@ -6395,7 +6458,7 @@ fn 26 std_core$zeros (i32) -> string
   return
 end
 
-fn 27 std_core$format_unsigned (u64) -> string
+fn 29 std_core$format_unsigned (u64) -> string
   local $k_1 u64
   local ndigits usize
   local $k_7 u64
@@ -6412,7 +6475,7 @@ fn 27 std_core$format_unsigned (u64) -> string
   local.get 1
   i64.eq
   if $L0 void
-    return.lit string.const 1
+    return.lit string.const 7
   end $L0
   i64.const 0
   local.set 2
@@ -6444,7 +6507,7 @@ fn 27 std_core$format_unsigned (u64) -> string
     end $L2
   end $L1
   local.get 2
-  call 32
+  call 34
   local.set 6
   local.get 2
   local.set 4
@@ -6478,7 +6541,7 @@ fn 27 std_core$format_unsigned (u64) -> string
         local.get 6
         local.get 4
         local.get 10
-        call 33
+        call 35
         i64.const 10
         local.set 5
         local.get 0
@@ -6492,11 +6555,11 @@ fn 27 std_core$format_unsigned (u64) -> string
   end $L4
   local.get 6
   local.get 2
-  call 34
+  call 36
   return
 end
 
-fn 28 std_io$println__string (string) -> void
+fn 30 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
   call.import 1
@@ -6506,7 +6569,7 @@ fn 28 std_io$println__string (string) -> void
   return
 end
 
-fn 29 std_string_builder$concat2 (string,string) -> string
+fn 31 std_string_builder$concat2 (string,string) -> string
   local la usize
   local $len_6 usize
   local buf ref
@@ -6523,25 +6586,25 @@ fn 29 std_string_builder$concat2 (string,string) -> string
   local.get 3
   i64.add
   local.tee 3
-  call 32
+  call 34
   local.set 4
   i64.const 0
   local.set 5
   local.get 4
   local.get 5
   local.get 0
-  call 35
+  call 37
   local.get 4
   local.get 2
   local.get 1
-  call 35
+  call 37
   local.get 4
   local.get 3
-  call 34
+  call 36
   return
 end
 
-fn 30 std_string_builder$concat3 (string,string,string) -> string
+fn 32 std_string_builder$concat3 (string,string,string) -> string
   local la usize
   local $len_7 usize
   local $len_11 usize
@@ -6567,29 +6630,29 @@ fn 30 std_string_builder$concat3 (string,string,string) -> string
   local.get 5
   i64.add
   local.tee 5
-  call 32
+  call 34
   local.set 6
   i64.const 0
   local.set 7
   local.get 6
   local.get 7
   local.get 0
-  call 35
+  call 37
   local.get 6
   local.get 3
   local.get 1
-  call 35
+  call 37
   local.get 6
   local.get 4
   local.get 2
-  call 35
+  call 37
   local.get 6
   local.get 5
-  call 34
+  call 36
   return
 end
 
-fn 31 std_string_builder$concat4 (string,string,string,string) -> string
+fn 33 std_string_builder$concat4 (string,string,string,string) -> string
   local la usize
   local $len_8 usize
   local $len_12 usize
@@ -6624,39 +6687,39 @@ fn 31 std_string_builder$concat4 (string,string,string,string) -> string
   local.get 7
   i64.add
   local.tee 7
-  call 32
+  call 34
   local.set 8
   i64.const 0
   local.set 9
   local.get 8
   local.get 9
   local.get 0
-  call 35
+  call 37
   local.get 8
   local.get 4
   local.get 1
-  call 35
+  call 37
   local.get 8
   local.get 5
   local.get 2
-  call 35
+  call 37
   local.get 8
   local.get 6
   local.get 3
-  call 35
+  call 37
   local.get 8
   local.get 7
-  call 34
+  call 36
   return
 end
 
-fn 32 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 34 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   object_new 0
   return
 end
 
-fn 33 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
+fn 35 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   local.get 0
   local.get 1
   local.get 2
@@ -6664,14 +6727,14 @@ fn 33 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   return
 end
 
-fn 34 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 36 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
   buffer_to_string
   return
 end
 
-fn 35 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 37 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0
   local.get 1
   local.get 2
@@ -6679,7 +6742,7 @@ fn 35 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   return
 end
 
-fn 36 std_core$f64$FloatBits$to_bits_vt (f64) -> u64
+fn 38 std_core$f64$FloatBits$to_bits_vt (f64) -> u64
   local.get 0
   f64_to_bits
   return

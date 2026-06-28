@@ -10,92 +10,243 @@
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            concat2 :string
-          arg0:
-            "a=" :string
-          arg1:
+        block :string
+          let __buf_0: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(22) :usize
+          let __off_1: usize = int(0) :usize
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  "a=" :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  cast → i64
+                    cast → i32
+                      a :char
+          ~>
             call :string
               callee:
-                format_signed :fn(i64) -> string
+                finish_buffer :string
               arg0:
-                cast → i64
-                  cast → i32
-                    a :char
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
     call :void
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            concat2 :string
-          arg0:
-            "nl=" :string
-          arg1:
+        block :string
+          let __buf_2: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(23) :usize
+          let __off_3: usize = int(0) :usize
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  "nl=" :string
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  cast → i64
+                    cast → i32
+                      nl :char
+          ~>
             call :string
               callee:
-                format_signed :fn(i64) -> string
+                finish_buffer :string
               arg0:
-                cast → i64
-                  cast → i32
-                    nl :char
+                __buf_2 :Buffer
+              arg1:
+                __off_3 :usize
     call :void
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            concat2 :string
-          arg0:
-            "bs=" :string
-          arg1:
+        block :string
+          let __buf_4: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(23) :usize
+          let __off_5: usize = int(0) :usize
+          assign
+            target:
+              __off_5 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_4 :Buffer
+                arg1:
+                  __off_5 :usize
+                arg2:
+                  "bs=" :string
+          assign
+            target:
+              __off_5 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_4 :Buffer
+                arg1:
+                  __off_5 :usize
+                arg2:
+                  cast → i64
+                    cast → i32
+                      bs :char
+          ~>
             call :string
               callee:
-                format_signed :fn(i64) -> string
+                finish_buffer :string
               arg0:
-                cast → i64
-                  cast → i32
-                    bs :char
+                __buf_4 :Buffer
+              arg1:
+                __off_5 :usize
     call :void
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            concat2 :string
-          arg0:
-            "sq=" :string
-          arg1:
+        block :string
+          let __buf_6: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(23) :usize
+          let __off_7: usize = int(0) :usize
+          assign
+            target:
+              __off_7 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_6 :Buffer
+                arg1:
+                  __off_7 :usize
+                arg2:
+                  "sq=" :string
+          assign
+            target:
+              __off_7 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_6 :Buffer
+                arg1:
+                  __off_7 :usize
+                arg2:
+                  cast → i64
+                    cast → i32
+                      sq :char
+          ~>
             call :string
               callee:
-                format_signed :fn(i64) -> string
+                finish_buffer :string
               arg0:
-                cast → i64
-                  cast → i32
-                    sq :char
+                __buf_6 :Buffer
+              arg1:
+                __off_7 :usize
     let b: char = char(0x3d)
     call :void
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            concat2 :string
-          arg0:
-            "eq=" :string
-          arg1:
-            if :string
-              cond:
-                eq :bool
-                  l:
-                    b :char
-                  r:
-                    char(0x3d)
-              then:
-                ~>
-                  "true" :string
-              else:
-                ~>
-                  "false" :string
+        block :string
+          let __buf_8: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(8) :usize
+          let __off_9: usize = int(0) :usize
+          assign
+            target:
+              __off_9 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_8 :Buffer
+                arg1:
+                  __off_9 :usize
+                arg2:
+                  "eq=" :string
+          assign
+            target:
+              __off_9 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_8 :Buffer
+                arg1:
+                  __off_9 :usize
+                arg2:
+                  eq :bool
+                    l:
+                      b :char
+                    r:
+                      char(0x3d)
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_8 :Buffer
+              arg1:
+                __off_9 :usize
     return int(0) :i32

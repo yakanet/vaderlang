@@ -41,36 +41,67 @@
                     callee:
                       std_io$println__string :void
                     arg0:
-                      call :string
-                        callee:
-                          concat2 :string
-                        arg0:
-                          "count=" :string
-                        arg1:
+                      block :string
+                        let __buf_1: Buffer =
+                          call :Buffer
+                            callee:
+                              new_byte_buffer :Buffer
+                            arg0:
+                              int(26) :usize
+                        let __off_2: usize = int(0) :usize
+                        assign
+                          target:
+                            __off_2 :usize
+                          value:
+                            call :usize
+                              callee:
+                                write_string_at :usize
+                              arg0:
+                                __buf_1 :Buffer
+                              arg1:
+                                __off_2 :usize
+                              arg2:
+                                "count=" :string
+                        assign
+                          target:
+                            __off_2 :usize
+                          value:
+                            call :usize
+                              callee:
+                                write_int :usize
+                              arg0:
+                                __buf_1 :Buffer
+                              arg1:
+                                __off_2 :usize
+                              arg2:
+                                cast → i64
+                                  call :i32
+                                    callee:
+                                      count :fn(i32[]) -> i32
+                                    arg0:
+                                      .items :i32[]
+                                        b :Bag
+                        ~>
                           call :string
                             callee:
-                              format_signed :fn(i64) -> string
+                              finish_buffer :string
                             arg0:
-                              cast → i64
-                                call :i32
-                                  callee:
-                                    count :fn(i32[]) -> i32
-                                  arg0:
-                                    .items :i32[]
-                                      b :Bag
+                              __buf_1 :Buffer
+                            arg1:
+                              __off_2 :usize
     let empty: Bag =
       Bag {
         items: null
       }
     block :void
-      let __scrut_1: i32[] | null =
+      let __scrut_3: i32[] | null =
         .items :i32[] | null
           empty :Bag
       ~>
         if :void
           cond:
             is null :bool
-              __scrut_1 :i32[] | null
+              __scrut_3 :i32[] | null
           then:
             ~>
               block :void
@@ -88,21 +119,52 @@
                     callee:
                       std_io$println__string :void
                     arg0:
-                      call :string
-                        callee:
-                          concat2 :string
-                        arg0:
-                          "count=" :string
-                        arg1:
+                      block :string
+                        let __buf_4: Buffer =
+                          call :Buffer
+                            callee:
+                              new_byte_buffer :Buffer
+                            arg0:
+                              int(26) :usize
+                        let __off_5: usize = int(0) :usize
+                        assign
+                          target:
+                            __off_5 :usize
+                          value:
+                            call :usize
+                              callee:
+                                write_string_at :usize
+                              arg0:
+                                __buf_4 :Buffer
+                              arg1:
+                                __off_5 :usize
+                              arg2:
+                                "count=" :string
+                        assign
+                          target:
+                            __off_5 :usize
+                          value:
+                            call :usize
+                              callee:
+                                write_int :usize
+                              arg0:
+                                __buf_4 :Buffer
+                              arg1:
+                                __off_5 :usize
+                              arg2:
+                                cast → i64
+                                  call :i32
+                                    callee:
+                                      count :fn(i32[]) -> i32
+                                    arg0:
+                                      .items :i32[]
+                                        empty :Bag
+                        ~>
                           call :string
                             callee:
-                              format_signed :fn(i64) -> string
+                              finish_buffer :string
                             arg0:
-                              cast → i64
-                                call :i32
-                                  callee:
-                                    count :fn(i32[]) -> i32
-                                  arg0:
-                                    .items :i32[]
-                                      empty :Bag
+                              __buf_4 :Buffer
+                            arg1:
+                              __off_5 :usize
     return int(0) :i32

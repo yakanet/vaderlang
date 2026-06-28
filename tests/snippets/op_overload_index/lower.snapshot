@@ -148,28 +148,38 @@
         std_io$println__string :void
       arg0:
         block :string
-          let __sb_0: StringBuilder =
-            StringBuilder {
-              parts:
-                array :string[]
-            }
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              "a=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
+          let __buf_0: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(68) :usize
+          let __off_1: usize = int(0) :usize
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
                 callee:
-                  format_signed :fn(i64) -> string
+                  write_string_at :usize
                 arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  "a=" :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
                   cast → i64
                     call :i32
                       callee:
@@ -178,23 +188,31 @@
                         c :Cell
                       arg1:
                         "a" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              " b=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
                 callee:
-                  format_signed :fn(i64) -> string
+                  write_string_at :usize
                 arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  " b=" :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
                   cast → i64
                     call :i32
                       callee:
@@ -203,23 +221,31 @@
                         c :Cell
                       arg1:
                         "b" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              " c=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
                 callee:
-                  format_signed :fn(i64) -> string
+                  write_string_at :usize
                 arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  " c=" :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
                   cast → i64
                     call :i32
                       callee:
@@ -231,7 +257,9 @@
           ~>
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                finish_buffer :string
               arg0:
-                __sb_0 :StringBuilder
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
     return int(0) :i32

@@ -52,7 +52,7 @@ fn 0 snippet$main () -> i32
   i32.const 1
   call 1
   local.field 0 5 0
-  call 4
+  call 7
   usize.to_i32
   return
 end
@@ -69,7 +69,7 @@ fn 2 std_collections$MutableMap$IndexSet$set_at__string__i32 (ref,string,i32) ->
   local.get 0
   local.get 1
   local.get 2
-  call 8
+  call 6
   return
 end
 
@@ -81,72 +81,7 @@ fn 3 std_collections$slot_for (u64,usize) -> usize
   return
 end
 
-fn 4 std_collections$std_collections$len__string__i32 (ref) -> usize
-  local.field 0 2 4
-  ref.cast 6
-  return
-end
-
-fn 5 std_collections$std_collections$ensure_index__string__i32 (ref) -> void
-  local $len_2 usize
-  local $k_3 usize
-  local idx ref
-  local $k_12 usize
-  local.field 0 2 2
-  array.len
-  local.set 1
-  i64.const 0
-  local.set 2
-  local.get 1
-  local.get 2
-  i64.eq
-  if $L0 void
-    array.new 8 0
-    local.set 3
-    i64.const 0
-    local.set 1
-    block $L1 void
-      loop $L2 void
-        i64.const 16
-        local.set 2
-        local.get 1
-        local.get 2
-        u64.lt
-        if $L3 void
-          local.get 3
-          i32.const 0
-          array.push 1
-          i64.const 1
-          local.set 4
-          local.get 1
-          local.get 4
-          i64.add
-          local.set 1
-          br $L2
-        else
-        end $L3
-      end $L2
-    end $L1
-    local.get 0
-    local.get 3
-    struct.set 2 2
-    i64.const 16
-    local.set 1
-    i64.const 1
-    local.set 2
-    local.get 1
-    local.get 2
-    i64.sub
-    local.set 1
-    local.get 0
-    local.get 1
-    struct.set 2 3
-  else
-  end $L0
-  return
-end
-
-fn 6 std_collections$std_collections$rehash__string__i32 (ref,usize) -> void
+fn 4 std_collections$std_collections$rehash__string__i32 (ref,usize) -> void
   local fresh ref
   local _ usize
   local $k_8 usize
@@ -265,7 +200,7 @@ fn 6 std_collections$std_collections$rehash__string__i32 (ref,usize) -> void
   return
 end
 
-fn 7 std_collections$std_collections$write_entry__string__i32 (ref,string,i32) -> void
+fn 5 std_collections$std_collections$write_entry__string__i32 (ref,string,i32) -> void
   local $field_3 usize
   local $len_5 usize
   local $field_7 ref
@@ -308,7 +243,7 @@ fn 7 std_collections$std_collections$write_entry__string__i32 (ref,string,i32) -
   return
 end
 
-fn 8 std_collections$std_collections$put__string__i32 (ref,string,i32) -> void
+fn 6 std_collections$std_collections$put__string__i32 (ref,string,i32) -> void
   local $field_3 usize
   local $field_4 usize
   local $k_11 usize
@@ -324,7 +259,7 @@ fn 8 std_collections$std_collections$put__string__i32 (ref,string,i32) -> void
   local $idx_40 i32
   local $field_70 ref
   local.get 0
-  call 5
+  call 8
   local.field 0 2 4
   ref.cast 6
   local.set 3
@@ -408,7 +343,7 @@ fn 8 std_collections$std_collections$put__string__i32 (ref,string,i32) -> void
     end $L1
     local.get 0
     local.get 3
-    call 6
+    call 4
   else
   end $L0
   local.get 1
@@ -542,7 +477,7 @@ fn 8 std_collections$std_collections$put__string__i32 (ref,string,i32) -> void
   local.get 0
   local.get 1
   local.get 2
-  call 7
+  call 5
   local.field 0 2 2
   local.set 16
   local.field 0 2 4
@@ -571,6 +506,71 @@ fn 8 std_collections$std_collections$put__string__i32 (ref,string,i32) -> void
   local.get 0
   local.get 3
   struct.set 2 4
+  return
+end
+
+fn 7 std_collections$std_collections$len__string__i32 (ref) -> usize
+  local.field 0 2 4
+  ref.cast 6
+  return
+end
+
+fn 8 std_collections$std_collections$ensure_index__string__i32 (ref) -> void
+  local $len_2 usize
+  local $k_3 usize
+  local idx ref
+  local $k_12 usize
+  local.field 0 2 2
+  array.len
+  local.set 1
+  i64.const 0
+  local.set 2
+  local.get 1
+  local.get 2
+  i64.eq
+  if $L0 void
+    array.new 8 0
+    local.set 3
+    i64.const 0
+    local.set 1
+    block $L1 void
+      loop $L2 void
+        i64.const 16
+        local.set 2
+        local.get 1
+        local.get 2
+        u64.lt
+        if $L3 void
+          local.get 3
+          i32.const 0
+          array.push 1
+          i64.const 1
+          local.set 4
+          local.get 1
+          local.get 4
+          i64.add
+          local.set 1
+          br $L2
+        else
+        end $L3
+      end $L2
+    end $L1
+    local.get 0
+    local.get 3
+    struct.set 2 2
+    i64.const 16
+    local.set 1
+    i64.const 1
+    local.set 2
+    local.get 1
+    local.get 2
+    i64.sub
+    local.set 1
+    local.get 0
+    local.get 1
+    struct.set 2 3
+  else
+  end $L0
   return
 end
 

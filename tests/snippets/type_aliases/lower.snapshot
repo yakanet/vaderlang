@@ -25,35 +25,107 @@
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            format_signed :fn(i64) -> string
-          arg0:
-            cast → i64
-              call :i32
+        block :string
+          let __buf_0: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(20) :usize
+          let __off_1: usize = int(0) :usize
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
                 callee:
-                  add :fn(i32, i32) -> i32
+                  write_int :usize
                 arg0:
-                  x :i32
+                  __buf_0 :Buffer
                 arg1:
-                  int(10) :i32
+                  __off_1 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        add :fn(i32, i32) -> i32
+                      arg0:
+                        x :i32
+                      arg1:
+                        int(10) :i32
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
     call :void
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            format_signed :fn(i64) -> string
-          arg0:
-            y :i64
+        block :string
+          let __buf_2: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(20) :usize
+          let __off_3: usize = int(0) :usize
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  y :i64
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_2 :Buffer
+              arg1:
+                __off_3 :usize
     call :void
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            format_unsigned :fn(u64) -> string
-          arg0:
-            cast → u64
-              b :u8
+        block :string
+          let __buf_4: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(20) :usize
+          let __off_5: usize = int(0) :usize
+          assign
+            target:
+              __off_5 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_4 :Buffer
+                arg1:
+                  __off_5 :usize
+                arg2:
+                  cast → u64
+                    b :u8
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_4 :Buffer
+              arg1:
+                __off_5 :usize
     return int(0) :i32

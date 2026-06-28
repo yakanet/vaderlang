@@ -11,22 +11,53 @@
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            concat2 :string
-          arg0:
-            "count=" :string
-          arg1:
+        block :string
+          let __buf_0: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(26) :usize
+          let __off_1: usize = int(0) :usize
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  "count=" :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  cast → u64
+                    call :usize
+                      callee:
+                        std_iter$count__i32 :usize
+                      arg0:
+                        nums :i32[]
+          ~>
             call :string
               callee:
-                format_unsigned :fn(u64) -> string
+                finish_buffer :string
               arg0:
-                cast → u64
-                  call :usize
-                    callee:
-                      std_iter$count__i32 :usize
-                    arg0:
-                      nums :i32[]
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
     let cloned: i32[] =
       call :i32[]
         callee:
@@ -37,22 +68,53 @@
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            concat2 :string
-          arg0:
-            "clone[0]=" :string
-          arg1:
+        block :string
+          let __buf_2: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(29) :usize
+          let __off_3: usize = int(0) :usize
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  "clone[0]=" :string
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  cast → i64
+                    index :i32
+                      on:
+                        cloned :i32[]
+                      ix:
+                        int(0) :i32
+          ~>
             call :string
               callee:
-                format_signed :fn(i64) -> string
+                finish_buffer :string
               arg0:
-                cast → i64
-                  index :i32
-                    on:
-                      cloned :i32[]
-                    ix:
-                      int(0) :i32
+                __buf_2 :Buffer
+              arg1:
+                __off_3 :usize
     let keys: string[] =
       array :string[]
         "a" :string
@@ -73,49 +135,100 @@
         arg1:
           vals :i32[]
     block :void
-      let __for_arr_0: [string, i32][] = pairs :[string, i32][]
-      let __for_len_1: usize =
+      let __for_arr_4: [string, i32][] = pairs :[string, i32][]
+      let __for_len_5: usize =
         LoweredArrayLen
-      let __for_i_2: usize = int(0) :usize
+      let __for_i_6: usize = int(0) :usize
       loop while (<…>)
         let __for_17_5: [string, i32] =
           index :[string, i32]
             on:
-              __for_arr_0 :[string, i32][]
+              __for_arr_4 :[string, i32][]
             ix:
-              __for_i_2 :usize
-        let __tup_3: [string, i32] = __for_17_5 :[string, i32]
+              __for_i_6 :usize
+        let __tup_7: [string, i32] = __for_17_5 :[string, i32]
         let k: string =
           ._0 :string
-            __tup_3 :[string, i32]
+            __tup_7 :[string, i32]
         let v: i32 =
           ._1 :i32
-            __tup_3 :[string, i32]
+            __tup_7 :[string, i32]
         call :void
           callee:
             std_io$println__string :void
           arg0:
-            call :string
-              callee:
-                concat3 :string
-              arg0:
-                k :string
-              arg1:
-                "=" :string
-              arg2:
+            block :string
+              let __p_8: string = k :string
+              let __buf_9: Buffer =
+                call :Buffer
+                  callee:
+                    new_byte_buffer :Buffer
+                  arg0:
+                    add :usize
+                      l:
+                        int(21) :usize
+                      r:
+                        call :usize
+                          callee:
+                            byte_len :usize
+                          arg0:
+                            __p_8 :string
+              let __off_10: usize = int(0) :usize
+              assign
+                target:
+                  __off_10 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_string_at :usize
+                    arg0:
+                      __buf_9 :Buffer
+                    arg1:
+                      __off_10 :usize
+                    arg2:
+                      __p_8 :string
+              assign
+                target:
+                  __off_10 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_string_at :usize
+                    arg0:
+                      __buf_9 :Buffer
+                    arg1:
+                      __off_10 :usize
+                    arg2:
+                      "=" :string
+              assign
+                target:
+                  __off_10 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_int :usize
+                    arg0:
+                      __buf_9 :Buffer
+                    arg1:
+                      __off_10 :usize
+                    arg2:
+                      cast → i64
+                        v :i32
+              ~>
                 call :string
                   callee:
-                    format_signed :fn(i64) -> string
+                    finish_buffer :string
                   arg0:
-                    cast → i64
-                      v :i32
+                    __buf_9 :Buffer
+                  arg1:
+                    __off_10 :usize
         assign
           target:
-            __for_i_2 :usize
+            __for_i_6 :usize
           value:
             add :usize
               l:
-                __for_i_2 :usize
+                __for_i_6 :usize
               r:
                 int(1) :usize
     let head: i32[] =
@@ -136,40 +249,71 @@
         arg1:
           tail :i32[]
     block :void
-      let __for_arr_4: i32[] = joined :i32[]
-      let __for_len_5: usize =
+      let __for_arr_11: i32[] = joined :i32[]
+      let __for_len_12: usize =
         LoweredArrayLen
-      let __for_i_6: usize = int(0) :usize
+      let __for_i_13: usize = int(0) :usize
       loop while (<…>)
         let x: i32 =
           index :i32
             on:
-              __for_arr_4 :i32[]
+              __for_arr_11 :i32[]
             ix:
-              __for_i_6 :usize
+              __for_i_13 :usize
         call :void
           callee:
             std_io$println__string :void
           arg0:
-            call :string
-              callee:
-                concat2 :string
-              arg0:
-                "j=" :string
-              arg1:
+            block :string
+              let __buf_14: Buffer =
+                call :Buffer
+                  callee:
+                    new_byte_buffer :Buffer
+                  arg0:
+                    int(22) :usize
+              let __off_15: usize = int(0) :usize
+              assign
+                target:
+                  __off_15 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_string_at :usize
+                    arg0:
+                      __buf_14 :Buffer
+                    arg1:
+                      __off_15 :usize
+                    arg2:
+                      "j=" :string
+              assign
+                target:
+                  __off_15 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_int :usize
+                    arg0:
+                      __buf_14 :Buffer
+                    arg1:
+                      __off_15 :usize
+                    arg2:
+                      cast → i64
+                        x :i32
+              ~>
                 call :string
                   callee:
-                    format_signed :fn(i64) -> string
+                    finish_buffer :string
                   arg0:
-                    cast → i64
-                      x :i32
+                    __buf_14 :Buffer
+                  arg1:
+                    __off_15 :usize
         assign
           target:
-            __for_i_6 :usize
+            __for_i_13 :usize
           value:
             add :usize
               l:
-                __for_i_6 :usize
+                __for_i_13 :usize
               r:
                 int(1) :usize
     let fruits: string[] =
@@ -178,54 +322,105 @@
         "banana" :string
         "cherry" :string
     block :void
-      let __for_arr_7: [usize, string][] =
+      let __for_arr_16: [usize, string][] =
         call :[usize, string][]
           callee:
             std_iter$std_iter$enumerate__string :[usize, string][]
           arg0:
             fruits :string[]
-      let __for_len_8: usize =
+      let __for_len_17: usize =
         LoweredArrayLen
-      let __for_i_9: usize = int(0) :usize
+      let __for_i_18: usize = int(0) :usize
       loop while (<…>)
         let __for_31_5: [usize, string] =
           index :[usize, string]
             on:
-              __for_arr_7 :[usize, string][]
+              __for_arr_16 :[usize, string][]
             ix:
-              __for_i_9 :usize
-        let __tup_10: [usize, string] = __for_31_5 :[usize, string]
+              __for_i_18 :usize
+        let __tup_19: [usize, string] = __for_31_5 :[usize, string]
         let i: usize =
           ._0 :usize
-            __tup_10 :[usize, string]
+            __tup_19 :[usize, string]
         let f: string =
           ._1 :string
-            __tup_10 :[usize, string]
+            __tup_19 :[usize, string]
         call :void
           callee:
             std_io$println__string :void
           arg0:
-            call :string
-              callee:
-                concat3 :string
-              arg0:
+            block :string
+              let __p_20: string = f :string
+              let __buf_21: Buffer =
+                call :Buffer
+                  callee:
+                    new_byte_buffer :Buffer
+                  arg0:
+                    add :usize
+                      l:
+                        int(22) :usize
+                      r:
+                        call :usize
+                          callee:
+                            byte_len :usize
+                          arg0:
+                            __p_20 :string
+              let __off_22: usize = int(0) :usize
+              assign
+                target:
+                  __off_22 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_unsigned :usize
+                    arg0:
+                      __buf_21 :Buffer
+                    arg1:
+                      __off_22 :usize
+                    arg2:
+                      cast → u64
+                        i :usize
+              assign
+                target:
+                  __off_22 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_string_at :usize
+                    arg0:
+                      __buf_21 :Buffer
+                    arg1:
+                      __off_22 :usize
+                    arg2:
+                      ": " :string
+              assign
+                target:
+                  __off_22 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_string_at :usize
+                    arg0:
+                      __buf_21 :Buffer
+                    arg1:
+                      __off_22 :usize
+                    arg2:
+                      __p_20 :string
+              ~>
                 call :string
                   callee:
-                    format_unsigned :fn(u64) -> string
+                    finish_buffer :string
                   arg0:
-                    cast → u64
-                      i :usize
-              arg1:
-                ": " :string
-              arg2:
-                f :string
+                    __buf_21 :Buffer
+                  arg1:
+                    __off_22 :usize
         assign
           target:
-            __for_i_9 :usize
+            __for_i_18 :usize
           value:
             add :usize
               l:
-                __for_i_9 :usize
+                __for_i_18 :usize
               r:
                 int(1) :usize
     let bursts: i32[] =
@@ -240,45 +435,76 @@
         arg1:
           LoweredMakeClosure
     block :void
-      let __for_arr_12: i32[] = bursts :i32[]
-      let __for_len_13: usize =
+      let __for_arr_24: i32[] = bursts :i32[]
+      let __for_len_25: usize =
         LoweredArrayLen
-      let __for_i_14: usize = int(0) :usize
+      let __for_i_26: usize = int(0) :usize
       loop while (<…>)
         let n: i32 =
           index :i32
             on:
-              __for_arr_12 :i32[]
+              __for_arr_24 :i32[]
             ix:
-              __for_i_14 :usize
+              __for_i_26 :usize
         call :void
           callee:
             std_io$println__string :void
           arg0:
-            call :string
-              callee:
-                concat2 :string
-              arg0:
-                "b=" :string
-              arg1:
+            block :string
+              let __buf_27: Buffer =
+                call :Buffer
+                  callee:
+                    new_byte_buffer :Buffer
+                  arg0:
+                    int(22) :usize
+              let __off_28: usize = int(0) :usize
+              assign
+                target:
+                  __off_28 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_string_at :usize
+                    arg0:
+                      __buf_27 :Buffer
+                    arg1:
+                      __off_28 :usize
+                    arg2:
+                      "b=" :string
+              assign
+                target:
+                  __off_28 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_int :usize
+                    arg0:
+                      __buf_27 :Buffer
+                    arg1:
+                      __off_28 :usize
+                    arg2:
+                      cast → i64
+                        n :i32
+              ~>
                 call :string
                   callee:
-                    format_signed :fn(i64) -> string
+                    finish_buffer :string
                   arg0:
-                    cast → i64
-                      n :i32
+                    __buf_27 :Buffer
+                  arg1:
+                    __off_28 :usize
         assign
           target:
-            __for_i_14 :usize
+            __for_i_26 :usize
           value:
             add :usize
               l:
-                __for_i_14 :usize
+                __for_i_26 :usize
               r:
                 int(1) :usize
     return int(0) :i32
-  struct __lambda_env_13 {  }
-  fn __lambda_12(__env_11: __lambda_env_13, x: i32) -> i32[]
+  struct __lambda_env_25 {  }
+  fn __lambda_24(__env_23: __lambda_env_25, x: i32) -> i32[]
     ~>
       array :i32[]
         x :i32

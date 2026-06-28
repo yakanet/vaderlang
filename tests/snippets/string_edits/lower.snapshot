@@ -67,38 +67,78 @@
       callee:
         std_io$println__string :void
       arg0:
-        if :string
-          cond:
-            call :bool
+        block :string
+          let __buf_0: Buffer =
+            call :Buffer
               callee:
-                find :bool
+                new_byte_buffer :Buffer
               arg0:
-                "hello" :string
+                int(5) :usize
+          let __off_1: usize = int(0) :usize
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  call :bool
+                    callee:
+                      find :bool
+                    arg0:
+                      "hello" :string
+                    arg1:
+                      char(0x65)
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_0 :Buffer
               arg1:
-                char(0x65)
-          then:
-            ~>
-              "true" :string
-          else:
-            ~>
-              "false" :string
+                __off_1 :usize
     call :void
       callee:
         std_io$println__string :void
       arg0:
-        if :string
-          cond:
-            call :bool
+        block :string
+          let __buf_2: Buffer =
+            call :Buffer
               callee:
-                find :bool
+                new_byte_buffer :Buffer
               arg0:
-                "hello" :string
+                int(5) :usize
+          let __off_3: usize = int(0) :usize
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  call :bool
+                    callee:
+                      find :bool
+                    arg0:
+                      "hello" :string
+                    arg1:
+                      char(0x7a)
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_2 :Buffer
               arg1:
-                char(0x7a)
-          then:
-            ~>
-              "true" :string
-          else:
-            ~>
-              "false" :string
+                __off_3 :usize
     return int(0) :i32

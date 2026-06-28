@@ -11,24 +11,87 @@
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            concat4 :string
-          arg0:
-            "name=" :string
-          arg1:
+        block :string
+          let __p_0: string =
             .name :string
               n :Node
-          arg2:
-            " id=" :string
-          arg3:
+          let __buf_1: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                add :usize
+                  l:
+                    int(29) :usize
+                  r:
+                    call :usize
+                      callee:
+                        byte_len :usize
+                      arg0:
+                        __p_0 :string
+          let __off_2: usize = int(0) :usize
+          assign
+            target:
+              __off_2 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_1 :Buffer
+                arg1:
+                  __off_2 :usize
+                arg2:
+                  "name=" :string
+          assign
+            target:
+              __off_2 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_1 :Buffer
+                arg1:
+                  __off_2 :usize
+                arg2:
+                  __p_0 :string
+          assign
+            target:
+              __off_2 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_1 :Buffer
+                arg1:
+                  __off_2 :usize
+                arg2:
+                  " id=" :string
+          assign
+            target:
+              __off_2 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_1 :Buffer
+                arg1:
+                  __off_2 :usize
+                arg2:
+                  cast → u64
+                    .id :usize
+                      n :Node
+          ~>
             call :string
               callee:
-                format_unsigned :fn(u64) -> string
+                finish_buffer :string
               arg0:
-                cast → u64
-                  .id :usize
-                    n :Node
+                __buf_1 :Buffer
+              arg1:
+                __off_2 :usize
     return
       cast → i32
         .id :usize

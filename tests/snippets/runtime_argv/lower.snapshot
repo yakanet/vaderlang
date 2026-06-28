@@ -6,35 +6,66 @@
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            concat2 :string
-          arg0:
-            "argc=" :string
-          arg1:
+        block :string
+          let __buf_0: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(25) :usize
+          let __off_1: usize = int(0) :usize
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  "argc=" :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  cast → u64
+                    sub :usize
+                      l:
+                        LoweredArrayLen
+                      r:
+                        int(1) :usize
+          ~>
             call :string
               callee:
-                format_unsigned :fn(u64) -> string
+                finish_buffer :string
               arg0:
-                cast → u64
-                  sub :usize
-                    l:
-                      LoweredArrayLen
-                    r:
-                      int(1) :usize
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
     let first: bool = true
     block :void
-      let __for_arr_0: string[] = argv :string[]
-      let __for_len_1: usize =
+      let __for_arr_2: string[] = argv :string[]
+      let __for_len_3: usize =
         LoweredArrayLen
-      let __for_i_2: usize = int(0) :usize
+      let __for_i_4: usize = int(0) :usize
       loop while (<…>)
         let s: string =
           index :string
             on:
-              __for_arr_0 :string[]
+              __for_arr_2 :string[]
             ix:
-              __for_i_2 :usize
+              __for_i_4 :usize
         if :void
           cond:
             first :bool
@@ -53,11 +84,11 @@
                   s :string
         assign
           target:
-            __for_i_2 :usize
+            __for_i_4 :usize
           value:
             add :usize
               l:
-                __for_i_2 :usize
+                __for_i_4 :usize
               r:
                 int(1) :usize
     return int(0) :i32

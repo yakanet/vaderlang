@@ -15,24 +15,87 @@
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            concat4 :string
-          arg0:
-            "first=" :string
-          arg1:
+        block :string
+          let __p_0: string =
             ._0 :string
               s :[string, i32]
-          arg2:
-            " second=" :string
-          arg3:
+          let __buf_1: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                add :usize
+                  l:
+                    int(34) :usize
+                  r:
+                    call :usize
+                      callee:
+                        byte_len :usize
+                      arg0:
+                        __p_0 :string
+          let __off_2: usize = int(0) :usize
+          assign
+            target:
+              __off_2 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_1 :Buffer
+                arg1:
+                  __off_2 :usize
+                arg2:
+                  "first=" :string
+          assign
+            target:
+              __off_2 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_1 :Buffer
+                arg1:
+                  __off_2 :usize
+                arg2:
+                  __p_0 :string
+          assign
+            target:
+              __off_2 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_1 :Buffer
+                arg1:
+                  __off_2 :usize
+                arg2:
+                  " second=" :string
+          assign
+            target:
+              __off_2 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_1 :Buffer
+                arg1:
+                  __off_2 :usize
+                arg2:
+                  cast → i64
+                    ._1 :i32
+                      s :[string, i32]
+          ~>
             call :string
               callee:
-                format_signed :fn(i64) -> string
+                finish_buffer :string
               arg0:
-                cast → i64
-                  ._1 :i32
-                    s :[string, i32]
+                __buf_1 :Buffer
+              arg1:
+                __off_2 :usize
     return int(0) :i32
   fn snippet$swap__i32__string(p: [i32, string]) -> [string, i32]
     return

@@ -61,82 +61,206 @@
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            concat2 :string
-          arg0:
-            "count(set)=" :string
-          arg1:
+        block :string
+          let __buf_0: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(31) :usize
+          let __off_1: usize = int(0) :usize
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  "count(set)=" :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        count_match :fn(Outer) -> i32
+                      arg0:
+                        set :Outer
+          ~>
             call :string
               callee:
-                format_signed :fn(i64) -> string
+                finish_buffer :string
               arg0:
-                cast → i64
-                  call :i32
-                    callee:
-                      count_match :fn(Outer) -> i32
-                    arg0:
-                      set :Outer
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
     call :void
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            concat2 :string
-          arg0:
-            "count(unset)=" :string
-          arg1:
+        block :string
+          let __buf_2: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(33) :usize
+          let __off_3: usize = int(0) :usize
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  "count(unset)=" :string
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        count_match :fn(Outer) -> i32
+                      arg0:
+                        unset :Outer
+          ~>
             call :string
               callee:
-                format_signed :fn(i64) -> string
+                finish_buffer :string
               arg0:
-                cast → i64
-                  call :i32
-                    callee:
-                      count_match :fn(Outer) -> i32
-                    arg0:
-                      unset :Outer
+                __buf_2 :Buffer
+              arg1:
+                __off_3 :usize
     call :void
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            concat2 :string
-          arg0:
-            "unwrap(set)=" :string
-          arg1:
+        block :string
+          let __buf_4: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(32) :usize
+          let __off_5: usize = int(0) :usize
+          assign
+            target:
+              __off_5 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_4 :Buffer
+                arg1:
+                  __off_5 :usize
+                arg2:
+                  "unwrap(set)=" :string
+          assign
+            target:
+              __off_5 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_4 :Buffer
+                arg1:
+                  __off_5 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        unwrap :fn(Outer) -> i32
+                      arg0:
+                        set :Outer
+          ~>
             call :string
               callee:
-                format_signed :fn(i64) -> string
+                finish_buffer :string
               arg0:
-                cast → i64
-                  call :i32
-                    callee:
-                      unwrap :fn(Outer) -> i32
-                    arg0:
-                      set :Outer
+                __buf_4 :Buffer
+              arg1:
+                __off_5 :usize
     call :void
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            concat2 :string
-          arg0:
-            "unwrap(unset)=" :string
-          arg1:
+        block :string
+          let __buf_6: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(34) :usize
+          let __off_7: usize = int(0) :usize
+          assign
+            target:
+              __off_7 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_6 :Buffer
+                arg1:
+                  __off_7 :usize
+                arg2:
+                  "unwrap(unset)=" :string
+          assign
+            target:
+              __off_7 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_6 :Buffer
+                arg1:
+                  __off_7 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        unwrap :fn(Outer) -> i32
+                      arg0:
+                        unset :Outer
+          ~>
             call :string
               callee:
-                format_signed :fn(i64) -> string
+                finish_buffer :string
               arg0:
-                cast → i64
-                  call :i32
-                    callee:
-                      unwrap :fn(Outer) -> i32
-                    arg0:
-                      unset :Outer
+                __buf_6 :Buffer
+              arg1:
+                __off_7 :usize
     return int(0) :i32
 
 # Diagnostics

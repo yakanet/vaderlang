@@ -76,25 +76,56 @@
           LoweredCellNew
         defer.push
           LoweredMakeClosure
-        let __block_9: void =
+        let __block_11: void =
           call :void
             callee:
               std_io$println__string :void
             arg0:
-              call :string
-                callee:
-                  concat2 :string
-                arg0:
-                  "range body i=" :string
-                arg1:
+              block :string
+                let __buf_9: Buffer =
+                  call :Buffer
+                    callee:
+                      new_byte_buffer :Buffer
+                    arg0:
+                      int(33) :usize
+                let __off_10: usize = int(0) :usize
+                assign
+                  target:
+                    __off_10 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_string_at :usize
+                      arg0:
+                        __buf_9 :Buffer
+                      arg1:
+                        __off_10 :usize
+                      arg2:
+                        "range body i=" :string
+                assign
+                  target:
+                    __off_10 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_int :usize
+                      arg0:
+                        __buf_9 :Buffer
+                      arg1:
+                        __off_10 :usize
+                      arg2:
+                        cast → i64
+                          LoweredCellGet
+                ~>
                   call :string
                     callee:
-                      format_signed :fn(i64) -> string
+                      finish_buffer :string
                     arg0:
-                      cast → i64
-                        LoweredCellGet
+                      __buf_9 :Buffer
+                    arg1:
+                      __off_10 :usize
         defer.pop_exec 1
-        __block_9 :void
+        __block_11 :void
         assign
           target:
             __i_7 :i32
@@ -107,42 +138,42 @@
     let mapped: (fn() -> void)[] =
       array :(fn() -> void)[]
     block :void
-      let __src_11: i32 = int(0) :i32
+      let __src_13: i32 = int(0) :i32
       loop while (<…>)
         let y: ? =
           LoweredCellNew
         LoweredArrayPush
         assign
           target:
-            __src_11 :i32
+            __src_13 :i32
           value:
             add :i32
               l:
-                __src_11 :i32
+                __src_13 :i32
               r:
                 int(1) :i32
     block :void
-      let __for_arr_12: (fn() -> void)[] = mapped :(fn() -> void)[]
-      let __for_len_13: usize =
+      let __for_arr_14: (fn() -> void)[] = mapped :(fn() -> void)[]
+      let __for_len_15: usize =
         LoweredArrayLen
-      let __for_i_14: usize = int(0) :usize
+      let __for_i_16: usize = int(0) :usize
       loop while (<…>)
         let t: fn() -> void =
           index :fn() -> void
             on:
-              __for_arr_12 :(fn() -> void)[]
+              __for_arr_14 :(fn() -> void)[]
             ix:
-              __for_i_14 :usize
+              __for_i_16 :usize
         call :void
           callee:
             t :fn() -> void
         assign
           target:
-            __for_i_14 :usize
+            __for_i_16 :usize
           value:
             add :usize
               l:
-                __for_i_14 :usize
+                __for_i_16 :usize
               r:
                 int(1) :usize
     block :void
@@ -163,11 +194,11 @@
             defer.pop_exec 1
         assign
           target:
-            __z_16 :i32
+            __z_18 :i32
           value:
             add :i32
               l:
-                __z_16 :i32
+                __z_18 :i32
               r:
                 int(1) :i32
     let apply: fn(i64) -> void =
@@ -204,76 +235,200 @@
         callee:
           std_io$println__string :void
         arg0:
-          call :string
-            callee:
-              concat2 :string
-            arg0:
-              "range defer i=" :string
-            arg1:
+          block :string
+            let __buf_0: Buffer =
+              call :Buffer
+                callee:
+                  new_byte_buffer :Buffer
+                arg0:
+                  int(34) :usize
+            let __off_1: usize = int(0) :usize
+            assign
+              target:
+                __off_1 :usize
+              value:
+                call :usize
+                  callee:
+                    write_string_at :usize
+                  arg0:
+                    __buf_0 :Buffer
+                  arg1:
+                    __off_1 :usize
+                  arg2:
+                    "range defer i=" :string
+            assign
+              target:
+                __off_1 :usize
+              value:
+                call :usize
+                  callee:
+                    write_int :usize
+                  arg0:
+                    __buf_0 :Buffer
+                  arg1:
+                    __off_1 :usize
+                  arg2:
+                    cast → i64
+                      LoweredCellGet
+            ~>
               call :string
                 callee:
-                  format_signed :fn(i64) -> string
+                  finish_buffer :string
                 arg0:
-                  cast → i64
-                    LoweredCellGet
-  struct __lambda_env_16 { cap_0: ? }
-  fn __lambda_15(__env_10: __lambda_env_16) -> void
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+  struct __lambda_env_20 { cap_0: ? }
+  fn __lambda_19(__env_12: __lambda_env_20) -> void
     ~>
       call :void
         callee:
           std_io$println__string :void
         arg0:
-          call :string
-            callee:
-              concat2 :string
-            arg0:
-              "mapped " :string
-            arg1:
+          block :string
+            let __buf_0: Buffer =
+              call :Buffer
+                callee:
+                  new_byte_buffer :Buffer
+                arg0:
+                  int(27) :usize
+            let __off_1: usize = int(0) :usize
+            assign
+              target:
+                __off_1 :usize
+              value:
+                call :usize
+                  callee:
+                    write_string_at :usize
+                  arg0:
+                    __buf_0 :Buffer
+                  arg1:
+                    __off_1 :usize
+                  arg2:
+                    "mapped " :string
+            assign
+              target:
+                __off_1 :usize
+              value:
+                call :usize
+                  callee:
+                    write_int :usize
+                  arg0:
+                    __buf_0 :Buffer
+                  arg1:
+                    __off_1 :usize
+                  arg2:
+                    cast → i64
+                      LoweredCellGet
+            ~>
               call :string
                 callee:
-                  format_signed :fn(i64) -> string
+                  finish_buffer :string
                 arg0:
-                  cast → i64
-                    LoweredCellGet
-  struct __defer_env_23 { cap_0: ? }
-  fn __defer_22(__env_15: __defer_env_23) -> void
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+  struct __defer_env_29 { cap_0: ? }
+  fn __defer_28(__env_17: __defer_env_29) -> void
     ~>
       call :void
         callee:
           std_io$println__string :void
         arg0:
-          call :string
-            callee:
-              concat2 :string
-            arg0:
-              "filtered defer z=" :string
-            arg1:
+          block :string
+            let __buf_0: Buffer =
+              call :Buffer
+                callee:
+                  new_byte_buffer :Buffer
+                arg0:
+                  int(37) :usize
+            let __off_1: usize = int(0) :usize
+            assign
+              target:
+                __off_1 :usize
+              value:
+                call :usize
+                  callee:
+                    write_string_at :usize
+                  arg0:
+                    __buf_0 :Buffer
+                  arg1:
+                    __off_1 :usize
+                  arg2:
+                    "filtered defer z=" :string
+            assign
+              target:
+                __off_1 :usize
+              value:
+                call :usize
+                  callee:
+                    write_int :usize
+                  arg0:
+                    __buf_0 :Buffer
+                  arg1:
+                    __off_1 :usize
+                  arg2:
+                    cast → i64
+                      LoweredCellGet
+            ~>
               call :string
                 callee:
-                  format_signed :fn(i64) -> string
+                  finish_buffer :string
                 arg0:
-                  cast → i64
-                    LoweredCellGet
-  struct __lambda_env_30 { cap_0: ? }
-  fn __lambda_29(__env_0: __lambda_env_30) -> void
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+  struct __lambda_env_38 { cap_0: ? }
+  fn __lambda_37(__env_0: __lambda_env_38) -> void
     ~>
       call :void
         callee:
           std_io$println__string :void
         arg0:
-          call :string
-            callee:
-              concat2 :string
-            arg0:
-              "nested n=" :string
-            arg1:
+          block :string
+            let __buf_0: Buffer =
+              call :Buffer
+                callee:
+                  new_byte_buffer :Buffer
+                arg0:
+                  int(29) :usize
+            let __off_1: usize = int(0) :usize
+            assign
+              target:
+                __off_1 :usize
+              value:
+                call :usize
+                  callee:
+                    write_string_at :usize
+                  arg0:
+                    __buf_0 :Buffer
+                  arg1:
+                    __off_1 :usize
+                  arg2:
+                    "nested n=" :string
+            assign
+              target:
+                __off_1 :usize
+              value:
+                call :usize
+                  callee:
+                    write_int :usize
+                  arg0:
+                    __buf_0 :Buffer
+                  arg1:
+                    __off_1 :usize
+                  arg2:
+                    LoweredCellGet
+            ~>
               call :string
                 callee:
-                  format_signed :fn(i64) -> string
+                  finish_buffer :string
                 arg0:
-                  LoweredCellGet
-  struct __lambda_env_27 {  }
-  fn __lambda_26(__env_17: __lambda_env_27, n: i64) -> void
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+  struct __lambda_env_35 {  }
+  fn __lambda_34(__env_19: __lambda_env_35, n: i64) -> void
     let n: ? =
       LoweredCellNew
     let twice: fn() -> void =

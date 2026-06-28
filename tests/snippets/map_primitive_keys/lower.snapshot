@@ -45,51 +45,69 @@
         std_io$println__string :void
       arg0:
         block :string
-          let __sb_0: StringBuilder =
-            StringBuilder {
-              parts:
-                array :string[]
-            }
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              "u8 size=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
+          let __buf_0: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(103) :usize
+          let __off_1: usize = int(0) :usize
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
                 callee:
-                  format_unsigned :fn(u64) -> string
+                  write_string_at :usize
                 arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  "u8 size=" :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
                   cast → u64
                     call :usize
                       callee:
                         std_collections$std_collections$len__u8__i32 :usize
                       arg0:
                         mu8 :MutableMap<u8, i32>
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              " k7=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
                 callee:
-                  format_signed :fn(i64) -> string
+                  write_string_at :usize
                 arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  " k7=" :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
                   cast → i64
                     call :i32
                       callee:
@@ -102,23 +120,31 @@
                       arg2:
                         neg :i32
                           int(1) :i32
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              " k19=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
                 callee:
-                  format_signed :fn(i64) -> string
+                  write_string_at :usize
                 arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  " k19=" :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
                   cast → i64
                     call :i32
                       callee:
@@ -131,23 +157,31 @@
                       arg2:
                         neg :i32
                           int(1) :i32
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              " miss=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
                 callee:
-                  format_signed :fn(i64) -> string
+                  write_string_at :usize
                 arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  " miss=" :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
                   cast → i64
                     call :i32
                       callee:
@@ -163,9 +197,11 @@
           ~>
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                finish_buffer :string
               arg0:
-                __sb_0 :StringBuilder
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
     let mu16: MutableMap<u16, i32> =
       MutableMap<u16, i32> {
         ekeys:
@@ -210,28 +246,38 @@
         std_io$println__string :void
       arg0:
         block :string
-          let __sb_1: StringBuilder =
-            StringBuilder {
-              parts:
-                array :string[]
-            }
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              "u16 a=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              call :string
+          let __buf_2: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(75) :usize
+          let __off_3: usize = int(0) :usize
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
                 callee:
-                  format_signed :fn(i64) -> string
+                  write_string_at :usize
                 arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  "u16 a=" :string
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
                   cast → i64
                     call :i32
                       callee:
@@ -244,23 +290,31 @@
                       arg2:
                         neg :i32
                           int(1) :i32
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              " b=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              call :string
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
                 callee:
-                  format_signed :fn(i64) -> string
+                  write_string_at :usize
                 arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  " b=" :string
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
                   cast → i64
                     call :i32
                       callee:
@@ -273,23 +327,31 @@
                       arg2:
                         neg :i32
                           int(1) :i32
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              " miss=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              call :string
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
                 callee:
-                  format_signed :fn(i64) -> string
+                  write_string_at :usize
                 arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  " miss=" :string
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
                   cast → i64
                     call :i32
                       callee:
@@ -305,9 +367,11 @@
           ~>
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                finish_buffer :string
               arg0:
-                __sb_1 :StringBuilder
+                __buf_2 :Buffer
+              arg1:
+                __off_3 :usize
     let mi16: MutableMap<i16, i32> =
       MutableMap<i16, i32> {
         ekeys:
@@ -354,28 +418,38 @@
         std_io$println__string :void
       arg0:
         block :string
-          let __sb_2: StringBuilder =
-            StringBuilder {
-              parts:
-                array :string[]
-            }
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              "i16 neg=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              call :string
+          let __buf_4: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(77) :usize
+          let __off_5: usize = int(0) :usize
+          assign
+            target:
+              __off_5 :usize
+            value:
+              call :usize
                 callee:
-                  format_signed :fn(i64) -> string
+                  write_string_at :usize
                 arg0:
+                  __buf_4 :Buffer
+                arg1:
+                  __off_5 :usize
+                arg2:
+                  "i16 neg=" :string
+          assign
+            target:
+              __off_5 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_4 :Buffer
+                arg1:
+                  __off_5 :usize
+                arg2:
                   cast → i64
                     call :i32
                       callee:
@@ -389,23 +463,31 @@
                       arg2:
                         neg :i32
                           int(1) :i32
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              " pos=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              call :string
+          assign
+            target:
+              __off_5 :usize
+            value:
+              call :usize
                 callee:
-                  format_signed :fn(i64) -> string
+                  write_string_at :usize
                 arg0:
+                  __buf_4 :Buffer
+                arg1:
+                  __off_5 :usize
+                arg2:
+                  " pos=" :string
+          assign
+            target:
+              __off_5 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_4 :Buffer
+                arg1:
+                  __off_5 :usize
+                arg2:
                   cast → i64
                     call :i32
                       callee:
@@ -418,23 +500,31 @@
                       arg2:
                         neg :i32
                           int(1) :i32
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              " m1=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              call :string
+          assign
+            target:
+              __off_5 :usize
+            value:
+              call :usize
                 callee:
-                  format_signed :fn(i64) -> string
+                  write_string_at :usize
                 arg0:
+                  __buf_4 :Buffer
+                arg1:
+                  __off_5 :usize
+                arg2:
+                  " m1=" :string
+          assign
+            target:
+              __off_5 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_4 :Buffer
+                arg1:
+                  __off_5 :usize
+                arg2:
                   cast → i64
                     call :i32
                       callee:
@@ -451,9 +541,11 @@
           ~>
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                finish_buffer :string
               arg0:
-                __sb_2 :StringBuilder
+                __buf_4 :Buffer
+              arg1:
+                __off_5 :usize
     let mc: MutableMap<char, i32> =
       MutableMap<char, i32> {
         ekeys:
@@ -498,28 +590,38 @@
         std_io$println__string :void
       arg0:
         block :string
-          let __sb_3: StringBuilder =
-            StringBuilder {
-              parts:
-                array :string[]
-            }
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              "char a=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              call :string
+          let __buf_6: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(101) :usize
+          let __off_7: usize = int(0) :usize
+          assign
+            target:
+              __off_7 :usize
+            value:
+              call :usize
                 callee:
-                  format_signed :fn(i64) -> string
+                  write_string_at :usize
                 arg0:
+                  __buf_6 :Buffer
+                arg1:
+                  __off_7 :usize
+                arg2:
+                  "char a=" :string
+          assign
+            target:
+              __off_7 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_6 :Buffer
+                arg1:
+                  __off_7 :usize
+                arg2:
                   cast → i64
                     call :i32
                       callee:
@@ -531,23 +633,31 @@
                       arg2:
                         neg :i32
                           int(1) :i32
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              " Z=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              call :string
+          assign
+            target:
+              __off_7 :usize
+            value:
+              call :usize
                 callee:
-                  format_signed :fn(i64) -> string
+                  write_string_at :usize
                 arg0:
+                  __buf_6 :Buffer
+                arg1:
+                  __off_7 :usize
+                arg2:
+                  " Z=" :string
+          assign
+            target:
+              __off_7 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_6 :Buffer
+                arg1:
+                  __off_7 :usize
+                arg2:
                   cast → i64
                     call :i32
                       callee:
@@ -559,23 +669,31 @@
                       arg2:
                         neg :i32
                           int(1) :i32
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              " acc=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              call :string
+          assign
+            target:
+              __off_7 :usize
+            value:
+              call :usize
                 callee:
-                  format_signed :fn(i64) -> string
+                  write_string_at :usize
                 arg0:
+                  __buf_6 :Buffer
+                arg1:
+                  __off_7 :usize
+                arg2:
+                  " acc=" :string
+          assign
+            target:
+              __off_7 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_6 :Buffer
+                arg1:
+                  __off_7 :usize
+                arg2:
                   cast → i64
                     call :i32
                       callee:
@@ -587,23 +705,31 @@
                       arg2:
                         neg :i32
                           int(1) :i32
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              " miss=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              call :string
+          assign
+            target:
+              __off_7 :usize
+            value:
+              call :usize
                 callee:
-                  format_signed :fn(i64) -> string
+                  write_string_at :usize
                 arg0:
+                  __buf_6 :Buffer
+                arg1:
+                  __off_7 :usize
+                arg2:
+                  " miss=" :string
+          assign
+            target:
+              __off_7 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_6 :Buffer
+                arg1:
+                  __off_7 :usize
+                arg2:
                   cast → i64
                     call :i32
                       callee:
@@ -618,9 +744,11 @@
           ~>
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                finish_buffer :string
               arg0:
-                __sb_3 :StringBuilder
+                __buf_6 :Buffer
+              arg1:
+                __off_7 :usize
     let mi64: MutableMap<i64, i32> =
       MutableMap<i64, i32> {
         ekeys:
@@ -659,45 +787,94 @@
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            concat4 :string
-          arg0:
-            "i64 big=" :string
-          arg1:
+        block :string
+          let __buf_8: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(56) :usize
+          let __off_9: usize = int(0) :usize
+          assign
+            target:
+              __off_9 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_8 :Buffer
+                arg1:
+                  __off_9 :usize
+                arg2:
+                  "i64 big=" :string
+          assign
+            target:
+              __off_9 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_8 :Buffer
+                arg1:
+                  __off_9 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        snippet$get_or__i64 :i32
+                      arg0:
+                        mi64 :MutableMap<i64, i32>
+                      arg1:
+                        kbig :i64
+                      arg2:
+                        neg :i32
+                          int(1) :i32
+          assign
+            target:
+              __off_9 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_8 :Buffer
+                arg1:
+                  __off_9 :usize
+                arg2:
+                  " negbig=" :string
+          assign
+            target:
+              __off_9 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_8 :Buffer
+                arg1:
+                  __off_9 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        snippet$get_or__i64 :i32
+                      arg0:
+                        mi64 :MutableMap<i64, i32>
+                      arg1:
+                        knegbig :i64
+                      arg2:
+                        neg :i32
+                          int(1) :i32
+          ~>
             call :string
               callee:
-                format_signed :fn(i64) -> string
+                finish_buffer :string
               arg0:
-                cast → i64
-                  call :i32
-                    callee:
-                      snippet$get_or__i64 :i32
-                    arg0:
-                      mi64 :MutableMap<i64, i32>
-                    arg1:
-                      kbig :i64
-                    arg2:
-                      neg :i32
-                        int(1) :i32
-          arg2:
-            " negbig=" :string
-          arg3:
-            call :string
-              callee:
-                format_signed :fn(i64) -> string
-              arg0:
-                cast → i64
-                  call :i32
-                    callee:
-                      snippet$get_or__i64 :i32
-                    arg0:
-                      mi64 :MutableMap<i64, i32>
-                    arg1:
-                      knegbig :i64
-                    arg2:
-                      neg :i32
-                        int(1) :i32
+                __buf_8 :Buffer
+              arg1:
+                __off_9 :usize
     let mus: MutableMap<usize, i32> =
       MutableMap<usize, i32> {
         ekeys:
@@ -741,51 +918,69 @@
         std_io$println__string :void
       arg0:
         block :string
-          let __sb_4: StringBuilder =
-            StringBuilder {
-              parts:
-                array :string[]
-            }
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_4 :StringBuilder
-            arg1:
-              "usize size=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_4 :StringBuilder
-            arg1:
-              call :string
+          let __buf_10: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(106) :usize
+          let __off_11: usize = int(0) :usize
+          assign
+            target:
+              __off_11 :usize
+            value:
+              call :usize
                 callee:
-                  format_unsigned :fn(u64) -> string
+                  write_string_at :usize
                 arg0:
+                  __buf_10 :Buffer
+                arg1:
+                  __off_11 :usize
+                arg2:
+                  "usize size=" :string
+          assign
+            target:
+              __off_11 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_10 :Buffer
+                arg1:
+                  __off_11 :usize
+                arg2:
                   cast → u64
                     call :usize
                       callee:
                         std_collections$std_collections$len__usize__i32 :usize
                       arg0:
                         mus :MutableMap<usize, i32>
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_4 :StringBuilder
-            arg1:
-              " k0=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_4 :StringBuilder
-            arg1:
-              call :string
+          assign
+            target:
+              __off_11 :usize
+            value:
+              call :usize
                 callee:
-                  format_signed :fn(i64) -> string
+                  write_string_at :usize
                 arg0:
+                  __buf_10 :Buffer
+                arg1:
+                  __off_11 :usize
+                arg2:
+                  " k0=" :string
+          assign
+            target:
+              __off_11 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_10 :Buffer
+                arg1:
+                  __off_11 :usize
+                arg2:
                   cast → i64
                     call :i32
                       callee:
@@ -798,23 +993,31 @@
                       arg2:
                         neg :i32
                           int(1) :i32
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_4 :StringBuilder
-            arg1:
-              " k39=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_4 :StringBuilder
-            arg1:
-              call :string
+          assign
+            target:
+              __off_11 :usize
+            value:
+              call :usize
                 callee:
-                  format_signed :fn(i64) -> string
+                  write_string_at :usize
                 arg0:
+                  __buf_10 :Buffer
+                arg1:
+                  __off_11 :usize
+                arg2:
+                  " k39=" :string
+          assign
+            target:
+              __off_11 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_10 :Buffer
+                arg1:
+                  __off_11 :usize
+                arg2:
                   cast → i64
                     call :i32
                       callee:
@@ -827,23 +1030,31 @@
                       arg2:
                         neg :i32
                           int(1) :i32
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_4 :StringBuilder
-            arg1:
-              " miss=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_4 :StringBuilder
-            arg1:
-              call :string
+          assign
+            target:
+              __off_11 :usize
+            value:
+              call :usize
                 callee:
-                  format_signed :fn(i64) -> string
+                  write_string_at :usize
                 arg0:
+                  __buf_10 :Buffer
+                arg1:
+                  __off_11 :usize
+                arg2:
+                  " miss=" :string
+          assign
+            target:
+              __off_11 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_10 :Buffer
+                arg1:
+                  __off_11 :usize
+                arg2:
                   cast → i64
                     call :i32
                       callee:
@@ -859,9 +1070,11 @@
           ~>
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                finish_buffer :string
               arg0:
-                __sb_4 :StringBuilder
+                __buf_10 :Buffer
+              arg1:
+                __off_11 :usize
     return int(0) :i32
   fn snippet$get_or__char(m: MutableMap<char, i32>, k: char, dflt: i32) -> i32
     let v: i32 | null =
