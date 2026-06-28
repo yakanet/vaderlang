@@ -4,7 +4,7 @@
 module "vader/lower"
 
 import "std/collections" { MutableMap }
-import "std/string_builder" { new_builder as new_builder_for_mangle, append }
+import "std/string_builder" { StringBuilder, append }
 
 import "vader/parser" { IdentExpr, CallExpr, GenericInstExpr, Visibility, FnDecl }
 import "vader/diagnostics" { Span }
@@ -456,7 +456,7 @@ all_concrete :: fn(args: Type[]) -> bool {
 }
 
 mono_suffix :: fn(args: Type[]) -> string {
-    sb := new_builder_for_mangle()
+    sb := StringBuilder {}
     for a in args {
         sb.append("__")
         sb.append(mangle_type_arg(a))

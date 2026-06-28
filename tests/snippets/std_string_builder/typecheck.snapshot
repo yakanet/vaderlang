@@ -18,8 +18,7 @@
   expr 13:13    IdentExpr      :: StringBuilder
   expr 13:5     CallExpr       :: void
   expr 13:5     IdentExpr      :: fn(T) -> void
-  expr 16:12    CallExpr       :: StringBuilder
-  expr 16:12    IdentExpr      :: fn() -> StringBuilder
+  expr 16:12    StructLitExpr  :: StringBuilder
   expr 17:16    StringLitExpr  :: string
   expr 17:5     CallExpr       :: void
   expr 17:5     FieldExpr      :: fn(string) -> void
@@ -37,16 +36,14 @@
   expr 20:13    IdentExpr      :: StringBuilder
   expr 20:5     CallExpr       :: void
   expr 20:5     IdentExpr      :: fn(T) -> void
-  expr 23:12    CallExpr       :: StringBuilder
-  expr 23:12    IdentExpr      :: fn() -> StringBuilder
+  expr 23:12    StructLitExpr  :: StringBuilder
   expr 24:13    StringLitExpr  :: string
   expr 24:23    CallExpr       :: string
   expr 24:23    FieldExpr      :: fn() -> string
   expr 24:23    IdentExpr      :: StringBuilder
   expr 24:5     CallExpr       :: void
   expr 24:5     IdentExpr      :: fn(T) -> void
-  expr 27:12    CallExpr       :: StringBuilder
-  expr 27:12    IdentExpr      :: fn() -> StringBuilder
+  expr 27:12    StructLitExpr  :: StringBuilder
   expr 28:5     CallExpr       :: void
   expr 28:5     FieldExpr      :: fn(char) -> void
   expr 28:5     IdentExpr      :: StringBuilder
@@ -58,8 +55,7 @@
   expr 30:13    IdentExpr      :: StringBuilder
   expr 30:5     CallExpr       :: void
   expr 30:5     IdentExpr      :: fn(T) -> void
-  expr 34:12    CallExpr       :: StringBuilder
-  expr 34:12    IdentExpr      :: fn() -> StringBuilder
+  expr 34:12    StructLitExpr  :: StringBuilder
   expr 35:16    StringLitExpr  :: string
   expr 35:5     CallExpr       :: void
   expr 35:5     FieldExpr      :: fn(string) -> void
@@ -74,8 +70,7 @@
   expr 37:13    IdentExpr      :: StringBuilder
   expr 37:5     CallExpr       :: void
   expr 37:5     IdentExpr      :: fn(T) -> void
-  expr 8:11     CallExpr       :: StringBuilder
-  expr 8:11     IdentExpr      :: fn() -> StringBuilder
+  expr 8:11     StructLitExpr  :: StringBuilder
   expr 9:15     StringLitExpr  :: string
   expr 9:5      CallExpr       :: void
   expr 9:5      FieldExpr      :: fn(string) -> void

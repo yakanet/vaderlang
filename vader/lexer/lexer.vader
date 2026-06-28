@@ -18,7 +18,7 @@ module "vader/lexer"
 import "std/string" { decode_char_at, codepoint_byte_len, is_empty, parse_float, ParseError }
 import "std/char" { is_alpha, is_alnum, is_digit }
 
-import "std/string_builder" { StringBuilder, new_builder, append, append_char }
+import "std/string_builder" { StringBuilder, append, append_char }
 import "std/iter" { slice as slice_array }
 import "std/numbers" {
     hex_digit_value, is_hex_digit, is_digit_in_base,
@@ -571,7 +571,7 @@ flush_string_part :: fn(l: Lexer, sb: StringBuilder, part_start: Position, has_p
 // resume the body when the matching `}` closes the interp.
 lex_string_body :: fn(l: Lexer, triple: bool, raw: bool) -> void {
     part_start := l.position_here()
-    sb := new_builder()
+    sb := StringBuilder {}
     has_part := false
 
     for !l.at_end() {
@@ -635,7 +635,7 @@ lex_string_body :: fn(l: Lexer, triple: bool, raw: bool) -> void {
             // Resume body in-place ; reset `part_start` so the next StringPart's
             // span starts after the interpolated identifier.
             part_start = l.position_here()
-            sb = new_builder()
+            sb = StringBuilder {}
             has_part = false
             continue
         }

@@ -9,11 +9,11 @@
 module "vader/parser"
 
 import "std/string" { chars, is_empty, pad_start }
-import "std/string_builder" { StringBuilder, new_builder, append, append_char, append_repeated }
+import "std/string_builder" { StringBuilder, append, append_char, append_repeated }
 import "std/numbers" { to_hex, to_compact_str }
 
 export dump_program :: fn(prog: Program) -> string {
-    sb := new_builder()
+    sb := StringBuilder {}
     sb.append("# AST\n")
     sb.write_program(prog, 0)
     // The CLI wrapper adds the trailing newline via `println`. Returning a

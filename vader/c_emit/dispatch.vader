@@ -23,7 +23,7 @@
 module "vader/c_emit"
 
 import "std/string" { join, split, compare_ascending }
-import "std/string_builder" { StringBuilder, new_builder, append }
+import "std/string_builder" { StringBuilder, append }
 import "std/collections" { MutableMap }
 import "std/sort" { sort }
 import "vader/bytecode" { BcType, BcSignature, ValType, VtableRow }
@@ -139,7 +139,7 @@ vtable_sig_for_row :: fn(ctx: EmitCtx, row: VtableRow) -> BcSignature {
 /// so impls with divergent concrete signatures share one dispatcher — each
 /// arm unboxes to its own signature.
 dispatcher_formal :: fn(sig: BcSignature) -> string {
-    sb :: new_builder()
+    sb :: StringBuilder {}
     sb.append("vader_box_t recv")
     tail :: i32(sig.params.len()) - 1
     for j in 0..<tail {

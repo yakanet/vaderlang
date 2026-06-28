@@ -18,7 +18,7 @@ import "vader/text" { quote_simple }
 // Diagnostic info is now resolved at construction time — see vader/diagnostics.
 
 export dump_tokens :: fn(l: Lexer) -> string {
-    sb := new_builder()
+    sb := StringBuilder {}
     sb.append("# Tokens")
     for t in l.tokens {
         sb.append_char('\n')
@@ -31,7 +31,7 @@ export dump_diagnostics :: fn(diags: Diagnostic[]) -> string {
     // Order by (file, offset, code) so the output stays stable when several
     // diagnostics share a line:col.
     sorted :: sort(diags, diag_less)
-    sb := new_builder()
+    sb := StringBuilder {}
     sb.append("\n# Diagnostics")
     for d in sorted {
         sb.append_char('\n')

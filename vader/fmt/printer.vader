@@ -8,7 +8,7 @@
 
 module "vader/fmt"
 
-import "std/string_builder" { StringBuilder, new_builder, append, append_char, append_repeated }
+import "std/string_builder" { StringBuilder, append, append_char, append_repeated }
 import "std/io" { eprintln }
 import "vader/diagnostics" { Span, Position }
 p :: import "vader/parser"
@@ -35,7 +35,7 @@ export Printer :: struct {
 
 export new_printer :: fn(source: string, comments: CommentMap) -> Printer {
     return Printer {
-        .buf = new_builder(),
+        .buf = StringBuilder {},
         .depth = 0,
         .source = source,
         .comments = comments,

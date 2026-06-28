@@ -19,7 +19,7 @@
 module "vader/comptime"
 
 import "std/collections" { MutableMap }
-import "std/string_builder" { StringBuilder, new_builder, append, append_char }
+import "std/string_builder" { StringBuilder, append, append_char }
 import "vader/parser" {
     TypeExpr, IdentExpr, GenericInstExpr,
 }
@@ -52,7 +52,7 @@ export mangle :: fn(decl_name: string, module_path: string, type_arguments: Type
     if type_arguments.len() == 0 {
         return head
     }
-    sb :: new_builder()
+    sb :: StringBuilder {}
     sb.append(head)
     sb.append("__")
     for i in 0..<type_arguments.len() {
@@ -82,7 +82,7 @@ export mangle_type_arg :: fn(t: Type) -> string = sanitise_ident(display_type(st
 /// @param raw  the source identifier (decl name, module path, type display).
 /// @return     the sanitised form, safe to splice into a mangled name.
 export sanitise_ident :: fn(raw: string) -> string {
-    sb :: new_builder()
+    sb :: StringBuilder {}
     rb :: raw.bytes()
     n :: rb.len()
     for i in 0..<n {

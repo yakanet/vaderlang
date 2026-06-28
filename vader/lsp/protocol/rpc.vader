@@ -13,7 +13,7 @@
 
 module "vader/lsp/protocol"
 
-import "std/string_builder" { new_builder, append }
+import "std/string_builder" { StringBuilder, append }
 import "std/json" {
     JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonNull, JsonArray,
     stringify

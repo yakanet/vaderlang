@@ -11,7 +11,7 @@ import "std/string" {
     starts_with as str_starts_with, ends_with as str_ends_with,
     replace_chars_where,
 }
-import "std/string_builder" { StringBuilder, new_builder, append }
+import "std/string_builder" { StringBuilder, append }
 
 /// Path separator codepoint. POSIX-only in MVP (`/`).
 export SEP :: '/'
@@ -259,7 +259,7 @@ export normalize :: fn(self: Path) -> Path {
         }
         i = i + 1
     }
-    sb := new_builder()
+    sb := StringBuilder {}
     if abs {
         sb.append(SEP_STR)
     }

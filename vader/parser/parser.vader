@@ -645,7 +645,7 @@ expect_string_literal :: fn(p: Parser, what: string) -> StringLitInfo {
         return StringLitInfo { .text = "", .span = t.span }
     }
     begin :: p.advance()
-    sb := new_builder()
+    sb := StringBuilder {}
     for !p.check(.StringEnd) && !p.check(.Eof) {
         t :: p.advance()
         if t.kind == .StringPart {

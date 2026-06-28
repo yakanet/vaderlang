@@ -1,7 +1,7 @@
 // vader/lower/lower_string_lit — string + interpolation lowering, with Display coercion.
 //
 // A text-only string literal becomes a single `LoweredStringLit`. A literal
-// with any `${expr}` segment desugars to a StringBuilder chain — `new_builder()`
+// with any `${expr}` segment desugars to a StringBuilder chain — `StringBuilder {}`
 // + per-part `append(sb, ...)` + a trailing `sb.to_string()` — emitted as real
 // `LoweredCall`s to the Buffer-backed `std/string_builder` fns (Target ABI S4a),
 // not the legacy `Builder*` opcodes. Text parts append the literal string ;
@@ -18,12 +18,12 @@ import "std/abort" { unreachable }
 import "vader/parser" { StringLitExpr, StringLitText, StringLitInterp }
 import "vader/diagnostics" { Span }
 import "vader/resolver/symbol" { Symbol }
-import "vader/types" { Type, FnType, FreeFloatType, TY_VOID, TY_UNRESOLVED, mk_primitive }
+import "vader/types" { Type, FnType, StructType, FreeFloatType, TY_VOID, TY_UNRESOLVED, mk_primitive, mk_array }
 
 // Shared StringBuilder-chain scaffold for both `${}` interpolation (S4a) and
 // `+`-concat (S6b) lowering. `begin_sb_chain` resolves the force-loaded
 // std/string_builder fns, harvests them for materialisation, mints a fresh `sb`
-// local, and seeds `stmts` with `sb := new_builder()`. `sb_append_stmt` builds
+// local, and seeds `stmts` with `sb := StringBuilder {}`. `sb_append_stmt` builds
 // one `sb.append(value)` ; `finish_sb_chain` closes with the `sb.to_string()`
 // trailing. `begin_sb_chain` returns null only on a resolution miss (impossible:
 // std/string_builder is force-loaded) — callers diverge via `unreachable_sb`.
@@ -35,20 +35,39 @@ SbChain :: struct {
 }
 
 begin_sb_chain :: fn(ctx: FnLowerCtx, span: Span) -> SbChain | null {
-    new_sym :: resolve_string_builder_fn(ctx, "new_builder")
-    if new_sym == null { return null }
     append_sym :: resolve_string_builder_fn(ctx, "append")
     if append_sym == null { return null }
+    // `sb_type` is StringBuilder — read from `append`'s receiver param
+    // (`append(self: StringBuilder, …)`). This used to come from `new_builder`'s
+    // return type, but `new_builder` is gone : a defaulted `parts` makes
+    // `StringBuilder {}` constructible directly.
     sb_type: Type = TY_UNRESOLVED
-    new_fn_ty :: lookup_fn_type_anywhere(ctx, new_sym)
-    if new_fn_ty is FnType as new_ft { sb_type = new_ft.return_type } else { return null }
-    register_nongeneric_imported_fn(ctx, new_sym)
+    append_fn_ty :: lookup_fn_type_anywhere(ctx, append_sym)
+    if append_fn_ty is FnType as append_ft {
+        if append_ft.params.len() == 0 { return null }
+        sb_type = append_ft.params[0]
+    } else { return null }
     register_nongeneric_imported_fn(ctx, append_sym)
+    // Record the construction so a virtual `to_string` dispatch (if any) finds the
+    // surfaced vtable row — mirrors `lower_struct_lit`. `to_string` is normally a
+    // direct call here, but stay symmetric with the real struct-lit path.
+    if sb_type is StructType as st { ctx.project.constructed_struct_symbols.add(st.symbol.id) }
     sb_symbol :: fresh_synthetic_symbol(ctx, "sb")
+    // `sb := StringBuilder {}`, built directly as a `LoweredStructLit`. This desugar
+    // runs post-typecheck, so the `parts: string[] = []` default isn't auto-applied
+    // — fill it explicitly with an empty `string[]` literal (what `new_builder`'s
+    // body did).
+    sb_lit :: LoweredStructLit {
+        .span = span, .type = sb_type,
+        .fields = [LoweredStructLitField {
+            .name  = "parts",
+            .value = LoweredArrayLit { .span = span, .type = mk_array(mk_primitive("string"), false), .elements = [] },
+        }],
+    }
     stmts: LoweredStmt[] = []
     stmts.push(LoweredLet {
         .span = span, .name = sb_symbol.name, .symbol = sb_symbol, .type = sb_type,
-        .value = mk_lowered_call(new_sym, [], sb_type, span),
+        .value = sb_lit,
     })
     return SbChain { .append_sym = append_sym, .sb_symbol = sb_symbol, .sb_type = sb_type, .stmts = stmts }
 }
@@ -115,8 +134,8 @@ lower_concat_chain :: fn(ctx: FnLowerCtx, operands: LoweredExpr[], span: Span) -
         name :: if n == 2 { "concat2" } else if n == 3 { "concat3" } else { "concat4" }
         sym :: resolve_string_builder_fn(ctx, name)
         if sym == null { return unreachable_sb(span, string_type, "${name} unresolved") }
-        // Register for materialisation, like `begin_sb_chain` does for new_builder /
-        // append — else the emitted call has an unresolved (non-materialised) callee.
+        // Register for materialisation, like `begin_sb_chain` does for `append` —
+        // else the emitted call has an unresolved (non-materialised) callee.
         register_nongeneric_imported_fn(ctx, sym)
         return mk_lowered_call(sym, operands, string_type, span)
     }

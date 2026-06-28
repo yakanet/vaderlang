@@ -9,7 +9,7 @@
 module "vader/types"
 
 import "std/collections" { MutableMap }
-import "std/string_builder" { StringBuilder, new_builder, append, append_char }
+import "std/string_builder" { StringBuilder, append, append_char }
 import "vader/resolver/symbol" { Symbol }
 
 // ---- variants -------------------------------------------------------------
@@ -234,7 +234,7 @@ export display_type :: fn(t: Type) -> string {
         is AnyType             -> { return "Any" }
         _ -> {}  // fall through for composite types
     }
-    sb :: new_builder()
+    sb :: StringBuilder {}
     sb.write_type(t)
     return sb.to_string()
 }
@@ -353,7 +353,7 @@ export canonical_key :: fn(t: Type) -> string {
 /// mono-instance DCE and impl-method indexing.
 export canonical_args_key :: fn(args: Type[]) -> string {
     if args.len() == 0 { return "" }
-    sb :: new_builder()
+    sb :: StringBuilder {}
     first := true
     for a in args {
         if !first { sb.append(",") }

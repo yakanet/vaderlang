@@ -9,7 +9,7 @@
 module "vader/comptime"
 
 import "std/collections" { MutableMap, keys }
-import "std/string_builder" { new_builder, append, append_char }
+import "std/string_builder" { StringBuilder, append, append_char }
 import "std/numbers" { to_hex }
 import "std/string" { pad_start }
 import "vader/types" { Type, display_type }
@@ -159,7 +159,7 @@ ARRAY_DISPLAY_CAP  :: 16   // truncate arrays longer than this ...
 ARRAY_DISPLAY_HEAD :: 8    // ... showing this many leading elements + the count
 
 render_array :: fn(array: ArrayValue) -> string {
-    sb := new_builder()
+    sb := StringBuilder {}
     sb.append_char('[')
     n :: array.elements.len()
     truncated :: n > usize(ARRAY_DISPLAY_CAP)
@@ -180,7 +180,7 @@ render_array :: fn(array: ArrayValue) -> string {
 // state ; relying on it would silently drift snapshots once Phase 4
 // starts populating maps from different code paths.
 render_struct :: fn(struct_value: StructValue) -> string {
-    sb := new_builder()
+    sb := StringBuilder {}
     sb.append(struct_value.type_name)
     sb.append(" { ")
     names :: sort(struct_value.fields.keys(), (a: string, b: string) -> compare_ascending(a, b))

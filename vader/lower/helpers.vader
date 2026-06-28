@@ -15,7 +15,7 @@ import "vader/types" {
     Type, EnumType, mk_primitive,
     TY_BOOL, TY_UNRESOLVED, TY_VOID,
 }
-import "std/string_builder" { new_builder, append_char }
+import "std/string_builder" { StringBuilder, append_char }
 
 /// Mangle a module display path into a name-fragment usable in a mangled
 /// symbol: `/` and `.` both become `_`, every other byte passes through.
@@ -26,7 +26,7 @@ import "std/string_builder" { new_builder, append_char }
 /// @param module_id  the module display path (e.g. `"std/string"`).
 /// @return           the mangled fragment (e.g. `"std_string"`).
 export mangle_module_id :: fn(module_id: string) -> string {
-    sb := new_builder()
+    sb := StringBuilder {}
     for c in module_id {
         if c == '/'      { sb.append_char('_') }
         else if c == '.' { sb.append_char('_') }

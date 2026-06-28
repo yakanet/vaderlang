@@ -13,10 +13,10 @@
   FilterIterator<T>
   FilterIterator<T>
   FilterIterator<T>
+  TakeIterator<T>
+  TakeIterator<T>
+  TakeIterator<T>
   Div<Rhs, Out>
-  TakeIterator<T>
-  TakeIterator<T>
-  TakeIterator<T>
   SkipIterator<T>
   SkipIterator<T>
   SkipIterator<T>

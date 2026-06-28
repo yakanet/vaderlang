@@ -6,7 +6,7 @@ module "vader/lower"
 import "std/collections" { MutableMap }
 import "std/sort" { sort }
 import "std/string" { compare_ascending }
-import "std/string_builder" { new_builder, append }
+import "std/string_builder" { StringBuilder, append }
 
 import "vader/diagnostics" { Diagnostic, Span }
 import "vader/parser" { Decl, FnDecl, ConstDecl, ArrayTypeExpr, IdentExpr }
@@ -167,7 +167,7 @@ PendingFnInstance :: struct {
 pending_fn_instance_less :: fn(a: PendingFnInstance, b: PendingFnInstance) = compare_ascending(a.key, b.key)
 
 fn_instance_key :: fn(inst: GenericFnInstance) -> string {
-    sb := new_builder()
+    sb := StringBuilder {}
     sb.append("${inst.fn_symbol.id}::")
     for a in inst.type_args {
         sb.append(":")

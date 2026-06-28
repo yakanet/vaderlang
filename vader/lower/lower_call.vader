@@ -57,7 +57,7 @@ lower_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
         }
     }
     callee :: retype_overload_callee(ctx, call.callee, raw_callee, type)
-    // Direct calls to non-generic stdlib free fns (`new_builder()`,
+    // Direct calls to non-generic stdlib free fns (`StringBuilder {}`,
     // `byte_len(s)`) : harvest so `materialize_nongeneric_imported_fns`
     // emits the body — the UFCS path harvests its own, this covers the
     // bare-ident-callee form.

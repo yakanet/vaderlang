@@ -3,9 +3,10 @@
 ## snippet
   fn snippet$main() -> i32
     let sb: StringBuilder =
-      call :StringBuilder
-        callee:
-          new_builder :fn() -> StringBuilder
+      StringBuilder {
+        parts:
+          array :string[]
+      }
     call :void
       callee:
         append :void
@@ -44,9 +45,10 @@
           arg0:
             sb :StringBuilder
     let sb2: StringBuilder =
-      call :StringBuilder
-        callee:
-          new_builder :fn() -> StringBuilder
+      StringBuilder {
+        parts:
+          array :string[]
+      }
     call :void
       callee:
         append :void
@@ -78,9 +80,10 @@
           arg0:
             sb2 :StringBuilder
     let sb3: StringBuilder =
-      call :StringBuilder
-        callee:
-          new_builder :fn() -> StringBuilder
+      StringBuilder {
+        parts:
+          array :string[]
+      }
     call :void
       callee:
         std_io$println__string :void
@@ -99,9 +102,10 @@
           arg2:
             "'" :string
     let sb4: StringBuilder =
-      call :StringBuilder
-        callee:
-          new_builder :fn() -> StringBuilder
+      StringBuilder {
+        parts:
+          array :string[]
+      }
     call :void
       callee:
         append_char :void
@@ -127,9 +131,10 @@
             sb4 :StringBuilder
     let n: i32 = int(42) :i32
     let sb5: StringBuilder =
-      call :StringBuilder
-        callee:
-          new_builder :fn() -> StringBuilder
+      StringBuilder {
+        parts:
+          array :string[]
+      }
     call :void
       callee:
         append :void

@@ -15,7 +15,7 @@
 // this module needs no `import` of its own.
 //
 // Usage:
-//   sb := new_builder()
+//   sb := StringBuilder {}
 //   sb.append("Hello")
 //   sb.append_char('!')
 //   result := sb.to_string()  // "Hello!"
@@ -28,13 +28,12 @@ module "std/string_builder"
 export StringBuilder :: struct {
     /// Appended fragments, in order. Concatenated at `to_string`. `@internal`:
     /// callers go through `append` / `to_string`, never the backing array.
+    /// Defaults to `[]` so `StringBuilder {}` constructs an empty builder from
+    /// any module (the `@internal` field needs a default to stay constructible
+    /// across the module boundary — SPEC §"Field defaults").
     @internal
-    parts: string[]
+    parts: string[] = []
 }
-
-/// Create an empty builder.
-/// @return  a fresh `StringBuilder` with no parts.
-export new_builder :: fn() -> StringBuilder = StringBuilder { .parts = [] }
 
 /// Append a string — an O(1) reference push, no byte copy.
 /// @param self  builder receiver.

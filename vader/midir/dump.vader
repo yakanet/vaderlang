@@ -8,7 +8,7 @@
 
 module "vader/midir"
 
-import "std/string_builder" { StringBuilder, new_builder, append }
+import "std/string_builder" { StringBuilder, append }
 import "vader/resolver" { module_in_scope }
 import "vader/resolver/symbol" { kind_name }
 import "vader/types" { display_type }
@@ -23,7 +23,7 @@ export DumpCfgOptions :: struct {
 }
 
 export dump_cfg_project :: fn(p: CFGProject, opts: DumpCfgOptions) -> string {
-    sb :: new_builder()
+    sb :: StringBuilder {}
     sb.append("# CFG\n")
     for [_, m] in p.modules {
         if !module_in_scope(m.display_path, opts.scope) { continue }
@@ -145,7 +145,7 @@ dump_dst :: fn(d: LocalId | null) -> string {
 }
 
 dump_args :: fn(a: LocalId[]) -> string {
-    sb :: new_builder()
+    sb :: StringBuilder {}
     first := true
     for x in a {
         if !first { sb.append(", ") }

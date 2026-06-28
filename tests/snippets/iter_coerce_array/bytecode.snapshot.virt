@@ -107,7 +107,7 @@ fn 2 snippet$main () -> i32
   local $arr_19 ref
   local $call_23 i32
   local $call_24 i32
-  local $call_34 string
+  local $call_35 string
   i32.const 10
   i32.const 20
   i32.const 30
@@ -156,40 +156,41 @@ fn 2 snippet$main () -> i32
   call 1
   call 0
   local.set 5
-  call 11
+  array.new 19 0
+  struct.new 20
   local.set 0
   local.get 0
   string.const 0
-  call 12
+  call 11
   local.get 2
   i32.to_i64
   call 9
   local.set 6
   local.get 0
   local.get 6
-  call 12
+  call 11
   local.get 0
   string.const 1
-  call 12
+  call 11
   local.get 4
   i32.to_i64
   call 9
   local.set 6
   local.get 0
   local.get 6
-  call 12
+  call 11
   local.get 0
   string.const 2
-  call 12
+  call 11
   local.get 5
   i32.to_i64
   call 9
   local.set 6
   local.get 0
   local.get 6
-  call 12
+  call 11
   local.get 0
-  call 13
+  call 12
   call 10
   return.lit i32.const 0
 end
@@ -515,7 +516,7 @@ fn 9 std_core$format_signed (i64) -> string
   end $L5
   local.get 4
   local.tee 2
-  call 14
+  call 13
   local.set 6
   local.get 2
   local.set 4
@@ -546,7 +547,7 @@ fn 9 std_core$format_signed (i64) -> string
         local.get 6
         local.get 4
         local.get 9
-        call 15
+        call 14
         local.get 0
         i64.const 10
         i64.div
@@ -565,12 +566,12 @@ fn 9 std_core$format_signed (i64) -> string
     local.get 6
     local.get 4
     local.get 7
-    call 15
+    call 14
   else
   end $L9
   local.get 6
   local.get 2
-  call 16
+  call 15
   return
 end
 
@@ -584,20 +585,14 @@ fn 10 std_io$println__string (string) -> void
   return
 end
 
-fn 11 std_string_builder$new_builder () -> ref
-  array.new 19 0
-  struct.new 20
-  return
-end
-
-fn 12 std_string_builder$append (ref,string) -> void
+fn 11 std_string_builder$append (ref,string) -> void
   local.field 0 20 0
   local.get 1
   array.push 13
   return
 end
 
-fn 13 std_string_builder$StringBuilder$Display$to_string (ref) -> string
+fn 12 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local n usize
   local $k_4 usize
   local $field_9 ref
@@ -669,7 +664,7 @@ fn 13 std_string_builder$StringBuilder$Display$to_string (ref) -> string
     end $L3
   end $L2
   local.get 1
-  call 14
+  call 13
   local.set 3
   i64.const 0
   local.set 2
@@ -693,7 +688,7 @@ fn 13 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         local.get 3
         local.get 2
         local.get 8
-        call 17
+        call 16
         local.get 8
         call.import 0
         array.len
@@ -715,17 +710,17 @@ fn 13 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   end $L5
   local.get 3
   local.get 1
-  call 16
+  call 15
   return
 end
 
-fn 14 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 13 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   object_new 0
   return
 end
 
-fn 15 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
+fn 14 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   local.get 0
   local.get 1
   local.get 2
@@ -733,14 +728,14 @@ fn 15 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   return
 end
 
-fn 16 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 15 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
   buffer_to_string
   return
 end
 
-fn 17 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 16 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0
   local.get 1
   local.get 2
