@@ -19,6 +19,7 @@ import "std/string_builder" { StringBuilder, append_repeated }
 import "std/iter" { slice }
 import "std/abort" { unreachable }
 import "vader/bytecode" { BcFunction, ValType }
+import "std/collections" { MutableMap }
 
 // ---- StackVal -------------------------------------------------------------
 
@@ -116,6 +117,13 @@ FnState :: struct {
     /// restore and ref slots skip the `= vader_box_null()` root-init. Set by
     /// `emit_function_body` ; default `true` (the scalar / stack subset).
     no_frame: bool
+    /// Resolve-CSE cache : array C-expr (`((vader_array_t*) lN.payload.obj)`) →
+    /// the `_slotarrK` local that already chased its buf-forward chain in this
+    /// straight-line region. A second slot access on the same array reuses it,
+    /// skipping the walk (the arr_rw native win). Cleared at every GC safepoint /
+    /// control-flow op and on reassignment of the array's local (see
+    /// `invalidate_resolve_cache`) — a stale entry would read a moved buffer.
+    resolved_arrays: MutableMap<string, string>
 }
 
 /// Fresh state for `function`, emitting into `out`.
@@ -131,6 +139,7 @@ new_fn_state :: fn(ctx: EmitCtx, function: BcFunction, out: StringBuilder) -> Fn
     .continue_targets = [],
     .break_targets = [],
     .no_frame = true,
+    .resolved_arrays = MutableMap<string, string> {},
 }
 
 // ---- indented output ------------------------------------------------------
