@@ -98,25 +98,10 @@ lower_string_lit :: fn(ctx: FnLowerCtx, expr: StringLitExpr, type: Type) -> Lowe
         return LoweredStringLit { .span = expr.span, .type = string_type, .value = body }
     }
 
-    // Collect the parts as string operands — text verbatim, `${value}` as
-    // `value.to_string()` (identity-inlined to `value` itself when it is already
-    // a string, via `build_member_call_or_inline`) — then concat them through the
-    // SAME `lower_concat_chain` as `+` : a fixed-arity `concatN` (one Buffer, one
-    // intern) for 2..4 parts, a StringBuilder for longer. One fast path for all
-    // string building, instead of a dedicated StringBuilder per interpolation.
-    operands: LoweredExpr[] = []
-    for part in expr.parts {
-        match part {
-            is StringLitText as text -> {
-                operands.push(LoweredStringLit { .span = text.span, .type = string_type, .value = text.value })
-            }
-            is StringLitInterp as interp -> {
-                inner :: lower_expr(ctx, interp.expr)
-                operands.push(build_display_to_string_call(ctx, inner, interp.span))
-            }
-        }
-    }
-    return lower_concat_chain(ctx, operands, expr.span)
+    // Build into one growable `Writer` : text + each `${value}` writes its bytes
+    // straight in, so a `${int}` formats its digits with no throwaway interned
+    // string (the old `value.to_string()` per part). Interned once at `finish`.
+    return lower_interp_buffer(ctx, expr)
 }
 
 // Lower a flattened string `+` chain (`operands` are the lowered leaves, in
@@ -174,6 +159,196 @@ sb_ident :: fn(sym: Symbol, ty: Type, span: Span) -> LoweredExpr =
 // project, the caller treats a null as a compiler invariant violation (panics).
 resolve_string_builder_fn :: fn(ctx: FnLowerCtx, name: string) -> Symbol | null =
     module_export(ctx.project, "std/string_builder", name)
+
+// Resolve a `std/core` free fn by name (the Writer API). Like
+// `resolve_string_builder_fn` ; std/core is the force-loaded prelude.
+resolve_writer_fn :: fn(ctx: FnLowerCtx, name: string) -> Symbol | null =
+    module_export(ctx.project, "std/core", name)
+
+WRITER_SIGNED_WIDTHS:   const string[]: ["i8", "i16", "i32", "i64", "isize"]
+WRITER_UNSIGNED_WIDTHS: const string[]: ["u8", "u16", "u32", "u64", "usize"]
+
+// How a `${value}` part writes into the buffer. `Str` also covers verbatim text.
+// How a part contributes : `Text` = verbatim literal, `Str` = a runtime string,
+// the rest = a primitive that formats its bytes directly.
+WriterKind :: enum(u8) { Text, Str, Signed, Unsigned, Bool, Display }
+
+// A `distinct`-over-int is deliberately NOT stripped to its base : it may carry a
+// CUSTOM `Display` impl (e.g. `Instant`'s ISO-8601 form over `distinct i64`), so it
+// must take the `.Display` path and dispatch to that impl — the int fast path would
+// wrongly write its raw backing integer. Only a bare primitive fast-paths.
+classify_kind :: fn(t: Type) -> WriterKind {
+    if t is PrimitiveType as p {
+        if p.name in WRITER_SIGNED_WIDTHS   { return .Signed }
+        if p.name in WRITER_UNSIGNED_WIDTHS { return .Unsigned }
+        if p.name == "bool"   { return .Bool }
+        if p.name == "string" { return .Str }
+    }
+    return .Display
+}
+
+// Interpolation → ONE exact-sized byte buffer when some part is a directly
+// writable primitive (int / uint / bool) : those write their digits straight in,
+// skipping the throwaway interned string the old `value.to_string()` minted per
+// `${int}`. The buffer is sized up front — verbatim text bytes + bounds (≤ 20 per
+// int, ≤ 5 per bool) + the runtime `byte_len` of string / `${Display}` parts — so
+// it never grows ; `off` threads through the offset-returning `write_*`
+// primitives, interned once. A purely text + `${string}` / `${Display}`
+// interpolation has no digit to format, so it stays on the leaner `concatN` /
+// StringBuilder path (a single right-sized buffer with computed offsets — no
+// off-threading, no per-part `byte_len` recompute). Each part is lowered once.
+lower_interp_buffer :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> LoweredExpr {
+    string_type :: mk_primitive("string")
+    usize_type :: mk_primitive("usize")
+    span :: expr.span
+    // Lower every part once, classifying interpolated values by type.
+    values: LoweredExpr[] = []
+    kinds: WriterKind[] = []
+    has_direct := false
+    for part in expr.parts {
+        match part {
+            is StringLitText as t -> {
+                values.push(LoweredStringLit { .span = t.span, .type = string_type, .value = t.value })
+                kinds.push(.Text)
+            }
+            is StringLitInterp as interp -> {
+                inner :: lower_expr(ctx, interp.expr)
+                k :: classify_kind(type_of(inner))
+                if k == WriterKind.Signed || k == WriterKind.Unsigned || k == WriterKind.Bool { has_direct = true }
+                values.push(inner)
+                kinds.push(k)
+            }
+        }
+    }
+    if !has_direct { return concat_from_collected(ctx, values, kinds, span) }
+
+    // Resolve the std/core buffer API ; a miss (impossible — force-loaded) falls
+    // back to concat. Separate checks so each narrows to a non-null Symbol.
+    nbb_sym :: resolve_writer_fn(ctx, "new_byte_buffer")
+    if nbb_sym == null { return concat_from_collected(ctx, values, kinds, span) }
+    finish_sym :: resolve_writer_fn(ctx, "finish_buffer")
+    if finish_sym == null { return concat_from_collected(ctx, values, kinds, span) }
+    blen_sym :: resolve_writer_fn(ctx, "byte_len")
+    if blen_sym == null { return concat_from_collected(ctx, values, kinds, span) }
+    wstr_sym :: resolve_writer_fn(ctx, "write_string_at")
+    if wstr_sym == null { return concat_from_collected(ctx, values, kinds, span) }
+    wint_sym :: resolve_writer_fn(ctx, "write_int")
+    if wint_sym == null { return concat_from_collected(ctx, values, kinds, span) }
+    wuint_sym :: resolve_writer_fn(ctx, "write_unsigned")
+    if wuint_sym == null { return concat_from_collected(ctx, values, kinds, span) }
+    wbool_sym :: resolve_writer_fn(ctx, "write_bool")
+    if wbool_sym == null { return concat_from_collected(ctx, values, kinds, span) }
+    // Buffer type from `write_string_at`'s self param.
+    buffer_type: Type = TY_UNRESOLVED
+    wstr_ty :: lookup_fn_type_anywhere(ctx, wstr_sym)
+    if wstr_ty is FnType as ft {
+        if ft.params.len() == 0 { return concat_from_collected(ctx, values, kinds, span) }
+        buffer_type = ft.params[0]
+    } else { return concat_from_collected(ctx, values, kinds, span) }
+    register_nongeneric_imported_fn(ctx, nbb_sym)
+    register_nongeneric_imported_fn(ctx, finish_sym)
+    register_nongeneric_imported_fn(ctx, blen_sym)
+    register_nongeneric_imported_fn(ctx, wstr_sym)
+    register_nongeneric_imported_fn(ctx, wint_sym)
+    register_nongeneric_imported_fn(ctx, wuint_sym)
+    register_nongeneric_imported_fn(ctx, wbool_sym)
+
+    // Process parts : bind each string / `${Display}` to a tmp (referenced twice —
+    // size + write — so `${f()}` isn't evaluated twice), accumulate the static byte
+    // bound + the runtime `byte_len` size terms, and record what to write.
+    stmts: LoweredStmt[] = []
+    write_values: LoweredExpr[] = []
+    write_kinds: WriterKind[] = []
+    const_bytes: i64 = 0
+    runtime_size: LoweredExpr | null = null
+    for i in 0..<values.len() {
+        v :: values[i]
+        k :: kinds[i]
+        if k == WriterKind.Signed {
+            const_bytes = const_bytes + 20
+            write_values.push(cast_to_width(v, "i64", span))
+            write_kinds.push(.Signed)
+        } else if k == WriterKind.Unsigned {
+            const_bytes = const_bytes + 20
+            write_values.push(cast_to_width(v, "u64", span))
+            write_kinds.push(.Unsigned)
+        } else if k == WriterKind.Bool {
+            const_bytes = const_bytes + 5
+            write_values.push(v)
+            write_kinds.push(.Bool)
+        } else if k == WriterKind.Text {
+            if v is LoweredStringLit as lit { const_bytes = const_bytes + i64(lit.value.bytes().len()) }
+            write_values.push(v)
+            write_kinds.push(.Str)
+        } else {
+            // Str / Display — bind to a tmp, add a runtime `byte_len` size term.
+            str_val :: if k == WriterKind.Display { build_display_to_string_call(ctx, v, span) } else { v }
+            tmp_sym :: fresh_synthetic_symbol(ctx, "p")
+            stmts.push(LoweredLet { .span = span, .name = tmp_sym.name, .symbol = tmp_sym, .type = string_type, .value = str_val })
+            tmp_ref :: sb_ident(tmp_sym, string_type, span)
+            blen_call :: mk_lowered_call(blen_sym, [tmp_ref], usize_type, span)
+            if runtime_size == null { runtime_size = blen_call } else {
+                runtime_size = LoweredBinary { .span = span, .type = usize_type, .op = .Add, .left = runtime_size, .right = blen_call }
+            }
+            write_values.push(tmp_ref)
+            write_kinds.push(.Str)
+        }
+    }
+    // size = const_bytes + Σ byte_len(str tmps).
+    const_lit :: LoweredIntLit { .span = span, .type = usize_type, .value = const_bytes }
+    size: LoweredExpr = const_lit
+    if runtime_size != null {
+        size = LoweredBinary { .span = span, .type = usize_type, .op = .Add, .left = const_lit, .right = runtime_size }
+    }
+    buf_sym :: fresh_synthetic_symbol(ctx, "buf")
+    stmts.push(LoweredLet {
+        .span = span, .name = buf_sym.name, .symbol = buf_sym, .type = buffer_type,
+        .value = mk_lowered_call(nbb_sym, [size], buffer_type, span),
+    })
+    off_sym :: fresh_synthetic_symbol(ctx, "off")
+    stmts.push(LoweredLet {
+        .span = span, .name = off_sym.name, .symbol = off_sym, .type = usize_type,
+        .value = LoweredIntLit { .span = span, .type = usize_type, .value = 0 },
+    })
+    // `off = buf.write_X(off, value)` per part — the write returns the new offset.
+    for i in 0..<write_values.len() {
+        wv :: write_values[i]
+        wsym :: match write_kinds[i] {
+            .Signed                 -> wint_sym
+            .Unsigned               -> wuint_sym
+            .Bool                   -> wbool_sym
+            .Str | .Text | .Display -> wstr_sym
+        }
+        call :: mk_lowered_call(wsym, [sb_ident(buf_sym, buffer_type, span), sb_ident(off_sym, usize_type, span), wv], usize_type, span)
+        stmts.push(LoweredAssign { .span = span, .target = sb_ident(off_sym, usize_type, span), .value = call })
+    }
+    return LoweredBlock {
+        .span = span, .type = string_type, .stmts = stmts,
+        .trailing = mk_lowered_call(finish_sym, [sb_ident(buf_sym, buffer_type, span), sb_ident(off_sym, usize_type, span)], string_type, span),
+    }
+}
+
+// The non-direct path : each part as a string operand (Str / Text verbatim, else
+// `value.to_string()`), concatenated via the same `concatN` / StringBuilder as `+`.
+// Used when no part is a direct-write primitive, or the buffer API doesn't resolve.
+concat_from_collected :: fn(ctx: FnLowerCtx, values: LoweredExpr[], kinds: WriterKind[], span: Span) -> LoweredExpr {
+    operands: LoweredExpr[] = []
+    for i in 0..<values.len() {
+        if kinds[i] == WriterKind.Str || kinds[i] == WriterKind.Text {
+            operands.push(values[i])
+        } else {
+            operands.push(build_display_to_string_call(ctx, values[i], span))
+        }
+    }
+    return lower_concat_chain(ctx, operands, span)
+}
+
+// Widen `inner` to `width` (i64 / u64) for the write fn ; identity when already it.
+cast_to_width :: fn(inner: LoweredExpr, width: string, span: Span) -> LoweredExpr {
+    t :: type_of(inner)
+    if t is PrimitiveType as p { if p.name == width { return inner } }
+    return LoweredCast { .span = span, .type = mk_primitive(width), .value = inner }
+}
 
 // Build a `<T>.Display.to_string(value)` call shape. Prefers a direct
 // `LoweredCall` to the per-receiver impl member when the impl is

@@ -5,21 +5,20 @@ type 2 primitive i32
 type 3 struct snippet$Inner { flag:4 }
 type 4 union 2,0
 type 5 primitive usize
-type 6 primitive string
-type 7 primitive i64
-type 8 array 9
-type 9 primitive u8
-type 10 struct std_core$Buffer {  }
+type 6 struct std_core$Buffer {  }
+type 7 primitive string
+type 8 primitive i64
+type 9 array 10
+type 10 primitive u8
 type 11 primitive void
 string 0 "count(set)="
 string 1 "count(unset)="
 string 2 "unwrap(set)="
 string 3 "unwrap(unset)="
-string 4 "0"
-string 5 "\n"
+string 4 "\n"
 import 0 bytes std_core$bytes (string) -> ref
 import 1 write std_io$write (i32,string) -> void
-impl 10 ByteAccess
+impl 6 ByteAccess
 export main 2
 
 fn 0 snippet$count_match (ref) -> i32
@@ -63,7 +62,9 @@ end
 fn 2 snippet$main () -> i32
   local set ref
   local unset ref
-  local $call_11 string
+  local __buf_0 ref
+  local __off_1 usize
+  local $cast_16 i64
   i32.const 42
   struct.new 3
   struct.new 1
@@ -72,235 +73,278 @@ fn 2 snippet$main () -> i32
   struct.new 3
   struct.new 1
   local.set 1
-  local.get 0
-  call 0
-  i32.to_i64
+  i64.const 31
   call 3
   local.set 2
+  i64.const 0
+  local.set 3
+  local.get 2
+  local.get 3
   string.const 0
-  local.get 2
   call 5
+  local.set 3
+  local.get 0
+  call 0
+  i32.to_i64
+  local.set 4
+  local.get 2
+  local.get 3
+  local.get 4
+  call 6
+  local.set 3
+  local.get 2
+  local.get 3
   call 4
+  call 7
+  i64.const 33
+  call 3
+  local.set 2
+  i64.const 0
+  local.set 3
+  local.get 2
+  local.get 3
+  string.const 1
+  call 5
+  local.set 3
   local.get 1
   call 0
   i32.to_i64
+  local.set 4
+  local.get 2
+  local.get 3
+  local.get 4
+  call 6
+  local.set 3
+  local.get 2
+  local.get 3
+  call 4
+  call 7
+  i64.const 32
   call 3
   local.set 2
-  string.const 1
+  i64.const 0
+  local.set 3
   local.get 2
+  local.get 3
+  string.const 2
   call 5
-  call 4
+  local.set 3
   local.get 0
   call 1
   i32.to_i64
-  call 3
-  local.set 2
-  string.const 2
+  local.set 4
   local.get 2
-  call 5
+  local.get 3
+  local.get 4
+  call 6
+  local.set 3
+  local.get 2
+  local.get 3
   call 4
+  call 7
+  i64.const 34
+  call 3
+  local.set 0
+  i64.const 0
+  local.set 3
+  local.get 0
+  local.get 3
+  string.const 3
+  call 5
+  local.set 3
   local.get 1
   call 1
   i32.to_i64
-  call 3
-  local.set 2
-  string.const 3
-  local.get 2
-  call 5
+  local.set 4
+  local.get 0
+  local.get 3
+  local.get 4
+  call 6
+  local.set 3
+  local.get 0
+  local.get 3
   call 4
+  call 7
   return.lit i32.const 0
 end
 
-fn 3 std_core$format_signed (i64) -> string
-  local neg bool
-  local ndigits usize
-  local m i64
-  local $k_15 usize
-  local $k_20 usize
-  local buf ref
-  local $k_30 u8
-  local $cast_34 u8
-  local $add_35 u8
+fn 3 std_core$new_byte_buffer (usize) -> ref
   local.get 0
+  call 8
+  return
+end
+
+fn 4 std_core$finish_buffer (ref,usize) -> string
+  local.get 0
+  local.get 1
+  call 10
+  return
+end
+
+fn 5 std_core$write_string_at (ref,usize,string) -> usize
+  local $len_4 usize
+  local.get 0
+  local.get 1
+  local.get 2
+  call 11
+  local.get 2
+  call.import 0
+  array.len
+  local.set 3
+  local.get 1
+  local.get 3
+  i64.add
+  return
+end
+
+fn 6 std_core$write_int (ref,usize,i64) -> usize
+  local $k_5 u8
+  local $k_6 usize
+  local neg bool
+  local m i64
+  local $k_19 usize
+  local $k_24 usize
+  local $cast_37 u8
+  local $add_38 u8
+  local.get 2
   i64.const 0
   i64.eq
   if $L0 void
-    return.lit string.const 4
+    i32.const 48
+    local.set 3
+    local.get 0
+    local.get 1
+    local.get 3
+    call 9
+    i64.const 1
+    local.set 4
+    local.get 1
+    local.get 4
+    i64.add
+    return
   end $L0
-  local.get 0
+  local.get 2
   i64.const 0
   i64.lt
-  local.set 1
-  local.get 0
+  local.set 5
+  local.get 2
   i64.const 0
   i64.gt
   if $L1 void
-    local.get 0
+    local.get 2
     i64.neg
-    local.set 0
+    local.set 2
   else
   end $L1
   i64.const 0
-  local.set 2
-  local.get 0
-  local.set 3
+  local.set 4
+  local.get 2
+  local.set 6
   block $L2 void
     loop $L3 void
-      local.get 3
+      local.get 6
       i64.const 0
       i64.ne
       if $L4 void
         i64.const 1
-        local.set 4
-        local.get 2
+        local.set 7
         local.get 4
+        local.get 7
         i64.add
-        local.set 2
-        local.get 3
+        local.set 4
+        local.get 6
         i64.const 10
         i64.div
-        local.set 3
+        local.set 6
         br $L3
       else
       end $L4
     end $L3
   end $L2
-  local.get 1
+  local.get 5
   if $L5 void
     i64.const 1
-    local.set 5
-    local.get 2
-    local.get 5
+    local.set 8
+    local.get 4
+    local.get 8
     i64.add
-    local.set 4
+    local.set 7
   else
-    local.get 2
-    local.set 4
+    local.get 4
+    local.set 7
   end $L5
-  local.get 4
-  local.tee 2
-  call 6
-  local.set 6
-  local.get 2
+  local.get 7
   local.set 4
+  local.get 1
+  local.get 4
+  i64.add
+  local.set 7
   block $L6 void
     loop $L7 void
-      local.get 0
+      local.get 2
       i64.const 0
       i64.ne
       if $L8 void
         i64.const 1
-        local.set 5
-        local.get 4
-        local.get 5
+        local.set 8
+        local.get 7
+        local.get 8
         i64.sub
-        local.set 4
-        i32.const 48
         local.set 7
-        local.get 0
+        i32.const 48
+        local.set 3
+        local.get 2
         i64.const 10
         i64.rem
         i64.neg
         i64.to_i32
-        local.set 8
-        local.get 7
-        local.get 8
-        i32.add
         local.set 9
-        local.get 6
-        local.get 4
+        local.get 3
         local.get 9
-        call 9
+        i32.add
+        local.set 10
         local.get 0
+        local.get 7
+        local.get 10
+        call 9
+        local.get 2
         i64.const 10
         i64.div
-        local.set 0
+        local.set 2
         br $L7
       else
       end $L8
     end $L7
   end $L6
-  local.get 1
+  local.get 5
   if $L9 void
-    i64.const 0
-    local.set 4
     i32.const 45
-    local.set 7
-    local.get 6
-    local.get 4
-    local.get 7
+    local.set 3
+    local.get 0
+    local.get 1
+    local.get 3
     call 9
   else
   end $L9
-  local.get 6
-  local.get 2
-  call 7
-  return
-end
-
-fn 4 std_io$println__string (string) -> void
-  i32.const 0
-  local.get 0
-  call.import 1
-  i32.const 0
-  string.const 5
-  call.import 1
-  return
-end
-
-fn 5 std_string_builder$concat2 (string,string) -> string
-  local la usize
-  local $len_6 usize
-  local buf ref
-  local $k_11 usize
-  local.get 0
-  call.import 0
-  array.len
-  local.set 2
   local.get 1
-  call.import 0
-  array.len
-  local.set 3
-  local.get 2
-  local.get 3
+  local.get 4
   i64.add
-  local.tee 3
-  call 6
-  local.set 4
-  i64.const 0
-  local.set 5
-  local.get 4
-  local.get 5
-  local.get 0
-  call 8
-  local.get 4
-  local.get 2
-  local.get 1
-  call 8
-  local.get 4
-  local.get 3
-  call 7
   return
 end
 
-fn 6 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 7 std_io$println__string (string) -> void
+  i32.const 0
+  local.get 0
+  call.import 1
+  i32.const 0
+  string.const 4
+  call.import 1
+  return
+end
+
+fn 8 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   object_new 0
-  return
-end
-
-fn 7 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
-  local.get 0
-  local.get 1
-  buffer_to_string
-  return
-end
-
-fn 8 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
-  local.get 0
-  local.get 1
-  local.get 2
-  buffer_write_string
   return
 end
 
@@ -309,6 +353,21 @@ fn 9 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   local.get 1
   local.get 2
   store_u8
+  return
+end
+
+fn 10 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+  local.get 0
+  local.get 1
+  buffer_to_string
+  return
+end
+
+fn 11 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+  local.get 0
+  local.get 1
+  local.get 2
+  buffer_write_string
   return
 end
 

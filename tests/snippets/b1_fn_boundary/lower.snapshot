@@ -116,24 +116,55 @@
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            concat2 :string
-          arg0:
-            "length=" :string
-          arg1:
+        block :string
+          let __buf_0: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(27) :usize
+          let __off_1: usize = int(0) :usize
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  "length=" :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        length :fn(Node | null) -> i32
+                      arg0:
+                        head :Node | null
+          ~>
             call :string
               callee:
-                format_signed :fn(i64) -> string
+                finish_buffer :string
               arg0:
-                cast → i64
-                  call :i32
-                    callee:
-                      length :fn(Node | null) -> i32
-                    arg0:
-                      head :Node | null
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
     block :void
-      let __scrut_0: Node | null =
+      let __scrut_2: Node | null =
         call :Node | null
           callee:
             find :fn(Node | null, i32) -> Node | null
@@ -145,7 +176,7 @@
         if :void
           cond:
             is null :bool
-              __scrut_0 :Node | null
+              __scrut_2 :Node | null
           then:
             ~>
               block :void
@@ -160,11 +191,11 @@
               if :void
                 cond:
                   is Node :bool
-                    __scrut_0 :Node | null
+                    __scrut_2 :Node | null
                 then:
                   let h: Node =
                     cast → Node
-                      __scrut_0 :Node | null
+                      __scrut_2 :Node | null
                   ~>
                     block :void
                       ~>
@@ -172,24 +203,55 @@
                           callee:
                             std_io$println__string :void
                           arg0:
-                            call :string
-                              callee:
-                                concat2 :string
-                              arg0:
-                                "found " :string
-                              arg1:
+                            block :string
+                              let __buf_3: Buffer =
+                                call :Buffer
+                                  callee:
+                                    new_byte_buffer :Buffer
+                                  arg0:
+                                    int(26) :usize
+                              let __off_4: usize = int(0) :usize
+                              assign
+                                target:
+                                  __off_4 :usize
+                                value:
+                                  call :usize
+                                    callee:
+                                      write_string_at :usize
+                                    arg0:
+                                      __buf_3 :Buffer
+                                    arg1:
+                                      __off_4 :usize
+                                    arg2:
+                                      "found " :string
+                              assign
+                                target:
+                                  __off_4 :usize
+                                value:
+                                  call :usize
+                                    callee:
+                                      write_int :usize
+                                    arg0:
+                                      __buf_3 :Buffer
+                                    arg1:
+                                      __off_4 :usize
+                                    arg2:
+                                      cast → i64
+                                        .value :i32
+                                          h :Node
+                              ~>
                                 call :string
                                   callee:
-                                    format_signed :fn(i64) -> string
+                                    finish_buffer :string
                                   arg0:
-                                    cast → i64
-                                      .value :i32
-                                        h :Node
+                                    __buf_3 :Buffer
+                                  arg1:
+                                    __off_4 :usize
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
     block :void
-      let __scrut_1: Node | null =
+      let __scrut_5: Node | null =
         call :Node | null
           callee:
             find :fn(Node | null, i32) -> Node | null
@@ -201,7 +263,7 @@
         if :void
           cond:
             is null :bool
-              __scrut_1 :Node | null
+              __scrut_5 :Node | null
           then:
             ~>
               block :void
@@ -216,11 +278,11 @@
               if :void
                 cond:
                   is Node :bool
-                    __scrut_1 :Node | null
+                    __scrut_5 :Node | null
                 then:
                   let h: Node =
                     cast → Node
-                      __scrut_1 :Node | null
+                      __scrut_5 :Node | null
                   ~>
                     block :void
                       ~>
@@ -228,19 +290,50 @@
                           callee:
                             std_io$println__string :void
                           arg0:
-                            call :string
-                              callee:
-                                concat2 :string
-                              arg0:
-                                "found " :string
-                              arg1:
+                            block :string
+                              let __buf_6: Buffer =
+                                call :Buffer
+                                  callee:
+                                    new_byte_buffer :Buffer
+                                  arg0:
+                                    int(26) :usize
+                              let __off_7: usize = int(0) :usize
+                              assign
+                                target:
+                                  __off_7 :usize
+                                value:
+                                  call :usize
+                                    callee:
+                                      write_string_at :usize
+                                    arg0:
+                                      __buf_6 :Buffer
+                                    arg1:
+                                      __off_7 :usize
+                                    arg2:
+                                      "found " :string
+                              assign
+                                target:
+                                  __off_7 :usize
+                                value:
+                                  call :usize
+                                    callee:
+                                      write_int :usize
+                                    arg0:
+                                      __buf_6 :Buffer
+                                    arg1:
+                                      __off_7 :usize
+                                    arg2:
+                                      cast → i64
+                                        .value :i32
+                                          h :Node
+                              ~>
                                 call :string
                                   callee:
-                                    format_signed :fn(i64) -> string
+                                    finish_buffer :string
                                   arg0:
-                                    cast → i64
-                                      .value :i32
-                                        h :Node
+                                    __buf_6 :Buffer
+                                  arg1:
+                                    __off_7 :usize
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void

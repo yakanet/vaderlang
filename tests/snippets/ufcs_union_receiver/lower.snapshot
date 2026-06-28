@@ -17,21 +17,63 @@
                 cast → Circle
                   __scrut_0 :Circle | Square
               ~>
-                call :string
-                  callee:
-                    concat3 :string
-                  arg0:
-                    "circle(" :string
-                  arg1:
+                block :string
+                  let __buf_3: Buffer =
+                    call :Buffer
+                      callee:
+                        new_byte_buffer :Buffer
+                      arg0:
+                        int(28) :usize
+                  let __off_4: usize = int(0) :usize
+                  assign
+                    target:
+                      __off_4 :usize
+                    value:
+                      call :usize
+                        callee:
+                          write_string_at :usize
+                        arg0:
+                          __buf_3 :Buffer
+                        arg1:
+                          __off_4 :usize
+                        arg2:
+                          "circle(" :string
+                  assign
+                    target:
+                      __off_4 :usize
+                    value:
+                      call :usize
+                        callee:
+                          write_int :usize
+                        arg0:
+                          __buf_3 :Buffer
+                        arg1:
+                          __off_4 :usize
+                        arg2:
+                          cast → i64
+                            .radius :i32
+                              c :Circle
+                  assign
+                    target:
+                      __off_4 :usize
+                    value:
+                      call :usize
+                        callee:
+                          write_string_at :usize
+                        arg0:
+                          __buf_3 :Buffer
+                        arg1:
+                          __off_4 :usize
+                        arg2:
+                          ")" :string
+                  ~>
                     call :string
                       callee:
-                        format_signed :fn(i64) -> string
+                        finish_buffer :string
                       arg0:
-                        cast → i64
-                          .radius :i32
-                            c :Circle
-                  arg2:
-                    ")" :string
+                        __buf_3 :Buffer
+                      arg1:
+                        __off_4 :usize
             else:
               ~>
                 if :string
@@ -43,21 +85,63 @@
                       cast → Square
                         __scrut_0 :Circle | Square
                     ~>
-                      call :string
-                        callee:
-                          concat3 :string
-                        arg0:
-                          "square(" :string
-                        arg1:
+                      block :string
+                        let __buf_1: Buffer =
+                          call :Buffer
+                            callee:
+                              new_byte_buffer :Buffer
+                            arg0:
+                              int(28) :usize
+                        let __off_2: usize = int(0) :usize
+                        assign
+                          target:
+                            __off_2 :usize
+                          value:
+                            call :usize
+                              callee:
+                                write_string_at :usize
+                              arg0:
+                                __buf_1 :Buffer
+                              arg1:
+                                __off_2 :usize
+                              arg2:
+                                "square(" :string
+                        assign
+                          target:
+                            __off_2 :usize
+                          value:
+                            call :usize
+                              callee:
+                                write_int :usize
+                              arg0:
+                                __buf_1 :Buffer
+                              arg1:
+                                __off_2 :usize
+                              arg2:
+                                cast → i64
+                                  .side :i32
+                                    sq :Square
+                        assign
+                          target:
+                            __off_2 :usize
+                          value:
+                            call :usize
+                              callee:
+                                write_string_at :usize
+                              arg0:
+                                __buf_1 :Buffer
+                              arg1:
+                                __off_2 :usize
+                              arg2:
+                                ")" :string
+                        ~>
                           call :string
                             callee:
-                              format_signed :fn(i64) -> string
+                              finish_buffer :string
                             arg0:
-                              cast → i64
-                                .side :i32
-                                  sq :Square
-                        arg2:
-                          ")" :string
+                              __buf_1 :Buffer
+                            arg1:
+                              __off_2 :usize
                   else:
                     ~>
                       unreachable("non-exhaustive match (T3013 should have caught this)") :string
@@ -138,40 +222,102 @@
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            concat2 :string
-          arg0:
-            "a.area = " :string
-          arg1:
+        block :string
+          let __buf_0: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(29) :usize
+          let __off_1: usize = int(0) :usize
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  "a.area = " :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        area :i32
+                      arg0:
+                        a :Circle | Square
+          ~>
             call :string
               callee:
-                format_signed :fn(i64) -> string
+                finish_buffer :string
               arg0:
-                cast → i64
-                  call :i32
-                    callee:
-                      area :i32
-                    arg0:
-                      a :Circle | Square
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
     call :void
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            concat2 :string
-          arg0:
-            "b.area = " :string
-          arg1:
+        block :string
+          let __buf_2: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(29) :usize
+          let __off_3: usize = int(0) :usize
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  "b.area = " :string
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        area :i32
+                      arg0:
+                        b :Circle | Square
+          ~>
             call :string
               callee:
-                format_signed :fn(i64) -> string
+                finish_buffer :string
               arg0:
-                cast → i64
-                  call :i32
-                    callee:
-                      area :i32
-                    arg0:
-                      b :Circle | Square
+                __buf_2 :Buffer
+              arg1:
+                __off_3 :usize
     return int(0) :i32

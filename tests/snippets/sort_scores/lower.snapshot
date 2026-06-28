@@ -53,12 +53,36 @@
           callee:
             std_io$println__string :void
           arg0:
-            call :string
-              callee:
-                format_signed :fn(i64) -> string
-              arg0:
-                cast → i64
-                  s :i32
+            block :string
+              let __buf_3: Buffer =
+                call :Buffer
+                  callee:
+                    new_byte_buffer :Buffer
+                  arg0:
+                    int(20) :usize
+              let __off_4: usize = int(0) :usize
+              assign
+                target:
+                  __off_4 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_int :usize
+                    arg0:
+                      __buf_3 :Buffer
+                    arg1:
+                      __off_4 :usize
+                    arg2:
+                      cast → i64
+                        s :i32
+              ~>
+                call :string
+                  callee:
+                    finish_buffer :string
+                  arg0:
+                    __buf_3 :Buffer
+                  arg1:
+                    __off_4 :usize
         assign
           target:
             __for_i_2 :usize

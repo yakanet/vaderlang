@@ -55,427 +55,673 @@
         std_io$println__string :void
       arg0:
         block :string
-          let __sb_0: StringBuilder =
-            StringBuilder {
-              parts:
-                array :string[]
-            }
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              "u8=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
+          let __p_0: string =
+            call :string
+              callee:
+                bytes_to_string :string
+              arg0:
+                call :u8[]
+                  callee:
+                    utf8_encode :fn(char) -> u8[]
+                  arg0:
+                    .v :char
+                      bc :Box<char>
+          let __p_1: string =
+            call :string
+              callee:
+                format_f32 :fn(f32) -> string
+              arg0:
+                .v :f32
+                  bf32 :Box<f32>
+          let __p_2: string =
+            call :string
+              callee:
+                format_f64 :fn(f64) -> string
+              arg0:
+                .v :f64
+                  bf64 :Box<f64>
+          let __buf_3: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                add :usize
+                  l:
+                    int(50) :usize
+                  r:
+                    add :usize
+                      l:
+                        add :usize
+                          l:
+                            call :usize
+                              callee:
+                                byte_len :usize
+                              arg0:
+                                __p_0 :string
+                          r:
+                            call :usize
+                              callee:
+                                byte_len :usize
+                              arg0:
+                                __p_1 :string
+                      r:
+                        call :usize
+                          callee:
+                            byte_len :usize
+                          arg0:
+                            __p_2 :string
+          let __off_4: usize = int(0) :usize
+          assign
+            target:
+              __off_4 :usize
+            value:
+              call :usize
                 callee:
-                  format_unsigned :fn(u64) -> string
+                  write_string_at :usize
                 arg0:
+                  __buf_3 :Buffer
+                arg1:
+                  __off_4 :usize
+                arg2:
+                  "u8=" :string
+          assign
+            target:
+              __off_4 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_3 :Buffer
+                arg1:
+                  __off_4 :usize
+                arg2:
                   cast → u64
                     .v :u8
                       bu8 :Box<u8>
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              " bool=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              if :string
-                cond:
+          assign
+            target:
+              __off_4 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_3 :Buffer
+                arg1:
+                  __off_4 :usize
+                arg2:
+                  " bool=" :string
+          assign
+            target:
+              __off_4 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_3 :Buffer
+                arg1:
+                  __off_4 :usize
+                arg2:
                   .v :bool
                     bb :Box<bool>
-                then:
-                  ~>
-                    "true" :string
-                else:
-                  ~>
-                    "false" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              " char=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
+          assign
+            target:
+              __off_4 :usize
+            value:
+              call :usize
                 callee:
-                  bytes_to_string :string
+                  write_string_at :usize
                 arg0:
-                  call :u8[]
-                    callee:
-                      utf8_encode :fn(char) -> u8[]
-                    arg0:
-                      .v :char
-                        bc :Box<char>
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              " f32=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
+                  __buf_3 :Buffer
+                arg1:
+                  __off_4 :usize
+                arg2:
+                  " char=" :string
+          assign
+            target:
+              __off_4 :usize
+            value:
+              call :usize
                 callee:
-                  format_f32 :fn(f32) -> string
+                  write_string_at :usize
                 arg0:
-                  .v :f32
-                    bf32 :Box<f32>
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              " f64=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_0 :StringBuilder
-            arg1:
-              call :string
+                  __buf_3 :Buffer
+                arg1:
+                  __off_4 :usize
+                arg2:
+                  __p_0 :string
+          assign
+            target:
+              __off_4 :usize
+            value:
+              call :usize
                 callee:
-                  format_f64 :fn(f64) -> string
+                  write_string_at :usize
                 arg0:
-                  .v :f64
-                    bf64 :Box<f64>
+                  __buf_3 :Buffer
+                arg1:
+                  __off_4 :usize
+                arg2:
+                  " f32=" :string
+          assign
+            target:
+              __off_4 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_3 :Buffer
+                arg1:
+                  __off_4 :usize
+                arg2:
+                  __p_1 :string
+          assign
+            target:
+              __off_4 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_3 :Buffer
+                arg1:
+                  __off_4 :usize
+                arg2:
+                  " f64=" :string
+          assign
+            target:
+              __off_4 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_3 :Buffer
+                arg1:
+                  __off_4 :usize
+                arg2:
+                  __p_2 :string
           ~>
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                finish_buffer :string
               arg0:
-                __sb_0 :StringBuilder
+                __buf_3 :Buffer
+              arg1:
+                __off_4 :usize
     call :void
       callee:
         std_io$println__string :void
       arg0:
         block :string
-          let __sb_1: StringBuilder =
-            StringBuilder {
-              parts:
-                array :string[]
-            }
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              "i16=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              call :string
+          let __p_5: string =
+            .v :string
+              bs :Box<string>
+          let __buf_6: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                add :usize
+                  l:
+                    int(131) :usize
+                  r:
+                    call :usize
+                      callee:
+                        byte_len :usize
+                      arg0:
+                        __p_5 :string
+          let __off_7: usize = int(0) :usize
+          assign
+            target:
+              __off_7 :usize
+            value:
+              call :usize
                 callee:
-                  format_signed :fn(i64) -> string
+                  write_string_at :usize
                 arg0:
+                  __buf_6 :Buffer
+                arg1:
+                  __off_7 :usize
+                arg2:
+                  "i16=" :string
+          assign
+            target:
+              __off_7 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_6 :Buffer
+                arg1:
+                  __off_7 :usize
+                arg2:
                   cast → i64
                     .v :i16
                       bi16 :Box<i16>
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              " u16=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              call :string
+          assign
+            target:
+              __off_7 :usize
+            value:
+              call :usize
                 callee:
-                  format_unsigned :fn(u64) -> string
+                  write_string_at :usize
                 arg0:
+                  __buf_6 :Buffer
+                arg1:
+                  __off_7 :usize
+                arg2:
+                  " u16=" :string
+          assign
+            target:
+              __off_7 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_6 :Buffer
+                arg1:
+                  __off_7 :usize
+                arg2:
                   cast → u64
                     .v :u16
                       bu16 :Box<u16>
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              " i64=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              call :string
+          assign
+            target:
+              __off_7 :usize
+            value:
+              call :usize
                 callee:
-                  format_signed :fn(i64) -> string
+                  write_string_at :usize
                 arg0:
+                  __buf_6 :Buffer
+                arg1:
+                  __off_7 :usize
+                arg2:
+                  " i64=" :string
+          assign
+            target:
+              __off_7 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_6 :Buffer
+                arg1:
+                  __off_7 :usize
+                arg2:
                   .v :i64
                     bi64 :Box<i64>
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              " usize=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              call :string
+          assign
+            target:
+              __off_7 :usize
+            value:
+              call :usize
                 callee:
-                  format_unsigned :fn(u64) -> string
+                  write_string_at :usize
                 arg0:
+                  __buf_6 :Buffer
+                arg1:
+                  __off_7 :usize
+                arg2:
+                  " usize=" :string
+          assign
+            target:
+              __off_7 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_6 :Buffer
+                arg1:
+                  __off_7 :usize
+                arg2:
                   cast → u64
                     .v :usize
                       bus :Box<usize>
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              " i32=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              call :string
+          assign
+            target:
+              __off_7 :usize
+            value:
+              call :usize
                 callee:
-                  format_signed :fn(i64) -> string
+                  write_string_at :usize
                 arg0:
+                  __buf_6 :Buffer
+                arg1:
+                  __off_7 :usize
+                arg2:
+                  " i32=" :string
+          assign
+            target:
+              __off_7 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_6 :Buffer
+                arg1:
+                  __off_7 :usize
+                arg2:
                   cast → i64
                     .v :i32
                       bi32 :Box<i32>
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              " str=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_1 :StringBuilder
-            arg1:
-              .v :string
-                bs :Box<string>
+          assign
+            target:
+              __off_7 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_6 :Buffer
+                arg1:
+                  __off_7 :usize
+                arg2:
+                  " str=" :string
+          assign
+            target:
+              __off_7 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_6 :Buffer
+                arg1:
+                  __off_7 :usize
+                arg2:
+                  __p_5 :string
           ~>
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                finish_buffer :string
               arg0:
-                __sb_1 :StringBuilder
+                __buf_6 :Buffer
+              arg1:
+                __off_7 :usize
     call :void
       callee:
         std_io$println__string :void
       arg0:
         block :string
-          let __sb_2: StringBuilder =
-            StringBuilder {
-              parts:
-                array :string[]
-            }
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              "via=" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              call :string
+          let __p_8: string =
+            call :string
+              callee:
+                bytes_to_string :string
+              arg0:
+                call :u8[]
+                  callee:
+                    utf8_encode :fn(char) -> u8[]
+                  arg0:
+                    call :char
+                      callee:
+                        snippet$unwrap__char :char
+                      arg0:
+                        bc :Box<char>
+          let __p_9: string =
+            call :string
+              callee:
+                format_f32 :fn(f32) -> string
+              arg0:
+                call :f32
+                  callee:
+                    snippet$unwrap__f32 :f32
+                  arg0:
+                    bf32 :Box<f32>
+          let __p_10: string =
+            call :string
+              callee:
+                snippet$unwrap__string :string
+              arg0:
+                bs :Box<string>
+          let __buf_11: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                add :usize
+                  l:
+                    int(75) :usize
+                  r:
+                    add :usize
+                      l:
+                        add :usize
+                          l:
+                            call :usize
+                              callee:
+                                byte_len :usize
+                              arg0:
+                                __p_8 :string
+                          r:
+                            call :usize
+                              callee:
+                                byte_len :usize
+                              arg0:
+                                __p_9 :string
+                      r:
+                        call :usize
+                          callee:
+                            byte_len :usize
+                          arg0:
+                            __p_10 :string
+          let __off_12: usize = int(0) :usize
+          assign
+            target:
+              __off_12 :usize
+            value:
+              call :usize
                 callee:
-                  format_unsigned :fn(u64) -> string
+                  write_string_at :usize
                 arg0:
+                  __buf_11 :Buffer
+                arg1:
+                  __off_12 :usize
+                arg2:
+                  "via=" :string
+          assign
+            target:
+              __off_12 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_11 :Buffer
+                arg1:
+                  __off_12 :usize
+                arg2:
                   cast → u64
                     call :u8
                       callee:
                         snippet$unwrap__u8 :u8
                       arg0:
                         bu8 :Box<u8>
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              "," :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              if :string
-                cond:
+          assign
+            target:
+              __off_12 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_11 :Buffer
+                arg1:
+                  __off_12 :usize
+                arg2:
+                  "," :string
+          assign
+            target:
+              __off_12 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_11 :Buffer
+                arg1:
+                  __off_12 :usize
+                arg2:
                   call :bool
                     callee:
                       snippet$unwrap__bool :bool
                     arg0:
                       bb :Box<bool>
-                then:
-                  ~>
-                    "true" :string
-                else:
-                  ~>
-                    "false" :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              "," :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              call :string
+          assign
+            target:
+              __off_12 :usize
+            value:
+              call :usize
                 callee:
-                  bytes_to_string :string
+                  write_string_at :usize
                 arg0:
-                  call :u8[]
-                    callee:
-                      utf8_encode :fn(char) -> u8[]
-                    arg0:
-                      call :char
-                        callee:
-                          snippet$unwrap__char :char
-                        arg0:
-                          bc :Box<char>
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              "," :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              call :string
+                  __buf_11 :Buffer
+                arg1:
+                  __off_12 :usize
+                arg2:
+                  "," :string
+          assign
+            target:
+              __off_12 :usize
+            value:
+              call :usize
                 callee:
-                  format_f32 :fn(f32) -> string
+                  write_string_at :usize
                 arg0:
-                  call :f32
-                    callee:
-                      snippet$unwrap__f32 :f32
-                    arg0:
-                      bf32 :Box<f32>
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              "," :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              call :string
+                  __buf_11 :Buffer
+                arg1:
+                  __off_12 :usize
+                arg2:
+                  __p_8 :string
+          assign
+            target:
+              __off_12 :usize
+            value:
+              call :usize
                 callee:
-                  format_signed :fn(i64) -> string
+                  write_string_at :usize
                 arg0:
+                  __buf_11 :Buffer
+                arg1:
+                  __off_12 :usize
+                arg2:
+                  "," :string
+          assign
+            target:
+              __off_12 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_11 :Buffer
+                arg1:
+                  __off_12 :usize
+                arg2:
+                  __p_9 :string
+          assign
+            target:
+              __off_12 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_11 :Buffer
+                arg1:
+                  __off_12 :usize
+                arg2:
+                  "," :string
+          assign
+            target:
+              __off_12 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_11 :Buffer
+                arg1:
+                  __off_12 :usize
+                arg2:
                   cast → i64
                     call :i16
                       callee:
                         snippet$unwrap__i16 :i16
                       arg0:
                         bi16 :Box<i16>
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              "," :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              call :string
+          assign
+            target:
+              __off_12 :usize
+            value:
+              call :usize
                 callee:
-                  format_signed :fn(i64) -> string
+                  write_string_at :usize
                 arg0:
+                  __buf_11 :Buffer
+                arg1:
+                  __off_12 :usize
+                arg2:
+                  "," :string
+          assign
+            target:
+              __off_12 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_11 :Buffer
+                arg1:
+                  __off_12 :usize
+                arg2:
                   call :i64
                     callee:
                       snippet$unwrap__i64 :i64
                     arg0:
                       bi64 :Box<i64>
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              "," :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_2 :StringBuilder
-            arg1:
-              call :string
+          assign
+            target:
+              __off_12 :usize
+            value:
+              call :usize
                 callee:
-                  snippet$unwrap__string :string
+                  write_string_at :usize
                 arg0:
-                  bs :Box<string>
+                  __buf_11 :Buffer
+                arg1:
+                  __off_12 :usize
+                arg2:
+                  "," :string
+          assign
+            target:
+              __off_12 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_11 :Buffer
+                arg1:
+                  __off_12 :usize
+                arg2:
+                  __p_10 :string
           ~>
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                finish_buffer :string
               arg0:
-                __sb_2 :StringBuilder
+                __buf_11 :Buffer
+              arg1:
+                __off_12 :usize
     return int(0) :i32
   struct snippet$Box__bool { v: bool }
   struct snippet$Box__char { v: char }

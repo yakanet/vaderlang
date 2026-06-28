@@ -96,6 +96,85 @@ format_unsigned :: fn(n: u64) -> string {
     return buf.intern_string(ndigits)
 }
 
+// ---- write-into-buffer formatters (the off-string interpolation / concat path)
+//
+// Each writes its value's bytes straight into a caller-owned `Buffer` at byte
+// offset `off` and returns the offset past the last byte — NO allocation, NO
+// intern. The `${}` / `+` lowering threads one Buffer + `off` through these, so a
+// `${int}` no longer mints a throwaway interned string (the `format_*` path) just
+// to copy its bytes into the result. Same count-then-fill digit shape as
+// `format_signed` / `format_unsigned`, targeting `self` at `off` instead of a
+// fresh per-value buffer. Offsets are caller-trusted (the lowering sizes the
+// Buffer to fit every part's max width).
+
+/// Allocate a byte `Buffer` of `cap` bytes — the free-fn wrapper the `${}` / `+`
+/// lowering resolves (the `new_buffer` impl member isn't reachable by name there).
+export new_byte_buffer :: fn(cap: usize) -> Buffer = cap.new_buffer()
+
+/// Intern the buffer's leading `len` bytes as a `string` (one atom-table copy).
+export finish_buffer :: fn(self: Buffer, len: usize) -> string = self.intern_string(len)
+
+/// Byte length of `s` — used by the interpolation lowering to size the buffer.
+export byte_len :: fn(s: string) -> usize = s.bytes().len()
+
+/// Write `s`'s bytes at `off` ; return `off + s.bytes().len()`.
+export write_string_at :: fn(self: Buffer, off: usize, s: string) -> usize {
+    self.write_string(off, s)
+    return off + s.bytes().len()
+}
+
+/// Write the signed decimal digits of `n` at `off` ; return the offset past them.
+export write_int :: fn(self: Buffer, off: usize, n: i64) -> usize {
+    if n == 0 {
+        self.store_u8(off, '0')
+        return off + 1
+    }
+    neg :: n < 0
+    if n > 0 { n = -n }                       // non-positive space ; -(i64 min) never evaluated
+    ndigits: usize = 0
+    m := n
+    for m != 0 {
+        ndigits = ndigits + 1
+        m = m / 10
+    }
+    total :: if neg { ndigits + 1 } else { ndigits }
+    i: usize = off + total
+    for n != 0 {
+        i = i - 1
+        self.store_u8(i, '0' + u8(-(n % 10)))
+        n = n / 10
+    }
+    if neg { self.store_u8(off, '-') }
+    return off + total
+}
+
+/// Write the unsigned decimal digits of `n` at `off` ; return the offset past them.
+export write_unsigned :: fn(self: Buffer, off: usize, n: u64) -> usize {
+    if n == 0 {
+        self.store_u8(off, '0')
+        return off + 1
+    }
+    ndigits: usize = 0
+    m := n
+    for m != 0 {
+        ndigits = ndigits + 1
+        m = m / 10
+    }
+    i: usize = off + ndigits
+    for n != 0 {
+        i = i - 1
+        self.store_u8(i, '0' + u8(n % 10))
+        n = n / 10
+    }
+    return off + ndigits
+}
+
+/// Write `"true"` / `"false"` at `off` ; return the offset past it.
+export write_bool :: fn(self: Buffer, off: usize, b: bool) -> usize {
+    if b { return self.write_string_at(off, "true") }
+    return self.write_string_at(off, "false")
+}
+
 /// Encode a Unicode codepoint to its UTF-8 bytes (pure arithmetic), for
 /// interning via `bytes_to_string` or appending into a byte buffer.
 /// @param c  the codepoint to encode (`u32(c)` ≤ `0x10FFFF`).

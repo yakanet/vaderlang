@@ -7,29 +7,76 @@
         callee:
           std_io$println__string :void
         arg0:
-          call :string
-            callee:
-              concat3 :string
-            arg0:
-              label :string
-            arg1:
-              "=" :string
-            arg2:
-              if :string
-                cond:
-                  call :bool
-                    callee:
-                      matches :bool
-                    arg0:
-                      p :Pattern
-                    arg1:
-                      input :string
-                then:
-                  ~>
-                    "true" :string
-                else:
-                  ~>
-                    "false" :string
+          block :string
+            let __p_0: string = label :string
+            let __buf_1: Buffer =
+              call :Buffer
+                callee:
+                  new_byte_buffer :Buffer
+                arg0:
+                  add :usize
+                    l:
+                      int(6) :usize
+                    r:
+                      call :usize
+                        callee:
+                          byte_len :usize
+                        arg0:
+                          __p_0 :string
+            let __off_2: usize = int(0) :usize
+            assign
+              target:
+                __off_2 :usize
+              value:
+                call :usize
+                  callee:
+                    write_string_at :usize
+                  arg0:
+                    __buf_1 :Buffer
+                  arg1:
+                    __off_2 :usize
+                  arg2:
+                    __p_0 :string
+            assign
+              target:
+                __off_2 :usize
+              value:
+                call :usize
+                  callee:
+                    write_string_at :usize
+                  arg0:
+                    __buf_1 :Buffer
+                  arg1:
+                    __off_2 :usize
+                  arg2:
+                    "=" :string
+            assign
+              target:
+                __off_2 :usize
+              value:
+                call :usize
+                  callee:
+                    write_bool :usize
+                  arg0:
+                    __buf_1 :Buffer
+                  arg1:
+                    __off_2 :usize
+                  arg2:
+                    call :bool
+                      callee:
+                        matches :bool
+                      arg0:
+                        p :Pattern
+                      arg1:
+                        input :string
+            ~>
+              call :string
+                callee:
+                  finish_buffer :string
+                arg0:
+                  __buf_1 :Buffer
+                arg1:
+                  __off_2 :usize
   fn snippet$run_find(label: string, p: Pattern, input: string) -> void
     let r: Match | null =
       call :Match | null
@@ -51,86 +98,143 @@
                 std_io$println__string :void
               arg0:
                 block :string
-                  let __sb_0: StringBuilder =
-                    StringBuilder {
-                      parts:
-                        array :string[]
-                    }
-                  call :void
-                    callee:
-                      append :void
-                    arg0:
-                      __sb_0 :StringBuilder
-                    arg1:
-                      label :string
-                  call :void
-                    callee:
-                      append :void
-                    arg0:
-                      __sb_0 :StringBuilder
-                    arg1:
-                      "=" :string
-                  call :void
-                    callee:
-                      append :void
-                    arg0:
-                      __sb_0 :StringBuilder
-                    arg1:
-                      call :string
+                  let __p_0: string = label :string
+                  let __p_1: string =
+                    index :string
+                      on:
+                        .groups :string[]
+                          cast → Match
+                            r :Match | null
+                      ix:
+                        int(0) :i32
+                  let __buf_2: Buffer =
+                    call :Buffer
+                      callee:
+                        new_byte_buffer :Buffer
+                      arg0:
+                        add :usize
+                          l:
+                            int(44) :usize
+                          r:
+                            add :usize
+                              l:
+                                call :usize
+                                  callee:
+                                    byte_len :usize
+                                  arg0:
+                                    __p_0 :string
+                              r:
+                                call :usize
+                                  callee:
+                                    byte_len :usize
+                                  arg0:
+                                    __p_1 :string
+                  let __off_3: usize = int(0) :usize
+                  assign
+                    target:
+                      __off_3 :usize
+                    value:
+                      call :usize
                         callee:
-                          format_unsigned :fn(u64) -> string
+                          write_string_at :usize
                         arg0:
+                          __buf_2 :Buffer
+                        arg1:
+                          __off_3 :usize
+                        arg2:
+                          __p_0 :string
+                  assign
+                    target:
+                      __off_3 :usize
+                    value:
+                      call :usize
+                        callee:
+                          write_string_at :usize
+                        arg0:
+                          __buf_2 :Buffer
+                        arg1:
+                          __off_3 :usize
+                        arg2:
+                          "=" :string
+                  assign
+                    target:
+                      __off_3 :usize
+                    value:
+                      call :usize
+                        callee:
+                          write_unsigned :usize
+                        arg0:
+                          __buf_2 :Buffer
+                        arg1:
+                          __off_3 :usize
+                        arg2:
                           cast → u64
                             .start :usize
                               cast → Match
                                 r :Match | null
-                  call :void
-                    callee:
-                      append :void
-                    arg0:
-                      __sb_0 :StringBuilder
-                    arg1:
-                      ".." :string
-                  call :void
-                    callee:
-                      append :void
-                    arg0:
-                      __sb_0 :StringBuilder
-                    arg1:
-                      call :string
+                  assign
+                    target:
+                      __off_3 :usize
+                    value:
+                      call :usize
                         callee:
-                          format_unsigned :fn(u64) -> string
+                          write_string_at :usize
                         arg0:
+                          __buf_2 :Buffer
+                        arg1:
+                          __off_3 :usize
+                        arg2:
+                          ".." :string
+                  assign
+                    target:
+                      __off_3 :usize
+                    value:
+                      call :usize
+                        callee:
+                          write_unsigned :usize
+                        arg0:
+                          __buf_2 :Buffer
+                        arg1:
+                          __off_3 :usize
+                        arg2:
                           cast → u64
                             .end :usize
                               cast → Match
                                 r :Match | null
-                  call :void
-                    callee:
-                      append :void
-                    arg0:
-                      __sb_0 :StringBuilder
-                    arg1:
-                      ":" :string
-                  call :void
-                    callee:
-                      append :void
-                    arg0:
-                      __sb_0 :StringBuilder
-                    arg1:
-                      index :string
-                        on:
-                          .groups :string[]
-                            cast → Match
-                              r :Match | null
-                        ix:
-                          int(0) :i32
+                  assign
+                    target:
+                      __off_3 :usize
+                    value:
+                      call :usize
+                        callee:
+                          write_string_at :usize
+                        arg0:
+                          __buf_2 :Buffer
+                        arg1:
+                          __off_3 :usize
+                        arg2:
+                          ":" :string
+                  assign
+                    target:
+                      __off_3 :usize
+                    value:
+                      call :usize
+                        callee:
+                          write_string_at :usize
+                        arg0:
+                          __buf_2 :Buffer
+                        arg1:
+                          __off_3 :usize
+                        arg2:
+                          __p_1 :string
                   ~>
                     call :string
                       callee:
-                        std_string_builder$StringBuilder$Display$to_string :string
+                        finish_buffer :string
                       arg0:
-                        __sb_0 :StringBuilder
+                        __buf_2 :Buffer
+                      arg1:
+                        __off_3 :usize
         else:
           ~>
             call :void
@@ -241,39 +345,57 @@
           callee:
             std_io$println__string :void
           arg0:
-            call :string
-              callee:
-                concat2 :string
-              arg0:
-                "word-count=" :string
-              arg1:
+            block :string
+              let __buf_0: Buffer =
+                call :Buffer
+                  callee:
+                    new_byte_buffer :Buffer
+                  arg0:
+                    int(31) :usize
+              let __off_1: usize = int(0) :usize
+              assign
+                target:
+                  __off_1 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_string_at :usize
+                    arg0:
+                      __buf_0 :Buffer
+                    arg1:
+                      __off_1 :usize
+                    arg2:
+                      "word-count=" :string
+              assign
+                target:
+                  __off_1 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_unsigned :usize
+                    arg0:
+                      __buf_0 :Buffer
+                    arg1:
+                      __off_1 :usize
+                    arg2:
+                      cast → u64
+                        LoweredArrayLen
+              ~>
                 call :string
                   callee:
-                    format_unsigned :fn(u64) -> string
+                    finish_buffer :string
                   arg0:
-                    cast → u64
-                      LoweredArrayLen
+                    __buf_0 :Buffer
+                  arg1:
+                    __off_1 :usize
         let i: usize = int(0) :usize
         loop while (<…>)
           call :void
             callee:
               std_io$println__string :void
             arg0:
-              call :string
-                callee:
-                  concat4 :string
-                arg0:
-                  "word[" :string
-                arg1:
-                  call :string
-                    callee:
-                      format_unsigned :fn(u64) -> string
-                    arg0:
-                      cast → u64
-                        i :usize
-                arg2:
-                  "]=" :string
-                arg3:
+              block :string
+                let __p_2: string =
                   index :string
                     on:
                       .groups :string[]
@@ -284,6 +406,82 @@
                             i :usize
                     ix:
                       int(0) :i32
+                let __buf_3: Buffer =
+                  call :Buffer
+                    callee:
+                      new_byte_buffer :Buffer
+                    arg0:
+                      add :usize
+                        l:
+                          int(27) :usize
+                        r:
+                          call :usize
+                            callee:
+                              byte_len :usize
+                            arg0:
+                              __p_2 :string
+                let __off_4: usize = int(0) :usize
+                assign
+                  target:
+                    __off_4 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_string_at :usize
+                      arg0:
+                        __buf_3 :Buffer
+                      arg1:
+                        __off_4 :usize
+                      arg2:
+                        "word[" :string
+                assign
+                  target:
+                    __off_4 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_unsigned :usize
+                      arg0:
+                        __buf_3 :Buffer
+                      arg1:
+                        __off_4 :usize
+                      arg2:
+                        cast → u64
+                          i :usize
+                assign
+                  target:
+                    __off_4 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_string_at :usize
+                      arg0:
+                        __buf_3 :Buffer
+                      arg1:
+                        __off_4 :usize
+                      arg2:
+                        "]=" :string
+                assign
+                  target:
+                    __off_4 :usize
+                  value:
+                    call :usize
+                      callee:
+                        write_string_at :usize
+                      arg0:
+                        __buf_3 :Buffer
+                      arg1:
+                        __off_4 :usize
+                      arg2:
+                        __p_2 :string
+                ~>
+                  call :string
+                    callee:
+                      finish_buffer :string
+                    arg0:
+                      __buf_3 :Buffer
+                    arg1:
+                      __off_4 :usize
           assign
             target:
               i :usize

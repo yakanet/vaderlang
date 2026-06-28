@@ -3,18 +3,49 @@
 ## snippet
   fn snippet$view_of(seed: i32) -> const u8[]
     let s: string =
-      call :string
-        callee:
-          concat2 :string
-        arg0:
-          "vader-byte-view-payload-" :string
-        arg1:
+      block :string
+        let __buf_0: Buffer =
+          call :Buffer
+            callee:
+              new_byte_buffer :Buffer
+            arg0:
+              int(44) :usize
+        let __off_1: usize = int(0) :usize
+        assign
+          target:
+            __off_1 :usize
+          value:
+            call :usize
+              callee:
+                write_string_at :usize
+              arg0:
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
+              arg2:
+                "vader-byte-view-payload-" :string
+        assign
+          target:
+            __off_1 :usize
+          value:
+            call :usize
+              callee:
+                write_int :usize
+              arg0:
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
+              arg2:
+                cast → i64
+                  seed :i32
+        ~>
           call :string
             callee:
-              format_signed :fn(i64) -> string
+              finish_buffer :string
             arg0:
-              cast → i64
-                seed :i32
+              __buf_0 :Buffer
+            arg1:
+              __off_1 :usize
     return
       call :const u8[]
         callee:
@@ -184,15 +215,46 @@
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            concat2 :string
-          arg0:
-            "ok: 4 byte views survived 2 major GCs; sum=" :string
-          arg1:
+        block :string
+          let __buf_0: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(63) :usize
+          let __off_1: usize = int(0) :usize
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  "ok: 4 byte views survived 2 major GCs; sum=" :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_unsigned :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  total :u64
+          ~>
             call :string
               callee:
-                format_unsigned :fn(u64) -> string
+                finish_buffer :string
               arg0:
-                total :u64
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
     return int(0) :i32

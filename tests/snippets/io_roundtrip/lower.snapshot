@@ -14,25 +14,52 @@
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            concat2 :string
-          arg0:
-            "exists: " :string
-          arg1:
-            if :string
-              cond:
-                call :bool
-                  callee:
-                    exists :fn(string) -> bool
-                  arg0:
-                    path :string
-              then:
-                ~>
-                  "true" :string
-              else:
-                ~>
-                  "false" :string
+        block :string
+          let __buf_0: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(13) :usize
+          let __off_1: usize = int(0) :usize
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  "exists: " :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  call :bool
+                    callee:
+                      exists :fn(string) -> bool
+                    arg0:
+                      path :string
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
     let contents: Error | string =
       call :Error | string
         callee:
@@ -40,12 +67,12 @@
         arg0:
           path :string
     block :void
-      let __scrut_0: Error | string = contents :Error | string
+      let __scrut_2: Error | string = contents :Error | string
       ~>
         if :void
           cond:
             is string :bool
-              __scrut_0 :Error | string
+              __scrut_2 :Error | string
           then:
             ~>
               call :void
@@ -65,7 +92,7 @@
               if :void
                 cond:
                   is Error :bool
-                    __scrut_0 :Error | string
+                    __scrut_2 :Error | string
                 then:
                   ~>
                     call :void

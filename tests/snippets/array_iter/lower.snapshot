@@ -43,18 +43,49 @@
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            concat2 :string
-          arg0:
-            "sum = " :string
-          arg1:
+        block :string
+          let __buf_3: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(26) :usize
+          let __off_4: usize = int(0) :usize
+          assign
+            target:
+              __off_4 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_3 :Buffer
+                arg1:
+                  __off_4 :usize
+                arg2:
+                  "sum = " :string
+          assign
+            target:
+              __off_4 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_3 :Buffer
+                arg1:
+                  __off_4 :usize
+                arg2:
+                  cast → i64
+                    sum :i32
+          ~>
             call :string
               callee:
-                format_signed :fn(i64) -> string
+                finish_buffer :string
               arg0:
-                cast → i64
-                  sum :i32
+                __buf_3 :Buffer
+              arg1:
+                __off_4 :usize
     let empty: i32[] =
       array :i32[]
         int(0) :i32
@@ -62,17 +93,17 @@
         int(0) :i32
     let n: i32 = int(0) :i32
     block :void
-      let __for_arr_4: i32[] = empty :i32[]
-      let __for_len_5: usize =
+      let __for_arr_6: i32[] = empty :i32[]
+      let __for_len_7: usize =
         LoweredArrayLen
-      let __for_i_6: usize = int(0) :usize
+      let __for_i_8: usize = int(0) :usize
       loop while (<…>)
         let _: i32 =
           index :i32
             on:
-              __for_arr_4 :i32[]
+              __for_arr_6 :i32[]
             ix:
-              __for_i_6 :usize
+              __for_i_8 :usize
         assign
           target:
             n :i32
@@ -84,27 +115,58 @@
                 int(1) :i32
         assign
           target:
-            __for_i_6 :usize
+            __for_i_8 :usize
           value:
             add :usize
               l:
-                __for_i_6 :usize
+                __for_i_8 :usize
               r:
                 int(1) :usize
     call :void
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            concat2 :string
-          arg0:
-            "count = " :string
-          arg1:
+        block :string
+          let __buf_9: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(28) :usize
+          let __off_10: usize = int(0) :usize
+          assign
+            target:
+              __off_10 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_9 :Buffer
+                arg1:
+                  __off_10 :usize
+                arg2:
+                  "count = " :string
+          assign
+            target:
+              __off_10 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_9 :Buffer
+                arg1:
+                  __off_10 :usize
+                arg2:
+                  cast → i64
+                    n :i32
+          ~>
             call :string
               callee:
-                format_signed :fn(i64) -> string
+                finish_buffer :string
               arg0:
-                cast → i64
-                  n :i32
+                __buf_9 :Buffer
+              arg1:
+                __off_10 :usize
     return int(0) :i32

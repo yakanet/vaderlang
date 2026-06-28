@@ -57,22 +57,84 @@
                       callee:
                         std_io$println__string :void
                       arg0:
-                        call :string
-                          callee:
-                            concat4 :string
-                          arg0:
-                            "n=" :string
-                          arg1:
+                        block :string
+                          let __p_1: string = s :string
+                          let __buf_2: Buffer =
+                            call :Buffer
+                              callee:
+                                new_byte_buffer :Buffer
+                              arg0:
+                                add :usize
+                                  l:
+                                    int(25) :usize
+                                  r:
+                                    call :usize
+                                      callee:
+                                        byte_len :usize
+                                      arg0:
+                                        __p_1 :string
+                          let __off_3: usize = int(0) :usize
+                          assign
+                            target:
+                              __off_3 :usize
+                            value:
+                              call :usize
+                                callee:
+                                  write_string_at :usize
+                                arg0:
+                                  __buf_2 :Buffer
+                                arg1:
+                                  __off_3 :usize
+                                arg2:
+                                  "n=" :string
+                          assign
+                            target:
+                              __off_3 :usize
+                            value:
+                              call :usize
+                                callee:
+                                  write_int :usize
+                                arg0:
+                                  __buf_2 :Buffer
+                                arg1:
+                                  __off_3 :usize
+                                arg2:
+                                  cast → i64
+                                    n :i32
+                          assign
+                            target:
+                              __off_3 :usize
+                            value:
+                              call :usize
+                                callee:
+                                  write_string_at :usize
+                                arg0:
+                                  __buf_2 :Buffer
+                                arg1:
+                                  __off_3 :usize
+                                arg2:
+                                  " s=" :string
+                          assign
+                            target:
+                              __off_3 :usize
+                            value:
+                              call :usize
+                                callee:
+                                  write_string_at :usize
+                                arg0:
+                                  __buf_2 :Buffer
+                                arg1:
+                                  __off_3 :usize
+                                arg2:
+                                  __p_1 :string
+                          ~>
                             call :string
                               callee:
-                                format_signed :fn(i64) -> string
+                                finish_buffer :string
                               arg0:
-                                cast → i64
-                                  n :i32
-                          arg2:
-                            " s=" :string
-                          arg3:
-                            s :string
+                                __buf_2 :Buffer
+                              arg1:
+                                __off_3 :usize
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void
@@ -83,12 +145,12 @@
         arg0:
           "missing" :string
     block :void
-      let __scrut_1: [i32, string] | null = b :[i32, string] | null
+      let __scrut_4: [i32, string] | null = b :[i32, string] | null
       ~>
         if :void
           cond:
             is null :bool
-              __scrut_1 :[i32, string] | null
+              __scrut_4 :[i32, string] | null
           then:
             ~>
               call :void
@@ -101,37 +163,99 @@
               if :void
                 cond:
                   is [i32, string] :bool
-                    __scrut_1 :[i32, string] | null
+                    __scrut_4 :[i32, string] | null
                 then:
                   let n: i32 =
                     ._0 :i32
                       cast → [i32, string]
-                        __scrut_1 :[i32, string] | null
+                        __scrut_4 :[i32, string] | null
                   let s: string =
                     ._1 :string
                       cast → [i32, string]
-                        __scrut_1 :[i32, string] | null
+                        __scrut_4 :[i32, string] | null
                   ~>
                     call :void
                       callee:
                         std_io$println__string :void
                       arg0:
-                        call :string
-                          callee:
-                            concat4 :string
-                          arg0:
-                            "n=" :string
-                          arg1:
+                        block :string
+                          let __p_5: string = s :string
+                          let __buf_6: Buffer =
+                            call :Buffer
+                              callee:
+                                new_byte_buffer :Buffer
+                              arg0:
+                                add :usize
+                                  l:
+                                    int(25) :usize
+                                  r:
+                                    call :usize
+                                      callee:
+                                        byte_len :usize
+                                      arg0:
+                                        __p_5 :string
+                          let __off_7: usize = int(0) :usize
+                          assign
+                            target:
+                              __off_7 :usize
+                            value:
+                              call :usize
+                                callee:
+                                  write_string_at :usize
+                                arg0:
+                                  __buf_6 :Buffer
+                                arg1:
+                                  __off_7 :usize
+                                arg2:
+                                  "n=" :string
+                          assign
+                            target:
+                              __off_7 :usize
+                            value:
+                              call :usize
+                                callee:
+                                  write_int :usize
+                                arg0:
+                                  __buf_6 :Buffer
+                                arg1:
+                                  __off_7 :usize
+                                arg2:
+                                  cast → i64
+                                    n :i32
+                          assign
+                            target:
+                              __off_7 :usize
+                            value:
+                              call :usize
+                                callee:
+                                  write_string_at :usize
+                                arg0:
+                                  __buf_6 :Buffer
+                                arg1:
+                                  __off_7 :usize
+                                arg2:
+                                  " s=" :string
+                          assign
+                            target:
+                              __off_7 :usize
+                            value:
+                              call :usize
+                                callee:
+                                  write_string_at :usize
+                                arg0:
+                                  __buf_6 :Buffer
+                                arg1:
+                                  __off_7 :usize
+                                arg2:
+                                  __p_5 :string
+                          ~>
                             call :string
                               callee:
-                                format_signed :fn(i64) -> string
+                                finish_buffer :string
                               arg0:
-                                cast → i64
-                                  n :i32
-                          arg2:
-                            " s=" :string
-                          arg3:
-                            s :string
+                                __buf_6 :Buffer
+                              arg1:
+                                __off_7 :usize
                 else:
                   ~>
                     unreachable("non-exhaustive match (T3013 should have caught this)") :void

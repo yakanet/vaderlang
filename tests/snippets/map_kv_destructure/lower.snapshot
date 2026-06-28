@@ -99,20 +99,71 @@
           callee:
             std_io$println__string :void
           arg0:
-            call :string
-              callee:
-                concat3 :string
-              arg0:
-                k :string
-              arg1:
-                "=" :string
-              arg2:
+            block :string
+              let __p_6: string = k :string
+              let __buf_7: Buffer =
+                call :Buffer
+                  callee:
+                    new_byte_buffer :Buffer
+                  arg0:
+                    add :usize
+                      l:
+                        int(21) :usize
+                      r:
+                        call :usize
+                          callee:
+                            byte_len :usize
+                          arg0:
+                            __p_6 :string
+              let __off_8: usize = int(0) :usize
+              assign
+                target:
+                  __off_8 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_string_at :usize
+                    arg0:
+                      __buf_7 :Buffer
+                    arg1:
+                      __off_8 :usize
+                    arg2:
+                      __p_6 :string
+              assign
+                target:
+                  __off_8 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_string_at :usize
+                    arg0:
+                      __buf_7 :Buffer
+                    arg1:
+                      __off_8 :usize
+                    arg2:
+                      "=" :string
+              assign
+                target:
+                  __off_8 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_int :usize
+                    arg0:
+                      __buf_7 :Buffer
+                    arg1:
+                      __off_8 :usize
+                    arg2:
+                      cast → i64
+                        v :i32
+              ~>
                 call :string
                   callee:
-                    format_signed :fn(i64) -> string
+                    finish_buffer :string
                   arg0:
-                    cast → i64
-                      v :i32
+                    __buf_7 :Buffer
+                  arg1:
+                    __off_8 :usize
         assign
           target:
             sum :i32
@@ -126,16 +177,47 @@
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            concat2 :string
-          arg0:
-            "sum=" :string
-          arg1:
+        block :string
+          let __buf_9: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(24) :usize
+          let __off_10: usize = int(0) :usize
+          assign
+            target:
+              __off_10 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_9 :Buffer
+                arg1:
+                  __off_10 :usize
+                arg2:
+                  "sum=" :string
+          assign
+            target:
+              __off_10 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_9 :Buffer
+                arg1:
+                  __off_10 :usize
+                arg2:
+                  cast → i64
+                    sum :i32
+          ~>
             call :string
               callee:
-                format_signed :fn(i64) -> string
+                finish_buffer :string
               arg0:
-                cast → i64
-                  sum :i32
+                __buf_9 :Buffer
+              arg1:
+                __off_10 :usize
     return int(0) :i32

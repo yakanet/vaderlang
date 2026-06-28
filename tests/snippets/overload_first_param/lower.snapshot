@@ -5,19 +5,50 @@
   struct snippet$Bag { v: string }
   fn snippet$describe(b: Box) -> string
     return
-      call :string
-        callee:
-          concat2 :string
-        arg0:
-          "box " :string
-        arg1:
+      block :string
+        let __buf_0: Buffer =
+          call :Buffer
+            callee:
+              new_byte_buffer :Buffer
+            arg0:
+              int(24) :usize
+        let __off_1: usize = int(0) :usize
+        assign
+          target:
+            __off_1 :usize
+          value:
+            call :usize
+              callee:
+                write_string_at :usize
+              arg0:
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
+              arg2:
+                "box " :string
+        assign
+          target:
+            __off_1 :usize
+          value:
+            call :usize
+              callee:
+                write_int :usize
+              arg0:
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
+              arg2:
+                cast → i64
+                  .v :i32
+                    b :Box
+        ~>
           call :string
             callee:
-              format_signed :fn(i64) -> string
+              finish_buffer :string
             arg0:
-              cast → i64
-                .v :i32
-                  b :Box
+              __buf_0 :Buffer
+            arg1:
+              __off_1 :usize
   fn snippet$describe_1(b: Bag) -> string
     return
       call :string
@@ -77,24 +108,55 @@
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            concat2 :string
-          arg0:
-            "min(3, 5)     = " :string
-          arg1:
+        block :string
+          let __buf_0: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(36) :usize
+          let __off_1: usize = int(0) :usize
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  "min(3, 5)     = " :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        min :i32
+                      arg0:
+                        int(3) :i32
+                      arg1:
+                        int(5) :i32
+          ~>
             call :string
               callee:
-                format_signed :fn(i64) -> string
+                finish_buffer :string
               arg0:
-                cast → i64
-                  call :i32
-                    callee:
-                      min :i32
-                    arg0:
-                      int(3) :i32
-                    arg1:
-                      int(5) :i32
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
     call :void
       callee:
         std_io$println__string :void
@@ -120,46 +182,108 @@
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            concat2 :string
-          arg0:
-            "max(-2, 8)    = " :string
-          arg1:
+        block :string
+          let __buf_2: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(36) :usize
+          let __off_3: usize = int(0) :usize
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  "max(-2, 8)    = " :string
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        max :i32
+                      arg0:
+                        neg :i32
+                          int(2) :i32
+                      arg1:
+                        int(8) :i32
+          ~>
             call :string
               callee:
-                format_signed :fn(i64) -> string
+                finish_buffer :string
               arg0:
-                cast → i64
-                  call :i32
-                    callee:
-                      max :i32
-                    arg0:
-                      neg :i32
-                        int(2) :i32
-                    arg1:
-                      int(8) :i32
+                __buf_2 :Buffer
+              arg1:
+                __off_3 :usize
     call :void
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            concat2 :string
-          arg0:
-            "abs(-7)       = " :string
-          arg1:
+        block :string
+          let __buf_4: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(36) :usize
+          let __off_5: usize = int(0) :usize
+          assign
+            target:
+              __off_5 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_4 :Buffer
+                arg1:
+                  __off_5 :usize
+                arg2:
+                  "abs(-7)       = " :string
+          assign
+            target:
+              __off_5 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_4 :Buffer
+                arg1:
+                  __off_5 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        abs :i32
+                      arg0:
+                        neg :i32
+                          int(7) :i32
+          ~>
             call :string
               callee:
-                format_signed :fn(i64) -> string
+                finish_buffer :string
               arg0:
-                cast → i64
-                  call :i32
-                    callee:
-                      abs :i32
-                    arg0:
-                      neg :i32
-                        int(7) :i32
+                __buf_4 :Buffer
+              arg1:
+                __off_5 :usize
     call :void
       callee:
         std_io$println__string :void
@@ -184,26 +308,57 @@
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            concat2 :string
-          arg0:
-            "clamp(15, 0, 10)      = " :string
-          arg1:
+        block :string
+          let __buf_6: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(44) :usize
+          let __off_7: usize = int(0) :usize
+          assign
+            target:
+              __off_7 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_6 :Buffer
+                arg1:
+                  __off_7 :usize
+                arg2:
+                  "clamp(15, 0, 10)      = " :string
+          assign
+            target:
+              __off_7 :usize
+            value:
+              call :usize
+                callee:
+                  write_int :usize
+                arg0:
+                  __buf_6 :Buffer
+                arg1:
+                  __off_7 :usize
+                arg2:
+                  cast → i64
+                    call :i32
+                      callee:
+                        clamp :i32
+                      arg0:
+                        int(15) :i32
+                      arg1:
+                        int(0) :i32
+                      arg2:
+                        int(10) :i32
+          ~>
             call :string
               callee:
-                format_signed :fn(i64) -> string
+                finish_buffer :string
               arg0:
-                cast → i64
-                  call :i32
-                    callee:
-                      clamp :i32
-                    arg0:
-                      int(15) :i32
-                    arg1:
-                      int(0) :i32
-                    arg2:
-                      int(10) :i32
+                __buf_6 :Buffer
+              arg1:
+                __off_7 :usize
     call :void
       callee:
         std_io$println__string :void

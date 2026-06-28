@@ -30,70 +30,107 @@
             std_io$println__string :void
           arg0:
             block :string
-              let __sb_1: StringBuilder =
-                StringBuilder {
-                  parts:
-                    array :string[]
-                }
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_1 :StringBuilder
-                arg1:
-                  "id=" :string
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_1 :StringBuilder
-                arg1:
-                  call :string
+              let __p_1: string = label :string
+              let __buf_2: Buffer =
+                call :Buffer
+                  callee:
+                    new_byte_buffer :Buffer
+                  arg0:
+                    add :usize
+                      l:
+                        int(43) :usize
+                      r:
+                        call :usize
+                          callee:
+                            byte_len :usize
+                          arg0:
+                            __p_1 :string
+              let __off_3: usize = int(0) :usize
+              assign
+                target:
+                  __off_3 :usize
+                value:
+                  call :usize
                     callee:
-                      format_signed :fn(i64) -> string
+                      write_string_at :usize
                     arg0:
+                      __buf_2 :Buffer
+                    arg1:
+                      __off_3 :usize
+                    arg2:
+                      "id=" :string
+              assign
+                target:
+                  __off_3 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_int :usize
+                    arg0:
+                      __buf_2 :Buffer
+                    arg1:
+                      __off_3 :usize
+                    arg2:
                       cast → i64
                         id :i32
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_1 :StringBuilder
-                arg1:
-                  " label=" :string
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_1 :StringBuilder
-                arg1:
-                  label :string
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_1 :StringBuilder
-                arg1:
-                  " active=" :string
-              call :void
-                callee:
-                  append :void
-                arg0:
-                  __sb_1 :StringBuilder
-                arg1:
-                  if :string
-                    cond:
+              assign
+                target:
+                  __off_3 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_string_at :usize
+                    arg0:
+                      __buf_2 :Buffer
+                    arg1:
+                      __off_3 :usize
+                    arg2:
+                      " label=" :string
+              assign
+                target:
+                  __off_3 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_string_at :usize
+                    arg0:
+                      __buf_2 :Buffer
+                    arg1:
+                      __off_3 :usize
+                    arg2:
+                      __p_1 :string
+              assign
+                target:
+                  __off_3 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_string_at :usize
+                    arg0:
+                      __buf_2 :Buffer
+                    arg1:
+                      __off_3 :usize
+                    arg2:
+                      " active=" :string
+              assign
+                target:
+                  __off_3 :usize
+                value:
+                  call :usize
+                    callee:
+                      write_bool :usize
+                    arg0:
+                      __buf_2 :Buffer
+                    arg1:
+                      __off_3 :usize
+                    arg2:
                       active :bool
-                    then:
-                      ~>
-                        "true" :string
-                    else:
-                      ~>
-                        "false" :string
               ~>
                 call :string
                   callee:
-                    std_string_builder$StringBuilder$Display$to_string :string
+                    finish_buffer :string
                   arg0:
-                    __sb_1 :StringBuilder
+                    __buf_2 :Buffer
+                  arg1:
+                    __off_3 :usize
     return int(0) :i32

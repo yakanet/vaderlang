@@ -115,25 +115,52 @@
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            concat2 :string
-          arg0:
-            "abs is_absolute=" :string
-          arg1:
-            if :string
-              cond:
-                call :bool
-                  callee:
-                    is_absolute :bool
-                  arg0:
-                    abs :Path
-              then:
-                ~>
-                  "true" :string
-              else:
-                ~>
-                  "false" :string
+        block :string
+          let __buf_0: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(21) :usize
+          let __off_1: usize = int(0) :usize
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  "abs is_absolute=" :string
+          assign
+            target:
+              __off_1 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_0 :Buffer
+                arg1:
+                  __off_1 :usize
+                arg2:
+                  call :bool
+                    callee:
+                      is_absolute :bool
+                    arg0:
+                      abs :Path
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_0 :Buffer
+              arg1:
+                __off_1 :usize
     call :void
       callee:
         show_path :fn(string, Path) -> void
@@ -179,50 +206,104 @@
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            concat2 :string
-          arg0:
-            "empty.is_empty=" :string
-          arg1:
-            if :string
-              cond:
-                call :bool
-                  callee:
-                    is_empty :bool
-                  arg0:
-                    call :Path
-                      callee:
-                        empty_path :fn() -> Path
-              then:
-                ~>
-                  "true" :string
-              else:
-                ~>
-                  "false" :string
+        block :string
+          let __buf_2: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(20) :usize
+          let __off_3: usize = int(0) :usize
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  "empty.is_empty=" :string
+          assign
+            target:
+              __off_3 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_2 :Buffer
+                arg1:
+                  __off_3 :usize
+                arg2:
+                  call :bool
+                    callee:
+                      is_empty :bool
+                    arg0:
+                      call :Path
+                        callee:
+                          empty_path :fn() -> Path
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_2 :Buffer
+              arg1:
+                __off_3 :usize
     call :void
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            concat2 :string
-          arg0:
-            "p.is_empty=" :string
-          arg1:
-            if :string
-              cond:
-                call :bool
-                  callee:
-                    is_empty :bool
-                  arg0:
-                    p :Path
-              then:
-                ~>
-                  "true" :string
-              else:
-                ~>
-                  "false" :string
+        block :string
+          let __buf_4: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(16) :usize
+          let __off_5: usize = int(0) :usize
+          assign
+            target:
+              __off_5 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_4 :Buffer
+                arg1:
+                  __off_5 :usize
+                arg2:
+                  "p.is_empty=" :string
+          assign
+            target:
+              __off_5 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_4 :Buffer
+                arg1:
+                  __off_5 :usize
+                arg2:
+                  call :bool
+                    callee:
+                      is_empty :bool
+                    arg0:
+                      p :Path
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_4 :Buffer
+              arg1:
+                __off_5 :usize
     call :void
       callee:
         show_path :fn(string, Path) -> void
@@ -293,134 +374,242 @@
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            concat2 :string
-          arg0:
-            "a/b/c starts_with a/b: " :string
-          arg1:
-            if :string
-              cond:
-                call :bool
-                  callee:
-                    starts_with :bool
-                  arg0:
-                    call :Path
-                      callee:
-                        to_path :Path
-                      arg0:
-                        "a/b/c" :string
-                  arg1:
-                    call :Path
-                      callee:
-                        to_path :Path
-                      arg0:
-                        "a/b" :string
-              then:
-                ~>
-                  "true" :string
-              else:
-                ~>
-                  "false" :string
+        block :string
+          let __buf_6: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(28) :usize
+          let __off_7: usize = int(0) :usize
+          assign
+            target:
+              __off_7 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_6 :Buffer
+                arg1:
+                  __off_7 :usize
+                arg2:
+                  "a/b/c starts_with a/b: " :string
+          assign
+            target:
+              __off_7 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_6 :Buffer
+                arg1:
+                  __off_7 :usize
+                arg2:
+                  call :bool
+                    callee:
+                      starts_with :bool
+                    arg0:
+                      call :Path
+                        callee:
+                          to_path :Path
+                        arg0:
+                          "a/b/c" :string
+                    arg1:
+                      call :Path
+                        callee:
+                          to_path :Path
+                        arg0:
+                          "a/b" :string
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_6 :Buffer
+              arg1:
+                __off_7 :usize
     call :void
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            concat2 :string
-          arg0:
-            "a/bc starts_with a/b: " :string
-          arg1:
-            if :string
-              cond:
-                call :bool
-                  callee:
-                    starts_with :bool
-                  arg0:
-                    call :Path
-                      callee:
-                        to_path :Path
-                      arg0:
-                        "a/bc" :string
-                  arg1:
-                    call :Path
-                      callee:
-                        to_path :Path
-                      arg0:
-                        "a/b" :string
-              then:
-                ~>
-                  "true" :string
-              else:
-                ~>
-                  "false" :string
+        block :string
+          let __buf_8: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(27) :usize
+          let __off_9: usize = int(0) :usize
+          assign
+            target:
+              __off_9 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_8 :Buffer
+                arg1:
+                  __off_9 :usize
+                arg2:
+                  "a/bc starts_with a/b: " :string
+          assign
+            target:
+              __off_9 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_8 :Buffer
+                arg1:
+                  __off_9 :usize
+                arg2:
+                  call :bool
+                    callee:
+                      starts_with :bool
+                    arg0:
+                      call :Path
+                        callee:
+                          to_path :Path
+                        arg0:
+                          "a/bc" :string
+                    arg1:
+                      call :Path
+                        callee:
+                          to_path :Path
+                        arg0:
+                          "a/b" :string
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_8 :Buffer
+              arg1:
+                __off_9 :usize
     call :void
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            concat2 :string
-          arg0:
-            "a/b/c ends_with b/c: " :string
-          arg1:
-            if :string
-              cond:
-                call :bool
-                  callee:
-                    ends_with :bool
-                  arg0:
-                    call :Path
-                      callee:
-                        to_path :Path
-                      arg0:
-                        "a/b/c" :string
-                  arg1:
-                    call :Path
-                      callee:
-                        to_path :Path
-                      arg0:
-                        "b/c" :string
-              then:
-                ~>
-                  "true" :string
-              else:
-                ~>
-                  "false" :string
+        block :string
+          let __buf_10: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(26) :usize
+          let __off_11: usize = int(0) :usize
+          assign
+            target:
+              __off_11 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_10 :Buffer
+                arg1:
+                  __off_11 :usize
+                arg2:
+                  "a/b/c ends_with b/c: " :string
+          assign
+            target:
+              __off_11 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_10 :Buffer
+                arg1:
+                  __off_11 :usize
+                arg2:
+                  call :bool
+                    callee:
+                      ends_with :bool
+                    arg0:
+                      call :Path
+                        callee:
+                          to_path :Path
+                        arg0:
+                          "a/b/c" :string
+                    arg1:
+                      call :Path
+                        callee:
+                          to_path :Path
+                        arg0:
+                          "b/c" :string
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_10 :Buffer
+              arg1:
+                __off_11 :usize
     call :void
       callee:
         std_io$println__string :void
       arg0:
-        call :string
-          callee:
-            concat2 :string
-          arg0:
-            "a/b/c ends_with /c: " :string
-          arg1:
-            if :string
-              cond:
-                call :bool
-                  callee:
-                    ends_with :bool
-                  arg0:
-                    call :Path
-                      callee:
-                        to_path :Path
-                      arg0:
-                        "a/b/c" :string
-                  arg1:
-                    call :Path
-                      callee:
-                        to_path :Path
-                      arg0:
-                        "/c" :string
-              then:
-                ~>
-                  "true" :string
-              else:
-                ~>
-                  "false" :string
+        block :string
+          let __buf_12: Buffer =
+            call :Buffer
+              callee:
+                new_byte_buffer :Buffer
+              arg0:
+                int(25) :usize
+          let __off_13: usize = int(0) :usize
+          assign
+            target:
+              __off_13 :usize
+            value:
+              call :usize
+                callee:
+                  write_string_at :usize
+                arg0:
+                  __buf_12 :Buffer
+                arg1:
+                  __off_13 :usize
+                arg2:
+                  "a/b/c ends_with /c: " :string
+          assign
+            target:
+              __off_13 :usize
+            value:
+              call :usize
+                callee:
+                  write_bool :usize
+                arg0:
+                  __buf_12 :Buffer
+                arg1:
+                  __off_13 :usize
+                arg2:
+                  call :bool
+                    callee:
+                      ends_with :bool
+                    arg0:
+                      call :Path
+                        callee:
+                          to_path :Path
+                        arg0:
+                          "a/b/c" :string
+                    arg1:
+                      call :Path
+                        callee:
+                          to_path :Path
+                        arg0:
+                          "/c" :string
+          ~>
+            call :string
+              callee:
+                finish_buffer :string
+              arg0:
+                __buf_12 :Buffer
+              arg1:
+                __off_13 :usize
     call :void
       callee:
         show_path :fn(string, Path) -> void
