@@ -22,8 +22,10 @@ export IntrinsicSpec :: struct {
 }
 
 // Full set of recognised intrinsics. Add new entries here in lock-step
-// with `src/parser/intrinsics.ts:INTRINSICS`.
-INTRINSICS :: [
+// with `src/parser/intrinsics.ts:INTRINSICS`. Typed `const IntrinsicSpec[]` so
+// the immutable-array opt-in bakes it once into `.rodata` (zero-copy
+// `data.const` view) instead of fn-wrapping a rebuild on every `intrinsic_spec`.
+INTRINSICS: const IntrinsicSpec[]: [
     // `@size_of(t)` — arg is a `TypeMeta`-typed *value* (a bare type name
     // is a `TypeMeta` value in value position). The lowerer folds the
     // static case to a literal and routes the runtime case through the
