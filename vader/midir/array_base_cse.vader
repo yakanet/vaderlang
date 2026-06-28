@@ -1,0 +1,103 @@
+// vader/midir/array_base_cse — share the array buf-forward resolve across accesses.
+//
+// Every `a[i]` re-chases the GC forward chain to `a`'s live buffer (the
+// `while (buf->forward) buf = buf->forward` the backends emit per access). When
+// several accesses to the SAME array run with no GC safepoint between them, that
+// resolve is identical — so this pass resolves once: it inserts an
+// `InstrArrayBase { dst, target }` before the first access and points each
+// following `InstrArrayGet`/`InstrArraySet` at it via `.base`. A backend that
+// honours `.base` skips the walk (it still bounds-checks). Runs after
+// `array_load_forward` (which has already dropped redundant re-reads), on the
+// shared CFG, so VM + native-C + future WASM share one analysis.
+//
+// Conservative, intra-block (mirrors `array_load_forward`) : the resolved buffer
+// is only valid until a GC may relocate it, so any side-effecting instruction
+// (call / alloc / push / store — `instruction_has_side_effect`) clears the
+// available bases, and redefining an array local drops its base.
+
+module "vader/midir"
+
+import "std/collections" { MutableMap }
+import "vader/diagnostics" { Span }
+
+// A resolved buffer handle live in the current block : `target`'s buf is in the
+// `InstrArrayBase` whose dst is `base`.
+BaseEntry :: struct {
+    target: LocalId
+    base:   LocalId
+}
+
+/// Insert `InstrArrayBase` resolves and tag array accesses that can reuse them.
+/// Mints fresh base locals, so the returned functions carry a grown `locals`.
+///
+/// @param p  the CFG project (post `array_load_forward`).
+/// @return   a fresh project with shared-resolve `InstrArrayBase` + tagged accesses.
+export array_base_cse_project :: fn(p: CFGProject) -> CFGProject {
+    out :: MutableMap<string, CFGModule> {}
+    for [id, m] in p.modules {
+        new_fns: CFGFunction[] = []
+        for f in m.functions { new_fns.push(base_cse_function(f)) }
+        out[id] = CFGModule { ...m, .functions = new_fns }
+    }
+    return CFGProject { ...p, .modules = out }
+}
+
+base_cse_function :: fn(fn_: CFGFunction) -> CFGFunction {
+    // Mutable locals : `ensure_base` appends a fresh handle local per inserted
+    // resolve. Array push mutates the shared buffer, so all blocks see the growth.
+    locals: CFGLocal[] = []
+    for l in fn_.locals { locals.push(l) }
+    new_blocks: BasicBlock[] = []
+    for b in fn_.blocks {
+        new_blocks.push(BasicBlock { ...b, .instructions = base_cse_block(b.instructions, locals) })
+    }
+    return CFGFunction { ...fn_, .locals = locals, .blocks = new_blocks }
+}
+
+base_cse_block :: fn(instrs: Instruction[], locals: CFGLocal[]) -> Instruction[] {
+    bases: BaseEntry[] = []
+    out: Instruction[] = []
+    for ins in instrs {
+        // Redefining an array local invalidates its resolved buffer.
+        d :: dst_of(ins)
+        if d != null && bases.len() > 0 { bases = drop_bases_using(bases, d) }
+
+        if ins is InstrArrayGet as g {
+            base :: ensure_base(out, bases, locals, g.target, g.span)
+            out.push(InstrArrayGet { ...g, .base = base })
+            continue
+        }
+        if ins is InstrArraySet as st {
+            base :: ensure_base(out, bases, locals, st.target, st.span)
+            out.push(InstrArraySet { ...st, .base = base })
+            // The store itself is side-effecting : after it, conservatively drop
+            // every base (an aliasing write / its barrier ends the safe window).
+            bases.clear()
+            continue
+        }
+        out.push(ins)
+        if instruction_has_side_effect(ins) { bases.clear() }
+    }
+    return out
+}
+
+// Return the base handle for `target`, reusing an available resolve or minting a
+// fresh `InstrArrayBase` (pushed to `out`, recorded, its dst a new local).
+ensure_base :: fn(out: Instruction[], bases: BaseEntry[], locals: CFGLocal[], target: LocalId, span: Span) -> LocalId {
+    for e in bases {
+        if e.target == target { return e.base }
+    }
+    base :: LocalId(i32(locals.len()))
+    locals.push(CFGLocal { .name = "arraybase", .type = locals[usize(target)].type, .symbol = null })
+    out.push(InstrArrayBase { .span = span, .dst = base, .target = target })
+    bases.push(BaseEntry { .target = target, .base = base })
+    return base
+}
+
+drop_bases_using :: fn(bases: BaseEntry[], d: LocalId) -> BaseEntry[] {
+    out: BaseEntry[] = []
+    for e in bases {
+        if e.target != d && e.base != d { out.push(e) }
+    }
+    return out
+}
