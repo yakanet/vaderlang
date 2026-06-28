@@ -1,0 +1,104 @@
+// vader/midir/array_load_forward — redundant array-load elimination (intra-block).
+//
+// Within a basic block, a second read `a[i]` of a slot whose value is already
+// known — from a prior read, or the `a[i] = v` store that just wrote it — is
+// rewritten to an `InstrMove` from that value. This drops the per-`ArrayGet`
+// buf-forward resolve + bounds-check the C backend re-emits otherwise
+// (`c_emit/walker.vader::emit_slot_array_local`) — the dominant cost in tight
+// `a[i] = a[i] + 1` loops (the `arr_rw` bench weak spot, 3 resolves per iter).
+//
+// Conservative, intra-block only (mirrors `const_fold` in scope) :
+//   - the tracked `value` is a LocalId (an already-loaded SSA value), so a GC
+//     that relocates the array buffer does NOT invalidate it ; only a write to
+//     the slot does.
+//   - an `ArraySet` may alias any tracked load (two array locals can name one
+//     array, two index locals one slot), so it clears all tracked slots, then
+//     records the slot it just wrote.
+//   - any side-effecting instruction (call / intrinsic / push / field-set, via
+//     `instruction_has_side_effect`) may write an aliased array, so it clears.
+//   - redefining the array or index local of a tracked slot invalidates it.
+
+module "vader/midir"
+
+import "std/collections" { MutableMap }
+
+// A known array-slot value live in the current block : `target[index]` holds the
+// value currently in local `value`.
+SlotVal :: struct {
+    target: LocalId
+    index:  LocalId
+    value:  LocalId
+}
+
+/// Forward redundant array loads across every block of every function. The
+/// transform is value-preserving — a `Move` from the known value replaces a
+/// re-read of the same slot — so it needs no diagnostics.
+///
+/// @param p  the CFG project (post escape-annotation).
+/// @return   a fresh project with redundant `ArrayGet`s rewritten to `Move`.
+export array_load_forward_project :: fn(p: CFGProject) -> CFGProject {
+    out :: MutableMap<string, CFGModule> {}
+    for [id, m] in p.modules {
+        new_fns: CFGFunction[] = []
+        for f in m.functions { new_fns.push(forward_function(f)) }
+        out[id] = CFGModule { ...m, .functions = new_fns }
+    }
+    return CFGProject { ...p, .modules = out }
+}
+
+forward_function :: fn(fn_: CFGFunction) -> CFGFunction {
+    new_blocks: BasicBlock[] = []
+    for b in fn_.blocks {
+        new_blocks.push(BasicBlock { ...b, .instructions = forward_block(b.instructions) })
+    }
+    return CFGFunction { ...fn_, .blocks = new_blocks }
+}
+
+forward_block :: fn(instrs: Instruction[]) -> Instruction[] {
+    slots: SlotVal[] = []
+    out: Instruction[] = [] * instrs.len()
+    for ins in instrs {
+        // A redefinition of any tracked slot's array or index local invalidates
+        // that slot — the name now points elsewhere. Skip the filter (and its
+        // allocation) on the common path where nothing is tracked.
+        d :: dst_of(ins)
+        if d != null && slots.len() > 0 { slots = drop_slots_using(slots, d) }
+
+        if ins is InstrArrayGet as g {
+            known :: lookup_slot(slots, g.target, g.index)
+            if known != null {
+                out.push(InstrMove { .span = g.span, .dst = g.dst, .src = known })
+                continue
+            }
+            slots.push(SlotVal { .target = g.target, .index = g.index, .value = g.dst })
+            out.push(ins)
+            continue
+        }
+        if ins is InstrArraySet as st {
+            slots.clear()
+            slots.push(SlotVal { .target = st.target, .index = st.index, .value = st.value })
+            out.push(ins)
+            continue
+        }
+        if instruction_has_side_effect(ins) { slots.clear() }
+        out.push(ins)
+    }
+    return out
+}
+
+// First tracked value of `target[index]` in the current block, or null.
+lookup_slot :: fn(slots: SlotVal[], target: LocalId, index: LocalId) -> LocalId | null {
+    for s in slots {
+        if s.target == target && s.index == index { return s.value }
+    }
+    return null
+}
+
+// Drop tracked slots whose array or index local was just redefined.
+drop_slots_using :: fn(slots: SlotVal[], d: LocalId) -> SlotVal[] {
+    out: SlotVal[] = []
+    for s in slots {
+        if s.target != d && s.index != d { out.push(s) }
+    }
+    return out
+}

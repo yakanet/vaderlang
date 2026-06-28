@@ -41,7 +41,7 @@ import "vader/lower" { new_lowered_project }
 import "vader/bytecode" { BytecodeModule }
 import "vader/bytecode" { default_emit_options }
 import "vader/bytecode" { dump_bytecode, dump_bytecode_annotated }
-import "vader/midir" { build_cfg_project, dump_cfg_project, DumpCfgOptions, emit_bytecode_from_cfg, const_fold_project, annotate_escape, eliminate_dead_cfg }
+import "vader/midir" { build_cfg_project, dump_cfg_project, DumpCfgOptions, emit_bytecode_from_cfg, const_fold_project, annotate_escape, eliminate_dead_cfg, array_load_forward_project }
 import "vader/c_emit" { emit_c, EmitOptions as CEmitOptions, default_emit_options as default_c_emit_options }
 Prof :: import "vader/profile"
 import "vader/diagnostics" { Diagnostic }
@@ -265,6 +265,28 @@ forwarded_argv :: fn(path: string, args: string[]) -> string[] {
 // `dump_bytecode` / `parse_virt_bc` — the in-memory equivalent of
 // `vader dump --stage=bytecode … | vader run` — preserving the exact `.virt`
 // behaviour the VM corpus is validated against.
+// CFG → `BytecodeModule` : the shared optimise-and-emit tail every real emit
+// path runs. Build the CFG, then DCE + escape annotation + the array-load-forward
+// opt, then bytecode emit. A new CFG optimisation pass is wired in HERE, once —
+// not at each call site. The phase brackets are inert unless `$VADER_PROFILE`, so
+// the non-profiled callers pay nothing.
+cfg_to_bytecode :: fn(pruned: LoweredProject, name: string, opts: EmitOptions) -> BytecodeModule {
+    Prof.prof_begin(Prof.PHASE_CFG_BUILD)
+    cfg :: build_cfg_project(pruned)
+    Prof.prof_end(Prof.PHASE_CFG_BUILD)
+    Prof.prof_begin(Prof.PHASE_CFG_DCE)
+    dced :: eliminate_dead_cfg(cfg)
+    Prof.prof_end(Prof.PHASE_CFG_DCE)
+    Prof.prof_begin(Prof.PHASE_ESCAPE)
+    escaped :: annotate_escape(dced).project
+    Prof.prof_end(Prof.PHASE_ESCAPE)
+    forwarded :: array_load_forward_project(escaped)
+    Prof.prof_begin(Prof.PHASE_BYTECODE)
+    module :: emit_bytecode_from_cfg(forwarded, name, opts)
+    Prof.prof_end(Prof.PHASE_BYTECODE)
+    return module
+}
+
 run_source :: fn(file: string, host_argv: string[]) -> i32 {
     // `lower_to_entry` drops the typed/evaluated/loaded pipeline (its per-module
     // side-table maps dominate the live set) before this CFG → bytecode tail —
@@ -279,10 +301,7 @@ run_source :: fn(file: string, host_argv: string[]) -> i32 {
     // bytecode, so the program still executes, as it did before.
     if !flush_build_diags(le.pre_diags, []) { return 1 }
     pruned :: prune_unreachable_fns(le.lowered, false)
-    cfg :: build_cfg_project(pruned)
-    dced :: eliminate_dead_cfg(cfg)
-    escaped :: annotate_escape(dced).project
-    module :: emit_bytecode_from_cfg(escaped, module_name_from_file(file), default_emit_options())
+    module :: cfg_to_bytecode(pruned, module_name_from_file(file), default_emit_options())
     // Feed the in-hand `BytecodeModule` straight to the VM — no `.virt` text
     // round-trip. The former `dump_bytecode → parse_virt_bc` hop was both
     // pointless overhead and lossy (dump_bytecode drops the data pool).
@@ -401,11 +420,8 @@ cmd_test :: fn(args: string[]) -> i32 {
         println(rep)
         mangles: string[] = []
         for t in fresh { mangles.push(t.mangled) }
-        cfg :: build_cfg_project(pruned)
-        dced :: eliminate_dead_cfg(cfg)
-        escaped :: annotate_escape(dced).project
-        module :: emit_bytecode_from_cfg(
-            escaped, module_name_from_file(rep),
+        module :: cfg_to_bytecode(
+            pruned, module_name_from_file(rep),
             EmitOptions { .optimize = true, .keep_mangles = mangles },
         )
         state :: prepare(module)
@@ -1138,18 +1154,7 @@ prepare_cfg_bytecode_with :: fn(file: string, include_path_flags: string[]) -> C
     Prof.prof_begin(Prof.PHASE_PRUNE)
     pruned :: prune_unreachable_fns(le.lowered, false)
     Prof.prof_end(Prof.PHASE_PRUNE)
-    Prof.prof_begin(Prof.PHASE_CFG_BUILD)
-    cfg :: build_cfg_project(pruned)
-    Prof.prof_end(Prof.PHASE_CFG_BUILD)
-    Prof.prof_begin(Prof.PHASE_CFG_DCE)
-    dced :: eliminate_dead_cfg(cfg)
-    Prof.prof_end(Prof.PHASE_CFG_DCE)
-    Prof.prof_begin(Prof.PHASE_ESCAPE)
-    escaped :: annotate_escape(dced).project
-    Prof.prof_end(Prof.PHASE_ESCAPE)
-    Prof.prof_begin(Prof.PHASE_BYTECODE)
-    module :: emit_bytecode_from_cfg(escaped, module_name_from_file(file), default_emit_options())
-    Prof.prof_end(Prof.PHASE_BYTECODE)
+    module :: cfg_to_bytecode(pruned, module_name_from_file(file), default_emit_options())
     return CfgBytecode {
         .entry       = le.entry,
         .pre_diags   = le.pre_diags,
