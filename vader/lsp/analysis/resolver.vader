@@ -130,7 +130,7 @@ lookup_in_file :: fn(path: string, name: string) -> ExternalHit | null {
 /// Shared with `handlers/document_link` for clickable import links.
 export module_path_to_absolute :: fn(raw: string, state: ServerState, from_uri: string) -> string {
     if raw.starts_with("std/") {
-        root :: stdlib_root_for(state)
+        root :: stdlib_root_for(state, from_uri)
         if root.bytes().len() == 0 { return "" }
         return path_join(root, raw)
     }
@@ -161,8 +161,27 @@ export module_path_to_absolute :: fn(raw: string, state: ServerState, from_uri: 
 // loader uses (`default_stdlib_root`). Editors don't pass `--stdlib-root`,
 // so the fallback is what actually fires in practice — without it goto-def
 // into every `std/*` symbol silently returned "".
-stdlib_root_for :: fn(state: ServerState) -> string {
+// Absolute `<manifest_root>/<subdir>` derived from the importing file's URI (the
+// directory holding its `vader.json`), or "" when there's no URI / no manifest.
+// The shared basis for `std/` and `vader/` import resolution. Keeping it ABSOLUTE
+// is load-bearing: a relative root leaks into the goto-def URI as
+// `path_to_uri("stdlib/…") → file:///stdlib/…`, which the editor reads as the
+// root-absolute `/stdlib/…` → "the file was not found".
+manifest_subdir_root :: fn(from_uri: string, subdir: string) -> string {
+    from_path :: uri_to_path(from_uri)
+    if from_path.bytes().len() == 0 { return "" }
+    mr :: find_manifest_root(from_path)
+    if mr == null { return "" }
+    return path_join(mr, subdir)
+}
+
+stdlib_root_for :: fn(state: ServerState, from_uri: string) -> string {
     if state.stdlib_root.bytes().len() > 0 { return state.stdlib_root }
+    // `default_stdlib_root()` falls back to the RELATIVE "stdlib" (the exe-sidecar
+    // probe misses — the LSP exe lives in `build/`, not next to `stdlib/`), so
+    // prefer the manifest-derived absolute root (see `manifest_subdir_root`).
+    r :: manifest_subdir_root(from_uri, "stdlib")
+    if r.bytes().len() > 0 { return r }
     return default_stdlib_root()
 }
 
@@ -172,11 +191,7 @@ stdlib_root_for :: fn(state: ServerState) -> string {
 // editor-side flags.
 vader_root_for :: fn(state: ServerState, from_uri: string) -> string {
     if state.vader_root.bytes().len() > 0 { return state.vader_root }
-    from_path :: uri_to_path(from_uri)
-    if from_path.bytes().len() == 0 { return "" }
-    mr :: find_manifest_root(from_path)
-    if mr == null { return "" }
-    return path_join(mr, "vader")
+    return manifest_subdir_root(from_uri, "vader")
 }
 
 // Drop the last path segment. Returns the input verbatim when no
