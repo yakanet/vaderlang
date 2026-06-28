@@ -144,7 +144,6 @@ first_stack_operand :: fn(ins: Instruction) -> LocalId | null {
         is InstrFieldSet     as i -> { return i.target }
         is InstrArrayGet     as i -> { return i.target }
         is InstrArraySet     as i -> { return i.target }
-        is InstrArrayBase    as i -> { return i.target }
         is InstrArrayLen     as i -> { return i.target }
         is InstrArrayPush    as i -> { return i.target }
         is InstrArraySlice   as i -> { return i.target }

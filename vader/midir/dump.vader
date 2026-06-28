@@ -87,9 +87,8 @@ dump_instr :: fn(ins: Instruction) -> string {
         }
         is InstrFieldGet     as i -> { return "%${i.dst} = field_get %${i.target}.${i.field} :${display_type(i.type)}" }
         is InstrFieldSet     as i -> { return "field_set %${i.target}.${i.field} = %${i.value}" }
-        is InstrArrayGet     as i -> { return "%${i.dst} = array_get %${i.target}[%${i.index}]${base_tag(i.base)} :${display_type(i.type)}" }
-        is InstrArraySet     as i -> { return "array_set %${i.target}[%${i.index}]${base_tag(i.base)} = %${i.value}" }
-        is InstrArrayBase    as i -> { return "%${i.dst} = array_base %${i.target}" }
+        is InstrArrayGet     as i -> { return "%${i.dst} = array_get %${i.target}[%${i.index}] :${display_type(i.type)}" }
+        is InstrArraySet     as i -> { return "array_set %${i.target}[%${i.index}] = %${i.value}" }
         is InstrArrayLen     as i -> { return "%${i.dst} = array_len %${i.target}" }
         is InstrArrayPush    as i -> { return "array_push %${i.target}, %${i.value}" }
         is InstrArraySlice   as i -> { return "%${i.dst} = array_slice %${i.target}[%${i.lo}..%${i.hi}] :${display_type(i.type)}" }
@@ -115,13 +114,6 @@ dump_instr :: fn(ins: Instruction) -> string {
         is InstrDeferPush    as i -> { return "defer.push %${i.value}" }
         is InstrDeferPopExec as i -> { return "defer.pop_exec ${i.count}" }
     }
-}
-
-// ` base=%N` when an array access carries a pre-resolved `InstrArrayBase` handle,
-// empty otherwise — surfaces the `array_base_cse` rewrite in the CFG dump.
-base_tag :: fn(b: LocalId | null) -> string {
-    if b == null { return "" }
-    return " base=%${b}"
 }
 
 dump_terminator :: fn(t: Terminator) -> string {

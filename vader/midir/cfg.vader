@@ -180,7 +180,6 @@ export Instruction ::
     | InstrFieldSet
     | InstrArrayGet
     | InstrArraySet
-    | InstrArrayBase
     | InstrArrayLen
     | InstrArrayPush
     | InstrArraySlice
@@ -310,10 +309,6 @@ export InstrArrayGet :: struct {
     target: LocalId
     index:  LocalId
     type:   Type
-    /// When set, `target`'s buffer is already resolved in this `InstrArrayBase`
-    /// handle — the access skips the buf-forward walk (still bounds-checks).
-    /// Inserted by `array_base_cse` ; `null` = resolve inline (the default).
-    base:   LocalId | null = null
 }
 
 export InstrArraySet :: struct {
@@ -321,19 +316,6 @@ export InstrArraySet :: struct {
     target: LocalId
     index:  LocalId
     value:  LocalId
-    /// See `InstrArrayGet.base`.
-    base:   LocalId | null = null
-}
-
-/// Resolve `target`'s live buffer once (chase the GC forward chain) into a
-/// reusable handle `dst`. Subsequent `InstrArrayGet` / `InstrArraySet` whose
-/// `base` points here skip the per-access buf-forward walk (they still
-/// bounds-check). Inserted by `array_base_cse` ; the handle is valid only until a
-/// GC safepoint may relocate the buffer, so the pass re-resolves after one.
-export InstrArrayBase :: struct {
-    span:   Span
-    dst:    LocalId
-    target: LocalId
 }
 
 export InstrArrayLen :: struct {
