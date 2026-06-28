@@ -57,20 +57,20 @@ We compare on `min(samples)` rather than the median because these workloads fini
 
 ## Baseline (committed)
 
-Captured 2026-06-28 on a 2026 Apple Silicon laptop, `bun run bench -- --runs=10 --update`:
+Captured 2026-06-29 on a 2026 Apple Silicon laptop, `bun run bench -- --runs=10 --update`:
 
 | workload         | vader-native | bun-ts    | go         | java     |
 |------------------|--------------|-----------|------------|----------|
-| `mandelbrot`     |  15.3 ms ★   |  24.0 ms  |  17.6 ms   | 47.0 ms  |
-| `primes`         |  23.6 ms     |  41.1 ms  |  23.0 ms ★ | 55.5 ms  |
-| `iter_chain`     |   1.7 ms ★   |  35.3 ms  |   2.6 ms   | 36.1 ms  |
-| `binary_trees`   |   5.6 ms ★   |  11.8 ms  |   7.0 ms   | 33.2 ms  |
-| `string_builder` |   7.8 ms     |  10.9 ms  |   4.7 ms ★ | 36.2 ms  |
-| `map_iter`       |   2.9 ms ★   |  32.8 ms  |   8.2 ms   | 42.3 ms  |
-| `arr_rw`         | 114.1 ms     |  83.1 ms  |  35.9 ms ★ | 85.7 ms  |
-| `arr_push`       |  70.8 ms     |  48.2 ms  |  31.7 ms ★ | 53.4 ms  |
-| `str_concat`     |  30.3 ms     |   8.4 ms ★|  10.8 ms   | 48.9 ms  |
-| `interp`         |  87.3 ms     |  19.8 ms  |  19.0 ms ★ | 48.9 ms  |
+| `mandelbrot`     |  16.1 ms ★   |  24.7 ms  |  18.1 ms   | 48.1 ms  |
+| `primes`         |  24.1 ms ★   |  41.1 ms  |  24.9 ms   | 58.2 ms  |
+| `iter_chain`     |   2.1 ms ★   |  35.2 ms  |   2.9 ms   | 36.5 ms  |
+| `binary_trees`   |   6.8 ms ★   |  12.2 ms  |   7.5 ms   | 33.2 ms  |
+| `string_builder` |   7.9 ms     |   8.9 ms  |   4.8 ms ★ | 35.0 ms  |
+| `map_iter`       |   3.7 ms ★   |  31.8 ms  |   8.2 ms   | 42.2 ms  |
+| `arr_rw`         |  61.8 ms     |  83.0 ms  |  35.6 ms ★ | 85.1 ms  |
+| `arr_push`       |  65.1 ms     |  47.5 ms  |  31.1 ms ★ | 52.7 ms  |
+| `str_concat`     |  30.2 ms     |   8.3 ms ★|  10.7 ms   | 48.0 ms  |
+| `interp`         |  30.6 ms     |  19.1 ms  |  18.6 ms ★ | 47.9 ms  |
 
 ★ = fastest on the workload.
 Reading the table :
@@ -82,7 +82,7 @@ Reading the table :
 - **`string_builder`** — Go (4.7 ms) leads, then Vader native (7.8 ms) — now ahead of Bun-TS (10.9 ms) after the `StringBuilder` 0/1-part `to_string` fast path landed — with Java (36.2 ms) trailing. The Vader `StringBuilder` stores fragment refs in a `string[]` and flushes once via the `Display::to_string` intrinsic — no per-iter copy — but Go's `strings.Builder` writes straight into a `[]byte` and amortises the grow over a single buffer, which still beats the array-of-refs approach when the fragments are short and many. The remaining gap is two final-pass copies and the GC tracing cost of the ref array.
 - **`map_iter`** — Vader native (2.9 ms) now leads Go (8.2 ms) by ~2.8 ×, and crushes Bun-TS (32.8 ms) and Java (42.3 ms). Earlier baselines had Vader behind Go (~23 ms, ~2.8 × slower) ; GC + dispatch optims (`O(log N)` string-mark, midir vtable pruning, lower-pass O(1) symbol lookups) first erased the gap, then the compact-dict `MutableMap` rewrite (2026-06) roughly halved it again (6.5 → 2.9 ms). Go's `for k, v := range m` allocates nothing per visit ; Vader's `for entry in m` desugars via `Into(Iterator(Entry(K, V)))` (cf. `std/collections.vader`). The `Yield(Entry)` wrapper folds into a 0-byte tag at runtime (`VADER_TYPE_KIND_INLINE_REF`) and the `Yield(T) | null` return slot folds to a raw `void*` via B1, so the dispatch is alloc-free and pointer-sized. Bun's `Map[Symbol.iterator]` and Java's `entrySet()` both box per visit.
 - **`java`** — most Java rows sit at ~33-56 ms (heavier workloads like `arr_rw`, ~86 ms, add real compute on top). That floor is JVM startup + class loading + cold JIT — measurable but bounded now that we precompile in the build phase (down from ~230 ms when each invocation also parsed the source). For steady-state Java throughput (long-running JVM, warmed JIT, millions of iterations) Java would catch up to Go ; we're benching cold script invocations on purpose because that's what `java <Class>` looks like in practice.
-- **`arr_rw` / `arr_push` / `str_concat` / `interp`** (Target-ABI workloads, added after the original six) — the current Vader weak spots. `arr_rw` 114.1 ms vs Go 35.9 ms, `arr_push` 70.8 vs Go 31.7, `str_concat` 30.3 vs Bun 8.4 / Go 10.8, `interp` 87.3 vs Bun 19.8 / Go 19.0. They exercise the open-coded array load/store, the push/grow + young-arena GC churn, and the off-runtime Buffer-backed string `+` concat / `${}` interpolation paths — where Go's native slices and Bun's JIT'd string ops still pull ahead. `str_concat` (−51 % since the last baseline) and `interp` (−32 %) closed much of the gap after the fixed-arity `concatN` `+`-chain lowering ; `arr_rw` / `arr_push` stay the open weak spots. `arr_push` carries the `-falign-functions=64` cache-line fix (commit `7a96cc48`) that undid a layout-only regression — vader_array_push's hot loop had drifted onto a bad `%64` offset. Tracked for follow-up profiling.
+- **`arr_rw` / `arr_push` / `str_concat` / `interp`** (Target-ABI workloads, added after the original six) — the Target-ABI paths, now mostly closed. `arr_rw` 61.8 ms vs Go 35.6 (1.7 ×, was 3.2 ×), `arr_push` 65.1 vs Go 31.1 (2.1 ×), `str_concat` 30.2 vs Bun 8.3 / Go 10.7 (2.8 ×), `interp` 30.6 vs Bun 19.1 / Go 18.6 (1.6 ×, was 4.6 ×). They exercise the open-coded array load/store, the push/grow + young-arena GC churn, and the off-runtime Buffer-backed string `+` concat / `${}` interpolation paths. **`arr_rw` (−46 %)** dropped from a midir intra-block array-load-forward pass (drops the redundant re-read in `a[i] = a[i] + 1`, commit `6fc1def1`) plus a native c_emit resolve-CSE that shares the buf-forward walk across accesses in one straight-line region (`0af7deb9`). **`interp` (−65 %)** dropped because a `${int}` now writes its digits straight into one exact-sized byte buffer instead of minting a throwaway interned string per part (`2e294f5c`). `str_concat` (−51 % earlier) closed after the fixed-arity `concatN` `+`-chain lowering. `arr_push` stays the main open weak spot — it carries the `-falign-functions=64` cache-line fix (commit `7a96cc48`) that undid a layout-only regression — and `str_concat` still trails Bun's JIT'd string ops.
 
 The `mandelbrot` checksum splits three ways : Bun-TS / Java agree at 5 705 453, Vader-native lands at 5 705 449 (a 4-iteration drift, ~7 boundary pixels where clang's reassociation under `-O3` reorders a `z² + c` term and flips the escape test one iteration earlier), and Go lands at 5 689 008 because `gc` fuses `a*b + c` into a single FMA instruction with one rounding step on arm64. All three are mathematically correct ; only the rounding model differs.
 
