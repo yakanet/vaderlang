@@ -245,14 +245,22 @@ export display_type :: fn(t: Type) -> string {
 /// the same entry as the underlying impl.
 export type_base_name :: fn(t: Type) -> string {
     // @partial: only nominal types (Struct/Trait/Enum/Distinct) carry a symbol
-    // name ; every other Type variant (PrimitiveType, ArrayType, TupleType,
-    // FnType, UnionType, …) has no nominal base name, so its full display is
-    // the correct lookup key.
+    // name ; every other Type variant (PrimitiveType, TupleType, FnType,
+    // UnionType, …) has no nominal base name, so its full display is the correct
+    // lookup key.
+    //
+    // ArrayType collapses to the element-independent key `"[]"` so a CONCRETE
+    // array (`BlockId[][]`) matches a blanket `T[] implements …` impl (registered
+    // under the same `"[]"` key). Without this the blanket key is the param-named
+    // `"T[]"` and never matches, which is why `in`/`*` on arrays used to need a
+    // hard-coded `is ArrayType` branch in `check_in`/`check_arith`. There are no
+    // concrete array impls (`i32[] implements …`), so the collapse can't mis-match.
     @partial match t {
         is StructType   as st -> { return st.symbol.name }
         is TraitType    as tr -> { return tr.symbol.name }
         is EnumType     as en -> { return en.symbol.name }
         is DistinctType as dt -> { return dt.symbol.name }
+        is ArrayType          -> { return "[]" }
         _ -> { return display_type(t) }
     }
 }
