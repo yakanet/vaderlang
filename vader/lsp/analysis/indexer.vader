@@ -23,7 +23,7 @@
 
 module "vader/lsp/analysis"
 
-import "std/string" { trim }
+import "std/string" { trim, starts_with }
 import "vader/parser" {
     parse_source,
     Decl,
@@ -176,7 +176,17 @@ collect_decl :: fn(
 ) -> void {
     match d {
         is FnDecl as f -> {
-            entries.push(top_entry(f.name, .Fn, f.name_span, f.span, f.decorators, source, cmap))
+            // `__comptime_NAME` synthetic fns (from the `NAME :: @comptime …`
+            // desugar, parser.vader::desugar_comptime_const) are compiler-internal
+            // — the user's symbol is the CONST, indexed separately below. Don't
+            // surface them as outline symbols: the synthetic fn's `name_span`
+            // points at the const NAME, OUTSIDE its `@comptime`-block `span`, so a
+            // `DocumentSymbol` over it trips the client's "selectionRange must be
+            // contained in fullRange" check and drops the WHOLE response. Still
+            // walk the body so goto-def works on locals inside the block.
+            if !f.name.starts_with("__comptime_") {
+                entries.push(top_entry(f.name, .Fn, f.name_span, f.span, f.decorators, source, cmap))
+            }
             ix_walk_fn_body(f, source, entries)
         }
         is StructDecl as s -> {

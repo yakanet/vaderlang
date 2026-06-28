@@ -72,6 +72,12 @@ export span_contains :: fn(s: Span, line: i32, col: i32) -> bool {
     return true
 }
 
+/// True when `inner` sits entirely within `outer` by byte offset. Distinct from
+/// `span_contains` (a `(line, col)` point test) — this is span-in-span, used to
+/// enforce the LSP `selectionRange ⊆ range` contract in `documentSymbol`.
+export span_encloses :: fn(outer: Span, inner: Span) -> bool =
+    inner.start.offset >= outer.start.offset && inner.end.offset <= outer.end.offset
+
 /// Coarse character extent of a span — `(lines << 16) | columns`. Used as a
 /// tie-breaker so the *smallest* node containing the cursor wins.
 export span_size :: fn(s: Span) -> u64 {
