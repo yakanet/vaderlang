@@ -156,8 +156,8 @@ export load_project_with_overlay :: fn(entry_path: string, overlay: MutableMap<s
             }
             drain_load_queue(queue, bases, modules, factory, index, loader_diags, overlay, node_factory)
             // Force-load `std/string_builder` AFTER the natural BFS (Target ABI
-            // S4): string interpolation `"${...}"` desugars to its `new_builder`/
-            // `append`/`to_string` calls in the lowerer, a dependency not visible
+            // S4): string interpolation `"${...}"` desugars to `StringBuilder {}` +
+            // `append`/`to_string` (or `concat2`…`concat4`) calls in the lowerer, a dependency not visible
             // as a source import. Appending it last (rather than seeding it early)
             // keeps the natural module load order — and thus symbol-id assignment
             // — identical to a build without the force-load, so it never perturbs
