@@ -83,15 +83,12 @@ export for_each_read_local :: fn(ins: Instruction, visit: fn(LocalId) -> void) -
         is InstrArrayGet     as i -> {
             visit(i.target)
             visit(i.index)
-            if i.base != null { visit(i.base) }
         }
         is InstrArraySet     as i -> {
             visit(i.target)
             visit(i.index)
             visit(i.value)
-            if i.base != null { visit(i.base) }
         }
-        is InstrArrayBase    as i -> { visit(i.target) }
         is InstrArrayLen     as i -> { visit(i.target) }
         is InstrArrayPush    as i -> {
             visit(i.target)
@@ -508,7 +505,6 @@ export dst_of :: fn(ins: Instruction) -> LocalId | null {
         is InstrUnOp         as i -> { return i.dst }
         is InstrFieldGet     as i -> { return i.dst }
         is InstrArrayGet     as i -> { return i.dst }
-        is InstrArrayBase    as i -> { return i.dst }
         is InstrArrayLen     as i -> { return i.dst }
         is InstrArraySlice   as i -> { return i.dst }
         is InstrStringSlice  as i -> { return i.dst }

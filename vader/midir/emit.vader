@@ -1142,11 +1142,6 @@ emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {
         emit_result(ctx, pos, al.dst, al.span)
         return
     }
-    // `InstrArrayBase` is the `array_base_cse` resolve hint. The bytecode layer
-    // doesn't honour `.base` yet, so the accesses still resolve inline — emit
-    // nothing here (the hint's dst local is left unmaterialised, harmless). The
-    // base-aware `ArrayResolve` + base slot ops land with the backend wiring.
-    if ins is InstrArrayBase { return }
     if ins is InstrArrayPush as ap {
         value_type :: ctx.fn_.locals[usize(ap.value)].type
         emit_first_get(ctx, pos, ap.target, ap.span)
