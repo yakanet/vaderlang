@@ -327,13 +327,15 @@ T[] implements<T: Equals> Contains<T> {
 /// `[lhs] * n` — array repeat / preallocation, the `*` operator on arrays.
 /// `[v] * n` repeats the elements `n` times (`[7, 9] * 2` → `[7, 9, 7, 9]`) ; the
 /// empty-LHS form `[] * n` is the preallocation primitive (length 0, capacity `n`
-/// — the `with_capacity` replacement). The typer recognises `* ` on an array
-/// directly (like `in`/Contains : the blanket `T[]` key never matches a concrete
-/// array's element-specific name) and the lowerer devirtualises BOTH forms to the
+/// — the `with_capacity` replacement). `*` on an array dispatches here through the
+/// normal trait lookup : a concrete array matches this blanket via the `"[]"`
+/// impl-key (`type_base_name`), and the lowerer devirtualises BOTH forms to the
 /// `array.repeat` intrinsic, which preserves the preallocation form and shallow
-/// ref-element semantics. The body below is the logical repeat fallback for any
-/// path the devirt can't statically reach. Blanket impl (orphan rule : `Mul` is
-/// std/core's, `T[]` isn't), mirroring the `Into` / `Contains` blankets above.
+/// ref-element semantics. The body is the logical repeat fallback for any path the
+/// devirt can't statically reach. The return is `T[]` (the body builds a fresh
+/// array, so `-> Self` would mis-typecheck) ; `substitute_self_in` (binary.vader)
+/// resolves the blanket's parametric `T[]` to the concrete receiver. Blanket impl
+/// (orphan rule : `Mul` is std/core's, `T[]` isn't), mirroring `Into` / `Contains`.
 T[] implements<T> Mul<usize> {
     mul :: fn(self, other: usize) -> T[] {
         out: T[] = []
