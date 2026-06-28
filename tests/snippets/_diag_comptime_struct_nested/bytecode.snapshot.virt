@@ -17,7 +17,7 @@ string 2 "size_of"
 string 3 "usize"
 string 4 "cast"
 string 5 "T"
-data 0 agg Spec 2 struct 3 3 str "size_of" array Kind 1 prim u8 01 str "usize" struct 3 3 str "cast" array Kind 2 prim u8 00 prim u8 01 str "T"
+data 0 structs 3 3 2 strref 2 array Kind 1 u8 01 strref 3 strref 4 array Kind 2 u8 00 u8 01 strref 5
 import 0 write std_io$write (i32,string) -> void
 impl 9 ByteAccess
 export main 0

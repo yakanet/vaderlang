@@ -13,7 +13,7 @@ string 0 "0"
 string 1 "\n"
 string 2 "alpha"
 string 3 "beta"
-data 0 agg Pair 2 struct 2 2 str "alpha" prim i32 0A000000 struct 2 2 str "beta" prim i32 14000000
+data 0 structs 2 2 2 strref 2 i32 0A000000 strref 3 i32 14000000
 import 0 write std_io$write (i32,string) -> void
 impl 7 ByteAccess
 export main 0
