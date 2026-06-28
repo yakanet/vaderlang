@@ -5,7 +5,7 @@ module "vader/lower"
 
 import "std/collections" { MutableMap, keys, values }
 import "std/iter" { is_empty }
-import "std/string_builder" { new_builder, append }
+import "std/string_builder" { StringBuilder, append }
 
 import "vader/diagnostics" { Diagnostic, Span }
 import "vader/parser" { Decl, FnDecl, StructDecl, ImplDecl, IdentExpr, GenericInstExpr, TypeExpr }
@@ -119,7 +119,7 @@ display_any_arg :: fn(t: Type) -> string = @partial match t {
 }
 
 joined_named :: fn(name: string, args: Type[], sep: string) -> string {
-    sb :: new_builder()
+    sb :: StringBuilder {}
     sb.append(name)
     for a in args {
         sb.append(sep)
@@ -129,7 +129,7 @@ joined_named :: fn(name: string, args: Type[], sep: string) -> string {
 }
 
 joined_unnamed :: fn(args: Type[], sep: string) -> string {
-    sb :: new_builder()
+    sb :: StringBuilder {}
     first := true
     for a in args {
         if !first { sb.append(sep) }
@@ -146,7 +146,7 @@ build_any_args_list :: fn(args: Type[]) -> Type[] {
 }
 
 join_any_displays :: fn(args: Type[]) -> string {
-    sb :: new_builder()
+    sb :: StringBuilder {}
     first := true
     for a in args {
         if !first { sb.append("__") }
@@ -438,7 +438,7 @@ lookup_type_param_symbol :: fn(resolved: ResolvedModule, name_span: Span) -> Sym
 }
 
 args_suffix :: fn(args: Type[]) -> string {
-    sb := new_builder()
+    sb := StringBuilder {}
     for a in args {
         sb.append("__")
         sb.append(mangle_type_arg(a))
@@ -458,7 +458,7 @@ args_suffix :: fn(args: Type[]) -> string {
 /// @param args  the impl's concrete type arguments.
 /// @return      `"__<prim>"` per primitive arg, `"__Any"` per other arg.
 export mixed_any_suffix :: fn(args: Type[]) -> string {
-    sb := new_builder()
+    sb := StringBuilder {}
     for a in args {
         // Distinct→backing: a distinct (newtype) over a primitive keeps the
         // backing's RAW slot (`__i32`), never `__Any`. This is the convergence

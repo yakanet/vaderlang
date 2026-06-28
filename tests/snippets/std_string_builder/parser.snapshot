@@ -31,10 +31,6 @@
             "alias": null
           },
           {
-            "name": "new_builder",
-            "alias": null
-          },
-          {
             "name": "append",
             "alias": null
           },
@@ -68,12 +64,12 @@
             },
             "type": null,
             "value": {
-              "kind": "CallExpr",
-              "callee": {
+              "kind": "StructLitExpr",
+              "typeName": {
                 "kind": "IdentExpr",
-                "name": "new_builder"
+                "name": "StringBuilder"
               },
-              "args": []
+              "items": []
             }
           },
           {
@@ -224,12 +220,12 @@
             },
             "type": null,
             "value": {
-              "kind": "CallExpr",
-              "callee": {
+              "kind": "StructLitExpr",
+              "typeName": {
                 "kind": "IdentExpr",
-                "name": "new_builder"
+                "name": "StringBuilder"
               },
-              "args": []
+              "items": []
             }
           },
           {
@@ -356,12 +352,12 @@
             },
             "type": null,
             "value": {
-              "kind": "CallExpr",
-              "callee": {
+              "kind": "StructLitExpr",
+              "typeName": {
                 "kind": "IdentExpr",
-                "name": "new_builder"
+                "name": "StringBuilder"
               },
-              "args": []
+              "items": []
             }
           },
           {
@@ -417,12 +413,12 @@
             },
             "type": null,
             "value": {
-              "kind": "CallExpr",
-              "callee": {
+              "kind": "StructLitExpr",
+              "typeName": {
                 "kind": "IdentExpr",
-                "name": "new_builder"
+                "name": "StringBuilder"
               },
-              "args": []
+              "items": []
             }
           },
           {
@@ -523,12 +519,12 @@
             },
             "type": null,
             "value": {
-              "kind": "CallExpr",
-              "callee": {
+              "kind": "StructLitExpr",
+              "typeName": {
                 "kind": "IdentExpr",
-                "name": "new_builder"
+                "name": "StringBuilder"
               },
-              "args": []
+              "items": []
             }
           },
           {

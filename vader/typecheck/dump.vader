@@ -26,7 +26,7 @@ module "vader/typecheck"
 
 import "std/sort" { sort }
 import "std/string" { compare_ascending, compare_ascending_ci, pad_end, split }
-import "std/string_builder" { StringBuilder, new_builder, append, append_char }
+import "std/string_builder" { StringBuilder, append, append_char }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
 import "vader/resolver" { module_in_scope }
 import "vader/types" { display_type }
@@ -47,7 +47,7 @@ export dump_program :: fn(typed: TypedProgram, with_banner: bool) -> string {
 export dump_program_with_others :: fn(
     typed: TypedProgram, with_banner: bool, others: TypedProgram[], scope: string[],
 ) -> string {
-    sb :: new_builder()
+    sb :: StringBuilder {}
     if with_banner { sb.append("# Typecheck") }
     sections: TypedProgram[] = [typed]
     for o in others { sections.push(o) }

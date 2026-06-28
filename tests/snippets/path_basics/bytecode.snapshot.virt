@@ -581,7 +581,7 @@ fn 9 std_path$is_absolute (ref) -> bool
   local.set 1
   local.get 1
   i32.const 0
-  call 31
+  call 30
   local.set 2
   local.get 2
   char.const 47
@@ -615,7 +615,7 @@ fn 12 std_path$join (ref,string) -> ref
   end $L0
   local.get 1
   i32.const 0
-  call 31
+  call 30
   local.set 2
   local.get 2
   char.const 47
@@ -648,7 +648,7 @@ fn 12 std_path$join (ref,string) -> ref
   local.set 4
   local.get 3
   local.get 4
-  call 31
+  call 30
   local.set 2
   local.get 2
   char.const 47
@@ -722,7 +722,7 @@ fn 13 std_path$starts_with (ref,ref) -> bool
     local.set 4
     local.get 2
     local.get 4
-    call 31
+    call 30
     local.set 7
     local.get 7
     char.const 47
@@ -739,7 +739,7 @@ fn 13 std_path$starts_with (ref,ref) -> bool
   local.field 0 2 0
   ref.cast 1
   local.get 5
-  call 31
+  call 30
   local.set 7
   local.get 7
   char.const 47
@@ -795,7 +795,7 @@ fn 14 std_path$ends_with (ref,ref) -> bool
     local.set 2
     local.get 2
     i32.const 0
-    call 31
+    call 30
     local.set 7
     local.get 7
     char.const 47
@@ -820,7 +820,7 @@ fn 14 std_path$ends_with (ref,ref) -> bool
   local.set 4
   local.get 2
   local.get 4
-  call 31
+  call 30
   local.set 7
   local.get 7
   char.const 47
@@ -900,7 +900,7 @@ fn 15 std_path$normalize (ref) -> ref
           local.field 0 2 0
           ref.cast 1
           local.get 6
-          call 31
+          call 30
           local.set 10
           local.get 10
           char.const 47
@@ -1049,13 +1049,14 @@ fn 15 std_path$normalize (ref) -> ref
       end $L4
     end $L3
   end $L2
-  call 25
+  array.new 11 0
+  struct.new 14
   local.set 4
   local.get 1
   if $L16 void
     local.get 4
     string.const 47
-    call 26
+    call 25
   else
   end $L16
   i64.const 0
@@ -1074,7 +1075,7 @@ fn 15 std_path$normalize (ref) -> ref
         if $L20 void
           local.get 4
           string.const 47
-          call 26
+          call 25
         else
         end $L20
         local.get 2
@@ -1084,7 +1085,7 @@ fn 15 std_path$normalize (ref) -> ref
         local.set 12
         local.get 4
         local.get 12
-        call 26
+        call 25
         i64.const 1
         local.set 7
         local.get 5
@@ -1097,7 +1098,7 @@ fn 15 std_path$normalize (ref) -> ref
     end $L18
   end $L17
   local.get 4
-  call 27
+  call 26
   local.tee 12
   call 17
   if $L21 void
@@ -1706,25 +1707,25 @@ fn 23 std_string_builder$concat3 (string,string,string) -> string
   local.get 5
   i64.add
   local.tee 5
-  call 28
+  call 27
   local.set 6
   i64.const 0
   local.set 7
   local.get 6
   local.get 7
   local.get 0
-  call 30
+  call 29
   local.get 6
   local.get 3
   local.get 1
-  call 30
+  call 29
   local.get 6
   local.get 4
   local.get 2
-  call 30
+  call 29
   local.get 6
   local.get 5
-  call 29
+  call 28
   return
 end
 
@@ -1743,38 +1744,32 @@ fn 24 std_string_builder$concat2 (string,string) -> string
   local.get 3
   i64.add
   local.tee 3
-  call 28
+  call 27
   local.set 4
   i64.const 0
   local.set 5
   local.get 4
   local.get 5
   local.get 0
-  call 30
+  call 29
   local.get 4
   local.get 2
   local.get 1
-  call 30
+  call 29
   local.get 4
   local.get 3
-  call 29
+  call 28
   return
 end
 
-fn 25 std_string_builder$new_builder () -> ref
-  array.new 11 0
-  struct.new 14
-  return
-end
-
-fn 26 std_string_builder$append (ref,string) -> void
+fn 25 std_string_builder$append (ref,string) -> void
   local.field 0 14 0
   local.get 1
   array.push 1
   return
 end
 
-fn 27 std_string_builder$StringBuilder$Display$to_string (ref) -> string
+fn 26 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local n usize
   local $k_4 usize
   local $field_9 ref
@@ -1845,7 +1840,7 @@ fn 27 std_string_builder$StringBuilder$Display$to_string (ref) -> string
     end $L3
   end $L2
   local.get 1
-  call 28
+  call 27
   local.set 3
   i64.const 0
   local.set 2
@@ -1869,7 +1864,7 @@ fn 27 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         local.get 3
         local.get 2
         local.get 8
-        call 30
+        call 29
         local.get 8
         call.import 4
         local.set 6
@@ -1890,24 +1885,24 @@ fn 27 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   end $L5
   local.get 3
   local.get 1
-  call 29
+  call 28
   return
 end
 
-fn 28 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 27 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   object_new 0
   return
 end
 
-fn 29 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 28 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
   buffer_to_string
   return
 end
 
-fn 30 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 29 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0
   local.get 1
   local.get 2
@@ -1915,7 +1910,7 @@ fn 30 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   return
 end
 
-fn 31 std_core$string$Index$at_vt (string,usize) -> char
+fn 30 std_core$string$Index$at_vt (string,usize) -> char
   local.get 0
   local.get 1
   call.import 2

@@ -31,7 +31,7 @@ import "std/string"         {
     trim, split, chars, ParseError,
 }
 import "std/char" { is_alnum, is_digit, is_white_char }
-import "std/string_builder" { StringBuilder, new_builder, append }
+import "std/string_builder" { StringBuilder, append }
 
 // ---- public types ---------------------------------------------------------
 
@@ -796,7 +796,7 @@ Version implements Display {
     /// Inverse of `parse` on every well-formed input. Drives `${v}`
     /// interpolation and any caller of `v.to_string()`.
     to_string :: fn(self) -> string {
-        sb :: new_builder()
+        sb :: StringBuilder {}
         sb.append("${self.major}.${self.minor}.${self.patch}")
         if !self.prerelease.is_empty() {
             sb.append("-")

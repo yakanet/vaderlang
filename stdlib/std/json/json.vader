@@ -13,7 +13,7 @@ module "std/json"
 import "std/string" { decode_char_at, codepoint_byte_len, parse_float, pad_start, chars }
 import "std/char" { is_digit, is_white_char }
 import "std/iter" { zip }
-import "std/string_builder" { StringBuilder, new_builder, append, append_char, append_repeated }
+import "std/string_builder" { StringBuilder, append, append_char, append_repeated }
 import "std/collections" { MutableMap, len, keys, values }
 import "std/numbers" { hex_digit_value, to_hex, to_compact_str }
 
@@ -244,7 +244,7 @@ parse_string :: fn(p: Parser) -> string | JsonError {
             return p.bytes[start..<scan].bytes_to_string()
         }
         if b == '\\' {
-            sb :: new_builder()
+            sb :: StringBuilder {}
             sb.append(p.bytes[start..<scan].bytes_to_string())
             p.pos = scan
             return parse_string_with_escapes(p, sb)
@@ -517,7 +517,7 @@ write_object :: fn(sb: StringBuilder, o: JsonObject, indent: i32, depth: i32) ->
 /// @param v   the value to serialise.
 /// @return    a JSON document string.
 export stringify :: fn(v: JsonValue) -> string {
-    sb := new_builder()
+    sb := StringBuilder {}
     write_value(sb, v, 0, 0)
     return sb.to_string()
 }
@@ -529,7 +529,7 @@ export stringify :: fn(v: JsonValue) -> string {
 /// @param indent  spaces per nesting level (0 → no spaces / no newlines).
 /// @return        a JSON document string.
 export stringify_pretty :: fn(v: JsonValue, indent: i32) -> string {
-    sb := new_builder()
+    sb := StringBuilder {}
     write_value(sb, v, indent, 0)
     return sb.to_string()
 }

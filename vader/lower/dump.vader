@@ -21,7 +21,7 @@ module "vader/lower"
 import "std/collections" { keys }
 import "std/sort" { sort }
 import "std/string" { compare_ascending, to_lower, ends_with, join }
-import "std/string_builder" { StringBuilder, new_builder, append, append_char }
+import "std/string_builder" { StringBuilder, append, append_char }
 import "vader/diagnostics" { Span }
 import "vader/resolver" { module_in_scope }
 import "vader/resolver/symbol" { Symbol }
@@ -74,7 +74,7 @@ emit_decl :: fn(lines: string[], decl: LoweredDecl, indent: string) -> void {
 
 
 render_params :: fn(params: LoweredParam[]) -> string {
-    sb := new_builder()
+    sb := StringBuilder {}
     for i in 0..<params.len() {
         if i > 0 { sb.append(", ") }
         sb.append("${params[i].name}: ${display_type(params[i].type)}")
@@ -83,7 +83,7 @@ render_params :: fn(params: LoweredParam[]) -> string {
 }
 
 render_fields :: fn(fields: LoweredStructField[]) -> string {
-    sb := new_builder()
+    sb := StringBuilder {}
     for i in 0..<fields.len() {
         if i > 0 { sb.append(", ") }
         sb.append("${fields[i].name}: ${display_type(fields[i].type)}")

@@ -24,7 +24,7 @@
 module "std/regex"
 
 import "std/string" { decode_char_at, decode_codepoint_at, is_empty }
-import "std/string_builder" { StringBuilder, new_builder, append, append_char }
+import "std/string_builder" { StringBuilder, append, append_char }
 
 // =========================================================================
 // Public surface
@@ -613,7 +613,7 @@ export find_all :: fn(self: Pattern, input: string) -> Match[] {
 export replace_all :: fn(self: Pattern, input: string, repl: string) -> string {
     ib :: input.bytes()
     rb :: repl.bytes()
-    sb := new_builder()
+    sb := StringBuilder {}
     cursor: usize = 0
     matches_found :: self.find_all(input)
     for i in 0..<matches_found.len() {

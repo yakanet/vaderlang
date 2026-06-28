@@ -22,7 +22,7 @@
 module "std/crypto"
 
 import "std/iter" { clone }
-import "std/string_builder" { StringBuilder, new_builder, append_char }
+import "std/string_builder" { StringBuilder, append_char }
 import "std/math" { sin, abs, floor }
 
 // =========================================================================
@@ -139,7 +139,7 @@ export sha256 :: fn(input: string) -> string {
         h7 = mask32(h7 + h)
     }
 
-    sb := new_builder()
+    sb := StringBuilder {}
     append_hex_u32(sb, h0)
     append_hex_u32(sb, h1)
     append_hex_u32(sb, h2)
@@ -260,7 +260,7 @@ export md5 :: fn(input: string) -> string {
     }
 
     // Output : a0, b0, c0, d0 as 16 bytes little-endian.
-    sb := new_builder()
+    sb := StringBuilder {}
     append_hex_u32_le(sb, a0)
     append_hex_u32_le(sb, b0)
     append_hex_u32_le(sb, c0)
@@ -268,9 +268,7 @@ export md5 :: fn(input: string) -> string {
     return sb.to_string()
 }
 
-rotl32 :: fn(x: u32, n: u32) -> u32 {
-    return mask32(x << n) | (x >> (32 - n))
-}
+rotl32 :: fn(x: u32, n: u32) -> u32 = mask32(x << n) | (x >> (32 - n))
 
 append_hex_u32_le :: fn(sb: StringBuilder, x: u32) -> void {
     for i in 0..<4 {

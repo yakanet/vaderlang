@@ -12,7 +12,7 @@
 module "vader/c_emit"
 
 import "std/string" { join }
-import "std/string_builder" { StringBuilder, new_builder, append }
+import "std/string_builder" { StringBuilder, append }
 import "std/abort" { todo }
 import "vader/bytecode" { BcFunction, BcSignature, BcStruct, BcArray, BcFn, BcRef, BcUnion, BcType, ValType }
 import "vader/bytecode" { array_kind_of, array_kind_index, ArrayKind }
@@ -127,7 +127,7 @@ emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out:
     // the prelude *above* the body. After the walk, assemble
     // signature → local decls → temp decls → frame → body, matching TS
     // (which splices the prelude in at `preludePos`).
-    body :: new_builder()
+    body :: StringBuilder {}
     s :: new_fn_state(ctx, function, body)
     s.no_frame = no_frame
     s.scopes = precompute_scopes(function)
@@ -1169,7 +1169,7 @@ emit_closure_lift :: fn(ctx: EmitCtx, out: StringBuilder, fn_index: i32) -> void
 
 /// `vader_box_t a0, vader_box_t a1, …` — `count` erased-ABI tail params.
 tramp_box_params :: fn(count: usize) -> string {
-    sb :: new_builder()
+    sb :: StringBuilder {}
     for j in 0..<count {
         if j > 0 { sb.append(", ") }
         sb.append("vader_box_t a${j}")

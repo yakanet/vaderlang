@@ -7,7 +7,7 @@
 
 module "vader/text"
 
-import "std/string_builder" { StringBuilder, new_builder, append, append_char }
+import "std/string_builder" { StringBuilder, append, append_char }
 
 /// Identifier byte — `[A-Za-z0-9_]` (regex `\w`). The byte-level classifier
 /// for raw UTF-8 / ASCII `bytes()` views ; bytes outside the class are what
@@ -23,7 +23,7 @@ export is_ident_byte :: fn(b: u8) = (b >= 'A' && b <= 'Z') || (b >= 'a' && b <= 
 /// @param s  the raw string to quote.
 /// @return   `s` wrapped in `"…"` with the five C/JSON escapes applied.
 export quote_simple :: fn(s: string) -> string {
-    sb :: new_builder()
+    sb :: StringBuilder {}
     sb.append_char('"')
     for c in s {
         if c == '"' { sb.append("\\\"") }

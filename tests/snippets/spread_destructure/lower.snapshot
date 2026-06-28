@@ -125,9 +125,10 @@
       arg0:
         block :string
           let __sb_7: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
+            StringBuilder {
+              parts:
+                array :string[]
+            }
           call :void
             callee:
               append :void

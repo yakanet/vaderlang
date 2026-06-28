@@ -121,9 +121,10 @@
       arg0:
         block :string
           let __sb_6: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
+            StringBuilder {
+              parts:
+                array :string[]
+            }
           call :void
             callee:
               append :void
@@ -305,9 +306,10 @@
       arg0:
         block :string
           let __sb_11: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
+            StringBuilder {
+              parts:
+                array :string[]
+            }
           call :void
             callee:
               append :void
@@ -427,9 +429,10 @@
       arg0:
         block :string
           let __sb_12: StringBuilder =
-            call :StringBuilder
-              callee:
-                new_builder :StringBuilder
+            StringBuilder {
+              parts:
+                array :string[]
+            }
           call :void
             callee:
               append :void

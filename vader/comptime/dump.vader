@@ -16,7 +16,7 @@ module "vader/comptime"
 import "std/collections" { keys }
 import "std/sort" { sort }
 import "std/string" { compare_ascending, pad_end }
-import "std/string_builder" { new_builder, append, append_char }
+import "std/string_builder" { StringBuilder, append, append_char }
 import "vader/resolver" { module_in_scope }
 import "vader/typecheck" { TypedProgram }
 AST :: import "vader/parser"
@@ -28,7 +28,7 @@ AST :: import "vader/parser"
 /// @param scope    in-scope module ids / prefixes (see `module_in_scope`).
 /// @return         the formatted dump, no trailing newline.
 export dump_evaluated :: fn(project: EvaluatedProject, scope: string[]) -> string {
-    sb := new_builder()
+    sb := StringBuilder {}
     sb.append("# Comptime")
     module_ids :: sort(project.modules.keys(), (a: string, b: string) -> compare_ascending(a, b))
     for module_id in module_ids {

@@ -7,7 +7,7 @@
 
 module "vader/comptime"
 
-import "std/string_builder" { new_builder, append, append_char }
+import "std/string_builder" { StringBuilder, append, append_char }
 import "vader/diagnostics" { comptime_error }
 import "vader/diagnostics" { ComptimeCode }
 AST :: import "vader/parser"
@@ -55,7 +55,7 @@ export evaluate_string_lit :: fn(
     literal: AST.StringLitExpr, context: ComptimeContext,
     recurse: fn(AST.Expr, ComptimeContext) -> EvalResult,
 ) -> EvalResult {
-    sb := new_builder()
+    sb := StringBuilder {}
     for part in literal.parts {
         match part {
             is AST.StringLitText as text -> { sb.append(text.value) }

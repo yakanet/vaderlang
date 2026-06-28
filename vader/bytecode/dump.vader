@@ -21,7 +21,7 @@
 
 module "vader/bytecode"
 
-import "std/string_builder" { StringBuilder, new_builder, append, append_char }
+import "std/string_builder" { StringBuilder, append, append_char }
 import "std/numbers" { to_hex }
 import "std/string" { pad_start }
 import "std/collections" { MutableMap }
@@ -57,7 +57,7 @@ export dump_bytecode_annotated :: fn(module: BytecodeModule, entry_mangled: stri
     dump_bytecode_impl(module, entry_mangled, true)
 
 dump_bytecode_impl :: fn(module: BytecodeModule, entry_mangled: string, annotate: bool) -> string {
-    sb :: new_builder()
+    sb :: StringBuilder {}
     sb.append("module ${module.name}\n")
     write_types(sb, module.types)
     write_strings(sb, module.strings)
@@ -94,7 +94,7 @@ write_data_pool :: fn(sb: StringBuilder, data_pool: BcDataEntry[], strings: stri
     for i in 0..<data_pool.len() {
         e :: data_pool[i]
         if e is BcStrData as sd {
-            out :: new_builder()
+            out :: StringBuilder {}
             out.append("data ${i} str")
             for v in sd.values { out.append(" ${quote_string(v)}") }
             sb.append("${out}\n")
@@ -112,7 +112,7 @@ write_data_pool :: fn(sb: StringBuilder, data_pool: BcDataEntry[], strings: stri
             //   data N agg <elemname> <count> <value>…
             // where <value> is `<kind> <hex>` (primitive) | `str "…"` | `strref <i>` |
             //   `struct <symid> <nfields> <value>…` | `array <elemname> <n> <value>…`.
-            out :: new_builder()
+            out :: StringBuilder {}
             hs :: homogeneous_struct(ad)
             if hs.symbol_id >= 0 {
                 out.append("data ${i} structs ${hs.symbol_id} ${hs.nfields} ${ad.elements.len()}")
@@ -192,7 +192,7 @@ write_data_value :: fn(out: StringBuilder, v: BcDataValue, str_index: MutableMap
 // Little-endian hex of a single bit pattern at the kind's natural width.
 data_value_hex :: fn(kind: ArrayKind, bits: u64) -> string {
     esz :: usize(array_kind_element_size(kind))
-    out :: new_builder()
+    out :: StringBuilder {}
     for b in 0..<esz {
         byte :: (bits >> u64(8 * b)) & 0xFF
         out.append(pad_start(to_hex(byte), 2, '0'))
@@ -203,7 +203,7 @@ data_value_hex :: fn(kind: ArrayKind, bits: u64) -> string {
 // Little-endian hex of every element's bit pattern (`element_size` bytes each).
 data_items_hex :: fn(entry: BcPrimData) -> string {
     esz :: usize(array_kind_element_size(entry.kind))
-    out :: new_builder()
+    out :: StringBuilder {}
     for item in entry.items {
         for b in 0..<esz {
             byte :: (item >> u64(8 * b)) & 0xFF
@@ -225,7 +225,7 @@ format_bc_type :: fn(t: BcType) -> string = match t {
 
 /// `name:idx` joined by `,`. Matches TS `formatType` for struct fields.
 format_fields :: fn(fields: BcField[]) -> string {
-    sb :: new_builder()
+    sb :: StringBuilder {}
     for i in 0..<fields.len() {
         if i > 0 { sb.append(",") }
         sb.append("${fields[i].name}:${fields[i].type_index}")
@@ -235,7 +235,7 @@ format_fields :: fn(fields: BcField[]) -> string {
 
 /// Type-indices joined by `,`. Used by union and fn param/return formats.
 format_variants :: fn(items: i32[]) -> string {
-    sb :: new_builder()
+    sb :: StringBuilder {}
     for i in 0..<items.len() {
         if i > 0 { sb.append(",") }
         sb.append("${items[i]}")
@@ -274,7 +274,7 @@ is_simple_ident :: fn(s: string) -> bool {
 /// dumps (no full Unicode escape — bytecode names stay ASCII-safe in
 /// practice).
 json_escape :: fn(s: string) -> string {
-    sb :: new_builder()
+    sb :: StringBuilder {}
     sb.append_char('"')
     bytes :: s.bytes()
     n :: bytes.len()
@@ -874,7 +874,7 @@ import "std/testing" { assert_eq }
 /// reads back through), which understands exactly `\n \t \r \" \\ \0` and is
 /// byte-transparent for the rest — it has no `\u` / `\x` form.
 export quote_string :: fn(value: string) -> string {
-    out :: new_builder()
+    out :: StringBuilder {}
     out.append("\"")
     vb :: value.bytes()
     n :: vb.len()

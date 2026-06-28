@@ -6,7 +6,7 @@
 
 module "std/string"
 
-import "std/string_builder" { StringBuilder, new_builder, append, append_char }
+import "std/string_builder" { StringBuilder, append, append_char }
 import "std/math" { min }
 
 // Length in bytes. Module-internal (NOT exported) — callers write
@@ -390,7 +390,7 @@ export split :: fn(s: string, sep: string) -> string[] {
 ///               or trailing copy).
 /// @return       the concatenation, or `""` when `parts` is empty.
 export join :: fn(parts: string[], sep: string) -> string {
-    sb :: new_builder()
+    sb :: StringBuilder {}
     for i in 0..<parts.len() {
         if i > 0 { sb.append(sep) }
         sb.append(parts[i])
@@ -426,7 +426,7 @@ export replace_all :: fn(s: string, old: string, new: string) = s.split(old).joi
 /// @param n  how many copies.
 /// @return   `s` repeated `n` times.
 export repeat :: fn(s: string, n: usize) -> string {
-    sb :: new_builder()
+    sb :: StringBuilder {}
     for _ in 0..<n { sb.append(s) }
     return sb.to_string()
 }
@@ -500,7 +500,7 @@ to_lower_cp :: fn(cp: u32) -> u32 {
 /// remapped ones. Codepoints outside those ranges (incl. `ß`, non-Latin
 /// scripts) pass through unchanged ; no full Unicode case tables.
 export to_upper :: fn(s: string) -> string {
-    sb :: new_builder()
+    sb :: StringBuilder {}
     bs :: s.bytes()
     n  :: bs.len()
     i: usize = 0
@@ -520,7 +520,7 @@ export to_upper :: fn(s: string) -> string {
 /// remapped ones. Codepoints outside those ranges pass through unchanged ;
 /// no full Unicode case tables.
 export to_lower :: fn(s: string) -> string {
-    sb :: new_builder()
+    sb :: StringBuilder {}
     bs :: s.bytes()
     n  :: bs.len()
     i: usize = 0
@@ -605,7 +605,7 @@ export pad_start :: fn(s: string, width: usize, fill: char) -> string {
     if n >= width {
         return s
     }
-    sb := new_builder()
+    sb := StringBuilder {}
     for i in n..<width {
         sb.append_char(fill)
     }
@@ -620,7 +620,7 @@ export pad_end :: fn(s: string, width: usize, fill: char) -> string {
     if n >= width {
         return s
     }
-    sb := new_builder()
+    sb := StringBuilder {}
     sb.append(s)
     for i in n..<width {
         sb.append_char(fill)
@@ -670,7 +670,7 @@ export trim_prefix :: fn(s: string, prefix: string) -> string {
 ///   `decode_escapes("plain")     // "plain"`
 export decode_escapes :: fn(body: string) -> string {
     if !body.contains("\\") { return body }
-    out :: new_builder()
+    out :: StringBuilder {}
     bs :: body.bytes()
     n :: bs.len()
     i: usize = 0
@@ -715,7 +715,7 @@ export decode_escapes :: fn(body: string) -> string {
 /// @param replacement  string to substitute for each match.
 /// @return             a fresh string.
 export replace_chars_where :: fn(s: string, pred: fn(char) -> bool, replacement: string) -> string {
-    sb := new_builder()
+    sb := StringBuilder {}
     for c in s.chars() {
         if pred(c) {
             sb.append(replacement)
@@ -740,13 +740,13 @@ export replace_chars_where :: fn(s: string, pred: fn(char) -> bool, replacement:
 ///    `"a,b,,c".split_where(c => c == ',') → ["a", "b", "c"]`
 export split_where :: fn(s: string, pred: fn(char) -> bool) -> string[] {
     out: string[] = []
-    sb := new_builder()
+    sb := StringBuilder {}
     has_pending := false
     for c in s.chars() {
         if pred(c) {
             if has_pending {
                 out.push(sb.to_string())
-                sb = new_builder()
+                sb = StringBuilder {}
                 has_pending = false
             }
         } else {

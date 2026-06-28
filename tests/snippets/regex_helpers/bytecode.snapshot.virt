@@ -430,7 +430,7 @@ fn 3 std_core$format_unsigned (u64) -> string
     end $L2
   end $L1
   local.get 2
-  call 22
+  call 21
   local.set 6
   local.get 2
   local.set 4
@@ -464,7 +464,7 @@ fn 3 std_core$format_unsigned (u64) -> string
         local.get 6
         local.get 4
         local.get 10
-        call 25
+        call 24
         i64.const 10
         local.set 5
         local.get 0
@@ -478,7 +478,7 @@ fn 3 std_core$format_unsigned (u64) -> string
   end $L4
   local.get 6
   local.get 2
-  call 23
+  call 22
   return
 end
 
@@ -560,7 +560,8 @@ fn 7 std_string$replace_chars_where (string,ref,string) -> string
   local __iter_0 ref
   local __step_1 ref
   local c char
-  call 18
+  array.new 13 0
+  struct.new 17
   local.set 3
   local.get 0
   call 11
@@ -582,18 +583,18 @@ fn 7 std_string$replace_chars_where (string,ref,string) -> string
         if $L3 void
           local.get 3
           local.get 2
-          call 19
+          call 18
         else
           local.get 3
           local.get 6
-          call 20
+          call 19
         end $L3
         br $L1
       end $L2
     end $L1
   end $L0
   local.get 3
-  call 21
+  call 20
   return
 end
 
@@ -604,10 +605,11 @@ fn 8 std_string$split_where (string,ref) -> ref
   local __iter_0 ref
   local __step_1 ref
   local c char
-  local $call_17 string
+  local $call_18 string
   array.new 13 0
   local.set 2
-  call 18
+  array.new 13 0
+  struct.new 17
   local.set 3
   bool.const false
   local.set 4
@@ -632,12 +634,13 @@ fn 8 std_string$split_where (string,ref) -> ref
           local.get 4
           if $L4 void
             local.get 3
-            call 21
+            call 20
             local.set 8
             local.get 2
             local.get 8
             array.push 9
-            call 18
+            array.new 13 0
+            struct.new 17
             local.set 3
             bool.const false
             local.set 4
@@ -646,7 +649,7 @@ fn 8 std_string$split_where (string,ref) -> ref
         else
           local.get 3
           local.get 7
-          call 20
+          call 19
           bool.const true
           local.set 4
         end $L3
@@ -657,7 +660,7 @@ fn 8 std_string$split_where (string,ref) -> ref
   local.get 4
   if $L5 void
     local.get 3
-    call 21
+    call 20
     local.set 8
     local.get 2
     local.get 8
@@ -1269,38 +1272,32 @@ fn 17 std_string_builder$concat2 (string,string) -> string
   local.get 3
   i64.add
   local.tee 3
-  call 22
+  call 21
   local.set 4
   i64.const 0
   local.set 5
   local.get 4
   local.get 5
   local.get 0
-  call 24
+  call 23
   local.get 4
   local.get 2
   local.get 1
-  call 24
+  call 23
   local.get 4
   local.get 3
-  call 23
+  call 22
   return
 end
 
-fn 18 std_string_builder$new_builder () -> ref
-  array.new 13 0
-  struct.new 17
-  return
-end
-
-fn 19 std_string_builder$append (ref,string) -> void
+fn 18 std_string_builder$append (ref,string) -> void
   local.field 0 17 0
   local.get 1
   array.push 9
   return
 end
 
-fn 20 std_string_builder$append_char (ref,char) -> void
+fn 19 std_string_builder$append_char (ref,char) -> void
   local $field_2 ref
   local $call_4 string
   local.field 0 17 0
@@ -1315,7 +1312,7 @@ fn 20 std_string_builder$append_char (ref,char) -> void
   return
 end
 
-fn 21 std_string_builder$StringBuilder$Display$to_string (ref) -> string
+fn 20 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   local n usize
   local $k_4 usize
   local $field_9 ref
@@ -1386,7 +1383,7 @@ fn 21 std_string_builder$StringBuilder$Display$to_string (ref) -> string
     end $L3
   end $L2
   local.get 1
-  call 22
+  call 21
   local.set 3
   i64.const 0
   local.set 2
@@ -1410,7 +1407,7 @@ fn 21 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         local.get 3
         local.get 2
         local.get 8
-        call 24
+        call 23
         local.get 8
         call.import 3
         local.set 6
@@ -1431,24 +1428,24 @@ fn 21 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   end $L5
   local.get 3
   local.get 1
-  call 23
+  call 22
   return
 end
 
-fn 22 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 21 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   object_new 0
   return
 end
 
-fn 23 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 22 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
   buffer_to_string
   return
 end
 
-fn 24 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 23 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0
   local.get 1
   local.get 2
@@ -1456,7 +1453,7 @@ fn 24 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   return
 end
 
-fn 25 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
+fn 24 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   local.get 0
   local.get 1
   local.get 2

@@ -1061,19 +1061,19 @@ parse_data_const :: fn(line: string) -> bc.Op | null {
 // ---- tests ----------------------------------------------------------------
 
 import "std/testing" { assert_eq }
-import "std/string_builder" { new_builder }
+import "std/string_builder" { StringBuilder }
 
 /// Round-trip an op through `write_op` (the canonical mnemonic writer,
 /// dump.vader) and `parse_op_line`, returning the re-serialised text. A parse
 /// miss returns a sentinel so the asserting test fails with the offending
 /// mnemonic rather than a bare `null`.
 roundtrip_op_text :: fn(op: bc.Op) -> string {
-    sb :: new_builder()
+    sb :: StringBuilder {}
     bc.write_op(sb, op)
     text :: "${sb}"
     parsed :: parse_op_line(text, head_of(text))
     if parsed is null { return "PARSE-FAIL: ${text}" }
-    sb2 :: new_builder()
+    sb2 :: StringBuilder {}
     bc.write_op(sb2, parsed)
     return "${sb2}"
 }

@@ -15,12 +15,12 @@
 module "vader/resolver"
 
 import "std/string" { pad_end }
-import "std/string_builder" { StringBuilder, new_builder, append, append_char }
+import "std/string_builder" { StringBuilder, append, append_char }
 import "vader/resolver/symbol" { Symbol, SymbolKind, kind_name }
 import "vader/parser" { Visibility }
 
 export dump_project :: fn(p: ResolvedProject) -> string {
-    sb :: new_builder()
+    sb :: StringBuilder {}
     sb.append("# Modules")
     for m in p.modules {
         sb.append("\n\n## ")

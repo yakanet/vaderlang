@@ -274,7 +274,7 @@ fn 2 std_core$format_signed (i64) -> string
   end $L5
   local.get 4
   local.tee 2
-  call 56
+  call 55
   local.set 6
   local.get 2
   local.set 4
@@ -305,7 +305,7 @@ fn 2 std_core$format_signed (i64) -> string
         local.get 6
         local.get 4
         local.get 9
-        call 59
+        call 58
         local.get 0
         i64.const 10
         i64.div
@@ -324,12 +324,12 @@ fn 2 std_core$format_signed (i64) -> string
     local.get 6
     local.get 4
     local.get 7
-    call 59
+    call 58
   else
   end $L9
   local.get 6
   local.get 2
-  call 57
+  call 56
   return
 end
 
@@ -5416,10 +5416,12 @@ end
 fn 26 std_semver$Version$Display$to_string (ref) -> string
   local sb ref
   local __sb_0 ref
-  local $call_7 string
-  call 54
+  local $call_9 string
+  array.new 19 0
+  struct.new 31
   local.set 1
-  call 54
+  array.new 19 0
+  struct.new 31
   local.set 2
   local.field 0 3 0
   ref.cast 1
@@ -5428,10 +5430,10 @@ fn 26 std_semver$Version$Display$to_string (ref) -> string
   local.set 3
   local.get 2
   local.get 3
-  call 55
+  call 54
   local.get 2
   string.const 32
-  call 55
+  call 54
   local.field 0 3 1
   ref.cast 1
   i32.to_i64
@@ -5439,10 +5441,10 @@ fn 26 std_semver$Version$Display$to_string (ref) -> string
   local.set 3
   local.get 2
   local.get 3
-  call 55
+  call 54
   local.get 2
   string.const 32
-  call 55
+  call 54
   local.field 0 3 2
   ref.cast 1
   i32.to_i64
@@ -5450,13 +5452,13 @@ fn 26 std_semver$Version$Display$to_string (ref) -> string
   local.set 3
   local.get 2
   local.get 3
-  call 55
+  call 54
   local.get 2
   call 53
   local.set 3
   local.get 1
   local.get 3
-  call 55
+  call 54
   local.field 0 3 3
   ref.cast 2
   call 34
@@ -5464,13 +5466,13 @@ fn 26 std_semver$Version$Display$to_string (ref) -> string
   if $L0 void
     local.get 1
     string.const 22
-    call 55
+    call 54
     local.field 0 3 3
     ref.cast 2
     local.set 3
     local.get 1
     local.get 3
-    call 55
+    call 54
   else
   end $L0
   local.field 0 3 4
@@ -5480,13 +5482,13 @@ fn 26 std_semver$Version$Display$to_string (ref) -> string
   if $L1 void
     local.get 1
     string.const 46
-    call 55
+    call 54
     local.field 0 3 4
     ref.cast 2
     local.set 3
     local.get 1
     local.get 3
-    call 55
+    call 54
   else
   end $L1
   local.get 1
@@ -7355,21 +7357,21 @@ fn 52 std_string_builder$concat2 (string,string) -> string
   local.get 3
   i64.add
   local.tee 3
-  call 56
+  call 55
   local.set 4
   i64.const 0
   local.set 5
   local.get 4
   local.get 5
   local.get 0
-  call 58
+  call 57
   local.get 4
   local.get 2
   local.get 1
-  call 58
+  call 57
   local.get 4
   local.get 3
-  call 57
+  call 56
   return
 end
 
@@ -7444,7 +7446,7 @@ fn 53 std_string_builder$StringBuilder$Display$to_string (ref) -> string
     end $L3
   end $L2
   local.get 1
-  call 56
+  call 55
   local.set 3
   i64.const 0
   local.set 2
@@ -7468,7 +7470,7 @@ fn 53 std_string_builder$StringBuilder$Display$to_string (ref) -> string
         local.get 3
         local.get 2
         local.get 8
-        call 58
+        call 57
         local.get 8
         call.import 2
         local.set 6
@@ -7489,37 +7491,31 @@ fn 53 std_string_builder$StringBuilder$Display$to_string (ref) -> string
   end $L5
   local.get 3
   local.get 1
-  call 57
+  call 56
   return
 end
 
-fn 54 std_string_builder$new_builder () -> ref
-  array.new 19 0
-  struct.new 31
-  return
-end
-
-fn 55 std_string_builder$append (ref,string) -> void
+fn 54 std_string_builder$append (ref,string) -> void
   local.field 0 31 0
   local.get 1
   array.push 2
   return
 end
 
-fn 56 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 55 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   object_new 0
   return
 end
 
-fn 57 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 56 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
   buffer_to_string
   return
 end
 
-fn 58 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 57 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0
   local.get 1
   local.get 2
@@ -7527,7 +7523,7 @@ fn 58 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   return
 end
 
-fn 59 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
+fn 58 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   local.get 0
   local.get 1
   local.get 2

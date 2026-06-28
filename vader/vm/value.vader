@@ -16,7 +16,7 @@
 module "vader/vm"
 
 import "std/string" { starts_with }
-import "std/string_builder" { new_builder, append }
+import "std/string_builder" { StringBuilder, append }
 import "vader/bytecode" { ConvertTarget }
 bc :: import "vader/bytecode"
 
@@ -802,7 +802,7 @@ ObjVal implements Display {
 /// struct of type id 5 with fields `1` and `2`.
 StructVal implements Display {
     to_string :: fn(self) -> string {
-        sb :: new_builder()
+        sb :: StringBuilder {}
         sb.append("${self.type_id}{ ")
         for i in 0..<self.fields.len() {
             if i > 0 { sb.append(", ") }
@@ -817,7 +817,7 @@ StructVal implements Display {
 /// `[1, 2, 3]`. Matches `displayValue` in `src/vm/value.ts`.
 ArrayVal implements Display {
     to_string :: fn(self) -> string {
-        sb :: new_builder()
+        sb :: StringBuilder {}
         sb.append("[")
         for i in 0..<self.length {
             if i > 0 { sb.append(", ") }

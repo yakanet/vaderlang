@@ -15,7 +15,7 @@ module "vader/lsp/protocol"
 
 import "std/io" { read_stdin, print, eprintln, poll_stdin, set_stdin_unbuffered }
 import "std/string" { byte_decode_at, starts_with, parse_int, ParseError }
-import "std/string_builder" { new_builder, append }
+import "std/string_builder" { StringBuilder, append }
 
 export TransportError :: struct {
     msg: string
@@ -39,7 +39,7 @@ export read_frame :: fn() -> string | TransportError {
     // `\r\n` so we read 1 byte at a time looking for the terminator —
     // header lines are short (typically < 100 bytes) so the per-byte
     // overhead is negligible compared to the body payload.
-    line_buf := new_builder()
+    line_buf := StringBuilder {}
     finished := false
     for !finished {
         b :: read_stdin(1)
@@ -72,7 +72,7 @@ export read_frame :: fn() -> string | TransportError {
                                 // Other headers (`Content-Type`, etc.) are
                                 // silently ignored — LSP allows them but
                                 // doesn't require them.
-                                line_buf = new_builder()
+                                line_buf = StringBuilder {}
                             }
                         }
                     }
@@ -135,7 +135,7 @@ export poll_pending :: fn(timeout_ms: i32) -> bool = poll_stdin(timeout_ms)
 /// @param body  the JSON-encoded message to send.
 export write_frame :: fn(body: string) -> void {
     n :: body.bytes().len()
-    sb := new_builder()
+    sb := StringBuilder {}
     sb.append("Content-Length: ")
     sb.append("${n}")
     sb.append("\r\n\r\n")

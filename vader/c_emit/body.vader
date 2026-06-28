@@ -27,7 +27,7 @@
 
 module "vader/c_emit"
 
-import "std/string_builder" { StringBuilder, new_builder, append, append_char }
+import "std/string_builder" { StringBuilder, append, append_char }
 import "std/numbers" { is_hex_digit }
 import "vader/bytecode" {
     BcType, BcPrimitive, BcStruct, BcArray, BcUnion, BcRef, BcFn,
@@ -47,7 +47,7 @@ import "vader/text" { is_ident_byte }
 /// @param raw  the mangled name from the bytecode (`std_core_i32_Add_add` etc.).
 /// @return     a safe C identifier.
 export sanitise :: fn(raw: string) -> string {
-    sb :: new_builder()
+    sb :: StringBuilder {}
     rawb :: raw.bytes()
     n :: rawb.len()
     for i in 0..<n {
@@ -99,7 +99,7 @@ is_c_reserved :: fn(name: string) -> bool = name in C_RESERVED_WORDS
 /// @return   a C source-text string literal, including the surrounding
 ///           double quotes.
 export c_string_lit :: fn(s: string) -> string {
-    sb :: new_builder()
+    sb :: StringBuilder {}
     sb.append_char('"')
     sbytes :: s.bytes()
     n :: sbytes.len()
