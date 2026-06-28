@@ -757,6 +757,12 @@ cc_argv :: fn(cc: string, c_file: string, out: string, release: bool, ldflags: s
     if release {
         argv.push("-O3")
         argv.push("-DNDEBUG")
+        // Cache-line-align every function so a hot loop's alignment is stable
+        // against unrelated code growth elsewhere in the unit. Without it, adding
+        // a few lines to one runtime fn can shift a hot fn (e.g. `vader_array_push`)
+        // onto a bad %64 offset and slow its byte-identical loop ~1.6× (the
+        // arr_push layout regression). +1.3 % binary, neutral on self-compile.
+        argv.push("-falign-functions=64")
     } else {
         argv.push("-O0")
         argv.push("-g")
