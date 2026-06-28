@@ -324,6 +324,24 @@ T[] implements<T: Equals> Contains<T> {
     }
 }
 
+/// `[lhs] * n` — array repeat / preallocation, the `*` operator on arrays.
+/// `[v] * n` repeats the elements `n` times (`[7, 9] * 2` → `[7, 9, 7, 9]`) ; the
+/// empty-LHS form `[] * n` is the preallocation primitive (length 0, capacity `n`
+/// — the `with_capacity` replacement). The typer recognises `* ` on an array
+/// directly (like `in`/Contains : the blanket `T[]` key never matches a concrete
+/// array's element-specific name) and the lowerer devirtualises BOTH forms to the
+/// `array.repeat` intrinsic, which preserves the preallocation form and shallow
+/// ref-element semantics. The body below is the logical repeat fallback for any
+/// path the devirt can't statically reach. Blanket impl (orphan rule : `Mul` is
+/// std/core's, `T[]` isn't), mirroring the `Into` / `Contains` blankets above.
+T[] implements<T> Mul<usize> {
+    mul :: fn(self, other: usize) -> T[] {
+        out: T[] = []
+        for _ in 0..<other { out.push_all(self) }
+        return out
+    }
+}
+
 T implements<T: Display> Into<string> {
     into :: fn(self) -> string {
         return self.to_string()

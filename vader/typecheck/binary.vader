@@ -96,11 +96,14 @@ export infer_binary :: fn(
 // ---- per-op-class checkers ------------------------------------------------
 
 check_arith :: fn(e: AST.BinaryExpr, left: Type, right: Type, typed: TypedProgram, diags: Diagnostic[]) -> Type {
-    // `[lhs] * n` — array repeat / preallocation. The array must be on the LEFT,
-    // the count an integer on the right ; the result is the array type. Must
-    // precede the numeric check below (the integer right operand would otherwise
-    // route the whole expression into `numeric_result`). Lowers to the
-    // `array.repeat` intrinsic (see `lower_binary.vader`).
+    // `[lhs] * n` — array repeat / preallocation. The declared `T[] implements<T>
+    // Mul<usize>` (std/core) is the documented contract, but we accept any array
+    // directly here rather than consult it — exactly like `in`/Contains in
+    // `check_in` : the blanket `T[]::mul` key never matches a concrete array's
+    // element-specific name. Array on the LEFT, integer count on the right ; result
+    // is the array type. Must precede the numeric check below (the integer right
+    // operand would otherwise route the expression into `numeric_result`). The
+    // lowerer devirtualises to the `array.repeat` intrinsic (see `lower_binary`).
     if e.op == .Mul && left is ArrayType {
         if !is_numeric(right) {
             diags.push(typecheck_error(.OperatorNotDefined, e.right.span,
