@@ -95,6 +95,67 @@ fn_calls_may_alloc :: fn(fn_decl: BcFunction, may_alloc: i32[]) -> bool {
 /// (`stack = true`) does NOT — it lands on the C stack. Indirect callers
 /// are conservatively included (unknown target). Open-domain filter over
 /// a few variants → an `if`-chain, not an exhaustive `match`.
+// Drop resolve-CSE cache entries the op invalidates — see `FnState.resolved_arrays`.
+// Called before every op is emitted.
+invalidate_resolve_cache :: fn(s: FnState, op: vm.Op) -> void {
+    if op is vm.LocalSet as ls {
+        drop_resolved_for_local(s, ls.slot)
+        return
+    }
+    if op is vm.LocalTee as lt {
+        drop_resolved_for_local(s, lt.slot)
+        return
+    }
+    if !is_cache_safe(op) { s.resolved_arrays.clear() }
+}
+
+// True when the op provably cannot move/realloc an array buffer, trigger a GC, or
+// end the straight-line region the cached `_slotarr` C temps are scoped to — so
+// the resolve cache survives it. DEFAULT-DENY : anything NOT listed clears the
+// cache. A missing pure op only costs CSE coverage (under-optimised) ; trusting an
+// allow-list of *dangerous* ops would turn a missing alloc/call op (e.g. the
+// GC-moving `array.slice`) into a stale-pointer use-after-free. New pure value ops
+// just get added here. `LocalSet` / `LocalTee` never reach this — they invalidate
+// precisely upstream. Slot stores stay safe : a write never reallocs.
+is_cache_safe :: fn(op: vm.Op) -> bool {
+    if op is vm.LocalGet | vm.LocalField | vm.StructGet { return true }
+    if op is vm.LoadSlot | vm.LoadSlotU8 | vm.LoadSlotI32 | vm.LoadSlotI64 | vm.LoadSlotF64 { return true }
+    if op is vm.StoreSlot | vm.StoreSlotU8 | vm.StoreSlotI32 | vm.StoreSlotI64 | vm.StoreSlotF64 { return true }
+    if op is vm.ArrayGet | vm.ArraySet | vm.ArrayLen { return true }
+    if op is vm.LoadI32 | vm.LoadI64 | vm.LoadF64 | vm.LoadU8 { return true }
+    if op is vm.StoreI32 | vm.StoreI64 | vm.StoreF64 | vm.StoreU8 { return true }
+    if op is vm.I32Const | vm.I64Const | vm.F64Const | vm.BoolConst | vm.CharConst { return true }
+    if op is vm.NullConst | vm.StringConst | vm.DataConst | vm.TypeConst | vm.SizeOfType | vm.FnRef { return true }
+    if op is vm.I32Add | vm.I32Sub | vm.I32Mul | vm.I32Div | vm.I32Mod | vm.I32Neg { return true }
+    if op is vm.I64Add | vm.I64Sub | vm.I64Mul | vm.I64Div | vm.I64Mod | vm.I64Neg { return true }
+    if op is vm.F64Add | vm.F64Sub | vm.F64Mul | vm.F64Div | vm.F64Neg { return true }
+    if op is vm.U32Div | vm.U32Mod | vm.U64Div | vm.U64Mod { return true }
+    if op is vm.I32BitAnd | vm.I32BitOr | vm.I32BitXor | vm.I32BitNot | vm.I32Shl | vm.I32Shr | vm.I32ShrU { return true }
+    if op is vm.I64BitAnd | vm.I64BitOr | vm.I64BitXor | vm.I64BitNot | vm.I64Shl | vm.I64Shr | vm.I64ShrU { return true }
+    if op is vm.I32Eq | vm.I32Ne | vm.I32Lt | vm.I32Le | vm.I32Gt | vm.I32Ge { return true }
+    if op is vm.I64Eq | vm.I64Ne | vm.I64Lt | vm.I64Le | vm.I64Gt | vm.I64Ge { return true }
+    if op is vm.F64Eq | vm.F64Ne | vm.F64Lt | vm.F64Le | vm.F64Gt | vm.F64Ge { return true }
+    if op is vm.U32Lt | vm.U32Le | vm.U32Gt | vm.U32Ge | vm.U64Lt | vm.U64Le | vm.U64Gt | vm.U64Ge { return true }
+    if op is vm.BoolEq | vm.BoolNe | vm.CharEq | vm.CharNe | vm.CharLt | vm.CharLe | vm.CharGt | vm.CharGe { return true }
+    if op is vm.StringEq | vm.StringNe | vm.RefEq | vm.RefNe { return true }
+    if op is vm.BoolAnd | vm.BoolOr | vm.BoolNot { return true }
+    if op is vm.Convert | vm.IntToChar | vm.CharToInt | vm.BitsToF32 | vm.BitsToF64 | vm.F32ToBits | vm.F64ToBits | vm.RefCast { return true }
+    if op is vm.Drop { return true }
+    return false
+}
+
+// Drop cache entries whose array C-expr names local `l<slot>` — it was just
+// reassigned, so any `_slotarr` resolved from its old value is stale. The `.`
+// after the index keeps `l1.` from matching `l10.…`.
+drop_resolved_for_local :: fn(s: FnState, slot: i32) -> void {
+    needle :: "l${slot}."
+    kept :: MutableMap<string, string> {}
+    for [k, v] in s.resolved_arrays {
+        if !(needle in k) { kept[k] = v }
+    }
+    s.resolved_arrays = kept
+}
+
 op_allocates :: fn(op: vm.Op) -> bool {
     if op is vm.StructNew as sn { return !sn.stack }
     if op is vm.ObjectNew { return true }
@@ -254,6 +315,7 @@ emit_slot_decls :: fn(out: StringBuilder, vals: ValType[], names: string[], root
 /// arithmetic, and `return` ; the arm order tracks `write_op` so the two
 /// stay diffable.
 emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
+    invalidate_resolve_cache(s, op)
     match op {
         is vm.I32Const as c         -> push_const(s, c)
         is vm.I64Const as c         -> push_const(s, c)
@@ -1697,11 +1759,25 @@ emit_slot_store_boxed :: fn(s: FnState) -> void {
 /// its buf — follow the forward pointer like `vader_array_get`) and the D7
 /// always-on bounds check (trap on out-of-range). Returns the local's name.
 emit_slot_array_local :: fn(s: FnState, obj: StackVal, idx: StackVal) -> string {
-    a :: aux(s, "slotarr")
-    line(s, "vader_array_t* ${a} = ${array_hdr_ptr(obj)};")
-    line(s, "while (${a}->buf != NULL && ${a}->buf->header.forward != NULL) { ${a}->buf = (vader_array_buf_t*) ${a}->buf->header.forward; }")
-    line(s, "if ((size_t) ${name_of(idx)} >= ${a}->length) { vader_trap(\"array index out of bounds\"); }")
-    return a
+    key :: array_hdr_ptr(obj)
+    cached :: s.resolved_arrays[key]
+    arr := ""
+    if cached is string as c {
+        // Reuse the resolve from an earlier access on this array in this
+        // straight-line region : skip the buf-forward walk + the array_t* extract
+        // (cc -O3 then CSEs the `->buf->slots` derefs — the arr_rw native win). The
+        // cache is dropped at any GC safepoint / control-flow op / reassignment of
+        // the array's local.
+        arr = c
+    } else {
+        arr = aux(s, "slotarr")
+        line(s, "vader_array_t* ${arr} = ${key};")
+        line(s, "while (${arr}->buf != NULL && ${arr}->buf->header.forward != NULL) { ${arr}->buf = (vader_array_buf_t*) ${arr}->buf->header.forward; }")
+        s.resolved_arrays[key] = arr
+    }
+    // Bounds is always per-access (the reused resolve only shares the buffer walk).
+    line(s, "if ((size_t) ${name_of(idx)} >= ${arr}->length) { vader_trap(\"array index out of bounds\"); }")
+    return arr
 }
 
 /// Primitive slot load — pop array + slot index, read the `cty`-typed element
