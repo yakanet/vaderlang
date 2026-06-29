@@ -10,7 +10,7 @@
 module "main"
 
 import "std/io" { print, println }
-import "std/string_builder" { new_builder, append_char }
+import "std/string_builder" { StringBuilder, append_char }
 
 GENERATIONS :: 100
 WIDTH       :: GENERATIONS
@@ -38,7 +38,7 @@ step :: fn(row: i32[]) -> i32[] {
 }
 
 format_row :: fn(row: i32[]) -> string {
-    sb :: new_builder()
+    sb :: StringBuilder {}
     for cell in row {
         if cell == 1 {
             sb.append_char('#')

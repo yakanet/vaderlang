@@ -18,7 +18,7 @@ import "std/string" {
     split_where, trim, ParseError,
 }
 import "std/char" { is_white_char }
-import "std/string_builder" { new_builder, append }
+import "std/string_builder" { StringBuilder, append }
 
 // Compile-time bake: the canonical test input is embedded next to the source.
 DEFAULT_INPUT :: @file("mowitnow_input.txt")
@@ -181,7 +181,7 @@ run :: fn(input: string) -> string | ParseError {
     }
     lawn :: parse_lawn(lines[0])?
 
-    out :: new_builder()
+    out :: StringBuilder {}
     i: usize = 1
     first := true
     for i < lines.len() {
