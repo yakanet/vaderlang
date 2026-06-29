@@ -40,17 +40,54 @@ AST :: import "vader/parser"
 /// @return       the innermost typed expression at the cursor, or `null`.
 export find_expr_at :: fn(
     decls: AST.Decl[], line: i32, col: i32, typed: TypedProgram,
-) -> AST.Expr | null {
-    state :: FindState { .line = line, .col = col, .best = null, .best_size = 0 }
-    for d in decls { hv_walk_decl(d, typed, state) }
-    return state.best
+) -> AST.Expr | null = find_expr_with_mode(decls, line, col, .SmallestContaining, typed)
+
+/// The receiver expression of a member access whose `.` sits at 1-based
+/// `(line, dot_col)` — the outermost typed expression that *ends* exactly where
+/// the dot begins. Spans encode `end` as one-past-the-last-char, so the receiver
+/// of `recv.field` ends at the dot.
+///
+/// Anchors on the end column rather than "smallest node containing the column
+/// just left of the dot" : that positional query mis-resolves a call receiver
+/// (`f(a, b).m`) to its last argument, whose exclusive-end column overlaps the
+/// closing `)`. The largest node ending at the dot is the call itself. Returns
+/// `null` when nothing typed ends there (whitespace before the dot, an untyped
+/// receiver) — callers fall back to a positional lookup.
+///
+/// @param decls    the file's top-level declarations to descend.
+/// @param line     1-based line of the dot.
+/// @param dot_col  1-based column of the dot ; the receiver ends here.
+/// @param typed    the typed program (a node only matches if it carries a type).
+/// @return         the receiver expression, or `null`.
+export find_receiver_before_dot :: fn(
+    decls: AST.Decl[], line: i32, dot_col: i32, typed: TypedProgram,
+) -> AST.Expr | null = find_expr_with_mode(decls, line, dot_col, .EndsAt, typed)
+
+// Selection rule for the shared walker : `SmallestContaining` keeps the
+// innermost node over the cursor (hover / typeDefinition) ; `EndsAt` keeps the
+// outermost node ending at `(line, col)` (completion receiver).
+FindMode :: enum(u8) {
+    SmallestContaining,
+    EndsAt,
 }
 
 FindState :: struct {
     line:      i32
     col:       i32
+    mode:      FindMode
     best:      AST.Expr | null
     best_size: u64
+}
+
+// Shared driver behind `find_expr_at` / `find_receiver_before_dot` : descends
+// every fn body in `decls`, accumulating the best node under `mode` (see
+// `hv_consider`).
+find_expr_with_mode :: fn(
+    decls: AST.Decl[], line: i32, col: i32, mode: FindMode, typed: TypedProgram,
+) -> AST.Expr | null {
+    state :: FindState { .line = line, .col = col, .mode = mode, .best = null, .best_size = 0 }
+    for d in decls { hv_walk_decl(d, typed, state) }
+    return state.best
 }
 
 hv_walk_decl :: fn(d: AST.Decl, typed: TypedProgram, st: FindState) -> void {
@@ -183,11 +220,22 @@ hv_walk_expr :: fn(e: AST.Expr, typed: TypedProgram, st: FindState) -> void {
 }
 
 hv_consider :: fn(e: AST.Expr, typed: TypedProgram, st: FindState) -> void {
-    sp :: e.span
-    if !span_contains(sp, st.line, st.col) { return }
     // Skip until we have a type entry — no point reporting a node whose hover
-    // would show `?`.
+    // would show `?`, nor resolving a receiver the typed cache can't type.
     if typed.expr_types[e.id] is null { return }
+    sp :: e.span
+    if st.mode == .EndsAt {
+        // Outermost node ending exactly at the dot — the member-access receiver.
+        if sp.end.line != st.line || sp.end.column != st.col { return }
+        size :: span_size(sp)
+        if st.best is null || size > st.best_size {
+            st.best = e
+            st.best_size = size
+        }
+        return
+    }
+    // SmallestContaining : innermost node over the cursor.
+    if !span_contains(sp, st.line, st.col) { return }
     size :: span_size(sp)
     if st.best is null || size < st.best_size {
         st.best = e

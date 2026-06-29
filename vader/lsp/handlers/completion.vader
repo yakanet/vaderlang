@@ -16,9 +16,11 @@ module "vader/lsp/handlers"
 import "std/json" { JsonValue, JsonObject, JsonString, JsonNumber, JsonBool, JsonArray }
 import "std/collections" { MutableMap }
 import "std/string" { split }
-import "vader/types" { StructType, UnresolvedType, FreeIntType, FreeFloatType, display_type }
+import "vader/types" { ArrayType, StructType, UnresolvedType, FreeIntType, FreeFloatType, display_type }
 import "vader/text" { is_ident_byte }
-import "vader/typecheck" { TypedProgram, ufcs_methods_for, UfcsMethod }
+import "vader/typecheck" {
+    TypedProgram, ufcs_methods_for, UfcsMethod, array_builtin_methods, ArrayBuiltinMethod,
+}
 import "vader/lsp/protocol" {
     position_uri, position_line, position_character, span_contains,
     uri_to_path, lsp_to_offset, line_start_offset,
@@ -26,7 +28,7 @@ import "vader/lsp/protocol" {
 import "vader/lsp/analysis" {
     ServerState, DocIndex, DeclEntry, DeclKind, build_index,
     typed_project_for, source_file_for_path, find_expr_at,
-    find_binding_rhs_type_at,
+    find_receiver_before_dot, find_binding_rhs_type_at,
 }
 AST :: import "vader/parser"
 
@@ -183,7 +185,15 @@ member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i3
     sf :: source_file_for_path(entry.module.files, file_path)
     if sf is null { return completion_list([]) }
 
-    recv :: find_expr_at(sf.program.decls, line0 + 1, dot_col - 1, cached.result.typed)
+    // The receiver is the expression ending exactly at the dot (spans encode
+    // `end` one-past-the-last-char). Anchoring on that end column resolves a
+    // call receiver (`f(a, b).m`) to the call itself, not its last argument —
+    // whose exclusive-end overlaps the closing `)` under a plain positional
+    // lookup. Fall back to the positional finder when nothing ends at the dot.
+    recv := find_receiver_before_dot(sf.program.decls, line0 + 1, dot_col, cached.result.typed)
+    if recv == null {
+        recv = find_expr_at(sf.program.decls, line0 + 1, dot_col - 1, cached.result.typed)
+    }
     if recv == null { return completion_list([]) }
     recv_type :: cached.result.typed.expr_types[recv.id]
     if recv_type == null { return completion_list([]) }
@@ -211,6 +221,17 @@ member_completion :: fn(state: ServerState, uri: string, line0: i32, dot_col: i3
                 }
                 items.push(completion_item(fld.name, .Field, detail))
             }
+        }
+    }
+
+    // Built-in array methods (`len`, `push`, …) — neither free fns nor `impl`
+    // members, so the UFCS / impl loops below never surface them. The mutating
+    // ones are already filtered out on an immutable (`const T[]`) receiver.
+    if recv_type is ArrayType as at {
+        for am in array_builtin_methods(at) {
+            if seen[am.name] != null { continue }
+            seen[am.name] = true
+            items.push(completion_item(am.name, .Method, display_type(am.signature)))
         }
     }
 
