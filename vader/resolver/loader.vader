@@ -283,9 +283,8 @@ ingest_module :: fn(
     modules[m.folder] = LoadedModule {
         .module = Module {
             .id           = m.folder,
-            // Display path mirrors TS `src/resolver/loader.ts:94` —
-            // the module's declared name (`module "..."`), NOT the
-            // filesystem folder. Keeps `# Lower` / `# Comptime` /
+            // Display path is the module's declared name (`module "..."`),
+            // NOT the filesystem folder. Keeps `# Lower` / `# Comptime` /
             // `# Typecheck` dumps stable.
             .display_path = m.name,
             .module_name  = m.name,

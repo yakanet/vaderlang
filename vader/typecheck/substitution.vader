@@ -1,6 +1,5 @@
 // vader/typecheck/substitution — Type IR substitution.
 //
-// Mirror of `Substitution` + `substitute` in `src/typecheck/types.ts`.
 // Substitutions map `TypeParam.symbol.id` to a concrete `Type` and
 // optionally rebind `Self`. The lowerer threads one substitution per
 // monomorphisation entry through every type-table read so generic
@@ -82,7 +81,7 @@ export substitute :: fn(t: Type, subst: Substitution) -> Type {
         }
         is UnionType as un -> {
             // Re-normalise through `union_of` (dedup + sort) after
-            // substituting — matches TS' `unionOf(...map(substitute))`.
+            // substituting.
             // `T | null` erased to `Any | null` must re-sort by the
             // substituted display ("Any" < "null"), not keep the
             // pre-substitution order ("null" < "T").

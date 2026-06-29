@@ -1,8 +1,8 @@
 // vader/c_emit/body — per-function C emit machinery + shared name/type
 // helpers used across the C-emit pipeline.
 //
-// Mirror of `src/c_emit/body.ts` (the `cTypeFor*` / `sanitise` /
-// `boxExpr` / `unboxExpr` / `signatureFor` family) plus the per-op /
+// Holds the shared name/type helpers (the `c_type_for*` / `sanitise` /
+// `box_expr` / `unbox_expr` / `signature_for` family) plus the per-op /
 // per-fn body walker. Phase 2 of the port lands the shared helpers ;
 // later phases will fill in `emit_function_body` (per-op emit, label
 // table, structured control, B1 prologue / epilogue, …).
@@ -41,8 +41,7 @@ import "vader/text" { is_ident_byte }
 
 /// Replace every non-`[A-Za-z0-9_]` byte in `raw` with `_`. Then, if the
 /// result collides with a C11 (or common-extension) keyword, suffix it
-/// with `_v` so the emitted C is always valid. Mirrors `sanitise` in
-/// `src/c_emit/emit.ts:1033`.
+/// with `_v` so the emitted C is always valid.
 ///
 /// @param raw  the mangled name from the bytecode (`std_core_i32_Add_add` etc.).
 /// @return     a safe C identifier.
@@ -86,8 +85,7 @@ is_c_reserved :: fn(name: string) -> bool = name in C_RESERVED_WORDS
 
 /// Quote-wrap `s` with C string-literal escapes — `\\`, `\"`, `\n`,
 /// `\r`, `\t` for the printable specials, `\x<hh>` for everything
-/// outside printable ASCII. Lower-case hex digits, matching the TS
-/// reference's `b.toString(16)`.
+/// outside printable ASCII. Lower-case hex digits.
 ///
 /// Special case : when a `\x<hh>` escape is followed by a byte that
 /// happens to be a hex digit (or a UTF-8 continuation byte), the
@@ -154,8 +152,6 @@ hex_digit_lower :: fn(n: u32) -> char {
 /// `vader_box_t` because the runtime null is the box variant whose
 /// tag identifies it ; `ref` / `any` also collapse to `vader_box_t`.
 ///
-/// Mirrors `cTypeForValBare` in `src/c_emit/body.ts:794`.
-///
 /// @param v  the stack-machine value class.
 /// @return   the C type spelling used at locals, signature slots,
 ///           struct-field positions.
@@ -184,8 +180,7 @@ export c_type_for_val_bare :: fn(v: ValType) -> string = match v {
 /// C expression unboxing `name` (a `vader_box_t`) to `target`'s storage —
 /// the per-class payload accessor (`.payload.i` for every integer / char,
 /// `.payload.f` for floats, `.payload.b` / `.payload.s` for bool / string).
-/// `null` / `ref` / `any` pass through (already a box). Mirrors `unboxExpr`
-/// in `src/c_emit/body.ts`.
+/// `null` / `ref` / `any` pass through (already a box).
 ///
 /// @param name    the C name of the `vader_box_t` to unbox.
 /// @param target  the destination stack value class.
@@ -216,8 +211,7 @@ export unbox_expr :: fn(name: string, target: ValType) -> string = match target 
 /// tagged `type_index` — the inverse of `unbox_expr`. Each width routes to
 /// the matching `vader_box_<class>` runtime constructor (unsigned widths
 /// re-cast through the signed payload slot). `null` / `ref` / `any` pass
-/// through (already boxed) ; `void` boxes to the empty box. Mirrors
-/// `boxExpr` in `src/c_emit/body.ts`.
+/// through (already boxed) ; `void` boxes to the empty box.
 ///
 /// @param name        the C name / expression of the value to box.
 /// @param val         its stack value class.
@@ -250,8 +244,7 @@ export box_expr :: fn(name: string, val: ValType, type_index: i32) -> string = m
 /// such primitive is materialised in the type table. Used to tag a box when
 /// the call site has no explicit target type-index (`box_expr_unknown`). A
 /// missing primitive falls back to tag 0 — the receiver's `type_check` simply
-/// misses, exactly as TS. Mirrors the `primitiveTagOf` map in
-/// `src/c_emit/emit.ts`.
+/// misses.
 ///
 /// @param types  the module type table.
 /// @param val    the primitive stack class to find a tag for.
@@ -269,8 +262,7 @@ export primitive_tag_of :: fn(types: BcType[], val: ValType) -> i32 {
 /// Box `name` to a `vader_box_t` without an explicit target type-index — the
 /// tag is the primitive's own BcType index (`primitive_tag_of`). Used by
 /// `coerce_expr` when widening a primitive into a `ref` / `any` slot (fn-arg
-/// boxing, dispatcher result wrapping). Mirrors `boxExprUnknown` in
-/// `src/c_emit/body.ts`.
+/// boxing, dispatcher result wrapping).
 export box_expr_unknown :: fn(types: BcType[], name: string, val: ValType) -> string =
     box_expr(name, val, primitive_tag_of(types, val))
 
@@ -303,8 +295,7 @@ export prefix_before_double_underscore :: fn(s: string) -> string {
 
 /// True when the type at `type_index` is exactly the primitive of class
 /// `slot_val` — the compile-time answer for `type_check` on a primitively-
-/// typed value (no runtime tag to inspect). Mirrors `primitiveMatchesType`
-/// in `src/c_emit/body.ts`.
+/// typed value (no runtime tag to inspect).
 export primitive_matches_type :: fn(types: BcType[], slot_val: ValType, type_index: i32) -> bool {
     t :: types[usize(type_index)]
     if t is BcPrimitive as p { return p.val == slot_val }
@@ -314,8 +305,7 @@ export primitive_matches_type :: fn(types: BcType[], slot_val: ValType, type_ind
 /// C expression coercing `name` from stack class `from` to `to`. Identity
 /// when equal or both boxed ; boxes a primitive into a `ref` / `any` slot ;
 /// unboxes a box into a primitive ; otherwise a double-cast (through `from`
-/// first, matching `emit_convert`). Mirrors `coerceExpr` in
-/// `src/c_emit/body.ts` — B1 nullable-ref slots are deferred to T12.
+/// first, matching `emit_convert`). B1 nullable-ref slots are deferred to T12.
 ///
 /// @param types  the module type table (for the box tag).
 /// @param name   the C name / expression to coerce.
@@ -345,8 +335,6 @@ export coerce_operand :: fn(types: BcType[], name: string, from: ValType, to: Va
 /// collapse to `vader_box_t` ; primitives delegate to
 /// `c_type_for_val_bare`.
 ///
-/// Mirrors `cTypeFor` in `src/c_emit/body.ts:839`.
-///
 /// @param t  the bytecode type-table entry.
 /// @return   the C type spelling for slots of this type.
 export c_type_for :: fn(t: BcType) -> string = match t {
@@ -360,7 +348,7 @@ export c_type_for :: fn(t: BcType) -> string = match t {
 
 /// Stack-machine value class for a `BcType`. Every heap shape lands in
 /// `Ref` ; the value stack itself only ever carries `Ref` slots for
-/// these. Mirrors `valTypeOfBcType` in `src/c_emit/body.ts:826`.
+/// these.
 ///
 /// @param t  the bytecode type-table entry.
 /// @return   the stack-machine value class — primitive name for
@@ -375,20 +363,18 @@ export val_type_of_bc_type :: fn(t: BcType) -> ValType = match t {
 }
 
 /// True for the boxed value classes (`ref` / `any`) — both collapse to
-/// `vader_box_t` storage and are GC roots. Mirrors `isRefVal` in
-/// `src/c_emit/body.ts`.
+/// `vader_box_t` storage and are GC roots.
 export is_ref_val :: fn(v: ValType) -> bool = v == ValType.Ref || v == ValType.Any
 
 /// Stack value class of the field / slot whose `BcType` lives at
-/// `type_index` in `types`. Mirrors `valTypeOfField` in
-/// `src/c_emit/body.ts` — the field-store / field-read / arg paths use it
+/// `type_index` in `types`. The field-store / field-read / arg paths use it
 /// to spell the C-storage type of a struct field.
 export val_type_of_field :: fn(types: BcType[], type_index: i32) -> ValType =
     val_type_of_bc_type(types[usize(type_index)])
 
-/// Canonical C identifier for a `BcStruct` slot. Format matches the TS
-/// emit's `vader_struct_<sanitised>_t` so the runtime `vader.h` shim
-/// and any hand-written debug printer can spot the type by name.
+/// Canonical C identifier for a `BcStruct` slot. Format is
+/// `vader_struct_<sanitised>_t` so the runtime `vader.h` shim and any
+/// hand-written debug printer can spot the type by name.
 ///
 /// @param name  the source-level struct name (post-monomorphization mangle).
 /// @return      the C `typedef` identifier, e.g. `vader_struct_Pair_t`.

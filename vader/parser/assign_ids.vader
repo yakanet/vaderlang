@@ -5,10 +5,9 @@
 // integer rather than on stringified spans (which collide when materialise
 // clones default-method bodies into impl members).
 //
-// Mirrors `src/parser/assign-ids.ts`. TS uses structural detection (any
-// object with `kind` + `span`) ; Vader has no reflection so this walker
-// enumerates every variant of `Decl`, `Expr`, `Stmt`, `Pattern`,
-// `LetBinding`, `ImportBinding`, `StringLitPart`, etc. explicitly.
+// Vader has no reflection, so this walker enumerates every variant of
+// `Decl`, `Expr`, `Stmt`, `Pattern`, `LetBinding`, `ImportBinding`,
+// `StringLitPart`, etc. explicitly.
 
 /// Mints a unique `usize` id per call. One factory per parsed file is the
 /// expected ownership shape ; cloned bodies in `materialize.vader` re-use

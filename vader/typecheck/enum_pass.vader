@@ -1,7 +1,6 @@
 // vader/typecheck/enum_pass — variant index resolution for enum decls.
 //
-// Mirror of `resolveEnumIndices` in `src/typecheck/passes/decl.ts`. Walks
-// `EnumDecl.variants` and produces the canonical `name → value` map :
+// Walks `EnumDecl.variants` and produces the canonical `name → value` map :
 // explicit `= N` values land verbatim ; bare variants take `previous + 1`
 // (starting at 0). Range checking against the repr's `[min, max]` bounds
 // and duplicate-value detection emit T3030 / T3031.

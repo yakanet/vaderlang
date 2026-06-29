@@ -184,8 +184,8 @@ export lower_project :: fn(
     // `materialize_representatives` / `close_over_field_shapes` below only push
     // struct decls (no body lowering), so they register nothing — keep it that way.
     flush_generic_fn_instances(project_ctx, project)
-    // Representative "any-args" structs come AFTER fn instances —
-    // matches TS' emission order so generic_brackets etc. byte-match.
+    // Representative "any-args" structs come AFTER fn instances so
+    // generic_brackets etc. keep a stable emission order.
     materialize_representatives(loaded, typed, project_ctx, project, rep_seen)
     // Transitively materialise generic-struct shapes referenced by the
     // fields of the structs emitted above (concrete + representative),
@@ -202,11 +202,10 @@ export lower_project :: fn(
     // (e.g. M5001 from `lower_for_in`) into the caller-owned sink so
     // they reach `# Diagnostics` in the CLI dump.
     for d in project_ctx.diags { diags.push(d) }
-    // Collect vtable entries from impl members. Mirrors TS's
-    // `collectVtableEntries`. Without this, `BcModule.impl_table` is
-    // always empty and `impl TYPE_ID TRAIT_NAME` directives never land
-    // in the .virt — the runtime falls back to mangle-keyed dispatch
-    // but the parity dump diverges.
+    // Collect vtable entries from impl members. Without this,
+    // `BcModule.impl_table` is always empty and `impl TYPE_ID TRAIT_NAME`
+    // directives never land in the .virt — the runtime falls back to
+    // mangle-keyed dispatch.
     project.vtable_entries = collect_vtable_entries(project, loaded, typed)
     // Inline single-expression function calls (trait-impl wrappers like
     // `Display.to_string`, accessors, …) — clone the callee's lowered body with
@@ -238,7 +237,7 @@ lower_module :: fn(
     out_decls: LoweredDecl[] = []
     // First pass : every regular decl in source order. Impl members
     // surface as a multi-decl list right after their ImplDecl so the
-    // dump's per-struct grouping matches TS source-order.
+    // dump's per-struct grouping follows source order.
     synth_start :: project_ctx.synth_decls.len()
     for decl in decls {
         results :: lower_decl_list(decl, typed, project_ctx, diags, decls)
@@ -246,7 +245,7 @@ lower_module :: fn(
     }
     // Second pass : drain the lambda-lift synth decls accumulated while
     // walking this module's bodies (lambdas / defers route through
-    // `synth_decls`). Matches TS `lower.ts:74-78`.
+    // `synth_decls`).
     synth_end :: project_ctx.synth_decls.len()
     for i in synth_start..<synth_end {
         out_decls.push(project_ctx.synth_decls[i])

@@ -175,8 +175,7 @@ export infer_match :: fn(
 // `indices` map (populated at declare-time) so we don't need to walk
 // the program AST a second time.
 // True iff every leaf of `tp` is a binding / wildcard — i.e. matches
-// every tuple of that arity by construction. Mirrors TS's
-// `isIrrefutableTuple`.
+// every tuple of that arity by construction.
 is_irrefutable_tuple_pattern :: fn(tp: AST.TuplePattern) -> bool {
     for el in tp.elements {
         if el is AST.WildcardPattern { continue }

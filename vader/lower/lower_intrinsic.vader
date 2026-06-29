@@ -17,8 +17,7 @@ import "vader/comptime" { TypeValue, byte_size, byte_align }
 lower_intrinsic :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type) -> LoweredExpr {
     // `@file("path")` was baked at comptime — substitute the file's
     // contents as a `LoweredStringLit` so downstream phases see the
-    // materialised constant rather than re-running the AST. Mirror of
-    // `lowerIntrinsic`'s `fileExprs` branch in `src/lower/lower.ts`.
+    // materialised constant rather than re-running the AST.
     if intrinsic.name == "file" {
         baked :: lookup_file_baked(ctx, intrinsic)
         match baked {
@@ -31,9 +30,8 @@ lower_intrinsic :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type)
         }
     }
     // `@field(target, "name")` folds to `target.name` when the name
-    // arg is a static string literal. Mirror of `lowerIntrinsic`'s
-    // `case "field"`. Comptime-for
-    // unrolling can substitute the name slot with a LoweredStringLit
+    // arg is a static string literal. Comptime-for unrolling can
+    // substitute the name slot with a LoweredStringLit
     // — we lower the args here so post-substitution literals get
     // picked up. When the typer left the result type unresolved,
     // refine from the receiver's struct decl + field name pair.
@@ -53,8 +51,7 @@ lower_intrinsic :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type)
         }
     }
     // Static-arg intrinsics fold at lower time when the typer recorded
-    // the arg's underlying Type. Mirror of `lowerIntrinsic`'s
-    // `targetTy`-based branches in `src/lower/passes/expr.ts:380-402`.
+    // the arg's underlying Type.
     folded :: try_fold_static_intrinsic(ctx, intrinsic, type)
     if folded != null { return folded }
     args: LoweredExpr[] = []
@@ -71,8 +68,7 @@ lower_intrinsic :: fn(ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type)
     if !(late_folded is null) { return late_folded }
     // `@size_of(x)` over a `type`-valued runtime expression routes
     // through the dedicated `size_of.type` intrinsic so the bytecode
-    // emit picks the right opcode. Mirror of the static-fold-failed
-    // fallback in `src/lower/passes/expr.ts:393-396`.
+    // emit picks the right opcode.
     final_name :: runtime_intrinsic_name(intrinsic.name, args)
     return LoweredIntrinsicCall {
         .span = intrinsic.span, .type = type, .name = final_name,
@@ -231,8 +227,7 @@ static_string_lit :: fn(e: Expr) -> string | null {
 
 /// Fold `@type_of(x)` to a `LoweredTypeConst` carrying `x`'s static
 /// type. The arg is NOT evaluated (Zig-style `@TypeOf`) — only the
-/// typed AST's recorded expr-type is read. Mirror of
-/// `lowerIntrinsic`'s `case "type_of"` in `src/lower/passes/expr.ts:431-437`.
+/// typed AST's recorded expr-type is read.
 try_fold_type_of :: fn(
     ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type,
 ) -> LoweredExpr | null {
@@ -244,9 +239,8 @@ try_fold_type_of :: fn(
 }
 
 /// Fold `@type_args(T)` to an array literal of `LoweredTypeConst`s — one
-/// per generic argument of `T`. Mirror of `lowerIntrinsic`'s
-/// `case "type_args"` in `src/lower/passes/expr.ts:474-483`. Returns an
-/// empty array for non-generic shapes.
+/// per generic argument of `T`. Returns an empty array for non-generic
+/// shapes.
 try_fold_type_args :: fn(
     ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type,
 ) -> LoweredExpr | null {
@@ -272,9 +266,7 @@ try_fold_type_args :: fn(
 /// Fold `@fields(T)` to an array literal of `Field { name, type }`
 /// struct lits — one entry per field declared on `T`. Generic struct
 /// args flow into each field's type so `@fields(Pair(string, i64))`
-/// reports `value` as `i64`, not the unsubstituted TypeParam. Mirror
-/// of `lowerIntrinsic`'s `case "fields"` in
-/// `src/lower/passes/expr.ts:498-522`.
+/// reports `value` as `i64`, not the unsubstituted TypeParam.
 ///
 /// @param ctx        the fn-body lower context.
 /// @param intrinsic  the `@fields(T)` call site.
@@ -362,9 +354,7 @@ try_fold_fields :: fn(
 
 
 /// Fold `@satisfies(T, Trait)` to a literal bool. True iff a user impl
-/// `T implements Trait` exists in the registry. Mirror of
-/// `lowerIntrinsic`'s `case "satisfies"` branch in
-/// `src/lower/passes/expr.ts:416-423`.
+/// `T implements Trait` exists in the registry.
 try_fold_satisfies :: fn(
     ctx: FnLowerCtx, intrinsic: IntrinsicCallExpr, type: Type,
 ) -> LoweredExpr | null {
@@ -383,7 +373,7 @@ try_fold_satisfies :: fn(
     return LoweredBoolLit { .span = intrinsic.span, .type = type, .value = value }
 }
 
-/// Mirror of `ImplRegistry.findFor` in `src/typecheck/impls.ts:81`: a struct
+/// Check whether a user impl of `trait_sym` exists for `target_ty`: a struct
 /// or enum target resolves through `has_user`, a primitive target falls
 /// back to a name-match scan over the registry's flat entry list (those
 /// impls carry `for_symbol = null`).
@@ -439,10 +429,10 @@ resolve_intrinsic_type_arg :: fn(ctx: FnLowerCtx, arg: Expr) -> Type | null {
     return via_type_expr
 }
 
-// `@type_kind(T)` stable discriminator. Exhaustive over `Type` (no `_`) and
-// kept in lock-step with `src/typecheck/types.ts::kindStringOfType` — the bare
-// types that have no user-facing kind collapse to "unknown", `Any` is "any",
-// `TypeMeta` is "type". Listing every variant trips T3013 on a new Type kind.
+// `@type_kind(T)` stable discriminator. Exhaustive over `Type` (no `_`) — the
+// bare types that have no user-facing kind collapse to "unknown", `Any` is
+// "any", `TypeMeta` is "type". Listing every variant trips T3013 on a new
+// Type kind.
 kind_string_of_type :: fn(t: Type) -> string = match t {
     is PrimitiveType  -> "primitive"
     is DistinctType as d -> kind_string_of_type(d.backing)

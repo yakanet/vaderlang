@@ -69,7 +69,7 @@ export union_of_yield_null :: fn(yielded: Type) -> Type {
 import "vader/typecheck" { ImplEntry, find_user, type_to_target_symbol }
 
 /// Find the user-impl entry for `(for_type, trait_name)` in the
-/// project-wide registry. Mirrors TS's `lookupImplFor` — the lowerer's
+/// project-wide registry. The lowerer's
 /// for-in / try / display-coerce sites consult this to dispatch
 /// through the matching impl member.
 /// @param ctx         the project context.

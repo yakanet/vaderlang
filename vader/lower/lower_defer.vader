@@ -57,7 +57,7 @@ export lower_defer :: fn(
     lifted_entry :: synth_mono_entry(ctx, lifted_symbol)
 
     // Wrap the body stmt in a synthetic BlockExpr so the existing
-    // block_lowerer can drive it. Mirrors `defer.ts:53-62`.
+    // block_lowerer can drive it.
     body_block :: synth_body_block(defer_stmt)
 
     lifted_ctx :: new_fn_lower_ctx(
@@ -93,10 +93,9 @@ export lower_defer :: fn(
 }
 
 // Closure-analysis side-table lookup. The analysis recorded each
-// defer body's capture list under its DeferStmt.id (mirror of TS
-// `closures.deferCaptures.get(stmt)`) ; we read the matching entry
-// and fall back to an empty list when the analysis didn't observe
-// this defer (recovery path past an earlier diagnostic).
+// defer body's capture list under its DeferStmt.id ; we read the
+// matching entry and fall back to an empty list when the analysis
+// didn't observe this defer (recovery path past an earlier diagnostic).
 lookup_defer_captures :: fn(ctx: FnLowerCtx, defer_stmt: AST.DeferStmt) -> Capture[] {
     found :: ctx.project.closures.defer_captures[capture_key(ctx.typed.resolved.path, defer_stmt.id)]
     if found is Capture[] as caps { return caps }

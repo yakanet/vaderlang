@@ -38,8 +38,8 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
             // `is null` site), `lower_ident` wraps it in a narrowing `LoweredCast`
             // — the C-emit then `ref.cast`-unboxes to the variant and CONSTANT-
             // FOLDS the tag check (`is null` → `false`). Peel that cast so the
-            // check runs on the union value, matching TS (whose typer keeps the
-            // operand at the union type here).
+            // check runs on the union value (the operand stays at the union
+            // type here).
             .value = strip_narrowing_cast(lower_expr(ctx, binary.left)),
             .check_type = ctx.types.expr_type(binary.right),
         }
@@ -85,8 +85,7 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
         // member ; the existing `find_impl_member_for` UFCS lookup
         // covers struct receivers (`MutableMap`, `MutableSet`, …) and
         // primitive ones (`Range<T> implements Contains<T>` via the
-        // intrinsic decl in std/core). Mirror of TS' `lowerInOp`
-        // (`src/lower/passes/expr.ts:927`).
+        // intrinsic decl in std/core).
         coll_type :: ctx.types.expr_type(binary.right)
         member :: find_impl_member_for(ctx, coll_type, "contains")
         if member is UfcsMember as found {
@@ -112,8 +111,7 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
     }
     // `<union>` `==` / `!=` `null` reduces to a tag-only `LoweredTypeCheck`.
     // The C/VM emit can't compare two `vader_box_t` directly anyway and
-    // the type-check is the operation we actually want. Mirror of
-    // `lowerBinary`'s null-eq branch in `expr.ts:677-693`.
+    // the type-check is the operation we actually want.
     if binary.op == BinaryOp.Eq || binary.op == BinaryOp.Neq {
         null_rewrite :: try_lower_null_eq(ctx, binary)
         if null_rewrite != null { return null_rewrite }
@@ -133,8 +131,7 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
     }
     // Arithmetic + / − / × / ÷ on a user struct with a matching impl
     // (`Vec implements Add { add(self, other) }` etc.) lowers to a
-    // direct call `add(a, b)`. Mirror of TS's `binaryOpResolutions`
-    // dispatch in `src/lower/passes/expr.ts:715-738`.
+    // direct call `add(a, b)`.
     op_call :: try_lower_op_overload(ctx, binary, type)
     if op_call != null { return op_call }
     // String `+` lowers to a single call to the shared arity-specialised

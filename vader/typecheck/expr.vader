@@ -11,7 +11,7 @@
 //   - records the final type into `typed.expr_types` keyed by the
 //     expression's span.
 //
-// MVP-trimmed against the TS reference :
+// MVP-trimmed :
 //   - Only literals are inferred today. Ident/Call/Field/Binary/…
 //     return TY_UNRESOLVED until their per-variant pass lands
 //     (Phase 3.2+). The orchestrator's match still dispatches on every
@@ -59,8 +59,8 @@ export record_expr :: fn(typed: TypedProgram, expr: AST.Expr, ty: Type) -> void 
     }
 }
 
-/// Map an `AST.Expr` to its variant name as a string (matches the TS
-/// `expr.kind` field). Used by the typed-ast dump.
+/// Map an `AST.Expr` to its variant name as a string. Used by the
+/// typed-ast dump.
 export expr_kind_name :: fn(e: AST.Expr) -> string = match e {
     is AST.IntLitExpr        -> "IntLitExpr"
     is AST.FloatLitExpr      -> "FloatLitExpr"
@@ -104,7 +104,7 @@ infer_expr :: fn(
         is AST.CharLitExpr   as e -> { return infer_char_lit(e) }
         is AST.StringLitExpr as e -> {
             // Walk interpolation parts so `"${x}"`'s `x` lands in
-            // `expr_types` (matches the TS reference). T3018 Display
+            // `expr_types`. T3018 Display
             // check is deferred — currently we just type the inner.
             for part in e.parts {
                 if part is AST.StringLitInterp as p { check_expr(p.expr, null, typed, diags) }

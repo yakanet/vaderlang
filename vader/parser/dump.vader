@@ -3,7 +3,7 @@
 // Snapshot format : `# AST\n` header + 2-space-indented JSON. Spans are
 // stripped (they're noisy and span numbers shift across tiny edits) ; ints
 // land as quoted decimal strings with a trailing `n` so the snapshot stays
-// stable when the same value is parsed by the TS BigInt-based parser. The
+// stable across the full integer range. The
 // helpers below walk every variant explicitly — no reflection.
 
 module "vader/parser"
@@ -28,7 +28,7 @@ export dump_program :: fn(prog: Program) -> string {
 
 // Local indentation helper — wraps `append_repeated` so existing call sites
 // that pass `level` (rather than the absolute space count) don't have to
-// multiply themselves. The 2-space stride matches the TS dumper.
+// multiply themselves. The stride is 2 spaces per level.
 indent :: fn(sb: StringBuilder, level: i32) -> void {
     sb.append_repeated(' ', level * 2)
 }
@@ -56,8 +56,8 @@ write_string :: fn(sb: StringBuilder, s: string) -> void {
     sb.append_char('"')
 }
 
-// Bigint rendering : matches the TS `bigintReplacer` shape — quoted decimal
-// with a trailing `n`. Two variants : `u64` for IntLitExpr (full unsigned
+// Bigint rendering : quoted decimal with a trailing `n`. Two variants :
+// `u64` for IntLitExpr (full unsigned
 // magnitude — negative literals are carried by an outer UnaryExpr.neg) ;
 // `i64` for EnumVariant.value (signed repr — variants can be negative).
 write_bigint :: fn(sb: StringBuilder, v: u64) -> void {
@@ -780,9 +780,8 @@ write_expr :: fn(sb: StringBuilder, e: Expr | null, level: i32) -> void {
             sb.kind_entry(level + 1, "IdentExpr")
             sb.entry(false, level + 1, "name")
             sb.write_string(e.name)
-            // Mirror TS : both flags are emitted only when set, since the
-            // TS dumper drops `undefined`-valued optional fields via
-            // `JSON.stringify`.
+            // Both flags are emitted only when set (optional fields are
+            // omitted when unset).
             if e.implicit_dot {
                 sb.entry(false, level + 1, "implicitDot")
                 sb.append("true")
@@ -809,8 +808,8 @@ write_expr :: fn(sb: StringBuilder, e: Expr | null, level: i32) -> void {
             sb.write_expr(e.target, level + 1)
             sb.entry(false, level + 1, "field")
             sb.write_string(e.field)
-            // Mirror TS : `isNumeric` is emitted only when true (TS treats it
-            // as an optional that's undefined-by-default).
+            // `isNumeric` is emitted only when true (it's an optional that's
+            // undefined-by-default).
             if e.is_numeric {
                 sb.entry(false, level + 1, "isNumeric")
                 sb.write_bool(true)
@@ -844,8 +843,7 @@ write_expr :: fn(sb: StringBuilder, e: Expr | null, level: i32) -> void {
             sb.write_expr(e.left, level + 1)
             sb.entry(false, level + 1, "right")
             sb.write_expr(e.right, level + 1)
-            // `bindAs` only emitted when non-empty — matches the TS
-            // dump where the field is optional on BinaryExpr.
+            // `bindAs` only emitted when non-empty (optional on BinaryExpr).
             if e.bind_as != "" {
                 sb.entry(false, level + 1, "bindAs")
                 sb.write_string(e.bind_as)

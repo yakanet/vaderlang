@@ -303,21 +303,10 @@ export substitute_pattern :: fn(p: AST.Pattern, subst: Subst) -> AST.Pattern {
 import "vader/parser" { NodeIdFactory, assign_block_ids }
 
 /// Clone `b` via `substitute_block` and mint fresh node IDs on the
-/// result. Cloned bodies keep trait-source spans (matches TS's
-/// `structuredClone` semantics — `src/resolver/materialize.ts:109`).
+/// result. Cloned bodies keep trait-source spans.
 /// Fresh IDs ensure id-keyed `expr_types` / `expr_kinds` entries
 /// don't collide with the trait module's own typing pass (which keys
 /// on the trait's original AST node IDs).
-///
-/// Note : TS additionally produces 5 `undefined:undefined` entries
-/// per materialised default-method body in the typecheck dump (a
-/// side-effect of cloning replacement TypeExprs whose spans had
-/// undefined start/column ; see `src/resolver/materialize.ts:367-372`
-/// + `src/typecheck/dump-text.ts:29`). Reproducing that quirk would
-/// require deep emulation of TS's per-replacement span shape ; for
-/// now we accept the resulting diff in the 5 iter_* parity snapshots
-/// (`custom_iter`, `custom_iter_generic`, `iter_defaults`,
-/// `trait_dispatch_generic_iter`, `for_in_iter_trait`).
 export substitute_block_materialized :: fn(
     b: AST.BlockExpr, subst: Subst, factory: NodeIdFactory, stamp: StampCtx,
 ) -> AST.BlockExpr {

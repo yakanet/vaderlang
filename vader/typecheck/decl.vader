@@ -6,7 +6,7 @@
 // Later passes (body checking, ImplRegistry building) read this side
 // table without re-walking the AST.
 //
-// MVP-trimmed against the TS reference :
+// MVP-trimmed :
 //   - No `@extern` ABI validation (T3050/T3051) — lands when call.vader
 //     wires up extern decoration handling.
 //   - No Layer 4-sugar const-as-type-alias detection. Plain ConstDecls

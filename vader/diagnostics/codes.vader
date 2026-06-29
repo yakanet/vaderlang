@@ -1,7 +1,7 @@
 // vader/diagnostics/codes — typed diagnostic codes shared by every compiler
 // phase (lexer, parser, resolver, typecheck, comptime, lower).
 //
-// Mirrors `src/diagnostics/codes.ts`. Each phase owns its own enum so the
+// Each phase owns its own enum so the
 // type checker enforces "the lexer can only emit LexerCode values". The
 // canonical `LXXXX`/`PXXXX`/... wire ID is recovered via `to_id` and the
 // human message via `to_message` — call sites use the variant name
@@ -27,10 +27,8 @@ export LexerCode :: enum(u8) {
     InterpolationExpressionExpected,        // L0010
 }
 
-// Mirror of `TYPECHECK` in `src/diagnostics/codes.ts`. New codes are
-// appended ; once shipped, a code never changes meaning. The variant
-// ordering here matches the TS table top-down so reading both files
-// side-by-side stays trivial.
+// Typecheck-pass codes. New codes are appended ; once shipped, a code
+// never changes meaning.
 export TypecheckCode :: enum(u8) {
     TypeMismatch,                       // T3001
     ExpectedKnownType,                  // T3002
@@ -83,8 +81,8 @@ export TypecheckCode :: enum(u8) {
     OperatorTraitNotImplemented,        // T3043
 }
 
-// Mirror of `PARSER` in `src/diagnostics/codes.ts`. New codes are appended ;
-// once shipped, a code never changes meaning.
+// Parser-pass codes. New codes are appended ; once shipped, a code never
+// changes meaning.
 export ParserCode :: enum(u8) {
     UnexpectedToken,                        // P1001
     ExpectedToken,                          // P1002
@@ -113,8 +111,8 @@ export ParserCode :: enum(u8) {
     InvalidModuleName,                      // P1028
 }
 
-// Mirror of `RESOLVER` in `src/diagnostics/codes.ts`. R-codes belong
-// to the resolver pass (name-binding) ; once shipped, never re-used.
+// R-codes belong to the resolver pass (name-binding) ; once shipped,
+// never re-used.
 export ResolverCode :: enum(u8) {
     ModuleNotFound,                         // R2001
     EmptyImportPath,                        // R2002
@@ -135,7 +133,7 @@ export ResolverCode :: enum(u8) {
     FeatureNotYetImplemented,               // R2017
     OrphanImplForbidden,                    // R2018
     ReservedName,                           // R2019
-    // Module-system strict-mode codes (mirror of src/diagnostics/codes.ts).
+    // Module-system strict-mode codes.
     ModuleDeclMissing,                      // R2020
     DuplicateModuleDecl,                    // R2021
     MixedModuleNamesInFolder,               // R2022
@@ -149,10 +147,8 @@ export ResolverCode :: enum(u8) {
     ConflictingImpl,                        // R2030
 }
 
-// Mirror of `COMPTIME` in `src/diagnostics/codes.ts`. C-codes belong to
-// the comptime evaluator + monomorphizer ; once shipped, never re-used.
-// Order + numbering match TS exactly so cross-language diagnostic parity
-// holds out of the box.
+// C-codes belong to the comptime evaluator + monomorphizer ; once
+// shipped, never re-used.
 export ComptimeCode :: enum(u8) {
     CannotEvaluate,                         // C4001
     EvaluationPanic,                        // C4002
@@ -171,11 +167,9 @@ export ComptimeCode :: enum(u8) {
     AssertFailed,                           // C4015
 }
 
-// Mirror of `LOWER` in `src/diagnostics/codes.ts`. M-codes belong to
-// the MIR-lowering pass (AST -> Lowered IR) ; once shipped, never
-// re-used. The `M` prefix avoids ambiguity with `L0xxx` (Lexer) and
-// `B5001` (Backend) ; mirrors the `src/midir/` module name on the
-// Vader side.
+// M-codes belong to the MIR-lowering pass (AST -> Lowered IR) ; once
+// shipped, never re-used. The `M` prefix avoids ambiguity with `L0xxx`
+// (Lexer) and `B5001` (Backend), matching the `midir` module name.
 export LowerCode :: enum(u8) {
     IteratorImplMissing,                    // M5001
     LambdaCaptureUnsupported,               // M5002
@@ -195,8 +189,8 @@ export WarningCode :: enum(u8) {
     DeadCode,                               // W0007
 }
 
-// `(id, message)` for a code, in one shot. The wire ID stays aligned with
-// `src/diagnostics/codes.ts`; the message is the canonical human wording.
+// `(id, message)` for a code, in one shot. The wire ID is the stable
+// string ; the message is the canonical human wording.
 // (`private` would be ideal here, but Vader's "module = single file"
 // resolution makes `codes.vader` and `diagnostic.vader` separate modules ;
 // move both to a folder-module if we want to hide these.)

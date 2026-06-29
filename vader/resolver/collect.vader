@@ -99,9 +99,8 @@ collect_decl :: fn(
 /// ones append to the `fn_overloads` bucket. Truly-conflicting overloads
 /// (same first-param type) are caught at typecheck time.
 add_fn :: fn(self: CollectedModule, d: FnDecl, module_path: string, factory: SymbolFactory) -> void {
-    // `main` is the program entry point and is always public — mirrors
-    // `src/resolver/collect.ts:88`. Letting it default to private locks
-    // the entry-point fn behind module visibility.
+    // `main` is the program entry point and is always public. Letting it
+    // default to private locks the entry-point fn behind module visibility.
     visibility := d.visibility
     if d.name == "main" { visibility = .Public }
     sym :: factory.make(.Fn, d.name, module_path, visibility, d.name_span)
@@ -124,8 +123,8 @@ add_fn :: fn(self: CollectedModule, d: FnDecl, module_path: string, factory: Sym
             if e.kind == SymbolKind.ImportBinding {
                 self.symbols[d.name] = sym
             }
-            // For two fn decls with the same name, the FIRST wins as primary —
-            // mirror of TS collect.ts:102. The overload set already saw both.
+            // For two fn decls with the same name, the FIRST wins as primary.
+            // The overload set already saw both.
         }
     }
 }
@@ -135,9 +134,9 @@ add_named :: fn(
     visibility: Visibility, module_path: string, factory: SymbolFactory,
     diags: Diagnostic[],
 ) -> void {
-    // First-wins on duplicates ; later occurrences raise R2004 mirroring
-    // `src/resolver/collect.ts:124`. Non-fn-vs-non-fn collision only ;
-    // fn overload buckets handle the multi-decl case via `add_fn`.
+    // First-wins on duplicates ; later occurrences raise R2004.
+    // Non-fn-vs-non-fn collision only ; fn overload buckets handle
+    // the multi-decl case via `add_fn`.
     existing :: self.symbols[name]
     match existing {
         is Symbol -> {
@@ -153,7 +152,7 @@ add_named :: fn(
 
 /// Imports introduce one local-name binding each. Named-namespace imports
 /// yield one (the namespace name) ; destructure imports yield one per
-/// binding (matches TS one-symbol-per-name behaviour). Empty paths trip
+/// binding (one-symbol-per-name behaviour). Empty paths trip
 /// R2002 ; the path itself is run through `diagnose_import_path` for
 /// R2001 / R2024 / R2025 / R2028.
 collect_import :: fn(
@@ -199,10 +198,10 @@ bind_import :: fn(
     existing :: self.symbols[local]
     match existing {
         is Symbol as e -> {
-            // Import↔import collision is silent first-wins (matches TS
-            // `collect.ts:219` — same §1.5 deviation as `add_fn`'s non-fn
-            // branches). R2011 fires only when the import shadows a
-            // *non-import* binding ; that's a genuine duplicate.
+            // Import↔import collision is silent first-wins (same §1.5
+            // deviation as `add_fn`'s non-fn branches). R2011 fires only
+            // when the import shadows a *non-import* binding ; that's a
+            // genuine duplicate.
             if e.kind != SymbolKind.ImportBinding {
                 diags.push(resolver_error(.DuplicateImportBinding, span,
                     "`${local}`"))

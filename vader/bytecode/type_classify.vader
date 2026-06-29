@@ -42,7 +42,7 @@ export type_intern_key :: fn(t: Type) -> string = match t {
     // same decl resolve to distinct symbols but share a source position, so
     // they collapse to one slot — and `reserve_struct` keys identically, so
     // a referenced struct dedupes with its reserved definition instead of
-    // minting an orphan `ref`. Mirror of TS `typeInternKey` (emit.ts:328).
+    // minting an orphan `ref`.
     is StructType as s    -> "Struct#${symbol_key(s.symbol)}<${type_key_join(s.args, "|")}>"
     is TraitType as tr    -> "Trait#${symbol_key(tr.symbol)}<${type_key_join(tr.args, "|")}>"
     // Enums lower to their `repr` primitive — share the bare primitive's slot.
@@ -67,7 +67,7 @@ export type_intern_key :: fn(t: Type) -> string = match t {
 }
 
 // Source-position identity for a symbol — file:offset when the decl has a
-// span, else a synthetic `id` fallback. Mirror of TS `symbolKey`.
+// span, else a synthetic `id` fallback.
 symbol_key :: fn(sym: Symbol) -> string = match sym.defined_at {
     is null       -> "id${sym.id}"
     is Span as at -> "${at.start.file}:${at.start.offset}"
@@ -94,7 +94,7 @@ export val_type_of_type :: fn(t: Type) -> ValType = match t {
     is PrimitiveType as p -> val_type_of_primitive_name(p.name)
     is StructType         -> ValType.Ref
     // Enums ride the operand stack as their backing integer repr, not a boxed
-    // ref — mirrors `src/bytecode/emit.ts::valTypeOf`'s `case "Enum"`.
+    // ref.
     is EnumType      as e -> val_type_of_primitive_name(e.repr)
     // Distinct (newtype) rides its backing primitive's stack repr — zero-cost,
     // exactly like an enum rides its `repr`. This is what makes `x :: i64`
@@ -106,8 +106,8 @@ export val_type_of_type :: fn(t: Type) -> ValType = match t {
     is FnType             -> ValType.Ref
     is TupleType          -> ValType.Ref
     // TypeParam / TypeMeta / Any land as a boxed `ref` at the stack
-    // boundary — mirrors `src/bytecode/emit.ts::valTypeOf`. Previously
-    // these returned `any`, which the bytecode parity check rejected.
+    // boundary. Previously these returned `any`, which the bytecode
+    // parity check rejected.
     is TypeParamType      -> ValType.Ref
     is TypeMetaType       -> ValType.Ref
     is SelfType           -> ValType.Ref
@@ -135,9 +135,9 @@ export bc_type_of :: fn(t: Type) -> BcType = BcPrimitive { .val = val_type_of_ty
 
 /// Context-aware translation : recursively interns element / param /
 /// return types so the resulting `BcType` carries the right type-table
-/// indices for composite shapes. Mirrors `src/bytecode/emit.ts::bcTypeOf`
-/// — Struct/Trait → `BcRef { trait_name }`, Array → `BcArray { element }`,
-/// Union → `BcUnion { variants }`, Fn → `BcFn { params, return_type }`.
+/// indices for composite shapes : Struct/Trait → `BcRef { trait_name }`,
+/// Array → `BcArray { element }`, Union → `BcUnion { variants }`,
+/// Fn → `BcFn { params, return_type }`.
 /// Tuple synthesises an anonymous struct keyed by the caller-provided
 /// slot index ; the caller passes its own table position so the synth
 /// name (`__Tuple_<idx>`) stays stable.
@@ -145,10 +145,9 @@ export bc_type_of :: fn(t: Type) -> BcType = BcPrimitive { .val = val_type_of_ty
 /// Exhaustive over `Type` by design (no `_` fall-through) : the bare
 /// types that have no first-class bytecode shape (type-params, meta,
 /// self, unresolved, free numerics, never) collapse to an opaque
-/// `BcRef { "" }` — mirrors TS `bcTypeOf`'s `default` arm — but listing
-/// them keeps the match honest, so adding a new `Type` variant trips
-/// T3013 here instead of silently degrading to `ref` (the failure mode
-/// that hid the missing `Tuple` case).
+/// `BcRef { "" }`, but listing them keeps the match honest, so adding a
+/// new `Type` variant trips T3013 here instead of silently degrading to
+/// `ref` (the failure mode that hid the missing `Tuple` case).
 ///
 /// @param t           the type to translate.
 /// @param ctx         the emit context — nested types intern through it.
@@ -180,7 +179,6 @@ export bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx, slot_index: i32) -> B
         // Anonymous struct `__Tuple_<slot>` with positional fields `_0`,
         // `_1`, … . The slot index disambiguates same-arity shapes so
         // `[i32, string]` and `[bool, string]` emit distinct C structs.
-        // Mirror of TS `bcTypeOf`'s `case "Tuple"`.
         is TupleType as p -> {
             fields: BcField[] = []
             for i in 0..<p.elements.len() {
@@ -209,8 +207,7 @@ export bc_type_of_with_ctx :: fn(t: Type, ctx: EmitterCtx, slot_index: i32) -> B
     }
 }
 
-/// Opaque `ref` for a `Type` with no first-class bytecode shape. Mirrors the
-/// `trait_name = null` placeholder TS `bcTypeOf` returns from its `default` arm.
+/// Opaque `ref` for a `Type` with no first-class bytecode shape.
 OPAQUE_REF :: BcRef { .trait_name = "" }
 
 import "vader/lower" { type_of, LoweredIntLit }

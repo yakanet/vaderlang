@@ -1,6 +1,6 @@
 // vader/lexer/keywords — keyword + numeric-suffix tables.
 //
-// Mirrors `src/lexer/keywords.ts`. A flat `if` chain is fine for 25 entries;
+// A flat `if` chain is fine for 25 entries;
 // a hash table would be overkill at module init time. `lookup_keyword`
 // returns the dedicated `TokenKind` for a keyword text, or `Ident` to mean
 // "not a keyword — keep it as an identifier".

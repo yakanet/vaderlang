@@ -521,8 +521,8 @@ apply_string_cmp :: fn(frame: Frame, op_label: string, cmp: fn(string, string) -
 }
 
 /// Apply an i32 comparison (Eq/Ne/Lt/Le/Gt/Ge) on top-of-stack. The
-/// boolean result is pushed back as a `BoolVal` — matches `src/vm/value.ts`
-/// where comparisons live in `bool` tag-space. `read_truthy` consumes
+/// boolean result is pushed back as a `BoolVal` ; comparisons live in `bool`
+/// tag-space. `read_truthy` consumes
 /// either `BoolVal` or `I32Val` so legacy bytecode that conflated `0`/`1`
 /// with bool still flows through `if` / `br_if`.
 ///
@@ -570,7 +570,7 @@ apply_eq_binop :: fn(frame: Frame, op_label: string, negate: bool) -> Trap | nul
 /// `host_argv` carries the forwarded CLI args (argv[0] = program path, then
 /// the program's own args) — set by `run_virt` from the `--` separator so the
 /// compiler can run itself through the VM. When empty, fall back to a single
-/// synthetic path element (matches the TS VM). Returns an empty arg list when
+/// synthetic path element. Returns an empty arg list when
 /// `main` takes no parameters.
 ///
 /// @param parameter_count  the entry fn's declared parameter count.
@@ -946,7 +946,7 @@ export exec_entry :: fn(state: VmState, entry_index: i32, host_argv: string[], c
                 // type table. When the popped FnVal carries an env, the
                 // lifted fn's first slot is bound to `env` and the user
                 // args fill `slot 1..N+1` ; otherwise the user args fill
-                // `slot 0..N` (mirrors `src/vm/exec.ts:289-304`).
+                // `slot 0..N`.
                 if instr.type_id < 0 || usize(instr.type_id) >= state.bc.types.len() {
                     return Trap { .message = "call.indirect type ${instr.type_id} out of range at pc=${frame.pc}" }
                 }

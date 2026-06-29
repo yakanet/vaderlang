@@ -21,7 +21,7 @@ import "vader/bytecode" { array_kind_of, array_kind_index, ArrayKind }
 vm :: import "vader/bytecode"
 
 /// Per-fn body emit — one C function definition per `BcFunction`,
-/// separated by a blank line (matching TS `emitFunctions`).
+/// separated by a blank line.
 ///
 /// T0 scope : the constant-return path is emitted ; `emit_op` is already
 /// the exhaustive dispatch (every not-yet-ported op calls `todo`). The
@@ -31,8 +31,6 @@ vm :: import "vader/bytecode"
 /// `emit_op` / `const_lit_c` + the literal helpers / `signature_for`)
 /// moves to `walker.vader` (+ `stack.vader` for the StackVal model) per
 /// the plan's file decomposition — do not relocate it into `body.vader`.
-///
-/// TS reference : `emitFunctions` in `src/c_emit/body.ts`.
 emit_functions :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
     fns :: ctx.module.functions
     for i in 0..<fns.len() {
@@ -50,8 +48,7 @@ emit_functions :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
 /// heap `struct.new`, array ops, string concat, the builder family,
 /// `make_closure`, and the conservative indirect callers (`call.import` /
 /// `call.indirect` / `virtual.call`) ; transitive via any direct `call` to
-/// a fn already in the set. Mirrors `computeMayAlloc` in
-/// `src/c_emit/emit.ts`.
+/// a fn already in the set.
 compute_may_alloc :: fn(fns: BcFunction[]) -> i32[] {
     may_alloc: i32[] = []
     for fi in 0..<fns.len() {
@@ -186,8 +183,7 @@ emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out:
     // Walk the body into a separate buffer first : temps are discovered
     // during the walk (materialisation), and their declarations belong in
     // the prelude *above* the body. After the walk, assemble
-    // signature → local decls → temp decls → frame → body, matching TS
-    // (which splices the prelude in at `preludePos`).
+    // signature → local decls → temp decls → frame → body.
     body :: StringBuilder {}
     s :: new_fn_state(ctx, function, body)
     s.no_frame = no_frame
@@ -243,10 +239,8 @@ emit_function_body :: fn(ctx: EmitCtx, fn_index: i32, function: BcFunction, out:
 /// Declare every non-param local slot, bucketed by ValType in
 /// first-appearance order (`<ctype> lA, lB;` per type). Primitives only
 /// in T1b ; ref / any locals gain the `= vader_box_null()` GC-init in T5.
-/// PER_LINE chunking (TS caps at 10 names / line) is deferred — it only
+/// PER_LINE chunking (10 names / line) is deferred — it only
 /// diverges past 10 locals of one type.
-///
-/// TS reference : `emitLocalDecls` in `src/c_emit/body.ts`.
 emit_local_decls :: fn(function: BcFunction, out: StringBuilder, root_addrs: string[], no_frame: bool) -> void {
     locals :: function.locals
     param_count :: function.signature.params.len()
@@ -273,10 +267,8 @@ emit_tmp_decls :: fn(s: FnState, out: StringBuilder, root_addrs: string[], no_fr
 /// Declare a group of same-kind C slots (`vals[i]` is the ValType of
 /// `names[i]`), bucketed by ValType in first-appearance order :
 /// `<ctype> nameA, nameB;` per type. Shared by the local + temp decls.
-/// PER_LINE chunking (TS caps at 10 names / line) is deferred — it only
+/// PER_LINE chunking (10 names / line) is deferred — it only
 /// diverges past 10 slots of one type.
-///
-/// TS reference : `emitLocalDecls` in `src/c_emit/body.ts`.
 emit_slot_decls :: fn(out: StringBuilder, vals: ValType[], names: string[], root_addrs: string[], no_frame: bool) -> void {
     emitted: ValType[] = []
     for i in 0..<vals.len() {
@@ -486,8 +478,6 @@ emit_op :: fn(s: FnState, pc: i32, op: vm.Op) -> void {
 /// C source for a constant op — the `return.lit` payload today, the
 /// const-push path in T1. Exhaustive over the closed `ConstOp` union.
 ///
-/// TS reference : `constLitC` in `src/c_emit/body.ts`.
-///
 /// @param ctx  emit context — supplies the null primitive tag and the
 ///             string-literal atom ids.
 /// @param c    the constant op to render.
@@ -505,8 +495,8 @@ const_lit_c :: fn(ctx: EmitCtx, c: vm.ConstOp) -> string = match c {
 /// C literal for an i32 value. `INT32_MIN` can't be spelled
 /// `INT32_C(-2147483648)` — that parses as unary minus on an
 /// out-of-range magnitude (UB on strict toolchains) — so emit the
-/// stdint macro. The TS `(int32_t)UINT32_C(N)` out-of-range branch is
-/// unreachable here : `value` is already typed `i32`.
+/// stdint macro. No out-of-range branch is needed : `value` is already
+/// typed `i32`.
 i32_lit_c :: fn(value: i32) -> string {
     if value == i32(-2147483647) - 1 { return "INT32_MIN" }
     return "INT32_C(${value})"
@@ -533,9 +523,9 @@ float_lit :: fn(value: f64) -> string {
 push_const :: fn(s: FnState, c: vm.ConstOp) -> void = push_lit(s, const_val(c), const_lit_c(s.ctx, c))
 
 /// Stack ValType produced by a constant op. Exhaustive over `ConstOp`.
-/// `NullConst` boxes to `.Any` on the C stack (matching TS `constLitC`) —
-/// a deliberate divergence from `bytecode::const_val_type`, which wants
-/// `.Null` for its const-propagation slot typing.
+/// `NullConst` boxes to `.Any` on the C stack — a deliberate divergence
+/// from `bytecode::const_val_type`, which wants `.Null` for its
+/// const-propagation slot typing.
 const_val :: fn(c: vm.ConstOp) -> ValType = match c {
     is vm.I32Const    -> .I32
     is vm.I64Const    -> .I64
@@ -596,9 +586,8 @@ push_unop :: fn(s: FnState, op: string, val: ValType) -> void {
 /// overflows `int64_t` (UB ; trips `-Woverflow` on gcc). Since
 /// `-INT64_MIN` wraps back to `INT64_MIN` on two's-complement — exactly
 /// the value the source denotes — fold the pair to a bare `INT64_MIN`,
-/// identical to how a plain `i64.const INT64_MIN` is spelled. Mirror of
-/// the TS i64-neg fold. Any other operand negates
-/// normally.
+/// identical to how a plain `i64.const INT64_MIN` is spelled. Any other
+/// operand negates normally.
 push_i64_neg :: fn(s: FnState) -> void {
     v :: pop(s)
     vc :: coerce_operand(s.ctx.module.types, name_of(v), val_of(v), .I64)
@@ -644,10 +633,10 @@ emit_bits_to_f32 :: fn(s: FnState) -> void {
 }
 
 /// Emit an eager binary op into a fresh temp : `tN = l <op> r;`. Used for
-/// `div` / `rem` (every width, incl. f64) — TS materialises these
-/// unconditionally so an integer divide-by-zero trap fires whether or not
-/// the result is consumed. Operands are coerced to `val` (unbox an erased
-/// `any`). Note : no parens around `l <op> r` (matches TS).
+/// `div` / `rem` (every width, incl. f64) — materialised unconditionally
+/// so an integer divide-by-zero trap fires whether or not the result is
+/// consumed. Operands are coerced to `val` (unbox an erased `any`). Note :
+/// no parens around `l <op> r`.
 push_eager :: fn(s: FnState, op: string, val: ValType) -> void {
     r :: pop(s)
     l :: pop(s)
@@ -658,8 +647,7 @@ push_eager :: fn(s: FnState, op: string, val: ValType) -> void {
 
 /// Reinterpret the top value into `target_val` (`Convert` / `IntToChar` /
 /// `CharToInt`). Same type → pass-through ; else a `((to)(from) v)`
-/// double-cast where the inner cast pins the *source* signedness (mirrors
-/// the TS emitter, which casts through the op's `from` type).
+/// double-cast where the inner cast pins the *source* signedness.
 ///
 /// The bytecode collapses every integer ≤ 32 bits onto the `I32` stack
 /// class, so a `u32` source rides as `.I32` and `val_of(v)` alone would
@@ -1119,8 +1107,8 @@ emit_call_indirect :: fn(s: FnState, op: vm.CallIndirect) -> void {
 /// ABI, and call the per-key dispatcher (`vader_vt_<key>`, emitted in
 /// `dispatch.vader`) which switches on `recv.tag`. The Vader op carries no
 /// result-type index, so there is no erasure-boundary repack here — a
-/// following `ref.cast` / `convert` handles any per-tag reshape (cleaner than
-/// the TS in-op conversion ; full erasure boundary is T12).
+/// following `ref.cast` / `convert` handles any per-tag reshape (full
+/// erasure boundary is T12).
 emit_virtual_call :: fn(s: FnState, op: vm.VirtualCall) -> void {
     row :: find_vtable_row(s.ctx, op.vtable_key)
     if row == null {
@@ -1152,8 +1140,7 @@ emit_virtual_call :: fn(s: FnState, op: vm.VirtualCall) -> void {
 /// (need a wrapper boxing env). Both expose the canonical erased ABI
 /// (`vader_box_t` per arg + return) so one `code` pointer is castable at any
 /// `call.indirect` site. Gated on the ops actually appearing — a fn-typed
-/// field can exist with no fn-value op. Mirrors `emitFnTrampolines` in
-/// `src/c_emit/emit.ts`.
+/// field can exist with no fn-value op.
 emit_fn_trampolines :: fn(ctx: EmitCtx, out: StringBuilder) -> void {
     fns :: ctx.module.functions
     n :: fns.len()
@@ -1273,13 +1260,12 @@ tramp_box_result :: fn(cname: string, args: string, sig: BcSignature) -> string 
 /// `@size_of` can recover the BcType slot at runtime (decoded by
 /// `emit_size_of_type`). Tagged `null` keeps GC + display off the synthetic
 /// pointer. A pure literal — push as a lit so a direct `size_of.type` reader
-/// inlines it. Mirrors the `type.const` arm in `src/c_emit/body.ts`.
+/// inlines it.
 emit_type_const :: fn(s: FnState, op: vm.TypeConst) -> void =
     push_lit(s, .Any, "vader_box_obj(${s.ctx.null_tag}u, (void*)(uintptr_t)${op.type_id}u)")
 
 /// `size_of.type` — decode the `type.const` payload back to a BcType slot and
 /// index the `vader_type_size[]` table (emitted by `emit_type_info_table`).
-/// Mirrors the `sizeOfType` intrinsic in `src/c_emit/ops.ts`.
 emit_size_of_type :: fn(s: FnState) -> void {
     tv :: pop(s)
     push_into_tmp(s, "vader_type_size[(int32_t)(uintptr_t)${name_of(tv)}.payload.obj]", .Usize)
@@ -1289,8 +1275,7 @@ emit_size_of_type :: fn(s: FnState) -> void {
 /// ref expands to a disjunction over every implementing struct's tag, plus the
 /// ref type itself) ; a primitively-typed value resolves at compile time
 /// (`primitive_matches_type`). Pushed as an expression so a downstream `if` /
-/// `br_if` / boolean combinator inlines it. Mirrors `emitTypeCheck` in
-/// `src/c_emit/ops.ts`.
+/// `br_if` / boolean combinator inlines it.
 emit_type_check :: fn(s: FnState, op: vm.TypeCheck) -> void {
     v :: pop(s)
     val :: val_of(v)
@@ -1354,7 +1339,7 @@ struct_check_expr :: fn(types: BcType[], v_name: string, target_id: i32, target_
 /// The C boolean expression testing whether `v_name`'s tag matches the trait
 /// `trait_name` — an OR over the ref type index itself (built-in trait refs
 /// like `Error` carry their own tag) plus every struct implementing the trait
-/// (the module's `impl_table`). Mirrors `traitCheckExpr` in `src/c_emit/ops.ts`.
+/// (the module's `impl_table`).
 trait_check_expr :: fn(ctx: EmitCtx, v_name: string, trait_name: string, ref_type_index: i32) -> string {
     parts: string[] = ["(${v_name}.tag == ${ref_type_index}u)"]
     for entry in ctx.module.impl_table {
@@ -1373,7 +1358,7 @@ emit_defer_push :: fn(s: FnState) -> void {
 }
 
 /// `defer.pop_exec` — run + pop the top `count` deferred closures at a scope
-/// exit. Mirrors the `defer.pop_exec` arm in `src/c_emit/body.ts`.
+/// exit.
 emit_defer_pop_exec :: fn(s: FnState, op: vm.DeferPopExec) -> void =
     line(s, "vader_defer_pop_exec(${op.count}u);")
 
@@ -1466,9 +1451,8 @@ push_struct_field :: fn(s: FnState, type_index: i32, field_index: i32, recv: str
         // concrete layout directly ; an erased sibling reads the sibling's field
         // and box/unboxes it to the concrete field's storage. Self-gating — a
         // concrete value never matches a sibling tag, so non-erased reads are
-        // unaffected. (The TS backend reshapes the whole array eagerly at the
-        // call, where it keeps the concrete array type ; Vader's array is erased
-        // to `ref`, so the per-read form is the Vader-appropriate equivalent.)
+        // unaffected. Vader's array is erased to `ref`, so the reshape happens
+        // per-read here rather than eagerly over the whole array.
         sibs :: find_erased_siblings(types, type_index)
         if sibs.len() == 0 {
             push_expr(s, fval, concrete)

@@ -69,13 +69,13 @@ export AggregateDataPoolEntry :: struct {
 /// A module-level const routed to a synthetic 0-arg accessor fn by the
 /// `inline_consts` pass. References to the const lower to `call <fn_symbol>`
 /// (CFG `build_ident`) instead of re-emitting the whole literal at every
-/// read site. Mirrors the `fn-wrap` bucket of `src/lower/passes/inline-consts.ts`.
+/// read site.
 export ConstFnWrap :: struct {
     /// The synthesized accessor fn's symbol — its negative id is what the
     /// emitted `call` resolves through (`function_index_by_symbol_id`).
     fn_symbol: Symbol
     /// The const's declared type — the accessor's return type and the
-    /// `call` result type. Mirrors TS's `FnWrapEntry.callType`.
+    /// `call` result type.
     call_type: Type
 }
 

@@ -1,6 +1,5 @@
 // vader/typecheck/call — CallExpr inference (`f(args)`).
 //
-// Mirror of the call arm in `src/typecheck/passes/call.ts::inferCall`.
 // MVP behavior :
 //   1. Recursively check the callee — its type must be `Fn(params,
 //      return)`. Anything else surfaces T3007 ("not callable").
@@ -11,7 +10,7 @@
 //      narrowing). Assignability check surfaces T3001.
 //   4. The CallExpr's static type is the fn's `return_type`.
 //
-// MVP-trimmed against the TS reference :
+// MVP-trimmed :
 //   - No generic-fn type-arg inference. A call to `f :: fn[T](x: T)`
 //     with `T` unresolved returns the unsubstituted return type — the
 //     orchestrator does no further work yet.
@@ -86,8 +85,8 @@ pick_overload :: fn(
 
 // Record a chosen overload : patch the callee IdentExpr's type so the dump
 // shows the picked signature, and mark non-primary picks so the lowerer emits
-// the call's result type on the callee ident (mirrors TS' `calleeSym !==
-// resolverSym` branch ; imported overloads carry no primary, so always non-primary).
+// the call's result type on the callee ident (imported overloads carry no
+// primary, so they are always non-primary).
 commit_overload_pick :: fn(ft: FnType, c: AST.CallExpr, typed: TypedProgram, primary_ft: Type | null) -> FnType {
     typed.expr_types[c.callee.id] = ft
     if is_nonprimary_pick(ft, primary_ft) {
@@ -368,8 +367,8 @@ export infer_call :: fn(
     callee_ty :: pick_overload(c, initial_callee_ty, typed, check_expr_fn)
     // `T(x)` cast-style call : when the callee resolves to the
     // metatype (a bare type name in value position), treat the
-    // call as a conversion and return the target type. Matches TS
-    // which folds this case before reaching the not-callable arm.
+    // call as a conversion and return the target type. This case is
+    // folded before reaching the not-callable arm.
     if callee_ty is TypeMetaType { return cast_call_target(c, typed, diags, check_expr_fn) }
     // Unresolved callee : upstream error already reported, fall through
     // to keep checking args (drives narrowing in their inner literals).
@@ -447,9 +446,8 @@ export infer_call :: fn(
                 "expected ${display_type(expected)}, got ${display_type(arg_types[i])}"))
         }
         // Default any FreeInt/FreeFloat bound to a typeParam before
-        // substituting — matches TS `pinFreeNumericArg` so the
-        // return type comes back concrete (`i32` / `f64`) instead
-        // of `{integer}` / `{float}`.
+        // substituting, so the return type comes back concrete
+        // (`i32` / `f64`) instead of `{integer}` / `{float}`.
         for k in bindings.keys() {
             v :: bindings[k]
             if v is null { continue }
@@ -459,9 +457,9 @@ export infer_call :: fn(
         // flows into `Doubler(T)` and `i32 implements Doubler(i32)`,
         // record the substituted trait type on the arg expr so the
         // lowerer emits `int(7) :Doubler(i32)` (the boxed trait-object)
-        // rather than a bare `i32`. Mirror of TS `pinFreeNumericArg` ;
-        // scoped to trait targets since the numeric→numeric case already
-        // defaults to the same concrete primitive downstream.
+        // rather than a bare `i32`. Scoped to trait targets since the
+        // numeric→numeric case already defaults to the same concrete
+        // primitive downstream.
         for i in 0..<n {
             got :: arg_types[i]
             if !(got is FreeIntType) && !(got is FreeFloatType) { continue }
@@ -496,7 +494,7 @@ export infer_call :: fn(
 /// widens the Local's `local_types` to `elem_type[]`. The current
 /// call's `arr` IdentExpr stays at `?[]` in `expr_types` (typed
 /// before this fires) — subsequent reads of `arr` see the widened
-/// type. Mirrors TS's incremental in-place widening.
+/// type.
 widen_empty_array_on_push :: fn(c: AST.CallExpr, typed: TypedProgram) -> void {
     if !(c.callee is AST.FieldExpr) { return }
     field_callee :: c.callee

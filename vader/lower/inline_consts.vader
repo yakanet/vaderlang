@@ -1,7 +1,6 @@
 // vader/lower/inline_consts — route module-level const decls to their read sites.
 //
-// Mirror of the `fn-wrap` + `inline` buckets of
-// `src/lower/passes/inline-consts.ts`. A non-scalar const reference can't be
+// Handles the `fn-wrap` + `inline` buckets. A non-scalar const reference can't be
 // emitted as a bare ident — `build_ident` has no const-load case (the CFG
 // design inlines consts out). This pass classifies every `LoweredConstDecl`
 // and records how its read sites should resolve, consumed at CFG-build time
@@ -13,7 +12,7 @@
 //     `__const_<name>` returning the literal ; each reference lowers to one
 //     `call` instead of re-emitting the whole literal. In-place replacement
 //     keeps the accessor at the const's fn-table position so emission order
-//     matches the TS lowerer.
+//     stays stable.
 //   - inline  : everything else (scalars, small lists, struct literals). The
 //     value is recorded verbatim and `build_ident` re-builds it at each read
 //     site. Scalars normally fold earlier in `lower_expr.vader::lower_ident` ;
@@ -33,8 +32,7 @@ import "vader/comptime" { MonoEntry }
 import "vader/types" { ArrayType, StructType, display_type }
 
 // Break-even point : the `call` at each read site is cheaper than re-emitting
-// `2 * N` ops to rebuild the literal once N passes this threshold. Matches
-// `FN_WRAP_MIN_ELEMENTS` in `src/lower/passes/inline-consts.ts`.
+// `2 * N` ops to rebuild the literal once N passes this threshold.
 FN_WRAP_MIN_ELEMENTS :: usize(4)
 
 /// Classify every const decl in `project` and record its read-site routing on
@@ -243,10 +241,10 @@ const_accessor_symbol :: fn(orig_sym: Symbol, synth_id: i32) -> Symbol = Symbol 
     .defined_at = orig_sym.defined_at,
 }
 
-// Build the synthetic 0-arg accessor fn for a fn-wrapped const. Mirror of TS's
-// `synthesizeFnFromConst` : the body is a block whose trailing expression is
-// the const's value, and the origin reuses the const's MonoEntry with the
-// symbol swapped for the `fn_symbol` built by `const_accessor_symbol`.
+// Build the synthetic 0-arg accessor fn for a fn-wrapped const : the body is a
+// block whose trailing expression is the const's value, and the origin reuses
+// the const's MonoEntry with the symbol swapped for the `fn_symbol` built by
+// `const_accessor_symbol`.
 synthesize_const_fn :: fn(cd: LoweredConstDecl, fn_symbol: Symbol) -> LoweredFnDecl {
     synth_entry :: MonoEntry {
         .id             = cd.origin.id,

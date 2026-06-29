@@ -299,7 +299,7 @@ emit_expr_compound :: fn(lines: string[], expr: LoweredExpr, indent: string) -> 
             lines.push("${indent}  hi:")
             emit_expr(lines, slice.hi, "${indent}    ")
         }
-        // Variants the TS dumper falls through to `default` — render
+        // Variants rendered via the fallback — render
         // their canonical kind tag so they don't show up empty.
         _ -> {
             lines.push("${indent}${expr_kind_label(expr)}")
@@ -308,9 +308,8 @@ emit_expr_compound :: fn(lines: string[], expr: LoweredExpr, indent: string) -> 
 }
 
 // Compact-line renderer. Returns `null` when the expr needs a vertical
-// expansion (`emit_expr_compound` handles those). Mirrors the TS
-// `exprInline` table : literals, ident, unreachable → single line ;
-// everything else returns null.
+// expansion (`emit_expr_compound` handles those). Renders literals,
+// ident, unreachable → single line ; everything else returns null.
 expr_inline :: fn(expr: LoweredExpr) -> string | null {
     // @partial: only literals / ident / unreachable render on a single line;
     // every other LoweredExpr needs vertical expansion → null.
@@ -331,8 +330,7 @@ import "std/numbers" { to_hex }
 /// Print `value` as a decimal string ; for `u32` / `u64` / `usize` types
 /// reinterpret the i64 storage as the matching unsigned width so the
 /// snapshot keeps `int(18446744073700000000)` rather than the sign-flipped
-/// `int(-9551616)`. Mirror of the TS `LoweredIntLit.toString()` path that
-/// prints BigInts unsigned-cast to the slot type.
+/// `int(-9551616)`.
 format_int_value :: fn(value: i64, t: Type) -> string {
     if t is PrimitiveType as p {
         if p.name == "u64" || p.name == "usize" {
@@ -346,14 +344,12 @@ format_int_value :: fn(value: i64, t: Type) -> string {
 }
 
 hex_string :: fn(value: u32) -> string {
-    // Lowercase hex digits — match the TS dump's `n.toString(16)` casing.
+    // Lowercase hex digits.
     return to_lower(to_hex(u64(value)))
 }
 
-/// Mirror JS's `${number}` stringification : drop the `.0` suffix when the
-/// float happens to be integer-valued (`4.0` → `"4"`, `3.14` → `"3.14"`).
-/// The dump uses this so snapshot fixtures generated from the TS lowerer
-/// stay byte-identical.
+/// Drop the `.0` suffix when the float happens to be integer-valued
+/// (`4.0` → `"4"`, `3.14` → `"3.14"`).
 format_float :: fn(value: f64) -> string {
     raw :: "${value}"
     if raw.ends_with(".0") {
@@ -390,8 +386,7 @@ export binary_op_name :: fn(op: LoweredBinaryOp) -> string = match op {
     .Gte    -> "gte"
 }
 
-// Per-variant label fallback for shapes the TS dumper renders via
-// `e.kind` — matches the canonical kind tag the TS interface declares.
+// Per-variant label fallback for shapes rendered via `e.kind`.
 // @partial: debug kind label — only a few shapes are named, the rest fall to "<unknown>".
 expr_kind_label :: fn(expr: LoweredExpr) -> string = @partial match expr {
     is LoweredArrayLen     -> "LoweredArrayLen"

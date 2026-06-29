@@ -162,8 +162,8 @@ export next_mono_entry_id :: fn(ctx: FnLowerCtx) -> i32 {
 }
 
 synth_env_param_symbol :: fn(ctx: FnLowerCtx) -> Symbol {
-    // Use the per-fn `uniq` counter so the name matches TS's
-    // `freshSyntheticSymbol("env")` form (`__env_0`, `__env_1`, …).
+    // Use the per-fn `uniq` counter so the name takes the
+    // `fresh_synthetic_symbol("env")` form (`__env_0`, `__env_1`, …).
     return fresh_synthetic_symbol(ctx, "env")
 }
 
@@ -201,8 +201,7 @@ export render_id_for_name :: fn(id: i32) -> string {
 export synth_mono_entry :: fn(ctx: FnLowerCtx, symbol: Symbol) -> MonoEntry {
     return MonoEntry { .id = next_mono_entry_id(ctx), .is_main = false, .mangled = symbol.name, .decl = stub_decl_for(symbol), .symbol = symbol, .subst = new_substitution(), .type_arguments = [], .module = ctx.typed }    // Use a private counter (not the project-wide synthetic id pool)
     // so MonoEntry minting doesn't bump the symbol-id counter the
-    // lambda-naming uses. Mirror of TS's `synthLambdaEntryId`
-    // in `src/lower/passes/lambda.ts:198`.
+    // lambda-naming uses.
 
 }
 

@@ -40,10 +40,9 @@ lower_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
     raw_callee :: lower_expr(ctx, call.callee)
     // Widen literal args to the matching param's union type so the dump
     // shows `int(42) :i32 | null` for `describe(42)` against
-    // `describe(x: i32 | null)`. Mirror of the TS typer's
-    // context-propagation that records the wide type at the literal.
-    // Widening reads the picked overload's fn-type, so take params off
-    // `raw_callee` before any result-type retype below.
+    // `describe(x: i32 | null)`. Widening reads the picked overload's
+    // fn-type, so take params off `raw_callee` before any result-type
+    // retype below.
     param_types :: param_types_of(type_of(raw_callee))
     args: LoweredExpr[] = []
     for i in 0..<call.args.len() {
@@ -68,8 +67,7 @@ lower_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr {
 }
 
 // Non-primary overload picks display the call's *result* type on the
-// callee ident (TS `calleeSym !== resolverSym`,
-// `src/lower/passes/expr.ts:101`). The typer flagged these in
+// callee ident. The typer flagged these in
 // `overload_result_callees` ; rebuild the lowered ident with the
 // result type AND re-point its symbol at the picked overload.
 //
@@ -102,8 +100,8 @@ retype_overload_callee :: fn(
 }
 
 // Find the overload SYMBOL whose param list matches `picked` — the FnType
-// `pick_overload` selected for an overloaded direct call. Mirror of TS
-// `directCallOverloads` (the chosen Symbol). Matches on PARAMS only :
+// `pick_overload` selected for an overloaded direct call. Matches on
+// PARAMS only :
 // imported overloads' return types are frequently unsettled (`?`) at lower
 // time, but param lists are always concrete (straight from the decl
 // signature) and uniquely identify an overload (the resolver rejects two
@@ -157,8 +155,7 @@ param_types_of :: fn(callee_type: Type) -> Type[] {
 /// per-(trait, method) vtable. Detection : the callee is a `FieldExpr`
 /// and the lowered receiver's runtime type is a `TraitType` (the typer
 /// already narrowed unions / cast-call sites so the lowered tree carries
-/// the dispatch type at the surface). Mirror of `lowerVirtualDispatch`
-/// in `src/lower/passes/expr.ts:957-989`.
+/// the dispatch type at the surface).
 try_lower_virtual_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
     callee_field :: as_field_expr(call.callee)
     if callee_field is null { return null }
@@ -179,9 +176,7 @@ try_lower_virtual_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> Low
         // TypeParam-bounded receiver erased to Any : typer recorded
         // the resolving trait name in `bounded_dispatch_trait` ; route
         // through the runtime vtable so the boxed value's tag picks
-        // the right impl at runtime. Mirror of TS' `lowerVirtualDispatch`
-        // path on `concreteRecv.kind === "Any"`
-        // (`src/lower/passes/expr.ts:199-204`).
+        // the right impl at runtime.
         if type_of(receiver) is AnyType {
             trait_name :: ctx.typed.bounded_dispatch_trait[field_expr.id]
             if trait_name is string as tname {
@@ -244,8 +239,7 @@ impl_trait_first_arg_is :: fn(decl: ImplDecl, name: string) -> bool {
 // Detect `<namespace_ident>.<member>(args)`. The target ident's
 // resolved symbol has kind `ImportBinding` (namespace import). Emit
 // a direct call to the imported member by name — the dump format
-// shows just the bare callee name, matching TS's behaviour for
-// namespace-prefixed calls.
+// shows just the bare callee name for namespace-prefixed calls.
 try_lower_namespace_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
     callee :: call.callee
     if callee is FieldExpr as field_expr {

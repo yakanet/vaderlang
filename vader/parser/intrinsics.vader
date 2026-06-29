@@ -1,9 +1,8 @@
 // vader/parser/intrinsics — registry of compiler-built `@name(...)` calls.
 //
-// Mirrors `src/parser/intrinsics.ts` : every entry here matches an entry
-// there one-for-one. Used by the parser to decide whether `@name(...)`
-// in expression position lowers to an `IntrinsicCallExpr` or surfaces
-// P1014 (unknown decorator placement).
+// Used by the parser to decide whether `@name(...)` in expression
+// position lowers to an `IntrinsicCallExpr` or surfaces P1014 (unknown
+// decorator placement).
 
 module "vader/parser"
 
@@ -17,12 +16,12 @@ export IntrinsicSpec :: struct {
     args:   IntrinsicArgKind[]
     // Result kind is informative — the typechecker / lower passes have
     // their own per-name dispatch and don't consult this. Stored here for
-    // completeness so the registry matches the TS layout exactly.
+    // completeness.
     result: string
 }
 
-// Full set of recognised intrinsics. Add new entries here in lock-step
-// with `src/parser/intrinsics.ts:INTRINSICS`. Typed `const IntrinsicSpec[]` so
+// Full set of recognised intrinsics. Add new entries here. Typed
+// `const IntrinsicSpec[]` so
 // the immutable-array opt-in bakes it once into `.rodata` (zero-copy
 // `data.const` view) instead of fn-wrapping a rebuild on every `intrinsic_spec`.
 INTRINSICS: const IntrinsicSpec[]: [

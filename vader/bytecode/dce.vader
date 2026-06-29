@@ -1,8 +1,8 @@
 // vader/bytecode/dce — late EmitterCtx-level prunes.
 //
-// Mirror of `src/midir/dce.ts`'s `pruneUnusedImports` /
-// `pruneUnusedFunctions` / `pruneUnusedTypes`. (TS's `pruneUnusedVtables`
-// has no peer pass here : vtable rows are reachability-filtered when they're
+// Hosts `prune_unused_imports` / `prune_unused_functions` /
+// `prune_unused_types`. (There is no `prune_unused_vtables` peer pass :
+// vtable rows are reachability-filtered when they're
 // built — `vader/midir/emit.vader::build_vtables_from_entries` only emits a
 // row whose `(trait, method)` key a surviving `virtual.call` references, and
 // the same `used_vt_keys` set gates which vtable targets root the fn walk.)
@@ -11,12 +11,11 @@
 // surviving fn bodies to compute a reachability set, then drops
 // entries that nothing alive references.
 //
-// **Whole-program DCE** on the LoweredProject (TS
-// `pruneUnreachable`) is NOT ported — Vader's lower currently
-// filters stdlib at the module level, so the LoweredProject already
-// excludes most unreachable decls. The four EmitterCtx-level prunes
-// here are what TS `emit.ts` calls after the body emit, so they're
-// the most impactful for bytecode parity.
+// **Whole-program DCE** on the LoweredProject is NOT done here — Vader's
+// lower currently filters stdlib at the module level, so the
+// LoweredProject already excludes most unreachable decls. The four
+// EmitterCtx-level prunes here run after the body emit, so they're
+// the most impactful for the emitted bytecode.
 
 module "vader/bytecode"
 
@@ -29,8 +28,6 @@ import "std/collections" { MutableMap, MutableSet, values, add }
 /// Walk every fn body for `call.import` references, build a remap
 /// table, drop unused import entries, and rewrite the surviving
 /// `call.import` ops to use the compacted indices.
-///
-/// Mirrors `src/midir/dce.ts::pruneUnusedImports`.
 export prune_unused_imports :: fn(ctx: EmitterCtx) -> void {
     used :: MutableMap<i32, bool> {}
     for fn_ in ctx.functions {
@@ -73,8 +70,6 @@ export prune_unused_imports :: fn(ctx: EmitterCtx) -> void {
 /// drop the fns the walk didn't visit. Surviving fns are renumbered
 /// dense from 0 ; every fn-index reference (in bodies + exports +
 /// fn_index_by_symbol_id) is rewritten.
-///
-/// Mirrors `src/midir/dce.ts::pruneUnusedFunctions`.
 export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_mangles: string[]) -> void {
     n :: ctx.functions.len()
     reachable :: MutableMap<i32, bool> {}
@@ -271,9 +266,8 @@ export prune_unused_functions :: fn(ctx: EmitterCtx, vtable_roots: i32[], keep_m
 /// Composite types (struct, union, array, fn) transitively root
 /// their inner type indices.
 ///
-/// Mirrors `src/midir/dce.ts::pruneUnusedTypes`. Vader's BcRef
-/// doesn't carry a type-id reference (just trait_name) so its
-/// reach-walk is a no-op.
+/// Vader's BcRef doesn't carry a type-id reference (just trait_name) so
+/// its reach-walk is a no-op.
 export prune_unused_types :: fn(ctx: EmitterCtx) -> void {
     reachable :: MutableSet<i32> {}
     reachable.add(0)   // null slot is load-bearing for the runtime
@@ -292,9 +286,9 @@ export prune_unused_types :: fn(ctx: EmitterCtx) -> void {
         roots.push(imp.signature.result_type)
         for pt in imp.signature.param_types { roots.push(pt) }
     }
-    // Pinned types : arg/result type indices that Call ops would have
-    // carried as `argTypeIndices` in TS. Without these, prune drops
-    // type-table slots for `needs_add__string`'s `string` arg etc.
+    // Pinned types : arg/result type indices that Call ops reference.
+    // Without these, prune drops type-table slots for
+    // `needs_add__string`'s `string` arg etc.
     for p in ctx.pinned_types { roots.push(p) }
     // Per-function arg/result pins — only for SURVIVING functions (pruned fns
     // were dropped from `pinned_types_by_fn` by `prune_unused_functions`), so a
@@ -393,8 +387,7 @@ remap_idx :: fn(remap: i32[], idx: i32) -> i32 {
 }
 
 /// The type-bearing op variants. Returns -1 when the op carries no
-/// type index. Mirrors the switch in `dce.ts::pruneUnusedTypes`'s
-/// root-collection pass.
+/// type index.
 type_index_of :: fn(op: Op) -> i32 {
     if op is StructNew as s    { return s.type_id }
     if op is StructGet as s    { return s.type_id }

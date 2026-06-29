@@ -44,8 +44,7 @@ export lower_block :: fn(
     // the drain must run before the value escapes the block. The
     // only way to achieve both is to bind the trailing to a
     // `__block_N` synthetic local, push `pop_exec`, then return an
-    // ident-ref as the new trailing. Mirror of
-    // `src/lower/passes/block.ts::emitTrailingValueWithDefers`.
+    // ident-ref as the new trailing.
     trailing := raw_trailing
     if defer_count > 0 && !last_diverges {
         if trailing == null {
@@ -68,7 +67,7 @@ export lower_block :: fn(
         }
     }
     block_type :: trailing_type(trailing)
-    // Pop the BlockCtx — mirror TS by maintaining the stack depth
+    // Pop the BlockCtx by maintaining the stack depth
     // invariant so nested blocks see only their own defers.
     new_blocks: BlockCtx[] = []
     for i in 0..<entry_depth {
@@ -102,13 +101,12 @@ lower_stmt_into :: fn(ctx: FnLowerCtx, stmt: Stmt, out: LoweredStmt[]) -> void {
         }
         is ReturnStmt   as return_stmt   -> {
             // Drain every pending defer in the enclosing scopes BEFORE
-            // the actual return op. Mirrors TS `lower-stmt` block-exit
-            // defer replay. Count = sum of `defers` across every open
-            // BlockCtx (the innermost block back up to the fn root).
+            // the actual return op. Count = sum of `defers` across every
+            // open BlockCtx (the innermost block back up to the fn root).
             // When the drain emits anything, bundle drain + exit into
-            // a single statement via `wrap_stmts` so the dump matches
-            // TS's `(block (pop_exec N) (return …))` shape rather
-            // than two flat sibling stmts.
+            // a single statement via `wrap_stmts` so the dump records
+            // `(block (pop_exec N) (return …))` shape rather than two
+            // flat sibling stmts.
             drain: LoweredStmt[] = []
             drain_all_defers(ctx, return_stmt.span, drain)
             exit :: lower_return(ctx, return_stmt)
@@ -169,16 +167,14 @@ lower_let_into :: fn(ctx: FnLowerCtx, let_stmt: LetStmt, out: LoweredStmt[]) -> 
             // annotation, OR an unused let with zero body use-sites).
             // Mint without bumping `ctx.uniq` so the synth doesn't
             // drift later `fresh_synthetic_symbol("sb")` / `("try")` /
-            // … naming away from the TS reference.
+            // … naming.
             symbol :: match symbol_or_null {
                 is Symbol as s -> s
                 is null -> synth_unused_local(ctx, simple.name)
             }
             binding_type :: ctx.types.local_type(simple)
             // `let t: type = …` is an in-fn type alias — no runtime
-            // slot, the typer pre-resolved the type. Skip emit so the
-            // dump matches the TS lowerer's `letTypeAliases`
-            // short-circuit.
+            // slot, the typer pre-resolved the type. Skip emit.
             if binding_type is TypeMetaType { return }
             raw_value :: lower_expr(ctx, let_stmt.value)
             widened :: widen_literal_to_context(raw_value, binding_type)
@@ -301,8 +297,7 @@ lower_return :: fn(ctx: FnLowerCtx, return_stmt: ReturnStmt) -> LoweredStmt {
     // return type when the return type is a union and the literal
     // currently carries its narrow inferred type. The typer in
     // Vader doesn't propagate context types into literals ; this
-    // late widening matches the TS dump which always records the
-    // wider expected type at the use site.
+    // late widening records the wider expected type at the use site.
     retyped :: widen_literal_to_context(lowered, ctx.return_type)
     // Auto-Into coercion when the return type doesn't match the
     // value's type AND an `Into[return_type]` impl exists.
@@ -334,8 +329,8 @@ stmt_diverges :: fn(s: LoweredStmt) -> bool {
 }
 
 // Sum the `defers` count across every open BlockCtx and emit a
-// single `defer.pop_exec N` ; matches TS's "drain everything to fn
-// root before return" semantics.
+// single `defer.pop_exec N` — drains everything to fn root before
+// return.
 drain_all_defers :: fn(ctx: FnLowerCtx, span: Span, out: LoweredStmt[]) -> void {
     total: i32 = 0
     for b in ctx.blocks { total += i32(b.defers.len()) }
@@ -396,8 +391,7 @@ lower_for :: fn(ctx: FnLowerCtx, for_stmt: ForStmt) -> LoweredStmt {
     // `@comptime for x in <arr> { body }` — unroll at lower time when
     // the iter folds to a `LoweredArrayLit`. Threads the per-iter
     // substitution through `ctx.comptime_bindings` so `lower_ident`
-    // folds loop-var reads to their literal. Mirror of
-    // `src/lower/passes/for-in.ts::lowerComptimeForIn`.
+    // folds loop-var reads to their literal.
     if for_stmt.is_comptime {
         if for_stmt.form is InFor as in_form {
             return lower_comptime_for_in(ctx, for_stmt, in_form)
@@ -415,8 +409,7 @@ lower_for :: fn(ctx: FnLowerCtx, for_stmt: ForStmt) -> LoweredStmt {
             // `for <iter> { body }` sugar : when the cond evaluates to an
             // iterable shape (array, range, struct with `Iterator` impl),
             // route through the for-in lowerer with a synthetic discard
-            // binding `_`. Mirrors TS `whileAsForIn` in
-            // `src/lower/passes/block.ts:233-238`.
+            // binding `_`.
             cond_type :: ctx.types.expr_type(while_for.cond)
             if cond_type is ArrayType {
                 synth_in :: InFor {
@@ -440,7 +433,6 @@ lower_for :: fn(ctx: FnLowerCtx, for_stmt: ForStmt) -> LoweredStmt {
 }
 
 /// Unroll a `@comptime for x in <arr> { body }` at lower time.
-/// Mirror of `src/lower/passes/for-in.ts::lowerComptimeForIn`.
 /// Returns a synthetic block whose stmts are the body lowered once
 /// per iter element, with the loop-var symbol bound to the per-iter
 /// literal via `comptime_bindings`.

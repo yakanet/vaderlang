@@ -1,5 +1,5 @@
 // vader/bytecode/slot_coalesce — coalesce non-overlapping live ranges
-// onto shared physical slots. Mirror of `src/bytecode/slot-coalesce.ts`.
+// onto shared physical slots.
 //
 // Runs AFTER peephole + propagate + drop_dead_stores so the per-slot
 // (set, get) gates that pass needs still fire on the original slot
@@ -15,7 +15,7 @@ module "vader/bytecode"
 
 
 /// Slot touched by `op` (read OR write), or -1 when the op doesn't
-/// touch a local slot. Mirror of TS `slotTouched`.
+/// touch a local slot.
 slot_touched :: fn(op: Op) -> i32 {
     if op is LocalGet as g    { return g.slot }
     if op is LocalSet as s    { return s.slot }
@@ -48,8 +48,7 @@ SlotRange :: struct {
 
 /// Coalesce same-ValType non-overlapping slots in `function`. Returns
 /// a rewritten BcFunction ; when no coalescing fires the body / locals
-/// are unchanged (caller can drop the result with no cost). Mirrors
-/// TS `coalesceSlots`.
+/// are unchanged (caller can drop the result with no cost).
 export coalesce_slots :: fn(function: BcFunction) -> BcFunction {
     param_count :: function.signature.params.len()
     total_slots :: param_count + function.locals.len()
@@ -107,9 +106,9 @@ export coalesce_slots :: fn(function: BcFunction) -> BcFunction {
     }
 
     // `phys_ranges` tracks the union of live ranges currently mapped
-    // onto each physical slot. Same layout as TS : the param-slot
-    // prefix carries the original param ranges ; the tail grows as
-    // new non-param physical slots are minted.
+    // onto each physical slot : the param-slot prefix carries the
+    // original param ranges ; the tail grows as new non-param physical
+    // slots are minted.
     phys_ranges: SlotRange[] = []
     for phys_init in 0..<param_count {
         phys_ranges.push(ranges[phys_init])
@@ -208,7 +207,7 @@ extend_into_loops :: fn(
 
 /// Linear scan to collect `(loop_pc, end_pc)` pairs. Pushes onto a
 /// stack on `Block` / `Loop` / `If` ; pops on `End` and records when
-/// the popped scope was a loop. Mirror of TS `findLoopRanges`.
+/// the popped scope was a loop.
 find_loop_ranges :: fn(body: Op[]) -> SlotRange[] {
     out: SlotRange[] = []
     kinds: string[] = []

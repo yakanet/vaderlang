@@ -7,7 +7,7 @@
 // FnDecl decls — see PORTING_STATUS.md for the wiring step).
 //
 // MVP-trimmed: no trait-impl branch (the `paramType is TraitType +
-// concrete arg → look up impl + bind trait args` arm in TS). That
+// concrete arg → look up impl + bind trait args` arm). That
 // path needs `ImplRegistry.find_for(...)` plus impl-typeParam
 // inversion which lands once `coerce.vader` materialises.
 
@@ -31,7 +31,7 @@ is_free_numeric :: fn(t: Type) -> bool {
 }
 
 /// Walk `param_type` against `arg_type` and record any TypeParam
-/// binding into `out`. First binding wins (matches TS semantics).
+/// binding into `out`. First binding wins.
 export unify_type_param :: fn(
     param_type: Type, arg_type: Type, out: MutableMap<i32, Type>,
 ) -> void {

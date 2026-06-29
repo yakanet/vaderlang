@@ -56,8 +56,7 @@ export materialize_intrinsic_members :: fn(impl_: AST.ImplDecl, trait_: AST.Trai
 /// didn't override the method. Clones bodies via
 /// `substitute_block_materialized` so cloned nodes carry the
 /// materialised-span marker (rendered as `undefined:undefined` in the
-/// typecheck dump — matches TS's accidental shape for substituted
-/// leaves). Then `assign_block_ids` mints fresh IDs in the host
+/// typecheck dump). Then `assign_block_ids` mints fresh IDs in the host
 /// module's namespace so id-keyed `expr_types` / `expr_kinds` slots
 /// don't collide with the impl module's pre-existing nodes.
 export materialize_default_members :: fn(
@@ -187,9 +186,8 @@ import "vader/parser" { NodeIdFactory, new_node_id_factory }
 /// SAM-synthetic members come out of the parser with a placeholder
 /// name and an empty param list ; the trait's lone required method
 /// supplies the canonical name + signature. Mutates each synthetic
-/// member in place. *Doesn't emit R2016 yet* — diagnostics for SAM
-/// shape mismatches surface from the TS resolver until `ResolverCode`
-/// is ported.
+/// member in place. *Doesn't emit R2016 yet* — SAM shape-mismatch
+/// diagnostics are not surfaced here.
 export materialize_sam_members :: fn(impl_: AST.ImplDecl, trait_: AST.TraitDecl, factory: NodeIdFactory) -> void {
     syn_count :: count_sam_synthetics(impl_.members)
     if syn_count == 0 { return }
@@ -198,8 +196,7 @@ export materialize_sam_members :: fn(impl_: AST.ImplDecl, trait_: AST.TraitDecl,
     // Pick the first required method as the SAM target. When the trait
     // has >1 required method, R2016 already fired ; renaming under the
     // first one still lets the T3036 "missing method" loop find at
-    // least the SAM-named method instead of flagging both as missing
-    // (mirrors TS's surface).
+    // least the SAM-named method instead of flagging both as missing.
     method :: required[0]
     subst :: build_subst(impl_, trait_)
     for i in 0..<impl_.members.len() {

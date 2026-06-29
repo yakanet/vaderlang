@@ -211,7 +211,7 @@ mark_reachable :: fn(fn_decl: LoweredFnDecl, reachable_sym: MutableMap<i32, bool
 
 /// True when the fn decl survives the prune. Structs / consts always
 /// survive (handled by the caller) ; null-symbol fns (impl members ship
-/// as separate entries) are kept verbatim, mirroring the TS pass.
+/// as separate entries) are kept verbatim.
 fn_survives :: fn(d: LoweredDecl, reachable_sym: MutableMap<i32, bool>, reachable_mangle: MutableMap<string, bool>) -> bool {
     if d is LoweredFnDecl as fn_decl {
         sym :: fn_decl.origin.symbol

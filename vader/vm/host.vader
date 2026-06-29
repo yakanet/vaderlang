@@ -3,8 +3,8 @@
 // Every `call.import N` runs through `dispatch_import` here ; per-host
 // arms unwrap the args from the caller stack, invoke the corresponding
 // native stdlib intrinsic, and wrap the result back into an `Value`.
-// The shape mirrors `src/vm/host.ts:makeBindings` — same mangled-name
-// set, same trap-on-miss semantics. Lives in its own file (split out of
+// The shape is a flat mangled-name cascade with trap-on-miss
+// semantics. Lives in its own file (split out of
 // `vader/vm/exec.vader` 2026-05-14) so the executor stays focused on
 // the dispatch loop.
 
@@ -116,7 +116,7 @@ host_int_pair_to_bool :: fn(stack: Value[], arg_base: usize, at_pc: i32, label: 
 }
 
 /// Dispatch a host import. Walks a flat `if info.mangled_name == r"…"`
-/// cascade matching the TS VM's `makeBindings` shape — every arm pops
+/// cascade — every arm pops
 /// the args from `stack[arg_base ..]`, executes the host action, and
 /// returns either `HostOk { value }` (the result pushed onto the
 /// caller's value stack) or a `Trap` (surfaced verbatim).
@@ -222,8 +222,7 @@ export dispatch_import :: fn(info: bc.BcImport, stack: Value[], arg_base: usize,
         if s is Trap { return s }
         if i is Trap { return i }
         // Walk UTF-8 until the `i`-th codepoint, then decode it. OOB
-        // returns U+0000 — the Vader VM mirrors the TS host bridge ;
-        // the native runtime traps instead.
+        // returns U+0000 in the VM ; the native runtime traps instead.
         sb :: s.value.bytes()
         target :: usize(i.value)
         cursor: usize = 0

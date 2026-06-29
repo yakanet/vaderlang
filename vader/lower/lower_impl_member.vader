@@ -267,8 +267,7 @@ impl_targets_name :: fn(for_type: Expr, name: string) -> bool {
 /// `T(value)` cast-call detector. Returns a `LoweredCast` when the callee
 /// is a type-shaped symbol (builtin primitive, struct, or type alias) with
 /// a single arg. For non-numeric targets the typer already routed the arg
-/// through `tryInto` ; we emit the lowered arg verbatim. Mirror of
-/// `lowerCall`'s cast branch in `src/lower/passes/expr.ts:62-83`.
+/// through `tryInto` ; we emit the lowered arg verbatim.
 try_lower_cast_call :: fn(ctx: FnLowerCtx, call: CallExpr, type: Type) -> LoweredExpr | null {
     if call.args.len() != 1 { return null }
     callee_ident :: as_ident(call.callee)
@@ -382,8 +381,7 @@ try_array_iter_coercion :: fn(
 }
 
 /// `Target(value)` where `value : Source` and `Source implements Into[Target]`
-/// emits `LoweredCall { callee: into, args: [value] }`. Mirror of the typer's
-/// `tryInto` coercion path in TS.
+/// emits `LoweredCall { callee: into, args: [value] }`.
 try_emit_into_coercion :: fn(
     ctx: FnLowerCtx, arg: LoweredExpr, arg_type: Type, target_type: Type, span: Span,
 ) -> LoweredExpr | null {

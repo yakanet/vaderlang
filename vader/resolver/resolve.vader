@@ -31,9 +31,8 @@ import "vader/diagnostics" { Diagnostic }
 /// lookups without re-walking the AST.
 export ResolvedModule :: struct {
     path:    string
-    /// Module's user-declared name (`module "..."`), mirroring TS's
-    /// `module.displayPath`. Used by the lower / comptime mangling so
-    /// `## snippet` / `snippet$add` dump stable.
+    /// Module's user-declared name (`module "..."`). Used by the lower /
+    /// comptime mangling so `## snippet` / `snippet$add` dump stable.
     /// `path` keeps the filesystem identity (folder), since it's the
     /// stable key for cross-module side-tables.
     display_path: string
@@ -130,9 +129,9 @@ export resolve_module_with_collected :: fn(
     return resolve_module_with_collected_dp(program, module_path, module_path, factory, collected)
 }
 
-/// Variant accepting an explicit `display_path` (TS's `module.displayPath`)
-/// alongside the filesystem `module_path`. The orchestrator threads this
-/// from `LoadedModule.module.display_path` so dump + mangling match TS.
+/// Variant accepting an explicit `display_path` alongside the filesystem
+/// `module_path`. The orchestrator threads this from
+/// `LoadedModule.module.display_path` so dump + mangling stay stable.
 export resolve_module_with_collected_dp :: fn(
     program: Program, module_path: string, display_path: string, factory: SymbolFactory,
     collected: CollectedModule,

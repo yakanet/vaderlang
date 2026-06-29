@@ -2,9 +2,9 @@
 //
 // Per-variant `match` over `AST.Expr` routing each kind to its
 // dedicated evaluator (`eval_lit`, `eval_binary`, `eval_ident`).
-// Replaces TS's `lower-decl.ts` + `run.ts` + VM round-trip for the
-// subset of comptime expressions the lowerer + bytecode emitter port
-// haven't unlocked yet. Anything outside that subset surfaces `C4001`.
+// Handles the subset of comptime expressions the lowerer + bytecode
+// emitter port haven't unlocked yet. Anything outside that subset
+// surfaces `C4001`.
 
 module "vader/comptime"
 

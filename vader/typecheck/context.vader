@@ -1,6 +1,6 @@
 // vader/typecheck/context — shared context threaded through every typecheck pass.
 //
-// Mirror of `src/typecheck/ctx.ts` but MVP-trimmed. Two layers :
+// MVP-trimmed. Two layers :
 //
 //   - `Globals`    — built once per project. Carries cross-module shared
 //                    state (the symbol factory, the impl registry once
@@ -9,9 +9,8 @@
 //                    and `Self` substitution inside method bodies.
 //
 // Per-module side-tables live on `TypedProgram` directly (see
-// `typed_ast.vader`) rather than being duplicated here — that avoids
-// the TS-side split between `MutableTyped.exprTypes` (during) and
-// `TypedProgram.exprTypes` (after).
+// `typed_ast.vader`) rather than being duplicated here — a single
+// representation, no during/after split.
 
 module "vader/typecheck"
 

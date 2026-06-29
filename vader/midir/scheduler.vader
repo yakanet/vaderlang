@@ -16,8 +16,8 @@
 // CondBranch.cond.
 //
 // Vader-specific design : `Set<Instruction>` keyed by object identity
-// (TS Map default) doesn't translate ; we use position-encoded keys
-// instead. `pos_key(block, idx) = block × POS_STRIDE + idx`. Consumers
+// doesn't translate ; we use position-encoded keys instead.
+// `pos_key(block, idx) = block × POS_STRIDE + idx`. Consumers
 // query via `skip_set_at` / `skip_first_get_at` so the key encoding
 // stays an implementation detail. POS_STRIDE × max(blocks) must fit
 // in i64 ; with 1 000 000 we get headroom for ~9 × 10¹² blocks.

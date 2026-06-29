@@ -33,7 +33,7 @@ export check_block :: fn(
     // restore on block exit (mirrors `pop_narrow` semantics).
     divergent_narrows: DivergentNarrow[] = []
     // W0002 — track the first stmt past a divergent guard so we can
-    // warn once per block (mirrors TS's surface).
+    // warn once per block.
     first_unreachable_span: Span | null = null
     diverged := false
     for stmt in block.stmts {
@@ -263,8 +263,7 @@ check_let :: fn(
     // `typed.let_type_aliases` keyed by the binding's Symbol.id.
     // Downstream type-position references (e.g. `@size_of(t)`) read
     // through this map at lower time. Detection mirrors the
-    // top-level `register_alias_const` path. Mirrors TS
-    // `letTypeAliases` in `src/typecheck/passes/stmt.ts:237-247`.
+    // top-level `register_alias_const` path.
     is_let_type_alias := false
     if !s.mutable && declared is TypeMetaType {
         if s.binding is AST.SimpleBinding as sb {
@@ -298,9 +297,9 @@ check_assign :: fn(
     s: AST.AssignStmt, typed: TypedProgram, diags: Diagnostic[],
     check_expr_fn: fn(AST.Expr, Type | null, TypedProgram, Diagnostic[]) -> Type,
 ) -> void {
-    // T3041 : bare-ident assignment to a `::`-bound local. Mirrors
-    // TS — surface the diag and skip the value-side typing so the
-    // dump doesn't carry extra expr_types for a rejected write.
+    // T3041 : bare-ident assignment to a `::`-bound local. Surface
+    // the diag and skip the value-side typing so the dump doesn't
+    // carry extra expr_types for a rejected write.
     if s.target is AST.IdentExpr {
         if is_const_reassign(s.target, typed) {
             diags.push(typecheck_error(.CannotReassignConst, s.target.span,
@@ -310,7 +309,7 @@ check_assign :: fn(
     }
     // T3042 : `arr[i] = v` when arr's static type is `const T[]`.
     // For Array-typed receivers we still write the full IndexExpr
-    // into `expr_types` (matches TS). For non-Array receivers the
+    // into `expr_types`. For non-Array receivers the
     // assignment LHS doesn't land in `expr_types` — only its sub-
     // parts do, since the IndexSet trait dispatch is the read site.
     if s.target is AST.IndexExpr {
@@ -392,7 +391,7 @@ check_for :: fn(
             got :: check_expr_fn(w.cond, null, typed, diags)
             // `for X { ... }` desugars to `for _ in X { ... }` when X
             // is iterable (array today ; custom Iterator impls land
-            // with coerce.vader). Skip T3019 in that case to match TS.
+            // with coerce.vader). Skip T3019 in that case.
             if got is ArrayType { /* iterable — no diag */ }
             else if !is_assignable(got, TY_BOOL, null) {
                 diags.push(typecheck_error(.ConditionMustBeBool, w.cond.span,
@@ -420,13 +419,11 @@ check_loop_jump :: fn(span: Span, label: string | null, typed: TypedProgram, ctx
     // innermost ; which loop it means is non-obvious to the reader. Read the
     // walk-global `typed.loop_depth` (not `ctx.loop_depth`) so the warning
     // survives `if`/`match`-block nesting — `for { for { if c { continue } } }`
-    // is flagged. Matches TS, whose `fn.loopDepth` is threaded through
-    // expressions. A single enclosing loop is unambiguous, hence `>= 2`.
+    // is flagged. A single enclosing loop is unambiguous, hence `>= 2`.
     // Naturally scoped to the code under compilation : `check_project_with_bodies`
     // only walks the entry module's fn bodies (imported modules contribute
     // signatures + cross-published decls, not body diagnostics), so this is
-    // never reached for a jump in stdlib / the `vader/` tree. The TS mirror
-    // gates explicitly on the entry module to match (it does body-check imports).
+    // never reached for a jump in stdlib / the `vader/` tree.
     if label is null && typed.loop_depth >= 2 {
         diags.push(warning(.AmbiguousLoopJump, span,
             "add a label and use `break <label>` / `continue <label>`"))

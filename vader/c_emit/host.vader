@@ -9,7 +9,7 @@
 //     foreign symbol (`user_extern_shim`), declared once via an `extern`.
 //
 // Same module (`vader/c_emit`), so `EmitCtx` + `c_type_for_val_bare` are
-// in scope without imports. Mirrors `src/c_emit/emit.ts::importShim`.
+// in scope without imports.
 
 module "vader/c_emit"
 
@@ -220,9 +220,9 @@ extern_c_type :: fn(v: ValType) -> string {
 // ---- tag lookups ----------------------------------------------------------
 
 /// Render a BcType index as a C `u`-suffixed tag, or `0u` with a comment
-/// when absent (`-1`). Mirrors TS `tagOrTrap` — a shim referencing an
-/// absent tag only fires when the program actually uses that intrinsic,
-/// by which point the type is present.
+/// when absent (`-1`). A shim referencing an absent tag only fires when
+/// the program actually uses that intrinsic, by which point the type is
+/// present.
 tag_u :: fn(idx: i32, label: string) -> string {
     if idx < 0 { return "0u /* ${label} tag absent */" }
     return "${idx}u"

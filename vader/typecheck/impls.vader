@@ -4,7 +4,7 @@
 // validating `where T: Trait` bounds, trait dispatch (operator resolution,
 // UFCS method dispatch on trait-typed receivers), and `Into`-coercion.
 //
-// MVP-trimmed against the TS reference :
+// MVP-trimmed :
 //   - No primitive-target impl lookup (`forPrimitive`) — primitive impls
 //     don't exist in test fixtures the Vader typechecker exercises yet ;
 //     adds when `i32 implements Display` cases land.

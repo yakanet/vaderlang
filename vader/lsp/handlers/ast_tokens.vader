@@ -59,9 +59,8 @@ collect_ast_idents :: fn(source: string, uri: string, out: RawToken[]) -> void {
     parsed :: parse_source(source, uri)
     program :: parsed.program
     // Soft keyword : `module "..."` on the first non-trivial line is
-    // not a `Kw*` token at the lexer level (it stays an Ident — see
-    // the soft-keyword note in src/lexer/token.ts). Surface the
-    // keyword colour here using the parsed AST.ModuleDecl's nameSpan
+    // not a `Kw*` token at the lexer level (it stays an Ident). Surface
+    // the keyword colour here using the parsed AST.ModuleDecl's nameSpan
     // start to anchor the 6-char "module" span.
     match program.module {
         is null -> {}

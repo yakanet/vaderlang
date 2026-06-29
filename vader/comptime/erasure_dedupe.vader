@@ -103,7 +103,6 @@ build_dedupe_ctx :: fn(
 
 /// True iff `entry`'s group of `(decl, type_arguments)` entries should
 /// be collapsed to a single Any-substituted representative.
-/// Mirrors `shouldErase` in `src/comptime/erasure-dedupe.ts:55`.
 ///
 /// Three criteria :
 ///   - `type_arguments.len() > 0` (non-generic decls never erase).
@@ -215,8 +214,7 @@ any_leaves_of_each :: fn(types: Type[]) -> Type[] {
 }
 
 /// Short stable display used when synthesising the mangled name for
-/// an extra struct entry. Mirrors `displayAnyArg` in
-/// `src/comptime/erasure-dedupe.ts:105`.
+/// an extra struct entry.
 ///
 /// @param t  the type to render.
 /// @return   a `_`-joined display, e.g. `"Box_Box_Any"` for the
@@ -292,8 +290,6 @@ make_representative :: fn(first: MonoEntry) -> MonoEntry {
 /// representative — preserving the original `type_arguments` on each
 /// redirected entry (vtable-row collection needs the per-concrete
 /// shape). Symbol redirects to the representative's.
-///
-/// Mirrors `redirectInner` in `src/comptime/erasure-dedupe.ts:166`.
 redirect_inner :: fn(
     src: MutableMap<string, MonoEntry>,
     replacements: ReplacementMap,
@@ -573,7 +569,7 @@ rewrite_struct_group :: fn(
 }
 
 /// Strip the trailing `__<arg>__<arg>(_N)?` suffix from a mangled
-/// name. Mirrors the TS regex `/__[^_]+(_\d+)?$/`.
+/// name.
 strip_mangled_tail :: fn(mangled: string) -> string {
     // Find the last `__` and trim it + everything after.
     mb :: mangled.bytes()

@@ -74,8 +74,7 @@ build_fn_mixed_subst :: fn(fd: FnDecl, typed: TypedProgram, type_args: Type[]) -
 
 /// Replace every concrete leaf in a `Type` tree with `Any` while
 /// preserving generic wrappers (Struct / Trait / Array / Union /
-/// Tuple). Mirror of `anyLeavesOf` in
-/// `src/comptime/erasure-dedupe.ts:86-100`.
+/// Tuple).
 any_leaves_of :: fn(t: Type) -> Type {
     if t is StructType as s {
         if s.args.is_empty() { return TY_ANY }
@@ -106,8 +105,7 @@ any_leaves_of :: fn(t: Type) -> Type {
 }
 
 /// Short stable display used when synthesising the representative's
-/// mangled name. Mirrors `displayAnyArg` in
-/// `src/comptime/erasure-dedupe.ts:105-121`.
+/// mangled name.
 // @partial: only arg-bearing / composite type shapes render a suffix; every other type → "Any".
 display_any_arg :: fn(t: Type) -> string = @partial match t {
     is StructType as s -> if s.args.is_empty() { s.symbol.name } else { joined_named(s.symbol.name, s.args, "_") }
@@ -160,7 +158,7 @@ join_any_displays :: fn(args: Type[]) -> string {
 /// Build a substitution mapping every type-parameter of `sd` to
 /// `TY_ANY`. Used by the erasure pass to drop type info from
 /// monomorphized struct field types so identical monos share a single
-/// C-emit shape. Mirror of `anySubst` in `src/comptime/specialize.ts:45`.
+/// C-emit shape.
 build_any_subst :: fn(sd: StructDecl, owner_typed: TypedProgram) -> Substitution {
     subst :: new_substitution()
     for tp in sd.type_params {

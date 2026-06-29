@@ -162,8 +162,7 @@ export LowerProjectCtx :: struct {
 
     /// Monotonically-increasing counter for synthetic `MonoEntry` IDs,
     /// separated from the symbol-id pool so minting an entry doesn't
-    /// bump `__lambda_N` / `__lambda_env_N` naming. Mirror of TS's
-    /// `synthLambdaEntryId` in `src/lower/passes/lambda.ts:198`.
+    /// bump `__lambda_N` / `__lambda_env_N` naming.
     next_mono_entry_id:  i32
 
     /// Generic-fn instances observed during call lowering. Keys are
@@ -222,8 +221,7 @@ export LowerProjectCtx :: struct {
     /// (erased) body ; later instances see the key and skip emission.
     /// All call sites end up routing through trait virtual dispatch,
     /// which picks the single surviving body regardless of the original
-    /// instance's concrete args. Mirror of TS's `replacements` map in
-    /// `src/comptime/erasure-dedupe.ts::erasureDedupe`.
+    /// instance's concrete args.
     materialized_impl_keys: MutableSet<string>
 
     /// Mangles of impl-member calls actually resolved during lowering
@@ -241,8 +239,8 @@ export LowerProjectCtx :: struct {
     /// picks the impl at runtime — so EVERY primitive implementor of the
     /// trait must enter the vtable. `surface_stdlib_impl_externs` consults
     /// this to surface all primitive impl members of a virtually-dispatched
-    /// trait (mirrors TS, whose mono materialises every non-generic impl
-    /// member upfront then DCEs to the dispatched keys). Empty for snippets
+    /// trait (the mono model materialises every non-generic impl member
+    /// upfront then DCEs to the dispatched keys). Empty for snippets
     /// with no erased primitive dispatch → no surfacing, no snapshot drift.
     virtually_dispatched_traits: MutableSet<string>
 

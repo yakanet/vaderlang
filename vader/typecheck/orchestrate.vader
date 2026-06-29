@@ -30,7 +30,7 @@ import "vader/types" {
 
 // Concatenate every file of a (possibly multi-file) module into one
 // synthetic Program so the resolver body-walks ALL files, not just
-// files[0]. Mirror of TS `mergeFilePrograms`.
+// files[0].
 // `span_key` is file-aware, so idents from sibling files at the same
 // (line, column) no longer collide in the merged per-module map.
 merge_module_program :: fn(files: SourceFile[]) -> Program {
@@ -303,7 +303,7 @@ export check_project_with_bodies :: fn(
     // same setup chain parameterised on each module's typed program.
     // Diagnostics route to a throwaway sink : the user-facing surface stays
     // entry-only (the resolver-diag forwarding below is likewise
-    // entry-scoped). Mirrors TS, which body-checks imports.
+    // entry-scoped). Imported modules are body-checked here too.
     for [id, other] in project.modules {
         if id == project.entry { continue }
         other_typed :: per_module[id]
@@ -765,7 +765,7 @@ export materialize_all_sams_pre_resolve :: fn(project: LoadedProject) -> void {
             // materialised-span marker + IDs minted from the host
             // module's factory so cloned nodes contribute distinct
             // expr_types entries in the typecheck dump (rendered as
-            // `undefined:undefined` — matches TS).
+            // `undefined:undefined`).
             materialize_default_members(decl, trait_decl, loaded.node_id_factory)
         }
     }
@@ -774,7 +774,6 @@ export materialize_all_sams_pre_resolve :: fn(project: LoadedProject) -> void {
 /// R2016 : `Type implements Trait -> expr` desugars one body into the
 /// trait's lone required method. When the trait has 0 or 2+ required
 /// methods, the sugar is ill-defined — emit once per synthetic member.
-/// Mirrors `src/resolver/materialize.ts::checkShortImplArity`.
 check_short_impl_arity :: fn(
     impl_: AST.ImplDecl, trait_: AST.TraitDecl, diags: Diagnostic[],
 ) -> bool {
@@ -1674,9 +1673,7 @@ lookup_trait_decl :: fn(name: string, typed: TypedProgram) -> AST.TraitDecl | nu
     // references `Display` without an explicit import binding, so the
     // local-symbol walk above misses it. `cross_publish_trait_decls`
     // already copies every trait decl into every typed program's
-    // `trait_decls` map ; scan it directly by name. Mirror of TS'
-    // `sourceTraitDecl(sym)` which reads the canonical decl off the
-    // symbol's `source` pointer.
+    // `trait_decls` map ; scan it directly by name.
     for [_, d] in typed.trait_decls {
         if d.name == name { return d }
     }

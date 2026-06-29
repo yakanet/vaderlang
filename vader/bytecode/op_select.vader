@@ -1,7 +1,6 @@
 // vader/bytecode/op_select — `LoweredBinaryOp` / `LoweredUnaryOp`
 // → concrete `Op` variant.
 //
-// Mirrors `binaryOpFor` / unary handling in `src/bytecode/emit.ts`.
 // Per-shape emit fns in `emit_body.vader` call `binary_op_for` /
 // `unary_op_for` to pick the right typed op once both operands are
 // on the stack.

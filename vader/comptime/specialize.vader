@@ -295,9 +295,8 @@ materialise_struct_instance :: fn(
 }
 
 /// Look up a `StructDecl` by name in the loaded project's source
-/// decls of the given module. The TS side reads
-/// `inst.symbol.source.decl` directly — Vader's Symbol doesn't carry
-/// `source`, so we re-find by name + kind.
+/// decls of the given module. Vader's Symbol doesn't carry a
+/// `source` decl pointer, so we re-find by name + kind.
 find_struct_decl :: fn(loaded: LoadedProject, module_id: string, name: string) -> StructDecl | null {
     decls_opt :: module_decls_for(loaded, module_id)
     if decls_opt is null { return null }
@@ -360,7 +359,6 @@ find_type_param_symbol :: fn(program: ResolvedModule, tp: TypeParam) -> Symbol |
 /// True when the impl's for-type args are compatible with `inst_args`.
 /// Concrete-arg impls (`Range[i32]`) match only their exact instance ;
 /// generic-arg impls (`Foo[T]`) match any concrete instantiation.
-/// Mirrors `implForTypeMatches` in `src/comptime/specialize.ts:400`.
 impl_for_type_matches :: fn(for_type: TypeExpr, inst_args: Type[], program: ResolvedModule) -> bool {
     if for_type is GenericInstExpr as gi {
         if gi.type_args.len() != inst_args.len() { return false }
@@ -528,8 +526,7 @@ materialise_into_member :: fn(
 }
 
 /// Linear scan over the loaded module's decls for the ImplDecl
-/// whose `members` array contains `member`. Mirrors `findOwningImpl`
-/// in `src/comptime/specialize.ts:263`.
+/// whose `members` array contains `member`.
 find_owning_impl :: fn(loaded: LoadedProject, program: TypedProgram, member: FnDecl) -> ImplDecl | null {
     decls_opt :: module_decls_for(loaded, program.resolved.path)
     if decls_opt is null { return null }
@@ -724,11 +721,10 @@ push_entry :: fn(project: MonoProject, entry: MonoEntry) -> void {
 }
 
 /// Inner-map insertion key — `canonical_args_key(args)` for generic
-/// instances, `""` for non-generic ones. Mirrors TS `argsKey` +
-/// `putImplEntry`. The composite outer key
+/// instances, `""` for non-generic ones. The composite outer key
 /// `${member.id}::${args_key}` keeps the table flat
-/// (`MutableMap(string, MonoEntry)`) rather than the nested-map shape
-/// TS uses (`Map<FnDecl, Map<string, MonoEntry>>`).
+/// (`MutableMap(string, MonoEntry)`) rather than a nested per-`FnDecl`
+/// map.
 put_impl_entry :: fn(
     table: MutableMap<string, MonoEntry>,
     member: FnDecl, args: Type[], entry: MonoEntry,

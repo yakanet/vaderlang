@@ -86,8 +86,7 @@ lookup_comptime_decl_name :: fn(typed: TypedProgram, symbol_id: i32) -> string {
 }
 
 // The owning module's display path. Carried on the `ResolvedModule`
-// per existing convention ; mirrors `m.typed.resolved.module.displayPath`
-// in the TS dump.
+// per existing convention.
 module_display_path :: fn(module_program: EvaluatedProgram) -> string {
     return module_program.typed.resolved.path
 }

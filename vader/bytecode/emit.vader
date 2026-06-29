@@ -23,8 +23,7 @@ import "vader/parser" {
 Lo :: import "vader/lower"
 
 
-/// In-place peephole over a fn's `body`. Mirrors `applyLocalRules` in
-/// `src/bytecode/peephole.ts` :
+/// In-place peephole over a fn's `body` :
 ///   - Rule 1 : `LocalSet N ; LocalGet N` → `LocalTee N`.
 ///   - Rule 2 : `<num>.<cmp> ; BoolNot` → `<num>.<inverse cmp>` (NYI).
 ///   - Rule 3 : `BoolConst X ; BoolNot` → `BoolConst !X`.
@@ -34,9 +33,9 @@ Lo :: import "vader/lower"
 /// Rule-5-only pass : `<Const> ; Return` → `ReturnLit { value }`. Used
 /// by the second peephole pass (after drop_dead_stores) — re-running
 /// the full `run_bc_peephole` there would re-fold set+get pairs that
-/// drop_dead just slot-coalesced into adjacency, diverging from TS
-/// which folds Rule 1 only on the *original* (pre-propagate-pre-DCE)
-/// adjacency. Returning the rewritten body keeps the by-value rebuild
+/// drop_dead just slot-coalesced into adjacency, whereas Rule 1 must
+/// fold only on the *original* (pre-propagate-pre-DCE) adjacency.
+/// Returning the rewritten body keeps the by-value rebuild
 /// contract identical to `run_bc_peephole`.
 export run_bc_return_lit_fold :: fn(function: BcFunction) -> BcPeepholeOut {
     body :: function.body
@@ -88,9 +87,7 @@ remap_jump_table :: fn(old_jt: i32[], old_to_new: i32[], new_len: usize) -> i32[
         // Resolve target : the op at `old PC target` may have been
         // deleted (old_to_new[target] = -1). In that case the branch's
         // semantic destination is the NEXT surviving op — scan forward
-        // until we find one (or the end of the body). Mirrors what TS
-        // does implicitly because its branch encoding is a stack depth
-        // rather than an absolute PC.
+        // until we find one (or the end of the body).
         new_pc_target: i32 = -1
         for t in usize(target)..<old_to_new.len() {
             cand :: old_to_new[t]
@@ -116,14 +113,12 @@ export BcPeepholeOut :: struct {
 /// safe integer arith (add / sub / mul / bitwise). Skips div / rem
 /// (trap on rhs=0), shifts (UB on shift ≥ width), and floats (NaN +
 /// signed-zero + precision drift). Returns the folded `Op` (an
-/// `I32Const` / `I64Const`) on a hit, null otherwise. Mirror of TS
-/// `tryFoldArith`.
+/// `I32Const` / `I64Const`) on a hit, null otherwise.
 /// Standalone const-fold-arith pass. Runs AFTER propagate_const_single_use
 /// so chains like `const ; set N ; get N ; const ; <op>` (post-propagate :
 /// `const ; const ; <op>`) collapse to a single folded const. Returns the
 /// rewritten body + remapped jump_table (in case future variants of this
 /// pass touch jump_table entries — currently no jump_table is involved).
-/// Mirror of TS `constFoldArith`.
 export run_bc_const_fold_arith :: fn(function: BcFunction) -> BcPeepholeOut {
     body :: function.body
     n :: body.len()
@@ -231,7 +226,7 @@ export run_bc_peephole :: fn(function: BcFunction) -> BcPeepholeOut {
         // fold when the preceding op is a const (`IntConst` etc.) AND the
         // slot is propagate-eligible (zero tees) : `propagate_const_single_use`
         // will then inline the const into the get site and drop the set,
-        // which is what TS produces for `let n = 5` / `let x: T = literal`
+        // the right shape for `let n = 5` / `let x: T = literal`
         // patterns. A slot that is teed elsewhere (a value-`match`'s per-arm
         // `if_res` chain) is NOT propagate-eligible, so folding to a tee here
         // — letting `drop_dead_stores` reclaim it — is the only way to avoid
@@ -267,8 +262,8 @@ export run_bc_peephole :: fn(function: BcFunction) -> BcPeepholeOut {
         }
 
         // Return.lit fold — `<const>.const X ; Return` → `ReturnLit X`.
-        // Mirrors `midir/emit.ts:283-293`. Branches don't target the
-        // collapsed Return op (terminator) so depth-safety holds.
+        // Branches don't target the collapsed Return op (terminator) so
+        // depth-safety holds.
         if op is Return {
             cur_len :: out.len()
             if cur_len > 0 {
@@ -343,12 +338,12 @@ push_or_assign :: fn(items: Op[], sp: usize, value: Op) -> void {
 ///   - The set's IP is strictly before the get's IP.
 ///
 /// After this pass the slot has 0 reads and 0 writes ; `drop_dead_stores`
-/// collects it. Mirrors `propagateConstSingleUse` in `src/bytecode/peephole.ts`.
+/// collects it.
 ///
-/// The numeric-narrowing case (TS `canNumericConvert`) — emitting a
-/// `<from>.to_<slot>` convert at the get site when the const's type
-/// differs from the slot's — is not yet ported. Most CFG-emit cases use
-/// matching types, so the MVP covers the common path.
+/// The numeric-narrowing case — emitting a `<from>.to_<slot>` convert at
+/// the get site when the const's type differs from the slot's — is not
+/// yet handled. Most CFG-emit cases use matching types, so the MVP covers
+/// the common path.
 export propagate_const_single_use :: fn(function: BcFunction) -> BcFunction {
     param_count :: function.signature.params.len()
     total_slots :: param_count + function.locals.len()
@@ -470,8 +465,7 @@ const_val_type :: fn(c: ConstOp) -> ValType = match c {
 /// tee, the CFG-emit path leaves long tails of dead `local.tee N` (the
 /// value stays on stack for the next op, but the local itself is never
 /// read). Drop those writes and shrink the locals table so the C-emit
-/// (and the dump) stops mentioning slots no one consumes. Mirrors
-/// `dropDeadStores` in `src/bytecode/peephole.ts`.
+/// (and the dump) stops mentioning slots no one consumes.
 export drop_dead_stores :: fn(function: BcFunction) -> BcFunction {
     param_count :: function.signature.params.len()
     total_slots :: param_count + function.locals.len()

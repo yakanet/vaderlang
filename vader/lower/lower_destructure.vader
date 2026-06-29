@@ -124,8 +124,7 @@ rest_leaf_index :: fn(binding: TupleBinding) -> i64 {
 
 // Desugar `[a, ...rest] := arr` (array target) : fixed leaves before the
 // rest read by index, the rest leaf binds a fresh array filled by a
-// loop pushing `arr[i]` for `i` in `rest_index..<arr.len()`. Mirror of
-// TS' `emitArrayDestructure`.
+// loop pushing `arr[i]` for `i` in `rest_index..<arr.len()`.
 emit_array_destructure :: fn(
     ctx: FnLowerCtx, binding: TupleBinding, rest_index: usize,
     target: LoweredExpr, arr: ArrayType, span: Span, out: LoweredStmt[],
@@ -208,7 +207,7 @@ emit_rest_loop :: fn(
 
 /// Read a local respecting closure-cell promotion : a captured symbol's slot
 /// holds a cell, so its value lives behind a `LoweredCellGet` ; an uncaptured
-/// one reads straight. Mirror of `readLocal` in `src/lower/passes/block.ts`.
+/// one reads straight.
 /// @param ctx   the fn-body lower context (carries the closure analysis).
 /// @param sym   the binding to read.
 /// @param type  the value type the read yields.
@@ -254,8 +253,8 @@ emit_let_leaf :: fn(
         is WildcardBinding -> {}
         is RestBinding -> {
             // Rest binding inside a tuple destructure : MVP emits an
-            // unreachable so the dump shape stays well-formed. The
-            // full TS port routes through `emitArrayDestructure` (an
+            // unreachable so the dump shape stays well-formed. A full
+            // implementation routes through `emit_array_destructure` (an
             // index-loop that fills a fresh array).
             out.push(LoweredExprStmt {
                 .span = span,

@@ -4,7 +4,7 @@
 // When the user writes `Foo[Bar]`, the typechecker must verify that
 // `Bar` satisfies every bound on `Foo`'s typeParams (e.g.
 // `Foo[T: Display]` rejects `Foo[i32]` if `i32` doesn't impl
-// `Display`). The TS side checks at struct-instantiation time inside
+// `Display`). The check belongs at struct-instantiation time, inside
 // `lower_expr_as_type` / `infer_struct_lit`.
 //
 // MVP : no-op. Bounds aren't surfaced on `TypeParam` AST nodes today,

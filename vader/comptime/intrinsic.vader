@@ -153,7 +153,6 @@ resolve_type_arg :: fn(expr: AST.Expr, context: ComptimeContext) -> Type | null 
 // fn / any) report as `vader_box_t` width (16 bytes — tag + payload).
 // Comptime-only / unsized types (TypeMeta / TypeParam / Self /
 // Unresolved / Free* / Never / void) report 0.
-// Mirrors `sizeOfType` in `src/typecheck/types.ts:429-464`.
 // @partial: representable types have a fixed size; abstract types (TypeParam/Self/Unresolved/…) → 0.
 export byte_size :: fn(t: Type) -> i64 = @partial match t {
     is PrimitiveType as p -> primitive_size(p.name)

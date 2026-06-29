@@ -1,6 +1,5 @@
 // vader/resolver/substitute — type-level substitution walker.
 //
-// Mirror of `substituteTypeExpr` in `src/resolver/materialize.ts`.
 // Walks a TypeExpr (== Expr — since Vader doesn't separate type-level
 // from value-level expression syntax) and replaces every `IdentExpr`
 // whose `name` is a key in the `Subst` map with a fresh clone of the
@@ -10,10 +9,8 @@
 //   - `Self` → impl's `for_type`
 //   - trait type-param names → impl's `trait_args[i]`
 //
-// Returns fresh nodes — the input TypeExpr is untouched. The body
-// walker (`substituteIdentsInBlock` in TS) is not ported yet because
-// no current consumer needs default-method body cloning : the Vader
-// typechecker still runs on the TS side, which has its own materialize.
+// Returns fresh nodes — the input TypeExpr is untouched. Block-body
+// substitution lives in `substitute_body.vader`.
 
 module "vader/resolver"
 

@@ -116,8 +116,7 @@ peek_at :: fn(l: Lexer, n: usize) -> char {
 position_here :: fn(l: Lexer) =
     Position { .file = l.file, .offset = l.pos, .line = l.line, .column = l.col }
 
-// Advance `pos` by `n` raw bytes. Column counts **codepoints** (matching
-// the TS lexer's UTF-16 code-unit count for BMP source) — UTF-8
+// Advance `pos` by `n` raw bytes. Column counts **codepoints** — UTF-8
 // continuation bytes (0x80..0xBF) don't increment the column, only leading
 // bytes do. Newlines reset col to 1 as usual.
 advance :: fn(l: Lexer, n: usize) -> void {
