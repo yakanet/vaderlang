@@ -117,7 +117,7 @@ fn 2 snippet$cascade (ref) -> string
   local.get 2
   local.get 3
   string.const 2
-  call 8
+  call 9
   local.set 3
   local.get 0
   struct.get 6 0
@@ -132,11 +132,11 @@ fn 2 snippet$cascade (ref) -> string
   local.get 2
   local.get 3
   string.const 3
-  call 8
+  call 9
   local.set 3
   local.get 2
   local.get 3
-  call 9
+  call 8
   return
 end
 
@@ -156,7 +156,7 @@ fn 3 snippet$primitive_is (ref) -> string
     local.get 1
     local.get 2
     string.const 4
-    call 8
+    call 9
     local.set 2
     local.get 0
     ref.cast 8
@@ -169,7 +169,7 @@ fn 3 snippet$primitive_is (ref) -> string
     local.set 2
     local.get 1
     local.get 2
-    call 9
+    call 8
     return
   end $L0
   local.get 0
@@ -212,9 +212,10 @@ fn 4 snippet$main () -> i32
 end
 
 fn 5 concat_2 (string,string) -> string
-  local $call_2 usize
-  local $call_3 usize
+  local c0 usize
+  local $call_4 usize
   local buf ref
+  local $k_9 usize
   local.get 0
   call 7
   local.set 2
@@ -224,23 +225,22 @@ fn 5 concat_2 (string,string) -> string
   local.get 2
   local.get 3
   i64.add
+  local.tee 3
   call 6
   local.set 4
   i64.const 0
-  local.set 2
+  local.set 5
   local.get 4
-  local.get 2
+  local.get 5
   local.get 0
-  call 8
-  local.set 2
+  call 15
   local.get 4
   local.get 2
   local.get 1
-  call 8
-  local.set 2
+  call 15
   local.get 4
-  local.get 2
-  call 9
+  local.get 3
+  call 8
   return
 end
 
@@ -257,7 +257,14 @@ fn 7 std_core$byte_len (string) -> usize
   return
 end
 
-fn 8 std_core$write_string_at (ref,usize,string) -> usize
+fn 8 std_core$finish_buffer (ref,usize) -> string
+  local.get 0
+  local.get 1
+  call 14
+  return
+end
+
+fn 9 std_core$write_string_at (ref,usize,string) -> usize
   local $len_4 usize
   local.get 0
   local.get 1
@@ -270,13 +277,6 @@ fn 8 std_core$write_string_at (ref,usize,string) -> usize
   local.get 1
   local.get 3
   i64.add
-  return
-end
-
-fn 9 std_core$finish_buffer (ref,usize) -> string
-  local.get 0
-  local.get 1
-  call 14
   return
 end
 

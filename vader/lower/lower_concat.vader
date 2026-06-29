@@ -14,18 +14,22 @@
 // cliff : one generated shape covers ANY arity with no magic 2/3/4 and no
 // inline bloat (the call sites stay one `call`).
 //
-// The synthesised body mirrors `lower_string_lit::lower_interp_buffer`'s all-
-// string path, restricted to `string` params : size the buffer to the sum of
-// each part's `byte_len`, thread `off` through `write_string_at`, intern via
-// `finish_buffer`. The buffer primitives are the force-loaded `std/core` writer
-// API, resolved + harvested exactly as the interpolation lowering does.
+// The synthesised body reproduces the old hand-written `concat2/3/4` shape
+// exactly : prefix-sum cumulative byte offsets (each `byte_len` evaluated ONCE),
+// then a DIRECT `write_string` intrinsic per part (resolved as the `Buffer` impl
+// member via `find_impl_member_for`, like `concat2`'s `buf.write_string(off, s)`)
+// — NOT the offset-returning `write_string_at` free wrapper, which adds a call
+// layer + recomputes `byte_len`. `new_byte_buffer` / `byte_len` / `finish_buffer`
+// stay the force-loaded std/core free wrappers (expression-bodied → `inline_fns`
+// folds them to their intrinsics). Mirrors `lower_string_lit::lower_interp_buffer`,
+// minus the int/bool `write_*` (those keep `write_string_at`'s off-threading).
 
 module "vader/lower"
 
 import "vader/diagnostics" { empty_span }
 import "vader/parser" { Visibility }
 import "vader/resolver/symbol" { Symbol, SymbolKind }
-import "vader/types" { Type, mk_primitive }
+import "vader/types" { Type, mk_primitive, TY_VOID }
 
 /// Return the shared `concat_N` fn symbol for arity `n`, synthesising it on
 /// first use. The call site lowers to `mk_lowered_call(<this>, operands, …)` ;
@@ -48,15 +52,18 @@ get_or_create_concat :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
 
 // Synthesise the `concat_N` LoweredFnDecl, collect it on `concat_decls`, and
 // return its fn symbol (null on a std/core resolution miss — force-loaded, so
-// never in practice). The body is :
+// never in practice). The body is the `concat2/3/4` shape generalised to N :
 //
 //   concat_N(p0..p<n-1>: string) -> string {
-//       buf := new_byte_buffer(byte_len(p0) + … + byte_len(p<n-1>))
-//       off := 0
-//       off  = write_string_at(buf, off, p0)
+//       c0 := byte_len(p0)              // prefix-sum cumulative offsets,
+//       c1 := c0 + byte_len(p1)         //   each byte_len evaluated ONCE ;
+//       …                               //   c<i-1> is the byte offset of p_i.
+//       total := c<n-2> + byte_len(p<n-1>)
+//       buf := new_byte_buffer(total)
+//       buf.write_string(0,  p0)        // DIRECT intrinsic, precomputed offset
+//       buf.write_string(c0, p1)
 //       …
-//       off  = write_string_at(buf, off, p<n-1>)
-//       finish_buffer(buf, off)
+//       finish_buffer(buf, total)
 //   }
 synthesize_concat_fn :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
     string_type :: mk_primitive("string")
@@ -65,21 +72,26 @@ synthesize_concat_fn :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
 
     // Resolve the std/core buffer API (force-loaded ; a miss is a broken
     // toolchain). Separate checks so each narrows to a non-null Symbol.
+    // `new_byte_buffer` / `byte_len` / `finish_buffer` are the expression-bodied
+    // free wrappers (`inline_fns` folds them to their intrinsics) ; `write_string`
+    // is the `Buffer` impl member resolved directly (a void wrapper would NOT
+    // inline — `inline_fns` skips void), avoiding the `write_string_at` call layer
+    // + its redundant `byte_len`.
     nbb_sym :: resolve_writer_fn(ctx, "new_byte_buffer")
     if nbb_sym == null { return null }
     blen_sym :: resolve_writer_fn(ctx, "byte_len")
     if blen_sym == null { return null }
-    wstr_sym :: resolve_writer_fn(ctx, "write_string_at")
-    if wstr_sym == null { return null }
     finish_sym :: resolve_writer_fn(ctx, "finish_buffer")
     if finish_sym == null { return null }
-    buffer_type :: resolve_buffer_type(ctx, wstr_sym)
+    buffer_type :: resolve_buffer_type(ctx, finish_sym)
     if buffer_type == null { return null }
-    // Harvest the writer fns for materialisation — else the synthesised calls
-    // have an unresolved (non-materialised) callee. Mirrors `lower_interp_buffer`.
+    wstr_member :: find_impl_member_for(ctx, buffer_type, "write_string")
+    if wstr_member == null { return null }
+    // Harvest the free wrappers for materialisation — else the synthesised calls
+    // have an unresolved (non-materialised) callee. `write_string` is surfaced by
+    // `find_impl_member_for` (it records the mangle in `referenced_impl_mangles`).
     register_nongeneric_imported_fn(ctx, nbb_sym)
     register_nongeneric_imported_fn(ctx, blen_sym)
-    register_nongeneric_imported_fn(ctx, wstr_sym)
     register_nongeneric_imported_fn(ctx, finish_sym)
 
     fn_symbol :: synth_concat_symbol(ctx, SymbolKind.Fn, "concat_${n}")
@@ -94,35 +106,48 @@ synthesize_concat_fn :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
         param_refs.push(synth_ident(psym, string_type, span))
     }
 
-    // size = byte_len(p0) + byte_len(p1) + … (n ≥ 2, so p0 always exists).
-    size: LoweredExpr = mk_lowered_call(blen_sym, [param_refs[0]], usize_type, span)
-    for i in 1..<n {
-        bl :: mk_lowered_call(blen_sym, [param_refs[i]], usize_type, span)
-        size = LoweredBinary { .span = span, .type = usize_type, .op = .Add, .left = size, .right = bl }
-    }
-
+    // Cumulative offset lets : `c_i = c_{i-1} + byte_len(p_i)` (c_0 = byte_len(p0)).
+    // `c_{i-1}` is the byte offset where `p_i` is written ; `c_{n-1}` is the total.
+    // Each `byte_len` is evaluated exactly once (n total, vs 2n if the writes
+    // recomputed it).
     stmts: LoweredStmt[] = []
+    cum_syms: Symbol[] = []
+    for i in 0..<n {
+        bl :: mk_lowered_call(blen_sym, [param_refs[i]], usize_type, span)
+        value :: if i == 0 { bl } else {
+            LoweredBinary {
+                .span = span, .type = usize_type, .op = .Add,
+                .left = synth_ident(cum_syms[i - 1], usize_type, span), .right = bl,
+            }
+        }
+        c_sym :: synth_concat_symbol(ctx, SymbolKind.Synthetic, "c${i}")
+        stmts.push(LoweredLet {
+            .span = span, .name = c_sym.name, .symbol = c_sym, .type = usize_type, .value = value,
+        })
+        cum_syms.push(c_sym)
+    }
+    total_sym :: cum_syms[n - 1]
+
     buf_sym :: synth_concat_symbol(ctx, SymbolKind.Synthetic, "buf")
     stmts.push(LoweredLet {
         .span = span, .name = buf_sym.name, .symbol = buf_sym, .type = buffer_type,
-        .value = mk_lowered_call(nbb_sym, [size], buffer_type, span),
+        .value = mk_lowered_call(nbb_sym, [synth_ident(total_sym, usize_type, span)], buffer_type, span),
     })
-    off_sym :: synth_concat_symbol(ctx, SymbolKind.Synthetic, "off")
-    stmts.push(LoweredLet {
-        .span = span, .name = off_sym.name, .symbol = off_sym, .type = usize_type,
-        .value = LoweredIntLit { .span = span, .type = usize_type, .value = 0 },
-    })
-    // `off = buf.write_string_at(off, p_i)` per part — the write returns the new offset.
+    // `buf.write_string(offset_i, p_i)` — direct intrinsic, offset 0 for p0 else c_{i-1}.
     for i in 0..<n {
-        call :: mk_lowered_call(
-            wstr_sym, [synth_ident(buf_sym, buffer_type, span), synth_ident(off_sym, usize_type, span), param_refs[i]],
-            usize_type, span,
+        offset :: if i == 0 {
+            LoweredIntLit { .span = span, .type = usize_type, .value = 0 }
+        } else {
+            synth_ident(cum_syms[i - 1], usize_type, span)
+        }
+        call :: build_member_call_or_inline(
+            wstr_member, [synth_ident(buf_sym, buffer_type, span), offset, param_refs[i]], TY_VOID, span,
         )
-        stmts.push(LoweredAssign { .span = span, .target = synth_ident(off_sym, usize_type, span), .value = call })
+        stmts.push(LoweredExprStmt { .span = span, .expr = call })
     }
     body :: LoweredBlock {
         .span = span, .type = string_type, .stmts = stmts,
-        .trailing = mk_lowered_call(finish_sym, [synth_ident(buf_sym, buffer_type, span), synth_ident(off_sym, usize_type, span)], string_type, span),
+        .trailing = mk_lowered_call(finish_sym, [synth_ident(buf_sym, buffer_type, span), synth_ident(total_sym, usize_type, span)], string_type, span),
     }
     decl :: LoweredFnDecl {
         .mangled     = fn_symbol.name,

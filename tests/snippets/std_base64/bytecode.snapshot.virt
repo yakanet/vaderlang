@@ -229,17 +229,17 @@ fn 1 snippet$main () -> i32
           local.get 8
           local.get 9
           string.const 31
-          call 6
+          call 7
           local.set 9
           local.get 8
           local.get 9
           local.get 5
-          call 6
+          call 7
           local.set 9
           local.get 8
           local.get 9
           string.const 1
-          call 6
+          call 7
           local.set 9
           local.get 4
           call.import 0
@@ -253,7 +253,7 @@ fn 1 snippet$main () -> i32
           local.set 9
           local.get 8
           local.get 9
-          call 7
+          call 6
           call 11
         end $L3
         i64.const 1
@@ -277,9 +277,11 @@ fn 1 snippet$main () -> i32
 end
 
 fn 2 concat_3 (string,string,string) -> string
-  local $call_3 usize
-  local $call_4 usize
+  local c0 usize
+  local $call_5 usize
+  local $call_8 usize
   local buf ref
+  local $k_13 usize
   local.get 0
   call 5
   local.set 3
@@ -289,42 +291,41 @@ fn 2 concat_3 (string,string,string) -> string
   local.get 3
   local.get 4
   i64.add
-  local.set 3
+  local.set 4
   local.get 2
   call 5
-  local.set 4
-  local.get 3
-  local.get 4
-  i64.add
-  call 4
   local.set 5
+  local.get 4
+  local.get 5
+  i64.add
+  local.tee 5
+  call 4
+  local.set 6
   i64.const 0
-  local.set 3
-  local.get 5
-  local.get 3
+  local.set 7
+  local.get 6
+  local.get 7
   local.get 0
-  call 6
-  local.set 3
-  local.get 5
+  call 20
+  local.get 6
   local.get 3
   local.get 1
-  call 6
-  local.set 3
-  local.get 5
-  local.get 3
+  call 20
+  local.get 6
+  local.get 4
   local.get 2
-  call 6
-  local.set 3
+  call 20
+  local.get 6
   local.get 5
-  local.get 3
-  call 7
+  call 6
   return
 end
 
 fn 3 concat_2 (string,string) -> string
-  local $call_2 usize
-  local $call_3 usize
+  local c0 usize
+  local $call_4 usize
   local buf ref
+  local $k_9 usize
   local.get 0
   call 5
   local.set 2
@@ -334,23 +335,22 @@ fn 3 concat_2 (string,string) -> string
   local.get 2
   local.get 3
   i64.add
+  local.tee 3
   call 4
   local.set 4
   i64.const 0
-  local.set 2
+  local.set 5
   local.get 4
-  local.get 2
+  local.get 5
   local.get 0
-  call 6
-  local.set 2
+  call 20
   local.get 4
   local.get 2
   local.get 1
-  call 6
-  local.set 2
+  call 20
   local.get 4
-  local.get 2
-  call 7
+  local.get 3
+  call 6
   return
 end
 
@@ -367,7 +367,14 @@ fn 5 std_core$byte_len (string) -> usize
   return
 end
 
-fn 6 std_core$write_string_at (ref,usize,string) -> usize
+fn 6 std_core$finish_buffer (ref,usize) -> string
+  local.get 0
+  local.get 1
+  call 19
+  return
+end
+
+fn 7 std_core$write_string_at (ref,usize,string) -> usize
   local $len_4 usize
   local.get 0
   local.get 1
@@ -380,13 +387,6 @@ fn 6 std_core$write_string_at (ref,usize,string) -> usize
   local.get 1
   local.get 3
   i64.add
-  return
-end
-
-fn 7 std_core$finish_buffer (ref,usize) -> string
-  local.get 0
-  local.get 1
-  call 19
   return
 end
 
@@ -506,13 +506,13 @@ fn 9 std_core$write_bool (ref,usize,bool) -> usize
     local.get 0
     local.get 1
     string.const 37
-    call 6
+    call 7
     return
   end $L0
   local.get 0
   local.get 1
   string.const 38
-  call 6
+  call 7
   return
 end
 
@@ -1025,7 +1025,7 @@ fn 12 std_base64$decode (string) -> ref
             local.get 28
             local.get 29
             local.get 30
-            call 6
+            call 7
             local.set 29
             local.get 8
             usize.to_i64
@@ -1037,7 +1037,7 @@ fn 12 std_base64$decode (string) -> ref
             local.set 29
             local.get 28
             local.get 29
-            call 7
+            call 6
             struct.new 13
             return
           end $L10
@@ -1509,7 +1509,7 @@ fn 12 std_base64$decode (string) -> ref
           local.get 28
           local.get 29
           local.get 30
-          call 6
+          call 7
           local.set 29
           local.get 8
           usize.to_i64
@@ -1521,7 +1521,7 @@ fn 12 std_base64$decode (string) -> ref
           local.set 29
           local.get 28
           local.get 29
-          call 7
+          call 6
           struct.new 13
           return
         end $L25

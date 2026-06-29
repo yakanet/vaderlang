@@ -639,9 +639,10 @@ fn 2 snippet$main () -> i32
 end
 
 fn 3 concat_2 (string,string) -> string
-  local $call_2 usize
-  local $call_3 usize
+  local c0 usize
+  local $call_4 usize
   local buf ref
+  local $k_9 usize
   local.get 0
   call 7
   local.set 2
@@ -651,30 +652,31 @@ fn 3 concat_2 (string,string) -> string
   local.get 2
   local.get 3
   i64.add
+  local.tee 3
   call 5
   local.set 4
   i64.const 0
-  local.set 2
+  local.set 5
   local.get 4
-  local.get 2
+  local.get 5
   local.get 0
-  call 8
-  local.set 2
+  call 54
   local.get 4
   local.get 2
   local.get 1
-  call 8
-  local.set 2
+  call 54
   local.get 4
-  local.get 2
+  local.get 3
   call 6
   return
 end
 
 fn 4 concat_3 (string,string,string) -> string
-  local $call_3 usize
-  local $call_4 usize
+  local c0 usize
+  local $call_5 usize
+  local $call_8 usize
   local buf ref
+  local $k_13 usize
   local.get 0
   call 7
   local.set 3
@@ -684,34 +686,32 @@ fn 4 concat_3 (string,string,string) -> string
   local.get 3
   local.get 4
   i64.add
-  local.set 3
+  local.set 4
   local.get 2
   call 7
-  local.set 4
-  local.get 3
-  local.get 4
-  i64.add
-  call 5
   local.set 5
+  local.get 4
+  local.get 5
+  i64.add
+  local.tee 5
+  call 5
+  local.set 6
   i64.const 0
-  local.set 3
-  local.get 5
-  local.get 3
+  local.set 7
+  local.get 6
+  local.get 7
   local.get 0
-  call 8
-  local.set 3
-  local.get 5
+  call 54
+  local.get 6
   local.get 3
   local.get 1
-  call 8
-  local.set 3
-  local.get 5
-  local.get 3
+  call 54
+  local.get 6
+  local.get 4
   local.get 2
-  call 8
-  local.set 3
+  call 54
+  local.get 6
   local.get 5
-  local.get 3
   call 6
   return
 end
