@@ -41,12 +41,18 @@ FN_WRAP_MIN_ELEMENTS :: usize(4)
 /// `project.const_fn_wrap` / `project.const_inline`, replacing fn-wrapped
 /// const decls with their synthetic accessor fns. Mutates `project` in place.
 ///
-/// @param project  the lowered project ; its `modules` + const maps are mutated.
-export inline_consts :: fn(project: LoweredProject) -> void {
-    // Fresh synthetic ids for accessor fns — negative, so they never collide
-    // with a real (non-negative) symbol id. Decrements per fn-wrap in
-    // deterministic module × decl order. (Mirror of TS `-nextSyntheticId++`.)
-    next_synth: i32 = -1
+/// @param project      the lowered project ; its `modules` + const maps are mutated.
+/// @param project_ctx  the working ctx — accessor fns mint their ids from its
+///                     LIVE `next_synthetic_id` counter (via
+///                     `next_project_synthetic_id`), the SAME pool the lowerer's
+///                     lambdas / defers / `concat_N` draw from. This keeps one
+///                     monotonic id source instead of a private restart-at-`-1`
+///                     counter that aliased an early synthetic fn-decl (e.g.
+///                     `concat_3`) in the DCE's `by_sym_id` and dropped its body
+///                     to a bodyless stub. Real (resolver-minted) ids are
+///                     positive, so the negative synthetic range never touches
+///                     them.
+export inline_consts :: fn(project: LoweredProject, project_ctx: LowerProjectCtx) -> void {
     for module_id in project.modules.keys() {
         m :: project.modules[module_id]
         if m is null { continue }
@@ -68,8 +74,7 @@ export inline_consts :: fn(project: LoweredProject) -> void {
                         continue
                     }
                     if should_fn_wrap(cd.value) {
-                        fn_symbol :: const_accessor_symbol(s, next_synth)
-                        next_synth = next_synth - 1
+                        fn_symbol :: const_accessor_symbol(s, next_project_synthetic_id(project_ctx))
                         project.const_fn_wrap[s.id] = ConstFnWrap { .fn_symbol = fn_symbol, .call_type = cd.type }
                         new_decls.push(synthesize_const_fn(cd, fn_symbol))
                         changed = true

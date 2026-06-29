@@ -64,7 +64,7 @@
       arg0:
         call :string
           callee:
-            concat4 :string
+            concat_4 :string
           arg0:
             "pi = " :string
           arg1:
@@ -95,68 +95,376 @@
       callee:
         std_io$println__string :void
       arg0:
-        block :string
-          let __sb_3: StringBuilder =
-            StringBuilder {
-              parts:
-                array :string[]
-            }
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  format_f64 :fn(f64) -> string
-                arg0:
-                  inf :f64
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              " " :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  format_f64 :fn(f64) -> string
-                arg0:
-                  neg :f64
-                    inf :f64
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              " " :string
-          call :void
-            callee:
-              append :void
-            arg0:
-              __sb_3 :StringBuilder
-            arg1:
-              call :string
-                callee:
-                  format_f64 :fn(f64) -> string
-                arg0:
-                  div :{float}
-                    l:
-                      float(0) :f64
-                    r:
-                      float(0) :f64
-          ~>
+        call :string
+          callee:
+            concat_5 :string
+          arg0:
             call :string
               callee:
-                std_string_builder$StringBuilder$Display$to_string :string
+                format_f64 :fn(f64) -> string
               arg0:
-                __sb_3 :StringBuilder
+                inf :f64
+          arg1:
+            " " :string
+          arg2:
+            call :string
+              callee:
+                format_f64 :fn(f64) -> string
+              arg0:
+                neg :f64
+                  inf :f64
+          arg3:
+            " " :string
+          arg4:
+            call :string
+              callee:
+                format_f64 :fn(f64) -> string
+              arg0:
+                div :{float}
+                  l:
+                    float(0) :f64
+                  r:
+                    float(0) :f64
     return int(0) :i32
+  fn concat_4(p0: string, p1: string, p2: string, p3: string) -> string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          new_byte_buffer :Buffer
+        arg0:
+          add :usize
+            l:
+              add :usize
+                l:
+                  add :usize
+                    l:
+                      call :usize
+                        callee:
+                          byte_len :usize
+                        arg0:
+                          p0 :string
+                    r:
+                      call :usize
+                        callee:
+                          byte_len :usize
+                        arg0:
+                          p1 :string
+                r:
+                  call :usize
+                    callee:
+                      byte_len :usize
+                    arg0:
+                      p2 :string
+            r:
+              call :usize
+                callee:
+                  byte_len :usize
+                arg0:
+                  p3 :string
+    let off: usize = int(0) :usize
+    assign
+      target:
+        off :usize
+      value:
+        call :usize
+          callee:
+            write_string_at :usize
+          arg0:
+            buf :Buffer
+          arg1:
+            off :usize
+          arg2:
+            p0 :string
+    assign
+      target:
+        off :usize
+      value:
+        call :usize
+          callee:
+            write_string_at :usize
+          arg0:
+            buf :Buffer
+          arg1:
+            off :usize
+          arg2:
+            p1 :string
+    assign
+      target:
+        off :usize
+      value:
+        call :usize
+          callee:
+            write_string_at :usize
+          arg0:
+            buf :Buffer
+          arg1:
+            off :usize
+          arg2:
+            p2 :string
+    assign
+      target:
+        off :usize
+      value:
+        call :usize
+          callee:
+            write_string_at :usize
+          arg0:
+            buf :Buffer
+          arg1:
+            off :usize
+          arg2:
+            p3 :string
+    ~>
+      call :string
+        callee:
+          finish_buffer :string
+        arg0:
+          buf :Buffer
+        arg1:
+          off :usize
+  fn concat_5(p0: string, p1: string, p2: string, p3: string, p4: string) -> string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          new_byte_buffer :Buffer
+        arg0:
+          add :usize
+            l:
+              add :usize
+                l:
+                  add :usize
+                    l:
+                      add :usize
+                        l:
+                          call :usize
+                            callee:
+                              byte_len :usize
+                            arg0:
+                              p0 :string
+                        r:
+                          call :usize
+                            callee:
+                              byte_len :usize
+                            arg0:
+                              p1 :string
+                    r:
+                      call :usize
+                        callee:
+                          byte_len :usize
+                        arg0:
+                          p2 :string
+                r:
+                  call :usize
+                    callee:
+                      byte_len :usize
+                    arg0:
+                      p3 :string
+            r:
+              call :usize
+                callee:
+                  byte_len :usize
+                arg0:
+                  p4 :string
+    let off: usize = int(0) :usize
+    assign
+      target:
+        off :usize
+      value:
+        call :usize
+          callee:
+            write_string_at :usize
+          arg0:
+            buf :Buffer
+          arg1:
+            off :usize
+          arg2:
+            p0 :string
+    assign
+      target:
+        off :usize
+      value:
+        call :usize
+          callee:
+            write_string_at :usize
+          arg0:
+            buf :Buffer
+          arg1:
+            off :usize
+          arg2:
+            p1 :string
+    assign
+      target:
+        off :usize
+      value:
+        call :usize
+          callee:
+            write_string_at :usize
+          arg0:
+            buf :Buffer
+          arg1:
+            off :usize
+          arg2:
+            p2 :string
+    assign
+      target:
+        off :usize
+      value:
+        call :usize
+          callee:
+            write_string_at :usize
+          arg0:
+            buf :Buffer
+          arg1:
+            off :usize
+          arg2:
+            p3 :string
+    assign
+      target:
+        off :usize
+      value:
+        call :usize
+          callee:
+            write_string_at :usize
+          arg0:
+            buf :Buffer
+          arg1:
+            off :usize
+          arg2:
+            p4 :string
+    ~>
+      call :string
+        callee:
+          finish_buffer :string
+        arg0:
+          buf :Buffer
+        arg1:
+          off :usize
+  fn concat_2(p0: string, p1: string) -> string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          new_byte_buffer :Buffer
+        arg0:
+          add :usize
+            l:
+              call :usize
+                callee:
+                  byte_len :usize
+                arg0:
+                  p0 :string
+            r:
+              call :usize
+                callee:
+                  byte_len :usize
+                arg0:
+                  p1 :string
+    let off: usize = int(0) :usize
+    assign
+      target:
+        off :usize
+      value:
+        call :usize
+          callee:
+            write_string_at :usize
+          arg0:
+            buf :Buffer
+          arg1:
+            off :usize
+          arg2:
+            p0 :string
+    assign
+      target:
+        off :usize
+      value:
+        call :usize
+          callee:
+            write_string_at :usize
+          arg0:
+            buf :Buffer
+          arg1:
+            off :usize
+          arg2:
+            p1 :string
+    ~>
+      call :string
+        callee:
+          finish_buffer :string
+        arg0:
+          buf :Buffer
+        arg1:
+          off :usize
+  fn concat_3(p0: string, p1: string, p2: string) -> string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          new_byte_buffer :Buffer
+        arg0:
+          add :usize
+            l:
+              add :usize
+                l:
+                  call :usize
+                    callee:
+                      byte_len :usize
+                    arg0:
+                      p0 :string
+                r:
+                  call :usize
+                    callee:
+                      byte_len :usize
+                    arg0:
+                      p1 :string
+            r:
+              call :usize
+                callee:
+                  byte_len :usize
+                arg0:
+                  p2 :string
+    let off: usize = int(0) :usize
+    assign
+      target:
+        off :usize
+      value:
+        call :usize
+          callee:
+            write_string_at :usize
+          arg0:
+            buf :Buffer
+          arg1:
+            off :usize
+          arg2:
+            p0 :string
+    assign
+      target:
+        off :usize
+      value:
+        call :usize
+          callee:
+            write_string_at :usize
+          arg0:
+            buf :Buffer
+          arg1:
+            off :usize
+          arg2:
+            p1 :string
+    assign
+      target:
+        off :usize
+      value:
+        call :usize
+          callee:
+            write_string_at :usize
+          arg0:
+            buf :Buffer
+          arg1:
+            off :usize
+          arg2:
+            p2 :string
+    ~>
+      call :string
+        callee:
+          finish_buffer :string
+        arg0:
+          buf :Buffer
+        arg1:
+          off :usize

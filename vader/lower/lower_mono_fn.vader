@@ -430,7 +430,7 @@ find_nongeneric_fn_decl_for_symbol :: fn(decls: Decl[], fn_sym: Symbol) -> FnDec
 // Each is lowered once via the normal `lower_fn_decl` path — with-body fns land
 // as real fns, `@extern` ones as `body = null` decls the bytecode emitter routes
 // to the import table. Without this, calls to `append` / `byte_len` /
-// `concat2` and other non-generic fns of non-entry modules are dropped
+// `write_string_at` and other non-generic fns of non-entry modules are dropped
 // (only GENERIC instances are otherwise harvested).
 materialize_nongeneric_imported_fns :: fn(
     loaded: LoadedProject, typed: TypedProject, project_ctx: LowerProjectCtx,

@@ -83,7 +83,7 @@
       arg0:
         call :string
           callee:
-            concat2 :string
+            concat_2 :string
           arg0:
             "uses outer " :string
           arg1:
@@ -103,21 +103,21 @@
     defer.pop_exec 2
     ~>
       __block_2 :void
-  struct __defer_env_15 { cap_0: ? }
-  fn __defer_14(__env_0: __defer_env_15) -> void
+  struct __defer_env_20 { cap_0: ? }
+  fn __defer_19(__env_0: __defer_env_20) -> void
     call :void
       callee:
         std_io$println__string :void
       arg0:
         call :string
           callee:
-            concat2 :string
+            concat_2 :string
           arg0:
             "panic defer in lambda saw " :string
           arg1:
             LoweredCellGet
-  struct __lambda_env_12 { cap_0: ?, cap_1: ? }
-  fn __lambda_11(__env_1: __lambda_env_12) -> i32
+  struct __lambda_env_17 { cap_0: ?, cap_1: ? }
+  fn __lambda_16(__env_1: __lambda_env_17) -> i32
     defer.push
       LoweredMakeClosure
     call :void
@@ -137,3 +137,57 @@
                 LoweredCellGet
               r:
                 LoweredCellGet
+  fn concat_2(p0: string, p1: string) -> string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          new_byte_buffer :Buffer
+        arg0:
+          add :usize
+            l:
+              call :usize
+                callee:
+                  byte_len :usize
+                arg0:
+                  p0 :string
+            r:
+              call :usize
+                callee:
+                  byte_len :usize
+                arg0:
+                  p1 :string
+    let off: usize = int(0) :usize
+    assign
+      target:
+        off :usize
+      value:
+        call :usize
+          callee:
+            write_string_at :usize
+          arg0:
+            buf :Buffer
+          arg1:
+            off :usize
+          arg2:
+            p0 :string
+    assign
+      target:
+        off :usize
+      value:
+        call :usize
+          callee:
+            write_string_at :usize
+          arg0:
+            buf :Buffer
+          arg1:
+            off :usize
+          arg2:
+            p1 :string
+    ~>
+      call :string
+        callee:
+          finish_buffer :string
+        arg0:
+          buf :Buffer
+        arg1:
+          off :usize

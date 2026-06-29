@@ -44,8 +44,7 @@ export mangle_module_id :: fn(module_id: string) -> string {
 export fresh_synthetic_symbol :: fn(ctx: FnLowerCtx, hint: string) -> Symbol {
     n :: ctx.uniq
     ctx.uniq = n + 1
-    next_id :: ctx.project.next_synthetic_id
-    ctx.project.next_synthetic_id = next_id - 1
+    next_id :: next_project_synthetic_id(ctx.project)
     return Symbol {
         .id         = next_id,
         .kind       = SymbolKind.Synthetic,

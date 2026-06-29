@@ -6,9 +6,9 @@ type 3 struct snippet$NetErr { reason:2 }
 type 4 ref Error
 type 5 primitive i32
 type 6 primitive usize
-type 7 array 8
-type 8 primitive u8
-type 9 struct std_core$Buffer {  }
+type 7 struct std_core$Buffer {  }
+type 8 array 9
+type 9 primitive u8
 type 10 primitive void
 string 0 "parse: "
 string 1 "net: "
@@ -19,7 +19,7 @@ import 0 bytes std_core$bytes (string) -> ref
 import 1 write std_io$write (i32,string) -> void
 impl 1 Error
 impl 3 Error
-impl 9 ByteAccess
+impl 7 ByteAccess
 vtable Error.message 1 0
 vtable Error.message 3 1
 export main 3
@@ -31,7 +31,7 @@ fn 0 snippet$ParseErr$Error$message (ref) -> string
   local.set 1
   string.const 0
   local.get 1
-  call 5
+  call 4
   return
 end
 
@@ -42,7 +42,7 @@ fn 1 snippet$NetErr$Error$message (ref) -> string
   local.set 1
   string.const 1
   local.get 1
-  call 5
+  call 4
   return
 end
 
@@ -56,15 +56,84 @@ fn 3 snippet$main () -> i32
   string.const 2
   struct.new 1
   call 2
-  call 4
+  call 9
   string.const 3
   struct.new 3
   call 2
-  call 4
+  call 9
   return.lit i32.const 0
 end
 
-fn 4 std_io$println__string (string) -> void
+fn 4 concat_2 (string,string) -> string
+  local $call_2 usize
+  local $call_3 usize
+  local buf ref
+  local.get 0
+  call 6
+  local.set 2
+  local.get 1
+  call 6
+  local.set 3
+  local.get 2
+  local.get 3
+  i64.add
+  call 5
+  local.set 4
+  i64.const 0
+  local.set 2
+  local.get 4
+  local.get 2
+  local.get 0
+  call 7
+  local.set 2
+  local.get 4
+  local.get 2
+  local.get 1
+  call 7
+  local.set 2
+  local.get 4
+  local.get 2
+  call 8
+  return
+end
+
+fn 5 std_core$new_byte_buffer (usize) -> ref
+  local.get 0
+  call 10
+  return
+end
+
+fn 6 std_core$byte_len (string) -> usize
+  local.get 0
+  call.import 0
+  array.len
+  return
+end
+
+fn 7 std_core$write_string_at (ref,usize,string) -> usize
+  local $len_4 usize
+  local.get 0
+  local.get 1
+  local.get 2
+  call 12
+  local.get 2
+  call.import 0
+  array.len
+  local.set 3
+  local.get 1
+  local.get 3
+  i64.add
+  return
+end
+
+fn 8 std_core$finish_buffer (ref,usize) -> string
+  local.get 0
+  local.get 1
+  call 11
+  return
+end
+
+fn 9 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
   call.import 1
@@ -74,55 +143,20 @@ fn 4 std_io$println__string (string) -> void
   return
 end
 
-fn 5 std_string_builder$concat2 (string,string) -> string
-  local la usize
-  local $len_6 usize
-  local buf ref
-  local $k_11 usize
-  local.get 0
-  call.import 0
-  array.len
-  local.set 2
-  local.get 1
-  call.import 0
-  array.len
-  local.set 3
-  local.get 2
-  local.get 3
-  i64.add
-  local.tee 3
-  call 6
-  local.set 4
-  i64.const 0
-  local.set 5
-  local.get 4
-  local.get 5
-  local.get 0
-  call 8
-  local.get 4
-  local.get 2
-  local.get 1
-  call 8
-  local.get 4
-  local.get 3
-  call 7
-  return
-end
-
-fn 6 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 10 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   object_new 0
   return
 end
 
-fn 7 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 11 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
   buffer_to_string
   return
 end
 
-fn 8 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 12 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0
   local.get 1
   local.get 2

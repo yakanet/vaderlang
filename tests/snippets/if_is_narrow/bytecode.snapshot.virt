@@ -42,7 +42,7 @@ fn 0 snippet$direct (ref) -> string
     local.set 1
     string.const 0
     local.get 1
-    call 10
+    call 5
     return
   end $L0
   local.get 0
@@ -51,7 +51,7 @@ fn 0 snippet$direct (ref) -> string
   local.set 1
   string.const 1
   local.get 1
-  call 10
+  call 5
   return
 end
 
@@ -67,7 +67,7 @@ fn 1 snippet$negated (ref) -> string
     local.set 1
     string.const 1
     local.get 1
-    call 10
+    call 5
     return
   end $L0
   local.get 0
@@ -76,7 +76,7 @@ fn 1 snippet$negated (ref) -> string
   local.set 1
   string.const 0
   local.get 1
-  call 10
+  call 5
   return
 end
 
@@ -94,7 +94,7 @@ fn 2 snippet$cascade (ref) -> string
     local.set 1
     string.const 0
     local.get 1
-    call 10
+    call 5
     return
   end $L0
   local.get 0
@@ -106,18 +106,18 @@ fn 2 snippet$cascade (ref) -> string
     local.set 1
     string.const 1
     local.get 1
-    call 10
+    call 5
     return
   end $L1
   i64.const 30
-  call 5
+  call 6
   local.set 2
   i64.const 0
   local.set 3
   local.get 2
   local.get 3
   string.const 2
-  call 7
+  call 8
   local.set 3
   local.get 0
   struct.get 6 0
@@ -127,16 +127,16 @@ fn 2 snippet$cascade (ref) -> string
   local.get 2
   local.get 3
   local.get 4
-  call 8
+  call 10
   local.set 3
   local.get 2
   local.get 3
   string.const 3
-  call 7
+  call 8
   local.set 3
   local.get 2
   local.get 3
-  call 6
+  call 9
   return
 end
 
@@ -149,14 +149,14 @@ fn 3 snippet$primitive_is (ref) -> string
   type_check 8
   if $L0 void
     i64.const 24
-    call 5
+    call 6
     local.set 1
     i64.const 0
     local.set 2
     local.get 1
     local.get 2
     string.const 4
-    call 7
+    call 8
     local.set 2
     local.get 0
     ref.cast 8
@@ -165,11 +165,11 @@ fn 3 snippet$primitive_is (ref) -> string
     local.get 1
     local.get 2
     local.get 3
-    call 8
+    call 10
     local.set 2
     local.get 1
     local.get 2
-    call 6
+    call 9
     return
   end $L0
   local.get 0
@@ -177,7 +177,7 @@ fn 3 snippet$primitive_is (ref) -> string
   local.set 4
   string.const 5
   local.get 4
-  call 10
+  call 5
   return
 end
 
@@ -185,51 +185,84 @@ fn 4 snippet$main () -> i32
   string.const 6
   struct.new 2
   call 0
-  call 9
+  call 11
   string.const 7
   struct.new 3
   call 0
-  call 9
+  call 11
   string.const 8
   struct.new 2
   call 1
-  call 9
+  call 11
   string.const 9
   struct.new 3
   call 1
-  call 9
+  call 11
   i32.const 200
   struct.new 6
   call 2
-  call 9
+  call 11
   i32.const 42
   call 3
-  call 9
+  call 11
   string.const 10
   call 3
-  call 9
+  call 11
   return.lit i32.const 0
 end
 
-fn 5 std_core$new_byte_buffer (usize) -> ref
+fn 5 concat_2 (string,string) -> string
+  local $call_2 usize
+  local $call_3 usize
+  local buf ref
   local.get 0
-  call 11
-  return
-end
-
-fn 6 std_core$finish_buffer (ref,usize) -> string
-  local.get 0
+  call 7
+  local.set 2
   local.get 1
-  call 13
+  call 7
+  local.set 3
+  local.get 2
+  local.get 3
+  i64.add
+  call 6
+  local.set 4
+  i64.const 0
+  local.set 2
+  local.get 4
+  local.get 2
+  local.get 0
+  call 8
+  local.set 2
+  local.get 4
+  local.get 2
+  local.get 1
+  call 8
+  local.set 2
+  local.get 4
+  local.get 2
+  call 9
   return
 end
 
-fn 7 std_core$write_string_at (ref,usize,string) -> usize
+fn 6 std_core$new_byte_buffer (usize) -> ref
+  local.get 0
+  call 12
+  return
+end
+
+fn 7 std_core$byte_len (string) -> usize
+  local.get 0
+  call.import 0
+  array.len
+  return
+end
+
+fn 8 std_core$write_string_at (ref,usize,string) -> usize
   local $len_4 usize
   local.get 0
   local.get 1
   local.get 2
-  call 14
+  call 15
   local.get 2
   call.import 0
   array.len
@@ -240,7 +273,14 @@ fn 7 std_core$write_string_at (ref,usize,string) -> usize
   return
 end
 
-fn 8 std_core$write_int (ref,usize,i64) -> usize
+fn 9 std_core$finish_buffer (ref,usize) -> string
+  local.get 0
+  local.get 1
+  call 14
+  return
+end
+
+fn 10 std_core$write_int (ref,usize,i64) -> usize
   local $k_5 u8
   local $k_6 usize
   local neg bool
@@ -258,7 +298,7 @@ fn 8 std_core$write_int (ref,usize,i64) -> usize
     local.get 0
     local.get 1
     local.get 3
-    call 12
+    call 13
     i64.const 1
     local.set 4
     local.get 1
@@ -349,7 +389,7 @@ fn 8 std_core$write_int (ref,usize,i64) -> usize
         local.get 0
         local.get 7
         local.get 10
-        call 12
+        call 13
         local.get 2
         i64.const 10
         i64.div
@@ -366,7 +406,7 @@ fn 8 std_core$write_int (ref,usize,i64) -> usize
     local.get 0
     local.get 1
     local.get 3
-    call 12
+    call 13
   else
   end $L9
   local.get 1
@@ -375,7 +415,7 @@ fn 8 std_core$write_int (ref,usize,i64) -> usize
   return
 end
 
-fn 9 std_io$println__string (string) -> void
+fn 11 std_io$println__string (string) -> void
   i32.const 0
   local.get 0
   call.import 1
@@ -385,48 +425,13 @@ fn 9 std_io$println__string (string) -> void
   return
 end
 
-fn 10 std_string_builder$concat2 (string,string) -> string
-  local la usize
-  local $len_6 usize
-  local buf ref
-  local $k_11 usize
-  local.get 0
-  call.import 0
-  array.len
-  local.set 2
-  local.get 1
-  call.import 0
-  array.len
-  local.set 3
-  local.get 2
-  local.get 3
-  i64.add
-  local.tee 3
-  call 11
-  local.set 4
-  i64.const 0
-  local.set 5
-  local.get 4
-  local.get 5
-  local.get 0
-  call 14
-  local.get 4
-  local.get 2
-  local.get 1
-  call 14
-  local.get 4
-  local.get 3
-  call 13
-  return
-end
-
-fn 11 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
+fn 12 std_core$usize$BufferAlloc$new_buffer_vt (usize) -> ref
   local.get 0
   object_new 0
   return
 end
 
-fn 12 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
+fn 13 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   local.get 0
   local.get 1
   local.get 2
@@ -434,14 +439,14 @@ fn 12 std_core$Buffer$ByteAccess$store_u8_vt (ref,usize,u8) -> void
   return
 end
 
-fn 13 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
+fn 14 std_core$Buffer$ByteAccess$intern_string_vt (ref,usize) -> string
   local.get 0
   local.get 1
   buffer_to_string
   return
 end
 
-fn 14 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
+fn 15 std_core$Buffer$ByteAccess$write_string_vt (ref,usize,string) -> void
   local.get 0
   local.get 1
   local.get 2

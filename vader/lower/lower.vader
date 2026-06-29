@@ -192,6 +192,12 @@ export lower_project :: fn(
     // e.g. `MutableSet(i32)`'s erased `inner: MutableMap(Any, bool)` —
     // otherwise the bytecode interner mints an orphan `ref` for them.
     close_over_field_shapes(loaded, typed, project_ctx, project)
+    // Place the synthesised `concat_N` decls into the entry module — ONCE,
+    // unconditionally. They are project-global cached fns, so they can't ride
+    // the per-window `synth_decls` drain (a deduped generic instance's window is
+    // skipped, which would strand a `concat_N` first synthesised inside it).
+    // Runs after the fixpoint so every arity is known. See `lower_concat.vader`.
+    drain_concat_decls(project_ctx, project)
     // Drain per-fn lower diagnostics pushed to `project_ctx.diags`
     // (e.g. M5001 from `lower_for_in`) into the caller-owned sink so
     // they reach `# Diagnostics` in the CLI dump.
@@ -212,8 +218,11 @@ export lower_project :: fn(
     // Route non-scalar const decls to their read sites : bulky array consts
     // become synthetic `__const_<name>` accessor fns (resolved by a `call` in
     // `build_ident`), every other const is recorded for inline rebuild. Runs
-    // last so it sees every materialised decl. See `inline_consts.vader`.
-    inline_consts(project)
+    // last so it sees every materialised decl. It mints its accessor ids from
+    // the SAME live `next_synthetic_id` counter (via `project_ctx`) so they
+    // never collide with a lowering-synthetic fn-decl id (lambda / defer /
+    // `concat_N`). See `inline_consts.vader`.
+    inline_consts(project, project_ctx)
     return project
 }
 
