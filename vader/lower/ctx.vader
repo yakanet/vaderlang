@@ -20,7 +20,7 @@ import "vader/typecheck" { Substitution, new_substitution }
 import "vader/comptime" { EvaluatedProject }
 import "vader/comptime" { ComptimeValue }
 import "vader/comptime" { GenericInstance }
-import "vader/comptime" { MonoProject, MonoEntry, new_mono_project }
+import "vader/comptime" { MonoEntry }
 import "vader/resolver" { LoadedProject }
 
 // ============================================================================
@@ -95,7 +95,6 @@ export LowerProjectCtx :: struct {
     /// Mixed / Erased) consistently with the materialiser (`lower_mono_fn`). Same
     /// `TypedProject` the materialiser already consumes — exposed earlier here.
     typed:               TypedProject
-    mono:                MonoProject
     impls:               ImplRegistry
 
     /// `name -> Symbol` from `std/core` (cached once at construction
@@ -314,7 +313,6 @@ export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedPr
         .evaluated           = evaluated,
         .loaded              = loaded,
         .typed               = typed,
-        .mono                = new_mono_project(),
         .impls               = new_registry(),
         .core_symbols        = MutableMap<string, Symbol> {},
         .module_symbol_cache = MutableMap<string, MutableMap<string, Symbol>> {},

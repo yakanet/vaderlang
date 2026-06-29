@@ -141,9 +141,9 @@ build_display_key :: fn(symbol: Symbol, args: Type[]) -> string {
 /// Stable across `display_type` rewrites (each variant prefixed with
 /// its type tag : `P:` primitives, `S:` structs, `T:` traits, `A:`
 /// arrays, `U:` tuples, `F:` fns, `M:` type-metas, `N:` unions, `R:`
-/// refs, `?` unresolved/free/never/self). Used as the inner-key of
-/// `MonoProject.impl_method_entries` / `fn_instance_entries` so a
-/// `(member, struct args)` lookup is structurally stable.
+/// refs, `?` unresolved/free/never/self). Used to build the
+/// `InstanceRegistry` display-key so a generic instance dedups
+/// structurally, insensitive to display-name rewrites.
 ///
 /// @param args  the concrete type arguments.
 /// @return      the canonical key ; empty when `args` is empty.

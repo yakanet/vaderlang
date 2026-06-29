@@ -25,7 +25,6 @@ materialize_concrete_struct_instances :: fn(
 ) -> MutableSet<string> {
     seen_reps :: new_string_set()
     for inst in project_ctx.evaluated.instances {
-        if !mono_has_struct_entry_for(project_ctx, inst) { continue }
         materialize_one_instance(inst, loaded, typed, project_ctx, project, diags)
     }
     return seen_reps
@@ -39,7 +38,6 @@ materialize_representatives :: fn(
     project: LoweredProject, seen_reps: MutableSet<string>,
 ) -> void {
     for inst in project_ctx.evaluated.instances {
-        if !mono_has_struct_entry_for(project_ctx, inst) { continue }
         materialize_representative(inst, loaded, typed, project_ctx, project, seen_reps)
     }
 }
@@ -109,32 +107,6 @@ materialize_representative :: fn(
             }
         }
     }
-}
-
-/// True when `evaluated.mono` carries a StructDecl-kind MonoEntry
-/// whose `symbol.id` matches `inst.symbol.id` and whose
-/// `type_arguments` is non-empty. Lets `materialize_generic_instances`
-/// skip instances that the mono pass already rejected (TypeParam-only,
-/// stdlib-only, etc.) without re-deriving the filter logic.
-mono_has_struct_entry_for :: fn(project_ctx: LowerProjectCtx, inst: GenericInstance) -> bool {
-    if inst.symbol.kind != SymbolKind.Struct { return false }
-    entries :: project_ctx.evaluated.mono.entries
-    i: usize = 0
-    for i < entries.len() {
-        entry :: entries[i]
-        if entry.type_arguments.len() == 0 {
-            i += 1
-            continue
-        }
-        match entry.symbol {
-            is Symbol as s -> {
-                if s.id == inst.symbol.id { return true }
-            }
-            _ -> {}
-        }
-        i += 1
-    }
-    return false
 }
 
 materialize_one_instance :: fn(
