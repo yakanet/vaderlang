@@ -1,10 +1,9 @@
 // vader/comptime/check — comptime orchestrator entry point.
 //
-// For Phase 4 of
-// the comptime port this drives the tree-walk evaluator over every
-// module's `@comptime const` decls in topological order, accumulating
-// values into `EvaluatedProgram.comptime_decls` keyed by Symbol id.
-// Phase 6 will add the monomorphizer pass downstream of this.
+// Drives the tree-walk evaluator over every module's `@comptime const`
+// decls in topological order, accumulating values into
+// `EvaluatedProgram.comptime_decls` keyed by Symbol id, and harvests the
+// concrete generic-instance set (`instances`) the lowerer materialises.
 
 module "vader/comptime"
 
@@ -17,7 +16,7 @@ import "vader/typecheck" { TypedProject, TypedProgram }
 AST :: import "vader/parser"
 
 /// Evaluate every `@comptime` decl across the project's typed view,
-/// run the monomorphizer, and return the cross-module evaluated AST.
+/// harvest the generic-instance set, and return the cross-module evaluated AST.
 /// Takes both `LoadedProject` (for the source decls) and `TypedProject`
 /// (for the typed view) because the resolver doesn't carry decls onto
 /// `ResolvedModule` ; later passes always re-derive from the loaded
@@ -44,12 +43,10 @@ export evaluate_project :: fn(
         }
         project.modules[module_id] = program
     }
+    // `instances` is the concrete generic-instance set the lowerer's
+    // struct path materialises (`lower_mono_struct`). The lowerer is the
+    // authoritative monomorphizer — there is no separate comptime mono pass.
     project.instances = harvest_instances(typed)
-    // Specialise — populate `MonoProject` with one entry per
-    // non-generic decl, one per concrete generic instance, one per
-    // generic-fn call site, one per blanket-Into observation.
-    // Output feeds the lowerer + bytecode emit + c_emit.
-    project.mono = monomorphize_project(loaded, project)
     return project
 }
 

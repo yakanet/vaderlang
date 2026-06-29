@@ -1,10 +1,8 @@
-// vader/comptime/mangle — mangled-name + sanitisation helpers shared by
-// the monomorphizer (`specialize.vader`) and the erasure-dedupe pass
-// (`erasure_dedupe.vader`).
+// vader/comptime/mangle — mangled-name + sanitisation helpers.
 //
-// Holds the helpers `mangle`, `forTypeName`, `sanitise`, `uniq`. `mangle`
-// is exported here so the dedupe pass can reuse it for the extra
-// Any-flavoured struct entries it synthesises.
+// Holds the shared helpers `mangle`, `mangle_type_arg`, `for_type_name`,
+// `sanitise_ident`, `uniq`, consumed across the lowerer and bytecode emit
+// to build stable concrete-instance names.
 //
 // Two design notes :
 //   - `ResolvedModule` keeps `path: string` flat, so the public entry

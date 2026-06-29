@@ -80,11 +80,6 @@ export EvaluatedProject :: struct {
     /// (matches `TypedProject.modules` keying).
     modules: MutableMap<string, EvaluatedProgram>
 
-    /// Specialised entries (one per non-generic decl plus one per
-    /// generic instance from the registry). Phase 6 fills ; phase 3
-    /// leaves empty via `new_mono_project()`.
-    mono: MonoProject
-
     /// `@file`-baked const values keyed by the const's Symbol id.
     /// Populated alongside `file_exprs` ; the lower merges these
     /// into `comptime_value_by_symbol_id` so use sites inline the
@@ -137,7 +132,6 @@ export new_evaluated_project :: fn(typed: TypedProject) -> EvaluatedProject {
     return EvaluatedProject {
         .typed             = typed,
         .modules           = MutableMap<string, EvaluatedProgram> {},
-        .mono              = new_mono_project(),
         .file_exprs        = MutableMap<usize, string> {},
         .file_baked_consts = MutableMap<i32, ComptimeValue> {},
         .into_members      = [],
@@ -156,5 +150,4 @@ import "vader/typecheck" { new_typed_project }
     assert_eq(project.modules.len(), 0)
     assert_eq(project.file_exprs.len(), 0)
     assert_eq(project.into_members.len(), 0)
-    assert_eq(project.mono.entries.len(), 0)
 }

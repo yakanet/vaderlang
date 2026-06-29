@@ -1,0 +1,67 @@
+// vader/comptime/symbol_lookup — resolve a Decl to its resolver Symbol.
+//
+// Maps a source `Decl` back to the `Symbol` the resolver minted for it,
+// matching fn overloads by declaration span. Used by the lowerer
+// (`lower_decl`, `lower_lambda`) to recover the symbol of a decl it is
+// about to emit.
+
+module "vader/comptime"
+
+import "vader/parser" {
+    Decl, FnDecl, StructDecl, ConstDecl, ImplDecl,
+    AssertDecl, ImportDecl, EnumDecl, TraitDecl, TypeAliasDecl,
+}
+import "vader/typecheck" { TypedProgram }
+import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "vader/diagnostics" { Span }
+
+/// Resolve `decl` to the resolver `Symbol` minted for it, matching fn
+/// overloads by declaration span.
+///
+/// @param decl          the source declaration.
+/// @param module_typed  the typed program whose `resolved` tables hold the symbols.
+/// @return              the matching `Symbol`, or `null` for decl kinds that
+///                      introduce no top-level symbol (impl / assert / import).
+export symbol_for_decl :: fn(decl: Decl, module_typed: TypedProgram) -> Symbol | null = match decl {
+    is FnDecl as f        -> symbol_for_fn(f, module_typed)
+    is StructDecl as s    -> symbol_for_kind(s.name, SymbolKind.Struct, module_typed)
+    is ConstDecl as c     -> symbol_for_kind(c.name, SymbolKind.Const, module_typed)
+    is EnumDecl as e      -> symbol_for_kind(e.name, SymbolKind.Enum, module_typed)
+    is TraitDecl as t     -> symbol_for_kind(t.name, SymbolKind.Trait, module_typed)
+    is TypeAliasDecl as a -> symbol_for_kind(a.name, SymbolKind.TypeAlias, module_typed)
+    is ImplDecl           -> null
+    is AssertDecl         -> null
+    is ImportDecl         -> null
+}
+
+symbol_for_fn :: fn(decl: FnDecl, module_typed: TypedProgram) -> Symbol | null {
+    bucket :: module_typed.resolved.fn_overloads[decl.name]
+    if bucket is null {
+        return symbol_for_kind(decl.name, SymbolKind.Fn, module_typed)
+    }
+    syms :: bucket
+    for i in 0..<syms.len() {
+        sym :: syms[i]
+        if symbol_defines_span(sym, decl.name_span) { return sym }
+    }
+    // No span-match — fall back to the first overload. Single
+    // declarations always satisfy this branch.
+    if syms.len() > 0 { return syms[0] }
+    return null
+}
+
+symbol_for_kind :: fn(name: string, kind: SymbolKind, module_typed: TypedProgram) -> Symbol | null {
+    syms :: module_typed.resolved.symbols
+    for i in 0..<syms.len() {
+        sym :: syms[i]
+        if sym.name == name && sym.kind == kind { return sym }
+    }
+    return null
+}
+
+symbol_defines_span :: fn(sym: Symbol, name_span: Span) -> bool {
+    if sym.defined_at is Span as s {
+        return s.start.offset == name_span.start.offset && s.start.file == name_span.start.file
+    }
+    return false
+}
