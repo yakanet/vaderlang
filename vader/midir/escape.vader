@@ -59,7 +59,7 @@ export annotate_escape :: fn(p: CFGProject) -> AnnotatedProject {
         }
         modules[m.module_id] = CFGModule { .module_id = m.module_id, .display_path = m.display_path, .functions = functions, .externs = m.externs, .struct_decls = m.struct_decls }
     }
-    return AnnotatedProject { .project = CFGProject { .modules = modules, .vtable_entries = p.vtable_entries, .strings = p.strings, .data_pool = p.data_pool, .symbol_redirects = p.symbol_redirects }, .stats = EscapeStats { .total_allocs = total_allocs, .stack_promoted = stack_promoted } }
+    return AnnotatedProject { .project = CFGProject { .modules = modules, .vtable_entries = p.vtable_entries, .strings = p.strings, .data_pool = p.data_pool }, .stats = EscapeStats { .total_allocs = total_allocs, .stack_promoted = stack_promoted } }
 }
 
 annotate_function :: fn(fn_: CFGFunction) -> CFGFunction {
