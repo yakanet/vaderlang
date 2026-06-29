@@ -256,14 +256,8 @@ Per `docs/DESIGN_TYPE_FIRST.md`. Surface layers (1.A–1.D, 2.A, 2.B, 3.A–3.F,
 
 #### Layer 2 (full) — monomorphisation as comptime evaluation
 
-The mono pass dissolves into the comptime engine : `fn[T](...)` is partially evaluated with `T` bound.
-
-- [ ] Identify the mono surface — catalog every consumer of `MonoProject`.
-- [ ] Extend the comptime engine so `call_generic_fn(fn, type_args, value_args)` returns memoised entries from a `(fn-id, hash(type-args))` cache or clones+type-checks+registers.
-- [ ] Cache shape — `Map<string, MonoEntry>` keyed by mangled name. Reuse `mangleName(fn, type-args)`.
-- [ ] Replace the standalone mono pass — once every generic instantiation flows through the comptime engine, delete the standalone monomorphizer (`vader/lower/lower_mono_fn.vader` + `vader/lower/lower_mono_struct.vader`).
-- [ ] Test plan — snapshot bytecode for `tests/snippets/generic_*` + `iter_combinators` before/after ; bytes should be byte-identical post-rewire.
-- [ ] Preserve T3033 bound-violation diagnostics — fire from the comptime engine post-rewire.
+- [x] **Mono pass unified — DONE 2026-06-30 (Direction B).** The investigation (`.claude/plans/mono-pass-unification.md`) inverted the premise: the comptime `monomorphize_project` pass was **dormant** (its output unconsumed) and the **lowerer** was the authoritative monomorphizer — reading the comptime side only as a redundant struct-instance filter the lowerer's own gating already covered. Rather than route everything through the comptime engine (Direction A — no perf payoff, comptime is 0.7 % of the build, high-risk), the dormant comptime mono pass + the unwired erasure-dedupe + the dead IR fields were deleted, leaving the lowerer as the sole monomorphizer. **−1661 LoC Vader / −2268 LoC C, byte-identical** (suite 2426/0, fixed point holds). Commits `d3921224` / `3c8b54f4` (+ seeds `ea55d85f` / `7be8ddbd`). Kept `MonoEntry` (the lowerer's "decl to emit" unit) + `symbol_for_decl` (extracted to `symbol_lookup.vader`). NB: T3033 is `InvalidMainSignature`, not a bound check — the real bound diagnostic is T3006, which lives in the typechecker and was never part of the mono pass.
+- [ ] **Direction A — mono dissolves into the comptime engine** (deferred). `fn[T](...)` partially evaluated with `T` bound, comptime engine owns instantiation. Only worth it if the type-first milestone (Layer 4/5) needs it. The old dormant scaffolding is gone, so this is now a from-scratch build ; Direction B closed no doors (the harvest + lower-side erasure stay).
 
 #### Layer 4 — `type` as a first-class comptime value
 
