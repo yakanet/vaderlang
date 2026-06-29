@@ -52,7 +52,7 @@ main :: fn() -> i32 {
         cy :: Y_MIN + f64(py) * dy
         for px in 0..<WIDTH {
             cx :: X_MIN + f64(px) * dx
-            sb.append_char(shade(iterations(cx, cy)))
+            sb.append_char(iterations(cx, cy).shade())
         }
         println(sb)
     }
