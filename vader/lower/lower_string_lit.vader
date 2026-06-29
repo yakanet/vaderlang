@@ -1,14 +1,15 @@
 // vader/lower/lower_string_lit — string + interpolation lowering, with Display coercion.
 //
-// A text-only string literal becomes a single `LoweredStringLit`. A literal
-// with any `${expr}` segment desugars to a StringBuilder chain — `StringBuilder {}`
-// + per-part `append(sb, ...)` + a trailing `sb.to_string()` — emitted as real
-// `LoweredCall`s to the Buffer-backed `std/string_builder` fns (Target ABI S4a),
-// not the legacy `Builder*` opcodes. Text parts append the literal string ;
-// interpolated parts append `<value>.to_string()` (via `build_display_to_string_call`,
-// which handles primitives, structs, and FreeFloat→f64 pinning). std/string_builder
-// is force-loaded into every project (resolver/loader.vader), so the resolution
-// always succeeds — the legacy `Builder*`-opcode lowering was removed in S4b.
+// A text-only string literal becomes a single `LoweredStringLit`. A literal with
+// any `${expr}` segment lowers to ONE right-sized byte buffer (`lower_interp_buffer`)
+// when some part is a directly-writable primitive (int / uint / bool) — each
+// writes its bytes straight in, no throwaway interned string per part. A purely
+// text + `${string}` / `${Display}` interpolation has no digit to format, so it
+// stays on the leaner all-string concat path (`concat_from_collected` →
+// `lower_concat_chain` → the shared `concat_N`, same shape as `+`). Interpolated
+// `${Display}` values render via `build_display_to_string_call` (handles
+// primitives, structs, and FreeFloat→f64 pinning). The buffer primitives live in
+// the force-loaded `std/core` prelude, so resolution always succeeds.
 
 module "vader/lower"
 
@@ -18,72 +19,7 @@ import "std/abort" { unreachable }
 import "vader/parser" { StringLitExpr, StringLitText, StringLitInterp }
 import "vader/diagnostics" { Span }
 import "vader/resolver/symbol" { Symbol }
-import "vader/types" { Type, FnType, StructType, FreeFloatType, TY_VOID, TY_UNRESOLVED, mk_primitive, mk_array }
-
-// Shared StringBuilder-chain scaffold for both `${}` interpolation (S4a) and
-// `+`-concat (S6b) lowering. `begin_sb_chain` resolves the force-loaded
-// std/string_builder fns, harvests them for materialisation, mints a fresh `sb`
-// local, and seeds `stmts` with `sb := StringBuilder {}`. `sb_append_stmt` builds
-// one `sb.append(value)` ; `finish_sb_chain` closes with the `sb.to_string()`
-// trailing. `begin_sb_chain` returns null only on a resolution miss (impossible:
-// std/string_builder is force-loaded) — callers diverge via `unreachable_sb`.
-SbChain :: struct {
-    append_sym: Symbol
-    sb_symbol:  Symbol
-    sb_type:    Type
-    stmts:      LoweredStmt[]
-}
-
-begin_sb_chain :: fn(ctx: FnLowerCtx, span: Span) -> SbChain | null {
-    append_sym :: resolve_string_builder_fn(ctx, "append")
-    if append_sym == null { return null }
-    // `sb_type` is StringBuilder — read from `append`'s receiver param
-    // (`append(self: StringBuilder, …)`). This used to come from `new_builder`'s
-    // return type, but `new_builder` is gone : a defaulted `parts` makes
-    // `StringBuilder {}` constructible directly.
-    sb_type: Type = TY_UNRESOLVED
-    append_fn_ty :: lookup_fn_type_anywhere(ctx, append_sym)
-    if append_fn_ty is FnType as append_ft {
-        if append_ft.params.len() == 0 { return null }
-        sb_type = append_ft.params[0]
-    } else { return null }
-    register_nongeneric_imported_fn(ctx, append_sym)
-    // Record the construction so a virtual `to_string` dispatch (if any) finds the
-    // surfaced vtable row — mirrors `lower_struct_lit`. `to_string` is normally a
-    // direct call here, but stay symmetric with the real struct-lit path.
-    if sb_type is StructType as st { ctx.project.constructed_struct_symbols.add(st.symbol.id) }
-    sb_symbol :: fresh_synthetic_symbol(ctx, "sb")
-    // `sb := StringBuilder {}`, built directly as a `LoweredStructLit`. This desugar
-    // runs post-typecheck, so the `parts: string[] = []` default isn't auto-applied
-    // — fill it explicitly with an empty `string[]` literal (what `new_builder`'s
-    // body did).
-    sb_lit :: LoweredStructLit {
-        .span = span, .type = sb_type,
-        .fields = [LoweredStructLitField {
-            .name  = "parts",
-            .value = LoweredArrayLit { .span = span, .type = mk_array(mk_primitive("string"), false), .elements = [] },
-        }],
-    }
-    stmts: LoweredStmt[] = []
-    stmts.push(LoweredLet {
-        .span = span, .name = sb_symbol.name, .symbol = sb_symbol, .type = sb_type,
-        .value = sb_lit,
-    })
-    return SbChain { .append_sym = append_sym, .sb_symbol = sb_symbol, .sb_type = sb_type, .stmts = stmts }
-}
-
-sb_append_stmt :: fn(chain: SbChain, value: LoweredExpr, span: Span) -> LoweredStmt {
-    args: LoweredExpr[] = []
-    args.push(sb_ident(chain.sb_symbol, chain.sb_type, span))
-    args.push(value)
-    return LoweredExprStmt { .span = span, .expr = mk_lowered_call(chain.append_sym, args, TY_VOID, span) }
-}
-
-finish_sb_chain :: fn(ctx: FnLowerCtx, chain: SbChain, span: Span) -> LoweredExpr =
-    LoweredBlock {
-        .span = span, .type = mk_primitive("string"), .stmts = chain.stmts,
-        .trailing = build_display_to_string_call(ctx, sb_ident(chain.sb_symbol, chain.sb_type, span), span),
-    }
+import "vader/types" { Type, FnType, FreeFloatType, mk_primitive }
 
 lower_string_lit :: fn(ctx: FnLowerCtx, expr: StringLitExpr, type: Type) -> LoweredExpr {
     string_type :: mk_primitive("string")
@@ -98,48 +34,37 @@ lower_string_lit :: fn(ctx: FnLowerCtx, expr: StringLitExpr, type: Type) -> Lowe
         return LoweredStringLit { .span = expr.span, .type = string_type, .value = body }
     }
 
-    // Build into one growable `Writer` : text + each `${value}` writes its bytes
-    // straight in, so a `${int}` formats its digits with no throwaway interned
-    // string (the old `value.to_string()` per part). Interned once at `finish`.
+    // Build into one exact-sized byte buffer : text + each `${value}` writes its
+    // bytes straight in, so a `${int}` formats its digits with no throwaway
+    // interned string (the old `value.to_string()` per part). Interned once at
+    // `finish`.
     return lower_interp_buffer(ctx, expr)
 }
 
 // Lower a flattened string `+` chain (`operands` are the lowered leaves, in
-// order) to a single interned string. 2..4 leaves take the fixed-arity
-// `concatN` fast path — one sized `Buffer`, no StringBuilder struct/parts array,
-// one intern for the whole chain. Longer chains fall back to one N-part
-// StringBuilder (still a single intern, just the parts-array overhead). `concatN`
-// / the builder fns live in `std/string_builder`, force-loaded into every project.
+// order) to a single interned string : a call to the shared, arity-specialised
+// `concat_N` (`vader/lower/lower_concat.vader`). `concat_N` is one right-sized
+// byte buffer written part-by-part and interned once — no StringBuilder struct /
+// parts array, one intern for the whole chain, ANY arity (no magic 2/3/4, no
+// cliff). It is synthesised on first use of arity N and shared across every
+// N-leaf concat ; the call site stays one `call`.
 lower_concat_chain :: fn(ctx: FnLowerCtx, operands: LoweredExpr[], span: Span) -> LoweredExpr {
     n :: operands.len()
     string_type :: mk_primitive("string")
-    // A 1-leaf "chain" can't arise from `+` (always ≥ 2 leaves) ; stay total.
+    // A 1-leaf "chain" can't arise from `+` (always ≥ 2 leaves), but the all-
+    // string `${}` path can collect a single operand ; pass it through.
     if n == 1 { return operands[0] }
-    if n >= 2 && n <= 4 {
-        name :: if n == 2 { "concat2" } else if n == 3 { "concat3" } else { "concat4" }
-        sym :: resolve_string_builder_fn(ctx, name)
-        if sym == null { return unreachable_sb(span, string_type, "${name} unresolved") }
-        // Register for materialisation, like `begin_sb_chain` does for `append` —
-        // else the emitted call has an unresolved (non-materialised) callee.
-        register_nongeneric_imported_fn(ctx, sym)
-        return mk_lowered_call(sym, operands, string_type, span)
-    }
-    chain :: begin_sb_chain(ctx, span)
-    if chain == null { return unreachable_sb(span, string_type, "string builder unresolved") }
-    for op in operands {
-        chain.stmts.push(sb_append_stmt(chain, op, span))
-    }
-    return finish_sb_chain(ctx, chain, span)
+    sym :: get_or_create_concat(ctx, i32(n))
+    if sym == null { return unreachable_buffer("concat_${n} unresolved") }
+    return mk_lowered_call(sym, operands, string_type, span)
 }
 
-// ICE for the (provably-dead) std/string_builder resolution guards —
-// std/string_builder is force-loaded into every project, so these never fire.
-// A resolution miss here is a broken toolchain, not a user error, so we PANIC
-// (fail loud) rather than emit a degraded `stub` that would silently miscompile
-// every `${…}` interpolation. `span`/`type` are kept in the signature for call-
-// site symmetry with the other guards but are unused on this divergent path.
-unreachable_sb :: fn(span: Span, type: Type, why: string) -> LoweredExpr =
-    unreachable("lower_string_lit: ${why} (std/string_builder must be force-loaded)")
+// ICE for the (provably-dead) std/core buffer-API resolution guards — std/core
+// is the force-loaded prelude, so these never fire. A resolution miss here is a
+// broken toolchain, not a user error, so we PANIC (fail loud) rather than emit a
+// degraded `stub` that would silently miscompile every `${…}` / `+`.
+unreachable_buffer :: fn(why: string) -> LoweredExpr =
+    unreachable("lower_string_lit: ${why} (std/core must be force-loaded)")
 
 // Build a `<fn>(args)` call typed `ret`.
 mk_lowered_call :: fn(sym: Symbol, args: LoweredExpr[], ret: Type, span: Span) -> LoweredExpr =
@@ -149,21 +74,25 @@ mk_lowered_call :: fn(sym: Symbol, args: LoweredExpr[], ret: Type, span: Span) -
         .args = args,
     }
 
-// A `LoweredIdent` referencing the synthetic builder local.
-sb_ident :: fn(sym: Symbol, ty: Type, span: Span) -> LoweredExpr =
+// A `LoweredIdent` referencing a synthetic local (buffer / offset / param).
+synth_ident :: fn(sym: Symbol, ty: Type, span: Span) -> LoweredExpr =
     LoweredIdent { .span = span, .type = ty, .symbol = sym }
 
-// Resolve a `std/string_builder` free fn (`append` / `concat2`…`concat4`) by name
-// via the generic `module_export` lookup. Returns `null` only if
-// `std/string_builder` wasn't loaded ; since it is force-loaded into every
-// project, the caller treats a null as a compiler invariant violation (panics).
-resolve_string_builder_fn :: fn(ctx: FnLowerCtx, name: string) -> Symbol | null =
-    module_export(ctx.project, "std/string_builder", name)
-
-// Resolve a `std/core` free fn by name (the Writer API). Like
-// `resolve_string_builder_fn` ; std/core is the force-loaded prelude.
+// Resolve a `std/core` free fn by name (the Writer / Buffer API) via the generic
+// `module_export` lookup. Returns `null` only if std/core wasn't loaded ; since
+// it is the force-loaded prelude, the caller treats a null as a compiler
+// invariant violation (panics via `unreachable_buffer`).
 resolve_writer_fn :: fn(ctx: FnLowerCtx, name: string) -> Symbol | null =
     module_export(ctx.project, "std/core", name)
+
+// The `Buffer` type, read from `write_string_at`'s `self` param. Shared by
+// `lower_interp_buffer` and `synthesize_concat_fn` (both size + write a buffer
+// via the std/core writer API). `null` when the fn type can't be resolved.
+resolve_buffer_type :: fn(ctx: FnLowerCtx, wstr_sym: Symbol) -> Type | null {
+    ft :: lookup_fn_type_anywhere(ctx, wstr_sym)
+    if ft is FnType as f { return if f.params.len() == 0 { null } else { f.params[0] } }
+    return null
+}
 
 WRITER_SIGNED_WIDTHS:   const string[]: ["i8", "i16", "i32", "i64", "isize"]
 WRITER_UNSIGNED_WIDTHS: const string[]: ["u8", "u16", "u32", "u64", "usize"]
@@ -194,9 +123,8 @@ classify_kind :: fn(t: Type) -> WriterKind {
 // int, ≤ 5 per bool) + the runtime `byte_len` of string / `${Display}` parts — so
 // it never grows ; `off` threads through the offset-returning `write_*`
 // primitives, interned once. A purely text + `${string}` / `${Display}`
-// interpolation has no digit to format, so it stays on the leaner `concatN` /
-// StringBuilder path (a single right-sized buffer with computed offsets — no
-// off-threading, no per-part `byte_len` recompute). Each part is lowered once.
+// interpolation has no digit to format, so it stays on the leaner all-string
+// `concat_N` path (`concat_from_collected`). Each part is lowered once.
 lower_interp_buffer :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> LoweredExpr {
     string_type :: mk_primitive("string")
     usize_type :: mk_primitive("usize")
@@ -239,12 +167,8 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> LoweredExpr {
     wbool_sym :: resolve_writer_fn(ctx, "write_bool")
     if wbool_sym == null { return concat_from_collected(ctx, values, kinds, span) }
     // Buffer type from `write_string_at`'s self param.
-    buffer_type: Type = TY_UNRESOLVED
-    wstr_ty :: lookup_fn_type_anywhere(ctx, wstr_sym)
-    if wstr_ty is FnType as ft {
-        if ft.params.len() == 0 { return concat_from_collected(ctx, values, kinds, span) }
-        buffer_type = ft.params[0]
-    } else { return concat_from_collected(ctx, values, kinds, span) }
+    buffer_type :: resolve_buffer_type(ctx, wstr_sym)
+    if buffer_type == null { return concat_from_collected(ctx, values, kinds, span) }
     register_nongeneric_imported_fn(ctx, nbb_sym)
     register_nongeneric_imported_fn(ctx, finish_sym)
     register_nongeneric_imported_fn(ctx, blen_sym)
@@ -285,7 +209,7 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> LoweredExpr {
             str_val :: if k == WriterKind.Display { build_display_to_string_call(ctx, v, span) } else { v }
             tmp_sym :: fresh_synthetic_symbol(ctx, "p")
             stmts.push(LoweredLet { .span = span, .name = tmp_sym.name, .symbol = tmp_sym, .type = string_type, .value = str_val })
-            tmp_ref :: sb_ident(tmp_sym, string_type, span)
+            tmp_ref :: synth_ident(tmp_sym, string_type, span)
             blen_call :: mk_lowered_call(blen_sym, [tmp_ref], usize_type, span)
             if runtime_size == null { runtime_size = blen_call } else {
                 runtime_size = LoweredBinary { .span = span, .type = usize_type, .op = .Add, .left = runtime_size, .right = blen_call }
@@ -319,17 +243,17 @@ lower_interp_buffer :: fn(ctx: FnLowerCtx, expr: StringLitExpr) -> LoweredExpr {
             .Bool                   -> wbool_sym
             .Str | .Text | .Display -> wstr_sym
         }
-        call :: mk_lowered_call(wsym, [sb_ident(buf_sym, buffer_type, span), sb_ident(off_sym, usize_type, span), wv], usize_type, span)
-        stmts.push(LoweredAssign { .span = span, .target = sb_ident(off_sym, usize_type, span), .value = call })
+        call :: mk_lowered_call(wsym, [synth_ident(buf_sym, buffer_type, span), synth_ident(off_sym, usize_type, span), wv], usize_type, span)
+        stmts.push(LoweredAssign { .span = span, .target = synth_ident(off_sym, usize_type, span), .value = call })
     }
     return LoweredBlock {
         .span = span, .type = string_type, .stmts = stmts,
-        .trailing = mk_lowered_call(finish_sym, [sb_ident(buf_sym, buffer_type, span), sb_ident(off_sym, usize_type, span)], string_type, span),
+        .trailing = mk_lowered_call(finish_sym, [synth_ident(buf_sym, buffer_type, span), synth_ident(off_sym, usize_type, span)], string_type, span),
     }
 }
 
 // The non-direct path : each part as a string operand (Str / Text verbatim, else
-// `value.to_string()`), concatenated via the same `concatN` / StringBuilder as `+`.
+// `value.to_string()`), concatenated via the same shared `concat_N` as `+`.
 // Used when no part is a direct-write primitive, or the buffer API doesn't resolve.
 concat_from_collected :: fn(ctx: FnLowerCtx, values: LoweredExpr[], kinds: WriterKind[], span: Span) -> LoweredExpr {
     operands: LoweredExpr[] = []

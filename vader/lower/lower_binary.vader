@@ -137,12 +137,13 @@ lower_binary :: fn(ctx: FnLowerCtx, binary: BinaryExpr, type: Type) -> LoweredEx
     // dispatch in `src/lower/passes/expr.ts:715-738`.
     op_call :: try_lower_op_overload(ctx, binary, type)
     if op_call != null { return op_call }
-    // String `+` lowers to a single fixed-arity `concatN` (or a StringBuilder for
-    // long chains). The `+` tree is FLATTENED first : `((a + b) + c)` collects
-    // `[a, b, c]` and emits ONE `concat3` — one Buffer alloc + one intern for the
-    // whole chain, instead of nesting a StringBuilder (3 allocs + 1 intern) per
-    // `+`. Reached only for the primitive `string + string` case (user-struct
-    // `Add` and `T`/`Any` receivers were handled by `try_lower_op_overload` above).
+    // String `+` lowers to a single call to the shared arity-specialised
+    // `concat_N` (`lower_concat.vader`). The `+` tree is FLATTENED first :
+    // `((a + b) + c)` collects `[a, b, c]` and emits ONE `concat_3` — one Buffer
+    // alloc + one intern for the whole chain, instead of nesting a StringBuilder
+    // (3 allocs + 1 intern) per `+`. Reached only for the primitive
+    // `string + string` case (user-struct `Add` and `T`/`Any` receivers were
+    // handled by `try_lower_op_overload` above).
     if binary.op == BinaryOp.Add && is_string_type(type) {
         operands: LoweredExpr[] = []
         collect_concat_operands(ctx, binary.left, operands)

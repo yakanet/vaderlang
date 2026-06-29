@@ -142,3 +142,78 @@
               arg1:
                 __off_3 :usize
     return int(0) :i32
+  fn concat_3(p0: string, p1: string, p2: string) -> string
+    let buf: Buffer =
+      call :Buffer
+        callee:
+          new_byte_buffer :Buffer
+        arg0:
+          add :usize
+            l:
+              add :usize
+                l:
+                  call :usize
+                    callee:
+                      byte_len :usize
+                    arg0:
+                      p0 :string
+                r:
+                  call :usize
+                    callee:
+                      byte_len :usize
+                    arg0:
+                      p1 :string
+            r:
+              call :usize
+                callee:
+                  byte_len :usize
+                arg0:
+                  p2 :string
+    let off: usize = int(0) :usize
+    assign
+      target:
+        off :usize
+      value:
+        call :usize
+          callee:
+            write_string_at :usize
+          arg0:
+            buf :Buffer
+          arg1:
+            off :usize
+          arg2:
+            p0 :string
+    assign
+      target:
+        off :usize
+      value:
+        call :usize
+          callee:
+            write_string_at :usize
+          arg0:
+            buf :Buffer
+          arg1:
+            off :usize
+          arg2:
+            p1 :string
+    assign
+      target:
+        off :usize
+      value:
+        call :usize
+          callee:
+            write_string_at :usize
+          arg0:
+            buf :Buffer
+          arg1:
+            off :usize
+          arg2:
+            p2 :string
+    ~>
+      call :string
+        callee:
+          finish_buffer :string
+        arg0:
+          buf :Buffer
+        arg1:
+          off :usize

@@ -139,6 +139,22 @@ export LowerProjectCtx :: struct {
     /// bytecode emit picks them up alongside user decls.
     synth_decls:         LoweredDecl[]
 
+    /// Synthetic `concat_N` fns, keyed by arity. The string `+`-concat and
+    /// all-string `${}` lowering route an N-leaf chain to one shared
+    /// `concat_N(p0..p<n-1>: string) -> string` (a single sized byte buffer,
+    /// one intern), synthesised on first use of each arity by
+    /// `get_or_create_concat`. Caching keeps it ONE shared fn per arity (no
+    /// inline bloat at the call sites) and replaces the hand-written
+    /// `concat2/3/4` + the >4 StringBuilder cliff.
+    concat_fn_syms:      MutableMap<i32, Symbol>
+    /// The synthesised `concat_N` decls themselves, in synthesis order. A
+    /// project-GLOBAL cached decl can't ride the per-window `synth_decls` sink
+    /// (whose erasure-dedupe drop semantics assume per-site lambdas — a
+    /// `concat_N` first synthesised inside a deduped generic instance would be
+    /// stranded). They are collected here and drained ONCE, unconditionally,
+    /// into the entry module after the lowering fixpoint (`drain_concat_decls`).
+    concat_decls:        LoweredFnDecl[]
+
     /// Monotonically-decreasing counter for synthetic symbol IDs.
     /// Starts at `-1` so it cannot collide with resolver-minted IDs
     /// (which are `≥ 1`).
@@ -332,6 +348,8 @@ export new_lower_project_ctx :: fn(evaluated: EvaluatedProject, loaded: LoadedPr
         .generic_fn_cursor   = 0,
         .generic_recv_cursor = 0,
         .synth_decls         = [],
+        .concat_fn_syms      = MutableMap<i32, Symbol> {},
+        .concat_decls        = [],
         .next_synthetic_id   = -1,
         .diags               = [],
     }

@@ -1,0 +1,168 @@
+// vader/lower/lower_concat — monomorphized `concat_N` synthesis for string `+`.
+//
+// String `+` (and all-string `${}`) lowers to a call to a shared
+// `concat_N(p0..p<n-1>: string) -> string`, one fn per arity actually used. Each
+// is a single right-sized byte buffer written part-by-part and interned once —
+// no `StringBuilder` struct, no `parts` array, no per-`+` intermediate intern.
+// The fn is synthesised on first use of its arity, cached on
+// `LowerProjectCtx.concat_fn_syms`, and collected into `LowerProjectCtx.concat_decls`
+// — a project-global, drain-once sink (NOT the per-site `synth_decls`, whose
+// erasure-dedupe drop semantics would strand a `concat_N` first synthesised
+// inside a deduped generic instance). `drain_concat_decls` empties it into the
+// entry module after the lowering fixpoint converges. This replaces the
+// hand-written `concat2/3/4` (`std/string_builder`) + the >4 StringBuilder
+// cliff : one generated shape covers ANY arity with no magic 2/3/4 and no
+// inline bloat (the call sites stay one `call`).
+//
+// The synthesised body mirrors `lower_string_lit::lower_interp_buffer`'s all-
+// string path, restricted to `string` params : size the buffer to the sum of
+// each part's `byte_len`, thread `off` through `write_string_at`, intern via
+// `finish_buffer`. The buffer primitives are the force-loaded `std/core` writer
+// API, resolved + harvested exactly as the interpolation lowering does.
+
+module "vader/lower"
+
+import "vader/diagnostics" { empty_span }
+import "vader/parser" { Visibility }
+import "vader/resolver/symbol" { Symbol, SymbolKind }
+import "vader/types" { Type, mk_primitive }
+
+/// Return the shared `concat_N` fn symbol for arity `n`, synthesising it on
+/// first use. The call site lowers to `mk_lowered_call(<this>, operands, …)` ;
+/// the body is generated once and shared across every N-leaf concat.
+///
+/// @param ctx  the surrounding fn-body context (carries the project cache +
+///             concat-decl sink + the force-loaded std/core symbols).
+/// @param n    the arity (number of string leaves) ; always ≥ 2.
+/// @return     the concat fn symbol, or `null` when the std/core buffer API
+///             can't be resolved (impossible — it is force-loaded ; the caller
+///             then diverges via `unreachable_buffer`).
+get_or_create_concat :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
+    cached :: ctx.project.concat_fn_syms[n]
+    if cached is Symbol as s { return s }
+    sym :: synthesize_concat_fn(ctx, n)
+    if sym == null { return null }
+    ctx.project.concat_fn_syms[n] = sym
+    return sym
+}
+
+// Synthesise the `concat_N` LoweredFnDecl, collect it on `concat_decls`, and
+// return its fn symbol (null on a std/core resolution miss — force-loaded, so
+// never in practice). The body is :
+//
+//   concat_N(p0..p<n-1>: string) -> string {
+//       buf := new_byte_buffer(byte_len(p0) + … + byte_len(p<n-1>))
+//       off := 0
+//       off  = write_string_at(buf, off, p0)
+//       …
+//       off  = write_string_at(buf, off, p<n-1>)
+//       finish_buffer(buf, off)
+//   }
+synthesize_concat_fn :: fn(ctx: FnLowerCtx, n: i32) -> Symbol | null {
+    string_type :: mk_primitive("string")
+    usize_type :: mk_primitive("usize")
+    span :: empty_span()
+
+    // Resolve the std/core buffer API (force-loaded ; a miss is a broken
+    // toolchain). Separate checks so each narrows to a non-null Symbol.
+    nbb_sym :: resolve_writer_fn(ctx, "new_byte_buffer")
+    if nbb_sym == null { return null }
+    blen_sym :: resolve_writer_fn(ctx, "byte_len")
+    if blen_sym == null { return null }
+    wstr_sym :: resolve_writer_fn(ctx, "write_string_at")
+    if wstr_sym == null { return null }
+    finish_sym :: resolve_writer_fn(ctx, "finish_buffer")
+    if finish_sym == null { return null }
+    buffer_type :: resolve_buffer_type(ctx, wstr_sym)
+    if buffer_type == null { return null }
+    // Harvest the writer fns for materialisation — else the synthesised calls
+    // have an unresolved (non-materialised) callee. Mirrors `lower_interp_buffer`.
+    register_nongeneric_imported_fn(ctx, nbb_sym)
+    register_nongeneric_imported_fn(ctx, blen_sym)
+    register_nongeneric_imported_fn(ctx, wstr_sym)
+    register_nongeneric_imported_fn(ctx, finish_sym)
+
+    fn_symbol :: synth_concat_symbol(ctx, SymbolKind.Fn, "concat_${n}")
+
+    // Params p0..p<n-1>, all `string`. Keep the symbols so the body can
+    // reference each param by the same id midir keys its slot on.
+    params: LoweredParam[] = []
+    param_refs: LoweredExpr[] = []
+    for i in 0..<n {
+        psym :: synth_concat_symbol(ctx, SymbolKind.Synthetic, "p${i}")
+        params.push(LoweredParam { .name = psym.name, .symbol = psym, .type = string_type })
+        param_refs.push(synth_ident(psym, string_type, span))
+    }
+
+    // size = byte_len(p0) + byte_len(p1) + … (n ≥ 2, so p0 always exists).
+    size: LoweredExpr = mk_lowered_call(blen_sym, [param_refs[0]], usize_type, span)
+    for i in 1..<n {
+        bl :: mk_lowered_call(blen_sym, [param_refs[i]], usize_type, span)
+        size = LoweredBinary { .span = span, .type = usize_type, .op = .Add, .left = size, .right = bl }
+    }
+
+    stmts: LoweredStmt[] = []
+    buf_sym :: synth_concat_symbol(ctx, SymbolKind.Synthetic, "buf")
+    stmts.push(LoweredLet {
+        .span = span, .name = buf_sym.name, .symbol = buf_sym, .type = buffer_type,
+        .value = mk_lowered_call(nbb_sym, [size], buffer_type, span),
+    })
+    off_sym :: synth_concat_symbol(ctx, SymbolKind.Synthetic, "off")
+    stmts.push(LoweredLet {
+        .span = span, .name = off_sym.name, .symbol = off_sym, .type = usize_type,
+        .value = LoweredIntLit { .span = span, .type = usize_type, .value = 0 },
+    })
+    // `off = buf.write_string_at(off, p_i)` per part — the write returns the new offset.
+    for i in 0..<n {
+        call :: mk_lowered_call(
+            wstr_sym, [synth_ident(buf_sym, buffer_type, span), synth_ident(off_sym, usize_type, span), param_refs[i]],
+            usize_type, span,
+        )
+        stmts.push(LoweredAssign { .span = span, .target = synth_ident(off_sym, usize_type, span), .value = call })
+    }
+    body :: LoweredBlock {
+        .span = span, .type = string_type, .stmts = stmts,
+        .trailing = mk_lowered_call(finish_sym, [synth_ident(buf_sym, buffer_type, span), synth_ident(off_sym, usize_type, span)], string_type, span),
+    }
+    decl :: LoweredFnDecl {
+        .mangled     = fn_symbol.name,
+        .params      = params,
+        .return_type = string_type,
+        .body        = body,
+        .origin      = synth_mono_entry(ctx, fn_symbol),
+    }
+    ctx.project.concat_decls.push(decl)
+    return fn_symbol
+}
+
+/// Push every synthesised `concat_N` decl into the entry module, once. Called
+/// after the lowering fixpoint converges (all arities discovered) and before
+/// DCE/emit so the calls resolve. The entry module is always present + fully
+/// kept, giving the shared decls a stable home regardless of which module's
+/// body first triggered the synthesis.
+///
+/// @param project_ctx  carries the collected `concat_decls`.
+/// @param project       the lowered project ; the entry module gains the decls.
+drain_concat_decls :: fn(project_ctx: LowerProjectCtx, project: LoweredProject) -> void {
+    for decl in project_ctx.concat_decls {
+        push_to_module(project, project.entry, decl)
+    }
+}
+
+// Mint a synthetic symbol for the concat fn / its params / locals. Uses the
+// project-global negative id pool (`next_synthetic_id`) directly — NOT the
+// per-fn-body `uniq` counter `fresh_synthetic_symbol` would bump — so
+// synthesising a shared `concat_N` doesn't perturb the naming of the caller's
+// own synthetic slots. The owning module is the entry (where `drain_concat_decls`
+// places every concat decl), so the symbol's home is stable rather than an
+// artifact of which body first triggered synthesis. `kind = Fn` for the fn (so a
+// bare reference resolves as a fn ref), `Synthetic` for params / locals
+// (resolved via `local_by_sym_id`).
+synth_concat_symbol :: fn(ctx: FnLowerCtx, kind: SymbolKind, name: string) -> Symbol = Symbol {
+    .id         = next_synthetic_id(ctx),
+    .kind       = kind,
+    .name       = name,
+    .module     = ctx.project.loaded.entry,
+    .visibility = Visibility.Private,
+    .defined_at = null,
+}

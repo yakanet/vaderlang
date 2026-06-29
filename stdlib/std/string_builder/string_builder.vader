@@ -67,50 +67,6 @@ export append_repeated :: fn(self: StringBuilder, c: char, count: i32) -> void {
     }
 }
 
-// ---- fixed-arity concat (the lowered form of string `+`) ------------------
-//
-// `a + b` (and chained `a + b + c + ...`) lowers to one of these instead of a
-// StringBuilder : a single right-sized `Buffer` written part-by-part and interned
-// once — no builder struct, no `parts` array, no per-`+` intermediate intern.
-// The lowerer flattens the `+` chain and picks the arity (2..4) ; longer chains
-// fall back to the StringBuilder. Each is one allocation + one intern.
-
-/// Concatenate 2 strings into one interned string (the lowered form of `a + b`).
-export concat2 :: fn(a: string, b: string) -> string {
-    la :: a.bytes().len()
-    total :: la + b.bytes().len()
-    buf :: total.new_buffer()
-    buf.write_string(0, a)
-    buf.write_string(la, b)
-    return buf.intern_string(total)
-}
-
-/// Concatenate 3 strings into one interned string (the lowered form of `a + b + c`).
-export concat3 :: fn(a: string, b: string, c: string) -> string {
-    la :: a.bytes().len()
-    lab :: la + b.bytes().len()
-    total :: lab + c.bytes().len()
-    buf :: total.new_buffer()
-    buf.write_string(0, a)
-    buf.write_string(la, b)
-    buf.write_string(lab, c)
-    return buf.intern_string(total)
-}
-
-/// Concatenate 4 strings into one interned string (the lowered form of `a + b + c + d`).
-export concat4 :: fn(a: string, b: string, c: string, d: string) -> string {
-    la :: a.bytes().len()
-    lab :: la + b.bytes().len()
-    labc :: lab + c.bytes().len()
-    total :: labc + d.bytes().len()
-    buf :: total.new_buffer()
-    buf.write_string(0, a)
-    buf.write_string(la, b)
-    buf.write_string(lab, c)
-    buf.write_string(labc, d)
-    return buf.intern_string(total)
-}
-
 // Display — concatenates the parts into one interned string. `${sb}`
 // interpolation and `sb.to_string()` both resolve here.
 StringBuilder implements Display {
