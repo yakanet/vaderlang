@@ -450,6 +450,44 @@ array_method_type :: fn(name: string, arr: ArrayType) -> Type | null {
     return null
 }
 
+/// The names of the built-in array methods, in declaration order. Single source
+/// of truth for both `array_method_type` (which signs each) and
+/// `array_builtin_methods` (which enumerates them for completion).
+ARRAY_METHOD_NAMES: const string[]: [
+    "len", "push", "push_all", "copy_to", "remove_last", "clear",
+]
+
+// The methods that mutate the receiver — rejected on an `immutable` array, so
+// completion drops them on a borrowed view (`s.bytes()` → `const u8[]`).
+array_method_mutates :: fn(name: string) -> bool =
+    name == "push" || name == "push_all" || name == "remove_last" || name == "clear"
+
+/// A built-in array method surfaced for completion — its name plus the resolved
+/// signature (`array_method_type`'s result). LSP member completion lists these :
+/// they're neither free fns nor `impl` members, so no other path enumerates them.
+export ArrayBuiltinMethod :: struct {
+    name:      string
+    signature: Type
+}
+
+/// Every built-in method callable on `arr` via UFCS (`len`, `push`, …), each
+/// with its resolved signature. Mirrors exactly what `array_method_type`
+/// resolves ; the mutating subset is omitted when `arr.immutable`.
+///
+/// @param arr  the receiver array type (its `element` / `immutable` drive the
+///             signatures and the mutating-method filter).
+/// @return     the available built-in methods, in declaration order.
+export array_builtin_methods :: fn(arr: ArrayType) -> ArrayBuiltinMethod[] {
+    out: ArrayBuiltinMethod[] = []
+    for name in ARRAY_METHOD_NAMES {
+        if arr.immutable && array_method_mutates(name) { continue }
+        sig :: array_method_type(name, arr)
+        if sig == null { continue }
+        out.push(ArrayBuiltinMethod { .name = name, .signature = sig })
+    }
+    return out
+}
+
 /// MVP UFCS for the canonical primitive (string / char) methods.
 /// Mirrors the stdlib `T` free fns the lowerer wires in.
 ///
