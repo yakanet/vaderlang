@@ -4,8 +4,10 @@
 /// Builder ops + the `vader_builder_append_display_*` host family — so this
 /// measures the off-runtime interpolation path end to end.
 ///
-/// Checksums via `bytes().len()` (array length) to avoid the `string.len()` /
-/// `chars().count()` codegen bug (see TODO) while still observing each result.
+/// Checksums via `s.len()` — the codepoint count (`chars().count()`). The
+/// payload carries a leading `🚀` (a supplementary-plane codepoint), so this
+/// differs from the UTF-8 byte length (`bytes().len()` = 4 for `🚀`) ; the peers
+/// count codepoints too so the checksum stays cross-language identical.
 
 module "main"
 
@@ -14,8 +16,8 @@ import "std/io" { println }
 main :: fn() -> i32 {
     total: usize = 0
     for i in 0..<200000 {
-        s :: "val=${i} x=${i * 2} y=${i - 1}"
-        total = total + s.bytes().len()
+        s :: "🚀 val=${i} x=${i * 2} y=${i - 1}"
+        total = total + s.len()
     }
     println("interp ${total}")
     return 0
