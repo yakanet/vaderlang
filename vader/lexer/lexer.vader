@@ -293,7 +293,14 @@ consume_digits :: fn(l: Lexer, base: i32, start_anchor: Position) -> void {
             l.advance(1)
             continue
         }
-        return
+        break
+    }
+    // A `_` consumed right before the run ends — `42_` at EOF, or `42_`
+    // followed by a non-digit (`42_.5`, `42_ `) — is a trailing separator,
+    // which SPEC §3 rejects. The suffix-separator case (`42_i32`) returned
+    // above without consuming the `_`, so it never reaches here.
+    if last_was_underscore {
+        l.push_error(.MalformedNumericLiteral, l.error_span(start_anchor), "underscore not allowed here")
     }
 }
 
@@ -386,7 +393,11 @@ lex_number :: fn(l: Lexer) -> void {
 
 // Decode `\X`. Caller must have positioned the cursor at the leading `\`.
 // Returns the decoded codepoint. Emits L0004 / L0009 on malformed input.
-lex_escape :: fn(l: Lexer) -> u32 {
+//
+// The escape set is context-dependent (SPEC §3) : `\'` is valid only in a
+// char literal, `\"` and `\$` only in a string literal. `in_char` selects
+// the set ; an out-of-set escape (e.g. `'\"'` or `"\'"`) is rejected.
+lex_escape :: fn(l: Lexer, in_char: bool) -> u32 {
     esc_start :: l.position_here()
     l.advance(1)  // consume `\`
     if l.at_end() {
@@ -395,15 +406,30 @@ lex_escape :: fn(l: Lexer) -> u32 {
     }
     c :: l.peek()
     l.advance(1)
+    // Shared set — valid in both char and string literals.
     if c == 'n'  { return 0x0A }
     if c == 't'  { return 0x09 }
     if c == 'r'  { return 0x0D }
     if c == '\\' { return 0x5C }
-    if c == '\'' { return 0x27 }
-    if c == '"'  { return 0x22 }
-    if c == '$'  { return 0x24 }
     if c == '0'  { return 0x00 }
     if c == 'u'  { return l.lex_unicode_escape(esc_start) }
+    // Context-specific set.
+    if in_char {
+        if c == '\'' { return 0x27 }
+        if c == '"' || c == '$' {
+            l.push_error(.InvalidEscapeSequence, l.error_span(esc_start),
+                "escape \\${c} is not valid in a character literal")
+            return u32(c)
+        }
+    } else {
+        if c == '"' { return 0x22 }
+        if c == '$' { return 0x24 }
+        if c == '\'' {
+            l.push_error(.InvalidEscapeSequence, l.error_span(esc_start),
+                "escape \\' is not valid in a string literal")
+            return u32(c)
+        }
+    }
     l.push_error(.InvalidEscapeSequence, l.error_span(esc_start), "unknown escape \\${c}")
     return u32(c)
 }
@@ -469,7 +495,7 @@ lex_char :: fn(l: Lexer) -> void {
 
     cp: u32 = 0
     if l.peek() == '\\' {
-        cp = l.lex_escape()
+        cp = l.lex_escape(true)
     } else if l.peek() == '\n' || l.at_end() {
         l.push_error(.InvalidCharacterLiteral, l.error_span(start), "unterminated character literal")
         text :: l.bytes[start.offset..<l.pos].bytes_to_string()
@@ -642,7 +668,7 @@ lex_string_body :: fn(l: Lexer, triple: bool, raw: bool) -> void {
 
         // Escapes (only outside raw mode).
         if !raw && c == '\\' {
-            cp :: l.lex_escape()
+            cp :: l.lex_escape(false)
             sb.append_char(char(cp))
             has_part = true
             continue
@@ -989,4 +1015,47 @@ count_newlines :: fn(l: Lexer) -> usize {
     // Two complete statements stay separated : nothing suppresses the break.
     l :: tokenize("a = 1\nb = 2", "test.vader")
     assert_eq(count_newlines(l), 1)
+}
+
+// ---- numeric & escape validation -----------------------------------------
+
+@test test_trailing_underscore_rejected :: fn() -> void {
+    // `42_` — a separator with no following digit — is malformed (SPEC §3).
+    l :: tokenize("42_", "test.vader")
+    assert(l.errors.len() >= 1, "trailing underscore should error")
+}
+
+@test test_hex_trailing_underscore_rejected :: fn() -> void {
+    l :: tokenize("0xFF_", "test.vader")
+    assert(l.errors.len() >= 1, "trailing underscore in hex should error")
+}
+
+@test test_digit_group_underscore_ok :: fn() -> void {
+    // A separator between digits is valid and leaves no error.
+    l :: tokenize("1_000", "test.vader")
+    assert_eq(l.errors.len(), 0)
+}
+
+@test test_char_escape_double_quote_rejected :: fn() -> void {
+    // `\"` is a string-only escape — invalid inside a char literal (`'\"'`).
+    l :: tokenize("'\\\"'", "test.vader")
+    assert(l.errors.len() >= 1, "double-quote escape is not valid in a char literal")
+}
+
+@test test_char_escape_single_quote_ok :: fn() -> void {
+    // `'\''` — an escaped single quote — is the canonical char escape.
+    l :: tokenize("'\\''", "test.vader")
+    assert_eq(l.errors.len(), 0)
+}
+
+@test test_string_escape_single_quote_rejected :: fn() -> void {
+    // `\'` is a char-only escape — invalid inside a string literal (`"\'"`).
+    l :: tokenize("\"\\'\"", "test.vader")
+    assert(l.errors.len() >= 1, "single-quote escape is not valid in a string literal")
+}
+
+@test test_string_escape_double_quote_ok :: fn() -> void {
+    // `"a\"b"` — an escaped double quote — is valid in a string literal.
+    l :: tokenize("\"a\\\"b\"", "test.vader")
+    assert_eq(l.errors.len(), 0)
 }

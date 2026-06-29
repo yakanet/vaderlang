@@ -7,7 +7,7 @@
 //
 // Emits R2002 (empty import path), R2004 (duplicate top-level), R2011
 // (duplicate import binding), plus the import-path resolution codes
-// R2001/R2024/R2025/R2028 via `resolve_import_path`. The body walker
+// R2001/R2024/R2025/R2028 via `diagnose_import_path`. The body walker
 // downstream emits R2006/R2019, and `wire_imports` covers R2003/R2008.
 
 module "vader/resolver"
@@ -42,7 +42,7 @@ export CollectedModule :: struct {
 /// layout independent of MutableMap bucket hashing.
 ///
 /// `module_name` is the *declared* module identifier (e.g. `"std/io"`),
-/// not the absolute folder path — used by `resolve_import_path` to
+/// not the absolute folder path — used by `diagnose_import_path` to
 /// detect self-imports (R2024). `index` is the project-wide module
 /// table built by `discover_modules` ; an empty `MutableMap` (no
 /// loader) disables import-path resolution and is used by mono-file
