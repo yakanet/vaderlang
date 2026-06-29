@@ -224,10 +224,10 @@ synth_impl_entry :: fn(member: FnDecl, typed: TypedProgram, mangled: string) -> 
     }
 }
 
-// FnDecl → `LoweredFnDecl`. Phase 3 wires up the body lowering via the
-// shared `lower_block` driver. Generic fns (`type_params.len() > 0`)
-// stay skipped until the mono pass ships ; phase 2's narrow contract
-// holds — non-generic decls only.
+// FnDecl → `LoweredFnDecl`. Lowers the body via the shared `lower_block`
+// driver (`lower_fn_body`). Generic fns (`type_params.len() > 0`) are
+// skipped here — they're materialised per concrete instance by the mono
+// pass (`lower_mono_fn.vader`) ; this path handles non-generic decls only.
 lower_fn_decl :: fn(
     fn_decl: FnDecl, typed: TypedProgram, project_ctx: LowerProjectCtx, diags: Diagnostic[],
 ) -> LoweredDecl | null {
@@ -319,8 +319,8 @@ export promote_captured_params :: fn(
     return prepend_stmts_to_block(prologue, block)
 }
 
-// StructDecl → `LoweredStructDecl` with resolved field types. Phase 2
-// already needs this since the dump format includes the field list.
+// StructDecl → `LoweredStructDecl` with resolved field types (the dump
+// format includes the field list, so they're resolved eagerly here).
 // Field types come from `struct_field_types` (the typecheck-side
 // side-table the impl pass writes) when available — that's the only
 // place self-referential types like `Node.next: Node | null` reach
@@ -373,10 +373,11 @@ resolve_field_type :: fn(
     return from_table
 }
 
-// ConstDecl → `LoweredConstDecl`. Phase 3 wires the value to the
-// expression lowerer. `@comptime`-baked constants live in
-// `evaluated.modules[…].comptime_decls` ; the bytecode-emit chantier
-// will fold them into `LoweredIntLit` / `LoweredArrayLit` here.
+// ConstDecl → `LoweredConstDecl`. Lowers the value via the expression
+// lowerer, preferring the `@comptime`-baked value when the evaluator
+// folded the const (`lower_const_value` / `lookup_comptime_value`) so
+// downstream phases see the materialised literal. Type-alias / metatype
+// consts have no runtime slot and are skipped.
 lower_const_decl :: fn(
     const_decl: ConstDecl, typed: TypedProgram, project_ctx: LowerProjectCtx, diags: Diagnostic[],
 ) -> LoweredDecl | null {
@@ -514,9 +515,10 @@ decl_name_span :: fn(decl: Decl) -> Span | null {
 }
 
 
-// Recover the source name from any top-level decl. Used for the stub
-// entry's `mangled` field ; Phase 3 will switch to the proper mangled
-// name once the monomorphizer ports.
+// Recover the source name from any top-level decl. Feeds `stub_entry`'s
+// module-qualified `mangled` field (`<module>$<name>` + overload suffix) —
+// the final mangle for non-generic decls ; generic instances are mangled
+// separately by the mono pass (`lower_mono_fn.vader`).
 decl_name :: fn(decl: Decl) -> string = match decl {
     is FnDecl        as f -> f.name
     is StructDecl    as s -> s.name

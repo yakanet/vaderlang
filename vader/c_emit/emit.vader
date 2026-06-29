@@ -1,11 +1,10 @@
 // vader/c_emit/emit — BytecodeModule → C source.
 //
-// Phases land incrementally :
-//   Phase 1 — scaffolding + trivial-module byte-parity ;
-//   Phase 2 — `emit_type_decls` (struct decls, string pool, struct
-//             type-info entries) ;
-//   Phase 3+ — data pool, fn bodies, op switch, vtable dispatchers,
-//              erasure boundary, B1 (nullable-ref inline rep).
+// The pipeline driver (`emit_c`) + the section emitters : type decls,
+// forward decls, fn-sig typedefs, fn-value trampolines, the type-info
+// table, import shims, vtable dispatchers, fn bodies, and the `main`
+// shim. The per-op body walker lives in `walker.vader`. The one frontier
+// still open is B1 (nullable-ref inline rep) — see the T12 notes below.
 //
 // Strategy :
 //   - one C function per BcFunction with a C signature derived from
@@ -69,10 +68,10 @@ export default_emit_options :: fn() -> EmitOptions = EmitOptions { .release = fa
 /// through every section emitter. Read-only — every cache / index is
 /// computed up-front so per-op emit stays branch-free.
 ///
-/// Phase 2 carries `struct_c_names` (parallel to `module.types`, with
-/// `""` for non-struct slots). Later phases will populate `fn_names`,
-/// `primitive_tag_of`, `may_alloc`, `mutated_structs`,
-/// `any_counterpart_of`, ….
+/// Caches `struct_c_names` (parallel to `module.types`, `""` for
+/// non-struct slots), the string-literal `atom_ids`, the `null` / `string`
+/// / `[string]` primitive tags, and the `may_alloc` set (fns needing a GC
+/// frame). Each is computed by `new_ctx`.
 export EmitCtx :: struct {
     module: BytecodeModule
     /// `vader_struct_<sanitised>_t` per BcStruct slot, `""` elsewhere.
@@ -817,9 +816,10 @@ emit_struct_info_row :: fn(ctx: EmitCtx, _s: BcStruct, offs: StructOffsets, type
 }
 
 /// Shims that route `call.import` to runtime helpers (`vader_*`) or
-/// extern user symbols. The per-import shim body lands in T4 ; the
-/// section always closes with a blank line (unconditional, even with no
-/// imports) so the spacing before the function bodies stays consistent.
+/// extern user symbols. The per-import shim bodies are generated in
+/// `host.vader` ; the section always closes with a blank line
+/// (unconditional, even with no imports) so the spacing before the
+/// function bodies stays consistent.
 // `emit_import_shims` lives in `host.vader` (same module) — the
 // `call.import` host-fn dispatch is a distinct responsibility.
 //

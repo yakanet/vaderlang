@@ -11,11 +11,9 @@
 //   - records the final type into `typed.expr_types` keyed by the
 //     expression's span.
 //
-// MVP-trimmed :
-//   - Only literals are inferred today. Ident/Call/Field/Binary/…
-//     return TY_UNRESOLVED until their per-variant pass lands
-//     (Phase 3.2+). The orchestrator's match still dispatches on every
-//     variant so future passes plug in cleanly.
+// Every Expr variant has a dedicated per-variant handler (literals, ident,
+// call, field, binary, …) and the dispatch match in `infer_expr` is
+// exhaustive — a newly-added Expr variant trips T3013 here.
 
 module "vader/typecheck"
 

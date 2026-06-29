@@ -13,9 +13,11 @@
 // algorithm — Cooper, Harvey, Kennedy "A Simple, Fast Dominance
 // Algorithm" — already ported in `analyses.vader`).
 //
-// **Status** : structurer + basic per-instr emit landed. Sketches the
-// pipeline so the next session can fill in the remaining Instruction
-// variants. Not yet wired into the production bytecode path.
+// This is the canonical CFG → bytecode emitter : every `dump --stage`
+// consumer, `vader run`, the C backend, the bootstrap, and the comptime
+// VM route their bytecode through `emit_bytecode_from_cfg`. `emit_instr`
+// covers the full `Instruction` set ; unresolved callees / materialisation
+// gaps panic loudly (GATE B1) rather than degrade silently.
 
 module "vader/midir"
 
@@ -889,7 +891,7 @@ cond_branch_merge :: fn(ctx: FnEmitCfg, block_id: BlockId, until: BlockId) -> Bl
 }
 
 // ============================================================================
-// Per-instr emit (minimal subset — Const, Move, BinOp, Call cover arith)
+// Per-instr emit — covers the full `Instruction` set
 // ============================================================================
 
 emit_instr :: fn(ctx: FnEmitCfg, ins: Instruction, pos: i64) -> void {

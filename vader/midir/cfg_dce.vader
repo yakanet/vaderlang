@@ -7,14 +7,11 @@
 //            Y and the Move drops. Unlocks const-folding through let-
 //            bindings (`a :: 7 ; b :: 5 ; a*b` would otherwise stall at
 //            the moves).
-//
-// Future passes :
 //   Pass 1 — `die_once` (dead instruction elimination via per-store
 //            liveness). Runs to fixpoint, max 8 iters.
 //   Pass 2 — `compact_locals` (drop unreferenced locals, renumber).
 //
-// Pass 0 is enough for the simple-arith snippets that motivated this
-// pass ; the deeper passes come incremental.
+// `optimise_function` runs all three passes in order on every fn.
 
 module "vader/midir"
 

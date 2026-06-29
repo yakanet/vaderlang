@@ -1,6 +1,6 @@
 // vader/typecheck/call — CallExpr inference (`f(args)`).
 //
-// MVP behavior :
+// Call checking :
 //   1. Recursively check the callee — its type must be `Fn(params,
 //      return)`. Anything else surfaces T3007 ("not callable").
 //   2. Arg-count check : positional arity must match `params.len()`.
@@ -10,14 +10,15 @@
 //      narrowing). Assignability check surfaces T3001.
 //   4. The CallExpr's static type is the fn's `return_type`.
 //
-// MVP-trimmed :
-//   - No generic-fn type-arg inference. A call to `f :: fn[T](x: T)`
-//     with `T` unresolved returns the unsubstituted return type — the
-//     orchestrator does no further work yet.
-//   - No overload dispatch (`directCallOverloads`) — the resolver
-//     picks one fn per name today.
-//   - No named-arg matching ; positional only.
-//   - No spread-arg handling.
+// Layered on top : overload dispatch (`pick_overload` over the
+// `fn_overloads` buckets), named-arg + default-value normalisation
+// (`normalize_call_args`), and generic-fn type-arg inference
+// (`seed_explicit_type_args` + `unify_type_param`, substituting the
+// resolved bindings into the return type).
+//
+// Not handled :
+//   - Spread-arg handling (`f(...rest)`) ; a variadic param also bails
+//     `normalize_call_args`.
 
 module "vader/typecheck"
 

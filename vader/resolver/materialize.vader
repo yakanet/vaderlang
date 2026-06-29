@@ -7,10 +7,10 @@
 //   1. `materialize_intrinsic_members` — @intrinsic impl with an empty
 //      body : push one stub FnDecl per trait method, signature only.
 //   2. `materialize_default_members`   — trait methods with a default
-//      body : inject for any name the impl didn't override. *Body
-//      cloning is not yet ported* — `body` stays null pending a
-//      consumer in the self-host typechecker. Signature substitution
-//      runs end-to-end.
+//      body : inject for any name the impl didn't override. Clones the
+//      default body via `substitute_block_materialized` and assigns it
+//      to the synthesised `FnDecl.body` ; signature substitution runs
+//      end-to-end.
 //   3. `materialize_sam_members`       — single-abstract-method sugar
 //      (`Foo implements Trait -> expr`) : fill name/params/return_type
 //      on the parser-fabricated synthetic FnDecl(s) from the trait's
@@ -186,8 +186,9 @@ import "vader/parser" { NodeIdFactory, new_node_id_factory }
 /// SAM-synthetic members come out of the parser with a placeholder
 /// name and an empty param list ; the trait's lone required method
 /// supplies the canonical name + signature. Mutates each synthetic
-/// member in place. *Doesn't emit R2016 yet* — SAM shape-mismatch
-/// diagnostics are not surfaced here.
+/// member in place. SAM shape-mismatch diagnostics (R2016) aren't
+/// emitted here — `check_short_impl_arity` (orchestrate.vader) fires
+/// them before this runs.
 export materialize_sam_members :: fn(impl_: AST.ImplDecl, trait_: AST.TraitDecl, factory: NodeIdFactory) -> void {
     syn_count :: count_sam_synthetics(impl_.members)
     if syn_count == 0 { return }

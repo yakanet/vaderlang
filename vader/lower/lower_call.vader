@@ -13,11 +13,9 @@ import "vader/types" { Type, FnType, PrimitiveType, TraitType, ArrayType, AnyTyp
 import "vader/comptime" { EvaluatedProgram }
 import "vader/resolver" { ImportTargetTable }
 
-// Basic call lowering — no direct-call overload overrides, no UFCS
-// rewrites, no generic-fn instance lookups. Lowers the callee + every
-// arg directly. Phase 4 extends this with the typecheck's
-// `directCallOverloads` table once the equivalent surfaces in Vader.
-// Special cases :
+// Call lowering : routes through overload re-typing (`retype_overload_callee`),
+// UFCS rewrites (`try_lower_ufcs_call`), and generic-fn instance lookups
+// before lowering the callee + every arg. Special cases :
 // - `arr.push(x)` / `arr.len()` route to the dedicated
 //   `LoweredArrayPush` / `LoweredArrayLen` ops when the receiver is
 //   an array.

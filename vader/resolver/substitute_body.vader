@@ -13,9 +13,10 @@
 // returns the original sub-tree unchanged (the walker is total but not
 // total-cloning, so partial coverage doesn't trap).
 //
-// NOT YET WIRED : `vader/typecheck/orchestrate.vader` should call this
-// once per impl × default-bodied trait method, then walk the cloned
-// body via `check_block` in entry's typed_program.
+// WIRED VIA : `materialize_default_members` (materialize.vader), which
+// `vader/typecheck/orchestrate.vader` calls once per impl × default-bodied
+// trait method ; the cloned body is then walked by the normal impl-member
+// typecheck pass.
 
 module "vader/resolver"
 

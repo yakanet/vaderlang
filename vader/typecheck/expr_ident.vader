@@ -5,18 +5,18 @@
 //   - Fn / Struct / Enum / Trait / TypeAlias / Const → look up the
 //     decl's declared type in `typed.decl_types` keyed by `name_span`.
 //   - Param → look up `typed.param_types` keyed by the parameter's
-//     own span (populated by `declare_fn` in Phase 2.3).
+//     own span (populated by `declare_fn`).
 //   - TypeParam → mk_type_param(sym) — type-param refs in value
 //     position are usable as the metatype value of that param.
 //   - BuiltinType → `type` (the metatype). A bare reference to a
 //     primitive name in expression context is a type-valued expr ;
 //     `type_expr.vader` handles type-position refs separately.
-//   - Local → `typed.local_types` keyed by the binding's span.
-//     Locals don't land in `local_types` until Phase 4 (stmt) ; until
-//     then this branch returns Unresolved.
-//   - Everything else (ImportBinding, BuiltinFn, Binding, Synthetic) →
-//     Unresolved for MVP. ImportBindings resolve cross-module via
-//     `wire.vader` ; the others land with their producing pass.
+//   - Local / Binding → `typed.local_types` keyed by the binding's span,
+//     populated by `stmt.vader` as it checks each `let` (and by the
+//     pattern binders in `match_expr.vader` / `expr_if.vader`).
+//   - ImportBinding → redirected to its concrete export before lookup, so
+//     it resolves cross-module via `wire.vader`'s `import_targets`.
+//   - BuiltinFn / Impl / Synthetic → carry no value type → Unresolved.
 
 module "vader/typecheck"
 

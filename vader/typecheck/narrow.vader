@@ -1,16 +1,15 @@
 // vader/typecheck/narrow — flow-sensitive type narrowing.
 //
-// API for pushing / popping narrowed types into a per-binding stack.
-// Consumers (`infer_ident`, future `is T as a` handling in
-// `expr_if.vader` / `match_expr.vader`) call `narrow_for_binding` to
-// read the current narrowed type, falling back to the binding's
-// static type when no narrowing is in effect.
+// API for pushing / popping narrowed types into per-binding and per-field
+// stacks. Consumers (`infer_ident`, `infer_field`) call `narrow_for_binding`
+// / `narrow_for_field` to read the current narrowed type, falling back to
+// the static type when no narrowing is in effect.
 //
-// MVP : the API is in place but no producer is wired yet. The
-// resolver's body walker doesn't mint a `Binding` Symbol for the
-// `bind_as` ident of a `BinaryExpr.Is` (it only handles `IsPattern`
-// in match arms today) ; once that lands, `expr_if.vader::infer_if`
-// will call `push_narrow` before the then-branch.
+// Producers are wired : `expr_if.vader` narrows in the then/else branches of
+// `if x is T as a` / `if x == null` (idents and `expr.field` chains alike),
+// `match_expr.vader` narrows per arm, and `stmt.vader` narrows on
+// early-return guards. Each pushes before the narrowed region and restores
+// via the paired `pop_*` on exit.
 
 module "vader/typecheck"
 

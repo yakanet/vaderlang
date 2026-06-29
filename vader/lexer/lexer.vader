@@ -1,17 +1,15 @@
-// vader/lexer/lexer — first cut of the Vader-in-Vader lexer.
+// vader/lexer/lexer — the Vader-in-Vader lexer.
 //
-// Scope of this jet (kept deliberately small to validate the porting path):
+// Produces the token stream the parser consumes:
 //   - whitespace, // line comments, /* block comments */ (nested)
 //   - identifiers + keyword recognition
-//   - decimal int literals with `_` separators and optional suffix
-//   - float literals (digits.digits, optional exponent) with optional suffix
+//   - int literals (decimal + 0x / 0b / 0o) with `_` group separators
+//   - float literals (digits.digits, optional exponent)
+//   - char literals + escape sequences (context-specific set, SPEC §3)
+//   - string literals: plain, raw, triple-quoted, with `${...}` interpolation
 //   - one- and two-char operators, range ops `..<` `..=`
 //   - brackets, punctuation
 //   - newlines with the SUPPRESS_AFTER rules from SPEC §3
-//
-// Deferred (will land in subsequent passes, not blocked):
-//   - char literals + escape sequences
-//   - string literals, raw strings, triple strings, interpolation
 
 module "vader/lexer"
 

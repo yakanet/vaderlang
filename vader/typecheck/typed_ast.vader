@@ -1,11 +1,13 @@
 // vader/typecheck/typed_ast — output shape of the typechecker.
 //
-// The `TypedProgram` interface is MVP-trimmed : side-tables that depend on
-// passes not yet ported
-// (FieldResolution / BinaryOpResolution / IntoCoercion / …) are added
-// alongside their producing pass. Side-tables are span-keyed (line:col)
-// — same convention as `vader/resolver/body.vader::ResolvedFile.idents`,
-// since Vader AST nodes lack stable ids for WeakMap-style indexing.
+// `TypedProgram` carries the side-tables each typecheck pass produces —
+// expression / local / decl / param types, struct & trait decls, narrowing
+// stacks, cross-module type caches, and so on — each populated by its
+// producing pass (`decl.vader`, `stmt.vader`, `field.vader`, `narrow.vader`,
+// the orchestrator, …). Most tables are span-keyed (`line:col`), the same
+// convention as `vader/resolver/body.vader::ResolvedFile.idents` ; the
+// id-stable tables (`expr_types` by `Expr.id`, `decl_types` by `Symbol.id`)
+// note their key in their own field doc.
 
 module "vader/typecheck"
 
@@ -108,12 +110,12 @@ export TypedProgram :: struct {
     impl_methods: MutableMap<string, Type>
 
     /// Per-binding narrowed type stack (`Symbol.id → narrowed Type`).
-    /// `narrow.vader` writes when a flow-sensitive narrowing is active
-    /// (e.g. inside the then-branch of `if x is T as a`) ; readers go
-    /// through `narrow_for_binding` so they fall back to the static
-    /// type when no narrowing is in effect. MVP : not populated yet
-    /// (resolver doesn't thread `bind_as` symbols for `is T as a`
-    /// inside if-exprs).
+    /// `narrow.vader`'s `push_narrow` / `pop_narrow` write when a
+    /// flow-sensitive narrowing is active (e.g. inside the then-branch of
+    /// `if x is T as a`, or a match arm) ; readers go through
+    /// `narrow_for_binding` so they fall back to the static type when no
+    /// narrowing is in effect. Producers live in `expr_if.vader`,
+    /// `match_expr.vader`, and `stmt.vader`.
     narrowed_bindings: MutableMap<i32, Type>
 
     /// Per-field narrowed type stack, keyed by `"${receiver_sym_id}.${field_name}"`.

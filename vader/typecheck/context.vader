@@ -1,10 +1,10 @@
 // vader/typecheck/context — shared context threaded through every typecheck pass.
 //
-// MVP-trimmed. Two layers :
+// Two layers :
 //
 //   - `Globals`    — built once per project. Carries cross-module shared
-//                    state (the symbol factory, the impl registry once
-//                    `impls.vader` lands).
+//                    state : the symbol factory and the auto-imported
+//                    `std/core` symbols.
 //   - `FnContext`  — pushed by `check_fn_body`, drives `return` checking
 //                    and `Self` substitution inside method bodies.
 //

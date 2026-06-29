@@ -3,9 +3,11 @@
 // Type of `if cond { then } else { else }` is the union of branch
 // types. Surface T3019 when the condition isn't `bool`-assignable.
 //
-// Out-of-scope for MVP : `if x is T as a { … }` binding narrowing,
-// numeric-trailing repinning, divergence-aware `Never` folding.
-// Those land with `narrow.vader`.
+// Branch-condition narrowing (`if x is T as a { … }`, `x == null`,
+// `x.f != null`, including `&&` chains) is applied through `narrow.vader`
+// in the then/else branches ; free-numeric branch types repin via
+// `join_if_branches` ; divergent guards (`if … { return }`) narrow the
+// fall-through. See `detect_is_narrow` / `collect_and_narrows`.
 
 module "vader/typecheck"
 

@@ -53,9 +53,10 @@ export emit_block :: fn(block: LoweredBlock, state: FnEmitState, ctx: EmitterCtx
     }
 }
 
-/// Per-stmt dispatcher. Phase 4 covers `Return`, `ExprStmt`, `Let`,
-/// `Assign`, `Loop`, `Break`, `Continue`. `CellSet` (closure cells)
-/// remains a Phase 5 stub.
+/// Per-stmt dispatcher. Routes `Return` / `ExprStmt` / `Let` /
+/// `Assign` / `Loop` / `Break` / `Continue` / `CellSet` to their
+/// `emit_*` handlers. The two `defer` arms are the only unwired
+/// no-ops here — this path doesn't synthesise the defer closure.
 emit_stmt :: fn(stmt: LoweredStmt, state: FnEmitState, ctx: EmitterCtx) -> void {
     match stmt {
         is LoweredReturn as return_stmt     -> emit_return(return_stmt, state, ctx)
@@ -143,12 +144,14 @@ emit_assign :: fn(assign_stmt: LoweredAssign, state: FnEmitState, ctx: EmitterCt
     }
 }
 
-/// Per-expr emit dispatcher. Phase 5 adds `ArrayLit` / `ArrayLen` /
-/// `ArrayPush` / `ArraySlice` / `Index` for collections, `Cast`
-/// (Convert op via target ValType), `TypeConst` / `TypeCheck` for
-/// reflection + match-arm runtime tests, `DataConst` for module-
-/// level const-array literals, and `Unreachable` (no-op stub —
-/// downstream consumers ignore for now).
+/// Per-expr emit dispatcher. Routes every `LoweredExpr` variant to its
+/// `emit_*` handler : literals, idents, calls, control (`If` / `Block`),
+/// aggregates (`StructLit` / `ArrayLit`), collection ops (`ArrayLen` /
+/// `ArrayPush` / `ArraySlice` / `StringSlice` / `Index`), `Cast`
+/// (Convert op via target ValType), reflection (`TypeConst` /
+/// `TypeCheck`), `DataConst` for module-level const-array literals,
+/// closures (`MakeClosure` / `Cell*`), and `Unreachable` (emits a trap
+/// op when `trap` is set).
 emit_expr :: fn(expr: LoweredExpr, state: FnEmitState, ctx: EmitterCtx) -> void {
     match expr {
         is LoweredIntLit as int_lit         -> emit_int_lit(int_lit, state)

@@ -8,13 +8,13 @@
 // Struct / Trait / TypeParam / Union / Fn / Array / Tuple. Unresolvable
 // shapes surface T3002 ("expected an expression of a known type").
 //
-// MVP-trimmed :
-//   - No const-alias / let-alias resolution (Layer 4-sugar).
-//   - No qualified-name resolution (`namespace.Type` via FieldExpr).
-//     Lands when `wire.vader` populates cross-module symbol refs.
-//   - Struct / Trait / Enum return fresh constructor calls — `decl.vader`
-//     (Phase 2.3) will look them up in `decl_types` for the canonical
-//     instance once it's wired.
+// Resolves const-as-type-alias bindings (`Maybe :: i32 | null`) through
+// the resolver's `alias_types` table and qualified `namespace.Type` refs
+// through the per-namespace exports table (`namespace_member_type`).
+//
+// Still trimmed :
+//   - Struct / Trait / Enum return fresh constructor calls — they don't
+//     route through `decl_types` for a canonical shared instance.
 
 module "vader/typecheck"
 

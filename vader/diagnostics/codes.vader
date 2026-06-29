@@ -11,6 +11,12 @@
 // `DiagCode` is the union of every phase's enum so the central `Diagnostic`
 // shape can carry a code from any phase without losing the per-phase
 // exhaustiveness.
+//
+// Not every variant has a live emission site yet : some are reserved for
+// checks not implemented in the self-host compiler (e.g. import-cycle and
+// arg-spread diagnostics landed only once their pass did). A variant without
+// a `<phase>_error(.Variant, ...)` call site is reserved-for-future, not dead
+// — it keeps its wire ID stable for when the check ships.
 
 module "vader/diagnostics"
 

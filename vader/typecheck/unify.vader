@@ -2,9 +2,9 @@
 //
 // Walks the shape of a parameter type against a concrete argument type
 // and extracts the `TypeParam.symbol.id → concrete Type` bindings that
-// make the param match. Used by generic fn dispatch (`infer_call` will
-// consume this once Vader's resolver populates `typeParamSymbols` from
-// FnDecl decls — see PORTING_STATUS.md for the wiring step).
+// make the param match. Consumed by generic fn dispatch in `call.vader`
+// (and UFCS receiver re-unification in `field.vader`) to infer a call's
+// type-args from its positional args.
 //
 // MVP-trimmed: no trait-impl branch (the `paramType is TraitType +
 // concrete arg → look up impl + bind trait args` arm). That

@@ -73,4 +73,4 @@ build_range_lit :: fn(
 // scaffolding to build one stub-free without dragging in the resolver
 // + typechecker is more code than the function under test. The
 // behaviour is exercised by the snippet harness via the `range_*`
-// fixtures once the snapshot flip lands in Phase 6.
+// fixtures (e.g. `tests/snippets/range_widths`).

@@ -6,10 +6,9 @@
 // struct destructure, tuple destructure) are introduced inside the arm
 // block so they're scoped per-arm.
 //
-// Out of scope in Phase 4 : tuple-with-union narrowing (`is null | [a, b]`
-// case) — emits a simple sequential check without the union-variant cast.
-// Full tuple-variant narrowing lands when the typecheck-side
-// `union_variants` accessor surfaces.
+// Tuple-with-union narrowing (`[a, b] | null` scrutinee) is handled :
+// `tuple_pattern_predicate` seeds an `is [tuple]` check to narrow the
+// union, then reads the element slots off the narrowed value.
 //
 // Callback parameters break the `lower_expr ↔ lower_match` import
 // cycle ; top-level fn-type aliases hit a parser limitation in Vader

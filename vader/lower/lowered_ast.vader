@@ -593,9 +593,8 @@ export INTRINSIC_ARRAY_CLEAR :: "array.clear"
 // Constructors
 // ============================================================================
 
-/// Construct an empty `LoweredProject`. Phase 2 / phase 3 callers use
-/// this until the orchestrator fills `modules` and the vtable / data
-/// pool tables.
+/// Construct an empty `LoweredProject`. The lowering orchestrator fills
+/// `modules` and the vtable / data pool tables as it processes each module.
 /// @return  a fresh project with empty modules + side-tables.
 export new_lowered_project :: fn() -> LoweredProject {
     return LoweredProject {
